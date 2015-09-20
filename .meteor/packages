@@ -7,3 +7,6 @@
 meteor-platform
 iron:router
 ecmascript
+accounts-password
+ian:accounts-ui-bootstrap-3
+twbs:bootstrap
