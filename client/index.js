@@ -13,3 +13,12 @@ Template.hello.events({
     Session.set('counter', Session.get('counter') + 1);
   }
 });
+
+Router.configure({
+  layoutTemplate: 'layouts/main'
+});
+Router.route('/', function() {
+});
+Router.route('/hello', function() {
+  this.render('hello');
+});
