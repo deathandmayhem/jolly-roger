@@ -2,23 +2,15 @@
 Session.setDefault('counter', 0);
 
 Template.hello.helpers({
-  counter: function () {
-    return Session.get('counter');
-  }
+  counter: () => Session.get('counter')
 });
 
 Template.hello.events({
-  'click button': function () {
-    // increment the counter when button is clicked
-    Session.set('counter', Session.get('counter') + 1);
-  }
+  'click button': () => Session.set('counter', Session.get('counter') + 1)
 });
 
 Router.configure({
   layoutTemplate: 'layouts/main'
 });
-Router.route('/', function() {
-});
-Router.route('/hello', function() {
-  this.render('hello');
-});
+Router.route('/', () => {});
+Router.route('/hello', () => this.render('hello'));

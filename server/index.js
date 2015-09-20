@@ -1,3 +1,3 @@
-Meteor.startup(function () {
+Meteor.startup(() => {
   // code to run on server at startup
 });
