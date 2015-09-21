@@ -2,3 +2,7 @@
 body {
     padding-top: 50px;
 }
+
+.navbar-brand {
+    padding: 0;
+}
