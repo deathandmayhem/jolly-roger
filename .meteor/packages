@@ -10,3 +10,5 @@ ecmascript
 accounts-password
 twbs:bootstrap
 audit-argument-checks
+accounts-ui-unstyled
+jamielob:accounts-ui-no-dropdown
