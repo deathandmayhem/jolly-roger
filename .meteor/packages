@@ -10,5 +10,7 @@ ecmascript
 accounts-password
 twbs:bootstrap
 audit-argument-checks
-accounts-ui-unstyled
-jamielob:accounts-ui-no-dropdown
+useraccounts:bootstrap
+useraccounts:iron-routing
+meteorhacks:kadira
+meteorhacks:zones
