@@ -1,8 +1,12 @@
 /* CSS declarations go here */
 body {
-    padding-top: 50px;
+    padding-top: 70px;
 }
 
 .navbar-brand {
     padding: 0;
+}
+
+#login.jumbotron img {
+    max-width: 75%;
 }
