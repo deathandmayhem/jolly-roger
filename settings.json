@@ -1,0 +1,9 @@
+{
+  "sharejs": {
+    "options": {
+      "db": {
+        "opsCollectionPerDoc": false
+      }
+    }
+  }
+}
