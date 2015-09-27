@@ -2,6 +2,7 @@ Template['layouts/main'].helpers({
   statusIs(status) {
     return Meteor.status().status === status;
   },
+  // Only valid if statusIs "failed"
   reason() {
     return Meteor.status().reason;
   },
