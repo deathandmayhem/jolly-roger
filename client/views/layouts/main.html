@@ -27,6 +27,32 @@
     </div>
 
     <div class="container">
+      {{#if statusIs "connecting"}}
+        <div class="alert alert-warning" role="alert">
+          Reconnecting to Jolly Roger...
+        </div>
+      {{/if}}
+      {{#if statusIs "failed"}}
+        <div class="alert alert-danger" role="alert">
+          <strong>Oh no!</strong> Unable to connect to Jolly Roger:
+          {{reason}}
+        </div>
+      {{/if}}
+      {{#if statusIs "waiting"}}
+        <div class="alert alert-warning" role="alert">
+          Reconnecting to Jolly Roger in
+          {{timeToRetry}}s... <a href="#" id="jr-reconnect">retry
+          now</a>
+        </div>
+      {{/if}}
+      {{#if statusIs "offline"}}
+        <div class="alert alert-warning" role="alert">
+          <strong>Warning!</strong> Currently not connected to Jolly
+          Roger server. Changes will be synced when you
+          reconnect. <a href="#" id="jr-reconnect">reconnect now</a>
+        </div>
+      {{/if}}
+
       {{> yield}}
     </div>
   </div>
