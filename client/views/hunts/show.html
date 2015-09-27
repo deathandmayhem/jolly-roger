@@ -1,7 +1,15 @@
 <template name="hunts/show">
-  {{#each getChildren}}
-    <div>
-      {{> Template.dynamic template="partials/puzzle"}}
+  <div class="jr-hunt-show">
+    {{#if userHasPermission "mongo.puzzles.insert"}}
+      <button type="button" class="btn btn-success btn-xs jr-btn-puzzle-new" data-parent-type="hunt" data-parent-id={{_id}}>
+        <span class="glyphicon glyphicon-plus"></span>
+      </button>
+    {{/if}}
+
+    <div class="jr-hunt-show-puzzles">
+      {{#each getChildren}}
+        {{> Template.dynamic template="partials/puzzle"}}
+      {{/each}}
     </div>
-  {{/each}}
+  </div>
 </template>
