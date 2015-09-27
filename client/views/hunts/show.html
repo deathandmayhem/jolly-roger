@@ -1,0 +1,13 @@
+<template name="hunts/show">
+  {{#if Template.subscriptionsReady}}
+    {{#with hunt}}
+      {{#each getChildren}}
+        <div>
+          {{> Template.dynamic template="partials/puzzle"}}
+        </div>
+      {{/each}}
+    {{/with}}
+  {{else}}
+    Loading...
+  {{/if}}
+</template>

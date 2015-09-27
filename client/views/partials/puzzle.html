@@ -1,0 +1,8 @@
+<template name="partials/puzzle">
+  {{title}}
+  <ul>
+    {{#each getChildren}}
+      <li>{{> Template.dynamic template="partials/puzzle"}}</li>
+    {{/each}}
+  </ul>
+</template>
