@@ -1,11 +1,12 @@
-Template['hunts/show'].helpers({
-  hunt() {
-    let huntId = Iron.controller().params.id;
-    return JR.Models.Hunts.findOne(huntId);
+Router.route('/hunts/:id', {
+  name: 'hunts/show',
+  waitOn() {
+    return [
+      Meteor.subscribe('mongo.hunts', {_id: this.params.id}),
+      Meteor.subscribe('mongo.puzzles', {hunt: this.params.id})
+    ];
+  },
+  data() {
+    return JR.Models.Hunts.findOne(this.params.id);
   }
-});
-Template['hunts/show'].onCreated(function() {
-  let c = Iron.controller();
-  this.subscribe('mongo.hunts', {_id: c.params.id});
-  this.subscribe('mongo.puzzles', {hunt: c.params.id});
 });
