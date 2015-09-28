@@ -1,3 +1,11 @@
+Template['partials/puzzle'].helpers({
+  disableClass(val) {
+    if (!val) {
+      return "disabled";
+    }
+  }
+});
+
 findTarget = function(event) {
   const id = $(event.currentTarget).data('id');
   const parent = Transforms.Puzzle.getParent(id);
@@ -45,5 +53,5 @@ Template['partials/puzzle'].events({
 
     children.splice(children.length - 1, 0, ...children.splice(idx, 1));
     model.update(id, {$set: {children}});
-  }
+  },
 });

@@ -2,12 +2,18 @@
   <div class="jr-puzzle" id="jr-puzzle-{{_id}}">
     {{title}}
     <div class="btn-group btn-group-xs" role="group">
+      <a href={{url}} target="_blank" class="btn btn-primary jr-btn-puzzle-open {{disableClass url}}" title="Open puzzle...">
+        <span class="glyphicon glyphicon-new-window"></span>
+      </a>
       {{#if userHasPermission "mongo.puzzles.insert"}}
         <button type="button" class="btn btn-success jr-btn-puzzle-new" data-parent-type="puzzle" data-parent-id={{_id}}>
           <span class="glyphicon glyphicon-plus"></span>
         </button>
       {{/if}}
       {{#if userHasPermission "mongo.puzzles.update"}}
+        <button type="button" class="btn btn-default jr-btn-puzzle-edit" data-id={{_id}}>
+          <span class="glyphicon glyphicon-edit"></span>
+        </button>
         <button type="button" class="btn btn-default jr-btn-puzzle-top" data-id={{_id}}>
           <span class="glyphicon glyphicon-triangle-top"></span>
         </button>
@@ -29,9 +35,9 @@
     </div>
 
     {{#with getChildren}}
-      <ul class="list-group jr-puzzle-children">
+      <ul class="jr-puzzle-children">
         {{#each .}}
-          <li class="list-group-item">{{> Template.dynamic template="partials/puzzle"}}</li>
+          <li>{{> Template.dynamic template="partials/puzzle"}}</li>
         {{/each}}
       </ul>
     {{/with}}

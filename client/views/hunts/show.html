@@ -7,9 +7,9 @@
     {{/if}}
 
     <div class="jr-hunt-show-puzzles">
-      <ul class="list-group">
+      <ul>
         {{#each getChildren}}
-          <li class="list-group-item" id="jr-puzzle-li-{{_id}}">{{> Template.dynamic template="partials/puzzle"}}</li>
+          <li id="jr-puzzle-li-{{_id}}">{{> Template.dynamic template="partials/puzzle"}}</li>
         {{/each}}
       </ul>
     </div>
