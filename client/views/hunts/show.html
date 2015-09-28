@@ -1,7 +1,7 @@
 <template name="hunts/show">
   <div class="jr-hunt-show">
     {{#if userHasPermission "mongo.puzzles.insert"}}
-      <button type="button" class="btn btn-success btn-xs jr-btn-puzzle-new" data-parent-type="hunt" data-parent-id={{_id}}>
+      <button type="button" class="btn btn-success btn-xs jr-btn-puzzle-new" data-parent-type="hunt" data-parent-id={{_id}} title="Add new top-level puzzle...">
         <span class="glyphicon glyphicon-plus"></span>
       </button>
     {{/if}}
