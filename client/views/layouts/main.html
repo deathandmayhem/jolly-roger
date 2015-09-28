@@ -1,6 +1,6 @@
 <template name="layouts/main">
   <div class="jr-layouts-main">
-    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="navbar navbar-default navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
           <a class="navbar-brand" href="#">
@@ -28,25 +28,25 @@
 
     <div class="container">
       {{#if statusIs "connecting"}}
-        <div class="alert alert-warning" role="alert">
+        <div class="alert alert-warning">
           Reconnecting to Jolly Roger...
         </div>
       {{/if}}
       {{#if statusIs "failed"}}
-        <div class="alert alert-danger" role="alert">
+        <div class="alert alert-danger">
           <strong>Oh no!</strong> Unable to connect to Jolly Roger:
           {{reason}}
         </div>
       {{/if}}
       {{#if statusIs "waiting"}}
-        <div class="alert alert-warning" role="alert">
+        <div class="alert alert-warning">
           Reconnecting to Jolly Roger in
           {{timeToRetry}}s... <a href="#" id="jr-reconnect">retry
           now</a>
         </div>
       {{/if}}
       {{#if statusIs "offline"}}
-        <div class="alert alert-warning" role="alert">
+        <div class="alert alert-warning">
           <strong>Warning!</strong> Currently not connected to Jolly
           Roger server. Changes will be synced when you
           reconnect. <a href="#" id="jr-reconnect">reconnect now</a>
