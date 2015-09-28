@@ -6,7 +6,7 @@ Template['partials/puzzle'].helpers({
   }
 });
 
-findTarget = function(event) {
+findTarget = function (event) {
   const id = $(event.currentTarget).data('id');
   const parent = Transforms.Puzzle.getParent(id);
   const idx = parent.children.indexOf(id);
@@ -15,7 +15,7 @@ findTarget = function(event) {
 };
 
 Template['partials/puzzle'].events({
-  'click .jr-btn-puzzle-top': function (event) {
+  'click .jr-btn-puzzle-top': event => {
     let [model, id, children, idx] = findTarget(event);
     if (idx === 0) {
       return;
@@ -25,7 +25,7 @@ Template['partials/puzzle'].events({
     model.update(id, {$set: {children}});
   },
 
-  'click .jr-btn-puzzle-up': function (event) {
+  'click .jr-btn-puzzle-up': event => {
     let [model, id, children, idx] = findTarget(event);
     if (idx === 0) {
       return;
@@ -35,7 +35,7 @@ Template['partials/puzzle'].events({
     model.update(id, {$set: {children}});
   },
 
-  'click .jr-btn-puzzle-down': function (event) {
+  'click .jr-btn-puzzle-down': event => {
     let [model, id, children, idx] = findTarget(event);
     if (idx === children.length - 1) {
       return;
@@ -45,7 +45,7 @@ Template['partials/puzzle'].events({
     model.update(id, {$set: {children}});
   },
 
-  'click .jr-btn-puzzle-bottom': function (event) {
+  'click .jr-btn-puzzle-bottom': event => {
     let [model, id, children, idx] = findTarget(event);
     if (idx === children.length - 1) {
       return;

@@ -13,7 +13,7 @@ Template['layouts/main'].helpers({
 });
 
 Template['layouts/main'].events({
-  'click #jr-reconnect': function(event) {
+  'click #jr-reconnect': function (event) {
     Meteor.reconnect();
     event.preventDefault();
   }
