@@ -1,6 +1,6 @@
 findTarget = function(event) {
   const id = $(event.currentTarget).data('id');
-  const parent = JR.Transforms.Puzzle.getParent(id);
+  const parent = Transforms.Puzzle.getParent(id);
   const idx = parent.children.indexOf(id);
 
   return [parent.model, parent._id, parent.children, idx];

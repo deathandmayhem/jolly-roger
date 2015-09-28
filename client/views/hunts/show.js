@@ -7,6 +7,6 @@ Router.route('/hunts/:id', {
     ];
   },
   data() {
-    return JR.Models.Hunts.findOne(this.params.id);
+    return Models.Hunts.findOne(this.params.id);
   }
 });
