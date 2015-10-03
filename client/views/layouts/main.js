@@ -1,4 +1,7 @@
 Template['layouts/main'].helpers({
+  currentRouteIs(name) {
+    return Router.current().route.getName() == name;
+  },
   statusIs(status) {
     return Meteor.status().status === status;
   },
