@@ -1,0 +1,37 @@
+<template name="hunts/index">
+  <h1>Hunts</h1>
+
+  {{#if userHasPermission "mongo.hunts.insert"}}
+    {{#linkTo route='hunts/new' type="button" class="btn btn-success btn-xs jr-btn-hunt-new" title="Add new hunt..."}}
+      <span class="glyphicon glyphicon-plus"></span>
+    {{/linkTo}}
+  {{/if}}
+
+  <ul>
+    {{#each .}}
+      <li>
+        {{#linkTo route='hunts/show' data=.}}
+          {{name}}
+        {{/linkTo}}
+      </li>
+    {{/each}}
+  </ul>
+
+  <div id="jr-hunt-new-modal" class="modal fade">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          {{#linkTo route='hunts/index' class="close"}}&times;{{/linkTo}}
+          <h4 class="modal-title">New hunt</h4>
+        </div>
+        <div class="modal-body">
+          <p>Hullo&hellip;</p>
+        </div>
+        <div class="modal-footer">
+          {{#linkTo route='hunts/index' class="btn btn-default"}}Close{{/linkTo}}
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

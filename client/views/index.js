@@ -1,3 +1,3 @@
 Router.route('/', function () {
-  this.redirect('hunts/list');
+  this.redirect('hunts/index');
 });
