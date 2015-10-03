@@ -23,10 +23,19 @@ meteor --release PLUGINS-PREVIEW@2
 This goes for all Meteor commands (e.g. `meteor add`, `meteor mongo`,
 `meteor shell`) that you run.
 
+Organization
+------------
+
+Jolly Roger is primarily structured as a client-side app. The server
+primarily performs authentication (and authorization, for writes), but
+otherwise largely exposes Meteor's MongoDB interfaces for direct
+consumption by the client. The server performs no authorization for
+accessing data - any authenticated user can query any app model.
+
 Models
 ------
 
-All Jolly Roger database models have defined schemas ot try and
+All Jolly Roger database models have defined schemas to try and
 protect our sanity. Each model should use SimpleSchema's support for
 [chaining][simple-schema-chaining] to include the `Schemas.Base`
 schema, which adds standardized fields like `createdAt` and
