@@ -28,12 +28,16 @@ AutoForm.addHooks('jr-hunt-new-form', {
 });
 
 Template['hunts/index'].onRendered(function () {
-  $('#jr-hunt-new-modal').on('shown.bs.modal', () => {
-    $('#jr-hunt-new-form input[name=name]').focus();
-  });
-  $('#jr-hunt-new-modal').on('hide.bs.modal', () => {
-    Router.go('hunts/index');
-  });
+  $('#jr-hunt-new-modal').
+    on('show.bs.modal', () => {
+      AutoForm.resetForm('jr-hunt-new-form');
+    }).
+    on('shown.bs.modal', () => {
+      $('#jr-hunt-new-form input[name=name]').focus();
+    }).
+    on('hide.bs.modal', () => {
+      Router.go('hunts/index');
+    });
 
   this.autorun(() => {
     const route = Router.current().route.getName();
