@@ -1,11 +1,3 @@
-Template['partials/puzzle'].helpers({
-  disableClass(val) {
-    if (!val) {
-      return "disabled";
-    }
-  }
-});
-
 findTarget = function (event) {
   const id = $(event.currentTarget).data('id');
   const parent = Transforms.Puzzle.getParent(id);

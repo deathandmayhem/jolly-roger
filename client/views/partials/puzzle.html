@@ -5,7 +5,7 @@
       - <strong>{{answer}}</strong>
     {{/if}}
     <div class="btn-group btn-group-xs">
-      <a href={{url}} target="_blank" class="btn btn-primary jr-btn-puzzle-open {{disableClass url}}" title="Open puzzle...">
+      <a href={{url}} target="_blank" class="btn btn-primary jr-btn-puzzle-open {{#unless url}}disabled{{/unless}}" title="Open puzzle...">
         <span class="glyphicon glyphicon-new-window"></span>
       </a>
       {{#if userHasPermission "mongo.puzzles.insert"}}
