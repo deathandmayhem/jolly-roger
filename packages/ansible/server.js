@@ -23,9 +23,9 @@ Meteor.methods({
 
     const log = console[level];
     if (obj) {
-      log("[%s] %s: %s", this.userId, line, logfmt.stringify(obj));
+      log('[%s] %s: %s', this.userId, line, logfmt.stringify(obj));
     } else {
-      log("[%s] %s", this.userId, line);
+      log('[%s] %s', this.userId, line);
     }
-  }
+  },
 });

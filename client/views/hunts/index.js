@@ -4,10 +4,11 @@ const options = {
   waitOn() {
     return Meteor.subscribe('mongo.hunts');
   },
+
   data() {
     // TODO: sort?
     return Models.Hunts.find();
-  }
+  },
 };
 
 Router.route('/hunts', _.extend({
@@ -22,13 +23,13 @@ AutoForm.addHooks('jr-hunt-new-form', {
   onSuccess(_, result) {
     Ansible.log('Created new hunt', {
       _id: result,
-      name: Models.Hunts.findOne(result).name
+      name: Models.Hunts.findOne(result).name,
     });
     $('#jr-hunt-new-modal').modal('hide');
-  }
+  },
 });
 
-Template['hunts/index'].onRendered(function () {
+Template['hunts/index'].onRendered(function() {
   $('#jr-hunt-new-modal').
     on('show.bs.modal', () => {
       AutoForm.resetForm('jr-hunt-new-form');

@@ -3,10 +3,10 @@ Accounts.onLogin((info) => {
     return;
   }
 
-  Ansible.log("User logged in", {
+  Ansible.log('User logged in', {
     user: info.user._id,
     email: info.methodArguments[0].user.email,
-    ip: info.connection.clientAddress
+    ip: info.connection.clientAddress,
   });
 });
 
@@ -15,6 +15,6 @@ Accounts.onLoginFailure((info) => {
     user: info.user._id,
     email: info.methodArguments[0].user.email,
     ip: info.connection.clientAddress,
-    error: info.error.reason
+    error: info.error.reason,
   });
 });

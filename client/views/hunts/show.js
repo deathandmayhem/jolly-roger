@@ -2,15 +2,16 @@ const options = {
   waitOn() {
     return [
       Meteor.subscribe('mongo.hunts', {_id: this.params._id}),
-      Meteor.subscribe('mongo.puzzles', {hunt: this.params._id})
+      Meteor.subscribe('mongo.puzzles', {hunt: this.params._id}),
     ];
   },
+
   data() {
     return Models.Hunts.findOne(this.params._id);
-  }
+  },
 };
 Router.route('/hunts/:_id', _.extend({
-  name: 'hunts/show'
+  name: 'hunts/show',
 }, options));
 Router.route('/hunts/:_id/new', _.extend({
   name: 'puzzles/new',
@@ -23,25 +24,27 @@ AutoForm.addHooks('jr-puzzle-new-form', {
     Ansible.log('Created new puzzle', {
       _id: result,
       hunt: controller.params._id,
-      title: Models.Puzzles.findOne(result).title
+      title: Models.Puzzles.findOne(result).title,
     });
 
     // We need to add this puzzle to someone's children list, or it
     // doesn't exist
-    let parentModel, parentId = controller.params.query.parent;
+    let parentId = controller.params.query.parent;
+    let parentModel;
     if (parentId) {
       parentModel = Models.Puzzles;
     } else {
       parentModel = Models.Hunts;
       parentId = controller.params._id;
     }
+
     parentModel.update({_id: parentId}, {$push: {children: result}});
 
     $('#jr-puzzle-new-modal').modal('hide');
-  }
+  },
 });
 
-Template['hunts/show'].onRendered(function () {
+Template['hunts/show'].onRendered(function() {
   $('#jr-puzzle-new-modal').
     on('show.bs.modal', () => {
       AutoForm.resetForm('jr-puzzle-new-form');

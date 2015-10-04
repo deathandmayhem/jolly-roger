@@ -3,7 +3,7 @@ Package.describe({
   version: '1.0.0',
 });
 
-Package.onUse(function (api) {
+Package.onUse(function(api) {
   api.export('Ansible');
   api.use('ecmascript');
   api.use('ecmascript-collections');
@@ -12,5 +12,5 @@ Package.onUse(function (api) {
 });
 
 Npm.depends({
-  logfmt: '1.2.0'
+  logfmt: '1.2.0',
 });

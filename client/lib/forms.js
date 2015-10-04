@@ -15,7 +15,7 @@ AutoForm.addHooks(null, {
     if (error instanceof Meteor.Error) {
       Session.set('formError', error);
     }
-  }
+  },
 });
 UI.registerHelper('formError', () => Session.get('formError'));
 Template.autoForm.onCreated(() => Session.set('formError', null));
