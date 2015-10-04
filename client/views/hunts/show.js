@@ -19,18 +19,19 @@ Router.route('/hunts/:_id/new', _.extend({
 
 AutoForm.addHooks('jr-puzzle-new-form', {
   onSuccess(_, result) {
-    Ansible.log('Created new puzzle', {_id: result});
-    let parentModel, parentId = Router.current().params.query.parent;
+    const controller = Router.current();
+    Ansible.log('Created new puzzle', {_id: result, hunt: controller.params._id});
+    let parentModel, parentId = controller.params.query.parent;
     if (parentId) {
       parentModel = Models.Puzzles;
     } else {
       parentModel = Models.Hunts;
-      parentId = Router.current().params._id;
+      parentId = controller.params._id;
     }
 
     parentModel.update({_id: parentId}, {$push: {children: result}});
 
-    Router.go('hunts/show', Router.current().params);
+    Router.go('hunts/show', controller.params);
   }
 });
 
