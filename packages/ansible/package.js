@@ -9,7 +9,6 @@ Package.onUse(function (api) {
   api.use('ecmascript-collections');
   api.addFiles(['lib.js']);
   api.addFiles(['server.js'], 'server');
-  api.addFiles(['client.js'], 'client');
 });
 
 Npm.depends({

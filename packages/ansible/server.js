@@ -12,7 +12,8 @@ Meteor.methods({
     check(line, String);
     check(obj, Match.Optional(Object));
 
-    if (!this.userId) {
+    // this.connection is null for server calls, which we allow
+    if (!this.userId && this.connection) {
       throw new Meteor.Error(403, 'Server logging is only allowed for logged in users');
     }
 
