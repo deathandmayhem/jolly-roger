@@ -20,7 +20,16 @@ Router.route('/hunts/new', _.extend({
   template: 'hunts/index',
 }, options));
 
+AutoForm.addHooks('jr-hunt-new-form', {
+  onSuccess() {
+    Router.go('hunts/index');
+  }
+});
+
 Template['hunts/index'].onRendered(function () {
+  $('#jr-hunt-new-modal').on('shown.bs.modal', () => {
+    $('#jr-hunt-new-form input[name=name]').focus();
+  });
   $('#jr-hunt-new-modal').on('hide.bs.modal', () => {
     Router.go('hunts/index');
   });
