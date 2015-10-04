@@ -24,7 +24,7 @@ AutoForm.addHooks('jr-hunt-new-form', {
       _id: result,
       name: Models.Hunts.findOne(result).name
     });
-    Router.go('hunts/index');
+    $('#jr-hunt-new-modal').modal('hide');
   }
 });
 

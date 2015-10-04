@@ -25,6 +25,9 @@ AutoForm.addHooks('jr-puzzle-new-form', {
       hunt: controller.params._id,
       title: Models.Puzzles.findOne(result).title
     });
+
+    // We need to add this puzzle to someone's children list, or it
+    // doesn't exist
     let parentModel, parentId = controller.params.query.parent;
     if (parentId) {
       parentModel = Models.Puzzles;
@@ -32,10 +35,9 @@ AutoForm.addHooks('jr-puzzle-new-form', {
       parentModel = Models.Hunts;
       parentId = controller.params._id;
     }
-
     parentModel.update({_id: parentId}, {$push: {children: result}});
 
-    Router.go('hunts/show', controller.params);
+    $('#jr-puzzle-new-modal').modal('hide');
   }
 });
 
