@@ -1,4 +1,8 @@
 Accounts.onLogin((info) => {
+  if (info.type == 'resume') {
+    return;
+  }
+
   Ansible.log("User logged in", {
     user: info.user._id,
     email: info.methodArguments[0].user.email,
