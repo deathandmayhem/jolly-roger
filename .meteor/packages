@@ -7,6 +7,7 @@
 meteor-platform
 iron:router
 ecmascript
+ecmascript-collections
 accounts-password
 twbs:bootstrap
 audit-argument-checks
@@ -18,3 +19,4 @@ mizzao:sharejs
 aldeed:collection2
 nicolaslopezj:roles
 aldeed:autoform
+ansible
