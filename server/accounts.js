@@ -1,5 +1,5 @@
 Accounts.onLogin((info) => {
-  if (info.type == 'resume') {
+  if (info.type === 'resume') {
     return;
   }
 
