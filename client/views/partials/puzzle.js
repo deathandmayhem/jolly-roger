@@ -22,6 +22,7 @@ Template['partials/puzzle'].events({
     }
 
     children.splice(0, 0, ...children.splice(idx, 1));
+    Ansible.log("Moving puzzle", {_id: id, change: 'top', from: idx, to: 0});
     model.update(id, {$set: {children}});
   },
 
@@ -32,6 +33,7 @@ Template['partials/puzzle'].events({
     }
 
     children.splice(idx - 1, 0, ...children.splice(idx, 1));
+    Ansible.log("Moving puzzle", {_id: id, change: 'up', from: idx, to: idx - 1});
     model.update(id, {$set: {children}});
   },
 
@@ -42,6 +44,7 @@ Template['partials/puzzle'].events({
     }
 
     children.splice(idx + 1, 0, ...children.splice(idx, 1));
+    Ansible.log("Moving puzzle", {_id: id, change: 'down', from: idx, to: idx + 1});
     model.update(id, {$set: {children}});
   },
 
@@ -52,6 +55,7 @@ Template['partials/puzzle'].events({
     }
 
     children.splice(children.length - 1, 0, ...children.splice(idx, 1));
+    Ansible.log("Moving puzzle", {_id: id, change: 'bottom', from: idx, to: children.length - 1});
     model.update(id, {$set: {children}});
   },
 });
