@@ -2,9 +2,7 @@
 // is a modal on top of the list
 const options = {
   waitOn() {
-    return [
-      Meteor.subscribe('mongo.hunts')
-    ];
+    return Meteor.subscribe('mongo.hunts');
   },
   data() {
     // TODO: sort?
