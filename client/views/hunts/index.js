@@ -20,7 +20,10 @@ Router.route('/hunts/new', _.extend({
 
 AutoForm.addHooks('jr-hunt-new-form', {
   onSuccess(_, result) {
-    Ansible.log('Created new hunt', {_id: result});
+    Ansible.log('Created new hunt', {
+      _id: result,
+      name: Models.Hunts.findOne(result).name
+    });
     Router.go('hunts/index');
   }
 });
