@@ -9,9 +9,9 @@
         <span class="glyphicon glyphicon-new-window"></span>
       </a>
       {{#if userHasPermission "mongo.puzzles.insert"}}
-        <button type="button" class="btn btn-success jr-btn-puzzle-new" data-parent-type="puzzle" data-parent-id={{_id}} title="Add child puzzle...">
+        {{#linkTo route='puzzles/new' data=hunt query=parent type="button" class="btn btn-success jr-btn-puzzle-new" title="Add child puzzle..."}}
           <span class="glyphicon glyphicon-plus"></span>
-        </button>
+        {{/linkTo}}
       {{/if}}
       {{#if userHasPermission "mongo.puzzles.update"}}
         <button type="button" class="btn btn-default jr-btn-puzzle-edit" data-id={{_id}} title="Edit puzzle...">

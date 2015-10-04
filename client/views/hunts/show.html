@@ -1,9 +1,9 @@
 <template name="hunts/show">
   <div class="jr-hunt-show">
     {{#if userHasPermission "mongo.puzzles.insert"}}
-      <button type="button" class="btn btn-success btn-xs jr-btn-puzzle-new" data-parent-type="hunt" data-parent-id={{_id}} title="Add new top-level puzzle...">
+      {{#linkTo route='puzzles/new' data=. type="button" class="btn btn-success btn-xs jr-btn-puzzle-new" title="Add new top-level puzzle..."}}
         <span class="glyphicon glyphicon-plus"></span>
-      </button>
+      {{/linkTo}}
     {{/if}}
 
     <div class="jr-hunt-show-puzzles">
@@ -12,6 +12,33 @@
           <li id="jr-puzzle-li-{{_id}}">{{> Template.dynamic template="partials/puzzle"}}</li>
         {{/each}}
       </ul>
+    </div>
+  </div>
+
+  <div id="jr-puzzle-new-modal" class="modal fade">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        {{#autoForm collection="Models.Puzzles" id="jr-puzzle-new-form" type="insert"}}
+          <div class="modal-header">
+            {{#linkTo route='hunts/show' data=. class="close"}}&times;{{/linkTo}}
+            <h4 class="modal-title">New puzzle</h4>
+          </div>
+          <div class="modal-body">
+            {{#with formError}}
+              <div class="alert alert-danger">
+                Problem creating a new puzzle: {{reason}}
+              </div>
+            {{/with}}
+            {{> afQuickField name='hunt' type='hidden' value=_id}}
+            {{> afQuickField name='title'}}
+            {{> afQuickField name='url' type='url'}}
+          </div>
+          <div class="modal-footer">
+            {{#linkTo route='hunts/show' data=. class="btn btn-default"}}Close{{/linkTo}}
+            <button type="submit" class="btn btn-primary">Add puzzle</button>
+          </div>
+        {{/autoForm}}
+      </div>
     </div>
   </div>
 </template>

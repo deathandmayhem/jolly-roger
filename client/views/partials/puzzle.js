@@ -1,3 +1,12 @@
+Template['partials/puzzle'].helpers({
+  hunt() {
+    return Models.Hunts.findOne(this.hunt);
+  },
+  parent() {
+    return {parent: this._id};
+  }
+});
+
 findTarget = function (event) {
   const id = $(event.currentTarget).data('id');
   const parent = Transforms.Puzzle.getParent(id);
