@@ -16,12 +16,27 @@ release of Meteor doesn't support the `ecmascript` package, which
 wires up Babel, so you have to explicitly request the pre-release
 version:
 
-```
+```bash
 meteor --release PLUGINS-PREVIEW@2
 ```
 
 This goes for all Meteor commands (e.g. `meteor add`, `meteor mongo`,
 `meteor shell`) that you run.
+
+Right now, there's no user onboarding flow, so you'll have to manually
+create a user:
+
+```js
+meteor --release PLUGINS-PREVIEW@2 shell
+> Accounts.createUser({email: 'broder@mit.edu', password: 'password'})
+'WaoEku3wBrWLLc7pK'
+```
+
+You'll probably also want to make yourself an admin:
+
+```js
+> Roles.addUserToRoles('WaoEku3wBrWLLc7pK', 'admin')
+```
 
 Organization
 ------------
