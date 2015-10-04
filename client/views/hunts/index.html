@@ -26,6 +26,11 @@
             <h4 class="modal-title">New hunt</h4>
           </div>
           <div class="modal-body">
+            {{#with formError}}
+              <div class="alert alert-danger">
+                Problem creating a new hunt: {{reason}}
+              </div>
+            {{/with}}
             {{> afQuickField name='name'}}
           </div>
           <div class="modal-footer">

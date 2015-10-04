@@ -15,7 +15,6 @@ const options = {
 Router.route('/hunts', _.extend({
   name: 'hunts/index',
 }, options));
-// TODO: What to do if the user doesn't have insert permissions?
 Router.route('/hunts/new', _.extend({
   name: 'hunts/new',
   template: 'hunts/index',
