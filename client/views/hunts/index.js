@@ -21,6 +21,10 @@ Router.route('/hunts/new', _.extend({
 }, options));
 
 Template['hunts/index'].onRendered(function () {
+  $('#jr-hunt-new-modal').on('hide.bs.modal', () => {
+    Router.go('hunts/index');
+  });
+
   this.autorun(() => {
     const route = Router.current().route.getName();
     $('#jr-hunt-new-modal').modal(route === 'hunts/new' ? 'show' : 'hide');
