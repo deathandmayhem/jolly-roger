@@ -47,6 +47,14 @@ otherwise largely exposes Meteor's MongoDB interfaces for direct
 consumption by the client. The server performs no authorization for
 accessing data - any authenticated user can query any app model.
 
+Style
+-----
+
+This project uses [Airbnb's JavaScript style
+guide][airbnb-javascript]. It's not perfect, but it's one of the more
+modern presets, and if nothing else it forces some
+consistency. There's an included [JSCS][] config file.
+
 Models
 ------
 
@@ -75,9 +83,11 @@ control modifications. Templates and other code should be written to
 take roles into account, but in practice we'll likely use the admin
 role for controlling virtually all permissioning.
 
+[airbnb-javascript]: https://github.com/airbnb/javascript
 [babeljs]: http://babeljs.io
 [collection2]: https://atmospherejs.com/aldeed/collection2
 [es6]: https://github.com/lukehoban/es6features
 [iron-router]: https://atmospherejs.com/iron/router
+[JSCS]: http://jscs.info/
 [roles]: https://atmospherejs.com/nicolaslopezj/roles
 [simple-schema-chaining]: https://github.com/aldeed/meteor-simple-schema#combining-simpleschemas
