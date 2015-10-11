@@ -13,10 +13,7 @@ Template['hunts/new'].onRendered(function() {
     on('show.bs.modal', () => {
       AutoForm.resetForm('jr-hunt-new-form');
     }).
-    on('shown.bs.modal', () => {
-      $('#jr-hunt-new-form input[name=name]').focus();
-    }).
-    on('hide.bs.modal', () => {
+    on('hidden.bs.modal', () => {
       Router.go('hunts/list');
     });
 
