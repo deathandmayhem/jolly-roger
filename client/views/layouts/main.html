@@ -33,7 +33,7 @@
     <div class="container">
       {{#if statusIs "connecting"}}
         <div class="alert alert-warning">
-          Reconnecting to Jolly Roger...
+          Trying to reconnect to Jolly Roger...
         </div>
       {{/if}}
       {{#if statusIs "failed"}}
@@ -44,9 +44,10 @@
       {{/if}}
       {{#if statusIs "waiting"}}
         <div class="alert alert-warning">
-          Reconnecting to Jolly Roger in
-          {{timeToRetry}}s... <a href="#" id="jr-reconnect">retry
-          now</a>
+          We can't connect to Jolly Roger right now. We'll try again
+          in {{timeToRetry}}s. Your pending changes will be pushed to
+          the server when we reconnect. <a href="#"
+          id="jr-reconnect">retry now</a>
         </div>
       {{/if}}
       {{#if statusIs "offline"}}
