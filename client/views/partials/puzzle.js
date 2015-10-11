@@ -18,7 +18,7 @@ findTarget = function(event) {
 
 Template['partials/puzzle'].events({
   'click .jr-btn-puzzle-top': event => {
-    let [model, id, children, idx] = findTarget(event);
+    const [model, id, children, idx] = findTarget(event);
     if (idx === 0) {
       return;
     }
@@ -29,7 +29,7 @@ Template['partials/puzzle'].events({
   },
 
   'click .jr-btn-puzzle-up': event => {
-    let [model, id, children, idx] = findTarget(event);
+    const [model, id, children, idx] = findTarget(event);
     if (idx === 0) {
       return;
     }
@@ -40,7 +40,7 @@ Template['partials/puzzle'].events({
   },
 
   'click .jr-btn-puzzle-down': event => {
-    let [model, id, children, idx] = findTarget(event);
+    const [model, id, children, idx] = findTarget(event);
     if (idx === children.length - 1) {
       return;
     }
@@ -51,7 +51,7 @@ Template['partials/puzzle'].events({
   },
 
   'click .jr-btn-puzzle-bottom': event => {
-    let [model, id, children, idx] = findTarget(event);
+    const [model, id, children, idx] = findTarget(event);
     if (idx === children.length - 1) {
       return;
     }
