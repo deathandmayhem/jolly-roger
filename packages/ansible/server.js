@@ -21,11 +21,18 @@ Meteor.methods({
       throw new Meteor.Error(400, 'Invalid log level');
     }
 
-    const log = console[level];
-    if (obj) {
-      log('[%s] %s: %s', this.userId, line, logfmt.stringify(obj));
-    } else {
-      log('[%s] %s', this.userId, line);
+    msg = '';
+
+    if (this.userId) {
+      msg += `[${this.userId}] `;
     }
+
+    msg += line;
+
+    if (obj) {
+      msg += `: ${logfmt.stringify(obj)}`;
+    }
+
+    console[level]('%s', msg);
   },
 });
