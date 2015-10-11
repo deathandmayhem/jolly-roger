@@ -1,0 +1,19 @@
+<template name="puzzles/list">
+  <div class="jr-hunt-show">
+    {{#if userHasPermission "mongo.puzzles.insert"}}
+      {{#linkTo route='puzzles/new' data=. type="button" class="btn btn-success btn-xs jr-btn-puzzle-new" title="Add new top-level puzzle..."}}
+        <span class="glyphicon glyphicon-plus"></span>
+      {{/linkTo}}
+    {{/if}}
+
+    <div class="jr-hunt-show-puzzles">
+      <ul>
+        {{#each getChildren}}
+          <li id="jr-puzzle-li-{{_id}}">{{> Template.dynamic template="partials/puzzle"}}</li>
+        {{/each}}
+      </ul>
+    </div>
+  </div>
+
+  {{> Template.dynamic template='puzzles/new'}}
+</template>

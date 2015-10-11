@@ -1,26 +1,10 @@
-<template name="hunts/show">
-  <div class="jr-hunt-show">
-    {{#if userHasPermission "mongo.puzzles.insert"}}
-      {{#linkTo route='puzzles/new' data=. type="button" class="btn btn-success btn-xs jr-btn-puzzle-new" title="Add new top-level puzzle..."}}
-        <span class="glyphicon glyphicon-plus"></span>
-      {{/linkTo}}
-    {{/if}}
-
-    <div class="jr-hunt-show-puzzles">
-      <ul>
-        {{#each getChildren}}
-          <li id="jr-puzzle-li-{{_id}}">{{> Template.dynamic template="partials/puzzle"}}</li>
-        {{/each}}
-      </ul>
-    </div>
-  </div>
-
+<template name="puzzles/new">
   <div id="jr-puzzle-new-modal" class="modal fade">
     <div class="modal-dialog">
       <div class="modal-content">
         {{#autoForm collection="Models.Puzzles" id="jr-puzzle-new-form" type="insert"}}
           <div class="modal-header">
-            {{#linkTo route='hunts/show' data=. class="close"}}&times;{{/linkTo}}
+            {{#linkTo route='puzzles/list' data=. class="close"}}&times;{{/linkTo}}
             <h4 class="modal-title">New puzzle</h4>
           </div>
           <div class="modal-body">
@@ -34,7 +18,7 @@
             {{> afQuickField name='url' type='url'}}
           </div>
           <div class="modal-footer">
-            {{#linkTo route='hunts/show' data=. class="btn btn-default"}}Close{{/linkTo}}
+            {{#linkTo route='puzzles/list' data=. class="btn btn-default"}}Close{{/linkTo}}
             <button type="submit" class="btn btn-primary">Add puzzle</button>
           </div>
         {{/autoForm}}

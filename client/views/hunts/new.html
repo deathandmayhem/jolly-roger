@@ -1,28 +1,10 @@
-<template name="hunts/index">
-  <h1>Hunts</h1>
-
-  {{#if userHasPermission "mongo.hunts.insert"}}
-    {{#linkTo route='hunts/new' type="button" class="btn btn-success btn-xs jr-btn-hunt-new" title="Add new hunt..."}}
-      <span class="glyphicon glyphicon-plus"></span>
-    {{/linkTo}}
-  {{/if}}
-
-  <ul>
-    {{#each .}}
-      <li>
-        {{#linkTo route='hunts/show' data=.}}
-          {{name}}
-        {{/linkTo}}
-      </li>
-    {{/each}}
-  </ul>
-
+<template name="hunts/new">
   <div id="jr-hunt-new-modal" class="modal fade">
     <div class="modal-dialog">
       <div class="modal-content">
         {{#autoForm collection="Models.Hunts" id="jr-hunt-new-form" type="insert"}}
           <div class="modal-header">
-            {{#linkTo route='hunts/index' class="close"}}&times;{{/linkTo}}
+            {{#linkTo route='hunts/list' class="close"}}&times;{{/linkTo}}
             <h4 class="modal-title">New hunt</h4>
           </div>
           <div class="modal-body">
@@ -34,7 +16,7 @@
             {{> afQuickField name='name'}}
           </div>
           <div class="modal-footer">
-            {{#linkTo route='hunts/index' class="btn btn-default"}}Close{{/linkTo}}
+            {{#linkTo route='hunts/list' class="btn btn-default"}}Close{{/linkTo}}
             <button type="submit" class="btn btn-primary">Add hunt</button>
           </div>
         {{/autoForm}}

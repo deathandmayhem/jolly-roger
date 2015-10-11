@@ -1,0 +1,21 @@
+<template name="hunts/list">
+  <h1>Hunts</h1>
+
+  {{#if userHasPermission "mongo.hunts.insert"}}
+    {{#linkTo route='hunts/new' type="button" class="btn btn-success btn-xs jr-btn-hunt-new" title="Add new hunt..."}}
+      <span class="glyphicon glyphicon-plus"></span>
+    {{/linkTo}}
+  {{/if}}
+
+  <ul>
+    {{#each .}}
+      <li>
+        {{#linkTo route='puzzles/list' data=.}}
+          {{name}}
+        {{/linkTo}}
+      </li>
+    {{/each}}
+  </ul>
+
+  {{> Template.dynamic template='hunts/new'}}
+</template>
