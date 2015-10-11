@@ -32,9 +32,6 @@ Template['puzzles/new'].onRendered(function() {
     on('show.bs.modal', () => {
       AutoForm.resetForm('jr-puzzle-new-form');
     }).
-    on('shown.bs.modal', () => {
-      this.$('#jr-puzzle-new-form input[name=title]').focus();
-    }).
     on('hidden.bs.modal', () => {
       Router.go('puzzles/list', Router.current().data());
     });
