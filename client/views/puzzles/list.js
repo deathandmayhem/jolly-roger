@@ -21,3 +21,7 @@ Router.route('/hunts/:_id/puzzles/new', _.extend({
   name: 'puzzles/new',
   template: 'puzzles/list',
 }, options));
+Router.route('/hunts/:_id/puzzles/:puzzle/delete', _.extend({
+  name: 'puzzles/delete',
+  template: 'puzzles/list',
+}, options));

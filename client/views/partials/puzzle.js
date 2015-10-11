@@ -6,6 +6,10 @@ Template['partials/puzzle'].helpers({
   parent() {
     return {parent: this._id};
   },
+
+  removeData() {
+    return {_id: this.hunt, puzzle: this._id};
+  },
 });
 
 findTarget = function(event) {

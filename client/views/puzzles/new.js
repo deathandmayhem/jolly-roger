@@ -1,10 +1,13 @@
 AutoForm.addHooks('jr-puzzle-new-form', {
   onSuccess(_, result) {
     const controller = Router.current();
+    const puzzle = Models.Puzzles.findOne(result);
+
     Ansible.log('Created new puzzle', {
       _id: result,
       hunt: controller.params._id,
-      title: Models.Puzzles.findOne(result).title,
+      parent: controller.params.query.parent,
+      title: puzzle.title,
     });
 
     // We need to add this puzzle to someone's children list, or it
@@ -25,19 +28,19 @@ AutoForm.addHooks('jr-puzzle-new-form', {
 });
 
 Template['puzzles/new'].onRendered(function() {
-  $('#jr-puzzle-new-modal').
+  this.$('#jr-puzzle-new-modal').
     on('show.bs.modal', () => {
       AutoForm.resetForm('jr-puzzle-new-form');
     }).
     on('shown.bs.modal', () => {
-      $('#jr-puzzle-new-form input[name=title]').focus();
+      this.$('#jr-puzzle-new-form input[name=title]').focus();
     }).
-    on('hide.bs.modal', () => {
+    on('hidden.bs.modal', () => {
       Router.go('puzzles/list', Router.current().data());
     });
 
   this.autorun(() => {
     const route = Router.current().route.getName();
-    $('#jr-puzzle-new-modal').modal(route === 'puzzles/new' ? 'show' : 'hide');
+    this.$('#jr-puzzle-new-modal').modal(route === 'puzzles/new' ? 'show' : 'hide');
   });
 });

@@ -31,9 +31,9 @@
         </button>
       {{/if}}
       {{#if userHasPermission "mongo.puzzles.remove"}}
-        <button type="button" class="btn btn-danger jr-btn-puzzle-remove" data-id={{_id}} title="Delete puzzle...">
+        {{#linkTo route='puzzles/delete' data=removeData type="button" class="btn btn-danger jr-btn-puzzle-remove" title="Delete puzzle..."}}
           <span class="glyphicon glyphicon-remove"></span>
-        </button>
+        {{/linkTo}}
       {{/if}}
     </div>
 
