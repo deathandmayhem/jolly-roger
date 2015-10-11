@@ -10,10 +10,14 @@ const options = {
     return Models.Hunts.findOne(this.params._id);
   },
 };
-Router.route('/hunts/:_id', _.extend({
+Router.route('/hunts/:_id', function() {
+  this.redirect('puzzles/list', this.params);
+});
+
+Router.route('/hunts/:_id/puzzles', _.extend({
   name: 'puzzles/list',
 }, options));
-Router.route('/hunts/:_id/new', _.extend({
+Router.route('/hunts/:_id/puzzles/new', _.extend({
   name: 'puzzles/new',
   template: 'puzzles/list',
 }, options));
