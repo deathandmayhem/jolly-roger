@@ -18,3 +18,7 @@ Router.route('/hunts/new', _.extend({
   name: 'hunts/new',
   template: 'hunts/list',
 }, options));
+Router.route('/hunts/:_id/delete', _.extend({
+  name: 'hunts/delete',
+  template: 'hunts/list',
+}, options));

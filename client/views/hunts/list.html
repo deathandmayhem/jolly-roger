@@ -13,9 +13,22 @@
         {{#linkTo route='puzzles/list' data=.}}
           {{name}}
         {{/linkTo}}
+        <div class="btn-group btn-group-xs">
+          {{#if userHasPermission "mongo.hunts.update"}}
+            <button type="button" class="btn btn-default jr-btn-hunt-edit" title="Edit hunt...">
+              <span class="glyphicon glyphicon-edit"></span>
+            </button>
+          {{/if}}
+          {{#if userHasPermission "mongo.hunts.remove"}}
+            {{#linkTo route='hunts/delete' data=. type="button" class="btn btn-danger jr-btn-hunt-remove" title="Delete hunt..."}}
+              <span class="glyphicon glyphicon-remove"></span>
+            {{/linkTo}}
+          {{/if}}
+        </div>
       </li>
     {{/each}}
   </ul>
 
   {{> Template.dynamic template='hunts/new'}}
+  {{> Template.dynamic template='hunts/delete'}}
 </template>
