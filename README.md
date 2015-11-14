@@ -10,24 +10,20 @@ Meteor. It uses [Iron.Router][iron-router] for navigation and
 Getting Started
 ---------------
 
-Jolly Roger uses pre-release support in Meteor for [ECMAScript 6][es6]
-(which is compiled by [Babel][babeljs] down to ES 5). The current
-release of Meteor doesn't support the `ecmascript` package, which
-wires up Babel, so you have to explicitly request the pre-release
-version:
+Jolly Roger uses support in Meteor for [ECMAScript 6][es6] (which is
+compiled by [Babel][babeljs] down to ES 5). You need at least version
+1.2 for this support. Once you've [installed Meteor][meteor install],
+you can start the server by just running:
 
 ```bash
-meteor --release PLUGINS-PREVIEW@2
+meteor
 ```
-
-This goes for all Meteor commands (e.g. `meteor add`, `meteor mongo`,
-`meteor shell`) that you run.
 
 Right now, there's no user onboarding flow, so you'll have to manually
 create a user:
 
 ```js
-meteor --release PLUGINS-PREVIEW@2 shell
+meteor shell
 > Accounts.createUser({email: 'broder@mit.edu', password: 'password'})
 'WaoEku3wBrWLLc7pK'
 ```
@@ -89,5 +85,6 @@ role for controlling virtually all permissioning.
 [es6]: https://github.com/lukehoban/es6features
 [iron-router]: https://atmospherejs.com/iron/router
 [JSCS]: http://jscs.info/
+[meteor install]: https://www.meteor.com/install
 [roles]: https://atmospherejs.com/nicolaslopezj/roles
 [simple-schema-chaining]: https://github.com/aldeed/meteor-simple-schema#combining-simpleschemas
