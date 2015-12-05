@@ -1,4 +1,5 @@
 {
   "preset": "airbnb",
+  "validateQuoteMarks": {"mark": "'", "escape": true, "ignoreJSX": true},
   "excludeFiles": ['.meteor', '**/node_modules']
 }

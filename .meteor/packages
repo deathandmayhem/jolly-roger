@@ -4,20 +4,16 @@
 # 'meteor add' and 'meteor remove' will edit this file for you,
 # but you can also edit it by hand.
 
-iron:router
 ecmascript
 ecmascript-collections
 accounts-password
 twbs:bootstrap
 audit-argument-checks
-useraccounts:bootstrap
-useraccounts:iron-routing
 meteorhacks:kadira
 meteorhacks:zones
 mizzao:sharejs
 aldeed:collection2
 nicolaslopezj:roles
-aldeed:autoform
 ansible
 standard-minifiers
 meteor-base
@@ -33,3 +29,6 @@ random
 ejson
 spacebars
 check
+react
+reactrouter:react-router
+firfi:meteor-react-bootstrap
