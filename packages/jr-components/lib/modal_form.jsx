@@ -4,7 +4,7 @@ JRC.ModalForm = React.createClass({
   propTypes: {
     title: React.PropTypes.string.isRequired,
     submitLabel: React.PropTypes.string,
-    onClose: React.PropTypes.func,
+    submitStyle: React.PropTypes.oneOf(BS.Button.STYLES),
     onSubmit: React.PropTypes.func.isRequired,
   },
 
@@ -23,14 +23,19 @@ JRC.ModalForm = React.createClass({
   getDefaultProps() {
     return {
       submitLabel: 'Save',
+      submitStyle: 'primary',
     };
   },
 
   submit(e) {
     e.preventDefault();
-    if (this.props.onSubmit) {
-      this.props.onSubmit(this.close);
-    }
+    this.props.onSubmit(() => {
+      // For delete forms, it's possible that the component gets
+      // deleted and unmounted before the callback gets called.
+      if (this.isMounted()) {
+        this.close();
+      }
+    });
   },
 
   render() {
@@ -47,7 +52,7 @@ JRC.ModalForm = React.createClass({
           </BS.Modal.Body>
           <BS.Modal.Footer>
             <BS.Button bsStyle="default" onClick={this.close}>Close</BS.Button>
-            <BS.Button bsStyle="primary" type="submit">{this.props.submitLabel}</BS.Button>
+            <BS.Button bsStyle={this.props.submitStyle} type="submit">{this.props.submitLabel}</BS.Button>
           </BS.Modal.Footer>
         </form>
       </BS.Modal>
