@@ -58,23 +58,41 @@ const Hunt = React.createClass({
     hunt: React.PropTypes.instanceOf(Transforms.Hunt).isRequired,
   },
 
-  showModal() {
-    this.refs.modal.refs.form.show();
+  showEditModal() {
+    this.refs.editModal.refs.form.show();
+  },
+
+  showDeleteModal() {
+    this.refs.deleteModal.show();
   },
 
   onEdit(callback) {
     Models.Hunts.update(
       {_id: this.props.hunt._id},
-      {$set: {name: this.refs.modal.refs['input:name'].getValue()}},
+      {$set: {name: this.refs.editModal.refs['input:name'].getValue()}},
       callback
     );
+  },
+
+  onDelete(callback) {
+    this.props.hunt.destroy(callback);
   },
 
   editButton() {
     if (Roles.userHasPermission(this.props.userId, 'mongo.hunts.update')) {
       return (
-        <BS.Button onClick={this.showModal} bsStyle="default" title="Edit hunt...">
+        <BS.Button onClick={this.showEditModal} bsStyle="default" title="Edit hunt...">
           <BS.Glyphicon glyph="edit"/>
+        </BS.Button>
+      );
+    }
+  },
+
+  deleteButton() {
+    if (Roles.userHasPermission(this.props.userId, 'mongo.hunts.remove')) {
+      return (
+        <BS.Button onClick={this.showDeleteModal} bsStyle="danger" title="Delete hunt...">
+          <BS.Glyphicon glyph="remove"/>
         </BS.Button>
       );
     }
@@ -85,14 +103,25 @@ const Hunt = React.createClass({
     return (
       <li>
         <HuntFormModal
-            ref="modal"
+            ref="editModal"
             hunt={this.props.hunt}
             onSubmit={this.onEdit}/>
+        <JRC.ModalForm
+            ref="deleteModal"
+            title="Delete Hunt"
+            submitLabel="Delete"
+            submitStyle="danger"
+            onSubmit={this.onDelete}>
+          Are you sure you want to delete "{this.props.hunt.name}"?
+          This will additionally delete all puzzles and associated
+          state.
+        </JRC.ModalForm>
         <Link to={`/hunts/${hunt._id}`}>
           {hunt.name}
         </Link>
         <BS.ButtonGroup bsSize="xs">
           {this.editButton()}
+          {this.deleteButton()}
         </BS.ButtonGroup>
       </li>
     );
