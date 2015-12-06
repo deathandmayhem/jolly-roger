@@ -3,79 +3,49 @@ const BS = ReactBootstrap;
 
 const HuntFormModal = React.createClass({
   propTypes: {
-    show: React.PropTypes.bool,
     hunt: React.PropTypes.instanceOf(Transforms.Hunt),
-    onClose: React.PropTypes.func,
     onSubmit: React.PropTypes.func,
-  },
-
-  submit(e) {
-    e.preventDefault();
-    if (this.props.onSubmit) {
-      this.props.onSubmit();
-    }
   },
 
   render() {
     return (
-      <BS.Modal show={this.props.show} onHide={this.props.onClose}>
-        <form className="form-horizontal" onSubmit={this.submit}>
-          <BS.Modal.Header closeButton>
-            <BS.Modal.Title>
-              {this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
-            </BS.Modal.Title>
-          </BS.Modal.Header>
-          <BS.Modal.Body>
-            <BS.Input
-                ref="input:name"
-                type="text"
-                label="Name"
-                labelClassName="col-xs-2"
-                wrapperClassName="col-xs-10"
-                defaultValue={this.props.hunt && this.props.hunt.name}
-                autoFocus="true"/>
-          </BS.Modal.Body>
-          <BS.Modal.Footer>
-            <BS.Button bsStyle="default" onClick={this.props.onClose}>Close</BS.Button>
-            <BS.Button bsStyle="primary" type="submit">Save</BS.Button>
-          </BS.Modal.Footer>
-        </form>
-      </BS.Modal>
+      <JRC.ModalForm
+          ref="form"
+          title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
+          onSubmit={this.props.onSubmit}>
+        <BS.Input
+            ref="input:name"
+            type="text"
+            label="Name"
+            labelClassName="col-xs-2"
+            wrapperClassName="col-xs-10"
+            defaultValue={this.props.hunt && this.props.hunt.name}
+            autoFocus="true"/>
+      </JRC.ModalForm>
     );
   },
 });
 
 const AddHuntButton = React.createClass({
-  getInitialState() {
-    return {show: false};
-  },
-
-  open() {
-    this.setState({show: true});
-  },
-
-  close() {
-    this.setState({show: false});
-  },
-
-  submit() {
+  submit(callback) {
     Models.Hunts.insert({
       name: this.refs.modal.refs['input:name'].getValue(),
-    });
-    this.close();
+    }, callback);
+  },
+
+  showModal() {
+    this.refs.modal.refs.form.show();
   },
 
   render() {
     return (
       <div>
-        <BS.Button onClick={this.open} bsStyle="success" bsSize="xs" title="Add new hunt...">
+        <BS.Button onClick={this.showModal} bsStyle="success" bsSize="xs" title="Add new hunt...">
           <BS.Glyphicon glyph="plus"/>
         </BS.Button>
 
         <HuntFormModal
             ref="modal"
-            show={this.state.show}
-            onClose={this.close}
             onSubmit={this.submit}/>
       </div>
     );
@@ -88,30 +58,22 @@ const Hunt = React.createClass({
     hunt: React.PropTypes.instanceOf(Transforms.Hunt).isRequired,
   },
 
-  getInitialState() {
-    return {edit: false};
+  showModal() {
+    this.refs.modal.refs.form.show();
   },
 
-  edit() {
-    this.setState({edit: true});
-  },
-
-  close() {
-    this.setState({edit: false});
-  },
-
-  onEdit() {
+  onEdit(callback) {
     Models.Hunts.update(
       {_id: this.props.hunt._id},
       {$set: {name: this.refs.modal.refs['input:name'].getValue()}},
+      callback
     );
-    this.close();
   },
 
   editButton() {
     if (Roles.userHasPermission(this.props.userId, 'mongo.hunts.update')) {
       return (
-        <BS.Button onClick={this.edit} bsStyle="default" title="Edit hunt...">
+        <BS.Button onClick={this.showModal} bsStyle="default" title="Edit hunt...">
           <BS.Glyphicon glyph="edit"/>
         </BS.Button>
       );
@@ -125,8 +87,6 @@ const Hunt = React.createClass({
         <HuntFormModal
             ref="modal"
             hunt={this.props.hunt}
-            show={this.state.edit}
-            onClose={this.close}
             onSubmit={this.onEdit}/>
         <Link to={`/hunts/${hunt._id}`}>
           {hunt.name}

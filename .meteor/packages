@@ -32,3 +32,4 @@ check
 react
 cosmos:browserify
 client-deps
+jr-components
