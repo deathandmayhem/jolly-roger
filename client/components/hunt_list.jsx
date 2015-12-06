@@ -27,8 +27,16 @@ const HuntFormModal = React.createClass({
 });
 
 const Hunt = React.createClass({
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    return {
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+      canRemove: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.remove'),
+    };
+  },
+
   propTypes: {
-    userId: React.PropTypes.string.isRequired,
     hunt: React.PropTypes.instanceOf(Transforms.Hunt).isRequired,
   },
 
@@ -53,7 +61,7 @@ const Hunt = React.createClass({
   },
 
   editButton() {
-    if (Roles.userHasPermission(this.props.userId, 'mongo.hunts.update')) {
+    if (this.data.canUpdate) {
       return (
         <BS.Button onClick={this.showEditModal} bsStyle="default" title="Edit hunt...">
           <BS.Glyphicon glyph="edit"/>
@@ -63,7 +71,7 @@ const Hunt = React.createClass({
   },
 
   deleteButton() {
-    if (Roles.userHasPermission(this.props.userId, 'mongo.hunts.remove')) {
+    if (this.data.canRemove) {
       return (
         <BS.Button onClick={this.showDeleteModal} bsStyle="danger" title="Delete hunt...">
           <BS.Glyphicon glyph="remove"/>
@@ -108,7 +116,7 @@ HuntList = React.createClass({
   getMeteorData() {
     Meteor.subscribe('mongo.hunts');
     return {
-      userId: Meteor.userId(),
+      canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.insert'),
       hunts: Models.Hunts.find().fetch(),
     };
   },
@@ -124,7 +132,7 @@ HuntList = React.createClass({
   },
 
   addButton() {
-    if (Roles.userHasPermission(this.data.userId, 'mongo.hunts.insert')) {
+    if (this.data.canAdd) {
       return (
         <BS.Button onClick={this.showAddModal} bsStyle="success" bsSize="xs" title="Add new hunt...">
           <BS.Glyphicon glyph="plus"/>
@@ -135,7 +143,7 @@ HuntList = React.createClass({
 
   render() {
     const hunts = this.data.hunts.map((hunt) => {
-      return <Hunt key={hunt._id} userId={this.data.userId} hunt={hunt}/>;
+      return <Hunt key={hunt._id} hunt={hunt}/>;
     });
     return (
       <div id="jr-hunts">
