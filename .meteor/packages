@@ -30,5 +30,5 @@ ejson
 spacebars
 check
 react
-reactrouter:react-router
-firfi:meteor-react-bootstrap
+cosmos:browserify
+client-deps
