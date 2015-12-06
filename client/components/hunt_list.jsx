@@ -26,32 +26,6 @@ const HuntFormModal = React.createClass({
   },
 });
 
-const AddHuntButton = React.createClass({
-  submit(callback) {
-    Models.Hunts.insert({
-      name: this.refs.modal.refs['input:name'].getValue(),
-    }, callback);
-  },
-
-  showModal() {
-    this.refs.modal.refs.form.show();
-  },
-
-  render() {
-    return (
-      <div>
-        <BS.Button onClick={this.showModal} bsStyle="success" bsSize="xs" title="Add new hunt...">
-          <BS.Glyphicon glyph="plus"/>
-        </BS.Button>
-
-        <HuntFormModal
-            ref="modal"
-            onSubmit={this.submit}/>
-      </div>
-    );
-  },
-});
-
 const Hunt = React.createClass({
   propTypes: {
     userId: React.PropTypes.string.isRequired,
@@ -139,9 +113,23 @@ HuntList = React.createClass({
     };
   },
 
+  showAddModal() {
+    this.refs.addModal.refs.form.show();
+  },
+
+  onAdd(callback) {
+    Models.Hunts.insert({
+      name: this.refs.addModal.refs['input:name'].getValue(),
+    }, callback);
+  },
+
   addButton() {
     if (Roles.userHasPermission(this.data.userId, 'mongo.hunts.insert')) {
-      return <AddHuntButton/>;
+      return (
+        <BS.Button onClick={this.showAddModal} bsStyle="success" bsSize="xs" title="Add new hunt...">
+          <BS.Glyphicon glyph="plus"/>
+        </BS.Button>
+      );
     }
   },
 
@@ -152,6 +140,9 @@ HuntList = React.createClass({
     return (
       <div id="jr-hunts">
         <h1>Hunts</h1>
+        <HuntFormModal
+            ref="addModal"
+            onSubmit={this.onAdd}/>
         {this.addButton()}
         <ul>
           {hunts}
