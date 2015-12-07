@@ -6,7 +6,7 @@ const {
 
 const history = ReactRouter.history.useQueries(ReactRouter.history.createHistory)();
 
-class Routes extends React.Component {
+AuthenticatedRoutes = React.createClass({
   render() {
     return (
       <Router history={history}>
@@ -14,9 +14,9 @@ class Routes extends React.Component {
         <Route path="hunts" component={HuntList}/>
       </Router>
     );
-  }
-}
+  },
+});
 
 $(document).ready(function() {
-  ReactDOM.render(<Routes/>, document.getElementById('jr-container'));
+  ReactDOM.render(<AuthenticatedRoutes/>, document.getElementById('jr-container'));
 });
