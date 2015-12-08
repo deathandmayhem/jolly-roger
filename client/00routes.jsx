@@ -93,30 +93,6 @@ App = React.createClass({
 });
 
 Login = React.createClass({
-  getInitialState() {
-    return {error: null};
-  },
-
-  onSubmit(e) {
-    e.preventDefault();
-    Meteor.loginWithPassword(
-      this.refs.email.getValue(),
-      this.refs.password.getValue(),
-      (error) => {
-        this.setState({error});
-      });
-  },
-
-  renderError() {
-    if (this.state.error) {
-      return (
-        <BS.Alert bsStyle="danger" className="text-center">
-          <p>{this.state.error.reason}</p>
-        </BS.Alert>
-      );
-    }
-  },
-
   render() {
     return (
       <div className="container">
@@ -125,31 +101,7 @@ Login = React.createClass({
           <div className="container">
             <BS.Row>
               <BS.Col md={6} mdOffset={3}>
-                <h3>Jolly Roger: Death and Mayhem Virtual HQ</h3>
-                {this.renderError()}
-                <form onSubmit={this.onSubmit}>
-                  <fieldset>
-                  <BS.Input
-                      ref="email"
-                      name="email"
-                      label="Email"
-                      placeholder="Email"
-                      type="email"/>
-                  <BS.Input
-                      ref="password"
-                      name="password"
-                      label="Password"
-                      placeholder="Password"
-                      type="password"/>
-                  <BS.ButtonInput
-                      type="submit"
-                      bsSize="large"
-                      bsStyle="default"
-                      block>
-                    Sign In
-                  </BS.ButtonInput>
-                  </fieldset>
-                </form>
+                <JRC.BlazeTemplate template="atForm"/>
               </BS.Col>
             </BS.Row>
           </div>
