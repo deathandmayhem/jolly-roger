@@ -4,7 +4,9 @@ JRC.BlazeTemplate = React.createClass({
   },
 
   componentDidMount() {
-    this.view = Blaze.render(Template[this.props.template], React.findDOMNode(this.refs.container));
+    this.view = Blaze.render(
+      Template[this.props.template],
+      ReactDOM.findDOMNode(this.refs.container));
   },
 
   componentWillUnmount() {
@@ -12,7 +14,7 @@ JRC.BlazeTemplate = React.createClass({
   },
 
   render() {
-    // Render a placeholder that Blaze will replace
-    return <span ref="container"/>;
+    // Render a placeholder that Blaze will populate
+    return <div ref="container"/>;
   },
 });
