@@ -73,11 +73,7 @@ App = React.createClass({
               </li>
             </BS.Nav>
             <BS.Nav pullRight>
-              <li>
-                <BS.Button bsStyle="default" className="navbar-btn" onClick={Meteor.logout}>
-                  Sign out
-                </BS.Button>
-              </li>
+              <JRC.BlazeTemplate template="atNavButton"/>
             </BS.Nav>
           </BS.Navbar.Collapse>
         </BS.Navbar>
