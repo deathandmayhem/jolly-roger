@@ -58,7 +58,7 @@ App = React.createClass({
           <BS.Navbar.Header>
             <BS.Navbar.Brand>
               <Link to="/">
-                <img src="/images/brand.png" />
+                <img src="/images/brand.png"/>
               </Link>
             </BS.Navbar.Brand>
           </BS.Navbar.Header>
