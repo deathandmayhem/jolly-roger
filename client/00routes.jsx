@@ -57,9 +57,9 @@ App = React.createClass({
         <BS.Navbar fixedTop>
           <BS.Navbar.Header>
             <BS.Navbar.Brand>
-              <a href="#">
+              <Link to="/">
                 <img src="/images/brand.png" />
-              </a>
+              </Link>
             </BS.Navbar.Brand>
           </BS.Navbar.Header>
           <BS.Navbar.Collapse>
@@ -95,8 +95,8 @@ AuthenticatedRoutes = React.createClass({
   render() {
     return (
       <Router history={history}>
+        <Redirect from="/" to="hunts"/>
         <Route path="/" component={App}>
-          <Redirect from="" to="hunts"/>
           <Route path="hunts" component={HuntList}/>
         </Route>
       </Router>
