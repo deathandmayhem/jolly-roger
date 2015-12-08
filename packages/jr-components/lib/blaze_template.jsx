@@ -1,11 +1,11 @@
 JRC.BlazeTemplate = React.createClass({
   propTypes: {
-    template: React.PropTypes.string.isRequired,
+    templateName: React.PropTypes.string.isRequired,
   },
 
   componentDidMount() {
     this.view = Blaze.render(
-      Template[this.props.template],
+      Template[this.props.templateName],
       ReactDOM.findDOMNode(this.refs.container));
   },
 
