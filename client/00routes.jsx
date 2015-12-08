@@ -29,14 +29,14 @@ App = React.createClass({
         return (
           <BS.Alert bsStyle="danger">
             <strong>Oh no!</strong> Unable to connect to Jolly Roger:
-            {self.data.meteorStatus.reason}
+            {this.data.meteorStatus.reason}
           </BS.Alert>
         );
       case 'waiting':
         return (
           <BS.Alert bsStyle="warning">
             We can't connect to Jolly Roger right now. We'll try again
-            in {self.data.meteorStatus.timeToRetry}s. Your pending
+            in {this.data.meteorStatus.timeToRetry}s. Your pending
             changes will be pushed to the server when we
             reconnect. <a onClick={Meteor.reconnect}>retry now</a>
           </BS.Alert>
