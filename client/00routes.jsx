@@ -9,7 +9,7 @@ const {
 const history = ReactRouter.history.useQueries(ReactRouter.history.createHistory)();
 
 App = React.createClass({
-  mixins: [ReactRouter.History, ReactMeteorData],
+  mixins: [ReactMeteorData],
 
   getMeteorData() {
     return {
@@ -36,8 +36,9 @@ App = React.createClass({
         return (
           <BS.Alert bsStyle="warning">
             We can't connect to Jolly Roger right now. We'll try again
-            in {{timeToRetry}}s. Your pending changes will be pushed to
-            the server when we reconnect. <a onClick={Meteor.reconnect}>retry now</a>
+            in {self.data.meteorStatus.timeToRetry}s. Your pending
+            changes will be pushed to the server when we
+            reconnect. <a onClick={Meteor.reconnect}>retry now</a>
           </BS.Alert>
         );
       case 'offline':
@@ -65,7 +66,7 @@ App = React.createClass({
           <BS.Navbar.Collapse>
             {/* TODO: Construct some sort of breadcrumbs here? */}
             <BS.Nav>
-              <li className={this.history.isActive('/hunts', undefined, true) && 'active'}>
+              <li className={this.props.location.pathname == '/hunts' && 'active'}>
                 <Link to="/hunts">
                   All hunts
                 </Link>
@@ -73,7 +74,7 @@ App = React.createClass({
             </BS.Nav>
             <BS.Nav pullRight>
               <li>
-                <BS.Button bsStyle="default" className="navbar-btn">
+                <BS.Button bsStyle="default" className="navbar-btn" onClick={Meteor.logout}>
                   Sign out
                 </BS.Button>
               </li>
@@ -91,19 +92,98 @@ App = React.createClass({
   },
 });
 
-AuthenticatedRoutes = React.createClass({
+Login = React.createClass({
+  getInitialState() {
+    return {error: null};
+  },
+
+  onSubmit(e) {
+    e.preventDefault();
+    Meteor.loginWithPassword(
+      this.refs.email.getValue(),
+      this.refs.password.getValue(),
+      (error) => {
+        this.setState({error});
+      });
+  },
+
+  renderError() {
+    if (this.state.error) {
+      return (
+        <BS.Alert bsStyle="danger" className="text-center">
+          <p>{this.state.error.reason}</p>
+        </BS.Alert>
+      );
+    }
+  },
+
   render() {
     return (
-      <Router history={history}>
-        <Redirect from="/" to="hunts"/>
-        <Route path="/" component={App}>
-          <Route path="hunts" component={HuntList}/>
-        </Route>
-      </Router>
+      <div className="container">
+        <BS.Jumbotron id="jr-login">
+          <BS.Image src="/images/hero.png" className="center-block" responsive/>
+          <div className="container">
+            <BS.Row>
+              <BS.Col md={6} mdOffset={3}>
+                <h3>Jolly Roger: Death and Mayhem Virtual HQ</h3>
+                {this.renderError()}
+                <form onSubmit={this.onSubmit}>
+                  <fieldset>
+                  <BS.Input
+                      ref="email"
+                      name="email"
+                      label="Email"
+                      placeholder="Email"
+                      type="email"/>
+                  <BS.Input
+                      ref="password"
+                      name="password"
+                      label="Password"
+                      placeholder="Password"
+                      type="password"/>
+                  <BS.ButtonInput
+                      type="submit"
+                      bsSize="large"
+                      bsStyle="default"
+                      block>
+                    Sign In
+                  </BS.ButtonInput>
+                  </fieldset>
+                </form>
+              </BS.Col>
+            </BS.Row>
+          </div>
+        </BS.Jumbotron>
+      </div>
     );
   },
 });
 
+Routes = React.createClass({
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    return {user: Meteor.user()};
+  },
+
+  render() {
+    if (this.data.user) {
+      /* Authenticated routes */
+      return (
+        <Router history={history}>
+          <Redirect from="/" to="hunts"/>
+          <Route path="/" component={App}>
+            <Route path="hunts" component={HuntList}/>
+          </Route>
+        </Router>
+      );
+    } else {
+      /* Unauthenticated routes */
+      return <Login/>;
+    };
+  },
+});
+
 $(document).ready(function() {
-  ReactDOM.render(<AuthenticatedRoutes/>, document.getElementById('jr-container'));
+  ReactDOM.render(<Routes/>, document.getElementById('jr-container'));
 });
