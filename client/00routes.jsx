@@ -102,7 +102,7 @@ App = React.createClass({
               </li>
             </BS.Nav>
             <BS.Nav pullRight>
-              <JRC.BlazeTemplate templateName="atNavButton"/>
+              <BlazeToReact blazeTemplate="atNavButton"/>
             </BS.Nav>
           </BS.Navbar.Collapse>
         </BS.Navbar>
@@ -147,7 +147,7 @@ Login = React.createClass({
           <div className="container">
             <BS.Row>
               <BS.Col md={6} mdOffset={3}>
-                <JRC.BlazeTemplate templateName="atForm"/>
+                <BlazeToReact blazeTemplate="atForm"/>
               </BS.Col>
             </BS.Row>
           </div>
