@@ -1,12 +1,38 @@
 const BS = ReactBootstrap;
 const {
   Link,
-  Redirect,
+  IndexRedirect,
   Route,
   Router,
 } = ReactRouter;
 
 const history = ReactRouter.history.useQueries(ReactRouter.history.createHistory)();
+
+Authenticator = React.createClass({
+  mixins: [ReactMeteorData, ReactRouter.History],
+
+  getMeteorData() {
+    return {user: Meteor.user()};
+  },
+
+  checkAuth() {
+    if (!this.data.user) {
+      this.history.replaceState(_.pick(this.props.location, 'pathname', 'query'), '/login');
+    }
+  },
+
+  componentWillMount() {
+    this.checkAuth();
+  },
+
+  componentDidUpdate(_prevProps, _prevState) {
+    this.checkAuth();
+  },
+
+  render() {
+    return React.Children.only(this.props.children);
+  },
+});
 
 App = React.createClass({
   mixins: [ReactMeteorData],
@@ -92,6 +118,27 @@ App = React.createClass({
 });
 
 Login = React.createClass({
+  mixins: [ReactMeteorData, ReactRouter.History],
+
+  getMeteorData() {
+    return {user: Meteor.user()};
+  },
+
+  checkAuth() {
+    if (this.data.user) {
+      const state = _.extend({path: '/', query: undefined}, this.props.location.state);
+      this.history.replaceState(null, state.path, state.query);
+    }
+  },
+
+  componentWillMount() {
+    this.checkAuth();
+  },
+
+  componentDidUpdate(_prevProps, _prevState) {
+    this.checkAuth();
+  },
+
   render() {
     return (
       <div className="container">
@@ -111,27 +158,18 @@ Login = React.createClass({
 });
 
 Routes = React.createClass({
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    return {user: Meteor.user()};
-  },
-
   render() {
-    if (this.data.user) {
-      /* Authenticated routes */
-      return (
-        <Router history={history}>
-          <Redirect from="/" to="hunts"/>
-          <Route path="/" component={App}>
+    return (
+      <Router history={history}>
+        <Route path="/" component={Authenticator}>
+          <IndexRedirect to="hunts"/>
+          <Route path="" component={App}>
             <Route path="hunts" component={HuntList}/>
           </Route>
-        </Router>
-      );
-    } else {
-      /* Unauthenticated routes */
-      return <Login/>;
-    };
+        </Route>
+        <Route path="/login" component={Login}/>
+      </Router>
+    );
   },
 });
 
