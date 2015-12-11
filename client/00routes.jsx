@@ -34,6 +34,33 @@ Authenticator = React.createClass({
   },
 });
 
+Unauthenticator = React.createClass({
+  mixins: [ReactMeteorData, ReactRouter.History],
+
+  getMeteorData() {
+    return {user: Meteor.user()};
+  },
+
+  checkAuth() {
+    if (this.data.user) {
+      const state = _.extend({path: '/', query: undefined}, this.props.location.state);
+      this.history.replaceState(null, state.path, state.query);
+    }
+  },
+
+  componentWillMount() {
+    this.checkAuth();
+  },
+
+  componentDidUpdate(_prevProps, _prevState) {
+    this.checkAuth();
+  },
+
+  render() {
+    return React.Children.only(this.props.children);
+  },
+});
+
 App = React.createClass({
   mixins: [ReactMeteorData],
 
@@ -118,27 +145,6 @@ App = React.createClass({
 });
 
 Login = React.createClass({
-  mixins: [ReactMeteorData, ReactRouter.History],
-
-  getMeteorData() {
-    return {user: Meteor.user()};
-  },
-
-  checkAuth() {
-    if (this.data.user) {
-      const state = _.extend({path: '/', query: undefined}, this.props.location.state);
-      this.history.replaceState(null, state.path, state.query);
-    }
-  },
-
-  componentWillMount() {
-    this.checkAuth();
-  },
-
-  componentDidUpdate(_prevProps, _prevState) {
-    this.checkAuth();
-  },
-
   render() {
     return (
       <div className="container">
@@ -161,13 +167,17 @@ Routes = React.createClass({
   render() {
     return (
       <Router history={history}>
+        {/* Authenticated routes */}
         <Route path="/" component={Authenticator}>
           <IndexRedirect to="hunts"/>
           <Route path="" component={App}>
             <Route path="hunts" component={HuntList}/>
           </Route>
         </Route>
-        <Route path="/login" component={Login}/>
+        {/* Unauthenticated routes */}
+        <Route path="/" component={Unauthenticator}>
+          <Route path="login" component={Login}/>
+        </Route>
       </Router>
     );
   },
