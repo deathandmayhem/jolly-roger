@@ -26,6 +26,8 @@ Routes = React.createClass({
           <Route path="reset-password/:token" component={AccountsForm} state="resetPwd"/>
           <Route path="enroll/:token" component={AccountsForm} state="enrollAccount"/>
         </Route>
+        {/* Routes available to both authenticated and unauthenticated users */}
+        <Route path="/uitest" component={UiTest}/>
       </Router>
     );
   },
