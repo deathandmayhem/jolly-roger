@@ -18,3 +18,19 @@ Accounts.onLoginFailure((info) => {
     error: info.error.reason,
   });
 });
+
+Meteor.methods({
+  signup(email) {
+    check(email, String);
+
+    // this.connection is null for server calls, which we allow
+    if (!this.userId && this.connection) {
+      throw new Meteor.Error(403, 'Must be logged in');
+    }
+
+    Ansible.info('Inviting new user', {invitedBy: this.userId, email});
+
+    const id = Accounts.createUser({email});
+    Accounts.sendEnrollmentEmail(id);
+  },
+});
