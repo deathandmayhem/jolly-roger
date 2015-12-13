@@ -20,7 +20,7 @@ Accounts.onLoginFailure((info) => {
 });
 
 Meteor.methods({
-  signup(email) {
+  sendInvite(email) {
     check(email, String);
 
     // this.connection is null for server calls, which we allow
@@ -28,9 +28,9 @@ Meteor.methods({
       throw new Meteor.Error(403, 'Must be logged in');
     }
 
-    Ansible.info('Inviting new user', {invitedBy: this.userId, email});
-
     const id = Accounts.createUser({email});
     Accounts.sendEnrollmentEmail(id);
+
+    Ansible.info('Invited new user', {invitedBy: this.userId, email});
   },
 });
