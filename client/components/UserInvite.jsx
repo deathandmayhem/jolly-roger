@@ -20,11 +20,20 @@ UserInvite = React.createClass({
     });
   },
 
+  errorDescription() {
+    switch (this.state.error.reason) {
+      case 'Email already exists.':
+        return 'We\'ve already created an account for this user. Maybe they should reset their password?';
+      default:
+        return this.state.error.reason;
+    }
+  },
+
   renderError() {
     if (this.state.error) {
       return (
         <BS.Alert bsStyle="danger" className="text-center">
-          <p>{this.state.error.reason}</p>
+          <p>{this.errorDescription()}</p>
         </BS.Alert>
       );
     }
