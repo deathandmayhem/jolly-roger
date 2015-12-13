@@ -6,8 +6,11 @@ Authenticator = React.createClass({
   },
 
   checkAuth() {
-    if (!this.data.user) {
+    if (!this.data.user && this.props.route.authenticated) {
       this.history.replaceState(_.pick(this.props.location, 'pathname', 'query'), '/login');
+    } else if (this.data.user && !this.props.route.authenticated) {
+      const state = _.extend({path: '/', query: undefined}, this.props.location.state);
+      this.history.replaceState(null, state.path, state.query);
     }
   },
 
