@@ -2,6 +2,10 @@ const BS = ReactBootstrap;
 const {Link} = ReactRouter;
 
 App = React.createClass({
+  propTypes: {
+    history: React.PropTypes.object,
+  },
+
   render() {
     return (
       <div>
@@ -16,9 +20,14 @@ App = React.createClass({
           <BS.Navbar.Collapse>
             {/* TODO: Construct some sort of breadcrumbs here? */}
             <BS.Nav>
-              <li className={this.props.location.pathname == '/hunts' && 'active'}>
+              <li className={this.props.history.isActive('/hunts', undefined, true) && 'active'}>
                 <Link to="/hunts">
                   All hunts
+                </Link>
+              </li>
+              <li className={this.props.history.isActive('/users/invite', undefined, true) && 'active'}>
+                <Link to="/users/invite">
+                  Invite someone
                 </Link>
               </li>
             </BS.Nav>

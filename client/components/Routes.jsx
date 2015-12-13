@@ -15,6 +15,9 @@ Routes = React.createClass({
           <IndexRedirect to="hunts"/>
           <Route path="" component={App}>
             <Route path="hunts" component={HuntList}/>
+            <Route path="users">
+              <Route path="invite" component={UserInvite}/>
+            </Route>
           </Route>
         </Route>
         {/* Unauthenticated routes */}
