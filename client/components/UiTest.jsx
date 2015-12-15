@@ -17,10 +17,93 @@ var sortedTags = function sortedTags(tags) {
   return tags;
 };
 
+SearchBar = Radium(React.createClass({
+  propTypes: {
+    value: React.PropTypes.string.isRequired,
+    onSearchStringChange: React.PropTypes.func.isRequired,
+  },
+  styles: {
+    row: {
+      display: "block",
+      width: "100%",
+    },
+  },
+  handleSearchStringChange(event) {
+    this.props.onSearchStringChange(event.target.value);
+  },
+  render() {
+    return (
+      <div className="search-row" style={this.styles.row}>
+        <input ref="input" placeholder="search by title, answer, or tag"
+               style={this.styles.row} value={this.props.value}
+               onChange={this.handleSearchStringChange} />
+      </div>
+    );
+  },
+}));
+
+FilteringPuzzleSet = React.createClass({
+  propTypes: {
+    puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
+  },
+  getInitialState() {
+    return {
+      searchString: "",
+    };
+  },
+  onSearchStringChange(newString) {
+    this.setState({searchString: newString});
+  },
+  compileMatcher(searchKeys) {
+    console.log(searchKeys);
+    return function(puzzle) {
+      // for key in searchKeys:
+      //   if key in title or key in answer:
+      //     return true
+      //   if key is a substring of a tag:
+      //     return true
+      // return false
+      for (var i = 0 ; i < searchKeys.length ; i++) {
+        var key = searchKeys[i].toLowerCase();
+        if (puzzle.title.toLowerCase().indexOf(key) !== -1 ||
+            (puzzle.answer && (puzzle.answer.toLowerCase().indexOf(key) !== -1))) {
+          return true;
+        }
+        for (var j = 0; j < puzzle.tags.length; j++) {
+          var tag = puzzle.tags[j];
+          if (tag.indexOf(key) !== -1) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+  },
+  filteredPuzzles(puzzles) {
+    var searchKeys = this.state.searchString.split(" ");
+    if (searchKeys.length === 1 && searchKeys[0] === "") return puzzles;
+    var isInteresting = this.compileMatcher(searchKeys);
+    return _.filter(puzzles, isInteresting);
+  },
+  sortedFilteredPuzzles(puzzles) {
+    // TODO: implement sorting
+    return this.filteredPuzzles(puzzles);
+  },
+  render() {
+    var puzzles = this.sortedFilteredPuzzles(this.props.puzzles);
+    return (
+      <div>
+        <SearchBar value={this.state.searchString} onSearchStringChange={this.onSearchStringChange} />
+        <PuzzleList puzzles={puzzles} />
+      </div>
+    );
+  },
+});
+
 PuzzleList = Radium(React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
-    puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)),
+    puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
   },
   render() {
     // This component just renders the puzzles provided, in order.
@@ -161,9 +244,7 @@ Tag = Radium(React.createClass({
 UiTest = Radium(React.createClass({
   render() {
     return (
-      <div>
-        <PuzzleList puzzles={hunt_2015_puzzles} />
-      </div>
+      <FilteringPuzzleSet puzzles={hunt_2015_puzzles} />
     );
   },
 }));
