@@ -52,7 +52,7 @@ hunt_2015_puzzles = [
   { id: "p700", title: "Captain Planet", answer: "RECYCLE CONTENT", tags: ["group:aquatic-acquaintances"], url: "http://www.20000puzzles.com/puzzle/captain_planet/"},
   { id: "p680", title: "Spongebob", answer: "UNTANGLE LINES", tags: ["group:aquatic-acquaintances"], url: "http://www.20000puzzles.com/puzzle/spongebob/"},
   { id: "p742", title: "Dory", answer: "look behind you", tags: ["group:aquatic-acquaintances"], url: "http://www.20000puzzles.com/puzzle/dory/"},
-  { id: "p742", title: "Cthulhu", answer: "FEED ME YOUR SOLES", tags: ["group:aquatic-acquaintances"], url: "http://www.20000puzzles.com/puzzle/cthulhu/"},
+  { id: "p760", title: "Cthulhu", answer: "FEED ME YOUR SOLES", tags: ["group:aquatic-acquaintances"], url: "http://www.20000puzzles.com/puzzle/cthulhu/"},
 
   // Treasure chest
   { id: "r76", title: "Treasure Chest", answer: "MANTA RAY VISION", tags: ["meta", "meta:treasure-chest"], url: "http://www.20000puzzles.com/puzzle/treasure_chest_meta"},
