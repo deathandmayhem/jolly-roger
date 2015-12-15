@@ -1,3 +1,4 @@
+var PureRenderMixin = React.addons.PureRenderMixin;
 
 var puzzleShape = {
   id: React.PropTypes.string.isRequired,
@@ -17,6 +18,7 @@ var sortedTags = function sortedTags(tags) {
 };
 
 PuzzleList = Radium(React.createClass({
+  mixins: [PureRenderMixin],
   propTypes: {
     puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)),
   },
@@ -26,7 +28,8 @@ PuzzleList = Radium(React.createClass({
     // a higher layer.
     var puzzles = [];
     for (var i = 0 ; i < this.props.puzzles.length; i++) {
-      puzzles.push(<Puzzle {...this.props.puzzles[i]} />);
+      var puz = this.props.puzzles[i];
+      puzzles.push(<Puzzle key={puz.id} {...puz} />);
     }
     return (
       <div className="puzzle-list">
@@ -37,6 +40,7 @@ PuzzleList = Radium(React.createClass({
 }));
 
 Puzzle = Radium(React.createClass({
+  mixins: [PureRenderMixin],
   propTypes: puzzleShape,
   styles: {
     puzzle: {
@@ -67,6 +71,7 @@ Puzzle = Radium(React.createClass({
 }));
 
 PuzzleAnswer = Radium(React.createClass({
+  mixins: [PureRenderMixin],
   propTypes: {
     answer: React.PropTypes.string.isRequired
   },
@@ -86,6 +91,7 @@ PuzzleAnswer = Radium(React.createClass({
 }));
 
 TagList = Radium(React.createClass({
+  mixins: [PureRenderMixin],
   propTypes: {
     tags: React.PropTypes.arrayOf(React.PropTypes.string.isRequired).isRequired
   },
@@ -115,6 +121,7 @@ TagList = Radium(React.createClass({
 }));
 
 Tag = Radium(React.createClass({
+  mixins: [PureRenderMixin],
   propTypes: {
       name: React.PropTypes.string.isRequired,
       onClick: React.PropTypes.func,
