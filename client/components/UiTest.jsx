@@ -18,6 +18,7 @@ var sortedTags = function sortedTags(tags) {
 };
 
 SearchBar = Radium(React.createClass({
+  displayName: "SearchBar",
   propTypes: {
     value: React.PropTypes.string.isRequired,
     onSearchStringChange: React.PropTypes.func.isRequired,
@@ -43,6 +44,7 @@ SearchBar = Radium(React.createClass({
 }));
 
 FilteringPuzzleSet = React.createClass({
+  displayName: "FilteringPuzzleSet",
   propTypes: {
     puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
   },
@@ -101,6 +103,7 @@ FilteringPuzzleSet = React.createClass({
 });
 
 PuzzleList = Radium(React.createClass({
+  displayName: "PuzzleList",
   mixins: [PureRenderMixin],
   propTypes: {
     puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
@@ -123,6 +126,7 @@ PuzzleList = Radium(React.createClass({
 }));
 
 Puzzle = Radium(React.createClass({
+  displayName: "Puzzle",
   mixins: [PureRenderMixin],
   propTypes: puzzleShape,
   styles: {
@@ -154,6 +158,7 @@ Puzzle = Radium(React.createClass({
 }));
 
 PuzzleAnswer = Radium(React.createClass({
+  displayName: "PuzzleAnswer",
   mixins: [PureRenderMixin],
   propTypes: {
     answer: React.PropTypes.string.isRequired
@@ -174,6 +179,7 @@ PuzzleAnswer = Radium(React.createClass({
 }));
 
 TagList = Radium(React.createClass({
+  displayName: "TagList",
   mixins: [PureRenderMixin],
   propTypes: {
     tags: React.PropTypes.arrayOf(React.PropTypes.string.isRequired).isRequired
@@ -204,6 +210,7 @@ TagList = Radium(React.createClass({
 }));
 
 Tag = Radium(React.createClass({
+  displayName: "Tag",
   mixins: [PureRenderMixin],
   propTypes: {
       name: React.PropTypes.string.isRequired,
