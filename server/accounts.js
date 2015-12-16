@@ -27,6 +27,10 @@ const summaryFromLoginInfo = function(info) {
 };
 
 Accounts.onLogin((info) => {
+  if (info.type === 'resume') {
+    return;
+  }
+
   const summary = _.extend(summaryFromLoginInfo(info), {
     user: info.user._id,
     ip: info.connection.clientAddress,
