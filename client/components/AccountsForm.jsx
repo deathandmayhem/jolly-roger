@@ -1,8 +1,10 @@
 const BS = ReactBootstrap;
 const {Link} = ReactRouter;
 
-Login = React.createClass({
+AccountsForm = React.createClass({
   render() {
+    AccountsTemplates.paramToken = this.props.params.token;
+
     return (
       <div className="container">
         <BS.Jumbotron id="jr-login">
@@ -10,7 +12,7 @@ Login = React.createClass({
           <div className="container">
             <BS.Row>
               <BS.Col md={6} mdOffset={3}>
-                <BlazeToReact blazeTemplate="atForm"/>
+                <BlazeToReact blazeTemplate="atForm" state={this.props.route.state} />
               </BS.Col>
             </BS.Row>
           </div>
