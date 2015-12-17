@@ -135,7 +135,6 @@ Puzzle = Radium(React.createClass({
       padding: "2",
       background: "#f0f0f0",
       verticalAlign: "top",
-      height: "32",
     },
     title: {
       display: "inline-block",
@@ -191,8 +190,7 @@ TagList = Radium(React.createClass({
   },
   styles: {
     base: {
-      overflow: "hidden",
-      display: "inline-block",
+      display: "inline",
     },
   },
   render() {
@@ -247,11 +245,86 @@ Tag = Radium(React.createClass({
   },
 }));
 
+var RelatedPuzzleGroup = Radium(React.createClass({
+  displayName: "RelatedPuzzleGroup",
+  propTypes: {
+    sharedTag: React.PropTypes.string.isRequired,
+    relatedPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
+  },
+  styles: {
+    tagWrapper: {
+      display: "block",
+    },
+    group: {
+      marginBottom: "32"
+    },
+    puzzleListWrapper: {
+      paddingLeft: "32",
+    }
+  },
+  render() {
+    return (
+      <div style={this.styles.group}>
+        <div style={this.styles.tagWrapper}>
+          <Tag name={this.props.sharedTag} />
+          <span>({this.props.relatedPuzzles.length} puzzles)</span>
+        </div>
+        <div style={this.styles.puzzleListWrapper}>
+          <PuzzleList puzzles={this.props.relatedPuzzles} />
+        </div>
+      </div>
+    );
+  },
+}));
+
+var puzzlesWithTag = function(puzzles, tag) {
+  return _.filter(puzzles, function(p) { return p.tags.indexOf(tag) !== -1; });
+};
+
+var RelatedPuzzleGroups = Radium(React.createClass({
+  displayName: "RelatedPuzzleGroups",
+  propTypes: {
+    mainPuzzle: React.PropTypes.shape(puzzleShape).isRequired,
+    allPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
+  },
+  render() {
+    // For each tag, collect all the other puzzles that also have that tag.
+    var groups = [];
+    for (var tagi = 0 ; tagi < this.props.mainPuzzle.tags.length ; tagi++) {
+      var tag = this.props.mainPuzzle.tags[tagi];
+      var puzzles = puzzlesWithTag(this.props.allPuzzles, tag);
+      groups.push({tag: tag, puzzles: puzzles});
+    }
+    // TODO: sort the tag groups by tag interestingness, which should probably be related to meta
+    // presence/absence, tag group size, and number of solved/unsolved?
+
+    // TODO: next, sort the puzzles within each tag group by interestingness.  For instance, metas
+    // should probably be at the top of the group, then of the round puzzles, unsolved should
+    // maybe sort above solved, and then perhaps by unlock order.
+
+    // We also should probably have some ability to hide the current puzzle from a puzzle group, if
+    // we're in a puzzle details page and just looking at related puzzles.  No need to waste
+    // precious space on the current puzzle again.
+
+    // Then, render tag group
+    return (
+      <div>
+        {groups.map(function (g) {
+          return <RelatedPuzzleGroup sharedTag={g.tag} relatedPuzzles={g.puzzles} />;
+        })}
+      </div>
+    );
+  },
+}));
 
 UiTest = Radium(React.createClass({
   render() {
+      //<FilteringPuzzleSet puzzles={hunt_2015_puzzles} />
+      /* width here so I can fiddle with different amounts of space */
     return (
-      <FilteringPuzzleSet puzzles={hunt_2015_puzzles} />
+      <div style={ {width: "100%" } }>
+      <RelatedPuzzleGroups mainPuzzle={hunt_2015_puzzles[0]} allPuzzles={hunt_2015_puzzles} />
+      </div>
     );
   },
 }));
