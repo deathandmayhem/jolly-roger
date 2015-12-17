@@ -9,7 +9,6 @@ ecmascript-collections
 accounts-password
 twbs:bootstrap
 audit-argument-checks
-meteorhacks:kadira
 meteorhacks:zones
 mizzao:sharejs
 aldeed:collection2
