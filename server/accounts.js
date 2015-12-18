@@ -52,8 +52,8 @@ Accounts.onLoginFailure((info) => {
   });
 });
 
-Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl('enroll/' + token);
-Accounts.urls.resetPassword = (token) => Meteor.absoluteUrl('reset-password/' + token);
+Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl(`enroll/${token}`);
+Accounts.urls.resetPassword = (token) => Meteor.absoluteUrl(`reset-password/${token}`);
 
 // Get an account to trigger enrollment. If there's no account for the
 // email address, create one. Otherwise if the existing account
