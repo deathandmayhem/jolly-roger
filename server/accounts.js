@@ -45,7 +45,7 @@ Accounts.onLoginFailure((info) => {
     info.methodArguments[0].user &&
     info.methodArguments[0].user.email;
   Ansible.log('Failed login attempt', {
-    user: info.user._id,
+    user: info.user && info.user._id,
     email: email,
     ip: info.connection.clientAddress,
     error: info.error.reason,
