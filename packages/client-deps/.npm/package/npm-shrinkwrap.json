@@ -88,7 +88,7 @@
               "version": "http://registry.npmjs.org/has-require/-/has-require-1.2.1.tgz",
               "dependencies": {
                 "escape-string-regexp": {
-                  "version": "http://registry.npmjs.org/escape-string-regexp/-/escape-string-regexp-1.0.3.tgz"
+                  "version": "http://registry.npmjs.org/escape-string-regexp/-/escape-string-regexp-1.0.4.tgz"
                 }
               }
             },
@@ -244,7 +244,7 @@
               }
             },
             "ua-parser-js": {
-              "version": "http://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.9.tgz"
+              "version": "http://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.10.tgz"
             },
             "whatwg-fetch": {
               "version": "http://registry.npmjs.org/whatwg-fetch/-/whatwg-fetch-0.9.0.tgz"
@@ -301,7 +301,7 @@
           "version": "http://registry.npmjs.org/react-prop-types/-/react-prop-types-0.3.0.tgz"
         },
         "uncontrollable": {
-          "version": "http://registry.npmjs.org/uncontrollable/-/uncontrollable-3.1.4.tgz"
+          "version": "http://registry.npmjs.org/uncontrollable/-/uncontrollable-3.2.1.tgz"
         },
         "warning": {
           "version": "http://registry.npmjs.org/warning/-/warning-2.1.0.tgz",
@@ -372,7 +372,7 @@
                   }
                 },
                 "ua-parser-js": {
-                  "version": "http://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.9.tgz"
+                  "version": "http://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.10.tgz"
                 },
                 "whatwg-fetch": {
                   "version": "http://registry.npmjs.org/whatwg-fetch/-/whatwg-fetch-0.9.0.tgz"
