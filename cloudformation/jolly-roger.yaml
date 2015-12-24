@@ -12,10 +12,29 @@
 #   fork of github.com/codahale/sneaker), which encrypts secrets using
 #   KMS and stores them in S3.
 #
-# - An auto-scaling group with instances that automatically launch the
-#   jolly-roger application via Docker images (and automatically
-#   update using Watchtower), pulling secrets using sneaker as
-#   necessary
+# - An auto-scaling group (ASG) with instances that automatically
+#   launch the jolly-roger application.
+#
+# - The application instances run several docker services:
+#
+#   - A registry to proxy access to private images
+#
+#   - An nginx instance for port 80, redirecting to HTTPS and
+#     supporting the LetsEncrypt ACME verification process (via an S3
+#     bucket)
+#
+#   - An nginx instance for port 444, listening for HTTPS+PROXY and
+#     forwarding to the application
+#
+#   - The actual Meteor application
+#
+#   - Watchtower, which periodically pulls image updates
+#
+# - An Elastic Load Balancer (ELB) in front of the ASG, forwarding
+#   ports 80 and 443. It forwards port 443 using the proxy protcol
+#   (http://www.haproxy.org/download/1.5/doc/proxy-protocol.txt), such
+#   that the instances terminate TLS. This is needed for websocket
+#   support (ELB's HTTP implementation does not support websockets)
 #
 # It's possible this could be used to run multiple parallel copies of
 # the jolly-roger website, though that's not very likely in practice.
@@ -119,6 +138,12 @@ Resources:
       RouteTableId: {Ref: PublicSubnetRouteTable}
       SubnetId: {Ref: PublicSubnet2}
 
+  # Bucket for serving /.well-known/acme-challenge/
+  LetsEncryptBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+
   AppInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -157,6 +182,23 @@ Resources:
                         - {Ref: "AWS::AccountId"}
                         - ":key/"
                         - {Ref: SneakerKey}
+        - PolicyName: letsencrypt-store
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:PutObjectACL
+                  - s3:DeleteObject
+                Resource:
+                  - Fn::Join:
+                      - ''
+                      -
+                        - "arn:aws:s3:::"
+                        - {Ref: LetsEncryptBucket}
+                        - "/*"
+
   AppInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -164,6 +206,21 @@ Resources:
       Roles:
         - {Ref: AppInstanceRole}
 
+  AppElbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for app load balancer
+      SecurityGroupEgress: []
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+      VpcId: {Ref: VPC}
   AppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -178,15 +235,51 @@ Resources:
           IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-        - CidrIp: 0.0.0.0/0
+        - SourceSecurityGroupId: {Ref: AppElbSecurityGroup}
           IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-        - CidrIp: 0.0.0.0/0
+        # Proxy protocol comes on port 444
+        - SourceSecurityGroupId: {Ref: AppElbSecurityGroup}
           IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
+          FromPort: 444
+          ToPort: 444
       VpcId: {Ref: VPC}
+
+  AppElb:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      Subnets:
+        - {Ref: PublicSubnet1}
+        - {Ref: PublicSubnet2}
+      ConnectionDrainingPolicy:
+        Enabled: true
+        Timeout: 60
+      CrossZone: true
+      Policies:
+        - PolicyName: EnableProxyProtocol
+          PolicyType: ProxyProtocolPolicyType
+          Attributes:
+            - Name: ProxyProtocol
+              Value: true
+          InstancePorts: [444]
+      Listeners:
+        - Protocol: HTTP
+          LoadBalancerPort: 80
+          InstanceProtocol: HTTP
+          InstancePort: 80
+        - Protocol: TCP
+          LoadBalancerPort: 443
+          InstanceProtocol: TCP
+          InstancePort: 444
+      HealthCheck:
+        Target: TCP:80
+        Interval: 5
+        Timeout: 4
+        HealthyThreshold: 4
+        UnhealthyThreshold: 2
+      SecurityGroups:
+        - {Ref: AppElbSecurityGroup}
 
   AppLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -201,6 +294,9 @@ Resources:
       KeyName: {Ref: KeyName}
       SecurityGroups:
         - {Ref: AppSecurityGroup}
+      # We're generating a YAML file inside a YAML file. Yes, this is
+      # gross, but it seems to be the best anyone has come up with
+      # (especially since we need variable interpolation)
       UserData:
         Fn::Base64:
           Fn::Join:
@@ -228,10 +324,38 @@ Resources:
               - '  - mercurial'
               - '  - subversion'
               - ''
+              - 'write_files:'
+              - Fn::Join:
+                  - ''
+                  -
+                    - '  - path: /etc/nginx-https/vhost.d/'
+                    - {Ref: AppUrl}
+              - '    content: |'
+              - '      listen 444 ssl http2 proxy_protocol default_server;'
+              - '  - path: /etc/nginx-http/conf.d/default.conf'
+              - '    content: |'
+              - '      server {'
+              - '        listen 80;'
+              - '        access_log /var/log/nginx/access.log main;'
+              - '        location /.well-known/acme-challenge {'
+              - Fn::Join:
+                  - ''
+                  -
+                    - '          return 301 https://'
+                    - {Ref: LetsEncryptBucket}
+                    - '.s3.amazonaws.com$request_uri;'
+              - '        }'
+              - '        location / {'
+              - '          return 301 https://$host$request_uri;'
+              - '        }'
+              - '      }'
+              - ''
               - 'runcmd:'
               - '  - set -eux'
               - '  - env GOPATH=/usr/local go get -d -u github.com/ebroder/sneaker'
               - '  - env GOPATH=/usr/local sh -c "cd /usr/local/src/github.com/ebroder/sneaker && make install"'
+
+              # Run a local registry proxy so we don't have to teach everything to auth for our private images
               - '  - mkdir -p /etc/docker/registry'
               - Fn::Join:
                   - ''
@@ -243,12 +367,13 @@ Resources:
                     - ' SNEAKER_MASTER_KEY='
                     - {Ref: SneakerKey}
                     - ' /usr/local/bin/sneaker download registry/config.yml /etc/docker/registry/config.yml'
-              - '  - docker run -d --restart=unless-stopped -p 5000:5000 -v /etc/docker/registry:/etc/docker/registry registry:2'
+              - '  - docker run --name registry -d --restart=unless-stopped -p 5000:5000 -v /etc/docker/registry:/etc/docker/registry registry:2'
               - '  - sleep 5'
+
               - Fn::Join:
                   - ''
                   -
-                    - '  - docker run -d --restart=unless-stopped -e AWS_REGION='
+                    - '  - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_REGION='
                     - {Ref: "AWS::Region"}
                     - ' -e SNEAKER_S3_PATH=s3://'
                     - {Ref: SneakerS3Bucket}
@@ -256,13 +381,43 @@ Resources:
                     - {Ref: SneakerKey}
                     - ' -e VIRTUAL_HOST='
                     - {Ref: AppUrl}
-                    - ' -e LETSENCRYPT_HOST='
-                    - {Ref: AppUrl}
-                    - ' -e LETSENCRYPT_EMAIL=evan@ebroder.net -e ROOT_URL=https://'
+                    - ' -e ROOT_URL=https://'
                     - {Ref: AppUrl}
                     - ' localhost:5000/ebroder/jolly-roger'
-              - '  - docker run -d --restart=unless-stopped -p 80:80 -p 443:443 -v /var/run/docker.sock:/tmp/docker.sock:ro dmp1ce/nginx-proxy-letsencrypt'
-              - '  - docker run -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock centurylink/watchtower --interval 30 --cleanup'
+
+              - '  - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx'
+              # Give ELB time to pick up the instance
+              - '  - sleep 60'
+
+              - Fn::Join:
+                  - ''
+                  -
+                    - '  - docker run --name letsencrypt-issue --rm -v /etc/letsencrypt:/etc/letsencrypt ebroder/letsencrypt-s3front --server https://acme-staging.api.letsencrypt.org/directory -v --text --agree-tos --authenticator letsencrypt-s3front:auth --installer null -m evan@ebroder.net -d '
+                    - {Ref: AppUrl}
+                    - ' --letsencrypt-s3front:auth-s3-bucket '
+                    - {Ref: LetsEncryptBucket}
+                    - ' --letsencrypt-s3front:auth-s3-region '
+                    - {Ref: "AWS::Region"}
+              - '  - mkdir /etc/nginx-https/certs'
+              - Fn::Join:
+                  - ''
+                  -
+                    - '  - ln -s /etc/letsencrypt/live/'
+                    - {Ref: AppUrl}
+                    - '/fullchain.pem /etc/nginx-https/certs/'
+                    - {Ref: AppUrl}
+                    - '.crt'
+              - Fn::Join:
+                  - ''
+                  -
+                    - '  - ln -s /etc/letsencrypt/live/'
+                    - {Ref: AppUrl}
+                    - '/privkey.pem /etc/nginx-https/certs/'
+                    - {Ref: AppUrl}
+                    - '.key'
+
+              - '  - docker run --name nginx-https -d --restart=unless-stopped -p 444:444 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d -v /etc/nginx-https/certs:/etc/nginx/certs -v /etc/letsencrypt:/etc/letsencrypt jwilder/nginx-proxy'
+              - '  - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock centurylink/watchtower --interval 30 --cleanup'
     DependsOn:
       - InternetGatewayAttachment
 
@@ -275,6 +430,8 @@ Resources:
         - {Ref: PublicSubnet2}
       MaxSize: 1
       MinSize: 1
+      LoadBalancerNames:
+        - {Ref: AppElb}
     UpdatePolicy:
       AutoScalingRollingUpdate:
         WaitOnResourceSignals: false
