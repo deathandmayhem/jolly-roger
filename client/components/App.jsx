@@ -37,9 +37,9 @@ App = React.createClass({
           </BS.Navbar.Collapse>
         </BS.Navbar>
 
-        <div className="container">
-          <ConnectionStatus/>
+        <ConnectionStatus/>
 
+        <div style={{position: "absolute", top: "70", bottom: "0", left: "0", right: "0"}}>
           {this.props.children}
         </div>
       </div>
