@@ -14,6 +14,8 @@ Routes = React.createClass({
         <Route path="/" component={Authenticator} authenticated={true}>
           <IndexRedirect to="hunts"/>
           <Route path="" component={App}>
+            <Route path="hunts/:huntId/puzzles/:puzzleId" component={PuzzlePage}/>
+            <Route path="hunts/:huntId/puzzles" component={PuzzleListPage}/>
             <Route path="hunts" component={HuntList}/>
             <Route path="users">
               <Route path="invite" component={UserInvite}/>
