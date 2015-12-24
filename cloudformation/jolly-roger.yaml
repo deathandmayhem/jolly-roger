@@ -81,6 +81,10 @@ Parameters:
     Description: Instance type to run for app server
     Type: String
     Default: t2.micro
+  PapertrailHost:
+    Description: Log host for Papertrail
+    Type: String
+    Default: logs3.papertrailapp.com:44535
 
 Mappings:
   UbuntuAmis:
@@ -354,6 +358,12 @@ Resources:
               - '  - set -eux'
               - '  - env GOPATH=/usr/local go get -d -u github.com/ebroder/sneaker'
               - '  - env GOPATH=/usr/local sh -c "cd /usr/local/src/github.com/ebroder/sneaker && make install"'
+
+              - Fn::Join:
+                  - ''
+                  -
+                    - '  - docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/logspout syslog://'
+                    - {Ref: PapertrailHost}
 
               # Run a local registry proxy so we don't have to teach everything to auth for our private images
               - '  - mkdir -p /etc/docker/registry'
