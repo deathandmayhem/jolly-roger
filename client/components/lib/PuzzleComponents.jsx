@@ -57,7 +57,6 @@ FilteringPuzzleSet = React.createClass({
     this.setState({searchString: newString});
   },
   compileMatcher(searchKeys) {
-    console.log(searchKeys);
     return function(puzzle) {
       // for key in searchKeys:
       //   if key in title or key in answer:
@@ -132,9 +131,11 @@ Puzzle = Radium(React.createClass({
   styles: {
     puzzle: {
       display: "block",
-      padding: "2",
+      //padding: "2",
+      marginBottom: "4",
       background: "#f0f0f0",
       verticalAlign: "top",
+
     },
     title: {
       display: "inline-block",
@@ -163,16 +164,20 @@ PuzzleAnswer = Radium(React.createClass({
     answer: React.PropTypes.string.isRequired
   },
   styles: {
-    display: "inline-block",
-    verticalAlign: "top",
-    padding: "2",
-    margin: "2",
-    textTransform: "uppercase",
-    background: "#7fff7f",
+    wrapper: {
+      display: "inline-block",
+      verticalAlign: "top",
+      padding: "2",
+      margin: "2",
+    },
+    answer: {
+      textTransform: "uppercase",
+      fontWeight: "bold",
+    },
   },
   render() {
     return (
-      <span className="answer" style={this.styles}>{this.props.answer}</span>
+      <span className="answer" style={this.styles.wrapper}>ans: <span style={this.styles.answer}>{this.props.answer}</span></span>
     );
   },
 }));
@@ -245,7 +250,7 @@ Tag = Radium(React.createClass({
   },
 }));
 
-var RelatedPuzzleGroup = Radium(React.createClass({
+RelatedPuzzleGroup = Radium(React.createClass({
   displayName: "RelatedPuzzleGroup",
   propTypes: {
     sharedTag: React.PropTypes.string.isRequired,
@@ -256,10 +261,10 @@ var RelatedPuzzleGroup = Radium(React.createClass({
       display: "block",
     },
     group: {
-      marginBottom: "32"
+      marginBottom: "16"
     },
     puzzleListWrapper: {
-      paddingLeft: "32",
+      paddingLeft: "16",
     }
   },
   render() {
@@ -281,17 +286,17 @@ var puzzlesWithTag = function(puzzles, tag) {
   return _.filter(puzzles, function(p) { return p.tags.indexOf(tag) !== -1; });
 };
 
-var RelatedPuzzleGroups = Radium(React.createClass({
+RelatedPuzzleGroups = Radium(React.createClass({
   displayName: "RelatedPuzzleGroups",
   propTypes: {
-    mainPuzzle: React.PropTypes.shape(puzzleShape).isRequired,
+    activePuzzle: React.PropTypes.shape(puzzleShape).isRequired,
     allPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
   },
   render() {
     // For each tag, collect all the other puzzles that also have that tag.
     var groups = [];
-    for (var tagi = 0 ; tagi < this.props.mainPuzzle.tags.length ; tagi++) {
-      var tag = this.props.mainPuzzle.tags[tagi];
+    for (var tagi = 0 ; tagi < this.props.activePuzzle.tags.length ; tagi++) {
+      var tag = this.props.activePuzzle.tags[tagi];
       var puzzles = puzzlesWithTag(this.props.allPuzzles, tag);
       groups.push({tag: tag, puzzles: puzzles});
     }
@@ -310,20 +315,8 @@ var RelatedPuzzleGroups = Radium(React.createClass({
     return (
       <div>
         {groups.map(function (g) {
-          return <RelatedPuzzleGroup sharedTag={g.tag} relatedPuzzles={g.puzzles} />;
+          return <RelatedPuzzleGroup key={g.tag} sharedTag={g.tag} relatedPuzzles={g.puzzles} />;
         })}
-      </div>
-    );
-  },
-}));
-
-UiTest = Radium(React.createClass({
-  render() {
-      //<FilteringPuzzleSet puzzles={hunt_2015_puzzles} />
-      /* width here so I can fiddle with different amounts of space */
-    return (
-      <div style={ {width: "100%" } }>
-      <RelatedPuzzleGroups mainPuzzle={hunt_2015_puzzles[0]} allPuzzles={hunt_2015_puzzles} />
       </div>
     );
   },
