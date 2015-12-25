@@ -1,7 +1,9 @@
-var PureRenderMixin = React.addons.PureRenderMixin;
+const {Link} = ReactRouter;
+const PureRenderMixin = React.addons.PureRenderMixin;
 
 var puzzleShape = {
   id: React.PropTypes.string.isRequired,
+  hunt: React.PropTypes.string.isRequired,
   title: React.PropTypes.string.isRequired,
   url: React.PropTypes.string, // URL optional for now?  I'm not sure what to do with it.
   answer: React.PropTypes.string,
@@ -146,10 +148,11 @@ Puzzle = Radium(React.createClass({
   },
   render() {
     // id, title, answer, tags
+    var linkTarget = `/hunts/${this.props.hunt}/puzzles/${this.props.id}`;
     return (
       <div className="puzzle" style={[this.styles.puzzle]}>
         {/* TODO: make this actually link to that puzzle's page */}
-        <div className="title" style={this.styles.title}><a href={""}>{this.props.title}</a></div>
+        <div className="title" style={this.styles.title}><Link to={linkTarget}>{this.props.title}</Link></div>
         {this.props.answer ? <PuzzleAnswer answer={this.props.answer} /> : null}
         <TagList tags={this.props.tags} />
       </div>
