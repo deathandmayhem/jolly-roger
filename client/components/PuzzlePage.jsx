@@ -127,6 +127,16 @@ PuzzlePageContent = React.createClass({
   }
 });
 
+var findPuzzleById = function(puzzles, id) {
+  for (var i = 0 ; i < puzzles.length ; i++) {
+    var puzzle = puzzles[i];
+    if (puzzle.id === id) {
+      return puzzle;
+    }
+  }
+  return undefined;
+};
+
 PuzzlePage = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
@@ -134,10 +144,14 @@ PuzzlePage = React.createClass({
     // TODO: whole puzzle list should come from DB, not mock
   },
   render() {
-    let activePuzzle = hunt_2015_puzzles[0];
+    var allPuzzles = [];
+    if (this.props.params.huntId === "2015") {
+      allPuzzles = hunt_2015_puzzles;
+    }
+    let activePuzzle = findPuzzleById(allPuzzles, this.props.params.puzzleId);
     return (
       <div style={{display: "flex", flexDirection: "row", position: "absolute", top: "0", bottom: "0", left:"0", right:"0"}}>
-        <PuzzlePageSidebar activePuzzle={activePuzzle} allPuzzles={hunt_2015_puzzles} />
+        <PuzzlePageSidebar activePuzzle={activePuzzle} allPuzzles={allPuzzles} />
         <PuzzlePageContent />
       </div>
     );
