@@ -236,7 +236,7 @@
               }
             },
             "promise": {
-              "version": "http://registry.npmjs.org/promise/-/promise-7.0.4.tgz",
+              "version": "http://registry.npmjs.org/promise/-/promise-7.1.1.tgz",
               "dependencies": {
                 "asap": {
                   "version": "http://registry.npmjs.org/asap/-/asap-2.0.3.tgz"
@@ -364,7 +364,7 @@
                   }
                 },
                 "promise": {
-                  "version": "http://registry.npmjs.org/promise/-/promise-7.0.4.tgz",
+                  "version": "http://registry.npmjs.org/promise/-/promise-7.1.1.tgz",
                   "dependencies": {
                     "asap": {
                       "version": "http://registry.npmjs.org/asap/-/asap-2.0.3.tgz"
