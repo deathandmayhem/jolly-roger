@@ -110,6 +110,16 @@ const Hunt = React.createClass({
   },
 });
 
+MockHunt = React.createClass({
+  render() {
+    return (
+      <li>
+        <Link to={'/hunts/2015'}>2015 (mock data)</Link>
+      </li>
+    );
+  }
+});
+
 HuntList = React.createClass({
   mixins: [ReactMeteorData],
 
@@ -145,6 +155,8 @@ HuntList = React.createClass({
     const hunts = this.data.hunts.map((hunt) => {
       return <Hunt key={hunt._id} hunt={hunt}/>;
     });
+    // Insert mock data from 2015 hunt.
+    hunts.push(<MockHunt key={2015} />);
     return (
       <div id="jr-hunts">
         <h1>Hunts</h1>
