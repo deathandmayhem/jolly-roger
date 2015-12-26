@@ -84,11 +84,27 @@ Parameters:
   PapertrailHost:
     Description: Log host for Papertrail
     Type: String
-    Default: logs3.papertrailapp.com:44535
+    NoEcho: true
+  DatadogApiKey:
+    Description: API key for DataDog
+    Type: String
+    NoEcho: true
 
 Mappings:
   UbuntuAmis:
     us-east-1: {"ami": ami-0021766a}
+
+Conditions:
+  HavePapertrail:
+    Fn::Not:
+      - Fn::Equals:
+          - {Ref: PapertrailHost}
+          - ''
+  HaveDatadog:
+    Fn::Not:
+      - Fn::Equals:
+          - {Ref: DatadogApiKey}
+          - ''
 
 Resources:
   VPC:
@@ -324,17 +340,20 @@ Resources:
               - '  - docker-engine'
               - '  - git'
               - '  - golang'
+              - '  - htop'
               - '  - jq'
               - '  - mercurial'
               - '  - subversion'
               - ''
-              - 'rsyslog:'
-              - Fn::Join:
+              - Fn::If:
+                  - HavePapertrail
+                  - Fn::Join:
+                      - ''
+                      -
+                        - "rsyslog:\n  - configs: [\". @"
+                        - {Ref: PapertrailHost}
+                        - "\"]"
                   - ''
-                  -
-                    - '  - configs: [". @'
-                    - {Ref: PapertrailHost}
-                    - '"]'
               - ''
               - 'write_files:'
               - Fn::Join:
@@ -367,11 +386,24 @@ Resources:
               - '  - env GOPATH=/usr/local go get -d -u github.com/ebroder/sneaker'
               - '  - env GOPATH=/usr/local sh -c "cd /usr/local/src/github.com/ebroder/sneaker && make install"'
 
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/logspout syslog://'
-                    - {Ref: PapertrailHost}
+              # Observability
+              - Fn::If:
+                  - HavePapertrail
+                  - Fn::Join:
+                      - ''
+                      -
+                        - '  - docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/logspout syslog://'
+                        - {Ref: PapertrailHost}
+                  - {Ref: "AWS::NoValue"}
+              - Fn::If:
+                  - HaveDatadog
+                  - Fn::Join:
+                      - ''
+                      -
+                        - '  - docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e API_KEY='
+                        - {Ref: DatadogApiKey}
+                        - ' datadog/docker-dd-agent:latest'
+                  - {Ref: "AWS::NoValue"}
 
               # Run a local registry proxy so we don't have to teach everything to auth for our private images
               - '  - mkdir -p /etc/docker/registry'
