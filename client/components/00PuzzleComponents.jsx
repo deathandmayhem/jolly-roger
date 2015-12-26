@@ -1,14 +1,7 @@
 const {Link} = ReactRouter;
 const PureRenderMixin = React.addons.PureRenderMixin;
 
-var puzzleShape = {
-  id: React.PropTypes.string.isRequired,
-  hunt: React.PropTypes.string.isRequired,
-  title: React.PropTypes.string.isRequired,
-  url: React.PropTypes.string, // URL optional for now?  I'm not sure what to do with it.
-  answer: React.PropTypes.string,
-  tags: React.PropTypes.arrayOf(React.PropTypes.string.isRequired).isRequired,
-};
+var puzzleShape = Schemas.Puzzles.asReactPropTypes();
 
 var sortedTags = function sortedTags(tags) {
   // TODO: attempt to sort the tags into a reasonable order before showing them.
