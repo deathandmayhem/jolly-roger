@@ -12,7 +12,7 @@ var sortedTags = function sortedTags(tags) {
   return tags;
 };
 
-SearchBar = Radium(React.createClass({
+SearchBar = React.createClass({
   displayName: "SearchBar",
   propTypes: {
     value: React.PropTypes.string.isRequired,
@@ -36,7 +36,7 @@ SearchBar = Radium(React.createClass({
       </div>
     );
   },
-}));
+});
 
 FilteringPuzzleSet = React.createClass({
   displayName: "FilteringPuzzleSet",
@@ -96,7 +96,7 @@ FilteringPuzzleSet = React.createClass({
   },
 });
 
-PuzzleList = Radium(React.createClass({
+PuzzleList = React.createClass({
   displayName: "PuzzleList",
   mixins: [PureRenderMixin],
   propTypes: {
@@ -117,9 +117,9 @@ PuzzleList = Radium(React.createClass({
       </div>
     );
   },
-}));
+});
 
-Puzzle = Radium(React.createClass({
+Puzzle = React.createClass({
   displayName: "Puzzle",
   mixins: [PureRenderMixin],
   propTypes: puzzleShape,
@@ -143,7 +143,7 @@ Puzzle = Radium(React.createClass({
     // id, title, answer, tags
     var linkTarget = `/hunts/${this.props.hunt}/puzzles/${this.props.id}`;
     return (
-      <div className="puzzle" style={[this.styles.puzzle]}>
+      <div className="puzzle" style={this.styles.puzzle}>
         {/* TODO: make this actually link to that puzzle's page */}
         <div className="title" style={this.styles.title}><Link to={linkTarget}>{this.props.title}</Link></div>
         {this.props.answer ? <PuzzleAnswer answer={this.props.answer} /> : null}
@@ -151,9 +151,9 @@ Puzzle = Radium(React.createClass({
       </div>
     );
   },
-}));
+});
 
-PuzzleAnswer = Radium(React.createClass({
+PuzzleAnswer = React.createClass({
   displayName: "PuzzleAnswer",
   mixins: [PureRenderMixin],
   propTypes: {
@@ -176,9 +176,9 @@ PuzzleAnswer = Radium(React.createClass({
       <span className="answer" style={this.styles.wrapper}>ans: <span style={this.styles.answer}>{this.props.answer}</span></span>
     );
   },
-}));
+});
 
-TagList = Radium(React.createClass({
+TagList = React.createClass({
   displayName: "TagList",
   mixins: [PureRenderMixin],
   propTypes: {
@@ -206,7 +206,7 @@ TagList = Radium(React.createClass({
       </div>
     );
   },
-}));
+});
 
 Tag = Radium(React.createClass({
   displayName: "Tag",
@@ -246,7 +246,7 @@ Tag = Radium(React.createClass({
   },
 }));
 
-RelatedPuzzleGroup = Radium(React.createClass({
+RelatedPuzzleGroup = React.createClass({
   displayName: "RelatedPuzzleGroup",
   propTypes: {
     sharedTag: React.PropTypes.string.isRequired,
@@ -276,13 +276,13 @@ RelatedPuzzleGroup = Radium(React.createClass({
       </div>
     );
   },
-}));
+});
 
 var puzzlesWithTag = function(puzzles, tag) {
   return _.filter(puzzles, function(p) { return p.tags.indexOf(tag) !== -1; });
 };
 
-RelatedPuzzleGroups = Radium(React.createClass({
+RelatedPuzzleGroups = React.createClass({
   displayName: "RelatedPuzzleGroups",
   propTypes: {
     activePuzzle: React.PropTypes.shape(puzzleShape).isRequired,
@@ -316,4 +316,4 @@ RelatedPuzzleGroups = Radium(React.createClass({
       </div>
     );
   },
-}));
+});
