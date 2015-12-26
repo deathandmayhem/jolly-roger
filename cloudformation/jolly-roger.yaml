@@ -328,6 +328,14 @@ Resources:
               - '  - mercurial'
               - '  - subversion'
               - ''
+              - 'rsyslog:'
+              - Fn::Join:
+                  - ''
+                  -
+                    - '  - configs: [". @'
+                    - {Ref: PapertrailHost}
+                    - '"]'
+              - ''
               - 'write_files:'
               - Fn::Join:
                   - ''
