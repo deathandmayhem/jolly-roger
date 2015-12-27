@@ -2,6 +2,12 @@ const BS = ReactBootstrap;
 const {Link} = ReactRouter;
 
 SharedNavbar = React.createClass({
+  mixins: [ReactMeteorData],
+  getMeteorData() {
+    return {
+      userId: Meteor.userId(),
+    };
+  },
   render () {
     return (
       <BS.Navbar fixedTop>
@@ -23,6 +29,16 @@ SharedNavbar = React.createClass({
             <li className={this.props.history.isActive('/users/invite', undefined, true) && 'active'}>
               <Link to="/users/invite">
                 Invite someone
+              </Link>
+            </li>
+            {/*
+              TODO: profile should really be an item in a dropdown with user's name
+                    so should the sign out button
+                    so should invite someone
+            */}
+            <li className={this.props.history.isActive(`/users/${this.data.userId}`, undefined, true) && 'active'}>
+              <Link to={`/users/${this.data.userId}`}>
+                My profile
               </Link>
             </li>
           </BS.Nav>
