@@ -1,0 +1,7 @@
+{
+    "name": "jolly-roger",
+    "private": true,
+    "dependencies": {
+        "handsontable": "~0.20.2"
+    }
+}

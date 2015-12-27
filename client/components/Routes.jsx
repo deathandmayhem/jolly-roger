@@ -23,6 +23,7 @@ Routes = React.createClass({
             <Route path="users">
               <Route path="invite" component={UserInvite}/>
             </Route>
+            <Route path="sheets/:id" component={Spreadsheet}/>
           </Route>
         </Route>
         {/* Unauthenticated routes */}
