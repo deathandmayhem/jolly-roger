@@ -8,9 +8,8 @@
 # - A VPC with a public subnet (no support currently for private
 #   subnets or NAT)
 #
-# - A system for fetching secrets using github.com/ebroder/sneaker (a
-#   fork of github.com/codahale/sneaker), which encrypts secrets using
-#   KMS and stores them in S3.
+# - A system for fetching secrets using credstash which encrypts
+#   secrets using KMS and stores them in DynamoDB.
 #
 # - An auto-scaling group (ASG) with instances that automatically
 #   launch the jolly-roger application.
@@ -42,38 +41,29 @@
 # To spin up an independent copy of jolly-roger, you'll _definitely_
 # need to do the following (and probably more I've forgotten):
 #
-# - Create an S3 bucket to store secrets (you'll provde this as
-#   SneakerS3Bucket)
-#
-# - Create a new KMS key to store secrets (you'll provide this in
-#   SneakerKey)
+# - Setup credstash (following the directions in the repo)
 #
 # - Generate the config.yml file for the registry. Starting with
 #   http://git.io/vERX3, add a section labeled proxy. Include the keys
 #   username and password with values for an account that has access
 #   to the ebroder/jolly-roger image, and set remoteurl:
-#   https://registry-1.docker.io. Store this using `sneaker upload
-#   <path> registry/config.yml`
+#   https://registry-1.docker.io. Store this using `credstash put
+#   registry/config.yml @path`
 #
-# - Store the MongoDB URL using `sneaker upload <path> mongo`. The
+# - Store the MongoDB URL using `credstash put mongo @<path>`. The
 #   free account from mongolab (for instance) should be sufficient.
 
 AWSTemplateFormatVersion: "2010-09-09"
 Description: jolly-roger
 
 Parameters:
+  CredstashKeyUuid:
+    Description: UUID of the credstash KMS key
+    Type: String
   AppUrl:
     Description: The URL of application
     Type: String
     Default: future.deathandmayhem.com
-  SneakerS3Bucket:
-    Description: S3 bucket where secrets should be stored (in the root)
-    Type: String
-    Default: jolly-roger-sneaker
-  SneakerKey:
-    Description: UUID of the sneaker master key
-    Type: String
-    Default: 4d22351a-7610-4d95-a341-61f05203564e
   KeyName:
     Description: Name of an existing EC2 keypair to allow access to all instances
     Type: AWS::EC2::KeyPair::KeyName
@@ -84,10 +74,12 @@ Parameters:
   PapertrailHost:
     Description: Log host for Papertrail
     Type: String
+    Default: ''
     NoEcho: true
   DatadogApiKey:
     Description: API key for DataDog
     Type: String
+    Default: ''
     NoEcho: true
 
 Mappings:
@@ -175,20 +167,24 @@ Resources:
               Service: [ec2.amazonaws.com]
             Action: ["sts:AssumeRole"]
       Policies:
-        - PolicyName: sneaker-download
+        - PolicyName: credstash-download
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - s3:GetObject
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
                 Resource:
                   - Fn::Join:
                       - ""
                       -
-                        - "arn:aws:s3:::"
-                        - {Ref: SneakerS3Bucket}
-                        - "/*"
+                        - "arn:aws:dynamodb:"
+                        - {Ref: "AWS::Region"}
+                        - ":"
+                        - {Ref: "AWS::AccountId"}
+                        - ":table/credential-store"
               - Effect: Allow
                 Action:
                   - kms:Decrypt
@@ -201,7 +197,7 @@ Resources:
                         - ":"
                         - {Ref: "AWS::AccountId"}
                         - ":key/"
-                        - {Ref: SneakerKey}
+                        - {Ref: CredstashKeyUuid}
         - PolicyName: letsencrypt-store
           PolicyDocument:
             Version: "2012-10-17"
@@ -327,23 +323,16 @@ Resources:
               - 'package_upgrade: true'
               - ''
               - 'apt_sources:'
-              # For golang
-              - '  - source: "ppa:ubuntu-lxc/lxd-stable"'
               # For docker
               - '  - source: "deb https://apt.dockerproject.org/repo ubuntu-$RELEASE main"'
               - '    filename: docker.list'
               - '    keyid: 58118E89F3A912897C070ADBF76221572C52609D'
               - ''
               - 'packages:'
-              - '  - build-essential'
-              - '  - bzr'
               - '  - docker-engine'
-              - '  - git'
-              - '  - golang'
               - '  - htop'
-              - '  - jq'
-              - '  - mercurial'
-              - '  - subversion'
+              - '  - python-dev'
+              - '  - python-pip'
               - ''
               - Fn::If:
                   - HavePapertrail
@@ -383,8 +372,12 @@ Resources:
               - ''
               - 'runcmd:'
               - '  - set -eux'
-              - '  - env GOPATH=/usr/local go get -d -u github.com/ebroder/sneaker'
-              - '  - env GOPATH=/usr/local sh -c "cd /usr/local/src/github.com/ebroder/sneaker && make install"'
+              - '  - pip install credstash'
+              - Fn::Join:
+                  - ''
+                  -
+                    - '  - export AWS_DEFAULT_REGION='
+                    - {Ref: "AWS::Region"}
 
               # Observability
               - Fn::If:
@@ -407,28 +400,14 @@ Resources:
 
               # Run a local registry proxy so we don't have to teach everything to auth for our private images
               - '  - mkdir -p /etc/docker/registry'
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - AWS_REGION='
-                    - {Ref: "AWS::Region"}
-                    - ' SNEAKER_S3_PATH=s3://'
-                    - {Ref: SneakerS3Bucket}
-                    - ' SNEAKER_MASTER_KEY='
-                    - {Ref: SneakerKey}
-                    - ' /usr/local/bin/sneaker download registry/config.yml /etc/docker/registry/config.yml'
+              - '  - credstash get registry/config.yml > /etc/docker/registry/config.yml'
               - '  - docker run --name registry -d --restart=unless-stopped -p 5000:5000 -v /etc/docker/registry:/etc/docker/registry registry:2'
               - '  - sleep 5'
 
               - Fn::Join:
                   - ''
                   -
-                    - '  - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_REGION='
-                    - {Ref: "AWS::Region"}
-                    - ' -e SNEAKER_S3_PATH=s3://'
-                    - {Ref: SneakerS3Bucket}
-                    - ' -e SNEAKER_MASTER_KEY='
-                    - {Ref: SneakerKey}
+                    - '  - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION'
                     - ' -e VIRTUAL_HOST='
                     - {Ref: AppUrl}
                     - ' -e ROOT_URL=https://'
