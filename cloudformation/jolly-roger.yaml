@@ -260,6 +260,21 @@ Resources:
           IpProtocol: tcp
           FromPort: 444
           ToPort: 444
+        # echo request
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: icmp
+          FromPort: 8
+          ToPort: -1
+        # echo reply
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: icmp
+          FromPort: 0
+          ToPort: -1
+        # frag needed
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: icmp
+          FromPort: 3
+          ToPort: 4
       VpcId: {Ref: VPC}
 
   AppElb:
