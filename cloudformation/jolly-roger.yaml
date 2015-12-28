@@ -304,10 +304,10 @@ Resources:
           InstanceProtocol: TCP
           InstancePort: 444
       HealthCheck:
-        Target: TCP:80
+        Target: HTTP:80/healthcheck
         Interval: 5
         Timeout: 4
-        HealthyThreshold: 4
+        HealthyThreshold: 2
         UnhealthyThreshold: 2
       SecurityGroups:
         - {Ref: AppElbSecurityGroup}
@@ -379,6 +379,9 @@ Resources:
                     - '          return 301 https://'
                     - {Ref: LetsEncryptBucket}
                     - '.s3.amazonaws.com$request_uri;'
+              - '        }'
+              - '        location /healthcheck {'
+              - '          return 200 "OK\n";'
               - '        }'
               - '        location / {'
               - '          return 301 https://$host$request_uri;'
