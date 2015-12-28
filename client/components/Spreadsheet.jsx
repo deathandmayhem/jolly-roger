@@ -62,9 +62,17 @@ Spreadsheet = React.createClass({
 
         switch (action) {
           case 'insert_row':
+            if (index === undefined) {
+              index = this.countRows();
+            }
+
             ctx.submitOp({ir: index, c: amount});
             break;
           case 'insert_col':
+            if (index === undefined) {
+              index = this.countCols();
+            }
+
             ctx.submitOp({ic: index, c: amount});
             break;
           case 'remove_row':
@@ -81,7 +89,7 @@ Spreadsheet = React.createClass({
       };
 
       // Trigger a re-render whenever an op comes in.
-      ctx._onOp = () => this.hot.render();
+      ctx._onOp = () => window.setTimeout(this.hot.render, 0);
     });
   },
 
