@@ -157,3 +157,5 @@ PuzzlePage = React.createClass({
     );
   },
 });
+// Mark this page as requiring fixed, fullscreen layout.
+PuzzlePage.fixedLayout = true;
