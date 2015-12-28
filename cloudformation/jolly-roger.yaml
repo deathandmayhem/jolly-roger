@@ -420,7 +420,7 @@ Resources:
                   - Fn::Join:
                       - ''
                       -
-                        - '  - docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/logspout syslog://'
+                        - '  - docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/logspout:master syslog://'
                         - {Ref: PapertrailHost}
                   - {Ref: "AWS::NoValue"}
               - Fn::If:
