@@ -28,7 +28,6 @@ Spreadsheet = React.createClass({
       }
 
       const snap = doc.getSnapshot();
-      const ctx = doc.createContext();
 
       this.hot = new Handsontable(this.refs.editor, {
         rowHeaders: true,
@@ -40,10 +39,11 @@ Spreadsheet = React.createClass({
         contextMenu: true,
         columnSorting: true,
         sortIndicator: true,
+        formulas: true,
         data: snap,
 
         beforeChange: (changes) => {
-          ctx.submitOp({s: _.clone(changes)});
+          doc.submitOp({s: _.clone(changes)});
 
           // Don't actually apply the modifications, since ShareJS will do it for us
           return false;
@@ -66,22 +66,22 @@ Spreadsheet = React.createClass({
               index = this.countRows();
             }
 
-            ctx.submitOp({ir: index, c: amount});
+            doc.submitOp({ir: index, c: amount});
             break;
           case 'insert_col':
             if (index === undefined) {
               index = this.countCols();
             }
 
-            ctx.submitOp({ic: index, c: amount});
+            doc.submitOp({ic: index, c: amount});
             break;
           case 'remove_row':
             data = _.map(_.range(index, index + amount), (i) => this.getDataAtRow(i));
-            ctx.submitOp({dr: index, c: amount, data});
+            doc.submitOp({dr: index, c: amount, data});
             break;
           case 'remove_col':
             data = _.map(_.range(index, index + amount), (i) => this.getDataAtCol(i));
-            ctx.submitOp({dc: index, c: amount, data});
+            doc.submitOp({dc: index, c: amount, data});
             break;
           default:
             throw new Error('There is no such action "' + action + '"');
@@ -89,7 +89,23 @@ Spreadsheet = React.createClass({
       };
 
       // Trigger a re-render whenever an op comes in.
-      ctx._onOp = () => window.setTimeout(this.hot.render, 0);
+      doc.on('after op', (ops) => {
+        window.setTimeout(this.hot.render, 0);
+
+        // Additionally, for insert/remove row/col ops, fire the
+        // appropriate after hooks as if HOT had done it.
+        _.each(ops, (op) => {
+          if (_.has(op, 'ir')) {
+            Handsontable.hooks.run(this.hot, 'afterCreateRow', op.ir, op.r);
+          } else if (_.has(op, 'ic')) {
+            Handsontable.hooks.run(this.hot, 'afterCreateCol', op.ic, op.c);
+          } else if (_.has(op, 'dr')) {
+            Handsontable.hooks.run(this.hot, 'afterRemoveRow', op.dr, op.c);
+          } else if (_.has(op, 'dc')) {
+            Handsontable.hooks.run(this.hot, 'afterRemoveCol', op.dc, op.c);
+          }
+        });
+      });
     });
   },
 

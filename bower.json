@@ -1,7 +1,12 @@
 {
-    "name": "jolly-roger",
-    "private": true,
-    "dependencies": {
-        "handsontable": "~0.20.2"
-    }
+  "name": "jolly-roger",
+  "private": true,
+  "dependencies": {
+    "handsontable": "~0.20.2",
+    "handsontable-ruleJS": "git@github.com:handsontable/handsontable-ruleJS.git#~0.0.4"
+  },
+  "resolutions": {
+    "handsontable": "~0.20.2",
+    "pikaday": "^1.3.2"
+  }
 }
