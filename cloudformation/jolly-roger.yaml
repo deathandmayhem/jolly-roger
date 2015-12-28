@@ -428,7 +428,7 @@ Resources:
                   - Fn::Join:
                       - ''
                       -
-                        - '  - docker run -d --name dd-agent -h `hostname` -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e API_KEY='
+                        - '  - docker run --name dd-agent -d --restart=unless-stopped -h `hostname` -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e API_KEY='
                         - {Ref: DatadogApiKey}
                         - ' datadog/docker-dd-agent:latest'
                   - {Ref: "AWS::NoValue"}
