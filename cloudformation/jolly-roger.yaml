@@ -321,6 +321,16 @@ Resources:
           - UbuntuAmis
           - {Ref: "AWS::Region"}
           - ami
+      BlockDeviceMappings:
+        - DeviceName: /dev/sdb
+          VirtualName: ephemeral0
+        - DeviceName: /dev/sdc
+          VirtualName: ephemeral1
+        - DeviceName: /dev/sdf
+          Ebs:
+            VolumeType: gp2
+            VolumeSize: 2
+            DeleteOnTermination: true
       InstanceType: {Ref: AppInstanceType}
       KeyName: {Ref: KeyName}
       SecurityGroups:
@@ -342,6 +352,9 @@ Resources:
               - '  - source: "deb https://apt.dockerproject.org/repo ubuntu-$RELEASE main"'
               - '    filename: docker.list'
               - '    keyid: 58118E89F3A912897C070ADBF76221572C52609D'
+              - ''
+              - 'mounts:'
+              - '  - [/dev/xvdf, none, swap, sw, 0, 0]'
               - ''
               - 'packages:'
               - '  - docker-engine'
@@ -390,6 +403,10 @@ Resources:
               - ''
               - 'runcmd:'
               - '  - set -eux'
+
+              - '  - mkswap /dev/xvdf'
+              - '  - swapon -a'
+
               - '  - pip install credstash'
               - Fn::Join:
                   - ''
@@ -411,7 +428,7 @@ Resources:
                   - Fn::Join:
                       - ''
                       -
-                        - '  - docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e API_KEY='
+                        - '  - docker run -d --name dd-agent -h `hostname` -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e API_KEY='
                         - {Ref: DatadogApiKey}
                         - ' datadog/docker-dd-agent:latest'
                   - {Ref: "AWS::NoValue"}
