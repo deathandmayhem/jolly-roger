@@ -477,6 +477,8 @@ Resources:
   AppAsg:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 900
       LaunchConfigurationName: {Ref: AppLaunchConfig}
       VPCZoneIdentifier:
         - {Ref: PublicSubnet1}
