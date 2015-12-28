@@ -422,6 +422,16 @@ Resources:
               - '  - docker run --name registry -d --restart=unless-stopped -p 5000:5000 -v /etc/docker/registry:/etc/docker/registry registry:2'
               - '  - sleep 5'
 
+              # Pre-fetch images
+              - '  - docker pull localhost:5000/ebroder/jolly-roger'
+              - '  - docker pull ebroder/letsencrypt-s3front'
+              - '  - docker pull jwilder/nginx-proxy'
+              - '  - docker pull centurylink/watchtower'
+
+              - '  - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx'
+              # Give ELB time to pick up the instance
+              - '  - sleep 15'
+
               - Fn::Join:
                   - ''
                   -
@@ -431,10 +441,6 @@ Resources:
                     - ' -e ROOT_URL=https://'
                     - {Ref: AppUrl}
                     - ' localhost:5000/ebroder/jolly-roger'
-
-              - '  - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx'
-              # Give ELB time to pick up the instance
-              - '  - sleep 60'
 
               - Fn::Join:
                   - ''
