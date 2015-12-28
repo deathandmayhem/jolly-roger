@@ -9,15 +9,14 @@
 
 const stream = Npm.require('stream');
 
-const livedb = Npm.require('livedb');
-const livedbmongo = Npm.require('livedb-mongo');
-const share = Npm.require('share');
+ShareJS = Npm.require('share');
+ShareJS.db.mongo = Npm.require('livedb-mongo');
 
 const getShare = _.once(() => {
   const db = MongoInternals.defaultRemoteCollectionDriver().mongo.db;
-  const backend = livedb.client(livedbmongo(db));
+  const backend = ShareJS.db.client(ShareJS.db.mongo(db));
 
-  const server = share.server.createClient({backend});
+  const server = ShareJS.server.createClient({backend});
   server.use((request, callback) => {
     if (request.collection && request.collection !== 'docs') {
       callback(new Meteor.Error(401, 'Must access documents from the docs collection'));

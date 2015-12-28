@@ -18,5 +18,6 @@ Package.onUse(function(api) {
   api.addFiles(['server.js'], 'server');
   api.addFiles(['client.js', 'sharejs.browserify.js'], 'client');
 
-  api.export(['ShareJS', 'ShareJSSocket'], 'client');
+  api.export(['ShareJS']);
+  api.export(['ShareJSSocket'], 'client');
 });

@@ -14,21 +14,17 @@ Spreadsheet = React.createClass({
     doc.subscribe();
     doc.whenReady(() => {
       // Forcefully migrate from old format
-      if (doc.type && !doc.getSnapshot().data) {
+      if (doc.type && doc.type.name !== 'grid0') {
         doc.del();
       }
 
       if (!doc.type) {
-        doc.create('json0', {
-          rows: 4,
-          cols: 5,
-          data: [
-            ['', '', '', '', ''],
-            ['', '', '', '', ''],
-            ['', '', '', '', ''],
-            ['', '', '', '', ''],
-          ],
-        });
+        doc.create('grid0', [
+          [null, null, null, null, null],
+          [null, null, null, null, null],
+          [null, null, null, null, null],
+          [null, null, null, null, null],
+        ]);
       }
 
       const snap = doc.getSnapshot();
@@ -44,12 +40,10 @@ Spreadsheet = React.createClass({
         contextMenu: true,
         columnSorting: true,
         sortIndicator: true,
-        data: snap.data,
+        data: snap,
 
         beforeChange: (changes) => {
-          changes.forEach(([r, c, last, cur]) => {
-            ctx.submitOp({p: ['data', r, c], ld: last, li: cur});
-          });
+          ctx.submitOp({s: _.clone(changes)});
 
           // Don't actually apply the modifications, since ShareJS will do it for us
           return false;
@@ -68,22 +62,18 @@ Spreadsheet = React.createClass({
 
         switch (action) {
           case 'insert_row':
-            ctx.submitOp({p: ['rows'], na: amount});
-            while (amount-- > 0) {
-              ctx.submitOp({p: ['data', index], li: _.range(snap.cols).fill('')});
-            }
-
+            ctx.submitOp({ir: index, c: amount});
             break;
           case 'insert_col':
+            ctx.submitOp({ic: index, c: amount});
             break;
           case 'remove_row':
-            ctx.submitOp({p: ['rows'], na: -amount});
-            while (amount-- > 0) {
-              ctx.submitOp({p: ['data', index], ld: snap.data[index]});
-            }
-
+            data = _.map(_.range(index, index + amount), (i) => this.getDataAtRow(i));
+            ctx.submitOp({dr: index, c: amount, data});
             break;
           case 'remove_col':
+            data = _.map(_.range(index, index + amount), (i) => this.getDataAtCol(i));
+            ctx.submitOp({dc: index, c: amount, data});
             break;
           default:
             throw new Error('There is no such action "' + action + '"');
