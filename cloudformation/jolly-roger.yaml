@@ -64,6 +64,9 @@ Parameters:
     Description: The URL of application
     Type: String
     Default: future.deathandmayhem.com
+  AppDomain:
+    Description: The zone under which to create DNS records
+    Type: AWS::Route53::HostedZone::Id
   KeyName:
     Description: Name of an existing EC2 keypair to allow access to all instances
     Type: AWS::EC2::KeyPair::KeyName
@@ -509,3 +512,13 @@ Resources:
         WaitOnResourceSignals: false
         MinSuccessfulInstancesPercent: 100
         MinInstancesInService: 0
+
+  AppDns:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: {Ref: AppDomain}
+      Name: {Ref: AppUrl}
+      Type: A
+      AliasTarget:
+        HostedZoneId: {"Fn::GetAtt": [AppElb, CanonicalHostedZoneNameID]}
+        DNSName: {"Fn::GetAtt": [AppElb, CanonicalHostedZoneName]}
