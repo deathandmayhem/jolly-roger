@@ -72,7 +72,7 @@ App = React.createClass({
   },
   render() {
     return (
-      this.props.children.type.fixedLayout ?
+      this.props.children.type.fullscreenLayout ?
           <FullscreenLayout {...this.props}/> :
           <ScrollableLayout {...this.props}/>
     );
