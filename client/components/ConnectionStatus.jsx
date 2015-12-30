@@ -5,10 +5,6 @@ ConnectionStatus = React.createClass({
 
   getMeteorData() {
     data = {meteorStatus: Meteor.status()};
-    if (data.meteorStatus.status == 'waiting') {
-      data.timeToRetry = Math.ceil((data.meteorStatus.retryTime - Date.now()) / 1000);
-    }
-
     return data;
   },
 
@@ -28,10 +24,14 @@ ConnectionStatus = React.createClass({
           </BS.Alert>
         );
       case 'waiting':
+        let now = Date.now();
+        let timeToRetry = Math.ceil((this.data.meteorStatus.retryTime - now) / 1000);
+        // Trigger a refresh in a second.  TODO: debounce this?
+        window.setTimeout(this.forceUpdate.bind(this), 1000);
         return (
           <BS.Alert bsStyle="warning">
             We can't connect to Jolly Roger right now. We'll try again
-            in {this.data.timeToRetry}s. Your pending
+            in {timeToRetry}s. Your pending
             changes will be pushed to the server when we
             reconnect. <a onClick={Meteor.reconnect}>retry now</a>
           </BS.Alert>
