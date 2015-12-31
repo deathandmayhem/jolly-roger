@@ -65,11 +65,10 @@ ProfileListPage = React.createClass({
                   value={this.state.searchString} ref="searchBar"
                   onChange={this.onSearchStringChange}/>
         <BS.ListGroup>
-          <BS.ListGroupItem key="invite" href={'/users/invite'}><strong>Invite someone...</strong></BS.ListGroupItem>
+          <Link to='/users/invite' className='list-group-item'><strong>Invite someone...</strong></Link>
           {profiles.map((profile) => (
-             <BS.ListGroupItem key={profile._id} href={`/users/${profile._id}`}>
-               {profile.displayName || '<no name provided>'}
-             </BS.ListGroupItem>))}
+               <Link key={profile._id} className='list-group-item' to={`/users/${profile._id}`}>{profile.displayName || '<no name provided>'}</Link>
+             ))}
         </BS.ListGroup>
       </div>
     );
