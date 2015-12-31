@@ -20,9 +20,9 @@ Meteor.methods({
         phoneNumber: newProfile.phoneNumber,
         slackHandle: newProfile.slackHandle,
         deleted: false,
-      }
+      },
     }, {
-      upsert: true
+      upsert: true,
     });
   },
 });
