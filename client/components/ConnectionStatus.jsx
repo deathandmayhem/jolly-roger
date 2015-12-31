@@ -26,6 +26,7 @@ ConnectionStatus = React.createClass({
       case 'waiting':
         let now = Date.now();
         let timeToRetry = Math.ceil((this.data.meteorStatus.retryTime - now) / 1000);
+
         // Trigger a refresh in a second.  TODO: debounce this?
         window.setTimeout(this.forceUpdate.bind(this), 1000);
         return (

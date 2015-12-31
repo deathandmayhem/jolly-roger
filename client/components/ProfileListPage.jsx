@@ -7,16 +7,17 @@ UserProfile = React.createClass({
     return (
       <div>{this.props.displayName}</div>
     );
-  }
+  },
 });
 
 ProfileListPage = React.createClass({
   mixins: [ReactMeteorData],
   getInitialState() {
     return {
-      searchString: "",
+      searchString: '',
     };
   },
+
   getMeteorData() {
     var profilesHandle = Meteor.subscribe('mongo.profiles');
     return {
@@ -24,19 +25,21 @@ ProfileListPage = React.createClass({
       profiles: Models.Profiles.find({}, {sort: {displayName: 1}}).fetch(),
     };
   },
+
   onSearchStringChange() {
     this.setState({
       searchString: this.refs.searchBar.getValue(),
     });
   },
+
   compileMatcher() {
-    var searchKeys = this.state.searchString.split(" ");
+    var searchKeys = this.state.searchString.split(' ');
     var toMatch = _.chain(searchKeys)
                    .filter(function(s) { return !!s;})
                    .map(function(s) { return s.toLowerCase(); })
                    .value();
     var isInteresting = (profile) => {
-      for (var i = 0 ; i < toMatch.length ; i++) {
+      for (var i = 0; i < toMatch.length; i++) {
         var searchKey = toMatch[i];
         if (profile.displayName.toLowerCase().indexOf(searchKey) === -1 &&
             profile.primaryEmail.toLowerCase().indexOf(searchKey) === -1 &&
@@ -44,10 +47,13 @@ ProfileListPage = React.createClass({
             (!profile.phoneNumber || profile.phoneNumber.toLowerCase().indexOf(searchKey) === -1))
           return false;
       }
+
       return true;
     };
-    return isInteresting
+
+    return isInteresting;
   },
+
   render() {
     console.log(this.data);
     if (!this.data.ready) return <div>loading...</div>;
@@ -62,10 +68,10 @@ ProfileListPage = React.createClass({
           <BS.ListGroupItem key="invite" href={'/users/invite'}><strong>Invite someone...</strong></BS.ListGroupItem>
           {profiles.map((profile) => (
              <BS.ListGroupItem key={profile._id} href={`/users/${profile._id}`}>
-               {profile.displayName || "<no name provided>"}
+               {profile.displayName || '<no name provided>'}
              </BS.ListGroupItem>))}
         </BS.ListGroup>
       </div>
     );
-  }
+  },
 });

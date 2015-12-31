@@ -17,7 +17,7 @@ OthersProfilePage = React.createClass({
         {profile.slackHandle ? <div>Slack handle: {profile.slackHandle}</div> : null}
       </div>
     );
-  }
+  },
 });
 
 OwnProfilePage = React.createClass({
@@ -26,34 +26,39 @@ OwnProfilePage = React.createClass({
   },
   getInitialState() {
     return {
-      displayNameValue: this.props.initialProfile.displayName || "",
-      locationDuringHuntValue: this.props.initialProfile.locationDuringHunt || "",
-      phoneNumberValue: this.props.initialProfile.phoneNumber || "",
-      slackHandleValue: this.props.initialProfile.slackHandle || "",
+      displayNameValue: this.props.initialProfile.displayName || '',
+      locationDuringHuntValue: this.props.initialProfile.locationDuringHunt || '',
+      phoneNumberValue: this.props.initialProfile.phoneNumber || '',
+      slackHandleValue: this.props.initialProfile.slackHandle || '',
       submitState: 'idle', // One of 'idle', 'submitting', 'success', or 'error'
       submitError: '',
     };
   },
+
   handleDisplayNameFieldChange() {
     this.setState({
       displayNameValue: this.refs.displayName.getValue(),
     });
   },
+
   handleLocationFieldChange() {
     this.setState({
       locationDuringHuntValue: this.refs.locationDuringHunt.getValue(),
     });
   },
+
   handlePhoneNumberFieldChange() {
     this.setState({
       phoneNumberValue: this.refs.phoneNumber.getValue(),
     });
   },
+
   handleSlackHandleFieldChange() {
     this.setState({
       slackHandleValue: this.refs.slackHandle.getValue(),
     });
   },
+
   handleSaveForm() {
     this.setState({
       submitState: 'submitting',
@@ -64,32 +69,33 @@ OwnProfilePage = React.createClass({
       phoneNumber: this.state.phoneNumberValue,
       slackHandle: this.state.slackHandleValue,
     };
-    var self = this;
-    Meteor.call("saveProfile", newProfile, (error) => {
+    Meteor.call('saveProfile', newProfile, (error) => {
       if (error) {
-        self.setState({
+        this.setState({
           submitState: 'error',
           submitError: error.message,
         });
       } else {
-        self.setState({
+        this.setState({
           submitState: 'success',
         });
       }
     });
   },
+
   dismissAlert() {
     this.setState({
       submitState: 'idle',
       submitError: '',
     });
   },
+
   render() {
     let shouldDisableForm = (this.state.submitState === 'submitting');
     return (
       <div>
         <h1>Account information</h1>
-        {/*TODO: picture/gravatar*/}
+        {/*TODO: picture/gravatar*//*TODO: picture/gravatar*/}
         <BS.Input type='text'
                   value={this.props.initialProfile.primaryEmail}
                   disabled={true}
@@ -139,14 +145,14 @@ OwnProfilePage = React.createClass({
         />
       </div>
     );
-  }
+  },
 });
 
 ProfilePage = React.createClass({
   mixins: [ReactMeteorData],
   getMeteorData() {
     console.log(this.props.params);
-    var profileHandle = Meteor.subscribe("mongo.profiles", {_id: this.props.params.userId});
+    var profileHandle = Meteor.subscribe('mongo.profiles', {_id: this.props.params.userId});
     var defaultEmail = Meteor.user().emails[0].address;
     let data = {
       ready: profileHandle.ready(),
@@ -160,15 +166,16 @@ ProfilePage = React.createClass({
         slackHandle: '',
         deleted: false,
         createdAt: new Date(),
-        createdBy: Meteor.userId()
+        createdBy: Meteor.userId(),
       },
     };
     return data;
   },
+
   render() {
     console.log(this.data);
     if (!this.data.ready) return <div>loading...</div>;
     if (this.data.isSelf) return <OwnProfilePage initialProfile={this.data.profile}/>;
     return <OthersProfilePage profile={this.data.profile}/>;
-  }
+  },
 });

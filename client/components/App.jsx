@@ -8,7 +8,8 @@ SharedNavbar = React.createClass({
       userId: Meteor.userId(),
     };
   },
-  render () {
+
+  render() {
     return (
       <BS.Navbar fixedTop>
         <BS.Navbar.Header>
@@ -31,11 +32,9 @@ SharedNavbar = React.createClass({
                 Invite someone
               </Link>
             </li>
-            {/*
-              TODO: profile should really be an item in a dropdown with user's name
-                    so should the sign out button
-                    so should invite someone
-            */}
+            {/* TODO: profile should really be an item in a dropdown
+                 with user's name so should the sign out button so
+                 should invite someone */}
             <li className={this.props.history.isActive(`/users/${this.data.userId}`, undefined, true) && 'active'}>
               <Link to={`/users/${this.data.userId}`}>
                 My profile
@@ -48,7 +47,7 @@ SharedNavbar = React.createClass({
         </BS.Navbar.Collapse>
       </BS.Navbar>
     );
-  }
+  },
 });
 
 // TODO: clean this up and dedupe navbar stuff when you figure out breadcrumbs
@@ -57,15 +56,15 @@ FullscreenLayout = React.createClass({
     return (
       <div>
         <SharedNavbar {...this.props} />
-        <div style={{position: "fixed", top: "50", left: "0", right: "0", zIndex: "1"}}>
+        <div style={{position: 'fixed', top: '50', left: '0', right: '0', zIndex: '1'}}>
           <ConnectionStatus/>
         </div>
-        <div style={{position: "fixed", top: "50", bottom: "0", left: "0", right: "0"}}>
+        <div style={{position: 'fixed', top: '50', bottom: '0', left: '0', right: '0'}}>
           {this.props.children}
         </div>
       </div>
     );
-  }
+  },
 });
 
 ScrollableLayout = React.createClass({
@@ -79,7 +78,7 @@ ScrollableLayout = React.createClass({
         </div>
       </div>
     );
-  }
+  },
 });
 
 App = React.createClass({
