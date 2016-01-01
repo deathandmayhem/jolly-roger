@@ -1,4 +1,5 @@
 const {Link} = ReactRouter;
+const BS = ReactBootstrap;
 const PureRenderMixin = React.addons.PureRenderMixin;
 
 var puzzleShape = Schemas.Puzzles.asReactPropTypes();
@@ -12,33 +13,6 @@ var sortedTags = function sortedTags(tags) {
   return tags;
 };
 
-SearchBar = React.createClass({
-  displayName: 'SearchBar',
-  propTypes: {
-    value: React.PropTypes.string.isRequired,
-    onSearchStringChange: React.PropTypes.func.isRequired,
-  },
-  styles: {
-    row: {
-      display: 'block',
-      width: '100%',
-    },
-  },
-  handleSearchStringChange(event) {
-    this.props.onSearchStringChange(event.target.value);
-  },
-
-  render() {
-    return (
-      <div className="search-row" style={this.styles.row}>
-        <input ref="input" placeholder="search by title, answer, or tag"
-               style={this.styles.row} value={this.props.value}
-               onChange={this.handleSearchStringChange} />
-      </div>
-    );
-  },
-});
-
 FilteringPuzzleSet = React.createClass({
   displayName: 'FilteringPuzzleSet',
   propTypes: {
@@ -50,7 +24,8 @@ FilteringPuzzleSet = React.createClass({
     };
   },
 
-  onSearchStringChange(newString) {
+  onSearchStringChange() {
+    var newString = this.refs.searchBar.getValue();
     this.setState({searchString: newString});
   },
 
@@ -97,7 +72,11 @@ FilteringPuzzleSet = React.createClass({
     var puzzles = this.sortedFilteredPuzzles(this.props.puzzles);
     return (
       <div>
-        <SearchBar value={this.state.searchString} onSearchStringChange={this.onSearchStringChange} />
+        <BS.Input type="text" label="Search" placeholder="search by title, answer, or tag"
+                  value={this.state.searchString}
+                  ref="searchBar"
+                  onChange={this.onSearchStringChange}
+        />
         <PuzzleList puzzles={puzzles} />
       </div>
     );
