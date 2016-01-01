@@ -140,21 +140,33 @@ var findPuzzleById = function(puzzles, id) {
 };
 
 PuzzlePage = React.createClass({
-  mixins: [PureRenderMixin],
+  mixins: [ReactMeteorData],
   propTypes: {
     // puzzle id comes from route?
     // TODO: whole puzzle list should come from DB, not mock
   },
-  render() {
-    var allPuzzles = [];
+  getMeteorData() {
     if (this.props.params.huntId === '2015') {
-      allPuzzles = hunt2015Puzzles;
+      return {
+        ready: true,
+        allPuzzles: hunt2015Puzzles,
+      };
+    }
+    var handle = Meteor.subscribe("mongo.puzzles", {hunt: this.props.params.huntId});
+    return {
+      ready: handle.ready(),
+      allPuzzles: Models.Puzzles.find({hunt: this.props.params.huntId}).fetch(),
+    };
+  },
+  render() {
+    if (!this.data.ready) {
+      return <span>loading...</span>;
     }
 
-    let activePuzzle = findPuzzleById(allPuzzles, this.props.params.puzzleId);
+    let activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     return (
       <div style={{display: 'flex', flexDirection: 'row', position: 'absolute', top: '0', bottom: '0', left:'0', right:'0'}}>
-        <PuzzlePageSidebar activePuzzle={activePuzzle} allPuzzles={allPuzzles} />
+        <PuzzlePageSidebar activePuzzle={activePuzzle} allPuzzles={this.data.allPuzzles} />
         <PuzzlePageContent />
       </div>
     );
