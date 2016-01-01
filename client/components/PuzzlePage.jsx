@@ -152,12 +152,14 @@ PuzzlePage = React.createClass({
         allPuzzles: hunt2015Puzzles,
       };
     }
-    var handle = Meteor.subscribe("mongo.puzzles", {hunt: this.props.params.huntId});
+
+    var handle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
     return {
       ready: handle.ready(),
       allPuzzles: Models.Puzzles.find({hunt: this.props.params.huntId}).fetch(),
     };
   },
+
   render() {
     if (!this.data.ready) {
       return <span>loading...</span>;

@@ -154,7 +154,6 @@ Puzzle = React.createClass({
     var linkTarget = `/hunts/${this.props.hunt}/puzzles/${this.props._id}`;
     return (
       <div className="puzzle" style={this.styles.puzzle}>
-        {/* TODO: make this actually link to that puzzle's page *//* TODO: make this actually link to that puzzle's page */}
         <div className="title" style={this.styles.title}><Link to={linkTarget}>{this.props.title}</Link></div>
         {this.props.answer ? <PuzzleAnswer answer={this.props.answer} /> : null}
         <TagList tags={this.props.tags} />
