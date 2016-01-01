@@ -114,7 +114,7 @@ MockHunt = React.createClass({
   render() {
     return (
       <li>
-        <Link to={'/hunts/2015'}>2015 (mock data)</Link>
+        <Link to={`/hunts/${this.props.hunt._id}`}>{this.props.hunt.title} (mock data)</Link>
       </li>
     );
   },
@@ -157,7 +157,10 @@ HuntList = React.createClass({
     });
 
     // Insert mock data from 2015 hunt.
-    hunts.push(<MockHunt key={2015} />);
+    _.each(huntFixtures, (mockData, id) => {
+      hunts.push(<MockHunt key={id} hunt={mockData}/>);
+    });
+
     return (
       <div id="jr-hunts">
         <h1>Hunts</h1>

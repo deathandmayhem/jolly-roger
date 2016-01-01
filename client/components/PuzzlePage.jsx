@@ -146,10 +146,10 @@ PuzzlePage = React.createClass({
     // TODO: whole puzzle list should come from DB, not mock
   },
   getMeteorData() {
-    if (this.props.params.huntId === '2015') {
+    if (_.has(huntFixtures, this.props.params.huntId)) {
       return {
         ready: true,
-        allPuzzles: hunt2015Puzzles,
+        allPuzzles: huntFixtures[this.props.params.huntId].puzzles,
       };
     }
 
