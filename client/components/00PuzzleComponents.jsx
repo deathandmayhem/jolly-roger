@@ -117,7 +117,7 @@ PuzzleList = React.createClass({
     var puzzles = [];
     for (var i = 0; i < this.props.puzzles.length; i++) {
       var puz = this.props.puzzles[i];
-      puzzles.push(<Puzzle key={puz.id} {...puz} />);
+      puzzles.push(<Puzzle key={puz._id} {...puz} />);
     }
 
     return (
@@ -151,7 +151,7 @@ Puzzle = React.createClass({
   },
   render() {
     // id, title, answer, tags
-    var linkTarget = `/hunts/${this.props.hunt}/puzzles/${this.props.id}`;
+    var linkTarget = `/hunts/${this.props.hunt}/puzzles/${this.props._id}`;
     return (
       <div className="puzzle" style={this.styles.puzzle}>
         {/* TODO: make this actually link to that puzzle's page *//* TODO: make this actually link to that puzzle's page */}
