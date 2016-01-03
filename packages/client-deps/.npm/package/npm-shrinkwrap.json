@@ -62,7 +62,7 @@
                           "version": "http://registry.npmjs.org/wordwrap/-/wordwrap-0.0.3.tgz"
                         },
                         "type-check": {
-                          "version": "http://registry.npmjs.org/type-check/-/type-check-0.3.1.tgz"
+                          "version": "http://registry.npmjs.org/type-check/-/type-check-0.3.2.tgz"
                         },
                         "levn": {
                           "version": "http://registry.npmjs.org/levn/-/levn-0.2.5.tgz"
@@ -192,7 +192,7 @@
       }
     },
     "react": {
-      "version": "http://registry.npmjs.org/react/-/react-0.14.3.tgz",
+      "version": "http://registry.npmjs.org/react/-/react-0.14.5.tgz",
       "dependencies": {
         "envify": {
           "version": "http://registry.npmjs.org/envify/-/envify-3.4.0.tgz",
@@ -222,7 +222,7 @@
           }
         },
         "fbjs": {
-          "version": "http://registry.npmjs.org/fbjs/-/fbjs-0.3.2.tgz",
+          "version": "http://registry.npmjs.org/fbjs/-/fbjs-0.6.0.tgz",
           "dependencies": {
             "core-js": {
               "version": "http://registry.npmjs.org/core-js/-/core-js-1.2.6.tgz"
@@ -317,10 +317,10 @@
           }
         },
         "react-dom": {
-          "version": "http://registry.npmjs.org/react-dom/-/react-dom-0.14.3.tgz"
+          "version": "http://registry.npmjs.org/react-dom/-/react-dom-0.14.5.tgz"
         },
         "react": {
-          "version": "http://registry.npmjs.org/react/-/react-0.14.3.tgz",
+          "version": "http://registry.npmjs.org/react/-/react-0.14.5.tgz",
           "dependencies": {
             "envify": {
               "version": "http://registry.npmjs.org/envify/-/envify-3.4.0.tgz",
@@ -350,7 +350,7 @@
               }
             },
             "fbjs": {
-              "version": "http://registry.npmjs.org/fbjs/-/fbjs-0.3.2.tgz",
+              "version": "http://registry.npmjs.org/fbjs/-/fbjs-0.6.0.tgz",
               "dependencies": {
                 "core-js": {
                   "version": "http://registry.npmjs.org/core-js/-/core-js-1.2.6.tgz"
@@ -384,7 +384,7 @@
       }
     },
     "react-dom": {
-      "version": "http://registry.npmjs.org/react-dom/-/react-dom-0.14.3.tgz"
+      "version": "http://registry.npmjs.org/react-dom/-/react-dom-0.14.5.tgz"
     },
     "react-router": {
       "version": "http://registry.npmjs.org/react-router/-/react-router-1.0.0.tgz",

@@ -8,9 +8,8 @@
 # - A VPC with a public subnet (no support currently for private
 #   subnets or NAT)
 #
-# - A system for fetching secrets using github.com/ebroder/sneaker (a
-#   fork of github.com/codahale/sneaker), which encrypts secrets using
-#   KMS and stores them in S3.
+# - A system for fetching secrets using credstash which encrypts
+#   secrets using KMS and stores them in DynamoDB.
 #
 # - An auto-scaling group (ASG) with instances that automatically
 #   launch the jolly-roger application.
@@ -42,38 +41,32 @@
 # To spin up an independent copy of jolly-roger, you'll _definitely_
 # need to do the following (and probably more I've forgotten):
 #
-# - Create an S3 bucket to store secrets (you'll provde this as
-#   SneakerS3Bucket)
-#
-# - Create a new KMS key to store secrets (you'll provide this in
-#   SneakerKey)
+# - Setup credstash (following the directions in the repo)
 #
 # - Generate the config.yml file for the registry. Starting with
 #   http://git.io/vERX3, add a section labeled proxy. Include the keys
 #   username and password with values for an account that has access
 #   to the ebroder/jolly-roger image, and set remoteurl:
-#   https://registry-1.docker.io. Store this using `sneaker upload
-#   <path> registry/config.yml`
+#   https://registry-1.docker.io. Store this using `credstash put
+#   registry/config.yml @path`
 #
-# - Store the MongoDB URL using `sneaker upload <path> mongo`. The
+# - Store the MongoDB URL using `credstash put mongo @<path>`. The
 #   free account from mongolab (for instance) should be sufficient.
 
 AWSTemplateFormatVersion: "2010-09-09"
 Description: jolly-roger
 
 Parameters:
+  CredstashKeyUuid:
+    Description: UUID of the credstash KMS key
+    Type: String
   AppUrl:
     Description: The URL of application
     Type: String
     Default: future.deathandmayhem.com
-  SneakerS3Bucket:
-    Description: S3 bucket where secrets should be stored (in the root)
-    Type: String
-    Default: jolly-roger-sneaker
-  SneakerKey:
-    Description: UUID of the sneaker master key
-    Type: String
-    Default: 4d22351a-7610-4d95-a341-61f05203564e
+  AppDomain:
+    Description: The zone under which to create DNS records
+    Type: AWS::Route53::HostedZone::Id
   KeyName:
     Description: Name of an existing EC2 keypair to allow access to all instances
     Type: AWS::EC2::KeyPair::KeyName
@@ -84,15 +77,17 @@ Parameters:
   PapertrailHost:
     Description: Log host for Papertrail
     Type: String
+    Default: ''
     NoEcho: true
   DatadogApiKey:
     Description: API key for DataDog
     Type: String
+    Default: ''
     NoEcho: true
 
 Mappings:
   UbuntuAmis:
-    us-east-1: {"ami": ami-0021766a}
+    us-east-1: {"ami": ami-5c207736}
 
 Conditions:
   HavePapertrail:
@@ -175,20 +170,24 @@ Resources:
               Service: [ec2.amazonaws.com]
             Action: ["sts:AssumeRole"]
       Policies:
-        - PolicyName: sneaker-download
+        - PolicyName: credstash-download
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - s3:GetObject
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
                 Resource:
                   - Fn::Join:
                       - ""
                       -
-                        - "arn:aws:s3:::"
-                        - {Ref: SneakerS3Bucket}
-                        - "/*"
+                        - "arn:aws:dynamodb:"
+                        - {Ref: "AWS::Region"}
+                        - ":"
+                        - {Ref: "AWS::AccountId"}
+                        - ":table/credential-store"
               - Effect: Allow
                 Action:
                   - kms:Decrypt
@@ -201,23 +200,7 @@ Resources:
                         - ":"
                         - {Ref: "AWS::AccountId"}
                         - ":key/"
-                        - {Ref: SneakerKey}
-        - PolicyName: letsencrypt-store
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:PutObject
-                  - s3:PutObjectACL
-                  - s3:DeleteObject
-                Resource:
-                  - Fn::Join:
-                      - ''
-                      -
-                        - "arn:aws:s3:::"
-                        - {Ref: LetsEncryptBucket}
-                        - "/*"
+                        - {Ref: CredstashKeyUuid}
 
   AppInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -264,6 +247,21 @@ Resources:
           IpProtocol: tcp
           FromPort: 444
           ToPort: 444
+        # echo request
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: icmp
+          FromPort: 8
+          ToPort: -1
+        # echo reply
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: icmp
+          FromPort: 0
+          ToPort: -1
+        # frag needed
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: icmp
+          FromPort: 3
+          ToPort: 4
       VpcId: {Ref: VPC}
 
   AppElb:
@@ -293,10 +291,10 @@ Resources:
           InstanceProtocol: TCP
           InstancePort: 444
       HealthCheck:
-        Target: TCP:80
+        Target: HTTP:80/healthcheck
         Interval: 5
         Timeout: 4
-        HealthyThreshold: 4
+        HealthyThreshold: 2
         UnhealthyThreshold: 2
       SecurityGroups:
         - {Ref: AppElbSecurityGroup}
@@ -310,6 +308,16 @@ Resources:
           - UbuntuAmis
           - {Ref: "AWS::Region"}
           - ami
+      BlockDeviceMappings:
+        - DeviceName: /dev/sdb
+          VirtualName: ephemeral0
+        - DeviceName: /dev/sdc
+          VirtualName: ephemeral1
+        - DeviceName: /dev/sdf
+          Ebs:
+            VolumeType: gp2
+            VolumeSize: 2
+            DeleteOnTermination: true
       InstanceType: {Ref: AppInstanceType}
       KeyName: {Ref: KeyName}
       SecurityGroups:
@@ -327,23 +335,19 @@ Resources:
               - 'package_upgrade: true'
               - ''
               - 'apt_sources:'
-              # For golang
-              - '  - source: "ppa:ubuntu-lxc/lxd-stable"'
               # For docker
               - '  - source: "deb https://apt.dockerproject.org/repo ubuntu-$RELEASE main"'
               - '    filename: docker.list'
               - '    keyid: 58118E89F3A912897C070ADBF76221572C52609D'
               - ''
+              - 'mounts:'
+              - '  - [/dev/xvdf, none, swap, sw, 0, 0]'
+              - ''
               - 'packages:'
-              - '  - build-essential'
-              - '  - bzr'
               - '  - docker-engine'
-              - '  - git'
-              - '  - golang'
               - '  - htop'
-              - '  - jq'
-              - '  - mercurial'
-              - '  - subversion'
+              - '  - python-dev'
+              - '  - python-pip'
               - ''
               - Fn::If:
                   - HavePapertrail
@@ -376,6 +380,9 @@ Resources:
                     - {Ref: LetsEncryptBucket}
                     - '.s3.amazonaws.com$request_uri;'
               - '        }'
+              - '        location /healthcheck {'
+              - '          return 200 "OK\n";'
+              - '        }'
               - '        location / {'
               - '          return 301 https://$host$request_uri;'
               - '        }'
@@ -383,8 +390,16 @@ Resources:
               - ''
               - 'runcmd:'
               - '  - set -eux'
-              - '  - env GOPATH=/usr/local go get -d -u github.com/ebroder/sneaker'
-              - '  - env GOPATH=/usr/local sh -c "cd /usr/local/src/github.com/ebroder/sneaker && make install"'
+
+              - '  - mkswap /dev/xvdf'
+              - '  - swapon -a'
+
+              - '  - pip install credstash'
+              - Fn::Join:
+                  - ''
+                  -
+                    - '  - export AWS_DEFAULT_REGION='
+                    - {Ref: "AWS::Region"}
 
               # Observability
               - Fn::If:
@@ -392,7 +407,7 @@ Resources:
                   - Fn::Join:
                       - ''
                       -
-                        - '  - docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/logspout syslog://'
+                        - '  - docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/logspout:master syslog://'
                         - {Ref: PapertrailHost}
                   - {Ref: "AWS::NoValue"}
               - Fn::If:
@@ -400,73 +415,51 @@ Resources:
                   - Fn::Join:
                       - ''
                       -
-                        - '  - docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e API_KEY='
+                        - '  - docker run --name dd-agent -d --restart=unless-stopped -h `hostname` -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e API_KEY='
                         - {Ref: DatadogApiKey}
                         - ' datadog/docker-dd-agent:latest'
                   - {Ref: "AWS::NoValue"}
 
               # Run a local registry proxy so we don't have to teach everything to auth for our private images
               - '  - mkdir -p /etc/docker/registry'
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - AWS_REGION='
-                    - {Ref: "AWS::Region"}
-                    - ' SNEAKER_S3_PATH=s3://'
-                    - {Ref: SneakerS3Bucket}
-                    - ' SNEAKER_MASTER_KEY='
-                    - {Ref: SneakerKey}
-                    - ' /usr/local/bin/sneaker download registry/config.yml /etc/docker/registry/config.yml'
+              - '  - credstash get registry/config.yml > /etc/docker/registry/config.yml'
               - '  - docker run --name registry -d --restart=unless-stopped -p 5000:5000 -v /etc/docker/registry:/etc/docker/registry registry:2'
               - '  - sleep 5'
+
+              # Pre-fetch images
+              - '  - docker pull localhost:5000/ebroder/jolly-roger'
+              - '  - docker pull jwilder/nginx-proxy'
+              - '  - docker pull centurylink/watchtower'
+
+              - '  - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx'
+              # Give ELB time to pick up the instance
+              - '  - sleep 15'
 
               - Fn::Join:
                   - ''
                   -
-                    - '  - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_REGION='
-                    - {Ref: "AWS::Region"}
-                    - ' -e SNEAKER_S3_PATH=s3://'
-                    - {Ref: SneakerS3Bucket}
-                    - ' -e SNEAKER_MASTER_KEY='
-                    - {Ref: SneakerKey}
+                    - '  - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION'
                     - ' -e VIRTUAL_HOST='
                     - {Ref: AppUrl}
                     - ' -e ROOT_URL=https://'
                     - {Ref: AppUrl}
                     - ' localhost:5000/ebroder/jolly-roger'
 
-              - '  - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx'
-              # Give ELB time to pick up the instance
-              - '  - sleep 60'
-
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - docker run --name letsencrypt-issue --rm -v /etc/letsencrypt:/etc/letsencrypt ebroder/letsencrypt-s3front --server https://acme-staging.api.letsencrypt.org/directory -v --text --agree-tos --authenticator letsencrypt-s3front:auth --installer null -m evan@ebroder.net -d '
-                    - {Ref: AppUrl}
-                    - ' --letsencrypt-s3front:auth-s3-bucket '
-                    - {Ref: LetsEncryptBucket}
-                    - ' --letsencrypt-s3front:auth-s3-region '
-                    - {Ref: "AWS::Region"}
               - '  - mkdir /etc/nginx-https/certs'
               - Fn::Join:
                   - ''
                   -
-                    - '  - ln -s /etc/letsencrypt/live/'
-                    - {Ref: AppUrl}
-                    - '/fullchain.pem /etc/nginx-https/certs/'
+                    - '  - credstash get ssl/cert.pem > /etc/nginx-https/certs/'
                     - {Ref: AppUrl}
                     - '.crt'
               - Fn::Join:
                   - ''
                   -
-                    - '  - ln -s /etc/letsencrypt/live/'
-                    - {Ref: AppUrl}
-                    - '/privkey.pem /etc/nginx-https/certs/'
+                    - '  - credstash get ssl/privkey.pem > /etc/nginx-https/certs/'
                     - {Ref: AppUrl}
                     - '.key'
 
-              - '  - docker run --name nginx-https -d --restart=unless-stopped -p 444:444 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d -v /etc/nginx-https/certs:/etc/nginx/certs -v /etc/letsencrypt:/etc/letsencrypt jwilder/nginx-proxy'
+              - '  - docker run --name nginx-https -d --restart=unless-stopped -p 444:444 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d -v /etc/nginx-https/certs:/etc/nginx/certs jwilder/nginx-proxy'
               - '  - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock centurylink/watchtower --interval 30 --cleanup'
     DependsOn:
       - InternetGatewayAttachment
@@ -474,6 +467,8 @@ Resources:
   AppAsg:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 900
       LaunchConfigurationName: {Ref: AppLaunchConfig}
       VPCZoneIdentifier:
         - {Ref: PublicSubnet1}
@@ -487,3 +482,13 @@ Resources:
         WaitOnResourceSignals: false
         MinSuccessfulInstancesPercent: 100
         MinInstancesInService: 0
+
+  AppDns:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: {Ref: AppDomain}
+      Name: {Ref: AppUrl}
+      Type: A
+      AliasTarget:
+        HostedZoneId: {"Fn::GetAtt": [AppElb, CanonicalHostedZoneNameID]}
+        DNSName: {"Fn::GetAtt": [AppElb, CanonicalHostedZoneName]}

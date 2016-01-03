@@ -20,9 +20,9 @@ Routes = React.createClass({
             {/* redirect to puzzle list until we have a hunt overview page or something */}
             <Redirect from="hunts/:huntId" to="hunts/:huntId/puzzles"/>
             <Route path="hunts" component={HuntList}/>
-            <Route path="users">
-              <Route path="invite" component={UserInvite}/>
-            </Route>
+            <Route path="users/invite" component={UserInvite}/>
+            <Route path="users/:userId" component={ProfilePage}/>
+            <Route path="users" component={ProfileListPage}/>
             <Route path="sheets/:id" component={Spreadsheet}/>
           </Route>
         </Route>
