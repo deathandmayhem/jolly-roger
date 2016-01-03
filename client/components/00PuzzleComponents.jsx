@@ -302,9 +302,10 @@ RelatedPuzzleGroups = React.createClass({
     // Then, render tag group
     return (
       <div>
-        {groups.map(function(g) {
+        {groups.length ? groups.map(function(g) {
           return <RelatedPuzzleGroup key={g.tag} sharedTag={g.tag} relatedPuzzles={g.puzzles} />;
-        })}
+        }) : <span>No tags for this puzzle yet.</span>
+        }
       </div>
     );
   },
