@@ -201,22 +201,6 @@ Resources:
                         - {Ref: "AWS::AccountId"}
                         - ":key/"
                         - {Ref: CredstashKeyUuid}
-        - PolicyName: letsencrypt-store
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:PutObject
-                  - s3:PutObjectACL
-                  - s3:DeleteObject
-                Resource:
-                  - Fn::Join:
-                      - ''
-                      -
-                        - "arn:aws:s3:::"
-                        - {Ref: LetsEncryptBucket}
-                        - "/*"
 
   AppInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -444,7 +428,6 @@ Resources:
 
               # Pre-fetch images
               - '  - docker pull localhost:5000/ebroder/jolly-roger'
-              - '  - docker pull ebroder/letsencrypt-s3front'
               - '  - docker pull jwilder/nginx-proxy'
               - '  - docker pull centurylink/watchtower'
 
@@ -462,34 +445,21 @@ Resources:
                     - {Ref: AppUrl}
                     - ' localhost:5000/ebroder/jolly-roger'
 
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - docker run --name letsencrypt-issue --rm -v /etc/letsencrypt:/etc/letsencrypt ebroder/letsencrypt-s3front --server https://acme-staging.api.letsencrypt.org/directory -v --text --agree-tos --authenticator letsencrypt-s3front:auth --installer null -m evan@ebroder.net -d '
-                    - {Ref: AppUrl}
-                    - ' --letsencrypt-s3front:auth-s3-bucket '
-                    - {Ref: LetsEncryptBucket}
-                    - ' --letsencrypt-s3front:auth-s3-region '
-                    - {Ref: "AWS::Region"}
               - '  - mkdir /etc/nginx-https/certs'
               - Fn::Join:
                   - ''
                   -
-                    - '  - ln -s /etc/letsencrypt/live/'
-                    - {Ref: AppUrl}
-                    - '/fullchain.pem /etc/nginx-https/certs/'
+                    - '  - credstash get ssl/cert.pem > /etc/nginx-https/certs/'
                     - {Ref: AppUrl}
                     - '.crt'
               - Fn::Join:
                   - ''
                   -
-                    - '  - ln -s /etc/letsencrypt/live/'
-                    - {Ref: AppUrl}
-                    - '/privkey.pem /etc/nginx-https/certs/'
+                    - '  - credstash get ssl/privkey.pem > /etc/nginx-https/certs/'
                     - {Ref: AppUrl}
                     - '.key'
 
-              - '  - docker run --name nginx-https -d --restart=unless-stopped -p 444:444 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d -v /etc/nginx-https/certs:/etc/nginx/certs -v /etc/letsencrypt:/etc/letsencrypt jwilder/nginx-proxy'
+              - '  - docker run --name nginx-https -d --restart=unless-stopped -p 444:444 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d -v /etc/nginx-https/certs:/etc/nginx/certs jwilder/nginx-proxy'
               - '  - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock centurylink/watchtower --interval 30 --cleanup'
     DependsOn:
       - InternetGatewayAttachment
