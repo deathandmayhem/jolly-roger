@@ -21,28 +21,122 @@ RelatedPuzzleSection = React.createClass({
 
 ChatHistory = React.createClass({
   mixins: [PureRenderMixin],
+  propTypes: {
+    chatMessages: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.ChatMessages.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
+    profiles: React.PropTypes.objectOf(
+      React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired
+    ).isRequired,
+  },
+  styles: {
+    messagePane: {
+      flex: 'auto',
+      overflowY: 'auto',
+    },
+    message: {
+      // TODO: pick background color based on hashing userid or something?
+      backgroundColor: '#f8f8f8',
+      marginBottom: '1',
+    },
+    time: {
+      float:'right',
+      fontStyle: 'italic',
+      marginRight: '2',
+    },
+  },
   render() {
+    let profiles = this.props.profiles;
     return (
-      <div style={{flex: 'auto'}}>Chat history would go here.</div>
+      <div style={this.styles.messagePane}>
+        { this.props.chatMessages.map((msg) => {
+          // TODO: consider how we want to format dates, if the day was yesterday, or many days ago.
+          // This is ugly, but moment.js is huge
+          let hours = msg.timestamp.getHours();
+          let minutes = msg.timestamp.getMinutes();
+          let ts = `${hours < 10 ? '0' + hours : '' + hours}:${minutes < 10 ? '0' + minutes : '' + minutes}`;
+
+          return <div key={msg._id} style={this.styles.message}>
+            <span style={this.styles.time}>{ ts }</span>
+            <strong>{profiles[msg.sender].displayName}</strong>: {msg.text}
+          </div>;
+        }) }
+      </div>
     );
   },
 });
 
 ChatInput = React.createClass({
-  // TODO: add event handlers for typing, pressing enter, etc.
   mixins: [PureRenderMixin],
-  styles: {
-    flex: 'none',
+  getInitialState() {
+    return {
+      text: '',
+      height: 38,
+    };
   },
+
+  styles: {
+    textarea: {
+      // Chrome has a bug where if the line-height is a plain number (e.g. 1.42857143) rather than
+      // an absolute size (e.g. 14px, 12pt) then when you zoom, scrollHeight is miscomputed.
+      // scrollHeight is used for computing the effective size of a textarea, so we can grow the
+      // input to accomodate its contents.
+      // The default Chrome stylesheet has line-height set to a plain number.
+      // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
+      lineHeight: '14px',
+      flex: 'none',
+      padding: '9px',
+      resize: 'none',
+      maxHeight: '200',
+    },
+  },
+
+  onInputChanged(e) {
+    this.setState({
+      text: e.target.value,
+    });
+  },
+
+  onKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      Meteor.call('sendChatMessage', this.props.puzzleId, this.state.text);
+      this.setState({
+        text: '',
+      });
+    }
+  },
+
   render() {
     return (
-      <input style={{flex: 'none'}} placeholder="Chat" />
+      <TextareaAutosize style={this.styles.textarea}
+                        maxLength='4000'
+                        minRows={1}
+                        maxRows={12}
+                        value={this.state.text}
+                        onChange={this.onInputChanged}
+                        onKeyDown={this.onKeyDown}
+                        placeholder='Chat' />
     );
   },
 });
 
 ChatSection = React.createClass({
   mixins: [PureRenderMixin],
+  propTypes: {
+    chatReady: React.PropTypes.bool.isRequired,
+    chatMessages: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.ChatMessages.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
+    profiles: React.PropTypes.objectOf(
+      React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired
+    ).isRequired,
+    puzzleId: React.PropTypes.string.isRequired,
+  },
   styles: {
     flex: '1 1 30%',
     minHeight: '30vh',
@@ -53,8 +147,9 @@ ChatSection = React.createClass({
     // TODO: fetch/track/display chat history
     return (
       <div className="chat-section" style={this.styles}>
-        <ChatHistory />
-        <ChatInput />
+        {this.props.chatReady ? null : <span>loading...</span>}
+        <ChatHistory chatMessages={this.props.chatMessages} profiles={this.props.profiles} />
+        <ChatInput puzzleId={this.props.puzzleId} />
       </div>
     );
   },
@@ -62,6 +157,23 @@ ChatSection = React.createClass({
 
 PuzzlePageSidebar = React.createClass({
   mixins: [PureRenderMixin],
+  propTypes: {
+    activePuzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    allPuzzles: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Puzzles.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
+    chatReady: React.PropTypes.bool.isRequired,
+    chatMessages: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.ChatMessages.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
+    profiles: React.PropTypes.objectOf(
+      React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired
+    ).isRequired,
+  },
   styles: {
     flex: '1 1 20%',
     boxSizing: 'border-box',
@@ -72,8 +184,8 @@ PuzzlePageSidebar = React.createClass({
   render() {
     return (
       <div className="sidebar" style={this.styles}>
-        <RelatedPuzzleSection {...this.props} />
-        <ChatSection/>
+        <RelatedPuzzleSection activePuzzle={this.props.activePuzzle} allPuzzles={this.props.allPuzzles} />
+        <ChatSection chatReady={this.props.chatReady} chatMessages={this.props.chatMessages} profiles={this.props.profiles} puzzleId={this.props.activePuzzle._id} />
       </div>
     );
   },
@@ -153,10 +265,23 @@ PuzzlePage = React.createClass({
       };
     }
 
-    var handle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
+    let puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
+    let chatHandle = Meteor.subscribe('mongo.chatmessages', {puzzleId: this.props.params.puzzleId});
+
+    // Profiles are needed to join display name with sender userid.
+    let profileHandle = Meteor.subscribe('mongo.profiles');
+    let chatReady = chatHandle.ready() && profileHandle.ready();
+    let chatMessages = chatReady && Models.ChatMessages.find(
+        {puzzleId: this.props.params.puzzleId},
+        {$sort: { timestamp: 1 }}
+        ).fetch() || [];
+    let profiles = chatReady && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
     return {
-      ready: handle.ready(),
+      ready: puzzlesHandle.ready(),
       allPuzzles: Models.Puzzles.find({hunt: this.props.params.huntId}).fetch(),
+      chatReady: chatReady,
+      chatMessages: chatMessages,
+      profiles: profiles,
     };
   },
 
@@ -168,7 +293,7 @@ PuzzlePage = React.createClass({
     let activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     return (
       <div style={{display: 'flex', flexDirection: 'row', position: 'absolute', top: '0', bottom: '0', left:'0', right:'0'}}>
-        <PuzzlePageSidebar activePuzzle={activePuzzle} allPuzzles={this.data.allPuzzles} />
+        <PuzzlePageSidebar activePuzzle={activePuzzle} allPuzzles={this.data.allPuzzles} chatReady={this.data.chatReady} chatMessages={this.data.chatMessages} profiles={this.data.profiles} />
         <PuzzlePageContent />
       </div>
     );
