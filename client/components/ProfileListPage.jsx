@@ -55,8 +55,10 @@ ProfileListPage = React.createClass({
   },
 
   render() {
-    console.log(this.data);
-    if (!this.data.ready) return <div>loading...</div>;
+    if (!this.data.ready) {
+      return <div>loading...</div>;
+    }
+
     var profiles = _.filter(this.data.profiles, this.compileMatcher());
     return (
       <div>

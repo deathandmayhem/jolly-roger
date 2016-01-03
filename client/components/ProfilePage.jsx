@@ -7,7 +7,6 @@ OthersProfilePage = React.createClass({
   render() {
     // TODO: figure out something for profile pictures - gravatar?
     var profile = this.props.profile;
-    console.log(profile);
     return (
       <div>
         <h1>{profile.displayName}</h1>
@@ -151,7 +150,6 @@ OwnProfilePage = React.createClass({
 ProfilePage = React.createClass({
   mixins: [ReactMeteorData],
   getMeteorData() {
-    console.log(this.props.params);
     var profileHandle = Meteor.subscribe('mongo.profiles', {_id: this.props.params.userId});
     var user = Meteor.user();
     var defaultEmail = user && user.emails && user.emails.length > 0 && user.emails[0] && user.emails[0].address;
@@ -174,7 +172,6 @@ ProfilePage = React.createClass({
   },
 
   render() {
-    console.log(this.data);
     if (!this.data.ready) return <div>loading...</div>;
     if (this.data.isSelf) return <OwnProfilePage initialProfile={this.data.profile}/>;
     return <OthersProfilePage profile={this.data.profile}/>;
