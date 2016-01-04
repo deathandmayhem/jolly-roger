@@ -67,8 +67,14 @@ collection the object came from.
 
 The collection objects (under `Models`) should all be instances of
 `Models.Base` (or a subclass). The base model automatically wraps
-documents in a class (which can be overridden), publishes them to
-clients, and sets up a role-based system for modifications.
+documents in a class (which can be overridden) and sets up a
+role-based system for modifications.
+
+However, `Models.Base` instances are not automatically published. You
+can call `model.publish()` to do that. You can optionally pass a
+function which modifies the query to add additional restrictions,
+c.f. `Models.Puzzles` which restricts the `hunt` query term to hunts
+that the user is a member of.
 
 Roles
 -----
