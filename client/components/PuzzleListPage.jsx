@@ -16,10 +16,10 @@ PuzzleListPage = React.createClass({
   },
 
   render() {
-    lastData = this.data;
-    return (this.data.ready ?
-      <FilteringPuzzleSet puzzles={this.data.allPuzzles} /> :
-      <span>loading...</span>
-    );
+    if (!this.data.ready) {
+      return <span>loading...</span>;
+    } else {
+      return <FilteringPuzzleSet puzzles={this.data.allPuzzles} />;
+    }
   },
 });

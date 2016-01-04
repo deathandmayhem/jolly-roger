@@ -15,10 +15,12 @@ Routes = React.createClass({
         <Route path="/" component={Authenticator} authenticated={true}>
           <IndexRedirect to="hunts"/>
           <Route path="" component={App}>
-            <Route path="hunts/:huntId/puzzles/:puzzleId" component={PuzzlePage}/>
-            <Route path="hunts/:huntId/puzzles" component={PuzzleListPage}/>
-            {/* redirect to puzzle list until we have a hunt overview page or something */}
-            <Redirect from="hunts/:huntId" to="hunts/:huntId/puzzles"/>
+            <Route path="hunts/:huntId" component={HuntMembershipVerifier}>
+              <Route path="puzzles/:puzzleId" component={PuzzlePage}/>
+              <Route path="puzzles" component={PuzzleListPage}/>
+              {/* redirect to puzzle list until we have a hunt overview page or something */}
+              <IndexRedirect to="puzzles"/>
+            </Route>
             <Route path="hunts" component={HuntList}/>
             <Route path="users/invite" component={UserInvite}/>
             <Route path="users/:userId" component={ProfilePage}/>
