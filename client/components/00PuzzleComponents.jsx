@@ -70,6 +70,7 @@ FilteringPuzzleSet = React.createClass({
     // TODO: implement sorting
     return this.filteredPuzzles(puzzles);
   },
+
   clearSearch() {
     this.setState({searchString: ''});
   },
@@ -185,10 +186,16 @@ TagList = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+    onCreateTag: React.PropTypes.func, // if provided, will show UI for adding a new tag
+    onRemoveTag: React.PropTypes.func, // callback if user wants to remove a tag
   },
+
   getInitialState() {
     return {
       expanded: false,
+      editing: false,
+      removing: false,
+      newTagName: '',
     };
   },
 
@@ -196,12 +203,83 @@ TagList = React.createClass({
     base: {
       display: 'inline',
     },
+    linkButton: {
+      // Override some Bootstrap sizes/paddings to make this button fit in the row better.
+      height: '24',
+      padding: '2',
+      display: 'inline-block',
+    },
   },
+
+  onTagNameTextChanged(event) {
+    this.setState({
+      newTagName: event.target.value,
+    });
+  },
+
+  submitTag(newTagName) {
+    // TODO: submitTag should use the value passed in from the child, which may have done some
+    // autocomplete matching that this component doesn't know about.
+    this.props.onCreateTag && this.props.onCreateTag(newTagName);
+    this.setState({
+      editing: false,
+    });
+  },
+
+  startEditing() {
+    this.setState({
+      editing: true,
+      newTagName: '',
+    });
+  },
+
+  stopEditing() {
+    this.setState({ editing: false });
+  },
+
+  startRemoving() {
+    this.setState({ removing: true });
+  },
+
+  stopRemoving() {
+    this.setState({ removing: false });
+  },
+
+  removeTag(tagIdToRemove) {
+    this.props.onRemoveTag && this.props.onRemoveTag(tagIdToRemove);
+  },
+
   render() {
     // TODO: figure out smart sort order for these?  or maybe the parent is responsible for that?
     var tags = [];
     for (var i = 0; i < this.props.tags.length; i++) {
-      tags.push(<Tag key={this.props.tags[i]._id} name={this.props.tags[i].name} />);
+      tags.push(<Tag key={this.props.tags[i]._id} tag={this.props.tags[i]} onRemove={this.state.removing ? this.removeTag : undefined} />);
+    }
+
+    if (this.state.editing) {
+      tags.push(<TagEditor key="tagEditor" newTagName={this.state.newTagName}
+                           onChange={this.onTagNameTextChanged}
+                           onSubmit={this.submitTag}
+                           onCancel={this.stopEditing}/>);
+    } else if (this.state.removing) {
+      tags.push(<BS.Button key="stopRemoving"
+                           style={this.styles.linkButton}
+                           bsStyle="link"
+                           onClick={this.stopRemoving}>Done removing</BS.Button>);
+    } else {
+      if (this.props.onCreateTag) {
+        tags.push(<BS.Button key="startEditing"
+                             style={this.styles.linkButton}
+                             bsStyle="link"
+                             onClick={this.startEditing}>Add a tag...</BS.Button>);
+      }
+
+      if (this.props.onRemoveTag) {
+        tags.push(<BS.Button key="startRemoving"
+                             style={this.styles.linkButton}
+                             bsStyle="link"
+                             onClick={this.startRemoving}>Remove a tag...</BS.Button>);
+      }
     }
 
     return (
@@ -212,12 +290,70 @@ TagList = React.createClass({
   },
 });
 
+TagEditor = React.createClass({
+  // TODO: this should support autocomplete to reduce human error.
+  // Probably not going to land this week.
+  propTypes: {
+    newTagName: React.PropTypes.string.isRequired,
+    onChange: React.PropTypes.func.isRequired,
+    onSubmit: React.PropTypes.func.isRequired,
+    onCancel: React.PropTypes.func.isRequired,
+  },
+
+  onBlur() {
+    // Treat blur as "no I didn't mean to do that".  We may have to change this
+    // once we have autocomplete .
+    this.props.onCancel();
+  },
+
+  componentDidMount() {
+    // Focus the input when mounted - the user just clicked on the button-link.
+    let input = ReactDOM.findDOMNode(this.refs.input);
+    input.focus();
+    input.addEventListener('blur', this.onBlur);
+  },
+
+  componentWillUnmount() {
+    let input = ReactDOM.findDOMNode(this.refs.input);
+    input.removeEventListener('blur', this.onBlur);
+  },
+
+  onKeyDown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.props.onCancel();
+    } else if (event.key === 'Enter') {
+      // TODO: we may want to submit an autocompletion instead of this.props.newTagName
+      event.preventDefault();
+      this.props.onSubmit(this.props.newTagName);
+    }
+    /*
+    else if (event.key === 'ArrowUp') {
+      // TODO: change autocomplete result
+    } else if (event.key === 'ArrowDown') {
+      // TODO: change autocomplete result
+    }*/
+  },
+
+  render() {
+    return (
+      <span>
+        <input ref="input" type="text" style={{minWidth: '100'}}
+               value={this.props.newTagName}
+               onChange={this.props.onChange}
+               onKeyDown={this.onKeyDown}/>
+      </span>
+    );
+  },
+});
+
 Tag = Radium(React.createClass({
   displayName: 'Tag',
   mixins: [PureRenderMixin],
   propTypes: {
-    name: React.PropTypes.string.isRequired,
+    tag: React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
     onClick: React.PropTypes.func,
+    onRemove: React.PropTypes.func, // if present, show a dismiss button
   },
   styles: {
     base: {
@@ -238,15 +374,24 @@ Tag = Radium(React.createClass({
       cursor: 'pointer',
     },
   },
+
   onClick() {
     this.props.onClick && this.props.onClick();
   },
 
+  onRemove() {
+    this.props.onRemove && this.props.onRemove(this.props.tag._id);
+  },
+
   render() {
-    var isMeta = this.props.name === 'is:meta';
-    var isMetaGroup = this.props.name.lastIndexOf('meta:', 0) === 0;
+    var name = this.props.tag.name;
+    var isMeta = name === 'is:meta';
+    var isMetaGroup = name.lastIndexOf('meta:', 0) === 0;
     return (
-      <div className="tag" style={[this.styles.base, isMeta && this.styles.meta, isMetaGroup && this.styles.metaGroup, this.props.onClick && this.styles.interactive]} onClick={this.onClick}>{this.props.name}</div>
+      <div className="tag" style={[this.styles.base, isMeta && this.styles.meta, isMetaGroup && this.styles.metaGroup, this.props.onClick && this.styles.interactive]} onClick={this.onClick}>
+        {name}
+        {this.props.onRemove && <BS.Button bsSize="xsmall" bsStyle="danger" onClick={this.onRemove}>X</BS.Button>}
+      </div>
     );
   },
 }));
@@ -273,8 +418,8 @@ RelatedPuzzleGroup = React.createClass({
     return (
       <div style={this.styles.group}>
         <div style={this.styles.tagWrapper}>
-          <Tag name={this.props.sharedTag.name} />
-          <span>({this.props.relatedPuzzles.length} puzzles)</span>
+          <Tag tag={this.props.sharedTag} />
+          <span>{'(' + this.props.relatedPuzzles.length + ' ' + (this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles') + ')'}</span>
         </div>
         <div style={this.styles.puzzleListWrapper}>
           <PuzzleList puzzles={this.props.relatedPuzzles} tags={this.props.allTags} />
@@ -323,7 +468,7 @@ RelatedPuzzleGroups = React.createClass({
     return (
       <div>
         {groups.length ? groups.map(function(g) {
-          return <RelatedPuzzleGroup key={g.tag} sharedTag={g.tag} relatedPuzzles={g.puzzles} allTags={allTags} />;
+          return <RelatedPuzzleGroup key={g.tag._id} sharedTag={g.tag} relatedPuzzles={g.puzzles} allTags={allTags} />;
         }) : <span>No tags for this puzzle yet.</span>
         }
       </div>

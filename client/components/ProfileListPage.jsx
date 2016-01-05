@@ -66,7 +66,7 @@ ProfileListPage = React.createClass({
     }
 
     var profiles = _.filter(this.data.profiles, this.compileMatcher());
-    var clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>
+    var clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>;
     return (
       <div>
         <h1>List of hunters</h1>

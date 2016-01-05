@@ -1,3 +1,5 @@
+const BS = ReactBootstrap;
+
 PureRenderMixin = React.addons.PureRenderMixin;
 
 RelatedPuzzleSection = React.createClass({
@@ -62,7 +64,7 @@ ChatHistory = React.createClass({
   },
 
   componentWillUpdate() {
-    this.saveShouldScroll()
+    this.saveShouldScroll();
   },
 
   componentDidUpdate() {
@@ -70,7 +72,7 @@ ChatHistory = React.createClass({
   },
 
   onScroll(event) {
-    this.saveShouldScroll()
+    this.saveShouldScroll();
   },
 
   saveShouldScroll() {
@@ -97,9 +99,12 @@ ChatHistory = React.createClass({
     // Scroll to end of chat.
     this.forceScrollBottom();
     let _this = this;
+
+    // Make sure when the window is resized, we stick to the bottom if we were there
     this.resizeHandler = function(event) {
       _this.maybeForceScrollBottom();
     };
+
     window.addEventListener('resize', this.resizeHandler);
   },
 
@@ -111,7 +116,7 @@ ChatHistory = React.createClass({
     let profiles = this.props.profiles;
     return (
       <div ref='messagePane' style={this.styles.messagePane} onScroll={this.onScroll}>
-        { this.props.chatMessages.length === 0 && <span key="no-message">"No chatter yet. Say something?"</span> }
+        { this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span> }
         { this.props.chatMessages.map((msg) => {
           // TODO: consider how we want to format dates, if the day was yesterday, or many days ago.
           // This is ugly, but moment.js is huge
@@ -277,17 +282,137 @@ PuzzlePageSidebar = React.createClass({
 
 PuzzlePageMetadata = React.createClass({
   mixins: [PureRenderMixin],
-  styles: {
-    flex: 'none',
-    maxHeight: '20vh',
-    overflow: 'auto',
+  propTypes: {
+    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    allTags: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Tags.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
+    guesses: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Guesses.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
   },
+
+  getInitialState() {
+    return {
+      showModal: false,
+    };
+  },
+
+  onCreateTag(newTagName) {
+    Meteor.call('addTagToPuzzle', this.props.puzzle._id, newTagName, (error) => {
+      // Not really much we can do in the case of a failure, but let's log it anyway
+      if (error) {
+        console.log('failed to create tag:');
+        console.log(error);
+      }
+    });
+  },
+
+  onRemoveTag(tagIdToRemove) {
+    Meteor.call('removeTagFromPuzzle', this.props.puzzle._id, tagIdToRemove, (error) => {
+      // Not really much we can do in the case of a failure, but again, let's log it anyway
+      if (error) {
+        console.log('failed to remove tag:');
+        console.log(error);
+      }
+    });
+  },
+
+  styles: {
+    metadata: {
+      flex: 'none',
+      maxHeight: '80',
+      overflow: 'auto',
+    },
+    row: {
+      display: 'block',
+      height: '26',
+      lineHeight: '18px',
+      verticalAlign: 'middle',
+    },
+    answer: {
+      display: 'inline-block',
+      padding: '2px',
+      borderRadius: '2px',
+      background: '#00FF00',
+      color: '#000000',
+    },
+    left: {
+      padding: '4',
+    },
+    right: {
+      margin: '4',
+      float: 'right',
+      clear: 'none',
+    },
+    button: {
+      boxSizing: 'border-box',
+      height: '24',
+      paddingTop: '2',
+      paddingBottom: '2',
+      paddingLeft: '8',
+      paddingRight: '8',
+    },
+  },
+
+  showGuessModal() {
+    this.refs.form.show();
+  },
+
+  dismissModal() {
+    this.refs.form.close();
+  },
+
+  submitGuess() {
+    let _this = this;
+    Meteor.call('addGuessForPuzzle', this.props.puzzle._id, this.refs.guess.getValue(), (error) => {
+      // TODO: dismiss the modal on success?  show error message on failure?
+      if (error) {
+        console.log(error);
+      }
+
+      _this.refs.form.close();
+    });
+  },
+
   render() {
+    let _this = this;
+    let tagsById = _.indexBy(this.props.allTags, '_id');
+    let tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
+    let answerComponent = this.props.puzzle.answer ? <span style={this.styles.answer}>{`Solved: ${this.props.puzzle.answer}`}</span> : null;
     return (
-      <div className="puzzle-metadata" style={this.styles}>
-        <div>Puzzle answer, if known</div>
-        <div>Tags for this puzzle + ability to add more</div>
-        <div>Other hunters currently viewing this page?</div>
+      <div className="puzzle-metadata" style={this.styles.metadata}>
+        <div style={this.styles.row}>
+          {this.props.puzzle.url && <div style={this.styles.right}><a target="_blank" href={this.props.puzzle.url}>Puzzle link</a></div>}
+          <div style={this.styles.left}><strong>{this.props.puzzle.title}</strong> {answerComponent}</div>
+        </div>
+        <div style={this.styles.row}>
+          <div style={this.styles.right}><BS.Button style={this.styles.button} onClick={this.showGuessModal}>Submit answer</BS.Button></div>
+          <div style={this.styles.left}>
+            <span style={{display: 'inline-block', height: '24'}}>Tags:</span>
+            <TagList tags={tags} onCreateTag={this.onCreateTag} onRemoveTag={this.onRemoveTag}></TagList>
+          </div>
+        </div>
+        {/* Activity tracking not implemented yet.
+            <div>Other hunters currently viewing this page?</div> */}
+        <JRC.ModalForm
+            ref="form"
+            title={'Submit answer to ' + this.props.puzzle.title}
+            onSubmit={this.submitGuess}>
+          {/* TODO: make this show past guesses */}
+          {/* TODO: Change the button labels */}
+          <BS.Input
+              ref="guess"
+              type="text"
+              label="Guess"
+              labelClassName="col-xs-2"
+              wrapperClassName="col-xs-10"
+              autoFocus="true"/>
+        </JRC.ModalForm>
       </div>
     );
   },
@@ -308,6 +433,19 @@ PuzzlePageMultiplayerDocument = React.createClass({
 
 PuzzlePageContent = React.createClass({
   mixins: [PureRenderMixin],
+  propTypes: {
+    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    allTags: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Tags.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
+    guesses: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Guesses.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
+  },
   styles: {
     flex: '4 4 80%',
     verticalAlign: 'top',
@@ -317,7 +455,7 @@ PuzzlePageContent = React.createClass({
   render() {
     return (
       <div className="puzzle-content" style={this.styles}>
-        <PuzzlePageMetadata />
+        <PuzzlePageMetadata puzzle={this.props.puzzle} allTags={this.props.allTags} guesses={this.props.guesses} />
         <PuzzlePageMultiplayerDocument />
       </div>
     );
@@ -345,18 +483,23 @@ PuzzlePage = React.createClass({
     desiredLayout: 'fullscreen',
   },
   getMeteorData() {
-    let allPuzzles = undefined;
     let ready = undefined;
+    let allPuzzles = undefined;
+    let allTags = undefined;
+    let allGuesses = undefined;
     if (_.has(huntFixtures, this.props.params.huntId)) {
       ready = true;
       allPuzzles = huntFixtures[this.props.params.huntId].puzzles;
       allTags = huntFixtures[this.props.params.huntId].tags;
+      allGuesses = [];
     } else {
       let puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
       let tagsHandle = Meteor.subscribe('mongo.tags', {hunt: this.props.params.huntId});
-      ready = puzzlesHandle.ready() && tagsHandle.ready();
+      let guessesHandle = Meteor.subscribe('mongo.guesses', {puzzle: this.props.params.puzzleId});
+      ready = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready();
       allPuzzles = Models.Puzzles.find({hunt: this.props.params.huntId}).fetch();
       allTags = Models.Tags.find({hunt: this.props.params.huntId}).fetch();
+      allGuesses = Models.Guesses.find({hunt: this.props.params.huntId, puzzle: this.props.params.puzzleId}).fetch();
     }
 
     let chatHandle = Meteor.subscribe('mongo.chatmessages', {puzzleId: this.props.params.puzzleId});
@@ -376,6 +519,7 @@ PuzzlePage = React.createClass({
       chatReady: chatReady,
       chatMessages: chatMessages,
       profiles: profiles,
+      allGuesses: allGuesses,
     };
   },
 
@@ -388,7 +532,7 @@ PuzzlePage = React.createClass({
     return (
       <div style={{display: 'flex', flexDirection: 'row', position: 'absolute', top: '0', bottom: '0', left:'0', right:'0'}}>
         <PuzzlePageSidebar activePuzzle={activePuzzle} allPuzzles={this.data.allPuzzles} allTags={this.data.allTags} chatReady={this.data.chatReady} chatMessages={this.data.chatMessages} profiles={this.data.profiles} />
-        <PuzzlePageContent />
+        <PuzzlePageContent puzzle={activePuzzle} allTags={this.data.allTags} guesses={this.data.allGuesses}/>
       </div>
     );
   },
