@@ -28,7 +28,7 @@ HuntMembershipVerifier = React.createClass({
     } else if (!this.data.member) {
       return <HuntSignup huntId={this.props.params.huntId}/>;
     } else {
-      return <div>{this.props.children}</div>;
+      return this.props.children;
     }
   },
 });
