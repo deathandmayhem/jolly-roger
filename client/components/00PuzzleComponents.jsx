@@ -3,6 +3,7 @@ const BS = ReactBootstrap;
 const PureRenderMixin = React.addons.PureRenderMixin;
 
 var puzzleShape = Schemas.Puzzles.asReactPropTypes();
+var tagShape = Schemas.Tags.asReactPropTypes();
 
 var sortedTags = function sortedTags(tags) {
   // TODO: attempt to sort the tags into a reasonable order before showing them.
@@ -17,6 +18,7 @@ FilteringPuzzleSet = React.createClass({
   displayName: 'FilteringPuzzleSet',
   propTypes: {
     puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
+    tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
   },
   getInitialState() {
     return {
@@ -30,6 +32,7 @@ FilteringPuzzleSet = React.createClass({
   },
 
   compileMatcher(searchKeys) {
+    let tagNames = _.indexBy(this.props.tags, '_id');
     return function(puzzle) {
       // for key in searchKeys:
       //   if key in title or key in answer:
@@ -45,8 +48,8 @@ FilteringPuzzleSet = React.createClass({
         }
 
         for (var j = 0; j < puzzle.tags.length; j++) {
-          var tag = puzzle.tags[j];
-          if (tag.indexOf(key) !== -1) {
+          var tagName = tagNames[puzzle.tags[j]].name;
+          if (tagName.indexOf(key) !== -1) {
             return true;
           }
         }
@@ -59,7 +62,7 @@ FilteringPuzzleSet = React.createClass({
   filteredPuzzles(puzzles) {
     var searchKeys = this.state.searchString.split(' ');
     if (searchKeys.length === 1 && searchKeys[0] === '') return puzzles;
-    var isInteresting = this.compileMatcher(searchKeys);
+    var isInteresting = this.compileMatcher(_.filter(searchKeys, (key) => { return key.length > 0; }));
     return _.filter(puzzles, isInteresting);
   },
 
@@ -77,7 +80,7 @@ FilteringPuzzleSet = React.createClass({
                   ref="searchBar"
                   onChange={this.onSearchStringChange}
         />
-        <PuzzleList puzzles={puzzles} />
+        <PuzzleList puzzles={puzzles} tags={this.props.tags} />
       </div>
     );
   },
@@ -88,6 +91,7 @@ PuzzleList = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
     puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
+    tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
   },
   render() {
     // This component just renders the puzzles provided, in order.
@@ -96,7 +100,7 @@ PuzzleList = React.createClass({
     var puzzles = [];
     for (var i = 0; i < this.props.puzzles.length; i++) {
       var puz = this.props.puzzles[i];
-      puzzles.push(<Puzzle key={puz._id} {...puz} />);
+      puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} />);
     }
 
     return (
@@ -110,7 +114,10 @@ PuzzleList = React.createClass({
 Puzzle = React.createClass({
   displayName: 'Puzzle',
   mixins: [PureRenderMixin],
-  propTypes: puzzleShape,
+  propTypes: {
+    puzzle: React.PropTypes.shape(puzzleShape).isRequired,
+    tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+  },
   styles: {
     puzzle: {
       display: 'block',
@@ -130,12 +137,14 @@ Puzzle = React.createClass({
   },
   render() {
     // id, title, answer, tags
-    var linkTarget = `/hunts/${this.props.hunt}/puzzles/${this.props._id}`;
+    var linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
+    var tagIndex = _.indexBy(this.props.tags, '_id');
+    var tags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
     return (
       <div className="puzzle" style={this.styles.puzzle}>
-        <div className="title" style={this.styles.title}><Link to={linkTarget}>{this.props.title}</Link></div>
-        {this.props.answer ? <PuzzleAnswer answer={this.props.answer} /> : null}
-        <TagList tags={this.props.tags} />
+        <div className="title" style={this.styles.title}><Link to={linkTarget}>{this.props.puzzle.title}</Link></div>
+        {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
+        <TagList tags={tags} />
       </div>
     );
   },
@@ -170,7 +179,7 @@ TagList = React.createClass({
   displayName: 'TagList',
   mixins: [PureRenderMixin],
   propTypes: {
-    tags: React.PropTypes.arrayOf(React.PropTypes.string.isRequired).isRequired,
+    tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
   },
   getInitialState() {
     return {
@@ -187,7 +196,7 @@ TagList = React.createClass({
     // TODO: figure out smart sort order for these?  or maybe the parent is responsible for that?
     var tags = [];
     for (var i = 0; i < this.props.tags.length; i++) {
-      tags.push(<Tag key={this.props.tags[i]} name={this.props.tags[i]} />);
+      tags.push(<Tag key={this.props.tags[i]._id} name={this.props.tags[i].name} />);
     }
 
     return (
@@ -240,8 +249,9 @@ Tag = Radium(React.createClass({
 RelatedPuzzleGroup = React.createClass({
   displayName: 'RelatedPuzzleGroup',
   propTypes: {
-    sharedTag: React.PropTypes.string.isRequired,
+    sharedTag: React.PropTypes.shape(tagShape).isRequired,
     relatedPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
+    allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
   },
   styles: {
     tagWrapper: {
@@ -258,11 +268,11 @@ RelatedPuzzleGroup = React.createClass({
     return (
       <div style={this.styles.group}>
         <div style={this.styles.tagWrapper}>
-          <Tag name={this.props.sharedTag} />
+          <Tag name={this.props.sharedTag.name} />
           <span>({this.props.relatedPuzzles.length} puzzles)</span>
         </div>
         <div style={this.styles.puzzleListWrapper}>
-          <PuzzleList puzzles={this.props.relatedPuzzles} />
+          <PuzzleList puzzles={this.props.relatedPuzzles} tags={this.props.allTags} />
         </div>
       </div>
     );
@@ -278,14 +288,16 @@ RelatedPuzzleGroups = React.createClass({
   propTypes: {
     activePuzzle: React.PropTypes.shape(puzzleShape).isRequired,
     allPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
+    allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
   },
   render() {
     // For each tag, collect all the other puzzles that also have that tag.
     var groups = [];
+    var tagIndex = _.indexBy(this.props.allTags, '_id');
     for (var tagi = 0; tagi < this.props.activePuzzle.tags.length; tagi++) {
-      var tag = this.props.activePuzzle.tags[tagi];
-      var puzzles = puzzlesWithTag(this.props.allPuzzles, tag);
-      groups.push({tag: tag, puzzles: puzzles});
+      var tagId = this.props.activePuzzle.tags[tagi];
+      var puzzles = puzzlesWithTag(this.props.allPuzzles, tagId);
+      groups.push({tag: tagIndex[tagId], puzzles: puzzles});
     }
 
     // TODO: sort the tag groups by tag interestingness, which should probably be related to meta
@@ -299,11 +311,14 @@ RelatedPuzzleGroups = React.createClass({
     // we're in a puzzle details page and just looking at related puzzles.  No need to waste
     // precious space on the current puzzle again.
 
-    // Then, render tag group
+    // Then, render tag group.
+
+    // Hoist allTags into lambda.
+    var allTags = this.props.allTags;
     return (
       <div>
         {groups.length ? groups.map(function(g) {
-          return <RelatedPuzzleGroup key={g.tag} sharedTag={g.tag} relatedPuzzles={g.puzzles} />;
+          return <RelatedPuzzleGroup key={g.tag} sharedTag={g.tag} relatedPuzzles={g.puzzles} allTags={allTags} />;
         }) : <span>No tags for this puzzle yet.</span>
         }
       </div>

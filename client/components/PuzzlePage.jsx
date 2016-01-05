@@ -2,6 +2,19 @@ PureRenderMixin = React.addons.PureRenderMixin;
 
 RelatedPuzzleSection = React.createClass({
   mixins: [PureRenderMixin],
+  propTypes: {
+    activePuzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    allPuzzles: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Puzzles.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
+    allTags: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Tags.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
+  },
   styles: {
     flex: '0 1 30%',
     maxHeight: '50vh',
@@ -13,7 +26,7 @@ RelatedPuzzleSection = React.createClass({
     return (
       <div className="related-puzzles-section" style={this.styles}>
         <div>Related puzzles:</div>
-        <RelatedPuzzleGroups activePuzzle={this.props.activePuzzle} allPuzzles={this.props.allPuzzles} />
+        <RelatedPuzzleGroups activePuzzle={this.props.activePuzzle} allPuzzles={this.props.allPuzzles} allTags={this.props.allTags} />
       </div>
     );
   },
@@ -164,6 +177,11 @@ PuzzlePageSidebar = React.createClass({
         Schemas.Puzzles.asReactPropTypes()
       ).isRequired
     ).isRequired,
+    allTags: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Tags.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
     chatReady: React.PropTypes.bool.isRequired,
     chatMessages: React.PropTypes.arrayOf(
       React.PropTypes.shape(
@@ -184,7 +202,7 @@ PuzzlePageSidebar = React.createClass({
   render() {
     return (
       <div className="sidebar" style={this.styles}>
-        <RelatedPuzzleSection activePuzzle={this.props.activePuzzle} allPuzzles={this.props.allPuzzles} />
+        <RelatedPuzzleSection activePuzzle={this.props.activePuzzle} allPuzzles={this.props.allPuzzles} allTags={this.props.allTags} />
         <ChatSection chatReady={this.props.chatReady} chatMessages={this.props.chatMessages} profiles={this.props.profiles} puzzleId={this.props.activePuzzle._id} />
       </div>
     );
@@ -266,10 +284,13 @@ PuzzlePage = React.createClass({
     if (_.has(huntFixtures, this.props.params.huntId)) {
       ready = true;
       allPuzzles = huntFixtures[this.props.params.huntId].puzzles;
+      allTags = huntFixtures[this.props.params.huntId].tags;
     } else {
       let puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
-      ready = puzzlesHandle.ready();
+      let tagsHandle = Meteor.subscribe('mongo.tags', {hunt: this.props.params.huntId});
+      ready = puzzlesHandle.ready() && tagsHandle.ready();
       allPuzzles = Models.Puzzles.find({hunt: this.props.params.huntId}).fetch();
+      allTags = Models.Tags.find({hunt: this.props.params.huntId}).fetch();
     }
 
     let chatHandle = Meteor.subscribe('mongo.chatmessages', {puzzleId: this.props.params.puzzleId});
@@ -285,6 +306,7 @@ PuzzlePage = React.createClass({
     return {
       ready: ready,
       allPuzzles: allPuzzles,
+      allTags: allTags,
       chatReady: chatReady,
       chatMessages: chatMessages,
       profiles: profiles,
@@ -299,7 +321,7 @@ PuzzlePage = React.createClass({
     let activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     return (
       <div style={{display: 'flex', flexDirection: 'row', position: 'absolute', top: '0', bottom: '0', left:'0', right:'0'}}>
-        <PuzzlePageSidebar activePuzzle={activePuzzle} allPuzzles={this.data.allPuzzles} chatReady={this.data.chatReady} chatMessages={this.data.chatMessages} profiles={this.data.profiles} />
+        <PuzzlePageSidebar activePuzzle={activePuzzle} allPuzzles={this.data.allPuzzles} allTags={this.data.allTags} chatReady={this.data.chatReady} chatMessages={this.data.chatMessages} profiles={this.data.profiles} />
         <PuzzlePageContent />
       </div>
     );
