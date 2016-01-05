@@ -256,6 +256,10 @@ PuzzlePage = React.createClass({
   propTypes: {
     // hunt id and puzzle id comes from route?
   },
+  statics: {
+    // Mark this page as needing fixed, fullscreen layout.
+    desiredLayout: 'fullscreen',
+  },
   getMeteorData() {
     let allPuzzles = undefined;
     let ready = undefined;
@@ -301,6 +305,3 @@ PuzzlePage = React.createClass({
     );
   },
 });
-
-// Mark this page as requiring fixed, fullscreen layout.
-PuzzlePage.fullscreenLayout = true;
