@@ -7,20 +7,25 @@ BlazeToReact = React.createClass({
       ReactDOM.findDOMNode(this.refs.blazeParentTag)
     );
   },
+
   removeBlaze() {
     if (this.view) Blaze.remove(this.view);
   },
+
   componentDidUpdate() {
     this.renderBlaze();
   },
+
   componentDidMount() {
     this.renderBlaze();
   },
+
   componentWillUnmount() {
     this.removeBlaze();
   },
+
   render() {
-    return <div ref="blazeParentTag"/>
-  }
+    return <div ref="blazeParentTag"/>;
+  },
 });
 

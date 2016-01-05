@@ -88,7 +88,7 @@ App = React.createClass({
   render() {
     // Hack: see if the leaf route wants the fullscreen layout.
     let routes = this.props.routes;
-    let leafRoute = routes[routes.length-1];
+    let leafRoute = routes[routes.length - 1];
     let layout = leafRoute.component.desiredLayout;
     return (
       layout === 'fullscreen' ?
