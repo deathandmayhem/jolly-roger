@@ -238,7 +238,7 @@ Tag = Radium(React.createClass({
   },
 
   render() {
-    var isMeta = this.props.name === 'meta';
+    var isMeta = this.props.name === 'is:meta';
     var isMetaGroup = this.props.name.lastIndexOf('meta:', 0) === 0;
     return (
       <div className="tag" style={[this.styles.base, isMeta && this.styles.meta, isMetaGroup && this.styles.metaGroup, this.props.onClick && this.styles.interactive]} onClick={this.onClick}>{this.props.name}</div>
