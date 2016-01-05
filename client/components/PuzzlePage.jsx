@@ -254,18 +254,20 @@ var findPuzzleById = function(puzzles, id) {
 PuzzlePage = React.createClass({
   mixins: [ReactMeteorData],
   propTypes: {
-    // puzzle id comes from route?
-    // TODO: whole puzzle list should come from DB, not mock
+    // hunt id and puzzle id comes from route?
   },
   getMeteorData() {
+    let allPuzzles = undefined;
+    let ready = undefined;
     if (_.has(huntFixtures, this.props.params.huntId)) {
-      return {
-        ready: true,
-        allPuzzles: huntFixtures[this.props.params.huntId].puzzles,
-      };
+      ready = true;
+      allPuzzles = huntFixtures[this.props.params.huntId].puzzles;
+    } else {
+      let puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
+      ready = puzzlesHandle.ready();
+      allPuzzles = Models.Puzzles.find({hunt: this.props.params.huntId}).fetch();
     }
 
-    let puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
     let chatHandle = Meteor.subscribe('mongo.chatmessages', {puzzleId: this.props.params.puzzleId});
 
     // Profiles are needed to join display name with sender userid.
@@ -277,8 +279,8 @@ PuzzlePage = React.createClass({
         ).fetch() || [];
     let profiles = chatReady && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
     return {
-      ready: puzzlesHandle.ready(),
-      allPuzzles: Models.Puzzles.find({hunt: this.props.params.huntId}).fetch(),
+      ready: ready,
+      allPuzzles: allPuzzles,
       chatReady: chatReady,
       chatMessages: chatMessages,
       profiles: profiles,
