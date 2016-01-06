@@ -9,6 +9,10 @@ SharedNavbar = React.createClass({
     };
   },
 
+  logout() {
+    Meteor.logout();
+  },
+
   render() {
     return (
       <BS.Navbar fixedTop>
@@ -42,7 +46,13 @@ SharedNavbar = React.createClass({
             </li>
           </BS.Nav>
           <BS.Nav pullRight>
-            <BlazeToReact blazeTemplate="atNavButton"/>
+            {/* TODO: figure out why the following ReactBootstrap makes this an <a> instead of a <button> */}
+            {/*<BS.Button className="navbar-btn">
+              {this.data.userId ? 'Sign Out' : 'Sign In'}
+            </BS.Button>*/}
+            <button className="btn btn-default navbar-btn" onClick={this.logout}>
+              {this.data.userId ? 'Sign Out' : 'Sign In'}
+            </button>
           </BS.Nav>
         </BS.Navbar.Collapse>
       </BS.Navbar>
