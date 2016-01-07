@@ -70,14 +70,19 @@ FilteringPuzzleSet = React.createClass({
     // TODO: implement sorting
     return this.filteredPuzzles(puzzles);
   },
+  clearSearch() {
+    this.setState({searchString: ''});
+  },
 
   render() {
     var puzzles = this.sortedFilteredPuzzles(this.props.puzzles);
+    var clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>;
     return (
       <div>
         <BS.Input type="text" label="Search" placeholder="search by title, answer, or tag"
                   value={this.state.searchString}
                   ref="searchBar"
+                  buttonAfter={clearButton}
                   onChange={this.onSearchStringChange}
         />
         <PuzzleList puzzles={puzzles} tags={this.props.tags} />

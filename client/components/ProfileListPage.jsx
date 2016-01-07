@@ -1,5 +1,5 @@
-const {Link} = ReactRouter;
 const BS = ReactBootstrap;
+const RRBS = ReactRouterBootstrap;
 
 UserProfile = React.createClass({
   propTypes: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
@@ -54,22 +54,38 @@ ProfileListPage = React.createClass({
     return isInteresting;
   },
 
+  clearSearch() {
+    this.setState({
+      searchString: '',
+    });
+  },
+
   render() {
     if (!this.data.ready) {
       return <div>loading...</div>;
     }
 
     var profiles = _.filter(this.data.profiles, this.compileMatcher());
+    var clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>
     return (
       <div>
         <h1>List of hunters</h1>
         <BS.Input type="text" label="Search" placeholder="search by name..."
                   value={this.state.searchString} ref="searchBar"
+                  buttonAfter={clearButton}
                   onChange={this.onSearchStringChange}/>
         <BS.ListGroup>
-          <Link to='/users/invite' className='list-group-item'><strong>Invite someone...</strong></Link>
+          <RRBS.LinkContainer to='/users/invite'>
+            <BS.ListGroupItem>
+              <strong>Invite someone...</strong>
+            </BS.ListGroupItem>
+          </RRBS.LinkContainer>
           {profiles.map((profile) => (
-               <Link key={profile._id} className='list-group-item' to={`/users/${profile._id}`}>{profile.displayName || '<no name provided>'}</Link>
+               <RRBS.LinkContainer to={`/users/${profile._id}`}>
+                 <BS.ListGroupItem>
+                   {profile.displayName || '<no name provided>'}
+                 </BS.ListGroupItem>
+               </RRBS.LinkContainer>
              ))}
         </BS.ListGroup>
       </div>

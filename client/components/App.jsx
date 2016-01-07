@@ -39,7 +39,7 @@ SharedNavbar = React.createClass({
             </RRBS.LinkContainer>
             <RRBS.LinkContainer to='/users/invite'>
               <BS.NavItem>
-                Invite someone
+                Invite
               </BS.NavItem>
             </RRBS.LinkContainer>
             <RRBS.LinkContainer to='/users/'>
