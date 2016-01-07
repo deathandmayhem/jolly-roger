@@ -17,10 +17,18 @@ const HuntFormModal = React.createClass({
             ref="input:name"
             type="text"
             label="Name"
-            labelClassName="col-xs-2"
-            wrapperClassName="col-xs-10"
+            labelClassName="col-xs-3"
+            wrapperClassName="col-xs-9"
             defaultValue={this.props.hunt && this.props.hunt.name}
             autoFocus="true"/>
+        <BS.Input
+            ref="input:mailingLists"
+            type="text"
+            label="Mailing lists"
+            help="Users joining this hunt will be automatically added to all of these (comma-separated) lists"
+            labelClassName="col-xs-3"
+            wrapperClassName="col-xs-9"
+            defaultValue={this.props.hunt && this.props.hunt.mailingLists && this.props.hunt.mailingLists.join(', ')}/>
       </JRC.ModalForm>
     );
   },
@@ -51,7 +59,12 @@ const Hunt = React.createClass({
   onEdit(callback) {
     Models.Hunts.update(
       {_id: this.props.hunt._id},
-      {$set: {name: this.refs.editModal.refs['input:name'].getValue()}},
+      {
+        $set: {
+          name: this.refs.editModal.refs['input:name'].getValue(),
+          mailingLists: this.refs.editModal.refs['input:mailingLists'].getValue().split(/[, ]+/),
+        },
+      },
       callback
     );
   },
@@ -138,6 +151,7 @@ HuntList = React.createClass({
   onAdd(callback) {
     Models.Hunts.insert({
       name: this.refs.addModal.refs['input:name'].getValue(),
+      mailingLists: this.refs.editModal.refs['input:mailingLists'].getValue().split(/[, ]+/),
     }, callback);
   },
 
