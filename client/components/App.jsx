@@ -1,11 +1,17 @@
 const BS = ReactBootstrap;
+const RRBS = ReactRouterBootstrap;
 const {Link} = ReactRouter;
 
 SharedNavbar = React.createClass({
   mixins: [ReactMeteorData],
   getMeteorData() {
+    var userId = Meteor.userId();
+    var profileSub = Meteor.subscribe('mongo.profiles', {_id: userId});
+    var profile = Models.Profiles.findOne(userId);
+    var displayName = profile && profile.displayName || 'loading...';
     return {
-      userId: Meteor.userId(),
+      userId,
+      displayName,
     };
   },
 
@@ -18,41 +24,37 @@ SharedNavbar = React.createClass({
       <BS.Navbar fixedTop>
         <BS.Navbar.Header>
           <BS.Navbar.Brand>
-            <Link to="/">
+            <RRBS.LinkContainer to='/'>
               <img src="/images/brand.png"/>
-            </Link>
+            </RRBS.LinkContainer>
           </BS.Navbar.Brand>
         </BS.Navbar.Header>
         <BS.Navbar.Collapse>
           {/* TODO: Construct some sort of breadcrumbs here? */}
           <BS.Nav>
-            <li className={this.props.history.isActive('/hunts', undefined, true) && 'active'}>
-              <Link to="/hunts">
-                All hunts
-              </Link>
-            </li>
-            <li className={this.props.history.isActive('/users/invite', undefined, true) && 'active'}>
-              <Link to="/users/invite">
+            <RRBS.LinkContainer to='/hunts'>
+              <BS.NavItem>
+                Hunts
+              </BS.NavItem>
+            </RRBS.LinkContainer>
+            <RRBS.LinkContainer to='/users/invite'>
+              <BS.NavItem>
                 Invite someone
-              </Link>
-            </li>
-            {/* TODO: profile should really be an item in a dropdown
-                 with user's name so should the sign out button so
-                 should invite someone */}
-            <li className={this.props.history.isActive(`/users/${this.data.userId}`, undefined, true) && 'active'}>
-              <Link to={`/users/${this.data.userId}`}>
-                My profile
-              </Link>
-            </li>
+              </BS.NavItem>
+            </RRBS.LinkContainer>
+            <RRBS.LinkContainer to='/users/'>
+              <BS.NavItem>
+                Hunters
+              </BS.NavItem>
+            </RRBS.LinkContainer>
           </BS.Nav>
           <BS.Nav pullRight>
-            {/* TODO: figure out why the following ReactBootstrap makes this an <a> instead of a <button> */}
-            {/*<BS.Button className="navbar-btn">
-              {this.data.userId ? 'Sign Out' : 'Sign In'}
-            </BS.Button>*/}
-            <button className="btn btn-default navbar-btn" onClick={this.logout}>
-              {this.data.userId ? 'Sign Out' : 'Sign In'}
-            </button>
+            <BS.DropdownButton id='profileDropdown' bsStyle='default' title={this.data.displayName} navbar={true} className="navbar-btn">
+              <RRBS.LinkContainer to={`/users/${this.data.userId}`}>
+                <BS.MenuItem eventKey="1">My Profile</BS.MenuItem>
+              </RRBS.LinkContainer>
+              <BS.MenuItem eventKey="2" onSelect={this.logout}>Sign out</BS.MenuItem>
+            </BS.DropdownButton>
           </BS.Nav>
         </BS.Navbar.Collapse>
       </BS.Navbar>
