@@ -16,8 +16,7 @@ RelatedPuzzleSection = React.createClass({
     ).isRequired,
   },
   styles: {
-    flex: '0 1 30%',
-    maxHeight: '50vh',
+    height: '40%',
     overflowY:'auto',
     boxSizing: 'border-box',
     borderBottom: '1px solid #111111',
@@ -53,6 +52,7 @@ ChatHistory = React.createClass({
       // TODO: pick background color based on hashing userid or something?
       backgroundColor: '#f8f8f8',
       marginBottom: '1',
+      wordWrap: 'break-word',
     },
     time: {
       float:'right',
@@ -60,10 +60,58 @@ ChatHistory = React.createClass({
       marginRight: '2',
     },
   },
+
+  componentWillUpdate() {
+    this.saveShouldScroll()
+  },
+
+  componentDidUpdate() {
+    this.maybeForceScrollBottom();
+  },
+
+  onScroll(event) {
+    this.saveShouldScroll()
+  },
+
+  saveShouldScroll() {
+    // Save whether the current scrollTop is equal to the ~maximum scrollTop.
+    // If so, then we should make the log "stick" to the bottom, by manually scrolling to the bottom
+    // when needed.
+    let messagePane = ReactDOM.findDOMNode(this.refs.messagePane);
+    this.shouldScroll = (messagePane.clientHeight + messagePane.scrollTop >= messagePane.scrollHeight);
+  },
+
+  maybeForceScrollBottom() {
+    if (this.shouldScroll) {
+      this.forceScrollBottom();
+    }
+  },
+
+  forceScrollBottom() {
+    let messagePane = ReactDOM.findDOMNode(this.refs.messagePane);
+    messagePane.scrollTop = messagePane.scrollHeight;
+    this.shouldScroll = true;
+  },
+
+  componentDidMount() {
+    // Scroll to end of chat.
+    this.forceScrollBottom();
+    let _this = this;
+    this.resizeHandler = function(event) {
+      _this.maybeForceScrollBottom();
+    };
+    window.addEventListener('resize', this.resizeHandler);
+  },
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.resizeHandler);
+  },
+
   render() {
     let profiles = this.props.profiles;
     return (
-      <div style={this.styles.messagePane}>
+      <div ref='messagePane' style={this.styles.messagePane} onScroll={this.onScroll}>
+        { this.props.chatMessages.length === 0 && <span key="no-message">"No chatter yet. Say something?"</span> }
         { this.props.chatMessages.map((msg) => {
           // TODO: consider how we want to format dates, if the day was yesterday, or many days ago.
           // This is ugly, but moment.js is huge
@@ -83,6 +131,11 @@ ChatHistory = React.createClass({
 
 ChatInput = React.createClass({
   mixins: [PureRenderMixin],
+
+  propTypes: {
+    onHeightChange: React.PropTypes.func,
+  },
+
   getInitialState() {
     return {
       text: '',
@@ -115,11 +168,17 @@ ChatInput = React.createClass({
   onKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      Meteor.call('sendChatMessage', this.props.puzzleId, this.state.text);
-      this.setState({
-        text: '',
-      });
+      if (this.state.text) {
+        Meteor.call('sendChatMessage', this.props.puzzleId, this.state.text);
+        this.setState({
+          text: '',
+        });
+      }
     }
+  },
+
+  onHeightChange(newHeight) {
+    this.props.onHeightChange && this.props.onHeightChange(newHeight);
   },
 
   render() {
@@ -131,6 +190,7 @@ ChatInput = React.createClass({
                         value={this.state.text}
                         onChange={this.onInputChanged}
                         onKeyDown={this.onKeyDown}
+                        onHeightChange={this.onHeightChange}
                         placeholder='Chat' />
     );
   },
@@ -151,18 +211,23 @@ ChatSection = React.createClass({
     puzzleId: React.PropTypes.string.isRequired,
   },
   styles: {
-    flex: '1 1 30%',
+    flex: '1 1 50%',
     minHeight: '30vh',
     display: 'flex',
     flexDirection: 'column',
   },
+
+  onInputHeightChange(newHeight) {
+    this.refs.history.maybeForceScrollBottom();
+  },
+
   render() {
     // TODO: fetch/track/display chat history
     return (
       <div className="chat-section" style={this.styles}>
         {this.props.chatReady ? null : <span>loading...</span>}
-        <ChatHistory chatMessages={this.props.chatMessages} profiles={this.props.profiles} />
-        <ChatInput puzzleId={this.props.puzzleId} />
+        <ChatHistory ref="history" chatMessages={this.props.chatMessages} profiles={this.props.profiles} />
+        <ChatInput puzzleId={this.props.puzzleId} onHeightChange={this.onInputHeightChange} />
       </div>
     );
   },
@@ -194,6 +259,7 @@ PuzzlePageSidebar = React.createClass({
   },
   styles: {
     flex: '1 1 20%',
+    height: '100%',
     boxSizing: 'border-box',
     borderRight: '1px solid black',
     display: 'flex',
