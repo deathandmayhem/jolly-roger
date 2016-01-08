@@ -7,11 +7,21 @@ Meteor.methods({
       throw new Meteor.Error(401, 'You are not logged in');
     }
 
-    hunt = Models.Hunts.findOne(huntId);
-    if (!hunt && !_.has(huntFixtures, huntId)) {
+    hunt = huntFixtures[huntId] || Models.Hunts.findOne(huntId);
+    if (!hunt) {
       throw new Meteor.Error(404, 'Unknown hunt');
     }
 
     Meteor.users.update(this.userId, {$addToSet: {hunts: huntId}});
+    const user = Meteor.users.findOne(this.userId);
+    const emails = _.chain(user.emails).
+      pluck('address').
+      value();
+
+    _.each(emails, (email) => {
+      _.each(hunt.mailingLists, (list) => {
+        new Blanche.List(list).add(email);
+      });
+    });
   },
 });
