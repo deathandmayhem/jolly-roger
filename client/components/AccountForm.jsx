@@ -51,15 +51,15 @@ AccountForm = React.createClass({
     });
   },
 
-  setAffiliation(event) {
+  setAffiliation(newAffiliation) {
     this.setState({
-      affliation: event.target.value,
+      affliation: newAffiliation,
     });
   },
 
-  setLocalRemote(event) {
+  setLocalRemote(newLocalRemote) {
     this.setState({
-      localRemote: event.target.value,
+      localRemote: newLocalRemote,
     });
   },
 
@@ -179,19 +179,6 @@ AccountForm = React.createClass({
     this.props.onFormatChange && this.props.onFormatChange();
   },
 
-  styles: {
-    radiolabel: {
-      display: 'block',
-      fontWeight: 'normal',
-    },
-    radio: {
-      margin: '8px',
-    },
-    radioheader: {
-      fontWeight: 'bold',
-    },
-  },
-
   render() {
     // I'm mimicking the DOM used by AccountTemplates for this form so I can reuse their CSS.  It
     // would probably be good to refactor this to use ReactBootstrap/additional styles directly and
@@ -238,22 +225,48 @@ AccountForm = React.createClass({
         <span className="help-block">Optional, but helpful if HQ needs to reach you while you're on a runaround or at an event puzzle.</span>
       </div>,
       <div className="at-input form-group">
-        <span style={this.styles.radioheader}>Affiliation with MIT</span>
-        <fieldset>
-          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="undergrad"/>Undergraduate student</label>
-          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="grad"/>Graduate student</label>
-          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="alum"/>Alumnus/alumna</label>
-          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="employee"/>Faculty/Staff</label>
-          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="other"/>Other</label>
-          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="unaffiliated"/>Unaffiliated</label>
-        </fieldset>
-        <span className="help-block">The hunt organizers ask us for statistics about our team's affiliation.</span>
+        <LabelledRadioGroup header="Affiliation with MIT"
+                            name="affiliation"
+                            options={[
+                              {
+                                value: "undergrad",
+                                label: "Undergraduate Student",
+                              }, {
+                                value: "grad",
+                                label: "Graduate student",
+                              }, {
+                                value: "alum",
+                                label: "Alumnus/alumna",
+                              }, {
+                                value: "employee",
+                                label: "Faculty/staff",
+                              }, {
+                                value: "other",
+                                label: "Other",
+                              }, {
+                                value: "unaffiliated",
+                                label: "Unaffiliated",
+                              },
+                            ]}
+                            initialValue={this.state.affiliation}
+                            help="The hunt organizers ask us for statistics about our team's affiliation."
+                            onChange={this.setAffiliation}/>
       </div>,
       <div className="at-input form-group">
-        <span style={this.styles.radioheader}>Where are you hunting from?</span>
-        <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="location" onChange={this.setLocalRemote} value="local"/>At MIT</label>
-        <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="location" onChange={this.setLocalRemote} value="remote"/>Remote (anywhere else)</label>
-        <span className="help-block">This is useful to the operators, so we know what fraction of our team is local vs. remote.</span>
+        <LabelledRadioGroup header="Where are you hunting from?"
+                            name="location"
+                            options={[
+                              {
+                                value: "local",
+                                label: "At MIT",
+                              }, {
+                                value: "remote",
+                                label: "Remote (anywhere else)",
+                              },
+                            ]}
+                            initialValue={this.state.localRemote}
+                            help="This is useful to the operators, so we know what fraction of our team is local vs. remote."
+                            onChange={this.setLocalRemote}/>
         <label className="control-label" htmlFor="at-field-location">Specific location during hunt</label>
         <input id="at-field-location" className="form-control" type="text" name="at-field-location" placeholder="MIT, 32-261" onChange={this.setLocationDuringHunt} disabled={submitting}/>
         <span className="help-block">Optional. More detail on where you (plan to hunt|are hunting) from.</span>
