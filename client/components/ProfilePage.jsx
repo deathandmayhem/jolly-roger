@@ -212,14 +212,16 @@ OwnProfilePage = React.createClass({
 ProfilePage = React.createClass({
   mixins: [ReactMeteorData],
   getMeteorData() {
-    var profileHandle = Meteor.subscribe('mongo.profiles', {_id: this.props.params.userId});
+    const uid = this.props.params.userId === 'me' ? Meteor.userId() : this.props.params.userId;
+
+    var profileHandle = Meteor.subscribe('mongo.profiles', {_id: uid});
     var user = Meteor.user();
     var defaultEmail = user && user.emails && user.emails.length > 0 && user.emails[0] && user.emails[0].address;
     let data = {
       ready: user && profileHandle.ready(),
-      isSelf: (Meteor.userId() === this.props.params.userId),
-      profile: Models.Profiles.findOne(this.props.params.userId) || {
-        _id: Meteor.userId(),
+      isSelf: (Meteor.userId() === uid),
+      profile: Models.Profiles.findOne(uid) || {
+        _id: uid,
         displayName: '',
         locationDuringHunt: '',
         primaryEmail: defaultEmail,
