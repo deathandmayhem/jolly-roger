@@ -53,7 +53,7 @@ AccountForm = React.createClass({
 
   setAffiliation(newAffiliation) {
     this.setState({
-      affliation: newAffiliation,
+      affiliation: newAffiliation,
     });
   },
 
