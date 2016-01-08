@@ -16,6 +16,8 @@ AccountForm = React.createClass({
       displayName: '',
       locationDuringHunt: '',
       phoneNumber: '',
+      affliation: '',
+      localRemote: '',
     };
   },
 
@@ -46,6 +48,18 @@ AccountForm = React.createClass({
   setPhoneNumber(event) {
     this.setState({
       phoneNumber: event.target.value,
+    });
+  },
+
+  setAffiliation(event) {
+    this.setState({
+      affliation: event.target.value,
+    });
+  },
+
+  setLocalRemote(event) {
+    this.setState({
+      localRemote: event.target.value,
     });
   },
 
@@ -113,6 +127,8 @@ AccountForm = React.createClass({
       locationDuringHunt: this.state.locationDuringHunt,
       phoneNumber: this.state.phoneNumber,
       slackHandle: '',
+      affiliation: this.state.affiliation,
+      remote: this.state.localRemote === 'remote',
     };
 
     this.setState({
@@ -163,6 +179,19 @@ AccountForm = React.createClass({
     this.props.onFormatChange && this.props.onFormatChange();
   },
 
+  styles: {
+    radiolabel: {
+      display: 'block',
+      fontWeight: 'normal',
+    },
+    radio: {
+      margin: '8px',
+    },
+    radioheader: {
+      fontWeight: 'bold',
+    },
+  },
+
   render() {
     // I'm mimicking the DOM used by AccountTemplates for this form so I can reuse their CSS.  It
     // would probably be good to refactor this to use ReactBootstrap/additional styles directly and
@@ -191,7 +220,7 @@ AccountForm = React.createClass({
       </div>
     );
     let pwInput = (
-      <div className="at-input form-group">
+      <div>
         <label className="control-label" htmlFor="at-field-password">Password</label>
         <input id="at-field-password" className="form-control" type="password" name="at-field-password" placeholder="Password" autoCapitalize="none" autoCorrect="off" onChange={this.setPassword} disabled={submitting}/>
         <span className="help-block" hide />
@@ -206,12 +235,28 @@ AccountForm = React.createClass({
       <div className="at-input form-group">
         <label className="control-label" htmlFor="at-field-phonenumber">Phone Number</label>
         <input id="at-field-phonenumber" className="form-control" type="tel" name="at-field-phonenumber" placeholder="+16173244699" onChange={this.setPhoneNumber} disabled={submitting}/>
-        <span className="help-block">Optional, but helpful if HQ needs to reach you while you're on a runaround.</span>
+        <span className="help-block">Optional, but helpful if HQ needs to reach you while you're on a runaround or at an event puzzle.</span>
       </div>,
       <div className="at-input form-group">
-        <label className="control-label" htmlFor="at-field-location">Location during hunt</label>
+        <span style={this.styles.radioheader}>Affiliation with MIT</span>
+        <fieldset>
+          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="undergrad"/>Undergraduate student</label>
+          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="grad"/>Graduate student</label>
+          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="alum"/>Alumnus/alumna</label>
+          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="employee"/>Faculty/Staff</label>
+          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="other"/>Other</label>
+          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="unaffiliated"/>Unaffiliated</label>
+        </fieldset>
+        <span className="help-block">The hunt organizers ask us for statistics about our team's affiliation.</span>
+      </div>,
+      <div className="at-input form-group">
+        <span style={this.styles.radioheader}>Where are you hunting from?</span>
+        <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="location" onChange={this.setLocalRemote} value="local"/>At MIT</label>
+        <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="location" onChange={this.setLocalRemote} value="remote"/>Remote (anywhere else)</label>
+        <span className="help-block">This is useful to the operators, so we know what fraction of our team is local vs. remote.</span>
+        <label className="control-label" htmlFor="at-field-location">Specific location during hunt</label>
         <input id="at-field-location" className="form-control" type="text" name="at-field-location" placeholder="MIT, 32-261" onChange={this.setLocationDuringHunt} disabled={submitting}/>
-        <span className="help-block">Optional.  Where you plan to hunt from, if you know.</span>
+        <span className="help-block">Optional. More detail on where you (plan to hunt|are hunting) from.</span>
       </div>,
     ];
     let pwResetOptionComponent = (
@@ -237,7 +282,7 @@ AccountForm = React.createClass({
         <div className="at-title">
           <h3>{title}</h3>
         </div>
-        <div className="at-pwd-form">
+        <div>
           <form id="at-pwd-form" role="form" noValidate="" action="#" method="POST" onSubmit={this.submitForm}>
             <fieldset>
               {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert> : null}

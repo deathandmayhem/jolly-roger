@@ -7,6 +7,8 @@ Meteor.methods({
       locationDuringHunt: String,
       phoneNumber: String,
       slackHandle: String,
+      remote: Boolean,
+      affiliation: String,
     });
     var user = Meteor.users.findOne(this.userId);
     var primaryEmail = user.emails[0].address;
@@ -19,6 +21,8 @@ Meteor.methods({
         primaryEmail: primaryEmail,
         phoneNumber: newProfile.phoneNumber,
         slackHandle: newProfile.slackHandle,
+        remote: newProfile.remote,
+        affiliation: newProfile.affiliation,
         deleted: false,
       },
     }, {

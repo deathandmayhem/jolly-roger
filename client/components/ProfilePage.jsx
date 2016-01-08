@@ -29,6 +29,8 @@ OwnProfilePage = React.createClass({
       locationDuringHuntValue: this.props.initialProfile.locationDuringHunt || '',
       phoneNumberValue: this.props.initialProfile.phoneNumber || '',
       slackHandleValue: this.props.initialProfile.slackHandle || '',
+      localRemote: this.props.initialProfile.remote ? 'remote' : 'local',
+      affiliation: this.props.initialProfile.affiliation || 'other',
       submitState: 'idle', // One of 'idle', 'submitting', 'success', or 'error'
       submitError: '',
     };
@@ -58,6 +60,18 @@ OwnProfilePage = React.createClass({
     });
   },
 
+  setAffiliation(event) {
+    this.setState({
+      affiliation: event.target.value,
+    });
+  },
+
+  setLocalRemote(event) {
+    this.setState({
+      localRemote: event.target.value,
+    });
+  },
+
   handleSaveForm() {
     this.setState({
       submitState: 'submitting',
@@ -67,6 +81,8 @@ OwnProfilePage = React.createClass({
       locationDuringHunt: this.state.locationDuringHuntValue,
       phoneNumber: this.state.phoneNumberValue,
       slackHandle: this.state.slackHandleValue,
+      affiliation: this.state.affiliation,
+      remote: this.state.localRemote === 'remote',
     };
     Meteor.call('saveProfile', newProfile, (error) => {
       if (error) {
@@ -87,6 +103,19 @@ OwnProfilePage = React.createClass({
       submitState: 'idle',
       submitError: '',
     });
+  },
+
+  styles: {
+    radiolabel: {
+      display: 'block',
+      fontWeight: 'normal',
+    },
+    radio: {
+      margin: '8px',
+    },
+    radioheader: {
+      fontWeight: 'bold',
+    },
   },
 
   render() {
@@ -112,6 +141,12 @@ OwnProfilePage = React.createClass({
                   ref='displayName'
                   onChange={this.handleDisplayNameFieldChange}
         />
+        <div>
+          <span style={this.styles.radioheader}>Where are you hunting from?</span>
+          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="location" onChange={this.setLocalRemote} value="local" defaultChecked={this.state.localRemote === 'local'}/>At MIT</label>
+          <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="location" onChange={this.setLocalRemote} value="remote" defaultChecked={this.state.localRemote === 'remote'}/>Remote (anywhere else)</label>
+          <span className="help-block">This is useful to the operators, so we know what fraction of our team is local vs. remote.</span>
+        </div>
         <BS.Input type='text'
                   value={this.state.locationDuringHuntValue}
                   label='Location during hunt'
@@ -136,6 +171,21 @@ OwnProfilePage = React.createClass({
                   ref='slackHandle'
                   onChange={this.handleSlackHandleFieldChange}
         />
+        <div>
+          <span style={this.styles.radioheader}>Affiliation with MIT</span>
+          <fieldset>
+            <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="undergrad" defaultChecked={this.state.affiliation === 'undergrad'}/>Undergraduate student</label>
+            <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="grad" defaultChecked={this.state.affiliation === 'grad'}/>Graduate student</label>
+            <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="alum" defaultChecked={this.state.affiliation === 'alum'}/>Alumnus/alumna</label>
+            <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="employee" defaultChecked={this.state.affiliation === 'employee'}/>Faculty/Staff</label>
+            <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="other" defaultChecked={this.state.affiliation === 'other'}/>Other</label>
+            <label style={this.styles.radiolabel}><input style={this.styles.radio} type="radio" name="affiliation" onChange={this.setAffiliation} value="unaffiliated" defaultChecked={this.state.affiliation === 'unaffiliated'}/>Unaffiliated</label>
+          </fieldset>
+          <span className="help-block">The hunt organizers ask us for statistics about our team's affiliation.</span>
+        </div>
+
+
+
         <BS.ButtonInput type='submit'
                         value='Save'
                         bsStyle='primary'
