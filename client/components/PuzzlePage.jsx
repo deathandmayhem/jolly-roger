@@ -326,6 +326,7 @@ PuzzlePageMetadata = React.createClass({
     metadata: {
       flex: 'none',
       maxHeight: '80',
+      minHeight: '64',
       overflow: 'auto',
     },
     row: {
