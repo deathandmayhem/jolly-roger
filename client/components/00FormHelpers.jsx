@@ -61,7 +61,7 @@ LabelledRadioGroup = React.createClass({
   },
 
   setValue(event) {
-    let value = event.target.value
+    let value = event.target.value;
     this.setState({
       value,
     });
@@ -71,7 +71,12 @@ LabelledRadioGroup = React.createClass({
   render() {
     let _this = this;
     let buttons = this.props.options.map((option) => {
-      return <LabelledRadio key={option.value} name={_this.props.name} onChange={this.setValue} label={option.label} value={option.value} defaultChecked={this.state.value === option.value} />
+      return <LabelledRadio key={option.value}
+                            name={_this.props.name}
+                            onChange={this.setValue}
+                            label={option.label}
+                            value={option.value}
+                            defaultChecked={this.state.value === option.value} />;
     });
     return (
       <div className="radio-group">
@@ -82,7 +87,5 @@ LabelledRadioGroup = React.createClass({
         {this.props.help && <span className="help-block">{this.props.help}</span>}
       </div>
     );
-  }
+  },
 });
-
-

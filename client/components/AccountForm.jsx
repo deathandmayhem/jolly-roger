@@ -229,23 +229,23 @@ AccountForm = React.createClass({
                             name="affiliation"
                             options={[
                               {
-                                value: "undergrad",
-                                label: "Undergraduate Student",
+                                value: 'undergrad',
+                                label: 'Undergraduate Student',
                               }, {
-                                value: "grad",
-                                label: "Graduate student",
+                                value: 'grad',
+                                label: 'Graduate student',
                               }, {
-                                value: "alum",
-                                label: "Alumnus/alumna",
+                                value: 'alum',
+                                label: 'Alumnus/alumna',
                               }, {
-                                value: "employee",
-                                label: "Faculty/staff",
+                                value: 'employee',
+                                label: 'Faculty/staff',
                               }, {
-                                value: "other",
-                                label: "Other",
+                                value: 'other',
+                                label: 'Other',
                               }, {
-                                value: "unaffiliated",
-                                label: "Unaffiliated",
+                                value: 'unaffiliated',
+                                label: 'Unaffiliated',
                               },
                             ]}
                             initialValue={this.state.affiliation}
@@ -257,11 +257,11 @@ AccountForm = React.createClass({
                             name="location"
                             options={[
                               {
-                                value: "local",
-                                label: "At MIT",
+                                value: 'local',
+                                label: 'At MIT',
                               }, {
-                                value: "remote",
-                                label: "Remote (anywhere else)",
+                                value: 'remote',
+                                label: 'Remote (anywhere else)',
                               },
                             ]}
                             initialValue={this.state.localRemote}
