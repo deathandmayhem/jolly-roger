@@ -37,11 +37,6 @@ SharedNavbar = React.createClass({
                 Hunts
               </BS.NavItem>
             </RRBS.LinkContainer>
-            <RRBS.LinkContainer to='/users/invite'>
-              <BS.NavItem>
-                Invite
-              </BS.NavItem>
-            </RRBS.LinkContainer>
             <RRBS.LinkContainer to='/users/'>
               <BS.NavItem>
                 Hunters
