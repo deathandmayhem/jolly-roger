@@ -8,7 +8,7 @@ SharedNavbar = React.createClass({
     var userId = Meteor.userId();
     var profileSub = Meteor.subscribe('mongo.profiles', {_id: userId});
     var profile = Models.Profiles.findOne(userId);
-    var displayName = profile && profile.displayName || 'loading...';
+    var displayName = profileSub.ready() ? profile && profile.displayName || '<no name given>': 'loading...';
     return {
       userId,
       displayName,
