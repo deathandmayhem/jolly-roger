@@ -253,7 +253,9 @@ TagList = React.createClass({
     // TODO: figure out smart sort order for these?  or maybe the parent is responsible for that?
     var tags = [];
     for (var i = 0; i < this.props.tags.length; i++) {
-      tags.push(<Tag key={this.props.tags[i]._id} tag={this.props.tags[i]} onRemove={this.state.removing ? this.removeTag : undefined} />);
+      tags.push(<Tag key={this.props.tags[i]._id}
+                     tag={this.props.tags[i]}
+                     onRemove={this.state.removing ? this.removeTag : undefined} />);
     }
 
     if (this.state.editing) {
@@ -347,7 +349,7 @@ TagEditor = React.createClass({
   },
 });
 
-Tag = Radium(React.createClass({
+Tag = React.createClass({
   displayName: 'Tag',
   mixins: [PureRenderMixin],
   propTypes: {
@@ -387,14 +389,19 @@ Tag = Radium(React.createClass({
     var name = this.props.tag.name;
     var isMeta = name === 'is:meta';
     var isMetaGroup = name.lastIndexOf('meta:', 0) === 0;
+    var styles = _.extend({},
+            this.styles.base,
+            isMeta && this.styles.meta,
+            isMetaGroup && this.styles.metaGroup,
+            this.props.onClick && this.styles.interactive);
     return (
-      <div className="tag" style={[this.styles.base, isMeta && this.styles.meta, isMetaGroup && this.styles.metaGroup, this.props.onClick && this.styles.interactive]} onClick={this.onClick}>
+      <div className="tag" style={styles} onClick={this.onClick}>
         {name}
         {this.props.onRemove && <BS.Button bsSize="xsmall" bsStyle="danger" onClick={this.onRemove}>X</BS.Button>}
       </div>
     );
   },
-}));
+});
 
 RelatedPuzzleGroup = React.createClass({
   displayName: 'RelatedPuzzleGroup',
