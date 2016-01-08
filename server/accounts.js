@@ -55,6 +55,35 @@ Accounts.onLoginFailure((info) => {
 Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl(`enroll/${token}`);
 Accounts.urls.resetPassword = (token) => Meteor.absoluteUrl(`reset-password/${token}`);
 
+Accounts.emailTemplates.from = 'above@mit.edu';
+Accounts.emailTemplates.enrollAccount.sybject = () => {
+  return `Somebody has invited you to ${Accounts.emailTemplates.siteName}`;
+};
+
+Accounts.emailTemplates.enrollAccount.text = (user, url) => {
+  return 'Hiya!\n' +
+    '\n' +
+    'Someone on Death and Mayhem has invited you to join our internal team website and ' +
+    `virtual headquarters, ${Accounts.emailTemplates.siteName}, so that you can join us for the ` +
+    'MIT Mystery Hunt.\n' +
+    '\n' +
+    'To create your account, simply click the link below, fill out a few details for us, and ' +
+    'click "Register".\n' +
+    '\n' +
+    `${url}\n` +
+    '\n' +
+    'After you\'ve registered your account, you can keep it permanently, and easily add yourself ' +
+    'to new hunts as we participate in them. Adding yourself as a team member for any given hunt ' +
+    'will also add you to the mailing list for that event - for instance, adding yourself to the ' +
+    '2016 Mystery Hunt will add you to "dam-16@mit.edu".\n' +
+    '\n' +
+    'The site itself is under pretty active construction, so expect quite a few changes in the ' +
+    'next few days, but let us know if you run into any major bugs at dfa-web@mit.edu.\n' +
+    '\n' +
+    'Happy Puzzling,\n' +
+    '- The DFA Web Team';
+};
+
 // Get an account to trigger enrollment. If there's no account for the
 // email address, create one. Otherwise if the existing account
 // doesn't have a password set, return that. Otherwise, throw an error
