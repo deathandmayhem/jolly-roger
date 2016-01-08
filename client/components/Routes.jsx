@@ -1,4 +1,5 @@
 const {
+  IndexRoute,
   IndexRedirect,
   Redirect,
   Route,
@@ -16,10 +17,10 @@ Routes = React.createClass({
           <IndexRedirect to="hunts"/>
           <Route path="" component={App}>
             <Route path="hunts/:huntId" component={HuntMembershipVerifier}>
+              <Route path="announcements" component={AnnouncementsPage}/>
               <Route path="puzzles/:puzzleId" component={PuzzlePage}/>
               <Route path="puzzles" component={PuzzleListPage}/>
-              {/* redirect to puzzle list until we have a hunt overview page or something */}
-              <IndexRedirect to="puzzles"/>
+              <IndexRoute component={HuntPage}/>
             </Route>
             <Route path="hunts" component={HuntList}/>
             <Route path="users/invite" component={UserInvite}/>
