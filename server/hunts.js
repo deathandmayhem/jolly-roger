@@ -18,9 +18,12 @@ Meteor.methods({
       pluck('address').
       value();
 
-    _.each(emails, (email) => {
-      _.each(hunt.mailingLists, (list) => {
-        new Blanche.List(list).add(email);
+    _.each(hunt.mailingLists, (listName) => {
+      const list = new Blanche.List(listName);
+      _.each(emails, (email) => {
+        if (!list.add(email)) {
+          Ansible.log('Unable to add user to list', {email, list: listName});
+        }
       });
     });
   },

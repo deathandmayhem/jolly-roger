@@ -44,6 +44,11 @@ Blanche.List = class List {
   }
 
   add(member) {
-    blanche([this.name, '-a', member]);
+    try {
+      blanche([this.name, '-a', member]);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 };
