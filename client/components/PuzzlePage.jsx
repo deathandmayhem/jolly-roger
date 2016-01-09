@@ -477,7 +477,7 @@ PuzzlePageMetadata = React.createClass({
               </tbody>
             </BS.Table>,
           ]}
-          {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger" onDismiss={this.clearError()}>{this.state.errorMessage}</BS.Alert> : null }
+          {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger" onDismiss={this.clearError}>{this.state.errorMessage}</BS.Alert> : null }
         </JRC.ModalForm>
       </div>
     );

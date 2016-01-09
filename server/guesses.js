@@ -7,10 +7,6 @@ Meteor.methods({
       _id: puzzleId,
     });
 
-    // TODO: maybe verify that the user is a member of that hunt?
-    // theoretically, they can't obtain a puzzleId if they're not.
-    Roles.checkPermission(this.userId, 'mongo.guesses.insert');
-
     Models.Guesses.insert({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
