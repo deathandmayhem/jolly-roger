@@ -2,15 +2,6 @@
 
 Future = Npm.require('fibers/future');
 
-sleep = (ms) => {
-  const future = new Future();
-  setTimeout(function() {
-    future.return();
-  }, ms);
-
-  return future;
-};
-
 Schemas.Lock = new SimpleSchema({
   name: {
     type: String,
