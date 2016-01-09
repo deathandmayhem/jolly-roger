@@ -586,7 +586,7 @@ PuzzlePage = React.createClass({
     const chatReady = chatHandle.ready() && profileHandle.ready();
     const chatMessages = chatReady && Models.ChatMessages.find(
       {puzzleId: this.props.params.puzzleId},
-      {$sort: { timestamp: 1 }}
+      {sort: { timestamp: 1 }}
     ).fetch() || [];
     const profiles = chatReady && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
     return {
