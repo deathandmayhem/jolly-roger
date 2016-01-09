@@ -39,6 +39,7 @@ Meteor.methods({
     // The websocket listening for Slack messages should subscribe to that channel.
     // For documents, we should have a documents collection, with a puzzleId, type, and
     // type-specific data.
+    globalHooks.runPuzzleCreatedHook(puzzle);
 
     return puzzle;
   },
