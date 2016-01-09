@@ -15,7 +15,20 @@ Meteor.methods({
     });
   },
 
+  markGuessPending(guessId) {
+    check(guessId, String);
+    Roles.checkPermission(this.userId, 'mongo.guesses.update');
+    Models.Guesses.update({
+      _id: guessId,
+    }, {
+      $set: {
+        state: 'pending',
+      },
+    });
+  },
+
   markGuessCorrect(guessId) {
+    check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     Models.Guesses.update({
       _id: guessId,
@@ -27,6 +40,7 @@ Meteor.methods({
   },
 
   markGuessIncorrect(guessId) {
+    check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     Models.Guesses.update({
       _id: guessId,
@@ -38,6 +52,7 @@ Meteor.methods({
   },
 
   markGuessRejected(guessId) {
+    check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     Models.Guesses.update({
       _id: guessId,

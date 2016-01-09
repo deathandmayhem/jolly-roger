@@ -18,6 +18,7 @@ Routes = React.createClass({
           <Route path="" component={App}>
             <Route path="hunts/:huntId" component={HuntMembershipVerifier}>
               <Route path="announcements" component={AnnouncementsPage}/>
+              <Route path="guesses" component={GuessQueuePage}/>
               <Route path="puzzles/:puzzleId" component={PuzzlePage}/>
               <Route path="puzzles" component={PuzzleListPage}/>
               <IndexRoute component={HuntPage}/>
