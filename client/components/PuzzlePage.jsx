@@ -487,10 +487,14 @@ PuzzlePageMetadata = React.createClass({
 PuzzlePageMultiplayerDocument = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
-    document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()).isRequired,
+    document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()),
   },
 
   render() {
+    if (!this.props.document) {
+      return <div style={{backgroundColor: '#ddddff', flex: 'auto'}}>Attempting to load collaborative document...</div>;
+    }
+
     switch (this.props.document.type) {
       case 'google-spreadsheet':
         const url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit`;
