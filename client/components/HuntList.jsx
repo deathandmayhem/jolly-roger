@@ -151,7 +151,7 @@ HuntList = React.createClass({
   onAdd(callback) {
     Models.Hunts.insert({
       name: this.refs.addModal.refs['input:name'].getValue(),
-      mailingLists: this.refs.editModal.refs['input:mailingLists'].getValue().split(/[, ]+/),
+      mailingLists: this.refs.addModal.refs['input:mailingLists'].getValue().split(/[, ]+/),
     }, callback);
   },
 
