@@ -34,6 +34,7 @@ ecmascript-collections@0.1.6
 ecmascript-runtime@0.2.6
 ejson@1.0.7
 email@1.0.8
+facts@1.0.5
 fastclick@1.0.7
 geojson-utils@1.0.4
 hot-code-push@1.0.0

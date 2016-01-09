@@ -35,3 +35,4 @@ useraccounts:core
 useraccounts:bootstrap
 blanche
 percolate:migrations
+facts
