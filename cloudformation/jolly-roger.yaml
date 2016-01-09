@@ -67,9 +67,6 @@ Parameters:
   AppDomain:
     Description: The zone under which to create DNS records
     Type: AWS::Route53::HostedZone::Id
-  KeyName:
-    Description: Name of an existing EC2 keypair to allow access to all instances
-    Type: AWS::EC2::KeyPair::KeyName
   AppInstanceType:
     Description: Instance type to run for app server
     Type: String
@@ -322,7 +319,6 @@ Resources:
             VolumeSize: 2
             DeleteOnTermination: true
       InstanceType: {Ref: AppInstanceType}
-      KeyName: {Ref: KeyName}
       SecurityGroups:
         - {Ref: AppSecurityGroup}
       # We're generating a YAML file inside a YAML file. Yes, this is
@@ -342,6 +338,16 @@ Resources:
               - '  - source: "deb https://apt.dockerproject.org/repo ubuntu-$RELEASE main"'
               - '    filename: docker.list'
               - '    keyid: 58118E89F3A912897C070ADBF76221572C52609D'
+              - ''
+              - 'users:'
+              - '  - name: evan'
+              - '    shell: /bin/bash'
+              - '    ssh-import-id: gh:ebroder'
+              - '    sudo: ALL=(ALL) NOPASSWD:ALL'
+              - '  - name: zarvox'
+              - '    shell: /bin/bash'
+              - '    ssh-import-id: gh:zarvox'
+              - '    sudo: ALL=(ALL) NOPASSWD:ALL'
               - ''
               - 'mounts:'
               - '  - [/dev/xvdf, none, swap, sw, 0, 0]'
