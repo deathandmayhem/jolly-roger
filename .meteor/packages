@@ -30,6 +30,7 @@ check
 react
 cosmos:browserify
 client-deps
+server-deps
 jr-components
 useraccounts:core
 useraccounts:bootstrap

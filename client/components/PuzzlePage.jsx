@@ -486,14 +486,22 @@ PuzzlePageMetadata = React.createClass({
 
 PuzzlePageMultiplayerDocument = React.createClass({
   mixins: [PureRenderMixin],
-  componentDidMount() {
-    // TODO: handsontable integration?  gdocs integration?  something.
+  propTypes: {
+    document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()).isRequired,
   },
 
   render() {
-    return (
-      <div className="shared-workspace" style={{backgroundColor: '#ddddff', flex: 'auto'}}>This is the part where you would get a spreadsheet or something like that.</div>
-    );
+    switch (this.props.document.type) {
+      case 'google-spreadsheet':
+        const url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit`;
+        return <iframe style={{flex: 'auto'}} src={url}/>;
+      default:
+        return (
+          <div className="shared-workspace" style={{backgroundColor: '#ddddff', flex: 'auto'}}>
+            No way to render a document of type {this.props.document.type}
+          </div>
+        );
+    };
   },
 });
 
@@ -517,6 +525,11 @@ PuzzlePageContent = React.createClass({
         Schemas.Profiles.asReactPropTypes()
       ).isRequired
     ).isRequired,
+    documents: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Documents.asReactPropTypes()
+      ).isRequired,
+    ).isRequired,
   },
   styles: {
     flex: '4 4 80%',
@@ -532,7 +545,7 @@ PuzzlePageContent = React.createClass({
                             guesses={this.props.guesses}
                             profilesReady={this.props.profilesReady}
                             profiles={this.props.profiles} />
-        <PuzzlePageMultiplayerDocument />
+        <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
       </div>
     );
   },
@@ -572,10 +585,14 @@ PuzzlePage = React.createClass({
       const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
       const tagsHandle = Meteor.subscribe('mongo.tags', {hunt: this.props.params.huntId});
       const guessesHandle = Meteor.subscribe('mongo.guesses', {puzzle: this.props.params.puzzleId});
-      puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready();
+      const documentsHandle = Meteor.subscribe('mongo.documents', {puzzle: this.props.params.puzzleId});
+      puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready();
       allPuzzles = Models.Puzzles.find({hunt: this.props.params.huntId}).fetch();
       allTags = Models.Tags.find({hunt: this.props.params.huntId}).fetch();
       allGuesses = Models.Guesses.find({hunt: this.props.params.huntId, puzzle: this.props.params.puzzleId}).fetch();
+
+      // Sort by created at so that the "first" document always has consistent meaning
+      allDocuments = Models.Documents.find({puzzle: this.props.params.puzzleId}, {sort: {createdAt: 1}}).fetch();
     }
 
     const chatHandle = Meteor.subscribe('mongo.chatmessages', {puzzleId: this.props.params.puzzleId});
@@ -598,12 +615,17 @@ PuzzlePage = React.createClass({
       profiles,
       profilesReady,
       allGuesses,
+      allDocuments,
     };
   },
 
   render() {
     if (!this.data.puzzlesReady) {
       return <span>loading...</span>;
+    }
+
+    if (this.data.allDocuments.length === 0) {
+      Meteor.call('ensureDocument', this.props.params.puzzleId);
     }
 
     let activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
@@ -619,7 +641,8 @@ PuzzlePage = React.createClass({
                            allTags={this.data.allTags}
                            guesses={this.data.allGuesses}
                            profilesReady={this.data.profilesReady}
-                           profiles={this.data.profiles} />
+                           profiles={this.data.profiles}
+                           documents={this.data.allDocuments}/>
       </div>
     );
   },

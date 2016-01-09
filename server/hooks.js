@@ -54,6 +54,6 @@ SlackHooks = {
 // Ditto these
 DocumentHooks = {
   onPuzzleCreated(puzzle) {
-    // TODO: create gdoc, link to it in Documents collection
+    Meteor.call('ensureDocument', puzzle);
   },
 };

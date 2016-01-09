@@ -12,6 +12,19 @@ function getOrCreateTagByName(huntId, name) {
   };
 }
 
+function createDocument(name, mimeType) {
+  const file = Meteor.wrapAsync(gdrive.files.create)({
+    resource: {name, mimeType},
+  });
+  const fileId = file.id;
+
+  Meteor.wrapAsync(gdrive.permissions.create)({
+    fileId,
+    resource: {role: 'writer', type: 'anyone'},
+  });
+  return fileId;
+}
+
 Meteor.methods({
   createPuzzle(huntId, title, url, tags) {
     check(this.userId, String);
@@ -84,5 +97,38 @@ Meteor.methods({
         tags: tagId,
       },
     });
+  },
+
+  ensureDocument(puzzleId) {
+    check(puzzleId, String);
+
+    if (!this.userId && this.connection) {
+      throw new Meteor.Error(401, 'You are not logged in');
+    }
+
+    const user = Meteor.users.findOne(this.userId);
+    const puzzle = Models.Puzzles.findOne(puzzleId);
+    if (!puzzle || !_.contains(user.hunts, puzzle.hunt)) {
+      throw new Meteor.Error(404, 'Unknown puzzle');
+    }
+
+    let doc = Models.Documents.findOne({puzzle: puzzleId});
+    if (!doc) {
+      Models.Locks.withLock(`puzzle:${puzzleId}:documents`, () => {
+        doc = Models.Documents.findOne({puzzle: puzzleId});
+        if (!doc) {
+          docId = createDocument(`${puzzle.title}: Death and Mayhem`, 'application/vnd.google-apps.spreadsheet');
+          doc = {
+            hunt: puzzle.hunt,
+            puzzle: puzzleId,
+            type: 'google-spreadsheet',
+            value: {id: docId},
+          };
+          doc._id = Models.Documents.insert(doc);
+        }
+      });
+    }
+
+    return doc._id;
   },
 });
