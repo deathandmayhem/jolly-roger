@@ -309,6 +309,9 @@ Resources:
           - {Ref: "AWS::Region"}
           - ami
       BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 12
         - DeviceName: /dev/sdb
           VirtualName: ephemeral0
         - DeviceName: /dev/sdc
