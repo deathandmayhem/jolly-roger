@@ -304,7 +304,6 @@ PuzzlePageMetadata = React.createClass({
 
   getInitialState() {
     return {
-      showModal: false,
       guessInput: '',
       submitState: 'idle',
       errorMessage: '',
@@ -453,29 +452,31 @@ PuzzlePageMetadata = React.createClass({
               autoFocus="true"
               onChange={this.onGuessInputChange}
               value={this.state.guessInput}/>
-          <div>Previous submissions:</div>
-          <BS.Table striped bordered condensed hover>
-            <thead>
-              <tr>
-                <th>Guess</th>
-                <th>Time</th>
-                <th>Submitter</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {this.props.guesses.map((guess) => {
-                return (
-                  <tr key={guess._id}>
-                    <td>{guess.guess}</td>
-                    <td>{this.formatDate(guess.createdAt)}</td>
-                    <td>{this.props.profilesReady ? indexedProfiles[guess.createdBy].displayName : 'loading...'}</td>
-                    <td>{guess.state}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </BS.Table>
+          {this.props.guesses.length === 0 ? <div>No previous submissions.</div> : [
+            <div key='label'>Previous submissions:</div>,
+            <BS.Table key='table' striped bordered condensed hover>
+              <thead>
+                <tr>
+                  <th>Guess</th>
+                  <th>Time</th>
+                  <th>Submitter</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {this.props.guesses.map((guess) => {
+                  return (
+                    <tr key={guess._id}>
+                      <td>{guess.guess}</td>
+                      <td>{this.formatDate(guess.createdAt)}</td>
+                      <td>{this.props.profilesReady ? indexedProfiles[guess.createdBy].displayName : 'loading...'}</td>
+                      <td>{guess.state}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </BS.Table>,
+          ]}
           {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger" onDismiss={this.clearError()}>{this.state.errorMessage}</BS.Alert> : null }
         </JRC.ModalForm>
       </div>

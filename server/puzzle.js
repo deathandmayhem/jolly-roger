@@ -23,7 +23,7 @@ Meteor.methods({
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
 
     // Look up each tag by name and map them to tag IDs.
-    tagIds = tags.map((tagName) => { return getOrCreateTagByName(huntId, tagName); });
+    tagIds = tags.map((tagName) => { return getOrCreateTagByName(huntId, tagName)._id; });
 
     var puzzle = Models.Puzzles.insert({
       hunt: huntId,
