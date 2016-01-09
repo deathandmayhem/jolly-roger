@@ -36,3 +36,6 @@ useraccounts:bootstrap
 blanche
 percolate:migrations
 facts
+service-configuration
+oauth
+google

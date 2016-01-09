@@ -27,6 +27,7 @@ Routes = React.createClass({
             <Route path="users/invite" component={UserInvite}/>
             <Route path="users/:userId" component={ProfilePage}/>
             <Route path="users" component={ProfileListPage}/>
+            <Route path="setup" component={Setup}/>
           </Route>
         </Route>
         {/* Unauthenticated routes */}

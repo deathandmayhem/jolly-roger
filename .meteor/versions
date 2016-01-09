@@ -37,6 +37,7 @@ email@1.0.8
 facts@1.0.5
 fastclick@1.0.7
 geojson-utils@1.0.4
+google@1.1.7
 hot-code-push@1.0.0
 html-tools@1.0.5
 htmljs@1.0.5
@@ -63,6 +64,8 @@ mongo-id@1.0.1
 nicolaslopezj:roles@2.0.1
 npm-bcrypt@0.7.8_2
 npm-mongo@1.4.39_1
+oauth@1.1.6
+oauth2@1.1.5
 observe-sequence@1.0.7
 ordered-dict@1.0.4
 percolate:migrations@0.9.8
