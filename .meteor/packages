@@ -34,3 +34,4 @@ jr-components
 useraccounts:core
 useraccounts:bootstrap
 blanche
+percolate:migrations
