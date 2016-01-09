@@ -294,11 +294,20 @@ PuzzlePageMetadata = React.createClass({
         Schemas.Guesses.asReactPropTypes()
       ).isRequired
     ).isRequired,
+    profilesReady: React.PropTypes.bool.isRequired,
+    profiles: React.PropTypes.objectOf(
+      React.PropTypes.shape(
+        Schemas.Profiles.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
   },
 
   getInitialState() {
     return {
       showModal: false,
+      guessInput: '',
+      submitState: 'idle',
+      errorMessage: '',
     };
   },
 
@@ -368,23 +377,52 @@ PuzzlePageMetadata = React.createClass({
     this.refs.form.close();
   },
 
+  onGuessInputChange(event) {
+    this.setState({
+      guessInput: event.target.value,
+    });
+  },
+
   submitGuess() {
     let _this = this;
     Meteor.call('addGuessForPuzzle', this.props.puzzle._id, this.refs.guess.getValue(), (error) => {
       // TODO: dismiss the modal on success?  show error message on failure?
       if (error) {
+        _this.setState({
+          submitState: 'failed',
+          errorMessage: error.message,
+        });
         console.log(error);
       }
 
-      _this.refs.form.close();
+      // Clear the input box.  Don't dismiss the dialog.
+      _this.setState({
+        guessInput: '',
+      });
     });
   },
 
+  clearError() {
+    this.setState({
+      submitState: 'idle',
+      errorMessage: '',
+    });
+  },
+
+  daysOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+
+  formatDate(date) {
+    // We only care about days in so far as which day of hunt this guess was submitted on
+    const day = this.daysOfWeek[date.getDay()];
+    return day + ', ' + date.toLocaleTimeString();
+  },
+
   render() {
-    let _this = this;
-    let tagsById = _.indexBy(this.props.allTags, '_id');
-    let tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
-    let answerComponent = this.props.puzzle.answer ? <span style={this.styles.answer}>{`Solved: ${this.props.puzzle.answer}`}</span> : null;
+    const _this = this;
+    const tagsById = _.indexBy(this.props.allTags, '_id');
+    const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
+    const answerComponent = this.props.puzzle.answer ? <span style={this.styles.answer}>{`Solved: ${this.props.puzzle.answer}`}</span> : null;
+    const indexedProfiles = this.props.profilesReady ? _.indexBy(this.props.profiles, '_id') : [];
     return (
       <div className="puzzle-metadata" style={this.styles.metadata}>
         <div style={this.styles.row}>
@@ -403,16 +441,42 @@ PuzzlePageMetadata = React.createClass({
         <JRC.ModalForm
             ref="form"
             title={'Submit answer to ' + this.props.puzzle.title}
-            onSubmit={this.submitGuess}>
+            onSubmit={this.submitGuess}
+            submitLabel="Submit">
           {/* TODO: make this show past guesses */}
-          {/* TODO: Change the button labels */}
           <BS.Input
               ref="guess"
               type="text"
               label="Guess"
               labelClassName="col-xs-2"
               wrapperClassName="col-xs-10"
-              autoFocus="true"/>
+              autoFocus="true"
+              onChange={this.onGuessInputChange}
+              value={this.state.guessInput}/>
+          <div>Previous submissions:</div>
+          <BS.Table striped bordered condensed hover>
+            <thead>
+              <tr>
+                <th>Guess</th>
+                <th>Time</th>
+                <th>Submitter</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.props.guesses.map((guess) => {
+                return (
+                  <tr key={guess._id}>
+                    <td>{guess.guess}</td>
+                    <td>{this.formatDate(guess.createdAt)}</td>
+                    <td>{this.props.profilesReady ? indexedProfiles[guess.createdBy].displayName : 'loading...'}</td>
+                    <td>{guess.state}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </BS.Table>
+          {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger" onDismiss={this.clearError()}>{this.state.errorMessage}</BS.Alert> : null }
         </JRC.ModalForm>
       </div>
     );
@@ -446,6 +510,12 @@ PuzzlePageContent = React.createClass({
         Schemas.Guesses.asReactPropTypes()
       ).isRequired
     ).isRequired,
+    profilesReady: React.PropTypes.bool.isRequired,
+    profiles: React.PropTypes.objectOf(
+      React.PropTypes.shape(
+        Schemas.Profiles.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
   },
   styles: {
     flex: '4 4 80%',
@@ -456,7 +526,11 @@ PuzzlePageContent = React.createClass({
   render() {
     return (
       <div className="puzzle-content" style={this.styles}>
-        <PuzzlePageMetadata puzzle={this.props.puzzle} allTags={this.props.allTags} guesses={this.props.guesses} />
+        <PuzzlePageMetadata puzzle={this.props.puzzle}
+                            allTags={this.props.allTags}
+                            guesses={this.props.guesses}
+                            profilesReady={this.props.profilesReady}
+                            profiles={this.props.profiles} />
         <PuzzlePageMultiplayerDocument />
       </div>
     );
@@ -484,56 +558,67 @@ PuzzlePage = React.createClass({
     desiredLayout: 'fullscreen',
   },
   getMeteorData() {
-    let ready = undefined;
+    let puzzlesReady = undefined;
     let allPuzzles = undefined;
     let allTags = undefined;
     let allGuesses = undefined;
     if (_.has(huntFixtures, this.props.params.huntId)) {
-      ready = true;
+      puzzlesReady = true;
       allPuzzles = huntFixtures[this.props.params.huntId].puzzles;
       allTags = huntFixtures[this.props.params.huntId].tags;
       allGuesses = [];
     } else {
-      let puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
-      let tagsHandle = Meteor.subscribe('mongo.tags', {hunt: this.props.params.huntId});
-      let guessesHandle = Meteor.subscribe('mongo.guesses', {puzzle: this.props.params.puzzleId});
-      ready = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready();
+      const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
+      const tagsHandle = Meteor.subscribe('mongo.tags', {hunt: this.props.params.huntId});
+      const guessesHandle = Meteor.subscribe('mongo.guesses', {puzzle: this.props.params.puzzleId});
+      puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready();
       allPuzzles = Models.Puzzles.find({hunt: this.props.params.huntId}).fetch();
       allTags = Models.Tags.find({hunt: this.props.params.huntId}).fetch();
       allGuesses = Models.Guesses.find({hunt: this.props.params.huntId, puzzle: this.props.params.puzzleId}).fetch();
     }
 
-    let chatHandle = Meteor.subscribe('mongo.chatmessages', {puzzleId: this.props.params.puzzleId});
+    const chatHandle = Meteor.subscribe('mongo.chatmessages', {puzzleId: this.props.params.puzzleId});
 
     // Profiles are needed to join display name with sender userid.
-    let profileHandle = Meteor.subscribe('mongo.profiles');
-    let chatReady = chatHandle.ready() && profileHandle.ready();
-    let chatMessages = chatReady && Models.ChatMessages.find(
-        {puzzleId: this.props.params.puzzleId},
-        {$sort: { timestamp: 1 }}
-        ).fetch() || [];
-    let profiles = chatReady && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
+    const profileHandle = Meteor.subscribe('mongo.profiles');
+    const profilesReady = profileHandle.ready();
+    const chatReady = chatHandle.ready() && profileHandle.ready();
+    const chatMessages = chatReady && Models.ChatMessages.find(
+      {puzzleId: this.props.params.puzzleId},
+      {$sort: { timestamp: 1 }}
+    ).fetch() || [];
+    const profiles = chatReady && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
     return {
-      ready: ready,
-      allPuzzles: allPuzzles,
-      allTags: allTags,
-      chatReady: chatReady,
-      chatMessages: chatMessages,
-      profiles: profiles,
-      allGuesses: allGuesses,
+      puzzlesReady,
+      allPuzzles,
+      allTags,
+      chatReady,
+      chatMessages,
+      profiles,
+      profilesReady,
+      allGuesses,
     };
   },
 
   render() {
-    if (!this.data.ready) {
+    if (!this.data.puzzlesReady) {
       return <span>loading...</span>;
     }
 
     let activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     return (
       <div style={{display: 'flex', flexDirection: 'row', position: 'absolute', top: '0', bottom: '0', left:'0', right:'0'}}>
-        <PuzzlePageSidebar activePuzzle={activePuzzle} allPuzzles={this.data.allPuzzles} allTags={this.data.allTags} chatReady={this.data.chatReady} chatMessages={this.data.chatMessages} profiles={this.data.profiles} />
-        <PuzzlePageContent puzzle={activePuzzle} allTags={this.data.allTags} guesses={this.data.allGuesses}/>
+        <PuzzlePageSidebar activePuzzle={activePuzzle}
+                           allPuzzles={this.data.allPuzzles}
+                           allTags={this.data.allTags}
+                           chatReady={this.data.chatReady}
+                           chatMessages={this.data.chatMessages}
+                           profiles={this.data.profiles} />
+        <PuzzlePageContent puzzle={activePuzzle}
+                           allTags={this.data.allTags}
+                           guesses={this.data.allGuesses}
+                           profilesReady={this.data.profilesReady}
+                           profiles={this.data.profiles} />
       </div>
     );
   },
