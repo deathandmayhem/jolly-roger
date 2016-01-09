@@ -8,7 +8,7 @@ const oauthClient = new googleapis.auth.OAuth2(
 
 // Override _postRequest so we can see if the access token got
 // refreshed
-oauthClient._postRequest = function(err, result, response, callback) {
+oauthClient._postRequest = Meteor.bindEnvironment(function(err, result, response, callback) {
   if (storedCredentials.accessToken !== this.credentials.access_token) {
     Ansible.log('Storing refreshed access token for Google Drive');
     Models.Settings.update({name: 'gdrive.credential'}, {
@@ -21,7 +21,7 @@ oauthClient._postRequest = function(err, result, response, callback) {
   }
 
   callback(err, result, response);
-}.bind(oauthClient);
+}.bind(oauthClient));
 
 let storedCredentials = {};
 const updateCredentials = function(token) {
