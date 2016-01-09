@@ -2,7 +2,6 @@ const {Link} = ReactRouter;
 
 HuntPage = React.createClass({
   render() {
-    console.log('render');
     return (
       <div>
         <h1>Hunt name</h1>

@@ -98,15 +98,25 @@ AnnouncementsPage = React.createClass({
     // We already have subscribed to mongo.announcements on the main page, since we want to be able
     // to show them on any page.  So we don't *need* to make the subscription here...
     // ...except that we might want to wait to render until we've received all of them?  IDK.
-    Meteor.subscribe('mongo.announcements');
+    const announcementsHandle = Meteor.subscribe('mongo.announcements', {hunt: this.props.params.huntId});
+    const profilesHandle = Meteor.subscribe('mongo.profiles');
+    const ready = announcementsHandle.ready() && profilesHandle.ready();
+    const announcements = ready ? Models.Announcements.find({hunt: this.props.params.huntId}, {sort: {createdAt: 1}}).fetch() : [];
+    const canCreateAnnouncements = Roles.userHasPermission(Meteor.userId(), 'mongo.announcements.insert');
+    const profiles = ready ? _.indexBy(Models.Profiles.find().fetch(), '_id') : [];
     return {
-      announcements: Models.Announcements.find({hunt: this.props.params.huntId}, {sort: {createdAt: 1}}).fetch(),
-      canCreateAnnouncements: Roles.userHasPermission(Meteor.userId(), 'mongo.announcements.insert'),
-      profiles: _.indexBy(Models.Profiles.find().fetch(), '_id'),
+      ready,
+      announcements,
+      canCreateAnnouncements,
+      profiles,
     };
   },
 
   render() {
+    if (!this.data.ready) {
+      return <div>loading...</div>;
+    }
+
     return (
       <div>
         <h1>Announcements</h1>
