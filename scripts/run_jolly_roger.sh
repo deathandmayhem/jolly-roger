@@ -14,6 +14,11 @@ if [ -z "${MAIL_URL+set}" ]; then
     export MAIL_URL="$(credstash get mailgun)"
 fi
 
+export KADIRA_APP_ID=q7S8XNdYngs3Qnb66
+if [ -z "${KADIRA_APP_SECRET+set}" ]; then
+    export KADIRA_APP_SECRET="$(credstash get kadira)"
+fi
+
 credstash get krb5.keytab | openssl base64 -d > /krb5.keytab
 
 exec k5start -U -f /krb5.keytab bash -- $METEORD_DIR/run_app.sh
