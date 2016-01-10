@@ -294,7 +294,6 @@ PuzzlePageMetadata = React.createClass({
         Schemas.Guesses.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    profilesReady: React.PropTypes.bool.isRequired,
     profiles: React.PropTypes.objectOf(
       React.PropTypes.shape(
         Schemas.Profiles.asReactPropTypes()
@@ -421,7 +420,6 @@ PuzzlePageMetadata = React.createClass({
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
     const answerComponent = this.props.puzzle.answer ? <span style={this.styles.answer}>{`Solved: ${this.props.puzzle.answer}`}</span> : null;
-    const indexedProfiles = this.props.profilesReady ? _.indexBy(this.props.profiles, '_id') : [];
     return (
       <div className="puzzle-metadata" style={this.styles.metadata}>
         <div style={this.styles.row}>
@@ -468,8 +466,8 @@ PuzzlePageMetadata = React.createClass({
                   return (
                     <tr key={guess._id}>
                       <td>{guess.guess}</td>
-                      <td>{this.formatDate(guess.createdAt)}</td>
-                      <td>{this.props.profilesReady ? indexedProfiles[guess.createdBy].displayName : 'loading...'}</td>
+                      <td>{_this.formatDate(guess.createdAt)}</td>
+                      <td>{_this.props.profiles[guess.createdBy].displayName}</td>
                       <td>{guess.state}</td>
                     </tr>
                   );
@@ -523,7 +521,6 @@ PuzzlePageContent = React.createClass({
         Schemas.Guesses.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    profilesReady: React.PropTypes.bool.isRequired,
     profiles: React.PropTypes.objectOf(
       React.PropTypes.shape(
         Schemas.Profiles.asReactPropTypes()
@@ -547,7 +544,6 @@ PuzzlePageContent = React.createClass({
         <PuzzlePageMetadata puzzle={this.props.puzzle}
                             allTags={this.props.allTags}
                             guesses={this.props.guesses}
-                            profilesReady={this.props.profilesReady}
                             profiles={this.props.profiles} />
         <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
       </div>
@@ -576,40 +572,65 @@ PuzzlePage = React.createClass({
     desiredLayout: 'fullscreen',
   },
   getMeteorData() {
+    // There are some model dependencies that we have to be careful about:
+    //
+    // * We show the displayname of the person who submitted a guess, so guesses depends on profiles
+    // * Chat messages show the displayname of the sender, so chatmessages depends on profiles
+    // * Puzzle metadata needs puzzles, tags, guesses, documents, and profiles.
+    //
+    // We can render some things on incomplete data, but most of them really need full data:
+    // * Chat can be rendered with just chat messages and profiles
+    // * Puzzle metadata needs puzzles, tags, documents, guesses, and profiles
+    // * Related puzzles probably only needs puzzles and tags, but right now it just gets the same
+    //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
+
+    const profileHandle = Meteor.subscribe('mongo.profiles');
+    const profiles = profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
+
     let puzzlesReady = undefined;
     let allPuzzles = undefined;
     let allTags = undefined;
     let allGuesses = undefined;
+    let allDocuments = undefined;
     if (_.has(huntFixtures, this.props.params.huntId)) {
       puzzlesReady = true;
       allPuzzles = huntFixtures[this.props.params.huntId].puzzles;
       allTags = huntFixtures[this.props.params.huntId].tags;
       allGuesses = [];
+      allDocuments = [];
     } else {
       const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
       const tagsHandle = Meteor.subscribe('mongo.tags', {hunt: this.props.params.huntId});
       const guessesHandle = Meteor.subscribe('mongo.guesses', {puzzle: this.props.params.puzzleId});
       const documentsHandle = Meteor.subscribe('mongo.documents', {puzzle: this.props.params.puzzleId});
-      puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready();
-      allPuzzles = Models.Puzzles.find({hunt: this.props.params.huntId}).fetch();
-      allTags = Models.Tags.find({hunt: this.props.params.huntId}).fetch();
-      allGuesses = Models.Guesses.find({hunt: this.props.params.huntId, puzzle: this.props.params.puzzleId}).fetch();
+      puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && profileHandle.ready();
 
-      // Sort by created at so that the "first" document always has consistent meaning
-      allDocuments = Models.Documents.find({puzzle: this.props.params.puzzleId}, {sort: {createdAt: 1}}).fetch();
+      // There's no sense in doing this expensive computation here if we're still loading data,
+      // since we're not going to render the children.
+      if (puzzlesReady) {
+        allPuzzles = Models.Puzzles.find({hunt: this.props.params.huntId}).fetch();
+        allTags = Models.Tags.find({hunt: this.props.params.huntId}).fetch();
+        allGuesses = Models.Guesses.find({hunt: this.props.params.huntId, puzzle: this.props.params.puzzleId}).fetch();
+
+        // Sort by created at so that the "first" document always has consistent meaning
+        allDocuments = Models.Documents.find({puzzle: this.props.params.puzzleId}, {sort: {createdAt: 1}}).fetch();
+      } else {
+        allPuzzles = [];
+        allTags = [];
+        allGuesses = [];
+        allDocuments = [];
+      }
     }
 
     const chatHandle = Meteor.subscribe('mongo.chatmessages', {puzzleId: this.props.params.puzzleId});
 
-    // Profiles are needed to join display name with sender userid.
-    const profileHandle = Meteor.subscribe('mongo.profiles');
-    const profilesReady = profileHandle.ready();
+    // Chat is not ready until chat messages and profiles have loaded, but doesn't care about any
+    // other collections.
     const chatReady = chatHandle.ready() && profileHandle.ready();
     const chatMessages = chatReady && Models.ChatMessages.find(
       {puzzleId: this.props.params.puzzleId},
       {sort: { timestamp: 1 }}
     ).fetch() || [];
-    const profiles = chatReady && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
     return {
       puzzlesReady,
       allPuzzles,
@@ -617,7 +638,6 @@ PuzzlePage = React.createClass({
       chatReady,
       chatMessages,
       profiles,
-      profilesReady,
       allGuesses,
       allDocuments,
     };
@@ -644,7 +664,6 @@ PuzzlePage = React.createClass({
         <PuzzlePageContent puzzle={activePuzzle}
                            allTags={this.data.allTags}
                            guesses={this.data.allGuesses}
-                           profilesReady={this.data.profilesReady}
                            profiles={this.data.profiles}
                            documents={this.data.allDocuments}/>
       </div>
