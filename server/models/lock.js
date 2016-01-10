@@ -73,6 +73,9 @@ Models.Locks = new class extends Meteor.Collection {
         // If the lock can already be preempted, or we timed out, then
         // preempt
         if (timeout < 0 || !removed.wait()) {
+          // Stop the observe handle - the record is about to be
+          // removed and we don't want to double-fire the future.
+          handle.stop();
           Ansible.log('Prempting lock', {id: otherLock._id, name});
           this._release(otherLock._id);
         }
