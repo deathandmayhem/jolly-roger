@@ -1,15 +1,44 @@
 const BS = ReactBootstrap;
 
 OthersProfilePage = React.createClass({
+  mixins: [ReactMeteorData],
+
   propTypes: {
     profile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
   },
+
+  getMeteorData() {
+    if (!Roles.userHasRole(Meteor.userId(), 'admin')) {
+      return {
+        ready: true,
+        viewerIsAdmin: false,
+      };
+    }
+
+    userRolesHandle = Meteor.subscribe('userRoles', this.props.profile._id);
+    const ready = userRolesHandle.ready();
+    targetIsAdmin = Roles.userHasRole(this.props.profile._id, 'admin');
+    return {
+      ready,
+      viewerIsAdmin: true,
+      targetIsAdmin,
+    };
+  },
+
+  makeOperator() {
+    Meteor.call('makeOperator', this.props.profile._id);
+  },
+
   render() {
     // TODO: figure out something for profile pictures - gravatar?
-    var profile = this.props.profile;
+    const profile = this.props.profile;
+    const showOperatorBadge = this.data.targetIsAdmin;
+    const showMakeOperatorButton = this.data.ready && this.data.viewerIsAdmin && !this.data.targetIsAdmin;
     return (
       <div>
         <h1>{profile.displayName}</h1>
+        { showOperatorBadge && <BS.Label>operator</BS.Label> }
+        { showMakeOperatorButton && <BS.Button onClick={this.makeOperator}>Make operator</BS.Button> }
         <div>Email: {profile.primaryEmail}</div>
         <div>Location: {profile.locationDuringHunt}</div>
         {profile.phoneNumber ? <div>Phone: {profile.phoneNumber}</div> : null}
