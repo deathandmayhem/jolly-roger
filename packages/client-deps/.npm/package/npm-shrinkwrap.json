@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "classnames": {
+      "version": "http://registry.npmjs.org/classnames/-/classnames-2.2.3.tgz"
+    },
     "externalify": {
       "version": "http://registry.npmjs.org/externalify/-/externalify-0.1.0.tgz",
       "dependencies": {
