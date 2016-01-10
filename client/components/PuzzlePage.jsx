@@ -158,6 +158,7 @@ ChatInput = React.createClass({
 
   propTypes: {
     onHeightChange: React.PropTypes.func,
+    onMessageSent: React.PropTypes.func,
   },
 
   getInitialState() {
@@ -197,6 +198,7 @@ ChatInput = React.createClass({
         this.setState({
           text: '',
         });
+        this.props.onMessageSent && this.props.onMessageSent();
       }
     }
   },
@@ -245,13 +247,19 @@ ChatSection = React.createClass({
     this.refs.history.maybeForceScrollBottom();
   },
 
+  onMessageSent() {
+    this.refs.history.forceScrollBottom();
+  },
+
   render() {
     // TODO: fetch/track/display chat history
     return (
       <div className="chat-section" style={this.styles}>
         {this.props.chatReady ? null : <span>loading...</span>}
         <ChatHistory ref="history" chatMessages={this.props.chatMessages} profiles={this.props.profiles} />
-        <ChatInput puzzleId={this.props.puzzleId} onHeightChange={this.onInputHeightChange} />
+        <ChatInput puzzleId={this.props.puzzleId}
+                   onHeightChange={this.onInputHeightChange}
+                   onMessageSent={this.onMessageSent}/>
       </div>
     );
   },
