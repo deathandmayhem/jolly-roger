@@ -5,6 +5,10 @@ HuntMembershipVerifier = React.createClass({
     subs: JRPropTypes.subs,
   },
 
+  propTypes: {
+    huntId: React.PropTypes.string.isRequired,
+  },
+
   getMeteorData() {
     const userHandle = this.context.subs.subscribe('huntMembership');
     if (!userHandle.ready()) {
@@ -16,7 +20,7 @@ HuntMembershipVerifier = React.createClass({
       return {ready: false};
     }
 
-    if (!_.contains(user.hunts, this.props.params.huntId)) {
+    if (!_.contains(user.hunts, this.props.huntId)) {
       return {
         member: false,
         ready: true,
@@ -30,7 +34,7 @@ HuntMembershipVerifier = React.createClass({
     if (!this.data.ready) {
       return <span>loading...</span>;
     } else if (!this.data.member) {
-      return <HuntSignup huntId={this.props.params.huntId}/>;
+      return <HuntSignup huntId={this.props.huntId}/>;
     } else {
       return React.Children.only(this.props.children);
     }

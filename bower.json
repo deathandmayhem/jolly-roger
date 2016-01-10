@@ -1,0 +1,18 @@
+{
+  "name": "jolly-roger",
+  "private": true,
+  "dependencies": {
+    "messenger": "git@github.com:HubSpot/messenger#v1.4.2"
+  },
+  "ignoredDependencies": [
+    "jquery"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    ".meteor/local/bower",
+    "test",
+    "tests"
+  ]
+}
