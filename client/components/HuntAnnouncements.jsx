@@ -60,9 +60,12 @@ HuntAnnouncements = React.createClass({
       user: Meteor.userId(),
     };
     const paHandle = this.context.subs.subscribe('mongo.pending_announcements', query);
+    if (!paHandle.ready()) {
+      return {ready: false};
+    }
 
     const data = {
-      ready: paHandle.ready(),
+      ready: true,
       announcements: [],
     };
 
