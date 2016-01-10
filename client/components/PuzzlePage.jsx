@@ -107,7 +107,10 @@ ChatHistory = React.createClass({
     // If so, then we should make the log "stick" to the bottom, by manually scrolling to the bottom
     // when needed.
     let messagePane = ReactDOM.findDOMNode(this.refs.messagePane);
-    this.shouldScroll = (messagePane.clientHeight + messagePane.scrollTop >= messagePane.scrollHeight);
+
+    // Include a 5 px fudge factor to account for bad scrolling and
+    // fractional pixels
+    this.shouldScroll = (messagePane.clientHeight + messagePane.scrollTop + 5 >= messagePane.scrollHeight);
   },
 
   maybeForceScrollBottom() {
