@@ -389,6 +389,35 @@
         }
       }
     },
+    "react-document-title": {
+      "version": "http://registry.npmjs.org/react-document-title/-/react-document-title-2.0.1.tgz",
+      "dependencies": {
+        "react-side-effect": {
+          "version": "http://registry.npmjs.org/react-side-effect/-/react-side-effect-1.0.2.tgz",
+          "dependencies": {
+            "fbjs": {
+              "version": "http://registry.npmjs.org/fbjs/-/fbjs-0.1.0-alpha.10.tgz",
+              "dependencies": {
+                "core-js": {
+                  "version": "http://registry.npmjs.org/core-js/-/core-js-1.2.6.tgz"
+                },
+                "promise": {
+                  "version": "http://registry.npmjs.org/promise/-/promise-7.1.1.tgz",
+                  "dependencies": {
+                    "asap": {
+                      "version": "http://registry.npmjs.org/asap/-/asap-2.0.3.tgz"
+                    }
+                  }
+                },
+                "whatwg-fetch": {
+                  "version": "http://registry.npmjs.org/whatwg-fetch/-/whatwg-fetch-0.9.0.tgz"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "react-dom": {
       "version": "http://registry.npmjs.org/react-dom/-/react-dom-0.14.6.tgz"
     },

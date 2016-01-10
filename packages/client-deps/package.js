@@ -8,6 +8,7 @@ Npm.depends({
   'react-router': '1.0.0',
   'react-bootstrap': '0.28.1',
   'react-router-bootstrap': '0.19.3',
+  'react-document-title': '2.0.1',
   classnames: '2.2.3',
   marked: '0.3.5',
 });
@@ -15,5 +16,12 @@ Npm.depends({
 Package.onUse(function(api) {
   api.use(['cosmos:browserify', 'react-runtime'], 'client');
   api.addFiles(['app.browserify.js', 'app.browserify.options.json'], 'client');
-  api.export(['ReactBootstrap', 'ReactRouter', 'ReactRouterBootstrap', 'classnames', 'marked'], 'client');
+  api.export([
+    'ReactBootstrap',
+    'ReactRouter',
+    'ReactRouterBootstrap',
+    'DocumentTitle',
+    'classnames',
+    'marked',
+  ], 'client');
 });

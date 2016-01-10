@@ -678,19 +678,21 @@ PuzzlePage = React.createClass({
 
     let activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     return (
-      <div style={{display: 'flex', flexDirection: 'row', position: 'absolute', top: '0', bottom: '0', left:'0', right:'0'}}>
-        <PuzzlePageSidebar activePuzzle={activePuzzle}
-                           allPuzzles={this.data.allPuzzles}
-                           allTags={this.data.allTags}
-                           chatReady={this.data.chatReady}
-                           chatMessages={this.data.chatMessages}
-                           profiles={this.data.profiles} />
-        <PuzzlePageContent puzzle={activePuzzle}
-                           allTags={this.data.allTags}
-                           guesses={this.data.allGuesses}
-                           profiles={this.data.profiles}
-                           documents={this.data.allDocuments}/>
-      </div>
+      <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
+        <div style={{display: 'flex', flexDirection: 'row', position: 'absolute', top: '0', bottom: '0', left:'0', right:'0'}}>
+          <PuzzlePageSidebar activePuzzle={activePuzzle}
+                             allPuzzles={this.data.allPuzzles}
+                             allTags={this.data.allTags}
+                             chatReady={this.data.chatReady}
+                             chatMessages={this.data.chatMessages}
+                             profiles={this.data.profiles} />
+          <PuzzlePageContent puzzle={activePuzzle}
+                             allTags={this.data.allTags}
+                             guesses={this.data.allGuesses}
+                             profiles={this.data.profiles}
+                             documents={this.data.allDocuments}/>
+        </div>
+      </DocumentTitle>
     );
   },
 });
