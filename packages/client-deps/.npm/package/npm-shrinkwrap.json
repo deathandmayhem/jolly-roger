@@ -194,6 +194,9 @@
         }
       }
     },
+    "marked": {
+      "version": "http://registry.npmjs.org/marked/-/marked-0.3.5.tgz"
+    },
     "react": {
       "version": "http://registry.npmjs.org/react/-/react-0.14.6.tgz",
       "dependencies": {

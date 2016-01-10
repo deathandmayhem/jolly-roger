@@ -4,3 +4,5 @@ ReactRouter.history = require('history');
 ReactRouterBootstrap = require('react-router-bootstrap');
 
 classnames = require('classnames');
+
+marked = require('marked');

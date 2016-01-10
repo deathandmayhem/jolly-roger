@@ -33,6 +33,44 @@ RelatedPuzzleSection = React.createClass({
   },
 });
 
+ChatMessage = React.createClass({
+  mixins: [PureRenderMixin],
+  propTypes: {
+    message: React.PropTypes.shape(Schemas.ChatMessages.asReactPropTypes()).isRequired,
+    sender: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired,
+  },
+
+  styles: {
+    message: {
+      // TODO: pick background color based on hashing userid or something?
+      backgroundColor: '#f8f8f8',
+      marginBottom: '1',
+      wordWrap: 'break-word',
+    },
+    time: {
+      float:'right',
+      fontStyle: 'italic',
+      marginRight: '2',
+    },
+  },
+
+  render() {
+    // TODO: consider how we want to format dates, if the day was yesterday, or many days ago.
+    // This is ugly, but moment.js is huge
+    let hours = this.props.message.timestamp.getHours();
+    let minutes = this.props.message.timestamp.getMinutes();
+    let ts = `${hours < 10 ? '0' + hours : '' + hours}:${minutes < 10 ? '0' + minutes : '' + minutes}`;
+
+    return (
+      <div style={this.styles.message}>
+        <span style={this.styles.time}>{ts}</span>
+        <strong>{this.props.sender.displayName}</strong>
+        <span dangerouslySetInnerHTML={{__html: marked(this.props.message.text, {sanitize: true})}}/>
+      </div>
+    );
+  },
+});
+
 ChatHistory = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
@@ -49,17 +87,6 @@ ChatHistory = React.createClass({
     messagePane: {
       flex: 'auto',
       overflowY: 'auto',
-    },
-    message: {
-      // TODO: pick background color based on hashing userid or something?
-      backgroundColor: '#f8f8f8',
-      marginBottom: '1',
-      wordWrap: 'break-word',
-    },
-    time: {
-      float:'right',
-      fontStyle: 'italic',
-      marginRight: '2',
     },
   },
 
@@ -116,19 +143,8 @@ ChatHistory = React.createClass({
     let profiles = this.props.profiles;
     return (
       <div ref='messagePane' style={this.styles.messagePane} onScroll={this.onScroll}>
-        { this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span> }
-        { this.props.chatMessages.map((msg) => {
-          // TODO: consider how we want to format dates, if the day was yesterday, or many days ago.
-          // This is ugly, but moment.js is huge
-          let hours = msg.timestamp.getHours();
-          let minutes = msg.timestamp.getMinutes();
-          let ts = `${hours < 10 ? '0' + hours : '' + hours}:${minutes < 10 ? '0' + minutes : '' + minutes}`;
-
-          return <div key={msg._id} style={this.styles.message}>
-            <span style={this.styles.time}>{ ts }</span>
-            <strong>{profiles[msg.sender].displayName}</strong>: {msg.text}
-          </div>;
-        }) }
+        {this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span>}
+        {this.props.chatMessages.map((msg) => <ChatMessage key={msg._id} message={msg} sender={profiles[msg.sender]}/>)}
       </div>
     );
   },
