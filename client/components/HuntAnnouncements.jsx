@@ -2,6 +2,7 @@ const Announcement = React.createClass({
   propTypes: {
     id: React.PropTypes.string,
     announcement: React.PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
+    createdBy: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired,
     oldest: React.PropTypes.bool.isRequired,
     newest: React.PropTypes.bool.isRequired,
   },
@@ -21,6 +22,7 @@ const Announcement = React.createClass({
           <button type="button" className="messenger-close" onClick={this.dismiss}>×</button>
           <div className="messenger-message-inner">
             <div dangerouslySetInnerHTML={{__html: marked(this.props.announcement.message, {sanitize: true})}}/>
+            <footer>- Posted by {this.props.createdBy.displayName} at {'' + this.props.announcement.createdAt}</footer>
           </div>
           <div className="messenger-spinner">
             <span className="messenger-spinner-side messenger-spinner-side-left">
@@ -48,8 +50,10 @@ HuntAnnouncements = React.createClass({
   },
 
   getMeteorData() {
-    const handle = this.context.subs.subscribe('mongo.announcements', {hunt: this.props.huntId});
-    if (!handle.ready()) {
+    // This is overly broad, but we likely already have the data cached locally
+    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
+    const announcementsHandle = this.context.subs.subscribe('mongo.announcements', {hunt: this.props.huntId});
+    if (!profilesHandle.ready() || !announcementsHandle.ready()) {
       // Don't start trying to render anything until we can actually
       // find the announcement text.
       return {ready: false};
@@ -70,7 +74,12 @@ HuntAnnouncements = React.createClass({
     };
 
     Models.PendingAnnouncements.find(query, {sort: {createdAt: -1}}).forEach((pa) => {
-      data.announcements.push({pa, announcement: Models.Announcements.findOne(pa.announcement)});
+      const announcement = Models.Announcements.findOne(pa.announcement);
+      data.announcements.push({
+        pa,
+        announcement,
+        createdBy: Models.Profiles.findOne(announcement.createdBy),
+      });
     });
 
     return data;
@@ -86,6 +95,7 @@ HuntAnnouncements = React.createClass({
                  key={a.pa._id}
                  id={a.pa._id}
                  announcement={a.announcement}
+                 createdBy={a.createdBy}
                  newest={idx === 0}
                  oldest={idx === this.data.announcements.length - 1}/>;
     });
