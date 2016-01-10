@@ -9,6 +9,7 @@ HuntSignup = React.createClass({
 
   contextTypes: {
     history: ReactRouter.PropTypes.history,
+    subs: JRPropTypes.subs,
   },
 
   getInitialState() {
@@ -25,7 +26,7 @@ HuntSignup = React.createClass({
       };
     }
 
-    const handle = Meteor.subscribe('mongo.hunts', {_id: this.props.huntId});
+    const handle = this.context.subs.subscribe('mongo.hunts', {_id: this.props.huntId});
     return {
       ready: handle.ready(),
       hunt: Models.Hunts.findOne(this.props.huntId),

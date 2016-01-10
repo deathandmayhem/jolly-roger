@@ -112,6 +112,11 @@ AddPuzzleForm = React.createClass({
 
 PuzzleListPage = React.createClass({
   mixins: [ReactMeteorData],
+
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   getMeteorData() {
     if (_.has(huntFixtures, this.props.params.huntId)) {
       return {
@@ -121,8 +126,8 @@ PuzzleListPage = React.createClass({
       };
     }
 
-    var puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
-    var tagsHandle = Meteor.subscribe('mongo.tags', {hunt: this.props.params.huntId});
+    var puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
+    var tagsHandle = this.context.subs.subscribe('mongo.tags', {hunt: this.props.params.huntId});
     let ready = puzzlesHandle.ready() && tagsHandle.ready();
     if (!ready) {
       return {

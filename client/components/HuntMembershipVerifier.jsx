@@ -1,8 +1,12 @@
 HuntMembershipVerifier = React.createClass({
   mixins: [ReactMeteorData],
 
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   getMeteorData() {
-    const userHandle = Meteor.subscribe('huntMembership');
+    const userHandle = this.context.subs.subscribe('huntMembership');
     if (!userHandle.ready()) {
       return {ready: false};
     }

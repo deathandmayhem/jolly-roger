@@ -41,3 +41,4 @@ service-configuration
 oauth
 google
 meteorhacks:kadira
+meteorhacks:subs-manager

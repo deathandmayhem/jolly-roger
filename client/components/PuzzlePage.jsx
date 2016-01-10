@@ -564,6 +564,11 @@ var findPuzzleById = function(puzzles, id) {
 
 PuzzlePage = React.createClass({
   mixins: [ReactMeteorData],
+
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   propTypes: {
     // hunt id and puzzle id comes from route?
   },
@@ -584,7 +589,7 @@ PuzzlePage = React.createClass({
     // * Related puzzles probably only needs puzzles and tags, but right now it just gets the same
     //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
 
-    const profileHandle = Meteor.subscribe('mongo.profiles');
+    const profileHandle = this.context.subs.subscribe('mongo.profiles');
     const profiles = profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
 
     let puzzlesReady = undefined;
@@ -599,10 +604,10 @@ PuzzlePage = React.createClass({
       allGuesses = [];
       allDocuments = [];
     } else {
-      const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
-      const tagsHandle = Meteor.subscribe('mongo.tags', {hunt: this.props.params.huntId});
-      const guessesHandle = Meteor.subscribe('mongo.guesses', {puzzle: this.props.params.puzzleId});
-      const documentsHandle = Meteor.subscribe('mongo.documents', {puzzle: this.props.params.puzzleId});
+      const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
+      const tagsHandle = this.context.subs.subscribe('mongo.tags', {hunt: this.props.params.huntId});
+      const guessesHandle = this.context.subs.subscribe('mongo.guesses', {puzzle: this.props.params.puzzleId});
+      const documentsHandle = this.context.subs.subscribe('mongo.documents', {puzzle: this.props.params.puzzleId});
       puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && profileHandle.ready();
 
       // There's no sense in doing this expensive computation here if we're still loading data,
@@ -622,7 +627,7 @@ PuzzlePage = React.createClass({
       }
     }
 
-    const chatHandle = Meteor.subscribe('mongo.chatmessages', {puzzleId: this.props.params.puzzleId});
+    const chatHandle = this.context.subs.subscribe('mongo.chatmessages', {puzzleId: this.props.params.puzzleId});
 
     // Chat is not ready until chat messages and profiles have loaded, but doesn't care about any
     // other collections.

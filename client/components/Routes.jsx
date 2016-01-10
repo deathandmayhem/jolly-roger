@@ -9,6 +9,18 @@ const {
 const history = ReactRouter.history.useQueries(ReactRouter.history.createHistory)();
 
 Routes = React.createClass({
+  childContextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
+  getChildContext() {
+    if (!this.subs) {
+      this.subs = new SubsManager({cacheLimit: 20, expireIn: 1});
+    }
+
+    return {subs: this.subs};
+  },
+
   render() {
     return (
       <Router history={history}>

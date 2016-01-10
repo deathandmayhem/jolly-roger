@@ -3,6 +3,10 @@ const BS = ReactBootstrap;
 OthersProfilePage = React.createClass({
   mixins: [ReactMeteorData],
 
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   propTypes: {
     profile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
   },
@@ -15,7 +19,7 @@ OthersProfilePage = React.createClass({
       };
     }
 
-    userRolesHandle = Meteor.subscribe('userRoles', this.props.profile._id);
+    userRolesHandle = this.context.subs.subscribe('userRoles', this.props.profile._id);
     const ready = userRolesHandle.ready();
     targetIsAdmin = Roles.userHasRole(this.props.profile._id, 'admin');
     return {
@@ -240,10 +244,15 @@ OwnProfilePage = React.createClass({
 
 ProfilePage = React.createClass({
   mixins: [ReactMeteorData],
+
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   getMeteorData() {
     const uid = this.props.params.userId === 'me' ? Meteor.userId() : this.props.params.userId;
 
-    var profileHandle = Meteor.subscribe('mongo.profiles', {_id: uid});
+    var profileHandle = this.context.subs.subscribe('mongo.profiles', {_id: uid});
     var user = Meteor.user();
     var defaultEmail = user && user.emails && user.emails.length > 0 && user.emails[0] && user.emails[0].address;
     let data = {

@@ -4,9 +4,14 @@ const {Link} = ReactRouter;
 
 SharedNavbar = React.createClass({
   mixins: [ReactMeteorData],
+
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   getMeteorData() {
     var userId = Meteor.userId();
-    var profileSub = Meteor.subscribe('mongo.profiles', {_id: userId});
+    var profileSub = this.context.subs.subscribe('mongo.profiles', {_id: userId});
     var profile = Models.Profiles.findOne(userId);
     var displayName = profileSub.ready() ? profile && profile.displayName || '<no name given>' : 'loading...';
     return {

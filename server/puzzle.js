@@ -112,6 +112,7 @@ Meteor.methods({
       throw new Meteor.Error(404, 'Unknown puzzle');
     }
 
+    this.unblock();
     let doc = Models.Documents.findOne({puzzle: puzzleId});
     if (!doc) {
       Models.Locks.withLock(`puzzle:${puzzleId}:documents`, () => {

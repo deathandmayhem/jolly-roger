@@ -136,8 +136,12 @@ MockHunt = React.createClass({
 HuntList = React.createClass({
   mixins: [ReactMeteorData],
 
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   getMeteorData() {
-    Meteor.subscribe('mongo.hunts');
+    this.context.subs.subscribe('mongo.hunts');
     return {
       canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.insert'),
       hunts: Models.Hunts.find().fetch(),

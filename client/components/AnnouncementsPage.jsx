@@ -94,12 +94,16 @@ Announcement = React.createClass({
 AnnouncementsPage = React.createClass({
   mixins: [ReactMeteorData],
 
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   getMeteorData() {
     // We already have subscribed to mongo.announcements on the main page, since we want to be able
     // to show them on any page.  So we don't *need* to make the subscription here...
     // ...except that we might want to wait to render until we've received all of them?  IDK.
-    const announcementsHandle = Meteor.subscribe('mongo.announcements', {hunt: this.props.params.huntId});
-    const profilesHandle = Meteor.subscribe('mongo.profiles');
+    const announcementsHandle = this.context.subs.subscribe('mongo.announcements', {hunt: this.props.params.huntId});
+    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
     const ready = announcementsHandle.ready() && profilesHandle.ready();
     const announcements = ready ? Models.Announcements.find({hunt: this.props.params.huntId}, {sort: {createdAt: 1}}).fetch() : [];
     const canCreateAnnouncements = Roles.userHasPermission(Meteor.userId(), 'mongo.announcements.insert');

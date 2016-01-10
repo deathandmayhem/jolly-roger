@@ -99,8 +99,13 @@ ProfileList = React.createClass({
 
 ProfileListPage = React.createClass({
   mixins: [ReactMeteorData],
+
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   getMeteorData() {
-    const profilesHandle = Meteor.subscribe('mongo.profiles');
+    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
     const ready = profilesHandle.ready();
     const profiles = ready ? Models.Profiles.find({}, {sort: {displayName: 1}}).fetch() : [];
     return {

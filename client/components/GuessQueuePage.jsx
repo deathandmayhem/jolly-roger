@@ -143,14 +143,18 @@ GuessBlock = React.createClass({
 GuessQueuePage = React.createClass({
   mixins: [ReactMeteorData],
 
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   getMeteorData() {
-    const guessesHandle = Meteor.subscribe('mongo.guesses', {
+    const guessesHandle = this.context.subs.subscribe('mongo.guesses', {
       hunt: this.props.params.huntId,
     });
-    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {
+    const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', {
       hunt: this.props.params.huntId,
     });
-    const profilesHandle = Meteor.subscribe('mongo.profiles');
+    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
     const ready = guessesHandle.ready() && puzzlesHandle.ready() && profilesHandle.ready();
     const guesses = ready ? Models.Guesses.find({hunt: this.props.params.huntId}, {sort: { createdAt: -1 }}).fetch() : [];
     const puzzles = ready ? _.indexBy(Models.Puzzles.find({hunt: this.props.params.huntId}).fetch(), '_id') : [];

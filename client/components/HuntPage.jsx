@@ -3,8 +3,12 @@ const {Link} = ReactRouter;
 HuntPage = React.createClass({
   mixins: [ReactMeteorData],
 
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
   getMeteorData() {
-    const huntHandle = Meteor.subscribe('mongo.hunts', {_id: this.props.params.huntId});
+    const huntHandle = this.context.subs.subscribe('mongo.hunts', {_id: this.props.params.huntId});
     return {
       hunt: Models.Hunts.findOne(this.props.params.huntId),
     };
