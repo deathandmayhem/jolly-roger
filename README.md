@@ -4,23 +4,23 @@ Jolly Roger
 ![Jolly Roger](public/images/hero.png)
 
 The next generation Virtual HQ for Death and Mayhem, written in
-Meteor. It uses [Iron.Router][iron-router] for navigation and
+Meteor. It uses [react-router][react-router] for navigation and
 [Collection2][collection2] for schema support.
 
 Getting Started
 ---------------
 
 Jolly Roger uses support in Meteor for [ECMAScript 6][es6] (which is
-compiled by [Babel][babeljs] down to ES 5). You need at least version
-1.2 for this support. Once you've [installed Meteor][meteor install],
-you can start the server by just running:
+compiled by [Babel][babeljs] down to ES 5) and [React][React]. You
+need at least version 1.2 for this support. Once you've [installed
+Meteor][meteor install], you can start the server by just running:
 
 ```bash
 meteor
 ```
 
-Right now, there's no user onboarding flow, so you'll have to manually
-create a user:
+Right now, there's no onboarding flow for the first user, so you'll
+have to manually create a user:
 
 ```js
 meteor shell
@@ -85,12 +85,45 @@ control modifications. Templates and other code should be written to
 take roles into account, but in practice we'll likely use the admin
 role for controlling virtually all permissioning.
 
+Google Integration
+------------------
+
+Jolly Roger uses Google Spreadsheets for the per-puzzle collaboration
+document, and it automatically provisions them when puzzles are
+created. (This helps with, e.g., permissions issues with manually
+created documents).
+
+In order to access the Google APIs, you first need to create a Google
+OAuth client ID. From the [Google Developer Credentials
+Console][google-developer-credentials], create a new OAuth Client
+ID. If you're developing locally (via localhost), choose "Other";
+otherwise, choose "Web application". Once you have the client ID,
+store it in the Meteor shell by running:
+
+```js
+> ServiceConfiguration.configurations.upsert({service: 'google'}, {
+    clientId: 'CLIENT ID',
+    secret: 'SECRET',
+    loginStyle: 'popup',
+  })
+```
+
+Once that's done, manually navigate to `/setup`
+(e.g. http://localhost:3000/setup). From there, you'll be able to link
+an account to the OAuth application, giving Jolly Roger permissions to
+create documents on behalf of that account.
+
+(In production, we have a dedicated Google account that owns both the
+OAuth application and the Drive credentials)
+
 [airbnb-javascript]: https://github.com/airbnb/javascript
 [babeljs]: http://babeljs.io
 [collection2]: https://atmospherejs.com/aldeed/collection2
 [es6]: https://github.com/lukehoban/es6features
-[iron-router]: https://atmospherejs.com/iron/router
+[google-developer-credentials]: https://console.developers.google.com/apis/credentials
 [JSCS]: http://jscs.info/
 [meteor install]: https://www.meteor.com/install
+[React]: https://facebook.github.io/react/
+[react-router]: https://github.com/rackt/react-router
 [roles]: https://atmospherejs.com/nicolaslopezj/roles
 [simple-schema-chaining]: https://github.com/aldeed/meteor-simple-schema#combining-simpleschemas
