@@ -83,9 +83,7 @@ Announcement = React.createClass({
           <div style={{textAlign: 'right'}}>{'' + ann.createdAt}</div>
           <div>{this.props.indexedProfiles[ann.createdBy].displayName}</div>
         </div>
-        <div>
-          {ann.message.split('\n').map((line, i) => { return <p key={i}>{line}</p>; })}
-        </div>
+        <div dangerouslySetInnerHTML={{__html: marked(ann.message, {sanitize: true})}}/>
       </div>
     );
   },

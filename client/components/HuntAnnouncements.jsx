@@ -20,7 +20,7 @@ const Announcement = React.createClass({
         <div className="messenger-message message alert info message-info alert-info">
           <button type="button" className="messenger-close" onClick={this.dismiss}>×</button>
           <div className="messenger-message-inner">
-            {this.props.announcement.message}
+            <div dangerouslySetInnerHTML={{__html: marked(this.props.announcement.message, {sanitize: true})}}/>
           </div>
           <div className="messenger-spinner">
             <span className="messenger-spinner-side messenger-spinner-side-left">
