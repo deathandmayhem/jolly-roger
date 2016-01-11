@@ -32,14 +32,14 @@ ProfileList = React.createClass({
   },
 
   compileMatcher() {
-    var searchKeys = this.state.searchString.split(' ');
-    var toMatch = _.chain(searchKeys)
-                   .filter(function(s) { return !!s;})
-                   .map(function(s) { return s.toLowerCase(); })
-                   .value();
-    var isInteresting = (profile) => {
-      for (var i = 0; i < toMatch.length; i++) {
-        var searchKey = toMatch[i];
+    const searchKeys = this.state.searchString.split(' ');
+    const toMatch = _.chain(searchKeys)
+                     .filter(function(s) { return !!s;})
+                     .map(function(s) { return s.toLowerCase(); })
+                     .value();
+    const isInteresting = (profile) => {
+      for (let i = 0; i < toMatch.length; i++) {
+        const searchKey = toMatch[i];
         if (profile.displayName.toLowerCase().indexOf(searchKey) === -1 &&
             profile.primaryEmail.toLowerCase().indexOf(searchKey) === -1 &&
             (!profile.slackHandle || profile.slackHandle.toLowerCase().indexOf(searchKey) === -1) &&

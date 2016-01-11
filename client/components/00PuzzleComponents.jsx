@@ -2,10 +2,10 @@ const {Link} = ReactRouter;
 const BS = ReactBootstrap;
 const PureRenderMixin = React.addons.PureRenderMixin;
 
-var puzzleShape = Schemas.Puzzles.asReactPropTypes();
-var tagShape = Schemas.Tags.asReactPropTypes();
+const puzzleShape = Schemas.Puzzles.asReactPropTypes();
+const tagShape = Schemas.Tags.asReactPropTypes();
 
-var sortedTags = function sortedTags(tags) {
+const sortedTags = function sortedTags(tags) {
   // TODO: attempt to sort the tags into a reasonable order before showing them.
   // The sort order for tags should probably be:
   // * the "meta" tag, if present, is always first
@@ -27,7 +27,7 @@ FilteringPuzzleSet = React.createClass({
   },
 
   onSearchStringChange() {
-    var newString = this.refs.searchBar.getValue();
+    const newString = this.refs.searchBar.getValue();
     this.setState({searchString: newString});
   },
 
@@ -40,15 +40,15 @@ FilteringPuzzleSet = React.createClass({
       //   if key is a substring of a tag:
       //     return true
       // return false
-      for (var i = 0; i < searchKeys.length; i++) {
-        var key = searchKeys[i].toLowerCase();
+      for (let i = 0; i < searchKeys.length; i++) {
+        const key = searchKeys[i].toLowerCase();
         if (puzzle.title.toLowerCase().indexOf(key) !== -1 ||
             (puzzle.answer && (puzzle.answer.toLowerCase().indexOf(key) !== -1))) {
           return true;
         }
 
-        for (var j = 0; j < puzzle.tags.length; j++) {
-          var tagName = tagNames[puzzle.tags[j]].name;
+        for (let j = 0; j < puzzle.tags.length; j++) {
+          const tagName = tagNames[puzzle.tags[j]].name;
           if (tagName.indexOf(key) !== -1) {
             return true;
           }
@@ -60,9 +60,9 @@ FilteringPuzzleSet = React.createClass({
   },
 
   filteredPuzzles(puzzles) {
-    var searchKeys = this.state.searchString.split(' ');
+    const searchKeys = this.state.searchString.split(' ');
     if (searchKeys.length === 1 && searchKeys[0] === '') return puzzles;
-    var isInteresting = this.compileMatcher(_.filter(searchKeys, (key) => { return key.length > 0; }));
+    const isInteresting = this.compileMatcher(_.filter(searchKeys, (key) => { return key.length > 0; }));
     return _.filter(puzzles, isInteresting);
   },
 
@@ -76,8 +76,8 @@ FilteringPuzzleSet = React.createClass({
   },
 
   render() {
-    var puzzles = this.sortedFilteredPuzzles(this.props.puzzles);
-    var clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>;
+    const puzzles = this.sortedFilteredPuzzles(this.props.puzzles);
+    const clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>;
     return (
       <div>
         <BS.Input type="text" label="Search" placeholder="search by title, answer, or tag"
@@ -103,9 +103,9 @@ PuzzleList = React.createClass({
     // This component just renders the puzzles provided, in order.
     // Adjusting order based on tags, tag groups, etc. is to be done at
     // a higher layer.
-    var puzzles = [];
-    for (var i = 0; i < this.props.puzzles.length; i++) {
-      var puz = this.props.puzzles[i];
+    let puzzles = [];
+    for (let i = 0; i < this.props.puzzles.length; i++) {
+      const puz = this.props.puzzles[i];
       puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} />);
     }
 
@@ -143,9 +143,9 @@ Puzzle = React.createClass({
   },
   render() {
     // id, title, answer, tags
-    var linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
-    var tagIndex = _.indexBy(this.props.tags, '_id');
-    var tags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
+    const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
+    const tagIndex = _.indexBy(this.props.tags, '_id');
+    const tags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
     return (
       <div className="puzzle" style={this.styles.puzzle}>
         <div className="title" style={this.styles.title}><Link to={linkTarget}>{this.props.puzzle.title}</Link></div>
@@ -251,8 +251,8 @@ TagList = React.createClass({
 
   render() {
     // TODO: figure out smart sort order for these?  or maybe the parent is responsible for that?
-    var tags = [];
-    for (var i = 0; i < this.props.tags.length; i++) {
+    let tags = [];
+    for (let i = 0; i < this.props.tags.length; i++) {
       tags.push(<Tag key={this.props.tags[i]._id}
                      tag={this.props.tags[i]}
                      onRemove={this.state.removing ? this.removeTag : undefined} />);
@@ -386,14 +386,16 @@ Tag = React.createClass({
   },
 
   render() {
-    var name = this.props.tag.name;
-    var isMeta = name === 'is:meta';
-    var isMetaGroup = name.lastIndexOf('meta:', 0) === 0;
-    var styles = _.extend({},
-            this.styles.base,
-            isMeta && this.styles.meta,
-            isMetaGroup && this.styles.metaGroup,
-            this.props.onClick && this.styles.interactive);
+    const name = this.props.tag.name;
+    const isMeta = name === 'is:meta';
+    const isMetaGroup = name.lastIndexOf('meta:', 0) === 0;
+    const styles = _.extend(
+      {},
+      this.styles.base,
+      isMeta && this.styles.meta,
+      isMetaGroup && this.styles.metaGroup,
+      this.props.onClick && this.styles.interactive,
+    );
     return (
       <div className="tag" style={styles} onClick={this.onClick}>
         {name}
@@ -436,7 +438,7 @@ RelatedPuzzleGroup = React.createClass({
   },
 });
 
-var puzzlesWithTag = function(puzzles, tag) {
+const puzzlesWithTag = function(puzzles, tag) {
   return _.filter(puzzles, function(p) { return p.tags.indexOf(tag) !== -1; });
 };
 
@@ -449,11 +451,11 @@ RelatedPuzzleGroups = React.createClass({
   },
   render() {
     // For each tag, collect all the other puzzles that also have that tag.
-    var groups = [];
-    var tagIndex = _.indexBy(this.props.allTags, '_id');
-    for (var tagi = 0; tagi < this.props.activePuzzle.tags.length; tagi++) {
-      var tagId = this.props.activePuzzle.tags[tagi];
-      var puzzles = puzzlesWithTag(this.props.allPuzzles, tagId);
+    let groups = [];
+    const tagIndex = _.indexBy(this.props.allTags, '_id');
+    for (let tagi = 0; tagi < this.props.activePuzzle.tags.length; tagi++) {
+      const tagId = this.props.activePuzzle.tags[tagi];
+      const puzzles = puzzlesWithTag(this.props.allPuzzles, tagId);
       groups.push({tag: tagIndex[tagId], puzzles: puzzles});
     }
 
@@ -471,7 +473,7 @@ RelatedPuzzleGroups = React.createClass({
     // Then, render tag group.
 
     // Hoist allTags into lambda.
-    var allTags = this.props.allTags;
+    const allTags = this.props.allTags;
     return (
       <div>
         {groups.length ? groups.map(function(g) {

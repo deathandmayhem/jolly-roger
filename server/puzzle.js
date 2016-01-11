@@ -38,7 +38,7 @@ Meteor.methods({
     // Look up each tag by name and map them to tag IDs.
     tagIds = tags.map((tagName) => { return getOrCreateTagByName(huntId, tagName)._id; });
 
-    var puzzle = Models.Puzzles.insert({
+    const puzzle = Models.Puzzles.insert({
       hunt: huntId,
       tags: tagIds,
       title: title,

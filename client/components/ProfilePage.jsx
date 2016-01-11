@@ -109,7 +109,7 @@ OwnProfilePage = React.createClass({
     this.setState({
       submitState: 'submitting',
     });
-    var newProfile = {
+    const newProfile = {
       displayName: this.state.displayNameValue,
       locationDuringHunt: this.state.locationDuringHuntValue,
       phoneNumber: this.state.phoneNumberValue,
@@ -252,9 +252,9 @@ ProfilePage = React.createClass({
   getMeteorData() {
     const uid = this.props.params.userId === 'me' ? Meteor.userId() : this.props.params.userId;
 
-    var profileHandle = this.context.subs.subscribe('mongo.profiles', {_id: uid});
-    var user = Meteor.user();
-    var defaultEmail = user && user.emails && user.emails.length > 0 && user.emails[0] && user.emails[0].address;
+    const profileHandle = this.context.subs.subscribe('mongo.profiles', {_id: uid});
+    const user = Meteor.user();
+    const defaultEmail = user && user.emails && user.emails.length > 0 && user.emails[0] && user.emails[0].address;
     let data = {
       ready: user && profileHandle.ready(),
       isSelf: (Meteor.userId() === uid),

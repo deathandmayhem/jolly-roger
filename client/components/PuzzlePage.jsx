@@ -578,9 +578,9 @@ PuzzlePageContent = React.createClass({
   },
 });
 
-var findPuzzleById = function(puzzles, id) {
-  for (var i = 0; i < puzzles.length; i++) {
-    var puzzle = puzzles[i];
+const findPuzzleById = function(puzzles, id) {
+  for (let i = 0; i < puzzles.length; i++) {
+    const puzzle = puzzles[i];
     if (puzzle._id === id) {
       return puzzle;
     }

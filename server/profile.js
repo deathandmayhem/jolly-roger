@@ -10,9 +10,9 @@ Meteor.methods({
       remote: Boolean,
       affiliation: String,
     });
-    var user = Meteor.users.findOne(this.userId);
-    var primaryEmail = user.emails[0].address;
-    var result = Models.Profiles.update({
+    const user = Meteor.users.findOne(this.userId);
+    const primaryEmail = user.emails[0].address;
+    const result = Models.Profiles.update({
       _id: this.userId,
     }, {
       $set: {
