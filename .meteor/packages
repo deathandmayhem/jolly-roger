@@ -17,15 +17,11 @@ standard-minifiers
 meteor-base
 mobile-experience
 mongo
-blaze-html-templates
-session
-jquery
-tracker
+static-html
 logging
 reload
 random
 ejson
-spacebars
 check
 react
 cosmos:browserify
@@ -34,7 +30,6 @@ server-deps
 jr-components
 blanche
 percolate:migrations
-facts
 service-configuration
 oauth
 google
