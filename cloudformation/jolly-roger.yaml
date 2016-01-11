@@ -369,6 +369,18 @@ Resources:
                   - ''
               - ''
               - 'write_files:'
+              - '  - path: /etc/nginx-https/proxy.conf'
+              - '    content: |'
+              - '      proxy_cache_path /var/cache/nginx/cache levels=1:2 keys_zone=assets:10m;'
+              - '      # HTTP 1.1 support'
+              - '      proxy_http_version 1.1;'
+              - '      proxy_buffering off;'
+              - '      proxy_set_header Host $http_host;'
+              - '      proxy_set_header Upgrade $http_upgrade;'
+              - '      proxy_set_header Connection $proxy_connection;'
+              - '      proxy_set_header X-Real-IP $remote_addr;'
+              - '      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;'
+              - '      proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;'
               - Fn::Join:
                   - ''
                   -
@@ -376,6 +388,10 @@ Resources:
                     - {Ref: AppUrl}
               - '    content: |'
               - '      listen 444 ssl http2 proxy_protocol default_server;'
+              - '      proxy_cache assets;'
+              - '      gzip on;'
+              - '      gzip_comp_level 9;'
+              - '      gzip_proxied any;'
               - '  - path: /etc/nginx-http/conf.d/default.conf'
               - '    content: |'
               - '      server {'
@@ -468,7 +484,7 @@ Resources:
                     - {Ref: AppUrl}
                     - '.key'
 
-              - '  - docker run --name nginx-https -d --restart=unless-stopped -p 444:444 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d -v /etc/nginx-https/certs:/etc/nginx/certs jwilder/nginx-proxy'
+              - '  - docker run --name nginx-https -d --restart=unless-stopped -p 444:444 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/proxy.conf:/etc/nginx/proxy.conf -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d -v /etc/nginx-https/certs:/etc/nginx/certs jwilder/nginx-proxy'
               - '  - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock centurylink/watchtower --interval 30 --cleanup'
     DependsOn:
       - InternetGatewayAttachment
