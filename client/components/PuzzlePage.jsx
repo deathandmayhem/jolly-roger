@@ -55,11 +55,11 @@ ChatMessage = React.createClass({
   },
 
   render() {
-    // TODO: consider how we want to format dates, if the day was yesterday, or many days ago.
-    // This is ugly, but moment.js is huge
-    let hours = this.props.message.timestamp.getHours();
-    let minutes = this.props.message.timestamp.getMinutes();
-    let ts = `${hours < 10 ? '0' + hours : '' + hours}:${minutes < 10 ? '0' + minutes : '' + minutes}`;
+    const ts = moment(this.props.message.timestamp).calendar(null, {
+      sameDay: 'LT',
+      lastDay: 'LT',
+      nextDay: 'LT',
+    });
 
     return (
       <div style={this.styles.message}>

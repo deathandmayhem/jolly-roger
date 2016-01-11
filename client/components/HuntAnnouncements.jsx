@@ -22,7 +22,7 @@ const Announcement = React.createClass({
           <button type="button" className="messenger-close" onClick={this.dismiss}>×</button>
           <div className="messenger-message-inner">
             <div dangerouslySetInnerHTML={{__html: marked(this.props.announcement.message, {sanitize: true})}}/>
-            <footer>- Posted by {this.props.createdBy.displayName} at {'' + this.props.announcement.createdAt}</footer>
+            <footer>- Posted by {this.props.createdBy.displayName} at {moment(this.props.announcement.createdAt).calendar()}</footer>
           </div>
           <div className="messenger-spinner">
             <span className="messenger-spinner-side messenger-spinner-side-left">

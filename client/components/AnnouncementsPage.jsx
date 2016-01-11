@@ -80,7 +80,7 @@ Announcement = React.createClass({
     return (
       <div className="announcement" style={{marginTop: '8', marginBottom: '8', padding: '8', backgroundColor: '#eeeeee'}}>
         <div style={{textAlign: 'right'}}>
-          <div style={{textAlign: 'right'}}>{'' + ann.createdAt}</div>
+          <div style={{textAlign: 'right'}}>{moment(ann.createdAt).calendar()}</div>
           <div>{this.props.indexedProfiles[ann.createdBy].displayName}</div>
         </div>
         <div dangerouslySetInnerHTML={{__html: marked(ann.message, {sanitize: true})}}/>
