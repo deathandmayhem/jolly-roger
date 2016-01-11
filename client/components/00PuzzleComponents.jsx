@@ -274,12 +274,11 @@ Puzzle = React.createClass({
     const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
     const tagIndex = _.indexBy(this.props.tags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
-    const sortedTags = sortedTagsForSinglePuzzle(tags);
     return (
       <div className="puzzle" style={this.styles.puzzle}>
         <div className="title" style={this.styles.title}><Link to={linkTarget}>{this.props.puzzle.title}</Link></div>
         {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
-        <TagList tags={sortedTags} />
+        <TagList tags={tags} />
       </div>
     );
   },
@@ -314,7 +313,6 @@ TagList = React.createClass({
   displayName: 'TagList',
   mixins: [PureRenderMixin],
   propTypes: {
-    // The parent is responsible for passing in the tags in the order they should be displayed.
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     onCreateTag: React.PropTypes.func, // if provided, will show UI for adding a new tag
     onRemoveTag: React.PropTypes.func, // callback if user wants to remove a tag
@@ -380,10 +378,11 @@ TagList = React.createClass({
   },
 
   render() {
+    let tags = sortedTagsForSinglePuzzle(this.props.tags);
     let components = [];
-    for (let i = 0; i < this.props.tags.length; i++) {
-      components.push(<Tag key={this.props.tags[i]._id}
-                           tag={this.props.tags[i]}
+    for (let i = 0; i < tags.length; i++) {
+      components.push(<Tag key={tags[i]._id}
+                           tag={tags[i]}
                            onRemove={this.state.removing ? this.removeTag : undefined} />);
     }
 
