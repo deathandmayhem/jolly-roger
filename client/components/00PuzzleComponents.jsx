@@ -7,12 +7,14 @@ const tagShape = Schemas.Tags.asReactPropTypes();
 
 const soloTagInterestingness = (tag) => {
   if (tag.name === 'is:metameta') {
-    return -4;
+    return -5;
   } else if (tag.name === 'is:meta') {
-    return -3;
+    return -4;
   } else if (tag.name.lastIndexOf('meta-for:', 0) === 0) {
-    return -2;
+    return -3;
   } else if (tag.name.lastIndexOf('meta:', 0) === 0) {
+    return -2;
+  } else if (tag.name.lastIndexOf('round:', 0) === 0) {
     return -1;
   } else {
     return 0;
