@@ -416,6 +416,18 @@ Resources:
               - 'runcmd:'
               - '  - set -eux'
 
+              # Whatever happens, let cloudformation know
+              - '  - pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz'
+              - Fn::Join:
+                  - ''
+                  -
+                    - '  - cleanup() { ret=$?; cfn-signal -e $ret -r "runcmds complete" --stack='
+                    - {Ref: "AWS::StackName"}
+                    - ' --region='
+                    - {Ref: "AWS::Region"}
+                    - ' --resource=AppAsg; exit $ret; }'
+              - '  - trap cleanup EXIT'
+
               - '  - mkswap /dev/xvdf'
               - '  - swapon -a'
 
@@ -493,20 +505,21 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       HealthCheckType: ELB
-      HealthCheckGracePeriod: 900
+      HealthCheckGracePeriod: 1800
       LaunchConfigurationName: {Ref: AppLaunchConfig}
       VPCZoneIdentifier:
         - {Ref: PublicSubnet1}
         - {Ref: PublicSubnet2}
-      MaxSize: 1
+      MaxSize: 2
       MinSize: 1
       LoadBalancerNames:
         - {Ref: AppElb}
     UpdatePolicy:
       AutoScalingRollingUpdate:
-        WaitOnResourceSignals: false
+        WaitOnResourceSignals: true
+        PauseTime: PT30M
         MinSuccessfulInstancesPercent: 100
-        MinInstancesInService: 0
+        MinInstancesInService: 1
 
   AppDns:
     Type: AWS::Route53::RecordSet
