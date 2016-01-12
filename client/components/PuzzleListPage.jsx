@@ -126,6 +126,231 @@ AddPuzzleForm = React.createClass({
   },
 });
 
+PuzzleListView = React.createClass({
+  displayName: 'PuzzleListView',
+  propTypes: {
+    huntId: React.PropTypes.string.isRequired,
+    canAdd: React.PropTypes.bool.isRequired,
+    puzzles: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Puzzles.asReactPropTypes()
+      )
+    ).isRequired,
+    tags: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Tags.asReactPropTypes()
+      )
+    ).isRequired,
+  },
+
+  getInitialState() {
+    return {
+      displayMode: 'group', // One of ['group', 'unlock']
+      showSolved: true,
+      searchString: '',
+    };
+  },
+
+  onSearchStringChange() {
+    const newString = this.refs.searchBar.getValue();
+    this.setState({searchString: newString});
+  },
+
+  compileMatcher(searchKeys) {
+    const tagNames = _.indexBy(this.props.tags, '_id');
+    return function(puzzle) {
+      // for key in searchKeys:
+      //   if key in title or key in answer:
+      //     return true
+      //   if key is a substring of a tag:
+      //     return true
+      // return false
+      for (let i = 0; i < searchKeys.length; i++) {
+        const key = searchKeys[i].toLowerCase();
+        if (puzzle.title.toLowerCase().indexOf(key) !== -1 ||
+            (puzzle.answer && (puzzle.answer.toLowerCase().indexOf(key) !== -1))) {
+          return true;
+        }
+
+        for (let j = 0; j < puzzle.tags.length; j++) {
+          const tagName = tagNames[puzzle.tags[j]].name;
+          if (tagName.indexOf(key) !== -1) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    };
+  },
+
+  filteredPuzzles(puzzles) {
+    const searchKeys = this.state.searchString.split(' ');
+    let interestingPuzzles;
+
+    if (searchKeys.length === 1 && searchKeys[0] === '') {
+      // No search query, so no need to do fancy search computation
+      interestingPuzzles = puzzles;
+    } else {
+      const searchKeysWithEmptyKeysRemoved = _.filter(searchKeys, (key) => { return key.length > 0; });
+      const isInteresting = this.compileMatcher(searchKeysWithEmptyKeysRemoved);
+      interestingPuzzles = _.filter(puzzles, isInteresting);
+    }
+
+    if (this.state.showSolved) {
+      return interestingPuzzles;
+    } else {
+      return _.filter(interestingPuzzles, (puzzle) => { return !puzzle.answer; });
+    }
+  },
+
+  puzzlesByUnlock() {
+    // Sort and group after filtering
+    const filteredPuzzles = this.filteredPuzzles(this.props.puzzles);
+
+    // Sort by creation timestamp
+    return _.sortBy(filteredPuzzles, (puzzle) => { return puzzle.createdAt; });
+  },
+
+  puzzleGroupsByRelevance() {
+    // First, filter puzzles by search keys and unsolved (if selected).
+    const filteredPuzzles = this.filteredPuzzles(this.props.puzzles);
+
+    // Extract remaining puzzles into groups.  Collect puzzles that appear in no groups into a final
+    // group, "ungrouped".  Each group (except ungrouped) has shape:
+    // {
+    //   sharedTag: (tag shape),
+    //   puzzles: [(puzzle shape)],
+    // }
+
+    const groupsMap = {}; // Maps tag id to list of puzzles holding that tag.
+    const ungroupedPuzzles = []; // For collecting puzzles that are not included in any group
+    const tagsByIndex = _.indexBy(this.props.tags, '_id');
+    for (let i = 0; i < filteredPuzzles.length; i++) {
+      const puzzle = filteredPuzzles[i];
+      let grouped = false;
+      for (let j = 0; j < puzzle.tags.length; j++) {
+        const tag = tagsByIndex[puzzle.tags[j]];
+        if (tag.name.lastIndexOf('group:', 0) === 0) {
+          grouped = true;
+          if (!groupsMap[tag._id]) {
+            groupsMap[tag._id] = [];
+          }
+
+          groupsMap[tag._id].push(puzzle);
+        }
+      }
+
+      if (!grouped) {
+        ungroupedPuzzles.push(puzzle);
+      }
+    }
+
+    // Collect groups into a list.
+    const groups = _.map(_.keys(groupsMap), (key) => {
+      const val = groupsMap[key];
+      return {
+        sharedTag: tagsByIndex[key],
+        puzzles: val,
+      };
+    });
+
+    // Add the ungrouped puzzles too, if there are any.
+    if (ungroupedPuzzles.length > 0) {
+      groups.push({
+        puzzles: ungroupedPuzzles,
+      });
+    }
+
+    // TODO: Sort groups by interestingness.
+    // The most interesting groups are the ones that have an unsolved meta.
+    // The ungrouped puzzles group is in the middle.
+    // The least interesting groups are the ones that have a solved meta.
+    // Within an interestingness class, sort tags by creation date, which should roughly match hunt order.
+    groups.sort((a, b) => {
+      return 0;
+    });
+
+    return groups;
+  },
+
+  clearSearch() {
+    this.setState({searchString: ''});
+  },
+
+  switchView(newMode) {
+    this.setState({
+      displayMode: newMode,
+    });
+  },
+
+  changeShowSolved(event) {
+    this.setState({
+      showSolved: event.target.checked,
+    });
+  },
+
+  render() {
+    const clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>;
+    let bodyComponent;
+    switch (this.state.displayMode) {
+      case 'group':
+        const puzzleGroups = this.puzzleGroupsByRelevance();
+        const groupComponents = puzzleGroups.map((g) => {
+          if (g.sharedTag) {
+            return <RelatedPuzzleGroup key={g.sharedTag._id}
+                                       sharedTag={g.sharedTag}
+                                       relatedPuzzles={g.puzzles}
+                                       allTags={this.props.tags}
+                                       includeCount={false}
+                                       />;
+          } else {
+            return (
+              <div key='ungrouped'>
+                <div>Puzzles in no group:</div>
+                <PuzzleList puzzles={g.puzzles} tags={this.props.tags} />
+              </div>
+            );
+          }
+        });
+        bodyComponent = (
+          <div>
+            {groupComponents}
+          </div>
+        );
+        break;
+      case 'unlock':
+        const puzzles = this.puzzlesByUnlock();
+        bodyComponent = <PuzzleList puzzles={puzzles} tags={this.props.tags} />;
+        break;
+    }
+    return (
+      <div>
+        <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+          <span>View puzzles by:</span>
+          <BS.Nav activeKey={this.state.displayMode} bsStyle='pills' onSelect={this.switchView}>
+            <BS.NavItem eventKey={'group'}>Group</BS.NavItem>
+            <BS.NavItem eventKey={'unlock'}>Unlock order</BS.NavItem>
+          </BS.Nav>
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'flex-begin'}}>
+          <div>
+            <BS.Input type="checkbox" label="Show solved" checked={this.state.showSolved} onChange={this.changeShowSolved} />
+          </div>
+          </div>
+          {this.props.canAdd ? <AddPuzzleForm huntId={this.props.huntId}/> : <span />}
+        </div>
+        <BS.Input id="jr-puzzle-search" type="text" label="Search" placeholder="search by title, answer, or tag"
+                  value={this.state.searchString}
+                  ref="searchBar"
+                  buttonAfter={clearButton}
+                  onChange={this.onSearchStringChange}
+        />
+        {bodyComponent}
+      </div>
+    );
+  },
+});
+
 PuzzleListPage = React.createClass({
   mixins: [ReactMeteorData],
 
@@ -164,10 +389,7 @@ PuzzleListPage = React.createClass({
       return <span>loading...</span>;
     } else {
       return (
-        <div>
-          {this.data.canAdd && <AddPuzzleForm huntId={this.props.params.huntId}/>}
-          <FilteringPuzzleSet puzzles={this.data.allPuzzles} tags={this.data.allTags} />
-        </div>
+        <PuzzleListView huntId={this.props.params.huntId} canAdd={this.data.canAdd} puzzles={this.data.allPuzzles} tags={this.data.allTags} />
       );
     }
   },

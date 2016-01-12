@@ -7,14 +7,12 @@ const tagShape = Schemas.Tags.asReactPropTypes();
 
 const soloTagInterestingness = (tag) => {
   if (tag.name === 'is:metameta') {
-    return -6;
-  } else if (tag.name === 'is:meta') {
     return -5;
-  } else if (tag.name.lastIndexOf('meta-for:', 0) === 0) {
+  } else if (tag.name === 'is:meta') {
     return -4;
-  } else if (tag.name.lastIndexOf('meta:', 0) === 0) {
+  } else if (tag.name.lastIndexOf('meta-for:', 0) === 0) {
     return -3;
-  } else if (tag.name.lastIndexOf('round:', 0) === 0) {
+  } else if (tag.name.lastIndexOf('group:', 0) === 0) {
     return -2;
   } else if (tag.name.lastIndexOf('needs:', 0) === 0) {
     return -1;
@@ -47,23 +45,19 @@ const sortedTagsForSinglePuzzle = (tags) => {
 
 const relatedPuzzlesTagInterestingness = (tag, metaForTagIfKnown) => {
   // Maps a tag into an interestingness class.  Smaller numbers are more interesting.
-  // meta: tags go at the beginning of the list, because you're
+  // group: tags go at the beginning of the list, because you're
   // most interested in the other puzzles from this meta/round.
-  if (tag.name.lastIndexOf('meta:', 0) === 0) {
+  if (tag.name.lastIndexOf('group:', 0) === 0) {
     // If this puzzle has a meta-for:<something> tag, prioritize the
     // meta:<something> tag over all the others.
     if (metaForTagIfKnown) {
       const metaTagName = metaForTagIfKnown.name.slice('meta-for:'.length);
-      const thisMetaName = tag.name.slice('meta:'.length);
+      const thisMetaName = tag.name.slice('group:'.length);
       if (metaTagName === thisMetaName) {
-        return -3;
+        return -2;
       }
     }
 
-    return -2;
-  } else if (tag.name.lastIndexOf('round:', 0) === 0) {
-    // Round groupings, if provided, are more interesting than other tags because they
-    // are about hunt structure
     return -1;
   } else {
     // Otherwise, use sort order
@@ -96,12 +90,12 @@ const puzzleHasTag = (puzzle, tag) => {
   return _.contains(puzzle.tags, tag._id);
 };
 
-const puzzleInterestingness = (puzzle, indexedTags, meta) => {
-  // If the shared tag for this group is meta:<something>, then meta will equal '<something>', and
+const puzzleInterestingness = (puzzle, indexedTags, group) => {
+  // If the shared tag for this group is group:<something>, then group will equal '<something>', and
   // we wish to sort a puzzle named 'meta-for:<something>' at the top.
   let desiredTagName;
-  if (meta) {
-    desiredTagName = 'meta-for:' + meta;
+  if (group) {
+    desiredTagName = 'meta-for:' + group;
   }
 
   let minScore = 0;
@@ -109,6 +103,7 @@ const puzzleInterestingness = (puzzle, indexedTags, meta) => {
   for (let i = 0; i < puzzle.tags.length; i++) {
     const tag = indexedTags[puzzle.tags[i]];
     if (desiredTagName && tag.name === desiredTagName) {
+      // Matching meta gets sorted top.
       minScore = Math.min(-3, minScore);
     } else if (tag.name === 'is:metameta') {
       // Metameta sorts above meta.
@@ -124,15 +119,15 @@ const puzzleInterestingness = (puzzle, indexedTags, meta) => {
 
 const sortPuzzlesByRelevanceWithinPuzzleGroup = function(puzzles, sharedTag, indexedTags) {
   // If sharedTag is a meta:<something> tag, sort a puzzle with a meta-for:<something> tag at top.
-  let meta;
-  if (sharedTag.name.lastIndexOf('meta:', 0) === 0) {
-    const meta = sharedTag.name.slice('meta:'.length);
+  let group;
+  if (sharedTag.name.lastIndexOf('group:', 0) === 0) {
+    group = sharedTag.name.slice('group:'.length);
   }
 
   let sortedPuzzles = _.toArray(puzzles);
   sortedPuzzles.sort((a, b) => {
-    const ia = puzzleInterestingness(a, indexedTags, meta);
-    const ib = puzzleInterestingness(b, indexedTags, meta);
+    const ia = puzzleInterestingness(a, indexedTags, group);
+    const ib = puzzleInterestingness(b, indexedTags, group);
     if (ia !== ib) {
       return ia - ib;
     } else {
@@ -143,84 +138,6 @@ const sortPuzzlesByRelevanceWithinPuzzleGroup = function(puzzles, sharedTag, ind
 
   return sortedPuzzles;
 };
-
-FilteringPuzzleSet = React.createClass({
-  displayName: 'FilteringPuzzleSet',
-  propTypes: {
-    puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
-    tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
-  },
-  getInitialState() {
-    return {
-      searchString: '',
-    };
-  },
-
-  onSearchStringChange() {
-    const newString = this.refs.searchBar.getValue();
-    this.setState({searchString: newString});
-  },
-
-  compileMatcher(searchKeys) {
-    let tagNames = _.indexBy(this.props.tags, '_id');
-    return function(puzzle) {
-      // for key in searchKeys:
-      //   if key in title or key in answer:
-      //     return true
-      //   if key is a substring of a tag:
-      //     return true
-      // return false
-      for (let i = 0; i < searchKeys.length; i++) {
-        const key = searchKeys[i].toLowerCase();
-        if (puzzle.title.toLowerCase().indexOf(key) !== -1 ||
-            (puzzle.answer && (puzzle.answer.toLowerCase().indexOf(key) !== -1))) {
-          return true;
-        }
-
-        for (let j = 0; j < puzzle.tags.length; j++) {
-          const tagName = tagNames[puzzle.tags[j]].name;
-          if (tagName.indexOf(key) !== -1) {
-            return true;
-          }
-        }
-      }
-
-      return false;
-    };
-  },
-
-  filteredPuzzles(puzzles) {
-    const searchKeys = this.state.searchString.split(' ');
-    if (searchKeys.length === 1 && searchKeys[0] === '') return puzzles;
-    const isInteresting = this.compileMatcher(_.filter(searchKeys, (key) => { return key.length > 0; }));
-    return _.filter(puzzles, isInteresting);
-  },
-
-  sortedFilteredPuzzles(puzzles) {
-    // TODO: implement sorting
-    return this.filteredPuzzles(puzzles);
-  },
-
-  clearSearch() {
-    this.setState({searchString: ''});
-  },
-
-  render() {
-    const puzzles = this.sortedFilteredPuzzles(this.props.puzzles);
-    const clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>;
-    return (
-      <div>
-        <BS.Input id="jr-puzzle-search" type="text" label="Search" placeholder="search by title, answer, or tag"
-                  value={this.state.searchString}
-                  ref="searchBar"
-                  buttonAfter={clearButton}
-                  onChange={this.onSearchStringChange}
-        />
-        <PuzzleList puzzles={puzzles} tags={this.props.tags} />
-      </div>
-    );
-  },
-});
 
 PuzzleList = React.createClass({
   displayName: 'PuzzleList',
@@ -512,7 +429,7 @@ Tag = React.createClass({
     metaFor: {
       background: '#ffb0b0',
     },
-    metaGroup: {
+    group: {
       background: '#7fffff',
     },
     needs: {
@@ -534,14 +451,14 @@ Tag = React.createClass({
   render() {
     const name = this.props.tag.name;
     const isMeta = name === 'is:meta' || name === 'is:metameta';
-    const isMetaGroup = name.lastIndexOf('meta:', 0) === 0;
+    const isGroup = name.lastIndexOf('group:', 0) === 0;
     const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
     const isNeeds = name.lastIndexOf('needs:', 0) === 0;
     const styles = _.extend(
       {},
       this.styles.base,
       isMeta && this.styles.meta,
-      isMetaGroup && this.styles.metaGroup,
+      isGroup && this.styles.group,
       isMetaFor && this.styles.metaFor,
       isNeeds && this.styles.needs,
       this.props.onClick && this.styles.interactive,
@@ -557,32 +474,58 @@ Tag = React.createClass({
 
 RelatedPuzzleGroup = React.createClass({
   displayName: 'RelatedPuzzleGroup',
+
   propTypes: {
     sharedTag: React.PropTypes.shape(tagShape).isRequired,
     relatedPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+    includeCount: React.PropTypes.bool,
   },
+
+  getInitialState() {
+    return {
+      collapsed: false,
+    };
+  },
+
   styles: {
-    tagWrapper: {
-      display: 'block',
-    },
     group: {
       marginBottom: '16',
+    },
+    tagWrapper: {
+      display: 'block',
     },
     puzzleListWrapper: {
       paddingLeft: '16',
     },
   },
+
+  toggleCollapse() {
+    this.setState({
+      collapsed: !this.state.collapsed,
+    });
+  },
+
   render() {
+    // Sort the puzzles within each tag group by interestingness.  For instance, metas
+    // should probably be at the top of the group, then of the round puzzles, unsolved should
+    // maybe sort above solved, and then perhaps by unlock order.
+    const tagIndex = _.indexBy(this.props.allTags, '_id');
+    const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(this.props.relatedPuzzles, this.props.sharedTag, tagIndex);
+
     return (
       <div style={this.styles.group}>
-        <div style={this.styles.tagWrapper}>
+        <div style={this.styles.tagWrapper} onClick={this.toggleCollapse}>
+          {this.state.collapsed ?
+              <span className="glyphicon glyphicon-chevron-up"></span> :
+              <span className="glyphicon glyphicon-chevron-down"></span>}
           <Tag tag={this.props.sharedTag} />
-          <span>{'(' + this.props.relatedPuzzles.length + ' other ' + (this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles') + ')'}</span>
+          {this.props.includeCount && <span>{'(' + this.props.relatedPuzzles.length + ' other ' + (this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles') + ')'}</span>}
         </div>
+        {this.state.collapsed ? null :
         <div style={this.styles.puzzleListWrapper}>
-          <PuzzleList puzzles={this.props.relatedPuzzles} tags={this.props.allTags} />
-        </div>
+          <PuzzleList puzzles={sortedPuzzles} tags={this.props.allTags} />
+        </div>}
       </div>
     );
   },
@@ -616,15 +559,10 @@ RelatedPuzzleGroups = React.createClass({
       const tag = activePuzzleTags[tagi];
       const puzzles = puzzlesWithTagIdExcept(this.props.allPuzzles, tag._id, this.props.activePuzzle._id);
 
-      // Next, sort the puzzles within each tag group by interestingness.  For instance, metas
-      // should probably be at the top of the group, then of the round puzzles, unsolved should
-      // maybe sort above solved, and then perhaps by unlock order.
-      const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(puzzles, tag, tagIndex);
-
-      if (sortedPuzzles.length) {
-        // Only include a tag/puzzleset if there are actually puzzles other than the activePuzzle
-        // that hold this tag.
-        groups.push({tag: tag, puzzles: sortedPuzzles});
+      // Only include a tag/puzzleset if there are actually puzzles other than the activePuzzle
+      // that hold this tag.
+      if (puzzles.length) {
+        groups.push({tag: tag, puzzles: puzzles});
       }
     }
 
@@ -642,7 +580,8 @@ RelatedPuzzleGroups = React.createClass({
           return <RelatedPuzzleGroup key={g.tag._id}
                                      sharedTag={g.tag}
                                      relatedPuzzles={g.puzzles}
-                                     allTags={allTags} />;
+                                     allTags={allTags}
+                                     includeCount={true}/>;
         }) : <span>No tags for this puzzle yet.</span>
         }
       </div>
