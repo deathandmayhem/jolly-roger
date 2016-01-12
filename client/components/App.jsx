@@ -76,7 +76,7 @@ SharedNavbar = React.createClass({
               </BS.NavItem>
             </RRBS.LinkContainer>
           </BS.Nav>
-          {opreatorSwitch}
+          {operatorSwitch}
           <BS.Nav pullRight>
             <BS.DropdownButton id='profileDropdown' bsStyle='default' title={this.data.displayName} navbar={true} className="navbar-btn">
               <RRBS.LinkContainer to={`/users/${this.data.userId}`}>
