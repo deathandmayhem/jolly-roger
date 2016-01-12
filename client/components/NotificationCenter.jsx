@@ -61,6 +61,10 @@ const GuessMessage = React.createClass({
 
   mixins: [PureRenderMixin, MessageMixin],
 
+  focusGuess() {
+    this.refs.guess.select();
+  },
+
   markCorrect() {
     Meteor.call('markGuessCorrect', this.props.guess._id);
   },
@@ -75,10 +79,17 @@ const GuessMessage = React.createClass({
 
   render() {
     return (
-      <li className={this.slotClasses()}>
+      <li className={this.slotClasses()} onClick={this.focusGuess}>
         <div className={this.messageClasses('info')}>
           <MessengerContent>
-            Guess for <a href={this.props.puzzle.url}>{this.props.puzzle.title}</a>: {this.props.guess.guess}
+            Guess for <a href={this.props.puzzle.url} target="_blank">{this.props.puzzle.title}</a>:
+            {' '}
+            <input ref="guess"
+                   type="text"
+                   readonly
+                   size={this.props.guess.guess.length}
+                   style={{background: 'transparent', outline: 'none', border: 0, padding: 0}}
+                   value={this.props.guess.guess}/>
           </MessengerContent>
           <div className="messenger-actions">
             <a onClick={this.markCorrect}>Correct</a>
