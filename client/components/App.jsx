@@ -14,7 +14,7 @@ SharedNavbar = React.createClass({
 
     const operator = Roles.userHasRole(userId, 'admin');
     const user = Meteor.user();
-    let operating = user.profile && user.profile.operating;
+    let operating = user && user.profile && user.profile.operating;
     if (operating === undefined) {
       operating = true;
     }
