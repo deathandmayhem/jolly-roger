@@ -1,4 +1,5 @@
 const BS = ReactBootstrap;
+const {Link} = ReactRouter;
 
 PureRenderMixin = React.addons.PureRenderMixin;
 
@@ -451,7 +452,7 @@ PuzzlePageMetadata = React.createClass({
       <div className="puzzle-metadata" style={this.styles.metadata}>
         <div style={this.styles.row}>
           {this.props.puzzle.url && <div style={this.styles.right}><a target="_blank" href={this.props.puzzle.url}>Puzzle link</a></div>}
-          <div style={this.styles.left}><strong>{this.props.puzzle.title}</strong> {answerComponent}</div>
+          <div style={this.styles.left}><Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link> / <strong>{this.props.puzzle.title}</strong> {answerComponent}</div>
         </div>
         <div style={this.styles.row}>
           <div style={this.styles.right}><BS.Button style={this.styles.button} onClick={this.showGuessModal}>Submit answer</BS.Button></div>
