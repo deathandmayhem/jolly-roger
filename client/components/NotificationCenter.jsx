@@ -53,14 +53,38 @@ const MessageMixin = {
   },
 };
 
-const MessengerMessage = React.createClass({
+const GuessMessage = React.createClass({
+  propTypes: {
+    guess: React.PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
+    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+  },
+
   mixins: [PureRenderMixin, MessageMixin],
+
+  markCorrect() {
+    Meteor.call('markGuessCorrect', this.props.guess._id);
+  },
+
+  markIncorrect() {
+    Meteor.call('markGuessIncorrect', this.props.guess._id);
+  },
+
+  markRejected() {
+    Meteor.call('markGuessRejected', this.props.guess._id);
+  },
 
   render() {
     return (
       <li className={this.slotClasses()}>
         <div className={this.messageClasses('info')}>
-          {this.props.children}
+          <MessengerContent>
+            Guess for <a href={this.props.puzzle.url}>{this.props.puzzle.title}</a>: {this.props.guess.guess}
+          </MessengerContent>
+          <div className="messenger-actions">
+            <a onClick={this.markCorrect}>Correct</a>
+            <a onClick={this.markIncorrect}>Incorrect</a>
+            <a onClick={this.markRejected}>Reject</a>
+          </div>
           <MessengerSpinner/>
         </div>
       </li>
@@ -179,27 +203,50 @@ NotificationCenter = React.createClass({
   },
 
   getMeteorData() {
+    const operator = Roles.userHasRole(Meteor.userId(), 'admin');
+
+    const user = Meteor.user();
+    let operating = user && user.profile && user.profile.operating;
+    if (operating === undefined) {
+      operating = true;
+    }
+
+    // Yes this is hideous, but it just makes the logic easier
+    let guessesHandle = {ready: () => true};
+    let puzzlesHandle = {ready: () => true};
+    if (Roles.userHasRole(Meteor.userId(), 'admin') && operating) {
+      guessesHandle = this.context.subs.subscribe('mongo.guesses', {state: 'pending'});
+      puzzlesHandle = this.context.subs.subscribe('mongo.puzzles');
+    }
+
     // This is overly broad, but we likely already have the data cached locally
     const profilesHandle = this.context.subs.subscribe('mongo.profiles');
     const announcementsHandle = this.context.subs.subscribe('mongo.announcements');
-    if (!profilesHandle.ready() || !announcementsHandle.ready()) {
-      // Don't start trying to render anything until we can actually
-      // find the announcement text.
-      return {ready: false};
-    }
 
     const query = {
       user: Meteor.userId(),
     };
     const paHandle = this.context.subs.subscribe('mongo.pending_announcements', query);
-    if (!paHandle.ready()) {
+
+    // Don't even try to put things together until we have the announcements loaded
+    if (!profilesHandle.ready() || !announcementsHandle.ready()) {
       return {ready: false};
     }
 
     const data = {
-      ready: true,
+      ready: guessesHandle.ready() && puzzlesHandle.ready() && paHandle.ready(),
       announcements: [],
+      guesses: [],
     };
+
+    if (operator && operating) {
+      Models.Guesses.find({state: 'pending'}, {sort: {createdAt: -1}}).forEach((guess) => {
+        data.guesses.push({
+          guess,
+          puzzle: Models.Puzzles.findOne(guess.puzzle),
+        });
+      });
+    }
 
     Models.PendingAnnouncements.find(query, {sort: {createdAt: -1}}).forEach((pa) => {
       const announcement = Models.Announcements.findOne(pa.announcement);
@@ -227,7 +274,11 @@ NotificationCenter = React.createClass({
       messages.push([SlackMessage, {key: 'slack'}]);
     }
 
-    _.forEach(this.data.announcements, (a, idx) => {
+    _.forEach(this.data.guesses, (g) => {
+      messages.push([GuessMessage, _.extend({key: g.guess._id}, g)]);
+    });
+
+    _.forEach(this.data.announcements, (a) => {
       messages.push([
         AnnouncementMessage, {
           key: a.pa._id,
