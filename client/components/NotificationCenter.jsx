@@ -244,10 +244,13 @@ NotificationCenter = React.createClass({
       return {ready: false};
     }
 
+    const profile = Models.Profiles.findOne(Meteor.userId());
+
     const data = {
       ready: guessesHandle.ready() && puzzlesHandle.ready() && paHandle.ready(),
       announcements: [],
       guesses: [],
+      slackConfigured: profile && profile.slackHandle,
     };
 
     if (operator && operating) {
@@ -280,8 +283,7 @@ NotificationCenter = React.createClass({
     const messages = [];
     let i = 0;
 
-    const profile = Models.Profiles.findOne(Meteor.userId());
-    if (!profile || !profile.slackHandle) {
+    if (!this.data.slackConfigured) {
       messages.push([SlackMessage, {key: 'slack'}]);
     }
 
