@@ -1,15 +1,29 @@
-const Announcement = React.createClass({
+const PureRenderMixin = React.addons.PureRenderMixin;
+
+const MessengerDismissButton = React.createClass({
+  mixins: [PureRenderMixin],
   propTypes: {
-    id: React.PropTypes.string,
-    announcement: React.PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
-    createdBy: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired,
-    oldest: React.PropTypes.bool.isRequired,
-    newest: React.PropTypes.bool.isRequired,
+    onDismiss: React.PropTypes.func.isRequired,
   },
 
-  dismiss() {
-    Ansible.log('Clearing annoucement', {announcement: this.props.announcement._id, user: Meteor.userId(), pa: this.props.id});
-    Models.PendingAnnouncements.remove(this.props.id);
+  render() {
+    return <button type="button" className="messenger-close" onClick={this.props.onDismiss}>×</button>;
+  },
+});
+
+const MessengerContent = React.createClass({
+  mixins: [PureRenderMixin],
+  render() {
+    return <div className="messenger-message-inner">{this.props.children}</div>;
+  },
+});
+
+const MessengerMessage = React.createClass({
+  mixins: [PureRenderMixin],
+
+  propTypes: {
+    oldest: React.PropTypes.bool.isRequired,
+    newest: React.PropTypes.bool.isRequired,
   },
 
   render() {
@@ -20,11 +34,7 @@ const Announcement = React.createClass({
     return (
       <li className={classes}>
         <div className="messenger-message message alert info message-info alert-info">
-          <button type="button" className="messenger-close" onClick={this.dismiss}>×</button>
-          <div className="messenger-message-inner">
-            <div dangerouslySetInnerHTML={{__html: marked(this.props.announcement.message, {sanitize: true})}}/>
-            <footer>- Posted by {this.props.createdBy.displayName} at {moment(this.props.announcement.createdAt).calendar()}</footer>
-          </div>
+          {this.props.children}
           <div className="messenger-spinner">
             <span className="messenger-spinner-side messenger-spinner-side-left">
               <span className="messenger-spinner-fill"></span>
@@ -35,6 +45,32 @@ const Announcement = React.createClass({
           </div>
         </div>
       </li>
+    );
+  },
+});
+
+const Announcement = React.createClass({
+  mixins: [PureRenderMixin],
+
+  propTypes: {
+    id: React.PropTypes.string.isRequired,
+    announcement: React.PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
+    createdBy: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired,
+  },
+
+  onDismiss() {
+    Models.PendingAnnouncements.remove(this.props.id);
+  },
+
+  render() {
+    return (
+      <div>
+        <MessengerDismissButton onDismiss={this.onDismiss}/>
+        <MessengerContent>
+          <div dangerouslySetInnerHTML={{__html: marked(this.props.announcement.message, {sanitize: true})}}/>
+          <footer>- Posted by {this.props.createdBy.displayName} at {moment(this.props.announcement.createdAt).calendar()}</footer>
+        </MessengerContent>
+      </div>
     );
   },
 });
@@ -92,18 +128,29 @@ HuntAnnouncements = React.createClass({
     }
 
     const announcements = _.map(this.data.announcements, (a, idx) => {
-      return <Announcement
-                 key={a.pa._id}
-                 id={a.pa._id}
-                 announcement={a.announcement}
-                 createdBy={a.createdBy}
-                 newest={idx === 0}
-                 oldest={idx === this.data.announcements.length - 1}/>;
+      return (
+        <Announcement
+                key={a.pa._id}
+                id={a.pa._id}
+                announcement={a.announcement}
+                createdBy={a.createdBy}/>
+      );
+    });
+
+    const messages = _.map(announcements, (m, idx) => {
+      return (
+        <MessengerMessage
+                key={m.props.id}
+                newest={idx === 0}
+                oldest={idx === this.data.announcements.length - 1}>
+          {m}
+        </MessengerMessage>
+      );
     });
 
     return (
       <ul className="messenger messenger-fixed messenger-on-top messenger-on-right messenger-theme-flat">
-        {announcements}
+        {messages}
       </ul>
     );
   },
