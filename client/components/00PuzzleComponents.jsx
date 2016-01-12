@@ -7,14 +7,16 @@ const tagShape = Schemas.Tags.asReactPropTypes();
 
 const soloTagInterestingness = (tag) => {
   if (tag.name === 'is:metameta') {
-    return -5;
+    return -6;
   } else if (tag.name === 'is:meta') {
-    return -4;
+    return -5;
   } else if (tag.name.lastIndexOf('meta-for:', 0) === 0) {
-    return -3;
+    return -4;
   } else if (tag.name.lastIndexOf('meta:', 0) === 0) {
-    return -2;
+    return -3;
   } else if (tag.name.lastIndexOf('round:', 0) === 0) {
+    return -2;
+  } else if (tag.name.lastIndexOf('needs:', 0) === 0) {
     return -1;
   } else {
     return 0;
@@ -508,10 +510,13 @@ Tag = React.createClass({
       background: '#ffd57f',
     },
     metaFor: {
-      background: '#ff9a83',
+      background: '#ffb0b0',
     },
     metaGroup: {
       background: '#7fffff',
+    },
+    needs: {
+      background: '#ff4040',
     },
     interactive: {
       cursor: 'pointer',
@@ -531,12 +536,14 @@ Tag = React.createClass({
     const isMeta = name === 'is:meta' || name === 'is:metameta';
     const isMetaGroup = name.lastIndexOf('meta:', 0) === 0;
     const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
+    const isNeeds = name.lastIndexOf('needs:', 0) === 0;
     const styles = _.extend(
       {},
       this.styles.base,
       isMeta && this.styles.meta,
       isMetaGroup && this.styles.metaGroup,
       isMetaFor && this.styles.metaFor,
+      isNeeds && this.styles.needs,
       this.props.onClick && this.styles.interactive,
     );
     return (
