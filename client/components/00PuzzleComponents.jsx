@@ -260,14 +260,14 @@ Puzzle = React.createClass({
 
       //padding: "2",
       marginBottom: '4',
-      background: '#f0f0f0',
+      background: '#e5e5e5',
       verticalAlign: 'top',
     },
     unsolvedPuzzle: {
-      background: '#f0f0f0',
+      background: '#e5e5e5',
     },
     solvedPuzzle: {
-      background: '#f0fff0',
+      background: '#bfffbf',
     },
     title: {
       display: 'inline-block',
