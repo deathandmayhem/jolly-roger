@@ -47,7 +47,7 @@ Meteor.methods({
     }
 
     const puzzle = Models.Puzzles.findOne(puzzleId);
-    const url = Meteor.absoluteUrl(`/hunts/${puzzle.hunt}/puzzles/${puzzleId}`);
+    const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzleId}`);
     let title = puzzle.title;
     if (title.length > 25) {
       title = title.substring(0, 24) + '…';
