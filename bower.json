@@ -2,10 +2,12 @@
   "name": "jolly-roger",
   "private": true,
   "dependencies": {
-    "messenger": "https://github.com/HubSpot/messenger.git#v1.4.1"
+    "messenger": "https://github.com/HubSpot/messenger.git#v1.4.1",
+    "bootstrap-switch": "~3.3.2"
   },
   "ignoredDependencies": [
-    "jquery"
+    "jquery",
+    "bootstrap"
   ],
   "ignore": [
     "**/.*",
