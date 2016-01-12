@@ -67,6 +67,7 @@ FullscreenLayout = React.createClass({
   render() {
     return (
       <div>
+        <NotificationCenter/>
         <SharedNavbar {...this.props} />
         <div style={{position: 'fixed', top: '50', left: '0', right: '0', zIndex: '1'}}>
           <ConnectionStatus/>
@@ -83,6 +84,7 @@ ScrollableLayout = React.createClass({
   render() {
     return (
       <div>
+        <NotificationCenter/>
         <SharedNavbar {...this.props} />
         <div className="container" style={{paddingTop: 70}}>
           <ConnectionStatus/>

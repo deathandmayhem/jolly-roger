@@ -16,10 +16,7 @@ HuntApp = React.createClass({
     return (
       <DocumentTitle title={title}>
         <HuntMembershipVerifier huntId={this.props.params.huntId}>
-          <div>
-            <HuntAnnouncements huntId={this.props.params.huntId}/>
-            {this.props.children}
-          </div>
+          {React.Children.only(this.props.children)}
         </HuntMembershipVerifier>
       </DocumentTitle>
     );

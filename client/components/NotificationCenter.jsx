@@ -1,4 +1,4 @@
-const PureRenderMixin = React.addons.PureRenderMixin;
+const {PureRenderMixin} = React.addons;
 
 const MessengerDismissButton = React.createClass({
   mixins: [PureRenderMixin],
@@ -68,28 +68,24 @@ const Announcement = React.createClass({
         <MessengerDismissButton onDismiss={this.onDismiss}/>
         <MessengerContent>
           <div dangerouslySetInnerHTML={{__html: marked(this.props.announcement.message, {sanitize: true})}}/>
-          <footer>- Posted by {this.props.createdBy.displayName} at {moment(this.props.announcement.createdAt).calendar()}</footer>
+          <footer>- {this.props.createdBy.displayName}, {moment(this.props.announcement.createdAt).calendar()}</footer>
         </MessengerContent>
       </div>
     );
   },
 });
 
-HuntAnnouncements = React.createClass({
+NotificationCenter = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
     subs: JRPropTypes.subs,
   },
 
-  propTypes: {
-    huntId: React.PropTypes.string.isRequired,
-  },
-
   getMeteorData() {
     // This is overly broad, but we likely already have the data cached locally
     const profilesHandle = this.context.subs.subscribe('mongo.profiles');
-    const announcementsHandle = this.context.subs.subscribe('mongo.announcements', {hunt: this.props.huntId});
+    const announcementsHandle = this.context.subs.subscribe('mongo.announcements');
     if (!profilesHandle.ready() || !announcementsHandle.ready()) {
       // Don't start trying to render anything until we can actually
       // find the announcement text.
@@ -97,7 +93,6 @@ HuntAnnouncements = React.createClass({
     }
 
     const query = {
-      hunt: this.props.huntId,
       user: Meteor.userId(),
     };
     const paHandle = this.context.subs.subscribe('mongo.pending_announcements', query);
