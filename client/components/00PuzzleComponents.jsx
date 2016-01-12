@@ -260,7 +260,12 @@ Puzzle = React.createClass({
       marginBottom: '4',
       background: '#f0f0f0',
       verticalAlign: 'top',
-
+    },
+    unsolvedPuzzle: {
+      background: '#f0f0f0',
+    },
+    solvedPuzzle: {
+      background: '#f0fff0',
     },
     title: {
       display: 'inline-block',
@@ -274,8 +279,13 @@ Puzzle = React.createClass({
     const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
     const tagIndex = _.indexBy(this.props.tags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
+    const puzzleStyle = _.extend(
+      {},
+      this.styles.puzzle,
+      this.props.puzzle.answer ? this.styles.solvedPuzzle : this.styles.unsolvedPuzzle,
+    );
     return (
-      <div className="puzzle" style={this.styles.puzzle}>
+      <div className="puzzle" style={puzzleStyle}>
         <div className="title" style={this.styles.title}><Link to={linkTarget}>{this.props.puzzle.title}</Link></div>
         {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
         <TagList tags={tags} />
