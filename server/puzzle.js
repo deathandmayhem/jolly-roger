@@ -4,6 +4,7 @@ function getOrCreateTagByName(huntId, name) {
     return existingTag;
   }
 
+  Ansible.log('Creating a new tag', {hunt: huntId, name});
   let newTagId = Models.Tags.insert({hunt: huntId, name: name});
   return {
     _id: newTagId,
@@ -38,6 +39,7 @@ Meteor.methods({
     // Look up each tag by name and map them to tag IDs.
     tagIds = tags.map((tagName) => { return getOrCreateTagByName(huntId, tagName)._id; });
 
+    Ansible.log('Creating a new puzzle', {hunt: huntId, title, user: this.userId});
     const puzzle = Models.Puzzles.insert({
       hunt: huntId,
       tags: tagIds,
@@ -75,6 +77,8 @@ Meteor.methods({
     let huntId = hunt && hunt.hunt;
     if (!huntId) throw new Error('No puzzle known with id ' + puzzleId);
     let tagId = getOrCreateTagByName(huntId, newTagName)._id;
+
+    Ansible.log('Tagging puzzle', {puzzle: puzzleId, tag: newTagName});
     let changes = Models.Puzzles.update({
       _id: puzzleId,
     }, {
@@ -90,6 +94,8 @@ Meteor.methods({
     check(this.userId, String);
     check(puzzleId, String);
     check(tagId, String);
+
+    Ansible.log('Untagging puzzle', {puzzle: puzzleId, tag: tagId});
     Models.Puzzles.update({
       _id: puzzleId,
     }, {
@@ -118,6 +124,8 @@ Meteor.methods({
       Models.Locks.withLock(`puzzle:${puzzleId}:documents`, () => {
         doc = Models.Documents.findOne({puzzle: puzzleId});
         if (!doc) {
+          Ansible.log('Creating missing document for puzzle', {puzzle: puzzleId, user: this.userId});
+
           docId = createDocument(`${puzzle.title}: Death and Mayhem`, 'application/vnd.google-apps.spreadsheet');
           doc = {
             hunt: puzzle.hunt,

@@ -8,6 +8,7 @@ const Announcement = React.createClass({
   },
 
   dismiss() {
+    Ansible.log('Clearing annoucement', {announcement: this.props.announcement._id, user: Meteor.userId(), pa: this.props.id});
     Models.PendingAnnouncements.remove(this.props.id);
   },
 

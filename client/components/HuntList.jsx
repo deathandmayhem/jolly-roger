@@ -57,6 +57,7 @@ const Hunt = React.createClass({
   },
 
   onEdit(callback) {
+    Ansible.log('Updating hunt settings', {hunt: this.props.hunt._id, user: Meteor.userId()});
     Models.Hunts.update(
       {_id: this.props.hunt._id},
       {
@@ -153,8 +154,11 @@ HuntList = React.createClass({
   },
 
   onAdd(callback) {
+    const name = this.refs.addModal.refs['input:name'].getValue();
+
+    Ansible.log('Creating a new hunt', {name, user: Meteor.userId()});
     Models.Hunts.insert({
-      name: this.refs.addModal.refs['input:name'].getValue(),
+      name,
       mailingLists: this.refs.addModal.refs['input:mailingLists'].getValue().split(/[, ]+/),
     }, callback);
   },

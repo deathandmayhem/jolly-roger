@@ -6,6 +6,7 @@ Meteor.methods({
 
     Roles.checkPermission(this.userId, 'mongo.announcements.insert');
 
+    Ansible.log('Creating an announcement', {user: this.userId, hunt: huntId, message});
     const id = Models.Announcements.insert({
       hunt: huntId,
       message: message,

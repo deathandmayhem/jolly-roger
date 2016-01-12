@@ -1,5 +1,6 @@
 function transitionGuess(guess, newState) {
   if (newState === guess.state) return;
+
   Models.Guesses.update({
     _id: guess._id,
   }, {
@@ -44,6 +45,7 @@ Meteor.methods({
       _id: puzzleId,
     });
 
+    Ansible.log('New guess', {hunt: puzzle.hunt, puzzle: puzzleId, user: this.userId, guess});
     Models.Guesses.insert({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
@@ -56,6 +58,7 @@ Meteor.methods({
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     let guess = Models.Guesses.findOne(guessId);
+    Ansible.log('Transitioning guess to new state', {user: this.userId, guess: guess._id, state: 'pending'});
     transitionGuess(guess, 'pending');
   },
 
@@ -63,6 +66,7 @@ Meteor.methods({
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     let guess = Models.Guesses.findOne(guessId);
+    Ansible.log('Transitioning guess to new state', {user: this.userId, guess: guess._id, state: 'correct'});
     transitionGuess(guess, 'correct');
   },
 
@@ -70,6 +74,7 @@ Meteor.methods({
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     let guess = Models.Guesses.findOne(guessId);
+    Ansible.log('Transitioning guess to new state', {user: this.userId, guess: guess._id, state: 'incorrect'});
     transitionGuess(guess, 'incorrect');
   },
 
@@ -77,6 +82,7 @@ Meteor.methods({
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     let guess = Models.Guesses.findOne(guessId);
+    Ansible.log('Transitioning guess to new state', {user: this.userId, guess: guess._id, state: 'rejected'});
     transitionGuess(guess, 'rejected');
   },
 });

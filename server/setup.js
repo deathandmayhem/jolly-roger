@@ -11,7 +11,7 @@ Meteor.methods({
     const value = _.pick(
       credential.serviceData,
       'accessToken', 'refreshToken', 'expiresAt', 'email');
+    Ansible.log('Updating Gdrive creds', {email: credential.serviceData.email, user: this.userId});
     Models.Settings.upsert({name: 'gdrive.credential'}, {$set: {value}});
-    Ansible.log('Updated Gdrive creds', {email: credential.serviceData.email, user: this.userId});
   },
 });

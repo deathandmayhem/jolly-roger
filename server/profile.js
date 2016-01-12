@@ -12,6 +12,8 @@ Meteor.methods({
     });
     const user = Meteor.users.findOne(this.userId);
     const primaryEmail = user.emails[0].address;
+
+    Ansible.log('Updating profile for user', {user: this.userId});
     const result = Models.Profiles.update({
       _id: this.userId,
     }, {
