@@ -14,9 +14,20 @@ function getOrCreateTagByName(huntId, name) {
 }
 
 function createDocument(name, mimeType) {
-  const file = Meteor.wrapAsync(gdrive.files.create)({
-    resource: {name, mimeType},
-  });
+  const template = Models.Settings.findOne({name: 'gdrive.template'});
+
+  let file;
+  if (template) {
+    file = Meteor.wrapAsync(gdrive.files.copy)({
+      fileId: template.value.id,
+      resource: {name, mimeType},
+    });
+  } else {
+    file = Meteor.wrapAsync(gdrive.files.create)({
+      resource: {name, mimeType},
+    });
+  }
+
   const fileId = file.id;
 
   Meteor.wrapAsync(gdrive.permissions.create)({
