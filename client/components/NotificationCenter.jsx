@@ -57,6 +57,7 @@ const GuessMessage = React.createClass({
   propTypes: {
     guess: React.PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
     puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    onDismiss: React.PropTypes.func.isRequired,
   },
 
   mixins: [PureRenderMixin, MessageMixin],
@@ -77,16 +78,21 @@ const GuessMessage = React.createClass({
     Meteor.call('markGuessRejected', this.props.guess._id);
   },
 
+  dismissGuess() {
+    this.props.onDismiss(this.props.guess._id);
+  },
+
   render() {
     return (
       <li className={this.slotClasses()} onClick={this.focusGuess}>
         <div className={this.messageClasses('info')}>
+          <MessengerDismissButton onDismiss={this.dismissGuess}/>
           <MessengerContent>
             Guess for <a href={this.props.puzzle.url} target="_blank">{this.props.puzzle.title}</a>:
             {' '}
             <input ref="guess"
                    type="text"
-                   readonly
+                   readOnly
                    size={this.props.guess.guess.length}
                    style={{background: 'transparent', outline: 'none', border: 0, padding: 0}}
                    value={this.props.guess.guess}/>
@@ -105,6 +111,10 @@ const GuessMessage = React.createClass({
 
 const SlackMessage = React.createClass({
   mixins: [PureRenderMixin, MessageMixin],
+
+  propTypes: {
+    onDismiss: React.PropTypes.func.isRequired,
+  },
 
   getInitialState() {
     return {status: 'idle', errorMessage: null};
@@ -152,18 +162,19 @@ const SlackMessage = React.createClass({
 
     const actions = [];
     if (this.state.status === 'idle') {
-      actions.push(<a onClick={this.sendInvite}>Send me an invite</a>);
+      actions.push(<a key='invite' onClick={this.sendInvite}>Send me an invite</a>);
     }
 
-    actions.push(<Link to="/users/me">Edit my profile</Link>);
+    actions.push(<Link key='edit' to="/users/me">Edit my profile</Link>);
 
     if (this.state.status === 'success' || this.state.status === 'error') {
-      actions.push(<a onClick={this.reset}>Ok</a>);
+      actions.push(<a key='reset' onClick={this.reset}>Ok</a>);
     }
 
     return (
       <li className={this.slotClasses()}>
         <div className={classnames(this.messageClasses(type), this.state.status === 'submitting' && 'messenger-retry-soon')}>
+          <MessengerDismissButton onDismiss={this.props.onDismiss}/>
           <MessengerContent>
             {msg}
           </MessengerContent>
@@ -211,6 +222,13 @@ NotificationCenter = React.createClass({
 
   contextTypes: {
     subs: JRPropTypes.subs,
+  },
+
+  getInitialState() {
+    return {
+      hideSlackSetupMessage: false,
+      dismissedGuesses: {},
+    };
   },
 
   getMeteorData() {
@@ -274,6 +292,21 @@ NotificationCenter = React.createClass({
     return data;
   },
 
+  hideSlackSetupMessage() {
+    this.setState({
+      hideSlackSetupMessage: true,
+    });
+  },
+
+  dismissGuess(guessId) {
+    newState = {};
+    newState[guessId] = true;
+    _.extend(newState, this.state.dismissedGuesses);
+    this.setState({
+      dismissedGuesses: newState,
+    });
+  },
+
   render() {
     if (!this.data.ready) {
       return <div/>;
@@ -283,12 +316,13 @@ NotificationCenter = React.createClass({
     const messages = [];
     let i = 0;
 
-    if (!this.data.slackConfigured) {
-      messages.push([SlackMessage, {key: 'slack'}]);
+    if (!this.data.slackConfigured && !this.state.hideSlackSetupMessage) {
+      messages.push([SlackMessage, {key: 'slack', onDismiss: this.hideSlackSetupMessage}]);
     }
 
     _.forEach(this.data.guesses, (g) => {
-      messages.push([GuessMessage, _.extend({key: g.guess._id}, g)]);
+      if (this.state.dismissedGuesses[g.guess._id]) return;
+      messages.push([GuessMessage, _.extend({key: g.guess._id, onDismiss: this.dismissGuess}, g)]);
     });
 
     _.forEach(this.data.announcements, (a) => {

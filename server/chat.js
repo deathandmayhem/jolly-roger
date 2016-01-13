@@ -66,7 +66,7 @@ Meteor.methods({
           token: config.secret,
           channel: '#firehose',
           username,
-          link_names: 1,
+          link_names: 1, // jscs:ignore requireCamelCaseOrUpperCaseIdentifiers
           text: slackText,
         },
       });
