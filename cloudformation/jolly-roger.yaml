@@ -79,7 +79,7 @@ Parameters:
     Description: Maximum number of instances for app server ASG
     Type: Number
     Default: 2
-  AppDesiredSize:
+  AppDesiredCapacity:
     Description: Desired number of instances for app server ASG
     Type: Number
     Default: 1
@@ -530,7 +530,7 @@ Resources:
         - {Ref: PublicSubnet2}
       MaxSize: {Ref: AppMaxSize}
       MinSize: {Ref: AppMinSize}
-      DesiredSize: {Ref: AppDesiredSize}
+      DesiredCapacity: {Ref: AppDesiredCapacity}
       LoadBalancerNames:
         - {Ref: AppElb}
     UpdatePolicy:
