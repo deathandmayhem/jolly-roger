@@ -53,6 +53,7 @@ UserInvite = React.createClass({
 
             <form onSubmit={this.onSubmit} className="form-horizontal">
               <BS.Input
+                  id="jr-invite-email"
                   ref="email"
                   type="email"
                   label="E-mail address"

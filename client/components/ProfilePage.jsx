@@ -150,7 +150,8 @@ OwnProfilePage = React.createClass({
       <div>
         <h1>Account information</h1>
         {/*TODO: picture/gravatar*//*TODO: picture/gravatar*/}
-        <BS.Input type='text'
+        <BS.Input id="jr-profile-edit-email"
+                  type='text'
                   value={this.props.initialProfile.primaryEmail}
                   disabled={true}
                   label='Email address'
@@ -159,7 +160,8 @@ OwnProfilePage = React.createClass({
         {this.state.submitState === 'submitting' ? <BS.Alert bsStyle="info">Saving...</BS.Alert> : null}
         {this.state.submitState === 'success' ? <BS.Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</BS.Alert> : null}
         {this.state.submitState === 'error' ? <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.submitError}</BS.Alert> : null}
-        <BS.Input type='text'
+        <BS.Input id="jr-profile-edit-display-name"
+                  type='text'
                   value={this.state.displayNameValue}
                   disabled={shouldDisableForm}
                   label='Display name'
@@ -181,7 +183,8 @@ OwnProfilePage = React.createClass({
                             initialValue={this.state.localRemote}
                             help="This is useful to the operators, so we know what fraction of our team is local vs. remote."
                             onChange={this.setLocalRemote}/>
-        <BS.Input type='text'
+        <BS.Input id="jr-profile-edit-location"
+                  type='text'
                   value={this.state.locationDuringHuntValue}
                   label='Location during hunt'
                   disabled={shouldDisableForm}
@@ -189,7 +192,8 @@ OwnProfilePage = React.createClass({
                   ref='locationDuringHunt'
                   onChange={this.handleLocationFieldChange}
         />
-        <BS.Input type='text'
+        <BS.Input id="jr-profile-edit-phone"
+                  type='text'
                   value={this.state.phoneNumberValue}
                   label='Phone number (optional)'
                   disabled={shouldDisableForm}
@@ -197,7 +201,8 @@ OwnProfilePage = React.createClass({
                   ref='phoneNumber'
                   onChange={this.handlePhoneNumberFieldChange}
         />
-        <BS.Input type='text'
+        <BS.Input id="jr-profile-edit-slack"
+                  type='text'
                   value={this.state.slackHandleValue}
                   label='Slack handle (optional)'
                   disabled={shouldDisableForm}

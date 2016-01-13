@@ -74,7 +74,7 @@ ProfileList = React.createClass({
           <div>Local: {localCount}</div>
           <div>Remote: {remoteCount}</div>
         </div>
-        <BS.Input type="text" label="Search" placeholder="search by name..."
+        <BS.Input id="jr-profile-list-search" type="text" label="Search" placeholder="search by name..."
                   value={this.state.searchString} ref="searchBar"
                   buttonAfter={clearButton}
                   onChange={this.onSearchStringChange}/>

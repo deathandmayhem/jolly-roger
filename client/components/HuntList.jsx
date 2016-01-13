@@ -8,12 +8,14 @@ const HuntFormModal = React.createClass({
   },
 
   render() {
+    const idPrefix = this.props.hunt ? `jr-hunt-${this.props.hunt.id}-modal-` : 'jr-hunt-new-modal-';
     return (
       <JRC.ModalForm
           ref="form"
           title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
           onSubmit={this.props.onSubmit}>
         <BS.Input
+            id={`${idPrefix}name`}
             ref="input:name"
             type="text"
             label="Name"
@@ -22,6 +24,7 @@ const HuntFormModal = React.createClass({
             defaultValue={this.props.hunt && this.props.hunt.name}
             autoFocus="true"/>
         <BS.Input
+            id={`${idPrefix}mailing-lists`}
             ref="input:mailingLists"
             type="text"
             label="Mailing lists"

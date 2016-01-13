@@ -46,6 +46,7 @@ SharedNavbar = React.createClass({
     const operatorSwitch = this.data.operator && (
       <BS.Navbar.Form pullLeft>
         <BSSwitch ref="operating"
+                  id="jr-operator-toggle"
                   checked={this.data.operating}
                   onChange={this.setOperating}/>
         {' '}

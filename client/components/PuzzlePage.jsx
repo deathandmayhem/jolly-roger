@@ -470,6 +470,7 @@ PuzzlePageMetadata = React.createClass({
             submitLabel="Submit">
           {/* TODO: make this show past guesses */}
           <BS.Input
+              id="jr-puzzle-guess"
               ref="guess"
               type="text"
               label="Guess"

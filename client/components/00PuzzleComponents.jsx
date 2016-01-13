@@ -210,7 +210,7 @@ FilteringPuzzleSet = React.createClass({
     const clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>;
     return (
       <div>
-        <BS.Input type="text" label="Search" placeholder="search by title, answer, or tag"
+        <BS.Input id="jr-puzzle-search" type="text" label="Search" placeholder="search by title, answer, or tag"
                   value={this.state.searchString}
                   ref="searchBar"
                   buttonAfter={clearButton}
