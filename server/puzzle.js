@@ -137,14 +137,19 @@ Meteor.methods({
         if (!doc) {
           Ansible.log('Creating missing document for puzzle', {puzzle: puzzleId, user: this.userId});
 
-          docId = createDocument(`${puzzle.title}: Death and Mayhem`, 'application/vnd.google-apps.spreadsheet');
-          doc = {
-            hunt: puzzle.hunt,
-            puzzle: puzzleId,
-            type: 'google-spreadsheet',
-            value: {id: docId},
-          };
-          doc._id = Models.Documents.insert(doc);
+          try {
+            docId = createDocument(`${puzzle.title}: Death and Mayhem`, 'application/vnd.google-apps.spreadsheet');
+            doc = {
+              hunt: puzzle.hunt,
+              puzzle: puzzleId,
+              type: 'google-spreadsheet',
+              value: {id: docId},
+            };
+            doc._id = Models.Documents.insert(doc);
+          } catch (e) {
+            // Don't totally explode if document creation fails
+            Ansible.log('Failed to create a document!', {e});
+          }
         }
       });
     }
