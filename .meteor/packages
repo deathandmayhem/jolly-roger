@@ -39,3 +39,4 @@ mquandalle:bower
 momentjs:moment
 http
 jquery
+meteorhacks:cluster

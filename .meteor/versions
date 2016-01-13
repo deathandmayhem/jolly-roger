@@ -51,6 +51,7 @@ logging@1.0.8
 meteor@1.1.10
 meteor-base@1.0.1
 meteor-platform@1.2.3
+meteorhacks:cluster@1.6.9
 meteorhacks:inject-initial@1.0.3
 meteorhacks:kadira@2.26.3
 meteorhacks:meteorx@1.4.1
