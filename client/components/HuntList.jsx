@@ -179,9 +179,9 @@ HuntList = React.createClass({
     });
 
     // Insert mock data from 2015 hunt.
-    _.each(huntFixtures, (mockData, id) => {
-      hunts.push(<MockHunt key={id} hunt={mockData}/>);
-    });
+    //_.each(huntFixtures, (mockData, id) => {
+    //  hunts.push(<MockHunt key={id} hunt={mockData}/>);
+    //});
 
     return (
       <div id="jr-hunts">
