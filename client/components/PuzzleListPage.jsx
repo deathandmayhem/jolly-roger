@@ -66,6 +66,14 @@ AddPuzzleForm = React.createClass({
 
   render() {
     const disableForm = this.state.submitState === 'submitting';
+
+    const tagsHelp = (
+      <div>
+        <div>Separate tags with spaces.</div>
+        <div>TODO: show all existing tags here?  Clicking tag adds to list?</div>
+      </div>
+    );
+
     /* TODO: Bootstrap does some really annoying things with the gutter here,
        by specifying matching padding and negative margin on all the inputs.
        The end result is that you cannot make the input fields line up with any other text.
@@ -85,6 +93,8 @@ AddPuzzleForm = React.createClass({
             <BS.Input ref="title"
                       type="text"
                       label="Title"
+                      labelClassName="col-xs-3"
+                      wrapperClassName="col-xs-9"
                       autoFocus="true"
                       disabled={disableForm}
                       onChange={this.onTitleChange}
@@ -92,17 +102,20 @@ AddPuzzleForm = React.createClass({
             <BS.Input ref="url"
                       type="text"
                       label="URL"
+                      labelClassName="col-xs-3"
+                      wrapperClassName="col-xs-9"
                       disabled={disableForm}
                       onChange={this.onUrlChange}
                       value={this.state.url}/>
             <BS.Input ref="tags"
                       type="text"
                       label="Tags"
+                      help={tagsHelp}
+                      labelClassName="col-xs-3"
+                      wrapperClassName="col-xs-9"
                       disabled={disableForm}
                       onChange={this.onTagsChange}
                       value={this.state.tags}/>
-            <div>Separate tags with spaces.</div>
-            <div>TODO: show all existing tags here?  Clicking tag adds to list?</div>
             {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
         </JRC.ModalForm>
       </div>
