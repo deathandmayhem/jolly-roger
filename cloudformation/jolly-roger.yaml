@@ -71,6 +71,18 @@ Parameters:
     Description: Instance type to run for app server
     Type: String
     Default: t2.micro
+  AppMinSize:
+    Description: Minimum number of instances for app server ASG
+    Type: Number
+    Default: 1
+  AppMaxSize:
+    Description: Maximum number of instances for app server ASG
+    Type: Number
+    Default: 2
+  AppDesiredSize:
+    Description: Desired number of instances for app server ASG
+    Type: Number
+    Default: 1
   PapertrailHost:
     Description: Log host for Papertrail
     Type: String
@@ -355,6 +367,7 @@ Resources:
               - 'packages:'
               - '  - docker-engine'
               - '  - htop'
+              - '  - moreutils'
               - '  - python-dev'
               - '  - python-pip'
               - ''
@@ -369,6 +382,11 @@ Resources:
                   - ''
               - ''
               - 'write_files:'
+              - '  - path: /etc/cron.hourly/docker-cleanup'
+              - '    content: |'
+              - '      #!/bin/sh'
+              - '      chronic docker run -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/docker:/var/lib/docker --rm martin/docker-cleanup-volumes'
+              - '    permissions: "0755"'
               - '  - path: /etc/nginx-https/proxy.conf'
               - '    content: |'
               - '      proxy_cache_path /var/cache/nginx/cache levels=1:2 keys_zone=assets:10m;'
@@ -510,8 +528,9 @@ Resources:
       VPCZoneIdentifier:
         - {Ref: PublicSubnet1}
         - {Ref: PublicSubnet2}
-      MaxSize: 2
-      MinSize: 1
+      MaxSize: {Ref: AppMaxSize}
+      MinSize: {Ref: AppMinSize}
+      DesiredSize: {Ref: AppDesiredSize}
       LoadBalancerNames:
         - {Ref: AppElb}
     UpdatePolicy:
