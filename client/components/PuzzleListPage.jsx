@@ -3,13 +3,16 @@ const BS = ReactBootstrap;
 AddPuzzleForm = React.createClass({
   propTypes: {
     huntId: React.PropTypes.string.isRequired,
+    tags: React.PropTypes.arrayOf(
+      React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
+    ).isRequired,
   },
 
   getInitialState() {
     return {
       title: '',
       url: '',
-      tags: '',
+      tags: [],
       submitState: 'idle',
       errorMessage: '',
     };
@@ -33,20 +36,17 @@ AddPuzzleForm = React.createClass({
 
   onTagsChange(event) {
     this.setState({
-      tags: event.target.value,
+      tags: $(event.target).val(),
     });
   },
 
   submitPuzzle() {
     const _this = this;
 
-    // TODO: do something smarter with tags. really.  needs autocomplete, and ideally a preview of
-    // what tags you're about to create, as seen by the tag system
-    const tags = _.filter(this.state.tags.split(' '), (tag) => { return !!tag; });
     this.setState({
       submitState: 'submitting',
     });
-    Meteor.call('createPuzzle', this.props.huntId, this.state.title, this.state.url, tags, (error) => {
+    Meteor.call('createPuzzle', this.props.huntId, this.state.title, this.state.url, this.state.tags, (error) => {
       if (error) {
         _this.setState({
           submitState: 'failed',
@@ -57,7 +57,7 @@ AddPuzzleForm = React.createClass({
           submitState: 'idle',
           title: '',
           url: '',
-          tags: '',
+          tags: [],
         });
         _this.refs.form.close();
       }
@@ -67,20 +67,8 @@ AddPuzzleForm = React.createClass({
   render() {
     const disableForm = this.state.submitState === 'submitting';
 
-    const tagsHelp = (
-      <div>
-        <div>Separate tags with spaces.</div>
-        <div>TODO: show all existing tags here?  Clicking tag adds to list?</div>
-      </div>
-    );
+    const allTags = _.compact(_.union(this.props.tags.map((t) => t.name), this.state.tags));
 
-    /* TODO: Bootstrap does some really annoying things with the gutter here,
-       by specifying matching padding and negative margin on all the inputs.
-       The end result is that you cannot make the input fields line up with any other text.
-       Furthermore, even React-Bootstrap's input labels do not use the <label> element,
-       which is worse for accessibility and means you can't click on the label text and
-       focus the desired input.  I am pretty close to throwing a bunch of this away and
-       reimplementing it myself. */
     return (
       <div>
         <div style={{textAlign: 'right'}}>
@@ -109,16 +97,21 @@ AddPuzzleForm = React.createClass({
                       disabled={disableForm}
                       onChange={this.onUrlChange}
                       value={this.state.url}/>
-            <BS.Input ref="tags"
-                      id="jr-new-puzzle-tags"
-                      type="text"
+            <BS.Input id="jr-new-puzzle-tags"
                       label="Tags"
-                      help={tagsHelp}
                       labelClassName="col-xs-3"
-                      wrapperClassName="col-xs-9"
-                      disabled={disableForm}
-                      onChange={this.onTagsChange}
-                      value={this.state.tags}/>
+                      wrapperClassName="col-xs-9">
+              <ReactSelect2
+                  ref="tags"
+                  id="jr-new-puzzle-tags"
+                  data={allTags}
+                  multiple
+                  disabled={disableForm}
+                  onChange={this.onTagsChange}
+                  value={this.state.tags}
+                  options={{tags: true, tokenSeparators: [',', ' ']}}
+                  style={{width: '100%'}}/>
+            </BS.Input>
             {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
         </JRC.ModalForm>
       </div>
@@ -379,7 +372,7 @@ PuzzleListView = React.createClass({
             <BS.Input type="checkbox" label="Show solved" checked={this.state.showSolved} onChange={this.changeShowSolved} />
           </div>
           </div>
-          {this.props.canAdd ? <AddPuzzleForm huntId={this.props.huntId}/> : <span />}
+          {this.props.canAdd ? <AddPuzzleForm huntId={this.props.huntId} tags={this.props.tags}/> : <span />}
         </div>
         <BS.Input id="jr-puzzle-search" type="text" label="Search" placeholder="search by title, answer, or tag"
                   value={this.state.searchString}
