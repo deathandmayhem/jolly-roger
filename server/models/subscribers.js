@@ -58,10 +58,12 @@ Models.Subscribers = new class extends Meteor.Collection {
     // Servers get 15 seconds to update before their records are
     // GC'd. Should be long enough to account for transients
     const timeout = moment().subtract('15', 'seconds').toDate();
-    this.remove({$or: [
-      {updatedAt: {$ne: null, $lt: timeout}},
-      {updatedAt: null, createdAt: {$lt: timeout}},
-    ]});
+    this.remove({
+      $or: [
+        {updatedAt: {$ne: null, $lt: timeout}},
+        {updatedAt: null, createdAt: {$lt: timeout}},
+      ],
+    });
   }
 
   periodic() {
