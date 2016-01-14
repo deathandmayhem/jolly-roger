@@ -118,6 +118,7 @@ Puzzle = React.createClass({
         padding: '2',
         margin: '2',
         verticalAlign: 'top',
+        wordBreak: 'break-word',
       },
       puzzleLink: {
         flex: '0 0 10%',
@@ -129,6 +130,7 @@ Puzzle = React.createClass({
       answer: {
         flex: '0 0 20%',
         display: 'inline-block',
+        wordBreak: 'break-word',
       },
       tags: {
         flex: '0 0 45%',
