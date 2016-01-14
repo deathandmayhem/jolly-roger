@@ -620,7 +620,10 @@ PuzzlePage = React.createClass({
 
     // Keep a count of how many people are viewing a puzzle. Don't use
     // the subs manager - we don't want this cached
-    Meteor.subscribe('subCounter', `puzzle:${this.props.params.puzzleId}`);
+    Meteor.subscribe('subCounter.inc', `puzzle:${this.props.params.puzzleId}`, {
+      puzzle: this.props.params.puzzleId,
+      hunt: this.props.params.huntId,
+    });
 
     const profileHandle = this.context.subs.subscribe('mongo.profiles');
     const profiles = profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};

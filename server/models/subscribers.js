@@ -19,6 +19,10 @@ Schemas.Subscribers = new SimpleSchema({
   name: {
     type: String,
   },
+  context: {
+    type: Object,
+    blackbox: true,
+  },
   createdAt: {
     type: Date,
     autoValue() {
@@ -70,39 +74,79 @@ Models.Subscribers = new class extends Meteor.Collection {
     this.cleanup();
     Meteor.setTimeout(this.periodic.bind(this), 2.5 + (2.5 * Random.fraction()));
   }
-};
+}();
 Models.Subscribers.attachSchema(Schemas.Subscribers);
 
-Meteor.publish('subCounter', function(name, countMe=true) {
+Meteor.publish('subCounter.inc', function(name, context) {
   check(name, String);
-  check(countMe, Boolean);
+  check(context, Object);
 
-  if (countMe) {
-    const doc = Models.Subscribers.insert({
-      server: serverId,
-      connection: this.connection.id,
-      name,
-    });
-    this.onStop(() => Models.Subscribers.remove(doc));
+  if (!this.userId) {
+    return [];
   }
 
-  let counter = 0;
-  this.added('subCounter', name, {counter});
+  const doc = Models.Subscribers.insert({
+    server: serverId,
+    connection: this.connection.id,
+    name,
+    context,
+  });
+  this.onStop(() => Models.Subscribers.remove(doc));
 
-  const cursor = Models.Subscribers.find({name});
-  const handle = cursor.observeChanges({
-    added: () => {
-      counter += 1;
-      this.changed('subCounter', name, {counter});
+  return [];
+});
+
+// Ugh I tried to build something generic and it means our
+// permissioning totally breaks down. For now, we'll let anyone
+// (logged in) subscribe to any counter because Hunt is tomorrow and I
+// don't think counts are thaaat sensitive, especially if you can't
+// even look up the puzzle ids
+Meteor.publish('subCounter.fetch', function(q) {
+  check(q, Object);
+
+  const query = {};
+  _.each(q, (v, k) => {
+    if (k.startsWith('$')) {
+      throw new Meteor.Error(400, 'Special query terms are not allowed');
+    }
+
+    query[`context.${k}`] = v;
+  });
+
+  let initialized = false;
+  const counters = {};
+
+  const cursor = Models.Subscribers.find(query);
+  const handle = cursor.observe({
+    added: (doc) => {
+      const {name} = doc;
+      if (!_.has(counters, name)) {
+        counters[name] = 0;
+
+        if (initialized) {
+          this.added('subCounter', name, {value: 0});
+        }
+      }
+
+      counters[name] += 1;
+      if (initialized) {
+        this.changed('subCounter', name, {value: counters[name]});
+      }
     },
 
-    removed: () => {
-      counter -= 1;
-      this.changed('subCounter', name, {counter});
+    removed: (doc) => {
+      const {name} = doc;
+
+      counters[name] -= 1;
+      if (initialized) {
+        this.changed('subCounter', name, {value: counters[name]});
+      }
     },
   });
   this.onStop(() => handle.stop());
 
+  _.each(counters, (val, key) => this.added('subCounter', key, {value: val}));
+  initialized = true;
   this.ready();
 });
 
