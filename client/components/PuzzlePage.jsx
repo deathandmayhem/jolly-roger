@@ -329,6 +329,7 @@ PuzzlePageMetadata = React.createClass({
         Schemas.Profiles.asReactPropTypes()
       ).isRequired
     ).isRequired,
+    activeViewCount: React.PropTypes.number.isRequired,
   },
 
   getInitialState() {
@@ -450,11 +451,12 @@ PuzzlePageMetadata = React.createClass({
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
     const answerComponent = this.props.puzzle.answer ? <span style={this.styles.answer}>{`Solved: ${this.props.puzzle.answer}`}</span> : null;
+    const viewCountComponent = this.props.puzzle.answer ? null : `(viewing: ${this.props.activeViewCount})`;
     return (
       <div className="puzzle-metadata" style={this.styles.metadata}>
         <div style={this.styles.row}>
           {this.props.puzzle.url && <div style={this.styles.right}><a target="_blank" href={this.props.puzzle.url}>Puzzle link</a></div>}
-          <div style={this.styles.left}><Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link> / <strong>{this.props.puzzle.title}</strong> {answerComponent}</div>
+          <div style={this.styles.left}><Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link> / <strong>{this.props.puzzle.title}</strong> {viewCountComponent}{answerComponent}</div>
         </div>
         <div style={this.styles.row}>
           <div style={this.styles.right}><BS.Button style={this.styles.button} onClick={this.showGuessModal}>Submit answer</BS.Button></div>
@@ -562,6 +564,7 @@ PuzzlePageContent = React.createClass({
         Schemas.Documents.asReactPropTypes()
       ).isRequired,
     ).isRequired,
+    activeViewCount: React.PropTypes.number.isRequired,
   },
   styles: {
     flex: '4 4 80%',
@@ -575,7 +578,8 @@ PuzzlePageContent = React.createClass({
         <PuzzlePageMetadata puzzle={this.props.puzzle}
                             allTags={this.props.allTags}
                             guesses={this.props.guesses}
-                            profiles={this.props.profiles} />
+                            profiles={this.props.profiles}
+                            activeViewCount={this.props.activeViewCount} />
         <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
       </div>
     );
@@ -715,6 +719,7 @@ PuzzlePage = React.createClass({
                              chatMessages={this.data.chatMessages}
                              profiles={this.data.profiles} />
           <PuzzlePageContent puzzle={activePuzzle}
+                             activeViewCount={this.data.viewCounts[`puzzle:${this.props.params.puzzleId}`] || 0}
                              allTags={this.data.allTags}
                              guesses={this.data.allGuesses}
                              profiles={this.data.profiles}
