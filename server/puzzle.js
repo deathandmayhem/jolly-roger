@@ -116,6 +116,24 @@ Meteor.methods({
     });
   },
 
+  renameTag(tagId, newName) {
+    check(this.userId, String);
+    check(tagId, String);
+    check(newName, String);
+
+    let tag = Models.Tags.findOne(tagId);
+    if (tag) {
+      Ansible.log('Renaming tag', {tag: tagId, newName: newName});
+      Models.Tags.update({
+        _id: tagId,
+      }, {
+        $set: {
+          name: newName,
+        },
+      });
+    }
+  },
+
   ensureDocument(puzzleId) {
     check(puzzleId, String);
 
