@@ -178,8 +178,7 @@ Puzzle = React.createClass({
       <div className="puzzle" style={puzzleStyle}>
         <div className="title" style={layoutStyles.title}>
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
-          {' '}
-          (viewing: {this.props.viewCount})
+          {this.props.puzzle.answer ?  null : ` (viewing: ${this.props.viewCount})`}
         </div>
         {this.props.layout === 'grid' ?
           <div className="puzzle-link" style={layoutStyles.puzzleLink}>
