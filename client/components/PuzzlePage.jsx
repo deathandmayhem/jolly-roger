@@ -618,6 +618,10 @@ PuzzlePage = React.createClass({
     // * Related puzzles probably only needs puzzles and tags, but right now it just gets the same
     //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
 
+    // Keep a count of how many people are viewing a puzzle. Don't use
+    // the subs manager - we don't want this cached
+    Meteor.subscribe('subCounter', `puzzle:${this.props.params.puzzleId}`);
+
     const profileHandle = this.context.subs.subscribe('mongo.profiles');
     const profiles = profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
 
