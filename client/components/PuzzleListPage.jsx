@@ -262,16 +262,58 @@ PuzzleListView = React.createClass({
       });
     }
 
-    // TODO: Sort groups by interestingness.
-    // The most interesting groups are the ones that have an unsolved meta.
-    // The ungrouped puzzles group is in the middle.
-    // The least interesting groups are the ones that have a solved meta.
+    // Sort groups by interestingness.
     // Within an interestingness class, sort tags by creation date, which should roughly match hunt order.
     groups.sort((a, b) => {
-      return 0;
+      const ia = this.interestingnessOfGroup(a, tagsByIndex);
+      const ib = this.interestingnessOfGroup(b, tagsByIndex);
+      if (ia !== ib) return ia - ib;
+      return a.sharedTag.createdAt - b.sharedTag.createdAt;
     });
 
     return groups;
+  },
+
+  interestingnessOfGroup(group, indexedTags) {
+    // Rough idea: sort, from top to bottom:
+    // -2 Group with unsolved puzzle with matching meta-for:<this group>
+    // -1 Group with some other unsolved is:meta puzzle
+    //  0 Groups with no metas yet
+    //  1 Ungrouped puzzles
+    //  2 Groups with a solved puzzle with matching meta-for:<this group>
+    const puzzles = group.puzzles;
+    const sharedTag = group.sharedTag;
+
+    // ungrouped puzzles go after groups, esp. after groups with a known unsolved meta.
+    // Guarantees that if ia === ib, then sharedTag exists.
+    if (!sharedTag) return 1;
+
+    // Look for a puzzle with meta-for: (this group's shared tag)
+    let metaForTag;
+    if (sharedTag && sharedTag.name.lastIndexOf('group:', 0) === 0) {
+      metaForTag = 'meta-for:' + sharedTag.name.slice('group:'.length);
+    }
+
+    let hasUnsolvedMeta = false;
+    for (let i = 0; i < puzzles.length; i++) {
+      const puzzle = puzzles[i];
+      for (let j = 0; j < puzzle.tags.length; j++) {
+        const tag = indexedTags[puzzle.tags[j]];
+        if (metaForTag && tag.name === metaForTag) {
+          // This puzzle is meta-for: the group.
+          if (puzzle.answer) {
+            return 2;
+          } else {
+            return -2;
+          }
+        } else if (tag.name === 'is:meta' && !puzzle.answer) {
+          hasUnsolvedMeta = true;
+        }
+      }
+    }
+
+    if (hasUnsolvedMeta) return -1;
+    return 0;
   },
 
   clearSearch() {
