@@ -357,7 +357,7 @@ PuzzleListView = React.createClass({
         break;
       case 'unlock':
         const puzzles = this.puzzlesByUnlock();
-        bodyComponent = <PuzzleList puzzles={puzzles} tags={this.props.tags} />;
+        bodyComponent = <PuzzleList puzzles={puzzles} tags={this.props.tags} layout="grid"/>;
         break;
     }
     return (
