@@ -64,6 +64,7 @@ PuzzleList = React.createClass({
   propTypes: {
     puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+    layout: React.PropTypes.string.isRequired,
   },
   render() {
     // This component just renders the puzzles provided, in order.
@@ -72,7 +73,7 @@ PuzzleList = React.createClass({
     let puzzles = [];
     for (let i = 0; i < this.props.puzzles.length; i++) {
       const puz = this.props.puzzles[i];
-      puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} />);
+      puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} layout={this.props.layout} />);
     }
 
     return (
@@ -89,12 +90,11 @@ Puzzle = React.createClass({
   propTypes: {
     puzzle: React.PropTypes.shape(puzzleShape).isRequired,
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+    layout: React.PropTypes.string.isRequired,
   },
   styles: {
+    // TODO: turn this horrid mess into CSS
     puzzle: {
-      display: 'block',
-
-      //padding: "2",
       marginBottom: '4',
       background: '#e5e5e5',
       verticalAlign: 'top',
@@ -105,11 +105,54 @@ Puzzle = React.createClass({
     solvedPuzzle: {
       background: '#bfffbf',
     },
-    title: {
-      display: 'inline-block',
-      padding: '2',
-      margin: '2',
-      verticalAlign: 'top',
+    gridLayout: {
+      puzzle: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        justifyContent: 'flex-start',
+      },
+      title: {
+        flex: '0 0 25%',
+        display: 'inline-block',
+        padding: '2',
+        margin: '2',
+        verticalAlign: 'top',
+      },
+      puzzleLink: {
+        flex: '0 0 10%',
+        display: 'inline-block',
+        padding: '2',
+        margin: '2',
+        verticalAlign: 'top',
+      },
+      answer: {
+        flex: '0 0 20%',
+        display: 'inline-block',
+      },
+      tags: {
+        flex: '0 0 45%',
+        display: 'inline-block',
+      },
+    },
+    inlineLayout: {
+      puzzle: {
+        display: 'block',
+      },
+      title: {
+        display: 'inline-block',
+        padding: '2',
+        margin: '2',
+        verticalAlign: 'top',
+      },
+      answer: {
+        display: 'inline-block',
+        verticalAlign: 'top',
+      },
+      tags: {
+        display: 'inline-block',
+        verticalAlign: 'top',
+      },
     },
   },
   render() {
@@ -117,15 +160,29 @@ Puzzle = React.createClass({
     const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
     const tagIndex = _.indexBy(this.props.tags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
+    const layoutStyles = {
+      grid: this.styles.gridLayout,
+      inline: this.styles.inlineLayout,
+    }[this.props.layout];
     const puzzleStyle = _.extend(
       {},
       this.styles.puzzle,
+      layoutStyles.puzzle,
       this.props.puzzle.answer ? this.styles.solvedPuzzle : this.styles.unsolvedPuzzle,
     );
     return (
       <div className="puzzle" style={puzzleStyle}>
-        <div className="title" style={this.styles.title}><Link to={linkTarget}>{this.props.puzzle.title}</Link></div>
-        {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
+        <div className="title" style={layoutStyles.title}>
+          <Link to={linkTarget}>{this.props.puzzle.title}</Link>
+        </div>
+        {this.props.layout === 'grid' ?
+          <div className="puzzle-link" style={layoutStyles.puzzleLink}>
+            {this.props.puzzle.url ? <span>(<Link to={this.props.puzzle.url}>puzzle</Link>)</span> : null }
+          </div> :
+          null}
+        <div className="puzzle-answer" style={layoutStyles.answer}>
+          {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
+        </div>
         <TagList tags={tags} />
       </div>
     );
@@ -147,12 +204,13 @@ PuzzleAnswer = React.createClass({
     },
     answer: {
       textTransform: 'uppercase',
+      fontFamily: 'monospace',
       fontWeight: 'bold',
     },
   },
   render() {
     return (
-      <span className="answer" style={this.styles.wrapper}>ans: <span style={this.styles.answer}>{this.props.answer}</span></span>
+      <span className="answer" style={this.styles.wrapper}><span style={this.styles.answer}>{this.props.answer}</span></span>
     );
   },
 });
@@ -436,6 +494,7 @@ RelatedPuzzleGroup = React.createClass({
     relatedPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     includeCount: React.PropTypes.bool,
+    layout: React.PropTypes.string.isRequired,
   },
 
   getInitialState() {
@@ -480,7 +539,7 @@ RelatedPuzzleGroup = React.createClass({
         </div>
         {this.state.collapsed ? null :
         <div style={this.styles.puzzleListWrapper}>
-          <PuzzleList puzzles={sortedPuzzles} tags={this.props.allTags} />
+          <PuzzleList puzzles={sortedPuzzles} tags={this.props.allTags} layout={this.props.layout}/>
         </div>}
       </div>
     );
@@ -581,7 +640,9 @@ RelatedPuzzleGroups = React.createClass({
                                      sharedTag={g.tag}
                                      relatedPuzzles={g.puzzles}
                                      allTags={allTags}
-                                     includeCount={true}/>;
+                                     includeCount={true}
+                                     layout="inline"
+                                     />;
         }) : <span>No tags for this puzzle yet.</span>
         }
       </div>
