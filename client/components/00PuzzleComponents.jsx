@@ -65,6 +65,7 @@ PuzzleList = React.createClass({
     puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     layout: React.PropTypes.string.isRequired,
+    viewCounts: React.PropTypes.object.isRequired,
   },
   render() {
     // This component just renders the puzzles provided, in order.
@@ -73,7 +74,7 @@ PuzzleList = React.createClass({
     let puzzles = [];
     for (let i = 0; i < this.props.puzzles.length; i++) {
       const puz = this.props.puzzles[i];
-      puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} layout={this.props.layout} />);
+      puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} viewCount={this.props.viewCounts[`puzzle:${puz._id}`] || 0} layout={this.props.layout} />);
     }
 
     return (
@@ -90,6 +91,7 @@ Puzzle = React.createClass({
   propTypes: {
     puzzle: React.PropTypes.shape(puzzleShape).isRequired,
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+    viewCount: React.PropTypes.number.isRequired,
     layout: React.PropTypes.string.isRequired,
   },
   styles: {
@@ -176,6 +178,8 @@ Puzzle = React.createClass({
       <div className="puzzle" style={puzzleStyle}>
         <div className="title" style={layoutStyles.title}>
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
+          {' '}
+          (viewing: {this.props.viewCount})
         </div>
         {this.props.layout === 'grid' ?
           <div className="puzzle-link" style={layoutStyles.puzzleLink}>
@@ -497,6 +501,7 @@ RelatedPuzzleGroup = React.createClass({
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     includeCount: React.PropTypes.bool,
     layout: React.PropTypes.string.isRequired,
+    viewCounts: React.PropTypes.object.isRequired,
   },
 
   getInitialState() {
@@ -541,7 +546,7 @@ RelatedPuzzleGroup = React.createClass({
         </div>
         {this.state.collapsed ? null :
         <div style={this.styles.puzzleListWrapper}>
-          <PuzzleList puzzles={sortedPuzzles} tags={this.props.allTags} layout={this.props.layout}/>
+          <PuzzleList puzzles={sortedPuzzles} tags={this.props.allTags} viewCounts={this.props.viewCounts} layout={this.props.layout}/>
         </div>}
       </div>
     );
@@ -554,6 +559,7 @@ RelatedPuzzleGroups = React.createClass({
     activePuzzle: React.PropTypes.shape(puzzleShape).isRequired,
     allPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+    viewCounts: React.PropTypes.object.isRequired,
   },
 
   relatedPuzzlesTagInterestingness(tag, metaForTagIfKnown) {
@@ -633,15 +639,14 @@ RelatedPuzzleGroups = React.createClass({
 
     // Then, render tag group.
 
-    // Hoist allTags into lambda.
-    const allTags = this.props.allTags;
     return (
       <div>
-        {groups.length ? groups.map(function(g) {
+        {groups.length ? groups.map((g) => {
           return <RelatedPuzzleGroup key={g.tag._id}
                                      sharedTag={g.tag}
                                      relatedPuzzles={g.puzzles}
-                                     allTags={allTags}
+                                     viewCounts={this.props.viewCounts}
+                                     allTags={this.props.allTags}
                                      includeCount={true}
                                      layout="inline"
                                      />;

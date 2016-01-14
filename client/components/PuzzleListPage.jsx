@@ -134,6 +134,7 @@ PuzzleListView = React.createClass({
         Schemas.Tags.asReactPropTypes()
       )
     ).isRequired,
+    viewCounts: React.PropTypes.object.isRequired,
   },
 
   getInitialState() {
@@ -336,6 +337,7 @@ PuzzleListView = React.createClass({
             return <RelatedPuzzleGroup key={g.sharedTag._id}
                                        sharedTag={g.sharedTag}
                                        relatedPuzzles={g.puzzles}
+                                       viewCounts={this.props.viewCounts}
                                        allTags={this.props.tags}
                                        includeCount={false}
                                        layout="grid"
@@ -344,7 +346,7 @@ PuzzleListView = React.createClass({
             return (
               <div key='ungrouped' style={{marginBottom: '16'}}>
                 <div>Puzzles in no group:</div>
-                <PuzzleList puzzles={g.puzzles} tags={this.props.tags} layout="grid"/>
+                <PuzzleList puzzles={g.puzzles} tags={this.props.tags} viewCounts={this.props.viewCounts} layout="grid"/>
               </div>
             );
           }
@@ -357,7 +359,7 @@ PuzzleListView = React.createClass({
         break;
       case 'unlock':
         const puzzles = this.puzzlesByUnlock();
-        bodyComponent = <PuzzleList puzzles={puzzles} tags={this.props.tags} layout="grid"/>;
+        bodyComponent = <PuzzleList puzzles={puzzles} tags={this.props.tags} viewCounts={this.props.viewCounts} layout="grid"/>;
         break;
     }
     return (
@@ -405,17 +407,22 @@ PuzzleListPage = React.createClass({
 
     const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
     const tagsHandle = this.context.subs.subscribe('mongo.tags', {hunt: this.props.params.huntId});
-    let ready = puzzlesHandle.ready() && tagsHandle.ready();
+    const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', {hunt: this.props.params.huntId});
+    let ready = puzzlesHandle.ready() && tagsHandle.ready() && viewCountsHandle.ready();
     if (!ready) {
       return {
         ready,
       };
     } else {
+      const viewCounts = {};
+      SubscriberCounters.find().forEach((counter) => viewCounts[counter._id] = counter.value);
+
       return {
         ready,
         canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
         allPuzzles: Models.Puzzles.find({hunt: this.props.params.huntId}).fetch(),
         allTags: Models.Tags.find({hunt: this.props.params.huntId}).fetch(),
+        viewCounts,
       };
     }
   },
@@ -425,7 +432,7 @@ PuzzleListPage = React.createClass({
       return <span>loading...</span>;
     } else {
       return (
-        <PuzzleListView huntId={this.props.params.huntId} canAdd={this.data.canAdd} puzzles={this.data.allPuzzles} tags={this.data.allTags} />
+        <PuzzleListView huntId={this.props.params.huntId} canAdd={this.data.canAdd} puzzles={this.data.allPuzzles} tags={this.data.allTags} viewCounts={this.data.viewCounts}/>
       );
     }
   },

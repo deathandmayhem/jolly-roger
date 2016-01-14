@@ -17,6 +17,7 @@ RelatedPuzzleSection = React.createClass({
         Schemas.Tags.asReactPropTypes()
       ).isRequired
     ).isRequired,
+    viewCounts: React.PropTypes.object.isRequired,
   },
   styles: {
     height: '40%',
@@ -28,7 +29,7 @@ RelatedPuzzleSection = React.createClass({
     return (
       <div className="related-puzzles-section" style={this.styles}>
         <div>Related puzzles:</div>
-        <RelatedPuzzleGroups activePuzzle={this.props.activePuzzle} allPuzzles={this.props.allPuzzles} allTags={this.props.allTags} />
+        <RelatedPuzzleGroups activePuzzle={this.props.activePuzzle} allPuzzles={this.props.allPuzzles} allTags={this.props.allTags} viewCounts={this.props.viewCounts}/>
       </div>
     );
   },
@@ -289,6 +290,7 @@ PuzzlePageSidebar = React.createClass({
     profiles: React.PropTypes.objectOf(
       React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired
     ).isRequired,
+    viewCounts: React.PropTypes.object.isRequired,
   },
   styles: {
     flex: '1 1 20%',
@@ -301,7 +303,7 @@ PuzzlePageSidebar = React.createClass({
   render() {
     return (
       <div className="sidebar" style={this.styles}>
-        <RelatedPuzzleSection activePuzzle={this.props.activePuzzle} allPuzzles={this.props.allPuzzles} allTags={this.props.allTags} />
+        <RelatedPuzzleSection activePuzzle={this.props.activePuzzle} allPuzzles={this.props.allPuzzles} allTags={this.props.allTags} viewCounts={this.props.viewCounts}/>
         <ChatSection chatReady={this.props.chatReady} chatMessages={this.props.chatMessages} profiles={this.props.profiles} puzzleId={this.props.activePuzzle._id} />
       </div>
     );
@@ -633,18 +635,22 @@ PuzzlePage = React.createClass({
     let allTags = undefined;
     let allGuesses = undefined;
     let allDocuments = undefined;
+    let viewCounts = undefined;
     if (_.has(huntFixtures, this.props.params.huntId)) {
       puzzlesReady = true;
       allPuzzles = huntFixtures[this.props.params.huntId].puzzles;
       allTags = huntFixtures[this.props.params.huntId].tags;
       allGuesses = [];
       allDocuments = [];
+      viewCounts = {};
     } else {
       const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
       const tagsHandle = this.context.subs.subscribe('mongo.tags', {hunt: this.props.params.huntId});
       const guessesHandle = this.context.subs.subscribe('mongo.guesses', {puzzle: this.props.params.puzzleId});
       const documentsHandle = this.context.subs.subscribe('mongo.documents', {puzzle: this.props.params.puzzleId});
-      puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && profileHandle.ready();
+      const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', {hunt: this.props.params.huntId});
+
+      puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && profileHandle.ready() && viewCountsHandle.ready();
 
       // There's no sense in doing this expensive computation here if we're still loading data,
       // since we're not going to render the children.
@@ -652,6 +658,8 @@ PuzzlePage = React.createClass({
         allPuzzles = Models.Puzzles.find({hunt: this.props.params.huntId}).fetch();
         allTags = Models.Tags.find({hunt: this.props.params.huntId}).fetch();
         allGuesses = Models.Guesses.find({hunt: this.props.params.huntId, puzzle: this.props.params.puzzleId}).fetch();
+        viewCounts = {};
+        SubscriberCounters.find().forEach((counter) => viewCounts[counter._id] = counter.value);
 
         // Sort by created at so that the "first" document always has consistent meaning
         allDocuments = Models.Documents.find({puzzle: this.props.params.puzzleId}, {sort: {createdAt: 1}}).fetch();
@@ -660,6 +668,7 @@ PuzzlePage = React.createClass({
         allTags = [];
         allGuesses = [];
         allDocuments = [];
+        viewCounts = {};
       }
     }
 
@@ -681,6 +690,7 @@ PuzzlePage = React.createClass({
       profiles,
       allGuesses,
       allDocuments,
+      viewCounts,
     };
   },
 
@@ -700,6 +710,7 @@ PuzzlePage = React.createClass({
           <PuzzlePageSidebar activePuzzle={activePuzzle}
                              allPuzzles={this.data.allPuzzles}
                              allTags={this.data.allTags}
+                             viewCounts={this.data.viewCounts}
                              chatReady={this.data.chatReady}
                              chatMessages={this.data.chatMessages}
                              profiles={this.data.profiles} />
