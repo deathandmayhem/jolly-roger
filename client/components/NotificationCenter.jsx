@@ -174,7 +174,6 @@ const SlackMessage = React.createClass({
     return (
       <li className={this.slotClasses()}>
         <div className={classnames(this.messageClasses(type), this.state.status === 'submitting' && 'messenger-retry-soon')}>
-          <MessengerDismissButton onDismiss={this.props.onDismiss}/>
           <MessengerContent>
             {msg}
           </MessengerContent>
