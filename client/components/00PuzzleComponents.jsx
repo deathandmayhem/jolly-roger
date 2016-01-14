@@ -5,87 +5,6 @@ const PureRenderMixin = React.addons.PureRenderMixin;
 const puzzleShape = Schemas.Puzzles.asReactPropTypes();
 const tagShape = Schemas.Tags.asReactPropTypes();
 
-const soloTagInterestingness = (tag) => {
-  if (tag.name === 'is:metameta') {
-    return -5;
-  } else if (tag.name === 'is:meta') {
-    return -4;
-  } else if (tag.name.lastIndexOf('meta-for:', 0) === 0) {
-    return -3;
-  } else if (tag.name.lastIndexOf('group:', 0) === 0) {
-    return -2;
-  } else if (tag.name.lastIndexOf('needs:', 0) === 0) {
-    return -1;
-  } else {
-    return 0;
-  }
-};
-
-const sortedTagsForSinglePuzzle = (tags) => {
-  // TODO: attempt to sort the tags into a reasonable order before showing them.
-  // The sort order for tags should probably be:
-  // * "is:metameta" first
-  // * then "is:meta"
-  // * "meta:*" comes next (sorted alphabetically, if multiple are present)
-  // * all other tags, sorted alphabetically
-  sortedTags = _.toArray(tags);
-
-  sortedTags.sort((a, b) => {
-    ia = soloTagInterestingness(a);
-    ib = soloTagInterestingness(b);
-    if (ia !== ib) {
-      return ia - ib;
-    } else {
-      return a.name.localeCompare(b.name);
-    }
-  });
-
-  return sortedTags;
-};
-
-const relatedPuzzlesTagInterestingness = (tag, metaForTagIfKnown) => {
-  // Maps a tag into an interestingness class.  Smaller numbers are more interesting.
-  // group: tags go at the beginning of the list, because you're
-  // most interested in the other puzzles from this meta/round.
-  if (tag.name.lastIndexOf('group:', 0) === 0) {
-    // If this puzzle has a meta-for:<something> tag, prioritize the
-    // meta:<something> tag over all the others.
-    if (metaForTagIfKnown) {
-      const metaTagName = metaForTagIfKnown.name.slice('meta-for:'.length);
-      const thisMetaName = tag.name.slice('group:'.length);
-      if (metaTagName === thisMetaName) {
-        return -2;
-      }
-    }
-
-    return -1;
-  } else {
-    // Otherwise, use sort order
-    return 0;
-  }
-};
-
-const sortedTagsForRelatedPuzzles = function sortedTagsForRelatedPuzzles(tags) {
-  // Clone a copy of the tags.
-  let tagList = _.toArray(tags);
-
-  // Look for a tag that starts with 'meta-for:'.
-  let metaForTag = _.filter(tags, (tag) => { return tag.name.lastIndexOf('meta-for:', 0) === 0; })[0];
-
-  tagList.sort((a, b) => {
-    const ia = relatedPuzzlesTagInterestingness(a, metaForTag);
-    const ib = relatedPuzzlesTagInterestingness(b, metaForTag);
-    if (ia !== ib) {
-      return ia - ib;
-    } else {
-      // Just sort lexically within interestingness classes.
-      return a.name.localeCompare(b.name);
-    }
-  });
-
-  return tagList;
-};
-
 const puzzleHasTag = (puzzle, tag) => {
   return _.contains(puzzle.tags, tag._id);
 };
@@ -306,8 +225,45 @@ TagList = React.createClass({
     this.props.onRemoveTag && this.props.onRemoveTag(tagIdToRemove);
   },
 
+  soloTagInterestingness(tag) {
+    if (tag.name === 'is:metameta') {
+      return -5;
+    } else if (tag.name === 'is:meta') {
+      return -4;
+    } else if (tag.name.lastIndexOf('meta-for:', 0) === 0) {
+      return -3;
+    } else if (tag.name.lastIndexOf('group:', 0) === 0) {
+      return -2;
+    } else if (tag.name.lastIndexOf('needs:', 0) === 0) {
+      return -1;
+    } else {
+      return 0;
+    }
+  },
+
+  sortedTagsForSinglePuzzle(tags) {
+    // The sort order for tags should probably be:
+    // * "is:metameta" first
+    // * then "is:meta"
+    // * "meta:*" comes next (sorted alphabetically, if multiple are present)
+    // * all other tags, sorted alphabetically
+    sortedTags = _.toArray(tags);
+
+    sortedTags.sort((a, b) => {
+      ia = this.soloTagInterestingness(a);
+      ib = this.soloTagInterestingness(b);
+      if (ia !== ib) {
+        return ia - ib;
+      } else {
+        return a.name.localeCompare(b.name);
+      }
+    });
+
+    return sortedTags;
+  },
+
   render() {
-    let tags = sortedTagsForSinglePuzzle(this.props.tags);
+    let tags = this.sortedTagsForSinglePuzzle(this.props.tags);
     let components = [];
     for (let i = 0; i < tags.length; i++) {
       components.push(<Tag key={tags[i]._id}
@@ -531,12 +487,6 @@ RelatedPuzzleGroup = React.createClass({
   },
 });
 
-const puzzlesWithTagIdExcept = function(puzzles, tagId, puzzleId) {
-  return _.filter(puzzles, (p) => {
-    return p._id !== puzzleId && p.tags.indexOf(tagId) !== -1;
-  });
-};
-
 RelatedPuzzleGroups = React.createClass({
   displayName: 'RelatedPuzzleGroups',
   propTypes: {
@@ -544,6 +494,56 @@ RelatedPuzzleGroups = React.createClass({
     allPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
   },
+
+  relatedPuzzlesTagInterestingness(tag, metaForTagIfKnown) {
+    // Maps a tag into an interestingness class.  Smaller numbers are more interesting.
+    // group: tags go at the beginning of the list, because you're
+    // most interested in the other puzzles from this meta/round.
+    if (tag.name.lastIndexOf('group:', 0) === 0) {
+      // If this puzzle has a meta-for:<something> tag, prioritize the
+      // meta:<something> tag over all the others.
+      if (metaForTagIfKnown) {
+        const metaTagName = metaForTagIfKnown.name.slice('meta-for:'.length);
+        const thisMetaName = tag.name.slice('group:'.length);
+        if (metaTagName === thisMetaName) {
+          return -2;
+        }
+      }
+
+      return -1;
+    } else {
+      // Otherwise, use sort order
+      return 0;
+    }
+  },
+
+  sortedTagsForRelatedPuzzles(tags) {
+    // Clone a copy of the tags.
+    let tagList = _.toArray(tags);
+
+    // Look for a tag that starts with 'meta-for:'.
+    let metaForTag = _.filter(tags, (tag) => { return tag.name.lastIndexOf('meta-for:', 0) === 0; })[0];
+
+    tagList.sort((a, b) => {
+      const ia = this.relatedPuzzlesTagInterestingness(a, metaForTag);
+      const ib = this.relatedPuzzlesTagInterestingness(b, metaForTag);
+      if (ia !== ib) {
+        return ia - ib;
+      } else {
+        // Just sort lexically within interestingness classes.
+        return a.name.localeCompare(b.name);
+      }
+    });
+
+    return tagList;
+  },
+
+  puzzlesWithTagIdExcept(puzzles, tagId, puzzleId) {
+    return _.filter(puzzles, (p) => {
+      return p._id !== puzzleId && p.tags.indexOf(tagId) !== -1;
+    });
+  },
+
   render() {
     // For each tag, collect all the other puzzles that also have that tag.
     let groups = [];
@@ -551,13 +551,13 @@ RelatedPuzzleGroups = React.createClass({
 
     // TODO: sort the tag groups by tag interestingness, which should probably be related to meta
     // presence/absence, tag group size, and number of solved/unsolved?
-    let activePuzzleTags = sortedTagsForRelatedPuzzles(_.map(this.props.activePuzzle.tags, (tagId) => {
+    let activePuzzleTags = this.sortedTagsForRelatedPuzzles(_.map(this.props.activePuzzle.tags, (tagId) => {
       return tagIndex[tagId];
     }));
 
     for (let tagi = 0; tagi < activePuzzleTags.length; tagi++) {
       const tag = activePuzzleTags[tagi];
-      const puzzles = puzzlesWithTagIdExcept(this.props.allPuzzles, tag._id, this.props.activePuzzle._id);
+      const puzzles = this.puzzlesWithTagIdExcept(this.props.allPuzzles, tag._id, this.props.activePuzzle._id);
 
       // Only include a tag/puzzleset if there are actually puzzles other than the activePuzzle
       // that hold this tag.
