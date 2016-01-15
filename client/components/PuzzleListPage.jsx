@@ -1,21 +1,35 @@
 const BS = ReactBootstrap;
 
-AddPuzzleForm = React.createClass({
+PuzzleModalForm = React.createClass({
   propTypes: {
     huntId: React.PropTypes.string.isRequired,
+    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()),
     tags: React.PropTypes.arrayOf(
       React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
     ).isRequired,
   },
 
   getInitialState() {
-    return {
-      title: '',
-      url: '',
-      tags: [],
+    const state = {
       submitState: 'idle',
       errorMessage: '',
     };
+
+    if (this.props.puzzle) {
+      const tagNames = {};
+      _.each(this.props.tags, (t) => tagNames[t._id] = t.name);
+      return _.extend(state, {
+        title: this.props.puzzle.title,
+        url: this.props.puzzle.url,
+        tags: this.props.puzzle.tags.map((t) => tagNames[t]),
+      });
+    } else {
+      return _.extend(state, {
+        title: '',
+        url: '',
+        tags: [],
+      });
+    }
   },
 
   showModal() {
@@ -75,9 +89,8 @@ AddPuzzleForm = React.createClass({
           <BS.Button bsStyle="primary" onClick={this.showModal}>Add a puzzle</BS.Button>
         </div>
         <JRC.ModalForm ref="form"
-                       title="Add puzzle"
-                       onSubmit={this.submitPuzzle}
-                       submitLabel="Add">
+                       title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
+                       onSubmit={this.submitPuzzle}>
             <BS.Input ref="title"
                       id="jr-new-puzzle-title"
                       type="text"
@@ -375,7 +388,7 @@ PuzzleListView = React.createClass({
             <BS.Input type="checkbox" label="Show solved" checked={this.state.showSolved} onChange={this.changeShowSolved} />
           </div>
           </div>
-          {this.props.canAdd ? <AddPuzzleForm huntId={this.props.huntId} tags={this.props.tags}/> : <span />}
+          {this.props.canAdd && <PuzzleModalForm huntId={this.props.huntId} tags={this.props.tags}/>}
         </div>
         <BS.Input id="jr-puzzle-search" type="text" label="Search" placeholder="search by title, answer, or tag"
                   value={this.state.searchString}

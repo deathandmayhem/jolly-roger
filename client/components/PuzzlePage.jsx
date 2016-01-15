@@ -462,7 +462,7 @@ PuzzlePageMetadata = React.createClass({
           <div style={this.styles.right}><BS.Button style={this.styles.button} onClick={this.showGuessModal}>Submit answer</BS.Button></div>
           <div style={this.styles.left}>
             <span style={{display: 'inline-block', height: '24'}}>Tags:</span>
-            <TagList tags={tags} onCreateTag={this.onCreateTag} onRemoveTag={this.onRemoveTag}></TagList>
+            <TagList puzzleId={this.props.puzzle._id} tags={tags} onCreateTag={this.onCreateTag} onRemoveTag={this.onRemoveTag}></TagList>
           </div>
         </div>
         {/* Activity tracking not implemented yet.

@@ -212,7 +212,7 @@ Puzzle = React.createClass({
         <div className="puzzle-answer" style={layoutStyles.answer}>
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
         </div>
-        <TagList tags={tags} />
+        <TagList puzzleId={this.props.puzzle._id} tags={tags} />
       </div>
     );
   },
@@ -248,6 +248,7 @@ TagList = React.createClass({
   displayName: 'TagList',
   mixins: [PureRenderMixin],
   propTypes: {
+    puzzleId: React.PropTypes.string.isRequired,
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     onCreateTag: React.PropTypes.func, // if provided, will show UI for adding a new tag
     onRemoveTag: React.PropTypes.func, // callback if user wants to remove a tag
@@ -258,7 +259,6 @@ TagList = React.createClass({
       expanded: false,
       editing: false,
       removing: false,
-      newTagName: '',
     };
   },
 
@@ -274,12 +274,6 @@ TagList = React.createClass({
     },
   },
 
-  onTagNameTextChanged(event) {
-    this.setState({
-      newTagName: event.target.value,
-    });
-  },
-
   submitTag(newTagName) {
     // TODO: submitTag should use the value passed in from the child, which may have done some
     // autocomplete matching that this component doesn't know about.
@@ -290,10 +284,7 @@ TagList = React.createClass({
   },
 
   startEditing() {
-    this.setState({
-      editing: true,
-      newTagName: '',
-    });
+    this.setState({ editing: true });
   },
 
   stopEditing() {
@@ -359,8 +350,8 @@ TagList = React.createClass({
     }
 
     if (this.state.editing) {
-      components.push(<TagEditor key="tagEditor" newTagName={this.state.newTagName}
-                                 onChange={this.onTagNameTextChanged}
+      components.push(<TagEditor key="tagEditor"
+                                 puzzleId={this.props.puzzleId}
                                  onSubmit={this.submitTag}
                                  onCancel={this.stopEditing}/>);
     } else if (this.state.removing) {
@@ -393,13 +384,19 @@ TagList = React.createClass({
 });
 
 TagEditor = React.createClass({
+  mixins: [ReactMeteorData],
+
   // TODO: this should support autocomplete to reduce human error.
   // Probably not going to land this week.
   propTypes: {
-    newTagName: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
+    puzzleId: React.PropTypes.string.isRequired,
     onSubmit: React.PropTypes.func.isRequired,
     onCancel: React.PropTypes.func.isRequired,
+  },
+
+  getMeteorData() {
+    const puzzle = Models.Puzzles.findOne(this.props.puzzleId);
+    return {allTags: Models.Tags.find({hunt: puzzle.hunt}).fetch()};
   },
 
   onBlur() {
@@ -411,39 +408,21 @@ TagEditor = React.createClass({
   componentDidMount() {
     // Focus the input when mounted - the user just clicked on the button-link.
     let input = ReactDOM.findDOMNode(this.refs.input);
-    input.focus();
-    input.addEventListener('blur', this.onBlur);
-  },
-
-  componentWillUnmount() {
-    let input = ReactDOM.findDOMNode(this.refs.input);
-    input.removeEventListener('blur', this.onBlur);
-  },
-
-  onKeyDown(event) {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      this.props.onCancel();
-    } else if (event.key === 'Enter') {
-      // TODO: we may want to submit an autocompletion instead of this.props.newTagName
-      event.preventDefault();
-      this.props.onSubmit(this.props.newTagName);
-    }
-    /*
-    else if (event.key === 'ArrowUp') {
-      // TODO: change autocomplete result
-    } else if (event.key === 'ArrowDown') {
-      // TODO: change autocomplete result
-    }*/
+    $(input).select2('open').
+      on('select2:close', this.onBlur).
+      on('select2:select', () => {
+        this.props.onSubmit($(input).val());
+      });
   },
 
   render() {
     return (
       <span>
-        <input ref="input" type="text" style={{minWidth: '100'}}
-               value={this.props.newTagName}
-               onChange={this.props.onChange}
-               onKeyDown={this.onKeyDown}/>
+        <ReactSelect2
+            ref="input"
+            style={{minWidth: 100}}
+            data={_.pluck(this.data.allTags, 'name')}
+            options={{tags: true}}/>
       </span>
     );
   },
