@@ -190,11 +190,6 @@ Puzzle = React.createClass({
         users currently viewing this puzzle
       </BS.Tooltip>
     );
-    const countOverlay = (
-      <BS.OverlayTrigger placement="top" overlay={countTooltip}>
-        <span>({this.props.viewCount})</span>
-      </BS.OverlayTrigger>
-    );
 
     return (
       <div className="puzzle" style={puzzleStyle}>
@@ -207,7 +202,6 @@ Puzzle = React.createClass({
           </div> :
           null}
         <div className="puzzle-view-count" style={layoutStyles.viewCount}>
-          {!this.props.puzzle.answer && countOverlay}
         </div>
         <div className="puzzle-answer" style={layoutStyles.answer}>
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}

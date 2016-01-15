@@ -427,15 +427,13 @@ PuzzleListPage = React.createClass({
 
     const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
     const tagsHandle = this.context.subs.subscribe('mongo.tags', {hunt: this.props.params.huntId});
-    const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', {hunt: this.props.params.huntId});
-    let ready = puzzlesHandle.ready() && tagsHandle.ready() && viewCountsHandle.ready();
+    let ready = puzzlesHandle.ready() && tagsHandle.ready();
     if (!ready) {
       return {
         ready,
       };
     } else {
       const viewCounts = {};
-      SubscriberCounters.find().forEach((counter) => viewCounts[counter._id] = counter.value);
 
       return {
         ready,
