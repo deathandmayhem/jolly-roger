@@ -1,4 +1,5 @@
 const BS = ReactBootstrap;
+const {Link} = ReactRouter;
 
 PuzzleModalForm = React.createClass({
   propTypes: {
@@ -388,7 +389,13 @@ PuzzleListView = React.createClass({
             <BS.Input type="checkbox" label="Show solved" checked={this.state.showSolved} onChange={this.changeShowSolved} />
           </div>
           </div>
-          {this.props.canAdd && <PuzzleModalForm huntId={this.props.huntId} tags={this.props.tags}/>}
+          {this.props.canAdd ? <PuzzleModalForm huntId={this.props.huntId} tags={this.props.tags}/> :
+            <div>
+              <ul>
+                <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
+                <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guesses</Link></li>
+              </ul>
+            </div>}
         </div>
         <BS.Input id="jr-puzzle-search" type="text" label="Search" placeholder="search by title, answer, or tag"
                   value={this.state.searchString}
