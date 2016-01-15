@@ -129,13 +129,18 @@ Puzzle = React.createClass({
         margin: '2',
         verticalAlign: 'top',
       },
+      viewCount: {
+        flex: '0 0 5%',
+        display: 'inline-block',
+        wordBreak: 'break-word',
+      },
       answer: {
         flex: '0 0 20%',
         display: 'inline-block',
         wordBreak: 'break-word',
       },
       tags: {
-        flex: '0 0 45%',
+        flex: '0 0 40%',
         display: 'inline-block',
       },
     },
@@ -144,6 +149,12 @@ Puzzle = React.createClass({
         display: 'block',
       },
       title: {
+        display: 'inline-block',
+        padding: '2',
+        margin: '2',
+        verticalAlign: 'top',
+      },
+      viewCount: {
         display: 'inline-block',
         padding: '2',
         margin: '2',
@@ -174,17 +185,30 @@ Puzzle = React.createClass({
       layoutStyles.puzzle,
       this.props.puzzle.answer ? this.styles.solvedPuzzle : this.styles.unsolvedPuzzle,
     );
+    const countTooltip = (
+      <BS.Tooltip>
+        users currently viewing this puzzle
+      </BS.Tooltip>
+    );
+    const countOverlay = (
+      <BS.OverlayTrigger placement="top" overlay={countTooltip}>
+        <span>({this.props.viewCount})</span>
+      </BS.OverlayTrigger>
+    );
+
     return (
       <div className="puzzle" style={puzzleStyle}>
         <div className="title" style={layoutStyles.title}>
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
-          {this.props.puzzle.answer ?  null : ` (viewing: ${this.props.viewCount})`}
         </div>
         {this.props.layout === 'grid' ?
           <div className="puzzle-link" style={layoutStyles.puzzleLink}>
             {this.props.puzzle.url ? <span>(<a href={this.props.puzzle.url} target="_blank">puzzle</a>)</span> : null }
           </div> :
           null}
+        <div className="puzzle-view-count" style={layoutStyles.viewCount}>
+          {!this.props.puzzle.answer && countOverlay}
+        </div>
         <div className="puzzle-answer" style={layoutStyles.answer}>
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
         </div>
