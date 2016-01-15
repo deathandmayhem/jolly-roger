@@ -42,6 +42,7 @@ const Hunt = React.createClass({
 
   getMeteorData() {
     return {
+      isOperator: Roles.userHasRole(Meteor.userId(), 'admin'),
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
       canRemove: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.remove'),
     };
@@ -115,7 +116,7 @@ const Hunt = React.createClass({
           This will additionally delete all puzzles and associated
           state.
         </JRC.ModalForm>
-        <Link to={`/hunts/${hunt._id}`}>
+        <Link to={this.data.isOperator ? `/hunts/${hunt._id}` : `/hunts/${hunt._id}/puzzles`}>
           {hunt.name}
         </Link>
         <BS.ButtonGroup bsSize="xs">
