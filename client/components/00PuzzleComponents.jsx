@@ -182,7 +182,7 @@ Puzzle = React.createClass({
         </div>
         {this.props.layout === 'grid' ?
           <div className="puzzle-link" style={layoutStyles.puzzleLink}>
-            {this.props.puzzle.url ? <span>(<Link to={this.props.puzzle.url}>puzzle</Link>)</span> : null }
+            {this.props.puzzle.url ? <span>(<a href={this.props.puzzle.url}>puzzle</a>)</span> : null }
           </div> :
           null}
         <div className="puzzle-answer" style={layoutStyles.answer}>
