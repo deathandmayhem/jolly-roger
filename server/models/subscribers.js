@@ -150,4 +150,4 @@ Meteor.publish('subCounter.fetch', function(q) {
   this.ready();
 });
 
-Meteor.startup(() => Models.Subscribers.periodic());
+// Meteor.startup(() => Models.Subscribers.periodic());
