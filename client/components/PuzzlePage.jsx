@@ -295,7 +295,7 @@ PuzzlePageSidebar = React.createClass({
   styles: {
     flex: '1 1 20%',
     height: '100%',
-    maxWidth: '300px',
+    maxWidth: '20%',
     boxSizing: 'border-box',
     borderRight: '1px solid black',
     display: 'flex',
