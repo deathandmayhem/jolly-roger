@@ -158,6 +158,10 @@ PuzzleListView = React.createClass({
     };
   },
 
+  componentDidMount() {
+    this.refs.searchBar.getInputDOMNode().focus()
+  },
+
   onSearchStringChange() {
     const newString = this.refs.searchBar.getValue();
     this.setState({searchString: newString});
