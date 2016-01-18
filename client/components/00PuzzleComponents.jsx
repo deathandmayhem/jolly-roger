@@ -400,7 +400,7 @@ TagEditor = React.createClass({
         <ReactSelect2
             ref="input"
             style={{minWidth: 100}}
-            data={_.pluck(this.data.allTags, 'name')}
+            data={[''].concat(_.pluck(this.data.allTags, 'name'))}
             options={{tags: true}}/>
       </span>
     );
