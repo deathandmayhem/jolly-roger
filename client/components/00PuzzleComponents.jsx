@@ -65,7 +65,6 @@ PuzzleList = React.createClass({
     puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     layout: React.PropTypes.string.isRequired,
-    viewCounts: React.PropTypes.object.isRequired,
   },
   render() {
     // This component just renders the puzzles provided, in order.
@@ -74,7 +73,7 @@ PuzzleList = React.createClass({
     let puzzles = [];
     for (let i = 0; i < this.props.puzzles.length; i++) {
       const puz = this.props.puzzles[i];
-      puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} viewCount={this.props.viewCounts[`puzzle:${puz._id}`] || 0} layout={this.props.layout} />);
+      puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} layout={this.props.layout} />);
     }
 
     return (
@@ -91,7 +90,6 @@ Puzzle = React.createClass({
   propTypes: {
     puzzle: React.PropTypes.shape(puzzleShape).isRequired,
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
-    viewCount: React.PropTypes.number.isRequired,
     layout: React.PropTypes.string.isRequired,
   },
   styles: {
@@ -129,18 +127,13 @@ Puzzle = React.createClass({
         margin: '2',
         verticalAlign: 'top',
       },
-      viewCount: {
-        flex: '0 0 5%',
-        display: 'inline-block',
-        wordBreak: 'break-word',
-      },
       answer: {
         flex: '0 0 20%',
         display: 'inline-block',
         wordBreak: 'break-word',
       },
       tags: {
-        flex: '0 0 40%',
+        flex: '0 0 45%',
         display: 'inline-block',
       },
     },
@@ -149,12 +142,6 @@ Puzzle = React.createClass({
         display: 'block',
       },
       title: {
-        display: 'inline-block',
-        padding: '2',
-        margin: '2',
-        verticalAlign: 'top',
-      },
-      viewCount: {
         display: 'inline-block',
         padding: '2',
         margin: '2',
@@ -201,8 +188,6 @@ Puzzle = React.createClass({
             {this.props.puzzle.url ? <span>(<a href={this.props.puzzle.url} target="_blank">puzzle</a>)</span> : null }
           </div> :
           null}
-        <div className="puzzle-view-count" style={layoutStyles.viewCount}>
-        </div>
         <div className="puzzle-answer" style={layoutStyles.answer}>
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
         </div>
@@ -497,7 +482,6 @@ RelatedPuzzleGroup = React.createClass({
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     includeCount: React.PropTypes.bool,
     layout: React.PropTypes.string.isRequired,
-    viewCounts: React.PropTypes.object.isRequired,
   },
 
   getInitialState() {
@@ -542,7 +526,7 @@ RelatedPuzzleGroup = React.createClass({
         </div>
         {this.state.collapsed ? null :
         <div style={this.styles.puzzleListWrapper}>
-          <PuzzleList puzzles={sortedPuzzles} tags={this.props.allTags} viewCounts={this.props.viewCounts} layout={this.props.layout}/>
+          <PuzzleList puzzles={sortedPuzzles} tags={this.props.allTags} layout={this.props.layout}/>
         </div>}
       </div>
     );
@@ -555,7 +539,6 @@ RelatedPuzzleGroups = React.createClass({
     activePuzzle: React.PropTypes.shape(puzzleShape).isRequired,
     allPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
-    viewCounts: React.PropTypes.object.isRequired,
   },
 
   relatedPuzzlesTagInterestingness(tag, metaForTagIfKnown) {
@@ -641,7 +624,6 @@ RelatedPuzzleGroups = React.createClass({
           return <RelatedPuzzleGroup key={g.tag._id}
                                      sharedTag={g.tag}
                                      relatedPuzzles={g.puzzles}
-                                     viewCounts={this.props.viewCounts}
                                      allTags={this.props.allTags}
                                      includeCount={true}
                                      layout="inline"
