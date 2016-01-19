@@ -43,7 +43,34 @@ SlackHooks = {
   },
 
   onPuzzleSolved(puzzle) {
-    // TODO: archive Slack channel
+    const config = ServiceConfiguration.configurations.findOne({service: 'slack'});
+    if (!config) {
+      Ansible.log('Not notifying Slack because Slack is not configured');
+      return;
+    }
+
+    const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
+    const message = `We solved a puzzle! The answer to <${url}|${puzzle.title}> is ${puzzle.answer}`;
+
+    let result;
+    let ex;
+    try {
+      result = HTTP.post('https://slack.com/api/chat.postMessage', {
+        params: {
+          token: config.secret,
+          channel: '#general',
+          username: 'jolly-roger',
+          link_names: 1, // jscs:ignore requireCamelCaseOrUpperCaseIdentifiers
+          text: message,
+        },
+      });
+    } catch (e) {
+      ex = e;
+    }
+
+    if (ex || result.statusCode >= 400) {
+      Ansible.log('Problem posting to Slack', {ex, content: result.content});
+    }
   },
 
   onPuzzleNoLongerSolved(puzzle) {
