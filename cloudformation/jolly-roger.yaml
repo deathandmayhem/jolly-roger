@@ -96,7 +96,7 @@ Parameters:
 
 Mappings:
   UbuntuAmis:
-    us-east-1: {"ami": ami-5c207736}
+    us-east-1: {"ami": ami-2b594f41}
 
 Conditions:
   HavePapertrail:
