@@ -1,6 +1,8 @@
 const {Link} = ReactRouter;
 const BS = ReactBootstrap;
 
+import ModalForm from '/imports/client/components/modal_form.jsx';
+
 const HuntFormModal = React.createClass({
   propTypes: {
     hunt: React.PropTypes.instanceOf(Transforms.Hunt),
@@ -10,7 +12,7 @@ const HuntFormModal = React.createClass({
   render() {
     const idPrefix = this.props.hunt ? `jr-hunt-${this.props.hunt.id}-modal-` : 'jr-hunt-new-modal-';
     return (
-      <JRC.ModalForm
+      <ModalForm
           ref="form"
           title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
           onSubmit={this.props.onSubmit}>
@@ -32,7 +34,7 @@ const HuntFormModal = React.createClass({
             labelClassName="col-xs-3"
             wrapperClassName="col-xs-9"
             defaultValue={this.props.hunt && this.props.hunt.mailingLists && this.props.hunt.mailingLists.join(', ')}/>
-      </JRC.ModalForm>
+      </ModalForm>
     );
   },
 });
@@ -106,7 +108,7 @@ const Hunt = React.createClass({
             ref="editModal"
             hunt={this.props.hunt}
             onSubmit={this.onEdit}/>
-        <JRC.ModalForm
+        <ModalForm
             ref="deleteModal"
             title="Delete Hunt"
             submitLabel="Delete"
@@ -115,7 +117,7 @@ const Hunt = React.createClass({
           Are you sure you want to delete "{this.props.hunt.name}"?
           This will additionally delete all puzzles and associated
           state.
-        </JRC.ModalForm>
+        </ModalForm>
         <Link to={this.data.isOperator ? `/hunts/${hunt._id}` : `/hunts/${hunt._id}/puzzles`}>
           {hunt.name}
         </Link>

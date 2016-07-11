@@ -1,6 +1,8 @@
 const BS = ReactBootstrap;
 const {Link} = ReactRouter;
 
+import ModalForm from '/imports/client/components/modal_form.jsx';
+
 PuzzleModalForm = React.createClass({
   propTypes: {
     huntId: React.PropTypes.string.isRequired,
@@ -89,7 +91,7 @@ PuzzleModalForm = React.createClass({
         <div style={{textAlign: 'right'}}>
           <BS.Button bsStyle="primary" onClick={this.showModal}>Add a puzzle</BS.Button>
         </div>
-        <JRC.ModalForm ref="form"
+        <ModalForm ref="form"
                        title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
                        onSubmit={this.submitPuzzle}>
             <BS.Input ref="title"
@@ -127,7 +129,7 @@ PuzzleModalForm = React.createClass({
                   style={{width: '100%'}}/>
             </BS.Input>
             {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
-        </JRC.ModalForm>
+        </ModalForm>
       </div>
     );
   },

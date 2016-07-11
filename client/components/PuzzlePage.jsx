@@ -1,6 +1,8 @@
 const BS = ReactBootstrap;
 const {Link} = ReactRouter;
 
+import ModalForm from '/imports/client/components/modal_form.jsx';
+
 PureRenderMixin = React.addons.PureRenderMixin;
 
 RelatedPuzzleSection = React.createClass({
@@ -464,7 +466,7 @@ PuzzlePageMetadata = React.createClass({
         </div>
         {/* Activity tracking not implemented yet.
             <div>Other hunters currently viewing this page?</div> */}
-        <JRC.ModalForm
+        <ModalForm
             ref="form"
             title={'Submit answer to ' + this.props.puzzle.title}
             onSubmit={this.submitGuess}
@@ -506,7 +508,7 @@ PuzzlePageMetadata = React.createClass({
             </BS.Table>,
           ]}
           {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger" onDismiss={this.clearError}>{this.state.errorMessage}</BS.Alert> : null }
-        </JRC.ModalForm>
+        </ModalForm>
       </div>
     );
   },

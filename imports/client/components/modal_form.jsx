@@ -1,6 +1,6 @@
-const BS = ReactBootstrap;
+import BS from 'react-bootstrap';
 
-JRC.ModalForm = React.createClass({
+const ModalForm = React.createClass({
   propTypes: {
     title: React.PropTypes.string.isRequired,
     submitLabel: React.PropTypes.string,
@@ -59,3 +59,5 @@ JRC.ModalForm = React.createClass({
     );
   },
 });
+
+export default ModalForm;
