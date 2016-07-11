@@ -13,7 +13,6 @@ meteorhacks:zones
 aldeed:collection2
 nicolaslopezj:roles
 ansible
-standard-minifiers
 meteor-base
 mobile-experience
 mongo
@@ -41,3 +40,5 @@ http
 jquery
 meteorhacks:cluster
 natestrauser:select2
+standard-minifier-css
+standard-minifier-js
