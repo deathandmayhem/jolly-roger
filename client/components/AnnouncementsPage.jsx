@@ -1,3 +1,4 @@
+import moment from 'moment';
 const BS = ReactBootstrap;
 
 AnnouncementForm = React.createClass({

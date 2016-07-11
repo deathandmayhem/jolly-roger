@@ -1,3 +1,4 @@
+import moment from 'moment';
 const {PureRenderMixin} = React.addons;
 const {Link} = ReactRouter;
 

@@ -447,6 +447,11 @@
       "from": "minimist@>=1.1.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.0.tgz"
     },
+    "moment": {
+      "version": "2.14.1",
+      "from": "moment@>=2.14.1 <3.0.0",
+      "resolved": "https://registry.npmjs.org/moment/-/moment-2.14.1.tgz"
+    },
     "node-forge": {
       "version": "0.6.40",
       "from": "node-forge@>=0.6.33 <0.7.0",

@@ -8,6 +8,7 @@
     "url": "https://github.com/ebroder/jolly-roger"
   },
   "dependencies": {
-    "googleapis": "^10.0.0"
+    "googleapis": "^10.0.0",
+    "moment": "^2.14.1"
   }
 }
