@@ -1,9 +1,13 @@
-const BS = ReactBootstrap;
-const {Link} = ReactRouter;
-
+import { Meteor } from 'meteor/meteor';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
+import BS from 'react-bootstrap';
+import { Link } from 'react-router';
 import ModalForm from '/imports/client/components/modal_form.jsx';
-
-PureRenderMixin = React.addons.PureRenderMixin;
+import DocumentTitle from 'react-document-title';
+// TODO: ReactMeteorData
+// TODO: JRPropTypes
 
 RelatedPuzzleSection = React.createClass({
   mixins: [PureRenderMixin],

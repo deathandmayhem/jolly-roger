@@ -1,4 +1,8 @@
-const BS = ReactBootstrap;
+import React from 'react';
+import BS from 'react-bootstrap';
+import ReactRouter from 'react-router';
+// TODO: ReactMeteorData
+// TODO: JRPropTypes
 
 HuntSignup = React.createClass({
   mixins: [ReactMeteorData],

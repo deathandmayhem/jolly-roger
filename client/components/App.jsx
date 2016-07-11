@@ -1,6 +1,10 @@
-const BS = ReactBootstrap;
-const RRBS = ReactRouterBootstrap;
-const {Link} = ReactRouter;
+import { Meteor } from 'meteor/meteor';
+import React from 'react';
+import BS from 'react-bootstrap';
+import RRBS from 'react-router-bootstrap';
+import { Link } from 'react-router';
+// TODO: ReactMeteorData
+// TODO: JRPropTypes
 
 SharedNavbar = React.createClass({
   mixins: [ReactMeteorData],

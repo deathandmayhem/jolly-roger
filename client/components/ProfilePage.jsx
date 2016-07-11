@@ -1,4 +1,7 @@
-const BS = ReactBootstrap;
+import React from 'react';
+import BS from 'react-bootstrap';
+// TODO: ReactMeteorData
+// TODO: JRPropTypes
 
 OthersProfilePage = React.createClass({
   mixins: [ReactMeteorData],

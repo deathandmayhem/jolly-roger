@@ -1,4 +1,6 @@
-const BS = ReactBootstrap;
+import React from 'react';
+import BS from 'react-bootstrap';
+// TODO: ReactMeteorData
 
 ConnectionStatus = React.createClass({
   mixins: [ReactMeteorData],

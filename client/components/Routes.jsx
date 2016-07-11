@@ -1,12 +1,15 @@
-const {
+import React from 'react';
+import {
   IndexRoute,
   IndexRedirect,
   Redirect,
   Route,
   Router,
-} = ReactRouter;
+} from 'react-router';
+import RRHistory from 'history';
+import DocumentTitle from 'react-document-title';
 
-const history = ReactRouter.history.useQueries(ReactRouter.history.createHistory)();
+const history = RRHistory.useQueries(RRHistory.createHistory)();
 
 Routes = React.createClass({
   childContextTypes: {

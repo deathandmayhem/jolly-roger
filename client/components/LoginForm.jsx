@@ -1,3 +1,5 @@
+import React from 'react';
+
 LoginForm = React.createClass({
   getInitialState() {
     return {

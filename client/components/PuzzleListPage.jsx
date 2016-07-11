@@ -1,7 +1,10 @@
-const BS = ReactBootstrap;
-const {Link} = ReactRouter;
-
+import { Meteor } from 'meteor/meteor';
+import React from 'react';
+import BS from 'react-bootstrap';
+import { Link } from 'react-router';
 import ModalForm from '/imports/client/components/modal_form.jsx';
+// TODO: ReactMeteorData
+// TODO: JRPropTypes
 
 PuzzleModalForm = React.createClass({
   propTypes: {

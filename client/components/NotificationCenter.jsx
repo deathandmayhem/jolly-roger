@@ -1,6 +1,9 @@
+import { Meteor } from 'meteor/meteor';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
+import { Link } from 'react-router';
 import moment from 'moment';
-const {PureRenderMixin} = React.addons;
-const {Link} = ReactRouter;
+// TODO: ReactMeteorData
+// TODO: JRPropTypes
 
 const MessengerDismissButton = React.createClass({
   mixins: [PureRenderMixin],

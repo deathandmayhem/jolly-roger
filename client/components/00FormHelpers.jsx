@@ -1,3 +1,5 @@
+import React from 'react';
+
 LabelledRadio = React.createClass({
   // Bootstrap's approach to exclusive options does not look particularly good nor does it produce
   // accessibility-friendly markup, so here's a touch of our own instead.  Uses some bootstrap

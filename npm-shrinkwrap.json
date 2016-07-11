@@ -648,6 +648,11 @@
         }
       }
     },
+    "react-addons-pure-render-mixin": {
+      "version": "15.2.1",
+      "from": "react-addons-pure-render-mixin@latest",
+      "resolved": "https://registry.npmjs.org/react-addons-pure-render-mixin/-/react-addons-pure-render-mixin-15.2.1.tgz"
+    },
     "react-bootstrap": {
       "version": "0.29.5",
       "from": "react-bootstrap@latest",

@@ -1,3 +1,8 @@
+import { Meteor } from 'meteor/meteor';
+import React from 'react';
+// TODO: ReactMeteorData
+// TODO: JRPropTypes
+
 HuntMembershipVerifier = React.createClass({
   mixins: [ReactMeteorData],
 

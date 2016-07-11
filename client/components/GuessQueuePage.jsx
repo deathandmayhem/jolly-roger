@@ -1,5 +1,10 @@
-const BS = ReactBootstrap;
-const {Link} = ReactRouter;
+import { Meteor } from 'meteor/meteor';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import BS from 'react-bootstrap';
+import { Link } from 'react-router';
+// TODO: ReactMeteorData
+// TODO: JRPropTypes
 
 AutoSelectInput = React.createClass({
   propTypes: {

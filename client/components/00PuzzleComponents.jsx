@@ -1,6 +1,8 @@
-const {Link} = ReactRouter;
-const BS = ReactBootstrap;
-const PureRenderMixin = React.addons.PureRenderMixin;
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Link } from 'react-router';
+import BS from 'react-bootstrap';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 const puzzleShape = Schemas.Puzzles.asReactPropTypes();
 const tagShape = Schemas.Tags.asReactPropTypes();

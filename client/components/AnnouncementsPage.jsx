@@ -1,5 +1,9 @@
+import { Meteor } from 'meteor/meteor';
 import moment from 'moment';
-const BS = ReactBootstrap;
+import React from 'react';
+import BS from 'react-bootstrap';
+// TODO: ReactMeteorData mixin
+// TODO: JRPropTypes as import
 
 AnnouncementForm = React.createClass({
   propTypes: {

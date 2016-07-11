@@ -1,5 +1,10 @@
+import { Meteor } from 'meteor/meteor';
+import React from 'react';
+import history from 'history'
+// TODO: ReactMeteorData
+
 Authenticator = React.createClass({
-  mixins: [ReactMeteorData, ReactRouter.History],
+  mixins: [ReactMeteorData, history],
 
   getMeteorData() {
     return {user: Meteor.user()};

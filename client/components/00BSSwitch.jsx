@@ -1,4 +1,5 @@
-const BS = ReactBootstrap;
+import React from 'react';
+import BS from 'react-bootstrap';
 
 const switchPropTypes = {
   bsSize: React.PropTypes.oneOf(['mini', 'small', 'normal', 'large']),

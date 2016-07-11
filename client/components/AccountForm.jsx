@@ -1,4 +1,7 @@
-const BS = ReactBootstrap;
+import { Meteor } from 'meteor/meteor';
+import { Accounts } from 'meteor/accounts-base';
+import React from 'react';
+import BS from 'react-bootstrap';
 
 AccountForm = React.createClass({
   propTypes: {

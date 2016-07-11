@@ -1,7 +1,9 @@
-const {Link} = ReactRouter;
-const BS = ReactBootstrap;
-
+import React from 'react';
+import { Link } from 'react-router';
+import BS from 'react-bootstrap';
 import ModalForm from '/imports/client/components/modal_form.jsx';
+// TODO: ReactMeteorData
+// TODO: JRPropTypes
 
 const HuntFormModal = React.createClass({
   propTypes: {

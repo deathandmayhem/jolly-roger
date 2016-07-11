@@ -27,6 +27,8 @@
  * <TextareaAutosize />
  */
 
+import React from 'react';
+
 const emptyFunction = function() {};
 
 TextareaAutosize = React.createClass({

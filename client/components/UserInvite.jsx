@@ -1,4 +1,6 @@
-const BS = ReactBootstrap;
+import { Meteor } from 'meteor/meteor';
+import React from 'react';
+import BS from 'react-bootstrap';
 
 UserInvite = React.createClass({
   propTypes: {
