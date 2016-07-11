@@ -22,9 +22,7 @@ reload
 random
 ejson
 check
-react
 cosmos:browserify
-client-deps
 percolate:migrations
 service-configuration
 oauth
@@ -39,3 +37,4 @@ meteorhacks:cluster
 natestrauser:select2
 standard-minifier-css
 standard-minifier-js
+react-meteor-data
