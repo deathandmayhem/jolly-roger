@@ -1,5 +1,7 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
+import googleapis from 'googleapis';
+
 gdrive = null;
 
 Meteor.startup(() => {
