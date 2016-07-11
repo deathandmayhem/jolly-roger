@@ -13,7 +13,6 @@ babel-compiler@6.8.4
 babel-runtime@0.1.9_1
 base64@1.0.9
 binary-heap@1.0.9
-blanche@0.0.0
 blaze@2.1.8
 blaze-tools@1.0.9
 boilerplate-generator@1.0.9

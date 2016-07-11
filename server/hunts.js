@@ -1,3 +1,5 @@
+import { List } from '/imports/server/blanche.js';
+
 Meteor.methods({
   joinHunt(huntId) {
     check(huntId, String);
@@ -20,7 +22,7 @@ Meteor.methods({
       value();
 
     _.each(hunt.mailingLists, (listName) => {
-      const list = new Blanche.List(listName);
+      const list = new List(listName);
       _.each(emails, (email) => {
         if (!list.add(email)) {
           Ansible.log('Unable to add user to list', {email, list: listName});

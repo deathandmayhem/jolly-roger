@@ -1,6 +1,6 @@
-Blanche = Blanche || {};
+import { Meteor } from 'meteor/meteor';
+import child from 'child_process';
 
-const child = Npm.require('child_process');
 const execFile = Meteor.wrapAsync(child.execFile);
 
 const blanche = (args, cb) => {
@@ -16,7 +16,7 @@ const blanche = (args, cb) => {
   }
 };
 
-Blanche.List = class List {
+class List {
   constructor(name) {
     this.name = name;
   }
@@ -51,4 +51,6 @@ Blanche.List = class List {
       return false;
     }
   }
-};
+}
+
+export { List };
