@@ -1,4 +1,7 @@
-const logfmt = Npm.require('logfmt');
+import { Meteor } from 'meteor/meteor';
+import { Match, check } from 'meteor/check';
+import logfmt from 'logfmt';
+
 const logLevels = new Set(['log', 'info', 'error', 'warn']);
 
 Meteor.methods({
@@ -36,3 +39,4 @@ Meteor.methods({
     console[level]('%s', msg);
   },
 });
+

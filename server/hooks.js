@@ -1,3 +1,7 @@
+import { Meteor } from 'meteor/meteor';
+import { HTTP } from 'meteor/http';
+import Ansible from '/imports/ansible.js';
+
 Hooks = class {
   constructor() {
     this.registeredHooks = [];

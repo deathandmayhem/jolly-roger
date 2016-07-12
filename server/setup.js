@@ -1,3 +1,6 @@
+import { Meteor } from 'meteor/meteor';
+import Ansible from '/imports/ansible.js';
+
 Roles.registerAction('gdrive.credential', true);
 
 Meteor.methods({

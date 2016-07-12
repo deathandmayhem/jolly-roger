@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
 import ModalForm from '/imports/client/components/modal_form.jsx';
+import Ansible from '/imports/ansible.js'
 // TODO: ReactMeteorData
 // TODO: JRPropTypes
 

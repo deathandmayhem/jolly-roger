@@ -1,3 +1,8 @@
+import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import { HTTP } from 'meteor/http';
+import Ansible from '/imports/ansible.js';
+
 Meteor.methods({
   sendChatMessage(puzzleId, message) {
     check(this.userId, String);

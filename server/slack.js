@@ -1,3 +1,8 @@
+import { Meteor } from 'meteor/meteor';
+import { Match, check } from 'meteor/check';
+import { HTTP } from 'meteor/http';
+import Ansible from '/imports/ansible.js';
+
 Meteor.methods({
   slackInvite(userId) {
     check(userId, Match.Optional(String));

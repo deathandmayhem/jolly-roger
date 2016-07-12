@@ -1,3 +1,6 @@
+import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import Ansible from '/imports/ansible.js';
 import { List } from '/imports/server/blanche.js';
 
 Meteor.methods({

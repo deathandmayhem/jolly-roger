@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import child from 'child_process';
+import Ansible from '/imports/ansible.js';
 
 const execFile = Meteor.wrapAsync(child.execFile);
 

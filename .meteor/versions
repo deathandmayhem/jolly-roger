@@ -6,7 +6,6 @@ aldeed:schema-deny@1.0.1
 aldeed:schema-index@1.0.1
 aldeed:simple-schema@1.5.3
 allow-deny@1.0.5
-ansible@1.0.0
 audit-argument-checks@1.0.7
 autoupdate@1.2.11
 babel-compiler@6.8.4

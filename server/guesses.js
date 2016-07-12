@@ -1,3 +1,7 @@
+import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import Ansible from '/imports/ansible.js';
+
 function transitionGuess(guess, newState) {
   if (newState === guess.state) return;
 

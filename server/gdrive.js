@@ -1,6 +1,8 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
+import { Meteor } from 'meteor/meteor';
 import googleapis from 'googleapis';
+import Ansible from '/imports/ansible.js';
 
 gdrive = null;
 

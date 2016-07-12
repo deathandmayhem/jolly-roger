@@ -1,5 +1,6 @@
 import React from 'react';
 import BS from 'react-bootstrap';
+import Ansible from '/imports/ansible.js';
 // TODO: ReactMeteorData
 
 ConnectionStatus = React.createClass({

@@ -1,3 +1,7 @@
+import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import Ansible from '/imports/ansible.js';
+
 Meteor.methods({
   saveProfile(newProfile) {
     // Allow users to update/upsert profile data.

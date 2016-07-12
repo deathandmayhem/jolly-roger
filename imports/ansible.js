@@ -1,6 +1,8 @@
-Ansible = {};
+import { Meteor } from 'meteor/meteor';
 
-logLevels = new Set(['log', 'info', 'error', 'warn']);
+const Ansible = {};
+
+const logLevels = new Set(['log', 'info', 'error', 'warn']);
 logLevels.forEach(l => {
   Ansible[l] = function(line, obj) {
     args = [line];
@@ -15,3 +17,5 @@ logLevels.forEach(l => {
     Meteor.call('ansible', l, ...args);
   };
 });
+
+export default Ansible;

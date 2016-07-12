@@ -1,4 +1,5 @@
 // Locks are a server-only class
+import Ansible from '/imports/ansible.js';
 
 Future = Npm.require('fibers/future');
 
