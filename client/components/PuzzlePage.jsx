@@ -6,6 +6,7 @@ import BS from 'react-bootstrap';
 import { Link } from 'react-router';
 import ModalForm from '/imports/client/components/modal_form.jsx';
 import DocumentTitle from 'react-document-title';
+import marked from 'marked';
 // TODO: ReactMeteorData
 // TODO: JRPropTypes
 

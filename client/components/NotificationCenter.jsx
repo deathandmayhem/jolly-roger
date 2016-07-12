@@ -1,7 +1,10 @@
 import { Meteor } from 'meteor/meteor';
+import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { Link } from 'react-router';
 import moment from 'moment';
+import marked from 'marked';
+import classnames from 'classnames';
 // TODO: ReactMeteorData
 // TODO: JRPropTypes
 

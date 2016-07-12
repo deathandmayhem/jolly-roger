@@ -1,10 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
-import history from 'history'
+import { browserHistory } from 'react-router';
 // TODO: ReactMeteorData
 
 Authenticator = React.createClass({
-  mixins: [ReactMeteorData, history],
+  mixins: [ReactMeteorData],
 
   getMeteorData() {
     return {user: Meteor.user()};
@@ -12,10 +12,10 @@ Authenticator = React.createClass({
 
   checkAuth() {
     if (!this.data.user && this.props.route.authenticated) {
-      this.history.replaceState(_.pick(this.props.location, 'pathname', 'query'), '/login');
+      browserHistory.replaceState(_.pick(this.props.location, 'pathname', 'query'), '/login');
     } else if (this.data.user && !this.props.route.authenticated) {
       const state = _.extend({path: '/', query: undefined}, this.props.location.state);
-      this.history.replaceState(null, state.pathname, state.query);
+      browserHistory.replaceState(null, state.pathname, state.query);
     }
   },
 

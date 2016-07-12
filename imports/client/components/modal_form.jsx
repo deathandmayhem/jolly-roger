@@ -1,3 +1,4 @@
+import React from 'react';
 import BS from 'react-bootstrap';
 
 const ModalForm = React.createClass({

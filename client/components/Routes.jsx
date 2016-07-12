@@ -5,11 +5,9 @@ import {
   Redirect,
   Route,
   Router,
+  browserHistory,
 } from 'react-router';
-import RRHistory from 'history';
 import DocumentTitle from 'react-document-title';
-
-const history = RRHistory.useQueries(RRHistory.createHistory)();
 
 Routes = React.createClass({
   childContextTypes: {
@@ -27,7 +25,7 @@ Routes = React.createClass({
   render() {
     return (
       <DocumentTitle title="Jolly Roger">
-        <Router history={history}>
+        <Router history={browserHistory}>
           {/* Authenticated routes */}
           <Route path="/" component={Authenticator} authenticated={true}>
             <IndexRedirect to="hunts"/>

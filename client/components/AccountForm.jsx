@@ -206,14 +206,14 @@ AccountForm = React.createClass({
       <div className="at-input form-group">
         <label className="control-label" htmlFor="at-field-email">Email</label>
         <input id="at-field-email" className="form-control" type="email" name="at-field-email" placeholder="Email" autoCapitalize="none" autoCorrect="off" onChange={this.setEmail} disabled={submitting}/>
-        <span className="help-block" hide />
+        <span className="help-block" hidden />
       </div>
     );
     let pwInput = (
       <div>
         <label className="control-label" htmlFor="at-field-password">Password</label>
         <input id="at-field-password" className="form-control" type="password" name="at-field-password" placeholder="Password" autoCapitalize="none" autoCorrect="off" onChange={this.setPassword} disabled={submitting}/>
-        <span className="help-block" hide />
+        <span className="help-block" hidden />
       </div>
     );
     let enrollmentFields = [

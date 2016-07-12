@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import moment from 'moment';
 import React from 'react';
 import BS from 'react-bootstrap';
+import marked from 'marked';
 // TODO: ReactMeteorData mixin
 // TODO: JRPropTypes as import
 
