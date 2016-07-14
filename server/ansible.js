@@ -24,7 +24,7 @@ Meteor.methods({
       throw new Meteor.Error(400, 'Invalid log level');
     }
 
-    msg = '';
+    let msg = '';
 
     if (this.userId) {
       msg += `[${this.userId}] `;
@@ -36,6 +36,7 @@ Meteor.methods({
       msg += `: ${logfmt.stringify(obj)}`;
     }
 
+    // eslint-disable-next-line no-console
     console[level]('%s', msg);
   },
 });
