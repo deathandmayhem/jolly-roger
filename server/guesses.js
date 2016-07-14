@@ -45,15 +45,15 @@ Meteor.methods({
     check(this.userId, String);
     check(puzzleId, String);
     check(guess, String);
-    let puzzle = Models.Puzzles.findOne({
+    const puzzle = Models.Puzzles.findOne({
       _id: puzzleId,
     });
 
-    Ansible.log('New guess', {hunt: puzzle.hunt, puzzle: puzzleId, user: this.userId, guess});
+    Ansible.log('New guess', { hunt: puzzle.hunt, puzzle: puzzleId, user: this.userId, guess });
     Models.Guesses.insert({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
-      guess: guess,
+      guess,
       state: 'pending',
     });
   },
@@ -61,32 +61,36 @@ Meteor.methods({
   markGuessPending(guessId) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
-    let guess = Models.Guesses.findOne(guessId);
-    Ansible.log('Transitioning guess to new state', {user: this.userId, guess: guess._id, state: 'pending'});
+    const guess = Models.Guesses.findOne(guessId);
+    Ansible.log('Transitioning guess to new state',
+      { user: this.userId, guess: guess._id, state: 'pending' });
     transitionGuess(guess, 'pending');
   },
 
   markGuessCorrect(guessId) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
-    let guess = Models.Guesses.findOne(guessId);
-    Ansible.log('Transitioning guess to new state', {user: this.userId, guess: guess._id, state: 'correct'});
+    const guess = Models.Guesses.findOne(guessId);
+    Ansible.log('Transitioning guess to new state',
+      { user: this.userId, guess: guess._id, state: 'correct' });
     transitionGuess(guess, 'correct');
   },
 
   markGuessIncorrect(guessId) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
-    let guess = Models.Guesses.findOne(guessId);
-    Ansible.log('Transitioning guess to new state', {user: this.userId, guess: guess._id, state: 'incorrect'});
+    const guess = Models.Guesses.findOne(guessId);
+    Ansible.log('Transitioning guess to new state',
+      { user: this.userId, guess: guess._id, state: 'incorrect' });
     transitionGuess(guess, 'incorrect');
   },
 
   markGuessRejected(guessId) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
-    let guess = Models.Guesses.findOne(guessId);
-    Ansible.log('Transitioning guess to new state', {user: this.userId, guess: guess._id, state: 'rejected'});
+    const guess = Models.Guesses.findOne(guessId);
+    Ansible.log('Transitioning guess to new state',
+      { user: this.userId, guess: guess._id, state: 'rejected' });
     transitionGuess(guess, 'rejected');
   },
 });
