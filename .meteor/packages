@@ -11,6 +11,7 @@ twbs:bootstrap
 audit-argument-checks
 meteorhacks:zones
 aldeed:collection2
+aldeed:simple-schema
 nicolaslopezj:roles
 meteor-base
 mobile-experience
