@@ -1,10 +1,10 @@
-answerify = function(answer) {
+const answerify = function(answer) {
   return answer.
     replace(/[^A-Za-z0-9]/g, '').
     toUpperCase();
 };
 
-huntsMatchingCurrentUser = function(q) {
+const huntsMatchingCurrentUser = function(q) {
   // Adds a filter to the query to only show results from hunts that the user is a member of.
   // Assumes the collection being published has a field named `hunt` of type String containing the
   // _id of a document from the Hunts collection.
@@ -26,3 +26,5 @@ huntsMatchingCurrentUser = function(q) {
 
   return q;
 };
+
+export { answerify, huntsMatchingCurrentUser };
