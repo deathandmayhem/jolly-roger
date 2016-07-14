@@ -1,7 +1,9 @@
 // Locks are a server-only class
+import { Meteor } from 'meteor/meteor';
+import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import Ansible from '/imports/ansible.js';
 
-Future = Npm.require('fibers/future');
+const Future = Npm.require('fibers/future');
 
 Schemas.Lock = new SimpleSchema({
   name: {
@@ -9,11 +11,12 @@ Schemas.Lock = new SimpleSchema({
   },
   createdAt: {
     type: Date,
+    // eslint-disable-next-line consistent-return
     autoValue() {
       if (this.isInsert) {
         return new Date();
       } else if (this.isUpsert) {
-        return {$setOnInsert: new Date()};
+        return { $setOnInsert: new Date() };
       } else {
         this.unset(); // Prevent user from supplying their own value
       }
@@ -31,7 +34,7 @@ Models.Locks = new class extends Meteor.Collection {
 
   _tryAcquire(name) {
     try {
-      return this.insert({name});
+      return this.insert({ name });
     } catch (e) {
       if (e.name === 'MongoError' && e.code === 11000) {
         return null;
@@ -46,11 +49,12 @@ Models.Locks = new class extends Meteor.Collection {
   }
 
   withLock(name, critSection) {
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       let handle;
       let lock;
       try {
-        const cursor = this.find({name});
+        const cursor = this.find({ name });
 
         // Setup the watch now so we don't race between when we check
         // for the lock and when we wait for premption
@@ -61,6 +65,7 @@ Models.Locks = new class extends Meteor.Collection {
           },
         });
 
+        // eslint-disable-next-line no-underscore-dangle
         lock = this._tryAcquire(name);
         if (lock) {
           return critSection();
@@ -77,7 +82,8 @@ Models.Locks = new class extends Meteor.Collection {
           // Stop the observe handle - the record is about to be
           // removed and we don't want to double-fire the future.
           handle.stop();
-          Ansible.log('Prempting lock', {id: otherLock._id, name});
+          Ansible.log('Prempting lock', { id: otherLock._id, name });
+          // eslint-disable-next-line no-underscore-dangle
           this._release(otherLock._id);
         }
       } finally {
@@ -86,6 +92,7 @@ Models.Locks = new class extends Meteor.Collection {
         }
 
         if (lock) {
+          // eslint-disable-next-line no-underscore-dangle
           this._release(lock);
         }
       }
