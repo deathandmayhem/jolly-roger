@@ -10,13 +10,13 @@ Meteor.methods({
 
     Roles.checkPermission(this.userId, 'mongo.announcements.insert');
 
-    Ansible.log('Creating an announcement', {user: this.userId, hunt: huntId, message});
+    Ansible.log('Creating an announcement', { user: this.userId, hunt: huntId, message });
     const id = Models.Announcements.insert({
       hunt: huntId,
-      message: message,
+      message,
     });
 
-    Meteor.users.find({hunts: huntId}).forEach((user) => {
+    Meteor.users.find({ hunts: huntId }).forEach((user) => {
       Models.PendingAnnouncements.insert({
         hunt: huntId,
         announcement: id,
