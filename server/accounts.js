@@ -1,33 +1,35 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Accounts } from 'meteor/accounts-base';
+import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
 
-const summaryFromLoginInfo = function(info) {
+const summaryFromLoginInfo = function (info) {
   switch (info.methodName) {
-  case 'login':
-    const email = info.methodArguments &&
-      info.methodArguments[0] &&
-      info.methodArguments[0].user &&
-      info.methodArguments[0].user.email;
-    return {
-      msg: 'User logged in',
-      email,
-    };
-  case 'resetPassword':
-    /* We can't tell if this is a reset or an enrollment, because the
-       user object already reflects the changed state. Womp womp */
-    return {
-      msg: 'User reset password and logged in',
-      email: info.user.emails[0].address,
-    };
-  default:
-    Ansible.warn('Received login hook from unknown method', {method: info.methodName});
-    return {
-      msg: 'User logged in by unknown method',
-      email: info.user.emails[0].address,
-      method: info.methodName,
-    };
+    case 'login': {
+      const email = info.methodArguments &&
+        info.methodArguments[0] &&
+        info.methodArguments[0].user &&
+        info.methodArguments[0].user.email;
+      return {
+        msg: 'User logged in',
+        email,
+      };
+    }
+    case 'resetPassword':
+      /* We can't tell if this is a reset or an enrollment, because the
+         user object already reflects the changed state. Womp womp */
+      return {
+        msg: 'User reset password and logged in',
+        email: info.user.emails[0].address,
+      };
+    default:
+      Ansible.warn('Received login hook from unknown method', { method: info.methodName });
+      return {
+        msg: 'User logged in by unknown method',
+        email: info.user.emails[0].address,
+        method: info.methodName,
+      };
   }
 };
 
@@ -51,7 +53,7 @@ Accounts.onLoginFailure((info) => {
     info.methodArguments[0].user.email;
   Ansible.log('Failed login attempt', {
     user: info.user && info.user._id,
-    email: email,
+    email,
     ip: info.connection.clientAddress,
     error: info.error.reason,
   });
@@ -93,9 +95,9 @@ Accounts.emailTemplates.enrollAccount.text = (user, url) => {
 // email address, create one. Otherwise if the existing account
 // doesn't have a password set, return that. Otherwise, throw an error
 // - you can't re-enroll when a password is already set
-const accountForEnrollment = function(email) {
+const accountForEnrollment = function (email) {
   try {
-    return Accounts.createUser({email});
+    return Accounts.createUser({ email });
   } catch (e) {
     if (e.reason !== 'Email already exists.') {
       throw e;
@@ -126,6 +128,6 @@ Meteor.methods({
     const id = accountForEnrollment(email);
     Accounts.sendEnrollmentEmail(id);
 
-    Ansible.info('Invited new user', {invitedBy: this.userId, email});
+    Ansible.info('Invited new user', { invitedBy: this.userId, email });
   },
 });
