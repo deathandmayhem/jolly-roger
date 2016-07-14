@@ -17,14 +17,14 @@ Meteor.methods({
     const user = Meteor.users.findOne(this.userId);
     const primaryEmail = user.emails[0].address;
 
-    Ansible.log('Updating profile for user', {user: this.userId});
-    const result = Models.Profiles.update({
+    Ansible.log('Updating profile for user', { user: this.userId });
+    Models.Profiles.update({
       _id: this.userId,
     }, {
       $set: {
         displayName: newProfile.displayName,
         locationDuringHunt: newProfile.locationDuringHunt,
-        primaryEmail: primaryEmail,
+        primaryEmail,
         phoneNumber: newProfile.phoneNumber,
         slackHandle: newProfile.slackHandle,
         remote: newProfile.remote,
