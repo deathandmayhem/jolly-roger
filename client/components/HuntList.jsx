@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import BS from 'react-bootstrap';
 import ModalForm from '/imports/client/components/modal_form.jsx';
 import Ansible from '/imports/ansible.js'
+import { huntFixtures } from '/imports/fixtures.js';
 // TODO: ReactMeteorData
 // TODO: JRPropTypes
 

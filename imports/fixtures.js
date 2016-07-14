@@ -1,5 +1,5 @@
 /* eslint-disable */
-huntFixtures = {
+const huntFixtures = {
   cSB2bWf3BToQ9NBju: {
     _id: 'cSB2bWf3BToQ9NBju',
     title: '2015',
@@ -218,3 +218,5 @@ huntFixtures = {
     ],
   },
 };
+
+export { huntFixtures };

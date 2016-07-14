@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import Ansible from '/imports/ansible.js';
 import { List } from '/imports/server/blanche.js';
+import { huntFixtures } from '/imports/fixtures.js';
 
 Meteor.methods({
   joinHunt(huntId) {

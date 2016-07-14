@@ -4,9 +4,10 @@ import ReactDOM from 'react-dom';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import BS from 'react-bootstrap';
 import { Link } from 'react-router';
-import ModalForm from '/imports/client/components/modal_form.jsx';
 import DocumentTitle from 'react-document-title';
 import marked from 'marked';
+import ModalForm from '/imports/client/components/modal_form.jsx';
+import { huntFixtures } from '/imports/fixtures.js';
 // TODO: ReactMeteorData
 // TODO: JRPropTypes
 

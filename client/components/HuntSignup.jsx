@@ -1,6 +1,7 @@
 import React from 'react';
 import BS from 'react-bootstrap';
 import ReactRouter from 'react-router';
+import { huntFixtures } from '/imports/fixtures.js';
 // TODO: ReactMeteorData
 // TODO: JRPropTypes
 
