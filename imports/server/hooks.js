@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { HTTP } from 'meteor/http';
 import Ansible from '/imports/ansible.js';
 
-Hooks = class {
+class Hooks {
   constructor() {
     this.registeredHooks = [];
   }
@@ -40,8 +40,7 @@ Hooks = class {
   }
 };
 
-// These could move elsewhere.
-SlackHooks = {
+const SlackHooks = {
   onPuzzleCreated(puzzle) {
     // TODO: create Slack channel
   },
@@ -83,8 +82,10 @@ SlackHooks = {
 };
 
 // Ditto these
-DocumentHooks = {
+const DocumentHooks = {
   onPuzzleCreated(puzzle) {
     Meteor.call('ensureDocument', puzzle);
   },
 };
+
+export { Hooks, DocumentHooks, SlackHooks };
