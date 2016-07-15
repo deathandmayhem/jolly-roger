@@ -22,7 +22,6 @@ reload
 random
 ejson
 check
-cosmos:browserify
 percolate:migrations
 service-configuration
 oauth
@@ -30,7 +29,6 @@ google
 meteorhacks:kadira
 meteorhacks:subs-manager
 mquandalle:bower
-momentjs:moment
 http
 jquery
 meteorhacks:cluster
