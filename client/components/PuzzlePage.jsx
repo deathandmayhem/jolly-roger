@@ -6,6 +6,7 @@ import BS from 'react-bootstrap';
 import { Link } from 'react-router';
 import DocumentTitle from 'react-document-title';
 import marked from 'marked';
+import moment from 'moment';
 import ModalForm from '/imports/client/components/modal_form.jsx';
 import { huntFixtures } from '/imports/fixtures.js';
 // TODO: ReactMeteorData
