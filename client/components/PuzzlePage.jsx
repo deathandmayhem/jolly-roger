@@ -54,13 +54,13 @@ ChatMessage = React.createClass({
     message: {
       // TODO: pick background color based on hashing userid or something?
       backgroundColor: '#f8f8f8',
-      marginBottom: '1',
+      marginBottom: '1px',
       wordWrap: 'break-word',
     },
     time: {
       float:'right',
       fontStyle: 'italic',
-      marginRight: '2',
+      marginRight: '2px',
     },
   },
 
@@ -190,7 +190,7 @@ ChatInput = React.createClass({
       flex: 'none',
       padding: '9px',
       resize: 'none',
-      maxHeight: '200',
+      maxHeight: '200px',
     },
   },
 
@@ -370,13 +370,13 @@ PuzzlePageMetadata = React.createClass({
   styles: {
     metadata: {
       flex: 'none',
-      maxHeight: '80',
-      minHeight: '64',
+      maxHeight: '80px',
+      minHeight: '64px',
       overflow: 'auto',
     },
     row: {
       display: 'block',
-      height: '26',
+      height: '26px',
       lineHeight: '18px',
       verticalAlign: 'middle',
     },
@@ -388,20 +388,20 @@ PuzzlePageMetadata = React.createClass({
       color: '#000000',
     },
     left: {
-      padding: '4',
+      padding: '4px',
     },
     right: {
-      margin: '4',
+      margin: '4px',
       float: 'right',
       clear: 'none',
     },
     button: {
       boxSizing: 'border-box',
-      height: '24',
-      paddingTop: '2',
-      paddingBottom: '2',
-      paddingLeft: '8',
-      paddingRight: '8',
+      height: '24px',
+      paddingTop: '2px',
+      paddingBottom: '2px',
+      paddingLeft: '8px',
+      paddingRight: '8px',
     },
   },
 
@@ -467,7 +467,7 @@ PuzzlePageMetadata = React.createClass({
         <div style={this.styles.row}>
           <div style={this.styles.right}><BS.Button style={this.styles.button} onClick={this.showGuessModal}>Submit answer</BS.Button></div>
           <div style={this.styles.left}>
-            <span style={{display: 'inline-block', height: '24'}}>Tags:</span>
+            <span style={{display: 'inline-block', height: '24px'}}>Tags:</span>
             <TagList puzzleId={this.props.puzzle._id} tags={tags} onCreateTag={this.onCreateTag} onRemoveTag={this.onRemoveTag}></TagList>
           </div>
         </div>
@@ -700,7 +700,7 @@ PuzzlePage = React.createClass({
     let activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
-        <div style={{display: 'flex', flexDirection: 'row', position: 'absolute', top: '0', bottom: '0', left:'0', right:'0'}}>
+        <div style={{display: 'flex', flexDirection: 'row', position: 'absolute', top: '0px', bottom: '0px', left:'0px', right:'0px'}}>
           <PuzzlePageSidebar activePuzzle={activePuzzle}
                              allPuzzles={this.data.allPuzzles}
                              allTags={this.data.allTags}

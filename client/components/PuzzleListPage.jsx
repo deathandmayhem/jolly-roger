@@ -366,7 +366,7 @@ PuzzleListView = React.createClass({
                                        />;
           } else {
             return (
-              <div key='ungrouped' style={{marginBottom: '16'}}>
+              <div key='ungrouped' style={{marginBottom: '16px'}}>
                 <div>Puzzles in no group:</div>
                 <PuzzleList puzzles={g.puzzles} tags={this.props.tags} layout="grid"/>
               </div>

@@ -49,7 +49,7 @@ AnnouncementForm = React.createClass({
   render() {
     return (
       <div style={{backgroundColor: '#f0f0f0', padding: '16px'}}>
-        <h3 style={{marginTop: '0'}}>Write an announcement:</h3>
+        <h3 style={{marginTop: '0px'}}>Write an announcement:</h3>
         <textarea value={this.state.message}
                   onChange={this.setMessage}
                   style={{width: '100%'}}
@@ -84,7 +84,7 @@ Announcement = React.createClass({
     // TODO: All the styles here could stand to be improved, but this gets it on the screen in a
     // minimally-offensive manner, and preserves the intent of newlines.
     return (
-      <div className="announcement" style={{marginTop: '8', marginBottom: '8', padding: '8', backgroundColor: '#eeeeee'}}>
+      <div className="announcement" style={{marginTop: '8px', marginBottom: '8px', padding: '8px', backgroundColor: '#eeeeee'}}>
         <div style={{textAlign: 'right'}}>
           <div style={{textAlign: 'right'}}>{moment(ann.createdAt).calendar()}</div>
           <div>{this.props.indexedProfiles[ann.createdBy].displayName}</div>

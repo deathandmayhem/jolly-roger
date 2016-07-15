@@ -130,10 +130,10 @@ GuessBlock = React.createClass({
         {this.props.canEdit
             ?
           <div style={this.styles.buttonGroup}>
-            {guess.state === 'correct'   ? <button style={{flex: '0 1 20%', border: '0', backgroundColor: 'transparent'}} disabled>Correct</button> : <button style={this.styles.buttons.correct} onClick={this.markCorrect}>Mark correct</button>}
-            {guess.state === 'incorrect' ? <button style={{flex: '0 1 20%', border: '0', backgroundColor: 'transparent'}} disabled>Incorrect</button> : <button style={this.styles.buttons.incorrect} onClick={this.markIncorrect}>Mark incorrect</button>}
-            {guess.state === 'pending'   ? <button style={{flex: '0 1 20%', border: '0', backgroundColor: 'transparent'}} disabled>Pending</button> : <button style={this.styles.buttons.pending} onClick={this.markPending}>Mark pending</button>}
-            {guess.state === 'rejected'  ? <button style={{flex: '0 1 20%', border: '0', backgroundColor: 'transparent'}} disabled>Rejected</button> : <button style={this.styles.buttons.rejected} onClick={this.markRejected}>Mark rejected</button>}
+            {guess.state === 'correct'   ? <button style={{flex: '0 1 20%', border: '0px', backgroundColor: 'transparent'}} disabled>Correct</button> : <button style={this.styles.buttons.correct} onClick={this.markCorrect}>Mark correct</button>}
+            {guess.state === 'incorrect' ? <button style={{flex: '0 1 20%', border: '0px', backgroundColor: 'transparent'}} disabled>Incorrect</button> : <button style={this.styles.buttons.incorrect} onClick={this.markIncorrect}>Mark incorrect</button>}
+            {guess.state === 'pending'   ? <button style={{flex: '0 1 20%', border: '0px', backgroundColor: 'transparent'}} disabled>Pending</button> : <button style={this.styles.buttons.pending} onClick={this.markPending}>Mark pending</button>}
+            {guess.state === 'rejected'  ? <button style={{flex: '0 1 20%', border: '0px', backgroundColor: 'transparent'}} disabled>Rejected</button> : <button style={this.styles.buttons.rejected} onClick={this.markRejected}>Mark rejected</button>}
           </div>
             :
           <div style={this.styles.buttonGroup}>

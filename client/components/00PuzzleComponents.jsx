@@ -97,7 +97,7 @@ Puzzle = React.createClass({
   styles: {
     // TODO: turn this horrid mess into CSS
     puzzle: {
-      marginBottom: '4',
+      marginBottom: '4px',
       background: '#e5e5e5',
       verticalAlign: 'top',
     },
@@ -117,16 +117,16 @@ Puzzle = React.createClass({
       title: {
         flex: '0 0 25%',
         display: 'inline-block',
-        padding: '2',
-        margin: '2',
+        padding: '2px',
+        margin: '2px',
         verticalAlign: 'top',
         wordBreak: 'break-word',
       },
       puzzleLink: {
         flex: '0 0 10%',
         display: 'inline-block',
-        padding: '2',
-        margin: '2',
+        padding: '2px',
+        margin: '2px',
         verticalAlign: 'top',
       },
       answer: {
@@ -145,8 +145,8 @@ Puzzle = React.createClass({
       },
       title: {
         display: 'inline-block',
-        padding: '2',
-        margin: '2',
+        padding: '2px',
+        margin: '2px',
         verticalAlign: 'top',
       },
       answer: {
@@ -209,8 +209,8 @@ PuzzleAnswer = React.createClass({
     wrapper: {
       display: 'inline-block',
       verticalAlign: 'top',
-      padding: '2',
-      margin: '2',
+      padding: '2px',
+      margin: '2px',
     },
     answer: {
       textTransform: 'uppercase',
@@ -249,8 +249,8 @@ TagList = React.createClass({
     },
     linkButton: {
       // Override some Bootstrap sizes/paddings to make this button fit in the row better.
-      height: '24',
-      padding: '2',
+      height: '24px',
+      padding: '2px',
       display: 'inline-block',
     },
   },
@@ -401,7 +401,7 @@ TagEditor = React.createClass({
       <span>
         <ReactSelect2
             ref="input"
-            style={{minWidth: 100}}
+            style={{minWidth: '100px'}}
             data={[''].concat(_.pluck(this.data.allTags, 'name'))}
             options={{tags: true}}/>
       </span>
@@ -494,13 +494,13 @@ RelatedPuzzleGroup = React.createClass({
 
   styles: {
     group: {
-      marginBottom: '16',
+      marginBottom: '16px',
     },
     tagWrapper: {
       display: 'block',
     },
     puzzleListWrapper: {
-      paddingLeft: '16',
+      paddingLeft: '16px',
     },
   },
 
