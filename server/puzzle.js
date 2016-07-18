@@ -156,6 +156,10 @@ Meteor.methods({
     this.unblock();
     let doc = Models.Documents.findOne({ puzzle: puzzleId });
     if (!doc) {
+      if (!gdrive) {
+        throw new Meteor.Error(500, 'Google OAuth is not configured.');
+      }
+
       Models.Locks.withLock(`puzzle:${puzzleId}:documents`, () => {
         doc = Models.Documents.findOne({ puzzle: puzzleId });
         if (!doc) {
