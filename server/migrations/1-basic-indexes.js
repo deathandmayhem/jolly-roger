@@ -1,3 +1,5 @@
+import { Migrations } from 'meteor/percolate:migrations';
+
 Migrations.add({
   version: 1,
   name: 'Add basic indexes to collections',

@@ -1,3 +1,5 @@
+import { Migrations } from 'meteor/percolate:migrations';
+
 Migrations.add({
   version: 2,
   name: 'Add unique index to locks',

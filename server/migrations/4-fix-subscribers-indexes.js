@@ -1,3 +1,5 @@
+import { Migrations } from 'meteor/percolate:migrations';
+
 Migrations.add({
   version: 4,
   name: 'Fix indexes for subscriber tracking',
