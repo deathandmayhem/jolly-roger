@@ -51,8 +51,6 @@ meteor-base@1.0.4
 meteor-platform@1.2.6
 meteorhacks:cluster@1.6.9
 meteorhacks:inject-initial@1.0.4
-meteorhacks:kadira@2.29.1
-meteorhacks:meteorx@1.4.1
 meteorhacks:subs-manager@1.6.4
 meteorhacks:zones@1.6.0
 minifier-css@1.1.13
@@ -64,7 +62,6 @@ modules@0.6.5
 modules-runtime@0.6.5
 mongo@1.1.9_1
 mongo-id@1.0.5
-mongo-livedata@1.0.12
 mquandalle:bower@1.5.2_1
 natestrauser:select2@4.0.2
 nicolaslopezj:roles@2.2.0

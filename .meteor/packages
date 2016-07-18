@@ -26,7 +26,6 @@ percolate:migrations
 service-configuration
 oauth
 google
-meteorhacks:kadira
 meteorhacks:subs-manager
 mquandalle:bower
 http
