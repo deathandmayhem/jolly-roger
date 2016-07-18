@@ -15,14 +15,14 @@ const MessengerDismissButton = React.createClass({
   },
 
   render() {
-    return <button type="button" className="messenger-close" onClick={this.props.onDismiss}>×</button>;
+    return <button type="button" className="dismiss" onClick={this.props.onDismiss}>×</button>;
   },
 });
 
 const MessengerContent = React.createClass({
   mixins: [PureRenderMixin],
   render() {
-    return <div className="messenger-message-inner">{this.props.children}</div>;
+    return <div className="content">{this.props.children}</div>;
   },
 });
 
@@ -30,35 +30,12 @@ const MessengerSpinner = React.createClass({
   mixins: [PureRenderMixin],
   render() {
     return (
-      <div className="messenger-spinner">
-        <span className="messenger-spinner-side messenger-spinner-side-left">
-          <span className="messenger-spinner-fill"></span>
-        </span>
-        <span className="messenger-spinner-side messenger-spinner-side-right">
-          <span className="messenger-spinner-fill"></span>
-        </span>
+      <div className="spinner-box">
+        <div className="spinner"></div>
       </div>
     );
   },
 });
-
-const MessageMixin = {
-  propTypes: {
-    oldest: React.PropTypes.bool.isRequired,
-    newest: React.PropTypes.bool.isRequired,
-  },
-
-  messageClasses(type) {
-    return `messenger-message message alert ${type} message-${type} alert-${type}`;
-  },
-
-  slotClasses() {
-    return classnames(
-      'messenger-message-slot messenger-shown',
-      this.props.newest && 'messenger-last',
-      this.props.oldest && 'messenger-first');
-  },
-};
 
 const GuessMessage = React.createClass({
   propTypes: {
@@ -67,7 +44,7 @@ const GuessMessage = React.createClass({
     onDismiss: React.PropTypes.func.isRequired,
   },
 
-  mixins: [PureRenderMixin, MessageMixin],
+  mixins: [PureRenderMixin],
 
   focusGuess() {
     this.refs.guess.select();
@@ -91,33 +68,31 @@ const GuessMessage = React.createClass({
 
   render() {
     return (
-      <li className={this.slotClasses()} onClick={this.focusGuess}>
-        <div className={this.messageClasses('info')}>
-          <MessengerDismissButton onDismiss={this.dismissGuess}/>
-          <MessengerContent>
-            Guess for <a href={this.props.puzzle.url} target="_blank">{this.props.puzzle.title}</a>:
-            {' '}
-            <input ref="guess"
-                   type="text"
-                   readOnly
-                   size={this.props.guess.guess.length}
-                   style={{background: 'transparent', outline: 'none', border: '0px', padding: '0px'}}
-                   value={this.props.guess.guess}/>
-          </MessengerContent>
-          <div className="messenger-actions">
-            <a onClick={this.markCorrect}>Correct</a>
-            <a onClick={this.markIncorrect}>Incorrect</a>
-            <a onClick={this.markRejected}>Reject</a>
-          </div>
-          <MessengerSpinner/>
-        </div>
+      <li onClick={this.focusGuess}>
+        <MessengerSpinner/>
+        <MessengerContent>
+          Guess for <a href={this.props.puzzle.url} target="_blank">{this.props.puzzle.title}</a>:
+          {' '}
+          <input ref="guess"
+                 type="text"
+                 readOnly
+                 size={this.props.guess.guess.length}
+                 style={{background: 'transparent', outline: 'none', border: '0px', padding: '0px'}}
+                 value={this.props.guess.guess}/>
+          <ul className="actions">
+            <li><a onClick={this.markCorrect}>Correct</a></li>
+            <li><a onClick={this.markIncorrect}>Incorrect</a></li>
+            <li><a onClick={this.markRejected}>Reject</a></li>
+          </ul>
+        </MessengerContent>
+        <MessengerDismissButton onDismiss={this.dismissGuess}/>
       </li>
     );
   },
 });
 
 const SlackMessage = React.createClass({
-  mixins: [PureRenderMixin, MessageMixin],
+  mixins: [PureRenderMixin],
 
   propTypes: {
     onDismiss: React.PropTypes.func.isRequired,
@@ -169,33 +144,31 @@ const SlackMessage = React.createClass({
 
     const actions = [];
     if (this.state.status === 'idle') {
-      actions.push(<a key='invite' onClick={this.sendInvite}>Send me an invite</a>);
+      actions.push(<li><a key='invite' onClick={this.sendInvite}>Send me an invite</a></li>);
     }
 
-    actions.push(<Link key='edit' to="/users/me">Edit my profile</Link>);
+    actions.push(<li><Link key='edit' to="/users/me">Edit my profile</Link></li>);
 
     if (this.state.status === 'success' || this.state.status === 'error') {
-      actions.push(<a key='reset' onClick={this.reset}>Ok</a>);
+      actions.push(<li><a key='reset' onClick={this.reset}>Ok</a></li>);
     }
 
     return (
-      <li className={this.slotClasses()}>
-        <div className={classnames(this.messageClasses(type), this.state.status === 'submitting' && 'messenger-retry-soon')}>
-          <MessengerContent>
-            {msg}
-          </MessengerContent>
-          <div className="messenger-actions">
+      <li>
+        <MessengerSpinner/>
+        <MessengerContent>
+          {msg}
+          <ul className="actions">
             {actions}
-          </div>
-          <MessengerSpinner/>
-        </div>
+          </ul>
+        </MessengerContent>
       </li>
     );
   },
 });
 
 const AnnouncementMessage = React.createClass({
-  mixins: [PureRenderMixin, MessageMixin],
+  mixins: [PureRenderMixin],
 
   propTypes: {
     id: React.PropTypes.string.isRequired,
@@ -209,15 +182,13 @@ const AnnouncementMessage = React.createClass({
 
   render() {
     return (
-      <li className={this.slotClasses()}>
-        <div className={this.messageClasses('info')}>
-          <MessengerDismissButton onDismiss={this.onDismiss}/>
-          <MessengerContent>
-            <div dangerouslySetInnerHTML={{__html: marked(this.props.announcement.message, {sanitize: true})}}/>
-            <footer>- {this.props.createdBy.displayName}, {moment(this.props.announcement.createdAt).calendar()}</footer>
-          </MessengerContent>
-          <MessengerSpinner/>
-        </div>
+      <li>
+        <MessengerSpinner/>
+        <MessengerContent>
+          <div dangerouslySetInnerHTML={{__html: marked(this.props.announcement.message, {sanitize: true})}}/>
+          <footer>- {this.props.createdBy.displayName}, {moment(this.props.announcement.createdAt).calendar()}</footer>
+        </MessengerContent>
+        <MessengerDismissButton onDismiss={this.onDismiss}/>
       </li>
     );
   },
@@ -278,7 +249,7 @@ NotificationCenter = React.createClass({
     };
 
     if (operator && operating) {
-      Models.Guesses.find({state: 'pending'}, {sort: {createdAt: -1}}).forEach((guess) => {
+      Models.Guesses.find({state: 'pending'}, {sort: {createdAt: 1}}).forEach((guess) => {
         data.guesses.push({
           guess,
           puzzle: Models.Puzzles.findOne(guess.puzzle),
@@ -286,7 +257,7 @@ NotificationCenter = React.createClass({
       });
     }
 
-    Models.PendingAnnouncements.find(query, {sort: {createdAt: -1}}).forEach((pa) => {
+    Models.PendingAnnouncements.find(query, {sort: {createdAt: 1}}).forEach((pa) => {
       const announcement = Models.Announcements.findOne(pa.announcement);
       data.announcements.push({
         pa,
@@ -323,35 +294,28 @@ NotificationCenter = React.createClass({
     let i = 0;
 
     if (!this.data.slackConfigured && !this.state.hideSlackSetupMessage) {
-      messages.push([SlackMessage, {key: 'slack', onDismiss: this.hideSlackSetupMessage}]);
+      messages.push(<SlackMessage key='slack' onDismiss={this.hideSlackSetupMessage} />);
     }
 
     _.forEach(this.data.guesses, (g) => {
       if (this.state.dismissedGuesses[g.guess._id]) return;
-      messages.push([GuessMessage, _.extend({key: g.guess._id, onDismiss: this.dismissGuess}, g)]);
+      messages.push(<GuessMessage key={g.guess._id} guess={g.guess} puzzle={g.puzzle} onDismiss={this.dismissGuess} />);
     });
 
     _.forEach(this.data.announcements, (a) => {
-      messages.push([
-        AnnouncementMessage, {
-          key: a.pa._id,
-          id: a.pa._id,
-          announcement: a.announcement,
-          createdBy: a.createdBy,
-        },
-      ]);
-    });
-
-    const instantiated = _.map(messages, ([kls, props], idx) => {
-      return React.createElement(kls, _.extend({
-        newest: idx === 0,
-        oldest: idx === messages.length - 1,
-      }, props));
+      messages.push(
+        <AnnouncementMessage
+          key={a.pa._id}
+          id={a.pa._id}
+          announcement={a.announcement}
+          createdBy={a.createdBy}
+        />
+      );
     });
 
     return (
-      <ul className="messenger messenger-fixed messenger-on-top messenger-on-right messenger-theme-flat">
-        {instantiated}
+      <ul className="notifications">
+        {messages}
       </ul>
     );
   },

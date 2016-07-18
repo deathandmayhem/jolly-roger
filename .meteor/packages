@@ -27,7 +27,6 @@ service-configuration
 oauth
 google
 meteorhacks:subs-manager
-mquandalle:bower
 http
 jquery
 meteorhacks:cluster
@@ -35,3 +34,4 @@ natestrauser:select2
 standard-minifier-css
 standard-minifier-js
 react-meteor-data
+fourseven:scss

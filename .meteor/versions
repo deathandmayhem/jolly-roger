@@ -33,6 +33,7 @@ ecmascript-runtime@0.2.12
 ejson@1.0.12
 email@1.0.15
 fastclick@1.0.12
+fourseven:scss@3.8.0_1
 geojson-utils@1.0.9
 google@1.1.13
 hot-code-push@1.0.4
@@ -62,7 +63,6 @@ modules@0.6.5
 modules-runtime@0.6.5
 mongo@1.1.9_1
 mongo-id@1.0.5
-mquandalle:bower@1.5.2_1
 natestrauser:select2@4.0.2
 nicolaslopezj:roles@2.2.0
 npm-bcrypt@0.8.6_2
