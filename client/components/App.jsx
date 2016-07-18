@@ -15,22 +15,12 @@ SharedNavbar = React.createClass({
 
   getMeteorData() {
     const userId = Meteor.userId();
-
-    const operator = Roles.userHasRole(userId, 'admin');
-    const user = Meteor.user();
-    let operating = user && user.profile && user.profile.operating;
-    if (operating === undefined) {
-      operating = true;
-    }
-
     const profileSub = this.context.subs.subscribe('mongo.profiles', {_id: userId});
     const profile = Models.Profiles.findOne(userId);
     const displayName = profileSub.ready() ? profile && profile.displayName || '<no name given>' : 'loading...';
     return {
       userId,
       displayName,
-      operator,
-      operating,
     };
   },
 
@@ -38,26 +28,7 @@ SharedNavbar = React.createClass({
     Meteor.logout();
   },
 
-  setOperating() {
-    Meteor.users.update(Meteor.userId(), {
-      $set: {
-        'profile.operating': this.refs.operating.getChecked(),
-      },
-    });
-  },
-
   render() {
-    const operatorSwitch = this.data.operator && (
-      <BS.Navbar.Form pullLeft>
-        <BSSwitch ref="operating"
-                  id="jr-operator-toggle"
-                  checked={this.data.operating}
-                  onChange={this.setOperating}/>
-        {' '}
-        Operator Mode
-      </BS.Navbar.Form>
-    );
-
     return (
       <BS.Navbar fixedTop>
         <BS.Navbar.Header>
@@ -81,7 +52,6 @@ SharedNavbar = React.createClass({
               </BS.NavItem>
             </RRBS.LinkContainer>
           </BS.Nav>
-          {operatorSwitch}
           <BS.Nav pullRight>
             <BS.DropdownButton id='profileDropdown' bsStyle='default' title={this.data.displayName} navbar={true} className="navbar-btn">
               <RRBS.LinkContainer to={`/users/${this.data.userId}`}>

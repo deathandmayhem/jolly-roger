@@ -4,32 +4,10 @@ import BS from 'react-bootstrap';
 // TODO: JRPropTypes
 
 OthersProfilePage = React.createClass({
-  mixins: [ReactMeteorData],
-
-  contextTypes: {
-    subs: JRPropTypes.subs,
-  },
-
   propTypes: {
     profile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
-  },
-
-  getMeteorData() {
-    if (!Roles.userHasRole(Meteor.userId(), 'admin')) {
-      return {
-        ready: true,
-        viewerIsAdmin: false,
-      };
-    }
-
-    userRolesHandle = this.context.subs.subscribe('userRoles', this.props.profile._id);
-    const ready = userRolesHandle.ready();
-    targetIsAdmin = Roles.userHasRole(this.props.profile._id, 'admin');
-    return {
-      ready,
-      viewerIsAdmin: true,
-      targetIsAdmin,
-    };
+    viewerIsAdmin: React.PropTypes.bool.isRequired,
+    targetIsAdmin: React.PropTypes.bool.isRequired,
   },
 
   makeOperator() {
@@ -39,8 +17,8 @@ OthersProfilePage = React.createClass({
   render() {
     // TODO: figure out something for profile pictures - gravatar?
     const profile = this.props.profile;
-    const showOperatorBadge = this.data.targetIsAdmin;
-    const showMakeOperatorButton = this.data.ready && this.data.viewerIsAdmin && !this.data.targetIsAdmin;
+    const showOperatorBadge = this.props.targetIsAdmin;
+    const showMakeOperatorButton = this.props.viewerIsAdmin && !this.props.targetIsAdmin;
     return (
       <div>
         <h1>{profile.displayName}</h1>
@@ -58,6 +36,8 @@ OthersProfilePage = React.createClass({
 OwnProfilePage = React.createClass({
   propTypes: {
     initialProfile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
+    operating: React.PropTypes.bool,
+    isOperator: React.PropTypes.bool,
   },
   getInitialState() {
     return {
@@ -108,6 +88,15 @@ OwnProfilePage = React.createClass({
     });
   },
 
+  toggleOperating() {
+    const newState = !this.props.operating;
+    Meteor.users.update(Meteor.userId(), {
+      $set: {
+        'profile.operating': newState,
+      },
+    });
+  },
+
   handleSaveForm() {
     this.setState({
       submitState: 'submitting',
@@ -152,7 +141,8 @@ OwnProfilePage = React.createClass({
     return (
       <div>
         <h1>Account information</h1>
-        {/*TODO: picture/gravatar*//*TODO: picture/gravatar*/}
+        {this.props.isOperator ? <BS.Checkbox type='checkbox' checked={this.props.operating} onChange={this.toggleOperating}>Operating</BS.Checkbox> : null}
+        {/*TODO: picture/gravatar*/}
         <BS.Input id="jr-profile-edit-email"
                   type='text'
                   value={this.props.initialProfile.primaryEmail}
@@ -261,10 +251,11 @@ ProfilePage = React.createClass({
     const uid = this.props.params.userId === 'me' ? Meteor.userId() : this.props.params.userId;
 
     const profileHandle = this.context.subs.subscribe('mongo.profiles', {_id: uid});
+    const userRolesHandle = this.context.subs.subscribe('userRoles', uid);
     const user = Meteor.user();
     const defaultEmail = user && user.emails && user.emails.length > 0 && user.emails[0] && user.emails[0].address;
     let data = {
-      ready: user && profileHandle.ready(),
+      ready: user && profileHandle.ready() && userRolesHandle.ready(),
       isSelf: (Meteor.userId() === uid),
       profile: Models.Profiles.findOne(uid) || {
         _id: uid,
@@ -277,13 +268,21 @@ ProfilePage = React.createClass({
         createdAt: new Date(),
         createdBy: Meteor.userId(),
       },
+      viewerIsAdmin: Roles.userHasRole(Meteor.userId(), 'admin'),
+      targetIsAdmin: Roles.userHasRole(uid, 'admin'),
+      viewerIsOperating: user && user.profile && user.profile.operating,
     };
     return data;
   },
 
   render() {
     if (!this.data.ready) return <div>loading...</div>;
-    if (this.data.isSelf) return <OwnProfilePage initialProfile={this.data.profile}/>;
-    return <OthersProfilePage profile={this.data.profile}/>;
+    if (this.data.isSelf) return <OwnProfilePage initialProfile={this.data.profile}
+                                                 isOperator={this.data.viewerIsAdmin}
+                                                 operating={this.data.viewerIsOperating}
+                                                 />;
+    return <OthersProfilePage profile={this.data.profile}
+                              viewerIsAdmin={this.data.viewerIsAdmin}
+                              targetIsAdmin={this.data.targetIsAdmin}/>;
   },
 });
