@@ -27,9 +27,11 @@
  * <TextareaAutosize />
  */
 
+/* eslint-disable no-underscore-dangle */
+
 import React from 'react';
 
-const emptyFunction = function() {};
+const emptyFunction = function () {};
 
 function onNextFrame(cb) {
   if (window.requestAnimationFrame) {
@@ -83,6 +85,53 @@ const SIZING_STYLE = [
 const computedStyleCache = {};
 let hiddenTextarea;
 
+function calculateNodeStyling(node, useCache = false) {
+  const nodeRef = (
+    node.getAttribute('id') ||
+    node.getAttribute('data-reactid') ||
+    node.getAttribute('name')
+  );
+
+  if (useCache && computedStyleCache[nodeRef]) {
+    return computedStyleCache[nodeRef];
+  }
+
+  const style = window.getComputedStyle(node);
+
+  const boxSizing = (
+    style.getPropertyValue('box-sizing') ||
+    style.getPropertyValue('-moz-box-sizing') ||
+    style.getPropertyValue('-webkit-box-sizing')
+  );
+
+  const paddingSize = (
+    parseFloat(style.getPropertyValue('padding-bottom')) +
+    parseFloat(style.getPropertyValue('padding-top'))
+  );
+
+  const borderSize = (
+    parseFloat(style.getPropertyValue('border-bottom-width')) +
+    parseFloat(style.getPropertyValue('border-top-width'))
+  );
+
+  const sizingStyle = SIZING_STYLE
+    .map(name => `${name}:${style.getPropertyValue(name)}`)
+    .join(';');
+
+  const nodeInfo = {
+    sizingStyle,
+    paddingSize,
+    borderSize,
+    boxSizing,
+  };
+
+  if (useCache && nodeRef) {
+    computedStyleCache[nodeRef] = nodeInfo;
+  }
+
+  return nodeInfo;
+}
+
 function calculateNodeHeight(uiTextNode, useCache = false, minRows = null, maxRows = null) {
   if (!hiddenTextarea) {
     hiddenTextarea = document.createElement('textarea');
@@ -91,7 +140,7 @@ function calculateNodeHeight(uiTextNode, useCache = false, minRows = null, maxRo
 
   // Copy all CSS properties that have an impact on the height of the content in
   // the textbox
-  let {
+  const {
     paddingSize, borderSize,
     boxSizing, sizingStyle,
   } = calculateNodeStyling(uiTextNode, useCache);
@@ -99,12 +148,12 @@ function calculateNodeHeight(uiTextNode, useCache = false, minRows = null, maxRo
   // Need to have the overflow attribute to hide the scrollbar otherwise
   // text-lines will not calculated properly as the shadow will technically be
   // narrower for content
-  hiddenTextarea.setAttribute('style', sizingStyle + ';' + HIDDEN_TEXTAREA_STYLE);
+  hiddenTextarea.setAttribute('style', `${sizingStyle};${HIDDEN_TEXTAREA_STYLE}`);
   hiddenTextarea.value = uiTextNode.value || uiTextNode.placeholder || '';
 
   let minHeight = -Infinity;
   let maxHeight = Infinity;
-  let scrollHeight = hiddenTextarea.scrollHeight;
+  const scrollHeight = hiddenTextarea.scrollHeight;
   let height = scrollHeight;
 
   if (boxSizing === 'border-box') {
@@ -118,7 +167,7 @@ function calculateNodeHeight(uiTextNode, useCache = false, minRows = null, maxRo
   if (minRows !== null || maxRows !== null) {
     // measure height of a textarea with a single row
     hiddenTextarea.value = '';
-    let singleRowHeight = scrollHeight - paddingSize;
+    const singleRowHeight = scrollHeight - paddingSize;
     if (minRows !== null) {
       minHeight = singleRowHeight * minRows;
 
@@ -140,54 +189,7 @@ function calculateNodeHeight(uiTextNode, useCache = false, minRows = null, maxRo
     }
   }
 
-  return {height, minHeight, maxHeight};
-}
-
-function calculateNodeStyling(node, useCache = false) {
-  let nodeRef = (
-    node.getAttribute('id') ||
-    node.getAttribute('data-reactid') ||
-    node.getAttribute('name')
-  );
-
-  if (useCache && computedStyleCache[nodeRef]) {
-    return computedStyleCache[nodeRef];
-  }
-
-  let style = window.getComputedStyle(node);
-
-  let boxSizing = (
-    style.getPropertyValue('box-sizing') ||
-    style.getPropertyValue('-moz-box-sizing') ||
-    style.getPropertyValue('-webkit-box-sizing')
-  );
-
-  let paddingSize = (
-    parseFloat(style.getPropertyValue('padding-bottom')) +
-    parseFloat(style.getPropertyValue('padding-top'))
-  );
-
-  let borderSize = (
-    parseFloat(style.getPropertyValue('border-bottom-width')) +
-    parseFloat(style.getPropertyValue('border-top-width'))
-  );
-
-  let sizingStyle = SIZING_STYLE
-    .map(name => `${name}:${style.getPropertyValue(name)}`)
-    .join(';');
-
-  let nodeInfo = {
-    sizingStyle,
-    paddingSize,
-    borderSize,
-    boxSizing,
-  };
-
-  if (useCache && nodeRef) {
-    computedStyleCache[nodeRef] = nodeInfo;
-  }
-
-  return nodeInfo;
+  return { height, minHeight, maxHeight };
 }
 
 const TextareaAutosize = React.createClass({
@@ -231,6 +233,11 @@ const TextareaAutosize = React.createClass({
      * Maximum number of rows to show.
      */
     maxRows: React.PropTypes.number,
+
+    /**
+     * Optional object containing a callback
+     */
+    valueLink: React.PropTypes.object,
   },
 
   getDefaultProps() {
@@ -249,33 +256,6 @@ const TextareaAutosize = React.createClass({
       minHeight: -Infinity,
       maxHeight: Infinity,
     };
-  },
-
-  render() {
-    let {valueLink, onChange, ...props} = this.props;
-    props = {...props};
-    if (typeof valueLink === 'object') {
-      props.value = this.props.valueLink.value;
-    }
-
-    props.style = {
-      ...props.style,
-      height: this.state.height,
-    };
-    let maxHeight = Math.max(
-      props.style.maxHeight ? props.style.maxHeight : Infinity,
-      this.state.maxHeight);
-    if (maxHeight < this.state.height) {
-      props.style.overflow = 'hidden';
-    }
-
-    return (
-      <textarea
-        {...props}
-        onChange={this._onChange}
-        ref={this._onRootDOMNode}
-        />
-    );
   },
 
   componentDidMount() {
@@ -315,7 +295,7 @@ const TextareaAutosize = React.createClass({
 
   _onChange(e) {
     this._resizeComponent();
-    let {valueLink, onChange} = this.props;
+    const { valueLink, onChange } = this.props;
     if (valueLink) {
       valueLink.requestChange(e.target.value);
     } else {
@@ -324,7 +304,7 @@ const TextareaAutosize = React.createClass({
   },
 
   _resizeComponent() {
-    let {useCacheForDOMMeasurements} = this.props;
+    const { useCacheForDOMMeasurements } = this.props;
     this.setState(calculateNodeHeight(
       this._rootDOMNode,
       useCacheForDOMMeasurements,
@@ -344,6 +324,34 @@ const TextareaAutosize = React.createClass({
    */
   blur() {
     this._rootDOMNode.blur();
+  },
+
+  render() {
+    // eslint-disable-next-line prefer-const, no-unused-vars
+    let { valueLink, onChange, ...props } = this.props;
+    props = { ...props };
+    if (typeof valueLink === 'object') {
+      props.value = this.props.valueLink.value;
+    }
+
+    props.style = {
+      ...props.style,
+      height: this.state.height,
+    };
+    const maxHeight = Math.max(
+      props.style.maxHeight ? props.style.maxHeight : Infinity,
+      this.state.maxHeight);
+    if (maxHeight < this.state.height) {
+      props.style.overflow = 'hidden';
+    }
+
+    return (
+      <textarea
+        {...props}
+        onChange={this._onChange}
+        ref={this._onRootDOMNode}
+      />
+    );
   },
 });
 
