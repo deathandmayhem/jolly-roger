@@ -2,11 +2,14 @@ import React from 'react';
 import BS from 'react-bootstrap';
 
 const SplashPage = React.createClass({
+  propTypes: {
+    children: React.PropTypes.node,
+  },
   render() {
     return (
       <div className="container">
         <BS.Jumbotron id="jr-login">
-          <BS.Image src="/images/hero.png" className="center-block" responsive/>
+          <BS.Image src="/images/hero.png" className="center-block" responsive />
           <div className="container">
             <BS.Row>
               <BS.Col md={6} mdOffset={3}>
