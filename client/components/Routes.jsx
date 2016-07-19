@@ -19,6 +19,7 @@ import { HuntPage } from '/imports/client/components/HuntPage.jsx';
 import { LoginForm } from '/imports/client/components/LoginForm.jsx';
 import { PasswordResetForm } from '/imports/client/components/PasswordResetForm.jsx';
 import { ProfileListPage } from '/imports/client/components/ProfileListPage.jsx';
+import { ProfilePage } from '/imports/client/components/ProfilePage.jsx';
 
 Routes = React.createClass({
   childContextTypes: {

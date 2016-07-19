@@ -4,7 +4,7 @@ import { LabelledRadioGroup } from '/imports/client/components/LabelledRadioGrou
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
 
-OthersProfilePage = React.createClass({
+const OthersProfilePage = React.createClass({
   propTypes: {
     profile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
     viewerIsAdmin: React.PropTypes.bool.isRequired,
@@ -34,7 +34,7 @@ OthersProfilePage = React.createClass({
   },
 });
 
-OwnProfilePage = React.createClass({
+const OwnProfilePage = React.createClass({
   propTypes: {
     initialProfile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
     operating: React.PropTypes.bool,
@@ -241,7 +241,7 @@ OwnProfilePage = React.createClass({
   },
 });
 
-ProfilePage = React.createClass({
+const ProfilePage = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -287,3 +287,5 @@ ProfilePage = React.createClass({
                               targetIsAdmin={this.data.targetIsAdmin}/>;
   },
 });
+
+export { ProfilePage };
