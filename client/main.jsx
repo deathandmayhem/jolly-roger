@@ -6,5 +6,5 @@ import { Routes } from '/imports/client/components/Routes.jsx';
 Meteor.startup(() => {
   const container = document.createElement('div');
   document.body.appendChild(container);
-  ReactDOM.render(<Routes/>, container);
+  ReactDOM.render(<Routes />, container);
 });
