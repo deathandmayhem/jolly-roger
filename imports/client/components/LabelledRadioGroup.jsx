@@ -1,5 +1,7 @@
 import React from 'react';
 
+/* eslint-disable max-len */
+
 const LabelledRadio = React.createClass({
   // Bootstrap's approach to exclusive options does not look particularly good nor does it produce
   // accessibility-friendly markup, so here's a touch of our own instead.  Uses some bootstrap
@@ -24,12 +26,14 @@ const LabelledRadio = React.createClass({
   render() {
     return (
       <label style={this.styles.radiolabel}>
-        <input style={this.styles.radio}
-               type="radio"
-               name={this.props.name}
-               onChange={this.props.onChange}
-               value={this.props.value}
-               defaultChecked={!!this.props.defaultChecked}/>{this.props.label}
+        <input
+          style={this.styles.radio}
+          type="radio"
+          name={this.props.name}
+          onChange={this.props.onChange}
+          value={this.props.value}
+          defaultChecked={!!this.props.defaultChecked}
+        />{this.props.label}
       </label>
     );
   },
@@ -56,29 +60,32 @@ const LabelledRadioGroup = React.createClass({
     };
   },
 
-  styles: {
-    radioheader: {
-      fontWeight: 'bold',
-    },
-  },
-
   setValue(event) {
-    let value = event.target.value;
+    const value = event.target.value;
     this.setState({
       value,
     });
     this.props.onChange(value);
   },
 
+  styles: {
+    radioheader: {
+      fontWeight: 'bold',
+    },
+  },
+
   render() {
-    let _this = this;
     let buttons = this.props.options.map((option) => {
-      return <LabelledRadio key={option.value}
-                            name={_this.props.name}
-                            onChange={this.setValue}
-                            label={option.label}
-                            value={option.value}
-                            defaultChecked={this.state.value === option.value} />;
+      return (
+        <LabelledRadio
+          key={option.value}
+          name={this.props.name}
+          onChange={this.setValue}
+          label={option.label}
+          value={option.value}
+          defaultChecked={this.state.value === option.value}
+        />
+      );
     });
     return (
       <div className="radio-group">
