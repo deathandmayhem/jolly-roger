@@ -11,6 +11,7 @@ import ModalForm from '/imports/client/components/modal_form.jsx';
 import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { TextareaAutosize } from '/imports/client/components/TextareaAutosize.jsx';
+import { TagList, RelatedPuzzleGroups } from '/imports/client/components/PuzzleComponents.jsx';
 // TODO: ReactMeteorData
 
 RelatedPuzzleSection = React.createClass({

@@ -6,6 +6,7 @@ import ModalForm from '/imports/client/components/modal_form.jsx';
 import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ReactSelect2 } from '/imports/client/components/ReactSelect2.jsx';
+import { PuzzleList, RelatedPuzzleGroup } from '/imports/client/components/PuzzleComponents.jsx';
 // TODO: ReactMeteorData
 
 PuzzleModalForm = React.createClass({

@@ -61,33 +61,33 @@ const sortPuzzlesByRelevanceWithinPuzzleGroup = function(puzzles, sharedTag, ind
   return sortedPuzzles;
 };
 
-PuzzleList = React.createClass({
-  displayName: 'PuzzleList',
+const PuzzleAnswer = React.createClass({
+  displayName: 'PuzzleAnswer',
   mixins: [PureRenderMixin],
   propTypes: {
-    puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
-    tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
-    layout: React.PropTypes.string.isRequired,
+    answer: React.PropTypes.string.isRequired,
+  },
+  styles: {
+    wrapper: {
+      display: 'inline-block',
+      verticalAlign: 'top',
+      padding: '2px',
+      margin: '2px',
+    },
+    answer: {
+      textTransform: 'uppercase',
+      fontFamily: 'monospace',
+      fontWeight: 'bold',
+    },
   },
   render() {
-    // This component just renders the puzzles provided, in order.
-    // Adjusting order based on tags, tag groups, etc. is to be done at
-    // a higher layer.
-    let puzzles = [];
-    for (let i = 0; i < this.props.puzzles.length; i++) {
-      const puz = this.props.puzzles[i];
-      puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} layout={this.props.layout} />);
-    }
-
     return (
-      <div className="puzzle-list">
-        {puzzles}
-      </div>
+      <span className="answer" style={this.styles.wrapper}><span style={this.styles.answer}>{this.props.answer}</span></span>
     );
   },
 });
 
-Puzzle = React.createClass({
+const Puzzle = React.createClass({
   displayName: 'Puzzle',
   mixins: [PureRenderMixin],
   propTypes: {
@@ -200,33 +200,144 @@ Puzzle = React.createClass({
   },
 });
 
-PuzzleAnswer = React.createClass({
-  displayName: 'PuzzleAnswer',
+const PuzzleList = React.createClass({
+  displayName: 'PuzzleList',
   mixins: [PureRenderMixin],
   propTypes: {
-    answer: React.PropTypes.string.isRequired,
-  },
-  styles: {
-    wrapper: {
-      display: 'inline-block',
-      verticalAlign: 'top',
-      padding: '2px',
-      margin: '2px',
-    },
-    answer: {
-      textTransform: 'uppercase',
-      fontFamily: 'monospace',
-      fontWeight: 'bold',
-    },
+    puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
+    tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+    layout: React.PropTypes.string.isRequired,
   },
   render() {
+    // This component just renders the puzzles provided, in order.
+    // Adjusting order based on tags, tag groups, etc. is to be done at
+    // a higher layer.
+    let puzzles = [];
+    for (let i = 0; i < this.props.puzzles.length; i++) {
+      const puz = this.props.puzzles[i];
+      puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} layout={this.props.layout} />);
+    }
+
     return (
-      <span className="answer" style={this.styles.wrapper}><span style={this.styles.answer}>{this.props.answer}</span></span>
+      <div className="puzzle-list">
+        {puzzles}
+      </div>
     );
   },
 });
 
-TagList = React.createClass({
+const TagEditor = React.createClass({
+  mixins: [ReactMeteorData],
+
+  // TODO: this should support autocomplete to reduce human error.
+  // Probably not going to land this week.
+  propTypes: {
+    puzzleId: React.PropTypes.string.isRequired,
+    onSubmit: React.PropTypes.func.isRequired,
+    onCancel: React.PropTypes.func.isRequired,
+  },
+
+  getMeteorData() {
+    const puzzle = Models.Puzzles.findOne(this.props.puzzleId);
+    return {allTags: Models.Tags.find({hunt: puzzle.hunt}).fetch()};
+  },
+
+  onBlur() {
+    // Treat blur as "no I didn't mean to do that".  We may have to change this
+    // once we have autocomplete .
+    this.props.onCancel();
+  },
+
+  componentDidMount() {
+    // Focus the input when mounted - the user just clicked on the button-link.
+    let input = ReactDOM.findDOMNode(this.refs.input);
+    $(input).select2('open').
+      on('select2:close', this.onBlur).
+      on('select2:select', () => {
+        this.props.onSubmit($(input).val());
+      });
+  },
+
+  render() {
+    return (
+      <span>
+        <ReactSelect2
+            ref="input"
+            style={{minWidth: '100px'}}
+            data={[''].concat(_.pluck(this.data.allTags, 'name'))}
+            options={{tags: true}}/>
+      </span>
+    );
+  },
+});
+
+const Tag = React.createClass({
+  displayName: 'Tag',
+  mixins: [PureRenderMixin],
+  propTypes: {
+    tag: React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
+    onClick: React.PropTypes.func,
+    onRemove: React.PropTypes.func, // if present, show a dismiss button
+  },
+  styles: {
+    base: {
+      display: 'inline-block',
+      margin: '2px',
+      padding: '2px',
+      borderRadius: '2px',
+      background: '#dddddd',
+      color: '#000000',
+    },
+    meta: {
+      background: '#ffd57f',
+    },
+    metaFor: {
+      background: '#ffb0b0',
+    },
+    group: {
+      background: '#7fffff',
+    },
+    needs: {
+      background: '#ff4040',
+    },
+    interactive: {
+      cursor: 'pointer',
+    },
+  },
+
+  onClick() {
+    this.props.onClick && this.props.onClick();
+  },
+
+  onRemove() {
+    this.props.onRemove && this.props.onRemove(this.props.tag._id);
+  },
+
+  render() {
+    const name = this.props.tag.name;
+    const isMeta = name === 'is:meta' || name === 'is:metameta';
+    const isGroup = name.lastIndexOf('group:', 0) === 0;
+    const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
+    const isNeeds = name.lastIndexOf('needs:', 0) === 0;
+    const styles = _.extend(
+      {},
+      this.styles.base,
+      isMeta && this.styles.meta,
+      isGroup && this.styles.group,
+      isMetaFor && this.styles.metaFor,
+      isNeeds && this.styles.needs,
+      this.props.onClick && this.styles.interactive,
+    );
+    return (
+      <div className="tag" style={styles} onClick={this.onClick}>
+        {name}
+        {this.props.onRemove && <BS.Button bsSize="xsmall" bsStyle="danger" onClick={this.onRemove}>X</BS.Button>}
+      </div>
+    );
+  },
+});
+
+const TagList = React.createClass({
   displayName: 'TagList',
   mixins: [PureRenderMixin],
   propTypes: {
@@ -365,118 +476,7 @@ TagList = React.createClass({
   },
 });
 
-TagEditor = React.createClass({
-  mixins: [ReactMeteorData],
-
-  // TODO: this should support autocomplete to reduce human error.
-  // Probably not going to land this week.
-  propTypes: {
-    puzzleId: React.PropTypes.string.isRequired,
-    onSubmit: React.PropTypes.func.isRequired,
-    onCancel: React.PropTypes.func.isRequired,
-  },
-
-  getMeteorData() {
-    const puzzle = Models.Puzzles.findOne(this.props.puzzleId);
-    return {allTags: Models.Tags.find({hunt: puzzle.hunt}).fetch()};
-  },
-
-  onBlur() {
-    // Treat blur as "no I didn't mean to do that".  We may have to change this
-    // once we have autocomplete .
-    this.props.onCancel();
-  },
-
-  componentDidMount() {
-    // Focus the input when mounted - the user just clicked on the button-link.
-    let input = ReactDOM.findDOMNode(this.refs.input);
-    $(input).select2('open').
-      on('select2:close', this.onBlur).
-      on('select2:select', () => {
-        this.props.onSubmit($(input).val());
-      });
-  },
-
-  render() {
-    return (
-      <span>
-        <ReactSelect2
-            ref="input"
-            style={{minWidth: '100px'}}
-            data={[''].concat(_.pluck(this.data.allTags, 'name'))}
-            options={{tags: true}}/>
-      </span>
-    );
-  },
-});
-
-Tag = React.createClass({
-  displayName: 'Tag',
-  mixins: [PureRenderMixin],
-  propTypes: {
-    tag: React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
-    onClick: React.PropTypes.func,
-    onRemove: React.PropTypes.func, // if present, show a dismiss button
-  },
-  styles: {
-    base: {
-      display: 'inline-block',
-      margin: '2px',
-      padding: '2px',
-      borderRadius: '2px',
-      background: '#dddddd',
-      color: '#000000',
-    },
-    meta: {
-      background: '#ffd57f',
-    },
-    metaFor: {
-      background: '#ffb0b0',
-    },
-    group: {
-      background: '#7fffff',
-    },
-    needs: {
-      background: '#ff4040',
-    },
-    interactive: {
-      cursor: 'pointer',
-    },
-  },
-
-  onClick() {
-    this.props.onClick && this.props.onClick();
-  },
-
-  onRemove() {
-    this.props.onRemove && this.props.onRemove(this.props.tag._id);
-  },
-
-  render() {
-    const name = this.props.tag.name;
-    const isMeta = name === 'is:meta' || name === 'is:metameta';
-    const isGroup = name.lastIndexOf('group:', 0) === 0;
-    const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
-    const isNeeds = name.lastIndexOf('needs:', 0) === 0;
-    const styles = _.extend(
-      {},
-      this.styles.base,
-      isMeta && this.styles.meta,
-      isGroup && this.styles.group,
-      isMetaFor && this.styles.metaFor,
-      isNeeds && this.styles.needs,
-      this.props.onClick && this.styles.interactive,
-    );
-    return (
-      <div className="tag" style={styles} onClick={this.onClick}>
-        {name}
-        {this.props.onRemove && <BS.Button bsSize="xsmall" bsStyle="danger" onClick={this.onRemove}>X</BS.Button>}
-      </div>
-    );
-  },
-});
-
-RelatedPuzzleGroup = React.createClass({
+const RelatedPuzzleGroup = React.createClass({
   displayName: 'RelatedPuzzleGroup',
 
   propTypes: {
@@ -536,7 +536,7 @@ RelatedPuzzleGroup = React.createClass({
   },
 });
 
-RelatedPuzzleGroups = React.createClass({
+const RelatedPuzzleGroups = React.createClass({
   displayName: 'RelatedPuzzleGroups',
   propTypes: {
     activePuzzle: React.PropTypes.shape(puzzleShape).isRequired,
@@ -637,3 +637,5 @@ RelatedPuzzleGroups = React.createClass({
     );
   },
 });
+
+export { PuzzleList, TagList, RelatedPuzzleGroup, RelatedPuzzleGroups };
