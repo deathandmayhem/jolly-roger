@@ -1,18 +1,27 @@
 import React from 'react';
 import { Link } from 'react-router';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-// TODO: ReactMeteorData
+import { ReactMeteorData } from 'meteor/react-meteor-data';
+
+/* eslint-disable max-len */
 
 const HuntPage = React.createClass({
-  mixins: [ReactMeteorData],
+  propTypes: {
+    params: React.PropTypes.shape({
+      huntId: React.PropTypes.string.isRequired,
+    }).isRequired,
+  },
 
   contextTypes: {
     subs: JRPropTypes.subs,
   },
 
+  mixins: [ReactMeteorData],
+
   getMeteorData() {
-    const huntHandle = this.context.subs.subscribe('mongo.hunts', {_id: this.props.params.huntId});
+    const huntHandle = this.context.subs.subscribe('mongo.hunts', { _id: this.props.params.huntId });
     return {
+      ready: huntHandle.ready(),
       hunt: Models.Hunts.findOne(this.props.params.huntId),
     };
   },
