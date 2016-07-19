@@ -1,4 +1,6 @@
 import { Meteor } from 'meteor/meteor';
+import { jQuery } from 'meteor/jquery';
+import { _ } from 'meteor/underscore';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { Link } from 'react-router';
@@ -7,7 +9,9 @@ import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import { ReactSelect2 } from '/imports/client/components/ReactSelect2.jsx';
 import { PuzzleList, RelatedPuzzleGroup } from '/imports/client/components/PuzzleComponents.jsx';
-// TODO: ReactMeteorData
+import { ReactMeteorData } from 'meteor/react-meteor-data';
+
+/* eslint-disable max-len */
 
 const PuzzleModalForm = React.createClass({
   propTypes: {
@@ -26,7 +30,7 @@ const PuzzleModalForm = React.createClass({
 
     if (this.props.puzzle) {
       const tagNames = {};
-      _.each(this.props.tags, (t) => tagNames[t._id] = t.name);
+      _.each(this.props.tags, (t) => { tagNames[t._id] = t.name; });
       return _.extend(state, {
         title: this.props.puzzle.title,
         url: this.props.puzzle.url,
@@ -39,10 +43,6 @@ const PuzzleModalForm = React.createClass({
         tags: [],
       });
     }
-  },
-
-  showModal() {
-    this.refs.form.show();
   },
 
   onTitleChange(event) {
@@ -59,8 +59,12 @@ const PuzzleModalForm = React.createClass({
 
   onTagsChange(event) {
     this.setState({
-      tags: $(event.target).val(),
+      tags: jQuery(event.target).val(),
     });
+  },
+
+  showModal() {
+    this.refs.form.show();
   },
 
   submitPuzzle() {
@@ -94,47 +98,56 @@ const PuzzleModalForm = React.createClass({
 
     return (
       <div>
-        <div style={{textAlign: 'right'}}>
+        <div style={{ textAlign: 'right' }}>
           <BS.Button bsStyle="primary" onClick={this.showModal}>Add a puzzle</BS.Button>
         </div>
-        <ModalForm ref="form"
-                       title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
-                       onSubmit={this.submitPuzzle}>
-            <BS.Input ref="title"
-                      id="jr-new-puzzle-title"
-                      type="text"
-                      label="Title"
-                      labelClassName="col-xs-3"
-                      wrapperClassName="col-xs-9"
-                      autoFocus="true"
-                      disabled={disableForm}
-                      onChange={this.onTitleChange}
-                      value={this.state.title}/>
-            <BS.Input ref="url"
-                      id="jr-new-puzzle-url"
-                      type="text"
-                      label="URL"
-                      labelClassName="col-xs-3"
-                      wrapperClassName="col-xs-9"
-                      disabled={disableForm}
-                      onChange={this.onUrlChange}
-                      value={this.state.url}/>
-            <BS.Input id="jr-new-puzzle-tags"
-                      label="Tags"
-                      labelClassName="col-xs-3"
-                      wrapperClassName="col-xs-9">
-              <ReactSelect2
-                  ref="tags"
-                  id="jr-new-puzzle-tags"
-                  data={allTags}
-                  multiple
-                  disabled={disableForm}
-                  onChange={this.onTagsChange}
-                  value={this.state.tags}
-                  options={{tags: true, tokenSeparators: [',', ' ']}}
-                  style={{width: '100%'}}/>
-            </BS.Input>
-            {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
+        <ModalForm
+          ref="form"
+          title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
+          onSubmit={this.submitPuzzle}
+        >
+          <BS.Input
+            ref="title"
+            id="jr-new-puzzle-title"
+            type="text"
+            label="Title"
+            labelClassName="col-xs-3"
+            wrapperClassName="col-xs-9"
+            autoFocus="true"
+            disabled={disableForm}
+            onChange={this.onTitleChange}
+            value={this.state.title}
+          />
+          <BS.Input
+            ref="url"
+            id="jr-new-puzzle-url"
+            type="text"
+            label="URL"
+            labelClassName="col-xs-3"
+            wrapperClassName="col-xs-9"
+            disabled={disableForm}
+            onChange={this.onUrlChange}
+            value={this.state.url}
+          />
+          <BS.Input
+            id="jr-new-puzzle-tags"
+            label="Tags"
+            labelClassName="col-xs-3"
+            wrapperClassName="col-xs-9"
+          >
+            <ReactSelect2
+              ref="tags"
+              id="jr-new-puzzle-tags"
+              data={allTags}
+              multiple
+              disabled={disableForm}
+              onChange={this.onTagsChange}
+              value={this.state.tags}
+              options={{ tags: true, tokenSeparators: [',', ' '] }}
+              style={{ width: '100%' }}
+            />
+          </BS.Input>
+          {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
         </ModalForm>
       </div>
     );
@@ -167,17 +180,17 @@ const PuzzleListView = React.createClass({
   },
 
   componentDidMount() {
-    this.refs.searchBar.getInputDOMNode().focus()
+    this.refs.searchBar.getInputDOMNode().focus();
   },
 
   onSearchStringChange() {
     const newString = this.refs.searchBar.getValue();
-    this.setState({searchString: newString});
+    this.setState({ searchString: newString });
   },
 
   compileMatcher(searchKeys) {
     const tagNames = _.indexBy(this.props.tags, '_id');
-    return function(puzzle) {
+    return function (puzzle) {
       // for key in searchKeys:
       //   if key in title or key in answer:
       //     return true
@@ -310,7 +323,7 @@ const PuzzleListView = React.createClass({
     // Look for a puzzle with meta-for: (this group's shared tag)
     let metaForTag;
     if (sharedTag && sharedTag.name.lastIndexOf('group:', 0) === 0) {
-      metaForTag = 'meta-for:' + sharedTag.name.slice('group:'.length);
+      metaForTag = `meta-for: ${sharedTag.name.slice('group:'.length)}`;
     }
 
     let hasUnsolvedMeta = false;
@@ -336,7 +349,7 @@ const PuzzleListView = React.createClass({
   },
 
   clearSearch() {
-    this.setState({searchString: ''});
+    this.setState({ searchString: '' });
   },
 
   switchView(newMode) {
@@ -354,23 +367,26 @@ const PuzzleListView = React.createClass({
   render() {
     const clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>;
     let bodyComponent;
-    switch (this.state.displayMode) {
-      case 'group':
+    switch (this.state.displayMode) { // eslint-disable-line default-case
+      case 'group': {
         const puzzleGroups = this.puzzleGroupsByRelevance();
         const groupComponents = puzzleGroups.map((g) => {
           if (g.sharedTag) {
-            return <RelatedPuzzleGroup key={g.sharedTag._id}
-                                       sharedTag={g.sharedTag}
-                                       relatedPuzzles={g.puzzles}
-                                       allTags={this.props.tags}
-                                       includeCount={false}
-                                       layout="grid"
-                                       />;
+            return (
+              <RelatedPuzzleGroup
+                key={g.sharedTag._id}
+                sharedTag={g.sharedTag}
+                relatedPuzzles={g.puzzles}
+                allTags={this.props.tags}
+                includeCount={false}
+                layout="grid"
+              />
+            );
           } else {
             return (
-              <div key='ungrouped' style={{marginBottom: '16px'}}>
+              <div key="ungrouped" style={{ marginBottom: '16px' }}>
                 <div>Puzzles in no group:</div>
-                <PuzzleList puzzles={g.puzzles} tags={this.props.tags} layout="grid"/>
+                <PuzzleList puzzles={g.puzzles} tags={this.props.tags} layout="grid" />
               </div>
             );
           }
@@ -381,25 +397,27 @@ const PuzzleListView = React.createClass({
           </div>
         );
         break;
-      case 'unlock':
+      }
+      case 'unlock': {
         const puzzles = this.puzzlesByUnlock();
-        bodyComponent = <PuzzleList puzzles={puzzles} tags={this.props.tags} layout="grid"/>;
+        bodyComponent = <PuzzleList puzzles={puzzles} tags={this.props.tags} layout="grid" />;
         break;
+      }
     }
     return (
       <div>
-        <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>View puzzles by:</span>
-          <BS.Nav activeKey={this.state.displayMode} bsStyle='pills' onSelect={this.switchView}>
+          <BS.Nav activeKey={this.state.displayMode} bsStyle="pills" onSelect={this.switchView}>
             <BS.NavItem eventKey={'group'}>Group</BS.NavItem>
             <BS.NavItem eventKey={'unlock'}>Unlock order</BS.NavItem>
           </BS.Nav>
-          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'flex-begin'}}>
-          <div>
-            <BS.Input type="checkbox" label="Show solved" checked={this.state.showSolved} onChange={this.changeShowSolved} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'flex-begin' }}>
+            <div>
+              <BS.Input type="checkbox" label="Show solved" checked={this.state.showSolved} onChange={this.changeShowSolved} />
+            </div>
           </div>
-          </div>
-          {this.props.canAdd ? <PuzzleModalForm huntId={this.props.huntId} tags={this.props.tags}/> :
+          {this.props.canAdd ? <PuzzleModalForm huntId={this.props.huntId} tags={this.props.tags} /> :
             <div>
               <ul>
                 <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
@@ -407,11 +425,15 @@ const PuzzleListView = React.createClass({
               </ul>
             </div>}
         </div>
-        <BS.Input id="jr-puzzle-search" type="text" label="Search" placeholder="search by title, answer, or tag"
-                  value={this.state.searchString}
-                  ref="searchBar"
-                  buttonAfter={clearButton}
-                  onChange={this.onSearchStringChange}
+        <BS.Input
+          id="jr-puzzle-search"
+          type="text"
+          label="Search"
+          placeholder="search by title, answer, or tag"
+          value={this.state.searchString}
+          ref="searchBar"
+          buttonAfter={clearButton}
+          onChange={this.onSearchStringChange}
         />
         {bodyComponent}
       </div>
@@ -420,11 +442,17 @@ const PuzzleListView = React.createClass({
 });
 
 const PuzzleListPage = React.createClass({
-  mixins: [ReactMeteorData],
+  propTypes: {
+    params: React.PropTypes.shape({
+      huntId: React.PropTypes.string.isRequired,
+    }).isRequired,
+  },
 
   contextTypes: {
     subs: JRPropTypes.subs,
   },
+
+  mixins: [ReactMeteorData],
 
   getMeteorData() {
     if (_.has(huntFixtures, this.props.params.huntId)) {
@@ -435,9 +463,9 @@ const PuzzleListPage = React.createClass({
       };
     }
 
-    const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', {hunt: this.props.params.huntId});
-    const tagsHandle = this.context.subs.subscribe('mongo.tags', {hunt: this.props.params.huntId});
-    let ready = puzzlesHandle.ready() && tagsHandle.ready();
+    const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
+    const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
+    const ready = puzzlesHandle.ready() && tagsHandle.ready();
     if (!ready) {
       return {
         ready,
@@ -446,8 +474,8 @@ const PuzzleListPage = React.createClass({
       return {
         ready,
         canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
-        allPuzzles: Models.Puzzles.find({hunt: this.props.params.huntId}).fetch(),
-        allTags: Models.Tags.find({hunt: this.props.params.huntId}).fetch(),
+        allPuzzles: Models.Puzzles.find({ hunt: this.props.params.huntId }).fetch(),
+        allTags: Models.Tags.find({ hunt: this.props.params.huntId }).fetch(),
       };
     }
   },
@@ -457,7 +485,12 @@ const PuzzleListPage = React.createClass({
       return <span>loading...</span>;
     } else {
       return (
-        <PuzzleListView huntId={this.props.params.huntId} canAdd={this.data.canAdd} puzzles={this.data.allPuzzles} tags={this.data.allTags}/>
+        <PuzzleListView
+          huntId={this.props.params.huntId}
+          canAdd={this.data.canAdd}
+          puzzles={this.data.allPuzzles}
+          tags={this.data.allTags}
+        />
       );
     }
   },
