@@ -5,6 +5,7 @@ import RRBS from 'react-router-bootstrap';
 import { Link } from 'react-router';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ConnectionStatus } from '/imports/client/components/ConnectionStatus.jsx';
+import { NotificationCenter } from '/imports/client/components/NotificationCenter.jsx';
 // TODO: ReactMeteorData
 
 SharedNavbar = React.createClass({

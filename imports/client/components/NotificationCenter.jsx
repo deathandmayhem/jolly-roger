@@ -194,7 +194,7 @@ const AnnouncementMessage = React.createClass({
   },
 });
 
-NotificationCenter = React.createClass({
+const NotificationCenter = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -320,3 +320,5 @@ NotificationCenter = React.createClass({
     );
   },
 });
+
+export { NotificationCenter };
