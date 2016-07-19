@@ -5,7 +5,7 @@ import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
 
-HuntSignup = React.createClass({
+const HuntSignup = React.createClass({
   mixins: [ReactMeteorData],
 
   propTypes: {
@@ -85,3 +85,5 @@ HuntSignup = React.createClass({
     }
   },
 });
+
+export { HuntSignup };

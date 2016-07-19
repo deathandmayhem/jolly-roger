@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { HuntSignup } from '/imports/client/components/HuntSignup.jsx';
 // TODO: ReactMeteorData
 
 const HuntMembershipVerifier = React.createClass({
