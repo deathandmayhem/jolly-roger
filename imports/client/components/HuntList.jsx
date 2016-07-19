@@ -134,7 +134,7 @@ const Hunt = React.createClass({
   },
 });
 
-MockHunt = React.createClass({
+const MockHunt = React.createClass({
   render() {
     return (
       <li>
@@ -144,7 +144,7 @@ MockHunt = React.createClass({
   },
 });
 
-HuntList = React.createClass({
+const HuntList = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -207,3 +207,5 @@ HuntList = React.createClass({
     );
   },
 });
+
+export { HuntList };
