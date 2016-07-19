@@ -14,7 +14,7 @@ import { TextareaAutosize } from '/imports/client/components/TextareaAutosize.js
 import { TagList, RelatedPuzzleGroups } from '/imports/client/components/PuzzleComponents.jsx';
 // TODO: ReactMeteorData
 
-RelatedPuzzleSection = React.createClass({
+const RelatedPuzzleSection = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
     activePuzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
@@ -45,7 +45,7 @@ RelatedPuzzleSection = React.createClass({
   },
 });
 
-ChatMessage = React.createClass({
+const ChatMessage = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
     message: React.PropTypes.shape(Schemas.ChatMessages.asReactPropTypes()).isRequired,
@@ -83,7 +83,7 @@ ChatMessage = React.createClass({
   },
 });
 
-ChatHistory = React.createClass({
+const ChatHistory = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
     chatMessages: React.PropTypes.arrayOf(
@@ -165,7 +165,7 @@ ChatHistory = React.createClass({
   },
 });
 
-ChatInput = React.createClass({
+const ChatInput = React.createClass({
   mixins: [PureRenderMixin],
 
   propTypes: {
@@ -234,7 +234,7 @@ ChatInput = React.createClass({
   },
 });
 
-ChatSection = React.createClass({
+const ChatSection = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
     chatReady: React.PropTypes.bool.isRequired,
@@ -277,7 +277,7 @@ ChatSection = React.createClass({
   },
 });
 
-PuzzlePageSidebar = React.createClass({
+const PuzzlePageSidebar = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
     activePuzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
@@ -320,7 +320,7 @@ PuzzlePageSidebar = React.createClass({
   },
 });
 
-PuzzlePageMetadata = React.createClass({
+const PuzzlePageMetadata = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
     puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
@@ -523,7 +523,7 @@ PuzzlePageMetadata = React.createClass({
   },
 });
 
-PuzzlePageMultiplayerDocument = React.createClass({
+const PuzzlePageMultiplayerDocument = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
     document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()),
@@ -548,7 +548,7 @@ PuzzlePageMultiplayerDocument = React.createClass({
   },
 });
 
-PuzzlePageContent = React.createClass({
+const PuzzlePageContent = React.createClass({
   mixins: [PureRenderMixin],
   propTypes: {
     puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
@@ -603,7 +603,7 @@ const findPuzzleById = function(puzzles, id) {
   return undefined;
 };
 
-PuzzlePage = React.createClass({
+const PuzzlePage = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -719,3 +719,5 @@ PuzzlePage = React.createClass({
     );
   },
 });
+
+export { PuzzlePage };
