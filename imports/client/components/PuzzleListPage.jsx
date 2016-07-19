@@ -9,7 +9,7 @@ import { ReactSelect2 } from '/imports/client/components/ReactSelect2.jsx';
 import { PuzzleList, RelatedPuzzleGroup } from '/imports/client/components/PuzzleComponents.jsx';
 // TODO: ReactMeteorData
 
-PuzzleModalForm = React.createClass({
+const PuzzleModalForm = React.createClass({
   propTypes: {
     huntId: React.PropTypes.string.isRequired,
     puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()),
@@ -141,7 +141,7 @@ PuzzleModalForm = React.createClass({
   },
 });
 
-PuzzleListView = React.createClass({
+const PuzzleListView = React.createClass({
   displayName: 'PuzzleListView',
   propTypes: {
     huntId: React.PropTypes.string.isRequired,
@@ -419,7 +419,7 @@ PuzzleListView = React.createClass({
   },
 });
 
-PuzzleListPage = React.createClass({
+const PuzzleListPage = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -462,3 +462,5 @@ PuzzleListPage = React.createClass({
     }
   },
 });
+
+export { PuzzleListPage };

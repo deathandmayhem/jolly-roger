@@ -20,6 +20,7 @@ import { LoginForm } from '/imports/client/components/LoginForm.jsx';
 import { PasswordResetForm } from '/imports/client/components/PasswordResetForm.jsx';
 import { ProfileListPage } from '/imports/client/components/ProfileListPage.jsx';
 import { ProfilePage } from '/imports/client/components/ProfilePage.jsx';
+import { PuzzleListPage } from '/imports/client/components/PuzzleListPage.jsx';
 
 Routes = React.createClass({
   childContextTypes: {
