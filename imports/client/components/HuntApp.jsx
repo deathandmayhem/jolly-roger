@@ -1,6 +1,7 @@
 import React from 'react';
 import DocumentTitle from 'react-document-title';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { HuntMembershipVerifier } from '/imports/client/components/HuntMembershipVerifier.jsx';
 // TODO: ReactMeteorData
 
 const HuntApp = React.createClass({

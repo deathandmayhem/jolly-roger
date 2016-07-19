@@ -3,7 +3,7 @@ import React from 'react';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
 
-HuntMembershipVerifier = React.createClass({
+const HuntMembershipVerifier = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -45,3 +45,5 @@ HuntMembershipVerifier = React.createClass({
     }
   },
 });
+
+export { HuntMembershipVerifier };
