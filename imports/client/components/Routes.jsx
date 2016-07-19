@@ -27,7 +27,7 @@ import { SetupPage } from '/imports/client/components/SetupPage.jsx';
 import { SplashPage } from '/imports/client/components/SplashPage.jsx';
 import { UserInvitePage } from '/imports/client/components/UserInvitePage.jsx';
 
-Routes = React.createClass({
+const Routes = React.createClass({
   childContextTypes: {
     subs: JRPropTypes.subs,
   },
@@ -76,3 +76,5 @@ Routes = React.createClass({
     );
   },
 });
+
+export { Routes };
