@@ -3,7 +3,7 @@ import React from 'react';
 import { browserHistory } from 'react-router';
 // TODO: ReactMeteorData
 
-Authenticator = React.createClass({
+const Authenticator = React.createClass({
   mixins: [ReactMeteorData],
 
   getMeteorData() {
@@ -31,3 +31,5 @@ Authenticator = React.createClass({
     return React.Children.only(this.props.children);
   },
 });
+
+export { Authenticator };

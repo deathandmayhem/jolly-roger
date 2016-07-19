@@ -10,6 +10,7 @@ import {
 import DocumentTitle from 'react-document-title';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { AnnouncementsPage } from '/imports/client/components/AnnouncementsPage.jsx';
+import { Authenticator } from '/imports/client/components/Authenticator.jsx';
 
 Routes = React.createClass({
   childContextTypes: {
