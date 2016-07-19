@@ -24,6 +24,7 @@ import { PuzzleListPage } from '/imports/client/components/PuzzleListPage.jsx';
 import { PuzzlePage } from '/imports/client/components/PuzzlePage.jsx';
 import { SetupPage } from '/imports/client/components/SetupPage.jsx';
 import { SplashPage } from '/imports/client/components/SplashPage.jsx';
+import { UserInvitePage } from '/imports/client/components/UserInvitePage.jsx';
 
 Routes = React.createClass({
   childContextTypes: {
@@ -54,7 +55,7 @@ Routes = React.createClass({
                 <IndexRoute component={HuntPage}/>
               </Route>
               <Route path="hunts" component={HuntList}/>
-              <Route path="users/invite" component={UserInvite}/>
+              <Route path="users/invite" component={UserInvitePage}/>
               <Route path="users/:userId" component={ProfilePage}/>
               <Route path="users" component={ProfileListPage}/>
               <Route path="setup" component={SetupPage}/>

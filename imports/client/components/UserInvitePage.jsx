@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
 
-UserInvite = React.createClass({
+const UserInvitePage = React.createClass({
   propTypes: {
     history: React.PropTypes.object,
   },
@@ -74,3 +74,5 @@ UserInvite = React.createClass({
     );
   },
 });
+
+export { UserInvitePage };
