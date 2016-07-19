@@ -145,7 +145,7 @@ GuessBlock = React.createClass({
   },
 });
 
-GuessQueuePage = React.createClass({
+const GuessQueuePage = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -194,3 +194,5 @@ GuessQueuePage = React.createClass({
     );
   },
 });
+
+export { GuessQueuePage };

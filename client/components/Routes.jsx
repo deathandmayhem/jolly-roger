@@ -12,6 +12,7 @@ import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { AnnouncementsPage } from '/imports/client/components/AnnouncementsPage.jsx';
 import { Authenticator } from '/imports/client/components/Authenticator.jsx';
 import { EnrollForm } from '/imports/client/components/EnrollForm.jsx';
+import { GuessQueuePage } from '/imports/client/components/GuessQueuePage.jsx';
 
 Routes = React.createClass({
   childContextTypes: {
