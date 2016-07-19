@@ -1,14 +1,12 @@
+import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
-// TODO: ReactMeteorData
+import { ReactMeteorData } from 'meteor/react-meteor-data';
+
+/* eslint-disable max-len */
 
 const SetupPage = React.createClass({
   mixins: [ReactMeteorData],
-  getMeteorData() {
-    const config = ServiceConfiguration.configurations.findOne({service: 'google'});
-    const admin = Roles.userHasRole(Meteor.userId(), 'admin');
-    return {config, admin};
-  },
 
   getInitialState() {
     return {
@@ -16,18 +14,24 @@ const SetupPage = React.createClass({
     };
   },
 
+  getMeteorData() {
+    const config = ServiceConfiguration.configurations.findOne({ service: 'google' });
+    const admin = Roles.userHasRole(Meteor.userId(), 'admin');
+    return { config, admin };
+  },
+
   dismissAlert() {
-    this.setState({state: 'idle'});
+    this.setState({ state: 'idle' });
   },
 
   requestComplete(token) {
     const secret = OAuth._retrieveCredentialSecret(token);
-    this.setState({state: 'submitting'});
+    this.setState({ state: 'submitting' });
     Meteor.call('setupGdriveCreds', token, secret, (error) => {
       if (error) {
-        this.setState({state: 'error', error});
+        this.setState({ state: 'error', error });
       } else {
-        this.setState({state: 'success'});
+        this.setState({ state: 'success' });
       }
     });
   },
