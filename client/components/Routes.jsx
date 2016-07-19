@@ -9,6 +9,7 @@ import {
 } from 'react-router';
 import DocumentTitle from 'react-document-title';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { App } from '/imports/client/components/App.jsx';
 import { AnnouncementsPage } from '/imports/client/components/AnnouncementsPage.jsx';
 import { Authenticator } from '/imports/client/components/Authenticator.jsx';
 import { EnrollForm } from '/imports/client/components/EnrollForm.jsx';

@@ -8,7 +8,7 @@ import { ConnectionStatus } from '/imports/client/components/ConnectionStatus.js
 import { NotificationCenter } from '/imports/client/components/NotificationCenter.jsx';
 // TODO: ReactMeteorData
 
-SharedNavbar = React.createClass({
+const SharedNavbar = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -69,7 +69,7 @@ SharedNavbar = React.createClass({
 });
 
 // TODO: clean this up and dedupe navbar stuff when you figure out breadcrumbs
-FullscreenLayout = React.createClass({
+const FullscreenLayout = React.createClass({
   render() {
     return (
       <div>
@@ -86,7 +86,7 @@ FullscreenLayout = React.createClass({
   },
 });
 
-ScrollableLayout = React.createClass({
+const ScrollableLayout = React.createClass({
   render() {
     return (
       <div>
@@ -101,7 +101,7 @@ ScrollableLayout = React.createClass({
   },
 });
 
-App = React.createClass({
+const App = React.createClass({
   propTypes: {
     history: React.PropTypes.object,
   },
@@ -117,3 +117,5 @@ App = React.createClass({
     );
   },
 });
+
+export { App };
