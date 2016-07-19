@@ -4,7 +4,7 @@ import React from 'react';
 import BS from 'react-bootstrap';
 import { LabelledRadioGroup } from '/imports/client/components/LabelledRadioGroup.jsx';
 
-AccountForm = React.createClass({
+const AccountForm = React.createClass({
   propTypes: {
     format: React.PropTypes.string,
     onFormatChange: React.PropTypes.func,
@@ -319,3 +319,5 @@ AccountForm = React.createClass({
     );
   },
 });
+
+export { AccountForm };
