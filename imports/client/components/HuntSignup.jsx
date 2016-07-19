@@ -1,13 +1,13 @@
+import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import React from 'react';
 import BS from 'react-bootstrap';
 import ReactRouter from 'react-router';
 import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-// TODO: ReactMeteorData
+import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 const HuntSignup = React.createClass({
-  mixins: [ReactMeteorData],
-
   propTypes: {
     huntId: React.PropTypes.string.isRequired,
   },
@@ -16,6 +16,8 @@ const HuntSignup = React.createClass({
     history: ReactRouter.PropTypes.history,
     subs: JRPropTypes.subs,
   },
+
+  mixins: [ReactMeteorData],
 
   getInitialState() {
     return {
@@ -31,7 +33,7 @@ const HuntSignup = React.createClass({
       };
     }
 
-    const handle = this.context.subs.subscribe('mongo.hunts', {_id: this.props.huntId});
+    const handle = this.context.subs.subscribe('mongo.hunts', { _id: this.props.huntId });
     return {
       ready: handle.ready(),
       hunt: Models.Hunts.findOne(this.props.huntId),
@@ -46,19 +48,19 @@ const HuntSignup = React.createClass({
   },
 
   submit() {
-    this.setState({submitState: 'submitting'});
+    this.setState({ submitState: 'submitting' });
     Meteor.call('joinHunt', this.props.huntId, (error) => {
       if (error) {
-        this.setState({submitState: 'error', error});
+        this.setState({ submitState: 'error', error });
       } else {
-        this.setState({submitState: 'success'});
+        this.setState({ submitState: 'success' });
       }
     });
   },
 
   render() {
     if (this.data.ready) {
-      const disable = this.state.submitState == 'submitting';
+      const disable = this.state.submitState === 'submitting';
       return (
         <div>
           <BS.Alert bsStyle="warning">
@@ -66,9 +68,9 @@ const HuntSignup = React.createClass({
             participate in {this.data.hunt.name}?
           </BS.Alert>
           {this.state.submitState === 'error' ? (
-             <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>
-               Saving failed: {this.state.error.message}
-             </BS.Alert>
+            <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+              Saving failed: {this.state.error.message}
+            </BS.Alert>
            ) : null}
           <BS.ButtonToolbar>
             <BS.Button bsStyle="default" onClick={this.context.history.goBack} disabled={disable}>
