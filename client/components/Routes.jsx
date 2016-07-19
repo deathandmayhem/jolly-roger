@@ -16,6 +16,7 @@ import { GuessQueuePage } from '/imports/client/components/GuessQueuePage.jsx';
 import { HuntApp } from '/imports/client/components/HuntApp.jsx';
 import { HuntList } from '/imports/client/components/HuntList.jsx';
 import { HuntPage } from '/imports/client/components/HuntPage.jsx';
+import { LoginForm } from '/imports/client/components/LoginForm.jsx';
 
 Routes = React.createClass({
   childContextTypes: {

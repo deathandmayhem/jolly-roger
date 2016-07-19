@@ -1,7 +1,7 @@
 import React from 'react';
 import { AccountForm } from '/imports/client/components/AccountForm.jsx';
 
-LoginForm = React.createClass({
+const LoginForm = React.createClass({
   getInitialState() {
     return {
       format: 'login',
@@ -17,3 +17,5 @@ LoginForm = React.createClass({
     return <AccountForm format={this.state.format} onFormatChange={this.changeFormat} />;
   },
 });
+
+export { LoginForm };
