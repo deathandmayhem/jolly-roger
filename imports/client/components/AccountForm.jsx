@@ -4,6 +4,8 @@ import React from 'react';
 import BS from 'react-bootstrap';
 import { LabelledRadioGroup } from '/imports/client/components/LabelledRadioGroup.jsx';
 
+/* eslint-disable max-len */
+
 const AccountForm = React.createClass({
   propTypes: {
     format: React.PropTypes.string,
@@ -71,15 +73,14 @@ const AccountForm = React.createClass({
     this.setState({
       submitState: 'submitting',
     });
-    let _this = this;
     Meteor.loginWithPassword(this.state.email, this.state.password, (error) => {
       if (error) {
-        _this.setState({
+        this.setState({
           submitState: 'failed',
           errorMessage: error.message,
         });
       } else {
-        _this.setState({
+        this.setState({
           submitState: 'success',
           successMessage: 'Logged in successfully.',
         });
@@ -88,18 +89,17 @@ const AccountForm = React.createClass({
   },
 
   tryPasswordReset() {
-    let _this = this;
     this.setState({
       submitState: 'submitting',
     });
-    Accounts.forgotPassword({email: this.state.email}, (error) => {
+    Accounts.forgotPassword({ email: this.state.email }, (error) => {
       if (error) {
-        _this.setState({
+        this.setState({
           submitState: 'failed',
           errorMessage: error.message,
         });
       } else {
-        _this.setState({
+        this.setState({
           submitState: 'success',
           successMessage: 'Password reset email sent.',
         });
@@ -108,15 +108,14 @@ const AccountForm = React.createClass({
   },
 
   tryCompletePasswordReset() {
-    let _this = this;
     Accounts.resetPassword(this.props.token, this.state.password, (error) => {
       if (error) {
-        _this.setState({
+        this.setState({
           submitState: 'failed',
           errorMessage: error.message,
         });
       } else {
-        _this.setState({
+        this.setState({
           submitState: 'success',
           successMessage: 'Password reset successfully',
         });
@@ -125,8 +124,7 @@ const AccountForm = React.createClass({
   },
 
   tryEnroll() {
-    let _this = this;
-    let newProfile = {
+    const newProfile = {
       displayName: this.state.displayName,
       locationDuringHunt: this.state.locationDuringHunt,
       phoneNumber: this.state.phoneNumber,
@@ -141,20 +139,20 @@ const AccountForm = React.createClass({
 
     Accounts.resetPassword(this.props.token, this.state.password, (error) => {
       if (error) {
-        _this.setState({
+        this.setState({
           submitState: 'failed',
           errorMessage: error.message,
         });
       } else {
-        Meteor.call('saveProfile', newProfile, (error) => {
-          if (error) {
+        Meteor.call('saveProfile', newProfile, (innerError) => {
+          if (innerError) {
             // This user will have to set their profile manually later.  Oh well.
-            _this.setState({
+            this.setState({
               submitState: 'failed',
-              errorMessage: error.message,
+              errorMessage: innerError.message,
             });
           } else {
-            _this.setState({
+            this.setState({
               submitState: 'success',
               successMessage: 'Created account successfully',
             });
@@ -166,7 +164,7 @@ const AccountForm = React.createClass({
 
   submitForm(event) {
     event.preventDefault();
-    let format = this.props.format || 'login';
+    const format = this.props.format || 'login';
     if (format === 'login') {
       this.tryLogin();
     } else if (format === 'requestPwReset') {
@@ -180,103 +178,133 @@ const AccountForm = React.createClass({
 
   toggleWantPasswordReset(event) {
     event.preventDefault();
-    this.props.onFormatChange && this.props.onFormatChange();
+    if (this.props.onFormatChange) {
+      this.props.onFormatChange();
+    }
   },
 
   render() {
     // I'm mimicking the DOM used by AccountTemplates for this form so I can reuse their CSS.  It
     // would probably be good to refactor this to use ReactBootstrap/additional styles directly and
     // drop AccountTemplates entirely.
-    let submitting = this.state.submitState === 'submitting';
-    let format = this.props.format || 'login';
-    let title = {
+    const submitting = this.state.submitState === 'submitting';
+    const format = this.props.format || 'login';
+    const title = {
       login: 'Jolly Roger: Death and Mayhem Virtual HQ',
       enroll: 'Create an Account',
       requestPwReset: 'Reset your password',
       resetPwd: 'Reset your password',
     }[format];
 
-    let buttonText = {
+    const buttonText = {
       login: 'Sign In',
       enroll: 'Register',
       requestPwReset: 'Email Reset Link',
       resetPwd: 'Set Password',
     }[format];
 
-    let emailInput = (
+    const emailInput = (
       <div className="at-input form-group">
         <label className="control-label" htmlFor="at-field-email">Email</label>
-        <input id="at-field-email" className="form-control" type="email" name="at-field-email" placeholder="Email" autoCapitalize="none" autoCorrect="off" onChange={this.setEmail} disabled={submitting}/>
+        <input
+          id="at-field-email" className="form-control" type="email" name="at-field-email"
+          placeholder="Email" autoCapitalize="none" autoCorrect="off"
+          onChange={this.setEmail} disabled={submitting}
+        />
         <span className="help-block" hidden />
       </div>
     );
-    let pwInput = (
+    const pwInput = (
       <div>
         <label className="control-label" htmlFor="at-field-password">Password</label>
-        <input id="at-field-password" className="form-control" type="password" name="at-field-password" placeholder="Password" autoCapitalize="none" autoCorrect="off" onChange={this.setPassword} disabled={submitting}/>
+        <input
+          id="at-field-password" className="form-control" type="password" name="at-field-password"
+          placeholder="Password" autoCapitalize="none" autoCorrect="off"
+          onChange={this.setPassword} disabled={submitting}
+        />
         <span className="help-block" hidden />
       </div>
     );
-    let enrollmentFields = [
+    const enrollmentFields = [
       <div className="at-input form-group">
         <label className="control-label" htmlFor="at-field-displayname">Full name</label>
-        <input id="at-field-displayname" className="form-control" type="text" name="at-field-displayname" placeholder="Ben Bitdiddle" autoCapitalize="none" autoCorrect="off" onChange={this.setDisplayName} disabled={submitting}/>
+        <input
+          id="at-field-displayname" className="form-control" type="text"
+          name="at-field-displayname" placeholder="Ben Bitdiddle" autoCapitalize="none"
+          autoCorrect="off" onChange={this.setDisplayName} disabled={submitting}
+        />
         <span className="help-block">For use in chat</span>
       </div>,
       <div className="at-input form-group">
         <label className="control-label" htmlFor="at-field-phonenumber">Phone Number</label>
-        <input id="at-field-phonenumber" className="form-control" type="tel" name="at-field-phonenumber" placeholder="+16173244699" onChange={this.setPhoneNumber} disabled={submitting}/>
-        <span className="help-block">Optional, but helpful if HQ needs to reach you while you're on a runaround or at an event puzzle.</span>
+        <input
+          id="at-field-phonenumber" className="form-control" type="tel"
+          name="at-field-phonenumber" placeholder="+16173244699" onChange={this.setPhoneNumber}
+          disabled={submitting}
+        />
+        <span className="help-block">
+          Optional, but helpful if HQ needs to reach you while you're
+          on a runaround or at an event puzzle.
+        </span>
       </div>,
       <div className="at-input form-group">
-        <LabelledRadioGroup header="Affiliation with MIT"
-                            name="affiliation"
-                            options={[
-                              {
-                                value: 'undergrad',
-                                label: 'Undergraduate Student',
-                              }, {
-                                value: 'grad',
-                                label: 'Graduate student',
-                              }, {
-                                value: 'alum',
-                                label: 'Alumnus/alumna',
-                              }, {
-                                value: 'employee',
-                                label: 'Faculty/staff',
-                              }, {
-                                value: 'other',
-                                label: 'Other',
-                              }, {
-                                value: 'unaffiliated',
-                                label: 'Unaffiliated',
-                              },
-                            ]}
-                            initialValue={this.state.affiliation}
-                            help="The hunt organizers ask us for statistics about our team's affiliation."
-                            onChange={this.setAffiliation}/>
+        <LabelledRadioGroup
+          header="Affiliation with MIT"
+          name="affiliation"
+          options={[
+            {
+              value: 'undergrad',
+              label: 'Undergraduate Student',
+            }, {
+              value: 'grad',
+              label: 'Graduate student',
+            }, {
+              value: 'alum',
+              label: 'Alumnus/alumna',
+            }, {
+              value: 'employee',
+              label: 'Faculty/staff',
+            }, {
+              value: 'other',
+              label: 'Other',
+            }, {
+              value: 'unaffiliated',
+              label: 'Unaffiliated',
+            },
+          ]}
+          initialValue={this.state.affiliation}
+          help="The hunt organizers ask us for statistics about our team's affiliation."
+          onChange={this.setAffiliation}
+        />
       </div>,
       <div className="at-input form-group">
-        <LabelledRadioGroup header="Where are you hunting from?"
-                            name="location"
-                            options={[
-                              {
-                                value: 'local',
-                                label: 'At MIT',
-                              }, {
-                                value: 'remote',
-                                label: 'Remote (anywhere else)',
-                              },
-                            ]}
-                            initialValue={this.state.localRemote}
-                            help="This is useful to the operators, so we know what fraction of our team is local vs. remote."
-                            onChange={this.setLocalRemote}/>
-        <label className="control-label" htmlFor="at-field-location">Specific location during hunt</label>
-        <input id="at-field-location" className="form-control" type="text" name="at-field-location" placeholder="MIT, 32-261" onChange={this.setLocationDuringHunt} disabled={submitting}/>
+        <LabelledRadioGroup
+          header="Where are you hunting from?"
+          name="location"
+          options={[
+            {
+              value: 'local',
+              label: 'At MIT',
+            }, {
+              value: 'remote',
+              label: 'Remote (anywhere else)',
+            },
+          ]}
+          initialValue={this.state.localRemote}
+          help="This is useful to the operators, so we know what fraction of our team is local vs. remote."
+          onChange={this.setLocalRemote}
+        />
+        <label className="control-label" htmlFor="at-field-location">
+          Specific location during hunt
+        </label>
+        <input
+          id="at-field-location" className="form-control" type="text" name="at-field-location"
+          placeholder="MIT, 32-261" onChange={this.setLocationDuringHunt} disabled={submitting}
+        />
         <span className="help-block">Optional. More detail on where you (plan to hunt|are hunting) from.</span>
       </div>,
     ];
-    let pwResetOptionComponent = (
+    const pwResetOptionComponent = (
       <div className="at-pwd-link">
         <p>
           {/* TODO: prefer <Button bsStyle="link"> */}
@@ -286,7 +314,7 @@ const AccountForm = React.createClass({
         </p>
       </div>
     );
-    let backToMainForm = (
+    const backToMainForm = (
       <div className="at-signin-link">
         <p>
           {/* TODO: prefer <Button bsStyle="link"> */}
@@ -304,14 +332,14 @@ const AccountForm = React.createClass({
             <fieldset>
               {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert> : null}
               {this.state.submitState === 'success' && this.state.successMessage ? <BS.Alert bsStyle="success">{this.state.successMessage}</BS.Alert> : null}
-              {format === 'login' || format === 'requestPwReset' ? emailInput : null }
+              {format === 'login' || format === 'requestPwReset' ? emailInput : null}
               {format === 'login' || format === 'enroll' || format === 'resetPwd' ? pwInput : null}
               {format === 'login' ? pwResetOptionComponent : null}
-              {format === 'enroll' ? enrollmentFields : null }
+              {format === 'enroll' ? enrollmentFields : null}
               <button id="at-btn" className="at-btn submit btn btn-lg btn-block btn-default" type="submit" disabled={submitting}>
                 {buttonText}
               </button>
-              {format === 'requestPwReset' ? backToMainForm : null }
+              {format === 'requestPwReset' ? backToMainForm : null}
             </fieldset>
           </form>
         </div>
