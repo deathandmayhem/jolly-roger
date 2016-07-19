@@ -32,7 +32,7 @@
       {
         "allow": [
           "_id", "_this", "_ensureIndex", "_dropIndex", "_redirectUri", "_postRequest",
-          "_anyMethodsAreOutstanding", "_schemaKeys", "_schema",
+          "_anyMethodsAreOutstanding", "_schemaKeys", "_schema", "_retrieveCredentialSecret",
         ],
       }
     ],
