@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
 
-HuntPage = React.createClass({
+const HuntPage = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -31,3 +31,5 @@ HuntPage = React.createClass({
     );
   },
 });
+
+export { HuntPage };
