@@ -1,5 +1,6 @@
 import React from 'react';
 import BS from 'react-bootstrap';
+import { LabelledRadioGroup } from '/imports/client/components/LabelledRadioGroup.jsx';
 // TODO: ReactMeteorData
 // TODO: JRPropTypes
 

@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import React from 'react';
 import BS from 'react-bootstrap';
+import { LabelledRadioGroup } from '/imports/client/components/LabelledRadioGroup.jsx';
 
 AccountForm = React.createClass({
   propTypes: {

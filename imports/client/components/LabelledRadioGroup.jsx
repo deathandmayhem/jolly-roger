@@ -1,6 +1,6 @@
 import React from 'react';
 
-LabelledRadio = React.createClass({
+const LabelledRadio = React.createClass({
   // Bootstrap's approach to exclusive options does not look particularly good nor does it produce
   // accessibility-friendly markup, so here's a touch of our own instead.  Uses some bootstrap
   // styles.
@@ -35,7 +35,7 @@ LabelledRadio = React.createClass({
   },
 });
 
-LabelledRadioGroup = React.createClass({
+const LabelledRadioGroup = React.createClass({
   propTypes: {
     header: React.PropTypes.string.isRequired,
     name: React.PropTypes.string.isRequired, // The name of the exclusive group for the radio buttons
@@ -91,3 +91,5 @@ LabelledRadioGroup = React.createClass({
     );
   },
 });
+
+export { LabelledRadioGroup };
