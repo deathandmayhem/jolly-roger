@@ -23,6 +23,7 @@ import { ProfilePage } from '/imports/client/components/ProfilePage.jsx';
 import { PuzzleListPage } from '/imports/client/components/PuzzleListPage.jsx';
 import { PuzzlePage } from '/imports/client/components/PuzzlePage.jsx';
 import { SetupPage } from '/imports/client/components/SetupPage.jsx';
+import { SplashPage } from '/imports/client/components/SplashPage.jsx';
 
 Routes = React.createClass({
   childContextTypes: {

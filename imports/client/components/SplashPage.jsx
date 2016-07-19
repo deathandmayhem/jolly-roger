@@ -1,7 +1,7 @@
 import React from 'react';
 import BS from 'react-bootstrap';
 
-SplashPage = React.createClass({
+const SplashPage = React.createClass({
   render() {
     return (
       <div className="container">
@@ -19,3 +19,5 @@ SplashPage = React.createClass({
     );
   },
 });
+
+export { SplashPage };
