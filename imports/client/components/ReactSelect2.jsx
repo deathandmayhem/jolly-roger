@@ -68,10 +68,6 @@ const ReactSelect2 = React.createClass({
     });
   },
 
-  componentWillUnmount() {
-    this.el.select2('destroy');
-  },
-
   componentDidUpdate() {
     if (_.difference(this.el.val(), this.props.value).length !== 0 ||
         _.difference(this.props.value, this.el.val()).length !== 0) {
@@ -79,18 +75,28 @@ const ReactSelect2 = React.createClass({
     }
   },
 
+  componentWillUnmount() {
+    this.el.select2('destroy');
+  },
+
   render() {
-    const remaining = _.omit(this.props, 'value', 'data', 'options', 'events', 'onOpen', 'onClose', 'onSelect', 'onChange', 'onUnselect');
+    const remaining = _.omit(this.props,
+      'value', 'data', 'options', 'events', 'onOpen',
+      'onClose', 'onSelect', 'onChange', 'onUnselect'
+    );
 
     return (
       <select ref="select" {...remaining}>
         {this.props.data.map((item, k) => {
           if (typeof item === 'string' ||
-              ((!!item && typeof item === 'object') && Object.prototype.toString.call(item) === '[object String]')) {
-            return (<option key={'option-' + k} value={item}>{item}</option>);
+              ((!!item && typeof item === 'object') &&
+                Object.prototype.toString.call(item) === '[object String]'
+              )
+             ) {
+            return (<option key={`option-${k}`} value={item}>{item}</option>);
           }
 
-          return (<option key={'option-' + k} value={item.id}>{item.text}</option>);
+          return (<option key={`option-${k}`} value={item.id}>{item.text}</option>);
         })}
       </select>
     );
