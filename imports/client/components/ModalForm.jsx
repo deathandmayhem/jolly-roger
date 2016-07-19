@@ -7,18 +7,7 @@ const ModalForm = React.createClass({
     submitLabel: React.PropTypes.string,
     submitStyle: React.PropTypes.oneOf(BS.Button.STYLES),
     onSubmit: React.PropTypes.func.isRequired,
-  },
-
-  getInitialState() {
-    return {show: false};
-  },
-
-  show() {
-    this.setState({show: true});
-  },
-
-  close() {
-    this.setState({show: false});
+    children: React.PropTypes.node,
   },
 
   getDefaultProps() {
@@ -28,12 +17,24 @@ const ModalForm = React.createClass({
     };
   },
 
+  getInitialState() {
+    return { show: false };
+  },
+
+  show() {
+    this.setState({ show: true });
+  },
+
+  close() {
+    this.setState({ show: false });
+  },
+
   submit(e) {
     e.preventDefault();
     this.props.onSubmit(() => {
       // For delete forms, it's possible that the component gets
       // deleted and unmounted before the callback gets called.
-      if (this.isMounted()) {
+      if (this.isMounted()) { // eslint-disable-line react/no-is-mounted
         this.close();
       }
     });
@@ -53,7 +54,9 @@ const ModalForm = React.createClass({
           </BS.Modal.Body>
           <BS.Modal.Footer>
             <BS.Button bsStyle="default" onClick={this.close}>Close</BS.Button>
-            <BS.Button bsStyle={this.props.submitStyle} type="submit">{this.props.submitLabel}</BS.Button>
+            <BS.Button bsStyle={this.props.submitStyle} type="submit">
+              {this.props.submitLabel}
+            </BS.Button>
           </BS.Modal.Footer>
         </form>
       </BS.Modal>
