@@ -61,4 +61,4 @@ const ModalForm = React.createClass({
   },
 });
 
-export default ModalForm;
+export { ModalForm };

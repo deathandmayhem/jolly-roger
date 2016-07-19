@@ -7,9 +7,9 @@ import { Link } from 'react-router';
 import DocumentTitle from 'react-document-title';
 import marked from 'marked';
 import moment from 'moment';
-import ModalForm from '/imports/client/components/modal_form.jsx';
 import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import { TextareaAutosize } from '/imports/client/components/TextareaAutosize.jsx';
 import { TagList, RelatedPuzzleGroups } from '/imports/client/components/PuzzleComponents.jsx';
 // TODO: ReactMeteorData

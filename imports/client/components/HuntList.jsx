@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
-import ModalForm from '/imports/client/components/modal_form.jsx';
 import Ansible from '/imports/ansible.js'
 import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 // TODO: ReactMeteorData
 
 const HuntFormModal = React.createClass({
