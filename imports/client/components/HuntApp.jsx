@@ -3,7 +3,7 @@ import DocumentTitle from 'react-document-title';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
 
-HuntApp = React.createClass({
+const HuntApp = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -27,3 +27,5 @@ HuntApp = React.createClass({
     );
   },
 });
+
+export { HuntApp };

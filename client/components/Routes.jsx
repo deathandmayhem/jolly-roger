@@ -13,6 +13,7 @@ import { AnnouncementsPage } from '/imports/client/components/AnnouncementsPage.
 import { Authenticator } from '/imports/client/components/Authenticator.jsx';
 import { EnrollForm } from '/imports/client/components/EnrollForm.jsx';
 import { GuessQueuePage } from '/imports/client/components/GuessQueuePage.jsx';
+import { HuntApp } from '/imports/client/components/HuntApp.jsx';
 
 Routes = React.createClass({
   childContextTypes: {
