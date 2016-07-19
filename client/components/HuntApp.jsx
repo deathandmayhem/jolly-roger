@@ -1,7 +1,7 @@
 import React from 'react';
 import DocumentTitle from 'react-document-title';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
-// TODO: JRPropTypes
 
 HuntApp = React.createClass({
   mixins: [ReactMeteorData],

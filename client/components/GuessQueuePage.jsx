@@ -3,8 +3,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import BS from 'react-bootstrap';
 import { Link } from 'react-router';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
-// TODO: JRPropTypes
 
 AutoSelectInput = React.createClass({
   propTypes: {

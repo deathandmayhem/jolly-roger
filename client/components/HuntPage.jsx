@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
-// TODO: JRPropTypes
 
 HuntPage = React.createClass({
   mixins: [ReactMeteorData],

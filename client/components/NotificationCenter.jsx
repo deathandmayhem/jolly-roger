@@ -5,8 +5,8 @@ import { Link } from 'react-router';
 import moment from 'moment';
 import marked from 'marked';
 import classnames from 'classnames';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
-// TODO: JRPropTypes
 
 const MessengerDismissButton = React.createClass({
   mixins: [PureRenderMixin],

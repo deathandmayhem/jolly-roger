@@ -9,8 +9,8 @@ import marked from 'marked';
 import moment from 'moment';
 import ModalForm from '/imports/client/components/modal_form.jsx';
 import { huntFixtures } from '/imports/fixtures.js';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
-// TODO: JRPropTypes
 
 RelatedPuzzleSection = React.createClass({
   mixins: [PureRenderMixin],

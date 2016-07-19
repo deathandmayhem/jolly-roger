@@ -3,8 +3,8 @@ import React from 'react';
 import BS from 'react-bootstrap';
 import RRBS from 'react-router-bootstrap';
 import { Link } from 'react-router';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
-// TODO: JRPropTypes
 
 SharedNavbar = React.createClass({
   mixins: [ReactMeteorData],

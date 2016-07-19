@@ -4,8 +4,8 @@ import BS from 'react-bootstrap';
 import ModalForm from '/imports/client/components/modal_form.jsx';
 import Ansible from '/imports/ansible.js'
 import { huntFixtures } from '/imports/fixtures.js';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
-// TODO: JRPropTypes
 
 const HuntFormModal = React.createClass({
   propTypes: {

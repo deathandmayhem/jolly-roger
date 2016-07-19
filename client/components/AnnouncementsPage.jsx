@@ -3,8 +3,8 @@ import moment from 'moment';
 import React from 'react';
 import BS from 'react-bootstrap';
 import marked from 'marked';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData mixin
-// TODO: JRPropTypes as import
 
 AnnouncementForm = React.createClass({
   propTypes: {

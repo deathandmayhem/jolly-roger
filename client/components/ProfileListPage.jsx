@@ -1,8 +1,8 @@
 import React from 'react';
 import BS from 'react-bootstrap';
 import RRBS from 'react-router-bootstrap';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
-// TODO: JRPropTypes
 
 UserProfile = React.createClass({
   propTypes: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),

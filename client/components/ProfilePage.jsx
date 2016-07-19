@@ -1,8 +1,8 @@
 import React from 'react';
 import BS from 'react-bootstrap';
 import { LabelledRadioGroup } from '/imports/client/components/LabelledRadioGroup.jsx';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
-// TODO: JRPropTypes
 
 OthersProfilePage = React.createClass({
   propTypes: {

@@ -8,6 +8,7 @@ import {
   browserHistory,
 } from 'react-router';
 import DocumentTitle from 'react-document-title';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 
 Routes = React.createClass({
   childContextTypes: {

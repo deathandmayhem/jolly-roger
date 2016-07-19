@@ -2,8 +2,8 @@ import React from 'react';
 import BS from 'react-bootstrap';
 import ReactRouter from 'react-router';
 import { huntFixtures } from '/imports/fixtures.js';
+import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
-// TODO: JRPropTypes
 
 HuntSignup = React.createClass({
   mixins: [ReactMeteorData],
