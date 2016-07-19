@@ -4,16 +4,7 @@ import RRBS from 'react-router-bootstrap';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData
 
-UserProfile = React.createClass({
-  propTypes: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
-  render() {
-    return (
-      <div>{this.props.displayName}</div>
-    );
-  },
-});
-
-ProfileList = React.createClass({
+const ProfileList = React.createClass({
   propTypes: {
     profiles: React.PropTypes.arrayOf(
       React.PropTypes.shape(
@@ -100,7 +91,7 @@ ProfileList = React.createClass({
   },
 });
 
-ProfileListPage = React.createClass({
+const ProfileListPage = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -125,3 +116,5 @@ ProfileListPage = React.createClass({
     return <ProfileList profiles={this.data.profiles} />;
   },
 });
+
+export { ProfileListPage };
