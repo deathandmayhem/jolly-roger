@@ -6,7 +6,7 @@ import marked from 'marked';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 // TODO: ReactMeteorData mixin
 
-AnnouncementForm = React.createClass({
+const AnnouncementForm = React.createClass({
   propTypes: {
     huntId: React.PropTypes.string.isRequired,
   },
@@ -68,7 +68,7 @@ AnnouncementForm = React.createClass({
   },
 });
 
-Announcement = React.createClass({
+const Announcement = React.createClass({
   propTypes: {
     announcement: React.PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
     indexedProfiles: React.PropTypes.objectOf(
@@ -95,7 +95,7 @@ Announcement = React.createClass({
   },
 });
 
-AnnouncementsPage = React.createClass({
+const AnnouncementsPage = React.createClass({
   mixins: [ReactMeteorData],
 
   contextTypes: {
@@ -142,3 +142,5 @@ AnnouncementsPage = React.createClass({
     );
   },
 });
+
+export { AnnouncementsPage };
