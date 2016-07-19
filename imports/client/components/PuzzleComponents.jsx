@@ -1,23 +1,30 @@
+import { _ } from 'meteor/underscore';
+import { jQuery } from 'meteor/jquery';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { ReactSelect2 } from '/imports/client/components/ReactSelect2.jsx';
+import { ReactMeteorData } from 'meteor/react-meteor-data';
+
+/* eslint-disable max-len */
 
 const puzzleShape = Schemas.Puzzles.asReactPropTypes();
 const tagShape = Schemas.Tags.asReactPropTypes();
 
+/*
 const puzzleHasTag = (puzzle, tag) => {
   return _.contains(puzzle.tags, tag._id);
 };
+*/
 
 const puzzleInterestingness = (puzzle, indexedTags, group) => {
   // If the shared tag for this group is group:<something>, then group will equal '<something>', and
   // we wish to sort a puzzle named 'meta-for:<something>' at the top.
   let desiredTagName;
   if (group) {
-    desiredTagName = 'meta-for:' + group;
+    desiredTagName = `meta-for: ${group}`;
   }
 
   let minScore = 0;
@@ -39,14 +46,14 @@ const puzzleInterestingness = (puzzle, indexedTags, group) => {
   return minScore;
 };
 
-const sortPuzzlesByRelevanceWithinPuzzleGroup = function(puzzles, sharedTag, indexedTags) {
+const sortPuzzlesByRelevanceWithinPuzzleGroup = function (puzzles, sharedTag, indexedTags) {
   // If sharedTag is a meta:<something> tag, sort a puzzle with a meta-for:<something> tag at top.
   let group;
   if (sharedTag.name.lastIndexOf('group:', 0) === 0) {
     group = sharedTag.name.slice('group:'.length);
   }
 
-  let sortedPuzzles = _.toArray(puzzles);
+  const sortedPuzzles = _.toArray(puzzles);
   sortedPuzzles.sort((a, b) => {
     const ia = puzzleInterestingness(a, indexedTags, group);
     const ib = puzzleInterestingness(b, indexedTags, group);
@@ -63,10 +70,10 @@ const sortPuzzlesByRelevanceWithinPuzzleGroup = function(puzzles, sharedTag, ind
 
 const PuzzleAnswer = React.createClass({
   displayName: 'PuzzleAnswer',
-  mixins: [PureRenderMixin],
   propTypes: {
     answer: React.PropTypes.string.isRequired,
   },
+  mixins: [PureRenderMixin],
   styles: {
     wrapper: {
       display: 'inline-block',
@@ -89,12 +96,12 @@ const PuzzleAnswer = React.createClass({
 
 const Puzzle = React.createClass({
   displayName: 'Puzzle',
-  mixins: [PureRenderMixin],
   propTypes: {
     puzzle: React.PropTypes.shape(puzzleShape).isRequired,
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     layout: React.PropTypes.string.isRequired,
   },
+  mixins: [PureRenderMixin],
   styles: {
     // TODO: turn this horrid mess into CSS
     puzzle: {
@@ -175,11 +182,13 @@ const Puzzle = React.createClass({
       layoutStyles.puzzle,
       this.props.puzzle.answer ? this.styles.solvedPuzzle : this.styles.unsolvedPuzzle,
     );
+    /*
     const countTooltip = (
       <BS.Tooltip>
         users currently viewing this puzzle
       </BS.Tooltip>
     );
+    */
 
     return (
       <div className="puzzle" style={puzzleStyle}>
@@ -188,7 +197,7 @@ const Puzzle = React.createClass({
         </div>
         {this.props.layout === 'grid' ?
           <div className="puzzle-link" style={layoutStyles.puzzleLink}>
-            {this.props.puzzle.url ? <span>(<a href={this.props.puzzle.url} target="_blank">puzzle</a>)</span> : null }
+            {this.props.puzzle.url ? <span>(<a href={this.props.puzzle.url} target="_blank">puzzle</a>)</span> : null}
           </div> :
           null}
         <div className="puzzle-answer" style={layoutStyles.answer}>
@@ -202,12 +211,12 @@ const Puzzle = React.createClass({
 
 const PuzzleList = React.createClass({
   displayName: 'PuzzleList',
-  mixins: [PureRenderMixin],
   propTypes: {
     puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     layout: React.PropTypes.string.isRequired,
   },
+  mixins: [PureRenderMixin],
   render() {
     // This component just renders the puzzles provided, in order.
     // Adjusting order based on tags, tag groups, etc. is to be done at
@@ -227,8 +236,6 @@ const PuzzleList = React.createClass({
 });
 
 const TagEditor = React.createClass({
-  mixins: [ReactMeteorData],
-
   // TODO: this should support autocomplete to reduce human error.
   // Probably not going to land this week.
   propTypes: {
@@ -237,9 +244,16 @@ const TagEditor = React.createClass({
     onCancel: React.PropTypes.func.isRequired,
   },
 
-  getMeteorData() {
-    const puzzle = Models.Puzzles.findOne(this.props.puzzleId);
-    return {allTags: Models.Tags.find({hunt: puzzle.hunt}).fetch()};
+  mixins: [ReactMeteorData],
+
+  componentDidMount() {
+    // Focus the input when mounted - the user just clicked on the button-link.
+    const input = ReactDOM.findDOMNode(this.refs.input);
+    jQuery(input).select2('open').
+      on('select2:close', this.onBlur).
+      on('select2:select', () => {
+        this.props.onSubmit(jQuery(input).val());
+      });
   },
 
   onBlur() {
@@ -248,24 +262,20 @@ const TagEditor = React.createClass({
     this.props.onCancel();
   },
 
-  componentDidMount() {
-    // Focus the input when mounted - the user just clicked on the button-link.
-    let input = ReactDOM.findDOMNode(this.refs.input);
-    $(input).select2('open').
-      on('select2:close', this.onBlur).
-      on('select2:select', () => {
-        this.props.onSubmit($(input).val());
-      });
+  getMeteorData() {
+    const puzzle = Models.Puzzles.findOne(this.props.puzzleId);
+    return { allTags: Models.Tags.find({ hunt: puzzle.hunt }).fetch() };
   },
 
   render() {
     return (
       <span>
         <ReactSelect2
-            ref="input"
-            style={{minWidth: '100px'}}
-            data={[''].concat(_.pluck(this.data.allTags, 'name'))}
-            options={{tags: true}}/>
+          ref="input"
+          style={{ minWidth: '100px' }}
+          data={[''].concat(_.pluck(this.data.allTags, 'name'))}
+          options={{ tags: true }}
+        />
       </span>
     );
   },
@@ -273,12 +283,26 @@ const TagEditor = React.createClass({
 
 const Tag = React.createClass({
   displayName: 'Tag',
-  mixins: [PureRenderMixin],
   propTypes: {
     tag: React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
     onClick: React.PropTypes.func,
     onRemove: React.PropTypes.func, // if present, show a dismiss button
   },
+
+  mixins: [PureRenderMixin],
+
+  onClick() {
+    if (this.props.onClick) {
+      this.props.onClick();
+    }
+  },
+
+  onRemove() {
+    if (this.props.onRemove) {
+      this.props.onRemove(this.props.tag._id);
+    }
+  },
+
   styles: {
     base: {
       display: 'inline-block',
@@ -303,14 +327,6 @@ const Tag = React.createClass({
     interactive: {
       cursor: 'pointer',
     },
-  },
-
-  onClick() {
-    this.props.onClick && this.props.onClick();
-  },
-
-  onRemove() {
-    this.props.onRemove && this.props.onRemove(this.props.tag._id);
   },
 
   render() {
@@ -339,13 +355,13 @@ const Tag = React.createClass({
 
 const TagList = React.createClass({
   displayName: 'TagList',
-  mixins: [PureRenderMixin],
   propTypes: {
     puzzleId: React.PropTypes.string.isRequired,
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     onCreateTag: React.PropTypes.func, // if provided, will show UI for adding a new tag
     onRemoveTag: React.PropTypes.func, // callback if user wants to remove a tag
   },
+  mixins: [PureRenderMixin],
 
   getInitialState() {
     return {
@@ -370,7 +386,9 @@ const TagList = React.createClass({
   submitTag(newTagName) {
     // TODO: submitTag should use the value passed in from the child, which may have done some
     // autocomplete matching that this component doesn't know about.
-    this.props.onCreateTag && this.props.onCreateTag(newTagName);
+    if (this.props.onCreateTag) {
+      this.props.onCreateTag(newTagName);
+    }
     this.setState({
       editing: false,
     });
@@ -393,7 +411,9 @@ const TagList = React.createClass({
   },
 
   removeTag(tagIdToRemove) {
-    this.props.onRemoveTag && this.props.onRemoveTag(tagIdToRemove);
+    if (this.props.onRemoveTag) {
+      this.props.onRemoveTag(tagIdToRemove);
+    }
   },
 
   soloTagInterestingness(tag) {
@@ -418,11 +438,11 @@ const TagList = React.createClass({
     // * then "is:meta"
     // * "meta:*" comes next (sorted alphabetically, if multiple are present)
     // * all other tags, sorted alphabetically
-    sortedTags = _.toArray(tags);
+    const sortedTags = _.toArray(tags);
 
     sortedTags.sort((a, b) => {
-      ia = this.soloTagInterestingness(a);
-      ib = this.soloTagInterestingness(b);
+      const ia = this.soloTagInterestingness(a);
+      const ib = this.soloTagInterestingness(b);
       if (ia !== ib) {
         return ia - ib;
       } else {
@@ -434,37 +454,63 @@ const TagList = React.createClass({
   },
 
   render() {
-    let tags = this.sortedTagsForSinglePuzzle(this.props.tags);
-    let components = [];
+    const tags = this.sortedTagsForSinglePuzzle(this.props.tags);
+    const components = [];
     for (let i = 0; i < tags.length; i++) {
-      components.push(<Tag key={tags[i]._id}
-                           tag={tags[i]}
-                           onRemove={this.state.removing ? this.removeTag : undefined} />);
+      components.push(
+        <Tag
+          key={tags[i]._id}
+          tag={tags[i]}
+          onRemove={this.state.removing ? this.removeTag : undefined}
+        />
+      );
     }
 
     if (this.state.editing) {
-      components.push(<TagEditor key="tagEditor"
-                                 puzzleId={this.props.puzzleId}
-                                 onSubmit={this.submitTag}
-                                 onCancel={this.stopEditing}/>);
+      components.push(
+        <TagEditor
+          key="tagEditor"
+          puzzleId={this.props.puzzleId}
+          onSubmit={this.submitTag}
+          onCancel={this.stopEditing}
+        />
+      );
     } else if (this.state.removing) {
-      components.push(<BS.Button key="stopRemoving"
-                                 style={this.styles.linkButton}
-                                 bsStyle="link"
-                                 onClick={this.stopRemoving}>Done removing</BS.Button>);
+      components.push(
+        <BS.Button
+          key="stopRemoving"
+          style={this.styles.linkButton}
+          bsStyle="link"
+          onClick={this.stopRemoving}
+        >
+          Done removing
+        </BS.Button>
+      );
     } else {
       if (this.props.onCreateTag) {
-        components.push(<BS.Button key="startEditing"
-                                   style={this.styles.linkButton}
-                                   bsStyle="link"
-                                   onClick={this.startEditing}>Add a tag...</BS.Button>);
+        components.push(
+          <BS.Button
+            key="startEditing"
+            style={this.styles.linkButton}
+            bsStyle="link"
+            onClick={this.startEditing}
+          >
+            Add a tag...
+          </BS.Button>
+        );
       }
 
       if (this.props.onRemoveTag) {
-        components.push(<BS.Button key="startRemoving"
-                                   style={this.styles.linkButton}
-                                   bsStyle="link"
-                                   onClick={this.startRemoving}>Remove a tag...</BS.Button>);
+        components.push(
+          <BS.Button
+            key="startRemoving"
+            style={this.styles.linkButton}
+            bsStyle="link"
+            onClick={this.startRemoving}
+          >
+            Remove a tag...
+          </BS.Button>
+        );
       }
     }
 
@@ -522,15 +568,15 @@ const RelatedPuzzleGroup = React.createClass({
       <div style={this.styles.group}>
         <div style={this.styles.tagWrapper} onClick={this.toggleCollapse}>
           {this.state.collapsed ?
-              <span className="glyphicon glyphicon-chevron-up"></span> :
-              <span className="glyphicon glyphicon-chevron-down"></span>}
+            <span className="glyphicon glyphicon-chevron-up"></span> :
+            <span className="glyphicon glyphicon-chevron-down"></span>}
           <Tag tag={this.props.sharedTag} />
-          {this.props.includeCount && <span>{'(' + this.props.relatedPuzzles.length + ' other ' + (this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles') + ')'}</span>}
+          {this.props.includeCount && <span>{`(${this.props.relatedPuzzles.length} other ${this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles'})`}</span>}
         </div>
         {this.state.collapsed ? null :
-        <div style={this.styles.puzzleListWrapper}>
-          <PuzzleList puzzles={sortedPuzzles} tags={this.props.allTags} layout={this.props.layout}/>
-        </div>}
+          <div style={this.styles.puzzleListWrapper}>
+            <PuzzleList puzzles={sortedPuzzles} tags={this.props.allTags} layout={this.props.layout} />
+          </div>}
       </div>
     );
   },
@@ -568,10 +614,10 @@ const RelatedPuzzleGroups = React.createClass({
 
   sortedTagsForRelatedPuzzles(tags) {
     // Clone a copy of the tags.
-    let tagList = _.toArray(tags);
+    const tagList = _.toArray(tags);
 
     // Look for a tag that starts with 'meta-for:'.
-    let metaForTag = _.filter(tags, (tag) => { return tag.name.lastIndexOf('meta-for:', 0) === 0; })[0];
+    const metaForTag = _.filter(tags, (tag) => { return tag.name.lastIndexOf('meta-for:', 0) === 0; })[0];
 
     tagList.sort((a, b) => {
       const ia = this.relatedPuzzlesTagInterestingness(a, metaForTag);
@@ -595,12 +641,12 @@ const RelatedPuzzleGroups = React.createClass({
 
   render() {
     // For each tag, collect all the other puzzles that also have that tag.
-    let groups = [];
+    const groups = [];
     const tagIndex = _.indexBy(this.props.allTags, '_id');
 
     // TODO: sort the tag groups by tag interestingness, which should probably be related to meta
     // presence/absence, tag group size, and number of solved/unsolved?
-    let activePuzzleTags = this.sortedTagsForRelatedPuzzles(_.map(this.props.activePuzzle.tags, (tagId) => {
+    const activePuzzleTags = this.sortedTagsForRelatedPuzzles(_.map(this.props.activePuzzle.tags, (tagId) => {
       return tagIndex[tagId];
     }));
 
@@ -611,7 +657,7 @@ const RelatedPuzzleGroups = React.createClass({
       // Only include a tag/puzzleset if there are actually puzzles other than the activePuzzle
       // that hold this tag.
       if (puzzles.length) {
-        groups.push({tag: tag, puzzles: puzzles});
+        groups.push({ tag, puzzles });
       }
     }
 
@@ -624,13 +670,16 @@ const RelatedPuzzleGroups = React.createClass({
     return (
       <div>
         {groups.length ? groups.map((g) => {
-          return <RelatedPuzzleGroup key={g.tag._id}
-                                     sharedTag={g.tag}
-                                     relatedPuzzles={g.puzzles}
-                                     allTags={this.props.allTags}
-                                     includeCount={true}
-                                     layout="inline"
-                                     />;
+          return (
+            <RelatedPuzzleGroup
+              key={g.tag._id}
+              sharedTag={g.tag}
+              relatedPuzzles={g.puzzles}
+              allTags={this.props.allTags}
+              includeCount
+              layout="inline"
+            />
+          );
         }) : <span>No tags for this puzzle yet.</span>
         }
       </div>
