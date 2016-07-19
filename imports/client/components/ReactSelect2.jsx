@@ -24,9 +24,13 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-const {Component, PropTypes} = React;
+import { _ } from 'meteor/underscore';
+import { jQuery } from 'meteor/jquery';
 
-ReactSelect2 = React.createClass({
+
+const { PropTypes } = React;
+
+const ReactSelect2 = React.createClass({
   propTypes: {
     data: PropTypes.array,
     value: PropTypes.any,
@@ -56,7 +60,7 @@ ReactSelect2 = React.createClass({
   },
 
   componentDidMount() {
-    this.el = $(ReactDOM.findDOMNode(this));
+    this.el = jQuery(ReactDOM.findDOMNode(this));
     this.el.select2(this.props.options);
 
     this.props.events.forEach(event => {
@@ -92,3 +96,5 @@ ReactSelect2 = React.createClass({
     );
   },
 });
+
+export { ReactSelect2 };
