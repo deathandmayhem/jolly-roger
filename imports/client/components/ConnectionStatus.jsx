@@ -1,13 +1,18 @@
+import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
 import Ansible from '/imports/ansible.js';
-// TODO: ReactMeteorData
+import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 const ConnectionStatus = React.createClass({
   mixins: [ReactMeteorData],
 
+  componentWillMount() {
+    this.forceUpdateBound = this.forceUpdate.bind(this);
+  },
+
   getMeteorData() {
-    data = {meteorStatus: Meteor.status()};
+    const data = { meteorStatus: Meteor.status() };
     return data;
   },
 
@@ -26,12 +31,12 @@ const ConnectionStatus = React.createClass({
             {this.data.meteorStatus.reason}
           </BS.Alert>
         );
-      case 'waiting':
-        let now = Date.now();
-        let timeToRetry = Math.ceil((this.data.meteorStatus.retryTime - now) / 1000);
+      case 'waiting': {
+        const now = Date.now();
+        const timeToRetry = Math.ceil((this.data.meteorStatus.retryTime - now) / 1000);
 
         // Trigger a refresh in a second.  TODO: debounce this?
-        window.setTimeout(this.forceUpdate.bind(this), 1000);
+        window.setTimeout(this.forceUpdateBound, 1000);
         return (
           <BS.Alert bsStyle="warning">
             We can't connect to Jolly Roger right now. We'll try again
@@ -40,6 +45,7 @@ const ConnectionStatus = React.createClass({
             reconnect. <a onClick={Meteor.reconnect}>retry now</a>
           </BS.Alert>
         );
+      }
       case 'offline':
         return (
           <BS.Alert bsStyle="warning">
@@ -51,7 +57,7 @@ const ConnectionStatus = React.createClass({
       case 'connected':
         return null;
       default:
-        Ansible.warn('Unknown connection status', {state: this.data.meteorStatus.status});
+        Ansible.warn('Unknown connection status', { state: this.data.meteorStatus.status });
         return null;
     }
   },
