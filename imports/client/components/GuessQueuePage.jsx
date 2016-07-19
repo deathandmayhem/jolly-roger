@@ -1,12 +1,14 @@
 import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import BS from 'react-bootstrap';
 import { Link } from 'react-router';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-// TODO: ReactMeteorData
+import { ReactMeteorData } from 'meteor/react-meteor-data';
 
-AutoSelectInput = React.createClass({
+/* eslint-disable max-len */
+
+const AutoSelectInput = React.createClass({
   propTypes: {
     value: React.PropTypes.string.isRequired,
   },
@@ -21,7 +23,7 @@ AutoSelectInput = React.createClass({
   },
 });
 
-GuessBlock = React.createClass({
+const GuessBlock = React.createClass({
   propTypes: {
     canEdit: React.PropTypes.bool.isRequired,
     guess: React.PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
@@ -109,7 +111,7 @@ GuessBlock = React.createClass({
   formatDate(date) {
     // We only care about days in so far as which day of hunt this guess was submitted on
     const day = this.daysOfWeek[date.getDay()];
-    return date.toLocaleTimeString() + ' on ' + day;
+    return `${date.toLocaleTimeString()} on ${day}`;
   },
 
   render() {
@@ -130,10 +132,10 @@ GuessBlock = React.createClass({
         {this.props.canEdit
             ?
           <div style={this.styles.buttonGroup}>
-            {guess.state === 'correct'   ? <button style={{flex: '0 1 20%', border: '0px', backgroundColor: 'transparent'}} disabled>Correct</button> : <button style={this.styles.buttons.correct} onClick={this.markCorrect}>Mark correct</button>}
-            {guess.state === 'incorrect' ? <button style={{flex: '0 1 20%', border: '0px', backgroundColor: 'transparent'}} disabled>Incorrect</button> : <button style={this.styles.buttons.incorrect} onClick={this.markIncorrect}>Mark incorrect</button>}
-            {guess.state === 'pending'   ? <button style={{flex: '0 1 20%', border: '0px', backgroundColor: 'transparent'}} disabled>Pending</button> : <button style={this.styles.buttons.pending} onClick={this.markPending}>Mark pending</button>}
-            {guess.state === 'rejected'  ? <button style={{flex: '0 1 20%', border: '0px', backgroundColor: 'transparent'}} disabled>Rejected</button> : <button style={this.styles.buttons.rejected} onClick={this.markRejected}>Mark rejected</button>}
+            {guess.state === 'correct' ? <button style={{ flex: '0 1 20%', border: '0px', backgroundColor: 'transparent' }} disabled>Correct</button> : <button style={this.styles.buttons.correct} onClick={this.markCorrect}>Mark correct</button>}
+            {guess.state === 'incorrect' ? <button style={{ flex: '0 1 20%', border: '0px', backgroundColor: 'transparent' }} disabled>Incorrect</button> : <button style={this.styles.buttons.incorrect} onClick={this.markIncorrect}>Mark incorrect</button>}
+            {guess.state === 'pending' ? <button style={{ flex: '0 1 20%', border: '0px', backgroundColor: 'transparent' }} disabled>Pending</button> : <button style={this.styles.buttons.pending} onClick={this.markPending}>Mark pending</button>}
+            {guess.state === 'rejected' ? <button style={{ flex: '0 1 20%', border: '0px', backgroundColor: 'transparent' }} disabled>Rejected</button> : <button style={this.styles.buttons.rejected} onClick={this.markRejected}>Mark rejected</button>}
           </div>
             :
           <div style={this.styles.buttonGroup}>
@@ -146,11 +148,17 @@ GuessBlock = React.createClass({
 });
 
 const GuessQueuePage = React.createClass({
-  mixins: [ReactMeteorData],
+  propTypes: {
+    params: React.PropTypes.shape({
+      huntId: React.PropTypes.string.isRequired,
+    }).isRequired,
+  },
 
   contextTypes: {
     subs: JRPropTypes.subs,
   },
+
+  mixins: [ReactMeteorData],
 
   getMeteorData() {
     const guessesHandle = this.context.subs.subscribe('mongo.guesses', {
@@ -161,8 +169,8 @@ const GuessQueuePage = React.createClass({
     });
     const profilesHandle = this.context.subs.subscribe('mongo.profiles');
     const ready = guessesHandle.ready() && puzzlesHandle.ready() && profilesHandle.ready();
-    const guesses = ready ? Models.Guesses.find({hunt: this.props.params.huntId}, {sort: { createdAt: -1 }}).fetch() : [];
-    const puzzles = ready ? _.indexBy(Models.Puzzles.find({hunt: this.props.params.huntId}).fetch(), '_id') : [];
+    const guesses = ready ? Models.Guesses.find({ hunt: this.props.params.huntId }, { sort: { createdAt: -1 } }).fetch() : [];
+    const puzzles = ready ? _.indexBy(Models.Puzzles.find({ hunt: this.props.params.huntId }).fetch(), '_id') : [];
     const profiles = ready ? _.indexBy(Models.Profiles.find().fetch(), '_id') : [];
     const canEdit = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
     return {
@@ -183,12 +191,15 @@ const GuessQueuePage = React.createClass({
       <div>
         <h1>Guess queue</h1>
         {this.data.guesses.map((guess) => {
-          return <GuessBlock key={guess._id}
-                             guess={guess}
-                             profile={this.data.profiles[guess.createdBy]}
-                             puzzle={this.data.puzzles[guess.puzzle]}
-                             canEdit={this.data.canEdit}
-                             />;
+          return (
+            <GuessBlock
+              key={guess._id}
+              guess={guess}
+              profile={this.data.profiles[guess.createdBy]}
+              puzzle={this.data.puzzles[guess.puzzle]}
+              canEdit={this.data.canEdit}
+            />
+          );
         })}
       </div>
     );
