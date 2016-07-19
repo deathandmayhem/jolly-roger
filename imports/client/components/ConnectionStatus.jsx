@@ -3,7 +3,7 @@ import BS from 'react-bootstrap';
 import Ansible from '/imports/ansible.js';
 // TODO: ReactMeteorData
 
-ConnectionStatus = React.createClass({
+const ConnectionStatus = React.createClass({
   mixins: [ReactMeteorData],
 
   getMeteorData() {
@@ -56,3 +56,5 @@ ConnectionStatus = React.createClass({
     }
   },
 });
+
+export { ConnectionStatus };
