@@ -22,6 +22,7 @@ import { ProfileListPage } from '/imports/client/components/ProfileListPage.jsx'
 import { ProfilePage } from '/imports/client/components/ProfilePage.jsx';
 import { PuzzleListPage } from '/imports/client/components/PuzzleListPage.jsx';
 import { PuzzlePage } from '/imports/client/components/PuzzlePage.jsx';
+import { SetupPage } from '/imports/client/components/SetupPage.jsx';
 
 Routes = React.createClass({
   childContextTypes: {
@@ -55,7 +56,7 @@ Routes = React.createClass({
               <Route path="users/invite" component={UserInvite}/>
               <Route path="users/:userId" component={ProfilePage}/>
               <Route path="users" component={ProfileListPage}/>
-              <Route path="setup" component={Setup}/>
+              <Route path="setup" component={SetupPage}/>
             </Route>
           </Route>
           {/* Unauthenticated routes */}

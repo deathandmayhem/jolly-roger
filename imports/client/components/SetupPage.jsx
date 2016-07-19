@@ -2,7 +2,7 @@ import React from 'react';
 import BS from 'react-bootstrap';
 // TODO: ReactMeteorData
 
-Setup = React.createClass({
+const SetupPage = React.createClass({
   mixins: [ReactMeteorData],
   getMeteorData() {
     const config = ServiceConfiguration.configurations.findOne({service: 'google'});
@@ -74,3 +74,5 @@ Setup = React.createClass({
     );
   },
 });
+
+export { SetupPage };
