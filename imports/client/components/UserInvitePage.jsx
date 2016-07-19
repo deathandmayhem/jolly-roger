@@ -8,14 +8,14 @@ const UserInvitePage = React.createClass({
   },
 
   getInitialState() {
-    return {error: null};
+    return { error: null };
   },
 
   onSubmit(e) {
     e.preventDefault();
     Meteor.call('sendInvite', this.refs.email.getValue(), (error) => {
       if (error) {
-        this.setState({error});
+        this.setState({ error });
       } else {
         this.props.history.pushState(null, '/');
       }
@@ -25,6 +25,7 @@ const UserInvitePage = React.createClass({
   errorDescription() {
     switch (this.state.error.reason) {
       case 'Email already exists.':
+        // eslint-disable-next-line max-len
         return 'We\'ve already created an account for this user. Maybe they should reset their password?';
       default:
         return this.state.error.reason;
@@ -39,6 +40,8 @@ const UserInvitePage = React.createClass({
         </BS.Alert>
       );
     }
+
+    return undefined;
   },
 
   render() {
@@ -55,16 +58,18 @@ const UserInvitePage = React.createClass({
 
             <form onSubmit={this.onSubmit} className="form-horizontal">
               <BS.Input
-                  id="jr-invite-email"
-                  ref="email"
-                  type="email"
-                  label="E-mail address"
-                  labelClassName="col-md-3"
-                  wrapperClassName="col-md-9" />
+                id="jr-invite-email"
+                ref="email"
+                type="email"
+                label="E-mail address"
+                labelClassName="col-md-3"
+                wrapperClassName="col-md-9"
+              />
               <BS.ButtonInput
-                  type="submit"
-                  bsStyle="primary"
-                  wrapperClassName="col-md-offset-3 col-md-9">
+                type="submit"
+                bsStyle="primary"
+                wrapperClassName="col-md-offset-3 col-md-9"
+              >
                 Send invite
               </BS.ButtonInput>
             </form>
