@@ -158,7 +158,7 @@ const MockHunt = React.createClass({
 });
 */
 
-const HuntList = React.createClass({
+const HuntListPage = React.createClass({
   contextTypes: {
     subs: JRPropTypes.subs,
   },
@@ -225,4 +225,4 @@ const HuntList = React.createClass({
   },
 });
 
-export { HuntList };
+export { HuntListPage };

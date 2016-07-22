@@ -15,7 +15,7 @@ import { Authenticator } from '/imports/client/components/Authenticator.jsx';
 import { EnrollForm } from '/imports/client/components/EnrollForm.jsx';
 import { GuessQueuePage } from '/imports/client/components/GuessQueuePage.jsx';
 import { HuntApp } from '/imports/client/components/HuntApp.jsx';
-import { HuntList } from '/imports/client/components/HuntList.jsx';
+import { HuntListPage } from '/imports/client/components/HuntListPage.jsx';
 import { HuntPage } from '/imports/client/components/HuntPage.jsx';
 import { LoginForm } from '/imports/client/components/LoginForm.jsx';
 import { PasswordResetForm } from '/imports/client/components/PasswordResetForm.jsx';
@@ -55,7 +55,7 @@ const Routes = React.createClass({
                 <Route path="puzzles" component={PuzzleListPage} />
                 <IndexRoute component={HuntPage} />
               </Route>
-              <Route path="hunts" component={HuntList} />
+              <Route path="hunts" component={HuntListPage} />
               <Route path="users/invite" component={UserInvitePage} />
               <Route path="users/:userId" component={ProfilePage} />
               <Route path="users" component={ProfileListPage} />
