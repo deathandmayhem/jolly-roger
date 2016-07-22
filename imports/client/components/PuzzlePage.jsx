@@ -410,7 +410,7 @@ const PuzzlePageMetadata = React.createClass({
   },
 
   submitGuess() {
-    Meteor.call('addGuessForPuzzle', this.props.puzzle._id, this.refs.guess.getValue(), (error) => {
+    Meteor.call('addGuessForPuzzle', this.props.puzzle._id, this.state.guessInput, (error) => {
       // TODO: dismiss the modal on success?  show error message on failure?
       if (error) {
         this.setState({
@@ -512,17 +512,22 @@ const PuzzlePageMetadata = React.createClass({
           submitLabel="Submit"
         >
           {/* TODO: make this show past guesses */}
-          <BS.Input
-            id="jr-puzzle-guess"
-            ref="guess"
-            type="text"
-            label="Guess"
-            labelClassName="col-xs-2"
-            wrapperClassName="col-xs-10"
-            autoFocus="true"
-            onChange={this.onGuessInputChange}
-            value={this.state.guessInput}
-          />
+
+          <BS.FormGroup>
+            <BS.ControlLabel htmlFor="jr-puzzle-guess" className="col-xs-2">
+              Guess
+            </BS.ControlLabel>
+            <div className="col-xs-10">
+              <BS.FormControl
+                type="text"
+                id="jr-puzzle-guess"
+                autoFocus="true"
+                onChange={this.onGuessInputChange}
+                value={this.state.guessInput}
+              />
+            </div>
+          </BS.FormGroup>
+
           {this.props.guesses.length === 0 ? <div>No previous submissions.</div> : [
             <div key="label">Previous submissions:</div>,
             <BS.Table key="table" striped bordered condensed hover>

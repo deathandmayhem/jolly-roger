@@ -8,12 +8,21 @@ const UserInvitePage = React.createClass({
   },
 
   getInitialState() {
-    return { error: null };
+    return {
+      error: null,
+      email: '',
+    };
+  },
+
+  onEmailChanged(e) {
+    this.setState({
+      email: e.currentTarget.value,
+    });
   },
 
   onSubmit(e) {
     e.preventDefault();
-    Meteor.call('sendInvite', this.refs.email.getValue(), (error) => {
+    Meteor.call('sendInvite', this.state.email, (error) => {
       if (error) {
         this.setState({ error });
       } else {
@@ -57,21 +66,30 @@ const UserInvitePage = React.createClass({
             {this.renderError()}
 
             <form onSubmit={this.onSubmit} className="form-horizontal">
-              <BS.Input
-                id="jr-invite-email"
-                ref="email"
-                type="email"
-                label="E-mail address"
-                labelClassName="col-md-3"
-                wrapperClassName="col-md-9"
-              />
-              <BS.ButtonInput
-                type="submit"
-                bsStyle="primary"
-                wrapperClassName="col-md-offset-3 col-md-9"
-              >
-                Send invite
-              </BS.ButtonInput>
+              <BS.FormGroup>
+                <BS.ControlLabel
+                  htmlFor="jr-invite-email"
+                  className="col-md-3"
+                >
+                  E-mail address
+                </BS.ControlLabel>
+                <div className="col-md-9">
+                  <BS.FormControl
+                    id="jr-invite-email"
+                    type="email"
+                    value={this.state.email}
+                    onChange={this.onEmailChanged}
+                  />
+                </div>
+              </BS.FormGroup>
+
+              <BS.FormGroup>
+                <div className="col-md-offset-3 col-md-9">
+                  <BS.Button type="submit" bsStyle="primary">
+                    Send invite
+                  </BS.Button>
+                </div>
+              </BS.FormGroup>
             </form>
           </BS.Col>
         </BS.Row>

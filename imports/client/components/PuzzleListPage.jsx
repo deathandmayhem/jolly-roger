@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { jQuery } from 'meteor/jquery';
 import { _ } from 'meteor/underscore';
 import React from 'react';
+import ReactDOM from 'react-dom';
 import BS from 'react-bootstrap';
 import { Link } from 'react-router';
 import { huntFixtures } from '/imports/fixtures.js';
@@ -68,25 +69,23 @@ const PuzzleModalForm = React.createClass({
   },
 
   submitPuzzle() {
-    const _this = this;
-
     this.setState({
       submitState: 'submitting',
     });
     Meteor.call('createPuzzle', this.props.huntId, this.state.title, this.state.url, this.state.tags, (error) => {
       if (error) {
-        _this.setState({
+        this.setState({
           submitState: 'failed',
           errorMessage: error.message,
         });
       } else {
-        _this.setState({
+        this.setState({
           submitState: 'idle',
           title: '',
           url: '',
           tags: [],
         });
-        _this.refs.form.close();
+        this.refs.form.close();
       }
     });
   },
@@ -106,47 +105,55 @@ const PuzzleModalForm = React.createClass({
           title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
           onSubmit={this.submitPuzzle}
         >
-          <BS.Input
-            ref="title"
-            id="jr-new-puzzle-title"
-            type="text"
-            label="Title"
-            labelClassName="col-xs-3"
-            wrapperClassName="col-xs-9"
-            autoFocus="true"
-            disabled={disableForm}
-            onChange={this.onTitleChange}
-            value={this.state.title}
-          />
-          <BS.Input
-            ref="url"
-            id="jr-new-puzzle-url"
-            type="text"
-            label="URL"
-            labelClassName="col-xs-3"
-            wrapperClassName="col-xs-9"
-            disabled={disableForm}
-            onChange={this.onUrlChange}
-            value={this.state.url}
-          />
-          <BS.Input
-            id="jr-new-puzzle-tags"
-            label="Tags"
-            labelClassName="col-xs-3"
-            wrapperClassName="col-xs-9"
-          >
-            <ReactSelect2
-              ref="tags"
-              id="jr-new-puzzle-tags"
-              data={allTags}
-              multiple
-              disabled={disableForm}
-              onChange={this.onTagsChange}
-              value={this.state.tags}
-              options={{ tags: true, tokenSeparators: [',', ' '] }}
-              style={{ width: '100%' }}
-            />
-          </BS.Input>
+          <BS.FormGroup>
+            <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">
+              Title
+            </BS.ControlLabel>
+            <div className="col-xs-9">
+              <BS.FormControl
+                id="jr-new-puzzle-title"
+                type="text"
+                autoFocus
+                disabled={disableForm}
+                onChange={this.onTitleChange}
+                value={this.state.title}
+              />
+            </div>
+          </BS.FormGroup>
+
+          <BS.FormGroup>
+            <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-url">
+              URL
+            </BS.ControlLabel>
+            <div className="col-xs-9">
+              <BS.FormControl
+                id="jr-new-puzzle-url"
+                type="text"
+                disabled={disableForm}
+                onChange={this.onUrlChange}
+                value={this.state.url}
+              />
+            </div>
+          </BS.FormGroup>
+
+          <BS.FormGroup>
+            <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-tags">
+              Tags
+            </BS.ControlLabel>
+            <div className="col-xs-9">
+              <ReactSelect2
+                id="jr-new-puzzle-tags"
+                data={allTags}
+                multiple
+                disabled={disableForm}
+                onChange={this.onTagsChange}
+                value={this.state.tags}
+                options={{ tags: true, tokenSeparators: [',', ' '] }}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </BS.FormGroup>
+
           {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
         </ModalForm>
       </div>
@@ -180,12 +187,11 @@ const PuzzleListView = React.createClass({
   },
 
   componentDidMount() {
-    this.refs.searchBar.getInputDOMNode().focus();
+    ReactDOM.findDOMNode(this.refs.searchBar).focus();
   },
 
-  onSearchStringChange() {
-    const newString = this.refs.searchBar.getValue();
-    this.setState({ searchString: newString });
+  onSearchStringChange(e) {
+    this.setState({ searchString: e.target.value });
   },
 
   compileMatcher(searchKeys) {
@@ -365,7 +371,6 @@ const PuzzleListView = React.createClass({
   },
 
   render() {
-    const clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>;
     let bodyComponent;
     switch (this.state.displayMode) { // eslint-disable-line default-case
       case 'group': {
@@ -414,7 +419,9 @@ const PuzzleListView = React.createClass({
           </BS.Nav>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'flex-begin' }}>
             <div>
-              <BS.Input type="checkbox" label="Show solved" checked={this.state.showSolved} onChange={this.changeShowSolved} />
+              <BS.Checkbox checked={this.state.showSolved} onChange={this.changeShowSolved}>
+                Show solved
+              </BS.Checkbox>
             </div>
           </div>
           {this.props.canAdd ? <PuzzleModalForm huntId={this.props.huntId} tags={this.props.tags} /> :
@@ -425,16 +432,28 @@ const PuzzleListView = React.createClass({
               </ul>
             </div>}
         </div>
-        <BS.Input
-          id="jr-puzzle-search"
-          type="text"
-          label="Search"
-          placeholder="search by title, answer, or tag"
-          value={this.state.searchString}
-          ref="searchBar"
-          buttonAfter={clearButton}
-          onChange={this.onSearchStringChange}
-        />
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor="jr-puzzle-search">
+            Search
+          </BS.ControlLabel>
+          <BS.InputGroup>
+            <BS.FormControl
+              id="jr-puzzle-search"
+              type="text"
+              ref="searchBar"
+              placeholder="search by title, answer, or tag"
+              value={this.state.searchString}
+              onChange={this.onSearchStringChange}
+            />
+            <BS.InputGroup.Button>
+              <BS.Button onClick={this.clearSearch}>
+                Clear
+              </BS.Button>
+            </BS.InputGroup.Button>
+          </BS.InputGroup>
+        </BS.FormGroup>
+
         {bodyComponent}
       </div>
     );

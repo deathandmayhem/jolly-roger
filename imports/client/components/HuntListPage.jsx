@@ -24,26 +24,38 @@ const HuntFormModal = React.createClass({
         title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
         onSubmit={this.props.onSubmit}
       >
-        <BS.Input
-          id={`${idPrefix}name`}
-          ref="input:name"
-          type="text"
-          label="Name"
-          labelClassName="col-xs-3"
-          wrapperClassName="col-xs-9"
-          defaultValue={this.props.hunt && this.props.hunt.name}
-          autoFocus="true"
-        />
-        <BS.Input
-          id={`${idPrefix}mailing-lists`}
-          ref="input:mailingLists"
-          type="text"
-          label="Mailing lists"
-          help="Users joining this hunt will be automatically added to all of these (comma-separated) lists"
-          labelClassName="col-xs-3"
-          wrapperClassName="col-xs-9"
-          defaultValue={this.props.hunt && this.props.hunt.mailingLists && this.props.hunt.mailingLists.join(', ')}
-        />
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor={`${idPrefix}name`} className="col-xs-3">
+            Name
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              id={`${idPrefix}name`}
+              ref="input:name"
+              type="text"
+              defaultValue={this.props.hunt && this.props.hunt.name}
+              autoFocus
+            />
+          </div>
+        </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor={`${idPrefix}mailing-lists`} className="col-xs-3">
+            Mailing lists
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              id={`${idPrefix}name`}
+              ref="input:mailingLists"
+              type="text"
+              defaultValue={this.props.hunt && this.props.hunt.mailingLists && this.props.hunt.mailingLists.join(', ')}
+              autoFocus
+            />
+            <BS.HelpBlock>
+              Users joining this hunt will be automatically added to all of these (comma-separated) lists
+            </BS.HelpBlock>
+          </div>
+        </BS.FormGroup>
       </ModalForm>
     );
   },

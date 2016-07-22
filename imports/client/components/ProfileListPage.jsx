@@ -20,9 +20,9 @@ const ProfileList = React.createClass({
     };
   },
 
-  onSearchStringChange() {
+  onSearchStringChange(e) {
     this.setState({
-      searchString: this.refs.searchBar.getValue(),
+      searchString: e.target.value,
     });
   },
 
@@ -61,7 +61,6 @@ const ProfileList = React.createClass({
     }).length;
     const localCount = this.props.profiles.length - remoteCount;
     const profiles = _.filter(this.props.profiles, this.compileMatcher());
-    const clearButton = <BS.Button onClick={this.clearSearch}>Clear</BS.Button>;
     return (
       <div>
         <h1>List of hunters</h1>
@@ -70,12 +69,27 @@ const ProfileList = React.createClass({
           <div>Local: {localCount}</div>
           <div>Remote: {remoteCount}</div>
         </div>
-        <BS.Input
-          id="jr-profile-list-search" type="text" label="Search" placeholder="search by name..."
-          value={this.state.searchString} ref="searchBar"
-          buttonAfter={clearButton}
-          onChange={this.onSearchStringChange}
-        />
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor="jr-profile-list-search">
+            Search
+          </BS.ControlLabel>
+          <BS.InputGroup>
+            <BS.FormControl
+              id="jr-profile-list-search"
+              type="text"
+              placeholder="search by name..."
+              value={this.state.searchString}
+              onChange={this.onSearchStringChange}
+            />
+            <BS.InputGroup.Button>
+              <BS.Button onClick={this.clearSearch}>
+                Clear
+              </BS.Button>
+            </BS.InputGroup.Button>
+          </BS.InputGroup>
+        </BS.FormGroup>
+
         <BS.ListGroup>
           <RRBS.LinkContainer to="/users/invite">
             <BS.ListGroupItem>

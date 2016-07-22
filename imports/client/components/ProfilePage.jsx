@@ -68,27 +68,27 @@ const OwnProfilePage = React.createClass({
     });
   },
 
-  handleDisplayNameFieldChange() {
+  handleDisplayNameFieldChange(e) {
     this.setState({
-      displayNameValue: this.refs.displayName.getValue(),
+      displayNameValue: e.target.value,
     });
   },
 
-  handleLocationFieldChange() {
+  handleLocationFieldChange(e) {
     this.setState({
-      locationDuringHuntValue: this.refs.locationDuringHunt.getValue(),
+      locationDuringHuntValue: e.target.value,
     });
   },
 
-  handlePhoneNumberFieldChange() {
+  handlePhoneNumberFieldChange(e) {
     this.setState({
-      phoneNumberValue: this.refs.phoneNumber.getValue(),
+      phoneNumberValue: e.target.value,
     });
   },
 
-  handleSlackHandleFieldChange() {
+  handleSlackHandleFieldChange(e) {
     this.setState({
-      slackHandleValue: this.refs.slackHandle.getValue(),
+      slackHandleValue: e.target.value,
     });
   },
 
@@ -147,27 +147,40 @@ const OwnProfilePage = React.createClass({
         <h1>Account information</h1>
         {this.props.isOperator ? <BS.Checkbox type="checkbox" checked={this.props.operating} onChange={this.toggleOperating}>Operating</BS.Checkbox> : null}
         {/* TODO: picture/gravatar */}
-        <BS.Input
-          id="jr-profile-edit-email"
-          type="text"
-          value={this.props.initialProfile.primaryEmail}
-          disabled
-          label="Email address"
-          help="This is the email address associated with your account."
-        />
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor="jr-profile-edit-email">
+            Email address
+          </BS.ControlLabel>
+          <BS.FormControl
+            id="jr-profile-edit-email"
+            type="text"
+            value={this.props.initialProfile.primaryEmail}
+            disabled
+          />
+          <BS.HelpBlock>
+            This is the email address associated with your account.
+          </BS.HelpBlock>
+        </BS.FormGroup>
         {this.state.submitState === 'submitting' ? <BS.Alert bsStyle="info">Saving...</BS.Alert> : null}
         {this.state.submitState === 'success' ? <BS.Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</BS.Alert> : null}
         {this.state.submitState === 'error' ? <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.submitError}</BS.Alert> : null}
-        <BS.Input
-          id="jr-profile-edit-display-name"
-          type="text"
-          value={this.state.displayNameValue}
-          disabled={shouldDisableForm}
-          label="Display name"
-          help="We suggest your full name, to avoid ambiguity."
-          ref="displayName"
-          onChange={this.handleDisplayNameFieldChange}
-        />
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor="jr-profile-edit-display-name">
+            Display name
+          </BS.ControlLabel>
+          <BS.FormControl
+            id="jr-profile-edit-display-name"
+            type="text"
+            value={this.state.displayNameValue}
+            disabled={shouldDisableForm}
+            onChange={this.handleDisplayNameFieldChange}
+          />
+          <BS.HelpBlock>
+            We suggest your full name, to avoid ambiguity.
+          </BS.HelpBlock>
+        </BS.FormGroup>
+
         <LabelledRadioGroup
           header="Where are you hunting from?"
           name="location"
@@ -184,36 +197,55 @@ const OwnProfilePage = React.createClass({
           help="This is useful to the operators, so we know what fraction of our team is local vs. remote."
           onChange={this.setLocalRemote}
         />
-        <BS.Input
-          id="jr-profile-edit-location"
-          type="text"
-          value={this.state.locationDuringHuntValue}
-          label="Location during hunt"
-          disabled={shouldDisableForm}
-          help="Building + room number can help others find you.  HQ is 32-261."
-          ref="locationDuringHunt"
-          onChange={this.handleLocationFieldChange}
-        />
-        <BS.Input
-          id="jr-profile-edit-phone"
-          type="text"
-          value={this.state.phoneNumberValue}
-          label="Phone number (optional)"
-          disabled={shouldDisableForm}
-          help="In case we need to reach you via phone."
-          ref="phoneNumber"
-          onChange={this.handlePhoneNumberFieldChange}
-        />
-        <BS.Input
-          id="jr-profile-edit-slack"
-          type="text"
-          value={this.state.slackHandleValue}
-          label="Slack handle (optional)"
-          disabled={shouldDisableForm}
-          help="So we can connect your chat there with your account here."
-          ref="slackHandle"
-          onChange={this.handleSlackHandleFieldChange}
-        />
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor="jr-profile-edit-location">
+            Location during hunt
+          </BS.ControlLabel>
+          <BS.FormControl
+            id="jr-profile-edit-location"
+            type="text"
+            value={this.state.locationDuringHuntValue}
+            disabled={shouldDisableForm}
+            onChange={this.handleLocationFieldChange}
+          />
+          <BS.HelpBlock>
+            Building + room number can help others find you.  HQ is 32-261.
+          </BS.HelpBlock>
+        </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor="jr-profile-edit-phone">
+            Phone number (optional)
+          </BS.ControlLabel>
+          <BS.FormControl
+            id="jr-profile-edit-phone"
+            type="text"
+            value={this.state.phoneNumberValue}
+            disabled={shouldDisableForm}
+            onChange={this.handlePhoneNumberFieldChange}
+          />
+          <BS.HelpBlock>
+            In case we need to reach you via phone.
+          </BS.HelpBlock>
+        </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor="jr-profile-edit-slack">
+            Slack handle (optional)
+          </BS.ControlLabel>
+          <BS.FormControl
+            id="jr-profile-edit-slack"
+            type="text"
+            value={this.state.slackHandleValue}
+            disabled={shouldDisableForm}
+            onChange={this.handleSlackHandleFieldChange}
+          />
+          <BS.HelpBlock>
+            So we can connect your chat there with your account here.
+          </BS.HelpBlock>
+        </BS.FormGroup>
+
         <LabelledRadioGroup
           header="Affiliation with MIT"
           name="affiliation"
@@ -242,13 +274,17 @@ const OwnProfilePage = React.createClass({
           help="The hunt organizers ask us for statistics about our team's affiliation."
           onChange={this.setAffiliation}
         />
-        <BS.ButtonInput
-          type="submit"
-          value="Save"
-          bsStyle="primary"
-          disabled={shouldDisableForm}
-          onClick={this.handleSaveForm}
-        />
+
+        <BS.FormGroup>
+          <BS.Button
+            type="submit"
+            bsStyle="primary"
+            disabled={shouldDisableForm}
+            onClick={this.handleSaveForm}
+          >
+            Save
+          </BS.Button>
+        </BS.FormGroup>
       </div>
     );
   },
