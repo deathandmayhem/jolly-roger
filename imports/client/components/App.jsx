@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
+import { Link } from 'react-router';
 import RRBS from 'react-router-bootstrap';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
@@ -35,9 +36,9 @@ const SharedNavbar = React.createClass({
       <BS.Navbar fixedTop>
         <BS.Navbar.Header>
           <BS.Navbar.Brand>
-            <RRBS.LinkContainer to="/">
+            <Link to="/">
               <img src="/images/brand.png" alt="Jolly Roger logo" />
-            </RRBS.LinkContainer>
+            </Link>
           </BS.Navbar.Brand>
         </BS.Navbar.Header>
         <BS.Navbar.Collapse>
@@ -55,15 +56,15 @@ const SharedNavbar = React.createClass({
             </RRBS.LinkContainer>
           </BS.Nav>
           <BS.Nav pullRight>
-            <BS.DropdownButton
-              id="profileDropdown" bsStyle="default" title={this.data.displayName}
-              navbar className="navbar-btn"
+            <BS.NavDropdown
+              id="profileDropdown"
+              title={this.data.displayName}
             >
               <RRBS.LinkContainer to={`/users/${this.data.userId}`}>
                 <BS.MenuItem eventKey="1">My Profile</BS.MenuItem>
               </RRBS.LinkContainer>
               <BS.MenuItem eventKey="2" onSelect={this.logout}>Sign out</BS.MenuItem>
-            </BS.DropdownButton>
+            </BS.NavDropdown>
           </BS.Nav>
         </BS.Navbar.Collapse>
       </BS.Navbar>
@@ -78,10 +79,11 @@ const FullscreenLayout = React.createClass({
   },
 
   render() {
+    const { children, ...props } = this.props;
     return (
       <div>
         <NotificationCenter />
-        <SharedNavbar {...this.props} />
+        <SharedNavbar {...props} />
         <div style={{ position: 'fixed', top: '50px', left: '0px', right: '0px', zIndex: '1' }}>
           <ConnectionStatus />
         </div>
@@ -99,10 +101,11 @@ const ScrollableLayout = React.createClass({
   },
 
   render() {
+    const { children, ...props } = this.props;
     return (
       <div>
         <NotificationCenter />
-        <SharedNavbar {...this.props} />
+        <SharedNavbar {...props} />
         <div className="container" style={{ paddingTop: '70px' }}>
           <ConnectionStatus />
           {this.props.children}
