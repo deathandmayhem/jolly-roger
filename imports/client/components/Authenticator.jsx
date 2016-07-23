@@ -27,10 +27,17 @@ const Authenticator = React.createClass({
 
   checkAuth() {
     if (!this.data.user && this.props.route.authenticated) {
-      browserHistory.replaceState(_.pick(this.props.location, 'pathname', 'query'), '/login');
+      const stateToSave = _.pick(this.props.location, 'pathname', 'query');
+      browserHistory.replace({
+        pathname: '/login',
+        state: stateToSave,
+      });
     } else if (this.data.user && !this.props.route.authenticated) {
       const state = _.extend({ path: '/', query: undefined }, this.props.location.state);
-      browserHistory.replaceState(null, state.pathname, state.query);
+      browserHistory.replace({
+        pathname: state.pathname,
+        query: state.query,
+      });
     }
   },
 
