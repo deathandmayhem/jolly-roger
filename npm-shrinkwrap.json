@@ -729,6 +729,11 @@
         }
       }
     },
+    "react-textarea-autosize": {
+      "version": "4.0.4",
+      "from": "react-textarea-autosize@latest",
+      "resolved": "https://registry.npmjs.org/react-textarea-autosize/-/react-textarea-autosize-4.0.4.tgz"
+    },
     "readable-stream": {
       "version": "1.1.14",
       "from": "readable-stream@>=1.1.9 <1.2.0",

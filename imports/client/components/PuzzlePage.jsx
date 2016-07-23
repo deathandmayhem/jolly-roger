@@ -11,7 +11,7 @@ import moment from 'moment';
 import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ModalForm } from '/imports/client/components/ModalForm.jsx';
-import { TextareaAutosize } from '/imports/client/components/TextareaAutosize.jsx';
+import TextareaAutosize from 'react-textarea-autosize';
 import { TagList, RelatedPuzzleGroups } from '/imports/client/components/PuzzleComponents.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
