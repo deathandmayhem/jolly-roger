@@ -90,9 +90,9 @@ const GuessMessage = React.createClass({
             value={this.props.guess.guess}
           />
           <ul className="actions">
-            <li><a onClick={this.markCorrect}>Correct</a></li>
-            <li><a onClick={this.markIncorrect}>Incorrect</a></li>
-            <li><a onClick={this.markRejected}>Reject</a></li>
+            <li><button onClick={this.markCorrect}>Correct</button></li>
+            <li><button onClick={this.markIncorrect}>Incorrect</button></li>
+            <li><button onClick={this.markRejected}>Reject</button></li>
           </ul>
         </MessengerContent>
         <MessengerDismissButton onDismiss={this.dismissGuess} />
@@ -156,13 +156,13 @@ const SlackMessage = React.createClass({
 
     const actions = [];
     if (this.state.status === 'idle') {
-      actions.push(<li><a key="invite" onClick={this.sendInvite}>Send me an invite</a></li>);
+      actions.push(<li><button key="invite" onClick={this.sendInvite}>Send me an invite</button></li>);
     }
 
     actions.push(<li><Link key="edit" to="/users/me">Edit my profile</Link></li>);
 
     if (this.state.status === 'success' || this.state.status === 'error') {
-      actions.push(<li><a key="reset" onClick={this.reset}>Ok</a></li>);
+      actions.push(<li><button key="reset" onClick={this.reset}>Ok</button></li>);
     }
 
     return (

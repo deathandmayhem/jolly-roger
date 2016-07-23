@@ -73,7 +73,7 @@ const SetupPage = React.createClass({
         {this.state.state === 'submitting' ? <BS.Alert bsStyle="info">Saving...</BS.Alert> : null}
         {this.state.state === 'success' ? <BS.Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</BS.Alert> : null}
         {this.state.state === 'error' ? <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.error.message}</BS.Alert> : null}
-        <a href="#" onClick={this.showPopup}>Click here</a> to link a Google account for Google Drive management. (This will replace any previously configured account)
+        <BS.Button bsStyle="primary" onClick={this.showPopup}>Link a Google account</BS.Button> for Google Drive management. (This will replace any previously configured account)
       </div>
     );
   },
