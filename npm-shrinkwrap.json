@@ -509,11 +509,6 @@
       "from": "lodash@>=2.4.1 <2.5.0",
       "resolved": "https://registry.npmjs.org/lodash/-/lodash-2.4.2.tgz"
     },
-    "lodash-compat": {
-      "version": "3.10.2",
-      "from": "lodash-compat@>=3.10.2 <4.0.0",
-      "resolved": "https://registry.npmjs.org/lodash-compat/-/lodash-compat-3.10.2.tgz"
-    },
     "lodash.noop": {
       "version": "3.0.1",
       "from": "lodash.noop@>=3.0.0 <3.1.0",
@@ -657,9 +652,16 @@
       "resolved": "https://registry.npmjs.org/react-addons-pure-render-mixin/-/react-addons-pure-render-mixin-15.2.1.tgz"
     },
     "react-bootstrap": {
-      "version": "0.29.5",
-      "from": "react-bootstrap@latest",
-      "resolved": "https://registry.npmjs.org/react-bootstrap/-/react-bootstrap-0.29.5.tgz"
+      "version": "0.30.0-rc.2",
+      "from": "react-bootstrap@0.30.0-rc.2",
+      "resolved": "https://registry.npmjs.org/react-bootstrap/-/react-bootstrap-0.30.0-rc.2.tgz",
+      "dependencies": {
+        "warning": {
+          "version": "3.0.0",
+          "from": "warning@>=3.0.0 <4.0.0",
+          "resolved": "https://registry.npmjs.org/warning/-/warning-3.0.0.tgz"
+        }
+      }
     },
     "react-document-title": {
       "version": "2.0.2",
@@ -672,14 +674,14 @@
       "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.2.1.tgz"
     },
     "react-overlays": {
-      "version": "0.6.3",
+      "version": "0.6.5",
       "from": "react-overlays@>=0.6.3 <0.7.0",
-      "resolved": "https://registry.npmjs.org/react-overlays/-/react-overlays-0.6.3.tgz",
+      "resolved": "https://registry.npmjs.org/react-overlays/-/react-overlays-0.6.5.tgz",
       "dependencies": {
-        "react-prop-types": {
-          "version": "0.2.2",
-          "from": "react-prop-types@>=0.2.1 <0.3.0",
-          "resolved": "https://registry.npmjs.org/react-prop-types/-/react-prop-types-0.2.2.tgz"
+        "warning": {
+          "version": "3.0.0",
+          "from": "warning@>=3.0.0 <4.0.0",
+          "resolved": "https://registry.npmjs.org/warning/-/warning-3.0.0.tgz"
         }
       }
     },
@@ -825,9 +827,9 @@
       "resolved": "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.10.tgz"
     },
     "uncontrollable": {
-      "version": "3.3.1",
-      "from": "uncontrollable@>=3.2.3 <4.0.0",
-      "resolved": "https://registry.npmjs.org/uncontrollable/-/uncontrollable-3.3.1.tgz"
+      "version": "4.0.0",
+      "from": "uncontrollable@>=4.0.0 <5.0.0",
+      "resolved": "https://registry.npmjs.org/uncontrollable/-/uncontrollable-4.0.0.tgz"
     },
     "url": {
       "version": "0.11.0",
