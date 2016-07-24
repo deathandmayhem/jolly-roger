@@ -59,9 +59,12 @@ ul.notifications {
 
     .content {
       padding-left: 10px;
-      padding-right: 32px;
+      padding-right: 10px;
       padding-top: 10px;
       padding-bottom: 10px;
+      &.dismissable {
+        padding-right: 32px;
+      }
 
       ul.actions {
         display: block;

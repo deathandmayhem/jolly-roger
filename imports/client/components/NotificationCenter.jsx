@@ -7,6 +7,7 @@ import moment from 'moment';
 import marked from 'marked';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import classnames from 'classnames';
 
 /* eslint-disable max-len */
 
@@ -24,13 +25,16 @@ const MessengerDismissButton = React.createClass({
 
 const MessengerContent = React.createClass({
   propTypes: {
+    dismissable: React.PropTypes.bool,
     children: React.PropTypes.node,
   },
 
   mixins: [PureRenderMixin],
 
   render() {
-    return <div className="content">{this.props.children}</div>;
+    const { dismissable, children } = this.props;
+    const classes = classnames('content', { dismissable });
+    return <div className={classes}>{children}</div>;
   },
 });
 
@@ -78,7 +82,7 @@ const GuessMessage = React.createClass({
     return (
       <li onClick={this.focusGuess}>
         <MessengerSpinner />
-        <MessengerContent>
+        <MessengerContent dismissable>
           Guess for <a href={this.props.puzzle.url} target="_blank">{this.props.puzzle.title}</a>:
           {' '}
           <input
@@ -156,13 +160,13 @@ const SlackMessage = React.createClass({
 
     const actions = [];
     if (this.state.status === 'idle') {
-      actions.push(<li><button key="invite" onClick={this.sendInvite}>Send me an invite</button></li>);
+      actions.push(<li key="invite"><button onClick={this.sendInvite}>Send me an invite</button></li>);
     }
 
-    actions.push(<li><Link key="edit" to="/users/me">Edit my profile</Link></li>);
+    actions.push(<li key="edit"><Link to="/users/me">Edit my profile</Link></li>);
 
     if (this.state.status === 'success' || this.state.status === 'error') {
-      actions.push(<li><button key="reset" onClick={this.reset}>Ok</button></li>);
+      actions.push(<li key="reset"><button onClick={this.reset}>Ok</button></li>);
     }
 
     return (
@@ -196,7 +200,7 @@ const AnnouncementMessage = React.createClass({
     return (
       <li>
         <MessengerSpinner />
-        <MessengerContent>
+        <MessengerContent dismissable>
           <div dangerouslySetInnerHTML={{ __html: marked(this.props.announcement.message, { sanitize: true }) }} />
           <footer>- {this.props.createdBy.displayName}, {moment(this.props.announcement.createdAt).calendar()}</footer>
         </MessengerContent>
