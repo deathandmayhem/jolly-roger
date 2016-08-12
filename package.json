@@ -16,7 +16,7 @@
     "moment": "^2.14.1",
     "react": "^15.2.1",
     "react-addons-pure-render-mixin": "^15.2.1",
-    "react-bootstrap": "^0.30.0-rc.2",
+    "react-bootstrap": "^0.30.2",
     "react-document-title": "^2.0.2",
     "react-dom": "^15.2.1",
     "react-router": "^2.5.2",
