@@ -3,8 +3,8 @@ import React from 'react';
 import BS from 'react-bootstrap';
 
 const UserInvitePage = React.createClass({
-  propTypes: {
-    history: React.PropTypes.object,
+  contextTypes: {
+    router: React.PropTypes.object.isRequired,
   },
 
   getInitialState() {
@@ -26,7 +26,7 @@ const UserInvitePage = React.createClass({
       if (error) {
         this.setState({ error });
       } else {
-        this.props.history.pushState(null, '/');
+        this.context.router.push('/');
       }
     });
   },

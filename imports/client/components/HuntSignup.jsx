@@ -2,7 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import BS from 'react-bootstrap';
-import ReactRouter from 'react-router';
 import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
@@ -13,7 +12,7 @@ const HuntSignup = React.createClass({
   },
 
   contextTypes: {
-    history: ReactRouter.PropTypes.history,
+    router: React.PropTypes.object.isRequired,
     subs: JRPropTypes.subs,
   },
 
@@ -73,7 +72,7 @@ const HuntSignup = React.createClass({
             </BS.Alert>
            ) : null}
           <BS.ButtonToolbar>
-            <BS.Button bsStyle="default" onClick={this.context.history.goBack} disabled={disable}>
+            <BS.Button bsStyle="default" onClick={this.context.router.goBack} disabled={disable}>
               Whoops! Nope, get me out of here
             </BS.Button>
             <BS.Button bsStyle="primary" onClick={this.submit} disabled={disable}>

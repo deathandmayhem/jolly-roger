@@ -117,18 +117,17 @@ const ScrollableLayout = React.createClass({
 
 const App = React.createClass({
   propTypes: {
-    history: React.PropTypes.object,
     routes: React.PropTypes.array,
   },
   render() {
     // Hack: see if the leaf route wants the fullscreen layout.
-    const routes = this.props.routes;
+    const { routes, ...props } = this.props;
     const leafRoute = routes[routes.length - 1];
     const layout = leafRoute.component.desiredLayout;
     return (
       layout === 'fullscreen' ?
-        <FullscreenLayout {...this.props} /> :
-        <ScrollableLayout {...this.props} />
+        <FullscreenLayout {...props} /> :
+        <ScrollableLayout {...props} />
     );
   },
 });
