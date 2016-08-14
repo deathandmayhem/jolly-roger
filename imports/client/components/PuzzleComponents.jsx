@@ -249,9 +249,9 @@ const TagEditor = React.createClass({
   componentDidMount() {
     // Focus the input when mounted - the user just clicked on the button-link.
     const input = ReactDOM.findDOMNode(this.refs.input);
-    jQuery(input).select2('open').
-      on('select2:close', this.onBlur).
-      on('select2:select', () => {
+    jQuery(input).select2('open')
+      .on('select2:close', this.onBlur)
+      .on('select2:select', () => {
         this.props.onSubmit(jQuery(input).val());
       });
   },

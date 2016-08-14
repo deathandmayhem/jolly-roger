@@ -22,9 +22,9 @@ Meteor.methods({
     Ansible.log('User joining hunt', { user: this.userId, hunt: huntId });
     Meteor.users.update(this.userId, { $addToSet: { hunts: huntId } });
     const user = Meteor.users.findOne(this.userId);
-    const emails = _.chain(user.emails).
-      pluck('address').
-      value();
+    const emails = _.chain(user.emails)
+      .pluck('address')
+      .value();
 
     _.each(hunt.mailingLists, (listName) => {
       const list = new List(listName);

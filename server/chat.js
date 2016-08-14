@@ -58,9 +58,9 @@ Meteor.methods({
       title = `${title.substring(0, 24)}…`;
     }
 
-    const slackMessage = message.replace('&', '&amp;').
-      replace('<', '&lt;').
-      replace('>', '&gt;');
+    const slackMessage = message.replace('&', '&amp;')
+      .replace('<', '&lt;')
+      .replace('>', '&gt;');
     const slackText = `[<${url}|${title}>] ${slackMessage}`;
 
     let result;
