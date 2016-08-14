@@ -465,7 +465,7 @@ Resources:
               - Fn::Join:
                   - ''
                   -
-                    - '  - cleanup() { ret=$?; cfn-signal -e $ret -r "runcmds complete" --stack='
+                    - '  - cleanup() { ret=$?; set +e; cfn-signal -e $ret -r "runcmds complete" --stack='
                     - {Ref: "AWS::StackName"}
                     - ' --region='
                     - {Ref: "AWS::Region"}
