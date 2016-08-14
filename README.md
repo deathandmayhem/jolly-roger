@@ -49,7 +49,12 @@ Style
 This project uses [Airbnb's JavaScript style
 guide][airbnb-javascript]. It's not perfect, but it's one of the more
 modern presets, and if nothing else it forces some
-consistency. There's an included [JSCS][] config file.
+consistency. There's an included [ESLint][] config file.  You can
+(and should) lint your code by running:
+
+```bash
+meteor npm run lint
+```
 
 Models
 ------
@@ -121,7 +126,7 @@ OAuth application and the Drive credentials)
 [collection2]: https://atmospherejs.com/aldeed/collection2
 [es6]: https://github.com/lukehoban/es6features
 [google-developer-credentials]: https://console.developers.google.com/apis/credentials
-[JSCS]: http://jscs.info/
+[ESLint]: http://eslint.org/
 [meteor install]: https://www.meteor.com/install
 [React]: https://facebook.github.io/react/
 [react-router]: https://github.com/rackt/react-router
