@@ -28,5 +28,8 @@ RUN curl -sL https://install.meteor.com?release=1.3.5.1 | /bin/sh && \
   (cd /built_app/bundle/programs/server && npm i) && \
   rm -rf ~/.meteor
 
+ENV PORT 80
+EXPOSE 80
+
 WORKDIR /built_app/bundle
 CMD /app/scripts/run_jolly_roger.sh
