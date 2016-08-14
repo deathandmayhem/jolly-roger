@@ -23,4 +23,4 @@ fi
 
 credstash get krb5.keytab | openssl base64 -d > /krb5.keytab
 
-exec k5start -U -f /krb5.keytab bash -- node main.js
+exec k5start -U -f /krb5.keytab -- node main.js
