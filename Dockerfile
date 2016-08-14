@@ -15,7 +15,9 @@ RUN apt-get update && \
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280 && \
   echo "deb https://deb.nodesource.com/node_0.10 trusty main" > /etc/apt/sources.list.d/node.list && \
   apt-get update && \
-  apt-get install -y nodejs
+  apt-get install -y nodejs && \
+  apt-get autoremove -y && \
+  apt-get clean
 
 COPY . /app
 WORKDIR /app
