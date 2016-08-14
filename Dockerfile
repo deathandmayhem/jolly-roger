@@ -13,7 +13,7 @@ RUN apt-get update && \
   apt-get clean
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280 && \
-  echo "deb https://deb.nodesource.com/node_0.10 trusty main" > /etc/apt/sources.list.d/node.list && \
+  echo "deb https://deb.nodesource.com/node_4.x trusty main" > /etc/apt/sources.list.d/node.list && \
   apt-get update && \
   apt-get install -y nodejs && \
   apt-get autoremove -y && \
@@ -22,7 +22,7 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 9FD3B784BC1C6FC31A8A
 COPY . /app
 WORKDIR /app
 
-RUN curl -sL https://install.meteor.com?release=1.3.5.1 | /bin/sh && \
+RUN curl -sL https://install.meteor.com?release=1.4.0.1 | /bin/sh && \
   npm i --production && \
   meteor build --directory /built_app --server=http://localhost:3000 && \
   (cd /built_app/bundle/programs/server && npm i) && \
