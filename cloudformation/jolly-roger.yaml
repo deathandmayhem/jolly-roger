@@ -22,18 +22,17 @@
 #     supporting the LetsEncrypt ACME verification process (via an S3
 #     bucket)
 #
-#   - An nginx instance for port 444, listening for HTTPS+PROXY and
-#     forwarding to the application
+#   - An nginx instance for port 8443, listening for HTTP connections
+#     (HTTPS, unwrapped by ALB) and forwarding to the application
 #
 #   - The actual Meteor application
 #
 #   - Watchtower, which periodically pulls image updates
 #
-# - An Elastic Load Balancer (ELB) in front of the ASG, forwarding
-#   ports 80 and 443. It forwards port 443 using the proxy protcol
-#   (http://www.haproxy.org/download/1.5/doc/proxy-protocol.txt), such
-#   that the instances terminate TLS. This is needed for websocket
-#   support (ELB's HTTP implementation does not support websockets)
+# - An Application Load Balancer (ALB) in front of the ASG, forwarding
+#   ports 80 and 443 to ports 80 and 8443 on application servers. ALB
+#   is responsible for terminating TLS (we require websocket support,
+#   but ALB has that).
 #
 # It's possible this could be used to run multiple parallel copies of
 # the jolly-roger website, though that's not very likely in practice.
@@ -59,6 +58,9 @@ Description: jolly-roger
 Parameters:
   CredstashKeyUuid:
     Description: UUID of the credstash KMS key
+    Type: String
+  CertificateArn:
+    Description: ARN of the certificate to use
     Type: String
   AppUrl:
     Description: The URL of application
@@ -218,7 +220,7 @@ Resources:
       Roles:
         - {Ref: AppInstanceRole}
 
-  AppElbSecurityGroup:
+  AppAlbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for app load balancer
@@ -247,15 +249,14 @@ Resources:
           IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-        - SourceSecurityGroupId: {Ref: AppElbSecurityGroup}
+        - SourceSecurityGroupId: {Ref: AppAlbSecurityGroup}
           IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-        # Proxy protocol comes on port 444
-        - SourceSecurityGroupId: {Ref: AppElbSecurityGroup}
+        - SourceSecurityGroupId: {Ref: AppAlbSecurityGroup}
           IpProtocol: tcp
-          FromPort: 444
-          ToPort: 444
+          FromPort: 8443
+          ToPort: 8443
         # echo request
         - CidrIp: 0.0.0.0/0
           IpProtocol: icmp
@@ -273,40 +274,61 @@ Resources:
           ToPort: 4
       VpcId: {Ref: VPC}
 
-  AppElb:
-    Type: AWS::ElasticLoadBalancing::LoadBalancer
+  AppAlb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
+      Scheme: internet-facing
       Subnets:
         - {Ref: PublicSubnet1}
         - {Ref: PublicSubnet2}
-      ConnectionDrainingPolicy:
-        Enabled: true
-        Timeout: 60
-      CrossZone: true
-      Policies:
-        - PolicyName: EnableProxyProtocol
-          PolicyType: ProxyProtocolPolicyType
-          Attributes:
-            - Name: ProxyProtocol
-              Value: true
-          InstancePorts: [444]
-      Listeners:
-        - Protocol: HTTP
-          LoadBalancerPort: 80
-          InstanceProtocol: HTTP
-          InstancePort: 80
-        - Protocol: TCP
-          LoadBalancerPort: 443
-          InstanceProtocol: TCP
-          InstancePort: 444
-      HealthCheck:
-        Target: HTTP:80/healthcheck
-        Interval: 5
-        Timeout: 4
-        HealthyThreshold: 2
-        UnhealthyThreshold: 2
       SecurityGroups:
-        - {Ref: AppElbSecurityGroup}
+        - {Ref: AppAlbSecurityGroup}
+  AppAlbTargetHTTP:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 80
+      HealthCheckPath: /healthcheck
+      HealthCheckIntervalSeconds: 5
+      HealthCheckTimeoutSeconds: 4
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      Protocol: HTTP
+      Port: 80
+      VpcId: {Ref: VPC}
+  AppAlbTargetHTTPS:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 80
+      HealthCheckPath: /healthcheck
+      HealthCheckIntervalSeconds: 5
+      HealthCheckTimeoutSeconds: 4
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      Protocol: HTTP
+      Port: 8443
+      VpcId: {Ref: VPC}
+  AppAlbListenerHTTP:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: {Ref: AppAlb}
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: {Ref: AppAlbTargetHTTP}
+  AppAlbListenerHTTPS:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: {Ref: AppAlb}
+      Protocol: HTTPS
+      Port: 443
+      Certificates:
+        - {CertificateArn: {Ref: CertificateArn}}
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: {Ref: AppAlbTargetHTTPS}
 
   AppLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -320,7 +342,7 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
-            VolumeSize: 12
+            VolumeSize: 20
         - DeviceName: /dev/sdb
           VirtualName: ephemeral0
         - DeviceName: /dev/sdc
@@ -402,14 +424,14 @@ Resources:
               - '      proxy_set_header Connection $proxy_connection;'
               - '      proxy_set_header X-Real-IP $remote_addr;'
               - '      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;'
-              - '      proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;'
+              - '      proxy_set_header X-Forwarded-Proto https;'
               - Fn::Join:
                   - ''
                   -
                     - '  - path: /etc/nginx-https/vhost.d/'
                     - {Ref: AppUrl}
               - '    content: |'
-              - '      listen 444 ssl http2 proxy_protocol default_server;'
+              - '      listen 8443 default_server;'
               - '      proxy_cache assets;'
               - '      gzip on;'
               - '      gzip_comp_level 9;'
@@ -491,7 +513,7 @@ Resources:
               - '  - docker pull centurylink/watchtower'
 
               - '  - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx'
-              # Give ELB time to pick up the instance
+              # Give ALB time to pick up the instance
               - '  - sleep 15'
 
               - Fn::Join:
@@ -504,21 +526,7 @@ Resources:
                     - {Ref: AppUrl}
                     - ' localhost:5000/ebroder/jolly-roger'
 
-              - '  - mkdir /etc/nginx-https/certs'
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - credstash get ssl/cert.pem > /etc/nginx-https/certs/'
-                    - {Ref: AppUrl}
-                    - '.crt'
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - credstash get ssl/privkey.pem > /etc/nginx-https/certs/'
-                    - {Ref: AppUrl}
-                    - '.key'
-
-              - '  - docker run --name nginx-https -d --restart=unless-stopped -p 444:444 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/proxy.conf:/etc/nginx/proxy.conf -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d -v /etc/nginx-https/certs:/etc/nginx/certs jwilder/nginx-proxy'
+              - '  - docker run --name nginx-https -d --restart=unless-stopped -p 8443:8443 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/proxy.conf:/etc/nginx/proxy.conf -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d jwilder/nginx-proxy'
               - '  - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock centurylink/watchtower --interval 30 --cleanup'
     DependsOn:
       - InternetGatewayAttachment
@@ -535,8 +543,9 @@ Resources:
       MaxSize: {Ref: AppMaxSize}
       MinSize: {Ref: AppMinSize}
       DesiredCapacity: {Ref: AppDesiredCapacity}
-      LoadBalancerNames:
-        - {Ref: AppElb}
+      TargetGroupARNs:
+        - {Ref: AppAlbTargetHTTP}
+        - {Ref: AppAlbTargetHTTPS}
     UpdatePolicy:
       AutoScalingRollingUpdate:
         WaitOnResourceSignals: true
@@ -551,5 +560,5 @@ Resources:
       Name: {Ref: AppUrl}
       Type: A
       AliasTarget:
-        HostedZoneId: {"Fn::GetAtt": [AppElb, CanonicalHostedZoneNameID]}
-        DNSName: {"Fn::GetAtt": [AppElb, CanonicalHostedZoneName]}
+        HostedZoneId: {"Fn::GetAtt": [AppAlb, CanonicalHostedZoneID]}
+        DNSName: {"Fn::GetAtt": [AppAlb, DNSName]}
