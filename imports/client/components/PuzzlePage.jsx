@@ -488,7 +488,7 @@ const PuzzlePageMetadata = React.createClass({
     return (
       <div className="puzzle-metadata" style={this.styles.metadata}>
         <div style={this.styles.row}>
-          {this.props.puzzle.url && <div style={this.styles.right}><a target="_blank" href={this.props.puzzle.url}>Puzzle link</a></div>}
+          {this.props.puzzle.url && <div style={this.styles.right}><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div>}
           <div style={this.styles.left}><Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link> / <strong>{this.props.puzzle.title}</strong> {answerComponent}</div>
         </div>
         <div style={this.styles.row}>

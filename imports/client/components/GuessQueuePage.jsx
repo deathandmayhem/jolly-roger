@@ -126,7 +126,7 @@ const GuessBlock = React.createClass({
       <div style={style}>
         <div style={this.styles.guessInfo}>
           <div>{timestamp} from {this.props.profile.displayName || '<no name given>'}</div>
-          <div>Puzzle: <a href={this.props.puzzle.url} target="_blank">{this.props.puzzle.title}</a> (<Link to={`/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`}>discussion</Link>)</div>
+          <div>Puzzle: <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a> (<Link to={`/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`}>discussion</Link>)</div>
           <div><AutoSelectInput value={guess.guess} /></div>
         </div>
         {this.props.canEdit

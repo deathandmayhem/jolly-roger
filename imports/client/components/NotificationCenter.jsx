@@ -83,7 +83,7 @@ const GuessMessage = React.createClass({
       <li onClick={this.focusGuess}>
         <MessengerSpinner />
         <MessengerContent dismissable>
-          Guess for <a href={this.props.puzzle.url} target="_blank">{this.props.puzzle.title}</a>:
+          Guess for <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>:
           {' '}
           <input
             ref="guess"
