@@ -43,7 +43,7 @@ const MessengerSpinner = React.createClass({
   render() {
     return (
       <div className="spinner-box">
-        <div className="spinner"></div>
+        <div className="spinner" />
       </div>
     );
   },
