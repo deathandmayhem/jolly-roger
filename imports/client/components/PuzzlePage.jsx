@@ -675,7 +675,7 @@ const PuzzlePage = React.createClass({
     //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
 
     const profileHandle = this.context.subs.subscribe('mongo.profiles');
-    const profiles = profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
+    const profiles = (profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id')) || {};
 
     let puzzlesReady = undefined;
     let allPuzzles = undefined;
@@ -718,10 +718,10 @@ const PuzzlePage = React.createClass({
     // Chat is not ready until chat messages and profiles have loaded, but doesn't care about any
     // other collections.
     const chatReady = chatHandle.ready() && profileHandle.ready();
-    const chatMessages = chatReady && Models.ChatMessages.find(
+    const chatMessages = (chatReady && Models.ChatMessages.find(
       { puzzleId: this.props.params.puzzleId },
       { sort: { timestamp: 1 } },
-    ).fetch() || [];
+    ).fetch()) || [];
     return {
       puzzlesReady,
       allPuzzles,
