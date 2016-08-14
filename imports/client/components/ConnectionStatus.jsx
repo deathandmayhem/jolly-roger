@@ -50,8 +50,8 @@ const ConnectionStatus = React.createClass({
         return (
           <BS.Alert bsStyle="warning">
             <strong>Warning!</strong> Currently not connected to Jolly
-            Roger server. Changes will be synced when you
-            reconnect. <BS.Button bsStyle="link" onClick={Meteor.reconnect}>reconnect now</BS.Button>
+            Roger server. Changes will be synced when you reconnect.
+            <BS.Button bsStyle="link" onClick={Meteor.reconnect}>reconnect now</BS.Button>
           </BS.Alert>
         );
       case 'connected':
