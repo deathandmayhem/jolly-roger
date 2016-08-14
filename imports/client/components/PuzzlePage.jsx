@@ -677,11 +677,11 @@ const PuzzlePage = React.createClass({
     const profileHandle = this.context.subs.subscribe('mongo.profiles');
     const profiles = (profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id')) || {};
 
-    let puzzlesReady = undefined;
-    let allPuzzles = undefined;
-    let allTags = undefined;
-    let allGuesses = undefined;
-    let allDocuments = undefined;
+    let puzzlesReady;
+    let allPuzzles;
+    let allTags;
+    let allGuesses;
+    let allDocuments;
     if (_.has(huntFixtures, this.props.params.huntId)) {
       puzzlesReady = true;
       allPuzzles = huntFixtures[this.props.params.huntId].puzzles;
