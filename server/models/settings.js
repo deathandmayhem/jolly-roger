@@ -1,3 +1,5 @@
+import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+
 Schemas.Settings = new SimpleSchema([
   Schemas.Base,
   {

@@ -1,30 +1,36 @@
+import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import { _ } from 'meteor/underscore';
+import Ansible from '/imports/ansible.js';
+// TODO: gdrive, globalHooks
+
 function getOrCreateTagByName(huntId, name) {
-  let existingTag = Models.Tags.findOne({hunt: huntId, name: name});
+  const existingTag = Models.Tags.findOne({ hunt: huntId, name });
   if (existingTag) {
     return existingTag;
   }
 
-  Ansible.log('Creating a new tag', {hunt: huntId, name});
-  let newTagId = Models.Tags.insert({hunt: huntId, name: name});
+  Ansible.log('Creating a new tag', { hunt: huntId, name });
+  const newTagId = Models.Tags.insert({ hunt: huntId, name });
   return {
     _id: newTagId,
     hunt: huntId,
-    name: name,
+    name,
   };
 }
 
 function createDocument(name, mimeType) {
-  const template = Models.Settings.findOne({name: 'gdrive.template'});
+  const template = Models.Settings.findOne({ name: 'gdrive.template' });
 
   let file;
   if (template) {
     file = Meteor.wrapAsync(gdrive.files.copy)({
       fileId: template.value.id,
-      resource: {name, mimeType},
+      resource: { name, mimeType },
     });
   } else {
     file = Meteor.wrapAsync(gdrive.files.create)({
-      resource: {name, mimeType},
+      resource: { name, mimeType },
     });
   }
 
@@ -32,7 +38,7 @@ function createDocument(name, mimeType) {
 
   Meteor.wrapAsync(gdrive.permissions.create)({
     fileId,
-    resource: {role: 'writer', type: 'anyone'},
+    resource: { role: 'writer', type: 'anyone' },
   });
   return fileId;
 }
@@ -48,14 +54,14 @@ Meteor.methods({
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
 
     // Look up each tag by name and map them to tag IDs.
-    tagIds = tags.map((tagName) => { return getOrCreateTagByName(huntId, tagName)._id; });
+    const tagIds = tags.map((tagName) => { return getOrCreateTagByName(huntId, tagName)._id; });
 
-    Ansible.log('Creating a new puzzle', {hunt: huntId, title, user: this.userId});
+    Ansible.log('Creating a new puzzle', { hunt: huntId, title, user: this.userId });
     const puzzle = Models.Puzzles.insert({
       hunt: huntId,
       tags: tagIds,
-      title: title,
-      url: url,
+      title,
+      url,
     });
 
     // TODO: run any puzzle-creation hooks, like creating a Slack channel, or creating a default
@@ -78,19 +84,19 @@ Meteor.methods({
     check(newTagName, String);
 
     // Look up which hunt the specified puzzle is from.
-    hunt = Models.Puzzles.findOne({
+    const hunt = Models.Puzzles.findOne({
       _id: puzzleId,
     }, {
       fields: {
         hunt: 1,
       },
     });
-    let huntId = hunt && hunt.hunt;
-    if (!huntId) throw new Error('No puzzle known with id ' + puzzleId);
-    let tagId = getOrCreateTagByName(huntId, newTagName)._id;
+    const huntId = hunt && hunt.hunt;
+    if (!huntId) throw new Error(`No puzzle known with id ${puzzleId}`);
+    const tagId = getOrCreateTagByName(huntId, newTagName)._id;
 
-    Ansible.log('Tagging puzzle', {puzzle: puzzleId, tag: newTagName});
-    let changes = Models.Puzzles.update({
+    Ansible.log('Tagging puzzle', { puzzle: puzzleId, tag: newTagName });
+    Models.Puzzles.update({
       _id: puzzleId,
     }, {
       $addToSet: {
@@ -106,7 +112,7 @@ Meteor.methods({
     check(puzzleId, String);
     check(tagId, String);
 
-    Ansible.log('Untagging puzzle', {puzzle: puzzleId, tag: tagId});
+    Ansible.log('Untagging puzzle', { puzzle: puzzleId, tag: tagId });
     Models.Puzzles.update({
       _id: puzzleId,
     }, {
@@ -121,9 +127,9 @@ Meteor.methods({
     check(tagId, String);
     check(newName, String);
 
-    let tag = Models.Tags.findOne(tagId);
+    const tag = Models.Tags.findOne(tagId);
     if (tag) {
-      Ansible.log('Renaming tag', {tag: tagId, newName: newName});
+      Ansible.log('Renaming tag', { tag: tagId, newName });
       Models.Tags.update({
         _id: tagId,
       }, {
@@ -148,25 +154,35 @@ Meteor.methods({
     }
 
     this.unblock();
-    let doc = Models.Documents.findOne({puzzle: puzzleId});
+    let doc = Models.Documents.findOne({ puzzle: puzzleId });
     if (!doc) {
+      if (!gdrive) {
+        throw new Meteor.Error(500, 'Google OAuth is not configured.');
+      }
+
       Models.Locks.withLock(`puzzle:${puzzleId}:documents`, () => {
-        doc = Models.Documents.findOne({puzzle: puzzleId});
+        doc = Models.Documents.findOne({ puzzle: puzzleId });
         if (!doc) {
-          Ansible.log('Creating missing document for puzzle', {puzzle: puzzleId, user: this.userId});
+          Ansible.log('Creating missing document for puzzle', {
+            puzzle: puzzleId,
+            user: this.userId,
+          });
 
           try {
-            docId = createDocument(`${puzzle.title}: Death and Mayhem`, 'application/vnd.google-apps.spreadsheet');
+            const docId = createDocument(
+              `${puzzle.title}: Death and Mayhem`,
+              'application/vnd.google-apps.spreadsheet'
+              );
             doc = {
               hunt: puzzle.hunt,
               puzzle: puzzleId,
               type: 'google-spreadsheet',
-              value: {id: docId},
+              value: { id: docId },
             };
             doc._id = Models.Documents.insert(doc);
           } catch (e) {
             // Don't totally explode if document creation fails
-            Ansible.log('Failed to create a document!', {e});
+            Ansible.log('Failed to create a document!', { e });
           }
         }
       });

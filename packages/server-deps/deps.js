@@ -1,1 +1,0 @@
-googleapis = Npm.require('googleapis');

@@ -1,3 +1,8 @@
+import { Meteor } from 'meteor/meteor';
+import { Match, check } from 'meteor/check';
+import { HTTP } from 'meteor/http';
+import Ansible from '/imports/ansible.js';
+
 Meteor.methods({
   slackInvite(userId) {
     check(userId, Match.Optional(String));
@@ -20,14 +25,14 @@ Meteor.methods({
       throw new Meteor.Error(400, 'User does not have an email address on file');
     }
 
-    const config = ServiceConfiguration.configurations.findOne({service: 'slack'});
+    const config = ServiceConfiguration.configurations.findOne({ service: 'slack' });
     if (!config) {
       throw new Meteor.Error(500, 'Slack is not configured; unable to send invite');
     }
 
     this.unblock();
 
-    Ansible.log('Sending a Slack invite', {email, user: user._id, sender: this.userId});
+    Ansible.log('Sending a Slack invite', { email, user: user._id, sender: this.userId });
 
     // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
     const result = HTTP.post('https://slack.com/api/users.admin.invite', {
@@ -39,8 +44,8 @@ Meteor.methods({
     });
 
     if (result.statusCode >= 400) {
-      Ansible.log('Error sending Slack invite', {content: result.content});
-      throw new Meteor.Error(500, `Something went wrong sending the invite`);
+      Ansible.log('Error sending Slack invite', { content: result.content });
+      throw new Meteor.Error(500, 'Something went wrong sending the invite');
     }
   },
 });

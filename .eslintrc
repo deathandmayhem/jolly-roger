@@ -1,0 +1,66 @@
+{
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "allowImportExportEverywhere": false,
+  },
+  "plugins": [
+    "meteor",
+  ],
+  "extends": [
+    "airbnb",
+    "plugin:meteor/recommended",
+  ],
+  "settings": {
+    "import/resolver": "meteor",
+  },
+  "rules": {
+    // explicit returns can sometimes be more readable and avoid the issue of "I want to return an
+    // object literal but ES6 interprets it as a function body with a void expression"
+    "arrow-body-style": ["off"],
+
+    // Publish functions don't really need to be named.
+    "func-names": ["off"],
+
+    // For Match expressions
+    "new-cap": ["error", { "capIsNewExceptions": ["Optional"] }],
+
+    // sometimes else after a return reads more clearly
+    "no-else-return": ["off"],
+
+     // We sometimes use these in various forms
+    "no-underscore-dangle": ["error",
+      {
+        "allow": [
+          "_id", "_this", "_ensureIndex", "_dropIndex", "_redirectUri", "_postRequest",
+          "_anyMethodsAreOutstanding", "_schemaKeys", "_schema", "_retrieveCredentialSecret",
+        ],
+      }
+    ],
+
+    // We totally use React.createClass and mixins all over; refactor this later
+    "react/prefer-es6-class": ["off"],
+
+    // We namespace all the React-Bootstrap stuff under "BS", which trips this rule
+    "react/jsx-pascal-case": ["off"],
+
+    // We have files with multiple React components.  Maybe we should split them out
+    // later, but right now I don't want to deal with this
+    "react/no-multi-comp": ["off"],
+
+    // Specifying explicit propTypes is worthwhile
+    "react/prefer-stateless-function": ["off"],
+  },
+  "globals": {
+    // Long-term, reduce this list to nothing by making full use of import/export
+    "Roles": false,
+    "ServiceConfiguration": false,
+    "Google": false,
+    "Models": false,
+    "Schemas": false,
+    "Transforms": false,
+    "Npm": false,
+    "OAuth": false,
+    "globalHooks": false,
+    "gdrive": false,
+  },
+}

@@ -5,6 +5,13 @@
 // of more natural causes), its counter will stick around, so we
 // garbage collect based on updatedAt
 
+import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import { Random } from 'meteor/random';
+import { _ } from 'meteor/underscore';
+import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+import moment from 'moment';
+
 const serverId = Random.id();
 
 Schemas.Subscribers = new SimpleSchema({
@@ -25,11 +32,12 @@ Schemas.Subscribers = new SimpleSchema({
   },
   createdAt: {
     type: Date,
+    // eslint-disable-next-line consistent-return
     autoValue() {
       if (this.isInsert) {
         return new Date();
       } else if (this.isUpsert) {
-        return {$setOnInsert: new Date()};
+        return { $setOnInsert: new Date() };
       } else {
         this.unset(); // Prevent user from supplying their own value
       }
@@ -39,6 +47,7 @@ Schemas.Subscribers = new SimpleSchema({
     type: Date,
     denyInsert: true,
     optional: true,
+    // eslint-disable-next-line consistent-return
     autoValue() {
       if (this.isUpdate) {
         return new Date();
@@ -55,17 +64,17 @@ Models.Subscribers = new class extends Meteor.Collection {
   cleanup() {
     // A noop update will still cause updatedAt to be updated
     this.update(
-      {server: serverId},
+      { server: serverId },
       {},
-      {multi: true});
+      { multi: true });
 
     // Servers get 15 seconds to update before their records are
     // GC'd. Should be long enough to account for transients
     const timeout = moment().subtract('15', 'seconds').toDate();
     this.remove({
       $or: [
-        {updatedAt: {$ne: null, $lt: timeout}},
-        {updatedAt: null, createdAt: {$lt: timeout}},
+        { updatedAt: { $ne: null, $lt: timeout } },
+        { updatedAt: null, createdAt: { $lt: timeout } },
       ],
     });
   }
@@ -77,7 +86,7 @@ Models.Subscribers = new class extends Meteor.Collection {
 }();
 Models.Subscribers.attachSchema(Schemas.Subscribers);
 
-Meteor.publish('subCounter.inc', function(name, context) {
+Meteor.publish('subCounter.inc', function (name, context) {
   check(name, String);
   check(context, Object);
 
@@ -101,7 +110,7 @@ Meteor.publish('subCounter.inc', function(name, context) {
 // (logged in) subscribe to any counter because Hunt is tomorrow and I
 // don't think counts are thaaat sensitive, especially if you can't
 // even look up the puzzle ids
-Meteor.publish('subCounter.fetch', function(q) {
+Meteor.publish('subCounter.fetch', function (q) {
   check(q, Object);
 
   const query = {};
@@ -119,33 +128,33 @@ Meteor.publish('subCounter.fetch', function(q) {
   const cursor = Models.Subscribers.find(query);
   const handle = cursor.observe({
     added: (doc) => {
-      const {name} = doc;
+      const { name } = doc;
       if (!_.has(counters, name)) {
         counters[name] = 0;
 
         if (initialized) {
-          this.added('subCounter', name, {value: 0});
+          this.added('subCounter', name, { value: 0 });
         }
       }
 
       counters[name] += 1;
       if (initialized) {
-        this.changed('subCounter', name, {value: counters[name]});
+        this.changed('subCounter', name, { value: counters[name] });
       }
     },
 
     removed: (doc) => {
-      const {name} = doc;
+      const { name } = doc;
 
       counters[name] -= 1;
       if (initialized) {
-        this.changed('subCounter', name, {value: counters[name]});
+        this.changed('subCounter', name, { value: counters[name] });
       }
     },
   });
   this.onStop(() => handle.stop());
 
-  _.each(counters, (val, key) => this.added('subCounter', key, {value: val}));
+  _.each(counters, (val, key) => this.added('subCounter', key, { value: val }));
   initialized = true;
   this.ready();
 });

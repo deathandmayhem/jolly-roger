@@ -1,3 +1,8 @@
+import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import { HTTP } from 'meteor/http';
+import Ansible from '/imports/ansible.js';
+
 Meteor.methods({
   sendChatMessage(puzzleId, message) {
     check(this.userId, String);
@@ -16,7 +21,7 @@ Meteor.methods({
     */
 
     Models.ChatMessages.insert({
-      puzzleId: puzzleId,
+      puzzleId,
       text: message,
       sender: this.userId,
       timestamp: new Date(),
@@ -30,7 +35,7 @@ Meteor.methods({
     // If we have a Slack API key for this user, use that - otherwise,
     // send as the globally-configured jolly-roger/deathfromdata bot.
     this.unblock();
-    const config = ServiceConfiguration.configurations.findOne({service: 'slack'});
+    const config = ServiceConfiguration.configurations.findOne({ service: 'slack' });
     if (!config) {
       Ansible.log('Not mirroring message because Slack is not configured');
       return;
@@ -50,7 +55,7 @@ Meteor.methods({
     const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzleId}`);
     let title = puzzle.title;
     if (title.length > 25) {
-      title = title.substring(0, 24) + '…';
+      title = `${title.substring(0, 24)}…`;
     }
 
     const slackMessage = message.replace('&', '&amp;').
@@ -75,7 +80,7 @@ Meteor.methods({
     }
 
     if (ex || result.statusCode >= 400) {
-      Ansible.log('Problem posting to Slack', {ex, content: result.content});
+      Ansible.log('Problem posting to Slack', { ex, content: result.content });
     }
   },
 });
