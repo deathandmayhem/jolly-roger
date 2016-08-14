@@ -1,7 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { Link } from 'react-router';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
@@ -15,11 +14,18 @@ const AutoSelectInput = React.createClass({
 
   onFocus() {
     // Use the selection API to select the contents of this, for easier clipboarding.
-    ReactDOM.findDOMNode(this.refs.input).select();
+    this.inputNode.select();
   },
 
   render() {
-    return <input ref="input" readOnly value={this.props.value} onFocus={this.onFocus} />;
+    return (
+      <input
+        ref={(node) => { this.inputNode = node; }}
+        readOnly
+        value={this.props.value}
+        onFocus={this.onFocus}
+      />
+    );
   },
 });
 

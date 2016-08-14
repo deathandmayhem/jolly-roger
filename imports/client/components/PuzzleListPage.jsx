@@ -2,7 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { jQuery } from 'meteor/jquery';
 import { _ } from 'meteor/underscore';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import BS from 'react-bootstrap';
 import { Link } from 'react-router';
 import { huntFixtures } from '/imports/fixtures.js';
@@ -65,7 +64,7 @@ const PuzzleModalForm = React.createClass({
   },
 
   showModal() {
-    this.refs.form.show();
+    this.formNode.show();
   },
 
   submitPuzzle() {
@@ -85,7 +84,7 @@ const PuzzleModalForm = React.createClass({
           url: '',
           tags: [],
         });
-        this.refs.form.close();
+        this.formNode.close();
       }
     });
   },
@@ -101,7 +100,7 @@ const PuzzleModalForm = React.createClass({
           <BS.Button bsStyle="primary" onClick={this.showModal}>Add a puzzle</BS.Button>
         </div>
         <ModalForm
-          ref="form"
+          ref={(node) => { this.formNode = node; }}
           title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
           onSubmit={this.submitPuzzle}
         >
@@ -187,7 +186,7 @@ const PuzzleListView = React.createClass({
   },
 
   componentDidMount() {
-    ReactDOM.findDOMNode(this.refs.searchBar).focus();
+    this.searchBarNode.focus();
   },
 
   onSearchStringChange(e) {
@@ -441,7 +440,7 @@ const PuzzleListView = React.createClass({
             <BS.FormControl
               id="jr-puzzle-search"
               type="text"
-              ref="searchBar"
+              ref={(node) => { this.searchBarNode = node; }}
               placeholder="search by title, answer, or tag"
               value={this.state.searchString}
               onChange={this.onSearchStringChange}

@@ -1,7 +1,6 @@
 import { _ } from 'meteor/underscore';
 import { jQuery } from 'meteor/jquery';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
@@ -248,7 +247,7 @@ const TagEditor = React.createClass({
 
   componentDidMount() {
     // Focus the input when mounted - the user just clicked on the button-link.
-    const input = ReactDOM.findDOMNode(this.refs.input);
+    const input = this.inputNode;
     jQuery(input).select2('open')
       .on('select2:close', this.onBlur)
       .on('select2:select', () => {
@@ -271,7 +270,7 @@ const TagEditor = React.createClass({
     return (
       <span>
         <ReactSelect2
-          ref="input"
+          ref={(node) => { this.inputNode = node; }}
           style={{ minWidth: '100px' }}
           data={[''].concat(_.pluck(this.data.allTags, 'name'))}
           options={{ tags: true }}
