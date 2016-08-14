@@ -342,7 +342,7 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
-            VolumeSize: 20
+            VolumeSize: 12
         - DeviceName: /dev/sdb
           VirtualName: ephemeral0
         - DeviceName: /dev/sdc
@@ -411,7 +411,7 @@ Resources:
               - '  - path: /etc/cron.hourly/docker-cleanup'
               - '    content: |'
               - '      #!/bin/sh'
-              - '      chronic docker run -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/docker:/var/lib/docker --rm martin/docker-cleanup-volumes'
+              - '      docker volume ls -qf dangling=true | chronic xargs -r docker volume rm'
               - '    permissions: "0755"'
               - '  - path: /etc/nginx-https/proxy.conf'
               - '    content: |'
