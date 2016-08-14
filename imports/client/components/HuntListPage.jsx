@@ -13,7 +13,45 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 const HuntFormModal = React.createClass({
   propTypes: {
     hunt: React.PropTypes.instanceOf(Transforms.Hunt),
-    onSubmit: React.PropTypes.func,
+    onSubmit: React.PropTypes.func, // Takes two args: state (object) and callback (func)
+  },
+
+  getInitialState() {
+    if (this.props.hunt) {
+      return {
+        name: this.props.hunt.name,
+        mailingLists: this.props.hunt.mailingLists.join(', '),
+      };
+    } else {
+      return {
+        name: '',
+        mailingLists: '',
+      };
+    }
+  },
+
+  onNameChanged(e) {
+    this.setState({
+      name: e.target.value,
+    });
+  },
+
+  onMailingListsChanged(e) {
+    this.setState({
+      mailingLists: e.target.value,
+    });
+  },
+
+  onFormSubmit(callback) {
+    if (this.props.onSubmit) {
+      this.props.onSubmit(this.state, callback);
+    } else {
+      callback();
+    }
+  },
+
+  show() {
+    this.refs.form.show();
   },
 
   render() {
@@ -22,7 +60,7 @@ const HuntFormModal = React.createClass({
       <ModalForm
         ref="form"
         title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
-        onSubmit={this.props.onSubmit}
+        onSubmit={this.onFormSubmit}
       >
         <BS.FormGroup>
           <BS.ControlLabel htmlFor={`${idPrefix}name`} className="col-xs-3">
@@ -31,9 +69,9 @@ const HuntFormModal = React.createClass({
           <div className="col-xs-9">
             <BS.FormControl
               id={`${idPrefix}name`}
-              ref="input:name"
               type="text"
-              defaultValue={this.props.hunt && this.props.hunt.name}
+              value={this.state.name}
+              onChange={this.onNameChanged}
               autoFocus
             />
           </div>
@@ -46,10 +84,9 @@ const HuntFormModal = React.createClass({
           <div className="col-xs-9">
             <BS.FormControl
               id={`${idPrefix}name`}
-              ref="input:mailingLists"
               type="text"
-              defaultValue={this.props.hunt && this.props.hunt.mailingLists && this.props.hunt.mailingLists.join(', ')}
-              autoFocus
+              value={this.state.mailingLists}
+              onChange={this.onMailingListsChanged}
             />
             <BS.HelpBlock>
               Users joining this hunt will be automatically added to all of these (comma-separated) lists
@@ -68,14 +105,15 @@ const Hunt = React.createClass({
 
   mixins: [ReactMeteorData],
 
-  onEdit(callback) {
-    Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId() });
+  onEdit(state, callback) {
+    const { name, mailingLists } = state;
+    Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), mailingLists });
     Models.Hunts.update(
       { _id: this.props.hunt._id },
       {
         $set: {
-          name: this.refs.editModal.refs['input:name'].getValue(),
-          mailingLists: this.refs.editModal.refs['input:mailingLists'].getValue().split(/[, ]+/),
+          name,
+          mailingLists: mailingLists.split(/[, ]+/),
         },
       },
       callback
@@ -177,13 +215,12 @@ const HuntListPage = React.createClass({
 
   mixins: [ReactMeteorData],
 
-  onAdd(callback) {
-    const name = this.refs.addModal.refs['input:name'].getValue();
-
-    Ansible.log('Creating a new hunt', { name, user: Meteor.userId() });
+  onAdd(state, callback) {
+    const { name, mailingLists } = state;
+    Ansible.log('Creating a new hunt', { name, user: Meteor.userId(), mailingLists });
     Models.Hunts.insert({
       name,
-      mailingLists: this.refs.addModal.refs['input:mailingLists'].getValue().split(/[, ]+/),
+      mailingLists: mailingLists.split(/[, ]+/),
     }, callback);
   },
 
