@@ -424,14 +424,16 @@ Resources:
               - '      proxy_set_header Connection $proxy_connection;'
               - '      proxy_set_header X-Real-IP $remote_addr;'
               - '      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;'
-              - '      proxy_set_header X-Forwarded-Proto https;'
+              - '      proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;'
+              - '      # Mitigate httpoxy attack (see README for details)'
+              - '      proxy_set_header Proxy "";'
               - Fn::Join:
                   - ''
                   -
                     - '  - path: /etc/nginx-https/vhost.d/'
                     - {Ref: AppUrl}
               - '    content: |'
-              - '      listen 8443 default_server;'
+              - '      add_header Strict-Transport-Security "max-age=31536000";'
               - '      proxy_cache assets;'
               - '      gzip on;'
               - '      gzip_comp_level 9;'
@@ -513,8 +515,6 @@ Resources:
               - '  - docker pull centurylink/watchtower'
 
               - '  - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx'
-              # Give ALB time to pick up the instance
-              - '  - sleep 15'
 
               - Fn::Join:
                   - ''
@@ -526,7 +526,12 @@ Resources:
                     - {Ref: AppUrl}
                     - ' localhost:5000/ebroder/jolly-roger'
 
-              - '  - docker run --name nginx-https -d --restart=unless-stopped -p 8443:8443 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/proxy.conf:/etc/nginx/proxy.conf -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d jwilder/nginx-proxy'
+              - Fn::Join:
+                  - ''
+                  -
+                    - '  - docker run --name nginx-https -d --restart=unless-stopped -p 8443:80 -e DEFAULT_HOST='
+                    - {Ref: AppUrl}
+                    - ' -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/proxy.conf:/etc/nginx/proxy.conf -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d jwilder/nginx-proxy'
               - '  - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock centurylink/watchtower --interval 30 --cleanup'
     DependsOn:
       - InternetGatewayAttachment
