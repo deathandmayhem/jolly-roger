@@ -3,9 +3,9 @@ import { _ } from 'meteor/underscore';
 
 
 const answerify = function (answer) {
-  return answer.
-    replace(/[^A-Za-z0-9]/g, '').
-    toUpperCase();
+  return answer
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toUpperCase();
 };
 
 const huntsMatchingCurrentUser = function (origQuery) {

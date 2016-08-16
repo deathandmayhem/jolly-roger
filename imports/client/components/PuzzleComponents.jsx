@@ -1,7 +1,6 @@
 import { _ } from 'meteor/underscore';
 import { jQuery } from 'meteor/jquery';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
@@ -197,7 +196,7 @@ const Puzzle = React.createClass({
         </div>
         {this.props.layout === 'grid' ?
           <div className="puzzle-link" style={layoutStyles.puzzleLink}>
-            {this.props.puzzle.url ? <span>(<a href={this.props.puzzle.url} target="_blank">puzzle</a>)</span> : null}
+            {this.props.puzzle.url ? <span>(<a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">puzzle</a>)</span> : null}
           </div> :
           null}
         <div className="puzzle-answer" style={layoutStyles.answer}>
@@ -248,10 +247,10 @@ const TagEditor = React.createClass({
 
   componentDidMount() {
     // Focus the input when mounted - the user just clicked on the button-link.
-    const input = ReactDOM.findDOMNode(this.refs.input);
-    jQuery(input).select2('open').
-      on('select2:close', this.onBlur).
-      on('select2:select', () => {
+    const input = this.inputNode;
+    jQuery(input).select2('open')
+      .on('select2:close', this.onBlur)
+      .on('select2:select', () => {
         this.props.onSubmit(jQuery(input).val());
       });
   },
@@ -271,7 +270,7 @@ const TagEditor = React.createClass({
     return (
       <span>
         <ReactSelect2
-          ref="input"
+          ref={(node) => { this.inputNode = node; }}
           style={{ minWidth: '100px' }}
           data={[''].concat(_.pluck(this.data.allTags, 'name'))}
           options={{ tags: true }}
@@ -568,8 +567,8 @@ const RelatedPuzzleGroup = React.createClass({
       <div style={this.styles.group}>
         <div style={this.styles.tagWrapper} onClick={this.toggleCollapse}>
           {this.state.collapsed ?
-            <span className="glyphicon glyphicon-chevron-up"></span> :
-            <span className="glyphicon glyphicon-chevron-down"></span>}
+            <span className="glyphicon glyphicon-chevron-up" /> :
+            <span className="glyphicon glyphicon-chevron-down" />}
           <Tag tag={this.props.sharedTag} />
           {this.props.includeCount && <span>{`(${this.props.relatedPuzzles.length} other ${this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles'})`}</span>}
         </div>

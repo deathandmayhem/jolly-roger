@@ -23,7 +23,6 @@
 // SOFTWARE.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { _ } from 'meteor/underscore';
 import { jQuery } from 'meteor/jquery';
 
@@ -60,7 +59,7 @@ const ReactSelect2 = React.createClass({
   },
 
   componentDidMount() {
-    this.el = jQuery(ReactDOM.findDOMNode(this));
+    this.el = jQuery(this.node);
     this.el.select2(this.props.options);
 
     this.props.events.forEach(event => {
@@ -86,7 +85,7 @@ const ReactSelect2 = React.createClass({
     );
 
     return (
-      <select ref="select" {...remaining}>
+      <select ref={(node) => { this.node = node; }} {...remaining}>
         {this.props.data.map((item, k) => {
           if (typeof item === 'string' ||
               ((!!item && typeof item === 'object') &&

@@ -20,7 +20,7 @@ const SharedNavbar = React.createClass({
     const profileSub = this.context.subs.subscribe('mongo.profiles', { _id: userId });
     const profile = Models.Profiles.findOne(userId);
     const displayName = profileSub.ready() ?
-        (profile && profile.displayName || '<no name given>') : 'loading...';
+        ((profile && profile.displayName) || '<no name given>') : 'loading...';
     return {
       userId,
       displayName,

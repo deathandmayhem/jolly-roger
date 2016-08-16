@@ -1,7 +1,0 @@
-{
-  "curly": true,
-  "eqeqeq": true,
-  "esnext": true,
-  "unused": true,
-  "varstmt": true
-}

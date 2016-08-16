@@ -51,14 +51,14 @@ const HuntFormModal = React.createClass({
   },
 
   show() {
-    this.refs.form.show();
+    this.formNode.show();
   },
 
   render() {
     const idPrefix = this.props.hunt ? `jr-hunt-${this.props.hunt.id}-modal-` : 'jr-hunt-new-modal-';
     return (
       <ModalForm
-        ref="form"
+        ref={(node) => { this.formNode = node; }}
         title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
         onSubmit={this.onFormSubmit}
       >
@@ -133,11 +133,11 @@ const Hunt = React.createClass({
   },
 
   showEditModal() {
-    this.refs.editModal.refs.form.show();
+    this.editModalNode.show();
   },
 
   showDeleteModal() {
-    this.refs.deleteModal.show();
+    this.deleteModalNode.show();
   },
 
   editButton() {
@@ -169,12 +169,12 @@ const Hunt = React.createClass({
     return (
       <li>
         <HuntFormModal
-          ref="editModal"
+          ref={(node) => { this.editModalNode = node; }}
           hunt={this.props.hunt}
           onSubmit={this.onEdit}
         />
         <ModalForm
-          ref="deleteModal"
+          ref={(node) => { this.deleteModalNode = node; }}
           title="Delete Hunt"
           submitLabel="Delete"
           submitStyle="danger"
@@ -233,7 +233,7 @@ const HuntListPage = React.createClass({
   },
 
   showAddModal() {
-    this.refs.addModal.refs.form.show();
+    this.addModalNode.show();
   },
 
   addButton() {
@@ -262,7 +262,7 @@ const HuntListPage = React.createClass({
       <div id="jr-hunts">
         <h1>Hunts</h1>
         <HuntFormModal
-          ref="addModal"
+          ref={(node) => { this.addModalNode = node; }}
           onSubmit={this.onAdd}
         />
         {this.addButton()}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Random } from 'meteor/random';
 
 /* eslint-disable max-len */
 
@@ -13,6 +14,11 @@ const LabelledRadio = React.createClass({
     defaultChecked: React.PropTypes.bool,
     onChange: React.PropTypes.func.isRequired,
   },
+
+  componentWillMount() {
+    this.id = Random.id();
+  },
+
   styles: {
     radiolabel: {
       display: 'block',
@@ -25,8 +31,9 @@ const LabelledRadio = React.createClass({
 
   render() {
     return (
-      <label style={this.styles.radiolabel}>
+      <label style={this.styles.radiolabel} htmlFor={this.id}>
         <input
+          id={this.id}
           style={this.styles.radio}
           type="radio"
           name={this.props.name}

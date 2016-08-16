@@ -1,7 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import BS from 'react-bootstrap';
 import { Link } from 'react-router';
@@ -133,7 +132,7 @@ const ChatHistory = React.createClass({
     // Save whether the current scrollTop is equal to the ~maximum scrollTop.
     // If so, then we should make the log "stick" to the bottom, by manually scrolling to the bottom
     // when needed.
-    const messagePane = ReactDOM.findDOMNode(this.refs.messagePane);
+    const messagePane = this.node;
 
     // Include a 5 px fudge factor to account for bad scrolling and
     // fractional pixels
@@ -147,7 +146,7 @@ const ChatHistory = React.createClass({
   },
 
   forceScrollBottom() {
-    const messagePane = ReactDOM.findDOMNode(this.refs.messagePane);
+    const messagePane = this.node;
     messagePane.scrollTop = messagePane.scrollHeight;
     this.shouldScroll = true;
   },
@@ -162,7 +161,7 @@ const ChatHistory = React.createClass({
   render() {
     const profiles = this.props.profiles;
     return (
-      <div ref="messagePane" style={this.styles.messagePane} onScroll={this.onScroll}>
+      <div ref={(node) => { this.node = node; }} style={this.styles.messagePane} onScroll={this.onScroll}>
         {this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span>}
         {this.props.chatMessages.map((msg) => <ChatMessage key={msg._id} message={msg} sender={profiles[msg.sender]} />)}
       </div>
@@ -263,11 +262,11 @@ const ChatSection = React.createClass({
   mixins: [PureRenderMixin],
 
   onInputHeightChange() {
-    this.refs.history.maybeForceScrollBottom();
+    this.historyNode.maybeForceScrollBottom();
   },
 
   onMessageSent() {
-    this.refs.history.forceScrollBottom();
+    this.historyNode.forceScrollBottom();
   },
 
   styles: {
@@ -278,11 +277,10 @@ const ChatSection = React.createClass({
   },
 
   render() {
-    // TODO: fetch/track/display chat history
     return (
       <div className="chat-section" style={this.styles}>
         {this.props.chatReady ? null : <span>loading...</span>}
-        <ChatHistory ref="history" chatMessages={this.props.chatMessages} profiles={this.props.profiles} />
+        <ChatHistory ref={(node) => { this.historyNode = node; }} chatMessages={this.props.chatMessages} profiles={this.props.profiles} />
         <ChatInput
           puzzleId={this.props.puzzleId}
           onHeightChange={this.onInputHeightChange}
@@ -402,11 +400,11 @@ const PuzzlePageMetadata = React.createClass({
   },
 
   showGuessModal() {
-    this.refs.form.show();
+    this.formNode.show();
   },
 
   dismissModal() {
-    this.refs.form.close();
+    this.formNode.close();
   },
 
   submitGuess() {
@@ -488,7 +486,7 @@ const PuzzlePageMetadata = React.createClass({
     return (
       <div className="puzzle-metadata" style={this.styles.metadata}>
         <div style={this.styles.row}>
-          {this.props.puzzle.url && <div style={this.styles.right}><a target="_blank" href={this.props.puzzle.url}>Puzzle link</a></div>}
+          {this.props.puzzle.url && <div style={this.styles.right}><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div>}
           <div style={this.styles.left}><Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link> / <strong>{this.props.puzzle.title}</strong> {answerComponent}</div>
         </div>
         <div style={this.styles.row}>
@@ -506,7 +504,7 @@ const PuzzlePageMetadata = React.createClass({
         {/* Activity tracking not implemented yet.
             <div>Other hunters currently viewing this page?</div> */}
         <ModalForm
-          ref="form"
+          ref={(node) => { this.formNode = node; }}
           title={`Submit answer to ${this.props.puzzle.title}`}
           onSubmit={this.submitGuess}
           submitLabel="Submit"
@@ -677,13 +675,13 @@ const PuzzlePage = React.createClass({
     //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
 
     const profileHandle = this.context.subs.subscribe('mongo.profiles');
-    const profiles = profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id') || {};
+    const profiles = (profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id')) || {};
 
-    let puzzlesReady = undefined;
-    let allPuzzles = undefined;
-    let allTags = undefined;
-    let allGuesses = undefined;
-    let allDocuments = undefined;
+    let puzzlesReady;
+    let allPuzzles;
+    let allTags;
+    let allGuesses;
+    let allDocuments;
     if (_.has(huntFixtures, this.props.params.huntId)) {
       puzzlesReady = true;
       allPuzzles = huntFixtures[this.props.params.huntId].puzzles;
@@ -720,10 +718,10 @@ const PuzzlePage = React.createClass({
     // Chat is not ready until chat messages and profiles have loaded, but doesn't care about any
     // other collections.
     const chatReady = chatHandle.ready() && profileHandle.ready();
-    const chatMessages = chatReady && Models.ChatMessages.find(
+    const chatMessages = (chatReady && Models.ChatMessages.find(
       { puzzleId: this.props.params.puzzleId },
       { sort: { timestamp: 1 } },
-    ).fetch() || [];
+    ).fetch()) || [];
     return {
       puzzlesReady,
       allPuzzles,

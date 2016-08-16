@@ -43,7 +43,7 @@ const MessengerSpinner = React.createClass({
   render() {
     return (
       <div className="spinner-box">
-        <div className="spinner"></div>
+        <div className="spinner" />
       </div>
     );
   },
@@ -59,7 +59,7 @@ const GuessMessage = React.createClass({
   mixins: [PureRenderMixin],
 
   focusGuess() {
-    this.refs.guess.select();
+    this.guessNode.select();
   },
 
   markCorrect() {
@@ -83,10 +83,10 @@ const GuessMessage = React.createClass({
       <li onClick={this.focusGuess}>
         <MessengerSpinner />
         <MessengerContent dismissable>
-          Guess for <a href={this.props.puzzle.url} target="_blank">{this.props.puzzle.title}</a>:
+          Guess for <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>:
           {' '}
           <input
-            ref="guess"
+            ref={(node) => { this.guessNode = node; }}
             type="text"
             readOnly
             size={this.props.guess.guess.length}

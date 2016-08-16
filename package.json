@@ -7,6 +7,9 @@
     "type": "git",
     "url": "https://github.com/ebroder/jolly-roger"
   },
+  "scripts": {
+    "lint": "eslint --ext js,jsx ."
+  },
   "dependencies": {
     "classnames": "^2.2.5",
     "googleapis": "^10.0.0",
@@ -22,5 +25,15 @@
     "react-router": "^2.5.2",
     "react-router-bootstrap": "^0.23.0",
     "react-textarea-autosize": "^4.0.4"
+  },
+  "devDependencies": {
+    "babel-eslint": "^6.1.2",
+    "eslint": "^3.3.0",
+    "eslint-config-airbnb": "^10.0.1",
+    "eslint-import-resolver-meteor": "^0.3.1",
+    "eslint-plugin-import": "^1.13.0",
+    "eslint-plugin-jsx-a11y": "^2.1.0",
+    "eslint-plugin-meteor": "^4.0.0",
+    "eslint-plugin-react": "^6.1.0"
   }
 }
