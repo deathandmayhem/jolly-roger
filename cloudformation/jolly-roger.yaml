@@ -1,7 +1,7 @@
-# This YAML file, when loaded and dumped as JSON, can be used as a
-# CloudFormation Stack to spin up the jolly-roger environment. YAML is
-# used instead of JSON for comments and easier-to-read formatting, but
-# we should refrain from using any fancier features of YAML.
+# This YAML file can be used as a CloudFormation Stack to spin up the
+# jolly-roger environment. This file is loaded directly into
+# CloudFormation, which means that some features of YAML
+# (e.g. references) are unavailable.
 #
 # The jolly-roger environment consists of:
 #
@@ -101,16 +101,8 @@ Mappings:
     us-east-1: {"ami": ami-2b594f41}
 
 Conditions:
-  HavePapertrail:
-    Fn::Not:
-      - Fn::Equals:
-          - {Ref: PapertrailHost}
-          - ''
-  HaveDatadog:
-    Fn::Not:
-      - Fn::Equals:
-          - {Ref: DatadogApiKey}
-          - ''
+  HavePapertrail: !Not [!Equals [!Ref PapertrailHost, '']]
+  HaveDatadog: !Not [!Equals [!Ref DatadogApiKey, '']]
 
 Resources:
   VPC:
@@ -122,47 +114,47 @@ Resources:
   PublicSubnetRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: {Ref: VPC}
+      VpcId: !Ref VPC
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: {Ref: VPC}
-      InternetGatewayId: {Ref: InternetGateway}
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
   PublicRouteToInternet:
     Type: AWS::EC2::Route
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: {Ref: InternetGateway}
-      RouteTableId: {Ref: PublicSubnetRouteTable}
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref PublicSubnetRouteTable
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: {"Fn::Select": [0, {"Fn::GetAZs": ""}]}
+      AvailabilityZone: !Select [0, !GetAZs ""]
       CidrBlock: 10.32.0.0/24
       MapPublicIpOnLaunch: true
-      VpcId: {Ref: VPC}
+      VpcId: !Ref VPC
   PublicSubnet1RouteTableAssoc:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: {Ref: PublicSubnetRouteTable}
-      SubnetId: {Ref: PublicSubnet1}
+      RouteTableId: !Ref PublicSubnetRouteTable
+      SubnetId: !Ref PublicSubnet1
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: {"Fn::Select": [1, {"Fn::GetAZs": ""}]}
+      AvailabilityZone: !Select [1, !GetAZs ""]
       CidrBlock: 10.32.1.0/24
       MapPublicIpOnLaunch: true
-      VpcId: {Ref: VPC}
+      VpcId: !Ref VPC
   PublicSubnet2RouteTableAssoc:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: {Ref: PublicSubnetRouteTable}
-      SubnetId: {Ref: PublicSubnet2}
+      RouteTableId: !Ref PublicSubnetRouteTable
+      SubnetId: !Ref PublicSubnet2
 
   # Bucket for serving /.well-known/acme-challenge/
   LetsEncryptBucket:
@@ -190,35 +182,18 @@ Resources:
                   - dynamodb:GetItem
                   - dynamodb:Query
                   - dynamodb:Scan
-                Resource:
-                  - Fn::Join:
-                      - ""
-                      -
-                        - "arn:aws:dynamodb:"
-                        - {Ref: "AWS::Region"}
-                        - ":"
-                        - {Ref: "AWS::AccountId"}
-                        - ":table/credential-store"
+                Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/credential-store"
               - Effect: Allow
                 Action:
                   - kms:Decrypt
-                Resource:
-                  - Fn::Join:
-                      - ""
-                      -
-                        - "arn:aws:kms:"
-                        - {Ref: "AWS::Region"}
-                        - ":"
-                        - {Ref: "AWS::AccountId"}
-                        - ":key/"
-                        - {Ref: CredstashKeyUuid}
+                Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${CredstashKeyUuid}"
 
   AppInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
       Roles:
-        - {Ref: AppInstanceRole}
+        - !Ref AppInstanceRole
 
   AppAlbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -234,7 +209,7 @@ Resources:
           IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-      VpcId: {Ref: VPC}
+      VpcId: !Ref VPC
   AppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -249,11 +224,11 @@ Resources:
           IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-        - SourceSecurityGroupId: {Ref: AppAlbSecurityGroup}
+        - SourceSecurityGroupId: !Ref AppAlbSecurityGroup
           IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-        - SourceSecurityGroupId: {Ref: AppAlbSecurityGroup}
+        - SourceSecurityGroupId: !Ref AppAlbSecurityGroup
           IpProtocol: tcp
           FromPort: 8443
           ToPort: 8443
@@ -279,10 +254,10 @@ Resources:
     Properties:
       Scheme: internet-facing
       Subnets:
-        - {Ref: PublicSubnet1}
-        - {Ref: PublicSubnet2}
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
       SecurityGroups:
-        - {Ref: AppAlbSecurityGroup}
+        - !Ref AppAlbSecurityGroup
   AppAlbTargetHTTP:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -295,7 +270,7 @@ Resources:
       UnhealthyThresholdCount: 2
       Protocol: HTTP
       Port: 80
-      VpcId: {Ref: VPC}
+      VpcId: !Ref VPC
   AppAlbTargetHTTPS:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -308,37 +283,33 @@ Resources:
       UnhealthyThresholdCount: 2
       Protocol: HTTP
       Port: 8443
-      VpcId: {Ref: VPC}
+      VpcId: !Ref VPC
   AppAlbListenerHTTP:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
-      LoadBalancerArn: {Ref: AppAlb}
+      LoadBalancerArn: !Ref AppAlb
       Protocol: HTTP
       Port: 80
       DefaultActions:
         - Type: forward
-          TargetGroupArn: {Ref: AppAlbTargetHTTP}
+          TargetGroupArn: !Ref AppAlbTargetHTTP
   AppAlbListenerHTTPS:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
-      LoadBalancerArn: {Ref: AppAlb}
+      LoadBalancerArn: !Ref AppAlb
       Protocol: HTTPS
       Port: 443
       Certificates:
-        - {CertificateArn: {Ref: CertificateArn}}
+        - {CertificateArn: !Ref CertificateArn}
       DefaultActions:
         - Type: forward
-          TargetGroupArn: {Ref: AppAlbTargetHTTPS}
+          TargetGroupArn: !Ref AppAlbTargetHTTPS
 
   AppLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      IamInstanceProfile: {Ref: AppInstanceProfile}
-      ImageId: 
-        Fn::FindInMap:
-          - UbuntuAmis
-          - {Ref: "AWS::Region"}
-          - ami
+      IamInstanceProfile: !Ref AppInstanceProfile
+      ImageId: !FindInMap [UbuntuAmis, !Ref "AWS::Region", ami]
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
@@ -352,176 +323,134 @@ Resources:
             VolumeType: gp2
             VolumeSize: 2
             DeleteOnTermination: true
-      InstanceType: {Ref: AppInstanceType}
+      InstanceType: !Ref AppInstanceType
       SecurityGroups:
-        - {Ref: AppSecurityGroup}
+        - !Ref AppSecurityGroup
       # We're generating a YAML file inside a YAML file. Yes, this is
       # gross, but it seems to be the best anyone has come up with
       # (especially since we need variable interpolation)
       UserData:
         Fn::Base64:
-          Fn::Join:
-            - "\n"
+          !Sub
+            - |
+              #cloud-config
+
+              package_upgrade: true
+
+              apt_sources:
+                # For docker
+                - source: "deb https://apt.dockerproject.org/repo ubuntu-$RELEASE main"
+                  filename: docker.list
+                  keyid: 58118E89F3A912897C070ADBF76221572C52609D
+
+              users:
+                - name: evan
+                  shell: /bin/bash
+                  ssh-import-id: gh:ebroder
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                - name: zarvox
+                  shell: /bin/bash
+                  ssh-import-id: gh:zarvox
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                - name: quentin
+                  shell: /bin/bash
+                  ssh-import-id: gh:quentinmit
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+
+              mounts:
+                - [/dev/xvdf, none, swap, sw, 0, 0]
+
+              packages:
+                - docker-engine
+                - htop
+                - moreutils
+                - python-dev
+                - python-pip
+
+              ${PapertrailRsyslogConfig}
+
+              write_files:
+                - path: /etc/cron.hourly/docker-cleanup
+                  content: |
+                    #!/bin/sh
+                    docker volume ls -qf dangling=true | chronic xargs -r docker volume rm
+                  permissions: "0755"
+                - path: /etc/nginx-https/cache.conf
+                  content: |
+                    proxy_cache_path /var/cache/nginx/cache levels=1:2 keys_zone=assets:10m;
+                - path: /etc/nginx-https/vhost.d/${AppUrl}
+                  content: |
+                    add_header Strict-Transport-Security "max-age=31536000";
+                    proxy_cache assets;
+                    gzip on;
+                    gzip_comp_level 9;
+                    gzip_proxied any;
+                - path: /etc/nginx-http/conf.d/default.conf
+                  content: |
+                    server {
+                      listen 80;
+                      access_log /var/log/nginx/access.log main;
+                      location /.well-known/acme-challenge {
+                        return 301 https://${LetsEncryptBucket}.s3.amazonaws.com$request_uri;
+                      }
+                      location /healthcheck {
+                        return 200 "OK\n";
+                      }
+                      location / {
+                        return 301 https://$host$request_uri;
+                      }
+                    }
+
+              runcmd:
+                - set -eux
+
+                # Whatever happens, let cloudformation know
+                - pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+                - cleanup() { ret=$?; set +e; cfn-signal -e $ret -r "runcmds complete" --stack=${AWS::StackName} --region=${AWS::Region} --resource=AppAsg; exit $ret; }
+                - trap cleanup EXIT
+
+                - mkswap /dev/xvdf
+                - swapon -a
+
+                - pip install credstash
+                - export AWS_DEFAULT_REGION=${AWS::Region}
+
+                # Observability
+                ${PapertrailDockerConfig}
+                ${DatadogDockerConfig}
+
+                # Run a local registry proxy so we don't have to teach everything to auth for our private images
+                - mkdir -p /etc/docker/registry
+                - credstash get registry/config.yml > /etc/docker/registry/config.yml
+                - docker run --name registry -d --restart=unless-stopped -p 5000:5000 -v /etc/docker/registry:/etc/docker/registry registry:2
+                - sleep 5
+
+                # Pre-fetch images
+                - docker pull localhost:5000/ebroder/jolly-roger
+                - docker pull jwilder/nginx-proxy
+                - docker pull centurylink/watchtower
+
+                - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx
+
+                - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e VIRTUAL_HOST=${AppUrl} -e ROOT_URL=https://${AppUrl} localhost:5000/ebroder/jolly-roger
+
+                - docker run --name nginx-https -d --restart=unless-stopped -p 8443:80 -e DEFAULT_HOST=${AppUrl} -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/cache.conf:/etc/nginx/conf.d/cache.conf -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d jwilder/nginx-proxy
+                - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock centurylink/watchtower --interval 30 --cleanup
             -
-              - '#cloud-config'
-              - ''
-              - 'package_upgrade: true'
-              - ''
-              - 'apt_sources:'
-              # For docker
-              - '  - source: "deb https://apt.dockerproject.org/repo ubuntu-$RELEASE main"'
-              - '    filename: docker.list'
-              - '    keyid: 58118E89F3A912897C070ADBF76221572C52609D'
-              - ''
-              - 'users:'
-              - '  - name: evan'
-              - '    shell: /bin/bash'
-              - '    ssh-import-id: gh:ebroder'
-              - '    sudo: ALL=(ALL) NOPASSWD:ALL'
-              - '  - name: zarvox'
-              - '    shell: /bin/bash'
-              - '    ssh-import-id: gh:zarvox'
-              - '    sudo: ALL=(ALL) NOPASSWD:ALL'
-              - '  - name: quentin'
-              - '    shell: /bin/bash'
-              - '    ssh-import-id: gh:quentinmit'
-              - '    sudo: ALL=(ALL) NOPASSWD:ALL'
-              - ''
-              - 'mounts:'
-              - '  - [/dev/xvdf, none, swap, sw, 0, 0]'
-              - ''
-              - 'packages:'
-              - '  - docker-engine'
-              - '  - htop'
-              - '  - moreutils'
-              - '  - python-dev'
-              - '  - python-pip'
-              - ''
-              - Fn::If:
-                  - HavePapertrail
-                  - Fn::Join:
-                      - ''
-                      -
-                        - "rsyslog:\n  - configs: [\". @"
-                        - {Ref: PapertrailHost}
-                        - "\"]"
-                  - ''
-              - ''
-              - 'write_files:'
-              - '  - path: /etc/cron.hourly/docker-cleanup'
-              - '    content: |'
-              - '      #!/bin/sh'
-              - '      docker volume ls -qf dangling=true | chronic xargs -r docker volume rm'
-              - '    permissions: "0755"'
-              - '  - path: /etc/nginx-https/cache.conf'
-              - '    content: |'
-              - '      proxy_cache_path /var/cache/nginx/cache levels=1:2 keys_zone=assets:10m;'
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - path: /etc/nginx-https/vhost.d/'
-                    - {Ref: AppUrl}
-              - '    content: |'
-              - '      add_header Strict-Transport-Security "max-age=31536000";'
-              - '      proxy_cache assets;'
-              - '      gzip on;'
-              - '      gzip_comp_level 9;'
-              - '      gzip_proxied any;'
-              - '  - path: /etc/nginx-http/conf.d/default.conf'
-              - '    content: |'
-              - '      server {'
-              - '        listen 80;'
-              - '        access_log /var/log/nginx/access.log main;'
-              - '        location /.well-known/acme-challenge {'
-              - Fn::Join:
-                  - ''
-                  -
-                    - '          return 301 https://'
-                    - {Ref: LetsEncryptBucket}
-                    - '.s3.amazonaws.com$request_uri;'
-              - '        }'
-              - '        location /healthcheck {'
-              - '          return 200 "OK\n";'
-              - '        }'
-              - '        location / {'
-              - '          return 301 https://$host$request_uri;'
-              - '        }'
-              - '      }'
-              - ''
-              - 'runcmd:'
-              - '  - set -eux'
-
-              # Whatever happens, let cloudformation know
-              - '  - pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz'
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - cleanup() { ret=$?; set +e; cfn-signal -e $ret -r "runcmds complete" --stack='
-                    - {Ref: "AWS::StackName"}
-                    - ' --region='
-                    - {Ref: "AWS::Region"}
-                    - ' --resource=AppAsg; exit $ret; }'
-              - '  - trap cleanup EXIT'
-
-              - '  - mkswap /dev/xvdf'
-              - '  - swapon -a'
-
-              - '  - pip install credstash'
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - export AWS_DEFAULT_REGION='
-                    - {Ref: "AWS::Region"}
-
-              # Observability
-              - Fn::If:
-                  - HavePapertrail
-                  - Fn::Join:
-                      - ''
-                      -
-                        - '  - docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/logspout:master syslog://'
-                        - {Ref: PapertrailHost}
-                  - {Ref: "AWS::NoValue"}
-              - Fn::If:
-                  - HaveDatadog
-                  - Fn::Join:
-                      - ''
-                      -
-                        - '  - docker run --name dd-agent -d --restart=unless-stopped -h `hostname` -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e API_KEY='
-                        - {Ref: DatadogApiKey}
-                        - ' datadog/docker-dd-agent:latest'
-                  - {Ref: "AWS::NoValue"}
-
-              # Run a local registry proxy so we don't have to teach everything to auth for our private images
-              - '  - mkdir -p /etc/docker/registry'
-              - '  - credstash get registry/config.yml > /etc/docker/registry/config.yml'
-              - '  - docker run --name registry -d --restart=unless-stopped -p 5000:5000 -v /etc/docker/registry:/etc/docker/registry registry:2'
-              - '  - sleep 5'
-
-              # Pre-fetch images
-              - '  - docker pull localhost:5000/ebroder/jolly-roger'
-              - '  - docker pull jwilder/nginx-proxy'
-              - '  - docker pull centurylink/watchtower'
-
-              - '  - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx'
-
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION'
-                    - ' -e VIRTUAL_HOST='
-                    - {Ref: AppUrl}
-                    - ' -e ROOT_URL=https://'
-                    - {Ref: AppUrl}
-                    - ' localhost:5000/ebroder/jolly-roger'
-
-              - Fn::Join:
-                  - ''
-                  -
-                    - '  - docker run --name nginx-https -d --restart=unless-stopped -p 8443:80 -e DEFAULT_HOST='
-                    - {Ref: AppUrl}
-                    - ' -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/cache.conf:/etc/nginx/conf.d/cache.conf -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d jwilder/nginx-proxy'
-              - '  - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock centurylink/watchtower --interval 30 --cleanup'
+              PapertrailRsyslogConfig: !If
+                - HavePapertrail
+                - !Sub |
+                    rsyslog:
+                      - configs: [". @${PapertrailHost}"]
+                - ''
+              PapertrailDockerConfig: !If
+                - HavePapertrail
+                - !Sub '- docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/logspout:master syslog://${PapertrailHost}'
+                - ''
+              DatadogDockerConfig: !If
+                - HaveDatadog
+                - !Sub '- docker run --name dd-agent -d --restart=unless-stopped -h `hostname` -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e API_KEY=${DatadogApiKey} datadog/docker-dd-agent:latest'
+                - ''
     DependsOn:
       - InternetGatewayAttachment
 
@@ -530,16 +459,16 @@ Resources:
     Properties:
       HealthCheckType: ELB
       HealthCheckGracePeriod: 1800
-      LaunchConfigurationName: {Ref: AppLaunchConfig}
+      LaunchConfigurationName: !Ref AppLaunchConfig
       VPCZoneIdentifier:
-        - {Ref: PublicSubnet1}
-        - {Ref: PublicSubnet2}
-      MaxSize: {Ref: AppMaxSize}
-      MinSize: {Ref: AppMinSize}
-      DesiredCapacity: {Ref: AppDesiredCapacity}
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      MaxSize: !Ref AppMaxSize
+      MinSize: !Ref AppMinSize
+      DesiredCapacity: !Ref AppDesiredCapacity
       TargetGroupARNs:
-        - {Ref: AppAlbTargetHTTP}
-        - {Ref: AppAlbTargetHTTPS}
+        - !Ref AppAlbTargetHTTP
+        - !Ref AppAlbTargetHTTPS
     UpdatePolicy:
       AutoScalingRollingUpdate:
         WaitOnResourceSignals: true
@@ -550,9 +479,9 @@ Resources:
   AppDns:
     Type: AWS::Route53::RecordSet
     Properties:
-      HostedZoneId: {Ref: AppDomain}
-      Name: {Ref: AppUrl}
+      HostedZoneId: !Ref AppDomain
+      Name: !Ref AppUrl
       Type: A
       AliasTarget:
-        HostedZoneId: {"Fn::GetAtt": [AppAlb, CanonicalHostedZoneID]}
-        DNSName: {"Fn::GetAtt": [AppAlb, DNSName]}
+        HostedZoneId: !GetAtt AppAlb.CanonicalHostedZoneID
+        DNSName: !GetAtt AppAlb.DNSName
