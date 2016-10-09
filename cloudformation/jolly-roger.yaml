@@ -499,7 +499,7 @@ Resources:
               - '  - sleep 5'
 
               # Pre-fetch images
-              - '  - docker pull localhost:5000/ebroder/jolly-roger'
+              - '  - docker pull localhost:5000/deathandmayhem/jolly-roger'
               - '  - docker pull jwilder/nginx-proxy'
               - '  - docker pull centurylink/watchtower'
 
