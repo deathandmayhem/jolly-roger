@@ -29,7 +29,7 @@ RUN curl -sL https://install.meteor.com?release=1.4.0.1 | /bin/sh && \
   meteor build --directory /built_app --server=http://localhost:3000 && \
   meteor npm run lint && \
   (cd /built_app/bundle/programs/server && npm i) && \
-  rm -rf ~/.meteor
+  rm -rf ~/.meteor /app
 
 ENV PORT 80
 EXPOSE 80
