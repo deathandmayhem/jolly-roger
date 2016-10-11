@@ -743,7 +743,7 @@ const PuzzlePage = React.createClass({
       Meteor.call('ensureDocument', this.props.params.puzzleId);
     }
 
-    let activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
+    const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         <div style={{ display: 'flex', flexDirection: 'row', position: 'absolute', top: '0px', bottom: '0px', left: '0px', right: '0px' }}>

@@ -220,7 +220,7 @@ const PuzzleList = React.createClass({
     // This component just renders the puzzles provided, in order.
     // Adjusting order based on tags, tag groups, etc. is to be done at
     // a higher layer.
-    let puzzles = [];
+    const puzzles = [];
     for (let i = 0; i < this.props.puzzles.length; i++) {
       const puz = this.props.puzzles[i];
       puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} layout={this.props.layout} />);

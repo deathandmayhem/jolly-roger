@@ -82,7 +82,7 @@ const LabelledRadioGroup = React.createClass({
   },
 
   render() {
-    let buttons = this.props.options.map((option) => {
+    const buttons = this.props.options.map((option) => {
       return (
         <LabelledRadio
           key={option.value}

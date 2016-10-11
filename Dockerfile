@@ -12,6 +12,8 @@ RUN apt-get update && \
   apt-get autoremove -y && \
   apt-get clean
 
+# This needs to run as a separate step because the previous RUN
+# installs apt-transport-https
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280 && \
   echo "deb https://deb.nodesource.com/node_4.x trusty main" > /etc/apt/sources.list.d/node.list && \
   apt-get update && \
@@ -23,10 +25,11 @@ COPY . /app
 WORKDIR /app
 
 RUN curl -sL https://install.meteor.com?release=1.4.0.1 | /bin/sh && \
-  npm i --production && \
+  npm i && \
   meteor build --directory /built_app --server=http://localhost:3000 && \
+  meteor npm run lint && \
   (cd /built_app/bundle/programs/server && npm i) && \
-  rm -rf ~/.meteor
+  rm -rf ~/.meteor /app
 
 ENV PORT 80
 EXPOSE 80

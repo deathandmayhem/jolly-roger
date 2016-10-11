@@ -141,7 +141,7 @@ const OwnProfilePage = React.createClass({
   },
 
   render() {
-    let shouldDisableForm = (this.state.submitState === 'submitting');
+    const shouldDisableForm = (this.state.submitState === 'submitting');
     return (
       <div>
         <h1>Account information</h1>
