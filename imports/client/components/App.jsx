@@ -127,7 +127,7 @@ const App = React.createClass({
     return (
       layout === 'fullscreen' ?
         <FullscreenLayout {...props} /> :
-        <ScrollableLayout {...props} />
+          <ScrollableLayout {...props} />
     );
   },
 });
