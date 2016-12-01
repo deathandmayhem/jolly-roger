@@ -325,10 +325,10 @@ const PuzzleListView = React.createClass({
     // Guarantees that if ia === ib, then sharedTag exists.
     if (!sharedTag) return 1;
 
-    // Look for a puzzle with meta-for: (this group's shared tag)
+    // Look for a puzzle with meta-for:(this group's shared tag)
     let metaForTag;
     if (sharedTag && sharedTag.name.lastIndexOf('group:', 0) === 0) {
-      metaForTag = `meta-for: ${sharedTag.name.slice('group:'.length)}`;
+      metaForTag = `meta-for:${sharedTag.name.slice('group:'.length)}`;
     }
 
     let hasUnsolvedMeta = false;
