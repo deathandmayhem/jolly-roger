@@ -3,6 +3,7 @@ import { check } from 'meteor/check';
 import { Accounts } from 'meteor/accounts-base';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
+import logfmt from 'logfmt';
 
 const summaryFromLoginInfo = function (info) {
   switch (info.methodName) {
@@ -51,12 +52,14 @@ Accounts.onLoginFailure((info) => {
     info.methodArguments[0] &&
     info.methodArguments[0].user &&
     info.methodArguments[0].user.email;
-  Ansible.log('Failed login attempt', {
+  const data = {
     user: info.user && info.user._id,
     email,
     ip: info.connection.clientAddress,
     error: info.error.reason,
-  });
+  };
+  // eslint-disable-next-line no-console
+  console.log(`Failed login attempt: ${logfmt.stringify(data)}`);
 });
 
 Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl(`enroll/${token}`);
