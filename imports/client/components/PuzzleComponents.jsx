@@ -23,7 +23,7 @@ const puzzleInterestingness = (puzzle, indexedTags, group) => {
   // we wish to sort a puzzle named 'meta-for:<something>' at the top.
   let desiredTagName;
   if (group) {
-    desiredTagName = `meta-for: ${group}`;
+    desiredTagName = `meta-for:${group}`;
   }
 
   let minScore = 0;
