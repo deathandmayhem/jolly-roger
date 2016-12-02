@@ -113,7 +113,7 @@ const Hunt = React.createClass({
       {
         $set: {
           name,
-          mailingLists: mailingLists.split(/[, ]+/),
+          mailingLists: this.splitLists(mailingLists),
         },
       },
       callback
@@ -130,6 +130,15 @@ const Hunt = React.createClass({
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
       canRemove: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.remove'),
     };
+  },
+
+  splitLists(lists) {
+    const strippedLists = lists.trim();
+    if (strippedLists === '') {
+      return [];
+    }
+
+    return strippedLists.split(/[, ]+/);
   },
 
   showEditModal() {
