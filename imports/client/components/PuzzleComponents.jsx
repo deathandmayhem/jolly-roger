@@ -568,7 +568,7 @@ const RelatedPuzzleGroup = React.createClass({
         <div style={this.styles.tagWrapper} onClick={this.toggleCollapse}>
           {this.state.collapsed ?
             <span className="glyphicon glyphicon-chevron-up" /> :
-              <span className="glyphicon glyphicon-chevron-down" />}
+            <span className="glyphicon glyphicon-chevron-down" />}
           <Tag tag={this.props.sharedTag} />
           {this.props.includeCount && <span>{`(${this.props.relatedPuzzles.length} other ${this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles'})`}</span>}
         </div>
