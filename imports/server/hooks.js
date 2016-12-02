@@ -75,7 +75,7 @@ function postSlackMessage(message) {
 }
 
 const SlackHooks = {
-  onPuzzleCreated(puzzle) { // eslint-disable-line no-unused-vars
+  onPuzzleCreated(puzzle) {
     const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
     const message = `New puzzle created: <${url}|${puzzle.title}>`;
     postSlackMessage(message);
