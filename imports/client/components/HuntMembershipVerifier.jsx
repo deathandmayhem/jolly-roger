@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-import { HuntSignup } from '/imports/client/components/HuntSignup.jsx';
+import { HuntMemberError } from '/imports/client/components/HuntMemberError.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 const HuntMembershipVerifier = React.createClass({
@@ -42,7 +42,7 @@ const HuntMembershipVerifier = React.createClass({
     if (!this.data.ready) {
       return <span>loading...</span>;
     } else if (!this.data.member) {
-      return <HuntSignup huntId={this.props.huntId} />;
+      return <HuntMemberError huntId={this.props.huntId} />;
     } else {
       return React.Children.only(this.props.children);
     }
