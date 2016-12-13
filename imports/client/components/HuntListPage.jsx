@@ -10,6 +10,15 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 /* eslint-disable max-len */
 
+const splitLists = function (lists) {
+  const strippedLists = lists.trim();
+  if (strippedLists === '') {
+    return [];
+  }
+
+  return strippedLists.split(/[, ]+/);
+};
+
 const HuntFormModal = React.createClass({
   propTypes: {
     hunt: React.PropTypes.instanceOf(Transforms.Hunt),
@@ -132,15 +141,6 @@ const Hunt = React.createClass({
     };
   },
 
-  splitLists(lists) {
-    const strippedLists = lists.trim();
-    if (strippedLists === '') {
-      return [];
-    }
-
-    return strippedLists.split(/[, ]+/);
-  },
-
   showEditModal() {
     this.editModalNode.show();
   },
@@ -229,7 +229,7 @@ const HuntListPage = React.createClass({
     Ansible.log('Creating a new hunt', { name, user: Meteor.userId(), mailingLists });
     Models.Hunts.insert({
       name,
-      mailingLists: mailingLists.split(/[, ]+/),
+      mailingLists: splitLists(mailingLists),
     }, callback);
   },
 
