@@ -10,6 +10,15 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 /* eslint-disable max-len */
 
+const splitLists = function (lists) {
+  const strippedLists = lists.trim();
+  if (strippedLists === '') {
+    return [];
+  }
+
+  return strippedLists.split(/[, ]+/);
+};
+
 const HuntFormModal = React.createClass({
   propTypes: {
     hunt: React.PropTypes.instanceOf(Transforms.Hunt),
@@ -21,11 +30,13 @@ const HuntFormModal = React.createClass({
       return {
         name: this.props.hunt.name,
         mailingLists: this.props.hunt.mailingLists.join(', '),
+        signupMessage: this.props.hunt.signupMessage,
       };
     } else {
       return {
         name: '',
         mailingLists: '',
+        signupMessage: '',
       };
     }
   },
@@ -39,6 +50,12 @@ const HuntFormModal = React.createClass({
   onMailingListsChanged(e) {
     this.setState({
       mailingLists: e.target.value,
+    });
+  },
+
+  onSignupMessageChanged(e) {
+    this.setState({
+      signupMessage: e.target.value,
     });
   },
 
@@ -93,6 +110,23 @@ const HuntFormModal = React.createClass({
             </BS.HelpBlock>
           </div>
         </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor={`${idPrefix}signup-message`} className="col-xs-3">
+            Signup message
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              id={`${idPrefix}name`}
+              componentClass="textarea"
+              value={this.state.signupMessage}
+              onChange={this.onSignupMessageChanged}
+            />
+            <BS.HelpBlock>
+              This message (rendered as markdown) will be shown to users who aren't part of the hunt. This is a good place to put directions for how to sign up.
+            </BS.HelpBlock>
+          </div>
+        </BS.FormGroup>
       </ModalForm>
     );
   },
@@ -106,14 +140,15 @@ const Hunt = React.createClass({
   mixins: [ReactMeteorData],
 
   onEdit(state, callback) {
-    const { name, mailingLists } = state;
+    const { name, mailingLists, signupMessage } = state;
     Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), mailingLists });
     Models.Hunts.update(
       { _id: this.props.hunt._id },
       {
         $set: {
           name,
-          mailingLists: this.splitLists(mailingLists),
+          mailingLists: splitLists(mailingLists),
+          signupMessage,
         },
       },
       callback
@@ -130,15 +165,6 @@ const Hunt = React.createClass({
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
       canRemove: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.remove'),
     };
-  },
-
-  splitLists(lists) {
-    const strippedLists = lists.trim();
-    if (strippedLists === '') {
-      return [];
-    }
-
-    return strippedLists.split(/[, ]+/);
   },
 
   showEditModal() {
@@ -225,11 +251,12 @@ const HuntListPage = React.createClass({
   mixins: [ReactMeteorData],
 
   onAdd(state, callback) {
-    const { name, mailingLists } = state;
+    const { name, mailingLists, signupMessage } = state;
     Ansible.log('Creating a new hunt', { name, user: Meteor.userId(), mailingLists });
     Models.Hunts.insert({
       name,
-      mailingLists: mailingLists.split(/[, ]+/),
+      mailingLists: splitLists(mailingLists),
+      signupMessage,
     }, callback);
   },
 
