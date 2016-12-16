@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { check } from 'meteor/check';
 import { Accounts } from 'meteor/accounts-base';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
@@ -93,44 +92,3 @@ Accounts.emailTemplates.enrollAccount.text = (user, url) => {
     'Happy Puzzling,\n' +
     '- The DFA Web Team';
 };
-
-// Get an account to trigger enrollment. If there's no account for the
-// email address, create one. Otherwise if the existing account
-// doesn't have a password set, return that. Otherwise, throw an error
-// - you can't re-enroll when a password is already set
-const accountForEnrollment = function (email) {
-  try {
-    return Accounts.createUser({ email });
-  } catch (e) {
-    if (e.reason !== 'Email already exists.') {
-      throw e;
-    }
-
-    const user = Accounts.findUserByEmail(email);
-
-    // User already has a password set, so they should reset it themselves
-    if (user.services &&
-        user.services.password &&
-        user.services.password.bcrypt) {
-      throw e;
-    }
-
-    return user;
-  }
-};
-
-Meteor.methods({
-  sendInvite(email) {
-    check(email, String);
-
-    // this.connection is null for server calls, which we allow
-    if (!this.userId && this.connection) {
-      throw new Meteor.Error(403, 'Must be logged in');
-    }
-
-    const id = accountForEnrollment(email);
-    Accounts.sendEnrollmentEmail(id);
-
-    Ansible.info('Invited new user', { invitedBy: this.userId, email });
-  },
-});
