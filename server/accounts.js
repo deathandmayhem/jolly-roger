@@ -70,6 +70,24 @@ Accounts.emailTemplates.enrollAccount.sybject = () => {
 };
 
 Accounts.emailTemplates.enrollAccount.text = (user, url) => {
+  const hunts = Models.Hunts.find({ _id: { $in: user.hunts } }).fetch();
+  const huntNames = _.pluck(hunts, 'name');
+  const huntLists = _.chain(hunts)
+        .pluck('mailingLists')
+        .flatten()
+        .uniq()
+        .value();
+  const huntExcerpt = 'Once you register your account, you\'ll also be signed up for these ' +
+    'specific hunts:\n' +
+    '\n' +
+    `${huntNames.join(', ')}\n` +
+    '\n';
+  const listExcerpt = 'You\'ve also been put onto a handful of mailing lists for communication ' +
+    'about these and future hunts:\n' +
+    '\n' +
+    `${huntLists.join(', ')}\n` +
+    '\n';
+
   return 'Hiya!\n' +
     '\n' +
     'Someone on Death and Mayhem has invited you to join our internal team website and ' +
@@ -81,10 +99,10 @@ Accounts.emailTemplates.enrollAccount.text = (user, url) => {
     '\n' +
     `${url}\n` +
     '\n' +
-    'After you\'ve registered your account, you can keep it permanently, and easily add yourself ' +
-    'to new hunts as we participate in them. Adding yourself as a team member for any given hunt ' +
-    'will also add you to the mailing list for that event - for instance, adding yourself to the ' +
-    '2016 Mystery Hunt will add you to "dam-16@mit.edu".\n' +
+    `${huntNames.length !== 0 ? huntExcerpt : ''}` +
+    `${huntLists.length !== 0 ? listExcerpt : ''}` +
+    'After you\'ve registered your account, you can keep it permanently. We\'ll use it if you ' +
+    'hunt with us again.\n' +
     '\n' +
     'The site itself is under pretty active construction, so expect quite a few changes in the ' +
     'next few days, but let us know if you run into any major bugs at dfa-web@mit.edu.\n' +

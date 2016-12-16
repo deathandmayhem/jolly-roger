@@ -4,35 +4,79 @@ import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
 import { List } from '/imports/server/blanche.js';
 import { huntFixtures } from '/imports/fixtures.js';
+import { Accounts } from 'meteor/accounts-base';
+import { Email } from 'meteor/email';
+
+const existingJoinEmail = (user, hunt) => {
+  const huntExcerpt = 'You\'ve also been put onto a handful of mailing lists for communications ' +
+    'about these and future hunts:\n' +
+    '\n' +
+    `${hunt.mailingLists.join(', ')}\n` +
+    '\n';
+
+  return 'Hiya!\n' +
+    '\n' +
+    'Someone on Death and Mayhem has added you to a new hunt on our virtual headquarters,' +
+    `${Accounts.emailTemplate.siteName}, so that you can join us for the MIT Mystery Hunt.\n` +
+    '\n' +
+    `You've been added to this hunt: ${hunt.name}\n` +
+    '\n' +
+    `${hunt.mailingLists.length !== 0 ? huntExcerpt : ''}` +
+    'The site itself is under pretty active construction, so expect quite a few changes in the ' +
+    'next few days, but let us know if you run into any major bugs at dfa-web@mit.edu.\n' +
+    '\n' +
+    'Happy Puzzling,\n' +
+    '- The DFA Web Team';
+};
 
 Meteor.methods({
-  joinHunt(huntId) {
+  addToHunt(huntId, email) {
     check(huntId, String);
-
-    // this.connection is null for server calls, which we allow
-    if (!this.userId && this.connection) {
-      throw new Meteor.Error(401, 'You are not logged in');
-    }
+    check(email, String);
 
     const hunt = huntFixtures[huntId] || Models.Hunts.findOne(huntId);
     if (!hunt) {
       throw new Meteor.Error(404, 'Unknown hunt');
     }
 
-    Ansible.log('User joining hunt', { user: this.userId, hunt: huntId });
-    Meteor.users.update(this.userId, { $addToSet: { hunts: huntId } });
-    const user = Meteor.users.findOne(this.userId);
-    const emails = _.chain(user.emails)
+    Roles.checkPermission(this.userId, 'hunt.join', huntId);
+
+    let joineeUser = Accounts.findUserByEmail(email);
+    const newUser = joineeUser === undefined;
+    if (newUser) {
+      const joineeUserId = Accounts.createUser({ email });
+      joineeUser = Meteor.users.findOne(joineeUserId);
+    }
+
+    Ansible.log('Adding user to hunt', {
+      joiner: this.userId,
+      joinee: joineeUser._id,
+      hunt: huntId,
+    });
+    Meteor.users.update(joineeUser._id, { $addToSet: { hunts: huntId } });
+    const joineeEmails = _.chain(joineeUser.emails)
       .pluck('address')
       .value();
 
     _.each(hunt.mailingLists, (listName) => {
       const list = new List(listName);
-      _.each(emails, (email) => {
-        if (!list.add(email)) {
-          Ansible.log('Unable to add user to list', { email, list: listName });
+      _.each(joineeEmails, (joineeEmail) => {
+        if (!list.add(joineeEmail)) {
+          Ansible.log('Unable to add user to list', { joineeEmail, list: listName });
         }
       });
     });
+
+    if (newUser) {
+      Accounts.sendEnrollmentEmail(joineeUser._id);
+      Ansible.info('Sent invitation email to new user', { invitedBy: this.userId, email });
+    } else {
+      Email.send({
+        from: Accounts.emailTemplates.from,
+        to: email,
+        subject: `You've been added to a Hunt on ${Accounts.emailTemplates.siteName}`,
+        text: existingJoinEmail(joineeUser, hunt),
+      });
+    }
   },
 });
