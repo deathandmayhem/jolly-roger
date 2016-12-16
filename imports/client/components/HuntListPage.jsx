@@ -31,12 +31,14 @@ const HuntFormModal = React.createClass({
         name: this.props.hunt.name,
         mailingLists: this.props.hunt.mailingLists.join(', '),
         signupMessage: this.props.hunt.signupMessage,
+        openSignups: this.props.hunt.openSignups,
       };
     } else {
       return {
         name: '',
         mailingLists: '',
         signupMessage: '',
+        openSignups: false,
       };
     }
   },
@@ -56,6 +58,12 @@ const HuntFormModal = React.createClass({
   onSignupMessageChanged(e) {
     this.setState({
       signupMessage: e.target.value,
+    });
+  },
+
+  onOpenSignupsChanged(e) {
+    this.setState({
+      openSignups: e.target.checked,
     });
   },
 
@@ -100,7 +108,7 @@ const HuntFormModal = React.createClass({
           </BS.ControlLabel>
           <div className="col-xs-9">
             <BS.FormControl
-              id={`${idPrefix}name`}
+              id={`${idPrefix}mailing-lists`}
               type="text"
               value={this.state.mailingLists}
               onChange={this.onMailingListsChanged}
@@ -117,13 +125,29 @@ const HuntFormModal = React.createClass({
           </BS.ControlLabel>
           <div className="col-xs-9">
             <BS.FormControl
-              id={`${idPrefix}name`}
+              id={`${idPrefix}signup-message`}
               componentClass="textarea"
               value={this.state.signupMessage}
               onChange={this.onSignupMessageChanged}
             />
             <BS.HelpBlock>
               This message (rendered as markdown) will be shown to users who aren't part of the hunt. This is a good place to put directions for how to sign up.
+            </BS.HelpBlock>
+          </div>
+        </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor={`${idPrefix}open-signups`} className="col-xs-3">
+            Open signups
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.Checkbox
+              id={`${idPrefix}open-signups`}
+              checked={this.state.openSignups}
+              onChange={this.onOpenSignupsChanged}
+            />
+            <BS.HelpBlock>
+              If open signups are enabled, then any current member of the hunt can add a new member to the hunt. Otherwise, only operators can add new members.
             </BS.HelpBlock>
           </div>
         </BS.FormGroup>
@@ -140,7 +164,7 @@ const Hunt = React.createClass({
   mixins: [ReactMeteorData],
 
   onEdit(state, callback) {
-    const { name, mailingLists, signupMessage } = state;
+    const { name, mailingLists, signupMessage, openSignups } = state;
     Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), mailingLists });
     Models.Hunts.update(
       { _id: this.props.hunt._id },
@@ -149,6 +173,7 @@ const Hunt = React.createClass({
           name,
           mailingLists: splitLists(mailingLists),
           signupMessage,
+          openSignups,
         },
       },
       callback
@@ -251,12 +276,13 @@ const HuntListPage = React.createClass({
   mixins: [ReactMeteorData],
 
   onAdd(state, callback) {
-    const { name, mailingLists, signupMessage } = state;
+    const { name, mailingLists, signupMessage, openSignups } = state;
     Ansible.log('Creating a new hunt', { name, user: Meteor.userId(), mailingLists });
     Models.Hunts.insert({
       name,
       mailingLists: splitLists(mailingLists),
       signupMessage,
+      openSignups,
     }, callback);
   },
 
