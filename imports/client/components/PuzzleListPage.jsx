@@ -67,26 +67,25 @@ const PuzzleModalForm = React.createClass({
     this.formNode.show();
   },
 
-  submitPuzzle() {
+  async submitPuzzle() {
     this.setState({
       submitState: 'submitting',
     });
-    Meteor.call('createPuzzle', this.props.huntId, this.state.title, this.state.url, this.state.tags, (error) => {
-      if (error) {
-        this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
-        });
-      } else {
-        this.setState({
-          submitState: 'idle',
-          title: '',
-          url: '',
-          tags: [],
-        });
-        this.formNode.close();
-      }
-    });
+    const error = await Meteor.callPromise('createPuzzle', this.props.huntId, this.state.title, this.state.url, this.state.tags);
+    if (error) {
+      this.setState({
+        submitState: 'failed',
+        errorMessage: error.message,
+      });
+    } else {
+      this.setState({
+        submitState: 'idle',
+        title: '',
+        url: '',
+        tags: [],
+      });
+      this.formNode.close();
+    }
   },
 
   render() {

@@ -24,16 +24,15 @@ const SetupPage = React.createClass({
     this.setState({ state: 'idle' });
   },
 
-  requestComplete(token) {
+  async requestComplete(token) {
     const secret = OAuth._retrieveCredentialSecret(token);
     this.setState({ state: 'submitting' });
-    Meteor.call('setupGdriveCreds', token, secret, (error) => {
-      if (error) {
-        this.setState({ state: 'error', error });
-      } else {
-        this.setState({ state: 'success' });
-      }
-    });
+    const error = await Meteor.callPromise('setupGdriveCreds', token, secret);
+    if (error) {
+      this.setState({ state: 'error', error });
+    } else {
+      this.setState({ state: 'success' });
+    }
   },
 
   showPopup() {

@@ -69,61 +69,60 @@ const AccountForm = React.createClass({
     });
   },
 
-  tryLogin() {
+  async tryLogin() {
     this.setState({
       submitState: 'submitting',
     });
-    Meteor.loginWithPassword(this.state.email, this.state.password, (error) => {
-      if (error) {
-        this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
-        });
-      } else {
-        this.setState({
-          submitState: 'success',
-          successMessage: 'Logged in successfully.',
-        });
-      }
-    });
+
+    const error = await Meteor.loginWithPasswordPromise(this.state.email, this.state.password);
+    if (error) {
+      this.setState({
+        submitState: 'failed',
+        errorMessage: error.message,
+      });
+    } else {
+      this.setState({
+        submitState: 'success',
+        successMessage: 'Logged in successfully.',
+      });
+    }
   },
 
-  tryPasswordReset() {
+  async tryPasswordReset() {
     this.setState({
       submitState: 'submitting',
     });
-    Accounts.forgotPassword({ email: this.state.email }, (error) => {
-      if (error) {
-        this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
-        });
-      } else {
-        this.setState({
-          submitState: 'success',
-          successMessage: 'Password reset email sent.',
-        });
-      }
-    });
+
+    const error = await Accounts.forgotPasswordPromise({ email: this.state.email });
+    if (error) {
+      this.setState({
+        submitState: 'failed',
+        errorMessage: error.message,
+      });
+    } else {
+      this.setState({
+        submitState: 'success',
+        successMessage: 'Password reset email sent.',
+      });
+    }
   },
 
-  tryCompletePasswordReset() {
-    Accounts.resetPassword(this.props.token, this.state.password, (error) => {
-      if (error) {
-        this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
-        });
-      } else {
-        this.setState({
-          submitState: 'success',
-          successMessage: 'Password reset successfully',
-        });
-      }
-    });
+  async tryCompletePasswordReset() {
+    const error = await Accounts.resetPasswordPromise(this.props.token, this.state.password);
+    if (error) {
+      this.setState({
+        submitState: 'failed',
+        errorMessage: error.message,
+      });
+    } else {
+      this.setState({
+        submitState: 'success',
+        successMessage: 'Password reset successfully',
+      });
+    }
   },
 
-  tryEnroll() {
+  async tryEnroll() {
     const newProfile = {
       displayName: this.state.displayName,
       locationDuringHunt: this.state.locationDuringHunt,
@@ -137,29 +136,28 @@ const AccountForm = React.createClass({
       submitState: 'submitting',
     });
 
-    Accounts.resetPassword(this.props.token, this.state.password, (error) => {
-      if (error) {
-        this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
-        });
-      } else {
-        Meteor.call('saveProfile', newProfile, (innerError) => {
-          if (innerError) {
-            // This user will have to set their profile manually later.  Oh well.
-            this.setState({
-              submitState: 'failed',
-              errorMessage: innerError.message,
-            });
-          } else {
-            this.setState({
-              submitState: 'success',
-              successMessage: 'Created account successfully',
-            });
-          }
-        });
-      }
-    });
+    const error = await Accounts.resetPasswordPromise(this.props.token, this.state.password);
+    if (error) {
+      this.setState({
+        submitState: 'failed',
+        errorMessage: error.message,
+      });
+      return;
+    }
+
+    const innerError = await Meteor.callPromise('saveProfile', newProfile);
+    if (innerError) {
+      // This user will have to set their profile manually later.  Oh well.
+      this.setState({
+        submitState: 'failed',
+        errorMessage: innerError.message,
+      });
+    } else {
+      this.setState({
+        submitState: 'success',
+        successMessage: 'Created account successfully',
+      });
+    }
   },
 
   submitForm(event) {

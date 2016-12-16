@@ -116,15 +116,14 @@ const SlackMessage = React.createClass({
     return { status: 'idle', errorMessage: null };
   },
 
-  sendInvite() {
+  async sendInvite() {
     this.setState({ status: 'submitting' });
-    Meteor.call('slackInvite', (err) => {
-      if (err) {
-        this.setState({ status: 'error', errorMessage: err.message });
-      } else {
-        this.setState({ status: 'success' });
-      }
-    });
+    const err = await Meteor.callPromise('slackInvite');
+    if (err) {
+      this.setState({ status: 'error', errorMessage: err.message });
+    } else {
+      this.setState({ status: 'success' });
+    }
   },
 
   reset() {
