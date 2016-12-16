@@ -28,23 +28,22 @@ const AnnouncementForm = React.createClass({
     });
   },
 
-  postAnnouncement() {
-    if (this.state.message) {
+  async postAnnouncement() {
+    if (!this.state.message) {
+      return;
+    }
+
+    this.setState({ submitState: 'submitting' });
+    const error = await Meteor.callPromise('postAnnouncement', this.props.huntId, this.state.message);
+    if (error) {
       this.setState({
-        submitState: 'submitting',
+        submitState: 'failed',
+        errorMessage: error.message,
       });
-      Meteor.call('postAnnouncement', this.props.huntId, this.state.message, (error) => {
-        if (error) {
-          this.setState({
-            submitState: 'failed',
-            errorMessage: error.message,
-          });
-        } else {
-          this.setState({
-            message: '',
-            submitState: 'idle',
-          });
-        }
+    } else {
+      this.setState({
+        message: '',
+        submitState: 'idle',
       });
     }
   },

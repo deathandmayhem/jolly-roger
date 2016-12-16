@@ -35,3 +35,4 @@ standard-minifier-css@1.1.8
 standard-minifier-js@1.1.8
 react-meteor-data
 fourseven:scss
+deanius:promise

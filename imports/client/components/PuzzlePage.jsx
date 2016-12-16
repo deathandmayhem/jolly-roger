@@ -373,24 +373,22 @@ const PuzzlePageMetadata = React.createClass({
     };
   },
 
-  onCreateTag(newTagName) {
-    Meteor.call('addTagToPuzzle', this.props.puzzle._id, newTagName, (error) => {
-      // Not really much we can do in the case of a failure, but let's log it anyway
-      if (error) {
-        console.log('failed to create tag:');
-        console.log(error);
-      }
-    });
+  async onCreateTag(newTagName) {
+    const error = await Meteor.callPromise('addTagToPuzzle', this.props.puzzle._id, newTagName);
+    // Not really much we can do in the case of a failure, but let's log it anyway
+    if (error) {
+      console.log('failed to create tag:');
+      console.log(error);
+    }
   },
 
-  onRemoveTag(tagIdToRemove) {
-    Meteor.call('removeTagFromPuzzle', this.props.puzzle._id, tagIdToRemove, (error) => {
-      // Not really much we can do in the case of a failure, but again, let's log it anyway
-      if (error) {
-        console.log('failed to remove tag:');
-        console.log(error);
-      }
-    });
+  async onRemoveTag(tagIdToRemove) {
+    const error = await Meteor.callPromise('removeTagFromPuzzle', this.props.puzzle._id, tagIdToRemove);
+    // Not really much we can do in the case of a failure, but again, let's log it anyway
+    if (error) {
+      console.log('failed to remove tag:');
+      console.log(error);
+    }
   },
 
   onGuessInputChange(event) {
@@ -407,21 +405,20 @@ const PuzzlePageMetadata = React.createClass({
     this.formNode.close();
   },
 
-  submitGuess() {
-    Meteor.call('addGuessForPuzzle', this.props.puzzle._id, this.state.guessInput, (error) => {
-      // TODO: dismiss the modal on success?  show error message on failure?
-      if (error) {
-        this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
-        });
-        console.log(error);
-      }
-
-      // Clear the input box.  Don't dismiss the dialog.
+  async submitGuess() {
+    const error = await Meteor.callPromise('addGuessForPuzzle', this.props.puzzle._id, this.state.guessInput);
+    // TODO: dismiss the modal on success?  show error message on failure?
+    if (error) {
       this.setState({
-        guessInput: '',
+        submitState: 'failed',
+        errorMessage: error.message,
       });
+      console.log(error);
+    }
+
+    // Clear the input box.  Don't dismiss the dialog.
+    this.setState({
+      guessInput: '',
     });
   },
 

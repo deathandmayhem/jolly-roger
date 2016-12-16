@@ -101,7 +101,7 @@ const OwnProfilePage = React.createClass({
     });
   },
 
-  handleSaveForm() {
+  async handleSaveForm() {
     this.setState({
       submitState: 'submitting',
     });
@@ -113,18 +113,18 @@ const OwnProfilePage = React.createClass({
       affiliation: this.state.affiliation,
       remote: this.state.localRemote === 'remote',
     };
-    Meteor.call('saveProfile', newProfile, (error) => {
-      if (error) {
-        this.setState({
-          submitState: 'error',
-          submitError: error.message,
-        });
-      } else {
-        this.setState({
-          submitState: 'success',
-        });
-      }
-    });
+
+    const error = await Meteor.callPromise('saveProfile', newProfile);
+    if (error) {
+      this.setState({
+        submitState: 'error',
+        submitError: error.message,
+      });
+    } else {
+      this.setState({
+        submitState: 'success',
+      });
+    }
   },
 
   dismissAlert() {
