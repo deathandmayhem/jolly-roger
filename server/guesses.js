@@ -45,9 +45,7 @@ Meteor.methods({
     check(this.userId, String);
     check(puzzleId, String);
     check(guess, String);
-    const puzzle = Models.Puzzles.findOne({
-      _id: puzzleId,
-    });
+    const puzzle = Models.Puzzles.findOne(puzzleId);
 
     Ansible.log('New guess', { hunt: puzzle.hunt, puzzle: puzzleId, user: this.userId, guess });
     Models.Guesses.insert({
