@@ -49,6 +49,15 @@ Meteor.methods({
       joineeUser = Meteor.users.findOne(joineeUserId);
     }
 
+    if (_.include(joineeUser.hunts, huntId)) {
+      Ansible.log('Tried to add user to hunt but they were already a member', {
+        joiner: this.userId,
+        joinee: joineeUser._id,
+        hunt: huntId,
+      });
+      return;
+    }
+
     Ansible.log('Adding user to hunt', {
       joiner: this.userId,
       joinee: joineeUser._id,
