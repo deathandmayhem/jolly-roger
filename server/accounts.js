@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { check } from 'meteor/check';
 import { Accounts } from 'meteor/accounts-base';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
@@ -66,11 +65,29 @@ Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl(`enroll/${token}`);
 Accounts.urls.resetPassword = (token) => Meteor.absoluteUrl(`reset-password/${token}`);
 
 Accounts.emailTemplates.from = 'above@mit.edu';
-Accounts.emailTemplates.enrollAccount.sybject = () => {
-  return `Somebody has invited you to ${Accounts.emailTemplates.siteName}`;
+Accounts.emailTemplates.enrollAccount.subject = () => {
+  return `[jolly-roger] You're invited to ${Accounts.emailTemplates.siteName}`;
 };
 
 Accounts.emailTemplates.enrollAccount.text = (user, url) => {
+  const hunts = Models.Hunts.find({ _id: { $in: user.hunts } }).fetch();
+  const huntNames = _.pluck(hunts, 'name');
+  const huntLists = _.chain(hunts)
+        .pluck('mailingLists')
+        .flatten()
+        .uniq()
+        .value();
+  const huntExcerpt = 'Once you register your account, you\'ll also be signed up for these ' +
+    'specific hunts:\n' +
+    '\n' +
+    `${huntNames.join(', ')}\n` +
+    '\n';
+  const listExcerpt = 'You\'ve also been put onto a handful of mailing lists for communication ' +
+    'about these and future hunts:\n' +
+    '\n' +
+    `${huntLists.join(', ')}\n` +
+    '\n';
+
   return 'Hiya!\n' +
     '\n' +
     'Someone on Death and Mayhem has invited you to join our internal team website and ' +
@@ -82,55 +99,14 @@ Accounts.emailTemplates.enrollAccount.text = (user, url) => {
     '\n' +
     `${url}\n` +
     '\n' +
-    'After you\'ve registered your account, you can keep it permanently, and easily add yourself ' +
-    'to new hunts as we participate in them. Adding yourself as a team member for any given hunt ' +
-    'will also add you to the mailing list for that event - for instance, adding yourself to the ' +
-    '2016 Mystery Hunt will add you to "dam-16@mit.edu".\n' +
+    `${huntNames.length !== 0 ? huntExcerpt : ''}` +
+    `${huntLists.length !== 0 ? listExcerpt : ''}` +
+    'After you\'ve registered your account, you can keep it permanently. We\'ll use it if you ' +
+    'hunt with us again.\n' +
     '\n' +
     'The site itself is under pretty active construction, so expect quite a few changes in the ' +
     'next few days, but let us know if you run into any major bugs at dfa-web@mit.edu.\n' +
     '\n' +
     'Happy Puzzling,\n' +
-    '- The DFA Web Team';
+    '- The Jolly Roger Web Team';
 };
-
-// Get an account to trigger enrollment. If there's no account for the
-// email address, create one. Otherwise if the existing account
-// doesn't have a password set, return that. Otherwise, throw an error
-// - you can't re-enroll when a password is already set
-const accountForEnrollment = function (email) {
-  try {
-    return Accounts.createUser({ email });
-  } catch (e) {
-    if (e.reason !== 'Email already exists.') {
-      throw e;
-    }
-
-    const user = Accounts.findUserByEmail(email);
-
-    // User already has a password set, so they should reset it themselves
-    if (user.services &&
-        user.services.password &&
-        user.services.password.bcrypt) {
-      throw e;
-    }
-
-    return user;
-  }
-};
-
-Meteor.methods({
-  sendInvite(email) {
-    check(email, String);
-
-    // this.connection is null for server calls, which we allow
-    if (!this.userId && this.connection) {
-      throw new Meteor.Error(403, 'Must be logged in');
-    }
-
-    const id = accountForEnrollment(email);
-    Accounts.sendEnrollmentEmail(id);
-
-    Ansible.info('Invited new user', { invitedBy: this.userId, email });
-  },
-});

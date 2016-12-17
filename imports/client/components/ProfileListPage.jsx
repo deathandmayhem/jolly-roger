@@ -91,11 +91,6 @@ const ProfileList = React.createClass({
         </BS.FormGroup>
 
         <BS.ListGroup>
-          <RRBS.LinkContainer to="/users/invite">
-            <BS.ListGroupItem>
-              <strong>Invite someone...</strong>
-            </BS.ListGroupItem>
-          </RRBS.LinkContainer>
           {profiles.map((profile) => (
             <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
               <BS.ListGroupItem>
