@@ -7,7 +7,7 @@ import { huntFixtures } from '/imports/fixtures.js';
 import { Accounts } from 'meteor/accounts-base';
 import { Email } from 'meteor/email';
 
-const existingJoinEmail = (user, hunt) => {
+const existingJoinEmail = (user, hunt, joinerName) => {
   const huntExcerpt = 'You\'ve also been put onto a handful of mailing lists for communications ' +
     'about these and future hunts:\n' +
     '\n' +
@@ -16,8 +16,9 @@ const existingJoinEmail = (user, hunt) => {
 
   return 'Hiya!\n' +
     '\n' +
-    'Someone on Death and Mayhem has added you to a new hunt on our virtual headquarters,' +
-    `${Accounts.emailTemplate.siteName}, so that you can join us for the MIT Mystery Hunt.\n` +
+    'You\'ve been added to to a new hunt on Death and Mayhem\'s virtual headquarters ' +
+    `${Accounts.emailTemplates.siteName}${joinerName ? ` by ${joinerName}` : ''}, so that you ` +
+    'can join us for the MIT Mystery Hunt.\n' +
     '\n' +
     `You've been added to this hunt: ${hunt.name}\n` +
     '\n' +
@@ -71,11 +72,15 @@ Meteor.methods({
       Accounts.sendEnrollmentEmail(joineeUser._id);
       Ansible.info('Sent invitation email to new user', { invitedBy: this.userId, email });
     } else {
+      const joinerProfile = Models.Profiles.findOne(this.userId);
+      const joinerName = joinerProfile && joinerProfile.displayName !== '' ?
+        joinerProfile.displayName :
+        null;
       Email.send({
         from: Accounts.emailTemplates.from,
         to: email,
         subject: `[jolly-roger] Added to ${hunt.name} on ${Accounts.emailTemplates.siteName}`,
-        text: existingJoinEmail(joineeUser, hunt),
+        text: existingJoinEmail(joineeUser, hunt, joinerName),
       });
     }
   },
