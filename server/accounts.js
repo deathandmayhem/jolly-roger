@@ -65,8 +65,8 @@ Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl(`enroll/${token}`);
 Accounts.urls.resetPassword = (token) => Meteor.absoluteUrl(`reset-password/${token}`);
 
 Accounts.emailTemplates.from = 'above@mit.edu';
-Accounts.emailTemplates.enrollAccount.sybject = () => {
-  return `Somebody has invited you to ${Accounts.emailTemplates.siteName}`;
+Accounts.emailTemplates.enrollAccount.subject = () => {
+  return `[jolly-roger] You're invited to ${Accounts.emailTemplates.siteName}`;
 };
 
 Accounts.emailTemplates.enrollAccount.text = (user, url) => {
@@ -108,5 +108,5 @@ Accounts.emailTemplates.enrollAccount.text = (user, url) => {
     'next few days, but let us know if you run into any major bugs at dfa-web@mit.edu.\n' +
     '\n' +
     'Happy Puzzling,\n' +
-    '- The DFA Web Team';
+    '- The Jolly Roger Web Team';
 };

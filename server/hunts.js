@@ -26,7 +26,7 @@ const existingJoinEmail = (user, hunt) => {
     'next few days, but let us know if you run into any major bugs at dfa-web@mit.edu.\n' +
     '\n' +
     'Happy Puzzling,\n' +
-    '- The DFA Web Team';
+    '- The Jolly Roger Web Team';
 };
 
 Meteor.methods({
@@ -74,7 +74,7 @@ Meteor.methods({
       Email.send({
         from: Accounts.emailTemplates.from,
         to: email,
-        subject: `You've been added to a Hunt on ${Accounts.emailTemplates.siteName}`,
+        subject: `[jolly-roger] Added to ${hunt.name} on ${Accounts.emailTemplates.siteName}`,
         text: existingJoinEmail(joineeUser, hunt),
       });
     }
