@@ -290,7 +290,7 @@ const HuntListPage = React.createClass({
     this.context.subs.subscribe('mongo.hunts');
     return {
       canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.insert'),
-      hunts: Models.Hunts.find().fetch(),
+      hunts: Models.Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
     };
   },
 
