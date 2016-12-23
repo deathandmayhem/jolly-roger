@@ -36,6 +36,7 @@ const ReactSelect2 = React.createClass({
     events: PropTypes.array,
     options: PropTypes.object,
     multiple: PropTypes.bool,
+    selectRef: PropTypes.func,
     onOpen: PropTypes.func,
     onClose: PropTypes.func,
     onSelect: PropTypes.func,
@@ -80,12 +81,20 @@ const ReactSelect2 = React.createClass({
 
   render() {
     const remaining = _.omit(this.props,
-      'value', 'data', 'options', 'events', 'onOpen',
+      'value', 'data', 'options', 'events', 'selectRef', 'onOpen',
       'onClose', 'onSelect', 'onChange', 'onUnselect'
     );
 
     return (
-      <select ref={(node) => { this.node = node; }} {...remaining}>
+      <select
+        ref={(node) => {
+          this.node = node;
+          if (this.props.selectRef) {
+            this.props.selectRef(node);
+          }
+        }}
+        {...remaining}
+      >
         {this.props.data.map((item, k) => {
           if (typeof item === 'string' ||
               ((!!item && typeof item === 'object') &&
