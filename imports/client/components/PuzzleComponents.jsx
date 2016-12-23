@@ -105,14 +105,14 @@ const Puzzle = React.createClass({
     // TODO: turn this horrid mess into CSS
     puzzle: {
       marginBottom: '4px',
-      background: '#e5e5e5',
+      background: '#f0f0f0',
       verticalAlign: 'top',
     },
     unsolvedPuzzle: {
-      background: '#e5e5e5',
+      background: '#f0f0f0',
     },
     solvedPuzzle: {
-      background: '#bfffbf',
+      background: '#dfffdf',
     },
     gridLayout: {
       puzzle: {
@@ -128,6 +128,7 @@ const Puzzle = React.createClass({
         margin: '2px',
         verticalAlign: 'top',
         wordBreak: 'break-word',
+        fontWeight: 'bold',
       },
       puzzleLink: {
         flex: '0 0 10%',
@@ -155,6 +156,7 @@ const Puzzle = React.createClass({
         padding: '2px',
         margin: '2px',
         verticalAlign: 'top',
+        fontWeight: 'bold',
       },
       answer: {
         display: 'inline-block',
