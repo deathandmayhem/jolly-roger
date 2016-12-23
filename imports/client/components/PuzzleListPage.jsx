@@ -440,7 +440,7 @@ const PuzzleListView = React.createClass({
             <BS.FormControl
               id="jr-puzzle-search"
               type="text"
-              ref={(node) => { this.searchBarNode = node; }}
+              inputRef={(node) => { this.searchBarNode = node; }}
               placeholder="search by title, answer, or tag"
               value={this.state.searchString}
               onChange={this.onSearchStringChange}
