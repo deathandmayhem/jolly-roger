@@ -564,8 +564,8 @@ const RelatedPuzzleGroup = React.createClass({
     const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(this.props.relatedPuzzles, this.props.sharedTag, tagIndex);
 
     return (
-      <div style={this.styles.group}>
-        <div style={this.styles.tagWrapper} onClick={this.toggleCollapse}>
+      <div className="puzzle-group" style={this.styles.group}>
+        <div className="puzzle-group-header" style={this.styles.tagWrapper} onClick={this.toggleCollapse}>
           {this.state.collapsed ?
             <span className="glyphicon glyphicon-chevron-up" /> :
             <span className="glyphicon glyphicon-chevron-down" />}
