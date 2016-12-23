@@ -23,7 +23,7 @@ pip install credstash
 METEOR_RELEASE="$(sed -e 's/.*@//g' .meteor/release)"
 curl -sL https://install.meteor.com?release=$METEOR_RELEASE | sh
 npm i
-meteor build --directory /built_app --server=http://localhost:3000
+meteor build --allow-superuser --directory /built_app --server=http://localhost:3000
 meteor npm run lint
 (cd /built_app/bundle/programs/server && npm i)
 cp -a /app/scripts /built_app/scripts
