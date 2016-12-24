@@ -325,6 +325,9 @@ const Tag = React.createClass({
     needs: {
       background: '#ff4040',
     },
+    priority: {
+      background: '#aaaaff',
+    },
     interactive: {
       cursor: 'pointer',
     },
@@ -336,6 +339,7 @@ const Tag = React.createClass({
     const isGroup = name.lastIndexOf('group:', 0) === 0;
     const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
     const isNeeds = name.lastIndexOf('needs:', 0) === 0;
+    const isPriority = name.lastIndexOf('priority:', 0) === 0;
     const styles = _.extend(
       {},
       this.styles.base,
@@ -343,6 +347,7 @@ const Tag = React.createClass({
       isGroup && this.styles.group,
       isMetaFor && this.styles.metaFor,
       isNeeds && this.styles.needs,
+      isPriority && this.styles.priority,
       this.props.onClick && this.styles.interactive,
     );
     return (
@@ -419,14 +424,16 @@ const TagList = React.createClass({
 
   soloTagInterestingness(tag) {
     if (tag.name === 'is:metameta') {
-      return -5;
+      return -6;
     } else if (tag.name === 'is:meta') {
-      return -4;
+      return -5;
     } else if (tag.name.lastIndexOf('meta-for:', 0) === 0) {
-      return -3;
+      return -4;
     } else if (tag.name.lastIndexOf('group:', 0) === 0) {
-      return -2;
+      return -3;
     } else if (tag.name.lastIndexOf('needs:', 0) === 0) {
+      return -2;
+    } else if (tag.name.lastIndexOf('priority:', 0) === 0) {
       return -1;
     } else {
       return 0;
