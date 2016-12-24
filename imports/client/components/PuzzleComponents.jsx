@@ -105,14 +105,14 @@ const Puzzle = React.createClass({
     // TODO: turn this horrid mess into CSS
     puzzle: {
       marginBottom: '4px',
-      background: '#e5e5e5',
+      background: '#f0f0f0',
       verticalAlign: 'top',
     },
     unsolvedPuzzle: {
-      background: '#e5e5e5',
+      background: '#f0f0f0',
     },
     solvedPuzzle: {
-      background: '#bfffbf',
+      background: '#dfffdf',
     },
     gridLayout: {
       puzzle: {
@@ -128,6 +128,7 @@ const Puzzle = React.createClass({
         margin: '2px',
         verticalAlign: 'top',
         wordBreak: 'break-word',
+        fontWeight: 'bold',
       },
       puzzleLink: {
         flex: '0 0 10%',
@@ -155,6 +156,7 @@ const Puzzle = React.createClass({
         padding: '2px',
         margin: '2px',
         verticalAlign: 'top',
+        fontWeight: 'bold',
       },
       answer: {
         display: 'inline-block',
@@ -564,8 +566,8 @@ const RelatedPuzzleGroup = React.createClass({
     const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(this.props.relatedPuzzles, this.props.sharedTag, tagIndex);
 
     return (
-      <div style={this.styles.group}>
-        <div style={this.styles.tagWrapper} onClick={this.toggleCollapse}>
+      <div className="puzzle-group" style={this.styles.group}>
+        <div className="puzzle-group-header" style={this.styles.tagWrapper} onClick={this.toggleCollapse}>
           {this.state.collapsed ?
             <span className="glyphicon glyphicon-chevron-up" /> :
             <span className="glyphicon glyphicon-chevron-down" />}
