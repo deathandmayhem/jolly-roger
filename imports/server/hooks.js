@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { HTTP } from 'meteor/http';
-import Ansible from '/imports/ansible.js';
+import { postSlackMessage } from '/imports/server/slack.js';
 
 class Hooks {
   constructor() {
@@ -46,46 +45,18 @@ class Hooks {
   }
 }
 
-function postSlackMessage(message) {
-  const config = ServiceConfiguration.configurations.findOne({ service: 'slack' });
-  if (!config) {
-    Ansible.log('Not notifying Slack because Slack is not configured');
-    return;
-  }
-
-  let result;
-  let ex;
-  try {
-    result = HTTP.post('https://slack.com/api/chat.postMessage', {
-      params: {
-        token: config.secret,
-        channel: '#general',
-        username: 'jolly-roger',
-        link_names: 1, // jscs:ignore requireCamelCaseOrUpperCaseIdentifiers
-        text: message,
-      },
-    });
-  } catch (e) {
-    ex = e;
-  }
-
-  if (ex || result.statusCode >= 400) {
-    Ansible.log('Problem posting to Slack', { ex, content: result.content });
-  }
-}
-
 const SlackHooks = {
   onPuzzleCreated(puzzle) {
     const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
     const message = `New puzzle created: <${url}|${puzzle.title}>`;
-    postSlackMessage(message);
+    postSlackMessage(message, '#general', 'jolly-roger');
   },
 
   onPuzzleSolved(puzzle) {
     const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
     // eslint-disable-next-line max-len
     const message = `We solved a puzzle! The answer to <${url}|${puzzle.title}> is ${puzzle.answer}`;
-    postSlackMessage(message);
+    postSlackMessage(message, '#general', 'jolly-roger');
   },
 
   onPuzzleNoLongerSolved(puzzle) { // eslint-disable-line no-unused-vars
