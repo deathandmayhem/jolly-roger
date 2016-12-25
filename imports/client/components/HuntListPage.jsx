@@ -32,6 +32,7 @@ const HuntFormModal = React.createClass({
         mailingLists: this.props.hunt.mailingLists.join(', '),
         signupMessage: this.props.hunt.signupMessage,
         openSignups: this.props.hunt.openSignups,
+        slackChannel: this.props.hunt.slackChannel,
       };
     } else {
       return {
@@ -39,6 +40,7 @@ const HuntFormModal = React.createClass({
         mailingLists: '',
         signupMessage: '',
         openSignups: false,
+        slackChannel: '',
       };
     }
   },
@@ -64,6 +66,12 @@ const HuntFormModal = React.createClass({
   onOpenSignupsChanged(e) {
     this.setState({
       openSignups: e.target.checked,
+    });
+  },
+
+  onSlackChannelChanged(e) {
+    this.setState({
+      slackChannel: e.target.value,
     });
   },
 
@@ -151,6 +159,23 @@ const HuntFormModal = React.createClass({
             </BS.HelpBlock>
           </div>
         </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor={`${idPrefix}slack-channel`} className="col-xs-3">
+            Slack channel
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              id={`${idPrefix}slack-channel`}
+              type="text"
+              value={this.state.slackChannel}
+              onChange={this.onSlackChannelChanged}
+            />
+            <BS.HelpBlock>
+              If provided, all chat messages written in puzzles associated with this hunt will be mirrored to the specified channel in Slack.  Make sure to include the # at the beginning of the channel name, like <code>#firehose</code>.
+            </BS.HelpBlock>
+          </div>
+        </BS.FormGroup>
       </ModalForm>
     );
   },
@@ -164,8 +189,8 @@ const Hunt = React.createClass({
   mixins: [ReactMeteorData],
 
   onEdit(state, callback) {
-    const { name, mailingLists, signupMessage, openSignups } = state;
-    Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), mailingLists });
+    const { name, mailingLists, signupMessage, openSignups, slackChannel } = state;
+    Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), mailingLists, openSignups, slackChannel });
     Models.Hunts.update(
       { _id: this.props.hunt._id },
       {
@@ -174,6 +199,7 @@ const Hunt = React.createClass({
           mailingLists: splitLists(mailingLists),
           signupMessage,
           openSignups,
+          slackChannel,
         },
       },
       callback
