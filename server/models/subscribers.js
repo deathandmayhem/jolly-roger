@@ -2,8 +2,9 @@
 //
 // So long as the server continues running, it can clean up after
 // itself (and does so). But if the server process is killed (or dies
-// of more natural causes), its counter will stick around, so we
-// garbage collect based on updatedAt
+// of more natural causes), its server record will stick around, so we
+// garbage collect subscriber records based on the updatedAt of the
+// server record.
 
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
@@ -13,6 +14,17 @@ import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import moment from 'moment';
 
 const serverId = Random.id();
+
+Schemas.Servers = new SimpleSchema({
+  // unlike most updatedAt values, this one also gets set on created
+  // for convenience
+  updatedAt: {
+    type: Date,
+    autoValue() {
+      return new Date();
+    },
+  },
+});
 
 Schemas.Subscribers = new SimpleSchema({
   server: {
@@ -56,35 +68,40 @@ Schemas.Subscribers = new SimpleSchema({
   },
 });
 
+Models.Servers = new class extends Meteor.Collection {
+  constructor() {
+    super('jr_servers');
+  }
+}();
+Models.Servers.attachSchema(Schemas.Servers);
+
 Models.Subscribers = new class extends Meteor.Collection {
   constructor() {
     super('jr_subscribers');
   }
-
-  cleanup() {
-    // A noop update will still cause updatedAt to be updated
-    this.update(
-      { server: serverId },
-      {},
-      { multi: true });
-
-    // Servers get 15 seconds to update before their records are
-    // GC'd. Should be long enough to account for transients
-    const timeout = moment().subtract('15', 'seconds').toDate();
-    this.remove({
-      $or: [
-        { updatedAt: { $ne: null, $lt: timeout } },
-        { updatedAt: null, createdAt: { $lt: timeout } },
-      ],
-    });
-  }
-
-  periodic() {
-    this.cleanup();
-    Meteor.setTimeout(this.periodic.bind(this), 2.5 + (2.5 * Random.fraction()));
-  }
 }();
 Models.Subscribers.attachSchema(Schemas.Subscribers);
+
+const cleanup = function () {
+  // A noop update will still cause updatedAt to be updated
+  Models.Servers.upsert({ _id: serverId }, {});
+
+  // Servers disappearing should be a fairly rare occurrence, so it's
+  // OK for the timeouts here to be generous. Servers get 120 seconds
+  // to update before their records are GC'd. Should be long enough to
+  // account for transients
+  const timeout = moment().subtract('120', 'seconds').toDate();
+  const deadServers = Models.Servers.find({ updatedAt: { $lt: timeout } })
+          .map((server) => server._id);
+  Models.Subscribers.remove({ server: { $in: deadServers } });
+};
+
+const periodic = function () {
+  // Attempt to refresh our server record every 30 seconds (with
+  // jitter). We should have 4 periods before we get GC'd mistakenly.
+  Meteor.setTimeout(periodic, 15000 + (15000 * Random.fraction()));
+  cleanup();
+};
 
 Meteor.publish('subCounter.inc', function (name, context) {
   check(name, String);
@@ -159,4 +176,4 @@ Meteor.publish('subCounter.fetch', function (q) {
   this.ready();
 });
 
-// Meteor.startup(() => Models.Subscribers.periodic());
+Meteor.startup(() => periodic());
