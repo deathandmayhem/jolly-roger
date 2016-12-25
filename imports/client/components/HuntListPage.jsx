@@ -302,13 +302,14 @@ const HuntListPage = React.createClass({
   mixins: [ReactMeteorData],
 
   onAdd(state, callback) {
-    const { name, mailingLists, signupMessage, openSignups } = state;
+    const { name, mailingLists, signupMessage, openSignups, slackChannel } = state;
     Ansible.log('Creating a new hunt', { name, user: Meteor.userId(), mailingLists });
     Models.Hunts.insert({
       name,
       mailingLists: splitLists(mailingLists),
       signupMessage,
       openSignups,
+      slackChannel,
     }, callback);
   },
 
