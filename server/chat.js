@@ -1,7 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import { HTTP } from 'meteor/http';
-import Ansible from '/imports/ansible.js';
+import { postSlackMessage } from '/imports/server/slack.js';
 
 Meteor.methods({
   sendChatMessage(puzzleId, message) {
@@ -40,12 +39,6 @@ Meteor.methods({
     const hunt = Models.Hunts.findOne(puzzle.hunt);
 
     if (hunt.slackChannel) {
-      const config = ServiceConfiguration.configurations.findOne({ service: 'slack' });
-      if (!config) {
-        Ansible.log('Not mirroring message because Slack is not configured');
-        return;
-      }
-
       const profile = Models.Profiles.findOne(this.userId);
       let username = null;
       if (profile && profile.slackHandle) {
@@ -67,25 +60,7 @@ Meteor.methods({
         .replace('>', '&gt;');
       const slackText = `[<${url}|${title}>] ${slackMessage}`;
 
-      let result;
-      let ex;
-      try {
-        result = HTTP.post('https://slack.com/api/chat.postMessage', {
-          params: {
-            token: config.secret,
-            channel: hunt.slackChannel,
-            username,
-            link_names: 1, // jscs:ignore requireCamelCaseOrUpperCaseIdentifiers
-            text: slackText,
-          },
-        });
-      } catch (e) {
-        ex = e;
-      }
-
-      if (ex || result.statusCode >= 400) {
-        Ansible.log('Problem posting to Slack', { ex, content: result.content });
-      }
+      postSlackMessage(slackText, hunt.slackChannel, username);
     }
   },
 });
