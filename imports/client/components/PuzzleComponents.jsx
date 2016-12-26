@@ -6,6 +6,7 @@ import BS from 'react-bootstrap';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { ReactSelect2 } from '/imports/client/components/ReactSelect2.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { SubscriberCounters } from '/imports/client/subscribers.js';
 
 /* eslint-disable max-len */
 
@@ -100,7 +101,13 @@ const Puzzle = React.createClass({
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     layout: React.PropTypes.string.isRequired,
   },
-  mixins: [PureRenderMixin],
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
+    return { viewCount: count ? count.value : 0 };
+  },
+
   styles: {
     // TODO: turn this horrid mess into CSS
     puzzle: {
@@ -137,13 +144,18 @@ const Puzzle = React.createClass({
         margin: '2px',
         verticalAlign: 'top',
       },
+      viewCount: {
+        flex: '0 0 5%',
+        display: 'inline-block',
+        wordBreak: 'break-word',
+      },
       answer: {
         flex: '0 0 20%',
         display: 'inline-block',
         wordBreak: 'break-word',
       },
       tags: {
-        flex: '0 0 45%',
+        flex: '0 0 40%',
         display: 'inline-block',
       },
     },
@@ -158,6 +170,12 @@ const Puzzle = React.createClass({
         verticalAlign: 'top',
         fontWeight: 'bold',
       },
+      viewCount: {
+        display: 'inline-block',
+        padding: '2px',
+        margin: '2px',
+        verticalAlign: 'top',
+      },
       answer: {
         display: 'inline-block',
         verticalAlign: 'top',
@@ -168,6 +186,7 @@ const Puzzle = React.createClass({
       },
     },
   },
+
   render() {
     // id, title, answer, tags
     const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
@@ -183,13 +202,17 @@ const Puzzle = React.createClass({
       layoutStyles.puzzle,
       this.props.puzzle.answer ? this.styles.solvedPuzzle : this.styles.unsolvedPuzzle,
     );
-    /*
+
     const countTooltip = (
-      <BS.Tooltip>
+      <BS.Tooltip id={`count-description-${this.props.puzzle._id}`}>
         users currently viewing this puzzle
       </BS.Tooltip>
     );
-    */
+    const countOverlay = (
+      <BS.OverlayTrigger placement="top" overlay={countTooltip}>
+        <span>({this.data.viewCount})</span>
+      </BS.OverlayTrigger>
+    );
 
     return (
       <div className="puzzle" style={puzzleStyle}>
@@ -200,7 +223,10 @@ const Puzzle = React.createClass({
           <div className="puzzle-link" style={layoutStyles.puzzleLink}>
             {this.props.puzzle.url ? <span>(<a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">puzzle</a>)</span> : null}
           </div> :
-          null}
+         null}
+        <div className="puzzle-view-count" style={layoutStyles.viewCount}>
+          {!this.props.puzzle.answer && countOverlay}
+        </div>
         <div className="puzzle-answer" style={layoutStyles.answer}>
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
         </div>

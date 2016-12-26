@@ -674,6 +674,13 @@ const PuzzlePage = React.createClass({
     // * Related puzzles probably only needs puzzles and tags, but right now it just gets the same
     //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
 
+    // Keep a count of how many people are viewing a puzzle. Don't use
+    // the subs manager - we don't want this cached
+    Meteor.subscribe('subCounter.inc', `puzzle:${this.props.params.puzzleId}`, {
+      puzzle: this.props.params.puzzleId,
+      hunt: this.props.params.huntId,
+    });
+
     const profileHandle = this.context.subs.subscribe('mongo.profiles');
     const profiles = (profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id')) || {};
 
@@ -693,8 +700,9 @@ const PuzzlePage = React.createClass({
       const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
       const guessesHandle = this.context.subs.subscribe('mongo.guesses', { puzzle: this.props.params.puzzleId });
       const documentsHandle = this.context.subs.subscribe('mongo.documents', { puzzle: this.props.params.puzzleId });
+      const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
 
-      puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && profileHandle.ready();
+      puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && profileHandle.ready() && viewCountsHandle.ready();
 
       // There's no sense in doing this expensive computation here if we're still loading data,
       // since we're not going to render the children.

@@ -483,7 +483,8 @@ const PuzzleListPage = React.createClass({
 
     const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
     const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
-    const ready = puzzlesHandle.ready() && tagsHandle.ready();
+    const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
+    const ready = puzzlesHandle.ready() && tagsHandle.ready() && viewCountsHandle.ready();
     if (!ready) {
       return {
         ready,
