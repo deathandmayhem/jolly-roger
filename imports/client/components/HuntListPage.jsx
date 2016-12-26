@@ -367,13 +367,21 @@ const HuntListPage = React.createClass({
       });
 
       body.push(<h2 key="myhuntsheader">Hunts you are a member of:</h2>);
-      body.push(<ul key="myhunts">
-        {joinedHunts}
-      </ul>);
+      if (joinedHunts.length > 0) {
+        body.push(<ul key="myhunts">
+          {joinedHunts}
+        </ul>);
+      } else {
+        body.push(<div key="nomyhunts">You're not a member of any hunts yet.  Consider joining one, or asking an operator to invite you.</div>);
+      }
       body.push(<h2 key="otherhuntsheader">Other hunts:</h2>);
-      body.push(<ul key="otherhunts">
-        {otherHunts}
-      </ul>);
+      if (otherHunts.length > 0) {
+        body.push(<ul key="otherhunts">
+          {otherHunts}
+        </ul>);
+      } else {
+        body.push(<div key="nootherhunts">There are no other hunts you haven't joined.</div>);
+      }
     } else {
       body.push(<div key="loading">Loading...</div>);
     }
