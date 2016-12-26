@@ -3,6 +3,7 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import BS from 'react-bootstrap';
+import Ansible from '/imports/ansible.js';
 import { Link } from 'react-router';
 import DocumentTitle from 'react-document-title';
 import marked from 'marked';
@@ -11,7 +12,11 @@ import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import TextareaAutosize from 'react-textarea-autosize';
-import { TagList, RelatedPuzzleGroups } from '/imports/client/components/PuzzleComponents.jsx';
+import {
+  TagList,
+  RelatedPuzzleGroups,
+  PuzzleModalForm,
+} from '/imports/client/components/PuzzleComponents.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
 
@@ -400,13 +405,25 @@ const PuzzlePageMetadata = React.createClass({
     });
   },
 
+  onEdit(state, callback) {
+    Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
+    Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
+  },
+
   getMeteorData() {
     const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
-    return { viewCount: count ? count.value : 0 };
+    return {
+      viewCount: count ? count.value : 0,
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+    };
   },
 
   showGuessModal() {
     this.formNode.show();
+  },
+
+  showEditModal() {
+    this.editModalNode.show();
   },
 
   dismissModal() {
@@ -484,6 +501,17 @@ const PuzzlePageMetadata = React.createClass({
     },
   },
 
+  editButton() {
+    if (this.data.canUpdate) {
+      return (
+        <BS.Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
+          <BS.Glyphicon glyph="edit" />
+        </BS.Button>
+      );
+    }
+    return null;
+  },
+
   render() {
     const _this = this;
     const tagsById = _.indexBy(this.props.allTags, '_id');
@@ -492,9 +520,16 @@ const PuzzlePageMetadata = React.createClass({
     const viewCountComponent = this.props.puzzle.answer ? null : `(viewing ${this.data.viewCount})`;
     return (
       <div className="puzzle-metadata" style={this.styles.metadata}>
+        <PuzzleModalForm
+          ref={(node) => { this.editModalNode = node; }}
+          puzzle={this.props.puzzle}
+          huntId={this.props.puzzle.hunt}
+          tags={this.props.allTags}
+          onSubmit={this.onEdit}
+        />
         <div style={this.styles.row}>
           {this.props.puzzle.url && <div style={this.styles.right}><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div>}
-          <div style={this.styles.left}><Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link> / <strong>{this.props.puzzle.title}</strong> {viewCountComponent}{answerComponent}</div>
+          <div style={this.styles.left}><Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link> / <strong>{this.props.puzzle.title}</strong> {this.editButton()}{viewCountComponent}{answerComponent}</div>
         </div>
         <div style={this.styles.row}>
           <div style={this.styles.right}><BS.Button style={this.styles.button} onClick={this.showGuessModal}>Submit answer</BS.Button></div>

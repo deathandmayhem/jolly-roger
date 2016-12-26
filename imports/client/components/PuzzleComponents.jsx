@@ -1,8 +1,10 @@
+import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { jQuery } from 'meteor/jquery';
 import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
+import Ansible from '/imports/ansible.js';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import { ReactSelect2 } from '/imports/client/components/ReactSelect2.jsx';
@@ -86,19 +88,19 @@ const PuzzleModalForm = React.createClass({
     };
 
     if (this.props.puzzle) {
-      const tagNames = {};
-      _.each(this.props.tags, (t) => { tagNames[t._id] = t.name; });
-      return _.extend(state, {
-        title: this.props.puzzle.title,
-        url: this.props.puzzle.url,
-        tags: this.props.puzzle.tags.map((t) => tagNames[t]),
-      });
+      return _.extend(state, this.stateFromPuzzle(this.props.puzzle));
     } else {
       return _.extend(state, {
         title: '',
         url: '',
         tags: [],
       });
+    }
+  },
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.puzzle && nextProps.puzzle !== this.props.puzzle) {
+      this.setState(this.stateFromPuzzle(nextProps.puzzle));
     }
   },
 
@@ -138,6 +140,16 @@ const PuzzleModalForm = React.createClass({
         callback();
       }
     });
+  },
+
+  stateFromPuzzle(puzzle) {
+    const tagNames = {};
+    _.each(this.props.tags, (t) => { tagNames[t._id] = t.name; });
+    return {
+      title: puzzle.title,
+      url: puzzle.url,
+      tags: puzzle.tags.map((t) => tagNames[t]),
+    };
   },
 
   show() {
@@ -246,9 +258,18 @@ const Puzzle = React.createClass({
   },
   mixins: [ReactMeteorData],
 
+  onEdit(state, callback) {
+    Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
+    Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
+  },
+
   getMeteorData() {
     const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
-    return { viewCount: count ? count.value : 0 };
+    return {
+      viewCount: count ? count.value : 0,
+      allTags: Models.Tags.find().fetch(),
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+    };
   },
 
   styles: {
@@ -330,6 +351,21 @@ const Puzzle = React.createClass({
     },
   },
 
+  showEditModal() {
+    this.editModalNode.show();
+  },
+
+  editButton() {
+    if (this.data.canUpdate) {
+      return (
+        <BS.Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
+          <BS.Glyphicon glyph="edit" />
+        </BS.Button>
+      );
+    }
+    return null;
+  },
+
   render() {
     // id, title, answer, tags
     const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
@@ -359,7 +395,15 @@ const Puzzle = React.createClass({
 
     return (
       <div className="puzzle" style={puzzleStyle}>
+        <PuzzleModalForm
+          ref={(node) => { this.editModalNode = node; }}
+          puzzle={this.props.puzzle}
+          huntId={this.props.puzzle.hunt}
+          tags={this.data.allTags}
+          onSubmit={this.onEdit}
+        />
         <div className="title" style={layoutStyles.title}>
+          {this.editButton()}
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
         </div>
         {this.props.layout === 'grid' ?
