@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
@@ -19,7 +20,7 @@ const splitLists = function (lists) {
   return strippedLists.split(/[, ]+/);
 };
 
-const HuntFormModal = React.createClass({
+const HuntModalForm = React.createClass({
   propTypes: {
     hunt: React.PropTypes.instanceOf(Transforms.Hunt),
     onSubmit: React.PropTypes.func, // Takes two args: state (object) and callback (func)
@@ -76,8 +77,9 @@ const HuntFormModal = React.createClass({
   },
 
   onFormSubmit(callback) {
+    const state = _.extend({}, this.state, { mailingLists: splitLists(this.state.mailingLists) });
     if (this.props.onSubmit) {
-      this.props.onSubmit(this.state, callback);
+      this.props.onSubmit(state, callback);
     } else {
       callback();
     }
@@ -189,19 +191,10 @@ const Hunt = React.createClass({
   mixins: [ReactMeteorData],
 
   onEdit(state, callback) {
-    const { name, mailingLists, signupMessage, openSignups, slackChannel } = state;
-    Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), mailingLists, openSignups, slackChannel });
+    Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), state });
     Models.Hunts.update(
       { _id: this.props.hunt._id },
-      {
-        $set: {
-          name,
-          mailingLists: splitLists(mailingLists),
-          signupMessage,
-          openSignups,
-          slackChannel,
-        },
-      },
+      { $set: state },
       callback
     );
   },
@@ -254,7 +247,7 @@ const Hunt = React.createClass({
     const hunt = this.props.hunt;
     return (
       <li>
-        <HuntFormModal
+        <HuntModalForm
           ref={(node) => { this.editModalNode = node; }}
           hunt={this.props.hunt}
           onSubmit={this.onEdit}
@@ -302,15 +295,8 @@ const HuntListPage = React.createClass({
   mixins: [ReactMeteorData],
 
   onAdd(state, callback) {
-    const { name, mailingLists, signupMessage, openSignups, slackChannel } = state;
-    Ansible.log('Creating a new hunt', { name, user: Meteor.userId(), mailingLists });
-    Models.Hunts.insert({
-      name,
-      mailingLists: splitLists(mailingLists),
-      signupMessage,
-      openSignups,
-      slackChannel,
-    }, callback);
+    Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
+    Models.Hunts.insert(state, callback);
   },
 
   getMeteorData() {
@@ -350,7 +336,7 @@ const HuntListPage = React.createClass({
     return (
       <div id="jr-hunts">
         <h1>Hunts</h1>
-        <HuntFormModal
+        <HuntModalForm
           ref={(node) => { this.addModalNode = node; }}
           onSubmit={this.onAdd}
         />
