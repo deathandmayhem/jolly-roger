@@ -13,6 +13,7 @@ import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import TextareaAutosize from 'react-textarea-autosize';
 import { TagList, RelatedPuzzleGroups } from '/imports/client/components/PuzzleComponents.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { SubscriberCounters } from '/imports/client/subscribers.js';
 
 /* eslint-disable max-len, no-console */
 
@@ -363,7 +364,7 @@ const PuzzlePageMetadata = React.createClass({
     ).isRequired,
   },
 
-  mixins: [PureRenderMixin],
+  mixins: [ReactMeteorData],
 
   getInitialState() {
     return {
@@ -397,6 +398,11 @@ const PuzzlePageMetadata = React.createClass({
     this.setState({
       guessInput: event.target.value,
     });
+  },
+
+  getMeteorData() {
+    const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
+    return { viewCount: count ? count.value : 0 };
   },
 
   showGuessModal() {
@@ -483,11 +489,12 @@ const PuzzlePageMetadata = React.createClass({
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
     const answerComponent = this.props.puzzle.answer ? <span style={this.styles.answer}>{`Solved: ${this.props.puzzle.answer}`}</span> : null;
+    const viewCountComponent = this.props.puzzle.answer ? null : `(viewing ${this.data.viewCount})`;
     return (
       <div className="puzzle-metadata" style={this.styles.metadata}>
         <div style={this.styles.row}>
           {this.props.puzzle.url && <div style={this.styles.right}><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div>}
-          <div style={this.styles.left}><Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link> / <strong>{this.props.puzzle.title}</strong> {answerComponent}</div>
+          <div style={this.styles.left}><Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link> / <strong>{this.props.puzzle.title}</strong> {viewCountComponent}{answerComponent}</div>
         </div>
         <div style={this.styles.row}>
           <div style={this.styles.right}><BS.Button style={this.styles.button} onClick={this.showGuessModal}>Submit answer</BS.Button></div>
