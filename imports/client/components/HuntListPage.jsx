@@ -23,26 +23,30 @@ const splitLists = function (lists) {
 const HuntModalForm = React.createClass({
   propTypes: {
     hunt: React.PropTypes.instanceOf(Transforms.Hunt),
-    onSubmit: React.PropTypes.func, // Takes two args: state (object) and callback (func)
+    onSubmit: React.PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
   },
 
   getInitialState() {
+    const state = {
+      submitState: 'idle',
+      errorMessage: '',
+    };
     if (this.props.hunt) {
-      return {
+      return _.extend(state, {
         name: this.props.hunt.name,
         mailingLists: this.props.hunt.mailingLists.join(', '),
         signupMessage: this.props.hunt.signupMessage,
         openSignups: this.props.hunt.openSignups,
         slackChannel: this.props.hunt.slackChannel,
-      };
+      });
     } else {
-      return {
+      return _.extend(state, {
         name: '',
         mailingLists: '',
         signupMessage: '',
         openSignups: false,
         slackChannel: '',
-      };
+      });
     }
   },
 
@@ -77,12 +81,23 @@ const HuntModalForm = React.createClass({
   },
 
   onFormSubmit(callback) {
-    const state = _.extend({}, this.state, { mailingLists: splitLists(this.state.mailingLists) });
-    if (this.props.onSubmit) {
-      this.props.onSubmit(state, callback);
-    } else {
-      callback();
-    }
+    this.setState({ submitState: 'submitting' });
+    const state = _.extend(
+      {},
+      _.omit(this.state, 'submitState', 'errorMessage'),
+      { mailingLists: splitLists(this.state.mailingLists) },
+    );
+    this.props.onSubmit(state, (error) => {
+      if (error) {
+        this.setState({
+          submitState: 'failed',
+          errorMessage: error.message,
+        });
+      } else {
+        this.setState(this.getInitialState());
+        callback();
+      }
+    });
   },
 
   show() {
@@ -90,12 +105,14 @@ const HuntModalForm = React.createClass({
   },
 
   render() {
+    const disableForm = this.state.submitState === 'submitting';
     const idPrefix = this.props.hunt ? `jr-hunt-${this.props.hunt.id}-modal-` : 'jr-hunt-new-modal-';
     return (
       <ModalForm
         ref={(node) => { this.formNode = node; }}
         title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
         onSubmit={this.onFormSubmit}
+        disabled={disableForm}
       >
         <BS.FormGroup>
           <BS.ControlLabel htmlFor={`${idPrefix}name`} className="col-xs-3">
@@ -108,6 +125,7 @@ const HuntModalForm = React.createClass({
               value={this.state.name}
               onChange={this.onNameChanged}
               autoFocus
+              disabled={disableForm}
             />
           </div>
         </BS.FormGroup>
@@ -122,6 +140,7 @@ const HuntModalForm = React.createClass({
               type="text"
               value={this.state.mailingLists}
               onChange={this.onMailingListsChanged}
+              disabled={disableForm}
             />
             <BS.HelpBlock>
               Users joining this hunt will be automatically added to all of these (comma-separated) lists
@@ -139,6 +158,7 @@ const HuntModalForm = React.createClass({
               componentClass="textarea"
               value={this.state.signupMessage}
               onChange={this.onSignupMessageChanged}
+              disabled={disableForm}
             />
             <BS.HelpBlock>
               This message (rendered as markdown) will be shown to users who aren't part of the hunt. This is a good place to put directions for how to sign up.
@@ -155,6 +175,7 @@ const HuntModalForm = React.createClass({
               id={`${idPrefix}open-signups`}
               checked={this.state.openSignups}
               onChange={this.onOpenSignupsChanged}
+              disabled={disableForm}
             />
             <BS.HelpBlock>
               If open signups are enabled, then any current member of the hunt can add a new member to the hunt. Otherwise, only operators can add new members.
@@ -172,12 +193,15 @@ const HuntModalForm = React.createClass({
               type="text"
               value={this.state.slackChannel}
               onChange={this.onSlackChannelChanged}
+              disabled={disableForm}
             />
             <BS.HelpBlock>
               If provided, all chat messages written in puzzles associated with this hunt will be mirrored to the specified channel in Slack.  Make sure to include the # at the beginning of the channel name, like <code>#firehose</code>.
             </BS.HelpBlock>
           </div>
         </BS.FormGroup>
+
+        {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
       </ModalForm>
     );
   },

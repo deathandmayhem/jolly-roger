@@ -78,12 +78,7 @@ const PuzzleModalForm = React.createClass({
           errorMessage: error.message,
         });
       } else {
-        this.setState({
-          submitState: 'idle',
-          title: '',
-          url: '',
-          tags: [],
-        });
+        this.setState(this.getInitialState());
         this.formNode.close();
       }
     });
@@ -103,6 +98,7 @@ const PuzzleModalForm = React.createClass({
           ref={(node) => { this.formNode = node; }}
           title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
           onSubmit={this.submitPuzzle}
+          disabled={disableForm}
         >
           <BS.FormGroup>
             <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">
