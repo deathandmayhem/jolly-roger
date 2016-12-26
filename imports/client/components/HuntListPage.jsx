@@ -38,6 +38,7 @@ const HuntModalForm = React.createClass({
         signupMessage: this.props.hunt.signupMessage,
         openSignups: this.props.hunt.openSignups,
         slackChannel: this.props.hunt.slackChannel,
+        puzzleHooksSlackChannel: this.props.hunt.puzzleHooksSlackChannel,
       });
     } else {
       return _.extend(state, {
@@ -46,6 +47,7 @@ const HuntModalForm = React.createClass({
         signupMessage: '',
         openSignups: false,
         slackChannel: '',
+        puzzleHooksSlackChannel: '',
       });
     }
   },
@@ -77,6 +79,12 @@ const HuntModalForm = React.createClass({
   onSlackChannelChanged(e) {
     this.setState({
       slackChannel: e.target.value,
+    });
+  },
+
+  onPuzzleHooksSlackChannelChanged(e) {
+    this.setState({
+      puzzleHooksSlackChannel: e.target.value,
     });
   },
 
@@ -197,6 +205,23 @@ const HuntModalForm = React.createClass({
             />
             <BS.HelpBlock>
               If provided, all chat messages written in puzzles associated with this hunt will be mirrored to the specified channel in Slack.  Make sure to include the # at the beginning of the channel name, like <code>#firehose</code>.
+            </BS.HelpBlock>
+          </div>
+        </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor={`${idPrefix}puzzle-hooks-slack-channel`} className="col-xs-3">
+            Puzzle added/solved Slack channel
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              id={`${idPrefix}puzzle-hooks-slack-channel`}
+              type="text"
+              value={this.state.puzzleHooksSlackChannel}
+              onChange={this.onPuzzleHooksSlackChannelChanged}
+            />
+            <BS.HelpBlock>
+              If provided, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.  Make sure to include the # at the beginning of the channel name, like <code>#general</code>.
             </BS.HelpBlock>
           </div>
         </BS.FormGroup>
