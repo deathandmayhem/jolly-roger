@@ -314,10 +314,20 @@ const HuntListPage = React.createClass({
   },
 
   getMeteorData() {
-    this.context.subs.subscribe('mongo.hunts');
+    const huntListHandle = this.context.subs.subscribe('mongo.hunts');
+    const myHuntsHandle = this.context.subs.subscribe('huntMembership');
+    const ready = huntListHandle.ready() && myHuntsHandle.ready();
+
+    const myHunts = {};
+    if (ready) {
+      Meteor.user().hunts.forEach((hunt) => { myHunts[hunt] = true; });
+    }
+
     return {
+      ready,
       canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.insert'),
       hunts: Models.Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
+      myHunts,
     };
   },
 
@@ -338,14 +348,35 @@ const HuntListPage = React.createClass({
   },
 
   render() {
-    const hunts = this.data.hunts.map((hunt) => {
-      return <Hunt key={hunt._id} hunt={hunt} />;
-    });
-
     //  Insert mock data from 2015 hunt.
     // _.each(huntFixtures, (mockData, id) => {
     //   hunts.push(<MockHunt key={id} hunt={mockData}/>);
     // });
+
+    const body = [];
+    if (this.data.ready) {
+      const joinedHunts = [];
+      const otherHunts = [];
+      this.data.hunts.forEach((hunt) => {
+        const huntTag = <Hunt key={hunt._id} hunt={hunt} />;
+        if (this.data.myHunts[hunt._id]) {
+          joinedHunts.push(huntTag);
+        } else {
+          otherHunts.push(huntTag);
+        }
+      });
+
+      body.push(<h2 key="myhuntsheader">Hunts you are a member of:</h2>);
+      body.push(<ul key="myhunts">
+        {joinedHunts}
+      </ul>);
+      body.push(<h2 key="otherhuntsheader">Other hunts:</h2>);
+      body.push(<ul key="otherhunts">
+        {otherHunts}
+      </ul>);
+    } else {
+      body.push(<div key="loading">Loading...</div>);
+    }
 
     return (
       <div id="jr-hunts">
@@ -355,9 +386,7 @@ const HuntListPage = React.createClass({
           onSubmit={this.onAdd}
         />
         {this.addButton()}
-        <ul>
-          {hunts}
-        </ul>
+        {body}
       </div>
     );
   },
