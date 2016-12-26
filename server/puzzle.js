@@ -19,7 +19,7 @@ function getOrCreateTagByName(huntId, name) {
   };
 }
 
-const createDocument = function (name, mimeType) {
+const createDocument = function createDocument(name, mimeType) {
   const template = Models.Settings.findOne({ name: 'gdrive.template' });
 
   let file;
@@ -43,7 +43,7 @@ const createDocument = function (name, mimeType) {
   return fileId;
 };
 
-const renameDocument = function (id, name) {
+const renameDocument = function renameDocument(id, name) {
   // It's unclear if this can ever return an error
   Meteor.wrapAsync(gdrive.files.update)({
     fileId: id,
