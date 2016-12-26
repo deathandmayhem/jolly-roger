@@ -166,7 +166,7 @@ const PuzzleModalForm = React.createClass({
         ref={(node) => { this.formNode = node; }}
         title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
         onSubmit={this.onFormSubmit}
-        disabled={disableForm}
+        submitDisabled={disableForm}
       >
         <BS.FormGroup>
           <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">

@@ -112,7 +112,7 @@ const HuntModalForm = React.createClass({
         ref={(node) => { this.formNode = node; }}
         title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
         onSubmit={this.onFormSubmit}
-        disabled={disableForm}
+        submitDisabled={disableForm}
       >
         <BS.FormGroup>
           <BS.ControlLabel htmlFor={`${idPrefix}name`} className="col-xs-3">
