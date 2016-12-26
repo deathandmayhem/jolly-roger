@@ -94,6 +94,11 @@ Meteor.methods({
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.update');
 
+    const oldPuzzle = Models.Puzzles.findOne(puzzleId);
+    if (oldPuzzle.hunt !== puzzle.hunt) {
+      throw new Meteor.Error(400, 'Can not change the hunt of a puzzle. That would be weird');
+    }
+
     // Look up each tag by name and map them to tag IDs.
     const tagIds = puzzle.tags.map((tagName) => {
       return getOrCreateTagByName(puzzle.hunt, tagName)._id;
@@ -110,10 +115,12 @@ Meteor.methods({
       { $set: _.extend({}, puzzle, { tags: tagIds }) },
     );
 
-    const docId = Meteor.call('ensureDocument', puzzleId);
-    if (docId) {
-      const doc = Models.Documents.findOne(docId);
-      renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
+    if (oldPuzzle.title !== puzzle.title) {
+      const docId = Meteor.call('ensureDocument', puzzleId);
+      if (docId) {
+        const doc = Models.Documents.findOne(docId);
+        renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
+      }
     }
   },
 
