@@ -4,6 +4,7 @@ import React from 'react';
 import BS from 'react-bootstrap';
 import DocumentTitle from 'react-document-title';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import marked from 'marked';
 
@@ -123,6 +124,7 @@ const HuntApp = React.createClass({
 
   contextTypes: {
     subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
@@ -157,7 +159,19 @@ const HuntApp = React.createClass({
 
     return (
       <DocumentTitle title={title}>
-        {React.Children.only(this.props.children)}
+        <this.context.navAggregator.NavItem
+          itemKey="hunts"
+          to="/hunts"
+          label="Hunts"
+        >
+          <this.context.navAggregator.NavItem
+            itemKey="huntid"
+            to={`/hunts/${this.props.params.huntId}`}
+            label={this.data.hunt.name}
+          >
+            {React.Children.only(this.props.children)}
+          </this.context.navAggregator.NavItem>
+        </this.context.navAggregator.NavItem>
       </DocumentTitle>
     );
   },

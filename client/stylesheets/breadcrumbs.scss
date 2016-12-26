@@ -1,0 +1,19 @@
+.nav-breadcrumbs {
+  height: 50px; // navbar height
+  background-color: transparent;
+
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center; // vertically center content...
+  flex-wrap: wrap; // ...but allow wrapping if horizontal space is limited
+
+  margin: 0; // override bootstrap style
+  max-width: calc(100vw - 120px); // Don't cause the logo or hamburger button to wrap onto a new line
+}
+
+.jr-breadcrumb {
+  display: inline-block; // Apply ellipsis as needed to make fit on mobile
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

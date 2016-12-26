@@ -4,6 +4,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import classnames from 'classnames';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 /* eslint-disable max-len */
@@ -96,6 +97,7 @@ const GuessQueuePage = React.createClass({
 
   contextTypes: {
     subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
@@ -134,6 +136,11 @@ const GuessQueuePage = React.createClass({
     return (
       <div>
         <h1>Guess queue</h1>
+        <this.context.navAggregator.NavItem
+          itemKey="guessqueue"
+          to={`/hunts/${this.props.params.huntId}/announcements`}
+          label="Guess queue"
+        />
         {this.data.guesses.map((guess) => {
           return (
             <GuessBlock

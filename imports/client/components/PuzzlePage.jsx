@@ -4,11 +4,11 @@ import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import BS from 'react-bootstrap';
 import Ansible from '/imports/ansible.js';
-import { Link } from 'react-router';
 import DocumentTitle from 'react-document-title';
 import marked from 'marked';
 import moment from 'moment';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import TextareaAutosize from 'react-textarea-autosize';
 import {
@@ -460,8 +460,6 @@ const PuzzlePageMetadata = React.createClass({
         <div className="puzzle-metadata-row">
           {externalLinkComponent}
           <div className="puzzle-metadata-left">
-            <Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link>
-            {' / '}
             <strong>{this.props.puzzle.title}</strong>
             {' '}
             {this.editButton()}
@@ -643,6 +641,7 @@ const PuzzlePage = React.createClass({
 
   contextTypes: {
     subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
@@ -757,6 +756,11 @@ const PuzzlePage = React.createClass({
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         <div className="puzzle-page">
+          <this.context.navAggregator.NavItem
+            itemKey="puzzleid"
+            to={`/hunts/${this.props.params.huntId}/puzzles/${this.props.params.puzzleId}`}
+            label={activePuzzle.title}
+          />
           <PuzzlePageSidebar
             activePuzzle={activePuzzle}
             allPuzzles={this.data.allPuzzles}
