@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { check } from 'meteor/check';
+import { Match, check } from 'meteor/check';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
 // TODO: gdrive, globalHooks
@@ -19,7 +19,7 @@ function getOrCreateTagByName(huntId, name) {
   };
 }
 
-function createDocument(name, mimeType) {
+const createDocument = function createDocument(name, mimeType) {
   const template = Models.Settings.findOne({ name: 'gdrive.template' });
 
   let file;
@@ -41,28 +41,38 @@ function createDocument(name, mimeType) {
     resource: { role: 'writer', type: 'anyone' },
   });
   return fileId;
-}
+};
+
+const renameDocument = function renameDocument(id, name) {
+  // It's unclear if this can ever return an error
+  Meteor.wrapAsync(gdrive.files.update)({
+    fileId: id,
+    resource: { name },
+  });
+};
 
 Meteor.methods({
-  createPuzzle(huntId, title, url, tags) {
+  createPuzzle(puzzle) {
     check(this.userId, String);
-    check(huntId, String);
-    check(title, String);
-    check(url, String);
-    check(tags, [String]); // Note: tag names, not tag IDs.
+    // Note: tag names, not tag IDs. We don't need to validate other
+    // fields because SimpleSchema will validate the rest
+    //
+    // eslint-disable-next-line new-cap
+    check(puzzle, Match.ObjectIncluding({ hunt: String, tags: [String] }));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
 
     // Look up each tag by name and map them to tag IDs.
-    const tagIds = tags.map((tagName) => { return getOrCreateTagByName(huntId, tagName)._id; });
-
-    Ansible.log('Creating a new puzzle', { hunt: huntId, title, user: this.userId });
-    const puzzle = Models.Puzzles.insert({
-      hunt: huntId,
-      tags: tagIds,
-      title,
-      url,
+    const tagIds = puzzle.tags.map((tagName) => {
+      return getOrCreateTagByName(puzzle.hunt, tagName)._id;
     });
+
+    Ansible.log('Creating a new puzzle', {
+      hunt: puzzle.hunt,
+      title: puzzle.title,
+      user: this.userId,
+    });
+    const puzzleId = Models.Puzzles.insert(_.extend({}, puzzle, { tags: tagIds }));
 
     // TODO: run any puzzle-creation hooks, like creating a Slack channel, or creating a default
     // document attachment.
@@ -71,9 +81,47 @@ Meteor.methods({
     // The websocket listening for Slack messages should subscribe to that channel.
     // For documents, we should have a documents collection, with a puzzleId, type, and
     // type-specific data.
-    globalHooks.runPuzzleCreatedHooks(puzzle);
+    globalHooks.runPuzzleCreatedHooks(puzzleId);
 
-    return puzzle;
+    return puzzleId;
+  },
+
+  updatePuzzle(puzzleId, puzzle) {
+    check(this.userId, String);
+    check(puzzleId, String);
+    // Note: tags names, not tag IDs
+    check(puzzle, Match.ObjectIncluding({ tags: [String] })); // eslint-disable-line new-cap
+
+    Roles.checkPermission(this.userId, 'mongo.puzzles.update');
+
+    const oldPuzzle = Models.Puzzles.findOne(puzzleId);
+    if (oldPuzzle.hunt !== puzzle.hunt) {
+      throw new Meteor.Error(400, 'Can not change the hunt of a puzzle. That would be weird');
+    }
+
+    // Look up each tag by name and map them to tag IDs.
+    const tagIds = puzzle.tags.map((tagName) => {
+      return getOrCreateTagByName(puzzle.hunt, tagName)._id;
+    });
+
+    Ansible.log('Updating a puzzle', {
+      hunt: puzzle.hunt,
+      puzzle: puzzleId,
+      title: puzzle.title,
+      user: this.userId,
+    });
+    Models.Puzzles.update(
+      puzzleId,
+      { $set: _.extend({}, puzzle, { tags: tagIds }) },
+    );
+
+    if (oldPuzzle.title !== puzzle.title) {
+      const docId = Meteor.call('ensureDocument', puzzleId);
+      if (docId) {
+        const doc = Models.Documents.findOne(docId);
+        renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
+      }
+    }
   },
 
   addTagToPuzzle(puzzleId, newTagName) {
@@ -182,12 +230,12 @@ Meteor.methods({
             doc._id = Models.Documents.insert(doc);
           } catch (e) {
             // Don't totally explode if document creation fails
-            Ansible.log('Failed to create a document!', { e });
+            Ansible.log('Failed to create a document!', { error: e.message });
           }
         }
       });
     }
 
-    return doc._id;
+    return doc ? doc._id : null;
   },
 });

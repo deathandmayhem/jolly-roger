@@ -1,9 +1,12 @@
+import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { jQuery } from 'meteor/jquery';
 import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
+import Ansible from '/imports/ansible.js';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
+import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import { ReactSelect2 } from '/imports/client/components/ReactSelect2.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
@@ -68,6 +71,158 @@ const sortPuzzlesByRelevanceWithinPuzzleGroup = function (puzzles, sharedTag, in
   return sortedPuzzles;
 };
 
+const PuzzleModalForm = React.createClass({
+  propTypes: {
+    huntId: React.PropTypes.string.isRequired,
+    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()),
+    tags: React.PropTypes.arrayOf(
+      React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
+    ).isRequired,
+    onSubmit: React.PropTypes.func.isRequired,
+  },
+
+  getInitialState() {
+    const state = {
+      submitState: 'idle',
+      errorMessage: '',
+    };
+
+    if (this.props.puzzle) {
+      return _.extend(state, this.stateFromPuzzle(this.props.puzzle));
+    } else {
+      return _.extend(state, {
+        title: '',
+        url: '',
+        tags: [],
+      });
+    }
+  },
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.puzzle && nextProps.puzzle !== this.props.puzzle) {
+      this.setState(this.stateFromPuzzle(nextProps.puzzle));
+    }
+  },
+
+  onTitleChange(event) {
+    this.setState({
+      title: event.target.value,
+    });
+  },
+
+  onUrlChange(event) {
+    this.setState({
+      url: event.target.value,
+    });
+  },
+
+  onTagsChange(event) {
+    this.setState({
+      tags: jQuery(event.target).val(),
+    });
+  },
+
+  onFormSubmit(callback) {
+    this.setState({ submitState: 'submitting' });
+    const state = _.extend(
+      {},
+      _.omit(this.state, 'submitState', 'errorMessage'),
+      { hunt: this.props.huntId },
+    );
+    this.props.onSubmit(state, (error) => {
+      if (error) {
+        this.setState({
+          submitState: 'failed',
+          errorMessage: error.message,
+        });
+      } else {
+        this.setState(this.getInitialState());
+        callback();
+      }
+    });
+  },
+
+  stateFromPuzzle(puzzle) {
+    const tagNames = {};
+    _.each(this.props.tags, (t) => { tagNames[t._id] = t.name; });
+    return {
+      title: puzzle.title,
+      url: puzzle.url,
+      tags: puzzle.tags.map((t) => tagNames[t]),
+    };
+  },
+
+  show() {
+    this.formNode.show();
+  },
+
+  render() {
+    const disableForm = this.state.submitState === 'submitting';
+
+    const allTags = _.compact(_.union(this.props.tags.map((t) => t.name), this.state.tags));
+
+    return (
+      <ModalForm
+        ref={(node) => { this.formNode = node; }}
+        title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
+        onSubmit={this.onFormSubmit}
+        submitDisabled={disableForm}
+      >
+        <BS.FormGroup>
+          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">
+            Title
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              id="jr-new-puzzle-title"
+              type="text"
+              autoFocus
+              disabled={disableForm}
+              onChange={this.onTitleChange}
+              value={this.state.title}
+            />
+          </div>
+        </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-url">
+            URL
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              id="jr-new-puzzle-url"
+              type="text"
+              disabled={disableForm}
+              onChange={this.onUrlChange}
+              value={this.state.url}
+            />
+          </div>
+        </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-tags">
+            Tags
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <ReactSelect2
+              id="jr-new-puzzle-tags"
+              data={allTags}
+              multiple
+              disabled={disableForm}
+              onChange={this.onTagsChange}
+              value={this.state.tags}
+              options={{ tags: true, tokenSeparators: [',', ' '] }}
+              style={{ width: '100%' }}
+            />
+          </div>
+        </BS.FormGroup>
+
+        {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
+      </ModalForm>
+    );
+  },
+});
+
 const PuzzleAnswer = React.createClass({
   displayName: 'PuzzleAnswer',
   propTypes: {
@@ -103,9 +258,18 @@ const Puzzle = React.createClass({
   },
   mixins: [ReactMeteorData],
 
+  onEdit(state, callback) {
+    Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
+    Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
+  },
+
   getMeteorData() {
     const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
-    return { viewCount: count ? count.value : 0 };
+    return {
+      viewCount: count ? count.value : 0,
+      allTags: Models.Tags.find().fetch(),
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+    };
   },
 
   styles: {
@@ -187,6 +351,21 @@ const Puzzle = React.createClass({
     },
   },
 
+  showEditModal() {
+    this.editModalNode.show();
+  },
+
+  editButton() {
+    if (this.data.canUpdate) {
+      return (
+        <BS.Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
+          <BS.Glyphicon glyph="edit" />
+        </BS.Button>
+      );
+    }
+    return null;
+  },
+
   render() {
     // id, title, answer, tags
     const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
@@ -216,7 +395,15 @@ const Puzzle = React.createClass({
 
     return (
       <div className="puzzle" style={puzzleStyle}>
+        <PuzzleModalForm
+          ref={(node) => { this.editModalNode = node; }}
+          puzzle={this.props.puzzle}
+          huntId={this.props.puzzle.hunt}
+          tags={this.data.allTags}
+          onSubmit={this.onEdit}
+        />
         <div className="title" style={layoutStyles.title}>
+          {this.editButton()}
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
         </div>
         {this.props.layout === 'grid' ?
@@ -721,4 +908,4 @@ const RelatedPuzzleGroups = React.createClass({
   },
 });
 
-export { PuzzleList, TagList, RelatedPuzzleGroup, RelatedPuzzleGroups };
+export { PuzzleModalForm, PuzzleList, TagList, RelatedPuzzleGroup, RelatedPuzzleGroups };

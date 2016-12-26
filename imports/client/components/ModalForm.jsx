@@ -6,6 +6,7 @@ const ModalForm = React.createClass({
     title: React.PropTypes.string.isRequired,
     submitLabel: React.PropTypes.string,
     submitStyle: React.PropTypes.oneOf(Button.STYLES),
+    submitDisabled: React.PropTypes.bool,
     onSubmit: React.PropTypes.func.isRequired,
     children: React.PropTypes.node,
   },
@@ -53,8 +54,18 @@ const ModalForm = React.createClass({
             {this.props.children}
           </BS.Modal.Body>
           <BS.Modal.Footer>
-            <BS.Button bsStyle="default" onClick={this.close}>Close</BS.Button>
-            <BS.Button bsStyle={this.props.submitStyle} type="submit">
+            <BS.Button
+              bsStyle="default"
+              onClick={this.close}
+              disabled={this.props.submitDisabled}
+            >
+              Close
+            </BS.Button>
+            <BS.Button
+              bsStyle={this.props.submitStyle}
+              type="submit"
+              disabled={this.props.submitDisabled}
+            >
               {this.props.submitLabel}
             </BS.Button>
           </BS.Modal.Footer>

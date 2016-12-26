@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
@@ -19,29 +20,33 @@ const splitLists = function (lists) {
   return strippedLists.split(/[, ]+/);
 };
 
-const HuntFormModal = React.createClass({
+const HuntModalForm = React.createClass({
   propTypes: {
     hunt: React.PropTypes.instanceOf(Transforms.Hunt),
-    onSubmit: React.PropTypes.func, // Takes two args: state (object) and callback (func)
+    onSubmit: React.PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
   },
 
   getInitialState() {
+    const state = {
+      submitState: 'idle',
+      errorMessage: '',
+    };
     if (this.props.hunt) {
-      return {
+      return _.extend(state, {
         name: this.props.hunt.name,
         mailingLists: this.props.hunt.mailingLists.join(', '),
         signupMessage: this.props.hunt.signupMessage,
         openSignups: this.props.hunt.openSignups,
         slackChannel: this.props.hunt.slackChannel,
-      };
+      });
     } else {
-      return {
+      return _.extend(state, {
         name: '',
         mailingLists: '',
         signupMessage: '',
         openSignups: false,
         slackChannel: '',
-      };
+      });
     }
   },
 
@@ -76,11 +81,23 @@ const HuntFormModal = React.createClass({
   },
 
   onFormSubmit(callback) {
-    if (this.props.onSubmit) {
-      this.props.onSubmit(this.state, callback);
-    } else {
-      callback();
-    }
+    this.setState({ submitState: 'submitting' });
+    const state = _.extend(
+      {},
+      _.omit(this.state, 'submitState', 'errorMessage'),
+      { mailingLists: splitLists(this.state.mailingLists) },
+    );
+    this.props.onSubmit(state, (error) => {
+      if (error) {
+        this.setState({
+          submitState: 'failed',
+          errorMessage: error.message,
+        });
+      } else {
+        this.setState(this.getInitialState());
+        callback();
+      }
+    });
   },
 
   show() {
@@ -88,12 +105,14 @@ const HuntFormModal = React.createClass({
   },
 
   render() {
+    const disableForm = this.state.submitState === 'submitting';
     const idPrefix = this.props.hunt ? `jr-hunt-${this.props.hunt.id}-modal-` : 'jr-hunt-new-modal-';
     return (
       <ModalForm
         ref={(node) => { this.formNode = node; }}
         title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
         onSubmit={this.onFormSubmit}
+        submitDisabled={disableForm}
       >
         <BS.FormGroup>
           <BS.ControlLabel htmlFor={`${idPrefix}name`} className="col-xs-3">
@@ -106,6 +125,7 @@ const HuntFormModal = React.createClass({
               value={this.state.name}
               onChange={this.onNameChanged}
               autoFocus
+              disabled={disableForm}
             />
           </div>
         </BS.FormGroup>
@@ -120,6 +140,7 @@ const HuntFormModal = React.createClass({
               type="text"
               value={this.state.mailingLists}
               onChange={this.onMailingListsChanged}
+              disabled={disableForm}
             />
             <BS.HelpBlock>
               Users joining this hunt will be automatically added to all of these (comma-separated) lists
@@ -137,6 +158,7 @@ const HuntFormModal = React.createClass({
               componentClass="textarea"
               value={this.state.signupMessage}
               onChange={this.onSignupMessageChanged}
+              disabled={disableForm}
             />
             <BS.HelpBlock>
               This message (rendered as markdown) will be shown to users who aren't part of the hunt. This is a good place to put directions for how to sign up.
@@ -153,6 +175,7 @@ const HuntFormModal = React.createClass({
               id={`${idPrefix}open-signups`}
               checked={this.state.openSignups}
               onChange={this.onOpenSignupsChanged}
+              disabled={disableForm}
             />
             <BS.HelpBlock>
               If open signups are enabled, then any current member of the hunt can add a new member to the hunt. Otherwise, only operators can add new members.
@@ -170,12 +193,15 @@ const HuntFormModal = React.createClass({
               type="text"
               value={this.state.slackChannel}
               onChange={this.onSlackChannelChanged}
+              disabled={disableForm}
             />
             <BS.HelpBlock>
               If provided, all chat messages written in puzzles associated with this hunt will be mirrored to the specified channel in Slack.  Make sure to include the # at the beginning of the channel name, like <code>#firehose</code>.
             </BS.HelpBlock>
           </div>
         </BS.FormGroup>
+
+        {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
       </ModalForm>
     );
   },
@@ -189,19 +215,10 @@ const Hunt = React.createClass({
   mixins: [ReactMeteorData],
 
   onEdit(state, callback) {
-    const { name, mailingLists, signupMessage, openSignups, slackChannel } = state;
-    Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), mailingLists, openSignups, slackChannel });
+    Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), state });
     Models.Hunts.update(
       { _id: this.props.hunt._id },
-      {
-        $set: {
-          name,
-          mailingLists: splitLists(mailingLists),
-          signupMessage,
-          openSignups,
-          slackChannel,
-        },
-      },
+      { $set: state },
       callback
     );
   },
@@ -254,7 +271,7 @@ const Hunt = React.createClass({
     const hunt = this.props.hunt;
     return (
       <li>
-        <HuntFormModal
+        <HuntModalForm
           ref={(node) => { this.editModalNode = node; }}
           hunt={this.props.hunt}
           onSubmit={this.onEdit}
@@ -302,15 +319,8 @@ const HuntListPage = React.createClass({
   mixins: [ReactMeteorData],
 
   onAdd(state, callback) {
-    const { name, mailingLists, signupMessage, openSignups, slackChannel } = state;
-    Ansible.log('Creating a new hunt', { name, user: Meteor.userId(), mailingLists });
-    Models.Hunts.insert({
-      name,
-      mailingLists: splitLists(mailingLists),
-      signupMessage,
-      openSignups,
-      slackChannel,
-    }, callback);
+    Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
+    Models.Hunts.insert(state, callback);
   },
 
   getMeteorData() {
@@ -389,7 +399,7 @@ const HuntListPage = React.createClass({
     return (
       <div id="jr-hunts">
         <h1>Hunts</h1>
-        <HuntFormModal
+        <HuntModalForm
           ref={(node) => { this.addModalNode = node; }}
           onSubmit={this.onAdd}
         />
