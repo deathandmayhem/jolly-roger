@@ -20,6 +20,7 @@ const PuzzleModalForm = React.createClass({
     tags: React.PropTypes.arrayOf(
       React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
     ).isRequired,
+    onSubmit: React.PropTypes.func.isRequired,
   },
 
   getInitialState() {
@@ -63,15 +64,14 @@ const PuzzleModalForm = React.createClass({
     });
   },
 
-  showModal() {
-    this.formNode.show();
-  },
-
-  submitPuzzle() {
-    this.setState({
-      submitState: 'submitting',
-    });
-    Meteor.call('createPuzzle', this.props.huntId, this.state.title, this.state.url, this.state.tags, (error) => {
+  onFormSubmit(callback) {
+    this.setState({ submitState: 'submitting' });
+    const state = _.extend(
+      {},
+      _.omit(this.state, 'submitState', 'errorMessage'),
+      { hunt: this.props.huntId },
+    );
+    this.props.onSubmit(state, (error) => {
       if (error) {
         this.setState({
           submitState: 'failed',
@@ -79,9 +79,13 @@ const PuzzleModalForm = React.createClass({
         });
       } else {
         this.setState(this.getInitialState());
-        this.formNode.close();
+        callback();
       }
     });
+  },
+
+  show() {
+    this.formNode.show();
   },
 
   render() {
@@ -90,68 +94,63 @@ const PuzzleModalForm = React.createClass({
     const allTags = _.compact(_.union(this.props.tags.map((t) => t.name), this.state.tags));
 
     return (
-      <div>
-        <div style={{ textAlign: 'right' }}>
-          <BS.Button bsStyle="primary" onClick={this.showModal}>Add a puzzle</BS.Button>
-        </div>
-        <ModalForm
-          ref={(node) => { this.formNode = node; }}
-          title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
-          onSubmit={this.submitPuzzle}
-          disabled={disableForm}
-        >
-          <BS.FormGroup>
-            <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">
-              Title
-            </BS.ControlLabel>
-            <div className="col-xs-9">
-              <BS.FormControl
-                id="jr-new-puzzle-title"
-                type="text"
-                autoFocus
-                disabled={disableForm}
-                onChange={this.onTitleChange}
-                value={this.state.title}
-              />
-            </div>
-          </BS.FormGroup>
+      <ModalForm
+        ref={(node) => { this.formNode = node; }}
+        title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
+        onSubmit={this.onFormSubmit}
+        disabled={disableForm}
+      >
+        <BS.FormGroup>
+          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">
+            Title
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              id="jr-new-puzzle-title"
+              type="text"
+              autoFocus
+              disabled={disableForm}
+              onChange={this.onTitleChange}
+              value={this.state.title}
+            />
+          </div>
+        </BS.FormGroup>
 
-          <BS.FormGroup>
-            <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-url">
-              URL
-            </BS.ControlLabel>
-            <div className="col-xs-9">
-              <BS.FormControl
-                id="jr-new-puzzle-url"
-                type="text"
-                disabled={disableForm}
-                onChange={this.onUrlChange}
-                value={this.state.url}
-              />
-            </div>
-          </BS.FormGroup>
+        <BS.FormGroup>
+          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-url">
+            URL
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              id="jr-new-puzzle-url"
+              type="text"
+              disabled={disableForm}
+              onChange={this.onUrlChange}
+              value={this.state.url}
+            />
+          </div>
+        </BS.FormGroup>
 
-          <BS.FormGroup>
-            <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-tags">
-              Tags
-            </BS.ControlLabel>
-            <div className="col-xs-9">
-              <ReactSelect2
-                id="jr-new-puzzle-tags"
-                data={allTags}
-                multiple
-                disabled={disableForm}
-                onChange={this.onTagsChange}
-                value={this.state.tags}
-                options={{ tags: true, tokenSeparators: [',', ' '] }}
-                style={{ width: '100%' }}
-              />
-            </div>
-          </BS.FormGroup>
+        <BS.FormGroup>
+          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-tags">
+            Tags
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <ReactSelect2
+              id="jr-new-puzzle-tags"
+              data={allTags}
+              multiple
+              disabled={disableForm}
+              onChange={this.onTagsChange}
+              value={this.state.tags}
+              options={{ tags: true, tokenSeparators: [',', ' '] }}
+              style={{ width: '100%' }}
+            />
+          </div>
+        </BS.FormGroup>
 
-          {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
-        </ModalForm>
-      </div>
+        {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
+      </ModalForm>
     );
   },
 });
@@ -183,6 +182,10 @@ const PuzzleListView = React.createClass({
 
   componentDidMount() {
     this.searchBarNode.focus();
+  },
+
+  onAdd(state, callback) {
+    Meteor.call('createPuzzle', state.hunt, state.title, state.url, state.tags, callback);
   },
 
   onSearchStringChange(e) {
@@ -365,6 +368,10 @@ const PuzzleListView = React.createClass({
     });
   },
 
+  showAddModal() {
+    this.addModalNode.show();
+  },
+
   render() {
     let bodyComponent;
     switch (this.state.displayMode) { // eslint-disable-line default-case
@@ -404,6 +411,19 @@ const PuzzleListView = React.createClass({
         break;
       }
     }
+    const addPuzzleContent = this.props.canAdd && (
+      <div>
+        <div style={{ textAlign: 'right' }}>
+          <BS.Button bsStyle="primary" onClick={this.showAddModal}>Add a puzzle</BS.Button>
+        </div>
+        <PuzzleModalForm
+          huntId={this.props.huntId}
+          tags={this.props.tags}
+          ref={(node) => { this.addModalNode = node; }}
+          onSubmit={this.onAdd}
+        />
+      </div>
+    );
     return (
       <div>
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -419,13 +439,13 @@ const PuzzleListView = React.createClass({
               </BS.Checkbox>
             </div>
           </div>
-          {this.props.canAdd ? <PuzzleModalForm huntId={this.props.huntId} tags={this.props.tags} /> :
-            <div>
-              <ul>
-                <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
-                <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guesses</Link></li>
-              </ul>
-            </div>}
+          {addPuzzleContent}
+          <div>
+            <ul>
+              <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
+              <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guesses</Link></li>
+            </ul>
+          </div>
         </div>
 
         <BS.FormGroup>
