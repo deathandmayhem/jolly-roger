@@ -56,18 +56,12 @@ const ProfileList = React.createClass({
   },
 
   render() {
-    const remoteCount = _.filter(this.props.profiles, (profile) => {
-      return profile.remote;
-    }).length;
-    const localCount = this.props.profiles.length - remoteCount;
     const profiles = _.filter(this.props.profiles, this.compileMatcher());
     return (
       <div>
         <h1>List of hunters</h1>
         <div style={{ textAlign: 'right' }}>
           <div>Total hunters: {this.props.profiles.length}</div>
-          <div>Local: {localCount}</div>
-          <div>Remote: {remoteCount}</div>
         </div>
 
         <BS.FormGroup>
