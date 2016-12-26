@@ -1,159 +1,18 @@
 import { Meteor } from 'meteor/meteor';
-import { jQuery } from 'meteor/jquery';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { Link } from 'react-router';
 import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-import { ModalForm } from '/imports/client/components/ModalForm.jsx';
-import { ReactSelect2 } from '/imports/client/components/ReactSelect2.jsx';
-import { PuzzleList, RelatedPuzzleGroup } from '/imports/client/components/PuzzleComponents.jsx';
+import {
+  PuzzleList,
+  RelatedPuzzleGroup,
+  PuzzleModalForm,
+} from '/imports/client/components/PuzzleComponents.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 /* eslint-disable max-len */
-
-const PuzzleModalForm = React.createClass({
-  propTypes: {
-    huntId: React.PropTypes.string.isRequired,
-    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()),
-    tags: React.PropTypes.arrayOf(
-      React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
-    ).isRequired,
-    onSubmit: React.PropTypes.func.isRequired,
-  },
-
-  getInitialState() {
-    const state = {
-      submitState: 'idle',
-      errorMessage: '',
-    };
-
-    if (this.props.puzzle) {
-      const tagNames = {};
-      _.each(this.props.tags, (t) => { tagNames[t._id] = t.name; });
-      return _.extend(state, {
-        title: this.props.puzzle.title,
-        url: this.props.puzzle.url,
-        tags: this.props.puzzle.tags.map((t) => tagNames[t]),
-      });
-    } else {
-      return _.extend(state, {
-        title: '',
-        url: '',
-        tags: [],
-      });
-    }
-  },
-
-  onTitleChange(event) {
-    this.setState({
-      title: event.target.value,
-    });
-  },
-
-  onUrlChange(event) {
-    this.setState({
-      url: event.target.value,
-    });
-  },
-
-  onTagsChange(event) {
-    this.setState({
-      tags: jQuery(event.target).val(),
-    });
-  },
-
-  onFormSubmit(callback) {
-    this.setState({ submitState: 'submitting' });
-    const state = _.extend(
-      {},
-      _.omit(this.state, 'submitState', 'errorMessage'),
-      { hunt: this.props.huntId },
-    );
-    this.props.onSubmit(state, (error) => {
-      if (error) {
-        this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
-        });
-      } else {
-        this.setState(this.getInitialState());
-        callback();
-      }
-    });
-  },
-
-  show() {
-    this.formNode.show();
-  },
-
-  render() {
-    const disableForm = this.state.submitState === 'submitting';
-
-    const allTags = _.compact(_.union(this.props.tags.map((t) => t.name), this.state.tags));
-
-    return (
-      <ModalForm
-        ref={(node) => { this.formNode = node; }}
-        title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
-        onSubmit={this.onFormSubmit}
-        disabled={disableForm}
-      >
-        <BS.FormGroup>
-          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">
-            Title
-          </BS.ControlLabel>
-          <div className="col-xs-9">
-            <BS.FormControl
-              id="jr-new-puzzle-title"
-              type="text"
-              autoFocus
-              disabled={disableForm}
-              onChange={this.onTitleChange}
-              value={this.state.title}
-            />
-          </div>
-        </BS.FormGroup>
-
-        <BS.FormGroup>
-          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-url">
-            URL
-          </BS.ControlLabel>
-          <div className="col-xs-9">
-            <BS.FormControl
-              id="jr-new-puzzle-url"
-              type="text"
-              disabled={disableForm}
-              onChange={this.onUrlChange}
-              value={this.state.url}
-            />
-          </div>
-        </BS.FormGroup>
-
-        <BS.FormGroup>
-          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-tags">
-            Tags
-          </BS.ControlLabel>
-          <div className="col-xs-9">
-            <ReactSelect2
-              id="jr-new-puzzle-tags"
-              data={allTags}
-              multiple
-              disabled={disableForm}
-              onChange={this.onTagsChange}
-              value={this.state.tags}
-              options={{ tags: true, tokenSeparators: [',', ' '] }}
-              style={{ width: '100%' }}
-            />
-          </div>
-        </BS.FormGroup>
-
-        {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
-      </ModalForm>
-    );
-  },
-});
 
 const PuzzleListView = React.createClass({
   displayName: 'PuzzleListView',
