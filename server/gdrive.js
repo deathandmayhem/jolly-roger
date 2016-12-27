@@ -7,10 +7,12 @@ import Ansible from '/imports/ansible.js';
 
 gdrive = null;
 
-Meteor.startup(() => {
-  const oauthConfig = ServiceConfiguration.configurations.findOne({ service: 'google' });
-  if (oauthConfig === undefined) {
-    Ansible.log('Disabling gdrive integration because Google OAuth config is not loaded');
+let oauthConfig = null;
+let oauthCredentials = null;
+
+const createGdriveClient = function createGdriveClient() {
+  if (!oauthConfig || !oauthCredentials) {
+    gdrive = null;
     return;
   }
 
@@ -19,12 +21,10 @@ Meteor.startup(() => {
     oauthConfig.secret,
     OAuth._redirectUri('google', oauthConfig));
 
-  let storedCredentials = {};
-
   // Override _postRequest so we can see if the access token got
   // refreshed
   oauthClient._postRequest = Meteor.bindEnvironment(function (err, result, response, callback) {
-    if (storedCredentials.accessToken !== this.credentials.access_token) {
+    if (oauthCredentials.accessToken !== this.credentials.access_token) {
       Ansible.log('Storing refreshed access token for Google Drive');
       Models.Settings.update({ name: 'gdrive.credential' }, {
         $set: {
@@ -38,18 +38,31 @@ Meteor.startup(() => {
     callback(err, result, response);
   }.bind(oauthClient));
 
-  const updateCredentials = function (token) {
-    storedCredentials = token.value;
-
-    oauthClient.setCredentials({
-      access_token: token.value.accessToken,
-      refresh_token: token.value.refreshToken,
-      expiry_date: token.value.expiresAt,
-    });
-  };
-
-  const cursor = Models.Settings.find({ name: 'gdrive.credential' });
-  cursor.observe({ added: updateCredentials, changed: updateCredentials });
-
   gdrive = googleapis.drive({ version: 'v3', auth: oauthClient });
+};
+
+const updateOauthConfig = function updateOauthConfig(doc) {
+  oauthConfig = doc;
+  createGdriveClient();
+};
+
+const updateOauthCredentials = function updateOauthCredentials(doc) {
+  oauthCredentials = doc.value;
+  createGdriveClient();
+};
+
+Meteor.startup(() => {
+  const oauthConfigCursor = ServiceConfiguration.configurations.find({ service: 'google' });
+  const oauthCredentialsCursor = Models.Settings.find({ name: 'gdrive.credential' });
+  oauthConfigCursor.observe({
+    added: updateOauthConfig,
+    changed: updateOauthConfig,
+    removed: () => updateOauthConfig(null),
+  });
+
+  oauthCredentialsCursor.observe({
+    added: updateOauthCredentials,
+    changed: updateOauthCredentials,
+    removed: () => updateOauthCredentials({ value: null }),
+  });
 });
