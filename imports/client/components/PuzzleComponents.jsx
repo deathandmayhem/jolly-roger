@@ -404,6 +404,7 @@ const Puzzle = React.createClass({
         />
         <div className="title" style={layoutStyles.title}>
           {this.editButton()}
+          {' '}
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
         </div>
         {this.props.layout === 'grid' ?

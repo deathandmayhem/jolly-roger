@@ -319,6 +319,7 @@ const Hunt = React.createClass({
           {this.editButton()}
           {this.deleteButton()}
         </BS.ButtonGroup>
+        {' '}
         <Link to={this.data.isOperator ? `/hunts/${hunt._id}` : `/hunts/${hunt._id}/puzzles`}>
           {hunt.name}
         </Link>
