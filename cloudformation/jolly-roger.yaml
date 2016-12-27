@@ -438,7 +438,8 @@ Resources:
                 - HavePapertrail
                 - !Sub |
                     rsyslog:
-                      - configs: [". @${PapertrailHost}"]
+                      remotes:
+                        papertrail: ${PapertrailHost}
                 - ''
               PapertrailDockerConfig: !If
                 - HavePapertrail
