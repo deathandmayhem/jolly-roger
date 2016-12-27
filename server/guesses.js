@@ -23,8 +23,7 @@ function transitionGuess(guess, newState) {
         answer: guess.guess,
       },
     });
-    const puzzle = Models.Puzzles.findOne(guess.puzzle);
-    globalHooks.runPuzzleSolvedHooks(puzzle);
+    globalHooks.runPuzzleSolvedHooks(guess.puzzle);
   } else if (guess.state === 'correct') {
     // Transitioning from correct -> something else: un-mark that puzzle as solved.
     // TODO: run custom hook login (e.g. unarchive Slack channel, etc.)
@@ -35,8 +34,7 @@ function transitionGuess(guess, newState) {
         answer: '',
       },
     });
-    const puzzle = Models.Puzzles.findOne(guess.puzzle);
-    globalHooks.runPuzzleNoLongerSolvedHooks(puzzle);
+    globalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle);
   }
 }
 
