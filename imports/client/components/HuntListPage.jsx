@@ -287,13 +287,13 @@ const Hunt = React.createClass({
           This will additionally delete all puzzles and associated
           state.
         </ModalForm>
-        <Link to={this.data.isOperator ? `/hunts/${hunt._id}` : `/hunts/${hunt._id}/puzzles`}>
-          {hunt.name}
-        </Link>
         <BS.ButtonGroup bsSize="xs">
           {this.editButton()}
           {this.deleteButton()}
         </BS.ButtonGroup>
+        <Link to={this.data.isOperator ? `/hunts/${hunt._id}` : `/hunts/${hunt._id}/puzzles`}>
+          {hunt.name}
+        </Link>
       </li>
     );
   },
