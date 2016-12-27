@@ -18,9 +18,8 @@
 #
 #   - A registry to proxy access to private images
 #
-#   - An nginx instance for port 80, redirecting to HTTPS and
-#     supporting the LetsEncrypt ACME verification process (via an S3
-#     bucket)
+#   - An nginx instance for port 80, redirecting to HTTPS and serving
+#   - healthchecks for ALB
 #
 #   - An nginx instance for port 8443, listening for HTTP connections
 #     (HTTPS, unwrapped by ALB) and forwarding to the application
@@ -155,12 +154,6 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicSubnetRouteTable
       SubnetId: !Ref PublicSubnet2
-
-  # Bucket for serving /.well-known/acme-challenge/
-  LetsEncryptBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      AccessControl: PublicRead
 
   AppInstanceRole:
     Type: AWS::IAM::Role
@@ -390,9 +383,6 @@ Resources:
                     server {
                       listen 80;
                       access_log /var/log/nginx/access.log main;
-                      location /.well-known/acme-challenge {
-                        return 301 https://${LetsEncryptBucket}.s3.amazonaws.com$request_uri;
-                      }
                       location /healthcheck {
                         return 200 "OK\n";
                       }
