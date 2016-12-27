@@ -80,7 +80,7 @@ Meteor.methods({
     if (newUser) {
       Accounts.sendEnrollmentEmail(joineeUser._id);
       Ansible.info('Sent invitation email to new user', { invitedBy: this.userId, email });
-    } else {
+    } else if (joineeUser._id !== this.userId) {
       const joinerProfile = Models.Profiles.findOne(this.userId);
       const joinerName = joinerProfile && joinerProfile.displayName !== '' ?
         joinerProfile.displayName :
