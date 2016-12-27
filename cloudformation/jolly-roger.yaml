@@ -392,6 +392,11 @@ Resources:
                         return 301 https://$host$request_uri;
                       }
                     }
+                - path: /etc/systemd/system/docker.service.d/docker.conf
+                  content: |
+                    [Service]
+                    ExecStart=
+                    ExecStart=/usr/bin/dockerd -H fd:// --storage-driver=overlay2
 
               runcmd:
                 - set -eux
