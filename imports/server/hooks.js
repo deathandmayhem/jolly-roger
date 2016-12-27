@@ -17,36 +17,37 @@ class Hooks {
     }
   }
 
-  runPuzzleCreatedHooks(puzzle) {
+  runPuzzleCreatedHooks(puzzleId) {
     for (let i = 0; i < this.registeredHooks.length; i++) {
       const hook = this.registeredHooks[i];
       if (hook.onPuzzleCreated) {
-        hook.onPuzzleCreated(puzzle);
+        hook.onPuzzleCreated(puzzleId);
       }
     }
   }
 
-  runPuzzleSolvedHooks(puzzle) {
+  runPuzzleSolvedHooks(puzzleId) {
     for (let i = 0; i < this.registeredHooks.length; i++) {
       const hook = this.registeredHooks[i];
       if (hook.onPuzzleSolved) {
-        hook.onPuzzleSolved(puzzle);
+        hook.onPuzzleSolved(puzzleId);
       }
     }
   }
 
-  runPuzzleNoLongerSolvedHooks(puzzle) {
+  runPuzzleNoLongerSolvedHooks(puzzleId) {
     for (let i = 0; i < this.registeredHooks.length; i++) {
       const hook = this.registeredHooks[i];
       if (hook.onPuzzleNoLongerSolved) {
-        hook.onPuzzleNoLongerSolved(puzzle);
+        hook.onPuzzleNoLongerSolved(puzzleId);
       }
     }
   }
 }
 
 const SlackHooks = {
-  onPuzzleCreated(puzzle) {
+  onPuzzleCreated(puzzleId) {
+    const puzzle = Models.Puzzles.findOne(puzzleId);
     const hunt = Models.Hunts.findOne(puzzle.hunt);
     if (hunt.puzzleHooksSlackChannel) {
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
@@ -55,7 +56,8 @@ const SlackHooks = {
     }
   },
 
-  onPuzzleSolved(puzzle) {
+  onPuzzleSolved(puzzleId) {
+    const puzzle = Models.Puzzles.findOne(puzzleId);
     const hunt = Models.Hunts.findOne(puzzle.hunt);
     if (hunt.puzzleHooksSlackChannel) {
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
@@ -65,15 +67,15 @@ const SlackHooks = {
     }
   },
 
-  onPuzzleNoLongerSolved(puzzle) { // eslint-disable-line no-unused-vars
+  onPuzzleNoLongerSolved(puzzleId) { // eslint-disable-line no-unused-vars
     // TODO: unarchive Slack channel
   },
 };
 
 // Ditto these
 const DocumentHooks = {
-  onPuzzleCreated(puzzle) {
-    Meteor.call('ensureDocument', puzzle);
+  onPuzzleCreated(puzzleId) {
+    Meteor.call('ensureDocument', puzzleId);
   },
 };
 
