@@ -47,16 +47,22 @@ class Hooks {
 
 const SlackHooks = {
   onPuzzleCreated(puzzle) {
-    const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
-    const message = `New puzzle created: <${url}|${puzzle.title}>`;
-    postSlackMessage(message, '#general', 'jolly-roger');
+    const hunt = Models.Hunts.findOne(puzzle.hunt);
+    if (hunt.puzzleHooksSlackChannel) {
+      const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
+      const message = `New puzzle created: <${url}|${puzzle.title}>`;
+      postSlackMessage(message, hunt.puzzleHooksSlackChannel, 'jolly-roger');
+    }
   },
 
   onPuzzleSolved(puzzle) {
-    const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
-    // eslint-disable-next-line max-len
-    const message = `We solved a puzzle! The answer to <${url}|${puzzle.title}> is ${puzzle.answer}`;
-    postSlackMessage(message, '#general', 'jolly-roger');
+    const hunt = Models.Hunts.findOne(puzzle.hunt);
+    if (hunt.puzzleHooksSlackChannel) {
+      const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
+      // eslint-disable-next-line max-len
+      const message = `We solved a puzzle! The answer to <${url}|${puzzle.title}> is ${puzzle.answer}`;
+      postSlackMessage(message, hunt.puzzleHooksSlackChannel, 'jolly-roger');
+    }
   },
 
   onPuzzleNoLongerSolved(puzzle) { // eslint-disable-line no-unused-vars

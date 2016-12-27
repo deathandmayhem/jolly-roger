@@ -37,7 +37,8 @@ const HuntModalForm = React.createClass({
         mailingLists: this.props.hunt.mailingLists.join(', '),
         signupMessage: this.props.hunt.signupMessage,
         openSignups: this.props.hunt.openSignups,
-        slackChannel: this.props.hunt.slackChannel,
+        firehoseSlackChannel: this.props.hunt.firehoseSlackChannel,
+        puzzleHooksSlackChannel: this.props.hunt.puzzleHooksSlackChannel,
       });
     } else {
       return _.extend(state, {
@@ -45,7 +46,8 @@ const HuntModalForm = React.createClass({
         mailingLists: '',
         signupMessage: '',
         openSignups: false,
-        slackChannel: '',
+        firehoseSlackChannel: '',
+        puzzleHooksSlackChannel: '',
       });
     }
   },
@@ -74,9 +76,15 @@ const HuntModalForm = React.createClass({
     });
   },
 
-  onSlackChannelChanged(e) {
+  onFirehoseSlackChannelChanged(e) {
     this.setState({
-      slackChannel: e.target.value,
+      firehoseSlackChannel: e.target.value,
+    });
+  },
+
+  onPuzzleHooksSlackChannelChanged(e) {
+    this.setState({
+      puzzleHooksSlackChannel: e.target.value,
     });
   },
 
@@ -184,19 +192,36 @@ const HuntModalForm = React.createClass({
         </BS.FormGroup>
 
         <BS.FormGroup>
-          <BS.ControlLabel htmlFor={`${idPrefix}slack-channel`} className="col-xs-3">
-            Slack channel
+          <BS.ControlLabel htmlFor={`${idPrefix}firehose-slack-channel`} className="col-xs-3">
+            Firehose Slack channel
           </BS.ControlLabel>
           <div className="col-xs-9">
             <BS.FormControl
-              id={`${idPrefix}slack-channel`}
+              id={`${idPrefix}firehose-slack-channel`}
               type="text"
-              value={this.state.slackChannel}
-              onChange={this.onSlackChannelChanged}
+              value={this.state.firehoseSlackChannel}
+              onChange={this.onFirehoseSlackChannelChanged}
               disabled={disableForm}
             />
             <BS.HelpBlock>
               If provided, all chat messages written in puzzles associated with this hunt will be mirrored to the specified channel in Slack.  Make sure to include the # at the beginning of the channel name, like <code>#firehose</code>.
+            </BS.HelpBlock>
+          </div>
+        </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor={`${idPrefix}puzzle-hooks-slack-channel`} className="col-xs-3">
+            Puzzle added/solved Slack channel
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              id={`${idPrefix}puzzle-hooks-slack-channel`}
+              type="text"
+              value={this.state.puzzleHooksSlackChannel}
+              onChange={this.onPuzzleHooksSlackChannelChanged}
+            />
+            <BS.HelpBlock>
+              If provided, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.  Make sure to include the # at the beginning of the channel name, like <code>#general</code>.
             </BS.HelpBlock>
           </div>
         </BS.FormGroup>
