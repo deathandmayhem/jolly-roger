@@ -50,7 +50,9 @@ Meteor.methods({
     // The websocket listening for Slack messages should subscribe to that channel.
     // For documents, we should have a documents collection, with a puzzleId, type, and
     // type-specific data.
-    globalHooks.runPuzzleCreatedHooks(puzzleId);
+    Meteor.defer(Meteor.bindEnvironment(() => {
+      globalHooks.runPuzzleCreatedHooks(puzzleId, this.userId);
+    }));
 
     return puzzleId;
   },
@@ -85,11 +87,13 @@ Meteor.methods({
     );
 
     if (oldPuzzle.title !== puzzle.title) {
-      const docId = Meteor.call('ensureDocument', puzzleId);
-      if (docId) {
-        const doc = Models.Documents.findOne(docId);
-        renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
-      }
+      Meteor.defer(Meteor.bindEnvironment(() => {
+        const docId = ensureDocument(_.extend({ _id: puzzleId }, puzzle), this.userId);
+        if (docId) {
+          const doc = Models.Documents.findOne(docId);
+          renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
+        }
+      }));
     }
   },
 
