@@ -1,8 +1,117 @@
+import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import React from 'react';
+import BS from 'react-bootstrap';
 import DocumentTitle from 'react-document-title';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-import { HuntMembershipVerifier } from '/imports/client/components/HuntMembershipVerifier.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import marked from 'marked';
+
+const HuntDeletedError = React.createClass({
+  propTypes: {
+    huntId: React.PropTypes.string.isRequired,
+  },
+
+  contextTypes: {
+    router: React.PropTypes.object.isRequired,
+  },
+
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    return {
+      hunt: Models.Hunts.findOneDeleted(this.props.huntId),
+      canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+    };
+  },
+
+  undestroy() {
+    this.data.hunt.undestroy();
+  },
+
+  undestroyButton() {
+    if (this.data.canUndestroy) {
+      return (
+        <BS.Button bsStyle="primary" onClick={this.undestroy}>
+          Undelete this hunt
+        </BS.Button>
+      );
+    }
+    return null;
+  },
+
+  render() {
+    return (
+      <div>
+        <BS.Alert bsStyle="danger">
+        This hunt has been deleted, so there's nothing much to see here anymore.
+        </BS.Alert>
+
+        <BS.ButtonToolbar>
+          <BS.Button bsStyle="default" onClick={this.context.router.goBack}>
+            Whoops! Get me out of here
+          </BS.Button>
+          {this.undestroyButton()}
+        </BS.ButtonToolbar>
+      </div>
+    );
+  },
+});
+
+const HuntMemberError = React.createClass({
+  propTypes: {
+    huntId: React.PropTypes.string.isRequired,
+  },
+
+  contextTypes: {
+    router: React.PropTypes.object.isRequired,
+    subs: JRPropTypes.subs,
+  },
+
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    return {
+      hunt: Models.Hunts.findOne(this.props.huntId),
+      canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', this.props.huntId),
+    };
+  },
+
+  join() {
+    Meteor.call('addToHunt', this.props.huntId, Meteor.user().emails[0].address);
+  },
+
+  joinButton() {
+    if (this.data.canJoin) {
+      return (
+        <BS.Button bsStyle="primary" onClick={this.join}>
+          Use operator permissions to join
+        </BS.Button>
+      );
+    }
+    return null;
+  },
+
+  render() {
+    const msg = marked(this.data.hunt.signupMessage || '', { sanitize: true });
+    return (
+      <div>
+        <BS.Alert bsStyle="warning">
+          You're not signed up for this hunt ({this.data.hunt.name}) yet.
+        </BS.Alert>
+
+        <div dangerouslySetInnerHTML={{ __html: msg }} />
+
+        <BS.ButtonToolbar>
+          <BS.Button bsStyle="default" onClick={this.context.router.goBack}>
+            Whoops! Get me out of here
+          </BS.Button>
+          {this.joinButton()}
+        </BS.ButtonToolbar>
+      </div>
+    );
+  },
+});
 
 const HuntApp = React.createClass({
   propTypes: {
@@ -19,18 +128,36 @@ const HuntApp = React.createClass({
   mixins: [ReactMeteorData],
 
   getMeteorData() {
-    this.context.subs.subscribe('mongo.hunts', { _id: this.props.params.huntId });
-    return { hunt: Models.Hunts.findOne(this.props.params.huntId) };
+    const userHandle = this.context.subs.subscribe('huntMembership');
+    const huntHandle = this.context.subs.subscribe('mongo.hunts.allowingDeleted', {
+      _id: this.props.params.huntId,
+    });
+    const member = Meteor.user() && _.contains(Meteor.user().hunts, this.props.params.huntId);
+    return {
+      ready: userHandle.ready() && huntHandle.ready(),
+      hunt: Models.Hunts.findOneAllowingDeleted(this.props.params.huntId),
+      member,
+    };
   },
 
   render() {
+    if (!this.data.ready) {
+      return <span>loading...</span>;
+    }
+
+    if (this.data.hunt.deleted) {
+      return <HuntDeletedError huntId={this.props.params.huntId} />;
+    }
+
+    if (!this.data.member) {
+      return <HuntMemberError huntId={this.props.params.huntId} />;
+    }
+
     const title = this.data.hunt ? `${this.data.hunt.name} :: Jolly Roger` : '';
 
     return (
       <DocumentTitle title={title}>
-        <HuntMembershipVerifier huntId={this.props.params.huntId}>
-          {React.Children.only(this.props.children)}
-        </HuntMembershipVerifier>
+        {React.Children.only(this.props.children)}
       </DocumentTitle>
     );
   },

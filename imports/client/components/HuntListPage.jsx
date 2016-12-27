@@ -256,7 +256,10 @@ const Hunt = React.createClass({
     return {
       isOperator: Roles.userHasRole(Meteor.userId(), 'admin'),
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
-      canRemove: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.remove'),
+
+      // Because we delete by setting the deleted flag, you only need
+      // update to "remove" something
+      canDestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
     };
   },
 
@@ -281,7 +284,7 @@ const Hunt = React.createClass({
   },
 
   deleteButton() {
-    if (this.data.canRemove) {
+    if (this.data.canDestroy) {
       return (
         <BS.Button onClick={this.showDeleteModal} bsStyle="danger" title="Delete hunt...">
           <BS.Glyphicon glyph="remove" />
