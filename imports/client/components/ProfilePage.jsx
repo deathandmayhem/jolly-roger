@@ -1,7 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
-import { LabelledRadioGroup } from '/imports/client/components/LabelledRadioGroup.jsx';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
@@ -29,7 +28,6 @@ const OthersProfilePage = React.createClass({
         {showOperatorBadge && <BS.Label>operator</BS.Label>}
         {showMakeOperatorButton && <BS.Button onClick={this.makeOperator}>Make operator</BS.Button>}
         <div>Email: {profile.primaryEmail}</div>
-        <div>Location: {profile.locationDuringHunt}</div>
         {profile.phoneNumber ? <div>Phone: {profile.phoneNumber}</div> : null}
         {profile.slackHandle ? <div>Slack handle: {profile.slackHandle}</div> : null}
       </div>
@@ -46,37 +44,16 @@ const OwnProfilePage = React.createClass({
   getInitialState() {
     return {
       displayNameValue: this.props.initialProfile.displayName || '',
-      locationDuringHuntValue: this.props.initialProfile.locationDuringHunt || '',
       phoneNumberValue: this.props.initialProfile.phoneNumber || '',
       slackHandleValue: this.props.initialProfile.slackHandle || '',
-      localRemote: this.props.initialProfile.remote ? 'remote' : 'local',
-      affiliation: this.props.initialProfile.affiliation || 'other',
       submitState: 'idle', // One of 'idle', 'submitting', 'success', or 'error'
       submitError: '',
     };
   },
 
-  setLocalRemote(newLocalRemote) {
-    this.setState({
-      localRemote: newLocalRemote,
-    });
-  },
-
-  setAffiliation(newAffiliation) {
-    this.setState({
-      affiliation: newAffiliation,
-    });
-  },
-
   handleDisplayNameFieldChange(e) {
     this.setState({
       displayNameValue: e.target.value,
-    });
-  },
-
-  handleLocationFieldChange(e) {
-    this.setState({
-      locationDuringHuntValue: e.target.value,
     });
   },
 
@@ -107,11 +84,8 @@ const OwnProfilePage = React.createClass({
     });
     const newProfile = {
       displayName: this.state.displayNameValue,
-      locationDuringHunt: this.state.locationDuringHuntValue,
       phoneNumber: this.state.phoneNumberValue,
       slackHandle: this.state.slackHandleValue,
-      affiliation: this.state.affiliation,
-      remote: this.state.localRemote === 'remote',
     };
     Meteor.call('saveProfile', newProfile, (error) => {
       if (error) {
@@ -181,39 +155,6 @@ const OwnProfilePage = React.createClass({
           </BS.HelpBlock>
         </BS.FormGroup>
 
-        <LabelledRadioGroup
-          header="Where are you hunting from?"
-          name="location"
-          options={[
-            {
-              value: 'local',
-              label: 'At MIT',
-            }, {
-              value: 'remote',
-              label: 'Remote (anywhere else)',
-            },
-          ]}
-          initialValue={this.state.localRemote}
-          help="This is useful to the operators, so we know what fraction of our team is local vs. remote."
-          onChange={this.setLocalRemote}
-        />
-
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor="jr-profile-edit-location">
-            Location during hunt
-          </BS.ControlLabel>
-          <BS.FormControl
-            id="jr-profile-edit-location"
-            type="text"
-            value={this.state.locationDuringHuntValue}
-            disabled={shouldDisableForm}
-            onChange={this.handleLocationFieldChange}
-          />
-          <BS.HelpBlock>
-            Building + room number can help others find you.  HQ is 32-261.
-          </BS.HelpBlock>
-        </BS.FormGroup>
-
         <BS.FormGroup>
           <BS.ControlLabel htmlFor="jr-profile-edit-phone">
             Phone number (optional)
@@ -245,35 +186,6 @@ const OwnProfilePage = React.createClass({
             So we can connect your chat there with your account here.
           </BS.HelpBlock>
         </BS.FormGroup>
-
-        <LabelledRadioGroup
-          header="Affiliation with MIT"
-          name="affiliation"
-          options={[
-            {
-              value: 'undergrad',
-              label: 'Undergraduate Student',
-            }, {
-              value: 'grad',
-              label: 'Graduate student',
-            }, {
-              value: 'alum',
-              label: 'Alumnus/alumna',
-            }, {
-              value: 'employee',
-              label: 'Faculty/staff',
-            }, {
-              value: 'other',
-              label: 'Other',
-            }, {
-              value: 'unaffiliated',
-              label: 'Unaffiliated',
-            },
-          ]}
-          initialValue={this.state.affiliation}
-          help="The hunt organizers ask us for statistics about our team's affiliation."
-          onChange={this.setAffiliation}
-        />
 
         <BS.FormGroup>
           <BS.Button
@@ -316,7 +228,6 @@ const ProfilePage = React.createClass({
       profile: Models.Profiles.findOne(uid) || {
         _id: uid,
         displayName: '',
-        locationDuringHunt: '',
         primaryEmail: defaultEmail,
         phoneNumber: '',
         slackHandle: '',

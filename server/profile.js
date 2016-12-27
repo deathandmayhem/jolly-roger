@@ -8,11 +8,8 @@ Meteor.methods({
     check(this.userId, String);
     check(newProfile, {
       displayName: String,
-      locationDuringHunt: String,
       phoneNumber: String,
       slackHandle: String,
-      remote: Boolean,
-      affiliation: String,
     });
     const user = Meteor.users.findOne(this.userId);
     const primaryEmail = user.emails[0].address;
@@ -23,12 +20,9 @@ Meteor.methods({
     }, {
       $set: {
         displayName: newProfile.displayName,
-        locationDuringHunt: newProfile.locationDuringHunt,
         primaryEmail,
         phoneNumber: newProfile.phoneNumber,
         slackHandle: newProfile.slackHandle,
-        remote: newProfile.remote,
-        affiliation: newProfile.affiliation,
         deleted: false,
       },
     }, {

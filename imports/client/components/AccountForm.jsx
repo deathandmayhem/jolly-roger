@@ -2,7 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import React from 'react';
 import BS from 'react-bootstrap';
-import { LabelledRadioGroup } from '/imports/client/components/LabelledRadioGroup.jsx';
 
 /* eslint-disable max-len, jsx-a11y/href-no-hash */
 
@@ -20,10 +19,7 @@ const AccountForm = React.createClass({
       email: '',
       password: '',
       displayName: '',
-      locationDuringHunt: '',
       phoneNumber: '',
-      affliation: '',
-      localRemote: '',
     };
   },
 
@@ -45,27 +41,9 @@ const AccountForm = React.createClass({
     });
   },
 
-  setLocationDuringHunt(event) {
-    this.setState({
-      locationDuringHunt: event.target.value,
-    });
-  },
-
   setPhoneNumber(event) {
     this.setState({
       phoneNumber: event.target.value,
-    });
-  },
-
-  setAffiliation(newAffiliation) {
-    this.setState({
-      affiliation: newAffiliation,
-    });
-  },
-
-  setLocalRemote(newLocalRemote) {
-    this.setState({
-      localRemote: newLocalRemote,
     });
   },
 
@@ -126,11 +104,8 @@ const AccountForm = React.createClass({
   tryEnroll() {
     const newProfile = {
       displayName: this.state.displayName,
-      locationDuringHunt: this.state.locationDuringHunt,
       phoneNumber: this.state.phoneNumber,
       slackHandle: '',
-      affiliation: this.state.affiliation,
-      remote: this.state.localRemote === 'remote',
     };
 
     this.setState({
@@ -246,62 +221,6 @@ const AccountForm = React.createClass({
           Optional, but helpful if HQ needs to reach you while you're
           on a runaround or at an event puzzle.
         </span>
-      </div>,
-      <div className="at-input form-group">
-        <LabelledRadioGroup
-          header="Affiliation with MIT"
-          name="affiliation"
-          options={[
-            {
-              value: 'undergrad',
-              label: 'Undergraduate Student',
-            }, {
-              value: 'grad',
-              label: 'Graduate student',
-            }, {
-              value: 'alum',
-              label: 'Alumnus/alumna',
-            }, {
-              value: 'employee',
-              label: 'Faculty/staff',
-            }, {
-              value: 'other',
-              label: 'Other',
-            }, {
-              value: 'unaffiliated',
-              label: 'Unaffiliated',
-            },
-          ]}
-          initialValue={this.state.affiliation}
-          help="The hunt organizers ask us for statistics about our team's affiliation."
-          onChange={this.setAffiliation}
-        />
-      </div>,
-      <div className="at-input form-group">
-        <LabelledRadioGroup
-          header="Where are you hunting from?"
-          name="location"
-          options={[
-            {
-              value: 'local',
-              label: 'At MIT',
-            }, {
-              value: 'remote',
-              label: 'Remote (anywhere else)',
-            },
-          ]}
-          initialValue={this.state.localRemote}
-          help="This is useful to the operators, so we know what fraction of our team is local vs. remote."
-          onChange={this.setLocalRemote}
-        />
-        <label className="control-label" htmlFor="at-field-location">
-          Specific location during hunt
-        </label>
-        <input
-          id="at-field-location" className="form-control" type="text" name="at-field-location"
-          placeholder="MIT, 32-261" onChange={this.setLocationDuringHunt} disabled={submitting}
-        />
-        <span className="help-block">Optional. More detail on where you (plan to hunt|are hunting) from.</span>
       </div>,
     ];
     const pwResetOptionComponent = (
