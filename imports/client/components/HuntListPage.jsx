@@ -37,7 +37,7 @@ const HuntModalForm = React.createClass({
         mailingLists: this.props.hunt.mailingLists.join(', '),
         signupMessage: this.props.hunt.signupMessage,
         openSignups: this.props.hunt.openSignups,
-        slackChannel: this.props.hunt.slackChannel,
+        firehoseSlackChannel: this.props.hunt.firehoseSlackChannel,
         puzzleHooksSlackChannel: this.props.hunt.puzzleHooksSlackChannel,
       });
     } else {
@@ -46,7 +46,7 @@ const HuntModalForm = React.createClass({
         mailingLists: '',
         signupMessage: '',
         openSignups: false,
-        slackChannel: '',
+        firehoseSlackChannel: '',
         puzzleHooksSlackChannel: '',
       });
     }
@@ -76,9 +76,9 @@ const HuntModalForm = React.createClass({
     });
   },
 
-  onSlackChannelChanged(e) {
+  onFirehoseSlackChannelChanged(e) {
     this.setState({
-      slackChannel: e.target.value,
+      firehoseSlackChannel: e.target.value,
     });
   },
 
@@ -192,15 +192,15 @@ const HuntModalForm = React.createClass({
         </BS.FormGroup>
 
         <BS.FormGroup>
-          <BS.ControlLabel htmlFor={`${idPrefix}slack-channel`} className="col-xs-3">
-            Slack channel
+          <BS.ControlLabel htmlFor={`${idPrefix}firehose-slack-channel`} className="col-xs-3">
+            Firehose Slack channel
           </BS.ControlLabel>
           <div className="col-xs-9">
             <BS.FormControl
-              id={`${idPrefix}slack-channel`}
+              id={`${idPrefix}firehose-slack-channel`}
               type="text"
-              value={this.state.slackChannel}
-              onChange={this.onSlackChannelChanged}
+              value={this.state.firehoseSlackChannel}
+              onChange={this.onFirehoseSlackChannelChanged}
               disabled={disableForm}
             />
             <BS.HelpBlock>

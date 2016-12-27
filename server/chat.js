@@ -38,7 +38,7 @@ Meteor.methods({
     const puzzle = Models.Puzzles.findOne(puzzleId);
     const hunt = Models.Hunts.findOne(puzzle.hunt);
 
-    if (hunt.slackChannel) {
+    if (hunt.firehoseSlackChannel) {
       const profile = Models.Profiles.findOne(this.userId);
       let username = null;
       if (profile && profile.slackHandle) {
@@ -60,7 +60,7 @@ Meteor.methods({
         .replace('>', '&gt;');
       const slackText = `[<${url}|${title}>] ${slackMessage}`;
 
-      postSlackMessage(slackText, hunt.slackChannel, username);
+      postSlackMessage(slackText, hunt.firehoseSlackChannel, username);
     }
   },
 });
