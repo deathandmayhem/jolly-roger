@@ -442,7 +442,7 @@ Resources:
                 - ''
               PapertrailDockerConfig: !If
                 - HavePapertrail
-                - !Sub '- docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock -e "SYSLOG_HOSTNAME=$(hostname)" gliderlabs/logspout:master syslog://${PapertrailHost}'
+                - !Sub '- docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock -e "SYSLOG_HOSTNAME=$(hostname){{.Container.Name}}" gliderlabs/logspout:master syslog://${PapertrailHost}'
                 - ''
               DatadogDockerConfig: !If
                 - HaveDatadog
