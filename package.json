@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "babel-runtime": "^6.11.6",
+    "bcrypt": "^1.0.1",
     "classnames": "^2.2.5",
     "googleapis": "^10.0.0",
     "history": "^2.0.0",
