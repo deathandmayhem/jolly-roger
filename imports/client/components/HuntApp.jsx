@@ -113,50 +113,6 @@ const HuntMemberError = React.createClass({
   },
 });
 
-const HuntMembershipVerifier = React.createClass({
-  propTypes: {
-    huntId: React.PropTypes.string.isRequired,
-    children: React.PropTypes.node,
-  },
-
-  contextTypes: {
-    subs: JRPropTypes.subs,
-  },
-
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    const userHandle = this.context.subs.subscribe('huntMembership');
-    if (!userHandle.ready()) {
-      return { ready: false };
-    }
-
-    const user = Meteor.user();
-    if (!user) {
-      return { ready: false };
-    }
-
-    if (!_.contains(user.hunts, this.props.huntId)) {
-      return {
-        member: false,
-        ready: true,
-      };
-    }
-
-    return { ready: true, member: true };
-  },
-
-  render() {
-    if (!this.data.ready) {
-      return <span>loading...</span>;
-    } else if (!this.data.member) {
-      return <HuntMemberError huntId={this.props.huntId} />;
-    } else {
-      return React.Children.only(this.props.children);
-    }
-  },
-});
-
 const HuntApp = React.createClass({
   propTypes: {
     params: React.PropTypes.shape({
@@ -172,12 +128,15 @@ const HuntApp = React.createClass({
   mixins: [ReactMeteorData],
 
   getMeteorData() {
+    const userHandle = this.context.subs.subscribe('huntMembership');
     const huntHandle = this.context.subs.subscribe('mongo.hunts.allowingDeleted', {
       _id: this.props.params.huntId,
     });
+    const member = Meteor.user() && _.contains(Meteor.user().hunts, this.props.params.huntId);
     return {
-      ready: huntHandle.ready(),
+      ready: userHandle.ready() && huntHandle.ready(),
       hunt: Models.Hunts.findOneAllowingDeleted(this.props.params.huntId),
+      member,
     };
   },
 
@@ -190,13 +149,15 @@ const HuntApp = React.createClass({
       return <HuntDeletedError huntId={this.props.params.huntId} />;
     }
 
+    if (!this.data.member) {
+      return <HuntMemberError huntId={this.props.params.huntId} />;
+    }
+
     const title = this.data.hunt ? `${this.data.hunt.name} :: Jolly Roger` : '';
 
     return (
       <DocumentTitle title={title}>
-        <HuntMembershipVerifier huntId={this.props.params.huntId}>
-          {React.Children.only(this.props.children)}
-        </HuntMembershipVerifier>
+        {React.Children.only(this.props.children)}
       </DocumentTitle>
     );
   },
