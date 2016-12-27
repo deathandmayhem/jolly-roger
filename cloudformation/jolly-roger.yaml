@@ -18,9 +18,8 @@
 #
 #   - A registry to proxy access to private images
 #
-#   - An nginx instance for port 80, redirecting to HTTPS and
-#     supporting the LetsEncrypt ACME verification process (via an S3
-#     bucket)
+#   - An nginx instance for port 80, redirecting to HTTPS and serving
+#   - healthchecks for ALB
 #
 #   - An nginx instance for port 8443, listening for HTTP connections
 #     (HTTPS, unwrapped by ALB) and forwarding to the application
@@ -98,7 +97,9 @@ Parameters:
 
 Mappings:
   UbuntuAmis:
-    us-east-1: {"ami": ami-2b594f41}
+    us-east-1:
+      trusty: ami-5ac2cd4d
+      xenial: ami-9dcfdb8a
 
 Conditions:
   HavePapertrail: !Not [!Equals [!Ref PapertrailHost, '']]
@@ -155,12 +156,6 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicSubnetRouteTable
       SubnetId: !Ref PublicSubnet2
-
-  # Bucket for serving /.well-known/acme-challenge/
-  LetsEncryptBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      AccessControl: PublicRead
 
   AppInstanceRole:
     Type: AWS::IAM::Role
@@ -309,7 +304,7 @@ Resources:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       IamInstanceProfile: !Ref AppInstanceProfile
-      ImageId: !FindInMap [UbuntuAmis, !Ref "AWS::Region", ami]
+      ImageId: !FindInMap [UbuntuAmis, !Ref "AWS::Region", xenial]
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
@@ -390,9 +385,6 @@ Resources:
                     server {
                       listen 80;
                       access_log /var/log/nginx/access.log main;
-                      location /.well-known/acme-challenge {
-                        return 301 https://${LetsEncryptBucket}.s3.amazonaws.com$request_uri;
-                      }
                       location /healthcheck {
                         return 200 "OK\n";
                       }
@@ -400,6 +392,11 @@ Resources:
                         return 301 https://$host$request_uri;
                       }
                     }
+                - path: /etc/systemd/system/docker.service.d/docker.conf
+                  content: |
+                    [Service]
+                    ExecStart=
+                    ExecStart=/usr/bin/dockerd -H fd:// --storage-driver=overlay2
 
               runcmd:
                 - set -eux
