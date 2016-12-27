@@ -7,6 +7,57 @@ import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import marked from 'marked';
 
+const HuntDeletedError = React.createClass({
+  propTypes: {
+    huntId: React.PropTypes.string.isRequired,
+  },
+
+  contextTypes: {
+    router: React.PropTypes.object.isRequired,
+  },
+
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    return {
+      hunt: Models.Hunts.findOneDeleted(this.props.huntId),
+      canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+    };
+  },
+
+  undestroy() {
+    this.data.hunt.undestroy();
+  },
+
+  undestroyButton() {
+    if (this.data.canUndestroy) {
+      return (
+        <BS.Button bsStyle="primary" onClick={this.undestroy}>
+          Undelete this hunt
+        </BS.Button>
+      );
+    }
+    return null;
+  },
+
+  render() {
+    return (
+      <div>
+        <BS.Alert bsStyle="danger">
+        This hunt has been deleted, so there's nothing much to see here anymore.
+        </BS.Alert>
+
+        <BS.ButtonToolbar>
+          <BS.Button bsStyle="default" onClick={this.context.router.goBack}>
+            Whoops! Get me out of here
+          </BS.Button>
+          {this.undestroyButton()}
+        </BS.ButtonToolbar>
+      </div>
+    );
+  },
+});
+
 const HuntMemberError = React.createClass({
   propTypes: {
     huntId: React.PropTypes.string.isRequired,
@@ -20,9 +71,7 @@ const HuntMemberError = React.createClass({
   mixins: [ReactMeteorData],
 
   getMeteorData() {
-    const handle = this.context.subs.subscribe('mongo.hunts', { _id: this.props.huntId });
     return {
-      ready: handle.ready(),
       hunt: Models.Hunts.findOne(this.props.huntId),
       canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', this.props.huntId),
     };
@@ -44,10 +93,6 @@ const HuntMemberError = React.createClass({
   },
 
   render() {
-    if (!this.data.ready) {
-      return <span>loading...</span>;
-    }
-
     const msg = marked(this.data.hunt.signupMessage || '', { sanitize: true });
     return (
       <div>
@@ -127,11 +172,24 @@ const HuntApp = React.createClass({
   mixins: [ReactMeteorData],
 
   getMeteorData() {
-    this.context.subs.subscribe('mongo.hunts', { _id: this.props.params.huntId });
-    return { hunt: Models.Hunts.findOne(this.props.params.huntId) };
+    const huntHandle = this.context.subs.subscribe('mongo.hunts.allowingDeleted', {
+      _id: this.props.params.huntId,
+    });
+    return {
+      ready: huntHandle.ready(),
+      hunt: Models.Hunts.findOneAllowingDeleted(this.props.params.huntId),
+    };
   },
 
   render() {
+    if (!this.data.ready) {
+      return <span>loading...</span>;
+    }
+
+    if (this.data.hunt.deleted) {
+      return <HuntDeletedError huntId={this.props.params.huntId} />;
+    }
+
     const title = this.data.hunt ? `${this.data.hunt.name} :: Jolly Roger` : '';
 
     return (
