@@ -1,3 +1,4 @@
+import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
 import marked from 'marked';
@@ -21,7 +22,23 @@ const HuntMemberError = React.createClass({
     return {
       ready: handle.ready(),
       hunt: Models.Hunts.findOne(this.props.huntId),
+      canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', this.props.huntId),
     };
+  },
+
+  join() {
+    Meteor.call('addToHunt', this.props.huntId, Meteor.user().emails[0].address);
+  },
+
+  joinButton() {
+    if (this.data.canJoin) {
+      return (
+        <BS.Button bsStyle="primary" onClick={this.join}>
+          Use operator permissions to join
+        </BS.Button>
+      );
+    }
+    return null;
   },
 
   render() {
@@ -42,6 +59,7 @@ const HuntMemberError = React.createClass({
           <BS.Button bsStyle="default" onClick={this.context.router.goBack}>
             Whoops! Get me out of here
           </BS.Button>
+          {this.joinButton()}
         </BS.ButtonToolbar>
       </div>
     );
