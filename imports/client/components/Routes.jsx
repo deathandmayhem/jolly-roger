@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  IndexRoute,
   IndexRedirect,
   Route,
   Router,
@@ -16,7 +15,6 @@ import { EnrollForm } from '/imports/client/components/EnrollForm.jsx';
 import { GuessQueuePage } from '/imports/client/components/GuessQueuePage.jsx';
 import { HuntApp } from '/imports/client/components/HuntApp.jsx';
 import { HuntListPage } from '/imports/client/components/HuntListPage.jsx';
-import { HuntPage } from '/imports/client/components/HuntPage.jsx';
 import { LoginForm } from '/imports/client/components/LoginForm.jsx';
 import { PasswordResetForm } from '/imports/client/components/PasswordResetForm.jsx';
 import { ProfileListPage } from '/imports/client/components/ProfileListPage.jsx';
@@ -52,7 +50,7 @@ const Routes = React.createClass({
                 <Route path="guesses" component={GuessQueuePage} />
                 <Route path="puzzles/:puzzleId" component={PuzzlePage} />
                 <Route path="puzzles" component={PuzzleListPage} />
-                <IndexRoute component={HuntPage} />
+                <IndexRedirect to="puzzles" />
               </Route>
               <Route path="hunts" component={HuntListPage} />
               <Route path="users/:userId" component={ProfilePage} />
