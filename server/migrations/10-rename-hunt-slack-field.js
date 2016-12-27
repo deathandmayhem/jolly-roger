@@ -2,7 +2,7 @@ import { Migrations } from 'meteor/percolate:migrations';
 
 Migrations.add({
   version: 10,
-  name: "Rename hunt field slackChannel to firehoseSlackChannel",
+  name: 'Rename hunt field slackChannel to firehoseSlackChannel',
   up() {
     Models.Hunts.find({
       firehoseSlackChannel: null,
