@@ -17,7 +17,7 @@ echo "deb https://deb.nodesource.com/node_4.x trusty main" > /etc/apt/sources.li
 apt-get update
 apt-get install --no-install-recommends -y python python-pip python-dev build-essential debathena-moira-clients kstart curl nodejs
 
-pip install credstash
+pip install 'credstash==1.12.0'
 
 # Install meteor and build app
 METEOR_RELEASE="$(sed -e 's/.*@//g' .meteor/release)"
