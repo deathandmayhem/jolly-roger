@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { postSlackMessage } from '/imports/server/slack.js';
+import { ensureDocument } from '/imports/server/gdrive.js';
 
 class Hooks {
   constructor() {
@@ -75,7 +76,8 @@ const SlackHooks = {
 // Ditto these
 const DocumentHooks = {
   onPuzzleCreated(puzzleId) {
-    Meteor.call('ensureDocument', puzzleId);
+    const puzzle = Models.Puzzles.findOne(puzzleId);
+    ensureDocument(puzzle);
   },
 };
 
