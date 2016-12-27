@@ -97,7 +97,9 @@ Parameters:
 
 Mappings:
   UbuntuAmis:
-    us-east-1: {"ami": ami-2b594f41}
+    us-east-1:
+      trusty: ami-5ac2cd4d
+      xenial: ami-9dcfdb8a
 
 Conditions:
   HavePapertrail: !Not [!Equals [!Ref PapertrailHost, '']]
@@ -302,7 +304,7 @@ Resources:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       IamInstanceProfile: !Ref AppInstanceProfile
-      ImageId: !FindInMap [UbuntuAmis, !Ref "AWS::Region", ami]
+      ImageId: !FindInMap [UbuntuAmis, !Ref "AWS::Region", xenial]
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
