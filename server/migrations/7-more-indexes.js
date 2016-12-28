@@ -12,7 +12,7 @@ Migrations.add({
     // _dropIndex is not idempotent, so we need to figure out if the
     // index already exists
     const tagsCollection = Models.Tags.rawCollection();
-    const tagsIndexExists = Meteor.wrapAsync(tagsCollection.indexExists).bind(tagsCollection);
+    const tagsIndexExists = Meteor.wrapAsync(tagsCollection.indexExists, tagsCollection);
     if (tagsIndexExists({ deleted: 1, hunt: 1 })) {
       Models.Tags._dropIndex({ deleted: 1, hunt: 1 });
     }

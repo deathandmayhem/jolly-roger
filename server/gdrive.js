@@ -36,7 +36,7 @@ const createGdriveClient = function createGdriveClient() {
   });
 
   Ansible.log('Refreshing Google OAuth access token for Google Drive');
-  const credentials = Meteor.wrapAsync(oauthClient.refreshAccessToken).bind(oauthClient)();
+  const credentials = Meteor.wrapAsync(oauthClient.refreshAccessToken, oauthClient)();
   // Schedule to refresh the token a quarter through its lifecycle
   // (should be about every 15 minutes), with some jitter
   const timeout = (credentials.expiry_date - (new Date()).getTime()) / 4;
