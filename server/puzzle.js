@@ -159,11 +159,8 @@ Meteor.methods({
   },
 
   ensureDocumentAndPermissions(puzzleId) {
+    check(this.userId, String);
     check(puzzleId, String);
-
-    if (!this.userId && this.connection) {
-      throw new Meteor.Error(401, 'You are not logged in');
-    }
 
     const user = Meteor.users.findOne(this.userId);
     const puzzle = Models.Puzzles.findOne(puzzleId);
