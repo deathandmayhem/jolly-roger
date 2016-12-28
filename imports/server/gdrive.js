@@ -59,27 +59,22 @@ const ensureDocument = function ensureDocument(puzzle) {
           puzzle: puzzle._id,
         });
 
-        try {
-          const docId = createDocument(
-            `${puzzle.title}: Death and Mayhem`,
-            'application/vnd.google-apps.spreadsheet'
-            );
-          doc = {
-            hunt: puzzle.hunt,
-            puzzle: puzzle._id,
-            type: 'google-spreadsheet',
-            value: { id: docId },
-          };
-          doc._id = Models.Documents.insert(doc);
-        } catch (e) {
-          // Don't totally explode if document creation fails
-          Ansible.log('Failed to create a document!', { error: e.message });
-        }
+        const docId = createDocument(
+          `${puzzle.title}: Death and Mayhem`,
+          'application/vnd.google-apps.spreadsheet'
+        );
+        doc = {
+          hunt: puzzle.hunt,
+          puzzle: puzzle._id,
+          type: 'google-spreadsheet',
+          value: { id: docId },
+        };
+        doc._id = Models.Documents.insert(doc);
       }
     });
   }
 
-  return doc ? doc._id : null;
+  return doc;
 };
 
 export { createDocument, renameDocument, grantPermission, ensureDocument };

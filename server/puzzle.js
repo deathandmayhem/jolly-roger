@@ -88,11 +88,8 @@ Meteor.methods({
 
     if (oldPuzzle.title !== puzzle.title) {
       Meteor.defer(Meteor.bindEnvironment(() => {
-        const docId = ensureDocument(_.extend({ _id: puzzleId }, puzzle), this.userId);
-        if (docId) {
-          const doc = Models.Documents.findOne(docId);
-          renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
-        }
+        const doc = ensureDocument(_.extend({ _id: puzzleId }, puzzle), this.userId);
+        renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
       }));
     }
   },
@@ -176,12 +173,7 @@ Meteor.methods({
 
     this.unblock();
 
-    const docId = ensureDocument(puzzle, this.userId);
-    if (!docId) {
-      return;
-    }
-
-    const doc = Models.Documents.findOne(docId);
+    const doc = ensureDocument(puzzle, this.userId);
     const profile = Models.Profiles.findOne(this.userId);
     if (profile.googleAccount) {
       grantPermission(doc.value.id, profile.googleAccount, 'writer');
