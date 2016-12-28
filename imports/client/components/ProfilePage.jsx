@@ -35,6 +35,137 @@ const OthersProfilePage = React.createClass({
   },
 });
 
+const GoogleLinkBlock = React.createClass({
+  propTypes: {
+    profile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
+  },
+
+  mixins: [ReactMeteorData],
+
+  getInitialState() {
+    return { state: 'idle' };
+  },
+
+  onLink() {
+    this.setState({ state: 'linking' });
+    Google.requestCredential(this.requestComplete);
+  },
+
+  onUnlink() {
+    Meteor.call('unlinkUserGoogleAccount');
+  },
+
+  getMeteorData() {
+    const config = ServiceConfiguration.configurations.findOne({ service: 'google' });
+    return { config };
+  },
+
+  requestComplete(token) {
+    const secret = OAuth._retrieveCredentialSecret(token);
+    if (!secret) {
+      this.setState({ state: 'idle' });
+      return;
+    }
+
+    Meteor.call('linkUserGoogleAccount', token, secret, (error) => {
+      if (error) {
+        this.setState({ state: 'error', error });
+      } else {
+        this.setState({ state: 'idle' });
+      }
+    });
+  },
+
+  dismissAlert() {
+    this.setState({ state: 'idle' });
+  },
+
+  errorAlert() {
+    if (this.state.state === 'error') {
+      return (
+        <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+          Linking Google account failed: {this.state.error.message}
+        </BS.Alert>
+      );
+    }
+    return null;
+  },
+
+  linkButton() {
+    if (this.state.state === 'linking') {
+      return <BS.Button bsStyle="primary" disabled>Linking...</BS.Button>;
+    }
+
+    const text = (this.props.profile.googleAccount) ?
+      'Link a different Google account' :
+      'Link your Google account';
+
+    return (
+      <BS.Button bsStyle="primary" onClick={this.onLink}>
+        {text}
+      </BS.Button>
+    );
+  },
+
+  unlinkButton() {
+    if (this.props.profile.googleAccount) {
+      return (
+        <BS.Button bsStyle="danger" onClick={this.onUnlink}>
+          Unlink
+        </BS.Button>
+      );
+    }
+
+    return null;
+  },
+
+  currentAccount() {
+    if (this.props.profile.googleAccount) {
+      return (
+        <div>
+          Currently linked to {this.props.profile.googleAccount}
+        </div>
+      );
+    }
+
+    return null;
+  },
+
+  render() {
+    if (!this.data.config) {
+      return <div />;
+    }
+
+    return (
+      <BS.FormGroup>
+        <BS.ControlLabel>
+          Google Account
+        </BS.ControlLabel>
+        {this.errorAlert()}
+        <div>
+          {this.currentAccount()}
+          {this.linkButton()}
+          {' '}
+          {this.unlinkButton()}
+        </div>
+        <BS.HelpBlock>
+          Linking your Google account isn't required, but this will
+          let other people see who you are on puzzles' Google
+          Spreadsheet docs (instead of being an
+          <a
+            href="https://support.google.com/docs/answer/2494888?visit_id=1-636184745566842981-35709989&hl=en&rd=1"
+            rel="noopener noreferrer" target="_blank"
+          >
+            anonymous animal
+          </a>), and we'll use it to give you access to our practice
+          puzzles. (You can only have one Google account linked, so
+          linking a new one will cause us to forget the old one).
+        </BS.HelpBlock>
+      </BS.FormGroup>
+    );
+  },
+});
+
 const OwnProfilePage = React.createClass({
   propTypes: {
     initialProfile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
@@ -138,6 +269,8 @@ const OwnProfilePage = React.createClass({
         {this.state.submitState === 'submitting' ? <BS.Alert bsStyle="info">Saving...</BS.Alert> : null}
         {this.state.submitState === 'success' ? <BS.Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</BS.Alert> : null}
         {this.state.submitState === 'error' ? <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.submitError}</BS.Alert> : null}
+
+        <GoogleLinkBlock profile={this.props.initialProfile} />
 
         <BS.FormGroup>
           <BS.ControlLabel htmlFor="jr-profile-edit-display-name">

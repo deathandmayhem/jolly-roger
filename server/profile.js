@@ -29,4 +29,28 @@ Meteor.methods({
       upsert: true,
     });
   },
+
+  linkUserGoogleAccount(key, secret) {
+    check(this.userId, String);
+    check(key, String);
+    check(secret, String);
+
+    // We don't care about actually capturing the credential - we're
+    // not going to do anything with it (and with only identity
+    // scopes, I don't think you can do anything with it), but we do
+    // want to validate it.
+    const credential = Google.retrieveCredential(key, secret);
+    const email = credential.serviceData.email;
+    Ansible.log('Linking user to Google account', {
+      user: this.userId,
+      email,
+    });
+
+    Models.Profiles.update(this.userId, { $set: { googleAccount: email } });
+  },
+
+  unlinkUserGoogleAccount() {
+    check(this.userId, String);
+    Models.Profiles.update(this.userId, { $unset: { googleAccount: 1 } });
+  },
 });

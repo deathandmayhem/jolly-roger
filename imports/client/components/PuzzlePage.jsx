@@ -789,9 +789,7 @@ const PuzzlePage = React.createClass({
       return <span>loading...</span>;
     }
 
-    if (this.data.allDocuments.length === 0) {
-      Meteor.call('ensureDocument', this.props.params.puzzleId);
-    }
+    Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
 
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     return (

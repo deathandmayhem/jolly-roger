@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
-import { ensureDocument, renameDocument } from '/imports/server/gdrive.js';
+import { ensureDocument, renameDocument, grantPermission } from '/imports/server/gdrive.js';
 // TODO: gdrive, globalHooks
 
 function getOrCreateTagByName(huntId, name) {
@@ -88,11 +88,8 @@ Meteor.methods({
 
     if (oldPuzzle.title !== puzzle.title) {
       Meteor.defer(Meteor.bindEnvironment(() => {
-        const docId = ensureDocument(_.extend({ _id: puzzleId }, puzzle), this.userId);
-        if (docId) {
-          const doc = Models.Documents.findOne(docId);
-          renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
-        }
+        const doc = ensureDocument(_.extend({ _id: puzzleId }, puzzle), this.userId);
+        renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
       }));
     }
   },
@@ -161,7 +158,7 @@ Meteor.methods({
     }
   },
 
-  ensureDocument(puzzleId) {
+  ensureDocumentAndPermissions(puzzleId) {
     check(puzzleId, String);
 
     if (!this.userId && this.connection) {
@@ -175,6 +172,11 @@ Meteor.methods({
     }
 
     this.unblock();
-    return ensureDocument(puzzle, this.userId);
+
+    const doc = ensureDocument(puzzle, this.userId);
+    const profile = Models.Profiles.findOne(this.userId);
+    if (profile.googleAccount) {
+      grantPermission(doc.value.id, profile.googleAccount, 'writer');
+    }
   },
 });
