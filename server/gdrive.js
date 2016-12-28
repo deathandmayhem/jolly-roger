@@ -2,54 +2,72 @@
 /* global gdrive: true */
 
 import { Meteor } from 'meteor/meteor';
-import googleapis from 'googleapis';
+import { Random } from 'meteor/random';
 import Ansible from '/imports/ansible.js';
+import googleapis from 'googleapis';
 
+let oauthClient = null;
 gdrive = null;
 
-Meteor.startup(() => {
-  const oauthConfig = ServiceConfiguration.configurations.findOne({ service: 'google' });
-  if (oauthConfig === undefined) {
-    Ansible.log('Disabling gdrive integration because Google OAuth config is not loaded');
+let oauthConfig = null;
+let oauthRefreshToken = null;
+
+let oauthTimer = null;
+
+const createGdriveClient = function createGdriveClient() {
+  if (!oauthConfig || !oauthRefreshToken) {
+    gdrive = null;
     return;
   }
 
-  const oauthClient = new googleapis.auth.OAuth2(
+  // We're throwing away the old client, so reset timers
+  if (oauthTimer) {
+    Meteor.clearTimeout(oauthTimer);
+    oauthTimer = null;
+  }
+
+  oauthClient = new googleapis.auth.OAuth2(
     oauthConfig.clientId,
     oauthConfig.secret,
     OAuth._redirectUri('google', oauthConfig));
 
-  let storedCredentials = {};
+  oauthClient.setCredentials({
+    refresh_token: oauthRefreshToken,
+  });
 
-  // Override _postRequest so we can see if the access token got
-  // refreshed
-  oauthClient._postRequest = Meteor.bindEnvironment(function (err, result, response, callback) {
-    if (storedCredentials.accessToken !== this.credentials.access_token) {
-      Ansible.log('Storing refreshed access token for Google Drive');
-      Models.Settings.update({ name: 'gdrive.credential' }, {
-        $set: {
-          'value.accessToken': this.credentials.access_token,
-          'value.refreshToken': this.credentials.refresh_token,
-          'value.expiresAt': this.credentials.expiry_date,
-        },
-      });
-    }
-
-    callback(err, result, response);
-  }.bind(oauthClient));
-
-  const updateCredentials = function (token) {
-    storedCredentials = token.value;
-
-    oauthClient.setCredentials({
-      access_token: token.value.accessToken,
-      refresh_token: token.value.refreshToken,
-      expiry_date: token.value.expiresAt,
-    });
-  };
-
-  const cursor = Models.Settings.find({ name: 'gdrive.credential' });
-  cursor.observe({ added: updateCredentials, changed: updateCredentials });
+  Ansible.log('Refreshing Google OAuth access token for Google Drive');
+  const credentials = Meteor.wrapAsync(oauthClient.refreshAccessToken, oauthClient)();
+  // Schedule to refresh the token a quarter through its lifecycle
+  // (should be about every 15 minutes), with some jitter
+  const timeout = (credentials.expiry_date - (new Date()).getTime()) / 4;
+  const jitter = 5000 * Random.fraction();
+  oauthTimer = Meteor.setTimeout(createGdriveClient, timeout - jitter);
 
   gdrive = googleapis.drive({ version: 'v3', auth: oauthClient });
+};
+
+const updateOauthConfig = function updateOauthConfig(doc) {
+  oauthConfig = doc;
+  createGdriveClient();
+};
+
+const updateOauthCredentials = function updateOauthCredentials(doc) {
+  oauthRefreshToken = doc.value.refreshToken;
+  createGdriveClient();
+};
+
+Meteor.startup(() => {
+  const oauthConfigCursor = ServiceConfiguration.configurations.find({ service: 'google' });
+  const oauthCredentialsCursor = Models.Settings.find({ name: 'gdrive.credential' });
+  oauthConfigCursor.observe({
+    added: updateOauthConfig,
+    changed: updateOauthConfig,
+    removed: () => updateOauthConfig(null),
+  });
+
+  oauthCredentialsCursor.observe({
+    added: updateOauthCredentials,
+    changed: updateOauthCredentials,
+    removed: () => updateOauthCredentials({ value: {} }),
+  });
 });

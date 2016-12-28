@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
 
 Roles.registerAction('gdrive.credential', true);
@@ -13,13 +12,12 @@ Meteor.methods({
     Roles.checkPermission(this.userId, 'gdrive.credential');
 
     const credential = Google.retrieveCredential(key, secret);
-    const value = _.pick(
-      credential.serviceData,
-      'accessToken', 'refreshToken', 'expiresAt', 'email');
+    const { refreshToken, email } = credential.serviceData;
     Ansible.log('Updating Gdrive creds', {
-      email: credential.serviceData.email,
+      email,
       user: this.userId,
     });
-    Models.Settings.upsert({ name: 'gdrive.credential' }, { $set: { value } });
+    Models.Settings.upsert({ name: 'gdrive.credential' }, {
+      $set: { value: { refreshToken, email } } });
   },
 });
