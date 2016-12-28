@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
+import { ensureDocument, renameDocument } from '/imports/server/gdrive.js';
 // TODO: gdrive, globalHooks
 
 function getOrCreateTagByName(huntId, name) {
@@ -18,38 +19,6 @@ function getOrCreateTagByName(huntId, name) {
     name,
   };
 }
-
-const createDocument = function createDocument(name, mimeType) {
-  const template = Models.Settings.findOne({ name: 'gdrive.template' });
-
-  let file;
-  if (template) {
-    file = Meteor.wrapAsync(gdrive.files.copy)({
-      fileId: template.value.id,
-      resource: { name, mimeType },
-    });
-  } else {
-    file = Meteor.wrapAsync(gdrive.files.create)({
-      resource: { name, mimeType },
-    });
-  }
-
-  const fileId = file.id;
-
-  Meteor.wrapAsync(gdrive.permissions.create)({
-    fileId,
-    resource: { role: 'writer', type: 'anyone' },
-  });
-  return fileId;
-};
-
-const renameDocument = function renameDocument(id, name) {
-  // It's unclear if this can ever return an error
-  Meteor.wrapAsync(gdrive.files.update)({
-    fileId: id,
-    resource: { name },
-  });
-};
 
 Meteor.methods({
   createPuzzle(puzzle) {
@@ -81,7 +50,9 @@ Meteor.methods({
     // The websocket listening for Slack messages should subscribe to that channel.
     // For documents, we should have a documents collection, with a puzzleId, type, and
     // type-specific data.
-    globalHooks.runPuzzleCreatedHooks(puzzleId);
+    Meteor.defer(Meteor.bindEnvironment(() => {
+      globalHooks.runPuzzleCreatedHooks(puzzleId, this.userId);
+    }));
 
     return puzzleId;
   },
@@ -116,11 +87,13 @@ Meteor.methods({
     );
 
     if (oldPuzzle.title !== puzzle.title) {
-      const docId = Meteor.call('ensureDocument', puzzleId);
-      if (docId) {
-        const doc = Models.Documents.findOne(docId);
-        renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
-      }
+      Meteor.defer(Meteor.bindEnvironment(() => {
+        const docId = ensureDocument(_.extend({ _id: puzzleId }, puzzle), this.userId);
+        if (docId) {
+          const doc = Models.Documents.findOne(docId);
+          renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
+        }
+      }));
     }
   },
 
@@ -202,40 +175,6 @@ Meteor.methods({
     }
 
     this.unblock();
-    let doc = Models.Documents.findOne({ puzzle: puzzleId });
-    if (!doc) {
-      if (!gdrive) {
-        throw new Meteor.Error(500, 'Google OAuth is not configured.');
-      }
-
-      Models.Locks.withLock(`puzzle:${puzzleId}:documents`, () => {
-        doc = Models.Documents.findOne({ puzzle: puzzleId });
-        if (!doc) {
-          Ansible.log('Creating missing document for puzzle', {
-            puzzle: puzzleId,
-            user: this.userId,
-          });
-
-          try {
-            const docId = createDocument(
-              `${puzzle.title}: Death and Mayhem`,
-              'application/vnd.google-apps.spreadsheet'
-              );
-            doc = {
-              hunt: puzzle.hunt,
-              puzzle: puzzleId,
-              type: 'google-spreadsheet',
-              value: { id: docId },
-            };
-            doc._id = Models.Documents.insert(doc);
-          } catch (e) {
-            // Don't totally explode if document creation fails
-            Ansible.log('Failed to create a document!', { error: e.message });
-          }
-        }
-      });
-    }
-
-    return doc ? doc._id : null;
+    return ensureDocument(puzzle, this.userId);
   },
 });
