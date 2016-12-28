@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
-import { ensureDocument, renameDocument } from '/imports/server/gdrive.js';
+import { ensureDocument, renameDocument, grantPermission } from '/imports/server/gdrive.js';
 // TODO: gdrive, globalHooks
 
 function getOrCreateTagByName(huntId, name) {
@@ -161,7 +161,7 @@ Meteor.methods({
     }
   },
 
-  ensureDocument(puzzleId) {
+  ensureDocumentAndPermissions(puzzleId) {
     check(puzzleId, String);
 
     if (!this.userId && this.connection) {
@@ -175,6 +175,16 @@ Meteor.methods({
     }
 
     this.unblock();
-    return ensureDocument(puzzle, this.userId);
+
+    const docId = ensureDocument(puzzle, this.userId);
+    if (!docId) {
+      return;
+    }
+
+    const doc = Models.Documents.findOne(docId);
+    const profile = Models.Profiles.findOne(this.userId);
+    if (profile.googleAccount) {
+      grantPermission(doc.value.id, profile.googleAccount, 'writer');
+    }
   },
 });

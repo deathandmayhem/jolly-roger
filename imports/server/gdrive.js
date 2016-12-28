@@ -33,6 +33,18 @@ const renameDocument = function renameDocument(id, name) {
   });
 };
 
+const grantPermission = function grantPermission(id, email, permission) {
+  Meteor.wrapAsync(gdrive.permissions.create)({
+    fileId: id,
+    sendNotificationEmail: false,
+    resource: {
+      type: 'user',
+      emailAddress: email,
+      role: permission,
+    },
+  });
+};
+
 const ensureDocument = function ensureDocument(puzzle) {
   let doc = Models.Documents.findOne({ puzzle: puzzle._id });
   if (!doc) {
@@ -70,4 +82,4 @@ const ensureDocument = function ensureDocument(puzzle) {
   return doc ? doc._id : null;
 };
 
-export { createDocument, renameDocument, ensureDocument };
+export { createDocument, renameDocument, grantPermission, ensureDocument };
