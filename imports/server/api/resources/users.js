@@ -35,6 +35,7 @@ const renderUser = function renderUser(user, profile) {
     primaryEmail: user.emails[0].address,
     googleAccount: profile.googleAccount,
     active,
+    operator: Roles.userHasRole(user._id, 'admin'),
   };
 };
 
