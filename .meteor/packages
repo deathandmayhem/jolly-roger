@@ -36,3 +36,4 @@ standard-minifier-js@1.2.1
 react-meteor-data
 fourseven:scss
 shell-server
+meteorhacks:kadira
