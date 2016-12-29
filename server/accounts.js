@@ -34,6 +34,9 @@ const summaryFromLoginInfo = function (info) {
 };
 
 Accounts.onLogin((info) => {
+  // Capture login time
+  Meteor.users.update(info.user._id, { $set: { lastLogin: new Date() } });
+
   if (info.type === 'resume') {
     return;
   }
