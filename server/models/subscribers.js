@@ -94,6 +94,7 @@ const cleanup = function () {
   const deadServers = Models.Servers.find({ updatedAt: { $lt: timeout } })
           .map((server) => server._id);
   Models.Subscribers.remove({ server: { $in: deadServers } });
+  Models.Servers.remove({ _id: { $in: deadServers } });
 };
 
 const periodic = function () {
