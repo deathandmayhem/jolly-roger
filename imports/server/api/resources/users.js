@@ -5,7 +5,11 @@ import express from 'express';
 
 const router = new express.Router();
 
-const findUserByGoogleEmail = function findUserByGoogleEmail(email) {
+const findUserByEmail = function findUserByEmail(email) {
+  // We have two ways of finding a user: either by the email address
+  // they registered with, or by the Google account they've
+  // linked. Try both.
+
   const profile = Models.Profiles.findOne({ googleAccount: email });
   if (profile) {
     return { profile, user: Meteor.users.findOne(profile._id) };
@@ -37,7 +41,7 @@ const renderUser = function renderUser(user, profile) {
 router.get('/:email', (req, res) => {
   check(req.params.email, String);
 
-  const { user, profile } = findUserByGoogleEmail(req.params.email);
+  const { user, profile } = findUserByEmail(req.params.email);
   if (!user) {
     res.sendStatus(404);
     return;
