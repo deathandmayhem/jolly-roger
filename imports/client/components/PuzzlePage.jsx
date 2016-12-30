@@ -414,7 +414,7 @@ const PuzzlePageMetadata = React.createClass({
     const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
     return {
       viewCount: count ? count.value : 0,
-      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     };
   },
 

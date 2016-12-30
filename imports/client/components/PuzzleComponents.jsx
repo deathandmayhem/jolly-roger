@@ -268,7 +268,7 @@ const Puzzle = React.createClass({
     return {
       viewCount: count ? count.value : 0,
       allTags: Models.Tags.find().fetch(),
-      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     };
   },
 
