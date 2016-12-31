@@ -63,7 +63,7 @@ const SlackHooks = {
     if (hunt.puzzleHooksSlackChannel) {
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
       // eslint-disable-next-line max-len
-      const message = `We solved a puzzle! The answer to <${url}|${puzzle.title}> is ${puzzle.answer}`;
+      const message = `We solved a puzzle! The answer to <${url}|${puzzle.title}> is \`${puzzle.answer}\``;
       postSlackMessage(message, hunt.puzzleHooksSlackChannel, 'jolly-roger');
     }
   },
