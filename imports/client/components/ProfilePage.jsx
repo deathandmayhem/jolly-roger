@@ -316,7 +316,7 @@ const OwnProfilePage = React.createClass({
             onChange={this.handleSlackHandleFieldChange}
           />
           <BS.HelpBlock>
-            So we can connect your chat there with your account here.
+            So we can connect your chat there with your account here. If you haven't signed up for a Slack account yet, there should be a notification in the top-right that you can use to get an invite. (Slack handles contain letters, numbers, periods, and underscores. You don't need the leading <code>@</code>.)
           </BS.HelpBlock>
         </BS.FormGroup>
 
