@@ -2,12 +2,44 @@ import crypto from 'crypto';
 
 import _ from 'underscore';
 import meteorDown from '@avital/meteor-down';
+import OptionParser from 'option-parser';
 import denodeify from 'denodeify';
 import prompt from 'prompt';
 
 /* eslint-disable no-param-reassign,no-console */
 
 const Down = class Down {
+  parseArgs() {
+    const parser = new OptionParser();
+    parser.addOption('h', 'help', 'Display this help message')
+      .action(parser.helpAction());
+    parser.addOption(
+      null,
+      'hunt',
+      'Hunt to load test (defaults to most recent hunt user is joined to)',
+      'hunt')
+      .argument('HUNT');
+    parser.addOption(
+      null,
+      'concurrency',
+      'Number of parallel workers (defaults to 10)',
+      'concurrency')
+      .argument('CONCURRENCY');
+    parser.addOption(
+      null,
+      'server',
+      'URL of the server to load test (defaults to http://localhost:3000)',
+      'server')
+      .argument('SERVER');
+    parser.parse();
+
+    this.options = {
+      hunt: parser.hunt.value(),
+      concurrency: parser.concurrency.value() || 10,
+      server: parser.server.value() || 'http://localhots:3000',
+    };
+  }
+
   async collectLoginInfo() {
     const schema = {
       properties: {
@@ -41,6 +73,23 @@ const Down = class Down {
     }
   }
 
+  async selectHunt(Meteor, user) {
+    if (this.options.hunt) {
+      return this.options.hunt;
+    }
+
+    // Technically we don't subscribe to this, but it's hard to pick a
+    // hunt to dig into without first viewing them
+    await Meteor.subscribe('mongo.hunts');
+
+    return _.chain(Meteor.collections.users[user].hunts)
+      .map(h => Meteor.collections.jr_hunts[h])
+      .compact()
+      .max(h => h.createdAt)
+      .value()
+      ._id;
+  }
+
   async session(Meteor) {
     Meteor.call = denodeify(Meteor.call);
     Meteor.subscribe = denodeify(Meteor.subscribe);
@@ -68,16 +117,7 @@ const Down = class Down {
       ['huntMembership'],
     ]);
 
-    // Technically we don't subscribe to this, but it's hard to pick a
-    // hunt to dig into without first viewing them
-    await Meteor.subscribe('mongo.hunts');
-
-    const hunt = _.chain(Meteor.collections.users[user].hunts)
-            .map(h => Meteor.collections.jr_hunts[h])
-            .compact()
-            .max(h => h.createdAt)
-            .value()
-            ._id;
+    const hunt = await this.selectHunt(Meteor, user);
 
     // And this is everything independent of puzzle being viewed
     await Meteor.subscribeAll([
@@ -111,21 +151,22 @@ const Down = class Down {
   }
 
   async main() {
+    this.parseArgs();
     await this.collectLoginInfo();
 
     meteorDown.init(async (Meteor) => {
       try {
         await this.session(Meteor);
       } catch (e) {
-        console.log('Error running test', e.message);
+        console.log(`Error running test: ${e.stack}`);
       } finally {
         Meteor.kill();
       }
     });
 
     meteorDown.run({
-      concurrency: process.argv[2] || 10,
-      url: process.argv[3] || 'http://localhost:3000',
+      concurrency: this.options.concurrency,
+      url: this.options.server,
     });
   }
 };
