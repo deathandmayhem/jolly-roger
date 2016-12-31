@@ -172,8 +172,29 @@ Meteor.methods({
 
     const doc = ensureDocument(puzzle, this.userId);
     const profile = Models.Profiles.findOne(this.userId);
-    if (profile.googleAccount) {
-      grantPermission(doc.value.id, profile.googleAccount, 'writer');
+    if (!profile.googleAccount) {
+      return;
+    }
+
+    const perm = {
+      document: doc._id,
+      user: this.userId,
+      googleAccount: profile.googleAccount,
+    };
+    if (Models.DocumentPermissions.findOne(perm, { fields: { _id: 1 } })) {
+      return;
+    }
+
+    Ansible.log('Granting permissions to document', perm);
+    grantPermission(doc.value.id, profile.googleAccount, 'writer');
+
+    try {
+      Models.DocumentPermissions.insert(perm);
+    } catch (e) {
+      // 11000 is a duplicate key error
+      if (e.name !== 'MongoError' || e.code !== 11000) {
+        throw e;
+      }
     }
   },
 });
