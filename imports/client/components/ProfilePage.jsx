@@ -182,6 +182,17 @@ const OwnProfilePage = React.createClass({
     };
   },
 
+  getSlackHandleValidationState() {
+    if (!this.state.slackHandleValue) {
+      return null;
+    }
+
+    const valid = Schemas.Profiles.namedContext().validateOne({
+      slackHandle: this.state.slackHandleValue,
+    }, 'slackHandle');
+    return valid ? 'success' : 'error';
+  },
+
   handleDisplayNameFieldChange(e) {
     this.setState({
       displayNameValue: e.target.value,
@@ -304,7 +315,7 @@ const OwnProfilePage = React.createClass({
           </BS.HelpBlock>
         </BS.FormGroup>
 
-        <BS.FormGroup>
+        <BS.FormGroup validationState={this.getSlackHandleValidationState()}>
           <BS.ControlLabel htmlFor="jr-profile-edit-slack">
             Slack handle (optional)
           </BS.ControlLabel>
