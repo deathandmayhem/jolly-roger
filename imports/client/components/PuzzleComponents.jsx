@@ -500,17 +500,10 @@ const Tag = React.createClass({
   displayName: 'Tag',
   propTypes: {
     tag: React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
-    onClick: React.PropTypes.func,
     onRemove: React.PropTypes.func, // if present, show a dismiss button
   },
 
   mixins: [PureRenderMixin],
-
-  onClick() {
-    if (this.props.onClick) {
-      this.props.onClick();
-    }
-  },
 
   onRemove() {
     if (this.props.onRemove) {
@@ -527,6 +520,10 @@ const Tag = React.createClass({
       background: '#dddddd',
       color: '#000000',
     },
+    link: {
+      color: '#000000',
+      textDecoration: 'none',
+    },
     meta: {
       background: '#ffd57f',
     },
@@ -541,9 +538,6 @@ const Tag = React.createClass({
     },
     priority: {
       background: '#aaaaff',
-    },
-    interactive: {
-      cursor: 'pointer',
     },
   },
 
@@ -562,11 +556,16 @@ const Tag = React.createClass({
       isMetaFor && this.styles.metaFor,
       isNeeds && this.styles.needs,
       isPriority && this.styles.priority,
-      this.props.onClick && this.styles.interactive,
     );
     return (
-      <div className="tag" style={styles} onClick={this.onClick}>
-        {name}
+      <div className="tag" style={styles}>
+        <Link
+          to={`/hunts/${this.props.tag.hunt}/puzzles`}
+          query={{ q: this.props.tag.name }}
+          style={this.styles.link}
+        >
+          {name}
+        </Link>
         {this.props.onRemove && <BS.Button bsSize="xsmall" bsStyle="danger" onClick={this.onRemove}>X</BS.Button>}
       </div>
     );
