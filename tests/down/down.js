@@ -43,7 +43,7 @@ const Down = class Down {
       hunt: parser.hunt.value(),
       puzzle: parser.puzzle.value(),
       concurrency: parser.concurrency.value() || 10,
-      server: parser.server.value() || 'http://localhots:3000',
+      server: parser.server.value() || 'http://localhost:3000',
     };
   }
 
