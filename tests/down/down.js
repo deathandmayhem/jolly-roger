@@ -21,6 +21,12 @@ const Down = class Down {
       .argument('HUNT');
     parser.addOption(
       null,
+      'puzzle',
+      'Puzzle to load test (defaults to randomly selecting an unsolved puzzle in each session)',
+      'puzzle')
+      .argument('PUZZLE');
+    parser.addOption(
+      null,
       'concurrency',
       'Number of parallel workers (defaults to 10)',
       'concurrency')
@@ -35,6 +41,7 @@ const Down = class Down {
 
     this.options = {
       hunt: parser.hunt.value(),
+      puzzle: parser.puzzle.value(),
       concurrency: parser.concurrency.value() || 10,
       server: parser.server.value() || 'http://localhots:3000',
     };
@@ -73,19 +80,36 @@ const Down = class Down {
     }
   }
 
-  async selectHunt(Meteor, user) {
+  selectHunt(Meteor, user) {
     if (this.options.hunt) {
+      if (!Meteor.collections.jr_hunts[this.options.hunt]) {
+        throw new RangeError(`Hunt ${this.options.hunt} does not exist`);
+      }
+
       return this.options.hunt;
     }
-
-    // Technically we don't subscribe to this, but it's hard to pick a
-    // hunt to dig into without first viewing them
-    await Meteor.subscribe('mongo.hunts');
 
     return _.chain(Meteor.collections.users[user].hunts)
       .map(h => Meteor.collections.jr_hunts[h])
       .compact()
       .max(h => h.createdAt)
+      .value()
+      ._id;
+  }
+
+  selectPuzzle(Meteor) {
+    if (this.options.puzzle) {
+      if (!Meteor.collections.jr_puzzles[this.options.puzzle]) {
+        throw new RangeError(`Hunt ${this.options.puzzle} does not exist`);
+      }
+
+      return this.options.puzzle;
+    }
+
+    return _.chain(Meteor.collections.jr_puzzles)
+      .values()
+      .filter(p => !p.answer)
+      .sample()
       .value()
       ._id;
   }
@@ -115,9 +139,12 @@ const Down = class Down {
       ['mongo.pending_announcements', { user }],
       ['mongo.profiles', { _id: user }],
       ['huntMembership'],
+      // Technically we don't subscribe to this, but it's hard to pick
+      // a hunt to dig into without first viewing them
+      ['mongo.hunts'],
     ]);
 
-    const hunt = await this.selectHunt(Meteor, user);
+    const hunt = this.selectHunt(Meteor, user);
 
     // And this is everything independent of puzzle being viewed
     await Meteor.subscribeAll([
@@ -128,12 +155,7 @@ const Down = class Down {
     ]);
 
     // Open a random, unsolved puzzle
-    const puzzle = _.chain(Meteor.collections.jr_puzzles)
-            .values()
-            .filter(p => !p.answer)
-            .sample()
-            .value()
-            ._id;
+    const puzzle = this.selectPuzzle(Meteor);
 
     // And finally everything that's puzzle specific
     await Meteor.subscribeAll([
