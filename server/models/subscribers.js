@@ -93,6 +93,10 @@ const cleanup = function () {
   const timeout = moment().subtract('120', 'seconds').toDate();
   const deadServers = Models.Servers.find({ updatedAt: { $lt: timeout } })
           .map((server) => server._id);
+  if (deadServers.length === 0) {
+    return;
+  }
+
   Models.Subscribers.remove({ server: { $in: deadServers } });
   Models.Servers.remove({ _id: { $in: deadServers } });
 };
