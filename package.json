@@ -17,6 +17,7 @@
     "express": "^4.14.0",
     "googleapis": "^10.0.0",
     "history": "^2.0.0",
+    "libhoney": "^1.0.0-beta.2",
     "logfmt": "^1.2.0",
     "marked": "^0.3.5",
     "moment": "^2.14.1",

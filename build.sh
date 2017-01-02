@@ -15,7 +15,7 @@ echo "deb https://deb.nodesource.com/node_4.x trusty main" > /etc/apt/sources.li
 
 # Install build deps
 apt-get update
-apt-get install --no-install-recommends -y python python-pip python-dev build-essential debathena-moira-clients kstart curl nodejs
+apt-get install --no-install-recommends -y python python-pip python-dev build-essential debathena-moira-clients kstart curl nodejs git
 
 pip install 'credstash==1.12.0'
 
@@ -32,12 +32,14 @@ find -name node_modules -prune -or -name .eslintrc -print | while read; do
     (cd "$(dirname "$REPLY")" && meteor npm run lint)
 done
 
+git rev-parse HEAD > /built_app/GIT_REVISION
+
 (cd /built_app/bundle/programs/server && npm i)
 cp -a /app/scripts /built_app/scripts
 
 # Cleanup
 rm -rf ~/.meteor /app
-apt-get remove -y python-dev build-essential
+apt-get remove -y python-dev build-essential git
 apt-get autoremove -y
 apt-get clean
 rm -rf /var/lib/apt/lists/*
