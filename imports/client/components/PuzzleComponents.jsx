@@ -258,6 +258,12 @@ const Puzzle = React.createClass({
   },
   mixins: [ReactMeteorData],
 
+  getInitialState() {
+    return {
+      showEditModal: false,
+    };
+  },
+
   onEdit(state, callback) {
     Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
@@ -352,7 +358,13 @@ const Puzzle = React.createClass({
   },
 
   showEditModal() {
-    this.editModalNode.show();
+    if (this.state.showEditModal) {
+      this.modalNode.show();
+    } else {
+      this.setState({
+        showEditModal: true,
+      });
+    }
   },
 
   editButton() {
@@ -395,13 +407,23 @@ const Puzzle = React.createClass({
 
     return (
       <div className="puzzle" style={puzzleStyle}>
-        <PuzzleModalForm
-          ref={(node) => { this.editModalNode = node; }}
-          puzzle={this.props.puzzle}
-          huntId={this.props.puzzle.hunt}
-          tags={this.data.allTags}
-          onSubmit={this.onEdit}
-        />
+        {this.state.showEditModal ?
+          <PuzzleModalForm
+            ref={(node) => {
+              if (node && this.modalNode === undefined) {
+                // Automatically show this node the first time it's created.
+                node.show();
+              }
+
+              this.modalNode = node;
+            }}
+            puzzle={this.props.puzzle}
+            huntId={this.props.puzzle.hunt}
+            tags={this.data.allTags}
+            onSubmit={this.onEdit}
+          /> :
+          null
+        }
         <div className="title" style={layoutStyles.title}>
           {this.editButton()}
           {' '}
