@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import BS from 'react-bootstrap';
-import { Link } from 'react-router';
+import { Link, browserHistory } from 'react-router';
 import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import {
@@ -17,6 +17,7 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 const PuzzleListView = React.createClass({
   displayName: 'PuzzleListView',
   propTypes: {
+    location: React.PropTypes.object,
     huntId: React.PropTypes.string.isRequired,
     canAdd: React.PropTypes.bool.isRequired,
     puzzles: React.PropTypes.arrayOf(
@@ -35,7 +36,6 @@ const PuzzleListView = React.createClass({
     return {
       displayMode: 'group', // One of ['group', 'unlock']
       showSolved: true,
-      searchString: '',
     };
   },
 
@@ -48,7 +48,19 @@ const PuzzleListView = React.createClass({
   },
 
   onSearchStringChange(e) {
-    this.setState({ searchString: e.target.value });
+    this.setSearchString(e.target.value);
+  },
+
+  getSearchString() {
+    return this.props.location.query.q || '';
+  },
+
+  setSearchString(val) {
+    const newQuery = val ? { q: val } : { q: undefined };
+    browserHistory.replace({
+      pathname: this.props.location.pathname,
+      query: _.extend(this.props.location.query, newQuery),
+    });
   },
 
   compileMatcher(searchKeys) {
@@ -80,7 +92,7 @@ const PuzzleListView = React.createClass({
   },
 
   filteredPuzzles(puzzles) {
-    const searchKeys = this.state.searchString.split(' ');
+    const searchKeys = this.getSearchString().split(' ');
     let interestingPuzzles;
 
     if (searchKeys.length === 1 && searchKeys[0] === '') {
@@ -212,7 +224,7 @@ const PuzzleListView = React.createClass({
   },
 
   clearSearch() {
-    this.setState({ searchString: '' });
+    this.setSearchString('');
   },
 
   switchView(newMode) {
@@ -317,7 +329,7 @@ const PuzzleListView = React.createClass({
               type="text"
               inputRef={(node) => { this.searchBarNode = node; }}
               placeholder="search by title, answer, or tag"
-              value={this.state.searchString}
+              value={this.getSearchString()}
               onChange={this.onSearchStringChange}
             />
             <BS.InputGroup.Button>
@@ -339,13 +351,22 @@ const PuzzleListPage = React.createClass({
     params: React.PropTypes.shape({
       huntId: React.PropTypes.string.isRequired,
     }).isRequired,
+    location: React.PropTypes.object,
   },
 
   contextTypes: {
     subs: JRPropTypes.subs,
   },
 
+  childContextTypes: {
+    tagsLinkToSearch: React.PropTypes.bool,
+  },
+
   mixins: [ReactMeteorData],
+
+  getChildContext() {
+    return { tagsLinkToSearch: true };
+  },
 
   getMeteorData() {
     if (_.has(huntFixtures, this.props.params.huntId)) {
@@ -380,6 +401,7 @@ const PuzzleListPage = React.createClass({
     } else {
       return (
         <PuzzleListView
+          location={this.props.location}
           huntId={this.props.params.huntId}
           canAdd={this.data.canAdd}
           puzzles={this.data.allPuzzles}
