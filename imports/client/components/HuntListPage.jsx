@@ -4,7 +4,6 @@ import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
 import Ansible from '/imports/ansible.js';
-// import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
@@ -387,11 +386,6 @@ const HuntListPage = React.createClass({
   },
 
   render() {
-    //  Insert mock data from 2015 hunt.
-    // _.each(huntFixtures, (mockData, id) => {
-    //   hunts.push(<MockHunt key={id} hunt={mockData}/>);
-    // });
-
     const body = [];
     if (this.data.ready) {
       const joinedHunts = [];

@@ -3,7 +3,6 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { Link, browserHistory } from 'react-router';
-import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import {
   PuzzleList,
@@ -369,14 +368,6 @@ const PuzzleListPage = React.createClass({
   },
 
   getMeteorData() {
-    if (_.has(huntFixtures, this.props.params.huntId)) {
-      return {
-        ready: true,
-        allPuzzles: huntFixtures[this.props.params.huntId].puzzles,
-        allTags: huntFixtures[this.props.params.huntId].tags,
-      };
-    }
-
     const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
     const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
     const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });

@@ -8,7 +8,6 @@ import { Link } from 'react-router';
 import DocumentTitle from 'react-document-title';
 import marked from 'marked';
 import moment from 'moment';
-import { huntFixtures } from '/imports/fixtures.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import TextareaAutosize from 'react-textarea-autosize';
@@ -737,41 +736,32 @@ const PuzzlePage = React.createClass({
     const profileHandle = this.context.subs.subscribe('mongo.profiles');
     const profiles = (profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id')) || {};
 
-    let puzzlesReady;
+    const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
+    const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
+    const guessesHandle = this.context.subs.subscribe('mongo.guesses', { puzzle: this.props.params.puzzleId });
+    const documentsHandle = this.context.subs.subscribe('mongo.documents', { puzzle: this.props.params.puzzleId });
+    const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
+
+    const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && profileHandle.ready() && viewCountsHandle.ready();
+
     let allPuzzles;
     let allTags;
     let allGuesses;
     let allDocuments;
-    if (_.has(huntFixtures, this.props.params.huntId)) {
-      puzzlesReady = true;
-      allPuzzles = huntFixtures[this.props.params.huntId].puzzles;
-      allTags = huntFixtures[this.props.params.huntId].tags;
+    // There's no sense in doing this expensive computation here if we're still loading data,
+    // since we're not going to render the children.
+    if (puzzlesReady) {
+      allPuzzles = Models.Puzzles.find({ hunt: this.props.params.huntId }).fetch();
+      allTags = Models.Tags.find({ hunt: this.props.params.huntId }).fetch();
+      allGuesses = Models.Guesses.find({ hunt: this.props.params.huntId, puzzle: this.props.params.puzzleId }).fetch();
+
+      // Sort by created at so that the "first" document always has consistent meaning
+      allDocuments = Models.Documents.find({ puzzle: this.props.params.puzzleId }, { sort: { createdAt: 1 } }).fetch();
+    } else {
+      allPuzzles = [];
+      allTags = [];
       allGuesses = [];
       allDocuments = [];
-    } else {
-      const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
-      const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
-      const guessesHandle = this.context.subs.subscribe('mongo.guesses', { puzzle: this.props.params.puzzleId });
-      const documentsHandle = this.context.subs.subscribe('mongo.documents', { puzzle: this.props.params.puzzleId });
-      const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
-
-      puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && profileHandle.ready() && viewCountsHandle.ready();
-
-      // There's no sense in doing this expensive computation here if we're still loading data,
-      // since we're not going to render the children.
-      if (puzzlesReady) {
-        allPuzzles = Models.Puzzles.find({ hunt: this.props.params.huntId }).fetch();
-        allTags = Models.Tags.find({ hunt: this.props.params.huntId }).fetch();
-        allGuesses = Models.Guesses.find({ hunt: this.props.params.huntId, puzzle: this.props.params.puzzleId }).fetch();
-
-        // Sort by created at so that the "first" document always has consistent meaning
-        allDocuments = Models.Documents.find({ puzzle: this.props.params.puzzleId }, { sort: { createdAt: 1 } }).fetch();
-      } else {
-        allPuzzles = [];
-        allTags = [];
-        allGuesses = [];
-        allDocuments = [];
-      }
     }
 
     const chatHandle = this.context.subs.subscribe('mongo.chatmessages', { puzzleId: this.props.params.puzzleId });
