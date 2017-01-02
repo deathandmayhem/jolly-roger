@@ -21,6 +21,12 @@ if [ -z "${KADIRA_APP_SECRET+set}" ]; then
     export KADIRA_APP_SECRET="$(credstash get kadira)"
 fi
 
+if [ -z "${HONEYCOMB_WRITE_KEY+set}" ]; then
+    export HONEYCOMB_WRITE_KEY="$(credstash get honeycomb)"
+fi
+
+export GIT_REVISION="$(cat /built_app/GIT_REVISION)"
+
 credstash get krb5.keytab | openssl base64 -d > /krb5.keytab
 
 exec k5start -U -f /krb5.keytab -- node main.js
