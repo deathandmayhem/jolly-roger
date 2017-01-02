@@ -358,7 +358,15 @@ const PuzzleListPage = React.createClass({
     subs: JRPropTypes.subs,
   },
 
+  childContextTypes: {
+    tagsLinkToSearch: React.PropTypes.bool,
+  },
+
   mixins: [ReactMeteorData],
+
+  getChildContext() {
+    return { tagsLinkToSearch: true };
+  },
 
   getMeteorData() {
     if (_.has(huntFixtures, this.props.params.huntId)) {

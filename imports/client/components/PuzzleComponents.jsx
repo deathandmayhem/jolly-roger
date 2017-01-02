@@ -503,6 +503,10 @@ const Tag = React.createClass({
     onRemove: React.PropTypes.func, // if present, show a dismiss button
   },
 
+  contextTypes: {
+    tagsLinkToSearch: React.PropTypes.bool,
+  },
+
   mixins: [PureRenderMixin],
 
   onRemove() {
@@ -557,8 +561,10 @@ const Tag = React.createClass({
       isNeeds && this.styles.needs,
       isPriority && this.styles.priority,
     );
-    return (
-      <div className="tag" style={styles}>
+
+    let title;
+    if (this.context.tagsLinkToSearch) {
+      title = (
         <Link
           to={`/hunts/${this.props.tag.hunt}/puzzles`}
           query={{ q: this.props.tag.name }}
@@ -566,6 +572,14 @@ const Tag = React.createClass({
         >
           {name}
         </Link>
+      );
+    } else {
+      title = name;
+    }
+
+    return (
+      <div className="tag" style={styles}>
+        {title}
         {this.props.onRemove && <BS.Button bsSize="xsmall" bsStyle="danger" onClick={this.onRemove}>X</BS.Button>}
       </div>
     );
