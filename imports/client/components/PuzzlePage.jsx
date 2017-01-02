@@ -703,6 +703,17 @@ const PuzzlePage = React.createClass({
     // Mark this page as needing fixed, fullscreen layout.
     desiredLayout: 'fullscreen',
   },
+
+  componentWillMount() {
+    Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
+  },
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.params.puzzleId !== this.props.params.puzzleId) {
+      Meteor.call('ensureDocumentAndPermissions', nextProps.params.puzzleId);
+    }
+  },
+
   getMeteorData() {
     // There are some model dependencies that we have to be careful about:
     //
@@ -788,8 +799,6 @@ const PuzzlePage = React.createClass({
     if (!this.data.puzzlesReady) {
       return <span>loading...</span>;
     }
-
-    Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
 
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     return (
