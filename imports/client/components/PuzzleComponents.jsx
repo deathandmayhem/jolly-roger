@@ -75,7 +75,7 @@ const PuzzleModalForm = React.createClass({
   propTypes: {
     huntId: React.PropTypes.string.isRequired,
     puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()),
-    tags: React.PropTypes.arrayOf(
+    tags: React.PropTypes.arrayOf( // All known tags for this hunt
       React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
     ).isRequired,
     onSubmit: React.PropTypes.func.isRequired,
@@ -249,27 +249,54 @@ const PuzzleAnswer = React.createClass({
   },
 });
 
+const SubscriberCount = React.createClass({
+  displayName: 'SubscriberCount',
+  propTypes: {
+    puzzleId: React.PropTypes.string.isRequired,
+  },
+
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzleId}`);
+    return {
+      viewCount: count ? count.value : 0,
+    };
+  },
+
+  render() {
+    const countTooltip = (
+      <BS.Tooltip id={`count-description-${this.props.puzzleId}`}>
+        users currently viewing this puzzle
+      </BS.Tooltip>
+    );
+    return (
+      <BS.OverlayTrigger placement="top" overlay={countTooltip}>
+        <span>({this.data.viewCount})</span>
+      </BS.OverlayTrigger>
+    );
+  },
+});
+
 const Puzzle = React.createClass({
   displayName: 'Puzzle',
   propTypes: {
     puzzle: React.PropTypes.shape(puzzleShape).isRequired,
-    tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+    allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired, // All tags associated with the hunt.
     layout: React.PropTypes.string.isRequired,
+    canUpdate: React.PropTypes.bool.isRequired,
   },
-  mixins: [ReactMeteorData],
+  mixins: [PureRenderMixin],
+
+  getInitialState() {
+    return {
+      showEditModal: false,
+    };
+  },
 
   onEdit(state, callback) {
     Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
-  },
-
-  getMeteorData() {
-    const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
-    return {
-      viewCount: count ? count.value : 0,
-      allTags: Models.Tags.find().fetch(),
-      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
-    };
   },
 
   styles: {
@@ -352,11 +379,17 @@ const Puzzle = React.createClass({
   },
 
   showEditModal() {
-    this.editModalNode.show();
+    if (this.state.showEditModal) {
+      this.modalNode.show();
+    } else {
+      this.setState({
+        showEditModal: true,
+      });
+    }
   },
 
   editButton() {
-    if (this.data.canUpdate) {
+    if (this.props.canUpdate) {
       return (
         <BS.Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
           <BS.Glyphicon glyph="edit" />
@@ -369,8 +402,8 @@ const Puzzle = React.createClass({
   render() {
     // id, title, answer, tags
     const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
-    const tagIndex = _.indexBy(this.props.tags, '_id');
-    const tags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
+    const tagIndex = _.indexBy(this.props.allTags, '_id');
+    const ownTags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
     const layoutStyles = {
       grid: this.styles.gridLayout,
       inline: this.styles.inlineLayout,
@@ -382,26 +415,25 @@ const Puzzle = React.createClass({
       this.props.puzzle.answer ? this.styles.solvedPuzzle : this.styles.unsolvedPuzzle,
     );
 
-    const countTooltip = (
-      <BS.Tooltip id={`count-description-${this.props.puzzle._id}`}>
-        users currently viewing this puzzle
-      </BS.Tooltip>
-    );
-    const countOverlay = (
-      <BS.OverlayTrigger placement="top" overlay={countTooltip}>
-        <span>({this.data.viewCount})</span>
-      </BS.OverlayTrigger>
-    );
-
     return (
       <div className="puzzle" style={puzzleStyle}>
-        <PuzzleModalForm
-          ref={(node) => { this.editModalNode = node; }}
-          puzzle={this.props.puzzle}
-          huntId={this.props.puzzle.hunt}
-          tags={this.data.allTags}
-          onSubmit={this.onEdit}
-        />
+        {this.state.showEditModal ?
+          <PuzzleModalForm
+            ref={(node) => {
+              if (node && this.modalNode === undefined) {
+                // Automatically show this node the first time it's created.
+                node.show();
+              }
+
+              this.modalNode = node;
+            }}
+            puzzle={this.props.puzzle}
+            huntId={this.props.puzzle.hunt}
+            tags={this.props.allTags}
+            onSubmit={this.onEdit}
+          /> :
+          null
+        }
         <div className="title" style={layoutStyles.title}>
           {this.editButton()}
           {' '}
@@ -413,12 +445,12 @@ const Puzzle = React.createClass({
           </div> :
          null}
         <div className="puzzle-view-count" style={layoutStyles.viewCount}>
-          {!this.props.puzzle.answer && countOverlay}
+          {!this.props.puzzle.answer && <SubscriberCount puzzleId={this.props.puzzle._id} />}
         </div>
         <div className="puzzle-answer" style={layoutStyles.answer}>
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
         </div>
-        <TagList puzzleId={this.props.puzzle._id} tags={tags} />
+        <TagList puzzleId={this.props.puzzle._id} tags={ownTags} />
       </div>
     );
   },
@@ -427,9 +459,10 @@ const Puzzle = React.createClass({
 const PuzzleList = React.createClass({
   displayName: 'PuzzleList',
   propTypes: {
-    puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
-    tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+    puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired, // The puzzles to show in this list
+    allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired, // All tags for this hunt, including those not used by any puzzles
     layout: React.PropTypes.string.isRequired,
+    canUpdate: React.PropTypes.bool.isRequired,
   },
   mixins: [PureRenderMixin],
   render() {
@@ -439,7 +472,13 @@ const PuzzleList = React.createClass({
     const puzzles = [];
     for (let i = 0; i < this.props.puzzles.length; i++) {
       const puz = this.props.puzzles[i];
-      puzzles.push(<Puzzle key={puz._id} puzzle={puz} tags={this.props.tags} layout={this.props.layout} />);
+      puzzles.push(<Puzzle
+        key={puz._id}
+        puzzle={puz}
+        allTags={this.props.allTags}
+        layout={this.props.layout}
+        canUpdate={this.props.canUpdate}
+      />);
     }
 
     return (
@@ -766,6 +805,7 @@ const RelatedPuzzleGroup = React.createClass({
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     includeCount: React.PropTypes.bool,
     layout: React.PropTypes.string.isRequired,
+    canUpdate: React.PropTypes.bool.isRequired,
   },
 
   getInitialState() {
@@ -810,7 +850,12 @@ const RelatedPuzzleGroup = React.createClass({
         </div>
         {this.state.collapsed ? null :
           <div style={this.styles.puzzleListWrapper}>
-            <PuzzleList puzzles={sortedPuzzles} tags={this.props.allTags} layout={this.props.layout} />
+            <PuzzleList
+              puzzles={sortedPuzzles}
+              allTags={this.props.allTags}
+              layout={this.props.layout}
+              canUpdate={this.props.canUpdate}
+            />
           </div>}
       </div>
     );
@@ -823,6 +868,7 @@ const RelatedPuzzleGroups = React.createClass({
     activePuzzle: React.PropTypes.shape(puzzleShape).isRequired,
     allPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
+    canUpdate: React.PropTypes.bool.isRequired,
   },
 
   relatedPuzzlesTagInterestingness(tag, metaForTagIfKnown) {
@@ -913,6 +959,7 @@ const RelatedPuzzleGroups = React.createClass({
               allTags={this.props.allTags}
               includeCount
               layout="inline"
+              canUpdate={this.props.canUpdate}
             />
           );
         }) : <span>No tags for this puzzle yet.</span>

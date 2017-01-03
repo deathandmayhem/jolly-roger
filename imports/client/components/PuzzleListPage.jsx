@@ -19,12 +19,13 @@ const PuzzleListView = React.createClass({
     location: React.PropTypes.object,
     huntId: React.PropTypes.string.isRequired,
     canAdd: React.PropTypes.bool.isRequired,
+    canUpdate: React.PropTypes.bool.isRequired,
     puzzles: React.PropTypes.arrayOf(
       React.PropTypes.shape(
         Schemas.Puzzles.asReactPropTypes()
       )
     ).isRequired,
-    tags: React.PropTypes.arrayOf(
+    allTags: React.PropTypes.arrayOf(
       React.PropTypes.shape(
         Schemas.Tags.asReactPropTypes()
       )
@@ -63,7 +64,7 @@ const PuzzleListView = React.createClass({
   },
 
   compileMatcher(searchKeys) {
-    const tagNames = _.indexBy(this.props.tags, '_id');
+    const tagNames = _.indexBy(this.props.allTags, '_id');
     return function (puzzle) {
       // for key in searchKeys:
       //   if key in title or key in answer:
@@ -131,7 +132,7 @@ const PuzzleListView = React.createClass({
 
     const groupsMap = {}; // Maps tag id to list of puzzles holding that tag.
     const ungroupedPuzzles = []; // For collecting puzzles that are not included in any group
-    const tagsByIndex = _.indexBy(this.props.tags, '_id');
+    const tagsByIndex = _.indexBy(this.props.allTags, '_id');
     for (let i = 0; i < filteredPuzzles.length; i++) {
       const puzzle = filteredPuzzles[i];
       let grouped = false;
@@ -254,16 +255,22 @@ const PuzzleListView = React.createClass({
                 key={g.sharedTag._id}
                 sharedTag={g.sharedTag}
                 relatedPuzzles={g.puzzles}
-                allTags={this.props.tags}
+                allTags={this.props.allTags}
                 includeCount={false}
                 layout="grid"
+                canUpdate={this.props.canUpdate}
               />
             );
           } else {
             return (
               <div key="ungrouped" style={{ marginBottom: '16px' }}>
                 <div>Puzzles in no group:</div>
-                <PuzzleList puzzles={g.puzzles} tags={this.props.tags} layout="grid" />
+                <PuzzleList
+                  puzzles={g.puzzles}
+                  allTags={this.props.allTags}
+                  layout="grid"
+                  canUpdate={this.props.canUpdate}
+                />
               </div>
             );
           }
@@ -277,7 +284,7 @@ const PuzzleListView = React.createClass({
       }
       case 'unlock': {
         const puzzles = this.puzzlesByUnlock();
-        bodyComponent = <PuzzleList puzzles={puzzles} tags={this.props.tags} layout="grid" />;
+        bodyComponent = <PuzzleList puzzles={puzzles} allTags={this.props.allTags} layout="grid" canUpdate={this.props.canUpdate} />;
         break;
       }
     }
@@ -288,7 +295,7 @@ const PuzzleListView = React.createClass({
         </div>
         <PuzzleModalForm
           huntId={this.props.huntId}
-          tags={this.props.tags}
+          tags={this.props.allTags}
           ref={(node) => { this.addModalNode = node; }}
           onSubmit={this.onAdd}
         />
@@ -380,6 +387,7 @@ const PuzzleListPage = React.createClass({
       return {
         ready,
         canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
+        canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
         allPuzzles: Models.Puzzles.find({ hunt: this.props.params.huntId }).fetch(),
         allTags: Models.Tags.find({ hunt: this.props.params.huntId }).fetch(),
       };
@@ -395,8 +403,9 @@ const PuzzleListPage = React.createClass({
           location={this.props.location}
           huntId={this.props.params.huntId}
           canAdd={this.data.canAdd}
+          canUpdate={this.data.canUpdate}
           puzzles={this.data.allPuzzles}
-          tags={this.data.allTags}
+          allTags={this.data.allTags}
         />
       );
     }
