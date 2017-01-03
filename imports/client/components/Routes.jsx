@@ -6,7 +6,7 @@ import {
   browserHistory,
 } from 'react-router';
 import DocumentTitle from 'react-document-title';
-import { SubsManager } from 'meteor/meteorhacks:subs-manager';
+import { SubsCache } from 'meteor/ccorcos:subs-cache';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { App } from '/imports/client/components/App.jsx';
 import { AnnouncementsPage } from '/imports/client/components/AnnouncementsPage.jsx';
@@ -31,7 +31,7 @@ const Routes = React.createClass({
 
   getChildContext() {
     if (!this.subs) {
-      this.subs = new SubsManager({ cacheLimit: 20, expireIn: 1 });
+      this.subs = new SubsCache({ cacheLimit: -1, expireAfter: 1 });
     }
 
     return { subs: this.subs };
