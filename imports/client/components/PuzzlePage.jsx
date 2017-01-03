@@ -34,6 +34,7 @@ const RelatedPuzzleSection = React.createClass({
         Schemas.Tags.asReactPropTypes()
       ).isRequired
     ).isRequired,
+    canUpdate: React.PropTypes.bool.isRequired,
   },
   mixins: [PureRenderMixin],
   styles: {
@@ -46,7 +47,12 @@ const RelatedPuzzleSection = React.createClass({
     return (
       <div className="related-puzzles-section" style={this.styles}>
         <div>Related puzzles:</div>
-        <RelatedPuzzleGroups activePuzzle={this.props.activePuzzle} allPuzzles={this.props.allPuzzles} allTags={this.props.allTags} />
+        <RelatedPuzzleGroups
+          activePuzzle={this.props.activePuzzle}
+          allPuzzles={this.props.allPuzzles}
+          allTags={this.props.allTags}
+          canUpdate={this.props.canUpdate}
+        />
       </div>
     );
   },
@@ -311,6 +317,7 @@ const PuzzlePageSidebar = React.createClass({
       ).isRequired
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
+    canUpdate: React.PropTypes.bool.isRequired,
   },
   mixins: [PureRenderMixin],
   styles: {
@@ -329,6 +336,7 @@ const PuzzlePageSidebar = React.createClass({
           activePuzzle={this.props.activePuzzle}
           allPuzzles={this.props.allPuzzles}
           allTags={this.props.allTags}
+          canUpdate={this.props.canUpdate}
         />
         <ChatSection
           chatReady={this.props.chatReady}
@@ -770,6 +778,7 @@ const PuzzlePage = React.createClass({
       displayNames,
       allGuesses,
       allDocuments,
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     };
   },
 
@@ -789,6 +798,7 @@ const PuzzlePage = React.createClass({
             chatReady={this.data.chatReady}
             chatMessages={this.data.chatMessages}
             displayNames={this.data.displayNames}
+            canUpdate={this.data.canUpdate}
           />
           <PuzzlePageContent
             puzzle={activePuzzle}
