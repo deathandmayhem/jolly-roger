@@ -437,6 +437,7 @@ const PuzzlePageMetadata = React.createClass({
     const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
     const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
     const externalLinkComponent = this.props.puzzle.url ? <div className="puzzle-metadata-right"><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div> : null;
+    googleDriveLink = this.props.document && this.props.document.type=="google-spreadsheet" ? "https://docs.google.com/spreadsheets/d/${this.props.document.value.id}" : null;
     return (
       <div className="puzzle-metadata">
         <PuzzleModalForm
@@ -473,6 +474,17 @@ const PuzzlePageMetadata = React.createClass({
               onRemoveTag={this.onRemoveTag}
               linkToSearch={false}
             />
+          </div>
+        </div>
+        <div className="puzzle-metadata-row mobile-only">
+          <div className="puzzle-metadata-left">
+            {googleDriveLink ? (
+              <BS.Button className="puzzle-metadata-gdrive-button" onClick={(event) => {event.preventDefault(); window.open(googleDriveLink);}}> {/*Surely there's a less ridiculous way to do this*/}
+                Open in Google Drive
+              </BS.Button>
+            ) : (
+              "No Google Drive Document Available"
+            )}
           </div>
         </div>
         {/* Activity tracking not implemented yet.

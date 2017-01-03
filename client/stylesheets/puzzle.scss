@@ -202,14 +202,13 @@
 // Puzzle metadata
 .puzzle-metadata {
   flex: none;
-  max-height: 80px;
-  min-height: 64px;
+  padding-bottom:2px;
   overflow: auto;
 }
 
 .puzzle-metadata-row {
   display: block;
-  height: 26px;
+  min-height: 26px;
   line-height: 18px;
   vertical-align: middle;
 }
@@ -237,7 +236,7 @@
   color: #000000;
 }
 
-.puzzle-metadata-guess-button {
+.puzzle-metadata-row button {
   height: 24px;
   padding-top: 2px;
   padding-bottom: 2px;
@@ -264,4 +263,35 @@
   right: 0;
   bottom: 0;
   left: 0;
+}
+
+@media (min-width: 768px) {
+	.mobile-only {display:none;}
+}
+
+/* Mobile Friendly */
+@media screen and (max-width: 767px) {
+	.puzzle-page {
+		flex-direction:column;
+	}
+
+	.sidebar {
+		order:2;
+		max-width:100%;
+		border-right:none;
+		border-top:1px solid black;
+	}
+
+	.related-puzzles-section {
+		display:none;
+	}
+
+	.puzzle-content {
+		order:1;
+		flex:0 0 auto;
+	}
+
+	.puzzle-document {
+		display:none;
+	}
 }
