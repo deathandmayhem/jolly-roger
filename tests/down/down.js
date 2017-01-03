@@ -9,6 +9,10 @@ import prompt from 'prompt';
 /* eslint-disable no-param-reassign,no-console */
 
 const Down = class Down {
+  constructor() {
+    this.sessionCounter = 0;
+  }
+
   parseArgs() {
     const parser = new OptionParser();
     parser.addOption('h', 'help', 'Display this help message')
@@ -33,6 +37,12 @@ const Down = class Down {
       .argument('CONCURRENCY');
     parser.addOption(
       null,
+      'idlers',
+      'Number of workers to open a puzzle and keep it open (defaults to 0)',
+      'idlers')
+      .argument('IDLERS');
+    parser.addOption(
+      null,
       'server',
       'URL of the server to load test (defaults to http://localhost:3000)',
       'server')
@@ -42,9 +52,16 @@ const Down = class Down {
     this.options = {
       hunt: parser.hunt.value(),
       puzzle: parser.puzzle.value(),
-      concurrency: parser.concurrency.value() || 10,
+      concurrency: parseInt(parser.concurrency.value() || 10, 10),
+      idlers: parseInt(parser.idlers.value() || 0, 10),
       server: parser.server.value() || 'http://localhost:3000',
     };
+
+    if (this.options.idlers >= this.options.concurrency) {
+      throw new RangeError(
+        `Can't set idlers to ${this.options.idlers} and concurrency to ` +
+          `${this.options.concurrency}; the load test will deadlock!`);
+    }
   }
 
   async collectLoginInfo() {
@@ -115,6 +132,9 @@ const Down = class Down {
   }
 
   async session(Meteor) {
+    const sessionId = this.sessionCounter;
+    this.sessionCounter += 1;
+
     Meteor.call = denodeify(Meteor.call);
     Meteor.subscribe = denodeify(Meteor.subscribe);
     Meteor.subscribeAll = function subscribeAll(subs) {
@@ -168,8 +188,10 @@ const Down = class Down {
     // Don't block on this method
     Meteor.call('ensureDocumentAndPermissions', puzzle);
 
-    // "Work" on the puzzle for between 1-5 seconds
-    await new Promise(r => setTimeout(r, 1000 + (Math.random() * 4000)));
+    if (sessionId < this.options.idlers - 1) {
+      // Spin forever - only non-idle sessions close/reopen the puzzle
+      await new Promise(() => {});
+    }
   }
 
   async main() {
@@ -194,5 +216,9 @@ const Down = class Down {
 };
 
 if (require.main === module) {
-  new Down().main();
+  new Down().main()
+    .catch((e) => {
+      console.log(e.stack);
+      process.exit(1);
+    });
 }
