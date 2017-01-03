@@ -313,10 +313,10 @@ const Puzzle = React.createClass({
     const tagIndex = _.indexBy(this.props.allTags, '_id');
     const ownTags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
 
-    const puzzleClasses = classnames("puzzle",
-      this.props.puzzle.answer ? "solved" : "unsolved",
-      this.props.layout === "grid" ? "puzzle-grid" : null,
-      this.props.layout === "inline" ? "puzzle-inline" : null,
+    const puzzleClasses = classnames('puzzle',
+      this.props.puzzle.answer ? 'solved' : 'unsolved',
+      this.props.layout === 'grid' ? 'puzzle-grid' : null,
+      this.props.layout === 'inline' ? 'puzzle-inline' : null,
     );
 
     return (
@@ -465,12 +465,12 @@ const Tag = React.createClass({
     const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
     const isNeeds = name.lastIndexOf('needs:', 0) === 0;
     const isPriority = name.lastIndexOf('priority:', 0) === 0;
-    const classNames = classnames("tag",
-      isMeta ? "tag-meta" : null,
-      isGroup ? "tag-group" : null,
-      isMetaFor ? "tag-meta-for" : null,
-      isNeeds ? "tag-needs" : null,
-      isPriority ? "tag-priority" : null,
+    const classNames = classnames('tag',
+      isMeta ? 'tag-meta' : null,
+      isGroup ? 'tag-group' : null,
+      isMetaFor ? 'tag-meta-for' : null,
+      isNeeds ? 'tag-needs' : null,
+      isPriority ? 'tag-priority' : null,
     );
 
     let title;

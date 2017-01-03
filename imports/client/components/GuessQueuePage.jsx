@@ -75,7 +75,7 @@ const GuessBlock = React.createClass({
     );
 
     return (
-      <div className={classnames("guess", `guess-${guess.state}`)}>
+      <div className={classnames('guess', `guess-${guess.state}`)}>
         <div className="guess-info">
           <div>{timestamp} from {this.props.createdByDisplayName || '<no name given>'}</div>
           <div>Puzzle: <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a> (<Link to={`/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`}>discussion</Link>)</div>

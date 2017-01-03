@@ -458,9 +458,9 @@ const PuzzlePageMetadata = React.createClass({
           {externalLinkComponent}
           <div className="puzzle-metadata-left">
             <Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link>
-            {" / "}
+            {' / '}
             <strong>{this.props.puzzle.title}</strong>
-            {" "}
+            {' '}
             {this.editButton()}
             {viewCountComponent}
             {answerComponent}
