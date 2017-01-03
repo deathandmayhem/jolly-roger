@@ -1,8 +1,8 @@
 import React from 'react';
-import { SubsManager } from 'meteor/meteorhacks:subs-manager';
+import { SubsCache } from 'meteor/ccorcos:subs-cache';
 
 const JRPropTypes = {
-  subs: React.PropTypes.instanceOf(SubsManager).isRequired,
+  subs: React.PropTypes.instanceOf(SubsCache).isRequired,
 };
 
 export { JRPropTypes };

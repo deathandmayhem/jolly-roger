@@ -18,7 +18,9 @@ boilerplate-generator@1.0.11
 caching-compiler@1.1.9
 caching-html-compiler@1.0.7
 callback-hook@1.0.10
+ccorcos:subs-cache@0.2.1
 check@1.2.4
+coffeescript@1.0.17
 dburles:collection-helpers@1.0.4
 ddp@1.2.5
 ddp-client@1.2.9
@@ -42,6 +44,8 @@ htmljs@1.0.11
 http@1.2.10
 id-map@1.0.9
 jquery@1.11.10
+kadira:debug@3.2.2
+kadira:runtime-dev@0.0.1
 launch-screen@1.0.12
 livedata@1.0.18
 localstorage@1.0.12
@@ -53,7 +57,6 @@ meteorhacks:cluster@1.6.9
 meteorhacks:inject-initial@1.0.4
 meteorhacks:kadira@2.30.3
 meteorhacks:meteorx@1.4.1
-meteorhacks:subs-manager@1.6.4
 meteorhacks:zones@1.6.0
 minifier-css@1.2.15
 minifier-js@1.2.15
