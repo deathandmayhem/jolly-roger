@@ -4,6 +4,9 @@ set -e
 
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 
+# We only have one proxy
+export HTTP_FORWARDED_COUNT=1
+
 export CLUSTER_WORKERS_COUNT=auto
 
 if [ -z "${MONGO_URL+set}" ]; then
