@@ -55,7 +55,7 @@ const RelatedPuzzleSection = React.createClass({
 const ChatMessage = React.createClass({
   propTypes: {
     message: React.PropTypes.shape(Schemas.ChatMessages.asReactPropTypes()).isRequired,
-    sender: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired,
+    senderDisplayName: React.PropTypes.string.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -84,7 +84,7 @@ const ChatMessage = React.createClass({
     return (
       <div style={this.styles.message}>
         <span style={this.styles.time}>{ts}</span>
-        <strong>{this.props.sender.displayName}</strong>
+        <strong>{this.props.senderDisplayName}</strong>
         <span dangerouslySetInnerHTML={{ __html: marked(this.props.message.text, { sanitize: true }) }} />
       </div>
     );
@@ -98,9 +98,7 @@ const ChatHistory = React.createClass({
         Schemas.ChatMessages.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    profiles: React.PropTypes.objectOf(
-      React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired
-    ).isRequired,
+    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -164,11 +162,10 @@ const ChatHistory = React.createClass({
   },
 
   render() {
-    const profiles = this.props.profiles;
     return (
       <div ref={(node) => { this.node = node; }} style={this.styles.messagePane} onScroll={this.onScroll}>
         {this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span>}
-        {this.props.chatMessages.map((msg) => <ChatMessage key={msg._id} message={msg} sender={profiles[msg.sender]} />)}
+        {this.props.chatMessages.map((msg) => <ChatMessage key={msg._id} message={msg} senderDisplayName={this.props.displayNames[msg.sender]} />)}
       </div>
     );
   },
@@ -258,9 +255,7 @@ const ChatSection = React.createClass({
         Schemas.ChatMessages.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    profiles: React.PropTypes.objectOf(
-      React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired
-    ).isRequired,
+    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
     puzzleId: React.PropTypes.string.isRequired,
   },
 
@@ -285,7 +280,7 @@ const ChatSection = React.createClass({
     return (
       <div className="chat-section" style={this.styles}>
         {this.props.chatReady ? null : <span>loading...</span>}
-        <ChatHistory ref={(node) => { this.historyNode = node; }} chatMessages={this.props.chatMessages} profiles={this.props.profiles} />
+        <ChatHistory ref={(node) => { this.historyNode = node; }} chatMessages={this.props.chatMessages} displayNames={this.props.displayNames} />
         <ChatInput
           puzzleId={this.props.puzzleId}
           onHeightChange={this.onInputHeightChange}
@@ -315,9 +310,7 @@ const PuzzlePageSidebar = React.createClass({
         Schemas.ChatMessages.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    profiles: React.PropTypes.objectOf(
-      React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired
-    ).isRequired,
+    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
   },
   mixins: [PureRenderMixin],
   styles: {
@@ -340,7 +333,7 @@ const PuzzlePageSidebar = React.createClass({
         <ChatSection
           chatReady={this.props.chatReady}
           chatMessages={this.props.chatMessages}
-          profiles={this.props.profiles}
+          displayNames={this.props.displayNames}
           puzzleId={this.props.activePuzzle._id}
         />
       </div>
@@ -361,11 +354,7 @@ const PuzzlePageMetadata = React.createClass({
         Schemas.Guesses.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    profiles: React.PropTypes.objectOf(
-      React.PropTypes.shape(
-        Schemas.Profiles.asReactPropTypes()
-      ).isRequired
-    ).isRequired,
+    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
   },
 
   mixins: [ReactMeteorData],
@@ -584,7 +573,7 @@ const PuzzlePageMetadata = React.createClass({
                     <tr key={guess._id}>
                       <td>{guess.guess}</td>
                       <td>{_this.formatDate(guess.createdAt)}</td>
-                      <td>{_this.props.profiles[guess.createdBy].displayName}</td>
+                      <td>{_this.props.displayNames[guess.createdBy]}</td>
                       <td>{guess.state}</td>
                     </tr>
                   );
@@ -639,11 +628,7 @@ const PuzzlePageContent = React.createClass({
         Schemas.Guesses.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    profiles: React.PropTypes.objectOf(
-      React.PropTypes.shape(
-        Schemas.Profiles.asReactPropTypes()
-      ).isRequired
-    ).isRequired,
+    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
     documents: React.PropTypes.arrayOf(
       React.PropTypes.shape(
         Schemas.Documents.asReactPropTypes()
@@ -664,7 +649,7 @@ const PuzzlePageContent = React.createClass({
           puzzle={this.props.puzzle}
           allTags={this.props.allTags}
           guesses={this.props.guesses}
-          profiles={this.props.profiles}
+          displayNames={this.props.displayNames}
         />
         <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
       </div>
@@ -716,13 +701,13 @@ const PuzzlePage = React.createClass({
   getMeteorData() {
     // There are some model dependencies that we have to be careful about:
     //
-    // * We show the displayname of the person who submitted a guess, so guesses depends on profiles
-    // * Chat messages show the displayname of the sender, so chatmessages depends on profiles
-    // * Puzzle metadata needs puzzles, tags, guesses, documents, and profiles.
+    // * We show the displayname of the person who submitted a guess, so guesses depends on display names
+    // * Chat messages show the displayname of the sender, so chatmessages depends on display names
+    // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
     //
     // We can render some things on incomplete data, but most of them really need full data:
-    // * Chat can be rendered with just chat messages and profiles
-    // * Puzzle metadata needs puzzles, tags, documents, guesses, and profiles
+    // * Chat can be rendered with just chat messages and display names
+    // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
     // * Related puzzles probably only needs puzzles and tags, but right now it just gets the same
     //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
 
@@ -733,8 +718,11 @@ const PuzzlePage = React.createClass({
       hunt: this.props.params.huntId,
     });
 
-    const profileHandle = this.context.subs.subscribe('mongo.profiles');
-    const profiles = (profileHandle.ready() && _.indexBy(Models.Profiles.find().fetch(), '_id')) || {};
+    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(this.context.subs);
+    let displayNames = {};
+    if (displayNamesHandle.ready()) {
+      displayNames = Models.Profiles.displayNames();
+    }
 
     const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
     const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
@@ -742,7 +730,7 @@ const PuzzlePage = React.createClass({
     const documentsHandle = this.context.subs.subscribe('mongo.documents', { puzzle: this.props.params.puzzleId });
     const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
 
-    const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && profileHandle.ready() && viewCountsHandle.ready();
+    const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready() && viewCountsHandle.ready();
 
     let allPuzzles;
     let allTags;
@@ -766,9 +754,9 @@ const PuzzlePage = React.createClass({
 
     const chatHandle = this.context.subs.subscribe('mongo.chatmessages', { puzzleId: this.props.params.puzzleId });
 
-    // Chat is not ready until chat messages and profiles have loaded, but doesn't care about any
+    // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
     // other collections.
-    const chatReady = chatHandle.ready() && profileHandle.ready();
+    const chatReady = chatHandle.ready() && displayNamesHandle.ready();
     const chatMessages = (chatReady && Models.ChatMessages.find(
       { puzzleId: this.props.params.puzzleId },
       { sort: { timestamp: 1 } },
@@ -779,7 +767,7 @@ const PuzzlePage = React.createClass({
       allTags,
       chatReady,
       chatMessages,
-      profiles,
+      displayNames,
       allGuesses,
       allDocuments,
     };
@@ -800,13 +788,13 @@ const PuzzlePage = React.createClass({
             allTags={this.data.allTags}
             chatReady={this.data.chatReady}
             chatMessages={this.data.chatMessages}
-            profiles={this.data.profiles}
+            displayNames={this.data.displayNames}
           />
           <PuzzlePageContent
             puzzle={activePuzzle}
             allTags={this.data.allTags}
             guesses={this.data.allGuesses}
-            profiles={this.data.profiles}
+            displayNames={this.data.displayNames}
             documents={this.data.allDocuments}
           />
         </div>

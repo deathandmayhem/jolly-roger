@@ -187,7 +187,7 @@ const AnnouncementMessage = React.createClass({
   propTypes: {
     id: React.PropTypes.string.isRequired,
     announcement: React.PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
-    createdBy: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired,
+    createdByDisplayName: React.PropTypes.string.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -202,7 +202,7 @@ const AnnouncementMessage = React.createClass({
         <MessengerSpinner />
         <MessengerContent dismissable>
           <div dangerouslySetInnerHTML={{ __html: marked(this.props.announcement.message, { sanitize: true }) }} />
-          <footer>- {this.props.createdBy.displayName}, {moment(this.props.announcement.createdAt).calendar()}</footer>
+          <footer>- {this.props.createdByDisplayName}, {moment(this.props.announcement.createdAt).calendar()}</footer>
         </MessengerContent>
         <MessengerDismissButton onDismiss={this.onDismiss} />
       </li>
@@ -242,7 +242,12 @@ const NotificationCenter = React.createClass({
     }
 
     // This is overly broad, but we likely already have the data cached locally
-    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
+    const selfHandle = this.context.subs.subscribe('mongo.profiles', { _id: Meteor.userId() });
+    const displayNamesHandle = this.context.subs.subscribe(
+      'mongo.profiles',
+      {},
+      { fields: { displayName: 1 } }
+    );
     const announcementsHandle = this.context.subs.subscribe('mongo.announcements');
 
     const query = {
@@ -251,7 +256,7 @@ const NotificationCenter = React.createClass({
     const paHandle = this.context.subs.subscribe('mongo.pending_announcements', query);
 
     // Don't even try to put things together until we have the announcements loaded
-    if (!profilesHandle.ready() || !announcementsHandle.ready()) {
+    if (!selfHandle.ready() || !displayNamesHandle.ready() || !announcementsHandle.ready()) {
       return { ready: false };
     }
 
@@ -278,7 +283,7 @@ const NotificationCenter = React.createClass({
       data.announcements.push({
         pa,
         announcement,
-        createdBy: Models.Profiles.findOne(announcement.createdBy),
+        createdByDisplayName: Models.Profiles.findOne(announcement.createdBy).displayName,
       });
     });
 
@@ -323,7 +328,7 @@ const NotificationCenter = React.createClass({
           key={a.pa._id}
           id={a.pa._id}
           announcement={a.announcement}
-          createdBy={a.createdBy}
+          createdByDisplayName={a.createdByDisplayName}
         />
       );
     });
