@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import { Link } from 'react-router';
+import classnames from 'classnames';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
@@ -37,65 +38,6 @@ const GuessBlock = React.createClass({
     puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
   },
 
-  styles: {
-    backgrounds: {
-      pending: {
-        backgroundColor: '#f0f0ff',
-      },
-      correct: {
-        backgroundColor: '#f0fff0',
-      },
-      incorrect: {
-        backgroundColor: '#fff0f0',
-      },
-      rejected: {
-        backgroundColor: '#f0f0f0',
-      },
-    },
-    layout: {
-      marginBottom: '8px',
-      display: 'flex',
-      flexDirection: 'row',
-    },
-    buttonGroup: {
-      flex: '1 1 50%',
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'flex-begin',
-      justifyContent: 'space-between',
-      padding: '8px',
-    },
-    buttons: {
-      pending: {
-        flex: '0 1 20%',
-        backgroundColor: '#f0f0ff',
-        border: '1px solid #0000ff',
-        borderRadius: '5px',
-      },
-      correct: {
-        flex: '0 1 20%',
-        backgroundColor: '#f0fff0',
-        border: '1px solid #00ff00',
-        borderRadius: '5px',
-      },
-      incorrect: {
-        flex: '0 1 20%',
-        backgroundColor: '#fff0f0',
-        border: '1px solid #ff0000',
-        borderRadius: '5px',
-      },
-      rejected: {
-        flex: '0 1 20%',
-        backgroundColor: '#f0f0f0',
-        border: '1px solid #000000',
-        borderRadius: '5px',
-      },
-    },
-    guessInfo: {
-      flex: '1 1 50%',
-    },
-  },
-
   markPending() {
     Meteor.call('markGuessPending', this.props.guess._id);
   },
@@ -122,29 +64,24 @@ const GuessBlock = React.createClass({
 
   render() {
     const guess = this.props.guess;
-    const style = _.extend(
-      {},
-      this.styles.layout,
-      this.styles.backgrounds[guess.state],
-    );
     const timestamp = this.formatDate(guess.createdAt);
     const guessButtons = (
-      <div style={this.styles.buttonGroup}>
-        {guess.state === 'correct' ? <button style={{ flex: '0 1 20%', border: '0px', backgroundColor: 'transparent' }} disabled>Correct</button> : <button style={this.styles.buttons.correct} onClick={this.markCorrect}>Mark correct</button>}
-        {guess.state === 'incorrect' ? <button style={{ flex: '0 1 20%', border: '0px', backgroundColor: 'transparent' }} disabled>Incorrect</button> : <button style={this.styles.buttons.incorrect} onClick={this.markIncorrect}>Mark incorrect</button>}
-        {guess.state === 'pending' ? <button style={{ flex: '0 1 20%', border: '0px', backgroundColor: 'transparent' }} disabled>Pending</button> : <button style={this.styles.buttons.pending} onClick={this.markPending}>Mark pending</button>}
-        {guess.state === 'rejected' ? <button style={{ flex: '0 1 20%', border: '0px', backgroundColor: 'transparent' }} disabled>Rejected</button> : <button style={this.styles.buttons.rejected} onClick={this.markRejected}>Mark rejected</button>}
+      <div className="guess-button-group">
+        {guess.state === 'correct' ? <button className="guess-button guess-button-disabled" disabled>Correct</button> : <button className="guess-button guess-button-correct" onClick={this.markCorrect}>Mark correct</button>}
+        {guess.state === 'incorrect' ? <button className="guess-button guess-button-disabled" disabled>Incorrect</button> : <button className="guess-button guess-button-incorrect" onClick={this.markIncorrect}>Mark incorrect</button>}
+        {guess.state === 'pending' ? <button className="guess-button guess-button-disabled" disabled>Pending</button> : <button className="guess-button guess-button-pending" onClick={this.markPending}>Mark pending</button>}
+        {guess.state === 'rejected' ? <button className="guess-button guess-button-disabled" disabled>Rejected</button> : <button className="guess-button guess-button-rejected" onClick={this.markRejected}>Mark rejected</button>}
       </div>
     );
 
     return (
-      <div style={style}>
-        <div style={this.styles.guessInfo}>
+      <div className={classnames('guess', `guess-${guess.state}`)}>
+        <div className="guess-info">
           <div>{timestamp} from {this.props.createdByDisplayName || '<no name given>'}</div>
           <div>Puzzle: <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a> (<Link to={`/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`}>discussion</Link>)</div>
           <div><AutoSelectInput value={guess.guess} /></div>
         </div>
-        {this.props.canEdit ? guessButtons : <div style={this.styles.buttonGroup}>{guess.state}</div>}
+        {this.props.canEdit ? guessButtons : <div className="guess-button-group">{guess.state}</div>}
       </div>
     );
   },

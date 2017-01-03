@@ -1,0 +1,251 @@
+// Puzzle components helper styles
+// Puzzle lists/tables
+.puzzle-group {
+  margin-bottom: 16px;
+}
+
+.puzzle-group-header {
+  display: block;
+}
+
+.puzzle-list-wrapper {
+  padding-left: 16px;
+}
+
+.puzzle {
+  margin-bottom: 4px;
+  vertical-align: top;
+
+  &.unsolved {
+    background-color: #f0f0f0;
+  }
+
+  &.solved {
+    background-color: #dfffdf;
+  }
+}
+
+.puzzle-grid {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-start;
+
+  .puzzle-title {
+    flex: 0 0 25%;
+    display: inline-block;
+    padding: 2px;
+    margin: 2px;
+    vertical-align: top;
+    word-wrap: break-word;
+    font-weight: bold;
+  }
+
+  .puzzle-link {
+    flex: 0 0 10%;
+    display: inline-block;
+    padding: 2px;
+    margin: 2px;
+    vertical-align: top;
+  }
+
+  .puzzle-view-count {
+    flex: 0 0 5%;
+    display: inline-block;
+  }
+
+  .puzzle-answer {
+    flex: 0 0 20%;
+    display: inline-block;
+    word-wrap: break-word;
+  }
+}
+
+.puzzle-inline {
+  display: block;
+  .puzzle-title {
+    display: inline-block;
+    padding: 2px;
+    margin: 2px;
+    vertical-align: top;
+    font-weight: bold;
+  }
+
+  .puzzle-view-count {
+    display: inline-block;
+    padding: 2px;
+    margin: 2px;
+    vertical-align: top;
+  }
+
+  .puzzle-answer {
+    display: inline-block;
+    vertical-align: top;
+  }
+}
+
+.answer-wrapper {
+  display: inline-block;
+  vertical-align: top;
+  padding: 2px;
+  margin: 2px;
+}
+
+.answer {
+  text-transform: uppercase;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+// Tags
+.tag-list {
+  display: inline;
+}
+
+.tag {
+  display: inline-block;
+  margin: 2px;
+  padding: 2px;
+  border-radius: 2px;
+  background-color: #ddd;
+  color: #000;
+  &.tag-meta {
+    background-color: #ffd57f;
+  }
+  &.tag-group {
+    background-color: #7fffff;
+  }
+  &.tag-meta-for {
+    background-color: #ffb0b0;
+  }
+  &.tag-needs {
+    background-color: #ff4040;
+  }
+  &.tag-priority {
+    background-color: #aaaaff;
+  }
+}
+
+.tag-link, .tag-link:active, .tag-link:focus, .tag-link:hover {
+  color: #000000;
+  text-decoration: none;
+}
+
+.tag-modify-link-button {
+  // Override some bootstrap sizes/paddings to make this button fit in the row better.
+  height: 24px;
+  padding: 2px;
+  display: inline-block;
+}
+
+////////////
+// Puzzle page styles
+.puzzle-page {
+  display: flex;
+  flex-direction: row;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+}
+
+.puzzle-content {
+  flex: 4 4 80%;
+  vertical-align: top;
+  display: flex;
+  flex-direction: column;
+}
+
+// Related puzzles section
+.related-puzzles-section {
+  height: 40%;
+  overflow-y: auto;
+  border-bottom: 1px solid #111111;
+}
+
+// Chat
+.chat-section {
+  flex: 1 1 50%;
+  min-height: 30vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-history {
+  flex: auto;
+  overflow-y: auto;
+}
+
+.chat-message {
+  background-color: #f8f8f8;
+  margin-bottom: 1px;
+  word-wrap: break-word;
+}
+
+.chat-timestamp {
+  float: right;
+  font-style: italic;
+  margin-right: 2px;
+}
+
+// Puzzle metadata
+.puzzle-metadata {
+  flex: none;
+  max-height: 80px;
+  min-height: 64px;
+  overflow: auto;
+}
+
+.puzzle-metadata-row {
+  display: block;
+  height: 26px;
+  line-height: 18px;
+  vertical-align: middle;
+}
+
+.puzzle-metadata-left {
+  padding: 4px;
+}
+
+.puzzle-metadata-right {
+  float: right;
+  clear: none;
+  margin: 4px;
+}
+
+.puzzle-metadata-tags {
+  display: inline-block;
+  height: 24px;
+}
+
+.puzzle-metadata-answer {
+  display: inline-block;
+  padding: 2px;
+  border-radius: 2px;
+  background-color: #00ff00;
+  color: #000000;
+}
+
+.puzzle-metadata-guess-button {
+  height: 24px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.puzzle-document {
+  width: 100%;
+  height: 100%;
+  flex: auto;
+}
+
+.puzzle-document-message {
+  background-color: #ddddff;
+}
+
+.google-spreadsheet {
+  width: 100%;
+  height: 100%;
+}

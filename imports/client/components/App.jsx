@@ -84,10 +84,10 @@ const FullscreenLayout = React.createClass({
       <div>
         <NotificationCenter />
         <SharedNavbar {...props} />
-        <div style={{ position: 'fixed', top: '50px', left: '0px', right: '0px', zIndex: '1' }}>
+        <div className="connection-status-fullscreen">
           <ConnectionStatus />
         </div>
-        <div style={{ position: 'fixed', top: '50px', bottom: '0px', left: '0px', right: '0px' }}>
+        <div className="app-content-fullscreen">
           {children}
         </div>
       </div>
@@ -106,7 +106,7 @@ const ScrollableLayout = React.createClass({
       <div>
         <NotificationCenter />
         <SharedNavbar {...props} />
-        <div className="container" style={{ paddingTop: '70px' }}>
+        <div className="container app-content-scrollable">
           <ConnectionStatus />
           {children}
         </div>

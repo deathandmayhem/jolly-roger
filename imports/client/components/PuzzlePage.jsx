@@ -37,15 +37,9 @@ const RelatedPuzzleSection = React.createClass({
     canUpdate: React.PropTypes.bool.isRequired,
   },
   mixins: [PureRenderMixin],
-  styles: {
-    height: '40%',
-    overflowY: 'auto',
-    boxSizing: 'border-box',
-    borderBottom: '1px solid #111111',
-  },
   render() {
     return (
-      <div className="related-puzzles-section" style={this.styles}>
+      <div className="related-puzzles-section">
         <div>Related puzzles:</div>
         <RelatedPuzzleGroups
           activePuzzle={this.props.activePuzzle}
@@ -66,20 +60,6 @@ const ChatMessage = React.createClass({
 
   mixins: [PureRenderMixin],
 
-  styles: {
-    message: {
-      // TODO: pick background color based on hashing userid or something?
-      backgroundColor: '#f8f8f8',
-      marginBottom: '1px',
-      wordWrap: 'break-word',
-    },
-    time: {
-      float: 'right',
-      fontStyle: 'italic',
-      marginRight: '2px',
-    },
-  },
-
   render() {
     const ts = moment(this.props.message.timestamp).calendar(null, {
       sameDay: 'LT',
@@ -88,8 +68,8 @@ const ChatMessage = React.createClass({
     });
 
     return (
-      <div style={this.styles.message}>
-        <span style={this.styles.time}>{ts}</span>
+      <div className="chat-message">
+        <span className="chat-timestamp">{ts}</span>
         <strong>{this.props.senderDisplayName}</strong>
         <span dangerouslySetInnerHTML={{ __html: marked(this.props.message.text, { sanitize: true }) }} />
       </div>
@@ -160,16 +140,9 @@ const ChatHistory = React.createClass({
     this.shouldScroll = true;
   },
 
-  styles: {
-    messagePane: {
-      flex: 'auto',
-      overflowY: 'auto',
-    },
-  },
-
   render() {
     return (
-      <div ref={(node) => { this.node = node; }} style={this.styles.messagePane} onScroll={this.onScroll}>
+      <div ref={(node) => { this.node = node; }} className="chat-history" onScroll={this.onScroll}>
         {this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span>}
         {this.props.chatMessages.map((msg) => <ChatMessage key={msg._id} message={msg} senderDisplayName={this.props.displayNames[msg.sender]} />)}
       </div>
@@ -275,16 +248,9 @@ const ChatSection = React.createClass({
     this.historyNode.forceScrollBottom();
   },
 
-  styles: {
-    flex: '1 1 50%',
-    minHeight: '30vh',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-
   render() {
     return (
-      <div className="chat-section" style={this.styles}>
+      <div className="chat-section">
         {this.props.chatReady ? null : <span>loading...</span>}
         <ChatHistory ref={(node) => { this.historyNode = node; }} chatMessages={this.props.chatMessages} displayNames={this.props.displayNames} />
         <ChatInput
@@ -321,6 +287,8 @@ const PuzzlePageSidebar = React.createClass({
   },
   mixins: [PureRenderMixin],
   styles: {
+    // TODO: figure out what portion of this should be done inline vs in CSS so users
+    // can adjust the width of the pane
     flex: '1 1 20%',
     height: '100%',
     maxWidth: '20%',
@@ -459,44 +427,6 @@ const PuzzlePageMetadata = React.createClass({
     return `${day}, ${date.toLocaleTimeString()}`;
   },
 
-  styles: {
-    metadata: {
-      flex: 'none',
-      maxHeight: '80px',
-      minHeight: '64px',
-      overflow: 'auto',
-    },
-    row: {
-      display: 'block',
-      height: '26px',
-      lineHeight: '18px',
-      verticalAlign: 'middle',
-    },
-    answer: {
-      display: 'inline-block',
-      padding: '2px',
-      borderRadius: '2px',
-      background: '#00FF00',
-      color: '#000000',
-    },
-    left: {
-      padding: '4px',
-    },
-    right: {
-      margin: '4px',
-      float: 'right',
-      clear: 'none',
-    },
-    button: {
-      boxSizing: 'border-box',
-      height: '24px',
-      paddingTop: '2px',
-      paddingBottom: '2px',
-      paddingLeft: '8px',
-      paddingRight: '8px',
-    },
-  },
-
   editButton() {
     if (this.data.canUpdate) {
       return (
@@ -512,10 +442,11 @@ const PuzzlePageMetadata = React.createClass({
     const _this = this;
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
-    const answerComponent = this.props.puzzle.answer ? <span style={this.styles.answer}>{`Solved: ${this.props.puzzle.answer}`}</span> : null;
-    const viewCountComponent = this.props.puzzle.answer ? null : `(viewing ${this.data.viewCount})`;
+    const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">{`Solved: ${this.props.puzzle.answer}`}</span> : null;
+    const viewCountComponent = this.props.puzzle.answer ? null : `(${this.data.viewCount} viewing)`;
+    const externalLinkComponent = this.props.puzzle.url ? <div className="puzzle-metadata-right"><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div> : null;
     return (
-      <div className="puzzle-metadata" style={this.styles.metadata}>
+      <div className="puzzle-metadata">
         <PuzzleModalForm
           ref={(node) => { this.editModalNode = node; }}
           puzzle={this.props.puzzle}
@@ -523,14 +454,26 @@ const PuzzlePageMetadata = React.createClass({
           tags={this.props.allTags}
           onSubmit={this.onEdit}
         />
-        <div style={this.styles.row}>
-          {this.props.puzzle.url && <div style={this.styles.right}><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div>}
-          <div style={this.styles.left}><Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link> / <strong>{this.props.puzzle.title}</strong> {this.editButton()}{viewCountComponent}{answerComponent}</div>
+        <div className="puzzle-metadata-row">
+          {externalLinkComponent}
+          <div className="puzzle-metadata-left">
+            <Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link>
+            {' / '}
+            <strong>{this.props.puzzle.title}</strong>
+            {' '}
+            {this.editButton()}
+            {viewCountComponent}
+            {answerComponent}
+          </div>
         </div>
-        <div style={this.styles.row}>
-          <div style={this.styles.right}><BS.Button style={this.styles.button} onClick={this.showGuessModal}>Submit answer</BS.Button></div>
-          <div style={this.styles.left}>
-            <span style={{ display: 'inline-block', height: '24px' }}>Tags:</span>
+        <div className="puzzle-metadata-row">
+          <div className="puzzle-metadata-right">
+            <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
+              Submit answer
+            </BS.Button>
+          </div>
+          <div className="puzzle-metadata-left">
+            <span className="puzzle-metadata-tags">Tags:</span>
             <TagList
               puzzleId={this.props.puzzle._id}
               tags={tags}
@@ -605,17 +548,25 @@ const PuzzlePageMultiplayerDocument = React.createClass({
 
   render() {
     if (!this.props.document) {
-      return <div style={{ backgroundColor: '#ddddff', flex: 'auto' }}>Attempting to load collaborative document...</div>;
+      return (
+        <div className="puzzle-document puzzle-document-message">
+          Attempting to load collaborative document...
+        </div>
+      );
     }
 
     switch (this.props.document.type) {
       case 'google-spreadsheet': {
         const url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
-        return <iframe style={{ flex: 'auto' }} src={url} />;
+        return (
+          <div className="puzzle-document">
+            <iframe className="google-spreadsheet" style={{ width: '100%', height: '100%' }} src={url} />;
+          </div>
+        );
       }
       default:
         return (
-          <div className="shared-workspace" style={{ backgroundColor: '#ddddff', flex: 'auto' }}>
+          <div className="puzzle-document puzzle-document-message">
             No way to render a document of type {this.props.document.type}
           </div>
         );
@@ -645,6 +596,7 @@ const PuzzlePageContent = React.createClass({
   },
   mixins: [PureRenderMixin],
   styles: {
+    // TODO: figure out what fraction of this can be done in CSS vs JS to support user-resizing
     flex: '4 4 80%',
     verticalAlign: 'top',
     display: 'flex',
@@ -790,7 +742,7 @@ const PuzzlePage = React.createClass({
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
-        <div style={{ display: 'flex', flexDirection: 'row', position: 'absolute', top: '0px', bottom: '0px', left: '0px', right: '0px' }}>
+        <div className="puzzle-page">
           <PuzzlePageSidebar
             activePuzzle={activePuzzle}
             allPuzzles={this.data.allPuzzles}

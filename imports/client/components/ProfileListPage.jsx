@@ -60,7 +60,7 @@ const ProfileList = React.createClass({
     return (
       <div>
         <h1>List of hunters</h1>
-        <div style={{ textAlign: 'right' }}>
+        <div className="profiles-summary">
           <div>Total hunters: {this.props.profiles.length}</div>
         </div>
 

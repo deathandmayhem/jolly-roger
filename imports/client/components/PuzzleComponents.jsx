@@ -4,6 +4,7 @@ import { jQuery } from 'meteor/jquery';
 import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
+import classnames from 'classnames';
 import Ansible from '/imports/ansible.js';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { ModalForm } from '/imports/client/components/ModalForm.jsx';
@@ -16,13 +17,7 @@ import { SubscriberCounters } from '/imports/client/subscribers.js';
 const puzzleShape = Schemas.Puzzles.asReactPropTypes();
 const tagShape = Schemas.Tags.asReactPropTypes();
 
-/*
-const puzzleHasTag = (puzzle, tag) => {
-  return _.contains(puzzle.tags, tag._id);
-};
-*/
-
-const puzzleInterestingness = (puzzle, indexedTags, group) => {
+function puzzleInterestingness(puzzle, indexedTags, group) {
   // If the shared tag for this group is group:<something>, then group will equal '<something>', and
   // we wish to sort a puzzle named 'meta-for:<something>' at the top.
   let desiredTagName;
@@ -47,9 +42,9 @@ const puzzleInterestingness = (puzzle, indexedTags, group) => {
   }
 
   return minScore;
-};
+}
 
-const sortPuzzlesByRelevanceWithinPuzzleGroup = function (puzzles, sharedTag, indexedTags) {
+function sortPuzzlesByRelevanceWithinPuzzleGroup(puzzles, sharedTag, indexedTags) {
   // If sharedTag is a meta:<something> tag, sort a puzzle with a meta-for:<something> tag at top.
   let group;
   if (sharedTag.name.lastIndexOf('group:', 0) === 0) {
@@ -69,9 +64,10 @@ const sortPuzzlesByRelevanceWithinPuzzleGroup = function (puzzles, sharedTag, in
   });
 
   return sortedPuzzles;
-};
+}
 
 const PuzzleModalForm = React.createClass({
+  displayName: 'PuzzleModalForm',
   propTypes: {
     huntId: React.PropTypes.string.isRequired,
     puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()),
@@ -229,22 +225,13 @@ const PuzzleAnswer = React.createClass({
     answer: React.PropTypes.string.isRequired,
   },
   mixins: [PureRenderMixin],
-  styles: {
-    wrapper: {
-      display: 'inline-block',
-      verticalAlign: 'top',
-      padding: '2px',
-      margin: '2px',
-    },
-    answer: {
-      textTransform: 'uppercase',
-      fontFamily: 'monospace',
-      fontWeight: 'bold',
-    },
-  },
   render() {
     return (
-      <span className="answer" style={this.styles.wrapper}><span style={this.styles.answer}>{this.props.answer}</span></span>
+      <span className="answer-wrapper">
+        <span className="answer">
+          {this.props.answer}
+        </span>
+      </span>
     );
   },
 });
@@ -299,85 +286,6 @@ const Puzzle = React.createClass({
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
   },
 
-  styles: {
-    // TODO: turn this horrid mess into CSS
-    puzzle: {
-      marginBottom: '4px',
-      background: '#f0f0f0',
-      verticalAlign: 'top',
-    },
-    unsolvedPuzzle: {
-      background: '#f0f0f0',
-    },
-    solvedPuzzle: {
-      background: '#dfffdf',
-    },
-    gridLayout: {
-      puzzle: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'baseline',
-        justifyContent: 'flex-start',
-      },
-      title: {
-        flex: '0 0 25%',
-        display: 'inline-block',
-        padding: '2px',
-        margin: '2px',
-        verticalAlign: 'top',
-        wordBreak: 'break-word',
-        fontWeight: 'bold',
-      },
-      puzzleLink: {
-        flex: '0 0 10%',
-        display: 'inline-block',
-        padding: '2px',
-        margin: '2px',
-        verticalAlign: 'top',
-      },
-      viewCount: {
-        flex: '0 0 5%',
-        display: 'inline-block',
-        wordBreak: 'break-word',
-      },
-      answer: {
-        flex: '0 0 20%',
-        display: 'inline-block',
-        wordBreak: 'break-word',
-      },
-      tags: {
-        flex: '0 0 40%',
-        display: 'inline-block',
-      },
-    },
-    inlineLayout: {
-      puzzle: {
-        display: 'block',
-      },
-      title: {
-        display: 'inline-block',
-        padding: '2px',
-        margin: '2px',
-        verticalAlign: 'top',
-        fontWeight: 'bold',
-      },
-      viewCount: {
-        display: 'inline-block',
-        padding: '2px',
-        margin: '2px',
-        verticalAlign: 'top',
-      },
-      answer: {
-        display: 'inline-block',
-        verticalAlign: 'top',
-      },
-      tags: {
-        display: 'inline-block',
-        verticalAlign: 'top',
-      },
-    },
-  },
-
   showEditModal() {
     if (this.state.showEditModal) {
       this.modalNode.show();
@@ -404,19 +312,15 @@ const Puzzle = React.createClass({
     const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
     const tagIndex = _.indexBy(this.props.allTags, '_id');
     const ownTags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
-    const layoutStyles = {
-      grid: this.styles.gridLayout,
-      inline: this.styles.inlineLayout,
-    }[this.props.layout];
-    const puzzleStyle = _.extend(
-      {},
-      this.styles.puzzle,
-      layoutStyles.puzzle,
-      this.props.puzzle.answer ? this.styles.solvedPuzzle : this.styles.unsolvedPuzzle,
+
+    const puzzleClasses = classnames('puzzle',
+      this.props.puzzle.answer ? 'solved' : 'unsolved',
+      this.props.layout === 'grid' ? 'puzzle-grid' : null,
+      this.props.layout === 'inline' ? 'puzzle-inline' : null,
     );
 
     return (
-      <div className="puzzle" style={puzzleStyle}>
+      <div className={puzzleClasses}>
         {this.state.showEditModal ?
           <PuzzleModalForm
             ref={(node) => {
@@ -434,20 +338,20 @@ const Puzzle = React.createClass({
           /> :
           null
         }
-        <div className="title" style={layoutStyles.title}>
+        <div className="puzzle-title">
           {this.editButton()}
           {' '}
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
         </div>
         {this.props.layout === 'grid' ?
-          <div className="puzzle-link" style={layoutStyles.puzzleLink}>
+          <div className="puzzle-link">
             {this.props.puzzle.url ? <span>(<a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">puzzle</a>)</span> : null}
           </div> :
          null}
-        <div className="puzzle-view-count" style={layoutStyles.viewCount}>
+        <div className="puzzle-view-count">
           {!this.props.puzzle.answer && <SubscriberCount puzzleId={this.props.puzzle._id} />}
         </div>
-        <div className="puzzle-answer" style={layoutStyles.answer}>
+        <div className="puzzle-answer">
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
         </div>
         <TagList puzzleId={this.props.puzzle._id} tags={ownTags} />
@@ -554,36 +458,6 @@ const Tag = React.createClass({
     }
   },
 
-  styles: {
-    base: {
-      display: 'inline-block',
-      margin: '2px',
-      padding: '2px',
-      borderRadius: '2px',
-      background: '#dddddd',
-      color: '#000000',
-    },
-    link: {
-      color: '#000000',
-      textDecoration: 'none',
-    },
-    meta: {
-      background: '#ffd57f',
-    },
-    metaFor: {
-      background: '#ffb0b0',
-    },
-    group: {
-      background: '#7fffff',
-    },
-    needs: {
-      background: '#ff4040',
-    },
-    priority: {
-      background: '#aaaaff',
-    },
-  },
-
   render() {
     const name = this.props.tag.name;
     const isMeta = name === 'is:meta' || name === 'is:metameta';
@@ -591,14 +465,12 @@ const Tag = React.createClass({
     const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
     const isNeeds = name.lastIndexOf('needs:', 0) === 0;
     const isPriority = name.lastIndexOf('priority:', 0) === 0;
-    const styles = _.extend(
-      {},
-      this.styles.base,
-      isMeta && this.styles.meta,
-      isGroup && this.styles.group,
-      isMetaFor && this.styles.metaFor,
-      isNeeds && this.styles.needs,
-      isPriority && this.styles.priority,
+    const classNames = classnames('tag',
+      isMeta ? 'tag-meta' : null,
+      isGroup ? 'tag-group' : null,
+      isMetaFor ? 'tag-meta-for' : null,
+      isNeeds ? 'tag-needs' : null,
+      isPriority ? 'tag-priority' : null,
     );
 
     let title;
@@ -607,7 +479,7 @@ const Tag = React.createClass({
         <Link
           to={`/hunts/${this.props.tag.hunt}/puzzles`}
           query={{ q: this.props.tag.name }}
-          style={this.styles.link}
+          className="tag-link"
         >
           {name}
         </Link>
@@ -617,7 +489,7 @@ const Tag = React.createClass({
     }
 
     return (
-      <div className="tag" style={styles}>
+      <div className={classNames}>
         {title}
         {this.props.onRemove && <BS.Button bsSize="xsmall" bsStyle="danger" onClick={this.onRemove}>X</BS.Button>}
       </div>
@@ -644,9 +516,6 @@ const TagList = React.createClass({
   },
 
   styles: {
-    base: {
-      display: 'inline',
-    },
     linkButton: {
       // Override some Bootstrap sizes/paddings to make this button fit in the row better.
       height: '24px',
@@ -753,7 +622,7 @@ const TagList = React.createClass({
       components.push(
         <BS.Button
           key="stopRemoving"
-          style={this.styles.linkButton}
+          className="tag-modify-link-button"
           bsStyle="link"
           onClick={this.stopRemoving}
         >
@@ -765,7 +634,7 @@ const TagList = React.createClass({
         components.push(
           <BS.Button
             key="startEditing"
-            style={this.styles.linkButton}
+            className="tag-modify-link-button"
             bsStyle="link"
             onClick={this.startEditing}
           >
@@ -778,7 +647,7 @@ const TagList = React.createClass({
         components.push(
           <BS.Button
             key="startRemoving"
-            style={this.styles.linkButton}
+            className="tag-modify-link-button"
             bsStyle="link"
             onClick={this.startRemoving}
           >
@@ -789,7 +658,7 @@ const TagList = React.createClass({
     }
 
     return (
-      <div className="tag-list" style={this.styles.base}>
+      <div className="tag-list">
         {components}
       </div>
     );
@@ -814,18 +683,6 @@ const RelatedPuzzleGroup = React.createClass({
     };
   },
 
-  styles: {
-    group: {
-      marginBottom: '16px',
-    },
-    tagWrapper: {
-      display: 'block',
-    },
-    puzzleListWrapper: {
-      paddingLeft: '16px',
-    },
-  },
-
   toggleCollapse() {
     this.setState({
       collapsed: !this.state.collapsed,
@@ -840,8 +697,8 @@ const RelatedPuzzleGroup = React.createClass({
     const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(this.props.relatedPuzzles, this.props.sharedTag, tagIndex);
 
     return (
-      <div className="puzzle-group" style={this.styles.group}>
-        <div className="puzzle-group-header" style={this.styles.tagWrapper} onClick={this.toggleCollapse}>
+      <div className="puzzle-group">
+        <div className="puzzle-group-header" onClick={this.toggleCollapse}>
           {this.state.collapsed ?
             <span className="glyphicon glyphicon-chevron-up" /> :
             <span className="glyphicon glyphicon-chevron-down" />}
@@ -849,7 +706,7 @@ const RelatedPuzzleGroup = React.createClass({
           {this.props.includeCount && <span>{`(${this.props.relatedPuzzles.length} other ${this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles'})`}</span>}
         </div>
         {this.state.collapsed ? null :
-          <div style={this.styles.puzzleListWrapper}>
+          <div className="puzzle-list-wrapper">
             <PuzzleList
               puzzles={sortedPuzzles}
               allTags={this.props.allTags}
