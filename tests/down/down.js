@@ -134,7 +134,7 @@ const Down = class Down {
     // This is everything that non-operator users subscribe to
     // independent of what hunt they're viewing.
     await Meteor.subscribeAll([
-      ['mongo.profiles'],
+      ['mongo.profiles', {}, { fields: { displayName: 1 } }],
       ['mongo.announcements'],
       ['mongo.pending_announcements', { user }],
       ['mongo.profiles', { _id: user }],
