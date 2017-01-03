@@ -354,7 +354,7 @@ const Puzzle = React.createClass({
         <div className="puzzle-answer">
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
         </div>
-        <TagList puzzleId={this.props.puzzle._id} tags={ownTags} />
+        <TagList puzzleId={this.props.puzzle._id} tags={ownTags} linkToSearch={this.props.layout === 'grid'} />
       </div>
     );
   },
@@ -444,10 +444,7 @@ const Tag = React.createClass({
   propTypes: {
     tag: React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
     onRemove: React.PropTypes.func, // if present, show a dismiss button
-  },
-
-  contextTypes: {
-    tagsLinkToSearch: React.PropTypes.bool,
+    linkToSearch: React.PropTypes.bool.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -474,7 +471,7 @@ const Tag = React.createClass({
     );
 
     let title;
-    if (this.context.tagsLinkToSearch) {
+    if (this.props.linkToSearch) {
       title = (
         <Link
           to={`/hunts/${this.props.tag.hunt}/puzzles`}
@@ -504,6 +501,7 @@ const TagList = React.createClass({
     tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     onCreateTag: React.PropTypes.func, // if provided, will show UI for adding a new tag
     onRemoveTag: React.PropTypes.func, // callback if user wants to remove a tag
+    linkToSearch: React.PropTypes.bool.isRequired,
   },
   mixins: [PureRenderMixin],
 
@@ -605,6 +603,7 @@ const TagList = React.createClass({
           key={tags[i]._id}
           tag={tags[i]}
           onRemove={this.state.removing ? this.removeTag : undefined}
+          linkToSearch={this.props.linkToSearch}
         />
       );
     }
@@ -702,7 +701,7 @@ const RelatedPuzzleGroup = React.createClass({
           {this.state.collapsed ?
             <span className="glyphicon glyphicon-chevron-up" /> :
             <span className="glyphicon glyphicon-chevron-down" />}
-          <Tag tag={this.props.sharedTag} />
+          <Tag tag={this.props.sharedTag} linkToSearch={false} />
           {this.props.includeCount && <span>{`(${this.props.relatedPuzzles.length} other ${this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles'})`}</span>}
         </div>
         {this.state.collapsed ? null :

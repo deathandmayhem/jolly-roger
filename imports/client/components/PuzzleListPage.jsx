@@ -364,15 +364,7 @@ const PuzzleListPage = React.createClass({
     subs: JRPropTypes.subs,
   },
 
-  childContextTypes: {
-    tagsLinkToSearch: React.PropTypes.bool,
-  },
-
   mixins: [ReactMeteorData],
-
-  getChildContext() {
-    return { tagsLinkToSearch: true };
-  },
 
   getMeteorData() {
     const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
