@@ -249,6 +249,35 @@ const PuzzleAnswer = React.createClass({
   },
 });
 
+const SubscriberCount = React.createClass({
+  displayName: 'SubscriberCount',
+  propTypes: {
+    puzzleId: React.PropTypes.string.isRequired,
+  },
+
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzleId}`);
+    return {
+      viewCount: count ? count.value : 0,
+    };
+  },
+
+  render() {
+    const countTooltip = (
+      <BS.Tooltip id={`count-description-${this.props.puzzleId}`}>
+        users currently viewing this puzzle
+      </BS.Tooltip>
+    );
+    return (
+      <BS.OverlayTrigger placement="top" overlay={countTooltip}>
+        <span>({this.data.viewCount})</span>
+      </BS.OverlayTrigger>
+    );
+  },
+});
+
 const Puzzle = React.createClass({
   displayName: 'Puzzle',
   propTypes: {
@@ -270,9 +299,7 @@ const Puzzle = React.createClass({
   },
 
   getMeteorData() {
-    const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
     return {
-      viewCount: count ? count.value : 0,
       allTags: Models.Tags.find().fetch(),
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     };
@@ -394,17 +421,6 @@ const Puzzle = React.createClass({
       this.props.puzzle.answer ? this.styles.solvedPuzzle : this.styles.unsolvedPuzzle,
     );
 
-    const countTooltip = (
-      <BS.Tooltip id={`count-description-${this.props.puzzle._id}`}>
-        users currently viewing this puzzle
-      </BS.Tooltip>
-    );
-    const countOverlay = (
-      <BS.OverlayTrigger placement="top" overlay={countTooltip}>
-        <span>({this.data.viewCount})</span>
-      </BS.OverlayTrigger>
-    );
-
     return (
       <div className="puzzle" style={puzzleStyle}>
         {this.state.showEditModal ?
@@ -435,7 +451,7 @@ const Puzzle = React.createClass({
           </div> :
          null}
         <div className="puzzle-view-count" style={layoutStyles.viewCount}>
-          {!this.props.puzzle.answer && countOverlay}
+          {!this.props.puzzle.answer && <SubscriberCount puzzleId={this.props.puzzle._id} />}
         </div>
         <div className="puzzle-answer" style={layoutStyles.answer}>
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
