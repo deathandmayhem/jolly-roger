@@ -150,6 +150,16 @@
   right: 0px;
 }
 
+.sidebar {
+  flex: 1 1 20%;
+  height: 100%;
+  max-width: 20%;
+  box-sizing: border-box;
+  border-right: 1px solid black;
+  display: flex;
+  flex-direction: column;
+}
+
 .puzzle-content {
   flex: 4 4 80%;
   vertical-align: top;

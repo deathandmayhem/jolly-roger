@@ -288,20 +288,9 @@ const PuzzlePageSidebar = React.createClass({
     canUpdate: React.PropTypes.bool.isRequired,
   },
   mixins: [PureRenderMixin],
-  styles: {
-    // TODO: figure out what portion of this should be done inline vs in CSS so users
-    // can adjust the width of the pane
-    flex: '1 1 20%',
-    height: '100%',
-    maxWidth: '20%',
-    boxSizing: 'border-box',
-    borderRight: '1px solid black',
-    display: 'flex',
-    flexDirection: 'column',
-  },
   render() {
     return (
-      <div className="sidebar" style={this.styles}>
+      <div className="sidebar">
         <RelatedPuzzleSection
           activePuzzle={this.props.activePuzzle}
           allPuzzles={this.props.allPuzzles}
@@ -599,16 +588,9 @@ const PuzzlePageContent = React.createClass({
     ).isRequired,
   },
   mixins: [PureRenderMixin],
-  styles: {
-    // TODO: figure out what fraction of this can be done in CSS vs JS to support user-resizing
-    flex: '4 4 80%',
-    verticalAlign: 'top',
-    display: 'flex',
-    flexDirection: 'column',
-  },
   render() {
     return (
-      <div className="puzzle-content" style={this.styles}>
+      <div className="puzzle-content">
         <PuzzlePageMetadata
           puzzle={this.props.puzzle}
           allTags={this.props.allTags}
