@@ -90,7 +90,7 @@ const GuessMessage = React.createClass({
             type="text"
             readOnly
             size={this.props.guess.guess.length}
-            style={{ background: 'transparent', outline: 'none', border: '0px', padding: '0px' }}
+            className="notification-guess-input"
             value={this.props.guess.guess}
           />
           <ul className="actions">

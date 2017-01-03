@@ -1,3 +1,4 @@
+// General notification design.
 ul.notifications {
   position: fixed;
   width: 350px;
@@ -114,4 +115,12 @@ ul.notifications {
       }
     }
   }
+}
+
+// Specific notification content styles
+.notification-guess-input {
+  background: transparent;
+  outline: none;
+  border: 0px;
+  padding: 0px;
 }

@@ -263,14 +263,16 @@ const PuzzleListView = React.createClass({
             );
           } else {
             return (
-              <div key="ungrouped" style={{ marginBottom: '16px' }}>
+              <div key="ungrouped" className="puzzle-list-ungrouped">
                 <div>Puzzles in no group:</div>
-                <PuzzleList
-                  puzzles={g.puzzles}
-                  allTags={this.props.allTags}
-                  layout="grid"
-                  canUpdate={this.props.canUpdate}
-                />
+                <div className="puzzles">
+                  <PuzzleList
+                    puzzles={g.puzzles}
+                    allTags={this.props.allTags}
+                    layout="grid"
+                    canUpdate={this.props.canUpdate}
+                  />
+                </div>
               </div>
             );
           }
@@ -290,9 +292,7 @@ const PuzzleListView = React.createClass({
     }
     const addPuzzleContent = this.props.canAdd && (
       <div>
-        <div style={{ textAlign: 'right' }}>
-          <BS.Button bsStyle="primary" onClick={this.showAddModal}>Add a puzzle</BS.Button>
-        </div>
+        <BS.Button bsStyle="primary" onClick={this.showAddModal}>Add a puzzle</BS.Button>
         <PuzzleModalForm
           huntId={this.props.huntId}
           tags={this.props.allTags}
@@ -303,13 +303,13 @@ const PuzzleListView = React.createClass({
     );
     return (
       <div>
-        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="puzzle-list-controls">
           <span>View puzzles by:</span>
           <BS.Nav activeKey={this.state.displayMode} bsStyle="pills" onSelect={this.switchView}>
             <BS.NavItem eventKey={'group'}>Group</BS.NavItem>
             <BS.NavItem eventKey={'unlock'}>Unlock order</BS.NavItem>
           </BS.Nav>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'flex-begin' }}>
+          <div className="puzzle-list-show-solved">
             <div>
               <BS.Checkbox checked={this.state.showSolved} onChange={this.changeShowSolved}>
                 Show solved

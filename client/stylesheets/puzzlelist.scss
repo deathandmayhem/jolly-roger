@@ -1,0 +1,21 @@
+.puzzle-list-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.puzzle-list-show-solved {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  justify-content: flex-start;
+}
+
+.puzzle-list-ungrouped {
+  margin-bottom: 16px;
+  .puzzles {
+    padding-left: 16px;
+  }
+}
