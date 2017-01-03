@@ -13,6 +13,10 @@ const Authenticator = React.createClass({
 
   mixins: [ReactMeteorData],
 
+  getInitialState() {
+    return { loading: true };
+  },
+
   componentWillMount() {
     this.checkAuth();
   },
@@ -22,10 +26,21 @@ const Authenticator = React.createClass({
   },
 
   getMeteorData() {
-    return { user: Meteor.user() };
+    return {
+      loggingIn: Meteor.loggingIn(),
+      user: Meteor.user(),
+    };
   },
 
   checkAuth() {
+    if (this.state.loading) {
+      if (this.data.loggingIn) {
+        return;
+      } else {
+        this.setState({ loading: false });
+      }
+    }
+
     if (!this.data.user && this.props.route.authenticated) {
       const stateToSave = _.pick(this.props.location, 'pathname', 'query');
       browserHistory.replace({
@@ -42,6 +57,10 @@ const Authenticator = React.createClass({
   },
 
   render() {
+    if (this.state.loading) {
+      return <div />;
+    }
+
     return React.Children.only(this.props.children);
   },
 });
