@@ -26,7 +26,7 @@ percolate:migrations
 service-configuration@1.0.11
 oauth@1.1.12
 google@1.1.15
-meteorhacks:subs-manager
+ccorcos:subs-cache
 http@1.2.10
 jquery@1.11.10
 meteorhacks:cluster
@@ -38,3 +38,4 @@ fourseven:scss
 shell-server
 meteorhacks:kadira
 meteorhacks:meteorx
+kadira:debug
