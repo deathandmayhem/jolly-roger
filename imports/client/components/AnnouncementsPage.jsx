@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import moment from 'moment';
 import React from 'react';
 import BS from 'react-bootstrap';
@@ -78,11 +77,7 @@ const AnnouncementForm = React.createClass({
 const Announcement = React.createClass({
   propTypes: {
     announcement: React.PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
-    indexedProfiles: React.PropTypes.objectOf(
-      React.PropTypes.shape(
-        Schemas.Profiles.asReactPropTypes()
-      ).isRequired
-    ).isRequired,
+    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
   },
 
   render() {
@@ -94,7 +89,7 @@ const Announcement = React.createClass({
       <div className="announcement" style={{ marginTop: '8px', marginBottom: '8px', padding: '8px', backgroundColor: '#eeeeee' }}>
         <div style={{ textAlign: 'right' }}>
           <div style={{ textAlign: 'right' }}>{moment(ann.createdAt).calendar()}</div>
-          <div>{this.props.indexedProfiles[ann.createdBy].displayName}</div>
+          <div>{this.props.displayNames[ann.createdBy]}</div>
         </div>
         <div dangerouslySetInnerHTML={{ __html: marked(ann.message, { sanitize: true }) }} />
       </div>
@@ -120,16 +115,25 @@ const AnnouncementsPage = React.createClass({
     // to show them on any page.  So we don't *need* to make the subscription here...
     // ...except that we might want to wait to render until we've received all of them?  IDK.
     const announcementsHandle = this.context.subs.subscribe('mongo.announcements', { hunt: this.props.params.huntId });
-    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
-    const ready = announcementsHandle.ready() && profilesHandle.ready();
-    const announcements = ready ? Models.Announcements.find({ hunt: this.props.params.huntId }, { sort: { createdAt: 1 } }).fetch() : [];
+    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(this.context.subs);
+    const ready = announcementsHandle.ready() && displayNamesHandle.ready();
+
+    let announcements;
+    let displayNames;
+    if (!ready) {
+      announcements = [];
+      displayNames = {};
+    } else {
+      announcements = Models.Announcements.find({ hunt: this.props.params.huntId }, { sort: { createdAt: 1 } }).fetch();
+      displayNames = Models.Profiles.displayNames();
+    }
     const canCreateAnnouncements = Roles.userHasPermission(Meteor.userId(), 'mongo.announcements.insert');
-    const profiles = ready ? _.indexBy(Models.Profiles.find().fetch(), '_id') : [];
+
     return {
       ready,
       announcements,
       canCreateAnnouncements,
-      profiles,
+      displayNames,
     };
   },
 
@@ -150,7 +154,7 @@ const AnnouncementsPage = React.createClass({
               <Announcement
                 key={announcement._id}
                 announcement={announcement}
-                indexedProfiles={this.data.profiles}
+                displayNames={this.data.displayNames}
               />
             );
           })}

@@ -33,7 +33,7 @@ const GuessBlock = React.createClass({
   propTypes: {
     canEdit: React.PropTypes.bool.isRequired,
     guess: React.PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
-    profile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired,
+    createdByDisplayName: React.PropTypes.string.isRequired,
     puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
   },
 
@@ -140,7 +140,7 @@ const GuessBlock = React.createClass({
     return (
       <div style={style}>
         <div style={this.styles.guessInfo}>
-          <div>{timestamp} from {this.props.profile.displayName || '<no name given>'}</div>
+          <div>{timestamp} from {this.props.createdByDisplayName || '<no name given>'}</div>
           <div>Puzzle: <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a> (<Link to={`/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`}>discussion</Link>)</div>
           <div><AutoSelectInput value={guess.guess} /></div>
         </div>
@@ -170,17 +170,21 @@ const GuessQueuePage = React.createClass({
     const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', {
       hunt: this.props.params.huntId,
     });
-    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
-    const ready = guessesHandle.ready() && puzzlesHandle.ready() && profilesHandle.ready();
+    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(this.context.subs);
+    const ready = guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
     const guesses = ready ? Models.Guesses.find({ hunt: this.props.params.huntId }, { sort: { createdAt: -1 } }).fetch() : [];
-    const puzzles = ready ? _.indexBy(Models.Puzzles.find({ hunt: this.props.params.huntId }).fetch(), '_id') : [];
-    const profiles = ready ? _.indexBy(Models.Profiles.find().fetch(), '_id') : [];
+    const puzzles = ready ? _.indexBy(Models.Puzzles.find({ hunt: this.props.params.huntId }).fetch(), '_id') : {};
+    let displayNames = {};
+    if (ready) {
+      displayNames = Models.Profiles.displayNames();
+    }
+
     const canEdit = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
     return {
       ready,
       guesses,
       puzzles,
-      profiles,
+      displayNames,
       canEdit,
     };
   },
@@ -198,7 +202,7 @@ const GuessQueuePage = React.createClass({
             <GuessBlock
               key={guess._id}
               guess={guess}
-              profile={this.data.profiles[guess.createdBy]}
+              createdByDisplayName={this.data.displayNames[guess.createdBy]}
               puzzle={this.data.puzzles[guess.puzzle]}
               canEdit={this.data.canEdit}
             />
