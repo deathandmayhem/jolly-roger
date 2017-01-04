@@ -43,13 +43,8 @@ Meteor.methods({
     });
     const puzzleId = Models.Puzzles.insert(_.extend({}, puzzle, { tags: tagIds }));
 
-    // TODO: run any puzzle-creation hooks, like creating a Slack channel, or creating a default
-    // document attachment.
-    // The Slack hook should add a Schemas.ChatMetadata with the appropriate slackChannel from the
-    // response.
-    // The websocket listening for Slack messages should subscribe to that channel.
-    // For documents, we should have a documents collection, with a puzzleId, type, and
-    // type-specific data.
+    // Run any puzzle-creation hooks, like creating a default document
+    // attachment or announcing the puzzle to Slack.
     Meteor.defer(Meteor.bindEnvironment(() => {
       globalHooks.runPuzzleCreatedHooks(puzzleId, this.userId);
     }));

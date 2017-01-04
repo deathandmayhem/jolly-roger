@@ -182,7 +182,7 @@ const Down = class Down {
       ['subCounter.inc', `puzzle:${puzzle}`, { puzzle, hunt }],
       ['mongo.guesses', { puzzle }],
       ['mongo.documents', { puzzle }],
-      ['mongo.chatmessages', { puzzleId: puzzle }],
+      ['mongo.chatmessages', { puzzle }],
     ]);
 
     // Don't block on this method

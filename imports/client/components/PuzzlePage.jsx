@@ -711,13 +711,13 @@ const PuzzlePage = React.createClass({
       allDocuments = [];
     }
 
-    const chatHandle = this.context.subs.subscribe('mongo.chatmessages', { puzzleId: this.props.params.puzzleId });
+    const chatHandle = this.context.subs.subscribe('mongo.chatmessages', { puzzle: this.props.params.puzzleId });
 
     // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
     // other collections.
     const chatReady = chatHandle.ready() && displayNamesHandle.ready();
     const chatMessages = (chatReady && Models.ChatMessages.find(
-      { puzzleId: this.props.params.puzzleId },
+      { puzzle: this.props.params.puzzleId },
       { sort: { timestamp: 1 } },
     ).fetch()) || [];
     return {
