@@ -63,8 +63,6 @@ const ChatMessage = React.createClass({
   render() {
     const ts = moment(this.props.message.timestamp).calendar(null, {
       sameDay: 'LT',
-      lastDay: 'LT',
-      nextDay: 'LT',
     });
 
     return (
