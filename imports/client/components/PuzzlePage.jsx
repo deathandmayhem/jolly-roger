@@ -479,6 +479,7 @@ const PuzzlePageMetadata = React.createClass({
               tags={tags}
               onCreateTag={this.onCreateTag}
               onRemoveTag={this.onRemoveTag}
+              linkToSearch={false}
             />
           </div>
         </div>
