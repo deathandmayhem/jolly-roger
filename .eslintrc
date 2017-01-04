@@ -65,7 +65,6 @@
     "Google": false,
     "Models": false,
     "Schemas": false,
-    "Transforms": false,
     "Npm": false,
     "OAuth": false,
     "globalHooks": false,

@@ -65,14 +65,8 @@ protect our sanity. Each model should use SimpleSchema's support for
 schema, which adds standardized fields like `createdAt` and
 `updatedAt`.
 
-Each model should also have a wrapper class. If no custom
-functionality is needed, you can use the default `Transforms.Base`
-class, which just adds a new `model` attribute pointing to the
-collection the object came from.
-
 The collection objects (under `Models`) should all be instances of
-`Models.Base` (or a subclass). The base model automatically wraps
-documents in a class (which can be overridden) and sets up a
+`Models.Base` (or a subclass). The base model automatically sets up a
 role-based system for modifications.
 
 However, `Models.Base` instances are not automatically published. You

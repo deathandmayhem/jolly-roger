@@ -26,7 +26,7 @@ const HuntDeletedError = React.createClass({
   },
 
   undestroy() {
-    this.data.hunt.undestroy();
+    Models.Hunts.undestroy(this.data.hunt._id);
   },
 
   undestroyButton() {
