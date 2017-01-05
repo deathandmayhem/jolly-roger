@@ -20,6 +20,7 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
 import SplitPane from 'react-split-pane';
+import classNames from 'classnames';
 
 /* eslint-disable max-len, no-console */
 
@@ -28,7 +29,8 @@ const FilteredChatMessagePropTypes = _.pick(Schemas.ChatMessages.asReactPropType
 
 const MinimumDesktopWidth = 600;
 const DefaultSidebarWidth = 300;
-const DefaultChatHeight = 200;
+const DefaultChatHeight = 400;
+const CollapseThreshold = 60;
 
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
@@ -301,12 +303,38 @@ const PuzzlePageSidebar = React.createClass({
       isDesktop: true,
     };
   },
+  getInitialState() {
+    return {
+      collapseChatWarning: false,
+      collapseRelatedWarning: false,
+    };
+  },
   render() {
     const adjustable = this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated;
-    const chatSize = adjustable ? this.props.interfaceOptions.chatHeight : this.props.interfaceOptions.showChat ? '100%' : '0%';
+    const expandedChatSize = this.props.interfaceOptions.showChat ? '100%' : '0%';
+    const chatSize = adjustable ? this.props.interfaceOptions.chatHeight : expandedChatSize;
+    const splitClasses = classNames('sidebar-splitpane', { closed: !adjustable }, { collapsing1: this.state.collapseRelatedWarning }, { collapsing2: this.state.collapseChatWarning });
+    const splitDragFinished = (size) => {
+      const otherPaneSize = document.getElementsByClassName('sidebar-splitpane')[0].firstChild.clientHeight;
+      if (size <= CollapseThreshold) {
+        this.props.updateInterfaceOptions({ showChat: false });
+      } else if (otherPaneSize <= CollapseThreshold) {
+        this.props.updateInterfaceOptions({ showRelated: false });
+      } else {
+        this.props.updateInterfaceOptions({ chatHeight: size });
+      }
+      this.setState({ collapseChatWarning: false });
+      this.setState({ collapseRelatedWarning: false });
+    };
+    const splitDragChange = (size) => {
+      const otherPaneSize = document.getElementsByClassName('sidebar-splitpane')[0].firstChild.clientHeight;
+      this.setState({ collapseChatWarning: size <= CollapseThreshold });
+      this.setState({ collapseRelatedWarning: otherPaneSize <= CollapseThreshold });
+    };
+
     return (
       <div className="sidebar">
-        <SplitPane split="horizontal" primary="second" className={'puzzle-page' + (adjustable ? '' : ' closed')} size={chatSize} maxSize={0} allowResize={adjustable} onChange={(size)=>{this.props.updateInterfaceOptions({chatHeight:size});}}>
+        <SplitPane split="horizontal" primary="second" className={splitClasses} size={chatSize} maxSize={0} allowResize={adjustable} onDragFinished={splitDragFinished} onChange={splitDragChange}>
           <RelatedPuzzleSection
             activePuzzle={this.props.activePuzzle}
             allPuzzles={this.props.allPuzzles}
@@ -520,13 +548,9 @@ const PuzzlePageMetadata = React.createClass({
             </div>
           }
           <div className="puzzle-metadata-left">
-            <label>
-              <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showChat} onChange={(e)=>{this.props.updateInterfaceOptions({showChat: e.target.checked});}}/> Chat
-            </label>
+            <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showChat} onChange={(e) => { this.props.updateInterfaceOptions({ showChat: e.target.checked }); }} /> Chat
             &nbsp;
-            <label>
-              <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showRelated} onChange={(e)=>{this.props.updateInterfaceOptions({showRelated: e.target.checked});}}/> Related Puzzles
-            </label>
+            <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showRelated} onChange={(e) => { this.props.updateInterfaceOptions({ showRelated: e.target.checked }); }} /> Related Puzzles
           </div>
         </div>
         {/* Activity tracking not implemented yet.
@@ -694,7 +718,14 @@ const PuzzlePage = React.createClass({
   contextTypes: {
     subs: JRPropTypes.subs,
   },
-  
+
+  mixins: [ReactMeteorData],
+
+  statics: {
+    // Mark this page as needing fixed, fullscreen layout.
+    desiredLayout: 'fullscreen',
+  },
+
   getInitialState() {
     return {
       interfaceOptions: {
@@ -702,15 +733,9 @@ const PuzzlePage = React.createClass({
         showRelated: true,
         sidebarWidth: DefaultSidebarWidth,
         chatHeight: DefaultChatHeight,
-      }
+      },
+      collapseSidebarWarning: false,
     };
-  },
-
-  mixins: [ReactMeteorData],
-
-  statics: {
-    // Mark this page as needing fixed, fullscreen layout.
-    desiredLayout: 'fullscreen',
   },
 
   componentWillMount() {
@@ -822,19 +847,19 @@ const PuzzlePage = React.createClass({
     const newIsDesktop = (window.innerWidth >= MinimumDesktopWidth);
     if (this.state === null || !('isDesktop' in this.state) || (newIsDesktop !== this.state.isDesktop)) { /* Prevent pointless re-rendering */
       this.setState({ isDesktop: newIsDesktop });
-      //If resizing into mobile mode with all sidebars disabled, enable chat
+      /* If resizing into mobile mode with all sidebars disabled, enable chat */
       if (!newIsDesktop && !this.state.interfaceOptions.showChat && !this.state.interfaceOptions.showRelated) {
-        this.updateInterfaceOptions({showChat:true});
+        this.updateInterfaceOptions({ showChat: true });
       }
     }
   },
-  
+
   updateInterfaceOptions(opts) {
-    var newOptions = {}
-    for (var key in this.state.interfaceOptions) {
+    const newOptions = {};
+    Object.keys(this.state.interfaceOptions).forEach((key) => {
       newOptions[key] = (key in opts) ? opts[key] : this.state.interfaceOptions[key];
-    }
-    //If in mobile mode with all sidebars disabled, enable the opposite one that used to be enabled, or default to chat
+    });
+    /* If in mobile mode with all sidebars disabled, enable the opposite one that used to be enabled, or default to chat */
     if (!this.state.isDesktop && !newOptions.showChat && !newOptions.showRelated) {
       if (this.state.interfaceOptions.showChat) {
         newOptions.showRelated = true;
@@ -842,7 +867,7 @@ const PuzzlePage = React.createClass({
         newOptions.showChat = true;
       }
     }
-    this.setState({interfaceOptions: newOptions});
+    this.setState({ interfaceOptions: newOptions });
   },
 
   render() {
@@ -853,11 +878,23 @@ const PuzzlePage = React.createClass({
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     const showSidebar = this.state.interfaceOptions.showChat || this.state.interfaceOptions.showRelated;
     const sidebarSize = showSidebar ? this.state.interfaceOptions.sidebarWidth : '0%';
+    const splitClasses = classNames('puzzle-page', { closed: !showSidebar }, { collapsing1: this.state.collapseSidebarWarning });
+    const sidebarDragFinished = (size) => {
+      if (size <= CollapseThreshold) {
+        this.updateInterfaceOptions({ showChat: false, showRelated: false });
+      } else {
+        this.updateInterfaceOptions({ sidebarWidth: size });
+      }
+      this.setState({ collapseSidebarWarning: false });
+    };
+    const sidebarDragChange = (size) => {
+      this.setState({ collapseSidebarWarning: size <= CollapseThreshold });
+    };
 
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         {this.state.isDesktop ? (
-          <SplitPane split="vertical" className={'puzzle-page' + (showSidebar ? '' : ' closed')} size={sidebarSize} maxSize={0} allowResize={showSidebar} onChange={(size)=>{this.updateInterfaceOptions({sidebarWidth:size});}}>
+          <SplitPane split="vertical" className={splitClasses} size={sidebarSize} maxSize={0} allowResize={showSidebar} onDragFinished={sidebarDragFinished} onChange={sidebarDragChange}>
             <PuzzlePageSidebar
               activePuzzle={activePuzzle}
               allPuzzles={this.data.allPuzzles}
