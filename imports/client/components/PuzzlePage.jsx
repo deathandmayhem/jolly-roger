@@ -28,6 +28,7 @@ const FilteredChatMessagePropTypes = _.pick(Schemas.ChatMessages.asReactPropType
 
 const MinimumDesktopWidth = 600;
 const DefaultSidebarWidth = 300;
+const DefaultChatHeight = 200;
 
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
@@ -291,6 +292,8 @@ const PuzzlePageSidebar = React.createClass({
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
     isDesktop: React.PropTypes.bool,
+    interfaceOptions: React.PropTypes.object.isRequired,
+    updateInterfaceOptions: React.PropTypes.func.isRequired,
   },
   mixins: [PureRenderMixin],
   getDefaultProps() {
@@ -299,9 +302,11 @@ const PuzzlePageSidebar = React.createClass({
     };
   },
   render() {
+    const adjustable = this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated;
+    const chatSize = adjustable ? this.props.interfaceOptions.chatHeight : this.props.interfaceOptions.showChat ? '100%' : '0%';
     return (
       <div className="sidebar">
-        <SplitPane split="horizontal" primary="second" defaultSize={this.props.isDesktop ? '50%' : '100%'} maxSize={0}>
+        <SplitPane split="horizontal" primary="second" className={'puzzle-page' + (adjustable ? '' : ' closed')} size={chatSize} maxSize={0} allowResize={adjustable} onChange={(size)=>{this.props.updateInterfaceOptions({chatHeight:size});}}>
           <RelatedPuzzleSection
             activePuzzle={this.props.activePuzzle}
             allPuzzles={this.props.allPuzzles}
@@ -340,6 +345,8 @@ const PuzzlePageMetadata = React.createClass({
       ).isRequired,
     ).isRequired,
     isDesktop: React.PropTypes.bool,
+    interfaceOptions: React.PropTypes.object.isRequired,
+    updateInterfaceOptions: React.PropTypes.func.isRequired,
   },
 
   mixins: [ReactMeteorData],
@@ -500,9 +507,9 @@ const PuzzlePageMetadata = React.createClass({
             />
           </div>
         </div>
-        {!this.props.isDesktop &&
-          <div className="puzzle-metadata-row">
-            <div className="puzzle-metadata-left">
+        <div className="puzzle-metadata-row">
+          {!this.props.isDesktop &&
+            <div className="puzzle-metadata-right">
               { googleDriveLink ? (
                 <BS.Button className="puzzle-metadata-gdrive-button" onClick={(event) => { event.preventDefault(); window.open(googleDriveLink); }}> {/* Surely there's a less ridiculous way to do this */}
                   Open in Google Drive
@@ -511,8 +518,17 @@ const PuzzlePageMetadata = React.createClass({
                 'No Google Drive Document Available'
               ) }
             </div>
+          }
+          <div className="puzzle-metadata-left">
+            <label>
+              <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showChat} onChange={(e)=>{this.props.updateInterfaceOptions({showChat: e.target.checked});}}/> Chat
+            </label>
+            &nbsp;
+            <label>
+              <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showRelated} onChange={(e)=>{this.props.updateInterfaceOptions({showRelated: e.target.checked});}}/> Related Puzzles
+            </label>
           </div>
-        }
+        </div>
         {/* Activity tracking not implemented yet.
             <div>Other hunters currently viewing this page?</div> */}
         <ModalForm
@@ -625,6 +641,8 @@ const PuzzlePageContent = React.createClass({
       ).isRequired,
     ).isRequired,
     isDesktop: React.PropTypes.bool,
+    interfaceOptions: React.PropTypes.object.isRequired,
+    updateInterfaceOptions: React.PropTypes.func.isRequired,
   },
   mixins: [PureRenderMixin],
   getDefaultProps() {
@@ -642,6 +660,8 @@ const PuzzlePageContent = React.createClass({
           displayNames={this.props.displayNames}
           isDesktop={this.props.isDesktop}
           documents={this.props.documents}
+          interfaceOptions={this.props.interfaceOptions}
+          updateInterfaceOptions={this.props.updateInterfaceOptions}
         />
         {this.props.isDesktop &&
           <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
@@ -673,6 +693,17 @@ const PuzzlePage = React.createClass({
 
   contextTypes: {
     subs: JRPropTypes.subs,
+  },
+  
+  getInitialState() {
+    return {
+      interfaceOptions: {
+        showChat: true,
+        showRelated: true,
+        sidebarWidth: DefaultSidebarWidth,
+        chatHeight: DefaultChatHeight,
+      }
+    };
   },
 
   mixins: [ReactMeteorData],
@@ -791,7 +822,27 @@ const PuzzlePage = React.createClass({
     const newIsDesktop = (window.innerWidth >= MinimumDesktopWidth);
     if (this.state === null || !('isDesktop' in this.state) || (newIsDesktop !== this.state.isDesktop)) { /* Prevent pointless re-rendering */
       this.setState({ isDesktop: newIsDesktop });
+      //If resizing into mobile mode with all sidebars disabled, enable chat
+      if (!newIsDesktop && !this.state.interfaceOptions.showChat && !this.state.interfaceOptions.showRelated) {
+        this.updateInterfaceOptions({showChat:true});
+      }
     }
+  },
+  
+  updateInterfaceOptions(opts) {
+    var newOptions = {}
+    for (var key in this.state.interfaceOptions) {
+      newOptions[key] = (key in opts) ? opts[key] : this.state.interfaceOptions[key];
+    }
+    //If in mobile mode with all sidebars disabled, enable the opposite one that used to be enabled, or default to chat
+    if (!this.state.isDesktop && !newOptions.showChat && !newOptions.showRelated) {
+      if (this.state.interfaceOptions.showChat) {
+        newOptions.showRelated = true;
+      } else {
+        newOptions.showChat = true;
+      }
+    }
+    this.setState({interfaceOptions: newOptions});
   },
 
   render() {
@@ -800,11 +851,13 @@ const PuzzlePage = React.createClass({
     }
 
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
+    const showSidebar = this.state.interfaceOptions.showChat || this.state.interfaceOptions.showRelated;
+    const sidebarSize = showSidebar ? this.state.interfaceOptions.sidebarWidth : '0%';
 
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         {this.state.isDesktop ? (
-          <SplitPane split="vertical" className="puzzle-page" defaultSize={DefaultSidebarWidth} maxSize={0}>
+          <SplitPane split="vertical" className={'puzzle-page' + (showSidebar ? '' : ' closed')} size={sidebarSize} maxSize={0} allowResize={showSidebar} onChange={(size)=>{this.updateInterfaceOptions({sidebarWidth:size});}}>
             <PuzzlePageSidebar
               activePuzzle={activePuzzle}
               allPuzzles={this.data.allPuzzles}
@@ -813,6 +866,8 @@ const PuzzlePage = React.createClass({
               chatMessages={this.data.chatMessages}
               displayNames={this.data.displayNames}
               canUpdate={this.data.canUpdate}
+              interfaceOptions={this.state.interfaceOptions}
+              updateInterfaceOptions={this.updateInterfaceOptions}
               isDesktop={this.state.isDesktop}
             />
             <PuzzlePageContent
@@ -821,6 +876,8 @@ const PuzzlePage = React.createClass({
               guesses={this.data.allGuesses}
               displayNames={this.data.displayNames}
               documents={this.data.allDocuments}
+              interfaceOptions={this.state.interfaceOptions}
+              updateInterfaceOptions={this.updateInterfaceOptions}
               isDesktop={this.state.isDesktop}
             />
           </SplitPane>
@@ -832,6 +889,8 @@ const PuzzlePage = React.createClass({
               guesses={this.data.allGuesses}
               displayNames={this.data.displayNames}
               documents={this.data.allDocuments}
+              interfaceOptions={this.state.interfaceOptions}
+              updateInterfaceOptions={this.updateInterfaceOptions}
               isDesktop={this.state.isDesktop}
             />
             <PuzzlePageSidebar
@@ -842,6 +901,8 @@ const PuzzlePage = React.createClass({
               chatMessages={this.data.chatMessages}
               displayNames={this.data.displayNames}
               canUpdate={this.data.canUpdate}
+              interfaceOptions={this.state.interfaceOptions}
+              updateInterfaceOptions={this.updateInterfaceOptions}
               isDesktop={this.state.isDesktop}
             />
           </div>
