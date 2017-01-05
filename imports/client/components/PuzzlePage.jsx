@@ -559,7 +559,7 @@ const PuzzlePageMultiplayerDocument = React.createClass({
         const url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
         return (
           <div className="puzzle-document">
-            <iframe className="google-spreadsheet" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} src={url} />
+            <iframe className="google-spreadsheet" src={url} />
           </div>
         );
       }
