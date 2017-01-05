@@ -21,6 +21,9 @@ import { SubscriberCounters } from '/imports/client/subscribers.js';
 
 /* eslint-disable max-len, no-console */
 
+const FilteredChatFields = ['puzzle', 'text', 'sender', 'timestamp'];
+const FilteredChatMessagePropTypes = _.pick(Schemas.ChatMessages.asReactPropTypes(), ...FilteredChatFields);
+
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
     activePuzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
@@ -54,7 +57,7 @@ const RelatedPuzzleSection = React.createClass({
 
 const ChatMessage = React.createClass({
   propTypes: {
-    message: React.PropTypes.shape(Schemas.ChatMessages.asReactPropTypes()).isRequired,
+    message: React.PropTypes.shape(FilteredChatMessagePropTypes).isRequired,
     senderDisplayName: React.PropTypes.string.isRequired,
   },
 
@@ -79,7 +82,7 @@ const ChatHistory = React.createClass({
   propTypes: {
     chatMessages: React.PropTypes.arrayOf(
       React.PropTypes.shape(
-        Schemas.ChatMessages.asReactPropTypes()
+        FilteredChatMessagePropTypes
       ).isRequired
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
@@ -229,7 +232,7 @@ const ChatSection = React.createClass({
     chatReady: React.PropTypes.bool.isRequired,
     chatMessages: React.PropTypes.arrayOf(
       React.PropTypes.shape(
-        Schemas.ChatMessages.asReactPropTypes()
+        FilteredChatMessagePropTypes
       ).isRequired
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
@@ -277,7 +280,7 @@ const PuzzlePageSidebar = React.createClass({
     chatReady: React.PropTypes.bool.isRequired,
     chatMessages: React.PropTypes.arrayOf(
       React.PropTypes.shape(
-        Schemas.ChatMessages.asReactPropTypes()
+        FilteredChatMessagePropTypes
       ).isRequired
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
@@ -711,7 +714,12 @@ const PuzzlePage = React.createClass({
       allDocuments = [];
     }
 
-    const chatHandle = this.context.subs.subscribe('mongo.chatmessages', { puzzle: this.props.params.puzzleId });
+    const chatFields = {};
+    FilteredChatFields.forEach(f => { chatFields[f] = 1; });
+    const chatHandle = this.context.subs.subscribe(
+      'mongo.chatmessages',
+      { puzzle: this.props.params.puzzleId },
+      { fields: chatFields });
 
     // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
     // other collections.
