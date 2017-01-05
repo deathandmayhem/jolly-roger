@@ -9,6 +9,9 @@ Meteor.methods({
     check(message, String);
 
     const puzzle = Models.Puzzles.findOne(puzzleId);
+    if (!puzzle) {
+      throw new Meteor.Error(404, 'Unknown puzzle');
+    }
 
     Models.ChatMessages.insert({
       puzzle: puzzleId,
