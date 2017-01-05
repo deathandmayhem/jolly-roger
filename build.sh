@@ -22,15 +22,8 @@ pip install 'credstash==1.12.0'
 # Install meteor and build app
 METEOR_RELEASE="$(sed -e 's/.*@//g' .meteor/release)"
 curl -sL https://install.meteor.com?release=$METEOR_RELEASE | sh
-find -name node_modules -prune -or -name .meteor -prune -or -name package.json -print | while read; do
-    (cd "$(dirname "$REPLY")" && meteor npm i)
-done
+meteor npm i
 meteor build --allow-superuser --directory /built_app --server=http://localhost:3000
-
-# Let subprojects have their own eslint config
-find -name node_modules -prune -or -name .eslintrc -print | while read; do
-    (cd "$(dirname "$REPLY")" && meteor npm run lint)
-done
 
 git rev-parse HEAD > /built_app/GIT_REVISION
 
