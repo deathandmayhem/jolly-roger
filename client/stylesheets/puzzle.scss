@@ -141,8 +141,6 @@
 ////////////
 // Puzzle page styles
 .puzzle-page {
-  display: flex;
-  flex-direction: row;
   position: absolute;
   top: 0px;
   bottom: 0px;
@@ -150,40 +148,43 @@
   right: 0px;
 }
 
-.sidebar {
-  flex: 1 1 20%;
-  height: 100%;
-  max-width: 20%;
-  box-sizing: border-box;
-  border-right: 1px solid black;
+.puzzle-page.narrow {
   display: flex;
   flex-direction: column;
+  >.sidebar {
+  	position:relative; /*This is a little kludgy, but better than fixing it inline - revisit later*/
+  }
 }
 
 .puzzle-content {
-  flex: 4 4 80%;
-  vertical-align: top;
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
   display: flex;
   flex-direction: column;
 }
 
-// Related puzzles section
-.related-puzzles-section {
-  height: 40%;
-  overflow-y: auto;
-  border-bottom: 1px solid #111111;
+.sidebar {
+	flex: 1 1 auto;
+	position:absolute;
+	top:0;
+	bottom:0;
+	left:0;
+	right:0;
 }
 
 // Chat
 .chat-section {
-  flex: 1 1 50%;
-  min-height: 30vh;
+  width: 100%;
+  overflow:hidden;
   display: flex;
   flex-direction: column;
 }
 
 .chat-history {
-  flex: auto;
+  flex: 1 1 auto;
   overflow-y: auto;
 }
 
@@ -204,6 +205,7 @@
   flex: none;
   padding-bottom:2px;
   overflow: auto;
+  border-bottom: 1px solid black;
 }
 
 .puzzle-metadata-row {
@@ -265,33 +267,57 @@
   left: 0;
 }
 
-@media (min-width: 768px) {
-	.mobile-only {display:none;}
+/*Draggable Resizing*/
+
+/*Fixes some issues with react-split-pane that break horizontal splits on some browsers*/
+.Pane {
+  flex-basis:auto;
+  min-height:0px;
+  overflow:auto;
 }
 
-/* Mobile Friendly */
-@media screen and (max-width: 767px) {
-	.puzzle-page {
-		flex-direction:column;
-	}
+.Resizer {
+  background: #000;
+  z-index: 1;
+  box-sizing: border-box;
+  background-clip: padding-box;
+}
 
-	.sidebar {
-		order:2;
-		max-width:100%;
-		border-right:none;
-		border-top:1px solid black;
-	}
+.Resizer:hover {
+  transition: all 2s ease;
+}
 
-	.related-puzzles-section {
-		display:none;
-	}
+.Resizer.horizontal {
+  height: 11px;
+  margin: -5px 0;
+  border-top: 5px solid rgba(255, 255, 255, 0);
+  border-bottom: 5px solid rgba(255, 255, 255, 0);
+  cursor: row-resize;
+  width: 100%;
+}
 
-	.puzzle-content {
-		order:1;
-		flex:0 0 auto;
-	}
+.Resizer.horizontal:hover {
+  border-top: 5px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 5px solid rgba(0, 0, 0, 0.1);
+}
 
-	.puzzle-document {
-		display:none;
-	}
+.Resizer.vertical {
+  width: 11px;
+  margin: 0 -5px;
+  border-left: 5px solid rgba(255, 255, 255, 0);
+  border-right: 5px solid rgba(255, 255, 255, 0);
+  cursor: col-resize;
+}
+
+.Resizer.vertical:hover {
+  border-left: 5px solid rgba(0, 0, 0, 0.1);
+  border-right: 5px solid rgba(0, 0, 0, 0.1);
+}
+
+Resizer.disabled {
+  cursor: not-allowed;
+}
+
+Resizer.disabled:hover {
+  border-color: transparent;
 }

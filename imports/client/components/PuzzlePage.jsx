@@ -19,11 +19,15 @@ import {
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
+import SplitPane from 'react-split-pane';
 
 /* eslint-disable max-len, no-console */
 
 const FilteredChatFields = ['puzzle', 'text', 'sender', 'timestamp'];
 const FilteredChatMessagePropTypes = _.pick(Schemas.ChatMessages.asReactPropTypes(), ...FilteredChatFields);
+
+const MinimumDesktopWidth = 600;
+const DefaultSidebarWidth = 300;
 
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
@@ -286,23 +290,31 @@ const PuzzlePageSidebar = React.createClass({
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
+    isDesktop: React.PropTypes.bool,
   },
   mixins: [PureRenderMixin],
+  getDefaultProps() {
+    return {
+      isDesktop: true,
+    };
+  },
   render() {
     return (
       <div className="sidebar">
-        <RelatedPuzzleSection
-          activePuzzle={this.props.activePuzzle}
-          allPuzzles={this.props.allPuzzles}
-          allTags={this.props.allTags}
-          canUpdate={this.props.canUpdate}
-        />
-        <ChatSection
-          chatReady={this.props.chatReady}
-          chatMessages={this.props.chatMessages}
-          displayNames={this.props.displayNames}
-          puzzleId={this.props.activePuzzle._id}
-        />
+        <SplitPane split="horizontal" primary="second" defaultSize={this.props.isDesktop ? '50%' : '100%'} maxSize={0}>
+          <RelatedPuzzleSection
+            activePuzzle={this.props.activePuzzle}
+            allPuzzles={this.props.allPuzzles}
+            allTags={this.props.allTags}
+            canUpdate={this.props.canUpdate}
+          />
+          <ChatSection
+            chatReady={this.props.chatReady}
+            chatMessages={this.props.chatMessages}
+            displayNames={this.props.displayNames}
+            puzzleId={this.props.activePuzzle._id}
+          />
+        </SplitPane>
       </div>
     );
   },
@@ -322,9 +334,21 @@ const PuzzlePageMetadata = React.createClass({
       ).isRequired
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
+    documents: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Documents.asReactPropTypes()
+      ).isRequired,
+    ).isRequired,
+    isDesktop: React.PropTypes.bool,
   },
 
   mixins: [ReactMeteorData],
+
+  getDefaultProps() {
+    return {
+      isDesktop: true,
+    };
+  },
 
   getInitialState() {
     return {
@@ -437,7 +461,7 @@ const PuzzlePageMetadata = React.createClass({
     const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
     const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
     const externalLinkComponent = this.props.puzzle.url ? <div className="puzzle-metadata-right"><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div> : null;
-    googleDriveLink = this.props.document && this.props.document.type=="google-spreadsheet" ? "https://docs.google.com/spreadsheets/d/${this.props.document.value.id}" : null;
+    const googleDriveLink = this.props.documents[0] && this.props.documents[0].type === 'google-spreadsheet' ? 'https://docs.google.com/spreadsheets/d/${this.props.document.value.id}' : null;
     return (
       <div className="puzzle-metadata">
         <PuzzleModalForm
@@ -476,17 +500,19 @@ const PuzzlePageMetadata = React.createClass({
             />
           </div>
         </div>
-        <div className="puzzle-metadata-row mobile-only">
-          <div className="puzzle-metadata-left">
-            {googleDriveLink ? (
-              <BS.Button className="puzzle-metadata-gdrive-button" onClick={(event) => {event.preventDefault(); window.open(googleDriveLink);}}> {/*Surely there's a less ridiculous way to do this*/}
-                Open in Google Drive
-              </BS.Button>
-            ) : (
-              "No Google Drive Document Available"
-            )}
+        {!this.props.isDesktop &&
+          <div className="puzzle-metadata-row">
+            <div className="puzzle-metadata-left">
+              { googleDriveLink ? (
+                <BS.Button className="puzzle-metadata-gdrive-button" onClick={(event) => { event.preventDefault(); window.open(googleDriveLink); }}> {/* Surely there's a less ridiculous way to do this */}
+                  Open in Google Drive
+                </BS.Button>
+              ) : (
+                'No Google Drive Document Available'
+              ) }
+            </div>
           </div>
-        </div>
+        }
         {/* Activity tracking not implemented yet.
             <div>Other hunters currently viewing this page?</div> */}
         <ModalForm
@@ -598,8 +624,14 @@ const PuzzlePageContent = React.createClass({
         Schemas.Documents.asReactPropTypes()
       ).isRequired,
     ).isRequired,
+    isDesktop: React.PropTypes.bool,
   },
   mixins: [PureRenderMixin],
+  getDefaultProps() {
+    return {
+      isDesktop: true,
+    };
+  },
   render() {
     return (
       <div className="puzzle-content">
@@ -608,8 +640,12 @@ const PuzzlePageContent = React.createClass({
           allTags={this.props.allTags}
           guesses={this.props.guesses}
           displayNames={this.props.displayNames}
+          isDesktop={this.props.isDesktop}
+          documents={this.props.documents}
         />
-        <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
+        {this.props.isDesktop &&
+          <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
+        }
       </div>
     );
   },
@@ -647,13 +683,22 @@ const PuzzlePage = React.createClass({
   },
 
   componentWillMount() {
+    this.updateIsDesktop();
     Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
+  },
+
+  componentDidMount() {
+    window.addEventListener('resize', this.updateIsDesktop);
   },
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.params.puzzleId !== this.props.params.puzzleId) {
       Meteor.call('ensureDocumentAndPermissions', nextProps.params.puzzleId);
     }
+  },
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.updateIsDesktop);
   },
 
   getMeteorData() {
@@ -742,32 +787,65 @@ const PuzzlePage = React.createClass({
     };
   },
 
+  updateIsDesktop() {
+    const newIsDesktop = (window.innerWidth >= MinimumDesktopWidth);
+    if (this.state === null || !('isDesktop' in this.state) || (newIsDesktop !== this.state.isDesktop)) { /* Prevent pointless re-rendering */
+      this.setState({ isDesktop: newIsDesktop });
+    }
+  },
+
   render() {
     if (!this.data.puzzlesReady) {
       return <span>loading...</span>;
     }
 
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
+
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
-        <div className="puzzle-page">
-          <PuzzlePageSidebar
-            activePuzzle={activePuzzle}
-            allPuzzles={this.data.allPuzzles}
-            allTags={this.data.allTags}
-            chatReady={this.data.chatReady}
-            chatMessages={this.data.chatMessages}
-            displayNames={this.data.displayNames}
-            canUpdate={this.data.canUpdate}
-          />
-          <PuzzlePageContent
-            puzzle={activePuzzle}
-            allTags={this.data.allTags}
-            guesses={this.data.allGuesses}
-            displayNames={this.data.displayNames}
-            documents={this.data.allDocuments}
-          />
-        </div>
+        {this.state.isDesktop ? (
+          <SplitPane split="vertical" className="puzzle-page" defaultSize={DefaultSidebarWidth} maxSize={0}>
+            <PuzzlePageSidebar
+              activePuzzle={activePuzzle}
+              allPuzzles={this.data.allPuzzles}
+              allTags={this.data.allTags}
+              chatReady={this.data.chatReady}
+              chatMessages={this.data.chatMessages}
+              displayNames={this.data.displayNames}
+              canUpdate={this.data.canUpdate}
+              isDesktop={this.state.isDesktop}
+            />
+            <PuzzlePageContent
+              puzzle={activePuzzle}
+              allTags={this.data.allTags}
+              guesses={this.data.allGuesses}
+              displayNames={this.data.displayNames}
+              documents={this.data.allDocuments}
+              isDesktop={this.state.isDesktop}
+            />
+          </SplitPane>
+        ) : (
+          <div className="puzzle-page narrow">
+            <PuzzlePageMetadata
+              puzzle={activePuzzle}
+              allTags={this.data.allTags}
+              guesses={this.data.allGuesses}
+              displayNames={this.data.displayNames}
+              documents={this.data.allDocuments}
+              isDesktop={this.state.isDesktop}
+            />
+            <PuzzlePageSidebar
+              activePuzzle={activePuzzle}
+              allPuzzles={this.data.allPuzzles}
+              allTags={this.data.allTags}
+              chatReady={this.data.chatReady}
+              chatMessages={this.data.chatMessages}
+              displayNames={this.data.displayNames}
+              canUpdate={this.data.canUpdate}
+              isDesktop={this.state.isDesktop}
+            />
+          </div>
+        )}
       </DocumentTitle>
     );
   },
