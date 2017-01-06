@@ -19,11 +19,11 @@ Migrations.add({
     }).forEach(m => {
       Models.ChatMessages.update(m._id, {
         $set: {
-          deleted: m.deleted === null ? false : m.deleted,
-          puzzle: m.puzzle === null ? m.puzzleId : m.puzzle,
-          hunt: m.hunt === null ? hunts[m.puzzle] : m.hunt,
-          createdAt: m.createdAt === null ? m.timestamp : m.createdAt,
-          createdBy: m.createdBy === null ? m.sender : m.createdBy,
+          deleted: m.deleted === undefined ? false : m.deleted,
+          puzzle: m.puzzle === undefined ? m.puzzleId : m.puzzle,
+          hunt: m.hunt === undefined ? hunts[m.puzzle] : m.hunt,
+          createdAt: m.createdAt === undefined ? m.timestamp : m.createdAt,
+          createdBy: m.createdBy === undefined ? m.sender : m.createdBy,
         },
         $unset: {
           puzzleId: 1,
