@@ -267,16 +267,7 @@
   left: 0;
 }
 
-/*Draggable Resizing*/
-
-/*Fixes some issues with react-split-pane that break horizontal splits on some browsers*/
-.Pane {
-  flex-basis:auto;
-  min-height:0px;
-  overflow:auto;
-}
-
-.SplitPane.closed .Resizer {
+.SplitPane.collapsed1>.Resizer, .SplitPane.collapsed2>.Resizer {
 	display:none;
 }
 

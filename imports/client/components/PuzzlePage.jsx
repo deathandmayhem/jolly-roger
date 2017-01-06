@@ -19,8 +19,8 @@ import {
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
-import SplitPane from 'react-split-pane';
 import classNames from 'classnames';
+import SplitPanePlus from '/imports/client/components/SplitPanePlus.jsx';
 
 /* eslint-disable max-len, no-console */
 
@@ -30,7 +30,6 @@ const FilteredChatMessagePropTypes = _.pick(Schemas.ChatMessages.asReactPropType
 const MinimumDesktopWidth = 600;
 const DefaultSidebarWidth = 300;
 const DefaultChatHeight = 400;
-const CollapseThreshold = 60;
 
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
@@ -303,38 +302,23 @@ const PuzzlePageSidebar = React.createClass({
       isDesktop: true,
     };
   },
-  getInitialState() {
-    return {
-      collapseChatWarning: false,
-      collapseRelatedWarning: false,
-    };
-  },
   render() {
-    const adjustable = this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated;
-    const expandedChatSize = this.props.interfaceOptions.showChat ? '100%' : '0%';
-    const chatSize = adjustable ? this.props.interfaceOptions.chatHeight : expandedChatSize;
-    const splitClasses = classNames('sidebar-splitpane', { closed: !adjustable }, { collapsing1: this.state.collapseRelatedWarning }, { collapsing2: this.state.collapseChatWarning });
-    const splitDragFinished = (size) => {
-      const otherPaneSize = document.getElementsByClassName('sidebar-splitpane')[0].firstChild.clientHeight;
-      if (size <= CollapseThreshold) {
-        this.props.updateInterfaceOptions({ showChat: false });
-      } else if (otherPaneSize <= CollapseThreshold) {
-        this.props.updateInterfaceOptions({ showRelated: false });
-      } else {
-        this.props.updateInterfaceOptions({ chatHeight: size });
+    const onDragFinished = (size, collapsed) => {
+      if (collapsed === 1) {
+        this.props.updateInterfaceOptions({ showChat: true, showRelated: false });
+      } else if (collapsed === 2) {
+        this.props.updateInterfaceOptions({ showChat: false, showRelated: true });
       }
-      this.setState({ collapseChatWarning: false });
-      this.setState({ collapseRelatedWarning: false });
     };
-    const splitDragChange = (size) => {
-      const otherPaneSize = document.getElementsByClassName('sidebar-splitpane')[0].firstChild.clientHeight;
-      this.setState({ collapseChatWarning: size <= CollapseThreshold });
-      this.setState({ collapseRelatedWarning: otherPaneSize <= CollapseThreshold });
-    };
-
+    let collapsed = 0;
+    if (!this.props.interfaceOptions.showRelated) {
+      collapsed = 1;
+    } else if (!this.props.interfaceOptions.showChat) {
+      collapsed = 2;
+    }
     return (
       <div className="sidebar">
-        <SplitPane split="horizontal" primary="second" className={splitClasses} size={chatSize} maxSize={0} allowResize={adjustable} onDragFinished={splitDragFinished} onChange={splitDragChange}>
+        <SplitPanePlus split="horizontal" primary="second" defaultSize={DefaultChatHeight} onDragFinished={onDragFinished} collapsed={collapsed} >
           <RelatedPuzzleSection
             activePuzzle={this.props.activePuzzle}
             allPuzzles={this.props.allPuzzles}
@@ -347,7 +331,7 @@ const PuzzlePageSidebar = React.createClass({
             displayNames={this.props.displayNames}
             puzzleId={this.props.activePuzzle._id}
           />
-        </SplitPane>
+        </SplitPanePlus>
       </div>
     );
   },
@@ -731,8 +715,6 @@ const PuzzlePage = React.createClass({
       interfaceOptions: {
         showChat: true,
         showRelated: true,
-        sidebarWidth: DefaultSidebarWidth,
-        chatHeight: DefaultChatHeight,
       },
       collapseSidebarWarning: false,
     };
@@ -855,10 +837,7 @@ const PuzzlePage = React.createClass({
   },
 
   updateInterfaceOptions(opts) {
-    const newOptions = {};
-    Object.keys(this.state.interfaceOptions).forEach((key) => {
-      newOptions[key] = (key in opts) ? opts[key] : this.state.interfaceOptions[key];
-    });
+    const newOptions = _.extend({}, this.state.interfaceOptions, opts);
     /* If in mobile mode with all sidebars disabled, enable the opposite one that used to be enabled, or default to chat */
     if (!this.state.isDesktop && !newOptions.showChat && !newOptions.showRelated) {
       if (this.state.interfaceOptions.showChat) {
@@ -877,24 +856,11 @@ const PuzzlePage = React.createClass({
 
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     const showSidebar = this.state.interfaceOptions.showChat || this.state.interfaceOptions.showRelated;
-    const sidebarSize = showSidebar ? this.state.interfaceOptions.sidebarWidth : '0%';
-    const splitClasses = classNames('puzzle-page', { closed: !showSidebar }, { collapsing1: this.state.collapseSidebarWarning });
-    const sidebarDragFinished = (size) => {
-      if (size <= CollapseThreshold) {
-        this.updateInterfaceOptions({ showChat: false, showRelated: false });
-      } else {
-        this.updateInterfaceOptions({ sidebarWidth: size });
-      }
-      this.setState({ collapseSidebarWarning: false });
-    };
-    const sidebarDragChange = (size) => {
-      this.setState({ collapseSidebarWarning: size <= CollapseThreshold });
-    };
-
+    const onDragFinished = (size, collapsed) => { if (collapsed === 1) { this.updateInterfaceOptions({ showChat: false, showRelated: false }); } };
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         {this.state.isDesktop ? (
-          <SplitPane split="vertical" className={splitClasses} size={sidebarSize} maxSize={0} allowResize={showSidebar} onDragFinished={sidebarDragFinished} onChange={sidebarDragChange}>
+          <SplitPanePlus split="vertical" className="puzzle-page" defaultSize={DefaultSidebarWidth} autoCollapse2={-1} collapsed={showSidebar ? 0 : 1} onDragFinished={onDragFinished} >
             <PuzzlePageSidebar
               activePuzzle={activePuzzle}
               allPuzzles={this.data.allPuzzles}
@@ -917,7 +883,7 @@ const PuzzlePage = React.createClass({
               updateInterfaceOptions={this.updateInterfaceOptions}
               isDesktop={this.state.isDesktop}
             />
-          </SplitPane>
+          </SplitPanePlus>
         ) : (
           <div className="puzzle-page narrow">
             <PuzzlePageMetadata
