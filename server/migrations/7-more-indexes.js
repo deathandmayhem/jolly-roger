@@ -1,5 +1,6 @@
 import { Migrations } from 'meteor/percolate:migrations';
 import { Meteor } from 'meteor/meteor';
+import { dropIndex } from '/imports/server/migrations.js';
 
 Migrations.add({
   version: 7,
@@ -9,13 +10,7 @@ Migrations.add({
 
     Models.Tags._ensureIndex({ deleted: 1, hunt: 1, name: 1 });
 
-    // _dropIndex is not idempotent, so we need to figure out if the
-    // index already exists
-    const tagsCollection = Models.Tags.rawCollection();
-    const tagsIndexExists = Meteor.wrapAsync(tagsCollection.indexExists, tagsCollection);
-    if (tagsIndexExists({ deleted: 1, hunt: 1 })) {
-      Models.Tags._dropIndex({ deleted: 1, hunt: 1 });
-    }
+    dropIndex(Models.Tags, 'deleted_1_hunt_1');
 
     Models.Documents._ensureIndex({ deleted: 1, puzzle: 1 });
 

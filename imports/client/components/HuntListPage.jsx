@@ -21,7 +21,7 @@ const splitLists = function (lists) {
 
 const HuntModalForm = React.createClass({
   propTypes: {
-    hunt: React.PropTypes.instanceOf(Transforms.Hunt),
+    hunt: React.PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
     onSubmit: React.PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
   },
 
@@ -233,7 +233,7 @@ const HuntModalForm = React.createClass({
 
 const Hunt = React.createClass({
   propTypes: {
-    hunt: React.PropTypes.instanceOf(Transforms.Hunt).isRequired,
+    hunt: React.PropTypes.shape(Schemas.Hunts.asReactPropTypes()).isRequired,
   },
 
   mixins: [ReactMeteorData],
@@ -248,7 +248,7 @@ const Hunt = React.createClass({
   },
 
   onDelete(callback) {
-    this.props.hunt.destroy(callback);
+    Models.Hunts.destroy(this.props.hunt._id, callback);
   },
 
   getMeteorData() {

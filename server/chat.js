@@ -8,34 +8,21 @@ Meteor.methods({
     check(puzzleId, String);
     check(message, String);
 
-    /* TODO: implement Slack bridging
-    let slackInfo = {
-      // TODO: look up slack userId from this.userId's Profile, if available.
-      userId:
-      // TODO: look up Slack channelId from this puzzleId's ChatMetadata, if available.
-      channelId:
-      direction: 'sent-to-slack',
-      state: 'sending'
-    };
-    */
+    const puzzle = Models.Puzzles.findOne(puzzleId);
+    if (!puzzle) {
+      throw new Meteor.Error(404, 'Unknown puzzle');
+    }
 
     Models.ChatMessages.insert({
-      puzzleId,
+      puzzle: puzzleId,
+      hunt: puzzle.hunt,
       text: message,
       sender: this.userId,
       timestamp: new Date(),
-      /* TODO: implement Slack bridge
-      slackInfo: {
-      },
-      */
     });
 
-    // TODO: Fire off a request to Slack to post this message there, too.
-    // If we have a Slack API key for this user, use that - otherwise,
-    // send as the globally-configured jolly-roger/deathfromdata bot.
     this.unblock();
 
-    const puzzle = Models.Puzzles.findOne(puzzleId);
     const hunt = Models.Hunts.findOne(puzzle.hunt);
 
     if (hunt.firehoseSlackChannel) {
