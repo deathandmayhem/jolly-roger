@@ -11,6 +11,7 @@ import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import { ReactSelect2 } from '/imports/client/components/ReactSelect2.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
+import { Flags } from '/imports/flags.js';
 
 /* eslint-disable max-len */
 
@@ -245,13 +246,19 @@ const SubscriberCount = React.createClass({
   mixins: [ReactMeteorData],
 
   getMeteorData() {
+    const disabled = Flags.active('disable.subcounters');
     const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzleId}`);
     return {
+      disabled,
       viewCount: count ? count.value : 0,
     };
   },
 
   render() {
+    if (this.data.disabled) {
+      return <div />;
+    }
+
     const countTooltip = (
       <BS.Tooltip id={`count-description-${this.props.puzzleId}`}>
         users currently viewing this puzzle
