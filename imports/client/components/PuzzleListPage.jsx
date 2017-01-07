@@ -10,6 +10,7 @@ import {
   PuzzleModalForm,
 } from '/imports/client/components/PuzzleComponents.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { Flags } from '/imports/flags.js';
 
 /* eslint-disable max-len */
 
@@ -369,8 +370,13 @@ const PuzzleListPage = React.createClass({
   getMeteorData() {
     const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
     const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
-    const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
-    const ready = puzzlesHandle.ready() && tagsHandle.ready() && viewCountsHandle.ready();
+
+    if (!Flags.active('disable.subcounters')) {
+      // Don't bother including this in ready - it's ok if it trickles in
+      this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
+    }
+
+    const ready = puzzlesHandle.ready() && tagsHandle.ready();
     if (!ready) {
       return {
         ready,

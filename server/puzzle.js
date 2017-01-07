@@ -25,8 +25,6 @@ Meteor.methods({
     check(this.userId, String);
     // Note: tag names, not tag IDs. We don't need to validate other
     // fields because SimpleSchema will validate the rest
-    //
-    // eslint-disable-next-line new-cap
     check(puzzle, Match.ObjectIncluding({ hunt: String, tags: [String] }));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
@@ -56,7 +54,7 @@ Meteor.methods({
     check(this.userId, String);
     check(puzzleId, String);
     // Note: tags names, not tag IDs
-    check(puzzle, Match.ObjectIncluding({ tags: [String] })); // eslint-disable-line new-cap
+    check(puzzle, Match.ObjectIncluding({ tags: [String] }));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.update');
 

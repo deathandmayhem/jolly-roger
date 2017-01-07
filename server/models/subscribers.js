@@ -12,6 +12,7 @@ import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import moment from 'moment';
+import { Flags } from '/imports/flags.js';
 
 const serverId = Random.id();
 
@@ -105,7 +106,9 @@ const periodic = function () {
   // Attempt to refresh our server record every 30 seconds (with
   // jitter). We should have 4 periods before we get GC'd mistakenly.
   Meteor.setTimeout(periodic, 15000 + (15000 * Random.fraction()));
-  cleanup();
+  if (!Flags.active('disable.subcounters')) {
+    cleanup();
+  }
 };
 
 Meteor.publish('subCounter.inc', function (name, context) {
