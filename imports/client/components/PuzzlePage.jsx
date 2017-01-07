@@ -29,7 +29,7 @@ const FilteredChatMessagePropTypes = _.pick(Schemas.ChatMessages.asReactPropType
 
 const MinimumDesktopWidth = 600;
 const DefaultSidebarWidth = 300;
-const DefaultChatHeight = 400;
+const DefaultChatHeight = '60%';
 
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
@@ -318,7 +318,7 @@ const PuzzlePageSidebar = React.createClass({
     }
     return (
       <div className="sidebar">
-        <SplitPanePlus split="horizontal" primary="second" defaultSize={DefaultChatHeight} onCollapseChanged={onCollapseChanged} collapsed={collapsed} >
+        <SplitPanePlus split="horizontal" primary="second" defaultSize={DefaultChatHeight} scaling="relative" onCollapseChanged={onCollapseChanged} collapsed={collapsed} >
           <RelatedPuzzleSection
             activePuzzle={this.props.activePuzzle}
             allPuzzles={this.props.allPuzzles}

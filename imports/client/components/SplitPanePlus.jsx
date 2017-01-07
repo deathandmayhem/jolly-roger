@@ -10,16 +10,20 @@ import elementResizeDetectorMaker from 'element-resize-detector';
   Wraps react-split-pane with a few extra features:
     Improved Styles for Better Cross Browser Support:
       Changes default pane1Style and pane2Style, but can still be overridden by passing props
-    Automatic Collapse on Drag:
+    Automatic Collapse on Drag or Resize:
       Collapse does not occur if programmatically set to sizes which would cause collapse during drag.  Adds classes
       Collapsing1 and Collapsing2 as respective panes are dragged through the collapse range, which is useful to style a
       warning.  Adds classes Collapsed1 and Collapsed2 as respective panes are actively collapsed (reduced to 0 size), which
       is useful to hide Resizer if no further adjustment is desired.
+    Relative Scaling Option:
+      Preserves relative sizes of the two panes during resize instead of absolute size of the primary.
 
   New Props:
     autoCollapse1     - Number of pixels (from center of Resizer) in Pane1 or Pane2 before collapsing.  Set 0 or negative to
     autoCollapse2       disable (If 0, collapse flags will still set if dragged to extremes).  Defaults to 50.
     collapsed         - If 1 or 2, collapses the appropriate pane.  Ignored if size is set.  Defaults to 0.
+    scaling           - If 'absolute' (default) maintains fixed size during resizes of the parent.  If 'relative' maintains
+                        fixed percentage.
     onCollapseChanged - Callback triggered when a pane collapses as a result of user input.  Argument is 0 if uncollapsed
                         and 1 or 2 indicating the pane that collapsed.
 
@@ -41,6 +45,7 @@ const SplitPanePlus = React.createClass({
     autoCollapse1: React.PropTypes.number,
     autoCollapse2: React.PropTypes.number,
     collapsed: React.PropTypes.number,
+    scaling: React.PropTypes.oneOf(['absolute', 'relative']),
     onCollapseChanged: React.PropTypes.func,
   }),
 
@@ -52,6 +57,7 @@ const SplitPanePlus = React.createClass({
       autoCollapse1: 50,
       autoCollapse2: 50,
       collapsed: 0,
+      scaling: 'absolute',
     });
   },
 
@@ -60,14 +66,15 @@ const SplitPanePlus = React.createClass({
       // collapseWarning and collapsed are equal to the number of the pane being collapsed or 0 if none
       collapseWarning: 0,
       collapsed: 0,
-      lastSize: -1,
+      lastSize: NaN,
+      lastRelSize: NaN,
     };
   },
 
   componentDidMount() {
     this.erd = elementResizeDetectorMaker({ strategy: 'scroll' });
     this.erd.listenTo(this.splitPaneNode(), _.throttle(this.onResize, 50));
-    this.setState({ lastSize: this.measure(this.primaryPaneNode()) });
+    this.recordSize(this.measure(this.primaryPaneNode())); // Measure to handle relative defaultSize correctly
   },
 
   componentWillReceiveProps(nextProps) {
@@ -92,8 +99,9 @@ const SplitPanePlus = React.createClass({
   },
 
   onResize() {
-    if (this.state.collapsed === 0 && this.state.lastSize >= 0) {
-      this.attemptCollapse(this.state.lastSize);
+    if (this.state.collapsed === 0) {
+      // Actively measure instead of using lastSize to capture the relative case correctly
+      this.attemptCollapse(this.measure(this.primaryPaneNode()));
     }
   },
 
@@ -108,11 +116,18 @@ const SplitPanePlus = React.createClass({
     this.setState({ collapseWarning: 0 });
     this.attemptCollapse(size);
     if (this.state.collapsed === 0) {
-      this.setState({ lastSize: size });
+      this.recordSize(size);
     }
     if ('onDragFinished' in this.props) {
       this.props.onDragFinished(size, this.state.collapsed);
     }
+  },
+
+  recordSize(size) {
+    this.setState({
+      lastSize: size,
+      lastRelSize: size / this.measure(this.splitPaneNode()),
+    });
   },
 
   attemptCollapse(size) {
@@ -180,8 +195,12 @@ const SplitPanePlus = React.createClass({
         // Collapse Pane2
         paneProps.size = this.props.primary === 'first' ? '100%' : '0%';
       }
-    } else {
-      paneProps.size = this.state.lastSize >= 0 ? this.state.lastSize : this.props.defaultSize;
+    } else if (!('size' in this.props)) {
+      if (this.props.scaling === 'relative' && !isNaN(this.state.lastRelSize)) {
+        paneProps.size = `${this.state.lastRelSize * 100}%`;
+      } else if (!isNaN(this.state.lastSize)) {
+        paneProps.size = this.state.lastSize;
+      }
     }
 
     return (
