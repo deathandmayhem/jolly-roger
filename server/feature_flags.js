@@ -8,6 +8,8 @@ Meteor.methods({
     check(type, Match.OneOf('off', 'on', 'random'));
     check(random, type === 'random' ? Number : null);
 
+    Roles.checkPermission(this.userId, 'mongo.featureflags.update');
+
     Models.FeatureFlags.upsert({ name }, { $set: { type, random } });
   },
 });
