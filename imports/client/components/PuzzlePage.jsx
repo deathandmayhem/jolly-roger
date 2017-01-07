@@ -18,6 +18,7 @@ import {
 } from '/imports/client/components/PuzzleComponents.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
+import { Flags } from '/imports/flags.js';
 
 /* eslint-disable max-len, no-console */
 
@@ -444,7 +445,8 @@ const PuzzlePageMetadata = React.createClass({
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
     const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">{`Solved: ${this.props.puzzle.answer}`}</span> : null;
-    const viewCountComponent = this.props.puzzle.answer ? null : `(${this.data.viewCount} viewing)`;
+    const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
+    const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
     const externalLinkComponent = this.props.puzzle.url ? <div className="puzzle-metadata-right"><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div> : null;
     return (
       <div className="puzzle-metadata">
@@ -673,12 +675,14 @@ const PuzzlePage = React.createClass({
     // * Related puzzles probably only needs puzzles and tags, but right now it just gets the same
     //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
 
-    // Keep a count of how many people are viewing a puzzle. Don't use
-    // the subs manager - we don't want this cached
-    Meteor.subscribe('subCounter.inc', `puzzle:${this.props.params.puzzleId}`, {
-      puzzle: this.props.params.puzzleId,
-      hunt: this.props.params.huntId,
-    });
+    if (!Flags.active('disable.subcounters')) {
+      // Keep a count of how many people are viewing a puzzle. Don't use
+      // the subs manager - we don't want this cached
+      Meteor.subscribe('subCounter.inc', `puzzle:${this.props.params.puzzleId}`, {
+        puzzle: this.props.params.puzzleId,
+        hunt: this.props.params.huntId,
+      });
+    }
 
     const displayNamesHandle = Models.Profiles.subscribeDisplayNames(this.context.subs);
     let displayNames = {};
@@ -690,9 +694,12 @@ const PuzzlePage = React.createClass({
     const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
     const guessesHandle = this.context.subs.subscribe('mongo.guesses', { puzzle: this.props.params.puzzleId });
     const documentsHandle = this.context.subs.subscribe('mongo.documents', { puzzle: this.props.params.puzzleId });
-    const viewCountsHandle = this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
 
-    const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready() && viewCountsHandle.ready();
+    if (!Flags.active('disable.subcounters')) {
+      this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
+    }
+
+    const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready();
 
     let allPuzzles;
     let allTags;

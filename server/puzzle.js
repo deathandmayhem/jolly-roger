@@ -3,6 +3,7 @@ import { Match, check } from 'meteor/check';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
 import { ensureDocument, renameDocument, grantPermission } from '/imports/server/gdrive.js';
+import { Flags } from '/imports/flags.js';
 // TODO: gdrive, globalHooks
 
 function getOrCreateTagByName(huntId, name) {
@@ -25,8 +26,6 @@ Meteor.methods({
     check(this.userId, String);
     // Note: tag names, not tag IDs. We don't need to validate other
     // fields because SimpleSchema will validate the rest
-    //
-    // eslint-disable-next-line new-cap
     check(puzzle, Match.ObjectIncluding({ hunt: String, tags: [String] }));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
@@ -56,7 +55,7 @@ Meteor.methods({
     check(this.userId, String);
     check(puzzleId, String);
     // Note: tags names, not tag IDs
-    check(puzzle, Match.ObjectIncluding({ tags: [String] })); // eslint-disable-line new-cap
+    check(puzzle, Match.ObjectIncluding({ tags: [String] }));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.update');
 
@@ -166,6 +165,11 @@ Meteor.methods({
     this.unblock();
 
     const doc = ensureDocument(puzzle, this.userId);
+
+    if (Flags.active('disable.gdrive_permissions')) {
+      return;
+    }
+
     const profile = Models.Profiles.findOne(this.userId);
     if (!profile.googleAccount) {
       return;
