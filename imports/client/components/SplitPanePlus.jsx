@@ -1,6 +1,7 @@
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import SplitPane from 'react-split-pane';
+import elementResizeDetectorMaker from 'element-resize-detector';
 
 /* eslint-disable max-len */
 /* (Because this pulls in property definitions from react-split-pane and eslint doesn't understand that) */
@@ -16,21 +17,23 @@ import SplitPane from 'react-split-pane';
       is useful to hide Resizer if no further adjustment is desired.
 
   New Props:
-    autoCollapse1  - Number of pixels (from center of Resizer) in Pane1 or Pane2 before collapsing.  Set 0 or negative to
-    autoCollapse2    disable (If 0, collapse flags will still set if dragged to extremes).  Defaults to 50.
-    collapsed      - If 1 or 2, collapses the appropriate pane.  Ignored if size is set.  Defaults to 0.
+    autoCollapse1     - Number of pixels (from center of Resizer) in Pane1 or Pane2 before collapsing.  Set 0 or negative to
+    autoCollapse2       disable (If 0, collapse flags will still set if dragged to extremes).  Defaults to 50.
+    collapsed         - If 1 or 2, collapses the appropriate pane.  Ignored if size is set.  Defaults to 0.
+    onCollapseChanged - Callback triggered when a pane collapses as a result of user input.  Argument is 0 if uncollapsed
+                        and 1 or 2 indicating the pane that collapsed.
 
   Prop Changes:
-    pane1Style     - Default now includes overflow: auto in both panes as well as maxHeight: 100% or maxWidth:100% as appropriate
-    pane2Style       in the primary pane
-    minSize        - Default is now 0
-    maxSize        - Default is now 0
-    onDragFinished - Callback arguments are now (size, collapsed) where collapsed is 0 if uncollapsed and 1 or 2 indicating the
-                     pane that collapsed.  If collapsed, the size reported is the position when the drag finished (before the
-                     automatic collapse).
-    size           - If size is specified , the appropriate panes are collapsed only if the setting is exactly '0%', '100%', 0
-                     or the Pane size.  It is possible to set size within the automatic collapse zone without triggering a
-                     collapse.
+    pane1Style        - Default now includes overflow: auto in both panes as well as maxHeight: 100% or maxWidth:100% as
+    pane2Style          appropriate in the primary pane
+    minSize           - Default is now 0
+    maxSize           - Default is now 0
+    onDragFinished    - Callback arguments are now (size, collapsed) where collapsed is 0 if uncollapsed and 1 or 2 indicating
+                        the pane that collapsed.  If collapsed, the size reported is the position when the drag finished (before
+                        the automatic collapse).
+    size              - If size is specified , the appropriate panes are collapsed only if the setting is exactly '0%', '100%',
+                        0, or the Pane size.  It is possible to set size within the automatic collapse zone without triggering a
+                        collapse.
 */
 
 const SplitPanePlus = React.createClass({
@@ -38,6 +41,7 @@ const SplitPanePlus = React.createClass({
     autoCollapse1: React.PropTypes.number,
     autoCollapse2: React.PropTypes.number,
     collapsed: React.PropTypes.number,
+    onCollapseChanged: React.PropTypes.func,
   }),
 
   getDefaultProps() {
@@ -60,10 +64,15 @@ const SplitPanePlus = React.createClass({
     };
   },
 
+  componentDidMount() {
+    this.erd = elementResizeDetectorMaker({ strategy: 'scroll' });
+    this.erd.listenTo(this.splitPaneNode(), _.throttle(this.onResize, 50));
+    this.setState({ lastSize: this.measure(this.primaryPaneNode()) });
+  },
+
   componentWillReceiveProps(nextProps) {
     if ('size' in nextProps) {
-      const pane = this.pane();
-      const fullSize = nextProps.split === 'vertical' ? pane.clientWidth : pane.clientHeight;
+      const fullSize = this.measure(this.splitPaneNode());
       if (nextProps.size === '0%' || nextProps.size <= 0) {
         // Collapse primary pane
         this.setState({ collapsed: nextProps.primary === 'first' ? 1 : 2 });
@@ -78,18 +87,26 @@ const SplitPanePlus = React.createClass({
     }
   },
 
+  componentWillUnmount() {
+    this.erd.uninstall(this.splitPaneNode());
+  },
+
+  onResize() {
+    if (this.state.collapsed === 0 && this.state.lastSize >= 0) {
+      this.attemptCollapse(this.state.lastSize);
+    }
+  },
+
   onChange(size) {
-    this.setState({ collapseWarning: this.calculateCollapseCriteria(size) });
+    this.setState({ collapseWarning: this.calculateCollapse(size) });
     if ('onChange' in this.props) {
       this.props.onChange(size);
     }
   },
 
   onDragFinished(size) {
-    this.setState({
-      collapsed: this.calculateCollapseCriteria(size),
-      collapseWarning: 0,
-    });
+    this.setState({ collapseWarning: 0 });
+    this.attemptCollapse(size);
     if (this.state.collapsed === 0) {
       this.setState({ lastSize: size });
     }
@@ -98,11 +115,18 @@ const SplitPanePlus = React.createClass({
     }
   },
 
-  calculateCollapseCriteria(size) {
-    const pane = this.pane();
-    const resizer = pane.querySelector(':scope > .Resizer');
-    const fullSize = this.props.split === 'vertical' ? pane.clientWidth : pane.clientHeight;
-    const halfResizerSize = this.props.split === 'vertical' ? resizer.clientWidth / 2 : resizer.clientHeight / 2;
+  attemptCollapse(size) {
+    const oldCollapsed = this.state.collapsed;
+    const newCollapsed = this.calculateCollapse(size);
+    this.setState({ collapsed: newCollapsed });
+    if (oldCollapsed !== newCollapsed && 'onCollapseChanged' in this.props) {
+      this.props.onCollapseChanged(newCollapsed);
+    }
+  },
+
+  calculateCollapse(size) {
+    const fullSize = this.measure(this.splitPaneNode());
+    const halfResizerSize = this.measure(this.resizerNode()) / 2;
     if (size + halfResizerSize <= this.props.autoCollapse1) {
       // Collapse Pane1
       return this.props.primary === 'first' ? 1 : 2;
@@ -113,8 +137,24 @@ const SplitPanePlus = React.createClass({
     return 0;
   },
 
-  pane() {
+  splitPaneNode() {
     return this.node.firstChild;
+  },
+
+  primaryPaneNode() {
+    return this.splitPaneNode().querySelector(`:scope > .Pane${this.props.primary === 'first' ? 1 : 2}`);
+  },
+
+  secondaryPaneNode() {
+    return this.splitPaneNode().querySelector(`:scope > .Pane${this.props.primary === 'first' ? 2 : 1}`);
+  },
+
+  resizerNode() {
+    return this.splitPaneNode().querySelector(':scope > .Resizer');
+  },
+
+  measure(elem) {
+    return this.props.split === 'vertical' ? elem.clientWidth : elem.clientHeight;
   },
 
   render() {

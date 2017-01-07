@@ -303,7 +303,7 @@ const PuzzlePageSidebar = React.createClass({
     };
   },
   render() {
-    const onDragFinished = (size, collapsed) => {
+    const onCollapseChanged = (collapsed) => {
       if (collapsed === 1) {
         this.props.updateInterfaceOptions({ showChat: true, showRelated: false });
       } else if (collapsed === 2) {
@@ -318,7 +318,7 @@ const PuzzlePageSidebar = React.createClass({
     }
     return (
       <div className="sidebar">
-        <SplitPanePlus split="horizontal" primary="second" defaultSize={DefaultChatHeight} onDragFinished={onDragFinished} collapsed={collapsed} >
+        <SplitPanePlus split="horizontal" primary="second" defaultSize={DefaultChatHeight} onCollapseChanged={onCollapseChanged} collapsed={collapsed} >
           <RelatedPuzzleSection
             activePuzzle={this.props.activePuzzle}
             allPuzzles={this.props.allPuzzles}
@@ -856,11 +856,11 @@ const PuzzlePage = React.createClass({
 
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     const showSidebar = this.state.interfaceOptions.showChat || this.state.interfaceOptions.showRelated;
-    const onDragFinished = (size, collapsed) => { if (collapsed === 1) { this.updateInterfaceOptions({ showChat: false, showRelated: false }); } };
+    const onCollapseChanged = (collapsed) => { if (collapsed === 1) { this.updateInterfaceOptions({ showChat: false, showRelated: false }); } };
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         {this.state.isDesktop ? (
-          <SplitPanePlus split="vertical" className="puzzle-page" defaultSize={DefaultSidebarWidth} autoCollapse2={-1} collapsed={showSidebar ? 0 : 1} onDragFinished={onDragFinished} >
+          <SplitPanePlus split="vertical" className="puzzle-page" defaultSize={DefaultSidebarWidth} autoCollapse2={-1} collapsed={showSidebar ? 0 : 1} onCollapseChanged={onCollapseChanged} >
             <PuzzlePageSidebar
               activePuzzle={activePuzzle}
               allPuzzles={this.data.allPuzzles}

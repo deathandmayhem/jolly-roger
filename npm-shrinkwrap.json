@@ -84,6 +84,11 @@
       "from": "base64url@>=1.0.4 <1.1.0",
       "resolved": "https://registry.npmjs.org/base64url/-/base64url-1.0.6.tgz"
     },
+    "batch-processor": {
+      "version": "1.0.0",
+      "from": "batch-processor@>=1.0.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/batch-processor/-/batch-processor-1.0.0.tgz"
+    },
     "bcrypt": {
       "version": "1.0.1",
       "from": "https://registry.npmjs.org/bcrypt/-/bcrypt-1.0.1.tgz",
@@ -283,6 +288,11 @@
       "version": "1.0.7",
       "from": "ecdsa-sig-formatter@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/ecdsa-sig-formatter/-/ecdsa-sig-formatter-1.0.7.tgz"
+    },
+    "element-resize-detector": {
+      "version": "1.1.10",
+      "from": "element-resize-detector@latest",
+      "resolved": "https://registry.npmjs.org/element-resize-detector/-/element-resize-detector-1.1.10.tgz"
     },
     "encoding": {
       "version": "0.1.12",
