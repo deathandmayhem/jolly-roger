@@ -3,6 +3,7 @@ import { Match, check } from 'meteor/check';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
 import { ensureDocument, renameDocument, grantPermission } from '/imports/server/gdrive.js';
+import { Flags } from '/imports/flags.js';
 // TODO: gdrive, globalHooks
 
 function getOrCreateTagByName(huntId, name) {
@@ -164,6 +165,11 @@ Meteor.methods({
     this.unblock();
 
     const doc = ensureDocument(puzzle, this.userId);
+
+    if (Flags.active('disable.gdrive_permissions')) {
+      return;
+    }
+
     const profile = Models.Profiles.findOne(this.userId);
     if (!profile.googleAccount) {
       return;
