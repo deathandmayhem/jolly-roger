@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import BS from 'react-bootstrap';
 import Ansible from '/imports/ansible.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
@@ -342,6 +343,7 @@ const MockHunt = React.createClass({
 const HuntListPage = React.createClass({
   contextTypes: {
     subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
@@ -420,15 +422,21 @@ const HuntListPage = React.createClass({
     }
 
     return (
-      <div id="jr-hunts">
-        <h1>Hunts</h1>
-        <HuntModalForm
-          ref={(node) => { this.addModalNode = node; }}
-          onSubmit={this.onAdd}
-        />
-        {this.addButton()}
-        {body}
-      </div>
+      <this.context.navAggregator.NavItem
+        itemKey="hunts"
+        to="/hunts"
+        label="Hunts"
+      >
+        <div id="jr-hunts">
+          <h1>Hunts</h1>
+          <HuntModalForm
+            ref={(node) => { this.addModalNode = node; }}
+            onSubmit={this.onAdd}
+          />
+          {this.addButton()}
+          {body}
+        </div>
+      </this.context.navAggregator.NavItem>
     );
   },
 });

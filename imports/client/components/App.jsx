@@ -7,10 +7,12 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ConnectionStatus } from '/imports/client/components/ConnectionStatus.jsx';
 import { NotificationCenter } from '/imports/client/components/NotificationCenter.jsx';
+import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 
 const SharedNavbar = React.createClass({
   contextTypes: {
     subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
@@ -33,28 +35,17 @@ const SharedNavbar = React.createClass({
 
   render() {
     return (
-      <BS.Navbar fixedTop>
+      <BS.Navbar fixedTop fluid>
         <BS.Navbar.Header>
           <BS.Navbar.Brand>
             <Link to="/">
               <img src="/images/brand.png" alt="Jolly Roger logo" />
             </Link>
           </BS.Navbar.Brand>
+          <this.context.navAggregator.NavBar />
+          <BS.Navbar.Toggle />
         </BS.Navbar.Header>
         <BS.Navbar.Collapse>
-          {/* TODO: Construct some sort of breadcrumbs here? */}
-          <BS.Nav>
-            <RRBS.LinkContainer to="/hunts">
-              <BS.NavItem>
-                Hunts
-              </BS.NavItem>
-            </RRBS.LinkContainer>
-            <RRBS.LinkContainer to="/users/">
-              <BS.NavItem>
-                Hunters
-              </BS.NavItem>
-            </RRBS.LinkContainer>
-          </BS.Nav>
           <BS.Nav pullRight>
             <BS.NavDropdown
               id="profileDropdown"

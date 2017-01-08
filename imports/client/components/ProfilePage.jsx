@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 /* eslint-disable max-len */
@@ -355,6 +356,7 @@ const ProfilePage = React.createClass({
 
   contextTypes: {
     subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
@@ -387,22 +389,41 @@ const ProfilePage = React.createClass({
   },
 
   render() {
-    if (!this.data.ready) return <div>loading...</div>;
-    if (this.data.isSelf) {
-      return (
+    let body;
+    if (!this.data.ready) {
+      body = <div>loading...</div>;
+    } else if (this.data.isSelf) {
+      body = (
         <OwnProfilePage
           initialProfile={this.data.profile}
           isOperator={this.data.viewerIsAdmin}
           operating={this.data.viewerIsOperating}
         />
       );
+    } else {
+      body = (
+        <OthersProfilePage
+          profile={this.data.profile}
+          viewerIsAdmin={this.data.viewerIsAdmin}
+          targetIsAdmin={this.data.targetIsAdmin}
+        />
+      );
     }
+
     return (
-      <OthersProfilePage
-        profile={this.data.profile}
-        viewerIsAdmin={this.data.viewerIsAdmin}
-        targetIsAdmin={this.data.targetIsAdmin}
-      />
+      <this.context.navAggregator.NavItem
+        itemKey="users"
+        to="/users"
+        label="Users"
+      >
+        <this.context.navAggregator.NavItem
+          itemKey="userid"
+          to={`/users/${this.props.params.userId}`}
+          label={this.data.ready ? this.data.profile.displayName : 'loading...'}
+        >
+          {body}
+        </this.context.navAggregator.NavItem>
+      </this.context.navAggregator.NavItem>
     );
   },
 });
