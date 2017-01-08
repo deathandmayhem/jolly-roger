@@ -1,5 +1,10 @@
 .navbar-brand {
     padding: 0;
+    float: none;
+}
+
+.navbar-brand > img {
+    display: inline-block;
 }
 
 .chat-section p, .chat-section ul, .chat-section blockquote, .chat-section pre {
