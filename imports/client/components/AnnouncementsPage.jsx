@@ -4,6 +4,7 @@ import React from 'react';
 import BS from 'react-bootstrap';
 import marked from 'marked';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 /* eslint-disable max-len */
@@ -105,6 +106,7 @@ const AnnouncementsPage = React.createClass({
 
   contextTypes: {
     subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
@@ -143,6 +145,11 @@ const AnnouncementsPage = React.createClass({
 
     return (
       <div>
+        <this.context.navAggregator.NavItem
+          itemKey="announcements"
+          to={`/hunts/${this.props.params.huntId}/announcements`}
+          label="Announcements"
+        />
         <h1>Announcements</h1>
         {this.data.canCreateAnnouncements && <AnnouncementForm huntId={this.props.params.huntId} />}
         {/* ostensibly these should be ul and li, but then I have to deal with overriding

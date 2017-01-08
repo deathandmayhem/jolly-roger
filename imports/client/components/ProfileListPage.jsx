@@ -3,6 +3,7 @@ import { _ } from 'meteor/underscore';
 import BS from 'react-bootstrap';
 import RRBS from 'react-router-bootstrap';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 const ProfileList = React.createClass({
@@ -101,6 +102,7 @@ const ProfileList = React.createClass({
 const ProfileListPage = React.createClass({
   contextTypes: {
     subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
@@ -116,11 +118,22 @@ const ProfileListPage = React.createClass({
   },
 
   render() {
+    let body;
     if (!this.data.ready) {
-      return <div>loading...</div>;
+      body = <div>loading...</div>;
+    } else {
+      body = <ProfileList profiles={this.data.profiles} />;
     }
 
-    return <ProfileList profiles={this.data.profiles} />;
+    return (
+      <this.context.navAggregator.NavItem
+        itemKey="users"
+        to="/users"
+        label="Users"
+      >
+        {body}
+      </this.context.navAggregator.NavItem>
+    );
   },
 });
 

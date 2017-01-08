@@ -4,11 +4,11 @@ import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import BS from 'react-bootstrap';
 import Ansible from '/imports/ansible.js';
-import { Link } from 'react-router';
 import DocumentTitle from 'react-document-title';
 import marked from 'marked';
 import moment from 'moment';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ModalForm } from '/imports/client/components/ModalForm.jsx';
 import TextareaAutosize from 'react-textarea-autosize';
 import {
@@ -19,7 +19,6 @@ import {
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
-import classNames from 'classnames';
 import SplitPanePlus from '/imports/client/components/SplitPanePlus.jsx';
 
 /* eslint-disable max-len, no-console */
@@ -493,8 +492,6 @@ const PuzzlePageMetadata = React.createClass({
         <div className="puzzle-metadata-row">
           {externalLinkComponent}
           <div className="puzzle-metadata-left">
-            <Link to={`/hunts/${this.props.puzzle.hunt}/puzzles`}>Puzzles</Link>
-            {' / '}
             <strong>{this.props.puzzle.title}</strong>
             {' '}
             {this.editButton()}
@@ -701,6 +698,7 @@ const PuzzlePage = React.createClass({
 
   contextTypes: {
     subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
@@ -857,35 +855,51 @@ const PuzzlePage = React.createClass({
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     const showSidebar = this.state.interfaceOptions.showChat || this.state.interfaceOptions.showRelated;
     const onCollapseChanged = (collapsed) => { if (collapsed === 1) { this.updateInterfaceOptions({ showChat: false, showRelated: false }); } };
+
+    const navItem = (
+      <this.context.navAggregator.NavItem
+        itemKey="puzzleid"
+        to={`/hunts/${this.props.params.huntId}/puzzles/${this.props.params.puzzleId}`}
+        label={activePuzzle.title}
+      />
+    );
+    const sidebar = (
+      <PuzzlePageSidebar
+        activePuzzle={activePuzzle}
+        allPuzzles={this.data.allPuzzles}
+        allTags={this.data.allTags}
+        chatReady={this.data.chatReady}
+        chatMessages={this.data.chatMessages}
+        displayNames={this.data.displayNames}
+        canUpdate={this.data.canUpdate}
+        interfaceOptions={this.state.interfaceOptions}
+        updateInterfaceOptions={this.updateInterfaceOptions}
+        isDesktop={this.state.isDesktop}
+      />
+    );
+
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         {this.state.isDesktop ? (
-          <SplitPanePlus split="vertical" className="puzzle-page" defaultSize={DefaultSidebarWidth} autoCollapse2={-1} collapsed={showSidebar ? 0 : 1} onCollapseChanged={onCollapseChanged} >
-            <PuzzlePageSidebar
-              activePuzzle={activePuzzle}
-              allPuzzles={this.data.allPuzzles}
-              allTags={this.data.allTags}
-              chatReady={this.data.chatReady}
-              chatMessages={this.data.chatMessages}
-              displayNames={this.data.displayNames}
-              canUpdate={this.data.canUpdate}
-              interfaceOptions={this.state.interfaceOptions}
-              updateInterfaceOptions={this.updateInterfaceOptions}
-              isDesktop={this.state.isDesktop}
-            />
-            <PuzzlePageContent
-              puzzle={activePuzzle}
-              allTags={this.data.allTags}
-              guesses={this.data.allGuesses}
-              displayNames={this.data.displayNames}
-              documents={this.data.allDocuments}
-              interfaceOptions={this.state.interfaceOptions}
-              updateInterfaceOptions={this.updateInterfaceOptions}
-              isDesktop={this.state.isDesktop}
-            />
-          </SplitPanePlus>
+          <div className="puzzle-page">
+            {navItem}
+            <SplitPanePlus split="vertical" defaultSize={DefaultSidebarWidth} autoCollapse2={-1} collapsed={showSidebar ? 0 : 1} onCollapseChanged={onCollapseChanged} >
+              {sidebar}
+              <PuzzlePageContent
+                puzzle={activePuzzle}
+                allTags={this.data.allTags}
+                guesses={this.data.allGuesses}
+                displayNames={this.data.displayNames}
+                documents={this.data.allDocuments}
+                interfaceOptions={this.state.interfaceOptions}
+                updateInterfaceOptions={this.updateInterfaceOptions}
+                isDesktop={this.state.isDesktop}
+              />
+            </SplitPanePlus>
+          </div>
         ) : (
           <div className="puzzle-page narrow">
+            {navItem}
             <PuzzlePageMetadata
               puzzle={activePuzzle}
               allTags={this.data.allTags}
@@ -896,18 +910,7 @@ const PuzzlePage = React.createClass({
               updateInterfaceOptions={this.updateInterfaceOptions}
               isDesktop={this.state.isDesktop}
             />
-            <PuzzlePageSidebar
-              activePuzzle={activePuzzle}
-              allPuzzles={this.data.allPuzzles}
-              allTags={this.data.allTags}
-              chatReady={this.data.chatReady}
-              chatMessages={this.data.chatMessages}
-              displayNames={this.data.displayNames}
-              canUpdate={this.data.canUpdate}
-              interfaceOptions={this.state.interfaceOptions}
-              updateInterfaceOptions={this.updateInterfaceOptions}
-              isDesktop={this.state.isDesktop}
-            />
+            {sidebar}
           </div>
         )}
       </DocumentTitle>

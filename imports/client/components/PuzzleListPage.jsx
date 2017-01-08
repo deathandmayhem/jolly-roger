@@ -214,7 +214,7 @@ const PuzzleListView = React.createClass({
           } else {
             return -2;
           }
-        } else if (tag.name === 'is:meta' && !puzzle.answer) {
+        } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !puzzle.answer) {
           hasUnsolvedMeta = true;
         }
       }

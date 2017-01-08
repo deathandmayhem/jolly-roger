@@ -2,10 +2,15 @@ import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 
 /* eslint-disable max-len */
 
 const SetupPage = React.createClass({
+  contextTypes: {
+    navAggregator: navAggregatorType,
+  },
+
   mixins: [ReactMeteorData],
 
   getInitialState() {
@@ -44,7 +49,7 @@ const SetupPage = React.createClass({
     return false;
   },
 
-  render() {
+  renderBody() {
     if (!this.data.admin) {
       return <div>This page is for administering the Jolly Roger web app</div>;
     }
@@ -75,6 +80,18 @@ const SetupPage = React.createClass({
         {this.state.state === 'error' ? <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.error.message}</BS.Alert> : null}
         <BS.Button bsStyle="primary" onClick={this.showPopup}>Link a Google account</BS.Button> for Google Drive management. (This will replace any previously configured account)
       </div>
+    );
+  },
+
+  render() {
+    return (
+      <this.context.navAggregator.NavItem
+        itemKey="setup"
+        to="/setup"
+        label="Server setup"
+      >
+        {this.renderBody()}
+      </this.context.navAggregator.NavItem>
     );
   },
 });

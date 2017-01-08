@@ -16,6 +16,7 @@ import { GuessQueuePage } from '/imports/client/components/GuessQueuePage.jsx';
 import { HuntApp } from '/imports/client/components/HuntApp.jsx';
 import { HuntListPage } from '/imports/client/components/HuntListPage.jsx';
 import { LoginForm } from '/imports/client/components/LoginForm.jsx';
+import { NavAggregator, navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { PasswordResetForm } from '/imports/client/components/PasswordResetForm.jsx';
 import { ProfileListPage } from '/imports/client/components/ProfileListPage.jsx';
 import { ProfilePage } from '/imports/client/components/ProfilePage.jsx';
@@ -27,6 +28,7 @@ import { SplashPage } from '/imports/client/components/SplashPage.jsx';
 const Routes = React.createClass({
   childContextTypes: {
     subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
   },
 
   getChildContext() {
@@ -34,7 +36,14 @@ const Routes = React.createClass({
       this.subs = new SubsCache({ cacheLimit: -1, expireAfter: 1 });
     }
 
-    return { subs: this.subs };
+    if (!this.navAggregator) {
+      this.navAggregator = new NavAggregator();
+    }
+
+    return {
+      subs: this.subs,
+      navAggregator: this.navAggregator,
+    };
   },
 
   render() {
