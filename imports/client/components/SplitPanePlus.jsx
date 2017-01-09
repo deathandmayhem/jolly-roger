@@ -48,45 +48,32 @@ import elementResizeDetectorMaker from 'element-resize-detector';
                         set size within the automatic collapse zone without triggering a collapse.
 */
 
-const SplitPanePlus = React.createClass({
-  propTypes: _.extend({}, SplitPane.propTypes, {
-    autoCollapse1: React.PropTypes.number,
-    autoCollapse2: React.PropTypes.number,
-    collapsed: React.PropTypes.number,
-    scaling: React.PropTypes.oneOf(['absolute', 'relative']),
-    onCollapseChanged: React.PropTypes.func,
-  }),
-
-  getDefaultProps() {
-    return _.extend({}, SplitPane.defaultProps, {
-      minSize: 0,
-      maxSize: 0,
-      className: '',
-      autoCollapse1: 50,
-      autoCollapse2: 50,
-      collapsed: 0,
-      scaling: 'absolute',
-    });
-  },
-
-  getInitialState() {
-    return {
+class SplitPanePlus extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
       // collapseWarning and collapsed are equal to the number of the pane being collapsed
       // or 0 if none
       collapseWarning: 0,
-      collapsed: 0,
+      collapsed: props.collapsed ? props.collapsed : 0,
       lastSize: NaN,
       lastRelSize: NaN,
       dragInProgress: false,
     };
-  },
+    this.onResize = this.onResize.bind(this);
+    this.onChange = this.onChange.bind(this);
+    this.onDragStarted = this.onDragStarted.bind(this);
+    this.onDragFinished = this.onDragFinished.bind(this);
+  }
 
   componentDidMount() {
     this.erd = elementResizeDetectorMaker({ strategy: 'scroll' });
     this.erd.listenTo(this.splitPaneNode(), _.throttle(this.onResize, 50));
     // Measure to handle relative defaultSize correctly
-    this.recordSize(this.measure(this.primaryPaneNode()));
-  },
+    if (this.state.collapsed === 0) {
+      this.recordSize(this.measure(this.primaryPaneNode()));
+    }
+  }
 
   componentWillReceiveProps(nextProps) {
     if ('size' in nextProps) {
@@ -103,11 +90,11 @@ const SplitPanePlus = React.createClass({
     } else if ('collapsed' in nextProps) {
       this.setState({ collapsed: nextProps.collapsed });
     }
-  },
+  }
 
   componentWillUnmount() {
     this.erd.uninstall(this.splitPaneNode());
-  },
+  }
 
   onResize() {
     if (!this.splitPaneNode()) {
@@ -117,14 +104,14 @@ const SplitPanePlus = React.createClass({
       // Actively measure instead of using lastSize to capture the relative case correctly
       this.attemptCollapse(this.measure(this.primaryPaneNode()));
     }
-  },
+  }
 
   onChange(size) {
     this.setState({ collapseWarning: this.calculateCollapse(size) });
     if ('onChange' in this.props) {
       this.props.onChange(size);
     }
-  },
+  }
 
   onDragStarted(size) {
     this.setState({
@@ -133,7 +120,7 @@ const SplitPanePlus = React.createClass({
     if ('onDragStarted' in this.props) {
       this.props.onDragStarted(size);
     }
-  },
+  }
 
   onDragFinished(size) {
     this.setState({
@@ -147,14 +134,14 @@ const SplitPanePlus = React.createClass({
     if ('onDragFinished' in this.props) {
       this.props.onDragFinished(size, this.state.collapsed);
     }
-  },
+  }
 
   recordSize(size) {
     this.setState({
       lastSize: size,
       lastRelSize: size / this.measure(this.splitPaneNode()),
     });
-  },
+  }
 
   attemptCollapse(size) {
     const oldCollapsed = this.state.collapsed;
@@ -163,7 +150,7 @@ const SplitPanePlus = React.createClass({
     if (oldCollapsed !== newCollapsed && 'onCollapseChanged' in this.props) {
       this.props.onCollapseChanged(newCollapsed);
     }
-  },
+  }
 
   calculateCollapse(size) {
     const fullSize = this.measure(this.splitPaneNode());
@@ -176,35 +163,35 @@ const SplitPanePlus = React.createClass({
       return this.props.primary === 'first' ? 2 : 1;
     }
     return 0;
-  },
+  }
 
   splitPaneNode() {
     return this.node ? this.node.firstChild : null;
-  },
+  }
 
   primaryPaneNode() {
     const root = this.splitPaneNode();
     const className = `Pane${this.props.primary === 'first' ? 1 : 2}`;
     return root ? _.find(root.childNodes, n => n.classList.contains(className)) : null;
-  },
+  }
 
   secondaryPaneNode() {
     const root = this.splitPaneNode();
     const className = `Pane${this.props.primary === 'first' ? 2 : 1}`;
     return root ? _.find(root.childNodes, n => n.classList.contains(className)) : null;
-  },
+  }
 
   resizerNode() {
     const root = this.splitPaneNode();
     return root ? _.find(root.childNodes, n => n.classList.contains('Resizer')) : null;
-  },
+  }
 
   measure(elem) {
     if (!elem) {
       return NaN;
     }
     return this.props.split === 'vertical' ? elem.clientWidth : elem.clientHeight;
-  },
+  }
 
   render() {
     const paneProps = _.extend({}, this.props);
@@ -248,6 +235,9 @@ const SplitPanePlus = React.createClass({
         paneProps.size = this.state.lastSize;
       }
     }
+    if (!('size' in paneProps)) {
+      paneProps.size = this.props.defaultSize;
+    }
 
     const classNames = `SplitPanePlus${this.state.dragInProgress ? ' dragging' : ''}`;
 
@@ -256,8 +246,25 @@ const SplitPanePlus = React.createClass({
         <SplitPane {...paneProps} />
       </div>
     );
-  },
+  }
+}
 
+SplitPanePlus.propTypes = _.extend({}, SplitPane.propTypes, {
+  autoCollapse1: React.PropTypes.number,
+  autoCollapse2: React.PropTypes.number,
+  collapsed: React.PropTypes.oneOf([0, 1, 2]),
+  scaling: React.PropTypes.oneOf(['absolute', 'relative']),
+  onCollapseChanged: React.PropTypes.func,
+});
+
+SplitPanePlus.defaultProps = _.extend({}, SplitPane.defaultProps, {
+  minSize: 0,
+  maxSize: 0,
+  className: '',
+  autoCollapse1: 50,
+  autoCollapse2: 50,
+  collapsed: 0,
+  scaling: 'absolute',
 });
 
 export default SplitPanePlus;
