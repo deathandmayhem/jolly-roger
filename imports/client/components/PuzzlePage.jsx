@@ -409,6 +409,22 @@ const PuzzlePageMetadata = React.createClass({
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
   },
 
+  onInterfaceRadioChange(e) {
+    const v = e.target.value;
+    switch (v) {
+      case 'related':
+        this.props.updateInterfaceOptions({ showChat: false, showRelated: true });
+        break;
+      case 'chat':
+        this.props.updateInterfaceOptions({ showChat: true, showRelated: false });
+        break;
+      case 'both':
+      default:
+        this.props.updateInterfaceOptions({ showChat: true, showRelated: true });
+        break;
+    }
+  },
+
   getMeteorData() {
     const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
     return {
@@ -530,11 +546,39 @@ const PuzzlePageMetadata = React.createClass({
               ) }
             </div>
           }
-          <div className="puzzle-metadata-left">
-            <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showChat} onChange={(e) => { this.props.updateInterfaceOptions({ showChat: e.target.checked }); }} /> Chat
-            &nbsp;
-            <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showRelated} onChange={(e) => { this.props.updateInterfaceOptions({ showRelated: e.target.checked }); }} /> Related Puzzles
-          </div>
+          {this.props.isDesktop ? (
+            <div className="puzzle-metadata-left">
+              <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showChat} onChange={(e) => { this.props.updateInterfaceOptions({ showChat: e.target.checked }); }} /> Chat
+              &nbsp;
+              <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showRelated} onChange={(e) => { this.props.updateInterfaceOptions({ showRelated: e.target.checked }); }} /> Related Puzzles
+            </div>
+          ) : (
+            <div className="puzzle-metadata-left">
+              <input
+                type="radio"
+                name="interfacePanes"
+                value="chat"
+                checked={this.props.interfaceOptions.showChat && !this.props.interfaceOptions.showRelated}
+                onChange={this.onInterfaceRadioChange}
+              /> Chat
+              &nbsp;
+              <input
+                type="radio"
+                name="interfacePanes"
+                value="both"
+                checked={this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated}
+                onChange={this.onInterfaceRadioChange}
+              /> Both
+              &nbsp;
+              <input
+                type="radio"
+                name="interfacePanes"
+                value="related"
+                checked={!this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated}
+                onChange={this.onInterfaceRadioChange}
+              /> Related Puzzles
+            </div>
+          )}
         </div>
         {/* Activity tracking not implemented yet.
             <div>Other hunters currently viewing this page?</div> */}
