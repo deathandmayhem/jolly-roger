@@ -448,6 +448,7 @@ const PuzzlePageMetadata = React.createClass({
     const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
     const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
     const externalLinkComponent = this.props.puzzle.url ? <div className="puzzle-metadata-right"><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div> : null;
+    const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'No'} Guesses`;
     return (
       <div className="puzzle-metadata">
         <PuzzleModalForm
@@ -463,14 +464,16 @@ const PuzzlePageMetadata = React.createClass({
             <strong>{this.props.puzzle.title}</strong>
             {' '}
             {this.editButton()}
+            {' '}
             {viewCountComponent}
-            {answerComponent}
           </div>
         </div>
         <div className="puzzle-metadata-row">
           <div className="puzzle-metadata-right">
+            {this.props.puzzle.answer && answerComponent}
+            {' '}
             <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-              Submit answer
+              {this.props.puzzle.answer ? `View ${guessesString}` : `Submit Answer (${guessesString})`}
             </BS.Button>
           </div>
           <div className="puzzle-metadata-left">
@@ -488,11 +491,11 @@ const PuzzlePageMetadata = React.createClass({
             <div>Other hunters currently viewing this page?</div> */}
         <ModalForm
           ref={(node) => { this.formNode = node; }}
-          title={`Submit answer to ${this.props.puzzle.title}`}
+          title={`${this.props.puzzle.answer ? 'Guess History for' : 'Submit answer to'} ${this.props.puzzle.title}`}
           onSubmit={this.submitGuess}
           submitLabel="Submit"
+          confirmationLabel={this.props.puzzle.answer ? 'This puzzle has already been solved.  Are you sure you want to submit another guess?' : null}
         >
-          {/* TODO: make this show past guesses */}
 
           <BS.FormGroup>
             <BS.ControlLabel htmlFor="jr-puzzle-guess" className="col-xs-2">
@@ -510,8 +513,8 @@ const PuzzlePageMetadata = React.createClass({
           </BS.FormGroup>
 
           {this.props.guesses.length === 0 ? <div>No previous submissions.</div> : [
-            <div key="label">Previous submissions:</div>,
-            <BS.Table key="table" striped bordered condensed hover>
+            (this.props.puzzle.answer ? '' : <div key="label">Previous submissions:</div>),
+            <BS.Table key="table" bordered condensed>
               <thead>
                 <tr>
                   <th>Guess</th>
@@ -521,13 +524,13 @@ const PuzzlePageMetadata = React.createClass({
                 </tr>
               </thead>
               <tbody>
-                {this.props.guesses.map((guess) => {
+                {_.sortBy(this.props.guesses, 'createdAt').reverse().map((guess) => {
                   return (
-                    <tr key={guess._id}>
-                      <td>{guess.guess}</td>
+                    <tr key={guess._id} className={`guess-${guess.state}`}>
+                      <td className="answer" >{guess.guess}</td>
                       <td>{_this.formatDate(guess.createdAt)}</td>
                       <td>{_this.props.displayNames[guess.createdBy]}</td>
-                      <td>{guess.state}</td>
+                      <td style={{ textTransform: 'capitalize' }} >{guess.state}</td>
                     </tr>
                   );
                 })}

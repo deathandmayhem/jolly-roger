@@ -9,6 +9,7 @@ const ModalForm = React.createClass({
     submitDisabled: React.PropTypes.bool,
     onSubmit: React.PropTypes.func.isRequired,
     children: React.PropTypes.node,
+    confirmationLabel: React.PropTypes.string,
   },
 
   getDefaultProps() {
@@ -19,11 +20,15 @@ const ModalForm = React.createClass({
   },
 
   getInitialState() {
-    return { show: false };
+    return { show: false, showConfirmation: false };
+  },
+
+  onFormChanged() {
+    this.setState({ showConfirmation: false });
   },
 
   show() {
-    this.setState({ show: true });
+    this.setState({ show: true, showConfirmation: false });
   },
 
   close() {
@@ -32,19 +37,23 @@ const ModalForm = React.createClass({
 
   submit(e) {
     e.preventDefault();
-    this.props.onSubmit(() => {
-      // For delete forms, it's possible that the component gets
-      // deleted and unmounted before the callback gets called.
-      if (this.isMounted()) { // eslint-disable-line react/no-is-mounted
-        this.close();
-      }
-    });
+    if (this.props.confirmationLabel && !this.state.showConfirmation) {
+      this.setState({ showConfirmation: true });
+    } else {
+      this.props.onSubmit(() => {
+        // For delete forms, it's possible that the component gets
+        // deleted and unmounted before the callback gets called.
+        if (this.isMounted()) { // eslint-disable-line react/no-is-mounted
+          this.close();
+        }
+      });
+    }
   },
 
   render() {
     return (
       <BS.Modal show={this.state.show} onHide={this.close}>
-        <form className="form-horizontal" onSubmit={this.submit}>
+        <form className="form-horizontal" onSubmit={this.submit} onInput={this.onFormChanged}>
           <BS.Modal.Header closeButton>
             <BS.Modal.Title>
               {this.props.title}
@@ -52,6 +61,9 @@ const ModalForm = React.createClass({
           </BS.Modal.Header>
           <BS.Modal.Body>
             {this.props.children}
+            {this.state.showConfirmation &&
+              <div className="text-warning .pull-left">{this.props.confirmationLabel}</div>
+            }
           </BS.Modal.Body>
           <BS.Modal.Footer>
             <BS.Button
@@ -66,7 +78,7 @@ const ModalForm = React.createClass({
               type="submit"
               disabled={this.props.submitDisabled}
             >
-              {this.props.submitLabel}
+              {`${this.state.showConfirmation ? 'Confirm ' : ''}${this.props.submitLabel}`}
             </BS.Button>
           </BS.Modal.Footer>
         </form>
