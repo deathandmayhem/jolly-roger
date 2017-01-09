@@ -102,6 +102,9 @@ const SplitPanePlus = React.createClass({
   },
 
   onResize() {
+    if (!this.splitPaneNode()) {
+      return;
+    }
     if (this.state.collapsed === 0) {
       // Actively measure instead of using lastSize to capture the relative case correctly
       this.attemptCollapse(this.measure(this.primaryPaneNode()));
@@ -168,22 +171,30 @@ const SplitPanePlus = React.createClass({
   },
 
   splitPaneNode() {
-    return this.node.firstChild;
+    return this.node ? this.node.firstChild : null;
   },
 
   primaryPaneNode() {
-    return this.splitPaneNode().querySelector(`:scope > .Pane${this.props.primary === 'first' ? 1 : 2}`);
+    const root = this.splitPaneNode();
+    const className = `Pane${this.props.primary === 'first' ? 1 : 2}`;
+    return root ? _.find(root.childNodes, n => n.classList.contains(className)) : null;
   },
 
   secondaryPaneNode() {
-    return this.splitPaneNode().querySelector(`:scope > .Pane${this.props.primary === 'first' ? 2 : 1}`);
+    const root = this.splitPaneNode();
+    const className = `Pane${this.props.primary === 'first' ? 2 : 1}`;
+    return root ? _.find(root.childNodes, n => n.classList.contains(className)) : null;
   },
 
   resizerNode() {
-    return this.splitPaneNode().querySelector(':scope > .Resizer');
+    const root = this.splitPaneNode();
+    return root ? _.find(root.childNodes, n => n.classList.contains('Resizer')) : null;
   },
 
   measure(elem) {
+    if (!elem) {
+      return NaN;
+    }
     return this.props.split === 'vertical' ? elem.clientWidth : elem.clientHeight;
   },
 
