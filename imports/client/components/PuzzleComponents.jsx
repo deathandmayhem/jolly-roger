@@ -279,6 +279,7 @@ const Puzzle = React.createClass({
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired, // All tags associated with the hunt.
     layout: React.PropTypes.string.isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
+    suppressTags: React.PropTypes.array(React.PropTypes.string),
   },
   mixins: [PureRenderMixin],
 
@@ -318,7 +319,8 @@ const Puzzle = React.createClass({
     // id, title, answer, tags
     const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
     const tagIndex = _.indexBy(this.props.allTags, '_id');
-    const ownTags = this.props.puzzle.tags.map((tagId) => { return tagIndex[tagId]; });
+    const shownTags = _.difference(this.props.puzzle.tags, this.props.suppressTags || []);
+    const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; });
 
     const puzzleClasses = classnames('puzzle',
       this.props.puzzle.answer ? 'solved' : 'unsolved',
@@ -374,6 +376,7 @@ const PuzzleList = React.createClass({
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired, // All tags for this hunt, including those not used by any puzzles
     layout: React.PropTypes.string.isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
+    suppressTags: React.PropTypes.array(React.PropTypes.string),
   },
   mixins: [PureRenderMixin],
   render() {
@@ -389,6 +392,7 @@ const PuzzleList = React.createClass({
         allTags={this.props.allTags}
         layout={this.props.layout}
         canUpdate={this.props.canUpdate}
+        suppressTags={this.props.suppressTags}
       />);
     }
 
@@ -718,6 +722,7 @@ const RelatedPuzzleGroup = React.createClass({
               allTags={this.props.allTags}
               layout={this.props.layout}
               canUpdate={this.props.canUpdate}
+              suppressTags={[this.props.sharedTag._id]}
             />
           </div>}
       </div>
