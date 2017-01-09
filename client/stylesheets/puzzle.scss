@@ -151,7 +151,7 @@
 .puzzle-page.narrow {
   display: flex;
   flex-direction: column;
-  >.sidebar {
+  > .sidebar {
   	position:relative; /*This is a little kludgy, but better than fixing it inline - revisit later*/
   }
 }
@@ -257,7 +257,7 @@
   background-color: #ddddff;
 }
 
-.puzzle-document>.google-spreadsheet {
+.puzzle-document > .google-spreadsheet {
   width:100%;
   height:100%;
   position:absolute;
@@ -267,11 +267,11 @@
   left: 0;
 }
 
-.SplitPane.collapsed1>.Resizer, .SplitPane.collapsed2>.Resizer {
+.SplitPane.collapsed1 > .Resizer, .SplitPane.collapsed2 > .Resizer {
 	display:none;
 }
 
-.SplitPane.collapsing1>.Pane1:before, .SplitPane.collapsing2>.Pane2:before {
+.SplitPane.collapsing1 > .Pane1:before, .SplitPane.collapsing2 > .Pane2:before {
 	content:"";
 	display:block;
 	height: 100%;

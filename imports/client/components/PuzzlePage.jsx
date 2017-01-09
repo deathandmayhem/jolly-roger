@@ -301,14 +301,16 @@ const PuzzlePageSidebar = React.createClass({
       isDesktop: true,
     };
   },
+
+  onCollapseChanged(collapsed) {
+    if (collapsed === 1) {
+      this.props.updateInterfaceOptions({ showChat: true, showRelated: false });
+    } else if (collapsed === 2) {
+      this.props.updateInterfaceOptions({ showChat: false, showRelated: true });
+    }
+  },
+
   render() {
-    const onCollapseChanged = (collapsed) => {
-      if (collapsed === 1) {
-        this.props.updateInterfaceOptions({ showChat: true, showRelated: false });
-      } else if (collapsed === 2) {
-        this.props.updateInterfaceOptions({ showChat: false, showRelated: true });
-      }
-    };
     let collapsed = 0;
     if (!this.props.interfaceOptions.showRelated) {
       collapsed = 1;
@@ -317,7 +319,7 @@ const PuzzlePageSidebar = React.createClass({
     }
     return (
       <div className="sidebar">
-        <SplitPanePlus split="horizontal" primary="second" defaultSize={DefaultChatHeight} scaling="relative" onCollapseChanged={onCollapseChanged} collapsed={collapsed} >
+        <SplitPanePlus split="horizontal" primary="second" defaultSize={DefaultChatHeight} scaling="relative" onCollapseChanged={this.onCollapseChanged} collapsed={collapsed} >
           <RelatedPuzzleSection
             activePuzzle={this.props.activePuzzle}
             allPuzzles={this.props.allPuzzles}
@@ -714,7 +716,6 @@ const PuzzlePage = React.createClass({
         showChat: true,
         showRelated: true,
       },
-      collapseSidebarWarning: false,
     };
   },
 
@@ -735,6 +736,15 @@ const PuzzlePage = React.createClass({
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.updateIsDesktop);
+  },
+
+  onCollapseChanged(collapsed) {
+    if (collapsed === 1) {
+      this.updateInterfaceOptions({
+        showChat: false,
+        showRelated: false,
+      });
+    }
   },
 
   getMeteorData() {
@@ -854,7 +864,6 @@ const PuzzlePage = React.createClass({
 
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
     const showSidebar = this.state.interfaceOptions.showChat || this.state.interfaceOptions.showRelated;
-    const onCollapseChanged = (collapsed) => { if (collapsed === 1) { this.updateInterfaceOptions({ showChat: false, showRelated: false }); } };
 
     const navItem = (
       <this.context.navAggregator.NavItem
@@ -883,7 +892,7 @@ const PuzzlePage = React.createClass({
         {this.state.isDesktop ? (
           <div className="puzzle-page">
             {navItem}
-            <SplitPanePlus split="vertical" defaultSize={DefaultSidebarWidth} autoCollapse2={-1} collapsed={showSidebar ? 0 : 1} onCollapseChanged={onCollapseChanged} >
+            <SplitPanePlus split="vertical" defaultSize={DefaultSidebarWidth} autoCollapse2={-1} collapsed={showSidebar ? 0 : 1} onCollapseChanged={this.onCollapseChanged} >
               {sidebar}
               <PuzzlePageContent
                 puzzle={activePuzzle}

@@ -3,43 +3,49 @@ import React from 'react';
 import SplitPane from 'react-split-pane';
 import elementResizeDetectorMaker from 'element-resize-detector';
 
-/* eslint-disable max-len */
-
 /*
   Wraps react-split-pane with a few extra features:
     Improved Styles for Better Cross Browser Support:
       Changes default pane1Style and pane2Style, but can still be overridden by passing props
     Automatic Collapse on Drag or Resize:
-      Collapse does not occur if programmatically set to sizes which would cause collapse during drag.  Adds classes
-      Collapsing1 and Collapsing2 as respective panes are dragged through the collapse range, which is useful to style a
-      warning.  Adds classes Collapsed1 and Collapsed2 as respective panes are actively collapsed (reduced to 0 size), which
-      is useful to hide Resizer if no further adjustment is desired.
+      Collapse does not occur if programmatically set to sizes which would cause collapse during
+      drag.  Adds classes Collapsing1 and Collapsing2 as respective panes are dragged through the
+      collapse range, which is useful to style a warning.  Adds classes Collapsed1 and Collapsed2
+      as respective panes are actively collapsed (reduced to 0 size), which is useful to hide
+      Resizer if no further adjustment is desired.
     Relative Scaling Option:
-      Preserves relative sizes of the two panes during resize instead of absolute size of the primary.
+      Preserves relative sizes of the two panes during resize instead of absolute size of the
+      primary.
     Dragging Class:
-      Identifies a SplitPanePlus currently being dragged with a 'dragging' class, which can be used to style the Resizer,
-      for instance
+      Identifies a SplitPanePlus currently being dragged with a 'dragging' class, which can be
+      used to style the Resizer, for instance
 
   New Props:
-    autoCollapse1     - Number of pixels (from center of Resizer) in Pane1 or Pane2 before collapsing.  Set 0 or negative to
-    autoCollapse2       disable (If 0, collapse flags will still set if dragged to extremes).  Defaults to 50.
-    collapsed         - If 1 or 2, collapses the appropriate pane.  Ignored if size is set.  Defaults to 0.
-    scaling           - If 'absolute' (default) maintains fixed size during resizes of the parent.  If 'relative' maintains
-                        fixed percentage.
-    onCollapseChanged - Callback triggered when a pane collapses as a result of user input.  Argument is 0 if uncollapsed
-                        and 1 or 2 indicating the pane that collapsed.
+    autoCollapse1     - Number of pixels (from center of Resizer) in Pane1 or Pane2 before
+    autoCollapse2       collapsing.  Set 0 or negative to
+                        disable (If 0, collapse flags will still set if dragged to extremes).
+                        Defaults to 50.
+    collapsed         - If 1 or 2, collapses the appropriate pane.  Ignored if size is set.
+                        Defaults to 0.
+    scaling           - If 'absolute' (default) maintains fixed size during resizes of the parent.
+                        If 'relative' maintains fixed percentage.
+    onCollapseChanged - Callback triggered when a pane collapses as a result of user input.
+                        Argument is 0 if uncollapsed and 1 or 2 indicating the pane that
+                        collapsed.
 
   Prop Changes:
-    pane1Style        - Default now includes overflow: auto in both panes as well as maxHeight: 100% or maxWidth:100% as
-    pane2Style          appropriate in the primary pane
+    pane1Style        - Default now includes overflow: auto in both panes as well as maxHeight:
+    pane2Style          100% or maxWidth: 100% as
+                        appropriate in the primary pane
     minSize           - Default is now 0
     maxSize           - Default is now 0
-    onDragFinished    - Callback arguments are now (size, collapsed) where collapsed is 0 if uncollapsed and 1 or 2 indicating
-                        the pane that collapsed.  If collapsed, the size reported is the position when the drag finished (before
-                        the automatic collapse).
-    size              - If size is specified , the appropriate panes are collapsed only if the setting is exactly '0%', '100%',
-                        0, or the Pane size.  It is possible to set size within the automatic collapse zone without triggering a
-                        collapse.
+    onDragFinished    - Callback arguments are now (size, collapsed) where collapsed is 0 if
+                        uncollapsed and 1 or 2 indicating the pane that collapsed.  If collapsed,
+                        the size reported is the position when the drag finished (before the
+                        automatic collapse).
+    size              - If size is specified , the appropriate panes are collapsed only if the
+                        setting is exactly '0%', '100%', 0, or the Pane size.  It is possible to
+                        set size within the automatic collapse zone without triggering a collapse.
 */
 
 const SplitPanePlus = React.createClass({
@@ -65,7 +71,8 @@ const SplitPanePlus = React.createClass({
 
   getInitialState() {
     return {
-      // collapseWarning and collapsed are equal to the number of the pane being collapsed or 0 if none
+      // collapseWarning and collapsed are equal to the number of the pane being collapsed
+      // or 0 if none
       collapseWarning: 0,
       collapsed: 0,
       lastSize: NaN,
@@ -77,7 +84,8 @@ const SplitPanePlus = React.createClass({
   componentDidMount() {
     this.erd = elementResizeDetectorMaker({ strategy: 'scroll' });
     this.erd.listenTo(this.splitPaneNode(), _.throttle(this.onResize, 50));
-    this.recordSize(this.measure(this.primaryPaneNode())); // Measure to handle relative defaultSize correctly
+    // Measure to handle relative defaultSize correctly
+    this.recordSize(this.measure(this.primaryPaneNode()));
   },
 
   componentWillReceiveProps(nextProps) {
@@ -202,9 +210,20 @@ const SplitPanePlus = React.createClass({
     const paneProps = _.extend({}, this.props);
 
     const defaultPaneStyles = { overflow: 'auto' };
-    const maxRangeStyles = this.props.split === 'vertical' ? { maxWidth: '100%' } : { maxHeight: '100%' };
-    paneProps.pane1Style = _.extend({}, defaultPaneStyles, this.props.primary === 'first' ? maxRangeStyles : {}, this.props.pane1Style);
-    paneProps.pane2Style = _.extend({}, defaultPaneStyles, this.props.primary === 'first' ? {} : maxRangeStyles, this.props.pane2Style);
+    const maxRangeStyles = (this.props.split === 'vertical' ?
+      { maxWidth: '100%' } :
+      { maxHeight: '100%' }
+    );
+    paneProps.pane1Style = _.extend({},
+      defaultPaneStyles,
+      this.props.primary === 'first' ? maxRangeStyles : {},
+      this.props.pane1Style
+    );
+    paneProps.pane2Style = _.extend({},
+      defaultPaneStyles,
+      this.props.primary === 'first' ? {} : maxRangeStyles,
+      this.props.pane2Style
+    );
 
     paneProps.onDragFinished = this.onDragFinished;
     paneProps.onDragStarted = this.onDragStarted;
