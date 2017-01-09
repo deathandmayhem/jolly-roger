@@ -479,7 +479,7 @@ const PuzzlePageMetadata = React.createClass({
     const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
     const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
     const externalLinkComponent = this.props.puzzle.url ? <div className="puzzle-metadata-right"><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div> : null;
-    const googleDriveLink = this.props.documents[0] && this.props.documents[0].type === 'google-spreadsheet' ? 'https://docs.google.com/spreadsheets/d/${this.props.document.value.id}' : null;
+    const googleDriveLink = this.props.documents[0] && this.props.documents[0].type === 'google-spreadsheet' ? `https://docs.google.com/spreadsheets/d/${this.props.documents[0].value.id}` : null;
     return (
       <div className="puzzle-metadata">
         <PuzzleModalForm
@@ -520,7 +520,7 @@ const PuzzlePageMetadata = React.createClass({
           {!this.props.isDesktop &&
             <div className="puzzle-metadata-right">
               { googleDriveLink ? (
-                <BS.Button className="puzzle-metadata-gdrive-button" onClick={(event) => { event.preventDefault(); window.open(googleDriveLink); }}> {/* Surely there's a less ridiculous way to do this */}
+                <BS.Button className="puzzle-metadata-gdrive-button" href={googleDriveLink} target="_blank" >
                   Open in Google Drive
                 </BS.Button>
               ) : (
