@@ -292,6 +292,29 @@
   background-clip: padding-box;
 }
 
+/* Throw an overlay over iFrames during drag to capture mouse events */
+/* Works in Chrome and Safari but not Firefox for some reason*/
+.SplitPanePlus.dragging:after {
+	content:'';
+	position:fixed;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+	z-index:2002;
+}
+/* Kludge that makes it work in Firefox.
+   Amazingly, the above part actually works for iFrames outside of the SplitPane, 
+   so we're covered everywhere. */
+.SplitPanePlus.dragging > .SplitPane:after {
+	content:'';
+	position:absolute;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+}
+
 .Resizer:hover {
   transition: all 2s ease;
 }

@@ -4,7 +4,6 @@ import SplitPane from 'react-split-pane';
 import elementResizeDetectorMaker from 'element-resize-detector';
 
 /* eslint-disable max-len */
-/* (Because this pulls in property definitions from react-split-pane and eslint doesn't understand that) */
 
 /*
   Wraps react-split-pane with a few extra features:
@@ -17,6 +16,9 @@ import elementResizeDetectorMaker from 'element-resize-detector';
       is useful to hide Resizer if no further adjustment is desired.
     Relative Scaling Option:
       Preserves relative sizes of the two panes during resize instead of absolute size of the primary.
+    Dragging Class:
+      Identifies a SplitPanePlus currently being dragged with a 'dragging' class, which can be used to style the Resizer,
+      for instance
 
   New Props:
     autoCollapse1     - Number of pixels (from center of Resizer) in Pane1 or Pane2 before collapsing.  Set 0 or negative to
@@ -68,6 +70,7 @@ const SplitPanePlus = React.createClass({
       collapsed: 0,
       lastSize: NaN,
       lastRelSize: NaN,
+      dragInProgress: false,
     };
   },
 
@@ -112,8 +115,20 @@ const SplitPanePlus = React.createClass({
     }
   },
 
+  onDragStarted(size) {
+    this.setState({
+      dragInProgress: true,
+    });
+    if ('onDragStarted' in this.props) {
+      this.props.onDragStarted(size);
+    }
+  },
+
   onDragFinished(size) {
-    this.setState({ collapseWarning: 0 });
+    this.setState({
+      collapseWarning: 0,
+      dragInProgress: false,
+    });
     this.attemptCollapse(size);
     if (this.state.collapsed === 0) {
       this.recordSize(size);
@@ -181,6 +196,7 @@ const SplitPanePlus = React.createClass({
     paneProps.pane2Style = _.extend({}, defaultPaneStyles, this.props.primary === 'first' ? {} : maxRangeStyles, this.props.pane2Style);
 
     paneProps.onDragFinished = this.onDragFinished;
+    paneProps.onDragStarted = this.onDragStarted;
     paneProps.onChange = this.onChange;
 
     if (this.state.collapseWarning > 0) {
@@ -203,8 +219,10 @@ const SplitPanePlus = React.createClass({
       }
     }
 
+    const classNames = `SplitPanePlus${this.state.dragInProgress ? ' dragging' : ''}`;
+
     return (
-      <div ref={(node) => { this.node = node; }} >
+      <div className={classNames} ref={(node) => { this.node = node; }} >
         <SplitPane {...paneProps} />
       </div>
     );
