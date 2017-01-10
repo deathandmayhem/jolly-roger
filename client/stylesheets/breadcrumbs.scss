@@ -8,8 +8,27 @@
   align-items: center; // vertically center content...
   flex-wrap: wrap; // ...but allow wrapping if horizontal space is limited
 
+  overflow: hidden;
+
   margin: 0; // override bootstrap style
-  max-width: calc(100vw - 120px); // Don't cause the logo or hamburger button to wrap onto a new line
+  padding: 8px 8px; // override bootstrap style to pack tighter (original was 8px 15px)
+
+  // See below for max-width at different screen sizes.
+}
+
+@media (max-width: 767px) {
+  .nav-breadcrumbs {
+    // Don't cause the logo or hamburger button to wrap onto a new line.
+    // Size allowed is 100% of navbar width, minus 50px for the jolly-roger logo, and
+    // 1+10+22+10+1 + 8px = 52px for the toggle button.
+    max-width: calc(100% - 102px);
+  }
+}
+
+@media (min-width: 768px) {
+  .nav-breadcrumbs {
+    max-width: calc(100vw - 280px); // Hopefully most people's names fit in 250px
+  }
 }
 
 .jr-breadcrumb {
@@ -17,4 +36,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+button.navbar-toggle {
+  margin-right: 8px; // Pack tighter to make more space in navbar.
 }
