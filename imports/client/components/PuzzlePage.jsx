@@ -359,14 +359,6 @@ const PuzzlePageMetadata = React.createClass({
 
   mixins: [ReactMeteorData],
 
-  getInitialState() {
-    return {
-      guessInput: '',
-      submitState: 'idle',
-      errorMessage: '',
-    };
-  },
-
   onCreateTag(newTagName) {
     Meteor.call('addTagToPuzzle', this.props.puzzle._id, newTagName, (error) => {
       // Not really much we can do in the case of a failure, but let's log it anyway
@@ -384,12 +376,6 @@ const PuzzlePageMetadata = React.createClass({
         console.log('failed to remove tag:');
         console.log(error);
       }
-    });
-  },
-
-  onGuessInputChange(event) {
-    this.setState({
-      guessInput: event.target.value,
     });
   },
 
@@ -423,48 +409,11 @@ const PuzzlePageMetadata = React.createClass({
   },
 
   showGuessModal() {
-    this.formNode.show();
+    this.guessModalNode.show();
   },
 
   showEditModal() {
     this.editModalNode.show();
-  },
-
-  dismissModal() {
-    this.formNode.close();
-  },
-
-  submitGuess() {
-    Meteor.call('addGuessForPuzzle', this.props.puzzle._id, this.state.guessInput, (error) => {
-      // TODO: dismiss the modal on success?  show error message on failure?
-      if (error) {
-        this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
-        });
-        console.log(error);
-      }
-
-      // Clear the input box.  Don't dismiss the dialog.
-      this.setState({
-        guessInput: '',
-      });
-    });
-  },
-
-  clearError() {
-    this.setState({
-      submitState: 'idle',
-      errorMessage: '',
-    });
-  },
-
-  daysOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-
-  formatDate(date) {
-    // We only care about days in so far as which day of hunt this guess was submitted on
-    const day = this.daysOfWeek[date.getDay()];
-    return `${day}, ${date.toLocaleTimeString()}`;
   },
 
   editButton() {
@@ -479,7 +428,6 @@ const PuzzlePageMetadata = React.createClass({
   },
 
   render() {
-    const _this = this;
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
     const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">{`Solved: ${this.props.puzzle.answer}`}</span> : null;
@@ -487,6 +435,7 @@ const PuzzlePageMetadata = React.createClass({
     const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
     const externalLinkComponent = this.props.puzzle.url ? <div className="puzzle-metadata-right"><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div> : null;
     const googleDriveLink = this.props.documents[0] && this.props.documents[0].type === 'google-spreadsheet' ? `https://docs.google.com/spreadsheets/d/${this.props.documents[0].value.id}` : null;
+    const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
       <div className="puzzle-metadata">
         <PuzzleModalForm
@@ -502,14 +451,16 @@ const PuzzlePageMetadata = React.createClass({
             <strong>{this.props.puzzle.title}</strong>
             {' '}
             {this.editButton()}
+            {' '}
             {viewCountComponent}
-            {answerComponent}
           </div>
         </div>
         <div className="puzzle-metadata-row">
           <div className="puzzle-metadata-right">
+            {this.props.puzzle.answer && answerComponent}
+            {' '}
             <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-              Submit answer
+              {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
             </BS.Button>
           </div>
           <div className="puzzle-metadata-left">
@@ -571,57 +522,210 @@ const PuzzlePageMetadata = React.createClass({
         </div>
         {/* Activity tracking not implemented yet.
             <div>Other hunters currently viewing this page?</div> */}
-        <ModalForm
-          ref={(node) => { this.formNode = node; }}
-          title={`Submit answer to ${this.props.puzzle.title}`}
-          onSubmit={this.submitGuess}
-          submitLabel="Submit"
-        >
-          {/* TODO: make this show past guesses */}
-
-          <BS.FormGroup>
-            <BS.ControlLabel htmlFor="jr-puzzle-guess" className="col-xs-2">
-              Guess
-            </BS.ControlLabel>
-            <div className="col-xs-10">
-              <BS.FormControl
-                type="text"
-                id="jr-puzzle-guess"
-                autoFocus="true"
-                onChange={this.onGuessInputChange}
-                value={this.state.guessInput}
-              />
-            </div>
-          </BS.FormGroup>
-
-          {this.props.guesses.length === 0 ? <div>No previous submissions.</div> : [
-            <div key="label">Previous submissions:</div>,
-            <BS.Table key="table" striped bordered condensed hover>
-              <thead>
-                <tr>
-                  <th>Guess</th>
-                  <th>Time</th>
-                  <th>Submitter</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {this.props.guesses.map((guess) => {
-                  return (
-                    <tr key={guess._id}>
-                      <td>{guess.guess}</td>
-                      <td>{_this.formatDate(guess.createdAt)}</td>
-                      <td>{_this.props.displayNames[guess.createdBy]}</td>
-                      <td>{guess.state}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </BS.Table>,
-          ]}
-          {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger" onDismiss={this.clearError}>{this.state.errorMessage}</BS.Alert> : null}
-        </ModalForm>
+        <PuzzleGuessModal
+          ref={(node) => { this.guessModalNode = node; }}
+          puzzle={this.props.puzzle}
+          guesses={this.props.guesses}
+          displayNames={this.props.displayNames}
+        />
       </div>
+    );
+  },
+});
+
+const PuzzleGuessModal = React.createClass({
+  propTypes: {
+    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    guesses: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Guesses.asReactPropTypes()
+      ).isRequired
+    ).isRequired,
+    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
+    onSubmit: React.PropTypes.func,
+  },
+
+  getInitialState() {
+    return {
+      guessInput: '',
+      directionInput: 0,
+      confidenceInput: 50,
+      submitState: 'idle',
+      confirmingSubmit: false,
+      confirmationMessage: '',
+      errorMessage: '',
+    };
+  },
+
+  onGuessInputChange(event) {
+    this.setState({
+      guessInput: event.target.value.toUpperCase(),
+      confirmingSubmit: false,
+    });
+  },
+
+  onDirectionInputChange(event) {
+    this.setState({ directionInput: parseInt(event.target.value, 10) });
+  },
+
+  onConfidenceInputChange(event) {
+    this.setState({ confidenceInput: parseInt(event.target.value, 10) });
+  },
+
+  onSubmitGuess() {
+    const repeatGuess = _.find(this.props.guesses, (g) => { return g.guess === this.state.guessInput; });
+    const alreadySolved = this.props.puzzle.answer;
+    if ((repeatGuess || alreadySolved) && !this.state.confirmingSubmit) {
+      const repeatGuessStr = repeatGuess ? 'This answer has already been submitted. ' : '';
+      const alreadySolvedStr = alreadySolved ? 'This puzzle has already been solved. ' : '';
+      const msg = `${alreadySolvedStr} ${repeatGuessStr} Are you sure you want to submit this guess?`;
+      this.setState({
+        confirmingSubmit: true,
+        confirmationMessage: msg,
+      });
+    } else {
+      Meteor.call(
+        'addGuessForPuzzle',
+        this.props.puzzle._id,
+        this.state.guessInput,
+        this.state.directionInput,
+        this.state.confidenceInput,
+        (error) => {
+          if (error) {
+            this.setState({
+              submitState: 'failed',
+              errorMessage: error.message,
+            });
+            console.log(error);
+          }
+
+          // Clear the input box.  Don't dismiss the dialog.
+          this.setState({
+            guessInput: '',
+            confirmingSubmit: false,
+          });
+        },
+      );
+    }
+  },
+
+  clearError() {
+    this.setState({
+      submitState: 'idle',
+      errorMessage: '',
+    });
+  },
+
+  show() {
+    this.formNode.show();
+  },
+
+  render() {
+    const directionTooltip = (
+      <BS.Tooltip id="guess-direction-tooltip">
+        Current value: {this.state.directionInput}
+      </BS.Tooltip>
+    );
+    const confidenceTooltip = (
+      <BS.Tooltip id="guess-confidence-tooltip">
+        Current value: {this.state.confidenceInput}
+      </BS.Tooltip>
+    );
+
+    return (
+      <ModalForm
+        ref={(node) => { this.formNode = node; }}
+        title={`${this.props.puzzle.answer ? 'Guess history for' : 'Submit answer to'} ${this.props.puzzle.title}`}
+        onSubmit={this.onSubmitGuess}
+        submitLabel={this.state.confirmingSubmit ? 'Confirm Submit' : 'Submit'}
+      >
+        <BS.FormGroup>
+          <BS.ControlLabel htmlFor="jr-puzzle-guess" className="col-xs-3">
+            Guess
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.FormControl
+              type="text"
+              id="jr-puzzle-guess"
+              autoFocus="true"
+              autoComplete="off"
+              onChange={this.onGuessInputChange}
+              value={this.state.guessInput}
+            />
+          </div>
+
+          <BS.ControlLabel htmlFor="jr-puzzle-guess-direction" className="col-xs-3">
+            Solve direction
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.OverlayTrigger placement="right" overlay={directionTooltip}>
+              <BS.FormControl
+                type="range"
+                id="jr-puzzle-guess-direction"
+                min={-10}
+                max={10}
+                step={1}
+                onChange={this.onDirectionInputChange}
+                value={this.state.directionInput}
+              />
+            </BS.OverlayTrigger>
+            <BS.HelpBlock>
+              Pick a number between -10 (backsolved without opening
+              the puzzle) to 10 (forward-solved without seeing the
+              round) to indicate if you forward- or back-solved.
+            </BS.HelpBlock>
+          </div>
+
+          <BS.ControlLabel htmlFor="jr-puzzle-guess-confidence" className="col-xs-3">
+            Confidence
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.OverlayTrigger placement="right" overlay={confidenceTooltip}>
+              <BS.FormControl
+                type="range"
+                id="jr-puzzle-guess-confidence"
+                min={0}
+                max={100}
+                step={1}
+                onChange={this.onConfidenceInputChange}
+                value={this.state.confidenceInput}
+              />
+            </BS.OverlayTrigger>
+            <BS.HelpBlock>
+              Pick a number between 0 and 100 for the probability that
+              you think this answer is right.
+            </BS.HelpBlock>
+          </div>
+        </BS.FormGroup>
+
+        {this.props.guesses.length === 0 ? <div>No previous submissions.</div> : [
+          <div key="label">Previous submissions:</div>,
+          <BS.Table key="table" bordered condensed>
+            <thead>
+              <tr>
+                <th>Guess</th>
+                <th>Time</th>
+                <th>Submitter</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {_.sortBy(this.props.guesses, 'createdAt').reverse().map((guess) => {
+                return (
+                  <tr key={guess._id} className={`guess-${guess.state}`}>
+                    <td className="answer" >{guess.guess}</td>
+                    <td>{moment(guess.createdAt).calendar()}</td>
+                    <td>{this.props.displayNames[guess.createdBy]}</td>
+                    <td style={{ textTransform: 'capitalize' }} >{guess.state}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </BS.Table>,
+        ]}
+        {this.state.confirmingSubmit ? <BS.Alert bsStyle="warning">{this.state.confirmationMessage}</BS.Alert> : null}
+        {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger" onDismiss={this.clearError}>{this.state.errorMessage}</BS.Alert> : null}
+      </ModalForm>
     );
   },
 });

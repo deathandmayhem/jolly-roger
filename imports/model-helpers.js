@@ -14,6 +14,10 @@ const huntsMatchingCurrentUser = function (origQuery) {
   // _id of a document from the Hunts collection.
   // The caller binds `this` to be the one provided to the function of Meteor.publish(), so
   // this.userId is available.
+  //
+  // As a note: this will not re-publish if the user's hunt membership
+  // changes, so use it carefully (basically, use it when you already
+  // know the user is a member of the hunt in question).
   const u = Meteor.users.findOne(this.userId);
   let q = _.clone(origQuery);
 

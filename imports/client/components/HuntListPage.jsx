@@ -176,7 +176,7 @@ const HuntModalForm = React.createClass({
 
         <BS.FormGroup>
           <BS.ControlLabel htmlFor={`${idPrefix}open-signups`} className="col-xs-3">
-            Open signups
+            Open invites
           </BS.ControlLabel>
           <div className="col-xs-9">
             <BS.Checkbox
@@ -186,7 +186,7 @@ const HuntModalForm = React.createClass({
               disabled={disableForm}
             />
             <BS.HelpBlock>
-              If open signups are enabled, then any current member of the hunt can add a new member to the hunt. Otherwise, only operators can add new members.
+              If open invites are enabled, then any current member of the hunt can add a new member to the hunt. Otherwise, only operators can add new members.
             </BS.HelpBlock>
           </div>
         </BS.FormGroup>
@@ -355,7 +355,7 @@ const HuntListPage = React.createClass({
 
   getMeteorData() {
     const huntListHandle = this.context.subs.subscribe('mongo.hunts');
-    const myHuntsHandle = this.context.subs.subscribe('huntMembership');
+    const myHuntsHandle = this.context.subs.subscribe('selfHuntMembership');
     const ready = huntListHandle.ready() && myHuntsHandle.ready();
 
     const myHunts = {};

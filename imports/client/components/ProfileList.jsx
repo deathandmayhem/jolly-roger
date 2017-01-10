@@ -2,12 +2,11 @@ import React from 'react';
 import { _ } from 'meteor/underscore';
 import BS from 'react-bootstrap';
 import RRBS from 'react-router-bootstrap';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 const ProfileList = React.createClass({
   propTypes: {
+    huntId: React.PropTypes.string,
+    canInvite: React.PropTypes.bool,
     profiles: React.PropTypes.arrayOf(
       React.PropTypes.shape(
         Schemas.Profiles.asReactPropTypes()
@@ -56,6 +55,33 @@ const ProfileList = React.createClass({
     });
   },
 
+  inviteToHuntItem() {
+    if (!this.props.huntId || !this.props.canInvite) {
+      return null;
+    }
+
+    return (
+      <RRBS.LinkContainer to={`/hunts/${this.props.huntId}/hunters/invite`}>
+        <BS.ListGroupItem>
+          <strong>Invite someone...</strong>
+        </BS.ListGroupItem>
+      </RRBS.LinkContainer>
+    );
+  },
+
+  globalInfo() {
+    if (this.props.huntId) {
+      return null;
+    }
+
+    return (
+      <BS.Alert bsStyle="info">
+        This shows everyone registered on Jolly Roger, not just those hunting in this year's
+        Mystery Hunt. For that, go to the hunt page and click on "Hunters".
+      </BS.Alert>
+    );
+  },
+
   render() {
     const profiles = _.filter(this.props.profiles, this.compileMatcher());
     return (
@@ -85,7 +111,10 @@ const ProfileList = React.createClass({
           </BS.InputGroup>
         </BS.FormGroup>
 
+        {this.globalInfo()}
+
         <BS.ListGroup>
+          {this.inviteToHuntItem()}
           {profiles.map((profile) => (
             <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
               <BS.ListGroupItem>
@@ -99,42 +128,4 @@ const ProfileList = React.createClass({
   },
 });
 
-const ProfileListPage = React.createClass({
-  contextTypes: {
-    subs: JRPropTypes.subs,
-    navAggregator: navAggregatorType,
-  },
-
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
-    const ready = profilesHandle.ready();
-    const profiles = ready ? Models.Profiles.find({}, { sort: { displayName: 1 } }).fetch() : [];
-    return {
-      ready,
-      profiles,
-    };
-  },
-
-  render() {
-    let body;
-    if (!this.data.ready) {
-      body = <div>loading...</div>;
-    } else {
-      body = <ProfileList profiles={this.data.profiles} />;
-    }
-
-    return (
-      <this.context.navAggregator.NavItem
-        itemKey="users"
-        to="/users"
-        label="Users"
-      >
-        {body}
-      </this.context.navAggregator.NavItem>
-    );
-  },
-});
-
-export { ProfileListPage };
+export { ProfileList };

@@ -1152,6 +1152,25 @@
         }
       }
     },
+    "react-copy-to-clipboard": {
+      "version": "4.2.3",
+      "from": "react-copy-to-clipboard@>=4.2.3-0 <5.0.0-0",
+      "resolved": "https://registry.npmjs.org/react-copy-to-clipboard/-/react-copy-to-clipboard-4.2.3.tgz",
+      "dependencies": {
+        "copy-to-clipboard": {
+          "version": "3.0.5",
+          "from": "copy-to-clipboard@>=3.0.0-0 <4.0.0-0",
+          "resolved": "https://registry.npmjs.org/copy-to-clipboard/-/copy-to-clipboard-3.0.5.tgz",
+          "dependencies": {
+            "toggle-selection": {
+              "version": "1.0.5",
+              "from": "toggle-selection@>=1.0.3-0 <2.0.0-0",
+              "resolved": "https://registry.npmjs.org/toggle-selection/-/toggle-selection-1.0.5.tgz"
+            }
+          }
+        }
+      }
+    },
     "react-document-title": {
       "version": "2.0.2",
       "from": "https://registry.npmjs.org/react-document-title/-/react-document-title-2.0.2.tgz",

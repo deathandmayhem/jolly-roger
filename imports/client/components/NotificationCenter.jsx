@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import React from 'react';
+import BS from 'react-bootstrap';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { Link } from 'react-router';
 import moment from 'moment';
@@ -8,6 +9,7 @@ import marked from 'marked';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import classnames from 'classnames';
+import CopyToClipboard from 'react-copy-to-clipboard';
 
 /* eslint-disable max-len */
 
@@ -58,10 +60,6 @@ const GuessMessage = React.createClass({
 
   mixins: [PureRenderMixin],
 
-  focusGuess() {
-    this.guessNode.select();
-  },
-
   markCorrect() {
     Meteor.call('markGuessCorrect', this.props.guess._id);
   },
@@ -79,21 +77,47 @@ const GuessMessage = React.createClass({
   },
 
   render() {
+    const directionTooltip = (
+      <BS.Tooltip id="direction-tooltip">
+        Direction this puzzle was solved, ranging from completely backsolved (-10) to completely forward solved (10)
+      </BS.Tooltip>
+    );
+
+    const confidenceTooltip = (
+      <BS.Tooltip id="confidence-tooltip">
+        Submitter-estimated likelihood that this answer is correct
+      </BS.Tooltip>
+    );
+
     return (
-      <li onClick={this.focusGuess}>
+      <li>
         <MessengerSpinner />
         <MessengerContent dismissable>
-          Guess for <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>:
-          {' '}
-          <input
-            ref={(node) => { this.guessNode = node; }}
-            type="text"
-            readOnly
-            size={this.props.guess.guess.length}
-            className="notification-guess-input"
-            value={this.props.guess.guess}
-          />
+          <div>
+            Guess for <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>:
+            {' '}
+            {this.props.guess.guess}
+          </div>
+          <div>
+            <BS.OverlayTrigger placement="bottom" overlay={directionTooltip}>
+              <span>
+                Solve direction: {this.props.guess.direction}
+              </span>
+            </BS.OverlayTrigger>
+          </div>
+          <div>
+            <BS.OverlayTrigger placement="bottom" overlay={confidenceTooltip}>
+              <span>
+                Confidence: {this.props.guess.confidence}%
+              </span>
+            </BS.OverlayTrigger>
+          </div>
           <ul className="actions">
+            <li>
+              <CopyToClipboard text={this.props.guess.guess}>
+                <button><BS.Glyphicon glyph="copy" /></button>
+              </CopyToClipboard>
+            </li>
             <li><button onClick={this.markCorrect}>Correct</button></li>
             <li><button onClick={this.markIncorrect}>Incorrect</button></li>
             <li><button onClick={this.markRejected}>Reject</button></li>
