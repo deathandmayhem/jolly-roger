@@ -142,7 +142,7 @@ const HuntApp = React.createClass({
     };
   },
 
-  render() {
+  renderBody() {
     if (!this.data.ready) {
       return <span>loading...</span>;
     }
@@ -155,6 +155,10 @@ const HuntApp = React.createClass({
       return <HuntMemberError huntId={this.props.params.huntId} />;
     }
 
+    return React.Children.only(this.props.children);
+  },
+
+  render() {
     const title = this.data.hunt ? `${this.data.hunt.name} :: Jolly Roger` : '';
 
     return (
@@ -167,9 +171,9 @@ const HuntApp = React.createClass({
           <this.context.navAggregator.NavItem
             itemKey="huntid"
             to={`/hunts/${this.props.params.huntId}`}
-            label={this.data.hunt.name}
+            label={this.data.ready ? this.data.hunt.name : 'loading...'}
           >
-            {React.Children.only(this.props.children)}
+            {this.renderBody()}
           </this.context.navAggregator.NavItem>
         </this.context.navAggregator.NavItem>
       </DocumentTitle>
