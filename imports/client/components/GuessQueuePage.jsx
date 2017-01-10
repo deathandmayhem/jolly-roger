@@ -130,7 +130,7 @@ const GuessQueuePage = React.createClass({
     };
   },
 
-  render() {
+  renderPage() {
     if (!this.data.ready) {
       return <div>loading...</div>;
     }
@@ -138,11 +138,6 @@ const GuessQueuePage = React.createClass({
     return (
       <div>
         <h1>Guess queue</h1>
-        <this.context.navAggregator.NavItem
-          itemKey="guessqueue"
-          to={`/hunts/${this.props.params.huntId}/announcements`}
-          label="Guess queue"
-        />
         {this.data.guesses.map((guess) => {
           return (
             <GuessBlock
@@ -155,6 +150,18 @@ const GuessQueuePage = React.createClass({
           );
         })}
       </div>
+    );
+  },
+
+  render() {
+    return (
+      <this.context.navAggregator.NavItem
+        itemKey="guessqueue"
+        to={`/hunts/${this.props.params.huntId}/announcements`}
+        label="Guess queue"
+      >
+        {this.renderPage()}
+      </this.context.navAggregator.NavItem>
     );
   },
 });
