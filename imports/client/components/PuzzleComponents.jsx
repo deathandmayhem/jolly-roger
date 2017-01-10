@@ -279,7 +279,7 @@ const Puzzle = React.createClass({
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired, // All tags associated with the hunt.
     layout: React.PropTypes.string.isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
-    suppressTags: React.PropTypes.array(React.PropTypes.string),
+    suppressTags: React.PropTypes.arrayOf(React.PropTypes.string),
   },
   mixins: [PureRenderMixin],
 
@@ -376,7 +376,7 @@ const PuzzleList = React.createClass({
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired, // All tags for this hunt, including those not used by any puzzles
     layout: React.PropTypes.string.isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
-    suppressTags: React.PropTypes.array(React.PropTypes.string),
+    suppressTags: React.PropTypes.arrayOf(React.PropTypes.string),
   },
   mixins: [PureRenderMixin],
   render() {
