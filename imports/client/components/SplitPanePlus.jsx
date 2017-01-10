@@ -17,8 +17,8 @@ import elementResizeDetectorMaker from 'element-resize-detector';
       Preserves relative sizes of the two panes during resize instead of absolute size of the
       primary.
     Dragging Class:
-      Identifies a SplitPanePlus currently being dragged with a 'dragging' class, which can be
-      used to style the Resizer, for instance
+      Identifies a SplitPane currently being dragged with a 'dragging' class, which can be used to
+      style the Resizer, for instance
 
   New Props:
     autoCollapse1     - Number of pixels (from center of Resizer) in Pane1 or Pane2 before
@@ -155,11 +155,17 @@ class SplitPanePlus extends React.Component {
   calculateCollapse(size) {
     const fullSize = this.measure(this.splitPaneNode());
     const halfResizerSize = this.measure(this.resizerNode()) / 2;
-    if (size + halfResizerSize <= this.props.autoCollapse1) {
-      // Collapse Pane1
+    let autoCollapsePrimary = this.props.autoCollapse1;
+    let autoCollapseSecondary = this.props.autoCollapse2;
+    if (this.props.primary !== 'first') {
+      autoCollapsePrimary = this.props.autoCollapse2;
+      autoCollapseSecondary = this.props.autoCollapse1;
+    }
+    if (size + halfResizerSize <= autoCollapsePrimary) {
+      // Collapse Primary
       return this.props.primary === 'first' ? 1 : 2;
-    } else if (size + halfResizerSize >= fullSize - this.props.autoCollapse2) {
-      // Collapse Pane2
+    } else if (size + halfResizerSize >= fullSize - autoCollapseSecondary) {
+      // Collapse Secondary
       return this.props.primary === 'first' ? 2 : 1;
     }
     return 0;
@@ -239,10 +245,10 @@ class SplitPanePlus extends React.Component {
       paneProps.size = this.props.defaultSize;
     }
 
-    const classNames = `SplitPanePlus${this.state.dragInProgress ? ' dragging' : ''}`;
+    paneProps.className = `${paneProps.className}${this.state.dragInProgress ? ' dragging' : ''}`;
 
     return (
-      <div className={classNames} ref={(node) => { this.node = node; }} >
+      <div className={'SplitPanePlus'} ref={(node) => { this.node = node; }} >
         <SplitPane {...paneProps} />
       </div>
     );

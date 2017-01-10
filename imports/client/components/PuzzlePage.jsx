@@ -27,8 +27,12 @@ const FilteredChatFields = ['puzzle', 'text', 'sender', 'timestamp'];
 const FilteredChatMessagePropTypes = _.pick(Schemas.ChatMessages.asReactPropTypes(), ...FilteredChatFields);
 
 const MinimumDesktopWidth = 600;
-const MinimumDesktopStackingHeight = 500; // In two column mode, allow stacking at smaller heights
+const MinimumDesktopStackingHeight = 400; // In two column mode, allow stacking at smaller heights
 const MinimumMobileStackingHeight = 740; // Captures iPhone Plus but not iPad Mini
+const MinimumSidebarWidth = 150;
+const MaximumSidebarWidth = '75%';
+const MinimumChatHeight = 96;
+
 const DefaultSidebarWidth = 300;
 const DefaultChatHeight = '60%';
 
@@ -294,42 +298,69 @@ const PuzzlePageSidebar = React.createClass({
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
     isDesktop: React.PropTypes.bool.isRequired,
-    interfaceOptions: React.PropTypes.object.isRequired,
-    updateInterfaceOptions: React.PropTypes.func.isRequired,
+    isStackable: React.PropTypes.bool.isRequired,
+    showRelated: React.PropTypes.bool.isRequired,
+    onChangeShowRelated: React.PropTypes.func.isRequired,
   },
   mixins: [PureRenderMixin],
 
   onCollapseChanged(collapsed) {
-    if (collapsed === 1) {
-      this.props.updateInterfaceOptions({ showChat: true, showRelated: false });
-    } else if (collapsed === 2) {
-      this.props.updateInterfaceOptions({ showChat: false, showRelated: true });
-    }
+    this.props.onChangeShowRelated(collapsed !== 1);
   },
 
   render() {
-    let collapsed = 0;
-    if (!this.props.interfaceOptions.showRelated) {
-      collapsed = 1;
-    } else if (!this.props.interfaceOptions.showChat) {
-      collapsed = 2;
+    let collapse = 0;
+    if (this.props.isStackable) {
+      collapse = this.props.showRelated ? 0 : 1;
+    } else {
+      collapse = this.props.showRelated ? 2 : 1;
     }
+    const classes = `sidebar${this.props.isStackable ? ' stackable' : ''}`;
     return (
-      <div className="sidebar">
-        <SplitPanePlus split="horizontal" primary="second" defaultSize={DefaultChatHeight} scaling="relative" onCollapseChanged={this.onCollapseChanged} collapsed={collapsed} >
-          <RelatedPuzzleSection
-            activePuzzle={this.props.activePuzzle}
-            allPuzzles={this.props.allPuzzles}
-            allTags={this.props.allTags}
-            canUpdate={this.props.canUpdate}
-          />
-          <ChatSection
-            chatReady={this.props.chatReady}
-            chatMessages={this.props.chatMessages}
-            displayNames={this.props.displayNames}
-            puzzleId={this.props.activePuzzle._id}
-          />
-        </SplitPanePlus>
+      <div className={classes}>
+        {!this.props.isStackable && (
+          <BS.Nav bsStyle="tabs" justified onSelect={this.handleSelect}>
+            <BS.NavItem
+              className={!this.props.showRelated && 'active'}
+              onClick={() => { this.props.onChangeShowRelated(false); }}
+            >
+              Chat
+            </BS.NavItem>
+            <BS.NavItem
+              className={this.props.showRelated && 'active'}
+              onClick={() => { this.props.onChangeShowRelated(true); }}
+            >
+              Related
+            </BS.NavItem>
+          </BS.Nav>
+        )}
+        <div className="split-pane-wrapper">
+          <SplitPanePlus
+            split="horizontal"
+            primary="second"
+            defaultSize={DefaultChatHeight}
+            minSize={MinimumChatHeight}
+            autoCollapse1={50}
+            autoCollapse2={-1}
+            allowResize={this.props.isStackable}
+            scaling="relative"
+            onCollapseChanged={this.onCollapseChanged}
+            collapsed={collapse}
+          >
+            <RelatedPuzzleSection
+              activePuzzle={this.props.activePuzzle}
+              allPuzzles={this.props.allPuzzles}
+              allTags={this.props.allTags}
+              canUpdate={this.props.canUpdate}
+            />
+            <ChatSection
+              chatReady={this.props.chatReady}
+              chatMessages={this.props.chatMessages}
+              displayNames={this.props.displayNames}
+              puzzleId={this.props.activePuzzle._id}
+            />
+          </SplitPanePlus>
+        </div>
       </div>
     );
   },
@@ -355,9 +386,6 @@ const PuzzlePageMetadata = React.createClass({
       ).isRequired,
     ).isRequired,
     isDesktop: React.PropTypes.bool.isRequired,
-    isStackable: React.PropTypes.bool.isRequired,
-    interfaceOptions: React.PropTypes.object.isRequired,
-    updateInterfaceOptions: React.PropTypes.func.isRequired,
   },
 
   mixins: [ReactMeteorData],
@@ -385,22 +413,6 @@ const PuzzlePageMetadata = React.createClass({
   onEdit(state, callback) {
     Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
-  },
-
-  onInterfaceRadioChange(e) {
-    const v = e.target.value;
-    switch (v) {
-      case 'related':
-        this.props.updateInterfaceOptions({ showChat: false, showRelated: true });
-        break;
-      case 'chat':
-        this.props.updateInterfaceOptions({ showChat: true, showRelated: false });
-        break;
-      case 'both':
-      default:
-        this.props.updateInterfaceOptions({ showChat: true, showRelated: true });
-        break;
-    }
   },
 
   getMeteorData() {
@@ -465,6 +477,16 @@ const PuzzlePageMetadata = React.createClass({
             <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
               {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
             </BS.Button>
+            {!this.props.isDesktop &&
+              <BS.Button
+                className="puzzle-metadata-gdrive-button"
+                disabled={!googleDriveLink}
+                href={googleDriveLink}
+                target="_blank"
+              >
+                {googleDriveLink ? 'Open in Google Drive' : 'No document'}
+              </BS.Button>
+            }
           </div>
           <div className="puzzle-metadata-left">
             <span className="puzzle-metadata-tags">Tags:</span>
@@ -475,53 +497,6 @@ const PuzzlePageMetadata = React.createClass({
               onRemoveTag={this.onRemoveTag}
               linkToSearch={false}
             />
-          </div>
-        </div>
-        <div className="puzzle-metadata-row">
-          <div className="btn-toolbar">
-            <BS.ButtonGroup className="puzzle-panes-control">
-              {/* Using active is ugly and less obvious in this theme.  Swapping to btn-primary isn't great, but works well */}
-              <BS.Button
-                bsStyle={this.props.interfaceOptions.showChat && !this.props.interfaceOptions.showRelated ? 'primary' : 'default'}
-                onClick={() => { this.props.updateInterfaceOptions({ showChat: true, showRelated: false }); }}
-              >
-                Chat
-              </BS.Button>
-              <BS.Button
-                bsStyle={!this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated ? 'primary' : 'default'}
-                onClick={() => { this.props.updateInterfaceOptions({ showChat: false, showRelated: true }); }}
-              >
-                Related
-              </BS.Button>
-              {this.props.isStackable && (
-                <BS.Button
-                  bsStyle={this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated ? 'primary' : 'default'}
-                  onClick={() => { this.props.updateInterfaceOptions({ showChat: true, showRelated: true }); }}
-                >
-                  Both
-                </BS.Button>
-              )}
-              {this.props.isDesktop && (
-                <BS.Button
-                  bsStyle={!this.props.interfaceOptions.showChat && !this.props.interfaceOptions.showRelated ? 'primary' : 'default'}
-                  onClick={() => { this.props.updateInterfaceOptions({ showChat: false, showRelated: false }); }}
-                >
-                  Neither
-                </BS.Button>
-              )}
-            </BS.ButtonGroup>
-            {!this.props.isDesktop &&
-              <BS.ButtonGroup className="pull-right">
-                <BS.Button
-                  className="puzzle-metadata-gdrive-button"
-                  disabled={!googleDriveLink}
-                  href={googleDriveLink}
-                  target="_blank"
-                >
-                  {googleDriveLink ? 'Open in Google Drive' : 'No document'}
-                </BS.Button>
-              </BS.ButtonGroup>
-            }
           </div>
         </div>
         {/* Activity tracking not implemented yet.
@@ -789,9 +764,6 @@ const PuzzlePageContent = React.createClass({
       ).isRequired,
     ).isRequired,
     isDesktop: React.PropTypes.bool.isRequired,
-    isStackable: React.PropTypes.bool.isRequired,
-    interfaceOptions: React.PropTypes.object.isRequired,
-    updateInterfaceOptions: React.PropTypes.func.isRequired,
   },
   mixins: [PureRenderMixin],
   render() {
@@ -803,10 +775,7 @@ const PuzzlePageContent = React.createClass({
           guesses={this.props.guesses}
           displayNames={this.props.displayNames}
           isDesktop={this.props.isDesktop}
-          isStackable={this.props.isStackable}
           documents={this.props.documents}
-          interfaceOptions={this.props.interfaceOptions}
-          updateInterfaceOptions={this.props.updateInterfaceOptions}
         />
         {this.props.isDesktop &&
           <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
@@ -852,10 +821,7 @@ const PuzzlePage = React.createClass({
     const mode = this.calculateViewMode();
     // To-Do: Per user interfaceOption defaults
     return {
-      interfaceOptions: {
-        showChat: true,
-        showRelated: mode.isDesktop && mode.isStackable,
-      },
+      showRelated: mode.isDesktop && mode.isStackable,
       isDesktop: mode.isDesktop,
       isStackable: mode.isStackable,
     };
@@ -881,13 +847,9 @@ const PuzzlePage = React.createClass({
 
   onResize() {
     const newMode = this.calculateViewMode();
-    // If resizing into mobile mode with all sidebars disabled, enable chat
-    if (this.state.isDesktop && !newMode.isDesktop && !this.state.interfaceOptions.showChat && !this.state.interfaceOptions.showRelated) {
-      this.updateInterfaceOptions({ showChat: true });
-    }
-    // If resizing into unstackable mode with both sidebars enabled, keep just chat
-    if (this.state.isStackable && !newMode.isStackable && this.state.interfaceOptions.showChat && this.state.interfaceOptions.showRelated) {
-      this.updateInterfaceOptions({ showChat: true, showRelated: false });
+    // If resizing into unstackable mode, switch to just chat in all cases
+    if (this.state.isStackable && !newMode.isStackable) {
+      this.setState({ showRelated: false });
     }
     if (newMode.isDesktop !== this.state.isDesktop || newMode.isStackable !== this.state.isStackable) {
       this.setState({
@@ -897,13 +859,8 @@ const PuzzlePage = React.createClass({
     }
   },
 
-  onCollapseChanged(collapsed) {
-    if (collapsed === 1) {
-      this.updateInterfaceOptions({
-        showChat: false,
-        showRelated: false,
-      });
-    }
+  onChangeShowRelated(showRelatedNew) {
+    this.setState({ showRelated: showRelatedNew });
   },
 
   getMeteorData() {
@@ -1003,34 +960,12 @@ const PuzzlePage = React.createClass({
     };
   },
 
-  updateInterfaceOptions(opts) {
-    const newOptions = _.extend({}, this.state.interfaceOptions, opts);
-    /* If in mobile mode with all sidebars disabled, enable the opposite one that used to be enabled, or default to chat */
-    if (!this.state.isDesktop && !newOptions.showChat && !newOptions.showRelated) {
-      if (this.state.interfaceOptions.showChat) {
-        newOptions.showRelated = true;
-      } else {
-        newOptions.showChat = true;
-      }
-    }
-    /* If in unstackable mode with both sidebars enabled, enable only the one that used to be enabled, or default to chat */
-    if (!this.state.isStackable && newOptions.showChat && newOptions.showRelated) {
-      if (!this.state.interfaceOptions.showChat && this.state.interfaceOptions.showRelated) {
-        newOptions.showChat = false;
-      } else {
-        newOptions.showRelated = false;
-      }
-    }
-    this.setState({ interfaceOptions: newOptions });
-  },
-
   render() {
     if (!this.data.puzzlesReady) {
       return <span>loading...</span>;
     }
 
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
-    const showSidebar = this.state.interfaceOptions.showChat || this.state.interfaceOptions.showRelated;
 
     const navItem = (
       <this.context.navAggregator.NavItem
@@ -1041,6 +976,7 @@ const PuzzlePage = React.createClass({
     );
     const sidebar = (
       <PuzzlePageSidebar
+        key="sidebar"
         activePuzzle={activePuzzle}
         allPuzzles={this.data.allPuzzles}
         allTags={this.data.allTags}
@@ -1048,9 +984,10 @@ const PuzzlePage = React.createClass({
         chatMessages={this.data.chatMessages}
         displayNames={this.data.displayNames}
         canUpdate={this.data.canUpdate}
-        interfaceOptions={this.state.interfaceOptions}
-        updateInterfaceOptions={this.updateInterfaceOptions}
+        showRelated={this.state.showRelated}
+        onChangeShowRelated={this.onChangeShowRelated}
         isDesktop={this.state.isDesktop}
+        isStackable={this.state.isStackable}
       />
     );
 
@@ -1059,7 +996,14 @@ const PuzzlePage = React.createClass({
         {this.state.isDesktop ? (
           <div className="puzzle-page">
             {navItem}
-            <SplitPanePlus split="vertical" defaultSize={DefaultSidebarWidth} autoCollapse2={-1} collapsed={showSidebar ? 0 : 1} onCollapseChanged={this.onCollapseChanged} >
+            <SplitPanePlus
+              split="vertical"
+              defaultSize={DefaultSidebarWidth}
+              minSize={MinimumSidebarWidth}
+              pane1Style={{ maxWidth: MaximumSidebarWidth }}
+              autoCollapse1={-1}
+              autoCollapse2={-1}
+            >
               {sidebar}
               <PuzzlePageContent
                 puzzle={activePuzzle}
@@ -1067,10 +1011,7 @@ const PuzzlePage = React.createClass({
                 guesses={this.data.allGuesses}
                 displayNames={this.data.displayNames}
                 documents={this.data.allDocuments}
-                interfaceOptions={this.state.interfaceOptions}
-                updateInterfaceOptions={this.updateInterfaceOptions}
                 isDesktop={this.state.isDesktop}
-                isStackable={this.state.isStackable}
               />
             </SplitPanePlus>
           </div>
@@ -1083,10 +1024,7 @@ const PuzzlePage = React.createClass({
               guesses={this.data.allGuesses}
               displayNames={this.data.displayNames}
               documents={this.data.allDocuments}
-              interfaceOptions={this.state.interfaceOptions}
-              updateInterfaceOptions={this.updateInterfaceOptions}
               isDesktop={this.state.isDesktop}
-              isStackable={this.state.isStackable}
             />
             {sidebar}
           </div>
