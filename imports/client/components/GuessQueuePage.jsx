@@ -80,6 +80,8 @@ const GuessBlock = React.createClass({
         <div className="guess-info">
           <div>{timestamp} from {this.props.createdByDisplayName || '<no name given>'}</div>
           <div>Puzzle: <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a> (<Link to={`/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`}>discussion</Link>)</div>
+          <div>Solve direction: {guess.direction}</div>
+          <div>Confidence: {guess.confidence}</div>
           <div><AutoSelectInput value={guess.guess} /></div>
         </div>
         {this.props.canEdit ? guessButtons : <div className="guess-button-group">{guess.state}</div>}

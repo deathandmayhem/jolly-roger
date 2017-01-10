@@ -463,6 +463,8 @@ const PuzzleGuessModal = React.createClass({
   getInitialState() {
     return {
       guessInput: '',
+      directionInput: 0,
+      confidenceInput: 50,
       submitState: 'idle',
       confirmingSubmit: false,
       confirmationMessage: '',
@@ -477,6 +479,14 @@ const PuzzleGuessModal = React.createClass({
     });
   },
 
+  onDirectionInputChange(event) {
+    this.setState({ directionInput: parseInt(event.target.value, 10) });
+  },
+
+  onConfidenceInputChange(event) {
+    this.setState({ confidenceInput: parseInt(event.target.value, 10) });
+  },
+
   onSubmitGuess() {
     const repeatGuess = _.find(this.props.guesses, (g) => { return g.guess === this.state.guessInput; });
     const alreadySolved = this.props.puzzle.answer;
@@ -489,22 +499,28 @@ const PuzzleGuessModal = React.createClass({
         confirmationMessage: msg,
       });
     } else {
-      Meteor.call('addGuessForPuzzle', this.props.puzzle._id, this.state.guessInput, (error) => {
-        // TODO: dismiss the modal on success?  show error message on failure?
-        if (error) {
-          this.setState({
-            submitState: 'failed',
-            errorMessage: error.message,
-          });
-          console.log(error);
-        }
+      Meteor.call(
+        'addGuessForPuzzle',
+        this.props.puzzle._id,
+        this.state.guessInput,
+        this.state.directionInput,
+        this.state.confidenceInput,
+        (error) => {
+          if (error) {
+            this.setState({
+              submitState: 'failed',
+              errorMessage: error.message,
+            });
+            console.log(error);
+          }
 
-        // Clear the input box.  Don't dismiss the dialog.
-        this.setState({
-          guessInput: '',
-          confirmingSubmit: false,
-        });
-      });
+          // Clear the input box.  Don't dismiss the dialog.
+          this.setState({
+            guessInput: '',
+            confirmingSubmit: false,
+          });
+        },
+      );
     }
   },
 
@@ -520,6 +536,17 @@ const PuzzleGuessModal = React.createClass({
   },
 
   render() {
+    const directionTooltip = (
+      <BS.Tooltip id="guess-direction-tooltip">
+        Current value: {this.state.directionInput}
+      </BS.Tooltip>
+    );
+    const confidenceTooltip = (
+      <BS.Tooltip id="guess-confidence-tooltip">
+        Current value: {this.state.confidenceInput}
+      </BS.Tooltip>
+    );
+
     return (
       <ModalForm
         ref={(node) => { this.formNode = node; }}
@@ -528,10 +555,10 @@ const PuzzleGuessModal = React.createClass({
         submitLabel={this.state.confirmingSubmit ? 'Confirm Submit' : 'Submit'}
       >
         <BS.FormGroup>
-          <BS.ControlLabel htmlFor="jr-puzzle-guess" className="col-xs-2">
+          <BS.ControlLabel htmlFor="jr-puzzle-guess" className="col-xs-3">
             Guess
           </BS.ControlLabel>
-          <div className="col-xs-10">
+          <div className="col-xs-9">
             <BS.FormControl
               type="text"
               id="jr-puzzle-guess"
@@ -540,6 +567,49 @@ const PuzzleGuessModal = React.createClass({
               onChange={this.onGuessInputChange}
               value={this.state.guessInput}
             />
+          </div>
+
+          <BS.ControlLabel htmlFor="jr-puzzle-guess-direction" className="col-xs-3">
+            Solve direction
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.OverlayTrigger placement="right" overlay={directionTooltip}>
+              <BS.FormControl
+                type="range"
+                id="jr-puzzle-guess-direction"
+                min={-10}
+                max={10}
+                step={1}
+                onChange={this.onDirectionInputChange}
+                value={this.state.directionInput}
+              />
+            </BS.OverlayTrigger>
+            <BS.HelpBlock>
+              Pick a number between -10 (backsolved without opening
+              the puzzle) to 10 (forward-solved without seeing the
+              round) to indicate if you forward- or back-solved.
+            </BS.HelpBlock>
+          </div>
+
+          <BS.ControlLabel htmlFor="jr-puzzle-guess-confidence" className="col-xs-3">
+            Confidence
+          </BS.ControlLabel>
+          <div className="col-xs-9">
+            <BS.OverlayTrigger placement="right" overlay={confidenceTooltip}>
+              <BS.FormControl
+                type="range"
+                id="jr-puzzle-guess-confidence"
+                min={0}
+                max={100}
+                step={1}
+                onChange={this.onConfidenceInputChange}
+                value={this.state.confidenceInput}
+              />
+            </BS.OverlayTrigger>
+            <BS.HelpBlock>
+              Pick a number between 0 and 100 for the probability that
+              you think this answer is right.
+            </BS.HelpBlock>
           </div>
         </BS.FormGroup>
 

@@ -39,17 +39,29 @@ function transitionGuess(guess, newState) {
 }
 
 Meteor.methods({
-  addGuessForPuzzle(puzzleId, guess) {
+  addGuessForPuzzle(puzzleId, guess, direction, confidence) {
     check(this.userId, String);
     check(puzzleId, String);
     check(guess, String);
+    check(direction, Number);
+    check(confidence, Number);
+
     const puzzle = Models.Puzzles.findOne(puzzleId);
 
-    Ansible.log('New guess', { hunt: puzzle.hunt, puzzle: puzzleId, user: this.userId, guess });
+    Ansible.log('New guess', {
+      hunt: puzzle.hunt,
+      puzzle: puzzleId,
+      user: this.userId,
+      guess,
+      direction,
+      confidence,
+    });
     Models.Guesses.insert({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       guess,
+      direction,
+      confidence,
       state: 'pending',
     });
   },
