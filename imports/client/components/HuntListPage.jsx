@@ -355,7 +355,7 @@ const HuntListPage = React.createClass({
 
   getMeteorData() {
     const huntListHandle = this.context.subs.subscribe('mongo.hunts');
-    const myHuntsHandle = this.context.subs.subscribe('huntMembership');
+    const myHuntsHandle = this.context.subs.subscribe('selfHuntMembership');
     const ready = huntListHandle.ready() && myHuntsHandle.ready();
 
     const myHunts = {};

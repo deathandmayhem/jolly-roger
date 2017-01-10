@@ -322,6 +322,7 @@ const PuzzleListView = React.createClass({
             <ul>
               <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
               <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guesses</Link></li>
+              <li><Link to={`/hunts/${this.props.huntId}/hunters`}>Hunters</Link></li>
             </ul>
           </div>
         </div>

@@ -130,7 +130,7 @@ const HuntApp = React.createClass({
   mixins: [ReactMeteorData],
 
   getMeteorData() {
-    const userHandle = this.context.subs.subscribe('huntMembership');
+    const userHandle = this.context.subs.subscribe('selfHuntMembership');
     const huntHandle = this.context.subs.subscribe('mongo.hunts.allowingDeleted', {
       _id: this.props.params.huntId,
     });

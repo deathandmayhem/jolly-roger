@@ -1,3 +1,4 @@
+import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import { _ } from 'meteor/underscore';
 import BS from 'react-bootstrap';
@@ -8,6 +9,7 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 const ProfileList = React.createClass({
   propTypes: {
+    huntId: React.PropTypes.string,
     profiles: React.PropTypes.arrayOf(
       React.PropTypes.shape(
         Schemas.Profiles.asReactPropTypes()
@@ -56,6 +58,19 @@ const ProfileList = React.createClass({
     });
   },
 
+  globalInfo() {
+    if (this.props.huntId) {
+      return null;
+    }
+
+    return (
+      <BS.Alert bsStyle="info">
+        This shows everyone registered on Jolly Roger, not just those hunting in this year's
+        Mystery Hunt. For that, go to the hunt page and click on "Hunters".
+      </BS.Alert>
+    );
+  },
+
   render() {
     const profiles = _.filter(this.props.profiles, this.compileMatcher());
     return (
@@ -85,6 +100,8 @@ const ProfileList = React.createClass({
           </BS.InputGroup>
         </BS.FormGroup>
 
+        {this.globalInfo()}
+
         <BS.ListGroup>
           {profiles.map((profile) => (
             <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
@@ -99,7 +116,60 @@ const ProfileList = React.createClass({
   },
 });
 
-const ProfileListPage = React.createClass({
+const HuntProfileListPage = React.createClass({
+  propTypes: {
+    params: React.PropTypes.shape({
+      huntId: React.PropTypes.string.isRequired,
+    }).isRequired,
+  },
+
+  contextTypes: {
+    subs: JRPropTypes.subs,
+    navAggregator: navAggregatorType,
+  },
+
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    const usersHandle = this.context.subs.subscribe('huntMembers', this.props.params.huntId);
+    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
+
+    const ready = usersHandle.ready() && profilesHandle.ready();
+    if (!ready) {
+      return { ready };
+    }
+
+    const hunters = Meteor.users.find({ hunts: this.props.params.huntId }).map(u => u._id);
+    const profiles = Models.Profiles.find(
+      { _id: { $in: hunters } },
+      { sort: { displayName: 1 } },
+    ).fetch();
+
+    return { ready, profiles };
+  },
+
+  renderBody() {
+    if (!this.data.ready) {
+      return <div>loading...</div>;
+    }
+
+    return <ProfileList profiles={this.data.profiles} huntId={this.props.params.huntId} />;
+  },
+
+  render() {
+    return (
+      <this.context.navAggregator.NavItem
+        itemKey="hunters"
+        to={`/hunts/${this.props.params.huntId}/hunters`}
+        label="Hunters"
+      >
+        {this.renderBody()}
+      </this.context.navAggregator.NavItem>
+    );
+  },
+});
+
+const AllProfileListPage = React.createClass({
   contextTypes: {
     subs: JRPropTypes.subs,
     navAggregator: navAggregatorType,
@@ -137,4 +207,4 @@ const ProfileListPage = React.createClass({
   },
 });
 
-export { ProfileListPage };
+export { HuntProfileListPage, AllProfileListPage };

@@ -18,7 +18,10 @@ import { HuntListPage } from '/imports/client/components/HuntListPage.jsx';
 import { LoginForm } from '/imports/client/components/LoginForm.jsx';
 import { NavAggregator, navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { PasswordResetForm } from '/imports/client/components/PasswordResetForm.jsx';
-import { ProfileListPage } from '/imports/client/components/ProfileListPage.jsx';
+import {
+  HuntProfileListPage,
+  AllProfileListPage,
+} from '/imports/client/components/ProfileListPage.jsx';
 import { ProfilePage } from '/imports/client/components/ProfilePage.jsx';
 import { PuzzleListPage } from '/imports/client/components/PuzzleListPage.jsx';
 import { PuzzlePage } from '/imports/client/components/PuzzlePage.jsx';
@@ -57,13 +60,14 @@ const Routes = React.createClass({
               <Route path="hunts/:huntId" component={HuntApp}>
                 <Route path="announcements" component={AnnouncementsPage} />
                 <Route path="guesses" component={GuessQueuePage} />
+                <Route path="hunters" component={HuntProfileListPage} />
                 <Route path="puzzles/:puzzleId" component={PuzzlePage} />
                 <Route path="puzzles" component={PuzzleListPage} />
                 <IndexRedirect to="puzzles" />
               </Route>
               <Route path="hunts" component={HuntListPage} />
               <Route path="users/:userId" component={ProfilePage} />
-              <Route path="users" component={ProfileListPage} />
+              <Route path="users" component={AllProfileListPage} />
               <Route path="setup" component={SetupPage} />
             </Route>
           </Route>
