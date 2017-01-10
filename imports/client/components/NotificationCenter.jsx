@@ -77,13 +77,41 @@ const GuessMessage = React.createClass({
   },
 
   render() {
+    const directionTooltip = (
+      <BS.Tooltip id="direction-tooltip">
+        Direction this puzzle was solved, ranging from completely backsolved (-10) to completely forward solved (10)
+      </BS.Tooltip>
+    );
+
+    const confidenceTooltip = (
+      <BS.Tooltip id="confidence-tooltip">
+        Submitter-estimated likelihood that this answer is correct
+      </BS.Tooltip>
+    );
+
     return (
       <li>
         <MessengerSpinner />
         <MessengerContent dismissable>
-          Guess for <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>:
-          {' '}
-          {this.props.guess.guess}
+          <div>
+            Guess for <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>:
+            {' '}
+            {this.props.guess.guess}
+          </div>
+          <div>
+            <BS.OverlayTrigger placement="bottom" overlay={directionTooltip}>
+              <span>
+                Solve direction: {this.props.guess.direction}
+              </span>
+            </BS.OverlayTrigger>
+          </div>
+          <div>
+            <BS.OverlayTrigger placement="bottom" overlay={confidenceTooltip}>
+              <span>
+                Confidence: {this.props.guess.confidence}%
+              </span>
+            </BS.OverlayTrigger>
+          </div>
           <ul className="actions">
             <li>
               <CopyToClipboard text={this.props.guess.guess}>
