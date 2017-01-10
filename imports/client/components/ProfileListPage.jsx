@@ -10,6 +10,7 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 const ProfileList = React.createClass({
   propTypes: {
     huntId: React.PropTypes.string,
+    canInvite: React.PropTypes.bool,
     profiles: React.PropTypes.arrayOf(
       React.PropTypes.shape(
         Schemas.Profiles.asReactPropTypes()
@@ -58,6 +59,20 @@ const ProfileList = React.createClass({
     });
   },
 
+  inviteToHuntItem() {
+    if (!this.props.huntId || !this.props.canInvite) {
+      return null;
+    }
+
+    return (
+      <RRBS.LinkContainer to={`/hunts/${this.props.huntId}/hunters/invite`}>
+        <BS.ListGroupItem>
+          <strong>Invite someone...</strong>
+        </BS.ListGroupItem>
+      </RRBS.LinkContainer>
+    );
+  },
+
   globalInfo() {
     if (this.props.huntId) {
       return null;
@@ -103,6 +118,7 @@ const ProfileList = React.createClass({
         {this.globalInfo()}
 
         <BS.ListGroup>
+          {this.inviteToHuntItem()}
           {profiles.map((profile) => (
             <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
               <BS.ListGroupItem>
@@ -139,13 +155,16 @@ const HuntProfileListPage = React.createClass({
       return { ready };
     }
 
+    const canInvite = Roles.userHasPermission(
+      Meteor.userId(), 'hunt.join', this.props.params.huntId);
+
     const hunters = Meteor.users.find({ hunts: this.props.params.huntId }).map(u => u._id);
     const profiles = Models.Profiles.find(
       { _id: { $in: hunters } },
       { sort: { displayName: 1 } },
     ).fetch();
 
-    return { ready, profiles };
+    return { ready, canInvite, profiles };
   },
 
   renderBody() {
@@ -153,7 +172,13 @@ const HuntProfileListPage = React.createClass({
       return <div>loading...</div>;
     }
 
-    return <ProfileList profiles={this.data.profiles} huntId={this.props.params.huntId} />;
+    return (
+      <ProfileList
+        profiles={this.data.profiles}
+        huntId={this.props.params.huntId}
+        canInvite={this.data.canInvite}
+      />
+    );
   },
 
   render() {
