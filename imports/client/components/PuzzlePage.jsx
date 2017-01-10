@@ -150,7 +150,7 @@ const ChatHistory = React.createClass({
       <div ref={(node) => { this.node = node; }} className="chat-history" onScroll={this.onScroll}>
         {this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span>}
         {this.props.chatMessages.map((msg) => {
-          const displayName = (msg.sender !== undefined) ? this.props.displayNames[msg.sender] : 'System';
+          const displayName = (msg.sender !== undefined) ? this.props.displayNames[msg.sender] : 'jolly-roger';
           return (
             <ChatMessage
               key={msg._id}
