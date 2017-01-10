@@ -2,6 +2,17 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import Ansible from '/imports/ansible.js';
 
+function addChatMessage(guess, newState) {
+  const message = `Guess ${guess.guess} was marked ${newState}`;
+  const puzzle = Models.Puzzles.findOne(guess.puzzle);
+  Models.ChatMessages.insert({
+    hunt: puzzle.hunt,
+    puzzle: guess.puzzle,
+    text: message,
+    timestamp: new Date(),
+  });
+}
+
 function transitionGuess(guess, newState) {
   if (newState === guess.state) return;
 
@@ -12,6 +23,7 @@ function transitionGuess(guess, newState) {
       state: newState,
     },
   });
+  addChatMessage(guess, newState);
 
   if (newState === 'correct') {
     // Mark this puzzle as solved.
