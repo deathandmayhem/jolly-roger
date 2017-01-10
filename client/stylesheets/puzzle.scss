@@ -212,6 +212,7 @@
   display: block;
   min-height: 26px;
   line-height: 18px;
+  padding: 0 4px;
   vertical-align: middle;
 }
 
@@ -238,7 +239,7 @@
   color: #000000;
 }
 
-.puzzle-metadata-row button {
+.puzzle-metadata-row .btn {
   height: 24px;
   padding-top: 2px;
   padding-bottom: 2px;

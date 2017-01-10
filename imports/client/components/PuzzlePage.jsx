@@ -27,6 +27,8 @@ const FilteredChatFields = ['puzzle', 'text', 'sender', 'timestamp'];
 const FilteredChatMessagePropTypes = _.pick(Schemas.ChatMessages.asReactPropTypes(), ...FilteredChatFields);
 
 const MinimumDesktopWidth = 600;
+const MinimumDesktopStackingHeight = 500; // In two column mode, allow stacking at smaller heights
+const MinimumMobileStackingHeight = 740; // Captures iPhone Plus but not iPad Mini
 const DefaultSidebarWidth = 300;
 const DefaultChatHeight = '60%';
 
@@ -353,6 +355,7 @@ const PuzzlePageMetadata = React.createClass({
       ).isRequired,
     ).isRequired,
     isDesktop: React.PropTypes.bool.isRequired,
+    isStackable: React.PropTypes.bool.isRequired,
     interfaceOptions: React.PropTypes.object.isRequired,
     updateInterfaceOptions: React.PropTypes.func.isRequired,
   },
@@ -475,50 +478,51 @@ const PuzzlePageMetadata = React.createClass({
           </div>
         </div>
         <div className="puzzle-metadata-row">
-          {!this.props.isDesktop &&
-            <div className="puzzle-metadata-right">
-              { googleDriveLink ? (
-                <BS.Button className="puzzle-metadata-gdrive-button" href={googleDriveLink} target="_blank" >
-                  Open in Google Drive
+          <div className="btn-toolbar">
+            <BS.ButtonGroup className="puzzle-panes-control">
+              {/* Using active is ugly and less obvious in this theme.  Swapping to btn-primary isn't great, but works well */}
+              <BS.Button
+                bsStyle={this.props.interfaceOptions.showChat && !this.props.interfaceOptions.showRelated ? 'primary' : 'default'}
+                onClick={() => { this.props.updateInterfaceOptions({ showChat: true, showRelated: false }); }}
+              >
+                Chat
+              </BS.Button>
+              <BS.Button
+                bsStyle={!this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated ? 'primary' : 'default'}
+                onClick={() => { this.props.updateInterfaceOptions({ showChat: false, showRelated: true }); }}
+              >
+                Related
+              </BS.Button>
+              {this.props.isStackable && (
+                <BS.Button
+                  bsStyle={this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated ? 'primary' : 'default'}
+                  onClick={() => { this.props.updateInterfaceOptions({ showChat: true, showRelated: true }); }}
+                >
+                  Both
                 </BS.Button>
-              ) : (
-                'No Google Drive document available'
-              ) }
-            </div>
-          }
-          {this.props.isDesktop ? (
-            <div className="puzzle-metadata-left">
-              <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showChat} onChange={(e) => { this.props.updateInterfaceOptions({ showChat: e.target.checked }); }} /> Chat
-              &nbsp;
-              <input type="checkbox" autoComplete="off" checked={this.props.interfaceOptions.showRelated} onChange={(e) => { this.props.updateInterfaceOptions({ showRelated: e.target.checked }); }} /> Related Puzzles
-            </div>
-          ) : (
-            <div className="puzzle-metadata-left">
-              <input
-                type="radio"
-                name="interfacePanes"
-                value="chat"
-                checked={this.props.interfaceOptions.showChat && !this.props.interfaceOptions.showRelated}
-                onChange={this.onInterfaceRadioChange}
-              /> Chat
-              &nbsp;
-              <input
-                type="radio"
-                name="interfacePanes"
-                value="both"
-                checked={this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated}
-                onChange={this.onInterfaceRadioChange}
-              /> Both
-              &nbsp;
-              <input
-                type="radio"
-                name="interfacePanes"
-                value="related"
-                checked={!this.props.interfaceOptions.showChat && this.props.interfaceOptions.showRelated}
-                onChange={this.onInterfaceRadioChange}
-              /> Related Puzzles
-            </div>
-          )}
+              )}
+              {this.props.isDesktop && (
+                <BS.Button
+                  bsStyle={!this.props.interfaceOptions.showChat && !this.props.interfaceOptions.showRelated ? 'primary' : 'default'}
+                  onClick={() => { this.props.updateInterfaceOptions({ showChat: false, showRelated: false }); }}
+                >
+                  Neither
+                </BS.Button>
+              )}
+            </BS.ButtonGroup>
+            {!this.props.isDesktop &&
+              <BS.ButtonGroup className="pull-right">
+                <BS.Button
+                  className="puzzle-metadata-gdrive-button"
+                  disabled={!googleDriveLink}
+                  href={googleDriveLink}
+                  target="_blank"
+                >
+                  {googleDriveLink ? 'Open in Google Drive' : 'No document'}
+                </BS.Button>
+              </BS.ButtonGroup>
+            }
+          </div>
         </div>
         {/* Activity tracking not implemented yet.
             <div>Other hunters currently viewing this page?</div> */}
@@ -785,6 +789,7 @@ const PuzzlePageContent = React.createClass({
       ).isRequired,
     ).isRequired,
     isDesktop: React.PropTypes.bool.isRequired,
+    isStackable: React.PropTypes.bool.isRequired,
     interfaceOptions: React.PropTypes.object.isRequired,
     updateInterfaceOptions: React.PropTypes.func.isRequired,
   },
@@ -798,6 +803,7 @@ const PuzzlePageContent = React.createClass({
           guesses={this.props.guesses}
           displayNames={this.props.displayNames}
           isDesktop={this.props.isDesktop}
+          isStackable={this.props.isStackable}
           documents={this.props.documents}
           interfaceOptions={this.props.interfaceOptions}
           updateInterfaceOptions={this.props.updateInterfaceOptions}
@@ -843,14 +849,15 @@ const PuzzlePage = React.createClass({
   },
 
   getInitialState() {
-    const isDesktopInit = this.calculateIsDesktop();
+    const mode = this.calculateViewMode();
     // To-Do: Per user interfaceOption defaults
     return {
       interfaceOptions: {
         showChat: true,
-        showRelated: isDesktopInit,
+        showRelated: mode.isDesktop && mode.isStackable,
       },
-      isDesktop: isDesktopInit,
+      isDesktop: mode.isDesktop,
+      isStackable: mode.isStackable,
     };
   },
 
@@ -873,13 +880,20 @@ const PuzzlePage = React.createClass({
   },
 
   onResize() {
-    const newIsDesktop = this.calculateIsDesktop();
-    if (newIsDesktop !== this.state.isDesktop) { /* Prevent pointless re-rendering */
-      this.setState({ isDesktop: newIsDesktop });
-      /* If resizing into mobile mode with all sidebars disabled, enable chat */
-      if (!newIsDesktop && !this.state.interfaceOptions.showChat && !this.state.interfaceOptions.showRelated) {
-        this.updateInterfaceOptions({ showChat: true });
-      }
+    const newMode = this.calculateViewMode();
+    // If resizing into mobile mode with all sidebars disabled, enable chat
+    if (this.state.isDesktop && !newMode.isDesktop && !this.state.interfaceOptions.showChat && !this.state.interfaceOptions.showRelated) {
+      this.updateInterfaceOptions({ showChat: true });
+    }
+    // If resizing into unstackable mode with both sidebars enabled, keep just chat
+    if (this.state.isStackable && !newMode.isStackable && this.state.interfaceOptions.showChat && this.state.interfaceOptions.showRelated) {
+      this.updateInterfaceOptions({ showChat: true, showRelated: false });
+    }
+    if (newMode.isDesktop !== this.state.isDesktop || newMode.isStackable !== this.state.isStackable) {
+      this.setState({
+        isDesktop: newMode.isDesktop,
+        isStackable: newMode.isStackable,
+      });
     }
   },
 
@@ -978,10 +992,15 @@ const PuzzlePage = React.createClass({
     };
   },
 
-  calculateIsDesktop() {
-    // Ideally this should be based on size of the component (and the trigger changed appropriately)
-    // but this component is designed for full-width use, so...
-    return window.innerWidth >= MinimumDesktopWidth;
+  // Ideally these should be based on size of the component (and the trigger changed appropriately)
+  // but this component is designed for full-page use, so...
+  calculateViewMode() {
+    const newIsDesktop = window.innerWidth >= MinimumDesktopWidth;
+    const newIsStackable = window.innerHeight >= (newIsDesktop ? MinimumDesktopStackingHeight : MinimumMobileStackingHeight);
+    return {
+      isDesktop: newIsDesktop,
+      isStackable: newIsStackable,
+    };
   },
 
   updateInterfaceOptions(opts) {
@@ -992,6 +1011,14 @@ const PuzzlePage = React.createClass({
         newOptions.showRelated = true;
       } else {
         newOptions.showChat = true;
+      }
+    }
+    /* If in unstackable mode with both sidebars enabled, enable only the one that used to be enabled, or default to chat */
+    if (!this.state.isStackable && newOptions.showChat && newOptions.showRelated) {
+      if (!this.state.interfaceOptions.showChat && this.state.interfaceOptions.showRelated) {
+        newOptions.showChat = false;
+      } else {
+        newOptions.showRelated = false;
       }
     }
     this.setState({ interfaceOptions: newOptions });
@@ -1043,6 +1070,7 @@ const PuzzlePage = React.createClass({
                 interfaceOptions={this.state.interfaceOptions}
                 updateInterfaceOptions={this.updateInterfaceOptions}
                 isDesktop={this.state.isDesktop}
+                isStackable={this.state.isStackable}
               />
             </SplitPanePlus>
           </div>
@@ -1058,6 +1086,7 @@ const PuzzlePage = React.createClass({
               interfaceOptions={this.state.interfaceOptions}
               updateInterfaceOptions={this.updateInterfaceOptions}
               isDesktop={this.state.isDesktop}
+              isStackable={this.state.isStackable}
             />
             {sidebar}
           </div>
