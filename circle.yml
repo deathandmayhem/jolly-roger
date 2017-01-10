@@ -6,6 +6,8 @@ dependencies:
     - npm install -g node-pre-gyp
   override:
     - ./deps.sh
+  cache_directories:
+    - 'tests/down/node_modules'
 test:
   override:
     - ./test.sh
