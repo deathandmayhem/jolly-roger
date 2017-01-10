@@ -536,6 +536,7 @@ const PuzzleGuessModal = React.createClass({
               type="text"
               id="jr-puzzle-guess"
               autoFocus="true"
+              autoComplete="off"
               onChange={this.onGuessInputChange}
               value={this.state.guessInput}
             />
