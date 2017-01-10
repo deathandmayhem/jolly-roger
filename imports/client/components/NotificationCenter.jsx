@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import React from 'react';
+import BS from 'react-bootstrap';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { Link } from 'react-router';
 import moment from 'moment';
@@ -8,6 +9,7 @@ import marked from 'marked';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import classnames from 'classnames';
+import CopyToClipboard from 'react-copy-to-clipboard';
 
 /* eslint-disable max-len */
 
@@ -58,10 +60,6 @@ const GuessMessage = React.createClass({
 
   mixins: [PureRenderMixin],
 
-  focusGuess() {
-    this.guessNode.select();
-  },
-
   markCorrect() {
     Meteor.call('markGuessCorrect', this.props.guess._id);
   },
@@ -80,20 +78,18 @@ const GuessMessage = React.createClass({
 
   render() {
     return (
-      <li onClick={this.focusGuess}>
+      <li>
         <MessengerSpinner />
         <MessengerContent dismissable>
           Guess for <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>:
           {' '}
-          <input
-            ref={(node) => { this.guessNode = node; }}
-            type="text"
-            readOnly
-            size={this.props.guess.guess.length}
-            className="notification-guess-input"
-            value={this.props.guess.guess}
-          />
+          {this.props.guess.guess}
           <ul className="actions">
+            <li>
+              <CopyToClipboard text={this.props.guess.guess}>
+                <button><BS.Glyphicon glyph="copy" /></button>
+              </CopyToClipboard>
+            </li>
             <li><button onClick={this.markCorrect}>Correct</button></li>
             <li><button onClick={this.markIncorrect}>Incorrect</button></li>
             <li><button onClick={this.markRejected}>Reject</button></li>
