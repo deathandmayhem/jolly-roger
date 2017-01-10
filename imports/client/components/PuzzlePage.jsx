@@ -506,7 +506,6 @@ const PuzzleGuessModal = React.createClass({
         this.state.directionInput,
         this.state.confidenceInput,
         (error) => {
-          // TODO: dismiss the modal on success?  show error message on failure?
           if (error) {
             this.setState({
               submitState: 'failed',
