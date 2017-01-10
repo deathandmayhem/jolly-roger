@@ -1,11 +1,7 @@
-import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import { _ } from 'meteor/underscore';
 import BS from 'react-bootstrap';
 import RRBS from 'react-router-bootstrap';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 const ProfileList = React.createClass({
   propTypes: {
@@ -132,104 +128,4 @@ const ProfileList = React.createClass({
   },
 });
 
-const HuntProfileListPage = React.createClass({
-  propTypes: {
-    params: React.PropTypes.shape({
-      huntId: React.PropTypes.string.isRequired,
-    }).isRequired,
-  },
-
-  contextTypes: {
-    subs: JRPropTypes.subs,
-    navAggregator: navAggregatorType,
-  },
-
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    const usersHandle = this.context.subs.subscribe('huntMembers', this.props.params.huntId);
-    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
-
-    const ready = usersHandle.ready() && profilesHandle.ready();
-    if (!ready) {
-      return { ready };
-    }
-
-    const canInvite = Roles.userHasPermission(
-      Meteor.userId(), 'hunt.join', this.props.params.huntId);
-
-    const hunters = Meteor.users.find({ hunts: this.props.params.huntId }).map(u => u._id);
-    const profiles = Models.Profiles.find(
-      { _id: { $in: hunters } },
-      { sort: { displayName: 1 } },
-    ).fetch();
-
-    return { ready, canInvite, profiles };
-  },
-
-  renderBody() {
-    if (!this.data.ready) {
-      return <div>loading...</div>;
-    }
-
-    return (
-      <ProfileList
-        profiles={this.data.profiles}
-        huntId={this.props.params.huntId}
-        canInvite={this.data.canInvite}
-      />
-    );
-  },
-
-  render() {
-    return (
-      <this.context.navAggregator.NavItem
-        itemKey="hunters"
-        to={`/hunts/${this.props.params.huntId}/hunters`}
-        label="Hunters"
-      >
-        {this.renderBody()}
-      </this.context.navAggregator.NavItem>
-    );
-  },
-});
-
-const AllProfileListPage = React.createClass({
-  contextTypes: {
-    subs: JRPropTypes.subs,
-    navAggregator: navAggregatorType,
-  },
-
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
-    const ready = profilesHandle.ready();
-    const profiles = ready ? Models.Profiles.find({}, { sort: { displayName: 1 } }).fetch() : [];
-    return {
-      ready,
-      profiles,
-    };
-  },
-
-  render() {
-    let body;
-    if (!this.data.ready) {
-      body = <div>loading...</div>;
-    } else {
-      body = <ProfileList profiles={this.data.profiles} />;
-    }
-
-    return (
-      <this.context.navAggregator.NavItem
-        itemKey="users"
-        to="/users"
-        label="Users"
-      >
-        {body}
-      </this.context.navAggregator.NavItem>
-    );
-  },
-});
-
-export { HuntProfileListPage, AllProfileListPage };
+export { ProfileList };
