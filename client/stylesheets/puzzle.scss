@@ -152,33 +152,33 @@
   display: flex;
   flex-direction: column;
   > .sidebar {
-  	position:relative; /*This is a little kludgy, but better than fixing it inline - revisit later*/
+    position: relative; /*This is a little kludgy, but better than fixing it inline - revisit later*/
   }
 }
 
 .puzzle-content {
-  position:absolute;
-  top:0;
-  bottom:0;
-  left:0;
-  right:0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
 }
 
 .sidebar {
-	flex: 1 1 auto;
-	position:absolute;
-	top:0;
-	bottom:0;
-	left:0;
-	right:0;
+  flex: 1 1 auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 // Chat
 .chat-section {
   width: 100%;
-  overflow:hidden;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -203,7 +203,7 @@
 // Puzzle metadata
 .puzzle-metadata {
   flex: none;
-  padding-bottom:2px;
+  padding-bottom: 2px;
   overflow: auto;
   border-bottom: 1px solid #bbbbbb;
 }
@@ -258,9 +258,9 @@
 }
 
 .puzzle-document > .google-spreadsheet {
-  width:100%;
-  height:100%;
-  position:absolute;
+  width: 100%;
+  height: 100%;
+  position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
@@ -268,13 +268,13 @@
 }
 
 .SplitPane.collapsed1 > .Resizer, .SplitPane.collapsed2 > .Resizer {
-	display:none;
+  display: none;
 }
 
 .SplitPane.collapsing1 > .Pane1:before, .SplitPane.collapsing2 > .Pane2:before {
-	content:"";
-	display:block;
-	height: 100%;
+  content: "";
+  display: block;
+  height: 100%;
     width: 100%;
     position: absolute;
     top: 0;
@@ -282,7 +282,7 @@
     right: 0;
     bottom: 0;
     background-color: rgba(255, 0, 0, .2);
-    z-index:2;
+    z-index: 2;
 }
 
 .Resizer {
@@ -295,24 +295,24 @@
 /* Throw an overlay over iFrames during drag to capture mouse events */
 /* Works in Chrome and Safari but not Firefox for some reason*/
 .SplitPanePlus.dragging:after {
-	content:'';
-	position:fixed;
-	top:0;
-	left:0;
-	width:100%;
-	height:100%;
-	z-index:2002;
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2002;
 }
 /* Kludge that makes it work in Firefox.
    Amazingly, the above part actually works for iFrames outside of the SplitPane, 
    so we're covered everywhere. */
 .SplitPanePlus.dragging > .SplitPane:after {
-	content:'';
-	position:absolute;
-	top:0;
-	left:0;
-	width:100%;
-	height:100%;
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .Resizer:hover {

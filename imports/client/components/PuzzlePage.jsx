@@ -291,16 +291,11 @@ const PuzzlePageSidebar = React.createClass({
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
-    isDesktop: React.PropTypes.bool,
+    isDesktop: React.PropTypes.bool.isRequired,
     interfaceOptions: React.PropTypes.object.isRequired,
     updateInterfaceOptions: React.PropTypes.func.isRequired,
   },
   mixins: [PureRenderMixin],
-  getDefaultProps() {
-    return {
-      isDesktop: true,
-    };
-  },
 
   onCollapseChanged(collapsed) {
     if (collapsed === 1) {
@@ -357,18 +352,12 @@ const PuzzlePageMetadata = React.createClass({
         Schemas.Documents.asReactPropTypes()
       ).isRequired,
     ).isRequired,
-    isDesktop: React.PropTypes.bool,
+    isDesktop: React.PropTypes.bool.isRequired,
     interfaceOptions: React.PropTypes.object.isRequired,
     updateInterfaceOptions: React.PropTypes.func.isRequired,
   },
 
   mixins: [ReactMeteorData],
-
-  getDefaultProps() {
-    return {
-      isDesktop: true,
-    };
-  },
 
   getInitialState() {
     return {
@@ -542,7 +531,7 @@ const PuzzlePageMetadata = React.createClass({
                   Open in Google Drive
                 </BS.Button>
               ) : (
-                'No Google Drive Document Available'
+                'No Google Drive document available'
               ) }
             </div>
           }
@@ -691,16 +680,11 @@ const PuzzlePageContent = React.createClass({
         Schemas.Documents.asReactPropTypes()
       ).isRequired,
     ).isRequired,
-    isDesktop: React.PropTypes.bool,
+    isDesktop: React.PropTypes.bool.isRequired,
     interfaceOptions: React.PropTypes.object.isRequired,
     updateInterfaceOptions: React.PropTypes.func.isRequired,
   },
   mixins: [PureRenderMixin],
-  getDefaultProps() {
-    return {
-      isDesktop: true,
-    };
-  },
   render() {
     return (
       <div className="puzzle-content">
@@ -755,21 +739,23 @@ const PuzzlePage = React.createClass({
   },
 
   getInitialState() {
+    const isDesktopInit = this.calculateIsDesktop();
+    // To-Do: Per user interfaceOption defaults
     return {
       interfaceOptions: {
         showChat: true,
-        showRelated: true,
+        showRelated: isDesktopInit,
       },
+      isDesktop: isDesktopInit,
     };
   },
 
   componentWillMount() {
-    this.updateIsDesktop();
     Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
   },
 
   componentDidMount() {
-    window.addEventListener('resize', this.updateIsDesktop);
+    window.addEventListener('resize', this.onResize);
   },
 
   componentWillReceiveProps(nextProps) {
@@ -779,7 +765,18 @@ const PuzzlePage = React.createClass({
   },
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this.updateIsDesktop);
+    window.removeEventListener('resize', this.onResize);
+  },
+
+  onResize() {
+    const newIsDesktop = this.calculateIsDesktop();
+    if (newIsDesktop !== this.state.isDesktop) { /* Prevent pointless re-rendering */
+      this.setState({ isDesktop: newIsDesktop });
+      /* If resizing into mobile mode with all sidebars disabled, enable chat */
+      if (!newIsDesktop && !this.state.interfaceOptions.showChat && !this.state.interfaceOptions.showRelated) {
+        this.updateInterfaceOptions({ showChat: true });
+      }
+    }
   },
 
   onCollapseChanged(collapsed) {
@@ -877,15 +874,10 @@ const PuzzlePage = React.createClass({
     };
   },
 
-  updateIsDesktop() {
-    const newIsDesktop = (window.innerWidth >= MinimumDesktopWidth);
-    if (this.state === null || !('isDesktop' in this.state) || (newIsDesktop !== this.state.isDesktop)) { /* Prevent pointless re-rendering */
-      this.setState({ isDesktop: newIsDesktop });
-      /* If resizing into mobile mode with all sidebars disabled, enable chat */
-      if (!newIsDesktop && !this.state.interfaceOptions.showChat && !this.state.interfaceOptions.showRelated) {
-        this.updateInterfaceOptions({ showChat: true });
-      }
-    }
+  calculateIsDesktop() {
+    // Ideally this should be based on size of the component (and the trigger changed appropriately)
+    // but this component is designed for full-width use, so...
+    return window.innerWidth >= MinimumDesktopWidth;
   },
 
   updateInterfaceOptions(opts) {
