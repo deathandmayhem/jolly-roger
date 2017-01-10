@@ -158,7 +158,7 @@ const Down = class Down {
       ['mongo.announcements'],
       ['mongo.pending_announcements', { user }],
       ['mongo.profiles', { _id: user }],
-      ['huntMembership'],
+      ['selfHuntMembership'],
       // Technically we don't subscribe to this, but it's hard to pick
       // a hunt to dig into without first viewing them
       ['mongo.hunts'],
