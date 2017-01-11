@@ -132,9 +132,9 @@
 }
 
 .tag .btn.tag-remove-button {
-  height: 20px;
-  line-height: 20px;
-  width: 20px;
+  height: 18px;
+  line-height: 16px;
+  width: 18px;
   padding: 0;
   display: inline-block;
   vertical-align: middle;
@@ -144,6 +144,11 @@
 
 .tag-list .btn.tag-modify-button {
   margin: 0;
+}
+
+/* Little ugly tweak to make the tabs align when adding */
+.tag-list span.select2-selection {
+  margin-top: -2px;
 }
 
 ////////////

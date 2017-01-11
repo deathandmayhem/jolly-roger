@@ -640,6 +640,7 @@ const TagList = React.createClass({
         <BS.ButtonGroup key="editRemoveGroup">
           {this.props.onCreateTag && (
             <BS.Button
+              title="Add tag..."
               key="startEditing"
               className="tag-modify-button"
               onClick={this.startEditing}
@@ -649,6 +650,7 @@ const TagList = React.createClass({
           )}
           {this.props.onRemoveTag && tags.length > 0 && (
             <BS.Button
+              title="Remove tag..."
               key="startRemoving"
               className="tag-modify-button"
               onClick={this.startRemoving}
