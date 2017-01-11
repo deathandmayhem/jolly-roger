@@ -54,7 +54,10 @@ const SharedNavbar = React.createClass({
               <RRBS.LinkContainer to={`/users/${this.data.userId}`}>
                 <BS.MenuItem eventKey="1">My Profile</BS.MenuItem>
               </RRBS.LinkContainer>
-              <BS.MenuItem eventKey="2" onSelect={this.logout}>Sign out</BS.MenuItem>
+              <BS.MenuItem eventKey="2" href="mailto:dfa-web@mit.edu">
+                Report an issue
+              </BS.MenuItem>
+              <BS.MenuItem eventKey="3" onSelect={this.logout}>Sign out</BS.MenuItem>
             </BS.NavDropdown>
           </BS.Nav>
         </BS.Navbar.Collapse>
