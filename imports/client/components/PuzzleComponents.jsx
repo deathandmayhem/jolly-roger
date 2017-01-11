@@ -499,7 +499,7 @@ const Tag = React.createClass({
     return (
       <div className={classNames}>
         {title}
-        {this.props.onRemove && <BS.Button bsSize="xsmall" bsStyle="danger" onClick={this.onRemove}>X</BS.Button>}
+        {this.props.onRemove && <BS.Button className="tag-remove-button" bsStyle="danger" onClick={this.onRemove}>&#10006;</BS.Button>}
       </div>
     );
   },
@@ -513,8 +513,14 @@ const TagList = React.createClass({
     onCreateTag: React.PropTypes.func, // if provided, will show UI for adding a new tag
     onRemoveTag: React.PropTypes.func, // callback if user wants to remove a tag
     linkToSearch: React.PropTypes.bool.isRequired,
+    showControls: React.PropTypes.bool,
   },
+
   mixins: [PureRenderMixin],
+
+  getDefaultProps() {
+    return { showControls: true };
+  },
 
   getInitialState() {
     return {
@@ -522,15 +528,6 @@ const TagList = React.createClass({
       editing: false,
       removing: false,
     };
-  },
-
-  styles: {
-    linkButton: {
-      // Override some Bootstrap sizes/paddings to make this button fit in the row better.
-      height: '24px',
-      padding: '2px',
-      display: 'inline-block',
-    },
   },
 
   submitTag(newTagName) {
@@ -632,39 +629,37 @@ const TagList = React.createClass({
       components.push(
         <BS.Button
           key="stopRemoving"
-          className="tag-modify-link-button"
-          bsStyle="link"
+          className="tag-modify-button"
           onClick={this.stopRemoving}
         >
           Done removing
         </BS.Button>
       );
-    } else {
-      if (this.props.onCreateTag) {
-        components.push(
-          <BS.Button
-            key="startEditing"
-            className="tag-modify-link-button"
-            bsStyle="link"
-            onClick={this.startEditing}
-          >
-            Add a tag...
-          </BS.Button>
-        );
-      }
-
-      if (this.props.onRemoveTag) {
-        components.push(
-          <BS.Button
-            key="startRemoving"
-            className="tag-modify-link-button"
-            bsStyle="link"
-            onClick={this.startRemoving}
-          >
-            Remove a tag...
-          </BS.Button>
-        );
-      }
+    } else if (this.props.showControls) {
+      components.push(
+        <BS.ButtonGroup key="editRemoveGroup">
+          {this.props.onCreateTag && (
+            <BS.Button
+              title="Add tag..."
+              key="startEditing"
+              className="tag-modify-button"
+              onClick={this.startEditing}
+            >
+              &#10133;
+            </BS.Button>
+          )}
+          {this.props.onRemoveTag && tags.length > 0 && (
+            <BS.Button
+              title="Remove tag..."
+              key="startRemoving"
+              className="tag-modify-button"
+              onClick={this.startRemoving}
+            >
+              &#10134;
+            </BS.Button>
+          )}
+        </BS.ButtonGroup>
+      );
     }
 
     return (

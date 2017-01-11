@@ -20,11 +20,22 @@ import {
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
+import SplitPanePlus from '/imports/client/components/SplitPanePlus.jsx';
 
 /* eslint-disable max-len, no-console */
 
 const FilteredChatFields = ['puzzle', 'text', 'sender', 'timestamp'];
 const FilteredChatMessagePropTypes = _.pick(Schemas.ChatMessages.asReactPropTypes(), ...FilteredChatFields);
+
+const MinimumDesktopWidth = 600;
+const MinimumDesktopStackingHeight = 400; // In two column mode, allow stacking at smaller heights
+const MinimumMobileStackingHeight = 740; // Captures iPhone Plus but not iPad Mini
+const MinimumSidebarWidth = 150;
+const MaximumSidebarWidth = '75%';
+const MinimumChatHeight = 96;
+
+const DefaultSidebarWidth = 300;
+const DefaultChatHeight = '60%';
 
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
@@ -299,34 +310,70 @@ const PuzzlePageSidebar = React.createClass({
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
+    isDesktop: React.PropTypes.bool.isRequired,
+    isStackable: React.PropTypes.bool.isRequired,
+    showRelated: React.PropTypes.bool.isRequired,
+    onChangeShowRelated: React.PropTypes.func.isRequired,
   },
   mixins: [PureRenderMixin],
-  styles: {
-    // TODO: figure out what portion of this should be done inline vs in CSS so users
-    // can adjust the width of the pane
-    flex: '1 1 20%',
-    height: '100%',
-    maxWidth: '20%',
-    boxSizing: 'border-box',
-    borderRight: '1px solid black',
-    display: 'flex',
-    flexDirection: 'column',
+
+  onCollapseChanged(collapsed) {
+    this.props.onChangeShowRelated(collapsed !== 1);
   },
+
   render() {
+    let collapse = 0;
+    if (this.props.isStackable) {
+      collapse = this.props.showRelated ? 0 : 1;
+    } else {
+      collapse = this.props.showRelated ? 2 : 1;
+    }
+    const classes = classnames('sidebar', { stackable: this.props.isStackable });
     return (
-      <div className="sidebar" style={this.styles}>
-        <RelatedPuzzleSection
-          activePuzzle={this.props.activePuzzle}
-          allPuzzles={this.props.allPuzzles}
-          allTags={this.props.allTags}
-          canUpdate={this.props.canUpdate}
-        />
-        <ChatSection
-          chatReady={this.props.chatReady}
-          chatMessages={this.props.chatMessages}
-          displayNames={this.props.displayNames}
-          puzzleId={this.props.activePuzzle._id}
-        />
+      <div className={classes}>
+        {!this.props.isStackable && (
+          <BS.Nav bsStyle="tabs" justified onSelect={this.handleSelect}>
+            <BS.NavItem
+              className={!this.props.showRelated && 'active'}
+              onClick={() => { this.props.onChangeShowRelated(false); }}
+            >
+              Chat
+            </BS.NavItem>
+            <BS.NavItem
+              className={this.props.showRelated && 'active'}
+              onClick={() => { this.props.onChangeShowRelated(true); }}
+            >
+              Related
+            </BS.NavItem>
+          </BS.Nav>
+        )}
+        <div className="split-pane-wrapper">
+          <SplitPanePlus
+            split="horizontal"
+            primary="second"
+            defaultSize={DefaultChatHeight}
+            minSize={MinimumChatHeight}
+            autoCollapse1={50}
+            autoCollapse2={-1}
+            allowResize={this.props.isStackable}
+            scaling="relative"
+            onCollapseChanged={this.onCollapseChanged}
+            collapsed={collapse}
+          >
+            <RelatedPuzzleSection
+              activePuzzle={this.props.activePuzzle}
+              allPuzzles={this.props.allPuzzles}
+              allTags={this.props.allTags}
+              canUpdate={this.props.canUpdate}
+            />
+            <ChatSection
+              chatReady={this.props.chatReady}
+              chatMessages={this.props.chatMessages}
+              displayNames={this.props.displayNames}
+              puzzleId={this.props.activePuzzle._id}
+            />
+          </SplitPanePlus>
+        </div>
       </div>
     );
   },
@@ -346,6 +393,12 @@ const PuzzlePageMetadata = React.createClass({
       ).isRequired
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
+    documents: React.PropTypes.arrayOf(
+      React.PropTypes.shape(
+        Schemas.Documents.asReactPropTypes()
+      ).isRequired,
+    ).isRequired,
+    isDesktop: React.PropTypes.bool.isRequired,
   },
 
   mixins: [ReactMeteorData],
@@ -405,10 +458,11 @@ const PuzzlePageMetadata = React.createClass({
   render() {
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
-    const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">{`Solved: ${this.props.puzzle.answer}`}</span> : null;
+    const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">Solved: <span className="answer">{this.props.puzzle.answer}</span></span> : null;
     const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
     const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
-    const externalLinkComponent = this.props.puzzle.url ? <div className="puzzle-metadata-right"><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div> : null;
+    const googleDriveLink = this.props.documents[0] && this.props.documents[0].type === 'google-spreadsheet' ? `https://docs.google.com/spreadsheets/d/${this.props.documents[0].value.id}` : null;
+    const googleDriveComponent = googleDriveLink ? <a className="puzzle-metadata-gdrive-button" href={googleDriveLink} target="_blank" rel="noreferrer noopener" >Open Worksheet</a> : <span className="puzzle-metadata-gdrive-button unavailable">(No Worksheet)</span>;
     const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
       <div className="puzzle-metadata">
@@ -419,37 +473,53 @@ const PuzzlePageMetadata = React.createClass({
           tags={this.props.allTags}
           onSubmit={this.onEdit}
         />
-        <div className="puzzle-metadata-row">
-          {externalLinkComponent}
-          <div className="puzzle-metadata-left">
-            <strong>{this.props.puzzle.title}</strong>
-            {' '}
-            {this.editButton()}
-            {' '}
-            {viewCountComponent}
+        <div>
+          <div className="puzzle-metadata-row">
+            <div className="puzzle-metadata-right">
+              {this.props.puzzle.url && (
+                <a
+                  className="puzzle-metadata-external-link-button"
+                  href={this.props.puzzle.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  Puzzle
+                </a>
+              )}
+            </div>
+            <div className="puzzle-metadata-left">
+              {this.editButton()}
+              {' '}
+              {this.props.isDesktop ? (
+                <span className="puzzle-metadata-title">{this.props.puzzle.title}</span>
+              ) : (
+                googleDriveComponent
+              )}
+              {' '}
+              {this.props.puzzle.answer && answerComponent}
+              {' '}
+              {viewCountComponent}
+            </div>
+          </div>
+          <div className="puzzle-metadata-row">
+            <div className="puzzle-metadata-right">
+              <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
+                {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
+              </BS.Button>
+            </div>
+            <div className="puzzle-metadata-left">
+              <span className="puzzle-metadata-tags">Tags:</span>
+              <TagList
+                puzzleId={this.props.puzzle._id}
+                tags={tags}
+                onCreateTag={this.onCreateTag}
+                onRemoveTag={this.onRemoveTag}
+                linkToSearch={false}
+                showControls={this.props.isDesktop}
+              />
+            </div>
           </div>
         </div>
-        <div className="puzzle-metadata-row">
-          <div className="puzzle-metadata-right">
-            {this.props.puzzle.answer && answerComponent}
-            {' '}
-            <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-              {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
-            </BS.Button>
-          </div>
-          <div className="puzzle-metadata-left">
-            <span className="puzzle-metadata-tags">Tags:</span>
-            <TagList
-              puzzleId={this.props.puzzle._id}
-              tags={tags}
-              onCreateTag={this.onCreateTag}
-              onRemoveTag={this.onRemoveTag}
-              linkToSearch={false}
-            />
-          </div>
-        </div>
-        {/* Activity tracking not implemented yet.
-            <div>Other hunters currently viewing this page?</div> */}
         <PuzzleGuessModal
           ref={(node) => { this.guessModalNode = node; }}
           puzzle={this.props.puzzle}
@@ -712,25 +782,23 @@ const PuzzlePageContent = React.createClass({
         Schemas.Documents.asReactPropTypes()
       ).isRequired,
     ).isRequired,
+    isDesktop: React.PropTypes.bool.isRequired,
   },
   mixins: [PureRenderMixin],
-  styles: {
-    // TODO: figure out what fraction of this can be done in CSS vs JS to support user-resizing
-    flex: '4 4 80%',
-    verticalAlign: 'top',
-    display: 'flex',
-    flexDirection: 'column',
-  },
   render() {
     return (
-      <div className="puzzle-content" style={this.styles}>
+      <div className="puzzle-content">
         <PuzzlePageMetadata
           puzzle={this.props.puzzle}
           allTags={this.props.allTags}
           guesses={this.props.guesses}
           displayNames={this.props.displayNames}
+          isDesktop={this.props.isDesktop}
+          documents={this.props.documents}
         />
-        <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
+        {this.props.isDesktop &&
+          <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
+        }
       </div>
     );
   },
@@ -768,14 +836,50 @@ const PuzzlePage = React.createClass({
     desiredLayout: 'fullscreen',
   },
 
+  getInitialState() {
+    const mode = this.calculateViewMode();
+    // To-Do: Per user interfaceOption defaults
+    return {
+      showRelated: mode.isStackable,
+      isDesktop: mode.isDesktop,
+      isStackable: mode.isStackable,
+    };
+  },
+
   componentWillMount() {
     Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
+  },
+
+  componentDidMount() {
+    window.addEventListener('resize', this.onResize);
   },
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.params.puzzleId !== this.props.params.puzzleId) {
       Meteor.call('ensureDocumentAndPermissions', nextProps.params.puzzleId);
     }
+  },
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+  },
+
+  onResize() {
+    const newMode = this.calculateViewMode();
+    // If resizing into unstackable mode, switch to just chat in all cases
+    if (this.state.isStackable && !newMode.isStackable) {
+      this.setState({ showRelated: false });
+    }
+    if (newMode.isDesktop !== this.state.isDesktop || newMode.isStackable !== this.state.isStackable) {
+      this.setState({
+        isDesktop: newMode.isDesktop,
+        isStackable: newMode.isStackable,
+      });
+    }
+  },
+
+  onChangeShowRelated(showRelatedNew) {
+    this.setState({ showRelated: showRelatedNew });
   },
 
   getMeteorData() {
@@ -864,37 +968,86 @@ const PuzzlePage = React.createClass({
     };
   },
 
+  // Ideally these should be based on size of the component (and the trigger changed appropriately)
+  // but this component is designed for full-page use, so...
+  calculateViewMode() {
+    const newIsDesktop = window.innerWidth >= MinimumDesktopWidth;
+    const newIsStackable = window.innerHeight >= (newIsDesktop ? MinimumDesktopStackingHeight : MinimumMobileStackingHeight);
+    return {
+      isDesktop: newIsDesktop,
+      isStackable: newIsStackable,
+    };
+  },
+
   render() {
     if (!this.data.puzzlesReady) {
       return <span>loading...</span>;
     }
 
     const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
+
+    const navItem = (
+      <this.context.navAggregator.NavItem
+        itemKey="puzzleid"
+        to={`/hunts/${this.props.params.huntId}/puzzles/${this.props.params.puzzleId}`}
+        label={activePuzzle.title}
+      />
+    );
+    const sidebar = (
+      <PuzzlePageSidebar
+        key="sidebar"
+        activePuzzle={activePuzzle}
+        allPuzzles={this.data.allPuzzles}
+        allTags={this.data.allTags}
+        chatReady={this.data.chatReady}
+        chatMessages={this.data.chatMessages}
+        displayNames={this.data.displayNames}
+        canUpdate={this.data.canUpdate}
+        showRelated={this.state.showRelated}
+        onChangeShowRelated={this.onChangeShowRelated}
+        isDesktop={this.state.isDesktop}
+        isStackable={this.state.isStackable}
+      />
+    );
+
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
-        <div className="puzzle-page">
-          <this.context.navAggregator.NavItem
-            itemKey="puzzleid"
-            to={`/hunts/${this.props.params.huntId}/puzzles/${this.props.params.puzzleId}`}
-            label={activePuzzle.title}
-          />
-          <PuzzlePageSidebar
-            activePuzzle={activePuzzle}
-            allPuzzles={this.data.allPuzzles}
-            allTags={this.data.allTags}
-            chatReady={this.data.chatReady}
-            chatMessages={this.data.chatMessages}
-            displayNames={this.data.displayNames}
-            canUpdate={this.data.canUpdate}
-          />
-          <PuzzlePageContent
-            puzzle={activePuzzle}
-            allTags={this.data.allTags}
-            guesses={this.data.allGuesses}
-            displayNames={this.data.displayNames}
-            documents={this.data.allDocuments}
-          />
-        </div>
+        {this.state.isDesktop ? (
+          <div className="puzzle-page">
+            {navItem}
+            <SplitPanePlus
+              split="vertical"
+              defaultSize={DefaultSidebarWidth}
+              minSize={MinimumSidebarWidth}
+              pane1Style={{ maxWidth: MaximumSidebarWidth }}
+              autoCollapse1={-1}
+              autoCollapse2={-1}
+            >
+              {sidebar}
+              <PuzzlePageContent
+                puzzle={activePuzzle}
+                allTags={this.data.allTags}
+                guesses={this.data.allGuesses}
+                displayNames={this.data.displayNames}
+                documents={this.data.allDocuments}
+                isDesktop={this.state.isDesktop}
+              />
+            </SplitPanePlus>
+          </div>
+        ) : (
+          <div className="puzzle-page narrow">
+            {navItem}
+            <PuzzlePageMetadata
+              puzzle={activePuzzle}
+              allTags={this.data.allTags}
+              guesses={this.data.allGuesses}
+              displayNames={this.data.displayNames}
+              documents={this.data.allDocuments}
+              isDesktop={this.state.isDesktop}
+            />
+            {sidebar}
+          </div>
+        )}
       </DocumentTitle>
     );
   },
