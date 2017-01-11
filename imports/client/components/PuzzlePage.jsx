@@ -19,6 +19,7 @@ import {
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
+import classnames from 'classnames';
 import SplitPanePlus from '/imports/client/components/SplitPanePlus.jsx';
 
 /* eslint-disable max-len, no-console */
@@ -315,7 +316,7 @@ const PuzzlePageSidebar = React.createClass({
     } else {
       collapse = this.props.showRelated ? 2 : 1;
     }
-    const classes = `sidebar${this.props.isStackable ? ' stackable' : ''}`;
+    const classes = classnames('sidebar', { stackable: this.props.isStackable });
     return (
       <div className={classes}>
         {!this.props.isStackable && (
@@ -449,6 +450,7 @@ const PuzzlePageMetadata = React.createClass({
     const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
     const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
     const googleDriveLink = this.props.documents[0] && this.props.documents[0].type === 'google-spreadsheet' ? `https://docs.google.com/spreadsheets/d/${this.props.documents[0].value.id}` : null;
+    const googleDriveComponent = googleDriveLink ? <a className="puzzle-metadata-gdrive-button" href={googleDriveLink} target="_blank" rel="noreferrer noopener" >Open Worksheet</a> : <span className="puzzle-metadata-gdrive-button unavailable">(No Worksheet)</span>;
     const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
       <div className="puzzle-metadata">
@@ -479,15 +481,7 @@ const PuzzlePageMetadata = React.createClass({
               {this.props.isDesktop ? (
                 <span className="puzzle-metadata-title">{this.props.puzzle.title}</span>
               ) : (
-                <a
-                  className="puzzle-metadata-gdrive-button"
-                  disabled={!googleDriveLink}
-                  href={googleDriveLink || '#'}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  {googleDriveLink ? 'Worksheet' : 'No Worksheet'}
-                </a>
+                googleDriveComponent
               )}
               {' '}
               {this.props.puzzle.answer && answerComponent}
