@@ -138,18 +138,13 @@ const AnnouncementsPage = React.createClass({
     };
   },
 
-  render() {
+  renderPage() {
     if (!this.data.ready) {
       return <div>loading...</div>;
     }
 
     return (
       <div>
-        <this.context.navAggregator.NavItem
-          itemKey="announcements"
-          to={`/hunts/${this.props.params.huntId}/announcements`}
-          label="Announcements"
-        />
         <h1>Announcements</h1>
         {this.data.canCreateAnnouncements && <AnnouncementForm huntId={this.props.params.huntId} />}
         {/* ostensibly these should be ul and li, but then I have to deal with overriding
@@ -166,6 +161,18 @@ const AnnouncementsPage = React.createClass({
           })}
         </div>
       </div>
+    );
+  },
+
+  render() {
+    return (
+      <this.context.navAggregator.NavItem
+        itemKey="announcements"
+        to={`/hunts/${this.props.params.huntId}/announcements`}
+        label="Announcements"
+      >
+        {this.renderPage()}
+      </this.context.navAggregator.NavItem>
     );
   },
 });

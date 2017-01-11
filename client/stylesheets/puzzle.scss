@@ -237,6 +237,9 @@
   background-color: #f8f8f8;
   margin-bottom: 1px;
   word-wrap: break-word;
+  &.system-message {
+    background-color: #e0e0e0;
+  }
 }
 
 .chat-timestamp {

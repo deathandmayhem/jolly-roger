@@ -5,6 +5,7 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import BS from 'react-bootstrap';
 import Ansible from '/imports/ansible.js';
 import DocumentTitle from 'react-document-title';
+import classnames from 'classnames';
 import marked from 'marked';
 import moment from 'moment';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
@@ -19,7 +20,6 @@ import {
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
-import classnames from 'classnames';
 import SplitPanePlus from '/imports/client/components/SplitPanePlus.jsx';
 
 /* eslint-disable max-len, no-console */
@@ -72,6 +72,7 @@ const ChatMessage = React.createClass({
   propTypes: {
     message: React.PropTypes.shape(FilteredChatMessagePropTypes).isRequired,
     senderDisplayName: React.PropTypes.string.isRequired,
+    isSystemMessage: React.PropTypes.bool.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -80,9 +81,10 @@ const ChatMessage = React.createClass({
     const ts = moment(this.props.message.timestamp).calendar(null, {
       sameDay: 'LT',
     });
+    const classes = classnames('chat-message', this.props.isSystemMessage && 'system-message');
 
     return (
-      <div className="chat-message">
+      <div className={classes}>
         <span className="chat-timestamp">{ts}</span>
         <strong>{this.props.senderDisplayName}</strong>
         <span dangerouslySetInnerHTML={{ __html: marked(this.props.message.text, { sanitize: true }) }} />
@@ -158,7 +160,17 @@ const ChatHistory = React.createClass({
     return (
       <div ref={(node) => { this.node = node; }} className="chat-history" onScroll={this.onScroll}>
         {this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span>}
-        {this.props.chatMessages.map((msg) => <ChatMessage key={msg._id} message={msg} senderDisplayName={this.props.displayNames[msg.sender]} />)}
+        {this.props.chatMessages.map((msg) => {
+          const displayName = (msg.sender !== undefined) ? this.props.displayNames[msg.sender] : 'jolly-roger';
+          return (
+            <ChatMessage
+              key={msg._id}
+              message={msg}
+              senderDisplayName={displayName}
+              isSystemMessage={msg.sender === undefined}
+            />
+          );
+        })}
       </div>
     );
   },
