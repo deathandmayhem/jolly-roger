@@ -143,6 +143,10 @@ Meteor.publish('subCounter.inc', function (name, context) {
 Meteor.publish('subCounter.fetch', function (q) {
   check(q, Object);
 
+  if (!this.userId) {
+    return [];
+  }
+
   const query = {};
   _.each(q, (v, k) => {
     if (k.startsWith('$')) {
