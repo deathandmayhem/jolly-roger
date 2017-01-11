@@ -306,6 +306,10 @@ table.puzzle-list {
   font-weight: bold;
 }
 
+.puzzle-metadata .view-count {
+  cursor: pointer;
+}
+
 .puzzle-document {
   width: 100%;
   height: 100%;

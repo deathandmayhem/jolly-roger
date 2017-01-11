@@ -18,7 +18,7 @@ import {
   PuzzleModalForm,
 } from '/imports/client/components/PuzzleComponents.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { SubscriberCounters } from '/imports/client/subscribers.js';
+import { Subscribers, SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
 import SplitPanePlus from '/imports/client/components/SplitPanePlus.jsx';
 import { DocumentDisplay } from '/imports/client/components/Documents.jsx';
@@ -37,6 +37,125 @@ const MinimumChatHeight = 96;
 
 const DefaultSidebarWidth = 300;
 const DefaultChatHeight = '60%';
+
+const ViewersList = React.createClass({
+  propTypes: {
+    name: React.PropTypes.string.isRequired,
+  },
+
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    // Don't want this subscription persisting longer than necessary
+    const subscribersHandle = Meteor.subscribe('subscribers.fetch', this.props.name);
+    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
+
+    const ready = subscribersHandle.ready() && profilesHandle.ready();
+    if (!ready) {
+      return { ready };
+    }
+
+    let unknown = 0;
+    const subscribers = [];
+
+    Subscribers.find({ name: this.props.name }).forEach(s => {
+      if (!s.user) {
+        unknown += 1;
+        return;
+      }
+
+      const profile = Models.Profiles.findOne(s.user);
+      if (!profile || !profile.displayName) {
+        unknown += 1;
+        return;
+      }
+
+      subscribers.push({ user: s.user, name: profile.displayName });
+    });
+
+    return { ready, unknown, subscribers };
+  },
+
+  render() {
+    if (!this.data.ready) {
+      return <span>loading...</span>;
+    }
+
+    return (
+      <div>
+        <ul>
+          {this.data.subscribers.map(s => <li key={s.user}>{s.name}</li>)}
+        </ul>
+        {this.data.unknown !== 0 && `(Plus ${this.data.unknown} hunters with no name set)`}
+      </div>
+    );
+  },
+});
+
+const ViewersModal = React.createClass({
+  propTypes: {
+    name: React.PropTypes.string.isRequired,
+  },
+
+  getInitialState() {
+    return { show: false };
+  },
+
+  show() {
+    this.setState({ show: true });
+  },
+
+  close() {
+    this.setState({ show: false });
+  },
+
+  render() {
+    return (
+      <BS.Modal show={this.state.show} onHide={this.close}>
+        <BS.Modal.Header closeButton>
+          <BS.Modal.Title>
+            Currently viewing this puzzle
+          </BS.Modal.Title>
+        </BS.Modal.Header>
+        <BS.Modal.Body>
+          {this.state.show && <ViewersList name={this.props.name} />}
+        </BS.Modal.Body>
+      </BS.Modal>
+    );
+  },
+});
+
+const ViewCountDisplay = React.createClass({
+  propTypes: {
+    count: React.PropTypes.number.isRequired,
+    name: React.PropTypes.string.isRequired,
+  },
+
+  showModal() {
+    this.modalNode.show();
+  },
+
+  render() {
+    const tooltip = (
+      <BS.Tooltip id="view-count-tooltip">
+        Click to see who is viewing this puzzle
+      </BS.Tooltip>
+    );
+
+    return (
+      <span>
+        <ViewersModal ref={n => { this.modalNode = n; }} name={this.props.name} />
+        <BS.OverlayTrigger placement="top" overlay={tooltip}>
+          <span className="view-count" onClick={this.showModal}>({this.props.count} viewing)</span>
+        </BS.OverlayTrigger>
+      </span>
+    );
+  },
+});
 
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
@@ -459,7 +578,6 @@ const PuzzlePageMetadata = React.createClass({
     const isAdministrivia = _.findWhere(tags, { name: 'administrivia' });
     const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">Solved: <span className="answer">{this.props.puzzle.answer}</span></span> : null;
     const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
-    const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
     const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
       <div className="puzzle-metadata">
@@ -494,7 +612,11 @@ const PuzzlePageMetadata = React.createClass({
               {' '}
               {this.props.puzzle.answer && answerComponent}
               {' '}
-              {viewCountComponent}
+              {!hideViewCount &&
+                <ViewCountDisplay
+                  count={this.data.viewCount}
+                  name={`puzzle:${this.props.puzzle._id}`}
+                />}
             </div>
           </div>
           <div className="puzzle-metadata-row">
