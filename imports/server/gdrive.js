@@ -66,8 +66,8 @@ const ensureDocument = function ensureDocument(puzzle) {
         doc = {
           hunt: puzzle.hunt,
           puzzle: puzzle._id,
-          type: 'google-spreadsheet',
-          value: { id: docId },
+          provider: 'google',
+          value: { type: 'spreadsheet', id: docId },
         };
         doc._id = Models.Documents.insert(doc);
       }

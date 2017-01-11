@@ -21,6 +21,7 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
 import SplitPanePlus from '/imports/client/components/SplitPanePlus.jsx';
+import { DocumentDisplay } from '/imports/client/components/Documents.jsx';
 
 /* eslint-disable max-len, no-console */
 
@@ -393,11 +394,7 @@ const PuzzlePageMetadata = React.createClass({
       ).isRequired
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
-    documents: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
-        Schemas.Documents.asReactPropTypes()
-      ).isRequired,
-    ).isRequired,
+    document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()),
     isDesktop: React.PropTypes.bool.isRequired,
   },
 
@@ -461,8 +458,6 @@ const PuzzlePageMetadata = React.createClass({
     const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">Solved: <span className="answer">{this.props.puzzle.answer}</span></span> : null;
     const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
     const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
-    const googleDriveLink = this.props.documents[0] && this.props.documents[0].type === 'google-spreadsheet' ? `https://docs.google.com/spreadsheets/d/${this.props.documents[0].value.id}` : null;
-    const googleDriveComponent = googleDriveLink ? <a className="puzzle-metadata-gdrive-button" href={googleDriveLink} target="_blank" rel="noreferrer noopener" >Open Worksheet</a> : <span className="puzzle-metadata-gdrive-button unavailable">(No Worksheet)</span>;
     const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
       <div className="puzzle-metadata">
@@ -490,11 +485,10 @@ const PuzzlePageMetadata = React.createClass({
             <div className="puzzle-metadata-left">
               {this.editButton()}
               {' '}
-              {this.props.isDesktop ? (
-                <span className="puzzle-metadata-title">{this.props.puzzle.title}</span>
-              ) : (
-                googleDriveComponent
-              )}
+              {this.props.isDesktop &&
+                <span className="puzzle-metadata-title">{this.props.puzzle.title}</span>}
+              {!this.props.isDesktop && this.props.document &&
+                <DocumentDisplay document={this.props.document} displayMode="link" />}
               {' '}
               {this.props.puzzle.answer && answerComponent}
               {' '}
@@ -744,22 +738,11 @@ const PuzzlePageMultiplayerDocument = React.createClass({
       );
     }
 
-    switch (this.props.document.type) {
-      case 'google-spreadsheet': {
-        const url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
-        return (
-          <div className="puzzle-document">
-            <iframe className="google-spreadsheet" src={url} />
-          </div>
-        );
-      }
-      default:
-        return (
-          <div className="puzzle-document puzzle-document-message">
-            No way to render a document of type {this.props.document.type}
-          </div>
-        );
-    }
+    return (
+      <div className="puzzle-document">
+        <DocumentDisplay document={this.props.document} displayMode="embed" />
+      </div>
+    );
   },
 });
 
@@ -777,11 +760,7 @@ const PuzzlePageContent = React.createClass({
       ).isRequired
     ).isRequired,
     displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
-    documents: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
-        Schemas.Documents.asReactPropTypes()
-      ).isRequired,
-    ).isRequired,
+    document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()),
     isDesktop: React.PropTypes.bool.isRequired,
   },
   mixins: [PureRenderMixin],
@@ -794,10 +773,10 @@ const PuzzlePageContent = React.createClass({
           guesses={this.props.guesses}
           displayNames={this.props.displayNames}
           isDesktop={this.props.isDesktop}
-          documents={this.props.documents}
+          document={this.props.document}
         />
         {this.props.isDesktop &&
-          <PuzzlePageMultiplayerDocument document={this.props.documents[0]} />
+          <PuzzlePageMultiplayerDocument document={this.props.document} />
         }
       </div>
     );
@@ -924,7 +903,7 @@ const PuzzlePage = React.createClass({
     let allPuzzles;
     let allTags;
     let allGuesses;
-    let allDocuments;
+    let document;
     // There's no sense in doing this expensive computation here if we're still loading data,
     // since we're not going to render the children.
     if (puzzlesReady) {
@@ -933,12 +912,12 @@ const PuzzlePage = React.createClass({
       allGuesses = Models.Guesses.find({ hunt: this.props.params.huntId, puzzle: this.props.params.puzzleId }).fetch();
 
       // Sort by created at so that the "first" document always has consistent meaning
-      allDocuments = Models.Documents.find({ puzzle: this.props.params.puzzleId }, { sort: { createdAt: 1 } }).fetch();
+      document = Models.Documents.findOne({ puzzle: this.props.params.puzzleId }, { sort: { createdAt: 1 } });
     } else {
       allPuzzles = [];
       allTags = [];
       allGuesses = [];
-      allDocuments = [];
+      document = [];
     }
 
     const chatFields = {};
@@ -963,7 +942,7 @@ const PuzzlePage = React.createClass({
       chatMessages,
       displayNames,
       allGuesses,
-      allDocuments,
+      document,
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     };
   },
@@ -1029,7 +1008,7 @@ const PuzzlePage = React.createClass({
                 allTags={this.data.allTags}
                 guesses={this.data.allGuesses}
                 displayNames={this.data.displayNames}
-                documents={this.data.allDocuments}
+                document={this.data.document}
                 isDesktop={this.state.isDesktop}
               />
             </SplitPanePlus>
@@ -1042,7 +1021,7 @@ const PuzzlePage = React.createClass({
               allTags={this.data.allTags}
               guesses={this.data.allGuesses}
               displayNames={this.data.displayNames}
-              documents={this.data.allDocuments}
+              document={this.data.document}
               isDesktop={this.state.isDesktop}
             />
             {sidebar}
