@@ -468,12 +468,14 @@ const Tag = React.createClass({
 
   render() {
     const name = this.props.tag.name;
+    const isAdministrivia = name === 'administrivia';
     const isMeta = name === 'is:meta' || name === 'is:metameta';
     const isGroup = name.lastIndexOf('group:', 0) === 0;
     const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
     const isNeeds = name.lastIndexOf('needs:', 0) === 0;
     const isPriority = name.lastIndexOf('priority:', 0) === 0;
     const classNames = classnames('tag',
+      isAdministrivia ? 'tag-administrivia' : null,
       isMeta ? 'tag-meta' : null,
       isGroup ? 'tag-group' : null,
       isMetaFor ? 'tag-meta-for' : null,
