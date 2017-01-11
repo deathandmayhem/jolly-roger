@@ -881,7 +881,7 @@ const PuzzlePage = React.createClass({
     if (!Flags.active('disable.subcounters')) {
       // Keep a count of how many people are viewing a puzzle. Don't use
       // the subs manager - we don't want this cached
-      Meteor.subscribe('subCounter.inc', `puzzle:${this.props.params.puzzleId}`, {
+      Meteor.subscribe('subscribers.inc', `puzzle:${this.props.params.puzzleId}`, {
         puzzle: this.props.params.puzzleId,
         hunt: this.props.params.huntId,
       });
@@ -899,7 +899,7 @@ const PuzzlePage = React.createClass({
     const documentsHandle = this.context.subs.subscribe('mongo.documents', { puzzle: this.props.params.puzzleId });
 
     if (!Flags.active('disable.subcounters')) {
-      this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
+      this.context.subs.subscribe('subscribers.counts', { hunt: this.props.params.huntId });
     }
 
     const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready();

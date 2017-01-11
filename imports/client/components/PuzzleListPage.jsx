@@ -383,7 +383,7 @@ const PuzzleListPage = React.createClass({
 
     if (!Flags.active('disable.subcounters')) {
       // Don't bother including this in ready - it's ok if it trickles in
-      this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
+      this.context.subs.subscribe('subscribers.counts', { hunt: this.props.params.huntId });
     }
 
     const ready = puzzlesHandle.ready() && tagsHandle.ready();

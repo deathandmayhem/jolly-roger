@@ -1,4 +1,4 @@
-// Used to track subscribers to the subCounter record set
+// Used to track subscribers to the subscribers.counts record set
 //
 // So long as the server continues running, it can clean up after
 // itself (and does so). But if the server process is killed (or dies
@@ -115,7 +115,7 @@ const periodic = function () {
   }
 };
 
-Meteor.publish('subCounter.inc', function (name, context) {
+Meteor.publish('subscribers.inc', function (name, context) {
   check(name, String);
   check(context, Object);
 
@@ -140,7 +140,9 @@ Meteor.publish('subCounter.inc', function (name, context) {
 // (logged in) subscribe to any counter because Hunt is tomorrow and I
 // don't think counts are thaaat sensitive, especially if you can't
 // even look up the puzzle ids
-Meteor.publish('subCounter.fetch', function (q) {
+//
+// eslint-disable-next-line consistent-return
+Meteor.publish('subscribers.counts', function (q) {
   check(q, Object);
 
   if (!this.userId) {
@@ -167,7 +169,7 @@ Meteor.publish('subCounter.fetch', function (q) {
         counters[name] = {};
 
         if (initialized) {
-          this.added('subCounter', name, { value: 0 });
+          this.added('subscribers.counts', name, { value: 0 });
         }
       }
 
@@ -177,7 +179,7 @@ Meteor.publish('subCounter.fetch', function (q) {
 
       counters[name][user] += 1;
       if (initialized) {
-        this.changed('subCounter', name, { value: _.keys(counters[name]).length });
+        this.changed('subscribers.counts', name, { value: _.keys(counters[name]).length });
       }
     },
 
@@ -190,13 +192,15 @@ Meteor.publish('subCounter.fetch', function (q) {
       }
 
       if (initialized) {
-        this.changed('subCounter', name, { value: _.keys(counters[name]).length });
+        this.changed('subscribers.counts', name, { value: _.keys(counters[name]).length });
       }
     },
   });
   this.onStop(() => handle.stop());
 
-  _.each(counters, (val, key) => this.added('subCounter', key, { value: _.keys(val).length }));
+  _.each(counters, (val, key) => {
+    this.added('subscribers.counts', key, { value: _.keys(val).length });
+  });
   initialized = true;
   this.ready();
 });
