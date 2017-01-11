@@ -445,10 +445,9 @@ const PuzzlePageMetadata = React.createClass({
   render() {
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
-    const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">{`Solved: ${this.props.puzzle.answer}`}</span> : null;
+    const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">Solved: <span className="answer">{this.props.puzzle.answer}</span></span> : null;
     const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
     const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
-    const externalLinkComponent = this.props.puzzle.url ? <div className="puzzle-metadata-right"><a target="_blank" rel="noopener noreferrer" href={this.props.puzzle.url}>Puzzle link</a></div> : null;
     const googleDriveLink = this.props.documents[0] && this.props.documents[0].type === 'google-spreadsheet' ? `https://docs.google.com/spreadsheets/d/${this.props.documents[0].value.id}` : null;
     const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
@@ -460,47 +459,61 @@ const PuzzlePageMetadata = React.createClass({
           tags={this.props.allTags}
           onSubmit={this.onEdit}
         />
-        <div className="puzzle-metadata-row">
-          {externalLinkComponent}
-          <div className="puzzle-metadata-left">
-            <strong>{this.props.puzzle.title}</strong>
-            {' '}
-            {this.editButton()}
-            {' '}
-            {viewCountComponent}
+        <div>
+          <div className="puzzle-metadata-row">
+            <div className="puzzle-metadata-right">
+              {this.props.puzzle.url && (
+                <a
+                  className="puzzle-metadata-external-link-button"
+                  href={this.props.puzzle.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  Puzzle
+                </a>
+              )}
+            </div>
+            <div className="puzzle-metadata-left">
+              {this.editButton()}
+              {' '}
+              {this.props.isDesktop ? (
+                <span className="puzzle-metadata-title">{this.props.puzzle.title}</span>
+              ) : (
+                <a
+                  className="puzzle-metadata-gdrive-button"
+                  disabled={!googleDriveLink}
+                  href={googleDriveLink || '#'}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  {googleDriveLink ? 'Worksheet' : 'No Worksheet'}
+                </a>
+              )}
+              {' '}
+              {this.props.puzzle.answer && answerComponent}
+              {' '}
+              {viewCountComponent}
+            </div>
           </div>
-        </div>
-        <div className="puzzle-metadata-row">
-          <div className="puzzle-metadata-right">
-            {this.props.puzzle.answer && answerComponent}
-            {' '}
-            <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-              {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
-            </BS.Button>
-            {!this.props.isDesktop &&
-              <BS.Button
-                className="puzzle-metadata-gdrive-button"
-                disabled={!googleDriveLink}
-                href={googleDriveLink}
-                target="_blank"
-              >
-                {googleDriveLink ? 'Open in Google Drive' : 'No document'}
+          <div className="puzzle-metadata-row">
+            <div className="puzzle-metadata-right">
+              <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
+                {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
               </BS.Button>
-            }
-          </div>
-          <div className="puzzle-metadata-left">
-            <span className="puzzle-metadata-tags">Tags:</span>
-            <TagList
-              puzzleId={this.props.puzzle._id}
-              tags={tags}
-              onCreateTag={this.onCreateTag}
-              onRemoveTag={this.onRemoveTag}
-              linkToSearch={false}
-            />
+            </div>
+            <div className="puzzle-metadata-left">
+              <span className="puzzle-metadata-tags">Tags:</span>
+              <TagList
+                puzzleId={this.props.puzzle._id}
+                tags={tags}
+                onCreateTag={this.onCreateTag}
+                onRemoveTag={this.onRemoveTag}
+                linkToSearch={false}
+                showControls={this.props.isDesktop}
+              />
+            </div>
           </div>
         </div>
-        {/* Activity tracking not implemented yet.
-            <div>Other hunters currently viewing this page?</div> */}
         <PuzzleGuessModal
           ref={(node) => { this.guessModalNode = node; }}
           puzzle={this.props.puzzle}
@@ -821,7 +834,7 @@ const PuzzlePage = React.createClass({
     const mode = this.calculateViewMode();
     // To-Do: Per user interfaceOption defaults
     return {
-      showRelated: mode.isDesktop && mode.isStackable,
+      showRelated: mode.isStackable,
       isDesktop: mode.isDesktop,
       isStackable: mode.isStackable,
     };

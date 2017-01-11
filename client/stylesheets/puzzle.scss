@@ -131,11 +131,19 @@
   text-decoration: none;
 }
 
-.tag-modify-link-button {
-  // Override some bootstrap sizes/paddings to make this button fit in the row better.
-  height: 24px;
-  padding: 2px;
+.tag .btn.tag-remove-button {
+  height: 20px;
+  line-height: 20px;
+  width: 20px;
+  padding: 0;
   display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 0 0 4px;
+}
+
+.tag-list .btn.tag-modify-button {
+  margin: 0;
 }
 
 ////////////
@@ -154,7 +162,7 @@
   > .sidebar {
     position: relative; /*This is a little kludgy, but better than fixing it inline - revisit later*/
     &.stackable {
-      border-top:1px solid black;
+      border-top: 1px solid black;
     }
   }
 }
@@ -176,12 +184,12 @@
   bottom: 0;
   left: 0;
   right: 0;
-  display:flex;
+  display: flex;
   flex-flow: column;
 }
 
 .sidebar > .nav {
-  width:100%;
+  width: 100%;
 }
 
 /*Stop Bootstrap from collapsing the tabs into a stack.  This is horrible*/
@@ -202,9 +210,9 @@
 
 .sidebar > .split-pane-wrapper {
   flex: 1;
-  position:relative;
-  min-height:1px;
-  width:100%;
+  position: relative;
+  min-height: 1px;
+  width: 100%;
 }
 
 // Chat
@@ -240,21 +248,23 @@
 }
 
 .puzzle-metadata-row {
-  display: block;
+  display: flex;
   min-height: 26px;
-  line-height: 18px;
   padding: 0 4px;
   vertical-align: middle;
 }
 
 .puzzle-metadata-left {
+  flex: 1 1 auto;
   padding: 4px;
+  order: 1;
 }
 
 .puzzle-metadata-right {
-  float: right;
-  clear: none;
+  flex: 1 .2 auto;
   margin: 4px;
+  text-align: right;
+  order: 2;
 }
 
 .puzzle-metadata-tags {
@@ -268,14 +278,23 @@
   border-radius: 2px;
   background-color: #00ff00;
   color: #000000;
+  margin: 0 4px;
 }
 
 .puzzle-metadata-row .btn {
   height: 24px;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding: 2px 4px;
+  display: inline-block;
+  margin: 2px;
+}
+
+.puzzle-metadata-external-link-button, .puzzle-metadata-gdrive-button {
+  display: inline-block;
+  font-weight: bold;
+}
+
+.puzzle-metadata-title {
+  font-weight: bold;
 }
 
 .puzzle-document {
@@ -305,13 +324,13 @@
 }
 
 .sidebar .SplitPane.collapsed1:not(.dragging) > .Resizer {
-  height:17px;
+  height: 17px;
   min-height: 17px;
   background-color: #666;
-  position:relative;
+  position: relative;
   &:after {
-  	content:'';
-  	display:block;
+  	content: '';
+  	display: block;
     width: 0;
     height: 0;
     border-left: 6px solid transparent;
@@ -321,7 +340,7 @@
     margin-left: -6px;
     left: 50%;
     top: 2px;
-    z-index:2;
+    z-index: 2;
   }
 }
 
@@ -332,7 +351,7 @@
 */
 
 .SplitPane.disabled > .Resizer {
-  display:none;
+  display: none;
 }
 
 .SplitPane.collapsing1 > .Pane1:before, .SplitPane.collapsing2 > .Pane2:before {
