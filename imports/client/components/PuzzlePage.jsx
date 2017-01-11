@@ -135,11 +135,24 @@ const ViewCountDisplay = React.createClass({
     name: React.PropTypes.string.isRequired,
   },
 
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    return {
+      subfetchesDisabled: Flags.active('disable.subfetches'),
+    };
+  },
+
   showModal() {
     this.modalNode.show();
   },
 
   render() {
+    const text = `(${this.props.count} viewing)`;
+    if (this.data.subfetchesDisabled) {
+      return <span>{text}</span>;
+    }
+
     const tooltip = (
       <BS.Tooltip id="view-count-tooltip">
         Click to see who is viewing this puzzle
@@ -150,7 +163,7 @@ const ViewCountDisplay = React.createClass({
       <span>
         <ViewersModal ref={n => { this.modalNode = n; }} name={this.props.name} />
         <BS.OverlayTrigger placement="top" overlay={tooltip}>
-          <span className="view-count" onClick={this.showModal}>({this.props.count} viewing)</span>
+          <span className="view-count" onClick={this.showModal}>{text}</span>
         </BS.OverlayTrigger>
       </span>
     );
@@ -548,6 +561,7 @@ const PuzzlePageMetadata = React.createClass({
   getMeteorData() {
     const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
     return {
+      subcountersDisabled: Flags.active('disable.subcounters'),
       viewCount: count ? count.value : 0,
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     };
@@ -577,7 +591,7 @@ const PuzzlePageMetadata = React.createClass({
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
     const isAdministrivia = _.findWhere(tags, { name: 'administrivia' });
     const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">Solved: <span className="answer">{this.props.puzzle.answer}</span></span> : null;
-    const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
+    const hideViewCount = this.props.puzzle.answer || this.data.subcountersDisabled;
     const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
       <div className="puzzle-metadata">
