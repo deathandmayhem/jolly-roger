@@ -325,8 +325,24 @@ const Puzzle = React.createClass({
     const puzzleClasses = classnames('puzzle',
       this.props.puzzle.answer ? 'solved' : 'unsolved',
       this.props.layout === 'grid' ? 'puzzle-grid' : null,
+      this.props.layout === 'table' ? 'puzzle-table-row' : null,
       this.props.layout === 'inline' ? 'puzzle-inline' : null,
     );
+
+    if (this.props.layout === 'table') {
+      return (
+        <tr className={puzzleClasses}>
+          <td className="puzzle-title">
+            {this.editButton()}
+            {' '}
+            <Link to={linkTarget}>{this.props.puzzle.title}</Link>
+          </td>
+          <td className="puzzle-answer">
+            {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
+          </td>
+        </tr>
+      );
+    }
 
     return (
       <div className={puzzleClasses}>
@@ -396,6 +412,15 @@ const PuzzleList = React.createClass({
       />);
     }
 
+    if (this.props.layout === 'table') {
+      return (
+        <table className="puzzle-list">
+          <tbody>
+            {puzzles}
+          </tbody>
+        </table>
+      );
+    }
     return (
       <div className="puzzle-list">
         {puzzles}
@@ -734,6 +759,13 @@ const RelatedPuzzleGroups = React.createClass({
     allPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
+    layout: React.PropTypes.string,
+  },
+
+  getDefaultProps() {
+    return {
+      layout: 'inline',
+    };
   },
 
   relatedPuzzlesTagInterestingness(tag, metaForTagIfKnown) {
@@ -823,7 +855,7 @@ const RelatedPuzzleGroups = React.createClass({
               relatedPuzzles={g.puzzles}
               allTags={this.props.allTags}
               includeCount
-              layout="inline"
+              layout={this.props.layout}
               canUpdate={this.props.canUpdate}
             />
           );

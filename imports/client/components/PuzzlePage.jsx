@@ -62,6 +62,7 @@ const RelatedPuzzleSection = React.createClass({
           allPuzzles={this.props.allPuzzles}
           allTags={this.props.allTags}
           canUpdate={this.props.canUpdate}
+          layout="table"
         />
       </div>
     );

@@ -84,6 +84,23 @@
   }
 }
 
+table.puzzle-list {
+	width: 100%;
+	max-width: 100%;
+}
+
+.puzzle-table-row {
+  .puzzle-title {
+    padding: 4px 0;
+    font-weight: bold;
+    word-wrap: break-word;
+  }
+
+  .puzzle-answer {
+    word-break: normal;
+  }
+}
+
 .answer-wrapper {
   display: inline-block;
   vertical-align: top;
