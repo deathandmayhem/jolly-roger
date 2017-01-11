@@ -14,6 +14,10 @@ const GoogleDocumentDisplay = React.createClass({
         url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
         title = 'worksheet';
         break;
+      case 'document':
+        url = `https://docs.google.com/document/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
+        title = 'document';
+        break;
       default:
         return (
           <span className="puzzle-document-message">
