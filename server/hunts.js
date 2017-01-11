@@ -8,6 +8,7 @@ import { Accounts } from 'meteor/accounts-base';
 import { Email } from 'meteor/email';
 
 const existingJoinEmail = (user, hunt, joinerName) => {
+  const email = user && user.emails && user.emails[0] && user.emails[0].address;
   const huntExcerpt = 'You\'ve also been put onto a handful of mailing lists for communications ' +
     'about these and future hunts:\n' +
     '\n' +
@@ -27,7 +28,9 @@ const existingJoinEmail = (user, hunt, joinerName) => {
     'next few days, but let us know if you run into any major bugs at dfa-web@mit.edu.\n' +
     '\n' +
     'Happy Puzzling,\n' +
-    '- The Jolly Roger Web Team';
+    '- The Jolly Roger Web Team\n' +
+    '\n' +
+    `This message was sent to ${email}`;
 };
 
 Meteor.methods({

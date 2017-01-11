@@ -74,6 +74,7 @@ Accounts.emailTemplates.enrollAccount.subject = () => {
 
 Accounts.emailTemplates.enrollAccount.text = (user, url) => {
   const hunts = Models.Hunts.find({ _id: { $in: user.hunts } }).fetch();
+  const email = user && user.emails && user.emails[0] && user.emails[0].address;
   const huntNames = _.pluck(hunts, 'name');
   const huntLists = _.chain(hunts)
         .pluck('mailingLists')
@@ -111,5 +112,7 @@ Accounts.emailTemplates.enrollAccount.text = (user, url) => {
     'next few days, but let us know if you run into any major bugs at dfa-web@mit.edu.\n' +
     '\n' +
     'Happy Puzzling,\n' +
-    '- The Jolly Roger Web Team';
+    '- The Jolly Roger Web Team\n' +
+    '\n' +
+    `This message was sent to ${email}`;
 };
