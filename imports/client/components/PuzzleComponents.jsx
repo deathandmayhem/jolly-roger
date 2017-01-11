@@ -12,6 +12,7 @@ import { ReactSelect2 } from '/imports/client/components/ReactSelect2.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
+import { LabelledRadioGroup } from '/imports/client/components/LabelledRadioGroup.jsx';
 
 /* eslint-disable max-len */
 
@@ -91,6 +92,7 @@ const PuzzleModalForm = React.createClass({
         title: '',
         url: '',
         tags: [],
+        docType: 'spreadsheet',
       });
     }
   },
@@ -116,6 +118,12 @@ const PuzzleModalForm = React.createClass({
   onTagsChange(event) {
     this.setState({
       tags: jQuery(event.target).val(),
+    });
+  },
+
+  onDocTypeChange(newValue) {
+    this.setState({
+      docType: newValue,
     });
   },
 
@@ -157,6 +165,33 @@ const PuzzleModalForm = React.createClass({
     const disableForm = this.state.submitState === 'submitting';
 
     const allTags = _.compact(_.union(this.props.tags.map((t) => t.name), this.state.tags));
+
+    const docTypeSelector = (
+      <BS.FormGroup>
+        <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-doc-type">
+          Document type
+        </BS.ControlLabel>
+        <div className="col-xs-9">
+          <LabelledRadioGroup
+            header=""
+            name="jr-new-puzzle-doc-type"
+            options={[
+              {
+                value: 'spreadsheet',
+                label: 'Spreadsheet',
+              },
+              {
+                value: 'document',
+                label: 'Document',
+              },
+            ]}
+            initialValue={this.state.docType}
+            help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
+            onChange={this.onDocTypeChange}
+          />
+        </div>
+      </BS.FormGroup>
+    );
 
     return (
       <ModalForm
@@ -213,6 +248,8 @@ const PuzzleModalForm = React.createClass({
             />
           </div>
         </BS.FormGroup>
+
+        {!this.props.puzzle && docTypeSelector}
 
         {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
       </ModalForm>

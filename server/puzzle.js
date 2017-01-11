@@ -22,11 +22,12 @@ function getOrCreateTagByName(huntId, name) {
 }
 
 Meteor.methods({
-  createPuzzle(puzzle) {
+  createPuzzle(puzzle, docType) {
     check(this.userId, String);
     // Note: tag names, not tag IDs. We don't need to validate other
     // fields because SimpleSchema will validate the rest
     check(puzzle, Match.ObjectIncluding({ hunt: String, tags: [String] }));
+    check(docType, String);
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
 
@@ -41,6 +42,11 @@ Meteor.methods({
       user: this.userId,
     });
     const puzzleId = Models.Puzzles.insert(_.extend({}, puzzle, { tags: tagIds }));
+
+    // Make sure we create a document
+    Meteor.defer(Meteor.bindEnvironment(() => {
+      ensureDocument(_.extend({ _id: puzzleId }, puzzle), docType);
+    }));
 
     // Run any puzzle-creation hooks, like creating a default document
     // attachment or announcing the puzzle to Slack.
@@ -82,7 +88,7 @@ Meteor.methods({
 
     if (oldPuzzle.title !== puzzle.title) {
       Meteor.defer(Meteor.bindEnvironment(() => {
-        const doc = ensureDocument(_.extend({ _id: puzzleId }, puzzle), this.userId);
+        const doc = ensureDocument(_.extend({ _id: puzzleId }, puzzle));
         renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
       }));
     }
@@ -164,7 +170,7 @@ Meteor.methods({
 
     this.unblock();
 
-    const doc = ensureDocument(puzzle, this.userId);
+    const doc = ensureDocument(puzzle);
 
     if (Flags.active('disable.gdrive_permissions')) {
       return;

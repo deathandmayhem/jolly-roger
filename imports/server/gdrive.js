@@ -1,8 +1,19 @@
 import { Meteor } from 'meteor/meteor';
 import Ansible from '/imports/ansible.js';
+import { _ } from 'meteor/underscore';
 
-const createDocument = function createDocument(name, mimeType) {
-  const template = Models.Settings.findOne({ name: 'gdrive.template' });
+const MimeTypes = {
+  spreadsheet: 'application/vnd.google-apps.spreadsheet',
+  document: 'application/vnd.google-apps.document',
+};
+
+const createDocument = function createDocument(name, type) {
+  if (!_.has(MimeTypes, type)) {
+    throw new Meteor.Error(400, `Invalid document type ${type}`);
+  }
+
+  const template = Models.Settings.findOne({ name: `gdrive.template.${type}` });
+  const mimeType = MimeTypes[type];
 
   let file;
   if (template) {
@@ -45,7 +56,7 @@ const grantPermission = function grantPermission(id, email, permission) {
   });
 };
 
-const ensureDocument = function ensureDocument(puzzle) {
+const ensureDocument = function ensureDocument(puzzle, type = 'spreadsheet') {
   let doc = Models.Documents.findOne({ puzzle: puzzle._id });
   if (!doc) {
     if (!gdrive) {
@@ -59,15 +70,12 @@ const ensureDocument = function ensureDocument(puzzle) {
           puzzle: puzzle._id,
         });
 
-        const docId = createDocument(
-          `${puzzle.title}: Death and Mayhem`,
-          'application/vnd.google-apps.spreadsheet'
-        );
+        const docId = createDocument(`${puzzle.title}: Death and Mayhem`, type);
         doc = {
           hunt: puzzle.hunt,
           puzzle: puzzle._id,
           provider: 'google',
-          value: { type: 'spreadsheet', id: docId },
+          value: { type, id: docId },
         };
         doc._id = Models.Documents.insert(doc);
       }

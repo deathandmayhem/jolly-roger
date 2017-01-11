@@ -45,7 +45,8 @@ const PuzzleListView = React.createClass({
   },
 
   onAdd(state, callback) {
-    Meteor.call('createPuzzle', state, callback);
+    const { docType, ...puzzle } = state;
+    Meteor.call('createPuzzle', puzzle, docType, callback);
   },
 
   onSearchStringChange(e) {
