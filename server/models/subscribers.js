@@ -36,6 +36,10 @@ Schemas.Subscribers = new SimpleSchema({
     type: String,
     regEx: SimpleSchema.RegEx.Id,
   },
+  user: {
+    type: String,
+    regEx: SimpleSchema.RegEx.Id,
+  },
   name: {
     type: String,
   },
@@ -122,6 +126,7 @@ Meteor.publish('subCounter.inc', function (name, context) {
   const doc = Models.Subscribers.insert({
     server: serverId,
     connection: this.connection.id,
+    user: this.userId,
     name,
     context,
   });
@@ -153,33 +158,41 @@ Meteor.publish('subCounter.fetch', function (q) {
   const cursor = Models.Subscribers.find(query);
   const handle = cursor.observe({
     added: (doc) => {
-      const { name } = doc;
+      const { name, user } = doc;
       if (!_.has(counters, name)) {
-        counters[name] = 0;
+        counters[name] = {};
 
         if (initialized) {
           this.added('subCounter', name, { value: 0 });
         }
       }
 
-      counters[name] += 1;
+      if (!_.has(counters[name], user)) {
+        counters[name][user] = 0;
+      }
+
+      counters[name][user] += 1;
       if (initialized) {
-        this.changed('subCounter', name, { value: counters[name] });
+        this.changed('subCounter', name, { value: _.keys(counters[name]).length });
       }
     },
 
     removed: (doc) => {
-      const { name } = doc;
+      const { name, user } = doc;
 
-      counters[name] -= 1;
+      counters[name][user] -= 1;
+      if (counters[name][user] === 0) {
+        delete counters[name][user];
+      }
+
       if (initialized) {
-        this.changed('subCounter', name, { value: counters[name] });
+        this.changed('subCounter', name, { value: _.keys(counters[name]).length });
       }
     },
   });
   this.onStop(() => handle.stop());
 
-  _.each(counters, (val, key) => this.added('subCounter', key, { value: val }));
+  _.each(counters, (val, key) => this.added('subCounter', key, { value: _.keys(val).length }));
   initialized = true;
   this.ready();
 });
