@@ -124,8 +124,10 @@ const PuzzleListView = React.createClass({
     // First, filter puzzles by search keys and unsolved (if selected).
     const filteredPuzzles = this.filteredPuzzles(this.props.puzzles);
 
-    // Extract remaining puzzles into groups.  Collect puzzles that appear in no groups into a final
-    // group, "ungrouped".  Each group (except ungrouped) has shape:
+    // Extract remaining puzzles into groups (including the
+    // "administrivia" group).  Collect puzzles that appear in no
+    // groups into a final group, "ungrouped".  Each group (except
+    // ungrouped) has shape:
     // {
     //   sharedTag: (tag shape),
     //   puzzles: [(puzzle shape)],
@@ -139,7 +141,8 @@ const PuzzleListView = React.createClass({
       let grouped = false;
       for (let j = 0; j < puzzle.tags.length; j++) {
         const tag = tagsByIndex[puzzle.tags[j]];
-        if (tag.name.lastIndexOf('group:', 0) === 0) {
+        if (tag.name === 'administrivia' ||
+            tag.name.lastIndexOf('group:', 0) === 0) {
           grouped = true;
           if (!groupsMap[tag._id]) {
             groupsMap[tag._id] = [];
@@ -184,6 +187,7 @@ const PuzzleListView = React.createClass({
 
   interestingnessOfGroup(group, indexedTags) {
     // Rough idea: sort, from top to bottom:
+    // -3 administrivia always floats to the top
     // -2 Group with unsolved puzzle with matching meta-for:<this group>
     // -1 Group with some other unsolved is:meta puzzle
     //  0 Groups with no metas yet
@@ -195,6 +199,10 @@ const PuzzleListView = React.createClass({
     // ungrouped puzzles go after groups, esp. after groups with a known unsolved meta.
     // Guarantees that if ia === ib, then sharedTag exists.
     if (!sharedTag) return 1;
+
+    if (sharedTag.name === 'administrivia') {
+      return -3;
+    }
 
     // Look for a puzzle with meta-for:(this group's shared tag)
     let metaForTag;

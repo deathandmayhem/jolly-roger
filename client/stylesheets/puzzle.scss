@@ -109,6 +109,9 @@
   border-radius: 2px;
   background-color: #ddd;
   color: #000;
+  &.tag-administrivia {
+    background-color: #ffff77;
+  }
   &.tag-meta {
     background-color: #ffd57f;
   }
