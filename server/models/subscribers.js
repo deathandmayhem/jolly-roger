@@ -205,4 +205,45 @@ Meteor.publish('subscribers.counts', function (q) {
   this.ready();
 });
 
+// Unlike subscribers.counts, which takes a query string against the
+// context, we require you to specify the name of a subscription here
+// to avoid fanout.
+//
+// eslint-disable-next-line consistent-return
+Meteor.publish('subscribers.fetch', function (name) {
+  check(name, String);
+
+  if (!this.userId) {
+    return [];
+  }
+
+  const users = {};
+
+  const cursor = Models.Subscribers.find({ name });
+  const handle = cursor.observe({
+    added: (doc) => {
+      const { user } = doc;
+
+      if (!_.has(users, user)) {
+        users[user] = 0;
+        this.added('subscribers', `${name}:${user}`, { name, user });
+      }
+
+      users[user] += 1;
+    },
+
+    removed: (doc) => {
+      const { user } = doc;
+
+      users[user] -= 1;
+      if (users[user] === 0) {
+        delete users[user];
+        this.removed('subscribers', `${name}:${user}`);
+      }
+    },
+  });
+  this.onStop(() => handle.stop());
+  this.ready();
+});
+
 Meteor.startup(() => periodic());
