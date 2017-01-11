@@ -637,7 +637,7 @@ const TagList = React.createClass({
       );
     } else if (this.props.showControls) {
       components.push(
-        <BS.ButtonGroup>
+        <BS.ButtonGroup key="editRemoveGroup">
           {this.props.onCreateTag && (
             <BS.Button
               key="startEditing"
