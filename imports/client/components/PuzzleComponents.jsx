@@ -712,7 +712,7 @@ const TagList = React.createClass({
           Done removing
         </BS.Button>
       );
-    } else if (this.props.showControls) {
+    } else if (this.props.showControls && (this.props.onCreateTag || this.props.onRemoveTag)) {
       components.push(
         <BS.ButtonGroup key="editRemoveGroup">
           {this.props.onCreateTag && (

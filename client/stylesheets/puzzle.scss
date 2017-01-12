@@ -32,36 +32,70 @@
 .puzzle-grid {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: flex-start;
+  padding: 4px;
 
   .puzzle-title {
-    flex: 0 0 25%;
+    flex: 1 0 35%;
     display: inline-block;
-    padding: 2px;
-    margin: 2px;
     vertical-align: top;
     word-wrap: break-word;
     font-weight: bold;
   }
 
   .puzzle-link {
-    flex: 0 0 10%;
+    flex: 1 1 50px;
     display: inline-block;
-    padding: 2px;
-    margin: 2px;
     vertical-align: top;
+    text-align: center;
   }
 
   .puzzle-view-count {
-    flex: 0 0 5%;
+    flex: 1 1 40px;
     display: inline-block;
+    text-align: center;
   }
 
   .puzzle-answer {
-    flex: 0 0 20%;
+    flex: 1 1 25%;
     display: inline-block;
     word-wrap: break-word;
+    word-break: break-all;
+    .answer-wrapper {
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+  .tag-list {
+    flex: 1 10 25%;
+    display: inline-block;
+  }
+}
+
+@media (max-width: 499px) {
+  .puzzle-title {
+    flex-basis: 35%;
+  }
+
+  .puzzle-link {
+    flex-basis: 15%;
+  }
+
+  .puzzle-view-count {
+    flex-basis: 5%;
+  }
+
+  .puzzle-answer {
+    flex-basis: 45%
+  }
+
+  .puzzle-grid .tag-list {
+     /* Push tags to new row in narrow views */
+    flex-basis: 100%;
+    width: 100%;
   }
 }
 
