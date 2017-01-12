@@ -171,7 +171,7 @@ const Down = class Down {
       ['mongo.hunts.allowingDeleted', { _id: hunt }],
       ['mongo.puzzles', { hunt }],
       ['mongo.tags', { hunt }],
-      ['subCounter.fetch', { hunt }],
+      ['subscribers.counts', { hunt }],
     ]);
 
     // Open a random, unsolved puzzle
@@ -179,7 +179,7 @@ const Down = class Down {
 
     // And finally everything that's puzzle specific
     await Meteor.subscribeAll([
-      ['subCounter.inc', `puzzle:${puzzle}`, { puzzle, hunt }],
+      ['subscribers.inc', `puzzle:${puzzle}`, { puzzle, hunt }],
       ['mongo.guesses', { puzzle }],
       ['mongo.documents', { puzzle }],
       [

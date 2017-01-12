@@ -18,7 +18,7 @@ import {
   PuzzleModalForm,
 } from '/imports/client/components/PuzzleComponents.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { SubscriberCounters } from '/imports/client/subscribers.js';
+import { Subscribers, SubscriberCounters } from '/imports/client/subscribers.js';
 import { Flags } from '/imports/flags.js';
 import SplitPanePlus from '/imports/client/components/SplitPanePlus.jsx';
 import { DocumentDisplay } from '/imports/client/components/Documents.jsx';
@@ -37,6 +37,138 @@ const MinimumChatHeight = 96;
 
 const DefaultSidebarWidth = 300;
 const DefaultChatHeight = '60%';
+
+const ViewersList = React.createClass({
+  propTypes: {
+    name: React.PropTypes.string.isRequired,
+  },
+
+  contextTypes: {
+    subs: JRPropTypes.subs,
+  },
+
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    // Don't want this subscription persisting longer than necessary
+    const subscribersHandle = Meteor.subscribe('subscribers.fetch', this.props.name);
+    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
+
+    const ready = subscribersHandle.ready() && profilesHandle.ready();
+    if (!ready) {
+      return { ready };
+    }
+
+    let unknown = 0;
+    const subscribers = [];
+
+    Subscribers.find({ name: this.props.name }).forEach(s => {
+      if (!s.user) {
+        unknown += 1;
+        return;
+      }
+
+      const profile = Models.Profiles.findOne(s.user);
+      if (!profile || !profile.displayName) {
+        unknown += 1;
+        return;
+      }
+
+      subscribers.push({ user: s.user, name: profile.displayName });
+    });
+
+    return { ready, unknown, subscribers };
+  },
+
+  render() {
+    if (!this.data.ready) {
+      return <span>loading...</span>;
+    }
+
+    return (
+      <div>
+        <ul>
+          {this.data.subscribers.map(s => <li key={s.user}>{s.name}</li>)}
+        </ul>
+        {this.data.unknown !== 0 && `(Plus ${this.data.unknown} hunters with no name set)`}
+      </div>
+    );
+  },
+});
+
+const ViewersModal = React.createClass({
+  propTypes: {
+    name: React.PropTypes.string.isRequired,
+  },
+
+  getInitialState() {
+    return { show: false };
+  },
+
+  show() {
+    this.setState({ show: true });
+  },
+
+  close() {
+    this.setState({ show: false });
+  },
+
+  render() {
+    return (
+      <BS.Modal show={this.state.show} onHide={this.close}>
+        <BS.Modal.Header closeButton>
+          <BS.Modal.Title>
+            Currently viewing this puzzle
+          </BS.Modal.Title>
+        </BS.Modal.Header>
+        <BS.Modal.Body>
+          {this.state.show && <ViewersList name={this.props.name} />}
+        </BS.Modal.Body>
+      </BS.Modal>
+    );
+  },
+});
+
+const ViewCountDisplay = React.createClass({
+  propTypes: {
+    count: React.PropTypes.number.isRequired,
+    name: React.PropTypes.string.isRequired,
+  },
+
+  mixins: [ReactMeteorData],
+
+  getMeteorData() {
+    return {
+      subfetchesDisabled: Flags.active('disable.subfetches'),
+    };
+  },
+
+  showModal() {
+    this.modalNode.show();
+  },
+
+  render() {
+    const text = `(${this.props.count} viewing)`;
+    if (this.data.subfetchesDisabled) {
+      return <span>{text}</span>;
+    }
+
+    const tooltip = (
+      <BS.Tooltip id="view-count-tooltip">
+        Click to see who is viewing this puzzle
+      </BS.Tooltip>
+    );
+
+    return (
+      <span>
+        <ViewersModal ref={n => { this.modalNode = n; }} name={this.props.name} />
+        <BS.OverlayTrigger placement="top" overlay={tooltip}>
+          <span className="view-count" onClick={this.showModal}>{text}</span>
+        </BS.OverlayTrigger>
+      </span>
+    );
+  },
+});
 
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
@@ -429,6 +561,7 @@ const PuzzlePageMetadata = React.createClass({
   getMeteorData() {
     const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
     return {
+      subcountersDisabled: Flags.active('disable.subcounters'),
       viewCount: count ? count.value : 0,
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     };
@@ -458,8 +591,7 @@ const PuzzlePageMetadata = React.createClass({
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
     const isAdministrivia = _.findWhere(tags, { name: 'administrivia' });
     const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">Solved: <span className="answer">{this.props.puzzle.answer}</span></span> : null;
-    const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
-    const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
+    const hideViewCount = this.props.puzzle.answer || this.data.subcountersDisabled;
     const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
       <div className="puzzle-metadata">
@@ -494,7 +626,11 @@ const PuzzlePageMetadata = React.createClass({
               {' '}
               {this.props.puzzle.answer && answerComponent}
               {' '}
-              {viewCountComponent}
+              {!hideViewCount &&
+                <ViewCountDisplay
+                  count={this.data.viewCount}
+                  name={`puzzle:${this.props.puzzle._id}`}
+                />}
             </div>
           </div>
           <div className="puzzle-metadata-row">
@@ -881,7 +1017,7 @@ const PuzzlePage = React.createClass({
     if (!Flags.active('disable.subcounters')) {
       // Keep a count of how many people are viewing a puzzle. Don't use
       // the subs manager - we don't want this cached
-      Meteor.subscribe('subCounter.inc', `puzzle:${this.props.params.puzzleId}`, {
+      Meteor.subscribe('subscribers.inc', `puzzle:${this.props.params.puzzleId}`, {
         puzzle: this.props.params.puzzleId,
         hunt: this.props.params.huntId,
       });
@@ -899,7 +1035,7 @@ const PuzzlePage = React.createClass({
     const documentsHandle = this.context.subs.subscribe('mongo.documents', { puzzle: this.props.params.puzzleId });
 
     if (!Flags.active('disable.subcounters')) {
-      this.context.subs.subscribe('subCounter.fetch', { hunt: this.props.params.huntId });
+      this.context.subs.subscribe('subscribers.counts', { hunt: this.props.params.huntId });
     }
 
     const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready();

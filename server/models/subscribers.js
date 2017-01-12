@@ -1,4 +1,4 @@
-// Used to track subscribers to the subCounter record set
+// Used to track subscribers to the subscribers.counts record set
 //
 // So long as the server continues running, it can clean up after
 // itself (and does so). But if the server process is killed (or dies
@@ -33,6 +33,10 @@ Schemas.Subscribers = new SimpleSchema({
     regEx: SimpleSchema.RegEx.Id,
   },
   connection: {
+    type: String,
+    regEx: SimpleSchema.RegEx.Id,
+  },
+  user: {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
   },
@@ -111,7 +115,7 @@ const periodic = function () {
   }
 };
 
-Meteor.publish('subCounter.inc', function (name, context) {
+Meteor.publish('subscribers.inc', function (name, context) {
   check(name, String);
   check(context, Object);
 
@@ -122,6 +126,7 @@ Meteor.publish('subCounter.inc', function (name, context) {
   const doc = Models.Subscribers.insert({
     server: serverId,
     connection: this.connection.id,
+    user: this.userId,
     name,
     context,
   });
@@ -135,8 +140,14 @@ Meteor.publish('subCounter.inc', function (name, context) {
 // (logged in) subscribe to any counter because Hunt is tomorrow and I
 // don't think counts are thaaat sensitive, especially if you can't
 // even look up the puzzle ids
-Meteor.publish('subCounter.fetch', function (q) {
+//
+// eslint-disable-next-line consistent-return
+Meteor.publish('subscribers.counts', function (q) {
   check(q, Object);
+
+  if (!this.userId) {
+    return [];
+  }
 
   const query = {};
   _.each(q, (v, k) => {
@@ -153,34 +164,85 @@ Meteor.publish('subCounter.fetch', function (q) {
   const cursor = Models.Subscribers.find(query);
   const handle = cursor.observe({
     added: (doc) => {
-      const { name } = doc;
+      const { name, user } = doc;
       if (!_.has(counters, name)) {
-        counters[name] = 0;
+        counters[name] = {};
 
         if (initialized) {
-          this.added('subCounter', name, { value: 0 });
+          this.added('subscribers.counts', name, { value: 0 });
         }
       }
 
-      counters[name] += 1;
+      if (!_.has(counters[name], user)) {
+        counters[name][user] = 0;
+      }
+
+      counters[name][user] += 1;
       if (initialized) {
-        this.changed('subCounter', name, { value: counters[name] });
+        this.changed('subscribers.counts', name, { value: _.keys(counters[name]).length });
       }
     },
 
     removed: (doc) => {
-      const { name } = doc;
+      const { name, user } = doc;
 
-      counters[name] -= 1;
+      counters[name][user] -= 1;
+      if (counters[name][user] === 0) {
+        delete counters[name][user];
+      }
+
       if (initialized) {
-        this.changed('subCounter', name, { value: counters[name] });
+        this.changed('subscribers.counts', name, { value: _.keys(counters[name]).length });
       }
     },
   });
   this.onStop(() => handle.stop());
 
-  _.each(counters, (val, key) => this.added('subCounter', key, { value: val }));
+  _.each(counters, (val, key) => {
+    this.added('subscribers.counts', key, { value: _.keys(val).length });
+  });
   initialized = true;
+  this.ready();
+});
+
+// Unlike subscribers.counts, which takes a query string against the
+// context, we require you to specify the name of a subscription here
+// to avoid fanout.
+//
+// eslint-disable-next-line consistent-return
+Meteor.publish('subscribers.fetch', function (name) {
+  check(name, String);
+
+  if (!this.userId) {
+    return [];
+  }
+
+  const users = {};
+
+  const cursor = Models.Subscribers.find({ name });
+  const handle = cursor.observe({
+    added: (doc) => {
+      const { user } = doc;
+
+      if (!_.has(users, user)) {
+        users[user] = 0;
+        this.added('subscribers', `${name}:${user}`, { name, user });
+      }
+
+      users[user] += 1;
+    },
+
+    removed: (doc) => {
+      const { user } = doc;
+
+      users[user] -= 1;
+      if (users[user] === 0) {
+        delete users[user];
+        this.removed('subscribers', `${name}:${user}`);
+      }
+    },
+  });
+  this.onStop(() => handle.stop());
   this.ready();
 });
 
