@@ -129,7 +129,7 @@ const PuzzleModalForm = React.createClass({
 
   onTagsChange(event) {
     this.setState({
-      tags: jQuery(event.target).val(),
+      tags: jQuery(event.target).val() || [],
     });
   },
 
