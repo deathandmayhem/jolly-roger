@@ -297,7 +297,7 @@ table.puzzle-list {
   margin: 2px;
 }
 
-.puzzle-metadata-external-link-button, .puzzle-metadata-gdrive-button {
+.puzzle-metadata-external-link-button, .gdrive-button {
   display: inline-block;
   font-weight: bold;
 }
@@ -316,13 +316,16 @@ table.puzzle-list {
     border-style: solid;
     border-color: black;
   }
+
+  > .puzzle-document-message {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: #ddddff;
+  }
 }
 
-.puzzle-document-message {
-  background-color: #ddddff;
-}
-
-.puzzle-document > .google-spreadsheet {
+.puzzle-document > .gdrive-embed {
   width: 100%;
   height: 100%;
   position: absolute;

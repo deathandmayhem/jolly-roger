@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
+import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
 import { ensureDocument, renameDocument, grantPermission } from '/imports/server/gdrive.js';
@@ -22,11 +23,12 @@ function getOrCreateTagByName(huntId, name) {
 }
 
 Meteor.methods({
-  createPuzzle(puzzle) {
+  createPuzzle(puzzle, docType) {
     check(this.userId, String);
     // Note: tag names, not tag IDs. We don't need to validate other
     // fields because SimpleSchema will validate the rest
     check(puzzle, Match.ObjectIncluding({ hunt: String, tags: [String] }));
+    check(docType, String);
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
 
@@ -40,15 +42,26 @@ Meteor.methods({
       title: puzzle.title,
       user: this.userId,
     });
-    const puzzleId = Models.Puzzles.insert(_.extend({}, puzzle, { tags: tagIds }));
+
+    const fullPuzzle = _.extend({}, puzzle, { _id: Random.id(), tags: tagIds });
+
+    // By creating the document before we save the puzzle, we make
+    // sure nobody else has a chance to create a document with the
+    // wrong config
+    if (gdrive) {
+      ensureDocument(fullPuzzle, docType);
+    }
+
+    Models.Puzzles.insert(fullPuzzle);
+
 
     // Run any puzzle-creation hooks, like creating a default document
     // attachment or announcing the puzzle to Slack.
     Meteor.defer(Meteor.bindEnvironment(() => {
-      globalHooks.runPuzzleCreatedHooks(puzzleId, this.userId);
+      globalHooks.runPuzzleCreatedHooks(fullPuzzle._id, this.userId);
     }));
 
-    return puzzleId;
+    return fullPuzzle._id;
   },
 
   updatePuzzle(puzzleId, puzzle) {
@@ -82,7 +95,7 @@ Meteor.methods({
 
     if (oldPuzzle.title !== puzzle.title) {
       Meteor.defer(Meteor.bindEnvironment(() => {
-        const doc = ensureDocument(_.extend({ _id: puzzleId }, puzzle), this.userId);
+        const doc = ensureDocument(_.extend({ _id: puzzleId }, puzzle));
         renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
       }));
     }
@@ -164,7 +177,7 @@ Meteor.methods({
 
     this.unblock();
 
-    const doc = ensureDocument(puzzle, this.userId);
+    const doc = ensureDocument(puzzle);
 
     if (Flags.active('disable.gdrive_permissions')) {
       return;
