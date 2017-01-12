@@ -458,6 +458,7 @@ const PuzzlePageMetadata = React.createClass({
   render() {
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
+    const isAdministrivia = _.findWhere(tags, { name: 'administrivia' });
     const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">Solved: <span className="answer">{this.props.puzzle.answer}</span></span> : null;
     const hideViewCount = this.props.puzzle.answer || Flags.active('disable.subcounters');
     const viewCountComponent = hideViewCount ? null : `(${this.data.viewCount} viewing)`;
@@ -502,11 +503,13 @@ const PuzzlePageMetadata = React.createClass({
             </div>
           </div>
           <div className="puzzle-metadata-row">
-            <div className="puzzle-metadata-right">
-              <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-                {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
-              </BS.Button>
-            </div>
+            {!isAdministrivia && (
+              <div className="puzzle-metadata-right">
+                <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
+                  {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
+                </BS.Button>
+              </div>
+            )}
             <div className="puzzle-metadata-left">
               <span className="puzzle-metadata-tags">Tags:</span>
               <TagList

@@ -321,11 +321,13 @@ const Puzzle = React.createClass({
     const tagIndex = _.indexBy(this.props.allTags, '_id');
     const shownTags = _.difference(this.props.puzzle.tags, this.props.suppressTags || []);
     const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; });
+    const isAdministrivia = _.find(this.props.puzzle.tags, (t) => { return tagIndex[t].name === 'administrivia'; });
 
     const puzzleClasses = classnames('puzzle',
       this.props.puzzle.answer ? 'solved' : 'unsolved',
       this.props.layout === 'grid' ? 'puzzle-grid' : null,
       this.props.layout === 'inline' ? 'puzzle-inline' : null,
+      isAdministrivia ? 'administrivia' : null,
     );
 
     return (
@@ -358,7 +360,7 @@ const Puzzle = React.createClass({
           </div> :
          null}
         <div className="puzzle-view-count">
-          {!this.props.puzzle.answer && <SubscriberCount puzzleId={this.props.puzzle._id} />}
+          {!this.props.puzzle.answer && !isAdministrivia && <SubscriberCount puzzleId={this.props.puzzle._id} />}
         </div>
         <div className="puzzle-answer">
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
