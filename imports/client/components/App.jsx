@@ -100,7 +100,7 @@ const ScrollableLayout = React.createClass({
       <div>
         <NotificationCenter />
         <SharedNavbar {...props} />
-        <div className="container app-content-scrollable">
+        <div className="container-fluid app-content-scrollable">
           <ConnectionStatus />
           {children}
         </div>
