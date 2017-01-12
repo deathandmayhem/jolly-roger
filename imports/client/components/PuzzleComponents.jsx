@@ -25,12 +25,20 @@ function puzzleInterestingness(puzzle, indexedTags, group) {
   if (group) {
     desiredTagName = `meta-for:${group}`;
   }
-
+  let isAdministrivia = false;
+  let isGroup = false;
   let minScore = 0;
 
   for (let i = 0; i < puzzle.tags.length; i++) {
     const tag = indexedTags[puzzle.tags[i]];
-    if (desiredTagName && tag.name === desiredTagName) {
+    if (tag.name.lastIndexOf('group:', 0) === 0) {
+      isGroup = true;
+    }
+    if (tag.name === 'administrivia') {
+      // First comes any administrivia
+      minScore = Math.min(-4, minScore);
+      isAdministrivia = true;
+    } else if (desiredTagName && tag.name === desiredTagName) {
       // Matching meta gets sorted top.
       minScore = Math.min(-3, minScore);
     } else if (tag.name === 'is:metameta') {
@@ -40,6 +48,10 @@ function puzzleInterestingness(puzzle, indexedTags, group) {
       // Meta sorts above non-meta.
       minScore = Math.min(-1, minScore);
     }
+  }
+  // Sort general administrivia above administrivia with a group
+  if (isAdministrivia && !isGroup) {
+    minScore = Math.min(-5, minScore);
   }
 
   return minScore;
@@ -321,11 +333,13 @@ const Puzzle = React.createClass({
     const tagIndex = _.indexBy(this.props.allTags, '_id');
     const shownTags = _.difference(this.props.puzzle.tags, this.props.suppressTags || []);
     const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; });
+    const isAdministrivia = _.find(this.props.puzzle.tags, (t) => { return tagIndex[t].name === 'administrivia'; });
 
     const puzzleClasses = classnames('puzzle',
       this.props.puzzle.answer ? 'solved' : 'unsolved',
       this.props.layout === 'grid' ? 'puzzle-grid' : null,
       this.props.layout === 'inline' ? 'puzzle-inline' : null,
+      isAdministrivia ? 'administrivia' : null,
     );
 
     return (
@@ -358,7 +372,7 @@ const Puzzle = React.createClass({
           </div> :
          null}
         <div className="puzzle-view-count">
-          {!this.props.puzzle.answer && <SubscriberCount puzzleId={this.props.puzzle._id} />}
+          {!this.props.puzzle.answer && !isAdministrivia && <SubscriberCount puzzleId={this.props.puzzle._id} />}
         </div>
         <div className="puzzle-answer">
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
