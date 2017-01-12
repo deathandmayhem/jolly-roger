@@ -1,4 +1,6 @@
 import React from 'react';
+import BS from 'react-bootstrap';
+import { DeepLink } from '/imports/client/components/DeepLink.jsx';
 
 const GoogleDocumentDisplay = React.createClass({
   propTypes: {
@@ -8,10 +10,12 @@ const GoogleDocumentDisplay = React.createClass({
 
   render() {
     let url;
+    let deepUrl;
     let title;
     switch (this.props.document.value.type) {
       case 'spreadsheet':
         url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
+        deepUrl = `googlesheets://${url}`;
         title = 'worksheet';
         break;
       case 'document':
@@ -29,9 +33,9 @@ const GoogleDocumentDisplay = React.createClass({
     switch (this.props.displayMode) {
       case 'link':
         return (
-          <a className="gdrive-button" href={url} target="_blank" rel="noreferrer noopener">
-            Open {title}
-          </a>
+          <DeepLink className="gdrive-button" nativeUrl={deepUrl} browserUrl={url}>
+            <BS.Button>Open {title}</BS.Button>
+          </DeepLink>
         );
       case 'embed':
         return (
