@@ -277,7 +277,7 @@ const Puzzle = React.createClass({
   propTypes: {
     puzzle: React.PropTypes.shape(puzzleShape).isRequired,
     allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired, // All tags associated with the hunt.
-    layout: React.PropTypes.string.isRequired,
+    layout: React.PropTypes.oneOf(['grid', 'table']).isRequired,
     canUpdate: React.PropTypes.bool.isRequired,
     suppressTags: React.PropTypes.arrayOf(React.PropTypes.string),
   },
@@ -326,7 +326,6 @@ const Puzzle = React.createClass({
       this.props.puzzle.answer ? 'solved' : 'unsolved',
       this.props.layout === 'grid' ? 'puzzle-grid' : null,
       this.props.layout === 'table' ? 'puzzle-table-row' : null,
-      this.props.layout === 'inline' ? 'puzzle-inline' : null,
     );
 
     if (this.props.layout === 'table') {
@@ -764,7 +763,7 @@ const RelatedPuzzleGroups = React.createClass({
 
   getDefaultProps() {
     return {
-      layout: 'inline',
+      layout: 'grid',
     };
   },
 
