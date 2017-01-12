@@ -10,7 +10,7 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 const OthersProfilePage = React.createClass({
   propTypes: {
     profile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
-    viewerIsAdmin: React.PropTypes.bool.isRequired,
+    viewerCanMakeOperator: React.PropTypes.bool.isRequired,
     targetIsAdmin: React.PropTypes.bool.isRequired,
   },
 
@@ -22,7 +22,7 @@ const OthersProfilePage = React.createClass({
     // TODO: figure out something for profile pictures - gravatar?
     const profile = this.props.profile;
     const showOperatorBadge = this.props.targetIsAdmin;
-    const showMakeOperatorButton = this.props.viewerIsAdmin && !this.props.targetIsAdmin;
+    const showMakeOperatorButton = this.props.viewerCanMakeOperator && !this.props.targetIsAdmin;
     return (
       <div>
         <h1>{profile.displayName}</h1>
@@ -171,7 +171,7 @@ const OwnProfilePage = React.createClass({
   propTypes: {
     initialProfile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
     operating: React.PropTypes.bool,
-    isOperator: React.PropTypes.bool,
+    canMakeOperator: React.PropTypes.bool,
   },
   getInitialState() {
     return {
@@ -214,11 +214,11 @@ const OwnProfilePage = React.createClass({
 
   toggleOperating() {
     const newState = !this.props.operating;
-    Meteor.users.update(Meteor.userId(), {
-      $set: {
-        'profile.operating': newState,
-      },
-    });
+    if (newState) {
+      Meteor.call('makeOperator', Meteor.userId());
+    } else {
+      Meteor.call('stopOperating');
+    }
   },
 
   handleSaveForm() {
@@ -262,7 +262,7 @@ const OwnProfilePage = React.createClass({
     return (
       <div>
         <h1>Account information</h1>
-        {this.props.isOperator ? <BS.Checkbox type="checkbox" checked={this.props.operating} onChange={this.toggleOperating}>Operating</BS.Checkbox> : null}
+        {this.props.canMakeOperator ? <BS.Checkbox type="checkbox" checked={this.props.operating} onChange={this.toggleOperating}>Operating</BS.Checkbox> : null}
         {/* TODO: picture/gravatar */}
         <BS.FormGroup>
           <BS.ControlLabel htmlFor="jr-profile-edit-email">
@@ -381,9 +381,9 @@ const ProfilePage = React.createClass({
         createdAt: new Date(),
         createdBy: Meteor.userId(),
       },
+      viewerCanMakeOperator: Roles.userHasPermission(Meteor.userId(), 'users.makeOperator'),
       viewerIsAdmin: Roles.userHasRole(Meteor.userId(), 'admin'),
-      targetIsAdmin: Roles.userHasRole(uid, 'admin'),
-      viewerIsOperating: user && user.profile && user.profile.operating,
+      targetIsAdmin: Roles.userHasPermission(uid, 'users.makeOperator'),
     };
     return data;
   },
@@ -396,15 +396,15 @@ const ProfilePage = React.createClass({
       body = (
         <OwnProfilePage
           initialProfile={this.data.profile}
-          isOperator={this.data.viewerIsAdmin}
-          operating={this.data.viewerIsOperating}
+          canMakeOperator={this.data.viewerCanMakeOperator}
+          operating={this.data.viewerIsAdmin}
         />
       );
     } else {
       body = (
         <OthersProfilePage
           profile={this.data.profile}
-          viewerIsAdmin={this.data.viewerIsAdmin}
+          viewerCanMakeOperator={this.data.viewerCanMakeOperator}
           targetIsAdmin={this.data.targetIsAdmin}
         />
       );

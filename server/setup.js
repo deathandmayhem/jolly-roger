@@ -2,8 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import Ansible from '/imports/ansible.js';
 
-Roles.registerAction('gdrive.credential', true);
-
 Meteor.methods({
   setupGdriveCreds(key, secret) {
     check(this.userId, String);
