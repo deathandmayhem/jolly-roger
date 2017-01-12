@@ -254,7 +254,6 @@ const Hunt = React.createClass({
 
   getMeteorData() {
     return {
-      isOperator: Roles.userHasRole(Meteor.userId(), 'admin'),
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
 
       // Because we delete by setting the deleted flag, you only need
@@ -320,7 +319,7 @@ const Hunt = React.createClass({
           {this.deleteButton()}
         </BS.ButtonGroup>
         {' '}
-        <Link to={this.data.isOperator ? `/hunts/${hunt._id}` : `/hunts/${hunt._id}/puzzles`}>
+        <Link to={`/hunts/${hunt._id}`}>
           {hunt.name}
         </Link>
       </li>
