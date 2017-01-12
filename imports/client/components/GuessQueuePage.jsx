@@ -70,8 +70,8 @@ const GuessBlock = React.createClass({
       <div className="guess-button-group">
         {guess.state === 'correct' ? <button className="guess-button guess-button-disabled" disabled>Correct</button> : <button className="guess-button guess-button-correct" onClick={this.markCorrect}>Mark correct</button>}
         {guess.state === 'incorrect' ? <button className="guess-button guess-button-disabled" disabled>Incorrect</button> : <button className="guess-button guess-button-incorrect" onClick={this.markIncorrect}>Mark incorrect</button>}
-        {guess.state === 'pending' ? <button className="guess-button guess-button-disabled" disabled>Pending</button> : <button className="guess-button guess-button-pending" onClick={this.markPending}>Mark pending</button>}
         {guess.state === 'rejected' ? <button className="guess-button guess-button-disabled" disabled>Rejected</button> : <button className="guess-button guess-button-rejected" onClick={this.markRejected}>Mark rejected</button>}
+        {guess.state === 'pending' ? <button className="guess-button guess-button-disabled" disabled>Pending</button> : <button className="guess-button guess-button-pending" onClick={this.markPending}>Mark pending</button>}
       </div>
     );
 
