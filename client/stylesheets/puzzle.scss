@@ -65,26 +65,20 @@
   }
 }
 
-.puzzle-inline {
-  display: block;
-  .puzzle-title {
-    display: inline-block;
-    padding: 2px;
-    margin: 2px;
-    vertical-align: top;
-    font-weight: bold;
-  }
+table.puzzle-list {
+  width: 100%;
+  max-width: 100%;
+}
 
-  .puzzle-view-count {
-    display: inline-block;
-    padding: 2px;
-    margin: 2px;
-    vertical-align: top;
+.puzzle-table-row {
+  .puzzle-title {
+    padding: 4px 0;
+    font-weight: bold;
+    word-wrap: break-word;
   }
 
   .puzzle-answer {
-    display: inline-block;
-    vertical-align: top;
+    word-break: normal;
   }
 }
 
@@ -216,7 +210,7 @@
     border-bottom: 1px solid #ddd !important;
   }
   .sidebar .nav-justified > li.active > a {
-  	border-bottom: none !important;
+    border-bottom: none !important;
   }
 }
 
@@ -382,8 +376,8 @@
   background-color: #666;
   position: relative;
   &:after {
-  	content: '';
-  	display: block;
+    content: '';
+    display: block;
     width: 0;
     height: 0;
     border-left: 6px solid transparent;
@@ -403,8 +397,8 @@
   background-color: #666;
   position: relative;
   &:after {
-  	content: '';
-  	display: block;
+    content: '';
+    display: block;
     width: 0;
     height: 0;
     border-left: 6px solid transparent;
@@ -424,8 +418,8 @@
   background-color: #666;
   position: relative;
   &:after {
-  	content: '';
-  	display: block;
+    content: '';
+    display: block;
     width: 0;
     height: 0;
     border-top: 6px solid transparent;
@@ -445,8 +439,8 @@
   background-color: #666;
   position: relative;
   &:after {
-  	content: '';
-  	display: block;
+    content: '';
+    display: block;
     width: 0;
     height: 0;
     border-top: 6px solid transparent;
