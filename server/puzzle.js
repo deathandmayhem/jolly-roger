@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
+import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
 import { ensureDocument, renameDocument, grantPermission } from '/imports/server/gdrive.js';
@@ -41,20 +42,26 @@ Meteor.methods({
       title: puzzle.title,
       user: this.userId,
     });
-    const puzzleId = Models.Puzzles.insert(_.extend({}, puzzle, { tags: tagIds }));
 
-    // Make sure we create a document
-    Meteor.defer(Meteor.bindEnvironment(() => {
-      ensureDocument(_.extend({ _id: puzzleId }, puzzle), docType);
-    }));
+    const fullPuzzle = _.extend({}, puzzle, { _id: Random.id(), tags: tagIds });
+
+    // By creating the document before we save the puzzle, we make
+    // sure nobody else has a chance to create a document with the
+    // wrong config
+    if (gdrive) {
+      ensureDocument(fullPuzzle, docType);
+    }
+
+    Models.Puzzles.insert(fullPuzzle);
+
 
     // Run any puzzle-creation hooks, like creating a default document
     // attachment or announcing the puzzle to Slack.
     Meteor.defer(Meteor.bindEnvironment(() => {
-      globalHooks.runPuzzleCreatedHooks(puzzleId, this.userId);
+      globalHooks.runPuzzleCreatedHooks(fullPuzzle._id, this.userId);
     }));
 
-    return puzzleId;
+    return fullPuzzle._id;
   },
 
   updatePuzzle(puzzleId, puzzle) {
