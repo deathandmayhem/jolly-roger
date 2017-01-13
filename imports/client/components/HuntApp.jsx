@@ -6,6 +6,7 @@ import DocumentTitle from 'react-document-title';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
 import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { CelebrationCenter } from '/imports/client/components/CelebrationCenter.jsx';
 import marked from 'marked';
 
 const HuntDeletedError = React.createClass({
@@ -173,7 +174,10 @@ const HuntApp = React.createClass({
             to={`/hunts/${this.props.params.huntId}`}
             label={this.data.ready ? this.data.hunt.name : 'loading...'}
           >
-            {this.renderBody()}
+            <div>
+              <CelebrationCenter huntId={this.props.params.huntId} />
+              {this.renderBody()}
+            </div>
           </this.context.navAggregator.NavItem>
         </this.context.navAggregator.NavItem>
       </DocumentTitle>
