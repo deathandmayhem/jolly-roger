@@ -106,6 +106,14 @@ Conditions:
   HaveDatadog: !Not [!Equals [!Ref DatadogApiKey, '']]
 
 Resources:
+  BackupBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 30
+            Status: Enabled
+
   VPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -182,6 +190,14 @@ Resources:
                 Action:
                   - kms:Decrypt
                 Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${CredstashKeyUuid}"
+        - PolicyName: backups-upload
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: !Sub "arn:aws:s3:::${BackupBucket}/*"
 
   AppInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -357,6 +373,7 @@ Resources:
                 - [/dev/xvdf, none, swap, sw, 0, 0]
 
               packages:
+                - awscli
                 - docker-engine
                 - htop
                 - moreutils
@@ -370,6 +387,65 @@ Resources:
                   content: |
                     #!/bin/sh
                     docker volume ls -qf dangling=true | chronic xargs -r docker volume rm
+                  permissions: "0755"
+                - path: /usr/local/bin/s3-backup
+                  content: |
+                    #!/usr/bin/python
+
+                    import datetime
+                    import os
+                    import shutil
+                    import subprocess
+                    import tempfile
+                    import urlparse
+
+                    dir = tempfile.mkdtemp(prefix='backup-')
+
+                    try:
+                      os.environ['AWS_REGION'] = "${AWS::Region}"
+                      url = subprocess.check_output(['credstash', 'get', 'mongo']).strip()
+                      parsed = urlparse.urlparse(url)
+
+                      hosts = parsed.netloc.split('@', 1)[-1]
+                      database = parsed.path[1:]
+                      replset = urlparse.parse_qs(parsed.query).get('replicaSet', [])[0]
+
+                      subprocess.check_call([
+                        'docker',
+                        'run',
+                        '-v', '%s:/tmp/backup' % (dir,),
+                        '-it',
+                        '--rm',
+                        'mongo:3.2',
+                        'mongodump',
+                        '--host', '%s/%s' % (replset, hosts),
+                        '--username', parsed.username,
+                        '--password', parsed.password,
+                        '--db', database,
+                        '--out', '/tmp/backup'
+                      ])
+
+                      backup_name = 'backup-%s.tar.gz' % (datetime.datetime.now().isoformat(),)
+                      subprocess.check_call([
+                        'tar',
+                        'zcf',
+                        os.path.join(dir, backup_name),
+                        '-C', dir,
+                        database,
+                      ])
+
+                      subprocess.check_call([
+                        'aws', 's3', 'cp',
+                        os.path.join(dir, backup_name),
+                        os.path.join('s3://${BackupBucket}', backup_name)
+                      ])
+                    finally:
+                      shutil.rmtree(dir)
+                  permissions: "0755"
+                - path: /etc/cron.hourly/s3-backup
+                  content: |
+                    #!/bin/sh
+                    exec chronic /usr/local/bin/s3-backup
                   permissions: "0755"
                 - path: /etc/nginx-https/cache.conf
                   content: |
