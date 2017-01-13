@@ -10,6 +10,7 @@ Meteor.methods({
       displayName: String,
       phoneNumber: String,
       slackHandle: String,
+      muteApplause: Boolean,
     });
     const user = Meteor.users.findOne(this.userId);
     const primaryEmail = user.emails[0].address;
@@ -23,6 +24,7 @@ Meteor.methods({
         primaryEmail,
         phoneNumber: newProfile.phoneNumber,
         slackHandle: newProfile.slackHandle,
+        muteApplause: newProfile.muteApplause,
         deleted: false,
       },
     }, {

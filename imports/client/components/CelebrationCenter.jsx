@@ -1,4 +1,5 @@
 import React from 'react';
+import { Meteor } from 'meteor/meteor';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { Flags } from '/imports/flags.js';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
@@ -64,8 +65,11 @@ const CelebrationCenter = React.createClass({
       });
     }
 
+    const muted = Models.Profiles.findOne({ _id: Meteor.userId() }).muteApplause;
+
     return {
       disabled: Flags.active('disable.applause'),
+      muted,
     };
   },
 
@@ -87,6 +91,7 @@ const CelebrationCenter = React.createClass({
           url={celebration.url}
           title={celebration.title}
           answer={celebration.answer}
+          playAudio={!this.data.muted}
           onClose={this.dismissCurrentCelebration}
         />
       );
