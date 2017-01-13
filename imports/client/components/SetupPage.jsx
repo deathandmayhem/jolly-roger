@@ -21,8 +21,8 @@ const SetupPage = React.createClass({
 
   getMeteorData() {
     const config = ServiceConfiguration.configurations.findOne({ service: 'google' });
-    const admin = Roles.userHasRole(Meteor.userId(), 'admin');
-    return { config, admin };
+    const canSetupGDrive = Roles.userHasPermission(Meteor.userId(), 'gdrive.credential');
+    return { config, canSetupGDrive };
   },
 
   dismissAlert() {
@@ -50,7 +50,7 @@ const SetupPage = React.createClass({
   },
 
   renderBody() {
-    if (!this.data.admin) {
+    if (!this.data.canSetupGDrive) {
       return <div>This page is for administering the Jolly Roger web app</div>;
     }
 
