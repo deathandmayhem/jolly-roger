@@ -123,7 +123,7 @@ table.puzzle-list {
   margin: 2px;
 }
 
-.answer {
+.answer, #jr-puzzle-guess {
   text-transform: uppercase;
   font-family: monospace;
   font-weight: bold;
@@ -184,6 +184,11 @@ table.puzzle-list {
 /* Little ugly tweak to make the tabs align when adding */
 .tag-list span.select2-selection {
   margin-top: -2px;
+}
+
+/*Guessing and History Modal */
+.guess-history-table td.answer {
+  word-break: break-all;
 }
 
 ////////////

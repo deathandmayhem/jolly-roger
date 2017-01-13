@@ -249,18 +249,12 @@ const NotificationCenter = React.createClass({
   },
 
   getMeteorData() {
-    const operator = Roles.userHasRole(Meteor.userId(), 'admin');
-
-    const user = Meteor.user();
-    let operating = user && user.profile && user.profile.operating;
-    if (operating === undefined) {
-      operating = true;
-    }
+    const canUpdateGuesses = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
 
     // Yes this is hideous, but it just makes the logic easier
     let guessesHandle = { ready: () => true };
     let puzzlesHandle = { ready: () => true };
-    if (Roles.userHasRole(Meteor.userId(), 'admin') && operating) {
+    if (canUpdateGuesses) {
       guessesHandle = this.context.subs.subscribe('mongo.guesses', { state: 'pending' });
       puzzlesHandle = this.context.subs.subscribe('mongo.puzzles');
     }
@@ -293,7 +287,7 @@ const NotificationCenter = React.createClass({
       slackConfigured: profile && profile.slackHandle,
     };
 
-    if (operator && operating) {
+    if (canUpdateGuesses) {
       Models.Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).forEach((guess) => {
         data.guesses.push({
           guess,
