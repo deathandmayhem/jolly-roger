@@ -832,7 +832,7 @@ const PuzzleGuessModal = React.createClass({
 
         {this.props.guesses.length === 0 ? <div>No previous submissions.</div> : [
           <div key="label">Previous submissions:</div>,
-          <BS.Table key="table" bordered condensed>
+          <BS.Table className="guess-history-table" key="table" bordered condensed>
             <thead>
               <tr>
                 <th>Guess</th>
