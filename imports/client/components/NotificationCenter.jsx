@@ -55,6 +55,7 @@ const GuessMessage = React.createClass({
   propTypes: {
     guess: React.PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
     puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    guesser: React.PropTypes.string.isRequired,
     onDismiss: React.PropTypes.func.isRequired,
   },
 
@@ -94,7 +95,7 @@ const GuessMessage = React.createClass({
         <MessengerSpinner />
         <MessengerContent dismissable>
           <div>
-            Guess for <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>:
+            Guess for <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a> from {this.props.guesser}:
             {' '}
             {this.props.guess.guess}
           </div>
@@ -292,6 +293,7 @@ const NotificationCenter = React.createClass({
         data.guesses.push({
           guess,
           puzzle: Models.Puzzles.findOne(guess.puzzle),
+          guesser: Models.Profiles.findOne(guess.createdBy).displayName,
         });
       });
     }
@@ -337,7 +339,13 @@ const NotificationCenter = React.createClass({
 
     _.forEach(this.data.guesses, (g) => {
       if (this.state.dismissedGuesses[g.guess._id]) return;
-      messages.push(<GuessMessage key={g.guess._id} guess={g.guess} puzzle={g.puzzle} onDismiss={this.dismissGuess} />);
+      messages.push(<GuessMessage
+        key={g.guess._id}
+        guess={g.guess}
+        puzzle={g.puzzle}
+        guesser={g.guesser}
+        onDismiss={this.dismissGuess}
+      />);
     });
 
     _.forEach(this.data.announcements, (a) => {
