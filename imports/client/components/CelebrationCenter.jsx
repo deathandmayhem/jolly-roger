@@ -65,7 +65,8 @@ const CelebrationCenter = React.createClass({
       });
     }
 
-    const muted = Models.Profiles.findOne({ _id: Meteor.userId() }).muteApplause;
+    const profile = Models.Profiles.findOne({ _id: Meteor.userId() });
+    const muted = profile && profile.muteApplause;
 
     return {
       disabled: Flags.active('disable.applause'),
