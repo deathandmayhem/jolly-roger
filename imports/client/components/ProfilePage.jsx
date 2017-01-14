@@ -178,9 +178,16 @@ const OwnProfilePage = React.createClass({
       displayNameValue: this.props.initialProfile.displayName || '',
       phoneNumberValue: this.props.initialProfile.phoneNumber || '',
       slackHandleValue: this.props.initialProfile.slackHandle || '',
+      muteApplause: this.props.initialProfile.muteApplause || false,
       submitState: 'idle', // One of 'idle', 'submitting', 'success', or 'error'
       submitError: '',
     };
+  },
+
+  onDisableApplauseChange(e) {
+    this.setState({
+      muteApplause: e.target.checked,
+    });
   },
 
   getSlackHandleValidationState() {
@@ -229,6 +236,7 @@ const OwnProfilePage = React.createClass({
       displayName: this.state.displayNameValue,
       phoneNumber: this.state.phoneNumberValue,
       slackHandle: this.state.slackHandleValue,
+      muteApplause: this.state.muteApplause,
     };
     Meteor.call('saveProfile', newProfile, (error) => {
       if (error) {
@@ -329,6 +337,15 @@ const OwnProfilePage = React.createClass({
           />
           <BS.HelpBlock>
             So we can connect your chat there with your account here. If you haven't signed up for a Slack account yet, there should be a notification in the top-right that you can use to get an invite. (Slack handles contain letters, numbers, periods, and underscores. You don't need the leading <code>@</code>.)
+          </BS.HelpBlock>
+        </BS.FormGroup>
+
+        <BS.FormGroup>
+          <BS.Checkbox type="checkbox" checked={this.state.muteApplause} onChange={this.onDisableApplauseChange}>
+            Mute applause
+          </BS.Checkbox>
+          <BS.HelpBlock>
+            Enable this option if you find the applause sound when we solve a puzzle annoying.
           </BS.HelpBlock>
         </BS.FormGroup>
 
