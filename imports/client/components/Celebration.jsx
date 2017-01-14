@@ -6,6 +6,7 @@ const Celebration = React.createClass({
     url: React.PropTypes.string.isRequired,
     title: React.PropTypes.string.isRequired,
     answer: React.PropTypes.string.isRequired,
+    playAudio: React.PropTypes.bool.isRequired,
     onClose: React.PropTypes.func.isRequired,
   },
 
@@ -37,7 +38,7 @@ const Celebration = React.createClass({
           <button type="button" className="close" onClick={this.onClose} ariaLabel="Close">
             <span ariaHidden="true">×</span>
           </button>
-          <audio src="/audio/applause.mp3" autoPlay />
+          {this.props.playAudio ? <audio src="/audio/applause.mp3" autoPlay /> : null}
           <h1>We solved <Link to={this.props.url}>{this.props.title}</Link>!</h1>
           <h2>Answer: <span className="answer">{this.props.answer}</span></h2>
         </div>
