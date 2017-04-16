@@ -32,4 +32,8 @@ export GIT_REVISION="$(cat /built_app/GIT_REVISION)"
 
 credstash get krb5.keytab | openssl base64 -d > /krb5.keytab
 
-exec k5start -U -f /krb5.keytab -- node main.js
+if [ -f /krb5.keytab ]; then
+   exec k5start -U -f /krb5.keytab -- node main.js
+else
+    exec node main.js
+fi
