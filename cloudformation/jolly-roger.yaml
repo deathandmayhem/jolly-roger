@@ -50,6 +50,15 @@
 #
 # - Store the MongoDB URL using `credstash put mongo @<path>`. The
 #   free account from mongolab (for instance) should be sufficient.
+#
+# - Signup for a Mailgun account (or any mail provider that supports
+#   SMTP submission), and add an SMTP URL with the SMTP credentials
+#   from your mailgun account. The URL format should be something
+#   like:
+#
+#     smtp://postmaster%40yourdomain.com:smtp-password@smtp.mailgun.org:587
+#
+#   Store that using `credstash put mailgun @<path>`.
 
 AWSTemplateFormatVersion: "2010-09-09"
 Description: jolly-roger
@@ -138,6 +147,7 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
       RouteTableId: !Ref PublicSubnetRouteTable
+    DependsOn: InternetGatewayAttachment
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
@@ -363,10 +373,6 @@ Resources:
                 - name: zarvox
                   shell: /bin/bash
                   ssh-import-id: gh:zarvox
-                  sudo: ALL=(ALL) NOPASSWD:ALL
-                - name: quentin
-                  shell: /bin/bash
-                  ssh-import-id: gh:quentinmit
                   sudo: ALL=(ALL) NOPASSWD:ALL
 
               mounts:
