@@ -92,12 +92,16 @@ document, and it automatically provisions them when puzzles are
 created. (This helps with, e.g., permissions issues with manually
 created documents).
 
-In order to access the Google APIs, you first need to create a Google
-OAuth client ID. From the [Google Developer Credentials
-Console][google-developer-credentials], create a new OAuth Client
-ID. If you're developing locally (via localhost), choose "Other";
-otherwise, choose "Web application". Once you have the client ID,
-store it in the Meteor shell by running:
+In order to access the Google APIs, you first need to enable support
+for the Google Drive APIs from
+the [Google Developer Console][google-developer-drive] (click the
+"Enable" button near the top). Then you'll need to create a Google
+OAuth client ID. From
+the
+[Google Developer Credentials Console][google-developer-credentials],
+create a new OAuth Client ID. If you're developing locally (via
+localhost), choose "Other"; otherwise, choose "Web application". Once
+you have the client ID, store it in the Meteor shell by running:
 
 ```js
 > ServiceConfiguration.configurations.upsert({service: 'google'}, {
@@ -120,6 +124,7 @@ OAuth application and the Drive credentials)
 [collection2]: https://atmospherejs.com/aldeed/collection2
 [es6]: https://github.com/lukehoban/es6features
 [google-developer-credentials]: https://console.developers.google.com/apis/credentials
+[google-developer-drive]: https://console.developers.google.com/apis/api/drive.googleapis.com/overview
 [ESLint]: http://eslint.org/
 [meteor install]: https://www.meteor.com/install
 [React]: https://facebook.github.io/react/
