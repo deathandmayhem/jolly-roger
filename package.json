@@ -44,5 +44,11 @@
     "eslint-plugin-jsx-a11y": "2.2.3",
     "eslint-plugin-meteor": "4.0.1",
     "eslint-plugin-react": "6.3.0"
+  },
+  "meteor": {
+    "mainModule": {
+      "client": "client/main.js",
+      "server": "server/main.js"
+    }
   }
 }
