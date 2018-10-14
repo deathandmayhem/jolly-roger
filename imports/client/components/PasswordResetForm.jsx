@@ -13,4 +13,4 @@ const PasswordResetForm = React.createClass({
   },
 });
 
-export { PasswordResetForm };
+export default PasswordResetForm;

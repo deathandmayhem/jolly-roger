@@ -1,14 +1,18 @@
-import marked from 'marked';
+import { Meteor } from 'meteor/meteor';
 
-marked.InlineLexer.rules.gfm.em = /^\b_((?:__|[^_])+?)_\b/;
-marked.InlineLexer.rules.gfm.strong = /^\*\b((?:\*\*|[^*])+?)\b\*/;
+Meteor.startup(async () => {
+  const marked = await import('marked');
 
-const renderer = new class extends marked.Renderer {
-  link(href, title, link) {
-    const realLinkFunc = marked.Renderer.prototype.link.bind(this);
-    return realLinkFunc(href, title, link)
-      .replace(/^<a /, '<a target="_blank" rel="noopener noreferrer" ');
-  }
-}();
+  marked.InlineLexer.rules.gfm.em = /^\b_((?:__|[^_])+?)_\b/;
+  marked.InlineLexer.rules.gfm.strong = /^\*\b((?:\*\*|[^*])+?)\b\*/;
 
-marked.setOptions({ renderer });
+  const renderer = new class extends marked.Renderer {
+    link(href, title, link) {
+      const realLinkFunc = marked.Renderer.prototype.link.bind(this);
+      return realLinkFunc(href, title, link)
+        .replace(/^<a /, '<a target="_blank" rel="noopener noreferrer" ');
+    }
+  }();
+
+  marked.setOptions({ renderer });
+});

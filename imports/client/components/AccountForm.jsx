@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import React from 'react';
-import BS from 'react-bootstrap';
+import Alert from 'react-bootstrap/lib/Alert';
 
 /* eslint-disable max-len, jsx-a11y/href-no-hash */
 
@@ -249,8 +249,8 @@ const AccountForm = React.createClass({
         <div>
           <form id="at-pwd-form" role="form" noValidate="" action="#" method="POST" onSubmit={this.submitForm}>
             <fieldset>
-              {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert> : null}
-              {this.state.submitState === 'success' && this.state.successMessage ? <BS.Alert bsStyle="success">{this.state.successMessage}</BS.Alert> : null}
+              {this.state.submitState === 'failed' ? <Alert bsStyle="danger">{this.state.errorMessage}</Alert> : null}
+              {this.state.submitState === 'success' && this.state.successMessage ? <Alert bsStyle="success">{this.state.successMessage}</Alert> : null}
               {format === 'login' || format === 'requestPwReset' ? emailInput : null}
               {format === 'login' || format === 'enroll' || format === 'resetPwd' ? pwInput : null}
               {format === 'login' ? pwResetOptionComponent : null}

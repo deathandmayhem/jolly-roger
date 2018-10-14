@@ -1,6 +1,7 @@
 import React from 'react';
-import { Breadcrumb, BreadcrumbItem } from 'react-bootstrap';
-import RRBS from 'react-router-bootstrap';
+import Breadcrumb from 'react-bootstrap/lib/Breadcrumb';
+import BreadcrumbItem from 'react-bootstrap/lib/BreadcrumbItem';
+import LinkContainer from 'react-router-bootstrap/lib/LinkContainer';
 
 class NavAggregator {
   constructor() {
@@ -66,11 +67,11 @@ class NavAggregator {
             );
           } else {
             return (
-              <RRBS.LinkContainer key={itemKey} to={to} active={false}>
+              <LinkContainer key={itemKey} to={to} active={false}>
                 <ItemComponentClass className="jr-breadcrumb">
                   {label}
                 </ItemComponentClass>
-              </RRBS.LinkContainer>
+              </LinkContainer>
             );
           }
         });

@@ -1172,4 +1172,4 @@ const PuzzlePage = React.createClass({
   },
 });
 
-export { PuzzlePage };
+export default PuzzlePage;

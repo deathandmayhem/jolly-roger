@@ -420,4 +420,4 @@ const PuzzleListPage = React.createClass({
   },
 });
 
-export { PuzzleListPage };
+export default PuzzleListPage;

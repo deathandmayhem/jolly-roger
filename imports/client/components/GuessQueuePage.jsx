@@ -166,4 +166,4 @@ const GuessQueuePage = React.createClass({
   },
 });
 
-export { GuessQueuePage };
+export default GuessQueuePage;

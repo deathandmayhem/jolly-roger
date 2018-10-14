@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import React from 'react';
-import { browserHistory } from 'react-router';
+import browserHistory from 'react-router/lib/browserHistory';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 const Authenticator = React.createClass({

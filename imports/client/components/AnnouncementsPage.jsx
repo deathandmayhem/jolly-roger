@@ -177,4 +177,4 @@ const AnnouncementsPage = React.createClass({
   },
 });
 
-export { AnnouncementsPage };
+export default AnnouncementsPage;

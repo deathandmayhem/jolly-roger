@@ -67,4 +67,4 @@ const HuntProfileListPage = React.createClass({
   },
 });
 
-export { HuntProfileListPage };
+export default HuntProfileListPage;

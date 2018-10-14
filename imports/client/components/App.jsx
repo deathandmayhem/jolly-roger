@@ -126,4 +126,4 @@ const App = React.createClass({
   },
 });
 
-export { App };
+export default App;

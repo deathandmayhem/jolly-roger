@@ -440,4 +440,4 @@ const HuntListPage = React.createClass({
   },
 });
 
-export { HuntListPage };
+export default HuntListPage;

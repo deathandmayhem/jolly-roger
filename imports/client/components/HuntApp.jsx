@@ -185,4 +185,4 @@ const HuntApp = React.createClass({
   },
 });
 
-export { HuntApp };
+export default HuntApp;

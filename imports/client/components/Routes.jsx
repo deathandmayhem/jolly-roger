@@ -1,31 +1,43 @@
 import React from 'react';
-import {
-  IndexRedirect,
-  Route,
-  Router,
-  browserHistory,
-} from 'react-router';
+import IndexRedirect from 'react-router/lib/IndexRedirect';
+import Route from 'react-router/lib/Route';
+import Router from 'react-router/lib/Router';
+import browserHistory from 'react-router/lib/browserHistory';
 import DocumentTitle from 'react-document-title';
+import Loadable from 'react-loadable';
 import { SubsCache } from 'meteor/ccorcos:subs-cache';
+import { Loading } from '/imports/client/components/Loading.jsx';
 import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-import { AllProfileListPage } from '/imports/client/components/AllProfileListPage.jsx';
-import { App } from '/imports/client/components/App.jsx';
-import { AnnouncementsPage } from '/imports/client/components/AnnouncementsPage.jsx';
 import { Authenticator } from '/imports/client/components/Authenticator.jsx';
-import { EnrollForm } from '/imports/client/components/EnrollForm.jsx';
-import { GuessQueuePage } from '/imports/client/components/GuessQueuePage.jsx';
-import { HuntApp } from '/imports/client/components/HuntApp.jsx';
-import { HuntListPage } from '/imports/client/components/HuntListPage.jsx';
-import { HuntProfileListPage } from '/imports/client/components/HuntProfileListPage.jsx';
 import { LoginForm } from '/imports/client/components/LoginForm.jsx';
 import { NavAggregator, navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
-import { PasswordResetForm } from '/imports/client/components/PasswordResetForm.jsx';
-import { ProfilePage } from '/imports/client/components/ProfilePage.jsx';
-import { PuzzleListPage } from '/imports/client/components/PuzzleListPage.jsx';
-import { PuzzlePage } from '/imports/client/components/PuzzlePage.jsx';
-import { SetupPage } from '/imports/client/components/SetupPage.jsx';
 import { SplashPage } from '/imports/client/components/SplashPage.jsx';
-import { UserInvitePage } from '/imports/client/components/UserInvitePage.jsx';
+
+const makeLoadable = function (f) {
+  return Loadable({
+    loader: f,
+    loading: Loading,
+  });
+};
+
+const AllProfileListPage = makeLoadable(
+  () => import('/imports/client/components/AllProfileListPage.jsx'));
+const App = makeLoadable(() => import('/imports/client/components/App.jsx'));
+const AnnouncementsPage = makeLoadable(
+  () => import('/imports/client/components/AnnouncementsPage.jsx'));
+const EnrollForm = makeLoadable(() => import('/imports/client/components/EnrollForm.jsx'));
+const GuessQueuePage = makeLoadable(() => import('/imports/client/components/GuessQueuePage.jsx'));
+const HuntApp = makeLoadable(() => import('/imports/client/components/HuntApp.jsx'));
+const HuntListPage = makeLoadable(() => import('/imports/client/components/HuntListPage.jsx'));
+const HuntProfileListPage = makeLoadable(
+  () => import('/imports/client/components/HuntProfileListPage.jsx'));
+const PasswordResetForm = makeLoadable(
+  () => import('/imports/client/components/PasswordResetForm.jsx'));
+const ProfilePage = makeLoadable(() => import('/imports/client/components/ProfilePage.jsx'));
+const PuzzlePage = makeLoadable(() => import('/imports/client/components/PuzzlePage.jsx'));
+const PuzzleListPage = makeLoadable(() => import('/imports/client/components/PuzzleListPage.jsx'));
+const SetupPage = makeLoadable(() => import('/imports/client/components/SetupPage.jsx'));
+const UserInvitePage = makeLoadable(() => import('/imports/client/components/UserInvitePage.jsx'));
 
 const Routes = React.createClass({
   childContextTypes: {

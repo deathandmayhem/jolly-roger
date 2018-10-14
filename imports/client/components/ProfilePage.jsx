@@ -445,4 +445,4 @@ const ProfilePage = React.createClass({
   },
 });
 
-export { ProfilePage };
+export default ProfilePage;

@@ -42,4 +42,4 @@ const AllProfileListPage = React.createClass({
   },
 });
 
-export { AllProfileListPage };
+export default AllProfileListPage;

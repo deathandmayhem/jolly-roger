@@ -13,4 +13,4 @@ const EnrollForm = React.createClass({
   },
 });
 
-export { EnrollForm };
+export default EnrollForm;
