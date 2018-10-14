@@ -4,6 +4,25 @@ import Ansible from '../ansible.js';
 import Settings from './models/settings.js';
 
 Meteor.methods({
+  setupGoogleOAuthClient(clientId, secret) {
+    check(this.userId, String);
+    check(clientId, String);
+    check(secret, String);
+    Roles.checkPermission(this.userId, 'google.configureOAuth');
+
+    Ansible.log('Configuring google oauth client', {
+      clientId,
+      user: this.userId,
+    });
+    ServiceConfiguration.configurations.upsert({ service: 'google' }, {
+      $set: {
+        clientId,
+        secret,
+        loginStyle: 'popup',
+      },
+    });
+  },
+
   setupGdriveCreds(key, secret) {
     check(this.userId, String);
     check(key, String);
