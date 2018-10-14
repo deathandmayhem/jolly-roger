@@ -106,4 +106,4 @@ const LabelledRadioGroup = React.createClass({
   },
 });
 
-export { LabelledRadioGroup };
+export default LabelledRadioGroup;

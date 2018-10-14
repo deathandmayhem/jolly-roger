@@ -1,9 +1,9 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { Flags } from '/imports/flags.js';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-import { Celebration } from '/imports/client/components/Celebration.jsx';
+import Flags from '/imports/flags.js';
+import JRPropTypes from '/imports/client/JRPropTypes.js';
+import Celebration from '/imports/client/components/Celebration.jsx';
 
 const CelebrationCenter = React.createClass({
   propTypes: {
@@ -100,4 +100,4 @@ const CelebrationCenter = React.createClass({
   },
 });
 
-export { CelebrationCenter };
+export default CelebrationCenter;

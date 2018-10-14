@@ -1,5 +1,5 @@
 import React from 'react';
-import { AccountForm } from '/imports/client/components/AccountForm.jsx';
+import AccountForm from '/imports/client/components/AccountForm.jsx';
 
 const LoginForm = React.createClass({
   getInitialState() {
@@ -18,4 +18,4 @@ const LoginForm = React.createClass({
   },
 });
 
-export { LoginForm };
+export default LoginForm;

@@ -4,7 +4,7 @@ import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
 import { ensureDocument, renameDocument, grantPermission } from '/imports/server/gdrive.js';
-import { Flags } from '/imports/flags.js';
+import Flags from '/imports/flags.js';
 // TODO: gdrive, globalHooks
 
 function getOrCreateTagByName(huntId, name) {

@@ -47,4 +47,4 @@ const Celebration = React.createClass({
   },
 });
 
-export { Celebration };
+export default Celebration;

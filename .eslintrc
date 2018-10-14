@@ -53,10 +53,6 @@
     // While this rule is generally useful, it currently gets confused by Meteor's import rewriting
     // for import { thing } from "meteor/meteorpackagename", so we need it to chill out.
     "import/no-extraneous-dependencies": ["off"],
-
-    // I appear to have missed the memo on always preferring default exports to named ones.
-    // I think I like named exports better, honestly.
-    "import/prefer-default-export": ["off"],
   },
   "globals": {
     // Long-term, reduce this list to nothing by making full use of import/export

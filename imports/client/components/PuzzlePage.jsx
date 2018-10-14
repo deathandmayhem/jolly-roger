@@ -8,9 +8,9 @@ import DocumentTitle from 'react-document-title';
 import classnames from 'classnames';
 import marked from 'marked';
 import moment from 'moment';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import JRPropTypes from '/imports/client/JRPropTypes.js';
 import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
-import { ModalForm } from '/imports/client/components/ModalForm.jsx';
+import ModalForm from '/imports/client/components/ModalForm.jsx';
 import TextareaAutosize from 'react-textarea-autosize';
 import {
   TagList,
@@ -19,9 +19,9 @@ import {
 } from '/imports/client/components/PuzzleComponents.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import { Subscribers, SubscriberCounters } from '/imports/client/subscribers.js';
-import { Flags } from '/imports/flags.js';
+import Flags from '/imports/flags.js';
 import SplitPanePlus from '/imports/client/components/SplitPanePlus.jsx';
-import { DocumentDisplay } from '/imports/client/components/Documents.jsx';
+import DocumentDisplay from '/imports/client/components/Documents.jsx';
 
 /* eslint-disable max-len, no-console */
 
@@ -1172,4 +1172,4 @@ const PuzzlePage = React.createClass({
   },
 });
 
-export { PuzzlePage };
+export default PuzzlePage;

@@ -65,4 +65,4 @@ const Authenticator = React.createClass({
   },
 });
 
-export { Authenticator };
+export default Authenticator;

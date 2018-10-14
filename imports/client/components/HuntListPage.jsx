@@ -4,9 +4,9 @@ import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
 import Ansible from '/imports/ansible.js';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import JRPropTypes from '/imports/client/JRPropTypes.js';
 import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
-import { ModalForm } from '/imports/client/components/ModalForm.jsx';
+import ModalForm from '/imports/client/components/ModalForm.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 /* eslint-disable max-len */
@@ -440,4 +440,4 @@ const HuntListPage = React.createClass({
   },
 });
 
-export { HuntListPage };
+export default HuntListPage;

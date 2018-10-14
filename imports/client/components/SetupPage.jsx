@@ -96,4 +96,4 @@ const SetupPage = React.createClass({
   },
 });
 
-export { SetupPage };
+export default SetupPage;

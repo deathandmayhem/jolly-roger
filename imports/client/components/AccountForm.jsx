@@ -267,4 +267,4 @@ const AccountForm = React.createClass({
   },
 });
 
-export { AccountForm };
+export default AccountForm;

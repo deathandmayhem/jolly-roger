@@ -1,9 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import JRPropTypes from '/imports/client/JRPropTypes.js';
 import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { ProfileList } from '/imports/client/components/ProfileList.jsx';
+import ProfileList from '/imports/client/components/ProfileList.jsx';
 
 const HuntProfileListPage = React.createClass({
   propTypes: {
@@ -67,4 +67,4 @@ const HuntProfileListPage = React.createClass({
   },
 });
 
-export { HuntProfileListPage };
+export default HuntProfileListPage;

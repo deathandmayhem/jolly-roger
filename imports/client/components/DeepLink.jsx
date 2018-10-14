@@ -51,4 +51,4 @@ const DeepLink = React.createClass({
   },
 });
 
-export { DeepLink };
+export default DeepLink;

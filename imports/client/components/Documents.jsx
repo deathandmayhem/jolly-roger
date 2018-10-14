@@ -1,6 +1,6 @@
 import React from 'react';
 import BS from 'react-bootstrap';
-import { DeepLink } from '/imports/client/components/DeepLink.jsx';
+import DeepLink from '/imports/client/components/DeepLink.jsx';
 
 const GoogleDocumentDisplay = React.createClass({
   propTypes: {
@@ -76,4 +76,4 @@ const DocumentDisplay = React.createClass({
   },
 });
 
-export { DocumentDisplay };
+export default DocumentDisplay;

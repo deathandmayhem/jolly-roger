@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import { huntFixtures } from '/imports/fixtures.js';
+import huntFixtures from '/imports/fixtures.js';
 
 Meteor.methods({
   createFixtureHunt() {

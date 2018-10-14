@@ -12,7 +12,7 @@ import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import moment from 'moment';
-import { Flags } from '/imports/flags.js';
+import Flags from '/imports/flags.js';
 
 const serverId = Random.id();
 

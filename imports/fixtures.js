@@ -219,4 +219,4 @@ const huntFixtures = {
   },
 };
 
-export { huntFixtures };
+export default huntFixtures;

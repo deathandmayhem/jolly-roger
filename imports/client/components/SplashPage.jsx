@@ -23,4 +23,4 @@ const SplashPage = React.createClass({
   },
 });
 
-export { SplashPage };
+export default SplashPage;

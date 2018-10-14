@@ -1,8 +1,8 @@
 import React from 'react';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import JRPropTypes from '/imports/client/JRPropTypes.js';
 import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { ProfileList } from '/imports/client/components/ProfileList.jsx';
+import ProfileList from '/imports/client/components/ProfileList.jsx';
 
 const AllProfileListPage = React.createClass({
   contextTypes: {
@@ -42,4 +42,4 @@ const AllProfileListPage = React.createClass({
   },
 });
 
-export { AllProfileListPage };
+export default AllProfileListPage;

@@ -4,9 +4,9 @@ import BS from 'react-bootstrap';
 import { Link } from 'react-router';
 import RRBS from 'react-router-bootstrap';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
-import { ConnectionStatus } from '/imports/client/components/ConnectionStatus.jsx';
-import { NotificationCenter } from '/imports/client/components/NotificationCenter.jsx';
+import JRPropTypes from '/imports/client/JRPropTypes.js';
+import ConnectionStatus from '/imports/client/components/ConnectionStatus.jsx';
+import NotificationCenter from '/imports/client/components/NotificationCenter.jsx';
 import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 
 const SharedNavbar = React.createClass({
@@ -126,4 +126,4 @@ const App = React.createClass({
   },
 });
 
-export { App };
+export default App;
