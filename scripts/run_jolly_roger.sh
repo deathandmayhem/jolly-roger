@@ -19,11 +19,6 @@ if [ -z "${MAIL_URL+set}" ]; then
     export MAIL_URL="$(credstash get mailgun)"
 fi
 
-export KADIRA_APP_ID=q7S8XNdYngs3Qnb66
-if [ -z "${KADIRA_APP_SECRET+set}" ]; then
-    export KADIRA_APP_SECRET="$(credstash get kadira)"
-fi
-
 if [ -z "${HONEYCOMB_WRITE_KEY+set}" ]; then
     export HONEYCOMB_WRITE_KEY="$(credstash get honeycomb)"
 fi
