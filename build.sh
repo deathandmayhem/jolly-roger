@@ -11,7 +11,7 @@ apt-get install --no-install-recommends -y apt-transport-https ca-certificates
 apt-key adv --keyserver keyserver.ubuntu.com --recv-key D1CD49BDD30B677273A75C66E4EE62700D8A9E8F
 echo "deb http://debathena.mit.edu/apt trusty debathena debathena-config debathena-system" > /etc/apt/sources.list.d/debathena.list
 apt-key adv --keyserver keyserver.ubuntu.com --recv-key 9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280
-echo "deb https://deb.nodesource.com/node_4.x trusty main" > /etc/apt/sources.list.d/node.list
+echo "deb https://deb.nodesource.com/node_8.x trusty main" > /etc/apt/sources.list.d/node.list
 
 # Install build deps
 apt-get update
