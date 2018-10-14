@@ -105,9 +105,11 @@ you have the client ID, store it in the Meteor shell by running:
 
 ```js
 > ServiceConfiguration.configurations.upsert({service: 'google'}, {
-    clientId: 'CLIENT ID',
-    secret: 'SECRET',
-    loginStyle: 'popup',
+    $set: {
+      clientId: 'CLIENT ID',
+      secret: 'SECRET',
+      loginStyle: 'popup',
+    },
   })
 ```
 

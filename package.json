@@ -16,7 +16,7 @@
     "classnames": "^2.2.5",
     "element-resize-detector": "^1.1.14",
     "express": "^4.14.0",
-    "googleapis": "^10.0.0",
+    "googleapis": "^34.0.0",
     "history": "^2.0.0",
     "libhoney": "^1.0.0-beta.2",
     "logfmt": "^1.2.0",
@@ -31,7 +31,8 @@
     "react-router": "^2.5.2",
     "react-router-bootstrap": "^0.23.0",
     "react-split-pane": "^0.1.84",
-    "react-textarea-autosize": "^4.0.4"
+    "react-textarea-autosize": "^4.0.4",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "assert": "^1.4.1",
