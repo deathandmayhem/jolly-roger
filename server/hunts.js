@@ -3,7 +3,6 @@ import { check } from 'meteor/check';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
 import { List } from '/imports/server/blanche.js';
-import { huntFixtures } from '/imports/fixtures.js';
 import { Accounts } from 'meteor/accounts-base';
 import { Email } from 'meteor/email';
 
@@ -38,7 +37,7 @@ Meteor.methods({
     check(huntId, String);
     check(email, String);
 
-    const hunt = huntFixtures[huntId] || Models.Hunts.findOne(huntId);
+    const hunt = Models.Hunts.findOne(huntId);
     if (!hunt) {
       throw new Meteor.Error(404, 'Unknown hunt');
     }
