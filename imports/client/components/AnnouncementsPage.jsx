@@ -3,7 +3,7 @@ import moment from 'moment';
 import React from 'react';
 import BS from 'react-bootstrap';
 import marked from 'marked';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import JRPropTypes from '/imports/client/JRPropTypes.js';
 import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
@@ -177,4 +177,4 @@ const AnnouncementsPage = React.createClass({
   },
 });
 
-export { AnnouncementsPage };
+export default AnnouncementsPage;

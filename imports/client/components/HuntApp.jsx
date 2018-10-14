@@ -3,10 +3,10 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import BS from 'react-bootstrap';
 import DocumentTitle from 'react-document-title';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import JRPropTypes from '/imports/client/JRPropTypes.js';
 import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { CelebrationCenter } from '/imports/client/components/CelebrationCenter.jsx';
+import CelebrationCenter from '/imports/client/components/CelebrationCenter.jsx';
 import marked from 'marked';
 
 const HuntDeletedError = React.createClass({
@@ -185,4 +185,4 @@ const HuntApp = React.createClass({
   },
 });
 
-export { HuntApp };
+export default HuntApp;

@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import JRPropTypes from '/imports/client/JRPropTypes.js';
 import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
@@ -445,4 +445,4 @@ const ProfilePage = React.createClass({
   },
 });
 
-export { ProfilePage };
+export default ProfilePage;

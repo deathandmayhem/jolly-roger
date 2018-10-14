@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { _ } from 'meteor/underscore';
 import Ansible from '/imports/ansible.js';
-import { List } from '/imports/server/blanche.js';
+import List from '/imports/server/blanche.js';
 import { Accounts } from 'meteor/accounts-base';
 import { Email } from 'meteor/email';
 

@@ -95,4 +95,4 @@ const UserInvitePage = React.createClass({
   },
 });
 
-export { UserInvitePage };
+export default UserInvitePage;

@@ -3,14 +3,14 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { Link, browserHistory } from 'react-router';
-import { JRPropTypes } from '/imports/client/JRPropTypes.js';
+import JRPropTypes from '/imports/client/JRPropTypes.js';
 import {
   PuzzleList,
   RelatedPuzzleGroup,
   PuzzleModalForm,
 } from '/imports/client/components/PuzzleComponents.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { Flags } from '/imports/flags.js';
+import Flags from '/imports/flags.js';
 
 /* eslint-disable max-len */
 
@@ -420,4 +420,4 @@ const PuzzleListPage = React.createClass({
   },
 });
 
-export { PuzzleListPage };
+export default PuzzleListPage;

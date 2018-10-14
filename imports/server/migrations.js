@@ -10,4 +10,5 @@ function dropIndex(model, index) {
   }
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export { dropIndex };

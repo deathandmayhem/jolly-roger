@@ -33,4 +33,4 @@ const Flags = {
   },
 };
 
-export { Flags };
+export default Flags;

@@ -128,4 +128,4 @@ const ProfileList = React.createClass({
   },
 });
 
-export { ProfileList };
+export default ProfileList;

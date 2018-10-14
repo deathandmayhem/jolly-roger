@@ -63,4 +63,4 @@ const ConnectionStatus = React.createClass({
   },
 });
 
-export { ConnectionStatus };
+export default ConnectionStatus;

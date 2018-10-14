@@ -5,4 +5,4 @@ const JRPropTypes = {
   subs: React.PropTypes.instanceOf(SubsCache).isRequired,
 };
 
-export { JRPropTypes };
+export default JRPropTypes;

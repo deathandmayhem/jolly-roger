@@ -1,5 +1,5 @@
 import React from 'react';
-import { AccountForm } from '/imports/client/components/AccountForm.jsx';
+import AccountForm from '/imports/client/components/AccountForm.jsx';
 
 const EnrollForm = React.createClass({
   propTypes: {
@@ -13,4 +13,4 @@ const EnrollForm = React.createClass({
   },
 });
 
-export { EnrollForm };
+export default EnrollForm;

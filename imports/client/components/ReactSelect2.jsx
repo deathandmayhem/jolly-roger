@@ -111,4 +111,4 @@ const ReactSelect2 = React.createClass({
   },
 });
 
-export { ReactSelect2 };
+export default ReactSelect2;
