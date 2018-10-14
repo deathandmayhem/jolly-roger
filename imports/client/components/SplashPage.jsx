@@ -1,9 +1,10 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import BS from 'react-bootstrap';
 
 const SplashPage = React.createClass({
   propTypes: {
-    children: React.PropTypes.node,
+    children: PropTypes.node,
   },
   render() {
     return (

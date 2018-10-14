@@ -22,6 +22,7 @@
     "logfmt": "^1.2.0",
     "marked": "^0.3.5",
     "moment": "^2.14.1",
+    "prop-types": "^15.6.2",
     "react": "^15.2.1",
     "react-addons-pure-render-mixin": "^15.2.1",
     "react-bootstrap": "^0.30.7",

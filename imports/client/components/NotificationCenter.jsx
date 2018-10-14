@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import BS from 'react-bootstrap';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
@@ -15,7 +16,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 
 const MessengerDismissButton = React.createClass({
   propTypes: {
-    onDismiss: React.PropTypes.func.isRequired,
+    onDismiss: PropTypes.func.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -27,8 +28,8 @@ const MessengerDismissButton = React.createClass({
 
 const MessengerContent = React.createClass({
   propTypes: {
-    dismissable: React.PropTypes.bool,
-    children: React.PropTypes.node,
+    dismissable: PropTypes.bool,
+    children: PropTypes.node,
   },
 
   mixins: [PureRenderMixin],
@@ -53,10 +54,10 @@ const MessengerSpinner = React.createClass({
 
 const GuessMessage = React.createClass({
   propTypes: {
-    guess: React.PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
-    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
-    guesser: React.PropTypes.string.isRequired,
-    onDismiss: React.PropTypes.func.isRequired,
+    guess: PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
+    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    guesser: PropTypes.string.isRequired,
+    onDismiss: PropTypes.func.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -132,7 +133,7 @@ const GuessMessage = React.createClass({
 
 const SlackMessage = React.createClass({
   propTypes: {
-    onDismiss: React.PropTypes.func.isRequired,
+    onDismiss: PropTypes.func.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -210,9 +211,9 @@ const SlackMessage = React.createClass({
 
 const AnnouncementMessage = React.createClass({
   propTypes: {
-    id: React.PropTypes.string.isRequired,
-    announcement: React.PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
-    createdByDisplayName: React.PropTypes.string.isRequired,
+    id: PropTypes.string.isRequired,
+    announcement: PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
+    createdByDisplayName: PropTypes.string.isRequired,
   },
 
   mixins: [PureRenderMixin],

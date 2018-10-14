@@ -1,14 +1,15 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import BS, { Button } from 'react-bootstrap';
 
 const ModalForm = React.createClass({
   propTypes: {
-    title: React.PropTypes.string.isRequired,
-    submitLabel: React.PropTypes.string,
-    submitStyle: React.PropTypes.oneOf(Button.STYLES),
-    submitDisabled: React.PropTypes.bool,
-    onSubmit: React.PropTypes.func.isRequired,
-    children: React.PropTypes.node,
+    title: PropTypes.string.isRequired,
+    submitLabel: PropTypes.string,
+    submitStyle: PropTypes.oneOf(Button.STYLES),
+    submitDisabled: PropTypes.bool,
+    onSubmit: PropTypes.func.isRequired,
+    children: PropTypes.node,
   },
 
   getDefaultProps() {

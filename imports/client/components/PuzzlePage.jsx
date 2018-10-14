@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import BS from 'react-bootstrap';
@@ -40,7 +41,7 @@ const DefaultChatHeight = '60%';
 
 const ViewersList = React.createClass({
   propTypes: {
-    name: React.PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
   },
 
   contextTypes: {
@@ -98,7 +99,7 @@ const ViewersList = React.createClass({
 
 const ViewersModal = React.createClass({
   propTypes: {
-    name: React.PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
   },
 
   getInitialState() {
@@ -131,8 +132,8 @@ const ViewersModal = React.createClass({
 
 const ViewCountDisplay = React.createClass({
   propTypes: {
-    count: React.PropTypes.number.isRequired,
-    name: React.PropTypes.string.isRequired,
+    count: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
   },
 
   mixins: [ReactMeteorData],
@@ -172,18 +173,18 @@ const ViewCountDisplay = React.createClass({
 
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
-    activePuzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
-    allPuzzles: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    activePuzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    allPuzzles: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Puzzles.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    allTags: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    allTags: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Tags.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    canUpdate: React.PropTypes.bool.isRequired,
+    canUpdate: PropTypes.bool.isRequired,
   },
   mixins: [PureRenderMixin],
   render() {
@@ -204,9 +205,9 @@ const RelatedPuzzleSection = React.createClass({
 
 const ChatMessage = React.createClass({
   propTypes: {
-    message: React.PropTypes.shape(FilteredChatMessagePropTypes).isRequired,
-    senderDisplayName: React.PropTypes.string.isRequired,
-    isSystemMessage: React.PropTypes.bool.isRequired,
+    message: PropTypes.shape(FilteredChatMessagePropTypes).isRequired,
+    senderDisplayName: PropTypes.string.isRequired,
+    isSystemMessage: PropTypes.bool.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -229,12 +230,12 @@ const ChatMessage = React.createClass({
 
 const ChatHistory = React.createClass({
   propTypes: {
-    chatMessages: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    chatMessages: PropTypes.arrayOf(
+      PropTypes.shape(
         FilteredChatMessagePropTypes
       ).isRequired
     ).isRequired,
-    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
+    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -312,9 +313,9 @@ const ChatHistory = React.createClass({
 
 const ChatInput = React.createClass({
   propTypes: {
-    onHeightChange: React.PropTypes.func,
-    onMessageSent: React.PropTypes.func,
-    puzzleId: React.PropTypes.string,
+    onHeightChange: PropTypes.func,
+    onMessageSent: PropTypes.func,
+    puzzleId: PropTypes.string,
   },
 
   mixins: [PureRenderMixin],
@@ -388,14 +389,14 @@ const ChatInput = React.createClass({
 
 const ChatSection = React.createClass({
   propTypes: {
-    chatReady: React.PropTypes.bool.isRequired,
-    chatMessages: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    chatReady: PropTypes.bool.isRequired,
+    chatMessages: PropTypes.arrayOf(
+      PropTypes.shape(
         FilteredChatMessagePropTypes
       ).isRequired
     ).isRequired,
-    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
-    puzzleId: React.PropTypes.string.isRequired,
+    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
+    puzzleId: PropTypes.string.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -425,29 +426,29 @@ const ChatSection = React.createClass({
 
 const PuzzlePageSidebar = React.createClass({
   propTypes: {
-    activePuzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
-    allPuzzles: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    activePuzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    allPuzzles: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Puzzles.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    allTags: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    allTags: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Tags.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    chatReady: React.PropTypes.bool.isRequired,
-    chatMessages: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    chatReady: PropTypes.bool.isRequired,
+    chatMessages: PropTypes.arrayOf(
+      PropTypes.shape(
         FilteredChatMessagePropTypes
       ).isRequired
     ).isRequired,
-    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
-    canUpdate: React.PropTypes.bool.isRequired,
-    isDesktop: React.PropTypes.bool.isRequired,
-    isStackable: React.PropTypes.bool.isRequired,
-    showRelated: React.PropTypes.bool.isRequired,
-    onChangeShowRelated: React.PropTypes.func.isRequired,
+    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
+    canUpdate: PropTypes.bool.isRequired,
+    isDesktop: PropTypes.bool.isRequired,
+    isStackable: PropTypes.bool.isRequired,
+    showRelated: PropTypes.bool.isRequired,
+    onChangeShowRelated: PropTypes.func.isRequired,
   },
   mixins: [PureRenderMixin],
 
@@ -515,20 +516,20 @@ const PuzzlePageSidebar = React.createClass({
 
 const PuzzlePageMetadata = React.createClass({
   propTypes: {
-    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
-    allTags: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    allTags: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Tags.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    guesses: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    guesses: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Guesses.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
-    document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()),
-    isDesktop: React.PropTypes.bool.isRequired,
+    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
+    document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
+    isDesktop: PropTypes.bool.isRequired,
   },
 
   mixins: [ReactMeteorData],
@@ -667,14 +668,14 @@ const PuzzlePageMetadata = React.createClass({
 
 const PuzzleGuessModal = React.createClass({
   propTypes: {
-    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
-    guesses: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    guesses: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Guesses.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
-    onSubmit: React.PropTypes.func,
+    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
+    onSubmit: PropTypes.func,
   },
 
   getInitialState() {
@@ -864,7 +865,7 @@ const PuzzleGuessModal = React.createClass({
 
 const PuzzlePageMultiplayerDocument = React.createClass({
   propTypes: {
-    document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()),
+    document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
   },
 
   mixins: [PureRenderMixin],
@@ -888,20 +889,20 @@ const PuzzlePageMultiplayerDocument = React.createClass({
 
 const PuzzlePageContent = React.createClass({
   propTypes: {
-    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
-    allTags: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    allTags: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Tags.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    guesses: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    guesses: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Guesses.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
-    document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()),
-    isDesktop: React.PropTypes.bool.isRequired,
+    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
+    document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
+    isDesktop: PropTypes.bool.isRequired,
   },
   mixins: [PureRenderMixin],
   render() {
@@ -937,9 +938,9 @@ const findPuzzleById = function (puzzles, id) {
 const PuzzlePage = React.createClass({
   propTypes: {
     // hunt id and puzzle id comes from route?
-    params: React.PropTypes.shape({
-      huntId: React.PropTypes.string.isRequired,
-      puzzleId: React.PropTypes.string.isRequired,
+    params: PropTypes.shape({
+      huntId: PropTypes.string.isRequired,
+      puzzleId: PropTypes.string.isRequired,
     }).isRequired,
   },
 

@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import moment from 'moment';
+import PropTypes from 'prop-types';
 import React from 'react';
 import BS from 'react-bootstrap';
 import marked from 'marked';
@@ -11,7 +12,7 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 const AnnouncementForm = React.createClass({
   propTypes: {
-    huntId: React.PropTypes.string.isRequired,
+    huntId: PropTypes.string.isRequired,
   },
 
   getInitialState() {
@@ -76,8 +77,8 @@ const AnnouncementForm = React.createClass({
 
 const Announcement = React.createClass({
   propTypes: {
-    announcement: React.PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
-    displayNames: React.PropTypes.objectOf(React.PropTypes.string.isRequired).isRequired,
+    announcement: PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
+    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
   },
 
   render() {
@@ -99,8 +100,8 @@ const Announcement = React.createClass({
 
 const AnnouncementsPage = React.createClass({
   propTypes: {
-    params: React.PropTypes.shape({
-      huntId: React.PropTypes.string.isRequired,
+    params: PropTypes.shape({
+      huntId: PropTypes.string.isRequired,
     }).isRequired,
   },
 

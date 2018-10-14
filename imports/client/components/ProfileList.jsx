@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { _ } from 'meteor/underscore';
 import BS from 'react-bootstrap';
@@ -5,10 +6,10 @@ import RRBS from 'react-router-bootstrap';
 
 const ProfileList = React.createClass({
   propTypes: {
-    huntId: React.PropTypes.string,
-    canInvite: React.PropTypes.bool,
-    profiles: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    huntId: PropTypes.string,
+    canInvite: PropTypes.bool,
+    profiles: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Profiles.asReactPropTypes()
       ).isRequired
     ).isRequired,

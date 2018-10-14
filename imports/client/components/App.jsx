@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import PropTypes from 'prop-types';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { Link } from 'react-router';
@@ -69,7 +70,7 @@ const SharedNavbar = React.createClass({
 // TODO: clean this up and dedupe navbar stuff when you figure out breadcrumbs
 const FullscreenLayout = React.createClass({
   propTypes: {
-    children: React.PropTypes.node,
+    children: PropTypes.node,
   },
 
   render() {
@@ -91,7 +92,7 @@ const FullscreenLayout = React.createClass({
 
 const ScrollableLayout = React.createClass({
   propTypes: {
-    children: React.PropTypes.node,
+    children: PropTypes.node,
   },
 
   render() {
@@ -111,7 +112,7 @@ const ScrollableLayout = React.createClass({
 
 const App = React.createClass({
   propTypes: {
-    routes: React.PropTypes.array,
+    routes: PropTypes.array,
   },
   render() {
     // Hack: see if the leaf route wants the fullscreen layout.

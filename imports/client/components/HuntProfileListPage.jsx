@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import PropTypes from 'prop-types';
 import React from 'react';
 import JRPropTypes from '/imports/client/JRPropTypes.js';
 import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
@@ -7,8 +8,8 @@ import ProfileList from '/imports/client/components/ProfileList.jsx';
 
 const HuntProfileListPage = React.createClass({
   propTypes: {
-    params: React.PropTypes.shape({
-      huntId: React.PropTypes.string.isRequired,
+    params: PropTypes.shape({
+      huntId: PropTypes.string.isRequired,
     }).isRequired,
   },
 

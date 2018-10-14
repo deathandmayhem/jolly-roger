@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { Link, browserHistory } from 'react-router';
@@ -17,17 +18,17 @@ import Flags from '/imports/flags.js';
 const PuzzleListView = React.createClass({
   displayName: 'PuzzleListView',
   propTypes: {
-    location: React.PropTypes.object,
-    huntId: React.PropTypes.string.isRequired,
-    canAdd: React.PropTypes.bool.isRequired,
-    canUpdate: React.PropTypes.bool.isRequired,
-    puzzles: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    location: PropTypes.object,
+    huntId: PropTypes.string.isRequired,
+    canAdd: PropTypes.bool.isRequired,
+    canUpdate: PropTypes.bool.isRequired,
+    puzzles: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Puzzles.asReactPropTypes()
       )
     ).isRequired,
-    allTags: React.PropTypes.arrayOf(
-      React.PropTypes.shape(
+    allTags: PropTypes.arrayOf(
+      PropTypes.shape(
         Schemas.Tags.asReactPropTypes()
       )
     ).isRequired,
@@ -365,10 +366,10 @@ const PuzzleListView = React.createClass({
 
 const PuzzleListPage = React.createClass({
   propTypes: {
-    params: React.PropTypes.shape({
-      huntId: React.PropTypes.string.isRequired,
+    params: PropTypes.shape({
+      huntId: PropTypes.string.isRequired,
     }).isRequired,
-    location: React.PropTypes.object,
+    location: PropTypes.object,
   },
 
   contextTypes: {

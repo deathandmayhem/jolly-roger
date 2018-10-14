@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { Random } from 'meteor/random';
 
@@ -8,11 +9,11 @@ const LabelledRadio = React.createClass({
   // accessibility-friendly markup, so here's a touch of our own instead.  Uses some bootstrap
   // styles.
   propTypes: {
-    name: React.PropTypes.string.isRequired,
-    value: React.PropTypes.string.isRequired,
-    label: React.PropTypes.string.isRequired,
-    defaultChecked: React.PropTypes.bool,
-    onChange: React.PropTypes.func.isRequired,
+    name: PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+    defaultChecked: PropTypes.bool,
+    onChange: PropTypes.func.isRequired,
   },
 
   componentWillMount() {
@@ -48,17 +49,17 @@ const LabelledRadio = React.createClass({
 
 const LabelledRadioGroup = React.createClass({
   propTypes: {
-    header: React.PropTypes.string.isRequired,
-    name: React.PropTypes.string.isRequired, // The name of the exclusive group for the radio buttons
-    options: React.PropTypes.arrayOf(
-      React.PropTypes.shape({
-        label: React.PropTypes.string.isRequired,
-        value: React.PropTypes.string.isRequired,
+    header: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired, // The name of the exclusive group for the radio buttons
+    options: PropTypes.arrayOf(
+      PropTypes.shape({
+        label: PropTypes.string.isRequired,
+        value: PropTypes.string.isRequired,
       }).isRequired
     ).isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    initialValue: React.PropTypes.string,
-    help: React.PropTypes.string,
+    onChange: PropTypes.func.isRequired,
+    initialValue: PropTypes.string,
+    help: PropTypes.string,
   },
 
   getInitialState() {

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
@@ -7,7 +8,7 @@ import Celebration from '/imports/client/components/Celebration.jsx';
 
 const CelebrationCenter = React.createClass({
   propTypes: {
-    huntId: React.PropTypes.string.isRequired,
+    huntId: PropTypes.string.isRequired,
   },
 
   contextTypes: {

@@ -1,11 +1,12 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import BS from 'react-bootstrap';
 import DeepLink from '/imports/client/components/DeepLink.jsx';
 
 const GoogleDocumentDisplay = React.createClass({
   propTypes: {
-    document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()).isRequired,
-    displayMode: React.PropTypes.oneOf(['link', 'embed']),
+    document: PropTypes.shape(Schemas.Documents.asReactPropTypes()).isRequired,
+    displayMode: PropTypes.oneOf(['link', 'embed']),
   },
 
   render() {
@@ -53,8 +54,8 @@ const GoogleDocumentDisplay = React.createClass({
 
 const DocumentDisplay = React.createClass({
   propTypes: {
-    document: React.PropTypes.shape(Schemas.Documents.asReactPropTypes()).isRequired,
-    displayMode: React.PropTypes.oneOf(['link', 'embed']),
+    document: PropTypes.shape(Schemas.Documents.asReactPropTypes()).isRequired,
+    displayMode: PropTypes.oneOf(['link', 'embed']),
   },
 
   render() {

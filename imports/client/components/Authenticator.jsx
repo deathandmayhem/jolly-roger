@@ -1,14 +1,15 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { browserHistory } from 'react-router';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 
 const Authenticator = React.createClass({
   propTypes: {
-    route: React.PropTypes.object,
-    children: React.PropTypes.node,
-    location: React.PropTypes.object,
+    route: PropTypes.object,
+    children: PropTypes.node,
+    location: PropTypes.object,
   },
 
   mixins: [ReactMeteorData],
