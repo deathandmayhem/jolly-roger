@@ -3,7 +3,7 @@ import React from 'react';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
-import { navAggregatorType } from './NavAggregator.jsx';
+import navAggregatorType from './navAggregatorType.jsx';
 
 /* eslint-disable max-len */
 

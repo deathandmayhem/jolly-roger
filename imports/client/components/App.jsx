@@ -11,7 +11,7 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 import JRPropTypes from '../JRPropTypes.js';
 import ConnectionStatus from './ConnectionStatus.jsx';
 import NotificationCenter from './NotificationCenter.jsx';
-import { navAggregatorType } from './NavAggregator.jsx';
+import navAggregatorType from './navAggregatorType.jsx';
 
 const SharedNavbar = React.createClass({
   contextTypes: {

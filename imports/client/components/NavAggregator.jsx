@@ -101,6 +101,4 @@ class NavAggregator {
   }
 }
 
-const navAggregatorType = PropTypes.instanceOf(NavAggregator).isRequired;
-
-export { NavAggregator, navAggregatorType };
+export default NavAggregator;

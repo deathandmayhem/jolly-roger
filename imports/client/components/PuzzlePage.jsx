@@ -24,7 +24,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
 import JRPropTypes from '../JRPropTypes.js';
-import { navAggregatorType } from './NavAggregator.jsx';
+import navAggregatorType from './navAggregatorType.jsx';
 import ModalForm from './ModalForm.jsx';
 import PuzzleModalForm from './PuzzleModalForm.jsx';
 import RelatedPuzzleGroups from './RelatedPuzzleGroups.jsx';

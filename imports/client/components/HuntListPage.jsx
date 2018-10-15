@@ -15,7 +15,7 @@ import { Link } from 'react-router';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
 import JRPropTypes from '../JRPropTypes.js';
-import { navAggregatorType } from './NavAggregator.jsx';
+import navAggregatorType from './navAggregatorType.jsx';
 import ModalForm from './ModalForm.jsx';
 
 /* eslint-disable max-len */

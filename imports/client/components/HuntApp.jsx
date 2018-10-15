@@ -9,7 +9,7 @@ import DocumentTitle from 'react-document-title';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import marked from 'marked';
 import JRPropTypes from '../JRPropTypes.js';
-import { navAggregatorType } from './NavAggregator.jsx';
+import navAggregatorType from './navAggregatorType.jsx';
 import CelebrationCenter from './CelebrationCenter.jsx';
 
 const HuntDeletedError = React.createClass({
