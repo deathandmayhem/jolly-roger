@@ -1,5 +1,5 @@
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-import { huntsMatchingCurrentUser } from '/imports/model-helpers.js';
+import { huntsMatchingCurrentUser } from '../../model-helpers.js';
 
 // A single chat message
 Schemas.ChatMessages = new SimpleSchema([

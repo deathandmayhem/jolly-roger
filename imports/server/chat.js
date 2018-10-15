@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import { postSlackMessage } from '/imports/server/slack.js';
+import { postSlackMessage } from './slack.js';
 
 Meteor.methods({
   sendChatMessage(puzzleId, message) {

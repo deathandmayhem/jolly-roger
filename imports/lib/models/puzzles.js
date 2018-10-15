@@ -1,5 +1,5 @@
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-import { answerify, huntsMatchingCurrentUser } from '/imports/model-helpers.js';
+import { answerify, huntsMatchingCurrentUser } from '../../model-helpers.js';
 
 Schemas.Puzzles = new SimpleSchema([
   Schemas.Base,

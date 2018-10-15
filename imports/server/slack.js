@@ -1,5 +1,5 @@
 import { HTTP } from 'meteor/http';
-import Ansible from '/imports/ansible.js';
+import Ansible from '../ansible.js';
 
 function postSlackMessage(message, channel, username) {
   const config = ServiceConfiguration.configurations.findOne({ service: 'slack' });

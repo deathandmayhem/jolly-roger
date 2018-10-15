@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
-import Ansible from '/imports/ansible.js';
 import { _ } from 'meteor/underscore';
+import Ansible from '../ansible.js';
 
 const MimeTypes = {
   spreadsheet: 'application/vnd.google-apps.spreadsheet',

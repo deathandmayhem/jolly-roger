@@ -1,10 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import PropTypes from 'prop-types';
 import React from 'react';
-import JRPropTypes from '/imports/client/JRPropTypes.js';
-import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import ProfileList from '/imports/client/components/ProfileList.jsx';
+import JRPropTypes from '../JRPropTypes.js';
+import { navAggregatorType } from './NavAggregator.jsx';
+import ProfileList from './ProfileList.jsx';
 
 const HuntProfileListPage = React.createClass({
   propTypes: {

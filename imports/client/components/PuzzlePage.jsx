@@ -4,25 +4,25 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import BS from 'react-bootstrap';
-import Ansible from '/imports/ansible.js';
 import DocumentTitle from 'react-document-title';
 import classnames from 'classnames';
 import marked from 'marked';
 import moment from 'moment';
-import JRPropTypes from '/imports/client/JRPropTypes.js';
-import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
-import ModalForm from '/imports/client/components/ModalForm.jsx';
 import TextareaAutosize from 'react-textarea-autosize';
+import { ReactMeteorData } from 'meteor/react-meteor-data';
+import Ansible from '../../ansible.js';
+import JRPropTypes from '../JRPropTypes.js';
+import { navAggregatorType } from './NavAggregator.jsx';
+import ModalForm from './ModalForm.jsx';
 import {
   TagList,
   RelatedPuzzleGroups,
   PuzzleModalForm,
-} from '/imports/client/components/PuzzleComponents.jsx';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { Subscribers, SubscriberCounters } from '/imports/client/subscribers.js';
-import Flags from '/imports/flags.js';
-import SplitPanePlus from '/imports/client/components/SplitPanePlus.jsx';
-import DocumentDisplay from '/imports/client/components/Documents.jsx';
+} from './PuzzleComponents.jsx';
+import { Subscribers, SubscriberCounters } from '../subscribers.js';
+import Flags from '../../flags.js';
+import SplitPanePlus from './SplitPanePlus.jsx';
+import DocumentDisplay from './Documents.jsx';
 
 /* eslint-disable max-len, no-console */
 

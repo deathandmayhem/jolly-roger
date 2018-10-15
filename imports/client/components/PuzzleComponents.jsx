@@ -6,14 +6,14 @@ import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
 import classnames from 'classnames';
-import Ansible from '/imports/ansible.js';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
-import ModalForm from '/imports/client/components/ModalForm.jsx';
-import ReactSelect2 from '/imports/client/components/ReactSelect2.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { SubscriberCounters } from '/imports/client/subscribers.js';
-import Flags from '/imports/flags.js';
-import LabelledRadioGroup from '/imports/client/components/LabelledRadioGroup.jsx';
+import Ansible from '../../ansible.js';
+import ModalForm from './ModalForm.jsx';
+import ReactSelect2 from './ReactSelect2.jsx';
+import { SubscriberCounters } from '../subscribers.js';
+import Flags from '../../flags.js';
+import LabelledRadioGroup from './LabelledRadioGroup.jsx';
 
 /* eslint-disable max-len */
 

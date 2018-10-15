@@ -5,10 +5,10 @@ import BS from 'react-bootstrap';
 import { Link } from 'react-router';
 import RRBS from 'react-router-bootstrap';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import JRPropTypes from '/imports/client/JRPropTypes.js';
-import ConnectionStatus from '/imports/client/components/ConnectionStatus.jsx';
-import NotificationCenter from '/imports/client/components/NotificationCenter.jsx';
-import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
+import JRPropTypes from '../JRPropTypes.js';
+import ConnectionStatus from './ConnectionStatus.jsx';
+import NotificationCenter from './NotificationCenter.jsx';
+import { navAggregatorType } from './NavAggregator.jsx';
 
 const SharedNavbar = React.createClass({
   contextTypes: {

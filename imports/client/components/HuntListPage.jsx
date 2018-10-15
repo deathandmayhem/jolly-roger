@@ -4,11 +4,11 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
-import Ansible from '/imports/ansible.js';
-import JRPropTypes from '/imports/client/JRPropTypes.js';
-import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
-import ModalForm from '/imports/client/components/ModalForm.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import Ansible from '../../ansible.js';
+import JRPropTypes from '../JRPropTypes.js';
+import { navAggregatorType } from './NavAggregator.jsx';
+import ModalForm from './ModalForm.jsx';
 
 /* eslint-disable max-len */
 

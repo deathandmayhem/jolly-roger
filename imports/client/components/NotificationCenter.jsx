@@ -7,10 +7,10 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { Link } from 'react-router';
 import moment from 'moment';
 import marked from 'marked';
-import JRPropTypes from '/imports/client/JRPropTypes.js';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import classnames from 'classnames';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import JRPropTypes from '../JRPropTypes.js';
 
 /* eslint-disable max-len */
 

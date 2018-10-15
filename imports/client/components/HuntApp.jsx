@@ -4,11 +4,11 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import BS from 'react-bootstrap';
 import DocumentTitle from 'react-document-title';
-import JRPropTypes from '/imports/client/JRPropTypes.js';
-import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import CelebrationCenter from '/imports/client/components/CelebrationCenter.jsx';
 import marked from 'marked';
+import JRPropTypes from '../JRPropTypes.js';
+import { navAggregatorType } from './NavAggregator.jsx';
+import CelebrationCenter from './CelebrationCenter.jsx';
 
 const HuntDeletedError = React.createClass({
   propTypes: {
