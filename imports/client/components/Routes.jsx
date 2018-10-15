@@ -7,25 +7,25 @@ import {
 } from 'react-router';
 import DocumentTitle from 'react-document-title';
 import { SubsCache } from 'meteor/ccorcos:subs-cache';
-import JRPropTypes from '/imports/client/JRPropTypes.js';
-import AllProfileListPage from '/imports/client/components/AllProfileListPage.jsx';
-import App from '/imports/client/components/App.jsx';
-import AnnouncementsPage from '/imports/client/components/AnnouncementsPage.jsx';
-import Authenticator from '/imports/client/components/Authenticator.jsx';
-import EnrollForm from '/imports/client/components/EnrollForm.jsx';
-import GuessQueuePage from '/imports/client/components/GuessQueuePage.jsx';
-import HuntApp from '/imports/client/components/HuntApp.jsx';
-import HuntListPage from '/imports/client/components/HuntListPage.jsx';
-import HuntProfileListPage from '/imports/client/components/HuntProfileListPage.jsx';
-import LoginForm from '/imports/client/components/LoginForm.jsx';
-import { NavAggregator, navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
-import PasswordResetForm from '/imports/client/components/PasswordResetForm.jsx';
-import ProfilePage from '/imports/client/components/ProfilePage.jsx';
-import PuzzleListPage from '/imports/client/components/PuzzleListPage.jsx';
-import PuzzlePage from '/imports/client/components/PuzzlePage.jsx';
-import SetupPage from '/imports/client/components/SetupPage.jsx';
-import SplashPage from '/imports/client/components/SplashPage.jsx';
-import UserInvitePage from '/imports/client/components/UserInvitePage.jsx';
+import JRPropTypes from '../JRPropTypes.js';
+import AllProfileListPage from './AllProfileListPage.jsx';
+import App from './App.jsx';
+import AnnouncementsPage from './AnnouncementsPage.jsx';
+import Authenticator from './Authenticator.jsx';
+import EnrollForm from './EnrollForm.jsx';
+import GuessQueuePage from './GuessQueuePage.jsx';
+import HuntApp from './HuntApp.jsx';
+import HuntListPage from './HuntListPage.jsx';
+import HuntProfileListPage from './HuntProfileListPage.jsx';
+import LoginForm from './LoginForm.jsx';
+import { NavAggregator, navAggregatorType } from './NavAggregator.jsx';
+import PasswordResetForm from './PasswordResetForm.jsx';
+import ProfilePage from './ProfilePage.jsx';
+import PuzzleListPage from './PuzzleListPage.jsx';
+import PuzzlePage from './PuzzlePage.jsx';
+import SetupPage from './SetupPage.jsx';
+import SplashPage from './SplashPage.jsx';
+import UserInvitePage from './UserInvitePage.jsx';
 
 const Routes = React.createClass({
   childContextTypes: {

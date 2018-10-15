@@ -1,5 +1,5 @@
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-import { huntsMatchingCurrentUser } from '/imports/model-helpers.js';
+import { huntsMatchingCurrentUser } from '../../model-helpers.js';
 
 // A broadcast message from a hunt operator to be displayed
 // to all participants in the specified hunt.

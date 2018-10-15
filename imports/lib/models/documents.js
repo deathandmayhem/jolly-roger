@@ -1,5 +1,5 @@
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-import { huntsMatchingCurrentUser } from '/imports/model-helpers.js';
+import { huntsMatchingCurrentUser } from '../../model-helpers.js';
 
 Schemas.Documents = new SimpleSchema([
   Schemas.Base,

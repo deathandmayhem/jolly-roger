@@ -53,6 +53,9 @@
     // While this rule is generally useful, it currently gets confused by Meteor's import rewriting
     // for import { thing } from "meteor/meteorpackagename", so we need it to chill out.
     "import/no-extraneous-dependencies": ["off"],
+
+    // Absolute imports work with Meteor, but aren't well-understood by IDEs, like VS Code
+    "import/no-absolute-path": ["error"],
   },
   "globals": {
     // Long-term, reduce this list to nothing by making full use of import/export

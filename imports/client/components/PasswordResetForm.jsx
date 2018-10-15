@@ -1,5 +1,5 @@
 import React from 'react';
-import AccountForm from '/imports/client/components/AccountForm.jsx';
+import AccountForm from './AccountForm.jsx';
 
 const PasswordResetForm = React.createClass({
   propTypes: {

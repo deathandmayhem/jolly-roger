@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import Ansible from '/imports/ansible.js';
+import Ansible from '../ansible.js';
 
 Meteor.methods({
   setupGdriveCreds(key, secret) {

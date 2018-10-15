@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
 import { Random } from 'meteor/random';
-import Ansible from '/imports/ansible.js';
+import Ansible from '../ansible.js';
 
 const userForKeyOperation = function userForKeyOperation(currentUser, forUser) {
   const canOverrideUser = Roles.userHasRole(currentUser, 'admin');

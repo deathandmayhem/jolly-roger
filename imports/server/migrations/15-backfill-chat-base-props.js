@@ -1,5 +1,5 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import { dropIndex } from '/imports/server/migrations.js';
+import { dropIndex } from '../migrations.js';
 
 Migrations.add({
   version: 15,

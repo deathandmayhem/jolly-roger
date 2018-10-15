@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import Ansible from '/imports/ansible.js';
+import Ansible from '../ansible.js';
 
 function addChatMessage(guess, newState) {
   const message = `Guess ${guess.guess} was marked ${newState}`;

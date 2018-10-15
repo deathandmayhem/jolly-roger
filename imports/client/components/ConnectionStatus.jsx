@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
-import Ansible from '/imports/ansible.js';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import Ansible from '../../ansible.js';
 
 const ConnectionStatus = React.createClass({
   mixins: [ReactMeteorData],

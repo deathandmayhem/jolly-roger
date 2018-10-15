@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import { _ } from 'meteor/underscore';
-import Ansible from '/imports/ansible.js';
 import logfmt from 'logfmt';
+import Ansible from '../ansible.js';
 
 const summaryFromLoginInfo = function (info) {
   switch (info.methodName) {
