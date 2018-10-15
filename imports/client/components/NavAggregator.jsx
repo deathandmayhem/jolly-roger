@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { Breadcrumb, BreadcrumbItem } from 'react-bootstrap';
 import RRBS from 'react-router-bootstrap';
@@ -35,10 +36,10 @@ class NavAggregator {
       }
     }
     NavItem.propTypes = {
-      itemKey: React.PropTypes.string, // key that we want to place on the breadcrumb
-      to: React.PropTypes.string, // Route to which this item should link (if not the final item)
-      label: React.PropTypes.string, // Text to place in the breadcrumb
-      children: React.PropTypes.element,
+      itemKey: PropTypes.string, // key that we want to place on the breadcrumb
+      to: PropTypes.string, // Route to which this item should link (if not the final item)
+      label: PropTypes.string, // Text to place in the breadcrumb
+      children: PropTypes.element,
     };
 
     class NavBar extends React.Component {
@@ -84,9 +85,9 @@ class NavAggregator {
     }
     NavBar.propTypes = {
       // Override the type of the container
-      componentClass: React.PropTypes.instanceOf(React.Component),
+      componentClass: PropTypes.instanceOf(React.Component),
       // Override the type of the items
-      itemComponentClass: React.PropTypes.instanceOf(React.Component),
+      itemComponentClass: PropTypes.instanceOf(React.Component),
     };
 
     this.NavItem = NavItem;
@@ -100,6 +101,6 @@ class NavAggregator {
   }
 }
 
-const navAggregatorType = React.PropTypes.instanceOf(NavAggregator).isRequired;
+const navAggregatorType = PropTypes.instanceOf(NavAggregator).isRequired;
 
 export { NavAggregator, navAggregatorType };

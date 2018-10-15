@@ -1,10 +1,11 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import AccountForm from './AccountForm.jsx';
 
 const PasswordResetForm = React.createClass({
   propTypes: {
-    params: React.PropTypes.shape({
-      token: React.PropTypes.string.isRequired,
+    params: PropTypes.shape({
+      token: PropTypes.string.isRequired,
     }).isRequired,
   },
 

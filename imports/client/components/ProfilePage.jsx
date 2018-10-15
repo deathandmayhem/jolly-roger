@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import PropTypes from 'prop-types';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
@@ -9,9 +10,9 @@ import { navAggregatorType } from './NavAggregator.jsx';
 
 const OthersProfilePage = React.createClass({
   propTypes: {
-    profile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
-    viewerCanMakeOperator: React.PropTypes.bool.isRequired,
-    targetIsAdmin: React.PropTypes.bool.isRequired,
+    profile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
+    viewerCanMakeOperator: PropTypes.bool.isRequired,
+    targetIsAdmin: PropTypes.bool.isRequired,
   },
 
   makeOperator() {
@@ -38,7 +39,7 @@ const OthersProfilePage = React.createClass({
 
 const GoogleLinkBlock = React.createClass({
   propTypes: {
-    profile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
+    profile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
   },
 
   mixins: [ReactMeteorData],
@@ -169,9 +170,9 @@ const GoogleLinkBlock = React.createClass({
 
 const OwnProfilePage = React.createClass({
   propTypes: {
-    initialProfile: React.PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
-    operating: React.PropTypes.bool,
-    canMakeOperator: React.PropTypes.bool,
+    initialProfile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
+    operating: PropTypes.bool,
+    canMakeOperator: PropTypes.bool,
   },
   getInitialState() {
     return {
@@ -366,8 +367,8 @@ const OwnProfilePage = React.createClass({
 
 const ProfilePage = React.createClass({
   propTypes: {
-    params: React.PropTypes.shape({
-      userId: React.PropTypes.string.isRequired,
+    params: PropTypes.shape({
+      userId: PropTypes.string.isRequired,
     }).isRequired,
   },
 

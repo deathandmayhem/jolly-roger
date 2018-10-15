@@ -1,4 +1,5 @@
 import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import SplitPane from 'react-split-pane';
 import elementResizeDetectorMaker from 'element-resize-detector';
@@ -256,11 +257,11 @@ class SplitPanePlus extends React.Component {
 }
 
 SplitPanePlus.propTypes = _.extend({}, SplitPane.propTypes, {
-  autoCollapse1: React.PropTypes.number,
-  autoCollapse2: React.PropTypes.number,
-  collapsed: React.PropTypes.oneOf([0, 1, 2]),
-  scaling: React.PropTypes.oneOf(['absolute', 'relative']),
-  onCollapseChanged: React.PropTypes.func,
+  autoCollapse1: PropTypes.number,
+  autoCollapse2: PropTypes.number,
+  collapsed: PropTypes.oneOf([0, 1, 2]),
+  scaling: PropTypes.oneOf(['absolute', 'relative']),
+  onCollapseChanged: PropTypes.func,
 });
 
 SplitPanePlus.defaultProps = _.extend({}, SplitPane.defaultProps, {

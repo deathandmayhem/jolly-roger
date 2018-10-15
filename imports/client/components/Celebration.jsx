@@ -1,13 +1,14 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router';
 
 const Celebration = React.createClass({
   propTypes: {
-    url: React.PropTypes.string.isRequired,
-    title: React.PropTypes.string.isRequired,
-    answer: React.PropTypes.string.isRequired,
-    playAudio: React.PropTypes.bool.isRequired,
-    onClose: React.PropTypes.func.isRequired,
+    url: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    answer: PropTypes.string.isRequired,
+    playAudio: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
   },
 
   componentDidMount() {

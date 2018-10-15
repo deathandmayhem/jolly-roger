@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import BS from 'react-bootstrap';
 import DocumentTitle from 'react-document-title';
@@ -11,11 +12,11 @@ import CelebrationCenter from './CelebrationCenter.jsx';
 
 const HuntDeletedError = React.createClass({
   propTypes: {
-    huntId: React.PropTypes.string.isRequired,
+    huntId: PropTypes.string.isRequired,
   },
 
   contextTypes: {
-    router: React.PropTypes.object.isRequired,
+    router: PropTypes.object.isRequired,
   },
 
   mixins: [ReactMeteorData],
@@ -62,11 +63,11 @@ const HuntDeletedError = React.createClass({
 
 const HuntMemberError = React.createClass({
   propTypes: {
-    huntId: React.PropTypes.string.isRequired,
+    huntId: PropTypes.string.isRequired,
   },
 
   contextTypes: {
-    router: React.PropTypes.object.isRequired,
+    router: PropTypes.object.isRequired,
     subs: JRPropTypes.subs,
   },
 
@@ -117,10 +118,10 @@ const HuntMemberError = React.createClass({
 
 const HuntApp = React.createClass({
   propTypes: {
-    params: React.PropTypes.shape({
-      huntId: React.PropTypes.string.isRequired,
+    params: PropTypes.shape({
+      huntId: PropTypes.string.isRequired,
     }).isRequired,
-    children: React.PropTypes.node,
+    children: PropTypes.node,
   },
 
   contextTypes: {

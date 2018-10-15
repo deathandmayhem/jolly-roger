@@ -1,12 +1,13 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 const DeepLink = React.createClass({
   propTypes: {
-    children: React.PropTypes.node.isRequired,
-    nativeUrl: React.PropTypes.string.isRequired,
-    browserUrl: React.PropTypes.string.isRequired,
+    children: PropTypes.node.isRequired,
+    nativeUrl: PropTypes.string.isRequired,
+    browserUrl: PropTypes.string.isRequired,
   },
 
   getInitialState() {

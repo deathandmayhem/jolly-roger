@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router';
 import classnames from 'classnames';
@@ -11,7 +12,7 @@ import { navAggregatorType } from './NavAggregator.jsx';
 
 const AutoSelectInput = React.createClass({
   propTypes: {
-    value: React.PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
   },
 
   onFocus() {
@@ -33,10 +34,10 @@ const AutoSelectInput = React.createClass({
 
 const GuessBlock = React.createClass({
   propTypes: {
-    canEdit: React.PropTypes.bool.isRequired,
-    guess: React.PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
-    createdByDisplayName: React.PropTypes.string.isRequired,
-    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    canEdit: PropTypes.bool.isRequired,
+    guess: PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
+    createdByDisplayName: PropTypes.string.isRequired,
+    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
   },
 
   markPending() {
@@ -92,8 +93,8 @@ const GuessBlock = React.createClass({
 
 const GuessQueuePage = React.createClass({
   propTypes: {
-    params: React.PropTypes.shape({
-      huntId: React.PropTypes.string.isRequired,
+    params: PropTypes.shape({
+      huntId: PropTypes.string.isRequired,
     }).isRequired,
   },
 

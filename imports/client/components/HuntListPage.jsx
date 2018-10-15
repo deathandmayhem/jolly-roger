@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
@@ -22,8 +23,8 @@ const splitLists = function (lists) {
 
 const HuntModalForm = React.createClass({
   propTypes: {
-    hunt: React.PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
-    onSubmit: React.PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
+    hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
+    onSubmit: PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
   },
 
   getInitialState() {
@@ -234,7 +235,7 @@ const HuntModalForm = React.createClass({
 
 const Hunt = React.createClass({
   propTypes: {
-    hunt: React.PropTypes.shape(Schemas.Hunts.asReactPropTypes()).isRequired,
+    hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()).isRequired,
   },
 
   mixins: [ReactMeteorData],

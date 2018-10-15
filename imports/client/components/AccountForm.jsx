@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
+import PropTypes from 'prop-types';
 import React from 'react';
 import BS from 'react-bootstrap';
 
@@ -7,9 +8,9 @@ import BS from 'react-bootstrap';
 
 const AccountForm = React.createClass({
   propTypes: {
-    format: React.PropTypes.string,
-    onFormatChange: React.PropTypes.func,
-    token: React.PropTypes.string,
+    format: PropTypes.string,
+    onFormatChange: PropTypes.func,
+    token: PropTypes.string,
   },
   getInitialState() {
     return {

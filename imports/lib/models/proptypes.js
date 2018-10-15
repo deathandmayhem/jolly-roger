@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 
 const mapKeyToReactPropTypes = function (schema, key) {
@@ -10,23 +10,23 @@ const mapKeyToReactPropTypes = function (schema, key) {
 
   // Add more types as needed.
   if (type === String) {
-    reactType = React.PropTypes.string;
+    reactType = PropTypes.string;
   } else if (type === Boolean) {
-    reactType = React.PropTypes.bool;
+    reactType = PropTypes.bool;
   } else if (type === Number) {
-    reactType = React.PropTypes.number;
+    reactType = PropTypes.number;
   } else if (type === Date) {
-    reactType = React.PropTypes.object;
+    reactType = PropTypes.object;
   } else if (type === Array) {
     // eslint-disable-next-line prefer-template
     const innerType = mapKeyToReactPropTypes(schema, key + '.$');
-    reactType = React.PropTypes.arrayOf(innerType);
+    reactType = PropTypes.arrayOf(innerType);
   } else if (type === Object) {
     // TODO: be more specific about the shape of the object
     // We should be able to learn some things about the shape of this field if there are
-    // schema rules named field.*, and then we should use React.PropTypes.shape instead.
+    // schema rules named field.*, and then we should use PropTypes.shape instead.
     // If field.blackbox is true, though, this is meant to be an opaque object.
-    reactType = React.PropTypes.object;
+    reactType = PropTypes.object;
   }
 
   if (reactType === undefined) {
@@ -42,7 +42,7 @@ const mapKeyToReactPropTypes = function (schema, key) {
   return reactType;
 };
 
-// Converts a SimpleSchema into a React.PropTypes-compatible structure by reaching into
+// Converts a SimpleSchema into a PropTypes-compatible structure by reaching into
 // SimpleSchema's internals, to allow specifying props that match the DB shape exactly.
 // Yay, pseudo-typechecking.
 // Note that this shape is neither complete nor as expressive as the schema.

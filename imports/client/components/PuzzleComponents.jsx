@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { jQuery } from 'meteor/jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router';
 import BS from 'react-bootstrap';
@@ -83,12 +84,12 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(puzzles, sharedTag, indexedTags
 const PuzzleModalForm = React.createClass({
   displayName: 'PuzzleModalForm',
   propTypes: {
-    huntId: React.PropTypes.string.isRequired,
-    puzzle: React.PropTypes.shape(Schemas.Puzzles.asReactPropTypes()),
-    tags: React.PropTypes.arrayOf( // All known tags for this hunt
-      React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
+    huntId: PropTypes.string.isRequired,
+    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()),
+    tags: PropTypes.arrayOf( // All known tags for this hunt
+      PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
     ).isRequired,
-    onSubmit: React.PropTypes.func.isRequired,
+    onSubmit: PropTypes.func.isRequired,
   },
 
   getInitialState() {
@@ -272,7 +273,7 @@ const PuzzleModalForm = React.createClass({
 const PuzzleAnswer = React.createClass({
   displayName: 'PuzzleAnswer',
   propTypes: {
-    answer: React.PropTypes.string.isRequired,
+    answer: PropTypes.string.isRequired,
   },
   mixins: [PureRenderMixin],
   render() {
@@ -289,7 +290,7 @@ const PuzzleAnswer = React.createClass({
 const SubscriberCount = React.createClass({
   displayName: 'SubscriberCount',
   propTypes: {
-    puzzleId: React.PropTypes.string.isRequired,
+    puzzleId: PropTypes.string.isRequired,
   },
 
   mixins: [ReactMeteorData],
@@ -324,11 +325,11 @@ const SubscriberCount = React.createClass({
 const Puzzle = React.createClass({
   displayName: 'Puzzle',
   propTypes: {
-    puzzle: React.PropTypes.shape(puzzleShape).isRequired,
-    allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired, // All tags associated with the hunt.
-    layout: React.PropTypes.oneOf(['grid', 'table']).isRequired,
-    canUpdate: React.PropTypes.bool.isRequired,
-    suppressTags: React.PropTypes.arrayOf(React.PropTypes.string),
+    puzzle: PropTypes.shape(puzzleShape).isRequired,
+    allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired, // All tags associated with the hunt.
+    layout: PropTypes.oneOf(['grid', 'table']).isRequired,
+    canUpdate: PropTypes.bool.isRequired,
+    suppressTags: PropTypes.arrayOf(PropTypes.string),
   },
   mixins: [PureRenderMixin],
 
@@ -438,11 +439,11 @@ const Puzzle = React.createClass({
 const PuzzleList = React.createClass({
   displayName: 'PuzzleList',
   propTypes: {
-    puzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired, // The puzzles to show in this list
-    allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired, // All tags for this hunt, including those not used by any puzzles
-    layout: React.PropTypes.string.isRequired,
-    canUpdate: React.PropTypes.bool.isRequired,
-    suppressTags: React.PropTypes.arrayOf(React.PropTypes.string),
+    puzzles: PropTypes.arrayOf(PropTypes.shape(puzzleShape)).isRequired, // The puzzles to show in this list
+    allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired, // All tags for this hunt, including those not used by any puzzles
+    layout: PropTypes.string.isRequired,
+    canUpdate: PropTypes.bool.isRequired,
+    suppressTags: PropTypes.arrayOf(PropTypes.string),
   },
   mixins: [PureRenderMixin],
   render() {
@@ -483,9 +484,9 @@ const TagEditor = React.createClass({
   // TODO: this should support autocomplete to reduce human error.
   // Probably not going to land this week.
   propTypes: {
-    puzzleId: React.PropTypes.string.isRequired,
-    onSubmit: React.PropTypes.func.isRequired,
-    onCancel: React.PropTypes.func.isRequired,
+    puzzleId: PropTypes.string.isRequired,
+    onSubmit: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
   },
 
   mixins: [ReactMeteorData],
@@ -528,9 +529,9 @@ const TagEditor = React.createClass({
 const Tag = React.createClass({
   displayName: 'Tag',
   propTypes: {
-    tag: React.PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
-    onRemove: React.PropTypes.func, // if present, show a dismiss button
-    linkToSearch: React.PropTypes.bool.isRequired,
+    tag: PropTypes.shape(Schemas.Tags.asReactPropTypes()).isRequired,
+    onRemove: PropTypes.func, // if present, show a dismiss button
+    linkToSearch: PropTypes.bool.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -585,12 +586,12 @@ const Tag = React.createClass({
 const TagList = React.createClass({
   displayName: 'TagList',
   propTypes: {
-    puzzleId: React.PropTypes.string.isRequired,
-    tags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
-    onCreateTag: React.PropTypes.func, // if provided, will show UI for adding a new tag
-    onRemoveTag: React.PropTypes.func, // callback if user wants to remove a tag
-    linkToSearch: React.PropTypes.bool.isRequired,
-    showControls: React.PropTypes.bool,
+    puzzleId: PropTypes.string.isRequired,
+    tags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired,
+    onCreateTag: PropTypes.func, // if provided, will show UI for adding a new tag
+    onRemoveTag: PropTypes.func, // callback if user wants to remove a tag
+    linkToSearch: PropTypes.bool.isRequired,
+    showControls: PropTypes.bool,
   },
 
   mixins: [PureRenderMixin],
@@ -751,12 +752,12 @@ const RelatedPuzzleGroup = React.createClass({
   displayName: 'RelatedPuzzleGroup',
 
   propTypes: {
-    sharedTag: React.PropTypes.shape(tagShape).isRequired,
-    relatedPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
-    allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
-    includeCount: React.PropTypes.bool,
-    layout: React.PropTypes.string.isRequired,
-    canUpdate: React.PropTypes.bool.isRequired,
+    sharedTag: PropTypes.shape(tagShape).isRequired,
+    relatedPuzzles: PropTypes.arrayOf(PropTypes.shape(puzzleShape)).isRequired,
+    allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired,
+    includeCount: PropTypes.bool,
+    layout: PropTypes.string.isRequired,
+    canUpdate: PropTypes.bool.isRequired,
   },
 
   getInitialState() {
@@ -805,11 +806,11 @@ const RelatedPuzzleGroup = React.createClass({
 const RelatedPuzzleGroups = React.createClass({
   displayName: 'RelatedPuzzleGroups',
   propTypes: {
-    activePuzzle: React.PropTypes.shape(puzzleShape).isRequired,
-    allPuzzles: React.PropTypes.arrayOf(React.PropTypes.shape(puzzleShape)).isRequired,
-    allTags: React.PropTypes.arrayOf(React.PropTypes.shape(tagShape)).isRequired,
-    canUpdate: React.PropTypes.bool.isRequired,
-    layout: React.PropTypes.string,
+    activePuzzle: PropTypes.shape(puzzleShape).isRequired,
+    allPuzzles: PropTypes.arrayOf(PropTypes.shape(puzzleShape)).isRequired,
+    allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired,
+    canUpdate: PropTypes.bool.isRequired,
+    layout: PropTypes.string,
   },
 
   getDefaultProps() {
