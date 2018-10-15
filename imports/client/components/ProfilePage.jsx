@@ -1,7 +1,14 @@
 import { Meteor } from 'meteor/meteor';
 import PropTypes from 'prop-types';
 import React from 'react';
-import BS from 'react-bootstrap';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import Checkbox from 'react-bootstrap/lib/Checkbox';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import Label from 'react-bootstrap/lib/Label';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import JRPropTypes from '../JRPropTypes.js';
 import { navAggregatorType } from './NavAggregator.jsx';
@@ -27,8 +34,8 @@ const OthersProfilePage = React.createClass({
     return (
       <div>
         <h1>{profile.displayName}</h1>
-        {showOperatorBadge && <BS.Label>operator</BS.Label>}
-        {showMakeOperatorButton && <BS.Button onClick={this.makeOperator}>Make operator</BS.Button>}
+        {showOperatorBadge && <Label>operator</Label>}
+        {showMakeOperatorButton && <Button onClick={this.makeOperator}>Make operator</Button>}
         <div>Email: {profile.primaryEmail}</div>
         {profile.phoneNumber ? <div>Phone: {profile.phoneNumber}</div> : null}
         {profile.slackHandle ? <div>Slack handle: {profile.slackHandle}</div> : null}
@@ -85,9 +92,9 @@ const GoogleLinkBlock = React.createClass({
   errorAlert() {
     if (this.state.state === 'error') {
       return (
-        <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+        <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
           Linking Google account failed: {this.state.error.message}
-        </BS.Alert>
+        </Alert>
       );
     }
     return null;
@@ -95,7 +102,7 @@ const GoogleLinkBlock = React.createClass({
 
   linkButton() {
     if (this.state.state === 'linking') {
-      return <BS.Button bsStyle="primary" disabled>Linking...</BS.Button>;
+      return <Button bsStyle="primary" disabled>Linking...</Button>;
     }
 
     const text = (this.props.profile.googleAccount) ?
@@ -103,18 +110,18 @@ const GoogleLinkBlock = React.createClass({
       'Link your Google account';
 
     return (
-      <BS.Button bsStyle="primary" onClick={this.onLink}>
+      <Button bsStyle="primary" onClick={this.onLink}>
         {text}
-      </BS.Button>
+      </Button>
     );
   },
 
   unlinkButton() {
     if (this.props.profile.googleAccount) {
       return (
-        <BS.Button bsStyle="danger" onClick={this.onUnlink}>
+        <Button bsStyle="danger" onClick={this.onUnlink}>
           Unlink
-        </BS.Button>
+        </Button>
       );
     }
 
@@ -139,10 +146,10 @@ const GoogleLinkBlock = React.createClass({
     }
 
     return (
-      <BS.FormGroup>
-        <BS.ControlLabel>
+      <FormGroup>
+        <ControlLabel>
           Google Account
-        </BS.ControlLabel>
+        </ControlLabel>
         {this.errorAlert()}
         <div>
           {this.currentAccount()}
@@ -150,7 +157,7 @@ const GoogleLinkBlock = React.createClass({
           {' '}
           {this.unlinkButton()}
         </div>
-        <BS.HelpBlock>
+        <HelpBlock>
           Linking your Google account isn't required, but this will
           let other people see who you are on puzzles' Google
           Spreadsheet docs (instead of being an
@@ -162,8 +169,8 @@ const GoogleLinkBlock = React.createClass({
           </a>), and we'll use it to give you access to our practice
           puzzles. (You can only have one Google account linked, so
           linking a new one will cause us to forget the old one).
-        </BS.HelpBlock>
-      </BS.FormGroup>
+        </HelpBlock>
+      </FormGroup>
     );
   },
 });
@@ -271,95 +278,95 @@ const OwnProfilePage = React.createClass({
     return (
       <div>
         <h1>Account information</h1>
-        {this.props.canMakeOperator ? <BS.Checkbox type="checkbox" checked={this.props.operating} onChange={this.toggleOperating}>Operating</BS.Checkbox> : null}
+        {this.props.canMakeOperator ? <Checkbox type="checkbox" checked={this.props.operating} onChange={this.toggleOperating}>Operating</Checkbox> : null}
         {/* TODO: picture/gravatar */}
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor="jr-profile-edit-email">
+        <FormGroup>
+          <ControlLabel htmlFor="jr-profile-edit-email">
             Email address
-          </BS.ControlLabel>
-          <BS.FormControl
+          </ControlLabel>
+          <FormControl
             id="jr-profile-edit-email"
             type="text"
             value={this.props.initialProfile.primaryEmail}
             disabled
           />
-          <BS.HelpBlock>
+          <HelpBlock>
             This is the email address associated with your account.
-          </BS.HelpBlock>
-        </BS.FormGroup>
-        {this.state.submitState === 'submitting' ? <BS.Alert bsStyle="info">Saving...</BS.Alert> : null}
-        {this.state.submitState === 'success' ? <BS.Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</BS.Alert> : null}
-        {this.state.submitState === 'error' ? <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.submitError}</BS.Alert> : null}
+          </HelpBlock>
+        </FormGroup>
+        {this.state.submitState === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'error' ? <Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.submitError}</Alert> : null}
 
         <GoogleLinkBlock profile={this.props.initialProfile} />
 
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor="jr-profile-edit-display-name">
+        <FormGroup>
+          <ControlLabel htmlFor="jr-profile-edit-display-name">
             Display name
-          </BS.ControlLabel>
-          <BS.FormControl
+          </ControlLabel>
+          <FormControl
             id="jr-profile-edit-display-name"
             type="text"
             value={this.state.displayNameValue}
             disabled={shouldDisableForm}
             onChange={this.handleDisplayNameFieldChange}
           />
-          <BS.HelpBlock>
+          <HelpBlock>
             We suggest your full name, to avoid ambiguity.
-          </BS.HelpBlock>
-        </BS.FormGroup>
+          </HelpBlock>
+        </FormGroup>
 
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor="jr-profile-edit-phone">
+        <FormGroup>
+          <ControlLabel htmlFor="jr-profile-edit-phone">
             Phone number (optional)
-          </BS.ControlLabel>
-          <BS.FormControl
+          </ControlLabel>
+          <FormControl
             id="jr-profile-edit-phone"
             type="text"
             value={this.state.phoneNumberValue}
             disabled={shouldDisableForm}
             onChange={this.handlePhoneNumberFieldChange}
           />
-          <BS.HelpBlock>
+          <HelpBlock>
             In case we need to reach you via phone.
-          </BS.HelpBlock>
-        </BS.FormGroup>
+          </HelpBlock>
+        </FormGroup>
 
-        <BS.FormGroup validationState={this.getSlackHandleValidationState()}>
-          <BS.ControlLabel htmlFor="jr-profile-edit-slack">
+        <FormGroup validationState={this.getSlackHandleValidationState()}>
+          <ControlLabel htmlFor="jr-profile-edit-slack">
             Slack handle (optional)
-          </BS.ControlLabel>
-          <BS.FormControl
+          </ControlLabel>
+          <FormControl
             id="jr-profile-edit-slack"
             type="text"
             value={this.state.slackHandleValue}
             disabled={shouldDisableForm}
             onChange={this.handleSlackHandleFieldChange}
           />
-          <BS.HelpBlock>
+          <HelpBlock>
             So we can connect your chat there with your account here. If you haven't signed up for a Slack account yet, there should be a notification in the top-right that you can use to get an invite. (Slack handles contain letters, numbers, periods, and underscores. You don't need the leading <code>@</code>.)
-          </BS.HelpBlock>
-        </BS.FormGroup>
+          </HelpBlock>
+        </FormGroup>
 
-        <BS.FormGroup>
-          <BS.Checkbox type="checkbox" checked={this.state.muteApplause} onChange={this.onDisableApplauseChange}>
+        <FormGroup>
+          <Checkbox type="checkbox" checked={this.state.muteApplause} onChange={this.onDisableApplauseChange}>
             Mute applause
-          </BS.Checkbox>
-          <BS.HelpBlock>
+          </Checkbox>
+          <HelpBlock>
             Enable this option if you find the applause sound when we solve a puzzle annoying.
-          </BS.HelpBlock>
-        </BS.FormGroup>
+          </HelpBlock>
+        </FormGroup>
 
-        <BS.FormGroup>
-          <BS.Button
+        <FormGroup>
+          <Button
             type="submit"
             bsStyle="primary"
             disabled={shouldDisableForm}
             onClick={this.handleSaveForm}
           >
             Save
-          </BS.Button>
-        </BS.FormGroup>
+          </Button>
+        </FormGroup>
       </div>
     );
   },

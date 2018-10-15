@@ -1,7 +1,13 @@
 import { Meteor } from 'meteor/meteor';
 import PropTypes from 'prop-types';
 import React from 'react';
-import BS from 'react-bootstrap';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import Col from 'react-bootstrap/lib/Col';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import Row from 'react-bootstrap/lib/Row';
 
 const UserInvitePage = React.createClass({
   propTypes: {
@@ -41,9 +47,9 @@ const UserInvitePage = React.createClass({
   renderError() {
     if (this.state.error) {
       return (
-        <BS.Alert bsStyle="danger" className="text-center">
+        <Alert bsStyle="danger" className="text-center">
           <p>{this.state.error.reason}</p>
-        </BS.Alert>
+        </Alert>
       );
     }
 
@@ -59,38 +65,38 @@ const UserInvitePage = React.createClass({
           already have a Jolly Roger account)
         </p>
 
-        <BS.Row>
-          <BS.Col md={8}>
+        <Row>
+          <Col md={8}>
             {this.renderError()}
 
             <form onSubmit={this.onSubmit} className="form-horizontal">
-              <BS.FormGroup>
-                <BS.ControlLabel
+              <FormGroup>
+                <ControlLabel
                   htmlFor="jr-invite-email"
                   className="col-md-3"
                 >
                   E-mail address
-                </BS.ControlLabel>
+                </ControlLabel>
                 <div className="col-md-9">
-                  <BS.FormControl
+                  <FormControl
                     id="jr-invite-email"
                     type="email"
                     value={this.state.email}
                     onChange={this.onEmailChanged}
                   />
                 </div>
-              </BS.FormGroup>
+              </FormGroup>
 
-              <BS.FormGroup>
+              <FormGroup>
                 <div className="col-md-offset-3 col-md-9">
-                  <BS.Button type="submit" bsStyle="primary">
+                  <Button type="submit" bsStyle="primary">
                     Send invite
-                  </BS.Button>
+                  </Button>
                 </div>
-              </BS.FormGroup>
+              </FormGroup>
             </form>
-          </BS.Col>
-        </BS.Row>
+          </Col>
+        </Row>
       </div>
     );
   },

@@ -2,8 +2,16 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
+import Checkbox from 'react-bootstrap/lib/Checkbox';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import Glyphicon from 'react-bootstrap/lib/Glyphicon';
+import HelpBlock from 'react-bootstrap/lib/HelpBlock';
 import { Link } from 'react-router';
-import BS from 'react-bootstrap';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
 import JRPropTypes from '../JRPropTypes.js';
@@ -123,12 +131,12 @@ const HuntModalForm = React.createClass({
         onSubmit={this.onFormSubmit}
         submitDisabled={disableForm}
       >
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor={`${idPrefix}name`} className="col-xs-3">
+        <FormGroup>
+          <ControlLabel htmlFor={`${idPrefix}name`} className="col-xs-3">
             Name
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.FormControl
+            <FormControl
               id={`${idPrefix}name`}
               type="text"
               value={this.state.name}
@@ -137,97 +145,97 @@ const HuntModalForm = React.createClass({
               disabled={disableForm}
             />
           </div>
-        </BS.FormGroup>
+        </FormGroup>
 
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor={`${idPrefix}mailing-lists`} className="col-xs-3">
+        <FormGroup>
+          <ControlLabel htmlFor={`${idPrefix}mailing-lists`} className="col-xs-3">
             Mailing lists
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.FormControl
+            <FormControl
               id={`${idPrefix}mailing-lists`}
               type="text"
               value={this.state.mailingLists}
               onChange={this.onMailingListsChanged}
               disabled={disableForm}
             />
-            <BS.HelpBlock>
+            <HelpBlock>
               Users joining this hunt will be automatically added to all of these (comma-separated) lists
-            </BS.HelpBlock>
+            </HelpBlock>
           </div>
-        </BS.FormGroup>
+        </FormGroup>
 
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor={`${idPrefix}signup-message`} className="col-xs-3">
+        <FormGroup>
+          <ControlLabel htmlFor={`${idPrefix}signup-message`} className="col-xs-3">
             Signup message
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.FormControl
+            <FormControl
               id={`${idPrefix}signup-message`}
               componentClass="textarea"
               value={this.state.signupMessage}
               onChange={this.onSignupMessageChanged}
               disabled={disableForm}
             />
-            <BS.HelpBlock>
+            <HelpBlock>
               This message (rendered as markdown) will be shown to users who aren't part of the hunt. This is a good place to put directions for how to sign up.
-            </BS.HelpBlock>
+            </HelpBlock>
           </div>
-        </BS.FormGroup>
+        </FormGroup>
 
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor={`${idPrefix}open-signups`} className="col-xs-3">
+        <FormGroup>
+          <ControlLabel htmlFor={`${idPrefix}open-signups`} className="col-xs-3">
             Open invites
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.Checkbox
+            <Checkbox
               id={`${idPrefix}open-signups`}
               checked={this.state.openSignups}
               onChange={this.onOpenSignupsChanged}
               disabled={disableForm}
             />
-            <BS.HelpBlock>
+            <HelpBlock>
               If open invites are enabled, then any current member of the hunt can add a new member to the hunt. Otherwise, only operators can add new members.
-            </BS.HelpBlock>
+            </HelpBlock>
           </div>
-        </BS.FormGroup>
+        </FormGroup>
 
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor={`${idPrefix}firehose-slack-channel`} className="col-xs-3">
+        <FormGroup>
+          <ControlLabel htmlFor={`${idPrefix}firehose-slack-channel`} className="col-xs-3">
             Firehose Slack channel
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.FormControl
+            <FormControl
               id={`${idPrefix}firehose-slack-channel`}
               type="text"
               value={this.state.firehoseSlackChannel}
               onChange={this.onFirehoseSlackChannelChanged}
               disabled={disableForm}
             />
-            <BS.HelpBlock>
+            <HelpBlock>
               If provided, all chat messages written in puzzles associated with this hunt will be mirrored to the specified channel in Slack.  Make sure to include the # at the beginning of the channel name, like <code>#firehose</code>.
-            </BS.HelpBlock>
+            </HelpBlock>
           </div>
-        </BS.FormGroup>
+        </FormGroup>
 
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor={`${idPrefix}puzzle-hooks-slack-channel`} className="col-xs-3">
+        <FormGroup>
+          <ControlLabel htmlFor={`${idPrefix}puzzle-hooks-slack-channel`} className="col-xs-3">
             Puzzle added/solved Slack channel
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.FormControl
+            <FormControl
               id={`${idPrefix}puzzle-hooks-slack-channel`}
               type="text"
               value={this.state.puzzleHooksSlackChannel}
               onChange={this.onPuzzleHooksSlackChannelChanged}
             />
-            <BS.HelpBlock>
+            <HelpBlock>
               If provided, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.  Make sure to include the # at the beginning of the channel name, like <code>#general</code>.
-            </BS.HelpBlock>
+            </HelpBlock>
           </div>
-        </BS.FormGroup>
+        </FormGroup>
 
-        {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
+        {this.state.submitState === 'failed' && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>
     );
   },
@@ -274,9 +282,9 @@ const Hunt = React.createClass({
   editButton() {
     if (this.data.canUpdate) {
       return (
-        <BS.Button onClick={this.showEditModal} bsStyle="default" title="Edit hunt...">
-          <BS.Glyphicon glyph="edit" />
-        </BS.Button>
+        <Button onClick={this.showEditModal} bsStyle="default" title="Edit hunt...">
+          <Glyphicon glyph="edit" />
+        </Button>
       );
     }
 
@@ -286,9 +294,9 @@ const Hunt = React.createClass({
   deleteButton() {
     if (this.data.canDestroy) {
       return (
-        <BS.Button onClick={this.showDeleteModal} bsStyle="danger" title="Delete hunt...">
-          <BS.Glyphicon glyph="remove" />
-        </BS.Button>
+        <Button onClick={this.showDeleteModal} bsStyle="danger" title="Delete hunt...">
+          <Glyphicon glyph="remove" />
+        </Button>
       );
     }
 
@@ -315,10 +323,10 @@ const Hunt = React.createClass({
           This will additionally delete all puzzles and associated
           state.
         </ModalForm>
-        <BS.ButtonGroup bsSize="xs">
+        <ButtonGroup bsSize="xs">
           {this.editButton()}
           {this.deleteButton()}
-        </BS.ButtonGroup>
+        </ButtonGroup>
         {' '}
         <Link to={`/hunts/${hunt._id}`}>
           {hunt.name}
@@ -378,9 +386,9 @@ const HuntListPage = React.createClass({
   addButton() {
     if (this.data.canAdd) {
       return (
-        <BS.Button onClick={this.showAddModal} bsStyle="success" bsSize="xs" title="Add new hunt...">
-          <BS.Glyphicon glyph="plus" />
-        </BS.Button>
+        <Button onClick={this.showAddModal} bsStyle="success" bsSize="xs" title="Add new hunt...">
+          <Glyphicon glyph="plus" />
+        </Button>
       );
     }
 

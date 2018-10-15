@@ -9,6 +9,8 @@
   "extends": [
     "airbnb",
     "plugin:meteor/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
   ],
   "settings": {
     "import/resolver": "meteor",

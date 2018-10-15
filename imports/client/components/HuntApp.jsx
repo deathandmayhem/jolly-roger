@@ -2,7 +2,9 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
-import BS from 'react-bootstrap';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import DocumentTitle from 'react-document-title';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import marked from 'marked';
@@ -35,9 +37,9 @@ const HuntDeletedError = React.createClass({
   undestroyButton() {
     if (this.data.canUndestroy) {
       return (
-        <BS.Button bsStyle="primary" onClick={this.undestroy}>
+        <Button bsStyle="primary" onClick={this.undestroy}>
           Undelete this hunt
-        </BS.Button>
+        </Button>
       );
     }
     return null;
@@ -46,16 +48,16 @@ const HuntDeletedError = React.createClass({
   render() {
     return (
       <div>
-        <BS.Alert bsStyle="danger">
+        <Alert bsStyle="danger">
         This hunt has been deleted, so there's nothing much to see here anymore.
-        </BS.Alert>
+        </Alert>
 
-        <BS.ButtonToolbar>
-          <BS.Button bsStyle="default" onClick={this.context.router.goBack}>
+        <ButtonToolbar>
+          <Button bsStyle="default" onClick={this.context.router.goBack}>
             Whoops! Get me out of here
-          </BS.Button>
+          </Button>
           {this.undestroyButton()}
-        </BS.ButtonToolbar>
+        </ButtonToolbar>
       </div>
     );
   },
@@ -87,9 +89,9 @@ const HuntMemberError = React.createClass({
   joinButton() {
     if (this.data.canJoin) {
       return (
-        <BS.Button bsStyle="primary" onClick={this.join}>
+        <Button bsStyle="primary" onClick={this.join}>
           Use operator permissions to join
-        </BS.Button>
+        </Button>
       );
     }
     return null;
@@ -99,18 +101,18 @@ const HuntMemberError = React.createClass({
     const msg = marked(this.data.hunt.signupMessage || '', { sanitize: true });
     return (
       <div>
-        <BS.Alert bsStyle="warning">
+        <Alert bsStyle="warning">
           You're not signed up for this hunt ({this.data.hunt.name}) yet.
-        </BS.Alert>
+        </Alert>
 
         <div dangerouslySetInnerHTML={{ __html: msg }} />
 
-        <BS.ButtonToolbar>
-          <BS.Button bsStyle="default" onClick={this.context.router.goBack}>
+        <ButtonToolbar>
+          <Button bsStyle="default" onClick={this.context.router.goBack}>
             Whoops! Get me out of here
-          </BS.Button>
+          </Button>
           {this.joinButton()}
-        </BS.ButtonToolbar>
+        </ButtonToolbar>
       </div>
     );
   },

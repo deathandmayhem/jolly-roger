@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import BS from 'react-bootstrap';
+import Col from 'react-bootstrap/lib/Col';
+import Image from 'react-bootstrap/lib/Image';
+import Jumbotron from 'react-bootstrap/lib/Jumbotron';
+import Row from 'react-bootstrap/lib/Row';
 
 const SplashPage = React.createClass({
   propTypes: {
@@ -9,16 +12,16 @@ const SplashPage = React.createClass({
   render() {
     return (
       <div className="container">
-        <BS.Jumbotron id="jr-login">
-          <BS.Image src="/images/hero.png" className="center-block" responsive />
+        <Jumbotron id="jr-login">
+          <Image src="/images/hero.png" className="center-block" responsive />
           <div className="container">
-            <BS.Row>
-              <BS.Col md={6} mdOffset={3}>
+            <Row>
+              <Col md={6} mdOffset={3}>
                 {this.props.children}
-              </BS.Col>
-            </BS.Row>
+              </Col>
+            </Row>
           </div>
-        </BS.Jumbotron>
+        </Jumbotron>
       </div>
     );
   },

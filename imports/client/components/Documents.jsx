@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import BS from 'react-bootstrap';
+import Button from 'react-bootstrap/lib/Button';
 import DeepLink from './DeepLink.jsx';
 
 const GoogleDocumentDisplay = React.createClass({
@@ -35,7 +35,7 @@ const GoogleDocumentDisplay = React.createClass({
       case 'link':
         return (
           <DeepLink className="gdrive-button" nativeUrl={deepUrl} browserUrl={url}>
-            <BS.Button>Open {title}</BS.Button>
+            <Button>Open {title}</Button>
           </DeepLink>
         );
       case 'embed':

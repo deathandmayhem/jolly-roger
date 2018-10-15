@@ -2,7 +2,9 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
-import BS from 'react-bootstrap';
+import Glyphicon from 'react-bootstrap/lib/Glyphicon';
+import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
+import Tooltip from 'react-bootstrap/lib/Tooltip';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { Link } from 'react-router';
 import moment from 'moment';
@@ -80,15 +82,15 @@ const GuessMessage = React.createClass({
 
   render() {
     const directionTooltip = (
-      <BS.Tooltip id="direction-tooltip">
+      <Tooltip id="direction-tooltip">
         Direction this puzzle was solved, ranging from completely backsolved (-10) to completely forward solved (10)
-      </BS.Tooltip>
+      </Tooltip>
     );
 
     const confidenceTooltip = (
-      <BS.Tooltip id="confidence-tooltip">
+      <Tooltip id="confidence-tooltip">
         Submitter-estimated likelihood that this answer is correct
-      </BS.Tooltip>
+      </Tooltip>
     );
 
     return (
@@ -101,23 +103,23 @@ const GuessMessage = React.createClass({
             {this.props.guess.guess}
           </div>
           <div>
-            <BS.OverlayTrigger placement="bottom" overlay={directionTooltip}>
+            <OverlayTrigger placement="bottom" overlay={directionTooltip}>
               <span>
                 Solve direction: {this.props.guess.direction}
               </span>
-            </BS.OverlayTrigger>
+            </OverlayTrigger>
           </div>
           <div>
-            <BS.OverlayTrigger placement="bottom" overlay={confidenceTooltip}>
+            <OverlayTrigger placement="bottom" overlay={confidenceTooltip}>
               <span>
                 Confidence: {this.props.guess.confidence}%
               </span>
-            </BS.OverlayTrigger>
+            </OverlayTrigger>
           </div>
           <ul className="actions">
             <li>
               <CopyToClipboard text={this.props.guess.guess}>
-                <button><BS.Glyphicon glyph="copy" /></button>
+                <button><Glyphicon glyph="copy" /></button>
               </CopyToClipboard>
             </li>
             <li><button onClick={this.markCorrect}>Correct</button></li>
