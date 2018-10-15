@@ -6,7 +6,7 @@ import { Link } from 'react-router';
 import classnames from 'classnames';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import JRPropTypes from '../JRPropTypes.js';
-import { navAggregatorType } from './NavAggregator.jsx';
+import navAggregatorType from './navAggregatorType.jsx';
 
 /* eslint-disable max-len */
 

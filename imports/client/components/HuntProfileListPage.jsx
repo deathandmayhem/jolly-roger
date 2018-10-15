@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import JRPropTypes from '../JRPropTypes.js';
-import { navAggregatorType } from './NavAggregator.jsx';
+import navAggregatorType from './navAggregatorType.jsx';
 import ProfileList from './ProfileList.jsx';
 
 const HuntProfileListPage = React.createClass({
