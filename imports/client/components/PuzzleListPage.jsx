@@ -13,11 +13,9 @@ import NavItem from 'react-bootstrap/lib/NavItem';
 import { Link, browserHistory } from 'react-router';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import JRPropTypes from '../JRPropTypes.js';
-import {
-  PuzzleList,
-  RelatedPuzzleGroup,
-  PuzzleModalForm,
-} from './PuzzleComponents.jsx';
+import PuzzleList from './PuzzleList.jsx';
+import RelatedPuzzleGroup from './RelatedPuzzleGroup.jsx';
+import PuzzleModalForm from './PuzzleModalForm.jsx';
 import Flags from '../../flags.js';
 
 /* eslint-disable max-len */
