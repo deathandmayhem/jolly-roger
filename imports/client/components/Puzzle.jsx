@@ -9,11 +9,12 @@ import classnames from 'classnames';
 import { Link } from 'react-router';
 
 import Ansible from '../../ansible.js';
-import { puzzleShape, tagShape } from './PuzzleComponents.jsx';
 import PuzzleAnswer from './PuzzleAnswer.jsx';
 import PuzzleModalForm from './PuzzleModalForm.jsx';
 import SubscriberCount from './SubscriberCount.jsx';
 import TagList from './TagList.jsx';
+import puzzleShape from './puzzleShape.js';
+import tagShape from './tagShape.js';
 
 /* eslint-disable max-len */
 

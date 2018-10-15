@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
-import { puzzleShape, tagShape } from './PuzzleComponents.jsx';
 import Puzzle from './Puzzle.jsx';
+import puzzleShape from './puzzleShape.js';
+import tagShape from './tagShape.js';
 
 /* eslint-disable max-len */
 

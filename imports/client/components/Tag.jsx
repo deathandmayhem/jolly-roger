@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Button from 'react-bootstrap/lib/Button';
 import { Link } from 'react-router';
 import classnames from 'classnames';
-import { tagShape } from './PuzzleComponents.jsx';
+import tagShape from './tagShape.js';
 
 /* eslint-disable max-len */
 

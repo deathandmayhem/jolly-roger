@@ -4,7 +4,7 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import PropTypes from 'prop-types';
 import Button from 'react-bootstrap/lib/Button';
 import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
-import { tagShape } from './PuzzleComponents.jsx';
+import tagShape from './tagShape.js';
 import Tag from './Tag.jsx';
 import TagEditor from './TagEditor.jsx';
 

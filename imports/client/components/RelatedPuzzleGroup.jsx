@@ -1,9 +1,11 @@
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import { puzzleInterestingness, puzzleShape, tagShape } from './PuzzleComponents.jsx';
 import PuzzleList from './PuzzleList.jsx';
 import Tag from './Tag.jsx';
+import puzzleInterestingness from './puzzleInterestingness.js';
+import puzzleShape from './puzzleShape.js';
+import tagShape from './tagShape.js';
 
 /* eslint-disable max-len */
 

@@ -1,6 +1,3 @@
-const puzzleShape = Schemas.Puzzles.asReactPropTypes();
-const tagShape = Schemas.Tags.asReactPropTypes();
-
 function puzzleInterestingness(puzzle, indexedTags, group) {
   // If the shared tag for this group is group:<something>, then group will equal '<something>', and
   // we wish to sort a puzzle named 'meta-for:<something>' at the top.
@@ -40,4 +37,4 @@ function puzzleInterestingness(puzzle, indexedTags, group) {
   return minScore;
 }
 
-export { puzzleInterestingness, puzzleShape, tagShape };
+export default puzzleInterestingness;

@@ -9,7 +9,8 @@ import FormGroup from 'react-bootstrap/lib/FormGroup';
 import LabelledRadioGroup from './LabelledRadioGroup.jsx';
 import ModalForm from './ModalForm.jsx';
 import ReactSelect2 from './ReactSelect2.jsx';
-import { puzzleShape, tagShape } from './PuzzleComponents.jsx';
+import puzzleShape from './puzzleShape.js';
+import tagShape from './tagShape.js';
 
 /* eslint-disable max-len */
 
