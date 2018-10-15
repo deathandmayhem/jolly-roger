@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import BS, { Button } from 'react-bootstrap';
+import Button from 'react-bootstrap/lib/Button';
+import Modal from 'react-bootstrap/lib/Modal';
 
 const ModalForm = React.createClass({
   propTypes: {
@@ -44,34 +45,34 @@ const ModalForm = React.createClass({
 
   render() {
     return (
-      <BS.Modal show={this.state.show} onHide={this.close}>
+      <Modal show={this.state.show} onHide={this.close}>
         <form className="form-horizontal" onSubmit={this.submit}>
-          <BS.Modal.Header closeButton>
-            <BS.Modal.Title>
+          <Modal.Header closeButton>
+            <Modal.Title>
               {this.props.title}
-            </BS.Modal.Title>
-          </BS.Modal.Header>
-          <BS.Modal.Body>
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
             {this.props.children}
-          </BS.Modal.Body>
-          <BS.Modal.Footer>
-            <BS.Button
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
               bsStyle="default"
               onClick={this.close}
               disabled={this.props.submitDisabled}
             >
               Close
-            </BS.Button>
-            <BS.Button
+            </Button>
+            <Button
               bsStyle={this.props.submitStyle}
               type="submit"
               disabled={this.props.submitDisabled}
             >
               {this.props.submitLabel}
-            </BS.Button>
-          </BS.Modal.Footer>
+            </Button>
+          </Modal.Footer>
         </form>
-      </BS.Modal>
+      </Modal>
     );
   },
 });

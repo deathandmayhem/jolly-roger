@@ -2,7 +2,14 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
-import BS from 'react-bootstrap';
+import Button from 'react-bootstrap/lib/Button';
+import Checkbox from 'react-bootstrap/lib/Checkbox';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import InputGroup from 'react-bootstrap/lib/InputGroup';
+import Nav from 'react-bootstrap/lib/Nav';
+import NavItem from 'react-bootstrap/lib/NavItem';
 import { Link, browserHistory } from 'react-router';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import JRPropTypes from '../JRPropTypes.js';
@@ -303,7 +310,7 @@ const PuzzleListView = React.createClass({
     }
     const addPuzzleContent = this.props.canAdd && (
       <div>
-        <BS.Button bsStyle="primary" onClick={this.showAddModal}>Add a puzzle</BS.Button>
+        <Button bsStyle="primary" onClick={this.showAddModal}>Add a puzzle</Button>
         <PuzzleModalForm
           huntId={this.props.huntId}
           tags={this.props.allTags}
@@ -316,15 +323,15 @@ const PuzzleListView = React.createClass({
       <div>
         <div className="puzzle-list-controls">
           <span>View puzzles by:</span>
-          <BS.Nav activeKey={this.state.displayMode} bsStyle="pills" onSelect={this.switchView}>
-            <BS.NavItem eventKey={'group'}>Group</BS.NavItem>
-            <BS.NavItem eventKey={'unlock'}>Unlock order</BS.NavItem>
-          </BS.Nav>
+          <Nav activeKey={this.state.displayMode} bsStyle="pills" onSelect={this.switchView}>
+            <NavItem eventKey={'group'}>Group</NavItem>
+            <NavItem eventKey={'unlock'}>Unlock order</NavItem>
+          </Nav>
           <div className="puzzle-list-show-solved">
             <div>
-              <BS.Checkbox checked={this.state.showSolved} onChange={this.changeShowSolved}>
+              <Checkbox checked={this.state.showSolved} onChange={this.changeShowSolved}>
                 Show solved
-              </BS.Checkbox>
+              </Checkbox>
             </div>
           </div>
           {addPuzzleContent}
@@ -337,12 +344,12 @@ const PuzzleListView = React.createClass({
           </div>
         </div>
 
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor="jr-puzzle-search">
+        <FormGroup>
+          <ControlLabel htmlFor="jr-puzzle-search">
             Search
-          </BS.ControlLabel>
-          <BS.InputGroup>
-            <BS.FormControl
+          </ControlLabel>
+          <InputGroup>
+            <FormControl
               id="jr-puzzle-search"
               type="text"
               inputRef={(node) => { this.searchBarNode = node; }}
@@ -350,13 +357,13 @@ const PuzzleListView = React.createClass({
               value={this.getSearchString()}
               onChange={this.onSearchStringChange}
             />
-            <BS.InputGroup.Button>
-              <BS.Button onClick={this.clearSearch}>
+            <InputGroup.Button>
+              <Button onClick={this.clearSearch}>
                 Clear
-              </BS.Button>
-            </BS.InputGroup.Button>
-          </BS.InputGroup>
-        </BS.FormGroup>
+              </Button>
+            </InputGroup.Button>
+          </InputGroup>
+        </FormGroup>
 
         {bodyComponent}
       </div>

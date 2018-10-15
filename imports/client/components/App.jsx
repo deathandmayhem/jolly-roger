@@ -1,7 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import PropTypes from 'prop-types';
 import React from 'react';
-import BS from 'react-bootstrap';
+import MenuItem from 'react-bootstrap/lib/MenuItem';
+import Nav from 'react-bootstrap/lib/Nav';
+import NavDropdown from 'react-bootstrap/lib/NavDropdown';
+import Navbar from 'react-bootstrap/lib/Navbar';
 import { Link } from 'react-router';
 import RRBS from 'react-router-bootstrap';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
@@ -36,33 +39,33 @@ const SharedNavbar = React.createClass({
 
   render() {
     return (
-      <BS.Navbar fixedTop fluid>
-        <BS.Navbar.Header>
-          <BS.Navbar.Brand>
+      <Navbar fixedTop fluid>
+        <Navbar.Header>
+          <Navbar.Brand>
             <Link to="/">
               <img src="/images/brand.png" alt="Jolly Roger logo" />
             </Link>
-          </BS.Navbar.Brand>
+          </Navbar.Brand>
           <this.context.navAggregator.NavBar />
-          <BS.Navbar.Toggle />
-        </BS.Navbar.Header>
-        <BS.Navbar.Collapse>
-          <BS.Nav pullRight>
-            <BS.NavDropdown
+          <Navbar.Toggle />
+        </Navbar.Header>
+        <Navbar.Collapse>
+          <Nav pullRight>
+            <NavDropdown
               id="profileDropdown"
               title={this.data.displayName}
             >
               <RRBS.LinkContainer to={`/users/${this.data.userId}`}>
-                <BS.MenuItem eventKey="1">My Profile</BS.MenuItem>
+                <MenuItem eventKey="1">My Profile</MenuItem>
               </RRBS.LinkContainer>
-              <BS.MenuItem eventKey="2" href="mailto:dfa-web@mit.edu">
+              <MenuItem eventKey="2" href="mailto:dfa-web@mit.edu">
                 Report an issue
-              </BS.MenuItem>
-              <BS.MenuItem eventKey="3" onSelect={this.logout}>Sign out</BS.MenuItem>
-            </BS.NavDropdown>
-          </BS.Nav>
-        </BS.Navbar.Collapse>
-      </BS.Navbar>
+              </MenuItem>
+              <MenuItem eventKey="3" onSelect={this.logout}>Sign out</MenuItem>
+            </NavDropdown>
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
     );
   },
 });

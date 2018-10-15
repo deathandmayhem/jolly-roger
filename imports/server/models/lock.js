@@ -1,7 +1,7 @@
 // Locks are a server-only class
 import { Meteor } from 'meteor/meteor';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-import Ansible from '../ansible.js';
+import Ansible from '../../ansible.js';
 
 const Future = Npm.require('fibers/future');
 

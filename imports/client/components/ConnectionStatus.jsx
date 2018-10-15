@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
-import BS from 'react-bootstrap';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
 
@@ -20,16 +21,16 @@ const ConnectionStatus = React.createClass({
     switch (this.data.meteorStatus.status) {
       case 'connecting':
         return (
-          <BS.Alert bsStyle="warning">
+          <Alert bsStyle="warning">
             Trying to reconnect to Jolly Roger...
-          </BS.Alert>
+          </Alert>
         );
       case 'failed':
         return (
-          <BS.Alert bsStyle="danger">
+          <Alert bsStyle="danger">
             <strong>Oh no!</strong> Unable to connect to Jolly Roger:
             {this.data.meteorStatus.reason}
-          </BS.Alert>
+          </Alert>
         );
       case 'waiting': {
         const now = Date.now();
@@ -38,21 +39,21 @@ const ConnectionStatus = React.createClass({
         // Trigger a refresh in a second.  TODO: debounce this?
         window.setTimeout(this.forceUpdateBound, 1000);
         return (
-          <BS.Alert bsStyle="warning">
+          <Alert bsStyle="warning">
             We can't connect to Jolly Roger right now. We'll try again
             in {timeToRetry}s. Your pending
             changes will be pushed to the server when we
-            reconnect. <BS.Button bsStyle="link" onClick={Meteor.reconnect}>retry now</BS.Button>
-          </BS.Alert>
+            reconnect. <Button bsStyle="link" onClick={Meteor.reconnect}>retry now</Button>
+          </Alert>
         );
       }
       case 'offline':
         return (
-          <BS.Alert bsStyle="warning">
+          <Alert bsStyle="warning">
             <strong>Warning!</strong> Currently not connected to Jolly
             Roger server. Changes will be synced when you reconnect.
-            <BS.Button bsStyle="link" onClick={Meteor.reconnect}>reconnect now</BS.Button>
-          </BS.Alert>
+            <Button bsStyle="link" onClick={Meteor.reconnect}>reconnect now</Button>
+          </Alert>
         );
       case 'connected':
         return null;

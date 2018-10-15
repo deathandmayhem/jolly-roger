@@ -3,8 +3,16 @@ import { _ } from 'meteor/underscore';
 import { jQuery } from 'meteor/jquery';
 import PropTypes from 'prop-types';
 import React from 'react';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import Glyphicon from 'react-bootstrap/lib/Glyphicon';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
+import Tooltip from 'react-bootstrap/lib/Tooltip';
 import { Link } from 'react-router';
-import BS from 'react-bootstrap';
 import classnames from 'classnames';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
@@ -180,10 +188,10 @@ const PuzzleModalForm = React.createClass({
     const allTags = _.compact(_.union(this.props.tags.map((t) => t.name), this.state.tags));
 
     const docTypeSelector = (
-      <BS.FormGroup>
-        <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-doc-type">
+      <FormGroup>
+        <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-doc-type">
           Document type
-        </BS.ControlLabel>
+        </ControlLabel>
         <div className="col-xs-9">
           <LabelledRadioGroup
             header=""
@@ -203,7 +211,7 @@ const PuzzleModalForm = React.createClass({
             onChange={this.onDocTypeChange}
           />
         </div>
-      </BS.FormGroup>
+      </FormGroup>
     );
 
     return (
@@ -213,12 +221,12 @@ const PuzzleModalForm = React.createClass({
         onSubmit={this.onFormSubmit}
         submitDisabled={disableForm}
       >
-        <BS.FormGroup>
-          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">
+        <FormGroup>
+          <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">
             Title
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.FormControl
+            <FormControl
               id="jr-new-puzzle-title"
               type="text"
               autoFocus
@@ -227,14 +235,14 @@ const PuzzleModalForm = React.createClass({
               value={this.state.title}
             />
           </div>
-        </BS.FormGroup>
+        </FormGroup>
 
-        <BS.FormGroup>
-          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-url">
+        <FormGroup>
+          <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-url">
             URL
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.FormControl
+            <FormControl
               id="jr-new-puzzle-url"
               type="text"
               disabled={disableForm}
@@ -242,12 +250,12 @@ const PuzzleModalForm = React.createClass({
               value={this.state.url}
             />
           </div>
-        </BS.FormGroup>
+        </FormGroup>
 
-        <BS.FormGroup>
-          <BS.ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-tags">
+        <FormGroup>
+          <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-tags">
             Tags
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
             <ReactSelect2
               id="jr-new-puzzle-tags"
@@ -260,11 +268,11 @@ const PuzzleModalForm = React.createClass({
               style={{ width: '100%' }}
             />
           </div>
-        </BS.FormGroup>
+        </FormGroup>
 
         {!this.props.puzzle && docTypeSelector}
 
-        {this.state.submitState === 'failed' && <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert>}
+        {this.state.submitState === 'failed' && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>
     );
   },
@@ -310,14 +318,14 @@ const SubscriberCount = React.createClass({
     }
 
     const countTooltip = (
-      <BS.Tooltip id={`count-description-${this.props.puzzleId}`}>
+      <Tooltip id={`count-description-${this.props.puzzleId}`}>
         users currently viewing this puzzle
-      </BS.Tooltip>
+      </Tooltip>
     );
     return (
-      <BS.OverlayTrigger placement="top" overlay={countTooltip}>
+      <OverlayTrigger placement="top" overlay={countTooltip}>
         <span>({this.data.viewCount})</span>
-      </BS.OverlayTrigger>
+      </OverlayTrigger>
     );
   },
 });
@@ -357,9 +365,9 @@ const Puzzle = React.createClass({
   editButton() {
     if (this.props.canUpdate) {
       return (
-        <BS.Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
-          <BS.Glyphicon glyph="edit" />
-        </BS.Button>
+        <Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
+          <Glyphicon glyph="edit" />
+        </Button>
       );
     }
     return null;
@@ -577,7 +585,7 @@ const Tag = React.createClass({
     return (
       <div className={classNames}>
         {title}
-        {this.props.onRemove && <BS.Button className="tag-remove-button" bsStyle="danger" onClick={this.onRemove}>&#10006;</BS.Button>}
+        {this.props.onRemove && <Button className="tag-remove-button" bsStyle="danger" onClick={this.onRemove}>&#10006;</Button>}
       </div>
     );
   },
@@ -705,38 +713,38 @@ const TagList = React.createClass({
       );
     } else if (this.state.removing) {
       components.push(
-        <BS.Button
+        <Button
           key="stopRemoving"
           className="tag-modify-button"
           onClick={this.stopRemoving}
         >
           Done removing
-        </BS.Button>
+        </Button>
       );
     } else if (this.props.showControls && (this.props.onCreateTag || this.props.onRemoveTag)) {
       components.push(
-        <BS.ButtonGroup key="editRemoveGroup">
+        <ButtonGroup key="editRemoveGroup">
           {this.props.onCreateTag && (
-            <BS.Button
+            <Button
               title="Add tag..."
               key="startEditing"
               className="tag-modify-button"
               onClick={this.startEditing}
             >
               &#10133;
-            </BS.Button>
+            </Button>
           )}
           {this.props.onRemoveTag && tags.length > 0 && (
-            <BS.Button
+            <Button
               title="Remove tag..."
               key="startRemoving"
               className="tag-modify-button"
               onClick={this.startRemoving}
             >
               &#10134;
-            </BS.Button>
+            </Button>
           )}
-        </BS.ButtonGroup>
+        </ButtonGroup>
       );
     }
 

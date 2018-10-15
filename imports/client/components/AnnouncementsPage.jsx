@@ -2,7 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
-import BS from 'react-bootstrap';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
 import marked from 'marked';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import JRPropTypes from '../JRPropTypes.js';
@@ -54,7 +55,7 @@ const AnnouncementForm = React.createClass({
     return (
       <div className="announcement-form">
         <h3>Write an announcement:</h3>
-        {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger">{this.state.errorMessage}</BS.Alert> : null}
+        {this.state.submitState === 'failed' ? <Alert bsStyle="danger">{this.state.errorMessage}</Alert> : null}
         <textarea
           value={this.state.message}
           onChange={this.setMessage}
@@ -62,13 +63,13 @@ const AnnouncementForm = React.createClass({
         />
         <div>Try to keep it brief and on-point.</div>
         <div className="button-row">
-          <BS.Button
+          <Button
             bsStyle="primary"
             onClick={this.postAnnouncement}
             disabled={this.state.submitState === 'submitting'}
           >
             Send
-          </BS.Button>
+          </Button>
         </div>
       </div>
     );

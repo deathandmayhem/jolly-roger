@@ -1,7 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
-import BS from 'react-bootstrap';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
 import { navAggregatorType } from './NavAggregator.jsx';
 
 /* eslint-disable max-len */
@@ -75,10 +76,10 @@ const SetupPage = React.createClass({
 
     return (
       <div>
-        {this.state.state === 'submitting' ? <BS.Alert bsStyle="info">Saving...</BS.Alert> : null}
-        {this.state.state === 'success' ? <BS.Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</BS.Alert> : null}
-        {this.state.state === 'error' ? <BS.Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.error.message}</BS.Alert> : null}
-        <BS.Button bsStyle="primary" onClick={this.showPopup}>Link a Google account</BS.Button> for Google Drive management. (This will replace any previously configured account)
+        {this.state.state === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
+        {this.state.state === 'success' ? <Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.state === 'error' ? <Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.error.message}</Alert> : null}
+        <Button bsStyle="primary" onClick={this.showPopup}>Link a Google account</Button> for Google Drive management. (This will replace any previously configured account)
       </div>
     );
   },

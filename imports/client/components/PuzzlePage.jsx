@@ -3,7 +3,19 @@ import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
-import BS from 'react-bootstrap';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import Glyphicon from 'react-bootstrap/lib/Glyphicon';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import Modal from 'react-bootstrap/lib/Modal';
+import Nav from 'react-bootstrap/lib/Nav';
+import NavItem from 'react-bootstrap/lib/NavItem';
+import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
+import Table from 'react-bootstrap/lib/Table';
+import Tooltip from 'react-bootstrap/lib/Tooltip';
 import DocumentTitle from 'react-document-title';
 import classnames from 'classnames';
 import marked from 'marked';
@@ -116,16 +128,16 @@ const ViewersModal = React.createClass({
 
   render() {
     return (
-      <BS.Modal show={this.state.show} onHide={this.close}>
-        <BS.Modal.Header closeButton>
-          <BS.Modal.Title>
+      <Modal show={this.state.show} onHide={this.close}>
+        <Modal.Header closeButton>
+          <Modal.Title>
             Currently viewing this puzzle
-          </BS.Modal.Title>
-        </BS.Modal.Header>
-        <BS.Modal.Body>
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
           {this.state.show && <ViewersList name={this.props.name} />}
-        </BS.Modal.Body>
-      </BS.Modal>
+        </Modal.Body>
+      </Modal>
     );
   },
 });
@@ -155,17 +167,17 @@ const ViewCountDisplay = React.createClass({
     }
 
     const tooltip = (
-      <BS.Tooltip id="view-count-tooltip">
+      <Tooltip id="view-count-tooltip">
         Click to see who is viewing this puzzle
-      </BS.Tooltip>
+      </Tooltip>
     );
 
     return (
       <span>
         <ViewersModal ref={n => { this.modalNode = n; }} name={this.props.name} />
-        <BS.OverlayTrigger placement="top" overlay={tooltip}>
+        <OverlayTrigger placement="top" overlay={tooltip}>
           <span className="view-count" onClick={this.showModal}>{text}</span>
-        </BS.OverlayTrigger>
+        </OverlayTrigger>
       </span>
     );
   },
@@ -467,20 +479,20 @@ const PuzzlePageSidebar = React.createClass({
     return (
       <div className={classes}>
         {!this.props.isStackable && (
-          <BS.Nav bsStyle="tabs" justified onSelect={this.handleSelect}>
-            <BS.NavItem
+          <Nav bsStyle="tabs" justified onSelect={this.handleSelect}>
+            <NavItem
               className={!this.props.showRelated && 'active'}
               onClick={() => { this.props.onChangeShowRelated(false); }}
             >
               Chat
-            </BS.NavItem>
-            <BS.NavItem
+            </NavItem>
+            <NavItem
               className={this.props.showRelated && 'active'}
               onClick={() => { this.props.onChangeShowRelated(true); }}
             >
               Related
-            </BS.NavItem>
-          </BS.Nav>
+            </NavItem>
+          </Nav>
         )}
         <div className="split-pane-wrapper">
           <SplitPanePlus
@@ -579,9 +591,9 @@ const PuzzlePageMetadata = React.createClass({
   editButton() {
     if (this.data.canUpdate) {
       return (
-        <BS.Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
-          <BS.Glyphicon glyph="edit" />
-        </BS.Button>
+        <Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
+          <Glyphicon glyph="edit" />
+        </Button>
       );
     }
     return null;
@@ -637,9 +649,9 @@ const PuzzlePageMetadata = React.createClass({
           <div className="puzzle-metadata-row">
             {!isAdministrivia && (
               <div className="puzzle-metadata-right">
-                <BS.Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
+                <Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
                   {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
-                </BS.Button>
+                </Button>
               </div>
             )}
             <div className="puzzle-metadata-left">
@@ -755,14 +767,14 @@ const PuzzleGuessModal = React.createClass({
 
   render() {
     const directionTooltip = (
-      <BS.Tooltip id="guess-direction-tooltip">
+      <Tooltip id="guess-direction-tooltip">
         Current value: {this.state.directionInput}
-      </BS.Tooltip>
+      </Tooltip>
     );
     const confidenceTooltip = (
-      <BS.Tooltip id="guess-confidence-tooltip">
+      <Tooltip id="guess-confidence-tooltip">
         Current value: {this.state.confidenceInput}
-      </BS.Tooltip>
+      </Tooltip>
     );
 
     return (
@@ -772,12 +784,12 @@ const PuzzleGuessModal = React.createClass({
         onSubmit={this.onSubmitGuess}
         submitLabel={this.state.confirmingSubmit ? 'Confirm Submit' : 'Submit'}
       >
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor="jr-puzzle-guess" className="col-xs-3">
+        <FormGroup>
+          <ControlLabel htmlFor="jr-puzzle-guess" className="col-xs-3">
             Guess
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.FormControl
+            <FormControl
               type="text"
               id="jr-puzzle-guess"
               autoFocus="true"
@@ -787,12 +799,12 @@ const PuzzleGuessModal = React.createClass({
             />
           </div>
 
-          <BS.ControlLabel htmlFor="jr-puzzle-guess-direction" className="col-xs-3">
+          <ControlLabel htmlFor="jr-puzzle-guess-direction" className="col-xs-3">
             Solve direction
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.OverlayTrigger placement="right" overlay={directionTooltip}>
-              <BS.FormControl
+            <OverlayTrigger placement="right" overlay={directionTooltip}>
+              <FormControl
                 type="range"
                 id="jr-puzzle-guess-direction"
                 min={-10}
@@ -801,20 +813,20 @@ const PuzzleGuessModal = React.createClass({
                 onChange={this.onDirectionInputChange}
                 value={this.state.directionInput}
               />
-            </BS.OverlayTrigger>
-            <BS.HelpBlock>
+            </OverlayTrigger>
+            <HelpBlock>
               Pick a number between -10 (backsolved without opening
               the puzzle) to 10 (forward-solved without seeing the
               round) to indicate if you forward- or back-solved.
-            </BS.HelpBlock>
+            </HelpBlock>
           </div>
 
-          <BS.ControlLabel htmlFor="jr-puzzle-guess-confidence" className="col-xs-3">
+          <ControlLabel htmlFor="jr-puzzle-guess-confidence" className="col-xs-3">
             Confidence
-          </BS.ControlLabel>
+          </ControlLabel>
           <div className="col-xs-9">
-            <BS.OverlayTrigger placement="right" overlay={confidenceTooltip}>
-              <BS.FormControl
+            <OverlayTrigger placement="right" overlay={confidenceTooltip}>
+              <FormControl
                 type="range"
                 id="jr-puzzle-guess-confidence"
                 min={0}
@@ -823,17 +835,17 @@ const PuzzleGuessModal = React.createClass({
                 onChange={this.onConfidenceInputChange}
                 value={this.state.confidenceInput}
               />
-            </BS.OverlayTrigger>
-            <BS.HelpBlock>
+            </OverlayTrigger>
+            <HelpBlock>
               Pick a number between 0 and 100 for the probability that
               you think this answer is right.
-            </BS.HelpBlock>
+            </HelpBlock>
           </div>
-        </BS.FormGroup>
+        </FormGroup>
 
         {this.props.guesses.length === 0 ? <div>No previous submissions.</div> : [
           <div key="label">Previous submissions:</div>,
-          <BS.Table className="guess-history-table" key="table" bordered condensed>
+          <Table className="guess-history-table" key="table" bordered condensed>
             <thead>
               <tr>
                 <th>Guess</th>
@@ -854,10 +866,10 @@ const PuzzleGuessModal = React.createClass({
                 );
               })}
             </tbody>
-          </BS.Table>,
+          </Table>,
         ]}
-        {this.state.confirmingSubmit ? <BS.Alert bsStyle="warning">{this.state.confirmationMessage}</BS.Alert> : null}
-        {this.state.submitState === 'failed' ? <BS.Alert bsStyle="danger" onDismiss={this.clearError}>{this.state.errorMessage}</BS.Alert> : null}
+        {this.state.confirmingSubmit ? <Alert bsStyle="warning">{this.state.confirmationMessage}</Alert> : null}
+        {this.state.submitState === 'failed' ? <Alert bsStyle="danger" onDismiss={this.clearError}>{this.state.errorMessage}</Alert> : null}
       </ModalForm>
     );
   },

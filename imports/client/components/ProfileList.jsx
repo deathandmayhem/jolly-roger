@@ -1,7 +1,14 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { _ } from 'meteor/underscore';
-import BS from 'react-bootstrap';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import InputGroup from 'react-bootstrap/lib/InputGroup';
+import ListGroup from 'react-bootstrap/lib/ListGroup';
+import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
 import RRBS from 'react-router-bootstrap';
 
 const ProfileList = React.createClass({
@@ -63,9 +70,9 @@ const ProfileList = React.createClass({
 
     return (
       <RRBS.LinkContainer to={`/hunts/${this.props.huntId}/hunters/invite`}>
-        <BS.ListGroupItem>
+        <ListGroupItem>
           <strong>Invite someone...</strong>
-        </BS.ListGroupItem>
+        </ListGroupItem>
       </RRBS.LinkContainer>
     );
   },
@@ -76,10 +83,10 @@ const ProfileList = React.createClass({
     }
 
     return (
-      <BS.Alert bsStyle="info">
+      <Alert bsStyle="info">
         This shows everyone registered on Jolly Roger, not just those hunting in this year's
         Mystery Hunt. For that, go to the hunt page and click on "Hunters".
-      </BS.Alert>
+      </Alert>
     );
   },
 
@@ -92,38 +99,38 @@ const ProfileList = React.createClass({
           <div>Total hunters: {this.props.profiles.length}</div>
         </div>
 
-        <BS.FormGroup>
-          <BS.ControlLabel htmlFor="jr-profile-list-search">
+        <FormGroup>
+          <ControlLabel htmlFor="jr-profile-list-search">
             Search
-          </BS.ControlLabel>
-          <BS.InputGroup>
-            <BS.FormControl
+          </ControlLabel>
+          <InputGroup>
+            <FormControl
               id="jr-profile-list-search"
               type="text"
               placeholder="search by name..."
               value={this.state.searchString}
               onChange={this.onSearchStringChange}
             />
-            <BS.InputGroup.Button>
-              <BS.Button onClick={this.clearSearch}>
+            <InputGroup.Button>
+              <Button onClick={this.clearSearch}>
                 Clear
-              </BS.Button>
-            </BS.InputGroup.Button>
-          </BS.InputGroup>
-        </BS.FormGroup>
+              </Button>
+            </InputGroup.Button>
+          </InputGroup>
+        </FormGroup>
 
         {this.globalInfo()}
 
-        <BS.ListGroup>
+        <ListGroup>
           {this.inviteToHuntItem()}
           {profiles.map((profile) => (
             <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
-              <BS.ListGroupItem>
+              <ListGroupItem>
                 {profile.displayName || '<no name provided>'}
-              </BS.ListGroupItem>
+              </ListGroupItem>
             </RRBS.LinkContainer>
           ))}
-        </BS.ListGroup>
+        </ListGroup>
       </div>
     );
   },
