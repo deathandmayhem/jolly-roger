@@ -3,14 +3,14 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { Link, browserHistory } from 'react-router';
-import JRPropTypes from '/imports/client/JRPropTypes.js';
+import { ReactMeteorData } from 'meteor/react-meteor-data';
+import JRPropTypes from '../JRPropTypes.js';
 import {
   PuzzleList,
   RelatedPuzzleGroup,
   PuzzleModalForm,
-} from '/imports/client/components/PuzzleComponents.jsx';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
-import Flags from '/imports/flags.js';
+} from './PuzzleComponents.jsx';
+import Flags from '../../flags.js';
 
 /* eslint-disable max-len */
 

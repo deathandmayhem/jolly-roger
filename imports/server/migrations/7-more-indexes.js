@@ -1,6 +1,6 @@
 import { Migrations } from 'meteor/percolate:migrations';
 import { Meteor } from 'meteor/meteor';
-import { dropIndex } from '/imports/server/migrations.js';
+import { dropIndex } from '../migrations.js';
 
 Migrations.add({
   version: 7,

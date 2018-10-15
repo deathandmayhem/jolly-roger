@@ -3,9 +3,9 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import { Link } from 'react-router';
 import classnames from 'classnames';
-import JRPropTypes from '/imports/client/JRPropTypes.js';
-import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
+import JRPropTypes from '../JRPropTypes.js';
+import { navAggregatorType } from './NavAggregator.jsx';
 
 /* eslint-disable max-len */
 

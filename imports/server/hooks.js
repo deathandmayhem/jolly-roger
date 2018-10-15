@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { postSlackMessage } from '/imports/server/slack.js';
+import { postSlackMessage } from './slack.js';
 
 class Hooks {
   constructor() {

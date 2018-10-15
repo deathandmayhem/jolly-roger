@@ -1,6 +1,6 @@
 import { MeteorX } from 'meteor/meteorhacks:meteorx';
 import { _ } from 'meteor/underscore';
-import { honeyBuilder } from '/imports/server/honey.js';
+import { honeyBuilder } from './honey.js';
 
 /* eslint-disable no-underscore-dangle */
 

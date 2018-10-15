@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import BS from 'react-bootstrap';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import { navAggregatorType } from '/imports/client/components/NavAggregator.jsx';
+import { navAggregatorType } from './NavAggregator.jsx';
 
 /* eslint-disable max-len */
 

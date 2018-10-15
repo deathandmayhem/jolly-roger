@@ -3,8 +3,8 @@
 
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import Ansible from '/imports/ansible.js';
 import googleapis from 'googleapis';
+import Ansible from '../ansible.js';
 
 let oauthClient = null;
 gdrive = null;

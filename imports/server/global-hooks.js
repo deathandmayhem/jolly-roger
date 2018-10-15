@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { Hooks, SlackHooks } from '/imports/server/hooks.js';
+import { Hooks, SlackHooks } from './hooks.js';
 /* global globalHooks: true */
 
 Meteor.startup(() => {
