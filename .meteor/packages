@@ -9,7 +9,6 @@ ecmascript-collections
 accounts-password@1.5.1
 twbs:bootstrap
 audit-argument-checks@1.0.7
-meteorhacks:zones
 aldeed:collection2
 aldeed:simple-schema
 nicolaslopezj:roles
