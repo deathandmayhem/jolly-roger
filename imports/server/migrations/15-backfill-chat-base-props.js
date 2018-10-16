@@ -6,7 +6,7 @@ Migrations.add({
   name: 'Backfill props from the base schema on chat messages',
   up() {
     const hunts = {};
-    Models.Puzzles.find().forEach(p => { hunts[p._id] = p.hunt; });
+    Models.Puzzles.find().forEach((p) => { hunts[p._id] = p.hunt; });
 
     Models.ChatMessages.findAllowingDeleted({
       $or: [
@@ -16,7 +16,7 @@ Migrations.add({
         { puzzle: null },
         { hunt: null },
       ],
-    }).forEach(m => {
+    }).forEach((m) => {
       Models.ChatMessages.update(m._id, {
         $set: {
           deleted: m.deleted === undefined ? false : m.deleted,

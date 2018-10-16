@@ -41,9 +41,7 @@
 
     // We totally use React.createClass and mixins all over; refactor this later
     "react/prefer-es6-class": ["off"],
-
-    // We namespace all the React-Bootstrap stuff under "BS", which trips this rule
-    "react/jsx-pascal-case": ["off"],
+    "react/no-deprecated": ["off"],
 
     // We have files with multiple React components.  Maybe we should split them out
     // later, but right now I don't want to deal with this
@@ -58,6 +56,37 @@
 
     // Absolute imports work with Meteor, but aren't well-understood by IDEs, like VS Code
     "import/no-absolute-path": ["error"],
+
+    // We use imports with extensions. Maybe it's not required, but maintain consistency
+    "import/extensions": ["error", "ignorePackages"],
+
+    // This seems incompatible with React.createClass
+    "react/no-this-in-sfc": ["off"],
+
+    // We should really fix this if we can
+    "react/forbid-prop-types": ["off"],
+
+    // The eslint guide seems to claim that adding "static" to method
+    // definitions is a noop, but that doesn't seem to be true in practice, and I
+    // don't understand the prototype model well enough to understand why.
+    "class-methods-use-this": ["off"],
+
+    // Match existing style
+    "operator-linebreak": ["error", "after"],
+    "prefer-destructuring": ["off"],
+    "comma-dangle": ["error", {
+      "arrays": "always-multiline",
+      "objects": "always-multiline",
+      "imports": "always-multiline",
+      "exports": "always-multiline",
+      "functions": "ignore",
+    }],
+    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+    "react/destructuring-assignment": ["off"],
+    "jsx-a11y/accessible-emoji": ["off"],
+    "jsx-a11y/click-events-have-key-events": ["off"],
+    "jsx-a11y/no-static-element-interactions": ["off"],
+    "jsx-a11y/media-has-caption": ["off"],
   },
   "globals": {
     // Long-term, reduce this list to nothing by making full use of import/export

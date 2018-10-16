@@ -38,8 +38,7 @@ const Tag = React.createClass({
       isGroup ? 'tag-group' : null,
       isMetaFor ? 'tag-meta-for' : null,
       isNeeds ? 'tag-needs' : null,
-      isPriority ? 'tag-priority' : null,
-    );
+      isPriority ? 'tag-priority' : null);
 
     let title;
     if (this.props.linkToSearch) {

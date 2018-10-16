@@ -73,8 +73,7 @@ const Puzzle = React.createClass({
       this.props.puzzle.answer ? 'solved' : 'unsolved',
       this.props.layout === 'grid' ? 'puzzle-grid' : null,
       this.props.layout === 'table' ? 'puzzle-table-row' : null,
-      isAdministrivia ? 'administrivia' : null,
-    );
+      isAdministrivia ? 'administrivia' : null);
 
     if (this.props.layout === 'table') {
       return (
@@ -93,7 +92,7 @@ const Puzzle = React.createClass({
 
     return (
       <div className={puzzleClasses}>
-        {this.state.showEditModal ?
+        {this.state.showEditModal ? (
           <PuzzleModalForm
             ref={(node) => {
               if (node && this.modalNode === undefined) {
@@ -107,19 +106,24 @@ const Puzzle = React.createClass({
             huntId={this.props.puzzle.hunt}
             tags={this.props.allTags}
             onSubmit={this.onEdit}
-          /> :
-          null
-        }
+          />
+        ) : null}
         <div className="puzzle-title">
           {this.editButton()}
           {' '}
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
         </div>
-        {this.props.layout === 'grid' ?
+        {this.props.layout === 'grid' ? (
           <div className="puzzle-link">
-            {this.props.puzzle.url ? <span>(<a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">puzzle</a>)</span> : null}
-          </div> :
-         null}
+            {this.props.puzzle.url ? (
+              <span>
+                (
+                <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">puzzle</a>
+                )
+              </span>
+            ) : null}
+          </div>
+        ) : null}
         <div className="puzzle-view-count">
           {!this.props.puzzle.answer && !isAdministrivia && <SubscriberCount puzzleId={this.props.puzzle._id} />}
         </div>

@@ -36,7 +36,11 @@ const SubscriberCount = React.createClass({
     );
     return (
       <OverlayTrigger placement="top" overlay={countTooltip}>
-        <span>({this.data.viewCount})</span>
+        <span>
+          (
+          {this.data.viewCount}
+          )
+        </span>
       </OverlayTrigger>
     );
   },

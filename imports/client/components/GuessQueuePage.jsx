@@ -69,20 +69,36 @@ const GuessBlock = React.createClass({
     const timestamp = this.formatDate(guess.createdAt);
     const guessButtons = (
       <div className="guess-button-group">
-        {guess.state === 'correct' ? <button className="guess-button guess-button-disabled" disabled>Correct</button> : <button className="guess-button guess-button-correct" onClick={this.markCorrect}>Mark correct</button>}
-        {guess.state === 'incorrect' ? <button className="guess-button guess-button-disabled" disabled>Incorrect</button> : <button className="guess-button guess-button-incorrect" onClick={this.markIncorrect}>Mark incorrect</button>}
-        {guess.state === 'rejected' ? <button className="guess-button guess-button-disabled" disabled>Rejected</button> : <button className="guess-button guess-button-rejected" onClick={this.markRejected}>Mark rejected</button>}
-        {guess.state === 'pending' ? <button className="guess-button guess-button-disabled" disabled>Pending</button> : <button className="guess-button guess-button-pending" onClick={this.markPending}>Mark pending</button>}
+        {guess.state === 'correct' ? <button type="button" className="guess-button guess-button-disabled" disabled>Correct</button> : <button type="button" className="guess-button guess-button-correct" onClick={this.markCorrect}>Mark correct</button>}
+        {guess.state === 'incorrect' ? <button type="button" className="guess-button guess-button-disabled" disabled>Incorrect</button> : <button type="button" className="guess-button guess-button-incorrect" onClick={this.markIncorrect}>Mark incorrect</button>}
+        {guess.state === 'rejected' ? <button type="button" className="guess-button guess-button-disabled" disabled>Rejected</button> : <button type="button" className="guess-button guess-button-rejected" onClick={this.markRejected}>Mark rejected</button>}
+        {guess.state === 'pending' ? <button type="button" className="guess-button guess-button-disabled" disabled>Pending</button> : <button type="button" className="guess-button guess-button-pending" onClick={this.markPending}>Mark pending</button>}
       </div>
     );
 
     return (
       <div className={classnames('guess', `guess-${guess.state}`)}>
         <div className="guess-info">
-          <div>{timestamp} from {this.props.createdByDisplayName || '<no name given>'}</div>
-          <div>Puzzle: <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a> (<Link to={`/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`}>discussion</Link>)</div>
-          <div>Solve direction: {guess.direction}</div>
-          <div>Confidence: {guess.confidence}</div>
+          <div>
+            {timestamp}
+            {' from '}
+            {this.props.createdByDisplayName || '<no name given>'}
+          </div>
+          <div>
+            {'Puzzle: '}
+            <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>
+            {' ('}
+            <Link to={`/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`}>discussion</Link>
+            )
+          </div>
+          <div>
+            {'Solve direction: '}
+            {guess.direction}
+          </div>
+          <div>
+            {'Confidence: '}
+            {guess.confidence}
+          </div>
           <div><AutoSelectInput value={guess.guess} /></div>
         </div>
         {this.props.canEdit ? guessButtons : <div className="guess-button-group">{guess.state}</div>}

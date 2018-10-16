@@ -37,9 +37,9 @@ const ProfileList = React.createClass({
   compileMatcher() {
     const searchKeys = this.state.searchString.split(' ');
     const toMatch = _.chain(searchKeys)
-                     .filter((s) => !!s)
-                     .map((s) => s.toLowerCase())
-                     .value();
+      .filter(s => !!s)
+      .map(s => s.toLowerCase())
+      .value();
     const isInteresting = (profile) => {
       for (let i = 0; i < toMatch.length; i++) {
         const searchKey = toMatch[i];
@@ -84,8 +84,8 @@ const ProfileList = React.createClass({
 
     return (
       <Alert bsStyle="info">
-        This shows everyone registered on Jolly Roger, not just those hunting in this year's
-        Mystery Hunt. For that, go to the hunt page and click on "Hunters".
+        This shows everyone registered on Jolly Roger, not just those hunting in this year&apos;s
+        Mystery Hunt. For that, go to the hunt page and click on &quot;Hunters&quot;.
       </Alert>
     );
   },
@@ -96,7 +96,11 @@ const ProfileList = React.createClass({
       <div>
         <h1>List of hunters</h1>
         <div className="profiles-summary">
-          <div>Total hunters: {this.props.profiles.length}</div>
+          <div>
+            Total hunters:
+            {' '}
+            {this.props.profiles.length}
+          </div>
         </div>
 
         <FormGroup>
@@ -123,7 +127,7 @@ const ProfileList = React.createClass({
 
         <ListGroup>
           {this.inviteToHuntItem()}
-          {profiles.map((profile) => (
+          {profiles.map(profile => (
             <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
               <ListGroupItem>
                 {profile.displayName || '<no name provided>'}

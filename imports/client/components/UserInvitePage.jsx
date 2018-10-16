@@ -61,8 +61,9 @@ const UserInvitePage = React.createClass({
       <div>
         <h1>Send an invite</h1>
 
-        <p>Invite someone to join this hunt. They'll get an email with instructions (even if they
-          already have a Jolly Roger account)
+        <p>
+          Invite someone to join this hunt. They&apos;ll get an email with instructions (even if
+          they already have a Jolly Roger account)
         </p>
 
         <Row>

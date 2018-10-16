@@ -37,7 +37,7 @@ const DeepLink = React.createClass({
 
   nativeIframe() {
     return (
-      <iframe width="1px" height="1px" src={this.props.nativeUrl} />
+      <iframe title="Open document" width="1px" height="1px" src={this.props.nativeUrl} />
     );
   },
 

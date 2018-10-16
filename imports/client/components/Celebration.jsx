@@ -40,8 +40,17 @@ const Celebration = React.createClass({
             <span ariaHidden="true">×</span>
           </button>
           {this.props.playAudio ? <audio src="/audio/applause.mp3" autoPlay /> : null}
-          <h1>We solved <Link to={this.props.url}>{this.props.title}</Link>!</h1>
-          <h2>Answer: <span className="answer">{this.props.answer}</span></h2>
+          <h1>
+            We solved
+            {' '}
+            <Link to={this.props.url}>{this.props.title}</Link>
+            !
+          </h1>
+          <h2>
+            Answer:
+            {' '}
+            <span className="answer">{this.props.answer}</span>
+          </h2>
         </div>
       </div>
     );

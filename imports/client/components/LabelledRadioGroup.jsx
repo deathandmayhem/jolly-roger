@@ -41,7 +41,8 @@ const LabelledRadio = React.createClass({
           onChange={this.props.onChange}
           value={this.props.value}
           defaultChecked={!!this.props.defaultChecked}
-        />{this.props.label}
+        />
+        {this.props.label}
       </label>
     );
   },

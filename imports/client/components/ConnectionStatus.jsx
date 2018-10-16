@@ -28,7 +28,9 @@ const ConnectionStatus = React.createClass({
       case 'failed':
         return (
           <Alert bsStyle="danger">
-            <strong>Oh no!</strong> Unable to connect to Jolly Roger:
+            <strong>Oh no!</strong>
+            {' '}
+            Unable to connect to Jolly Roger:
             {this.data.meteorStatus.reason}
           </Alert>
         );
@@ -40,18 +42,22 @@ const ConnectionStatus = React.createClass({
         window.setTimeout(this.forceUpdateBound, 1000);
         return (
           <Alert bsStyle="warning">
-            We can't connect to Jolly Roger right now. We'll try again
-            in {timeToRetry}s. Your pending
-            changes will be pushed to the server when we
-            reconnect. <Button bsStyle="link" onClick={Meteor.reconnect}>retry now</Button>
+            We can&apos;t connect to Jolly Roger right now. We&apos;ll try again in
+            {' '}
+            {timeToRetry}
+            s. Your pending changes will be pushed to the server when we reconnect.
+            {' '}
+            <Button bsStyle="link" onClick={Meteor.reconnect}>retry now</Button>
           </Alert>
         );
       }
       case 'offline':
         return (
           <Alert bsStyle="warning">
-            <strong>Warning!</strong> Currently not connected to Jolly
-            Roger server. Changes will be synced when you reconnect.
+            <strong>Warning!</strong>
+            {' '}
+            Currently not connected to Jolly Roger server. Changes will be synced when you
+            reconnect.
             <Button bsStyle="link" onClick={Meteor.reconnect}>reconnect now</Button>
           </Alert>
         );

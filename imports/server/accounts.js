@@ -64,8 +64,8 @@ Accounts.onLoginFailure((info) => {
   console.log(`Failed login attempt: ${logfmt.stringify(data)}`);
 });
 
-Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl(`enroll/${token}`);
-Accounts.urls.resetPassword = (token) => Meteor.absoluteUrl(`reset-password/${token}`);
+Accounts.urls.enrollAccount = token => Meteor.absoluteUrl(`enroll/${token}`);
+Accounts.urls.resetPassword = token => Meteor.absoluteUrl(`reset-password/${token}`);
 
 Accounts.emailTemplates.from = 'above@mit.edu';
 Accounts.emailTemplates.enrollAccount.subject = () => {
@@ -77,10 +77,10 @@ Accounts.emailTemplates.enrollAccount.text = (user, url) => {
   const email = user && user.emails && user.emails[0] && user.emails[0].address;
   const huntNames = _.pluck(hunts, 'name');
   const huntLists = _.chain(hunts)
-        .pluck('mailingLists')
-        .flatten()
-        .uniq()
-        .value();
+    .pluck('mailingLists')
+    .flatten()
+    .uniq()
+    .value();
   const huntExcerpt = 'Once you register your account, you\'ll also be signed up for these ' +
     'specific hunts:\n' +
     '\n' +

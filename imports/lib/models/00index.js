@@ -128,25 +128,29 @@ Models.Base = class Base extends Mongo.Collection {
   find(selector = {}, options = {}) {
     return super.find(
       _.extend({ deleted: false }, this[formatQuery](selector)),
-      this[formatOptions](options));
+      this[formatOptions](options)
+    );
   }
 
   findOne(selector = {}, options = {}) {
     return super.findOne(
       _.extend({ deleted: false }, this[formatQuery](selector)),
-      this[formatOptions](options));
+      this[formatOptions](options)
+    );
   }
 
   findDeleted(selector = {}, options = {}) {
     return super.find(
       _.extend({ deleted: true }, this[formatQuery](selector)),
-      this[formatOptions](options));
+      this[formatOptions](options)
+    );
   }
 
   findOneDeleted(selector = {}, options = {}) {
     return super.findOne(
       _.extend({ deleted: true }, this[formatQuery](selector)),
-      this[formatOptions](options));
+      this[formatOptions](options)
+    );
   }
 
   findAllowingDeleted(selector = {}, options = {}) {
@@ -188,6 +192,7 @@ Models.Base = class Base extends Mongo.Collection {
     Meteor.publish(`mongo.${this.name}.deleted`, publishFunc(this.findDeleted.bind(this)));
     Meteor.publish(
       `mongo.${this.name}.allowingDeleted`,
-      publishFunc(this.findAllowingDeleted.bind(this)));
+      publishFunc(this.findAllowingDeleted.bind(this))
+    );
   }
 };

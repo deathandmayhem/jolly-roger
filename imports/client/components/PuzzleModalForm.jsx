@@ -99,7 +99,7 @@ const PuzzleModalForm = React.createClass({
     return {
       title: puzzle.title,
       url: puzzle.url,
-      tags: puzzle.tags.map((t) => tagNames[t]),
+      tags: puzzle.tags.map(t => tagNames[t]),
     };
   },
 
@@ -110,7 +110,7 @@ const PuzzleModalForm = React.createClass({
   render() {
     const disableForm = this.state.submitState === 'submitting';
 
-    const allTags = _.compact(_.union(this.props.tags.map((t) => t.name), this.state.tags));
+    const allTags = _.compact(_.union(this.props.tags.map(t => t.name), this.state.tags));
 
     const docTypeSelector = (
       <FormGroup>

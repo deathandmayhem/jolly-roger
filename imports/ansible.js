@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 const Ansible = {};
 
 const logLevels = new Set(['log', 'info', 'error', 'warn']);
-logLevels.forEach(l => {
+logLevels.forEach((l) => {
   Ansible[l] = function (line, obj) {
     const args = [line];
     if (obj) {

@@ -9,8 +9,10 @@ const LoginForm = React.createClass({
   },
 
   changeFormat() {
-    const newFormat = (this.state.format === 'login') ? 'requestPwReset' : 'login';
-    this.setState({ format: newFormat });
+    this.setState((prevState) => {
+      const newFormat = (prevState.format === 'login') ? 'requestPwReset' : 'login';
+      return { format: newFormat };
+    });
   },
 
   render() {

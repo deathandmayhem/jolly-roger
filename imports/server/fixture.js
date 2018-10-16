@@ -21,7 +21,7 @@ Meteor.methods({
     }
 
     // Create tags associated with the hunt.
-    data.tags.forEach(tag => {
+    data.tags.forEach((tag) => {
       Models.Tags.upsert({
         _id: tag._id,
       }, {
@@ -33,7 +33,7 @@ Meteor.methods({
     });
 
     // Create puzzles associated with the hunt.  Don't bother running the puzzle hooks.
-    data.puzzles.forEach(puzzle => {
+    data.puzzles.forEach((puzzle) => {
       Models.Puzzles.upsert({
         _id: puzzle._id,
       }, {
