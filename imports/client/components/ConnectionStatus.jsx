@@ -11,10 +11,6 @@ const ConnectionStatus = React.createClass({
     meteorStatus: PropTypes.object,
   },
 
-  componentWillMount() {
-    this.forceUpdateBound = this.forceUpdate.bind(this);
-  },
-
   render() {
     switch (this.props.meteorStatus.status) {
       case 'connecting':
@@ -37,7 +33,7 @@ const ConnectionStatus = React.createClass({
         const timeToRetry = Math.ceil((this.props.meteorStatus.retryTime - now) / 1000);
 
         // Trigger a refresh in a second.  TODO: debounce this?
-        window.setTimeout(this.forceUpdateBound, 1000);
+        window.setTimeout(() => this.forceUpdate(), 1000);
         return (
           <Alert bsStyle="warning">
             We can&apos;t connect to Jolly Roger right now. We&apos;ll try again in
