@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Random } from 'meteor/random';
 
 /* eslint-disable max-len */
 
@@ -9,15 +8,12 @@ const LabelledRadio = React.createClass({
   // accessibility-friendly markup, so here's a touch of our own instead.  Uses some bootstrap
   // styles.
   propTypes: {
+    id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     value: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     defaultChecked: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
-  },
-
-  componentWillMount() {
-    this.id = Random.id();
   },
 
   styles: {
@@ -32,9 +28,9 @@ const LabelledRadio = React.createClass({
 
   render() {
     return (
-      <label style={this.styles.radiolabel} htmlFor={this.id}>
+      <label style={this.styles.radiolabel} htmlFor={this.props.id}>
         <input
-          id={this.id}
+          id={this.props.id}
           style={this.styles.radio}
           type="radio"
           name={this.props.name}
@@ -84,9 +80,10 @@ const LabelledRadioGroup = React.createClass({
   },
 
   render() {
-    const buttons = this.props.options.map((option) => {
+    const buttons = this.props.options.map((option, index) => {
       return (
         <LabelledRadio
+          id={`radiobutton-${this.props.name}-${index}`}
           key={option.value}
           name={this.props.name}
           onChange={this.setValue}
