@@ -90,9 +90,9 @@ class NavAggregator {
     }
     NavBar.propTypes = {
       // Override the type of the container
-      componentClass: PropTypes.instanceOf(React.Component),
+      componentClass: PropTypes.func,
       // Override the type of the items
-      itemComponentClass: PropTypes.instanceOf(React.Component),
+      itemComponentClass: PropTypes.func,
     };
     NavBar.defaultProps = {
       componentClass: Breadcrumb,
