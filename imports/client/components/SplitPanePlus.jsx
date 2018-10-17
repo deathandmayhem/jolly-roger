@@ -211,13 +211,11 @@ class SplitPanePlus extends React.Component {
     paneProps.pane1Style = _.extend({},
       defaultPaneStyles,
       this.props.primary === 'first' ? maxRangeStyles : {},
-      this.props.pane1Style
-    );
+      this.props.pane1Style);
     paneProps.pane2Style = _.extend({},
       defaultPaneStyles,
       this.props.primary === 'first' ? {} : maxRangeStyles,
-      this.props.pane2Style
-    );
+      this.props.pane2Style);
 
     paneProps.onDragFinished = this.onDragFinished;
     paneProps.onDragStarted = this.onDragStarted;
@@ -236,9 +234,9 @@ class SplitPanePlus extends React.Component {
         paneProps.size = this.props.primary === 'first' ? '100%' : '0%';
       }
     } else if (!('size' in this.props)) {
-      if (this.props.scaling === 'relative' && !isNaN(this.state.lastRelSize)) {
+      if (this.props.scaling === 'relative' && !Number.isNaN(this.state.lastRelSize)) {
         paneProps.size = `${this.state.lastRelSize * 100}%`;
-      } else if (!isNaN(this.state.lastSize)) {
+      } else if (!Number.isNaN(this.state.lastSize)) {
         paneProps.size = this.state.lastSize;
       }
     }
@@ -249,7 +247,7 @@ class SplitPanePlus extends React.Component {
     paneProps.className = `${paneProps.className}${this.state.dragInProgress ? ' dragging' : ''}`;
 
     return (
-      <div className={'SplitPanePlus'} ref={(node) => { this.node = node; }} >
+      <div className="SplitPanePlus" ref={(node) => { this.node = node; }}>
         <SplitPane {...paneProps} />
       </div>
     );

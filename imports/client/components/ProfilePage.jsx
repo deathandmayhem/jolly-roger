@@ -36,9 +36,25 @@ const OthersProfilePage = React.createClass({
         <h1>{profile.displayName}</h1>
         {showOperatorBadge && <Label>operator</Label>}
         {showMakeOperatorButton && <Button onClick={this.makeOperator}>Make operator</Button>}
-        <div>Email: {profile.primaryEmail}</div>
-        {profile.phoneNumber ? <div>Phone: {profile.phoneNumber}</div> : null}
-        {profile.slackHandle ? <div>Slack handle: {profile.slackHandle}</div> : null}
+        <div>
+          Email:
+          {' '}
+          {profile.primaryEmail}
+        </div>
+        {profile.phoneNumber ? (
+          <div>
+            Phone:
+            {' '}
+            {profile.phoneNumber}
+          </div>
+        ) : null}
+        {profile.slackHandle ? (
+          <div>
+            Slack handle:
+            {' '}
+            {profile.slackHandle}
+          </div>
+        ) : null}
       </div>
     );
   },
@@ -93,7 +109,9 @@ const GoogleLinkBlock = React.createClass({
     if (this.state.state === 'error') {
       return (
         <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
-          Linking Google account failed: {this.state.error.message}
+          Linking Google account failed:
+          {' '}
+          {this.state.error.message}
         </Alert>
       );
     }
@@ -132,7 +150,9 @@ const GoogleLinkBlock = React.createClass({
     if (this.props.profile.googleAccount) {
       return (
         <div>
-          Currently linked to {this.props.profile.googleAccount}
+          Currently linked to
+          {' '}
+          {this.props.profile.googleAccount}
         </div>
       );
     }
@@ -158,15 +178,17 @@ const GoogleLinkBlock = React.createClass({
           {this.unlinkButton()}
         </div>
         <HelpBlock>
-          Linking your Google account isn't required, but this will
-          let other people see who you are on puzzles' Google
+          Linking your Google account isn&apos;t required, but this will
+          let other people see who you are on puzzles&apos; Google
           Spreadsheet docs (instead of being an
           <a
             href="https://support.google.com/docs/answer/2494888?visit_id=1-636184745566842981-35709989&hl=en&rd=1"
-            rel="noopener noreferrer" target="_blank"
+            rel="noopener noreferrer"
+            target="_blank"
           >
             anonymous animal
-          </a>), and we'll use it to give you access to our practice
+          </a>
+          ), and we&apos;ll use it to give you access to our practice
           puzzles. (You can only have one Google account linked, so
           linking a new one will cause us to forget the old one).
         </HelpBlock>
@@ -296,7 +318,13 @@ const OwnProfilePage = React.createClass({
         </FormGroup>
         {this.state.submitState === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
         {this.state.submitState === 'success' ? <Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? <Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.submitError}</Alert> : null}
+        {this.state.submitState === 'error' ? (
+          <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.submitError}
+          </Alert>
+        ) : null}
 
         <GoogleLinkBlock profile={this.props.initialProfile} />
 
@@ -344,7 +372,10 @@ const OwnProfilePage = React.createClass({
             onChange={this.handleSlackHandleFieldChange}
           />
           <HelpBlock>
-            So we can connect your chat there with your account here. If you haven't signed up for a Slack account yet, there should be a notification in the top-right that you can use to get an invite. (Slack handles contain letters, numbers, periods, and underscores. You don't need the leading <code>@</code>.)
+            So we can connect your chat there with your account here. If you haven&apos;t signed up for a Slack account yet, there should be a notification in the top-right that you can use to get an invite. (Slack handles contain letters, numbers, periods, and underscores. You don&apos;t need the leading
+            {' '}
+            <code>@</code>
+            .)
           </HelpBlock>
         </FormGroup>
 

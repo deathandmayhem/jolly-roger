@@ -85,4 +85,9 @@ const ensureDocument = function ensureDocument(puzzle, type = 'spreadsheet') {
   return doc;
 };
 
-export { createDocument, renameDocument, grantPermission, ensureDocument };
+export {
+  createDocument,
+  renameDocument,
+  grantPermission,
+  ensureDocument,
+};

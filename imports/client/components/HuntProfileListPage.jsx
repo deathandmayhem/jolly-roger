@@ -30,7 +30,8 @@ const HuntProfileListPage = React.createClass({
     }
 
     const canInvite = Roles.userHasPermission(
-      Meteor.userId(), 'hunt.join', this.props.params.huntId);
+      Meteor.userId(), 'hunt.join', this.props.params.huntId
+    );
 
     const hunters = Meteor.users.find({ hunts: this.props.params.huntId }).map(u => u._id);
     const profiles = Models.Profiles.find(

@@ -35,11 +35,18 @@ class NavAggregator {
         }
       }
     }
+    /* eslint-disable react/no-unused-prop-types */
     NavItem.propTypes = {
-      itemKey: PropTypes.string, // key that we want to place on the breadcrumb
-      to: PropTypes.string, // Route to which this item should link (if not the final item)
-      label: PropTypes.string, // Text to place in the breadcrumb
+      // key that we want to place on the breadcrumb
+      itemKey: PropTypes.string.isRequired,
+      // Route to which this item should link (if not the final item)
+      to: PropTypes.string.isRequired,
+      // Text to place in the breadcrumb
+      label: PropTypes.string.isRequired,
       children: PropTypes.element,
+    };
+    NavItem.defaultProps = {
+      children: null,
     };
 
     class NavBar extends React.Component {
@@ -54,32 +61,30 @@ class NavAggregator {
       }
 
       render() {
-        const ComponentClass = this.props.componentClass || Breadcrumb;
-        const ItemComponentClass = this.props.itemComponentClass || BreadcrumbItem;
         const navItems = holder.mountedItems.map((item, index) => {
           const { to, label, itemKey } = item.props;
           const isLast = (index === (holder.mountedItems.length - 1));
           if (isLast) {
             return (
-              <ItemComponentClass key={itemKey} className="jr-breadcrumb" active>
+              <this.props.itemComponentClass key={itemKey} className="jr-breadcrumb" active>
                 {label}
-              </ItemComponentClass>
+              </this.props.itemComponentClass>
             );
           } else {
             return (
               <RRBS.LinkContainer key={itemKey} to={to} active={false}>
-                <ItemComponentClass className="jr-breadcrumb">
+                <this.props.itemComponentClass className="jr-breadcrumb">
                   {label}
-                </ItemComponentClass>
+                </this.props.itemComponentClass>
               </RRBS.LinkContainer>
             );
           }
         });
 
         return (
-          <ComponentClass className="nav-breadcrumbs">
+          <this.props.componentClass className="nav-breadcrumbs">
             {navItems}
-          </ComponentClass>
+          </this.props.componentClass>
         );
       }
     }
@@ -88,6 +93,10 @@ class NavAggregator {
       componentClass: PropTypes.instanceOf(React.Component),
       // Override the type of the items
       itemComponentClass: PropTypes.instanceOf(React.Component),
+    };
+    NavBar.defaultProps = {
+      componentClass: Breadcrumb,
+      itemComponentClass: BreadcrumbItem,
     };
 
     this.NavItem = NavItem;

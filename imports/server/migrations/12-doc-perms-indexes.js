@@ -6,6 +6,7 @@ Migrations.add({
   up() {
     Models.DocumentPermissions._ensureIndex(
       { document: 1, user: 1, googleAccount: 1 },
-      { unique: true });
+      { unique: true }
+    );
   },
 });

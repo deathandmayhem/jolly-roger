@@ -15,7 +15,7 @@ Meteor.methods({
       email,
       user: this.userId,
     });
-    Models.Settings.upsert({ name: 'gdrive.credential' }, {
-      $set: { value: { refreshToken, email } } });
+    Models.Settings.upsert({ name: 'gdrive.credential' },
+      { $set: { value: { refreshToken, email } } });
   },
 });

@@ -178,7 +178,7 @@ const HuntModalForm = React.createClass({
               disabled={disableForm}
             />
             <HelpBlock>
-              This message (rendered as markdown) will be shown to users who aren't part of the hunt. This is a good place to put directions for how to sign up.
+              This message (rendered as markdown) will be shown to users who aren&apos;t part of the hunt. This is a good place to put directions for how to sign up.
             </HelpBlock>
           </div>
         </FormGroup>
@@ -213,7 +213,10 @@ const HuntModalForm = React.createClass({
               disabled={disableForm}
             />
             <HelpBlock>
-              If provided, all chat messages written in puzzles associated with this hunt will be mirrored to the specified channel in Slack.  Make sure to include the # at the beginning of the channel name, like <code>#firehose</code>.
+              If provided, all chat messages written in puzzles associated with this hunt will be mirrored to the specified channel in Slack.  Make sure to include the # at the beginning of the channel name, like
+              {' '}
+              <code>#firehose</code>
+              .
             </HelpBlock>
           </div>
         </FormGroup>
@@ -230,7 +233,10 @@ const HuntModalForm = React.createClass({
               onChange={this.onPuzzleHooksSlackChannelChanged}
             />
             <HelpBlock>
-              If provided, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.  Make sure to include the # at the beginning of the channel name, like <code>#general</code>.
+              If provided, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.  Make sure to include the # at the beginning of the channel name, like
+              {' '}
+              <code>#general</code>
+              .
             </HelpBlock>
           </div>
         </FormGroup>
@@ -319,9 +325,9 @@ const Hunt = React.createClass({
           submitStyle="danger"
           onSubmit={this.onDelete}
         >
-          Are you sure you want to delete "{this.props.hunt.name}"?
-          This will additionally delete all puzzles and associated
-          state.
+          Are you sure you want to delete &quot;
+          {this.props.hunt.name}
+          &quot;? This will additionally delete all puzzles and associated state.
         </ModalForm>
         <ButtonGroup bsSize="xs">
           {this.editButton()}
@@ -411,19 +417,23 @@ const HuntListPage = React.createClass({
 
       body.push(<h2 key="myhuntsheader">Hunts you are a member of:</h2>);
       if (joinedHunts.length > 0) {
-        body.push(<ul key="myhunts">
-          {joinedHunts}
-        </ul>);
+        body.push(
+          <ul key="myhunts">
+            {joinedHunts}
+          </ul>
+        );
       } else {
-        body.push(<div key="nomyhunts">You're not a member of any hunts yet.  Consider joining one, or asking an operator to invite you.</div>);
+        body.push(<div key="nomyhunts">You&apos;re not a member of any hunts yet.  Consider joining one, or asking an operator to invite you.</div>);
       }
       body.push(<h2 key="otherhuntsheader">Other hunts:</h2>);
       if (otherHunts.length > 0) {
-        body.push(<ul key="otherhunts">
-          {otherHunts}
-        </ul>);
+        body.push(
+          <ul key="otherhunts">
+            {otherHunts}
+          </ul>
+        );
       } else {
-        body.push(<div key="nootherhunts">There are no other hunts you haven't joined.</div>);
+        body.push(<div key="nootherhunts">There are no other hunts you haven&apos;t joined.</div>);
       }
     } else {
       body.push(<div key="loading">Loading...</div>);

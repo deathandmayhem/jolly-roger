@@ -26,7 +26,9 @@ const GoogleDocumentDisplay = React.createClass({
       default:
         return (
           <span className="puzzle-document-message">
-            Don't know how to link to a document of type {this.props.document.value.type}
+            Don&apos;t know how to link to a document of type
+            {' '}
+            {this.props.document.value.type}
           </span>
         );
     }
@@ -35,17 +37,23 @@ const GoogleDocumentDisplay = React.createClass({
       case 'link':
         return (
           <DeepLink className="gdrive-button" nativeUrl={deepUrl} browserUrl={url}>
-            <Button>Open {title}</Button>
+            <Button>
+              Open
+              {' '}
+              {title}
+            </Button>
           </DeepLink>
         );
       case 'embed':
         return (
-          <iframe className="gdrive-embed" src={url} />
+          <iframe title="document" className="gdrive-embed" src={url} />
         );
       default:
         return (
           <span className="puzzle-document-message">
-            Unknown displayMode {this.props.displayMode}
+            Unknown displayMode
+            {' '}
+            {this.props.displayMode}
           </span>
         );
     }
@@ -70,7 +78,9 @@ const DocumentDisplay = React.createClass({
       default:
         return (
           <span className="puzzle-document-message">
-            Unable to display document from provider {this.props.document.provider}
+            Unable to display document from provider
+            {' '}
+            {this.props.document.provider}
           </span>
         );
     }

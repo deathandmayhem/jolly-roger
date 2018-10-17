@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 
-/* eslint-disable max-len, jsx-a11y/href-no-hash */
+/* eslint-disable max-len, jsx-a11y/href-no-hash, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
 
 const AccountForm = React.createClass({
   propTypes: {
@@ -183,9 +183,15 @@ const AccountForm = React.createClass({
       <div className="at-input form-group">
         <label className="control-label" htmlFor="at-field-email">Email</label>
         <input
-          id="at-field-email" className="form-control" type="email" name="at-field-email"
-          placeholder="Email" autoCapitalize="none" autoCorrect="off"
-          onChange={this.setEmail} disabled={submitting}
+          id="at-field-email"
+          className="form-control"
+          type="email"
+          name="at-field-email"
+          placeholder="Email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          onChange={this.setEmail}
+          disabled={submitting}
         />
         <span className="help-block" hidden />
       </div>
@@ -194,9 +200,15 @@ const AccountForm = React.createClass({
       <div>
         <label className="control-label" htmlFor="at-field-password">Password</label>
         <input
-          id="at-field-password" className="form-control" type="password" name="at-field-password"
-          placeholder="Password" autoCapitalize="none" autoCorrect="off"
-          onChange={this.setPassword} disabled={submitting}
+          id="at-field-password"
+          className="form-control"
+          type="password"
+          name="at-field-password"
+          placeholder="Password"
+          autoCapitalize="none"
+          autoCorrect="off"
+          onChange={this.setPassword}
+          disabled={submitting}
         />
         <span className="help-block" hidden />
       </div>
@@ -205,21 +217,31 @@ const AccountForm = React.createClass({
       <div className="at-input form-group">
         <label className="control-label" htmlFor="at-field-displayname">Full name</label>
         <input
-          id="at-field-displayname" className="form-control" type="text"
-          name="at-field-displayname" placeholder="Ben Bitdiddle" autoCapitalize="none"
-          autoCorrect="off" onChange={this.setDisplayName} disabled={submitting}
+          id="at-field-displayname"
+          className="form-control"
+          type="text"
+          name="at-field-displayname"
+          placeholder="Ben Bitdiddle"
+          autoCapitalize="none"
+          autoCorrect="off"
+          onChange={this.setDisplayName}
+          disabled={submitting}
         />
         <span className="help-block">For use in chat</span>
       </div>,
       <div className="at-input form-group">
         <label className="control-label" htmlFor="at-field-phonenumber">Phone Number</label>
         <input
-          id="at-field-phonenumber" className="form-control" type="tel"
-          name="at-field-phonenumber" placeholder="+16173244699" onChange={this.setPhoneNumber}
+          id="at-field-phonenumber"
+          className="form-control"
+          type="tel"
+          name="at-field-phonenumber"
+          placeholder="+16173244699"
+          onChange={this.setPhoneNumber}
           disabled={submitting}
         />
         <span className="help-block">
-          Optional, but helpful if HQ needs to reach you while you're
+          Optional, but helpful if HQ needs to reach you while you&apos;re
           on a runaround or at an event puzzle.
         </span>
       </div>,
@@ -238,7 +260,9 @@ const AccountForm = React.createClass({
       <div className="at-signin-link">
         <p>
           {/* TODO: prefer <Button bsStyle="link"> */}
-          If you already have an account, <a href="#" id="at-signIn" className="at-link at-signin" onClick={this.toggleWantPasswordReset}>sign in</a>
+          If you already have an account,
+          {' '}
+          <a href="#" id="at-signIn" className="at-link at-signin" onClick={this.toggleWantPasswordReset}>sign in</a>
         </p>
       </div>
     );
@@ -248,7 +272,7 @@ const AccountForm = React.createClass({
           <h3>{title}</h3>
         </div>
         <div>
-          <form id="at-pwd-form" role="form" noValidate="" action="#" method="POST" onSubmit={this.submitForm}>
+          <form id="at-pwd-form" noValidate="" action="#" method="POST" onSubmit={this.submitForm}>
             <fieldset>
               {this.state.submitState === 'failed' ? <Alert bsStyle="danger">{this.state.errorMessage}</Alert> : null}
               {this.state.submitState === 'success' && this.state.successMessage ? <Alert bsStyle="success">{this.state.successMessage}</Alert> : null}

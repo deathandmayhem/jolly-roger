@@ -63,7 +63,7 @@ const ReactSelect2 = React.createClass({
     this.el = jQuery(this.node);
     this.el.select2(this.props.options);
 
-    this.props.events.forEach(event => {
+    this.props.events.forEach((event) => {
       this.el.on(event[0], this.props[event[1]]);
     });
   },
@@ -82,8 +82,7 @@ const ReactSelect2 = React.createClass({
   render() {
     const remaining = _.omit(this.props,
       'value', 'data', 'options', 'events', 'selectRef', 'onOpen',
-      'onClose', 'onSelect', 'onChange', 'onUnselect'
-    );
+      'onClose', 'onSelect', 'onChange', 'onUnselect');
 
     return (
       <select
@@ -95,16 +94,16 @@ const ReactSelect2 = React.createClass({
         }}
         {...remaining}
       >
-        {this.props.data.map((item, k) => {
+        {this.props.data.map((item) => {
           if (typeof item === 'string' ||
               ((!!item && typeof item === 'object') &&
                 Object.prototype.toString.call(item) === '[object String]'
               )
-             ) {
-            return (<option key={`option-${k}`} value={item}>{item}</option>);
+          ) {
+            return (<option key={`option-${item}`} value={item}>{item}</option>);
           }
 
-          return (<option key={`option-${k}`} value={item.id}>{item.text}</option>);
+          return (<option key={`option-${item.id}`} value={item.id}>{item.text}</option>);
         })}
       </select>
     );

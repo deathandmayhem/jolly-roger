@@ -73,7 +73,7 @@ const ViewersList = React.createClass({
     let unknown = 0;
     const subscribers = [];
 
-    Subscribers.find({ name: this.props.name }).forEach(s => {
+    Subscribers.find({ name: this.props.name }).forEach((s) => {
       if (!s.user) {
         unknown += 1;
         return;
@@ -172,7 +172,7 @@ const ViewCountDisplay = React.createClass({
 
     return (
       <span>
-        <ViewersModal ref={n => { this.modalNode = n; }} name={this.props.name} />
+        <ViewersModal ref={(n) => { this.modalNode = n; }} name={this.props.name} />
         <OverlayTrigger placement="top" overlay={tooltip}>
           <span className="view-count" onClick={this.showModal}>{text}</span>
         </OverlayTrigger>
@@ -601,7 +601,13 @@ const PuzzlePageMetadata = React.createClass({
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
     const isAdministrivia = _.findWhere(tags, { name: 'administrivia' });
-    const answerComponent = this.props.puzzle.answer ? <span className="puzzle-metadata-answer">Solved: <span className="answer">{this.props.puzzle.answer}</span></span> : null;
+    const answerComponent = this.props.puzzle.answer ? (
+      <span className="puzzle-metadata-answer">
+        Solved:
+        {' '}
+        <span className="answer">{this.props.puzzle.answer}</span>
+      </span>
+    ) : null;
     const hideViewCount = this.props.puzzle.answer || this.data.subcountersDisabled;
     const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
@@ -637,11 +643,12 @@ const PuzzlePageMetadata = React.createClass({
               {' '}
               {this.props.puzzle.answer && answerComponent}
               {' '}
-              {!hideViewCount &&
+              {!hideViewCount && (
                 <ViewCountDisplay
                   count={this.data.viewCount}
                   name={`puzzle:${this.props.puzzle._id}`}
-                />}
+                />
+              )}
             </div>
           </div>
           <div className="puzzle-metadata-row">
@@ -766,12 +773,16 @@ const PuzzleGuessModal = React.createClass({
   render() {
     const directionTooltip = (
       <Tooltip id="guess-direction-tooltip">
-        Current value: {this.state.directionInput}
+        Current value:
+        {' '}
+        {this.state.directionInput}
       </Tooltip>
     );
     const confidenceTooltip = (
       <Tooltip id="guess-confidence-tooltip">
-        Current value: {this.state.confidenceInput}
+        Current value:
+        {' '}
+        {this.state.confidenceInput}
       </Tooltip>
     );
 
@@ -856,10 +867,10 @@ const PuzzleGuessModal = React.createClass({
               {_.sortBy(this.props.guesses, 'createdAt').reverse().map((guess) => {
                 return (
                   <tr key={guess._id} className={`guess-${guess.state}`}>
-                    <td className="answer" >{guess.guess}</td>
+                    <td className="answer">{guess.guess}</td>
                     <td>{moment(guess.createdAt).calendar()}</td>
                     <td>{this.props.displayNames[guess.createdBy]}</td>
-                    <td style={{ textTransform: 'capitalize' }} >{guess.state}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{guess.state}</td>
                   </tr>
                 );
               })}
@@ -1072,11 +1083,12 @@ const PuzzlePage = React.createClass({
     }
 
     const chatFields = {};
-    FilteredChatFields.forEach(f => { chatFields[f] = 1; });
+    FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
     const chatHandle = this.context.subs.subscribe(
       'mongo.chatmessages',
       { puzzle: this.props.params.puzzleId },
-      { fields: chatFields });
+      { fields: chatFields }
+    );
 
     // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
     // other collections.

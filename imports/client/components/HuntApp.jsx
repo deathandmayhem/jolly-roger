@@ -49,7 +49,7 @@ const HuntDeletedError = React.createClass({
     return (
       <div>
         <Alert bsStyle="danger">
-        This hunt has been deleted, so there's nothing much to see here anymore.
+        This hunt has been deleted, so there&apos;s nothing much to see here anymore.
         </Alert>
 
         <ButtonToolbar>
@@ -102,7 +102,9 @@ const HuntMemberError = React.createClass({
     return (
       <div>
         <Alert bsStyle="warning">
-          You're not signed up for this hunt ({this.data.hunt.name}) yet.
+          You&apos;re not signed up for this hunt (
+          {this.data.hunt.name}
+          ) yet.
         </Alert>
 
         <div dangerouslySetInnerHTML={{ __html: msg }} />

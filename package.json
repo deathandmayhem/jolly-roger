@@ -37,14 +37,14 @@
   },
   "devDependencies": {
     "assert": "^1.4.1",
-    "babel-eslint": "6.1.2",
-    "eslint": "3.11.1",
-    "eslint-config-airbnb": "10.0.1",
-    "eslint-import-resolver-meteor": "0.3.4",
-    "eslint-plugin-import": "1.16.0",
-    "eslint-plugin-jsx-a11y": "2.2.3",
-    "eslint-plugin-meteor": "4.0.1",
-    "eslint-plugin-react": "6.3.0"
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.7.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-import-resolver-meteor": "^0.4.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.2",
+    "eslint-plugin-meteor": "^5.1.0",
+    "eslint-plugin-react": "^7.11.1"
   },
   "meteor": {
     "mainModule": {

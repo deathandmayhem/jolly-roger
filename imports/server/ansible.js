@@ -40,4 +40,3 @@ Meteor.methods({
     console[level]('%s', msg);
   },
 });
-

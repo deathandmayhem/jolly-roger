@@ -98,33 +98,42 @@ const GuessMessage = React.createClass({
         <MessengerSpinner />
         <MessengerContent dismissable>
           <div>
-            Guess for <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a> from {this.props.guesser}:
+            Guess for
+            <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>
+            from
+            {this.props.guesser}
+            :
             {' '}
             {this.props.guess.guess}
           </div>
           <div>
             <OverlayTrigger placement="bottom" overlay={directionTooltip}>
               <span>
-                Solve direction: {this.props.guess.direction}
+                Solve direction:
+                {' '}
+                {this.props.guess.direction}
               </span>
             </OverlayTrigger>
           </div>
           <div>
             <OverlayTrigger placement="bottom" overlay={confidenceTooltip}>
               <span>
-                Confidence: {this.props.guess.confidence}%
+                Confidence:
+                {' '}
+                {this.props.guess.confidence}
+                %
               </span>
             </OverlayTrigger>
           </div>
           <ul className="actions">
             <li>
               <CopyToClipboard text={this.props.guess.guess}>
-                <button><Glyphicon glyph="copy" /></button>
+                <button type="button"><Glyphicon glyph="copy" /></button>
               </CopyToClipboard>
             </li>
-            <li><button onClick={this.markCorrect}>Correct</button></li>
-            <li><button onClick={this.markIncorrect}>Incorrect</button></li>
-            <li><button onClick={this.markRejected}>Reject</button></li>
+            <li><button type="button" onClick={this.markCorrect}>Correct</button></li>
+            <li><button type="button" onClick={this.markIncorrect}>Incorrect</button></li>
+            <li><button type="button" onClick={this.markRejected}>Reject</button></li>
           </ul>
         </MessengerContent>
         <MessengerDismissButton onDismiss={this.dismissGuess} />
@@ -188,13 +197,13 @@ const SlackMessage = React.createClass({
 
     const actions = [];
     if (this.state.status === 'idle') {
-      actions.push(<li key="invite"><button onClick={this.sendInvite}>Send me an invite</button></li>);
+      actions.push(<li key="invite"><button type="button" onClick={this.sendInvite}>Send me an invite</button></li>);
     }
 
     actions.push(<li key="edit"><Link to="/users/me">Edit my profile</Link></li>);
 
     if (this.state.status === 'success' || this.state.status === 'error') {
-      actions.push(<li key="reset"><button onClick={this.reset}>Ok</button></li>);
+      actions.push(<li key="reset"><button type="button" onClick={this.reset}>Ok</button></li>);
     }
 
     return (
@@ -230,7 +239,12 @@ const AnnouncementMessage = React.createClass({
         <MessengerSpinner />
         <MessengerContent dismissable>
           <div dangerouslySetInnerHTML={{ __html: marked(this.props.announcement.message, { sanitize: true }) }} />
-          <footer>- {this.props.createdByDisplayName}, {moment(this.props.announcement.createdAt).calendar()}</footer>
+          <footer>
+            {'- '}
+            {this.props.createdByDisplayName}
+            {', '}
+            {moment(this.props.announcement.createdAt).calendar()}
+          </footer>
         </MessengerContent>
         <MessengerDismissButton onDismiss={this.onDismiss} />
       </li>

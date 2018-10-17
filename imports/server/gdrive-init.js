@@ -29,7 +29,8 @@ const createGdriveClient = function createGdriveClient() {
   oauthClient = new googleapis.auth.OAuth2(
     oauthConfig.clientId,
     oauthConfig.secret,
-    OAuth._redirectUri('google', oauthConfig));
+    OAuth._redirectUri('google', oauthConfig)
+  );
 
   oauthClient.setCredentials({
     refresh_token: oauthRefreshToken,

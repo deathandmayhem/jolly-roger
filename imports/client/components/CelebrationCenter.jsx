@@ -36,15 +36,17 @@ const CelebrationCenter = React.createClass({
     // 2) the feature flag is not disabled, and
     // 3) TODO: the user has not disabled it in their profile settings
     if ((window.orientation === undefined) && !this.data.disabled) {
-      const newQueue = this.state.playbackQueue.concat([{
-        puzzleId: puzzle._id,
-        url: `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
-        answer: puzzle.answer,
-        title: puzzle.title,
-      }]);
+      this.setState((prevState) => {
+        const newQueue = prevState.playbackQueue.concat([{
+          puzzleId: puzzle._id,
+          url: `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
+          answer: puzzle.answer,
+          title: puzzle.title,
+        }]);
 
-      this.setState({
-        playbackQueue: newQueue,
+        this.setState({
+          playbackQueue: newQueue,
+        });
       });
     }
   },

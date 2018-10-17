@@ -322,8 +322,8 @@ const PuzzleListView = React.createClass({
         <div className="puzzle-list-controls">
           <span>View puzzles by:</span>
           <Nav activeKey={this.state.displayMode} bsStyle="pills" onSelect={this.switchView}>
-            <NavItem eventKey={'group'}>Group</NavItem>
-            <NavItem eventKey={'unlock'}>Unlock order</NavItem>
+            <NavItem eventKey="group">Group</NavItem>
+            <NavItem eventKey="unlock">Unlock order</NavItem>
           </Nav>
           <div className="puzzle-list-show-solved">
             <div>

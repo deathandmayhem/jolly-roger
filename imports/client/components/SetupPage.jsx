@@ -58,7 +58,7 @@ const SetupPage = React.createClass({
     if (!this.data.config) {
       return (
         <div>
-          Can't finish setup until Google configuration is in place. Go to the Meteor shell, and call
+          Can&apos;t finish setup until Google configuration is in place. Go to the Meteor shell, and call
 
           <pre>
             {'ServiceConfiguration.configurations.upsert(\n' +
@@ -78,8 +78,15 @@ const SetupPage = React.createClass({
       <div>
         {this.state.state === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
         {this.state.state === 'success' ? <Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.state === 'error' ? <Alert bsStyle="danger" onDismiss={this.dismissAlert}>Saving failed: {this.state.error.message}</Alert> : null}
-        <Button bsStyle="primary" onClick={this.showPopup}>Link a Google account</Button> for Google Drive management. (This will replace any previously configured account)
+        {this.state.state === 'error' ? (
+          <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.error.message}
+          </Alert>
+        ) : null}
+        <Button bsStyle="primary" onClick={this.showPopup}>Link a Google account</Button>
+        for Google Drive management. (This will replace any previously configured account)
       </div>
     );
   },

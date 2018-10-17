@@ -50,9 +50,9 @@ const RelatedPuzzleGroup = React.createClass({
   },
 
   toggleCollapse() {
-    this.setState({
-      collapsed: !this.state.collapsed,
-    });
+    this.setState(prevState => ({
+      collapsed: !prevState.collapsed,
+    }));
   },
 
   render() {
@@ -71,7 +71,7 @@ const RelatedPuzzleGroup = React.createClass({
           <Tag tag={this.props.sharedTag} linkToSearch={false} />
           {this.props.includeCount && <span>{`(${this.props.relatedPuzzles.length} other ${this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles'})`}</span>}
         </div>
-        {this.state.collapsed ? null :
+        {this.state.collapsed ? null : (
           <div className="puzzle-list-wrapper">
             <PuzzleList
               puzzles={sortedPuzzles}
@@ -80,7 +80,8 @@ const RelatedPuzzleGroup = React.createClass({
               canUpdate={this.props.canUpdate}
               suppressTags={[this.props.sharedTag._id]}
             />
-          </div>}
+          </div>
+        )}
       </div>
     );
   },

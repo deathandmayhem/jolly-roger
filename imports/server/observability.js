@@ -65,7 +65,7 @@ const onSend = function onSend(msg) {
     });
   }
 
-  _.compact(events).forEach(evt => {
+  _.compact(events).forEach((evt) => {
     const honeyEvent = this.honey.newEvent();
     honeyEvent.dataset = 'DDPMessages';
     honeyEvent.add(_.omit(evt, 'start'));

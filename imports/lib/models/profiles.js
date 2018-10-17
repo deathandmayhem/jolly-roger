@@ -55,7 +55,7 @@ Models.Profiles = new class extends Models.Base {
 
   displayNames() {
     const displayNames = {};
-    this.find().forEach(p => {
+    this.find().forEach((p) => {
       displayNames[p._id] = p.displayName;
     });
 
