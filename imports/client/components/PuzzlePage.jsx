@@ -263,10 +263,6 @@ const ChatHistory = React.createClass({
     window.addEventListener('resize', this.resizeHandler);
   },
 
-  componentWillUpdate() {
-    this.saveShouldScroll();
-  },
-
   componentDidUpdate() {
     this.maybeForceScrollBottom();
   },
@@ -994,17 +990,14 @@ const PuzzlePage = React.createClass({
     };
   },
 
-  componentWillMount() {
+  componentDidMount() {
+    window.addEventListener('resize', this.onResize);
     Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
   },
 
-  componentDidMount() {
-    window.addEventListener('resize', this.onResize);
-  },
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.params.puzzleId !== this.props.params.puzzleId) {
-      Meteor.call('ensureDocumentAndPermissions', nextProps.params.puzzleId);
+  componentDidUpdate(prevProps) {
+    if (prevProps.params.puzzleId !== this.props.params.puzzleId) {
+      Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
     }
   },
 
@@ -1097,7 +1090,7 @@ const PuzzlePage = React.createClass({
             </div>
           ) : (
             <div className="puzzle-page narrow">
-              <PuzzlePageMetadata
+              <PuzzlePageMetadataContainer
                 puzzle={activePuzzle}
                 allTags={this.props.allTags}
                 guesses={this.props.allGuesses}
