@@ -18,7 +18,7 @@ const Authenticator = React.createClass({
     return { loading: true };
   },
 
-  componentWillMount() {
+  componentDidMount() {
     this.checkAuth();
   },
 
