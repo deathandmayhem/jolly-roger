@@ -167,11 +167,13 @@ const HuntApp = React.createClass({
           itemKey="hunts"
           to="/hunts"
           label="Hunts"
+          depth={0}
         >
           <this.context.navAggregator.NavItem
             itemKey="huntid"
             to={`/hunts/${this.props.params.huntId}`}
             label={this.props.ready ? this.props.hunt.name : 'loading...'}
+            depth={1}
           >
             <div>
               <CelebrationCenter huntId={this.props.params.huntId} />

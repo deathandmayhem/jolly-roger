@@ -1048,13 +1048,6 @@ const PuzzlePage = React.createClass({
 
     const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.params.puzzleId);
 
-    const navItem = (
-      <this.context.navAggregator.NavItem
-        itemKey="puzzleid"
-        to={`/hunts/${this.props.params.huntId}/puzzles/${this.props.params.puzzleId}`}
-        label={activePuzzle.title}
-      />
-    );
     const sidebar = (
       <PuzzlePageSidebar
         key="sidebar"
@@ -1074,19 +1067,37 @@ const PuzzlePage = React.createClass({
 
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
-        {this.state.isDesktop ? (
-          <div className="puzzle-page">
-            {navItem}
-            <SplitPanePlus
-              split="vertical"
-              defaultSize={DefaultSidebarWidth}
-              minSize={MinimumSidebarWidth}
-              pane1Style={{ maxWidth: MaximumSidebarWidth }}
-              autoCollapse1={-1}
-              autoCollapse2={-1}
-            >
-              {sidebar}
-              <PuzzlePageContent
+        <this.context.navAggregator.NavItem
+          key="puzzleid"
+          itemKey="puzzleid"
+          to={`/hunts/${this.props.params.huntId}/puzzles/${this.props.params.puzzleId}`}
+          label={activePuzzle.title}
+          depth={2}
+        >
+          {this.state.isDesktop ? (
+            <div className="puzzle-page">
+              <SplitPanePlus
+                split="vertical"
+                defaultSize={DefaultSidebarWidth}
+                minSize={MinimumSidebarWidth}
+                pane1Style={{ maxWidth: MaximumSidebarWidth }}
+                autoCollapse1={-1}
+                autoCollapse2={-1}
+              >
+                {sidebar}
+                <PuzzlePageContent
+                  puzzle={activePuzzle}
+                  allTags={this.props.allTags}
+                  guesses={this.props.allGuesses}
+                  displayNames={this.props.displayNames}
+                  document={this.props.document}
+                  isDesktop={this.state.isDesktop}
+                />
+              </SplitPanePlus>
+            </div>
+          ) : (
+            <div className="puzzle-page narrow">
+              <PuzzlePageMetadata
                 puzzle={activePuzzle}
                 allTags={this.props.allTags}
                 guesses={this.props.allGuesses}
@@ -1094,22 +1105,10 @@ const PuzzlePage = React.createClass({
                 document={this.props.document}
                 isDesktop={this.state.isDesktop}
               />
-            </SplitPanePlus>
-          </div>
-        ) : (
-          <div className="puzzle-page narrow">
-            {navItem}
-            <PuzzlePageMetadata
-              puzzle={activePuzzle}
-              allTags={this.props.allTags}
-              guesses={this.props.allGuesses}
-              displayNames={this.props.displayNames}
-              document={this.props.document}
-              isDesktop={this.state.isDesktop}
-            />
-            {sidebar}
-          </div>
-        )}
+              {sidebar}
+            </div>
+          )}
+        </this.context.navAggregator.NavItem>
       </DocumentTitle>
     );
   },
