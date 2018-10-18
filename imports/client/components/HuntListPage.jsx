@@ -14,7 +14,7 @@ import HelpBlock from 'react-bootstrap/lib/HelpBlock';
 import { Link } from 'react-router';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
-import JRPropTypes from '../JRPropTypes.js';
+import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import ModalForm from './ModalForm.jsx';
 
@@ -356,7 +356,6 @@ const MockHunt = React.createClass({
 
 const HuntListPage = React.createClass({
   contextTypes: {
-    subs: JRPropTypes.subs,
     navAggregator: navAggregatorType,
   },
 
@@ -368,8 +367,8 @@ const HuntListPage = React.createClass({
   },
 
   getMeteorData() {
-    const huntListHandle = this.context.subs.subscribe('mongo.hunts');
-    const myHuntsHandle = this.context.subs.subscribe('selfHuntMembership');
+    const huntListHandle = subsCache.subscribe('mongo.hunts');
+    const myHuntsHandle = subsCache.subscribe('selfHuntMembership');
     const ready = huntListHandle.ready() && myHuntsHandle.ready();
 
     const myHunts = {};

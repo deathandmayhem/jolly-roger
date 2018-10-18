@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import JRPropTypes from '../JRPropTypes.js';
+import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import ProfileList from './ProfileList.jsx';
 
@@ -14,15 +14,14 @@ const HuntProfileListPage = React.createClass({
   },
 
   contextTypes: {
-    subs: JRPropTypes.subs,
     navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
 
   getMeteorData() {
-    const usersHandle = this.context.subs.subscribe('huntMembers', this.props.params.huntId);
-    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
+    const usersHandle = subsCache.subscribe('huntMembers', this.props.params.huntId);
+    const profilesHandle = subsCache.subscribe('mongo.profiles');
 
     const ready = usersHandle.ready() && profilesHandle.ready();
     if (!ready) {

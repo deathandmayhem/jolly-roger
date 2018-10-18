@@ -12,7 +12,7 @@ import marked from 'marked';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import classnames from 'classnames';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import JRPropTypes from '../JRPropTypes.js';
+import subsCache from '../subsCache.js';
 
 /* eslint-disable max-len */
 
@@ -253,10 +253,6 @@ const AnnouncementMessage = React.createClass({
 });
 
 const NotificationCenter = React.createClass({
-  contextTypes: {
-    subs: JRPropTypes.subs,
-  },
-
   mixins: [ReactMeteorData],
 
   getInitialState() {
@@ -273,23 +269,23 @@ const NotificationCenter = React.createClass({
     let guessesHandle = { ready: () => true };
     let puzzlesHandle = { ready: () => true };
     if (canUpdateGuesses) {
-      guessesHandle = this.context.subs.subscribe('mongo.guesses', { state: 'pending' });
-      puzzlesHandle = this.context.subs.subscribe('mongo.puzzles');
+      guessesHandle = subsCache.subscribe('mongo.guesses', { state: 'pending' });
+      puzzlesHandle = subsCache.subscribe('mongo.puzzles');
     }
 
     // This is overly broad, but we likely already have the data cached locally
-    const selfHandle = this.context.subs.subscribe('mongo.profiles', { _id: Meteor.userId() });
-    const displayNamesHandle = this.context.subs.subscribe(
+    const selfHandle = subsCache.subscribe('mongo.profiles', { _id: Meteor.userId() });
+    const displayNamesHandle = subsCache.subscribe(
       'mongo.profiles',
       {},
       { fields: { displayName: 1 } }
     );
-    const announcementsHandle = this.context.subs.subscribe('mongo.announcements');
+    const announcementsHandle = subsCache.subscribe('mongo.announcements');
 
     const query = {
       user: Meteor.userId(),
     };
-    const paHandle = this.context.subs.subscribe('mongo.pending_announcements', query);
+    const paHandle = subsCache.subscribe('mongo.pending_announcements', query);
 
     // Don't even try to put things together until we have the announcements loaded
     if (!selfHandle.ready() || !displayNamesHandle.ready() || !announcementsHandle.ready()) {

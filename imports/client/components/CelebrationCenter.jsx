@@ -3,16 +3,12 @@ import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import Flags from '../../flags.js';
-import JRPropTypes from '../JRPropTypes.js';
+import subsCache from '../subsCache.js';
 import Celebration from './Celebration.jsx';
 
 const CelebrationCenter = React.createClass({
   propTypes: {
     huntId: PropTypes.string.isRequired,
-  },
-
-  contextTypes: {
-    subs: JRPropTypes.subs,
   },
 
   mixins: [ReactMeteorData],
@@ -53,7 +49,7 @@ const CelebrationCenter = React.createClass({
 
   getMeteorData() {
     // This should be effectively a noop, since we're already fetching it for every hunt
-    const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.huntId });
+    const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: this.props.huntId });
     if (puzzlesHandle.ready()) {
       if (this.watchHandle) {
         this.watchHandle.stop();

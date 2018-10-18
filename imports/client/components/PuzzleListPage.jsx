@@ -12,7 +12,7 @@ import Nav from 'react-bootstrap/lib/Nav';
 import NavItem from 'react-bootstrap/lib/NavItem';
 import { Link, browserHistory } from 'react-router';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import JRPropTypes from '../JRPropTypes.js';
+import subsCache from '../subsCache.js';
 import PuzzleList from './PuzzleList.jsx';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup.jsx';
 import PuzzleModalForm from './PuzzleModalForm.jsx';
@@ -377,19 +377,15 @@ const PuzzleListPage = React.createClass({
     location: PropTypes.object,
   },
 
-  contextTypes: {
-    subs: JRPropTypes.subs,
-  },
-
   mixins: [ReactMeteorData],
 
   getMeteorData() {
-    const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
-    const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
+    const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
+    const tagsHandle = subsCache.subscribe('mongo.tags', { hunt: this.props.params.huntId });
 
     if (!Flags.active('disable.subcounters')) {
       // Don't bother including this in ready - it's ok if it trickles in
-      this.context.subs.subscribe('subscribers.counts', { hunt: this.props.params.huntId });
+      subsCache.subscribe('subscribers.counts', { hunt: this.props.params.huntId });
     }
 
     const ready = puzzlesHandle.ready() && tagsHandle.ready();

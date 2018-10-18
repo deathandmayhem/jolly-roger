@@ -10,7 +10,7 @@ import FormGroup from 'react-bootstrap/lib/FormGroup';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
 import Label from 'react-bootstrap/lib/Label';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import JRPropTypes from '../JRPropTypes.js';
+import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 
 /* eslint-disable max-len */
@@ -411,7 +411,6 @@ const ProfilePage = React.createClass({
   },
 
   contextTypes: {
-    subs: JRPropTypes.subs,
     navAggregator: navAggregatorType,
   },
 
@@ -420,8 +419,8 @@ const ProfilePage = React.createClass({
   getMeteorData() {
     const uid = this.props.params.userId === 'me' ? Meteor.userId() : this.props.params.userId;
 
-    const profileHandle = this.context.subs.subscribe('mongo.profiles', { _id: uid });
-    const userRolesHandle = this.context.subs.subscribe('userRoles', uid);
+    const profileHandle = subsCache.subscribe('mongo.profiles', { _id: uid });
+    const userRolesHandle = subsCache.subscribe('userRoles', uid);
     const user = Meteor.user();
     const defaultEmail = user && user.emails && user.emails.length > 0 && user.emails[0] && user.emails[0].address;
     const data = {

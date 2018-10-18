@@ -8,14 +8,13 @@ import Navbar from 'react-bootstrap/lib/Navbar';
 import { Link } from 'react-router';
 import RRBS from 'react-router-bootstrap';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import JRPropTypes from '../JRPropTypes.js';
+import subsCache from '../subsCache.js';
 import ConnectionStatus from './ConnectionStatus.jsx';
 import NotificationCenter from './NotificationCenter.jsx';
 import navAggregatorType from './navAggregatorType.jsx';
 
 const SharedNavbar = React.createClass({
   contextTypes: {
-    subs: JRPropTypes.subs,
     navAggregator: navAggregatorType,
   },
 
@@ -23,7 +22,7 @@ const SharedNavbar = React.createClass({
 
   getMeteorData() {
     const userId = Meteor.userId();
-    const profileSub = this.context.subs.subscribe('mongo.profiles', { _id: userId });
+    const profileSub = subsCache.subscribe('mongo.profiles', { _id: userId });
     const profile = Models.Profiles.findOne(userId);
     const displayName = profileSub.ready() ?
       ((profile && profile.displayName) || '<no name given>') : 'loading...';
