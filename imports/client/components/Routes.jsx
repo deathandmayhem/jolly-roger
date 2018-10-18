@@ -6,8 +6,6 @@ import {
   browserHistory,
 } from 'react-router';
 import DocumentTitle from 'react-document-title';
-import { SubsCache } from 'meteor/ccorcos:subs-cache';
-import JRPropTypes from '../JRPropTypes.js';
 import AllProfileListPage from './AllProfileListPage.jsx';
 import App from './App.jsx';
 import AnnouncementsPage from './AnnouncementsPage.jsx';
@@ -30,21 +28,15 @@ import UserInvitePage from './UserInvitePage.jsx';
 
 const Routes = React.createClass({
   childContextTypes: {
-    subs: JRPropTypes.subs,
     navAggregator: navAggregatorType,
   },
 
   getChildContext() {
-    if (!this.subs) {
-      this.subs = new SubsCache({ cacheLimit: -1, expireAfter: 1 });
-    }
-
     if (!this.navAggregator) {
       this.navAggregator = new NavAggregator();
     }
 
     return {
-      subs: this.subs,
       navAggregator: this.navAggregator,
     };
   },

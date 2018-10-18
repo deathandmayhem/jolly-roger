@@ -23,7 +23,7 @@ import moment from 'moment';
 import TextareaAutosize from 'react-textarea-autosize';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
-import JRPropTypes from '../JRPropTypes.js';
+import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import ModalForm from './ModalForm.jsx';
 import PuzzleModalForm from './PuzzleModalForm.jsx';
@@ -54,16 +54,12 @@ const ViewersList = React.createClass({
     name: PropTypes.string.isRequired,
   },
 
-  contextTypes: {
-    subs: JRPropTypes.subs,
-  },
-
   mixins: [ReactMeteorData],
 
   getMeteorData() {
     // Don't want this subscription persisting longer than necessary
     const subscribersHandle = Meteor.subscribe('subscribers.fetch', this.props.name);
-    const profilesHandle = this.context.subs.subscribe('mongo.profiles');
+    const profilesHandle = subsCache.subscribe('mongo.profiles');
 
     const ready = subscribersHandle.ready() && profilesHandle.ready();
     if (!ready) {
@@ -966,7 +962,6 @@ const PuzzlePage = React.createClass({
   },
 
   contextTypes: {
-    subs: JRPropTypes.subs,
     navAggregator: navAggregatorType,
   },
 
@@ -1045,19 +1040,19 @@ const PuzzlePage = React.createClass({
       });
     }
 
-    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(this.context.subs);
+    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(subsCache);
     let displayNames = {};
     if (displayNamesHandle.ready()) {
       displayNames = Models.Profiles.displayNames();
     }
 
-    const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
-    const tagsHandle = this.context.subs.subscribe('mongo.tags', { hunt: this.props.params.huntId });
-    const guessesHandle = this.context.subs.subscribe('mongo.guesses', { puzzle: this.props.params.puzzleId });
-    const documentsHandle = this.context.subs.subscribe('mongo.documents', { puzzle: this.props.params.puzzleId });
+    const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
+    const tagsHandle = subsCache.subscribe('mongo.tags', { hunt: this.props.params.huntId });
+    const guessesHandle = subsCache.subscribe('mongo.guesses', { puzzle: this.props.params.puzzleId });
+    const documentsHandle = subsCache.subscribe('mongo.documents', { puzzle: this.props.params.puzzleId });
 
     if (!Flags.active('disable.subcounters')) {
-      this.context.subs.subscribe('subscribers.counts', { hunt: this.props.params.huntId });
+      subsCache.subscribe('subscribers.counts', { hunt: this.props.params.huntId });
     }
 
     const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready();
@@ -1084,7 +1079,7 @@ const PuzzlePage = React.createClass({
 
     const chatFields = {};
     FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
-    const chatHandle = this.context.subs.subscribe(
+    const chatHandle = subsCache.subscribe(
       'mongo.chatmessages',
       { puzzle: this.props.params.puzzleId },
       { fields: chatFields }

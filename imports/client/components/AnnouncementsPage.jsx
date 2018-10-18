@@ -6,8 +6,8 @@ import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import marked from 'marked';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import JRPropTypes from '../JRPropTypes.js';
 import navAggregatorType from './navAggregatorType.jsx';
+import subsCache from '../subsCache.js';
 
 /* eslint-disable max-len */
 
@@ -107,7 +107,6 @@ const AnnouncementsPage = React.createClass({
   },
 
   contextTypes: {
-    subs: JRPropTypes.subs,
     navAggregator: navAggregatorType,
   },
 
@@ -117,8 +116,8 @@ const AnnouncementsPage = React.createClass({
     // We already have subscribed to mongo.announcements on the main page, since we want to be able
     // to show them on any page.  So we don't *need* to make the subscription here...
     // ...except that we might want to wait to render until we've received all of them?  IDK.
-    const announcementsHandle = this.context.subs.subscribe('mongo.announcements', { hunt: this.props.params.huntId });
-    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(this.context.subs);
+    const announcementsHandle = subsCache.subscribe('mongo.announcements', { hunt: this.props.params.huntId });
+    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(subsCache);
     const ready = announcementsHandle.ready() && displayNamesHandle.ready();
 
     let announcements;

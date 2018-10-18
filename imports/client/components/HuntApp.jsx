@@ -8,7 +8,7 @@ import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import DocumentTitle from 'react-document-title';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import marked from 'marked';
-import JRPropTypes from '../JRPropTypes.js';
+import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import CelebrationCenter from './CelebrationCenter.jsx';
 
@@ -70,7 +70,6 @@ const HuntMemberError = React.createClass({
 
   contextTypes: {
     router: PropTypes.object.isRequired,
-    subs: JRPropTypes.subs,
   },
 
   mixins: [ReactMeteorData],
@@ -129,15 +128,14 @@ const HuntApp = React.createClass({
   },
 
   contextTypes: {
-    subs: JRPropTypes.subs,
     navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
 
   getMeteorData() {
-    const userHandle = this.context.subs.subscribe('selfHuntMembership');
-    const huntHandle = this.context.subs.subscribe('mongo.hunts.allowingDeleted', {
+    const userHandle = subsCache.subscribe('selfHuntMembership');
+    const huntHandle = subsCache.subscribe('mongo.hunts.allowingDeleted', {
       _id: this.props.params.huntId,
     });
     const member = Meteor.user() && _.contains(Meteor.user().hunts, this.props.params.huntId);

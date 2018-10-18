@@ -5,7 +5,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import classnames from 'classnames';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
-import JRPropTypes from '../JRPropTypes.js';
+import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 
 /* eslint-disable max-len */
@@ -115,20 +115,19 @@ const GuessQueuePage = React.createClass({
   },
 
   contextTypes: {
-    subs: JRPropTypes.subs,
     navAggregator: navAggregatorType,
   },
 
   mixins: [ReactMeteorData],
 
   getMeteorData() {
-    const guessesHandle = this.context.subs.subscribe('mongo.guesses', {
+    const guessesHandle = subsCache.subscribe('mongo.guesses', {
       hunt: this.props.params.huntId,
     });
-    const puzzlesHandle = this.context.subs.subscribe('mongo.puzzles', {
+    const puzzlesHandle = subsCache.subscribe('mongo.puzzles', {
       hunt: this.props.params.huntId,
     });
-    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(this.context.subs);
+    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(subsCache);
     const ready = guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
     const guesses = ready ? Models.Guesses.find({ hunt: this.props.params.huntId }, { sort: { createdAt: -1 } }).fetch() : [];
     const puzzles = ready ? _.indexBy(Models.Puzzles.find({ hunt: this.props.params.huntId }).fetch(), '_id') : {};
