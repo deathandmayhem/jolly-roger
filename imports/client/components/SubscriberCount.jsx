@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
 import Tooltip from 'react-bootstrap/lib/Tooltip';
 
@@ -11,21 +11,12 @@ const SubscriberCount = React.createClass({
   displayName: 'SubscriberCount',
   propTypes: {
     puzzleId: PropTypes.string.isRequired,
-  },
-
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    const disabled = Flags.active('disable.subcounters');
-    const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzleId}`);
-    return {
-      disabled,
-      viewCount: count ? count.value : 0,
-    };
+    disabled: PropTypes.bool.isRequired,
+    viewCount: PropTypes.number.isRequired,
   },
 
   render() {
-    if (this.data.disabled) {
+    if (this.props.disabled) {
       return <div />;
     }
 
@@ -38,7 +29,7 @@ const SubscriberCount = React.createClass({
       <OverlayTrigger placement="top" overlay={countTooltip}>
         <span>
           (
-          {this.data.viewCount}
+          {this.props.viewCount}
           )
         </span>
       </OverlayTrigger>
@@ -46,4 +37,17 @@ const SubscriberCount = React.createClass({
   },
 });
 
-export default SubscriberCount;
+const SubscriberCountContainer = withTracker(({ puzzleId }) => {
+  const disabled = Flags.active('disable.subcounters');
+  const count = SubscriberCounters.findOne(`puzzle:${puzzleId}`);
+  return {
+    disabled,
+    viewCount: count ? count.value : 0,
+  };
+})(SubscriberCount);
+
+SubscriberCountContainer.propTypes = {
+  puzzleId: PropTypes.string,
+};
+
+export default SubscriberCountContainer;

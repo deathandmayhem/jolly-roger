@@ -2,7 +2,7 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { jQuery } from 'meteor/jquery';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import ReactSelect2 from './ReactSelect2.jsx';
 
 const TagEditor = React.createClass({
@@ -12,9 +12,8 @@ const TagEditor = React.createClass({
     puzzleId: PropTypes.string.isRequired,
     onSubmit: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
+    allTags: PropTypes.arrayOf(PropTypes.shape(Schemas.Tags.asReactPropTypes())).isRequired,
   },
-
-  mixins: [ReactMeteorData],
 
   componentDidMount() {
     // Focus the input when mounted - the user just clicked on the button-link.
@@ -32,18 +31,13 @@ const TagEditor = React.createClass({
     this.props.onCancel();
   },
 
-  getMeteorData() {
-    const puzzle = Models.Puzzles.findOne(this.props.puzzleId);
-    return { allTags: Models.Tags.find({ hunt: puzzle.hunt }).fetch() };
-  },
-
   render() {
     return (
       <span>
         <ReactSelect2
           selectRef={(node) => { this.selectNode = node; }}
           style={{ minWidth: '100px' }}
-          data={[''].concat(_.pluck(this.data.allTags, 'name'))}
+          data={[''].concat(_.pluck(this.props.allTags, 'name'))}
           options={{ tags: true }}
         />
       </span>
@@ -51,4 +45,13 @@ const TagEditor = React.createClass({
   },
 });
 
-export default TagEditor;
+const TagEditorContainer = withTracker(({ puzzleId }) => {
+  const puzzle = Models.Puzzles.findOne(puzzleId);
+  return { allTags: Models.Tags.find({ hunt: puzzle.hunt }).fetch() };
+})(TagEditor);
+
+TagEditorContainer.propTypes = {
+  puzzleId: PropTypes.string,
+};
+
+export default TagEditorContainer;

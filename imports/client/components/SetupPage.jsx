@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import PropTypes from 'prop-types';
+import { withTracker } from 'meteor/react-meteor-data';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import navAggregatorType from './navAggregatorType.jsx';
@@ -8,22 +9,19 @@ import navAggregatorType from './navAggregatorType.jsx';
 /* eslint-disable max-len */
 
 const SetupPage = React.createClass({
+  propTypes: {
+    config: PropTypes.object,
+    canSetupGDrive: PropTypes.bool.isRequired,
+  },
+
   contextTypes: {
     navAggregator: navAggregatorType,
   },
-
-  mixins: [ReactMeteorData],
 
   getInitialState() {
     return {
       state: 'idle',
     };
-  },
-
-  getMeteorData() {
-    const config = ServiceConfiguration.configurations.findOne({ service: 'google' });
-    const canSetupGDrive = Roles.userHasPermission(Meteor.userId(), 'gdrive.credential');
-    return { config, canSetupGDrive };
   },
 
   dismissAlert() {
@@ -51,11 +49,11 @@ const SetupPage = React.createClass({
   },
 
   renderBody() {
-    if (!this.data.canSetupGDrive) {
+    if (!this.props.canSetupGDrive) {
       return <div>This page is for administering the Jolly Roger web app</div>;
     }
 
-    if (!this.data.config) {
+    if (!this.props.config) {
       return (
         <div>
           Can&apos;t finish setup until Google configuration is in place. Go to the Meteor shell, and call
@@ -104,4 +102,8 @@ const SetupPage = React.createClass({
   },
 });
 
-export default SetupPage;
+export default withTracker(() => {
+  const config = ServiceConfiguration.configurations.findOne({ service: 'google' });
+  const canSetupGDrive = Roles.userHasPermission(Meteor.userId(), 'gdrive.credential');
+  return { config, canSetupGDrive };
+})(SetupPage);

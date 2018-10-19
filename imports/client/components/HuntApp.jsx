@@ -6,7 +6,7 @@ import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import DocumentTitle from 'react-document-title';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import marked from 'marked';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
@@ -15,27 +15,20 @@ import CelebrationCenter from './CelebrationCenter.jsx';
 const HuntDeletedError = React.createClass({
   propTypes: {
     huntId: PropTypes.string.isRequired,
+    hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
+    canUndestroy: PropTypes.bool.isRequired,
   },
 
   contextTypes: {
     router: PropTypes.object.isRequired,
   },
 
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    return {
-      hunt: Models.Hunts.findOneDeleted(this.props.huntId),
-      canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
-    };
-  },
-
   undestroy() {
-    Models.Hunts.undestroy(this.data.hunt._id);
+    Models.Hunts.undestroy(this.props.hunt._id);
   },
 
   undestroyButton() {
-    if (this.data.canUndestroy) {
+    if (this.props.canUndestroy) {
       return (
         <Button bsStyle="primary" onClick={this.undestroy}>
           Undelete this hunt
@@ -63,22 +56,26 @@ const HuntDeletedError = React.createClass({
   },
 });
 
+const HuntDeletedErrorContainer = withTracker(({ huntId }) => {
+  return {
+    hunt: Models.Hunts.findOneDeleted(huntId),
+    canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+  };
+})(HuntDeletedError);
+
+HuntDeletedErrorContainer.propTypes = {
+  huntId: PropTypes.string.isRequired,
+};
+
 const HuntMemberError = React.createClass({
   propTypes: {
     huntId: PropTypes.string.isRequired,
+    hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
+    canJoin: PropTypes.bool,
   },
 
   contextTypes: {
     router: PropTypes.object.isRequired,
-  },
-
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    return {
-      hunt: Models.Hunts.findOne(this.props.huntId),
-      canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', this.props.huntId),
-    };
   },
 
   join() {
@@ -119,51 +116,50 @@ const HuntMemberError = React.createClass({
   },
 });
 
+const HuntMemberErrorContainer = withTracker(({ huntId }) => {
+  return {
+    hunt: Models.Hunts.findOne(huntId),
+    canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', huntId),
+  };
+})(HuntMemberError);
+
+HuntMemberErrorContainer.propTypes = {
+  huntId: PropTypes.string,
+};
+
 const HuntApp = React.createClass({
   propTypes: {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
     children: PropTypes.node,
+    ready: PropTypes.bool.isRequired,
+    hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
+    member: PropTypes.bool.isRequired,
   },
 
   contextTypes: {
     navAggregator: navAggregatorType,
   },
 
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    const userHandle = subsCache.subscribe('selfHuntMembership');
-    const huntHandle = subsCache.subscribe('mongo.hunts.allowingDeleted', {
-      _id: this.props.params.huntId,
-    });
-    const member = Meteor.user() && _.contains(Meteor.user().hunts, this.props.params.huntId);
-    return {
-      ready: userHandle.ready() && huntHandle.ready(),
-      hunt: Models.Hunts.findOneAllowingDeleted(this.props.params.huntId),
-      member,
-    };
-  },
-
   renderBody() {
-    if (!this.data.ready) {
+    if (!this.props.ready) {
       return <span>loading...</span>;
     }
 
-    if (this.data.hunt.deleted) {
-      return <HuntDeletedError huntId={this.props.params.huntId} />;
+    if (this.props.hunt.deleted) {
+      return <HuntDeletedErrorContainer huntId={this.props.params.huntId} />;
     }
 
-    if (!this.data.member) {
-      return <HuntMemberError huntId={this.props.params.huntId} />;
+    if (!this.props.member) {
+      return <HuntMemberErrorContainer huntId={this.props.params.huntId} />;
     }
 
     return React.Children.only(this.props.children);
   },
 
   render() {
-    const title = this.data.hunt ? `${this.data.hunt.name} :: Jolly Roger` : '';
+    const title = this.props.hunt ? `${this.props.hunt.name} :: Jolly Roger` : '';
 
     return (
       <DocumentTitle title={title}>
@@ -175,7 +171,7 @@ const HuntApp = React.createClass({
           <this.context.navAggregator.NavItem
             itemKey="huntid"
             to={`/hunts/${this.props.params.huntId}`}
-            label={this.data.ready ? this.data.hunt.name : 'loading...'}
+            label={this.props.ready ? this.props.hunt.name : 'loading...'}
           >
             <div>
               <CelebrationCenter huntId={this.props.params.huntId} />
@@ -188,4 +184,23 @@ const HuntApp = React.createClass({
   },
 });
 
-export default HuntApp;
+const HuntAppContainer = withTracker(({ params }) => {
+  const userHandle = subsCache.subscribe('selfHuntMembership');
+  const huntHandle = subsCache.subscribe('mongo.hunts.allowingDeleted', {
+    _id: params.huntId,
+  });
+  const member = Meteor.user() && _.contains(Meteor.user().hunts, params.huntId);
+  return {
+    ready: userHandle.ready() && huntHandle.ready(),
+    hunt: Models.Hunts.findOneAllowingDeleted(params.huntId),
+    member,
+  };
+})(HuntApp);
+
+HuntAppContainer.propTypes = {
+  params: PropTypes.shape({
+    huntId: PropTypes.string.isRequired,
+  }).isRequired,
+};
+
+export default HuntAppContainer;

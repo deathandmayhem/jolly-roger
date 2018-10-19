@@ -21,7 +21,7 @@ import classnames from 'classnames';
 import marked from 'marked';
 import moment from 'moment';
 import TextareaAutosize from 'react-textarea-autosize';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
@@ -52,56 +52,64 @@ const DefaultChatHeight = '60%';
 const ViewersList = React.createClass({
   propTypes: {
     name: PropTypes.string.isRequired,
-  },
-
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    // Don't want this subscription persisting longer than necessary
-    const subscribersHandle = Meteor.subscribe('subscribers.fetch', this.props.name);
-    const profilesHandle = subsCache.subscribe('mongo.profiles');
-
-    const ready = subscribersHandle.ready() && profilesHandle.ready();
-    if (!ready) {
-      return { ready };
-    }
-
-    let unknown = 0;
-    const subscribers = [];
-
-    Subscribers.find({ name: this.props.name }).forEach((s) => {
-      if (!s.user) {
-        unknown += 1;
-        return;
-      }
-
-      const profile = Models.Profiles.findOne(s.user);
-      if (!profile || !profile.displayName) {
-        unknown += 1;
-        return;
-      }
-
-      subscribers.push({ user: s.user, name: profile.displayName });
-    });
-
-    return { ready, unknown, subscribers };
+    ready: PropTypes.bool.isRequired,
+    subscribers: PropTypes.arrayOf(PropTypes.shape({
+      user: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+    })),
+    unknown: PropTypes.number,
   },
 
   render() {
-    if (!this.data.ready) {
+    if (!this.props.ready) {
       return <span>loading...</span>;
     }
 
     return (
       <div>
         <ul>
-          {this.data.subscribers.map(s => <li key={s.user}>{s.name}</li>)}
+          {this.props.subscribers.map(s => <li key={s.user}>{s.name}</li>)}
         </ul>
-        {this.data.unknown !== 0 && `(Plus ${this.data.unknown} hunters with no name set)`}
+        {this.props.unknown !== 0 && `(Plus ${this.props.unknown} hunters with no name set)`}
       </div>
     );
   },
 });
+
+const ViewersListContainer = withTracker(({ name }) => {
+  // Don't want this subscription persisting longer than necessary
+  const subscribersHandle = Meteor.subscribe('subscribers.fetch', name);
+  const profilesHandle = subsCache.subscribe('mongo.profiles');
+
+  const ready = subscribersHandle.ready() && profilesHandle.ready();
+  if (!ready) {
+    return { ready };
+  }
+
+  let unknown = 0;
+  const subscribers = [];
+
+  Subscribers.find({ name }).forEach((s) => {
+    if (!s.user) {
+      unknown += 1;
+      return;
+    }
+
+    const profile = Models.Profiles.findOne(s.user);
+    if (!profile || !profile.displayName) {
+      unknown += 1;
+      return;
+    }
+
+    subscribers.push({ user: s.user, name: profile.displayName });
+  });
+
+  return { ready, unknown, subscribers };
+})(ViewersList);
+
+ViewersListContainer.propTypes = {
+  name: PropTypes.string.isRequired,
+};
 
 const ViewersModal = React.createClass({
   propTypes: {
@@ -129,7 +137,7 @@ const ViewersModal = React.createClass({
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {this.state.show && <ViewersList name={this.props.name} />}
+          {this.state.show && <ViewersListContainer name={this.props.name} />}
         </Modal.Body>
       </Modal>
     );
@@ -140,14 +148,7 @@ const ViewCountDisplay = React.createClass({
   propTypes: {
     count: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
-  },
-
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    return {
-      subfetchesDisabled: Flags.active('disable.subfetches'),
-    };
+    subfetchesDisabled: PropTypes.bool.isRequired,
   },
 
   showModal() {
@@ -156,7 +157,7 @@ const ViewCountDisplay = React.createClass({
 
   render() {
     const text = `(${this.props.count} viewing)`;
-    if (this.data.subfetchesDisabled) {
+    if (this.props.subfetchesDisabled) {
       return <span>{text}</span>;
     }
 
@@ -176,6 +177,10 @@ const ViewCountDisplay = React.createClass({
     );
   },
 });
+
+const ViewCountDisplayContainer = withTracker(() => {
+  return { subfetchesDisabled: Flags.active('disable.subfetches') };
+})(ViewCountDisplay);
 
 const RelatedPuzzleSection = React.createClass({
   propTypes: {
@@ -536,9 +541,10 @@ const PuzzlePageMetadata = React.createClass({
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
     document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
     isDesktop: PropTypes.bool.isRequired,
+    subcountersDisabled: PropTypes.bool.isRequired,
+    viewCount: PropTypes.number.isRequired,
+    canUpdate: PropTypes.bool.isRequired,
   },
-
-  mixins: [ReactMeteorData],
 
   onCreateTag(newTagName) {
     Meteor.call('addTagToPuzzle', this.props.puzzle._id, newTagName, (error) => {
@@ -565,15 +571,6 @@ const PuzzlePageMetadata = React.createClass({
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
   },
 
-  getMeteorData() {
-    const count = SubscriberCounters.findOne(`puzzle:${this.props.puzzle._id}`);
-    return {
-      subcountersDisabled: Flags.active('disable.subcounters'),
-      viewCount: count ? count.value : 0,
-      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
-    };
-  },
-
   showGuessModal() {
     this.guessModalNode.show();
   },
@@ -583,7 +580,7 @@ const PuzzlePageMetadata = React.createClass({
   },
 
   editButton() {
-    if (this.data.canUpdate) {
+    if (this.props.canUpdate) {
       return (
         <Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
           <Glyphicon glyph="edit" />
@@ -604,7 +601,7 @@ const PuzzlePageMetadata = React.createClass({
         <span className="answer">{this.props.puzzle.answer}</span>
       </span>
     ) : null;
-    const hideViewCount = this.props.puzzle.answer || this.data.subcountersDisabled;
+    const hideViewCount = this.props.puzzle.answer || this.props.subcountersDisabled;
     const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
       <div className="puzzle-metadata">
@@ -640,8 +637,8 @@ const PuzzlePageMetadata = React.createClass({
               {this.props.puzzle.answer && answerComponent}
               {' '}
               {!hideViewCount && (
-                <ViewCountDisplay
-                  count={this.data.viewCount}
+                <ViewCountDisplayContainer
+                  count={this.props.viewCount}
                   name={`puzzle:${this.props.puzzle._id}`}
                 />
               )}
@@ -678,6 +675,19 @@ const PuzzlePageMetadata = React.createClass({
     );
   },
 });
+
+const PuzzlePageMetadataContainer = withTracker(({ puzzle }) => {
+  const count = SubscriberCounters.findOne(`puzzle:${puzzle._id}`);
+  return {
+    subcountersDisabled: Flags.active('disable.subcounters'),
+    viewCount: count ? count.value : 0,
+    canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
+  };
+})(PuzzlePageMetadata);
+
+PuzzlePageMetadataContainer.propTypes = {
+  puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+};
 
 const PuzzleGuessModal = React.createClass({
   propTypes: {
@@ -925,7 +935,7 @@ const PuzzlePageContent = React.createClass({
   render() {
     return (
       <div className="puzzle-content">
-        <PuzzlePageMetadata
+        <PuzzlePageMetadataContainer
           puzzle={this.props.puzzle}
           allTags={this.props.allTags}
           guesses={this.props.guesses}
@@ -959,17 +969,19 @@ const PuzzlePage = React.createClass({
       huntId: PropTypes.string.isRequired,
       puzzleId: PropTypes.string.isRequired,
     }).isRequired,
+    puzzlesReady: PropTypes.bool.isRequired,
+    allPuzzles: PropTypes.arrayOf(PropTypes.shape(Schemas.Puzzles.asReactPropTypes())).isRequired,
+    allTags: PropTypes.arrayOf(PropTypes.shape(Schemas.Tags.asReactPropTypes())).isRequired,
+    chatReady: PropTypes.bool.isRequired,
+    chatMessages: PropTypes.arrayOf(PropTypes.shape(FilteredChatMessagePropTypes)).isRequired,
+    displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
+    allGuesses: PropTypes.arrayOf(PropTypes.shape(Schemas.Guesses.asReactPropTypes())).isRequired,
+    document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
+    canUpdate: PropTypes.bool.isRequired,
   },
 
   contextTypes: {
     navAggregator: navAggregatorType,
-  },
-
-  mixins: [ReactMeteorData],
-
-  statics: {
-    // Mark this page as needing fixed, fullscreen layout.
-    desiredLayout: 'fullscreen',
   },
 
   getInitialState() {
@@ -1018,93 +1030,6 @@ const PuzzlePage = React.createClass({
     this.setState({ showRelated: showRelatedNew });
   },
 
-  getMeteorData() {
-    // There are some model dependencies that we have to be careful about:
-    //
-    // * We show the displayname of the person who submitted a guess, so guesses depends on display names
-    // * Chat messages show the displayname of the sender, so chatmessages depends on display names
-    // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
-    //
-    // We can render some things on incomplete data, but most of them really need full data:
-    // * Chat can be rendered with just chat messages and display names
-    // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
-    // * Related puzzles probably only needs puzzles and tags, but right now it just gets the same
-    //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
-
-    if (!Flags.active('disable.subcounters')) {
-      // Keep a count of how many people are viewing a puzzle. Don't use
-      // the subs manager - we don't want this cached
-      Meteor.subscribe('subscribers.inc', `puzzle:${this.props.params.puzzleId}`, {
-        puzzle: this.props.params.puzzleId,
-        hunt: this.props.params.huntId,
-      });
-    }
-
-    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(subsCache);
-    let displayNames = {};
-    if (displayNamesHandle.ready()) {
-      displayNames = Models.Profiles.displayNames();
-    }
-
-    const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
-    const tagsHandle = subsCache.subscribe('mongo.tags', { hunt: this.props.params.huntId });
-    const guessesHandle = subsCache.subscribe('mongo.guesses', { puzzle: this.props.params.puzzleId });
-    const documentsHandle = subsCache.subscribe('mongo.documents', { puzzle: this.props.params.puzzleId });
-
-    if (!Flags.active('disable.subcounters')) {
-      subsCache.subscribe('subscribers.counts', { hunt: this.props.params.huntId });
-    }
-
-    const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready();
-
-    let allPuzzles;
-    let allTags;
-    let allGuesses;
-    let document;
-    // There's no sense in doing this expensive computation here if we're still loading data,
-    // since we're not going to render the children.
-    if (puzzlesReady) {
-      allPuzzles = Models.Puzzles.find({ hunt: this.props.params.huntId }).fetch();
-      allTags = Models.Tags.find({ hunt: this.props.params.huntId }).fetch();
-      allGuesses = Models.Guesses.find({ hunt: this.props.params.huntId, puzzle: this.props.params.puzzleId }).fetch();
-
-      // Sort by created at so that the "first" document always has consistent meaning
-      document = Models.Documents.findOne({ puzzle: this.props.params.puzzleId }, { sort: { createdAt: 1 } });
-    } else {
-      allPuzzles = [];
-      allTags = [];
-      allGuesses = [];
-      document = [];
-    }
-
-    const chatFields = {};
-    FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
-    const chatHandle = subsCache.subscribe(
-      'mongo.chatmessages',
-      { puzzle: this.props.params.puzzleId },
-      { fields: chatFields }
-    );
-
-    // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
-    // other collections.
-    const chatReady = chatHandle.ready() && displayNamesHandle.ready();
-    const chatMessages = (chatReady && Models.ChatMessages.find(
-      { puzzle: this.props.params.puzzleId },
-      { sort: { timestamp: 1 } },
-    ).fetch()) || [];
-    return {
-      puzzlesReady,
-      allPuzzles,
-      allTags,
-      chatReady,
-      chatMessages,
-      displayNames,
-      allGuesses,
-      document,
-      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
-    };
-  },
-
   // Ideally these should be based on size of the component (and the trigger changed appropriately)
   // but this component is designed for full-page use, so...
   calculateViewMode() {
@@ -1117,11 +1042,11 @@ const PuzzlePage = React.createClass({
   },
 
   render() {
-    if (!this.data.puzzlesReady) {
+    if (!this.props.puzzlesReady) {
       return <span>loading...</span>;
     }
 
-    const activePuzzle = findPuzzleById(this.data.allPuzzles, this.props.params.puzzleId);
+    const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.params.puzzleId);
 
     const navItem = (
       <this.context.navAggregator.NavItem
@@ -1134,12 +1059,12 @@ const PuzzlePage = React.createClass({
       <PuzzlePageSidebar
         key="sidebar"
         activePuzzle={activePuzzle}
-        allPuzzles={this.data.allPuzzles}
-        allTags={this.data.allTags}
-        chatReady={this.data.chatReady}
-        chatMessages={this.data.chatMessages}
-        displayNames={this.data.displayNames}
-        canUpdate={this.data.canUpdate}
+        allPuzzles={this.props.allPuzzles}
+        allTags={this.props.allTags}
+        chatReady={this.props.chatReady}
+        chatMessages={this.props.chatMessages}
+        displayNames={this.props.displayNames}
+        canUpdate={this.props.canUpdate}
         showRelated={this.state.showRelated}
         onChangeShowRelated={this.onChangeShowRelated}
         isDesktop={this.state.isDesktop}
@@ -1163,10 +1088,10 @@ const PuzzlePage = React.createClass({
               {sidebar}
               <PuzzlePageContent
                 puzzle={activePuzzle}
-                allTags={this.data.allTags}
-                guesses={this.data.allGuesses}
-                displayNames={this.data.displayNames}
-                document={this.data.document}
+                allTags={this.props.allTags}
+                guesses={this.props.allGuesses}
+                displayNames={this.props.displayNames}
+                document={this.props.document}
                 isDesktop={this.state.isDesktop}
               />
             </SplitPanePlus>
@@ -1176,10 +1101,10 @@ const PuzzlePage = React.createClass({
             {navItem}
             <PuzzlePageMetadata
               puzzle={activePuzzle}
-              allTags={this.data.allTags}
-              guesses={this.data.allGuesses}
-              displayNames={this.data.displayNames}
-              document={this.data.document}
+              allTags={this.props.allTags}
+              guesses={this.props.allGuesses}
+              displayNames={this.props.displayNames}
+              document={this.props.document}
               isDesktop={this.state.isDesktop}
             />
             {sidebar}
@@ -1190,4 +1115,102 @@ const PuzzlePage = React.createClass({
   },
 });
 
-export default PuzzlePage;
+const PuzzlePageContainer = withTracker(({ params }) => {
+  // There are some model dependencies that we have to be careful about:
+  //
+  // * We show the displayname of the person who submitted a guess, so guesses depends on display names
+  // * Chat messages show the displayname of the sender, so chatmessages depends on display names
+  // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
+  //
+  // We can render some things on incomplete data, but most of them really need full data:
+  // * Chat can be rendered with just chat messages and display names
+  // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
+  // * Related puzzles probably only needs puzzles and tags, but right now it just gets the same
+  //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
+
+  if (!Flags.active('disable.subcounters')) {
+    // Keep a count of how many people are viewing a puzzle. Don't use
+    // the subs manager - we don't want this cached
+    Meteor.subscribe('subscribers.inc', `puzzle:${params.puzzleId}`, {
+      puzzle: params.puzzleId,
+      hunt: params.huntId,
+    });
+  }
+
+  const displayNamesHandle = Models.Profiles.subscribeDisplayNames(subsCache);
+  let displayNames = {};
+  if (displayNamesHandle.ready()) {
+    displayNames = Models.Profiles.displayNames();
+  }
+
+  const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: params.huntId });
+  const tagsHandle = subsCache.subscribe('mongo.tags', { hunt: params.huntId });
+  const guessesHandle = subsCache.subscribe('mongo.guesses', { puzzle: params.puzzleId });
+  const documentsHandle = subsCache.subscribe('mongo.documents', { puzzle: params.puzzleId });
+
+  if (!Flags.active('disable.subcounters')) {
+    subsCache.subscribe('subscribers.counts', { hunt: params.huntId });
+  }
+
+  const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready();
+
+  let allPuzzles;
+  let allTags;
+  let allGuesses;
+  let document;
+  // There's no sense in doing this expensive computation here if we're still loading data,
+  // since we're not going to render the children.
+  if (puzzlesReady) {
+    allPuzzles = Models.Puzzles.find({ hunt: params.huntId }).fetch();
+    allTags = Models.Tags.find({ hunt: params.huntId }).fetch();
+    allGuesses = Models.Guesses.find({ hunt: params.huntId, puzzle: params.puzzleId }).fetch();
+
+    // Sort by created at so that the "first" document always has consistent meaning
+    document = Models.Documents.findOne({ puzzle: params.puzzleId }, { sort: { createdAt: 1 } });
+  } else {
+    allPuzzles = [];
+    allTags = [];
+    allGuesses = [];
+    document = null;
+  }
+
+  const chatFields = {};
+  FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
+  const chatHandle = subsCache.subscribe(
+    'mongo.chatmessages',
+    { puzzle: params.puzzleId },
+    { fields: chatFields }
+  );
+
+  // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
+  // other collections.
+  const chatReady = chatHandle.ready() && displayNamesHandle.ready();
+  const chatMessages = (chatReady && Models.ChatMessages.find(
+    { puzzle: params.puzzleId },
+    { sort: { timestamp: 1 } },
+  ).fetch()) || [];
+  return {
+    puzzlesReady,
+    allPuzzles,
+    allTags,
+    chatReady,
+    chatMessages,
+    displayNames,
+    allGuesses,
+    document,
+    canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
+  };
+})(PuzzlePage);
+
+PuzzlePageContainer.propTypes = {
+  // hunt id and puzzle id comes from route?
+  params: PropTypes.shape({
+    huntId: PropTypes.string.isRequired,
+    puzzleId: PropTypes.string.isRequired,
+  }).isRequired,
+};
+
+// Mark this page as needing fixed, fullscreen layout.
+PuzzlePageContainer.desiredLayout = 'fullscreen';
+
+export default PuzzlePageContainer;

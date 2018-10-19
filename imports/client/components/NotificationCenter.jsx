@@ -9,7 +9,7 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { Link } from 'react-router';
 import moment from 'moment';
 import marked from 'marked';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import classnames from 'classnames';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import subsCache from '../subsCache.js';
@@ -253,74 +253,22 @@ const AnnouncementMessage = React.createClass({
 });
 
 const NotificationCenter = React.createClass({
-  mixins: [ReactMeteorData],
+  propTypes: {
+    ready: PropTypes.bool.isRequired,
+    announcements: PropTypes.arrayOf(PropTypes.shape(Schemas.Announcements.asReactPropTypes())),
+    guesses: PropTypes.arrayOf(PropTypes.shape({
+      guess: PropTypes.shape(Schemas.Guesses.asReactPropTypes()),
+      puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()),
+      guesser: PropTypes.string,
+    })),
+    slackConfigured: PropTypes.bool,
+  },
 
   getInitialState() {
     return {
       hideSlackSetupMessage: false,
       dismissedGuesses: {},
     };
-  },
-
-  getMeteorData() {
-    const canUpdateGuesses = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
-
-    // Yes this is hideous, but it just makes the logic easier
-    let guessesHandle = { ready: () => true };
-    let puzzlesHandle = { ready: () => true };
-    if (canUpdateGuesses) {
-      guessesHandle = subsCache.subscribe('mongo.guesses', { state: 'pending' });
-      puzzlesHandle = subsCache.subscribe('mongo.puzzles');
-    }
-
-    // This is overly broad, but we likely already have the data cached locally
-    const selfHandle = subsCache.subscribe('mongo.profiles', { _id: Meteor.userId() });
-    const displayNamesHandle = subsCache.subscribe(
-      'mongo.profiles',
-      {},
-      { fields: { displayName: 1 } }
-    );
-    const announcementsHandle = subsCache.subscribe('mongo.announcements');
-
-    const query = {
-      user: Meteor.userId(),
-    };
-    const paHandle = subsCache.subscribe('mongo.pending_announcements', query);
-
-    // Don't even try to put things together until we have the announcements loaded
-    if (!selfHandle.ready() || !displayNamesHandle.ready() || !announcementsHandle.ready()) {
-      return { ready: false };
-    }
-
-    const profile = Models.Profiles.findOne(Meteor.userId());
-
-    const data = {
-      ready: guessesHandle.ready() && puzzlesHandle.ready() && paHandle.ready(),
-      announcements: [],
-      guesses: [],
-      slackConfigured: profile && profile.slackHandle,
-    };
-
-    if (canUpdateGuesses) {
-      Models.Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).forEach((guess) => {
-        data.guesses.push({
-          guess,
-          puzzle: Models.Puzzles.findOne(guess.puzzle),
-          guesser: Models.Profiles.findOne(guess.createdBy).displayName,
-        });
-      });
-    }
-
-    Models.PendingAnnouncements.find(query, { sort: { createdAt: 1 } }).forEach((pa) => {
-      const announcement = Models.Announcements.findOne(pa.announcement);
-      data.announcements.push({
-        pa,
-        announcement,
-        createdByDisplayName: Models.Profiles.findOne(announcement.createdBy).displayName,
-      });
-    });
-
-    return data;
   },
 
   hideSlackSetupMessage() {
@@ -339,18 +287,18 @@ const NotificationCenter = React.createClass({
   },
 
   render() {
-    if (!this.data.ready) {
+    if (!this.props.ready) {
       return <div />;
     }
 
     // Build a list of uninstantiated messages with their props, then create them
     const messages = [];
 
-    if (!this.data.slackConfigured && !this.state.hideSlackSetupMessage) {
+    if (!this.props.slackConfigured && !this.state.hideSlackSetupMessage) {
       messages.push(<SlackMessage key="slack" onDismiss={this.hideSlackSetupMessage} />);
     }
 
-    _.forEach(this.data.guesses, (g) => {
+    _.forEach(this.props.guesses, (g) => {
       if (this.state.dismissedGuesses[g.guess._id]) return;
       messages.push(<GuessMessage
         key={g.guess._id}
@@ -361,7 +309,7 @@ const NotificationCenter = React.createClass({
       />);
     });
 
-    _.forEach(this.data.announcements, (a) => {
+    _.forEach(this.props.announcements, (a) => {
       messages.push(
         <AnnouncementMessage
           key={a.pa._id}
@@ -380,4 +328,63 @@ const NotificationCenter = React.createClass({
   },
 });
 
-export default NotificationCenter;
+export default withTracker(() => {
+  const canUpdateGuesses = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
+
+  // Yes this is hideous, but it just makes the logic easier
+  let guessesHandle = { ready: () => true };
+  let puzzlesHandle = { ready: () => true };
+  if (canUpdateGuesses) {
+    guessesHandle = subsCache.subscribe('mongo.guesses', { state: 'pending' });
+    puzzlesHandle = subsCache.subscribe('mongo.puzzles');
+  }
+
+  // This is overly broad, but we likely already have the data cached locally
+  const selfHandle = subsCache.subscribe('mongo.profiles', { _id: Meteor.userId() });
+  const displayNamesHandle = subsCache.subscribe(
+    'mongo.profiles',
+    {},
+    { fields: { displayName: 1 } }
+  );
+  const announcementsHandle = subsCache.subscribe('mongo.announcements');
+
+  const query = {
+    user: Meteor.userId(),
+  };
+  const paHandle = subsCache.subscribe('mongo.pending_announcements', query);
+
+  // Don't even try to put things together until we have the announcements loaded
+  if (!selfHandle.ready() || !displayNamesHandle.ready() || !announcementsHandle.ready()) {
+    return { ready: false };
+  }
+
+  const profile = Models.Profiles.findOne(Meteor.userId());
+
+  const data = {
+    ready: guessesHandle.ready() && puzzlesHandle.ready() && paHandle.ready(),
+    announcements: [],
+    guesses: [],
+    slackConfigured: !!(profile && profile.slackHandle),
+  };
+
+  if (canUpdateGuesses) {
+    Models.Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).forEach((guess) => {
+      data.guesses.push({
+        guess,
+        puzzle: Models.Puzzles.findOne(guess.puzzle),
+        guesser: Models.Profiles.findOne(guess.createdBy).displayName,
+      });
+    });
+  }
+
+  Models.PendingAnnouncements.find(query, { sort: { createdAt: 1 } }).forEach((pa) => {
+    const announcement = Models.Announcements.findOne(pa.announcement);
+    data.announcements.push({
+      pa,
+      announcement,
+      createdByDisplayName: Models.Profiles.findOne(announcement.createdBy).displayName,
+    });
+  });
+
+  return data;
+})(NotificationCenter);
