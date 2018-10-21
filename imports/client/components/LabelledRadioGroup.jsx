@@ -3,6 +3,16 @@ import React from 'react';
 
 /* eslint-disable max-len */
 
+const labelledRadioStyles = {
+  radiolabel: {
+    display: 'block',
+    fontWeight: 'normal',
+  },
+  radio: {
+    margin: '8px',
+  },
+};
+
 const LabelledRadio = React.createClass({
   // Bootstrap's approach to exclusive options does not look particularly good nor does it produce
   // accessibility-friendly markup, so here's a touch of our own instead.  Uses some bootstrap
@@ -16,22 +26,12 @@ const LabelledRadio = React.createClass({
     onChange: PropTypes.func.isRequired,
   },
 
-  styles: {
-    radiolabel: {
-      display: 'block',
-      fontWeight: 'normal',
-    },
-    radio: {
-      margin: '8px',
-    },
-  },
-
   render() {
     return (
-      <label style={this.styles.radiolabel} htmlFor={this.props.id}>
+      <label style={labelledRadioStyles.radiolabel} htmlFor={this.props.id}>
         <input
           id={this.props.id}
-          style={this.styles.radio}
+          style={labelledRadioStyles.radio}
           type="radio"
           name={this.props.name}
           onChange={this.props.onChange}
@@ -44,6 +44,11 @@ const LabelledRadio = React.createClass({
   },
 });
 
+const labelledRadioGroupStyles = {
+  radioheader: {
+    fontWeight: 'bold',
+  },
+};
 const LabelledRadioGroup = React.createClass({
   propTypes: {
     header: PropTypes.string.isRequired,
@@ -73,12 +78,6 @@ const LabelledRadioGroup = React.createClass({
     this.props.onChange(value);
   },
 
-  styles: {
-    radioheader: {
-      fontWeight: 'bold',
-    },
-  },
-
   render() {
     const buttons = this.props.options.map((option, index) => {
       return (
@@ -95,7 +94,7 @@ const LabelledRadioGroup = React.createClass({
     });
     return (
       <div className="radio-group">
-        <span style={this.styles.radioheader}>{this.props.header}</span>
+        <span style={labelledRadioGroupStyles.radioheader}>{this.props.header}</span>
         <fieldset>
           {buttons}
         </fieldset>
