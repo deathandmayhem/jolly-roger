@@ -29,6 +29,9 @@ const PuzzleModalForm = React.createClass({
     const state = {
       submitState: 'idle',
       errorMessage: '',
+      titleDirty: false,
+      urlDirty: false,
+      tagsDirty: false,
     };
 
     if (this.props.puzzle) {
@@ -43,27 +46,25 @@ const PuzzleModalForm = React.createClass({
     }
   },
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.puzzle && nextProps.puzzle !== this.props.puzzle) {
-      this.setState(this.stateFromPuzzle(nextProps.puzzle));
-    }
-  },
-
   onTitleChange(event) {
     this.setState({
       title: event.target.value,
+      titleDirty: true,
     });
   },
 
   onUrlChange(event) {
     this.setState({
       url: event.target.value,
+      urlDirty: true,
     });
   },
 
   onTagsChange(event) {
+    const newTags = jQuery(event.target).val() || [];
     this.setState({
-      tags: jQuery(event.target).val() || [],
+      tags: newTags,
+      tagsDirty: true,
     });
   },
 
@@ -75,36 +76,74 @@ const PuzzleModalForm = React.createClass({
 
   onFormSubmit(callback) {
     this.setState({ submitState: 'submitting' });
-    const state = _.extend(
-      {},
-      _.omit(this.state, 'submitState', 'errorMessage'),
-      { hunt: this.props.huntId },
-    );
-    this.props.onSubmit(state, (error) => {
+    const payload = {
+      hunt: this.props.huntId,
+      title: this.state.title,
+      url: this.state.url,
+      tags: this.state.tags,
+    };
+    if (this.state.docType) {
+      payload.docType = this.state.docType;
+    }
+    this.props.onSubmit(payload, (error) => {
       if (error) {
         this.setState({
           submitState: 'failed',
           errorMessage: error.message,
         });
       } else {
-        this.setState(this.getInitialState());
+        this.setState({
+          submitState: 'idle',
+          errorMessage: '',
+          titleDirty: false,
+          urlDirty: false,
+          tagsDirty: false,
+        });
         callback();
       }
     });
   },
 
-  stateFromPuzzle(puzzle) {
+  tagNamesForIds(tagIds) {
     const tagNames = {};
     _.each(this.props.tags, (t) => { tagNames[t._id] = t.name; });
+    return tagIds.map(t => tagNames[t]);
+  },
+
+  stateFromPuzzle(puzzle) {
     return {
       title: puzzle.title,
       url: puzzle.url,
-      tags: puzzle.tags.map(t => tagNames[t]),
+      tags: this.tagNamesForIds(puzzle.tags),
     };
   },
 
   show() {
     this.formNode.show();
+  },
+
+  currentTitle() {
+    if (!this.state.titleDirty && this.props.puzzle) {
+      return this.props.puzzle.title;
+    } else {
+      return this.state.title;
+    }
+  },
+
+  currentUrl() {
+    if (!this.state.urlDirty && this.props.puzzle) {
+      return this.props.puzzle.url;
+    } else {
+      return this.state.url;
+    }
+  },
+
+  currentTags() {
+    if (!this.state.tagsDirty && this.props.puzzle) {
+      return this.tagNamesForIds(this.props.puzzle.tags);
+    } else {
+      return this.state.tags;
+    }
   },
 
   render() {
@@ -157,7 +196,7 @@ const PuzzleModalForm = React.createClass({
               autoFocus
               disabled={disableForm}
               onChange={this.onTitleChange}
-              value={this.state.title}
+              value={this.currentTitle()}
             />
           </div>
         </FormGroup>
@@ -172,7 +211,7 @@ const PuzzleModalForm = React.createClass({
               type="text"
               disabled={disableForm}
               onChange={this.onUrlChange}
-              value={this.state.url}
+              value={this.currentUrl()}
             />
           </div>
         </FormGroup>
@@ -188,7 +227,7 @@ const PuzzleModalForm = React.createClass({
               multiple
               disabled={disableForm}
               onChange={this.onTagsChange}
-              value={this.state.tags}
+              value={this.currentTags()}
               options={{ tags: true, tokenSeparators: [',', ' '] }}
               style={{ width: '100%' }}
             />

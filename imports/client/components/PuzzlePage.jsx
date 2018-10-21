@@ -602,6 +602,7 @@ const PuzzlePageMetadata = React.createClass({
     return (
       <div className="puzzle-metadata">
         <PuzzleModalForm
+          key={this.props.puzzle._id}
           ref={(node) => { this.editModalNode = node; }}
           puzzle={this.props.puzzle}
           huntId={this.props.puzzle.hunt}
