@@ -36,6 +36,10 @@ const HuntModalForm = React.createClass({
   },
 
   getInitialState() {
+    return this.initialState();
+  },
+
+  initialState() {
     const state = {
       submitState: 'idle',
       errorMessage: '',
@@ -111,7 +115,7 @@ const HuntModalForm = React.createClass({
           errorMessage: error.message,
         });
       } else {
-        this.setState(this.getInitialState());
+        this.setState(this.initialState()());
         callback();
       }
     });
