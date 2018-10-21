@@ -7,6 +7,7 @@ import Flags from '../../flags.js';
 import subsCache from '../subsCache.js';
 import Celebration from './Celebration.jsx';
 
+/* eslint-disable react/prefer-es6-class */
 const CelebrationCenter = createReactClass({
   displayName: 'CelebrationCenter',
 

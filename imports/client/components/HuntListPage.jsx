@@ -35,6 +35,11 @@ class HuntModalForm extends React.Component {
     onSubmit: PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
   };
 
+  constructor(props, context) {
+    super(props, context);
+    this.state = this.initialState();
+  }
+
   initialState = () => {
     const state = {
       submitState: 'idle',
@@ -121,7 +126,6 @@ class HuntModalForm extends React.Component {
     this.formNode.show();
   };
 
-  state = this.initialState();
 
   render() {
     const disableForm = this.state.submitState === 'submitting';

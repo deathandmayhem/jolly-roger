@@ -407,7 +407,6 @@ class ChatInput extends React.PureComponent {
 
   state = {
     text: '',
-    height: 38,
   };
 
   onInputChanged = (e) => {

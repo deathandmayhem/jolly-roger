@@ -22,7 +22,6 @@ class TagList extends React.PureComponent {
   static defaultProps = { showControls: true };
 
   state = {
-    expanded: false,
     editing: false,
     removing: false,
   };

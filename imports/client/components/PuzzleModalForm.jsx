@@ -38,7 +38,6 @@ class PuzzleModalForm extends React.Component {
 
     if (props.puzzle) {
       this.state = _.extend(state, this.stateFromPuzzle(props.puzzle));
-      return;
     } else {
       this.state = _.extend(state, {
         title: '',
@@ -46,8 +45,6 @@ class PuzzleModalForm extends React.Component {
         tags: [],
         docType: 'spreadsheet',
       });
-
-      return;
     }
   }
 
