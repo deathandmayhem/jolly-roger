@@ -389,6 +389,22 @@ const ChatHistory = React.createClass({
   },
 });
 
+const chatInputStyles = {
+  textarea: {
+    // Chrome has a bug where if the line-height is a plain number (e.g. 1.42857143) rather than
+    // an absolute size (e.g. 14px, 12pt) then when you zoom, scrollHeight is miscomputed.
+    // scrollHeight is used for computing the effective size of a textarea, so we can grow the
+    // input to accomodate its contents.
+    // The default Chrome stylesheet has line-height set to a plain number.
+    // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
+    lineHeight: '14px',
+    flex: 'none',
+    padding: '9px',
+    resize: 'none',
+    maxHeight: '200px',
+  },
+};
+
 const ChatInput = React.createClass({
   propTypes: {
     onHeightChange: PropTypes.func,
@@ -432,26 +448,10 @@ const ChatInput = React.createClass({
     }
   },
 
-  styles: {
-    textarea: {
-      // Chrome has a bug where if the line-height is a plain number (e.g. 1.42857143) rather than
-      // an absolute size (e.g. 14px, 12pt) then when you zoom, scrollHeight is miscomputed.
-      // scrollHeight is used for computing the effective size of a textarea, so we can grow the
-      // input to accomodate its contents.
-      // The default Chrome stylesheet has line-height set to a plain number.
-      // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
-      lineHeight: '14px',
-      flex: 'none',
-      padding: '9px',
-      resize: 'none',
-      maxHeight: '200px',
-    },
-  },
-
   render() {
     return (
       <TextareaAutosize
-        style={this.styles.textarea}
+        style={chatInputStyles.textarea}
         maxLength="4000"
         minRows={1}
         maxRows={12}
