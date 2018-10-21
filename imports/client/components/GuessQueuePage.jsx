@@ -32,6 +32,7 @@ const AutoSelectInput = React.createClass({
   },
 });
 
+const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const GuessBlock = React.createClass({
   propTypes: {
     canEdit: PropTypes.bool.isRequired,
@@ -56,11 +57,10 @@ const GuessBlock = React.createClass({
     Meteor.call('markGuessRejected', this.props.guess._id);
   },
 
-  daysOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
 
   formatDate(date) {
     // We only care about days in so far as which day of hunt this guess was submitted on
-    const day = this.daysOfWeek[date.getDay()];
+    const day = daysOfWeek[date.getDay()];
     return `${date.toLocaleTimeString()} on ${day}`;
   },
 
