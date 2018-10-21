@@ -44,8 +44,10 @@ const Tag = React.createClass({
     if (this.props.linkToSearch) {
       title = (
         <Link
-          to={`/hunts/${this.props.tag.hunt}/puzzles`}
-          query={{ q: this.props.tag.name }}
+          to={{
+            pathname: `/hunts/${this.props.tag.hunt}/puzzles`,
+            query: { q: this.props.tag.name },
+          }}
           className="tag-link"
         >
           {name}
