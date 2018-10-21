@@ -24,6 +24,10 @@ const ModalForm = React.createClass({
     return { show: false };
   },
 
+  componentWillUnmount() {
+    this.dontTryToClose = true;
+  },
+
   show() {
     this.setState({ show: true });
   },
@@ -37,7 +41,7 @@ const ModalForm = React.createClass({
     this.props.onSubmit(() => {
       // For delete forms, it's possible that the component gets
       // deleted and unmounted before the callback gets called.
-      if (this.isMounted()) { // eslint-disable-line react/no-is-mounted
+      if (!this.dontTryToClose) {
         this.close();
       }
     });
