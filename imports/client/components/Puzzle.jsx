@@ -94,6 +94,7 @@ const Puzzle = React.createClass({
       <div className={puzzleClasses}>
         {this.state.showEditModal ? (
           <PuzzleModalForm
+            key={this.props.puzzle._id}
             ref={(node) => {
               if (node && this.modalNode === undefined) {
                 // Automatically show this node the first time it's created.

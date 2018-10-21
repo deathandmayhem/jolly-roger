@@ -49,6 +49,77 @@ const MinimumChatHeight = 96;
 const DefaultSidebarWidth = 300;
 const DefaultChatHeight = '60%';
 
+// PuzzlePage has some pretty unique properties:
+//
+// * It's the only page which iframes other sites.  Doing so requires that we
+//   specify the absolute size and position of the iframe, which makes us need
+//   position: fixed.
+// * There's up to four interesting pieces of content shown on this page:
+//   * Related puzzles
+//   * Chat
+//   * Puzzle metadata (title, solved, puzzle link, guesses, tags)
+//   * The collaborative document (usually a spreadsheet)
+//   All four of them may have more content than fits reasonably on the screen,
+//   so managing their sizes effectively is important.
+// * At smaller screen sizes, we try to collapse content so the most useful
+//   interactions are still possible.  On mobile, it often makes more sense to
+//   delegate document interaction to the native Google apps.  Chat (and which
+//   puzzle you're looking at) are the most important panes, since when people
+//   are on runarounds the chat is the thing they want to see/write in most, and
+//   that's the most common time you'd be using jolly-roger from a mobile device.
+//   The least important view is usually related puzzles, since that's most useful
+//   for metas or seeing if there's a theme in the answers for the round, which
+//   people do less from mobile devices.
+//
+//   Given these priorities, we have several views:
+//
+//   a: related puzzles
+//   b: chat
+//   c: metadata
+//   d: document
+//
+//   With abundant space ("desktop"):
+//    _____________________________
+//   |      |         c            |
+//   |  a   |______________________|
+//   |______|                      |
+//   |      |                      |
+//   |  b   |         d            |
+//   |      |                      |
+//   |______|______________________|
+//
+//   If height is small (<MinimumDesktopStackingHeight), but width remains
+//   large (>=MinimumDesktopWidth), we collapse chat and related puzzles into a
+//   tabbed view (initial tab is chat)
+//    ____________________________
+//   |__|__|         c            |
+//   |     |______________________|
+//   | b/a |                      |
+//   |     |         d            |
+//   |_____|______________________|
+//
+//   If width is small (<MinimumDesktopWidth), we have two possible layouts:
+//     If height is large (>=MinimumMobileStackingHeight), we show three panes:
+//    ____________
+//   |     c     |
+//   |___________|
+//   |     a     |
+//   |___________|
+//   |           |
+//   |     b     |
+//   |           |
+//   |___________|
+//
+//     If height is also small (<MinimumMobileStackingHeight), we collapse chat
+//     and related puzzles into a tabset again:
+//    ____________
+//   |     c     |
+//   |___________|
+//   |_____|_____|
+//   |    b/a    |
+//   |           |
+//   |___________|
+
 const ViewersList = React.createClass({
   propTypes: {
     name: PropTypes.string.isRequired,
@@ -261,10 +332,6 @@ const ChatHistory = React.createClass({
     };
 
     window.addEventListener('resize', this.resizeHandler);
-  },
-
-  componentWillUpdate() {
-    this.saveShouldScroll();
   },
 
   componentDidUpdate() {
@@ -606,6 +673,7 @@ const PuzzlePageMetadata = React.createClass({
     return (
       <div className="puzzle-metadata">
         <PuzzleModalForm
+          key={this.props.puzzle._id}
           ref={(node) => { this.editModalNode = node; }}
           puzzle={this.props.puzzle}
           huntId={this.props.puzzle.hunt}
@@ -994,17 +1062,14 @@ const PuzzlePage = React.createClass({
     };
   },
 
-  componentWillMount() {
+  componentDidMount() {
+    window.addEventListener('resize', this.onResize);
     Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
   },
 
-  componentDidMount() {
-    window.addEventListener('resize', this.onResize);
-  },
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.params.puzzleId !== this.props.params.puzzleId) {
-      Meteor.call('ensureDocumentAndPermissions', nextProps.params.puzzleId);
+  componentDidUpdate(prevProps) {
+    if (prevProps.params.puzzleId !== this.props.params.puzzleId) {
+      Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
     }
   },
 
@@ -1048,13 +1113,6 @@ const PuzzlePage = React.createClass({
 
     const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.params.puzzleId);
 
-    const navItem = (
-      <this.context.navAggregator.NavItem
-        itemKey="puzzleid"
-        to={`/hunts/${this.props.params.huntId}/puzzles/${this.props.params.puzzleId}`}
-        label={activePuzzle.title}
-      />
-    );
     const sidebar = (
       <PuzzlePageSidebar
         key="sidebar"
@@ -1074,19 +1132,37 @@ const PuzzlePage = React.createClass({
 
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
-        {this.state.isDesktop ? (
-          <div className="puzzle-page">
-            {navItem}
-            <SplitPanePlus
-              split="vertical"
-              defaultSize={DefaultSidebarWidth}
-              minSize={MinimumSidebarWidth}
-              pane1Style={{ maxWidth: MaximumSidebarWidth }}
-              autoCollapse1={-1}
-              autoCollapse2={-1}
-            >
-              {sidebar}
-              <PuzzlePageContent
+        <this.context.navAggregator.NavItem
+          key="puzzleid"
+          itemKey="puzzleid"
+          to={`/hunts/${this.props.params.huntId}/puzzles/${this.props.params.puzzleId}`}
+          label={activePuzzle.title}
+          depth={2}
+        >
+          {this.state.isDesktop ? (
+            <div className="puzzle-page">
+              <SplitPanePlus
+                split="vertical"
+                defaultSize={DefaultSidebarWidth}
+                minSize={MinimumSidebarWidth}
+                pane1Style={{ maxWidth: MaximumSidebarWidth }}
+                autoCollapse1={-1}
+                autoCollapse2={-1}
+              >
+                {sidebar}
+                <PuzzlePageContent
+                  puzzle={activePuzzle}
+                  allTags={this.props.allTags}
+                  guesses={this.props.allGuesses}
+                  displayNames={this.props.displayNames}
+                  document={this.props.document}
+                  isDesktop={this.state.isDesktop}
+                />
+              </SplitPanePlus>
+            </div>
+          ) : (
+            <div className="puzzle-page narrow">
+              <PuzzlePageMetadataContainer
                 puzzle={activePuzzle}
                 allTags={this.props.allTags}
                 guesses={this.props.allGuesses}
@@ -1094,22 +1170,10 @@ const PuzzlePage = React.createClass({
                 document={this.props.document}
                 isDesktop={this.state.isDesktop}
               />
-            </SplitPanePlus>
-          </div>
-        ) : (
-          <div className="puzzle-page narrow">
-            {navItem}
-            <PuzzlePageMetadata
-              puzzle={activePuzzle}
-              allTags={this.props.allTags}
-              guesses={this.props.allGuesses}
-              displayNames={this.props.displayNames}
-              document={this.props.document}
-              isDesktop={this.state.isDesktop}
-            />
-            {sidebar}
-          </div>
-        )}
+              {sidebar}
+            </div>
+          )}
+        </this.context.navAggregator.NavItem>
       </DocumentTitle>
     );
   },

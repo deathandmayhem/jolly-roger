@@ -446,11 +446,13 @@ const ProfilePage = React.createClass({
         itemKey="users"
         to="/users"
         label="Users"
+        depth={0}
       >
         <this.context.navAggregator.NavItem
           itemKey="userid"
           to={`/users/${this.props.params.userId}`}
           label={this.props.ready ? this.props.profile.displayName : 'loading...'}
+          depth={1}
         >
           {body}
         </this.context.navAggregator.NavItem>
