@@ -49,6 +49,77 @@ const MinimumChatHeight = 96;
 const DefaultSidebarWidth = 300;
 const DefaultChatHeight = '60%';
 
+// PuzzlePage has some pretty unique properties:
+//
+// * It's the only page which iframes other sites.  Doing so requires that we
+//   specify the absolute size and position of the iframe, which makes us need
+//   position: fixed.
+// * There's up to four interesting pieces of content shown on this page:
+//   * Related puzzles
+//   * Chat
+//   * Puzzle metadata (title, solved, puzzle link, guesses, tags)
+//   * The collaborative document (usually a spreadsheet)
+//   All four of them may have more content than fits reasonably on the screen,
+//   so managing their sizes effectively is important.
+// * At smaller screen sizes, we try to collapse content so the most useful
+//   interactions are still possible.  On mobile, it often makes more sense to
+//   delegate document interaction to the native Google apps.  Chat (and which
+//   puzzle you're looking at) are the most important panes, since when people
+//   are on runarounds the chat is the thing they want to see/write in most, and
+//   that's the most common time you'd be using jolly-roger from a mobile device.
+//   The least important view is usually related puzzles, since that's most useful
+//   for metas or seeing if there's a theme in the answers for the round, which
+//   people do less from mobile devices.
+//
+//   Given these priorities, we have several views:
+//
+//   a: related puzzles
+//   b: chat
+//   c: metadata
+//   d: document
+//
+//   With abundant space ("desktop"):
+//    _____________________________
+//   |      |         c            |
+//   |  a   |______________________|
+//   |______|                      |
+//   |      |                      |
+//   |  b   |         d            |
+//   |      |                      |
+//   |______|______________________|
+//
+//   If height is small (<MinimumDesktopStackingHeight), but width remains
+//   large (>=MinimumDesktopWidth), we collapse chat and related puzzles into a
+//   tabbed view (initial tab is chat)
+//    ____________________________
+//   |__|__|         c            |
+//   |     |______________________|
+//   | b/a |                      |
+//   |     |         d            |
+//   |_____|______________________|
+//
+//   If width is small (<MinimumDesktopWidth), we have two possible layouts:
+//     If height is large (>=MinimumMobileStackingHeight), we show three panes:
+//    ____________
+//   |     c     |
+//   |___________|
+//   |     a     |
+//   |___________|
+//   |           |
+//   |     b     |
+//   |           |
+//   |___________|
+//
+//     If height is also small (<MinimumMobileStackingHeight), we collapse chat
+//     and related puzzles into a tabset again:
+//    ____________
+//   |     c     |
+//   |___________|
+//   |_____|_____|
+//   |    b/a    |
+//   |           |
+//   |___________|
+
 const ViewersList = React.createClass({
   propTypes: {
     name: PropTypes.string.isRequired,
