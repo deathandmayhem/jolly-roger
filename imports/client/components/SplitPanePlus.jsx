@@ -56,7 +56,6 @@ class SplitPanePlus extends React.Component {
       // collapseWarning and collapsed are equal to the number of the pane being collapsed
       // or 0 if none
       collapseWarning: 0,
-      collapsed: props.collapsed ? props.collapsed : 0,
       lastSize: NaN,
       lastRelSize: NaN,
       dragInProgress: false,
@@ -71,25 +70,8 @@ class SplitPanePlus extends React.Component {
     this.erd = elementResizeDetectorMaker({ strategy: 'scroll' });
     this.erd.listenTo(this.splitPaneNode(), _.throttle(this.onResize, 50));
     // Measure to handle relative defaultSize correctly
-    if (this.state.collapsed === 0) {
+    if (this.props.collapsed === 0) {
       this.recordSize(this.measure(this.primaryPaneNode()));
-    }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if ('size' in nextProps) {
-      const fullSize = this.measure(this.splitPaneNode());
-      if (nextProps.size === '0%' || nextProps.size <= 0) {
-        // Collapse primary pane
-        this.setState({ collapsed: nextProps.primary === 'first' ? 1 : 2 });
-      } else if (nextProps.size === '100%' || nextProps.size >= fullSize()) {
-        // Collapse secondary pane
-        this.setState({ collapsed: nextProps.primary === 'first' ? 2 : 1 });
-      } else {
-        this.setState({ collapsed: 0 });
-      }
-    } else if ('collapsed' in nextProps) {
-      this.setState({ collapsed: nextProps.collapsed });
     }
   }
 
@@ -101,7 +83,7 @@ class SplitPanePlus extends React.Component {
     if (!this.splitPaneNode()) {
       return;
     }
-    if (this.state.collapsed === 0) {
+    if (this.props.collapsed === 0) {
       // Actively measure instead of using lastSize to capture the relative case correctly
       this.attemptCollapse(this.measure(this.primaryPaneNode()));
     }
@@ -129,11 +111,11 @@ class SplitPanePlus extends React.Component {
       dragInProgress: false,
     });
     this.attemptCollapse(size);
-    if (this.state.collapsed === 0) {
+    if (this.props.collapsed === 0) {
       this.recordSize(size);
     }
     if ('onDragFinished' in this.props) {
-      this.props.onDragFinished(size, this.state.collapsed);
+      this.props.onDragFinished(size, this.props.collapsed);
     }
   }
 
@@ -145,9 +127,8 @@ class SplitPanePlus extends React.Component {
   }
 
   attemptCollapse(size) {
-    const oldCollapsed = this.state.collapsed;
+    const oldCollapsed = this.props.collapsed;
     const newCollapsed = this.calculateCollapse(size);
-    this.setState({ collapsed: newCollapsed });
     if (oldCollapsed !== newCollapsed && 'onCollapseChanged' in this.props) {
       this.props.onCollapseChanged(newCollapsed);
     }
@@ -224,9 +205,9 @@ class SplitPanePlus extends React.Component {
     if (this.state.collapseWarning > 0) {
       paneProps.className = `${paneProps.className} collapsing${this.state.collapseWarning}`;
     }
-    if (this.state.collapsed > 0) {
-      paneProps.className = `${paneProps.className} collapsed${this.state.collapsed}`;
-      if (this.state.collapsed === 1) {
+    if (this.props.collapsed > 0) {
+      paneProps.className = `${paneProps.className} collapsed${this.props.collapsed}`;
+      if (this.props.collapsed === 1) {
         // Collapse Pane1
         paneProps.size = this.props.primary === 'first' ? '0%' : '100%';
       } else {
