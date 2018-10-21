@@ -29,8 +29,8 @@ import { _ } from 'meteor/underscore';
 import { jQuery } from 'meteor/jquery';
 
 
-const ReactSelect2 = React.createClass({
-  propTypes: {
+class ReactSelect2 extends React.Component {
+  static propTypes = {
     data: PropTypes.array,
     value: PropTypes.any,
     events: PropTypes.array,
@@ -42,22 +42,20 @@ const ReactSelect2 = React.createClass({
     onSelect: PropTypes.func,
     onChange: PropTypes.func,
     onUnselect: PropTypes.func,
-  },
+  };
 
-  getDefaultProps() {
-    return {
-      data: [],
-      events: [
-        ['change', 'onChange'],
-        ['select2:open', 'onOpen'],
-        ['select2:close', 'onClose'],
-        ['select2:select', 'onSelect'],
-        ['select2:unselect', 'onUnselect'],
-      ],
-      options: {},
-      multiple: false,
-    };
-  },
+  static defaultProps = {
+    data: [],
+    events: [
+      ['change', 'onChange'],
+      ['select2:open', 'onOpen'],
+      ['select2:close', 'onClose'],
+      ['select2:select', 'onSelect'],
+      ['select2:unselect', 'onUnselect'],
+    ],
+    options: {},
+    multiple: false,
+  };
 
   componentDidMount() {
     this.el = jQuery(this.node);
@@ -66,18 +64,18 @@ const ReactSelect2 = React.createClass({
     this.props.events.forEach((event) => {
       this.el.on(event[0], this.props[event[1]]);
     });
-  },
+  }
 
   componentDidUpdate() {
     if (_.difference(this.el.val(), this.props.value).length !== 0 ||
         _.difference(this.props.value, this.el.val()).length !== 0) {
       this.el.val(this.props.value).trigger('change');
     }
-  },
+  }
 
   componentWillUnmount() {
     this.el.select2('destroy');
-  },
+  }
 
   render() {
     const remaining = _.omit(this.props,
@@ -107,7 +105,7 @@ const ReactSelect2 = React.createClass({
         })}
       </select>
     );
-  },
-});
+  }
+}
 
 export default ReactSelect2;

@@ -7,13 +7,14 @@ import Tooltip from 'react-bootstrap/lib/Tooltip';
 import { SubscriberCounters } from '../subscribers.js';
 import Flags from '../../flags.js';
 
-const SubscriberCount = React.createClass({
-  displayName: 'SubscriberCount',
-  propTypes: {
+class SubscriberCount extends React.Component {
+  static displayName = 'SubscriberCount';
+
+  static propTypes = {
     puzzleId: PropTypes.string.isRequired,
     disabled: PropTypes.bool.isRequired,
     viewCount: PropTypes.number.isRequired,
-  },
+  };
 
   render() {
     if (this.props.disabled) {
@@ -34,8 +35,8 @@ const SubscriberCount = React.createClass({
         </span>
       </OverlayTrigger>
     );
-  },
-});
+  }
+}
 
 const SubscriberCountContainer = withTracker(({ puzzleId }) => {
   const disabled = Flags.active('disable.subcounters');

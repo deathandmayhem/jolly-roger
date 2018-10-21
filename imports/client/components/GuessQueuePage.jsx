@@ -10,15 +10,15 @@ import navAggregatorType from './navAggregatorType.jsx';
 
 /* eslint-disable max-len */
 
-const AutoSelectInput = React.createClass({
-  propTypes: {
+class AutoSelectInput extends React.Component {
+  static propTypes = {
     value: PropTypes.string.isRequired,
-  },
+  };
 
-  onFocus() {
+  onFocus = () => {
     // Use the selection API to select the contents of this, for easier clipboarding.
     this.inputNode.select();
-  },
+  };
 
   render() {
     return (
@@ -29,40 +29,40 @@ const AutoSelectInput = React.createClass({
         onFocus={this.onFocus}
       />
     );
-  },
-});
+  }
+}
 
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const GuessBlock = React.createClass({
-  propTypes: {
+
+class GuessBlock extends React.Component {
+  static propTypes = {
     canEdit: PropTypes.bool.isRequired,
     guess: PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
     createdByDisplayName: PropTypes.string.isRequired,
     puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
-  },
+  };
 
-  markPending() {
+  markPending = () => {
     Meteor.call('markGuessPending', this.props.guess._id);
-  },
+  };
 
-  markCorrect() {
+  markCorrect = () => {
     Meteor.call('markGuessCorrect', this.props.guess._id);
-  },
+  };
 
-  markIncorrect() {
+  markIncorrect = () => {
     Meteor.call('markGuessIncorrect', this.props.guess._id);
-  },
+  };
 
-  markRejected() {
+  markRejected = () => {
     Meteor.call('markGuessRejected', this.props.guess._id);
-  },
+  };
 
-
-  formatDate(date) {
+  formatDate = (date) => {
     // We only care about days in so far as which day of hunt this guess was submitted on
     const day = daysOfWeek[date.getDay()];
     return `${date.toLocaleTimeString()} on ${day}`;
-  },
+  };
 
   render() {
     const guess = this.props.guess;
@@ -104,11 +104,11 @@ const GuessBlock = React.createClass({
         {this.props.canEdit ? guessButtons : <div className="guess-button-group">{guess.state}</div>}
       </div>
     );
-  },
-});
+  }
+}
 
-const GuessQueuePage = React.createClass({
-  propTypes: {
+class GuessQueuePage extends React.Component {
+  static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
@@ -117,13 +117,13 @@ const GuessQueuePage = React.createClass({
     puzzles: PropTypes.objectOf(PropTypes.shape(Schemas.Puzzles.asReactPropTypes())).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
     canEdit: PropTypes.bool.isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
-  renderPage() {
+  renderPage = () => {
     if (!this.props.ready) {
       return <div>loading...</div>;
     }
@@ -144,7 +144,7 @@ const GuessQueuePage = React.createClass({
         })}
       </div>
     );
-  },
+  };
 
   render() {
     return (
@@ -156,8 +156,8 @@ const GuessQueuePage = React.createClass({
         {this.renderPage()}
       </this.context.navAggregator.NavItem>
     );
-  },
-});
+  }
+}
 
 const GuessQueuePageContainer = withTracker(({ params }) => {
   const guessesHandle = subsCache.subscribe('mongo.guesses', {

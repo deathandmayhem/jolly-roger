@@ -7,23 +7,22 @@ import RelatedPuzzleGroup from './RelatedPuzzleGroup.jsx';
 
 /* eslint-disable max-len */
 
-const RelatedPuzzleGroups = React.createClass({
-  displayName: 'RelatedPuzzleGroups',
-  propTypes: {
+class RelatedPuzzleGroups extends React.Component {
+  static displayName = 'RelatedPuzzleGroups';
+
+  static propTypes = {
     activePuzzle: PropTypes.shape(puzzleShape).isRequired,
     allPuzzles: PropTypes.arrayOf(PropTypes.shape(puzzleShape)).isRequired,
     allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired,
     canUpdate: PropTypes.bool.isRequired,
     layout: PropTypes.string,
-  },
+  };
 
-  getDefaultProps() {
-    return {
-      layout: 'grid',
-    };
-  },
+  static defaultProps = {
+    layout: 'grid',
+  };
 
-  relatedPuzzlesTagInterestingness(tag, metaForTagIfKnown) {
+  relatedPuzzlesTagInterestingness = (tag, metaForTagIfKnown) => {
     // Maps a tag into an interestingness class.  Smaller numbers are more interesting.
     // group: tags go at the beginning of the list, because you're
     // most interested in the other puzzles from this meta/round.
@@ -43,9 +42,9 @@ const RelatedPuzzleGroups = React.createClass({
       // Otherwise, use sort order
       return 0;
     }
-  },
+  };
 
-  sortedTagsForRelatedPuzzles(tags) {
+  sortedTagsForRelatedPuzzles = (tags) => {
     // Clone a copy of the tags.
     const tagList = _.toArray(tags);
 
@@ -64,13 +63,13 @@ const RelatedPuzzleGroups = React.createClass({
     });
 
     return tagList;
-  },
+  };
 
-  puzzlesWithTagIdExcept(puzzles, tagId, puzzleId) {
+  puzzlesWithTagIdExcept = (puzzles, tagId, puzzleId) => {
     return _.filter(puzzles, (p) => {
       return p._id !== puzzleId && p.tags.indexOf(tagId) !== -1;
     });
-  },
+  };
 
   render() {
     // For each tag, collect all the other puzzles that also have that tag.
@@ -118,7 +117,7 @@ const RelatedPuzzleGroups = React.createClass({
         }
       </div>
     );
-  },
-});
+  }
+}
 
 export default RelatedPuzzleGroups;

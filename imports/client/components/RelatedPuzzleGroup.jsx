@@ -31,29 +31,27 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(puzzles, sharedTag, indexedTags
   return sortedPuzzles;
 }
 
-const RelatedPuzzleGroup = React.createClass({
-  displayName: 'RelatedPuzzleGroup',
+class RelatedPuzzleGroup extends React.Component {
+  static displayName = 'RelatedPuzzleGroup';
 
-  propTypes: {
+  static propTypes = {
     sharedTag: PropTypes.shape(tagShape).isRequired,
     relatedPuzzles: PropTypes.arrayOf(PropTypes.shape(puzzleShape)).isRequired,
     allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired,
     includeCount: PropTypes.bool,
     layout: PropTypes.string.isRequired,
     canUpdate: PropTypes.bool.isRequired,
-  },
+  };
 
-  getInitialState() {
-    return {
-      collapsed: false,
-    };
-  },
+  state = {
+    collapsed: false,
+  };
 
-  toggleCollapse() {
+  toggleCollapse = () => {
     this.setState(prevState => ({
       collapsed: !prevState.collapsed,
     }));
-  },
+  };
 
   render() {
     // Sort the puzzles within each tag group by interestingness.  For instance, metas
@@ -84,7 +82,7 @@ const RelatedPuzzleGroup = React.createClass({
         )}
       </div>
     );
-  },
-});
+  }
+}
 
 export default RelatedPuzzleGroup;

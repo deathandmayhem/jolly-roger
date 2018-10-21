@@ -26,10 +26,10 @@ import SetupPage from './SetupPage.jsx';
 import SplashPage from './SplashPage.jsx';
 import UserInvitePage from './UserInvitePage.jsx';
 
-const Routes = React.createClass({
-  childContextTypes: {
+class Routes extends React.Component {
+  static childContextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
   getChildContext() {
     if (!this.navAggregator) {
@@ -39,7 +39,7 @@ const Routes = React.createClass({
     return {
       navAggregator: this.navAggregator,
     };
-  },
+  }
 
   render() {
     return (
@@ -76,7 +76,7 @@ const Routes = React.createClass({
         </Router>
       </DocumentTitle>
     );
-  },
-});
+  }
+}
 
 export default Routes;

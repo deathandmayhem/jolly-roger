@@ -1,22 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
 import Puzzle from './Puzzle.jsx';
 import puzzleShape from './puzzleShape.js';
 import tagShape from './tagShape.js';
 
 /* eslint-disable max-len */
 
-const PuzzleList = React.createClass({
-  displayName: 'PuzzleList',
-  propTypes: {
+class PuzzleList extends React.PureComponent {
+  static displayName = 'PuzzleList';
+
+  static propTypes = {
     puzzles: PropTypes.arrayOf(PropTypes.shape(puzzleShape)).isRequired, // The puzzles to show in this list
     allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired, // All tags for this hunt, including those not used by any puzzles
     layout: PropTypes.string.isRequired,
     canUpdate: PropTypes.bool.isRequired,
     suppressTags: PropTypes.arrayOf(PropTypes.string),
-  },
-  mixins: [PureRenderMixin],
+  };
+
   render() {
     // This component just renders the puzzles provided, in order.
     // Adjusting order based on tags, tag groups, etc. is to be done at
@@ -48,7 +48,7 @@ const PuzzleList = React.createClass({
         {puzzles}
       </div>
     );
-  },
-});
+  }
+}
 
 export default PuzzleList;

@@ -13,19 +13,19 @@ import ConnectionStatus from './ConnectionStatus.jsx';
 import NotificationCenter from './NotificationCenter.jsx';
 import navAggregatorType from './navAggregatorType.jsx';
 
-const SharedNavbar = React.createClass({
-  propTypes: {
+class SharedNavbar extends React.Component {
+  static propTypes = {
     userId: PropTypes.string,
     displayName: PropTypes.string.isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
-  logout() {
+  logout = () => {
     Meteor.logout();
-  },
+  };
 
   render() {
     return (
@@ -57,8 +57,8 @@ const SharedNavbar = React.createClass({
         </Navbar.Collapse>
       </Navbar>
     );
-  },
-});
+  }
+}
 
 const SharedNavbarContainer = withTracker(() => {
   const userId = Meteor.userId();
@@ -73,10 +73,10 @@ const SharedNavbarContainer = withTracker(() => {
 })(SharedNavbar);
 
 // TODO: clean this up and dedupe navbar stuff when you figure out breadcrumbs
-const FullscreenLayout = React.createClass({
-  propTypes: {
+class FullscreenLayout extends React.Component {
+  static propTypes = {
     children: PropTypes.node,
-  },
+  };
 
   render() {
     const { children, ...props } = this.props;
@@ -92,13 +92,13 @@ const FullscreenLayout = React.createClass({
         </div>
       </div>
     );
-  },
-});
+  }
+}
 
-const ScrollableLayout = React.createClass({
-  propTypes: {
+class ScrollableLayout extends React.Component {
+  static propTypes = {
     children: PropTypes.node,
-  },
+  };
 
   render() {
     const { children, ...props } = this.props;
@@ -112,13 +112,14 @@ const ScrollableLayout = React.createClass({
         </div>
       </div>
     );
-  },
-});
+  }
+}
 
-const App = React.createClass({
-  propTypes: {
+class App extends React.Component {
+  static propTypes = {
     routes: PropTypes.array,
-  },
+  };
+
   render() {
     // Hack: see if the leaf route wants the fullscreen layout.
     const { routes, ...props } = this.props;
@@ -129,7 +130,7 @@ const App = React.createClass({
         <FullscreenLayout {...props} /> :
         <ScrollableLayout {...props} />
     );
-  },
-});
+  }
+}
 
 export default App;

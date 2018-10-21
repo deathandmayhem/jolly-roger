@@ -5,15 +5,15 @@ import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import ProfileList from './ProfileList.jsx';
 
-const AllProfileListPage = React.createClass({
-  propTypes: {
+class AllProfileListPage extends React.Component {
+  static propTypes = {
     ready: PropTypes.bool.isRequired,
     profiles: PropTypes.arrayOf(PropTypes.shape(Schemas.Profiles.asReactPropTypes())).isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
   render() {
     let body;
@@ -32,8 +32,8 @@ const AllProfileListPage = React.createClass({
         {body}
       </this.context.navAggregator.NavItem>
     );
-  },
-});
+  }
+}
 
 export default withTracker(() => {
   const profilesHandle = subsCache.subscribe('mongo.profiles');

@@ -6,21 +6,21 @@ import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import ProfileList from './ProfileList.jsx';
 
-const HuntProfileListPage = React.createClass({
-  propTypes: {
+class HuntProfileListPage extends React.Component {
+  static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
     ready: PropTypes.bool.isRequired,
     canInvite: PropTypes.bool.isRequired,
     profiles: PropTypes.arrayOf(PropTypes.shape(Schemas.Profiles.asReactPropTypes())).isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
-  renderBody() {
+  renderBody = () => {
     if (!this.data.ready) {
       return <div>loading...</div>;
     }
@@ -32,7 +32,7 @@ const HuntProfileListPage = React.createClass({
         canInvite={this.data.canInvite}
       />
     );
-  },
+  };
 
   render() {
     return (
@@ -44,8 +44,8 @@ const HuntProfileListPage = React.createClass({
         {this.renderBody()}
       </this.context.navAggregator.NavItem>
     );
-  },
-});
+  }
+}
 
 const HuntProfileListPageContainer = withTracker(({ params }) => {
   const usersHandle = subsCache.subscribe('huntMembers', params.huntId);

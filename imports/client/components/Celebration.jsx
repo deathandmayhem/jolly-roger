@@ -2,35 +2,35 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router';
 
-const Celebration = React.createClass({
-  propTypes: {
+class Celebration extends React.Component {
+  static propTypes = {
     url: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     answer: PropTypes.string.isRequired,
     playAudio: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
-  },
+  };
 
   componentDidMount() {
     this.timer = window.setTimeout(() => { this.onClose(); }, 7000);
-  },
+  }
 
   componentWillUnmount() {
     window.clearTimeout(this.timer);
-  },
+  }
 
-  onClose() {
+  onClose = () => {
     if (this.props.onClose) {
       this.props.onClose();
     }
-  },
+  };
 
-  maybeClose(e) {
+  maybeClose = (e) => {
     // Dismiss the celebration if you click on the overlay div (outside the content)
     if (e.target === e.currentTarget) {
       this.onClose();
     }
-  },
+  };
 
   render() {
     return (
@@ -54,7 +54,7 @@ const Celebration = React.createClass({
         </div>
       </div>
     );
-  },
-});
+  }
+}
 
 export default Celebration;

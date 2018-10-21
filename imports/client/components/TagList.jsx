@@ -1,6 +1,5 @@
 import { _ } from 'meteor/underscore';
 import React from 'react';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
 import PropTypes from 'prop-types';
 import Button from 'react-bootstrap/lib/Button';
 import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
@@ -8,32 +7,27 @@ import tagShape from './tagShape.js';
 import Tag from './Tag.jsx';
 import TagEditor from './TagEditor.jsx';
 
-const TagList = React.createClass({
-  displayName: 'TagList',
-  propTypes: {
+class TagList extends React.PureComponent {
+  static displayName = 'TagList';
+
+  static propTypes = {
     puzzleId: PropTypes.string.isRequired,
     tags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired,
     onCreateTag: PropTypes.func, // if provided, will show UI for adding a new tag
     onRemoveTag: PropTypes.func, // callback if user wants to remove a tag
     linkToSearch: PropTypes.bool.isRequired,
     showControls: PropTypes.bool,
-  },
+  };
 
-  mixins: [PureRenderMixin],
+  static defaultProps = { showControls: true };
 
-  getDefaultProps() {
-    return { showControls: true };
-  },
+  state = {
+    expanded: false,
+    editing: false,
+    removing: false,
+  };
 
-  getInitialState() {
-    return {
-      expanded: false,
-      editing: false,
-      removing: false,
-    };
-  },
-
-  submitTag(newTagName) {
+  submitTag = (newTagName) => {
     // TODO: submitTag should use the value passed in from the child, which may have done some
     // autocomplete matching that this component doesn't know about.
     if (this.props.onCreateTag) {
@@ -42,31 +36,31 @@ const TagList = React.createClass({
     this.setState({
       editing: false,
     });
-  },
+  };
 
-  startEditing() {
+  startEditing = () => {
     this.setState({ editing: true });
-  },
+  };
 
-  stopEditing() {
+  stopEditing = () => {
     this.setState({ editing: false });
-  },
+  };
 
-  startRemoving() {
+  startRemoving = () => {
     this.setState({ removing: true });
-  },
+  };
 
-  stopRemoving() {
+  stopRemoving = () => {
     this.setState({ removing: false });
-  },
+  };
 
-  removeTag(tagIdToRemove) {
+  removeTag = (tagIdToRemove) => {
     if (this.props.onRemoveTag) {
       this.props.onRemoveTag(tagIdToRemove);
     }
-  },
+  };
 
-  soloTagInterestingness(tag) {
+  soloTagInterestingness = (tag) => {
     if (tag.name === 'is:metameta') {
       return -6;
     } else if (tag.name === 'is:meta') {
@@ -82,9 +76,9 @@ const TagList = React.createClass({
     } else {
       return 0;
     }
-  },
+  };
 
-  sortedTagsForSinglePuzzle(tags) {
+  sortedTagsForSinglePuzzle = (tags) => {
     // The sort order for tags should probably be:
     // * "is:metameta" first
     // * then "is:meta"
@@ -103,7 +97,7 @@ const TagList = React.createClass({
     });
 
     return sortedTags;
-  },
+  };
 
   render() {
     const tags = this.sortedTagsForSinglePuzzle(this.props.tags);
@@ -170,7 +164,7 @@ const TagList = React.createClass({
         {components}
       </div>
     );
-  },
-});
+  }
+}
 
 export default TagList;

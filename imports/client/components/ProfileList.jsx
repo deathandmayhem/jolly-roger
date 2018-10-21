@@ -11,8 +11,8 @@ import ListGroup from 'react-bootstrap/lib/ListGroup';
 import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
 import RRBS from 'react-router-bootstrap';
 
-const ProfileList = React.createClass({
-  propTypes: {
+class ProfileList extends React.Component {
+  static propTypes = {
     huntId: PropTypes.string,
     canInvite: PropTypes.bool,
     profiles: PropTypes.arrayOf(
@@ -20,21 +20,19 @@ const ProfileList = React.createClass({
         Schemas.Profiles.asReactPropTypes()
       ).isRequired
     ).isRequired,
-  },
+  };
 
-  getInitialState() {
-    return {
-      searchString: '',
-    };
-  },
+  state = {
+    searchString: '',
+  };
 
-  onSearchStringChange(e) {
+  onSearchStringChange = (e) => {
     this.setState({
       searchString: e.target.value,
     });
-  },
+  };
 
-  compileMatcher() {
+  compileMatcher = () => {
     const searchKeys = this.state.searchString.split(' ');
     const toMatch = _.chain(searchKeys)
       .filter(s => !!s)
@@ -55,15 +53,15 @@ const ProfileList = React.createClass({
     };
 
     return isInteresting;
-  },
+  };
 
-  clearSearch() {
+  clearSearch = () => {
     this.setState({
       searchString: '',
     });
-  },
+  };
 
-  inviteToHuntItem() {
+  inviteToHuntItem = () => {
     if (!this.props.huntId || !this.props.canInvite) {
       return null;
     }
@@ -75,9 +73,9 @@ const ProfileList = React.createClass({
         </ListGroupItem>
       </RRBS.LinkContainer>
     );
-  },
+  };
 
-  globalInfo() {
+  globalInfo = () => {
     if (this.props.huntId) {
       return null;
     }
@@ -88,7 +86,7 @@ const ProfileList = React.createClass({
         Mystery Hunt. For that, go to the hunt page and click on &quot;Hunters&quot;.
       </Alert>
     );
-  },
+  };
 
   render() {
     const profiles = _.filter(this.props.profiles, this.compileMatcher());
@@ -137,7 +135,7 @@ const ProfileList = React.createClass({
         </ListGroup>
       </div>
     );
-  },
-});
+  }
+}
 
 export default ProfileList;

@@ -5,10 +5,11 @@ import Image from 'react-bootstrap/lib/Image';
 import Jumbotron from 'react-bootstrap/lib/Jumbotron';
 import Row from 'react-bootstrap/lib/Row';
 
-const SplashPage = React.createClass({
-  propTypes: {
+class SplashPage extends React.Component {
+  static propTypes = {
     children: PropTypes.node,
-  },
+  };
+
   render() {
     return (
       <div className="container">
@@ -24,7 +25,7 @@ const SplashPage = React.createClass({
         </Jumbotron>
       </div>
     );
-  },
-});
+  }
+}
 
 export default SplashPage;

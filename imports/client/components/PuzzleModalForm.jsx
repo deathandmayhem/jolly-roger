@@ -14,18 +14,20 @@ import tagShape from './tagShape.js';
 
 /* eslint-disable max-len */
 
-const PuzzleModalForm = React.createClass({
-  displayName: 'PuzzleModalForm',
-  propTypes: {
+class PuzzleModalForm extends React.Component {
+  static displayName = 'PuzzleModalForm';
+
+  static propTypes = {
     huntId: PropTypes.string.isRequired,
     puzzle: PropTypes.shape(puzzleShape),
     tags: PropTypes.arrayOf( // All known tags for this hunt
       PropTypes.shape(tagShape).isRequired,
     ).isRequired,
     onSubmit: PropTypes.func.isRequired,
-  },
+  };
 
-  getInitialState() {
+  constructor(props, context) {
+    super(props, context);
     const state = {
       submitState: 'idle',
       errorMessage: '',
@@ -34,47 +36,50 @@ const PuzzleModalForm = React.createClass({
       tagsDirty: false,
     };
 
-    if (this.props.puzzle) {
-      return _.extend(state, this.stateFromPuzzle(this.props.puzzle));
+    if (props.puzzle) {
+      this.state = _.extend(state, this.stateFromPuzzle(props.puzzle));
+      return;
     } else {
-      return _.extend(state, {
+      this.state = _.extend(state, {
         title: '',
         url: '',
         tags: [],
         docType: 'spreadsheet',
       });
-    }
-  },
 
-  onTitleChange(event) {
+      return;
+    }
+  }
+
+  onTitleChange = (event) => {
     this.setState({
       title: event.target.value,
       titleDirty: true,
     });
-  },
+  };
 
-  onUrlChange(event) {
+  onUrlChange = (event) => {
     this.setState({
       url: event.target.value,
       urlDirty: true,
     });
-  },
+  };
 
-  onTagsChange(event) {
+  onTagsChange = (event) => {
     const newTags = jQuery(event.target).val() || [];
     this.setState({
       tags: newTags,
       tagsDirty: true,
     });
-  },
+  };
 
-  onDocTypeChange(newValue) {
+  onDocTypeChange = (newValue) => {
     this.setState({
       docType: newValue,
     });
-  },
+  };
 
-  onFormSubmit(callback) {
+  onFormSubmit = (callback) => {
     this.setState({ submitState: 'submitting' });
     const payload = {
       hunt: this.props.huntId,
@@ -102,49 +107,49 @@ const PuzzleModalForm = React.createClass({
         callback();
       }
     });
-  },
+  };
 
-  tagNamesForIds(tagIds) {
+  tagNamesForIds = (tagIds) => {
     const tagNames = {};
     _.each(this.props.tags, (t) => { tagNames[t._id] = t.name; });
     return tagIds.map(t => tagNames[t]);
-  },
+  };
 
-  stateFromPuzzle(puzzle) {
+  stateFromPuzzle = (puzzle) => {
     return {
       title: puzzle.title,
       url: puzzle.url,
       tags: this.tagNamesForIds(puzzle.tags),
     };
-  },
+  };
 
-  show() {
+  show = () => {
     this.formNode.show();
-  },
+  };
 
-  currentTitle() {
+  currentTitle = () => {
     if (!this.state.titleDirty && this.props.puzzle) {
       return this.props.puzzle.title;
     } else {
       return this.state.title;
     }
-  },
+  };
 
-  currentUrl() {
+  currentUrl = () => {
     if (!this.state.urlDirty && this.props.puzzle) {
       return this.props.puzzle.url;
     } else {
       return this.state.url;
     }
-  },
+  };
 
-  currentTags() {
+  currentTags = () => {
     if (!this.state.tagsDirty && this.props.puzzle) {
       return this.tagNamesForIds(this.props.puzzle.tags);
     } else {
       return this.state.tags;
     }
-  },
+  };
 
   render() {
     const disableForm = this.state.submitState === 'submitting';
@@ -239,7 +244,7 @@ const PuzzleModalForm = React.createClass({
         {this.state.submitState === 'failed' && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>
     );
-  },
-});
+  }
+}
 
 export default PuzzleModalForm;

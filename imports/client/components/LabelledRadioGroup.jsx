@@ -13,18 +13,18 @@ const labelledRadioStyles = {
   },
 };
 
-const LabelledRadio = React.createClass({
+class LabelledRadio extends React.Component {
   // Bootstrap's approach to exclusive options does not look particularly good nor does it produce
   // accessibility-friendly markup, so here's a touch of our own instead.  Uses some bootstrap
   // styles.
-  propTypes: {
+  static propTypes = {
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     value: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     defaultChecked: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
-  },
+  };
 
   render() {
     return (
@@ -41,16 +41,17 @@ const LabelledRadio = React.createClass({
         {this.props.label}
       </label>
     );
-  },
-});
+  }
+}
 
 const labelledRadioGroupStyles = {
   radioheader: {
     fontWeight: 'bold',
   },
 };
-const LabelledRadioGroup = React.createClass({
-  propTypes: {
+
+class LabelledRadioGroup extends React.Component {
+  static propTypes = {
     header: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired, // The name of the exclusive group for the radio buttons
     options: PropTypes.arrayOf(
@@ -62,21 +63,19 @@ const LabelledRadioGroup = React.createClass({
     onChange: PropTypes.func.isRequired,
     initialValue: PropTypes.string,
     help: PropTypes.string,
-  },
+  };
 
-  getInitialState() {
-    return {
-      value: this.props.initialValue,
-    };
-  },
+  state = {
+    value: this.props.initialValue,
+  };
 
-  setValue(event) {
+  setValue = (event) => {
     const value = event.target.value;
     this.setState({
       value,
     });
     this.props.onChange(value);
-  },
+  };
 
   render() {
     const buttons = this.props.options.map((option, index) => {
@@ -101,7 +100,7 @@ const LabelledRadioGroup = React.createClass({
         {this.props.help && <span className="help-block">{this.props.help}</span>}
       </div>
     );
-  },
-});
+  }
+}
 
 export default LabelledRadioGroup;
