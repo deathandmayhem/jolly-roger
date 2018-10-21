@@ -288,12 +288,6 @@ const OwnProfilePage = React.createClass({
     });
   },
 
-  styles: {
-    radioheader: {
-      fontWeight: 'bold',
-    },
-  },
-
   render() {
     const shouldDisableForm = (this.state.submitState === 'submitting');
     return (
