@@ -7,29 +7,20 @@ import NavDropdown from 'react-bootstrap/lib/NavDropdown';
 import Navbar from 'react-bootstrap/lib/Navbar';
 import { Link } from 'react-router';
 import RRBS from 'react-router-bootstrap';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import subsCache from '../subsCache.js';
 import ConnectionStatus from './ConnectionStatus.jsx';
 import NotificationCenter from './NotificationCenter.jsx';
 import navAggregatorType from './navAggregatorType.jsx';
 
 const SharedNavbar = React.createClass({
-  contextTypes: {
-    navAggregator: navAggregatorType,
+  propTypes: {
+    userId: PropTypes.string,
+    displayName: PropTypes.string.isRequired,
   },
 
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    const userId = Meteor.userId();
-    const profileSub = subsCache.subscribe('mongo.profiles', { _id: userId });
-    const profile = Models.Profiles.findOne(userId);
-    const displayName = profileSub.ready() ?
-      ((profile && profile.displayName) || '<no name given>') : 'loading...';
-    return {
-      userId,
-      displayName,
-    };
+  contextTypes: {
+    navAggregator: navAggregatorType,
   },
 
   logout() {
@@ -52,9 +43,9 @@ const SharedNavbar = React.createClass({
           <Nav pullRight>
             <NavDropdown
               id="profileDropdown"
-              title={this.data.displayName}
+              title={this.props.displayName}
             >
-              <RRBS.LinkContainer to={`/users/${this.data.userId}`}>
+              <RRBS.LinkContainer to={`/users/${this.props.userId}`}>
                 <MenuItem eventKey="1">My Profile</MenuItem>
               </RRBS.LinkContainer>
               <MenuItem eventKey="2" href="mailto:dfa-web@mit.edu">
@@ -69,6 +60,18 @@ const SharedNavbar = React.createClass({
   },
 });
 
+const SharedNavbarContainer = withTracker(() => {
+  const userId = Meteor.userId();
+  const profileSub = subsCache.subscribe('mongo.profiles', { _id: userId });
+  const profile = Models.Profiles.findOne(userId);
+  const displayName = profileSub.ready() ?
+    ((profile && profile.displayName) || '<no name given>') : 'loading...';
+  return {
+    userId,
+    displayName,
+  };
+})(SharedNavbar);
+
 // TODO: clean this up and dedupe navbar stuff when you figure out breadcrumbs
 const FullscreenLayout = React.createClass({
   propTypes: {
@@ -80,7 +83,7 @@ const FullscreenLayout = React.createClass({
     return (
       <div>
         <NotificationCenter />
-        <SharedNavbar {...props} />
+        <SharedNavbarContainer {...props} />
         <div className="connection-status-fullscreen">
           <ConnectionStatus />
         </div>
@@ -102,7 +105,7 @@ const ScrollableLayout = React.createClass({
     return (
       <div>
         <NotificationCenter />
-        <SharedNavbar {...props} />
+        <SharedNavbarContainer {...props} />
         <div className="container-fluid app-content-scrollable">
           <ConnectionStatus />
           {children}

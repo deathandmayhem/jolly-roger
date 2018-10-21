@@ -11,7 +11,7 @@ import InputGroup from 'react-bootstrap/lib/InputGroup';
 import Nav from 'react-bootstrap/lib/Nav';
 import NavItem from 'react-bootstrap/lib/NavItem';
 import { Link, browserHistory } from 'react-router';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import subsCache from '../subsCache.js';
 import PuzzleList from './PuzzleList.jsx';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup.jsx';
@@ -375,51 +375,60 @@ const PuzzleListPage = React.createClass({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
     location: PropTypes.object,
-  },
-
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: this.props.params.huntId });
-    const tagsHandle = subsCache.subscribe('mongo.tags', { hunt: this.props.params.huntId });
-
-    if (!Flags.active('disable.subcounters')) {
-      // Don't bother including this in ready - it's ok if it trickles in
-      subsCache.subscribe('subscribers.counts', { hunt: this.props.params.huntId });
-    }
-
-    const ready = puzzlesHandle.ready() && tagsHandle.ready();
-    if (!ready) {
-      return {
-        ready,
-      };
-    } else {
-      return {
-        ready,
-        canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
-        canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
-        allPuzzles: Models.Puzzles.find({ hunt: this.props.params.huntId }).fetch(),
-        allTags: Models.Tags.find({ hunt: this.props.params.huntId }).fetch(),
-      };
-    }
+    ready: PropTypes.bool.isRequired,
+    canAdd: PropTypes.bool,
+    canUpdate: PropTypes.bool,
+    allPuzzles: PropTypes.arrayOf(PropTypes.shape(Schemas.Puzzles.asReactPropTypes())),
+    allTags: PropTypes.arrayOf(PropTypes.shape(Schemas.Tags.asReactPropTypes())),
   },
 
   render() {
-    if (!this.data.ready) {
+    if (!this.props.ready) {
       return <span>loading...</span>;
     } else {
       return (
         <PuzzleListView
           location={this.props.location}
           huntId={this.props.params.huntId}
-          canAdd={this.data.canAdd}
-          canUpdate={this.data.canUpdate}
-          puzzles={this.data.allPuzzles}
-          allTags={this.data.allTags}
+          canAdd={this.props.canAdd}
+          canUpdate={this.props.canUpdate}
+          puzzles={this.props.allPuzzles}
+          allTags={this.props.allTags}
         />
       );
     }
   },
 });
 
-export default PuzzleListPage;
+const PuzzleListPageContainer = withTracker(({ params }) => {
+  const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: params.huntId });
+  const tagsHandle = subsCache.subscribe('mongo.tags', { hunt: params.huntId });
+
+  if (!Flags.active('disable.subcounters')) {
+    // Don't bother including this in ready - it's ok if it trickles in
+    subsCache.subscribe('subscribers.counts', { hunt: params.huntId });
+  }
+
+  const ready = puzzlesHandle.ready() && tagsHandle.ready();
+  if (!ready) {
+    return {
+      ready,
+    };
+  } else {
+    return {
+      ready,
+      canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
+      allPuzzles: Models.Puzzles.find({ hunt: params.huntId }).fetch(),
+      allTags: Models.Tags.find({ hunt: params.huntId }).fetch(),
+    };
+  }
+})(PuzzleListPage);
+
+PuzzleListPageContainer.propTypes = {
+  params: PropTypes.shape({
+    huntId: PropTypes.string.isRequired,
+  }).isRequired,
+};
+
+export default PuzzleListPageContainer;

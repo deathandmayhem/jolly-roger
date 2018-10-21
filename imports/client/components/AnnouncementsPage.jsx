@@ -5,7 +5,7 @@ import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import marked from 'marked';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import navAggregatorType from './navAggregatorType.jsx';
 import subsCache from '../subsCache.js';
 
@@ -104,59 +104,34 @@ const AnnouncementsPage = React.createClass({
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
+    ready: PropTypes.bool.isRequired,
+    canCreateAnnouncements: PropTypes.bool.isRequired,
+    announcements: PropTypes.arrayOf(PropTypes.shape(Schemas.Announcements.asReactPropTypes())).isRequired,
+    displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
   },
 
   contextTypes: {
     navAggregator: navAggregatorType,
   },
 
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    // We already have subscribed to mongo.announcements on the main page, since we want to be able
-    // to show them on any page.  So we don't *need* to make the subscription here...
-    // ...except that we might want to wait to render until we've received all of them?  IDK.
-    const announcementsHandle = subsCache.subscribe('mongo.announcements', { hunt: this.props.params.huntId });
-    const displayNamesHandle = Models.Profiles.subscribeDisplayNames(subsCache);
-    const ready = announcementsHandle.ready() && displayNamesHandle.ready();
-
-    let announcements;
-    let displayNames;
-    if (!ready) {
-      announcements = [];
-      displayNames = {};
-    } else {
-      announcements = Models.Announcements.find({ hunt: this.props.params.huntId }, { sort: { createdAt: 1 } }).fetch();
-      displayNames = Models.Profiles.displayNames();
-    }
-    const canCreateAnnouncements = Roles.userHasPermission(Meteor.userId(), 'mongo.announcements.insert');
-
-    return {
-      ready,
-      announcements,
-      canCreateAnnouncements,
-      displayNames,
-    };
-  },
-
   renderPage() {
-    if (!this.data.ready) {
+    if (!this.props.ready) {
       return <div>loading...</div>;
     }
 
     return (
       <div>
         <h1>Announcements</h1>
-        {this.data.canCreateAnnouncements && <AnnouncementForm huntId={this.props.params.huntId} />}
+        {this.props.canCreateAnnouncements && <AnnouncementForm huntId={this.props.params.huntId} />}
         {/* ostensibly these should be ul and li, but then I have to deal with overriding
             block/inline and default margins and list style type and meh */}
         <div>
-          {this.data.announcements.map((announcement) => {
+          {this.props.announcements.map((announcement) => {
             return (
               <Announcement
                 key={announcement._id}
                 announcement={announcement}
-                displayNames={this.data.displayNames}
+                displayNames={this.props.displayNames}
               />
             );
           })}
@@ -178,4 +153,35 @@ const AnnouncementsPage = React.createClass({
   },
 });
 
-export default AnnouncementsPage;
+const AnnouncementsPageContainer = withTracker(({ params }) => {
+  // We already have subscribed to mongo.announcements on the main page, since we want to be able
+  // to show them on any page.  So we don't *need* to make the subscription here...
+  // ...except that we might want to wait to render until we've received all of them?  IDK.
+  const announcementsHandle = subsCache.subscribe('mongo.announcements', { hunt: params.huntId });
+  const displayNamesHandle = Models.Profiles.subscribeDisplayNames(subsCache);
+  const ready = announcementsHandle.ready() && displayNamesHandle.ready();
+
+  let announcements;
+  let displayNames;
+  if (!ready) {
+    announcements = [];
+    displayNames = {};
+  } else {
+    announcements = Models.Announcements.find({ hunt: params.huntId }, { sort: { createdAt: 1 } }).fetch();
+    displayNames = Models.Profiles.displayNames();
+  }
+  const canCreateAnnouncements = Roles.userHasPermission(Meteor.userId(), 'mongo.announcements.insert');
+
+  return {
+    ready,
+    announcements,
+    canCreateAnnouncements,
+    displayNames,
+  };
+})(AnnouncementsPage);
+AnnouncementsPageContainer.propTypes = {
+  params: PropTypes.shape({
+    huntId: PropTypes.string.isRequired,
+  }).isRequired,
+};
+export default AnnouncementsPageContainer;

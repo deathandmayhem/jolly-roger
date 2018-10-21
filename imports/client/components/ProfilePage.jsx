@@ -9,7 +9,7 @@ import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
 import Label from 'react-bootstrap/lib/Label';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 
@@ -63,9 +63,8 @@ const OthersProfilePage = React.createClass({
 const GoogleLinkBlock = React.createClass({
   propTypes: {
     profile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
+    config: PropTypes.object,
   },
-
-  mixins: [ReactMeteorData],
 
   getInitialState() {
     return { state: 'idle' };
@@ -78,11 +77,6 @@ const GoogleLinkBlock = React.createClass({
 
   onUnlink() {
     Meteor.call('unlinkUserGoogleAccount');
-  },
-
-  getMeteorData() {
-    const config = ServiceConfiguration.configurations.findOne({ service: 'google' });
-    return { config };
   },
 
   requestComplete(token) {
@@ -161,7 +155,7 @@ const GoogleLinkBlock = React.createClass({
   },
 
   render() {
-    if (!this.data.config) {
+    if (!this.props.config) {
       return <div />;
     }
 
@@ -196,6 +190,11 @@ const GoogleLinkBlock = React.createClass({
     );
   },
 });
+
+const GoogleLinkBlockContainer = withTracker(() => {
+  const config = ServiceConfiguration.configurations.findOne({ service: 'google' });
+  return { config };
+})(GoogleLinkBlock);
 
 const OwnProfilePage = React.createClass({
   propTypes: {
@@ -326,7 +325,7 @@ const OwnProfilePage = React.createClass({
           </Alert>
         ) : null}
 
-        <GoogleLinkBlock profile={this.props.initialProfile} />
+        <GoogleLinkBlockContainer profile={this.props.initialProfile} />
 
         <FormGroup>
           <ControlLabel htmlFor="jr-profile-edit-display-name">
@@ -408,59 +407,36 @@ const ProfilePage = React.createClass({
     params: PropTypes.shape({
       userId: PropTypes.string.isRequired,
     }).isRequired,
+    ready: PropTypes.bool.isRequired,
+    isSelf: PropTypes.bool.isRequired,
+    profile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired,
+    viewerCanMakeOperator: PropTypes.bool.isRequired,
+    viewerIsAdmin: PropTypes.bool.isRequired,
+    targetIsAdmin: PropTypes.bool.isRequired,
   },
 
   contextTypes: {
     navAggregator: navAggregatorType,
   },
 
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    const uid = this.props.params.userId === 'me' ? Meteor.userId() : this.props.params.userId;
-
-    const profileHandle = subsCache.subscribe('mongo.profiles', { _id: uid });
-    const userRolesHandle = subsCache.subscribe('userRoles', uid);
-    const user = Meteor.user();
-    const defaultEmail = user && user.emails && user.emails.length > 0 && user.emails[0] && user.emails[0].address;
-    const data = {
-      ready: user && profileHandle.ready() && userRolesHandle.ready(),
-      isSelf: (Meteor.userId() === uid),
-      profile: Models.Profiles.findOne(uid) || {
-        _id: uid,
-        displayName: '',
-        primaryEmail: defaultEmail,
-        phoneNumber: '',
-        slackHandle: '',
-        deleted: false,
-        createdAt: new Date(),
-        createdBy: Meteor.userId(),
-      },
-      viewerCanMakeOperator: Roles.userHasPermission(Meteor.userId(), 'users.makeOperator'),
-      viewerIsAdmin: Roles.userHasRole(Meteor.userId(), 'admin'),
-      targetIsAdmin: Roles.userHasPermission(uid, 'users.makeOperator'),
-    };
-    return data;
-  },
-
   render() {
     let body;
-    if (!this.data.ready) {
+    if (!this.props.ready) {
       body = <div>loading...</div>;
-    } else if (this.data.isSelf) {
+    } else if (this.props.isSelf) {
       body = (
         <OwnProfilePage
-          initialProfile={this.data.profile}
-          canMakeOperator={this.data.viewerCanMakeOperator}
-          operating={this.data.viewerIsAdmin}
+          initialProfile={this.props.profile}
+          canMakeOperator={this.props.viewerCanMakeOperator}
+          operating={this.props.viewerIsAdmin}
         />
       );
     } else {
       body = (
         <OthersProfilePage
-          profile={this.data.profile}
-          viewerCanMakeOperator={this.data.viewerCanMakeOperator}
-          targetIsAdmin={this.data.targetIsAdmin}
+          profile={this.props.profile}
+          viewerCanMakeOperator={this.props.viewerCanMakeOperator}
+          targetIsAdmin={this.props.targetIsAdmin}
         />
       );
     }
@@ -474,7 +450,7 @@ const ProfilePage = React.createClass({
         <this.context.navAggregator.NavItem
           itemKey="userid"
           to={`/users/${this.props.params.userId}`}
-          label={this.data.ready ? this.data.profile.displayName : 'loading...'}
+          label={this.props.ready ? this.props.profile.displayName : 'loading...'}
         >
           {body}
         </this.context.navAggregator.NavItem>
@@ -483,4 +459,37 @@ const ProfilePage = React.createClass({
   },
 });
 
-export default ProfilePage;
+const ProfilePageContainer = withTracker(({ params }) => {
+  const uid = params.userId === 'me' ? Meteor.userId() : params.userId;
+
+  const profileHandle = subsCache.subscribe('mongo.profiles', { _id: uid });
+  const userRolesHandle = subsCache.subscribe('userRoles', uid);
+  const user = Meteor.user();
+  const defaultEmail = user && user.emails && user.emails.length > 0 && user.emails[0] && user.emails[0].address;
+  const data = {
+    ready: user && profileHandle.ready() && userRolesHandle.ready(),
+    isSelf: (Meteor.userId() === uid),
+    profile: Models.Profiles.findOne(uid) || {
+      _id: uid,
+      displayName: '',
+      primaryEmail: defaultEmail,
+      phoneNumber: '',
+      slackHandle: '',
+      deleted: false,
+      createdAt: new Date(),
+      createdBy: Meteor.userId(),
+    },
+    viewerCanMakeOperator: Roles.userHasPermission(Meteor.userId(), 'users.makeOperator'),
+    viewerIsAdmin: Roles.userHasRole(Meteor.userId(), 'admin'),
+    targetIsAdmin: Roles.userHasPermission(uid, 'users.makeOperator'),
+  };
+  return data;
+})(ProfilePage);
+
+ProfilePageContainer.propTypes = {
+  params: PropTypes.shape({
+    userId: PropTypes.string.isRequired,
+  }).isRequired,
+};
+
+export default ProfilePageContainer;

@@ -3,16 +3,16 @@ import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { browserHistory } from 'react-router';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 
 const Authenticator = React.createClass({
   propTypes: {
     route: PropTypes.object,
     children: PropTypes.node,
     location: PropTypes.object,
+    loggingIn: PropTypes.bool,
+    userId: PropTypes.string,
   },
-
-  mixins: [ReactMeteorData],
 
   getInitialState() {
     return { loading: true };
@@ -26,29 +26,22 @@ const Authenticator = React.createClass({
     this.checkAuth();
   },
 
-  getMeteorData() {
-    return {
-      loggingIn: Meteor.loggingIn(),
-      user: Meteor.user(),
-    };
-  },
-
   checkAuth() {
     if (this.state.loading) {
-      if (this.data.loggingIn) {
+      if (this.props.loggingIn) {
         return;
       } else {
         this.setState({ loading: false });
       }
     }
 
-    if (!this.data.user && this.props.route.authenticated) {
+    if (!this.props.userId && this.props.route.authenticated) {
       const stateToSave = _.pick(this.props.location, 'pathname', 'query');
       browserHistory.replace({
         pathname: '/login',
         state: stateToSave,
       });
-    } else if (this.data.user && !this.props.route.authenticated) {
+    } else if (this.props.userId && !this.props.route.authenticated) {
       const state = _.extend({ path: '/', query: undefined }, this.props.location.state);
       browserHistory.replace({
         pathname: state.pathname,
@@ -66,4 +59,9 @@ const Authenticator = React.createClass({
   },
 });
 
-export default Authenticator;
+export default withTracker(() => {
+  return {
+    loggingIn: Meteor.loggingIn(),
+    userId: Meteor.userId(),
+  };
+})(Authenticator);

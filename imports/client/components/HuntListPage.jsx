@@ -12,7 +12,7 @@ import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Glyphicon from 'react-bootstrap/lib/Glyphicon';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
 import { Link } from 'react-router';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
@@ -250,9 +250,9 @@ const HuntModalForm = React.createClass({
 const Hunt = React.createClass({
   propTypes: {
     hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()).isRequired,
+    canUpdate: PropTypes.bool.isRequired,
+    canDestroy: PropTypes.bool.isRequired,
   },
-
-  mixins: [ReactMeteorData],
 
   onEdit(state, callback) {
     Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), state });
@@ -267,16 +267,6 @@ const Hunt = React.createClass({
     Models.Hunts.destroy(this.props.hunt._id, callback);
   },
 
-  getMeteorData() {
-    return {
-      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
-
-      // Because we delete by setting the deleted flag, you only need
-      // update to "remove" something
-      canDestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
-    };
-  },
-
   showEditModal() {
     this.editModalNode.show();
   },
@@ -286,7 +276,7 @@ const Hunt = React.createClass({
   },
 
   editButton() {
-    if (this.data.canUpdate) {
+    if (this.props.canUpdate) {
       return (
         <Button onClick={this.showEditModal} bsStyle="default" title="Edit hunt...">
           <Glyphicon glyph="edit" />
@@ -298,7 +288,7 @@ const Hunt = React.createClass({
   },
 
   deleteButton() {
-    if (this.data.canDestroy) {
+    if (this.props.canDestroy) {
       return (
         <Button onClick={this.showDeleteModal} bsStyle="danger" title="Delete hunt...">
           <Glyphicon glyph="remove" />
@@ -342,6 +332,16 @@ const Hunt = React.createClass({
   },
 });
 
+const HuntContainer = withTracker(() => {
+  return {
+    canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+
+    // Because we delete by setting the deleted flag, you only need
+    // update to "remove" something
+    canDestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+  };
+})(Hunt);
+
 /*
 const MockHunt = React.createClass({
   render() {
@@ -355,33 +355,20 @@ const MockHunt = React.createClass({
 */
 
 const HuntListPage = React.createClass({
+  propTypes: {
+    ready: PropTypes.bool.isRequired,
+    canAdd: PropTypes.bool.isRequired,
+    hunts: PropTypes.arrayOf(PropTypes.shape(Schemas.Hunts.asReactPropTypes())).isRequired,
+    myHunts: PropTypes.objectOf(PropTypes.bool).isRequired,
+  },
+
   contextTypes: {
     navAggregator: navAggregatorType,
   },
 
-  mixins: [ReactMeteorData],
-
   onAdd(state, callback) {
     Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
     Models.Hunts.insert(state, callback);
-  },
-
-  getMeteorData() {
-    const huntListHandle = subsCache.subscribe('mongo.hunts');
-    const myHuntsHandle = subsCache.subscribe('selfHuntMembership');
-    const ready = huntListHandle.ready() && myHuntsHandle.ready();
-
-    const myHunts = {};
-    if (ready) {
-      Meteor.user().hunts.forEach((hunt) => { myHunts[hunt] = true; });
-    }
-
-    return {
-      ready,
-      canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.insert'),
-      hunts: Models.Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
-      myHunts,
-    };
   },
 
   showAddModal() {
@@ -389,7 +376,7 @@ const HuntListPage = React.createClass({
   },
 
   addButton() {
-    if (this.data.canAdd) {
+    if (this.props.canAdd) {
       return (
         <Button onClick={this.showAddModal} bsStyle="success" bsSize="xs" title="Add new hunt...">
           <Glyphicon glyph="plus" />
@@ -402,12 +389,12 @@ const HuntListPage = React.createClass({
 
   render() {
     const body = [];
-    if (this.data.ready) {
+    if (this.props.ready) {
       const joinedHunts = [];
       const otherHunts = [];
-      this.data.hunts.forEach((hunt) => {
-        const huntTag = <Hunt key={hunt._id} hunt={hunt} />;
-        if (this.data.myHunts[hunt._id]) {
+      this.props.hunts.forEach((hunt) => {
+        const huntTag = <HuntContainer key={hunt._id} hunt={hunt} />;
+        if (this.props.myHunts[hunt._id]) {
           joinedHunts.push(huntTag);
         } else {
           otherHunts.push(huntTag);
@@ -458,4 +445,20 @@ const HuntListPage = React.createClass({
   },
 });
 
-export default HuntListPage;
+export default withTracker(() => {
+  const huntListHandle = subsCache.subscribe('mongo.hunts');
+  const myHuntsHandle = subsCache.subscribe('selfHuntMembership');
+  const ready = huntListHandle.ready() && myHuntsHandle.ready();
+
+  const myHunts = {};
+  if (ready) {
+    Meteor.user().hunts.forEach((hunt) => { myHunts[hunt] = true; });
+  }
+
+  return {
+    ready,
+    canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.insert'),
+    hunts: Models.Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
+    myHunts,
+  };
+})(HuntListPage);

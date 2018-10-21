@@ -1,24 +1,22 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
+import PropTypes from 'prop-types';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
 
 const ConnectionStatus = React.createClass({
-  mixins: [ReactMeteorData],
+  propTypes: {
+    meteorStatus: PropTypes.object,
+  },
 
   componentWillMount() {
     this.forceUpdateBound = this.forceUpdate.bind(this);
   },
 
-  getMeteorData() {
-    const data = { meteorStatus: Meteor.status() };
-    return data;
-  },
-
   render() {
-    switch (this.data.meteorStatus.status) {
+    switch (this.props.meteorStatus.status) {
       case 'connecting':
         return (
           <Alert bsStyle="warning">
@@ -31,12 +29,12 @@ const ConnectionStatus = React.createClass({
             <strong>Oh no!</strong>
             {' '}
             Unable to connect to Jolly Roger:
-            {this.data.meteorStatus.reason}
+            {this.props.meteorStatus.reason}
           </Alert>
         );
       case 'waiting': {
         const now = Date.now();
-        const timeToRetry = Math.ceil((this.data.meteorStatus.retryTime - now) / 1000);
+        const timeToRetry = Math.ceil((this.props.meteorStatus.retryTime - now) / 1000);
 
         // Trigger a refresh in a second.  TODO: debounce this?
         window.setTimeout(this.forceUpdateBound, 1000);
@@ -64,10 +62,12 @@ const ConnectionStatus = React.createClass({
       case 'connected':
         return null;
       default:
-        Ansible.warn('Unknown connection status', { state: this.data.meteorStatus.status });
+        Ansible.warn('Unknown connection status', { state: this.props.meteorStatus.status });
         return null;
     }
   },
 });
 
-export default ConnectionStatus;
+export default withTracker(() => {
+  return { meteorStatus: Meteor.status() };
+})(ConnectionStatus);

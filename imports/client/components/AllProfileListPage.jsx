@@ -1,32 +1,26 @@
 import React from 'react';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import PropTypes from 'prop-types';
+import { withTracker } from 'meteor/react-meteor-data';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import ProfileList from './ProfileList.jsx';
 
 const AllProfileListPage = React.createClass({
+  propTypes: {
+    ready: PropTypes.bool.isRequired,
+    profiles: PropTypes.arrayOf(PropTypes.shape(Schemas.Profiles.asReactPropTypes())).isRequired,
+  },
+
   contextTypes: {
     navAggregator: navAggregatorType,
   },
 
-  mixins: [ReactMeteorData],
-
-  getMeteorData() {
-    const profilesHandle = subsCache.subscribe('mongo.profiles');
-    const ready = profilesHandle.ready();
-    const profiles = ready ? Models.Profiles.find({}, { sort: { displayName: 1 } }).fetch() : [];
-    return {
-      ready,
-      profiles,
-    };
-  },
-
   render() {
     let body;
-    if (!this.data.ready) {
+    if (!this.props.ready) {
       body = <div>loading...</div>;
     } else {
-      body = <ProfileList profiles={this.data.profiles} />;
+      body = <ProfileList profiles={this.props.profiles} />;
     }
 
     return (
@@ -41,4 +35,12 @@ const AllProfileListPage = React.createClass({
   },
 });
 
-export default AllProfileListPage;
+export default withTracker(() => {
+  const profilesHandle = subsCache.subscribe('mongo.profiles');
+  const ready = profilesHandle.ready();
+  const profiles = ready ? Models.Profiles.find({}, { sort: { displayName: 1 } }).fetch() : [];
+  return {
+    ready,
+    profiles,
+  };
+})(AllProfileListPage);
