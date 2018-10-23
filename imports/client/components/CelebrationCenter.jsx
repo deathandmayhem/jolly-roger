@@ -2,7 +2,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import createReactClass from 'create-react-class';
 import { Meteor } from 'meteor/meteor';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { Tracker } from 'meteor/tracker';
+import { withTracker } from 'meteor/react-meteor-data';
 import Flags from '../../flags.js';
 import subsCache from '../subsCache.js';
 import Celebration from './Celebration.jsx';
@@ -15,9 +16,9 @@ const CelebrationCenter = createReactClass({
 
   propTypes: {
     huntId: PropTypes.string.isRequired,
+    disabled: PropTypes.bool.isRequired,
+    muted: PropTypes.bool.isRequired,
   },
-
-  mixins: [ReactMeteorData],
 
   getInitialState() {
     return {
@@ -25,10 +26,18 @@ const CelebrationCenter = createReactClass({
     };
   },
 
+  componentDidMount() {
+    setTimeout(() => this.resetComputation(), 0);
+  },
+
+  componentDidUpdate() {
+    setTimeout(() => this.resetComputation(), 0);
+  },
+
   componentWillUnmount() {
-    if (this.watchHandle) {
-      this.watchHandle.stop();
-      this.watchHandle = undefined;
+    if (this.computation) {
+      this.computation.stop();
+      this.computation = null;
     }
   },
 
@@ -37,7 +46,7 @@ const CelebrationCenter = createReactClass({
     // 1) we're not on mobile, and
     // 2) the feature flag is not disabled, and
     // 3) TODO: the user has not disabled it in their profile settings
-    if ((window.orientation === undefined) && !this.data.disabled) {
+    if ((window.orientation === undefined) && !this.props.disabled) {
       this.setState((prevState) => {
         const newQueue = prevState.playbackQueue.concat([{
           puzzleId: puzzle._id,
@@ -46,37 +55,25 @@ const CelebrationCenter = createReactClass({
           title: puzzle.title,
         }]);
 
-        this.setState({
-          playbackQueue: newQueue,
-        });
+        return { playbackQueue: newQueue };
       });
     }
   },
 
-  getMeteorData() {
-    // This should be effectively a noop, since we're already fetching it for every hunt
-    const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: this.props.huntId });
-    if (puzzlesHandle.ready()) {
-      if (this.watchHandle) {
-        this.watchHandle.stop();
-      }
+  resetComputation() {
+    if (this.computation) {
+      this.computation.stop();
+    }
 
-      this.watchHandle = Puzzles.find().observe({
+    this.computation = Tracker.autorun(() => {
+      Puzzles.find().observe({
         changed: (newDoc, oldDoc) => {
           if ((!oldDoc.answer) && newDoc.answer) {
             this.onPuzzleSolved(newDoc);
           }
         },
       });
-    }
-
-    const profile = Profiles.findOne({ _id: Meteor.userId() });
-    const muted = profile && profile.muteApplause;
-
-    return {
-      disabled: Flags.active('disable.applause'),
-      muted,
-    };
+    });
   },
 
   dismissCurrentCelebration() {
@@ -97,7 +94,7 @@ const CelebrationCenter = createReactClass({
           url={celebration.url}
           title={celebration.title}
           answer={celebration.answer}
-          playAudio={!this.data.muted}
+          playAudio={!this.props.muted}
           onClose={this.dismissCurrentCelebration}
         />
       );
@@ -105,4 +102,21 @@ const CelebrationCenter = createReactClass({
   },
 });
 
-export default CelebrationCenter;
+const CelebrationCenterContainer = withTracker(({ huntId }) => {
+  // This should be effectively a noop, since we're already fetching it for every hunt
+  subsCache.subscribe('mongo.puzzles', { hunt: huntId });
+
+  const profile = Profiles.findOne({ _id: Meteor.userId() });
+  const muted = !!(profile && profile.muteApplause);
+
+  return {
+    disabled: Flags.active('disable.applause'),
+    muted,
+  };
+})(CelebrationCenter);
+
+CelebrationCenterContainer.propTypes = {
+  huntId: PropTypes.string.isRequired,
+};
+
+export default CelebrationCenterContainer;
