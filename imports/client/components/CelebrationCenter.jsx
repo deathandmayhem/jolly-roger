@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import createReactClass from 'create-react-class';
 import { Meteor } from 'meteor/meteor';
 import { Tracker } from 'meteor/tracker';
 import { withTracker } from 'meteor/react-meteor-data';
@@ -10,38 +9,35 @@ import Celebration from './Celebration.jsx';
 import Profiles from '../../lib/models/profiles.js';
 import Puzzles from '../../lib/models/puzzles.js';
 
-/* eslint-disable react/prefer-es6-class */
-const CelebrationCenter = createReactClass({
-  displayName: 'CelebrationCenter',
+class CelebrationCenter extends React.Component {
+  static displayName = 'CelebrationCenter';
 
-  propTypes: {
+  static propTypes = {
     huntId: PropTypes.string.isRequired,
     disabled: PropTypes.bool.isRequired,
     muted: PropTypes.bool.isRequired,
-  },
+  };
 
-  getInitialState() {
-    return {
-      playbackQueue: [],
-    };
-  },
+  state = {
+    playbackQueue: [],
+  };
 
   componentDidMount() {
     setTimeout(() => this.resetComputation(), 0);
-  },
+  }
 
   componentDidUpdate() {
     setTimeout(() => this.resetComputation(), 0);
-  },
+  }
 
   componentWillUnmount() {
     if (this.computation) {
       this.computation.stop();
       this.computation = null;
     }
-  },
+  }
 
-  onPuzzleSolved(puzzle) {
+  onPuzzleSolved = (puzzle) => {
     // Only celebrate if:
     // 1) we're not on mobile, and
     // 2) the feature flag is not disabled, and
@@ -58,9 +54,9 @@ const CelebrationCenter = createReactClass({
         return { playbackQueue: newQueue };
       });
     }
-  },
+  };
 
-  resetComputation() {
+  resetComputation = () => {
     if (this.computation) {
       this.computation.stop();
     }
@@ -74,14 +70,14 @@ const CelebrationCenter = createReactClass({
         },
       });
     });
-  },
+  };
 
-  dismissCurrentCelebration() {
+  dismissCurrentCelebration = () => {
     const [car, ...cons] = this.state.playbackQueue; // eslint-disable-line no-unused-vars
     this.setState({
       playbackQueue: cons,
     });
-  },
+  };
 
   render() {
     if (this.state.playbackQueue.length === 0) {
@@ -99,8 +95,8 @@ const CelebrationCenter = createReactClass({
         />
       );
     }
-  },
-});
+  }
+}
 
 const CelebrationCenterContainer = withTracker(({ huntId }) => {
   // This should be effectively a noop, since we're already fetching it for every hunt
