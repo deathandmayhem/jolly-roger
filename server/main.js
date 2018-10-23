@@ -62,6 +62,7 @@ import '../imports/server/migrations-run.js'; // runs migrations
 import '../imports/server/observability.js';
 import '../imports/server/profile.js';
 import '../imports/server/puzzle.js';
+import '../imports/server/server-render.js';
 import '../imports/server/setup.js';
 import '../imports/server/slack-methods.js';
 import '../imports/server/users.js';
