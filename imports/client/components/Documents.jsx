@@ -3,11 +3,11 @@ import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import DeepLink from './DeepLink.jsx';
 
-const GoogleDocumentDisplay = React.createClass({
-  propTypes: {
+class GoogleDocumentDisplay extends React.Component {
+  static propTypes = {
     document: PropTypes.shape(Schemas.Documents.asReactPropTypes()).isRequired,
     displayMode: PropTypes.oneOf(['link', 'embed']),
-  },
+  };
 
   render() {
     let url;
@@ -57,14 +57,14 @@ const GoogleDocumentDisplay = React.createClass({
           </span>
         );
     }
-  },
-});
+  }
+}
 
-const DocumentDisplay = React.createClass({
-  propTypes: {
+class DocumentDisplay extends React.Component {
+  static propTypes = {
     document: PropTypes.shape(Schemas.Documents.asReactPropTypes()).isRequired,
     displayMode: PropTypes.oneOf(['link', 'embed']),
-  },
+  };
 
   render() {
     switch (this.props.document.provider) {
@@ -84,7 +84,7 @@ const DocumentDisplay = React.createClass({
           </span>
         );
     }
-  },
-});
+  }
+}
 
 export default DocumentDisplay;

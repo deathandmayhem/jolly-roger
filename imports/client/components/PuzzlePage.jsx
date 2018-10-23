@@ -2,7 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
@@ -120,8 +119,8 @@ const DefaultChatHeight = '60%';
 //   |           |
 //   |___________|
 
-const ViewersList = React.createClass({
-  propTypes: {
+class ViewersList extends React.Component {
+  static propTypes = {
     name: PropTypes.string.isRequired,
     ready: PropTypes.bool.isRequired,
     subscribers: PropTypes.arrayOf(PropTypes.shape({
@@ -129,7 +128,7 @@ const ViewersList = React.createClass({
       name: PropTypes.string.isRequired,
     })),
     unknown: PropTypes.number,
-  },
+  };
 
   render() {
     if (!this.props.ready) {
@@ -144,8 +143,8 @@ const ViewersList = React.createClass({
         {this.props.unknown !== 0 && `(Plus ${this.props.unknown} hunters with no name set)`}
       </div>
     );
-  },
-});
+  }
+}
 
 const ViewersListContainer = withTracker(({ name }) => {
   // Don't want this subscription persisting longer than necessary
@@ -182,22 +181,20 @@ ViewersListContainer.propTypes = {
   name: PropTypes.string.isRequired,
 };
 
-const ViewersModal = React.createClass({
-  propTypes: {
+class ViewersModal extends React.Component {
+  static propTypes = {
     name: PropTypes.string.isRequired,
-  },
+  };
 
-  getInitialState() {
-    return { show: false };
-  },
+  state = { show: false };
 
-  show() {
+  show = () => {
     this.setState({ show: true });
-  },
+  };
 
-  close() {
+  close = () => {
     this.setState({ show: false });
-  },
+  };
 
   render() {
     return (
@@ -212,19 +209,19 @@ const ViewersModal = React.createClass({
         </Modal.Body>
       </Modal>
     );
-  },
-});
+  }
+}
 
-const ViewCountDisplay = React.createClass({
-  propTypes: {
+class ViewCountDisplay extends React.Component {
+  static propTypes = {
     count: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
     subfetchesDisabled: PropTypes.bool.isRequired,
-  },
+  };
 
-  showModal() {
+  showModal = () => {
     this.modalNode.show();
-  },
+  };
 
   render() {
     const text = `(${this.props.count} viewing)`;
@@ -246,15 +243,15 @@ const ViewCountDisplay = React.createClass({
         </OverlayTrigger>
       </span>
     );
-  },
-});
+  }
+}
 
 const ViewCountDisplayContainer = withTracker(() => {
   return { subfetchesDisabled: Flags.active('disable.subfetches') };
 })(ViewCountDisplay);
 
-const RelatedPuzzleSection = React.createClass({
-  propTypes: {
+class RelatedPuzzleSection extends React.PureComponent {
+  static propTypes = {
     activePuzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
     allPuzzles: PropTypes.arrayOf(
       PropTypes.shape(
@@ -267,8 +264,8 @@ const RelatedPuzzleSection = React.createClass({
       ).isRequired
     ).isRequired,
     canUpdate: PropTypes.bool.isRequired,
-  },
-  mixins: [PureRenderMixin],
+  };
+
   render() {
     return (
       <div className="related-puzzles-section">
@@ -282,17 +279,15 @@ const RelatedPuzzleSection = React.createClass({
         />
       </div>
     );
-  },
-});
+  }
+}
 
-const ChatMessage = React.createClass({
-  propTypes: {
+class ChatMessage extends React.PureComponent {
+  static propTypes = {
     message: PropTypes.shape(FilteredChatMessagePropTypes).isRequired,
     senderDisplayName: PropTypes.string.isRequired,
     isSystemMessage: PropTypes.bool.isRequired,
-  },
-
-  mixins: [PureRenderMixin],
+  };
 
   render() {
     const ts = moment(this.props.message.timestamp).calendar(null, {
@@ -307,20 +302,18 @@ const ChatMessage = React.createClass({
         <span dangerouslySetInnerHTML={{ __html: marked(this.props.message.text, { sanitize: true }) }} />
       </div>
     );
-  },
-});
+  }
+}
 
-const ChatHistory = React.createClass({
-  propTypes: {
+class ChatHistory extends React.PureComponent {
+  static propTypes = {
     chatMessages: PropTypes.arrayOf(
       PropTypes.shape(
         FilteredChatMessagePropTypes
       ).isRequired
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-  },
-
-  mixins: [PureRenderMixin],
+  };
 
   componentDidMount() {
     // Scroll to end of chat.
@@ -332,21 +325,21 @@ const ChatHistory = React.createClass({
     };
 
     window.addEventListener('resize', this.resizeHandler);
-  },
+  }
 
   componentDidUpdate() {
     this.maybeForceScrollBottom();
-  },
+  }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.resizeHandler);
-  },
+  }
 
-  onScroll() {
+  onScroll = () => {
     this.saveShouldScroll();
-  },
+  };
 
-  saveShouldScroll() {
+  saveShouldScroll = () => {
     // Save whether the current scrollTop is equal to the ~maximum scrollTop.
     // If so, then we should make the log "stick" to the bottom, by manually scrolling to the bottom
     // when needed.
@@ -355,19 +348,19 @@ const ChatHistory = React.createClass({
     // Include a 5 px fudge factor to account for bad scrolling and
     // fractional pixels
     this.shouldScroll = (messagePane.clientHeight + messagePane.scrollTop + 5 >= messagePane.scrollHeight);
-  },
+  };
 
-  maybeForceScrollBottom() {
+  maybeForceScrollBottom = () => {
     if (this.shouldScroll) {
       this.forceScrollBottom();
     }
-  },
+  };
 
-  forceScrollBottom() {
+  forceScrollBottom = () => {
     const messagePane = this.node;
     messagePane.scrollTop = messagePane.scrollHeight;
     this.shouldScroll = true;
-  },
+  };
 
   render() {
     return (
@@ -386,32 +379,43 @@ const ChatHistory = React.createClass({
         })}
       </div>
     );
-  },
-});
+  }
+}
 
-const ChatInput = React.createClass({
-  propTypes: {
+const chatInputStyles = {
+  textarea: {
+    // Chrome has a bug where if the line-height is a plain number (e.g. 1.42857143) rather than
+    // an absolute size (e.g. 14px, 12pt) then when you zoom, scrollHeight is miscomputed.
+    // scrollHeight is used for computing the effective size of a textarea, so we can grow the
+    // input to accomodate its contents.
+    // The default Chrome stylesheet has line-height set to a plain number.
+    // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
+    lineHeight: '14px',
+    flex: 'none',
+    padding: '9px',
+    resize: 'none',
+    maxHeight: '200px',
+  },
+};
+
+class ChatInput extends React.PureComponent {
+  static propTypes = {
     onHeightChange: PropTypes.func,
     onMessageSent: PropTypes.func,
     puzzleId: PropTypes.string,
-  },
+  };
 
-  mixins: [PureRenderMixin],
+  state = {
+    text: '',
+  };
 
-  getInitialState() {
-    return {
-      text: '',
-      height: 38,
-    };
-  },
-
-  onInputChanged(e) {
+  onInputChanged = (e) => {
     this.setState({
       text: e.target.value,
     });
-  },
+  };
 
-  onKeyDown(e) {
+  onKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (this.state.text) {
@@ -424,34 +428,18 @@ const ChatInput = React.createClass({
         }
       }
     }
-  },
+  };
 
-  onHeightChange(newHeight) {
+  onHeightChange = (newHeight) => {
     if (this.props.onHeightChange) {
       this.props.onHeightChange(newHeight);
     }
-  },
-
-  styles: {
-    textarea: {
-      // Chrome has a bug where if the line-height is a plain number (e.g. 1.42857143) rather than
-      // an absolute size (e.g. 14px, 12pt) then when you zoom, scrollHeight is miscomputed.
-      // scrollHeight is used for computing the effective size of a textarea, so we can grow the
-      // input to accomodate its contents.
-      // The default Chrome stylesheet has line-height set to a plain number.
-      // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
-      lineHeight: '14px',
-      flex: 'none',
-      padding: '9px',
-      resize: 'none',
-      maxHeight: '200px',
-    },
-  },
+  };
 
   render() {
     return (
       <TextareaAutosize
-        style={this.styles.textarea}
+        style={chatInputStyles.textarea}
         maxLength="4000"
         minRows={1}
         maxRows={12}
@@ -462,11 +450,11 @@ const ChatInput = React.createClass({
         placeholder="Chat"
       />
     );
-  },
-});
+  }
+}
 
-const ChatSection = React.createClass({
-  propTypes: {
+class ChatSection extends React.PureComponent {
+  static propTypes = {
     chatReady: PropTypes.bool.isRequired,
     chatMessages: PropTypes.arrayOf(
       PropTypes.shape(
@@ -475,17 +463,15 @@ const ChatSection = React.createClass({
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
     puzzleId: PropTypes.string.isRequired,
-  },
+  };
 
-  mixins: [PureRenderMixin],
-
-  onInputHeightChange() {
+  onInputHeightChange = () => {
     this.historyNode.maybeForceScrollBottom();
-  },
+  };
 
-  onMessageSent() {
+  onMessageSent = () => {
     this.historyNode.forceScrollBottom();
-  },
+  };
 
   render() {
     return (
@@ -499,11 +485,11 @@ const ChatSection = React.createClass({
         />
       </div>
     );
-  },
-});
+  }
+}
 
-const PuzzlePageSidebar = React.createClass({
-  propTypes: {
+class PuzzlePageSidebar extends React.PureComponent {
+  static propTypes = {
     activePuzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
     allPuzzles: PropTypes.arrayOf(
       PropTypes.shape(
@@ -527,12 +513,11 @@ const PuzzlePageSidebar = React.createClass({
     isStackable: PropTypes.bool.isRequired,
     showRelated: PropTypes.bool.isRequired,
     onChangeShowRelated: PropTypes.func.isRequired,
-  },
-  mixins: [PureRenderMixin],
+  };
 
-  onCollapseChanged(collapsed) {
+  onCollapseChanged = (collapsed) => {
     this.props.onChangeShowRelated(collapsed !== 1);
-  },
+  };
 
   render() {
     let collapse = 0;
@@ -589,11 +574,11 @@ const PuzzlePageSidebar = React.createClass({
         </div>
       </div>
     );
-  },
-});
+  }
+}
 
-const PuzzlePageMetadata = React.createClass({
-  propTypes: {
+class PuzzlePageMetadata extends React.Component {
+  static propTypes = {
     puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
@@ -611,9 +596,9 @@ const PuzzlePageMetadata = React.createClass({
     subcountersDisabled: PropTypes.bool.isRequired,
     viewCount: PropTypes.number.isRequired,
     canUpdate: PropTypes.bool.isRequired,
-  },
+  };
 
-  onCreateTag(newTagName) {
+  onCreateTag = (newTagName) => {
     Meteor.call('addTagToPuzzle', this.props.puzzle._id, newTagName, (error) => {
       // Not really much we can do in the case of a failure, but let's log it anyway
       if (error) {
@@ -621,9 +606,9 @@ const PuzzlePageMetadata = React.createClass({
         console.log(error);
       }
     });
-  },
+  };
 
-  onRemoveTag(tagIdToRemove) {
+  onRemoveTag = (tagIdToRemove) => {
     Meteor.call('removeTagFromPuzzle', this.props.puzzle._id, tagIdToRemove, (error) => {
       // Not really much we can do in the case of a failure, but again, let's log it anyway
       if (error) {
@@ -631,22 +616,22 @@ const PuzzlePageMetadata = React.createClass({
         console.log(error);
       }
     });
-  },
+  };
 
-  onEdit(state, callback) {
+  onEdit = (state, callback) => {
     Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
-  },
+  };
 
-  showGuessModal() {
+  showGuessModal = () => {
     this.guessModalNode.show();
-  },
+  };
 
-  showEditModal() {
+  showEditModal = () => {
     this.editModalNode.show();
-  },
+  };
 
-  editButton() {
+  editButton = () => {
     if (this.props.canUpdate) {
       return (
         <Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
@@ -655,7 +640,7 @@ const PuzzlePageMetadata = React.createClass({
       );
     }
     return null;
-  },
+  };
 
   render() {
     const tagsById = _.indexBy(this.props.allTags, '_id');
@@ -741,8 +726,8 @@ const PuzzlePageMetadata = React.createClass({
         />
       </div>
     );
-  },
-});
+  }
+}
 
 const PuzzlePageMetadataContainer = withTracker(({ puzzle }) => {
   const count = SubscriberCounters.findOne(`puzzle:${puzzle._id}`);
@@ -757,8 +742,8 @@ PuzzlePageMetadataContainer.propTypes = {
   puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
 };
 
-const PuzzleGuessModal = React.createClass({
-  propTypes: {
+class PuzzleGuessModal extends React.Component {
+  static propTypes = {
     puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
     guesses: PropTypes.arrayOf(
       PropTypes.shape(
@@ -767,36 +752,34 @@ const PuzzleGuessModal = React.createClass({
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
     onSubmit: PropTypes.func,
-  },
+  };
 
-  getInitialState() {
-    return {
-      guessInput: '',
-      directionInput: 0,
-      confidenceInput: 50,
-      submitState: 'idle',
-      confirmingSubmit: false,
-      confirmationMessage: '',
-      errorMessage: '',
-    };
-  },
+  state = {
+    guessInput: '',
+    directionInput: 0,
+    confidenceInput: 50,
+    submitState: 'idle',
+    confirmingSubmit: false,
+    confirmationMessage: '',
+    errorMessage: '',
+  };
 
-  onGuessInputChange(event) {
+  onGuessInputChange = (event) => {
     this.setState({
       guessInput: event.target.value.toUpperCase(),
       confirmingSubmit: false,
     });
-  },
+  };
 
-  onDirectionInputChange(event) {
+  onDirectionInputChange = (event) => {
     this.setState({ directionInput: parseInt(event.target.value, 10) });
-  },
+  };
 
-  onConfidenceInputChange(event) {
+  onConfidenceInputChange = (event) => {
     this.setState({ confidenceInput: parseInt(event.target.value, 10) });
-  },
+  };
 
-  onSubmitGuess() {
+  onSubmitGuess = () => {
     const repeatGuess = _.find(this.props.guesses, (g) => { return g.guess === this.state.guessInput; });
     const alreadySolved = this.props.puzzle.answer;
     if ((repeatGuess || alreadySolved) && !this.state.confirmingSubmit) {
@@ -831,18 +814,18 @@ const PuzzleGuessModal = React.createClass({
         },
       );
     }
-  },
+  };
 
-  clearError() {
+  clearError = () => {
     this.setState({
       submitState: 'idle',
       errorMessage: '',
     });
-  },
+  };
 
-  show() {
+  show = () => {
     this.formNode.show();
-  },
+  };
 
   render() {
     const directionTooltip = (
@@ -955,15 +938,13 @@ const PuzzleGuessModal = React.createClass({
         {this.state.submitState === 'failed' ? <Alert bsStyle="danger" onDismiss={this.clearError}>{this.state.errorMessage}</Alert> : null}
       </ModalForm>
     );
-  },
-});
+  }
+}
 
-const PuzzlePageMultiplayerDocument = React.createClass({
-  propTypes: {
+class PuzzlePageMultiplayerDocument extends React.PureComponent {
+  static propTypes = {
     document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
-  },
-
-  mixins: [PureRenderMixin],
+  };
 
   render() {
     if (!this.props.document) {
@@ -979,11 +960,11 @@ const PuzzlePageMultiplayerDocument = React.createClass({
         <DocumentDisplay document={this.props.document} displayMode="embed" />
       </div>
     );
-  },
-});
+  }
+}
 
-const PuzzlePageContent = React.createClass({
-  propTypes: {
+class PuzzlePageContent extends React.PureComponent {
+  static propTypes = {
     puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
@@ -998,8 +979,8 @@ const PuzzlePageContent = React.createClass({
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
     document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
     isDesktop: PropTypes.bool.isRequired,
-  },
-  mixins: [PureRenderMixin],
+  };
+
   render() {
     return (
       <div className="puzzle-content">
@@ -1016,8 +997,8 @@ const PuzzlePageContent = React.createClass({
         }
       </div>
     );
-  },
-});
+  }
+}
 
 const findPuzzleById = function (puzzles, id) {
   for (let i = 0; i < puzzles.length; i++) {
@@ -1030,8 +1011,8 @@ const findPuzzleById = function (puzzles, id) {
   return undefined;
 };
 
-const PuzzlePage = React.createClass({
-  propTypes: {
+class PuzzlePage extends React.Component {
+  static propTypes = {
     // hunt id and puzzle id comes from route?
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
@@ -1046,38 +1027,39 @@ const PuzzlePage = React.createClass({
     allGuesses: PropTypes.arrayOf(PropTypes.shape(Schemas.Guesses.asReactPropTypes())).isRequired,
     document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
     canUpdate: PropTypes.bool.isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
-  getInitialState() {
+  constructor(props, context) {
+    super(props, context);
     const mode = this.calculateViewMode();
-    // To-Do: Per user interfaceOption defaults
-    return {
+
+    this.state = {
       showRelated: mode.isStackable,
       isDesktop: mode.isDesktop,
       isStackable: mode.isStackable,
     };
-  },
+  }
 
   componentDidMount() {
     window.addEventListener('resize', this.onResize);
     Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
-  },
+  }
 
   componentDidUpdate(prevProps) {
     if (prevProps.params.puzzleId !== this.props.params.puzzleId) {
       Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
     }
-  },
+  }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.onResize);
-  },
+  }
 
-  onResize() {
+  onResize = () => {
     const newMode = this.calculateViewMode();
     // If resizing into unstackable mode, switch to just chat in all cases
     if (this.state.isStackable && !newMode.isStackable) {
@@ -1089,22 +1071,22 @@ const PuzzlePage = React.createClass({
         isStackable: newMode.isStackable,
       });
     }
-  },
+  };
 
-  onChangeShowRelated(showRelatedNew) {
+  onChangeShowRelated = (showRelatedNew) => {
     this.setState({ showRelated: showRelatedNew });
-  },
+  };
 
   // Ideally these should be based on size of the component (and the trigger changed appropriately)
   // but this component is designed for full-page use, so...
-  calculateViewMode() {
+  calculateViewMode = () => {
     const newIsDesktop = window.innerWidth >= MinimumDesktopWidth;
     const newIsStackable = window.innerHeight >= (newIsDesktop ? MinimumDesktopStackingHeight : MinimumMobileStackingHeight);
     return {
       isDesktop: newIsDesktop,
       isStackable: newIsStackable,
     };
-  },
+  };
 
   render() {
     if (!this.props.puzzlesReady) {
@@ -1176,8 +1158,8 @@ const PuzzlePage = React.createClass({
         </this.context.navAggregator.NavItem>
       </DocumentTitle>
     );
-  },
-});
+  }
+}
 
 const PuzzlePageContainer = withTracker(({ params }) => {
   // There are some model dependencies that we have to be careful about:

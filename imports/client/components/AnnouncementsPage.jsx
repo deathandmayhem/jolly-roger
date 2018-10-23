@@ -11,26 +11,24 @@ import subsCache from '../subsCache.js';
 
 /* eslint-disable max-len */
 
-const AnnouncementForm = React.createClass({
-  propTypes: {
+class AnnouncementForm extends React.Component {
+  static propTypes = {
     huntId: PropTypes.string.isRequired,
-  },
+  };
 
-  getInitialState() {
-    return {
-      message: '',
-      submitState: 'idle',
-      errorMessage: '',
-    };
-  },
+  state = {
+    message: '',
+    submitState: 'idle',
+    errorMessage: '',
+  };
 
-  setMessage(event) {
+  setMessage = (event) => {
     this.setState({
       message: event.target.value,
     });
-  },
+  };
 
-  postAnnouncement() {
+  postAnnouncement = () => {
     if (this.state.message) {
       this.setState({
         submitState: 'submitting',
@@ -49,7 +47,7 @@ const AnnouncementForm = React.createClass({
         }
       });
     }
-  },
+  };
 
   render() {
     return (
@@ -73,14 +71,14 @@ const AnnouncementForm = React.createClass({
         </div>
       </div>
     );
-  },
-});
+  }
+}
 
-const Announcement = React.createClass({
-  propTypes: {
+class Announcement extends React.Component {
+  static propTypes = {
     announcement: PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-  },
+  };
 
   render() {
     const ann = this.props.announcement;
@@ -96,11 +94,11 @@ const Announcement = React.createClass({
         <div dangerouslySetInnerHTML={{ __html: marked(ann.message, { sanitize: true }) }} />
       </div>
     );
-  },
-});
+  }
+}
 
-const AnnouncementsPage = React.createClass({
-  propTypes: {
+class AnnouncementsPage extends React.Component {
+  static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
@@ -108,13 +106,13 @@ const AnnouncementsPage = React.createClass({
     canCreateAnnouncements: PropTypes.bool.isRequired,
     announcements: PropTypes.arrayOf(PropTypes.shape(Schemas.Announcements.asReactPropTypes())).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
-  renderPage() {
+  renderPage = () => {
     if (!this.props.ready) {
       return <div>loading...</div>;
     }
@@ -138,7 +136,7 @@ const AnnouncementsPage = React.createClass({
         </div>
       </div>
     );
-  },
+  };
 
   render() {
     return (
@@ -150,8 +148,8 @@ const AnnouncementsPage = React.createClass({
         {this.renderPage()}
       </this.context.navAggregator.NavItem>
     );
-  },
-});
+  }
+}
 
 const AnnouncementsPageContainer = withTracker(({ params }) => {
   // We already have subscribed to mongo.announcements on the main page, since we want to be able

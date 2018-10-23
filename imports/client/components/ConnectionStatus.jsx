@@ -6,10 +6,10 @@ import Button from 'react-bootstrap/lib/Button';
 import { withTracker } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
 
-const ConnectionStatus = React.createClass({
-  propTypes: {
+class ConnectionStatus extends React.Component {
+  static propTypes = {
     meteorStatus: PropTypes.object,
-  },
+  };
 
   render() {
     switch (this.props.meteorStatus.status) {
@@ -61,8 +61,8 @@ const ConnectionStatus = React.createClass({
         Ansible.warn('Unknown connection status', { state: this.props.meteorStatus.status });
         return null;
     }
-  },
-});
+  }
+}
 
 export default withTracker(() => {
   return { meteorStatus: Meteor.status() };

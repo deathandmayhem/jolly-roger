@@ -5,15 +5,15 @@ import { jQuery } from 'meteor/jquery';
 import { withTracker } from 'meteor/react-meteor-data';
 import ReactSelect2 from './ReactSelect2.jsx';
 
-const TagEditor = React.createClass({
+class TagEditor extends React.Component {
   // TODO: this should support autocomplete to reduce human error.
   // Probably not going to land this week.
-  propTypes: {
+  static propTypes = {
     puzzleId: PropTypes.string.isRequired,
     onSubmit: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
     allTags: PropTypes.arrayOf(PropTypes.shape(Schemas.Tags.asReactPropTypes())).isRequired,
-  },
+  };
 
   componentDidMount() {
     // Focus the input when mounted - the user just clicked on the button-link.
@@ -23,13 +23,13 @@ const TagEditor = React.createClass({
       .on('select2:select', () => {
         this.props.onSubmit(jQuery(input).val());
       });
-  },
+  }
 
-  onBlur() {
+  onBlur = () => {
     // Treat blur as "no I didn't mean to do that".  We may have to change this
     // once we have autocomplete .
     this.props.onCancel();
-  },
+  };
 
   render() {
     return (
@@ -42,8 +42,8 @@ const TagEditor = React.createClass({
         />
       </span>
     );
-  },
-});
+  }
+}
 
 const TagEditorContainer = withTracker(({ puzzleId }) => {
   const puzzle = Models.Puzzles.findOne(puzzleId);

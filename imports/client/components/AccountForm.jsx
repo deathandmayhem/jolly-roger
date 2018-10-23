@@ -6,49 +6,48 @@ import Alert from 'react-bootstrap/lib/Alert';
 
 /* eslint-disable max-len, jsx-a11y/href-no-hash, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
 
-const AccountForm = React.createClass({
-  propTypes: {
+class AccountForm extends React.Component {
+  static propTypes = {
     format: PropTypes.string,
     onFormatChange: PropTypes.func,
     token: PropTypes.string,
-  },
-  getInitialState() {
-    return {
-      submitState: 'idle',
-      errorMessage: '',
-      successMessage: '',
-      email: '',
-      password: '',
-      displayName: '',
-      phoneNumber: '',
-    };
-  },
+  };
 
-  setEmail(event) {
+  state = {
+    submitState: 'idle',
+    errorMessage: '',
+    successMessage: '',
+    email: '',
+    password: '',
+    displayName: '',
+    phoneNumber: '',
+  };
+
+  setEmail = (event) => {
     this.setState({
       email: event.target.value,
     });
-  },
+  };
 
-  setPassword(event) {
+  setPassword = (event) => {
     this.setState({
       password: event.target.value,
     });
-  },
+  };
 
-  setDisplayName(event) {
+  setDisplayName = (event) => {
     this.setState({
       displayName: event.target.value,
     });
-  },
+  };
 
-  setPhoneNumber(event) {
+  setPhoneNumber = (event) => {
     this.setState({
       phoneNumber: event.target.value,
     });
-  },
+  };
 
-  tryLogin() {
+  tryLogin = () => {
     this.setState({
       submitState: 'submitting',
     });
@@ -65,9 +64,9 @@ const AccountForm = React.createClass({
         });
       }
     });
-  },
+  };
 
-  tryPasswordReset() {
+  tryPasswordReset = () => {
     this.setState({
       submitState: 'submitting',
     });
@@ -84,9 +83,9 @@ const AccountForm = React.createClass({
         });
       }
     });
-  },
+  };
 
-  tryCompletePasswordReset() {
+  tryCompletePasswordReset = () => {
     Accounts.resetPassword(this.props.token, this.state.password, (error) => {
       if (error) {
         this.setState({
@@ -100,9 +99,9 @@ const AccountForm = React.createClass({
         });
       }
     });
-  },
+  };
 
-  tryEnroll() {
+  tryEnroll = () => {
     const newProfile = {
       displayName: this.state.displayName,
       phoneNumber: this.state.phoneNumber,
@@ -136,9 +135,9 @@ const AccountForm = React.createClass({
         });
       }
     });
-  },
+  };
 
-  submitForm(event) {
+  submitForm = (event) => {
     event.preventDefault();
     const format = this.props.format || 'login';
     if (format === 'login') {
@@ -150,14 +149,14 @@ const AccountForm = React.createClass({
     } else if (format === 'resetPwd') {
       this.tryCompletePasswordReset();
     }
-  },
+  };
 
-  toggleWantPasswordReset(event) {
+  toggleWantPasswordReset = (event) => {
     event.preventDefault();
     if (this.props.onFormatChange) {
       this.props.onFormatChange();
     }
-  },
+  };
 
   render() {
     // I'm mimicking the DOM used by AccountTemplates for this form so I can reuse their CSS.  It
@@ -289,7 +288,7 @@ const AccountForm = React.createClass({
         </div>
       </div>
     );
-  },
-});
+  }
+}
 
 export default AccountForm;

@@ -12,22 +12,22 @@ import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import CelebrationCenter from './CelebrationCenter.jsx';
 
-const HuntDeletedError = React.createClass({
-  propTypes: {
+class HuntDeletedError extends React.Component {
+  static propTypes = {
     huntId: PropTypes.string.isRequired,
     hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
     canUndestroy: PropTypes.bool.isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     router: PropTypes.object.isRequired,
-  },
+  };
 
-  undestroy() {
+  undestroy = () => {
     Models.Hunts.undestroy(this.props.hunt._id);
-  },
+  };
 
-  undestroyButton() {
+  undestroyButton = () => {
     if (this.props.canUndestroy) {
       return (
         <Button bsStyle="primary" onClick={this.undestroy}>
@@ -36,7 +36,7 @@ const HuntDeletedError = React.createClass({
       );
     }
     return null;
-  },
+  };
 
   render() {
     return (
@@ -53,8 +53,8 @@ const HuntDeletedError = React.createClass({
         </ButtonToolbar>
       </div>
     );
-  },
-});
+  }
+}
 
 const HuntDeletedErrorContainer = withTracker(({ huntId }) => {
   return {
@@ -67,22 +67,22 @@ HuntDeletedErrorContainer.propTypes = {
   huntId: PropTypes.string.isRequired,
 };
 
-const HuntMemberError = React.createClass({
-  propTypes: {
+class HuntMemberError extends React.Component {
+  static propTypes = {
     huntId: PropTypes.string.isRequired,
     hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
     canJoin: PropTypes.bool,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     router: PropTypes.object.isRequired,
-  },
+  };
 
-  join() {
+  join = () => {
     Meteor.call('addToHunt', this.props.huntId, Meteor.user().emails[0].address);
-  },
+  };
 
-  joinButton() {
+  joinButton = () => {
     if (this.data.canJoin) {
       return (
         <Button bsStyle="primary" onClick={this.join}>
@@ -91,7 +91,7 @@ const HuntMemberError = React.createClass({
       );
     }
     return null;
-  },
+  };
 
   render() {
     const msg = marked(this.data.hunt.signupMessage || '', { sanitize: true });
@@ -113,8 +113,8 @@ const HuntMemberError = React.createClass({
         </ButtonToolbar>
       </div>
     );
-  },
-});
+  }
+}
 
 const HuntMemberErrorContainer = withTracker(({ huntId }) => {
   return {
@@ -127,8 +127,8 @@ HuntMemberErrorContainer.propTypes = {
   huntId: PropTypes.string,
 };
 
-const HuntApp = React.createClass({
-  propTypes: {
+class HuntApp extends React.Component {
+  static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
@@ -136,13 +136,13 @@ const HuntApp = React.createClass({
     ready: PropTypes.bool.isRequired,
     hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
     member: PropTypes.bool.isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
-  renderBody() {
+  renderBody = () => {
     if (!this.props.ready) {
       return <span>loading...</span>;
     }
@@ -156,7 +156,7 @@ const HuntApp = React.createClass({
     }
 
     return React.Children.only(this.props.children);
-  },
+  };
 
   render() {
     const title = this.props.hunt ? `${this.props.hunt.name} :: Jolly Roger` : '';
@@ -183,8 +183,8 @@ const HuntApp = React.createClass({
         </this.context.navAggregator.NavItem>
       </DocumentTitle>
     );
-  },
-});
+  }
+}
 
 const HuntAppContainer = withTracker(({ params }) => {
   const userHandle = subsCache.subscribe('selfHuntMembership');

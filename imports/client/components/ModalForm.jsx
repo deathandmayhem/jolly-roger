@@ -3,45 +3,45 @@ import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import Modal from 'react-bootstrap/lib/Modal';
 
-const ModalForm = React.createClass({
-  propTypes: {
+class ModalForm extends React.Component {
+  static propTypes = {
     title: PropTypes.string.isRequired,
     submitLabel: PropTypes.string,
     submitStyle: PropTypes.oneOf(Button.STYLES),
     submitDisabled: PropTypes.bool,
     onSubmit: PropTypes.func.isRequired,
     children: PropTypes.node,
-  },
+  };
 
-  getDefaultProps() {
-    return {
-      submitLabel: 'Save',
-      submitStyle: 'primary',
-    };
-  },
+  static defaultProps = {
+    submitLabel: 'Save',
+    submitStyle: 'primary',
+  };
 
-  getInitialState() {
-    return { show: false };
-  },
+  state = { show: false };
 
-  show() {
+  componentWillUnmount() {
+    this.dontTryToClose = true;
+  }
+
+  show = () => {
     this.setState({ show: true });
-  },
+  };
 
-  close() {
+  close = () => {
     this.setState({ show: false });
-  },
+  };
 
-  submit(e) {
+  submit = (e) => {
     e.preventDefault();
     this.props.onSubmit(() => {
       // For delete forms, it's possible that the component gets
       // deleted and unmounted before the callback gets called.
-      if (this.isMounted()) { // eslint-disable-line react/no-is-mounted
+      if (!this.dontTryToClose) {
         this.close();
       }
     });
-  },
+  };
 
   render() {
     return (
@@ -74,7 +74,7 @@ const ModalForm = React.createClass({
         </form>
       </Modal>
     );
-  },
-});
+  }
+}
 
 export default ModalForm;

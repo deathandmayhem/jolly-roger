@@ -15,16 +15,16 @@ import navAggregatorType from './navAggregatorType.jsx';
 
 /* eslint-disable max-len */
 
-const OthersProfilePage = React.createClass({
-  propTypes: {
+class OthersProfilePage extends React.Component {
+  static propTypes = {
     profile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
     viewerCanMakeOperator: PropTypes.bool.isRequired,
     targetIsAdmin: PropTypes.bool.isRequired,
-  },
+  };
 
-  makeOperator() {
+  makeOperator = () => {
     Meteor.call('makeOperator', this.props.profile._id);
-  },
+  };
 
   render() {
     // TODO: figure out something for profile pictures - gravatar?
@@ -57,29 +57,27 @@ const OthersProfilePage = React.createClass({
         ) : null}
       </div>
     );
-  },
-});
+  }
+}
 
-const GoogleLinkBlock = React.createClass({
-  propTypes: {
+class GoogleLinkBlock extends React.Component {
+  static propTypes = {
     profile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
     config: PropTypes.object,
-  },
+  };
 
-  getInitialState() {
-    return { state: 'idle' };
-  },
+  state = { state: 'idle' };
 
-  onLink() {
+  onLink = () => {
     this.setState({ state: 'linking' });
     Google.requestCredential(this.requestComplete);
-  },
+  };
 
-  onUnlink() {
+  onUnlink = () => {
     Meteor.call('unlinkUserGoogleAccount');
-  },
+  };
 
-  requestComplete(token) {
+  requestComplete = (token) => {
     const secret = OAuth._retrieveCredentialSecret(token);
     if (!secret) {
       this.setState({ state: 'idle' });
@@ -93,13 +91,13 @@ const GoogleLinkBlock = React.createClass({
         this.setState({ state: 'idle' });
       }
     });
-  },
+  };
 
-  dismissAlert() {
+  dismissAlert = () => {
     this.setState({ state: 'idle' });
-  },
+  };
 
-  errorAlert() {
+  errorAlert = () => {
     if (this.state.state === 'error') {
       return (
         <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
@@ -110,9 +108,9 @@ const GoogleLinkBlock = React.createClass({
       );
     }
     return null;
-  },
+  };
 
-  linkButton() {
+  linkButton = () => {
     if (this.state.state === 'linking') {
       return <Button bsStyle="primary" disabled>Linking...</Button>;
     }
@@ -126,9 +124,9 @@ const GoogleLinkBlock = React.createClass({
         {text}
       </Button>
     );
-  },
+  };
 
-  unlinkButton() {
+  unlinkButton = () => {
     if (this.props.profile.googleAccount) {
       return (
         <Button bsStyle="danger" onClick={this.onUnlink}>
@@ -138,9 +136,9 @@ const GoogleLinkBlock = React.createClass({
     }
 
     return null;
-  },
+  };
 
-  currentAccount() {
+  currentAccount = () => {
     if (this.props.profile.googleAccount) {
       return (
         <div>
@@ -152,7 +150,7 @@ const GoogleLinkBlock = React.createClass({
     }
 
     return null;
-  },
+  };
 
   render() {
     if (!this.props.config) {
@@ -188,38 +186,37 @@ const GoogleLinkBlock = React.createClass({
         </HelpBlock>
       </FormGroup>
     );
-  },
-});
+  }
+}
 
 const GoogleLinkBlockContainer = withTracker(() => {
   const config = ServiceConfiguration.configurations.findOne({ service: 'google' });
   return { config };
 })(GoogleLinkBlock);
 
-const OwnProfilePage = React.createClass({
-  propTypes: {
+class OwnProfilePage extends React.Component {
+  static propTypes = {
     initialProfile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
     operating: PropTypes.bool,
     canMakeOperator: PropTypes.bool,
-  },
-  getInitialState() {
-    return {
-      displayNameValue: this.props.initialProfile.displayName || '',
-      phoneNumberValue: this.props.initialProfile.phoneNumber || '',
-      slackHandleValue: this.props.initialProfile.slackHandle || '',
-      muteApplause: this.props.initialProfile.muteApplause || false,
-      submitState: 'idle', // One of 'idle', 'submitting', 'success', or 'error'
-      submitError: '',
-    };
-  },
+  };
 
-  onDisableApplauseChange(e) {
+  state = {
+    displayNameValue: this.props.initialProfile.displayName || '',
+    phoneNumberValue: this.props.initialProfile.phoneNumber || '',
+    slackHandleValue: this.props.initialProfile.slackHandle || '',
+    muteApplause: this.props.initialProfile.muteApplause || false,
+    submitState: 'idle', // One of 'idle', 'submitting', 'success', or 'error'
+    submitError: '',
+  };
+
+  onDisableApplauseChange = (e) => {
     this.setState({
       muteApplause: e.target.checked,
     });
-  },
+  };
 
-  getSlackHandleValidationState() {
+  getSlackHandleValidationState = () => {
     if (!this.state.slackHandleValue) {
       return null;
     }
@@ -228,36 +225,36 @@ const OwnProfilePage = React.createClass({
       slackHandle: this.state.slackHandleValue,
     }, 'slackHandle');
     return valid ? 'success' : 'error';
-  },
+  };
 
-  handleDisplayNameFieldChange(e) {
+  handleDisplayNameFieldChange = (e) => {
     this.setState({
       displayNameValue: e.target.value,
     });
-  },
+  };
 
-  handlePhoneNumberFieldChange(e) {
+  handlePhoneNumberFieldChange = (e) => {
     this.setState({
       phoneNumberValue: e.target.value,
     });
-  },
+  };
 
-  handleSlackHandleFieldChange(e) {
+  handleSlackHandleFieldChange = (e) => {
     this.setState({
       slackHandleValue: e.target.value,
     });
-  },
+  };
 
-  toggleOperating() {
+  toggleOperating = () => {
     const newState = !this.props.operating;
     if (newState) {
       Meteor.call('makeOperator', Meteor.userId());
     } else {
       Meteor.call('stopOperating');
     }
-  },
+  };
 
-  handleSaveForm() {
+  handleSaveForm = () => {
     this.setState({
       submitState: 'submitting',
     });
@@ -279,20 +276,14 @@ const OwnProfilePage = React.createClass({
         });
       }
     });
-  },
+  };
 
-  dismissAlert() {
+  dismissAlert = () => {
     this.setState({
       submitState: 'idle',
       submitError: '',
     });
-  },
-
-  styles: {
-    radioheader: {
-      fontWeight: 'bold',
-    },
-  },
+  };
 
   render() {
     const shouldDisableForm = (this.state.submitState === 'submitting');
@@ -399,11 +390,11 @@ const OwnProfilePage = React.createClass({
         </FormGroup>
       </div>
     );
-  },
-});
+  }
+}
 
-const ProfilePage = React.createClass({
-  propTypes: {
+class ProfilePage extends React.Component {
+  static propTypes = {
     params: PropTypes.shape({
       userId: PropTypes.string.isRequired,
     }).isRequired,
@@ -413,11 +404,11 @@ const ProfilePage = React.createClass({
     viewerCanMakeOperator: PropTypes.bool.isRequired,
     viewerIsAdmin: PropTypes.bool.isRequired,
     targetIsAdmin: PropTypes.bool.isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
   render() {
     let body;
@@ -458,8 +449,8 @@ const ProfilePage = React.createClass({
         </this.context.navAggregator.NavItem>
       </this.context.navAggregator.NavItem>
     );
-  },
-});
+  }
+}
 
 const ProfilePageContainer = withTracker(({ params }) => {
   const uid = params.userId === 'me' ? Meteor.userId() : params.userId;

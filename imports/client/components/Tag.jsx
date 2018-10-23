@@ -1,5 +1,4 @@
 import React from 'react';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
 import PropTypes from 'prop-types';
 import Button from 'react-bootstrap/lib/Button';
 import { Link } from 'react-router';
@@ -8,21 +7,20 @@ import tagShape from './tagShape.js';
 
 /* eslint-disable max-len */
 
-const Tag = React.createClass({
-  displayName: 'Tag',
-  propTypes: {
+class Tag extends React.PureComponent {
+  static displayName = 'Tag';
+
+  static propTypes = {
     tag: PropTypes.shape(tagShape).isRequired,
     onRemove: PropTypes.func, // if present, show a dismiss button
     linkToSearch: PropTypes.bool.isRequired,
-  },
+  };
 
-  mixins: [PureRenderMixin],
-
-  onRemove() {
+  onRemove = () => {
     if (this.props.onRemove) {
       this.props.onRemove(this.props.tag._id);
     }
-  },
+  };
 
   render() {
     const name = this.props.tag.name;
@@ -63,7 +61,7 @@ const Tag = React.createClass({
         {this.props.onRemove && <Button className="tag-remove-button" bsStyle="danger" onClick={this.onRemove}>&#10006;</Button>}
       </div>
     );
-  },
-});
+  }
+}
 
 export default Tag;

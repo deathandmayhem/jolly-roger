@@ -29,13 +29,18 @@ const splitLists = function (lists) {
   return strippedLists.split(/[, ]+/);
 };
 
-const HuntModalForm = React.createClass({
-  propTypes: {
+class HuntModalForm extends React.Component {
+  static propTypes = {
     hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
     onSubmit: PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
-  },
+  };
 
-  getInitialState() {
+  constructor(props, context) {
+    super(props, context);
+    this.state = this.initialState();
+  }
+
+  initialState = () => {
     const state = {
       submitState: 'idle',
       errorMessage: '',
@@ -59,45 +64,45 @@ const HuntModalForm = React.createClass({
         puzzleHooksSlackChannel: '',
       });
     }
-  },
+  };
 
-  onNameChanged(e) {
+  onNameChanged = (e) => {
     this.setState({
       name: e.target.value,
     });
-  },
+  };
 
-  onMailingListsChanged(e) {
+  onMailingListsChanged = (e) => {
     this.setState({
       mailingLists: e.target.value,
     });
-  },
+  };
 
-  onSignupMessageChanged(e) {
+  onSignupMessageChanged = (e) => {
     this.setState({
       signupMessage: e.target.value,
     });
-  },
+  };
 
-  onOpenSignupsChanged(e) {
+  onOpenSignupsChanged = (e) => {
     this.setState({
       openSignups: e.target.checked,
     });
-  },
+  };
 
-  onFirehoseSlackChannelChanged(e) {
+  onFirehoseSlackChannelChanged = (e) => {
     this.setState({
       firehoseSlackChannel: e.target.value,
     });
-  },
+  };
 
-  onPuzzleHooksSlackChannelChanged(e) {
+  onPuzzleHooksSlackChannelChanged = (e) => {
     this.setState({
       puzzleHooksSlackChannel: e.target.value,
     });
-  },
+  };
 
-  onFormSubmit(callback) {
+  onFormSubmit = (callback) => {
     this.setState({ submitState: 'submitting' });
     const state = _.extend(
       {},
@@ -111,15 +116,16 @@ const HuntModalForm = React.createClass({
           errorMessage: error.message,
         });
       } else {
-        this.setState(this.getInitialState());
+        this.setState(this.initialState()());
         callback();
       }
     });
-  },
+  };
 
-  show() {
+  show = () => {
     this.formNode.show();
-  },
+  };
+
 
   render() {
     const disableForm = this.state.submitState === 'submitting';
@@ -244,38 +250,38 @@ const HuntModalForm = React.createClass({
         {this.state.submitState === 'failed' && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>
     );
-  },
-});
+  }
+}
 
-const Hunt = React.createClass({
-  propTypes: {
+class Hunt extends React.Component {
+  static propTypes = {
     hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()).isRequired,
     canUpdate: PropTypes.bool.isRequired,
     canDestroy: PropTypes.bool.isRequired,
-  },
+  };
 
-  onEdit(state, callback) {
+  onEdit = (state, callback) => {
     Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), state });
     Models.Hunts.update(
       { _id: this.props.hunt._id },
       { $set: state },
       callback
     );
-  },
+  };
 
-  onDelete(callback) {
+  onDelete = (callback) => {
     Models.Hunts.destroy(this.props.hunt._id, callback);
-  },
+  };
 
-  showEditModal() {
+  showEditModal = () => {
     this.editModalNode.show();
-  },
+  };
 
-  showDeleteModal() {
+  showDeleteModal = () => {
     this.deleteModalNode.show();
-  },
+  };
 
-  editButton() {
+  editButton = () => {
     if (this.props.canUpdate) {
       return (
         <Button onClick={this.showEditModal} bsStyle="default" title="Edit hunt...">
@@ -285,9 +291,9 @@ const Hunt = React.createClass({
     }
 
     return undefined;
-  },
+  };
 
-  deleteButton() {
+  deleteButton = () => {
     if (this.props.canDestroy) {
       return (
         <Button onClick={this.showDeleteModal} bsStyle="danger" title="Delete hunt...">
@@ -297,7 +303,7 @@ const Hunt = React.createClass({
     }
 
     return undefined;
-  },
+  };
 
   render() {
     const hunt = this.props.hunt;
@@ -329,8 +335,8 @@ const Hunt = React.createClass({
         </Link>
       </li>
     );
-  },
-});
+  }
+}
 
 const HuntContainer = withTracker(() => {
   return {
@@ -354,28 +360,28 @@ const MockHunt = React.createClass({
 });
 */
 
-const HuntListPage = React.createClass({
-  propTypes: {
+class HuntListPage extends React.Component {
+  static propTypes = {
     ready: PropTypes.bool.isRequired,
     canAdd: PropTypes.bool.isRequired,
     hunts: PropTypes.arrayOf(PropTypes.shape(Schemas.Hunts.asReactPropTypes())).isRequired,
     myHunts: PropTypes.objectOf(PropTypes.bool).isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
-  onAdd(state, callback) {
+  onAdd = (state, callback) => {
     Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
     Models.Hunts.insert(state, callback);
-  },
+  };
 
-  showAddModal() {
+  showAddModal = () => {
     this.addModalNode.show();
-  },
+  };
 
-  addButton() {
+  addButton = () => {
     if (this.props.canAdd) {
       return (
         <Button onClick={this.showAddModal} bsStyle="success" bsSize="xs" title="Add new hunt...">
@@ -385,7 +391,7 @@ const HuntListPage = React.createClass({
     }
 
     return undefined;
-  },
+  };
 
   render() {
     const body = [];
@@ -442,8 +448,8 @@ const HuntListPage = React.createClass({
         </div>
       </this.context.navAggregator.NavItem>
     );
-  },
-});
+  }
+}
 
 export default withTracker(() => {
   const huntListHandle = subsCache.subscribe('mongo.hunts');

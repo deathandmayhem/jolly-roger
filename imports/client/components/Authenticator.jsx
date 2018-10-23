@@ -5,28 +5,26 @@ import React from 'react';
 import { browserHistory } from 'react-router';
 import { withTracker } from 'meteor/react-meteor-data';
 
-const Authenticator = React.createClass({
-  propTypes: {
+class Authenticator extends React.Component {
+  static propTypes = {
     route: PropTypes.object,
     children: PropTypes.node,
     location: PropTypes.object,
     loggingIn: PropTypes.bool,
     userId: PropTypes.string,
-  },
+  };
 
-  getInitialState() {
-    return { loading: true };
-  },
+  state = { loading: true };
 
   componentDidMount() {
     this.checkAuth();
-  },
+  }
 
   componentDidUpdate() {
     this.checkAuth();
-  },
+  }
 
-  checkAuth() {
+  checkAuth = () => {
     if (this.state.loading) {
       if (this.props.loggingIn) {
         return;
@@ -48,7 +46,7 @@ const Authenticator = React.createClass({
         query: state.query,
       });
     }
-  },
+  };
 
   render() {
     if (this.state.loading) {
@@ -56,8 +54,8 @@ const Authenticator = React.createClass({
     }
 
     return React.Children.only(this.props.children);
-  },
-});
+  }
+}
 
 export default withTracker(() => {
   return {

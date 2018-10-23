@@ -5,7 +5,6 @@ import React from 'react';
 import Glyphicon from 'react-bootstrap/lib/Glyphicon';
 import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
 import Tooltip from 'react-bootstrap/lib/Tooltip';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { Link } from 'react-router';
 import moment from 'moment';
 import marked from 'marked';
@@ -16,69 +15,62 @@ import subsCache from '../subsCache.js';
 
 /* eslint-disable max-len */
 
-const MessengerDismissButton = React.createClass({
-  propTypes: {
+class MessengerDismissButton extends React.PureComponent {
+  static propTypes = {
     onDismiss: PropTypes.func.isRequired,
-  },
-
-  mixins: [PureRenderMixin],
+  };
 
   render() {
     return <button type="button" className="dismiss" onClick={this.props.onDismiss}>×</button>;
-  },
-});
+  }
+}
 
-const MessengerContent = React.createClass({
-  propTypes: {
+class MessengerContent extends React.PureComponent {
+  static propTypes = {
     dismissable: PropTypes.bool,
     children: PropTypes.node,
-  },
-
-  mixins: [PureRenderMixin],
+  };
 
   render() {
     const { dismissable, children } = this.props;
     const classes = classnames('content', { dismissable });
     return <div className={classes}>{children}</div>;
-  },
-});
+  }
+}
 
-const MessengerSpinner = React.createClass({
-  mixins: [PureRenderMixin],
+class MessengerSpinner extends React.PureComponent {
   render() {
     return (
       <div className="spinner-box">
         <div className="spinner" />
       </div>
     );
-  },
-});
+  }
+}
 
-const GuessMessage = React.createClass({
-  propTypes: {
+class GuessMessage extends React.PureComponent {
+  static propTypes = {
     guess: PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
     puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
     guesser: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
-  },
+  };
 
-  mixins: [PureRenderMixin],
-
-  markCorrect() {
+  markCorrect = () => {
     Meteor.call('markGuessCorrect', this.props.guess._id);
-  },
+  };
 
-  markIncorrect() {
+  markIncorrect = () => {
     Meteor.call('markGuessIncorrect', this.props.guess._id);
-  },
+  };
 
-  markRejected() {
+  markRejected = () => {
     Meteor.call('markGuessRejected', this.props.guess._id);
-  },
+  };
 
-  dismissGuess() {
+  dismissGuess = () => {
     this.props.onDismiss(this.props.guess._id);
-  },
+  };
 
   render() {
     const directionTooltip = (
@@ -139,21 +131,17 @@ const GuessMessage = React.createClass({
         <MessengerDismissButton onDismiss={this.dismissGuess} />
       </li>
     );
-  },
-});
+  }
+}
 
-const SlackMessage = React.createClass({
-  propTypes: {
+class SlackMessage extends React.PureComponent {
+  static propTypes = {
     onDismiss: PropTypes.func.isRequired,
-  },
+  };
 
-  mixins: [PureRenderMixin],
+  state = { status: 'idle', errorMessage: null };
 
-  getInitialState() {
-    return { status: 'idle', errorMessage: null };
-  },
-
-  sendInvite() {
+  sendInvite = () => {
     this.setState({ status: 'submitting' });
     Meteor.call('slackInvite', (err) => {
       if (err) {
@@ -162,11 +150,11 @@ const SlackMessage = React.createClass({
         this.setState({ status: 'success' });
       }
     });
-  },
+  };
 
-  reset() {
+  reset = () => {
     this.setState({ status: 'idle', errorMessage: null });
-  },
+  };
 
   render() {
     let msg;
@@ -217,21 +205,19 @@ const SlackMessage = React.createClass({
         </MessengerContent>
       </li>
     );
-  },
-});
+  }
+}
 
-const AnnouncementMessage = React.createClass({
-  propTypes: {
+class AnnouncementMessage extends React.PureComponent {
+  static propTypes = {
     id: PropTypes.string.isRequired,
     announcement: PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
     createdByDisplayName: PropTypes.string.isRequired,
-  },
+  };
 
-  mixins: [PureRenderMixin],
-
-  onDismiss() {
+  onDismiss = () => {
     Models.PendingAnnouncements.remove(this.props.id);
-  },
+  };
 
   render() {
     return (
@@ -249,11 +235,11 @@ const AnnouncementMessage = React.createClass({
         <MessengerDismissButton onDismiss={this.onDismiss} />
       </li>
     );
-  },
-});
+  }
+}
 
-const NotificationCenter = React.createClass({
-  propTypes: {
+class NotificationCenter extends React.Component {
+  static propTypes = {
     ready: PropTypes.bool.isRequired,
     announcements: PropTypes.arrayOf(PropTypes.shape(Schemas.Announcements.asReactPropTypes())),
     guesses: PropTypes.arrayOf(PropTypes.shape({
@@ -262,29 +248,27 @@ const NotificationCenter = React.createClass({
       guesser: PropTypes.string,
     })),
     slackConfigured: PropTypes.bool,
-  },
+  };
 
-  getInitialState() {
-    return {
-      hideSlackSetupMessage: false,
-      dismissedGuesses: {},
-    };
-  },
+  state = {
+    hideSlackSetupMessage: false,
+    dismissedGuesses: {},
+  };
 
-  hideSlackSetupMessage() {
+  hideSlackSetupMessage = () => {
     this.setState({
       hideSlackSetupMessage: true,
     });
-  },
+  };
 
-  dismissGuess(guessId) {
+  dismissGuess = (guessId) => {
     const newState = {};
     newState[guessId] = true;
     _.extend(newState, this.state.dismissedGuesses);
     this.setState({
       dismissedGuesses: newState,
     });
-  },
+  };
 
   render() {
     if (!this.props.ready) {
@@ -325,8 +309,8 @@ const NotificationCenter = React.createClass({
         {messages}
       </ul>
     );
-  },
-});
+  }
+}
 
 export default withTracker(() => {
   const canUpdateGuesses = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');

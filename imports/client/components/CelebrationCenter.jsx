@@ -1,12 +1,16 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import createReactClass from 'create-react-class';
 import { Meteor } from 'meteor/meteor';
 import { ReactMeteorData } from 'meteor/react-meteor-data';
 import Flags from '../../flags.js';
 import subsCache from '../subsCache.js';
 import Celebration from './Celebration.jsx';
 
-const CelebrationCenter = React.createClass({
+/* eslint-disable react/prefer-es6-class */
+const CelebrationCenter = createReactClass({
+  displayName: 'CelebrationCenter',
+
   propTypes: {
     huntId: PropTypes.string.isRequired,
   },

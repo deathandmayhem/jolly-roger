@@ -2,7 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
 import Button from 'react-bootstrap/lib/Button';
 import Glyphicon from 'react-bootstrap/lib/Glyphicon';
 import classnames from 'classnames';
@@ -18,29 +17,27 @@ import tagShape from './tagShape.js';
 
 /* eslint-disable max-len */
 
-const Puzzle = React.createClass({
-  displayName: 'Puzzle',
-  propTypes: {
+class Puzzle extends React.PureComponent {
+  static displayName = 'Puzzle';
+
+  static propTypes = {
     puzzle: PropTypes.shape(puzzleShape).isRequired,
     allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired, // All tags associated with the hunt.
     layout: PropTypes.oneOf(['grid', 'table']).isRequired,
     canUpdate: PropTypes.bool.isRequired,
     suppressTags: PropTypes.arrayOf(PropTypes.string),
-  },
-  mixins: [PureRenderMixin],
+  };
 
-  getInitialState() {
-    return {
-      showEditModal: false,
-    };
-  },
+  state = {
+    showEditModal: false,
+  };
 
-  onEdit(state, callback) {
+  onEdit = (state, callback) => {
     Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
-  },
+  };
 
-  showEditModal() {
+  showEditModal = () => {
     if (this.state.showEditModal) {
       this.modalNode.show();
     } else {
@@ -48,9 +45,9 @@ const Puzzle = React.createClass({
         showEditModal: true,
       });
     }
-  },
+  };
 
-  editButton() {
+  editButton = () => {
     if (this.props.canUpdate) {
       return (
         <Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
@@ -59,7 +56,7 @@ const Puzzle = React.createClass({
       );
     }
     return null;
-  },
+  };
 
   render() {
     // id, title, answer, tags
@@ -134,7 +131,7 @@ const Puzzle = React.createClass({
         <TagList puzzleId={this.props.puzzle._id} tags={ownTags} linkToSearch={this.props.layout === 'grid'} />
       </div>
     );
-  },
-});
+  }
+}
 
 export default Puzzle;

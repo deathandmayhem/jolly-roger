@@ -8,27 +8,25 @@ import navAggregatorType from './navAggregatorType.jsx';
 
 /* eslint-disable max-len */
 
-const SetupPage = React.createClass({
-  propTypes: {
+class SetupPage extends React.Component {
+  static propTypes = {
     config: PropTypes.object,
     canSetupGDrive: PropTypes.bool.isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     navAggregator: navAggregatorType,
-  },
+  };
 
-  getInitialState() {
-    return {
-      state: 'idle',
-    };
-  },
+  state = {
+    state: 'idle',
+  };
 
-  dismissAlert() {
+  dismissAlert = () => {
     this.setState({ state: 'idle' });
-  },
+  };
 
-  requestComplete(token) {
+  requestComplete = (token) => {
     const secret = OAuth._retrieveCredentialSecret(token);
     this.setState({ state: 'submitting' });
     Meteor.call('setupGdriveCreds', token, secret, (error) => {
@@ -38,17 +36,17 @@ const SetupPage = React.createClass({
         this.setState({ state: 'success' });
       }
     });
-  },
+  };
 
-  showPopup() {
+  showPopup = () => {
     Google.requestCredential({
       requestPermissions: ['email', 'https://www.googleapis.com/auth/drive'],
       requestOfflineToken: true,
     }, this.requestComplete);
     return false;
-  },
+  };
 
-  renderBody() {
+  renderBody = () => {
     if (!this.props.canSetupGDrive) {
       return <div>This page is for administering the Jolly Roger web app</div>;
     }
@@ -87,7 +85,7 @@ const SetupPage = React.createClass({
         for Google Drive management. (This will replace any previously configured account)
       </div>
     );
-  },
+  };
 
   render() {
     return (
@@ -99,8 +97,8 @@ const SetupPage = React.createClass({
         {this.renderBody()}
       </this.context.navAggregator.NavItem>
     );
-  },
-});
+  }
+}
 
 export default withTracker(() => {
   const config = ServiceConfiguration.configurations.findOne({ service: 'google' });

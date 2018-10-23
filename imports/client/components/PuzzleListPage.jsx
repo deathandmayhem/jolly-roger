@@ -20,9 +20,10 @@ import Flags from '../../flags.js';
 
 /* eslint-disable max-len */
 
-const PuzzleListView = React.createClass({
-  displayName: 'PuzzleListView',
-  propTypes: {
+class PuzzleListView extends React.Component {
+  static displayName = 'PuzzleListView';
+
+  static propTypes = {
     location: PropTypes.object,
     huntId: PropTypes.string.isRequired,
     canAdd: PropTypes.bool.isRequired,
@@ -37,41 +38,39 @@ const PuzzleListView = React.createClass({
         Schemas.Tags.asReactPropTypes()
       )
     ).isRequired,
-  },
+  };
 
-  getInitialState() {
-    return {
-      displayMode: 'group', // One of ['group', 'unlock']
-      showSolved: true,
-    };
-  },
+  state = {
+    displayMode: 'group', // One of ['group', 'unlock']
+    showSolved: true,
+  };
 
   componentDidMount() {
     this.searchBarNode.focus();
-  },
+  }
 
-  onAdd(state, callback) {
+  onAdd = (state, callback) => {
     const { docType, ...puzzle } = state;
     Meteor.call('createPuzzle', puzzle, docType, callback);
-  },
+  };
 
-  onSearchStringChange(e) {
+  onSearchStringChange = (e) => {
     this.setSearchString(e.target.value);
-  },
+  };
 
-  getSearchString() {
+  getSearchString = () => {
     return this.props.location.query.q || '';
-  },
+  };
 
-  setSearchString(val) {
+  setSearchString = (val) => {
     const newQuery = val ? { q: val } : { q: undefined };
     browserHistory.replace({
       pathname: this.props.location.pathname,
       query: _.extend(this.props.location.query, newQuery),
     });
-  },
+  };
 
-  compileMatcher(searchKeys) {
+  compileMatcher = (searchKeys) => {
     const tagNames = _.indexBy(this.props.allTags, '_id');
     return function (puzzle) {
       // for key in searchKeys:
@@ -97,9 +96,9 @@ const PuzzleListView = React.createClass({
 
       return false;
     };
-  },
+  };
 
-  filteredPuzzles(puzzles) {
+  filteredPuzzles = (puzzles) => {
     const searchKeys = this.getSearchString().split(' ');
     let interestingPuzzles;
 
@@ -117,17 +116,17 @@ const PuzzleListView = React.createClass({
     } else {
       return _.filter(interestingPuzzles, (puzzle) => { return !puzzle.answer; });
     }
-  },
+  };
 
-  puzzlesByUnlock() {
+  puzzlesByUnlock = () => {
     // Sort and group after filtering
     const filteredPuzzles = this.filteredPuzzles(this.props.puzzles);
 
     // Sort by creation timestamp
     return _.sortBy(filteredPuzzles, (puzzle) => { return puzzle.createdAt; });
-  },
+  };
 
-  puzzleGroupsByRelevance() {
+  puzzleGroupsByRelevance = () => {
     // First, filter puzzles by search keys and unsolved (if selected).
     const filteredPuzzles = this.filteredPuzzles(this.props.puzzles);
 
@@ -190,9 +189,9 @@ const PuzzleListView = React.createClass({
     });
 
     return groups;
-  },
+  };
 
-  interestingnessOfGroup(group, indexedTags) {
+  interestingnessOfGroup = (group, indexedTags) => {
     // Rough idea: sort, from top to bottom:
     // -3 administrivia always floats to the top
     // -2 Group with unsolved puzzle with matching meta-for:<this group>
@@ -237,27 +236,27 @@ const PuzzleListView = React.createClass({
 
     if (hasUnsolvedMeta) return -1;
     return 0;
-  },
+  };
 
-  clearSearch() {
+  clearSearch = () => {
     this.setSearchString('');
-  },
+  };
 
-  switchView(newMode) {
+  switchView = (newMode) => {
     this.setState({
       displayMode: newMode,
     });
-  },
+  };
 
-  changeShowSolved(event) {
+  changeShowSolved = (event) => {
     this.setState({
       showSolved: event.target.checked,
     });
-  },
+  };
 
-  showAddModal() {
+  showAddModal = () => {
     this.addModalNode.show();
-  },
+  };
 
   render() {
     let bodyComponent;
@@ -366,11 +365,11 @@ const PuzzleListView = React.createClass({
         {bodyComponent}
       </div>
     );
-  },
-});
+  }
+}
 
-const PuzzleListPage = React.createClass({
-  propTypes: {
+class PuzzleListPage extends React.Component {
+  static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
@@ -380,7 +379,7 @@ const PuzzleListPage = React.createClass({
     canUpdate: PropTypes.bool,
     allPuzzles: PropTypes.arrayOf(PropTypes.shape(Schemas.Puzzles.asReactPropTypes())),
     allTags: PropTypes.arrayOf(PropTypes.shape(Schemas.Tags.asReactPropTypes())),
-  },
+  };
 
   render() {
     if (!this.props.ready) {
@@ -397,8 +396,8 @@ const PuzzleListPage = React.createClass({
         />
       );
     }
-  },
-});
+  }
+}
 
 const PuzzleListPageContainer = withTracker(({ params }) => {
   const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: params.huntId });

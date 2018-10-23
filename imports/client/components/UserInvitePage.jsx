@@ -9,31 +9,29 @@ import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Row from 'react-bootstrap/lib/Row';
 
-const UserInvitePage = React.createClass({
-  propTypes: {
+class UserInvitePage extends React.Component {
+  static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
-  },
+  };
 
-  contextTypes: {
+  static contextTypes = {
     router: PropTypes.object.isRequired,
-  },
+  };
 
-  getInitialState() {
-    return {
-      error: null,
-      email: '',
-    };
-  },
+  state = {
+    error: null,
+    email: '',
+  };
 
-  onEmailChanged(e) {
+  onEmailChanged = (e) => {
     this.setState({
       email: e.currentTarget.value,
     });
-  },
+  };
 
-  onSubmit(e) {
+  onSubmit = (e) => {
     e.preventDefault();
     Meteor.call('addToHunt', this.props.params.huntId, this.state.email, (error) => {
       if (error) {
@@ -42,9 +40,9 @@ const UserInvitePage = React.createClass({
         this.context.router.push(`/hunts/${this.props.params.huntId}`);
       }
     });
-  },
+  };
 
-  renderError() {
+  renderError = () => {
     if (this.state.error) {
       return (
         <Alert bsStyle="danger" className="text-center">
@@ -54,7 +52,7 @@ const UserInvitePage = React.createClass({
     }
 
     return undefined;
-  },
+  };
 
   render() {
     return (
@@ -100,7 +98,7 @@ const UserInvitePage = React.createClass({
         </Row>
       </div>
     );
-  },
-});
+  }
+}
 
 export default UserInvitePage;

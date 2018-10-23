@@ -39,10 +39,6 @@
       }
     ],
 
-    // We totally use React.createClass and mixins all over; refactor this later
-    "react/prefer-es6-class": ["off"],
-    "react/no-deprecated": ["off"],
-
     // We have files with multiple React components.  Maybe we should split them out
     // later, but right now I don't want to deal with this
     "react/no-multi-comp": ["off"],
@@ -65,6 +61,14 @@
 
     // We should really fix this if we can
     "react/forbid-prop-types": ["off"],
+
+    // This is complaining a lot and I don't really want to write dozens of lines of
+    // default prop values of `undefined`
+    "react/require-default-props": ["off"],
+
+    // This rule seems to be failing to detect that accessing this.props inside
+    // fat-arrow functions in fact use the prop
+    "react/no-unused-prop-types": ["off"],
 
     // The eslint guide seems to claim that adding "static" to method
     // definitions is a noop, but that doesn't seem to be true in practice, and I

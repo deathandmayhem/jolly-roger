@@ -3,25 +3,23 @@ import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-const DeepLink = React.createClass({
-  propTypes: {
+class DeepLink extends React.Component {
+  static propTypes = {
     children: PropTypes.node.isRequired,
     nativeUrl: PropTypes.string.isRequired,
     browserUrl: PropTypes.string.isRequired,
-  },
+  };
 
-  getInitialState() {
-    return { state: 'idle' };
-  },
+  state = { state: 'idle' };
 
-  onAttemptingNativeTimeout() {
+  onAttemptingNativeTimeout = () => {
     this.setState({ state: 'idle' });
     if (new Date() - this.state.startNativeLoad < 10000) {
       this.browserOpen();
     }
-  },
+  };
 
-  onClick() {
+  onClick = () => {
     // window.orientation is a good proxy for mobile device
     if (window.orientation) {
       this.setState({ state: 'attemptingNative', startNativeLoad: new Date() });
@@ -29,17 +27,17 @@ const DeepLink = React.createClass({
     } else {
       this.browserOpen();
     }
-  },
+  };
 
-  browserOpen() {
+  browserOpen = () => {
     window.open(this.props.browserUrl, '_blank');
-  },
+  };
 
-  nativeIframe() {
+  nativeIframe = () => {
     return (
       <iframe title="Open document" width="1px" height="1px" src={this.props.nativeUrl} />
     );
-  },
+  };
 
   render() {
     const rest = _.omit(this.props, 'children', 'nativeUrl', 'browserUrl');
@@ -49,7 +47,7 @@ const DeepLink = React.createClass({
         {this.props.children}
       </div>
     );
-  },
-});
+  }
+}
 
 export default DeepLink;
