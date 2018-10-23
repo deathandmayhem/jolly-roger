@@ -1,6 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import Ansible from '../ansible.js';
+import Locks from './models/lock.js';
+import Settings from './models/settings.js';
+import Documents from '../lib/models/documents.js';
 
 const MimeTypes = {
   spreadsheet: 'application/vnd.google-apps.spreadsheet',
@@ -12,7 +15,7 @@ const createDocument = function createDocument(name, type) {
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
 
-  const template = Models.Settings.findOne({ name: `gdrive.template.${type}` });
+  const template = Settings.findOne({ name: `gdrive.template.${type}` });
   const mimeType = MimeTypes[type];
 
   let file;
@@ -57,14 +60,14 @@ const grantPermission = function grantPermission(id, email, permission) {
 };
 
 const ensureDocument = function ensureDocument(puzzle, type = 'spreadsheet') {
-  let doc = Models.Documents.findOne({ puzzle: puzzle._id });
+  let doc = Documents.findOne({ puzzle: puzzle._id });
   if (!doc) {
     if (!gdrive) {
       throw new Meteor.Error(500, 'Google OAuth is not configured.');
     }
 
-    Models.Locks.withLock(`puzzle:${puzzle._id}:documents`, () => {
-      doc = Models.Documents.findOne({ puzzle: puzzle._id });
+    Locks.withLock(`puzzle:${puzzle._id}:documents`, () => {
+      doc = Documents.findOne({ puzzle: puzzle._id });
       if (!doc) {
         Ansible.log('Creating missing document for puzzle', {
           puzzle: puzzle._id,
@@ -77,7 +80,7 @@ const ensureDocument = function ensureDocument(puzzle, type = 'spreadsheet') {
           provider: 'google',
           value: { type, id: docId },
         };
-        doc._id = Models.Documents.insert(doc);
+        doc._id = Documents.insert(doc);
       }
     });
   }

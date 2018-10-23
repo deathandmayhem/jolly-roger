@@ -6,6 +6,8 @@ import { ReactMeteorData } from 'meteor/react-meteor-data';
 import Flags from '../../flags.js';
 import subsCache from '../subsCache.js';
 import Celebration from './Celebration.jsx';
+import Profiles from '../../lib/models/profiles.js';
+import Puzzles from '../../lib/models/puzzles.js';
 
 /* eslint-disable react/prefer-es6-class */
 const CelebrationCenter = createReactClass({
@@ -59,7 +61,7 @@ const CelebrationCenter = createReactClass({
         this.watchHandle.stop();
       }
 
-      this.watchHandle = Models.Puzzles.find().observe({
+      this.watchHandle = Puzzles.find().observe({
         changed: (newDoc, oldDoc) => {
           if ((!oldDoc.answer) && newDoc.answer) {
             this.onPuzzleSolved(newDoc);
@@ -68,7 +70,7 @@ const CelebrationCenter = createReactClass({
       });
     }
 
-    const profile = Models.Profiles.findOne({ _id: Meteor.userId() });
+    const profile = Profiles.findOne({ _id: Meteor.userId() });
     const muted = profile && profile.muteApplause;
 
     return {

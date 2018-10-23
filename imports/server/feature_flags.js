@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
+import FeatureFlags from '../lib/models/feature_flags.js';
 
 Meteor.methods({
   setFeatureFlag(name, type, random = null) {
@@ -10,6 +11,6 @@ Meteor.methods({
 
     Roles.checkPermission(this.userId, 'mongo.featureflags.update');
 
-    Models.FeatureFlags.upsert({ name }, { $set: { type, random } });
+    FeatureFlags.upsert({ name }, { $set: { type, random } });
   },
 });

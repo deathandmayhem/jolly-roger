@@ -1,17 +1,7 @@
-import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+import Base from '../../lib/models/base.js';
+import SettingsSchema from '../schemas/settings.js';
 
-Schemas.Settings = new SimpleSchema([
-  Schemas.Base,
-  {
-    name: {
-      type: String,
-    },
-    value: {
-      type: Object,
-      blackbox: true,
-    },
-  },
-]);
+const Settings = new Base('settings');
+Settings.attachSchema(SettingsSchema);
 
-Models.Settings = new Models.Base('settings');
-Models.Settings.attachSchema(Schemas.Settings);
+export default Settings;

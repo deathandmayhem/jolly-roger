@@ -1,9 +1,10 @@
 import { Migrations } from 'meteor/percolate:migrations';
+import APIKeys from '../models/api_keys.js';
 
 Migrations.add({
   version: 11,
   name: 'Add indexes for API keys',
   up() {
-    Models.APIKeys._ensureIndex({ key: 1 });
+    APIKeys._ensureIndex({ key: 1 });
   },
 });

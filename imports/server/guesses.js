@@ -1,11 +1,14 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import Ansible from '../ansible.js';
+import ChatMessages from '../lib/models/chats.js';
+import Guesses from '../lib/models/guess.js';
+import Puzzles from '../lib/models/puzzles.js';
 
 function addChatMessage(guess, newState) {
   const message = `Guess ${guess.guess} was marked ${newState}`;
-  const puzzle = Models.Puzzles.findOne(guess.puzzle);
-  Models.ChatMessages.insert({
+  const puzzle = Puzzles.findOne(guess.puzzle);
+  ChatMessages.insert({
     hunt: puzzle.hunt,
     puzzle: guess.puzzle,
     text: message,
@@ -16,7 +19,7 @@ function addChatMessage(guess, newState) {
 function transitionGuess(guess, newState) {
   if (newState === guess.state) return;
 
-  Models.Guesses.update({
+  Guesses.update({
     _id: guess._id,
   }, {
     $set: {
@@ -28,7 +31,7 @@ function transitionGuess(guess, newState) {
   if (newState === 'correct') {
     // Mark this puzzle as solved.
     // TODO: run custom hook logic (e.g. archive Slack channel, etc.)
-    Models.Puzzles.update({
+    Puzzles.update({
       _id: guess.puzzle,
     }, {
       $set: {
@@ -39,7 +42,7 @@ function transitionGuess(guess, newState) {
   } else if (guess.state === 'correct') {
     // Transitioning from correct -> something else: un-mark that puzzle as solved.
     // TODO: run custom hook login (e.g. unarchive Slack channel, etc.)
-    Models.Puzzles.update({
+    Puzzles.update({
       _id: guess.puzzle,
     }, {
       $unset: {
@@ -58,7 +61,7 @@ Meteor.methods({
     check(direction, Number);
     check(confidence, Number);
 
-    const puzzle = Models.Puzzles.findOne(puzzleId);
+    const puzzle = Puzzles.findOne(puzzleId);
 
     Ansible.log('New guess', {
       hunt: puzzle.hunt,
@@ -68,7 +71,7 @@ Meteor.methods({
       direction,
       confidence,
     });
-    Models.Guesses.insert({
+    Guesses.insert({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       guess,
@@ -81,7 +84,7 @@ Meteor.methods({
   markGuessPending(guessId) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
-    const guess = Models.Guesses.findOne(guessId);
+    const guess = Guesses.findOne(guessId);
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'pending' });
     transitionGuess(guess, 'pending');
@@ -90,7 +93,7 @@ Meteor.methods({
   markGuessCorrect(guessId) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
-    const guess = Models.Guesses.findOne(guessId);
+    const guess = Guesses.findOne(guessId);
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'correct' });
     transitionGuess(guess, 'correct');
@@ -99,7 +102,7 @@ Meteor.methods({
   markGuessIncorrect(guessId) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
-    const guess = Models.Guesses.findOne(guessId);
+    const guess = Guesses.findOne(guessId);
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'incorrect' });
     transitionGuess(guess, 'incorrect');
@@ -108,7 +111,7 @@ Meteor.methods({
   markGuessRejected(guessId) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
-    const guess = Models.Guesses.findOne(guessId);
+    const guess = Guesses.findOne(guessId);
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'rejected' });
     transitionGuess(guess, 'rejected');

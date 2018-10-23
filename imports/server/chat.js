@@ -1,6 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { postSlackMessage } from './slack.js';
+import ChatMessages from '../lib/models/chats.js';
+import Hunts from '../lib/models/hunts.js';
+import Profiles from '../lib/models/profiles.js';
+import Puzzles from '../lib/models/puzzles.js';
 
 Meteor.methods({
   sendChatMessage(puzzleId, message) {
@@ -8,12 +12,12 @@ Meteor.methods({
     check(puzzleId, String);
     check(message, String);
 
-    const puzzle = Models.Puzzles.findOne(puzzleId);
+    const puzzle = Puzzles.findOne(puzzleId);
     if (!puzzle) {
       throw new Meteor.Error(404, 'Unknown puzzle');
     }
 
-    Models.ChatMessages.insert({
+    ChatMessages.insert({
       puzzle: puzzleId,
       hunt: puzzle.hunt,
       text: message,
@@ -23,10 +27,10 @@ Meteor.methods({
 
     this.unblock();
 
-    const hunt = Models.Hunts.findOne(puzzle.hunt);
+    const hunt = Hunts.findOne(puzzle.hunt);
 
     if (hunt.firehoseSlackChannel) {
-      const profile = Models.Profiles.findOne(this.userId);
+      const profile = Profiles.findOne(this.userId);
       let username = null;
       if (profile && profile.slackHandle) {
         username = profile.slackHandle;

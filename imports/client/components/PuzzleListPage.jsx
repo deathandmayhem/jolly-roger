@@ -17,6 +17,10 @@ import PuzzleList from './PuzzleList.jsx';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup.jsx';
 import PuzzleModalForm from './PuzzleModalForm.jsx';
 import Flags from '../../flags.js';
+import PuzzlesSchema from '../../lib/schemas/puzzles.js';
+import TagsSchema from '../../lib/schemas/tags.js';
+import Puzzles from '../../lib/models/puzzles.js';
+import Tags from '../../lib/models/tags.js';
 
 /* eslint-disable max-len */
 
@@ -30,12 +34,12 @@ class PuzzleListView extends React.Component {
     canUpdate: PropTypes.bool.isRequired,
     puzzles: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Puzzles.asReactPropTypes()
+        PuzzlesSchema.asReactPropTypes()
       )
     ).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Tags.asReactPropTypes()
+        TagsSchema.asReactPropTypes()
       )
     ).isRequired,
   };
@@ -377,8 +381,8 @@ class PuzzleListPage extends React.Component {
     ready: PropTypes.bool.isRequired,
     canAdd: PropTypes.bool,
     canUpdate: PropTypes.bool,
-    allPuzzles: PropTypes.arrayOf(PropTypes.shape(Schemas.Puzzles.asReactPropTypes())),
-    allTags: PropTypes.arrayOf(PropTypes.shape(Schemas.Tags.asReactPropTypes())),
+    allPuzzles: PropTypes.arrayOf(PropTypes.shape(PuzzlesSchema.asReactPropTypes())),
+    allTags: PropTypes.arrayOf(PropTypes.shape(TagsSchema.asReactPropTypes())),
   };
 
   render() {
@@ -418,8 +422,8 @@ const PuzzleListPageContainer = withTracker(({ params }) => {
       ready,
       canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
-      allPuzzles: Models.Puzzles.find({ hunt: params.huntId }).fetch(),
-      allTags: Models.Tags.find({ hunt: params.huntId }).fetch(),
+      allPuzzles: Puzzles.find({ hunt: params.huntId }).fetch(),
+      allTags: Tags.find({ hunt: params.huntId }).fetch(),
     };
   }
 })(PuzzleListPage);

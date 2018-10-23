@@ -5,6 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import googleapis from 'googleapis';
 import Ansible from '../ansible.js';
+import Settings from './models/settings.js';
 
 let oauthClient = null;
 gdrive = null;
@@ -59,7 +60,7 @@ const updateOauthCredentials = function updateOauthCredentials(doc) {
 
 Meteor.startup(() => {
   const oauthConfigCursor = ServiceConfiguration.configurations.find({ service: 'google' });
-  const oauthCredentialsCursor = Models.Settings.find({ name: 'gdrive.credential' });
+  const oauthCredentialsCursor = Settings.find({ name: 'gdrive.credential' });
   oauthConfigCursor.observe({
     added: updateOauthConfig,
     changed: updateOauthConfig,

@@ -2,82 +2,11 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { _ } from 'meteor/underscore';
 import { check, Match } from 'meteor/check';
-import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-
-// TODO: make these into imports
-/* global Schemas: true, Models: true */
-/* eslint-disable consistent-return */
-
-Schemas = {};
-Models = {};
-
-Schemas.Base = new SimpleSchema({
-  deleted: {
-    type: Boolean,
-    autoValue() {
-      if (this.isSet) {
-        return;
-      }
-
-      if (this.isInsert) {
-        return false;
-      } else if (this.isUpsert) {
-        return { $setOnInsert: false };
-      }
-    },
-  },
-  createdAt: {
-    type: Date,
-    autoValue() {
-      if (this.isInsert) {
-        return new Date();
-      } else if (this.isUpsert) {
-        return { $setOnInsert: new Date() };
-      } else {
-        this.unset(); // Prevent user from supplying their own value
-      }
-    },
-  },
-  createdBy: {
-    type: String,
-    regEx: SimpleSchema.RegEx.Id,
-    autoValue() {
-      if (this.isInsert) {
-        return this.userId;
-      } else if (this.isUpsert) {
-        return { $setOnInsert: this.userId };
-      } else {
-        this.unset(); // Prevent user from supplying their own value
-      }
-    },
-  },
-  updatedAt: {
-    type: Date,
-    denyInsert: true,
-    optional: true,
-    autoValue() {
-      if (this.isUpdate) {
-        return new Date();
-      }
-    },
-  },
-  updatedBy: {
-    type: String,
-    regEx: SimpleSchema.RegEx.Id,
-    denyInsert: true,
-    optional: true,
-    autoValue() {
-      if (this.isUpdate) {
-        return this.userId;
-      }
-    },
-  },
-});
 
 const formatQuery = Symbol('formatQuery');
 const formatOptions = Symbol('formatOptions');
-Models.formatQuery = formatQuery;
-Models.Base = class Base extends Mongo.Collection {
+
+class Base extends Mongo.Collection {
   constructor(name, options = {}) {
     // Namespace table name in mongo
     super(`jr_${name}`, options);
@@ -195,4 +124,6 @@ Models.Base = class Base extends Mongo.Collection {
       publishFunc(this.findAllowingDeleted.bind(this))
     );
   }
-};
+}
+
+export default Base;

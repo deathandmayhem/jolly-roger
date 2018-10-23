@@ -5,6 +5,8 @@ import { withTracker } from 'meteor/react-meteor-data';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import ProfileList from './ProfileList.jsx';
+import ProfilesSchema from '../../lib/schemas/profiles.js';
+import Profiles from '../../lib/models/profiles.js';
 
 class HuntProfileListPage extends React.Component {
   static propTypes = {
@@ -13,7 +15,7 @@ class HuntProfileListPage extends React.Component {
     }).isRequired,
     ready: PropTypes.bool.isRequired,
     canInvite: PropTypes.bool.isRequired,
-    profiles: PropTypes.arrayOf(PropTypes.shape(Schemas.Profiles.asReactPropTypes())).isRequired,
+    profiles: PropTypes.arrayOf(PropTypes.shape(ProfilesSchema.asReactPropTypes())).isRequired,
   };
 
   static contextTypes = {
@@ -61,7 +63,7 @@ const HuntProfileListPageContainer = withTracker(({ params }) => {
   );
 
   const hunters = Meteor.users.find({ hunts: params.huntId }).map(u => u._id);
-  const profiles = Models.Profiles.find(
+  const profiles = Profiles.find(
     { _id: { $in: hunters } },
     { sort: { displayName: 1 } },
   ).fetch();

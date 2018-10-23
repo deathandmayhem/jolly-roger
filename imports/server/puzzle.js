@@ -5,16 +5,20 @@ import { _ } from 'meteor/underscore';
 import Ansible from '../ansible.js';
 import { ensureDocument, renameDocument, grantPermission } from './gdrive.js';
 import Flags from '../flags.js';
+import DocumentPermissions from '../lib/models/document_permissions.js';
+import Profiles from '../lib/models/profiles.js';
+import Puzzles from '../lib/models/puzzles.js';
+import Tags from '../lib/models/tags.js';
 // TODO: gdrive, globalHooks
 
 function getOrCreateTagByName(huntId, name) {
-  const existingTag = Models.Tags.findOne({ hunt: huntId, name });
+  const existingTag = Tags.findOne({ hunt: huntId, name });
   if (existingTag) {
     return existingTag;
   }
 
   Ansible.log('Creating a new tag', { hunt: huntId, name });
-  const newTagId = Models.Tags.insert({ hunt: huntId, name });
+  const newTagId = Tags.insert({ hunt: huntId, name });
   return {
     _id: newTagId,
     hunt: huntId,
@@ -52,7 +56,7 @@ Meteor.methods({
       ensureDocument(fullPuzzle, docType);
     }
 
-    Models.Puzzles.insert(fullPuzzle);
+    Puzzles.insert(fullPuzzle);
 
 
     // Run any puzzle-creation hooks, like creating a default document
@@ -72,7 +76,7 @@ Meteor.methods({
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.update');
 
-    const oldPuzzle = Models.Puzzles.findOne(puzzleId);
+    const oldPuzzle = Puzzles.findOne(puzzleId);
     if (oldPuzzle.hunt !== puzzle.hunt) {
       throw new Meteor.Error(400, 'Can not change the hunt of a puzzle. That would be weird');
     }
@@ -88,7 +92,7 @@ Meteor.methods({
       title: puzzle.title,
       user: this.userId,
     });
-    Models.Puzzles.update(
+    Puzzles.update(
       puzzleId,
       { $set: _.extend({}, puzzle, { tags: tagIds }) },
     );
@@ -109,7 +113,7 @@ Meteor.methods({
     check(newTagName, String);
 
     // Look up which hunt the specified puzzle is from.
-    const hunt = Models.Puzzles.findOne({
+    const hunt = Puzzles.findOne({
       _id: puzzleId,
     }, {
       fields: {
@@ -121,7 +125,7 @@ Meteor.methods({
     const tagId = getOrCreateTagByName(huntId, newTagName)._id;
 
     Ansible.log('Tagging puzzle', { puzzle: puzzleId, tag: newTagName });
-    Models.Puzzles.update({
+    Puzzles.update({
       _id: puzzleId,
     }, {
       $addToSet: {
@@ -138,7 +142,7 @@ Meteor.methods({
     check(tagId, String);
 
     Ansible.log('Untagging puzzle', { puzzle: puzzleId, tag: tagId });
-    Models.Puzzles.update({
+    Puzzles.update({
       _id: puzzleId,
     }, {
       $pull: {
@@ -152,10 +156,10 @@ Meteor.methods({
     check(tagId, String);
     check(newName, String);
 
-    const tag = Models.Tags.findOne(tagId);
+    const tag = Tags.findOne(tagId);
     if (tag) {
       Ansible.log('Renaming tag', { tag: tagId, newName });
-      Models.Tags.update({
+      Tags.update({
         _id: tagId,
       }, {
         $set: {
@@ -170,7 +174,7 @@ Meteor.methods({
     check(puzzleId, String);
 
     const user = Meteor.users.findOne(this.userId);
-    const puzzle = Models.Puzzles.findOne(puzzleId);
+    const puzzle = Puzzles.findOne(puzzleId);
     if (!puzzle || !_.contains(user.hunts, puzzle.hunt)) {
       throw new Meteor.Error(404, 'Unknown puzzle');
     }
@@ -183,7 +187,7 @@ Meteor.methods({
       return;
     }
 
-    const profile = Models.Profiles.findOne(this.userId);
+    const profile = Profiles.findOne(this.userId);
     if (!profile.googleAccount) {
       return;
     }
@@ -193,7 +197,7 @@ Meteor.methods({
       user: this.userId,
       googleAccount: profile.googleAccount,
     };
-    if (Models.DocumentPermissions.findOne(perm, { fields: { _id: 1 } })) {
+    if (DocumentPermissions.findOne(perm, { fields: { _id: 1 } })) {
       return;
     }
 
@@ -201,7 +205,7 @@ Meteor.methods({
     grantPermission(doc.value.id, profile.googleAccount, 'writer');
 
     try {
-      Models.DocumentPermissions.insert(perm);
+      DocumentPermissions.insert(perm);
     } catch (e) {
       // 11000 is a duplicate key error
       if (e.name !== 'MongoError' || e.code !== 11000) {

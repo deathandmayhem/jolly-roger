@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import Ansible from '../ansible.js';
+import Profiles from '../lib/models/profiles.js';
 
 Meteor.methods({
   saveProfile(newProfile) {
@@ -16,7 +17,7 @@ Meteor.methods({
     const primaryEmail = user.emails[0].address;
 
     Ansible.log('Updating profile for user', { user: this.userId });
-    Models.Profiles.update({
+    Profiles.update({
       _id: this.userId,
     }, {
       $set: {
@@ -48,11 +49,11 @@ Meteor.methods({
       email,
     });
 
-    Models.Profiles.update(this.userId, { $set: { googleAccount: email } });
+    Profiles.update(this.userId, { $set: { googleAccount: email } });
   },
 
   unlinkUserGoogleAccount() {
     check(this.userId, String);
-    Models.Profiles.update(this.userId, { $unset: { googleAccount: 1 } });
+    Profiles.update(this.userId, { $unset: { googleAccount: 1 } });
   },
 });

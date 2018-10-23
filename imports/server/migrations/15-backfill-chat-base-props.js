@@ -1,14 +1,16 @@
 import { Migrations } from 'meteor/percolate:migrations';
 import { dropIndex } from '../migrations.js';
+import ChatMessages from '../../lib/models/chats.js';
+import Puzzles from '../../lib/models/puzzles.js';
 
 Migrations.add({
   version: 15,
   name: 'Backfill props from the base schema on chat messages',
   up() {
     const hunts = {};
-    Models.Puzzles.find().forEach((p) => { hunts[p._id] = p.hunt; });
+    Puzzles.find().forEach((p) => { hunts[p._id] = p.hunt; });
 
-    Models.ChatMessages.findAllowingDeleted({
+    ChatMessages.findAllowingDeleted({
       $or: [
         { deleted: null },
         { createdAt: null },
@@ -17,7 +19,7 @@ Migrations.add({
         { hunt: null },
       ],
     }).forEach((m) => {
-      Models.ChatMessages.update(m._id, {
+      ChatMessages.update(m._id, {
         $set: {
           deleted: m.deleted === undefined ? false : m.deleted,
           puzzle: m.puzzle === undefined ? m.puzzleId : m.puzzle,
@@ -34,7 +36,7 @@ Migrations.add({
       });
     });
 
-    dropIndex(Models.ChatMessages, 'puzzleId_1_timestamp_-1');
-    Models.ChatMessages._ensureIndex({ deleted: 1, puzzle: 1 });
+    dropIndex(ChatMessages, 'puzzleId_1_timestamp_-1');
+    ChatMessages._ensureIndex({ deleted: 1, puzzle: 1 });
   },
 });

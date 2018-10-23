@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import Ansible from '../ansible.js';
+import Settings from './models/settings.js';
 
 Meteor.methods({
   setupGdriveCreds(key, secret) {
@@ -15,7 +16,7 @@ Meteor.methods({
       email,
       user: this.userId,
     });
-    Models.Settings.upsert({ name: 'gdrive.credential' },
+    Settings.upsert({ name: 'gdrive.credential' },
       { $set: { value: { refreshToken, email } } });
   },
 });

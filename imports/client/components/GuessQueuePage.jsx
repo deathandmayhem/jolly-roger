@@ -7,6 +7,11 @@ import classnames from 'classnames';
 import { withTracker } from 'meteor/react-meteor-data';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
+import GuessesSchema from '../../lib/schemas/guess.js';
+import PuzzlesSchema from '../../lib/schemas/puzzles.js';
+import Guesses from '../../lib/models/guess.js';
+import Profiles from '../../lib/models/profiles.js';
+import Puzzles from '../../lib/models/puzzles.js';
 
 /* eslint-disable max-len */
 
@@ -37,9 +42,9 @@ const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Fri
 class GuessBlock extends React.Component {
   static propTypes = {
     canEdit: PropTypes.bool.isRequired,
-    guess: PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
+    guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired,
     createdByDisplayName: PropTypes.string.isRequired,
-    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
   };
 
   markPending = () => {
@@ -113,8 +118,8 @@ class GuessQueuePage extends React.Component {
       huntId: PropTypes.string.isRequired,
     }).isRequired,
     ready: PropTypes.bool.isRequired,
-    guesses: PropTypes.arrayOf(PropTypes.shape(Schemas.Guesses.asReactPropTypes())).isRequired,
-    puzzles: PropTypes.objectOf(PropTypes.shape(Schemas.Puzzles.asReactPropTypes())).isRequired,
+    guesses: PropTypes.arrayOf(PropTypes.shape(GuessesSchema.asReactPropTypes())).isRequired,
+    puzzles: PropTypes.objectOf(PropTypes.shape(PuzzlesSchema.asReactPropTypes())).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
     canEdit: PropTypes.bool.isRequired,
   };
@@ -166,13 +171,13 @@ const GuessQueuePageContainer = withTracker(({ params }) => {
   const puzzlesHandle = subsCache.subscribe('mongo.puzzles', {
     hunt: params.huntId,
   });
-  const displayNamesHandle = Models.Profiles.subscribeDisplayNames(subsCache);
+  const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
   const ready = guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
-  const guesses = ready ? Models.Guesses.find({ hunt: params.huntId }, { sort: { createdAt: -1 } }).fetch() : [];
-  const puzzles = ready ? _.indexBy(Models.Puzzles.find({ hunt: params.huntId }).fetch(), '_id') : {};
+  const guesses = ready ? Guesses.find({ hunt: params.huntId }, { sort: { createdAt: -1 } }).fetch() : [];
+  const puzzles = ready ? _.indexBy(Puzzles.find({ hunt: params.huntId }).fetch(), '_id') : {};
   let displayNames = {};
   if (ready) {
-    displayNames = Models.Profiles.displayNames();
+    displayNames = Profiles.displayNames();
   }
 
   const canEdit = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');

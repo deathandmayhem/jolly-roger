@@ -12,12 +12,14 @@ import Label from 'react-bootstrap/lib/Label';
 import { withTracker } from 'meteor/react-meteor-data';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
+import ProfilesSchema from '../../lib/schemas/profiles.js';
+import Profiles from '../../lib/models/profiles.js';
 
 /* eslint-disable max-len */
 
 class OthersProfilePage extends React.Component {
   static propTypes = {
-    profile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
+    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()),
     viewerCanMakeOperator: PropTypes.bool.isRequired,
     targetIsAdmin: PropTypes.bool.isRequired,
   };
@@ -62,7 +64,7 @@ class OthersProfilePage extends React.Component {
 
 class GoogleLinkBlock extends React.Component {
   static propTypes = {
-    profile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
+    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()),
     config: PropTypes.object,
   };
 
@@ -196,7 +198,7 @@ const GoogleLinkBlockContainer = withTracker(() => {
 
 class OwnProfilePage extends React.Component {
   static propTypes = {
-    initialProfile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()),
+    initialProfile: PropTypes.shape(ProfilesSchema.asReactPropTypes()),
     operating: PropTypes.bool,
     canMakeOperator: PropTypes.bool,
   };
@@ -221,7 +223,7 @@ class OwnProfilePage extends React.Component {
       return null;
     }
 
-    const valid = Schemas.Profiles.namedContext().validateOne({
+    const valid = ProfilesSchema.namedContext().validateOne({
       slackHandle: this.state.slackHandleValue,
     }, 'slackHandle');
     return valid ? 'success' : 'error';
@@ -400,7 +402,7 @@ class ProfilePage extends React.Component {
     }).isRequired,
     ready: PropTypes.bool.isRequired,
     isSelf: PropTypes.bool.isRequired,
-    profile: PropTypes.shape(Schemas.Profiles.asReactPropTypes()).isRequired,
+    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired,
     viewerCanMakeOperator: PropTypes.bool.isRequired,
     viewerIsAdmin: PropTypes.bool.isRequired,
     targetIsAdmin: PropTypes.bool.isRequired,
@@ -462,7 +464,7 @@ const ProfilePageContainer = withTracker(({ params }) => {
   const data = {
     ready: user && profileHandle.ready() && userRolesHandle.ready(),
     isSelf: (Meteor.userId() === uid),
-    profile: Models.Profiles.findOne(uid) || {
+    profile: Profiles.findOne(uid) || {
       _id: uid,
       displayName: '',
       primaryEmail: defaultEmail,

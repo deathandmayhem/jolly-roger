@@ -5,6 +5,8 @@ import { Accounts } from 'meteor/accounts-base';
 import { Email } from 'meteor/email';
 import Ansible from '../ansible.js';
 import List from './blanche.js';
+import Hunts from '../lib/models/hunts.js';
+import Profiles from '../lib/models/profiles.js';
 
 const existingJoinEmail = (user, hunt, joinerName) => {
   const email = user && user.emails && user.emails[0] && user.emails[0].address;
@@ -37,7 +39,7 @@ Meteor.methods({
     check(huntId, String);
     check(email, String);
 
-    const hunt = Models.Hunts.findOne(huntId);
+    const hunt = Hunts.findOne(huntId);
     if (!hunt) {
       throw new Meteor.Error(404, 'Unknown hunt');
     }
@@ -83,7 +85,7 @@ Meteor.methods({
       Accounts.sendEnrollmentEmail(joineeUser._id);
       Ansible.info('Sent invitation email to new user', { invitedBy: this.userId, email });
     } else if (joineeUser._id !== this.userId) {
-      const joinerProfile = Models.Profiles.findOne(this.userId);
+      const joinerProfile = Profiles.findOne(this.userId);
       const joinerName = joinerProfile && joinerProfile.displayName !== '' ?
         joinerProfile.displayName :
         null;

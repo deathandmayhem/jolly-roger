@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Accounts } from 'meteor/accounts-base';
 import express from 'express';
+import Profiles from '../../../lib/models/profiles.js';
 
 const router = new express.Router();
 
@@ -10,7 +11,7 @@ const findUserByEmail = function findUserByEmail(email) {
   // they registered with, or by the Google account they've
   // linked. Try both.
 
-  const profile = Models.Profiles.findOne({ googleAccount: email });
+  const profile = Profiles.findOne({ googleAccount: email });
   if (profile) {
     return { profile, user: Meteor.users.findOne(profile._id) };
   }
@@ -20,7 +21,7 @@ const findUserByEmail = function findUserByEmail(email) {
     return { user: null, profile: null };
   }
 
-  return { user, profile: Models.Profiles.findOne(user._id) };
+  return { user, profile: Profiles.findOne(user._id) };
 };
 
 // You are active if you've logged in in the last year

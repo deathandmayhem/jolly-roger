@@ -1,33 +1,14 @@
 // Locks are a server-only class
 import { Meteor } from 'meteor/meteor';
-import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import Ansible from '../../ansible.js';
+import LockSchema from '../schemas/lock.js';
 
 const Future = Npm.require('fibers/future');
-
-Schemas.Lock = new SimpleSchema({
-  name: {
-    type: String,
-  },
-  createdAt: {
-    type: Date,
-    // eslint-disable-next-line consistent-return
-    autoValue() {
-      if (this.isInsert) {
-        return new Date();
-      } else if (this.isUpsert) {
-        return { $setOnInsert: new Date() };
-      } else {
-        this.unset(); // Prevent user from supplying their own value
-      }
-    },
-  },
-});
 
 // 10 seconds
 const PREEMPT_TIMEOUT = 10000;
 
-Models.Locks = new class extends Meteor.Collection {
+const Locks = new class extends Meteor.Collection {
   constructor() {
     super('jr_locks');
   }
@@ -99,4 +80,6 @@ Models.Locks = new class extends Meteor.Collection {
     }
   }
 }();
-Models.Locks.attachSchema(Schemas.Lock);
+Locks.attachSchema(LockSchema);
+
+export default Locks;

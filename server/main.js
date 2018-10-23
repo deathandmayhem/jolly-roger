@@ -1,27 +1,9 @@
 // explicitly import all the stuff from lib/ since mainModule skips autoloading
 // things
 import '../imports/lib/config/accounts.js';
-import '../imports/lib/models/00index.js';
-import '../imports/lib/models/announcements.js';
-import '../imports/lib/models/chats.js';
-import '../imports/lib/models/document_permissions.js';
-import '../imports/lib/models/documents.js';
-import '../imports/lib/models/feature_flags.js';
-import '../imports/lib/models/guess.js';
-import '../imports/lib/models/hunts.js';
-import '../imports/lib/models/pending_announcements.js';
-import '../imports/lib/models/profiles.js';
 import '../imports/lib/models/proptypes.js';
-import '../imports/lib/models/puzzles.js';
-import '../imports/lib/models/tags.js';
 import '../imports/lib/models/users.js';
 import '../imports/lib/roles.js';
-
-// explicitly import server-only models
-import '../imports/server/models/api_keys.js';
-import '../imports/server/models/lock.js';
-import '../imports/server/models/settings.js';
-import '../imports/server/models/subscribers.js';
 
 // register migrations
 import '../imports/server/migrations/1-basic-indexes.js';
@@ -64,4 +46,10 @@ import '../imports/server/profile.js';
 import '../imports/server/puzzle.js';
 import '../imports/server/setup.js';
 import '../imports/server/slack-methods.js';
+import '../imports/server/subscribers.js';
+import '../imports/server/operator.js';
 import '../imports/server/users.js';
+
+// Load facades for convenient shell access.
+import Schemas from '../imports/lib/schemas/facade.js'; // eslint-disable-line no-unused-vars
+import Models from '../imports/lib/models/facade.js'; // eslint-disable-line no-unused-vars
