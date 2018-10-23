@@ -50,7 +50,6 @@ import '../imports/server/subscribers.js';
 import '../imports/server/operator.js';
 import '../imports/server/users.js';
 
-// import the shared schemas/models facades for shell convenience.
-// These aren't required for correctness; you can remove them safely.
+// Load facades for convenient shell access.
 import Schemas from '../imports/lib/schemas/facade.js'; // eslint-disable-line no-unused-vars
 import Models from '../imports/lib/models/facade.js'; // eslint-disable-line no-unused-vars
