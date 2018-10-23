@@ -4,6 +4,9 @@ import PropTypes from 'prop-types';
 import { jQuery } from 'meteor/jquery';
 import { withTracker } from 'meteor/react-meteor-data';
 import ReactSelect2 from './ReactSelect2.jsx';
+import TagsSchema from '../../lib/schemas/tags.js';
+import Puzzles from '../../lib/models/puzzles.js';
+import Tags from '../../lib/models/tags.js';
 
 class TagEditor extends React.Component {
   // TODO: this should support autocomplete to reduce human error.
@@ -12,7 +15,7 @@ class TagEditor extends React.Component {
     puzzleId: PropTypes.string.isRequired,
     onSubmit: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
-    allTags: PropTypes.arrayOf(PropTypes.shape(Schemas.Tags.asReactPropTypes())).isRequired,
+    allTags: PropTypes.arrayOf(PropTypes.shape(TagsSchema.asReactPropTypes())).isRequired,
   };
 
   componentDidMount() {
@@ -46,8 +49,8 @@ class TagEditor extends React.Component {
 }
 
 const TagEditorContainer = withTracker(({ puzzleId }) => {
-  const puzzle = Models.Puzzles.findOne(puzzleId);
-  return { allTags: Models.Tags.find({ hunt: puzzle.hunt }).fetch() };
+  const puzzle = Puzzles.findOne(puzzleId);
+  return { allTags: Tags.find({ hunt: puzzle.hunt }).fetch() };
 })(TagEditor);
 
 TagEditorContainer.propTypes = {

@@ -4,11 +4,13 @@ import { withTracker } from 'meteor/react-meteor-data';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import ProfileList from './ProfileList.jsx';
+import ProfileSchema from '../../lib/schemas/profiles.js';
+import Profiles from '../../lib/models/profiles.js';
 
 class AllProfileListPage extends React.Component {
   static propTypes = {
     ready: PropTypes.bool.isRequired,
-    profiles: PropTypes.arrayOf(PropTypes.shape(Schemas.Profiles.asReactPropTypes())).isRequired,
+    profiles: PropTypes.arrayOf(PropTypes.shape(ProfileSchema.asReactPropTypes())).isRequired,
   };
 
   static contextTypes = {
@@ -38,7 +40,7 @@ class AllProfileListPage extends React.Component {
 export default withTracker(() => {
   const profilesHandle = subsCache.subscribe('mongo.profiles');
   const ready = profilesHandle.ready();
-  const profiles = ready ? Models.Profiles.find({}, { sort: { displayName: 1 } }).fetch() : [];
+  const profiles = ready ? Profiles.find({}, { sort: { displayName: 1 } }).fetch() : [];
   return {
     ready,
     profiles,

@@ -11,11 +11,13 @@ import marked from 'marked';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import CelebrationCenter from './CelebrationCenter.jsx';
+import HuntsSchema from '../../lib/schemas/hunts.js';
+import Hunts from '../../lib/models/hunts.js';
 
 class HuntDeletedError extends React.Component {
   static propTypes = {
     huntId: PropTypes.string.isRequired,
-    hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
     canUndestroy: PropTypes.bool.isRequired,
   };
 
@@ -24,7 +26,7 @@ class HuntDeletedError extends React.Component {
   };
 
   undestroy = () => {
-    Models.Hunts.undestroy(this.props.hunt._id);
+    Hunts.undestroy(this.props.hunt._id);
   };
 
   undestroyButton = () => {
@@ -58,7 +60,7 @@ class HuntDeletedError extends React.Component {
 
 const HuntDeletedErrorContainer = withTracker(({ huntId }) => {
   return {
-    hunt: Models.Hunts.findOneDeleted(huntId),
+    hunt: Hunts.findOneDeleted(huntId),
     canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
   };
 })(HuntDeletedError);
@@ -70,7 +72,7 @@ HuntDeletedErrorContainer.propTypes = {
 class HuntMemberError extends React.Component {
   static propTypes = {
     huntId: PropTypes.string.isRequired,
-    hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
     canJoin: PropTypes.bool,
   };
 
@@ -118,7 +120,7 @@ class HuntMemberError extends React.Component {
 
 const HuntMemberErrorContainer = withTracker(({ huntId }) => {
   return {
-    hunt: Models.Hunts.findOne(huntId),
+    hunt: Hunts.findOne(huntId),
     canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', huntId),
   };
 })(HuntMemberError);
@@ -134,7 +136,7 @@ class HuntApp extends React.Component {
     }).isRequired,
     children: PropTypes.node,
     ready: PropTypes.bool.isRequired,
-    hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
     member: PropTypes.bool.isRequired,
   };
 
@@ -194,7 +196,7 @@ const HuntAppContainer = withTracker(({ params }) => {
   const member = Meteor.user() && _.contains(Meteor.user().hunts, params.huntId);
   return {
     ready: userHandle.ready() && huntHandle.ready(),
-    hunt: Models.Hunts.findOneAllowingDeleted(params.huntId),
+    hunt: Hunts.findOneAllowingDeleted(params.huntId),
     member,
   };
 })(HuntApp);

@@ -8,6 +8,9 @@ import marked from 'marked';
 import { withTracker } from 'meteor/react-meteor-data';
 import navAggregatorType from './navAggregatorType.jsx';
 import subsCache from '../subsCache.js';
+import AnnouncementsSchema from '../../lib/schemas/announcements.js';
+import Announcements from '../../lib/models/announcements.js';
+import Profiles from '../../lib/models/profiles.js';
 
 /* eslint-disable max-len */
 
@@ -76,7 +79,7 @@ class AnnouncementForm extends React.Component {
 
 class Announcement extends React.Component {
   static propTypes = {
-    announcement: PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
+    announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
   };
 
@@ -104,7 +107,7 @@ class AnnouncementsPage extends React.Component {
     }).isRequired,
     ready: PropTypes.bool.isRequired,
     canCreateAnnouncements: PropTypes.bool.isRequired,
-    announcements: PropTypes.arrayOf(PropTypes.shape(Schemas.Announcements.asReactPropTypes())).isRequired,
+    announcements: PropTypes.arrayOf(PropTypes.shape(AnnouncementsSchema.asReactPropTypes())).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
   };
 
@@ -156,7 +159,7 @@ const AnnouncementsPageContainer = withTracker(({ params }) => {
   // to show them on any page.  So we don't *need* to make the subscription here...
   // ...except that we might want to wait to render until we've received all of them?  IDK.
   const announcementsHandle = subsCache.subscribe('mongo.announcements', { hunt: params.huntId });
-  const displayNamesHandle = Models.Profiles.subscribeDisplayNames(subsCache);
+  const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
   const ready = announcementsHandle.ready() && displayNamesHandle.ready();
 
   let announcements;
@@ -165,8 +168,8 @@ const AnnouncementsPageContainer = withTracker(({ params }) => {
     announcements = [];
     displayNames = {};
   } else {
-    announcements = Models.Announcements.find({ hunt: params.huntId }, { sort: { createdAt: 1 } }).fetch();
-    displayNames = Models.Profiles.displayNames();
+    announcements = Announcements.find({ hunt: params.huntId }, { sort: { createdAt: 1 } }).fetch();
+    displayNames = Profiles.displayNames();
   }
   const canCreateAnnouncements = Roles.userHasPermission(Meteor.userId(), 'mongo.announcements.insert');
 

@@ -12,6 +12,7 @@ import subsCache from '../subsCache.js';
 import ConnectionStatus from './ConnectionStatus.jsx';
 import NotificationCenter from './NotificationCenter.jsx';
 import navAggregatorType from './navAggregatorType.jsx';
+import Profiles from '../../lib/models/profiles.js';
 
 class SharedNavbar extends React.Component {
   static propTypes = {
@@ -63,7 +64,7 @@ class SharedNavbar extends React.Component {
 const SharedNavbarContainer = withTracker(() => {
   const userId = Meteor.userId();
   const profileSub = subsCache.subscribe('mongo.profiles', { _id: userId });
-  const profile = Models.Profiles.findOne(userId);
+  const profile = Profiles.findOne(userId);
   const displayName = profileSub.ready() ?
     ((profile && profile.displayName) || '<no name given>') : 'loading...';
   return {

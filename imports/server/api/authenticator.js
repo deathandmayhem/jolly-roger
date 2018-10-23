@@ -1,3 +1,5 @@
+import APIKeys from '../models/api_keys.js';
+
 export default (req, res, next) => {
   const auth = req.get('Authorization');
   if (!auth) {
@@ -13,7 +15,7 @@ export default (req, res, next) => {
     return;
   }
 
-  const key = Models.APIKeys.findOne({ key: authParam });
+  const key = APIKeys.findOne({ key: authParam });
   if (!key) {
     res.sendStatus(403);
     return;

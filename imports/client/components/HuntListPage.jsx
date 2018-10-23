@@ -17,6 +17,8 @@ import Ansible from '../../ansible.js';
 import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import ModalForm from './ModalForm.jsx';
+import HuntsSchema from '../../lib/schemas/hunts.js';
+import Hunts from '../../lib/models/hunts.js';
 
 /* eslint-disable max-len */
 
@@ -31,7 +33,7 @@ const splitLists = function (lists) {
 
 class HuntModalForm extends React.Component {
   static propTypes = {
-    hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()),
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
     onSubmit: PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
   };
 
@@ -255,14 +257,14 @@ class HuntModalForm extends React.Component {
 
 class Hunt extends React.Component {
   static propTypes = {
-    hunt: PropTypes.shape(Schemas.Hunts.asReactPropTypes()).isRequired,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired,
     canUpdate: PropTypes.bool.isRequired,
     canDestroy: PropTypes.bool.isRequired,
   };
 
   onEdit = (state, callback) => {
     Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), state });
-    Models.Hunts.update(
+    Hunts.update(
       { _id: this.props.hunt._id },
       { $set: state },
       callback
@@ -270,7 +272,7 @@ class Hunt extends React.Component {
   };
 
   onDelete = (callback) => {
-    Models.Hunts.destroy(this.props.hunt._id, callback);
+    Hunts.destroy(this.props.hunt._id, callback);
   };
 
   showEditModal = () => {
@@ -364,7 +366,7 @@ class HuntListPage extends React.Component {
   static propTypes = {
     ready: PropTypes.bool.isRequired,
     canAdd: PropTypes.bool.isRequired,
-    hunts: PropTypes.arrayOf(PropTypes.shape(Schemas.Hunts.asReactPropTypes())).isRequired,
+    hunts: PropTypes.arrayOf(PropTypes.shape(HuntsSchema.asReactPropTypes())).isRequired,
     myHunts: PropTypes.objectOf(PropTypes.bool).isRequired,
   };
 
@@ -374,7 +376,7 @@ class HuntListPage extends React.Component {
 
   onAdd = (state, callback) => {
     Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
-    Models.Hunts.insert(state, callback);
+    Hunts.insert(state, callback);
   };
 
   showAddModal = () => {
@@ -464,7 +466,7 @@ export default withTracker(() => {
   return {
     ready,
     canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.insert'),
-    hunts: Models.Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
+    hunts: Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
     myHunts,
   };
 })(HuntListPage);

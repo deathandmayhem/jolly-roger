@@ -33,10 +33,23 @@ import Flags from '../../flags.js';
 import SplitPanePlus from './SplitPanePlus.jsx';
 import DocumentDisplay from './Documents.jsx';
 
+import ChatMessagesSchema from '../../lib/schemas/chats.js';
+import DocumentsSchema from '../../lib/schemas/documents.js';
+import GuessesSchema from '../../lib/schemas/guess.js';
+import PuzzlesSchema from '../../lib/schemas/puzzles.js';
+import TagsSchema from '../../lib/schemas/tags.js';
+
+import ChatMessages from '../../lib/models/chats.js';
+import Documents from '../../lib/models/documents.js';
+import Guesses from '../../lib/models/guess.js';
+import Profiles from '../../lib/models/profiles.js';
+import Puzzles from '../../lib/models/puzzles.js';
+import Tags from '../../lib/models/tags.js';
+
 /* eslint-disable max-len, no-console */
 
 const FilteredChatFields = ['puzzle', 'text', 'sender', 'timestamp'];
-const FilteredChatMessagePropTypes = _.pick(Schemas.ChatMessages.asReactPropTypes(), ...FilteredChatFields);
+const FilteredChatMessagePropTypes = _.pick(ChatMessagesSchema.asReactPropTypes(), ...FilteredChatFields);
 
 const MinimumDesktopWidth = 600;
 const MinimumDesktopStackingHeight = 400; // In two column mode, allow stacking at smaller heights
@@ -165,7 +178,7 @@ const ViewersListContainer = withTracker(({ name }) => {
       return;
     }
 
-    const profile = Models.Profiles.findOne(s.user);
+    const profile = Profiles.findOne(s.user);
     if (!profile || !profile.displayName) {
       unknown += 1;
       return;
@@ -252,15 +265,15 @@ const ViewCountDisplayContainer = withTracker(() => {
 
 class RelatedPuzzleSection extends React.PureComponent {
   static propTypes = {
-    activePuzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    activePuzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
     allPuzzles: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Puzzles.asReactPropTypes()
+        PuzzlesSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Tags.asReactPropTypes()
+        TagsSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
     canUpdate: PropTypes.bool.isRequired,
@@ -490,15 +503,15 @@ class ChatSection extends React.PureComponent {
 
 class PuzzlePageSidebar extends React.PureComponent {
   static propTypes = {
-    activePuzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    activePuzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
     allPuzzles: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Puzzles.asReactPropTypes()
+        PuzzlesSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Tags.asReactPropTypes()
+        TagsSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
     chatReady: PropTypes.bool.isRequired,
@@ -579,19 +592,19 @@ class PuzzlePageSidebar extends React.PureComponent {
 
 class PuzzlePageMetadata extends React.Component {
   static propTypes = {
-    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Tags.asReactPropTypes()
+        TagsSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
     guesses: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Guesses.asReactPropTypes()
+        GuessesSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
+    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()),
     isDesktop: PropTypes.bool.isRequired,
     subcountersDisabled: PropTypes.bool.isRequired,
     viewCount: PropTypes.number.isRequired,
@@ -739,15 +752,15 @@ const PuzzlePageMetadataContainer = withTracker(({ puzzle }) => {
 })(PuzzlePageMetadata);
 
 PuzzlePageMetadataContainer.propTypes = {
-  puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+  puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
 };
 
 class PuzzleGuessModal extends React.Component {
   static propTypes = {
-    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
     guesses: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Guesses.asReactPropTypes()
+        GuessesSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
@@ -943,7 +956,7 @@ class PuzzleGuessModal extends React.Component {
 
 class PuzzlePageMultiplayerDocument extends React.PureComponent {
   static propTypes = {
-    document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
+    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()),
   };
 
   render() {
@@ -965,19 +978,19 @@ class PuzzlePageMultiplayerDocument extends React.PureComponent {
 
 class PuzzlePageContent extends React.PureComponent {
   static propTypes = {
-    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Tags.asReactPropTypes()
+        TagsSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
     guesses: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Guesses.asReactPropTypes()
+        GuessesSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
+    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()),
     isDesktop: PropTypes.bool.isRequired,
   };
 
@@ -1019,13 +1032,13 @@ class PuzzlePage extends React.Component {
       puzzleId: PropTypes.string.isRequired,
     }).isRequired,
     puzzlesReady: PropTypes.bool.isRequired,
-    allPuzzles: PropTypes.arrayOf(PropTypes.shape(Schemas.Puzzles.asReactPropTypes())).isRequired,
-    allTags: PropTypes.arrayOf(PropTypes.shape(Schemas.Tags.asReactPropTypes())).isRequired,
+    allPuzzles: PropTypes.arrayOf(PropTypes.shape(PuzzlesSchema.asReactPropTypes())).isRequired,
+    allTags: PropTypes.arrayOf(PropTypes.shape(TagsSchema.asReactPropTypes())).isRequired,
     chatReady: PropTypes.bool.isRequired,
     chatMessages: PropTypes.arrayOf(PropTypes.shape(FilteredChatMessagePropTypes)).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
-    allGuesses: PropTypes.arrayOf(PropTypes.shape(Schemas.Guesses.asReactPropTypes())).isRequired,
-    document: PropTypes.shape(Schemas.Documents.asReactPropTypes()),
+    allGuesses: PropTypes.arrayOf(PropTypes.shape(GuessesSchema.asReactPropTypes())).isRequired,
+    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()),
     canUpdate: PropTypes.bool.isRequired,
   };
 
@@ -1183,10 +1196,10 @@ const PuzzlePageContainer = withTracker(({ params }) => {
     });
   }
 
-  const displayNamesHandle = Models.Profiles.subscribeDisplayNames(subsCache);
+  const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
   let displayNames = {};
   if (displayNamesHandle.ready()) {
-    displayNames = Models.Profiles.displayNames();
+    displayNames = Profiles.displayNames();
   }
 
   const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: params.huntId });
@@ -1207,12 +1220,12 @@ const PuzzlePageContainer = withTracker(({ params }) => {
   // There's no sense in doing this expensive computation here if we're still loading data,
   // since we're not going to render the children.
   if (puzzlesReady) {
-    allPuzzles = Models.Puzzles.find({ hunt: params.huntId }).fetch();
-    allTags = Models.Tags.find({ hunt: params.huntId }).fetch();
-    allGuesses = Models.Guesses.find({ hunt: params.huntId, puzzle: params.puzzleId }).fetch();
+    allPuzzles = Puzzles.find({ hunt: params.huntId }).fetch();
+    allTags = Tags.find({ hunt: params.huntId }).fetch();
+    allGuesses = Guesses.find({ hunt: params.huntId, puzzle: params.puzzleId }).fetch();
 
     // Sort by created at so that the "first" document always has consistent meaning
-    document = Models.Documents.findOne({ puzzle: params.puzzleId }, { sort: { createdAt: 1 } });
+    document = Documents.findOne({ puzzle: params.puzzleId }, { sort: { createdAt: 1 } });
   } else {
     allPuzzles = [];
     allTags = [];
@@ -1231,7 +1244,7 @@ const PuzzlePageContainer = withTracker(({ params }) => {
   // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
   // other collections.
   const chatReady = chatHandle.ready() && displayNamesHandle.ready();
-  const chatMessages = (chatReady && Models.ChatMessages.find(
+  const chatMessages = (chatReady && ChatMessages.find(
     { puzzle: params.puzzleId },
     { sort: { timestamp: 1 } },
   ).fetch()) || [];

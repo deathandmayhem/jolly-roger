@@ -1,9 +1,10 @@
 import { Migrations } from 'meteor/percolate:migrations';
+import Servers from '../models/servers.js';
 
 Migrations.add({
   version: 8,
   name: 'Add index for subscriptions server tracker',
   up() {
-    Models.Servers._ensureIndex({ updatedAt: 1 });
+    Servers._ensureIndex({ updatedAt: 1 });
   },
 });

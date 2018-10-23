@@ -10,6 +10,7 @@ import InputGroup from 'react-bootstrap/lib/InputGroup';
 import ListGroup from 'react-bootstrap/lib/ListGroup';
 import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
 import RRBS from 'react-router-bootstrap';
+import ProfilesSchema from '../../lib/schemas/profiles.js';
 
 class ProfileList extends React.Component {
   static propTypes = {
@@ -17,7 +18,7 @@ class ProfileList extends React.Component {
     canInvite: PropTypes.bool,
     profiles: PropTypes.arrayOf(
       PropTypes.shape(
-        Schemas.Profiles.asReactPropTypes()
+        ProfilesSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
   };

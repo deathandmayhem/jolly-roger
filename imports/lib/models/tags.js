@@ -1,19 +1,9 @@
-import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import { huntsMatchingCurrentUser } from '../../model-helpers.js';
+import Base from './base.js';
+import TagsSchema from '../schemas/tags.js';
 
-Schemas.Tags = new SimpleSchema([
-  Schemas.Base,
-  {
-    name: {
-      type: String,
-    },
+const Tags = new Base('tags');
+Tags.attachSchema(TagsSchema);
+Tags.publish(huntsMatchingCurrentUser);
 
-    hunt: {
-      type: String,
-      regEx: SimpleSchema.RegEx.Id,
-    },
-  },
-]);
-Models.Tags = new Models.Base('tags');
-Models.Tags.attachSchema(Schemas.Tags);
-Models.Tags.publish(huntsMatchingCurrentUser);
+export default Tags;

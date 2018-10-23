@@ -1,6 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import huntFixtures from '../fixtures.js';
+import Hunts from '../lib/models/hunts.js';
+import Puzzles from '../lib/models/puzzles.js';
+import Tags from '../lib/models/tags.js';
 
 Meteor.methods({
   createFixtureHunt() {
@@ -11,9 +14,9 @@ Meteor.methods({
     const data = huntFixtures[huntId];
 
     // Create hunt if it doesn't exist.
-    const hunt = Models.Hunts.findOne(huntId);
+    const hunt = Hunts.findOne(huntId);
     if (!hunt) {
-      Models.Hunts.insert({
+      Hunts.insert({
         _id: huntId,
         name: data.title,
         openSignups: true,
@@ -22,7 +25,7 @@ Meteor.methods({
 
     // Create tags associated with the hunt.
     data.tags.forEach((tag) => {
-      Models.Tags.upsert({
+      Tags.upsert({
         _id: tag._id,
       }, {
         $set: {
@@ -34,7 +37,7 @@ Meteor.methods({
 
     // Create puzzles associated with the hunt.  Don't bother running the puzzle hooks.
     data.puzzles.forEach((puzzle) => {
-      Models.Puzzles.upsert({
+      Puzzles.upsert({
         _id: puzzle._id,
       }, {
         $set: {

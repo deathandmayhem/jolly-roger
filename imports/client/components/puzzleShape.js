@@ -1,3 +1,5 @@
-const puzzleShape = Schemas.Puzzles.asReactPropTypes();
+import PuzzlesSchema from '../../lib/schemas/puzzles.js';
+
+const puzzleShape = PuzzlesSchema.asReactPropTypes();
 
 export default puzzleShape;

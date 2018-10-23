@@ -1,27 +1,39 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import Ansible from '../ansible.js';
+import { _ } from 'meteor/underscore';
 
-Meteor.methods({
-  // Temporarily de-op yourself
-  stopOperating() {
-    Roles.checkPermission(this.userId, 'users.makeOperator');
+Meteor.publish('selfHuntMembership', function () {
+  if (!this.userId) {
+    return [];
+  }
 
-    Roles.addUserToRoles(this.userId, 'inactiveOperator');
-    Roles.removeUserFromRoles(this.userId, 'admin');
-  },
+  return Meteor.users.find(this.userId, { fields: { hunts: 1 } });
+});
 
-  makeOperator(targetUserId) {
-    check(targetUserId, String);
+Meteor.publish('huntMembers', function (huntId) {
+  check(huntId, String);
 
-    Roles.checkPermission(this.userId, 'users.makeOperator');
+  if (!this.userId) {
+    return [];
+  }
 
-    if (this.userId !== targetUserId) {
-      Ansible.log('Promoting user to operator', { user: targetUserId, promoter: this.userId });
-    }
+  const u = Meteor.users.findOne(this.userId);
+  // Note: this is not reactive, so if hunt membership changes, this
+  // behavior will change
+  if (!_.contains(u.hunts, huntId)) {
+    return [];
+  }
 
-    Roles.addUserToRoles(targetUserId, 'admin');
-    // This may be a noop
-    Roles.removeUserFromRoles(targetUserId, 'inactiveOperator');
-  },
+  return Meteor.users.find({ hunts: huntId }, { fields: { hunts: 1 } });
+});
+
+Meteor.publish('userRoles', function (targetUserId) {
+  check(targetUserId, String);
+
+  // Only publish other users' roles to other operators.
+  if (!Roles.userHasRole(this.userId, 'admin')) {
+    return [];
+  }
+
+  return Meteor.users.find(targetUserId, { fields: { roles: 1 } });
 });

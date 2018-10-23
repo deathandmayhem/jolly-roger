@@ -3,6 +3,7 @@ import { Accounts } from 'meteor/accounts-base';
 import { _ } from 'meteor/underscore';
 import logfmt from 'logfmt';
 import Ansible from '../ansible.js';
+import Hunts from '../lib/models/hunts.js';
 
 const summaryFromLoginInfo = function (info) {
   switch (info.methodName) {
@@ -73,7 +74,7 @@ Accounts.emailTemplates.enrollAccount.subject = () => {
 };
 
 Accounts.emailTemplates.enrollAccount.text = (user, url) => {
-  const hunts = Models.Hunts.find({ _id: { $in: user.hunts } }).fetch();
+  const hunts = Hunts.find({ _id: { $in: user.hunts } }).fetch();
   const email = user && user.emails && user.emails[0] && user.emails[0].address;
   const huntNames = _.pluck(hunts, 'name');
   const huntLists = _.chain(hunts)

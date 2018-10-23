@@ -1,12 +1,13 @@
 import { Migrations } from 'meteor/percolate:migrations';
+import Documents from '../../lib/models/documents.js';
 
 Migrations.add({
   version: 17,
   name: 'Backfill provider for documents',
   up() {
-    Models.Documents.update({ provider: null }, { $set: { provider: 'google' } }, { multi: true });
+    Documents.update({ provider: null }, { $set: { provider: 'google' } }, { multi: true });
 
-    Models.Documents.update(
+    Documents.update(
       { type: 'google-spreadsheet', 'value.type': null },
       { $set: { 'value.type': 'spreadsheet' }, $unset: { type: 1 } },
       { multi: true, validate: false }

@@ -12,6 +12,14 @@ import { withTracker } from 'meteor/react-meteor-data';
 import classnames from 'classnames';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import subsCache from '../subsCache.js';
+import AnnouncementsSchema from '../../lib/schemas/announcements.js';
+import GuessesSchema from '../../lib/schemas/guess.js';
+import PuzzlesSchema from '../../lib/schemas/puzzles.js';
+import Announcements from '../../lib/models/announcements.js';
+import Guesses from '../../lib/models/guess.js';
+import PendingAnnouncements from '../../lib/models/pending_announcements.js';
+import Profiles from '../../lib/models/profiles.js';
+import Puzzles from '../../lib/models/puzzles.js';
 
 /* eslint-disable max-len */
 
@@ -50,8 +58,8 @@ class MessengerSpinner extends React.PureComponent {
 
 class GuessMessage extends React.PureComponent {
   static propTypes = {
-    guess: PropTypes.shape(Schemas.Guesses.asReactPropTypes()).isRequired,
-    puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()).isRequired,
+    guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
     guesser: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
   };
@@ -211,12 +219,12 @@ class SlackMessage extends React.PureComponent {
 class AnnouncementMessage extends React.PureComponent {
   static propTypes = {
     id: PropTypes.string.isRequired,
-    announcement: PropTypes.shape(Schemas.Announcements.asReactPropTypes()).isRequired,
+    announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired,
     createdByDisplayName: PropTypes.string.isRequired,
   };
 
   onDismiss = () => {
-    Models.PendingAnnouncements.remove(this.props.id);
+    PendingAnnouncements.remove(this.props.id);
   };
 
   render() {
@@ -241,10 +249,10 @@ class AnnouncementMessage extends React.PureComponent {
 class NotificationCenter extends React.Component {
   static propTypes = {
     ready: PropTypes.bool.isRequired,
-    announcements: PropTypes.arrayOf(PropTypes.shape(Schemas.Announcements.asReactPropTypes())),
+    announcements: PropTypes.arrayOf(PropTypes.shape(AnnouncementsSchema.asReactPropTypes())),
     guesses: PropTypes.arrayOf(PropTypes.shape({
-      guess: PropTypes.shape(Schemas.Guesses.asReactPropTypes()),
-      puzzle: PropTypes.shape(Schemas.Puzzles.asReactPropTypes()),
+      guess: PropTypes.shape(GuessesSchema.asReactPropTypes()),
+      puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()),
       guesser: PropTypes.string,
     })),
     slackConfigured: PropTypes.bool,
@@ -342,7 +350,7 @@ export default withTracker(() => {
     return { ready: false };
   }
 
-  const profile = Models.Profiles.findOne(Meteor.userId());
+  const profile = Profiles.findOne(Meteor.userId());
 
   const data = {
     ready: guessesHandle.ready() && puzzlesHandle.ready() && paHandle.ready(),
@@ -352,21 +360,21 @@ export default withTracker(() => {
   };
 
   if (canUpdateGuesses) {
-    Models.Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).forEach((guess) => {
+    Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).forEach((guess) => {
       data.guesses.push({
         guess,
-        puzzle: Models.Puzzles.findOne(guess.puzzle),
-        guesser: Models.Profiles.findOne(guess.createdBy).displayName,
+        puzzle: Puzzles.findOne(guess.puzzle),
+        guesser: Profiles.findOne(guess.createdBy).displayName,
       });
     });
   }
 
-  Models.PendingAnnouncements.find(query, { sort: { createdAt: 1 } }).forEach((pa) => {
-    const announcement = Models.Announcements.findOne(pa.announcement);
+  PendingAnnouncements.find(query, { sort: { createdAt: 1 } }).forEach((pa) => {
+    const announcement = Announcements.findOne(pa.announcement);
     data.announcements.push({
       pa,
       announcement,
-      createdByDisplayName: Models.Profiles.findOne(announcement.createdBy).displayName,
+      createdByDisplayName: Profiles.findOne(announcement.createdBy).displayName,
     });
   });
 

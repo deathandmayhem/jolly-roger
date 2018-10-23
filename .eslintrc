@@ -97,8 +97,6 @@
     "Roles": false,
     "ServiceConfiguration": false,
     "Google": false,
-    "Models": false,
-    "Schemas": false,
     "Npm": false,
     "OAuth": false,
     "globalHooks": false,

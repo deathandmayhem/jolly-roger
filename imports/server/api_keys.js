@@ -2,6 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
 import { Random } from 'meteor/random';
 import Ansible from '../ansible.js';
+import APIKeys from './models/api_keys.js';
+import Locks from './models/lock.js';
 
 const userForKeyOperation = function userForKeyOperation(currentUser, forUser) {
   const canOverrideUser = Roles.userHasRole(currentUser, 'admin');
@@ -20,19 +22,19 @@ Meteor.methods({
 
     const user = userForKeyOperation(this.userId, forUser);
 
-    let key = Models.APIKeys.findOne({ user });
+    let key = APIKeys.findOne({ user });
     if (!key) {
       // It would be cool to handle this with unique indexes, but we
       // need partial indexes to only match { deleted: false }, and I
       // don't want to assume a new enough version of MongoDB for
       // that.
-      Models.Locks.withLock(`api_key:${user}`, () => {
-        key = Models.APIKeys.findOne({ user });
+      Locks.withLock(`api_key:${user}`, () => {
+        key = APIKeys.findOne({ user });
 
         if (!key) {
           Ansible.log('Generating new API key for user', { user, requestedBy: this.userId });
-          key = Models.APIKeys.findOne(
-            Models.APIKeys.insert({
+          key = APIKeys.findOne(
+            APIKeys.insert({
               user,
               key: Random.id(32),
             })
@@ -49,7 +51,7 @@ Meteor.methods({
     check(forUser, Match.Optional(String));
 
     const user = userForKeyOperation(this.userId, forUser);
-    Models.APIKeys.find({ user }).forEach((k) => {
+    APIKeys.find({ user }).forEach((k) => {
       Ansible.log('Expiring API key', { id: k._id, user: k.user, requestedBy: this.userId });
       k.destroy();
     });
