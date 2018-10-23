@@ -85,7 +85,7 @@ class HuntMemberError extends React.Component {
   };
 
   joinButton = () => {
-    if (this.data.canJoin) {
+    if (this.props.canJoin) {
       return (
         <Button bsStyle="primary" onClick={this.join}>
           Use operator permissions to join
@@ -96,12 +96,12 @@ class HuntMemberError extends React.Component {
   };
 
   render() {
-    const msg = marked(this.data.hunt.signupMessage || '', { sanitize: true });
+    const msg = marked(this.props.hunt.signupMessage || '', { sanitize: true });
     return (
       <div>
         <Alert bsStyle="warning">
           You&apos;re not signed up for this hunt (
-          {this.data.hunt.name}
+          {this.props.hunt.name}
           ) yet.
         </Alert>
 

@@ -23,15 +23,15 @@ class HuntProfileListPage extends React.Component {
   };
 
   renderBody = () => {
-    if (!this.data.ready) {
+    if (!this.props.ready) {
       return <div>loading...</div>;
     }
 
     return (
       <ProfileList
-        profiles={this.data.profiles}
+        profiles={this.props.profiles}
         huntId={this.props.params.huntId}
-        canInvite={this.data.canInvite}
+        canInvite={this.props.canInvite}
       />
     );
   };
