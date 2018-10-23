@@ -15,7 +15,6 @@ nicolaslopezj:roles
 meteor-base@1.4.0
 mobile-experience@1.0.5
 mongo@1.6.0
-static-html@1.1.11
 logging@1.1.20
 reload@1.2.0
 random@1.1.0
@@ -38,3 +37,4 @@ meteorhacks:meteorx
 google-oauth
 dynamic-import
 underscore
+server-render

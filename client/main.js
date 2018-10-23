@@ -1,7 +1,3 @@
-// base template. this doesn't work, and I don't know why, but it's not super
-// impactful and I'll deal with it later
-// import '../imports/client/head.html';
-
 // explicitly import all the stuff from lib/ since mainModule skips autoloading
 // things
 import '../imports/lib/config/accounts.js';
