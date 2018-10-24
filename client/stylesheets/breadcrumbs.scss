@@ -1,4 +1,4 @@
-.nav-breadcrumbs {
+.jolly-roger .nav-breadcrumbs {
   height: 50px; // navbar height
   vertical-align: top; // Fill content from top
   background-color: transparent;
@@ -17,7 +17,7 @@
 }
 
 @media (max-width: 767px) {
-  .nav-breadcrumbs {
+  .jolly-roger .nav-breadcrumbs {
     // Don't cause the logo or hamburger button to wrap onto a new line.
     // Size allowed is 100% of navbar width, minus 50px for the jolly-roger logo, and
     // 1+10+22+10+1 + 8px = 52px for the toggle button.
@@ -26,7 +26,7 @@
 }
 
 @media (min-width: 768px) {
-  .nav-breadcrumbs {
+  .jolly-roger .nav-breadcrumbs {
     max-width: calc(100vw - 280px); // Hopefully most people's names fit in 250px
   }
 }
@@ -38,6 +38,6 @@
   text-overflow: ellipsis;
 }
 
-button.navbar-toggle {
+.jolly-roger button.navbar-toggle {
   margin-right: 8px; // Pack tighter to make more space in navbar.
 }
