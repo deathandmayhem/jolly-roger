@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Breadcrumb, BreadcrumbItem } from 'react-bootstrap';
+import Breadcrumb from 'react-bootstrap/lib/Breadcrumb';
+import BreadcrumbItem from 'react-bootstrap/lib/BreadcrumbItem';
 import RRBS from 'react-router-bootstrap';
 import { _ } from 'meteor/underscore';
 
