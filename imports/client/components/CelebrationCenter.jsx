@@ -1,43 +1,48 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import createReactClass from 'create-react-class';
 import { Meteor } from 'meteor/meteor';
-import { ReactMeteorData } from 'meteor/react-meteor-data';
+import { Tracker } from 'meteor/tracker';
+import { withTracker } from 'meteor/react-meteor-data';
 import Flags from '../../flags.js';
 import subsCache from '../subsCache.js';
 import Celebration from './Celebration.jsx';
 import Profiles from '../../lib/models/profiles.js';
 import Puzzles from '../../lib/models/puzzles.js';
 
-/* eslint-disable react/prefer-es6-class */
-const CelebrationCenter = createReactClass({
-  displayName: 'CelebrationCenter',
+class CelebrationCenter extends React.Component {
+  static displayName = 'CelebrationCenter';
 
-  propTypes: {
+  static propTypes = {
     huntId: PropTypes.string.isRequired,
-  },
+    disabled: PropTypes.bool.isRequired,
+    muted: PropTypes.bool.isRequired,
+  };
 
-  mixins: [ReactMeteorData],
+  state = {
+    playbackQueue: [],
+  };
 
-  getInitialState() {
-    return {
-      playbackQueue: [],
-    };
-  },
+  componentDidMount() {
+    setTimeout(() => this.resetComputation(), 0);
+  }
+
+  componentDidUpdate() {
+    setTimeout(() => this.resetComputation(), 0);
+  }
 
   componentWillUnmount() {
-    if (this.watchHandle) {
-      this.watchHandle.stop();
-      this.watchHandle = undefined;
+    if (this.computation) {
+      this.computation.stop();
+      this.computation = null;
     }
-  },
+  }
 
-  onPuzzleSolved(puzzle) {
+  onPuzzleSolved = (puzzle) => {
     // Only celebrate if:
     // 1) we're not on mobile, and
     // 2) the feature flag is not disabled, and
     // 3) TODO: the user has not disabled it in their profile settings
-    if ((window.orientation === undefined) && !this.data.disabled) {
+    if ((window.orientation === undefined) && !this.props.disabled) {
       this.setState((prevState) => {
         const newQueue = prevState.playbackQueue.concat([{
           puzzleId: puzzle._id,
@@ -46,45 +51,33 @@ const CelebrationCenter = createReactClass({
           title: puzzle.title,
         }]);
 
-        this.setState({
-          playbackQueue: newQueue,
-        });
+        return { playbackQueue: newQueue };
       });
     }
-  },
+  };
 
-  getMeteorData() {
-    // This should be effectively a noop, since we're already fetching it for every hunt
-    const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: this.props.huntId });
-    if (puzzlesHandle.ready()) {
-      if (this.watchHandle) {
-        this.watchHandle.stop();
-      }
+  resetComputation = () => {
+    if (this.computation) {
+      this.computation.stop();
+    }
 
-      this.watchHandle = Puzzles.find().observe({
+    this.computation = Tracker.autorun(() => {
+      Puzzles.find().observe({
         changed: (newDoc, oldDoc) => {
           if ((!oldDoc.answer) && newDoc.answer) {
             this.onPuzzleSolved(newDoc);
           }
         },
       });
-    }
+    });
+  };
 
-    const profile = Profiles.findOne({ _id: Meteor.userId() });
-    const muted = profile && profile.muteApplause;
-
-    return {
-      disabled: Flags.active('disable.applause'),
-      muted,
-    };
-  },
-
-  dismissCurrentCelebration() {
+  dismissCurrentCelebration = () => {
     const [car, ...cons] = this.state.playbackQueue; // eslint-disable-line no-unused-vars
     this.setState({
       playbackQueue: cons,
     });
-  },
+  };
 
   render() {
     if (this.state.playbackQueue.length === 0) {
@@ -97,12 +90,29 @@ const CelebrationCenter = createReactClass({
           url={celebration.url}
           title={celebration.title}
           answer={celebration.answer}
-          playAudio={!this.data.muted}
+          playAudio={!this.props.muted}
           onClose={this.dismissCurrentCelebration}
         />
       );
     }
-  },
-});
+  }
+}
 
-export default CelebrationCenter;
+const CelebrationCenterContainer = withTracker(({ huntId }) => {
+  // This should be effectively a noop, since we're already fetching it for every hunt
+  subsCache.subscribe('mongo.puzzles', { hunt: huntId });
+
+  const profile = Profiles.findOne({ _id: Meteor.userId() });
+  const muted = !!(profile && profile.muteApplause);
+
+  return {
+    disabled: Flags.active('disable.applause'),
+    muted,
+  };
+})(CelebrationCenter);
+
+CelebrationCenterContainer.propTypes = {
+  huntId: PropTypes.string.isRequired,
+};
+
+export default CelebrationCenterContainer;
