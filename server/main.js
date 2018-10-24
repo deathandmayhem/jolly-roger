@@ -39,7 +39,6 @@ import '../imports/server/gdrive-init.js';
 import '../imports/server/git_revision.js';
 import '../imports/server/guesses.js';
 import '../imports/server/hunts.js';
-import '../imports/server/global-hooks.js'; // previously index.js
 import '../imports/server/migrations-run.js'; // runs migrations
 import '../imports/server/observability.js';
 import '../imports/server/profile.js';

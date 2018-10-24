@@ -1,9 +1,9 @@
-import { Meteor } from 'meteor/meteor';
-import { Hooks, SlackHooks } from './hooks.js';
-/* global globalHooks: true */
+import HooksRegistry from './hooks/hooks-registry.js';
+import SlackHooks from './hooks/slack-hooks.js';
 
-Meteor.startup(() => {
-  // code to run on server at startup
-  globalHooks = new Hooks();
-  globalHooks.addHookSet(SlackHooks);
-});
+// Instantiate the application-global hookset list.
+const GlobalHooks = new HooksRegistry();
+// Add all hooksets.  Right now that's just Slack.
+GlobalHooks.addHookSet(new SlackHooks());
+
+export default GlobalHooks;

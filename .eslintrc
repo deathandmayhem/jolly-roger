@@ -99,7 +99,6 @@
     "Google": false,
     "Npm": false,
     "OAuth": false,
-    "globalHooks": false,
     "gdrive": false,
     "window": false,
     "document": false,

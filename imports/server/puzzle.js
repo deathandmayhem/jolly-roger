@@ -9,7 +9,8 @@ import DocumentPermissions from '../lib/models/document_permissions.js';
 import Profiles from '../lib/models/profiles.js';
 import Puzzles from '../lib/models/puzzles.js';
 import Tags from '../lib/models/tags.js';
-// TODO: gdrive, globalHooks
+import GlobalHooks from './global-hooks.js';
+// TODO: gdrive
 
 function getOrCreateTagByName(huntId, name) {
   const existingTag = Tags.findOne({ hunt: huntId, name });
@@ -62,7 +63,7 @@ Meteor.methods({
     // Run any puzzle-creation hooks, like creating a default document
     // attachment or announcing the puzzle to Slack.
     Meteor.defer(Meteor.bindEnvironment(() => {
-      globalHooks.runPuzzleCreatedHooks(fullPuzzle._id, this.userId);
+      GlobalHooks.runPuzzleCreatedHooks(fullPuzzle._id, this.userId);
     }));
 
     return fullPuzzle._id;
