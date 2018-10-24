@@ -23,7 +23,6 @@ check@1.3.1
 percolate:migrations
 service-configuration@1.0.11
 oauth@1.2.3
-ccorcos:subs-cache
 http@1.4.1
 jquery@1.11.10
 meteorhacks:cluster
@@ -38,3 +37,7 @@ google-oauth
 dynamic-import
 underscore
 server-render
+
+# Version 0.9.6 and later have a bug where they over-aggressively deref a sub if
+# you sub more than once
+ccorcos:subs-cache@0.9.5
