@@ -24,9 +24,7 @@ percolate:migrations
 service-configuration@1.0.11
 oauth@1.2.3
 http@1.4.1
-jquery@1.11.10
 meteorhacks:cluster
-natestrauser:select2
 standard-minifier-css@1.5.0
 standard-minifier-js@2.4.0
 react-meteor-data
