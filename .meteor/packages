@@ -38,4 +38,4 @@ server-render
 
 # Version 0.9.6 and later have a bug where they over-aggressively deref a sub if
 # you sub more than once
-ccorcos:subs-cache@0.9.5
+ccorcos:subs-cache@0.9.4
