@@ -1,9 +1,9 @@
-.navbar-brand {
+.jolly-roger .navbar-brand {
     padding: 0;
     float: none;
 }
 
-.navbar-brand > img {
+.jolly-roger .navbar-brand > img {
     display: inline-block;
 }
 
