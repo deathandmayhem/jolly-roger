@@ -710,7 +710,7 @@ class PuzzlePageMetadata extends React.Component {
               )}
             </div>
           </div>
-          <div className="puzzle-metadata-row">
+          <div className={classnames('puzzle-metadata-row', this.props.isDesktop && 'puzzle-metadata-tag-editor-row')}>
             {!isAdministrivia && (
               <div className="puzzle-metadata-right">
                 <Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>

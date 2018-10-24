@@ -1,32 +1,19 @@
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import { jQuery } from 'meteor/jquery';
 import { withTracker } from 'meteor/react-meteor-data';
-import ReactSelect2 from './ReactSelect2.jsx';
+import Creatable from 'react-select/lib/Creatable';
 import TagsSchema from '../../lib/schemas/tags.js';
 import Puzzles from '../../lib/models/puzzles.js';
 import Tags from '../../lib/models/tags.js';
 
 class TagEditor extends React.Component {
-  // TODO: this should support autocomplete to reduce human error.
-  // Probably not going to land this week.
   static propTypes = {
     puzzleId: PropTypes.string.isRequired,
     onSubmit: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
     allTags: PropTypes.arrayOf(PropTypes.shape(TagsSchema.asReactPropTypes())).isRequired,
   };
-
-  componentDidMount() {
-    // Focus the input when mounted - the user just clicked on the button-link.
-    const input = this.selectNode;
-    jQuery(input).select2('open')
-      .on('select2:close', this.onBlur)
-      .on('select2:select', () => {
-        this.props.onSubmit(jQuery(input).val());
-      });
-  }
 
   onBlur = () => {
     // Treat blur as "no I didn't mean to do that".  We may have to change this
@@ -35,13 +22,22 @@ class TagEditor extends React.Component {
   };
 
   render() {
+    const options = _.chain(this.props.allTags)
+      .map(t => t.name)
+      .compact()
+      .map((t) => {
+        return { value: t, label: t };
+      })
+      .value();
+
     return (
-      <span>
-        <ReactSelect2
-          selectRef={(node) => { this.selectNode = node; }}
-          style={{ minWidth: '100px' }}
-          data={[''].concat(_.pluck(this.props.allTags, 'name'))}
-          options={{ tags: true }}
+      <span style={{ display: 'inline-block', minWidth: '200px' }}>
+        <Creatable
+          options={options}
+          autoFocus
+          openMenuOnFocus
+          onChange={value => this.props.onSubmit(value.value)}
+          onBlur={this.onBlur}
         />
       </span>
     );

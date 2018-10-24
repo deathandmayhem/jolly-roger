@@ -1,14 +1,13 @@
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import { jQuery } from 'meteor/jquery';
 import Alert from 'react-bootstrap/lib/Alert';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
+import Creatable from 'react-select/lib/Creatable';
 import LabelledRadioGroup from './LabelledRadioGroup.jsx';
 import ModalForm from './ModalForm.jsx';
-import ReactSelect2 from './ReactSelect2.jsx';
 import puzzleShape from './puzzleShape.js';
 import tagShape from './tagShape.js';
 
@@ -62,10 +61,9 @@ class PuzzleModalForm extends React.Component {
     });
   };
 
-  onTagsChange = (event) => {
-    const newTags = jQuery(event.target).val() || [];
+  onTagsChange = (value) => {
     this.setState({
-      tags: newTags,
+      tags: value.map(v => v.value),
       tagsDirty: true,
     });
   };
@@ -151,7 +149,14 @@ class PuzzleModalForm extends React.Component {
   render() {
     const disableForm = this.state.submitState === 'submitting';
 
-    const allTags = _.compact(_.union(this.props.tags.map(t => t.name), this.state.tags));
+    const selectOptions = _.chain(this.props.tags)
+      .map(t => t.name)
+      .union(this.state.tags)
+      .compact()
+      .map((t) => {
+        return { value: t, label: t };
+      })
+      .value();
 
     const docTypeSelector = (
       <FormGroup>
@@ -223,15 +228,13 @@ class PuzzleModalForm extends React.Component {
             Tags
           </ControlLabel>
           <div className="col-xs-9">
-            <ReactSelect2
+            <Creatable
               id="jr-new-puzzle-tags"
-              data={allTags}
-              multiple
+              options={selectOptions}
+              isMulti
               disabled={disableForm}
               onChange={this.onTagsChange}
-              value={this.currentTags()}
-              options={{ tags: true, tokenSeparators: [',', ' '] }}
-              style={{ width: '100%' }}
+              value={this.currentTags().map((t) => { return { label: t, value: t }; })}
             />
           </div>
         </FormGroup>

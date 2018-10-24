@@ -181,11 +181,6 @@ table.puzzle-list {
   margin: 0;
 }
 
-/* Little ugly tweak to make the tabs align when adding */
-.tag-list span.select2-selection {
-  margin-top: -2px;
-}
-
 /*Guessing and History Modal */
 .guess-history-table td.answer {
   word-break: break-all;
@@ -292,7 +287,6 @@ table.puzzle-list {
 .puzzle-metadata {
   flex: none;
   padding-bottom: 2px;
-  overflow: auto;
 }
 
 .puzzle-metadata-row {
@@ -300,6 +294,11 @@ table.puzzle-list {
   min-height: 26px;
   padding: 0 4px;
   vertical-align: middle;
+}
+
+.puzzle-metadata-tag-editor-row {
+  min-height: 46px;
+  align-items: center;
 }
 
 .puzzle-metadata-left {
