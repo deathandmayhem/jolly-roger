@@ -1,0 +1,20 @@
+// register all known migrations
+import './1-basic-indexes.js';
+import './2-lock-unique.js';
+import './3-subscribers-indexes.js';
+import './4-fix-subscribers-indexes.js';
+import './5-pending-announcement-indexes.js';
+import './6-open-signups.js';
+import './7-more-indexes.js';
+import './8-subscriber-servers-index.js';
+import './9-remove-old-profile-fields.js';
+import './10-rename-hunt-slack-field.js';
+import './11-api-keys-indexes.js';
+import './12-doc-perms-indexes.js';
+import './13-display-names-index.js';
+import './14-fix-display-names-index.js';
+import './15-backfill-chat-base-props.js';
+import './16-feature-flag-indexes.js';
+import './17-update-documents-provider.js';
+import './18-rename-gdrive-template.js';
+import './19-subscribers-name-index.js';
