@@ -1,5 +1,5 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import { dropIndex } from '../migrations.js';
+import dropIndex from './drop-index.js';
 import DocumentPermissions from '../../lib/models/document_permissions.js';
 import Profiles from '../../lib/models/profiles.js';
 
