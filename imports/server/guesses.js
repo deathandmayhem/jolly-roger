@@ -4,6 +4,7 @@ import Ansible from '../ansible.js';
 import ChatMessages from '../lib/models/chats.js';
 import Guesses from '../lib/models/guess.js';
 import Puzzles from '../lib/models/puzzles.js';
+import GlobalHooks from './global-hooks.js';
 
 function addChatMessage(guess, newState) {
   const message = `Guess ${guess.guess} was marked ${newState}`;
@@ -38,7 +39,7 @@ function transitionGuess(guess, newState) {
         answer: guess.guess,
       },
     });
-    globalHooks.runPuzzleSolvedHooks(guess.puzzle);
+    GlobalHooks.runPuzzleSolvedHooks(guess.puzzle);
   } else if (guess.state === 'correct') {
     // Transitioning from correct -> something else: un-mark that puzzle as solved.
     // TODO: run custom hook login (e.g. unarchive Slack channel, etc.)
@@ -49,7 +50,7 @@ function transitionGuess(guess, newState) {
         answer: '',
       },
     });
-    globalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle);
+    GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle);
   }
 }
 
