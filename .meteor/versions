@@ -42,6 +42,7 @@ http@1.4.1
 id-map@1.1.0
 inter-process-messaging@0.1.0
 launch-screen@1.1.1
+less@2.8.0
 livedata@1.0.18
 localstorage@1.2.0
 logging@1.1.20
