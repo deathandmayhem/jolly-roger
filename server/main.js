@@ -17,7 +17,6 @@ import '../imports/server/api_keys.js';
 import '../imports/server/chat.js';
 import '../imports/server/feature_flags.js';
 import '../imports/server/fixture.js';
-import '../imports/server/gdrive-init.js';
 import '../imports/server/git_revision.js';
 import '../imports/server/guesses.js';
 import '../imports/server/hunts.js';

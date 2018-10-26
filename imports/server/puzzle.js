@@ -4,13 +4,13 @@ import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
 import Ansible from '../ansible.js';
 import { ensureDocument, renameDocument, grantPermission } from './gdrive.js';
+import DriveClient from './gdrive-client-refresher.js';
 import Flags from '../flags.js';
 import DocumentPermissions from '../lib/models/document_permissions.js';
 import Profiles from '../lib/models/profiles.js';
 import Puzzles from '../lib/models/puzzles.js';
 import Tags from '../lib/models/tags.js';
 import GlobalHooks from './global-hooks.js';
-// TODO: gdrive
 
 function getOrCreateTagByName(huntId, name) {
   const existingTag = Tags.findOne({ hunt: huntId, name });
@@ -53,7 +53,7 @@ Meteor.methods({
     // By creating the document before we save the puzzle, we make
     // sure nobody else has a chance to create a document with the
     // wrong config
-    if (gdrive) {
+    if (DriveClient.ready()) {
       ensureDocument(fullPuzzle, docType);
     }
 
