@@ -12,20 +12,18 @@ class GDriveClientRefresher {
     this.oauthRefreshToken = null;
     this.oauthTimer = null;
 
-    // Watch for config changes.  It's possible this needs to get deferred to Meteor.startup() time.
-    Meteor.startup(() => {
-      this.oauthConfigCursor = ServiceConfiguration.configurations.find({ service: 'google' });
-      this.oauthCredentialCursor = Settings.find({ name: 'gdrive.credential' });
-      this.oauthConfigCursor.observe({
-        added: doc => this.updateOauthConfig(doc),
-        changed: doc => this.updateOauthConfig(doc),
-        removed: () => this.updateOauthConfig(null),
-      });
-      this.oauthCredentialCursor.observe({
-        added: doc => this.updateOauthCredentials(doc),
-        changed: doc => this.updateOauthCredentials(doc),
-        removed: () => this.updateOauthCredentials({ value: {} }),
-      });
+    // Watch for config changes, and refresh the gdrive instance if anything changes
+    this.oauthConfigCursor = ServiceConfiguration.configurations.find({ service: 'google' });
+    this.oauthCredentialCursor = Settings.find({ name: 'gdrive.credential' });
+    this.oauthConfigCursor.observe({
+      added: doc => this.updateOauthConfig(doc),
+      changed: doc => this.updateOauthConfig(doc),
+      removed: () => this.updateOauthConfig(null),
+    });
+    this.oauthCredentialCursor.observe({
+      added: doc => this.updateOauthCredentials(doc),
+      changed: doc => this.updateOauthCredentials(doc),
+      removed: () => this.updateOauthCredentials({ value: {} }),
     });
   }
 
