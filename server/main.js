@@ -5,26 +5,8 @@ import '../imports/lib/models/proptypes.js';
 import '../imports/lib/models/users.js';
 import '../imports/lib/roles.js';
 
-// register migrations
-import '../imports/server/migrations/1-basic-indexes.js';
-import '../imports/server/migrations/2-lock-unique.js';
-import '../imports/server/migrations/3-subscribers-indexes.js';
-import '../imports/server/migrations/4-fix-subscribers-indexes.js';
-import '../imports/server/migrations/5-pending-announcement-indexes.js';
-import '../imports/server/migrations/6-open-signups.js';
-import '../imports/server/migrations/7-more-indexes.js';
-import '../imports/server/migrations/8-subscriber-servers-index.js';
-import '../imports/server/migrations/9-remove-old-profile-fields.js';
-import '../imports/server/migrations/10-rename-hunt-slack-field.js';
-import '../imports/server/migrations/11-api-keys-indexes.js';
-import '../imports/server/migrations/12-doc-perms-indexes.js';
-import '../imports/server/migrations/13-display-names-index.js';
-import '../imports/server/migrations/14-fix-display-names-index.js';
-import '../imports/server/migrations/15-backfill-chat-base-props.js';
-import '../imports/server/migrations/16-feature-flag-indexes.js';
-import '../imports/server/migrations/17-update-documents-provider.js';
-import '../imports/server/migrations/18-rename-gdrive-template.js';
-import '../imports/server/migrations/19-subscribers-name-index.js';
+// Register migrations
+import '../imports/server/migrations/all.js';
 
 // Other stuff in the server folder
 import '../imports/server/accounts.js';
