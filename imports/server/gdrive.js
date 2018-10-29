@@ -4,6 +4,7 @@ import Ansible from '../ansible.js';
 import Locks from './models/lock.js';
 import Settings from './models/settings.js';
 import Documents from '../lib/models/documents.js';
+import DriveClient from './gdrive-client-refresher.js';
 
 const MimeTypes = {
   spreadsheet: 'application/vnd.google-apps.spreadsheet',
@@ -20,19 +21,19 @@ const createDocument = function createDocument(name, type) {
 
   let file;
   if (template) {
-    file = Meteor.wrapAsync(gdrive.files.copy)({
+    file = Meteor.wrapAsync(DriveClient.gdrive.files.copy)({
       fileId: template.value.id,
       resource: { name, mimeType },
     });
   } else {
-    file = Meteor.wrapAsync(gdrive.files.create)({
+    file = Meteor.wrapAsync(DriveClient.gdrive.files.create)({
       resource: { name, mimeType },
     });
   }
 
   const fileId = file.id;
 
-  Meteor.wrapAsync(gdrive.permissions.create)({
+  Meteor.wrapAsync(DriveClient.gdrive.permissions.create)({
     fileId,
     resource: { role: 'writer', type: 'anyone' },
   });
@@ -41,14 +42,14 @@ const createDocument = function createDocument(name, type) {
 
 const renameDocument = function renameDocument(id, name) {
   // It's unclear if this can ever return an error
-  Meteor.wrapAsync(gdrive.files.update)({
+  Meteor.wrapAsync(DriveClient.gdrive.files.update)({
     fileId: id,
     resource: { name },
   });
 };
 
 const grantPermission = function grantPermission(id, email, permission) {
-  Meteor.wrapAsync(gdrive.permissions.create)({
+  Meteor.wrapAsync(DriveClient.gdrive.permissions.create)({
     fileId: id,
     sendNotificationEmail: false,
     resource: {
@@ -62,7 +63,7 @@ const grantPermission = function grantPermission(id, email, permission) {
 const ensureDocument = function ensureDocument(puzzle, type = 'spreadsheet') {
   let doc = Documents.findOne({ puzzle: puzzle._id });
   if (!doc) {
-    if (!gdrive) {
+    if (!DriveClient.ready()) {
       throw new Meteor.Error(500, 'Google OAuth is not configured.');
     }
 
