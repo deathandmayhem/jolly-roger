@@ -1,5 +1,5 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import Settings from '../models/settings.js';
+import Settings from '../../lib/models/settings.js';
 
 Migrations.add({
   version: 18,

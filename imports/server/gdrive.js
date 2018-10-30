@@ -2,9 +2,9 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import Ansible from '../ansible.js';
 import Locks from './models/lock.js';
-import Settings from './models/settings.js';
-import Documents from '../lib/models/documents.js';
 import DriveClient from './gdrive-client-refresher.js';
+import Documents from '../lib/models/documents.js';
+import Settings from '../lib/models/settings.js';
 
 const MimeTypes = {
   spreadsheet: 'application/vnd.google-apps.spreadsheet',

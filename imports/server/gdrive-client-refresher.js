@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import googleapis from 'googleapis';
 import Ansible from '../ansible.js';
-import Settings from './models/settings.js';
+import Settings from '../lib/models/settings.js';
 
 class GDriveClientRefresher {
   constructor() {

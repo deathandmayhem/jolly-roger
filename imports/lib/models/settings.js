@@ -1,4 +1,4 @@
-import Base from '../../lib/models/base.js';
+import Base from './base.js';
 import SettingsSchema from '../schemas/settings.js';
 
 const Settings = new Base('settings');
