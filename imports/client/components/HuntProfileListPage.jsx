@@ -55,7 +55,11 @@ const HuntProfileListPageContainer = withTracker(({ params }) => {
 
   const ready = usersHandle.ready() && profilesHandle.ready();
   if (!ready) {
-    return { ready };
+    return {
+      ready: false,
+      canInvite: false,
+      profiles: [],
+    };
   }
 
   const canInvite = Roles.userHasPermission(
@@ -77,4 +81,4 @@ HuntProfileListPageContainer.propTypes = {
   }).isRequired,
 };
 
-export default HuntProfileListPage;
+export default HuntProfileListPageContainer;
