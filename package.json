@@ -2,7 +2,8 @@
   "name": "jolly-roger",
   "version": "0.0.1",
   "description": "A website for organizing puzzle hunters",
-  "author": "",
+  "author": "Evan Broder, Drew Fisher, Grant Elliott",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/ebroder/jolly-roger"
