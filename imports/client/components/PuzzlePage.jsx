@@ -871,7 +871,7 @@ class PuzzleGuessModal extends React.Component {
             <FormControl
               type="text"
               id="jr-puzzle-guess"
-              autoFocus="true"
+              autoFocus
               autoComplete="off"
               onChange={this.onGuessInputChange}
               value={this.state.guessInput}
