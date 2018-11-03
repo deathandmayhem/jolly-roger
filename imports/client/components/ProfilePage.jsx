@@ -309,7 +309,7 @@ class OwnProfilePage extends React.Component {
           </HelpBlock>
         </FormGroup>
         {this.state.submitState === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert bsStyle="success" dismissAfter={5000} onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
         {this.state.submitState === 'error' ? (
           <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
             Saving failed:
