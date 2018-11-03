@@ -21,7 +21,7 @@ class OthersProfilePage extends React.Component {
   static propTypes = {
     profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()),
     viewerCanMakeOperator: PropTypes.bool.isRequired,
-    targetIsAdmin: PropTypes.bool.isRequired,
+    targetIsOperator: PropTypes.bool.isRequired,
   };
 
   makeOperator = () => {
@@ -31,8 +31,8 @@ class OthersProfilePage extends React.Component {
   render() {
     // TODO: figure out something for profile pictures - gravatar?
     const profile = this.props.profile;
-    const showOperatorBadge = this.props.targetIsAdmin;
-    const showMakeOperatorButton = this.props.viewerCanMakeOperator && !this.props.targetIsAdmin;
+    const showOperatorBadge = this.props.targetIsOperator;
+    const showMakeOperatorButton = this.props.viewerCanMakeOperator && !this.props.targetIsOperator;
     return (
       <div>
         <h1>{profile.displayName}</h1>
@@ -404,8 +404,8 @@ class ProfilePage extends React.Component {
     isSelf: PropTypes.bool.isRequired,
     profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired,
     viewerCanMakeOperator: PropTypes.bool.isRequired,
-    viewerIsAdmin: PropTypes.bool.isRequired,
-    targetIsAdmin: PropTypes.bool.isRequired,
+    viewerIsOperator: PropTypes.bool.isRequired,
+    targetIsOperator: PropTypes.bool.isRequired,
   };
 
   static contextTypes = {
@@ -421,7 +421,7 @@ class ProfilePage extends React.Component {
         <OwnProfilePage
           initialProfile={this.props.profile}
           canMakeOperator={this.props.viewerCanMakeOperator}
-          operating={this.props.viewerIsAdmin}
+          operating={this.props.viewerIsOperator}
         />
       );
     } else {
@@ -429,7 +429,7 @@ class ProfilePage extends React.Component {
         <OthersProfilePage
           profile={this.props.profile}
           viewerCanMakeOperator={this.props.viewerCanMakeOperator}
-          targetIsAdmin={this.props.targetIsAdmin}
+          targetIsOperator={this.props.targetIsOperator}
         />
       );
     }
@@ -475,8 +475,8 @@ const ProfilePageContainer = withTracker(({ params }) => {
       createdBy: Meteor.userId(),
     },
     viewerCanMakeOperator: Roles.userHasPermission(Meteor.userId(), 'users.makeOperator'),
-    viewerIsAdmin: Roles.userHasRole(Meteor.userId(), 'admin'),
-    targetIsAdmin: Roles.userHasPermission(uid, 'users.makeOperator'),
+    viewerIsOperator: Roles.userHasRole(Meteor.userId(), 'operator'),
+    targetIsOperator: Roles.userHasPermission(uid, 'users.makeOperator'),
   };
   return data;
 })(ProfilePage);
