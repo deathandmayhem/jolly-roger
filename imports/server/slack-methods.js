@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
 import { HTTP } from 'meteor/http';
 import Ansible from '../ansible.js';
+import Flags from '../flags.js';
 
 Meteor.methods({
   slackInvite(userId) {
@@ -28,6 +29,11 @@ Meteor.methods({
     const config = ServiceConfiguration.configurations.findOne({ service: 'slack' });
     if (!config) {
       throw new Meteor.Error(500, 'Slack is not configured; unable to send invite');
+    }
+
+    const circuitBroken = Flags.active('disable.slack');
+    if (circuitBroken) {
+      throw new Meteor.Error(500, 'Slack integration is currently disabled by the administrator; unable to send invite');
     }
 
     this.unblock();
