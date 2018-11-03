@@ -36,8 +36,8 @@ class Celebration extends React.Component {
     return (
       <div className="celebration-overlay" onClick={this.maybeClose}>
         <div className="celebration">
-          <button type="button" className="close" onClick={this.onClose} ariaLabel="Close">
-            <span ariaHidden="true">×</span>
+          <button type="button" className="close" onClick={this.onClose} aria-label="Close">
+            <span aria-hidden="true">×</span>
           </button>
           {this.props.playAudio ? <audio src="/audio/applause.mp3" autoPlay /> : null}
           <h1>
