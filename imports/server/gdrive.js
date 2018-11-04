@@ -22,7 +22,7 @@ function checkClientOk() {
   }
 }
 
-const createDocument = function createDocument(name, type) {
+function createDocument(name, type) {
   if (!_.has(MimeTypes, type)) {
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
@@ -33,37 +33,37 @@ const createDocument = function createDocument(name, type) {
 
   let file;
   if (template) {
-    file = Meteor.wrapAsync(DriveClient.gdrive.files.copy)({
+    file = Meteor.wrapAsync(DriveClient.gdrive.files.copy, DriveClient.gdrive)({
       fileId: template.value.id,
       resource: { name, mimeType },
     });
   } else {
-    file = Meteor.wrapAsync(DriveClient.gdrive.files.create)({
+    file = Meteor.wrapAsync(DriveClient.gdrive.files.create, DriveClient.gdrive)({
       resource: { name, mimeType },
     });
   }
 
-  const fileId = file.id;
+  const fileId = file.data.id;
 
-  Meteor.wrapAsync(DriveClient.gdrive.permissions.create)({
+  Meteor.wrapAsync(DriveClient.gdrive.permissions.create, DriveClient.gdrive.permissions)({
     fileId,
     resource: { role: 'writer', type: 'anyone' },
   });
   return fileId;
-};
+}
 
-const renameDocument = function renameDocument(id, name) {
+function renameDocument(id, name) {
   checkClientOk();
   // It's unclear if this can ever return an error
-  Meteor.wrapAsync(DriveClient.gdrive.files.update)({
+  Meteor.wrapAsync(DriveClient.gdrive.files.update, DriveClient.gdrive)({
     fileId: id,
     resource: { name },
   });
-};
+}
 
-const grantPermission = function grantPermission(id, email, permission) {
+function grantPermission(id, email, permission) {
   checkClientOk();
-  Meteor.wrapAsync(DriveClient.gdrive.permissions.create)({
+  Meteor.wrapAsync(DriveClient.gdrive.permissions.create, DriveClient.gdrive.permissions)({
     fileId: id,
     sendNotificationEmail: false,
     resource: {
@@ -72,9 +72,9 @@ const grantPermission = function grantPermission(id, email, permission) {
       role: permission,
     },
   });
-};
+}
 
-const ensureDocument = function ensureDocument(puzzle, type = 'spreadsheet') {
+function ensureDocument(puzzle, type = 'spreadsheet') {
   let doc = Documents.findOne({ puzzle: puzzle._id });
   if (!doc) {
     checkClientOk();
@@ -99,10 +99,9 @@ const ensureDocument = function ensureDocument(puzzle, type = 'spreadsheet') {
   }
 
   return doc;
-};
+}
 
 export {
-  createDocument,
   renameDocument,
   grantPermission,
   ensureDocument,
