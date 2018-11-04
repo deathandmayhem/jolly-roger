@@ -118,7 +118,7 @@ class HuntModalForm extends React.Component {
           errorMessage: error.message,
         });
       } else {
-        this.setState(this.initialState()());
+        this.setState(this.initialState());
         callback();
       }
     });
