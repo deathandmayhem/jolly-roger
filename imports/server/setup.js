@@ -39,6 +39,15 @@ Meteor.methods({
       { $set: { value: { refreshToken, email } } });
   },
 
+  clearGdriveCreds() {
+    check(this.userId, String);
+    Roles.checkPermission(this.userId, 'gdrive.credential');
+    Ansible.log('Clearing Gdrive creds', {
+      user: this.userId,
+    });
+    Settings.remove({ name: 'gdrive.credential' });
+  },
+
   setupGdriveTemplates(spreadsheetTemplate, documentTemplate) {
     check(this.userId, String);
     check(spreadsheetTemplate, Match.Maybe(String));
