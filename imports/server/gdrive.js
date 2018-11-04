@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import Ansible from '../ansible.js';
+import Flags from '../flags.js';
 import Locks from './models/lock.js';
 import DriveClient from './gdrive-client-refresher.js';
 import Documents from '../lib/models/documents.js';
@@ -11,10 +12,21 @@ const MimeTypes = {
   document: 'application/vnd.google-apps.document',
 };
 
+function checkClientOk() {
+  if (!DriveClient.ready()) {
+    throw new Meteor.Error(500, 'Google OAuth is not configured.');
+  }
+
+  if (Flags.active('disable.google')) {
+    throw new Meteor.Error(500, 'Google integration is disabled.');
+  }
+}
+
 const createDocument = function createDocument(name, type) {
   if (!_.has(MimeTypes, type)) {
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
+  checkClientOk();
 
   const template = Settings.findOne({ name: `gdrive.template.${type}` });
   const mimeType = MimeTypes[type];
@@ -41,6 +53,7 @@ const createDocument = function createDocument(name, type) {
 };
 
 const renameDocument = function renameDocument(id, name) {
+  checkClientOk();
   // It's unclear if this can ever return an error
   Meteor.wrapAsync(DriveClient.gdrive.files.update)({
     fileId: id,
@@ -49,6 +62,7 @@ const renameDocument = function renameDocument(id, name) {
 };
 
 const grantPermission = function grantPermission(id, email, permission) {
+  checkClientOk();
   Meteor.wrapAsync(DriveClient.gdrive.permissions.create)({
     fileId: id,
     sendNotificationEmail: false,
@@ -63,9 +77,7 @@ const grantPermission = function grantPermission(id, email, permission) {
 const ensureDocument = function ensureDocument(puzzle, type = 'spreadsheet') {
   let doc = Documents.findOne({ puzzle: puzzle._id });
   if (!doc) {
-    if (!DriveClient.ready()) {
-      throw new Meteor.Error(500, 'Google OAuth is not configured.');
-    }
+    checkClientOk();
 
     Locks.withLock(`puzzle:${puzzle._id}:documents`, () => {
       doc = Documents.findOne({ puzzle: puzzle._id });

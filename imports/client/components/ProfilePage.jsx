@@ -14,6 +14,7 @@ import subsCache from '../subsCache.js';
 import navAggregatorType from './navAggregatorType.jsx';
 import ProfilesSchema from '../../lib/schemas/profiles.js';
 import Profiles from '../../lib/models/profiles.js';
+import Flags from '../../flags.js';
 
 /* eslint-disable max-len */
 
@@ -65,6 +66,7 @@ class OthersProfilePage extends React.Component {
 class GoogleLinkBlock extends React.Component {
   static propTypes = {
     profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()),
+    googleDisabled: PropTypes.bool.isRequired,
     config: PropTypes.object,
   };
 
@@ -115,6 +117,10 @@ class GoogleLinkBlock extends React.Component {
   linkButton = () => {
     if (this.state.state === 'linking') {
       return <Button bsStyle="primary" disabled>Linking...</Button>;
+    }
+
+    if (this.props.googleDisabled) {
+      return <Button bsStyle="primary" disabled>Google integration currently disabled</Button>;
     }
 
     const text = (this.props.profile.googleAccount) ?
@@ -193,7 +199,8 @@ class GoogleLinkBlock extends React.Component {
 
 const GoogleLinkBlockContainer = withTracker(() => {
   const config = ServiceConfiguration.configurations.findOne({ service: 'google' });
-  return { config };
+  const googleDisabled = Flags.active('disable.google');
+  return { config, googleDisabled };
 })(GoogleLinkBlock);
 
 class OwnProfilePage extends React.Component {
