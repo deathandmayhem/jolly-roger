@@ -106,6 +106,7 @@ class AccountForm extends React.Component {
       displayName: this.state.displayName,
       phoneNumber: this.state.phoneNumber,
       slackHandle: '',
+      muteApplause: false,
     };
 
     this.setState({

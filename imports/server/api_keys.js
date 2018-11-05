@@ -9,7 +9,7 @@ const userForKeyOperation = function userForKeyOperation(currentUser, forUser) {
   const canOverrideUser = Roles.userHasRole(currentUser, 'admin');
 
   if (forUser && !canOverrideUser) {
-    throw new Meteor.Error(403, 'Only operators can fetch other users\' keys');
+    throw new Meteor.Error(403, 'Only server admins can fetch other users\' keys');
   }
 
   return forUser || currentUser;

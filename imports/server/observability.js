@@ -17,6 +17,7 @@ const onConnect = function onConnect(socket, ...rest) {
     }, {
       user: () => session.userId,
       admin: () => Roles.userHasRole(session.userId, 'admin'),
+      operator: () => Roles.userHasRole(session.userId, 'operator'),
     });
   }
 

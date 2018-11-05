@@ -8,6 +8,7 @@ import Hunts from './hunts.js';
 import PendingAnnouncements from './pending_announcements.js';
 import Profiles from './profiles.js';
 import Puzzles from './puzzles.js';
+import Settings from './settings.js';
 import Tags from './tags.js';
 
 const Models = {
@@ -21,6 +22,7 @@ const Models = {
   PendingAnnouncements,
   Profiles,
   Puzzles,
+  Settings,
   Tags,
 };
 

@@ -8,7 +8,7 @@ Meteor.methods({
     Roles.checkPermission(this.userId, 'users.makeOperator');
 
     Roles.addUserToRoles(this.userId, 'inactiveOperator');
-    Roles.removeUserFromRoles(this.userId, 'admin');
+    Roles.removeUserFromRoles(this.userId, 'operator');
   },
 
   makeOperator(targetUserId) {
@@ -20,7 +20,7 @@ Meteor.methods({
       Ansible.log('Promoting user to operator', { user: targetUserId, promoter: this.userId });
     }
 
-    Roles.addUserToRoles(targetUserId, 'admin');
+    Roles.addUserToRoles(targetUserId, 'operator');
     // This may be a noop
     Roles.removeUserFromRoles(targetUserId, 'inactiveOperator');
   },

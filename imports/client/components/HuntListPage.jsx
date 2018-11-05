@@ -49,12 +49,12 @@ class HuntModalForm extends React.Component {
     };
     if (this.props.hunt) {
       return _.extend(state, {
-        name: this.props.hunt.name,
-        mailingLists: this.props.hunt.mailingLists.join(', '),
-        signupMessage: this.props.hunt.signupMessage,
-        openSignups: this.props.hunt.openSignups,
-        firehoseSlackChannel: this.props.hunt.firehoseSlackChannel,
-        puzzleHooksSlackChannel: this.props.hunt.puzzleHooksSlackChannel,
+        name: this.props.hunt.name || '',
+        mailingLists: this.props.hunt.mailingLists.join(', ') || '',
+        signupMessage: this.props.hunt.signupMessage || '',
+        openSignups: this.props.hunt.openSignups || false,
+        firehoseSlackChannel: this.props.hunt.firehoseSlackChannel || '',
+        puzzleHooksSlackChannel: this.props.hunt.puzzleHooksSlackChannel || '',
       });
     } else {
       return _.extend(state, {
@@ -118,7 +118,7 @@ class HuntModalForm extends React.Component {
           errorMessage: error.message,
         });
       } else {
-        this.setState(this.initialState()());
+        this.setState(this.initialState());
         callback();
       }
     });

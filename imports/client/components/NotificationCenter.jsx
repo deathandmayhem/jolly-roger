@@ -15,6 +15,7 @@ import subsCache from '../subsCache.js';
 import AnnouncementsSchema from '../../lib/schemas/announcements.js';
 import GuessesSchema from '../../lib/schemas/guess.js';
 import PuzzlesSchema from '../../lib/schemas/puzzles.js';
+import PendingAnnouncementsSchema from '../../lib/schemas/pending_announcements.js';
 import Announcements from '../../lib/models/announcements.js';
 import Guesses from '../../lib/models/guess.js';
 import PendingAnnouncements from '../../lib/models/pending_announcements.js';
@@ -249,7 +250,11 @@ class AnnouncementMessage extends React.PureComponent {
 class NotificationCenter extends React.Component {
   static propTypes = {
     ready: PropTypes.bool.isRequired,
-    announcements: PropTypes.arrayOf(PropTypes.shape(AnnouncementsSchema.asReactPropTypes())),
+    announcements: PropTypes.arrayOf(PropTypes.shape({
+      pa: PropTypes.shape(PendingAnnouncementsSchema.asReactPropTypes()).isRequired,
+      announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired,
+      createdByDisplayName: PropTypes.string.isRequired,
+    })),
     guesses: PropTypes.arrayOf(PropTypes.shape({
       guess: PropTypes.shape(GuessesSchema.asReactPropTypes()),
       puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()),

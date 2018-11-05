@@ -53,7 +53,7 @@ Meteor.methods({
     // By creating the document before we save the puzzle, we make
     // sure nobody else has a chance to create a document with the
     // wrong config
-    if (DriveClient.ready()) {
+    if (DriveClient.ready() && !Flags.active('disable.google')) {
       ensureDocument(fullPuzzle, docType);
     }
 
@@ -183,6 +183,10 @@ Meteor.methods({
     this.unblock();
 
     const doc = ensureDocument(puzzle);
+
+    if (Flags.active('disable.google')) {
+      return;
+    }
 
     if (Flags.active('disable.gdrive_permissions')) {
       return;

@@ -1,5 +1,5 @@
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-import Base from '../../lib/schemas/base.js';
+import Base from './base.js';
 
 const Settings = new SimpleSchema([
   Base,

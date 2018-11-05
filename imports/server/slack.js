@@ -1,10 +1,16 @@
 import { HTTP } from 'meteor/http';
 import Ansible from '../ansible.js';
+import Flags from '../flags.js';
 
 function postSlackMessage(message, channel, username) {
   const config = ServiceConfiguration.configurations.findOne({ service: 'slack' });
   if (!config) {
     Ansible.log('Not notifying Slack because Slack is not configured');
+    return;
+  }
+
+  if (Flags.active('disable.slack')) {
+    Ansible.log('Not notifying Slack because disable.slack circuit breaker is active');
     return;
   }
 
