@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.1.5",
-    "bcrypt": "^3.0.2",
+    "bcrypt": "^1.0.3",
     "bootstrap": "^3.3.6",
     "classnames": "^2.2.5",
     "element-resize-detector": "^1.1.14",
