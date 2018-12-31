@@ -2,9 +2,10 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
-import Glyphicon from 'react-bootstrap/lib/Glyphicon';
 import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
 import Tooltip from 'react-bootstrap/lib/Tooltip';
+import { faCopy } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link } from 'react-router';
 import moment from 'moment';
 import marked from 'marked';
@@ -129,7 +130,7 @@ class GuessMessage extends React.PureComponent {
           <ul className="actions">
             <li>
               <CopyToClipboard text={this.props.guess.guess}>
-                <button type="button"><Glyphicon glyph="copy" /></button>
+                <button type="button"><FontAwesomeIcon icon={faCopy} /></button>
               </CopyToClipboard>
             </li>
             <li><button type="button" onClick={this.markCorrect}>Correct</button></li>

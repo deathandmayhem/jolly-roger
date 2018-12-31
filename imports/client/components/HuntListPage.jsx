@@ -9,8 +9,9 @@ import Checkbox from 'react-bootstrap/lib/Checkbox';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
-import Glyphicon from 'react-bootstrap/lib/Glyphicon';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router';
 import { withTracker } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible.js';
@@ -287,7 +288,7 @@ class Hunt extends React.Component {
     if (this.props.canUpdate) {
       return (
         <Button onClick={this.showEditModal} bsStyle="default" title="Edit hunt...">
-          <Glyphicon glyph="edit" />
+          <FontAwesomeIcon fixedWidth icon={faEdit} />
         </Button>
       );
     }
@@ -299,7 +300,7 @@ class Hunt extends React.Component {
     if (this.props.canDestroy) {
       return (
         <Button onClick={this.showDeleteModal} bsStyle="danger" title="Delete hunt...">
-          <Glyphicon glyph="remove" />
+          <FontAwesomeIcon fixedWidth icon={faMinus} />
         </Button>
       );
     }
@@ -387,7 +388,7 @@ class HuntListPage extends React.Component {
     if (this.props.canAdd) {
       return (
         <Button onClick={this.showAddModal} bsStyle="success" bsSize="xs" title="Add new hunt...">
-          <Glyphicon glyph="plus" />
+          <FontAwesomeIcon icon={faPlus} />
         </Button>
       );
     }

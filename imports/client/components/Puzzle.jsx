@@ -3,7 +3,8 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import Button from 'react-bootstrap/lib/Button';
-import Glyphicon from 'react-bootstrap/lib/Glyphicon';
+import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import { Link } from 'react-router';
 
@@ -51,7 +52,7 @@ class Puzzle extends React.PureComponent {
     if (this.props.canUpdate) {
       return (
         <Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
-          <Glyphicon glyph="edit" />
+          <FontAwesomeIcon icon={faEdit} />
         </Button>
       );
     }

@@ -5,7 +5,6 @@ import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import Glyphicon from 'react-bootstrap/lib/Glyphicon';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
@@ -16,6 +15,8 @@ import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
 import Table from 'react-bootstrap/lib/Table';
 import Tooltip from 'react-bootstrap/lib/Tooltip';
 import DocumentTitle from 'react-document-title';
+import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import marked from 'marked';
 import moment from 'moment';
@@ -648,7 +649,7 @@ class PuzzlePageMetadata extends React.Component {
     if (this.props.canUpdate) {
       return (
         <Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
-          <Glyphicon glyph="edit" />
+          <FontAwesomeIcon icon={faEdit} />
         </Button>
       );
     }
