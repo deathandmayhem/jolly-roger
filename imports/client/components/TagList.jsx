@@ -3,6 +3,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Button from 'react-bootstrap/lib/Button';
 import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
+import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import tagShape from './tagShape.js';
 import Tag from './Tag.jsx';
 import TagEditor from './TagEditor.jsx';
@@ -141,7 +143,7 @@ class TagList extends React.PureComponent {
               className="tag-modify-button"
               onClick={this.startEditing}
             >
-              &#10133;
+              <FontAwesomeIcon fixedWidth icon={faPlus} />
             </Button>
           )}
           {this.props.onRemoveTag && tags.length > 0 && (
@@ -151,7 +153,7 @@ class TagList extends React.PureComponent {
               className="tag-modify-button"
               onClick={this.startRemoving}
             >
-              &#10134;
+              <FontAwesomeIcon fixedWidth icon={faMinus} />
             </Button>
           )}
         </ButtonGroup>

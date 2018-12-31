@@ -1,6 +1,8 @@
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
+import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PuzzleList from './PuzzleList.jsx';
 import Tag from './Tag.jsx';
 import puzzleInterestingness from './puzzleInterestingness.js';
@@ -63,9 +65,7 @@ class RelatedPuzzleGroup extends React.Component {
     return (
       <div className="puzzle-group">
         <div className="puzzle-group-header" onClick={this.toggleCollapse}>
-          {this.state.collapsed ?
-            <span className="glyphicon glyphicon-chevron-up" /> :
-            <span className="glyphicon glyphicon-chevron-down" />}
+          <FontAwesomeIcon fixedWidth icon={this.state.collapsed ? faCaretRight : faCaretDown} />
           <Tag tag={this.props.sharedTag} linkToSearch={false} />
           {this.props.includeCount && <span>{`(${this.props.relatedPuzzles.length} other ${this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles'})`}</span>}
         </div>
