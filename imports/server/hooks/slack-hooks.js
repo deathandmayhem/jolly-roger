@@ -27,7 +27,6 @@ class SlackHooks extends Hookset {
   }
 
   onPuzzleNoLongerSolved(puzzleId) { // eslint-disable-line no-unused-vars
-    // TODO: unarchive Slack channel
   }
 }
 

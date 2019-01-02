@@ -73,7 +73,6 @@ const SharedNavbarContainer = withTracker(() => {
   };
 })(SharedNavbar);
 
-// TODO: clean this up and dedupe navbar stuff when you figure out breadcrumbs
 class FullscreenLayout extends React.Component {
   static propTypes = {
     children: PropTypes.node,

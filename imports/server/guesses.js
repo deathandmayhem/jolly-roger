@@ -31,7 +31,6 @@ function transitionGuess(guess, newState) {
 
   if (newState === 'correct') {
     // Mark this puzzle as solved.
-    // TODO: run custom hook logic (e.g. archive Slack channel, etc.)
     Puzzles.update({
       _id: guess.puzzle,
     }, {
@@ -42,7 +41,6 @@ function transitionGuess(guess, newState) {
     GlobalHooks.runPuzzleSolvedHooks(guess.puzzle);
   } else if (guess.state === 'correct') {
     // Transitioning from correct -> something else: un-mark that puzzle as solved.
-    // TODO: run custom hook login (e.g. unarchive Slack channel, etc.)
     Puzzles.update({
       _id: guess.puzzle,
     }, {
