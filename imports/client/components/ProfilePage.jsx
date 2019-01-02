@@ -15,6 +15,7 @@ import navAggregatorType from './navAggregatorType.jsx';
 import ProfilesSchema from '../../lib/schemas/profiles.js';
 import Profiles from '../../lib/models/profiles.js';
 import Flags from '../../flags.js';
+import Gravatar from './Gravatar.jsx';
 
 /* eslint-disable max-len */
 
@@ -30,7 +31,6 @@ class OthersProfilePage extends React.Component {
   };
 
   render() {
-    // TODO: figure out something for profile pictures - gravatar?
     const profile = this.props.profile;
     const showOperatorBadge = this.props.targetIsOperator;
     const showMakeOperatorButton = this.props.viewerCanMakeOperator && !this.props.targetIsOperator;
@@ -39,6 +39,7 @@ class OthersProfilePage extends React.Component {
         <h1>{profile.displayName}</h1>
         {showOperatorBadge && <Label>operator</Label>}
         {showMakeOperatorButton && <Button onClick={this.makeOperator}>Make operator</Button>}
+        <Gravatar email={profile.primaryEmail} />
         <div>
           Email:
           {' '}
@@ -181,6 +182,7 @@ class GoogleLinkBlock extends React.Component {
           Linking your Google account isn&apos;t required, but this will
           let other people see who you are on puzzles&apos; Google
           Spreadsheet docs (instead of being an
+          {' '}
           <a
             href="https://support.google.com/docs/answer/2494888?visit_id=1-636184745566842981-35709989&hl=en&rd=1"
             rel="noopener noreferrer"
@@ -300,7 +302,6 @@ class OwnProfilePage extends React.Component {
       <div>
         <h1>Account information</h1>
         {this.props.canMakeOperator ? <Checkbox type="checkbox" checked={this.props.operating} onChange={this.toggleOperating}>Operating</Checkbox> : null}
-        {/* TODO: picture/gravatar */}
         <FormGroup>
           <ControlLabel htmlFor="jr-profile-edit-email">
             Email address
@@ -312,8 +313,12 @@ class OwnProfilePage extends React.Component {
             disabled
           />
           <HelpBlock>
-            This is the email address associated with your account.
+            This is the email address associated with your account.  The profile picture below is the image associated with that email address from
+            {' '}
+            <a href="https://gravatar.com">gravatar.com</a>
+            .
           </HelpBlock>
+          <Gravatar email={this.props.initialProfile.primaryEmail} />
         </FormGroup>
         {this.state.submitState === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
         {this.state.submitState === 'success' ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
