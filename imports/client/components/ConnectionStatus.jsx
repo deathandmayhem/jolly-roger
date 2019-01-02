@@ -11,6 +11,14 @@ class ConnectionStatus extends React.Component {
     meteorStatus: PropTypes.object,
   };
 
+  refresh() {
+    // Mark this timeout as completed
+    if (this.timeoutId) {
+      this.timeoutId = undefined;
+    }
+    this.forceUpdate();
+  }
+
   render() {
     switch (this.props.meteorStatus.status) {
       case 'connecting':
@@ -32,8 +40,10 @@ class ConnectionStatus extends React.Component {
         const now = Date.now();
         const timeToRetry = Math.ceil((this.props.meteorStatus.retryTime - now) / 1000);
 
-        // Trigger a refresh in a second.  TODO: debounce this?
-        window.setTimeout(() => this.forceUpdate(), 1000);
+        // If we have no refresh scheduled yet, trigger a refresh in a second.
+        if (this.timeoutId === undefined) {
+          this.timeoutId = window.setTimeout(() => this.refresh(), 1000);
+        }
         return (
           <Alert bsStyle="warning">
             We can&apos;t connect to Jolly Roger right now. We&apos;ll try again in
