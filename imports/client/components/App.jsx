@@ -34,7 +34,7 @@ class SharedNavbar extends React.Component {
         <Navbar.Header>
           <Navbar.Brand>
             <Link to="/">
-              <img src="/images/brand.png" alt="Jolly Roger logo" />
+              <img src="/images/brand.png" alt="Jolly Roger logo" srcSet="/images/brand.png 1x, /images/brand@2x.png 2x" />
             </Link>
           </Navbar.Brand>
           <this.context.navAggregator.NavBar />

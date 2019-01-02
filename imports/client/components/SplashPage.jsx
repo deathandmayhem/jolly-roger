@@ -14,7 +14,7 @@ class SplashPage extends React.Component {
     return (
       <div className="container">
         <Jumbotron id="jr-login">
-          <Image src="/images/hero.png" className="center-block" responsive />
+          <Image src="/images/hero.png" className="center-block" responsive srcSet="/images/hero.png 1x, /images/hero@2x.png 2x" />
           <div className="container">
             <Row>
               <Col md={6} mdOffset={3}>
