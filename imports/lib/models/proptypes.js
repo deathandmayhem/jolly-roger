@@ -1,41 +1,51 @@
 import PropTypes from 'prop-types';
-import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+import SimpleSchema from 'simpl-schema';
 
-const mapKeyToReactPropTypes = function (schema, key) {
-  // Attempts to map the field into a React type, a process which may involve looking at other keys
-  // in the schema.
-  const field = schema[key];
-  const type = field.type;
+const mapKeyToReactPropTypes = function (schema, key, type) {
+  // Attempts to map the field into a React type
+  //
+  // In theory we should be able to get more sophisticated shape types for
+  // object and object arrays, but in practice it hasn't seemed to be an issue.
+  const quickType = schema.getQuickTypeForKey(key);
   let reactType;
-
-  // Add more types as needed.
-  if (type === String) {
-    reactType = PropTypes.string;
-  } else if (type === Boolean) {
-    reactType = PropTypes.bool;
-  } else if (type === Number) {
-    reactType = PropTypes.number;
-  } else if (type === Date) {
-    reactType = PropTypes.object;
-  } else if (type === Array) {
-    // eslint-disable-next-line prefer-template
-    const innerType = mapKeyToReactPropTypes(schema, key + '.$');
-    reactType = PropTypes.arrayOf(innerType);
-  } else if (type === Object) {
-    // TODO: be more specific about the shape of the object
-    // We should be able to learn some things about the shape of this field if there are
-    // schema rules named field.*, and then we should use PropTypes.shape instead.
-    // If field.blackbox is true, though, this is meant to be an opaque object.
-    reactType = PropTypes.object;
+  switch (quickType) {
+    case 'string':
+      reactType = PropTypes.string;
+      break;
+    case 'number':
+      reactType = PropTypes.number;
+      break;
+    case 'boolean':
+      reactType = PropTypes.bool;
+      break;
+    case 'date':
+      reactType = PropTypes.object;
+      break;
+    case 'object':
+      reactType = PropTypes.object;
+      break;
+    case 'stringArray':
+      reactType = PropTypes.arrayOf(PropTypes.string);
+      break;
+    case 'numberArray':
+      reactType = PropTypes.arrayOf(PropTypes.number);
+      break;
+    case 'booleanArray':
+      reactType = PropTypes.arrayOf(PropTypes.bool);
+      break;
+    case 'dateArray':
+      reactType = PropTypes.arrayOf(PropTypes.object);
+      break;
+    case 'objectArray':
+      reactType = PropTypes.arrayOf(PropTypes.object);
+      break;
+    default:
+      // eslint-disable-next-line no-console
+      console.error('unsupported type in schema:', quickType);
+      return undefined;
   }
 
-  if (reactType === undefined) {
-    // eslint-disable-next-line no-console
-    console.error('unsupported type in schema:', type, type.name);
-    return undefined;
-  }
-
-  if (!field.optional) {
+  if (!type.optional) {
     reactType = reactType.isRequired;
   }
 
@@ -49,18 +59,17 @@ const mapKeyToReactPropTypes = function (schema, key) {
 // This just makes it handier to use with React.
 SimpleSchema.prototype.asReactPropTypes = function asReactPropTypes() {
   const pt = {};
-  for (let i = 0; i < this._schemaKeys.length; i++) {
-    const key = this._schemaKeys[i];
-
+  const schema = this.mergedSchema();
+  Object.keys(schema).forEach((key) => {
     // Skip inner references to array or object members - these will be processed when looking at
     // their object parents or containing array.
     if (key.indexOf('.') !== -1) {
-      continue; // eslint-disable-line no-continue
+      return;
     }
 
-    const reactType = mapKeyToReactPropTypes(this._schema, key);
+    const reactType = mapKeyToReactPropTypes(this, key, schema[key]);
     pt[key] = reactType;
-  }
+  });
 
   return pt;
 };

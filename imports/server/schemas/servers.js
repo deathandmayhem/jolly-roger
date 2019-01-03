@@ -1,4 +1,4 @@
-import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+import SimpleSchema from 'simpl-schema';
 
 const Servers = new SimpleSchema({
   // unlike most updatedAt values, this one also gets set on created
