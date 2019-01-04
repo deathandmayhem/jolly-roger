@@ -232,9 +232,9 @@ class OwnProfilePage extends React.Component {
       return null;
     }
 
-    const valid = ProfilesSchema.namedContext().validateOne({
+    const valid = ProfilesSchema.namedContext().validate({
       slackHandle: this.state.slackHandleValue,
-    }, 'slackHandle');
+    }, { keys: ['slackHandle'] });
     return valid ? 'success' : 'error';
   };
 

@@ -1,4 +1,4 @@
-import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+import SimpleSchema from 'simpl-schema';
 
 // Does not inherit from Base
 const User = new SimpleSchema({
@@ -8,7 +8,10 @@ const User = new SimpleSchema({
     regEx: /^[a-z0-9A-Z_]{3,15}$/,
   },
   emails: {
-    type: [Object],
+    type: Array,
+  },
+  'emails.$': {
+    type: Object,
   },
   'emails.$.address': {
     type: String,
@@ -30,17 +33,24 @@ const User = new SimpleSchema({
     blackbox: true,
   },
   roles: {
-    type: [String],
+    type: Array,
     optional: true,
   },
+  'roles.$': {
+    type: String,
+  },
   hunts: {
-    type: [String],
+    type: Array,
     defaultValue: [],
+  },
+  'hunts.$': {
+    type: String,
     regEx: SimpleSchema.RegEx.Id,
   },
 
   profile: {
     type: Object,
+    defaultValue: {},
   },
   'profile.operating': {
     type: Boolean,

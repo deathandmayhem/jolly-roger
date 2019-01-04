@@ -8,8 +8,9 @@ ecmascript@0.12.0
 ecmascript-collections
 accounts-password@1.5.1
 audit-argument-checks@1.0.7
-aldeed:collection2
-aldeed:simple-schema
+aldeed:collection2@3.0.0
+aldeed:schema-deny
+aldeed:schema-index
 nicolaslopezj:roles
 meteor-base@1.4.0
 mobile-experience@1.0.5

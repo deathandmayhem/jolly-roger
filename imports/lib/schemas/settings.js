@@ -1,17 +1,15 @@
-import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+import SimpleSchema from 'simpl-schema';
 import Base from './base.js';
 
-const Settings = new SimpleSchema([
-  Base,
-  {
-    name: {
-      type: String,
-    },
-    value: {
-      type: Object,
-      blackbox: true,
-    },
+const Settings = new SimpleSchema({
+  name: {
+    type: String,
   },
-]);
+  value: {
+    type: Object,
+    blackbox: true,
+  },
+});
+Settings.extend(Base);
 
 export default Settings;

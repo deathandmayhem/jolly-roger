@@ -39,6 +39,7 @@
     "react-select": "^2.2.0",
     "react-split-pane": "^0.1.85",
     "react-textarea-autosize": "^7.1.0",
+    "simpl-schema": "^1.5.3",
     "url": "^0.11.0"
   },
   "devDependencies": {
