@@ -41,7 +41,7 @@ class HuntModalForm extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = this.initialState();
-    this.formNode = React.createRef();
+    this.formRef = React.createRef();
   }
 
   initialState = () => {
@@ -127,7 +127,7 @@ class HuntModalForm extends React.Component {
   };
 
   show = () => {
-    this.formNode.current.show();
+    this.formRef.current.show();
   };
 
 
@@ -136,7 +136,7 @@ class HuntModalForm extends React.Component {
     const idPrefix = this.props.hunt ? `jr-hunt-${this.props.hunt.id}-modal-` : 'jr-hunt-new-modal-';
     return (
       <ModalForm
-        ref={this.formNode}
+        ref={this.formRef}
         title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
         onSubmit={this.onFormSubmit}
         submitDisabled={disableForm}
@@ -266,8 +266,8 @@ class Hunt extends React.Component {
 
   constructor(props) {
     super(props);
-    this.editModalNode = React.createRef();
-    this.deleteModalNode = React.createRef();
+    this.editModalRef = React.createRef();
+    this.deleteModalRef = React.createRef();
   }
 
   onEdit = (state, callback) => {
@@ -284,11 +284,11 @@ class Hunt extends React.Component {
   };
 
   showEditModal = () => {
-    this.editModalNode.current.show();
+    this.editModalRef.current.show();
   };
 
   showDeleteModal = () => {
-    this.deleteModalNode.current.show();
+    this.deleteModalRef.current.show();
   };
 
   editButton = () => {
@@ -320,12 +320,12 @@ class Hunt extends React.Component {
     return (
       <li>
         <HuntModalForm
-          ref={this.editModalNode}
+          ref={this.editModalRef}
           hunt={this.props.hunt}
           onSubmit={this.onEdit}
         />
         <ModalForm
-          ref={this.deleteModalNode}
+          ref={this.deleteModalRef}
           title="Delete Hunt"
           submitLabel="Delete"
           submitStyle="danger"
@@ -384,7 +384,7 @@ class HuntListPage extends React.Component {
 
   constructor(props) {
     super(props);
-    this.addModalNode = React.createRef();
+    this.addModalRef = React.createRef();
   }
 
   onAdd = (state, callback) => {
@@ -393,7 +393,7 @@ class HuntListPage extends React.Component {
   };
 
   showAddModal = () => {
-    this.addModalNode.current.show();
+    this.addModalRef.current.show();
   };
 
   addButton = () => {
@@ -455,7 +455,7 @@ class HuntListPage extends React.Component {
         <div id="jr-hunts">
           <h1>Hunts</h1>
           <HuntModalForm
-            ref={this.addModalNode}
+            ref={this.addModalRef}
             onSubmit={this.onAdd}
           />
           {this.addButton()}

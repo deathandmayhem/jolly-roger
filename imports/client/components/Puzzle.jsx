@@ -39,7 +39,7 @@ class Puzzle extends React.PureComponent {
 
   constructor(props) {
     super(props);
-    this.modalNode = React.createRef();
+    this.modalRef = React.createRef();
   }
 
   onEdit = (state, callback) => {
@@ -49,7 +49,7 @@ class Puzzle extends React.PureComponent {
 
   showEditModal = () => {
     if (this.state.showEditModal) {
-      this.modalNode.current.show();
+      this.modalRef.current.show();
     } else {
       this.setState({
         showEditModal: true,
@@ -102,7 +102,7 @@ class Puzzle extends React.PureComponent {
         {this.state.showEditModal ? (
           <PuzzleModalForm
             key={this.props.puzzle._id}
-            ref={this.modalNode}
+            ref={this.modalRef}
             puzzle={this.props.puzzle}
             huntId={this.props.puzzle.hunt}
             tags={this.props.allTags}

@@ -36,7 +36,7 @@ class PuzzleModalForm extends React.Component {
       tagsDirty: false,
     };
 
-    this.formNode = React.createRef();
+    this.formRef = React.createRef();
 
     if (props.puzzle) {
       this.state = _.extend(state, this.stateFromPuzzle(props.puzzle));
@@ -128,7 +128,7 @@ class PuzzleModalForm extends React.Component {
   };
 
   show = () => {
-    this.formNode.current.show();
+    this.formRef.current.show();
   };
 
   currentTitle = () => {
@@ -196,7 +196,7 @@ class PuzzleModalForm extends React.Component {
 
     return (
       <ModalForm
-        ref={this.formNode}
+        ref={this.formRef}
         title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
         onSubmit={this.onFormSubmit}
         submitDisabled={disableForm}
