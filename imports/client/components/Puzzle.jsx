@@ -3,7 +3,7 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import Button from 'react-bootstrap/lib/Button';
-import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import { Link } from 'react-router';
@@ -116,9 +116,9 @@ class Puzzle extends React.PureComponent {
           <div className="puzzle-link">
             {this.props.puzzle.url ? (
               <span>
-                (
-                <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">puzzle</a>
-                )
+                <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
+                  <FontAwesomeIcon icon={faPuzzlePiece} />
+                </a>
               </span>
             ) : null}
           </div>
