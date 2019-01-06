@@ -60,6 +60,7 @@ class SplitPanePlus extends React.Component {
       lastRelSize: NaN,
       dragInProgress: false,
     };
+    this.node = React.createRef();
     this.onResize = this.onResize.bind(this);
     this.onChange = this.onChange.bind(this);
     this.onDragStarted = this.onDragStarted.bind(this);
@@ -154,7 +155,7 @@ class SplitPanePlus extends React.Component {
   }
 
   splitPaneNode() {
-    return this.node ? this.node.firstChild : null;
+    return this.node.current ? this.node.current.firstChild : null;
   }
 
   primaryPaneNode() {
@@ -228,7 +229,7 @@ class SplitPanePlus extends React.Component {
     paneProps.className = `${paneProps.className}${this.state.dragInProgress ? ' dragging' : ''}`;
 
     return (
-      <div className="SplitPanePlus" ref={(node) => { this.node = node; }}>
+      <div className="SplitPanePlus" ref={this.node}>
         <SplitPane {...paneProps} />
       </div>
     );

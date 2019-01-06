@@ -23,6 +23,7 @@ class PuzzleModalForm extends React.Component {
       PropTypes.shape(tagShape).isRequired,
     ).isRequired,
     onSubmit: PropTypes.func.isRequired,
+    showOnMount: PropTypes.bool,
   };
 
   constructor(props, context) {
@@ -35,6 +36,8 @@ class PuzzleModalForm extends React.Component {
       tagsDirty: false,
     };
 
+    this.formNode = React.createRef();
+
     if (props.puzzle) {
       this.state = _.extend(state, this.stateFromPuzzle(props.puzzle));
     } else {
@@ -44,6 +47,12 @@ class PuzzleModalForm extends React.Component {
         tags: [],
         docType: 'spreadsheet',
       });
+    }
+  }
+
+  componentDidMount() {
+    if (this.props.showOnMount) {
+      this.show();
     }
   }
 
@@ -119,7 +128,7 @@ class PuzzleModalForm extends React.Component {
   };
 
   show = () => {
-    this.formNode.show();
+    this.formNode.current.show();
   };
 
   currentTitle = () => {
@@ -187,7 +196,7 @@ class PuzzleModalForm extends React.Component {
 
     return (
       <ModalForm
-        ref={(node) => { this.formNode = node; }}
+        ref={this.formNode}
         title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
         onSubmit={this.onFormSubmit}
         submitDisabled={disableForm}

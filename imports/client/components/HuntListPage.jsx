@@ -41,6 +41,7 @@ class HuntModalForm extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = this.initialState();
+    this.formNode = React.createRef();
   }
 
   initialState = () => {
@@ -126,7 +127,7 @@ class HuntModalForm extends React.Component {
   };
 
   show = () => {
-    this.formNode.show();
+    this.formNode.current.show();
   };
 
 
@@ -135,7 +136,7 @@ class HuntModalForm extends React.Component {
     const idPrefix = this.props.hunt ? `jr-hunt-${this.props.hunt.id}-modal-` : 'jr-hunt-new-modal-';
     return (
       <ModalForm
-        ref={(node) => { this.formNode = node; }}
+        ref={this.formNode}
         title={this.props.hunt ? 'Edit Hunt' : 'New Hunt'}
         onSubmit={this.onFormSubmit}
         submitDisabled={disableForm}
@@ -263,6 +264,12 @@ class Hunt extends React.Component {
     canDestroy: PropTypes.bool.isRequired,
   };
 
+  constructor(props) {
+    super(props);
+    this.editModalNode = React.createRef();
+    this.deleteModalNode = React.createRef();
+  }
+
   onEdit = (state, callback) => {
     Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), state });
     Hunts.update(
@@ -277,11 +284,11 @@ class Hunt extends React.Component {
   };
 
   showEditModal = () => {
-    this.editModalNode.show();
+    this.editModalNode.current.show();
   };
 
   showDeleteModal = () => {
-    this.deleteModalNode.show();
+    this.deleteModalNode.current.show();
   };
 
   editButton = () => {
@@ -313,12 +320,12 @@ class Hunt extends React.Component {
     return (
       <li>
         <HuntModalForm
-          ref={(node) => { this.editModalNode = node; }}
+          ref={this.editModalNode}
           hunt={this.props.hunt}
           onSubmit={this.onEdit}
         />
         <ModalForm
-          ref={(node) => { this.deleteModalNode = node; }}
+          ref={this.deleteModalNode}
           title="Delete Hunt"
           submitLabel="Delete"
           submitStyle="danger"
@@ -375,13 +382,18 @@ class HuntListPage extends React.Component {
     navAggregator: navAggregatorType,
   };
 
+  constructor(props) {
+    super(props);
+    this.addModalNode = React.createRef();
+  }
+
   onAdd = (state, callback) => {
     Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
     Hunts.insert(state, callback);
   };
 
   showAddModal = () => {
-    this.addModalNode.show();
+    this.addModalNode.current.show();
   };
 
   addButton = () => {
@@ -443,7 +455,7 @@ class HuntListPage extends React.Component {
         <div id="jr-hunts">
           <h1>Hunts</h1>
           <HuntModalForm
-            ref={(node) => { this.addModalNode = node; }}
+            ref={this.addModalNode}
             onSubmit={this.onAdd}
           />
           {this.addButton()}

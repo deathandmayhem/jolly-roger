@@ -233,8 +233,13 @@ class ViewCountDisplay extends React.Component {
     subfetchesDisabled: PropTypes.bool.isRequired,
   };
 
+  constructor(props) {
+    super(props);
+    this.modalNode = React.createRef();
+  }
+
   showModal = () => {
-    this.modalNode.show();
+    this.modalNode.current.show();
   };
 
   render() {
@@ -251,7 +256,7 @@ class ViewCountDisplay extends React.Component {
 
     return (
       <span>
-        <ViewersModal ref={(n) => { this.modalNode = n; }} name={this.props.name} />
+        <ViewersModal ref={this.modalNode} name={this.props.name} />
         <OverlayTrigger placement="top" overlay={tooltip}>
           <span className="view-count" onClick={this.showModal}>{text}</span>
         </OverlayTrigger>
@@ -329,6 +334,11 @@ class ChatHistory extends React.PureComponent {
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
   };
 
+  constructor(props) {
+    super(props);
+    this.node = React.createRef();
+  }
+
   componentDidMount() {
     // Scroll to end of chat.
     this.forceScrollBottom();
@@ -357,7 +367,7 @@ class ChatHistory extends React.PureComponent {
     // Save whether the current scrollTop is equal to the ~maximum scrollTop.
     // If so, then we should make the log "stick" to the bottom, by manually scrolling to the bottom
     // when needed.
-    const messagePane = this.node;
+    const messagePane = this.node.current;
 
     // Include a 5 px fudge factor to account for bad scrolling and
     // fractional pixels
@@ -371,14 +381,14 @@ class ChatHistory extends React.PureComponent {
   };
 
   forceScrollBottom = () => {
-    const messagePane = this.node;
+    const messagePane = this.node.current;
     messagePane.scrollTop = messagePane.scrollHeight;
     this.shouldScroll = true;
   };
 
   render() {
     return (
-      <div ref={(node) => { this.node = node; }} className="chat-history" onScroll={this.onScroll}>
+      <div ref={this.node} className="chat-history" onScroll={this.onScroll}>
         {this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span>}
         {this.props.chatMessages.map((msg) => {
           const displayName = (msg.sender !== undefined) ? this.props.displayNames[msg.sender] : 'jolly-roger';
@@ -479,19 +489,24 @@ class ChatSection extends React.PureComponent {
     puzzleId: PropTypes.string.isRequired,
   };
 
+  constructor(props) {
+    super(props);
+    this.historyNode = React.createRef();
+  }
+
   onInputHeightChange = () => {
-    this.historyNode.maybeForceScrollBottom();
+    this.historyNode.current.maybeForceScrollBottom();
   };
 
   onMessageSent = () => {
-    this.historyNode.forceScrollBottom();
+    this.historyNode.current.forceScrollBottom();
   };
 
   render() {
     return (
       <div className="chat-section">
         {this.props.chatReady ? null : <span>loading...</span>}
-        <ChatHistory ref={(node) => { this.historyNode = node; }} chatMessages={this.props.chatMessages} displayNames={this.props.displayNames} />
+        <ChatHistory ref={this.historyNode} chatMessages={this.props.chatMessages} displayNames={this.props.displayNames} />
         <ChatInput
           puzzleId={this.props.puzzleId}
           onHeightChange={this.onInputHeightChange}
@@ -612,6 +627,12 @@ class PuzzlePageMetadata extends React.Component {
     canUpdate: PropTypes.bool.isRequired,
   };
 
+  constructor(props) {
+    super(props);
+    this.editModalNode = React.createRef();
+    this.guessModalNode = React.createRef();
+  }
+
   onCreateTag = (newTagName) => {
     Meteor.call('addTagToPuzzle', this.props.puzzle._id, newTagName, (error) => {
       // Not really much we can do in the case of a failure, but let's log it anyway
@@ -638,11 +659,11 @@ class PuzzlePageMetadata extends React.Component {
   };
 
   showGuessModal = () => {
-    this.guessModalNode.show();
+    this.guessModalNode.current.show();
   };
 
   showEditModal = () => {
-    this.editModalNode.show();
+    this.editModalNode.current.show();
   };
 
   editButton = () => {
@@ -673,7 +694,7 @@ class PuzzlePageMetadata extends React.Component {
       <div className="puzzle-metadata">
         <PuzzleModalForm
           key={this.props.puzzle._id}
-          ref={(node) => { this.editModalNode = node; }}
+          ref={this.editModalNode}
           puzzle={this.props.puzzle}
           huntId={this.props.puzzle.hunt}
           tags={this.props.allTags}
@@ -733,7 +754,7 @@ class PuzzlePageMetadata extends React.Component {
           </div>
         </div>
         <PuzzleGuessModal
-          ref={(node) => { this.guessModalNode = node; }}
+          ref={this.guessModalNode}
           puzzle={this.props.puzzle}
           guesses={this.props.guesses}
           displayNames={this.props.displayNames}
@@ -777,6 +798,11 @@ class PuzzleGuessModal extends React.Component {
     confirmationMessage: '',
     errorMessage: '',
   };
+
+  constructor(props) {
+    super(props);
+    this.formNode = React.createRef();
+  }
 
   onGuessInputChange = (event) => {
     this.setState({
@@ -838,7 +864,7 @@ class PuzzleGuessModal extends React.Component {
   };
 
   show = () => {
-    this.formNode.show();
+    this.formNode.current.show();
   };
 
   render() {
@@ -859,7 +885,7 @@ class PuzzleGuessModal extends React.Component {
 
     return (
       <ModalForm
-        ref={(node) => { this.formNode = node; }}
+        ref={this.formNode}
         title={`${this.props.puzzle.answer ? 'Guess history for' : 'Submit answer to'} ${this.props.puzzle.title}`}
         onSubmit={this.onSubmitGuess}
         submitLabel={this.state.confirmingSubmit ? 'Confirm Submit' : 'Submit'}
