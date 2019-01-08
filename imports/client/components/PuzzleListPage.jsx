@@ -49,8 +49,14 @@ class PuzzleListView extends React.Component {
     showSolved: true,
   };
 
+  constructor(props) {
+    super(props);
+    this.addModalRef = React.createRef();
+    this.searchBarRef = React.createRef();
+  }
+
   componentDidMount() {
-    this.searchBarNode.focus();
+    this.searchBarRef.current.focus();
   }
 
   onAdd = (state, callback) => {
@@ -259,7 +265,7 @@ class PuzzleListView extends React.Component {
   };
 
   showAddModal = () => {
-    this.addModalNode.show();
+    this.addModalRef.current.show();
   };
 
   render() {
@@ -315,7 +321,7 @@ class PuzzleListView extends React.Component {
         <PuzzleModalForm
           huntId={this.props.huntId}
           tags={this.props.allTags}
-          ref={(node) => { this.addModalNode = node; }}
+          ref={this.addModalRef}
           onSubmit={this.onAdd}
         />
       </div>
@@ -353,7 +359,7 @@ class PuzzleListView extends React.Component {
             <FormControl
               id="jr-puzzle-search"
               type="text"
-              inputRef={(node) => { this.searchBarNode = node; }}
+              inputRef={this.searchBarRef}
               placeholder="search by title, answer, or tag"
               value={this.getSearchString()}
               onChange={this.onSearchStringChange}

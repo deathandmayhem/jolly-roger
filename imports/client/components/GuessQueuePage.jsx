@@ -20,15 +20,20 @@ class AutoSelectInput extends React.Component {
     value: PropTypes.string.isRequired,
   };
 
+  constructor(props) {
+    super(props);
+    this.inputRef = React.createRef();
+  }
+
   onFocus = () => {
     // Use the selection API to select the contents of this, for easier clipboarding.
-    this.inputNode.select();
+    this.inputRef.current.select();
   };
 
   render() {
     return (
       <input
-        ref={(node) => { this.inputNode = node; }}
+        ref={this.inputRef}
         readOnly
         value={this.props.value}
         onFocus={this.onFocus}

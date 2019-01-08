@@ -30,8 +30,17 @@ class Puzzle extends React.PureComponent {
   };
 
   state = {
+    // Generating the edit modals for all puzzles is expensive, so we do it
+    // lazily. The first time the modal button is clicked, we change this state
+    // variable, which causes us to mount a new modal, which is set to open on
+    // mount. Subsequent times, we just open the existing modal.
     showEditModal: false,
   };
+
+  constructor(props) {
+    super(props);
+    this.modalRef = React.createRef();
+  }
 
   onEdit = (state, callback) => {
     Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
@@ -40,7 +49,7 @@ class Puzzle extends React.PureComponent {
 
   showEditModal = () => {
     if (this.state.showEditModal) {
-      this.modalNode.show();
+      this.modalRef.current.show();
     } else {
       this.setState({
         showEditModal: true,
@@ -93,18 +102,12 @@ class Puzzle extends React.PureComponent {
         {this.state.showEditModal ? (
           <PuzzleModalForm
             key={this.props.puzzle._id}
-            ref={(node) => {
-              if (node && this.modalNode === undefined) {
-                // Automatically show this node the first time it's created.
-                node.show();
-              }
-
-              this.modalNode = node;
-            }}
+            ref={this.modalRef}
             puzzle={this.props.puzzle}
             huntId={this.props.puzzle.hunt}
             tags={this.props.allTags}
             onSubmit={this.onEdit}
+            showOnMount
           />
         ) : null}
         <div className="puzzle-title">
