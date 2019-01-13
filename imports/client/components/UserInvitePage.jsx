@@ -21,6 +21,7 @@ class UserInvitePage extends React.Component {
   };
 
   state = {
+    submitting: false,
     error: null,
     email: '',
   };
@@ -33,7 +34,9 @@ class UserInvitePage extends React.Component {
 
   onSubmit = (e) => {
     e.preventDefault();
+    this.setState({ submitting: true });
     Meteor.call('addToHunt', this.props.params.huntId, this.state.email, (error) => {
+      this.setState({ submitting: false });
       if (error) {
         this.setState({ error });
       } else {
@@ -82,13 +85,14 @@ class UserInvitePage extends React.Component {
                     type="email"
                     value={this.state.email}
                     onChange={this.onEmailChanged}
+                    disabled={this.state.submitting}
                   />
                 </div>
               </FormGroup>
 
               <FormGroup>
                 <div className="col-md-offset-3 col-md-9">
-                  <Button type="submit" bsStyle="primary">
+                  <Button type="submit" bsStyle="primary" disabled={this.state.submitting}>
                     Send invite
                   </Button>
                 </div>
