@@ -6,6 +6,7 @@ import {
   browserHistory,
 } from 'react-router';
 import DocumentTitle from 'react-document-title';
+import { BreadcrumbsProvider } from '@ebroder/react-breadcrumbs-context';
 import AllProfileListPage from './AllProfileListPage.jsx';
 import App from './App.jsx';
 import AnnouncementsPage from './AnnouncementsPage.jsx';
@@ -16,8 +17,6 @@ import HuntApp from './HuntApp.jsx';
 import HuntListPage from './HuntListPage.jsx';
 import HuntProfileListPage from './HuntProfileListPage.jsx';
 import LoginForm from './LoginForm.jsx';
-import NavAggregator from './NavAggregator.jsx';
-import navAggregatorType from './navAggregatorType.jsx';
 import PasswordResetForm from './PasswordResetForm.jsx';
 import ProfilePage from './ProfilePage.jsx';
 import PuzzleListPage from './PuzzleListPage.jsx';
@@ -27,53 +26,41 @@ import SplashPage from './SplashPage.jsx';
 import UserInvitePage from './UserInvitePage.jsx';
 
 class Routes extends React.Component {
-  static childContextTypes = {
-    navAggregator: navAggregatorType,
-  };
-
-  getChildContext() {
-    if (!this.navAggregator) {
-      this.navAggregator = new NavAggregator();
-    }
-
-    return {
-      navAggregator: this.navAggregator,
-    };
-  }
-
   render() {
     return (
       <DocumentTitle title="Jolly Roger">
-        <Router history={browserHistory}>
-          {/* Authenticated routes */}
-          <Route path="/" component={Authenticator} authenticated>
-            <IndexRedirect to="hunts" />
-            <Route path="" component={App}>
-              <Route path="hunts/:huntId" component={HuntApp}>
-                <Route path="announcements" component={AnnouncementsPage} />
-                <Route path="guesses" component={GuessQueuePage} />
-                <Route path="hunters" component={HuntProfileListPage} />
-                <Route path="hunters/invite" component={UserInvitePage} />
-                <Route path="puzzles/:puzzleId" component={PuzzlePage} />
-                <Route path="puzzles" component={PuzzleListPage} />
-                <IndexRedirect to="puzzles" />
+        <BreadcrumbsProvider>
+          <Router history={browserHistory}>
+            {/* Authenticated routes */}
+            <Route path="/" component={Authenticator} authenticated>
+              <IndexRedirect to="hunts" />
+              <Route path="" component={App}>
+                <Route path="hunts/:huntId" component={HuntApp}>
+                  <Route path="announcements" component={AnnouncementsPage} />
+                  <Route path="guesses" component={GuessQueuePage} />
+                  <Route path="hunters" component={HuntProfileListPage} />
+                  <Route path="hunters/invite" component={UserInvitePage} />
+                  <Route path="puzzles/:puzzleId" component={PuzzlePage} />
+                  <Route path="puzzles" component={PuzzleListPage} />
+                  <IndexRedirect to="puzzles" />
+                </Route>
+                <Route path="hunts" component={HuntListPage} />
+                <Route path="users/:userId" component={ProfilePage} />
+                <Route path="users" component={AllProfileListPage} />
+                <Route path="setup" component={SetupPage} />
               </Route>
-              <Route path="hunts" component={HuntListPage} />
-              <Route path="users/:userId" component={ProfilePage} />
-              <Route path="users" component={AllProfileListPage} />
-              <Route path="setup" component={SetupPage} />
             </Route>
-          </Route>
-          {/* Unauthenticated routes */}
-          <Route path="/" component={Authenticator} authenticated={false}>
-            <Route path="" component={SplashPage}>
-              <Route path="login" component={LoginForm} />
-              <Route path="reset-password/:token" component={PasswordResetForm} />
-              <Route path="enroll/:token" component={EnrollForm} />
+            {/* Unauthenticated routes */}
+            <Route path="/" component={Authenticator} authenticated={false}>
+              <Route path="" component={SplashPage}>
+                <Route path="login" component={LoginForm} />
+                <Route path="reset-password/:token" component={PasswordResetForm} />
+                <Route path="enroll/:token" component={EnrollForm} />
+              </Route>
             </Route>
-          </Route>
-          {/* Routes available to both authenticated and unauthenticated users */}
-        </Router>
+            {/* Routes available to both authenticated and unauthenticated users */}
+          </Router>
+        </BreadcrumbsProvider>
       </DocumentTitle>
     );
   }

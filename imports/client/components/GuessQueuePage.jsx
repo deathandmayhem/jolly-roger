@@ -5,8 +5,8 @@ import React from 'react';
 import { Link } from 'react-router';
 import classnames from 'classnames';
 import { withTracker } from 'meteor/react-meteor-data';
+import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
-import navAggregatorType from './navAggregatorType.jsx';
 import GuessesSchema from '../../lib/schemas/guess.js';
 import PuzzlesSchema from '../../lib/schemas/puzzles.js';
 import Guesses from '../../lib/models/guess.js';
@@ -129,11 +129,7 @@ class GuessQueuePage extends React.Component {
     canEdit: PropTypes.bool.isRequired,
   };
 
-  static contextTypes = {
-    navAggregator: navAggregatorType,
-  };
-
-  renderPage = () => {
+  render() {
     if (!this.props.ready) {
       return <div>loading...</div>;
     }
@@ -154,22 +150,13 @@ class GuessQueuePage extends React.Component {
         })}
       </div>
     );
-  };
-
-  render() {
-    return (
-      <this.context.navAggregator.NavItem
-        itemKey="guessqueue"
-        to={`/hunts/${this.props.params.huntId}/announcements`}
-        label="Guess queue"
-      >
-        {this.renderPage()}
-      </this.context.navAggregator.NavItem>
-    );
   }
 }
 
-const GuessQueuePageContainer = withTracker(({ params }) => {
+const crumb = withBreadcrumb(({ params }) => {
+  return { title: 'Guess queue', link: `/hunts/${params.huntId}/guesses` };
+});
+const tracker = withTracker(({ params }) => {
   const guessesHandle = subsCache.subscribe('mongo.guesses', {
     hunt: params.huntId,
   });
@@ -193,8 +180,9 @@ const GuessQueuePageContainer = withTracker(({ params }) => {
     displayNames,
     canEdit,
   };
-})(GuessQueuePage);
+});
 
+const GuessQueuePageContainer = _.compose(crumb, tracker)(GuessQueuePage);
 GuessQueuePageContainer.propTypes = {
   params: PropTypes.shape({
     huntId: PropTypes.string.isRequired,

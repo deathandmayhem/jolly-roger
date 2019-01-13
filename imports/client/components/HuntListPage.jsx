@@ -14,9 +14,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router';
 import { withTracker } from 'meteor/react-meteor-data';
+import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
 import Ansible from '../../ansible.js';
 import subsCache from '../subsCache.js';
-import navAggregatorType from './navAggregatorType.jsx';
 import ModalForm from './ModalForm.jsx';
 import HuntsSchema from '../../lib/schemas/hunts.js';
 import Hunts from '../../lib/models/hunts.js';
@@ -378,10 +378,6 @@ class HuntListPage extends React.Component {
     myHunts: PropTypes.objectOf(PropTypes.bool).isRequired,
   };
 
-  static contextTypes = {
-    navAggregator: navAggregatorType,
-  };
-
   constructor(props) {
     super(props);
     this.addModalRef = React.createRef();
@@ -447,26 +443,21 @@ class HuntListPage extends React.Component {
     }
 
     return (
-      <this.context.navAggregator.NavItem
-        itemKey="hunts"
-        to="/hunts"
-        label="Hunts"
-      >
-        <div id="jr-hunts">
-          <h1>Hunts</h1>
-          <HuntModalForm
-            ref={this.addModalRef}
-            onSubmit={this.onAdd}
-          />
-          {this.addButton()}
-          {body}
-        </div>
-      </this.context.navAggregator.NavItem>
+      <div id="jr-hunts">
+        <h1>Hunts</h1>
+        <HuntModalForm
+          ref={this.addModalRef}
+          onSubmit={this.onAdd}
+        />
+        {this.addButton()}
+        {body}
+      </div>
     );
   }
 }
 
-export default withTracker(() => {
+const crumb = withBreadcrumb({ title: 'Hunts', link: '/hunts' });
+const tracker = withTracker(() => {
   const huntListHandle = subsCache.subscribe('mongo.hunts');
   const myHuntsHandle = subsCache.subscribe('selfHuntMembership');
   const ready = huntListHandle.ready() && myHuntsHandle.ready();
@@ -482,4 +473,6 @@ export default withTracker(() => {
     hunts: Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
     myHunts,
   };
-})(HuntListPage);
+});
+
+export default _.compose(crumb, tracker)(HuntListPage);

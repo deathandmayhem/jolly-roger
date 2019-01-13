@@ -22,9 +22,9 @@ import marked from 'marked';
 import moment from 'moment';
 import TextareaAutosize from 'react-textarea-autosize';
 import { withTracker } from 'meteor/react-meteor-data';
+import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
 import Ansible from '../../ansible.js';
 import subsCache from '../subsCache.js';
-import navAggregatorType from './navAggregatorType.jsx';
 import ModalForm from './ModalForm.jsx';
 import PuzzleModalForm from './PuzzleModalForm.jsx';
 import RelatedPuzzleGroups from './RelatedPuzzleGroups.jsx';
@@ -1069,10 +1069,6 @@ class PuzzlePage extends React.Component {
     canUpdate: PropTypes.bool.isRequired,
   };
 
-  static contextTypes = {
-    navAggregator: navAggregatorType,
-  };
-
   constructor(props, context) {
     super(props, context);
     const mode = this.calculateViewMode();
@@ -1154,37 +1150,18 @@ class PuzzlePage extends React.Component {
 
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
-        <this.context.navAggregator.NavItem
-          key="puzzleid"
-          itemKey="puzzleid"
-          to={`/hunts/${this.props.params.huntId}/puzzles/${this.props.params.puzzleId}`}
-          label={activePuzzle.title}
-          depth={2}
-        >
-          {this.state.isDesktop ? (
-            <div className="puzzle-page">
-              <SplitPanePlus
-                split="vertical"
-                defaultSize={DefaultSidebarWidth}
-                minSize={MinimumSidebarWidth}
-                pane1Style={{ maxWidth: MaximumSidebarWidth }}
-                autoCollapse1={-1}
-                autoCollapse2={-1}
-              >
-                {sidebar}
-                <PuzzlePageContent
-                  puzzle={activePuzzle}
-                  allTags={this.props.allTags}
-                  guesses={this.props.allGuesses}
-                  displayNames={this.props.displayNames}
-                  document={this.props.document}
-                  isDesktop={this.state.isDesktop}
-                />
-              </SplitPanePlus>
-            </div>
-          ) : (
-            <div className="puzzle-page narrow">
-              <PuzzlePageMetadataContainer
+        {this.state.isDesktop ? (
+          <div className="puzzle-page">
+            <SplitPanePlus
+              split="vertical"
+              defaultSize={DefaultSidebarWidth}
+              minSize={MinimumSidebarWidth}
+              pane1Style={{ maxWidth: MaximumSidebarWidth }}
+              autoCollapse1={-1}
+              autoCollapse2={-1}
+            >
+              {sidebar}
+              <PuzzlePageContent
                 puzzle={activePuzzle}
                 allTags={this.props.allTags}
                 guesses={this.props.allGuesses}
@@ -1192,16 +1169,34 @@ class PuzzlePage extends React.Component {
                 document={this.props.document}
                 isDesktop={this.state.isDesktop}
               />
-              {sidebar}
-            </div>
-          )}
-        </this.context.navAggregator.NavItem>
+            </SplitPanePlus>
+          </div>
+        ) : (
+          <div className="puzzle-page narrow">
+            <PuzzlePageMetadataContainer
+              puzzle={activePuzzle}
+              allTags={this.props.allTags}
+              guesses={this.props.allGuesses}
+              displayNames={this.props.displayNames}
+              document={this.props.document}
+              isDesktop={this.state.isDesktop}
+            />
+            {sidebar}
+          </div>
+        )}
       </DocumentTitle>
     );
   }
 }
 
-const PuzzlePageContainer = withTracker(({ params }) => {
+const crumb = withBreadcrumb(({ params, puzzlesReady, allPuzzles }) => {
+  const activePuzzle = findPuzzleById(allPuzzles, params.puzzleId);
+  return {
+    title: puzzlesReady ? activePuzzle.title : 'loading...',
+    link: `/hunts/${params.huntId}/puzzles/${params.puzzleId}`,
+  };
+});
+const tracker = withTracker(({ params }) => {
   // There are some model dependencies that we have to be careful about:
   //
   // * We show the displayname of the person who submitted a guess, so guesses depends on display names
@@ -1286,8 +1281,9 @@ const PuzzlePageContainer = withTracker(({ params }) => {
     document,
     canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
   };
-})(PuzzlePage);
+});
 
+const PuzzlePageContainer = _.compose(tracker, crumb)(PuzzlePage);
 PuzzlePageContainer.propTypes = {
   // hunt id and puzzle id comes from route?
   params: PropTypes.shape({

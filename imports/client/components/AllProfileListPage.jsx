@@ -1,8 +1,9 @@
+import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
+import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
-import navAggregatorType from './navAggregatorType.jsx';
 import ProfileList from './ProfileList.jsx';
 import ProfileSchema from '../../lib/schemas/profiles.js';
 import Profiles from '../../lib/models/profiles.js';
@@ -13,31 +14,16 @@ class AllProfileListPage extends React.Component {
     profiles: PropTypes.arrayOf(PropTypes.shape(ProfileSchema.asReactPropTypes())).isRequired,
   };
 
-  static contextTypes = {
-    navAggregator: navAggregatorType,
-  };
-
   render() {
-    let body;
     if (!this.props.ready) {
-      body = <div>loading...</div>;
-    } else {
-      body = <ProfileList profiles={this.props.profiles} />;
+      return <div>loading...</div>;
     }
-
-    return (
-      <this.context.navAggregator.NavItem
-        itemKey="users"
-        to="/users"
-        label="Users"
-      >
-        {body}
-      </this.context.navAggregator.NavItem>
-    );
+    return <ProfileList profiles={this.props.profiles} />;
   }
 }
 
-export default withTracker(() => {
+const crumb = withBreadcrumb({ title: 'Users', path: '/users' });
+const tracker = withTracker(() => {
   const profilesHandle = subsCache.subscribe('mongo.profiles');
   const ready = profilesHandle.ready();
   const profiles = ready ? Profiles.find({}, { sort: { displayName: 1 } }).fetch() : [];
@@ -45,4 +31,6 @@ export default withTracker(() => {
     ready,
     profiles,
   };
-})(AllProfileListPage);
+});
+
+export default _.compose(crumb, tracker)(AllProfileListPage);
