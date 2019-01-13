@@ -42,10 +42,12 @@ Meteor.methods({
       }, {
         $set: {
           hunt: huntId,
-          tags: puzzle.tags,
           title: puzzle.title,
           url: puzzle.url,
           answer: puzzle.answer,
+        },
+        $addToSet: {
+          tags: { $each: puzzle.tags },
         },
       });
     });
