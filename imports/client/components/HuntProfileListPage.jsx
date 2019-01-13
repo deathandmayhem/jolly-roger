@@ -42,6 +42,7 @@ class HuntProfileListPage extends React.Component {
         itemKey="hunters"
         to={`/hunts/${this.props.params.huntId}/hunters`}
         label="Hunters"
+        depth={2}
       >
         {this.renderBody()}
       </this.context.navAggregator.NavItem>

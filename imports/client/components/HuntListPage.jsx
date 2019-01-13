@@ -451,6 +451,7 @@ class HuntListPage extends React.Component {
         itemKey="hunts"
         to="/hunts"
         label="Hunts"
+        depth={0}
       >
         <div id="jr-hunts">
           <h1>Hunts</h1>

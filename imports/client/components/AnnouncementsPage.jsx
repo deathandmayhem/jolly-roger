@@ -147,6 +147,7 @@ class AnnouncementsPage extends React.Component {
         itemKey="announcements"
         to={`/hunts/${this.props.params.huntId}/announcements`}
         label="Announcements"
+        depth={2}
       >
         {this.renderPage()}
       </this.context.navAggregator.NavItem>

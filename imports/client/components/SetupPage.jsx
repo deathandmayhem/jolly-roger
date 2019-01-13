@@ -790,6 +790,7 @@ class SetupPageRewrite extends React.Component {
         itemKey="setup"
         to="/setup"
         label="Server setup"
+        depth={0}
       >
         {this.renderBody()}
       </this.context.navAggregator.NavItem>

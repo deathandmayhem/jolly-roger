@@ -30,6 +30,7 @@ class AllProfileListPage extends React.Component {
         itemKey="users"
         to="/users"
         label="Users"
+        depth={0}
       >
         {body}
       </this.context.navAggregator.NavItem>

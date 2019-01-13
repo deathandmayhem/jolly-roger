@@ -160,8 +160,9 @@ class GuessQueuePage extends React.Component {
     return (
       <this.context.navAggregator.NavItem
         itemKey="guessqueue"
-        to={`/hunts/${this.props.params.huntId}/announcements`}
+        to={`/hunts/${this.props.params.huntId}/guesses`}
         label="Guess queue"
+        depth={2}
       >
         {this.renderPage()}
       </this.context.navAggregator.NavItem>
