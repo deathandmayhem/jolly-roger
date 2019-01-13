@@ -3,13 +3,13 @@ import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
-import Checkbox from 'react-bootstrap/lib/Checkbox';
+import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import InputGroup from 'react-bootstrap/lib/InputGroup';
-import Nav from 'react-bootstrap/lib/Nav';
-import NavItem from 'react-bootstrap/lib/NavItem';
+import ToggleButton from 'react-bootstrap/lib/ToggleButton';
+import ToggleButtonGroup from 'react-bootstrap/lib/ToggleButtonGroup';
 import { Link, browserHistory } from 'react-router';
 import { withTracker } from 'meteor/react-meteor-data';
 import subsCache from '../subsCache.js';
@@ -258,10 +258,10 @@ class PuzzleListView extends React.Component {
     });
   };
 
-  changeShowSolved = (event) => {
-    this.setState({
-      showSolved: event.target.checked,
-    });
+  changeShowSolved = () => {
+    this.setState(oldState => ({
+      showSolved: !oldState.showSolved,
+    }));
   };
 
   showAddModal = () => {
@@ -316,7 +316,7 @@ class PuzzleListView extends React.Component {
       }
     }
     const addPuzzleContent = this.props.canAdd && (
-      <div>
+      <div className="add-puzzle-content">
         <Button bsStyle="primary" onClick={this.showAddModal}>Add a puzzle</Button>
         <PuzzleModalForm
           huntId={this.props.huntId}
@@ -329,49 +329,48 @@ class PuzzleListView extends React.Component {
     return (
       <div>
         <div className="puzzle-list-controls">
-          <span>View puzzles by:</span>
-          <Nav activeKey={this.state.displayMode} bsStyle="pills" onSelect={this.switchView}>
-            <NavItem eventKey="group">Group</NavItem>
-            <NavItem eventKey="unlock">Unlock order</NavItem>
-          </Nav>
-          <div className="puzzle-list-show-solved">
-            <div>
-              <Checkbox checked={this.state.showSolved} onChange={this.changeShowSolved}>
-                Show solved
-              </Checkbox>
+          <div className="puzzle-view-controller">
+            <ControlLabel htmlFor="jr-puzzle-search">View puzzles by:</ControlLabel>
+            <div className="puzzle-view-controls">
+              <ButtonToolbar>
+                <ToggleButtonGroup type="radio" name="puzzle-view" defaultValue="group" value={this.state.displayMode} onChange={this.switchView}>
+                  <ToggleButton value="group">Group</ToggleButton>
+                  <ToggleButton value="unlock">Unlock</ToggleButton>
+                </ToggleButtonGroup>
+                <ToggleButtonGroup
+                  type="checkbox"
+                  value={this.state.showSolved}
+                  onChange={this.changeShowSolved}
+                >
+                  <ToggleButton value>Show solved</ToggleButton>
+                </ToggleButtonGroup>
+              </ButtonToolbar>
+              <FormGroup>
+                <InputGroup>
+                  <FormControl
+                    id="jr-puzzle-search"
+                    type="text"
+                    inputRef={this.searchBarRef}
+                    placeholder="Filter by title, answer, or tag"
+                    value={this.getSearchString()}
+                    onChange={this.onSearchStringChange}
+                  />
+                  <InputGroup.Button>
+                    <Button onClick={this.clearSearch}>
+                      Clear
+                    </Button>
+                  </InputGroup.Button>
+                </InputGroup>
+              </FormGroup>
             </div>
           </div>
-          {addPuzzleContent}
-          <div>
-            <ul>
-              <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
-              <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guesses</Link></li>
-              <li><Link to={`/hunts/${this.props.huntId}/hunters`}>Hunters</Link></li>
-            </ul>
-          </div>
+          <ul>
+            <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
+            <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guesses</Link></li>
+            <li><Link to={`/hunts/${this.props.huntId}/hunters`}>Hunters</Link></li>
+          </ul>
         </div>
-
-        <FormGroup>
-          <ControlLabel htmlFor="jr-puzzle-search">
-            Search
-          </ControlLabel>
-          <InputGroup>
-            <FormControl
-              id="jr-puzzle-search"
-              type="text"
-              inputRef={this.searchBarRef}
-              placeholder="search by title, answer, or tag"
-              value={this.getSearchString()}
-              onChange={this.onSearchStringChange}
-            />
-            <InputGroup.Button>
-              <Button onClick={this.clearSearch}>
-                Clear
-              </Button>
-            </InputGroup.Button>
-          </InputGroup>
-        </FormGroup>
-
+        {addPuzzleContent}
         {bodyComponent}
       </div>
     );

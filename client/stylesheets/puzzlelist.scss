@@ -2,8 +2,44 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
   flex-wrap: wrap;
+
+  ul {
+    margin-bottom: 0;
+  }
+}
+
+.puzzle-view-controller {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 767px) {
+  .puzzle-list-controls {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+
+    ul {
+      padding-left: 12px;
+      margin-bottom: 8px;
+    }
+  }
+}
+
+.puzzle-view-controls {
+  display: flex;
+  flex-wrap: wrap;
+
+  .btn-toolbar {
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+
+  .form-group {
+    flex: 1 1 auto;
+    min-width: 250px;
+  }
 }
 
 .puzzle-list-show-solved {
@@ -11,6 +47,12 @@
   flex-direction: column;
   align-items: left;
   justify-content: flex-start;
+}
+
+.add-puzzle-content {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
 }
 
 .puzzle-list-ungrouped {
