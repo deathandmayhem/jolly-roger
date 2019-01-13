@@ -1,6 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import PropTypes from 'prop-types';
 import React from 'react';
+import Breadcrumb from 'react-bootstrap/lib/Breadcrumb';
+import BreadcrumbItem from 'react-bootstrap/lib/BreadcrumbItem';
 import MenuItem from 'react-bootstrap/lib/MenuItem';
 import Nav from 'react-bootstrap/lib/Nav';
 import NavDropdown from 'react-bootstrap/lib/NavDropdown';
@@ -8,20 +10,16 @@ import Navbar from 'react-bootstrap/lib/Navbar';
 import { Link } from 'react-router';
 import RRBS from 'react-router-bootstrap';
 import { withTracker } from 'meteor/react-meteor-data';
+import { BreadcrumbsConsumer } from '@ebroder/react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
 import ConnectionStatus from './ConnectionStatus.jsx';
 import NotificationCenter from './NotificationCenter.jsx';
-import navAggregatorType from './navAggregatorType.jsx';
 import Profiles from '../../lib/models/profiles.js';
 
 class SharedNavbar extends React.Component {
   static propTypes = {
     userId: PropTypes.string,
     displayName: PropTypes.string.isRequired,
-  };
-
-  static contextTypes = {
-    navAggregator: navAggregatorType,
   };
 
   logout = () => {
@@ -37,7 +35,32 @@ class SharedNavbar extends React.Component {
               <img src="/images/brand.png" alt="Jolly Roger logo" srcSet="/images/brand.png 1x, /images/brand@2x.png 2x" />
             </Link>
           </Navbar.Brand>
-          <this.context.navAggregator.NavBar />
+          <BreadcrumbsConsumer>
+            {({ crumbs }) => {
+              return (
+                <Breadcrumb className="nav-breadcrumbs">
+                  {crumbs.map((crumb, index) => {
+                    const last = (index === crumbs.length - 1);
+                    if (last) {
+                      return (
+                        <BreadcrumbItem key={crumb.link} className="jr-breadcrumb" active>
+                          {crumb.title}
+                        </BreadcrumbItem>
+                      );
+                    } else {
+                      return (
+                        <RRBS.LinkContainer key={crumb.link} to={crumb.link} active={false}>
+                          <BreadcrumbItem className="jr-breadcrumb">
+                            {crumb.title}
+                          </BreadcrumbItem>
+                        </RRBS.LinkContainer>
+                      );
+                    }
+                  })}
+                </Breadcrumb>
+              );
+            }}
+          </BreadcrumbsConsumer>
           <Navbar.Toggle />
         </Navbar.Header>
         <Navbar.Collapse>

@@ -8,8 +8,8 @@ import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import DocumentTitle from 'react-document-title';
 import { withTracker } from 'meteor/react-meteor-data';
 import marked from 'marked';
+import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
-import navAggregatorType from './navAggregatorType.jsx';
 import CelebrationCenter from './CelebrationCenter.jsx';
 import HuntsSchema from '../../lib/schemas/hunts.js';
 import Hunts from '../../lib/models/hunts.js';
@@ -140,10 +140,6 @@ class HuntApp extends React.Component {
     member: PropTypes.bool.isRequired,
   };
 
-  static contextTypes = {
-    navAggregator: navAggregatorType,
-  };
-
   renderBody = () => {
     if (!this.props.ready) {
       return <span>loading...</span>;
@@ -165,30 +161,20 @@ class HuntApp extends React.Component {
 
     return (
       <DocumentTitle title={title}>
-        <this.context.navAggregator.NavItem
-          itemKey="hunts"
-          to="/hunts"
-          label="Hunts"
-          depth={0}
-        >
-          <this.context.navAggregator.NavItem
-            itemKey="huntid"
-            to={`/hunts/${this.props.params.huntId}`}
-            label={this.props.ready ? this.props.hunt.name : 'loading...'}
-            depth={1}
-          >
-            <div>
-              <CelebrationCenter huntId={this.props.params.huntId} />
-              {this.renderBody()}
-            </div>
-          </this.context.navAggregator.NavItem>
-        </this.context.navAggregator.NavItem>
+        <div>
+          <CelebrationCenter huntId={this.props.params.huntId} />
+          {this.renderBody()}
+        </div>
       </DocumentTitle>
     );
   }
 }
 
-const HuntAppContainer = withTracker(({ params }) => {
+const huntsCrumb = withBreadcrumb({ title: 'Hunts', link: '/hunts' });
+const huntCrumb = withBreadcrumb(({ params, ready, hunt }) => {
+  return { title: ready ? hunt.name : 'loading...', link: `/hunts/${params.huntId}` };
+});
+const tracker = withTracker(({ params }) => {
   const userHandle = subsCache.subscribe('selfHuntMembership');
   const huntHandle = subsCache.subscribe('mongo.hunts.allowingDeleted', {
     _id: params.huntId,
@@ -199,8 +185,9 @@ const HuntAppContainer = withTracker(({ params }) => {
     hunt: Hunts.findOneAllowingDeleted(params.huntId),
     member,
   };
-})(HuntApp);
+});
 
+const HuntAppContainer = _.compose(huntsCrumb, tracker, huntCrumb)(HuntApp);
 HuntAppContainer.propTypes = {
   params: PropTypes.shape({
     huntId: PropTypes.string.isRequired,

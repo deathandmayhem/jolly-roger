@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
@@ -10,8 +11,8 @@ import FormGroup from 'react-bootstrap/lib/FormGroup';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
 import Label from 'react-bootstrap/lib/Label';
 import { withTracker } from 'meteor/react-meteor-data';
+import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
-import navAggregatorType from './navAggregatorType.jsx';
 import ProfilesSchema from '../../lib/schemas/profiles.js';
 import Profiles from '../../lib/models/profiles.js';
 import Flags from '../../flags.js';
@@ -420,53 +421,34 @@ class ProfilePage extends React.Component {
     targetIsOperator: PropTypes.bool.isRequired,
   };
 
-  static contextTypes = {
-    navAggregator: navAggregatorType,
-  };
-
   render() {
-    let body;
     if (!this.props.ready) {
-      body = <div>loading...</div>;
+      return <div>loading...</div>;
     } else if (this.props.isSelf) {
-      body = (
+      return (
         <OwnProfilePage
           initialProfile={this.props.profile}
           canMakeOperator={this.props.viewerCanMakeOperator}
           operating={this.props.viewerIsOperator}
         />
       );
-    } else {
-      body = (
-        <OthersProfilePage
-          profile={this.props.profile}
-          viewerCanMakeOperator={this.props.viewerCanMakeOperator}
-          targetIsOperator={this.props.targetIsOperator}
-        />
-      );
     }
 
     return (
-      <this.context.navAggregator.NavItem
-        itemKey="users"
-        to="/users"
-        label="Users"
-        depth={0}
-      >
-        <this.context.navAggregator.NavItem
-          itemKey="userid"
-          to={`/users/${this.props.params.userId}`}
-          label={this.props.ready ? this.props.profile.displayName : 'loading...'}
-          depth={1}
-        >
-          {body}
-        </this.context.navAggregator.NavItem>
-      </this.context.navAggregator.NavItem>
+      <OthersProfilePage
+        profile={this.props.profile}
+        viewerCanMakeOperator={this.props.viewerCanMakeOperator}
+        targetIsOperator={this.props.targetIsOperator}
+      />
     );
   }
 }
 
-const ProfilePageContainer = withTracker(({ params }) => {
+const usersCrumb = withBreadcrumb({ title: 'Users', link: '/users' });
+const userCrumb = withBreadcrumb(({ params, ready, profile }) => {
+  return { title: ready ? profile.displayName : 'loading...', link: `/users/${params.userId}` };
+});
+const tracker = withTracker(({ params }) => {
   const uid = params.userId === 'me' ? Meteor.userId() : params.userId;
 
   const profileHandle = subsCache.subscribe('mongo.profiles', { _id: uid });
@@ -491,8 +473,9 @@ const ProfilePageContainer = withTracker(({ params }) => {
     targetIsOperator: Roles.userHasPermission(uid, 'users.makeOperator'),
   };
   return data;
-})(ProfilePage);
+});
 
+const ProfilePageContainer = _.compose(usersCrumb, tracker, userCrumb)(ProfilePage);
 ProfilePageContainer.propTypes = {
   params: PropTypes.shape({
     userId: PropTypes.string.isRequired,

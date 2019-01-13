@@ -1,9 +1,10 @@
 import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { withTracker } from 'meteor/react-meteor-data';
+import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
-import navAggregatorType from './navAggregatorType.jsx';
 import ProfileList from './ProfileList.jsx';
 import ProfilesSchema from '../../lib/schemas/profiles.js';
 import Profiles from '../../lib/models/profiles.js';
@@ -18,11 +19,7 @@ class HuntProfileListPage extends React.Component {
     profiles: PropTypes.arrayOf(PropTypes.shape(ProfilesSchema.asReactPropTypes())).isRequired,
   };
 
-  static contextTypes = {
-    navAggregator: navAggregatorType,
-  };
-
-  renderBody = () => {
+  render() {
     if (!this.props.ready) {
       return <div>loading...</div>;
     }
@@ -34,22 +31,13 @@ class HuntProfileListPage extends React.Component {
         canInvite={this.props.canInvite}
       />
     );
-  };
-
-  render() {
-    return (
-      <this.context.navAggregator.NavItem
-        itemKey="hunters"
-        to={`/hunts/${this.props.params.huntId}/hunters`}
-        label="Hunters"
-      >
-        {this.renderBody()}
-      </this.context.navAggregator.NavItem>
-    );
   }
 }
 
-const HuntProfileListPageContainer = withTracker(({ params }) => {
+const crumb = withBreadcrumb(({ params }) => {
+  return { title: 'Hunters', link: `/hunts/${params.huntId}/hunters` };
+});
+const tracker = withTracker(({ params }) => {
   const usersHandle = subsCache.subscribe('huntMembers', params.huntId);
   const profilesHandle = subsCache.subscribe('mongo.profiles');
 
@@ -73,8 +61,9 @@ const HuntProfileListPageContainer = withTracker(({ params }) => {
   ).fetch();
 
   return { ready, canInvite, profiles };
-})(HuntProfileListPage);
+});
 
+const HuntProfileListPageContainer = _.compose(crumb, tracker)(HuntProfileListPage);
 HuntProfileListPageContainer.propTypes = {
   params: PropTypes.shape({
     huntId: PropTypes.string.isRequired,

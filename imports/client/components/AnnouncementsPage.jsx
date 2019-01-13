@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -6,7 +7,7 @@ import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import marked from 'marked';
 import { withTracker } from 'meteor/react-meteor-data';
-import navAggregatorType from './navAggregatorType.jsx';
+import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
 import AnnouncementsSchema from '../../lib/schemas/announcements.js';
 import Announcements from '../../lib/models/announcements.js';
@@ -111,11 +112,7 @@ class AnnouncementsPage extends React.Component {
     displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
   };
 
-  static contextTypes = {
-    navAggregator: navAggregatorType,
-  };
-
-  renderPage = () => {
+  render() {
     if (!this.props.ready) {
       return <div>loading...</div>;
     }
@@ -139,22 +136,13 @@ class AnnouncementsPage extends React.Component {
         </div>
       </div>
     );
-  };
-
-  render() {
-    return (
-      <this.context.navAggregator.NavItem
-        itemKey="announcements"
-        to={`/hunts/${this.props.params.huntId}/announcements`}
-        label="Announcements"
-      >
-        {this.renderPage()}
-      </this.context.navAggregator.NavItem>
-    );
   }
 }
 
-const AnnouncementsPageContainer = withTracker(({ params }) => {
+const crumb = withBreadcrumb(({ params }) => {
+  return { title: 'Announcements', link: `/hunts/${params.huntId}/announcements` };
+});
+const tracker = withTracker(({ params }) => {
   // We already have subscribed to mongo.announcements on the main page, since we want to be able
   // to show them on any page.  So we don't *need* to make the subscription here...
   // ...except that we might want to wait to render until we've received all of them?  IDK.
@@ -179,7 +167,9 @@ const AnnouncementsPageContainer = withTracker(({ params }) => {
     canCreateAnnouncements,
     displayNames,
   };
-})(AnnouncementsPage);
+});
+
+const AnnouncementsPageContainer = _.compose(crumb, tracker)(AnnouncementsPage);
 AnnouncementsPageContainer.propTypes = {
   params: PropTypes.shape({
     huntId: PropTypes.string.isRequired,

@@ -1,14 +1,15 @@
 import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
+import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
 import Alert from 'react-bootstrap/lib/Alert';
 import Badge from 'react-bootstrap/lib/Badge';
 import Button from 'react-bootstrap/lib/Button';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
-import navAggregatorType from './navAggregatorType.jsx';
 import Flags from '../../flags.js';
 import Settings from '../../lib/models/settings.js';
 
@@ -736,11 +737,7 @@ class SetupPageRewrite extends React.Component {
     flagDisableApplause: PropTypes.bool.isRequired,
   };
 
-  static contextTypes = {
-    navAggregator: navAggregatorType,
-  };
-
-  renderBody() {
+  render() {
     if (!this.props.ready) {
       return (
         <div className="setup-page">
@@ -783,21 +780,10 @@ class SetupPageRewrite extends React.Component {
       </div>
     );
   }
-
-  render() {
-    return (
-      <this.context.navAggregator.NavItem
-        itemKey="setup"
-        to="/setup"
-        label="Server setup"
-      >
-        {this.renderBody()}
-      </this.context.navAggregator.NavItem>
-    );
-  }
 }
 
-export default withTracker(() => {
+const crumb = withBreadcrumb({ title: 'Server setup', link: '/setup' });
+const tracker = withTracker(() => {
   const canConfigure = Roles.userHasRole(Meteor.userId(), 'admin');
 
   // We need to fetch the contents of the Settings table
@@ -839,4 +825,6 @@ export default withTracker(() => {
     flagDisableViewerLists,
     flagDisableApplause,
   };
-})(SetupPageRewrite);
+});
+
+export default _.compose(crumb, tracker)(SetupPageRewrite);
