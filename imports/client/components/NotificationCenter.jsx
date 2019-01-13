@@ -101,8 +101,11 @@ class GuessMessage extends React.PureComponent {
         <MessengerContent dismissable>
           <div>
             Guess for
+            {' '}
             <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>
+            {' '}
             from
+            {' '}
             {this.props.guesser}
             :
             {' '}
