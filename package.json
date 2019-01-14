@@ -28,6 +28,7 @@
     "logfmt": "^1.2.0",
     "marked": "^0.5.2",
     "moment": "^2.23.0",
+    "mustache": "^3.0.1",
     "prop-types": "^15.6.2",
     "react": "^16.7.0",
     "react-addons-pure-render-mixin": "^15.2.1",

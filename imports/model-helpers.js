@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import Mustache from 'mustache';
 
 
 const answerify = function (answer) {
@@ -35,4 +36,13 @@ const huntsMatchingCurrentUser = function (origQuery) {
   return q;
 };
 
-export { answerify, huntsMatchingCurrentUser };
+const guessURL = function (hunt, puzzle) {
+  if (!hunt.submitTemplate) {
+    return puzzle.url;
+  }
+
+  const url = new URL(puzzle.url);
+  return Mustache.render(hunt.submitTemplate, url);
+};
+
+export { answerify, huntsMatchingCurrentUser, guessURL };
