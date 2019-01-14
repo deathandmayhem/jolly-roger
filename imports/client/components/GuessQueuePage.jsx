@@ -8,10 +8,13 @@ import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
 import GuessesSchema from '../../lib/schemas/guess.js';
+import HuntsSchema from '../../lib/schemas/hunts.js';
 import PuzzlesSchema from '../../lib/schemas/puzzles.js';
 import Guesses from '../../lib/models/guess.js';
+import Hunts from '../../lib/models/hunts.js';
 import Profiles from '../../lib/models/profiles.js';
 import Puzzles from '../../lib/models/puzzles.js';
+import { guessURL } from '../../model-helpers.js';
 
 /* eslint-disable max-len */
 
@@ -47,6 +50,7 @@ const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Fri
 class GuessBlock extends React.Component {
   static propTypes = {
     canEdit: PropTypes.bool.isRequired,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired,
     guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired,
     createdByDisplayName: PropTypes.string.isRequired,
     puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
@@ -96,7 +100,7 @@ class GuessBlock extends React.Component {
           </div>
           <div>
             {'Puzzle: '}
-            <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>
+            <a href={guessURL(this.props.hunt, this.props.puzzle)} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>
             {' ('}
             <Link to={`/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`}>discussion</Link>
             )
@@ -123,6 +127,7 @@ class GuessQueuePage extends React.Component {
       huntId: PropTypes.string.isRequired,
     }).isRequired,
     ready: PropTypes.bool.isRequired,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
     guesses: PropTypes.arrayOf(PropTypes.shape(GuessesSchema.asReactPropTypes())).isRequired,
     puzzles: PropTypes.objectOf(PropTypes.shape(PuzzlesSchema.asReactPropTypes())).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
@@ -141,6 +146,7 @@ class GuessQueuePage extends React.Component {
           return (
             <GuessBlock
               key={guess._id}
+              hunt={this.props.hunt}
               guess={guess}
               createdByDisplayName={this.props.displayNames[guess.createdBy]}
               puzzle={this.props.puzzles[guess.puzzle]}
@@ -157,6 +163,9 @@ const crumb = withBreadcrumb(({ params }) => {
   return { title: 'Guess queue', link: `/hunts/${params.huntId}/guesses` };
 });
 const tracker = withTracker(({ params }) => {
+  const huntHandle = subsCache.subscribe('mongo.hunts', {
+    _id: params.huntId,
+  });
   const guessesHandle = subsCache.subscribe('mongo.guesses', {
     hunt: params.huntId,
   });
@@ -164,7 +173,8 @@ const tracker = withTracker(({ params }) => {
     hunt: params.huntId,
   });
   const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
-  const ready = guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
+  const ready = huntHandle.ready() && guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
+  const hunt = ready ? Hunts.findOne({ _id: params.huntId }) : undefined;
   const guesses = ready ? Guesses.find({ hunt: params.huntId }, { sort: { createdAt: -1 } }).fetch() : [];
   const puzzles = ready ? _.indexBy(Puzzles.find({ hunt: params.huntId }).fetch(), '_id') : {};
   let displayNames = {};
@@ -175,6 +185,7 @@ const tracker = withTracker(({ params }) => {
   const canEdit = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
   return {
     ready,
+    hunt,
     guesses,
     puzzles,
     displayNames,
