@@ -55,6 +55,7 @@ class HuntModalForm extends React.Component {
         mailingLists: this.props.hunt.mailingLists.join(', ') || '',
         signupMessage: this.props.hunt.signupMessage || '',
         openSignups: this.props.hunt.openSignups || false,
+        submitTemplate: this.props.hunt.submitTemplate || '',
         firehoseSlackChannel: this.props.hunt.firehoseSlackChannel || '',
         puzzleHooksSlackChannel: this.props.hunt.puzzleHooksSlackChannel || '',
       });
@@ -64,6 +65,7 @@ class HuntModalForm extends React.Component {
         mailingLists: '',
         signupMessage: '',
         openSignups: false,
+        submitTemplate: '',
         firehoseSlackChannel: '',
         puzzleHooksSlackChannel: '',
       });
@@ -93,6 +95,12 @@ class HuntModalForm extends React.Component {
       openSignups: e.target.checked,
     });
   };
+
+  onSubmitTemplateChanged = (e) => {
+    this.setState({
+      submitTemplate: e.target.value,
+    });
+  }
 
   onFirehoseSlackChannelChanged = (e) => {
     this.setState({
@@ -209,6 +217,45 @@ class HuntModalForm extends React.Component {
             </HelpBlock>
           </div>
         </FormGroup>
+
+        <FormGroup>
+          <ControlLabel htmlFor={`${idPrefix}submit-template`} className="col-xs-3">
+            Submit URL template
+          </ControlLabel>
+          <div className="col-xs-9">
+            <FormControl
+              id={`${idPrefix}submit-template`}
+              type="text"
+              value={this.state.submitTemplate}
+              onChange={this.onSubmitTemplateChanged}
+              disabled={disableForm}
+            />
+            <HelpBlock>
+              If provided, this
+              {' '}
+              <a href="https://mustache.github.io/mustache.5.html">Mustache template</a>
+              {' '}
+              is used to generate the link to the guess submission page. It gets as context a
+              {' '}
+              <a href="https://developer.mozilla.org/en-US/docs/Web/API/URL">parsed URL</a>
+              {', '}
+              providing variables like
+              {' '}
+              <code>hostname</code>
+              {' '}
+              or
+              {' '}
+              <code>pathname</code>
+              {'. '}
+              Because this will be used as a link directly, make sure to use &quot;triple-mustaches&quot; so that the URL components aren&apos;t escaped. As an example, setting this to
+              {' '}
+              <code>{'{{{origin}}}/submit{{{pathname}}}'}</code>
+              {' '}
+              would work for the 2018 Mystery Hunt. If not specified, the puzzle URL is used as the link to the guess submission page.
+            </HelpBlock>
+          </div>
+        </FormGroup>
+
 
         <FormGroup>
           <ControlLabel htmlFor={`${idPrefix}firehose-slack-channel`} className="col-xs-3">

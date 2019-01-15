@@ -15,13 +15,16 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import subsCache from '../subsCache.js';
 import AnnouncementsSchema from '../../lib/schemas/announcements.js';
 import GuessesSchema from '../../lib/schemas/guess.js';
+import HuntsSchema from '../../lib/schemas/hunts.js';
 import PuzzlesSchema from '../../lib/schemas/puzzles.js';
 import PendingAnnouncementsSchema from '../../lib/schemas/pending_announcements.js';
 import Announcements from '../../lib/models/announcements.js';
 import Guesses from '../../lib/models/guess.js';
+import Hunts from '../../lib/models/hunts.js';
 import PendingAnnouncements from '../../lib/models/pending_announcements.js';
 import Profiles from '../../lib/models/profiles.js';
 import Puzzles from '../../lib/models/puzzles.js';
+import { guessURL } from '../../model-helpers.js';
 
 /* eslint-disable max-len */
 
@@ -62,6 +65,7 @@ class GuessMessage extends React.PureComponent {
   static propTypes = {
     guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired,
     puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired,
     guesser: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
   };
@@ -102,7 +106,7 @@ class GuessMessage extends React.PureComponent {
           <div>
             Guess for
             {' '}
-            <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>
+            <a href={guessURL(this.props.hunt, this.props.puzzle)} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>
             {' '}
             from
             {' '}
@@ -262,6 +266,7 @@ class NotificationCenter extends React.Component {
     guesses: PropTypes.arrayOf(PropTypes.shape({
       guess: PropTypes.shape(GuessesSchema.asReactPropTypes()),
       puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()),
+      hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
       guesser: PropTypes.string,
     })),
     slackConfigured: PropTypes.bool,
@@ -305,6 +310,7 @@ class NotificationCenter extends React.Component {
         key={g.guess._id}
         guess={g.guess}
         puzzle={g.puzzle}
+        hunt={g.hunt}
         guesser={g.guesser}
         onDismiss={this.dismissGuess}
       />);
@@ -335,9 +341,11 @@ export default withTracker(() => {
   // Yes this is hideous, but it just makes the logic easier
   let guessesHandle = { ready: () => true };
   let puzzlesHandle = { ready: () => true };
+  let huntsHandle = { ready: () => true };
   if (canUpdateGuesses) {
     guessesHandle = subsCache.subscribe('mongo.guesses', { state: 'pending' });
     puzzlesHandle = subsCache.subscribe('mongo.puzzles');
+    huntsHandle = subsCache.subscribe('mongo.hunts');
   }
 
   // This is overly broad, but we likely already have the data cached locally
@@ -362,7 +370,7 @@ export default withTracker(() => {
   const profile = Profiles.findOne(Meteor.userId());
 
   const data = {
-    ready: guessesHandle.ready() && puzzlesHandle.ready() && paHandle.ready(),
+    ready: guessesHandle.ready() && puzzlesHandle.ready() && huntsHandle.ready() && paHandle.ready(),
     announcements: [],
     guesses: [],
     slackConfigured: !!(profile && profile.slackHandle),
@@ -373,6 +381,7 @@ export default withTracker(() => {
       data.guesses.push({
         guess,
         puzzle: Puzzles.findOne(guess.puzzle),
+        hunt: Hunts.findOne(guess.hunt),
         guesser: Profiles.findOne(guess.createdBy).displayName,
       });
     });
