@@ -40,3 +40,4 @@ server-render
 # you sub more than once
 ccorcos:subs-cache@0.9.6
 less
+adornis:typescript

@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "jsx": "react",
+    "allowJs": false,
+    "noImplicitAny": true,
+    "strictNullChecks": false,
+  }
+}
