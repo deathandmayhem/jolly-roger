@@ -8,7 +8,7 @@ import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import DocumentTitle from 'react-document-title';
 import { withTracker } from 'meteor/react-meteor-data';
 import marked from 'marked';
-import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
+import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
 import CelebrationCenter from './CelebrationCenter.jsx';
 import HuntsSchema from '../../lib/schemas/hunts.js';

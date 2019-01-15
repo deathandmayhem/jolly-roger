@@ -22,7 +22,7 @@ import marked from 'marked';
 import moment from 'moment';
 import TextareaAutosize from 'react-textarea-autosize';
 import { withTracker } from 'meteor/react-meteor-data';
-import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
+import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Ansible from '../../ansible.js';
 import subsCache from '../subsCache.js';
 import ModalForm from './ModalForm.jsx';

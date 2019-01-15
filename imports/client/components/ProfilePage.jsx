@@ -11,7 +11,7 @@ import FormGroup from 'react-bootstrap/lib/FormGroup';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
 import Label from 'react-bootstrap/lib/Label';
 import { withTracker } from 'meteor/react-meteor-data';
-import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
+import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
 import ProfilesSchema from '../../lib/schemas/profiles.js';
 import Profiles from '../../lib/models/profiles.js';

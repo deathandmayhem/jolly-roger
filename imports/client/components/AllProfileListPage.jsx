@@ -2,7 +2,7 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
-import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
+import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
 import ProfileList from './ProfileList.jsx';
 import ProfileSchema from '../../lib/schemas/profiles.js';

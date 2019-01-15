@@ -10,7 +10,7 @@ import Navbar from 'react-bootstrap/lib/Navbar';
 import { Link } from 'react-router';
 import RRBS from 'react-router-bootstrap';
 import { withTracker } from 'meteor/react-meteor-data';
-import { BreadcrumbsConsumer } from '@ebroder/react-breadcrumbs-context';
+import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
 import ConnectionStatus from './ConnectionStatus.jsx';
 import NotificationCenter from './NotificationCenter.jsx';

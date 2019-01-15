@@ -5,7 +5,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import classnames from 'classnames';
 import { withTracker } from 'meteor/react-meteor-data';
-import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
+import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache.js';
 import GuessesSchema from '../../lib/schemas/guess.js';
 import HuntsSchema from '../../lib/schemas/hunts.js';
