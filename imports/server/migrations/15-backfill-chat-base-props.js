@@ -1,7 +1,7 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import dropIndex from './drop-index.js';
-import ChatMessages from '../../lib/models/chats.js';
-import Puzzles from '../../lib/models/puzzles.js';
+import dropIndex from './drop-index';
+import ChatMessages from '../../lib/models/chats';
+import Puzzles from '../../lib/models/puzzles';
 
 Migrations.add({
   version: 15,

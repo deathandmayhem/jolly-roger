@@ -1,5 +1,5 @@
-import Base from '../../lib/models/base.js';
-import APIKeysSchema from '../schemas/api_keys.js';
+import Base from '../../lib/models/base';
+import APIKeysSchema from '../schemas/api_keys';
 
 const APIKeys = new Base('api_keys');
 APIKeys.attachSchema(APIKeysSchema);

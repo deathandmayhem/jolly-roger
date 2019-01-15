@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import ServersSchema from '../schemas/servers.js';
+import ServersSchema from '../schemas/servers';
 
 const Servers = new class extends Meteor.Collection {
   constructor() {

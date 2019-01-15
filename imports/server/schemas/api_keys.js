@@ -1,5 +1,5 @@
 import SimpleSchema from 'simpl-schema';
-import Base from '../../lib/schemas/base.js';
+import Base from '../../lib/schemas/base';
 
 const APIKeys = new SimpleSchema({
   user: {

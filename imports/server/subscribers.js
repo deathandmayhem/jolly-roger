@@ -11,9 +11,9 @@ import { check } from 'meteor/check';
 import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
 import moment from 'moment';
-import Flags from '../flags.js';
-import Servers from './models/servers.js';
-import Subscribers from './models/subscribers.js';
+import Flags from '../flags';
+import Servers from './models/servers';
+import Subscribers from './models/subscribers';
 
 const serverId = Random.id();
 

@@ -5,9 +5,9 @@ import Button from 'react-bootstrap/lib/Button';
 import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import tagShape from './tagShape.js';
-import Tag from './Tag.jsx';
-import TagEditor from './TagEditor.jsx';
+import tagShape from './tagShape';
+import Tag from './Tag';
+import TagEditor from './TagEditor';
 
 class TagList extends React.PureComponent {
   static displayName = 'TagList';

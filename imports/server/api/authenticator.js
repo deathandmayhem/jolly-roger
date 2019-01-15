@@ -1,4 +1,4 @@
-import APIKeys from '../models/api_keys.js';
+import APIKeys from '../models/api_keys';
 
 export default (req, res, next) => {
   const auth = req.get('Authorization');

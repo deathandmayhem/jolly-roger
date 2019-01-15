@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import { withTracker } from 'meteor/react-meteor-data';
-import Ansible from '../../ansible.js';
+import Ansible from '../../ansible';
 
 class ConnectionStatus extends React.Component {
   static propTypes = {

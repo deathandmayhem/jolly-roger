@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import Ansible from '../ansible.js';
-import Announcements from '../lib/models/announcements.js';
-import PendingAnnouncements from '../lib/models/pending_announcements.js';
+import Ansible from '../ansible';
+import Announcements from '../lib/models/announcements';
+import PendingAnnouncements from '../lib/models/pending_announcements';
 
 Meteor.methods({
   postAnnouncement(huntId, message) {

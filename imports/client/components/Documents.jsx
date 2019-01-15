@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
-import DeepLink from './DeepLink.jsx';
-import DocumentsSchema from '../../lib/schemas/documents.js';
+import DeepLink from './DeepLink';
+import DocumentsSchema from '../../lib/schemas/documents';
 
 class GoogleDocumentDisplay extends React.Component {
   static propTypes = {

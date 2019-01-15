@@ -1,5 +1,5 @@
 import SimpleSchema from 'simpl-schema';
-import Base from './base.js';
+import Base from './base';
 
 // A broadcast message from a hunt operator to be displayed
 // to all participants in the specified hunt.

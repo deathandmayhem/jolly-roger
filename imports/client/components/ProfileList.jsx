@@ -10,7 +10,7 @@ import InputGroup from 'react-bootstrap/lib/InputGroup';
 import ListGroup from 'react-bootstrap/lib/ListGroup';
 import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
 import RRBS from 'react-router-bootstrap';
-import ProfilesSchema from '../../lib/schemas/profiles.js';
+import ProfilesSchema from '../../lib/schemas/profiles';
 
 class ProfileList extends React.Component {
   static propTypes = {

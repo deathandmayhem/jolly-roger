@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
-import { postSlackMessage } from '../slack.js';
-import Hunts from '../../lib/models/hunts.js';
-import Puzzles from '../../lib/models/puzzles.js';
-import Hookset from './hookset.js';
+import { postSlackMessage } from '../slack';
+import Hunts from '../../lib/models/hunts';
+import Puzzles from '../../lib/models/puzzles';
+import Hookset from './hookset';
 
 class SlackHooks extends Hookset {
   onPuzzleCreated(puzzleId) {

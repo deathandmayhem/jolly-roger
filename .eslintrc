@@ -13,7 +13,11 @@
     "plugin:import/warnings",
   ],
   "settings": {
-    "import/resolver": "meteor",
+    "import/resolver": {
+      "meteor": {
+        "extensions": [".js", ".jsx"],
+      },
+    },
   },
   "rules": {
     // explicit returns can sometimes be more readable and avoid the issue of "I want to return an

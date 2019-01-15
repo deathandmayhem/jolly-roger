@@ -1,5 +1,5 @@
-import FeatureFlagsSchema from '../schemas/feature_flags.js';
-import Base from './base.js';
+import FeatureFlagsSchema from '../schemas/feature_flags';
+import Base from './base';
 
 const FeatureFlags = new Base('featureflags');
 FeatureFlags.attachSchema(FeatureFlagsSchema);

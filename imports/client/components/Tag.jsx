@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Button from 'react-bootstrap/lib/Button';
 import { Link } from 'react-router';
 import classnames from 'classnames';
-import tagShape from './tagShape.js';
+import tagShape from './tagShape';
 
 /* eslint-disable max-len */
 

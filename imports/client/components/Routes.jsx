@@ -7,23 +7,23 @@ import {
 } from 'react-router';
 import DocumentTitle from 'react-document-title';
 import { BreadcrumbsProvider } from 'react-breadcrumbs-context';
-import AllProfileListPage from './AllProfileListPage.jsx';
-import App from './App.jsx';
-import AnnouncementsPage from './AnnouncementsPage.jsx';
-import Authenticator from './Authenticator.jsx';
-import EnrollForm from './EnrollForm.jsx';
-import GuessQueuePage from './GuessQueuePage.jsx';
-import HuntApp from './HuntApp.jsx';
-import HuntListPage from './HuntListPage.jsx';
-import HuntProfileListPage from './HuntProfileListPage.jsx';
-import LoginForm from './LoginForm.jsx';
-import PasswordResetForm from './PasswordResetForm.jsx';
-import ProfilePage from './ProfilePage.jsx';
-import PuzzleListPage from './PuzzleListPage.jsx';
-import PuzzlePage from './PuzzlePage.jsx';
-import SetupPage from './SetupPage.jsx';
-import SplashPage from './SplashPage.jsx';
-import UserInvitePage from './UserInvitePage.jsx';
+import AllProfileListPage from './AllProfileListPage';
+import App from './App';
+import AnnouncementsPage from './AnnouncementsPage';
+import Authenticator from './Authenticator';
+import EnrollForm from './EnrollForm';
+import GuessQueuePage from './GuessQueuePage';
+import HuntApp from './HuntApp';
+import HuntListPage from './HuntListPage';
+import HuntProfileListPage from './HuntProfileListPage';
+import LoginForm from './LoginForm';
+import PasswordResetForm from './PasswordResetForm';
+import ProfilePage from './ProfilePage';
+import PuzzleListPage from './PuzzleListPage';
+import PuzzlePage from './PuzzlePage';
+import SetupPage from './SetupPage';
+import SplashPage from './SplashPage';
+import UserInvitePage from './UserInvitePage';
 
 class Routes extends React.Component {
   render() {

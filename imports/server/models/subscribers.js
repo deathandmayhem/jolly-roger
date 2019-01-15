@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import SubscribersSchema from '../schemas/subscribers.js';
+import SubscribersSchema from '../schemas/subscribers';
 
 const Subscribers = new class extends Meteor.Collection {
   constructor() {

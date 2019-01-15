@@ -1,6 +1,6 @@
 import express from 'express';
-import authenticator from './api/authenticator.js';
-import users from './api/resources/users.js';
+import authenticator from './api/authenticator';
+import users from './api/resources/users';
 
 const app = express();
 app.use(authenticator);

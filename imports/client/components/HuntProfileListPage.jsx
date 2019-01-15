@@ -4,10 +4,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import subsCache from '../subsCache.js';
-import ProfileList from './ProfileList.jsx';
-import ProfilesSchema from '../../lib/schemas/profiles.js';
-import Profiles from '../../lib/models/profiles.js';
+import subsCache from '../subsCache';
+import ProfileList from './ProfileList';
+import ProfilesSchema from '../../lib/schemas/profiles';
+import Profiles from '../../lib/models/profiles';
 
 class HuntProfileListPage extends React.Component {
   static propTypes = {

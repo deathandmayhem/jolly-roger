@@ -4,8 +4,8 @@ import { withTracker } from 'meteor/react-meteor-data';
 import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
 import Tooltip from 'react-bootstrap/lib/Tooltip';
 
-import { SubscriberCounters } from '../subscribers.js';
-import Flags from '../../flags.js';
+import { SubscriberCounters } from '../subscribers';
+import Flags from '../../flags';
 
 class SubscriberCount extends React.Component {
   static displayName = 'SubscriberCount';

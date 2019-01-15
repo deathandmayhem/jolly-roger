@@ -1,5 +1,5 @@
 import SimpleSchema from 'simpl-schema';
-import Base from './base.js';
+import Base from './base';
 
 // A profile for a user.
 // Note that we're using a separate schema from users.$.profile, because there are weird

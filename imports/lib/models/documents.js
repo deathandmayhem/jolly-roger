@@ -1,6 +1,6 @@
-import { huntsMatchingCurrentUser } from '../../model-helpers.js';
-import DocumentsSchema from '../schemas/documents.js';
-import Base from './base.js';
+import { huntsMatchingCurrentUser } from '../../model-helpers';
+import DocumentsSchema from '../schemas/documents';
+import Base from './base';
 
 const Documents = new Base('documents');
 Documents.attachSchema(DocumentsSchema);

@@ -1,5 +1,5 @@
 import SimpleSchema from 'simpl-schema';
-import Base from './base.js';
+import Base from './base';
 
 // A single chat message
 const ChatMessages = new SimpleSchema({

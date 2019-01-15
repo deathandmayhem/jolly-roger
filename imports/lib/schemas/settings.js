@@ -1,5 +1,5 @@
 import SimpleSchema from 'simpl-schema';
-import Base from './base.js';
+import Base from './base';
 
 const Settings = new SimpleSchema({
   name: {

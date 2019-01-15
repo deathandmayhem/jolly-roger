@@ -2,28 +2,28 @@ import '../imports/client/stylesheets/bootstrap.less';
 
 // explicitly import all the stuff from lib/ since mainModule skips autoloading
 // things
-import '../imports/lib/config/accounts.js';
+import '../imports/lib/config/accounts';
 
 // add the proptypes helpers to all SimpleSchemas
-import '../imports/lib/models/proptypes.js';
+import '../imports/lib/models/proptypes';
 
 // attach the users schema to Meteor.users
-import '../imports/lib/models/users.js';
+import '../imports/lib/models/users';
 
 // register actions and roles
-import '../imports/lib/roles.js';
+import '../imports/lib/roles';
 
 // Configure marked and moment
-import '../imports/client/marked.js';
-import '../imports/client/moment.js';
+import '../imports/client/marked';
+import '../imports/client/moment';
 
 // explicitly import all the stuff from client/
-import '../imports/client/main.jsx';
-import '../imports/client/close.js';
+import '../imports/client/main';
+import '../imports/client/close';
 
 // Export the schemas and models facades for interaction from the console
-import SchemasFacade from '../imports/lib/schemas/facade.js';
-import ModelsFacade from '../imports/lib/models/facade.js';
+import SchemasFacade from '../imports/lib/schemas/facade';
+import ModelsFacade from '../imports/lib/models/facade';
 
 /* eslint-disable */
 Schemas = SchemasFacade;

@@ -1,5 +1,5 @@
-import HooksRegistry from './hooks/hooks-registry.js';
-import SlackHooks from './hooks/slack-hooks.js';
+import HooksRegistry from './hooks/hooks-registry';
+import SlackHooks from './hooks/slack-hooks';
 
 // Instantiate the application-global hookset list.
 const GlobalHooks = new HooksRegistry();

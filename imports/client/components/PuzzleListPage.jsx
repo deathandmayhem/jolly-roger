@@ -12,15 +12,15 @@ import ToggleButton from 'react-bootstrap/lib/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/lib/ToggleButtonGroup';
 import { Link, browserHistory } from 'react-router';
 import { withTracker } from 'meteor/react-meteor-data';
-import subsCache from '../subsCache.js';
-import PuzzleList from './PuzzleList.jsx';
-import RelatedPuzzleGroup from './RelatedPuzzleGroup.jsx';
-import PuzzleModalForm from './PuzzleModalForm.jsx';
-import Flags from '../../flags.js';
-import PuzzlesSchema from '../../lib/schemas/puzzles.js';
-import TagsSchema from '../../lib/schemas/tags.js';
-import Puzzles from '../../lib/models/puzzles.js';
-import Tags from '../../lib/models/tags.js';
+import subsCache from '../subsCache';
+import PuzzleList from './PuzzleList';
+import RelatedPuzzleGroup from './RelatedPuzzleGroup';
+import PuzzleModalForm from './PuzzleModalForm';
+import Flags from '../../flags';
+import PuzzlesSchema from '../../lib/schemas/puzzles';
+import TagsSchema from '../../lib/schemas/tags';
+import Puzzles from '../../lib/models/puzzles';
+import Tags from '../../lib/models/tags';
 
 /* eslint-disable max-len */
 

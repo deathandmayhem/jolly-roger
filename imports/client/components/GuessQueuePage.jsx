@@ -6,15 +6,15 @@ import { Link } from 'react-router';
 import classnames from 'classnames';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import subsCache from '../subsCache.js';
-import GuessesSchema from '../../lib/schemas/guess.js';
-import HuntsSchema from '../../lib/schemas/hunts.js';
-import PuzzlesSchema from '../../lib/schemas/puzzles.js';
-import Guesses from '../../lib/models/guess.js';
-import Hunts from '../../lib/models/hunts.js';
-import Profiles from '../../lib/models/profiles.js';
-import Puzzles from '../../lib/models/puzzles.js';
-import { guessURL } from '../../model-helpers.js';
+import subsCache from '../subsCache';
+import GuessesSchema from '../../lib/schemas/guess';
+import HuntsSchema from '../../lib/schemas/hunts';
+import PuzzlesSchema from '../../lib/schemas/puzzles';
+import Guesses from '../../lib/models/guess';
+import Hunts from '../../lib/models/hunts';
+import Profiles from '../../lib/models/profiles';
+import Puzzles from '../../lib/models/puzzles';
+import { guessURL } from '../../model-helpers';
 
 /* eslint-disable max-len */
 

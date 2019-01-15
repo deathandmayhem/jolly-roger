@@ -3,9 +3,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
 import Creatable from 'react-select/lib/Creatable';
-import TagsSchema from '../../lib/schemas/tags.js';
-import Puzzles from '../../lib/models/puzzles.js';
-import Tags from '../../lib/models/tags.js';
+import TagsSchema from '../../lib/schemas/tags';
+import Puzzles from '../../lib/models/puzzles';
+import Tags from '../../lib/models/tags';
 
 class TagEditor extends React.Component {
   static propTypes = {

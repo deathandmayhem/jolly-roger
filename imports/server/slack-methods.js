@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
 import { HTTP } from 'meteor/http';
-import Ansible from '../ansible.js';
-import Flags from '../flags.js';
+import Ansible from '../ansible';
+import Flags from '../flags';
 
 Meteor.methods({
   slackInvite(userId) {
