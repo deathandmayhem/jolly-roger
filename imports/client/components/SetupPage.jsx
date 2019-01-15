@@ -3,7 +3,7 @@ import { _ } from 'meteor/underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
-import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
+import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Alert from 'react-bootstrap/lib/Alert';
 import Badge from 'react-bootstrap/lib/Badge';
 import Button from 'react-bootstrap/lib/Button';

@@ -14,7 +14,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router';
 import { withTracker } from 'meteor/react-meteor-data';
-import { withBreadcrumb } from '@ebroder/react-breadcrumbs-context';
+import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Ansible from '../../ansible.js';
 import subsCache from '../subsCache.js';
 import ModalForm from './ModalForm.jsx';

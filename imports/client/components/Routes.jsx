@@ -6,7 +6,7 @@ import {
   browserHistory,
 } from 'react-router';
 import DocumentTitle from 'react-document-title';
-import { BreadcrumbsProvider } from '@ebroder/react-breadcrumbs-context';
+import { BreadcrumbsProvider } from 'react-breadcrumbs-context';
 import AllProfileListPage from './AllProfileListPage.jsx';
 import App from './App.jsx';
 import AnnouncementsPage from './AnnouncementsPage.jsx';
