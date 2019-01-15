@@ -108,6 +108,8 @@
       "rules": {
         // this seems to catch interface definitions
         "no-undef": "off",
+        // seems to not work for imports that are only used for typing
+        "no-unused-vars": "off",
       },
     },
   ],

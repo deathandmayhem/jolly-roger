@@ -1,4 +1,4 @@
-import { Meteor } from 'meteor/meteor';
+import { Meteor, Subscription } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import * as Mustache from 'mustache';
 import { Mongo } from 'meteor/mongo';
@@ -13,8 +13,10 @@ interface HuntModel {
   hunt: string;
 }
 
-const huntsMatchingCurrentUser = function <T extends HuntModel> (origQuery: Mongo.Query<T>):
-  Mongo.Query<T> {
+const huntsMatchingCurrentUser = function <T extends HuntModel> (
+  this: Subscription,
+  origQuery: Mongo.Query<T>,
+): Mongo.Query<T> {
   // Adds a filter to the query to only show results from hunts that the user is a member of.
   // Assumes the collection being published has a field named `hunt` of type String containing the
   // _id of a document from the Hunts collection.
@@ -34,7 +36,7 @@ const huntsMatchingCurrentUser = function <T extends HuntModel> (origQuery: Mong
       huntList = u.hunts;
     } else if (typeof q.hunt === 'object') {
       // if q.hunt is still an object, then it must be a FieldExpression
-      huntList = _.intersection(u.hunts, q.hunt.$in);
+      huntList = _.intersection(u.hunts, q.hunt.$in || []);
     } else {
       // otherwise it's a string
       huntList = _.intersection(u.hunts, [q.hunt]);

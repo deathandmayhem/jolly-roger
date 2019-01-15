@@ -28,8 +28,8 @@ enum AccountFormSubmitState {
 
 interface AccountFormState {
   submitState: AccountFormSubmitState;
-  errorMessage: string;
-  successMessage: string;
+  errorMessage?: string;
+  successMessage?: string;
   email: string;
   password: string;
   displayName: string;
@@ -45,8 +45,8 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
 
   state = {
     submitState: AccountFormSubmitState.IDLE,
-    errorMessage: '',
-    successMessage: '',
+    errorMessage: undefined,
+    successMessage: undefined,
     email: '',
     password: '',
     displayName: '',
