@@ -32,7 +32,6 @@ const Profiles = new SimpleSchema({
     // Also, possibly this should be stored as Slack ID instead, and we look up your ID from your
     // claimed handle on save with a Slack API call?
     type: String,
-    optional: true,
     // Format of handles is documented at
     // https://get.slack.help/hc/en-us/articles/216360827-Change-your-username
     regEx: /^[-A-Za-z0-9._]{0,21}$/,

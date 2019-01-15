@@ -349,25 +349,9 @@ class OwnProfilePage extends React.Component {
           </HelpBlock>
         </FormGroup>
 
-        <FormGroup>
-          <ControlLabel htmlFor="jr-profile-edit-phone">
-            Phone number (optional)
-          </ControlLabel>
-          <FormControl
-            id="jr-profile-edit-phone"
-            type="text"
-            value={this.state.phoneNumberValue}
-            disabled={shouldDisableForm}
-            onChange={this.handlePhoneNumberFieldChange}
-          />
-          <HelpBlock>
-            In case we need to reach you via phone.
-          </HelpBlock>
-        </FormGroup>
-
         <FormGroup validationState={this.getSlackHandleValidationState()}>
           <ControlLabel htmlFor="jr-profile-edit-slack">
-            Slack handle (optional)
+            Slack handle
           </ControlLabel>
           <FormControl
             id="jr-profile-edit-slack"
@@ -381,6 +365,22 @@ class OwnProfilePage extends React.Component {
             {' '}
             <code>@</code>
             .)
+          </HelpBlock>
+        </FormGroup>
+
+        <FormGroup>
+          <ControlLabel htmlFor="jr-profile-edit-phone">
+            Phone number (optional)
+          </ControlLabel>
+          <FormControl
+            id="jr-profile-edit-phone"
+            type="text"
+            value={this.state.phoneNumberValue}
+            disabled={shouldDisableForm}
+            onChange={this.handlePhoneNumberFieldChange}
+          />
+          <HelpBlock>
+            In case we need to reach you via phone.
           </HelpBlock>
         </FormGroup>
 
