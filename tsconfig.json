@@ -4,6 +4,6 @@
     "jsx": "react",
     "allowJs": false,
     "noImplicitAny": true,
-    "strictNullChecks": false,
+    "strictNullChecks": false
   }
 }

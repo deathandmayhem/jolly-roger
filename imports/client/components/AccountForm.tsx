@@ -1,12 +1,42 @@
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as Alert from 'react-bootstrap/lib/Alert';
 
 /* eslint-disable max-len, jsx-a11y/href-no-hash, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
 
-class AccountForm extends React.Component {
+enum AccountFormFormat {
+  LOGIN = 'login',
+  REQUEST_PW_RESET = 'requestPwReset',
+  ENROLL = 'enroll',
+  RESET_PWD = 'resetPwd',
+}
+
+interface AccountFormProps {
+  format: AccountFormFormat;
+  onFormatChange: Function;
+  token: string;
+}
+
+enum AccountFormSubmitState {
+  IDLE = 'idle',
+  SUBMITTING = 'submitting',
+  FAILED = 'failed',
+  SUCCESS = 'success',
+}
+
+interface AccountFormState {
+  submitState: AccountFormSubmitState;
+  errorMessage: string;
+  successMessage: string;
+  email: string;
+  password: string;
+  displayName: string;
+  phoneNumber: string;
+}
+
+class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
   static propTypes = {
     format: PropTypes.string,
     onFormatChange: PropTypes.func,
@@ -14,7 +44,7 @@ class AccountForm extends React.Component {
   };
 
   state = {
-    submitState: 'idle',
+    submitState: AccountFormSubmitState.IDLE,
     errorMessage: '',
     successMessage: '',
     email: '',
@@ -23,43 +53,43 @@ class AccountForm extends React.Component {
     phoneNumber: '',
   };
 
-  setEmail = (event) => {
+  setEmail = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
-      email: event.target.value,
+      email: event.currentTarget.value,
     });
   };
 
-  setPassword = (event) => {
+  setPassword = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
-      password: event.target.value,
+      password: event.currentTarget.value,
     });
   };
 
-  setDisplayName = (event) => {
+  setDisplayName = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
-      displayName: event.target.value,
+      displayName: event.currentTarget.value,
     });
   };
 
-  setPhoneNumber = (event) => {
+  setPhoneNumber = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
-      phoneNumber: event.target.value,
+      phoneNumber: event.currentTarget.value,
     });
   };
 
   tryLogin = () => {
     this.setState({
-      submitState: 'submitting',
+      submitState: AccountFormSubmitState.SUBMITTING,
     });
-    Meteor.loginWithPassword(this.state.email, this.state.password, (error) => {
+    Meteor.loginWithPassword(this.state.email, this.state.password, (error: Meteor.Error) => {
       if (error) {
         this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
+          submitState: AccountFormSubmitState.FAILED,
+          errorMessage: error.reason,
         });
       } else {
         this.setState({
-          submitState: 'success',
+          submitState: AccountFormSubmitState.SUCCESS,
           successMessage: 'Logged in successfully.',
         });
       }
@@ -68,17 +98,17 @@ class AccountForm extends React.Component {
 
   tryPasswordReset = () => {
     this.setState({
-      submitState: 'submitting',
+      submitState: AccountFormSubmitState.IDLE,
     });
-    Accounts.forgotPassword({ email: this.state.email }, (error) => {
+    Accounts.forgotPassword({ email: this.state.email }, (error: Meteor.Error) => {
       if (error) {
         this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
+          submitState: AccountFormSubmitState.FAILED,
+          errorMessage: error.reason,
         });
       } else {
         this.setState({
-          submitState: 'success',
+          submitState: AccountFormSubmitState.SUCCESS,
           successMessage: 'Password reset email sent.',
         });
       }
@@ -86,15 +116,15 @@ class AccountForm extends React.Component {
   };
 
   tryCompletePasswordReset = () => {
-    Accounts.resetPassword(this.props.token, this.state.password, (error) => {
+    Accounts.resetPassword(this.props.token, this.state.password, (error: Meteor.Error) => {
       if (error) {
         this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
+          submitState: AccountFormSubmitState.FAILED,
+          errorMessage: error.reason,
         });
       } else {
         this.setState({
-          submitState: 'success',
+          submitState: AccountFormSubmitState.SUCCESS,
           successMessage: 'Password reset successfully',
         });
       }
@@ -110,26 +140,26 @@ class AccountForm extends React.Component {
     };
 
     this.setState({
-      submitState: 'submitting',
+      submitState: AccountFormSubmitState.SUBMITTING,
     });
 
-    Accounts.resetPassword(this.props.token, this.state.password, (error) => {
+    Accounts.resetPassword(this.props.token, this.state.password, (error: Meteor.Error) => {
       if (error) {
         this.setState({
-          submitState: 'failed',
-          errorMessage: error.message,
+          submitState: AccountFormSubmitState.FAILED,
+          errorMessage: error.reason,
         });
       } else {
-        Meteor.call('saveProfile', newProfile, (innerError) => {
+        Meteor.call('saveProfile', newProfile, (innerError: Meteor.Error) => {
           if (innerError) {
             // This user will have to set their profile manually later.  Oh well.
             this.setState({
-              submitState: 'failed',
-              errorMessage: innerError.message,
+              submitState: AccountFormSubmitState.FAILED,
+              errorMessage: innerError.reason,
             });
           } else {
             this.setState({
-              submitState: 'success',
+              submitState: AccountFormSubmitState.SUCCESS,
               successMessage: 'Created account successfully',
             });
           }
@@ -138,7 +168,7 @@ class AccountForm extends React.Component {
     });
   };
 
-  submitForm = (event) => {
+  submitForm = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const format = this.props.format || 'login';
     if (format === 'login') {
@@ -152,7 +182,7 @@ class AccountForm extends React.Component {
     }
   };
 
-  toggleWantPasswordReset = (event) => {
+  toggleWantPasswordReset = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     if (this.props.onFormatChange) {
       this.props.onFormatChange();
@@ -163,20 +193,20 @@ class AccountForm extends React.Component {
     // I'm mimicking the DOM used by AccountTemplates for this form so I can reuse their CSS.  It
     // would probably be good to refactor this to use ReactBootstrap/additional styles directly and
     // drop AccountTemplates entirely.
-    const submitting = this.state.submitState === 'submitting';
-    const format = this.props.format || 'login';
+    const submitting = this.state.submitState === AccountFormSubmitState.SUBMITTING;
+    const format = this.props.format || AccountFormFormat.LOGIN;
     const title = {
-      login: 'Jolly Roger: Death and Mayhem Virtual HQ',
-      enroll: 'Create an Account',
-      requestPwReset: 'Reset your password',
-      resetPwd: 'Reset your password',
+      [AccountFormFormat.LOGIN]: 'Jolly Roger: Death and Mayhem Virtual HQ',
+      [AccountFormFormat.ENROLL]: 'Create an Account',
+      [AccountFormFormat.REQUEST_PW_RESET]: 'Reset your password',
+      [AccountFormFormat.RESET_PWD]: 'Reset your password',
     }[format];
 
     const buttonText = {
-      login: 'Sign In',
-      enroll: 'Register',
-      requestPwReset: 'Email Reset Link',
-      resetPwd: 'Set Password',
+      [AccountFormFormat.LOGIN]: 'Sign In',
+      [AccountFormFormat.ENROLL]: 'Register',
+      [AccountFormFormat.REQUEST_PW_RESET]: 'Email Reset Link',
+      [AccountFormFormat.RESET_PWD]: 'Set Password',
     }[format];
 
     const emailInput = (
@@ -272,18 +302,18 @@ class AccountForm extends React.Component {
           <h3>{title}</h3>
         </div>
         <div>
-          <form id="at-pwd-form" noValidate="" action="#" method="POST" onSubmit={this.submitForm}>
+          <form id="at-pwd-form" noValidate action="#" method="POST" onSubmit={this.submitForm}>
             <fieldset>
-              {this.state.submitState === 'failed' ? <Alert bsStyle="danger">{this.state.errorMessage}</Alert> : null}
-              {this.state.submitState === 'success' && this.state.successMessage ? <Alert bsStyle="success">{this.state.successMessage}</Alert> : null}
-              {format === 'login' || format === 'requestPwReset' ? emailInput : null}
-              {format === 'login' || format === 'enroll' || format === 'resetPwd' ? pwInput : null}
-              {format === 'login' ? pwResetOptionComponent : null}
-              {format === 'enroll' ? enrollmentFields : null}
+              {this.state.submitState === AccountFormSubmitState.FAILED ? <Alert bsStyle="danger">{this.state.errorMessage}</Alert> : null}
+              {this.state.submitState === AccountFormSubmitState.SUCCESS && this.state.successMessage ? <Alert bsStyle="success">{this.state.successMessage}</Alert> : null}
+              {format === AccountFormFormat.LOGIN || format === AccountFormFormat.REQUEST_PW_RESET ? emailInput : null}
+              {format === AccountFormFormat.LOGIN || format === AccountFormFormat.ENROLL || format === AccountFormFormat.RESET_PWD ? pwInput : null}
+              {format === AccountFormFormat.LOGIN ? pwResetOptionComponent : null}
+              {format === AccountFormFormat.ENROLL ? enrollmentFields : null}
               <button id="at-btn" className="at-btn submit btn btn-lg btn-block btn-default" type="submit" disabled={submitting}>
                 {buttonText}
               </button>
-              {format === 'requestPwReset' ? backToMainForm : null}
+              {format === AccountFormFormat.REQUEST_PW_RESET ? backToMainForm : null}
             </fieldset>
           </form>
         </div>

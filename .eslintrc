@@ -82,6 +82,9 @@
     // don't understand the prototype model well enough to understand why.
     "class-methods-use-this": ["off"],
 
+    // Allow tsx files
+    "react/jsx-filename-extension": [1, { "extensions": [".jsx", ".tsx"] }],
+
     // Match existing style
     "operator-linebreak": ["error", "after"],
     "prefer-destructuring": ["off"],

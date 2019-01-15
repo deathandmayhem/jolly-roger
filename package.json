@@ -51,6 +51,7 @@
     "@babel/preset-typescript": "^7.1.0",
     "@types/meteor": "^1.4.24",
     "@types/mustache": "^0.8.32",
+    "@types/react-bootstrap": "^0.32.15",
     "assert": "^1.4.1",
     "babel-eslint": "git+https://github.com/babel/babel-eslint.git",
     "babel-preset-meteor": "^7.2.0",
