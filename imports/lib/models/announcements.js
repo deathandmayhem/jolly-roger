@@ -1,7 +1,7 @@
-import { huntsMatchingCurrentUser } from '../../model-helpers.js';
-import AnnouncementsSchema from '../schemas/announcements.js';
-import Base from './base.js';
-import ActiveOperatorRole from '../active-operator-role.js';
+import { huntsMatchingCurrentUser } from '../../model-helpers';
+import AnnouncementsSchema from '../schemas/announcements';
+import Base from './base';
+import ActiveOperatorRole from '../active-operator-role';
 
 const Announcements = new Base('announcements');
 Announcements.attachSchema(AnnouncementsSchema);

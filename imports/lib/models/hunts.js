@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import HuntsSchema from '../schemas/hunts.js';
-import Base from './base.js';
+import HuntsSchema from '../schemas/hunts';
+import Base from './base';
 
 const Hunts = new Base('hunts');
 Hunts.attachSchema(HuntsSchema);

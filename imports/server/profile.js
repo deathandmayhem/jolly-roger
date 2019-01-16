@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import Ansible from '../ansible.js';
-import Profiles from '../lib/models/profiles.js';
+import Ansible from '../ansible';
+import Profiles from '../lib/models/profiles';
 
 Meteor.methods({
   saveProfile(newProfile) {

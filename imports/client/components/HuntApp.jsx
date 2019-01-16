@@ -9,10 +9,10 @@ import DocumentTitle from 'react-document-title';
 import { withTracker } from 'meteor/react-meteor-data';
 import marked from 'marked';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import subsCache from '../subsCache.js';
-import CelebrationCenter from './CelebrationCenter.jsx';
-import HuntsSchema from '../../lib/schemas/hunts.js';
-import Hunts from '../../lib/models/hunts.js';
+import subsCache from '../subsCache';
+import CelebrationCenter from './CelebrationCenter';
+import HuntsSchema from '../../lib/schemas/hunts';
+import Hunts from '../../lib/models/hunts';
 
 class HuntDeletedError extends React.Component {
   static propTypes = {

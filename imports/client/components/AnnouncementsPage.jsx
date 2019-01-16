@@ -8,10 +8,10 @@ import Button from 'react-bootstrap/lib/Button';
 import marked from 'marked';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import subsCache from '../subsCache.js';
-import AnnouncementsSchema from '../../lib/schemas/announcements.js';
-import Announcements from '../../lib/models/announcements.js';
-import Profiles from '../../lib/models/profiles.js';
+import subsCache from '../subsCache';
+import AnnouncementsSchema from '../../lib/schemas/announcements';
+import Announcements from '../../lib/models/announcements';
+import Profiles from '../../lib/models/profiles';
 
 /* eslint-disable max-len */
 

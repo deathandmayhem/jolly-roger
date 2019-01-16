@@ -3,10 +3,10 @@ import { check } from 'meteor/check';
 import { _ } from 'meteor/underscore';
 import { Accounts } from 'meteor/accounts-base';
 import { Email } from 'meteor/email';
-import Ansible from '../ansible.js';
-import List from './blanche.js';
-import Hunts from '../lib/models/hunts.js';
-import Profiles from '../lib/models/profiles.js';
+import Ansible from '../ansible';
+import List from './blanche';
+import Hunts from '../lib/models/hunts';
+import Profiles from '../lib/models/profiles';
 
 const existingJoinEmail = (user, hunt, joinerName) => {
   const email = user && user.emails && user.emails[0] && user.emails[0].address;

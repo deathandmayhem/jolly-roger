@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import AccountForm from './AccountForm.jsx';
+import AccountForm from './AccountForm';
 
 class PasswordResetForm extends React.Component {
   static propTypes = {

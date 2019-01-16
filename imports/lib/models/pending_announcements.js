@@ -1,6 +1,6 @@
 import { _ } from 'meteor/underscore';
-import PendingAnnouncementsSchema from '../schemas/pending_announcements.js';
-import Base from './base.js';
+import PendingAnnouncementsSchema from '../schemas/pending_announcements';
+import Base from './base';
 
 const PendingAnnouncements = new Base('pending_announcements');
 PendingAnnouncements.attachSchema(PendingAnnouncementsSchema);

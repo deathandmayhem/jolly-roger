@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
-import Base from './base.js';
-import ProfilesSchema from '../schemas/profiles.js';
+import Base from './base';
+import ProfilesSchema from '../schemas/profiles';
 
 const Profiles = new class extends Base {
   constructor() {

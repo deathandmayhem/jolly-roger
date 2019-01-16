@@ -6,10 +6,10 @@ import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Creatable from 'react-select/lib/Creatable';
-import LabelledRadioGroup from './LabelledRadioGroup.jsx';
-import ModalForm from './ModalForm.jsx';
-import puzzleShape from './puzzleShape.js';
-import tagShape from './tagShape.js';
+import LabelledRadioGroup from './LabelledRadioGroup';
+import ModalForm from './ModalForm';
+import puzzleShape from './puzzleShape';
+import tagShape from './tagShape';
 
 /* eslint-disable max-len */
 

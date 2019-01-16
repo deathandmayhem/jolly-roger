@@ -1,9 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
 import { Random } from 'meteor/random';
-import Ansible from '../ansible.js';
-import APIKeys from './models/api_keys.js';
-import Locks from './models/lock.js';
+import Ansible from '../ansible';
+import APIKeys from './models/api_keys';
+import Locks from './models/lock';
 
 const userForKeyOperation = function userForKeyOperation(currentUser, forUser) {
   const canOverrideUser = Roles.userHasRole(currentUser, 'admin');

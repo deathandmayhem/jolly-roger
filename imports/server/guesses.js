@@ -1,10 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import Ansible from '../ansible.js';
-import ChatMessages from '../lib/models/chats.js';
-import Guesses from '../lib/models/guess.js';
-import Puzzles from '../lib/models/puzzles.js';
-import GlobalHooks from './global-hooks.js';
+import Ansible from '../ansible';
+import ChatMessages from '../lib/models/chats';
+import Guesses from '../lib/models/guess';
+import Puzzles from '../lib/models/puzzles';
+import GlobalHooks from './global-hooks';
 
 function addChatMessage(guess, newState) {
   const message = `Guess ${guess.guess} was marked ${newState}`;

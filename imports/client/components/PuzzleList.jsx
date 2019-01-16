@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Puzzle from './Puzzle.jsx';
-import puzzleShape from './puzzleShape.js';
-import tagShape from './tagShape.js';
+import Puzzle from './Puzzle';
+import puzzleShape from './puzzleShape';
+import tagShape from './tagShape';
 
 /* eslint-disable max-len */
 

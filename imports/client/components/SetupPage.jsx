@@ -10,8 +10,8 @@ import Button from 'react-bootstrap/lib/Button';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
-import Flags from '../../flags.js';
-import Settings from '../../lib/models/settings.js';
+import Flags from '../../flags';
+import Settings from '../../lib/models/settings';
 
 /* eslint-disable max-len, react/jsx-one-expression-per-line */
 

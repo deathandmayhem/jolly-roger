@@ -8,13 +8,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import { Link } from 'react-router';
 
-import Ansible from '../../ansible.js';
-import PuzzleAnswer from './PuzzleAnswer.jsx';
-import PuzzleModalForm from './PuzzleModalForm.jsx';
-import SubscriberCount from './SubscriberCount.jsx';
-import TagList from './TagList.jsx';
-import puzzleShape from './puzzleShape.js';
-import tagShape from './tagShape.js';
+import Ansible from '../../ansible';
+import PuzzleAnswer from './PuzzleAnswer';
+import PuzzleModalForm from './PuzzleModalForm';
+import SubscriberCount from './SubscriberCount';
+import TagList from './TagList';
+import puzzleShape from './puzzleShape';
+import tagShape from './tagShape';
 
 /* eslint-disable max-len */
 

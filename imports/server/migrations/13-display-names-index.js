@@ -1,5 +1,5 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import DocumentPermissions from '../../lib/models/document_permissions.js';
+import DocumentPermissions from '../../lib/models/document_permissions';
 
 Migrations.add({
   version: 13,

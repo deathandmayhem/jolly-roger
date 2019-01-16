@@ -11,10 +11,10 @@ import { Link } from 'react-router';
 import RRBS from 'react-router-bootstrap';
 import { withTracker } from 'meteor/react-meteor-data';
 import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
-import subsCache from '../subsCache.js';
-import ConnectionStatus from './ConnectionStatus.jsx';
-import NotificationCenter from './NotificationCenter.jsx';
-import Profiles from '../../lib/models/profiles.js';
+import subsCache from '../subsCache';
+import ConnectionStatus from './ConnectionStatus';
+import NotificationCenter from './NotificationCenter';
+import Profiles from '../../lib/models/profiles';
 
 class SharedNavbar extends React.Component {
   static propTypes = {

@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
-import Ansible from '../ansible.js';
-import Settings from '../lib/models/settings.js';
+import Ansible from '../ansible';
+import Settings from '../lib/models/settings';
 
 Meteor.methods({
   setupGoogleOAuthClient(clientId, secret) {

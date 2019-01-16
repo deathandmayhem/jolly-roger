@@ -23,29 +23,29 @@ import moment from 'moment';
 import TextareaAutosize from 'react-textarea-autosize';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import Ansible from '../../ansible.js';
-import subsCache from '../subsCache.js';
-import ModalForm from './ModalForm.jsx';
-import PuzzleModalForm from './PuzzleModalForm.jsx';
-import RelatedPuzzleGroups from './RelatedPuzzleGroups.jsx';
-import TagList from './TagList.jsx';
-import { Subscribers, SubscriberCounters } from '../subscribers.js';
-import Flags from '../../flags.js';
-import SplitPanePlus from './SplitPanePlus.jsx';
-import DocumentDisplay from './Documents.jsx';
+import Ansible from '../../ansible';
+import subsCache from '../subsCache';
+import ModalForm from './ModalForm';
+import PuzzleModalForm from './PuzzleModalForm';
+import RelatedPuzzleGroups from './RelatedPuzzleGroups';
+import TagList from './TagList';
+import { Subscribers, SubscriberCounters } from '../subscribers';
+import Flags from '../../flags';
+import SplitPanePlus from './SplitPanePlus';
+import DocumentDisplay from './Documents';
 
-import ChatMessagesSchema from '../../lib/schemas/chats.js';
-import DocumentsSchema from '../../lib/schemas/documents.js';
-import GuessesSchema from '../../lib/schemas/guess.js';
-import PuzzlesSchema from '../../lib/schemas/puzzles.js';
-import TagsSchema from '../../lib/schemas/tags.js';
+import ChatMessagesSchema from '../../lib/schemas/chats';
+import DocumentsSchema from '../../lib/schemas/documents';
+import GuessesSchema from '../../lib/schemas/guess';
+import PuzzlesSchema from '../../lib/schemas/puzzles';
+import TagsSchema from '../../lib/schemas/tags';
 
-import ChatMessages from '../../lib/models/chats.js';
-import Documents from '../../lib/models/documents.js';
-import Guesses from '../../lib/models/guess.js';
-import Profiles from '../../lib/models/profiles.js';
-import Puzzles from '../../lib/models/puzzles.js';
-import Tags from '../../lib/models/tags.js';
+import ChatMessages from '../../lib/models/chats';
+import Documents from '../../lib/models/documents';
+import Guesses from '../../lib/models/guess';
+import Profiles from '../../lib/models/profiles';
+import Puzzles from '../../lib/models/puzzles';
+import Tags from '../../lib/models/tags';
 
 /* eslint-disable max-len, no-console */
 

@@ -1,7 +1,7 @@
-import { huntsMatchingCurrentUser } from '../../model-helpers.js';
-import GuessesSchema from '../schemas/guess.js';
-import Base from './base.js';
-import ActiveOperatorRole from '../active-operator-role.js';
+import { huntsMatchingCurrentUser } from '../../model-helpers';
+import GuessesSchema from '../schemas/guess';
+import Base from './base';
+import ActiveOperatorRole from '../active-operator-role';
 
 const Guesses = new Base('guesses');
 Guesses.attachSchema(GuessesSchema);

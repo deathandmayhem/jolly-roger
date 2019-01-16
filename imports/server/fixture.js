@@ -1,9 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import huntFixtures from '../fixtures.js';
-import Hunts from '../lib/models/hunts.js';
-import Puzzles from '../lib/models/puzzles.js';
-import Tags from '../lib/models/tags.js';
+import huntFixtures from '../fixtures';
+import Hunts from '../lib/models/hunts';
+import Puzzles from '../lib/models/puzzles';
+import Tags from '../lib/models/tags';
 
 Meteor.methods({
   createFixtureHunt() {

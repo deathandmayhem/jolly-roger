@@ -1,5 +1,5 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import Profiles from '../../lib/models/profiles.js';
+import Profiles from '../../lib/models/profiles';
 
 Migrations.add({
   version: 9,

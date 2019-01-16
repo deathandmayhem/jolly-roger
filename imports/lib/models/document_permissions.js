@@ -1,6 +1,6 @@
 import { _ } from 'meteor/underscore';
-import DocumentPermissionsSchema from '../schemas/document_permissions.js';
-import Base from './base.js';
+import DocumentPermissionsSchema from '../schemas/document_permissions';
+import Base from './base';
 
 const DocumentPermissions = new Base('document_perms');
 DocumentPermissions.attachSchema(DocumentPermissionsSchema);

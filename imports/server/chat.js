@@ -1,10 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import { postSlackMessage } from './slack.js';
-import ChatMessages from '../lib/models/chats.js';
-import Hunts from '../lib/models/hunts.js';
-import Profiles from '../lib/models/profiles.js';
-import Puzzles from '../lib/models/puzzles.js';
+import { postSlackMessage } from './slack';
+import ChatMessages from '../lib/models/chats';
+import Hunts from '../lib/models/hunts';
+import Profiles from '../lib/models/profiles';
+import Puzzles from '../lib/models/puzzles';
 
 Meteor.methods({
   sendChatMessage(puzzleId, message) {

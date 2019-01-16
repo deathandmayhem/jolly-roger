@@ -1,6 +1,6 @@
 import SimpleSchema from 'simpl-schema';
-import { answerify } from '../../model-helpers.js';
-import Base from './base.js';
+import { answerify } from '../../model-helpers';
+import Base from './base';
 
 const Puzzles = new SimpleSchema({
   hunt: {

@@ -1,7 +1,7 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import dropIndex from './drop-index.js';
-import DocumentPermissions from '../../lib/models/document_permissions.js';
-import Profiles from '../../lib/models/profiles.js';
+import dropIndex from './drop-index';
+import DocumentPermissions from '../../lib/models/document_permissions';
+import Profiles from '../../lib/models/profiles';
 
 Migrations.add({
   version: 14,

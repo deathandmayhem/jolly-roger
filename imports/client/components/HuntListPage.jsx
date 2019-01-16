@@ -15,11 +15,11 @@ import { faEdit, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import Ansible from '../../ansible.js';
-import subsCache from '../subsCache.js';
-import ModalForm from './ModalForm.jsx';
-import HuntsSchema from '../../lib/schemas/hunts.js';
-import Hunts from '../../lib/models/hunts.js';
+import Ansible from '../../ansible';
+import subsCache from '../subsCache';
+import ModalForm from './ModalForm';
+import HuntsSchema from '../../lib/schemas/hunts';
+import Hunts from '../../lib/models/hunts';
 
 /* eslint-disable max-len */
 

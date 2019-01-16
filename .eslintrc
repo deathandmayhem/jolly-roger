@@ -13,7 +13,14 @@
     "plugin:import/warnings",
   ],
   "settings": {
-    "import/resolver": "meteor",
+    "import/resolver": {
+      "meteor": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"],
+      },
+      "typescript": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"],
+      },
+    },
   },
   "rules": {
     // explicit returns can sometimes be more readable and avoid the issue of "I want to return an
@@ -75,6 +82,9 @@
     // don't understand the prototype model well enough to understand why.
     "class-methods-use-this": ["off"],
 
+    // Allow tsx files
+    "react/jsx-filename-extension": [1, { "extensions": [".jsx", ".tsx"] }],
+
     // Match existing style
     "operator-linebreak": ["error", "after"],
     "prefer-destructuring": ["off"],
@@ -92,6 +102,17 @@
     "jsx-a11y/no-static-element-interactions": ["off"],
     "jsx-a11y/media-has-caption": ["off"],
   },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        // this seems to catch interface definitions
+        "no-undef": "off",
+        // seems to not work for imports that are only used for typing
+        "no-unused-vars": "off",
+      },
+    },
+  ],
   "globals": {
     // Long-term, reduce this list to nothing by making full use of import/export
     "Roles": false,

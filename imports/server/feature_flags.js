@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
-import FeatureFlags from '../lib/models/feature_flags.js';
+import FeatureFlags from '../lib/models/feature_flags';
 
 Meteor.methods({
   setFeatureFlag(name, type, random = null) {

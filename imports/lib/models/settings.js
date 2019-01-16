@@ -1,5 +1,5 @@
-import Base from './base.js';
-import SettingsSchema from '../schemas/settings.js';
+import Base from './base';
+import SettingsSchema from '../schemas/settings';
 
 const Settings = new Base('settings');
 Settings.attachSchema(SettingsSchema);

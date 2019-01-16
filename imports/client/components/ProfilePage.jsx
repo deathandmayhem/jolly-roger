@@ -12,11 +12,11 @@ import HelpBlock from 'react-bootstrap/lib/HelpBlock';
 import Label from 'react-bootstrap/lib/Label';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import subsCache from '../subsCache.js';
-import ProfilesSchema from '../../lib/schemas/profiles.js';
-import Profiles from '../../lib/models/profiles.js';
-import Flags from '../../flags.js';
-import Gravatar from './Gravatar.jsx';
+import subsCache from '../subsCache';
+import ProfilesSchema from '../../lib/schemas/profiles';
+import Profiles from '../../lib/models/profiles';
+import Flags from '../../flags';
+import Gravatar from './Gravatar';
 
 /* eslint-disable max-len */
 

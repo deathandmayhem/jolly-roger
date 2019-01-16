@@ -12,19 +12,19 @@ import marked from 'marked';
 import { withTracker } from 'meteor/react-meteor-data';
 import classnames from 'classnames';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import subsCache from '../subsCache.js';
-import AnnouncementsSchema from '../../lib/schemas/announcements.js';
-import GuessesSchema from '../../lib/schemas/guess.js';
-import HuntsSchema from '../../lib/schemas/hunts.js';
-import PuzzlesSchema from '../../lib/schemas/puzzles.js';
-import PendingAnnouncementsSchema from '../../lib/schemas/pending_announcements.js';
-import Announcements from '../../lib/models/announcements.js';
-import Guesses from '../../lib/models/guess.js';
-import Hunts from '../../lib/models/hunts.js';
-import PendingAnnouncements from '../../lib/models/pending_announcements.js';
-import Profiles from '../../lib/models/profiles.js';
-import Puzzles from '../../lib/models/puzzles.js';
-import { guessURL } from '../../model-helpers.js';
+import subsCache from '../subsCache';
+import AnnouncementsSchema from '../../lib/schemas/announcements';
+import GuessesSchema from '../../lib/schemas/guess';
+import HuntsSchema from '../../lib/schemas/hunts';
+import PuzzlesSchema from '../../lib/schemas/puzzles';
+import PendingAnnouncementsSchema from '../../lib/schemas/pending_announcements';
+import Announcements from '../../lib/models/announcements';
+import Guesses from '../../lib/models/guess';
+import Hunts from '../../lib/models/hunts';
+import PendingAnnouncements from '../../lib/models/pending_announcements';
+import Profiles from '../../lib/models/profiles';
+import Puzzles from '../../lib/models/puzzles';
+import { guessURL } from '../../model-helpers';
 
 /* eslint-disable max-len */
 

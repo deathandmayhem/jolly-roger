@@ -3,11 +3,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import PuzzleList from './PuzzleList.jsx';
-import Tag from './Tag.jsx';
-import puzzleInterestingness from './puzzleInterestingness.js';
-import puzzleShape from './puzzleShape.js';
-import tagShape from './tagShape.js';
+import PuzzleList from './PuzzleList';
+import Tag from './Tag';
+import puzzleInterestingness from './puzzleInterestingness';
+import puzzleShape from './puzzleShape';
+import tagShape from './tagShape';
 
 /* eslint-disable max-len */
 

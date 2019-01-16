@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import Settings from '../lib/models/settings.js';
+import Settings from '../lib/models/settings';
 
 class GDriveClientRefresher {
   constructor() {

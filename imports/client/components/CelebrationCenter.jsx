@@ -3,11 +3,11 @@ import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Tracker } from 'meteor/tracker';
 import { withTracker } from 'meteor/react-meteor-data';
-import Flags from '../../flags.js';
-import subsCache from '../subsCache.js';
-import Celebration from './Celebration.jsx';
-import Profiles from '../../lib/models/profiles.js';
-import Puzzles from '../../lib/models/puzzles.js';
+import Flags from '../../flags';
+import subsCache from '../subsCache';
+import Celebration from './Celebration';
+import Profiles from '../../lib/models/profiles';
+import Puzzles from '../../lib/models/puzzles';
 
 class CelebrationCenter extends React.Component {
   static displayName = 'CelebrationCenter';

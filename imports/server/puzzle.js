@@ -2,15 +2,15 @@ import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
 import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
-import Ansible from '../ansible.js';
-import { ensureDocument, renameDocument, grantPermission } from './gdrive.js';
-import DriveClient from './gdrive-client-refresher.js';
-import Flags from '../flags.js';
-import DocumentPermissions from '../lib/models/document_permissions.js';
-import Profiles from '../lib/models/profiles.js';
-import Puzzles from '../lib/models/puzzles.js';
-import Tags from '../lib/models/tags.js';
-import GlobalHooks from './global-hooks.js';
+import Ansible from '../ansible';
+import { ensureDocument, renameDocument, grantPermission } from './gdrive';
+import DriveClient from './gdrive-client-refresher';
+import Flags from '../flags';
+import DocumentPermissions from '../lib/models/document_permissions';
+import Profiles from '../lib/models/profiles';
+import Puzzles from '../lib/models/puzzles';
+import Tags from '../lib/models/tags';
+import GlobalHooks from './global-hooks';
 
 function getOrCreateTagByName(huntId, name) {
   const existingTag = Tags.findOne({ hunt: huntId, name });
