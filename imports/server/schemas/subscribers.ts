@@ -1,28 +1,29 @@
+import * as t from 'io-ts';
+import { date } from 'io-ts-types/lib/Date/date';
 import SimpleSchema from 'simpl-schema';
+import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
 
-const Subscribers = new SimpleSchema({
+const SubscriberType = t.type({
+  server: t.string,
+  connection: t.string,
+  user: t.string,
+  name: t.string,
+  context: t.object,
+  createdAt: date,
+  updatedAt: t.union([date, t.undefined]),
+});
+
+const SubscriberOverrides: Overrides<t.TypeOf<typeof SubscriberType>> = {
   server: {
-    type: String,
     regEx: SimpleSchema.RegEx.Id,
   },
   connection: {
-    type: String,
     regEx: SimpleSchema.RegEx.Id,
   },
   user: {
-    type: String,
     regEx: SimpleSchema.RegEx.Id,
   },
-  name: {
-    type: String,
-  },
-  context: {
-    type: Object,
-    blackbox: true,
-  },
   createdAt: {
-    type: Date,
-    // eslint-disable-next-line consistent-return
     autoValue() {
       if (this.isInsert) {
         return new Date();
@@ -31,19 +32,20 @@ const Subscribers = new SimpleSchema({
       } else {
         this.unset(); // Prevent user from supplying their own value
       }
+      return undefined;
     },
   },
   updatedAt: {
-    type: Date,
     denyInsert: true,
-    optional: true,
-    // eslint-disable-next-line consistent-return
     autoValue() {
       if (this.isUpdate) {
         return new Date();
       }
+      return undefined;
     },
   },
-});
+};
+
+const Subscribers = buildSchema(SubscriberType, SubscriberOverrides);
 
 export default Subscribers;

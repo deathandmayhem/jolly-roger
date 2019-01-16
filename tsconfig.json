@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
     "alwaysStrict": true,
     "jsx": "react",
     "allowJs": false,
