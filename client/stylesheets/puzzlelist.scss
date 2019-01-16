@@ -24,6 +24,10 @@
       padding-left: 12px;
       margin-bottom: 8px;
     }
+
+    .puzzle-view-controller {
+      width: 100%;
+    }
   }
 }
 
@@ -38,7 +42,7 @@
 
   .form-group {
     flex: 1 1 auto;
-    min-width: 250px;
+    width: 250px;
   }
 }
 
