@@ -18,11 +18,11 @@ class GoogleDocumentDisplay extends React.Component {
       case 'spreadsheet':
         url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
         deepUrl = `googlesheets://${url}`;
-        title = 'worksheet';
+        title = 'Worksheet';
         break;
       case 'document':
         url = `https://docs.google.com/document/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
-        title = 'document';
+        title = 'Document';
         break;
       default:
         return (
@@ -38,11 +38,9 @@ class GoogleDocumentDisplay extends React.Component {
       case 'link':
         return (
           <DeepLink className="gdrive-button" nativeUrl={deepUrl} browserUrl={url}>
-            <Button>
-              Open
-              {' '}
+            <a href="#">
               {title}
-            </Button>
+            </a>
           </DeepLink>
         );
       case 'embed':

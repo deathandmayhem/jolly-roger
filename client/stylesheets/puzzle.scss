@@ -359,6 +359,12 @@ table.puzzle-list {
   cursor: pointer;
 }
 
+@media (any-pointer: fine) {
+  .tablet-only {
+    display: none;
+  }
+}
+
 .puzzle-document {
   width: 100%;
   height: 100%;

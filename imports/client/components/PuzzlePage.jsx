@@ -704,6 +704,11 @@ class PuzzlePageMetadata extends React.Component {
         <div>
           <div className="puzzle-metadata-row">
             <div className="puzzle-metadata-right">
+              {this.props.document && (
+                <span className={classnames(this.props.isDesktop && 'tablet-only')}>
+                  <DocumentDisplay document={this.props.document} displayMode="link" />
+                </span>
+              )}
               {this.props.puzzle.url && (
                 <a
                   className="puzzle-metadata-external-link-button"
@@ -720,8 +725,6 @@ class PuzzlePageMetadata extends React.Component {
               {' '}
               {this.props.isDesktop &&
                 <span className="puzzle-metadata-title">{this.props.puzzle.title}</span>}
-              {!this.props.isDesktop && this.props.document &&
-                <DocumentDisplay document={this.props.document} displayMode="link" />}
               {' '}
               {this.props.puzzle.answer && answerComponent}
               {' '}
