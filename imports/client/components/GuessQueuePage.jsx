@@ -96,7 +96,7 @@ class GuessBlock extends React.Component {
           <div>
             {timestamp}
             {' from '}
-            {this.props.createdByDisplayName || '<no name given>'}
+            <span className="breakable">{this.props.createdByDisplayName || '<no name given>'}</span>
           </div>
           <div>
             {'Puzzle: '}
