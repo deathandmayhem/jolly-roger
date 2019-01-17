@@ -59,12 +59,17 @@ ul.notifications {
     }
 
     .content {
+      overflow-x: hidden; // overflow-wrap on children just overflows the box without this
       padding-left: 10px;
       padding-right: 10px;
       padding-top: 10px;
       padding-bottom: 10px;
       &.dismissable {
         padding-right: 32px;
+      }
+
+      .breakable {
+        word-wrap: break-word;
       }
 
       ul.actions {

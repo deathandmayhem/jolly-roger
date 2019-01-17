@@ -18,6 +18,10 @@
 
 .guess-info {
   flex: 1 0 50%;
+  overflow-x: hidden;
+  .breakable {
+    word-wrap: break-word;
+  }
 }
 
 .guess-button-group {

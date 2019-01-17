@@ -110,10 +110,10 @@ class GuessMessage extends React.PureComponent {
             {' '}
             from
             {' '}
-            {this.props.guesser}
+            <span className="breakable">{this.props.guesser}</span>
             :
             {' '}
-            {this.props.guess.guess}
+            <span className="breakable">{this.props.guess.guess}</span>
           </div>
           <div>
             <OverlayTrigger placement="bottom" overlay={directionTooltip}>
