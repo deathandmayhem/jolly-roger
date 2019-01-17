@@ -15,8 +15,8 @@ import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
 import Table from 'react-bootstrap/lib/Table';
 import Tooltip from 'react-bootstrap/lib/Tooltip';
 import DocumentTitle from 'react-document-title';
-import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import classnames from 'classnames';
 import marked from 'marked';
 import moment from 'moment';
@@ -684,12 +684,10 @@ class PuzzlePageMetadata extends React.Component {
     const isAdministrivia = _.findWhere(tags, { name: 'administrivia' });
     const answerComponent = this.props.puzzle.answer ? (
       <span className="puzzle-metadata-answer">
-        Solved:
-        {' '}
         <span className="answer">{this.props.puzzle.answer}</span>
       </span>
     ) : null;
-    const hideViewCount = this.props.puzzle.answer || this.props.subcountersDisabled;
+    const hideViewCount = this.props.subcountersDisabled;
     const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
     return (
       <div className="puzzle-metadata">
@@ -701,61 +699,54 @@ class PuzzlePageMetadata extends React.Component {
           tags={this.props.allTags}
           onSubmit={this.onEdit}
         />
-        <div>
-          <div className="puzzle-metadata-row">
-            <div className="puzzle-metadata-right">
-              {this.props.document && (
-                <span className={classnames(this.props.isDesktop && 'tablet-only')}>
-                  <DocumentDisplay document={this.props.document} displayMode="link" />
-                </span>
-              )}
-              {this.props.puzzle.url && (
-                <a
-                  className="puzzle-metadata-external-link-button"
-                  href={this.props.puzzle.url}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  Puzzle
-                </a>
-              )}
-            </div>
-            <div className="puzzle-metadata-left">
-              {this.editButton()}
-              {' '}
-              {this.props.isDesktop &&
-                <span className="puzzle-metadata-title">{this.props.puzzle.title}</span>}
-              {' '}
-              {this.props.puzzle.answer && answerComponent}
-              {' '}
-              {!hideViewCount && (
-                <ViewCountDisplayContainer
-                  count={this.props.viewCount}
-                  name={`puzzle:${this.props.puzzle._id}`}
-                />
-              )}
-            </div>
-          </div>
-          <div className={classnames('puzzle-metadata-row', this.props.isDesktop && 'puzzle-metadata-tag-editor-row')}>
-            {!isAdministrivia && (
-              <div className="puzzle-metadata-right">
-                <Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-                  {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
-                </Button>
-              </div>
-            )}
-            <div className="puzzle-metadata-left">
-              <span className="puzzle-metadata-tags">Tags:</span>
-              <TagList
-                puzzleId={this.props.puzzle._id}
-                tags={tags}
-                onCreateTag={this.onCreateTag}
-                onRemoveTag={this.onRemoveTag}
-                linkToSearch={false}
-                showControls={this.props.isDesktop}
+        <div className="puzzle-metadata-row">
+          <div className="puzzle-metadata-title-set">
+            {this.editButton()}
+            {' '}
+            <span className="puzzle-metadata-title">{this.props.puzzle.title}</span>
+            {' '}
+            {!hideViewCount && (
+              <ViewCountDisplayContainer
+                count={this.props.viewCount}
+                name={`puzzle:${this.props.puzzle._id}`}
               />
-            </div>
+            )}
           </div>
+          {this.props.puzzle.answer && answerComponent}
+        </div>
+        <div className={classnames('puzzle-metadata-row', this.props.isDesktop && 'puzzle-metadata-tag-editor-row')}>
+          <TagList
+            puzzleId={this.props.puzzle._id}
+            tags={tags}
+            onCreateTag={this.onCreateTag}
+            onRemoveTag={this.onRemoveTag}
+            linkToSearch={false}
+            showControls={this.props.isDesktop}
+          />
+        </div>
+        <div className="puzzle-metadata-row">
+          {this.props.puzzle.url && (
+            <a
+              className="puzzle-metadata-external-link-button"
+              href={this.props.puzzle.url}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Puzzle
+              {' '}
+              <FontAwesomeIcon fixedWidth icon={faExternalLinkAlt} />
+            </a>
+          )}
+          {this.props.document && (
+            <span className={classnames(this.props.isDesktop && 'tablet-only')}>
+              <DocumentDisplay document={this.props.document} displayMode="link" />
+            </span>
+          )}
+          {!isAdministrivia && (
+            <Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
+              {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
+            </Button>
+          )}
         </div>
         <PuzzleGuessModal
           ref={this.guessModalRef}

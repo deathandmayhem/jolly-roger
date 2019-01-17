@@ -182,10 +182,6 @@ table.puzzle-list {
   margin: 0 0 0 4px;
 }
 
-.tag-list .btn.tag-modify-button {
-  margin: 0;
-}
-
 /*Guessing and History Modal */
 .guess-history-table td.answer {
   word-break: break-all;
@@ -289,6 +285,10 @@ table.puzzle-list {
   margin-right: 2px;
 }
 
+.chat-section textarea {
+  border-radius: 0;
+}
+
 // Related puzzles
 .related-puzzles-section {
   padding: 2px 6px;
@@ -297,58 +297,21 @@ table.puzzle-list {
 // Puzzle metadata
 .puzzle-metadata {
   flex: none;
-  padding-bottom: 2px;
+  padding: 2px 4px;
 }
 
 .puzzle-metadata-row {
   display: flex;
-  min-height: 26px;
-  padding: 0 4px;
-  vertical-align: middle;
+  width: 100%;
+  font-size: 14px;
+  line-height: 28px;
+  align-items: flex-start;
+  align-content: flex-start;
+  justify-content: space-between;
 }
 
-.puzzle-metadata-tag-editor-row {
-  min-height: 46px;
-  align-items: center;
-}
-
-.puzzle-metadata-left {
-  flex: 1 1 auto;
-  padding: 4px;
-  order: 1;
-}
-
-.puzzle-metadata-right {
-  flex: 1 .2 auto;
-  margin: 4px;
-  text-align: right;
-  order: 2;
-}
-
-.puzzle-metadata-tags {
-  display: inline-block;
-  height: 24px;
-}
-
-.puzzle-metadata-answer {
-  display: inline-block;
-  padding: 2px;
-  border-radius: 2px;
-  background-color: #00ff00;
-  color: #000000;
-  margin: 0 4px;
-}
-
-.puzzle-metadata-row .btn {
-  height: 24px;
-  padding: 2px 4px;
-  display: inline-block;
-  margin: 2px;
-}
-
-.puzzle-metadata-external-link-button, .gdrive-button {
-  display: inline-block;
-  font-weight: bold;
+.puzzle-metadata-title-set {
+  flex:1;
 }
 
 .puzzle-metadata-title {
@@ -359,8 +322,47 @@ table.puzzle-list {
   cursor: pointer;
 }
 
+.puzzle-metadata-answer, .puzzle-metadata .tag {
+  display: flex;
+  align-items: center;
+  line-height: 24px;
+  margin: 2px 0;
+  padding: 0 6px;
+  border-radius: 4px;
+}
+
+.puzzle-metadata-answer {
+  background-color: #00ff00;
+  color: #000000;
+}
+
+.puzzle-metadata .tag-list {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.puzzle-metadata .tag {
+  margin-right: 4px;
+}
+
+.puzzle-metadata-row .btn {
+  line-height: 22px;
+  padding: 0 6px;
+  margin: 2px 0;
+  border-width: 1px;
+  display: inline-block;
+}
+
+.puzzle-metadata .puzzle-metadata-external-link-button, .puzzle-metadata .gdrive-button {
+  display: inline-block;
+  font-weight: bold;
+}
+
 @media (any-pointer: fine) {
-  .tablet-only {
+  .puzzle-metadata .tablet-only {
     display: none;
   }
 }

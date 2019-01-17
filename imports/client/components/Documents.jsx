@@ -3,6 +3,8 @@ import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import DeepLink from './DeepLink';
 import DocumentsSchema from '../../lib/schemas/documents';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 
 class GoogleDocumentDisplay extends React.Component {
   static propTypes = {
@@ -40,6 +42,8 @@ class GoogleDocumentDisplay extends React.Component {
           <DeepLink className="gdrive-button" nativeUrl={deepUrl} browserUrl={url}>
             <a href="#">
               {title}
+              {' '}
+              <FontAwesomeIcon fixedWidth icon={faExternalLinkAlt} />
             </a>
           </DeepLink>
         );
