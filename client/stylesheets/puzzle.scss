@@ -379,8 +379,14 @@ table.puzzle-list {
 }
 
 .puzzle-document > .gdrive-embed {
-  width: 100%;
-  height: 100%;
+  /* Workaround for unusual sizing behavior of iframes in iOS Safari */
+  /* Width and height need to be specified in px then adjusted by min and max */
+  width: 0px;
+  height: 0px;
+  min-width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  max-height: 100%;
   position: absolute;
   top: 0;
   right: 0;

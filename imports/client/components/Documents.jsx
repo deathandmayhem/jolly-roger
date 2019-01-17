@@ -46,8 +46,9 @@ class GoogleDocumentDisplay extends React.Component {
           </DeepLink>
         );
       case 'embed':
+        /* To workaround iOS Safari iframe behavior, scrolling should be "no" */
         return (
-          <iframe title="document" className="gdrive-embed" src={url} />
+          <iframe title="document" className="gdrive-embed" scrolling="no" src={url} />
         );
       default:
         return (
