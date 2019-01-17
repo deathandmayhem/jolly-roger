@@ -19,7 +19,8 @@ class DeepLink extends React.Component {
     }
   };
 
-  onClick = () => {
+  onClick = (e) => {
+    e.preventDefault();
     // window.orientation is a good proxy for mobile device
     if (window.orientation) {
       this.setState({ state: 'attemptingNative', startNativeLoad: new Date() });
