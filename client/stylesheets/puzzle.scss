@@ -275,7 +275,8 @@ table.puzzle-list {
 
 .chat-message {
   background-color: #f8f8f8;
-  margin-bottom: 1px;
+  padding: 0 6px;
+  margin-bottom: 2px;
   word-wrap: break-word;
   &.system-message {
     background-color: #e0e0e0;
@@ -286,6 +287,11 @@ table.puzzle-list {
   float: right;
   font-style: italic;
   margin-right: 2px;
+}
+
+// Related puzzles
+.related-puzzles-section {
+  padding: 2px 6px;
 }
 
 // Puzzle metadata
