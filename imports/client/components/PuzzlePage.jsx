@@ -305,6 +305,7 @@ class ChatMessage extends React.PureComponent {
     message: PropTypes.shape(FilteredChatMessagePropTypes).isRequired,
     senderDisplayName: PropTypes.string.isRequired,
     isSystemMessage: PropTypes.bool.isRequired,
+    suppressSender: PropTypes.bool.isRequired,
   };
 
   render() {
@@ -315,8 +316,8 @@ class ChatMessage extends React.PureComponent {
 
     return (
       <div className={classes}>
-        <span className="chat-timestamp">{ts}</span>
-        <strong>{this.props.senderDisplayName}</strong>
+        {!this.props.suppressSender && <span className="chat-timestamp">{ts}</span>}
+        {!this.props.suppressSender && <strong>{this.props.senderDisplayName}</strong>}
         <span dangerouslySetInnerHTML={{ __html: marked(this.props.message.text, { sanitize: true }) }} />
       </div>
     );
@@ -389,14 +390,20 @@ class ChatHistory extends React.PureComponent {
     return (
       <div ref={this.ref} className="chat-history" onScroll={this.onScroll}>
         {this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span>}
-        {this.props.chatMessages.map((msg) => {
+        {this.props.chatMessages.map((msg, index, messages) => {
           const displayName = (msg.sender !== undefined) ? this.props.displayNames[msg.sender] : 'jolly-roger';
+          // Only suppress sender and timestamp if:
+          // * this is not the first message
+          // * this message was sent by the same person as the previous message
+          // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
+          const suppressSender = index > 0 && messages[index - 1].sender === msg.sender && Date.parse(messages[index - 1].timestamp) + 60000 > Date.parse(msg.timestamp);
           return (
             <ChatMessage
               key={msg._id}
               message={msg}
               senderDisplayName={displayName}
               isSystemMessage={msg.sender === undefined}
+              suppressSender={suppressSender}
             />
           );
         })}
