@@ -140,10 +140,12 @@ table.puzzle-list {
 }
 
 .tag {
-  display: inline-block;
-  margin: 2px;
-  padding: 2px;
-  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 24px;
+  margin: 2px 4px 2px 0;
+  padding: 0 6px;
+  border-radius: 4px;
   background-color: #ddd;
   color: #000;
   &.tag-administrivia {
@@ -179,7 +181,7 @@ table.puzzle-list {
   display: inline-block;
   vertical-align: middle;
   text-align: center;
-  margin: 0 0 0 4px;
+  margin: 0 0 0 6px;
 }
 
 /*Guessing and History Modal */
@@ -310,10 +312,6 @@ table.puzzle-list {
   justify-content: space-between;
 }
 
-.puzzle-metadata-title-set {
-  flex:1;
-}
-
 .puzzle-metadata-title {
   font-weight: bold;
 }
@@ -322,30 +320,25 @@ table.puzzle-list {
   cursor: pointer;
 }
 
-.puzzle-metadata-answer, .puzzle-metadata .tag {
+.puzzle-metadata-answer {
   display: flex;
   align-items: center;
   line-height: 24px;
   margin: 2px 0;
   padding: 0 6px;
   border-radius: 4px;
-}
-
-.puzzle-metadata-answer {
   background-color: #00ff00;
   color: #000000;
 }
 
 .puzzle-metadata .tag-list {
   display: flex;
+  flex-grow: 1;
   justify-content: flex-start;
   align-items: flex-start;
   align-content: flex-start;
   flex-wrap: wrap;
-}
-
-.puzzle-metadata .tag {
-  margin-right: 4px;
+  margin-left: 4px;
 }
 
 .puzzle-metadata-row .btn {

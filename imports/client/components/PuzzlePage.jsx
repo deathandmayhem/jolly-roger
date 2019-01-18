@@ -715,6 +715,7 @@ class PuzzlePageMetadata extends React.Component {
           {this.props.puzzle.answer && answerComponent}
         </div>
         <div className={classnames('puzzle-metadata-row', this.props.isDesktop && 'puzzle-metadata-tag-editor-row')}>
+          <div className="puzzle-metadata-tags-label">Tags: </div>
           <TagList
             puzzleId={this.props.puzzle._id}
             tags={tags}
