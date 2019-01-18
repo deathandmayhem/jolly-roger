@@ -156,8 +156,11 @@ class PuzzleListView extends React.Component {
       let grouped = false;
       for (let j = 0; j < puzzle.tags.length; j++) {
         const tag = tagsByIndex[puzzle.tags[j]];
-        if (tag.name === 'administrivia' ||
-            tag.name.lastIndexOf('group:', 0) === 0) {
+        // On new puzzle creation, if a tag s new as well, we can receive the new Puzzle object (and
+        // rerender) before the new Tag object streams in, so it's possible that we don't have a tag
+        // object for a given ID, and that tag here will be undefined.
+        if (tag && tag.name && (tag.name === 'administrivia' ||
+            tag.name.lastIndexOf('group:', 0) === 0)) {
           grouped = true;
           if (!groupsMap[tag._id]) {
             groupsMap[tag._id] = [];
