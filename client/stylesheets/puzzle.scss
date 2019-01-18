@@ -140,10 +140,12 @@ table.puzzle-list {
 }
 
 .tag {
-  display: inline-block;
-  margin: 2px;
-  padding: 2px;
-  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 24px;
+  margin: 2px 4px 2px 0;
+  padding: 0 6px;
+  border-radius: 4px;
   background-color: #ddd;
   color: #000;
   &.tag-administrivia {
@@ -179,11 +181,7 @@ table.puzzle-list {
   display: inline-block;
   vertical-align: middle;
   text-align: center;
-  margin: 0 0 0 4px;
-}
-
-.tag-list .btn.tag-modify-button {
-  margin: 0;
+  margin: 0 0 0 6px;
 }
 
 /*Guessing and History Modal */
@@ -289,6 +287,10 @@ table.puzzle-list {
   margin-right: 2px;
 }
 
+.chat-section textarea {
+  border-radius: 0;
+}
+
 // Related puzzles
 .related-puzzles-section {
   padding: 2px 6px;
@@ -297,58 +299,17 @@ table.puzzle-list {
 // Puzzle metadata
 .puzzle-metadata {
   flex: none;
-  padding-bottom: 2px;
+  padding: 2px 4px;
 }
 
 .puzzle-metadata-row {
   display: flex;
-  min-height: 26px;
-  padding: 0 4px;
-  vertical-align: middle;
-}
-
-.puzzle-metadata-tag-editor-row {
-  min-height: 46px;
-  align-items: center;
-}
-
-.puzzle-metadata-left {
-  flex: 1 1 auto;
-  padding: 4px;
-  order: 1;
-}
-
-.puzzle-metadata-right {
-  flex: 1 .2 auto;
-  margin: 4px;
-  text-align: right;
-  order: 2;
-}
-
-.puzzle-metadata-tags {
-  display: inline-block;
-  height: 24px;
-}
-
-.puzzle-metadata-answer {
-  display: inline-block;
-  padding: 2px;
-  border-radius: 2px;
-  background-color: #00ff00;
-  color: #000000;
-  margin: 0 4px;
-}
-
-.puzzle-metadata-row .btn {
-  height: 24px;
-  padding: 2px 4px;
-  display: inline-block;
-  margin: 2px;
-}
-
-.puzzle-metadata-external-link-button, .gdrive-button {
-  display: inline-block;
-  font-weight: bold;
+  width: 100%;
+  font-size: 14px;
+  line-height: 28px;
+  align-items: flex-start;
+  align-content: flex-start;
+  justify-content: space-between;
 }
 
 .puzzle-metadata-title {
@@ -357,6 +318,46 @@ table.puzzle-list {
 
 .puzzle-metadata .view-count {
   cursor: pointer;
+}
+
+.puzzle-metadata-answer {
+  display: flex;
+  align-items: center;
+  line-height: 24px;
+  margin: 2px 0;
+  padding: 0 6px;
+  border-radius: 4px;
+  background-color: #00ff00;
+  color: #000000;
+}
+
+.puzzle-metadata .tag-list {
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  margin-left: 4px;
+}
+
+.puzzle-metadata-row .btn {
+  line-height: 22px;
+  padding: 0 6px;
+  margin: 2px 0;
+  border-width: 1px;
+  display: inline-block;
+}
+
+.puzzle-metadata .puzzle-metadata-external-link-button, .puzzle-metadata .gdrive-button {
+  display: inline-block;
+  font-weight: bold;
+}
+
+@media (any-pointer: fine) {
+  .puzzle-metadata .tablet-only {
+    display: none;
+  }
 }
 
 .puzzle-document {
@@ -379,8 +380,14 @@ table.puzzle-list {
 }
 
 .puzzle-document > .gdrive-embed {
-  width: 100%;
-  height: 100%;
+  /* Workaround for unusual sizing behavior of iframes in iOS Safari */
+  /* Width and height need to be specified in px then adjusted by min and max */
+  width: 0px;
+  height: 0px;
+  min-width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  max-height: 100%;
   position: absolute;
   top: 0;
   right: 0;

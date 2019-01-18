@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import Button from 'react-bootstrap/lib/Button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import DeepLink from './DeepLink';
 import DocumentsSchema from '../../lib/schemas/documents';
 
@@ -18,11 +19,11 @@ class GoogleDocumentDisplay extends React.Component {
       case 'spreadsheet':
         url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
         deepUrl = `googlesheets://${url}`;
-        title = 'worksheet';
+        title = 'Worksheet';
         break;
       case 'document':
         url = `https://docs.google.com/document/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
-        title = 'document';
+        title = 'Document';
         break;
       default:
         return (
@@ -38,16 +39,17 @@ class GoogleDocumentDisplay extends React.Component {
       case 'link':
         return (
           <DeepLink className="gdrive-button" nativeUrl={deepUrl} browserUrl={url}>
-            <Button>
-              Open
-              {' '}
+            <a href={url} target="new">
               {title}
-            </Button>
+              {' '}
+              <FontAwesomeIcon fixedWidth icon={faExternalLinkAlt} />
+            </a>
           </DeepLink>
         );
       case 'embed':
+        /* To workaround iOS Safari iframe behavior, scrolling should be "no" */
         return (
-          <iframe title="document" className="gdrive-embed" src={url} />
+          <iframe title="document" className="gdrive-embed" scrolling="no" src={url} />
         );
       default:
         return (
