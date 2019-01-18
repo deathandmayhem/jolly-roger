@@ -52,11 +52,10 @@ class PuzzleListView extends React.Component {
   constructor(props) {
     super(props);
     this.addModalRef = React.createRef();
-    this.searchBarRef = React.createRef();
   }
 
   componentDidMount() {
-    this.searchBarRef.current.focus();
+    this.searchBarRef.focus();
   }
 
   onAdd = (state, callback) => {
@@ -350,7 +349,7 @@ class PuzzleListView extends React.Component {
                   <FormControl
                     id="jr-puzzle-search"
                     type="text"
-                    inputRef={this.searchBarRef}
+                    inputRef={(ref) => { this.searchBarRef = ref; }}
                     placeholder="Filter by title, answer, or tag"
                     value={this.getSearchString()}
                     onChange={this.onSearchStringChange}
