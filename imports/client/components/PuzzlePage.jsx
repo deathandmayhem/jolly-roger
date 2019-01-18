@@ -282,7 +282,6 @@ class RelatedPuzzleSection extends React.PureComponent {
         TagsSchema.asReactPropTypes()
       ).isRequired
     ).isRequired,
-    canUpdate: PropTypes.bool.isRequired,
   };
 
   render() {
@@ -293,7 +292,7 @@ class RelatedPuzzleSection extends React.PureComponent {
           activePuzzle={this.props.activePuzzle}
           allPuzzles={this.props.allPuzzles}
           allTags={this.props.allTags}
-          canUpdate={this.props.canUpdate}
+          canUpdate={false}
           layout="table"
         />
       </div>
@@ -592,7 +591,6 @@ class PuzzlePageSidebar extends React.PureComponent {
               activePuzzle={this.props.activePuzzle}
               allPuzzles={this.props.allPuzzles}
               allTags={this.props.allTags}
-              canUpdate={this.props.canUpdate}
             />
             <ChatSection
               chatReady={this.props.chatReady}
