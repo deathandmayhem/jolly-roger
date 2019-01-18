@@ -331,7 +331,7 @@ class PuzzleListView extends React.Component {
         <div className="puzzle-list-controls">
           <ul className="puzzle-list-links">
             <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
-            <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guess Queue</Link></li>
+            <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guess queue</Link></li>
             <li><Link to={`/hunts/${this.props.huntId}/hunters`}>Hunters</Link></li>
           </ul>
           <div className="puzzle-view-controller">
