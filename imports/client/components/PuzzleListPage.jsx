@@ -328,6 +328,11 @@ class PuzzleListView extends React.Component {
     return (
       <div>
         <div className="puzzle-list-controls">
+          <ul className="puzzle-list-links">
+            <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
+            <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guess queue</Link></li>
+            <li><Link to={`/hunts/${this.props.huntId}/hunters`}>Hunters</Link></li>
+          </ul>
           <div className="puzzle-view-controller">
             <ControlLabel htmlFor="jr-puzzle-search">View puzzles by:</ControlLabel>
             <div className="puzzle-view-controls">
@@ -361,15 +366,10 @@ class PuzzleListView extends React.Component {
                   </InputGroup.Button>
                 </InputGroup>
               </FormGroup>
+              {addPuzzleContent}
             </div>
           </div>
-          <ul>
-            <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
-            <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guesses</Link></li>
-            <li><Link to={`/hunts/${this.props.huntId}/hunters`}>Hunters</Link></li>
-          </ul>
         </div>
-        {addPuzzleContent}
         {bodyComponent}
       </div>
     );
