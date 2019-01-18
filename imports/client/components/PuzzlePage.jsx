@@ -422,7 +422,7 @@ const chatInputStyles = {
     // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
     lineHeight: '16px',
     flex: 'none',
-    padding: '9px 6px',
+    padding: '9px 4px',
     borderWidth: '1px 0 0 0',
     resize: 'none',
     maxHeight: '200px',
@@ -731,7 +731,7 @@ class PuzzlePageMetadata extends React.Component {
             showControls={this.props.isDesktop}
           />
         </div>
-        <div className="puzzle-metadata-row">
+        <div className="puzzle-metadata-row puzzle-metadata-action-row">
           {this.props.puzzle.url && (
             <a
               className="puzzle-metadata-external-link-button"

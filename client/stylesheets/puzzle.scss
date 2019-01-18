@@ -319,6 +319,7 @@ table.puzzle-list {
 
 .puzzle-metadata .view-count {
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .puzzle-metadata-answer {
@@ -350,9 +351,21 @@ table.puzzle-list {
   display: inline-block;
 }
 
+.puzzle-metadata-action-row {
+  flex-wrap: wrap;
+}
+
 .puzzle-metadata .puzzle-metadata-external-link-button, .puzzle-metadata .gdrive-button {
   display: inline-block;
   font-weight: bold;
+  white-space: nowrap;
+  /* On very small touch screens or split view, desperately try to prevent line wrap */
+  /* Revisit this */
+  @media (max-width: 320px) and (pointer: coarse) {
+    svg {
+      display: none;
+    }
+  }
 }
 
 @media (any-pointer: fine) {
