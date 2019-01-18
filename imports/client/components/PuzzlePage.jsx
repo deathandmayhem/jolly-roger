@@ -688,7 +688,8 @@ class PuzzlePageMetadata extends React.Component {
       </span>
     ) : null;
     const hideViewCount = this.props.subcountersDisabled;
-    const guessesString = `${this.props.guesses.length ? this.props.guesses.length : 'no'} guesses`;
+    const numGuesses = this.props.guesses.length;
+    const guessesString = `${numGuesses || 'no'} ${numGuesses === 1 ? 'guess' : 'guesses'}`;
     return (
       <div className="puzzle-metadata">
         <PuzzleModalForm
