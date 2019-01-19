@@ -80,7 +80,10 @@ class PuzzleListView extends React.Component {
   };
 
   compileMatcher = (searchKeys) => {
-    const tagNames = _.indexBy(this.props.allTags, '_id');
+    const tagNames = {};
+    this.props.allTags.forEach((t) => {
+      tagNames[t._id] = t.name.toLowerCase();
+    });
     return function (puzzle) {
       // for key in searchKeys:
       //   if key in title or key in answer:
@@ -96,8 +99,7 @@ class PuzzleListView extends React.Component {
         }
 
         for (let j = 0; j < puzzle.tags.length; j++) {
-          const tag = tagNames[puzzle.tags[j]];
-          const tagName = tag && tag.name;
+          const tagName = tagNames[puzzle.tags[j]];
           if (tagName && tagName.indexOf(key) !== -1) {
             return true;
           }
