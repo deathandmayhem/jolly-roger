@@ -233,15 +233,21 @@ class PuzzleListView extends React.Component {
       const puzzle = puzzles[i];
       for (let j = 0; j < puzzle.tags.length; j++) {
         const tag = indexedTags[puzzle.tags[j]];
-        if (metaForTag && tag.name === metaForTag) {
-          // This puzzle is meta-for: the group.
-          if (puzzle.answer) {
-            return 2;
-          } else {
-            return -2;
+
+        if (tag) {
+          // tag may be undefined if we get tag IDs before the new Tag arrives from the server;
+          // ignore such tags for sorting purposes
+
+          if (metaForTag && tag.name === metaForTag) {
+            // This puzzle is meta-for: the group.
+            if (puzzle.answer) {
+              return 2;
+            } else {
+              return -2;
+            }
+          } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !puzzle.answer) {
+            hasUnsolvedMeta = true;
           }
-        } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !puzzle.answer) {
-          hasUnsolvedMeta = true;
         }
       }
     }
