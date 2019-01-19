@@ -685,7 +685,7 @@ class PuzzlePageMetadata extends React.Component {
 
   render() {
     const tagsById = _.indexBy(this.props.allTags, '_id');
-    const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; });
+    const tags = _.compact(this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }));
     const isAdministrivia = _.findWhere(tags, { name: 'administrivia' });
     const answerComponent = this.props.puzzle.answer ? (
       <span className="puzzle-metadata-answer">

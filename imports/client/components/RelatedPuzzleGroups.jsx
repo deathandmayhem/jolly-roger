@@ -78,9 +78,9 @@ class RelatedPuzzleGroups extends React.Component {
 
     // TODO: sort the tag groups by tag interestingness, which should probably be related to meta
     // presence/absence, tag group size, and number of solved/unsolved?
-    const activePuzzleTags = this.sortedTagsForRelatedPuzzles(_.map(this.props.activePuzzle.tags, (tagId) => {
+    const activePuzzleTags = this.sortedTagsForRelatedPuzzles(_.compact(_.map(this.props.activePuzzle.tags, (tagId) => {
       return tagIndex[tagId];
-    }));
+    })));
 
     for (let tagi = 0; tagi < activePuzzleTags.length; tagi++) {
       const tag = activePuzzleTags[tagi];
