@@ -96,8 +96,9 @@ class PuzzleListView extends React.Component {
         }
 
         for (let j = 0; j < puzzle.tags.length; j++) {
-          const tagName = tagNames[puzzle.tags[j]].name;
-          if (tagName.indexOf(key) !== -1) {
+          const tag = tagNames[puzzle.tags[j]];
+          const tagName = tag && tag.name;
+          if (tagName && tagName.indexOf(key) !== -1) {
             return true;
           }
         }
