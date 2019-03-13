@@ -1,13 +1,25 @@
+import * as t from 'io-ts';
+import { date } from 'io-ts-types/lib/Date/date';
 import SimpleSchema from 'simpl-schema';
+import { buildSchema, Overrides } from './typedSchemas';
 
-/* eslint-disable consistent-return */
+export const BaseType = t.type({
+  _id: t.string,
+  deleted: t.boolean,
+  createdAt: date,
+  createdBy: t.string,
+  updatedAt: t.union([date, t.undefined]),
+  updatedBy: t.union([t.string, t.undefined]),
+});
 
-const Base = new SimpleSchema({
+export const BaseOverrides: Overrides<t.TypeOf<typeof BaseType>> = {
+  _id: {
+    regEx: SimpleSchema.RegEx.Id,
+  },
   deleted: {
-    type: Boolean,
     autoValue() {
       if (this.isSet) {
-        return;
+        return undefined;
       }
 
       if (this.isInsert) {
@@ -15,10 +27,10 @@ const Base = new SimpleSchema({
       } else if (this.isUpsert) {
         return { $setOnInsert: false };
       }
+      return undefined;
     },
   },
   createdAt: {
-    type: Date,
     autoValue() {
       if (this.isInsert) {
         return new Date();
@@ -26,11 +38,11 @@ const Base = new SimpleSchema({
         return { $setOnInsert: new Date() };
       } else {
         this.unset(); // Prevent user from supplying their own value
+        return undefined;
       }
     },
   },
   createdBy: {
-    type: String,
     regEx: SimpleSchema.RegEx.Id,
     autoValue() {
       if (this.isInsert) {
@@ -39,30 +51,29 @@ const Base = new SimpleSchema({
         return { $setOnInsert: this.userId };
       } else {
         this.unset(); // Prevent user from supplying their own value
+        return undefined;
       }
     },
   },
   updatedAt: {
-    type: Date,
     denyInsert: true,
-    optional: true,
     autoValue() {
       if (this.isUpdate) {
         return new Date();
       }
+      return undefined;
     },
   },
   updatedBy: {
-    type: String,
     regEx: SimpleSchema.RegEx.Id,
     denyInsert: true,
-    optional: true,
     autoValue() {
       if (this.isUpdate) {
         return this.userId;
       }
+      return undefined;
     },
   },
-});
+};
 
-export default Base;
+export default buildSchema(BaseType, BaseOverrides);

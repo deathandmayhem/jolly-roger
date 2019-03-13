@@ -1,0 +1,40 @@
+import * as t from 'io-ts';
+import { BaseType, BaseOverrides } from './base';
+import { inheritSchema, buildSchema } from './typedSchemas';
+
+// We can't represent tagged unions in SimpleSchema, so we use different types
+// for the actual type vs. the type used to derive the schema.
+export const SettingType = t.intersection([
+  BaseType,
+  t.taggedUnion('name', [
+    t.type({
+      name: t.literal('gdrive.credential'),
+      value: t.type({
+        refreshToken: t.string,
+        email: t.string,
+      }),
+    }),
+    t.type({
+      name: t.literal('gdrive.template.document'),
+      value: t.type({ id: t.string }),
+    }),
+    t.type({
+      name: t.literal('gdrive.template.spreadsheet'),
+      value: t.type({ id: t.string }),
+    }),
+  ]),
+]);
+
+const SettingFields = t.type({
+  name: t.string,
+  value: t.object,
+});
+
+const [SettingSchemaType, SettingOverrides] = inheritSchema(
+  BaseType, SettingFields,
+  BaseOverrides, {},
+);
+
+const Settings = buildSchema(SettingSchemaType, SettingOverrides);
+
+export default Settings;
