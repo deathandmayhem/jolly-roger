@@ -2,7 +2,7 @@ import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
 import { answerify } from '../../model-helpers';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 
 const GuessFields = t.type({
   // Denormalized in so subscriptions can filter on hunt without having to join on Puzzles
@@ -52,12 +52,13 @@ const GuessFieldsOverrides: Overrides<t.TypeOf<typeof GuessFields>> = {
   },
 };
 
-const [GuessType, GuessOverrides] = inheritSchema(
-  BaseType, GuessFields,
+const [GuessCodec, GuessOverrides] = inheritSchema(
+  BaseCodec, GuessFields,
   BaseOverrides, GuessFieldsOverrides
 );
-export { GuessType };
+export { GuessCodec };
+export type GuessType = t.TypeOf<typeof GuessCodec>;
 
-const Guesses = buildSchema(GuessType, GuessOverrides);
+const Guesses = buildSchema(GuessCodec, GuessOverrides);
 
 export default Guesses;

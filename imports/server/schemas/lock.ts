@@ -2,12 +2,13 @@ import * as t from 'io-ts';
 import { date } from 'io-ts-types/lib/Date/date';
 import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
 
-export const LockType = t.type({
+export const LockCodec = t.type({
   name: t.string,
   createdAt: date,
 });
+export type LockType = t.TypeOf<typeof LockCodec>;
 
-const LockOverrides: Overrides<t.TypeOf<typeof LockType>> = {
+const LockOverrides: Overrides<LockType> = {
   createdAt: {
     autoValue() {
       if (this.isInsert) {
@@ -22,6 +23,6 @@ const LockOverrides: Overrides<t.TypeOf<typeof LockType>> = {
   },
 };
 
-const Lock = buildSchema(LockType, LockOverrides);
+const Lock = buildSchema(LockCodec, LockOverrides);
 
 export default Lock;

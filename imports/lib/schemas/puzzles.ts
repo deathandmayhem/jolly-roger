@@ -2,7 +2,7 @@ import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
 import { answerify } from '../../model-helpers';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 
 const PuzzleFields = t.type({
   hunt: t.string,
@@ -35,12 +35,13 @@ const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
   },
 };
 
-const [PuzzleType, PuzzleOverrides] = inheritSchema(
-  BaseType, PuzzleFields,
+const [PuzzleCodec, PuzzleOverrides] = inheritSchema(
+  BaseCodec, PuzzleFields,
   BaseOverrides, PuzzleFieldsOverrides,
 );
-export { PuzzleType };
+export { PuzzleCodec };
+export type PuzzleType = t.TypeOf<typeof PuzzleCodec>;
 
-const Puzzles = buildSchema(PuzzleType, PuzzleOverrides);
+const Puzzles = buildSchema(PuzzleCodec, PuzzleOverrides);
 
 export default Puzzles;

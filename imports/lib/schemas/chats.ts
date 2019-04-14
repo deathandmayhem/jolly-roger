@@ -2,7 +2,7 @@ import * as t from 'io-ts';
 import { date } from 'io-ts-types/lib/Date/date';
 import SimpleSchema from 'simpl-schema';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 
 const ChatMessageFields = t.type({
   hunt: t.string,
@@ -28,13 +28,14 @@ const ChatMessageFieldsOverrides: Overrides<t.TypeOf<typeof ChatMessageFields>> 
   },
 };
 
-const [ChatMessageType, ChatMessageOverrides] = inheritSchema(
-  BaseType, ChatMessageFields,
+const [ChatMessageCodec, ChatMessageOverrides] = inheritSchema(
+  BaseCodec, ChatMessageFields,
   BaseOverrides, ChatMessageFieldsOverrides,
 );
-export { ChatMessageType };
+export { ChatMessageCodec };
+export type ChatMessageType = t.TypeOf<typeof ChatMessageCodec>;
 
 // A single chat message
-const ChatMessages = buildSchema(ChatMessageType, ChatMessageOverrides);
+const ChatMessages = buildSchema(ChatMessageCodec, ChatMessageOverrides);
 
 export default ChatMessages;

@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 
 const ProfileFieldsType = t.type({
   // Autopopulated with the first of the user's email addresses?
@@ -30,15 +30,16 @@ const ProfileFieldsOverrides: Overrides<t.TypeOf<typeof ProfileFieldsType>> = {
   },
 };
 
-const [ProfileType, ProfileOverrides] = inheritSchema(
-  BaseType, ProfileFieldsType,
+const [ProfileCodec, ProfileOverrides] = inheritSchema(
+  BaseCodec, ProfileFieldsType,
   BaseOverrides, ProfileFieldsOverrides,
 );
-export { ProfileType };
+export { ProfileCodec };
+export type ProfileType = t.TypeOf<typeof ProfileCodec>;
 
 // A profile for a user.
 // Note that we're using a separate schema from users.$.profile, because there are weird
 // non-overridable allow/deny rules that mean we can't trust them to have any useful schema.
-const Profiles = buildSchema(ProfileType, ProfileOverrides);
+const Profiles = buildSchema(ProfileCodec, ProfileOverrides);
 
 export default Profiles;

@@ -3,7 +3,7 @@ import { date } from 'io-ts-types/lib/Date/date';
 import SimpleSchema from 'simpl-schema';
 import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
 
-const SubscriberType = t.type({
+export const SubscriberCodec = t.type({
   server: t.string,
   connection: t.string,
   user: t.string,
@@ -12,8 +12,9 @@ const SubscriberType = t.type({
   createdAt: date,
   updatedAt: t.union([date, t.undefined]),
 });
+export type SubscriberType = t.TypeOf<typeof SubscriberCodec>;
 
-const SubscriberOverrides: Overrides<t.TypeOf<typeof SubscriberType>> = {
+const SubscriberOverrides: Overrides<SubscriberType> = {
   server: {
     regEx: SimpleSchema.RegEx.Id,
   },
@@ -46,6 +47,6 @@ const SubscriberOverrides: Overrides<t.TypeOf<typeof SubscriberType>> = {
   },
 };
 
-const Subscribers = buildSchema(SubscriberType, SubscriberOverrides);
+const Subscribers = buildSchema(SubscriberCodec, SubscriberOverrides);
 
 export default Subscribers;

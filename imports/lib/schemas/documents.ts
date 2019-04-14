@@ -1,13 +1,13 @@
 import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 import { Overrides, inheritSchema, buildSchema } from './typedSchemas';
 
 // We can't represent tagged unions (or possible future tagged unions) in
 // SimpleSchema, so we use different types for the actual type vs. the type used
 // to derive the schema.
-export const DocumentType = t.intersection([
-  BaseType,
+export const DocumentCodec = t.intersection([
+  BaseCodec,
   t.type({
     hunt: t.string,
     puzzle: t.string,
@@ -22,6 +22,7 @@ export const DocumentType = t.intersection([
     }),
   }),
 ]);
+export type DocumentType = t.TypeOf<typeof DocumentCodec>;
 
 const DocumentFields = t.type({
   hunt: t.string,
@@ -43,11 +44,11 @@ const DocumentFieldsOverrides: Overrides<t.TypeOf<typeof DocumentFields>> = {
   },
 };
 
-const [DocumentSchemaType, DocumentOverrides] = inheritSchema(
-  BaseType, DocumentFields,
+const [DocumentSchemaCodec, DocumentOverrides] = inheritSchema(
+  BaseCodec, DocumentFields,
   BaseOverrides, DocumentFieldsOverrides,
 );
 
-const Documents = buildSchema(DocumentSchemaType, DocumentOverrides);
+const Documents = buildSchema(DocumentSchemaCodec, DocumentOverrides);
 
 export default Documents;
