@@ -2,6 +2,8 @@ import { Meteor, Subscription } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import * as Mustache from 'mustache';
 import { Mongo } from 'meteor/mongo';
+import { HuntType } from './lib/schemas/hunts';
+import { PuzzleType } from './lib/schemas/puzzles';
 
 const answerify = function (answer: string): string {
   return answer
@@ -52,8 +54,11 @@ const huntsMatchingCurrentUser = function <T extends HuntModel> (
   return q;
 };
 
-// TODO: type these more thoroughly
-const guessURL = function (hunt: any, puzzle: any): string {
+const guessURL = function (hunt: HuntType, puzzle: PuzzleType): string {
+  if (!puzzle.url) {
+    return '';
+  }
+
   if (!hunt.submitTemplate) {
     return puzzle.url;
   }
