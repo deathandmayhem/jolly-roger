@@ -5,17 +5,17 @@ set -o pipefail
 
 # Install apt https support for node.  Install gnupg so that apt-key add works.
 apt-get update
-apt-get install --no-install-recommends -y apt-transport-https ca-certificates gnupg
+apt-get install --no-install-recommends -y apt-transport-https ca-certificates gnupg curl
 
 # Add debathena and node apt repos
-apt-key adv --keyserver keyserver.ubuntu.com --recv-key D1CD49BDD30B677273A75C66E4EE62700D8A9E8F
+curl -s https://debathena.mit.edu/apt/debathena-archive.asc | apt-key add -
 echo "deb http://debathena.mit.edu/apt bionic debathena debathena-config debathena-system" > /etc/apt/sources.list.d/debathena.list
-apt-key adv --keyserver keyserver.ubuntu.com --recv-key 9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280
+curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
 echo "deb https://deb.nodesource.com/node_8.x bionic main" > /etc/apt/sources.list.d/node.list
 
 # Install build deps
 apt-get update
-apt-get install --no-install-recommends -y python python-pip python-dev python-setuptools python-wheel build-essential debathena-moira-clients kstart curl nodejs git
+apt-get install --no-install-recommends -y python python-pip python-dev python-setuptools python-wheel build-essential debathena-moira-clients kstart nodejs git
 
 pip install 'credstash==1.12.0'
 
