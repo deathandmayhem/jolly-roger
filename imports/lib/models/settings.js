@@ -1,3 +1,4 @@
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import Base from './base';
 import SettingsSchema from '../schemas/settings';
 

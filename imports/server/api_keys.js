@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
 import { Random } from 'meteor/random';
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import APIKeys from './models/api_keys';
 import Locks from './models/lock';

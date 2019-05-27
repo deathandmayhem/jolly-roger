@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
 import { HTTP } from 'meteor/http';
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import Flags from '../flags';
 

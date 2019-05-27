@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';

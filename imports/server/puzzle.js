@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
 import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import { ensureDocument, renameDocument, grantPermission } from './gdrive';
 import DriveClient from './gdrive-client-refresher';

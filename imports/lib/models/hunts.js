@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import HuntsSchema from '../schemas/hunts';
 import Base from './base';
 
