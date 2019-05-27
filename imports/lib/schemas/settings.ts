@@ -1,11 +1,11 @@
 import * as t from 'io-ts';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 import { inheritSchema, buildSchema } from './typedSchemas';
 
 // We can't represent tagged unions in SimpleSchema, so we use different types
 // for the actual type vs. the type used to derive the schema.
-export const SettingType = t.intersection([
-  BaseType,
+export const SettingCodec = t.intersection([
+  BaseCodec,
   t.taggedUnion('name', [
     t.type({
       name: t.literal('gdrive.credential'),
@@ -24,17 +24,18 @@ export const SettingType = t.intersection([
     }),
   ]),
 ]);
+export type SettingType = t.TypeOf<typeof SettingCodec>;
 
 const SettingFields = t.type({
   name: t.string,
   value: t.object,
 });
 
-const [SettingSchemaType, SettingOverrides] = inheritSchema(
-  BaseType, SettingFields,
+const [SettingSchemaCodec, SettingOverrides] = inheritSchema(
+  BaseCodec, SettingFields,
   BaseOverrides, {},
 );
 
-const Settings = buildSchema(SettingSchemaType, SettingOverrides);
+const Settings = buildSchema(SettingSchemaCodec, SettingOverrides);
 
 export default Settings;

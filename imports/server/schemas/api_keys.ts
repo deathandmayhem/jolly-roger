@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
 import { Overrides, buildSchema, inheritSchema } from '../../lib/schemas/typedSchemas';
-import { BaseType, BaseOverrides } from '../../lib/schemas/base';
+import { BaseCodec, BaseOverrides } from '../../lib/schemas/base';
 
 const APIKeyFields = t.type({
   user: t.string,
@@ -17,12 +17,13 @@ const APIKeyFieldsOverrides: Overrides<t.TypeOf<typeof APIKeyFields>> = {
   },
 };
 
-const [APIKeyType, APIKeyOverrides] = inheritSchema(
-  BaseType, APIKeyFields,
+const [APIKeyCodec, APIKeyOverrides] = inheritSchema(
+  BaseCodec, APIKeyFields,
   BaseOverrides, APIKeyFieldsOverrides,
 );
-export { APIKeyType };
+export { APIKeyCodec };
+export type APIKeyType = t.TypeOf<typeof APIKeyCodec>;
 
-const APIKeys = buildSchema(APIKeyType, APIKeyOverrides);
+const APIKeys = buildSchema(APIKeyCodec, APIKeyOverrides);
 
 export default APIKeys;

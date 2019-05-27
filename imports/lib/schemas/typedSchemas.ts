@@ -131,14 +131,14 @@ const buildLiteralUnionField = function <T, U> (
 
 const buildField = function <T> (
   fieldName: string,
-  fieldType: t.Type<T>,
+  fieldCodec: t.Type<T>,
   overrides: FieldOverrides<T> | undefined,
   optional: boolean = false,
 ): [string, FieldDefinition<T>][] {
   // Go through each type that SimpleSchema supports, and see if we have one of
   // those
 
-  if (fieldType instanceof t.TaggedUnionType) {
+  if (fieldCodec instanceof t.TaggedUnionType) {
     // Tagged unions don't seem representable in SimpleSchema (it has
     // SimpleSchema.oneOf, but can't seem to use the tag value to figure out
     // which branch to follow, so just trust that we'll validate this at
@@ -146,11 +146,11 @@ const buildField = function <T> (
     return [[fieldName, {
       ...overrides, type: Object, optional, blackbox: true,
     }]];
-  } else if (fieldType instanceof t.UnionType &&
-    fieldType.types &&
-    fieldType.types instanceof Array) {
-    const isOptional = fieldType.types.some(subtype => subtype instanceof t.UndefinedType);
-    const nonOptional = fieldType.types.filter(subtype => !(subtype instanceof t.UndefinedType));
+  } else if (fieldCodec instanceof t.UnionType &&
+    fieldCodec.types &&
+    fieldCodec.types instanceof Array) {
+    const isOptional = fieldCodec.types.some(subtype => subtype instanceof t.UndefinedType);
+    const nonOptional = fieldCodec.types.filter(subtype => !(subtype instanceof t.UndefinedType));
     if (nonOptional.length === 1) {
       return buildField(fieldName, nonOptional[0], overrides, optional || isOptional);
     }
@@ -167,39 +167,39 @@ const buildField = function <T> (
         return fields[0][1];
       })),
     ]];
-  } else if (fieldType instanceof t.StringType) {
+  } else if (fieldCodec instanceof t.StringType) {
     return [[fieldName, { ...overrides, type: String, optional }]];
   } else if (
     // I'm pretty sure this instanceof check shouldn't be necessary, since
     // RefinementType extends Type, but the compiler seems unhappy with the
     // comparison otherwise.
-    fieldType instanceof t.RefinementType &&
-    fieldType === t.Integer
+    fieldCodec instanceof t.RefinementType &&
+    fieldCodec === t.Integer
   ) {
     return [[fieldName, { ...overrides, type: SimpleSchema.Integer, optional }]];
-  } else if (fieldType instanceof t.NumberType) {
+  } else if (fieldCodec instanceof t.NumberType) {
     return [[fieldName, { ...overrides, type: Number, optional }]];
-  } else if (fieldType instanceof t.BooleanType) {
+  } else if (fieldCodec instanceof t.BooleanType) {
     return [[fieldName, { ...overrides, type: Boolean, optional }]];
-  } else if (fieldType instanceof DateType) {
+  } else if (fieldCodec instanceof DateType) {
     return [[fieldName, { ...overrides, type: Date, optional }]];
-  } else if (fieldType instanceof t.ArrayType) {
+  } else if (fieldCodec instanceof t.ArrayType) {
     const schemaOverrides = _.omit(overrides, 'array');
     const arrayOverrides = overrides && (<ArrayOverrides<any[]>>overrides).array;
     return [
       [fieldName, { ...schemaOverrides, type: Array, optional }],
-      ...buildField(`${fieldName}.$`, fieldType.type, arrayOverrides),
+      ...buildField(`${fieldName}.$`, fieldCodec.type, arrayOverrides),
     ];
-  } else if (fieldType instanceof t.InterfaceType) {
+  } else if (fieldCodec instanceof t.InterfaceType) {
     const schemaOverrides = _.omit(overrides, 'nested');
     const nestedOverrides = overrides && (<ObjectOverrides<Record<string, any>>>overrides).nested;
     return [[fieldName, {
       ...schemaOverrides,
       // eslint-disable-next-line no-use-before-define
-      type: buildSchema(fieldType, nestedOverrides || {}),
+      type: buildSchema(fieldCodec, nestedOverrides || {}),
       optional,
     }]];
-  } else if (fieldType instanceof t.ObjectType) {
+  } else if (fieldCodec instanceof t.ObjectType) {
     return [[fieldName, {
       ...overrides,
       type: Object,
@@ -208,19 +208,19 @@ const buildField = function <T> (
     }]];
   }
 
-  throw new Meteor.Error(`Unknown type ${fieldType.name}`);
+  throw new Meteor.Error(`Unknown type ${fieldCodec.name}`);
 };
 
 export const buildSchema = function <
   T extends Record<string, any>,
   P extends Record<keyof T, t.Mixed>
 > (
-  schemaType: t.InterfaceType<P, T>,
+  schemaCodec: t.InterfaceType<P, T>,
   overrides: Overrides<T>
 ): SimpleSchema {
   const schema: Record<string, FieldDefinition<any>> = {};
-  Object.keys(schemaType.props).forEach((k) => {
-    const fields = buildField(k, schemaType.props[k], overrides[k]);
+  Object.keys(schemaCodec.props).forEach((k) => {
+    const fields = buildField(k, schemaCodec.props[k], overrides[k]);
     fields.forEach(([name, definition]) => {
       schema[name] = definition;
     });
@@ -232,7 +232,7 @@ export const buildSchema = function <
 // We chose here to model schema "inheritance" by just doing a merge of the
 // properties. An obvious alternative would be to model inheritance as, well,
 // inheritance, using `t.intersection`, which would be fine if we just wanted an
-// io-ts type. However, that wouldn't give us any way to represent the
+// io-ts codec. However, that wouldn't give us any way to represent the
 // overrides. So instead, we do this manual merge operation, which can handle
 // both the type itself and the overrides.
 export const inheritSchema = function <
@@ -241,14 +241,14 @@ export const inheritSchema = function <
   CT extends Record<string, any>,
   CP extends Record<keyof CT, t.Mixed>
 > (
-  parentSchemaType: t.InterfaceType<PP, PT>,
-  childSchemaType: t.InterfaceType<CP, CT>,
+  parentSchemaCodec: t.InterfaceType<PP, PT>,
+  childSchemaCodec: t.InterfaceType<CP, CT>,
   parentOverrides: Overrides<PT>,
   childOverrides: Overrides<CT>
-): [t.InterfaceType<PP & CP>, Overrides<PT & CP>] {
-  const inheritedType = t.type({
-    ...parentSchemaType.props,
-    ...childSchemaType.props,
+): [t.TypeC<PP & CP>, Overrides<PT & CP>] {
+  const inheritedCodec = t.type({
+    ...parentSchemaCodec.props,
+    ...childSchemaCodec.props,
   });
   const inheritedOverrides: Overrides<PT & CP> = {};
   Object.keys(parentOverrides).forEach((k) => {
@@ -258,5 +258,5 @@ export const inheritSchema = function <
     inheritedOverrides[k] = childOverrides[k];
   });
 
-  return [inheritedType, inheritedOverrides];
+  return [inheritedCodec, inheritedOverrides];
 };

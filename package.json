@@ -51,7 +51,7 @@
     "@babel/plugin-proposal-class-properties": "^7.2.3",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.1.0",
-    "@types/meteor": "^1.4.24",
+    "@types/meteor": "^1.4.27",
     "@types/mustache": "^0.8.32",
     "@types/react-bootstrap": "^0.32.15",
     "@types/simpl-schema": "^0.2.0",
@@ -67,7 +67,7 @@
     "eslint-plugin-jsx-a11y": "^6.1.2",
     "eslint-plugin-meteor": "^5.1.0",
     "eslint-plugin-react": "^7.11.1",
-    "typescript": "^3.2.2",
+    "typescript": "^3.4.3",
     "typescript-eslint-parser": "^21.0.2"
   },
   "meteor": {

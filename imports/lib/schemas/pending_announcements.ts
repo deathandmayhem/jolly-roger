@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 
 const PendingAnnouncementFields = t.type({
   hunt: t.string,
@@ -21,14 +21,15 @@ const PendingAnnouncementFieldsOverrides: Overrides<t.TypeOf<typeof PendingAnnou
   },
 };
 
-const [PendingAnnouncementType, PendingAnnouncementOverrides] = inheritSchema(
-  BaseType, PendingAnnouncementFields,
+const [PendingAnnouncementCodec, PendingAnnouncementOverrides] = inheritSchema(
+  BaseCodec, PendingAnnouncementFields,
   BaseOverrides, PendingAnnouncementFieldsOverrides,
 );
-export { PendingAnnouncementType };
+export { PendingAnnouncementCodec };
+export type PendingAnnouncementType = t.TypeOf<typeof PendingAnnouncementCodec>;
 
 // Broadcast announcements that have not yet been viewed by a given
 // user
-const PendingAnnouncements = buildSchema(PendingAnnouncementType, PendingAnnouncementOverrides);
+const PendingAnnouncements = buildSchema(PendingAnnouncementCodec, PendingAnnouncementOverrides);
 
 export default PendingAnnouncements;

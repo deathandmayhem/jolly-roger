@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 
 const HuntFields = t.type({
   name: t.string,
@@ -36,12 +36,13 @@ const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {
   },
 };
 
-const [HuntType, HuntOverrides] = inheritSchema(
-  BaseType, HuntFields,
+const [HuntCodec, HuntOverrides] = inheritSchema(
+  BaseCodec, HuntFields,
   BaseOverrides, HuntFieldsOverrides,
 );
-export { HuntType };
+export { HuntCodec };
+export type HuntType = t.TypeOf<typeof HuntCodec>;
 
-const Hunts = buildSchema(HuntType, HuntOverrides);
+const Hunts = buildSchema(HuntCodec, HuntOverrides);
 
 export default Hunts;

@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 
 const AnnouncementFields = t.type({
   hunt: t.string,
@@ -14,14 +14,15 @@ const AnnouncementFieldsOverrides: Overrides<t.TypeOf<typeof AnnouncementFields>
   },
 };
 
-const [AnnouncementType, AnnouncementOverrides] = inheritSchema(
-  BaseType, AnnouncementFields,
+const [AnnouncementCodec, AnnouncementOverrides] = inheritSchema(
+  BaseCodec, AnnouncementFields,
   BaseOverrides, AnnouncementFieldsOverrides,
 );
-export { AnnouncementType };
+export { AnnouncementCodec };
+export type AnnouncementType = t.TypeOf<typeof AnnouncementCodec>;
 
 // A broadcast message from a hunt operator to be displayed
 // to all participants in the specified hunt.
-const Announcements = buildSchema(AnnouncementType, AnnouncementOverrides);
+const Announcements = buildSchema(AnnouncementCodec, AnnouncementOverrides);
 
 export default Announcements;

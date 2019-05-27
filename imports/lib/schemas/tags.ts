@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 
 const TagFields = t.type({
   name: t.string,
@@ -14,12 +14,13 @@ const TagFieldsOverrides: Overrides<t.TypeOf<typeof TagFields>> = {
   },
 };
 
-const [TagType, TagOverrides] = inheritSchema(
-  BaseType, TagFields,
+const [TagCodec, TagOverrides] = inheritSchema(
+  BaseCodec, TagFields,
   BaseOverrides, TagFieldsOverrides,
 );
-export { TagType };
+export { TagCodec };
+export type TagType = t.TypeOf<typeof TagCodec>;
 
-const Tags = buildSchema(TagType, TagOverrides);
+const Tags = buildSchema(TagCodec, TagOverrides);
 
 export default Tags;

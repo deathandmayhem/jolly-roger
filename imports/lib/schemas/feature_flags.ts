@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import { buildSchema, inheritSchema } from './typedSchemas';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 
 const FeatureFlagFields = t.type({
   name: t.string,
@@ -11,12 +11,13 @@ const FeatureFlagFields = t.type({
   random: t.union([t.number, t.undefined]),
 });
 
-const [FeatureFlagType, FeatureFlagOverrides] = inheritSchema(
-  BaseType, FeatureFlagFields,
+const [FeatureFlagCodec, FeatureFlagOverrides] = inheritSchema(
+  BaseCodec, FeatureFlagFields,
   BaseOverrides, {},
 );
-export { FeatureFlagType };
+export { FeatureFlagCodec };
+export type FeatureFlagType = t.TypeOf<typeof FeatureFlagCodec>
 
-const FeatureFlags = buildSchema(FeatureFlagType, FeatureFlagOverrides);
+const FeatureFlags = buildSchema(FeatureFlagCodec, FeatureFlagOverrides);
 
 export default FeatureFlags;

@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import Base from './base';
-import ProfilesSchema from '../schemas/profiles';
+import ProfilesSchema, { ProfileType } from '../schemas/profiles';
 
-const Profiles = new class extends Base {
+const Profiles = new class extends Base<ProfileType> {
   constructor() {
     super('profiles');
   }
@@ -12,7 +12,7 @@ const Profiles = new class extends Base {
   }
 
   displayNames() {
-    const displayNames = {};
+    const displayNames: Record<string, string> = {};
     this.find().forEach((p) => {
       displayNames[p._id] = p.displayName;
     });

@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
-import { BaseType, BaseOverrides } from './base';
+import { BaseCodec, BaseOverrides } from './base';
 
 const DocumentPermissionFields = t.type({
   document: t.string,
@@ -22,12 +22,13 @@ const DocumentPermissionFieldsOverrides: Overrides<t.TypeOf<typeof DocumentPermi
   },
 };
 
-const [DocumentPermissionType, DocumentPermissionOverrides] = inheritSchema(
-  BaseType, DocumentPermissionFields,
+const [DocumentPermissionCodec, DocumentPermissionOverrides] = inheritSchema(
+  BaseCodec, DocumentPermissionFields,
   BaseOverrides, DocumentPermissionFieldsOverrides,
 );
-export { DocumentPermissionType };
+export { DocumentPermissionCodec };
+export type DocumentPermissionType = t.TypeOf<typeof DocumentPermissionCodec>;
 
-const DocumentPermissions = buildSchema(DocumentPermissionType, DocumentPermissionOverrides);
+const DocumentPermissions = buildSchema(DocumentPermissionCodec, DocumentPermissionOverrides);
 
 export default DocumentPermissions;

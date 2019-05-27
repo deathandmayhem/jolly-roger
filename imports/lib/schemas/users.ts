@@ -3,7 +3,7 @@ import { date } from 'io-ts-types/lib/Date/date';
 import SimpleSchema from 'simpl-schema';
 import { Overrides, buildSchema } from './typedSchemas';
 
-const UserType = t.type({
+const UserCodec = t.type({
   username: t.union([t.string, t.undefined]),
   emails: t.array(t.type({
     address: t.string,
@@ -19,7 +19,7 @@ const UserType = t.type({
   }),
 });
 
-const UserOverrides: Overrides<t.TypeOf<typeof UserType>> = {
+const UserOverrides: Overrides<t.TypeOf<typeof UserCodec>> = {
   username: {
     regEx: /^[a-z0-9A-Z_]{3,15}$/,
   },
@@ -49,6 +49,6 @@ const UserOverrides: Overrides<t.TypeOf<typeof UserType>> = {
 };
 
 // Does not inherit from Base
-const User = buildSchema(UserType, UserOverrides);
+const User = buildSchema(UserCodec, UserOverrides);
 
 export default User;

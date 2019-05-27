@@ -3,7 +3,7 @@ import { date } from 'io-ts-types/lib/Date/date';
 import SimpleSchema from 'simpl-schema';
 import { buildSchema, Overrides } from './typedSchemas';
 
-export const BaseType = t.type({
+export const BaseCodec = t.type({
   _id: t.string,
   deleted: t.boolean,
   createdAt: date,
@@ -12,7 +12,9 @@ export const BaseType = t.type({
   updatedBy: t.union([t.string, t.undefined]),
 });
 
-export const BaseOverrides: Overrides<t.TypeOf<typeof BaseType>> = {
+export type BaseType = t.TypeOf<typeof BaseCodec>;
+
+export const BaseOverrides: Overrides<BaseType> = {
   _id: {
     regEx: SimpleSchema.RegEx.Id,
   },
@@ -76,4 +78,4 @@ export const BaseOverrides: Overrides<t.TypeOf<typeof BaseType>> = {
   },
 };
 
-export default buildSchema(BaseType, BaseOverrides);
+export default buildSchema(BaseCodec, BaseOverrides);

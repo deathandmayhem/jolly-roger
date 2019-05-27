@@ -1,8 +1,8 @@
 import { huntsMatchingCurrentUser } from '../../model-helpers';
-import ChatMessagesSchema from '../schemas/chats';
+import ChatMessagesSchema, { ChatMessageType } from '../schemas/chats';
 import Base from './base';
 
-const ChatMessages = new Base('chatmessages');
+const ChatMessages = new Base<ChatMessageType>('chatmessages');
 ChatMessages.attachSchema(ChatMessagesSchema);
 ChatMessages.publish(huntsMatchingCurrentUser);
 
