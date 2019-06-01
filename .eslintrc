@@ -115,7 +115,6 @@
   ],
   "globals": {
     // Long-term, reduce this list to nothing by making full use of import/export
-    "Roles": false,
     "ServiceConfiguration": false,
     "Google": false,
     "Npm": false,

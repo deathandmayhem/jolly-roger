@@ -1,3 +1,4 @@
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import Base from '../../lib/models/base';
 import APIKeysSchema from '../schemas/api_keys';
 

@@ -1,4 +1,5 @@
 import { MeteorX } from 'meteor/meteorhacks:meteorx';
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import { _ } from 'meteor/underscore';
 import { honeyBuilder } from './honey';
 

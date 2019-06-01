@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import FeatureFlags from '../lib/models/feature_flags';
 
 Meteor.methods({

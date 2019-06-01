@@ -2,6 +2,12 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
+    "baseUrl": ".",
+    "paths": {
+      "include": [
+        "./types"
+      ]
+    },
     "alwaysStrict": true,
     "jsx": "react",
     "allowJs": false,

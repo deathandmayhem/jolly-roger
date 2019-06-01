@@ -3,6 +3,7 @@ import { check } from 'meteor/check';
 import { _ } from 'meteor/underscore';
 import { Accounts } from 'meteor/accounts-base';
 import { Email } from 'meteor/email';
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import List from './blanche';
 import Hunts from '../lib/models/hunts';

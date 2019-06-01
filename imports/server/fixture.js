@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import huntFixtures from '../fixtures';
 import Hunts from '../lib/models/hunts';
 import Puzzles from '../lib/models/puzzles';
