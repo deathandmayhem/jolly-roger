@@ -1,10 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import HuntsSchema from '../schemas/hunts';
+import HuntsSchema, { HuntType } from '../schemas/hunts';
 import Base from './base';
 
-const Hunts = new Base('hunts');
+const Hunts = new Base<HuntType>('hunts');
 Hunts.attachSchema(HuntsSchema);
 
 // All hunts are accessible, since they only contain metadata

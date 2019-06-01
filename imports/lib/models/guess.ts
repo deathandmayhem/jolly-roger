@@ -1,9 +1,9 @@
 import { huntsMatchingCurrentUser } from '../../model-helpers';
-import GuessesSchema from '../schemas/guess';
+import GuessesSchema, { GuessType } from '../schemas/guess';
 import Base from './base';
 import ActiveOperatorRole from '../active-operator-role';
 
-const Guesses = new Base('guesses');
+const Guesses = new Base<GuessType>('guesses');
 Guesses.attachSchema(GuessesSchema);
 Guesses.publish(huntsMatchingCurrentUser);
 

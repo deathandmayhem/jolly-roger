@@ -25,7 +25,7 @@ declare module 'meteor/nicolaslopezj:roles' {
 
     function availableRoles(): string[];
     function userHasRole(userId: string, role: string): boolean;
-    function registerAction(name: string, adminAllow: Rule, adminDeny: Rule): void;
+    function registerAction(name: string, adminAllow?: Rule, adminDeny?: Rule): void;
     function getUserRoles(userId: string | null | undefined, includeSpecial?: boolean): string[];
 
     function allow(userId: string | null | undefined, action: string): boolean;

@@ -7,15 +7,15 @@ import { BaseType } from '../schemas/base';
 const formatQuery = Symbol('formatQuery');
 const formatOptions = Symbol('formatOptions');
 
-type FindSelector<T> = string | Mongo.ObjectID | Mongo.Selector<T>
-type FindOneOptions = {
+export type FindSelector<T> = string | Mongo.ObjectID | Mongo.Selector<T>
+export type FindOneOptions = {
   sort?: Mongo.SortSpecifier;
   skip?: number;
   fields?: Mongo.FieldSpecifier;
   reactive?: boolean;
   transform?: Function | null;
 }
-type FindOptions = FindOneOptions & {
+export type FindOptions = FindOneOptions & {
   limit?: number;
 }
 
@@ -115,7 +115,7 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     return super.findOne(selector, options);
   }
 
-  publish(modifier?: (q: Mongo.Selector<T>) => Mongo.Selector<T>) {
+  publish(modifier?: (this: Subscription, q: Mongo.Selector<T>) => Mongo.Selector<T>) {
     if (!Meteor.isServer) {
       return;
     }
