@@ -1,9 +1,9 @@
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import PendingAnnouncementsSchema from '../schemas/pending_announcements';
+import PendingAnnouncementsSchema, { PendingAnnouncementType } from '../schemas/pending_announcements';
 import Base from './base';
 
-const PendingAnnouncements = new Base('pending_announcements');
+const PendingAnnouncements = new Base<PendingAnnouncementType>('pending_announcements');
 PendingAnnouncements.attachSchema(PendingAnnouncementsSchema);
 PendingAnnouncements.publish(function (q) {
   // It's sufficient to use the user property for filtering here; we
