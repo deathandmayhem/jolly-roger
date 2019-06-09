@@ -4,6 +4,8 @@ import SimpleSchema from 'simpl-schema';
 import { buildSchema, Overrides } from './typedSchemas';
 
 export const BaseCodec = t.type({
+  // Note: _id is part of the type, but does not get copied into the schema
+  // because it creates weird behavior (c.f. aldeed/meteor-collection2#124)
   _id: t.string,
   deleted: t.boolean,
   createdAt: date,
@@ -15,9 +17,6 @@ export const BaseCodec = t.type({
 export type BaseType = t.TypeOf<typeof BaseCodec>;
 
 export const BaseOverrides: Overrides<BaseType> = {
-  _id: {
-    regEx: SimpleSchema.RegEx.Id,
-  },
   deleted: {
     autoValue() {
       if (this.isSet) {
