@@ -220,6 +220,11 @@ export const buildSchema = function <
 ): SimpleSchema {
   const schema: Record<string, FieldDefinition<any>> = {};
   Object.keys(schemaCodec.props).forEach((k) => {
+    // Don't include the _id field in the schema, as it makes some operations
+    // validate strangely (c.f. aldeed/meteor-collection2#124)
+    if (k === '_id') {
+      return;
+    }
     const fields = buildField(k, schemaCodec.props[k], overrides[k]);
     fields.forEach(([name, definition]) => {
       schema[name] = definition;
