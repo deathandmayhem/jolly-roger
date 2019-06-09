@@ -1,5 +1,17 @@
+import { TagType } from './lib/schemas/tags';
+import { PuzzleType } from './lib/schemas/puzzles';
+
 /* eslint-disable */
-const huntFixtures = {
+
+type Fixture = {
+  _id: string;
+  title: string;
+  tags: Pick<TagType, '_id' | 'hunt' | 'deleted' | 'createdAt' | 'createdBy' | 'name'>[];
+  puzzles: Pick<PuzzleType, '_id' | 'hunt' | 'title' | 'answer' | 'tags' | 'url' | 'deleted' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>[];
+}
+type Fixtures = Record<string, Fixture>
+
+const huntFixtures: Fixtures = {
   cSB2bWf3BToQ9NBju: {
     _id: 'cSB2bWf3BToQ9NBju',
     title: '2015',

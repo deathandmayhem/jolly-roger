@@ -1,4 +1,11 @@
-function puzzleInterestingness(puzzle, indexedTags, group) {
+import { PuzzleType } from 'imports/lib/schemas/puzzles';
+import { TagType } from 'imports/lib/schemas/tags';
+
+function puzzleInterestingness(
+  puzzle: PuzzleType,
+  indexedTags: Record<string, TagType>,
+  group: string
+): number {
   // If the shared tag for this group is group:<something>, then group will equal '<something>', and
   // we wish to sort a puzzle named 'meta-for:<something>' at the top.
   let desiredTagName;

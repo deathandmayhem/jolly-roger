@@ -51,6 +51,7 @@
     "@babel/plugin-proposal-class-properties": "^7.2.3",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.1.0",
+    "@types/express": "^4.17.0",
     "@types/meteor": "^1.4.27",
     "@types/mustache": "^0.8.32",
     "@types/react-bootstrap": "^0.32.15",
