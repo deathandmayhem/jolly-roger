@@ -1,6 +1,10 @@
 import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
-function dropIndex(model, index) {
+function dropIndex<T>(
+  model: Mongo.Collection<T>,
+  index: {[key: string]: number | string} | string
+): void {
   // _dropIndex is not idempotent, so we need to figure out if the
   // index already exists
   const collection = model.rawCollection();

@@ -5,14 +5,14 @@ Migrations.add({
   version: 10,
   name: 'Rename hunt field slackChannel to firehoseSlackChannel',
   up() {
-    Hunts.find({
+    Hunts.find(<any>{
       firehoseSlackChannel: null,
       slackChannel: { $ne: null },
     }).forEach((hunt) => {
       Hunts.update(hunt._id, {
-        $set: { firehoseSlackChannel: hunt.slackChannel },
+        $set: { firehoseSlackChannel: (<any>hunt).slackChannel },
         $unset: { slackChannel: 1 },
-      }, {
+      }, <any>{
         validate: false,
       });
     });

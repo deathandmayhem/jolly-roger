@@ -2,15 +2,16 @@ import { Migrations } from 'meteor/percolate:migrations';
 import dropIndex from './drop-index';
 import ChatMessages from '../../lib/models/chats';
 import Puzzles from '../../lib/models/puzzles';
+import { PuzzleType } from '../../lib/schemas/puzzles';
 
 Migrations.add({
   version: 15,
   name: 'Backfill props from the base schema on chat messages',
   up() {
-    const hunts = {};
-    Puzzles.find().forEach((p) => { hunts[p._id] = p.hunt; });
+    const hunts: Record<string, string> = {};
+    Puzzles.find().forEach((p: PuzzleType) => { hunts[p._id] = p.hunt; });
 
-    ChatMessages.findAllowingDeleted({
+    ChatMessages.findAllowingDeleted(<any>{
       $or: [
         { deleted: null },
         { createdAt: null },
@@ -22,7 +23,7 @@ Migrations.add({
       ChatMessages.update(m._id, {
         $set: {
           deleted: m.deleted === undefined ? false : m.deleted,
-          puzzle: m.puzzle === undefined ? m.puzzleId : m.puzzle,
+          puzzle: m.puzzle === undefined ? (<any>m).puzzleId : m.puzzle,
           hunt: m.hunt === undefined ? hunts[m.puzzle] : m.hunt,
           createdAt: m.createdAt === undefined ? m.timestamp : m.createdAt,
           createdBy: m.createdBy === undefined ? m.sender : m.createdBy,
@@ -30,7 +31,7 @@ Migrations.add({
         $unset: {
           puzzleId: 1,
         },
-      }, {
+      }, <any>{
         validate: false,
         getAutoValues: false,
       });
