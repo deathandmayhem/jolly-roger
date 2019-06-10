@@ -1,6 +1,7 @@
+import * as express from 'express';
 import APIKeys from '../models/api_keys';
 
-export default (req, res, next) => {
+const authenticator: express.Handler = (req, res, next) => {
   const auth = req.get('Authorization');
   if (!auth) {
     res.sendStatus(401);
@@ -23,3 +24,4 @@ export default (req, res, next) => {
 
   next();
 };
+export default authenticator;

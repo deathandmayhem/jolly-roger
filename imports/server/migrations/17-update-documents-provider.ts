@@ -10,7 +10,7 @@ Migrations.add({
     Documents.update(
       { type: 'google-spreadsheet', 'value.type': null },
       { $set: { 'value.type': 'spreadsheet' }, $unset: { type: 1 } },
-      { multi: true, validate: false }
+      <any>{ multi: true, validate: false }
     );
   },
 });

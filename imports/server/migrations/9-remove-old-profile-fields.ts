@@ -8,7 +8,7 @@ Migrations.add({
     Profiles.update(
       {},
       { $unset: { locationDuringHunt: 1, remote: 1, affiliation: 1 } },
-      { multi: true, validate: false },
+      <any>{ multi: true, validate: false },
     );
   },
 });

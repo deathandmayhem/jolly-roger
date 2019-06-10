@@ -1,4 +1,4 @@
-import moment from 'moment';
+import * as moment from 'moment';
 
 moment.updateLocale('en', {
   calendar: {
