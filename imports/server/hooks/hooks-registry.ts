@@ -1,39 +1,49 @@
+import HookSet from './hookset';
+
 // No deps, just defines what a set of hooks looks like and a place
 // to hold them.
 class HooksRegistry {
+  public registeredHooks: HookSet[];
+
   constructor() {
     this.registeredHooks = [];
   }
 
-  addHookSet(hookSet) {
+  addHookSet(hookSet: HookSet) {
     this.registeredHooks.push(hookSet);
   }
 
-  removeHookSet(hookSet) {
+  removeHookSet(hookSet: HookSet) {
     const index = this.registeredHooks.indexOf(hookSet);
     if (index !== -1) {
       this.registeredHooks.splice(index, 1);
     }
   }
 
-  runPuzzleCreatedHooks(puzzleId) {
+  runPuzzleCreatedHooks(puzzleId: string) {
     for (let i = 0; i < this.registeredHooks.length; i++) {
       const hook = this.registeredHooks[i];
-      hook.onPuzzleCreated(puzzleId);
+      if (hook.onPuzzleCreated) {
+        hook.onPuzzleCreated(puzzleId);
+      }
     }
   }
 
-  runPuzzleSolvedHooks(puzzleId) {
+  runPuzzleSolvedHooks(puzzleId: string) {
     for (let i = 0; i < this.registeredHooks.length; i++) {
       const hook = this.registeredHooks[i];
-      hook.onPuzzleSolved(puzzleId);
+      if (hook.onPuzzleSolved) {
+        hook.onPuzzleSolved(puzzleId);
+      }
     }
   }
 
-  runPuzzleNoLongerSolvedHooks(puzzleId) {
+  runPuzzleNoLongerSolvedHooks(puzzleId: string) {
     for (let i = 0; i < this.registeredHooks.length; i++) {
       const hook = this.registeredHooks[i];
-      hook.onPuzzleNoLongerSolved(puzzleId);
+      if (hook.onPuzzleNoLongerSolved) {
+        hook.onPuzzleNoLongerSolved(puzzleId);
+      }
     }
   }
 }
