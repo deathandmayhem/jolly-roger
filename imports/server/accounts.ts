@@ -1,11 +1,21 @@
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import { _ } from 'meteor/underscore';
-import logfmt from 'logfmt';
+import * as logfmt from 'logfmt';
 import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
 
-const summaryFromLoginInfo = function (info) {
+type LoginInfo = {
+  type: string,
+  allowed: boolean,
+  error?: Meteor.Error,
+  user?: Meteor.User,
+  connection: Meteor.Connection,
+  methodName: string,
+  methodArguments: any[],
+};
+
+const summaryFromLoginInfo = function (info: LoginInfo) {
   switch (info.methodName) {
     case 'login': {
       const email = info.methodArguments &&
@@ -22,19 +32,20 @@ const summaryFromLoginInfo = function (info) {
          user object already reflects the changed state. Womp womp */
       return {
         msg: 'User reset password and logged in',
-        email: info.user.emails[0].address,
+        email: info.user && info.user.emails && info.user.emails[0].address,
       };
     default:
       Ansible.warn('Received login hook from unknown method', { method: info.methodName });
       return {
         msg: 'User logged in by unknown method',
-        email: info.user.emails[0].address,
+        email: info.user && info.user.emails && info.user.emails[0].address,
         method: info.methodName,
       };
   }
 };
 
-Accounts.onLogin((info) => {
+Accounts.onLogin((info: LoginInfo) => {
+  if (!info.user || !info.user._id) throw new Meteor.Error(500, 'Something has gone horribly wrong');
   // Capture login time
   Meteor.users.update(info.user._id, { $set: { lastLogin: new Date() } });
 
@@ -50,7 +61,7 @@ Accounts.onLogin((info) => {
   Ansible.log(summary.msg, _.omit(summary, 'msg'));
 });
 
-Accounts.onLoginFailure((info) => {
+Accounts.onLoginFailure((info: LoginInfo) => {
   const email = info.methodArguments &&
     info.methodArguments[0] &&
     info.methodArguments[0].user &&
@@ -59,7 +70,7 @@ Accounts.onLoginFailure((info) => {
     user: info.user && info.user._id,
     email,
     ip: info.connection.clientAddress,
-    error: info.error.reason,
+    error: info.error && info.error.reason,
   };
   // eslint-disable-next-line no-console
   console.log(`Failed login attempt: ${logfmt.stringify(data)}`);
@@ -73,8 +84,8 @@ Accounts.emailTemplates.enrollAccount.subject = () => {
   return `[jolly-roger] You're invited to ${Accounts.emailTemplates.siteName}`;
 };
 
-Accounts.emailTemplates.enrollAccount.text = (user, url) => {
-  const hunts = Hunts.find({ _id: { $in: user.hunts } }).fetch();
+Accounts.emailTemplates.enrollAccount.text = (user, url: string) => {
+  const hunts = Hunts.find({ _id: { $in: (<Meteor.User>user).hunts } }).fetch();
   const email = user && user.emails && user.emails[0] && user.emails[0].address;
   const huntNames = _.pluck(hunts, 'name');
   const huntLists = _.chain(hunts)

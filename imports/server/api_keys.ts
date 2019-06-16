@@ -6,7 +6,7 @@ import Ansible from '../ansible';
 import APIKeys from './models/api_keys';
 import Locks from './models/lock';
 
-const userForKeyOperation = function userForKeyOperation(currentUser, forUser) {
+const userForKeyOperation = function userForKeyOperation(currentUser: string, forUser?: string) {
   const canOverrideUser = Roles.userHasRole(currentUser, 'admin');
 
   if (forUser && !canOverrideUser) {
@@ -21,7 +21,7 @@ Meteor.methods({
     check(this.userId, String);
     check(forUser, Match.Optional(String));
 
-    const user = userForKeyOperation(this.userId, forUser);
+    const user = userForKeyOperation(<string> this.userId, forUser);
 
     let key = APIKeys.findOne({ user });
     if (!key) {
@@ -51,10 +51,10 @@ Meteor.methods({
     check(this.userId, String);
     check(forUser, Match.Optional(String));
 
-    const user = userForKeyOperation(this.userId, forUser);
+    const user = userForKeyOperation(<string> this.userId, forUser);
     APIKeys.find({ user }).forEach((k) => {
       Ansible.log('Expiring API key', { id: k._id, user: k.user, requestedBy: this.userId });
-      k.destroy();
+      APIKeys.destroy(k._id);
     });
 
     return Meteor.call('fetchAPIKey', user);

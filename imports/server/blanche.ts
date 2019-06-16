@@ -1,11 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import child from 'child_process';
+import * as child from 'child_process';
 import Ansible from '../ansible';
 
 const execFile = Meteor.wrapAsync(child.execFile);
 
-const blanche = (args) => {
+const blanche = (args: string[]): string => {
   try {
     return execFile('blanche', args, { stdio: ['ignore', 'pipe', process.stderr] });
   } catch (e) {
@@ -19,11 +19,13 @@ const blanche = (args) => {
 };
 
 class List {
-  constructor(name) {
+  public name: string;
+
+  constructor(name: string) {
     this.name = name;
   }
 
-  members() {
+  members(): string[] {
     const out = blanche([this.name]);
     return _.compact(_.map(out.trim().split('\n'), (line) => {
       // Technically some of these are probably type STRING, but the
@@ -48,7 +50,7 @@ class List {
     }));
   }
 
-  add(member) {
+  add(member: string): boolean {
     try {
       blanche([this.name, '-a', member]);
       return true;

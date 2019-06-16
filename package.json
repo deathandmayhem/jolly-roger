@@ -75,7 +75,7 @@
   "meteor": {
     "mainModule": {
       "client": "client/main.js",
-      "server": "server/main.js"
+      "server": "server/main.ts"
     }
   }
 }

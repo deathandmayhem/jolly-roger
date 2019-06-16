@@ -7,7 +7,7 @@ import DriveClient from './gdrive-client-refresher';
 import Documents from '../lib/models/documents';
 import Settings from '../lib/models/settings';
 
-const MimeTypes = {
+export const MimeTypes = {
   spreadsheet: 'application/vnd.google-apps.spreadsheet',
   document: 'application/vnd.google-apps.document',
 };
@@ -22,11 +22,12 @@ function checkClientOk() {
   }
 }
 
-function createDocument(name, type) {
+function createDocument(name: string, type: keyof typeof MimeTypes): string {
   if (!_.has(MimeTypes, type)) {
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
   checkClientOk();
+  if (!DriveClient.gdrive) throw new Meteor.Error(500, 'Google integration is disabled');
 
   const template = Settings.findOne({ name: `gdrive.template.${type}` });
   const mimeType = MimeTypes[type];
@@ -52,8 +53,9 @@ function createDocument(name, type) {
   return fileId;
 }
 
-function renameDocument(id, name) {
+export function renameDocument(id: string, name: string): void {
   checkClientOk();
+  if (!DriveClient.gdrive) return;
   // It's unclear if this can ever return an error
   Meteor.wrapAsync(DriveClient.gdrive.files.update, DriveClient.gdrive)({
     fileId: id,
@@ -61,8 +63,9 @@ function renameDocument(id, name) {
   });
 }
 
-function grantPermission(id, email, permission) {
+export function grantPermission(id: string, email: string, permission: string): void {
   checkClientOk();
+  if (!DriveClient.gdrive) return;
   Meteor.wrapAsync(DriveClient.gdrive.permissions.create, DriveClient.gdrive.permissions)({
     fileId: id,
     sendNotificationEmail: false,
@@ -74,7 +77,11 @@ function grantPermission(id, email, permission) {
   });
 }
 
-function ensureDocument(puzzle, type = 'spreadsheet') {
+export function ensureDocument(puzzle: {
+  _id: string,
+  title: string,
+  hunt: string,
+}, type: keyof typeof MimeTypes = 'spreadsheet') {
   let doc = Documents.findOne({ puzzle: puzzle._id });
   if (!doc) {
     checkClientOk();
@@ -100,9 +107,3 @@ function ensureDocument(puzzle, type = 'spreadsheet') {
 
   return doc;
 }
-
-export {
-  renameDocument,
-  grantPermission,
-  ensureDocument,
-};

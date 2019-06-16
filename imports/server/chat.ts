@@ -7,10 +7,11 @@ import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 
 Meteor.methods({
-  sendChatMessage(puzzleId, message) {
+  sendChatMessage(puzzleId: string, message: string) {
     check(this.userId, String);
     check(puzzleId, String);
     check(message, String);
+    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
 
     const puzzle = Puzzles.findOne(puzzleId);
     if (!puzzle) {

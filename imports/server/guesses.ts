@@ -2,12 +2,13 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
+import { GuessType } from '../lib/schemas/guess';
 import ChatMessages from '../lib/models/chats';
 import Guesses from '../lib/models/guess';
 import Puzzles from '../lib/models/puzzles';
 import GlobalHooks from './global-hooks';
 
-function addChatMessage(guess, newState) {
+function addChatMessage(guess: GuessType, newState: GuessType['state']): void {
   const message = `Guess ${guess.guess} was marked ${newState}`;
   const puzzle = Puzzles.findOne(guess.puzzle);
   ChatMessages.insert({
@@ -18,7 +19,7 @@ function addChatMessage(guess, newState) {
   });
 }
 
-function transitionGuess(guess, newState) {
+function transitionGuess(guess: GuessType, newState: GuessType['state']) {
   if (newState === guess.state) return;
 
   Guesses.update({
@@ -46,7 +47,7 @@ function transitionGuess(guess, newState) {
       _id: guess.puzzle,
     }, {
       $unset: {
-        answer: '',
+        answer: 1,
       },
     });
     GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle);
@@ -54,7 +55,7 @@ function transitionGuess(guess, newState) {
 }
 
 Meteor.methods({
-  addGuessForPuzzle(puzzleId, guess, direction, confidence) {
+  addGuessForPuzzle(puzzleId: string, guess: string, direction: number, confidence: number) {
     check(this.userId, String);
     check(puzzleId, String);
     check(guess, String);
@@ -81,7 +82,7 @@ Meteor.methods({
     });
   },
 
-  markGuessPending(guessId) {
+  markGuessPending(guessId: string) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
@@ -90,7 +91,7 @@ Meteor.methods({
     transitionGuess(guess, 'pending');
   },
 
-  markGuessCorrect(guessId) {
+  markGuessCorrect(guessId: string) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
@@ -99,7 +100,7 @@ Meteor.methods({
     transitionGuess(guess, 'correct');
   },
 
-  markGuessIncorrect(guessId) {
+  markGuessIncorrect(guessId: string) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
@@ -108,7 +109,7 @@ Meteor.methods({
     transitionGuess(guess, 'incorrect');
   },
 
-  markGuessRejected(guessId) {
+  markGuessRejected(guessId: string) {
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);

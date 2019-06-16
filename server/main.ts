@@ -30,7 +30,3 @@ import '../imports/server/slack-methods';
 import '../imports/server/subscribers';
 import '../imports/server/operator';
 import '../imports/server/users';
-
-// Load facades for convenient shell access.
-import Schemas from '../imports/lib/schemas/facade'; // eslint-disable-line no-unused-vars
-import Models from '../imports/lib/models/facade'; // eslint-disable-line no-unused-vars

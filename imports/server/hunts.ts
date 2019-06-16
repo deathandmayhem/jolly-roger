@@ -6,10 +6,11 @@ import { Email } from 'meteor/email';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import List from './blanche';
+import { HuntType } from '../lib/schemas/hunts';
 import Hunts from '../lib/models/hunts';
 import Profiles from '../lib/models/profiles';
 
-const existingJoinEmail = (user, hunt, joinerName) => {
+const existingJoinEmail = (user: Meteor.User | null, hunt: HuntType, joinerName: string | null) => {
   const email = user && user.emails && user.emails[0] && user.emails[0].address;
   const huntExcerpt = 'You\'ve also been put onto a handful of mailing lists for communications ' +
     'about these and future hunts:\n' +
@@ -36,9 +37,10 @@ const existingJoinEmail = (user, hunt, joinerName) => {
 };
 
 Meteor.methods({
-  addToHunt(huntId, email) {
+  addToHunt(huntId: string, email: string) {
     check(huntId, String);
     check(email, String);
+    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
 
     const hunt = Hunts.findOne(huntId);
     if (!hunt) {
@@ -47,14 +49,15 @@ Meteor.methods({
 
     Roles.checkPermission(this.userId, 'hunt.join', huntId);
 
-    let joineeUser = Accounts.findUserByEmail(email);
+    let joineeUser = <Meteor.User | undefined>Accounts.findUserByEmail(email);
     const newUser = joineeUser === undefined;
-    if (newUser) {
+    if (!joineeUser) {
       const joineeUserId = Accounts.createUser({ email });
       joineeUser = Meteor.users.findOne(joineeUserId);
     }
+    if (!joineeUser._id) throw new Meteor.Error(500, 'Something has gone terribly wrong');
 
-    if (_.include(joineeUser.hunts, huntId)) {
+    if (joineeUser.hunts.includes(huntId)) {
       Ansible.log('Tried to add user to hunt but they were already a member', {
         joiner: this.userId,
         joinee: joineeUser._id,
@@ -68,10 +71,8 @@ Meteor.methods({
       joinee: joineeUser._id,
       hunt: huntId,
     });
-    Meteor.users.update(joineeUser._id, { $addToSet: { hunts: huntId } });
-    const joineeEmails = _.chain(joineeUser.emails)
-      .pluck('address')
-      .value();
+    Meteor.users.update(joineeUser._id, { $addToSet: { hunts: { $each: [huntId] } } });
+    const joineeEmails = (joineeUser.emails || []).map(e => e.address);
 
     _.each(hunt.mailingLists, (listName) => {
       const list = new List(listName);
