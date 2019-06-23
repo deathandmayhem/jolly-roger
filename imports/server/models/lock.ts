@@ -1,21 +1,25 @@
 // Locks are a server-only class
 import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 import Ansible from '../../ansible';
-import LockSchema from '../schemas/lock';
+import LockSchema, { LockType } from '../schemas/lock';
 
 const Future = Npm.require('fibers/future');
 
 // 10 seconds
 const PREEMPT_TIMEOUT = 10000;
 
-const Locks = new class extends Meteor.Collection {
+const Locks = new class extends Mongo.Collection<LockType> {
   constructor() {
     super('jr_locks');
   }
 
-  _tryAcquire(name) {
+  _tryAcquire(name: string) {
     try {
-      return this.insert({ name });
+      // Because the Mongo.Collection doesn't know about SimpleSchema
+      // autovalues, it doesn't know which fields are actually required. Cast to
+      // any since this is known safe
+      return this.insert(<any>{ name });
     } catch (e) {
       if (e.name === 'MongoError' && e.code === 11000) {
         return null;
@@ -25,11 +29,11 @@ const Locks = new class extends Meteor.Collection {
     }
   }
 
-  _release(lock) {
+  _release(lock: string) {
     this.remove(lock);
   }
 
-  withLock(name, critSection) {
+  withLock<T>(name: string, critSection: () => T) {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       let handle;

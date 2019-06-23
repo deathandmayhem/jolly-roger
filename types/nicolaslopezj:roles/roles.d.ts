@@ -28,10 +28,16 @@ declare module 'meteor/nicolaslopezj:roles' {
     function registerAction(name: string, adminAllow?: Rule, adminDeny?: Rule): void;
     function getUserRoles(userId: string | null | undefined, includeSpecial?: boolean): string[];
 
-    function allow(userId: string | null | undefined, action: string): boolean;
-    function deny(userId: string | null | undefined, action: string): boolean;
-    function userHasPermission(userId: string | null | undefined, action: string): boolean;
-    function checkPermission(userId: string | null | undefined, action: string): void;
+    function allow(userId: string | null | undefined, action: string, ...args: any[]): boolean;
+    function deny(userId: string | null | undefined, action: string, ...args: any[]): boolean;
+    function userHasPermission(
+      userId: string | null | undefined,
+      action: string, ...args: any[]
+    ): boolean;
+    function checkPermission(
+      userId: string | null | undefined,
+      action: string, ...args: any[]
+    ): void;
 
     // server-only methods, but no way to indicate that in ambient type files
     function addUserToRoles(userId: string, roles: string | string[]): void;

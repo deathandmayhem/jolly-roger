@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 
 Meteor.publish('selfHuntMembership', function () {
@@ -11,7 +10,7 @@ Meteor.publish('selfHuntMembership', function () {
   return Meteor.users.find(this.userId, { fields: { hunts: 1 } });
 });
 
-Meteor.publish('huntMembers', function (huntId) {
+Meteor.publish('huntMembers', function (huntId: string) {
   check(huntId, String);
 
   if (!this.userId) {
@@ -21,14 +20,14 @@ Meteor.publish('huntMembers', function (huntId) {
   const u = Meteor.users.findOne(this.userId);
   // Note: this is not reactive, so if hunt membership changes, this
   // behavior will change
-  if (!_.contains(u.hunts, huntId)) {
+  if (!u.hunts.includes(huntId)) {
     return [];
   }
 
   return Meteor.users.find({ hunts: huntId }, { fields: { hunts: 1 } });
 });
 
-Meteor.publish('userRoles', function (targetUserId) {
+Meteor.publish('userRoles', function (targetUserId: string) {
   check(targetUserId, String);
 
   // Only publish other users' roles to admins and other (potentially-inactive) operators.

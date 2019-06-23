@@ -8,7 +8,8 @@ if (Meteor.isClient) {
 }
 
 const Flags = {
-  active(name, shard) {
+  active(name: string, shard?: string) {
+    check(name, String);
     check(shard, Match.Optional(String));
 
     const flag = FeatureFlags.findOne({ name });
@@ -24,7 +25,7 @@ const Flags = {
         const hash = SHA256(`${name}.${shard}`);
         // Use the first 48 bits (6 bytes) and convert to a float
         const float = parseInt(hash.slice(0, 6), 16) / 0xffffff;
-        return float < flag.random;
+        return float < (flag.random || 0);
       }
       case 'off':
         return false;

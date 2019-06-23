@@ -4,7 +4,9 @@ import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
-import { ensureDocument, renameDocument, grantPermission } from './gdrive';
+import {
+  ensureDocument, renameDocument, grantPermission, MimeTypes,
+} from './gdrive';
 import DriveClient from './gdrive-client-refresher';
 import Flags from '../flags';
 import DocumentPermissions from '../lib/models/document_permissions';
@@ -13,7 +15,11 @@ import Puzzles from '../lib/models/puzzles';
 import Tags from '../lib/models/tags';
 import GlobalHooks from './global-hooks';
 
-function getOrCreateTagByName(huntId, name) {
+function getOrCreateTagByName(huntId: string, name: string): {
+  _id: string,
+  hunt: string,
+  name: string,
+} {
   const existingTag = Tags.findOne({ hunt: huntId, name });
   if (existingTag) {
     return existingTag;
@@ -29,12 +35,16 @@ function getOrCreateTagByName(huntId, name) {
 }
 
 Meteor.methods({
-  createPuzzle(puzzle, docType) {
+  createPuzzle(
+    puzzle: {hunt: string, title: string, tags: string[]},
+    docType: keyof typeof MimeTypes
+  ) {
     check(this.userId, String);
+    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
     // Note: tag names, not tag IDs. We don't need to validate other
     // fields because SimpleSchema will validate the rest
     check(puzzle, Match.ObjectIncluding({ hunt: String, tags: [String] }));
-    check(docType, String);
+    check(docType, Match.OneOf(Object.keys(MimeTypes)));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
 
@@ -49,7 +59,7 @@ Meteor.methods({
       user: this.userId,
     });
 
-    const fullPuzzle = _.extend({}, puzzle, { _id: Random.id(), tags: _.uniq(tagIds) });
+    const fullPuzzle = Object.assign({}, puzzle, { _id: Random.id(), tags: _.uniq(tagIds) });
 
     // By creating the document before we save the puzzle, we make
     // sure nobody else has a chance to create a document with the
@@ -60,17 +70,16 @@ Meteor.methods({
 
     Puzzles.insert(fullPuzzle);
 
-
     // Run any puzzle-creation hooks, like creating a default document
     // attachment or announcing the puzzle to Slack.
     Meteor.defer(Meteor.bindEnvironment(() => {
-      GlobalHooks.runPuzzleCreatedHooks(fullPuzzle._id, this.userId);
+      GlobalHooks.runPuzzleCreatedHooks(fullPuzzle._id);
     }));
 
     return fullPuzzle._id;
   },
 
-  updatePuzzle(puzzleId, puzzle) {
+  updatePuzzle(puzzleId: string, puzzle: {hunt: string, title: string, tags: string[]}) {
     check(this.userId, String);
     check(puzzleId, String);
     // Note: tags names, not tag IDs
@@ -96,7 +105,7 @@ Meteor.methods({
     });
     Puzzles.update(
       puzzleId,
-      { $set: _.extend({}, puzzle, { tags: _.uniq(tagIds) }) },
+      { $set: Object.assign({}, puzzle, { tags: _.uniq(tagIds) }) },
     );
 
     if (oldPuzzle.title !== puzzle.title) {
@@ -107,7 +116,7 @@ Meteor.methods({
     }
   },
 
-  addTagToPuzzle(puzzleId, newTagName) {
+  addTagToPuzzle(puzzleId: string, newTagName: string) {
     // addTagToPuzzle takes a tag name, rather than a tag ID,
     // so we can avoid doing two round-trips for tag creation.
     check(this.userId, String);
@@ -136,7 +145,7 @@ Meteor.methods({
     });
   },
 
-  removeTagFromPuzzle(puzzleId, tagId) {
+  removeTagFromPuzzle(puzzleId: string, tagId: string) {
     // Note that removeTagFromPuzzle takes a tagId rather than a tag name,
     // since the client should already know the tagId.
     check(this.userId, String);
@@ -153,7 +162,7 @@ Meteor.methods({
     });
   },
 
-  renameTag(tagId, newName) {
+  renameTag(tagId: string, newName: string) {
     check(this.userId, String);
     check(tagId, String);
     check(newName, String);
@@ -171,8 +180,9 @@ Meteor.methods({
     }
   },
 
-  ensureDocumentAndPermissions(puzzleId) {
+  ensureDocumentAndPermissions(puzzleId: string) {
     check(this.userId, String);
+    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
     check(puzzleId, String);
 
     const user = Meteor.users.findOne(this.userId);

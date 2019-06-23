@@ -6,13 +6,14 @@ import Ansible from '../ansible';
 Meteor.methods({
   // Temporarily de-op yourself
   stopOperating() {
+    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
     Roles.checkPermission(this.userId, 'users.makeOperator');
 
     Roles.addUserToRoles(this.userId, 'inactiveOperator');
     Roles.removeUserFromRoles(this.userId, 'operator');
   },
 
-  makeOperator(targetUserId) {
+  makeOperator(targetUserId: string) {
     check(targetUserId, String);
 
     Roles.checkPermission(this.userId, 'users.makeOperator');

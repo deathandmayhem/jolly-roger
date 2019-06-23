@@ -3,6 +3,7 @@ import { date } from 'io-ts-types/lib/Date/date';
 import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
 
 export const LockCodec = t.type({
+  _id: t.string,
   name: t.string,
   createdAt: date,
 });

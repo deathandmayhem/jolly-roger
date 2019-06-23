@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
-import logfmt from 'logfmt';
+import * as logfmt from 'logfmt';
 
 const logLevels = new Set(['log', 'info', 'error', 'warn']);
 
@@ -10,7 +10,7 @@ Meteor.methods({
   //
   // Log lines are output using `logfmt` to make parsing and analysis
   // easier.
-  ansible(level, line, obj) {
+  ansible(level: 'log' | 'info' | 'error' | 'warn', line: string, obj: object) {
     check(level, String);
     check(line, String);
     check(obj, Match.Optional(Object));

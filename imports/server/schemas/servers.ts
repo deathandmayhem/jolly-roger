@@ -3,6 +3,7 @@ import { date } from 'io-ts-types/lib/Date/date';
 import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
 
 export const ServerCodec = t.type({
+  _id: t.string,
   // unlike most updatedAt values, this one also gets set on created
   // for convenience
   updatedAt: date,

@@ -1,11 +1,13 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
+import { ServiceConfiguration } from 'meteor/service-configuration';
+import { Google } from 'meteor/google-oauth';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import Settings from '../lib/models/settings';
 
 Meteor.methods({
-  setupGoogleOAuthClient(clientId, secret) {
+  setupGoogleOAuthClient(clientId: string, secret: string) {
     check(this.userId, String);
     check(clientId, String);
     check(secret, String);
@@ -24,7 +26,7 @@ Meteor.methods({
     });
   },
 
-  setupGdriveCreds(key, secret) {
+  setupGdriveCreds(key: string, secret: string) {
     check(this.userId, String);
     check(key, String);
     check(secret, String);
@@ -49,7 +51,10 @@ Meteor.methods({
     Settings.remove({ name: 'gdrive.credential' });
   },
 
-  setupGdriveTemplates(spreadsheetTemplate, documentTemplate) {
+  setupGdriveTemplates(
+    spreadsheetTemplate: string | undefined,
+    documentTemplate: string | undefined
+  ) {
     check(this.userId, String);
     check(spreadsheetTemplate, Match.Maybe(String));
     check(documentTemplate, Match.Maybe(String));

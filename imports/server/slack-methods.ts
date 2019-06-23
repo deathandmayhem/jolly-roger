@@ -1,23 +1,18 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
 import { HTTP } from 'meteor/http';
+import { ServiceConfiguration } from 'meteor/service-configuration';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import Flags from '../flags';
 
 Meteor.methods({
-  slackInvite(userId) {
-    check(userId, Match.Optional(String));
-
-    if (!this.userId && this.connection) {
+  slackInvite() {
+    if (!this.userId) {
       throw new Meteor.Error(403, 'Only logged in users can send slack invites');
     }
 
-    if (!this.userId && !userId) {
-      throw new Meteor.Error(400, 'Must pass user id for server calls');
-    }
-
-    const user = Meteor.users.findOne(userId || this.userId);
+    const user = Meteor.users.findOne(this.userId);
     if (!user) {
       throw new Meteor.Error(404, 'Can not find user');
     }
@@ -46,17 +41,17 @@ Meteor.methods({
       params: {
         token: config.secret,
         email,
-        set_active: true,
+        set_active: 'true',
       },
     });
 
-    if (result.statusCode >= 400) {
+    if (result.statusCode && result.statusCode >= 400) {
       Ansible.log('Error sending Slack invite', { content: result.content });
       throw new Meteor.Error(500, 'Something went wrong sending the invite');
     }
   },
 
-  configureSlack(apiSecretKey) {
+  configureSlack(apiSecretKey?: string) {
     check(this.userId, String);
     Roles.checkPermission(this.userId, 'slack.configureClient');
 
@@ -72,7 +67,7 @@ Meteor.methods({
         },
       });
 
-      if (result.statusCode !== 200) {
+      if (result.statusCode !== 200 || !result.content) {
         throw new Meteor.Error(400, 'The Slack API rejected the token provided');
       }
 

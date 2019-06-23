@@ -10,7 +10,7 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
-import moment from 'moment';
+import * as moment from 'moment';
 import Flags from '../flags';
 import Servers from './models/servers';
 import Subscribers from './models/subscribers';
@@ -53,7 +53,7 @@ Meteor.publish('subscribers.inc', function (name, context) {
     return [];
   }
 
-  const doc = Subscribers.insert({
+  const doc = Subscribers.insert(<any>{
     server: serverId,
     connection: this.connection.id,
     user: this.userId,
@@ -72,14 +72,14 @@ Meteor.publish('subscribers.inc', function (name, context) {
 // even look up the puzzle ids
 //
 // eslint-disable-next-line consistent-return
-Meteor.publish('subscribers.counts', function (q) {
+Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
   check(q, Object);
 
   if (!this.userId) {
     return [];
   }
 
-  const query = {};
+  const query: Record<string, any> = {};
   _.each(q, (v, k) => {
     if (k.startsWith('$')) {
       throw new Meteor.Error(400, 'Special query terms are not allowed');
@@ -89,7 +89,7 @@ Meteor.publish('subscribers.counts', function (q) {
   });
 
   let initialized = false;
-  const counters = {};
+  const counters: Record<string, Record<string, number>> = {};
 
   const cursor = Subscribers.find(query);
   const handle = cursor.observe({
@@ -133,6 +133,7 @@ Meteor.publish('subscribers.counts', function (q) {
   });
   initialized = true;
   this.ready();
+  return null;
 });
 
 // Unlike subscribers.counts, which takes a query string against the
@@ -147,7 +148,7 @@ Meteor.publish('subscribers.fetch', function (name) {
     return [];
   }
 
-  const users = {};
+  const users: Record<string, number> = {};
 
   const cursor = Subscribers.find({ name });
   const handle = cursor.observe({
@@ -174,6 +175,7 @@ Meteor.publish('subscribers.fetch', function (name) {
   });
   this.onStop(() => handle.stop());
   this.ready();
+  return null;
 });
 
 Meteor.startup(() => periodic());
