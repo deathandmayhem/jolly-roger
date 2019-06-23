@@ -1,12 +1,16 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import md5 from 'blueimp-md5';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
+import * as md5 from 'md5';
 
-function gravatarHash(emailAddress) {
+function gravatarHash(emailAddress: string): string {
   return md5(emailAddress.trim().toLowerCase());
 }
 
-class Gravatar extends React.PureComponent {
+interface GravatarProps {
+  email: string;
+}
+
+class Gravatar extends React.PureComponent<GravatarProps> {
   static propTypes = {
     email: PropTypes.string.isRequired,
   };
