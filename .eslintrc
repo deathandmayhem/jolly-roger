@@ -113,13 +113,4 @@
       },
     },
   ],
-  "globals": {
-    // Long-term, reduce this list to nothing by making full use of import/export
-    "ServiceConfiguration": false,
-    "Google": false,
-    "Npm": false,
-    "OAuth": false,
-    "window": false,
-    "document": false,
-  },
 }
