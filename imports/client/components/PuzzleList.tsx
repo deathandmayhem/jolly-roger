@@ -1,12 +1,22 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import Puzzle from './Puzzle';
 import puzzleShape from './puzzleShape';
 import tagShape from './tagShape';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 
 /* eslint-disable max-len */
 
-class PuzzleList extends React.PureComponent {
+interface PuzzleListProps {
+  puzzles: PuzzleType[];
+  allTags: TagType[];
+  layout: 'grid' | 'table';
+  canUpdate: boolean;
+  suppressTags?: string[];
+}
+
+class PuzzleList extends React.PureComponent<PuzzleListProps> {
   static displayName = 'PuzzleList';
 
   static propTypes = {

@@ -1,13 +1,23 @@
 import { _ } from 'meteor/underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import puzzleShape from './puzzleShape';
 import tagShape from './tagShape';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 
 /* eslint-disable max-len */
 
-class RelatedPuzzleGroups extends React.Component {
+interface RelatedPuzzleGroupsProps {
+  activePuzzle: PuzzleType;
+  allPuzzles: PuzzleType[];
+  allTags: TagType[];
+  canUpdate: boolean;
+  layout: 'grid' | 'table';
+}
+
+class RelatedPuzzleGroups extends React.Component<RelatedPuzzleGroupsProps> {
   static displayName = 'RelatedPuzzleGroups';
 
   static propTypes = {
@@ -22,7 +32,7 @@ class RelatedPuzzleGroups extends React.Component {
     layout: 'grid',
   };
 
-  relatedPuzzlesTagInterestingness = (tag, metaForTagIfKnown) => {
+  relatedPuzzlesTagInterestingness = (tag: TagType, metaForTagIfKnown: TagType | null) => {
     // Maps a tag into an interestingness class.  Smaller numbers are more interesting.
     // group: tags go at the beginning of the list, because you're
     // most interested in the other puzzles from this meta/round.
@@ -44,9 +54,9 @@ class RelatedPuzzleGroups extends React.Component {
     }
   };
 
-  sortedTagsForRelatedPuzzles = (tags) => {
+  sortedTagsForRelatedPuzzles = (tags: TagType[]) => {
     // Clone a copy of the tags.
-    const tagList = _.toArray(tags);
+    const tagList = tags.slice(0);
 
     // Look for a tag that starts with 'meta-for:'.
     const metaForTag = _.filter(tags, (tag) => { return tag.name.lastIndexOf('meta-for:', 0) === 0; })[0];
@@ -65,7 +75,7 @@ class RelatedPuzzleGroups extends React.Component {
     return tagList;
   };
 
-  puzzlesWithTagIdExcept = (puzzles, tagId, puzzleId) => {
+  puzzlesWithTagIdExcept = (puzzles: PuzzleType[], tagId: string, puzzleId: string) => {
     return _.filter(puzzles, (p) => {
       return p._id !== puzzleId && p.tags.indexOf(tagId) !== -1;
     });

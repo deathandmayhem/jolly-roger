@@ -1,15 +1,30 @@
 import { _ } from 'meteor/underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
-import Button from 'react-bootstrap/lib/Button';
-import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import tagShape from './tagShape';
 import Tag from './Tag';
 import TagEditor from './TagEditor';
+import { TagType } from '../../lib/schemas/tags';
 
-class TagList extends React.PureComponent {
+interface TagListProps {
+  puzzleId: string;
+  tags: TagType[];
+  onCreateTag?: (tagName: string) => void; // if provided, will show UI for adding a new tag
+  onRemoveTag?: (tagId: string) => void; // callback if user wants to remove a tag
+  linkToSearch: boolean;
+  showControls?: boolean;
+}
+
+interface TagListState {
+  editing: boolean;
+  removing: boolean;
+}
+
+class TagList extends React.PureComponent<TagListProps, TagListState> {
   static displayName = 'TagList';
 
   static propTypes = {
@@ -28,7 +43,7 @@ class TagList extends React.PureComponent {
     removing: false,
   };
 
-  submitTag = (newTagName) => {
+  submitTag = (newTagName: string) => {
     // TODO: submitTag should use the value passed in from the child, which may have done some
     // autocomplete matching that this component doesn't know about.
     if (this.props.onCreateTag) {
@@ -55,13 +70,13 @@ class TagList extends React.PureComponent {
     this.setState({ removing: false });
   };
 
-  removeTag = (tagIdToRemove) => {
+  removeTag = (tagIdToRemove: string) => {
     if (this.props.onRemoveTag) {
       this.props.onRemoveTag(tagIdToRemove);
     }
   };
 
-  soloTagInterestingness = (tag) => {
+  soloTagInterestingness = (tag: TagType) => {
     if (tag.name === 'is:metameta') {
       return -6;
     } else if (tag.name === 'is:meta') {
@@ -79,13 +94,13 @@ class TagList extends React.PureComponent {
     }
   };
 
-  sortedTagsForSinglePuzzle = (tags) => {
+  sortedTagsForSinglePuzzle = (tags: TagType[]) => {
     // The sort order for tags should probably be:
     // * "is:metameta" first
     // * then "is:meta"
     // * "meta:*" comes next (sorted alphabetically, if multiple are present)
     // * all other tags, sorted alphabetically
-    const sortedTags = _.toArray(tags);
+    const sortedTags = tags.slice(0);
 
     sortedTags.sort((a, b) => {
       const ia = this.soloTagInterestingness(a);

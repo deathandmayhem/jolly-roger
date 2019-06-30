@@ -1,19 +1,55 @@
 import { _ } from 'meteor/underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
-import Alert from 'react-bootstrap/lib/Alert';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
+import * as Alert from 'react-bootstrap/lib/Alert';
+import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import * as FormControl from 'react-bootstrap/lib/FormControl';
+import * as FormGroup from 'react-bootstrap/lib/FormGroup';
 import Creatable from 'react-select/lib/Creatable';
 import LabelledRadioGroup from './LabelledRadioGroup';
 import ModalForm from './ModalForm';
 import puzzleShape from './puzzleShape';
 import tagShape from './tagShape';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 
 /* eslint-disable max-len */
 
-class PuzzleModalForm extends React.Component {
+export interface PuzzleModalFormSubmitPayload {
+  hunt: string;
+  title: string;
+  url: string;
+  tags: string[];
+  docType?: string;
+}
+
+interface PuzzleModalFormProps {
+  huntId: string;
+  puzzle?: PuzzleType;
+  tags: TagType[];
+  onSubmit: (payload: PuzzleModalFormSubmitPayload, callback: (error: Error) => void) => void;
+  showOnMount?: boolean;
+}
+
+enum PuzzleModalFormSubmitState {
+  IDLE = 'idle',
+  SUBMITTING = 'submitting',
+  FAILED = 'failed',
+}
+
+interface PuzzleModalFormState {
+  title: string;
+  url: string;
+  tags: string[];
+  docType?: string;
+  submitState: PuzzleModalFormSubmitState;
+  errorMessage: string;
+  titleDirty: boolean;
+  urlDirty: boolean;
+  tagsDirty: boolean;
+}
+
+class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalFormState> {
   static displayName = 'PuzzleModalForm';
 
   static propTypes = {
@@ -26,10 +62,10 @@ class PuzzleModalForm extends React.Component {
     showOnMount: PropTypes.bool,
   };
 
-  constructor(props, context) {
+  constructor(props: PuzzleModalFormProps, context?: any) {
     super(props, context);
     const state = {
-      submitState: 'idle',
+      submitState: PuzzleModalFormSubmitState.IDLE,
       errorMessage: '',
       titleDirty: false,
       urlDirty: false,
@@ -39,9 +75,9 @@ class PuzzleModalForm extends React.Component {
     this.formRef = React.createRef();
 
     if (props.puzzle) {
-      this.state = _.extend(state, this.stateFromPuzzle(props.puzzle));
+      this.state = Object.assign(state, this.stateFromPuzzle(props.puzzle));
     } else {
-      this.state = _.extend(state, {
+      this.state = Object.assign(state, {
         title: '',
         url: '',
         tags: [],
@@ -56,36 +92,44 @@ class PuzzleModalForm extends React.Component {
     }
   }
 
-  onTitleChange = (event) => {
+  // All of these are typed to take React.FormEvent<FormControl>, but that's a
+  // bug in the type declarations - they actually take a
+  // React.FormEvent<HTMLInputElement> (or whatever componentClass is set to on
+  // the FormControl)
+
+  onTitleChange = (event: React.FormEvent<FormControl>) => {
     this.setState({
-      title: event.target.value,
+      title: (event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
       titleDirty: true,
     });
   };
 
-  onUrlChange = (event) => {
+  onUrlChange = (event: React.FormEvent<FormControl>) => {
     this.setState({
-      url: event.target.value,
+      url: (event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
       urlDirty: true,
     });
   };
 
-  onTagsChange = (value) => {
+  onTagsChange = (value: {label: string, value: string}[] | undefined | null) => {
+    if (!value) {
+      return;
+    }
     this.setState({
       tags: value.map(v => v.value),
       tagsDirty: true,
     });
   };
 
-  onDocTypeChange = (newValue) => {
+  onDocTypeChange = (newValue: string) => {
     this.setState({
       docType: newValue,
     });
   };
 
-  onFormSubmit = (callback) => {
-    this.setState({ submitState: 'submitting' });
-    const payload = {
+  onFormSubmit = (callback: () => void) => {
+    this.setState({ submitState: PuzzleModalFormSubmitState.SUBMITTING });
+    const payload: PuzzleModalFormSubmitPayload = {
       hunt: this.props.huntId,
       title: this.state.title,
       url: this.state.url,
@@ -97,12 +141,12 @@ class PuzzleModalForm extends React.Component {
     this.props.onSubmit(payload, (error) => {
       if (error) {
         this.setState({
-          submitState: 'failed',
+          submitState: PuzzleModalFormSubmitState.FAILED,
           errorMessage: error.message,
         });
       } else {
         this.setState({
-          submitState: 'idle',
+          submitState: PuzzleModalFormSubmitState.IDLE,
           errorMessage: '',
           titleDirty: false,
           urlDirty: false,
@@ -113,22 +157,24 @@ class PuzzleModalForm extends React.Component {
     });
   };
 
-  tagNamesForIds = (tagIds) => {
-    const tagNames = {};
+  tagNamesForIds = (tagIds: string[]) => {
+    const tagNames: Record<string, string> = {};
     _.each(this.props.tags, (t) => { tagNames[t._id] = t.name; });
     return tagIds.map(t => tagNames[t]);
   };
 
-  stateFromPuzzle = (puzzle) => {
+  stateFromPuzzle = (puzzle: PuzzleType) => {
     return {
       title: puzzle.title,
-      url: puzzle.url,
+      url: puzzle.url || '',
       tags: this.tagNamesForIds(puzzle.tags),
     };
   };
 
   show = () => {
-    this.formRef.current.show();
+    if (this.formRef.current) {
+      this.formRef.current.show();
+    }
   };
 
   currentTitle = () => {
@@ -155,8 +201,10 @@ class PuzzleModalForm extends React.Component {
     }
   };
 
+  formRef: React.RefObject<ModalForm>;
+
   render() {
-    const disableForm = this.state.submitState === 'submitting';
+    const disableForm = this.state.submitState === PuzzleModalFormSubmitState.SUBMITTING;
 
     const selectOptions = _.chain(this.props.tags)
       .map(t => t.name)
@@ -167,7 +215,7 @@ class PuzzleModalForm extends React.Component {
       })
       .value();
 
-    const docTypeSelector = (
+    const docTypeSelector = !this.props.puzzle && this.state.docType ? (
       <FormGroup>
         <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-doc-type">
           Document type
@@ -192,7 +240,7 @@ class PuzzleModalForm extends React.Component {
           />
         </div>
       </FormGroup>
-    );
+    ) : null;
 
     return (
       <ModalForm
@@ -242,15 +290,15 @@ class PuzzleModalForm extends React.Component {
               options={selectOptions}
               isMulti
               disabled={disableForm}
-              onChange={this.onTagsChange}
+              onChange={this.onTagsChange as any /* onChange type declaration doesn't understand isMulti */}
               value={this.currentTags().map((t) => { return { label: t, value: t }; })}
             />
           </div>
         </FormGroup>
 
-        {!this.props.puzzle && docTypeSelector}
+        {docTypeSelector}
 
-        {this.state.submitState === 'failed' && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
+        {this.state.submitState === PuzzleModalFormSubmitState.FAILED && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>
     );
   }

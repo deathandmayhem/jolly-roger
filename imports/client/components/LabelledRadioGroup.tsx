@@ -1,9 +1,9 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
 
 /* eslint-disable max-len */
 
-const labelledRadioStyles = {
+const labelledRadioStyles: Record<string, React.CSSProperties> = {
   radiolabel: {
     display: 'block',
     fontWeight: 'normal',
@@ -13,7 +13,17 @@ const labelledRadioStyles = {
   },
 };
 
-class LabelledRadio extends React.Component {
+interface LabelledRadioProps {
+  id: string;
+  // eslint-disable-next-line no-restricted-globals
+  name: string;
+  value: string;
+  label: string;
+  defaultChecked: boolean;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+class LabelledRadio extends React.Component<LabelledRadioProps> {
   // Bootstrap's approach to exclusive options does not look particularly good nor does it produce
   // accessibility-friendly markup, so here's a touch of our own instead.  Uses some bootstrap
   // styles.
@@ -44,13 +54,23 @@ class LabelledRadio extends React.Component {
   }
 }
 
-const labelledRadioGroupStyles = {
+const labelledRadioGroupStyles: Record<string, React.CSSProperties> = {
   radioheader: {
     fontWeight: 'bold',
   },
 };
 
-class LabelledRadioGroup extends React.Component {
+interface LabelledRadioGroupProps {
+  header: string;
+  // eslint-disable-next-line no-restricted-globals
+  name: string; // The name of the exclusive group for the radio buttons
+  options: {label: string, value: string}[];
+  onChange: (value: string) => void;
+  initialValue: string;
+  help: string;
+}
+
+class LabelledRadioGroup extends React.Component<LabelledRadioGroupProps> {
   static propTypes = {
     header: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired, // The name of the exclusive group for the radio buttons
@@ -69,7 +89,7 @@ class LabelledRadioGroup extends React.Component {
     value: this.props.initialValue,
   };
 
-  setValue = (event) => {
+  setValue = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     this.setState({
       value,

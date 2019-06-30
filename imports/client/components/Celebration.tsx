@@ -1,8 +1,16 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
 import { Link } from 'react-router';
 
-class Celebration extends React.Component {
+interface CelebrationProps {
+  url: string;
+  title: string;
+  answer: string;
+  playAudio: boolean;
+  onClose: () => void;
+}
+
+class Celebration extends React.Component<CelebrationProps> {
   static propTypes = {
     url: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
@@ -25,12 +33,14 @@ class Celebration extends React.Component {
     }
   };
 
-  maybeClose = (e) => {
+  maybeClose = (e: React.MouseEvent) => {
     // Dismiss the celebration if you click on the overlay div (outside the content)
     if (e.target === e.currentTarget) {
       this.onClose();
     }
   };
+
+  private timer?: number;
 
   render() {
     return (

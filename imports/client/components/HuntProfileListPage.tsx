@@ -1,23 +1,34 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import PropTypes from 'prop-types';
-import React from 'react';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache';
 import ProfileList from './ProfileList';
-import ProfilesSchema from '../../lib/schemas/profiles';
+import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
 import Profiles from '../../lib/models/profiles';
 
-class HuntProfileListPage extends React.Component {
+interface HuntProfileListPageProps {
+  params: {huntId: string};
+  ready: boolean;
+  canInvite: boolean;
+  profiles: ProfileType[];
+}
+
+class HuntProfileListPage extends React.Component<HuntProfileListPageProps> {
   static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
     ready: PropTypes.bool.isRequired,
     canInvite: PropTypes.bool.isRequired,
-    profiles: PropTypes.arrayOf(PropTypes.shape(ProfilesSchema.asReactPropTypes())).isRequired,
+    profiles: PropTypes.arrayOf(
+      PropTypes.shape(
+        ProfilesSchema.asReactPropTypes<ProfileType>()
+      ).isRequired as React.Validator<ProfileType>
+    ).isRequired,
   };
 
   render() {
@@ -35,10 +46,10 @@ class HuntProfileListPage extends React.Component {
   }
 }
 
-const crumb = withBreadcrumb(({ params }) => {
-  return { title: 'Hunters', link: `/hunts/${params.huntId}/hunters` };
+const crumb = withBreadcrumb(({ params }: {params: {huntId: string }}) => {
+  return { title: 'Hunters', path: `/hunts/${params.huntId}/hunters` };
 });
-const tracker = withTracker(({ params }) => {
+const tracker = withTracker(({ params }: {params: {huntId: string}}) => {
   const usersHandle = subsCache.subscribe('huntMembers', params.huntId);
   const profilesHandle = subsCache.subscribe('mongo.profiles');
 
@@ -55,7 +66,7 @@ const tracker = withTracker(({ params }) => {
     Meteor.userId(), 'hunt.join', params.huntId
   );
 
-  const hunters = Meteor.users.find({ hunts: params.huntId }).map(u => u._id);
+  const hunters = Meteor.users.find({ hunts: params.huntId }).map(u => u._id) as string[];
   const profiles = Profiles.find(
     { _id: { $in: hunters } },
     { sort: { displayName: 1 } },

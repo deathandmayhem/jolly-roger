@@ -1,6 +1,6 @@
 import { _ } from 'meteor/underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PuzzleList from './PuzzleList';
@@ -8,17 +8,23 @@ import Tag from './Tag';
 import puzzleInterestingness from './puzzleInterestingness';
 import puzzleShape from './puzzleShape';
 import tagShape from './tagShape';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 
 /* eslint-disable max-len */
 
-function sortPuzzlesByRelevanceWithinPuzzleGroup(puzzles, sharedTag, indexedTags) {
+function sortPuzzlesByRelevanceWithinPuzzleGroup(
+  puzzles: PuzzleType[],
+  sharedTag: TagType,
+  indexedTags: Record<string, TagType>
+) {
   // If sharedTag is a meta:<something> tag, sort a puzzle with a meta-for:<something> tag at top.
-  let group;
+  let group: string;
   if (sharedTag.name.lastIndexOf('group:', 0) === 0) {
     group = sharedTag.name.slice('group:'.length);
   }
 
-  const sortedPuzzles = _.toArray(puzzles);
+  const sortedPuzzles = puzzles.slice(0);
   sortedPuzzles.sort((a, b) => {
     const ia = puzzleInterestingness(a, indexedTags, group);
     const ib = puzzleInterestingness(b, indexedTags, group);
@@ -26,14 +32,27 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(puzzles, sharedTag, indexedTags
       return ia - ib;
     } else {
       // Sort puzzles by creation time otherwise.
-      return a.createdAt - b.createdAt;
+      return +a.createdAt - +b.createdAt;
     }
   });
 
   return sortedPuzzles;
 }
 
-class RelatedPuzzleGroup extends React.Component {
+interface RelatedPuzzleGroupProps {
+  sharedTag: TagType;
+  relatedPuzzles: PuzzleType[];
+  allTags: TagType[];
+  includeCount?: boolean;
+  layout: 'grid' | 'table';
+  canUpdate: boolean;
+}
+
+interface RelatedPuzzleGroupState {
+  collapsed: boolean;
+}
+
+class RelatedPuzzleGroup extends React.Component<RelatedPuzzleGroupProps, RelatedPuzzleGroupState> {
   static displayName = 'RelatedPuzzleGroup';
 
   static propTypes = {

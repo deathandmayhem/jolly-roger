@@ -1,24 +1,24 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import PropTypes from 'prop-types';
-import React from 'react';
-import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
-import Tooltip from 'react-bootstrap/lib/Tooltip';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
+import * as Tooltip from 'react-bootstrap/lib/Tooltip';
 import { faCopy } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link } from 'react-router';
-import moment from 'moment';
-import marked from 'marked';
+import * as moment from 'moment';
+import * as marked from 'marked';
 import { withTracker } from 'meteor/react-meteor-data';
-import classnames from 'classnames';
-import CopyToClipboard from 'react-copy-to-clipboard';
+import * as classnames from 'classnames';
+import * as CopyToClipboard from 'react-copy-to-clipboard';
 import subsCache from '../subsCache';
-import AnnouncementsSchema from '../../lib/schemas/announcements';
-import GuessesSchema from '../../lib/schemas/guess';
-import HuntsSchema from '../../lib/schemas/hunts';
-import PuzzlesSchema from '../../lib/schemas/puzzles';
-import PendingAnnouncementsSchema from '../../lib/schemas/pending_announcements';
+import AnnouncementsSchema, { AnnouncementType } from '../../lib/schemas/announcements';
+import GuessesSchema, { GuessType } from '../../lib/schemas/guess';
+import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
+import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
+import PendingAnnouncementsSchema, { PendingAnnouncementType } from '../../lib/schemas/pending_announcements';
 import Announcements from '../../lib/models/announcements';
 import Guesses from '../../lib/models/guess';
 import Hunts from '../../lib/models/hunts';
@@ -29,7 +29,11 @@ import { guessURL } from '../../model-helpers';
 
 /* eslint-disable max-len */
 
-class MessengerDismissButton extends React.PureComponent {
+interface MessengerDismissButtonProps {
+  onDismiss: (event: React.MouseEvent<HTMLButtonElement>) => void;
+}
+
+class MessengerDismissButton extends React.PureComponent<MessengerDismissButtonProps> {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
   };
@@ -39,7 +43,12 @@ class MessengerDismissButton extends React.PureComponent {
   }
 }
 
-class MessengerContent extends React.PureComponent {
+interface MessengerContentProps {
+  dismissable?: boolean;
+  children?: React.ReactNode;
+}
+
+class MessengerContent extends React.PureComponent<MessengerContentProps> {
   static propTypes = {
     dismissable: PropTypes.bool,
     children: PropTypes.node,
@@ -62,11 +71,19 @@ class MessengerSpinner extends React.PureComponent {
   }
 }
 
-class GuessMessage extends React.PureComponent {
+interface GuessMessageProps {
+  guess: GuessType;
+  puzzle: PuzzleType;
+  hunt: HuntType;
+  guesser: string;
+  onDismiss: (guessId: string) => void;
+}
+
+class GuessMessage extends React.PureComponent<GuessMessageProps> {
   static propTypes = {
-    guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired,
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired,
+    guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired as PropTypes.Validator<NonNullable<GuessType>>,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as PropTypes.Validator<NonNullable<PuzzleType>>,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as PropTypes.Validator<NonNullable<HuntType>>,
     guesser: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
   };
@@ -152,52 +169,63 @@ class GuessMessage extends React.PureComponent {
   }
 }
 
-class SlackMessage extends React.PureComponent {
+interface SlackMessageProps {
+  onDismiss: () => void;
+}
+
+enum SlackMessageStatus {
+  IDLE = 'idle',
+  SUBMITTING = 'submitting',
+  ERROR = 'error',
+  SUCCESS = 'success',
+}
+
+type SlackMessageState = {
+  // eslint-disable-next-line no-restricted-globals
+  status: SlackMessageStatus;
+  errorMessage?: string;
+}
+
+class SlackMessage extends React.PureComponent<SlackMessageProps, SlackMessageState> {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
   };
 
-  state = { status: 'idle', errorMessage: null };
+  state = { status: SlackMessageStatus.IDLE } as SlackMessageState;
 
   sendInvite = () => {
-    this.setState({ status: 'submitting' });
-    Meteor.call('slackInvite', (err) => {
+    this.setState({ status: SlackMessageStatus.SUBMITTING });
+    Meteor.call('slackInvite', (err: Error) => {
       if (err) {
-        this.setState({ status: 'error', errorMessage: err.message });
+        this.setState({ status: SlackMessageStatus.ERROR, errorMessage: err.message });
       } else {
-        this.setState({ status: 'success' });
+        this.setState({ status: SlackMessageStatus.SUCCESS });
       }
     });
   };
 
   reset = () => {
-    this.setState({ status: 'idle', errorMessage: null });
+    this.setState({ status: SlackMessageStatus.IDLE });
   };
 
   render() {
     let msg;
-    // TODO: do something with type
-    let type; // eslint-disable-line no-unused-vars
     // eslint-disable-next-line default-case
     switch (this.state.status) {
-      case 'idle':
+      case SlackMessageStatus.IDLE:
         msg = 'It looks like there\'s no Slack username in your profile. If you need an invite ' +
               'to Slack, we can do that! Otherwise, adding it to your profile helps us get in ' +
               'touch.';
-        type = 'info';
         break;
-      case 'submitting':
+      case SlackMessageStatus.SUBMITTING:
         msg = 'Sending an invite now...';
-        type = 'error';
         break;
-      case 'success':
+      case SlackMessageStatus.SUCCESS:
         msg = 'Done! Check your email. This notification will stick around to remind you to ' +
               'finish signing up.';
-        type = 'success';
         break;
-      case 'error':
+      case SlackMessageStatus.ERROR:
         msg = `Uh-oh - something went wrong: ${this.state.errorMessage}`;
-        type = 'error';
         break;
     }
 
@@ -226,10 +254,16 @@ class SlackMessage extends React.PureComponent {
   }
 }
 
-class AnnouncementMessage extends React.PureComponent {
+interface AnnouncementMessageProps {
+  id: string;
+  announcement: AnnouncementType;
+  createdByDisplayName: string;
+}
+
+class AnnouncementMessage extends React.PureComponent<AnnouncementMessageProps> {
   static propTypes = {
     id: PropTypes.string.isRequired,
-    announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired,
+    announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired as React.Validator<AnnouncementType>,
     createdByDisplayName: PropTypes.string.isRequired,
   };
 
@@ -256,27 +290,52 @@ class AnnouncementMessage extends React.PureComponent {
   }
 }
 
-class NotificationCenter extends React.Component {
+interface NotificationCenterAnnouncement {
+  pa: PendingAnnouncementType;
+  announcement: AnnouncementType;
+  createdByDisplayName: string;
+}
+
+interface NotificationCenterGuess {
+  guess: GuessType;
+  puzzle: PuzzleType;
+  hunt: HuntType;
+  guesser: string;
+}
+
+type NotificationCenterProps = {
+  ready: boolean;
+  announcements?: NotificationCenterAnnouncement[];
+  guesses?: NotificationCenterGuess[];
+  slackConfigured?: boolean;
+}
+
+interface NotificationCenterState {
+  hideSlackSetupMessage: boolean;
+  dismissedGuesses: Record<string, boolean>;
+}
+
+class NotificationCenter extends React.Component<NotificationCenterProps, NotificationCenterState> {
   static propTypes = {
-    ready: PropTypes.bool.isRequired,
+    ready: PropTypes.any,
     announcements: PropTypes.arrayOf(PropTypes.shape({
-      pa: PropTypes.shape(PendingAnnouncementsSchema.asReactPropTypes()).isRequired,
-      announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired,
+      pa: PropTypes.shape(PendingAnnouncementsSchema.asReactPropTypes()).isRequired as React.Validator<PendingAnnouncementType>,
+      announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired as React.Validator<AnnouncementType>,
       createdByDisplayName: PropTypes.string.isRequired,
-    })),
+    }).isRequired),
     guesses: PropTypes.arrayOf(PropTypes.shape({
-      guess: PropTypes.shape(GuessesSchema.asReactPropTypes()),
-      puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()),
-      hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
-      guesser: PropTypes.string,
-    })),
+      guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired as React.Validator<GuessType>,
+      puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
+      hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
+      guesser: PropTypes.string.isRequired,
+    }).isRequired),
     slackConfigured: PropTypes.bool,
   };
 
   state = {
     hideSlackSetupMessage: false,
     dismissedGuesses: {},
-  };
+  } as NotificationCenterState;
 
   hideSlackSetupMessage = () => {
     this.setState({
@@ -284,17 +343,17 @@ class NotificationCenter extends React.Component {
     });
   };
 
-  dismissGuess = (guessId) => {
-    const newState = {};
+  dismissGuess = (guessId: string) => {
+    const newState: Record<string, boolean> = {};
     newState[guessId] = true;
-    _.extend(newState, this.state.dismissedGuesses);
+    Object.assign(newState, this.state.dismissedGuesses);
     this.setState({
       dismissedGuesses: newState,
     });
   };
 
   render() {
-    if (!this.props.ready) {
+    if (!this.props.ready || !this.props.guesses || !this.props.announcements) {
       return <div />;
     }
 
@@ -336,7 +395,7 @@ class NotificationCenter extends React.Component {
   }
 }
 
-export default withTracker(() => {
+export default withTracker((): NotificationCenterProps => {
   const canUpdateGuesses = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
 
   // Yes this is hideous, but it just makes the logic easier
@@ -372,8 +431,8 @@ export default withTracker(() => {
 
   const data = {
     ready: guessesHandle.ready() && puzzlesHandle.ready() && huntsHandle.ready() && paHandle.ready(),
-    announcements: [],
-    guesses: [],
+    announcements: [] as NotificationCenterAnnouncement[],
+    guesses: [] as NotificationCenterGuess[],
     slackConfigured: !!(profile && profile.slackHandle),
   };
 

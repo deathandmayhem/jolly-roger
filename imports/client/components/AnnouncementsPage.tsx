@@ -1,33 +1,49 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import moment from 'moment';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import marked from 'marked';
+import * as moment from 'moment';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as Alert from 'react-bootstrap/lib/Alert';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as marked from 'marked';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache';
-import AnnouncementsSchema from '../../lib/schemas/announcements';
+import AnnouncementsSchema, { AnnouncementType } from '../../lib/schemas/announcements';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
 
 /* eslint-disable max-len */
 
-class AnnouncementForm extends React.Component {
+interface AnnouncementFormProps {
+  huntId: string;
+}
+
+enum AnnouncementFormSubmitState {
+  IDLE = 'idle',
+  SUBMITTING = 'submitting',
+  FAILED = 'failed',
+}
+
+interface AnnouncementFormState {
+  message: string;
+  submitState: AnnouncementFormSubmitState;
+  errorMessage: string;
+}
+
+class AnnouncementForm extends React.Component<AnnouncementFormProps, AnnouncementFormState> {
   static propTypes = {
     huntId: PropTypes.string.isRequired,
   };
 
   state = {
     message: '',
-    submitState: 'idle',
+    submitState: AnnouncementFormSubmitState.IDLE,
     errorMessage: '',
   };
 
-  setMessage = (event) => {
+  setMessage = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     this.setState({
       message: event.target.value,
     });
@@ -36,18 +52,18 @@ class AnnouncementForm extends React.Component {
   postAnnouncement = () => {
     if (this.state.message) {
       this.setState({
-        submitState: 'submitting',
+        submitState: AnnouncementFormSubmitState.SUBMITTING,
       });
-      Meteor.call('postAnnouncement', this.props.huntId, this.state.message, (error) => {
+      Meteor.call('postAnnouncement', this.props.huntId, this.state.message, (error: Error) => {
         if (error) {
           this.setState({
-            submitState: 'failed',
+            submitState: AnnouncementFormSubmitState.FAILED,
             errorMessage: error.message,
           });
         } else {
           this.setState({
             message: '',
-            submitState: 'idle',
+            submitState: AnnouncementFormSubmitState.IDLE,
           });
         }
       });
@@ -79,7 +95,12 @@ class AnnouncementForm extends React.Component {
   }
 }
 
-class Announcement extends React.Component {
+interface AnnouncementProps {
+  announcement: AnnouncementType;
+  displayNames: Record<string, string>;
+}
+
+class Announcement extends React.Component<AnnouncementProps> {
   static propTypes = {
     announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
@@ -102,15 +123,30 @@ class Announcement extends React.Component {
   }
 }
 
-class AnnouncementsPage extends React.Component {
+interface AnnouncementsPageParamsProps {
+  params: {huntId: string};
+}
+
+type AnnouncementsPageProps = AnnouncementsPageParamsProps & {
+  ready: boolean;
+  canCreateAnnouncements: boolean;
+  announcements: AnnouncementType[];
+  displayNames: Record<string, string>;
+}
+
+class AnnouncementsPage extends React.Component<AnnouncementsPageProps> {
   static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
     ready: PropTypes.bool.isRequired,
     canCreateAnnouncements: PropTypes.bool.isRequired,
-    announcements: PropTypes.arrayOf(PropTypes.shape(AnnouncementsSchema.asReactPropTypes())).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
+    announcements: PropTypes.arrayOf(
+      PropTypes.shape(
+        AnnouncementsSchema.asReactPropTypes<AnnouncementType>()
+      ).isRequired as React.Validator<AnnouncementType>
+    ).isRequired,
+    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
   };
 
   render() {
@@ -140,10 +176,10 @@ class AnnouncementsPage extends React.Component {
   }
 }
 
-const crumb = withBreadcrumb(({ params }) => {
-  return { title: 'Announcements', link: `/hunts/${params.huntId}/announcements` };
+const crumb = withBreadcrumb(({ params }: AnnouncementsPageParamsProps) => {
+  return { title: 'Announcements', path: `/hunts/${params.huntId}/announcements` };
 });
-const tracker = withTracker(({ params }) => {
+const tracker = withTracker(({ params }: AnnouncementsPageParamsProps) => {
   // We already have subscribed to mongo.announcements on the main page, since we want to be able
   // to show them on any page.  So we don't *need* to make the subscription here...
   // ...except that we might want to wait to render until we've received all of them?  IDK.
@@ -151,8 +187,8 @@ const tracker = withTracker(({ params }) => {
   const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
   const ready = announcementsHandle.ready() && displayNamesHandle.ready();
 
-  let announcements;
-  let displayNames;
+  let announcements: AnnouncementType[];
+  let displayNames: Record<string, string>;
   if (!ready) {
     announcements = [];
     displayNames = {};
@@ -170,10 +206,5 @@ const tracker = withTracker(({ params }) => {
   };
 });
 
-const AnnouncementsPageContainer = _.compose(crumb, tracker)(AnnouncementsPage);
-AnnouncementsPageContainer.propTypes = {
-  params: PropTypes.shape({
-    huntId: PropTypes.string.isRequired,
-  }).isRequired,
-};
+const AnnouncementsPageContainer = crumb(tracker(AnnouncementsPage));
 export default AnnouncementsPageContainer;

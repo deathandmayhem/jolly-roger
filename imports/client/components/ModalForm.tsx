@@ -1,13 +1,26 @@
-import PropTypes from 'prop-types';
-import React from 'react';
-import Button from 'react-bootstrap/lib/Button';
-import Modal from 'react-bootstrap/lib/Modal';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as Modal from 'react-bootstrap/lib/Modal';
 
-class ModalForm extends React.Component {
+interface ModalFormProps {
+  title: string;
+  submitLabel?: string;
+  submitStyle?: string;
+  submitDisabled?: boolean;
+  onSubmit: (callback: () => void) => void;
+  children?: React.ReactNode;
+}
+
+interface ModalFormState {
+  show: boolean;
+}
+
+class ModalForm extends React.Component<ModalFormProps, ModalFormState> {
   static propTypes = {
     title: PropTypes.string.isRequired,
     submitLabel: PropTypes.string,
-    submitStyle: PropTypes.oneOf(Button.STYLES),
+    submitStyle: PropTypes.string,
     submitDisabled: PropTypes.bool,
     onSubmit: PropTypes.func.isRequired,
     children: PropTypes.node,
@@ -32,7 +45,7 @@ class ModalForm extends React.Component {
     this.setState({ show: false });
   };
 
-  submit = (e) => {
+  submit = (e: React.FormEvent) => {
     e.preventDefault();
     this.props.onSubmit(() => {
       // For delete forms, it's possible that the component gets
@@ -42,6 +55,8 @@ class ModalForm extends React.Component {
       }
     });
   };
+
+  private dontTryToClose?: boolean;
 
   render() {
     return (

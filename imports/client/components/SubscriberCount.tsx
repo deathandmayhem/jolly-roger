@@ -1,13 +1,19 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
-import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
-import Tooltip from 'react-bootstrap/lib/Tooltip';
+import * as OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
+import * as Tooltip from 'react-bootstrap/lib/Tooltip';
 
 import { SubscriberCounters } from '../subscribers';
 import Flags from '../../flags';
 
-class SubscriberCount extends React.Component {
+interface SubscriberCountProps {
+  puzzleId: string;
+  disabled: boolean;
+  viewCount: number;
+}
+
+class SubscriberCount extends React.Component<SubscriberCountProps> {
   static displayName = 'SubscriberCount';
 
   static propTypes = {
@@ -38,7 +44,7 @@ class SubscriberCount extends React.Component {
   }
 }
 
-const SubscriberCountContainer = withTracker(({ puzzleId }) => {
+const SubscriberCountContainer = withTracker(({ puzzleId }: { puzzleId: string }) => {
   const disabled = Flags.active('disable.subcounters');
   const count = SubscriberCounters.findOne(`puzzle:${puzzleId}`);
   return {
@@ -48,7 +54,7 @@ const SubscriberCountContainer = withTracker(({ puzzleId }) => {
 })(SubscriberCount);
 
 SubscriberCountContainer.propTypes = {
-  puzzleId: PropTypes.string,
+  puzzleId: PropTypes.string.isRequired,
 };
 
 export default SubscriberCountContainer;

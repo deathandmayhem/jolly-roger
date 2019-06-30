@@ -1,18 +1,32 @@
 import { _ } from 'meteor/underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
 import Creatable from 'react-select/lib/Creatable';
-import TagsSchema from '../../lib/schemas/tags';
+import TagSchema, { TagType } from '../../lib/schemas/tags';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
 
-class TagEditor extends React.Component {
+interface TagEditorContainerProps {
+  puzzleId: string;
+  onSubmit: (value: string) => void;
+  onCancel: () => void;
+}
+
+type TagEditorProps = {
+  allTags: TagType[];
+} & TagEditorContainerProps
+
+class TagEditor extends React.Component<TagEditorProps> {
   static propTypes = {
     puzzleId: PropTypes.string.isRequired,
     onSubmit: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
-    allTags: PropTypes.arrayOf(PropTypes.shape(TagsSchema.asReactPropTypes())).isRequired,
+    allTags: PropTypes.arrayOf(
+      PropTypes.shape(
+        TagSchema.asReactPropTypes()
+      ).isRequired as React.Validator<TagType>
+    ).isRequired,
   };
 
   onBlur = () => {
@@ -36,7 +50,7 @@ class TagEditor extends React.Component {
           options={options}
           autoFocus
           openMenuOnFocus
-          onChange={value => this.props.onSubmit(value.value)}
+          onChange={v => this.props.onSubmit((v as {value: string}).value)}
           onBlur={this.onBlur}
         />
       </span>
@@ -44,13 +58,15 @@ class TagEditor extends React.Component {
   }
 }
 
-const TagEditorContainer = withTracker(({ puzzleId }) => {
+const TagEditorContainer = withTracker(({ puzzleId }: TagEditorContainerProps) => {
   const puzzle = Puzzles.findOne(puzzleId);
   return { allTags: Tags.find({ hunt: puzzle.hunt }).fetch() };
 })(TagEditor);
 
 TagEditorContainer.propTypes = {
-  puzzleId: PropTypes.string,
+  puzzleId: PropTypes.string.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
 };
 
 export default TagEditorContainer;

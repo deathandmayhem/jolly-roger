@@ -1,7 +1,11 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
 
-class PuzzleAnswer extends React.PureComponent {
+interface PuzzleAnswerProps {
+  answer: string;
+}
+
+class PuzzleAnswer extends React.PureComponent<PuzzleAnswerProps> {
   static displayName = 'PuzzleAnswer';
 
   static propTypes = {

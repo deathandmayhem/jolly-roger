@@ -1,16 +1,16 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
-import Checkbox from 'react-bootstrap/lib/Checkbox';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as Alert from 'react-bootstrap/lib/Alert';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
+import * as Checkbox from 'react-bootstrap/lib/Checkbox';
+import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import * as FormControl from 'react-bootstrap/lib/FormControl';
+import * as FormGroup from 'react-bootstrap/lib/FormGroup';
+import * as HelpBlock from 'react-bootstrap/lib/HelpBlock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router';
@@ -19,12 +19,12 @@ import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Ansible from '../../ansible';
 import subsCache from '../subsCache';
 import ModalForm from './ModalForm';
-import HuntsSchema from '../../lib/schemas/hunts';
+import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
 import Hunts from '../../lib/models/hunts';
 
 /* eslint-disable max-len */
 
-const splitLists = function (lists) {
+const splitLists = function (lists: string): string[] {
   const strippedLists = lists.trim();
   if (strippedLists === '') {
     return [];
@@ -33,25 +33,53 @@ const splitLists = function (lists) {
   return strippedLists.split(/[, ]+/);
 };
 
-class HuntModalForm extends React.Component {
+export interface HuntModalSubmit {
+  // eslint-disable-next-line no-restricted-globals
+  name: string;
+  mailingLists: string[];
+  signupMessage: string;
+  openSignups: boolean;
+  submitTemplate: string;
+  firehoseSlackChannel: string;
+  puzzleHooksSlackChannel: string;
+}
+
+interface HuntModalFormProps {
+  hunt?: HuntType;
+  onSubmit: (state: HuntModalSubmit, callback: (error: Error) => void) => void;
+}
+
+enum HuntModalFormSubmitState {
+  IDLE = 'idle',
+  SUBMITTING = 'submitting',
+  FAILED = 'failed',
+}
+
+type HuntModalFormState = {
+  submitState: HuntModalFormSubmitState;
+  errorMessage: string;
+  mailingLists: string;
+} & Pick<HuntModalSubmit, Exclude<keyof HuntModalSubmit, 'mailingLists'>>
+
+class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormState> {
   static propTypes = {
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()) as React.Requireable<HuntType>,
     onSubmit: PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
   };
 
-  constructor(props, context) {
+  constructor(props: HuntModalFormProps, context?: any) {
     super(props, context);
     this.state = this.initialState();
     this.formRef = React.createRef();
   }
 
-  initialState = () => {
+  initialState = (): HuntModalFormState => {
     const state = {
-      submitState: 'idle',
+      submitState: HuntModalFormSubmitState.IDLE,
       errorMessage: '',
     };
     if (this.props.hunt) {
-      return _.extend(state, {
+      return Object.assign(state, {
         name: this.props.hunt.name || '',
         mailingLists: this.props.hunt.mailingLists.join(', ') || '',
         signupMessage: this.props.hunt.signupMessage || '',
@@ -61,7 +89,7 @@ class HuntModalForm extends React.Component {
         puzzleHooksSlackChannel: this.props.hunt.puzzleHooksSlackChannel || '',
       });
     } else {
-      return _.extend(state, {
+      return Object.assign(state, {
         name: '',
         mailingLists: '',
         signupMessage: '',
@@ -73,59 +101,59 @@ class HuntModalForm extends React.Component {
     }
   };
 
-  onNameChanged = (e) => {
+  onNameChanged = (e: React.ChangeEvent<FormControl>) => {
     this.setState({
-      name: e.target.value,
+      name: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  onMailingListsChanged = (e) => {
+  onMailingListsChanged = (e: React.ChangeEvent<FormControl>) => {
     this.setState({
-      mailingLists: e.target.value,
+      mailingLists: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  onSignupMessageChanged = (e) => {
+  onSignupMessageChanged = (e: React.ChangeEvent<FormControl>) => {
     this.setState({
-      signupMessage: e.target.value,
+      signupMessage: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  onOpenSignupsChanged = (e) => {
+  onOpenSignupsChanged = (e: React.ChangeEvent<Checkbox>) => {
     this.setState({
-      openSignups: e.target.checked,
+      openSignups: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.checked,
     });
   };
 
-  onSubmitTemplateChanged = (e) => {
+  onSubmitTemplateChanged = (e: React.ChangeEvent<FormControl>) => {
     this.setState({
-      submitTemplate: e.target.value,
+      submitTemplate: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
     });
   }
 
-  onFirehoseSlackChannelChanged = (e) => {
+  onFirehoseSlackChannelChanged = (e: React.ChangeEvent<FormControl>) => {
     this.setState({
-      firehoseSlackChannel: e.target.value,
+      firehoseSlackChannel: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  onPuzzleHooksSlackChannelChanged = (e) => {
+  onPuzzleHooksSlackChannelChanged = (e: React.ChangeEvent<FormControl>) => {
     this.setState({
-      puzzleHooksSlackChannel: e.target.value,
+      puzzleHooksSlackChannel: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  onFormSubmit = (callback) => {
-    this.setState({ submitState: 'submitting' });
-    const state = _.extend(
-      {},
-      _.omit(this.state, 'submitState', 'errorMessage'),
+  onFormSubmit = (callback: () => void) => {
+    this.setState({ submitState: HuntModalFormSubmitState.SUBMITTING });
+    const { submitState, errorMessage, ...state } = this.state;
+    const sendState = Object.assign(
+      state,
       { mailingLists: splitLists(this.state.mailingLists) },
     );
-    this.props.onSubmit(state, (error) => {
+    this.props.onSubmit(sendState, (error: Error) => {
       if (error) {
         this.setState({
-          submitState: 'failed',
+          submitState: HuntModalFormSubmitState.FAILED,
           errorMessage: error.message,
         });
       } else {
@@ -136,13 +164,16 @@ class HuntModalForm extends React.Component {
   };
 
   show = () => {
-    this.formRef.current.show();
+    if (this.formRef.current) {
+      this.formRef.current.show();
+    }
   };
 
+  private formRef: React.RefObject<ModalForm>;
 
   render() {
-    const disableForm = this.state.submitState === 'submitting';
-    const idPrefix = this.props.hunt ? `jr-hunt-${this.props.hunt.id}-modal-` : 'jr-hunt-new-modal-';
+    const disableForm = this.state.submitState === HuntModalFormSubmitState.SUBMITTING;
+    const idPrefix = this.props.hunt ? `jr-hunt-${this.props.hunt._id}-modal-` : 'jr-hunt-new-modal-';
     return (
       <ModalForm
         ref={this.formRef}
@@ -299,44 +330,55 @@ class HuntModalForm extends React.Component {
           </div>
         </FormGroup>
 
-        {this.state.submitState === 'failed' && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
+        {this.state.submitState === HuntModalFormSubmitState.FAILED && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>
     );
   }
 }
 
-class Hunt extends React.Component {
+interface HuntProps {
+  hunt: HuntType;
+  canUpdate: boolean;
+  canDestroy: boolean;
+}
+
+class Hunt extends React.Component<HuntProps> {
   static propTypes = {
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
     canUpdate: PropTypes.bool.isRequired,
     canDestroy: PropTypes.bool.isRequired,
   };
 
-  constructor(props) {
+  constructor(props: HuntProps) {
     super(props);
     this.editModalRef = React.createRef();
     this.deleteModalRef = React.createRef();
   }
 
-  onEdit = (state, callback) => {
+  onEdit = (state: HuntModalSubmit, callback: (error: Error) => void) => {
     Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), state });
     Hunts.update(
       { _id: this.props.hunt._id },
       { $set: state },
+      {},
       callback
     );
   };
 
-  onDelete = (callback) => {
+  onDelete = (callback: () => void) => {
     Hunts.destroy(this.props.hunt._id, callback);
   };
 
   showEditModal = () => {
-    this.editModalRef.current.show();
+    if (this.editModalRef.current) {
+      this.editModalRef.current.show();
+    }
   };
 
   showDeleteModal = () => {
-    this.deleteModalRef.current.show();
+    if (this.deleteModalRef.current) {
+      this.deleteModalRef.current.show();
+    }
   };
 
   editButton = () => {
@@ -362,6 +404,10 @@ class Hunt extends React.Component {
 
     return undefined;
   };
+
+  private editModalRef: React.RefObject<HuntModalForm>;
+
+  private deleteModalRef: React.RefObject<ModalForm>;
 
   render() {
     const hunt = this.props.hunt;
@@ -396,8 +442,9 @@ class Hunt extends React.Component {
   }
 }
 
-const HuntContainer = withTracker(() => {
+const HuntContainer = withTracker(({ hunt }: { hunt: HuntType }) => {
   return {
+    hunt,
     canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
 
     // Because we delete by setting the deleted flag, you only need
@@ -418,26 +465,37 @@ const MockHunt = React.createClass({
 });
 */
 
-class HuntListPage extends React.Component {
+interface HuntListPageProps {
+  ready: boolean;
+  canAdd: boolean;
+  hunts: HuntType[];
+  myHunts: Record<string, boolean>;
+}
+
+class HuntListPage extends React.Component<HuntListPageProps> {
   static propTypes = {
     ready: PropTypes.bool.isRequired,
     canAdd: PropTypes.bool.isRequired,
-    hunts: PropTypes.arrayOf(PropTypes.shape(HuntsSchema.asReactPropTypes())).isRequired,
-    myHunts: PropTypes.objectOf(PropTypes.bool).isRequired,
+    hunts: PropTypes.arrayOf(
+      PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>
+    ).isRequired,
+    myHunts: PropTypes.objectOf(PropTypes.bool.isRequired).isRequired,
   };
 
-  constructor(props) {
+  constructor(props: HuntListPageProps) {
     super(props);
     this.addModalRef = React.createRef();
   }
 
-  onAdd = (state, callback) => {
+  onAdd = (state: HuntModalSubmit, callback: (error: Error) => void): void => {
     Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
     Hunts.insert(state, callback);
   };
 
   showAddModal = () => {
-    this.addModalRef.current.show();
+    if (this.addModalRef.current) {
+      this.addModalRef.current.show();
+    }
   };
 
   addButton = () => {
@@ -452,11 +510,13 @@ class HuntListPage extends React.Component {
     return undefined;
   };
 
+  private addModalRef: React.RefObject<HuntModalForm>
+
   render() {
     const body = [];
     if (this.props.ready) {
-      const joinedHunts = [];
-      const otherHunts = [];
+      const joinedHunts: JSX.Element[] = [];
+      const otherHunts: JSX.Element[] = [];
       this.props.hunts.forEach((hunt) => {
         const huntTag = <HuntContainer key={hunt._id} hunt={hunt} />;
         if (this.props.myHunts[hunt._id]) {
@@ -504,13 +564,13 @@ class HuntListPage extends React.Component {
   }
 }
 
-const crumb = withBreadcrumb({ title: 'Hunts', link: '/hunts' });
+const crumb = withBreadcrumb({ title: 'Hunts', path: '/hunts' });
 const tracker = withTracker(() => {
   const huntListHandle = subsCache.subscribe('mongo.hunts');
   const myHuntsHandle = subsCache.subscribe('selfHuntMembership');
   const ready = huntListHandle.ready() && myHuntsHandle.ready();
 
-  const myHunts = {};
+  const myHunts: Record<string, boolean> = {};
   if (ready) {
     Meteor.user().hunts.forEach((hunt) => { myHunts[hunt] = true; });
   }
@@ -523,4 +583,4 @@ const tracker = withTracker(() => {
   };
 });
 
-export default _.compose(crumb, tracker)(HuntListPage);
+export default crumb(tracker(HuntListPage));

@@ -1,15 +1,21 @@
 import { Meteor } from 'meteor/meteor';
-import React from 'react';
-import PropTypes from 'prop-types';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
+import * as Alert from 'react-bootstrap/lib/Alert';
+import * as Button from 'react-bootstrap/lib/Button';
 import { withTracker } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible';
 
-class ConnectionStatus extends React.Component {
+interface ConnectionStatusProps {
+  meteorStatus: DDP.DDPStatus;
+}
+
+class ConnectionStatus extends React.Component<ConnectionStatusProps> {
   static propTypes = {
-    meteorStatus: PropTypes.object,
+    meteorStatus: PropTypes.any,
   };
+
+  timeoutId?: number;
 
   refresh() {
     // Mark this timeout as completed
@@ -38,7 +44,8 @@ class ConnectionStatus extends React.Component {
         );
       case 'waiting': {
         const now = Date.now();
-        const timeToRetry = Math.ceil((this.props.meteorStatus.retryTime - now) / 1000);
+        const retryTime = this.props.meteorStatus.retryTime || now;
+        const timeToRetry = Math.ceil((retryTime - now) / 1000);
 
         // If we have no refresh scheduled yet, trigger a refresh in a second.
         if (this.timeoutId === undefined) {

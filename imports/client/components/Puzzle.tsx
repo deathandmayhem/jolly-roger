@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
-import Button from 'react-bootstrap/lib/Button';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
+import * as Button from 'react-bootstrap/lib/Button';
 import { faEdit, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
@@ -10,15 +10,29 @@ import { Link } from 'react-router';
 
 import Ansible from '../../ansible';
 import PuzzleAnswer from './PuzzleAnswer';
-import PuzzleModalForm from './PuzzleModalForm';
+import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SubscriberCount from './SubscriberCount';
 import TagList from './TagList';
 import puzzleShape from './puzzleShape';
 import tagShape from './tagShape';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 
 /* eslint-disable max-len */
 
-class Puzzle extends React.PureComponent {
+interface PuzzleProps {
+  puzzle: PuzzleType;
+  allTags: TagType[];
+  layout: 'grid' | 'table';
+  canUpdate: boolean;
+  suppressTags?: string[];
+}
+
+interface PuzzleState {
+  showEditModal: boolean;
+}
+
+class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
   static displayName = 'Puzzle';
 
   static propTypes = {
@@ -26,7 +40,7 @@ class Puzzle extends React.PureComponent {
     allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired, // All tags associated with the hunt.
     layout: PropTypes.oneOf(['grid', 'table']).isRequired,
     canUpdate: PropTypes.bool.isRequired,
-    suppressTags: PropTypes.arrayOf(PropTypes.string),
+    suppressTags: PropTypes.arrayOf(PropTypes.string.isRequired),
   };
 
   state = {
@@ -37,18 +51,18 @@ class Puzzle extends React.PureComponent {
     showEditModal: false,
   };
 
-  constructor(props) {
+  constructor(props: PuzzleProps) {
     super(props);
     this.modalRef = React.createRef();
   }
 
-  onEdit = (state, callback) => {
+  onEdit = (state: PuzzleModalFormSubmitPayload, callback: (error: Error) => void) => {
     Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
   };
 
   showEditModal = () => {
-    if (this.state.showEditModal) {
+    if (this.state.showEditModal && this.modalRef.current) {
       this.modalRef.current.show();
     } else {
       this.setState({
@@ -67,6 +81,8 @@ class Puzzle extends React.PureComponent {
     }
     return null;
   };
+
+  private modalRef: React.RefObject<PuzzleModalForm>;
 
   render() {
     // id, title, answer, tags

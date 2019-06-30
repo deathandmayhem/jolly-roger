@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Tracker } from 'meteor/tracker';
 import { withTracker } from 'meteor/react-meteor-data';
@@ -8,8 +8,26 @@ import subsCache from '../subsCache';
 import Celebration from './Celebration';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
+import { PuzzleType } from '../../lib/schemas/puzzles';
 
-class CelebrationCenter extends React.Component {
+interface CelebrationCenterProps {
+  huntId: string;
+  disabled: boolean;
+  muted: boolean;
+}
+
+interface CelebrationCenterQueueItem {
+  puzzleId: string;
+  url: string;
+  answer: string;
+  title: string;
+}
+
+interface CelebrationCenterState {
+  playbackQueue: CelebrationCenterQueueItem[];
+}
+
+class CelebrationCenter extends React.Component<CelebrationCenterProps, CelebrationCenterState> {
   static displayName = 'CelebrationCenter';
 
   static propTypes = {
@@ -20,7 +38,7 @@ class CelebrationCenter extends React.Component {
 
   state = {
     playbackQueue: [],
-  };
+  } as CelebrationCenterState;
 
   componentDidMount() {
     setTimeout(() => this.resetComputation(), 0);
@@ -33,21 +51,22 @@ class CelebrationCenter extends React.Component {
   componentWillUnmount() {
     if (this.computation) {
       this.computation.stop();
-      this.computation = null;
+      this.computation = undefined;
     }
   }
 
-  onPuzzleSolved = (puzzle) => {
+  onPuzzleSolved = (puzzle: PuzzleType) => {
     // Only celebrate if:
     // 1) we're not on mobile, and
     // 2) the feature flag is not disabled, and
     // 3) TODO: the user has not disabled it in their profile settings
-    if ((window.orientation === undefined) && !this.props.disabled) {
+    const answer = puzzle.answer;
+    if ((window.orientation === undefined) && !this.props.disabled && answer) {
       this.setState((prevState) => {
         const newQueue = prevState.playbackQueue.concat([{
           puzzleId: puzzle._id,
           url: `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
-          answer: puzzle.answer,
+          answer,
           title: puzzle.title,
         }]);
 
@@ -73,11 +92,12 @@ class CelebrationCenter extends React.Component {
   };
 
   dismissCurrentCelebration = () => {
-    const [car, ...cons] = this.state.playbackQueue; // eslint-disable-line no-unused-vars
-    this.setState({
-      playbackQueue: cons,
+    this.setState((prevState) => {
+      return { playbackQueue: prevState.playbackQueue.slice(1) };
     });
   };
+
+  private computation?: Tracker.Computation;
 
   render() {
     if (this.state.playbackQueue.length === 0) {
@@ -98,7 +118,7 @@ class CelebrationCenter extends React.Component {
   }
 }
 
-const CelebrationCenterContainer = withTracker(({ huntId }) => {
+const CelebrationCenterContainer = withTracker(({ huntId }: { huntId: string }) => {
   // This should be effectively a noop, since we're already fetching it for every hunt
   subsCache.subscribe('mongo.puzzles', { hunt: huntId });
 

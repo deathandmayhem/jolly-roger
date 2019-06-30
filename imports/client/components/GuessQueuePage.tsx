@@ -1,16 +1,16 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import PropTypes from 'prop-types';
-import React from 'react';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
 import { Link } from 'react-router';
-import classnames from 'classnames';
+import * as classnames from 'classnames';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache';
-import GuessesSchema from '../../lib/schemas/guess';
-import HuntsSchema from '../../lib/schemas/hunts';
-import PuzzlesSchema from '../../lib/schemas/puzzles';
+import GuessesSchema, { GuessType } from '../../lib/schemas/guess';
+import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
+import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
 import Guesses from '../../lib/models/guess';
 import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
@@ -19,20 +19,28 @@ import { guessURL } from '../../model-helpers';
 
 /* eslint-disable max-len */
 
-class AutoSelectInput extends React.Component {
+interface AutoSelectInputProps {
+  value: string;
+}
+
+class AutoSelectInput extends React.Component<AutoSelectInputProps> {
   static propTypes = {
     value: PropTypes.string.isRequired,
   };
 
-  constructor(props) {
+  constructor(props: AutoSelectInputProps) {
     super(props);
     this.inputRef = React.createRef();
   }
 
   onFocus = () => {
     // Use the selection API to select the contents of this, for easier clipboarding.
-    this.inputRef.current.select();
+    if (this.inputRef.current) {
+      this.inputRef.current.select();
+    }
   };
+
+  private inputRef: React.RefObject<HTMLInputElement>
 
   render() {
     return (
@@ -48,13 +56,21 @@ class AutoSelectInput extends React.Component {
 
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-class GuessBlock extends React.Component {
+interface GuessBlockProps {
+  canEdit: boolean;
+  hunt: HuntType;
+  guess: GuessType;
+  createdByDisplayName: string;
+  puzzle: PuzzleType;
+}
+
+class GuessBlock extends React.Component<GuessBlockProps> {
   static propTypes = {
     canEdit: PropTypes.bool.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired,
-    guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
+    guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired as React.Validator<GuessType>,
     createdByDisplayName: PropTypes.string.isRequired,
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
   };
 
   markPending = () => {
@@ -73,7 +89,7 @@ class GuessBlock extends React.Component {
     Meteor.call('markGuessRejected', this.props.guess._id);
   };
 
-  formatDate = (date) => {
+  formatDate = (date: Date) => {
     // We only care about days in so far as which day of hunt this guess was submitted on
     const day = daysOfWeek[date.getDay()];
     return `${date.toLocaleTimeString()} on ${day}`;
@@ -122,21 +138,40 @@ class GuessBlock extends React.Component {
   }
 }
 
-class GuessQueuePage extends React.Component {
+interface GuessQueuePageParams {
+  params: {huntId: string};
+}
+
+type GuessQueuePageProps = GuessQueuePageParams & {
+  ready: boolean;
+  hunt?: HuntType;
+  guesses: GuessType[];
+  puzzles: Record<string, PuzzleType>;
+  displayNames: Record<string, string>;
+  canEdit: boolean;
+};
+
+class GuessQueuePage extends React.Component<GuessQueuePageProps> {
   static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
     ready: PropTypes.bool.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
-    guesses: PropTypes.arrayOf(PropTypes.shape(GuessesSchema.asReactPropTypes())).isRequired,
-    puzzles: PropTypes.objectOf(PropTypes.shape(PuzzlesSchema.asReactPropTypes())).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()) as React.Requireable<HuntType>,
+    guesses: PropTypes.arrayOf(
+      PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired as React.Validator<GuessType>
+    ).isRequired,
+    puzzles: PropTypes.objectOf(
+      PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>
+    ).isRequired,
+    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
     canEdit: PropTypes.bool.isRequired,
   };
 
   render() {
-    if (!this.props.ready) {
+    const hunt = this.props.hunt;
+
+    if (!this.props.ready || !hunt) {
       return <div>loading...</div>;
     }
 
@@ -147,7 +182,7 @@ class GuessQueuePage extends React.Component {
           return (
             <GuessBlock
               key={guess._id}
-              hunt={this.props.hunt}
+              hunt={hunt}
               guess={guess}
               createdByDisplayName={this.props.displayNames[guess.createdBy]}
               puzzle={this.props.puzzles[guess.puzzle]}
@@ -160,10 +195,10 @@ class GuessQueuePage extends React.Component {
   }
 }
 
-const crumb = withBreadcrumb(({ params }) => {
-  return { title: 'Guess queue', link: `/hunts/${params.huntId}/guesses` };
+const crumb = withBreadcrumb(({ params }: GuessQueuePageParams) => {
+  return { title: 'Guess queue', path: `/hunts/${params.huntId}/guesses` };
 });
-const tracker = withTracker(({ params }) => {
+const tracker = withTracker(({ params }: GuessQueuePageParams) => {
   const huntHandle = subsCache.subscribe('mongo.hunts', {
     _id: params.huntId,
   });
@@ -175,30 +210,23 @@ const tracker = withTracker(({ params }) => {
   });
   const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
   const ready = huntHandle.ready() && guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
-  const hunt = ready ? Hunts.findOne({ _id: params.huntId }) : undefined;
-  const guesses = ready ? Guesses.find({ hunt: params.huntId }, { sort: { createdAt: -1 } }).fetch() : [];
-  const puzzles = ready ? _.indexBy(Puzzles.find({ hunt: params.huntId }).fetch(), '_id') : {};
-  let displayNames = {};
+  const data: Pick<GuessQueuePageProps, Exclude<keyof GuessQueuePageProps, keyof GuessQueuePageParams>> = {
+    ready,
+    guesses: [],
+    puzzles: {},
+    displayNames: {},
+    canEdit: Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update'),
+  };
   if (ready) {
-    displayNames = Profiles.displayNames();
+    data.hunt = Hunts.findOne({ _id: params.huntId });
+    data.guesses = Guesses.find({ hunt: params.huntId }, { sort: { createdAt: -1 } }).fetch();
+    data.puzzles = _.indexBy(Puzzles.find({ hunt: params.huntId }).fetch(), '_id');
+    data.displayNames = Profiles.displayNames();
   }
 
-  const canEdit = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
-  return {
-    ready,
-    hunt,
-    guesses,
-    puzzles,
-    displayNames,
-    canEdit,
-  };
+  return data;
 });
 
-const GuessQueuePageContainer = _.compose(crumb, tracker)(GuessQueuePage);
-GuessQueuePageContainer.propTypes = {
-  params: PropTypes.shape({
-    huntId: PropTypes.string.isRequired,
-  }).isRequired,
-};
+const GuessQueuePageContainer = crumb(tracker(GuessQueuePage));
 
 export default GuessQueuePageContainer;

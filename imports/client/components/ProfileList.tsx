@@ -1,18 +1,28 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
 import { _ } from 'meteor/underscore';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import InputGroup from 'react-bootstrap/lib/InputGroup';
-import ListGroup from 'react-bootstrap/lib/ListGroup';
-import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
-import RRBS from 'react-router-bootstrap';
-import ProfilesSchema from '../../lib/schemas/profiles';
+import * as Alert from 'react-bootstrap/lib/Alert';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import * as FormControl from 'react-bootstrap/lib/FormControl';
+import * as FormGroup from 'react-bootstrap/lib/FormGroup';
+import * as InputGroup from 'react-bootstrap/lib/InputGroup';
+import * as ListGroup from 'react-bootstrap/lib/ListGroup';
+import * as ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
+import * as RRBS from 'react-router-bootstrap';
+import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
 
-class ProfileList extends React.Component {
+interface ProfileListProps {
+  huntId?: string;
+  canInvite?: boolean;
+  profiles: ProfileType[];
+}
+
+interface ProfileListState {
+  searchString: string;
+}
+
+class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
   static propTypes = {
     huntId: PropTypes.string,
     canInvite: PropTypes.bool,
@@ -27,9 +37,11 @@ class ProfileList extends React.Component {
     searchString: '',
   };
 
-  onSearchStringChange = (e) => {
+  // The type annotation on FormControl is wrong here - the event is from the
+  // input element, not the FormControl React component
+  onSearchStringChange = (e: React.FormEvent<FormControl>) => {
     this.setState({
-      searchString: e.target.value,
+      searchString: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
@@ -39,7 +51,7 @@ class ProfileList extends React.Component {
       .filter(s => !!s)
       .map(s => s.toLowerCase())
       .value();
-    const isInteresting = (profile) => {
+    const isInteresting = (profile: ProfileType) => {
       for (let i = 0; i < toMatch.length; i++) {
         const searchKey = toMatch[i];
         if (profile.displayName.toLowerCase().indexOf(searchKey) === -1 &&

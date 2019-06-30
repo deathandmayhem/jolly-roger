@@ -1,15 +1,25 @@
 import { Meteor } from 'meteor/meteor';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import Col from 'react-bootstrap/lib/Col';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import Row from 'react-bootstrap/lib/Row';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as Alert from 'react-bootstrap/lib/Alert';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as Col from 'react-bootstrap/lib/Col';
+import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import * as FormControl from 'react-bootstrap/lib/FormControl';
+import * as FormGroup from 'react-bootstrap/lib/FormGroup';
+import * as Row from 'react-bootstrap/lib/Row';
 
-class UserInvitePage extends React.Component {
+interface UserInvitePageProps {
+  params: {huntId: string};
+}
+
+interface UserInvitePageState {
+  submitting: boolean;
+  error?: Meteor.Error | null;
+  email: string;
+}
+
+class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePageState> {
   static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
@@ -24,18 +34,18 @@ class UserInvitePage extends React.Component {
     submitting: false,
     error: null,
     email: '',
-  };
+  } as UserInvitePageState;
 
-  onEmailChanged = (e) => {
+  onEmailChanged = (e: React.FormEvent<FormControl>) => {
     this.setState({
-      email: e.currentTarget.value,
+      email: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  onSubmit = (e) => {
+  onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     this.setState({ submitting: true });
-    Meteor.call('addToHunt', this.props.params.huntId, this.state.email, (error) => {
+    Meteor.call('addToHunt', this.props.params.huntId, this.state.email, (error?: Meteor.Error) => {
       this.setState({ submitting: false });
       if (error) {
         this.setState({ error });
