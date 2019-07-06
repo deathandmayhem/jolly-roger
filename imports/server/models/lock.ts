@@ -4,6 +4,7 @@ import { Mongo } from 'meteor/mongo';
 import Ansible from '../../ansible';
 import LockSchema, { LockType } from '../schemas/lock';
 
+// global Npm
 const Future = Npm.require('fibers/future');
 
 // 10 seconds

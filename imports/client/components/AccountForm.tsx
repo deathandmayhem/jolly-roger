@@ -6,16 +6,18 @@ import * as Alert from 'react-bootstrap/lib/Alert';
 
 /* eslint-disable max-len, jsx-a11y/href-no-hash, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
 
-enum AccountFormFormat {
+export enum AccountFormFormat {
   LOGIN = 'login',
   REQUEST_PW_RESET = 'requestPwReset',
   ENROLL = 'enroll',
   RESET_PWD = 'resetPwd',
 }
 
-interface AccountFormProps {
-  format: AccountFormFormat;
-  onFormatChange: Function;
+type AccountFormProps = {
+  format: AccountFormFormat.LOGIN | AccountFormFormat.REQUEST_PW_RESET;
+  onFormatChange: () => void;
+} | {
+  format: AccountFormFormat.ENROLL | AccountFormFormat.RESET_PWD;
   token: string;
 }
 
@@ -38,7 +40,7 @@ interface AccountFormState {
 
 class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
   static propTypes = {
-    format: PropTypes.string,
+    format: PropTypes.string.isRequired,
     onFormatChange: PropTypes.func,
     token: PropTypes.string,
   };
@@ -115,8 +117,8 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
     });
   };
 
-  tryCompletePasswordReset = () => {
-    Accounts.resetPassword(this.props.token, this.state.password, (error: Meteor.Error) => {
+  tryCompletePasswordReset = (token: string) => {
+    Accounts.resetPassword(token, this.state.password, (error: Meteor.Error) => {
       if (error) {
         this.setState({
           submitState: AccountFormSubmitState.FAILED,
@@ -131,7 +133,7 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
     });
   };
 
-  tryEnroll = () => {
+  tryEnroll = (token: string) => {
     const newProfile = {
       displayName: this.state.displayName,
       phoneNumber: this.state.phoneNumber,
@@ -143,7 +145,7 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
       submitState: AccountFormSubmitState.SUBMITTING,
     });
 
-    Accounts.resetPassword(this.props.token, this.state.password, (error: Meteor.Error) => {
+    Accounts.resetPassword(token, this.state.password, (error: Meteor.Error) => {
       if (error) {
         this.setState({
           submitState: AccountFormSubmitState.FAILED,
@@ -170,23 +172,28 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
 
   submitForm = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const format = this.props.format || 'login';
-    if (format === 'login') {
-      this.tryLogin();
-    } else if (format === 'requestPwReset') {
-      this.tryPasswordReset();
-    } else if (format === 'enroll') {
-      this.tryEnroll();
-    } else if (format === 'resetPwd') {
-      this.tryCompletePasswordReset();
+    switch (this.props.format) {
+      case AccountFormFormat.LOGIN:
+        this.tryLogin();
+        break;
+      case AccountFormFormat.REQUEST_PW_RESET:
+        this.tryPasswordReset();
+        break;
+      case AccountFormFormat.ENROLL:
+        this.tryEnroll(this.props.token);
+        break;
+      case AccountFormFormat.RESET_PWD:
+        this.tryCompletePasswordReset(this.props.token);
+        break;
+      default:
     }
   };
 
-  toggleWantPasswordReset = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    if (this.props.onFormatChange) {
-      this.props.onFormatChange();
-    }
+  toggleWantPasswordReset = (onFormatChange: () => void) => {
+    return (event: React.MouseEvent) => {
+      event.preventDefault();
+      onFormatChange();
+    };
   };
 
   render() {
@@ -276,26 +283,26 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
         </span>
       </div>,
     ];
-    const pwResetOptionComponent = (
+    const pwResetOptionComponent = this.props.format === AccountFormFormat.LOGIN ? (
       <div className="at-pwd-link">
         <p>
           {/* TODO: prefer <Button bsStyle="link"> */}
-          <a href="#" id="at-forgotPwd" className="at-link at-pwd" onClick={this.toggleWantPasswordReset}>
+          <a href="#" id="at-forgotPwd" className="at-link at-pwd" onClick={this.toggleWantPasswordReset(this.props.onFormatChange)}>
             Forgot your password?
           </a>
         </p>
       </div>
-    );
-    const backToMainForm = (
+    ) : null;
+    const backToMainForm = this.props.format === AccountFormFormat.REQUEST_PW_RESET ? (
       <div className="at-signin-link">
         <p>
           {/* TODO: prefer <Button bsStyle="link"> */}
           If you already have an account,
           {' '}
-          <a href="#" id="at-signIn" className="at-link at-signin" onClick={this.toggleWantPasswordReset}>sign in</a>
+          <a href="#" id="at-signIn" className="at-link at-signin" onClick={this.toggleWantPasswordReset(this.props.onFormatChange)}>sign in</a>
         </p>
       </div>
-    );
+    ) : null;
     return (
       <div className="at-form">
         <div className="at-title">
@@ -308,12 +315,12 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
               {this.state.submitState === AccountFormSubmitState.SUCCESS && this.state.successMessage ? <Alert bsStyle="success">{this.state.successMessage}</Alert> : null}
               {format === AccountFormFormat.LOGIN || format === AccountFormFormat.REQUEST_PW_RESET ? emailInput : null}
               {format === AccountFormFormat.LOGIN || format === AccountFormFormat.ENROLL || format === AccountFormFormat.RESET_PWD ? pwInput : null}
-              {format === AccountFormFormat.LOGIN ? pwResetOptionComponent : null}
+              {pwResetOptionComponent}
               {format === AccountFormFormat.ENROLL ? enrollmentFields : null}
               <button id="at-btn" className="at-btn submit btn btn-lg btn-block btn-default" type="submit" disabled={submitting}>
                 {buttonText}
               </button>
-              {format === AccountFormFormat.REQUEST_PW_RESET ? backToMainForm : null}
+              {backToMainForm}
             </fieldset>
           </form>
         </div>

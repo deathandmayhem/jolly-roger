@@ -1,5 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
+import { ServiceConfiguration } from 'meteor/service-configuration';
+import { OAuth } from 'meteor/oauth';
+import { Google } from 'meteor/google-oauth';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import React from 'react';
 import PropTypes from 'prop-types';
