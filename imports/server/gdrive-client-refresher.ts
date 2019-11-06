@@ -37,7 +37,7 @@ class GDriveClientRefresher {
     this.oauthCredentialCursor.observe({
       added: doc => this.updateOauthCredentials(doc),
       changed: doc => this.updateOauthCredentials(doc),
-      removed: () => this.updateOauthCredentials({ value: {} }),
+      removed: () => this.clearOauthCredentials(),
     });
   }
 
@@ -46,8 +46,16 @@ class GDriveClientRefresher {
     this.recreateGdriveClient();
   }
 
-  updateOauthCredentials(doc: SettingType & { name: 'gdrive.credential' }) {
+  updateOauthCredentials(doc: SettingType) {
+    if (doc.name !== 'gdrive.credential') {
+      return; // this should be impossible
+    }
     this.oauthRefreshToken = doc.value.refreshToken;
+    this.recreateGdriveClient();
+  }
+
+  clearOauthCredentials() {
+    this.oauthRefreshToken = undefined;
     this.recreateGdriveClient();
   }
 
