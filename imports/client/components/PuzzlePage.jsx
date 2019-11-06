@@ -19,6 +19,7 @@ import DocumentTitle from 'react-document-title';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import classnames from 'classnames';
+import * as DOMPurify from 'dompurify';
 import marked from 'marked';
 import moment from 'moment';
 import TextareaAutosize from 'react-textarea-autosize';
@@ -319,7 +320,7 @@ class ChatMessage extends React.PureComponent {
       <div className={classes}>
         {!this.props.suppressSender && <span className="chat-timestamp">{ts}</span>}
         {!this.props.suppressSender && <strong>{this.props.senderDisplayName}</strong>}
-        <span dangerouslySetInnerHTML={{ __html: marked(this.props.message.text, { sanitize: true }) }} />
+        <span dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(this.props.message.text)) }} />
       </div>
     );
   }
