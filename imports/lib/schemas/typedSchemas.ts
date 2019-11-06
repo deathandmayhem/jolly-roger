@@ -62,11 +62,7 @@ interface AutoValueThis<T> {
   docId?: string;
 }
 
-type AutoValueReturn<T> = undefined | T | {
-  // This is a slight abuse of Mongo.Modifier because <T> is supposed to be the
-  // document type, but I just want to get at the keys
-  [K in keyof Mongo.Modifier<T>]: T;
-}
+type AutoValueReturn<T> = undefined | T | {$setOnInsert: T}
 
 type SharedOverrides<T> = {
   defaultValue?: NonNullable<T>;
