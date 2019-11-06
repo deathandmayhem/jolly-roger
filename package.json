@@ -21,7 +21,7 @@
     "classnames": "^2.2.5",
     "element-resize-detector": "^1.1.14",
     "express": "^4.14.0",
-    "googleapis": "^35.0.0",
+    "googleapis": "^44.0.0",
     "io-ts": "^1.6.2",
     "io-ts-types": "^0.4.0",
     "libhoney": "^1.2.1",
