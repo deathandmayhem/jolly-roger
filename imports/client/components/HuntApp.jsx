@@ -8,6 +8,7 @@ import Button from 'react-bootstrap/lib/Button';
 import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import DocumentTitle from 'react-document-title';
 import { withTracker } from 'meteor/react-meteor-data';
+import * as DOMPurify from 'dompurify';
 import marked from 'marked';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache';
@@ -97,7 +98,7 @@ class HuntMemberError extends React.Component {
   };
 
   render() {
-    const msg = marked(this.props.hunt.signupMessage || '', { sanitize: true });
+    const msg = marked(DOMPurify.sanitize(this.props.hunt.signupMessage || ''));
     return (
       <div>
         <Alert bsStyle="warning">

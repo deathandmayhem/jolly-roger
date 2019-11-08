@@ -17,7 +17,7 @@ export const DocumentCodec = t.intersection([
   t.type({
     provider: t.literal('google'),
     value: t.type({
-      type: t.union([t.literal('sheets'), t.literal('docs')]),
+      type: t.union([t.literal('spreadsheet'), t.literal('document')]),
       id: t.string,
     }),
   }),
@@ -30,8 +30,8 @@ const DocumentFields = t.type({
   provider: t.string,
   // This is opaque to the specific provider.
   //
-  // For provider=google, this consists of a "type" ("sheets" or
-  // "docs") and an id
+  // For provider=google, this consists of a "type" ("spreadsheet" or
+  // "document") and an id
   value: t.object,
 });
 

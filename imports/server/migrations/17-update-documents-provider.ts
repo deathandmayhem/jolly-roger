@@ -5,7 +5,7 @@ Migrations.add({
   version: 17,
   name: 'Backfill provider for documents',
   up() {
-    Documents.update({ provider: null }, { $set: { provider: 'google' } }, { multi: true });
+    Documents.update(<any>{ provider: null }, { $set: { provider: 'google' } }, { multi: true });
 
     Documents.update(
       { type: 'google-spreadsheet', 'value.type': null },

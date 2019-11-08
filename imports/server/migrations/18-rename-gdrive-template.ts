@@ -8,7 +8,7 @@ Migrations.add({
     Settings._ensureIndex({ name: 1 }, { unique: 1 });
 
     Settings.update(
-      { name: 'gdrive.template' },
+      <any>{ name: 'gdrive.template' },
       { $set: { name: 'gdrive.template.spreadsheet' } }
     );
   },

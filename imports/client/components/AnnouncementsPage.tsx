@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import * as DOMPurify from 'dompurify';
 import * as moment from 'moment';
 import * as PropTypes from 'prop-types';
 import * as React from 'react';
@@ -117,7 +118,7 @@ class Announcement extends React.Component<AnnouncementProps> {
           <div className="announcement-timestamp">{moment(ann.createdAt).calendar()}</div>
           <div>{this.props.displayNames[ann.createdBy]}</div>
         </div>
-        <div dangerouslySetInnerHTML={{ __html: marked(ann.message, { sanitize: true }) }} />
+        <div dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(ann.message)) }} />
       </div>
     );
   }

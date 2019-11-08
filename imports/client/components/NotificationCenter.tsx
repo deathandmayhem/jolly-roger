@@ -8,6 +8,7 @@ import * as Tooltip from 'react-bootstrap/lib/Tooltip';
 import { faCopy } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link } from 'react-router';
+import * as DOMPurify from 'dompurify';
 import * as moment from 'moment';
 import * as marked from 'marked';
 import { withTracker } from 'meteor/react-meteor-data';
@@ -276,7 +277,7 @@ class AnnouncementMessage extends React.PureComponent<AnnouncementMessageProps> 
       <li>
         <MessengerSpinner />
         <MessengerContent dismissable>
-          <div dangerouslySetInnerHTML={{ __html: marked(this.props.announcement.message, { sanitize: true }) }} />
+          <div dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(this.props.announcement.message)) }} />
           <footer>
             {'- '}
             {this.props.createdByDisplayName}
