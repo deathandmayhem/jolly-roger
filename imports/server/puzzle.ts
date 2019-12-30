@@ -44,7 +44,7 @@ Meteor.methods({
     // Note: tag names, not tag IDs. We don't need to validate other
     // fields because SimpleSchema will validate the rest
     check(puzzle, Match.ObjectIncluding({ hunt: String, tags: [String] }));
-    check(docType, Match.OneOf(Object.keys(MimeTypes)));
+    check(docType, Match.OneOf(...Object.keys(MimeTypes)));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
 
