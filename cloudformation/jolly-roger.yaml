@@ -667,7 +667,7 @@ Resources:
                 - ''
               DatadogDockerConfig: !If
                 - HaveDatadog
-                - !Sub '- docker run --name dd-agent -d --restart=unless-stopped -h `hostname` -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e API_KEY=${DatadogApiKey} datadog/agent:latest'
+                - !Sub '- docker run --name dd-agent -d --restart=unless-stopped -h `hostname` -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=${DatadogApiKey} datadog/agent:latest'
                 - ''
     DependsOn:
       - InternetGatewayAttachment
