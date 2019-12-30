@@ -71,7 +71,7 @@ Parameters:
   AppInstanceType:
     Description: Instance type to run for app server
     Type: String
-    Default: t2.micro
+    Default: t3a.micro
   AppMinSize:
     Description: Minimum number of instances for app server ASG
     Type: Number
@@ -518,6 +518,7 @@ Resources:
                 - containerd.io
                 - htop
                 - moreutils
+                - nvme-cli
                 - python-dev
                 - python-pip
 
@@ -563,7 +564,61 @@ Resources:
                     [Service]
                     ExecStart=
                     ExecStart=/usr/bin/dockerd -H fd:// --storage-driver=overlay2
+                - path: /usr/local/bin/find-swap
+                  permissions: '0755'
+                  content: |
+                    #!/usr/bin/python3
 
+                    """Usage: find-swap [sdf]
+
+                    Discovers the actual device node for a given volume given its "device name" as
+                    passed in the EC2 block device mapping.
+                    """
+
+                    import json
+                    import os
+                    import re
+                    import subprocess
+                    import sys
+
+
+                    def main():
+                      name = sys.argv[1]
+                      # We expect a name, not a device path, but deal with it if we get one
+                      if name.startswith('/dev/'):
+                        name = name[len('/dev/'):]
+
+                      # Try some common near misses
+                      devices = [
+                        name,
+                        re.sub(r'^sd', 'hd', name),
+                        re.sub(r'^sd', 'xvd', name),
+                      ]
+                      for dev in devices:
+                        path = os.path.join('/dev', dev)
+                        if os.path.exists(path):
+                          print(path)
+                          sys.exit(0)
+
+                      # OK looks like we're in NVMe territory
+                      nvme_devices = json.loads(subprocess.check_output(['nvme', 'list', '-o', 'json']))
+                      for nvme_device in nvme_devices['Devices']:
+                        path = nvme_device['DevicePath']
+
+                        controller_identity = subprocess.check_output(
+                          ['nvme', 'id-ctrl', '-o', 'binary', path],
+                          stderr=open('/dev/null', 'a')
+                        )
+                        vendor_id = controller_identity[0xc00:0xc20].rstrip().decode('utf-8')
+                        if vendor_id == name:
+                          print(path)
+                          sys.exit(0)
+
+                      # Didn't find anything
+                      sys.exit(1)
+
+                    if __name__ == "__main__":
+                      main()
               runcmd:
                 - set -eux
 
@@ -572,8 +627,13 @@ Resources:
                 - cleanup() { ret=$?; set +e; cfn-signal -e $ret -r "runcmds complete" --stack=${AWS::StackName} --region=${AWS::Region} --resource=AppAsg; exit $ret; }
                 - trap cleanup EXIT
 
-                - mkswap /dev/xvdf
-                - swapon -a
+                - SWAP_DEV="$(/usr/local/bin/find-swap sdf)"
+                - if [ -n "$SWAP_DEV" ]; then
+                -   SWAP_UUID="$(uuidgen)"
+                -   mkswap -U "$SWAP_UUID" "$SWAP_DEV"
+                -   echo "UUID=$SWAP_UUID none swap sw 0 0" >> /etc/fstab
+                -   swapon -a
+                - fi
 
                 - pip install 'credstash==1.12.0'
                 - export AWS_DEFAULT_REGION=${AWS::Region}
