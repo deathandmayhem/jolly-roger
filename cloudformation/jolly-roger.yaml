@@ -652,7 +652,7 @@ Resources:
                 - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e VIRTUAL_HOST=${AppUrl} -e ROOT_URL=https://${AppUrl} deathandmayhem/jolly-roger
 
                 - docker run --name nginx-https -d --restart=unless-stopped -p 8443:80 -e DEFAULT_HOST=${AppUrl} -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/cache.conf:/etc/nginx/conf.d/cache.conf -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d jwilder/nginx-proxy
-                - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock centurylink/watchtower --interval 30 --cleanup
+                - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --interval 30 --cleanup
             -
               PapertrailRsyslogConfig: !If
                 - HavePapertrail
