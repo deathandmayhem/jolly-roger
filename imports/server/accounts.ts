@@ -1,3 +1,4 @@
+import { URL } from 'url';
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import { _ } from 'meteor/underscore';
@@ -79,7 +80,8 @@ Accounts.onLoginFailure((info: LoginInfo) => {
 Accounts.urls.enrollAccount = token => Meteor.absoluteUrl(`enroll/${token}`);
 Accounts.urls.resetPassword = token => Meteor.absoluteUrl(`reset-password/${token}`);
 
-Accounts.emailTemplates.from = 'above@mit.edu';
+// Set from address to our domain - something like operators@deathandmayhem.com
+Accounts.emailTemplates.from = `operators@${new URL(Meteor.absoluteUrl('')).hostname}`;
 Accounts.emailTemplates.enrollAccount.subject = () => {
   return `[jolly-roger] You're invited to ${Accounts.emailTemplates.siteName}`;
 };
