@@ -85,6 +85,9 @@
     // Allow tsx files
     "react/jsx-filename-extension": [1, { "extensions": [".jsx", ".tsx"] }],
 
+    // "name" is a useful variable
+    "no-restricted-globals": ["off"],
+
     // Match existing style
     "operator-linebreak": ["error", "after"],
     "prefer-destructuring": ["off"],

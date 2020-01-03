@@ -56,7 +56,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
     this.modalRef = React.createRef();
   }
 
-  onEdit = (state: PuzzleModalFormSubmitPayload, callback: (error: Error) => void) => {
+  onEdit = (state: PuzzleModalFormSubmitPayload, callback: (error?: Error) => void) => {
     Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
   };

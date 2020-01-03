@@ -1,14 +1,18 @@
 import { Meteor } from 'meteor/meteor';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Breadcrumb from 'react-bootstrap/lib/Breadcrumb';
-import BreadcrumbItem from 'react-bootstrap/lib/BreadcrumbItem';
-import MenuItem from 'react-bootstrap/lib/MenuItem';
-import Nav from 'react-bootstrap/lib/Nav';
-import NavDropdown from 'react-bootstrap/lib/NavDropdown';
-import Navbar from 'react-bootstrap/lib/Navbar';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as Breadcrumb from 'react-bootstrap/lib/Breadcrumb';
+import * as BreadcrumbItem from 'react-bootstrap/lib/BreadcrumbItem';
+import * as MenuItem from 'react-bootstrap/lib/MenuItem';
+import * as Nav from 'react-bootstrap/lib/Nav';
+import * as NavDropdown from 'react-bootstrap/lib/NavDropdown';
+import * as Navbar from 'react-bootstrap/lib/Navbar';
+import * as NavbarBrand from 'react-bootstrap/lib/NavbarBrand';
+import * as NavbarCollapse from 'react-bootstrap/lib/NavbarCollapse';
+import * as NavbarHeader from 'react-bootstrap/lib/NavbarHeader';
+import * as NavbarToggle from 'react-bootstrap/lib/NavbarToggle';
 import { Link } from 'react-router';
-import RRBS from 'react-router-bootstrap';
+import * as RRBS from 'react-router-bootstrap';
 import { withTracker } from 'meteor/react-meteor-data';
 import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache';
@@ -16,9 +20,14 @@ import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
 import Profiles from '../../lib/models/profiles';
 
-class SharedNavbar extends React.Component {
+interface SharedNavbarProps {
+  userId: string;
+  displayName: string;
+}
+
+class SharedNavbar extends React.Component<SharedNavbarProps> {
   static propTypes = {
-    userId: PropTypes.string,
+    userId: PropTypes.string.isRequired,
     displayName: PropTypes.string.isRequired,
   };
 
@@ -29,12 +38,12 @@ class SharedNavbar extends React.Component {
   render() {
     return (
       <Navbar fixedTop fluid>
-        <Navbar.Header>
-          <Navbar.Brand>
+        <NavbarHeader>
+          <NavbarBrand>
             <Link to="/">
               <img src="/images/brand.png" alt="Jolly Roger logo" srcSet="/images/brand.png 1x, /images/brand@2x.png 2x" />
             </Link>
-          </Navbar.Brand>
+          </NavbarBrand>
           <BreadcrumbsConsumer>
             {({ crumbs }) => {
               return (
@@ -43,14 +52,14 @@ class SharedNavbar extends React.Component {
                     const last = (index === crumbs.length - 1);
                     if (last) {
                       return (
-                        <BreadcrumbItem key={crumb.link} className="jr-breadcrumb" active>
+                        <BreadcrumbItem key={crumb.path} active>
                           {crumb.title}
                         </BreadcrumbItem>
                       );
                     } else {
                       return (
-                        <RRBS.LinkContainer key={crumb.link} to={crumb.link} active={false}>
-                          <BreadcrumbItem className="jr-breadcrumb">
+                        <RRBS.LinkContainer key={crumb.path} to={crumb.path}>
+                          <BreadcrumbItem active={false}>
                             {crumb.title}
                           </BreadcrumbItem>
                         </RRBS.LinkContainer>
@@ -61,9 +70,9 @@ class SharedNavbar extends React.Component {
               );
             }}
           </BreadcrumbsConsumer>
-          <Navbar.Toggle />
-        </Navbar.Header>
-        <Navbar.Collapse>
+          <NavbarToggle />
+        </NavbarHeader>
+        <NavbarCollapse>
           <Nav pullRight>
             <NavDropdown
               id="profileDropdown"
@@ -78,7 +87,7 @@ class SharedNavbar extends React.Component {
               <MenuItem eventKey="3" onSelect={this.logout}>Sign out</MenuItem>
             </NavDropdown>
           </Nav>
-        </Navbar.Collapse>
+        </NavbarCollapse>
       </Navbar>
     );
   }
@@ -138,7 +147,15 @@ class ScrollableLayout extends React.Component {
   }
 }
 
-class App extends React.Component {
+interface RouteComponent {
+  desiredLayout?: string;
+}
+
+interface AppProps {
+  routes: {component: RouteComponent}[];
+}
+
+class App extends React.Component<AppProps> {
   static propTypes = {
     routes: PropTypes.array,
   };

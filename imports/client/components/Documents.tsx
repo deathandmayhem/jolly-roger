@@ -1,20 +1,25 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import DeepLink from './DeepLink';
-import DocumentsSchema from '../../lib/schemas/documents';
+import DocumentsSchema, { DocumentType } from '../../lib/schemas/documents';
 
-class GoogleDocumentDisplay extends React.Component {
+interface DocumentDisplayProps {
+  document: DocumentType;
+  displayMode: 'link' | 'embed'
+}
+
+class GoogleDocumentDisplay extends React.Component<DocumentDisplayProps> {
   static propTypes = {
     document: PropTypes.shape(DocumentsSchema.asReactPropTypes()).isRequired,
     displayMode: PropTypes.oneOf(['link', 'embed']),
   };
 
   render() {
-    let url;
-    let deepUrl;
-    let title;
+    let url: string;
+    let deepUrl: string;
+    let title: string;
     switch (this.props.document.value.type) {
       case 'spreadsheet':
         url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
@@ -23,6 +28,7 @@ class GoogleDocumentDisplay extends React.Component {
         break;
       case 'document':
         url = `https://docs.google.com/document/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
+        deepUrl = `googledocs://${url}`;
         title = 'Document';
         break;
       default:
@@ -63,7 +69,7 @@ class GoogleDocumentDisplay extends React.Component {
   }
 }
 
-class DocumentDisplay extends React.Component {
+class DocumentDisplay extends React.Component<DocumentDisplayProps> {
   static propTypes = {
     document: PropTypes.shape(DocumentsSchema.asReactPropTypes()).isRequired,
     displayMode: PropTypes.oneOf(['link', 'embed']),

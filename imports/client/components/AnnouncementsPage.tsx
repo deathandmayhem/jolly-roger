@@ -55,7 +55,7 @@ class AnnouncementForm extends React.Component<AnnouncementFormProps, Announceme
       this.setState({
         submitState: AnnouncementFormSubmitState.SUBMITTING,
       });
-      Meteor.call('postAnnouncement', this.props.huntId, this.state.message, (error: Error) => {
+      Meteor.call('postAnnouncement', this.props.huntId, this.state.message, (error?: Error) => {
         if (error) {
           this.setState({
             submitState: AnnouncementFormSubmitState.FAILED,

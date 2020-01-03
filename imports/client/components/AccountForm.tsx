@@ -83,7 +83,7 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
     this.setState({
       submitState: AccountFormSubmitState.SUBMITTING,
     });
-    Meteor.loginWithPassword(this.state.email, this.state.password, (error: Meteor.Error) => {
+    Meteor.loginWithPassword(this.state.email, this.state.password, (error?: Meteor.Error) => {
       if (error) {
         this.setState({
           submitState: AccountFormSubmitState.FAILED,
@@ -102,7 +102,7 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
     this.setState({
       submitState: AccountFormSubmitState.IDLE,
     });
-    Accounts.forgotPassword({ email: this.state.email }, (error: Meteor.Error) => {
+    Accounts.forgotPassword({ email: this.state.email }, (error?: Meteor.Error) => {
       if (error) {
         this.setState({
           submitState: AccountFormSubmitState.FAILED,
@@ -118,7 +118,7 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
   };
 
   tryCompletePasswordReset = (token: string) => {
-    Accounts.resetPassword(token, this.state.password, (error: Meteor.Error) => {
+    Accounts.resetPassword(token, this.state.password, (error?: Meteor.Error) => {
       if (error) {
         this.setState({
           submitState: AccountFormSubmitState.FAILED,
@@ -145,14 +145,14 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
       submitState: AccountFormSubmitState.SUBMITTING,
     });
 
-    Accounts.resetPassword(token, this.state.password, (error: Meteor.Error) => {
+    Accounts.resetPassword(token, this.state.password, (error?: Meteor.Error) => {
       if (error) {
         this.setState({
           submitState: AccountFormSubmitState.FAILED,
           errorMessage: error.reason,
         });
       } else {
-        Meteor.call('saveProfile', newProfile, (innerError: Meteor.Error) => {
+        Meteor.call('saveProfile', newProfile, (innerError?: Meteor.Error) => {
           if (innerError) {
             // This user will have to set their profile manually later.  Oh well.
             this.setState({

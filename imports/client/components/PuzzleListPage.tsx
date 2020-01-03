@@ -1,31 +1,52 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Button from 'react-bootstrap/lib/Button';
-import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import InputGroup from 'react-bootstrap/lib/InputGroup';
-import ToggleButton from 'react-bootstrap/lib/ToggleButton';
-import ToggleButtonGroup from 'react-bootstrap/lib/ToggleButtonGroup';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
+import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import * as FormControl from 'react-bootstrap/lib/FormControl';
+import * as FormGroup from 'react-bootstrap/lib/FormGroup';
+import * as InputGroup from 'react-bootstrap/lib/InputGroup';
+import * as ToggleButton from 'react-bootstrap/lib/ToggleButton';
+import * as ToggleButtonGroup from 'react-bootstrap/lib/ToggleButtonGroup';
 import { Link, browserHistory } from 'react-router';
+import { Location } from 'history';
 import { withTracker } from 'meteor/react-meteor-data';
 import subsCache from '../subsCache';
 import PuzzleList from './PuzzleList';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
-import PuzzleModalForm from './PuzzleModalForm';
+import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import Flags from '../../flags';
-import PuzzlesSchema from '../../lib/schemas/puzzles';
-import TagsSchema from '../../lib/schemas/tags';
+import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
+import TagsSchema, { TagType } from '../../lib/schemas/tags';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
 
 /* eslint-disable max-len */
 
-class PuzzleListView extends React.Component {
+interface PuzzleListViewProps {
+  // eslint-disable-next-line no-restricted-globals
+  location: Location;
+  huntId: string
+  canAdd: boolean;
+  canUpdate: boolean;
+  puzzles: PuzzleType[];
+  allTags: TagType[];
+}
+
+interface PuzzleGroup {
+  sharedTag?: TagType;
+  puzzles: PuzzleType[];
+}
+
+interface PuzzleListViewState {
+  displayMode: 'group' | 'unlock';
+  showSolved: boolean;
+}
+
+class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListViewState> {
   static displayName = 'PuzzleListView';
 
   static propTypes = {
@@ -46,33 +67,33 @@ class PuzzleListView extends React.Component {
   };
 
   state = {
-    displayMode: 'group', // One of ['group', 'unlock']
+    displayMode: 'group',
     showSolved: true,
-  };
+  } as PuzzleListViewState;
 
-  constructor(props) {
+  constructor(props: PuzzleListViewProps) {
     super(props);
     this.addModalRef = React.createRef();
   }
 
   componentDidMount() {
-    this.searchBarRef.focus();
+    this.searchBarRef!.focus();
   }
 
-  onAdd = (state, callback) => {
+  onAdd = (state: PuzzleModalFormSubmitPayload, callback: (error?: Error) => void) => {
     const { docType, ...puzzle } = state;
     Meteor.call('createPuzzle', puzzle, docType, callback);
   };
 
-  onSearchStringChange = (e) => {
-    this.setSearchString(e.target.value);
+  onSearchStringChange = (e: React.FormEvent<FormControl>) => {
+    this.setSearchString((e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value);
   };
 
-  getSearchString = () => {
+  getSearchString = (): string => {
     return this.props.location.query.q || '';
   };
 
-  setSearchString = (val) => {
+  setSearchString = (val: string) => {
     const newQuery = val ? { q: val } : { q: undefined };
     browserHistory.replace({
       pathname: this.props.location.pathname,
@@ -80,8 +101,8 @@ class PuzzleListView extends React.Component {
     });
   };
 
-  compileMatcher = (searchKeys) => {
-    const tagNames = {};
+  compileMatcher = (searchKeys: string[]): (p: PuzzleType) => boolean => {
+    const tagNames: Record<string, string> = {};
     this.props.allTags.forEach((t) => {
       tagNames[t._id] = t.name.toLowerCase();
     });
@@ -111,7 +132,7 @@ class PuzzleListView extends React.Component {
     };
   };
 
-  filteredPuzzles = (puzzles) => {
+  filteredPuzzles = (puzzles: PuzzleType[]) => {
     const searchKeys = this.getSearchString().split(' ');
     let interestingPuzzles;
 
@@ -139,7 +160,7 @@ class PuzzleListView extends React.Component {
     return _.sortBy(filteredPuzzles, (puzzle) => { return puzzle.createdAt; });
   };
 
-  puzzleGroupsByRelevance = () => {
+  puzzleGroupsByRelevance = (): PuzzleGroup[] => {
     // First, filter puzzles by search keys and unsolved (if selected).
     const filteredPuzzles = this.filteredPuzzles(this.props.puzzles);
 
@@ -152,7 +173,7 @@ class PuzzleListView extends React.Component {
     //   puzzles: [(puzzle shape)],
     // }
 
-    const groupsMap = {}; // Maps tag id to list of puzzles holding that tag.
+    const groupsMap: Record<string, PuzzleType[]> = {}; // Maps tag id to list of puzzles holding that tag.
     const ungroupedPuzzles = []; // For collecting puzzles that are not included in any group
     const tagsByIndex = _.indexBy(this.props.allTags, '_id');
     for (let i = 0; i < filteredPuzzles.length; i++) {
@@ -180,7 +201,7 @@ class PuzzleListView extends React.Component {
     }
 
     // Collect groups into a list.
-    const groups = _.map(_.keys(groupsMap), (key) => {
+    const groups: PuzzleGroup[] = _.map(_.keys(groupsMap), (key) => {
       const val = groupsMap[key];
       return {
         sharedTag: tagsByIndex[key],
@@ -201,13 +222,13 @@ class PuzzleListView extends React.Component {
       const ia = this.interestingnessOfGroup(a, tagsByIndex);
       const ib = this.interestingnessOfGroup(b, tagsByIndex);
       if (ia !== ib) return ia - ib;
-      return a.sharedTag.createdAt - b.sharedTag.createdAt;
+      return a.sharedTag!.createdAt.getTime() - b.sharedTag!.createdAt.getTime();
     });
 
     return groups;
   };
 
-  interestingnessOfGroup = (group, indexedTags) => {
+  interestingnessOfGroup = (group: PuzzleGroup, indexedTags: Record<string, TagType>) => {
     // Rough idea: sort, from top to bottom:
     // -3 administrivia always floats to the top
     // -2 Group with unsolved puzzle with matching meta-for:<this group>
@@ -264,7 +285,7 @@ class PuzzleListView extends React.Component {
     this.setSearchString('');
   };
 
-  switchView = (newMode) => {
+  switchView = (newMode: 'group' | 'unlock') => {
     this.setState({
       displayMode: newMode,
     });
@@ -277,8 +298,14 @@ class PuzzleListView extends React.Component {
   };
 
   showAddModal = () => {
-    this.addModalRef.current.show();
+    if (this.addModalRef.current) {
+      this.addModalRef.current.show();
+    }
   };
+
+  addModalRef: React.RefObject<PuzzleModalForm>
+
+  searchBarRef?: HTMLInputElement
 
   render() {
     let bodyComponent;
@@ -356,10 +383,10 @@ class PuzzleListView extends React.Component {
                 </ToggleButtonGroup>
                 <ToggleButtonGroup
                   type="checkbox"
-                  value={this.state.showSolved}
+                  value={this.state.showSolved ? ['true'] : []}
                   onChange={this.changeShowSolved}
                 >
-                  <ToggleButton value>Show solved</ToggleButton>
+                  <ToggleButton value="true">Show solved</ToggleButton>
                 </ToggleButtonGroup>
               </ButtonToolbar>
               <FormGroup>
@@ -389,19 +416,23 @@ class PuzzleListView extends React.Component {
   }
 }
 
-class PuzzleListPage extends React.Component {
-  static propTypes = {
-    params: PropTypes.shape({
-      huntId: PropTypes.string.isRequired,
-    }).isRequired,
-    location: PropTypes.object,
-    ready: PropTypes.bool.isRequired,
-    canAdd: PropTypes.bool,
-    canUpdate: PropTypes.bool,
-    allPuzzles: PropTypes.arrayOf(PropTypes.shape(PuzzlesSchema.asReactPropTypes())),
-    allTags: PropTypes.arrayOf(PropTypes.shape(TagsSchema.asReactPropTypes())),
-  };
+interface PuzzleListPageParams {
+  params: {huntId: string};
+  // eslint-disable-next-line no-restricted-globals
+  location: Location;
+}
 
+type PuzzleListPageProps = PuzzleListPageParams & ({
+  ready: true;
+  canAdd: boolean;
+  canUpdate: boolean;
+  allPuzzles: PuzzleType[];
+  allTags: TagType[];
+} | {
+  ready: false;
+});
+
+class PuzzleListPage extends React.Component<PuzzleListPageProps> {
   render() {
     if (!this.props.ready) {
       return <span>loading...</span>;
@@ -420,7 +451,7 @@ class PuzzleListPage extends React.Component {
   }
 }
 
-const PuzzleListPageContainer = withTracker(({ params }) => {
+const PuzzleListPageContainer = withTracker(({ params }: PuzzleListPageParams) => {
   const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: params.huntId });
   const tagsHandle = subsCache.subscribe('mongo.tags', { hunt: params.huntId });
 

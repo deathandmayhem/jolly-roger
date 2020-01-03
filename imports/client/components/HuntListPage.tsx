@@ -46,7 +46,7 @@ export interface HuntModalSubmit {
 
 interface HuntModalFormProps {
   hunt?: HuntType;
-  onSubmit: (state: HuntModalSubmit, callback: (error: Error) => void) => void;
+  onSubmit: (state: HuntModalSubmit, callback: (error?: Error) => void) => void;
 }
 
 enum HuntModalFormSubmitState {
@@ -150,7 +150,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
       state,
       { mailingLists: splitLists(this.state.mailingLists) },
     );
-    this.props.onSubmit(sendState, (error: Error) => {
+    this.props.onSubmit(sendState, (error?: Error) => {
       if (error) {
         this.setState({
           submitState: HuntModalFormSubmitState.FAILED,
@@ -355,7 +355,7 @@ class Hunt extends React.Component<HuntProps> {
     this.deleteModalRef = React.createRef();
   }
 
-  onEdit = (state: HuntModalSubmit, callback: (error: Error) => void) => {
+  onEdit = (state: HuntModalSubmit, callback: (error?: Error) => void) => {
     Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), state });
     Hunts.update(
       { _id: this.props.hunt._id },
@@ -487,7 +487,7 @@ class HuntListPage extends React.Component<HuntListPageProps> {
     this.addModalRef = React.createRef();
   }
 
-  onAdd = (state: HuntModalSubmit, callback: (error: Error) => void): void => {
+  onAdd = (state: HuntModalSubmit, callback: (error?: Error) => void): void => {
     Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
     Hunts.insert(state, callback);
   };

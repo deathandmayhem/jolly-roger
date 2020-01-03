@@ -27,7 +27,7 @@ interface PuzzleModalFormProps {
   huntId: string;
   puzzle?: PuzzleType;
   tags: TagType[];
-  onSubmit: (payload: PuzzleModalFormSubmitPayload, callback: (error: Error) => void) => void;
+  onSubmit: (payload: PuzzleModalFormSubmitPayload, callback: (error?: Error) => void) => void;
   showOnMount?: boolean;
 }
 

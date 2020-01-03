@@ -42,7 +42,7 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
   // required (though since all models also have a "deleted" property
   // that hides all children, the default implementation usually
   // works)
-  destroy(id: string, callback?: (error: Error, updated: number) => void) {
+  destroy(id: string, callback?: (error: Error | null, updated: number) => void) {
     this.update(
       id,
       // There are some weird interactions here betwen T being a generic type
@@ -54,7 +54,7 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     );
   }
 
-  undestroy(id: string, callback?: (error: Error, updated: number) => void) {
+  undestroy(id: string, callback?: (error: Error | null, updated: number) => void) {
     this.update(id, <Mongo.Modifier<T>>{ $set: { deleted: false } }, {}, callback);
   }
 
