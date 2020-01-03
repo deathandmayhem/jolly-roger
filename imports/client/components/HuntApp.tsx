@@ -1,25 +1,31 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
-import DocumentTitle from 'react-document-title';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as Alert from 'react-bootstrap/lib/Alert';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
+import * as DocumentTitle from 'react-document-title';
 import { withTracker } from 'meteor/react-meteor-data';
 import * as DOMPurify from 'dompurify';
-import marked from 'marked';
+import * as marked from 'marked';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache';
 import CelebrationCenter from './CelebrationCenter';
-import HuntsSchema from '../../lib/schemas/hunts';
+import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
 import Hunts from '../../lib/models/hunts';
 
-class HuntDeletedError extends React.Component {
+interface HuntDeletedErrorProps {
+  huntId: string;
+  hunt: HuntType;
+  canUndestroy: boolean;
+}
+
+class HuntDeletedError extends React.Component<HuntDeletedErrorProps> {
   static propTypes = {
     huntId: PropTypes.string.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
     canUndestroy: PropTypes.bool.isRequired,
   };
 
@@ -60,7 +66,7 @@ class HuntDeletedError extends React.Component {
   }
 }
 
-const HuntDeletedErrorContainer = withTracker(({ huntId }) => {
+const HuntDeletedErrorContainer = withTracker(({ huntId }: { huntId: string }) => {
   return {
     hunt: Hunts.findOneDeleted(huntId),
     canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
@@ -71,11 +77,17 @@ HuntDeletedErrorContainer.propTypes = {
   huntId: PropTypes.string.isRequired,
 };
 
-class HuntMemberError extends React.Component {
+interface HuntMemberErrorProps {
+  huntId: string;
+  hunt: HuntType;
+  canJoin: boolean;
+}
+
+class HuntMemberError extends React.Component<HuntMemberErrorProps> {
   static propTypes = {
     huntId: PropTypes.string.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
-    canJoin: PropTypes.bool,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
+    canJoin: PropTypes.bool.isRequired,
   };
 
   static contextTypes = {
@@ -83,7 +95,11 @@ class HuntMemberError extends React.Component {
   };
 
   join = () => {
-    Meteor.call('addToHunt', this.props.huntId, Meteor.user().emails[0].address);
+    const user = Meteor.user();
+    if (!user || !user.emails) {
+      return;
+    }
+    Meteor.call('addToHunt', this.props.huntId, user.emails[0].address);
   };
 
   joinButton = () => {
@@ -120,7 +136,7 @@ class HuntMemberError extends React.Component {
   }
 }
 
-const HuntMemberErrorContainer = withTracker(({ huntId }) => {
+const HuntMemberErrorContainer = withTracker(({ huntId }: { huntId: string }) => {
   return {
     hunt: Hunts.findOne(huntId),
     canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', huntId),
@@ -128,22 +144,33 @@ const HuntMemberErrorContainer = withTracker(({ huntId }) => {
 })(HuntMemberError);
 
 HuntMemberErrorContainer.propTypes = {
-  huntId: PropTypes.string,
+  huntId: PropTypes.string.isRequired,
 };
 
-class HuntApp extends React.Component {
+interface HuntAppParams {
+  params: {huntId: string};
+}
+
+interface HuntAppProps extends HuntAppParams {
+  children: React.ReactNode;
+  ready: boolean;
+  hunt?: HuntType;
+  member: boolean;
+}
+
+class HuntApp extends React.Component<HuntAppProps> {
   static propTypes = {
     params: PropTypes.shape({
       huntId: PropTypes.string.isRequired,
     }).isRequired,
-    children: PropTypes.node,
+    children: PropTypes.node.isRequired,
     ready: PropTypes.bool.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()),
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()) as React.Requireable<HuntType>,
     member: PropTypes.bool.isRequired,
   };
 
   renderBody = () => {
-    if (!this.props.ready) {
+    if (!this.props.ready || !this.props.hunt) {
       return <span>loading...</span>;
     }
 
@@ -162,6 +189,9 @@ class HuntApp extends React.Component {
     const title = this.props.hunt ? `${this.props.hunt.name} :: Jolly Roger` : '';
 
     return (
+      // @ts-ignore The current type definitions expect this to be an ES6
+      //   default export but it's actually a CJS default export (yes, they're
+      //   different), which is why it needs to be imported with "import *"
       <DocumentTitle title={title}>
         <div>
           <CelebrationCenter huntId={this.props.params.huntId} />
@@ -172,11 +202,11 @@ class HuntApp extends React.Component {
   }
 }
 
-const huntsCrumb = withBreadcrumb({ title: 'Hunts', link: '/hunts' });
-const huntCrumb = withBreadcrumb(({ params, ready, hunt }) => {
-  return { title: ready ? hunt.name : 'loading...', link: `/hunts/${params.huntId}` };
+const huntsCrumb = withBreadcrumb({ title: 'Hunts', path: '/hunts' });
+const huntCrumb = withBreadcrumb(({ params, ready, hunt }: HuntAppProps) => {
+  return { title: ready && hunt ? hunt.name : 'loading...', path: `/hunts/${params.huntId}` };
 });
-const tracker = withTracker(({ params }) => {
+const tracker = withTracker(({ params }: HuntAppParams) => {
   const userHandle = subsCache.subscribe('selfHuntMembership');
   const huntHandle = subsCache.subscribe('mongo.hunts.allowingDeleted', {
     _id: params.huntId,

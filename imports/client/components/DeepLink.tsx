@@ -1,29 +1,51 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import PropTypes from 'prop-types';
-import React from 'react';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
 
-class DeepLink extends React.Component {
+interface DeepLinkProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  nativeUrl: string;
+  browserUrl: string;
+}
+
+enum DeepLinkLoadState {
+  IDLE = 'idle',
+  ATTEMPTING_NATIVE = 'attemptingNative',
+}
+
+type DeepLinkState = {
+  state: DeepLinkLoadState.IDLE;
+} | {
+  state: DeepLinkLoadState.ATTEMPTING_NATIVE;
+  startNativeLoad: Date;
+};
+
+class DeepLink extends React.Component<DeepLinkProps, DeepLinkState> {
   static propTypes = {
     children: PropTypes.node.isRequired,
     nativeUrl: PropTypes.string.isRequired,
     browserUrl: PropTypes.string.isRequired,
   };
 
-  state = { state: 'idle' };
+  state = { state: DeepLinkLoadState.IDLE } as DeepLinkState;
 
   onAttemptingNativeTimeout = () => {
-    this.setState({ state: 'idle' });
-    if (new Date() - this.state.startNativeLoad < 10000) {
+    if (this.state.state === DeepLinkLoadState.IDLE) {
+      return;
+    }
+
+    this.setState({ state: DeepLinkLoadState.IDLE });
+    if (new Date().getTime() - this.state.startNativeLoad.getTime() < 10000) {
       this.browserOpen();
     }
   };
 
-  onClick = (e) => {
+  onClick = (e: React.MouseEvent) => {
     e.preventDefault();
     // window.orientation is a good proxy for mobile device
     if (window.orientation) {
-      this.setState({ state: 'attemptingNative', startNativeLoad: new Date() });
+      this.setState({ state: DeepLinkLoadState.ATTEMPTING_NATIVE, startNativeLoad: new Date() });
       Meteor.setTimeout(this.onAttemptingNativeTimeout, 25);
     } else {
       this.browserOpen();

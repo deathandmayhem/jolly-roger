@@ -1,34 +1,34 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import HelpBlock from 'react-bootstrap/lib/HelpBlock';
-import Modal from 'react-bootstrap/lib/Modal';
-import Nav from 'react-bootstrap/lib/Nav';
-import NavItem from 'react-bootstrap/lib/NavItem';
-import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
-import Table from 'react-bootstrap/lib/Table';
-import Tooltip from 'react-bootstrap/lib/Tooltip';
-import DocumentTitle from 'react-document-title';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as Alert from 'react-bootstrap/lib/Alert';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import * as FormControl from 'react-bootstrap/lib/FormControl';
+import * as FormGroup from 'react-bootstrap/lib/FormGroup';
+import * as HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import * as Modal from 'react-bootstrap/lib/Modal';
+import * as Nav from 'react-bootstrap/lib/Nav';
+import * as NavItem from 'react-bootstrap/lib/NavItem';
+import * as OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
+import * as Table from 'react-bootstrap/lib/Table';
+import * as Tooltip from 'react-bootstrap/lib/Tooltip';
+import * as DocumentTitle from 'react-document-title';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import classnames from 'classnames';
 import * as DOMPurify from 'dompurify';
-import marked from 'marked';
-import moment from 'moment';
+import * as marked from 'marked';
+import * as moment from 'moment';
 import TextareaAutosize from 'react-textarea-autosize';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Ansible from '../../ansible';
 import subsCache from '../subsCache';
 import ModalForm from './ModalForm';
-import PuzzleModalForm from './PuzzleModalForm';
+import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import RelatedPuzzleGroups from './RelatedPuzzleGroups';
 import TagList from './TagList';
 import { Subscribers, SubscriberCounters } from '../subscribers';
@@ -36,11 +36,11 @@ import Flags from '../../flags';
 import SplitPanePlus from './SplitPanePlus';
 import DocumentDisplay from './Documents';
 
-import ChatMessagesSchema from '../../lib/schemas/chats';
-import DocumentsSchema from '../../lib/schemas/documents';
-import GuessesSchema from '../../lib/schemas/guess';
-import PuzzlesSchema from '../../lib/schemas/puzzles';
-import TagsSchema from '../../lib/schemas/tags';
+import ChatMessagesSchema, { ChatMessageType } from '../../lib/schemas/chats';
+import DocumentsSchema, { DocumentType } from '../../lib/schemas/documents';
+import GuessesSchema, { GuessType } from '../../lib/schemas/guess';
+import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
+import TagsSchema, { TagType } from '../../lib/schemas/tags';
 
 import ChatMessages from '../../lib/models/chats';
 import Documents from '../../lib/models/documents';
@@ -51,8 +51,10 @@ import Tags from '../../lib/models/tags';
 
 /* eslint-disable max-len, no-console */
 
-const FilteredChatFields = ['puzzle', 'text', 'sender', 'timestamp'];
-const FilteredChatMessagePropTypes = _.pick(ChatMessagesSchema.asReactPropTypes(), ...FilteredChatFields);
+const FilteredChatFields = ['_id', 'puzzle', 'text', 'sender', 'timestamp'];
+type FilteredChatMessageType = Pick<ChatMessageType, '_id' | 'puzzle' | 'text' | 'sender' | 'timestamp'>
+const FilteredChatMessagePropTypes = _.pick(ChatMessagesSchema.asReactPropTypes(), ...FilteredChatFields) as
+  { [K in keyof FilteredChatMessageType]: React.Validator<FilteredChatMessageType[K]> };
 
 const MinimumDesktopWidth = 600;
 const MinimumDesktopStackingHeight = 400; // In two column mode, allow stacking at smaller heights
@@ -135,15 +137,27 @@ const DefaultChatHeight = '60%';
 //   |           |
 //   |___________|
 
-class ViewersList extends React.Component {
+interface ViewerSubscriber {
+  user: string;
+  name: string;
+}
+
+interface ViewersListProps {
+  name: string;
+  ready: boolean;
+  subscribers: ViewerSubscriber[];
+  unknown: number;
+}
+
+class ViewersList extends React.Component<ViewersListProps> {
   static propTypes = {
     name: PropTypes.string.isRequired,
     ready: PropTypes.bool.isRequired,
     subscribers: PropTypes.arrayOf(PropTypes.shape({
       user: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-    })),
-    unknown: PropTypes.number,
+    }).isRequired).isRequired,
+    unknown: PropTypes.number.isRequired,
   };
 
   render() {
@@ -162,19 +176,20 @@ class ViewersList extends React.Component {
   }
 }
 
-const ViewersListContainer = withTracker(({ name }) => {
+const ViewersListContainer = withTracker(({ name }: { name: string }) => {
   // Don't want this subscription persisting longer than necessary
   const subscribersHandle = Meteor.subscribe('subscribers.fetch', name);
   const profilesHandle = subsCache.subscribe('mongo.profiles');
 
   const ready = subscribersHandle.ready() && profilesHandle.ready();
   if (!ready) {
-    return { ready };
+    return { ready: ready as boolean, unknown: 0, subscribers: [] };
   }
 
   let unknown = 0;
-  const subscribers = [];
+  const subscribers: ViewerSubscriber[] = [];
 
+  // eslint-disable-next-line no-restricted-globals
   Subscribers.find({ name }).forEach((s) => {
     if (!s.user) {
       unknown += 1;
@@ -190,14 +205,18 @@ const ViewersListContainer = withTracker(({ name }) => {
     subscribers.push({ user: s.user, name: profile.displayName });
   });
 
-  return { ready, unknown, subscribers };
+  return { ready: ready as boolean, unknown, subscribers };
 })(ViewersList);
 
 ViewersListContainer.propTypes = {
   name: PropTypes.string.isRequired,
 };
 
-class ViewersModal extends React.Component {
+interface ViewersModalProps {
+  name: string;
+}
+
+class ViewersModal extends React.Component<ViewersModalProps> {
   static propTypes = {
     name: PropTypes.string.isRequired,
   };
@@ -228,21 +247,29 @@ class ViewersModal extends React.Component {
   }
 }
 
-class ViewCountDisplay extends React.Component {
+interface ViewCountDisplayProps {
+  count: number;
+  name: string;
+  subfetchesDisabled: boolean;
+}
+
+class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
   static propTypes = {
     count: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
     subfetchesDisabled: PropTypes.bool.isRequired,
   };
 
-  constructor(props) {
+  constructor(props: ViewCountDisplayProps) {
     super(props);
     this.modalRef = React.createRef();
   }
 
   showModal = () => {
-    this.modalRef.current.show();
+    this.modalRef.current!.show();
   };
+
+  modalRef: React.RefObject<ViewersModal>
 
   render() {
     const text = `(${this.props.count} viewing)`;
@@ -267,22 +294,28 @@ class ViewCountDisplay extends React.Component {
   }
 }
 
-const ViewCountDisplayContainer = withTracker(() => {
+const ViewCountDisplayContainer = withTracker((_params: {count: number, name: string}) => {
   return { subfetchesDisabled: Flags.active('disable.subfetches') };
 })(ViewCountDisplay);
 
-class RelatedPuzzleSection extends React.PureComponent {
+interface RelatedPuzzleSectionProps {
+  activePuzzle: PuzzleType;
+  allPuzzles: PuzzleType[];
+  allTags: TagType[];
+}
+
+class RelatedPuzzleSection extends React.PureComponent<RelatedPuzzleSectionProps> {
   static propTypes = {
-    activePuzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
+    activePuzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
     allPuzzles: PropTypes.arrayOf(
       PropTypes.shape(
         PuzzlesSchema.asReactPropTypes()
-      ).isRequired
+      ).isRequired as React.Validator<PuzzleType>
     ).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
         TagsSchema.asReactPropTypes()
-      ).isRequired
+      ).isRequired as React.Validator<TagType>
     ).isRequired,
   };
 
@@ -302,7 +335,14 @@ class RelatedPuzzleSection extends React.PureComponent {
   }
 }
 
-class ChatMessage extends React.PureComponent {
+interface ChatMessageProps {
+  message: FilteredChatMessageType;
+  senderDisplayName: string;
+  isSystemMessage: boolean;
+  suppressSender: boolean;
+}
+
+class ChatMessage extends React.PureComponent<ChatMessageProps> {
   static propTypes = {
     message: PropTypes.shape(FilteredChatMessagePropTypes).isRequired,
     senderDisplayName: PropTypes.string.isRequired,
@@ -311,7 +351,7 @@ class ChatMessage extends React.PureComponent {
   };
 
   render() {
-    const ts = moment(this.props.message.timestamp).calendar(null, {
+    const ts = moment(this.props.message.timestamp).calendar(undefined, {
       sameDay: 'LT',
     });
     const classes = classnames('chat-message', this.props.isSystemMessage && 'system-message');
@@ -326,7 +366,12 @@ class ChatMessage extends React.PureComponent {
   }
 }
 
-class ChatHistory extends React.PureComponent {
+interface ChatHistoryProps {
+  chatMessages: FilteredChatMessageType[];
+  displayNames: Record<string, string>;
+}
+
+class ChatHistory extends React.PureComponent<ChatHistoryProps> {
   static propTypes = {
     chatMessages: PropTypes.arrayOf(
       PropTypes.shape(
@@ -336,9 +381,10 @@ class ChatHistory extends React.PureComponent {
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
   };
 
-  constructor(props) {
+  constructor(props: ChatHistoryProps) {
     super(props);
     this.ref = React.createRef();
+    this.shouldScroll = false;
   }
 
   componentDidMount() {
@@ -358,7 +404,7 @@ class ChatHistory extends React.PureComponent {
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this.resizeHandler);
+    window.removeEventListener('resize', this.resizeHandler!);
   }
 
   onScroll = () => {
@@ -369,7 +415,7 @@ class ChatHistory extends React.PureComponent {
     // Save whether the current scrollTop is equal to the ~maximum scrollTop.
     // If so, then we should make the log "stick" to the bottom, by manually scrolling to the bottom
     // when needed.
-    const messagePane = this.ref.current;
+    const messagePane = this.ref.current!;
 
     // Include a 5 px fudge factor to account for bad scrolling and
     // fractional pixels
@@ -383,10 +429,16 @@ class ChatHistory extends React.PureComponent {
   };
 
   forceScrollBottom = () => {
-    const messagePane = this.ref.current;
+    const messagePane = this.ref.current!;
     messagePane.scrollTop = messagePane.scrollHeight;
     this.shouldScroll = true;
   };
+
+  ref: React.RefObject<HTMLDivElement>
+
+  resizeHandler?: () => void;
+
+  shouldScroll: boolean;
 
   render() {
     return (
@@ -398,7 +450,7 @@ class ChatHistory extends React.PureComponent {
           // * this is not the first message
           // * this message was sent by the same person as the previous message
           // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
-          const suppressSender = index > 0 && messages[index - 1].sender === msg.sender && Date.parse(messages[index - 1].timestamp) + 60000 > Date.parse(msg.timestamp);
+          const suppressSender = index > 0 && messages[index - 1].sender === msg.sender && messages[index - 1].timestamp.getTime() + 60000 > msg.timestamp.getTime();
           return (
             <ChatMessage
               key={msg._id}
@@ -426,12 +478,22 @@ const chatInputStyles = {
     flex: 'none',
     padding: '9px 4px',
     borderWidth: '1px 0 0 0',
-    resize: 'none',
+    resize: 'none' as 'none',
     maxHeight: '200px',
   },
 };
 
-class ChatInput extends React.PureComponent {
+interface ChatInputProps {
+  onHeightChange: (newHeight: number) => void;
+  onMessageSent: () => void;
+  puzzleId: string;
+}
+
+interface ChatInputState {
+  text: string;
+}
+
+class ChatInput extends React.PureComponent<ChatInputProps, ChatInputState> {
   static propTypes = {
     onHeightChange: PropTypes.func,
     onMessageSent: PropTypes.func,
@@ -442,13 +504,13 @@ class ChatInput extends React.PureComponent {
     text: '',
   };
 
-  onInputChanged = (e) => {
+  onInputChanged = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     this.setState({
       text: e.target.value,
     });
   };
 
-  onKeyDown = (e) => {
+  onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (this.state.text) {
@@ -463,7 +525,7 @@ class ChatInput extends React.PureComponent {
     }
   };
 
-  onHeightChange = (newHeight) => {
+  onHeightChange = (newHeight: number) => {
     if (this.props.onHeightChange) {
       this.props.onHeightChange(newHeight);
     }
@@ -473,7 +535,7 @@ class ChatInput extends React.PureComponent {
     return (
       <TextareaAutosize
         style={chatInputStyles.textarea}
-        maxLength="4000"
+        maxLength={4000}
         minRows={1}
         maxRows={12}
         value={this.state.text}
@@ -486,7 +548,14 @@ class ChatInput extends React.PureComponent {
   }
 }
 
-class ChatSection extends React.PureComponent {
+interface ChatSectionProps {
+  chatReady: boolean;
+  chatMessages: FilteredChatMessageType[];
+  displayNames: Record<string, string>;
+  puzzleId: string;
+}
+
+class ChatSection extends React.PureComponent<ChatSectionProps> {
   static propTypes = {
     chatReady: PropTypes.bool.isRequired,
     chatMessages: PropTypes.arrayOf(
@@ -498,18 +567,20 @@ class ChatSection extends React.PureComponent {
     puzzleId: PropTypes.string.isRequired,
   };
 
-  constructor(props) {
+  constructor(props: ChatSectionProps) {
     super(props);
     this.historyRef = React.createRef();
   }
 
   onInputHeightChange = () => {
-    this.historyRef.current.maybeForceScrollBottom();
+    this.historyRef.current!.maybeForceScrollBottom();
   };
 
   onMessageSent = () => {
-    this.historyRef.current.forceScrollBottom();
+    this.historyRef.current!.forceScrollBottom();
   };
+
+  historyRef: React.RefObject<ChatHistory>
 
   render() {
     return (
@@ -526,18 +597,32 @@ class ChatSection extends React.PureComponent {
   }
 }
 
-class PuzzlePageSidebar extends React.PureComponent {
+interface PuzzlePageSidebarProps {
+  activePuzzle: PuzzleType;
+  allPuzzles: PuzzleType[];
+  allTags: TagType[];
+  chatReady: boolean;
+  chatMessages: FilteredChatMessageType[];
+  displayNames: Record<string, string>;
+  canUpdate: boolean;
+  isDesktop: boolean;
+  isStackable: boolean;
+  showRelated: boolean;
+  onChangeShowRelated: (showRelated: boolean) => void;
+}
+
+class PuzzlePageSidebar extends React.PureComponent<PuzzlePageSidebarProps> {
   static propTypes = {
-    activePuzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
+    activePuzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
     allPuzzles: PropTypes.arrayOf(
       PropTypes.shape(
         PuzzlesSchema.asReactPropTypes()
-      ).isRequired
+      ).isRequired as React.Validator<PuzzleType>
     ).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
         TagsSchema.asReactPropTypes()
-      ).isRequired
+      ).isRequired as React.Validator<TagType>
     ).isRequired,
     chatReady: PropTypes.bool.isRequired,
     chatMessages: PropTypes.arrayOf(
@@ -553,12 +638,12 @@ class PuzzlePageSidebar extends React.PureComponent {
     onChangeShowRelated: PropTypes.func.isRequired,
   };
 
-  onCollapseChanged = (collapsed) => {
+  onCollapseChanged = (collapsed: 0 | 1 | 2) => {
     this.props.onChangeShowRelated(collapsed !== 1);
   };
 
   render() {
-    let collapse = 0;
+    let collapse: 0 | 1 | 2 = 0;
     if (this.props.isStackable) {
       collapse = this.props.showRelated ? 0 : 1;
     } else {
@@ -568,15 +653,15 @@ class PuzzlePageSidebar extends React.PureComponent {
     return (
       <div className={classes}>
         {!this.props.isStackable && (
-          <Nav bsStyle="tabs" justified onSelect={this.handleSelect}>
+          <Nav bsStyle="tabs" justified>
             <NavItem
-              className={!this.props.showRelated && 'active'}
+              active={!this.props.showRelated}
               onClick={() => { this.props.onChangeShowRelated(false); }}
             >
               Chat
             </NavItem>
             <NavItem
-              className={this.props.showRelated && 'active'}
+              active={this.props.showRelated}
               onClick={() => { this.props.onChangeShowRelated(true); }}
             >
               Related
@@ -614,35 +699,50 @@ class PuzzlePageSidebar extends React.PureComponent {
   }
 }
 
-class PuzzlePageMetadata extends React.Component {
+interface PuzzlePageMetadataParams {
+  puzzle: PuzzleType;
+  allTags: TagType[];
+  guesses: GuessType[];
+  displayNames: Record<string, string>;
+  document?: DocumentType;
+  isDesktop: boolean;
+}
+
+interface PuzzlePageMetadataProps extends PuzzlePageMetadataParams {
+  subcountersDisabled: boolean;
+  viewCount: number;
+  canUpdate: boolean;
+}
+
+class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
   static propTypes = {
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
         TagsSchema.asReactPropTypes()
-      ).isRequired
+      ).isRequired as React.Validator<TagType>
     ).isRequired,
     guesses: PropTypes.arrayOf(
       PropTypes.shape(
         GuessesSchema.asReactPropTypes()
-      ).isRequired
+      ).isRequired as React.Validator<GuessType>
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()),
+    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()) as React.Requireable<DocumentType>,
     isDesktop: PropTypes.bool.isRequired,
     subcountersDisabled: PropTypes.bool.isRequired,
     viewCount: PropTypes.number.isRequired,
     canUpdate: PropTypes.bool.isRequired,
   };
 
-  constructor(props) {
+  constructor(props: PuzzlePageMetadataProps) {
     super(props);
     this.editModalRef = React.createRef();
     this.guessModalRef = React.createRef();
   }
 
-  onCreateTag = (newTagName) => {
-    Meteor.call('addTagToPuzzle', this.props.puzzle._id, newTagName, (error) => {
+  onCreateTag = (newTagName: string) => {
+    Meteor.call('addTagToPuzzle', this.props.puzzle._id, newTagName, (error?: Error) => {
       // Not really much we can do in the case of a failure, but let's log it anyway
       if (error) {
         console.log('failed to create tag:');
@@ -651,8 +751,8 @@ class PuzzlePageMetadata extends React.Component {
     });
   };
 
-  onRemoveTag = (tagIdToRemove) => {
-    Meteor.call('removeTagFromPuzzle', this.props.puzzle._id, tagIdToRemove, (error) => {
+  onRemoveTag = (tagIdToRemove: string) => {
+    Meteor.call('removeTagFromPuzzle', this.props.puzzle._id, tagIdToRemove, (error?: Error) => {
       // Not really much we can do in the case of a failure, but again, let's log it anyway
       if (error) {
         console.log('failed to remove tag:');
@@ -661,17 +761,17 @@ class PuzzlePageMetadata extends React.Component {
     });
   };
 
-  onEdit = (state, callback) => {
+  onEdit = (state: PuzzleModalFormSubmitPayload, callback: (err?: Error) => void) => {
     Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
   };
 
   showGuessModal = () => {
-    this.guessModalRef.current.show();
+    this.guessModalRef.current!.show();
   };
 
   showEditModal = () => {
-    this.editModalRef.current.show();
+    this.editModalRef.current!.show();
   };
 
   editButton = () => {
@@ -684,6 +784,10 @@ class PuzzlePageMetadata extends React.Component {
     }
     return null;
   };
+
+  editModalRef: React.RefObject<PuzzleModalForm>
+
+  guessModalRef: React.RefObject<PuzzleGuessModal>
 
   render() {
     const tagsById = _.indexBy(this.props.allTags, '_id');
@@ -768,7 +872,7 @@ class PuzzlePageMetadata extends React.Component {
   }
 }
 
-const PuzzlePageMetadataContainer = withTracker(({ puzzle }) => {
+const PuzzlePageMetadataContainer = withTracker(({ puzzle }: PuzzlePageMetadataParams) => {
   const count = SubscriberCounters.findOne(`puzzle:${puzzle._id}`);
   return {
     subcountersDisabled: Flags.active('disable.subcounters'),
@@ -778,49 +882,73 @@ const PuzzlePageMetadataContainer = withTracker(({ puzzle }) => {
 })(PuzzlePageMetadata);
 
 PuzzlePageMetadataContainer.propTypes = {
-  puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
+  puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
 };
 
-class PuzzleGuessModal extends React.Component {
+interface PuzzleGuessModalProps {
+  puzzle: PuzzleType;
+  guesses: GuessType[];
+  displayNames: Record<string, string>;
+}
+
+enum PuzzleGuessSubmitState {
+  IDLE = 'idle',
+  FAILED = 'failed',
+}
+
+type PuzzleGuessModalState = {
+  guessInput: string;
+  directionInput: number;
+  confidenceInput: number;
+} & ({
+  confirmingSubmit: false;
+} | {
+  confirmingSubmit: true;
+  confirmationMessage: string;
+}) & ({
+  submitState: PuzzleGuessSubmitState.IDLE;
+} | {
+  submitState: PuzzleGuessSubmitState.FAILED;
+  errorMessage: string;
+})
+
+class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGuessModalState> {
   static propTypes = {
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
     guesses: PropTypes.arrayOf(
       PropTypes.shape(
         GuessesSchema.asReactPropTypes()
-      ).isRequired
+      ).isRequired as React.Validator<GuessType>
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    onSubmit: PropTypes.func,
   };
 
   state = {
     guessInput: '',
     directionInput: 0,
     confidenceInput: 50,
-    submitState: 'idle',
+    submitState: PuzzleGuessSubmitState.IDLE,
     confirmingSubmit: false,
-    confirmationMessage: '',
-    errorMessage: '',
-  };
+  } as PuzzleGuessModalState;
 
-  constructor(props) {
+  constructor(props: PuzzleGuessModalProps) {
     super(props);
     this.formRef = React.createRef();
   }
 
-  onGuessInputChange = (event) => {
+  onGuessInputChange = (event: React.FormEvent<FormControl>) => {
     this.setState({
-      guessInput: event.target.value.toUpperCase(),
+      guessInput: (event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value.toUpperCase(),
       confirmingSubmit: false,
     });
   };
 
-  onDirectionInputChange = (event) => {
-    this.setState({ directionInput: parseInt(event.target.value, 10) });
+  onDirectionInputChange = (event: React.FormEvent<FormControl>) => {
+    this.setState({ directionInput: parseInt((event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value, 10) });
   };
 
-  onConfidenceInputChange = (event) => {
-    this.setState({ confidenceInput: parseInt(event.target.value, 10) });
+  onConfidenceInputChange = (event: React.FormEvent<FormControl>) => {
+    this.setState({ confidenceInput: parseInt((event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value, 10) });
   };
 
   onSubmitGuess = () => {
@@ -833,7 +961,7 @@ class PuzzleGuessModal extends React.Component {
       this.setState({
         confirmingSubmit: true,
         confirmationMessage: msg,
-      });
+      } as PuzzleGuessModalState);
     } else {
       Meteor.call(
         'addGuessForPuzzle',
@@ -841,18 +969,17 @@ class PuzzleGuessModal extends React.Component {
         this.state.guessInput,
         this.state.directionInput,
         this.state.confidenceInput,
-        (error) => {
+        (error?: Error) => {
           if (error) {
             this.setState({
-              submitState: 'failed',
+              submitState: PuzzleGuessSubmitState.FAILED,
               errorMessage: error.message,
-            });
+            } as PuzzleGuessModalState);
             console.log(error);
           }
 
           // Clear the input box.  Don't dismiss the dialog.
           this.setState({
-            guessInput: '',
             confirmingSubmit: false,
           });
         },
@@ -862,14 +989,15 @@ class PuzzleGuessModal extends React.Component {
 
   clearError = () => {
     this.setState({
-      submitState: 'idle',
-      errorMessage: '',
+      submitState: PuzzleGuessSubmitState.IDLE,
     });
   };
 
   show = () => {
-    this.formRef.current.show();
+    this.formRef.current!.show();
   };
+
+  formRef: React.RefObject<ModalForm>
 
   render() {
     const directionTooltip = (
@@ -979,15 +1107,19 @@ class PuzzleGuessModal extends React.Component {
           </Table>,
         ]}
         {this.state.confirmingSubmit ? <Alert bsStyle="warning">{this.state.confirmationMessage}</Alert> : null}
-        {this.state.submitState === 'failed' ? <Alert bsStyle="danger" onDismiss={this.clearError}>{this.state.errorMessage}</Alert> : null}
+        {this.state.submitState === PuzzleGuessSubmitState.FAILED ? <Alert bsStyle="danger" onDismiss={this.clearError}>{this.state.errorMessage}</Alert> : null}
       </ModalForm>
     );
   }
 }
 
-class PuzzlePageMultiplayerDocument extends React.PureComponent {
+interface PuzzlePageMultiplayerDocumentProps {
+  document?: DocumentType;
+}
+
+class PuzzlePageMultiplayerDocument extends React.PureComponent<PuzzlePageMultiplayerDocumentProps> {
   static propTypes = {
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()),
+    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()) as React.Requireable<DocumentType>,
   };
 
   render() {
@@ -1007,21 +1139,30 @@ class PuzzlePageMultiplayerDocument extends React.PureComponent {
   }
 }
 
-class PuzzlePageContent extends React.PureComponent {
+interface PuzzlePageContentProps {
+  puzzle: PuzzleType;
+  allTags: TagType[];
+  guesses: GuessType[];
+  displayNames: Record<string, string>;
+  document?: DocumentType;
+  isDesktop: boolean;
+}
+
+class PuzzlePageContent extends React.PureComponent<PuzzlePageContentProps> {
   static propTypes = {
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
         TagsSchema.asReactPropTypes()
-      ).isRequired
+      ).isRequired as React.Validator<TagType>
     ).isRequired,
     guesses: PropTypes.arrayOf(
       PropTypes.shape(
         GuessesSchema.asReactPropTypes()
-      ).isRequired
+      ).isRequired as React.Validator<GuessType>
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()),
+    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()) as React.Requireable<DocumentType>,
     isDesktop: PropTypes.bool.isRequired,
   };
 
@@ -1044,7 +1185,7 @@ class PuzzlePageContent extends React.PureComponent {
   }
 }
 
-const findPuzzleById = function (puzzles, id) {
+const findPuzzleById = function (puzzles: PuzzleType[], id: string) {
   for (let i = 0; i < puzzles.length; i++) {
     const puzzle = puzzles[i];
     if (puzzle._id === id) {
@@ -1055,7 +1196,29 @@ const findPuzzleById = function (puzzles, id) {
   return undefined;
 };
 
-class PuzzlePage extends React.Component {
+interface PuzzlePageParams {
+  params: {huntId: string; puzzleId: string};
+}
+
+interface PuzzlePageProps extends PuzzlePageParams {
+  puzzlesReady: boolean;
+  allPuzzles: PuzzleType[];
+  allTags: TagType[];
+  chatReady: boolean;
+  chatMessages: FilteredChatMessageType[];
+  displayNames: Record<string, string>;
+  allGuesses: GuessType[];
+  document?: DocumentType;
+  canUpdate: boolean;
+}
+
+interface PuzzlePageState {
+  showRelated: boolean;
+  isDesktop: boolean;
+  isStackable: boolean;
+}
+
+class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
   static propTypes = {
     // hunt id and puzzle id comes from route?
     params: PropTypes.shape({
@@ -1063,18 +1226,18 @@ class PuzzlePage extends React.Component {
       puzzleId: PropTypes.string.isRequired,
     }).isRequired,
     puzzlesReady: PropTypes.bool.isRequired,
-    allPuzzles: PropTypes.arrayOf(PropTypes.shape(PuzzlesSchema.asReactPropTypes())).isRequired,
-    allTags: PropTypes.arrayOf(PropTypes.shape(TagsSchema.asReactPropTypes())).isRequired,
+    allPuzzles: PropTypes.arrayOf(PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>).isRequired,
+    allTags: PropTypes.arrayOf(PropTypes.shape(TagsSchema.asReactPropTypes()).isRequired as React.Validator<TagType>).isRequired,
     chatReady: PropTypes.bool.isRequired,
-    chatMessages: PropTypes.arrayOf(PropTypes.shape(FilteredChatMessagePropTypes)).isRequired,
+    chatMessages: PropTypes.arrayOf(PropTypes.shape(FilteredChatMessagePropTypes).isRequired).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
-    allGuesses: PropTypes.arrayOf(PropTypes.shape(GuessesSchema.asReactPropTypes())).isRequired,
+    allGuesses: PropTypes.arrayOf(PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired as React.Validator<GuessType>).isRequired,
     document: PropTypes.shape(DocumentsSchema.asReactPropTypes()),
     canUpdate: PropTypes.bool.isRequired,
   };
 
-  constructor(props, context) {
-    super(props, context);
+  constructor(props: PuzzlePageProps) {
+    super(props);
     const mode = this.calculateViewMode();
 
     this.state = {
@@ -1089,7 +1252,7 @@ class PuzzlePage extends React.Component {
     Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: PuzzlePageProps) {
     if (prevProps.params.puzzleId !== this.props.params.puzzleId) {
       Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
     }
@@ -1113,7 +1276,7 @@ class PuzzlePage extends React.Component {
     }
   };
 
-  onChangeShowRelated = (showRelatedNew) => {
+  onChangeShowRelated = (showRelatedNew: boolean) => {
     this.setState({ showRelated: showRelatedNew });
   };
 
@@ -1133,7 +1296,7 @@ class PuzzlePage extends React.Component {
       return <span>loading...</span>;
     }
 
-    const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.params.puzzleId);
+    const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.params.puzzleId)!;
 
     const sidebar = (
       <PuzzlePageSidebar
@@ -1153,6 +1316,9 @@ class PuzzlePage extends React.Component {
     );
 
     return (
+      // @ts-ignore The current type definitions expect this to be an ES6
+      //   default export but it's actually a CJS default export (yes, they're
+      //   different), which is why it needs to be imported with "import *"
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         {this.state.isDesktop ? (
           <div className="puzzle-page">
@@ -1194,13 +1360,13 @@ class PuzzlePage extends React.Component {
 }
 
 const crumb = withBreadcrumb(({ params, puzzlesReady, allPuzzles }) => {
-  const activePuzzle = findPuzzleById(allPuzzles, params.puzzleId);
+  const activePuzzle = findPuzzleById(allPuzzles, params.puzzleId)!;
   return {
     title: puzzlesReady ? activePuzzle.title : 'loading...',
-    link: `/hunts/${params.huntId}/puzzles/${params.puzzleId}`,
+    path: `/hunts/${params.huntId}/puzzles/${params.puzzleId}`,
   };
 });
-const tracker = withTracker(({ params }) => {
+const tracker = withTracker(({ params }: PuzzlePageParams) => {
   // There are some model dependencies that we have to be careful about:
   //
   // * We show the displayname of the person who submitted a guess, so guesses depends on display names
@@ -1239,10 +1405,10 @@ const tracker = withTracker(({ params }) => {
 
   const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready();
 
-  let allPuzzles;
-  let allTags;
-  let allGuesses;
-  let document;
+  let allPuzzles: PuzzleType[];
+  let allTags: TagType[];
+  let allGuesses: GuessType[];
+  let document: Document | undefined;
   // There's no sense in doing this expensive computation here if we're still loading data,
   // since we're not going to render the children.
   if (puzzlesReady) {
@@ -1256,10 +1422,10 @@ const tracker = withTracker(({ params }) => {
     allPuzzles = [];
     allTags = [];
     allGuesses = [];
-    document = null;
+    document = undefined;
   }
 
-  const chatFields = {};
+  const chatFields: Record<string, number> = {};
   FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
   const chatHandle = subsCache.subscribe(
     'mongo.chatmessages',

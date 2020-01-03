@@ -4,20 +4,27 @@ import { ServiceConfiguration } from 'meteor/service-configuration';
 import { OAuth } from 'meteor/oauth';
 import { Google } from 'meteor/google-oauth';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import Alert from 'react-bootstrap/lib/Alert';
-import Badge from 'react-bootstrap/lib/Badge';
-import Button from 'react-bootstrap/lib/Button';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
+import * as Alert from 'react-bootstrap/lib/Alert';
+import * as Badge from 'react-bootstrap/lib/Badge';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import * as FormControl from 'react-bootstrap/lib/FormControl';
+import * as FormGroup from 'react-bootstrap/lib/FormGroup';
 import Flags from '../../flags';
 import Settings from '../../lib/models/settings';
 
 /* eslint-disable max-len, react/jsx-one-expression-per-line */
+
+enum SubmitState {
+  IDLE = 'idle',
+  SUBMITTING = 'submitting',
+  SUCCESS = 'success',
+  ERROR = 'error',
+}
 
 const googleCompletenessStrings = [
   'Unconfigured',
@@ -26,27 +33,42 @@ const googleCompletenessStrings = [
   'Configured',
 ];
 
-class GoogleOAuthForm extends React.Component {
+interface GoogleOAuthFormProps {
+  isConfigured: boolean;
+  initialClientId?: string;
+}
+
+type GoogleOAuthFormState = {
+  clientId: string;
+  clientSecret: string;
+} & ({
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS
+} | {
+  submitState: SubmitState.ERROR;
+  submitError: string;
+})
+
+class GoogleOAuthForm extends React.Component<GoogleOAuthFormProps, GoogleOAuthFormState> {
   static propTypes = {
     isConfigured: PropTypes.bool.isRequired,
     initialClientId: PropTypes.string,
   };
 
-  constructor(props) {
+  constructor(props: GoogleOAuthFormProps) {
     super(props);
     const clientId = props.initialClientId || '';
     this.state = {
-      submitState: 'idle',
+      submitState: SubmitState.IDLE,
       clientId,
       clientSecret: '',
-    };
+    } as GoogleOAuthFormState;
   }
 
   dismissAlert = () => {
-    this.setState({ submitState: 'idle' });
+    this.setState({ submitState: SubmitState.IDLE });
   };
 
-  onSubmitOauthConfiguration = (e) => {
+  onSubmitOauthConfiguration = (e: React.FormEvent<any>) => {
     e.preventDefault();
 
     const clientId = this.state.clientId.trim();
@@ -54,48 +76,48 @@ class GoogleOAuthForm extends React.Component {
 
     if (clientId.length > 0 && clientSecret.length === 0) {
       this.setState({
-        submitState: 'error',
+        submitState: SubmitState.ERROR,
         submitError: 'You appear to be clearing the secret but not the client ID.  Please provide a secret.',
-      });
+      } as GoogleOAuthFormState);
     } else {
       this.setState({
-        submitState: 'submitting',
+        submitState: SubmitState.SUBMITTING,
       });
-      Meteor.call('setupGoogleOAuthClient', clientId, clientSecret, (err) => {
+      Meteor.call('setupGoogleOAuthClient', clientId, clientSecret, (err?: Error) => {
         if (err) {
           this.setState({
-            submitState: 'error',
+            submitState: SubmitState.ERROR,
             submitError: err.message,
-          });
+          } as GoogleOAuthFormState);
         } else {
           this.setState({
-            submitState: 'success',
+            submitState: SubmitState.SUCCESS,
           });
         }
       });
     }
   };
 
-  onClientIdChange = (e) => {
+  onClientIdChange = (e: React.FormEvent<FormControl>) => {
     this.setState({
-      clientId: e.target.value,
+      clientId: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  onClientSecretChange = (e) => {
+  onClientSecretChange = (e: React.FormEvent<FormControl>) => {
     this.setState({
-      clientSecret: e.target.value,
+      clientSecret: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
   render() {
-    const shouldDisableForm = this.state.submitState === 'submitting';
+    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
     const secretPlaceholder = this.props.isConfigured ? '<configured secret not revealed>' : '';
     return (
       <form onSubmit={this.onSubmitOauthConfiguration}>
-        {this.state.submitState === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
+        {this.state.submitState === SubmitState.SUBMITTING ? <Alert bsStyle="info">Saving...</Alert> : null}
+        {this.state.submitState === SubmitState.ERROR ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === SubmitState.ERROR ? (
           <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
             Saving failed:
             {' '}
@@ -135,24 +157,30 @@ class GoogleOAuthForm extends React.Component {
   }
 }
 
-class GoogleAuthorizeDriveClientForm extends React.Component {
+type GoogleAuthorizeDriveClientFormState = {
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS;
+} | {
+  submitState: SubmitState.ERROR;
+  error: Error;
+}
+
+class GoogleAuthorizeDriveClientForm extends React.Component<{}, GoogleAuthorizeDriveClientFormState> {
   state = {
-    submitState: 'idle',
-    error: '',
-  };
+    submitState: SubmitState.IDLE,
+  } as GoogleAuthorizeDriveClientFormState;
 
   dismissAlert = () => {
-    this.setState({ submitState: 'idle' });
+    this.setState({ submitState: SubmitState.IDLE });
   };
 
-  requestComplete = (token) => {
+  requestComplete = (token: string) => {
     const secret = OAuth._retrieveCredentialSecret(token);
-    this.setState({ submitState: 'submitting' });
-    Meteor.call('setupGdriveCreds', token, secret, (error) => {
+    this.setState({ submitState: SubmitState.SUBMITTING });
+    Meteor.call('setupGdriveCreds', token, secret, (error?: Error) => {
       if (error) {
-        this.setState({ submitState: 'error', error });
+        this.setState({ submitState: SubmitState.ERROR, error });
       } else {
-        this.setState({ submitState: 'success' });
+        this.setState({ submitState: SubmitState.SUCCESS });
       }
     });
   };
@@ -168,9 +196,9 @@ class GoogleAuthorizeDriveClientForm extends React.Component {
   render() {
     return (
       <div>
-        {this.state.submitState === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
+        {this.state.submitState === SubmitState.SUBMITTING ? <Alert bsStyle="info">Saving...</Alert> : null}
+        {this.state.submitState === SubmitState.SUCCESS ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === SubmitState.ERROR ? (
           <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
             Saving failed:
             {' '}
@@ -184,51 +212,66 @@ class GoogleAuthorizeDriveClientForm extends React.Component {
   }
 }
 
-class GoogleDriveTemplateForm extends React.Component {
+interface GoogleDriveTemplateFormProps {
+  initialDocTemplate: string;
+  initialSpreadsheetTemplate: string;
+}
+
+type GoogleDriveTemplateFormState = {
+  docTemplate: string;
+  spreadsheetTemplate: string;
+} & ({
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS;
+} | {
+  submitState: SubmitState.ERROR;
+  error: Error;
+})
+
+class GoogleDriveTemplateForm extends React.Component<GoogleDriveTemplateFormProps, GoogleDriveTemplateFormState> {
   static propTypes = {
     initialDocTemplate: PropTypes.string,
     initialSpreadsheetTemplate: PropTypes.string,
   };
 
-  constructor(props) {
+  constructor(props: GoogleDriveTemplateFormProps) {
     super(props);
     this.state = {
-      submitState: 'idle',
+      submitState: SubmitState.IDLE,
       docTemplate: props.initialDocTemplate || '',
       spreadsheetTemplate: props.initialSpreadsheetTemplate || '',
     };
   }
 
   dismissAlert = () => {
-    this.setState({ submitState: 'idle' });
+    this.setState({ submitState: SubmitState.IDLE });
   };
 
-  onSpreadsheetTemplateChange = (e) => {
+  onSpreadsheetTemplateChange = (e: React.FormEvent<FormControl>) => {
     this.setState({
-      spreadsheetTemplate: e.target.value,
+      spreadsheetTemplate: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  onDocTemplateChange = (e) => {
+  onDocTemplateChange = (e: React.FormEvent<FormControl>) => {
     this.setState({
-      docTemplate: e.target.value,
+      docTemplate: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  saveTemplates = (e) => {
+  saveTemplates = (e: React.MouseEvent<Button>) => {
     e.preventDefault();
     const ssTemplate = this.state.spreadsheetTemplate.trim();
     const ssId = ssTemplate.length > 0 ? ssTemplate : undefined;
     const docTemplateString = this.state.docTemplate.trim();
     const docId = docTemplateString.length > 0 ? docTemplateString : undefined;
     this.setState({
-      submitState: 'submitting',
+      submitState: SubmitState.SUBMITTING,
     });
-    Meteor.call('setupGdriveTemplates', ssId, docId, (error) => {
+    Meteor.call('setupGdriveTemplates', ssId, docId, (error?: Error) => {
       if (error) {
-        this.setState({ submitState: 'error', error });
+        this.setState({ submitState: SubmitState.ERROR, error } as GoogleDriveTemplateFormState);
       } else {
-        this.setState({ submitState: 'success' });
+        this.setState({ submitState: SubmitState.SUCCESS });
       }
     });
   };
@@ -276,7 +319,15 @@ class GoogleDriveTemplateForm extends React.Component {
   }
 }
 
-class GoogleIntegrationSection extends React.Component {
+interface GoogleIntegrationSectionProps {
+  oauthSettings: any;
+  gdriveCredential: any;
+  docTemplate: string;
+  spreadsheetTemplate: string;
+  enabled: boolean;
+}
+
+class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionProps> {
   static propTypes = {
     // oauth config
     oauthSettings: PropTypes.object,
@@ -439,7 +490,21 @@ class GoogleIntegrationSection extends React.Component {
   }
 }
 
-class SlackIntegrationSection extends React.Component {
+interface SlackIntegrationSectionProps {
+  configured: boolean;
+  enabled: boolean;
+}
+
+type SlackIntegrationSectionState = {
+  apiKeyValue: string;
+} & ({
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS;
+} | {
+  submitState: SubmitState.ERROR;
+  submitError: string;
+})
+
+class SlackIntegrationSection extends React.Component<SlackIntegrationSectionProps, SlackIntegrationSectionState> {
   static propTypes = {
     configured: PropTypes.bool.isRequired,
     enabled: PropTypes.bool.isRequired,
@@ -447,9 +512,8 @@ class SlackIntegrationSection extends React.Component {
 
   state = {
     apiKeyValue: '',
-    submitState: 'idle',
-    submitError: '',
-  };
+    submitState: SubmitState.IDLE,
+  } as SlackIntegrationSectionState;
 
   onToggleEnabled = () => {
     const newValue = !this.props.enabled;
@@ -457,27 +521,27 @@ class SlackIntegrationSection extends React.Component {
     Meteor.call('setFeatureFlag', 'disable.slack', ffValue);
   };
 
-  onApiKeyChange = (e) => {
+  onApiKeyChange = (e: React.FormEvent<FormControl>) => {
     this.setState({
-      apiKeyValue: e.target.value,
+      apiKeyValue: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  onSaveApiKey = (e) => {
+  onSaveApiKey = (e: React.MouseEvent<Button>) => {
     e.preventDefault();
     this.setState({
-      submitState: 'submitting',
+      submitState: SubmitState.SUBMITTING,
     });
 
-    Meteor.call('configureSlack', this.state.apiKeyValue.trim(), (err) => {
+    Meteor.call('configureSlack', this.state.apiKeyValue.trim(), (err?: Error) => {
       if (err) {
         this.setState({
-          submitState: 'error',
+          submitState: SubmitState.ERROR,
           submitError: err.message,
-        });
+        } as SlackIntegrationSectionState);
       } else {
         this.setState({
-          submitState: 'success',
+          submitState: SubmitState.SUCCESS,
         });
       }
     });
@@ -485,8 +549,7 @@ class SlackIntegrationSection extends React.Component {
 
   dismissAlert = () => {
     this.setState({
-      submitState: 'idle',
-      submitError: '',
+      submitState: SubmitState.ERROR,
     });
   };
 
@@ -553,20 +616,27 @@ class SlackIntegrationSection extends React.Component {
   }
 }
 
-class CircuitBreakerControl extends React.Component {
+interface CircuitBreakerControlProps {
+  // disabled should be false if the circuit breaker is not intentionally disabling the feature,
+  // and true if the feature is currently disabled.
+  // most features will have false here most of the time.
+  featureDisabled: boolean;
+
+  // What do you call this circuit breaker?
+  title: string;
+
+  // some explanation of what this feature flag controls and why you might want to toggle it.
+  children: React.ReactNode;
+
+  // callback to call when the user requests changing this flag's state
+  onChange: (desiredState: boolean) => void;
+}
+
+class CircuitBreakerControl extends React.Component<CircuitBreakerControlProps> {
   static propTypes = {
-    // disabled should be false if the circuit breaker is not intentionally disabling the feature,
-    // and true if the feature is currently disabled.
-    // most features will have false here most of the time.
     featureDisabled: PropTypes.bool.isRequired,
-
-    // What do you call this circuit breaker?
     title: PropTypes.string.isRequired,
-
-    // some explanation of what this feature flag controls and why you might want to toggle it.
     children: PropTypes.node,
-
-    // callback to call when the user requests changing this flag's state
     onChange: PropTypes.func.isRequired,
   };
 
@@ -604,7 +674,14 @@ class CircuitBreakerControl extends React.Component {
   }
 }
 
-class CircuitBreakerSection extends React.Component {
+interface CircuitBreakerSectionProps {
+  flagDisableGdrivePermissions: boolean;
+  flagDisableSubcounters: boolean;
+  flagDisableViewerLists: boolean;
+  flagDisableApplause: boolean;
+}
+
+class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> {
   static propTypes = {
     flagDisableGdrivePermissions: PropTypes.bool.isRequired,
     flagDisableSubcounters: PropTypes.bool.isRequired,
@@ -612,7 +689,7 @@ class CircuitBreakerSection extends React.Component {
     flagDisableApplause: PropTypes.bool.isRequired,
   };
 
-  setFlagValue(flag, value) {
+  setFlagValue(flag: string, value: boolean) {
     const type = value ? 'on' : 'off';
     Meteor.call('setFeatureFlag', flag, type);
   }
@@ -720,18 +797,38 @@ class CircuitBreakerSection extends React.Component {
   }
 }
 
-class SetupPageRewrite extends React.Component {
+interface SetupPageRewriteProps {
+  ready: boolean;
+
+  canConfigure: boolean;
+
+  googleConfig: any;
+  gdriveCredential: any;
+  docTemplate: string;
+  spreadsheetTemplate: string;
+
+  slackConfig: any;
+  flagDisableSlack: boolean;
+
+  flagDisableGoogleIntegration: boolean;
+  flagDisableGdrivePermissions: boolean;
+  flagDisableSubcounters: boolean;
+  flagDisableViewerLists: boolean;
+  flagDisableApplause: boolean;
+}
+
+class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
   static propTypes = {
     ready: PropTypes.bool.isRequired,
 
     canConfigure: PropTypes.bool.isRequired,
 
-    googleConfig: PropTypes.object,
+    googleConfig: PropTypes.any,
     gdriveCredential: PropTypes.object,
     docTemplate: PropTypes.string,
     spreadsheetTemplate: PropTypes.string,
 
-    slackConfig: PropTypes.object,
+    slackConfig: PropTypes.any,
     flagDisableSlack: PropTypes.bool.isRequired,
 
     flagDisableGoogleIntegration: PropTypes.bool.isRequired,
@@ -786,7 +883,7 @@ class SetupPageRewrite extends React.Component {
   }
 }
 
-const crumb = withBreadcrumb({ title: 'Server setup', link: '/setup' });
+const crumb = withBreadcrumb({ title: 'Server setup', path: '/setup' });
 const tracker = withTracker(() => {
   const canConfigure = Roles.userHasRole(Meteor.userId(), 'admin');
 
@@ -831,4 +928,4 @@ const tracker = withTracker(() => {
   };
 });
 
-export default _.compose(crumb, tracker)(SetupPageRewrite);
+export default crumb(tracker(SetupPageRewrite));

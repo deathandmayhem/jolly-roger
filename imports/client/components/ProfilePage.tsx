@@ -1,32 +1,38 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import { ServiceConfiguration } from 'meteor/service-configuration';
+import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { OAuth } from 'meteor/oauth';
 import { Google } from 'meteor/google-oauth';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import Checkbox from 'react-bootstrap/lib/Checkbox';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import HelpBlock from 'react-bootstrap/lib/HelpBlock';
-import Label from 'react-bootstrap/lib/Label';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
+import * as Alert from 'react-bootstrap/lib/Alert';
+import * as Button from 'react-bootstrap/lib/Button';
+import * as Checkbox from 'react-bootstrap/lib/Checkbox';
+import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import * as FormControl from 'react-bootstrap/lib/FormControl';
+import * as FormGroup from 'react-bootstrap/lib/FormGroup';
+import * as HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import * as Label from 'react-bootstrap/lib/Label';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache';
-import ProfilesSchema from '../../lib/schemas/profiles';
+import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
 import Profiles from '../../lib/models/profiles';
 import Flags from '../../flags';
 import Gravatar from './Gravatar';
 
 /* eslint-disable max-len */
 
-class OthersProfilePage extends React.Component {
+interface OthersProfilePageProps {
+  profile: ProfileType;
+  viewerCanMakeOperator: boolean;
+  targetIsOperator: boolean;
+}
+
+class OthersProfilePage extends React.Component<OthersProfilePageProps> {
   static propTypes = {
-    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()),
+    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired as React.Validator<ProfileType>,
     viewerCanMakeOperator: PropTypes.bool.isRequired,
     targetIsOperator: PropTypes.bool.isRequired,
   };
@@ -69,17 +75,36 @@ class OthersProfilePage extends React.Component {
   }
 }
 
-class GoogleLinkBlock extends React.Component {
+interface GoogleLinkBlockProps {
+  profile: ProfileType;
+  googleDisabled: boolean;
+  config: Configuration | null;
+}
+
+enum GoogleLinkBlockLinkState {
+  IDLE = 'idle',
+  LINKING = 'linking',
+  ERROR = 'error',
+}
+
+type GoogleLinkBlockState = {
+  state: GoogleLinkBlockLinkState.IDLE | GoogleLinkBlockLinkState.LINKING;
+} | {
+  state: GoogleLinkBlockLinkState.ERROR;
+  error: Error;
+}
+
+class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBlockState> {
   static propTypes = {
-    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()),
+    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired as React.Validator<ProfileType>,
     googleDisabled: PropTypes.bool.isRequired,
-    config: PropTypes.object,
+    config: PropTypes.any,
   };
 
-  state = { state: 'idle' };
+  state = { state: GoogleLinkBlockLinkState.IDLE } as GoogleLinkBlockState;
 
   onLink = () => {
-    this.setState({ state: 'linking' });
+    this.setState({ state: GoogleLinkBlockLinkState.LINKING });
     Google.requestCredential(this.requestComplete);
   };
 
@@ -87,24 +112,24 @@ class GoogleLinkBlock extends React.Component {
     Meteor.call('unlinkUserGoogleAccount');
   };
 
-  requestComplete = (token) => {
+  requestComplete = (token: string) => {
     const secret = OAuth._retrieveCredentialSecret(token);
     if (!secret) {
-      this.setState({ state: 'idle' });
+      this.setState({ state: GoogleLinkBlockLinkState.IDLE });
       return;
     }
 
-    Meteor.call('linkUserGoogleAccount', token, secret, (error) => {
+    Meteor.call('linkUserGoogleAccount', token, secret, (error?: Error) => {
       if (error) {
-        this.setState({ state: 'error', error });
+        this.setState({ state: GoogleLinkBlockLinkState.ERROR, error });
       } else {
-        this.setState({ state: 'idle' });
+        this.setState({ state: GoogleLinkBlockLinkState.IDLE });
       }
     });
   };
 
   dismissAlert = () => {
-    this.setState({ state: 'idle' });
+    this.setState({ state: GoogleLinkBlockLinkState.IDLE });
   };
 
   errorAlert = () => {
@@ -121,7 +146,7 @@ class GoogleLinkBlock extends React.Component {
   };
 
   linkButton = () => {
-    if (this.state.state === 'linking') {
+    if (this.state.state === GoogleLinkBlockLinkState.LINKING) {
       return <Button bsStyle="primary" disabled>Linking...</Button>;
     }
 
@@ -204,17 +229,39 @@ class GoogleLinkBlock extends React.Component {
   }
 }
 
-const GoogleLinkBlockContainer = withTracker(() => {
-  const config = ServiceConfiguration.configurations.findOne({ service: 'google' });
+const GoogleLinkBlockContainer = withTracker((_props: { profile: ProfileType }) => {
+  const config = ServiceConfiguration.configurations.findOne({ service: 'google' }) as Configuration | null;
   const googleDisabled = Flags.active('disable.google');
   return { config, googleDisabled };
 })(GoogleLinkBlock);
 
-class OwnProfilePage extends React.Component {
+interface OwnProfilePageProps {
+  initialProfile: ProfileType;
+  operating: boolean;
+  canMakeOperator: boolean;
+}
+
+enum OwnProfilePageSubmitState {
+  IDLE = 'idle',
+  SUBMITTING = 'submitting',
+  SUCCESS = 'success',
+  ERROR = 'error',
+}
+
+interface OwnProfilePageState {
+  displayNameValue: string;
+  phoneNumberValue: string;
+  slackHandleValue: string;
+  muteApplause: boolean;
+  submitState: OwnProfilePageSubmitState,
+  submitError: string;
+}
+
+class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePageState> {
   static propTypes = {
-    initialProfile: PropTypes.shape(ProfilesSchema.asReactPropTypes()),
-    operating: PropTypes.bool,
-    canMakeOperator: PropTypes.bool,
+    initialProfile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired as React.Validator<ProfileType>,
+    operating: PropTypes.bool.isRequired,
+    canMakeOperator: PropTypes.bool.isRequired,
   };
 
   state = {
@@ -222,13 +269,12 @@ class OwnProfilePage extends React.Component {
     phoneNumberValue: this.props.initialProfile.phoneNumber || '',
     slackHandleValue: this.props.initialProfile.slackHandle || '',
     muteApplause: this.props.initialProfile.muteApplause || false,
-    submitState: 'idle', // One of 'idle', 'submitting', 'success', or 'error'
-    submitError: '',
-  };
+    submitState: OwnProfilePageSubmitState.IDLE,
+  } as OwnProfilePageState;
 
-  onDisableApplauseChange = (e) => {
+  onDisableApplauseChange = (e: React.FormEvent<Checkbox>) => {
     this.setState({
-      muteApplause: e.target.checked,
+      muteApplause: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.checked,
     });
   };
 
@@ -243,21 +289,21 @@ class OwnProfilePage extends React.Component {
     return valid ? 'success' : 'error';
   };
 
-  handleDisplayNameFieldChange = (e) => {
+  handleDisplayNameFieldChange = (e: React.ChangeEvent<FormControl>) => {
     this.setState({
-      displayNameValue: e.target.value,
+      displayNameValue: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  handlePhoneNumberFieldChange = (e) => {
+  handlePhoneNumberFieldChange = (e: React.ChangeEvent<FormControl>) => {
     this.setState({
-      phoneNumberValue: e.target.value,
+      phoneNumberValue: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
-  handleSlackHandleFieldChange = (e) => {
+  handleSlackHandleFieldChange = (e: React.ChangeEvent<FormControl>) => {
     this.setState({
-      slackHandleValue: e.target.value,
+      slackHandleValue: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
     });
   };
 
@@ -272,7 +318,7 @@ class OwnProfilePage extends React.Component {
 
   handleSaveForm = () => {
     this.setState({
-      submitState: 'submitting',
+      submitState: OwnProfilePageSubmitState.SUBMITTING,
     });
     const newProfile = {
       displayName: this.state.displayNameValue,
@@ -280,15 +326,15 @@ class OwnProfilePage extends React.Component {
       slackHandle: this.state.slackHandleValue,
       muteApplause: this.state.muteApplause,
     };
-    Meteor.call('saveProfile', newProfile, (error) => {
+    Meteor.call('saveProfile', newProfile, (error?: Error) => {
       if (error) {
         this.setState({
-          submitState: 'error',
+          submitState: OwnProfilePageSubmitState.ERROR,
           submitError: error.message,
         });
       } else {
         this.setState({
-          submitState: 'success',
+          submitState: OwnProfilePageSubmitState.SUCCESS,
         });
       }
     });
@@ -296,8 +342,7 @@ class OwnProfilePage extends React.Component {
 
   dismissAlert = () => {
     this.setState({
-      submitState: 'idle',
-      submitError: '',
+      submitState: OwnProfilePageSubmitState.IDLE,
     });
   };
 
@@ -412,14 +457,27 @@ class OwnProfilePage extends React.Component {
   }
 }
 
-class ProfilePage extends React.Component {
+interface ProfilePageParams {
+  params: {userId: string};
+}
+
+interface ProfilePageProps extends ProfilePageParams {
+  ready: boolean;
+  isSelf: boolean;
+  profile: ProfileType;
+  viewerCanMakeOperator: boolean;
+  viewerIsOperator: boolean;
+  targetIsOperator: boolean;
+}
+
+class ProfilePage extends React.Component<ProfilePageProps> {
   static propTypes = {
     params: PropTypes.shape({
       userId: PropTypes.string.isRequired,
     }).isRequired,
     ready: PropTypes.bool.isRequired,
     isSelf: PropTypes.bool.isRequired,
-    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired,
+    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired as React.Validator<ProfileType>,
     viewerCanMakeOperator: PropTypes.bool.isRequired,
     viewerIsOperator: PropTypes.bool.isRequired,
     targetIsOperator: PropTypes.bool.isRequired,
@@ -448,11 +506,11 @@ class ProfilePage extends React.Component {
   }
 }
 
-const usersCrumb = withBreadcrumb({ title: 'Users', link: '/users' });
-const userCrumb = withBreadcrumb(({ params, ready, profile }) => {
-  return { title: ready ? profile.displayName : 'loading...', link: `/users/${params.userId}` };
+const usersCrumb = withBreadcrumb({ title: 'Users', path: '/users' });
+const userCrumb = withBreadcrumb(({ params, ready, profile }: ProfilePageProps) => {
+  return { title: ready ? profile.displayName : 'loading...', path: `/users/${params.userId}` };
 });
-const tracker = withTracker(({ params }) => {
+const tracker = withTracker(({ params }: ProfilePageParams) => {
   const uid = params.userId === 'me' ? Meteor.userId() : params.userId;
 
   const profileHandle = subsCache.subscribe('mongo.profiles', { _id: uid });

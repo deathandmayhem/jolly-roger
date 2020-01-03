@@ -196,7 +196,7 @@ class SlackMessage extends React.PureComponent<SlackMessageProps, SlackMessageSt
 
   sendInvite = () => {
     this.setState({ status: SlackMessageStatus.SUBMITTING });
-    Meteor.call('slackInvite', (err: Error) => {
+    Meteor.call('slackInvite', (err?: Error) => {
       if (err) {
         this.setState({ status: SlackMessageStatus.ERROR, errorMessage: err.message });
       } else {

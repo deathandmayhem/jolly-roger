@@ -1,17 +1,33 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import PropTypes from 'prop-types';
-import React from 'react';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
 import { browserHistory } from 'react-router';
 import { withTracker } from 'meteor/react-meteor-data';
+import { Location } from 'history';
 
-class Authenticator extends React.Component {
+interface AuthenticatorParams {
+  route: {authenticated: boolean};
+  children: React.ReactNode;
+  location: Location;
+}
+
+interface AuthenticatorProps extends AuthenticatorParams {
+  loggingIn: boolean;
+  userId: string;
+}
+
+interface AuthenticatorState {
+  loading: boolean;
+}
+
+class Authenticator extends React.Component<AuthenticatorProps, AuthenticatorState> {
   static propTypes = {
-    route: PropTypes.object,
-    children: PropTypes.node,
-    location: PropTypes.object,
-    loggingIn: PropTypes.bool,
-    userId: PropTypes.string,
+    route: PropTypes.shape({ authenticated: PropTypes.bool.isRequired }).isRequired,
+    children: PropTypes.node.isRequired,
+    location: PropTypes.any,
+    loggingIn: PropTypes.bool.isRequired,
+    userId: PropTypes.string.isRequired,
   };
 
   state = { loading: true };
@@ -57,7 +73,7 @@ class Authenticator extends React.Component {
   }
 }
 
-export default withTracker(() => {
+export default withTracker((_params: AuthenticatorParams) => {
   return {
     loggingIn: Meteor.loggingIn(),
     userId: Meteor.userId(),
