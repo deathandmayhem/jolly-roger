@@ -642,11 +642,6 @@ Resources:
                 ${PapertrailDockerConfig}
                 ${DatadogDockerConfig}
 
-                # Pre-fetch images
-                - docker pull deathandmayhem/jolly-roger
-                - docker pull jwilder/nginx-proxy
-                - docker pull centurylink/watchtower
-
                 - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx
 
                 - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e VIRTUAL_HOST=${AppUrl} -e ROOT_URL=https://${AppUrl} deathandmayhem/jolly-roger
