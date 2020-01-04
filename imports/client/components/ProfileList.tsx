@@ -1,14 +1,14 @@
-import * as PropTypes from 'prop-types';
-import * as React from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { _ } from 'meteor/underscore';
-import * as Alert from 'react-bootstrap/lib/Alert';
-import * as Button from 'react-bootstrap/lib/Button';
-import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import * as FormControl from 'react-bootstrap/lib/FormControl';
-import * as FormGroup from 'react-bootstrap/lib/FormGroup';
-import * as InputGroup from 'react-bootstrap/lib/InputGroup';
-import * as ListGroup from 'react-bootstrap/lib/ListGroup';
-import * as ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import InputGroup from 'react-bootstrap/lib/InputGroup';
+import ListGroup from 'react-bootstrap/lib/ListGroup';
+import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
 import * as RRBS from 'react-router-bootstrap';
 import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
 

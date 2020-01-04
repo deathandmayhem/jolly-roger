@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
-import * as Alert from 'react-bootstrap/lib/Alert';
-import * as Button from 'react-bootstrap/lib/Button';
+import React from 'react';
+import PropTypes from 'prop-types';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
 import { withTracker } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible';
 

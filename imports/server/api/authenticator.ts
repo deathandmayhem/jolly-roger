@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 import APIKeys from '../models/api_keys';
 
 const authenticator: express.Handler = (req, res, next) => {

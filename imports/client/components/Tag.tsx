@@ -1,6 +1,6 @@
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
-import * as Button from 'react-bootstrap/lib/Button';
+import React from 'react';
+import PropTypes from 'prop-types';
+import Button from 'react-bootstrap/lib/Button';
 import { Link } from 'react-router';
 import classnames from 'classnames';
 import tagShape from './tagShape';

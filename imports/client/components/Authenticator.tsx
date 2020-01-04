@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import * as PropTypes from 'prop-types';
-import * as React from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { browserHistory } from 'react-router';
 import { withTracker } from 'meteor/react-meteor-data';
 import { Location } from 'history';

@@ -1,11 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 import {
   IndexRedirect,
   Route,
   Router,
   browserHistory,
 } from 'react-router';
-import * as DocumentTitle from 'react-document-title';
+import DocumentTitle from 'react-document-title';
 import { BreadcrumbsProvider } from 'react-breadcrumbs-context';
 import AllProfileListPage from './AllProfileListPage';
 import App from './App';
@@ -28,9 +28,6 @@ import UserInvitePage from './UserInvitePage';
 class Routes extends React.Component {
   render() {
     return (
-      // @ts-ignore The current type definitions expect this to be an ES6
-      //   default export but it's actually a CJS default export (yes, they're
-      //   different), which is why it needs to be imported with "import *"
       <DocumentTitle title="Jolly Roger">
         <BreadcrumbsProvider>
           <Router history={browserHistory}>

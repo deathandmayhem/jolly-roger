@@ -2,7 +2,7 @@ import { URL } from 'url';
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import { _ } from 'meteor/underscore';
-import * as logfmt from 'logfmt';
+import logfmt from 'logfmt';
 import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
 

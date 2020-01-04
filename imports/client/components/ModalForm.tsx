@@ -1,7 +1,7 @@
-import * as PropTypes from 'prop-types';
-import * as React from 'react';
-import * as Button from 'react-bootstrap/lib/Button';
-import * as Modal from 'react-bootstrap/lib/Modal';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Button from 'react-bootstrap/lib/Button';
+import Modal from 'react-bootstrap/lib/Modal';
 
 interface ModalFormProps {
   title: string;

@@ -1,6 +1,6 @@
 import { _ } from 'meteor/underscore';
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
+import React from 'react';
+import PropTypes from 'prop-types';
 import puzzleShape from './puzzleShape';
 import tagShape from './tagShape';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';

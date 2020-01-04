@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 import authenticator from './api/authenticator';
 import users from './api/resources/users';
 
