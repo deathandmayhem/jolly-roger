@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
-import * as logfmt from 'logfmt';
+import logfmt from 'logfmt';
 
 const logLevels = new Set(['log', 'info', 'error', 'warn']);
 

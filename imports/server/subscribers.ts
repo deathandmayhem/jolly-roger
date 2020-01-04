@@ -10,7 +10,7 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
-import * as moment from 'moment';
+import moment from 'moment';
 import Flags from '../flags';
 import Servers from './models/servers';
 import Subscribers from './models/subscribers';

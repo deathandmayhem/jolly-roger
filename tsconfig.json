@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {

@@ -1,13 +1,13 @@
 import { Meteor } from 'meteor/meteor';
-import * as PropTypes from 'prop-types';
-import * as React from 'react';
-import * as Alert from 'react-bootstrap/lib/Alert';
-import * as Button from 'react-bootstrap/lib/Button';
-import * as Col from 'react-bootstrap/lib/Col';
-import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import * as FormControl from 'react-bootstrap/lib/FormControl';
-import * as FormGroup from 'react-bootstrap/lib/FormGroup';
-import * as Row from 'react-bootstrap/lib/Row';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import Col from 'react-bootstrap/lib/Col';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import Row from 'react-bootstrap/lib/Row';
 
 interface UserInvitePageProps {
   params: {huntId: string};

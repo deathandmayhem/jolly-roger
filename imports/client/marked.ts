@@ -1,4 +1,4 @@
-import * as marked from 'marked';
+import marked from 'marked';
 
 (marked.InlineLexer.rules.gfm as marked.Rules).em = /^\b_((?:__|[^_])+?)_\b/;
 (marked.InlineLexer.rules.gfm as marked.Rules).strong = /^\*\b((?:\*\*|[^*])+?)\b\*/;

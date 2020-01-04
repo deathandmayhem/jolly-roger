@@ -1,15 +1,15 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import * as PropTypes from 'prop-types';
-import * as React from 'react';
-import * as Alert from 'react-bootstrap/lib/Alert';
-import * as Button from 'react-bootstrap/lib/Button';
-import * as ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
-import * as DocumentTitle from 'react-document-title';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
+import DocumentTitle from 'react-document-title';
 import { withTracker } from 'meteor/react-meteor-data';
-import * as DOMPurify from 'dompurify';
-import * as marked from 'marked';
+import DOMPurify from 'dompurify';
+import marked from 'marked';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import subsCache from '../subsCache';
 import CelebrationCenter from './CelebrationCenter';
@@ -189,9 +189,6 @@ class HuntApp extends React.Component<HuntAppProps> {
     const title = this.props.hunt ? `${this.props.hunt.name} :: Jolly Roger` : '';
 
     return (
-      // @ts-ignore The current type definitions expect this to be an ES6
-      //   default export but it's actually a CJS default export (yes, they're
-      //   different), which is why it needs to be imported with "import *"
       <DocumentTitle title={title}>
         <div>
           <CelebrationCenter huntId={this.props.params.huntId} />

@@ -1,10 +1,10 @@
 import { _ } from 'meteor/underscore';
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
-import * as Alert from 'react-bootstrap/lib/Alert';
-import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import * as FormControl from 'react-bootstrap/lib/FormControl';
-import * as FormGroup from 'react-bootstrap/lib/FormGroup';
+import React from 'react';
+import PropTypes from 'prop-types';
+import Alert from 'react-bootstrap/lib/Alert';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Creatable from 'react-select/lib/Creatable';
 import LabelledRadioGroup from './LabelledRadioGroup';
 import ModalForm from './ModalForm';

@@ -1,8 +1,8 @@
 import { _ } from 'meteor/underscore';
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
-import * as Button from 'react-bootstrap/lib/Button';
-import * as ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
+import React from 'react';
+import PropTypes from 'prop-types';
+import Button from 'react-bootstrap/lib/Button';
+import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import tagShape from './tagShape';

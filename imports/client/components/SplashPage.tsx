@@ -1,9 +1,9 @@
-import * as PropTypes from 'prop-types';
-import * as React from 'react';
-import * as Col from 'react-bootstrap/lib/Col';
-import * as Image from 'react-bootstrap/lib/Image';
-import * as Jumbotron from 'react-bootstrap/lib/Jumbotron';
-import * as Row from 'react-bootstrap/lib/Row';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Col from 'react-bootstrap/lib/Col';
+import Image from 'react-bootstrap/lib/Image';
+import Jumbotron from 'react-bootstrap/lib/Jumbotron';
+import Row from 'react-bootstrap/lib/Row';
 
 interface SplashPageProps {
   children: React.ReactNode;

@@ -1,5 +1,5 @@
-import * as PropTypes from 'prop-types';
-import * as React from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import DeepLink from './DeepLink';

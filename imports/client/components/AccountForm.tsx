@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
-import * as PropTypes from 'prop-types';
-import * as React from 'react';
-import * as Alert from 'react-bootstrap/lib/Alert';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Alert from 'react-bootstrap/lib/Alert';
 
 /* eslint-disable max-len, jsx-a11y/href-no-hash, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
 

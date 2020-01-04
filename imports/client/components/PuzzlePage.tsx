@@ -1,27 +1,27 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import * as PropTypes from 'prop-types';
-import * as React from 'react';
-import * as Alert from 'react-bootstrap/lib/Alert';
-import * as Button from 'react-bootstrap/lib/Button';
-import * as ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import * as FormControl from 'react-bootstrap/lib/FormControl';
-import * as FormGroup from 'react-bootstrap/lib/FormGroup';
-import * as HelpBlock from 'react-bootstrap/lib/HelpBlock';
-import * as Modal from 'react-bootstrap/lib/Modal';
-import * as Nav from 'react-bootstrap/lib/Nav';
-import * as NavItem from 'react-bootstrap/lib/NavItem';
-import * as OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
-import * as Table from 'react-bootstrap/lib/Table';
-import * as Tooltip from 'react-bootstrap/lib/Tooltip';
-import * as DocumentTitle from 'react-document-title';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Alert from 'react-bootstrap/lib/Alert';
+import Button from 'react-bootstrap/lib/Button';
+import ControlLabel from 'react-bootstrap/lib/ControlLabel';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import Modal from 'react-bootstrap/lib/Modal';
+import Nav from 'react-bootstrap/lib/Nav';
+import NavItem from 'react-bootstrap/lib/NavItem';
+import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
+import Table from 'react-bootstrap/lib/Table';
+import Tooltip from 'react-bootstrap/lib/Tooltip';
+import DocumentTitle from 'react-document-title';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import classnames from 'classnames';
-import * as DOMPurify from 'dompurify';
-import * as marked from 'marked';
-import * as moment from 'moment';
+import DOMPurify from 'dompurify';
+import marked from 'marked';
+import moment from 'moment';
 import TextareaAutosize from 'react-textarea-autosize';
 import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
@@ -1316,9 +1316,6 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
     );
 
     return (
-      // @ts-ignore The current type definitions expect this to be an ES6
-      //   default export but it's actually a CJS default export (yes, they're
-      //   different), which is why it needs to be imported with "import *"
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         {this.state.isDesktop ? (
           <div className="puzzle-page">

@@ -1,4 +1,4 @@
-import * as PropTypes from 'prop-types';
+import PropTypes from 'prop-types';
 import SimpleSchema from 'simpl-schema';
 
 declare module 'simpl-schema' {

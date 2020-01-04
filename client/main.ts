@@ -25,9 +25,12 @@ import '../imports/client/close';
 import SchemasFacade from '../imports/lib/schemas/facade';
 import ModelsFacade from '../imports/lib/models/facade';
 
-/* eslint-disable */
-// @ts-ignore
-Schemas = SchemasFacade;
-// @ts-ignore
-Models = ModelsFacade;
-/* eslint-enable */
+declare global {
+  interface Window {
+    Schemas: typeof SchemasFacade;
+    Models: typeof ModelsFacade;
+  }
+}
+
+window.Schemas = SchemasFacade;
+window.Models = ModelsFacade;

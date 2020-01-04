@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import * as child from 'child_process';
+import child from 'child_process';
 import Ansible from '../ansible';
 
 const execFile = Meteor.wrapAsync(child.execFile);
