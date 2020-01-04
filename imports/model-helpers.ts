@@ -29,6 +29,9 @@ const huntsMatchingCurrentUser = function <T extends HuntModel> (
   // changes, so use it carefully (basically, use it when you already
   // know the user is a member of the hunt in question).
   const u = Meteor.users.findOne(this.userId);
+  if (!u) {
+    throw new Meteor.Error(401, 'Unauthenticated');
+  }
   const q = _.clone(origQuery);
   let huntList: T["hunt"][];
 

@@ -511,7 +511,7 @@ const userCrumb = withBreadcrumb(({ params, ready, profile }: ProfilePageProps) 
   return { title: ready ? profile.displayName : 'loading...', path: `/users/${params.userId}` };
 });
 const tracker = withTracker(({ params }: ProfilePageParams) => {
-  const uid = params.userId === 'me' ? Meteor.userId() : params.userId;
+  const uid = params.userId === 'me' ? Meteor.userId()! : params.userId;
 
   const profileHandle = subsCache.subscribe('mongo.profiles', { _id: uid });
   const userRolesHandle = subsCache.subscribe('userRoles', uid);
@@ -531,7 +531,7 @@ const tracker = withTracker(({ params }: ProfilePageParams) => {
       createdBy: Meteor.userId(),
     },
     viewerCanMakeOperator: Roles.userHasPermission(Meteor.userId(), 'users.makeOperator'),
-    viewerIsOperator: Roles.userHasRole(Meteor.userId(), 'operator'),
+    viewerIsOperator: Roles.userHasRole(Meteor.userId()!, 'operator'),
     targetIsOperator: Roles.userHasPermission(uid, 'users.makeOperator'),
   };
   return data;

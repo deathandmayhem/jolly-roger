@@ -83,11 +83,11 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
     this.setState({
       submitState: AccountFormSubmitState.SUBMITTING,
     });
-    Meteor.loginWithPassword(this.state.email, this.state.password, (error?: Meteor.Error) => {
+    Meteor.loginWithPassword(this.state.email, this.state.password, (error?: Error) => {
       if (error) {
         this.setState({
           submitState: AccountFormSubmitState.FAILED,
-          errorMessage: error.reason,
+          errorMessage: (error instanceof Meteor.Error) ? error.reason : error.message,
         });
       } else {
         this.setState({
@@ -102,11 +102,11 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
     this.setState({
       submitState: AccountFormSubmitState.IDLE,
     });
-    Accounts.forgotPassword({ email: this.state.email }, (error?: Meteor.Error) => {
+    Accounts.forgotPassword({ email: this.state.email }, (error?: Error) => {
       if (error) {
         this.setState({
           submitState: AccountFormSubmitState.FAILED,
-          errorMessage: error.reason,
+          errorMessage: (error instanceof Meteor.Error) ? error.reason : error.message,
         });
       } else {
         this.setState({
@@ -118,11 +118,11 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
   };
 
   tryCompletePasswordReset = (token: string) => {
-    Accounts.resetPassword(token, this.state.password, (error?: Meteor.Error) => {
+    Accounts.resetPassword(token, this.state.password, (error?: Error) => {
       if (error) {
         this.setState({
           submitState: AccountFormSubmitState.FAILED,
-          errorMessage: error.reason,
+          errorMessage: (error instanceof Meteor.Error) ? error.reason : error.message,
         });
       } else {
         this.setState({
@@ -145,19 +145,19 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
       submitState: AccountFormSubmitState.SUBMITTING,
     });
 
-    Accounts.resetPassword(token, this.state.password, (error?: Meteor.Error) => {
+    Accounts.resetPassword(token, this.state.password, (error?: Error) => {
       if (error) {
         this.setState({
           submitState: AccountFormSubmitState.FAILED,
-          errorMessage: error.reason,
+          errorMessage: (error instanceof Meteor.Error) ? error.reason : error.message,
         });
       } else {
-        Meteor.call('saveProfile', newProfile, (innerError?: Meteor.Error) => {
+        Meteor.call('saveProfile', newProfile, (innerError?: Error) => {
           if (innerError) {
             // This user will have to set their profile manually later.  Oh well.
             this.setState({
               submitState: AccountFormSubmitState.FAILED,
-              errorMessage: innerError.reason,
+              errorMessage: (innerError instanceof Meteor.Error) ? innerError.reason : innerError.message,
             });
           } else {
             this.setState({

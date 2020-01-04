@@ -51,10 +51,9 @@ import Tags from '../../lib/models/tags';
 
 /* eslint-disable max-len, no-console */
 
-const FilteredChatFields = ['_id', 'puzzle', 'text', 'sender', 'timestamp'];
-type FilteredChatMessageType = Pick<ChatMessageType, '_id' | 'puzzle' | 'text' | 'sender' | 'timestamp'>
-const FilteredChatMessagePropTypes = _.pick(ChatMessagesSchema.asReactPropTypes(), ...FilteredChatFields) as
-  { [K in keyof FilteredChatMessageType]: React.Validator<FilteredChatMessageType[K]> };
+const FilteredChatFields: ('_id' | 'puzzle' | 'text' | 'sender' | 'timestamp')[] = ['_id', 'puzzle', 'text', 'sender', 'timestamp'];
+type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[0]>
+const FilteredChatMessagePropTypes = _.pick(ChatMessagesSchema.asReactPropTypes<ChatMessageType>(), ...FilteredChatFields);
 
 const MinimumDesktopWidth = 600;
 const MinimumDesktopStackingHeight = 400; // In two column mode, allow stacking at smaller heights
@@ -829,7 +828,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
         <div className={classnames('puzzle-metadata-row', this.props.isDesktop && 'puzzle-metadata-tag-editor-row')}>
           <div className="puzzle-metadata-tags-label">Tags: </div>
           <TagList
-            puzzleId={this.props.puzzle._id}
+            puzzle={this.props.puzzle}
             tags={tags}
             onCreateTag={this.onCreateTag}
             onRemoveTag={this.onRemoveTag}

@@ -94,7 +94,7 @@ class SharedNavbar extends React.Component<SharedNavbarProps> {
 }
 
 const SharedNavbarContainer = withTracker(() => {
-  const userId = Meteor.userId();
+  const userId = Meteor.userId()!;
   const profileSub = subsCache.subscribe('mongo.profiles', { _id: userId });
   const profile = Profiles.findOne(userId);
   const displayName = profileSub.ready() ?

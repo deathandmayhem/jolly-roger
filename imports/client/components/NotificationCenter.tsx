@@ -419,7 +419,7 @@ export default withTracker((): NotificationCenterProps => {
   const announcementsHandle = subsCache.subscribe('mongo.announcements');
 
   const query = {
-    user: Meteor.userId(),
+    user: Meteor.userId()!,
   };
   const paHandle = subsCache.subscribe('mongo.pending_announcements', query);
 
@@ -428,7 +428,7 @@ export default withTracker((): NotificationCenterProps => {
     return { ready: false };
   }
 
-  const profile = Profiles.findOne(Meteor.userId());
+  const profile = Profiles.findOne(Meteor.userId()!);
 
   const data = {
     ready: guessesHandle.ready() && puzzlesHandle.ready() && huntsHandle.ready() && paHandle.ready(),
@@ -441,19 +441,19 @@ export default withTracker((): NotificationCenterProps => {
     Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).forEach((guess) => {
       data.guesses.push({
         guess,
-        puzzle: Puzzles.findOne(guess.puzzle),
-        hunt: Hunts.findOne(guess.hunt),
-        guesser: Profiles.findOne(guess.createdBy).displayName,
+        puzzle: Puzzles.findOne(guess.puzzle)!,
+        hunt: Hunts.findOne(guess.hunt)!,
+        guesser: Profiles.findOne(guess.createdBy)!.displayName,
       });
     });
   }
 
   PendingAnnouncements.find(query, { sort: { createdAt: 1 } }).forEach((pa) => {
-    const announcement = Announcements.findOne(pa.announcement);
+    const announcement = Announcements.findOne(pa.announcement)!;
     data.announcements.push({
       pa,
       announcement,
-      createdByDisplayName: Profiles.findOne(announcement.createdBy).displayName,
+      createdByDisplayName: Profiles.findOne(announcement.createdBy)!.displayName,
     });
   });
 

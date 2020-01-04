@@ -9,9 +9,11 @@ import tagShape from './tagShape';
 import Tag from './Tag';
 import TagEditor from './TagEditor';
 import { TagType } from '../../lib/schemas/tags';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import puzzleShape from './puzzleShape';
 
 interface TagListProps {
-  puzzleId: string;
+  puzzle: PuzzleType;
   tags: TagType[];
   onCreateTag?: (tagName: string) => void; // if provided, will show UI for adding a new tag
   onRemoveTag?: (tagId: string) => void; // callback if user wants to remove a tag
@@ -28,7 +30,7 @@ class TagList extends React.PureComponent<TagListProps, TagListState> {
   static displayName = 'TagList';
 
   static propTypes = {
-    puzzleId: PropTypes.string.isRequired,
+    puzzle: PropTypes.shape(puzzleShape).isRequired,
     tags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired,
     onCreateTag: PropTypes.func, // if provided, will show UI for adding a new tag
     onRemoveTag: PropTypes.func, // callback if user wants to remove a tag
@@ -133,7 +135,7 @@ class TagList extends React.PureComponent<TagListProps, TagListState> {
       components.push(
         <TagEditor
           key="tagEditor"
-          puzzleId={this.props.puzzleId}
+          puzzle={this.props.puzzle}
           onSubmit={this.submitTag}
           onCancel={this.stopEditing}
         />

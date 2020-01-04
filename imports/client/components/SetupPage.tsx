@@ -885,7 +885,7 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
 
 const crumb = withBreadcrumb({ title: 'Server setup', path: '/setup' });
 const tracker = withTracker(() => {
-  const canConfigure = Roles.userHasRole(Meteor.userId(), 'admin');
+  const canConfigure = Roles.userHasRole(Meteor.userId()!, 'admin');
 
   // We need to fetch the contents of the Settings table
   const settingsHandle = Meteor.subscribe('mongo.settings');

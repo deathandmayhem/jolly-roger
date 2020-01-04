@@ -10,7 +10,7 @@ import GlobalHooks from './global-hooks';
 
 function addChatMessage(guess: GuessType, newState: GuessType['state']): void {
   const message = `Guess ${guess.guess} was marked ${newState}`;
-  const puzzle = Puzzles.findOne(guess.puzzle);
+  const puzzle = Puzzles.findOne(guess.puzzle)!;
   ChatMessages.insert({
     hunt: puzzle.hunt,
     puzzle: guess.puzzle,
@@ -64,6 +64,10 @@ Meteor.methods({
 
     const puzzle = Puzzles.findOne(puzzleId);
 
+    if (!puzzle) {
+      throw new Meteor.Error(404, 'No such puzzle');
+    }
+
     Ansible.log('New guess', {
       hunt: puzzle.hunt,
       puzzle: puzzleId,
@@ -86,6 +90,9 @@ Meteor.methods({
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
+    if (!guess) {
+      throw new Meteor.Error(404, 'No such guess');
+    }
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'pending' });
     transitionGuess(guess, 'pending');
@@ -95,6 +102,9 @@ Meteor.methods({
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
+    if (!guess) {
+      throw new Meteor.Error(404, 'No such guess');
+    }
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'correct' });
     transitionGuess(guess, 'correct');
@@ -104,6 +114,9 @@ Meteor.methods({
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
+    if (!guess) {
+      throw new Meteor.Error(404, 'No such guess');
+    }
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'incorrect' });
     transitionGuess(guess, 'incorrect');
@@ -113,6 +126,9 @@ Meteor.methods({
     check(guessId, String);
     Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
+    if (!guess) {
+      throw new Meteor.Error(404, 'No such guess');
+    }
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'rejected' });
     transitionGuess(guess, 'rejected');

@@ -31,9 +31,10 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     this.attachRoles(`mongo.${name}`);
   }
 
-  // Because the Mongo.Collection doesn't know about SimpleSchema autovalues, it
-  // doesn't know which fields are actually required. This is a coarse
-  // workaround, but it's hard to pick the autoValue out from just the types.
+  // @ts-ignore Because the Mongo.Collection doesn't know about SimpleSchema
+  //   autovalues, it doesn't know which fields are actually required. This is a
+  //   coarse workaround, but it's hard to pick the autoValue out from just the
+  //   types.
   insert(doc: Partial<T>, callback?: Function): string {
     return super.insert(<any>doc, callback);
   }

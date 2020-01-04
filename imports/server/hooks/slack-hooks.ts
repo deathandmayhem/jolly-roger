@@ -6,8 +6,8 @@ import Hookset from './hookset';
 
 const SlackHooks: Hookset = {
   onPuzzleCreated(puzzleId: string) {
-    const puzzle = Puzzles.findOne(puzzleId);
-    const hunt = Hunts.findOne(puzzle.hunt);
+    const puzzle = Puzzles.findOne(puzzleId)!;
+    const hunt = Hunts.findOne(puzzle.hunt)!;
     if (hunt.puzzleHooksSlackChannel) {
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
       const message = `New puzzle created: <${url}|${puzzle.title}>`;
@@ -16,8 +16,8 @@ const SlackHooks: Hookset = {
   },
 
   onPuzzleSolved(puzzleId: string) {
-    const puzzle = Puzzles.findOne(puzzleId);
-    const hunt = Hunts.findOne(puzzle.hunt);
+    const puzzle = Puzzles.findOne(puzzleId)!;
+    const hunt = Hunts.findOne(puzzle.hunt)!;
     if (hunt.puzzleHooksSlackChannel) {
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
       // eslint-disable-next-line max-len
