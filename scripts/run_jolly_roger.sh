@@ -7,7 +7,12 @@ PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/u
 # We only have one proxy
 export HTTP_FORWARDED_COUNT=1
 
-export CLUSTER_WORKERS_COUNT=auto
+# If we have less than 500M of memory, we don't have enough to run more than 1
+# worker
+MEMORY_KB="$(awk '$1=="MemTotal:" {print $2}' /proc/meminfo)"
+if [ "$MEMORY_KB" -gt 512000 ]; then
+    export CLUSTER_WORKERS_COUNT=auto
+fi
 
 if [ -z "${MONGO_URL+set}" ]; then
     export MONGO_URL="$(credstash get mongo)"
