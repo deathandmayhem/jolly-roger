@@ -31,7 +31,7 @@
   }
 }
 
-.jolly-roger .nav-breadcrumbs * {
+.jolly-roger .nav-breadcrumbs li {
   display: inline-block; // Apply ellipsis as needed to make fit on mobile
   white-space: nowrap;
   overflow: hidden;

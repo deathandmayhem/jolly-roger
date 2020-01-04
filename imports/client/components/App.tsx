@@ -58,7 +58,7 @@ class SharedNavbar extends React.Component<SharedNavbarProps> {
                       );
                     } else {
                       return (
-                        <RRBS.LinkContainer key={crumb.path} to={crumb.path}>
+                        <RRBS.LinkContainer key={crumb.path} to={crumb.path} onlyActiveOnIndex>
                           <BreadcrumbItem active={false}>
                             {crumb.title}
                           </BreadcrumbItem>
