@@ -148,7 +148,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
         <div className="puzzle-answer">
           {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
         </div>
-        <TagList puzzleId={this.props.puzzle._id} tags={ownTags} linkToSearch={this.props.layout === 'grid'} />
+        <TagList puzzle={this.props.puzzle} tags={ownTags} linkToSearch={this.props.layout === 'grid'} />
       </div>
     );
   }

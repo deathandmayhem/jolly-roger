@@ -53,7 +53,7 @@ Meteor.methods({
     const newUser = joineeUser === undefined;
     if (!joineeUser) {
       const joineeUserId = Accounts.createUser({ email });
-      joineeUser = Meteor.users.findOne(joineeUserId);
+      joineeUser = Meteor.users.findOne(joineeUserId)!;
     }
     if (!joineeUser._id) throw new Meteor.Error(500, 'Something has gone terribly wrong');
 

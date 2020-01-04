@@ -28,7 +28,7 @@ Meteor.methods({
 
     this.unblock();
 
-    const hunt = Hunts.findOne(puzzle.hunt);
+    const hunt = Hunts.findOne(puzzle.hunt)!;
 
     if (hunt.firehoseSlackChannel) {
       const profile = Profiles.findOne(this.userId);

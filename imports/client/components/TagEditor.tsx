@@ -4,22 +4,23 @@ import PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
 import Creatable from 'react-select/lib/Creatable';
 import TagSchema, { TagType } from '../../lib/schemas/tags';
-import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import puzzleShape from './puzzleShape';
 
 interface TagEditorContainerProps {
-  puzzleId: string;
+  puzzle: PuzzleType;
   onSubmit: (value: string) => void;
   onCancel: () => void;
 }
 
-type TagEditorProps = {
+interface TagEditorProps extends TagEditorContainerProps {
   allTags: TagType[];
-} & TagEditorContainerProps
+}
 
 class TagEditor extends React.Component<TagEditorProps> {
   static propTypes = {
-    puzzleId: PropTypes.string.isRequired,
+    puzzle: PropTypes.shape(puzzleShape).isRequired as React.Validator<PuzzleType>,
     onSubmit: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
     allTags: PropTypes.arrayOf(
@@ -58,13 +59,12 @@ class TagEditor extends React.Component<TagEditorProps> {
   }
 }
 
-const TagEditorContainer = withTracker(({ puzzleId }: TagEditorContainerProps) => {
-  const puzzle = Puzzles.findOne(puzzleId);
+const TagEditorContainer = withTracker(({ puzzle }: TagEditorContainerProps) => {
   return { allTags: Tags.find({ hunt: puzzle.hunt }).fetch() };
 })(TagEditor);
 
 TagEditorContainer.propTypes = {
-  puzzleId: PropTypes.string.isRequired,
+  puzzle: PropTypes.shape(puzzleShape).isRequired as React.Validator<PuzzleType>,
   onSubmit: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
 };

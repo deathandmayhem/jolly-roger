@@ -20,7 +20,7 @@ Meteor.methods({
       muteApplause: Boolean,
     });
     if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
-    const user = Meteor.users.findOne(this.userId);
+    const user = Meteor.users.findOne(this.userId)!;
     const primaryEmail = user.emails && user.emails[0].address;
 
     Ansible.log('Updating profile for user', { user: this.userId });

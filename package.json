@@ -60,7 +60,7 @@
     "@types/logfmt": "^1.2.0",
     "@types/marked": "^0.6.5",
     "@types/md5": "^2.1.33",
-    "@types/meteor": "^1.4.27",
+    "@types/meteor": "^1.4.38",
     "@types/mustache": "^0.8.32",
     "@types/react": "^16.8.22",
     "@types/react-bootstrap": "^0.32.15",

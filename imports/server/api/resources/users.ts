@@ -9,7 +9,10 @@ import { ProfileType } from '../../../lib/schemas/profiles';
 // eslint-disable-next-line new-cap
 const router = express.Router();
 
-function findUserByEmail(email: string): { user: Meteor.User | null, profile: ProfileType | null } {
+function findUserByEmail(email: string): {
+  user: Meteor.User | undefined,
+  profile: ProfileType | undefined
+} {
   // We have two ways of finding a user: either by the email address
   // they registered with, or by the Google account they've
   // linked. Try both.
@@ -19,9 +22,9 @@ function findUserByEmail(email: string): { user: Meteor.User | null, profile: Pr
     return { profile, user: Meteor.users.findOne(profile._id) };
   }
 
-  const user = <Meteor.User>Accounts.findUserByEmail(email);
+  const user = <Meteor.User | undefined>Accounts.findUserByEmail(email);
   if (!user) {
-    return { user: null, profile: null };
+    return { user: undefined, profile: undefined };
   }
 
   return { user, profile: Profiles.findOne(user._id) };

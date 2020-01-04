@@ -17,14 +17,12 @@ import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
 import Hunts from '../../lib/models/hunts';
 
 interface HuntDeletedErrorProps {
-  huntId: string;
   hunt: HuntType;
   canUndestroy: boolean;
 }
 
-class HuntDeletedError extends React.Component<HuntDeletedErrorProps> {
+class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
   static propTypes = {
-    huntId: PropTypes.string.isRequired,
     hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
     canUndestroy: PropTypes.bool.isRequired,
   };
@@ -66,26 +64,13 @@ class HuntDeletedError extends React.Component<HuntDeletedErrorProps> {
   }
 }
 
-const HuntDeletedErrorContainer = withTracker(({ huntId }: { huntId: string }) => {
-  return {
-    hunt: Hunts.findOneDeleted(huntId),
-    canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
-  };
-})(HuntDeletedError);
-
-HuntDeletedErrorContainer.propTypes = {
-  huntId: PropTypes.string.isRequired,
-};
-
 interface HuntMemberErrorProps {
-  huntId: string;
   hunt: HuntType;
   canJoin: boolean;
 }
 
-class HuntMemberError extends React.Component<HuntMemberErrorProps> {
+class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
   static propTypes = {
-    huntId: PropTypes.string.isRequired,
     hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
     canJoin: PropTypes.bool.isRequired,
   };
@@ -99,7 +84,7 @@ class HuntMemberError extends React.Component<HuntMemberErrorProps> {
     if (!user || !user.emails) {
       return;
     }
-    Meteor.call('addToHunt', this.props.huntId, user.emails[0].address);
+    Meteor.call('addToHunt', this.props.hunt._id, user.emails[0].address);
   };
 
   joinButton = () => {
@@ -136,17 +121,6 @@ class HuntMemberError extends React.Component<HuntMemberErrorProps> {
   }
 }
 
-const HuntMemberErrorContainer = withTracker(({ huntId }: { huntId: string }) => {
-  return {
-    hunt: Hunts.findOne(huntId),
-    canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', huntId),
-  };
-})(HuntMemberError);
-
-HuntMemberErrorContainer.propTypes = {
-  huntId: PropTypes.string.isRequired,
-};
-
 interface HuntAppParams {
   params: {huntId: string};
 }
@@ -156,6 +130,8 @@ interface HuntAppProps extends HuntAppParams {
   ready: boolean;
   hunt?: HuntType;
   member: boolean;
+  canUndestroy: boolean;
+  canJoin: boolean;
 }
 
 class HuntApp extends React.Component<HuntAppProps> {
@@ -167,19 +143,25 @@ class HuntApp extends React.Component<HuntAppProps> {
     ready: PropTypes.bool.isRequired,
     hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()) as React.Requireable<HuntType>,
     member: PropTypes.bool.isRequired,
+    canUndestroy: PropTypes.bool.isRequired,
+    canJoin: PropTypes.bool.isRequired,
   };
 
   renderBody = () => {
-    if (!this.props.ready || !this.props.hunt) {
+    if (!this.props.ready) {
       return <span>loading...</span>;
     }
 
+    if (!this.props.hunt) {
+      return <span>This hunt does not exist</span>;
+    }
+
     if (this.props.hunt.deleted) {
-      return <HuntDeletedErrorContainer huntId={this.props.params.huntId} />;
+      return <HuntDeletedError hunt={this.props.hunt} canUndestroy={this.props.canUndestroy} />;
     }
 
     if (!this.props.member) {
-      return <HuntMemberErrorContainer huntId={this.props.params.huntId} />;
+      return <HuntMemberError hunt={this.props.hunt} canJoin={this.props.canJoin} />;
     }
 
     return React.Children.only(this.props.children);
@@ -208,11 +190,14 @@ const tracker = withTracker(({ params }: HuntAppParams) => {
   const huntHandle = subsCache.subscribe('mongo.hunts.allowingDeleted', {
     _id: params.huntId,
   });
-  const member = Meteor.user() && _.contains(Meteor.user().hunts, params.huntId);
+  const user = Meteor.user();
+  const member = user && _.contains(user.hunts, params.huntId);
   return {
     ready: userHandle.ready() && huntHandle.ready(),
     hunt: Hunts.findOneAllowingDeleted(params.huntId),
     member,
+    canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+    canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', params.huntId),
   };
 });
 

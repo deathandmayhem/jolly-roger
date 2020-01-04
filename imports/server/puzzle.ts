@@ -88,6 +88,9 @@ Meteor.methods({
     Roles.checkPermission(this.userId, 'mongo.puzzles.update');
 
     const oldPuzzle = Puzzles.findOne(puzzleId);
+    if (!oldPuzzle) {
+      throw new Meteor.Error(404, 'Unknown puzzle id');
+    }
     if (oldPuzzle.hunt !== puzzle.hunt) {
       throw new Meteor.Error(400, 'Can not change the hunt of a puzzle. That would be weird');
     }
@@ -185,7 +188,7 @@ Meteor.methods({
     if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
     check(puzzleId, String);
 
-    const user = Meteor.users.findOne(this.userId);
+    const user = Meteor.users.findOne(this.userId)!;
     const puzzle = Puzzles.findOne(puzzleId);
     if (!puzzle || !_.contains(user.hunts, puzzle.hunt)) {
       throw new Meteor.Error(404, 'Unknown puzzle');
@@ -204,7 +207,7 @@ Meteor.methods({
     }
 
     const profile = Profiles.findOne(this.userId);
-    if (!profile.googleAccount) {
+    if (!profile || !profile.googleAccount) {
       return;
     }
 

@@ -14,7 +14,7 @@ interface AuthenticatorParams {
 
 interface AuthenticatorProps extends AuthenticatorParams {
   loggingIn: boolean;
-  userId: string;
+  userId: string | null;
 }
 
 interface AuthenticatorState {
@@ -27,7 +27,7 @@ class Authenticator extends React.Component<AuthenticatorProps, AuthenticatorSta
     children: PropTypes.node.isRequired,
     location: PropTypes.any,
     loggingIn: PropTypes.bool.isRequired,
-    userId: PropTypes.string.isRequired,
+    userId: PropTypes.string,
   };
 
   state = { loading: true };

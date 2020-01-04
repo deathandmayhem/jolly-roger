@@ -122,7 +122,7 @@ const CelebrationCenterContainer = withTracker(({ huntId }: { huntId: string }) 
   // This should be effectively a noop, since we're already fetching it for every hunt
   subsCache.subscribe('mongo.puzzles', { hunt: huntId });
 
-  const profile = Profiles.findOne({ _id: Meteor.userId() });
+  const profile = Profiles.findOne({ _id: Meteor.userId()! });
   const muted = !!(profile && profile.muteApplause);
 
   return {

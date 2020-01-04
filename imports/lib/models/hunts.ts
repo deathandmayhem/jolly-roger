@@ -15,7 +15,7 @@ Hunts.publish();
 // already and if the hunt allows open signups.
 // It's possible we should always allow operators to add someone to a hunt?
 Roles.loggedInRole.allow('hunt.join', (huntId) => {
-  if (!_.include(Meteor.user().hunts, huntId)) {
+  if (!_.include(Meteor.user()!.hunts, huntId)) {
     return false;
   }
 

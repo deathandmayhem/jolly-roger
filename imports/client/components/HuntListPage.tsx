@@ -572,7 +572,7 @@ const tracker = withTracker(() => {
 
   const myHunts: Record<string, boolean> = {};
   if (ready) {
-    Meteor.user().hunts.forEach((hunt) => { myHunts[hunt] = true; });
+    Meteor.user()!.hunts.forEach((hunt) => { myHunts[hunt] = true; });
   }
 
   return {
