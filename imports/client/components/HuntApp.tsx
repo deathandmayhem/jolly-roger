@@ -127,10 +127,10 @@ class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
 
 interface HuntAppParams {
   params: {huntId: string};
+  children: React.ReactNode;
 }
 
 interface HuntAppProps extends HuntAppParams {
-  children: React.ReactNode;
   ready: boolean;
   hunt?: HuntType;
   member: boolean;
@@ -185,7 +185,7 @@ class HuntApp extends React.Component<HuntAppProps> {
   }
 }
 
-const huntsCrumb = withBreadcrumb({ title: 'Hunts', path: '/hunts' });
+const huntsCrumb = withBreadcrumb<HuntAppParams>({ title: 'Hunts', path: '/hunts' });
 const huntCrumb = withBreadcrumb(({ params, ready, hunt }: HuntAppProps) => {
   return { title: ready && hunt ? hunt.name : 'loading...', path: `/hunts/${params.huntId}` };
 });
@@ -195,7 +195,7 @@ const tracker = withTracker(({ params }: HuntAppParams) => {
     _id: params.huntId,
   });
   const user = Meteor.user();
-  const member = user && _.contains(user.hunts, params.huntId);
+  const member = !!user && _.contains(user.hunts, params.huntId);
   return {
     ready: userHandle.ready() && huntHandle.ready(),
     hunt: Hunts.findOneAllowingDeleted(params.huntId),
@@ -205,11 +205,6 @@ const tracker = withTracker(({ params }: HuntAppParams) => {
   };
 });
 
-const HuntAppContainer = _.compose(huntsCrumb, tracker, huntCrumb)(HuntApp);
-HuntAppContainer.propTypes = {
-  params: PropTypes.shape({
-    huntId: PropTypes.string.isRequired,
-  }).isRequired,
-};
+const HuntAppContainer = huntsCrumb(tracker(huntCrumb(HuntApp)));
 
 export default HuntAppContainer;

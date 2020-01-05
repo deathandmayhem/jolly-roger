@@ -1475,7 +1475,7 @@ const tracker = withTracker(({ params }: PuzzlePageParams) => {
   };
 });
 
-const PuzzlePageContainer = _.compose(tracker, crumb)(PuzzlePage);
+const PuzzlePageContainer = tracker(crumb(PuzzlePage));
 PuzzlePageContainer.propTypes = {
   // hunt id and puzzle id comes from route?
   params: PropTypes.shape({
@@ -1485,6 +1485,6 @@ PuzzlePageContainer.propTypes = {
 };
 
 // Mark this page as needing fixed, fullscreen layout.
-PuzzlePageContainer.desiredLayout = 'fullscreen';
+(PuzzlePageContainer as any).desiredLayout = 'fullscreen';
 
 export default PuzzlePageContainer;

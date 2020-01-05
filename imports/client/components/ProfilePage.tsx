@@ -514,7 +514,7 @@ class ProfilePage extends React.Component<ProfilePageProps> {
   }
 }
 
-const usersCrumb = withBreadcrumb({ title: 'Users', path: '/users' });
+const usersCrumb = withBreadcrumb<ProfilePageParams>({ title: 'Users', path: '/users' });
 const userCrumb = withBreadcrumb(({ params, ready, profile }: ProfilePageProps) => {
   return { title: ready ? profile.displayName : 'loading...', path: `/users/${params.userId}` };
 });
@@ -523,10 +523,10 @@ const tracker = withTracker(({ params }: ProfilePageParams) => {
 
   const profileHandle = subsCache.subscribe('mongo.profiles', { _id: uid });
   const userRolesHandle = subsCache.subscribe('userRoles', uid);
-  const user = Meteor.user();
-  const defaultEmail = user && user.emails && user.emails.length > 0 && user.emails[0] && user.emails[0].address;
+  const user = Meteor.user()!;
+  const defaultEmail = user.emails![0].address!;
   const data = {
-    ready: user && profileHandle.ready() && userRolesHandle.ready(),
+    ready: !!user && profileHandle.ready() && userRolesHandle.ready(),
     isSelf: (Meteor.userId() === uid),
     profile: Profiles.findOne(uid) || {
       _id: uid,
@@ -536,7 +536,11 @@ const tracker = withTracker(({ params }: ProfilePageParams) => {
       slackHandle: '',
       deleted: false,
       createdAt: new Date(),
-      createdBy: Meteor.userId(),
+      createdBy: user._id,
+      updatedAt: undefined,
+      updatedBy: undefined,
+      googleAccount: undefined,
+      muteApplause: undefined,
     },
     viewerCanMakeOperator: Roles.userHasPermission(Meteor.userId(), 'users.makeOperator'),
     viewerIsOperator: Roles.userHasRole(Meteor.userId()!, 'operator'),
@@ -545,11 +549,6 @@ const tracker = withTracker(({ params }: ProfilePageParams) => {
   return data;
 });
 
-const ProfilePageContainer = _.compose(usersCrumb, tracker, userCrumb)(ProfilePage);
-ProfilePageContainer.propTypes = {
-  params: PropTypes.shape({
-    userId: PropTypes.string.isRequired,
-  }).isRequired,
-};
+const ProfilePageContainer = usersCrumb(tracker(userCrumb(ProfilePage)));
 
 export default ProfilePageContainer;

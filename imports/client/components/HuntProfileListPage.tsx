@@ -72,14 +72,9 @@ const tracker = withTracker(({ params }: {params: {huntId: string}}) => {
     { sort: { displayName: 1 } },
   ).fetch();
 
-  return { ready, canInvite, profiles };
+  return { ready: ready as boolean, canInvite, profiles };
 });
 
-const HuntProfileListPageContainer = _.compose(crumb, tracker)(HuntProfileListPage);
-HuntProfileListPageContainer.propTypes = {
-  params: PropTypes.shape({
-    huntId: PropTypes.string.isRequired,
-  }).isRequired,
-};
+const HuntProfileListPageContainer = crumb(tracker(HuntProfileListPage));
 
 export default HuntProfileListPageContainer;
