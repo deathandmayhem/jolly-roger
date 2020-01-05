@@ -305,15 +305,17 @@ interface RelatedPuzzleSectionProps {
 
 class RelatedPuzzleSection extends React.PureComponent<RelatedPuzzleSectionProps> {
   static propTypes = {
-    activePuzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
+    activePuzzle: PropTypes.shape(
+      PuzzlesSchema.asReactPropTypes<PuzzleType>()
+    ).isRequired as React.Validator<PuzzleType>,
     allPuzzles: PropTypes.arrayOf(
       PropTypes.shape(
-        PuzzlesSchema.asReactPropTypes()
+        PuzzlesSchema.asReactPropTypes<PuzzleType>()
       ).isRequired as React.Validator<PuzzleType>
     ).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
-        TagsSchema.asReactPropTypes()
+        TagsSchema.asReactPropTypes<TagType>()
       ).isRequired as React.Validator<TagType>
     ).isRequired,
   };
@@ -612,15 +614,17 @@ interface PuzzlePageSidebarProps {
 
 class PuzzlePageSidebar extends React.PureComponent<PuzzlePageSidebarProps> {
   static propTypes = {
-    activePuzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
+    activePuzzle: PropTypes.shape(
+      PuzzlesSchema.asReactPropTypes<PuzzleType>()
+    ).isRequired as React.Validator<PuzzleType>,
     allPuzzles: PropTypes.arrayOf(
       PropTypes.shape(
-        PuzzlesSchema.asReactPropTypes()
+        PuzzlesSchema.asReactPropTypes<PuzzleType>()
       ).isRequired as React.Validator<PuzzleType>
     ).isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
-        TagsSchema.asReactPropTypes()
+        TagsSchema.asReactPropTypes<TagType>()
       ).isRequired as React.Validator<TagType>
     ).isRequired,
     chatReady: PropTypes.bool.isRequired,
@@ -715,19 +719,21 @@ interface PuzzlePageMetadataProps extends PuzzlePageMetadataParams {
 
 class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
   static propTypes = {
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
+    puzzle: PropTypes.shape(
+      PuzzlesSchema.asReactPropTypes<PuzzleType>()
+    ).isRequired as React.Validator<PuzzleType>,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
-        TagsSchema.asReactPropTypes()
+        TagsSchema.asReactPropTypes<TagType>()
       ).isRequired as React.Validator<TagType>
     ).isRequired,
     guesses: PropTypes.arrayOf(
       PropTypes.shape(
-        GuessesSchema.asReactPropTypes()
+        GuessesSchema.asReactPropTypes<GuessType>()
       ).isRequired as React.Validator<GuessType>
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()) as React.Requireable<DocumentType>,
+    document: PropTypes.shape(DocumentsSchema.asReactPropTypes<DocumentType>()) as React.Requireable<DocumentType>,
     isDesktop: PropTypes.bool.isRequired,
     subcountersDisabled: PropTypes.bool.isRequired,
     viewCount: PropTypes.number.isRequired,
@@ -881,7 +887,7 @@ const PuzzlePageMetadataContainer = withTracker(({ puzzle }: PuzzlePageMetadataP
 })(PuzzlePageMetadata);
 
 PuzzlePageMetadataContainer.propTypes = {
-  puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
+  puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes<PuzzleType>()).isRequired as React.Validator<PuzzleType>,
 };
 
 interface PuzzleGuessModalProps {
@@ -913,10 +919,12 @@ type PuzzleGuessModalState = {
 
 class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGuessModalState> {
   static propTypes = {
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
+    puzzle: PropTypes.shape(
+      PuzzlesSchema.asReactPropTypes<PuzzleType>()
+    ).isRequired as React.Validator<PuzzleType>,
     guesses: PropTypes.arrayOf(
       PropTypes.shape(
-        GuessesSchema.asReactPropTypes()
+        GuessesSchema.asReactPropTypes<GuessType>()
       ).isRequired as React.Validator<GuessType>
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
@@ -1118,7 +1126,9 @@ interface PuzzlePageMultiplayerDocumentProps {
 
 class PuzzlePageMultiplayerDocument extends React.PureComponent<PuzzlePageMultiplayerDocumentProps> {
   static propTypes = {
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()) as React.Requireable<DocumentType>,
+    document: PropTypes.shape(
+      DocumentsSchema.asReactPropTypes<DocumentType>()
+    ) as React.Requireable<DocumentType>,
   };
 
   render() {
@@ -1149,19 +1159,23 @@ interface PuzzlePageContentProps {
 
 class PuzzlePageContent extends React.PureComponent<PuzzlePageContentProps> {
   static propTypes = {
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
+    puzzle: PropTypes.shape(
+      PuzzlesSchema.asReactPropTypes<PuzzleType>()
+    ).isRequired as React.Validator<PuzzleType>,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
-        TagsSchema.asReactPropTypes()
+        TagsSchema.asReactPropTypes<TagType>()
       ).isRequired as React.Validator<TagType>
     ).isRequired,
     guesses: PropTypes.arrayOf(
       PropTypes.shape(
-        GuessesSchema.asReactPropTypes()
+        GuessesSchema.asReactPropTypes<GuessType>()
       ).isRequired as React.Validator<GuessType>
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()) as React.Requireable<DocumentType>,
+    document: PropTypes.shape(
+      DocumentsSchema.asReactPropTypes<DocumentType>()
+    ) as React.Requireable<DocumentType>,
     isDesktop: PropTypes.bool.isRequired,
   };
 
@@ -1225,13 +1239,25 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
       puzzleId: PropTypes.string.isRequired,
     }).isRequired,
     puzzlesReady: PropTypes.bool.isRequired,
-    allPuzzles: PropTypes.arrayOf(PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>).isRequired,
-    allTags: PropTypes.arrayOf(PropTypes.shape(TagsSchema.asReactPropTypes()).isRequired as React.Validator<TagType>).isRequired,
+    allPuzzles: PropTypes.arrayOf(
+      PropTypes.shape(
+        PuzzlesSchema.asReactPropTypes<PuzzleType>()
+      ).isRequired as React.Validator<PuzzleType>
+    ).isRequired,
+    allTags: PropTypes.arrayOf(
+      PropTypes.shape(
+        TagsSchema.asReactPropTypes<TagType>()
+      ).isRequired as React.Validator<TagType>
+    ).isRequired,
     chatReady: PropTypes.bool.isRequired,
     chatMessages: PropTypes.arrayOf(PropTypes.shape(FilteredChatMessagePropTypes).isRequired).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
-    allGuesses: PropTypes.arrayOf(PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired as React.Validator<GuessType>).isRequired,
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()),
+    allGuesses: PropTypes.arrayOf(
+      PropTypes.shape(
+        GuessesSchema.asReactPropTypes<GuessType>()
+      ).isRequired as React.Validator<GuessType>
+    ).isRequired,
+    document: PropTypes.shape(DocumentsSchema.asReactPropTypes<DocumentType>()),
     canUpdate: PropTypes.bool.isRequired,
   };
 
@@ -1404,7 +1430,7 @@ const tracker = withTracker(({ params }: PuzzlePageParams) => {
   let allPuzzles: PuzzleType[];
   let allTags: TagType[];
   let allGuesses: GuessType[];
-  let document: Document | undefined;
+  let document: DocumentType | undefined;
   // There's no sense in doing this expensive computation here if we're still loading data,
   // since we're not going to render the children.
   if (puzzlesReady) {

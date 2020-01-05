@@ -39,11 +39,8 @@ const UserOverrides: Overrides<t.TypeOf<typeof UserCodec>> = {
     },
   },
   profile: {
-    defaultValue: {},
-    nested: {
-      operating: {
-        defaultValue: false,
-      },
+    defaultValue: {
+      operating: false,
     },
   },
 };

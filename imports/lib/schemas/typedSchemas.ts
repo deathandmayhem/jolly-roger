@@ -253,10 +253,10 @@ export const inheritSchema = function <
   });
   const inheritedOverrides: Overrides<PT & CP> = {};
   Object.keys(parentOverrides).forEach((k) => {
-    inheritedOverrides[k] = parentOverrides[k];
+    (inheritedOverrides as any)[k] = parentOverrides[k];
   });
   Object.keys(childOverrides).forEach((k) => {
-    inheritedOverrides[k] = childOverrides[k];
+    (inheritedOverrides as any)[k] = childOverrides[k];
   });
 
   return [inheritedCodec, inheritedOverrides];

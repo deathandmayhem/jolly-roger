@@ -23,7 +23,9 @@ interface HuntDeletedErrorProps {
 
 class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
   static propTypes = {
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
+    hunt: PropTypes.shape(
+      HuntsSchema.asReactPropTypes<HuntType>()
+    ).isRequired as React.Validator<HuntType>,
     canUndestroy: PropTypes.bool.isRequired,
   };
 
@@ -71,7 +73,9 @@ interface HuntMemberErrorProps {
 
 class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
   static propTypes = {
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
+    hunt: PropTypes.shape(
+      HuntsSchema.asReactPropTypes<HuntType>()
+    ).isRequired as React.Validator<HuntType>,
     canJoin: PropTypes.bool.isRequired,
   };
 
@@ -141,7 +145,7 @@ class HuntApp extends React.Component<HuntAppProps> {
     }).isRequired,
     children: PropTypes.node.isRequired,
     ready: PropTypes.bool.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()) as React.Requireable<HuntType>,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()) as React.Requireable<HuntType>,
     member: PropTypes.bool.isRequired,
     canUndestroy: PropTypes.bool.isRequired,
     canJoin: PropTypes.bool.isRequired,

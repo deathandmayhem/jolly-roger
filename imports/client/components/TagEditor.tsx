@@ -25,7 +25,7 @@ class TagEditor extends React.Component<TagEditorProps> {
     onCancel: PropTypes.func.isRequired,
     allTags: PropTypes.arrayOf(
       PropTypes.shape(
-        TagSchema.asReactPropTypes()
+        TagSchema.asReactPropTypes<TagType>()
       ).isRequired as React.Validator<TagType>
     ).isRequired,
   };

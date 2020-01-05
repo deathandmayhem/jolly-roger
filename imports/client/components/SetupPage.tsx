@@ -213,8 +213,8 @@ class GoogleAuthorizeDriveClientForm extends React.Component<{}, GoogleAuthorize
 }
 
 interface GoogleDriveTemplateFormProps {
-  initialDocTemplate: string;
-  initialSpreadsheetTemplate: string;
+  initialDocTemplate?: string;
+  initialSpreadsheetTemplate?: string;
 }
 
 type GoogleDriveTemplateFormState = {
@@ -322,18 +322,18 @@ class GoogleDriveTemplateForm extends React.Component<GoogleDriveTemplateFormPro
 interface GoogleIntegrationSectionProps {
   oauthSettings: any;
   gdriveCredential: any;
-  docTemplate: string;
-  spreadsheetTemplate: string;
+  docTemplate?: string;
+  spreadsheetTemplate?: string;
   enabled: boolean;
 }
 
 class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionProps> {
   static propTypes = {
     // oauth config
-    oauthSettings: PropTypes.object,
+    oauthSettings: PropTypes.any,
 
     // gdrive credential
-    gdriveCredential: PropTypes.object,
+    gdriveCredential: PropTypes.any,
 
     // document template data
     docTemplate: PropTypes.string,
@@ -804,8 +804,8 @@ interface SetupPageRewriteProps {
 
   googleConfig: any;
   gdriveCredential: any;
-  docTemplate: string;
-  spreadsheetTemplate: string;
+  docTemplate?: string;
+  spreadsheetTemplate?: string;
 
   slackConfig: any;
   flagDisableSlack: boolean;
@@ -824,7 +824,7 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
     canConfigure: PropTypes.bool.isRequired,
 
     googleConfig: PropTypes.any,
-    gdriveCredential: PropTypes.object,
+    gdriveCredential: PropTypes.any,
     docTemplate: PropTypes.string,
     spreadsheetTemplate: PropTypes.string,
 
@@ -884,7 +884,7 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
 }
 
 const crumb = withBreadcrumb({ title: 'Server setup', path: '/setup' });
-const tracker = withTracker(() => {
+const tracker = withTracker((): SetupPageRewriteProps => {
   const canConfigure = Roles.userHasRole(Meteor.userId()!, 'admin');
 
   // We need to fetch the contents of the Settings table
@@ -894,7 +894,11 @@ const tracker = withTracker(() => {
   const googleConfig = ServiceConfiguration.configurations.findOne({ service: 'google' });
   const gdriveCredential = Settings.findOne({ name: 'gdrive.credential' });
   const docTemplate = Settings.findOne({ name: 'gdrive.template.document' });
+  const docTemplateId = docTemplate && docTemplate.name === 'gdrive.template.document' ?
+    docTemplate.value.id : undefined;
   const spreadsheetTemplate = Settings.findOne({ name: 'gdrive.template.spreadsheet' });
+  const spreadsheetTemplateId = spreadsheetTemplate && spreadsheetTemplate.name === 'gdrive.template.spreadsheet' ?
+    spreadsheetTemplate.value.id : undefined;
 
   // Slack
   const slackConfig = ServiceConfiguration.configurations.findOne({ service: 'slack' });
@@ -914,8 +918,8 @@ const tracker = withTracker(() => {
 
     googleConfig,
     gdriveCredential,
-    docTemplate: docTemplate && docTemplate.value && docTemplate.value.id,
-    spreadsheetTemplate: spreadsheetTemplate && spreadsheetTemplate.value && spreadsheetTemplate.value.id,
+    docTemplate: docTemplateId,
+    spreadsheetTemplate: spreadsheetTemplateId,
 
     slackConfig,
     flagDisableSlack,

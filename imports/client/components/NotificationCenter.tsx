@@ -82,9 +82,15 @@ interface GuessMessageProps {
 
 class GuessMessage extends React.PureComponent<GuessMessageProps> {
   static propTypes = {
-    guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired as PropTypes.Validator<NonNullable<GuessType>>,
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as PropTypes.Validator<NonNullable<PuzzleType>>,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as PropTypes.Validator<NonNullable<HuntType>>,
+    guess: PropTypes.shape(
+      GuessesSchema.asReactPropTypes<GuessType>()
+    ).isRequired as PropTypes.Validator<GuessType>,
+    puzzle: PropTypes.shape(
+      PuzzlesSchema.asReactPropTypes<PuzzleType>()
+    ).isRequired as PropTypes.Validator<PuzzleType>,
+    hunt: PropTypes.shape(
+      HuntsSchema.asReactPropTypes<HuntType>()
+    ).isRequired as PropTypes.Validator<HuntType>,
     guesser: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
   };
@@ -264,7 +270,9 @@ interface AnnouncementMessageProps {
 class AnnouncementMessage extends React.PureComponent<AnnouncementMessageProps> {
   static propTypes = {
     id: PropTypes.string.isRequired,
-    announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired as React.Validator<AnnouncementType>,
+    announcement: PropTypes.shape(
+      AnnouncementsSchema.asReactPropTypes<AnnouncementType>()
+    ).isRequired as React.Validator<AnnouncementType>,
     createdByDisplayName: PropTypes.string.isRequired,
   };
 
@@ -320,14 +328,24 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
   static propTypes = {
     ready: PropTypes.any,
     announcements: PropTypes.arrayOf(PropTypes.shape({
-      pa: PropTypes.shape(PendingAnnouncementsSchema.asReactPropTypes()).isRequired as React.Validator<PendingAnnouncementType>,
-      announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired as React.Validator<AnnouncementType>,
+      pa: PropTypes.shape(
+        PendingAnnouncementsSchema.asReactPropTypes<PendingAnnouncementType>()
+      ).isRequired as React.Validator<PendingAnnouncementType>,
+      announcement: PropTypes.shape(
+        AnnouncementsSchema.asReactPropTypes<AnnouncementType>()
+      ).isRequired as React.Validator<AnnouncementType>,
       createdByDisplayName: PropTypes.string.isRequired,
     }).isRequired),
     guesses: PropTypes.arrayOf(PropTypes.shape({
-      guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired as React.Validator<GuessType>,
-      puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
-      hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
+      guess: PropTypes.shape(
+        GuessesSchema.asReactPropTypes<GuessType>()
+      ).isRequired as React.Validator<GuessType>,
+      puzzle: PropTypes.shape(
+        PuzzlesSchema.asReactPropTypes<PuzzleType>()
+      ).isRequired as React.Validator<PuzzleType>,
+      hunt: PropTypes.shape(
+        HuntsSchema.asReactPropTypes<HuntType>()
+      ).isRequired as React.Validator<HuntType>,
       guesser: PropTypes.string.isRequired,
     }).isRequired),
     slackConfigured: PropTypes.bool,
