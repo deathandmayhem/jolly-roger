@@ -67,10 +67,10 @@ interface GuessBlockProps {
 class GuessBlock extends React.Component<GuessBlockProps> {
   static propTypes = {
     canEdit: PropTypes.bool.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
-    guess: PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired as React.Validator<GuessType>,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()).isRequired as React.Validator<HuntType>,
+    guess: PropTypes.shape(GuessesSchema.asReactPropTypes<GuessType>()).isRequired as React.Validator<GuessType>,
     createdByDisplayName: PropTypes.string.isRequired,
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>,
+    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes<PuzzleType>()).isRequired as React.Validator<PuzzleType>,
   };
 
   markPending = () => {
@@ -157,12 +157,12 @@ class GuessQueuePage extends React.Component<GuessQueuePageProps> {
       huntId: PropTypes.string.isRequired,
     }).isRequired,
     ready: PropTypes.bool.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()) as React.Requireable<HuntType>,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()) as React.Requireable<HuntType>,
     guesses: PropTypes.arrayOf(
-      PropTypes.shape(GuessesSchema.asReactPropTypes()).isRequired as React.Validator<GuessType>
+      PropTypes.shape(GuessesSchema.asReactPropTypes<GuessType>()).isRequired as React.Validator<GuessType>
     ).isRequired,
     puzzles: PropTypes.objectOf(
-      PropTypes.shape(PuzzlesSchema.asReactPropTypes()).isRequired as React.Validator<PuzzleType>
+      PropTypes.shape(PuzzlesSchema.asReactPropTypes<PuzzleType>()).isRequired as React.Validator<PuzzleType>
     ).isRequired,
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
     canEdit: PropTypes.bool.isRequired,

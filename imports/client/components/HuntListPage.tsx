@@ -63,7 +63,7 @@ type HuntModalFormState = {
 
 class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormState> {
   static propTypes = {
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()) as React.Requireable<HuntType>,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()) as React.Requireable<HuntType>,
     onSubmit: PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
   };
 
@@ -344,7 +344,7 @@ interface HuntProps {
 
 class Hunt extends React.Component<HuntProps> {
   static propTypes = {
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>,
+    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()).isRequired as React.Validator<HuntType>,
     canUpdate: PropTypes.bool.isRequired,
     canDestroy: PropTypes.bool.isRequired,
   };
@@ -477,7 +477,7 @@ class HuntListPage extends React.Component<HuntListPageProps> {
     ready: PropTypes.bool.isRequired,
     canAdd: PropTypes.bool.isRequired,
     hunts: PropTypes.arrayOf(
-      PropTypes.shape(HuntsSchema.asReactPropTypes()).isRequired as React.Validator<HuntType>
+      PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()).isRequired as React.Validator<HuntType>
     ).isRequired,
     myHunts: PropTypes.objectOf(PropTypes.bool.isRequired).isRequired,
   };

@@ -32,7 +32,9 @@ interface OthersProfilePageProps {
 
 class OthersProfilePage extends React.Component<OthersProfilePageProps> {
   static propTypes = {
-    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired as React.Validator<ProfileType>,
+    profile: PropTypes.shape(
+      ProfilesSchema.asReactPropTypes<ProfileType>()
+    ).isRequired as React.Validator<ProfileType>,
     viewerCanMakeOperator: PropTypes.bool.isRequired,
     targetIsOperator: PropTypes.bool.isRequired,
   };
@@ -96,7 +98,9 @@ type GoogleLinkBlockState = {
 
 class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBlockState> {
   static propTypes = {
-    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired as React.Validator<ProfileType>,
+    profile: PropTypes.shape(
+      ProfilesSchema.asReactPropTypes<ProfileType>()
+    ).isRequired as React.Validator<ProfileType>,
     googleDisabled: PropTypes.bool.isRequired,
     config: PropTypes.any,
   };
@@ -259,7 +263,9 @@ interface OwnProfilePageState {
 
 class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePageState> {
   static propTypes = {
-    initialProfile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired as React.Validator<ProfileType>,
+    initialProfile: PropTypes.shape(
+      ProfilesSchema.asReactPropTypes<ProfileType>()
+    ).isRequired as React.Validator<ProfileType>,
     operating: PropTypes.bool.isRequired,
     canMakeOperator: PropTypes.bool.isRequired,
   };
@@ -477,7 +483,9 @@ class ProfilePage extends React.Component<ProfilePageProps> {
     }).isRequired,
     ready: PropTypes.bool.isRequired,
     isSelf: PropTypes.bool.isRequired,
-    profile: PropTypes.shape(ProfilesSchema.asReactPropTypes()).isRequired as React.Validator<ProfileType>,
+    profile: PropTypes.shape(
+      ProfilesSchema.asReactPropTypes<ProfileType>()
+    ).isRequired as React.Validator<ProfileType>,
     viewerCanMakeOperator: PropTypes.bool.isRequired,
     viewerIsOperator: PropTypes.bool.isRequired,
     targetIsOperator: PropTypes.bool.isRequired,

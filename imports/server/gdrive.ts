@@ -29,11 +29,15 @@ function createDocument(name: string, type: keyof typeof MimeTypes): string {
   checkClientOk();
   if (!DriveClient.gdrive) throw new Meteor.Error(500, 'Google integration is disabled');
 
-  const template = Settings.findOne({ name: `gdrive.template.${type}` });
+  const template = Settings.findOne({ name: `gdrive.template.${type}` as any });
   const mimeType = MimeTypes[type];
 
   let file;
   if (template) {
+    if (template.name !== 'gdrive.template.document' && template.name !== 'gdrive.template.spreadsheet') {
+      throw new Meteor.Error(500, 'Unexpected Google Drive template document');
+    }
+
     file = Meteor.wrapAsync(DriveClient.gdrive.files.copy, DriveClient.gdrive)({
       fileId: template.value.id,
       resource: { name, mimeType },
@@ -93,17 +97,18 @@ export function ensureDocument(puzzle: {
           puzzle: puzzle._id,
         });
 
-        const docId = createDocument(`${puzzle.title}: Death and Mayhem`, type);
-        doc = {
+        const googleDocId = createDocument(`${puzzle.title}: Death and Mayhem`, type);
+        const newDoc = {
           hunt: puzzle.hunt,
           puzzle: puzzle._id,
-          provider: 'google',
-          value: { type, id: docId },
+          provider: 'google' as 'google',
+          value: { type, id: googleDocId },
         };
-        doc._id = Documents.insert(doc);
+        const docId = Documents.insert(newDoc);
+        doc = Documents.findOne(docId)!;
       }
     });
   }
 
-  return doc;
+  return doc!;
 }
