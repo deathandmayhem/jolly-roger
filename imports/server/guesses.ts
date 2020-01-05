@@ -1,12 +1,38 @@
-import { Meteor } from 'meteor/meteor';
+import { Meteor, Subscription } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import { GuessType } from '../lib/schemas/guess';
 import ChatMessages from '../lib/models/chats';
 import Guesses from '../lib/models/guess';
+import Hunts from '../lib/models/hunts';
+import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 import GlobalHooks from './global-hooks';
+
+function guessPublishFunc(filter: Mongo.Selector<GuessType>):
+  (this: Subscription) => Mongo.Cursor<any> | Mongo.Cursor<any>[] | undefined {
+  return function () {
+    const u = Meteor.users.findOne(this.userId);
+    if (!u) {
+      throw new Meteor.Error(401, 'Unauthenticated');
+    }
+
+    const guesses = Guesses.find({ ...filter, hunt: { $in: u.hunts } });
+    const huntIds = [...new Set(guesses.map(g => g.hunt))];
+    const puzzleIds = [...new Set(guesses.map(g => g.puzzle))];
+    const guesserIds = [...new Set(guesses.map(g => g.createdBy))];
+
+    const hunts = Hunts.find({ _id: { $in: huntIds } });
+    const puzzles = Puzzles.find({ _id: { $in: puzzleIds } });
+    const guessers = Profiles.find({ _id: { $in: guesserIds } }, { fields: { displayName: 1 } });
+
+    return [guesses, hunts, puzzles, guessers];
+  };
+}
+
+Meteor.publish('guesses.all', guessPublishFunc({}));
+Meteor.publish('guesses.pending', guessPublishFunc({ state: 'pending' }));
 
 function addChatMessage(guess: GuessType, newState: GuessType['state']): void {
   const message = `Guess ${guess.guess} was marked ${newState}`;

@@ -181,12 +181,8 @@ const crumb = withBreadcrumb(({ params }: AnnouncementsPageParamsProps) => {
   return { title: 'Announcements', path: `/hunts/${params.huntId}/announcements` };
 });
 const tracker = withTracker(({ params }: AnnouncementsPageParamsProps) => {
-  // We already have subscribed to mongo.announcements on the main page, since we want to be able
-  // to show them on any page.  So we don't *need* to make the subscription here...
-  // ...except that we might want to wait to render until we've received all of them?  IDK.
-  const announcementsHandle = subsCache.subscribe('mongo.announcements', { hunt: params.huntId });
-  const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
-  const ready = announcementsHandle.ready() && displayNamesHandle.ready();
+  const announcementsHandle = subsCache.subscribe('announcements.all', params.huntId);
+  const ready = announcementsHandle.ready();
 
   let announcements: AnnouncementType[];
   let displayNames: Record<string, string>;

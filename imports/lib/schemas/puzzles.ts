@@ -26,7 +26,7 @@ const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
   },
   answer: {
     autoValue() {
-      if (this.isSet && this.value) {
+      if (this.isSet && this.operator !== '$unset' && this.value) {
         return answerify(this.value);
       }
 

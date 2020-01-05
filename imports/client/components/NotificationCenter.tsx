@@ -419,37 +419,21 @@ export default withTracker((): NotificationCenterProps => {
 
   // Yes this is hideous, but it just makes the logic easier
   let guessesHandle = { ready: () => true };
-  let puzzlesHandle = { ready: () => true };
-  let huntsHandle = { ready: () => true };
   if (canUpdateGuesses) {
-    guessesHandle = subsCache.subscribe('mongo.guesses', { state: 'pending' });
-    puzzlesHandle = subsCache.subscribe('mongo.puzzles');
-    huntsHandle = subsCache.subscribe('mongo.hunts');
+    guessesHandle = subsCache.subscribe('guesses.pending');
   }
 
-  // This is overly broad, but we likely already have the data cached locally
-  const selfHandle = subsCache.subscribe('mongo.profiles', { _id: Meteor.userId() });
-  const displayNamesHandle = subsCache.subscribe(
-    'mongo.profiles',
-    {},
-    { fields: { displayName: 1 } }
-  );
-  const announcementsHandle = subsCache.subscribe('mongo.announcements');
-
-  const query = {
-    user: Meteor.userId()!,
-  };
-  const paHandle = subsCache.subscribe('mongo.pending_announcements', query);
+  const paHandle = subsCache.subscribe('announcements.pending');
 
   // Don't even try to put things together until we have the announcements loaded
-  if (!selfHandle.ready() || !displayNamesHandle.ready() || !announcementsHandle.ready()) {
+  if (!paHandle.ready()) {
     return { ready: false };
   }
 
   const profile = Profiles.findOne(Meteor.userId()!);
 
   const data = {
-    ready: guessesHandle.ready() && puzzlesHandle.ready() && huntsHandle.ready() && paHandle.ready(),
+    ready: guessesHandle.ready() && paHandle.ready(),
     announcements: [] as NotificationCenterAnnouncement[],
     guesses: [] as NotificationCenterGuess[],
     slackConfigured: !!(profile && profile.slackHandle),
@@ -466,7 +450,7 @@ export default withTracker((): NotificationCenterProps => {
     });
   }
 
-  PendingAnnouncements.find(query, { sort: { createdAt: 1 } }).forEach((pa) => {
+  PendingAnnouncements.find({ user: Meteor.userId()! }, { sort: { createdAt: 1 } }).forEach((pa) => {
     const announcement = Announcements.findOne(pa.announcement)!;
     data.announcements.push({
       pa,

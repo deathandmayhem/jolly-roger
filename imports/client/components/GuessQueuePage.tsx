@@ -199,17 +199,8 @@ const crumb = withBreadcrumb(({ params }: GuessQueuePageParams) => {
   return { title: 'Guess queue', path: `/hunts/${params.huntId}/guesses` };
 });
 const tracker = withTracker(({ params }: GuessQueuePageParams) => {
-  const huntHandle = subsCache.subscribe('mongo.hunts', {
-    _id: params.huntId,
-  });
-  const guessesHandle = subsCache.subscribe('mongo.guesses', {
-    hunt: params.huntId,
-  });
-  const puzzlesHandle = subsCache.subscribe('mongo.puzzles', {
-    hunt: params.huntId,
-  });
-  const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
-  const ready = huntHandle.ready() && guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
+  const guessesHandle = subsCache.subscribe('guesses.all');
+  const ready = guessesHandle.ready();
   const data: Pick<GuessQueuePageProps, Exclude<keyof GuessQueuePageProps, keyof GuessQueuePageParams>> = {
     ready,
     guesses: [],
