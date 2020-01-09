@@ -35,16 +35,10 @@ function getOrCreateTagByName(huntId: string, name: string): {
 }
 
 Meteor.methods({
-  createPuzzle(
-    puzzle: {hunt: string, title: string, tags: string[]},
-    docType: keyof typeof MimeTypes
-  ) {
+  createPuzzle(puzzle: unknown, docType: unknown) {
     check(this.userId, String);
-    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
-    // Note: tag names, not tag IDs. We don't need to validate other
-    // fields because SimpleSchema will validate the rest
-    check(puzzle, Match.ObjectIncluding({ hunt: String, tags: [String] }));
-    check(docType, Match.OneOf(...Object.keys(MimeTypes)));
+    check(puzzle, Match.ObjectIncluding({ hunt: String, title: String, tags: [String] }));
+    check(docType, Match.OneOf(...Object.keys(MimeTypes) as (keyof typeof MimeTypes)[]));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
 
@@ -79,11 +73,11 @@ Meteor.methods({
     return fullPuzzle._id;
   },
 
-  updatePuzzle(puzzleId: string, puzzle: {hunt: string, title: string, tags: string[]}) {
+  updatePuzzle(puzzleId: unknown, puzzle: unknown) {
     check(this.userId, String);
     check(puzzleId, String);
     // Note: tags names, not tag IDs
-    check(puzzle, Match.ObjectIncluding({ tags: [String] }));
+    check(puzzle, Match.ObjectIncluding({ hunt: String, title: String, tags: [String] }));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.update');
 
@@ -119,7 +113,7 @@ Meteor.methods({
     }
   },
 
-  addTagToPuzzle(puzzleId: string, newTagName: string) {
+  addTagToPuzzle(puzzleId: unknown, newTagName: unknown) {
     // addTagToPuzzle takes a tag name, rather than a tag ID,
     // so we can avoid doing two round-trips for tag creation.
     check(this.userId, String);
@@ -148,7 +142,7 @@ Meteor.methods({
     });
   },
 
-  removeTagFromPuzzle(puzzleId: string, tagId: string) {
+  removeTagFromPuzzle(puzzleId: unknown, tagId: unknown) {
     // Note that removeTagFromPuzzle takes a tagId rather than a tag name,
     // since the client should already know the tagId.
     check(this.userId, String);
@@ -165,7 +159,7 @@ Meteor.methods({
     });
   },
 
-  renameTag(tagId: string, newName: string) {
+  renameTag(tagId: unknown, newName: unknown) {
     check(this.userId, String);
     check(tagId, String);
     check(newName, String);
@@ -183,9 +177,8 @@ Meteor.methods({
     }
   },
 
-  ensureDocumentAndPermissions(puzzleId: string) {
+  ensureDocumentAndPermissions(puzzleId: unknown) {
     check(this.userId, String);
-    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
     check(puzzleId, String);
 
     const user = Meteor.users.findOne(this.userId)!;

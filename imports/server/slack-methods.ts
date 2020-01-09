@@ -51,7 +51,7 @@ Meteor.methods({
     }
   },
 
-  configureSlack(apiSecretKey?: string) {
+  configureSlack(apiSecretKey: unknown) {
     check(this.userId, String);
     Roles.checkPermission(this.userId, 'slack.configureClient');
 

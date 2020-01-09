@@ -8,9 +8,9 @@ if (Meteor.isClient) {
 }
 
 const Flags = {
-  active(name: string, shard?: string) {
+  active(name: unknown, shard?: unknown) {
     check(name, String);
-    check(shard, Match.Optional(String));
+    check(shard, Match.Maybe(String));
 
     const flag = FeatureFlags.findOne({ name });
     if (!flag) {

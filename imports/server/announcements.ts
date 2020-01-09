@@ -6,7 +6,7 @@ import Announcements from '../lib/models/announcements';
 import PendingAnnouncements from '../lib/models/pending_announcements';
 
 Meteor.methods({
-  postAnnouncement(huntId, message) {
+  postAnnouncement(huntId: unknown, message: unknown) {
     check(this.userId, String);
     check(huntId, String);
     check(message, String);
