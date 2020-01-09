@@ -37,10 +37,10 @@ const existingJoinEmail = (user: Meteor.User | null, hunt: HuntType, joinerName:
 };
 
 Meteor.methods({
-  addToHunt(huntId: string, email: string) {
+  addToHunt(huntId: unknown, email: unknown) {
     check(huntId, String);
     check(email, String);
-    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
+    check(this.userId, String);
 
     const hunt = Hunts.findOne(huntId);
     if (!hunt) {

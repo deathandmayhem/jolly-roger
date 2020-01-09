@@ -4,7 +4,7 @@ import { Roles } from 'meteor/nicolaslopezj:roles';
 import FeatureFlags from '../lib/models/feature_flags';
 
 Meteor.methods({
-  setFeatureFlag(name: string, type: "off" | "on" | "random_by", random: number | undefined = undefined) {
+  setFeatureFlag(name: unknown, type: unknown, random: unknown = undefined) {
     check(this.userId, String);
     check(name, String);
     check(type, Match.OneOf('off', 'on', 'random_by'));

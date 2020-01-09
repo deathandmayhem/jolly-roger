@@ -80,7 +80,7 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
   }
 
   const query: Record<string, any> = {};
-  _.each(q, (v, k) => {
+  Object.entries(q).forEach(([k, v]) => {
     if (k.startsWith('$')) {
       throw new Meteor.Error(400, 'Special query terms are not allowed');
     }

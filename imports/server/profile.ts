@@ -5,12 +5,7 @@ import Ansible from '../ansible';
 import Profiles from '../lib/models/profiles';
 
 Meteor.methods({
-  saveProfile(newProfile: {
-    displayName: string,
-    phoneNumber: string,
-    slackHandle: string,
-    muteApplause: boolean,
-  }) {
+  saveProfile(newProfile: unknown) {
     // Allow users to update/upsert profile data.
     check(this.userId, String);
     check(newProfile, {
@@ -19,7 +14,6 @@ Meteor.methods({
       slackHandle: String,
       muteApplause: Boolean,
     });
-    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
     const user = Meteor.users.findOne(this.userId)!;
     const primaryEmail = user.emails && user.emails[0].address;
 
@@ -40,11 +34,10 @@ Meteor.methods({
     });
   },
 
-  linkUserGoogleAccount(key: string, secret: string) {
+  linkUserGoogleAccount(key: unknown, secret: unknown) {
     check(this.userId, String);
     check(key, String);
     check(secret, String);
-    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
 
     // We don't care about actually capturing the credential - we're
     // not going to do anything with it (and with only identity
@@ -62,7 +55,6 @@ Meteor.methods({
 
   unlinkUserGoogleAccount() {
     check(this.userId, String);
-    if (!this.userId) throw new Meteor.Error(401, 'Unauthorized');
     Profiles.update(this.userId, { $unset: { googleAccount: 1 } });
   },
 });

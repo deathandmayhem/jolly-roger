@@ -17,7 +17,7 @@ const userForKeyOperation = function userForKeyOperation(currentUser: string, fo
 };
 
 Meteor.methods({
-  fetchAPIKey(forUser = undefined) {
+  fetchAPIKey(forUser: unknown = undefined) {
     check(this.userId, String);
     check(forUser, Match.Optional(String));
 
@@ -47,7 +47,7 @@ Meteor.methods({
     return key!.key;
   },
 
-  rollAPIKey(forUser = undefined) {
+  rollAPIKey(forUser: unknown = undefined) {
     check(this.userId, String);
     check(forUser, Match.Optional(String));
 
