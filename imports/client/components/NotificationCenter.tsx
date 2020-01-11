@@ -162,7 +162,7 @@ class GuessMessage extends React.PureComponent<GuessMessageProps> {
           <ul className="actions">
             <li>
               <CopyToClipboard text={this.props.guess.guess}>
-                <button type="button"><FontAwesomeIcon icon={faCopy} /></button>
+                <button type="button" aria-label="Copy"><FontAwesomeIcon icon={faCopy} /></button>
               </CopyToClipboard>
             </li>
             <li><button type="button" onClick={this.markCorrect}>Correct</button></li>
@@ -198,7 +198,10 @@ class SlackMessage extends React.PureComponent<SlackMessageProps, SlackMessageSt
     onDismiss: PropTypes.func.isRequired,
   };
 
-  state = { status: SlackMessageStatus.IDLE } as SlackMessageState;
+  constructor(props: SlackMessageProps) {
+    super(props);
+    this.state = { status: SlackMessageStatus.IDLE };
+  }
 
   sendInvite = () => {
     this.setState({ status: SlackMessageStatus.SUBMITTING });
@@ -351,10 +354,13 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
     slackConfigured: PropTypes.bool,
   };
 
-  state = {
-    hideSlackSetupMessage: false,
-    dismissedGuesses: {},
-  } as NotificationCenterState;
+  constructor(props: NotificationCenterProps) {
+    super(props);
+    this.state = {
+      hideSlackSetupMessage: false,
+      dismissedGuesses: {},
+    };
+  }
 
   hideSlackSetupMessage = () => {
     this.setState({

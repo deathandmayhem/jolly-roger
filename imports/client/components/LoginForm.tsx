@@ -6,9 +6,12 @@ interface LoginFormState {
 }
 
 class LoginForm extends React.Component<{}, LoginFormState> {
-  state = {
-    format: AccountFormFormat.LOGIN,
-  } as LoginFormState;
+  constructor(props: {}) {
+    super(props);
+    this.state = {
+      format: AccountFormFormat.LOGIN,
+    };
+  }
 
   changeFormat = () => {
     this.setState((prevState) => {

@@ -66,7 +66,7 @@ const tracker = withTracker(({ params }: {params: {huntId: string}}) => {
     Meteor.userId(), 'hunt.join', params.huntId
   );
 
-  const hunters = Meteor.users.find({ hunts: params.huntId }).map(u => u._id) as string[];
+  const hunters = Meteor.users.find({ hunts: params.huntId }).map((u) => u._id) as string[];
   const profiles = Profiles.find(
     { _id: { $in: hunters } },
     { sort: { displayName: 1 } },

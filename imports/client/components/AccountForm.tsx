@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 
-/* eslint-disable max-len, jsx-a11y/href-no-hash, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
+/* eslint-disable max-len, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
 
 export enum AccountFormFormat {
   LOGIN = 'login',
@@ -45,15 +45,18 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
     token: PropTypes.string,
   };
 
-  state = {
-    submitState: AccountFormSubmitState.IDLE,
-    errorMessage: undefined,
-    successMessage: undefined,
-    email: '',
-    password: '',
-    displayName: '',
-    phoneNumber: '',
-  };
+  constructor(props: AccountFormProps) {
+    super(props);
+    this.state = {
+      submitState: AccountFormSubmitState.IDLE,
+      errorMessage: undefined,
+      successMessage: undefined,
+      email: '',
+      password: '',
+      displayName: '',
+      phoneNumber: '',
+    };
+  }
 
   setEmail = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({

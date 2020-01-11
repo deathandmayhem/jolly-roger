@@ -1,5 +1,5 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "allowImportExportEverywhere": false,
   },
@@ -49,6 +49,7 @@
     // We have files with multiple React components.  Maybe we should split them out
     // later, but right now I don't want to deal with this
     "react/no-multi-comp": ["off"],
+    "max-classes-per-file": ["off"],
 
     // Specifying explicit propTypes is worthwhile
     "react/prefer-stateless-function": ["off"],
@@ -60,8 +61,8 @@
     // Absolute imports work with Meteor, but aren't well-understood by IDEs, like VS Code
     "import/no-absolute-path": ["error"],
 
-    // We use imports with extensions. Maybe it's not required, but maintain consistency
-    "import/extensions": ["error", "ignorePackages"],
+    // We don't use imports with extensions
+    "import/extensions": ["error", "never"],
 
     // This seems incompatible with React.createClass
     "react/no-this-in-sfc": ["off"],
@@ -76,6 +77,12 @@
     // This rule seems to be failing to detect that accessing this.props inside
     // fat-arrow functions in fact use the prop
     "react/no-unused-prop-types": ["off"],
+
+    // TypeScript doesn't support setting the property assignment style
+    "react/static-property-placement": ["error", "static public field"],
+
+    // We use spread props a lot for HOCs or other wrapper-type components
+    "react/jsx-props-no-spreading": ["off"],
 
     // The eslint guide seems to claim that adding "static" to method
     // definitions is a noop, but that doesn't seem to be true in practice, and I

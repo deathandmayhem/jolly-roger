@@ -64,12 +64,15 @@ class RelatedPuzzleGroup extends React.Component<RelatedPuzzleGroupProps, Relate
     canUpdate: PropTypes.bool.isRequired,
   };
 
-  state = {
-    collapsed: false,
-  };
+  constructor(props: RelatedPuzzleGroupProps) {
+    super(props);
+    this.state = {
+      collapsed: false,
+    };
+  }
 
   toggleCollapse = () => {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       collapsed: !prevState.collapsed,
     }));
   };

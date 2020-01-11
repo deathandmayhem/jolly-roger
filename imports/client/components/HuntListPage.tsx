@@ -62,6 +62,8 @@ type HuntModalFormState = {
 } & Pick<HuntModalSubmit, Exclude<keyof HuntModalSubmit, 'mailingLists'>>
 
 class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormState> {
+  private formRef: React.RefObject<ModalForm>;
+
   static propTypes = {
     hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()) as React.Requireable<HuntType>,
     onSubmit: PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
@@ -168,8 +170,6 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
       this.formRef.current.show();
     }
   };
-
-  private formRef: React.RefObject<ModalForm>;
 
   render() {
     const disableForm = this.state.submitState === HuntModalFormSubmitState.SUBMITTING;
@@ -343,6 +343,10 @@ interface HuntProps {
 }
 
 class Hunt extends React.Component<HuntProps> {
+  private editModalRef: React.RefObject<HuntModalForm>;
+
+  private deleteModalRef: React.RefObject<ModalForm>;
+
   static propTypes = {
     hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()).isRequired as React.Validator<HuntType>,
     canUpdate: PropTypes.bool.isRequired,
@@ -404,10 +408,6 @@ class Hunt extends React.Component<HuntProps> {
 
     return undefined;
   };
-
-  private editModalRef: React.RefObject<HuntModalForm>;
-
-  private deleteModalRef: React.RefObject<ModalForm>;
 
   render() {
     const hunt = this.props.hunt;
@@ -473,6 +473,8 @@ interface HuntListPageProps {
 }
 
 class HuntListPage extends React.Component<HuntListPageProps> {
+  private addModalRef: React.RefObject<HuntModalForm>
+
   static propTypes = {
     ready: PropTypes.bool.isRequired,
     canAdd: PropTypes.bool.isRequired,
@@ -509,8 +511,6 @@ class HuntListPage extends React.Component<HuntListPageProps> {
 
     return undefined;
   };
-
-  private addModalRef: React.RefObject<HuntModalForm>
 
   render() {
     const body = [];

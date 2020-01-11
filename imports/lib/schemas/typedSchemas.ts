@@ -102,7 +102,7 @@ const buildLiteralUnionField = function <T, U> (
   optional: boolean,
 ): [string, FieldDefinition<U>][] {
   const values = literals
-    .map(lit => lit instanceof t.LiteralType && lit.value)
+    .map((lit) => lit instanceof t.LiteralType && lit.value)
     .filter(Boolean);
   let type: Function;
   switch (typeof values[0]) {
@@ -145,12 +145,12 @@ const buildField = function <T> (
   } else if (fieldCodec instanceof t.UnionType &&
     fieldCodec.types &&
     fieldCodec.types instanceof Array) {
-    const isOptional = fieldCodec.types.some(subtype => subtype instanceof t.UndefinedType);
-    const nonOptional = fieldCodec.types.filter(subtype => !(subtype instanceof t.UndefinedType));
+    const isOptional = fieldCodec.types.some((subtype) => subtype instanceof t.UndefinedType);
+    const nonOptional = fieldCodec.types.filter((subtype) => !(subtype instanceof t.UndefinedType));
     if (nonOptional.length === 1) {
       return buildField(fieldName, nonOptional[0], overrides, optional || isOptional);
     }
-    if (!nonOptional.find(subtype => !(subtype instanceof t.LiteralType))) {
+    if (!nonOptional.find((subtype) => !(subtype instanceof t.LiteralType))) {
       return buildLiteralUnionField(fieldName, nonOptional, overrides, optional);
     }
     return [[

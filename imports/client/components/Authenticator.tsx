@@ -30,7 +30,10 @@ class Authenticator extends React.Component<AuthenticatorProps, AuthenticatorSta
     userId: PropTypes.string,
   };
 
-  state = { loading: true };
+  constructor(props: AuthenticatorProps) {
+    super(props);
+    this.state = { loading: true };
+  }
 
   componentDidMount() {
     this.checkAuth();

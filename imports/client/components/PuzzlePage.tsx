@@ -167,7 +167,7 @@ class ViewersList extends React.Component<ViewersListProps> {
     return (
       <div>
         <ul>
-          {this.props.subscribers.map(s => <li key={s.user}>{s.name}</li>)}
+          {this.props.subscribers.map((s) => <li key={s.user}>{s.name}</li>)}
         </ul>
         {this.props.unknown !== 0 && `(Plus ${this.props.unknown} hunters with no name set)`}
       </div>
@@ -215,12 +215,19 @@ interface ViewersModalProps {
   name: string;
 }
 
-class ViewersModal extends React.Component<ViewersModalProps> {
+interface ViewersModalState {
+  show: boolean;
+}
+
+class ViewersModal extends React.Component<ViewersModalProps, ViewersModalState> {
   static propTypes = {
     name: PropTypes.string.isRequired,
   };
 
-  state = { show: false };
+  constructor(props: ViewersModalProps) {
+    super(props);
+    this.state = { show: false };
+  }
 
   show = () => {
     this.setState({ show: true });
@@ -253,6 +260,8 @@ interface ViewCountDisplayProps {
 }
 
 class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
+  modalRef: React.RefObject<ViewersModal>
+
   static propTypes = {
     count: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
@@ -267,8 +276,6 @@ class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
   showModal = () => {
     this.modalRef.current!.show();
   };
-
-  modalRef: React.RefObject<ViewersModal>
 
   render() {
     const text = `(${this.props.count} viewing)`;
@@ -373,6 +380,12 @@ interface ChatHistoryProps {
 }
 
 class ChatHistory extends React.PureComponent<ChatHistoryProps> {
+  ref: React.RefObject<HTMLDivElement>
+
+  resizeHandler?: () => void;
+
+  shouldScroll: boolean;
+
   static propTypes = {
     chatMessages: PropTypes.arrayOf(
       PropTypes.shape(
@@ -435,12 +448,6 @@ class ChatHistory extends React.PureComponent<ChatHistoryProps> {
     this.shouldScroll = true;
   };
 
-  ref: React.RefObject<HTMLDivElement>
-
-  resizeHandler?: () => void;
-
-  shouldScroll: boolean;
-
   render() {
     return (
       <div ref={this.ref} className="chat-history" onScroll={this.onScroll}>
@@ -501,9 +508,12 @@ class ChatInput extends React.PureComponent<ChatInputProps, ChatInputState> {
     puzzleId: PropTypes.string,
   };
 
-  state = {
-    text: '',
-  };
+  constructor(props: ChatInputProps) {
+    super(props);
+    this.state = {
+      text: '',
+    };
+  }
 
   onInputChanged = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     this.setState({
@@ -557,6 +567,8 @@ interface ChatSectionProps {
 }
 
 class ChatSection extends React.PureComponent<ChatSectionProps> {
+  historyRef: React.RefObject<ChatHistory>
+
   static propTypes = {
     chatReady: PropTypes.bool.isRequired,
     chatMessages: PropTypes.arrayOf(
@@ -580,8 +592,6 @@ class ChatSection extends React.PureComponent<ChatSectionProps> {
   onMessageSent = () => {
     this.historyRef.current!.forceScrollBottom();
   };
-
-  historyRef: React.RefObject<ChatHistory>
 
   render() {
     return (
@@ -718,6 +728,10 @@ interface PuzzlePageMetadataProps extends PuzzlePageMetadataParams {
 }
 
 class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
+  editModalRef: React.RefObject<PuzzleModalForm>
+
+  guessModalRef: React.RefObject<PuzzleGuessModal>
+
   static propTypes = {
     puzzle: PropTypes.shape(
       PuzzlesSchema.asReactPropTypes<PuzzleType>()
@@ -789,10 +803,6 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
     }
     return null;
   };
-
-  editModalRef: React.RefObject<PuzzleModalForm>
-
-  guessModalRef: React.RefObject<PuzzleGuessModal>
 
   render() {
     const tagsById = _.indexBy(this.props.allTags, '_id');
@@ -918,6 +928,8 @@ type PuzzleGuessModalState = {
 })
 
 class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGuessModalState> {
+  formRef: React.RefObject<ModalForm>
+
   static propTypes = {
     puzzle: PropTypes.shape(
       PuzzlesSchema.asReactPropTypes<PuzzleType>()
@@ -930,16 +942,15 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
     displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
   };
 
-  state = {
-    guessInput: '',
-    directionInput: 0,
-    confidenceInput: 50,
-    submitState: PuzzleGuessSubmitState.IDLE,
-    confirmingSubmit: false,
-  } as PuzzleGuessModalState;
-
   constructor(props: PuzzleGuessModalProps) {
     super(props);
+    this.state = {
+      guessInput: '',
+      directionInput: 0,
+      confidenceInput: 50,
+      submitState: PuzzleGuessSubmitState.IDLE,
+      confirmingSubmit: false,
+    };
     this.formRef = React.createRef();
   }
 
@@ -1003,8 +1014,6 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
   show = () => {
     this.formRef.current!.show();
   };
-
-  formRef: React.RefObject<ModalForm>
 
   render() {
     const directionTooltip = (
@@ -1190,7 +1199,8 @@ class PuzzlePageContent extends React.PureComponent<PuzzlePageContentProps> {
           isDesktop={this.props.isDesktop}
           document={this.props.document}
         />
-        {this.props.isDesktop &&
+        {
+          this.props.isDesktop &&
           <PuzzlePageMultiplayerDocument document={this.props.document} />
         }
       </div>

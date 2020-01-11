@@ -38,11 +38,14 @@ class AnnouncementForm extends React.Component<AnnouncementFormProps, Announceme
     huntId: PropTypes.string.isRequired,
   };
 
-  state = {
-    message: '',
-    submitState: AnnouncementFormSubmitState.IDLE,
-    errorMessage: '',
-  };
+  constructor(props: AnnouncementFormProps) {
+    super(props);
+    this.state = {
+      message: '',
+      submitState: AnnouncementFormSubmitState.IDLE,
+      errorMessage: '',
+    };
+  }
 
   setMessage = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     this.setState({

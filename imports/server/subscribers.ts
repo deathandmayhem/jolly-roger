@@ -27,7 +27,7 @@ const cleanup = function () {
   // account for transients
   const timeout = moment().subtract('120', 'seconds').toDate();
   const deadServers = Servers.find({ updatedAt: { $lt: timeout } })
-    .map(server => server._id);
+    .map((server) => server._id);
   if (deadServers.length === 0) {
     return;
   }

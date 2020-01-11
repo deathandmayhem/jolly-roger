@@ -11,11 +11,11 @@ interface ConnectionStatusProps {
 }
 
 class ConnectionStatus extends React.Component<ConnectionStatusProps> {
+  timeoutId?: number;
+
   static propTypes = {
     meteorStatus: PropTypes.any,
   };
-
-  timeoutId?: number;
 
   refresh() {
     // Mark this timeout as completed

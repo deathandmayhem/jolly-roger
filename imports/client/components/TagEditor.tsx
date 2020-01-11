@@ -38,7 +38,7 @@ class TagEditor extends React.Component<TagEditorProps> {
 
   render() {
     const options = _.chain(this.props.allTags)
-      .map(t => t.name)
+      .map((t) => t.name)
       .compact()
       .map((t) => {
         return { value: t, label: t };
@@ -51,7 +51,7 @@ class TagEditor extends React.Component<TagEditorProps> {
           options={options}
           autoFocus
           openMenuOnFocus
-          onChange={v => this.props.onSubmit((v as {value: string}).value)}
+          onChange={(v) => this.props.onSubmit((v as {value: string}).value)}
           onBlur={this.onBlur}
         />
       </span>

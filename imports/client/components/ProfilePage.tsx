@@ -105,7 +105,10 @@ class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBl
     config: PropTypes.any,
   };
 
-  state = { state: GoogleLinkBlockLinkState.IDLE } as GoogleLinkBlockState;
+  constructor(props: GoogleLinkBlockProps) {
+    super(props);
+    this.state = { state: GoogleLinkBlockLinkState.IDLE };
+  }
 
   onLink = () => {
     this.setState({ state: GoogleLinkBlockLinkState.LINKING });
@@ -270,13 +273,16 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
     canMakeOperator: PropTypes.bool.isRequired,
   };
 
-  state = {
-    displayNameValue: this.props.initialProfile.displayName || '',
-    phoneNumberValue: this.props.initialProfile.phoneNumber || '',
-    slackHandleValue: this.props.initialProfile.slackHandle || '',
-    muteApplause: this.props.initialProfile.muteApplause || false,
-    submitState: OwnProfilePageSubmitState.IDLE,
-  } as OwnProfilePageState;
+  constructor(props: OwnProfilePageProps) {
+    super(props);
+    this.state = {
+      displayNameValue: this.props.initialProfile.displayName || '',
+      phoneNumberValue: this.props.initialProfile.phoneNumber || '',
+      slackHandleValue: this.props.initialProfile.slackHandle || '',
+      muteApplause: this.props.initialProfile.muteApplause || false,
+      submitState: OwnProfilePageSubmitState.IDLE,
+    } as OwnProfilePageState;
+  }
 
   onDisableApplauseChange = (e: React.FormEvent<Checkbox>) => {
     this.setState({

@@ -47,6 +47,10 @@ interface PuzzleListViewState {
 }
 
 class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListViewState> {
+  addModalRef: React.RefObject<PuzzleModalForm>
+
+  searchBarRef?: HTMLInputElement
+
   static displayName = 'PuzzleListView';
 
   static propTypes = {
@@ -66,13 +70,12 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     ).isRequired,
   };
 
-  state = {
-    displayMode: 'group',
-    showSolved: true,
-  } as PuzzleListViewState;
-
   constructor(props: PuzzleListViewProps) {
     super(props);
+    this.state = {
+      displayMode: 'group',
+      showSolved: true,
+    };
     this.addModalRef = React.createRef();
   }
 
@@ -292,7 +295,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
   };
 
   changeShowSolved = () => {
-    this.setState(oldState => ({
+    this.setState((oldState) => ({
       showSolved: !oldState.showSolved,
     }));
   };
@@ -302,10 +305,6 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
       this.addModalRef.current.show();
     }
   };
-
-  addModalRef: React.RefObject<PuzzleModalForm>
-
-  searchBarRef?: HTMLInputElement
 
   render() {
     let bodyComponent;

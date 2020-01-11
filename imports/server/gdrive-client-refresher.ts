@@ -30,13 +30,13 @@ class GDriveClientRefresher {
     this.oauthConfigCursor = <Mongo.Cursor<Configuration>>ServiceConfiguration.configurations.find({ service: 'google' });
     this.oauthCredentialCursor = Settings.find({ name: 'gdrive.credential' });
     this.oauthConfigCursor.observe({
-      added: doc => this.updateOauthConfig(doc),
-      changed: doc => this.updateOauthConfig(doc),
+      added: (doc) => this.updateOauthConfig(doc),
+      changed: (doc) => this.updateOauthConfig(doc),
       removed: () => this.updateOauthConfig(undefined),
     });
     this.oauthCredentialCursor.observe({
-      added: doc => this.updateOauthCredentials(doc),
-      changed: doc => this.updateOauthCredentials(doc),
+      added: (doc) => this.updateOauthCredentials(doc),
+      changed: (doc) => this.updateOauthCredentials(doc),
       removed: () => this.clearOauthCredentials(),
     });
   }

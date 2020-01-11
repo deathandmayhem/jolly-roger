@@ -33,9 +33,12 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
     ).isRequired,
   };
 
-  state = {
-    searchString: '',
-  };
+  constructor(props: ProfileListProps) {
+    super(props);
+    this.state = {
+      searchString: '',
+    };
+  }
 
   // The type annotation on FormControl is wrong here - the event is from the
   // input element, not the FormControl React component
@@ -48,8 +51,8 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
   compileMatcher = () => {
     const searchKeys = this.state.searchString.split(' ');
     const toMatch = _.chain(searchKeys)
-      .filter(s => !!s)
-      .map(s => s.toLowerCase())
+      .filter((s) => !!s)
+      .map((s) => s.toLowerCase())
       .value();
     const isInteresting = (profile: ProfileType) => {
       for (let i = 0; i < toMatch.length; i++) {
@@ -138,7 +141,7 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
 
         <ListGroup>
           {this.inviteToHuntItem()}
-          {profiles.map(profile => (
+          {profiles.map((profile) => (
             <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
               <ListGroupItem>
                 {profile.displayName || '<no name provided>'}

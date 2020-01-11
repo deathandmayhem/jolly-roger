@@ -53,7 +53,7 @@ Meteor.methods({
       user: this.userId,
     });
 
-    const fullPuzzle = Object.assign({}, puzzle, { _id: Random.id(), tags: _.uniq(tagIds) });
+    const fullPuzzle = { ...puzzle, _id: Random.id(), tags: _.uniq(tagIds) };
 
     // By creating the document before we save the puzzle, we make
     // sure nobody else has a chance to create a document with the
@@ -102,7 +102,7 @@ Meteor.methods({
     });
     Puzzles.update(
       puzzleId,
-      { $set: Object.assign({}, puzzle, { tags: _.uniq(tagIds) }) },
+      { $set: { ...puzzle, tags: _.uniq(tagIds) } },
     );
 
     if (oldPuzzle.title !== puzzle.title) {
