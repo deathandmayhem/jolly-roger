@@ -50,6 +50,8 @@ interface PuzzleModalFormState {
 }
 
 class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalFormState> {
+  formRef: React.RefObject<ModalForm>;
+
   static displayName = 'PuzzleModalForm';
 
   static propTypes = {
@@ -116,7 +118,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
       return;
     }
     this.setState({
-      tags: value.map(v => v.value),
+      tags: value.map((v) => v.value),
       tagsDirty: true,
     });
   };
@@ -160,7 +162,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
   tagNamesForIds = (tagIds: string[]) => {
     const tagNames: Record<string, string> = {};
     _.each(this.props.tags, (t) => { tagNames[t._id] = t.name; });
-    return tagIds.map(t => tagNames[t]);
+    return tagIds.map((t) => tagNames[t]);
   };
 
   stateFromPuzzle = (puzzle: PuzzleType) => {
@@ -201,13 +203,11 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
     }
   };
 
-  formRef: React.RefObject<ModalForm>;
-
   render() {
     const disableForm = this.state.submitState === PuzzleModalFormSubmitState.SUBMITTING;
 
     const selectOptions = _.chain(this.props.tags)
-      .map(t => t.name)
+      .map((t) => t.name)
       .union(this.state.tags)
       .compact()
       .map((t) => {

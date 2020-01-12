@@ -70,7 +70,11 @@ interface LabelledRadioGroupProps {
   help: string;
 }
 
-class LabelledRadioGroup extends React.Component<LabelledRadioGroupProps> {
+interface LabelledRadioGroupState {
+  value: string;
+}
+
+class LabelledRadioGroup extends React.Component<LabelledRadioGroupProps, LabelledRadioGroupState> {
   static propTypes = {
     header: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired, // The name of the exclusive group for the radio buttons
@@ -85,9 +89,12 @@ class LabelledRadioGroup extends React.Component<LabelledRadioGroupProps> {
     help: PropTypes.string,
   };
 
-  state = {
-    value: this.props.initialValue,
-  };
+  constructor(props: LabelledRadioGroupProps) {
+    super(props);
+    this.state = {
+      value: this.props.initialValue,
+    };
+  }
 
   setValue = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;

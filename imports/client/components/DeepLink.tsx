@@ -28,7 +28,10 @@ class DeepLink extends React.Component<DeepLinkProps, DeepLinkState> {
     browserUrl: PropTypes.string.isRequired,
   };
 
-  state = { state: DeepLinkLoadState.IDLE } as DeepLinkState;
+  constructor(props: DeepLinkProps) {
+    super(props);
+    this.state = { state: DeepLinkLoadState.IDLE };
+  }
 
   onAttemptingNativeTimeout = () => {
     if (this.state.state === DeepLinkLoadState.IDLE) {

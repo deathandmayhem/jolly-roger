@@ -111,19 +111,20 @@ class RelatedPuzzleGroups extends React.Component<RelatedPuzzleGroupsProps> {
 
     return (
       <div>
-        {groups.length ? groups.map((g) => {
-          return (
-            <RelatedPuzzleGroup
-              key={g.tag._id}
-              sharedTag={g.tag}
-              relatedPuzzles={g.puzzles}
-              allTags={this.props.allTags}
-              includeCount
-              layout={this.props.layout}
-              canUpdate={this.props.canUpdate}
-            />
-          );
-        }) : <span>No tags for this puzzle yet.</span>
+        {
+          groups.length ? groups.map((g) => {
+            return (
+              <RelatedPuzzleGroup
+                key={g.tag._id}
+                sharedTag={g.tag}
+                relatedPuzzles={g.puzzles}
+                allTags={this.props.allTags}
+                includeCount
+                layout={this.props.layout}
+                canUpdate={this.props.canUpdate}
+              />
+            );
+          }) : <span>No tags for this puzzle yet.</span>
         }
       </div>
     );

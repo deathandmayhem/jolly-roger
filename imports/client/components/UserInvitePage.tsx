@@ -30,11 +30,14 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
     router: PropTypes.object.isRequired,
   };
 
-  state = {
-    submitting: false,
-    error: null,
-    email: '',
-  } as UserInvitePageState;
+  constructor(props: UserInvitePageProps) {
+    super(props);
+    this.state = {
+      submitting: false,
+      error: null,
+      email: '',
+    };
+  }
 
   onEmailChanged = (e: React.FormEvent<FormControl>) => {
     this.setState({

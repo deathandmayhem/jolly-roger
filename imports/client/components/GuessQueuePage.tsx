@@ -24,6 +24,8 @@ interface AutoSelectInputProps {
 }
 
 class AutoSelectInput extends React.Component<AutoSelectInputProps> {
+  private inputRef: React.RefObject<HTMLInputElement>
+
   static propTypes = {
     value: PropTypes.string.isRequired,
   };
@@ -39,8 +41,6 @@ class AutoSelectInput extends React.Component<AutoSelectInputProps> {
       this.inputRef.current.select();
     }
   };
-
-  private inputRef: React.RefObject<HTMLInputElement>
 
   render() {
     return (

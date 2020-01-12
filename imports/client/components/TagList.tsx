@@ -40,10 +40,13 @@ class TagList extends React.PureComponent<TagListProps, TagListState> {
 
   static defaultProps = { showControls: true };
 
-  state = {
-    editing: false,
-    removing: false,
-  };
+  constructor(props: TagListProps) {
+    super(props);
+    this.state = {
+      editing: false,
+      removing: false,
+    };
+  }
 
   submitTag = (newTagName: string) => {
     // TODO: submitTag should use the value passed in from the child, which may have done some

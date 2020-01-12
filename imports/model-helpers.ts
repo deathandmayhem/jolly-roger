@@ -33,7 +33,7 @@ const huntsMatchingCurrentUser = function <T extends HuntModel> (
     throw new Meteor.Error(401, 'Unauthenticated');
   }
   const q = _.clone(origQuery);
-  let huntList: T["hunt"][];
+  let huntList: T['hunt'][];
 
   if (q.hunt) {
     if (q.hunt instanceof RegExp) {
@@ -52,7 +52,7 @@ const huntsMatchingCurrentUser = function <T extends HuntModel> (
 
   // typescript comes so close to being able to infer this, but seems to
   // struggle with the generic constraint + Mongo.Flatten
-  q.hunt = <Mongo.FieldExpression<Mongo.Flatten<T["hunt"]>>>{ $in: huntList };
+  q.hunt = <Mongo.FieldExpression<Mongo.Flatten<T['hunt']>>>{ $in: huntList };
 
   return q;
 };

@@ -77,8 +77,8 @@ Accounts.onLoginFailure((info: LoginInfo) => {
   console.log(`Failed login attempt: ${logfmt.stringify(data)}`);
 });
 
-Accounts.urls.enrollAccount = token => Meteor.absoluteUrl(`enroll/${token}`);
-Accounts.urls.resetPassword = token => Meteor.absoluteUrl(`reset-password/${token}`);
+Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl(`enroll/${token}`);
+Accounts.urls.resetPassword = (token) => Meteor.absoluteUrl(`reset-password/${token}`);
 
 // Set from address to our domain - something like operators@deathandmayhem.com
 Accounts.emailTemplates.from = `operators@${new URL(Meteor.absoluteUrl('')).hostname}`;

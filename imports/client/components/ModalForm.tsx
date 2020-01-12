@@ -17,6 +17,8 @@ interface ModalFormState {
 }
 
 class ModalForm extends React.Component<ModalFormProps, ModalFormState> {
+  private dontTryToClose?: boolean;
+
   static propTypes = {
     title: PropTypes.string.isRequired,
     submitLabel: PropTypes.string,
@@ -31,7 +33,10 @@ class ModalForm extends React.Component<ModalFormProps, ModalFormState> {
     submitStyle: 'primary',
   };
 
-  state = { show: false };
+  constructor(props: ModalFormProps) {
+    super(props);
+    this.state = { show: false };
+  }
 
   componentWillUnmount() {
     this.dontTryToClose = true;
@@ -55,8 +60,6 @@ class ModalForm extends React.Component<ModalFormProps, ModalFormState> {
       }
     });
   };
-
-  private dontTryToClose?: boolean;
 
   render() {
     return (

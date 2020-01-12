@@ -28,6 +28,8 @@ interface CelebrationCenterState {
 }
 
 class CelebrationCenter extends React.Component<CelebrationCenterProps, CelebrationCenterState> {
+  private computation?: Tracker.Computation;
+
   static displayName = 'CelebrationCenter';
 
   static propTypes = {
@@ -36,9 +38,12 @@ class CelebrationCenter extends React.Component<CelebrationCenterProps, Celebrat
     muted: PropTypes.bool.isRequired,
   };
 
-  state = {
-    playbackQueue: [],
-  } as CelebrationCenterState;
+  constructor(props: CelebrationCenterProps) {
+    super(props);
+    this.state = {
+      playbackQueue: [],
+    };
+  }
 
   componentDidMount() {
     setTimeout(() => this.resetComputation(), 0);
@@ -96,8 +101,6 @@ class CelebrationCenter extends React.Component<CelebrationCenterProps, Celebrat
       return { playbackQueue: prevState.playbackQueue.slice(1) };
     });
   };
-
-  private computation?: Tracker.Computation;
 
   render() {
     if (this.state.playbackQueue.length === 0) {

@@ -66,6 +66,10 @@ interface SplitPanePlusState {
 }
 
 class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusState> {
+  ref: React.RefObject<HTMLDivElement>
+
+  erd?: elementResizeDetectorMaker.Erd
+
   // eslint-disable-next-line react/forbid-foreign-prop-types
   static propTypes =_.extend({}, (SplitPane as any).propTypes, {
     autoCollapse1: PropTypes.number,
@@ -153,10 +157,6 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
     }
   }
 
-  ref: React.RefObject<HTMLDivElement>
-
-  erd?: elementResizeDetectorMaker.Erd
-
   recordSize(size: number) {
     this.setState({
       lastSize: size,
@@ -204,7 +204,7 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
   primaryPaneNode() {
     const root = this.splitPaneNode();
     const className = `Pane${this.props.primary === 'first' ? 1 : 2}`;
-    return root ? _.find(root.childNodes, n => (
+    return root ? _.find(root.childNodes, (n) => (
       n instanceof Element &&
       n.classList.contains(className)
     )) as Element : null;
@@ -213,7 +213,7 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
   secondaryPaneNode() {
     const root = this.splitPaneNode();
     const className = `Pane${this.props.primary === 'first' ? 2 : 1}`;
-    return root ? _.find(root.childNodes, n => (
+    return root ? _.find(root.childNodes, (n) => (
       n instanceof Element &&
       n.classList.contains(className)
     )) as Element : null;
@@ -221,7 +221,7 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
 
   resizerNode() {
     const root = this.splitPaneNode();
-    return root ? _.find(root.childNodes, n => (
+    return root ? _.find(root.childNodes, (n) => (
       n instanceof Element &&
       n.classList.contains('Resizer')
     )) as Element : null;

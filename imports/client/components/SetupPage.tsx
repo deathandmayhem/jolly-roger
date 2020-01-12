@@ -165,9 +165,12 @@ type GoogleAuthorizeDriveClientFormState = {
 }
 
 class GoogleAuthorizeDriveClientForm extends React.Component<{}, GoogleAuthorizeDriveClientFormState> {
-  state = {
-    submitState: SubmitState.IDLE,
-  } as GoogleAuthorizeDriveClientFormState;
+  constructor(props: {}) {
+    super(props);
+    this.state = {
+      submitState: SubmitState.IDLE,
+    };
+  }
 
   dismissAlert = () => {
     this.setState({ submitState: SubmitState.IDLE });
@@ -510,10 +513,13 @@ class SlackIntegrationSection extends React.Component<SlackIntegrationSectionPro
     enabled: PropTypes.bool.isRequired,
   };
 
-  state = {
-    apiKeyValue: '',
-    submitState: SubmitState.IDLE,
-  } as SlackIntegrationSectionState;
+  constructor(props: SlackIntegrationSectionProps) {
+    super(props);
+    this.state = {
+      apiKeyValue: '',
+      submitState: SubmitState.IDLE,
+    };
+  }
 
   onToggleEnabled = () => {
     const newValue = !this.props.enabled;
@@ -709,7 +715,7 @@ class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> 
         <CircuitBreakerControl
           title="Drive permission sharing"
           featureDisabled={this.props.flagDisableGdrivePermissions}
-          onChange={newValue => this.setFlagValue('disable.gdrive_permissions', newValue)}
+          onChange={(newValue) => this.setFlagValue('disable.gdrive_permissions', newValue)}
         >
           <p>
             When Jolly Roger creates a spreadsheet or document, we grant
@@ -739,7 +745,7 @@ class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> 
         <CircuitBreakerControl
           title="Viewer counts"
           featureDisabled={this.props.flagDisableSubcounters}
-          onChange={newValue => this.setFlagValue('disable.subcounters', newValue)}
+          onChange={(newValue) => this.setFlagValue('disable.subcounters', newValue)}
         >
           <p>
             To allow people to get a sense of how many people are looking at any given puzzle at a time,
@@ -760,7 +766,7 @@ class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> 
         <CircuitBreakerControl
           title="Viewer details"
           featureDisabled={this.props.flagDisableViewerLists}
-          onChange={newValue => this.setFlagValue('disable.subfetches', newValue)}
+          onChange={(newValue) => this.setFlagValue('disable.subfetches', newValue)}
         >
           <p>
             The Viewer counts feature also allows viewing which specific users are currently active
@@ -775,7 +781,7 @@ class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> 
         <CircuitBreakerControl
           title="Celebrations"
           featureDisabled={this.props.flagDisableApplause}
-          onChange={newValue => this.setFlagValue('disable.applause', newValue)}
+          onChange={(newValue) => this.setFlagValue('disable.applause', newValue)}
         >
           <p>
             Some teams like broadcasting when a puzzle is solved, to make

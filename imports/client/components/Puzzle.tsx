@@ -33,6 +33,8 @@ interface PuzzleState {
 }
 
 class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
+  private modalRef: React.RefObject<PuzzleModalForm>;
+
   static displayName = 'Puzzle';
 
   static propTypes = {
@@ -43,16 +45,15 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
     suppressTags: PropTypes.arrayOf(PropTypes.string.isRequired),
   };
 
-  state = {
-    // Generating the edit modals for all puzzles is expensive, so we do it
-    // lazily. The first time the modal button is clicked, we change this state
-    // variable, which causes us to mount a new modal, which is set to open on
-    // mount. Subsequent times, we just open the existing modal.
-    showEditModal: false,
-  };
-
   constructor(props: PuzzleProps) {
     super(props);
+    this.state = {
+      // Generating the edit modals for all puzzles is expensive, so we do it
+      // lazily. The first time the modal button is clicked, we change this state
+      // variable, which causes us to mount a new modal, which is set to open on
+      // mount. Subsequent times, we just open the existing modal.
+      showEditModal: false,
+    };
     this.modalRef = React.createRef();
   }
 
@@ -81,8 +82,6 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
     }
     return null;
   };
-
-  private modalRef: React.RefObject<PuzzleModalForm>;
 
   render() {
     // id, title, answer, tags

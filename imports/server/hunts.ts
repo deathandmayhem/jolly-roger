@@ -72,7 +72,7 @@ Meteor.methods({
       hunt: huntId,
     });
     Meteor.users.update(joineeUser._id, { $addToSet: { hunts: { $each: [huntId] } } });
-    const joineeEmails = (joineeUser.emails || []).map(e => e.address);
+    const joineeEmails = (joineeUser.emails || []).map((e) => e.address);
 
     _.each(hunt.mailingLists, (listName) => {
       const list = new List(listName);

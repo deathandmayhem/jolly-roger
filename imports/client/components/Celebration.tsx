@@ -11,6 +11,8 @@ interface CelebrationProps {
 }
 
 class Celebration extends React.Component<CelebrationProps> {
+  private timer?: number;
+
   static propTypes = {
     url: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
@@ -39,8 +41,6 @@ class Celebration extends React.Component<CelebrationProps> {
       this.onClose();
     }
   };
-
-  private timer?: number;
 
   render() {
     return (
