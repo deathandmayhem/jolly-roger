@@ -21,31 +21,36 @@ const Down = class Down {
       null,
       'hunt',
       'Hunt to load test (defaults to most recent hunt user is joined to)',
-      'hunt')
+      'hunt',
+    )
       .argument('HUNT');
     parser.addOption(
       null,
       'puzzle',
       'Puzzle to load test (defaults to randomly selecting an unsolved puzzle in each session)',
-      'puzzle')
+      'puzzle',
+    )
       .argument('PUZZLE');
     parser.addOption(
       null,
       'concurrency',
       'Number of parallel workers (defaults to 10)',
-      'concurrency')
+      'concurrency',
+    )
       .argument('CONCURRENCY');
     parser.addOption(
       null,
       'idlers',
       'Number of workers to open a puzzle and keep it open (defaults to 0)',
-      'idlers')
+      'idlers',
+    )
       .argument('IDLERS');
     parser.addOption(
       null,
       'server',
       'URL of the server to load test (defaults to http://localhost:3000)',
-      'server')
+      'server',
+    )
       .argument('SERVER');
     parser.parse();
 
@@ -59,8 +64,9 @@ const Down = class Down {
 
     if (this.options.idlers >= this.options.concurrency) {
       throw new RangeError(
-        `Can't set idlers to ${this.options.idlers} and concurrency to ` +
-          `${this.options.concurrency}; the load test will deadlock!`);
+        `Can't set idlers to ${this.options.idlers} and concurrency to `
+          + `${this.options.concurrency}; the load test will deadlock!`,
+      );
     }
   }
 
@@ -107,9 +113,9 @@ const Down = class Down {
     }
 
     return _.chain(Meteor.collections.users[user].hunts)
-      .map(h => Meteor.collections.jr_hunts[h])
+      .map((h) => Meteor.collections.jr_hunts[h])
       .compact()
-      .max(h => h.createdAt)
+      .max((h) => h.createdAt)
       .value()
       ._id;
   }
@@ -125,7 +131,7 @@ const Down = class Down {
 
     return _.chain(Meteor.collections.jr_puzzles)
       .values()
-      .filter(p => !p.answer)
+      .filter((p) => !p.answer)
       .sample()
       .value()
       ._id;
@@ -138,7 +144,7 @@ const Down = class Down {
     Meteor.call = denodeify(Meteor.call);
     Meteor.subscribe = denodeify(Meteor.subscribe);
     Meteor.subscribeAll = function subscribeAll(subs) {
-      return Promise.all(subs.map(sub => Meteor.subscribe(...sub)));
+      return Promise.all(subs.map((sub) => Meteor.subscribe(...sub)));
     };
 
     await Meteor.subscribeAll([
@@ -185,7 +191,11 @@ const Down = class Down {
       [
         'mongo.chatmessages',
         { puzzle },
-        { fields: { puzzle: 1, text: 1, sender: 1, timestamp: 1 } },
+        {
+          fields: {
+            puzzle: 1, text: 1, sender: 1, timestamp: 1,
+          },
+        },
       ],
     ]);
 
