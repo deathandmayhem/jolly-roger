@@ -1,5 +1,5 @@
-import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
 import { SHA256 } from 'meteor/sha';
 import FeatureFlags from './lib/models/feature_flags';
 

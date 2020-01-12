@@ -1,6 +1,6 @@
+import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { _ } from 'meteor/underscore';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';

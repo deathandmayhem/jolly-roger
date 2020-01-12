@@ -1,6 +1,8 @@
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { withTracker } from 'meteor/react-meteor-data';
+import { _ } from 'meteor/underscore';
+import { Location } from 'history';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
@@ -12,17 +14,15 @@ import InputGroup from 'react-bootstrap/lib/InputGroup';
 import ToggleButton from 'react-bootstrap/lib/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/lib/ToggleButtonGroup';
 import { Link, browserHistory } from 'react-router';
-import { Location } from 'history';
-import { withTracker } from 'meteor/react-meteor-data';
-import subsCache from '../subsCache';
-import PuzzleList from './PuzzleList';
-import RelatedPuzzleGroup from './RelatedPuzzleGroup';
-import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import Flags from '../../flags';
-import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
-import TagsSchema, { TagType } from '../../lib/schemas/tags';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
+import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
+import TagsSchema, { TagType } from '../../lib/schemas/tags';
+import subsCache from '../subsCache';
+import PuzzleList from './PuzzleList';
+import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
+import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 
 /* eslint-disable max-len */
 

@@ -1,6 +1,6 @@
 import os from 'os';
-import Libhoney from 'libhoney';
 import { Meteor } from 'meteor/meteor';
+import Libhoney from 'libhoney';
 
 class DummyTransport {
   sendEvent() {}

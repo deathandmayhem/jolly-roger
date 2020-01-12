@@ -1,5 +1,5 @@
-import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
 import logfmt from 'logfmt';
 
 type LogLevels = 'log' | 'info' | 'error' | 'warn';

@@ -1,8 +1,8 @@
 import { _ } from 'meteor/underscore';
 import { huntsMatchingCurrentUser } from '../../model-helpers';
-import Base from './base';
-import PuzzlesSchema, { PuzzleType } from '../schemas/puzzles';
 import ActiveOperatorRole from '../active-operator-role';
+import PuzzlesSchema, { PuzzleType } from '../schemas/puzzles';
+import Base from './base';
 
 const Puzzles = new Base<PuzzleType>('puzzles', {
   transform(doc: PuzzleType): PuzzleType {

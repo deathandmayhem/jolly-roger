@@ -1,17 +1,17 @@
 import { _ } from 'meteor/underscore';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Creatable from 'react-select/lib/Creatable';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 import LabelledRadioGroup from './LabelledRadioGroup';
 import ModalForm from './ModalForm';
 import puzzleShape from './puzzleShape';
 import tagShape from './tagShape';
-import { PuzzleType } from '../../lib/schemas/puzzles';
-import { TagType } from '../../lib/schemas/tags';
 
 /* eslint-disable max-len */
 

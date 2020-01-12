@@ -1,10 +1,10 @@
 import { Meteor } from 'meteor/meteor';
+import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
+import { Location } from 'history';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { browserHistory } from 'react-router';
-import { withTracker } from 'meteor/react-meteor-data';
-import { Location } from 'history';
 
 interface AuthenticatorParams {
   route: {authenticated: boolean};

@@ -1,6 +1,6 @@
-import { Meteor } from 'meteor/meteor';
-import { check } from 'meteor/check';
 import { Accounts } from 'meteor/accounts-base';
+import { check } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import express from 'express';
 import Profiles from '../../../lib/models/profiles';

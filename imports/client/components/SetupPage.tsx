@@ -1,19 +1,19 @@
-import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
-import { ServiceConfiguration } from 'meteor/service-configuration';
-import { OAuth } from 'meteor/oauth';
 import { Google } from 'meteor/google-oauth';
+import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import React from 'react';
-import PropTypes from 'prop-types';
+import { OAuth } from 'meteor/oauth';
 import { withTracker } from 'meteor/react-meteor-data';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
+import { ServiceConfiguration } from 'meteor/service-configuration';
+import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
+import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Badge from 'react-bootstrap/lib/Badge';
 import Button from 'react-bootstrap/lib/Button';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
+import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
 import Settings from '../../lib/models/settings';
 

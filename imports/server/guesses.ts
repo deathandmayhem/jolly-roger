@@ -1,11 +1,11 @@
-import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
-import { GuessType } from '../lib/schemas/guess';
 import ChatMessages from '../lib/models/chats';
 import Guesses from '../lib/models/guess';
 import Puzzles from '../lib/models/puzzles';
+import { GuessType } from '../lib/schemas/guess';
 import GlobalHooks from './global-hooks';
 
 function addChatMessage(guess: GuessType, newState: GuessType['state']): void {

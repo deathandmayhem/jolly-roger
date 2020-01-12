@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import { withTracker } from 'meteor/react-meteor-data';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Breadcrumb from 'react-bootstrap/lib/Breadcrumb';
@@ -11,14 +12,13 @@ import NavbarBrand from 'react-bootstrap/lib/NavbarBrand';
 import NavbarCollapse from 'react-bootstrap/lib/NavbarCollapse';
 import NavbarHeader from 'react-bootstrap/lib/NavbarHeader';
 import NavbarToggle from 'react-bootstrap/lib/NavbarToggle';
+import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
 import { Link } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
-import { withTracker } from 'meteor/react-meteor-data';
-import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
+import Profiles from '../../lib/models/profiles';
 import subsCache from '../subsCache';
 import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
-import Profiles from '../../lib/models/profiles';
 
 interface SharedNavbarProps {
   userId: string;

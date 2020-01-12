@@ -1,9 +1,9 @@
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
-import DeepLink from './DeepLink';
 import DocumentsSchema, { DocumentType } from '../../lib/schemas/documents';
+import DeepLink from './DeepLink';
 
 interface DocumentDisplayProps {
   document: DocumentType;

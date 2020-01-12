@@ -1,11 +1,11 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
+import Profiles from '../../lib/models/profiles';
+import ProfileSchema, { ProfileType } from '../../lib/schemas/profiles';
 import subsCache from '../subsCache';
 import ProfileList from './ProfileList';
-import ProfileSchema, { ProfileType } from '../../lib/schemas/profiles';
-import Profiles from '../../lib/models/profiles';
 
 interface AllProfileListPageProps {
   ready: boolean;

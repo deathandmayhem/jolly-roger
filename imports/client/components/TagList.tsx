@@ -1,16 +1,16 @@
 import { _ } from 'meteor/underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
-import Button from 'react-bootstrap/lib/Button';
-import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import tagShape from './tagShape';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Button from 'react-bootstrap/lib/Button';
+import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 import Tag from './Tag';
 import TagEditor from './TagEditor';
-import { TagType } from '../../lib/schemas/tags';
-import { PuzzleType } from '../../lib/schemas/puzzles';
 import puzzleShape from './puzzleShape';
+import tagShape from './tagShape';
 
 interface TagListProps {
   puzzle: PuzzleType;

@@ -1,6 +1,6 @@
-import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Google } from 'meteor/google-oauth';
+import { Meteor } from 'meteor/meteor';
 import Ansible from '../ansible';
 import Profiles from '../lib/models/profiles';
 

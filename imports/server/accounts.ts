@@ -1,6 +1,6 @@
 import { URL } from 'url';
-import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
+import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import logfmt from 'logfmt';
 import Ansible from '../ansible';

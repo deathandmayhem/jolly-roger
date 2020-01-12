@@ -1,6 +1,13 @@
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { withTracker } from 'meteor/react-meteor-data';
+import { _ } from 'meteor/underscore';
+import { faEdit, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import classnames from 'classnames';
+import DOMPurify from 'dompurify';
+import marked from 'marked';
+import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
@@ -15,39 +22,31 @@ import NavItem from 'react-bootstrap/lib/NavItem';
 import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
 import Table from 'react-bootstrap/lib/Table';
 import Tooltip from 'react-bootstrap/lib/Tooltip';
-import DocumentTitle from 'react-document-title';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
-import classnames from 'classnames';
-import DOMPurify from 'dompurify';
-import marked from 'marked';
-import moment from 'moment';
-import TextareaAutosize from 'react-textarea-autosize';
-import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
+import DocumentTitle from 'react-document-title';
+import TextareaAutosize from 'react-textarea-autosize';
 import Ansible from '../../ansible';
-import subsCache from '../subsCache';
-import ModalForm from './ModalForm';
-import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
-import RelatedPuzzleGroups from './RelatedPuzzleGroups';
-import TagList from './TagList';
-import { Subscribers, SubscriberCounters } from '../subscribers';
 import Flags from '../../flags';
-import SplitPanePlus from './SplitPanePlus';
-import DocumentDisplay from './Documents';
-
-import ChatMessagesSchema, { ChatMessageType } from '../../lib/schemas/chats';
-import DocumentsSchema, { DocumentType } from '../../lib/schemas/documents';
-import GuessesSchema, { GuessType } from '../../lib/schemas/guess';
-import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
-import TagsSchema, { TagType } from '../../lib/schemas/tags';
-
 import ChatMessages from '../../lib/models/chats';
 import Documents from '../../lib/models/documents';
 import Guesses from '../../lib/models/guess';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
+import ChatMessagesSchema, { ChatMessageType } from '../../lib/schemas/chats';
+import DocumentsSchema, { DocumentType } from '../../lib/schemas/documents';
+import GuessesSchema, { GuessType } from '../../lib/schemas/guess';
+import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
+import TagsSchema, { TagType } from '../../lib/schemas/tags';
+import subsCache from '../subsCache';
+import { Subscribers, SubscriberCounters } from '../subscribers';
+import DocumentDisplay from './Documents';
+import ModalForm from './ModalForm';
+import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
+import RelatedPuzzleGroups from './RelatedPuzzleGroups';
+import SplitPanePlus from './SplitPanePlus';
+import TagList from './TagList';
+
 
 /* eslint-disable max-len, no-console */
 

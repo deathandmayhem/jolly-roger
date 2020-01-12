@@ -6,8 +6,8 @@
 // garbage collect subscriber records based on the updatedAt of the
 // server record.
 
-import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
 import moment from 'moment';

@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
-import { postSlackMessage } from '../slack';
 import Hunts from '../../lib/models/hunts';
 import Puzzles from '../../lib/models/puzzles';
+import { postSlackMessage } from '../slack';
 import Hookset from './hookset';
 
 const SlackHooks: Hookset = {

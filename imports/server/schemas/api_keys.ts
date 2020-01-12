@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
-import { Overrides, buildSchema, inheritSchema } from '../../lib/schemas/typedSchemas';
 import { BaseCodec, BaseOverrides } from '../../lib/schemas/base';
+import { Overrides, buildSchema, inheritSchema } from '../../lib/schemas/typedSchemas';
 
 const APIKeyFields = t.type({
   user: t.string,

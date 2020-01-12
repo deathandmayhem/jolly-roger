@@ -1,5 +1,5 @@
-import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import huntFixtures from '../fixtures';
 import Hunts from '../lib/models/hunts';

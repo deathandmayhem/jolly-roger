@@ -1,11 +1,11 @@
-import { _ } from 'meteor/underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
 import { withTracker } from 'meteor/react-meteor-data';
+import { _ } from 'meteor/underscore';
+import PropTypes from 'prop-types';
+import React from 'react';
 import Creatable from 'react-select/lib/Creatable';
-import TagSchema, { TagType } from '../../lib/schemas/tags';
 import Tags from '../../lib/models/tags';
 import { PuzzleType } from '../../lib/schemas/puzzles';
+import TagSchema, { TagType } from '../../lib/schemas/tags';
 import puzzleShape from './puzzleShape';
 
 interface TagEditorContainerProps {

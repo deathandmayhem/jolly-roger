@@ -1,7 +1,7 @@
-import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
-import { Random } from 'meteor/random';
+import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { Random } from 'meteor/random';
 import Ansible from '../ansible';
 import APIKeys from './models/api_keys';
 import Locks from './models/lock';

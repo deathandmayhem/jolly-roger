@@ -1,6 +1,6 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import md5 from 'md5';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 function gravatarHash(emailAddress: string): string {
   return md5(emailAddress.trim().toLowerCase());

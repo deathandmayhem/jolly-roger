@@ -1,5 +1,5 @@
-import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { _ } from 'meteor/underscore';
 import PendingAnnouncementsSchema, { PendingAnnouncementType } from '../schemas/pending_announcements';
 import Base from './base';
 

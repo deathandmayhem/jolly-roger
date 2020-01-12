@@ -1,9 +1,9 @@
 import { Meteor } from 'meteor/meteor';
-import React from 'react';
+import { withTracker } from 'meteor/react-meteor-data';
 import PropTypes from 'prop-types';
+import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
-import { withTracker } from 'meteor/react-meteor-data';
 import Ansible from '../../ansible';
 
 interface ConnectionStatusProps {

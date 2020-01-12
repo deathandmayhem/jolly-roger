@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
 import { Mongo } from 'meteor/mongo';
-import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { OAuth } from 'meteor/oauth';
-import { google, drive_v3 } from 'googleapis';
+import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { OAuth2Client } from 'google-auth-library';
+import { google, drive_v3 } from 'googleapis';
 import Settings from '../lib/models/settings';
 import { SettingType } from '../lib/schemas/settings';
 

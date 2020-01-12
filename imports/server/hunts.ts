@@ -1,14 +1,14 @@
-import { Meteor } from 'meteor/meteor';
-import { check } from 'meteor/check';
-import { _ } from 'meteor/underscore';
 import { Accounts } from 'meteor/accounts-base';
+import { check } from 'meteor/check';
 import { Email } from 'meteor/email';
+import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { _ } from 'meteor/underscore';
 import Ansible from '../ansible';
-import List from './blanche';
-import { HuntType } from '../lib/schemas/hunts';
 import Hunts from '../lib/models/hunts';
 import Profiles from '../lib/models/profiles';
+import { HuntType } from '../lib/schemas/hunts';
+import List from './blanche';
 
 const existingJoinEmail = (user: Meteor.User | null, hunt: HuntType, joinerName: string | null) => {
   const email = user && user.emails && user.emails[0] && user.emails[0].address;
