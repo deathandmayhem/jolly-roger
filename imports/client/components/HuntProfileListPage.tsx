@@ -1,14 +1,14 @@
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { withTracker } from 'meteor/react-meteor-data';
+import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
+import Profiles from '../../lib/models/profiles';
+import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
 import subsCache from '../subsCache';
 import ProfileList from './ProfileList';
-import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
-import Profiles from '../../lib/models/profiles';
 
 interface HuntProfileListPageProps {
   params: {huntId: string};

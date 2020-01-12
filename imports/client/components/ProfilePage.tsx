@@ -1,9 +1,10 @@
-import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
-import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
-import { OAuth } from 'meteor/oauth';
 import { Google } from 'meteor/google-oauth';
+import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { OAuth } from 'meteor/oauth';
+import { withTracker } from 'meteor/react-meteor-data';
+import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
+import { _ } from 'meteor/underscore';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
@@ -14,12 +15,11 @@ import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
 import Label from 'react-bootstrap/lib/Label';
-import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import subsCache from '../subsCache';
-import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
-import Profiles from '../../lib/models/profiles';
 import Flags from '../../flags';
+import Profiles from '../../lib/models/profiles';
+import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
+import subsCache from '../subsCache';
 import Gravatar from './Gravatar';
 
 /* eslint-disable max-len */

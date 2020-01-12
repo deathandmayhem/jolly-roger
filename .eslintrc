@@ -64,6 +64,19 @@
     // We don't use imports with extensions
     "import/extensions": ["error", "never"],
 
+    // Imports should be grouped, and sorted within the group. Meteor imports
+    // are their own group, after built-ins and before other external libraries
+    "import/order": ["error", {
+      "alphabetize": {"order": "asc"},
+      "pathGroups": [{
+        "pattern": "meteor/**",
+        "group": "external",
+        "position": "before",
+      }],
+      "pathGroupsExcludedImportTypes": ["builtin"],
+      "newlines-between": "never",
+    }],
+
     // This seems incompatible with React.createClass
     "react/no-this-in-sfc": ["off"],
 

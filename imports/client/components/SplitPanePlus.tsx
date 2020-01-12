@@ -1,8 +1,8 @@
 import { _ } from 'meteor/underscore';
+import elementResizeDetectorMaker from 'element-resize-detector';
 import PropTypes from 'prop-types';
 import React from 'react';
 import SplitPane, { Props as SplitPaneProps } from 'react-split-pane';
-import elementResizeDetectorMaker from 'element-resize-detector';
 
 /*
   Wraps react-split-pane with a few extra features:

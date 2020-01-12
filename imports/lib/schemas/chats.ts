@@ -1,8 +1,8 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types/lib/Date/date';
 import SimpleSchema from 'simpl-schema';
-import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 import { BaseCodec, BaseOverrides } from './base';
+import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 const ChatMessageFields = t.type({
   hunt: t.string,

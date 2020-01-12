@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import { buildSchema, inheritSchema } from './typedSchemas';
 import { BaseCodec, BaseOverrides } from './base';
+import { buildSchema, inheritSchema } from './typedSchemas';
 
 const FeatureFlagFields = t.type({
   name: t.string,

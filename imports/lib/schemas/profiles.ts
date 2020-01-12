@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 import { BaseCodec, BaseOverrides } from './base';
+import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 const ProfileFieldsType = t.type({
   // Autopopulated with the first of the user's email addresses?

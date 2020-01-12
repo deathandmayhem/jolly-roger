@@ -1,8 +1,8 @@
-import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
-import { ServiceConfiguration } from 'meteor/service-configuration';
 import { Google } from 'meteor/google-oauth';
+import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../ansible';
 import Settings from '../lib/models/settings';
 

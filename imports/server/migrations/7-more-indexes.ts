@@ -1,9 +1,9 @@
-import { Migrations } from 'meteor/percolate:migrations';
 import { Meteor } from 'meteor/meteor';
-import dropIndex from './drop-index';
+import { Migrations } from 'meteor/percolate:migrations';
 import Documents from '../../lib/models/documents';
 import Guesses from '../../lib/models/guess';
 import Tags from '../../lib/models/tags';
+import dropIndex from './drop-index';
 
 Migrations.add({
   version: 7,

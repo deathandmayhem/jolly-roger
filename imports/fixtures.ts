@@ -1,5 +1,5 @@
-import { TagType } from './lib/schemas/tags';
 import { PuzzleType } from './lib/schemas/puzzles';
+import { TagType } from './lib/schemas/tags';
 
 /* eslint-disable */
 

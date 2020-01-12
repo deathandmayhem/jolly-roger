@@ -1,21 +1,21 @@
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { withTracker } from 'meteor/react-meteor-data';
+import { _ } from 'meteor/underscore';
+import classnames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Link } from 'react-router';
-import classnames from 'classnames';
-import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import subsCache from '../subsCache';
-import GuessesSchema, { GuessType } from '../../lib/schemas/guess';
-import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
-import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
+import { Link } from 'react-router';
 import Guesses from '../../lib/models/guess';
 import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
+import GuessesSchema, { GuessType } from '../../lib/schemas/guess';
+import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
+import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
+import subsCache from '../subsCache';
 
 /* eslint-disable max-len */
 

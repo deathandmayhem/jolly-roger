@@ -1,19 +1,19 @@
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { withTracker } from 'meteor/react-meteor-data';
+import { _ } from 'meteor/underscore';
 import DOMPurify from 'dompurify';
+import marked from 'marked';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
-import marked from 'marked';
-import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import subsCache from '../subsCache';
-import AnnouncementsSchema, { AnnouncementType } from '../../lib/schemas/announcements';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
+import AnnouncementsSchema, { AnnouncementType } from '../../lib/schemas/announcements';
+import subsCache from '../subsCache';
 
 /* eslint-disable max-len */
 

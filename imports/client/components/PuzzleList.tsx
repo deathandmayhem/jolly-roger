@@ -1,10 +1,10 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 import Puzzle from './Puzzle';
 import puzzleShape from './puzzleShape';
 import tagShape from './tagShape';
-import { PuzzleType } from '../../lib/schemas/puzzles';
-import { TagType } from '../../lib/schemas/tags';
 
 /* eslint-disable max-len */
 

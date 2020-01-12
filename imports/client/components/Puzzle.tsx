@@ -1,22 +1,21 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
-import Button from 'react-bootstrap/lib/Button';
 import { faEdit, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Button from 'react-bootstrap/lib/Button';
 import { Link } from 'react-router';
-
 import Ansible from '../../ansible';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SubscriberCount from './SubscriberCount';
 import TagList from './TagList';
 import puzzleShape from './puzzleShape';
 import tagShape from './tagShape';
-import { PuzzleType } from '../../lib/schemas/puzzles';
-import { TagType } from '../../lib/schemas/tags';
 
 /* eslint-disable max-len */
 

@@ -1,5 +1,5 @@
-import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import Announcements from '../lib/models/announcements';

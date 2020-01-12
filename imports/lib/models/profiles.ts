@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
-import Base from './base';
 import ProfilesSchema, { ProfileType } from '../schemas/profiles';
+import Base from './base';
 
 interface SubscriptionHandle {
   ready(): boolean;

@@ -1,6 +1,6 @@
 import { huntsMatchingCurrentUser } from '../../model-helpers';
-import Base from './base';
 import TagsSchema, { TagType } from '../schemas/tags';
+import Base from './base';
 
 const Tags = new Base<TagType>('tags');
 Tags.attachSchema(TagsSchema);

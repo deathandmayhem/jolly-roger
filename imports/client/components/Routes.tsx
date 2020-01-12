@@ -1,15 +1,15 @@
 import React from 'react';
+import { BreadcrumbsProvider } from 'react-breadcrumbs-context';
+import DocumentTitle from 'react-document-title';
 import {
   IndexRedirect,
   Route,
   Router,
   browserHistory,
 } from 'react-router';
-import DocumentTitle from 'react-document-title';
-import { BreadcrumbsProvider } from 'react-breadcrumbs-context';
 import AllProfileListPage from './AllProfileListPage';
-import App from './App';
 import AnnouncementsPage from './AnnouncementsPage';
+import App from './App';
 import Authenticator from './Authenticator';
 import EnrollForm from './EnrollForm';
 import GuessQueuePage from './GuessQueuePage';

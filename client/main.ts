@@ -22,8 +22,8 @@ import '../imports/client/main';
 import '../imports/client/close';
 
 // Export the schemas and models facades for interaction from the console
-import SchemasFacade from '../imports/lib/schemas/facade';
 import ModelsFacade from '../imports/lib/models/facade';
+import SchemasFacade from '../imports/lib/schemas/facade';
 
 declare global {
   interface Window {

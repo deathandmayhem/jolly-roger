@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
-import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 import { BaseCodec, BaseOverrides } from './base';
+import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 const DocumentPermissionFields = t.type({
   document: t.string,

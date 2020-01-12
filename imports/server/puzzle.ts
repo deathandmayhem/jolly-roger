@@ -1,18 +1,18 @@
-import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
+import { Roles } from 'meteor/nicolaslopezj:roles';
 import { Random } from 'meteor/random';
 import { _ } from 'meteor/underscore';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
-import {
-  ensureDocument, renameDocument, grantPermission, MimeTypes,
-} from './gdrive';
-import DriveClient from './gdrive-client-refresher';
 import Flags from '../flags';
 import DocumentPermissions from '../lib/models/document_permissions';
 import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 import Tags from '../lib/models/tags';
+import {
+  ensureDocument, renameDocument, grantPermission, MimeTypes,
+} from './gdrive';
+import DriveClient from './gdrive-client-refresher';
 import GlobalHooks from './global-hooks';
 
 function getOrCreateTagByName(huntId: string, name: string): {

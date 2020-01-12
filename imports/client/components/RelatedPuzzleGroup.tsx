@@ -1,15 +1,15 @@
 import { _ } from 'meteor/underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
 import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import PropTypes from 'prop-types';
+import React from 'react';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 import PuzzleList from './PuzzleList';
 import Tag from './Tag';
 import puzzleInterestingness from './puzzleInterestingness';
 import puzzleShape from './puzzleShape';
 import tagShape from './tagShape';
-import { PuzzleType } from '../../lib/schemas/puzzles';
-import { TagType } from '../../lib/schemas/tags';
 
 /* eslint-disable max-len */
 

@@ -1,14 +1,14 @@
+import { Meteor } from 'meteor/meteor';
+import { withTracker } from 'meteor/react-meteor-data';
+import { Tracker } from 'meteor/tracker';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Meteor } from 'meteor/meteor';
-import { Tracker } from 'meteor/tracker';
-import { withTracker } from 'meteor/react-meteor-data';
 import Flags from '../../flags';
-import subsCache from '../subsCache';
-import Celebration from './Celebration';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import { PuzzleType } from '../../lib/schemas/puzzles';
+import subsCache from '../subsCache';
+import Celebration from './Celebration';
 
 interface CelebrationCenterProps {
   huntId: string;

@@ -1,6 +1,9 @@
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { withTracker } from 'meteor/react-meteor-data';
+import { _ } from 'meteor/underscore';
+import { faEdit, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
@@ -11,16 +14,13 @@ import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import HelpBlock from 'react-bootstrap/lib/HelpBlock';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { Link } from 'react-router';
-import { withTracker } from 'meteor/react-meteor-data';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
+import { Link } from 'react-router';
 import Ansible from '../../ansible';
+import Hunts from '../../lib/models/hunts';
+import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
 import subsCache from '../subsCache';
 import ModalForm from './ModalForm';
-import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
-import Hunts from '../../lib/models/hunts';
 
 /* eslint-disable max-len */
 

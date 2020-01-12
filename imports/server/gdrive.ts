@@ -2,10 +2,10 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import Ansible from '../ansible';
 import Flags from '../flags';
-import Locks from './models/lock';
-import DriveClient from './gdrive-client-refresher';
 import Documents from '../lib/models/documents';
 import Settings from '../lib/models/settings';
+import DriveClient from './gdrive-client-refresher';
+import Locks from './models/lock';
 
 export const MimeTypes = {
   spreadsheet: 'application/vnd.google-apps.spreadsheet',

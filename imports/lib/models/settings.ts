@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import Base, { FindOptions } from './base';
 import SettingsSchema, { SettingType } from '../schemas/settings';
+import Base, { FindOptions } from './base';
 
 const Settings = new Base<SettingType>('settings');
 Settings.attachSchema(SettingsSchema);

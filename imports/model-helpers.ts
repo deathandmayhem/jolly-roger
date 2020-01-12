@@ -1,7 +1,7 @@
 import { Meteor, Subscription } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 import { _ } from 'meteor/underscore';
 import Mustache from 'mustache';
-import { Mongo } from 'meteor/mongo';
 import { HuntType } from './lib/schemas/hunts';
 import { PuzzleType } from './lib/schemas/puzzles';
 
