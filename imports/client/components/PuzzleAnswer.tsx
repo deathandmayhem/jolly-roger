@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 
 interface PuzzleAnswerProps {
@@ -7,10 +6,6 @@ interface PuzzleAnswerProps {
 
 class PuzzleAnswer extends React.PureComponent<PuzzleAnswerProps> {
   static displayName = 'PuzzleAnswer';
-
-  static propTypes = {
-    answer: PropTypes.string.isRequired,
-  };
 
   render() {
     return (

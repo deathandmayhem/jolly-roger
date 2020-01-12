@@ -5,14 +5,13 @@ import { _ } from 'meteor/underscore';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
-import AnnouncementsSchema, { AnnouncementType } from '../../lib/schemas/announcements';
+import { AnnouncementType } from '../../lib/schemas/announcements';
 import subsCache from '../subsCache';
 
 /* eslint-disable max-len */
@@ -34,10 +33,6 @@ interface AnnouncementFormState {
 }
 
 class AnnouncementForm extends React.Component<AnnouncementFormProps, AnnouncementFormState> {
-  static propTypes = {
-    huntId: PropTypes.string.isRequired,
-  };
-
   constructor(props: AnnouncementFormProps) {
     super(props);
     this.state = {
@@ -105,11 +100,6 @@ interface AnnouncementProps {
 }
 
 class Announcement extends React.Component<AnnouncementProps> {
-  static propTypes = {
-    announcement: PropTypes.shape(AnnouncementsSchema.asReactPropTypes()).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-  };
-
   render() {
     const ann = this.props.announcement;
 
@@ -127,11 +117,11 @@ class Announcement extends React.Component<AnnouncementProps> {
   }
 }
 
-interface AnnouncementsPageParamsProps {
+interface AnnouncementsPageParams {
   params: {huntId: string};
 }
 
-type AnnouncementsPageProps = AnnouncementsPageParamsProps & {
+interface AnnouncementsPageProps extends AnnouncementsPageParams {
   ready: boolean;
   canCreateAnnouncements: boolean;
   announcements: AnnouncementType[];
@@ -139,20 +129,6 @@ type AnnouncementsPageProps = AnnouncementsPageParamsProps & {
 }
 
 class AnnouncementsPage extends React.Component<AnnouncementsPageProps> {
-  static propTypes = {
-    params: PropTypes.shape({
-      huntId: PropTypes.string.isRequired,
-    }).isRequired,
-    ready: PropTypes.bool.isRequired,
-    canCreateAnnouncements: PropTypes.bool.isRequired,
-    announcements: PropTypes.arrayOf(
-      PropTypes.shape(
-        AnnouncementsSchema.asReactPropTypes<AnnouncementType>()
-      ).isRequired as React.Validator<AnnouncementType>
-    ).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-  };
-
   render() {
     if (!this.props.ready) {
       return <div>loading...</div>;
@@ -180,10 +156,10 @@ class AnnouncementsPage extends React.Component<AnnouncementsPageProps> {
   }
 }
 
-const crumb = withBreadcrumb(({ params }: AnnouncementsPageParamsProps) => {
+const crumb = withBreadcrumb(({ params }: AnnouncementsPageParams) => {
   return { title: 'Announcements', path: `/hunts/${params.huntId}/announcements` };
 });
-const tracker = withTracker(({ params }: AnnouncementsPageParamsProps) => {
+const tracker = withTracker(({ params }: AnnouncementsPageParams) => {
   // We already have subscribed to mongo.announcements on the main page, since we want to be able
   // to show them on any page.  So we don't *need* to make the subscription here...
   // ...except that we might want to wait to render until we've received all of them?  IDK.

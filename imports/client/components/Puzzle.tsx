@@ -3,7 +3,6 @@ import { _ } from 'meteor/underscore';
 import { faEdit, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import { Link } from 'react-router';
@@ -14,13 +13,12 @@ import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SubscriberCount from './SubscriberCount';
 import TagList from './TagList';
-import puzzleShape from './puzzleShape';
-import tagShape from './tagShape';
 
 /* eslint-disable max-len */
 
 interface PuzzleProps {
   puzzle: PuzzleType;
+  // All tags associated with the hunt.
   allTags: TagType[];
   layout: 'grid' | 'table';
   canUpdate: boolean;
@@ -35,14 +33,6 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
   private modalRef: React.RefObject<PuzzleModalForm>;
 
   static displayName = 'Puzzle';
-
-  static propTypes = {
-    puzzle: PropTypes.shape(puzzleShape).isRequired,
-    allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired, // All tags associated with the hunt.
-    layout: PropTypes.oneOf(['grid', 'table']).isRequired,
-    canUpdate: PropTypes.bool.isRequired,
-    suppressTags: PropTypes.arrayOf(PropTypes.string.isRequired),
-  };
 
   constructor(props: PuzzleProps) {
     super(props);

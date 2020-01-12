@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Breadcrumb from 'react-bootstrap/lib/Breadcrumb';
 import BreadcrumbItem from 'react-bootstrap/lib/BreadcrumbItem';
@@ -26,11 +25,6 @@ interface SharedNavbarProps {
 }
 
 class SharedNavbar extends React.Component<SharedNavbarProps> {
-  static propTypes = {
-    userId: PropTypes.string.isRequired,
-    displayName: PropTypes.string.isRequired,
-  };
-
   logout = () => {
     Meteor.logout();
   };
@@ -105,42 +99,32 @@ const SharedNavbarContainer = withTracker(() => {
   };
 })(SharedNavbar);
 
-class FullscreenLayout extends React.Component {
-  static propTypes = {
-    children: PropTypes.node,
-  };
-
+class FullscreenLayout extends React.Component<{children: React.ReactNode}> {
   render() {
-    const { children, ...props } = this.props;
     return (
       <div>
         <NotificationCenter />
-        <SharedNavbarContainer {...props} />
+        <SharedNavbarContainer />
         <div className="connection-status-fullscreen">
           <ConnectionStatus />
         </div>
         <div className="app-content-fullscreen">
-          {children}
+          {this.props.children}
         </div>
       </div>
     );
   }
 }
 
-class ScrollableLayout extends React.Component {
-  static propTypes = {
-    children: PropTypes.node,
-  };
-
+class ScrollableLayout extends React.Component<{children: React.ReactNode}> {
   render() {
-    const { children, ...props } = this.props;
     return (
       <div>
         <NotificationCenter />
-        <SharedNavbarContainer {...props} />
+        <SharedNavbarContainer />
         <div className="container-fluid app-content-scrollable">
           <ConnectionStatus />
-          {children}
+          {this.props.children}
         </div>
       </div>
     );
@@ -153,13 +137,10 @@ interface RouteComponent {
 
 interface AppProps {
   routes: {component: RouteComponent}[];
+  children: React.ReactNode;
 }
 
 class App extends React.Component<AppProps> {
-  static propTypes = {
-    routes: PropTypes.array,
-  };
-
   render() {
     // Hack: see if the leaf route wants the fullscreen layout.
     const { routes, ...props } = this.props;

@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import Col from 'react-bootstrap/lib/Col';
 import Image from 'react-bootstrap/lib/Image';
@@ -10,10 +9,6 @@ interface SplashPageProps {
 }
 
 class SplashPage extends React.Component<SplashPageProps> {
-  static propTypes = {
-    children: PropTypes.node,
-  };
-
   render() {
     return (
       <div className="container">

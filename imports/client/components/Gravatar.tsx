@@ -1,5 +1,4 @@
 import md5 from 'md5';
-import PropTypes from 'prop-types';
 import React from 'react';
 
 function gravatarHash(emailAddress: string): string {
@@ -11,10 +10,6 @@ interface GravatarProps {
 }
 
 class Gravatar extends React.PureComponent<GravatarProps> {
-  static propTypes = {
-    email: PropTypes.string.isRequired,
-  };
-
   render() {
     return (
       <div>

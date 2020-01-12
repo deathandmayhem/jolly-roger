@@ -1,6 +1,5 @@
 import { _ } from 'meteor/underscore';
 import elementResizeDetectorMaker from 'element-resize-detector';
-import PropTypes from 'prop-types';
 import React from 'react';
 import SplitPane, { Props as SplitPaneProps } from 'react-split-pane';
 
@@ -69,15 +68,6 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
   ref: React.RefObject<HTMLDivElement>
 
   erd?: elementResizeDetectorMaker.Erd
-
-  // eslint-disable-next-line react/forbid-foreign-prop-types
-  static propTypes =_.extend({}, (SplitPane as any).propTypes, {
-    autoCollapse1: PropTypes.number,
-    autoCollapse2: PropTypes.number,
-    collapsed: PropTypes.oneOf([0, 1, 2]),
-    scaling: PropTypes.oneOf(['absolute', 'relative']),
-    onCollapseChanged: PropTypes.func,
-  });
 
   static defaultProps = _.extend({}, (SplitPane as any).defaultProps, {
     minSize: 0,

@@ -12,7 +12,7 @@ import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import DocumentTitle from 'react-document-title';
 import Hunts from '../../lib/models/hunts';
-import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
+import { HuntType } from '../../lib/schemas/hunts';
 import subsCache from '../subsCache';
 import CelebrationCenter from './CelebrationCenter';
 
@@ -22,13 +22,6 @@ interface HuntDeletedErrorProps {
 }
 
 class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
-  static propTypes = {
-    hunt: PropTypes.shape(
-      HuntsSchema.asReactPropTypes<HuntType>()
-    ).isRequired as React.Validator<HuntType>,
-    canUndestroy: PropTypes.bool.isRequired,
-  };
-
   static contextTypes = {
     router: PropTypes.object.isRequired,
   };
@@ -72,13 +65,6 @@ interface HuntMemberErrorProps {
 }
 
 class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
-  static propTypes = {
-    hunt: PropTypes.shape(
-      HuntsSchema.asReactPropTypes<HuntType>()
-    ).isRequired as React.Validator<HuntType>,
-    canJoin: PropTypes.bool.isRequired,
-  };
-
   static contextTypes = {
     router: PropTypes.object.isRequired,
   };
@@ -139,18 +125,6 @@ interface HuntAppProps extends HuntAppParams {
 }
 
 class HuntApp extends React.Component<HuntAppProps> {
-  static propTypes = {
-    params: PropTypes.shape({
-      huntId: PropTypes.string.isRequired,
-    }).isRequired,
-    children: PropTypes.node.isRequired,
-    ready: PropTypes.bool.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()) as React.Requireable<HuntType>,
-    member: PropTypes.bool.isRequired,
-    canUndestroy: PropTypes.bool.isRequired,
-    canJoin: PropTypes.bool.isRequired,
-  };
-
   renderBody = () => {
     if (!this.props.ready) {
       return <span>loading...</span>;

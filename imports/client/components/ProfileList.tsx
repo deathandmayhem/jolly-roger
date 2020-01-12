@@ -1,5 +1,4 @@
 import { _ } from 'meteor/underscore';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
@@ -10,7 +9,7 @@ import InputGroup from 'react-bootstrap/lib/InputGroup';
 import ListGroup from 'react-bootstrap/lib/ListGroup';
 import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
 import * as RRBS from 'react-router-bootstrap';
-import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
+import { ProfileType } from '../../lib/schemas/profiles';
 
 interface ProfileListProps {
   huntId?: string;
@@ -23,16 +22,6 @@ interface ProfileListState {
 }
 
 class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
-  static propTypes = {
-    huntId: PropTypes.string,
-    canInvite: PropTypes.bool,
-    profiles: PropTypes.arrayOf(
-      PropTypes.shape(
-        ProfilesSchema.asReactPropTypes()
-      ).isRequired
-    ).isRequired,
-  };
-
   constructor(props: ProfileListProps) {
     super(props);
     this.state = {

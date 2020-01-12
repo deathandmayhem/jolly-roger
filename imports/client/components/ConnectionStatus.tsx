@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
@@ -12,10 +11,6 @@ interface ConnectionStatusProps {
 
 class ConnectionStatus extends React.Component<ConnectionStatusProps> {
   timeoutId?: number;
-
-  static propTypes = {
-    meteorStatus: PropTypes.any,
-  };
 
   refresh() {
     // Mark this timeout as completed
@@ -81,6 +76,8 @@ class ConnectionStatus extends React.Component<ConnectionStatusProps> {
   }
 }
 
-export default withTracker(() => {
+const ConnectionStatusContainer = withTracker((_props: {}) => {
   return { meteorStatus: Meteor.status() };
 })(ConnectionStatus);
+
+export default ConnectionStatusContainer;

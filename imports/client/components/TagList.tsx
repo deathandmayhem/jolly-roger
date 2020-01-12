@@ -1,7 +1,6 @@
 import { _ } from 'meteor/underscore';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
@@ -9,8 +8,6 @@ import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import Tag from './Tag';
 import TagEditor from './TagEditor';
-import puzzleShape from './puzzleShape';
-import tagShape from './tagShape';
 
 interface TagListProps {
   puzzle: PuzzleType;
@@ -28,15 +25,6 @@ interface TagListState {
 
 class TagList extends React.PureComponent<TagListProps, TagListState> {
   static displayName = 'TagList';
-
-  static propTypes = {
-    puzzle: PropTypes.shape(puzzleShape).isRequired,
-    tags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired,
-    onCreateTag: PropTypes.func, // if provided, will show UI for adding a new tag
-    onRemoveTag: PropTypes.func, // callback if user wants to remove a tag
-    linkToSearch: PropTypes.bool.isRequired,
-    showControls: PropTypes.bool,
-  };
 
   static defaultProps = { showControls: true };
 

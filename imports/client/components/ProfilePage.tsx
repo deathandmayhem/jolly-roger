@@ -5,7 +5,6 @@ import { OAuth } from 'meteor/oauth';
 import { withTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
@@ -31,14 +30,6 @@ interface OthersProfilePageProps {
 }
 
 class OthersProfilePage extends React.Component<OthersProfilePageProps> {
-  static propTypes = {
-    profile: PropTypes.shape(
-      ProfilesSchema.asReactPropTypes<ProfileType>()
-    ).isRequired as React.Validator<ProfileType>,
-    viewerCanMakeOperator: PropTypes.bool.isRequired,
-    targetIsOperator: PropTypes.bool.isRequired,
-  };
-
   makeOperator = () => {
     Meteor.call('makeOperator', this.props.profile._id);
   };
@@ -97,14 +88,6 @@ type GoogleLinkBlockState = {
 }
 
 class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBlockState> {
-  static propTypes = {
-    profile: PropTypes.shape(
-      ProfilesSchema.asReactPropTypes<ProfileType>()
-    ).isRequired as React.Validator<ProfileType>,
-    googleDisabled: PropTypes.bool.isRequired,
-    config: PropTypes.any,
-  };
-
   constructor(props: GoogleLinkBlockProps) {
     super(props);
     this.state = { state: GoogleLinkBlockLinkState.IDLE };
@@ -265,14 +248,6 @@ interface OwnProfilePageState {
 }
 
 class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePageState> {
-  static propTypes = {
-    initialProfile: PropTypes.shape(
-      ProfilesSchema.asReactPropTypes<ProfileType>()
-    ).isRequired as React.Validator<ProfileType>,
-    operating: PropTypes.bool.isRequired,
-    canMakeOperator: PropTypes.bool.isRequired,
-  };
-
   constructor(props: OwnProfilePageProps) {
     super(props);
     this.state = {
@@ -483,20 +458,6 @@ interface ProfilePageProps extends ProfilePageParams {
 }
 
 class ProfilePage extends React.Component<ProfilePageProps> {
-  static propTypes = {
-    params: PropTypes.shape({
-      userId: PropTypes.string.isRequired,
-    }).isRequired,
-    ready: PropTypes.bool.isRequired,
-    isSelf: PropTypes.bool.isRequired,
-    profile: PropTypes.shape(
-      ProfilesSchema.asReactPropTypes<ProfileType>()
-    ).isRequired as React.Validator<ProfileType>,
-    viewerCanMakeOperator: PropTypes.bool.isRequired,
-    viewerIsOperator: PropTypes.bool.isRequired,
-    targetIsOperator: PropTypes.bool.isRequired,
-  };
-
   render() {
     if (!this.props.ready) {
       return <div>loading...</div>;

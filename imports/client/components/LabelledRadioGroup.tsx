@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 
 /* eslint-disable max-len */
@@ -16,6 +15,7 @@ const labelledRadioStyles: Record<string, React.CSSProperties> = {
 interface LabelledRadioProps {
   id: string;
   // eslint-disable-next-line no-restricted-globals
+  // The name of the exclusive group for the radio buttons
   name: string;
   value: string;
   label: string;
@@ -23,19 +23,10 @@ interface LabelledRadioProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+// Bootstrap's approach to exclusive options does not look particularly good nor
+// does it produce accessibility-friendly markup, so here's a touch of our own
+// instead.  Uses some bootstrap styles.
 class LabelledRadio extends React.Component<LabelledRadioProps> {
-  // Bootstrap's approach to exclusive options does not look particularly good nor does it produce
-  // accessibility-friendly markup, so here's a touch of our own instead.  Uses some bootstrap
-  // styles.
-  static propTypes = {
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    value: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
-    defaultChecked: PropTypes.bool,
-    onChange: PropTypes.func.isRequired,
-  };
-
   render() {
     return (
       <label style={labelledRadioStyles.radiolabel} htmlFor={this.props.id}>
@@ -75,20 +66,6 @@ interface LabelledRadioGroupState {
 }
 
 class LabelledRadioGroup extends React.Component<LabelledRadioGroupProps, LabelledRadioGroupState> {
-  static propTypes = {
-    header: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired, // The name of the exclusive group for the radio buttons
-    options: PropTypes.arrayOf(
-      PropTypes.shape({
-        label: PropTypes.string.isRequired,
-        value: PropTypes.string.isRequired,
-      }).isRequired
-    ).isRequired,
-    onChange: PropTypes.func.isRequired,
-    initialValue: PropTypes.string,
-    help: PropTypes.string,
-  };
-
   constructor(props: LabelledRadioGroupProps) {
     super(props);
     this.state = {

@@ -8,7 +8,6 @@ import classnames from 'classnames';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
@@ -33,11 +32,11 @@ import Guesses from '../../lib/models/guess';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
-import ChatMessagesSchema, { ChatMessageType } from '../../lib/schemas/chats';
-import DocumentsSchema, { DocumentType } from '../../lib/schemas/documents';
-import GuessesSchema, { GuessType } from '../../lib/schemas/guess';
-import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
-import TagsSchema, { TagType } from '../../lib/schemas/tags';
+import { ChatMessageType } from '../../lib/schemas/chats';
+import { DocumentType } from '../../lib/schemas/documents';
+import { GuessType } from '../../lib/schemas/guess';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 import subsCache from '../subsCache';
 import { Subscribers, SubscriberCounters } from '../subscribers';
 import DocumentDisplay from './Documents';
@@ -52,7 +51,6 @@ import TagList from './TagList';
 
 const FilteredChatFields: ('_id' | 'puzzle' | 'text' | 'sender' | 'timestamp')[] = ['_id', 'puzzle', 'text', 'sender', 'timestamp'];
 type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[0]>
-const FilteredChatMessagePropTypes = _.pick(ChatMessagesSchema.asReactPropTypes<ChatMessageType>(), ...FilteredChatFields);
 
 const MinimumDesktopWidth = 600;
 const MinimumDesktopStackingHeight = 400; // In two column mode, allow stacking at smaller heights
@@ -148,16 +146,6 @@ interface ViewersListProps {
 }
 
 class ViewersList extends React.Component<ViewersListProps> {
-  static propTypes = {
-    name: PropTypes.string.isRequired,
-    ready: PropTypes.bool.isRequired,
-    subscribers: PropTypes.arrayOf(PropTypes.shape({
-      user: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-    }).isRequired).isRequired,
-    unknown: PropTypes.number.isRequired,
-  };
-
   render() {
     if (!this.props.ready) {
       return <span>loading...</span>;
@@ -206,10 +194,6 @@ const ViewersListContainer = withTracker(({ name }: { name: string }) => {
   return { ready: ready as boolean, unknown, subscribers };
 })(ViewersList);
 
-ViewersListContainer.propTypes = {
-  name: PropTypes.string.isRequired,
-};
-
 interface ViewersModalProps {
   name: string;
 }
@@ -219,10 +203,6 @@ interface ViewersModalState {
 }
 
 class ViewersModal extends React.Component<ViewersModalProps, ViewersModalState> {
-  static propTypes = {
-    name: PropTypes.string.isRequired,
-  };
-
   constructor(props: ViewersModalProps) {
     super(props);
     this.state = { show: false };
@@ -260,12 +240,6 @@ interface ViewCountDisplayProps {
 
 class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
   modalRef: React.RefObject<ViewersModal>
-
-  static propTypes = {
-    count: PropTypes.number.isRequired,
-    name: PropTypes.string.isRequired,
-    subfetchesDisabled: PropTypes.bool.isRequired,
-  };
 
   constructor(props: ViewCountDisplayProps) {
     super(props);
@@ -310,22 +284,6 @@ interface RelatedPuzzleSectionProps {
 }
 
 class RelatedPuzzleSection extends React.PureComponent<RelatedPuzzleSectionProps> {
-  static propTypes = {
-    activePuzzle: PropTypes.shape(
-      PuzzlesSchema.asReactPropTypes<PuzzleType>()
-    ).isRequired as React.Validator<PuzzleType>,
-    allPuzzles: PropTypes.arrayOf(
-      PropTypes.shape(
-        PuzzlesSchema.asReactPropTypes<PuzzleType>()
-      ).isRequired as React.Validator<PuzzleType>
-    ).isRequired,
-    allTags: PropTypes.arrayOf(
-      PropTypes.shape(
-        TagsSchema.asReactPropTypes<TagType>()
-      ).isRequired as React.Validator<TagType>
-    ).isRequired,
-  };
-
   render() {
     return (
       <div className="related-puzzles-section">
@@ -350,13 +308,6 @@ interface ChatMessageProps {
 }
 
 class ChatMessage extends React.PureComponent<ChatMessageProps> {
-  static propTypes = {
-    message: PropTypes.shape(FilteredChatMessagePropTypes).isRequired,
-    senderDisplayName: PropTypes.string.isRequired,
-    isSystemMessage: PropTypes.bool.isRequired,
-    suppressSender: PropTypes.bool.isRequired,
-  };
-
   render() {
     const ts = moment(this.props.message.timestamp).calendar(undefined, {
       sameDay: 'LT',
@@ -384,15 +335,6 @@ class ChatHistory extends React.PureComponent<ChatHistoryProps> {
   resizeHandler?: () => void;
 
   shouldScroll: boolean;
-
-  static propTypes = {
-    chatMessages: PropTypes.arrayOf(
-      PropTypes.shape(
-        FilteredChatMessagePropTypes
-      ).isRequired
-    ).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-  };
 
   constructor(props: ChatHistoryProps) {
     super(props);
@@ -501,12 +443,6 @@ interface ChatInputState {
 }
 
 class ChatInput extends React.PureComponent<ChatInputProps, ChatInputState> {
-  static propTypes = {
-    onHeightChange: PropTypes.func,
-    onMessageSent: PropTypes.func,
-    puzzleId: PropTypes.string,
-  };
-
   constructor(props: ChatInputProps) {
     super(props);
     this.state = {
@@ -568,17 +504,6 @@ interface ChatSectionProps {
 class ChatSection extends React.PureComponent<ChatSectionProps> {
   historyRef: React.RefObject<ChatHistory>
 
-  static propTypes = {
-    chatReady: PropTypes.bool.isRequired,
-    chatMessages: PropTypes.arrayOf(
-      PropTypes.shape(
-        FilteredChatMessagePropTypes
-      ).isRequired
-    ).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    puzzleId: PropTypes.string.isRequired,
-  };
-
   constructor(props: ChatSectionProps) {
     super(props);
     this.historyRef = React.createRef();
@@ -622,34 +547,6 @@ interface PuzzlePageSidebarProps {
 }
 
 class PuzzlePageSidebar extends React.PureComponent<PuzzlePageSidebarProps> {
-  static propTypes = {
-    activePuzzle: PropTypes.shape(
-      PuzzlesSchema.asReactPropTypes<PuzzleType>()
-    ).isRequired as React.Validator<PuzzleType>,
-    allPuzzles: PropTypes.arrayOf(
-      PropTypes.shape(
-        PuzzlesSchema.asReactPropTypes<PuzzleType>()
-      ).isRequired as React.Validator<PuzzleType>
-    ).isRequired,
-    allTags: PropTypes.arrayOf(
-      PropTypes.shape(
-        TagsSchema.asReactPropTypes<TagType>()
-      ).isRequired as React.Validator<TagType>
-    ).isRequired,
-    chatReady: PropTypes.bool.isRequired,
-    chatMessages: PropTypes.arrayOf(
-      PropTypes.shape(
-        FilteredChatMessagePropTypes
-      ).isRequired
-    ).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    canUpdate: PropTypes.bool.isRequired,
-    isDesktop: PropTypes.bool.isRequired,
-    isStackable: PropTypes.bool.isRequired,
-    showRelated: PropTypes.bool.isRequired,
-    onChangeShowRelated: PropTypes.func.isRequired,
-  };
-
   onCollapseChanged = (collapsed: 0 | 1 | 2) => {
     this.props.onChangeShowRelated(collapsed !== 1);
   };
@@ -730,28 +627,6 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
   editModalRef: React.RefObject<PuzzleModalForm>
 
   guessModalRef: React.RefObject<PuzzleGuessModal>
-
-  static propTypes = {
-    puzzle: PropTypes.shape(
-      PuzzlesSchema.asReactPropTypes<PuzzleType>()
-    ).isRequired as React.Validator<PuzzleType>,
-    allTags: PropTypes.arrayOf(
-      PropTypes.shape(
-        TagsSchema.asReactPropTypes<TagType>()
-      ).isRequired as React.Validator<TagType>
-    ).isRequired,
-    guesses: PropTypes.arrayOf(
-      PropTypes.shape(
-        GuessesSchema.asReactPropTypes<GuessType>()
-      ).isRequired as React.Validator<GuessType>
-    ).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes<DocumentType>()) as React.Requireable<DocumentType>,
-    isDesktop: PropTypes.bool.isRequired,
-    subcountersDisabled: PropTypes.bool.isRequired,
-    viewCount: PropTypes.number.isRequired,
-    canUpdate: PropTypes.bool.isRequired,
-  };
 
   constructor(props: PuzzlePageMetadataProps) {
     super(props);
@@ -895,10 +770,6 @@ const PuzzlePageMetadataContainer = withTracker(({ puzzle }: PuzzlePageMetadataP
   };
 })(PuzzlePageMetadata);
 
-PuzzlePageMetadataContainer.propTypes = {
-  puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes<PuzzleType>()).isRequired as React.Validator<PuzzleType>,
-};
-
 interface PuzzleGuessModalProps {
   puzzle: PuzzleType;
   guesses: GuessType[];
@@ -928,18 +799,6 @@ type PuzzleGuessModalState = {
 
 class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGuessModalState> {
   formRef: React.RefObject<ModalForm>
-
-  static propTypes = {
-    puzzle: PropTypes.shape(
-      PuzzlesSchema.asReactPropTypes<PuzzleType>()
-    ).isRequired as React.Validator<PuzzleType>,
-    guesses: PropTypes.arrayOf(
-      PropTypes.shape(
-        GuessesSchema.asReactPropTypes<GuessType>()
-      ).isRequired as React.Validator<GuessType>
-    ).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-  };
 
   constructor(props: PuzzleGuessModalProps) {
     super(props);
@@ -1133,12 +992,6 @@ interface PuzzlePageMultiplayerDocumentProps {
 }
 
 class PuzzlePageMultiplayerDocument extends React.PureComponent<PuzzlePageMultiplayerDocumentProps> {
-  static propTypes = {
-    document: PropTypes.shape(
-      DocumentsSchema.asReactPropTypes<DocumentType>()
-    ) as React.Requireable<DocumentType>,
-  };
-
   render() {
     if (!this.props.document) {
       return (
@@ -1166,27 +1019,6 @@ interface PuzzlePageContentProps {
 }
 
 class PuzzlePageContent extends React.PureComponent<PuzzlePageContentProps> {
-  static propTypes = {
-    puzzle: PropTypes.shape(
-      PuzzlesSchema.asReactPropTypes<PuzzleType>()
-    ).isRequired as React.Validator<PuzzleType>,
-    allTags: PropTypes.arrayOf(
-      PropTypes.shape(
-        TagsSchema.asReactPropTypes<TagType>()
-      ).isRequired as React.Validator<TagType>
-    ).isRequired,
-    guesses: PropTypes.arrayOf(
-      PropTypes.shape(
-        GuessesSchema.asReactPropTypes<GuessType>()
-      ).isRequired as React.Validator<GuessType>
-    ).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    document: PropTypes.shape(
-      DocumentsSchema.asReactPropTypes<DocumentType>()
-    ) as React.Requireable<DocumentType>,
-    isDesktop: PropTypes.bool.isRequired,
-  };
-
   render() {
     return (
       <div className="puzzle-content">
@@ -1241,35 +1073,6 @@ interface PuzzlePageState {
 }
 
 class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
-  static propTypes = {
-    // hunt id and puzzle id comes from route?
-    params: PropTypes.shape({
-      huntId: PropTypes.string.isRequired,
-      puzzleId: PropTypes.string.isRequired,
-    }).isRequired,
-    puzzlesReady: PropTypes.bool.isRequired,
-    allPuzzles: PropTypes.arrayOf(
-      PropTypes.shape(
-        PuzzlesSchema.asReactPropTypes<PuzzleType>()
-      ).isRequired as React.Validator<PuzzleType>
-    ).isRequired,
-    allTags: PropTypes.arrayOf(
-      PropTypes.shape(
-        TagsSchema.asReactPropTypes<TagType>()
-      ).isRequired as React.Validator<TagType>
-    ).isRequired,
-    chatReady: PropTypes.bool.isRequired,
-    chatMessages: PropTypes.arrayOf(PropTypes.shape(FilteredChatMessagePropTypes).isRequired).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string).isRequired,
-    allGuesses: PropTypes.arrayOf(
-      PropTypes.shape(
-        GuessesSchema.asReactPropTypes<GuessType>()
-      ).isRequired as React.Validator<GuessType>
-    ).isRequired,
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes<DocumentType>()),
-    canUpdate: PropTypes.bool.isRequired,
-  };
-
   constructor(props: PuzzlePageProps) {
     super(props);
     const mode = this.calculateViewMode();
@@ -1485,14 +1288,6 @@ const tracker = withTracker(({ params }: PuzzlePageParams) => {
 });
 
 const PuzzlePageContainer = tracker(crumb(PuzzlePage));
-PuzzlePageContainer.propTypes = {
-  // hunt id and puzzle id comes from route?
-  params: PropTypes.shape({
-    huntId: PropTypes.string.isRequired,
-    puzzleId: PropTypes.string.isRequired,
-  }).isRequired,
-};
-
 // Mark this page as needing fixed, fullscreen layout.
 (PuzzlePageContainer as any).desiredLayout = 'fullscreen';
 

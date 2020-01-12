@@ -8,7 +8,6 @@ import classnames from 'classnames';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import React from 'react';
 import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
 import Tooltip from 'react-bootstrap/lib/Tooltip';
@@ -20,11 +19,11 @@ import Hunts from '../../lib/models/hunts';
 import PendingAnnouncements from '../../lib/models/pending_announcements';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
-import AnnouncementsSchema, { AnnouncementType } from '../../lib/schemas/announcements';
-import GuessesSchema, { GuessType } from '../../lib/schemas/guess';
-import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
-import PendingAnnouncementsSchema, { PendingAnnouncementType } from '../../lib/schemas/pending_announcements';
-import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
+import { AnnouncementType } from '../../lib/schemas/announcements';
+import { GuessType } from '../../lib/schemas/guess';
+import { HuntType } from '../../lib/schemas/hunts';
+import { PendingAnnouncementType } from '../../lib/schemas/pending_announcements';
+import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
 import subsCache from '../subsCache';
 
@@ -35,10 +34,6 @@ interface MessengerDismissButtonProps {
 }
 
 class MessengerDismissButton extends React.PureComponent<MessengerDismissButtonProps> {
-  static propTypes = {
-    onDismiss: PropTypes.func.isRequired,
-  };
-
   render() {
     return <button type="button" className="dismiss" onClick={this.props.onDismiss}>×</button>;
   }
@@ -46,15 +41,10 @@ class MessengerDismissButton extends React.PureComponent<MessengerDismissButtonP
 
 interface MessengerContentProps {
   dismissable?: boolean;
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 class MessengerContent extends React.PureComponent<MessengerContentProps> {
-  static propTypes = {
-    dismissable: PropTypes.bool,
-    children: PropTypes.node,
-  };
-
   render() {
     const { dismissable, children } = this.props;
     const classes = classnames('content', { dismissable });
@@ -81,20 +71,6 @@ interface GuessMessageProps {
 }
 
 class GuessMessage extends React.PureComponent<GuessMessageProps> {
-  static propTypes = {
-    guess: PropTypes.shape(
-      GuessesSchema.asReactPropTypes<GuessType>()
-    ).isRequired as PropTypes.Validator<GuessType>,
-    puzzle: PropTypes.shape(
-      PuzzlesSchema.asReactPropTypes<PuzzleType>()
-    ).isRequired as PropTypes.Validator<PuzzleType>,
-    hunt: PropTypes.shape(
-      HuntsSchema.asReactPropTypes<HuntType>()
-    ).isRequired as PropTypes.Validator<HuntType>,
-    guesser: PropTypes.string.isRequired,
-    onDismiss: PropTypes.func.isRequired,
-  };
-
   markCorrect = () => {
     Meteor.call('markGuessCorrect', this.props.guess._id);
   };
@@ -194,10 +170,6 @@ type SlackMessageState = {
 }
 
 class SlackMessage extends React.PureComponent<SlackMessageProps, SlackMessageState> {
-  static propTypes = {
-    onDismiss: PropTypes.func.isRequired,
-  };
-
   constructor(props: SlackMessageProps) {
     super(props);
     this.state = { status: SlackMessageStatus.IDLE };
@@ -271,14 +243,6 @@ interface AnnouncementMessageProps {
 }
 
 class AnnouncementMessage extends React.PureComponent<AnnouncementMessageProps> {
-  static propTypes = {
-    id: PropTypes.string.isRequired,
-    announcement: PropTypes.shape(
-      AnnouncementsSchema.asReactPropTypes<AnnouncementType>()
-    ).isRequired as React.Validator<AnnouncementType>,
-    createdByDisplayName: PropTypes.string.isRequired,
-  };
-
   onDismiss = () => {
     PendingAnnouncements.remove(this.props.id);
   };
@@ -328,32 +292,6 @@ interface NotificationCenterState {
 }
 
 class NotificationCenter extends React.Component<NotificationCenterProps, NotificationCenterState> {
-  static propTypes = {
-    ready: PropTypes.any,
-    announcements: PropTypes.arrayOf(PropTypes.shape({
-      pa: PropTypes.shape(
-        PendingAnnouncementsSchema.asReactPropTypes<PendingAnnouncementType>()
-      ).isRequired as React.Validator<PendingAnnouncementType>,
-      announcement: PropTypes.shape(
-        AnnouncementsSchema.asReactPropTypes<AnnouncementType>()
-      ).isRequired as React.Validator<AnnouncementType>,
-      createdByDisplayName: PropTypes.string.isRequired,
-    }).isRequired),
-    guesses: PropTypes.arrayOf(PropTypes.shape({
-      guess: PropTypes.shape(
-        GuessesSchema.asReactPropTypes<GuessType>()
-      ).isRequired as React.Validator<GuessType>,
-      puzzle: PropTypes.shape(
-        PuzzlesSchema.asReactPropTypes<PuzzleType>()
-      ).isRequired as React.Validator<PuzzleType>,
-      hunt: PropTypes.shape(
-        HuntsSchema.asReactPropTypes<HuntType>()
-      ).isRequired as React.Validator<HuntType>,
-      guesser: PropTypes.string.isRequired,
-    }).isRequired),
-    slackConfigured: PropTypes.bool,
-  };
-
   constructor(props: NotificationCenterProps) {
     super(props);
     this.state = {
@@ -420,7 +358,7 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
   }
 }
 
-export default withTracker((): NotificationCenterProps => {
+const NotificationCenterContainer = withTracker((_props: {}): NotificationCenterProps => {
   const canUpdateGuesses = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
 
   // Yes this is hideous, but it just makes the logic easier
@@ -483,3 +421,5 @@ export default withTracker((): NotificationCenterProps => {
 
   return data;
 })(NotificationCenter);
+
+export default NotificationCenterContainer;

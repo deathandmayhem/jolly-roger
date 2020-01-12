@@ -1,35 +1,22 @@
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Creatable from 'react-select/lib/Creatable';
 import Tags from '../../lib/models/tags';
 import { PuzzleType } from '../../lib/schemas/puzzles';
-import TagSchema, { TagType } from '../../lib/schemas/tags';
-import puzzleShape from './puzzleShape';
+import { TagType } from '../../lib/schemas/tags';
 
-interface TagEditorContainerProps {
+interface TagEditorParams {
   puzzle: PuzzleType;
   onSubmit: (value: string) => void;
   onCancel: () => void;
 }
 
-interface TagEditorProps extends TagEditorContainerProps {
+interface TagEditorProps extends TagEditorParams {
   allTags: TagType[];
 }
 
 class TagEditor extends React.Component<TagEditorProps> {
-  static propTypes = {
-    puzzle: PropTypes.shape(puzzleShape).isRequired as React.Validator<PuzzleType>,
-    onSubmit: PropTypes.func.isRequired,
-    onCancel: PropTypes.func.isRequired,
-    allTags: PropTypes.arrayOf(
-      PropTypes.shape(
-        TagSchema.asReactPropTypes<TagType>()
-      ).isRequired as React.Validator<TagType>
-    ).isRequired,
-  };
-
   onBlur = () => {
     // Treat blur as "no I didn't mean to do that".  We may have to change this
     // once we have autocomplete .
@@ -59,14 +46,8 @@ class TagEditor extends React.Component<TagEditorProps> {
   }
 }
 
-const TagEditorContainer = withTracker(({ puzzle }: TagEditorContainerProps) => {
+const TagEditorContainer = withTracker(({ puzzle }: TagEditorParams) => {
   return { allTags: Tags.find({ hunt: puzzle.hunt }).fetch() };
 })(TagEditor);
-
-TagEditorContainer.propTypes = {
-  puzzle: PropTypes.shape(puzzleShape).isRequired as React.Validator<PuzzleType>,
-  onSubmit: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-};
 
 export default TagEditorContainer;

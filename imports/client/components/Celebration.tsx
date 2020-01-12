@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router';
 
@@ -12,14 +11,6 @@ interface CelebrationProps {
 
 class Celebration extends React.Component<CelebrationProps> {
   private timer?: number;
-
-  static propTypes = {
-    url: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    answer: PropTypes.string.isRequired,
-    playAudio: PropTypes.bool.isRequired,
-    onClose: PropTypes.func.isRequired,
-  };
 
   componentDidMount() {
     this.timer = window.setTimeout(() => { this.onClose(); }, 7000);

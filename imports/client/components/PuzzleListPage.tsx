@@ -3,7 +3,6 @@ import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { Location } from 'history';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
@@ -17,8 +16,8 @@ import { Link, browserHistory } from 'react-router';
 import Flags from '../../flags';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
-import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
-import TagsSchema, { TagType } from '../../lib/schemas/tags';
+import { PuzzleType } from '../../lib/schemas/puzzles';
+import { TagType } from '../../lib/schemas/tags';
 import subsCache from '../subsCache';
 import PuzzleList from './PuzzleList';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
@@ -52,23 +51,6 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
   searchBarRef?: HTMLInputElement
 
   static displayName = 'PuzzleListView';
-
-  static propTypes = {
-    location: PropTypes.object,
-    huntId: PropTypes.string.isRequired,
-    canAdd: PropTypes.bool.isRequired,
-    canUpdate: PropTypes.bool.isRequired,
-    puzzles: PropTypes.arrayOf(
-      PropTypes.shape(
-        PuzzlesSchema.asReactPropTypes()
-      )
-    ).isRequired,
-    allTags: PropTypes.arrayOf(
-      PropTypes.shape(
-        TagsSchema.asReactPropTypes()
-      )
-    ).isRequired,
-  };
 
   constructor(props: PuzzleListViewProps) {
     super(props);
@@ -474,11 +456,5 @@ const PuzzleListPageContainer = withTracker(({ params }: PuzzleListPageParams) =
     };
   }
 })(PuzzleListPage);
-
-PuzzleListPageContainer.propTypes = {
-  params: PropTypes.shape({
-    huntId: PropTypes.string.isRequired,
-  }).isRequired,
-};
 
 export default PuzzleListPageContainer;
