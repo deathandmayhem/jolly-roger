@@ -481,7 +481,7 @@ const chatInputStyles = {
     // input to accomodate its contents.
     // The default Chrome stylesheet has line-height set to a plain number.
     // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
-    lineHeight: '16px',
+    lineHeight: '20px',
     flex: 'none',
     padding: '9px 4px',
     borderWidth: '1px 0 0 0',
