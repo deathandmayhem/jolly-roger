@@ -450,7 +450,7 @@ class ChatHistory extends React.PureComponent<ChatHistoryProps> {
   render() {
     return (
       <div ref={this.ref} className="chat-history" onScroll={this.onScroll}>
-        {this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span>}
+        {this.props.chatMessages.length === 0 && <div className="chat-placeholder" key="no-message"><span>No chatter yet. Say something?</span></div>}
         {this.props.chatMessages.map((msg, index, messages) => {
           const displayName = (msg.sender !== undefined) ? this.props.displayNames[msg.sender] : 'jolly-roger';
           // Only suppress sender and timestamp if:

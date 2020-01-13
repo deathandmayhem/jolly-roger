@@ -271,7 +271,7 @@ table.puzzle-list {
   overflow-y: auto;
 }
 
-.chat-message {
+.chat-message, .chat-placeholder {
   padding: 0 4px;
   margin-bottom: 2px;
   word-wrap: break-word;
