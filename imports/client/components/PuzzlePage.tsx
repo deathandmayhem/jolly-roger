@@ -1070,6 +1070,7 @@ interface PuzzlePageState {
   showRelated: boolean;
   isDesktop: boolean;
   isStackable: boolean;
+  defaultsAppliedForPuzzle: string;
 }
 
 class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
@@ -1078,10 +1079,32 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
     const mode = this.calculateViewMode();
 
     this.state = {
-      showRelated: mode.isStackable,
+      showRelated: false,
       isDesktop: mode.isDesktop,
       isStackable: mode.isStackable,
+      defaultsAppliedForPuzzle: '',
     };
+  }
+
+  // Update the default interface state exactly once (enforced by defaultsAppliedForPuzzle),
+  // as soon as puzzlesReady is true.
+  static getDerivedStateFromProps(props: Readonly<PuzzlePageProps>, state: PuzzlePageState): Partial<PuzzlePageState> | null {
+    if (state.defaultsAppliedForPuzzle !== props.params.puzzleId && props.puzzlesReady) {
+      // Show relatable puzzles by default if tags are consistant a meta
+      // Puzzles with is:meta, is:metameta and meta-for:* tags will show related puzzles by default
+      const tagsById = _.indexBy(props.allTags, '_id');
+      const activePuzzle = findPuzzleById(props.allPuzzles, props.params.puzzleId);
+      const puzzleTagIds = (activePuzzle && activePuzzle.tags) || [];
+      const puzzleTagNames = puzzleTagIds.map((tagId) => (tagId in tagsById ? tagsById[tagId].name : ''));
+      const isRelatable = puzzleTagNames.some((tagName: string) => {
+        return ['is:meta', 'is:metameta'].includes(tagName) || tagName.startsWith('meta-for:');
+      });
+      return {
+        defaultsAppliedForPuzzle: props.params.puzzleId,
+        showRelated: state.showRelated || (state.isStackable && isRelatable),
+      };
+    }
+    return null;
   }
 
   componentDidMount() {
