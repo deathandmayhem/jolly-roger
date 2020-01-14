@@ -18,7 +18,6 @@ import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
 import Profiles from '../../lib/models/profiles';
 import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
-import subsCache from '../subsCache';
 import Gravatar from './Gravatar';
 
 /* eslint-disable max-len */
@@ -488,8 +487,8 @@ const userCrumb = withBreadcrumb(({ params, ready, profile }: ProfilePageProps) 
 const tracker = withTracker(({ params }: ProfilePageParams) => {
   const uid = params.userId === 'me' ? Meteor.userId()! : params.userId;
 
-  const profileHandle = subsCache.subscribe('mongo.profiles', { _id: uid });
-  const userRolesHandle = subsCache.subscribe('userRoles', uid);
+  const profileHandle = Meteor.subscribe('mongo.profiles', { _id: uid });
+  const userRolesHandle = Meteor.subscribe('userRoles', uid);
   const user = Meteor.user()!;
   const defaultEmail = user.emails![0].address!;
   const data = {

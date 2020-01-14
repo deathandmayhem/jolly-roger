@@ -3,7 +3,6 @@ import React from 'react';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
-import subsCache from '../subsCache';
 import ProfileList from './ProfileList';
 
 interface AllProfileListPageProps {
@@ -22,7 +21,7 @@ class AllProfileListPage extends React.Component<AllProfileListPageProps> {
 
 const crumb = withBreadcrumb<{}>({ title: 'Users', path: '/users' });
 const tracker = withTracker(() => {
-  const profilesHandle = subsCache.subscribe('mongo.profiles');
+  const profilesHandle = Meteor.subscribe('mongo.profiles');
   const ready = profilesHandle.ready();
   const profiles = ready ? Profiles.find({}, { sort: { displayName: 1 } }).fetch() : [];
   return {

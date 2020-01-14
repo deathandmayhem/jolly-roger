@@ -6,7 +6,6 @@ import React from 'react';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
-import subsCache from '../subsCache';
 import ProfileList from './ProfileList';
 
 interface HuntProfileListPageProps {
@@ -36,8 +35,8 @@ const crumb = withBreadcrumb(({ params }: {params: {huntId: string }}) => {
   return { title: 'Hunters', path: `/hunts/${params.huntId}/hunters` };
 });
 const tracker = withTracker(({ params }: {params: {huntId: string}}) => {
-  const usersHandle = subsCache.subscribe('huntMembers', params.huntId);
-  const profilesHandle = subsCache.subscribe('mongo.profiles');
+  const usersHandle = Meteor.subscribe('huntMembers', params.huntId);
+  const profilesHandle = Meteor.subscribe('mongo.profiles');
 
   const ready = usersHandle.ready() && profilesHandle.ready();
   if (!ready) {

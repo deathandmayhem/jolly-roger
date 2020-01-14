@@ -15,16 +15,15 @@ import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
 import { Link } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
 import Profiles from '../../lib/models/profiles';
-import subsCache from '../subsCache';
 import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
 
-interface SharedNavbarProps {
+interface AppNavbarProps {
   userId: string;
   displayName: string;
 }
 
-class SharedNavbar extends React.Component<SharedNavbarProps> {
+class AppNavbar extends React.Component<AppNavbarProps> {
   logout = () => {
     Meteor.logout();
   };
@@ -87,9 +86,9 @@ class SharedNavbar extends React.Component<SharedNavbarProps> {
   }
 }
 
-const SharedNavbarContainer = withTracker(() => {
+const AppNavbarContainer = withTracker(() => {
   const userId = Meteor.userId()!;
-  const profileSub = subsCache.subscribe('mongo.profiles', { _id: userId });
+  const profileSub = Meteor.subscribe('mongo.profiles', { _id: userId });
   const profile = Profiles.findOne(userId);
   const displayName = profileSub.ready() ?
     ((profile && profile.displayName) || '<no name given>') : 'loading...';
@@ -97,39 +96,7 @@ const SharedNavbarContainer = withTracker(() => {
     userId,
     displayName,
   };
-})(SharedNavbar);
-
-class FullscreenLayout extends React.Component<{children: React.ReactNode}> {
-  render() {
-    return (
-      <div>
-        <NotificationCenter />
-        <SharedNavbarContainer />
-        <div className="connection-status-fullscreen">
-          <ConnectionStatus />
-        </div>
-        <div className="app-content-fullscreen">
-          {this.props.children}
-        </div>
-      </div>
-    );
-  }
-}
-
-class ScrollableLayout extends React.Component<{children: React.ReactNode}> {
-  render() {
-    return (
-      <div>
-        <NotificationCenter />
-        <SharedNavbarContainer />
-        <div className="container-fluid app-content-scrollable">
-          <ConnectionStatus />
-          {this.props.children}
-        </div>
-      </div>
-    );
-  }
-}
+})(AppNavbar);
 
 interface RouteComponent {
   desiredLayout?: string;
@@ -143,13 +110,24 @@ interface AppProps {
 class App extends React.Component<AppProps> {
   render() {
     // Hack: see if the leaf route wants the fullscreen layout.
-    const { routes, ...props } = this.props;
+    const { routes, children } = this.props;
     const leafRoute = routes[routes.length - 1];
     const layout = leafRoute.component.desiredLayout;
+
     return (
-      layout === 'fullscreen' ?
-        <FullscreenLayout {...props} /> :
-        <ScrollableLayout {...props} />
+      <div>
+        <NotificationCenter />
+        <AppNavbarContainer />
+        {layout === 'fullscreen' && (
+          <div className="connection-status-fullscreen">
+            <ConnectionStatus />
+          </div>
+        )}
+        <div className={layout === 'fullscreen' ? 'app-content-fullscreen' : 'container-fluid app-content-scrollable'}>
+          {layout !== 'fullscreen' && <ConnectionStatus />}
+          {children}
+        </div>
+      </div>
     );
   }
 }

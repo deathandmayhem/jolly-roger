@@ -18,7 +18,6 @@ import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
-import subsCache from '../subsCache';
 import PuzzleList from './PuzzleList';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
@@ -433,12 +432,12 @@ class PuzzleListPage extends React.Component<PuzzleListPageProps> {
 }
 
 const PuzzleListPageContainer = withTracker(({ params }: PuzzleListPageParams) => {
-  const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: params.huntId });
-  const tagsHandle = subsCache.subscribe('mongo.tags', { hunt: params.huntId });
+  const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: params.huntId });
+  const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: params.huntId });
 
   if (!Flags.active('disable.subcounters')) {
     // Don't bother including this in ready - it's ok if it trickles in
-    subsCache.subscribe('subscribers.counts', { hunt: params.huntId });
+    Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
   }
 
   const ready = puzzlesHandle.ready() && tagsHandle.ready();

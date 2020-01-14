@@ -14,7 +14,6 @@ import { GuessType } from '../../lib/schemas/guess';
 import { HuntType } from '../../lib/schemas/hunts';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
-import subsCache from '../subsCache';
 
 /* eslint-disable max-len */
 
@@ -170,16 +169,16 @@ const crumb = withBreadcrumb(({ params }: GuessQueuePageParams) => {
   return { title: 'Guess queue', path: `/hunts/${params.huntId}/guesses` };
 });
 const tracker = withTracker(({ params }: GuessQueuePageParams) => {
-  const huntHandle = subsCache.subscribe('mongo.hunts', {
+  const huntHandle = Meteor.subscribe('mongo.hunts', {
     _id: params.huntId,
   });
-  const guessesHandle = subsCache.subscribe('mongo.guesses', {
+  const guessesHandle = Meteor.subscribe('mongo.guesses', {
     hunt: params.huntId,
   });
-  const puzzlesHandle = subsCache.subscribe('mongo.puzzles', {
+  const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {
     hunt: params.huntId,
   });
-  const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
+  const displayNamesHandle = Profiles.subscribeDisplayNames();
   const ready = huntHandle.ready() && guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
   const data: Pick<GuessQueuePageProps, Exclude<keyof GuessQueuePageProps, keyof GuessQueuePageParams>> = {
     ready,

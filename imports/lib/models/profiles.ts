@@ -2,22 +2,13 @@ import { Meteor } from 'meteor/meteor';
 import ProfilesSchema, { ProfileType } from '../schemas/profiles';
 import Base from './base';
 
-interface SubscriptionHandle {
-  ready(): boolean;
-}
-
-interface Subscriber {
-  // eslint-disable-next-line no-restricted-globals
-  subscribe(name: string, ...args: any[]): SubscriptionHandle;
-}
-
 const Profiles = new class extends Base<ProfileType> {
   constructor() {
     super('profiles');
   }
 
-  subscribeDisplayNames(subs: Subscriber = Meteor) {
-    return subs.subscribe('mongo.profiles', {}, { fields: { displayName: 1 } });
+  subscribeDisplayNames() {
+    return Meteor.subscribe('mongo.profiles', {}, { fields: { displayName: 1 } });
   }
 
   displayNames() {

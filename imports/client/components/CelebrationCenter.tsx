@@ -6,7 +6,6 @@ import Flags from '../../flags';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import { PuzzleType } from '../../lib/schemas/puzzles';
-import subsCache from '../subsCache';
 import Celebration from './Celebration';
 
 interface CelebrationCenterProps {
@@ -116,7 +115,7 @@ class CelebrationCenter extends React.Component<CelebrationCenterProps, Celebrat
 
 const CelebrationCenterContainer = withTracker(({ huntId }: { huntId: string }) => {
   // This should be effectively a noop, since we're already fetching it for every hunt
-  subsCache.subscribe('mongo.puzzles', { hunt: huntId });
+  Meteor.subscribe('mongo.puzzles', { hunt: huntId });
 
   const profile = Profiles.findOne({ _id: Meteor.userId()! });
   const muted = !!(profile && profile.muteApplause);
