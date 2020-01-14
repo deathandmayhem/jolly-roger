@@ -1,15 +1,12 @@
 import { _ } from 'meteor/underscore';
 import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import PropTypes from 'prop-types';
 import React from 'react';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import PuzzleList from './PuzzleList';
 import Tag from './Tag';
 import puzzleInterestingness from './puzzleInterestingness';
-import puzzleShape from './puzzleShape';
-import tagShape from './tagShape';
 
 /* eslint-disable max-len */
 
@@ -54,15 +51,6 @@ interface RelatedPuzzleGroupState {
 
 class RelatedPuzzleGroup extends React.Component<RelatedPuzzleGroupProps, RelatedPuzzleGroupState> {
   static displayName = 'RelatedPuzzleGroup';
-
-  static propTypes = {
-    sharedTag: PropTypes.shape(tagShape).isRequired,
-    relatedPuzzles: PropTypes.arrayOf(PropTypes.shape(puzzleShape)).isRequired,
-    allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired,
-    includeCount: PropTypes.bool,
-    layout: PropTypes.string.isRequired,
-    canUpdate: PropTypes.bool.isRequired,
-  };
 
   constructor(props: RelatedPuzzleGroupProps) {
     super(props);

@@ -4,9 +4,6 @@ import '../imports/client/stylesheets/bootstrap.less';
 // things
 import '../imports/lib/config/accounts';
 
-// add the proptypes helpers to all SimpleSchemas
-import '../imports/lib/models/proptypes';
-
 // attach the users schema to Meteor.users
 import '../imports/lib/models/users';
 

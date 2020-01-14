@@ -1,8 +1,7 @@
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import PropTypes from 'prop-types';
 import React from 'react';
-import DocumentsSchema, { DocumentType } from '../../lib/schemas/documents';
+import { DocumentType } from '../../lib/schemas/documents';
 import DeepLink from './DeepLink';
 
 interface DocumentDisplayProps {
@@ -11,11 +10,6 @@ interface DocumentDisplayProps {
 }
 
 class GoogleDocumentDisplay extends React.Component<DocumentDisplayProps> {
-  static propTypes = {
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()).isRequired,
-    displayMode: PropTypes.oneOf(['link', 'embed']),
-  };
-
   render() {
     let url: string;
     let deepUrl: string;
@@ -70,11 +64,6 @@ class GoogleDocumentDisplay extends React.Component<DocumentDisplayProps> {
 }
 
 class DocumentDisplay extends React.Component<DocumentDisplayProps> {
-  static propTypes = {
-    document: PropTypes.shape(DocumentsSchema.asReactPropTypes()).isRequired,
-    displayMode: PropTypes.oneOf(['link', 'embed']),
-  };
-
   render() {
     switch (this.props.document.provider) {
       case 'google':

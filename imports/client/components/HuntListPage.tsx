@@ -4,7 +4,6 @@ import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEdit, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
@@ -18,7 +17,7 @@ import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { Link } from 'react-router';
 import Ansible from '../../ansible';
 import Hunts from '../../lib/models/hunts';
-import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
+import { HuntType } from '../../lib/schemas/hunts';
 import subsCache from '../subsCache';
 import ModalForm from './ModalForm';
 
@@ -63,11 +62,6 @@ type HuntModalFormState = {
 
 class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormState> {
   private formRef: React.RefObject<ModalForm>;
-
-  static propTypes = {
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()) as React.Requireable<HuntType>,
-    onSubmit: PropTypes.func.isRequired, // Takes two args: state (object) and callback (func)
-  };
 
   constructor(props: HuntModalFormProps, context?: any) {
     super(props, context);
@@ -347,12 +341,6 @@ class Hunt extends React.Component<HuntProps> {
 
   private deleteModalRef: React.RefObject<ModalForm>;
 
-  static propTypes = {
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()).isRequired as React.Validator<HuntType>,
-    canUpdate: PropTypes.bool.isRequired,
-    canDestroy: PropTypes.bool.isRequired,
-  };
-
   constructor(props: HuntProps) {
     super(props);
     this.editModalRef = React.createRef();
@@ -442,9 +430,8 @@ class Hunt extends React.Component<HuntProps> {
   }
 }
 
-const HuntContainer = withTracker(({ hunt }: { hunt: HuntType }) => {
+const HuntContainer = withTracker((_props: { hunt: HuntType }) => {
   return {
-    hunt,
     canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
 
     // Because we delete by setting the deleted flag, you only need
@@ -474,15 +461,6 @@ interface HuntListPageProps {
 
 class HuntListPage extends React.Component<HuntListPageProps> {
   private addModalRef: React.RefObject<HuntModalForm>
-
-  static propTypes = {
-    ready: PropTypes.bool.isRequired,
-    canAdd: PropTypes.bool.isRequired,
-    hunts: PropTypes.arrayOf(
-      PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()).isRequired as React.Validator<HuntType>
-    ).isRequired,
-    myHunts: PropTypes.objectOf(PropTypes.bool.isRequired).isRequired,
-  };
 
   constructor(props: HuntListPageProps) {
     super(props);
@@ -564,7 +542,7 @@ class HuntListPage extends React.Component<HuntListPageProps> {
   }
 }
 
-const crumb = withBreadcrumb({ title: 'Hunts', path: '/hunts' });
+const crumb = withBreadcrumb<{}>({ title: 'Hunts', path: '/hunts' });
 const tracker = withTracker(() => {
   const huntListHandle = subsCache.subscribe('mongo.hunts');
   const myHuntsHandle = subsCache.subscribe('selfHuntMembership');
@@ -583,4 +561,6 @@ const tracker = withTracker(() => {
   };
 });
 
-export default crumb(tracker(HuntListPage));
+const HuntListContainer = crumb(tracker(HuntListPage));
+
+export default HuntListContainer;

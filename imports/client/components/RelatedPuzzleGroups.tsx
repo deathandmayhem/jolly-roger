@@ -1,11 +1,8 @@
 import { _ } from 'meteor/underscore';
-import PropTypes from 'prop-types';
 import React from 'react';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
-import puzzleShape from './puzzleShape';
-import tagShape from './tagShape';
 
 /* eslint-disable max-len */
 
@@ -19,14 +16,6 @@ interface RelatedPuzzleGroupsProps {
 
 class RelatedPuzzleGroups extends React.Component<RelatedPuzzleGroupsProps> {
   static displayName = 'RelatedPuzzleGroups';
-
-  static propTypes = {
-    activePuzzle: PropTypes.shape(puzzleShape).isRequired,
-    allPuzzles: PropTypes.arrayOf(PropTypes.shape(puzzleShape)).isRequired,
-    allTags: PropTypes.arrayOf(PropTypes.shape(tagShape)).isRequired,
-    canUpdate: PropTypes.bool.isRequired,
-    layout: PropTypes.string,
-  };
 
   static defaultProps = {
     layout: 'grid',

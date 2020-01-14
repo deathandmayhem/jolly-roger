@@ -1,7 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 import { Tracker } from 'meteor/tracker';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Flags from '../../flags';
 import Profiles from '../../lib/models/profiles';
@@ -31,12 +30,6 @@ class CelebrationCenter extends React.Component<CelebrationCenterProps, Celebrat
   private computation?: Tracker.Computation;
 
   static displayName = 'CelebrationCenter';
-
-  static propTypes = {
-    huntId: PropTypes.string.isRequired,
-    disabled: PropTypes.bool.isRequired,
-    muted: PropTypes.bool.isRequired,
-  };
 
   constructor(props: CelebrationCenterProps) {
     super(props);
@@ -133,9 +126,5 @@ const CelebrationCenterContainer = withTracker(({ huntId }: { huntId: string }) 
     muted,
   };
 })(CelebrationCenter);
-
-CelebrationCenterContainer.propTypes = {
-  huntId: PropTypes.string.isRequired,
-};
 
 export default CelebrationCenterContainer;

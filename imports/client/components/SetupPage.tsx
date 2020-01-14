@@ -5,7 +5,6 @@ import { OAuth } from 'meteor/oauth';
 import { withTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Badge from 'react-bootstrap/lib/Badge';
@@ -49,11 +48,6 @@ type GoogleOAuthFormState = {
 })
 
 class GoogleOAuthForm extends React.Component<GoogleOAuthFormProps, GoogleOAuthFormState> {
-  static propTypes = {
-    isConfigured: PropTypes.bool.isRequired,
-    initialClientId: PropTypes.string,
-  };
-
   constructor(props: GoogleOAuthFormProps) {
     super(props);
     const clientId = props.initialClientId || '';
@@ -231,11 +225,6 @@ type GoogleDriveTemplateFormState = {
 })
 
 class GoogleDriveTemplateForm extends React.Component<GoogleDriveTemplateFormProps, GoogleDriveTemplateFormState> {
-  static propTypes = {
-    initialDocTemplate: PropTypes.string,
-    initialSpreadsheetTemplate: PropTypes.string,
-  };
-
   constructor(props: GoogleDriveTemplateFormProps) {
     super(props);
     this.state = {
@@ -331,20 +320,6 @@ interface GoogleIntegrationSectionProps {
 }
 
 class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionProps> {
-  static propTypes = {
-    // oauth config
-    oauthSettings: PropTypes.any,
-
-    // gdrive credential
-    gdriveCredential: PropTypes.any,
-
-    // document template data
-    docTemplate: PropTypes.string,
-    spreadsheetTemplate: PropTypes.string,
-
-    enabled: PropTypes.bool.isRequired,
-  };
-
   onToggleEnabled = () => {
     const newValue = !this.props.enabled;
     const ffValue = newValue ? 'off' : 'on';
@@ -508,11 +483,6 @@ type SlackIntegrationSectionState = {
 })
 
 class SlackIntegrationSection extends React.Component<SlackIntegrationSectionProps, SlackIntegrationSectionState> {
-  static propTypes = {
-    configured: PropTypes.bool.isRequired,
-    enabled: PropTypes.bool.isRequired,
-  };
-
   constructor(props: SlackIntegrationSectionProps) {
     super(props);
     this.state = {
@@ -639,13 +609,6 @@ interface CircuitBreakerControlProps {
 }
 
 class CircuitBreakerControl extends React.Component<CircuitBreakerControlProps> {
-  static propTypes = {
-    featureDisabled: PropTypes.bool.isRequired,
-    title: PropTypes.string.isRequired,
-    children: PropTypes.node,
-    onChange: PropTypes.func.isRequired,
-  };
-
   onChange = () => {
     const desiredState = !this.props.featureDisabled;
     this.props.onChange(desiredState);
@@ -688,13 +651,6 @@ interface CircuitBreakerSectionProps {
 }
 
 class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> {
-  static propTypes = {
-    flagDisableGdrivePermissions: PropTypes.bool.isRequired,
-    flagDisableSubcounters: PropTypes.bool.isRequired,
-    flagDisableViewerLists: PropTypes.bool.isRequired,
-    flagDisableApplause: PropTypes.bool.isRequired,
-  };
-
   setFlagValue(flag: string, value: boolean) {
     const type = value ? 'on' : 'off';
     Meteor.call('setFeatureFlag', flag, type);
@@ -824,26 +780,6 @@ interface SetupPageRewriteProps {
 }
 
 class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
-  static propTypes = {
-    ready: PropTypes.bool.isRequired,
-
-    canConfigure: PropTypes.bool.isRequired,
-
-    googleConfig: PropTypes.any,
-    gdriveCredential: PropTypes.any,
-    docTemplate: PropTypes.string,
-    spreadsheetTemplate: PropTypes.string,
-
-    slackConfig: PropTypes.any,
-    flagDisableSlack: PropTypes.bool.isRequired,
-
-    flagDisableGoogleIntegration: PropTypes.bool.isRequired,
-    flagDisableGdrivePermissions: PropTypes.bool.isRequired,
-    flagDisableSubcounters: PropTypes.bool.isRequired,
-    flagDisableViewerLists: PropTypes.bool.isRequired,
-    flagDisableApplause: PropTypes.bool.isRequired,
-  };
-
   render() {
     if (!this.props.ready) {
       return (

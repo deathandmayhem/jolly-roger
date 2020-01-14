@@ -1,5 +1,4 @@
 import { _ } from 'meteor/underscore';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
@@ -10,8 +9,6 @@ import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import LabelledRadioGroup from './LabelledRadioGroup';
 import ModalForm from './ModalForm';
-import puzzleShape from './puzzleShape';
-import tagShape from './tagShape';
 
 /* eslint-disable max-len */
 
@@ -26,6 +23,7 @@ export interface PuzzleModalFormSubmitPayload {
 interface PuzzleModalFormProps {
   huntId: string;
   puzzle?: PuzzleType;
+  // All known tags for this hunt
   tags: TagType[];
   onSubmit: (payload: PuzzleModalFormSubmitPayload, callback: (error?: Error) => void) => void;
   showOnMount?: boolean;
@@ -53,16 +51,6 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
   formRef: React.RefObject<ModalForm>;
 
   static displayName = 'PuzzleModalForm';
-
-  static propTypes = {
-    huntId: PropTypes.string.isRequired,
-    puzzle: PropTypes.shape(puzzleShape),
-    tags: PropTypes.arrayOf( // All known tags for this hunt
-      PropTypes.shape(tagShape).isRequired,
-    ).isRequired,
-    onSubmit: PropTypes.func.isRequired,
-    showOnMount: PropTypes.bool,
-  };
 
   constructor(props: PuzzleModalFormProps, context?: any) {
     super(props, context);

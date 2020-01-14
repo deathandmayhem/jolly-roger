@@ -1,27 +1,20 @@
 import classnames from 'classnames';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import { Link } from 'react-router';
 import { TagType } from '../../lib/schemas/tags';
-import tagShape from './tagShape';
 
 /* eslint-disable max-len */
 
 interface TagProps {
   tag: TagType;
+  // if present, show a dismiss button
   onRemove?: (tagId: string) => void;
   linkToSearch: boolean;
 }
 
 class Tag extends React.PureComponent<TagProps> {
   static displayName = 'Tag';
-
-  static propTypes = {
-    tag: PropTypes.shape(tagShape).isRequired,
-    onRemove: PropTypes.func, // if present, show a dismiss button
-    linkToSearch: PropTypes.bool.isRequired,
-  };
 
   onRemove = () => {
     if (this.props.onRemove) {

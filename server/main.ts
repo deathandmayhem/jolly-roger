@@ -1,7 +1,6 @@
 // explicitly import all the stuff from lib/ since mainModule skips autoloading
 // things
 import '../imports/lib/config/accounts';
-import '../imports/lib/models/proptypes';
 import '../imports/lib/models/users';
 import '../imports/lib/roles';
 

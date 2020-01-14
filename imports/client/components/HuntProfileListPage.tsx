@@ -2,11 +2,10 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import PropTypes from 'prop-types';
 import React from 'react';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Profiles from '../../lib/models/profiles';
-import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
+import { ProfileType } from '../../lib/schemas/profiles';
 import subsCache from '../subsCache';
 import ProfileList from './ProfileList';
 
@@ -18,19 +17,6 @@ interface HuntProfileListPageProps {
 }
 
 class HuntProfileListPage extends React.Component<HuntProfileListPageProps> {
-  static propTypes = {
-    params: PropTypes.shape({
-      huntId: PropTypes.string.isRequired,
-    }).isRequired,
-    ready: PropTypes.bool.isRequired,
-    canInvite: PropTypes.bool.isRequired,
-    profiles: PropTypes.arrayOf(
-      PropTypes.shape(
-        ProfilesSchema.asReactPropTypes<ProfileType>()
-      ).isRequired as React.Validator<ProfileType>
-    ).isRequired,
-  };
-
   render() {
     if (!this.props.ready) {
       return <div>loading...</div>;

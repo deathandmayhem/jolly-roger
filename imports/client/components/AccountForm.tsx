@@ -1,6 +1,5 @@
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 
@@ -39,12 +38,6 @@ interface AccountFormState {
 }
 
 class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
-  static propTypes = {
-    format: PropTypes.string.isRequired,
-    onFormatChange: PropTypes.func,
-    token: PropTypes.string,
-  };
-
   constructor(props: AccountFormProps) {
     super(props);
     this.state = {

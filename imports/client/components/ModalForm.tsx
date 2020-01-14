@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import Modal from 'react-bootstrap/lib/Modal';
@@ -9,7 +8,7 @@ interface ModalFormProps {
   submitStyle?: string;
   submitDisabled?: boolean;
   onSubmit: (callback: () => void) => void;
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 interface ModalFormState {
@@ -18,15 +17,6 @@ interface ModalFormState {
 
 class ModalForm extends React.Component<ModalFormProps, ModalFormState> {
   private dontTryToClose?: boolean;
-
-  static propTypes = {
-    title: PropTypes.string.isRequired,
-    submitLabel: PropTypes.string,
-    submitStyle: PropTypes.string,
-    submitDisabled: PropTypes.bool,
-    onSubmit: PropTypes.func.isRequired,
-    children: PropTypes.node,
-  };
 
   static defaultProps = {
     submitLabel: 'Save',

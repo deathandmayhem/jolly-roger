@@ -3,7 +3,6 @@ import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import classnames from 'classnames';
-import PropTypes from 'prop-types';
 import React from 'react';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { Link } from 'react-router';
@@ -11,9 +10,9 @@ import Guesses from '../../lib/models/guess';
 import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
-import GuessesSchema, { GuessType } from '../../lib/schemas/guess';
-import HuntsSchema, { HuntType } from '../../lib/schemas/hunts';
-import PuzzlesSchema, { PuzzleType } from '../../lib/schemas/puzzles';
+import { GuessType } from '../../lib/schemas/guess';
+import { HuntType } from '../../lib/schemas/hunts';
+import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
 import subsCache from '../subsCache';
 
@@ -25,10 +24,6 @@ interface AutoSelectInputProps {
 
 class AutoSelectInput extends React.Component<AutoSelectInputProps> {
   private inputRef: React.RefObject<HTMLInputElement>
-
-  static propTypes = {
-    value: PropTypes.string.isRequired,
-  };
 
   constructor(props: AutoSelectInputProps) {
     super(props);
@@ -65,14 +60,6 @@ interface GuessBlockProps {
 }
 
 class GuessBlock extends React.Component<GuessBlockProps> {
-  static propTypes = {
-    canEdit: PropTypes.bool.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()).isRequired as React.Validator<HuntType>,
-    guess: PropTypes.shape(GuessesSchema.asReactPropTypes<GuessType>()).isRequired as React.Validator<GuessType>,
-    createdByDisplayName: PropTypes.string.isRequired,
-    puzzle: PropTypes.shape(PuzzlesSchema.asReactPropTypes<PuzzleType>()).isRequired as React.Validator<PuzzleType>,
-  };
-
   markPending = () => {
     Meteor.call('markGuessPending', this.props.guess._id);
   };
@@ -152,22 +139,6 @@ type GuessQueuePageProps = GuessQueuePageParams & {
 };
 
 class GuessQueuePage extends React.Component<GuessQueuePageProps> {
-  static propTypes = {
-    params: PropTypes.shape({
-      huntId: PropTypes.string.isRequired,
-    }).isRequired,
-    ready: PropTypes.bool.isRequired,
-    hunt: PropTypes.shape(HuntsSchema.asReactPropTypes<HuntType>()) as React.Requireable<HuntType>,
-    guesses: PropTypes.arrayOf(
-      PropTypes.shape(GuessesSchema.asReactPropTypes<GuessType>()).isRequired as React.Validator<GuessType>
-    ).isRequired,
-    puzzles: PropTypes.objectOf(
-      PropTypes.shape(PuzzlesSchema.asReactPropTypes<PuzzleType>()).isRequired as React.Validator<PuzzleType>
-    ).isRequired,
-    displayNames: PropTypes.objectOf(PropTypes.string.isRequired).isRequired,
-    canEdit: PropTypes.bool.isRequired,
-  };
-
   render() {
     const hunt = this.props.hunt;
 

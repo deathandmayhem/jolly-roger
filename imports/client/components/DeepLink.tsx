@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import PropTypes from 'prop-types';
 import React from 'react';
 
 interface DeepLinkProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -22,12 +21,6 @@ type DeepLinkState = {
 };
 
 class DeepLink extends React.Component<DeepLinkProps, DeepLinkState> {
-  static propTypes = {
-    children: PropTypes.node.isRequired,
-    nativeUrl: PropTypes.string.isRequired,
-    browserUrl: PropTypes.string.isRequired,
-  };
-
   constructor(props: DeepLinkProps) {
     super(props);
     this.state = { state: DeepLinkLoadState.IDLE };

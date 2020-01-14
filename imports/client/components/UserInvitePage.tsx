@@ -20,12 +20,6 @@ interface UserInvitePageState {
 }
 
 class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePageState> {
-  static propTypes = {
-    params: PropTypes.shape({
-      huntId: PropTypes.string.isRequired,
-    }).isRequired,
-  };
-
   static contextTypes = {
     router: PropTypes.object.isRequired,
   };
