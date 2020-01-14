@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
@@ -8,8 +7,9 @@ import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Row from 'react-bootstrap/lib/Row';
+import { withRouter, WithRouterProps } from 'react-router';
 
-interface UserInvitePageProps {
+interface UserInvitePageProps extends WithRouterProps {
   params: {huntId: string};
 }
 
@@ -20,10 +20,6 @@ interface UserInvitePageState {
 }
 
 class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePageState> {
-  static contextTypes = {
-    router: PropTypes.object.isRequired,
-  };
-
   constructor(props: UserInvitePageProps) {
     super(props);
     this.state = {
@@ -47,7 +43,7 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
       if (error) {
         this.setState({ error });
       } else {
-        this.context.router.push(`/hunts/${this.props.params.huntId}`);
+        this.props.router.push(`/hunts/${this.props.params.huntId}`);
       }
     });
   };
@@ -112,4 +108,4 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
   }
 }
 
-export default UserInvitePage;
+export default withRouter(UserInvitePage);

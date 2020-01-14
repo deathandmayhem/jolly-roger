@@ -4,28 +4,24 @@ import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
 import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import DocumentTitle from 'react-document-title';
+import { WithRouterProps, withRouter } from 'react-router';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
 import subsCache from '../subsCache';
 import CelebrationCenter from './CelebrationCenter';
 
-interface HuntDeletedErrorProps {
+type HuntDeletedErrorProps = WithRouterProps & {
   hunt: HuntType;
   canUndestroy: boolean;
 }
 
 class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
-  static contextTypes = {
-    router: PropTypes.object.isRequired,
-  };
-
   undestroy = () => {
     Hunts.undestroy(this.props.hunt._id);
   };
@@ -49,7 +45,7 @@ class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
         </Alert>
 
         <ButtonToolbar>
-          <Button bsStyle="default" onClick={this.context.router.goBack}>
+          <Button bsStyle="default" onClick={this.props.router.goBack}>
             Whoops! Get me out of here
           </Button>
           {this.undestroyButton()}
@@ -59,16 +55,14 @@ class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
   }
 }
 
-interface HuntMemberErrorProps {
+const HuntDeletedErrorWithRouter = withRouter(HuntDeletedError);
+
+type HuntMemberErrorProps = WithRouterProps & {
   hunt: HuntType;
   canJoin: boolean;
 }
 
 class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
-  static contextTypes = {
-    router: PropTypes.object.isRequired,
-  };
-
   join = () => {
     const user = Meteor.user();
     if (!user || !user.emails) {
@@ -101,7 +95,7 @@ class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
         <div dangerouslySetInnerHTML={{ __html: msg }} />
 
         <ButtonToolbar>
-          <Button bsStyle="default" onClick={this.context.router.goBack}>
+          <Button bsStyle="default" onClick={this.props.router.goBack}>
             Whoops! Get me out of here
           </Button>
           {this.joinButton()}
@@ -110,6 +104,8 @@ class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
     );
   }
 }
+
+const HuntMemberErrorWithRouter = withRouter(HuntMemberError);
 
 interface HuntAppParams {
   params: {huntId: string};
@@ -135,11 +131,16 @@ class HuntApp extends React.Component<HuntAppProps> {
     }
 
     if (this.props.hunt.deleted) {
-      return <HuntDeletedError hunt={this.props.hunt} canUndestroy={this.props.canUndestroy} />;
+      return (
+        <HuntDeletedErrorWithRouter
+          hunt={this.props.hunt}
+          canUndestroy={this.props.canUndestroy}
+        />
+      );
     }
 
     if (!this.props.member) {
-      return <HuntMemberError hunt={this.props.hunt} canJoin={this.props.canJoin} />;
+      return <HuntMemberErrorWithRouter hunt={this.props.hunt} canJoin={this.props.canJoin} />;
     }
 
     return React.Children.only(this.props.children);
