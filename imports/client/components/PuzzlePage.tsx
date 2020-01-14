@@ -392,7 +392,7 @@ class ChatHistory extends React.PureComponent<ChatHistoryProps> {
   render() {
     return (
       <div ref={this.ref} className="chat-history" onScroll={this.onScroll}>
-        {this.props.chatMessages.length === 0 && <span key="no-message">No chatter yet. Say something?</span>}
+        {this.props.chatMessages.length === 0 && <div className="chat-placeholder" key="no-message"><span>No chatter yet. Say something?</span></div>}
         {this.props.chatMessages.map((msg, index, messages) => {
           const displayName = (msg.sender !== undefined) ? this.props.displayNames[msg.sender] : 'jolly-roger';
           // Only suppress sender and timestamp if:
@@ -423,7 +423,7 @@ const chatInputStyles = {
     // input to accomodate its contents.
     // The default Chrome stylesheet has line-height set to a plain number.
     // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
-    lineHeight: '16px',
+    lineHeight: '20px',
     flex: 'none',
     padding: '9px 4px',
     borderWidth: '1px 0 0 0',
