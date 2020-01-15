@@ -331,6 +331,7 @@ table.puzzle-list {
   border-radius: 4px;
   background-color: #00ff00;
   color: #000000;
+  word-break: break-all;
 }
 
 .puzzle-metadata .tag-list {
@@ -359,9 +360,8 @@ table.puzzle-list {
   display: inline-block;
   font-weight: bold;
   white-space: nowrap;
-  /* On very small touch screens or split view, desperately try to prevent line wrap */
-  /* Revisit this */
-  @media (max-width: 320px) and (pointer: coarse) {
+  /* On very narrow windows, desperately try to prevent line wrap */
+  @media (max-width: 320px) {
     svg {
       display: none;
     }
