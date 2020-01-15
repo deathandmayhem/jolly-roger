@@ -13,7 +13,6 @@ import { withBreadcrumb } from 'react-breadcrumbs-context';
 import DocumentTitle from 'react-document-title';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
-import subsCache from '../subsCache';
 import CelebrationCenter from './CelebrationCenter';
 
 interface HuntDeletedErrorProps {
@@ -164,14 +163,17 @@ const huntCrumb = withBreadcrumb(({ params, ready, hunt }: HuntAppProps) => {
   return { title: ready && hunt ? hunt.name : 'loading...', path: `/hunts/${params.huntId}` };
 });
 const tracker = withTracker(({ params }: HuntAppParams) => {
-  const userHandle = subsCache.subscribe('selfHuntMembership');
-  const huntHandle = subsCache.subscribe('mongo.hunts.allowingDeleted', {
+  const userHandle = Meteor.subscribe('selfHuntMembership');
+  // Subscribe to deleted and non-deleted hunts separately so that we can reuse
+  // the non-deleted subscription
+  const huntHandle = Meteor.subscribe('mongo.hunts', { _id: params.huntId });
+  const deletedHuntHandle = Meteor.subscribe('mongo.hunts.deleted', {
     _id: params.huntId,
   });
   const user = Meteor.user();
   const member = !!user && _.contains(user.hunts, params.huntId);
   return {
-    ready: userHandle.ready() && huntHandle.ready(),
+    ready: userHandle.ready() && huntHandle.ready() && deletedHuntHandle.ready(),
     hunt: Hunts.findOneAllowingDeleted(params.huntId),
     member,
     canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),

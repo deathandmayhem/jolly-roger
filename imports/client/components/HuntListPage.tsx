@@ -18,7 +18,6 @@ import { Link } from 'react-router';
 import Ansible from '../../ansible';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
-import subsCache from '../subsCache';
 import ModalForm from './ModalForm';
 
 /* eslint-disable max-len */
@@ -544,8 +543,8 @@ class HuntListPage extends React.Component<HuntListPageProps> {
 
 const crumb = withBreadcrumb<{}>({ title: 'Hunts', path: '/hunts' });
 const tracker = withTracker(() => {
-  const huntListHandle = subsCache.subscribe('mongo.hunts');
-  const myHuntsHandle = subsCache.subscribe('selfHuntMembership');
+  const huntListHandle = Meteor.subscribe('mongo.hunts');
+  const myHuntsHandle = Meteor.subscribe('selfHuntMembership');
   const ready = huntListHandle.ready() && myHuntsHandle.ready();
 
   const myHunts: Record<string, boolean> = {};

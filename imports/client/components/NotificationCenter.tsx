@@ -25,7 +25,6 @@ import { HuntType } from '../../lib/schemas/hunts';
 import { PendingAnnouncementType } from '../../lib/schemas/pending_announcements';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
-import subsCache from '../subsCache';
 
 /* eslint-disable max-len */
 
@@ -366,24 +365,20 @@ const NotificationCenterContainer = withTracker((_props: {}): NotificationCenter
   let puzzlesHandle = { ready: () => true };
   let huntsHandle = { ready: () => true };
   if (canUpdateGuesses) {
-    guessesHandle = subsCache.subscribe('mongo.guesses', { state: 'pending' });
-    puzzlesHandle = subsCache.subscribe('mongo.puzzles');
-    huntsHandle = subsCache.subscribe('mongo.hunts');
+    guessesHandle = Meteor.subscribe('mongo.guesses', { state: 'pending' });
+    puzzlesHandle = Meteor.subscribe('mongo.puzzles');
+    huntsHandle = Meteor.subscribe('mongo.hunts');
   }
 
   // This is overly broad, but we likely already have the data cached locally
-  const selfHandle = subsCache.subscribe('mongo.profiles', { _id: Meteor.userId() });
-  const displayNamesHandle = subsCache.subscribe(
-    'mongo.profiles',
-    {},
-    { fields: { displayName: 1 } }
-  );
-  const announcementsHandle = subsCache.subscribe('mongo.announcements');
+  const selfHandle = Meteor.subscribe('mongo.profiles', { _id: Meteor.userId() });
+  const displayNamesHandle = Profiles.subscribeDisplayNames();
+  const announcementsHandle = Meteor.subscribe('mongo.announcements');
 
   const query = {
     user: Meteor.userId()!,
   };
-  const paHandle = subsCache.subscribe('mongo.pending_announcements', query);
+  const paHandle = Meteor.subscribe('mongo.pending_announcements', query);
 
   // Don't even try to put things together until we have the announcements loaded
   if (!selfHandle.ready() || !displayNamesHandle.ready() || !announcementsHandle.ready()) {

@@ -12,7 +12,6 @@ import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
 import { AnnouncementType } from '../../lib/schemas/announcements';
-import subsCache from '../subsCache';
 
 /* eslint-disable max-len */
 
@@ -163,8 +162,8 @@ const tracker = withTracker(({ params }: AnnouncementsPageParams) => {
   // We already have subscribed to mongo.announcements on the main page, since we want to be able
   // to show them on any page.  So we don't *need* to make the subscription here...
   // ...except that we might want to wait to render until we've received all of them?  IDK.
-  const announcementsHandle = subsCache.subscribe('mongo.announcements', { hunt: params.huntId });
-  const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
+  const announcementsHandle = Meteor.subscribe('mongo.announcements', { hunt: params.huntId });
+  const displayNamesHandle = Profiles.subscribeDisplayNames();
   const ready = announcementsHandle.ready() && displayNamesHandle.ready();
 
   let announcements: AnnouncementType[];

@@ -37,7 +37,6 @@ import { DocumentType } from '../../lib/schemas/documents';
 import { GuessType } from '../../lib/schemas/guess';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
-import subsCache from '../subsCache';
 import { Subscribers, SubscriberCounters } from '../subscribers';
 import DocumentDisplay from './Documents';
 import ModalForm from './ModalForm';
@@ -165,7 +164,7 @@ class ViewersList extends React.Component<ViewersListProps> {
 const ViewersListContainer = withTracker(({ name }: { name: string }) => {
   // Don't want this subscription persisting longer than necessary
   const subscribersHandle = Meteor.subscribe('subscribers.fetch', name);
-  const profilesHandle = subsCache.subscribe('mongo.profiles');
+  const profilesHandle = Profiles.subscribeDisplayNames();
 
   const ready = subscribersHandle.ready() && profilesHandle.ready();
   if (!ready) {
@@ -1222,19 +1221,19 @@ const tracker = withTracker(({ params }: PuzzlePageParams) => {
     });
   }
 
-  const displayNamesHandle = Profiles.subscribeDisplayNames(subsCache);
+  const displayNamesHandle = Profiles.subscribeDisplayNames();
   let displayNames = {};
   if (displayNamesHandle.ready()) {
     displayNames = Profiles.displayNames();
   }
 
-  const puzzlesHandle = subsCache.subscribe('mongo.puzzles', { hunt: params.huntId });
-  const tagsHandle = subsCache.subscribe('mongo.tags', { hunt: params.huntId });
-  const guessesHandle = subsCache.subscribe('mongo.guesses', { puzzle: params.puzzleId });
-  const documentsHandle = subsCache.subscribe('mongo.documents', { puzzle: params.puzzleId });
+  const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: params.huntId });
+  const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: params.huntId });
+  const guessesHandle = Meteor.subscribe('mongo.guesses', { puzzle: params.puzzleId });
+  const documentsHandle = Meteor.subscribe('mongo.documents', { puzzle: params.puzzleId });
 
   if (!Flags.active('disable.subcounters')) {
-    subsCache.subscribe('subscribers.counts', { hunt: params.huntId });
+    Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
   }
 
   const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready();
@@ -1261,7 +1260,7 @@ const tracker = withTracker(({ params }: PuzzlePageParams) => {
 
   const chatFields: Record<string, number> = {};
   FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
-  const chatHandle = subsCache.subscribe(
+  const chatHandle = Meteor.subscribe(
     'mongo.chatmessages',
     { puzzle: params.puzzleId },
     { fields: chatFields }
