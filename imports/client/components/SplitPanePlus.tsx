@@ -73,6 +73,12 @@ import SplitPane, { Props as SplitPaneProps } from 'react-split-pane';
       Styles applied to the resizer
 */
 
+/* Why is this necessary? These should already be in SplitPaneProps */
+interface FullSplitPaneProps extends SplitPaneProps {
+  pane1ClassName?: string;
+  pane2ClassName?: string;
+}
+
 interface SplitPanePlusProps {
   children: React.ReactNode[],
   size: number,
@@ -136,11 +142,9 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
     // This is an inelegant way of preventing the browser from going into selection mode and
     // overriding the cursor. It also has to be accompanied by additional cursor styles for the
     // pane below (in puzzle.scss).
-    if (this.ref && this.ref.current) {
-      const resizerEl = this.ref.current.querySelector(':scope > .SplitPane > .Resizer');
-      if (resizerEl) {
-        resizerEl.addEventListener('mousedown', (ev) => { ev.preventDefault(); });
-      }
+    const resizerEl = this.resizerNode();
+    if (resizerEl) {
+      resizerEl.addEventListener('mousedown', (ev) => { ev.preventDefault(); });
     }
   }
 
@@ -163,8 +167,8 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
       if (this.props.onPaneChanged) {
         this.props.onPaneChanged(newSize, newCollapsed, 'resize');
       }
-      this.forceUpdate();
     }
+    this.forceUpdate();
   }
 
   onChange = (size: number) => {
@@ -214,29 +218,20 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
   }
 
   primaryPaneNode(): HTMLElement | null {
-    const root = this.splitPaneNode();
-    const className = `Pane${this.props.primary === 'first' ? 1 : 2}`;
-    return root ? _.find(root.childNodes, (n) => (
-      n instanceof Element &&
-      n.classList.contains(className)
-    )) as HTMLElement : null;
+    return this.findChildByClass(`Pane${this.props.primary === 'first' ? 1 : 2}`);
   }
 
   secondaryPaneNode(): HTMLElement | null {
-    const root = this.splitPaneNode();
-    const className = `Pane${this.props.primary === 'first' ? 2 : 1}`;
-    return root ? _.find(root.childNodes, (n) => (
-      n instanceof Element &&
-      n.classList.contains(className)
-    )) as HTMLElement : null;
+    return this.findChildByClass(`Pane${this.props.primary === 'first' ? 2 : 1}`);
   }
 
   resizerNode(): HTMLElement | null {
+    return this.findChildByClass('Resizer');
+  }
+
+  findChildByClass(className: string): HTMLElement | null {
     const root = this.splitPaneNode();
-    return root ? _.find(root.childNodes, (n) => (
-      n instanceof Element &&
-      n.classList.contains('Resizer')
-    )) as HTMLElement : null;
+    return root && _.find(root.children, (n) => n.classList.contains(className)) as HTMLElement;
   }
 
   measure(elem: HTMLElement | null): number {
@@ -247,7 +242,7 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
   }
 
   render() {
-    const paneProps: { [key: string]: any; } = _.pick(
+    const paneProps: FullSplitPaneProps = _.pick(
       this.props,
       'children',
       'primary',
@@ -268,14 +263,16 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
       'resizerStyle',
     );
     const defaultPaneStyle: React.CSSProperties = { overflow: 'auto' };
-    paneProps.paneStyle = _.extend(defaultPaneStyle, this.props.paneStyle);
+    paneProps.paneStyle = { ...defaultPaneStyle, ...this.props.paneStyle };
     // Prevents the flexbox from overfilling, accommodating large size passed as prop
     // Also allows use of 100% width in collapse (even though resizer takes up some space)
+    const defaultResizerStyle: React.CSSProperties = { flexGrow: 0, flexShrink: 0 };
+    paneProps.resizerStyle = { ...defaultResizerStyle, ...this.props.resizerStyle };
     const defaultPrimaryPaneStyle: React.CSSProperties = { flexShrink: 1 };
     if (this.props.primary === 'first') {
-      paneProps.pane1Style = _.extend(defaultPrimaryPaneStyle, this.props.pane1Style);
+      paneProps.pane1Style = { ...defaultPrimaryPaneStyle, ...this.props.pane1Style };
     } else {
-      paneProps.pane2Style = _.extend(defaultPrimaryPaneStyle, this.props.pane2Style);
+      paneProps.pane2Style = { ...defaultPrimaryPaneStyle, ...this.props.pane2Style };
     }
     paneProps.className = classnames(paneProps.className, { dragging: this.state.dragInProgress });
     paneProps.pane1ClassName = classnames(paneProps.pane1ClassName, {
@@ -322,7 +319,7 @@ class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusSta
     }
     return (
       <div className="SplitPanePlus" ref={this.ref}>
-        <SplitPane {...paneProps as SplitPaneProps} />
+        <SplitPane {...paneProps} />
       </div>
     );
   }
