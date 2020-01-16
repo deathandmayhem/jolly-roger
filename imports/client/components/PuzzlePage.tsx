@@ -287,7 +287,7 @@ class RelatedPuzzleSection extends React.PureComponent<RelatedPuzzleSectionProps
   render() {
     return (
       <div className="related-puzzles-section">
-        <div>Related puzzles:</div>
+        <div>Related:</div>
         <RelatedPuzzleGroups
           activePuzzle={this.props.activePuzzle}
           allPuzzles={this.props.allPuzzles}
@@ -1097,7 +1097,7 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
       const puzzleTagIds = (activePuzzle && activePuzzle.tags) || [];
       const puzzleTagNames = puzzleTagIds.map((tagId) => (tagId in tagsById ? tagsById[tagId].name : ''));
       const isRelatable = puzzleTagNames.some((tagName: string) => {
-        return ['is:meta', 'is:metameta'].includes(tagName) || tagName.startsWith('meta-for:');
+        return ['is:meta', 'is:metameta', 'administrivia'].includes(tagName) || tagName.startsWith('meta-for:');
       });
       return {
         defaultsAppliedForPuzzle: props.params.puzzleId,
