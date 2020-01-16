@@ -1,4 +1,5 @@
-import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { faTable, faFileAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import { DocumentType } from '../../lib/schemas/documents';
@@ -6,7 +7,7 @@ import DeepLink from './DeepLink';
 
 interface DocumentDisplayProps {
   document: DocumentType;
-  displayMode: 'link' | 'embed'
+  displayMode: 'link' | 'embed';
 }
 
 class GoogleDocumentDisplay extends React.Component<DocumentDisplayProps> {
@@ -14,16 +15,19 @@ class GoogleDocumentDisplay extends React.Component<DocumentDisplayProps> {
     let url: string;
     let deepUrl: string;
     let title: string;
+    let icon: IconDefinition;
     switch (this.props.document.value.type) {
       case 'spreadsheet':
         url = `https://docs.google.com/spreadsheets/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
         deepUrl = `googlesheets://${url}`;
-        title = 'Worksheet';
+        title = 'Sheet';
+        icon = faTable;
         break;
       case 'document':
         url = `https://docs.google.com/document/d/${this.props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
         deepUrl = `googledocs://${url}`;
-        title = 'Document';
+        title = 'Doc';
+        icon = faFileAlt;
         break;
       default:
         return (
@@ -40,9 +44,11 @@ class GoogleDocumentDisplay extends React.Component<DocumentDisplayProps> {
         return (
           <DeepLink className="gdrive-button" nativeUrl={deepUrl} browserUrl={url}>
             <a href={url} target="new">
-              {title}
-              {' '}
-              <FontAwesomeIcon fixedWidth icon={faExternalLinkAlt} />
+              <span className="linkLabel">
+                {title}
+                {' '}
+              </span>
+              <FontAwesomeIcon fixedWidth icon={icon} />
             </a>
           </DeepLink>
         );
