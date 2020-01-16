@@ -253,7 +253,7 @@ class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
   };
 
   render() {
-    const text = `See ${this.props.count} ${this.props.count === 1 ? 'hunter' : 'hunters'}`;
+    const text = `See ${this.props.count} ${this.props.count === 1 ? 'viewer' : 'viewers'}`;
     if (this.props.subfetchesDisabled) {
       return <span>{text}</span>;
     }
