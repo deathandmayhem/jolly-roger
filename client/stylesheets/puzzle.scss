@@ -361,8 +361,8 @@ table.puzzle-list {
   font-weight: bold;
   white-space: nowrap;
   /* On very narrow windows, desperately try to prevent line wrap */
-  @media (max-width: 320px) {
-    svg {
+  @media (max-width: 374px) {
+    .linkLabel {
       display: none;
     }
   }

@@ -231,9 +231,12 @@ class ViewersModal extends React.Component<ViewersModalProps, ViewersModalState>
   }
 }
 
-interface ViewCountDisplayProps {
+interface ViewCountDisplayParams {
   count: number;
   name: string;
+}
+
+interface ViewCountDisplayProps extends ViewCountDisplayParams {
   subfetchesDisabled: boolean;
 }
 
@@ -250,29 +253,21 @@ class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
   };
 
   render() {
-    const text = `(${this.props.count} viewing)`;
+    const text = `See ${this.props.count} ${this.props.count === 1 ? 'viewer' : 'viewers'}`;
     if (this.props.subfetchesDisabled) {
       return <span>{text}</span>;
     }
 
-    const tooltip = (
-      <Tooltip id="view-count-tooltip">
-        Click to see who is viewing this puzzle
-      </Tooltip>
-    );
-
     return (
-      <span>
+      <span className="puzzle-metadata-viewers-button">
         <ViewersModal ref={this.modalRef} name={this.props.name} />
-        <OverlayTrigger placement="top" overlay={tooltip}>
-          <span className="view-count" onClick={this.showModal}>{text}</span>
-        </OverlayTrigger>
+        <Button className="btn-info" onClick={this.showModal}>{text}</Button>
       </span>
     );
   }
 }
 
-const ViewCountDisplayContainer = withTracker((_params: {count: number, name: string}) => {
+const ViewCountDisplayContainer = withTracker((_params: ViewCountDisplayParams) => {
   return { subfetchesDisabled: Flags.active('disable.subfetches') };
 })(ViewCountDisplay);
 
@@ -691,7 +686,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
     ) : null;
     const hideViewCount = this.props.subcountersDisabled;
     const numGuesses = this.props.guesses.length;
-    const guessesString = `${numGuesses || 'no'} ${numGuesses === 1 ? 'guess' : 'guesses'}`;
+
     return (
       <div className="puzzle-metadata">
         <PuzzleModalForm
@@ -707,13 +702,6 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             {this.editButton()}
             {' '}
             <span className="puzzle-metadata-title">{this.props.puzzle.title}</span>
-            {' '}
-            {!hideViewCount && (
-              <ViewCountDisplayContainer
-                count={this.props.viewCount}
-                name={`puzzle:${this.props.puzzle._id}`}
-              />
-            )}
           </div>
           {this.props.puzzle.answer && answerComponent}
         </div>
@@ -736,8 +724,10 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
               target="_blank"
               rel="noreferrer noopener"
             >
-              Puzzle
-              {' '}
+              <span className="linkLabel">
+                Puzzle
+                {' '}
+              </span>
               <FontAwesomeIcon fixedWidth icon={faExternalLinkAlt} />
             </a>
           )}
@@ -746,9 +736,15 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
               <DocumentDisplay document={this.props.document} displayMode="link" />
             </span>
           )}
+          {!hideViewCount && (
+            <ViewCountDisplayContainer
+              count={this.props.viewCount}
+              name={`puzzle:${this.props.puzzle._id}`}
+            />
+          )}
           {!isAdministrivia && (
-            <Button className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-              {this.props.puzzle.answer ? `View ${guessesString}` : `Submit answer (${guessesString})`}
+            <Button className="puzzle-metadata-guess-button btn-primary" onClick={this.showGuessModal}>
+              { this.props.puzzle.answer ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
             </Button>
           )}
         </div>
