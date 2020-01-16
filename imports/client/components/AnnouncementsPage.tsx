@@ -110,7 +110,10 @@ class Announcement extends React.Component<AnnouncementProps> {
           <div className="announcement-timestamp">{moment(ann.createdAt).calendar()}</div>
           <div>{this.props.displayNames[ann.createdBy]}</div>
         </div>
-        <div dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(ann.message)) }} />
+        <div
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(ann.message)) }}
+        />
       </div>
     );
   }

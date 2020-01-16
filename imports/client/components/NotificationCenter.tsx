@@ -251,7 +251,10 @@ class AnnouncementMessage extends React.PureComponent<AnnouncementMessageProps> 
       <li>
         <MessengerSpinner />
         <MessengerContent dismissable>
-          <div dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(this.props.announcement.message)) }} />
+          <div
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(this.props.announcement.message)) }}
+          />
           <footer>
             {'- '}
             {this.props.createdByDisplayName}
