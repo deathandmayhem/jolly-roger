@@ -317,7 +317,10 @@ class ChatMessage extends React.PureComponent<ChatMessageProps> {
       <div className={classes}>
         {!this.props.suppressSender && <span className="chat-timestamp">{ts}</span>}
         {!this.props.suppressSender && <strong>{this.props.senderDisplayName}</strong>}
-        <span dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(this.props.message.text)) }} />
+        <span
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(this.props.message.text)) }}
+        />
       </div>
     );
   }
