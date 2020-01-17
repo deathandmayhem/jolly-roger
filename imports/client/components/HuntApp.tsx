@@ -91,7 +91,10 @@ class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
           ) yet.
         </Alert>
 
-        <div dangerouslySetInnerHTML={{ __html: msg }} />
+        <div
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: msg }}
+        />
 
         <ButtonToolbar>
           <Button bsStyle="default" onClick={this.props.router.goBack}>
