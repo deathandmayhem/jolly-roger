@@ -77,8 +77,8 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
     const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
     const tagIndex = _.indexBy(this.props.allTags, '_id');
     const shownTags = _.difference(this.props.puzzle.tags, this.props.suppressTags || []);
-    const ownTags = _.compact(shownTags.map((tagId) => { return tagIndex[tagId]; }));
-    const isAdministrivia = _.find(this.props.puzzle.tags, (t) => { return tagIndex[t] && tagIndex[t].name === 'administrivia'; });
+    const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; }).filter(Boolean);
+    const isAdministrivia = this.props.puzzle.tags.find((t) => { return tagIndex[t] && tagIndex[t].name === 'administrivia'; });
 
     const puzzleClasses = classnames('puzzle',
       this.props.puzzle.answer ? 'solved' : 'unsolved',

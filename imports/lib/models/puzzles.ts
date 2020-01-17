@@ -1,4 +1,3 @@
-import { _ } from 'meteor/underscore';
 import { huntsMatchingCurrentUser } from '../../model-helpers';
 import ActiveOperatorRole from '../active-operator-role';
 import PuzzlesSchema, { PuzzleType } from '../schemas/puzzles';
@@ -6,7 +5,7 @@ import Base from './base';
 
 const Puzzles = new Base<PuzzleType>('puzzles', {
   transform(doc: PuzzleType): PuzzleType {
-    return _.extend({}, doc, { tags: _.uniq(doc.tags) });
+    return { ...doc, tags: [...new Set(doc.tags)] };
   },
 });
 Puzzles.attachSchema(PuzzlesSchema);

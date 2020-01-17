@@ -677,8 +677,8 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
 
   render() {
     const tagsById = _.indexBy(this.props.allTags, '_id');
-    const tags = _.compact(this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }));
-    const isAdministrivia = _.findWhere(tags, { name: 'administrivia' });
+    const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
+    const isAdministrivia = tags.find((t) => t.name === 'administrivia');
     const answerComponent = this.props.puzzle.answer ? (
       <span className="puzzle-metadata-answer">
         <span className="answer">{this.props.puzzle.answer}</span>
@@ -826,7 +826,7 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
   };
 
   onSubmitGuess = () => {
-    const repeatGuess = _.find(this.props.guesses, (g) => { return g.guess === this.state.guessInput; });
+    const repeatGuess = this.props.guesses.find((g) => { return g.guess === this.state.guessInput; });
     const alreadySolved = this.props.puzzle.answer;
     if ((repeatGuess || alreadySolved) && !this.state.confirmingSubmit) {
       const repeatGuessStr = repeatGuess ? 'This answer has already been submitted. ' : '';

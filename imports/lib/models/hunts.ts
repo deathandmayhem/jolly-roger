@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import { _ } from 'meteor/underscore';
 import HuntsSchema, { HuntType } from '../schemas/hunts';
 import Base from './base';
 
@@ -15,7 +14,7 @@ Hunts.publish();
 // already and if the hunt allows open signups.
 // It's possible we should always allow operators to add someone to a hunt?
 Roles.loggedInRole.allow('hunt.join', (huntId) => {
-  if (!_.include(Meteor.user()!.hunts, huntId)) {
+  if (!Meteor.user()!.hunts.includes(huntId)) {
     return false;
   }
 

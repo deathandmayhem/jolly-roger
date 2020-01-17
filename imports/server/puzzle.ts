@@ -2,7 +2,6 @@ import { Match, check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { Random } from 'meteor/random';
-import { _ } from 'meteor/underscore';
 import Ansible from '../ansible';
 import Flags from '../flags';
 import DocumentPermissions from '../lib/models/document_permissions';
@@ -53,7 +52,7 @@ Meteor.methods({
       user: this.userId,
     });
 
-    const fullPuzzle = { ...puzzle, _id: Random.id(), tags: _.uniq(tagIds) };
+    const fullPuzzle = { ...puzzle, _id: Random.id(), tags: [...new Set(tagIds)] };
 
     // By creating the document before we save the puzzle, we make
     // sure nobody else has a chance to create a document with the
@@ -102,12 +101,12 @@ Meteor.methods({
     });
     Puzzles.update(
       puzzleId,
-      { $set: { ...puzzle, tags: _.uniq(tagIds) } },
+      { $set: { ...puzzle, tags: [...new Set(tagIds)] } },
     );
 
     if (oldPuzzle.title !== puzzle.title) {
       Meteor.defer(Meteor.bindEnvironment(() => {
-        const doc = ensureDocument(_.extend({ _id: puzzleId }, puzzle));
+        const doc = ensureDocument({ _id: puzzleId, ...puzzle });
         renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
       }));
     }
@@ -183,7 +182,7 @@ Meteor.methods({
 
     const user = Meteor.users.findOne(this.userId)!;
     const puzzle = Puzzles.findOne(puzzleId);
-    if (!puzzle || !_.contains(user.hunts, puzzle.hunt)) {
+    if (!puzzle || !user.hunts.includes(puzzle.hunt)) {
       throw new Meteor.Error(404, 'Unknown puzzle');
     }
 
