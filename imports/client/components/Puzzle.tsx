@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import { faEdit, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React from 'react';
@@ -124,7 +124,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
             {this.props.puzzle.url ? (
               <span>
                 <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
-                  <FontAwesomeIcon icon={faPuzzlePiece} />
+                  <FontAwesomeIcon icon={faExternalLinkAlt} />
                 </a>
               </span>
             ) : null}
