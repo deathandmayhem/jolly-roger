@@ -98,34 +98,21 @@ const AppNavbarContainer = withTracker(() => {
   };
 })(AppNavbar);
 
-interface RouteComponent {
-  desiredLayout?: string;
-}
-
 interface AppProps {
-  routes: {component: RouteComponent}[];
   children: React.ReactNode;
 }
 
 class App extends React.Component<AppProps> {
   render() {
-    // Hack: see if the leaf route wants the fullscreen layout.
-    const { routes, children } = this.props;
-    const leafRoute = routes[routes.length - 1];
-    const layout = leafRoute.component.desiredLayout;
-
     return (
       <div>
         <NotificationCenter />
         <AppNavbarContainer />
-        {layout === 'fullscreen' && (
-          <div className="connection-status-fullscreen">
-            <ConnectionStatus />
-          </div>
-        )}
-        <div className={layout === 'fullscreen' ? 'app-content-fullscreen' : 'container-fluid app-content-scrollable'}>
-          {layout !== 'fullscreen' && <ConnectionStatus />}
-          {children}
+        <div className="connection-status">
+          <ConnectionStatus />
+        </div>
+        <div className="container-fluid">
+          {this.props.children}
         </div>
       </div>
     );

@@ -192,8 +192,8 @@ table.puzzle-list {
 ////////////
 // Puzzle page styles
 .puzzle-page {
-  position: absolute;
-  top: 0px;
+  position: fixed;
+  top: 50px;
   bottom: 0px;
   left: 0px;
   right: 0px;
