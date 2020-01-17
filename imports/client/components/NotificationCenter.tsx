@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import { faCopy, faExternalLinkAlt, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
+import { faCopy, faSkullCrossbones, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import DOMPurify from 'dompurify';
@@ -160,13 +160,13 @@ class GuessMessage extends React.PureComponent<GuessMessageProps> {
             </li>
             <li>
               <OverlayTrigger placement="top" overlay={jrLinkTooltip}>
-                <Link to={linkTarget}><FontAwesomeIcon icon={faPuzzlePiece} /></Link>
+                <Link to={linkTarget}><FontAwesomeIcon icon={faSkullCrossbones} /></Link>
               </OverlayTrigger>
             </li>
             <li>
               <OverlayTrigger placement="top" overlay={extLinkTooltip}>
                 <a href={guessURL(this.props.hunt, this.props.puzzle)} target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faExternalLinkAlt} />
+                  <FontAwesomeIcon icon={faPuzzlePiece} />
                 </a>
               </OverlayTrigger>
             </li>
