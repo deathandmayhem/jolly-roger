@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import { faCopy } from '@fortawesome/free-solid-svg-icons';
+import { faCopy, faExternalLinkAlt, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import DOMPurify from 'dompurify';
@@ -92,12 +92,28 @@ class GuessMessage extends React.PureComponent<GuessMessageProps> {
         Direction this puzzle was solved, ranging from completely backsolved (-10) to completely forward solved (10)
       </Tooltip>
     );
-
     const confidenceTooltip = (
       <Tooltip id="confidence-tooltip">
         Submitter-estimated likelihood that this answer is correct
       </Tooltip>
     );
+    const copyTooltip = (
+      <Tooltip id="copy-tooltip">
+        Copy to clipboard
+      </Tooltip>
+    );
+    const jrLinkTooltip = (
+      <Tooltip id="jr-link-tooltip">
+        Open Jolly Roger page
+      </Tooltip>
+    );
+    const extLinkTooltip = (
+      <Tooltip id="ext-link-tooltip">
+        Open puzzle
+      </Tooltip>
+    );
+
+    const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
 
     return (
       <li>
@@ -106,7 +122,7 @@ class GuessMessage extends React.PureComponent<GuessMessageProps> {
           <div>
             Guess for
             {' '}
-            <a href={guessURL(this.props.hunt, this.props.puzzle)} target="_blank" rel="noopener noreferrer">{this.props.puzzle.title}</a>
+            {this.props.puzzle.title}
             {' '}
             from
             {' '}
@@ -136,10 +152,26 @@ class GuessMessage extends React.PureComponent<GuessMessageProps> {
           </div>
           <ul className="actions">
             <li>
-              <CopyToClipboard text={this.props.guess.guess}>
-                <button type="button" aria-label="Copy"><FontAwesomeIcon icon={faCopy} /></button>
-              </CopyToClipboard>
+              <OverlayTrigger placement="top" overlay={copyTooltip}>
+                <CopyToClipboard text={this.props.guess.guess}>
+                  <button type="button" aria-label="Copy"><FontAwesomeIcon icon={faCopy} /></button>
+                </CopyToClipboard>
+              </OverlayTrigger>
             </li>
+            <li>
+              <OverlayTrigger placement="top" overlay={jrLinkTooltip}>
+                <Link to={linkTarget}><FontAwesomeIcon icon={faPuzzlePiece} /></Link>
+              </OverlayTrigger>
+            </li>
+            <li>
+              <OverlayTrigger placement="top" overlay={extLinkTooltip}>
+                <a href={guessURL(this.props.hunt, this.props.puzzle)} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faExternalLinkAlt} />
+                </a>
+              </OverlayTrigger>
+            </li>
+          </ul>
+          <ul className="actions">
             <li><button type="button" onClick={this.markCorrect}>Correct</button></li>
             <li><button type="button" onClick={this.markIncorrect}>Incorrect</button></li>
             <li><button type="button" onClick={this.markRejected}>Reject</button></li>
