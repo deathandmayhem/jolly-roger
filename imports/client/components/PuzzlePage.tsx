@@ -55,11 +55,11 @@ const MinimumDesktopWidth = 600;
 const MinimumDesktopStackingHeight = 400; // In two column mode, allow stacking at smaller heights
 const MinimumMobileStackingHeight = 740; // Captures iPhone Plus but not iPad Mini
 const MinimumSidebarWidth = 150;
-const MaximumSidebarWidth = '75%';
+const MinimumDocumentWidth = 375;
 const MinimumChatHeight = 96;
 
 const DefaultSidebarWidth = 300;
-const DefaultChatHeight = '60%';
+const DefaultChatHeightFraction = 0.6;
 
 // PuzzlePage has some pretty unique properties:
 //
@@ -540,12 +540,13 @@ interface PuzzlePageSidebarProps {
   isDesktop: boolean;
   isStackable: boolean;
   showRelated: boolean;
-  onChangeShowRelated: (showRelated: boolean) => void;
+  chatHeight: number;
+  onChangeSidebarConfig: (size: number, showRelated: boolean) => void;
 }
 
 class PuzzlePageSidebar extends React.PureComponent<PuzzlePageSidebarProps> {
-  onCollapseChanged = (collapsed: 0 | 1 | 2) => {
-    this.props.onChangeShowRelated(collapsed !== 1);
+  onChangeChatHeight = (newSize: number, newCollapse: 0 | 1 | 2) => {
+    this.props.onChangeSidebarConfig(newSize, newCollapse !== 1);
   };
 
   render() {
@@ -562,13 +563,13 @@ class PuzzlePageSidebar extends React.PureComponent<PuzzlePageSidebarProps> {
           <Nav bsStyle="tabs" justified>
             <NavItem
               active={!this.props.showRelated}
-              onClick={() => { this.props.onChangeShowRelated(false); }}
+              onClick={() => { this.props.onChangeSidebarConfig(this.props.chatHeight, false); }}
             >
               Chat
             </NavItem>
             <NavItem
               active={this.props.showRelated}
-              onClick={() => { this.props.onChangeShowRelated(true); }}
+              onClick={() => { this.props.onChangeSidebarConfig(this.props.chatHeight, true); }}
             >
               Related
             </NavItem>
@@ -578,13 +579,13 @@ class PuzzlePageSidebar extends React.PureComponent<PuzzlePageSidebarProps> {
           <SplitPanePlus
             split="horizontal"
             primary="second"
-            defaultSize={DefaultChatHeight}
             minSize={MinimumChatHeight}
             autoCollapse1={50}
             autoCollapse2={-1}
             allowResize={this.props.isStackable}
             scaling="relative"
-            onCollapseChanged={this.onCollapseChanged}
+            onPaneChanged={this.onChangeChatHeight}
+            size={this.props.chatHeight}
             collapsed={collapse}
           >
             <RelatedPuzzleSection
@@ -1065,6 +1066,8 @@ interface PuzzlePageProps extends PuzzlePageParams {
 }
 
 interface PuzzlePageState {
+  sidebarWidth: number,
+  chatHeight: number,
   showRelated: boolean;
   isDesktop: boolean;
   isStackable: boolean;
@@ -1072,11 +1075,15 @@ interface PuzzlePageState {
 }
 
 class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
+  private puzzlePageEl: HTMLElement | null;
+
   constructor(props: PuzzlePageProps) {
     super(props);
     const mode = this.calculateViewMode();
-
+    this.puzzlePageEl = null;
     this.state = {
+      sidebarWidth: DefaultSidebarWidth,
+      chatHeight: 0,
       showRelated: false,
       isDesktop: mode.isDesktop,
       isStackable: mode.isStackable,
@@ -1107,6 +1114,12 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
 
   componentDidMount() {
     window.addEventListener('resize', this.onResize);
+    if (this.puzzlePageEl) {
+      this.setState({
+        chatHeight: DefaultChatHeightFraction * this.puzzlePageEl.clientHeight,
+        sidebarWidth: Math.min(DefaultSidebarWidth, this.puzzlePageEl.clientWidth - MinimumDocumentWidth),
+      });
+    }
     Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
   }
 
@@ -1126,16 +1139,18 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
     if (this.state.isStackable && !newMode.isStackable) {
       this.setState({ showRelated: false });
     }
-    if (newMode.isDesktop !== this.state.isDesktop || newMode.isStackable !== this.state.isStackable) {
-      this.setState({
-        isDesktop: newMode.isDesktop,
-        isStackable: newMode.isStackable,
-      });
-    }
+    this.setState(newMode);
   };
 
-  onChangeShowRelated = (showRelatedNew: boolean) => {
-    this.setState({ showRelated: showRelatedNew });
+  onChangeSidebarConfig = (newChatHeight: number, newShowRelated: boolean) => {
+    this.setState({
+      chatHeight: newChatHeight,
+      showRelated: newShowRelated,
+    });
+  };
+
+  onChangeSideBarSize = (newSidebarWidth: number) => {
+    this.setState({ sidebarWidth: newSidebarWidth });
   };
 
   // Ideally these should be based on size of the component (and the trigger changed appropriately)
@@ -1151,7 +1166,7 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
 
   render() {
     if (!this.props.puzzlesReady) {
-      return <span>loading...</span>;
+      return <div className="puzzle-page" ref={(el) => { this.puzzlePageEl = el; }}><span>loading...</span></div>;
     }
 
     const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.params.puzzleId)!;
@@ -1167,7 +1182,8 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
         displayNames={this.props.displayNames}
         canUpdate={this.props.canUpdate}
         showRelated={this.state.showRelated}
-        onChangeShowRelated={this.onChangeShowRelated}
+        chatHeight={this.state.chatHeight}
+        onChangeSidebarConfig={this.onChangeSidebarConfig}
         isDesktop={this.state.isDesktop}
         isStackable={this.state.isStackable}
       />
@@ -1176,14 +1192,16 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         {this.state.isDesktop ? (
-          <div className="puzzle-page">
+          <div className="puzzle-page" ref={(el) => { this.puzzlePageEl = el; }}>
             <SplitPanePlus
               split="vertical"
-              defaultSize={DefaultSidebarWidth}
               minSize={MinimumSidebarWidth}
-              pane1Style={{ maxWidth: MaximumSidebarWidth }}
+              maxSize={-MinimumDocumentWidth}
+              primary="first"
               autoCollapse1={-1}
               autoCollapse2={-1}
+              size={this.state.sidebarWidth}
+              onPaneChanged={this.onChangeSideBarSize}
             >
               {sidebar}
               <PuzzlePageContent
