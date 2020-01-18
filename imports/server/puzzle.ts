@@ -37,7 +37,12 @@ function getOrCreateTagByName(huntId: string, name: string): {
 Meteor.methods({
   createPuzzle(puzzle: unknown, docType: unknown) {
     check(this.userId, String);
-    check(puzzle, Match.ObjectIncluding({ hunt: String, title: String, tags: [String] }));
+    check(puzzle, Match.ObjectIncluding({
+      hunt: String,
+      title: String,
+      tags: [String],
+      expectedAnswerCount: Number,
+    }));
     check(docType, Match.OneOf(...Object.keys(MimeTypes) as (keyof typeof MimeTypes)[]));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
@@ -53,12 +58,10 @@ Meteor.methods({
       user: this.userId,
     });
 
-    // TODO: allow requesting non-1 expectedAnswerCount
     const fullPuzzle = {
       ...puzzle,
       _id: Random.id(),
       tags: _.uniq(tagIds),
-      expectedAnswerCount: 1,
       answers: [],
     };
 
@@ -84,7 +87,12 @@ Meteor.methods({
     check(this.userId, String);
     check(puzzleId, String);
     // Note: tags names, not tag IDs
-    check(puzzle, Match.ObjectIncluding({ hunt: String, title: String, tags: [String] }));
+    check(puzzle, Match.ObjectIncluding({
+      hunt: String,
+      title: String,
+      tags: [String],
+      expectedAnswerCount: Number,
+    }));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.update');
 
@@ -105,6 +113,7 @@ Meteor.methods({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       title: puzzle.title,
+      expectedAnswerCount: puzzle.expectedAnswerCount,
       user: this.userId,
     });
     Puzzles.update(
