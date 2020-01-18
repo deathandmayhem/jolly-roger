@@ -9,7 +9,8 @@ const PuzzleFields = t.type({
   tags: t.array(t.string),
   title: t.string,
   url: t.union([t.string, t.undefined]),
-  answer: t.union([t.string, t.undefined]),
+  answers: t.array(t.string),
+  expectedAnswerCount: t.number,
 });
 
 const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
@@ -24,10 +25,10 @@ const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
   url: {
     regEx: SimpleSchema.RegEx.Url,
   },
-  answer: {
+  answers: {
     autoValue() {
       if (this.isSet && this.value) {
-        return answerify(this.value);
+        return this.value.map((x) => answerify(x));
       }
 
       return undefined;

@@ -18,3 +18,5 @@ import './16-feature-flag-indexes';
 import './17-update-documents-provider';
 import './18-rename-gdrive-template';
 import './19-subscribers-name-index';
+import './20-puzzle-multiple-answers';
+import './21-puzzle-remove-single-answers';
