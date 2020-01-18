@@ -28,7 +28,10 @@ const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
   answers: {
     autoValue() {
       if (this.isSet && this.value) {
-        return answerify(this.value);
+        if (typeof this.value === 'string') {
+          return answerify(this.value);
+        }
+        return this.value.map((x) => answerify(x));
       }
 
       return undefined;

@@ -45,7 +45,7 @@ interface FieldInfo {
 type AutoValueFlatten<T> = T extends any[] ? T[0] : T;
 interface AutoValueThis<T> {
   key: string;
-  value: AutoValueFlatten<T>;
+  value: T | AutoValueFlatten<T>;
   closestSubschemaFieldName: string | null;
   isSet: boolean;
   unset: () => void;
@@ -63,7 +63,7 @@ interface AutoValueThis<T> {
   docId?: string;
 }
 
-type AutoValueReturn<T> = undefined | AutoValueFlatten<T> | (T extends any[] ? never :
+type AutoValueReturn<T> = undefined | T | AutoValueFlatten<T> | (T extends any[] ? never :
                                                              {$setOnInsert: T})
 
 type SharedOverrides<T> = {
