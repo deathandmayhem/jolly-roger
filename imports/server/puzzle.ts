@@ -53,7 +53,14 @@ Meteor.methods({
       user: this.userId,
     });
 
-    const fullPuzzle = { ...puzzle, _id: Random.id(), tags: _.uniq(tagIds) };
+    // TODO: allow requesting non-1 expectedAnswerCount
+    const fullPuzzle = {
+      ...puzzle,
+      _id: Random.id(),
+      tags: _.uniq(tagIds),
+      expectedAnswerCount: 1,
+      answers: [],
+    };
 
     // By creating the document before we save the puzzle, we make
     // sure nobody else has a chance to create a document with the
