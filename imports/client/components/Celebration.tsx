@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
+import emojify from '../emojify';
+import PuzzleAnswer from './PuzzleAnswer';
 
 interface CelebrationProps {
   url: string;
@@ -50,7 +52,7 @@ class Celebration extends React.Component<CelebrationProps> {
           <h2>
             Answer:
             {' '}
-            <span className="answer">{this.props.answer}</span>
+            <PuzzleAnswer answer={this.props.answer} />
           </h2>
         </div>
       </div>

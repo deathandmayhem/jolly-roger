@@ -1,4 +1,5 @@
 import React from 'react';
+import emojify from '../emojify';
 
 interface PuzzleAnswerProps {
   answer: string;
@@ -10,9 +11,7 @@ class PuzzleAnswer extends React.PureComponent<PuzzleAnswerProps> {
   render() {
     return (
       <span className="answer-wrapper">
-        <span className="answer">
-          {this.props.answer}
-        </span>
+        <span className="answer" dangerouslySetInnerHTML={{ __html: emojify(this.props.answer) }} />
       </span>
     );
   }

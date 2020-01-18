@@ -105,6 +105,10 @@
     // Allow tsx files
     "react/jsx-filename-extension": [1, { "extensions": [".jsx", ".tsx"] }],
 
+    // If you're using dangerouslySetInnerHTML, you can probably already tell
+    // you're doing something bad
+    "react/no-danger": ["off"],
+
     // "name" is a useful variable
     "no-restricted-globals": ["off"],
 

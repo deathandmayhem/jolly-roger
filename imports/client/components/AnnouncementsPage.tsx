@@ -111,7 +111,6 @@ class Announcement extends React.Component<AnnouncementProps> {
           <div>{this.props.displayNames[ann.createdBy]}</div>
         </div>
         <div
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(ann.message)) }}
         />
       </div>

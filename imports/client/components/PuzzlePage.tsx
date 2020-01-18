@@ -37,9 +37,11 @@ import { DocumentType } from '../../lib/schemas/documents';
 import { GuessType } from '../../lib/schemas/guess';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
+import emojify from '../emojify';
 import { Subscribers, SubscriberCounters } from '../subscribers';
 import DocumentDisplay from './Documents';
 import ModalForm from './ModalForm';
+import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import RelatedPuzzleGroups from './RelatedPuzzleGroups';
 import SplitPanePlus from './SplitPanePlus';
@@ -308,14 +310,17 @@ class ChatMessage extends React.PureComponent<ChatMessageProps> {
     });
     const classes = classnames('chat-message', this.props.isSystemMessage && 'system-message');
 
+    const html = emojify(
+      marked(
+        DOMPurify.sanitize(this.props.message.text)
+      )
+    );
+
     return (
       <div className={classes}>
         {!this.props.suppressSender && <span className="chat-timestamp">{ts}</span>}
         {!this.props.suppressSender && <strong>{this.props.senderDisplayName}</strong>}
-        <span
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(this.props.message.text)) }}
-        />
+        <span dangerouslySetInnerHTML={{ __html: html }} />
       </div>
     );
   }
@@ -682,7 +687,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
     const isAdministrivia = _.findWhere(tags, { name: 'administrivia' });
     const answerComponent = this.props.puzzle.answer ? (
       <span className="puzzle-metadata-answer">
-        <span className="answer">{this.props.puzzle.answer}</span>
+        <PuzzleAnswer answer={this.props.puzzle.answer} />
       </span>
     ) : null;
     const hideViewCount = this.props.subcountersDisabled;
@@ -969,7 +974,7 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
               {_.sortBy(this.props.guesses, 'createdAt').reverse().map((guess) => {
                 return (
                   <tr key={guess._id} className={`guess-${guess.state}`}>
-                    <td className="answer">{guess.guess}</td>
+                    <td className="answer" dangerouslySetInnerHTML={{ __html: emojify(guess.guess) }} />
                     <td>{moment(guess.createdAt).calendar()}</td>
                     <td>{this.props.displayNames[guess.createdBy]}</td>
                     <td style={{ textTransform: 'capitalize' }}>{guess.state}</td>

@@ -21,6 +21,7 @@
     "classnames": "^2.2.5",
     "dompurify": "^2.0.7",
     "element-resize-detector": "^1.1.14",
+    "emoji-js": "^3.5.0",
     "express": "^4.14.0",
     "googleapis": "^44.0.0",
     "history": "^4.10.1",
@@ -45,6 +46,7 @@
     "react-split-pane": "^0.1.89",
     "react-textarea-autosize": "^7.1.0",
     "simpl-schema": "^1.5.3",
+    "twemoji": "^12.1.4",
     "url": "^0.11.0"
   },
   "devDependencies": {
@@ -55,6 +57,7 @@
     "@types/classnames": "^2.2.8",
     "@types/dompurify": "^2.0.0",
     "@types/element-resize-detector": "^1.1.2",
+    "@types/emoji-js": "^3.4.0",
     "@types/express": "^4.17.0",
     "@types/logfmt": "^1.2.0",
     "@types/marked": "^0.6.5",
@@ -70,6 +73,7 @@
     "@types/react-select": "^2.0.19",
     "@types/react-textarea-autosize": "^4.3.5",
     "@types/simpl-schema": "^0.2.0",
+    "@types/twemoji": "^12.1.0",
     "@typescript-eslint/parser": "^2.15.0",
     "assert": "^1.4.1",
     "babel-preset-meteor": "^7.2.0",

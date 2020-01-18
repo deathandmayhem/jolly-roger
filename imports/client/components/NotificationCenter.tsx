@@ -25,6 +25,7 @@ import { HuntType } from '../../lib/schemas/hunts';
 import { PendingAnnouncementType } from '../../lib/schemas/pending_announcements';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
+import emojify from '../emojify';
 
 /* eslint-disable max-len */
 
@@ -129,7 +130,7 @@ class GuessMessage extends React.PureComponent<GuessMessageProps> {
             <span className="breakable">{this.props.guesser}</span>
             :
             {' '}
-            <span className="breakable">{this.props.guess.guess}</span>
+            <span className="breakable" dangerouslySetInnerHTML={{ __html: emojify(this.props.guess.guess) }} />
           </div>
           <div>
             <OverlayTrigger placement="bottom" overlay={directionTooltip}>
@@ -284,7 +285,6 @@ class AnnouncementMessage extends React.PureComponent<AnnouncementMessageProps> 
         <MessengerSpinner />
         <MessengerContent dismissable>
           <div
-            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(this.props.announcement.message)) }}
           />
           <footer>
