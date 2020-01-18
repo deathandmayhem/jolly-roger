@@ -8,7 +8,7 @@
 }
 
 .jolly-roger {
-    font-family: "Helvetica Neue", "Helvetica,Arial", "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji";
 }
 
 .chat-section p, .chat-section ul, .chat-section blockquote, .chat-section pre {
