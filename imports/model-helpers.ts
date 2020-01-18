@@ -7,7 +7,7 @@ import { PuzzleType } from './lib/schemas/puzzles';
 
 const answerify = function (answer: string): string {
   return answer
-    .replace(/[^A-Za-z0-9]/g, '')
+    .replace(/\s/g, '')
     .toUpperCase();
 };
 
