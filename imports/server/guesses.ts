@@ -47,7 +47,7 @@ function transitionGuess(guess: GuessType, newState: GuessType['state']) {
       _id: guess.puzzle,
     }, {
       $pull: {
-        answer: guess.guess,
+        answers: guess.guess,
       },
     });
     GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle);
