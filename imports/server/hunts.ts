@@ -3,6 +3,7 @@ import { check } from 'meteor/check';
 import { Email } from 'meteor/email';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { _ } from 'meteor/underscore';
 import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
 import Profiles from '../lib/models/profiles';
@@ -73,9 +74,9 @@ Meteor.methods({
     Meteor.users.update(joineeUser._id, { $addToSet: { hunts: { $each: [huntId] } } });
     const joineeEmails = (joineeUser.emails || []).map((e) => e.address);
 
-    hunt.mailingLists.forEach((listName) => {
+    _.each(hunt.mailingLists, (listName) => {
       const list = new List(listName);
-      joineeEmails.forEach((joineeEmail) => {
+      _.each(joineeEmails, (joineeEmail) => {
         if (!list.add(joineeEmail)) {
           Ansible.log('Unable to add user to list', { joineeEmail, list: listName });
         }

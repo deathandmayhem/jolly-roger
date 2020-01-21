@@ -1,5 +1,6 @@
 import { MeteorX } from 'meteor/meteorhacks:meteorx';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { _ } from 'meteor/underscore';
 import { honeyBuilder } from './honey';
 
 /* eslint-disable no-underscore-dangle */
@@ -52,25 +53,26 @@ const origSend = MeteorX.Session.prototype.send;
 const onSend = function onSend(msg) {
   const events = [];
   if (msg.msg === 'result') {
-    events.push({
-      ...this.pendingMethods[msg.id],
-      success: !!msg.result,
-    });
+    events.push(_.extend(
+      this.pendingMethods[msg.id],
+      {
+        success: !!msg.result,
+      },
+    ));
     delete this.pendingMethods[msg.id];
   } else if (msg.msg === 'ready') {
-    msg.subs.forEach((id) => {
+    _.forEach(msg.subs, (id) => {
       events.push(this.pendingSubscriptions[id]);
       delete this.pendingSubscriptions[id];
     });
   }
 
-  events.filter(Boolean).forEach((evt) => {
+  _.compact(events).forEach((evt) => {
     const honeyEvent = this.honey.newEvent();
     honeyEvent.dataset = 'DDPMessages';
-    const { start, ...rest } = evt;
-    honeyEvent.add(rest);
+    honeyEvent.add(_.omit(evt, 'start'));
     honeyEvent.add({
-      durationMillis: formatTimestamp(process.hrtime(start)),
+      durationMillis: formatTimestamp(process.hrtime(evt.start)),
     });
     honeyEvent.send();
   });

@@ -71,13 +71,17 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
 
   [formatOptions]<Opts extends FindOneOptions>(opts: Opts): Opts {
     if (opts.fields) {
-      return {
-        ...opts,
-        fields: {
-          ...opts.fields,
-          deleted: 1,
+      return _.extend(
+        {},
+        opts,
+        {
+          fields: _.extend(
+            {},
+            opts.fields,
+            { deleted: 1 },
+          ),
         },
-      };
+      );
     }
 
     return opts;

@@ -9,6 +9,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
+import { _ } from 'meteor/underscore';
 import moment from 'moment';
 import Flags from '../flags';
 import Servers from './models/servers';
@@ -94,7 +95,7 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
   const handle = cursor.observe({
     added: (doc) => {
       const { name, user } = doc;
-      if (!Object.prototype.hasOwnProperty.call(counters, name)) {
+      if (!_.has(counters, name)) {
         counters[name] = {};
 
         if (initialized) {
@@ -102,13 +103,13 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
         }
       }
 
-      if (!Object.prototype.hasOwnProperty.call(counters[name], user)) {
+      if (!_.has(counters[name], user)) {
         counters[name][user] = 0;
       }
 
       counters[name][user] += 1;
       if (initialized) {
-        this.changed('subscribers.counts', name, { value: Object.keys(counters[name]).length });
+        this.changed('subscribers.counts', name, { value: _.keys(counters[name]).length });
       }
     },
 
@@ -121,14 +122,14 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
       }
 
       if (initialized) {
-        this.changed('subscribers.counts', name, { value: Object.keys(counters[name]).length });
+        this.changed('subscribers.counts', name, { value: _.keys(counters[name]).length });
       }
     },
   });
   this.onStop(() => handle.stop());
 
-  Object.entries(counters).forEach(([key, val]) => {
-    this.added('subscribers.counts', key, { value: Object.keys(val).length });
+  _.each(counters, (val, key) => {
+    this.added('subscribers.counts', key, { value: _.keys(val).length });
   });
   initialized = true;
   this.ready();
@@ -154,7 +155,7 @@ Meteor.publish('subscribers.fetch', function (name) {
     added: (doc) => {
       const { user } = doc;
 
-      if (!Object.prototype.hasOwnProperty.call(users, user)) {
+      if (!_.has(users, user)) {
         users[user] = 0;
         this.added('subscribers', `${name}:${user}`, { name, user });
       }
