@@ -1,3 +1,10 @@
+.jolly-roger {
+    /* This value is taken from the Bootstrap documentation to support
+    navbar-fixed-top:
+    https://getbootstrap.com/docs/3.4/components/#navbar-fixed-top */
+    padding-top: 70px;
+}
+
 .jolly-roger .navbar-brand {
     padding: 0;
     float: none;

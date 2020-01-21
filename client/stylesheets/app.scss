@@ -1,21 +1,11 @@
-.app-content-fullscreen {
-  position: fixed;
-  top: 50px;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-}
-
-.connection-status-fullscreen {
+.connection-status {
   position: fixed;
   top: 50px;
   left: 0px;
   right: 0px;
-  z-index: 1;
-}
-
-.app-content-scrollable {
-  padding-top: 70px;
+  // This z-index is chosen to be higher than any z-index used by Bootstrap
+  // (which are all in the 1000-1100 range)
+  z-index: 10000;
 }
 
 /* Prevent mobile safari zoom */

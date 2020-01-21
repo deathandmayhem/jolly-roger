@@ -1327,7 +1327,5 @@ const tracker = withTracker(({ params }: PuzzlePageParams) => {
 });
 
 const PuzzlePageContainer = tracker(crumb(PuzzlePage));
-// Mark this page as needing fixed, fullscreen layout.
-(PuzzlePageContainer as any).desiredLayout = 'fullscreen';
 
 export default PuzzlePageContainer;
