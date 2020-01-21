@@ -1,4 +1,3 @@
-import { _ } from 'meteor/underscore';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import Button from 'react-bootstrap/lib/Button';
@@ -39,10 +38,7 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
 
   compileMatcher = () => {
     const searchKeys = this.state.searchString.split(' ');
-    const toMatch = _.chain(searchKeys)
-      .filter((s) => !!s)
-      .map((s) => s.toLowerCase())
-      .value();
+    const toMatch = searchKeys.filter(Boolean).map((s) => s.toLowerCase());
     const isInteresting = (profile: ProfileType) => {
       for (let i = 0; i < toMatch.length; i++) {
         const searchKey = toMatch[i];
@@ -94,7 +90,7 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
   };
 
   render() {
-    const profiles = _.filter(this.props.profiles, this.compileMatcher());
+    const profiles = this.props.profiles.filter(this.compileMatcher());
     return (
       <div>
         <h1>List of hunters</h1>

@@ -124,15 +124,15 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
       // No search query, so no need to do fancy search computation
       interestingPuzzles = puzzles;
     } else {
-      const searchKeysWithEmptyKeysRemoved = _.filter(searchKeys, (key) => { return key.length > 0; });
+      const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => { return key.length > 0; });
       const isInteresting = this.compileMatcher(searchKeysWithEmptyKeysRemoved);
-      interestingPuzzles = _.filter(puzzles, isInteresting);
+      interestingPuzzles = puzzles.filter(isInteresting);
     }
 
     if (this.state.showSolved) {
       return interestingPuzzles;
     } else {
-      return _.filter(interestingPuzzles, (puzzle) => { return !(puzzle.answers.length === puzzle.expectedAnswerCount); });
+      return interestingPuzzles.filter((puzzle) => { return !(puzzle.answers.length === puzzle.expectedAnswerCount); });
     }
   };
 
@@ -185,7 +185,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     }
 
     // Collect groups into a list.
-    const groups: PuzzleGroup[] = _.map(_.keys(groupsMap), (key) => {
+    const groups: PuzzleGroup[] = Object.keys(groupsMap).map((key) => {
       const val = groupsMap[key];
       return {
         sharedTag: tagsByIndex[key],
