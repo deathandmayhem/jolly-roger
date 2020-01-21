@@ -1,3 +1,4 @@
+import { _ } from 'meteor/underscore';
 import React from 'react';
 import Alert from 'react-bootstrap/lib/Alert';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
@@ -164,7 +165,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
 
   tagNamesForIds = (tagIds: string[]) => {
     const tagNames: Record<string, string> = {};
-    this.props.tags.forEach((t) => { tagNames[t._id] = t.name; });
+    _.each(this.props.tags, (t) => { tagNames[t._id] = t.name; });
     return tagIds.map((t) => tagNames[t]);
   };
 
@@ -218,11 +219,14 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
   render() {
     const disableForm = this.state.submitState === PuzzleModalFormSubmitState.SUBMITTING;
 
-    const selectOptions = [...this.props.tags.map((t) => t.name), ...this.state.tags]
-      .filter(Boolean)
+    const selectOptions = _.chain(this.props.tags)
+      .map((t) => t.name)
+      .union(this.state.tags)
+      .compact()
       .map((t) => {
         return { value: t, label: t };
-      });
+      })
+      .value();
 
     const docTypeSelector = !this.props.puzzle && this.state.docType ? (
       <FormGroup>

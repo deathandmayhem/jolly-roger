@@ -30,7 +30,7 @@ const huntsMatchingCurrentUser = function <T extends HuntModel> (
   if (!u) {
     throw new Meteor.Error(401, 'Unauthenticated');
   }
-  const q = { ...origQuery };
+  const q = _.clone(origQuery);
   let huntList: T['hunt'][];
 
   if (q.hunt) {

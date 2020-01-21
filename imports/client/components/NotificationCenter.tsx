@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
+import { _ } from 'meteor/underscore';
 import { faCopy, faSkullCrossbones, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
@@ -360,7 +361,7 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
       messages.push(<SlackMessage key="slack" onDismiss={this.hideSlackSetupMessage} />);
     }
 
-    this.props.guesses.forEach((g) => {
+    _.forEach(this.props.guesses, (g) => {
       if (this.state.dismissedGuesses[g.guess._id]) return;
       messages.push(<GuessMessage
         key={g.guess._id}
@@ -372,7 +373,7 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
       />);
     });
 
-    this.props.announcements.forEach((a) => {
+    _.forEach(this.props.announcements, (a) => {
       messages.push(
         <AnnouncementMessage
           key={a.pa._id}

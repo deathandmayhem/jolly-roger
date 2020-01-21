@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import React from 'react';
 
 interface DeepLinkProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -58,13 +59,11 @@ class DeepLink extends React.Component<DeepLinkProps, DeepLinkState> {
   };
 
   render() {
-    const {
-      children, nativeUrl, browserUrl, ...rest
-    } = this.props;
+    const rest = _.omit(this.props, 'children', 'nativeUrl', 'browserUrl');
     return (
       <div onClick={this.onClick} {...rest}>
         {this.state.state === 'attemptingNative' && this.nativeIframe()}
-        {children}
+        {this.props.children}
       </div>
     );
   }

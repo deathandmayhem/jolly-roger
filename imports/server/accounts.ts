@@ -1,6 +1,7 @@
 import { URL } from 'url';
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
+import { _ } from 'meteor/underscore';
 import logfmt from 'logfmt';
 import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
@@ -53,14 +54,12 @@ Accounts.onLogin((info: LoginInfo) => {
     return;
   }
 
-  const summary = {
-    ...summaryFromLoginInfo(info),
+  const summary = _.extend(summaryFromLoginInfo(info), {
     user: info.user._id,
     ip: info.connection.clientAddress,
-  };
-  const { msg, ...logContext } = summary;
+  });
 
-  Ansible.log(msg, logContext);
+  Ansible.log(summary.msg, _.omit(summary, 'msg'));
 });
 
 Accounts.onLoginFailure((info: LoginInfo) => {
@@ -90,8 +89,12 @@ Accounts.emailTemplates.enrollAccount.subject = () => {
 Accounts.emailTemplates.enrollAccount.text = (user, url: string) => {
   const hunts = Hunts.find({ _id: { $in: (<Meteor.User>user).hunts } }).fetch();
   const email = user && user.emails && user.emails[0] && user.emails[0].address;
-  const huntNames = hunts.map((h) => h.name);
-  const huntLists = [...new Set(hunts.map((h) => h.mailingLists).flat())];
+  const huntNames = _.pluck(hunts, 'name');
+  const huntLists = _.chain(hunts)
+    .pluck('mailingLists')
+    .flatten()
+    .uniq()
+    .value();
   const huntExcerpt = 'Once you register your account, you\'ll also be signed up for these ' +
     'specific hunts:\n' +
     '\n' +
