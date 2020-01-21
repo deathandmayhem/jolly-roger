@@ -6,9 +6,7 @@ import { HuntType } from './lib/schemas/hunts';
 import { PuzzleType } from './lib/schemas/puzzles';
 
 const answerify = function (answer: string): string {
-  return answer
-    .replace(/[^A-Za-z0-9]/g, '')
-    .toUpperCase();
+  return answer.toUpperCase();
 };
 
 interface HuntModel {

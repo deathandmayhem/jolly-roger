@@ -36,7 +36,12 @@ function getOrCreateTagByName(huntId: string, name: string): {
 Meteor.methods({
   createPuzzle(puzzle: unknown, docType: unknown) {
     check(this.userId, String);
-    check(puzzle, Match.ObjectIncluding({ hunt: String, title: String, tags: [String] }));
+    check(puzzle, Match.ObjectIncluding({
+      hunt: String,
+      title: String,
+      tags: [String],
+      expectedAnswerCount: Number,
+    }));
     check(docType, Match.OneOf(...Object.keys(MimeTypes) as (keyof typeof MimeTypes)[]));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
@@ -52,7 +57,13 @@ Meteor.methods({
       user: this.userId,
     });
 
-    const fullPuzzle = { ...puzzle, _id: Random.id(), tags: [...new Set(tagIds)] };
+
+    const fullPuzzle = {
+      ...puzzle,
+      _id: Random.id(),
+      tags: [...new Set(tagIds)],
+      answers: [],
+    };
 
     // By creating the document before we save the puzzle, we make
     // sure nobody else has a chance to create a document with the
@@ -76,7 +87,12 @@ Meteor.methods({
     check(this.userId, String);
     check(puzzleId, String);
     // Note: tags names, not tag IDs
-    check(puzzle, Match.ObjectIncluding({ hunt: String, title: String, tags: [String] }));
+    check(puzzle, Match.ObjectIncluding({
+      hunt: String,
+      title: String,
+      tags: [String],
+      expectedAnswerCount: Number,
+    }));
 
     Roles.checkPermission(this.userId, 'mongo.puzzles.update');
 
@@ -97,6 +113,7 @@ Meteor.methods({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       title: puzzle.title,
+      expectedAnswerCount: puzzle.expectedAnswerCount,
       user: this.userId,
     });
     Puzzles.update(

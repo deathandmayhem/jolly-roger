@@ -81,7 +81,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
     const isAdministrivia = this.props.puzzle.tags.find((t) => { return tagIndex[t] && tagIndex[t].name === 'administrivia'; });
 
     const puzzleClasses = classnames('puzzle',
-      this.props.puzzle.answer ? 'solved' : 'unsolved',
+      this.props.puzzle.answers.length === this.props.puzzle.expectedAnswerCount ? 'solved' : 'unsolved',
       this.props.layout === 'grid' ? 'puzzle-grid' : null,
       this.props.layout === 'table' ? 'puzzle-table-row' : null,
       isAdministrivia ? 'administrivia' : null);
@@ -95,7 +95,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
             <Link to={linkTarget}>{this.props.puzzle.title}</Link>
           </td>
           <td className="puzzle-answer">
-            {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
+            <PuzzleAnswer answer={this.props.puzzle.answers.join(',')} />
           </td>
         </tr>
       );
@@ -131,10 +131,10 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
           </div>
         ) : null}
         <div className="puzzle-view-count">
-          {!this.props.puzzle.answer && !isAdministrivia && <SubscriberCount puzzleId={this.props.puzzle._id} />}
+          {!(this.props.puzzle.answers.length === this.props.puzzle.expectedAnswerCount) && !isAdministrivia && <SubscriberCount puzzleId={this.props.puzzle._id} />}
         </div>
         <div className="puzzle-answer">
-          {this.props.puzzle.answer ? <PuzzleAnswer answer={this.props.puzzle.answer} /> : null}
+          <PuzzleAnswer answer={this.props.puzzle.answers.join(',')} />
         </div>
         <TagList puzzle={this.props.puzzle} tags={ownTags} linkToSearch={this.props.layout === 'grid'} />
       </div>

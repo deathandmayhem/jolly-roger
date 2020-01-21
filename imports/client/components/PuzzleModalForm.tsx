@@ -17,6 +17,7 @@ export interface PuzzleModalFormSubmitPayload {
   url: string;
   tags: string[];
   docType?: string;
+  expectedAnswerCount: number;
 }
 
 interface PuzzleModalFormProps {
@@ -39,11 +40,13 @@ interface PuzzleModalFormState {
   url: string;
   tags: string[];
   docType?: string;
+  expectedAnswerCount: number;
   submitState: PuzzleModalFormSubmitState;
   errorMessage: string;
   titleDirty: boolean;
   urlDirty: boolean;
   tagsDirty: boolean;
+  expectedAnswerCountDirty: boolean;
 }
 
 class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalFormState> {
@@ -59,6 +62,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
       titleDirty: false,
       urlDirty: false,
       tagsDirty: false,
+      expectedAnswerCountDirty: false,
     };
 
     this.formRef = React.createRef();
@@ -71,6 +75,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
         url: '',
         tags: [],
         docType: 'spreadsheet',
+        expectedAnswerCount: 1,
       });
     }
   }
@@ -116,6 +121,15 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
     });
   };
 
+  onExpectedAnswerCountChange = (event: React.FormEvent<FormControl>) => {
+    const string = (event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value;
+    const value = Number(string);
+    this.setState({
+      expectedAnswerCount: value,
+      expectedAnswerCountDirty: true,
+    });
+  };
+
   onFormSubmit = (callback: () => void) => {
     this.setState({ submitState: PuzzleModalFormSubmitState.SUBMITTING });
     const payload: PuzzleModalFormSubmitPayload = {
@@ -123,6 +137,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
       title: this.state.title,
       url: this.state.url,
       tags: this.state.tags,
+      expectedAnswerCount: this.state.expectedAnswerCount,
     };
     if (this.state.docType) {
       payload.docType = this.state.docType;
@@ -140,6 +155,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
           titleDirty: false,
           urlDirty: false,
           tagsDirty: false,
+          expectedAnswerCountDirty: false,
         });
         callback();
       }
@@ -157,6 +173,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
       title: puzzle.title,
       url: puzzle.url || '',
       tags: this.tagNamesForIds(puzzle.tags),
+      expectedAnswerCount: puzzle.expectedAnswerCount,
     };
   };
 
@@ -187,6 +204,14 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
       return this.tagNamesForIds(this.props.puzzle.tags);
     } else {
       return this.state.tags;
+    }
+  };
+
+  currentExpectedAnswerCount = () => {
+    if (!this.state.expectedAnswerCountDirty && this.props.puzzle) {
+      return this.props.puzzle.expectedAnswerCount;
+    } else {
+      return this.state.expectedAnswerCount;
     }
   };
 
@@ -281,6 +306,23 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
         </FormGroup>
 
         {docTypeSelector}
+
+        <FormGroup>
+          <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-expected-answer-count">
+            Expected # of answers
+          </ControlLabel>
+          <div className="col-xs-9">
+            <FormControl
+              id="jr-new-puzzle-expected-answer-count"
+              type="number"
+              disabled={disableForm}
+              onChange={this.onExpectedAnswerCountChange}
+              value={this.currentExpectedAnswerCount()}
+              min={1}
+              step={1}
+            />
+          </div>
+        </FormGroup>
 
         {this.state.submitState === PuzzleModalFormSubmitState.FAILED && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>

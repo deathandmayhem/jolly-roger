@@ -52,11 +52,13 @@ class CelebrationCenter extends React.Component<CelebrationCenterProps, Celebrat
     }
   }
 
-  onPuzzleSolved = (puzzle: PuzzleType) => {
+  onPuzzleSolved = (_puzzle: PuzzleType) => {
     // Only celebrate if:
     // 1) we're not on mobile, and
     // 2) the feature flag is not disabled, and
     // 3) TODO: the user has not disabled it in their profile settings
+    // Hack: disabled celebrations because I don't want to think about it right now
+    /*
     const answer = puzzle.answer;
     if ((window.orientation === undefined) && !this.props.disabled && answer) {
       this.setState((prevState) => {
@@ -70,6 +72,7 @@ class CelebrationCenter extends React.Component<CelebrationCenterProps, Celebrat
         return { playbackQueue: newQueue };
       });
     }
+    */
   };
 
   resetComputation = () => {
@@ -80,7 +83,7 @@ class CelebrationCenter extends React.Component<CelebrationCenterProps, Celebrat
     this.computation = Tracker.autorun(() => {
       Puzzles.find().observe({
         changed: (newDoc, oldDoc) => {
-          if ((!oldDoc.answer) && newDoc.answer) {
+          if (oldDoc.answers.length < newDoc.answers.length) {
             this.onPuzzleSolved(newDoc);
           }
         },

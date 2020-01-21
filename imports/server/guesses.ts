@@ -36,8 +36,8 @@ function transitionGuess(guess: GuessType, newState: GuessType['state']) {
     Puzzles.update({
       _id: guess.puzzle,
     }, {
-      $set: {
-        answer: guess.guess,
+      $addToSet: {
+        answers: guess.guess,
       },
     });
     GlobalHooks.runPuzzleSolvedHooks(guess.puzzle);
@@ -46,8 +46,8 @@ function transitionGuess(guess: GuessType, newState: GuessType['state']) {
     Puzzles.update({
       _id: guess.puzzle,
     }, {
-      $unset: {
-        answer: 1,
+      $pull: {
+        answers: guess.guess,
       },
     });
     GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle);

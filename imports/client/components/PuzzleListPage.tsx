@@ -92,7 +92,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     });
     return function (puzzle) {
       // for key in searchKeys:
-      //   if key in title or key in answer:
+      //   if key in title or key in any of the answers:
       //     return true
       //   if key is a substring of a tag:
       //     return true
@@ -100,7 +100,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
       for (let i = 0; i < searchKeys.length; i++) {
         const key = searchKeys[i].toLowerCase();
         if (puzzle.title.toLowerCase().indexOf(key) !== -1 ||
-            (puzzle.answer && (puzzle.answer.toLowerCase().indexOf(key) !== -1))) {
+            (puzzle.answers.map((answer) => { return answer.toLowerCase().indexOf(key) !== -1; }).some(Boolean))) {
           return true;
         }
 
@@ -132,7 +132,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     if (this.state.showSolved) {
       return interestingPuzzles;
     } else {
-      return interestingPuzzles.filter((puzzle) => { return !puzzle.answer; });
+      return interestingPuzzles.filter((puzzle) => { return !(puzzle.answers.length === puzzle.expectedAnswerCount); });
     }
   };
 
@@ -249,12 +249,12 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
 
           if (metaForTag && tag.name === metaForTag) {
             // This puzzle is meta-for: the group.
-            if (puzzle.answer) {
+            if (puzzle.answers.length === puzzle.expectedAnswerCount) {
               return 2;
             } else {
               return -2;
             }
-          } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !puzzle.answer) {
+          } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !(puzzle.answers.length === puzzle.expectedAnswerCount)) {
             hasUnsolvedMeta = true;
           }
         }

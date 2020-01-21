@@ -45,7 +45,8 @@ Meteor.methods({
           hunt: huntId,
           title: puzzle.title,
           url: puzzle.url,
-          answer: puzzle.answer,
+          answers: puzzle.answers,
+          expectedAnswerCount: puzzle.expectedAnswerCount,
         },
         $addToSet: {
           tags: { $each: puzzle.tags },
