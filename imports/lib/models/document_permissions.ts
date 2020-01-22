@@ -1,4 +1,4 @@
-import 'meteor/meteor';
+import { Subscription } from 'meteor/meteor';
 import DocumentPermissionsSchema, { DocumentPermissionType } from '../schemas/document_permissions';
 import Base from './base';
 

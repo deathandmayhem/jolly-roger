@@ -1,3 +1,4 @@
+import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
