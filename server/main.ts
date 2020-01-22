@@ -20,7 +20,6 @@ import '../imports/server/git_revision';
 import '../imports/server/guesses';
 import '../imports/server/hunts';
 import '../imports/server/migrations-run'; // runs migrations
-import '../imports/server/observability';
 import '../imports/server/profile';
 import '../imports/server/puzzle';
 import '../imports/server/server-render';
