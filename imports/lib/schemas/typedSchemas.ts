@@ -1,3 +1,4 @@
+import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import * as t from 'io-ts';
 import { DateType } from 'io-ts-types/lib/Date/date';

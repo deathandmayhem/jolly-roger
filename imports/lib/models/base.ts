@@ -1,5 +1,5 @@
 import { check, Match } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
+import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { _ } from 'meteor/underscore';
 import { BaseType } from '../schemas/base';

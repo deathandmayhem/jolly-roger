@@ -24,10 +24,6 @@ if [ -z "${MAIL_URL+set}" ]; then
     export MAIL_URL="$(credstash get mailgun)"
 fi
 
-if [ -z "${HONEYCOMB_WRITE_KEY+set}" ]; then
-    export HONEYCOMB_WRITE_KEY="$(credstash get honeycomb)"
-fi
-
 export GIT_REVISION="$(cat /built_app/GIT_REVISION)"
 
 credstash get krb5.keytab | openssl base64 -d > /krb5.keytab

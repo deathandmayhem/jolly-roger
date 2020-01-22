@@ -1,3 +1,4 @@
+import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { withBreadcrumb } from 'react-breadcrumbs-context';

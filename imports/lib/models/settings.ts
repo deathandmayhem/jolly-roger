@@ -1,4 +1,6 @@
+import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import SettingsSchema, { SettingType } from '../schemas/settings';
 import Base, { FindOptions } from './base';

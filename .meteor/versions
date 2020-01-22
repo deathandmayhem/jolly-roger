@@ -34,7 +34,7 @@ ejson@1.1.0
 email@1.2.3
 es5-shim@4.8.0
 fetch@0.1.0
-fourseven:scss@3.13.0
+fourseven:scss@4.12.0
 geojson-utils@1.0.10
 google-oauth@1.2.6
 hot-code-push@1.0.4
@@ -49,7 +49,6 @@ logging@1.1.20
 meteor@1.9.2
 meteor-base@1.4.0
 meteorhacks:cluster@1.6.9
-meteorhacks:meteorx@1.4.1
 minifier-css@1.4.0
 minifier-js@2.4.0
 minimongo@1.4.5
