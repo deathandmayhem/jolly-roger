@@ -48,10 +48,6 @@
     "url": "^0.11.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.2.2",
-    "@babel/plugin-proposal-class-properties": "^7.2.3",
-    "@babel/preset-react": "^7.0.0",
-    "@babel/preset-typescript": "^7.1.0",
     "@types/classnames": "^2.2.8",
     "@types/dompurify": "^2.0.0",
     "@types/element-resize-detector": "^1.1.2",
@@ -72,7 +68,6 @@
     "@types/simpl-schema": "^0.2.0",
     "@typescript-eslint/parser": "^2.15.0",
     "assert": "^1.4.1",
-    "babel-preset-meteor": "^7.2.0",
     "diff": "^4.0.1",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.0.1",
