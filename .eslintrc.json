@@ -1,26 +1,26 @@
 {
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "allowImportExportEverywhere": false,
+    "allowImportExportEverywhere": false
   },
   "plugins": [
-    "meteor",
+    "meteor"
   ],
   "extends": [
     "airbnb",
     "plugin:meteor/recommended",
     "plugin:import/errors",
-    "plugin:import/warnings",
+    "plugin:import/warnings"
   ],
   "settings": {
     "import/resolver": {
       "meteor": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx"],
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
       },
       "typescript": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx"],
-      },
-    },
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    }
   },
   "rules": {
     // explicit returns can sometimes be more readable and avoid the issue of "I want to return an
@@ -41,8 +41,8 @@
       {
         "allow": [
           "_id", "_this", "_ensureIndex", "_dropIndex", "_redirectUri", "_postRequest",
-          "_anyMethodsAreOutstanding", "_schemaKeys", "_schema", "_retrieveCredentialSecret",
-        ],
+          "_anyMethodsAreOutstanding", "_schemaKeys", "_schema", "_retrieveCredentialSecret"
+        ]
       }
     ],
 
@@ -71,10 +71,10 @@
       "pathGroups": [{
         "pattern": "meteor/**",
         "group": "external",
-        "position": "before",
+        "position": "before"
       }],
       "pathGroupsExcludedImportTypes": ["builtin"],
-      "newlines-between": "never",
+      "newlines-between": "never"
     }],
 
     // This seems incompatible with React.createClass
@@ -116,14 +116,14 @@
       "objects": "always-multiline",
       "imports": "always-multiline",
       "exports": "always-multiline",
-      "functions": "ignore",
+      "functions": "ignore"
     }],
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "react/destructuring-assignment": ["off"],
     "jsx-a11y/accessible-emoji": ["off"],
     "jsx-a11y/click-events-have-key-events": ["off"],
     "jsx-a11y/no-static-element-interactions": ["off"],
-    "jsx-a11y/media-has-caption": ["off"],
+    "jsx-a11y/media-has-caption": ["off"]
   },
   "overrides": [
     {
@@ -132,8 +132,8 @@
         // this seems to catch interface definitions
         "no-undef": "off",
         // seems to not work for imports that are only used for typing
-        "no-unused-vars": "off",
-      },
-    },
-  ],
+        "no-unused-vars": "off"
+      }
+    }
+  ]
 }

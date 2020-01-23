@@ -1,0 +1,37 @@
+name: Node CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 8.x
+    - uses: actions/cache@v1
+      id: cache-meteor
+      with:
+        path: ~/.meteor
+        key: ${{ runner.os }}-meteor-install-${{ hashFiles('.meteor/versions') }}
+    - uses: meteorengineer/setup-meteor@v1
+      if: steps.cache-meteor.outputs.cache-hit != 'true'
+      with:
+        meteor-release: '1.8'
+    - uses: actions/cache@v1
+      id: cache-npm
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    - name: test
+      run: |
+        set -x
+        PACKAGES="./ ./tests/down/"
+        for pkg in $PACKAGES; do
+          (cd $pkg && npm ci && npm run lint)
+        done
+      env:
+        CI: true
