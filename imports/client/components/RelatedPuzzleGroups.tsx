@@ -21,7 +21,7 @@ class RelatedPuzzleGroups extends React.Component<RelatedPuzzleGroupsProps> {
     layout: 'grid',
   };
 
-  relatedPuzzlesTagInterestingness = (tag: TagType, metaForTagIfKnown: TagType | null) => {
+  relatedPuzzlesTagInterestingness = (tag: TagType, metaForTagIfKnown: TagType | null | undefined) => {
     // Maps a tag into an interestingness class.  Smaller numbers are more interesting.
     // group: tags go at the beginning of the list, because you're
     // most interested in the other puzzles from this meta/round.
@@ -48,7 +48,7 @@ class RelatedPuzzleGroups extends React.Component<RelatedPuzzleGroupsProps> {
     const tagList = tags.slice(0);
 
     // Look for a tag that starts with 'meta-for:'.
-    const metaForTag = _.filter(tags, (tag) => { return tag.name.lastIndexOf('meta-for:', 0) === 0; })[0];
+    const metaForTag = tags.find((tag) => { return tag.name.lastIndexOf('meta-for:', 0) === 0; });
 
     tagList.sort((a, b) => {
       const ia = this.relatedPuzzlesTagInterestingness(a, metaForTag);
@@ -65,7 +65,7 @@ class RelatedPuzzleGroups extends React.Component<RelatedPuzzleGroupsProps> {
   };
 
   puzzlesWithTagIdExcept = (puzzles: PuzzleType[], tagId: string, puzzleId: string) => {
-    return _.filter(puzzles, (p) => {
+    return puzzles.filter((p) => {
       return p._id !== puzzleId && p.tags.indexOf(tagId) !== -1;
     });
   };
@@ -77,9 +77,9 @@ class RelatedPuzzleGroups extends React.Component<RelatedPuzzleGroupsProps> {
 
     // TODO: sort the tag groups by tag interestingness, which should probably be related to meta
     // presence/absence, tag group size, and number of solved/unsolved?
-    const activePuzzleTags = this.sortedTagsForRelatedPuzzles(_.compact(_.map(this.props.activePuzzle.tags, (tagId) => {
+    const activePuzzleTags = this.sortedTagsForRelatedPuzzles(this.props.activePuzzle.tags.map((tagId) => {
       return tagIndex[tagId];
-    })));
+    }).filter(Boolean));
 
     for (let tagi = 0; tagi < activePuzzleTags.length; tagi++) {
       const tag = activePuzzleTags[tagi];

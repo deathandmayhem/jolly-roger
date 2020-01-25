@@ -1,5 +1,4 @@
 import { withTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import React from 'react';
 import Creatable from 'react-select/lib/Creatable';
 import Tags from '../../lib/models/tags';
@@ -24,13 +23,12 @@ class TagEditor extends React.Component<TagEditorProps> {
   };
 
   render() {
-    const options = _.chain(this.props.allTags)
+    const options = this.props.allTags
       .map((t) => t.name)
-      .compact()
+      .filter(Boolean)
       .map((t) => {
         return { value: t, label: t };
-      })
-      .value();
+      });
 
     return (
       <span style={{ display: 'inline-block', minWidth: '200px' }}>

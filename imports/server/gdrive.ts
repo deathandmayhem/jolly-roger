@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import Ansible from '../ansible';
 import Flags from '../flags';
 import Documents from '../lib/models/documents';
@@ -23,7 +22,7 @@ function checkClientOk() {
 }
 
 function createDocument(name: string, type: keyof typeof MimeTypes): string {
-  if (!_.has(MimeTypes, type)) {
+  if (!Object.prototype.hasOwnProperty.call(MimeTypes, type)) {
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
   checkClientOk();
