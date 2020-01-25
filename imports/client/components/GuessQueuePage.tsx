@@ -3,9 +3,14 @@ import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import classnames from 'classnames';
+import { Location } from 'history';
 import React from 'react';
+import Button from 'react-bootstrap/lib/Button';
+import FormControl from 'react-bootstrap/lib/FormControl';
+import FormGroup from 'react-bootstrap/lib/FormGroup';
+import InputGroup from 'react-bootstrap/lib/InputGroup';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import { Link } from 'react-router';
+import { Link, browserHistory } from 'react-router';
 import Guesses from '../../lib/models/guess';
 import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
@@ -126,6 +131,8 @@ class GuessBlock extends React.Component<GuessBlockProps> {
 
 interface GuessQueuePageParams {
   params: {huntId: string};
+  // eslint-disable-next-line no-restricted-globals
+  location: Location;
 }
 
 type GuessQueuePageProps = GuessQueuePageParams & {
@@ -138,6 +145,62 @@ type GuessQueuePageProps = GuessQueuePageParams & {
 };
 
 class GuessQueuePage extends React.Component<GuessQueuePageProps> {
+  searchBarRef?: HTMLInputElement
+
+  onSearchStringChange = (e: React.FormEvent<FormControl>) => {
+    this.setSearchString((e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value);
+  };
+
+  getSearchString = (): string => {
+    return this.props.location.query.q || '';
+  };
+
+  setSearchString = (val: string) => {
+    const newQuery = val ? { q: val } : { q: undefined };
+    browserHistory.replace({
+      pathname: this.props.location.pathname,
+      query: { ...this.props.location.query, ...newQuery },
+    });
+  };
+
+  clearSearch = () => {
+    this.setSearchString('');
+  }
+
+  compileMatcher = (searchKeys: string[]): (g: GuessType) => boolean => {
+    // Given a list a search keys, compileMatcher returns a function that,
+    // given a guess, returns true if all search keys match that guess in
+    // some way, and false if any of the search keys cannot be found in
+    // either the guess or the puzzle title.
+    const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
+    return (guess) => {
+      const puzzle = this.props.puzzles[guess.puzzle];
+      const guessText = guess.guess.toLowerCase();
+
+      const titleWords = puzzle.title.toLowerCase().split(' ');
+      // For each search key, if nothing from the text or the title match,
+      // reject this guess.
+      return lowerSearchKeys.every((key) => {
+        return guessText.indexOf(key) !== -1 || titleWords.some((word) => word.startsWith(key));
+      });
+    };
+  };
+
+  filteredGuesses = (guesses: GuessType[]) => {
+    const searchKeys = this.getSearchString().split(' ');
+    let interestingGuesses;
+
+    if (searchKeys.length === 1 && searchKeys[0] === '') {
+      interestingGuesses = guesses;
+    } else {
+      const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => { return key.length > 0; });
+      const isInteresting = this.compileMatcher(searchKeysWithEmptyKeysRemoved);
+      interestingGuesses = guesses.filter(isInteresting);
+    }
+
+    return interestingGuesses;
+  }
+
   render() {
     const hunt = this.props.hunt;
 
@@ -145,10 +208,29 @@ class GuessQueuePage extends React.Component<GuessQueuePageProps> {
       return <div>loading...</div>;
     }
 
+    const guesses = this.filteredGuesses(this.props.guesses);
+
     return (
       <div>
         <h1>Guess queue</h1>
-        {this.props.guesses.map((guess) => {
+        <FormGroup>
+          <InputGroup>
+            <FormControl
+              id="jr-guess-search"
+              type="text"
+              inputRef={(ref) => { this.searchBarRef = ref; }}
+              placeholder="Filter by title or answer"
+              value={this.getSearchString()}
+              onChange={this.onSearchStringChange}
+            />
+            <InputGroup.Button>
+              <Button onClick={this.clearSearch}>
+                Clear
+              </Button>
+            </InputGroup.Button>
+          </InputGroup>
+        </FormGroup>
+        {guesses.map((guess) => {
           return (
             <GuessBlock
               key={guess._id}
