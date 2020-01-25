@@ -90,29 +90,33 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     this.props.allTags.forEach((t) => {
       tagNames[t._id] = t.name.toLowerCase();
     });
+    const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
     return function (puzzle) {
-      // for key in searchKeys:
-      //   if key in title or key in any of the answers:
-      //     return true
-      //   if key is a substring of a tag:
-      //     return true
-      // return false
-      for (let i = 0; i < searchKeys.length; i++) {
-        const key = searchKeys[i].toLowerCase();
-        if (puzzle.title.toLowerCase().indexOf(key) !== -1 ||
-            (puzzle.answers.map((answer) => { return answer.toLowerCase().indexOf(key) !== -1; }).some(Boolean))) {
+      const titleWords = puzzle.title.toLowerCase().split(' ');
+      return lowerSearchKeys.every((key) => {
+        // Every key should match at least one of the following:
+        // * prefix of word in title
+        // * substring of any answer
+        // * substring of any tag
+        if (titleWords.some((word) => word.startsWith(key))) {
           return true;
         }
 
-        for (let j = 0; j < puzzle.tags.length; j++) {
-          const tagName = tagNames[puzzle.tags[j]];
-          if (tagName && tagName.indexOf(key) !== -1) {
-            return true;
-          }
+        if (puzzle.answers.some((answer) => { return answer.toLowerCase().indexOf(key) !== -1; })) {
+          return true;
         }
-      }
 
-      return false;
+        const tagMatch = puzzle.tags.some((tagId) => {
+          const tagName = tagNames[tagId];
+          return (tagName && tagName.indexOf(key) !== -1);
+        });
+
+        if (tagMatch) {
+          return true;
+        }
+
+        return false;
+      });
     };
   };
 
