@@ -86,6 +86,7 @@ standard-minifier-css@1.6.0
 standard-minifier-js@2.6.0
 tmeasday:check-npm-versions@0.3.2
 tracker@1.2.0
+typescript@3.7.4
 underscore@1.0.10
 url@1.2.0
 webapp@1.8.2
