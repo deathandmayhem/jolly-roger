@@ -1,7 +1,5 @@
 accounts-base@1.5.0
 accounts-password@1.5.3
-adornis:typescript@0.9.15
-adornis:typescript-compiler@0.12.15
 aldeed:collection2@3.0.6
 aldeed:schema-deny@3.0.0
 aldeed:schema-index@3.0.0
