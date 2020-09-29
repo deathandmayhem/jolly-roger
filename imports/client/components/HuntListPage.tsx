@@ -281,7 +281,6 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
           </div>
         </FormGroup>
 
-
         <FormGroup>
           <ControlLabel htmlFor={`${idPrefix}firehose-slack-channel`} className="col-xs-3">
             Firehose Slack channel

@@ -2,7 +2,7 @@ import { _ } from 'meteor/underscore';
 import classnames from 'classnames';
 import elementResizeDetectorMaker from 'element-resize-detector';
 import React from 'react';
-import SplitPane, { Props as SplitPaneProps } from 'react-split-pane';
+import SplitPane, { SplitPaneProps } from 'react-split-pane';
 
 /*
   Provides two panes with a user draggable divider featuring snap-to-collapse. Fully controlled.

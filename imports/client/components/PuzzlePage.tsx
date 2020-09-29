@@ -45,7 +45,6 @@ import RelatedPuzzleGroups from './RelatedPuzzleGroups';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
 
-
 /* eslint-disable max-len, no-console */
 
 const FilteredChatFields: ('_id' | 'puzzle' | 'text' | 'sender' | 'timestamp')[] = ['_id', 'puzzle', 'text', 'sender', 'timestamp'];
@@ -425,7 +424,6 @@ const chatInputStyles = {
     padding: '9px 4px',
     borderWidth: '1px 0 0 0',
     resize: 'none' as 'none',
-    maxHeight: '200px',
   },
 };
 
@@ -749,6 +747,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             </Button>
           )}
         </div>
+        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleGuessModal
           ref={this.guessModalRef}
           puzzle={this.props.puzzle}

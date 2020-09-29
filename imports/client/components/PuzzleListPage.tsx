@@ -74,7 +74,8 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
   };
 
   getSearchString = (): string => {
-    return this.props.location.query.q || '';
+    const q = this.props.location.query.q;
+    return (Array.isArray(q) ? q[0] : q) || '';
   };
 
   setSearchString = (val: string) => {

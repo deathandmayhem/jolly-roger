@@ -4,7 +4,8 @@
     "allowImportExportEverywhere": false
   },
   "plugins": [
-    "meteor"
+    "meteor",
+    "@typescript-eslint"
   ],
   "extends": [
     "airbnb",
@@ -132,7 +133,15 @@
         // this seems to catch interface definitions
         "no-undef": "off",
         // seems to not work for imports that are only used for typing
-        "no-unused-vars": "off"
+        "no-unused-vars": "off",
+
+        // The Javascript versions of these rules don't handle TypeScript
+        // scoping correctly, so use the TypeScript-specific ones instead
+        "no-use-before-define": "off",
+        "@typescript-eslint/no-use-before-define": "error",
+
+        "no-shadow": "off",
+        "@typescript-eslint/no-shadow": "error"
       }
     }
   ]

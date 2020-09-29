@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import * as t from 'io-ts';
-import { DateType } from 'io-ts-types/lib/Date/date';
+import { date } from 'io-ts-types';
 import SimpleSchema from 'simpl-schema';
 
 type NumberOverrides<T> = T extends number ? {
@@ -29,7 +29,7 @@ type StringOverrides<T> = T extends string ? {
   max?: number | (() => number);
   exclusiveMin?: boolean;
   exclusiveMax?: boolean;
-  regEx?: RegExp | RegExp[] | (() => RegExp | RegExp[]);
+  regEx?: RegExp | RegExp[];
   trim?: boolean,
 } : {};
 
@@ -180,7 +180,7 @@ const buildField = function <T> (
     return [[fieldName, { ...overrides, type: Number, optional }]];
   } else if (fieldCodec instanceof t.BooleanType) {
     return [[fieldName, { ...overrides, type: Boolean, optional }]];
-  } else if (fieldCodec instanceof DateType) {
+  } else if (<any>fieldCodec === date) {
     return [[fieldName, { ...overrides, type: Date, optional }]];
   } else if (fieldCodec instanceof t.ArrayType) {
     const schemaOverrides = _.omit(overrides, 'array');
@@ -194,7 +194,7 @@ const buildField = function <T> (
     const nestedOverrides = overrides && (<ObjectOverrides<Record<string, any>>>overrides).nested;
     return [[fieldName, {
       ...schemaOverrides,
-      // eslint-disable-next-line no-use-before-define
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       type: buildSchema(fieldCodec, nestedOverrides || {}),
       optional,
     }]];

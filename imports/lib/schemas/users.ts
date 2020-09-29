@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { date } from 'io-ts-types/lib/Date/date';
+import { date } from 'io-ts-types';
 import SimpleSchema from 'simpl-schema';
 import { Overrides, buildSchema } from './typedSchemas';
 
