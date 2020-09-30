@@ -11,15 +11,17 @@ import moment from 'moment';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
-import FormLabel from 'react-bootstrap/FormLabel';
+import Col from 'react-bootstrap/Col';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import Modal from 'react-bootstrap/Modal';
 import Nav from 'react-bootstrap/Nav';
 import NavItem from 'react-bootstrap/NavItem';
 import NavLink from 'react-bootstrap/NavLink';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Row from 'react-bootstrap/Row';
 import Table from 'react-bootstrap/Table';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
@@ -45,8 +47,6 @@ import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm
 import RelatedPuzzleGroups from './RelatedPuzzleGroups';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 
 /* eslint-disable max-len, no-console */
 

@@ -3,8 +3,13 @@ import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import BreadcrumbItem from 'react-bootstrap/BreadcrumbItem';
+import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownItem from 'react-bootstrap/DropdownItem';
+import DropdownMenu from 'react-bootstrap/DropdownMenu';
+import DropdownToggle from 'react-bootstrap/DropdownToggle';
 import Nav from 'react-bootstrap/Nav';
+import NavItem from 'react-bootstrap/NavItem';
+import NavLink from 'react-bootstrap/NavLink';
 import Navbar from 'react-bootstrap/Navbar';
 import NavbarBrand from 'react-bootstrap/NavbarBrand';
 import NavbarCollapse from 'react-bootstrap/NavbarCollapse';
@@ -15,11 +20,6 @@ import * as RRBS from 'react-router-bootstrap';
 import Profiles from '../../lib/models/profiles';
 import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
-import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownToggle from 'react-bootstrap/DropdownToggle';
-import DropdownMenu from 'react-bootstrap/DropdownMenu';
-import NavItem from 'react-bootstrap/NavItem';
-import NavLink from 'react-bootstrap/NavLink';
 
 interface AppNavbarProps {
   userId: string;

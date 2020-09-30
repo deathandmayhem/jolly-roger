@@ -1,15 +1,15 @@
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
-import FormLabel from 'react-bootstrap/FormLabel';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
-import Creatable from 'react-select/creatable';
+import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/esm/Col';
+import Creatable from 'react-select/creatable';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import LabelledRadioGroup from './LabelledRadioGroup';
 import ModalForm from './ModalForm';
-import Col from 'react-bootstrap/esm/Col';
 
 /* eslint-disable max-len */
 

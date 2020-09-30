@@ -7,13 +7,13 @@ import { ServiceConfiguration, Configuration } from 'meteor/service-configuratio
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
+import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
 import FormCheck from 'react-bootstrap/FormCheck';
-import FormLabel from 'react-bootstrap/FormLabel';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
-import Badge from 'react-bootstrap/Badge';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
 import Profiles from '../../lib/models/profiles';

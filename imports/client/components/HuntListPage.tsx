@@ -8,19 +8,19 @@ import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import Col from 'react-bootstrap/Col';
 import FormCheck from 'react-bootstrap/FormCheck';
-import FormLabel from 'react-bootstrap/FormLabel';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
+import Row from 'react-bootstrap/Row';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { Link } from 'react-router';
 import Ansible from '../../ansible';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
 import ModalForm from './ModalForm';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 
 /* eslint-disable max-len */
 
