@@ -789,7 +789,6 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
       );
     }
 
-
     if (!this.props.canConfigure) {
       return (
         <div className="setup-page">

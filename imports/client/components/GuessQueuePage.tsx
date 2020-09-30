@@ -152,7 +152,8 @@ class GuessQueuePage extends React.Component<GuessQueuePageProps> {
   };
 
   getSearchString = (): string => {
-    return this.props.location.query.q || '';
+    const q = this.props.location.query.q;
+    return (Array.isArray(q) ? q[0] : q) || '';
   };
 
   setSearchString = (val: string) => {

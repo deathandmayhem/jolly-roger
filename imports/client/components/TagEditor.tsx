@@ -1,6 +1,6 @@
 import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import Creatable from 'react-select/lib/Creatable';
+import Creatable from 'react-select/creatable';
 import Tags from '../../lib/models/tags';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';

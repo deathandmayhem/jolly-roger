@@ -3,7 +3,7 @@ import Alert from 'react-bootstrap/lib/Alert';
 import ControlLabel from 'react-bootstrap/lib/ControlLabel';
 import FormControl from 'react-bootstrap/lib/FormControl';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
-import Creatable from 'react-select/lib/Creatable';
+import Creatable from 'react-select/creatable';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import LabelledRadioGroup from './LabelledRadioGroup';

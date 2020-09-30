@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import logfmt from 'logfmt';
 
 type LogLevels = 'log' | 'info' | 'error' | 'warn';
-const logLevels: Set<LogLevels> = new Set(['log', 'info', 'error', 'warn']);
+const logLevels: LogLevels[] = ['log', 'info', 'error', 'warn'];
 
 Meteor.methods({
   // ansible just lets clients generate log messages on the server,

@@ -40,7 +40,7 @@ class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
     return (
       <div>
         <Alert bsStyle="danger">
-        This hunt has been deleted, so there&apos;s nothing much to see here anymore.
+          This hunt has been deleted, so there&apos;s nothing much to see here anymore.
         </Alert>
 
         <ButtonToolbar>
