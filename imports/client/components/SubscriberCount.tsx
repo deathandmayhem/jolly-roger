@@ -1,7 +1,7 @@
 import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
-import Tooltip from 'react-bootstrap/lib/Tooltip';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 import Flags from '../../flags';
 import { SubscriberCounters } from '../subscribers';
 

@@ -4,14 +4,14 @@ import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { Location } from 'history';
 import React from 'react';
-import Button from 'react-bootstrap/lib/Button';
-import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import InputGroup from 'react-bootstrap/lib/InputGroup';
-import ToggleButton from 'react-bootstrap/lib/ToggleButton';
-import ToggleButtonGroup from 'react-bootstrap/lib/ToggleButtonGroup';
+import Button from 'react-bootstrap/Button';
+import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
+import FormLabel from 'react-bootstrap/FormLabel';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import InputGroup from 'react-bootstrap/InputGroup';
+import ToggleButton from 'react-bootstrap/ToggleButton';
+import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { Link, browserHistory } from 'react-router';
 import Flags from '../../flags';
 import Puzzles from '../../lib/models/puzzles';
@@ -47,7 +47,7 @@ interface PuzzleListViewState {
 class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListViewState> {
   addModalRef: React.RefObject<PuzzleModalForm>
 
-  searchBarRef?: HTMLInputElement
+  searchBarRef: React.RefObject<HTMLInputElement>
 
   static displayName = 'PuzzleListView';
 
@@ -58,10 +58,11 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
       showSolved: true,
     };
     this.addModalRef = React.createRef();
+    this.searchBarRef = React.createRef();
   }
 
   componentDidMount() {
-    this.searchBarRef!.focus();
+    this.searchBarRef.current!.focus();
   }
 
   onAdd = (state: PuzzleModalFormSubmitPayload, callback: (error?: Error) => void) => {
@@ -69,8 +70,8 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     Meteor.call('createPuzzle', puzzle, docType, callback);
   };
 
-  onSearchStringChange = (e: React.FormEvent<FormControl>) => {
-    this.setSearchString((e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value);
+  onSearchStringChange: FormControlProps['onChange'] = (e) => {
+    this.setSearchString(e.currentTarget.value);
   };
 
   getSearchString = (): string => {
@@ -343,7 +344,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     }
     const addPuzzleContent = this.props.canAdd && (
       <div className="add-puzzle-content">
-        <Button bsStyle="primary" onClick={this.showAddModal}>Add a puzzle</Button>
+        <Button variant="primary" onClick={this.showAddModal}>Add a puzzle</Button>
         <PuzzleModalForm
           huntId={this.props.huntId}
           tags={this.props.allTags}
@@ -361,7 +362,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
             <li><Link to={`/hunts/${this.props.huntId}/hunters`}>Hunters</Link></li>
           </ul>
           <div className="puzzle-view-controller">
-            <ControlLabel htmlFor="jr-puzzle-search">View puzzles by:</ControlLabel>
+            <FormLabel htmlFor="jr-puzzle-search">View puzzles by:</FormLabel>
             <div className="puzzle-view-controls">
               <ButtonToolbar>
                 <ToggleButtonGroup type="radio" name="puzzle-view" defaultValue="group" value={this.state.displayMode} onChange={this.switchView}>
@@ -380,17 +381,18 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
                 <InputGroup>
                   <FormControl
                     id="jr-puzzle-search"
+                    as="input"
                     type="text"
-                    inputRef={(ref) => { this.searchBarRef = ref; }}
+                    ref={this.searchBarRef}
                     placeholder="Filter by title, answer, or tag"
                     value={this.getSearchString()}
                     onChange={this.onSearchStringChange}
                   />
-                  <InputGroup.Button>
-                    <Button onClick={this.clearSearch}>
+                  <InputGroup.Append>
+                    <Button variant="secondary" onClick={this.clearSearch}>
                       Clear
                     </Button>
-                  </InputGroup.Button>
+                  </InputGroup.Append>
                 </InputGroup>
               </FormGroup>
               {addPuzzleContent}

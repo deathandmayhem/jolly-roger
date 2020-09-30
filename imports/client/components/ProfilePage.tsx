@@ -6,18 +6,18 @@ import { withTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
 import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import Checkbox from 'react-bootstrap/lib/Checkbox';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import HelpBlock from 'react-bootstrap/lib/HelpBlock';
-import Label from 'react-bootstrap/lib/Label';
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import FormCheck from 'react-bootstrap/FormCheck';
+import FormLabel from 'react-bootstrap/FormLabel';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormText from 'react-bootstrap/FormText';
+import Badge from 'react-bootstrap/Badge';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
 import Profiles from '../../lib/models/profiles';
-import ProfilesSchema, { ProfileType } from '../../lib/schemas/profiles';
+import { ProfileType } from '../../lib/schemas/profiles';
 import Gravatar from './Gravatar';
 
 /* eslint-disable max-len */
@@ -40,7 +40,7 @@ class OthersProfilePage extends React.Component<OthersProfilePageProps> {
     return (
       <div>
         <h1>{profile.displayName}</h1>
-        {showOperatorBadge && <Label>operator</Label>}
+        {showOperatorBadge && <Badge>operator</Badge>}
         {showMakeOperatorButton && <Button onClick={this.makeOperator}>Make operator</Button>}
         <Gravatar email={profile.primaryEmail} />
         <div>
@@ -124,7 +124,7 @@ class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBl
   errorAlert = () => {
     if (this.state.state === 'error') {
       return (
-        <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+        <Alert variant="danger" dismissible onClose={this.dismissAlert}>
           Linking Google account failed:
           {' '}
           {this.state.error.message}
@@ -136,11 +136,11 @@ class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBl
 
   linkButton = () => {
     if (this.state.state === GoogleLinkBlockLinkState.LINKING) {
-      return <Button bsStyle="primary" disabled>Linking...</Button>;
+      return <Button variant="primary" disabled>Linking...</Button>;
     }
 
     if (this.props.googleDisabled) {
-      return <Button bsStyle="primary" disabled>Google integration currently disabled</Button>;
+      return <Button variant="primary" disabled>Google integration currently disabled</Button>;
     }
 
     const text = (this.props.profile.googleAccount) ?
@@ -148,7 +148,7 @@ class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBl
       'Link your Google account';
 
     return (
-      <Button bsStyle="primary" onClick={this.onLink}>
+      <Button variant="primary" onClick={this.onLink}>
         {text}
       </Button>
     );
@@ -157,7 +157,7 @@ class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBl
   unlinkButton = () => {
     if (this.props.profile.googleAccount) {
       return (
-        <Button bsStyle="danger" onClick={this.onUnlink}>
+        <Button variant="danger" onClick={this.onUnlink}>
           Unlink
         </Button>
       );
@@ -187,9 +187,9 @@ class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBl
 
     return (
       <FormGroup>
-        <ControlLabel>
+        <FormLabel>
           Google Account
-        </ControlLabel>
+        </FormLabel>
         {this.errorAlert()}
         <div>
           {this.currentAccount()}
@@ -197,7 +197,7 @@ class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBl
           {' '}
           {this.unlinkButton()}
         </div>
-        <HelpBlock>
+        <FormText>
           Linking your Google account isn&apos;t required, but this will
           let other people see who you are on puzzles&apos; Google
           Spreadsheet docs (instead of being an
@@ -212,7 +212,7 @@ class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBl
           ), and we&apos;ll use it to give you access to our practice
           puzzles. (You can only have one Google account linked, so
           linking a new one will cause us to forget the old one).
-        </HelpBlock>
+        </FormText>
       </FormGroup>
     );
   }
@@ -258,38 +258,27 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
     } as OwnProfilePageState;
   }
 
-  onDisableApplauseChange = (e: React.FormEvent<Checkbox>) => {
+  onDisableApplauseChange = (e: React.FormEvent<HTMLInputElement>) => {
     this.setState({
-      muteApplause: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.checked,
+      muteApplause: e.currentTarget.checked,
     });
   };
 
-  getSlackHandleValidationState = () => {
-    if (!this.state.slackHandleValue) {
-      return null;
-    }
-
-    const valid = ProfilesSchema.namedContext().validate({
-      slackHandle: this.state.slackHandleValue,
-    }, { keys: ['slackHandle'] });
-    return valid ? 'success' : 'error';
-  };
-
-  handleDisplayNameFieldChange = (e: React.ChangeEvent<FormControl>) => {
+  handleDisplayNameFieldChange: FormControlProps['onChange'] = (e) => {
     this.setState({
-      displayNameValue: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
+      displayNameValue: e.currentTarget.value,
     });
   };
 
-  handlePhoneNumberFieldChange = (e: React.ChangeEvent<FormControl>) => {
+  handlePhoneNumberFieldChange: FormControlProps['onChange'] = (e) => {
     this.setState({
-      phoneNumberValue: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
+      phoneNumberValue: e.currentTarget.value,
     });
   };
 
-  handleSlackHandleFieldChange = (e: React.ChangeEvent<FormControl>) => {
+  handleSlackHandleFieldChange: FormControlProps['onChange'] = (e) => {
     this.setState({
-      slackHandleValue: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
+      slackHandleValue: e.currentTarget.value,
     });
   };
 
@@ -337,29 +326,29 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
     return (
       <div>
         <h1>Account information</h1>
-        {this.props.canMakeOperator ? <Checkbox type="checkbox" checked={this.props.operating} onChange={this.toggleOperating}>Operating</Checkbox> : null}
+        {this.props.canMakeOperator ? <FormCheck checked={this.props.operating} onChange={this.toggleOperating}>Operating</FormCheck> : null}
         <FormGroup>
-          <ControlLabel htmlFor="jr-profile-edit-email">
+          <FormLabel htmlFor="jr-profile-edit-email">
             Email address
-          </ControlLabel>
+          </FormLabel>
           <FormControl
             id="jr-profile-edit-email"
             type="text"
             value={this.props.initialProfile.primaryEmail}
             disabled
           />
-          <HelpBlock>
+          <FormText>
             This is the email address associated with your account.  The profile picture below is the image associated with that email address from
             {' '}
             <a href="https://gravatar.com">gravatar.com</a>
             .
-          </HelpBlock>
+          </FormText>
           <Gravatar email={this.props.initialProfile.primaryEmail} />
         </FormGroup>
-        {this.state.submitState === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
         {this.state.submitState === 'error' ? (
-          <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
             Saving failed:
             {' '}
             {this.state.submitError}
@@ -369,9 +358,9 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
         <GoogleLinkBlockContainer profile={this.props.initialProfile} />
 
         <FormGroup>
-          <ControlLabel htmlFor="jr-profile-edit-display-name">
+          <FormLabel htmlFor="jr-profile-edit-display-name">
             Display name
-          </ControlLabel>
+          </FormLabel>
           <FormControl
             id="jr-profile-edit-display-name"
             type="text"
@@ -379,15 +368,15 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
             disabled={shouldDisableForm}
             onChange={this.handleDisplayNameFieldChange}
           />
-          <HelpBlock>
+          <FormText>
             We suggest your full name, to avoid ambiguity.
-          </HelpBlock>
+          </FormText>
         </FormGroup>
 
-        <FormGroup validationState={this.getSlackHandleValidationState()}>
-          <ControlLabel htmlFor="jr-profile-edit-slack">
+        <FormGroup>
+          <FormLabel htmlFor="jr-profile-edit-slack">
             Slack handle
-          </ControlLabel>
+          </FormLabel>
           <FormControl
             id="jr-profile-edit-slack"
             type="text"
@@ -395,18 +384,18 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
             disabled={shouldDisableForm}
             onChange={this.handleSlackHandleFieldChange}
           />
-          <HelpBlock>
+          <FormText>
             So we can connect your chat there with your account here. If you haven&apos;t signed up for a Slack account yet, there should be a notification in the top-right that you can use to get an invite. (Slack handles contain letters, numbers, periods, and underscores. You don&apos;t need the leading
             {' '}
             <code>@</code>
             .)
-          </HelpBlock>
+          </FormText>
         </FormGroup>
 
         <FormGroup>
-          <ControlLabel htmlFor="jr-profile-edit-phone">
+          <FormLabel htmlFor="jr-profile-edit-phone">
             Phone number (optional)
-          </ControlLabel>
+          </FormLabel>
           <FormControl
             id="jr-profile-edit-phone"
             type="text"
@@ -414,24 +403,24 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
             disabled={shouldDisableForm}
             onChange={this.handlePhoneNumberFieldChange}
           />
-          <HelpBlock>
+          <FormText>
             In case we need to reach you via phone.
-          </HelpBlock>
+          </FormText>
         </FormGroup>
 
         <FormGroup>
-          <Checkbox type="checkbox" checked={this.state.muteApplause} onChange={this.onDisableApplauseChange}>
+          <FormCheck type="checkbox" checked={this.state.muteApplause} onChange={this.onDisableApplauseChange}>
             Mute applause
-          </Checkbox>
-          <HelpBlock>
+          </FormCheck>
+          <FormText>
             Enable this option if you find the applause sound when we solve a puzzle annoying.
-          </HelpBlock>
+          </FormText>
         </FormGroup>
 
         <FormGroup>
           <Button
             type="submit"
-            bsStyle="primary"
+            variant="primary"
             disabled={shouldDisableForm}
             onClick={this.handleSaveForm}
           >

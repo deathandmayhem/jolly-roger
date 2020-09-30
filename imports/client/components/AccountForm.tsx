@@ -1,7 +1,7 @@
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
+import Alert from 'react-bootstrap/Alert';
 
 /* eslint-disable max-len, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
 
@@ -282,7 +282,7 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
     const pwResetOptionComponent = this.props.format === AccountFormFormat.LOGIN ? (
       <div className="at-pwd-link">
         <p>
-          {/* TODO: prefer <Button bsStyle="link"> */}
+          {/* TODO: prefer <Button variant="link"> */}
           <a href="#" id="at-forgotPwd" className="at-link at-pwd" onClick={this.toggleWantPasswordReset(this.props.onFormatChange)}>
             Forgot your password?
           </a>
@@ -292,7 +292,7 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
     const backToMainForm = this.props.format === AccountFormFormat.REQUEST_PW_RESET ? (
       <div className="at-signin-link">
         <p>
-          {/* TODO: prefer <Button bsStyle="link"> */}
+          {/* TODO: prefer <Button variant="link"> */}
           If you already have an account,
           {' '}
           <a href="#" id="at-signIn" className="at-link at-signin" onClick={this.toggleWantPasswordReset(this.props.onFormatChange)}>sign in</a>
@@ -307,8 +307,8 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
         <div>
           <form id="at-pwd-form" noValidate action="#" method="POST" onSubmit={this.submitForm}>
             <fieldset>
-              {this.state.submitState === AccountFormSubmitState.FAILED ? <Alert bsStyle="danger">{this.state.errorMessage}</Alert> : null}
-              {this.state.submitState === AccountFormSubmitState.SUCCESS && this.state.successMessage ? <Alert bsStyle="success">{this.state.successMessage}</Alert> : null}
+              {this.state.submitState === AccountFormSubmitState.FAILED ? <Alert variant="danger">{this.state.errorMessage}</Alert> : null}
+              {this.state.submitState === AccountFormSubmitState.SUCCESS && this.state.successMessage ? <Alert variant="success">{this.state.successMessage}</Alert> : null}
               {format === AccountFormFormat.LOGIN || format === AccountFormFormat.REQUEST_PW_RESET ? emailInput : null}
               {format === AccountFormFormat.LOGIN || format === AccountFormFormat.ENROLL || format === AccountFormFormat.RESET_PWD ? pwInput : null}
               {pwResetOptionComponent}

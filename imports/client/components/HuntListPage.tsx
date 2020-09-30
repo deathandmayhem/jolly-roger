@@ -5,14 +5,14 @@ import { _ } from 'meteor/underscore';
 import { faEdit, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
-import Checkbox from 'react-bootstrap/lib/Checkbox';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import HelpBlock from 'react-bootstrap/lib/HelpBlock';
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import FormCheck from 'react-bootstrap/FormCheck';
+import FormLabel from 'react-bootstrap/FormLabel';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormText from 'react-bootstrap/FormText';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { Link } from 'react-router';
 import Ansible from '../../ansible';
@@ -96,45 +96,45 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
     }
   };
 
-  onNameChanged = (e: React.ChangeEvent<FormControl>) => {
+  onNameChanged: FormControlProps['onChange'] = (e) => {
     this.setState({
-      name: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
+      name: e.currentTarget.value,
     });
   };
 
-  onMailingListsChanged = (e: React.ChangeEvent<FormControl>) => {
+  onMailingListsChanged: FormControlProps['onChange'] = (e) => {
     this.setState({
-      mailingLists: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
+      mailingLists: e.currentTarget.value,
     });
   };
 
-  onSignupMessageChanged = (e: React.ChangeEvent<FormControl>) => {
+  onSignupMessageChanged: FormControlProps['onChange'] = (e) => {
     this.setState({
-      signupMessage: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
+      signupMessage: e.currentTarget.value,
     });
   };
 
-  onOpenSignupsChanged = (e: React.ChangeEvent<Checkbox>) => {
+  onOpenSignupsChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({
-      openSignups: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.checked,
+      openSignups: e.currentTarget.checked,
     });
   };
 
-  onSubmitTemplateChanged = (e: React.ChangeEvent<FormControl>) => {
+  onSubmitTemplateChanged: FormControlProps['onChange'] = (e) => {
     this.setState({
-      submitTemplate: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
+      submitTemplate: e.currentTarget.value,
     });
   }
 
-  onFirehoseSlackChannelChanged = (e: React.ChangeEvent<FormControl>) => {
+  onFirehoseSlackChannelChanged: FormControlProps['onChange'] = (e) => {
     this.setState({
-      firehoseSlackChannel: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
+      firehoseSlackChannel: e.currentTarget.value,
     });
   };
 
-  onPuzzleHooksSlackChannelChanged = (e: React.ChangeEvent<FormControl>) => {
+  onPuzzleHooksSlackChannelChanged: FormControlProps['onChange'] = (e) => {
     this.setState({
-      puzzleHooksSlackChannel: (e as unknown as React.ChangeEvent<HTMLInputElement>).currentTarget.value,
+      puzzleHooksSlackChannel: e.currentTarget.value,
     });
   };
 
@@ -175,9 +175,9 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         submitDisabled={disableForm}
       >
         <FormGroup>
-          <ControlLabel htmlFor={`${idPrefix}name`} className="col-xs-3">
+          <FormLabel htmlFor={`${idPrefix}name`} className="col-xs-3">
             Name
-          </ControlLabel>
+          </FormLabel>
           <div className="col-xs-9">
             <FormControl
               id={`${idPrefix}name`}
@@ -191,9 +191,9 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         </FormGroup>
 
         <FormGroup>
-          <ControlLabel htmlFor={`${idPrefix}mailing-lists`} className="col-xs-3">
+          <FormLabel htmlFor={`${idPrefix}mailing-lists`} className="col-xs-3">
             Mailing lists
-          </ControlLabel>
+          </FormLabel>
           <div className="col-xs-9">
             <FormControl
               id={`${idPrefix}mailing-lists`}
@@ -202,51 +202,51 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               onChange={this.onMailingListsChanged}
               disabled={disableForm}
             />
-            <HelpBlock>
+            <FormText>
               Users joining this hunt will be automatically added to all of these (comma-separated) lists
-            </HelpBlock>
+            </FormText>
           </div>
         </FormGroup>
 
         <FormGroup>
-          <ControlLabel htmlFor={`${idPrefix}signup-message`} className="col-xs-3">
+          <FormLabel htmlFor={`${idPrefix}signup-message`} className="col-xs-3">
             Signup message
-          </ControlLabel>
+          </FormLabel>
           <div className="col-xs-9">
             <FormControl
               id={`${idPrefix}signup-message`}
-              componentClass="textarea"
+              as="textarea"
               value={this.state.signupMessage}
               onChange={this.onSignupMessageChanged}
               disabled={disableForm}
             />
-            <HelpBlock>
+            <FormText>
               This message (rendered as markdown) will be shown to users who aren&apos;t part of the hunt. This is a good place to put directions for how to sign up.
-            </HelpBlock>
+            </FormText>
           </div>
         </FormGroup>
 
         <FormGroup>
-          <ControlLabel htmlFor={`${idPrefix}open-signups`} className="col-xs-3">
+          <FormLabel htmlFor={`${idPrefix}open-signups`} className="col-xs-3">
             Open invites
-          </ControlLabel>
+          </FormLabel>
           <div className="col-xs-9">
-            <Checkbox
+            <FormCheck
               id={`${idPrefix}open-signups`}
               checked={this.state.openSignups}
               onChange={this.onOpenSignupsChanged}
               disabled={disableForm}
             />
-            <HelpBlock>
+            <FormText>
               If open invites are enabled, then any current member of the hunt can add a new member to the hunt. Otherwise, only operators can add new members.
-            </HelpBlock>
+            </FormText>
           </div>
         </FormGroup>
 
         <FormGroup>
-          <ControlLabel htmlFor={`${idPrefix}submit-template`} className="col-xs-3">
+          <FormLabel htmlFor={`${idPrefix}submit-template`} className="col-xs-3">
             Submit URL template
-          </ControlLabel>
+          </FormLabel>
           <div className="col-xs-9">
             <FormControl
               id={`${idPrefix}submit-template`}
@@ -255,7 +255,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               onChange={this.onSubmitTemplateChanged}
               disabled={disableForm}
             />
-            <HelpBlock>
+            <FormText>
               If provided, this
               {' '}
               <a href="https://mustache.github.io/mustache.5.html">Mustache template</a>
@@ -277,14 +277,14 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               <code>{'{{{origin}}}/submit{{{pathname}}}'}</code>
               {' '}
               would work for the 2018 Mystery Hunt. If not specified, the puzzle URL is used as the link to the guess submission page.
-            </HelpBlock>
+            </FormText>
           </div>
         </FormGroup>
 
         <FormGroup>
-          <ControlLabel htmlFor={`${idPrefix}firehose-slack-channel`} className="col-xs-3">
+          <FormLabel htmlFor={`${idPrefix}firehose-slack-channel`} className="col-xs-3">
             Firehose Slack channel
-          </ControlLabel>
+          </FormLabel>
           <div className="col-xs-9">
             <FormControl
               id={`${idPrefix}firehose-slack-channel`}
@@ -293,19 +293,19 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               onChange={this.onFirehoseSlackChannelChanged}
               disabled={disableForm}
             />
-            <HelpBlock>
+            <FormText>
               If provided, all chat messages written in puzzles associated with this hunt will be mirrored to the specified channel in Slack.  Make sure to include the # at the beginning of the channel name, like
               {' '}
               <code>#firehose</code>
               .
-            </HelpBlock>
+            </FormText>
           </div>
         </FormGroup>
 
         <FormGroup>
-          <ControlLabel htmlFor={`${idPrefix}puzzle-hooks-slack-channel`} className="col-xs-3">
+          <FormLabel htmlFor={`${idPrefix}puzzle-hooks-slack-channel`} className="col-xs-3">
             Puzzle added/solved Slack channel
-          </ControlLabel>
+          </FormLabel>
           <div className="col-xs-9">
             <FormControl
               id={`${idPrefix}puzzle-hooks-slack-channel`}
@@ -313,16 +313,16 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               value={this.state.puzzleHooksSlackChannel}
               onChange={this.onPuzzleHooksSlackChannelChanged}
             />
-            <HelpBlock>
+            <FormText>
               If provided, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.  Make sure to include the # at the beginning of the channel name, like
               {' '}
               <code>#general</code>
               .
-            </HelpBlock>
+            </FormText>
           </div>
         </FormGroup>
 
-        {this.state.submitState === HuntModalFormSubmitState.FAILED && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
+        {this.state.submitState === HuntModalFormSubmitState.FAILED && <Alert variant="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>
     );
   }
@@ -374,7 +374,7 @@ class Hunt extends React.Component<HuntProps> {
   editButton = () => {
     if (this.props.canUpdate) {
       return (
-        <Button onClick={this.showEditModal} bsStyle="default" title="Edit hunt...">
+        <Button onClick={this.showEditModal} variant="default" title="Edit hunt...">
           <FontAwesomeIcon fixedWidth icon={faEdit} />
         </Button>
       );
@@ -386,7 +386,7 @@ class Hunt extends React.Component<HuntProps> {
   deleteButton = () => {
     if (this.props.canDestroy) {
       return (
-        <Button onClick={this.showDeleteModal} bsStyle="danger" title="Delete hunt...">
+        <Button onClick={this.showDeleteModal} variant="danger" title="Delete hunt...">
           <FontAwesomeIcon fixedWidth icon={faMinus} />
         </Button>
       );
@@ -415,7 +415,7 @@ class Hunt extends React.Component<HuntProps> {
           {this.props.hunt.name}
           &quot;? This will additionally delete all puzzles and associated state.
         </ModalForm>
-        <ButtonGroup bsSize="xs">
+        <ButtonGroup size="sm">
           {this.editButton()}
           {this.deleteButton()}
         </ButtonGroup>
@@ -479,7 +479,7 @@ class HuntListPage extends React.Component<HuntListPageProps> {
   addButton = () => {
     if (this.props.canAdd) {
       return (
-        <Button onClick={this.showAddModal} bsStyle="success" bsSize="xs" title="Add new hunt...">
+        <Button onClick={this.showAddModal} variant="success" size="sm" title="Add new hunt...">
           <FontAwesomeIcon icon={faPlus} />
         </Button>
       );

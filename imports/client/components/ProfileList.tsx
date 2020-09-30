@@ -1,12 +1,12 @@
 import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import InputGroup from 'react-bootstrap/lib/InputGroup';
-import ListGroup from 'react-bootstrap/lib/ListGroup';
-import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
+import InputGroup from 'react-bootstrap/InputGroup';
+import ListGroup from 'react-bootstrap/ListGroup';
+import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import * as RRBS from 'react-router-bootstrap';
 import { ProfileType } from '../../lib/schemas/profiles';
 
@@ -30,9 +30,9 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
 
   // The type annotation on FormControl is wrong here - the event is from the
   // input element, not the FormControl React component
-  onSearchStringChange = (e: React.FormEvent<FormControl>) => {
+  onSearchStringChange: FormControlProps['onChange'] = (e) => {
     this.setState({
-      searchString: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
+      searchString: e.currentTarget.value,
     });
   };
 
@@ -82,7 +82,7 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
     }
 
     return (
-      <Alert bsStyle="info">
+      <Alert variant="info">
         This shows everyone registered on Jolly Roger, not just those hunting in this year&apos;s
         Mystery Hunt. For that, go to the hunt page and click on &quot;Hunters&quot;.
       </Alert>
@@ -103,9 +103,9 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
         </div>
 
         <FormGroup>
-          <ControlLabel htmlFor="jr-profile-list-search">
+          <FormLabel htmlFor="jr-profile-list-search">
             Search
-          </ControlLabel>
+          </FormLabel>
           <InputGroup>
             <FormControl
               id="jr-profile-list-search"
@@ -114,11 +114,11 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
               value={this.state.searchString}
               onChange={this.onSearchStringChange}
             />
-            <InputGroup.Button>
-              <Button onClick={this.clearSearch}>
+            <InputGroup.Append>
+              <Button variant="secondary" onClick={this.clearSearch}>
                 Clear
               </Button>
-            </InputGroup.Button>
+            </InputGroup.Append>
           </InputGroup>
         </FormGroup>
 

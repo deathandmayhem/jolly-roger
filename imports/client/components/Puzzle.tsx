@@ -4,7 +4,7 @@ import { faEdit, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React from 'react';
-import Button from 'react-bootstrap/lib/Button';
+import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router';
 import Ansible from '../../ansible';
 import { PuzzleType } from '../../lib/schemas/puzzles';
@@ -64,7 +64,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
   editButton = () => {
     if (this.props.canUpdate) {
       return (
-        <Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
+        <Button onClick={this.showEditModal} variant="default" size="sm" title="Edit puzzle...">
           <FontAwesomeIcon icon={faEdit} />
         </Button>
       );

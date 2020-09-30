@@ -5,10 +5,10 @@ import { _ } from 'meteor/underscore';
 import classnames from 'classnames';
 import { Location } from 'history';
 import React from 'react';
-import Button from 'react-bootstrap/lib/Button';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import InputGroup from 'react-bootstrap/lib/InputGroup';
+import Button from 'react-bootstrap/Button';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import InputGroup from 'react-bootstrap/InputGroup';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { Link, browserHistory } from 'react-router';
 import Guesses from '../../lib/models/guess';
@@ -145,10 +145,8 @@ type GuessQueuePageProps = GuessQueuePageParams & {
 };
 
 class GuessQueuePage extends React.Component<GuessQueuePageProps> {
-  searchBarRef?: HTMLInputElement
-
-  onSearchStringChange = (e: React.FormEvent<FormControl>) => {
-    this.setSearchString((e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value);
+  onSearchStringChange: FormControlProps['onChange'] = (e) => {
+    this.setSearchString(e.currentTarget.value);
   };
 
   getSearchString = (): string => {
@@ -218,17 +216,17 @@ class GuessQueuePage extends React.Component<GuessQueuePageProps> {
           <InputGroup>
             <FormControl
               id="jr-guess-search"
+              as="input"
               type="text"
-              inputRef={(ref) => { this.searchBarRef = ref; }}
               placeholder="Filter by title or answer"
               value={this.getSearchString()}
               onChange={this.onSearchStringChange}
             />
-            <InputGroup.Button>
-              <Button onClick={this.clearSearch}>
+            <InputGroup.Append>
+              <Button variant="secondary" onClick={this.clearSearch}>
                 Clear
               </Button>
-            </InputGroup.Button>
+            </InputGroup.Append>
           </InputGroup>
         </FormGroup>
         {guesses.map((guess) => {

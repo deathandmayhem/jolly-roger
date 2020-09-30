@@ -5,9 +5,9 @@ import { _ } from 'meteor/underscore';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
 import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar';
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import DocumentTitle from 'react-document-title';
 import { WithRouterProps, withRouter } from 'react-router';
@@ -28,7 +28,7 @@ class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
   undestroyButton = () => {
     if (this.props.canUndestroy) {
       return (
-        <Button bsStyle="primary" onClick={this.undestroy}>
+        <Button variant="primary" onClick={this.undestroy}>
           Undelete this hunt
         </Button>
       );
@@ -39,12 +39,12 @@ class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
   render() {
     return (
       <div>
-        <Alert bsStyle="danger">
+        <Alert variant="danger">
           This hunt has been deleted, so there&apos;s nothing much to see here anymore.
         </Alert>
 
         <ButtonToolbar>
-          <Button bsStyle="default" onClick={this.props.router.goBack}>
+          <Button variant="default" onClick={this.props.router.goBack}>
             Whoops! Get me out of here
           </Button>
           {this.undestroyButton()}
@@ -73,7 +73,7 @@ class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
   joinButton = () => {
     if (this.props.canJoin) {
       return (
-        <Button bsStyle="primary" onClick={this.join}>
+        <Button variant="primary" onClick={this.join}>
           Use operator permissions to join
         </Button>
       );
@@ -85,7 +85,7 @@ class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
     const msg = marked(DOMPurify.sanitize(this.props.hunt.signupMessage || ''));
     return (
       <div>
-        <Alert bsStyle="warning">
+        <Alert variant="warning">
           You&apos;re not signed up for this hunt (
           {this.props.hunt.name}
           ) yet.
@@ -97,7 +97,7 @@ class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
         />
 
         <ButtonToolbar>
-          <Button bsStyle="default" onClick={this.props.router.goBack}>
+          <Button variant="default" onClick={this.props.router.goBack}>
             Whoops! Get me out of here
           </Button>
           {this.joinButton()}
