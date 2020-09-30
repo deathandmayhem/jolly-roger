@@ -326,7 +326,7 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
     return (
       <div>
         <h1>Account information</h1>
-        {this.props.canMakeOperator ? <FormCheck checked={this.props.operating} onChange={this.toggleOperating}>Operating</FormCheck> : null}
+        {this.props.canMakeOperator ? <FormCheck type="checkbox" checked={this.props.operating} onChange={this.toggleOperating} label="Operating" /> : null}
         <FormGroup>
           <FormLabel htmlFor="jr-profile-edit-email">
             Email address
@@ -409,9 +409,7 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
         </FormGroup>
 
         <FormGroup>
-          <FormCheck type="checkbox" checked={this.state.muteApplause} onChange={this.onDisableApplauseChange}>
-            Mute applause
-          </FormCheck>
+          <FormCheck type="checkbox" checked={this.state.muteApplause} onChange={this.onDisableApplauseChange} label="Mute applause" />
           <FormText>
             Enable this option if you find the applause sound when we solve a puzzle annoying.
           </FormText>

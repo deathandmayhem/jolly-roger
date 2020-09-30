@@ -362,10 +362,10 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
             {comp}
           </Badge>
           <span className="setup-section-header-buttons">
-            <Button variant="default" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
+            <Button variant="secondary" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
               {firstButtonLabel}
             </Button>
-            <Button variant="default" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
+            <Button variant="secondary" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
               {secondButtonLabel}
             </Button>
           </span>
@@ -546,10 +546,10 @@ class SlackIntegrationSection extends React.Component<SlackIntegrationSectionPro
           </Badge>
           {this.props.configured && (
           <span className="setup-section-header-buttons">
-            <Button variant="default" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
+            <Button variant="secondary" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
               {firstButtonLabel}
             </Button>
-            <Button variant="default" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
+            <Button variant="secondary" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
               {secondButtonLabel}
             </Button>
           </span>
@@ -627,10 +627,10 @@ class CircuitBreakerControl extends React.Component<CircuitBreakerControlProps> 
             {this.props.title}
           </div>
           <div className="circuit-breaker-buttons">
-            <Button variant="default" disabled={featureIsEnabled} onClick={this.onChange}>
+            <Button variant="secondary" disabled={featureIsEnabled} onClick={this.onChange}>
               {firstButtonLabel}
             </Button>
-            <Button variant="default" disabled={!featureIsEnabled} onClick={this.onChange}>
+            <Button variant="secondary" disabled={!featureIsEnabled} onClick={this.onChange}>
               {secondButtonLabel}
             </Button>
           </div>

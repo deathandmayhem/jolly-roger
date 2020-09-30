@@ -2,6 +2,7 @@ import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
 
 /* eslint-disable max-len, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
 
@@ -313,9 +314,9 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
               {format === AccountFormFormat.LOGIN || format === AccountFormFormat.ENROLL || format === AccountFormFormat.RESET_PWD ? pwInput : null}
               {pwResetOptionComponent}
               {format === AccountFormFormat.ENROLL ? enrollmentFields : null}
-              <button id="at-btn" className="at-btn submit btn btn-lg btn-block btn-default" type="submit" disabled={submitting}>
+              <Button id="at-btn" size="lg" variant="outline-secondary" block className="at-btn submit" type="submit" disabled={submitting}>
                 {buttonText}
-              </button>
+              </Button>
               {backToMainForm}
             </fieldset>
           </form>

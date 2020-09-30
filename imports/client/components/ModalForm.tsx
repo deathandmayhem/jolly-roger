@@ -65,7 +65,7 @@ class ModalForm extends React.Component<ModalFormProps, ModalFormState> {
           </Modal.Body>
           <Modal.Footer>
             <Button
-              variant="default"
+              variant="secondary"
               onClick={this.close}
               disabled={this.props.submitDisabled}
             >

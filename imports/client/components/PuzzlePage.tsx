@@ -45,6 +45,8 @@ import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm
 import RelatedPuzzleGroups from './RelatedPuzzleGroups';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 /* eslint-disable max-len, no-console */
 
@@ -671,7 +673,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
   editButton = () => {
     if (this.props.canUpdate) {
       return (
-        <Button onClick={this.showEditModal} variant="default" size="sm" title="Edit puzzle...">
+        <Button onClick={this.showEditModal} variant="outline-secondary" size="sm" title="Edit puzzle...">
           <FontAwesomeIcon icon={faEdit} />
         </Button>
       );
@@ -747,7 +749,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             />
           )}
           {!isAdministrivia && (
-            <Button className="puzzle-metadata-guess-button btn-primary" onClick={this.showGuessModal}>
+            <Button variant="primary" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
               { this.props.puzzle.answers.length === this.props.puzzle.expectedAnswerCount ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
             </Button>
           )}
@@ -899,11 +901,11 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
         onSubmit={this.onSubmitGuess}
         submitLabel={this.state.confirmingSubmit ? 'Confirm Submit' : 'Submit'}
       >
-        <FormGroup>
-          <FormLabel htmlFor="jr-puzzle-guess" className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-puzzle-guess">
             Guess
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormControl
               type="text"
               id="jr-puzzle-guess"
@@ -912,12 +914,14 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
               onChange={this.onGuessInputChange}
               value={this.state.guessInput}
             />
-          </div>
+          </Col>
+        </FormGroup>
 
-          <FormLabel htmlFor="jr-puzzle-guess-direction" className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-direction">
             Solve direction
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <OverlayTrigger placement="right" overlay={directionTooltip}>
               <FormControl
                 type="range"
@@ -934,12 +938,14 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
               the puzzle) to 10 (forward-solved without seeing the
               round) to indicate if you forward- or back-solved.
             </FormText>
-          </div>
+          </Col>
+        </FormGroup>
 
-          <FormLabel htmlFor="jr-puzzle-guess-confidence" className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
             Confidence
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <OverlayTrigger placement="right" overlay={confidenceTooltip}>
               <FormControl
                 type="range"
@@ -955,7 +961,7 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
               Pick a number between 0 and 100 for the probability that
               you think this answer is right.
             </FormText>
-          </div>
+          </Col>
         </FormGroup>
 
         {this.props.guesses.length === 0 ? <div>No previous submissions.</div> : [

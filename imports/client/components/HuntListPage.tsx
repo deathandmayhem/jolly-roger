@@ -19,6 +19,8 @@ import Ansible from '../../ansible';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
 import ModalForm from './ModalForm';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 /* eslint-disable max-len */
 
@@ -174,11 +176,11 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         onSubmit={this.onFormSubmit}
         submitDisabled={disableForm}
       >
-        <FormGroup>
-          <FormLabel htmlFor={`${idPrefix}name`} className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}name`}>
             Name
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormControl
               id={`${idPrefix}name`}
               type="text"
@@ -187,14 +189,14 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               autoFocus
               disabled={disableForm}
             />
-          </div>
+          </Col>
         </FormGroup>
 
-        <FormGroup>
-          <FormLabel htmlFor={`${idPrefix}mailing-lists`} className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}mailing-lists`}>
             Mailing lists
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormControl
               id={`${idPrefix}mailing-lists`}
               type="text"
@@ -205,14 +207,14 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
             <FormText>
               Users joining this hunt will be automatically added to all of these (comma-separated) lists
             </FormText>
-          </div>
+          </Col>
         </FormGroup>
 
-        <FormGroup>
-          <FormLabel htmlFor={`${idPrefix}signup-message`} className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}signup-message`}>
             Signup message
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormControl
               id={`${idPrefix}signup-message`}
               as="textarea"
@@ -223,14 +225,14 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
             <FormText>
               This message (rendered as markdown) will be shown to users who aren&apos;t part of the hunt. This is a good place to put directions for how to sign up.
             </FormText>
-          </div>
+          </Col>
         </FormGroup>
 
-        <FormGroup>
-          <FormLabel htmlFor={`${idPrefix}open-signups`} className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}open-signups`}>
             Open invites
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormCheck
               id={`${idPrefix}open-signups`}
               checked={this.state.openSignups}
@@ -240,14 +242,14 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
             <FormText>
               If open invites are enabled, then any current member of the hunt can add a new member to the hunt. Otherwise, only operators can add new members.
             </FormText>
-          </div>
+          </Col>
         </FormGroup>
 
-        <FormGroup>
-          <FormLabel htmlFor={`${idPrefix}submit-template`} className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}submit-template`}>
             Submit URL template
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormControl
               id={`${idPrefix}submit-template`}
               type="text"
@@ -278,14 +280,14 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               {' '}
               would work for the 2018 Mystery Hunt. If not specified, the puzzle URL is used as the link to the guess submission page.
             </FormText>
-          </div>
+          </Col>
         </FormGroup>
 
-        <FormGroup>
-          <FormLabel htmlFor={`${idPrefix}firehose-slack-channel`} className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}firehose-slack-channel`}>
             Firehose Slack channel
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormControl
               id={`${idPrefix}firehose-slack-channel`}
               type="text"
@@ -299,14 +301,14 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               <code>#firehose</code>
               .
             </FormText>
-          </div>
+          </Col>
         </FormGroup>
 
-        <FormGroup>
-          <FormLabel htmlFor={`${idPrefix}puzzle-hooks-slack-channel`} className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}puzzle-hooks-slack-channel`}>
             Puzzle added/solved Slack channel
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormControl
               id={`${idPrefix}puzzle-hooks-slack-channel`}
               type="text"
@@ -319,7 +321,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               <code>#general</code>
               .
             </FormText>
-          </div>
+          </Col>
         </FormGroup>
 
         {this.state.submitState === HuntModalFormSubmitState.FAILED && <Alert variant="danger">{this.state.errorMessage}</Alert>}
@@ -374,7 +376,7 @@ class Hunt extends React.Component<HuntProps> {
   editButton = () => {
     if (this.props.canUpdate) {
       return (
-        <Button onClick={this.showEditModal} variant="default" title="Edit hunt...">
+        <Button onClick={this.showEditModal} variant="outline-secondary" title="Edit hunt...">
           <FontAwesomeIcon fixedWidth icon={faEdit} />
         </Button>
       );

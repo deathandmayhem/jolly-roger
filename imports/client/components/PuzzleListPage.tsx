@@ -364,19 +364,21 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
           <div className="puzzle-view-controller">
             <FormLabel htmlFor="jr-puzzle-search">View puzzles by:</FormLabel>
             <div className="puzzle-view-controls">
-              <ButtonToolbar>
-                <ToggleButtonGroup type="radio" name="puzzle-view" defaultValue="group" value={this.state.displayMode} onChange={this.switchView}>
-                  <ToggleButton value="group">Group</ToggleButton>
-                  <ToggleButton value="unlock">Unlock</ToggleButton>
-                </ToggleButtonGroup>
-                <ToggleButtonGroup
-                  type="checkbox"
-                  value={this.state.showSolved ? ['true'] : []}
-                  onChange={this.changeShowSolved}
-                >
-                  <ToggleButton value="true">Show solved</ToggleButton>
-                </ToggleButtonGroup>
-              </ButtonToolbar>
+              <div>
+                <ButtonToolbar>
+                  <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={this.state.displayMode} onChange={this.switchView}>
+                    <ToggleButton variant="outline-secondary" value="group">Group</ToggleButton>
+                    <ToggleButton variant="outline-secondary" value="unlock">Unlock</ToggleButton>
+                  </ToggleButtonGroup>
+                  <ToggleButtonGroup
+                    type="checkbox"
+                    value={this.state.showSolved ? ['true'] : []}
+                    onChange={this.changeShowSolved}
+                  >
+                    <ToggleButton variant="outline-secondary" value="true">Show solved</ToggleButton>
+                  </ToggleButtonGroup>
+                </ButtonToolbar>
+              </div>
               <FormGroup>
                 <InputGroup>
                   <FormControl

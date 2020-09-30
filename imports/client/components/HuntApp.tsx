@@ -44,7 +44,7 @@ class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
         </Alert>
 
         <ButtonToolbar>
-          <Button variant="default" onClick={this.props.router.goBack}>
+          <Button variant="secondary" onClick={this.props.router.goBack}>
             Whoops! Get me out of here
           </Button>
           {this.undestroyButton()}
@@ -97,7 +97,7 @@ class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
         />
 
         <ButtonToolbar>
-          <Button variant="default" onClick={this.props.router.goBack}>
+          <Button variant="secondary" onClick={this.props.router.goBack}>
             Whoops! Get me out of here
           </Button>
           {this.joinButton()}

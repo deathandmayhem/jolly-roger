@@ -4,10 +4,12 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import Creatable from 'react-select/creatable';
+import Row from 'react-bootstrap/Row';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import LabelledRadioGroup from './LabelledRadioGroup';
 import ModalForm from './ModalForm';
+import Col from 'react-bootstrap/esm/Col';
 
 /* eslint-disable max-len */
 
@@ -220,11 +222,11 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
       });
 
     const docTypeSelector = !this.props.puzzle && this.state.docType ? (
-      <FormGroup>
-        <FormLabel className="col-xs-3" htmlFor="jr-new-puzzle-doc-type">
+      <FormGroup as={Row}>
+        <FormLabel column xs={3} htmlFor="jr-new-puzzle-doc-type">
           Document type
         </FormLabel>
-        <div className="col-xs-9">
+        <Col xs={9}>
           <LabelledRadioGroup
             header=""
             name="jr-new-puzzle-doc-type"
@@ -242,7 +244,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
             help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
             onChange={this.onDocTypeChange}
           />
-        </div>
+        </Col>
       </FormGroup>
     ) : null;
 
@@ -253,11 +255,11 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
         onSubmit={this.onFormSubmit}
         submitDisabled={disableForm}
       >
-        <FormGroup>
-          <FormLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-title">
             Title
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormControl
               id="jr-new-puzzle-title"
               type="text"
@@ -266,14 +268,14 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
               onChange={this.onTitleChange}
               value={this.currentTitle()}
             />
-          </div>
+          </Col>
         </FormGroup>
 
-        <FormGroup>
-          <FormLabel className="col-xs-3" htmlFor="jr-new-puzzle-url">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-url">
             URL
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormControl
               id="jr-new-puzzle-url"
               type="text"
@@ -281,14 +283,14 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
               onChange={this.onUrlChange}
               value={this.currentUrl()}
             />
-          </div>
+          </Col>
         </FormGroup>
 
-        <FormGroup>
-          <FormLabel className="col-xs-3" htmlFor="jr-new-puzzle-tags">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags">
             Tags
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <Creatable
               id="jr-new-puzzle-tags"
               options={selectOptions}
@@ -297,16 +299,16 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
               onChange={this.onTagsChange as any /* onChange type declaration doesn't understand isMulti */}
               value={this.currentTags().map((t) => { return { label: t, value: t }; })}
             />
-          </div>
+          </Col>
         </FormGroup>
 
         {docTypeSelector}
 
-        <FormGroup>
-          <FormLabel className="col-xs-3" htmlFor="jr-new-puzzle-expected-answer-count">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-expected-answer-count">
             Expected # of answers
           </FormLabel>
-          <div className="col-xs-9">
+          <Col xs={9}>
             <FormControl
               id="jr-new-puzzle-expected-answer-count"
               type="number"
@@ -316,7 +318,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
               min={1}
               step={1}
             />
-          </div>
+          </Col>
         </FormGroup>
 
         {this.state.submitState === PuzzleModalFormSubmitState.FAILED && <Alert variant="danger">{this.state.errorMessage}</Alert>}

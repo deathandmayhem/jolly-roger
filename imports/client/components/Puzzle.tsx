@@ -64,7 +64,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
   editButton = () => {
     if (this.props.canUpdate) {
       return (
-        <Button onClick={this.showEditModal} variant="default" size="sm" title="Edit puzzle...">
+        <Button onClick={this.showEditModal} variant="secondary" size="sm" title="Edit puzzle...">
           <FontAwesomeIcon icon={faEdit} />
         </Button>
       );
