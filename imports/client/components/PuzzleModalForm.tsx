@@ -1,10 +1,10 @@
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
+import Col from 'react-bootstrap/Col';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/esm/Col';
 import Creatable from 'react-select/creatable';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
