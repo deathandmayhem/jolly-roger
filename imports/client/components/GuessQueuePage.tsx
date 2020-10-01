@@ -223,7 +223,7 @@ class GuessQueuePage extends React.Component<GuessQueuePageProps> {
               onChange={this.onSearchStringChange}
             />
             <InputGroup.Append>
-              <Button variant="secondary" onClick={this.clearSearch}>
+              <Button variant="outline-secondary" onClick={this.clearSearch}>
                 Clear
               </Button>
             </InputGroup.Append>
