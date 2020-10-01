@@ -1010,6 +1010,7 @@ class CircuitBreakerControl extends React.Component<CircuitBreakerControlProps> 
 interface CircuitBreakerSectionProps {
   flagDisableGdrivePermissions: boolean;
   flagDisableApplause: boolean;
+  flagDisableWebrtc: boolean;
 }
 
 class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> {
@@ -1080,6 +1081,32 @@ class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> 
             particular hunt when a puzzle in that hunt is solved.
           </p>
         </CircuitBreakerControl>
+        <CircuitBreakerControl
+          title="WebRTC calls"
+          featureDisabled={this.props.flagDisableWebrtc}
+          onChange={(newValue) => this.setFlagValue('disable.webrtc', newValue)}
+        >
+          <p>
+            Jolly Roger has experimental support for making WebRTC audio calls
+            built into each puzzle page.  Jolly Roger provides the signaling
+            server and all members of the call establish a direct connection to
+            all other members of the same call (which is more complex at the
+            edge, but avoids needing to operate a separate high-capacity,
+            latency-sensitive reencoding server).  Note that video calls are
+            not currently supported primarily due to the bandwidth constraints
+            the mesh connectivity would imply -- video consumes 60x the bitrate
+            of audio, and we estimate most residential network connections to
+            only be able to reliably support around 4 call participants at a
+            time before significant degradation.
+          </p>
+          <p>
+            Disabling this feature means that Jolly Roger will not show an
+            audiocall section in the UI on the puzzle page, nor will clients
+            join calls.  The server will still service WebRTC-related
+            subscriptions and methods, but we expect clients to not generate
+            such load once the flag is flipped.
+          </p>
+        </CircuitBreakerControl>
       </section>
     );
   }
@@ -1103,6 +1130,7 @@ interface SetupPageRewriteProps {
   flagDisableGoogleIntegration: boolean;
   flagDisableGdrivePermissions: boolean;
   flagDisableApplause: boolean;
+  flagDisableWebrtc: boolean;
 }
 
 class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
@@ -1145,6 +1173,7 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
         <CircuitBreakerSection
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
           flagDisableApplause={this.props.flagDisableApplause}
+          flagDisableWebrtc={this.props.flagDisableWebrtc}
         />
       </div>
     );
@@ -1180,6 +1209,7 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   const flagDisableGoogleIntegration = Flags.active('disable.google');
   const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
   const flagDisableApplause = Flags.active('disable.applause');
+  const flagDisableWebrtc = Flags.active('disable.webrtc');
 
   return {
     ready: settingsHandle.ready(),
@@ -1199,6 +1229,7 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     flagDisableGoogleIntegration,
     flagDisableGdrivePermissions,
     flagDisableApplause,
+    flagDisableWebrtc,
   };
 });
 
