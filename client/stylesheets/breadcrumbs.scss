@@ -1,4 +1,8 @@
-.jolly-roger .nav-breadcrumbs {
+@import "../../node_modules/bootstrap/scss/functions";
+@import "../../node_modules/bootstrap/scss/variables";
+@import "../../node_modules/bootstrap/scss/mixins";
+
+.jolly-roger .nav-breadcrumbs ol {
   height: 50px; // navbar height
   vertical-align: top; // Fill content from top
   background-color: transparent;
@@ -16,16 +20,16 @@
   // See below for max-width at different screen sizes.
 }
 
-@media (max-width: 767px) {
+@include media-breakpoint-down(sm) {
   .jolly-roger .nav-breadcrumbs {
     // Don't cause the logo or hamburger button to wrap onto a new line.
     // Size allowed is 100% of navbar width, minus 50px for the jolly-roger logo, and
-    // 1+10+22+10+1 + 8px = 52px for the toggle button.
-    max-width: calc(100% - 102px);
+    // 1+12+30+12+1 + 8px = 64px for the toggle button.
+    max-width: calc(100% - 122px);
   }
 }
 
-@media (min-width: 768px) {
+@include media-breakpoint-up(md) {
   .jolly-roger .nav-breadcrumbs {
     max-width: calc(100vw - 280px); // Hopefully most people's names fit in 250px
   }
@@ -36,8 +40,4 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.jolly-roger button.navbar-toggle {
-  margin-right: 8px; // Pack tighter to make more space in navbar.
 }

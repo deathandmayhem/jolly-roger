@@ -2,8 +2,8 @@ import { _ } from 'meteor/underscore';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import Button from 'react-bootstrap/lib/Button';
-import ButtonGroup from 'react-bootstrap/lib/ButtonGroup';
+import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import Tag from './Tag';
@@ -146,6 +146,7 @@ class TagList extends React.PureComponent<TagListProps, TagListState> {
         <ButtonGroup key="editRemoveGroup">
           {this.props.onCreateTag && (
             <Button
+              variant="outline-secondary"
               title="Add tag..."
               key="startEditing"
               className="tag-modify-button"
@@ -156,6 +157,7 @@ class TagList extends React.PureComponent<TagListProps, TagListState> {
           )}
           {this.props.onRemoveTag && tags.length > 0 && (
             <Button
+              variant="outline-secondary"
               title="Remove tag..."
               key="startRemoving"
               className="tag-modify-button"

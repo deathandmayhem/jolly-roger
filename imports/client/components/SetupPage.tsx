@@ -6,12 +6,12 @@ import { withTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
 import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Badge from 'react-bootstrap/lib/Badge';
-import Button from 'react-bootstrap/lib/Button';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
+import Alert from 'react-bootstrap/Alert';
+import Badge from 'react-bootstrap/Badge';
+import Button from 'react-bootstrap/Button';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
 import Settings from '../../lib/models/settings';
@@ -92,15 +92,15 @@ class GoogleOAuthForm extends React.Component<GoogleOAuthFormProps, GoogleOAuthF
     }
   };
 
-  onClientIdChange = (e: React.FormEvent<FormControl>) => {
+  onClientIdChange: FormControlProps['onChange'] = (e) => {
     this.setState({
-      clientId: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
+      clientId: e.currentTarget.value,
     });
   };
 
-  onClientSecretChange = (e: React.FormEvent<FormControl>) => {
+  onClientSecretChange: FormControlProps['onChange'] = (e) => {
     this.setState({
-      clientSecret: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
+      clientSecret: e.currentTarget.value,
     });
   };
 
@@ -109,19 +109,19 @@ class GoogleOAuthForm extends React.Component<GoogleOAuthFormProps, GoogleOAuthF
     const secretPlaceholder = this.props.isConfigured ? '<configured secret not revealed>' : '';
     return (
       <form onSubmit={this.onSubmitOauthConfiguration}>
-        {this.state.submitState === SubmitState.SUBMITTING ? <Alert bsStyle="info">Saving...</Alert> : null}
-        {this.state.submitState === SubmitState.ERROR ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === SubmitState.SUBMITTING ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === SubmitState.ERROR ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
         {this.state.submitState === SubmitState.ERROR ? (
-          <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
             Saving failed:
             {' '}
             {this.state.submitError}
           </Alert>
         ) : null}
         <FormGroup>
-          <ControlLabel htmlFor="jr-setup-edit-google-client-id">
+          <FormLabel htmlFor="jr-setup-edit-google-client-id">
             Client ID
-          </ControlLabel>
+          </FormLabel>
           <FormControl
             id="jr-setup-edit-google-client-id"
             type="text"
@@ -131,9 +131,9 @@ class GoogleOAuthForm extends React.Component<GoogleOAuthFormProps, GoogleOAuthF
           />
         </FormGroup>
         <FormGroup>
-          <ControlLabel htmlFor="jr-setup-edit-google-client-secret">
+          <FormLabel htmlFor="jr-setup-edit-google-client-secret">
             Client secret
-          </ControlLabel>
+          </FormLabel>
           <FormControl
             id="jr-setup-edit-google-client-secret"
             type="text"
@@ -143,7 +143,7 @@ class GoogleOAuthForm extends React.Component<GoogleOAuthFormProps, GoogleOAuthF
             placeholder={secretPlaceholder}
           />
         </FormGroup>
-        <Button bsStyle="primary" type="submit" disabled={shouldDisableForm} onSubmit={this.onSubmitOauthConfiguration}>
+        <Button variant="primary" type="submit" disabled={shouldDisableForm} onSubmit={this.onSubmitOauthConfiguration}>
           Save
         </Button>
       </form>
@@ -193,16 +193,16 @@ class GoogleAuthorizeDriveClientForm extends React.Component<{}, GoogleAuthorize
   render() {
     return (
       <div>
-        {this.state.submitState === SubmitState.SUBMITTING ? <Alert bsStyle="info">Saving...</Alert> : null}
-        {this.state.submitState === SubmitState.SUCCESS ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === SubmitState.SUBMITTING ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === SubmitState.SUCCESS ? <Alert variant="success" onClose={this.dismissAlert}>Saved changes.</Alert> : null}
         {this.state.submitState === SubmitState.ERROR ? (
-          <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
             Saving failed:
             {' '}
             {this.state.error.message}
           </Alert>
         ) : null}
-        <Button bsStyle="primary" onClick={this.showPopup}>Link a Google account</Button>
+        <Button variant="primary" onClick={this.showPopup}>Link a Google account</Button>
         for Google Drive management. (This will replace any previously configured account)
       </div>
     );
@@ -238,19 +238,19 @@ class GoogleDriveTemplateForm extends React.Component<GoogleDriveTemplateFormPro
     this.setState({ submitState: SubmitState.IDLE });
   };
 
-  onSpreadsheetTemplateChange = (e: React.FormEvent<FormControl>) => {
+  onSpreadsheetTemplateChange: FormControlProps['onChange'] = (e) => {
     this.setState({
-      spreadsheetTemplate: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
+      spreadsheetTemplate: e.currentTarget.value,
     });
   };
 
-  onDocTemplateChange = (e: React.FormEvent<FormControl>) => {
+  onDocTemplateChange: FormControlProps['onChange'] = (e) => {
     this.setState({
-      docTemplate: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
+      docTemplate: e.currentTarget.value,
     });
   };
 
-  saveTemplates = (e: React.MouseEvent<Button>) => {
+  saveTemplates = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     const ssTemplate = this.state.spreadsheetTemplate.trim();
     const ssId = ssTemplate.length > 0 ? ssTemplate : undefined;
@@ -272,19 +272,19 @@ class GoogleDriveTemplateForm extends React.Component<GoogleDriveTemplateFormPro
     const shouldDisableForm = this.state.submitState === 'submitting';
     return (
       <div>
-        {this.state.submitState === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
         {this.state.submitState === 'error' ? (
-          <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
             Saving failed:
             {' '}
             {this.state.error.message}
           </Alert>
         ) : null}
         <FormGroup>
-          <ControlLabel htmlFor="jr-setup-edit-gdrive-sheet-template">
+          <FormLabel htmlFor="jr-setup-edit-gdrive-sheet-template">
             Spreadsheet template doc id
-          </ControlLabel>
+          </FormLabel>
           <FormControl
             id="jr-setup-edit-gdrive-sheet-template"
             type="text"
@@ -294,9 +294,9 @@ class GoogleDriveTemplateForm extends React.Component<GoogleDriveTemplateFormPro
           />
         </FormGroup>
         <FormGroup>
-          <ControlLabel htmlFor="jr-setup-edit-gdrive-doc-template">
+          <FormLabel htmlFor="jr-setup-edit-gdrive-doc-template">
             Document template doc id
-          </ControlLabel>
+          </FormLabel>
           <FormControl
             id="jr-setup-edit-gdrive-doc-template"
             type="text"
@@ -305,7 +305,7 @@ class GoogleDriveTemplateForm extends React.Component<GoogleDriveTemplateFormPro
             onChange={this.onDocTemplateChange}
           />
         </FormGroup>
-        <Button bsStyle="primary" onClick={this.saveTemplates} disabled={shouldDisableForm}>Save</Button>
+        <Button variant="primary" onClick={this.saveTemplates} disabled={shouldDisableForm}>Save</Button>
       </div>
     );
   }
@@ -362,10 +362,10 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
             {comp}
           </Badge>
           <span className="setup-section-header-buttons">
-            <Button bsStyle="default" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
+            <Button variant="light" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
               {firstButtonLabel}
             </Button>
-            <Button bsStyle="default" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
+            <Button variant="light" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
               {secondButtonLabel}
             </Button>
           </span>
@@ -497,13 +497,13 @@ class SlackIntegrationSection extends React.Component<SlackIntegrationSectionPro
     Meteor.call('setFeatureFlag', 'disable.slack', ffValue);
   };
 
-  onApiKeyChange = (e: React.FormEvent<FormControl>) => {
+  onApiKeyChange: FormControlProps['onChange'] = (e) => {
     this.setState({
-      apiKeyValue: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
+      apiKeyValue: e.currentTarget.value,
     });
   };
 
-  onSaveApiKey = (e: React.MouseEvent<Button>) => {
+  onSaveApiKey = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     this.setState({
       submitState: SubmitState.SUBMITTING,
@@ -546,10 +546,10 @@ class SlackIntegrationSection extends React.Component<SlackIntegrationSectionPro
           </Badge>
           {this.props.configured && (
           <span className="setup-section-header-buttons">
-            <Button bsStyle="default" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
+            <Button variant="light" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
               {firstButtonLabel}
             </Button>
-            <Button bsStyle="default" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
+            <Button variant="light" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
               {secondButtonLabel}
             </Button>
           </span>
@@ -563,10 +563,10 @@ class SlackIntegrationSection extends React.Component<SlackIntegrationSectionPro
           to take note.
         </p>
 
-        {this.state.submitState === 'submitting' ? <Alert bsStyle="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert bsStyle="success" onDismiss={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
         {this.state.submitState === 'error' ? (
-          <Alert bsStyle="danger" onDismiss={this.dismissAlert}>
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
             Saving failed:
             {' '}
             {this.state.submitError}
@@ -574,9 +574,9 @@ class SlackIntegrationSection extends React.Component<SlackIntegrationSectionPro
         ) : null}
 
         <FormGroup>
-          <ControlLabel htmlFor="jr-setup-edit-slack-api-key">
+          <FormLabel htmlFor="jr-setup-edit-slack-api-key">
             API key
-          </ControlLabel>
+          </FormLabel>
           <FormControl
             id="jr-setup-edit-slack-api-key"
             type="text"
@@ -586,7 +586,7 @@ class SlackIntegrationSection extends React.Component<SlackIntegrationSectionPro
             onChange={this.onApiKeyChange}
           />
         </FormGroup>
-        <Button bsStyle="primary" type="submit" onClick={this.onSaveApiKey}>Save</Button>
+        <Button variant="primary" type="submit" onClick={this.onSaveApiKey}>Save</Button>
       </section>
     );
   }
@@ -627,10 +627,10 @@ class CircuitBreakerControl extends React.Component<CircuitBreakerControlProps> 
             {this.props.title}
           </div>
           <div className="circuit-breaker-buttons">
-            <Button bsStyle="default" disabled={featureIsEnabled} onClick={this.onChange}>
+            <Button variant="light" disabled={featureIsEnabled} onClick={this.onChange}>
               {firstButtonLabel}
             </Button>
-            <Button bsStyle="default" disabled={!featureIsEnabled} onClick={this.onChange}>
+            <Button variant="light" disabled={!featureIsEnabled} onClick={this.onChange}>
               {secondButtonLabel}
             </Button>
           </div>

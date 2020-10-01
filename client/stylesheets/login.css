@@ -2,6 +2,7 @@
     max-width: 50%;
 }
 
-#jr-login {
-    margin-top: 20px;
+#jr-login.jumbotron {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
 }

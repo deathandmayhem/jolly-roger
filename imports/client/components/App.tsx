@@ -1,16 +1,19 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import Breadcrumb from 'react-bootstrap/lib/Breadcrumb';
-import BreadcrumbItem from 'react-bootstrap/lib/BreadcrumbItem';
-import MenuItem from 'react-bootstrap/lib/MenuItem';
-import Nav from 'react-bootstrap/lib/Nav';
-import NavDropdown from 'react-bootstrap/lib/NavDropdown';
-import Navbar from 'react-bootstrap/lib/Navbar';
-import NavbarBrand from 'react-bootstrap/lib/NavbarBrand';
-import NavbarCollapse from 'react-bootstrap/lib/NavbarCollapse';
-import NavbarHeader from 'react-bootstrap/lib/NavbarHeader';
-import NavbarToggle from 'react-bootstrap/lib/NavbarToggle';
+import Breadcrumb from 'react-bootstrap/Breadcrumb';
+import BreadcrumbItem from 'react-bootstrap/BreadcrumbItem';
+import Dropdown from 'react-bootstrap/Dropdown';
+import DropdownItem from 'react-bootstrap/DropdownItem';
+import DropdownMenu from 'react-bootstrap/DropdownMenu';
+import DropdownToggle from 'react-bootstrap/DropdownToggle';
+import Nav from 'react-bootstrap/Nav';
+import NavItem from 'react-bootstrap/NavItem';
+import NavLink from 'react-bootstrap/NavLink';
+import Navbar from 'react-bootstrap/Navbar';
+import NavbarBrand from 'react-bootstrap/NavbarBrand';
+import NavbarCollapse from 'react-bootstrap/NavbarCollapse';
+import NavbarToggle from 'react-bootstrap/NavbarToggle';
 import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
 import { Link } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
@@ -30,55 +33,53 @@ class AppNavbar extends React.Component<AppNavbarProps> {
 
   render() {
     return (
-      <Navbar fixedTop fluid>
-        <NavbarHeader>
-          <NavbarBrand>
-            <Link to="/">
-              <img src="/images/brand.png" alt="Jolly Roger logo" srcSet="/images/brand.png 1x, /images/brand@2x.png 2x" />
-            </Link>
-          </NavbarBrand>
-          <BreadcrumbsConsumer>
-            {({ crumbs }) => {
-              return (
-                <Breadcrumb className="nav-breadcrumbs">
-                  {crumbs.map((crumb, index) => {
-                    const last = (index === crumbs.length - 1);
-                    if (last) {
-                      return (
-                        <BreadcrumbItem key={crumb.path} active>
+      <Navbar fixed="top" expand="md" bg="light" variant="light">
+        <NavbarBrand>
+          <Link to="/">
+            <img src="/images/brand.png" alt="Jolly Roger logo" srcSet="/images/brand.png 1x, /images/brand@2x.png 2x" />
+          </Link>
+        </NavbarBrand>
+        <BreadcrumbsConsumer>
+          {({ crumbs }) => {
+            return (
+              <Breadcrumb className="nav-breadcrumbs mr-auto">
+                {crumbs.map((crumb, index) => {
+                  const last = (index === crumbs.length - 1);
+                  if (last) {
+                    return (
+                      <BreadcrumbItem key={crumb.path} active>
+                        {crumb.title}
+                      </BreadcrumbItem>
+                    );
+                  } else {
+                    return (
+                      <RRBS.LinkContainer key={crumb.path} to={crumb.path} onlyActiveOnIndex>
+                        <BreadcrumbItem active={false}>
                           {crumb.title}
                         </BreadcrumbItem>
-                      );
-                    } else {
-                      return (
-                        <RRBS.LinkContainer key={crumb.path} to={crumb.path} onlyActiveOnIndex>
-                          <BreadcrumbItem active={false}>
-                            {crumb.title}
-                          </BreadcrumbItem>
-                        </RRBS.LinkContainer>
-                      );
-                    }
-                  })}
-                </Breadcrumb>
-              );
-            }}
-          </BreadcrumbsConsumer>
-          <NavbarToggle />
-        </NavbarHeader>
+                      </RRBS.LinkContainer>
+                    );
+                  }
+                })}
+              </Breadcrumb>
+            );
+          }}
+        </BreadcrumbsConsumer>
+        <NavbarToggle />
         <NavbarCollapse>
-          <Nav pullRight>
-            <NavDropdown
-              id="profileDropdown"
-              title={this.props.displayName}
-            >
-              <RRBS.LinkContainer to={`/users/${this.props.userId}`}>
-                <MenuItem eventKey="1">My Profile</MenuItem>
-              </RRBS.LinkContainer>
-              <MenuItem eventKey="2" href="mailto:dfa-web@mit.edu">
-                Report an issue
-              </MenuItem>
-              <MenuItem eventKey="3" onSelect={this.logout}>Sign out</MenuItem>
-            </NavDropdown>
+          <Nav className="ml-auto">
+            <Dropdown as={NavItem}>
+              <DropdownToggle id="profileDropdown" as={NavLink}>{this.props.displayName}</DropdownToggle>
+              <DropdownMenu alignRight>
+                <RRBS.LinkContainer to={`/users/${this.props.userId}`}>
+                  <DropdownItem eventKey="1">My Profile</DropdownItem>
+                </RRBS.LinkContainer>
+                <DropdownItem eventKey="2" href="mailto:dfa-web@mit.edu">
+                  Report an issue
+                </DropdownItem>
+                <DropdownItem eventKey="3" onSelect={this.logout}>Sign out</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
           </Nav>
         </NavbarCollapse>
       </Navbar>

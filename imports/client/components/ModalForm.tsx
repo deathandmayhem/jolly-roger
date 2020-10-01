@@ -1,6 +1,6 @@
 import React from 'react';
-import Button from 'react-bootstrap/lib/Button';
-import Modal from 'react-bootstrap/lib/Modal';
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
 
 interface ModalFormProps {
   title: string;
@@ -65,14 +65,14 @@ class ModalForm extends React.Component<ModalFormProps, ModalFormState> {
           </Modal.Body>
           <Modal.Footer>
             <Button
-              bsStyle="default"
+              variant="light"
               onClick={this.close}
               disabled={this.props.submitDisabled}
             >
               Close
             </Button>
             <Button
-              bsStyle={this.props.submitStyle}
+              variant={this.props.submitStyle}
               type="submit"
               disabled={this.props.submitDisabled}
             >

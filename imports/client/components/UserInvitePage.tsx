@@ -1,12 +1,12 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import Col from 'react-bootstrap/lib/Col';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import Row from 'react-bootstrap/lib/Row';
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import Col from 'react-bootstrap/Col';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
+import Row from 'react-bootstrap/Row';
 import { withRouter, WithRouterProps } from 'react-router';
 
 interface UserInvitePageProps extends WithRouterProps {
@@ -29,9 +29,9 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
     };
   }
 
-  onEmailChanged = (e: React.FormEvent<FormControl>) => {
+  onEmailChanged: FormControlProps['onChange'] = (e) => {
     this.setState({
-      email: (e as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
+      email: e.currentTarget.value,
     });
   };
 
@@ -51,7 +51,7 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
   renderError = () => {
     if (this.state.error) {
       return (
-        <Alert bsStyle="danger" className="text-center">
+        <Alert variant="danger" className="text-center">
           <p>{this.state.error.reason}</p>
         </Alert>
       );
@@ -76,12 +76,12 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
 
             <form onSubmit={this.onSubmit} className="form-horizontal">
               <FormGroup>
-                <ControlLabel
+                <FormLabel
                   htmlFor="jr-invite-email"
                   className="col-md-3"
                 >
                   E-mail address
-                </ControlLabel>
+                </FormLabel>
                 <div className="col-md-9">
                   <FormControl
                     id="jr-invite-email"
@@ -95,7 +95,7 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
 
               <FormGroup>
                 <div className="col-md-offset-3 col-md-9">
-                  <Button type="submit" bsStyle="primary" disabled={this.state.submitting}>
+                  <Button type="submit" variant="primary" disabled={this.state.submitting}>
                     Send invite
                   </Button>
                 </div>

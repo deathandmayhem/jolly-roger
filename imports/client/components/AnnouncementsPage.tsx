@@ -6,8 +6,8 @@ import DOMPurify from 'dompurify';
 import marked from 'marked';
 import moment from 'moment';
 import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
@@ -72,7 +72,7 @@ class AnnouncementForm extends React.Component<AnnouncementFormProps, Announceme
     return (
       <div className="announcement-form">
         <h3>Write an announcement:</h3>
-        {this.state.submitState === 'failed' ? <Alert bsStyle="danger">{this.state.errorMessage}</Alert> : null}
+        {this.state.submitState === 'failed' ? <Alert variant="danger">{this.state.errorMessage}</Alert> : null}
         <textarea
           value={this.state.message}
           onChange={this.setMessage}
@@ -81,7 +81,7 @@ class AnnouncementForm extends React.Component<AnnouncementFormProps, Announceme
         <div>Try to keep it brief and on-point.</div>
         <div className="button-row">
           <Button
-            bsStyle="primary"
+            variant="primary"
             onClick={this.postAnnouncement}
             disabled={this.state.submitState === 'submitting'}
           >

@@ -5,8 +5,13 @@
     padding-top: 70px;
 }
 
+.jolly-roger .navbar {
+    padding: 0;
+}
+
 .jolly-roger .navbar-brand {
     padding: 0;
+    margin: 0;
     float: none;
 }
 

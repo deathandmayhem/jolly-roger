@@ -1,8 +1,9 @@
 import React from 'react';
-import Col from 'react-bootstrap/lib/Col';
-import Image from 'react-bootstrap/lib/Image';
-import Jumbotron from 'react-bootstrap/lib/Jumbotron';
-import Row from 'react-bootstrap/lib/Row';
+import Col from 'react-bootstrap/Col';
+import Container from 'react-bootstrap/Container';
+import Image from 'react-bootstrap/Image';
+import Jumbotron from 'react-bootstrap/Jumbotron';
+import Row from 'react-bootstrap/Row';
 
 interface SplashPageProps {
   children: React.ReactNode;
@@ -11,18 +12,18 @@ interface SplashPageProps {
 class SplashPage extends React.Component<SplashPageProps> {
   render() {
     return (
-      <div className="container">
+      <Container>
         <Jumbotron id="jr-login">
-          <Image src="/images/hero.png" className="center-block" responsive srcSet="/images/hero.png 1x, /images/hero@2x.png 2x" />
-          <div className="container">
+          <Container>
+            <Image src="/images/hero.png" className="d-block mx-auto" srcSet="/images/hero.png 1x, /images/hero@2x.png 2x" />
             <Row>
-              <Col md={6} mdOffset={3}>
+              <Col md={{ span: 6, offset: 3 }}>
                 {this.props.children}
               </Col>
             </Row>
-          </div>
+          </Container>
         </Jumbotron>
-      </div>
+      </Container>
     );
   }
 }

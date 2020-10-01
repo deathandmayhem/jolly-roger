@@ -1,8 +1,10 @@
 import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
+import Alert from 'react-bootstrap/Alert';
+import Col from 'react-bootstrap/Col';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
+import Row from 'react-bootstrap/Row';
 import Creatable from 'react-select/creatable';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
@@ -86,21 +88,16 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
     }
   }
 
-  // All of these are typed to take React.FormEvent<FormControl>, but that's a
-  // bug in the type declarations - they actually take a
-  // React.FormEvent<HTMLInputElement> (or whatever componentClass is set to on
-  // the FormControl)
-
-  onTitleChange = (event: React.FormEvent<FormControl>) => {
+  onTitleChange: FormControlProps['onChange'] = (event) => {
     this.setState({
-      title: (event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
+      title: event.currentTarget.value,
       titleDirty: true,
     });
   };
 
-  onUrlChange = (event: React.FormEvent<FormControl>) => {
+  onUrlChange: FormControlProps['onChange'] = (event) => {
     this.setState({
-      url: (event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value,
+      url: event.currentTarget.value,
       urlDirty: true,
     });
   };
@@ -121,8 +118,8 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
     });
   };
 
-  onExpectedAnswerCountChange = (event: React.FormEvent<FormControl>) => {
-    const string = (event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value;
+  onExpectedAnswerCountChange: FormControlProps['onChange'] = (event) => {
+    const string = event.currentTarget.value;
     const value = Number(string);
     this.setState({
       expectedAnswerCount: value,
@@ -225,11 +222,11 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
       });
 
     const docTypeSelector = !this.props.puzzle && this.state.docType ? (
-      <FormGroup>
-        <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-doc-type">
+      <FormGroup as={Row}>
+        <FormLabel column xs={3} htmlFor="jr-new-puzzle-doc-type">
           Document type
-        </ControlLabel>
-        <div className="col-xs-9">
+        </FormLabel>
+        <Col xs={9}>
           <LabelledRadioGroup
             header=""
             name="jr-new-puzzle-doc-type"
@@ -247,7 +244,7 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
             help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
             onChange={this.onDocTypeChange}
           />
-        </div>
+        </Col>
       </FormGroup>
     ) : null;
 
@@ -258,11 +255,11 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
         onSubmit={this.onFormSubmit}
         submitDisabled={disableForm}
       >
-        <FormGroup>
-          <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-title">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-title">
             Title
-          </ControlLabel>
-          <div className="col-xs-9">
+          </FormLabel>
+          <Col xs={9}>
             <FormControl
               id="jr-new-puzzle-title"
               type="text"
@@ -271,14 +268,14 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
               onChange={this.onTitleChange}
               value={this.currentTitle()}
             />
-          </div>
+          </Col>
         </FormGroup>
 
-        <FormGroup>
-          <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-url">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-url">
             URL
-          </ControlLabel>
-          <div className="col-xs-9">
+          </FormLabel>
+          <Col xs={9}>
             <FormControl
               id="jr-new-puzzle-url"
               type="text"
@@ -286,14 +283,14 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
               onChange={this.onUrlChange}
               value={this.currentUrl()}
             />
-          </div>
+          </Col>
         </FormGroup>
 
-        <FormGroup>
-          <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-tags">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags">
             Tags
-          </ControlLabel>
-          <div className="col-xs-9">
+          </FormLabel>
+          <Col xs={9}>
             <Creatable
               id="jr-new-puzzle-tags"
               options={selectOptions}
@@ -302,16 +299,16 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
               onChange={this.onTagsChange as any /* onChange type declaration doesn't understand isMulti */}
               value={this.currentTags().map((t) => { return { label: t, value: t }; })}
             />
-          </div>
+          </Col>
         </FormGroup>
 
         {docTypeSelector}
 
-        <FormGroup>
-          <ControlLabel className="col-xs-3" htmlFor="jr-new-puzzle-expected-answer-count">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-expected-answer-count">
             Expected # of answers
-          </ControlLabel>
-          <div className="col-xs-9">
+          </FormLabel>
+          <Col xs={9}>
             <FormControl
               id="jr-new-puzzle-expected-answer-count"
               type="number"
@@ -321,10 +318,10 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
               min={1}
               step={1}
             />
-          </div>
+          </Col>
         </FormGroup>
 
-        {this.state.submitState === PuzzleModalFormSubmitState.FAILED && <Alert bsStyle="danger">{this.state.errorMessage}</Alert>}
+        {this.state.submitState === PuzzleModalFormSubmitState.FAILED && <Alert variant="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>
     );
   }

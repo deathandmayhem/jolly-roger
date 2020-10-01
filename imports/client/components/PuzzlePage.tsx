@@ -9,18 +9,21 @@ import DOMPurify from 'dompurify';
 import marked from 'marked';
 import moment from 'moment';
 import React from 'react';
-import Alert from 'react-bootstrap/lib/Alert';
-import Button from 'react-bootstrap/lib/Button';
-import ControlLabel from 'react-bootstrap/lib/ControlLabel';
-import FormControl from 'react-bootstrap/lib/FormControl';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import HelpBlock from 'react-bootstrap/lib/HelpBlock';
-import Modal from 'react-bootstrap/lib/Modal';
-import Nav from 'react-bootstrap/lib/Nav';
-import NavItem from 'react-bootstrap/lib/NavItem';
-import OverlayTrigger from 'react-bootstrap/lib/OverlayTrigger';
-import Table from 'react-bootstrap/lib/Table';
-import Tooltip from 'react-bootstrap/lib/Tooltip';
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import Col from 'react-bootstrap/Col';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
+import FormText from 'react-bootstrap/FormText';
+import Modal from 'react-bootstrap/Modal';
+import Nav from 'react-bootstrap/Nav';
+import NavItem from 'react-bootstrap/NavItem';
+import NavLink from 'react-bootstrap/NavLink';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Row from 'react-bootstrap/Row';
+import Table from 'react-bootstrap/Table';
+import Tooltip from 'react-bootstrap/Tooltip';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-textarea-autosize';
@@ -558,18 +561,22 @@ class PuzzlePageSidebar extends React.PureComponent<PuzzlePageSidebarProps> {
     return (
       <div className={classes}>
         {!this.props.isStackable && (
-          <Nav bsStyle="tabs" justified>
-            <NavItem
-              active={!this.props.showRelated}
-              onClick={() => { this.props.onChangeSidebarConfig(this.props.chatHeight, false); }}
-            >
-              Chat
+          <Nav variant="tabs" fill>
+            <NavItem>
+              <NavLink
+                active={!this.props.showRelated}
+                onClick={() => { this.props.onChangeSidebarConfig(this.props.chatHeight, false); }}
+              >
+                Chat
+              </NavLink>
             </NavItem>
-            <NavItem
-              active={this.props.showRelated}
-              onClick={() => { this.props.onChangeSidebarConfig(this.props.chatHeight, true); }}
-            >
-              Related
+            <NavItem>
+              <NavLink
+                active={this.props.showRelated}
+                onClick={() => { this.props.onChangeSidebarConfig(this.props.chatHeight, true); }}
+              >
+                Related
+              </NavLink>
             </NavItem>
           </Nav>
         )}
@@ -666,7 +673,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
   editButton = () => {
     if (this.props.canUpdate) {
       return (
-        <Button onClick={this.showEditModal} bsStyle="default" bsSize="xs" title="Edit puzzle...">
+        <Button onClick={this.showEditModal} variant="outline-secondary" size="sm" title="Edit puzzle...">
           <FontAwesomeIcon icon={faEdit} />
         </Button>
       );
@@ -742,7 +749,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             />
           )}
           {!isAdministrivia && (
-            <Button className="puzzle-metadata-guess-button btn-primary" onClick={this.showGuessModal}>
+            <Button variant="primary" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
               { this.props.puzzle.answers.length === this.props.puzzle.expectedAnswerCount ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
             </Button>
           )}
@@ -810,19 +817,19 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
     this.formRef = React.createRef();
   }
 
-  onGuessInputChange = (event: React.FormEvent<FormControl>) => {
+  onGuessInputChange: FormControlProps['onChange'] = (event) => {
     this.setState({
-      guessInput: (event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value.toUpperCase(),
+      guessInput: event.currentTarget.value.toUpperCase(),
       confirmingSubmit: false,
     });
   };
 
-  onDirectionInputChange = (event: React.FormEvent<FormControl>) => {
-    this.setState({ directionInput: parseInt((event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value, 10) });
+  onDirectionInputChange: FormControlProps['onChange'] = (event) => {
+    this.setState({ directionInput: parseInt(event.currentTarget.value, 10) });
   };
 
-  onConfidenceInputChange = (event: React.FormEvent<FormControl>) => {
-    this.setState({ confidenceInput: parseInt((event as unknown as React.FormEvent<HTMLInputElement>).currentTarget.value, 10) });
+  onConfidenceInputChange: FormControlProps['onChange'] = (event) => {
+    this.setState({ confidenceInput: parseInt(event.currentTarget.value, 10) });
   };
 
   onSubmitGuess = () => {
@@ -894,11 +901,11 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
         onSubmit={this.onSubmitGuess}
         submitLabel={this.state.confirmingSubmit ? 'Confirm Submit' : 'Submit'}
       >
-        <FormGroup>
-          <ControlLabel htmlFor="jr-puzzle-guess" className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-puzzle-guess">
             Guess
-          </ControlLabel>
-          <div className="col-xs-9">
+          </FormLabel>
+          <Col xs={9}>
             <FormControl
               type="text"
               id="jr-puzzle-guess"
@@ -907,12 +914,14 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
               onChange={this.onGuessInputChange}
               value={this.state.guessInput}
             />
-          </div>
+          </Col>
+        </FormGroup>
 
-          <ControlLabel htmlFor="jr-puzzle-guess-direction" className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-direction">
             Solve direction
-          </ControlLabel>
-          <div className="col-xs-9">
+          </FormLabel>
+          <Col xs={9}>
             <OverlayTrigger placement="right" overlay={directionTooltip}>
               <FormControl
                 type="range"
@@ -924,17 +933,19 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
                 value={this.state.directionInput}
               />
             </OverlayTrigger>
-            <HelpBlock>
+            <FormText>
               Pick a number between -10 (backsolved without opening
               the puzzle) to 10 (forward-solved without seeing the
               round) to indicate if you forward- or back-solved.
-            </HelpBlock>
-          </div>
+            </FormText>
+          </Col>
+        </FormGroup>
 
-          <ControlLabel htmlFor="jr-puzzle-guess-confidence" className="col-xs-3">
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
             Confidence
-          </ControlLabel>
-          <div className="col-xs-9">
+          </FormLabel>
+          <Col xs={9}>
             <OverlayTrigger placement="right" overlay={confidenceTooltip}>
               <FormControl
                 type="range"
@@ -946,16 +957,16 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
                 value={this.state.confidenceInput}
               />
             </OverlayTrigger>
-            <HelpBlock>
+            <FormText>
               Pick a number between 0 and 100 for the probability that
               you think this answer is right.
-            </HelpBlock>
-          </div>
+            </FormText>
+          </Col>
         </FormGroup>
 
         {this.props.guesses.length === 0 ? <div>No previous submissions.</div> : [
           <div key="label">Previous submissions:</div>,
-          <Table className="guess-history-table" key="table" bordered condensed>
+          <Table className="guess-history-table" key="table" bordered size="sm">
             <thead>
               <tr>
                 <th>Guess</th>
@@ -978,8 +989,8 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
             </tbody>
           </Table>,
         ]}
-        {this.state.confirmingSubmit ? <Alert bsStyle="warning">{this.state.confirmationMessage}</Alert> : null}
-        {this.state.submitState === PuzzleGuessSubmitState.FAILED ? <Alert bsStyle="danger" onDismiss={this.clearError}>{this.state.errorMessage}</Alert> : null}
+        {this.state.confirmingSubmit ? <Alert variant="warning">{this.state.confirmationMessage}</Alert> : null}
+        {this.state.submitState === PuzzleGuessSubmitState.FAILED ? <Alert variant="danger" dismissible onClose={this.clearError}>{this.state.errorMessage}</Alert> : null}
       </ModalForm>
     );
   }
