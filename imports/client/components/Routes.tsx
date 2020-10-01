@@ -5,6 +5,7 @@ import { Route, Switch } from 'react-router';
 import AllProfileListPage from './AllProfileListPage';
 import AuthenticatedRoute from './AuthenticatedRoute';
 import EnrollForm from './EnrollForm';
+import GroupCallPage from './GroupCallPage';
 import HuntApp from './HuntApp';
 import HuntListPage from './HuntListPage';
 import LoginForm from './LoginForm';
@@ -29,6 +30,7 @@ class Routes extends React.Component {
             <AuthenticatedRoute path="/users/:userId" component={ProfilePage} />
             <AuthenticatedRoute path="/users" component={AllProfileListPage} />
             <AuthenticatedRoute path="/setup" component={SetupPage} />
+            <AuthenticatedRoute path="/groupcall" component={GroupCallPage} />
 
             {/* Unauthenticated routes - if user already logged in, get redirected to /hunts */}
             <UnauthenticatedRoute path="/login" component={LoginForm} />
