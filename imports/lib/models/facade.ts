@@ -1,4 +1,6 @@
 import Announcements from './announcements';
+import CallParticipants from './call_participants';
+import CallSignals from './call_signals';
 import ChatMessages from './chats';
 import DocumentPermissions from './document_permissions';
 import Documents from './documents';
@@ -14,6 +16,8 @@ import Tags from './tags';
 
 const Models = {
   Announcements,
+  CallParticipants,
+  CallSignals,
   ChatMessages,
   DocumentPermissions,
   Documents,

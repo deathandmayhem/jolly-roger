@@ -309,6 +309,106 @@ table.puzzle-list {
   }
 }
 
+.chatter-section {
+  flex: 0;
+  background-color: #ebd0e3;
+  font-size: 12px;
+  line-height: 12px;
+}
+
+.chatter-subsection {
+  position: relative;
+  padding-top: 6px;
+
+  header {
+    position: absolute;
+    top: 6px;
+    left: 2px;
+    z-index: 20;
+  }
+
+  .people-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .people-item {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    background: #f9f9f9dc;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 24px;
+    color: black;
+    line-height: 24px;
+    margin-left: 4px;
+    position: relative;
+
+    .initial {
+      z-index: 10
+    }
+
+    .connection {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: #cccccc;
+
+      &.connecting {
+        background-color: #bbdcff;
+      }
+
+      &.connected {
+        background-color: #3d98fa;
+      }
+
+      &.disconnected {
+        background-color: red;
+      }
+
+      &.failed {
+        background-color: maroon;
+      }
+
+      &.closed {
+        background-color: black;
+      }
+    }
+  }
+
+  .speaker-volume {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    fill: #3d98fa;
+  }
+
+  .av-actions {
+    display: flex;
+    margin-top: 6px;
+
+    .btn {
+      flex: 1;
+      padding: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      border-radius: 0;
+    }
+  }
+}
+
 .chat-history {
   flex: 1 1 auto;
   overflow-y: auto;
