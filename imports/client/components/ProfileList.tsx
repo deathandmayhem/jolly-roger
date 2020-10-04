@@ -67,6 +67,7 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
       return null;
     }
 
+    // FIXME: somehow these are rendering as <div href=...> which is...not right
     return (
       <RRBS.LinkContainer to={`/hunts/${this.props.huntId}/hunters/invite`}>
         <ListGroupItem>

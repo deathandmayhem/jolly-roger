@@ -4,12 +4,20 @@ import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
+import { RouteComponentProps } from 'react-router';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
 import ProfileList from './ProfileList';
 
-interface HuntProfileListPageProps {
-  params: {huntId: string};
+interface HuntProfileListPageParams {
+  huntId: string;
+}
+
+interface HuntProfileListPageWithRouterParams extends
+  RouteComponentProps<HuntProfileListPageParams> {
+}
+
+interface HuntProfileListPageProps extends HuntProfileListPageWithRouterParams {
   ready: boolean;
   canInvite: boolean;
   profiles: ProfileType[];
@@ -24,18 +32,18 @@ class HuntProfileListPage extends React.Component<HuntProfileListPageProps> {
     return (
       <ProfileList
         profiles={this.props.profiles}
-        huntId={this.props.params.huntId}
+        huntId={this.props.match.params.huntId}
         canInvite={this.props.canInvite}
       />
     );
   }
 }
 
-const crumb = withBreadcrumb(({ params }: {params: {huntId: string }}) => {
-  return { title: 'Hunters', path: `/hunts/${params.huntId}/hunters` };
+const crumb = withBreadcrumb(({ match }: HuntProfileListPageWithRouterParams) => {
+  return { title: 'Hunters', path: `/hunts/${match.params.huntId}/hunters` };
 });
-const tracker = withTracker(({ params }: {params: {huntId: string}}) => {
-  const usersHandle = Meteor.subscribe('huntMembers', params.huntId);
+const tracker = withTracker(({ match }: HuntProfileListPageWithRouterParams) => {
+  const usersHandle = Meteor.subscribe('huntMembers', match.params.huntId);
   const profilesHandle = Meteor.subscribe('mongo.profiles');
 
   const ready = usersHandle.ready() && profilesHandle.ready();
@@ -48,10 +56,10 @@ const tracker = withTracker(({ params }: {params: {huntId: string}}) => {
   }
 
   const canInvite = Roles.userHasPermission(
-    Meteor.userId(), 'hunt.join', params.huntId
+    Meteor.userId(), 'hunt.join', match.params.huntId
   );
 
-  const hunters = Meteor.users.find({ hunts: params.huntId }).map((u) => u._id) as string[];
+  const hunters = Meteor.users.find({ hunts: match.params.huntId }).map((u) => u._id) as string[];
   const profiles = Profiles.find(
     { _id: { $in: hunters } },
     { sort: { displayName: 1 } },

@@ -15,20 +15,26 @@ import NavbarBrand from 'react-bootstrap/NavbarBrand';
 import NavbarCollapse from 'react-bootstrap/NavbarCollapse';
 import NavbarToggle from 'react-bootstrap/NavbarToggle';
 import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
-import { Link } from 'react-router';
+import { RouteComponentProps } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
+import { Link } from 'react-router-dom';
 import Profiles from '../../lib/models/profiles';
 import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
 
-interface AppNavbarProps {
+interface AppNavbarProps extends RouteComponentProps {
   userId: string;
   displayName: string;
 }
 
 class AppNavbar extends React.Component<AppNavbarProps> {
   logout = () => {
-    Meteor.logout();
+    // Logout, then immediately redirect to the login page
+    Meteor.logout(() => {
+      this.props.history.replace({
+        pathname: '/login',
+      });
+    });
   };
 
   render() {
@@ -53,7 +59,7 @@ class AppNavbar extends React.Component<AppNavbarProps> {
                     );
                   } else {
                     return (
-                      <RRBS.LinkContainer key={crumb.path} to={crumb.path} onlyActiveOnIndex>
+                      <RRBS.LinkContainer key={crumb.path} to={crumb.path}>
                         <BreadcrumbItem active={false}>
                           {crumb.title}
                         </BreadcrumbItem>
@@ -87,7 +93,7 @@ class AppNavbar extends React.Component<AppNavbarProps> {
   }
 }
 
-const AppNavbarContainer = withTracker(() => {
+const AppNavbarContainer = withTracker((_props: RouteComponentProps) => {
   const userId = Meteor.userId()!;
   const profileSub = Meteor.subscribe('mongo.profiles', { _id: userId });
   const profile = Profiles.findOne(userId);
@@ -99,16 +105,17 @@ const AppNavbarContainer = withTracker(() => {
   };
 })(AppNavbar);
 
-interface AppProps {
+interface AppProps extends RouteComponentProps {
   children: React.ReactNode;
 }
 
 class App extends React.Component<AppProps> {
   render() {
+    const { children, ...routeComponentProps } = this.props;
     return (
       <div>
         <NotificationCenter />
-        <AppNavbarContainer />
+        <AppNavbarContainer {...routeComponentProps} />
         <div className="connection-status">
           <ConnectionStatus />
         </div>

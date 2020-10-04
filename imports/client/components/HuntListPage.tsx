@@ -16,7 +16,7 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import Row from 'react-bootstrap/Row';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';

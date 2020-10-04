@@ -3,14 +3,14 @@ import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import classnames from 'classnames';
-import { Location } from 'history';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import { Link, browserHistory } from 'react-router';
+import { RouteComponentProps } from 'react-router';
+import { Link } from 'react-router-dom';
 import Guesses from '../../lib/models/guess';
 import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
@@ -130,19 +130,20 @@ class GuessBlock extends React.Component<GuessBlockProps> {
 }
 
 interface GuessQueuePageParams {
-  params: {huntId: string};
-  // eslint-disable-next-line no-restricted-globals
-  location: Location;
+  huntId: string;
 }
 
-type GuessQueuePageProps = GuessQueuePageParams & {
+interface GuessQueuePageWithRouterParams extends RouteComponentProps<GuessQueuePageParams> {
+}
+
+interface GuessQueuePageProps extends GuessQueuePageWithRouterParams {
   ready: boolean;
   hunt?: HuntType;
   guesses: GuessType[];
   puzzles: Record<string, PuzzleType>;
   displayNames: Record<string, string>;
   canEdit: boolean;
-};
+}
 
 class GuessQueuePage extends React.Component<GuessQueuePageProps> {
   onSearchStringChange: FormControlProps['onChange'] = (e) => {
@@ -150,15 +151,15 @@ class GuessQueuePage extends React.Component<GuessQueuePageProps> {
   };
 
   getSearchString = (): string => {
-    const q = this.props.location.query.q;
-    return (Array.isArray(q) ? q[0] : q) || '';
+    const q = this.props.location.search;
+    return q.length > 3 ? q.substring(3) : '';
   };
 
   setSearchString = (val: string) => {
-    const newQuery = val ? { q: val } : { q: undefined };
-    browserHistory.replace({
+    const newSearch = val ? `q=${val}` : '';
+    this.props.history.replace({
       pathname: this.props.location.pathname,
-      query: { ...this.props.location.query, ...newQuery },
+      search: newSearch,
     });
   };
 
@@ -246,22 +247,22 @@ class GuessQueuePage extends React.Component<GuessQueuePageProps> {
   }
 }
 
-const crumb = withBreadcrumb(({ params }: GuessQueuePageParams) => {
-  return { title: 'Guess queue', path: `/hunts/${params.huntId}/guesses` };
+const crumb = withBreadcrumb(({ match }: GuessQueuePageWithRouterParams) => {
+  return { title: 'Guess queue', path: `/hunts/${match.params.huntId}/guesses` };
 });
-const tracker = withTracker(({ params }: GuessQueuePageParams) => {
+const tracker = withTracker(({ match }: GuessQueuePageWithRouterParams) => {
   const huntHandle = Meteor.subscribe('mongo.hunts', {
-    _id: params.huntId,
+    _id: match.params.huntId,
   });
   const guessesHandle = Meteor.subscribe('mongo.guesses', {
-    hunt: params.huntId,
+    hunt: match.params.huntId,
   });
   const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {
-    hunt: params.huntId,
+    hunt: match.params.huntId,
   });
   const displayNamesHandle = Profiles.subscribeDisplayNames();
   const ready = huntHandle.ready() && guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
-  const data: Pick<GuessQueuePageProps, Exclude<keyof GuessQueuePageProps, keyof GuessQueuePageParams>> = {
+  const data: Pick<GuessQueuePageProps, Exclude<keyof GuessQueuePageProps, keyof GuessQueuePageWithRouterParams>> = {
     ready,
     guesses: [],
     puzzles: {},
@@ -269,9 +270,9 @@ const tracker = withTracker(({ params }: GuessQueuePageParams) => {
     canEdit: Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update'),
   };
   if (ready) {
-    data.hunt = Hunts.findOne({ _id: params.huntId });
-    data.guesses = Guesses.find({ hunt: params.huntId }, { sort: { createdAt: -1 } }).fetch();
-    data.puzzles = _.indexBy(Puzzles.find({ hunt: params.huntId }).fetch(), '_id');
+    data.hunt = Hunts.findOne({ _id: match.params.huntId });
+    data.guesses = Guesses.find({ hunt: match.params.huntId }, { sort: { createdAt: -1 } }).fetch();
+    data.puzzles = _.indexBy(Puzzles.find({ hunt: match.params.huntId }).fetch(), '_id');
     data.displayNames = Profiles.displayNames();
   }
 

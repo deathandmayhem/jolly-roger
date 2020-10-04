@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';

@@ -7,10 +7,13 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
-import { withRouter, WithRouterProps } from 'react-router';
+import { RouteComponentProps } from 'react-router';
 
-interface UserInvitePageProps extends WithRouterProps {
-  params: {huntId: string};
+interface UserInvitePageParams {
+  huntId: string;
+}
+
+interface UserInvitePageProps extends RouteComponentProps<UserInvitePageParams> {
 }
 
 interface UserInvitePageState {
@@ -38,12 +41,12 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
   onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     this.setState({ submitting: true });
-    Meteor.call('addToHunt', this.props.params.huntId, this.state.email, (error?: Meteor.Error) => {
+    Meteor.call('addToHunt', this.props.match.params.huntId, this.state.email, (error?: Meteor.Error) => {
       this.setState({ submitting: false });
       if (error) {
         this.setState({ error });
       } else {
-        this.props.router.push(`/hunts/${this.props.params.huntId}`);
+        this.props.history.push(`/hunts/${this.props.match.params.huntId}`);
       }
     });
   };
@@ -108,4 +111,4 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
   }
 }
 
-export default withRouter(UserInvitePage);
+export default UserInvitePage;

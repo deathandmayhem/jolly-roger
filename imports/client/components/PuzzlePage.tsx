@@ -26,6 +26,7 @@ import Table from 'react-bootstrap/Table';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import DocumentTitle from 'react-document-title';
+import { RouteComponentProps } from 'react-router';
 import TextareaAutosize from 'react-textarea-autosize';
 import Ansible from '../../ansible';
 import Flags from '../../flags';
@@ -1060,10 +1061,14 @@ const findPuzzleById = function (puzzles: PuzzleType[], id: string) {
 };
 
 interface PuzzlePageParams {
-  params: {huntId: string; puzzleId: string};
+  huntId: string;
+  puzzleId: string;
 }
 
-interface PuzzlePageProps extends PuzzlePageParams {
+interface PuzzlePageWithRouterParams extends RouteComponentProps<PuzzlePageParams> {
+}
+
+interface PuzzlePageProps extends PuzzlePageWithRouterParams {
   puzzlesReady: boolean;
   allPuzzles: PuzzleType[];
   allTags: TagType[];
@@ -1104,18 +1109,18 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
   // Update the default interface state exactly once (enforced by defaultsAppliedForPuzzle),
   // as soon as puzzlesReady is true.
   static getDerivedStateFromProps(props: Readonly<PuzzlePageProps>, state: PuzzlePageState): Partial<PuzzlePageState> | null {
-    if (state.defaultsAppliedForPuzzle !== props.params.puzzleId && props.puzzlesReady) {
+    if (state.defaultsAppliedForPuzzle !== props.match.params.puzzleId && props.puzzlesReady) {
       // Show relatable puzzles by default if tags are consistant a meta
       // Puzzles with is:meta, is:metameta and meta-for:* tags will show related puzzles by default
       const tagsById = _.indexBy(props.allTags, '_id');
-      const activePuzzle = findPuzzleById(props.allPuzzles, props.params.puzzleId);
+      const activePuzzle = findPuzzleById(props.allPuzzles, props.match.params.puzzleId);
       const puzzleTagIds = (activePuzzle && activePuzzle.tags) || [];
       const puzzleTagNames = puzzleTagIds.map((tagId) => (tagId in tagsById ? tagsById[tagId].name : ''));
       const isRelatable = puzzleTagNames.some((tagName: string) => {
         return ['is:meta', 'is:metameta', 'administrivia'].includes(tagName) || tagName.startsWith('meta-for:');
       });
       return {
-        defaultsAppliedForPuzzle: props.params.puzzleId,
+        defaultsAppliedForPuzzle: props.match.params.puzzleId,
         showRelated: state.showRelated || (state.isStackable && isRelatable),
       };
     }
@@ -1130,12 +1135,12 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
         sidebarWidth: Math.min(DefaultSidebarWidth, this.puzzlePageEl.clientWidth - MinimumDocumentWidth),
       });
     }
-    Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
+    Meteor.call('ensureDocumentAndPermissions', this.props.match.params.puzzleId);
   }
 
   componentDidUpdate(prevProps: PuzzlePageProps) {
-    if (prevProps.params.puzzleId !== this.props.params.puzzleId) {
-      Meteor.call('ensureDocumentAndPermissions', this.props.params.puzzleId);
+    if (prevProps.match.params.puzzleId !== this.props.match.params.puzzleId) {
+      Meteor.call('ensureDocumentAndPermissions', this.props.match.params.puzzleId);
     }
   }
 
@@ -1179,7 +1184,7 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
       return <div className="puzzle-page" ref={(el) => { this.puzzlePageEl = el; }}><span>loading...</span></div>;
     }
 
-    const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.params.puzzleId)!;
+    const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.match.params.puzzleId)!;
 
     const sidebar = (
       <PuzzlePageSidebar
@@ -1242,14 +1247,15 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
   }
 }
 
-const crumb = withBreadcrumb(({ params, puzzlesReady, allPuzzles }) => {
-  const activePuzzle = findPuzzleById(allPuzzles, params.puzzleId)!;
+const crumb = withBreadcrumb(({ match, puzzlesReady, allPuzzles }) => {
+  const activePuzzle = findPuzzleById(allPuzzles, match.params.puzzleId)!;
   return {
     title: puzzlesReady ? activePuzzle.title : 'loading...',
-    path: `/hunts/${params.huntId}/puzzles/${params.puzzleId}`,
+    path: `/hunts/${match.params.huntId}/puzzles/${match.params.puzzleId}`,
   };
 });
-const tracker = withTracker(({ params }: PuzzlePageParams) => {
+const tracker = withTracker(({ match }: PuzzlePageWithRouterParams) => {
+  const { params } = match;
   // There are some model dependencies that we have to be careful about:
   //
   // * We show the displayname of the person who submitted a guess, so guesses depends on display names
