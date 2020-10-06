@@ -67,10 +67,9 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
       return null;
     }
 
-    // FIXME: somehow these are rendering as <div href=...> which is...not right
     return (
       <RRBS.LinkContainer to={`/hunts/${this.props.huntId}/hunters/invite`}>
-        <ListGroupItem>
+        <ListGroupItem action>
           <strong>Invite someone...</strong>
         </ListGroupItem>
       </RRBS.LinkContainer>
@@ -129,7 +128,7 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
           {this.inviteToHuntItem()}
           {profiles.map((profile) => (
             <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
-              <ListGroupItem>
+              <ListGroupItem action>
                 {profile.displayName || '<no name provided>'}
               </ListGroupItem>
             </RRBS.LinkContainer>
