@@ -36,8 +36,6 @@ class Routes extends React.Component {
               <UnauthenticatedRoute path="/login" component={LoginForm} />
               <UnauthenticatedRoute path="/reset-password/:token" component={PasswordResetForm} />
               <UnauthenticatedRoute path="/enroll/:token" component={EnrollForm} />
-
-              {/* Routes available to both authenticated and unauthenticated users */}
             </Switch>
           </BrowserRouter>
         </BreadcrumbsProvider>
