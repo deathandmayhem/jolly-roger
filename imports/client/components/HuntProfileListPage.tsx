@@ -4,10 +4,11 @@ import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import { RouteComponentProps } from 'react-router';
+import { Route, RouteComponentProps, Switch } from 'react-router';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
 import ProfileList from './ProfileList';
+import UserInvitePage from './UserInvitePage';
 
 interface HuntProfileListPageParams {
   huntId: string;
@@ -29,12 +30,18 @@ class HuntProfileListPage extends React.Component<HuntProfileListPageProps> {
       return <div>loading...</div>;
     }
 
+    const match = this.props.match;
     return (
-      <ProfileList
-        profiles={this.props.profiles}
-        huntId={this.props.match.params.huntId}
-        canInvite={this.props.canInvite}
-      />
+      <Switch>
+        <Route path={`${match.path}/invite`} component={UserInvitePage} />
+        <Route path={`${match.path}`}>
+          <ProfileList
+            profiles={this.props.profiles}
+            huntId={this.props.match.params.huntId}
+            canInvite={this.props.canInvite}
+          />
+        </Route>
+      </Switch>
     );
   }
 }
