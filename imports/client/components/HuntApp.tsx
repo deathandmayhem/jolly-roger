@@ -161,8 +161,8 @@ class HuntApp extends React.Component<HuntAppProps> {
         <Switch>
           <Route path={`${match.path}/announcements`} component={AnnouncementsPage} />
           <Route path={`${match.path}/guesses`} component={GuessQueuePage} />
-          <Route path={`${match.path}/hunters`} component={HuntProfileListPage} />
           <Route path={`${match.path}/hunters/invite`} component={UserInvitePage} />
+          <Route path={`${match.path}/hunters`} component={HuntProfileListPage} />
           <Route path={`${match.path}/puzzles/:puzzleId`} component={PuzzlePage} />
           <Route path={`${match.path}/puzzles`} component={PuzzleListPage} />
           <Route
