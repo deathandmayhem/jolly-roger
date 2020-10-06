@@ -2,7 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import { Location } from 'history';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
@@ -26,8 +25,6 @@ import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 /* eslint-disable max-len */
 
 interface PuzzleListViewProps extends RouteComponentProps {
-  // eslint-disable-next-line no-restricted-globals
-  location: Location;
   huntId: string
   canAdd: boolean;
   canUpdate: boolean;
