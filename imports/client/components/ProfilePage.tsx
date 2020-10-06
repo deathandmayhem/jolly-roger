@@ -15,6 +15,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
+import { RouteComponentProps } from 'react-router';
 import Flags from '../../flags';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
@@ -431,10 +432,13 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
 }
 
 interface ProfilePageParams {
-  params: {userId: string};
+  userId: string;
 }
 
-interface ProfilePageProps extends ProfilePageParams {
+interface ProfilePageWithRouterParams extends RouteComponentProps<ProfilePageParams> {
+}
+
+interface ProfilePageProps extends ProfilePageWithRouterParams {
   ready: boolean;
   isSelf: boolean;
   profile: ProfileType;
@@ -467,12 +471,12 @@ class ProfilePage extends React.Component<ProfilePageProps> {
   }
 }
 
-const usersCrumb = withBreadcrumb<ProfilePageParams>({ title: 'Users', path: '/users' });
-const userCrumb = withBreadcrumb(({ params, ready, profile }: ProfilePageProps) => {
-  return { title: ready ? profile.displayName : 'loading...', path: `/users/${params.userId}` };
+const usersCrumb = withBreadcrumb<ProfilePageWithRouterParams>({ title: 'Users', path: '/users' });
+const userCrumb = withBreadcrumb(({ match, ready, profile }: ProfilePageProps) => {
+  return { title: ready ? profile.displayName : 'loading...', path: `/users/${match.params.userId}` };
 });
-const tracker = withTracker(({ params }: ProfilePageParams) => {
-  const uid = params.userId === 'me' ? Meteor.userId()! : params.userId;
+const tracker = withTracker(({ match }: ProfilePageWithRouterParams) => {
+  const uid = match.params.userId === 'me' ? Meteor.userId()! : match.params.userId;
 
   const profileHandle = Meteor.subscribe('mongo.profiles', { _id: uid });
   const userRolesHandle = Meteor.subscribe('userRoles', uid);

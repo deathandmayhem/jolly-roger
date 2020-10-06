@@ -9,6 +9,7 @@ import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
+import { RouteComponentProps } from 'react-router';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
 import { AnnouncementType } from '../../lib/schemas/announcements';
@@ -120,10 +121,13 @@ class Announcement extends React.Component<AnnouncementProps> {
 }
 
 interface AnnouncementsPageParams {
-  params: {huntId: string};
+  huntId: string;
 }
 
-interface AnnouncementsPageProps extends AnnouncementsPageParams {
+interface AnnouncementsPageWithRouterParams extends RouteComponentProps<AnnouncementsPageParams> {
+}
+
+interface AnnouncementsPageProps extends AnnouncementsPageWithRouterParams {
   ready: boolean;
   canCreateAnnouncements: boolean;
   announcements: AnnouncementType[];
@@ -139,7 +143,7 @@ class AnnouncementsPage extends React.Component<AnnouncementsPageProps> {
     return (
       <div>
         <h1>Announcements</h1>
-        {this.props.canCreateAnnouncements && <AnnouncementForm huntId={this.props.params.huntId} />}
+        {this.props.canCreateAnnouncements && <AnnouncementForm huntId={this.props.match.params.huntId} />}
         {/* ostensibly these should be ul and li, but then I have to deal with overriding
             block/inline and default margins and list style type and meh */}
         <div>
@@ -158,14 +162,14 @@ class AnnouncementsPage extends React.Component<AnnouncementsPageProps> {
   }
 }
 
-const crumb = withBreadcrumb(({ params }: AnnouncementsPageParams) => {
-  return { title: 'Announcements', path: `/hunts/${params.huntId}/announcements` };
+const crumb = withBreadcrumb(({ match }: AnnouncementsPageWithRouterParams) => {
+  return { title: 'Announcements', path: `/hunts/${match.params.huntId}/announcements` };
 });
-const tracker = withTracker(({ params }: AnnouncementsPageParams) => {
+const tracker = withTracker(({ match }: AnnouncementsPageWithRouterParams) => {
   // We already have subscribed to mongo.announcements on the main page, since we want to be able
   // to show them on any page.  So we don't *need* to make the subscription here...
   // ...except that we might want to wait to render until we've received all of them?  IDK.
-  const announcementsHandle = Meteor.subscribe('mongo.announcements', { hunt: params.huntId });
+  const announcementsHandle = Meteor.subscribe('mongo.announcements', { hunt: match.params.huntId });
   const displayNamesHandle = Profiles.subscribeDisplayNames();
   const ready = announcementsHandle.ready() && displayNamesHandle.ready();
 
@@ -175,7 +179,7 @@ const tracker = withTracker(({ params }: AnnouncementsPageParams) => {
     announcements = [];
     displayNames = {};
   } else {
-    announcements = Announcements.find({ hunt: params.huntId }, { sort: { createdAt: 1 } }).fetch();
+    announcements = Announcements.find({ hunt: match.params.huntId }, { sort: { createdAt: 1 } }).fetch();
     displayNames = Profiles.displayNames();
   }
   const canCreateAnnouncements = Roles.userHasPermission(Meteor.userId(), 'mongo.announcements.insert');

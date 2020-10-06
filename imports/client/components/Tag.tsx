@@ -1,7 +1,7 @@
 import classnames from 'classnames';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { TagType } from '../../lib/schemas/tags';
 
 /* eslint-disable max-len */
@@ -44,7 +44,7 @@ class Tag extends React.PureComponent<TagProps> {
         <Link
           to={{
             pathname: `/hunts/${this.props.tag.hunt}/puzzles`,
-            query: { q: this.props.tag.name },
+            search: `q=${this.props.tag.name}`,
           }}
           className="tag-link"
         >

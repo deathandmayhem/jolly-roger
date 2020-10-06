@@ -69,7 +69,7 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
 
     return (
       <RRBS.LinkContainer to={`/hunts/${this.props.huntId}/hunters/invite`}>
-        <ListGroupItem>
+        <ListGroupItem action>
           <strong>Invite someone...</strong>
         </ListGroupItem>
       </RRBS.LinkContainer>
@@ -128,7 +128,7 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
           {this.inviteToHuntItem()}
           {profiles.map((profile) => (
             <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
-              <ListGroupItem>
+              <ListGroupItem action>
                 {profile.displayName || '<no name provided>'}
               </ListGroupItem>
             </RRBS.LinkContainer>

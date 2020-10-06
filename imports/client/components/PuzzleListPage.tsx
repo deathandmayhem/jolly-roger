@@ -2,7 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import { Location } from 'history';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
@@ -12,7 +11,8 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import InputGroup from 'react-bootstrap/InputGroup';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
-import { Link, browserHistory } from 'react-router';
+import { RouteComponentProps } from 'react-router';
+import { Link } from 'react-router-dom';
 import Flags from '../../flags';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
@@ -24,9 +24,7 @@ import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 
 /* eslint-disable max-len */
 
-interface PuzzleListViewProps {
-  // eslint-disable-next-line no-restricted-globals
-  location: Location;
+interface PuzzleListViewProps extends RouteComponentProps {
   huntId: string
   canAdd: boolean;
   canUpdate: boolean;
@@ -75,15 +73,15 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
   };
 
   getSearchString = (): string => {
-    const q = this.props.location.query.q;
-    return (Array.isArray(q) ? q[0] : q) || '';
+    const q = this.props.location.search;
+    return q.length > 3 ? q.substring(3) : '';
   };
 
   setSearchString = (val: string) => {
-    const newQuery = val ? { q: val } : { q: undefined };
-    browserHistory.replace({
+    const newSearch = val ? `q=${val}` : '';
+    this.props.history.replace({
       pathname: this.props.location.pathname,
-      query: _.extend(this.props.location.query, newQuery),
+      search: newSearch,
     });
   };
 
@@ -408,20 +406,19 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
 }
 
 interface PuzzleListPageParams {
-  params: {huntId: string};
-  // eslint-disable-next-line no-restricted-globals
-  location: Location;
+  huntId: string;
 }
 
-type PuzzleListPageProps = PuzzleListPageParams & ({
-  ready: true;
+interface PuzzleListPageWithRouterParams extends RouteComponentProps<PuzzleListPageParams> {
+}
+
+interface PuzzleListPageProps extends PuzzleListPageWithRouterParams {
+  ready: boolean;
   canAdd: boolean;
   canUpdate: boolean;
   allPuzzles: PuzzleType[];
   allTags: TagType[];
-} | {
-  ready: false;
-});
+}
 
 class PuzzleListPage extends React.Component<PuzzleListPageProps> {
   render() {
@@ -430,8 +427,10 @@ class PuzzleListPage extends React.Component<PuzzleListPageProps> {
     } else {
       return (
         <PuzzleListView
+          match={this.props.match}
+          history={this.props.history}
           location={this.props.location}
-          huntId={this.props.params.huntId}
+          huntId={this.props.match.params.huntId}
           canAdd={this.props.canAdd}
           canUpdate={this.props.canUpdate}
           puzzles={this.props.allPuzzles}
@@ -442,27 +441,31 @@ class PuzzleListPage extends React.Component<PuzzleListPageProps> {
   }
 }
 
-const PuzzleListPageContainer = withTracker(({ params }: PuzzleListPageParams) => {
-  const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: params.huntId });
-  const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: params.huntId });
+const PuzzleListPageContainer = withTracker(({ match }: PuzzleListPageWithRouterParams) => {
+  const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: match.params.huntId });
+  const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: match.params.huntId });
 
   if (!Flags.active('disable.subcounters')) {
     // Don't bother including this in ready - it's ok if it trickles in
-    Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
+    Meteor.subscribe('subscribers.counts', { hunt: match.params.huntId });
   }
 
   const ready = puzzlesHandle.ready() && tagsHandle.ready();
   if (!ready) {
     return {
-      ready,
+      ready: false,
+      canAdd: false,
+      canUpdate: false,
+      allPuzzles: [],
+      allTags: [],
     };
   } else {
     return {
-      ready,
+      ready: true,
       canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
-      allPuzzles: Puzzles.find({ hunt: params.huntId }).fetch(),
-      allTags: Tags.find({ hunt: params.huntId }).fetch(),
+      allPuzzles: Puzzles.find({ hunt: match.params.huntId }).fetch(),
+      allTags: Tags.find({ hunt: match.params.huntId }).fetch(),
     };
   }
 })(PuzzleListPage);

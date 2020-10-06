@@ -23,7 +23,9 @@ class LoginForm extends React.Component<{}, LoginFormState> {
   };
 
   render() {
-    return <AccountForm format={this.state.format} onFormatChange={this.changeFormat} />;
+    return (
+      <AccountForm format={this.state.format} onFormatChange={this.changeFormat} />
+    );
   }
 }
 

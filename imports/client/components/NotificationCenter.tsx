@@ -11,7 +11,7 @@ import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import Announcements from '../../lib/models/announcements';
 import Guesses from '../../lib/models/guess';
 import Hunts from '../../lib/models/hunts';

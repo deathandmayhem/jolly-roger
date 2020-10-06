@@ -10,12 +10,19 @@ import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import DocumentTitle from 'react-document-title';
-import { WithRouterProps, withRouter } from 'react-router';
+import {
+  withRouter, RouteComponentProps, Switch, Redirect, Route,
+} from 'react-router';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
+import AnnouncementsPage from './AnnouncementsPage';
 import CelebrationCenter from './CelebrationCenter';
+import GuessQueuePage from './GuessQueuePage';
+import HuntProfileListPage from './HuntProfileListPage';
+import PuzzleListPage from './PuzzleListPage';
+import PuzzlePage from './PuzzlePage';
 
-type HuntDeletedErrorProps = WithRouterProps & {
+interface HuntDeletedErrorProps extends RouteComponentProps {
   hunt: HuntType;
   canUndestroy: boolean;
 }
@@ -44,7 +51,7 @@ class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
         </Alert>
 
         <ButtonToolbar>
-          <Button variant="light" onClick={this.props.router.goBack}>
+          <Button variant="light" onClick={this.props.history.goBack}>
             Whoops! Get me out of here
           </Button>
           {this.undestroyButton()}
@@ -56,7 +63,7 @@ class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
 
 const HuntDeletedErrorWithRouter = withRouter(HuntDeletedError);
 
-type HuntMemberErrorProps = WithRouterProps & {
+interface HuntMemberErrorProps extends RouteComponentProps {
   hunt: HuntType;
   canJoin: boolean;
 }
@@ -97,7 +104,7 @@ class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
         />
 
         <ButtonToolbar>
-          <Button variant="light" onClick={this.props.router.goBack}>
+          <Button variant="light" onClick={this.props.history.goBack}>
             Whoops! Get me out of here
           </Button>
           {this.joinButton()}
@@ -110,11 +117,13 @@ class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
 const HuntMemberErrorWithRouter = withRouter(HuntMemberError);
 
 interface HuntAppParams {
-  params: {huntId: string};
-  children: React.ReactNode;
+  huntId: string;
 }
 
-interface HuntAppProps extends HuntAppParams {
+interface HuntAppWithRouterParams extends RouteComponentProps<HuntAppParams> {
+}
+
+interface HuntAppProps extends HuntAppWithRouterParams {
   ready: boolean;
   hunt?: HuntType;
   member: boolean;
@@ -145,7 +154,25 @@ class HuntApp extends React.Component<HuntAppProps> {
       return <HuntMemberErrorWithRouter hunt={this.props.hunt} canJoin={this.props.canJoin} />;
     }
 
-    return React.Children.only(this.props.children);
+    const match = this.props.match;
+    return (
+      <Route path="/">
+        <Switch>
+          <Route path={`${match.path}/announcements`} component={AnnouncementsPage} />
+          <Route path={`${match.path}/guesses`} component={GuessQueuePage} />
+          <Route path={`${match.path}/hunters`} component={HuntProfileListPage} />
+          <Route path={`${match.path}/puzzles/:puzzleId`} component={PuzzlePage} />
+          <Route path={`${match.path}/puzzles`} component={PuzzleListPage} />
+          <Route
+            path={`${match.path}`}
+            exact
+            render={() => {
+              return <Redirect to={`/hunts/${this.props.match.params.huntId}/puzzles`} />;
+            }}
+          />
+        </Switch>
+      </Route>
+    );
   };
 
   render() {
@@ -154,7 +181,7 @@ class HuntApp extends React.Component<HuntAppProps> {
     return (
       <DocumentTitle title={title}>
         <div>
-          <CelebrationCenter huntId={this.props.params.huntId} />
+          <CelebrationCenter huntId={this.props.match.params.huntId} />
           {this.renderBody()}
         </div>
       </DocumentTitle>
@@ -162,26 +189,26 @@ class HuntApp extends React.Component<HuntAppProps> {
   }
 }
 
-const huntsCrumb = withBreadcrumb<HuntAppParams>({ title: 'Hunts', path: '/hunts' });
-const huntCrumb = withBreadcrumb(({ params, ready, hunt }: HuntAppProps) => {
-  return { title: ready && hunt ? hunt.name : 'loading...', path: `/hunts/${params.huntId}` };
+const huntsCrumb = withBreadcrumb<HuntAppWithRouterParams>({ title: 'Hunts', path: '/hunts' });
+const huntCrumb = withBreadcrumb(({ match, ready, hunt }: HuntAppProps) => {
+  return { title: ready && hunt ? hunt.name : 'loading...', path: `/hunts/${match.params.huntId}` };
 });
-const tracker = withTracker(({ params }: HuntAppParams) => {
+const tracker = withTracker(({ match }: HuntAppWithRouterParams) => {
   const userHandle = Meteor.subscribe('selfHuntMembership');
   // Subscribe to deleted and non-deleted hunts separately so that we can reuse
   // the non-deleted subscription
-  const huntHandle = Meteor.subscribe('mongo.hunts', { _id: params.huntId });
+  const huntHandle = Meteor.subscribe('mongo.hunts', { _id: match.params.huntId });
   const deletedHuntHandle = Meteor.subscribe('mongo.hunts.deleted', {
-    _id: params.huntId,
+    _id: match.params.huntId,
   });
   const user = Meteor.user();
-  const member = !!user && _.contains(user.hunts, params.huntId);
+  const member = !!user && _.contains(user.hunts, match.params.huntId);
   return {
     ready: userHandle.ready() && huntHandle.ready() && deletedHuntHandle.ready(),
-    hunt: Hunts.findOneAllowingDeleted(params.huntId),
+    hunt: Hunts.findOneAllowingDeleted(match.params.huntId),
     member,
     canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
-    canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', params.huntId),
+    canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', match.params.huntId),
   };
 });
 
