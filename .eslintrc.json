@@ -143,6 +143,14 @@
         "no-shadow": "off",
         "@typescript-eslint/no-shadow": "error"
       }
+    },
+    {
+      "files": "types/**",
+      "rules": {
+        // type declarations for other libraries don't get to choose their
+        // export structure
+        "import/prefer-default-export": ["off"]
+      }
     }
   ]
 }

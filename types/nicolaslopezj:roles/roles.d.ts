@@ -4,7 +4,6 @@ declare module 'meteor/nicolaslopezj:roles' {
   type RuleFunc = (this: RuleFuncThis, ...args: any[]) => boolean;
   type Rule = RuleFunc | boolean
 
-  // eslint-disable-next-line import/prefer-default-export
   export module Roles {
     const Role: RoleStatic;
     interface RoleStatic {
