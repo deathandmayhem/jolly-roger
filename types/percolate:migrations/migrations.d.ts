@@ -5,7 +5,6 @@ declare module 'meteor/percolate:migrations' {
     tag: 'Migrations',
   }) => void;
 
-  // eslint-disable-next-line import/prefer-default-export
   export module Migrations {
     function config(opts: {
       log?: boolean,

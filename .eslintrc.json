@@ -143,6 +143,26 @@
         "no-shadow": "off",
         "@typescript-eslint/no-shadow": "error"
       }
+    },
+    {
+      "files": "types/**",
+      "rules": {
+        // type declarations for other libraries don't get to choose their
+        // export structure
+        "import/prefer-default-export": ["off"]
+      }
+    },
+    {
+      "files": "tests/**",
+      "rules": {
+        // arrow functions with mocha are discouraged
+        "func-names": "off",
+        "prefer-arrow-callback": "off",
+
+        // since tests run in both client and server context, sometimes we need
+        // conditional imports, which can only be easily done with require
+        "global-require": "off"
+      }
     }
   ]
 }
