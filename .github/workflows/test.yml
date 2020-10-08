@@ -29,6 +29,7 @@ jobs:
     - name: test
       run: |
         set -x
+        export PATH="$HOME/.meteor:$PATH"
         PACKAGES="./ ./tests/down/"
         for pkg in $PACKAGES; do
           (cd $pkg && npm ci && npm run lint && npm run test)
