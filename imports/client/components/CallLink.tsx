@@ -8,6 +8,8 @@ import CallSignals from '../../lib/models/call_signals';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import { CallSignalType, CallSignalMessageType } from '../../lib/schemas/call_signals';
 
+const enableExpensiveFeatures = true;
+
 // props:
 //   selfParticipant: CallParticipantType
 //   peerParticipant: CallParticipantType
@@ -59,6 +61,8 @@ const offerOptions = {
 class CallLink extends React.Component<CallLinkProps, CallLinkState> {
   private videoRef: React.RefObject<HTMLVideoElement>;
 
+  private canvasRef: React.RefObject<HTMLCanvasElement>;
+
   private remoteStream: MediaStream;
 
   private pc: RTCPeerConnection;
@@ -71,6 +75,14 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
 
   private gainNode: GainNode;
 
+  private analyserNode: AnalyserNode;
+
+  private bufferLength: number;
+
+  private analyserBuffer: Uint8Array;
+
+  private periodicHandle: number | undefined;
+
   constructor(props: CallLinkProps) {
     super(props);
 
@@ -82,6 +94,7 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
     // Create a ref so we can get at the video element on the page to set
     // the srcObject.
     this.videoRef = React.createRef();
+    this.canvasRef = React.createRef();
 
     // Create a stream object to populate tracks into as we receive them
     // from our peer.
@@ -89,12 +102,20 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
     this.gainNode = this.props.audioContext.createGain();
     this.wrapperStreamDestination = this.props.audioContext.createMediaStreamDestination();
 
+    // For showing spectrogram
+    this.analyserNode = this.props.audioContext.createAnalyser();
+    this.analyserNode.fftSize = 128;
+    this.bufferLength = this.analyserNode.frequencyBinCount;
+    this.analyserBuffer = new Uint8Array(this.bufferLength);
+
     this.pc = new RTCPeerConnection(rtcConfig);
     this.pc.addEventListener('icecandidate', this.onNewLocalCandidate);
     this.pc.addEventListener('iceconnectionstatechange', this.onIceConnectionStateChange);
     this.pc.addEventListener('connectionstatechange', this.onConnectionStateChange);
     this.pc.addEventListener('track', this.onNewRemoteTrack);
     this.pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
+
+    this.periodicHandle = undefined;
 
     // TODO: figure out where these actually come from
     // this.remoteStream.addEventListener("removetrack", this.onRemoveRemoteTrack);
@@ -141,6 +162,11 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
   componentWillUnmount() {
     // Tear down the connections and all active streams on them.
     this.pc.close();
+
+    if (this.periodicHandle) {
+      window.cancelAnimationFrame(this.periodicHandle);
+      this.periodicHandle = undefined;
+    }
   }
 
   // Convenience function to log the peer participant ID along with whatever
@@ -267,12 +293,50 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
 
       // Add that track to our post-level-adjustment stream.
       this.remoteStream.addTrack(leveledAudioTrack);
+
+      if (enableExpensiveFeatures) {
+        // Wire up the audio track to the analyser.
+        this.wrapperStreamSource.connect(this.analyserNode);
+
+        // Enable periodic updates of the frequency analyzer
+        this.periodicHandle = window.requestAnimationFrame(this.drawSpectrum);
+      }
     } else {
       this.remoteStream.addTrack(e.track);
     }
 
     if (this.videoRef.current) {
       this.videoRef.current.srcObject = this.remoteStream;
+    }
+  };
+
+  drawSpectrum = (_time: number) => {
+    // _time is msecs
+    this.periodicHandle = window.requestAnimationFrame(this.drawSpectrum);
+    this.analyserNode.getByteFrequencyData(this.analyserBuffer);
+    const canvas = this.canvasRef.current;
+    if (canvas) {
+      canvas.setAttribute('width', '200');
+      canvas.setAttribute('height', '80');
+
+      const canvasCtx = canvas.getContext('2d');
+      if (canvasCtx) {
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+        canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+        canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+        const barWidth = (WIDTH / this.bufferLength);
+        let barHeight;
+        let x = 0;
+        for (let i = 0; i < this.bufferLength; i++) {
+          barHeight = (this.analyserBuffer[i] * HEIGHT) / 255;
+          const greenness = this.analyserBuffer[i] + 100 > 255 ? 255 : this.analyserBuffer[i] + 100;
+          canvasCtx.fillStyle = `rgb(50,${greenness},50)`;
+          canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+          x += barWidth + 1;
+        }
+      }
     }
   };
 
@@ -326,6 +390,11 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
               <FormControl type="range" min="0" max="100" step="1" value={this.state.volumeLevel} onChange={this.onVolumeControlChange} />
             </FormGroup>
           </div>
+          {enableExpensiveFeatures ? (
+            <div>
+              <canvas ref={this.canvasRef} />
+            </div>
+          ) : null}
           <span className="">
             Role:
             <code>{this.isInitiator ? 'initiator' : 'responder'}</code>

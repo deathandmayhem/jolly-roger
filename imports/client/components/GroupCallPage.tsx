@@ -63,9 +63,11 @@ class GroupCallPage extends React.Component<GroupCallPageProps, GroupCallPageSta
 
     // Do the deferred construction that we can only succeed at after a user
     // gesture (click) has occurred.
-    this.audioContext = new AudioContext();
-    this.wrapperStreamDestination = this.audioContext.createMediaStreamDestination();
-    this.gainNode = this.audioContext.createGain();
+    if (this.audioContext === undefined) {
+      this.audioContext = new AudioContext();
+      this.wrapperStreamDestination = this.audioContext.createMediaStreamDestination();
+      this.gainNode = this.audioContext.createGain();
+    }
 
     navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
       .then(this.gotLocalMediaStream)
