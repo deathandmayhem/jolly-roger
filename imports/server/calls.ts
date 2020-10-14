@@ -7,6 +7,9 @@ import CallSignals from '../lib/models/call_signals';
 
 const serverId = Random.id();
 
+// Swap this to true if debugging participant/signal GC
+const debug = false;
+
 const cleanup = function () {
   const timeout = moment().subtract('120', 'seconds').toDate();
 
@@ -28,7 +31,9 @@ const cleanup = function () {
       },
     ],
   });
-  if (false) {
+
+  if (debug) {
+    // eslint-disable-next-line no-console
     console.log(`Removed ${deadSignals} dead signals`);
   }
 };
@@ -64,7 +69,6 @@ Meteor.methods({
       throw new Meteor.Error(404, `CallParticipant ${peerParticipantId} not found`);
     }
 
-    console.log('signalPeer', selfParticipantId, peerParticipantId, args);
     if (args.type === 'sdp') {
       CallSignals.upsert({
         sender: selfParticipantId,
@@ -124,7 +128,6 @@ Meteor.publish('call.join', function (hunt, call, tab) {
 });
 
 Meteor.publish('call.signal', function (callerParticipantId) {
-  console.log(`sub call.signal ${callerParticipantId}`);
   check(callerParticipantId, String);
 
   if (!this.userId) {

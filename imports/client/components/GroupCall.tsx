@@ -12,6 +12,7 @@ interface GroupCallParams {
   huntId: string;
   puzzleId: string;
   stream: MediaStream;
+  audioContext: AudioContext;
 }
 
 interface GroupCallProps extends GroupCallParams {
@@ -43,6 +44,7 @@ class GroupCall extends React.Component<GroupCallProps> {
             selfParticipant={selfParticipant}
             peerParticipant={participant}
             stream={this.props.stream}
+            audioContext={this.props.audioContext}
           />
         ))}
       </div>

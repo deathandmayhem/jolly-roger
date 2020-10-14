@@ -1,3 +1,9 @@
+.call-link-data {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: flex-start;
+}
 .call-link-data > * {
     border: 1px solid #000;
     padding-left: 4px;

@@ -1,6 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
+import FormControl from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
 import CallSignals from '../../lib/models/call_signals';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import { CallSignalType, CallSignalMessageType } from '../../lib/schemas/call_signals';
@@ -24,6 +27,7 @@ interface CallLinkParams {
   selfParticipant: CallParticipantType;
   peerParticipant: CallParticipantType;
   stream: MediaStream;
+  audioContext: AudioContext;
 }
 
 interface CallLinkProps extends CallLinkParams {
@@ -32,6 +36,7 @@ interface CallLinkProps extends CallLinkParams {
 
 interface CallLinkState {
   localCandidates: RTCIceCandidate[];
+  volumeLevel: number;
 }
 
 const rtcConfig = {
@@ -60,11 +65,18 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
 
   private isInitiator: boolean;
 
+  private wrapperStreamSource: MediaStreamAudioSourceNode | undefined;
+
+  private wrapperStreamDestination: MediaStreamAudioDestinationNode;
+
+  private gainNode: GainNode;
+
   constructor(props: CallLinkProps) {
     super(props);
 
     this.state = {
       localCandidates: [],
+      volumeLevel: 100,
     };
 
     // Create a ref so we can get at the video element on the page to set
@@ -74,6 +86,8 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
     // Create a stream object to populate tracks into as we receive them
     // from our peer.
     this.remoteStream = new MediaStream();
+    this.gainNode = this.props.audioContext.createGain();
+    this.wrapperStreamDestination = this.props.audioContext.createMediaStreamDestination();
 
     this.pc = new RTCPeerConnection(rtcConfig);
     this.pc.addEventListener('icecandidate', this.onNewLocalCandidate);
@@ -133,6 +147,7 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
   // you wanted to see, so you can see just the logs from whatever participant
   // isn't connecting.
   log = (...args: any) => {
+    // eslint-disable-next-line no-console
     console.log(this.props.peerParticipant._id, ...args);
   }
 
@@ -225,7 +240,37 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
 
   onNewRemoteTrack = (e: RTCTrackEvent) => {
     this.log('newRemoteTrack', e);
-    this.remoteStream.addTrack(e.track);
+    if (e.track.kind === 'audio') {
+      // Wire in the gain node, through the audio context.
+      const stubStream = new MediaStream();
+      stubStream.addTrack(e.track);
+
+      // This audio element is a workaround for
+      // https://bugs.chromium.org/p/chromium/issues/detail?id=933677 wherein
+      // audio tracks from a peer connection never deliver data into a WebAudio
+      // context unless they are first made the srcObject of some audio or
+      // video element.
+      const stubAudioElement = document.createElement('audio');
+      stubAudioElement.muted = true;
+      stubAudioElement.srcObject = stubStream;
+
+      this.wrapperStreamSource = this.props.audioContext.createMediaStreamSource(stubStream);
+
+      // Wire up the audio track to the gain node.
+      this.wrapperStreamSource.connect(this.gainNode);
+
+      // Then wire up the output of that gain node to our levels-adjusted track.
+      this.gainNode.connect(this.wrapperStreamDestination);
+      const innerTracks = this.wrapperStreamDestination.stream.getTracks();
+      this.log('innerTracks', innerTracks);
+      const leveledAudioTrack = innerTracks[0];
+
+      // Add that track to our post-level-adjustment stream.
+      this.remoteStream.addTrack(leveledAudioTrack);
+    } else {
+      this.remoteStream.addTrack(e.track);
+    }
+
     if (this.videoRef.current) {
       this.videoRef.current.srcObject = this.remoteStream;
     }
@@ -259,6 +304,14 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
     this.forceUpdate();
   };
 
+  onVolumeControlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const volumeLevel = Number(e.target.value);
+    this.setState({
+      volumeLevel,
+    });
+    this.gainNode.gain.setValueAtTime(volumeLevel / 100, this.props.audioContext.currentTime);
+  };
+
   render() {
     return (
       <div className="call-link">
@@ -267,6 +320,12 @@ class CallLink extends React.Component<CallLinkProps, CallLinkState> {
             Peer:
             <code>{this.props.peerParticipant._id}</code>
           </span>
+          <div className="volume">
+            <FormGroup controlId="selfVolume">
+              <FormLabel>Volume</FormLabel>
+              <FormControl type="range" min="0" max="100" step="1" value={this.state.volumeLevel} onChange={this.onVolumeControlChange} />
+            </FormGroup>
+          </div>
           <span className="">
             Role:
             <code>{this.isInitiator ? 'initiator' : 'responder'}</code>
