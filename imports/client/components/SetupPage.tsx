@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { OAuth } from 'meteor/oauth';
 import { withTracker } from 'meteor/react-meteor-data';
-import { ServiceConfiguration } from 'meteor/service-configuration';
+import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
@@ -15,6 +15,7 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
 import Settings from '../../lib/models/settings';
+import { DiscordGuilds, DiscordGuildType } from '../discord';
 
 /* eslint-disable max-len, react/jsx-one-expression-per-line */
 
@@ -391,8 +392,8 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
           </li>
         </ol>
 
-        <div className="gdrive-subsection">
-          <h2 className="gdrive-subsection-header">
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
             <span>OAuth client</span>
             {' '}
             <Badge>{oauthBadgeLabel}</Badge>
@@ -416,8 +417,8 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
           <GoogleOAuthForm initialClientId={clientId} isConfigured={!!this.props.oauthSettings} />
         </div>
 
-        <div className="gdrive-subsection">
-          <h2 className="gdrive-subsection-header">
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
             <span>Drive user</span>
             {' '}
             <Badge>{driveBadgeLabel}</Badge>
@@ -440,8 +441,8 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
           <GoogleAuthorizeDriveClientForm />
         </div>
 
-        <div className="gdrive-subsection">
-          <h2 className="gdrive-subsection-header">
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
             <span>Document templates</span>
             {' '}
             <Badge>{templateBadgeLabel}</Badge>
@@ -461,6 +462,488 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
           <GoogleDriveTemplateForm
             initialSpreadsheetTemplate={this.props.spreadsheetTemplate}
             initialDocTemplate={this.props.docTemplate}
+          />
+        </div>
+      </section>
+    );
+  }
+}
+
+interface DiscordOAuthFormProps {
+  configured: boolean;
+  enabled: boolean;
+  oauthSettings: any;
+}
+
+interface DiscordOAuthFormState {
+  clientId: string;
+  clientSecret: string;
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
+  submitError: string;
+}
+
+class DiscordOAuthForm extends React.Component<DiscordOAuthFormProps, DiscordOAuthFormState> {
+  constructor(props: DiscordOAuthFormProps) {
+    super(props);
+    this.state = {
+      clientId: (props.oauthSettings && props.oauthSettings.appId) || '',
+      clientSecret: (props.oauthSettings && props.oauthSettings.secret) || '',
+      submitState: SubmitState.IDLE,
+      submitError: '',
+    };
+  }
+
+  dismissAlert = () => {
+    this.setState({
+      submitState: SubmitState.IDLE,
+    });
+  };
+
+  onClientIdChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      clientId: e.currentTarget.value,
+    });
+  };
+
+  onClientSecretChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      clientSecret: e.currentTarget.value,
+    });
+  };
+
+  onSubmitOauthConfiguration = (e: React.FormEvent<any>) => {
+    e.preventDefault();
+
+    const clientId = this.state.clientId.trim();
+    const clientSecret = this.state.clientSecret.trim();
+
+    if (clientId.length > 0 && clientSecret.length === 0) {
+      this.setState({
+        submitState: SubmitState.ERROR,
+        submitError: 'You appear to be clearing the secret but not the client ID.  Please provide a secret.',
+      } as DiscordOAuthFormState);
+    } else {
+      this.setState({
+        submitState: SubmitState.SUBMITTING,
+      });
+      Meteor.call('setupDiscordOAuthClient', clientId, clientSecret, (err?: Error) => {
+        if (err) {
+          this.setState({
+            submitState: SubmitState.ERROR,
+            submitError: err.message,
+          } as DiscordOAuthFormState);
+        } else {
+          this.setState({
+            submitState: SubmitState.SUCCESS,
+          });
+        }
+      });
+    }
+  };
+
+  render() {
+    const shouldDisableForm = this.state.submitState === 'submitting';
+    const configured = !!this.props.oauthSettings;
+    const secretPlaceholder = configured ? '<configured secret not revealed>' : '';
+    return (
+      <div>
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'error' ? (
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.submitError}
+          </Alert>
+        ) : null}
+
+        {/* TODO: UI for client ID and client secret */}
+        <form onSubmit={this.onSubmitOauthConfiguration}>
+          <FormGroup>
+            <FormLabel htmlFor="jr-setup-edit-discord-client-id">
+              Client ID
+            </FormLabel>
+            <FormControl
+              id="jr-setup-edit-discord-client-id"
+              type="text"
+              placeholder=""
+              value={this.state.clientId}
+              disabled={shouldDisableForm}
+              onChange={this.onClientIdChange}
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormLabel htmlFor="jr-setup-edit-discord-client-secret">
+              Client Secret
+            </FormLabel>
+            <FormControl
+              id="jr-setup-edit-discord-client-secret"
+              type="text"
+              placeholder={secretPlaceholder}
+              value={this.state.clientSecret}
+              disabled={shouldDisableForm}
+              onChange={this.onClientSecretChange}
+            />
+          </FormGroup>
+          <Button variant="primary" type="submit" onClick={this.onSubmitOauthConfiguration} disabled={shouldDisableForm}>Save</Button>
+        </form>
+      </div>
+    );
+  }
+}
+
+interface DiscordBotFormProps {
+  botToken?: string
+}
+
+interface DiscordBotFormState {
+  botToken: string;
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
+  submitError: string;
+}
+
+class DiscordBotForm extends React.Component<DiscordBotFormProps, DiscordBotFormState> {
+  constructor(props: DiscordBotFormProps) {
+    super(props);
+    this.state = {
+      botToken: props.botToken || '',
+      submitState: SubmitState.IDLE,
+      submitError: '',
+    };
+  }
+
+  dismissAlert = () => {
+    this.setState({
+      submitState: SubmitState.IDLE,
+    });
+  };
+
+  onBotTokenChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      botToken: e.currentTarget.value,
+    });
+  };
+
+  onSubmitBotToken = (e: React.FormEvent<any>) => {
+    e.preventDefault();
+
+    const botToken = this.state.botToken.trim();
+
+    this.setState({
+      submitState: SubmitState.SUBMITTING,
+    });
+    Meteor.call('setupDiscordBotToken', botToken, (err?: Error) => {
+      if (err) {
+        this.setState({
+          submitState: SubmitState.ERROR,
+          submitError: err.message,
+        });
+      } else {
+        this.setState({
+          submitState: SubmitState.SUCCESS,
+        });
+      }
+    });
+  };
+
+  render() {
+    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
+    return (
+      <div>
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'error' ? (
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.submitError}
+          </Alert>
+        ) : null}
+
+        <form onSubmit={this.onSubmitBotToken}>
+          <FormGroup>
+            <FormLabel htmlFor="jr-setup-edit-discord-bot-token">
+              Bot token
+            </FormLabel>
+            <FormControl
+              id="jr-setup-edit-discord-bot-token"
+              type="text"
+              placeholder=""
+              value={this.state.botToken}
+              disabled={shouldDisableForm}
+              onChange={this.onBotTokenChange}
+            />
+          </FormGroup>
+          <Button variant="primary" type="submit" onClick={this.onSubmitBotToken} disabled={shouldDisableForm}>Save</Button>
+        </form>
+      </div>
+    );
+  }
+}
+
+interface DiscordGuildFormContainerProps {
+  // initial value from settings
+  guild?: DiscordGuildType;
+}
+
+interface DiscordGuildFormProps extends DiscordGuildFormContainerProps {
+  ready: boolean;
+  // List of possible guilds from server
+  guilds: DiscordGuildType[];
+}
+
+interface DiscordGuildFormState {
+  guildId: string;
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
+  submitError: string;
+}
+
+class DiscordGuildForm extends React.Component<DiscordGuildFormProps, DiscordGuildFormState> {
+  constructor(props: DiscordGuildFormProps) {
+    super(props);
+    this.state = {
+      guildId: (props.guild && props.guild._id) || '',
+      submitState: SubmitState.IDLE,
+      submitError: '',
+    };
+  }
+
+  dismissAlert = () => {
+    this.setState({
+      submitState: SubmitState.IDLE,
+    });
+  };
+
+  onSelectedGuildChange: FormControlProps['onChange'] = (e) => {
+    const newValue = e.currentTarget.value === 'empty' ? '' : e.currentTarget.value;
+    this.setState({
+      guildId: newValue,
+    });
+  };
+
+  onSaveGuild = (e: React.FormEvent<any>) => {
+    e.preventDefault();
+
+    const guild = this.props.guilds.find((g) => g._id === this.state.guildId);
+    this.setState({
+      submitState: SubmitState.SUBMITTING,
+    });
+    Meteor.call('setupDiscordBotGuild', guild, (err?: Error) => {
+      if (err) {
+        this.setState({
+          submitState: SubmitState.ERROR,
+          submitError: err.message,
+        });
+      } else {
+        this.setState({
+          submitState: SubmitState.SUCCESS,
+        });
+      }
+    });
+  };
+
+  render() {
+    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
+    const noneOption = {
+      _id: 'empty',
+      name: 'No guild assigned',
+    };
+    const formOptions = [noneOption, ...this.props.guilds];
+    return (
+      <div>
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'error' ? (
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.submitError}
+          </Alert>
+        ) : null}
+
+        <form onSubmit={this.onSaveGuild}>
+          <FormGroup>
+            <FormLabel htmlFor="jr-setup-edit-discord-bot-guild">
+              Bot token
+            </FormLabel>
+            <FormControl
+              id="jr-setup-edit-discord-bot-guild"
+              as="select"
+              type="text"
+              placeholder=""
+              value={this.state.guildId}
+              disabled={shouldDisableForm}
+              onChange={this.onSelectedGuildChange}
+            >
+              {formOptions.map(({ _id, name }) => {
+                return (
+                  <option key={_id} value={_id}>{name}</option>
+                );
+              })}
+            </FormControl>
+          </FormGroup>
+          <Button variant="primary" type="submit" onClick={this.onSaveGuild} disabled={shouldDisableForm}>Save</Button>
+        </form>
+      </div>
+    );
+  }
+}
+
+const DiscordGuildFormContainer = withTracker((_props: DiscordGuildFormContainerProps) => {
+  // DiscordGuilds is a pseudocollection, and the subscribe here causes the
+  // server to do a call against the Discord API to list guilds the user is in.
+  // It's not reactive; you might have to refresh the page to get it to update.
+  // Didn't seem worth making cleverer; this will get used ~once.
+  const guildSub = Meteor.subscribe('discord.guilds');
+  const ready = guildSub.ready();
+  const guilds = ready ? DiscordGuilds.find({}).fetch() : [];
+  return {
+    ready: false,
+    guilds,
+  };
+})(DiscordGuildForm);
+
+interface DiscordIntegrationSectionProps {
+  configured: boolean;
+  enabled: boolean;
+  oauthSettings?: Configuration;
+  botToken?: string;
+  guild?: DiscordGuildType;
+}
+
+class DiscordIntegrationSection extends React.Component<DiscordIntegrationSectionProps> {
+  onToggleEnabled = () => {
+    const newValue = !this.props.enabled;
+    const ffValue = newValue ? 'off' : 'on';
+    Meteor.call('setFeatureFlag', 'disable.discord', ffValue);
+  };
+
+  render() {
+    const firstButtonLabel = this.props.enabled ? 'Enabled' : 'Enable';
+    const secondButtonLabel = this.props.enabled ? 'Disable' : 'Disabled';
+
+    const configured = !!this.props.oauthSettings;
+    const clientId = this.props.oauthSettings && this.props.oauthSettings.appId;
+    const addGuildLink = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&scope=bot&permissions=8`;
+    const oauthBadgeLabel = this.props.oauthSettings ? 'configured' : 'unconfigured';
+    const oauthBadgeVariant = this.props.oauthSettings ? 'success' : 'warning';
+    const botBadgeLabel = this.props.botToken ? 'configured' : 'unconfigured';
+    const botBadgeVariant = this.props.botToken ? 'success' : 'warning';
+    const guildBadgeLabel = this.props.guild ? 'configured' : 'unconfigured';
+    const guildBadgeVariant = this.props.guild ? 'success' : 'warning';
+    return (
+      <section>
+        <h1 className="setup-section-header">
+          <span className="setup-section-header-label">
+            Discord integration
+          </span>
+          <Badge>
+            {configured ? 'Configured' : 'Unconfigured'}
+          </Badge>
+          {configured && (
+          <span className="setup-section-header-buttons">
+            <Button variant="light" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
+              {firstButtonLabel}
+            </Button>
+            <Button variant="light" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
+              {secondButtonLabel}
+            </Button>
+          </span>
+          )}
+        </h1>
+
+        <p>
+          Jolly Roger supports a Discord integration, where this instance
+          connects to Discord as a bot user with several useful capabilities.
+        </p>
+        <ul>
+          <li>(TODO): It can invite users to a guild (&quot;server&quot;) that it is a member of</li>
+          <li>(TODO): It can send messages to a channel on new puzzle creation, or when a puzzle is solved</li>
+          <li>(TODO): It can send messages to a channel when a new announcement is created</li>
+          <li>(TODO): It can send messages to a channel when users write chat messages on puzzle pages</li>
+        </ul>
+        <p>
+          There are multiple pieces to Jolly Roger&apos;s Discord integration capabilities:
+        </p>
+        <ol>
+          <li>
+            The OAuth client, which allows Jolly Roger to have users link
+            their Discord account to their Jolly Roger account.  This enables
+            Jolly Roger to correlate chat messages sent on Discord with user
+            accounts within Jolly Roger.
+          </li>
+          <li>
+            The bot account, which allows Jolly Roger to programmatically
+            manage guild (&quot;server&quot;) invitations to members.
+          </li>
+          <li>
+            Guild selection, since Discord bots can be part of multiple guilds.
+          </li>
+        </ol>
+
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
+            <span>OAuth client</span>
+            {' '}
+            <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
+          </h2>
+          <p>
+            Jolly Roger can allow Discord users to grant limited access to
+            their Discord account for the purposes of adding them to a guild
+            and linking their chat messages between the two services.
+          </p>
+          <p>
+            To enable Discord OAuth integration, you will need to:
+          </p>
+          <ol>
+            <li>Create a new Discord application at <a href="https://discord.com/developers/applications">https://discord.com/developers/applications</a></li>
+            <li>In the OAuth2 section, add a redirect pointing to <span>{Meteor.absoluteUrl('/_oauth/discord')}</span></li>
+            <li>In the Bot section, create a bot account.</li>
+            <li>Copy the Client ID and Client Secret from the &quot;General Information&quot; section and paste them here below.</li>
+            <li>Copy the Token from the Bot section and paste it below.</li>
+            <li>Click the save button below.</li>
+            <li>Then, after you have successfully saved the client secret and bot token: as the guild (&quot;server&quot;) owner, <a href={addGuildLink}>add the bot to your Discord guild here</a>.</li>
+          </ol>
+          <DiscordOAuthForm
+            configured={this.props.configured}
+            enabled={this.props.enabled}
+            oauthSettings={this.props.oauthSettings}
+          />
+        </div>
+
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
+            <span>Bot account</span>
+            {' '}
+            <Badge variant={botBadgeVariant}>{botBadgeLabel}</Badge>
+          </h2>
+          <p>
+            Since Discord only allows guild invitations to be managed by bot
+            accounts, to use Jolly Roger to automate Discord guild membership,
+            you must create a bot account, save its token here, and then add
+            it to the guild for which you wish to automate invites.
+          </p>
+          <DiscordBotForm
+            botToken={this.props.botToken}
+          />
+        </div>
+
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
+            <span>Guild</span>
+            {' '}
+            <Badge variant={guildBadgeVariant}>{guildBadgeLabel}</Badge>
+          </h2>
+          <p>
+            Since bots can be part of multiple guilds, you&apos;ll need to specify
+            which one you want Jolly Roger to add users to.  Note that Discord
+            bots can only add other users to guilds which they are already a
+            member of, so if you see no guilds selectable here, you may need
+            to first <a href={addGuildLink}>add the bot to your guild</a>.
+          </p>
+
+          <DiscordGuildFormContainer
+            guild={this.props.guild}
           />
         </div>
       </section>
@@ -645,6 +1128,11 @@ interface SetupPageRewriteProps {
   docTemplate?: string;
   spreadsheetTemplate?: string;
 
+  discordOAuthConfig?: Configuration;
+  flagDisableDiscord: boolean;
+  discordBotToken?: string;
+  discordGuild?: DiscordGuildType;
+
   flagDisableGoogleIntegration: boolean;
   flagDisableGdrivePermissions: boolean;
   flagDisableSubcounters: boolean;
@@ -671,6 +1159,8 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
       );
     }
 
+    const discordConfigured = !!this.props.discordOAuthConfig;
+    const discordEnabled = !this.props.flagDisableDiscord;
     return (
       <div className="setup-page">
         <GoogleIntegrationSection
@@ -679,6 +1169,13 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
           gdriveCredential={this.props.gdriveCredential}
           docTemplate={this.props.docTemplate}
           spreadsheetTemplate={this.props.spreadsheetTemplate}
+        />
+        <DiscordIntegrationSection
+          oauthSettings={this.props.discordOAuthConfig}
+          configured={discordConfigured}
+          enabled={discordEnabled}
+          botToken={this.props.discordBotToken}
+          guild={this.props.discordGuild}
         />
         <CircuitBreakerSection
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
@@ -708,6 +1205,14 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   const spreadsheetTemplateId = spreadsheetTemplate && spreadsheetTemplate.name === 'gdrive.template.spreadsheet' ?
     spreadsheetTemplate.value.id : undefined;
 
+  // Discord
+  const discordOAuthConfig = ServiceConfiguration.configurations.findOne({ service: 'discord' });
+  const flagDisableDiscord = Flags.active('disable.discord');
+  const discordBotTokenDoc = Settings.findOne({ name: 'discord.bot' });
+  const discordBotToken = discordBotTokenDoc && discordBotTokenDoc.name === 'discord.bot' ? discordBotTokenDoc.value.token : undefined;
+  const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
+  const discordGuild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' ? discordGuildDoc.value.guild : undefined;
+
   // Circuit breakers
   const flagDisableGoogleIntegration = Flags.active('disable.google');
   const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
@@ -724,6 +1229,11 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     gdriveCredential,
     docTemplate: docTemplateId,
     spreadsheetTemplate: spreadsheetTemplateId,
+
+    discordOAuthConfig,
+    flagDisableDiscord,
+    discordBotToken,
+    discordGuild,
 
     flagDisableGoogleIntegration,
     flagDisableGdrivePermissions,
