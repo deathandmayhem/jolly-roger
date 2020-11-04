@@ -24,7 +24,6 @@ import '../imports/server/profile';
 import '../imports/server/puzzle';
 import '../imports/server/server-render';
 import '../imports/server/setup';
-import '../imports/server/slack-methods';
 import '../imports/server/subscribers';
 import '../imports/server/operator';
 import '../imports/server/users';

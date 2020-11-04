@@ -468,130 +468,6 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
   }
 }
 
-interface SlackIntegrationSectionProps {
-  configured: boolean;
-  enabled: boolean;
-}
-
-type SlackIntegrationSectionState = {
-  apiKeyValue: string;
-} & ({
-  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS;
-} | {
-  submitState: SubmitState.ERROR;
-  submitError: string;
-})
-
-class SlackIntegrationSection extends React.Component<SlackIntegrationSectionProps, SlackIntegrationSectionState> {
-  constructor(props: SlackIntegrationSectionProps) {
-    super(props);
-    this.state = {
-      apiKeyValue: '',
-      submitState: SubmitState.IDLE,
-    };
-  }
-
-  onToggleEnabled = () => {
-    const newValue = !this.props.enabled;
-    const ffValue = newValue ? 'off' : 'on';
-    Meteor.call('setFeatureFlag', 'disable.slack', ffValue);
-  };
-
-  onApiKeyChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      apiKeyValue: e.currentTarget.value,
-    });
-  };
-
-  onSaveApiKey = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    this.setState({
-      submitState: SubmitState.SUBMITTING,
-    });
-
-    Meteor.call('configureSlack', this.state.apiKeyValue.trim(), (err?: Error) => {
-      if (err) {
-        this.setState({
-          submitState: SubmitState.ERROR,
-          submitError: err.message,
-        } as SlackIntegrationSectionState);
-      } else {
-        this.setState({
-          submitState: SubmitState.SUCCESS,
-        });
-      }
-    });
-  };
-
-  dismissAlert = () => {
-    this.setState({
-      submitState: SubmitState.ERROR,
-    });
-  };
-
-  render() {
-    const firstButtonLabel = this.props.enabled ? 'Enabled' : 'Enable';
-    const secondButtonLabel = this.props.enabled ? 'Disable' : 'Disabled';
-
-    const shouldDisableForm = this.state.submitState === 'submitting';
-
-    return (
-      <section>
-        <h1 className="setup-section-header">
-          <span className="setup-section-header-label">
-            Slack integration
-          </span>
-          <Badge>
-            {this.props.configured ? 'Configured' : 'Unconfigured'}
-          </Badge>
-          {this.props.configured && (
-          <span className="setup-section-header-buttons">
-            <Button variant="light" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
-              {firstButtonLabel}
-            </Button>
-            <Button variant="light" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
-              {secondButtonLabel}
-            </Button>
-          </span>
-          )}
-        </h1>
-        <p>
-          Jolly Roger supports mirroring internal chat to Slack.  Hunts may configure a &quot;general&quot;
-          channel where we&apos;ll send messages about puzzles being solved and new puzzles being added.
-          Each hunt may additionally configure a &quot;firehose&quot; channel, where we&apos;ll mirror every chat
-          message sent about any puzzle in that hunt, to make it easy for people to use Slack&apos;s dingwords
-          to take note.
-        </p>
-
-        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.submitError}
-          </Alert>
-        ) : null}
-
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-slack-api-key">
-            API key
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-slack-api-key"
-            type="text"
-            placeholder="xoxp-..."
-            value={this.state.apiKeyValue}
-            disabled={shouldDisableForm}
-            onChange={this.onApiKeyChange}
-          />
-        </FormGroup>
-        <Button variant="primary" type="submit" onClick={this.onSaveApiKey}>Save</Button>
-      </section>
-    );
-  }
-}
-
 interface CircuitBreakerControlProps {
   // disabled should be false if the circuit breaker is not intentionally disabling the feature,
   // and true if the feature is currently disabled.
@@ -769,9 +645,6 @@ interface SetupPageRewriteProps {
   docTemplate?: string;
   spreadsheetTemplate?: string;
 
-  slackConfig: any;
-  flagDisableSlack: boolean;
-
   flagDisableGoogleIntegration: boolean;
   flagDisableGdrivePermissions: boolean;
   flagDisableSubcounters: boolean;
@@ -798,8 +671,6 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
       );
     }
 
-    const slackConfigured = !!this.props.slackConfig;
-    const slackEnabled = !this.props.flagDisableSlack;
     return (
       <div className="setup-page">
         <GoogleIntegrationSection
@@ -808,10 +679,6 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
           gdriveCredential={this.props.gdriveCredential}
           docTemplate={this.props.docTemplate}
           spreadsheetTemplate={this.props.spreadsheetTemplate}
-        />
-        <SlackIntegrationSection
-          configured={slackConfigured}
-          enabled={slackEnabled}
         />
         <CircuitBreakerSection
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
@@ -841,10 +708,6 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   const spreadsheetTemplateId = spreadsheetTemplate && spreadsheetTemplate.name === 'gdrive.template.spreadsheet' ?
     spreadsheetTemplate.value.id : undefined;
 
-  // Slack
-  const slackConfig = ServiceConfiguration.configurations.findOne({ service: 'slack' });
-  const flagDisableSlack = Flags.active('disable.slack');
-
   // Circuit breakers
   const flagDisableGoogleIntegration = Flags.active('disable.google');
   const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
@@ -861,9 +724,6 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     gdriveCredential,
     docTemplate: docTemplateId,
     spreadsheetTemplate: spreadsheetTemplateId,
-
-    slackConfig,
-    flagDisableSlack,
 
     flagDisableGoogleIntegration,
     flagDisableGdrivePermissions,

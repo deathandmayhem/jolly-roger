@@ -11,7 +11,6 @@ Meteor.methods({
     check(newProfile, {
       displayName: String,
       phoneNumber: String,
-      slackHandle: String,
       muteApplause: Boolean,
     });
     const user = Meteor.users.findOne(this.userId)!;
@@ -25,7 +24,6 @@ Meteor.methods({
         displayName: newProfile.displayName,
         primaryEmail,
         phoneNumber: newProfile.phoneNumber,
-        slackHandle: newProfile.slackHandle,
         muteApplause: newProfile.muteApplause,
         deleted: false,
       },

@@ -40,8 +40,6 @@ export interface HuntModalSubmit {
   signupMessage: string;
   openSignups: boolean;
   submitTemplate: string;
-  firehoseSlackChannel: string;
-  puzzleHooksSlackChannel: string;
 }
 
 interface HuntModalFormProps {
@@ -82,8 +80,6 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         signupMessage: this.props.hunt.signupMessage || '',
         openSignups: this.props.hunt.openSignups || false,
         submitTemplate: this.props.hunt.submitTemplate || '',
-        firehoseSlackChannel: this.props.hunt.firehoseSlackChannel || '',
-        puzzleHooksSlackChannel: this.props.hunt.puzzleHooksSlackChannel || '',
       });
     } else {
       return Object.assign(state, {
@@ -92,8 +88,6 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         signupMessage: '',
         openSignups: false,
         submitTemplate: '',
-        firehoseSlackChannel: '',
-        puzzleHooksSlackChannel: '',
       });
     }
   };
@@ -127,18 +121,6 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
       submitTemplate: e.currentTarget.value,
     });
   }
-
-  onFirehoseSlackChannelChanged: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      firehoseSlackChannel: e.currentTarget.value,
-    });
-  };
-
-  onPuzzleHooksSlackChannelChanged: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      puzzleHooksSlackChannel: e.currentTarget.value,
-    });
-  };
 
   onFormSubmit = (callback: () => void) => {
     this.setState({ submitState: HuntModalFormSubmitState.SUBMITTING });
@@ -279,47 +261,6 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               <code>{'{{{origin}}}/submit{{{pathname}}}'}</code>
               {' '}
               would work for the 2018 Mystery Hunt. If not specified, the puzzle URL is used as the link to the guess submission page.
-            </FormText>
-          </Col>
-        </FormGroup>
-
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor={`${idPrefix}firehose-slack-channel`}>
-            Firehose Slack channel
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              id={`${idPrefix}firehose-slack-channel`}
-              type="text"
-              value={this.state.firehoseSlackChannel}
-              onChange={this.onFirehoseSlackChannelChanged}
-              disabled={disableForm}
-            />
-            <FormText>
-              If provided, all chat messages written in puzzles associated with this hunt will be mirrored to the specified channel in Slack.  Make sure to include the # at the beginning of the channel name, like
-              {' '}
-              <code>#firehose</code>
-              .
-            </FormText>
-          </Col>
-        </FormGroup>
-
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor={`${idPrefix}puzzle-hooks-slack-channel`}>
-            Puzzle added/solved Slack channel
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              id={`${idPrefix}puzzle-hooks-slack-channel`}
-              type="text"
-              value={this.state.puzzleHooksSlackChannel}
-              onChange={this.onPuzzleHooksSlackChannelChanged}
-            />
-            <FormText>
-              If provided, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.  Make sure to include the # at the beginning of the channel name, like
-              {' '}
-              <code>#general</code>
-              .
             </FormText>
           </Col>
         </FormGroup>

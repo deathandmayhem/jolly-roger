@@ -20,3 +20,7 @@ import './18-rename-gdrive-template';
 import './19-subscribers-name-index';
 import './20-puzzle-multiple-answers';
 import './21-puzzle-remove-single-answers';
+import './22-unset-slack-handles';
+import './23-serviceconfigurations-remove-slack';
+import './24-hunts-remove-slack-fields';
+import './25-remove-slack-featureflag';
