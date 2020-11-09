@@ -5,7 +5,9 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../ansible';
+import { API_BASE } from '../lib/discord';
 import Settings from '../lib/models/settings';
+import { DiscordBot } from './discord';
 
 Meteor.methods({
   setupGoogleOAuthClient(clientId: unknown, secret: unknown) {
@@ -102,7 +104,7 @@ Meteor.methods({
       'Content-Type': 'application/x-www-form-urlencoded',
     };
     const authString = `${clientId}:${clientSecret}`;
-    const resp = HTTP.post('https://discord.com/api/v8/oauth2/token', {
+    const resp = HTTP.post(`${API_BASE}/oauth2/token`, {
       content: postData,
       headers,
       auth: authString,
@@ -181,19 +183,17 @@ Meteor.publish('discord.guilds', function () {
     return [];
   }
 
-  // Make HTTP request to discord API.
-  const resp = HTTP.get('https://discord.com/api/v8/users/@me/guilds', {
-    headers: {
-      Authorization: `Bot ${token}`,
-    },
-  });
-
-  if (resp.statusCode !== 200) {
-    Ansible.log('Sub to discord.guilds: discord remote error', { resp });
+  // Fetch guilds from Discord API.
+  const bot = new DiscordBot(token);
+  let guilds;
+  try {
+    guilds = bot.listGuilds();
+  } catch (err) {
+    Ansible.log('Sub to discord.guilds: discord remote error', { err });
     return [];
   }
 
-  resp.data.forEach((guild: any) => {
+  guilds.forEach((guild: any) => {
     this.added('discord.guilds', guild.id, { name: guild.name });
   });
   this.ready();

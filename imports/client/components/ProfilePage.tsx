@@ -19,6 +19,7 @@ import { RouteComponentProps } from 'react-router';
 import Flags from '../../flags';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
+import { requestDiscordCredential } from '../discord';
 import Gravatar from './Gravatar';
 
 /* eslint-disable max-len */
@@ -64,7 +65,7 @@ class OthersProfilePage extends React.Component<OthersProfilePageProps> {
 interface GoogleLinkBlockProps {
   profile: ProfileType;
   googleDisabled: boolean;
-  config: Configuration | null;
+  config: Configuration | undefined;
 }
 
 enum GoogleLinkBlockLinkState {
@@ -213,10 +214,164 @@ class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBl
 }
 
 const GoogleLinkBlockContainer = withTracker((_props: { profile: ProfileType }) => {
-  const config = ServiceConfiguration.configurations.findOne({ service: 'google' }) as Configuration | null;
+  const config = ServiceConfiguration.configurations.findOne({ service: 'google' }) as Configuration | undefined;
   const googleDisabled = Flags.active('disable.google');
   return { config, googleDisabled };
 })(GoogleLinkBlock);
+
+enum DiscordLinkBlockLinkState {
+  IDLE = 'idle',
+  LINKING = 'linking',
+  ERROR = 'error',
+}
+
+interface DiscordLinkBlockProps {
+  profile: ProfileType;
+  config: Configuration | undefined;
+  discordDisabled: boolean;
+}
+
+type DiscordLinkBlockState = {
+  state: DiscordLinkBlockLinkState.IDLE | DiscordLinkBlockLinkState.LINKING;
+} | {
+  state: DiscordLinkBlockLinkState.ERROR;
+  error: Error;
+}
+
+class DiscordLinkBlock extends React.Component<DiscordLinkBlockProps, DiscordLinkBlockState> {
+  constructor(props: DiscordLinkBlockProps) {
+    super(props);
+    this.state = {
+      state: DiscordLinkBlockLinkState.IDLE,
+    };
+  }
+
+  onLink = () => {
+    this.setState({ state: DiscordLinkBlockLinkState.LINKING });
+    requestDiscordCredential(this.requestComplete);
+  };
+
+  onUnlink = () => {
+    Meteor.call('unlinkUserDiscordAccount');
+  };
+
+  requestComplete = (token: string) => {
+    const secret = OAuth._retrieveCredentialSecret(token);
+    if (!secret) {
+      this.setState({ state: DiscordLinkBlockLinkState.IDLE });
+      return;
+    }
+
+    Meteor.call('linkUserDiscordAccount', token, secret, (error?: Error) => {
+      if (error) {
+        this.setState({ state: DiscordLinkBlockLinkState.ERROR, error });
+      } else {
+        this.setState({ state: DiscordLinkBlockLinkState.IDLE });
+      }
+    });
+  };
+
+  dismissAlert = () => {
+    this.setState({ state: DiscordLinkBlockLinkState.IDLE });
+  };
+
+  errorAlert = () => {
+    if (this.state.state === 'error') {
+      return (
+        <Alert variant="danger" dismissible onClose={this.dismissAlert}>
+          Linking Discord account failed:
+          {' '}
+          {this.state.error.message}
+        </Alert>
+      );
+    }
+    return null;
+  };
+
+  linkButton = () => {
+    if (this.state.state === DiscordLinkBlockLinkState.LINKING) {
+      return <Button variant="primary" disabled>Linking...</Button>;
+    }
+
+    if (this.props.discordDisabled) {
+      return <Button variant="primary" disabled>Discord integration currently disabled</Button>;
+    }
+
+    const text = (this.props.profile.discordAccount) ?
+      'Link a different Discord account' :
+      'Link your Discord account';
+
+    return (
+      <Button variant="primary" onClick={this.onLink}>
+        {text}
+      </Button>
+    );
+  };
+
+  unlinkButton = () => {
+    if (this.props.profile.discordAccount) {
+      return (
+        <Button variant="danger" onClick={this.onUnlink}>
+          Unlink
+        </Button>
+      );
+    }
+
+    return null;
+  };
+
+  currentAccount = () => {
+    if (this.props.profile.discordAccount) {
+      const acct = this.props.profile.discordAccount;
+      return (
+        <div>
+          Currently linked to
+          {' '}
+          {acct.username}
+          #
+          {acct.discriminator}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  render() {
+    if (!this.props.config) {
+      return <div />;
+    }
+
+    return (
+      <FormGroup>
+        <FormLabel>
+          Discord account
+        </FormLabel>
+        {this.errorAlert()}
+        <div>
+          {this.currentAccount()}
+          {this.linkButton()}
+          {' '}
+          {this.unlinkButton()}
+        </div>
+        <FormText>
+          Linking your Discord account will add you to the Death & Mayhem
+          Discord server.  Additionally, we&apos;ll be able to link up your identity
+          there and in jolly-roger chat.
+        </FormText>
+      </FormGroup>
+    );
+  }
+}
+
+const DiscordLinkBlockContainer = withTracker((_props: { profile: ProfileType }) => {
+  const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });
+  const discordDisabled = Flags.active('disable.discord');
+  return {
+    config,
+    discordDisabled,
+  };
+})(DiscordLinkBlock);
 
 interface OwnProfilePageProps {
   initialProfile: ProfileType;
@@ -342,6 +497,8 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
 
         <GoogleLinkBlockContainer profile={this.props.initialProfile} />
 
+        <DiscordLinkBlockContainer profile={this.props.initialProfile} />
+
         <FormGroup>
           <FormLabel htmlFor="jr-profile-edit-display-name">
             Display name
@@ -461,6 +618,7 @@ const tracker = withTracker(({ match }: ProfilePageWithRouterParams) => {
       updatedAt: undefined,
       updatedBy: undefined,
       googleAccount: undefined,
+      discordAccount: undefined,
       muteApplause: undefined,
     },
     viewerCanMakeOperator: Roles.userHasPermission(Meteor.userId(), 'users.makeOperator'),
