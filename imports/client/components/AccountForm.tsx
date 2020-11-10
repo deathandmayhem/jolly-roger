@@ -134,7 +134,6 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
     const newProfile = {
       displayName: this.state.displayName,
       phoneNumber: this.state.phoneNumber,
-      slackHandle: '',
       muteApplause: false,
     };
 

@@ -56,13 +56,6 @@ class OthersProfilePage extends React.Component<OthersProfilePageProps> {
             {profile.phoneNumber}
           </div>
         ) : null}
-        {profile.slackHandle ? (
-          <div>
-            Slack handle:
-            {' '}
-            {profile.slackHandle}
-          </div>
-        ) : null}
       </div>
     );
   }
@@ -241,7 +234,6 @@ enum OwnProfilePageSubmitState {
 interface OwnProfilePageState {
   displayNameValue: string;
   phoneNumberValue: string;
-  slackHandleValue: string;
   muteApplause: boolean;
   submitState: OwnProfilePageSubmitState,
   submitError: string;
@@ -253,7 +245,6 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
     this.state = {
       displayNameValue: this.props.initialProfile.displayName || '',
       phoneNumberValue: this.props.initialProfile.phoneNumber || '',
-      slackHandleValue: this.props.initialProfile.slackHandle || '',
       muteApplause: this.props.initialProfile.muteApplause || false,
       submitState: OwnProfilePageSubmitState.IDLE,
     } as OwnProfilePageState;
@@ -277,12 +268,6 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
     });
   };
 
-  handleSlackHandleFieldChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      slackHandleValue: e.currentTarget.value,
-    });
-  };
-
   toggleOperating = () => {
     const newState = !this.props.operating;
     if (newState) {
@@ -299,7 +284,6 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
     const newProfile = {
       displayName: this.state.displayNameValue,
       phoneNumber: this.state.phoneNumberValue,
-      slackHandle: this.state.slackHandleValue,
       muteApplause: this.state.muteApplause,
     };
     Meteor.call('saveProfile', newProfile, (error?: Error) => {
@@ -371,25 +355,6 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
           />
           <FormText>
             We suggest your full name, to avoid ambiguity.
-          </FormText>
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel htmlFor="jr-profile-edit-slack">
-            Slack handle
-          </FormLabel>
-          <FormControl
-            id="jr-profile-edit-slack"
-            type="text"
-            value={this.state.slackHandleValue}
-            disabled={shouldDisableForm}
-            onChange={this.handleSlackHandleFieldChange}
-          />
-          <FormText>
-            So we can connect your chat there with your account here. If you haven&apos;t signed up for a Slack account yet, there should be a notification in the top-right that you can use to get an invite. (Slack handles contain letters, numbers, periods, and underscores. You don&apos;t need the leading
-            {' '}
-            <code>@</code>
-            .)
           </FormText>
         </FormGroup>
 
@@ -490,7 +455,6 @@ const tracker = withTracker(({ match }: ProfilePageWithRouterParams) => {
       displayName: '',
       primaryEmail: defaultEmail,
       phoneNumber: '',
-      slackHandle: '',
       deleted: false,
       createdAt: new Date(),
       createdBy: user._id,

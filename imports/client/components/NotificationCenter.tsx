@@ -182,90 +182,6 @@ class GuessMessage extends React.PureComponent<GuessMessageProps> {
   }
 }
 
-interface SlackMessageProps {
-  onDismiss: () => void;
-}
-
-enum SlackMessageStatus {
-  IDLE = 'idle',
-  SUBMITTING = 'submitting',
-  ERROR = 'error',
-  SUCCESS = 'success',
-}
-
-type SlackMessageState = {
-  // eslint-disable-next-line no-restricted-globals
-  status: SlackMessageStatus;
-  errorMessage?: string;
-}
-
-class SlackMessage extends React.PureComponent<SlackMessageProps, SlackMessageState> {
-  constructor(props: SlackMessageProps) {
-    super(props);
-    this.state = { status: SlackMessageStatus.IDLE };
-  }
-
-  sendInvite = () => {
-    this.setState({ status: SlackMessageStatus.SUBMITTING });
-    Meteor.call('slackInvite', (err?: Error) => {
-      if (err) {
-        this.setState({ status: SlackMessageStatus.ERROR, errorMessage: err.message });
-      } else {
-        this.setState({ status: SlackMessageStatus.SUCCESS });
-      }
-    });
-  };
-
-  reset = () => {
-    this.setState({ status: SlackMessageStatus.IDLE });
-  };
-
-  render() {
-    let msg;
-    // eslint-disable-next-line default-case
-    switch (this.state.status) {
-      case SlackMessageStatus.IDLE:
-        msg = 'It looks like there\'s no Slack username in your profile. If you need an invite ' +
-              'to Slack, we can do that! Otherwise, adding it to your profile helps us get in ' +
-              'touch.';
-        break;
-      case SlackMessageStatus.SUBMITTING:
-        msg = 'Sending an invite now...';
-        break;
-      case SlackMessageStatus.SUCCESS:
-        msg = 'Done! Check your email. This notification will stick around to remind you to ' +
-              'finish signing up.';
-        break;
-      case SlackMessageStatus.ERROR:
-        msg = `Uh-oh - something went wrong: ${this.state.errorMessage}`;
-        break;
-    }
-
-    const actions = [];
-    if (this.state.status === 'idle') {
-      actions.push(<li key="invite"><button type="button" onClick={this.sendInvite}>Send me an invite</button></li>);
-    }
-
-    actions.push(<li key="edit"><Link to="/users/me">Edit my profile</Link></li>);
-
-    if (this.state.status === 'success' || this.state.status === 'error') {
-      actions.push(<li key="reset"><button type="button" onClick={this.reset}>Ok</button></li>);
-    }
-
-    return (
-      <li>
-        <MessengerSpinner />
-        <MessengerContent>
-          {msg}
-          <ul className="actions">
-            {actions}
-          </ul>
-        </MessengerContent>
-      </li>
-    );
-  }
-}
-
 interface AnnouncementMessageProps {
   id: string;
   announcement: AnnouncementType;
@@ -316,11 +232,9 @@ type NotificationCenterProps = {
   ready: boolean;
   announcements?: NotificationCenterAnnouncement[];
   guesses?: NotificationCenterGuess[];
-  slackConfigured?: boolean;
 }
 
 interface NotificationCenterState {
-  hideSlackSetupMessage: boolean;
   dismissedGuesses: Record<string, boolean>;
 }
 
@@ -328,16 +242,9 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
   constructor(props: NotificationCenterProps) {
     super(props);
     this.state = {
-      hideSlackSetupMessage: false,
       dismissedGuesses: {},
     };
   }
-
-  hideSlackSetupMessage = () => {
-    this.setState({
-      hideSlackSetupMessage: true,
-    });
-  };
 
   dismissGuess = (guessId: string) => {
     const newState: Record<string, boolean> = {};
@@ -354,11 +261,7 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
     }
 
     // Build a list of uninstantiated messages with their props, then create them
-    const messages = [];
-
-    if (!this.props.slackConfigured && !this.state.hideSlackSetupMessage) {
-      messages.push(<SlackMessage key="slack" onDismiss={this.hideSlackSetupMessage} />);
-    }
+    const messages: any = [];
 
     this.props.guesses.forEach((g) => {
       if (this.state.dismissedGuesses[g.guess._id]) return;
@@ -419,13 +322,10 @@ const NotificationCenterContainer = withTracker((_props: {}): NotificationCenter
     return { ready: false };
   }
 
-  const profile = Profiles.findOne(Meteor.userId()!);
-
   const data = {
     ready: guessesHandle.ready() && puzzlesHandle.ready() && huntsHandle.ready() && paHandle.ready(),
     announcements: [] as NotificationCenterAnnouncement[],
     guesses: [] as NotificationCenterGuess[],
-    slackConfigured: !!(profile && profile.slackHandle),
   };
 
   if (canUpdateGuesses) {

@@ -18,13 +18,6 @@ const HuntFields = t.type({
   // (https://nodejs.org/api/url.html#url_class_url), which provides variables
   // like "host" and "pathname".
   submitTemplate: t.union([t.string, t.undefined]),
-  // If this is provided, then any message sent in chat for a puzzle associated
-  // with this hunt will also be mirrored to a Slack channel with the specified
-  // name. Example value: "#firehose"
-  firehoseSlackChannel: t.union([t.string, t.undefined]),
-  // If provided, then on puzzle creation and puzzle solve, we will send a
-  // message to the specified slack channel about it.
-  puzzleHooksSlackChannel: t.union([t.string, t.undefined]),
 });
 
 const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {

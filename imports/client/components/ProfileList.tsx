@@ -44,7 +44,6 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
         const searchKey = toMatch[i];
         if (profile.displayName.toLowerCase().indexOf(searchKey) === -1 &&
             profile.primaryEmail.toLowerCase().indexOf(searchKey) === -1 &&
-            (!profile.slackHandle || profile.slackHandle.toLowerCase().indexOf(searchKey) === -1) &&
             (!profile.phoneNumber || profile.phoneNumber.toLowerCase().indexOf(searchKey) === -1)) {
           return false;
         }
