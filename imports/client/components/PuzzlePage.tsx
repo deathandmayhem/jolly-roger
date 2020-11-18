@@ -234,13 +234,9 @@ class ViewersModal extends React.Component<ViewersModalProps, ViewersModalState>
   }
 }
 
-interface ViewCountDisplayParams {
+interface ViewCountDisplayProps {
   count: number;
   name: string;
-}
-
-interface ViewCountDisplayProps extends ViewCountDisplayParams {
-  subfetchesDisabled: boolean;
 }
 
 class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
@@ -257,10 +253,6 @@ class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
 
   render() {
     const text = `See ${this.props.count} ${this.props.count === 1 ? 'viewer' : 'viewers'}`;
-    if (this.props.subfetchesDisabled) {
-      return <span>{text}</span>;
-    }
-
     return (
       <span className="puzzle-metadata-viewers-button">
         <ViewersModal ref={this.modalRef} name={this.props.name} />
@@ -269,10 +261,6 @@ class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
     );
   }
 }
-
-const ViewCountDisplayContainer = withTracker((_params: ViewCountDisplayParams) => {
-  return { subfetchesDisabled: Flags.active('disable.subfetches') };
-})(ViewCountDisplay);
 
 interface RelatedPuzzleSectionProps {
   activePuzzle: PuzzleType;
@@ -744,7 +732,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             </span>
           )}
           {!hideViewCount && (
-            <ViewCountDisplayContainer
+            <ViewCountDisplay
               count={this.props.viewCount}
               name={`puzzle:${this.props.puzzle._id}`}
             />
