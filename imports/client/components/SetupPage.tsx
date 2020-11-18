@@ -348,10 +348,14 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
     }
 
     const comp = googleCompletenessStrings[stepsDone];
+    const compBadgeVariant = stepsDone === 3 ? 'success' : 'warning';
     const oauthBadgeLabel = this.props.oauthSettings ? 'configured' : 'unconfigured';
+    const oauthBadgeVariant = this.props.oauthSettings ? 'success' : 'warning';
     const driveBadgeLabel = this.props.gdriveCredential ? 'configured' : 'unconfigured';
+    const driveBadgeVariant = this.props.gdriveCredential ? 'success' : 'warning';
     const maybeDriveUserEmail = this.props.gdriveCredential && this.props.gdriveCredential.value && this.props.gdriveCredential.value.email;
     const templateBadgeLabel = this.props.spreadsheetTemplate ? 'configured' : 'unconfigured';
+    const templateBadgeVariant = this.props.spreadsheetTemplate ? 'success' : 'warning';
 
     return (
       <section>
@@ -359,7 +363,7 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
           <span className="setup-section-header-label">
             Google integration
           </span>
-          <Badge>
+          <Badge variant={compBadgeVariant}>
             {comp}
           </Badge>
           <span className="setup-section-header-buttons">
@@ -396,7 +400,7 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
           <h2 className="setup-subsection-header">
             <span>OAuth client</span>
             {' '}
-            <Badge>{oauthBadgeLabel}</Badge>
+            <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
           </h2>
           <p>
             Integrating with Google requires registering an app ID which
@@ -421,7 +425,7 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
           <h2 className="setup-subsection-header">
             <span>Drive user</span>
             {' '}
-            <Badge>{driveBadgeLabel}</Badge>
+            <Badge variant={driveBadgeVariant}>{driveBadgeLabel}</Badge>
           </h2>
           <p>
             Jolly Roger automates the creation of Google spreadsheets and
@@ -445,7 +449,7 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
           <h2 className="setup-subsection-header">
             <span>Document templates</span>
             {' '}
-            <Badge>{templateBadgeLabel}</Badge>
+            <Badge variant={templateBadgeVariant}>{templateBadgeLabel}</Badge>
           </h2>
           <p>
             Jolly Roger can create new documents for each puzzle it&apos; made aware of,
@@ -823,6 +827,7 @@ class DiscordIntegrationSection extends React.Component<DiscordIntegrationSectio
     const secondButtonLabel = this.props.enabled ? 'Disable' : 'Disabled';
 
     const configured = !!this.props.oauthSettings;
+    const headerBadgeVariant = configured ? 'success' : 'warning';
     const clientId = this.props.oauthSettings && this.props.oauthSettings.appId;
     const addGuildLink = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&scope=bot&permissions=8`;
     const oauthBadgeLabel = this.props.oauthSettings ? 'configured' : 'unconfigured';
@@ -837,7 +842,7 @@ class DiscordIntegrationSection extends React.Component<DiscordIntegrationSectio
           <span className="setup-section-header-label">
             Discord integration
           </span>
-          <Badge>
+          <Badge variant={headerBadgeVariant}>
             {configured ? 'Configured' : 'Unconfigured'}
           </Badge>
           {configured && (
