@@ -10,7 +10,6 @@ import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import moment from 'moment';
-import Flags from '../flags';
 import Servers from './models/servers';
 import Subscribers from './models/subscribers';
 
@@ -39,9 +38,7 @@ const periodic = function () {
   // Attempt to refresh our server record every 30 seconds (with
   // jitter). We should have 4 periods before we get GC'd mistakenly.
   Meteor.setTimeout(periodic, 15000 + (15000 * Random.fraction()));
-  if (!Flags.active('disable.subcounters')) {
-    cleanup();
-  }
+  cleanup();
 };
 
 Meteor.publish('subscribers.inc', function (name, context) {

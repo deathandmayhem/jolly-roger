@@ -13,7 +13,6 @@ import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
-import Flags from '../../flags';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
 import { PuzzleType } from '../../lib/schemas/puzzles';
@@ -452,10 +451,8 @@ const PuzzleListPageContainer = withTracker(({ match }: PuzzleListPageWithRouter
   const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: match.params.huntId });
   const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: match.params.huntId });
 
-  if (!Flags.active('disable.subcounters')) {
-    // Don't bother including this in ready - it's ok if it trickles in
-    Meteor.subscribe('subscribers.counts', { hunt: match.params.huntId });
-  }
+  // Don't bother including this in ready - it's ok if it trickles in
+  Meteor.subscribe('subscribers.counts', { hunt: match.params.huntId });
 
   const ready = puzzlesHandle.ready() && tagsHandle.ready();
   if (!ready) {

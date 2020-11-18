@@ -29,7 +29,6 @@ import DocumentTitle from 'react-document-title';
 import { RouteComponentProps } from 'react-router';
 import TextareaAutosize from 'react-textarea-autosize';
 import Ansible from '../../ansible';
-import Flags from '../../flags';
 import ChatMessages from '../../lib/models/chats';
 import Documents from '../../lib/models/documents';
 import Guesses from '../../lib/models/guess';
@@ -234,13 +233,9 @@ class ViewersModal extends React.Component<ViewersModalProps, ViewersModalState>
   }
 }
 
-interface ViewCountDisplayParams {
+interface ViewCountDisplayProps {
   count: number;
   name: string;
-}
-
-interface ViewCountDisplayProps extends ViewCountDisplayParams {
-  subfetchesDisabled: boolean;
 }
 
 class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
@@ -257,10 +252,6 @@ class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
 
   render() {
     const text = `See ${this.props.count} ${this.props.count === 1 ? 'viewer' : 'viewers'}`;
-    if (this.props.subfetchesDisabled) {
-      return <span>{text}</span>;
-    }
-
     return (
       <span className="puzzle-metadata-viewers-button">
         <ViewersModal ref={this.modalRef} name={this.props.name} />
@@ -269,10 +260,6 @@ class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
     );
   }
 }
-
-const ViewCountDisplayContainer = withTracker((_params: ViewCountDisplayParams) => {
-  return { subfetchesDisabled: Flags.active('disable.subfetches') };
-})(ViewCountDisplay);
 
 interface RelatedPuzzleSectionProps {
   activePuzzle: PuzzleType;
@@ -622,7 +609,6 @@ interface PuzzlePageMetadataParams {
 }
 
 interface PuzzlePageMetadataProps extends PuzzlePageMetadataParams {
-  subcountersDisabled: boolean;
   viewCount: number;
   canUpdate: boolean;
 }
@@ -691,7 +677,6 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
         <span className="answer">{this.props.puzzle.answers.join(',')}</span>
       </span>
     ) : null;
-    const hideViewCount = this.props.subcountersDisabled;
     const numGuesses = this.props.guesses.length;
 
     return (
@@ -743,12 +728,10 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
               <DocumentDisplay document={this.props.document} displayMode="link" />
             </span>
           )}
-          {!hideViewCount && (
-            <ViewCountDisplayContainer
-              count={this.props.viewCount}
-              name={`puzzle:${this.props.puzzle._id}`}
-            />
-          )}
+          <ViewCountDisplay
+            count={this.props.viewCount}
+            name={`puzzle:${this.props.puzzle._id}`}
+          />
           {!isAdministrivia && (
             <Button variant="primary" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
               { this.props.puzzle.answers.length === this.props.puzzle.expectedAnswerCount ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
@@ -770,7 +753,6 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
 const PuzzlePageMetadataContainer = withTracker(({ puzzle }: PuzzlePageMetadataParams) => {
   const count = SubscriberCounters.findOne(`puzzle:${puzzle._id}`);
   return {
-    subcountersDisabled: Flags.active('disable.subcounters'),
     viewCount: count ? count.value : 0,
     canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
   };
@@ -1268,14 +1250,12 @@ const tracker = withTracker(({ match }: PuzzlePageWithRouterParams) => {
   // * Related puzzles probably only needs puzzles and tags, but right now it just gets the same
   //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
 
-  if (!Flags.active('disable.subcounters')) {
-    // Keep a count of how many people are viewing a puzzle. Don't use
-    // the subs manager - we don't want this cached
-    Meteor.subscribe('subscribers.inc', `puzzle:${params.puzzleId}`, {
-      puzzle: params.puzzleId,
-      hunt: params.huntId,
-    });
-  }
+  // Add the current user to the collection of people viewing this puzzle.
+  // Don't use the subs manager - we don't want this cached.
+  Meteor.subscribe('subscribers.inc', `puzzle:${params.puzzleId}`, {
+    puzzle: params.puzzleId,
+    hunt: params.huntId,
+  });
 
   const displayNamesHandle = Profiles.subscribeDisplayNames();
   let displayNames = {};
@@ -1288,9 +1268,8 @@ const tracker = withTracker(({ match }: PuzzlePageWithRouterParams) => {
   const guessesHandle = Meteor.subscribe('mongo.guesses', { puzzle: params.puzzleId });
   const documentsHandle = Meteor.subscribe('mongo.documents', { puzzle: params.puzzleId });
 
-  if (!Flags.active('disable.subcounters')) {
-    Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
-  }
+  // Track the tally of people viewing this puzzle.
+  Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
 
   const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready();
 

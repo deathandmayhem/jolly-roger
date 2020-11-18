@@ -1009,8 +1009,6 @@ class CircuitBreakerControl extends React.Component<CircuitBreakerControlProps> 
 
 interface CircuitBreakerSectionProps {
   flagDisableGdrivePermissions: boolean;
-  flagDisableSubcounters: boolean;
-  flagDisableViewerLists: boolean;
   flagDisableApplause: boolean;
 }
 
@@ -1063,42 +1061,6 @@ class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> 
           </p>
         </CircuitBreakerControl>
         <CircuitBreakerControl
-          title="Viewer counts"
-          featureDisabled={this.props.flagDisableSubcounters}
-          onChange={(newValue) => this.setFlagValue('disable.subcounters', newValue)}
-        >
-          <p>
-            To allow people to get a sense of how many people are looking at any given puzzle at a time,
-            we track which users have which puzzle open, and send these aggregate counts to all viewers.
-            This is expensive, because it fans out at O(tabs open to the site) per user navigation, which
-            grows quickly.
-          </p>
-          <p>
-            If you&apos;re seeing Jolly Roger getting slow under load, consider
-            disabling this feature to reduce the total amount of work the server
-            has to do.
-          </p>
-          <p>
-            Disabling this feature means that Jolly Roger will no longer show
-            viewer counts for puzzles.
-          </p>
-        </CircuitBreakerControl>
-        <CircuitBreakerControl
-          title="Viewer details"
-          featureDisabled={this.props.flagDisableViewerLists}
-          onChange={(newValue) => this.setFlagValue('disable.subfetches', newValue)}
-        >
-          <p>
-            The Viewer counts feature also allows viewing which specific users are currently active
-            on a puzzle.  This can cause additional server load.
-          </p>
-          <p>
-            Disabling this feature means that Jolly Roger will no longer allow
-            clicking on the viewer count on a puzzle page to bring up a list of
-            which specific users are included in a particular view count.
-          </p>
-        </CircuitBreakerControl>
-        <CircuitBreakerControl
           title="Celebrations"
           featureDisabled={this.props.flagDisableApplause}
           onChange={(newValue) => this.setFlagValue('disable.applause', newValue)}
@@ -1140,8 +1102,6 @@ interface SetupPageRewriteProps {
 
   flagDisableGoogleIntegration: boolean;
   flagDisableGdrivePermissions: boolean;
-  flagDisableSubcounters: boolean;
-  flagDisableViewerLists: boolean;
   flagDisableApplause: boolean;
 }
 
@@ -1184,8 +1144,6 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
         />
         <CircuitBreakerSection
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
-          flagDisableSubcounters={this.props.flagDisableSubcounters}
-          flagDisableViewerLists={this.props.flagDisableViewerLists}
           flagDisableApplause={this.props.flagDisableApplause}
         />
       </div>
@@ -1221,8 +1179,6 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   // Circuit breakers
   const flagDisableGoogleIntegration = Flags.active('disable.google');
   const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
-  const flagDisableSubcounters = Flags.active('disable.subcounters');
-  const flagDisableViewerLists = Flags.active('disable.subfetches');
   const flagDisableApplause = Flags.active('disable.applause');
 
   return {
@@ -1242,8 +1198,6 @@ const tracker = withTracker((): SetupPageRewriteProps => {
 
     flagDisableGoogleIntegration,
     flagDisableGdrivePermissions,
-    flagDisableSubcounters,
-    flagDisableViewerLists,
     flagDisableApplause,
   };
 });
