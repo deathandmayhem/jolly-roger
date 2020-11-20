@@ -280,6 +280,16 @@ table.puzzle-list {
   }
 }
 
+.chat-input-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+  textarea {
+    flex: 1 1 auto;
+  }
+}
+
 .chat-history {
   flex: 1 1 auto;
   overflow-y: auto;

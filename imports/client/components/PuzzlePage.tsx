@@ -411,9 +411,7 @@ const chatInputStyles = {
     // The default Chrome stylesheet has line-height set to a plain number.
     // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
     lineHeight: '20px',
-    flex: 'none',
     padding: '9px 4px',
-    borderWidth: '1px 0 0 0',
     resize: 'none' as 'none',
   },
 };
@@ -442,18 +440,22 @@ class ChatInput extends React.PureComponent<ChatInputProps, ChatInputState> {
     });
   };
 
+  sendMessageIfHasText = () => {
+    if (this.state.text) {
+      Meteor.call('sendChatMessage', this.props.puzzleId, this.state.text);
+      this.setState({
+        text: '',
+      });
+      if (this.props.onMessageSent) {
+        this.props.onMessageSent();
+      }
+    }
+  };
+
   onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (this.state.text) {
-        Meteor.call('sendChatMessage', this.props.puzzleId, this.state.text);
-        this.setState({
-          text: '',
-        });
-        if (this.props.onMessageSent) {
-          this.props.onMessageSent();
-        }
-      }
+      this.sendMessageIfHasText();
     }
   };
 
@@ -465,17 +467,22 @@ class ChatInput extends React.PureComponent<ChatInputProps, ChatInputState> {
 
   render() {
     return (
-      <TextareaAutosize
-        style={chatInputStyles.textarea}
-        maxLength={4000}
-        minRows={1}
-        maxRows={12}
-        value={this.state.text}
-        onChange={this.onInputChanged}
-        onKeyDown={this.onKeyDown}
-        onHeightChange={this.onHeightChange}
-        placeholder="Chat"
-      />
+      <div className="chat-input-row">
+        <TextareaAutosize
+          style={chatInputStyles.textarea}
+          maxLength={4000}
+          minRows={1}
+          maxRows={12}
+          value={this.state.text}
+          onChange={this.onInputChanged}
+          onKeyDown={this.onKeyDown}
+          onHeightChange={this.onHeightChange}
+          placeholder="Chat"
+        />
+        <Button variant="light" onClick={this.sendMessageIfHasText}>
+          Send
+        </Button>
+      </div>
     );
   }
 }
