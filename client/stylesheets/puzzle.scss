@@ -264,6 +264,20 @@ table.puzzle-list {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+
+  p, ul, blockquote, pre {
+    margin-bottom: 0;
+  }
+
+  textarea {
+    border-radius: 0;
+  }
+
+  blockquote {
+    font-size: 14px;
+    margin-left: 10px;
+    border-left-color: #aaa;
+  }
 }
 
 .chat-history {
@@ -286,10 +300,6 @@ table.puzzle-list {
   font-style: italic;
   font-size: 12px;
   color: #666666;
-}
-
-.chat-section textarea {
-  border-radius: 0;
 }
 
 // Related puzzles
