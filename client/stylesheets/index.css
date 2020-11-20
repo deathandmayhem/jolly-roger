@@ -22,13 +22,3 @@
 .jolly-roger {
     font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji";
 }
-
-.chat-section p, .chat-section ul, .chat-section blockquote, .chat-section pre {
-    margin-bottom: 0;
-}
-
-.chat-section blockquote {
-    font-size: 14px;
-    margin-left: 10px;
-    border-left-color: #aaa;
-}
