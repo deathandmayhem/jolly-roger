@@ -52,3 +52,20 @@ created from the shell.
 Users with the `admin` role can configure other server options from the setup
 page at [http://localhost:3000/setup](http://localhost:3000/setup).  This is
 where you'd go to configure various Google integration configuration options.
+
+
+## Example hunt data
+
+Jolly Roger ships with a fixture representing data from the 2015 MIT Mystery
+Hunt, to get a sense of what a fully-populated UI might look like.
+
+To create the fixture hunt on your instance, log in as an admin in a browser
+window, then open the **browser** javascript console (not the Meteor shell we
+were using above) and run the following:
+
+```js
+Meteor.call("createFixtureHunt")
+```
+
+Upon success, you should see a hunt named 2015 in the list at
+[http://localhost:3000/hunts/](http://localhost:3000/hunts/).
