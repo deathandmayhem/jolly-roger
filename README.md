@@ -29,7 +29,8 @@ participate in the sheet anonymously.
 Jolly Roger provides its own persistent chat with each puzzle.  No need to
 constantly jump between the spreadsheet and a third-party chat service.  No
 losing relevant discussion to 10000-message retention limits in the middle
-of the Hunt.  Supports Markdown formatting.
+of the Hunt.  Supports basic formatting -- bulleted lists, \_italics\_,
+\*bold\*, \`monospace\`, and \`\`\`code blocks\`\`\`.
 
 We intentionally keep the chat pane always visible on each puzzle page, so
 remote hunters desperately trying to get your attention are hard to
