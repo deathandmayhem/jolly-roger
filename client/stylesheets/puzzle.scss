@@ -1,3 +1,6 @@
+@import "../../node_modules/bootstrap/scss/functions";
+@import "../../node_modules/bootstrap/scss/variables";
+
 // Puzzle components helper styles
 // Puzzle lists/tables
 .puzzle-group {
@@ -286,8 +289,23 @@ table.puzzle-list {
   flex-direction: row;
   align-items: stretch;
   justify-content: space-between;
+  border-top: $input-border-width solid $input-border-color;
+  overflow: hidden;
+  &:focus-within {
+    border-color: $input-focus-border-color;
+    box-shadow: $input-focus-box-shadow;
+  }
+  
   textarea {
     flex: 1 1 auto;
+    border: none;
+    &:focus {
+        box-shadow: none;
+    }
+  }
+  
+  button {
+    border-radius: 0;
   }
 }
 
