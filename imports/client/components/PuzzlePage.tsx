@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import { faEdit, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faPuzzlePiece, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import DOMPurify from 'dompurify';
@@ -427,8 +427,11 @@ interface ChatInputState {
 }
 
 class ChatInput extends React.PureComponent<ChatInputProps, ChatInputState> {
+  textAreaRef: React.RefObject<HTMLTextAreaElement>
+
   constructor(props: ChatInputProps) {
     super(props);
+    this.textAreaRef = React.createRef();
     this.state = {
       text: '',
     };
@@ -441,6 +444,9 @@ class ChatInput extends React.PureComponent<ChatInputProps, ChatInputState> {
   };
 
   sendMessageIfHasText = () => {
+    if (this.textAreaRef.current) {
+      this.textAreaRef.current.focus();
+    }
     if (this.state.text) {
       Meteor.call('sendChatMessage', this.props.puzzleId, this.state.text);
       this.setState({
@@ -469,6 +475,8 @@ class ChatInput extends React.PureComponent<ChatInputProps, ChatInputState> {
     return (
       <div className="chat-input-row">
         <TextareaAutosize
+          ref={this.textAreaRef}
+          className="form-control"
           style={chatInputStyles.textarea}
           maxLength={4000}
           minRows={1}
@@ -479,8 +487,14 @@ class ChatInput extends React.PureComponent<ChatInputProps, ChatInputState> {
           onHeightChange={this.onHeightChange}
           placeholder="Chat"
         />
-        <Button variant="light" onClick={this.sendMessageIfHasText}>
-          Send
+        <Button
+          variant="light"
+          onClick={this.sendMessageIfHasText}
+          onMouseDown={(e) => e.preventDefault()}
+          disabled={this.state.text.length === 0}
+          tabIndex={-1}
+        >
+          <FontAwesomeIcon icon={faPaperPlane} />
         </Button>
       </div>
     );
