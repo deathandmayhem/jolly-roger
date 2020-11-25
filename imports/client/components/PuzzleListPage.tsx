@@ -261,12 +261,12 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
 
           if (metaForTag && tag.name === metaForTag) {
             // This puzzle is meta-for: the group.
-            if (puzzle.answers.length === puzzle.expectedAnswerCount) {
+            if (puzzle.answers.length >= puzzle.expectedAnswerCount) {
               return 2;
             } else {
               return -2;
             }
-          } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !(puzzle.answers.length === puzzle.expectedAnswerCount)) {
+          } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !(puzzle.answers.length >= puzzle.expectedAnswerCount)) {
             hasUnsolvedMeta = true;
           }
         }
