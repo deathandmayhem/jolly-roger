@@ -2,7 +2,7 @@
 
 ![Jolly Roger](public/images/hero.png)
 
-Jolly Roger is a coordination tool for collaboratively solving puzzlehunts like the [MIT Mystery Hunt][http://web.mit.edu/puzzle/www/].
+Jolly Roger is a coordination tool for collaboratively solving puzzlehunts like the [MIT Mystery Hunt](http://web.mit.edu/puzzle/www/).
 The team Death and Mayhem created Jolly Roger in 2015 for the 2016 MIT
 Mystery Hunt, and it is still actively maintained and in production service.
 
