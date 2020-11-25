@@ -755,7 +755,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
           />
           {!isAdministrivia && (
             <Button variant="primary" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-              { this.props.puzzle.answers.length === this.props.puzzle.expectedAnswerCount ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
+              { this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
             </Button>
           )}
         </div>
@@ -838,7 +838,7 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
 
   onSubmitGuess = () => {
     const repeatGuess = this.props.guesses.find((g) => { return g.guess === this.state.guessInput; });
-    const alreadySolved = this.props.puzzle.answers.length === this.props.puzzle.expectedAnswerCount;
+    const alreadySolved = this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount;
     if ((repeatGuess || alreadySolved) && !this.state.confirmingSubmit) {
       const repeatGuessStr = repeatGuess ? 'This answer has already been submitted. ' : '';
       const alreadySolvedStr = alreadySolved ? 'This puzzle has already been solved. ' : '';
@@ -901,7 +901,7 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
     return (
       <ModalForm
         ref={this.formRef}
-        title={`${this.props.puzzle.answers.length === this.props.puzzle.expectedAnswerCount ? 'Guess history for' : 'Submit answer to'} ${this.props.puzzle.title}`}
+        title={`${this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount ? 'Guess history for' : 'Submit answer to'} ${this.props.puzzle.title}`}
         onSubmit={this.onSubmitGuess}
         submitLabel={this.state.confirmingSubmit ? 'Confirm Submit' : 'Submit'}
       >
