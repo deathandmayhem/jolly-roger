@@ -639,10 +639,13 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
 
   guessModalRef: React.RefObject<PuzzleGuessModal>
 
+  answerModalRef: React.RefObject<PuzzleAnswerModal>
+
   constructor(props: PuzzlePageMetadataProps) {
     super(props);
     this.editModalRef = React.createRef();
     this.guessModalRef = React.createRef();
+    this.answerModalRef = React.createRef();
   }
 
   onCreateTag = (newTagName: string) => {
@@ -673,6 +676,10 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
   showGuessModal = () => {
     this.guessModalRef.current!.show();
   };
+
+  showAnswerModal = () => {
+    this.answerModalRef.current!.show();
+  }
 
   showEditModal = () => {
     this.editModalRef.current!.show();
@@ -754,9 +761,14 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             name={`puzzle:${this.props.puzzle._id}`}
           />
           {!isAdministrivia && (
-            <Button variant="primary" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-              { this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
-            </Button>
+            <>
+              <Button variant="primary" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
+                { this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
+              </Button>
+              <Button variant="primary" className="puzzle-metadata-answer-button" onClick={this.showAnswerModal}>
+                {`Answer (${this.props.puzzle.answers.length} so far)`}
+              </Button>
+            </>
           )}
         </div>
         {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
@@ -765,6 +777,11 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
           puzzle={this.props.puzzle}
           guesses={this.props.guesses}
           displayNames={this.props.displayNames}
+        />
+        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
+        <PuzzleAnswerModal
+          ref={this.answerModalRef}
+          puzzle={this.props.puzzle}
         />
       </div>
     );
@@ -995,6 +1012,102 @@ class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGues
         ]}
         {this.state.confirmingSubmit ? <Alert variant="warning">{this.state.confirmationMessage}</Alert> : null}
         {this.state.submitState === PuzzleGuessSubmitState.FAILED ? <Alert variant="danger" dismissible onClose={this.clearError}>{this.state.errorMessage}</Alert> : null}
+      </ModalForm>
+    );
+  }
+}
+
+interface PuzzleAnswerModalProps {
+  puzzle: PuzzleType;
+}
+
+enum PuzzleAnswerSubmitState {
+  IDLE = 'idle',
+  SUBMITTING = 'submitting',
+  SUCCESS = 'success',
+  FAILED = 'failed',
+}
+
+interface PuzzleAnswerModalState {
+  answer: string;
+  submitState: PuzzleAnswerSubmitState;
+}
+
+class PuzzleAnswerModal extends React.Component<PuzzleAnswerModalProps, PuzzleAnswerModalState> {
+  formRef: React.RefObject<ModalForm>
+
+  constructor(props: PuzzleAnswerModalProps) {
+    super(props);
+    this.state = {
+      answer: '',
+      submitState: PuzzleAnswerSubmitState.IDLE,
+    };
+    this.formRef = React.createRef();
+  }
+
+  show = () => {
+    this.formRef?.current!.show();
+  }
+
+  hide = () => {
+    this.formRef?.current!.close();
+  }
+
+  onSubmit = () => {
+    this.setState({
+      submitState: PuzzleAnswerSubmitState.SUBMITTING,
+    });
+    Meteor.call(
+      'addCorrectGuessForPuzzle',
+      this.props.puzzle._id,
+      this.state.answer,
+      (error?: Error) => {
+        if (error) {
+          this.setState({
+            submitState: PuzzleAnswerSubmitState.FAILED,
+          });
+          console.log('ERROR:', error);
+        } else {
+          // Clear the input box.  Don't dismiss the dialog.
+          this.setState({
+            answer: '',
+            submitState: PuzzleAnswerSubmitState.IDLE,
+          }, this.hide);
+        }
+      },
+    );
+  }
+
+  render() {
+    return (
+      <ModalForm
+        ref={this.formRef}
+        title={`Submit answer to ${this.props.puzzle.title}`}
+        onSubmit={this.onSubmit}
+        submitLabel={this.state.submitState === PuzzleAnswerSubmitState.SUBMITTING ? 'Confirm Submit' : 'Submit'}
+        // disabled={submitState === PuzzleAnswerSubmitState.SUBMITTING}
+      >
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-puzzle-answer">
+            Answer
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              type="text"
+              id="jr-puzzle-answer"
+              autoFocus
+              autoComplete="off"
+              onChange={(e) => this.setState({ answer: e.target.value })}
+              value={this.state.answer}
+            />
+          </Col>
+        </FormGroup>
+
+        {this.state.submitState === PuzzleAnswerSubmitState.FAILED && (
+          <Alert variant="danger" dismissible onClose={() => this.setState({ submitState: PuzzleAnswerSubmitState.IDLE })}>
+            Something went wrong. Try again, or contact an admin?
+          </Alert>
+        )}
       </ModalForm>
     );
   }
