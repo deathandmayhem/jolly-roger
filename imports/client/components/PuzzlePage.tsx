@@ -717,7 +717,9 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
           this.props.puzzle.answers.map((answer) => (
             <span className="answer">
               <span>{answer}</span>
-              <Button className="answer-remove-button" variant="success" onClick={() => this.onRemoveAnswer(answer)}>&#10006;</Button>
+              {!this.props.hasGuessQueue && (
+                <Button className="answer-remove-button" variant="success" onClick={() => this.onRemoveAnswer(answer)}>&#10006;</Button>
+              )}
             </span>
           ))
         }
