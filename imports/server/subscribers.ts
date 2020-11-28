@@ -8,38 +8,14 @@
 
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Random } from 'meteor/random';
-import moment from 'moment';
-import Servers from './models/servers';
+import { serverId, registerPeriodicCleanupHook } from './garbage-collection';
 import Subscribers from './models/subscribers';
 
-const serverId = Random.id();
-
-const cleanup = function () {
-  // A noop update will still cause updatedAt to be updated
-  Servers.upsert({ _id: serverId }, {});
-
-  // Servers disappearing should be a fairly rare occurrence, so it's
-  // OK for the timeouts here to be generous. Servers get 120 seconds
-  // to update before their records are GC'd. Should be long enough to
-  // account for transients
-  const timeout = moment().subtract('120', 'seconds').toDate();
-  const deadServers = Servers.find({ updatedAt: { $lt: timeout } })
-    .map((server) => server._id);
-  if (deadServers.length === 0) {
-    return;
-  }
-
+// Clean up leaked subscribers from dead servers periodically.
+function cleanupHook(deadServers: string[]) {
   Subscribers.remove({ server: { $in: deadServers } });
-  Servers.remove({ _id: { $in: deadServers } });
-};
-
-const periodic = function () {
-  // Attempt to refresh our server record every 30 seconds (with
-  // jitter). We should have 4 periods before we get GC'd mistakenly.
-  Meteor.setTimeout(periodic, 15000 + (15000 * Random.fraction()));
-  cleanup();
-};
+}
+registerPeriodicCleanupHook(cleanupHook);
 
 Meteor.publish('subscribers.inc', function (name, context) {
   check(name, String);
@@ -173,5 +149,3 @@ Meteor.publish('subscribers.fetch', function (name) {
   this.ready();
   return null;
 });
-
-Meteor.startup(() => periodic());
