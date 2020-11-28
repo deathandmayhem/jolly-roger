@@ -25,3 +25,4 @@ import './23-serviceconfigurations-remove-slack';
 import './24-hunts-remove-slack-fields';
 import './25-remove-slack-featureflag';
 import './26-remove-subcounter-feature-flags';
+import './27-hunt-has-guess-queue';

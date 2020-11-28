@@ -14,7 +14,7 @@ const HuntFields = t.type({
   openSignups: t.boolean,
   // If this is true, an operator must mark guesses as correct or not.
   // If this is false, users enter answers directly without the guess step.
-  guessQueue: t.boolean,
+  hasGuessQueue: t.boolean,
   // If this is provided, then this is used to generate links to puzzles' guess
   // submission pages. The format is interpreted as a Mustache template
   // (https://mustache.github.io/). It's passed as context a parsed URL

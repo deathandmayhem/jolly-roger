@@ -4,6 +4,7 @@ import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import ChatMessages from '../lib/models/chats';
 import Guesses from '../lib/models/guess';
+import Hunts from '../lib/models/hunts';
 import Puzzles from '../lib/models/puzzles';
 import { GuessType } from '../lib/schemas/guess';
 import GlobalHooks from './global-hooks';
@@ -68,6 +69,16 @@ Meteor.methods({
       throw new Meteor.Error(404, 'No such puzzle');
     }
 
+    const hunt = Hunts.findOne(puzzle.hunt);
+
+    if (!hunt) {
+      throw new Meteor.Error(404, 'No such hunt');
+    }
+
+    if (!hunt.hasGuessQueue) {
+      throw new Meteor.Error(404, 'Hunt does not allow you to submit guesses, only answers');
+    }
+
     Ansible.log('New guess', {
       hunt: puzzle.hunt,
       puzzle: puzzleId,
@@ -87,7 +98,6 @@ Meteor.methods({
   },
 
   addCorrectGuessForPuzzle(puzzleId: unknown, answer: unknown) {
-    // TODO check hunt config to see if this is allowed
     check(this.userId, String);
     check(puzzleId, String);
     check(answer, String);
@@ -98,7 +108,15 @@ Meteor.methods({
       throw new Meteor.Error(404, 'No such puzzle');
     }
 
-    console.log('hello', puzzle.title, answer);
+    const hunt = Hunts.findOne(puzzle.hunt);
+
+    if (!hunt) {
+      throw new Meteor.Error(404, 'No such hunt');
+    }
+
+    if (hunt.hasGuessQueue) {
+      throw new Meteor.Error(404, 'Hunt does not allow you to enter answers directly');
+    }
 
     Ansible.log('New correct guess', {
       hunt: puzzle.hunt,
@@ -133,6 +151,31 @@ Meteor.methods({
       },
     });
     GlobalHooks.runPuzzleSolvedHooks(savedAnswer.puzzle);
+  },
+
+  removeAnswerFromPuzzle(puzzleId: unknown, answer: unknown) {
+    check(this.userId, String);
+    check(puzzleId, String);
+    check(answer, String);
+
+    const hunt = Puzzles.findOne({
+      _id: puzzleId,
+    }, {
+      fields: {
+        hunt: 1,
+      },
+    });
+    const huntId = hunt && hunt.hunt;
+    const fullHuntObject = Hunts.findOne({ _id: huntId });
+    if (!huntId || !fullHuntObject || fullHuntObject.hasGuessQueue) {
+      throw new Error(`Hunt ${huntId} does not support self-service answers`);
+    }
+
+    const guess = Guesses.findOne({ puzzle: puzzleId, guess: answer });
+
+    if (!guess) return;
+
+    transitionGuess(guess, 'incorrect');
   },
 
   markGuessPending(guessId: unknown) {

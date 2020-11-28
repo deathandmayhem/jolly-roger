@@ -32,6 +32,7 @@ import Ansible from '../../ansible';
 import ChatMessages from '../../lib/models/chats';
 import Documents from '../../lib/models/documents';
 import Guesses from '../../lib/models/guess';
+import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
@@ -632,6 +633,7 @@ interface PuzzlePageMetadataParams {
 interface PuzzlePageMetadataProps extends PuzzlePageMetadataParams {
   viewCount: number;
   canUpdate: boolean;
+  hasGuessQueue: boolean;
 }
 
 class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
@@ -668,6 +670,15 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
     });
   };
 
+  onRemoveAnswer = (answer: string) => {
+    Meteor.call('removeAnswerFromPuzzle', this.props.puzzle._id, answer, (error?: Error) => {
+      // Not really much we can do in the case of a failure, but again, let's log it anyway
+      if (error) {
+        console.log(`failed remove answer ${answer}:`, error);
+      }
+    });
+  }
+
   onEdit = (state: PuzzleModalFormSubmitPayload, callback: (err?: Error) => void) => {
     Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
     Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
@@ -701,8 +712,15 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
     const isAdministrivia = tags.find((t) => t.name === 'administrivia');
     const answerComponent = this.props.puzzle.answers.length > 0 ? (
-      <span className="puzzle-metadata-answer">
-        <span className="answer">{this.props.puzzle.answers.join(',')}</span>
+      <span className="puzzle-metadata-answers">
+        {
+          this.props.puzzle.answers.map((answer) => (
+            <span className="answer">
+              <span>{answer}</span>
+              <Button className="answer-remove-button" variant="success" onClick={() => this.onRemoveAnswer(answer)}>&#10006;</Button>
+            </span>
+          ))
+        }
       </span>
     ) : null;
     const numGuesses = this.props.guesses.length;
@@ -760,29 +778,38 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             count={this.props.viewCount}
             name={`puzzle:${this.props.puzzle._id}`}
           />
-          {!isAdministrivia && (
-            <>
-              <Button variant="primary" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-                { this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
-              </Button>
-              <Button variant="primary" className="puzzle-metadata-answer-button" onClick={this.showAnswerModal}>
-                {`Answer (${this.props.puzzle.answers.length} so far)`}
-              </Button>
-            </>
-          )}
+          {
+            !isAdministrivia && (
+              this.props.hasGuessQueue ?
+                (
+                  <>
+                    <Button variant="primary" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
+                      { this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
+                    </Button>
+                    {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
+                    <PuzzleGuessModal
+                      ref={this.guessModalRef}
+                      puzzle={this.props.puzzle}
+                      guesses={this.props.guesses}
+                      displayNames={this.props.displayNames}
+                    />
+                  </>
+                ) :
+                (
+                  <>
+                    <Button variant="primary" className="puzzle-metadata-answer-button" onClick={this.showAnswerModal}>
+                      {`Answer${this.props.puzzle.answers.length > 0 && ` (${this.props.puzzle.answers.length} so far)`}`}
+                    </Button>
+                    {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
+                    <PuzzleAnswerModal
+                      ref={this.answerModalRef}
+                      puzzle={this.props.puzzle}
+                    />
+                  </>
+                )
+            )
+          }
         </div>
-        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-        <PuzzleGuessModal
-          ref={this.guessModalRef}
-          puzzle={this.props.puzzle}
-          guesses={this.props.guesses}
-          displayNames={this.props.displayNames}
-        />
-        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-        <PuzzleAnswerModal
-          ref={this.answerModalRef}
-          puzzle={this.props.puzzle}
-        />
       </div>
     );
   }
@@ -790,9 +817,12 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
 
 const PuzzlePageMetadataContainer = withTracker(({ puzzle }: PuzzlePageMetadataParams) => {
   const count = SubscriberCounters.findOne(`puzzle:${puzzle._id}`);
+  const hunt = Hunts.findOne(puzzle.hunt);
+  const hasGuessQueue = hunt && hunt.hasGuessQueue;
   return {
     viewCount: count ? count.value : 0,
     canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
+    hasGuessQueue,
   };
 })(PuzzlePageMetadata);
 
