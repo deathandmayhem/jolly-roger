@@ -820,7 +820,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
 const PuzzlePageMetadataContainer = withTracker(({ puzzle }: PuzzlePageMetadataParams) => {
   const count = SubscriberCounters.findOne(`puzzle:${puzzle._id}`);
   const hunt = Hunts.findOne(puzzle.hunt);
-  const hasGuessQueue = hunt && hunt.hasGuessQueue;
+  const hasGuessQueue = !!(hunt && hunt.hasGuessQueue);
   return {
     viewCount: count ? count.value : 0,
     canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
