@@ -1,4 +1,5 @@
 import * as t from 'io-ts';
+import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './base';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
@@ -21,6 +22,7 @@ const HuntFields = t.type({
   // (https://nodejs.org/api/url.html#url_class_url), which provides variables
   // like "host" and "pathname".
   submitTemplate: t.union([t.string, t.undefined]),
+  homepageUrl: t.union([t.string, t.undefined]),
 });
 
 const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {
@@ -29,6 +31,9 @@ const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {
   },
   openSignups: {
     defaultValue: false,
+  },
+  homepageUrl: {
+    regEx: SimpleSchema.RegEx.Url,
   },
 };
 

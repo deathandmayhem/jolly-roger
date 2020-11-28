@@ -2,6 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
@@ -13,8 +15,10 @@ import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
+import Hunts from '../../lib/models/hunts';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
+import { HuntType } from '../../lib/schemas/hunts';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import PuzzleList from './PuzzleList';
@@ -424,37 +428,52 @@ interface PuzzleListPageProps extends PuzzleListPageWithRouterParams {
   canUpdate: boolean;
   allPuzzles: PuzzleType[];
   allTags: TagType[];
+  hunt?: HuntType;
 }
 
 class PuzzleListPage extends React.Component<PuzzleListPageProps> {
   render() {
+    const leadLinks = this.props.hunt?.homepageUrl && (
+      <p className="lead">
+        <a href={this.props.hunt.homepageUrl} target="_blank" rel="noopener noreferrer" title="Open the hunt homepage">
+          <FontAwesomeIcon icon={faExternalLinkAlt} />
+          {' '}
+          Hunt homepage
+        </a>
+      </p>
+    );
     if (!this.props.ready) {
       return <span>loading...</span>;
     } else {
       return (
-        <PuzzleListView
-          match={this.props.match}
-          history={this.props.history}
-          location={this.props.location}
-          huntId={this.props.match.params.huntId}
-          canAdd={this.props.canAdd}
-          canUpdate={this.props.canUpdate}
-          puzzles={this.props.allPuzzles}
-          allTags={this.props.allTags}
-        />
+        <div>
+          {leadLinks}
+          <PuzzleListView
+            match={this.props.match}
+            history={this.props.history}
+            location={this.props.location}
+            huntId={this.props.match.params.huntId}
+            canAdd={this.props.canAdd}
+            canUpdate={this.props.canUpdate}
+            puzzles={this.props.allPuzzles}
+            allTags={this.props.allTags}
+          />
+        </div>
       );
     }
   }
 }
 
 const PuzzleListPageContainer = withTracker(({ match }: PuzzleListPageWithRouterParams) => {
+  const huntHandle = Meteor.subscribe('mongo.hunts', { _id: match.params.huntId });
   const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: match.params.huntId });
   const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: match.params.huntId });
 
   // Don't bother including this in ready - it's ok if it trickles in
   Meteor.subscribe('subscribers.counts', { hunt: match.params.huntId });
 
-  const ready = puzzlesHandle.ready() && tagsHandle.ready();
+  const ready = huntHandle.ready() && puzzlesHandle.ready() && tagsHandle.ready();
+  const hunt = Hunts.findOne({ _id: match.params.huntId });
   if (!ready) {
     return {
       ready: false,
@@ -470,6 +489,7 @@ const PuzzleListPageContainer = withTracker(({ match }: PuzzleListPageWithRouter
       canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
       allPuzzles: Puzzles.find({ hunt: match.params.huntId }).fetch(),
       allTags: Tags.find({ hunt: match.params.huntId }).fetch(),
+      ...(hunt ? { hunt } : { }),
     };
   }
 })(PuzzleListPage);
