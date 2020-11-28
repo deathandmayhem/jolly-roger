@@ -130,19 +130,12 @@ Meteor.methods({
       guess: answer,
       state: 'correct',
     });
+
     const savedAnswer = Guesses.findOne(answerId);
     if (!savedAnswer) {
       throw new Meteor.Error(404, 'No such correct guess');
     }
-    Guesses.update({
-      _id: savedAnswer._id,
-    }, {
-      $set: {
-        state: 'correct',
-      },
-    });
     addChatMessage(savedAnswer, 'correct');
-
     Puzzles.update({
       _id: savedAnswer.puzzle,
     }, {
@@ -158,23 +151,21 @@ Meteor.methods({
     check(puzzleId, String);
     check(answer, String);
 
-    const hunt = Puzzles.findOne({
+    const puzzle = Puzzles.findOne({
       _id: puzzleId,
     }, {
       fields: {
         hunt: 1,
       },
     });
-    const huntId = hunt && hunt.hunt;
-    const fullHuntObject = Hunts.findOne({ _id: huntId });
-    if (!huntId || !fullHuntObject || fullHuntObject.hasGuessQueue) {
+    const huntId = puzzle && puzzle.hunt;
+    const hunt = Hunts.findOne({ _id: huntId });
+    if (!huntId || !hunt || hunt.hasGuessQueue) {
       throw new Error(`Hunt ${huntId} does not support self-service answers`);
     }
 
     const guess = Guesses.findOne({ puzzle: puzzleId, guess: answer });
-
     if (!guess) return;
-
     transitionGuess(guess, 'incorrect');
   },
 

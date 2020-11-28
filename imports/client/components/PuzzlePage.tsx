@@ -1100,7 +1100,6 @@ class PuzzleAnswerModal extends React.Component<PuzzleAnswerModalProps, PuzzleAn
           });
           console.log('ERROR:', error);
         } else {
-          // Clear the input box.  Don't dismiss the dialog.
           this.setState({
             answer: '',
             submitState: PuzzleAnswerSubmitState.IDLE,
@@ -1117,7 +1116,6 @@ class PuzzleAnswerModal extends React.Component<PuzzleAnswerModalProps, PuzzleAn
         title={`Submit answer to ${this.props.puzzle.title}`}
         onSubmit={this.onSubmit}
         submitLabel={this.state.submitState === PuzzleAnswerSubmitState.SUBMITTING ? 'Confirm Submit' : 'Submit'}
-        // disabled={submitState === PuzzleAnswerSubmitState.SUBMITTING}
       >
         <FormGroup as={Row}>
           <FormLabel column xs={3} htmlFor="jr-puzzle-answer">
