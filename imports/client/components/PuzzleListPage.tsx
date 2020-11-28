@@ -419,12 +419,12 @@ interface PuzzleListPageProps extends PuzzleListPageWithRouterParams {
   canUpdate: boolean;
   allPuzzles: PuzzleType[];
   allTags: TagType[];
-  hunt?: HuntType;
+  hunt: HuntType;
 }
 
 class PuzzleListPage extends React.Component<PuzzleListPageProps> {
   render() {
-    const leadLinks = this.props.hunt?.homepageUrl && (
+    const leadLinks = this.props.hunt.homepageUrl && (
       <p className="lead">
         <a href={this.props.hunt.homepageUrl} target="_blank" rel="noopener noreferrer" title="Open the hunt homepage">
           <FontAwesomeIcon icon={faExternalLinkAlt} />
@@ -469,14 +469,15 @@ const PuzzleListPageContainer = withTracker(({ match }: PuzzleListPageWithRouter
   Meteor.subscribe('subscribers.counts', { hunt: match.params.huntId });
 
   const ready = puzzlesHandle.ready() && tagsHandle.ready();
-  const hunt = Hunts.findOne({ _id: match.params.huntId });
+  // Assertion is safe because hunt is already subscribed and checked by HuntApp
+  const hunt = Hunts.findOne({ _id: match.params.huntId })!;
   return {
     ready,
     canAdd: ready && Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
     canUpdate: ready && Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     allPuzzles: ready ? Puzzles.find({ hunt: match.params.huntId }).fetch() : [],
     allTags: ready ? Tags.find({ hunt: match.params.huntId }).fetch() : [],
-    ...(hunt ? { hunt } : { }),
+    hunt,
   };
 })(PuzzleListPage);
 
