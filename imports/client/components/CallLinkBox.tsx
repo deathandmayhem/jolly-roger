@@ -61,12 +61,6 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
 
   private isInitiator: boolean;
 
-  private wrapperStreamSource: MediaStreamAudioSourceNode | undefined;
-
-  private wrapperStreamDestination: MediaStreamAudioDestinationNode;
-
-  private gainNode: GainNode;
-
   constructor(props: CallLinkBoxProps) {
     super(props);
 
@@ -81,8 +75,6 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
     // Create a stream object to populate tracks into as we receive them from
     // our peer.
     this.remoteStream = new MediaStream();
-    this.gainNode = this.props.audioContext.createGain();
-    this.wrapperStreamDestination = this.props.audioContext.createMediaStreamDestination();
 
     this.pc = new RTCPeerConnection(rtcConfig);
     this.pc.addEventListener('icecandidate', this.onNewLocalCandidate);
@@ -128,12 +120,6 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
       const oldLength = prevProps.signal ? prevProps.signal.messages.length : 0;
       this.log(`signals: old ${oldLength} new ${newLength}`);
       this.processSignalMessages(this.props.signal.messages, oldLength);
-    }
-
-    // Update gain if deafened changed.
-    if (this.props.deafened !== prevProps.deafened) {
-      const newGain = this.props.deafened ? 0.0 : 1.0;
-      this.gainNode.gain.setValueAtTime(newGain, this.props.audioContext.currentTime);
     }
   }
 
@@ -239,41 +225,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
   onNewRemoteTrack = (e: RTCTrackEvent) => {
     this.log('newRemoteTrack', e);
     if (e.track.kind === 'audio') {
-      // Wire in the gain node, through the audio context.
-      const stubStream = new MediaStream();
-      stubStream.addTrack(e.track);
-
-      // This audio element is a workaround for
-      // https://bugs.chromium.org/p/chromium/issues/detail?id=933677 wherein
-      // audio tracks from a peer connection never deliver data into a WebAudio
-      // context unless they are first made the srcObject of some audio or
-      // video element.
-      const stubAudioElement = document.createElement('audio');
-      stubAudioElement.muted = true;
-      stubAudioElement.srcObject = stubStream;
-
-      this.wrapperStreamSource = this.props.audioContext.createMediaStreamSource(stubStream);
-
-      // Wire up the audio track to the gain node.
-      this.wrapperStreamSource.connect(this.gainNode);
-      // Then wire up the output of that gain node to our levels-adjusted track.
-      this.gainNode.connect(this.wrapperStreamDestination);
-      const innerTracks = this.wrapperStreamDestination.stream.getTracks();
-      this.log('innerTracks', innerTracks);
-      const leveledAudioTrack = innerTracks[0];
-
-      // Add that track to our post-level-adjustment stream.
-      this.remoteStream.addTrack(leveledAudioTrack);
-
-      /*
-      if (enableExpensiveFeatures) {
-        // Wire up the audio track to the analyser.
-        this.wrapperStreamSource.connect(this.analyserNode);
-
-        // Enable periodic updates of the frequency analyzer
-        this.periodicHandle = window.requestAnimationFrame(this.drawSpectrum);
-      }
-      */
+      this.remoteStream.addTrack(e.track);
     } else {
       // Ignore non-audio tracks.
       // this.remoteStream.addTrack(e.track);
@@ -335,7 +287,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
           </svg>
           */}
         </div>
-        <audio ref={this.audioRef} className="audio-sink" autoPlay playsInline />
+        <audio ref={this.audioRef} className="audio-sink" autoPlay playsInline muted={this.props.deafened} />
       </div>
     );
   }
