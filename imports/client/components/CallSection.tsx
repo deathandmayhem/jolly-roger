@@ -69,46 +69,50 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
     const others = this.nonSelfParticipants();
 
     return (
-      <div className="chatter-subsection av-chatters">
-        <header>
-          {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
-        </header>
-        <div className="people-list">
-          <div
-            key="self"
-            className="people-item"
-          >
-            <span className="initial">Me</span>
-          </div>
-          {this.props.signalsReady && this.props.selfParticipant && others.map((p) => {
-            return (
-              <CallLinkBox
-                key={p._id}
-                selfParticipant={this.props.selfParticipant!}
-                peerParticipant={p}
-                localStream={this.props.localStream}
-                audioContext={this.props.audioContext}
-                deafened={this.state.deafened}
-              />
-            );
-          })}
-        </div>
+      <>
         <div className="av-actions">
           <Button
-            className={this.props.muted ? 'btn-secondary' : 'btn-light'}
+            variant={this.props.muted ? 'secondary' : 'light'}
+            size="sm"
             onClick={this.toggleMuted}
           >
             {this.props.muted ? 'muted' : 'mute'}
           </Button>
           <Button
-            className={this.state.deafened ? 'btn-secondary' : 'btn-light'}
+            variant={this.state.deafened ? 'secondary' : 'light'}
+            size="sm"
             onClick={this.toggleDeafened}
           >
             {this.state.deafened ? 'deafened' : 'deafen'}
           </Button>
-          <Button className="btn-danger" onClick={this.leaveCall}>leave audio call</Button>
+          <Button variant="danger" size="sm" onClick={this.leaveCall}>leave call</Button>
         </div>
-      </div>
+        <div className="chatter-subsection av-chatters">
+          <header>
+            {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
+          </header>
+          <div className="people-list">
+            <div
+              key="self"
+              className="people-item"
+            >
+              <span className="initial">Me</span>
+            </div>
+            {this.props.signalsReady && this.props.selfParticipant && others.map((p) => {
+              return (
+                <CallLinkBox
+                  key={p._id}
+                  selfParticipant={this.props.selfParticipant!}
+                  peerParticipant={p}
+                  localStream={this.props.localStream}
+                  audioContext={this.props.audioContext}
+                  deafened={this.state.deafened}
+                />
+              );
+            })}
+          </div>
+        </div>
+      </>
     );
   }
 }
