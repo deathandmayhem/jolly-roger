@@ -204,6 +204,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
 
     this.setState({
       state: 'chatonly',
+      muted: false,
       audioContext: undefined,
       rawMediaSource: undefined,
       // wrapperStreamSource: undefined,
