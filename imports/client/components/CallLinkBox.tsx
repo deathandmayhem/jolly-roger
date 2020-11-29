@@ -3,6 +3,7 @@ import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import CallSignals from '../../lib/models/call_signals';
 import Profiles from '../../lib/models/profiles';
+import PublicSettings from '../../lib/models/public_settings';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import { CallSignalType, CallSignalMessageType } from '../../lib/schemas/call_signals';
 import { ProfileType } from '../../lib/schemas/profiles';
@@ -17,21 +18,6 @@ enum WebRTCConnectionState {
   Closed ='closed',
 }
 */
-
-// TODO: maybe make this configurable from the server via Settings?
-// I'm reasonably happy to run an open STUN server for everyone, but once we
-// get into TURN we have to have some sort of auth, and that's going to be a
-// mess
-const rtcConfig = {
-  iceServers: [
-    // TODO: implement TURN relaying if necessary.
-    // For what it's worth: all the setups I've tried so far have worked
-    // without a TURN setup, but it's probably still worth investing in making
-    // it work for the long tail of network configurations.
-    // { urls: "turn:turn.zarvox.org:3478?transport=udp" },
-    { urls: ['stun:turn.zarvox.org'] },
-  ],
-};
 
 interface CallLinkBoxState {
   localCandidates: RTCIceCandidate[];
@@ -50,6 +36,7 @@ interface CallLinkBoxParams {
 interface CallLinkBoxProps extends CallLinkBoxParams {
   signal: CallSignalType | undefined;
   peerProfile: ProfileType | undefined;
+  turnServerUrls: string[];
 }
 
 class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
@@ -75,6 +62,16 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
     // Create a stream object to populate tracks into as we receive them from
     // our peer.
     this.remoteStream = new MediaStream();
+
+    const rtcConfig = {
+      iceServers: [
+        // Example:
+        // { urls: ['stun:turn.zarvox.org', 'turn:turn.zarvox.org:3478?transport=udp'] },
+        // I'm including a fallback here to the author's personal STUN server to
+        // make this easier to test out-of-the-box.  TODO: remove fallback value
+        { urls: props.turnServerUrls || 'stun:turn.zarvox.org' },
+      ],
+    };
 
     this.pc = new RTCPeerConnection(rtcConfig);
     this.pc.addEventListener('icecandidate', this.onNewLocalCandidate);
@@ -302,9 +299,13 @@ const tracker = withTracker((params: CallLinkBoxParams) => {
   // TODO: Fetch our own profile maybe
   const peerProfile = Profiles.findOne(params.peerParticipant.createdBy);
 
+  const turnServerConfig = PublicSettings.findOne({ name: 'webrtc.turnserver' });
+  const turnServerUrls = (turnServerConfig && turnServerConfig.name === 'webrtc.turnserver' && turnServerConfig.value.urls) || [];
+
   return {
     signal,
     peerProfile,
+    turnServerUrls,
   };
 });
 

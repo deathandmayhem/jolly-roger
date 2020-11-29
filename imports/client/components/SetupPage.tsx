@@ -14,6 +14,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
+import PublicSettings from '../../lib/models/public_settings';
 import Settings from '../../lib/models/settings';
 import { DiscordGuilds, DiscordGuildType } from '../discord';
 
@@ -956,6 +957,114 @@ class DiscordIntegrationSection extends React.Component<DiscordIntegrationSectio
   }
 }
 
+interface WebRTCServersFormProps {
+  turnServerUrls: string[];
+}
+
+interface WebRTCServersFormState {
+  url: string;
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
+  submitError: string;
+}
+
+class WebRTCServersForm extends React.Component<WebRTCServersFormProps, WebRTCServersFormState> {
+  constructor(props: WebRTCServersFormProps) {
+    super(props);
+    this.state = {
+      url: props.turnServerUrls.length > 0 ? props.turnServerUrls[0] : '',
+      submitState: SubmitState.IDLE,
+      submitError: '',
+    };
+  }
+
+  dismissAlert = () => {
+    this.setState({
+      submitState: SubmitState.IDLE,
+    });
+  };
+
+  onUrlChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      url: e.currentTarget.value,
+    });
+  };
+
+  onSubmit = (e: React.FormEvent<any>) => {
+    e.preventDefault();
+
+    const url = this.state.url.trim();
+
+    this.setState({
+      submitState: SubmitState.SUBMITTING,
+    });
+    Meteor.call('setupTurnServerUrls', [url], (err?: Error) => {
+      if (err) {
+        this.setState({
+          submitState: SubmitState.ERROR,
+          submitError: err.message,
+        });
+      } else {
+        this.setState({
+          submitState: SubmitState.SUCCESS,
+        });
+      }
+    });
+  };
+
+  render() {
+    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
+    return (
+      <div>
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'error' ? (
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.submitError}
+          </Alert>
+        ) : null}
+
+        <form onSubmit={this.onSubmit}>
+          <FormGroup>
+            <FormLabel htmlFor="jr-setup-edit-webrtc-turn-server-url">
+              Turn server URL
+            </FormLabel>
+            <FormControl
+              id="jr-setup-edit-webrtc-turn-server-url"
+              type="text"
+              placeholder=""
+              value={this.state.url}
+              disabled={shouldDisableForm}
+              onChange={this.onUrlChange}
+            />
+          </FormGroup>
+          <Button variant="primary" type="submit" onClick={this.onSubmit} disabled={shouldDisableForm}>Save</Button>
+        </form>
+      </div>
+    );
+  }
+}
+
+interface WebRTCSectionProps {
+  turnServerUrls: string[];
+}
+
+class WebRTCSection extends React.Component<WebRTCSectionProps> {
+  render() {
+    return (
+      <section>
+        <h1 className="setup-section-header">
+          <span className="setup-section-header-label">
+            WebRTC
+          </span>
+        </h1>
+        <WebRTCServersForm turnServerUrls={this.props.turnServerUrls} />
+      </section>
+    );
+  }
+}
+
 interface CircuitBreakerControlProps {
   // disabled should be false if the circuit breaker is not intentionally disabling the feature,
   // and true if the feature is currently disabled.
@@ -1127,6 +1236,8 @@ interface SetupPageRewriteProps {
   discordBotToken?: string;
   discordGuild?: DiscordGuildType;
 
+  turnServerUrls: string[];
+
   flagDisableGoogleIntegration: boolean;
   flagDisableGdrivePermissions: boolean;
   flagDisableApplause: boolean;
@@ -1170,6 +1281,9 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
           botToken={this.props.discordBotToken}
           guild={this.props.discordGuild}
         />
+        <WebRTCSection
+          turnServerUrls={this.props.turnServerUrls}
+        />
         <CircuitBreakerSection
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
           flagDisableApplause={this.props.flagDisableApplause}
@@ -1205,6 +1319,10 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
   const discordGuild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' ? discordGuildDoc.value.guild : undefined;
 
+  // WebRTC
+  const turnServerConfig = PublicSettings.findOne({ name: 'webrtc.turnserver' });
+  const turnServerUrls = (turnServerConfig && turnServerConfig.name === 'webrtc.turnserver' && turnServerConfig.value.urls) || [];
+
   // Circuit breakers
   const flagDisableGoogleIntegration = Flags.active('disable.google');
   const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
@@ -1225,6 +1343,8 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     flagDisableDiscord,
     discordBotToken,
     discordGuild,
+
+    turnServerUrls,
 
     flagDisableGoogleIntegration,
     flagDisableGdrivePermissions,
