@@ -108,24 +108,31 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
   };
 
   joinCall = () => {
-    // TODO: get user media, set the state in the callback.
-    this.setState({
-      state: 'requestingstream',
-    });
+    if (navigator.mediaDevices) {
+      // TODO: get user media, set the state in the callback.
+      this.setState({
+        state: 'requestingstream',
+      });
 
-    // Get the user media stream.
-    const mediaStreamConstraints = {
-      audio: {
-        echoCancellation: { ideal: true },
-        autoGainControl: { ideal: true },
-        noiseSuppression: { ideal: true },
-      },
-      // TODO: conditionally allow video if enabled by feature flag?
-    };
+      // Get the user media stream.
+      const mediaStreamConstraints = {
+        audio: {
+          echoCancellation: { ideal: true },
+          autoGainControl: { ideal: true },
+          noiseSuppression: { ideal: true },
+        },
+        // TODO: conditionally allow video if enabled by feature flag?
+      };
 
-    navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
-      .then(this.gotLocalMediaStream)
-      .catch(this.handleLocalMediaStreamError);
+      navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
+        .then(this.gotLocalMediaStream)
+        .catch(this.handleLocalMediaStreamError);
+    } else {
+      this.setState({
+        state: 'streamerror',
+        error: 'Couldn\'t get local microphone: browser denies access on non-HTTPS origins',
+      });
+    }
   };
 
   gotLocalMediaStream = (mediaStream: MediaStream) => {
