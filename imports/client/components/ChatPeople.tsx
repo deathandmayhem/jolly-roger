@@ -136,6 +136,8 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
   };
 
   gotLocalMediaStream = (mediaStream: MediaStream) => {
+    // @ts-ignore ts doesn't know about the possible existence of webkitAudioContext
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioContext = new AudioContext();
     const wrapperStreamDestination = audioContext.createMediaStreamDestination();
     const gainNode = audioContext.createGain();
