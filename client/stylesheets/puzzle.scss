@@ -318,6 +318,22 @@ table.puzzle-list {
   background-color: #ebd0e3;
   font-size: 12px;
   line-height: 12px;
+  border-bottom: 1px solid #000;
+
+  .av-actions {
+    display: flex;
+    flex-direction: row;
+    //margin-top: 6px;
+
+    .btn {
+      flex: 1;
+      padding: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0;
+    }
+  }
 }
 
 .chatter-subsection {
@@ -335,6 +351,7 @@ table.puzzle-list {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+    min-height: 12px; // So that when there's no people it doesn't collapse entirely
   }
 
   .people-item {
@@ -395,21 +412,6 @@ table.puzzle-list {
     height: 100%;
     width: 100%;
     fill: #3d98fa;
-  }
-
-  .av-actions {
-    display: flex;
-    margin-top: 6px;
-
-    .btn {
-      flex: 1;
-      padding: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 40px;
-      border-radius: 0;
-    }
   }
 }
 

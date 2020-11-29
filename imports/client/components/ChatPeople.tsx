@@ -214,44 +214,28 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
     });
   };
 
-  renderCallControls = () => {
-    const joinLabel = this.props.rtcViewers.length > 0 ? 'join audio call' : 'start audio call';
-    return (
-      <div className="av-actions">
-        {this.state.state === 'call' ? (
-          <>
-            <Button
-              className={this.state.muted ? 'btn-secondary' : 'btn-light'}
-              onClick={this.toggleMuted}
-            >
-              mute
-              {this.state.muted && 'd'}
-            </Button>
-            <Button className="btn-danger" onClick={this.leaveCall}>leave audio call</Button>
-          </>
-        ) : (
-          <Button className="btn-primary" onClick={this.joinCall}>{joinLabel}</Button>
-        )}
-      </div>
-    );
-  };
-
   renderCallersSubsection = () => {
     const { rtcViewers, huntId, puzzleId } = this.props;
     switch (this.state.state) {
       case 'chatonly':
-      case 'requestingstream':
+      case 'requestingstream': {
+        const joinLabel = rtcViewers.length > 0 ? 'join audio call' : 'start audio call';
         return (
-          <div className="chatter-subsection av-chatters">
-            <header>
-              {`${rtcViewers.length} caller${rtcViewers.length !== 1 ? 's' : ''}`}
-            </header>
-            <div className="people-list">
-              {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
+          <>
+            <div className="av-actions">
+              <Button variant="primary" size="sm" block onClick={this.joinCall}>{joinLabel}</Button>
             </div>
-            {this.renderCallControls()}
-          </div>
+            <div className="chatter-subsection av-chatters">
+              <header>
+                {`${rtcViewers.length} caller${rtcViewers.length !== 1 ? 's' : ''}`}
+              </header>
+              <div className="people-list">
+                {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
+              </div>
+            </div>
+          </>
         );
+      }
       case 'call':
         return (
           <CallSection
