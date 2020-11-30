@@ -2,7 +2,12 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBullhorn,
+  faMap,
+  faReceipt,
+  faUsers,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
@@ -424,14 +429,13 @@ interface PuzzleListPageProps extends PuzzleListPageWithRouterParams {
 
 class PuzzleListPage extends React.Component<PuzzleListPageProps> {
   render() {
-    const leadLinks = this.props.hunt.homepageUrl && (
-      <p className="lead">
+    const huntLink = this.props.hunt.homepageUrl && (
+      <li className="puzzle-list-link-external">
         <a href={this.props.hunt.homepageUrl} target="_blank" rel="noopener noreferrer" title="Open the hunt homepage">
-          <FontAwesomeIcon icon={faExternalLinkAlt} />
-          {' '}
-          Hunt homepage
+          <FontAwesomeIcon icon={faMap} />
+          <span className="puzzle-list-link-label">Hunt homepage</span>
         </a>
-      </p>
+      </li>
     );
     const puzzleList = this.props.ready ? (
       <PuzzleListView
@@ -449,11 +453,26 @@ class PuzzleListPage extends React.Component<PuzzleListPageProps> {
     );
     return (
       <div>
-        {leadLinks}
         <ul className="puzzle-list-links">
-          <li><Link to={`/hunts/${this.props.match.params.huntId}/announcements`}>Announcements</Link></li>
-          <li><Link to={`/hunts/${this.props.match.params.huntId}/guesses`}>Guess queue</Link></li>
-          <li><Link to={`/hunts/${this.props.match.params.huntId}/hunters`}>Hunters</Link></li>
+          {huntLink}
+          <li>
+            <Link to={`/hunts/${this.props.match.params.huntId}/announcements`}>
+              <FontAwesomeIcon icon={faBullhorn} />
+              <span className="puzzle-list-link-label">Announcements</span>
+            </Link>
+          </li>
+          <li>
+            <Link to={`/hunts/${this.props.match.params.huntId}/guesses`}>
+              <FontAwesomeIcon icon={faReceipt} />
+              <span className="puzzle-list-link-label">Guess queue</span>
+            </Link>
+          </li>
+          <li>
+            <Link to={`/hunts/${this.props.match.params.huntId}/hunters`}>
+              <FontAwesomeIcon icon={faUsers} />
+              <span className="puzzle-list-link-label">Hunters</span>
+            </Link>
+          </li>
         </ul>
         {puzzleList}
       </div>
