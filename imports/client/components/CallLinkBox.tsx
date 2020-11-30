@@ -1,6 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 import CallSignals from '../../lib/models/call_signals';
 import Profiles from '../../lib/models/profiles';
 import PublicSettings from '../../lib/models/public_settings';
@@ -22,7 +24,8 @@ enum WebRTCConnectionState {
 interface CallLinkBoxState {
   localCandidates: RTCIceCandidate[];
   // TODO: track this but use the browser type
-  // connectionState: WebRTCConnectionState;
+  connectionState: RTCPeerConnectionState;
+  iceConnectionState: RTCIceConnectionState;
 }
 
 interface CallLinkBoxParams {
@@ -53,6 +56,8 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
 
     this.state = {
       localCandidates: [],
+      connectionState: 'new',
+      iceConnectionState: 'new',
     };
 
     // Create a ref so we can get at the audio element on the page to set its
@@ -240,52 +245,72 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
   onIceConnectionStateChange = (e: Event) => {
     this.log('new ice connection state change:');
     this.log(e);
-    // Repaint.  TODO: make this setState instead
-    this.forceUpdate();
+    this.setState({
+      iceConnectionState: this.pc.iceConnectionState,
+    });
   };
 
   onConnectionStateChange = (e: Event) => {
     this.log('new connection state change:');
     this.log(e);
-    // Repaint.  TODO: make this setState instead
-    this.forceUpdate();
+    this.setState({
+      connectionState: this.pc.connectionState,
+    });
   };
 
   render() {
     const name = (this.props.peerProfile && this.props.peerProfile.displayName) || 'no profile wat';
-    const titleText = 'uhh working on this';
     return (
-      <div
+      <OverlayTrigger
         key={`viewer-${this.props.peerParticipant._id}`}
-        title={titleText || name}
-        className="people-item"
+        placement="right"
+        overlay={(
+          <Tooltip id={`caller-${this.props.peerParticipant._id}`}>
+            <div>{name}</div>
+            {/* TODO: add mute/deafened status here */}
+            <div>
+              Connection status:
+              {' '}
+              {this.state.connectionState}
+            </div>
+            <div>
+              IceConnection status:
+              {' '}
+              {this.state.iceConnectionState}
+            </div>
+          </Tooltip>
+        )}
       >
-        <span className="initial">{name.slice(0, 1)}</span>
-        <div className="webrtc">
-
-          {/*  <span className={`connection ${connectionState}`} /> */}
-          {/*
-          <svg className="speaker-volume">
-            {
-              volumeBars.map((bar, i) => {
-                const width = 100 / volumeBars.length;
-                const buffer = 100 / (8 * volumeBars.length);
-                return (
-                  <rect
-                    key={`bar-${bar}-${i}`}
-                    x={`${width * i + buffer}%`}
-                    y={`${100 - bar}%`}
-                    width={`${width - 2 * buffer}%`}
-                    height={`${bar}%`}
-                  />
-                );
-              })
-            }
-          </svg>
-          */}
+        <div
+          key={`viewer-${this.props.peerParticipant._id}`}
+          className="people-item"
+        >
+          <span className="initial">{name.slice(0, 1)}</span>
+          <div className="webrtc">
+            <span className={`connection ${this.state.connectionState}`} />
+            {/*
+            <svg className="speaker-volume">
+              {
+                volumeBars.map((bar, i) => {
+                  const width = 100 / volumeBars.length;
+                  const buffer = 100 / (8 * volumeBars.length);
+                  return (
+                    <rect
+                      key={`bar-${bar}-${i}`}
+                      x={`${width * i + buffer}%`}
+                      y={`${100 - bar}%`}
+                      width={`${width - 2 * buffer}%`}
+                      height={`${bar}%`}
+                    />
+                  );
+                })
+              }
+            </svg>
+            */}
+          </div>
+          <audio ref={this.audioRef} className="audio-sink" autoPlay playsInline muted={this.props.deafened} />
         </div>
-        <audio ref={this.audioRef} className="audio-sink" autoPlay playsInline muted={this.props.deafened} />
-      </div>
+      </OverlayTrigger>
     );
   }
 }
