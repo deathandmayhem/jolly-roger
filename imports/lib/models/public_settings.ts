@@ -7,7 +7,7 @@ PublicSettings.attachSchema(PublicSettingsSchema);
 
 // All public settings are accessible by all clients at all times, including to
 // not-logged-in-users.
-PublicSettings.publish();
+Meteor.publish('mongo.public_settings', () => PublicSettings.find());
 
 // Public settings should always be subscribed to by all clients.
 if (Meteor.isClient) {
