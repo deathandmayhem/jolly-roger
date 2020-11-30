@@ -399,6 +399,26 @@ table.puzzle-list {
         background-color: black;
       }
     }
+
+    .muted {
+      /* TODO: make this more intelligible with an icon */
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 3px;
+      height: 50%;
+      background-color: #ff0000;
+    }
+
+    .deafened {
+      /* TODO: make this more intelligible with an icon */
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 3px;
+      height: 50%;
+      background-color: #ff0000;
+    }
   }
 
   .speaker-volume {

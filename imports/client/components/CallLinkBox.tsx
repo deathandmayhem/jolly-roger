@@ -252,6 +252,10 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
               {' '}
               {this.state.iceConnectionState}
             </div>
+            {this.props.peerParticipant.muted &&
+              <div>Muted (no one can hear them)</div>}
+            {this.props.peerParticipant.deafened &&
+              <div>Deafened (they can&apos;t hear anyone)</div>}
           </Tooltip>
         )}
       >
@@ -262,6 +266,8 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
           <span className="initial">{name.slice(0, 1)}</span>
           <div className="webrtc">
             <span className={`connection ${this.state.iceConnectionState}`} />
+            {this.props.peerParticipant.muted && <span className="muted" />}
+            {this.props.peerParticipant.deafened && <span className="deafened" />}
             {/*
             <svg className="speaker-volume">
               {

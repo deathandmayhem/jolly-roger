@@ -49,10 +49,26 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
   }
 
   toggleMuted = () => {
+    if (this.props.selfParticipant) {
+      Meteor.call('setMuted', this.props.selfParticipant._id, !this.props.muted,
+        (err: Meteor.Error | undefined) => {
+          if (err) {
+            // Ignore.  Not much we can do here; the server failed to accept our change.
+          }
+        });
+    }
     this.props.onToggleMute();
   };
 
   toggleDeafened = () => {
+    if (this.props.selfParticipant) {
+      Meteor.call('setDeafened', this.props.selfParticipant._id, !this.state.deafened,
+        (err: Meteor.Error | undefined) => {
+          if (err) {
+            // Ignore.  Not much we can do here; the server failed to accept our change.
+          }
+        });
+    }
     this.setState((prevState) => ({
       deafened: !prevState.deafened,
     }));
@@ -101,14 +117,14 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
             size="sm"
             onClick={this.toggleMuted}
           >
-            {this.props.muted ? 'muted' : 'mute'}
+            {this.props.muted ? 'unmute' : 'mute self'}
           </Button>
           <Button
             variant={this.state.deafened ? 'secondary' : 'light'}
             size="sm"
             onClick={this.toggleDeafened}
           >
-            {this.state.deafened ? 'deafened' : 'deafen'}
+            {this.state.deafened ? 'undeafen' : 'deafen self'}
           </Button>
           <Button variant="danger" size="sm" onClick={this.leaveCall}>leave call</Button>
         </div>

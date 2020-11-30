@@ -69,6 +69,52 @@ Meteor.methods({
       throw new Meteor.Error(400, `Expected args.type to be either 'sdp' or 'iceCandidate' but got '${args.type}'`);
     }
   },
+
+  setMuted(selfParticipantId: unknown, muted: unknown) {
+    check(this.userId, String);
+    check(selfParticipantId, String);
+    check(muted, Boolean);
+
+    const selfParticipant = CallParticipants.findOne(selfParticipantId);
+    if (!selfParticipant) {
+      throw new Meteor.Error(404, `CallParticipant ${selfParticipantId} not found`);
+    }
+
+    if (selfParticipant.createdBy !== this.userId) {
+      throw new Meteor.Error(401, `CallParticipant ${selfParticipantId} not created by ${this.userId}`);
+    }
+
+    CallParticipants.update({
+      _id: selfParticipantId,
+    }, {
+      $set: {
+        muted,
+      },
+    });
+  },
+
+  setDeafened(selfParticipantId: unknown, deafened: unknown) {
+    check(this.userId, String);
+    check(selfParticipantId, String);
+    check(deafened, Boolean);
+
+    const selfParticipant = CallParticipants.findOne(selfParticipantId);
+    if (!selfParticipant) {
+      throw new Meteor.Error(404, `CallParticipant ${selfParticipantId} not found`);
+    }
+
+    if (selfParticipant.createdBy !== this.userId) {
+      throw new Meteor.Error(401, `CallParticipant ${selfParticipantId} not created by ${this.userId}`);
+    }
+
+    CallParticipants.update({
+      _id: selfParticipantId,
+    }, {
+      $set: {
+        deafened,
+      },
+    });
+  },
 });
 
 Meteor.publish('call.metadata', function (hunt, call) {
@@ -143,6 +189,8 @@ Meteor.publish('call.join', function (hunt, call, tab) {
     hunt,
     call,
     tab,
+    muted: false,
+    deafened: false,
   };
   const doc = CallParticipants.insert(callParticipant);
   this.onStop(() => {
