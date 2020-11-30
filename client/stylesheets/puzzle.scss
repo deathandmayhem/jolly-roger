@@ -379,11 +379,11 @@ table.puzzle-list {
       height: 3px;
       background-color: #cccccc;
 
-      &.connecting {
+      &.checking {
         background-color: #bbdcff;
       }
 
-      &.connected {
+      &.connected, &.completed {
         background-color: #3d98fa;
       }
 

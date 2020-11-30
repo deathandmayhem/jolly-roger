@@ -10,21 +10,8 @@ import { CallParticipantType } from '../../lib/schemas/call_participants';
 import { CallSignalType, CallSignalMessageType } from '../../lib/schemas/call_signals';
 import { ProfileType } from '../../lib/schemas/profiles';
 
-/*
-enum WebRTCConnectionState {
-  New = 'new',
-  Connecting = 'connecting',
-  Connected = 'connected',
-  Disconnected = 'disconnected',
-  Failed = 'failed',
-  Closed ='closed',
-}
-*/
-
 interface CallLinkBoxState {
   localCandidates: RTCIceCandidate[];
-  // TODO: track this but use the browser type
-  connectionState: RTCPeerConnectionState;
   iceConnectionState: RTCIceConnectionState;
 }
 
@@ -56,7 +43,6 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
 
     this.state = {
       localCandidates: [],
-      connectionState: 'new',
       iceConnectionState: 'new',
     };
 
@@ -80,8 +66,9 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
 
     this.pc = new RTCPeerConnection(rtcConfig);
     this.pc.addEventListener('icecandidate', this.onNewLocalCandidate);
+    // Firefox doesn't support connectionstatechange or connectionState yet, so
+    // just rely on iceConnectionState for now.
     this.pc.addEventListener('iceconnectionstatechange', this.onIceConnectionStateChange);
-    this.pc.addEventListener('connectionstatechange', this.onConnectionStateChange);
     this.pc.addEventListener('track', this.onNewRemoteTrack);
     this.pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
@@ -250,14 +237,6 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
     });
   };
 
-  onConnectionStateChange = (e: Event) => {
-    this.log('new connection state change:');
-    this.log(e);
-    this.setState({
-      connectionState: this.pc.connectionState,
-    });
-  };
-
   render() {
     const name = (this.props.peerProfile && this.props.peerProfile.displayName) || 'no profile wat';
     return (
@@ -269,12 +248,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
             <div>{name}</div>
             {/* TODO: add mute/deafened status here */}
             <div>
-              Connection status:
-              {' '}
-              {this.state.connectionState}
-            </div>
-            <div>
-              IceConnection status:
+              connection status:
               {' '}
               {this.state.iceConnectionState}
             </div>
@@ -287,7 +261,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
         >
           <span className="initial">{name.slice(0, 1)}</span>
           <div className="webrtc">
-            <span className={`connection ${this.state.connectionState}`} />
+            <span className={`connection ${this.state.iceConnectionState}`} />
             {/*
             <svg className="speaker-volume">
               {
