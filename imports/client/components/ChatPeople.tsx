@@ -2,6 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 import React, { ReactChild } from 'react';
 import Button from 'react-bootstrap/Button';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 import Flags from '../../flags';
 import CallParticipants from '../../lib/models/call_participants';
 import Profiles from '../../lib/models/profiles';
@@ -25,10 +27,20 @@ interface PersonBoxProps {
 const ViewerPersonBox = ({
   user, name, titleText, children,
 }: PersonBoxProps) => (
-  <div key={`viewer-${user}`} title={titleText || name} className="people-item">
-    <span className="initial">{name.slice(0, 1)}</span>
-    { children }
-  </div>
+  <OverlayTrigger
+    key={`viewer-${user}`}
+    placement="right"
+    overlay={(
+      <Tooltip id={`viewer-${user}`}>
+        {name}
+      </Tooltip>
+    )}
+  >
+    <div key={`viewer-${user}`} title={titleText || name} className="people-item">
+      <span className="initial">{name.slice(0, 1)}</span>
+      { children }
+    </div>
+  </OverlayTrigger>
 );
 
 interface ChatPeopleParams {

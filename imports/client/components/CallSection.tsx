@@ -3,6 +3,8 @@ import { Random } from 'meteor/random';
 import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 import CallParticipants from '../../lib/models/call_participants';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import CallLinkBox from './CallLinkBox';
@@ -60,6 +62,29 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
     this.props.onLeaveCall();
   };
 
+  renderSelfBox = () => {
+    return (
+      <OverlayTrigger
+        key="self"
+        placement="right"
+        overlay={(
+          <Tooltip id="caller-self">
+            <div>You are in the call.</div>
+            {this.props.muted && <div>You are currently muted and will transmit no audio.</div>}
+            {this.state.deafened && <div>You are currently deafened and will hear no audio.</div>}
+          </Tooltip>
+        )}
+      >
+        <div
+          key="self"
+          className="people-item"
+        >
+          <span className="initial">Me</span>
+        </div>
+      </OverlayTrigger>
+    );
+  };
+
   render() {
     if (!this.props.participantsReady || !this.props.signalsReady) {
       return <div />;
@@ -92,12 +117,7 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
             {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
           </header>
           <div className="people-list">
-            <div
-              key="self"
-              className="people-item"
-            >
-              <span className="initial">Me</span>
-            </div>
+            {this.renderSelfBox()}
             {this.props.signalsReady && this.props.selfParticipant && others.map((p) => {
               return (
                 <CallLinkBox
