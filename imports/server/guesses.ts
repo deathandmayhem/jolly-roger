@@ -146,10 +146,10 @@ Meteor.methods({
     GlobalHooks.runPuzzleSolvedHooks(savedAnswer.puzzle);
   },
 
-  removeAnswerFromPuzzle(puzzleId: unknown, answer: unknown) {
+  removeAnswerFromPuzzle(puzzleId: unknown, guessId: unknown) {
     check(this.userId, String);
     check(puzzleId, String);
-    check(answer, String);
+    check(guessId, String);
 
     const puzzle = Puzzles.findOne({
       _id: puzzleId,
@@ -164,7 +164,7 @@ Meteor.methods({
       throw new Error(`Hunt ${huntId} does not support self-service answers`);
     }
 
-    const guess = Guesses.findOne({ puzzle: puzzleId, guess: answer });
+    const guess = Guesses.findOne({ puzzle: puzzleId, _id: guessId });
     if (!guess) return;
     transitionGuess(guess, 'incorrect');
   },

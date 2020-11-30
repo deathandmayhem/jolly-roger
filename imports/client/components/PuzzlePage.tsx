@@ -711,14 +711,15 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
     const isAdministrivia = tags.find((t) => t.name === 'administrivia');
-    const answerComponent = this.props.puzzle.answers.length > 0 ? (
+    const correctGuesses = this.props.guesses.filter((guess) => guess.state === 'correct');
+    const answerComponent = correctGuesses.length > 0 ? (
       <span className="puzzle-metadata-answers">
         {
-          this.props.puzzle.answers.map((answer) => (
-            <span className="answer">
-              <span>{answer}</span>
+          correctGuesses.map((guess) => (
+            <span key={`answer-${guess._id}`} className="answer">
+              <span>{guess.guess}</span>
               {!this.props.hasGuessQueue && (
-                <Button className="answer-remove-button" variant="success" onClick={() => this.onRemoveAnswer(answer)}>&#10006;</Button>
+                <Button className="answer-remove-button" variant="success" onClick={() => this.onRemoveAnswer(guess._id)}>&#10006;</Button>
               )}
             </span>
           ))
@@ -1063,6 +1064,7 @@ enum PuzzleAnswerSubmitState {
 interface PuzzleAnswerModalState {
   answer: string;
   submitState: PuzzleAnswerSubmitState;
+  error: string;
 }
 
 class PuzzleAnswerModal extends React.Component<PuzzleAnswerModalProps, PuzzleAnswerModalState> {
@@ -1073,6 +1075,7 @@ class PuzzleAnswerModal extends React.Component<PuzzleAnswerModalProps, PuzzleAn
     this.state = {
       answer: '',
       submitState: PuzzleAnswerSubmitState.IDLE,
+      error: '',
     };
     this.formRef = React.createRef();
   }
@@ -1088,6 +1091,7 @@ class PuzzleAnswerModal extends React.Component<PuzzleAnswerModalProps, PuzzleAn
   onSubmit = () => {
     this.setState({
       submitState: PuzzleAnswerSubmitState.SUBMITTING,
+      error: '',
     });
     Meteor.call(
       'addCorrectGuessForPuzzle',
@@ -1097,8 +1101,8 @@ class PuzzleAnswerModal extends React.Component<PuzzleAnswerModalProps, PuzzleAn
         if (error) {
           this.setState({
             submitState: PuzzleAnswerSubmitState.FAILED,
+            error: error.message,
           });
-          console.log('ERROR:', error);
         } else {
           this.setState({
             answer: '',
@@ -1135,7 +1139,7 @@ class PuzzleAnswerModal extends React.Component<PuzzleAnswerModalProps, PuzzleAn
 
         {this.state.submitState === PuzzleAnswerSubmitState.FAILED && (
           <Alert variant="danger" dismissible onClose={() => this.setState({ submitState: PuzzleAnswerSubmitState.IDLE })}>
-            Something went wrong. Try again, or contact an admin?
+            { this.state.error || 'Something went wrong. Try again, or contact an admin?' }
           </Alert>
         )}
       </ModalForm>
