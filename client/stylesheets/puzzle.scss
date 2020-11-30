@@ -352,8 +352,12 @@ table.puzzle-list {
   justify-content: space-between;
 }
 
-.puzzle-metadata-title {
-  font-weight: bold;
+.puzzle-metadata-title-set {
+  flex: 0 0 auto;
+
+  .puzzle-metadata-title {
+    font-weight: bold;
+  }
 }
 
 .puzzle-metadata .view-count {
@@ -361,16 +365,30 @@ table.puzzle-list {
   white-space: nowrap;
 }
 
-.puzzle-metadata-answer {
+.puzzle-metadata-answers {
+  flex: 1 1 auto;
   display: flex;
+  justify-content: flex-end;
   align-items: center;
-  line-height: 24px;
-  margin: 2px 0;
-  padding: 0 6px;
-  border-radius: 4px;
-  background-color: #00ff00;
-  color: #000000;
-  word-break: break-all;
+  flex-wrap: wrap;
+
+  .answer {
+    line-height: 24px;
+    height: 28px;
+    margin-left: 2px;
+    padding: 0 6px;
+    border-radius: 4px;
+    background-color: #00ff00;
+    color: #000000;
+    display: flex;
+
+    .answer-remove-button {
+      color: default;
+      margin: 0 -6px 0 2px;
+      padding: 0 8px 0 0;
+      height: 28px;
+    }
+  }
 }
 
 .puzzle-metadata .tag-list {

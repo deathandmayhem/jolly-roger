@@ -39,6 +39,7 @@ export interface HuntModalSubmit {
   mailingLists: string[];
   signupMessage: string;
   openSignups: boolean;
+  hasGuessQueue: boolean;
   submitTemplate: string;
 }
 
@@ -79,6 +80,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         mailingLists: this.props.hunt.mailingLists.join(', ') || '',
         signupMessage: this.props.hunt.signupMessage || '',
         openSignups: this.props.hunt.openSignups || false,
+        hasGuessQueue: !!this.props.hunt.hasGuessQueue,
         submitTemplate: this.props.hunt.submitTemplate || '',
       });
     } else {
@@ -87,6 +89,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         mailingLists: '',
         signupMessage: '',
         openSignups: false,
+        hasGuessQueue: true,
         submitTemplate: '',
       });
     }
@@ -115,6 +118,12 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
       openSignups: e.currentTarget.checked,
     });
   };
+
+  onHasGuessQueueChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({
+      hasGuessQueue: e.currentTarget.checked,
+    });
+  }
 
   onSubmitTemplateChanged: FormControlProps['onChange'] = (e) => {
     this.setState({
@@ -223,6 +232,23 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
             />
             <FormText>
               If open invites are enabled, then any current member of the hunt can add a new member to the hunt. Otherwise, only operators can add new members.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}has-guess-queue`}>
+            Guess queue
+          </FormLabel>
+          <Col xs={9}>
+            <FormCheck
+              id={`${idPrefix}has-guess-queue`}
+              checked={this.state.hasGuessQueue}
+              onChange={this.onHasGuessQueueChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If enabled, users can submit guesses for puzzles but operators must mark them as correct. If disabled, any user can enter the puzzle answer.
             </FormText>
           </Col>
         </FormGroup>
