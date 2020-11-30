@@ -10,6 +10,9 @@ const CallParticipantFields = t.type({
   // Need a tab ID here too so that different browser tabs won't
   // try to autoconnect
   tab: t.string,
+
+  muted: t.boolean,
+  deafened: t.boolean,
 });
 
 const CallParticipantFieldsOverrides: Overrides<t.TypeOf<typeof CallParticipantFields>> = {
