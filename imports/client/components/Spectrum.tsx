@@ -13,6 +13,11 @@ interface SpectrumProps {
   className: string | undefined;
 }
 
+// How many milliseconds to ensure have passed before we do expensive
+// repainting work again.
+const THROTTLE_MAX_FPS = 30;
+const THROTTLE_MIN_MSEC_ELAPSED = 1000 / THROTTLE_MAX_FPS;
+
 class Spectrum extends React.Component<SpectrumProps> {
   private canvasRef: React.RefObject<HTMLCanvasElement>;
 
@@ -24,6 +29,8 @@ class Spectrum extends React.Component<SpectrumProps> {
 
   private periodicHandle: number | undefined;
 
+  private lastPainted: number;
+
   constructor(props: SpectrumProps) {
     super(props);
 
@@ -33,6 +40,7 @@ class Spectrum extends React.Component<SpectrumProps> {
     this.analyserNode.smoothingTimeConstant = 0.4;
     this.bufferLength = this.analyserNode.frequencyBinCount;
     this.analyserBuffer = new Uint8Array(this.bufferLength);
+    this.lastPainted = 0;
   }
 
   componentWillUnmount() {
@@ -58,8 +66,17 @@ class Spectrum extends React.Component<SpectrumProps> {
     this.periodicHandle = window.requestAnimationFrame(this.drawSpectrum);
   };
 
-  drawSpectrum = (_time: number) => {
+  drawSpectrum = (time: number) => {
+    // request call on next animation frame
     this.periodicHandle = window.requestAnimationFrame(this.drawSpectrum);
+
+    // Throttle: only do work if THROTTLE_MIN_MSEC_ELAPSED have passed since
+    // the last time we did work.
+    if (this.lastPainted + THROTTLE_MIN_MSEC_ELAPSED > time) {
+      return;
+    }
+
+    this.lastPainted = time;
     this.analyserNode.getByteFrequencyData(this.analyserBuffer);
     const canvas = this.canvasRef.current;
     if (canvas) {
