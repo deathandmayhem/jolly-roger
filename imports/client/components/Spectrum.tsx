@@ -30,6 +30,7 @@ class Spectrum extends React.Component<SpectrumProps> {
     this.canvasRef = React.createRef();
     this.analyserNode = this.props.audioContext.createAnalyser();
     this.analyserNode.fftSize = 32;
+    this.analyserNode.smoothingTimeConstant = 0.4;
     this.bufferLength = this.analyserNode.frequencyBinCount;
     this.analyserBuffer = new Uint8Array(this.bufferLength);
   }
