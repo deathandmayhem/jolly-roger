@@ -314,33 +314,18 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
       case 'group': {
         const puzzleGroups = this.puzzleGroupsByRelevance();
         const groupComponents = puzzleGroups.map((g) => {
-          if (g.sharedTag) {
-            return (
-              <RelatedPuzzleGroup
-                key={g.sharedTag._id}
-                sharedTag={g.sharedTag}
-                relatedPuzzles={g.puzzles}
-                allTags={this.props.allTags}
-                includeCount={false}
-                layout="grid"
-                canUpdate={this.props.canUpdate}
-              />
-            );
-          } else {
-            return (
-              <div key="ungrouped" className="puzzle-list-ungrouped">
-                <div>Puzzles in no group:</div>
-                <div className="puzzles">
-                  <PuzzleList
-                    puzzles={g.puzzles}
-                    allTags={this.props.allTags}
-                    layout="grid"
-                    canUpdate={this.props.canUpdate}
-                  />
-                </div>
-              </div>
-            );
-          }
+          return (
+            <RelatedPuzzleGroup
+              key={g.sharedTag ? g.sharedTag._id : 'ungrouped'}
+              sharedTag={g.sharedTag}
+              noSharedTagLabel="(no group specified)"
+              relatedPuzzles={g.puzzles}
+              allTags={this.props.allTags}
+              includeCount={false}
+              layout="grid"
+              canUpdate={this.props.canUpdate}
+            />
+          );
         });
         bodyComponent = (
           <div>

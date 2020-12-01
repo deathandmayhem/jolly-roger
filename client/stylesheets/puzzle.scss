@@ -169,6 +169,10 @@ table.puzzle-list {
   &.tag-priority {
     background-color: #aaaaff;
   }
+  &.tag-none {
+    background-color: transparent;
+    color: #808080;
+  }
 }
 
 .tag-link, .tag-link:active, .tag-link:focus, .tag-link:hover {
