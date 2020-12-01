@@ -12,7 +12,7 @@ import puzzleInterestingness from './puzzleInterestingness';
 
 function sortPuzzlesByRelevanceWithinPuzzleGroup(
   puzzles: PuzzleType[],
-  sharedTag: TagType | null,
+  sharedTag: TagType | undefined,
   indexedTags: Record<string, TagType>
 ) {
   // If sharedTag is a meta:<something> tag, sort a puzzle with a meta-for:<something> tag at top.
@@ -37,8 +37,8 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(
 }
 
 interface RelatedPuzzleGroupProps {
-  sharedTag: TagType | null;
-  // noSharedTagLabel is used to label the group only if sharedTag is null.
+  sharedTag: TagType | undefined;
+  // noSharedTagLabel is used to label the group only if sharedTag is undefined.
   noSharedTagLabel: String;
   relatedPuzzles: PuzzleType[];
   allTags: TagType[];

@@ -308,7 +308,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
           return (
             <RelatedPuzzleGroup
               key={g.sharedTag ? g.sharedTag._id : 'ungrouped'}
-              sharedTag={g.sharedTag || null}
+              sharedTag={g.sharedTag}
               noSharedTagLabel="(no group specified)"
               relatedPuzzles={g.puzzles}
               allTags={this.props.allTags}
