@@ -12,12 +12,12 @@ import puzzleInterestingness from './puzzleInterestingness';
 
 function sortPuzzlesByRelevanceWithinPuzzleGroup(
   puzzles: PuzzleType[],
-  sharedTag: TagType,
+  sharedTag: TagType | null,
   indexedTags: Record<string, TagType>
 ) {
   // If sharedTag is a meta:<something> tag, sort a puzzle with a meta-for:<something> tag at top.
   let group: string;
-  if (sharedTag.name.lastIndexOf('group:', 0) === 0) {
+  if (sharedTag && sharedTag.name.lastIndexOf('group:', 0) === 0) {
     group = sharedTag.name.slice('group:'.length);
   }
 
@@ -37,7 +37,9 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(
 }
 
 interface RelatedPuzzleGroupProps {
-  sharedTag: TagType;
+  sharedTag: TagType | null;
+  // noSharedTagLabel is used to label the group only if sharedTag is null.
+  noSharedTagLabel: String;
   relatedPuzzles: PuzzleType[];
   allTags: TagType[];
   includeCount?: boolean;
@@ -51,6 +53,10 @@ interface RelatedPuzzleGroupState {
 
 class RelatedPuzzleGroup extends React.Component<RelatedPuzzleGroupProps, RelatedPuzzleGroupState> {
   static displayName = 'RelatedPuzzleGroup';
+
+  static defaultProps: Partial<RelatedPuzzleGroupProps> = {
+    noSharedTagLabel: '(no tag)',
+  };
 
   constructor(props: RelatedPuzzleGroupProps) {
     super(props);
@@ -76,7 +82,7 @@ class RelatedPuzzleGroup extends React.Component<RelatedPuzzleGroupProps, Relate
       <div className="puzzle-group">
         <div className="puzzle-group-header" onClick={this.toggleCollapse}>
           <FontAwesomeIcon fixedWidth icon={this.state.collapsed ? faCaretRight : faCaretDown} />
-          <Tag tag={this.props.sharedTag} linkToSearch={false} />
+          {this.props.sharedTag ? <Tag tag={this.props.sharedTag} linkToSearch={false} /> : <div className="tag tag-none">{this.props.noSharedTagLabel}</div>}
           {this.props.includeCount && <span>{`(${this.props.relatedPuzzles.length} other ${this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles'})`}</span>}
         </div>
         {this.state.collapsed ? null : (
@@ -86,7 +92,7 @@ class RelatedPuzzleGroup extends React.Component<RelatedPuzzleGroupProps, Relate
               allTags={this.props.allTags}
               layout={this.props.layout}
               canUpdate={this.props.canUpdate}
-              suppressTags={[this.props.sharedTag._id]}
+              suppressTags={this.props.sharedTag ? [this.props.sharedTag._id] : []}
             />
           </div>
         )}
