@@ -405,23 +405,33 @@ table.puzzle-list {
     }
 
     .muted {
-      /* TODO: make this more intelligible with an icon */
       position: absolute;
       top: 0;
       right: 0;
-      width: 3px;
+      font-size: 12px;
+      width: 16px;
+      text-align: center;
+      color: #ff0000;
       height: 50%;
-      background-color: #ff0000;
     }
 
     .deafened {
-      /* TODO: make this more intelligible with an icon */
       position: absolute;
-      bottom: 0;
+      bottom: 2px;
       right: 0;
-      width: 3px;
+      font-size: 12px;
+      width: 16px;
+      text-align: center;
+      color: #ff0000;
       height: 50%;
-      background-color: #ff0000;
+    }
+
+    .spectrogram {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
     }
   }
 

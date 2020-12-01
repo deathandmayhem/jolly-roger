@@ -1,5 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
+import { faMicrophone, faHeadphonesAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -9,6 +11,7 @@ import PublicSettings from '../../lib/models/public_settings';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import { CallSignalType, CallSignalMessageType } from '../../lib/schemas/call_signals';
 import { ProfileType } from '../../lib/schemas/profiles';
+import Spectrum from './Spectrum';
 
 interface CallLinkBoxState {
   localCandidates: RTCIceCandidate[];
@@ -32,6 +35,8 @@ interface CallLinkBoxProps extends CallLinkBoxParams {
 class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
   private audioRef: React.RefObject<HTMLVideoElement>;
 
+  private spectrumRef: React.RefObject<Spectrum>;
+
   private remoteStream: MediaStream;
 
   private pc: RTCPeerConnection;
@@ -49,6 +54,9 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
     // Create a ref so we can get at the audio element on the page to set its
     // srcObject.
     this.audioRef = React.createRef();
+
+    // Create a ref for the canvas for us to use to paint the spectrogram on
+    this.spectrumRef = React.createRef();
 
     // Create a stream object to populate tracks into as we receive them from
     // our peer.
@@ -115,8 +123,6 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
   componentWillUnmount() {
     // Tear down the connections and all active streams on them.
     this.pc.close();
-
-    // TODO: tear down animation periodic handle
   }
 
   log = (...args: any) => {
@@ -214,7 +220,17 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
   onNewRemoteTrack = (e: RTCTrackEvent) => {
     this.log('newRemoteTrack', e);
     if (e.track.kind === 'audio') {
+      // Wire the track directly to the audio element for playback with echo
+      // cancellation.
       this.remoteStream.addTrack(e.track);
+
+      // Wire in the spectrogram.
+      const spectrum = this.spectrumRef.current;
+      if (spectrum) {
+        const stubStream = new MediaStream();
+        stubStream.addTrack(e.track);
+        spectrum.connect(stubStream);
+      }
     } else {
       // Ignore non-audio tracks.
       // this.remoteStream.addTrack(e.track);
@@ -266,27 +282,15 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
           <span className="initial">{name.slice(0, 1)}</span>
           <div className="webrtc">
             <span className={`connection ${this.state.iceConnectionState}`} />
-            {this.props.peerParticipant.muted && <span className="muted" />}
-            {this.props.peerParticipant.deafened && <span className="deafened" />}
-            {/*
-            <svg className="speaker-volume">
-              {
-                volumeBars.map((bar, i) => {
-                  const width = 100 / volumeBars.length;
-                  const buffer = 100 / (8 * volumeBars.length);
-                  return (
-                    <rect
-                      key={`bar-${bar}-${i}`}
-                      x={`${width * i + buffer}%`}
-                      y={`${100 - bar}%`}
-                      width={`${width - 2 * buffer}%`}
-                      height={`${bar}%`}
-                    />
-                  );
-                })
-              }
-            </svg>
-            */}
+            {this.props.peerParticipant.muted && <span className="muted"><FontAwesomeIcon icon={faMicrophone} /></span>}
+            {this.props.peerParticipant.deafened && <span className="deafened"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
+            <Spectrum
+              className="spectrogram"
+              width={40}
+              height={40}
+              audioContext={this.props.audioContext}
+              ref={this.spectrumRef}
+            />
           </div>
           <audio ref={this.audioRef} className="audio-sink" autoPlay playsInline muted={this.props.deafened} />
         </div>
