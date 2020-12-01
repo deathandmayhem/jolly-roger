@@ -8,6 +8,7 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import CallParticipants from '../../lib/models/call_participants';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import CallLinkBox from './CallLinkBox';
+import Spectrum from './Spectrum';
 
 const tabId = Random.id();
 
@@ -96,6 +97,20 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
           className="people-item"
         >
           <span className="initial">Me</span>
+          <div className="webrtc">
+            <Spectrum
+              className="spectrogram"
+              width={40}
+              height={40}
+              audioContext={this.props.audioContext}
+              ref={((spectrum) => {
+                if (spectrum) {
+                  spectrum.connect(this.props.localStream);
+                }
+              }
+              )}
+            />
+          </div>
         </div>
       </OverlayTrigger>
     );
