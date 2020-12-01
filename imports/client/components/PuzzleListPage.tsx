@@ -2,6 +2,13 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
+import {
+  faBullhorn,
+  faMap,
+  faReceipt,
+  faUsers,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
@@ -13,8 +20,10 @@ import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
+import Hunts from '../../lib/models/hunts';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
+import { HuntType } from '../../lib/schemas/hunts';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import PuzzleList from './PuzzleList';
@@ -359,51 +368,42 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     );
     return (
       <div>
-        <div className="puzzle-list-controls">
-          <ul className="puzzle-list-links">
-            <li><Link to={`/hunts/${this.props.huntId}/announcements`}>Announcements</Link></li>
-            <li><Link to={`/hunts/${this.props.huntId}/guesses`}>Guess queue</Link></li>
-            <li><Link to={`/hunts/${this.props.huntId}/hunters`}>Hunters</Link></li>
-          </ul>
-          <div className="puzzle-view-controller">
-            <FormLabel htmlFor="jr-puzzle-search">View puzzles by:</FormLabel>
-            <div className="puzzle-view-controls">
-              <div>
-                <ButtonToolbar>
-                  <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={this.state.displayMode} onChange={this.switchView}>
-                    <ToggleButton variant="outline-secondary" value="group">Group</ToggleButton>
-                    <ToggleButton variant="outline-secondary" value="unlock">Unlock</ToggleButton>
-                  </ToggleButtonGroup>
-                  <ToggleButtonGroup
-                    type="checkbox"
-                    value={this.state.showSolved ? ['true'] : []}
-                    onChange={this.changeShowSolved}
-                  >
-                    <ToggleButton variant="outline-secondary" value="true">Show solved</ToggleButton>
-                  </ToggleButtonGroup>
-                </ButtonToolbar>
-              </div>
-              <FormGroup>
-                <InputGroup>
-                  <FormControl
-                    id="jr-puzzle-search"
-                    as="input"
-                    type="text"
-                    ref={this.searchBarRef}
-                    placeholder="Filter by title, answer, or tag"
-                    value={this.getSearchString()}
-                    onChange={this.onSearchStringChange}
-                  />
-                  <InputGroup.Append>
-                    <Button variant="outline-secondary" onClick={this.clearSearch}>
-                      Clear
-                    </Button>
-                  </InputGroup.Append>
-                </InputGroup>
-              </FormGroup>
-              {addPuzzleContent}
-            </div>
+        <FormLabel htmlFor="jr-puzzle-search">View puzzles by:</FormLabel>
+        <div className="puzzle-view-controls">
+          <div>
+            <ButtonToolbar>
+              <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={this.state.displayMode} onChange={this.switchView}>
+                <ToggleButton variant="outline-secondary" value="group">Group</ToggleButton>
+                <ToggleButton variant="outline-secondary" value="unlock">Unlock</ToggleButton>
+              </ToggleButtonGroup>
+              <ToggleButtonGroup
+                type="checkbox"
+                value={this.state.showSolved ? ['true'] : []}
+                onChange={this.changeShowSolved}
+              >
+                <ToggleButton variant="outline-secondary" value="true">Show solved</ToggleButton>
+              </ToggleButtonGroup>
+            </ButtonToolbar>
           </div>
+          <FormGroup>
+            <InputGroup>
+              <FormControl
+                id="jr-puzzle-search"
+                as="input"
+                type="text"
+                ref={this.searchBarRef}
+                placeholder="Filter by title, answer, or tag"
+                value={this.getSearchString()}
+                onChange={this.onSearchStringChange}
+              />
+              <InputGroup.Append>
+                <Button variant="outline-secondary" onClick={this.clearSearch}>
+                  Clear
+                </Button>
+              </InputGroup.Append>
+            </InputGroup>
+          </FormGroup>
+          {addPuzzleContent}
         </div>
         {bodyComponent}
       </div>
@@ -424,26 +424,59 @@ interface PuzzleListPageProps extends PuzzleListPageWithRouterParams {
   canUpdate: boolean;
   allPuzzles: PuzzleType[];
   allTags: TagType[];
+  hunt: HuntType;
 }
 
 class PuzzleListPage extends React.Component<PuzzleListPageProps> {
   render() {
-    if (!this.props.ready) {
-      return <span>loading...</span>;
-    } else {
-      return (
-        <PuzzleListView
-          match={this.props.match}
-          history={this.props.history}
-          location={this.props.location}
-          huntId={this.props.match.params.huntId}
-          canAdd={this.props.canAdd}
-          canUpdate={this.props.canUpdate}
-          puzzles={this.props.allPuzzles}
-          allTags={this.props.allTags}
-        />
-      );
-    }
+    const huntLink = this.props.hunt.homepageUrl && (
+      <li className="puzzle-list-link-external">
+        <a href={this.props.hunt.homepageUrl} target="_blank" rel="noopener noreferrer" title="Open the hunt homepage">
+          <FontAwesomeIcon icon={faMap} />
+          <span className="puzzle-list-link-label">Hunt homepage</span>
+        </a>
+      </li>
+    );
+    const puzzleList = this.props.ready ? (
+      <PuzzleListView
+        match={this.props.match}
+        history={this.props.history}
+        location={this.props.location}
+        huntId={this.props.match.params.huntId}
+        canAdd={this.props.canAdd}
+        canUpdate={this.props.canUpdate}
+        puzzles={this.props.allPuzzles}
+        allTags={this.props.allTags}
+      />
+    ) : (
+      <span>loading...</span>
+    );
+    return (
+      <div>
+        <ul className="puzzle-list-links">
+          {huntLink}
+          <li>
+            <Link to={`/hunts/${this.props.match.params.huntId}/announcements`}>
+              <FontAwesomeIcon icon={faBullhorn} />
+              <span className="puzzle-list-link-label">Announcements</span>
+            </Link>
+          </li>
+          <li>
+            <Link to={`/hunts/${this.props.match.params.huntId}/guesses`}>
+              <FontAwesomeIcon icon={faReceipt} />
+              <span className="puzzle-list-link-label">Guess queue</span>
+            </Link>
+          </li>
+          <li>
+            <Link to={`/hunts/${this.props.match.params.huntId}/hunters`}>
+              <FontAwesomeIcon icon={faUsers} />
+              <span className="puzzle-list-link-label">Hunters</span>
+            </Link>
+          </li>
+        </ul>
+        {puzzleList}
+      </div>
+    );
   }
 }
 
@@ -455,23 +488,16 @@ const PuzzleListPageContainer = withTracker(({ match }: PuzzleListPageWithRouter
   Meteor.subscribe('subscribers.counts', { hunt: match.params.huntId });
 
   const ready = puzzlesHandle.ready() && tagsHandle.ready();
-  if (!ready) {
-    return {
-      ready: false,
-      canAdd: false,
-      canUpdate: false,
-      allPuzzles: [],
-      allTags: [],
-    };
-  } else {
-    return {
-      ready: true,
-      canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
-      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
-      allPuzzles: Puzzles.find({ hunt: match.params.huntId }).fetch(),
-      allTags: Tags.find({ hunt: match.params.huntId }).fetch(),
-    };
-  }
+  // Assertion is safe because hunt is already subscribed and checked by HuntApp
+  const hunt = Hunts.findOne({ _id: match.params.huntId })!;
+  return {
+    ready,
+    canAdd: ready && Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
+    canUpdate: ready && Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
+    allPuzzles: ready ? Puzzles.find({ hunt: match.params.huntId }).fetch() : [],
+    allTags: ready ? Tags.find({ hunt: match.params.huntId }).fetch() : [],
+    hunt,
+  };
 })(PuzzleListPage);
 
 export default PuzzleListPageContainer;

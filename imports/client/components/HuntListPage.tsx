@@ -40,6 +40,7 @@ export interface HuntModalSubmit {
   signupMessage: string;
   openSignups: boolean;
   hasGuessQueue: boolean;
+  homepageUrl: string;
   submitTemplate: string;
 }
 
@@ -81,6 +82,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         signupMessage: this.props.hunt.signupMessage || '',
         openSignups: this.props.hunt.openSignups || false,
         hasGuessQueue: !!this.props.hunt.hasGuessQueue,
+        homepageUrl: this.props.hunt.homepageUrl || '',
         submitTemplate: this.props.hunt.submitTemplate || '',
       });
     } else {
@@ -90,6 +92,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         signupMessage: '',
         openSignups: false,
         hasGuessQueue: true,
+        homepageUrl: '',
         submitTemplate: '',
       });
     }
@@ -123,13 +126,19 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
     this.setState({
       hasGuessQueue: e.currentTarget.checked,
     });
-  }
+  };
+
+  onHomepageUrlChanged: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      homepageUrl: e.currentTarget.value,
+    });
+  };
 
   onSubmitTemplateChanged: FormControlProps['onChange'] = (e) => {
     this.setState({
       submitTemplate: e.currentTarget.value,
     });
-  }
+  };
 
   onFormSubmit = (callback: () => void) => {
     this.setState({ submitState: HuntModalFormSubmitState.SUBMITTING });
@@ -249,6 +258,24 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
             />
             <FormText>
               If enabled, users can submit guesses for puzzles but operators must mark them as correct. If disabled, any user can enter the puzzle answer.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}homepage-url`}>
+            Homepage URL
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id={`${idPrefix}homepage-url`}
+              type="text"
+              value={this.state.homepageUrl}
+              onChange={this.onHomepageUrlChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If provided, a link to the hunt homepage will be placed on the landing page.
             </FormText>
           </Col>
         </FormGroup>
