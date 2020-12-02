@@ -81,9 +81,7 @@ interface ChatPeopleState {
 
   audioContext: AudioContext | undefined;
   rawMediaSource: MediaStream | undefined;
-  // wrapperStreamSource: MediaStreamAudioSourceNode | undefined;
   gainNode: GainNode | undefined;
-  // wrapperStreamDestination: MediaStreamAudioDestinationNode | undefined;
   leveledStreamSource: MediaStream | undefined;
 }
 
@@ -120,9 +118,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
 
       audioContext: undefined,
       rawMediaSource: undefined,
-      // wrapperStreamSource: undefined,
       gainNode: undefined,
-      // wrapperStreamDestination: undefined,
       leveledStreamSource: undefined,
     };
 
@@ -199,7 +195,6 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
 
   joinCall = () => {
     if (navigator.mediaDevices) {
-      // TODO: get user media, set the state in the callback.
       this.setState({
         state: 'requestingstream',
       });
@@ -234,8 +229,6 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
     const gainValue = this.state.muted ? 0.0 : 1.0;
     gainNode.gain.setValueAtTime(gainValue, audioContext.currentTime);
 
-    let wrapperStreamSource;
-
     const leveledStreamSource = new MediaStream();
     const rawTracks = mediaStream.getTracks();
     for (let i = 0; i < rawTracks.length; i++) {
@@ -245,7 +238,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
         // track in another stream.
         const stubStream = new MediaStream();
         stubStream.addTrack(rawTrack);
-        wrapperStreamSource = audioContext.createMediaStreamSource(stubStream);
+        const wrapperStreamSource = audioContext.createMediaStreamSource(stubStream);
 
         // Wire up the audio track to the gain node.
         wrapperStreamSource.connect(gainNode);
@@ -272,9 +265,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
       state: 'call',
       audioContext,
       rawMediaSource: mediaStream,
-      // wrapperStreamSource,
       gainNode,
-      // wrapperStreamDestination,
       leveledStreamSource,
     });
   };
@@ -298,9 +289,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
       deafened: false,
       audioContext: undefined,
       rawMediaSource: undefined,
-      // wrapperStreamSource: undefined,
       gainNode: undefined,
-      // wrapperStreamDestination: undefined,
       leveledStreamSource: undefined,
     });
   };
