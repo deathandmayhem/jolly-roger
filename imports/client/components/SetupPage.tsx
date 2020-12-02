@@ -1120,6 +1120,7 @@ interface CircuitBreakerSectionProps {
   flagDisableGdrivePermissions: boolean;
   flagDisableApplause: boolean;
   flagDisableWebrtc: boolean;
+  flagDisableSpectra: boolean;
 }
 
 class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> {
@@ -1216,6 +1217,23 @@ class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> 
             such load once the flag is flipped.
           </p>
         </CircuitBreakerControl>
+        <CircuitBreakerControl
+          title="WebRTC call spectrograms"
+          featureDisabled={this.props.flagDisableSpectra}
+          onChange={(newValue) => this.setFlagValue('disable.spectra', newValue)}
+        >
+          <p>
+            In the WebRTC call UI, we show audio activity via spectrograms.
+            However, this is expensive, since it involves doing FFTs and updating
+            visualizations every frame, for every client.  We provide a feature
+            flag to disable these spectra.
+          </p>
+          <p>
+            Disabling this feature means that Jolly Roger will not show any
+            visual indicator of who in a call is talking, but will use less CPU
+            and battery for members of WebRTC calls.
+          </p>
+        </CircuitBreakerControl>
       </section>
     );
   }
@@ -1242,6 +1260,7 @@ interface SetupPageRewriteProps {
   flagDisableGdrivePermissions: boolean;
   flagDisableApplause: boolean;
   flagDisableWebrtc: boolean;
+  flagDisableSpectra: boolean;
 }
 
 class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
@@ -1288,6 +1307,7 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
           flagDisableApplause={this.props.flagDisableApplause}
           flagDisableWebrtc={this.props.flagDisableWebrtc}
+          flagDisableSpectra={this.props.flagDisableSpectra}
         />
       </div>
     );
@@ -1328,6 +1348,7 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
   const flagDisableApplause = Flags.active('disable.applause');
   const flagDisableWebrtc = Flags.active('disable.webrtc');
+  const flagDisableSpectra = Flags.active('disable.spectra');
 
   return {
     ready: settingsHandle.ready(),
@@ -1350,6 +1371,7 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     flagDisableGdrivePermissions,
     flagDisableApplause,
     flagDisableWebrtc,
+    flagDisableSpectra,
   };
 });
 

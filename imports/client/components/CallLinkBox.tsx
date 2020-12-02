@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import Flags from '../../flags';
 import CallSignals from '../../lib/models/call_signals';
 import Profiles from '../../lib/models/profiles';
 import PublicSettings from '../../lib/models/public_settings';
@@ -30,6 +31,7 @@ interface CallLinkBoxProps extends CallLinkBoxParams {
   signal: CallSignalType | undefined;
   peerProfile: ProfileType | undefined;
   turnServerUrls: string[];
+  spectraDisabled: boolean;
 }
 
 class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
@@ -283,13 +285,15 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
             <span className={`connection ${this.state.iceConnectionState}`} />
             {this.props.peerParticipant.muted && <span className="muted"><FontAwesomeIcon icon={faMicrophone} /></span>}
             {this.props.peerParticipant.deafened && <span className="deafened"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
-            <Spectrum
-              className="spectrogram"
-              width={40}
-              height={40}
-              audioContext={this.props.audioContext}
-              ref={this.spectrumRef}
-            />
+            {!this.props.spectraDisabled ? (
+              <Spectrum
+                className="spectrogram"
+                width={40}
+                height={40}
+                audioContext={this.props.audioContext}
+                ref={this.spectrumRef}
+              />
+            ) : null}
           </div>
           <audio ref={this.audioRef} className="audio-sink" autoPlay playsInline muted={this.props.deafened} />
         </div>
@@ -309,10 +313,13 @@ const tracker = withTracker((params: CallLinkBoxParams) => {
   const turnServerConfig = PublicSettings.findOne({ name: 'webrtc.turnserver' });
   const turnServerUrls = (turnServerConfig && turnServerConfig.name === 'webrtc.turnserver' && turnServerConfig.value.urls) || [];
 
+  const spectraDisabled = Flags.active('disable.spectra');
+
   return {
     signal,
     peerProfile,
     turnServerUrls,
+    spectraDisabled,
   };
 });
 

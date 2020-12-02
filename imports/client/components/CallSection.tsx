@@ -6,6 +6,7 @@ import React from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import Flags from '../../flags';
 import CallParticipants from '../../lib/models/call_participants';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import CallLinkBox from './CallLinkBox';
@@ -30,6 +31,7 @@ interface RTCCallSectionProps extends RTCCallSectionParams {
   selfParticipant: CallParticipantType | undefined;
   signalsReady: boolean;
   selfUserId: string | undefined;
+  spectraDisabled: boolean;
 }
 
 class RTCCallSection extends React.Component<RTCCallSectionProps> {
@@ -72,18 +74,20 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
           <div className="webrtc">
             {this.props.muted && <span className="muted"><FontAwesomeIcon icon={faMicrophone} /></span>}
             {this.props.deafened && <span className="deafened"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
-            <Spectrum
-              className="spectrogram"
-              width={40}
-              height={40}
-              audioContext={this.props.audioContext}
-              ref={((spectrum) => {
-                if (spectrum) {
-                  spectrum.connect(this.props.localStream);
+            {!this.props.spectraDisabled ? (
+              <Spectrum
+                className="spectrogram"
+                width={40}
+                height={40}
+                audioContext={this.props.audioContext}
+                ref={((spectrum) => {
+                  if (spectrum) {
+                    spectrum.connect(this.props.localStream);
+                  }
                 }
-              }
-              )}
-            />
+                )}
+              />
+            ) : null}
           </div>
         </div>
       </OverlayTrigger>
@@ -162,12 +166,15 @@ const tracker = withTracker((params: RTCCallSectionParams) => {
     signalsReady = false;
   }
 
+  const spectraDisabled = Flags.active('disable.spectra');
+
   return {
     participantsReady: joinSub.ready(),
     selfParticipant,
     participants,
     signalsReady,
     selfUserId,
+    spectraDisabled,
   };
 });
 
