@@ -1,4 +1,4 @@
-import { check } from 'meteor/check';
+import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import CallParticipants from '../lib/models/call_participants';
 import CallSignals from '../lib/models/call_signals';
@@ -26,6 +26,17 @@ function cleanupHook(deadServers: string[]) {
   }
 }
 registerPeriodicCleanupHook(cleanupHook);
+
+// The three participant states permitted by setCallParticipantState fan out to
+// two boolean properties on the document:
+//
+//         | active | muted | deafened |
+// --------+--------+-------+----------+
+//    muted|  false |  true |   true   |
+// --------+--------+-------+----------+
+// deafened|  false | false |   true   |
+// --------+--------+-------+----------+
+const ALLOWED_STATES = ['active', 'muted', 'deafened'];
 
 Meteor.methods({
   signalPeer(selfParticipantId: unknown, peerParticipantId: unknown, args: unknown) {
@@ -70,10 +81,14 @@ Meteor.methods({
     }
   },
 
-  setMuted(selfParticipantId: unknown, muted: unknown) {
+  setCallParticipantState(selfParticipantId: unknown, state: unknown) {
     check(this.userId, String);
     check(selfParticipantId, String);
-    check(muted, Boolean);
+    // eslint-disable-next-line new-cap
+    check(state, Match.Where((x) => {
+      check(x, String);
+      return ALLOWED_STATES.indexOf(x) !== -1;
+    }));
 
     const selfParticipant = CallParticipants.findOne(selfParticipantId);
     if (!selfParticipant) {
@@ -88,30 +103,8 @@ Meteor.methods({
       _id: selfParticipantId,
     }, {
       $set: {
-        muted,
-      },
-    });
-  },
-
-  setDeafened(selfParticipantId: unknown, deafened: unknown) {
-    check(this.userId, String);
-    check(selfParticipantId, String);
-    check(deafened, Boolean);
-
-    const selfParticipant = CallParticipants.findOne(selfParticipantId);
-    if (!selfParticipant) {
-      throw new Meteor.Error(404, `CallParticipant ${selfParticipantId} not found`);
-    }
-
-    if (selfParticipant.createdBy !== this.userId) {
-      throw new Meteor.Error(401, `CallParticipant ${selfParticipantId} not created by ${this.userId}`);
-    }
-
-    CallParticipants.update({
-      _id: selfParticipantId,
-    }, {
-      $set: {
-        deafened,
+        muted: state !== 'active',
+        deafened: state === 'deafened',
       },
     });
   },
