@@ -15,7 +15,6 @@ import { ProfileType } from '../../lib/schemas/profiles';
 import Spectrum from './Spectrum';
 
 interface CallLinkBoxState {
-  localCandidates: RTCIceCandidate[];
   iceConnectionState: RTCIceConnectionState;
 }
 
@@ -49,7 +48,6 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
     super(props);
 
     this.state = {
-      localCandidates: [],
       iceConnectionState: 'new',
     };
 
@@ -86,7 +84,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
     const tracks = props.localStream.getTracks();
     for (let i = 0; i < tracks.length; i++) {
       const track = tracks[i];
-      this.log(track, props.localStream);
+      // this.log(track, props.localStream);
       this.pc.addTrack(track);
     }
 
@@ -106,7 +104,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
     }
 
     if (props.signal) {
-      this.log(`signals: processing ${props.signal.messages.length} initial signals`);
+      // this.log(`signals: processing ${props.signal.messages.length} initial signals`);
       this.processSignalMessages(props.signal.messages, 0);
     }
   }
@@ -115,9 +113,9 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
     _snapshot: any) {
     // Process any new signal messages in the updated props.
     if (this.props.signal) {
-      const newLength = this.props.signal.messages.length;
+      // const newLength = this.props.signal.messages.length;
       const oldLength = prevProps.signal ? prevProps.signal.messages.length : 0;
-      this.log(`signals: old ${oldLength} new ${newLength}`);
+      // this.log(`signals: old ${oldLength} new ${newLength}`);
       this.processSignalMessages(this.props.signal.messages, oldLength);
     }
   }
@@ -133,8 +131,8 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
   }
 
   onLocalOfferCreated = (offer: RTCSessionDescriptionInit) => {
-    this.log('onLocalOfferCreated');
-    this.log(offer);
+    // this.log('onLocalOfferCreated');
+    // this.log(offer);
     this.pc.setLocalDescription(offer);
     const offerObj = {
       type: offer.type,
@@ -153,7 +151,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
 
   handleSignal = (message: CallSignalMessageType) => {
     if (message.type === 'sdp') {
-      this.log('handle sdp');
+      // this.log('handle sdp');
       // Create an RTCSessionDescription using the received SDP offer.
       // Set it.  In the callback, create an answer, then set that as
       // the local description, then signal the initiator.
@@ -162,7 +160,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
         .then(this.onRemoteDescriptionSet)
         .catch(this.onRemoteDescriptionSetFailure);
     } else if (message.type === 'iceCandidate') {
-      this.log('handle ice', message.content);
+      // this.log('handle ice', message.content);
       const iceDesc = JSON.parse(message.content);
       if (iceDesc) {
         const remoteCandidate = new RTCIceCandidate(iceDesc);
@@ -177,7 +175,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
   };
 
   onAnswerCreated = (answer: RTCSessionDescriptionInit) => {
-    this.log('onAnswerCreated', answer);
+    // this.log('onAnswerCreated', answer);
     this.pc.setLocalDescription(answer);
     const answerObj = {
       type: answer.type,
@@ -191,7 +189,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
   }
 
   onRemoteDescriptionSet = () => {
-    this.log('remoteDescriptionSet');
+    // this.log('remoteDescriptionSet');
     if (!this.isInitiator) {
       this.pc.createAnswer().then(this.onAnswerCreated);
     }
@@ -202,14 +200,8 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
   };
 
   onNewLocalCandidate = (e: RTCPeerConnectionIceEvent) => {
-    //    this.log("new local candidate:");
-    //    this.log(e);
     const iceCandidate = e.candidate;
-    if (iceCandidate) {
-      this.setState((prevState) => {
-        return { localCandidates: [...prevState.localCandidates, iceCandidate] };
-      });
-    } else {
+    if (!iceCandidate) {
       this.log('local candidate list complete');
     }
 
@@ -220,7 +212,7 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
   };
 
   onNewRemoteTrack = (e: RTCTrackEvent) => {
-    this.log('newRemoteTrack', e);
+    // this.log('newRemoteTrack', e);
     if (e.track.kind === 'audio') {
       // Wire the track directly to the audio element for playback with echo
       // cancellation.
@@ -247,9 +239,9 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
     this.log('negotiationNeeded', e);
   };
 
-  onIceConnectionStateChange = (e: Event) => {
-    this.log('new ice connection state change:');
-    this.log(e);
+  onIceConnectionStateChange = (_e: Event) => {
+    // this.log('new ice connection state change:');
+    // this.log(e);
     this.setState({
       iceConnectionState: this.pc.iceConnectionState,
     });
