@@ -343,6 +343,9 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
             {`ERROR GETTING MIC: ${this.state.error}`}
           </div>
         );
+      default:
+        // Unreachable.  TypeScript knows this, but eslint doesn't.
+        return <div />;
     }
   };
 
