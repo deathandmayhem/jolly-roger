@@ -222,7 +222,7 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
     }
   };
 
-  onNegotiationNeeded = (e: Event) => {
+  onNegotiationNeeded = (_e: Event) => {
     // If we're the initiator, get the ball rolling.  Create an
     // offer, so we'll:
     // 1) generate an SDP descriptor and
