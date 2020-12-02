@@ -131,7 +131,7 @@ interface HuntAppProps extends HuntAppWithRouterParams {
   canJoin: boolean;
 }
 
-class HuntApp extends React.Component<HuntAppProps> {
+class HuntApp extends React.PureComponent<HuntAppProps> {
   renderBody = () => {
     if (!this.props.ready) {
       return <span>loading...</span>;
