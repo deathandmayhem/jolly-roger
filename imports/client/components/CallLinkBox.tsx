@@ -72,6 +72,8 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
       ],
     };
 
+    this.isInitiator = props.selfParticipant._id < props.peerParticipant._id;
+
     this.pc = new RTCPeerConnection(rtcConfig);
     this.pc.addEventListener('icecandidate', this.onNewLocalCandidate);
     // Firefox doesn't support connectionstatechange or connectionState yet, so
@@ -86,21 +88,6 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
       const track = tracks[i];
       // this.log(track, props.localStream);
       this.pc.addTrack(track);
-    }
-
-    // If we're the initiator, get the ball rolling.  Create an
-    // offer, so we'll:
-    // 1) generate an SDP descriptor and
-    // 2) start doing STUN to collect our ICE candidates.
-    //
-    // We must make the offer *after* we have a user media stream;
-    // browsers won't bother if the peer doesn't have a stream worth
-    // sharing, because SDP requires knowing what the stream format
-    // is.  (This is fine; we already have the stream by the time we
-    // construct a CallLink.)
-    this.isInitiator = props.selfParticipant._id < props.peerParticipant._id;
-    if (this.isInitiator) {
-      this.pc.createOffer().then(this.onLocalOfferCreated);
     }
 
     if (props.signal) {
@@ -236,7 +223,21 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
   };
 
   onNegotiationNeeded = (e: Event) => {
-    this.log('negotiationNeeded', e);
+    // If we're the initiator, get the ball rolling.  Create an
+    // offer, so we'll:
+    // 1) generate an SDP descriptor and
+    // 2) start doing STUN to collect our ICE candidates.
+    //
+    // We must make the offer *after* we have a user media stream;
+    // browsers won't bother if the peer doesn't have a stream worth
+    // sharing, because SDP requires knowing what the stream format
+    // is.  (This is fine; we already have the stream by the time we
+    // construct a CallLink.)
+    if (this.isInitiator) {
+      this.pc.createOffer().then(this.onLocalOfferCreated);
+    }
+
+    // this.log('negotiationNeeded', e);
   };
 
   onIceConnectionStateChange = (_e: Event) => {
