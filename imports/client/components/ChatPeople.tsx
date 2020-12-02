@@ -418,11 +418,8 @@ const ChatPeopleContainer = withTracker(({ huntId, puzzleId }: ChatPeopleParams)
   }).fetch();
   let selfParticipant;
   rtcParticipants.forEach((p) => {
-    if (p.createdBy === Meteor.userId()) {
-      if (p.tab === tabId) {
-        selfParticipant = p;
-      }
-      return;
+    if (p.createdBy === Meteor.userId() && p.tab === tabId) {
+      selfParticipant = p;
     }
 
     const user = p.createdBy;
@@ -435,10 +432,8 @@ const ChatPeopleContainer = withTracker(({ huntId, puzzleId }: ChatPeopleParams)
     // If the same user is joined twice in CallParticipants (from two different
     // tabs), dedupe in the viewer listing.
     // (We include both in rtcParticipants still.)
-    if (!rtcViewerIndex[user]) {
-      rtcViewers.push({ user, name: profile.displayName });
-      rtcViewerIndex[user] = true;
-    }
+    rtcViewers.push({ user, name: profile.displayName });
+    rtcViewerIndex[user] = true;
   });
 
   // eslint-disable-next-line no-restricted-globals
