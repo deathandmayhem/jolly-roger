@@ -262,7 +262,6 @@ class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
         overlay={(
           <Tooltip id={`caller-${this.props.peerParticipant._id}`}>
             <div>{name}</div>
-            {/* TODO: add mute/deafened status here */}
             <div>
               connection status:
               {' '}
@@ -305,7 +304,6 @@ const tracker = withTracker((params: CallLinkBoxParams) => {
     target: params.selfParticipant._id,
   });
 
-  // TODO: Fetch our own profile maybe
   const peerProfile = Profiles.findOne(params.peerParticipant.createdBy);
 
   const turnServerConfig = PublicSettings.findOne({ name: 'webrtc.turnserver' });
