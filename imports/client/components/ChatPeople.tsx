@@ -364,8 +364,6 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
     const totalViewers = viewers.length + unknown;
     return (
       <section className="chatter-section">
-        {/* TODO: mark this <audio> as muted before going to prod, lest people
-            get self-feedback.  It's easier to test locally for now though. */}
         <audio ref={this.htmlNodeRef} autoPlay playsInline muted />
         {!rtcDisabled && this.renderCallersSubsection()}
         <div className="chatter-subsection non-av-viewers">
