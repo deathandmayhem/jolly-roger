@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import { Random } from 'meteor/random';
 import { withTracker } from 'meteor/react-meteor-data';
 import React, { ReactChild } from 'react';
 import Button from 'react-bootstrap/Button';
@@ -10,6 +11,8 @@ import Profiles from '../../lib/models/profiles';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import { Subscribers } from '../subscribers';
 import CallSection from './CallSection';
+
+const tabId = Random.id();
 
 interface ViewerSubscriber {
   user: string;
@@ -54,6 +57,7 @@ interface ChatPeopleProps extends ChatPeopleParams {
   rtcViewers: ViewerSubscriber[];
   unknown: number;
   rtcParticipants: CallParticipantType[];
+  selfParticipant: CallParticipantType | undefined;
   rtcDisabled: boolean;
 }
 
@@ -61,8 +65,19 @@ interface ChatPeopleState {
   // TODO: make this an enum of 'chatonly', 'requestingstream', 'streamerror', 'call',
   state: string;
   error: string;
+
+  // A note on mute and deafen: being deafened implies you are also not
+  // broadcasting audio to other parties, because that would allow for
+  // situations where you are being disruptive to others but don't know it.
+  // This state value for muted is "explicitly muted" rather than "implicitly
+  // muted by deafen".  You are effectively muted (and will appear muted to
+  // other) if you are muted or deafened.  The `muted` boolean field here will
+  // only track if you are explicitly muted, but in all props for all children,
+  // the muted property represents "effectively muted".  (We track them
+  // separately because if you mute before deafening, then undeafen should
+  // leave you muted, and we'd lose that bit otherwise.)
   muted: boolean;
-  // TOOD: media stream
+  deafened: boolean;
 
   audioContext: AudioContext | undefined;
   rawMediaSource: MediaStream | undefined;
@@ -82,6 +97,16 @@ function stopTracks(stream: MediaStream | null | undefined) {
   }
 }
 
+function participantState(explicitlyMuted: boolean, deafened: boolean) {
+  if (deafened) {
+    return 'deafened';
+  } else if (explicitlyMuted) {
+    return 'muted';
+  } else {
+    return 'active';
+  }
+}
+
 class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
   private htmlNodeRef: React.RefObject<HTMLAudioElement>;
 
@@ -91,6 +116,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
       state: 'chatonly',
       error: '',
       muted: false,
+      deafened: false,
 
       audioContext: undefined,
       rawMediaSource: undefined,
@@ -109,14 +135,66 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
   }
 
   toggleMuted = () => {
-    const newGain = this.state.muted ? 1.0 : 0.0;
-    if (this.state.gainNode && this.state.audioContext) {
-      this.state.gainNode.gain.setValueAtTime(newGain, this.state.audioContext.currentTime);
-    }
+    this.setState((prevState, props) => {
+      const nextState = {
+        muted: !(prevState.deafened || prevState.muted),
+        deafened: false,
+      };
 
-    this.setState((prevState) => ({
-      muted: !prevState.muted,
-    }));
+      const prevEffectiveMuteState = prevState.muted || prevState.deafened;
+      const nextEffectiveMuteState = nextState.muted;
+
+      // Update gain if needed
+      if (prevEffectiveMuteState !== nextEffectiveMuteState) {
+        const newGain = nextEffectiveMuteState ? 0.0 : 1.0;
+        if (prevState.gainNode && prevState.audioContext) {
+          prevState.gainNode.gain.setValueAtTime(newGain, prevState.audioContext.currentTime);
+        }
+      }
+
+      const effectiveState = participantState(nextState.muted, nextState.deafened);
+      if (props.selfParticipant) {
+        Meteor.call('setCallParticipantState', props.selfParticipant._id, effectiveState,
+          (err: Meteor.Error | undefined) => {
+            if (err) {
+              // Ignore.  Not much we can do here; the server failed to accept our change.
+            }
+          });
+      }
+
+      return nextState;
+    });
+  };
+
+  toggleDeafened = () => {
+    this.setState((prevState, props) => {
+      const nextState = {
+        deafened: !prevState.deafened,
+      };
+
+      const prevEffectiveMuteState = prevState.muted || prevState.deafened;
+      const nextEffectiveMuteState = prevState.muted || nextState.deafened;
+
+      // Update gain if needed
+      if (prevEffectiveMuteState !== nextEffectiveMuteState) {
+        const newGain = nextEffectiveMuteState ? 0.0 : 1.0;
+        if (prevState.gainNode && prevState.audioContext) {
+          prevState.gainNode.gain.setValueAtTime(newGain, prevState.audioContext.currentTime);
+        }
+      }
+
+      const effectiveState = participantState(prevState.muted, nextState.deafened);
+      if (props.selfParticipant) {
+        Meteor.call('setCallParticipantState', props.selfParticipant._id, effectiveState,
+          (err: Meteor.Error | undefined) => {
+            if (err) {
+              // Ignore.  Not much we can do here; the server failed to accept our change.
+            }
+          });
+      }
+
+      return nextState;
+    });
   };
 
   joinCall = () => {
@@ -217,6 +295,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
     this.setState({
       state: 'chatonly',
       muted: false,
+      deafened: false,
       audioContext: undefined,
       rawMediaSource: undefined,
       // wrapperStreamSource: undefined,
@@ -253,9 +332,12 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
           <CallSection
             huntId={huntId}
             puzzleId={puzzleId}
+            tabId={tabId}
             onLeaveCall={this.leaveCall}
             onToggleMute={this.toggleMuted}
-            muted={this.state.muted}
+            onToggleDeafen={this.toggleDeafened}
+            muted={this.state.muted || this.state.deafened}
+            deafened={this.state.deafened}
             audioContext={this.state.audioContext!}
             localStream={this.state.leveledStreamSource!}
           />
@@ -326,6 +408,7 @@ const ChatPeopleContainer = withTracker(({ huntId, puzzleId }: ChatPeopleParams)
       viewers: [] as ViewerSubscriber[],
       rtcViewers: [] as ViewerSubscriber[],
       rtcParticipants: [] as CallParticipantType[],
+      selfParticipant: undefined as (CallParticipantType | undefined),
       rtcDisabled,
     };
   }
@@ -340,8 +423,12 @@ const ChatPeopleContainer = withTracker(({ huntId, puzzleId }: ChatPeopleParams)
     hunt: huntId,
     call: puzzleId,
   }).fetch();
+  let selfParticipant;
   rtcParticipants.forEach((p) => {
     if (p.createdBy === Meteor.userId()) {
+      if (p.tab === tabId) {
+        selfParticipant = p;
+      }
       return;
     }
 
@@ -393,6 +480,7 @@ const ChatPeopleContainer = withTracker(({ huntId, puzzleId }: ChatPeopleParams)
     viewers,
     rtcViewers,
     rtcParticipants,
+    selfParticipant,
     rtcDisabled,
   };
 })(ChatPeople);

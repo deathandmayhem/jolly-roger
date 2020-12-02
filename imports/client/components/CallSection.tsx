@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Random } from 'meteor/random';
 import { withTracker } from 'meteor/react-meteor-data';
 import { faMicrophone, faHeadphonesAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -12,14 +11,15 @@ import { CallParticipantType } from '../../lib/schemas/call_participants';
 import CallLinkBox from './CallLinkBox';
 import Spectrum from './Spectrum';
 
-const tabId = Random.id();
-
 interface RTCCallSectionParams {
   huntId: string;
   puzzleId: string;
+  tabId: string;
   onLeaveCall(): void;
   onToggleMute(): void;
+  onToggleDeafen(): void;
   muted: boolean;
+  deafened: boolean;
   audioContext: AudioContext;
   localStream: MediaStream;
 }
@@ -32,49 +32,19 @@ interface RTCCallSectionProps extends RTCCallSectionParams {
   selfUserId: string | undefined;
 }
 
-interface RTCCallSectionState {
-  deafened: boolean;
-}
-
-class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSectionState> {
-  constructor(props: RTCCallSectionProps) {
-    super(props);
-
-    this.state = {
-      deafened: false,
-    };
-  }
-
+class RTCCallSection extends React.Component<RTCCallSectionProps> {
   nonSelfParticipants = () => {
     return this.props.participants.filter((p) => {
-      return (p.createdBy !== this.props.selfUserId) || (p.tab !== tabId);
+      return (p.createdBy !== this.props.selfUserId) || (p.tab !== this.props.tabId);
     });
   }
 
   toggleMuted = () => {
-    if (this.props.selfParticipant) {
-      Meteor.call('setMuted', this.props.selfParticipant._id, !this.props.muted,
-        (err: Meteor.Error | undefined) => {
-          if (err) {
-            // Ignore.  Not much we can do here; the server failed to accept our change.
-          }
-        });
-    }
     this.props.onToggleMute();
   };
 
   toggleDeafened = () => {
-    if (this.props.selfParticipant) {
-      Meteor.call('setDeafened', this.props.selfParticipant._id, !this.state.deafened,
-        (err: Meteor.Error | undefined) => {
-          if (err) {
-            // Ignore.  Not much we can do here; the server failed to accept our change.
-          }
-        });
-    }
-    this.setState((prevState) => ({
-      deafened: !prevState.deafened,
-    }));
+    this.props.onToggleDeafen();
   };
 
   leaveCall = () => {
@@ -90,7 +60,7 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
           <Tooltip id="caller-self">
             <div>You are in the call.</div>
             {this.props.muted && <div>You are currently muted and will transmit no audio.</div>}
-            {this.state.deafened && <div>You are currently deafened and will hear no audio.</div>}
+            {this.props.deafened && <div>You are currently deafened and will hear no audio.</div>}
           </Tooltip>
         )}
       >
@@ -101,7 +71,7 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
           <span className="initial">Me</span>
           <div className="webrtc">
             {this.props.muted && <span className="muted"><FontAwesomeIcon icon={faMicrophone} /></span>}
-            {this.state.deafened && <span className="deafened"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
+            {this.props.deafened && <span className="deafened"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
             <Spectrum
               className="spectrogram"
               width={40}
@@ -139,11 +109,11 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
             {this.props.muted ? 'unmute' : 'mute self'}
           </Button>
           <Button
-            variant={this.state.deafened ? 'secondary' : 'light'}
+            variant={this.props.deafened ? 'secondary' : 'light'}
             size="sm"
             onClick={this.toggleDeafened}
           >
-            {this.state.deafened ? 'undeafen' : 'deafen self'}
+            {this.props.deafened ? 'undeafen' : 'deafen self'}
           </Button>
           <Button variant="danger" size="sm" onClick={this.leaveCall}>leave call</Button>
         </div>
@@ -161,7 +131,7 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
                   peerParticipant={p}
                   localStream={this.props.localStream}
                   audioContext={this.props.audioContext}
-                  deafened={this.state.deafened}
+                  deafened={this.props.deafened}
                 />
               );
             })}
@@ -174,7 +144,7 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
 
 // This exists just to apply React lifecycle treatment to this subscribe.
 const tracker = withTracker((params: RTCCallSectionParams) => {
-  const joinSub = Meteor.subscribe('call.join', params.huntId, params.puzzleId, tabId);
+  const joinSub = Meteor.subscribe('call.join', params.huntId, params.puzzleId, params.tabId);
   const participants = joinSub.ready() ? CallParticipants.find({
     hunt: params.huntId,
     call: params.puzzleId,
@@ -182,7 +152,7 @@ const tracker = withTracker((params: RTCCallSectionParams) => {
 
   const selfUserId = Meteor.userId() || undefined;
   const selfParticipant = participants.find((p) => {
-    return p.createdBy === selfUserId && p.tab === tabId;
+    return p.createdBy === selfUserId && p.tab === params.tabId;
   });
   let signalsReady;
   if (selfParticipant) {
