@@ -29,7 +29,7 @@ interface AuthWrapperState {
   loading: boolean;
 }
 
-class AuthWrapper extends React.Component<AuthWrapperProps, AuthWrapperState> {
+class AuthWrapper extends React.PureComponent<AuthWrapperProps, AuthWrapperState> {
   constructor(props: AuthWrapperProps) {
     super(props);
     this.state = { loading: true };
@@ -88,7 +88,7 @@ const AuthWrapperContainer = withTracker((_props: AuthWrapperContainerProps) => 
   };
 })(AuthWrapper);
 
-class AuthenticatedRoute extends React.Component<AuthenticatedRouteProps> {
+class AuthenticatedRoute extends React.PureComponent<AuthenticatedRouteProps> {
   render() {
     // Pull off the component, which we'll pass to AuthWrapperContainer.
     // The rest of the props are from RouteProps, to which we'll add our

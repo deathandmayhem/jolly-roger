@@ -14,7 +14,7 @@ import RootRedirector from './RootRedirector';
 import SetupPage from './SetupPage';
 import UnauthenticatedRoute from './UnauthenticatedRoute';
 
-class Routes extends React.Component {
+class Routes extends React.PureComponent {
   render() {
     return (
       <DocumentTitle title="Jolly Roger">

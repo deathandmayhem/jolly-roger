@@ -33,7 +33,7 @@ interface CallLinkBoxProps extends CallLinkBoxParams {
   spectraDisabled: boolean;
 }
 
-class CallLinkBox extends React.Component<CallLinkBoxProps, CallLinkBoxState> {
+class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState> {
   private audioRef: React.RefObject<HTMLVideoElement>;
 
   private spectrumRef: React.RefObject<Spectrum>;

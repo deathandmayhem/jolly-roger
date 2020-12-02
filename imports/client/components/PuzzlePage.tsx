@@ -1108,7 +1108,7 @@ interface PuzzlePageState {
   defaultsAppliedForPuzzle: string;
 }
 
-class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
+class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
   private puzzlePageEl: HTMLElement | null;
 
   constructor(props: PuzzlePageProps) {
