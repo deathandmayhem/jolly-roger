@@ -17,29 +17,26 @@ const tabId = Random.id();
 interface ViewerSubscriber {
   user: string;
   name: string;
+  tab: string | undefined;
 }
 
-interface PersonBoxProps {
-  user: string;
-  name: string;
-  titleText?: string;
-  tabId?: string;
+interface PersonBoxProps extends ViewerSubscriber {
   children?: ReactChild;
 }
 
 const ViewerPersonBox = ({
-  user, name, titleText, children,
+  user, name, tab, children,
 }: PersonBoxProps) => (
   <OverlayTrigger
-    key={`viewer-${user}`}
+    key={`viewer-${user}-${tab}`}
     placement="right"
     overlay={(
-      <Tooltip id={`viewer-${user}`}>
+      <Tooltip id={`viewer-${user}-${tab}`}>
         {name}
       </Tooltip>
     )}
   >
-    <div key={`viewer-${user}`} title={titleText || name} className="people-item">
+    <div key={`viewer-${user}-${tab}`} className="people-item">
       <span className="initial">{name.slice(0, 1)}</span>
       { children }
     </div>
@@ -368,7 +365,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
         {!rtcDisabled && this.renderCallersSubsection()}
         <div className="chatter-subsection non-av-viewers">
           <header>
-            {`${totalViewers} other viewer${totalViewers !== 1 ? 's' : ''}`}
+            {`${totalViewers} viewer${totalViewers !== 1 ? 's' : ''}`}
           </header>
           <div className="people-list">
             {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
@@ -432,7 +429,7 @@ const ChatPeopleContainer = withTracker(({ huntId, puzzleId }: ChatPeopleParams)
     // If the same user is joined twice in CallParticipants (from two different
     // tabs), dedupe in the viewer listing.
     // (We include both in rtcParticipants still.)
-    rtcViewers.push({ user, name: profile.displayName });
+    rtcViewers.push({ user, name: profile.displayName, tab: p.tab });
     rtcViewerIndex[user] = true;
   });
 
@@ -448,18 +445,13 @@ const ChatPeopleContainer = withTracker(({ huntId, puzzleId }: ChatPeopleParams)
       return;
     }
 
-    if (s.user === Meteor.userId()) {
-      // no need to show self among viewers
-      return;
-    }
-
     const profile = Profiles.findOne(s.user);
     if (!profile || !profile.displayName) {
       unknown += 1;
       return;
     }
 
-    viewers.push({ user: s.user, name: profile.displayName });
+    viewers.push({ user: s.user, name: profile.displayName, tab: undefined });
   });
 
   return {

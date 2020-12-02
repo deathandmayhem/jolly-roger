@@ -8,7 +8,9 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import Flags from '../../flags';
 import CallParticipants from '../../lib/models/call_participants';
+import Profiles from '../../lib/models/profiles';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
+import { ProfileType } from '../../lib/schemas/profiles';
 import CallLinkBox from './CallLinkBox';
 import Spectrum from './Spectrum';
 
@@ -31,6 +33,7 @@ interface RTCCallSectionProps extends RTCCallSectionParams {
   selfParticipant: CallParticipantType | undefined;
   signalsReady: boolean;
   selfUserId: string | undefined;
+  selfProfile: ProfileType | undefined;
   spectraDisabled: boolean;
 }
 
@@ -54,6 +57,8 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
   };
 
   renderSelfBox = () => {
+    const selfProfile = this.props.selfProfile;
+    const initial = selfProfile ? selfProfile.displayName.slice(0, 1) : 'U'; // get it?  it's you
     return (
       <OverlayTrigger
         key="self"
@@ -70,7 +75,7 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
           key="self"
           className="people-item"
         >
-          <span className="initial">Me</span>
+          <span className="initial">{initial}</span>
           <div className="webrtc">
             {this.props.muted && <span className="muted"><FontAwesomeIcon icon={faMicrophone} /></span>}
             {this.props.deafened && <span className="deafened"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
@@ -155,6 +160,7 @@ const tracker = withTracker((params: RTCCallSectionParams) => {
   }).fetch() : [];
 
   const selfUserId = Meteor.userId() || undefined;
+  const selfProfile = selfUserId ? Profiles.findOne(selfUserId) : undefined;
   const selfParticipant = participants.find((p) => {
     return p.createdBy === selfUserId && p.tab === params.tabId;
   });
@@ -171,6 +177,7 @@ const tracker = withTracker((params: RTCCallSectionParams) => {
   return {
     participantsReady: joinSub.ready(),
     selfParticipant,
+    selfProfile,
     participants,
     signalsReady,
     selfUserId,
