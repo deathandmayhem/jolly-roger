@@ -445,6 +445,16 @@ table.puzzle-list {
   }
 }
 
+.chatter-tooltip {
+  // Force chatter tooltip overlay to get larger than the default
+  // react-bootstrap stylesheet permits.  We can only apply classes to the root
+  // tooltip <div>; the .tooltip-inner className is controlled by
+  // react-bootstrap/popper.
+  .tooltip-inner {
+    max-width: 300px;
+  }
+}
+
 .chat-history {
   flex: 1 1 auto;
   overflow-y: auto;

@@ -255,7 +255,10 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
         key={`viewer-${this.props.peerParticipant._id}`}
         placement="right"
         overlay={(
-          <Tooltip id={`caller-${this.props.peerParticipant._id}`}>
+          <Tooltip
+            id={`caller-${this.props.peerParticipant._id}`}
+            className="chatter-tooltip"
+          >
             <div>{name}</div>
             <div>
               connection status:
