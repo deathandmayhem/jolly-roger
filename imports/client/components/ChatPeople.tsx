@@ -61,9 +61,15 @@ interface ChatPeopleProps extends ChatPeopleParams {
   rtcDisabled: boolean;
 }
 
+enum CallState {
+  CHAT_ONLY = 'chatonly',
+  REQUESTING_STREAM = 'requestingstream',
+  STREAM_ERROR = 'streamerror',
+  IN_CALL = 'call',
+}
+
 interface ChatPeopleState {
-  // TODO: make this an enum of 'chatonly', 'requestingstream', 'streamerror', 'call',
-  state: string;
+  state: CallState;
   error: string;
 
   // A note on mute and deafen: being deafened implies you are also not
@@ -111,7 +117,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
   constructor(props: ChatPeopleProps) {
     super(props);
     this.state = {
-      state: 'chatonly',
+      state: CallState.CHAT_ONLY,
       error: '',
       muted: false,
       deafened: false,
@@ -196,7 +202,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
   joinCall = () => {
     if (navigator.mediaDevices) {
       this.setState({
-        state: 'requestingstream',
+        state: CallState.REQUESTING_STREAM,
       });
 
       // Get the user media stream.
@@ -214,7 +220,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
         .catch(this.handleLocalMediaStreamError);
     } else {
       this.setState({
-        state: 'streamerror',
+        state: CallState.STREAM_ERROR,
         error: 'Couldn\'t get local microphone: browser denies access on non-HTTPS origins',
       });
     }
@@ -262,7 +268,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
     }
 
     this.setState({
-      state: 'call',
+      state: CallState.IN_CALL,
       audioContext,
       rawMediaSource: mediaStream,
       gainNode,
@@ -272,7 +278,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
 
   handleLocalMediaStreamError = (e: MediaStreamError) => {
     this.setState({
-      state: 'streamerror',
+      state: CallState.STREAM_ERROR,
       error: `Couldn't get local microphone: ${e.message}`,
     });
   };
@@ -284,7 +290,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
     }
 
     this.setState({
-      state: 'chatonly',
+      state: CallState.CHAT_ONLY,
       muted: false,
       deafened: false,
       audioContext: undefined,
@@ -297,8 +303,8 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
   renderCallersSubsection = () => {
     const { rtcViewers, huntId, puzzleId } = this.props;
     switch (this.state.state) {
-      case 'chatonly':
-      case 'requestingstream': {
+      case CallState.CHAT_ONLY:
+      case CallState.REQUESTING_STREAM: {
         const joinLabel = rtcViewers.length > 0 ? 'join audio call' : 'start audio call';
         return (
           <>
@@ -316,7 +322,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
           </>
         );
       }
-      case 'call':
+      case CallState.IN_CALL:
         return (
           <CallSection
             huntId={huntId}
@@ -331,15 +337,12 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
             localStream={this.state.leveledStreamSource!}
           />
         );
-      case 'streamerror':
+      case CallState.STREAM_ERROR:
         return (
           <div>
             {`ERROR GETTING MIC: ${this.state.error}`}
           </div>
         );
-      default:
-        // Should be unreachable.  TODO: make typescript know it
-        return <div />;
     }
   };
 
