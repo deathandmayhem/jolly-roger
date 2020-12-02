@@ -1,6 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { withTracker } from 'meteor/react-meteor-data';
+import { faMicrophone, faHeadphonesAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -98,6 +100,8 @@ class RTCCallSection extends React.Component<RTCCallSectionProps, RTCCallSection
         >
           <span className="initial">Me</span>
           <div className="webrtc">
+            {this.props.muted && <span className="muted"><FontAwesomeIcon icon={faMicrophone} /></span>}
+            {this.state.deafened && <span className="deafened"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
             <Spectrum
               className="spectrogram"
               width={40}
