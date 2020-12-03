@@ -274,22 +274,24 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
       >
         <div
           key={`viewer-${this.props.peerParticipant._id}`}
-          className="people-item"
+          className={`people-item ${this.props.peerParticipant.muted ? 'muted' : ''} ${this.props.peerParticipant.deafened ? 'deafened' : ''} ${this.props.peerParticipant.muted || this.props.peerParticipant.deafened ? '' : 'active'}`}
         >
           <span className="initial">{name.slice(0, 1)}</span>
           <div className="webrtc">
+            {this.props.peerParticipant.muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophone} /></span>}
+            {this.props.peerParticipant.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
+            {!this.props.spectraDisabled &&
+              !this.props.peerParticipant.muted &&
+              !this.props.peerParticipant.deafened ? (
+                <Spectrum
+                  className="spectrogram"
+                  width={40}
+                  height={40}
+                  audioContext={this.props.audioContext}
+                  ref={this.spectrumRef}
+                />
+              ) : null}
             <span className={`connection ${this.state.iceConnectionState}`} />
-            {this.props.peerParticipant.muted && <span className="muted"><FontAwesomeIcon icon={faMicrophone} /></span>}
-            {this.props.peerParticipant.deafened && <span className="deafened"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
-            {!this.props.spectraDisabled ? (
-              <Spectrum
-                className="spectrogram"
-                width={40}
-                height={40}
-                audioContext={this.props.audioContext}
-                ref={this.spectrumRef}
-              />
-            ) : null}
           </div>
           <audio ref={this.audioRef} className="audio-sink" autoPlay playsInline muted={this.props.deafened} />
         </div>
