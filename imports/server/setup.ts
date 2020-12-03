@@ -1,3 +1,4 @@
+import { Accounts } from 'meteor/accounts-base';
 import { Match, check } from 'meteor/check';
 import { Google } from 'meteor/google-oauth';
 import { HTTP } from 'meteor/http';
@@ -10,6 +11,25 @@ import Settings from '../lib/models/settings';
 import { DiscordBot } from './discord';
 
 Meteor.methods({
+  provisionFirstUser(email: unknown, password: unknown) {
+    // Allow creating the first user and making them an admin by virtue of
+    // being the first to show up at the server and call this method.  Assume
+    // that if someone else beats you to this on your own infra, you'll burn
+    // it to the ground and try again.
+    check(email, String);
+    check(password, String);
+
+    // Refuse to create the user if any users already exist
+    // This is theoretically racy but is probably fine in practice
+    const existingUser = Meteor.users.findOne({});
+    if (existingUser) {
+      throw new Meteor.Error(403, 'The first user already exists.');
+    }
+
+    const firstUserId = Accounts.createUser({ email, password });
+    Roles.addUserToRoles(firstUserId, ['admin', 'operator']);
+  },
+
   setupGoogleOAuthClient(clientId: unknown, secret: unknown) {
     check(this.userId, String);
     check(clientId, String);
@@ -162,6 +182,33 @@ Meteor.methods({
       Settings.remove({ name: 'discord.guild' });
     }
   },
+});
+
+Meteor.publish('hasUsers', function () {
+  // Publish a pseudo-collection which just communicates if there are any users
+  // at all, so we can either guide users through the server setup flow or just
+  // point them at the login page.
+  const cursor = Meteor.users.find();
+  if (cursor.count() > 0) {
+    this.added('hasUsers', 'hasUsers', { hasUsers: true });
+  } else {
+    let handle: Meteor.LiveQueryHandle | undefined = cursor.observeChanges({
+      added: (_id) => {
+        this.added('hasUsers', 'hasUsers', { hasUsers: true });
+        if (handle) {
+          handle.stop();
+        }
+        handle = undefined;
+      },
+    });
+    this.onStop(() => {
+      if (handle) {
+        handle.stop();
+      }
+    });
+  }
+
+  this.ready();
 });
 
 Meteor.publish('discord.guilds', function () {
