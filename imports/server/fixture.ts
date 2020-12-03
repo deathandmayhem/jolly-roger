@@ -21,6 +21,7 @@ Meteor.methods({
         _id: huntId,
         name: data.title,
         openSignups: true,
+        hasGuessQueue: true,
       });
     }
 
