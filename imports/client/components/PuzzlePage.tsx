@@ -801,7 +801,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
                 (
                   <>
                     <Button variant="primary" className="puzzle-metadata-answer-button" onClick={this.showAnswerModal}>
-                      {`Answer${this.props.puzzle.answers.length > 0 && ` (${this.props.puzzle.answers.length} so far)`}`}
+                      {`Answer${this.props.puzzle.answers.length > 0 ? ` (${this.props.puzzle.answers.length} so far)` : ''}`}
                     </Button>
                     {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
                     <PuzzleAnswerModal
