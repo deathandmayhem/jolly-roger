@@ -73,13 +73,13 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
       >
         <div
           key="self"
-          className="people-item"
+          className={`people-item ${this.props.muted ? 'muted' : ''} ${this.props.deafened ? 'deafened' : ''} ${this.props.muted || this.props.deafened ? '' : 'active'}`}
         >
           <span className="initial">{initial}</span>
           <div className="webrtc">
-            {this.props.muted && <span className="muted"><FontAwesomeIcon icon={faMicrophone} /></span>}
-            {this.props.deafened && <span className="deafened"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
-            {!this.props.spectraDisabled ? (
+            {this.props.muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophone} /></span>}
+            {this.props.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
+            {!this.props.spectraDisabled && !this.props.muted && !this.props.deafened ? (
               <Spectrum
                 className="spectrogram"
                 width={40}

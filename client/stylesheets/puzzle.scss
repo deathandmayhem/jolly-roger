@@ -358,7 +358,7 @@ table.puzzle-list {
     flex: 0 0 auto;
     width: 40px;
     height: 40px;
-    background: #f9f9f9dc;
+    background: white;
 
     display: flex;
     align-items: center;
@@ -371,8 +371,53 @@ table.puzzle-list {
     margin-left: 4px;
     position: relative;
 
+    .icon {
+      font-size: 12px;
+      width: 16px;
+      text-align: center;
+      color: $danger;
+      height: 50%;
+    }
+
+    $mutedTop: -4px;
+    $mutedRight: -2px;
+    $deafenDiff: 2px;
+
+    &.muted .muted-icon {
+      position: absolute;
+      top: $mutedTop;
+      right: $mutedRight;
+    }
+
+    &.deafened {
+      color: $secondary;
+      background: #ffffff88;
+      border: $deafenDiff solid white;
+
+      .muted-icon {
+        position: absolute;
+        top: $mutedTop - $deafenDiff;
+        right: $mutedRight - $deafenDiff;
+      }
+
+      .deafened-icon {
+        position: absolute;
+        bottom: 1px;
+        right: $mutedRight - $deafenDiff;
+      }
+    }
+
     .initial {
-      z-index: 10
+      z-index: 10;
+    }
+
+    &.active .initial {
+      // white border around initial
+      // aids readability if the spectrum graph is high
+      text-shadow: -1px 1px 0 white,
+				  1px 1px 0 white,
+				 1px -1px 0 white,
+				-1px -1px 0 white;
     }
 
     .connection {
@@ -404,26 +449,11 @@ table.puzzle-list {
       }
     }
 
-    .muted {
-      position: absolute;
-      top: 0;
-      right: 0;
-      font-size: 12px;
-      width: 16px;
-      text-align: center;
-      color: #ff0000;
-      height: 50%;
-    }
-
-    .deafened {
-      position: absolute;
-      bottom: 2px;
-      right: 0;
-      font-size: 12px;
-      width: 16px;
-      text-align: center;
-      color: #ff0000;
-      height: 50%;
+    &.deafened .connection {
+      bottom: -$deafenDiff;
+      left: -$deafenDiff;
+      right: -$deafenDiff;
+      width: auto;
     }
 
     .spectrogram {
@@ -433,15 +463,6 @@ table.puzzle-list {
       left: 0;
       bottom: 0;
     }
-  }
-
-  .speaker-volume {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    fill: #3d98fa;
   }
 }
 
