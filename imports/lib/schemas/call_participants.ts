@@ -4,6 +4,7 @@ import { BaseCodec, BaseOverrides } from './base';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 const CallParticipantFields = t.type({
+  server: t.string,
   hunt: t.string, // used for ACL subscriptions
   call: t.string, // consider renaming to puzzle?
 
@@ -16,6 +17,9 @@ const CallParticipantFields = t.type({
 });
 
 const CallParticipantFieldsOverrides: Overrides<t.TypeOf<typeof CallParticipantFields>> = {
+  server: {
+    regEx: SimpleSchema.RegEx.Id,
+  },
   hunt: {
     regEx: SimpleSchema.RegEx.Id,
   },
