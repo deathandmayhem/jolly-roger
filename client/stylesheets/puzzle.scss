@@ -411,7 +411,7 @@ table.puzzle-list {
       z-index: 10;
     }
 
-    &.active .initial {
+    &.live .initial {
       // white border around initial
       // aids readability if the spectrum graph is high
       text-shadow: -1px 1px 0 white,

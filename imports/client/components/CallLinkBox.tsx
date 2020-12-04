@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 import { faMicrophone, faHeadphonesAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import classnames from 'classnames';
 import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -285,7 +286,11 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
       >
         <div
           key={`viewer-${this.props.peerParticipant._id}`}
-          className={`people-item ${this.props.peerParticipant.muted ? 'muted' : ''} ${this.props.peerParticipant.deafened ? 'deafened' : ''} ${this.props.peerParticipant.muted || this.props.peerParticipant.deafened ? '' : 'active'}`}
+          className={classnames('people-item', {
+            muted: this.props.peerParticipant.muted,
+            deafened: this.props.peerParticipant.deafened,
+            live: !this.props.peerParticipant.muted && !this.props.peerParticipant.deafened,
+          })}
         >
           <span className="initial">{name.slice(0, 1)}</span>
           <div className="webrtc">

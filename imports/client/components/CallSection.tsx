@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 import { faMicrophone, faHeadphonesAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import classnames from 'classnames';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -73,7 +74,11 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
       >
         <div
           key="self"
-          className={`people-item ${this.props.muted ? 'muted' : ''} ${this.props.deafened ? 'deafened' : ''} ${this.props.muted || this.props.deafened ? '' : 'active'}`}
+          className={classnames('people-item', {
+            muted: this.props.muted,
+            deafened: this.props.deafened,
+            live: !this.props.muted && !this.props.deafened,
+          })}
         >
           <span className="initial">{initial}</span>
           <div className="webrtc">
