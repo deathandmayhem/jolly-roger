@@ -36,7 +36,9 @@ interface CallLinkBoxProps extends CallLinkBoxParams {
 class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState> {
   private audioRef: React.RefObject<HTMLVideoElement>;
 
-  private spectrumRef: React.RefObject<Spectrum>;
+  private spectrumComponent: Spectrum | null;
+
+  private spectrumStream: MediaStream | undefined;
 
   private remoteStream: MediaStream;
 
@@ -56,7 +58,10 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
     this.audioRef = React.createRef();
 
     // Create a ref for the canvas for us to use to paint the spectrogram on
-    this.spectrumRef = React.createRef();
+    this.spectrumComponent = null;
+
+    // No spectrumStream until we get one from the remote.
+    this.spectrumStream = undefined;
 
     // Create a stream object to populate tracks into as we receive them from
     // our peer.
@@ -205,13 +210,12 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
       // cancellation.
       this.remoteStream.addTrack(e.track);
 
-      // Wire in the spectrogram.
-      const spectrum = this.spectrumRef.current;
-      if (spectrum) {
-        const stubStream = new MediaStream();
-        stubStream.addTrack(e.track);
-        spectrum.connect(stubStream);
-      }
+      // Save a copy of the spectrum stream to feed the spectrogram when applicable.
+      this.spectrumStream = new MediaStream();
+      this.spectrumStream.addTrack(e.track);
+
+      // Connect the stream to the spectrogram if both are ready.
+      this.connectSpectrogramIfReady();
     } else {
       // Ignore non-audio tracks.
       // this.remoteStream.addTrack(e.track);
@@ -248,6 +252,13 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
     });
   };
 
+  connectSpectrogramIfReady = () => {
+    // Connect the stream to the spectrogram if ready.
+    if (this.spectrumComponent && this.spectrumStream) {
+      this.spectrumComponent.connect(this.spectrumStream);
+    }
+  };
+
   render() {
     const name = (this.props.peerProfile && this.props.peerProfile.displayName) || 'no profile wat';
     return (
@@ -280,15 +291,18 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
           <div className="webrtc">
             {this.props.peerParticipant.muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophone} /></span>}
             {this.props.peerParticipant.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
-            {!this.props.spectraDisabled &&
-              !this.props.peerParticipant.muted &&
-              !this.props.peerParticipant.deafened ? (
+            {(!this.props.spectraDisabled &&
+              !this.props.peerParticipant.muted) ? (
                 <Spectrum
                   className="spectrogram"
                   width={40}
                   height={40}
                   audioContext={this.props.audioContext}
-                  ref={this.spectrumRef}
+                  ref={((spectrum) => {
+                    this.spectrumComponent = spectrum;
+                    // Connect the stream to the spectrogram if both are ready.
+                    this.connectSpectrogramIfReady();
+                  })}
                 />
               ) : null}
             <span className={`connection ${this.state.iceConnectionState}`} />
