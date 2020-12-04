@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "tsc --noEmit && eslint --ext js,jsx,ts,tsx .",
-    "test": "TEST_BROWSER_DRIVER=puppeteer meteor test --once --driver-package meteortesting:mocha"
+    "test": "TEST_BROWSER_DRIVER=puppeteer meteor test --full-app --once --driver-package meteortesting:mocha"
   },
   "dependencies": {
     "@babel/runtime": "^7.11.2",

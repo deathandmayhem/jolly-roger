@@ -19,21 +19,47 @@ Meteor.methods({
   },
 });
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 if (Meteor.isClient) {
   const Routes: typeof import('../../imports/client/components/Routes').default =
     require('../../imports/client/components/Routes').default;
 
-  describe('unauthenticated users', function () {
-    it('redirects to the login page', function () {
+  describe('no users', function () {
+    it('redirects to the create-first-user page', async function () {
       const history = createMemoryHistory();
       mount(
         <Router history={history}>
           <Routes />
         </Router>
       );
+      // Give some time for the RootRedirector's hasUsers sub to complete
+      await sleep(500);
+      assert.equal(history.location.pathname, '/create-first-user');
+    });
+  });
+
+  describe('has users but not logged in', function () {
+    before(async function () {
+      await Meteor.callPromise('test.resetDatabase');
+      await Meteor.callPromise('test.authentication.createUser');
+    });
+
+    it('redirects to the login page', async function () {
+      const history = createMemoryHistory();
+      mount(
+        <Router history={history}>
+          <Routes />
+        </Router>
+      );
+      // Give some time for the RootRedirector's hasUsers sub to complete
+      await sleep(500);
       assert.equal(history.location.pathname, '/login');
 
       history.push('/hunts');
+      await sleep(500);
       assert.equal(history.location.pathname, '/login');
     });
   });
