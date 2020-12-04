@@ -86,15 +86,10 @@ class Spectrum extends React.Component<SpectrumProps> {
         const HEIGHT = this.props.height;
         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
         const barWidth = (WIDTH / (this.bufferLength / 2));
-        let barHeight;
         let x = 0;
         for (let i = 0; i < (this.bufferLength / 2); i++) {
-          if (this.analyserBuffer[i] < 32) {
-            // minimum bar height reduces some flickering
-            barHeight = HEIGHT * 0.126; // 32 / 255
-          } else {
-            barHeight = (this.analyserBuffer[i] * HEIGHT) / 255;
-          }
+          // minimum bar height reduces some flickering
+          const barHeight = (Math.max(this.analyserBuffer[i], 32) * HEIGHT) / 255;
 
           // bootstrap blue is rgb(0, 123, 255)
           const redness = this.analyserBuffer[i] - 60 < 0 ?
