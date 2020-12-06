@@ -204,73 +204,32 @@ table.puzzle-list {
   bottom: 0px;
   left: 0px;
   right: 0px;
-}
 
-.puzzle-page.narrow {
-  display: flex;
-  flex-direction: column;
-  > .sidebar {
-    position: relative; /*This is a little kludgy, but better than fixing it inline - revisit later*/
-    &.stackable {
-      border-top: 1px solid black;
-    }
+  .Pane > .puzzle-content, .Pane > .chat-section {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  &.narrow {
+    display: flex;
+    flex-direction: column;
   }
 }
 
 .puzzle-content {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
   flex-direction: column;
-}
-
-.sidebar {
-  flex: 1 1 auto;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-flow: column;
-}
-
-.sidebar > .nav {
-  width: 100%;
-}
-
-/*Stop Bootstrap from collapsing the tabs into a stack.  This is horrible*/
-@media (max-width: 768px) {
-  .sidebar .nav-justified > li {
-    display: table-cell;
-    width: 1%;
-  }
-  .sidebar .nav-justified > li > a  {
-    border-radius: 4px 4px 0 0 !important;
-    margin-bottom: 0 !important;
-    border-bottom: 1px solid #ddd !important;
-  }
-  .sidebar .nav-justified > li.active > a {
-    border-bottom: none !important;
-  }
-}
-
-.sidebar > .split-pane-wrapper {
-  flex: 1;
-  position: relative;
-  min-height: 1px;
-  width: 100%;
 }
 
 // Chat
 .chat-section {
-  width: 100%;
-  overflow: hidden;
+  flex: 1 1 auto;
   display: flex;
-  flex-direction: column;
+  flex-flow: column;
+  overflow: hidden;
 
   p, ul, blockquote, pre {
     margin-bottom: 0;
@@ -299,7 +258,7 @@ table.puzzle-list {
     border-color: $input-focus-border-color;
     box-shadow: $input-focus-box-shadow;
   }
-  
+
   textarea {
     flex: 1 1 auto;
     border: none;
@@ -307,7 +266,7 @@ table.puzzle-list {
         box-shadow: none;
     }
   }
-  
+
   button {
     border-radius: 0;
   }
@@ -498,15 +457,11 @@ table.puzzle-list {
   color: #666666;
 }
 
-// Related puzzles
-.related-puzzles-section {
-  padding: 2px 4px;
-}
-
 // Puzzle metadata
 .puzzle-metadata {
   flex: none;
   padding: 2px 4px;
+  border-bottom: 1px solid black;
 }
 
 .puzzle-metadata-row {
@@ -603,11 +558,6 @@ table.puzzle-list {
   height: 100%;
   flex: auto;
   position: relative;
-  > iframe {
-    border-width: 1px 0 0 0;
-    border-style: solid;
-    border-color: black;
-  }
 
   > .puzzle-document-message {
     display: block;
