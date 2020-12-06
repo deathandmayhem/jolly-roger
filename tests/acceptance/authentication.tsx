@@ -19,22 +19,66 @@ Meteor.methods({
   },
 });
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function conditionTrueByTimeout(conditionFunc: () => boolean, timeoutMsec: number) {
+  const startTime = Date.now();
+  while (Date.now() < startTime + timeoutMsec) {
+    if (conditionFunc()) {
+      return true;
+    }
+    // eslint-disable-next-line no-await-in-loop
+    await sleep(5);
+  }
+  return false;
+}
+
 if (Meteor.isClient) {
   const Routes: typeof import('../../imports/client/components/Routes').default =
     require('../../imports/client/components/Routes').default;
 
-  describe('unauthenticated users', function () {
-    it('redirects to the login page', function () {
+  describe('no users', function () {
+    it('redirects to the create-first-user page', async function () {
+      this.timeout(2000);
       const history = createMemoryHistory();
       mount(
         <Router history={history}>
           <Routes />
         </Router>
       );
-      assert.equal(history.location.pathname, '/login');
+
+      // Give some time for the RootRedirector's hasUsers sub to complete
+      assert.isTrue(await conditionTrueByTimeout(() => {
+        return history.location.pathname === '/create-first-user';
+      }, 2000), 'got redirected to /create-first-user');
+    });
+  });
+
+  describe('has users but not logged in', function () {
+    before(async function () {
+      await Meteor.callPromise('test.resetDatabase');
+      await Meteor.callPromise('test.authentication.createUser');
+    });
+
+    it('redirects to the login page', async function () {
+      this.timeout(4000);
+      const history = createMemoryHistory();
+      mount(
+        <Router history={history}>
+          <Routes />
+        </Router>
+      );
+      // Give some time for the RootRedirector's hasUsers sub to complete
+      assert.isTrue(await conditionTrueByTimeout(() => {
+        return history.location.pathname === '/login';
+      }, 2000), 'got redirected to /login');
 
       history.push('/hunts');
-      assert.equal(history.location.pathname, '/login');
+      assert.isTrue(await conditionTrueByTimeout(() => {
+        return history.location.pathname === '/login';
+      }, 2000), 'got re-redirected to /login');
     });
   });
 

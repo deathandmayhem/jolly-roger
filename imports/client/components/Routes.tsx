@@ -5,6 +5,7 @@ import { Route, Switch } from 'react-router';
 import AllProfileListPage from './AllProfileListPage';
 import AuthenticatedRoute from './AuthenticatedRoute';
 import EnrollForm from './EnrollForm';
+import FirstUserForm from './FirstUserForm';
 import HuntApp from './HuntApp';
 import HuntListPage from './HuntListPage';
 import LoginForm from './LoginForm';
@@ -34,6 +35,7 @@ class Routes extends React.Component {
             <UnauthenticatedRoute path="/login" component={LoginForm} />
             <UnauthenticatedRoute path="/reset-password/:token" component={PasswordResetForm} />
             <UnauthenticatedRoute path="/enroll/:token" component={EnrollForm} />
+            <UnauthenticatedRoute path="/create-first-user" component={FirstUserForm} />
           </Switch>
         </BreadcrumbsProvider>
       </DocumentTitle>
