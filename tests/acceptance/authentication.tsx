@@ -23,21 +23,36 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function conditionTrueByTimeout(conditionFunc: () => boolean, timeoutMsec: number) {
+  const startTime = Date.now();
+  while (Date.now() < startTime + timeoutMsec) {
+    if (conditionFunc()) {
+      return true;
+    }
+    // eslint-disable-next-line no-await-in-loop
+    await sleep(5);
+  }
+  return false;
+}
+
 if (Meteor.isClient) {
   const Routes: typeof import('../../imports/client/components/Routes').default =
     require('../../imports/client/components/Routes').default;
 
   describe('no users', function () {
     it('redirects to the create-first-user page', async function () {
+      this.timeout(2000);
       const history = createMemoryHistory();
       mount(
         <Router history={history}>
           <Routes />
         </Router>
       );
+
       // Give some time for the RootRedirector's hasUsers sub to complete
-      await sleep(500);
-      assert.equal(history.location.pathname, '/create-first-user');
+      assert.isTrue(await conditionTrueByTimeout(() => {
+        return history.location.pathname === '/create-first-user';
+      }, 2000), 'got redirected to /create-first-user');
     });
   });
 
@@ -48,6 +63,7 @@ if (Meteor.isClient) {
     });
 
     it('redirects to the login page', async function () {
+      this.timeout(4000);
       const history = createMemoryHistory();
       mount(
         <Router history={history}>
@@ -55,12 +71,14 @@ if (Meteor.isClient) {
         </Router>
       );
       // Give some time for the RootRedirector's hasUsers sub to complete
-      await sleep(500);
-      assert.equal(history.location.pathname, '/login');
+      assert.isTrue(await conditionTrueByTimeout(() => {
+        return history.location.pathname === '/login';
+      }, 2000), 'got redirected to /login');
 
       history.push('/hunts');
-      await sleep(500);
-      assert.equal(history.location.pathname, '/login');
+      assert.isTrue(await conditionTrueByTimeout(() => {
+        return history.location.pathname === '/login';
+      }, 2000), 'got re-redirected to /login');
     });
   });
 

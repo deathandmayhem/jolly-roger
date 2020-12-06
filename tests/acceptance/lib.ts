@@ -6,9 +6,11 @@ import Adapter from 'enzyme-adapter-react-16';
 
 configure({ adapter: new Adapter() });
 
-Meteor.methods({
-  'test.resetDatabase': function () {
-    resetDatabase();
-    Migrations.migrateTo('latest');
-  },
-});
+if (Meteor.isServer) {
+  Meteor.methods({
+    'test.resetDatabase': function () {
+      resetDatabase();
+      Migrations.migrateTo('latest');
+    },
+  });
+}
