@@ -14,6 +14,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
+import PublicSettings from '../../lib/models/public_settings';
 import Settings from '../../lib/models/settings';
 import { DiscordGuilds, DiscordGuildType } from '../discord';
 
@@ -956,6 +957,114 @@ class DiscordIntegrationSection extends React.Component<DiscordIntegrationSectio
   }
 }
 
+interface WebRTCServersFormProps {
+  turnServerUrls: string[];
+}
+
+interface WebRTCServersFormState {
+  url: string;
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
+  submitError: string;
+}
+
+class WebRTCServersForm extends React.Component<WebRTCServersFormProps, WebRTCServersFormState> {
+  constructor(props: WebRTCServersFormProps) {
+    super(props);
+    this.state = {
+      url: props.turnServerUrls.length > 0 ? props.turnServerUrls[0] : '',
+      submitState: SubmitState.IDLE,
+      submitError: '',
+    };
+  }
+
+  dismissAlert = () => {
+    this.setState({
+      submitState: SubmitState.IDLE,
+    });
+  };
+
+  onUrlChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      url: e.currentTarget.value,
+    });
+  };
+
+  onSubmit = (e: React.FormEvent<any>) => {
+    e.preventDefault();
+
+    const url = this.state.url.trim();
+
+    this.setState({
+      submitState: SubmitState.SUBMITTING,
+    });
+    Meteor.call('setupTurnServerUrls', [url], (err?: Error) => {
+      if (err) {
+        this.setState({
+          submitState: SubmitState.ERROR,
+          submitError: err.message,
+        });
+      } else {
+        this.setState({
+          submitState: SubmitState.SUCCESS,
+        });
+      }
+    });
+  };
+
+  render() {
+    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
+    return (
+      <div>
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'error' ? (
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.submitError}
+          </Alert>
+        ) : null}
+
+        <form onSubmit={this.onSubmit}>
+          <FormGroup>
+            <FormLabel htmlFor="jr-setup-edit-webrtc-turn-server-url">
+              Turn server URL
+            </FormLabel>
+            <FormControl
+              id="jr-setup-edit-webrtc-turn-server-url"
+              type="text"
+              placeholder=""
+              value={this.state.url}
+              disabled={shouldDisableForm}
+              onChange={this.onUrlChange}
+            />
+          </FormGroup>
+          <Button variant="primary" type="submit" onClick={this.onSubmit} disabled={shouldDisableForm}>Save</Button>
+        </form>
+      </div>
+    );
+  }
+}
+
+interface WebRTCSectionProps {
+  turnServerUrls: string[];
+}
+
+class WebRTCSection extends React.Component<WebRTCSectionProps> {
+  render() {
+    return (
+      <section>
+        <h1 className="setup-section-header">
+          <span className="setup-section-header-label">
+            WebRTC
+          </span>
+        </h1>
+        <WebRTCServersForm turnServerUrls={this.props.turnServerUrls} />
+      </section>
+    );
+  }
+}
+
 interface CircuitBreakerControlProps {
   // disabled should be false if the circuit breaker is not intentionally disabling the feature,
   // and true if the feature is currently disabled.
@@ -1010,6 +1119,8 @@ class CircuitBreakerControl extends React.Component<CircuitBreakerControlProps> 
 interface CircuitBreakerSectionProps {
   flagDisableGdrivePermissions: boolean;
   flagDisableApplause: boolean;
+  flagDisableWebrtc: boolean;
+  flagDisableSpectra: boolean;
 }
 
 class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> {
@@ -1080,6 +1191,49 @@ class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> 
             particular hunt when a puzzle in that hunt is solved.
           </p>
         </CircuitBreakerControl>
+        <CircuitBreakerControl
+          title="WebRTC calls"
+          featureDisabled={this.props.flagDisableWebrtc}
+          onChange={(newValue) => this.setFlagValue('disable.webrtc', newValue)}
+        >
+          <p>
+            Jolly Roger has experimental support for making WebRTC audio calls
+            built into each puzzle page.  Jolly Roger provides the signaling
+            server and all members of the call establish a direct connection to
+            all other members of the same call (which is more complex at the
+            edge, but avoids needing to operate a separate high-capacity,
+            latency-sensitive reencoding server).  Note that video calls are
+            not currently supported primarily due to the bandwidth constraints
+            the mesh connectivity would imply -- video consumes 60x the bitrate
+            of audio, and we estimate most residential network connections to
+            only be able to reliably support around 4 call participants at a
+            time before significant degradation.
+          </p>
+          <p>
+            Disabling this feature means that Jolly Roger will not show an
+            audiocall section in the UI on the puzzle page, nor will clients
+            join calls.  The server will still service WebRTC-related
+            subscriptions and methods, but we expect clients to not generate
+            such load once the flag is flipped.
+          </p>
+        </CircuitBreakerControl>
+        <CircuitBreakerControl
+          title="WebRTC call spectrograms"
+          featureDisabled={this.props.flagDisableSpectra}
+          onChange={(newValue) => this.setFlagValue('disable.spectra', newValue)}
+        >
+          <p>
+            In the WebRTC call UI, we show audio activity via spectrograms.
+            However, this is expensive, since it involves doing FFTs and updating
+            visualizations every frame, for every client.  We provide a feature
+            flag to disable these spectra.
+          </p>
+          <p>
+            Disabling this feature means that Jolly Roger will not show any
+            visual indicator of who in a call is talking, but will use less CPU
+            and battery for members of WebRTC calls.
+          </p>
+        </CircuitBreakerControl>
       </section>
     );
   }
@@ -1100,9 +1254,13 @@ interface SetupPageRewriteProps {
   discordBotToken?: string;
   discordGuild?: DiscordGuildType;
 
+  turnServerUrls: string[];
+
   flagDisableGoogleIntegration: boolean;
   flagDisableGdrivePermissions: boolean;
   flagDisableApplause: boolean;
+  flagDisableWebrtc: boolean;
+  flagDisableSpectra: boolean;
 }
 
 class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
@@ -1142,9 +1300,14 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
           botToken={this.props.discordBotToken}
           guild={this.props.discordGuild}
         />
+        <WebRTCSection
+          turnServerUrls={this.props.turnServerUrls}
+        />
         <CircuitBreakerSection
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
           flagDisableApplause={this.props.flagDisableApplause}
+          flagDisableWebrtc={this.props.flagDisableWebrtc}
+          flagDisableSpectra={this.props.flagDisableSpectra}
         />
       </div>
     );
@@ -1176,10 +1339,16 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
   const discordGuild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' ? discordGuildDoc.value.guild : undefined;
 
+  // WebRTC
+  const turnServerConfig = PublicSettings.findOne({ name: 'webrtc.turnserver' });
+  const turnServerUrls = (turnServerConfig && turnServerConfig.name === 'webrtc.turnserver' && turnServerConfig.value.urls) || [];
+
   // Circuit breakers
   const flagDisableGoogleIntegration = Flags.active('disable.google');
   const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
   const flagDisableApplause = Flags.active('disable.applause');
+  const flagDisableWebrtc = Flags.active('disable.webrtc');
+  const flagDisableSpectra = Flags.active('disable.spectra');
 
   return {
     ready: settingsHandle.ready(),
@@ -1196,9 +1365,13 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     discordBotToken,
     discordGuild,
 
+    turnServerUrls,
+
     flagDisableGoogleIntegration,
     flagDisableGdrivePermissions,
     flagDisableApplause,
+    flagDisableWebrtc,
+    flagDisableSpectra,
   };
 });
 

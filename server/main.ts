@@ -13,6 +13,7 @@ import '../imports/server/announcements';
 import '../imports/server/ansible';
 import '../imports/server/api-init';
 import '../imports/server/api_keys';
+import '../imports/server/calls';
 import '../imports/server/chat';
 import '../imports/server/discord';
 import '../imports/server/feature_flags';

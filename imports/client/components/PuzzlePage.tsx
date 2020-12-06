@@ -16,7 +16,6 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
-import Modal from 'react-bootstrap/Modal';
 import Nav from 'react-bootstrap/Nav';
 import NavItem from 'react-bootstrap/NavItem';
 import NavLink from 'react-bootstrap/NavLink';
@@ -41,7 +40,7 @@ import { DocumentType } from '../../lib/schemas/documents';
 import { GuessType } from '../../lib/schemas/guess';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
-import { Subscribers, SubscriberCounters } from '../subscribers';
+import ChatPeople from './ChatPeople';
 import DocumentDisplay from './Documents';
 import ModalForm from './ModalForm';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
@@ -134,133 +133,6 @@ const DefaultChatHeightFraction = 0.6;
 //   |    b/a    |
 //   |           |
 //   |___________|
-
-interface ViewerSubscriber {
-  user: string;
-  name: string;
-}
-
-interface ViewersListProps {
-  name: string;
-  ready: boolean;
-  subscribers: ViewerSubscriber[];
-  unknown: number;
-}
-
-class ViewersList extends React.Component<ViewersListProps> {
-  render() {
-    if (!this.props.ready) {
-      return <span>loading...</span>;
-    }
-
-    return (
-      <div>
-        <ul>
-          {this.props.subscribers.map((s) => <li key={s.user}>{s.name}</li>)}
-        </ul>
-        {this.props.unknown !== 0 && `(Plus ${this.props.unknown} hunters with no name set)`}
-      </div>
-    );
-  }
-}
-
-const ViewersListContainer = withTracker(({ name }: { name: string }) => {
-  // Don't want this subscription persisting longer than necessary
-  const subscribersHandle = Meteor.subscribe('subscribers.fetch', name);
-  const profilesHandle = Profiles.subscribeDisplayNames();
-
-  const ready = subscribersHandle.ready() && profilesHandle.ready();
-  if (!ready) {
-    return { ready: ready as boolean, unknown: 0, subscribers: [] };
-  }
-
-  let unknown = 0;
-  const subscribers: ViewerSubscriber[] = [];
-
-  // eslint-disable-next-line no-restricted-globals
-  Subscribers.find({ name }).forEach((s) => {
-    if (!s.user) {
-      unknown += 1;
-      return;
-    }
-
-    const profile = Profiles.findOne(s.user);
-    if (!profile || !profile.displayName) {
-      unknown += 1;
-      return;
-    }
-
-    subscribers.push({ user: s.user, name: profile.displayName });
-  });
-
-  return { ready: ready as boolean, unknown, subscribers };
-})(ViewersList);
-
-interface ViewersModalProps {
-  name: string;
-}
-
-interface ViewersModalState {
-  show: boolean;
-}
-
-class ViewersModal extends React.Component<ViewersModalProps, ViewersModalState> {
-  constructor(props: ViewersModalProps) {
-    super(props);
-    this.state = { show: false };
-  }
-
-  show = () => {
-    this.setState({ show: true });
-  };
-
-  close = () => {
-    this.setState({ show: false });
-  };
-
-  render() {
-    return (
-      <Modal show={this.state.show} onHide={this.close}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            Currently viewing this puzzle
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {this.state.show && <ViewersListContainer name={this.props.name} />}
-        </Modal.Body>
-      </Modal>
-    );
-  }
-}
-
-interface ViewCountDisplayProps {
-  count: number;
-  name: string;
-}
-
-class ViewCountDisplay extends React.Component<ViewCountDisplayProps> {
-  modalRef: React.RefObject<ViewersModal>
-
-  constructor(props: ViewCountDisplayProps) {
-    super(props);
-    this.modalRef = React.createRef();
-  }
-
-  showModal = () => {
-    this.modalRef.current!.show();
-  };
-
-  render() {
-    const text = `See ${this.props.count} ${this.props.count === 1 ? 'viewer' : 'viewers'}`;
-    return (
-      <span className="puzzle-metadata-viewers-button">
-        <ViewersModal ref={this.modalRef} name={this.props.name} />
-        <Button className="btn-info" onClick={this.showModal}>{text}</Button>
-      </span>
-    );
-  }
-}
 
 interface RelatedPuzzleSectionProps {
   activePuzzle: PuzzleType;
@@ -507,6 +379,7 @@ interface ChatSectionProps {
   chatMessages: FilteredChatMessageType[];
   displayNames: Record<string, string>;
   puzzleId: string;
+  huntId: string;
 }
 
 class ChatSection extends React.PureComponent<ChatSectionProps> {
@@ -529,6 +402,7 @@ class ChatSection extends React.PureComponent<ChatSectionProps> {
     return (
       <div className="chat-section">
         {this.props.chatReady ? null : <span>loading...</span>}
+        <ChatPeople huntId={this.props.huntId} puzzleId={this.props.puzzleId} />
         <ChatHistory ref={this.historyRef} chatMessages={this.props.chatMessages} displayNames={this.props.displayNames} />
         <ChatInput
           puzzleId={this.props.puzzleId}
@@ -548,6 +422,7 @@ interface PuzzlePageSidebarProps {
   chatMessages: FilteredChatMessageType[];
   displayNames: Record<string, string>;
   canUpdate: boolean;
+  huntId: string;
   isDesktop: boolean;
   isStackable: boolean;
   showRelated: boolean;
@@ -612,6 +487,7 @@ class PuzzlePageSidebar extends React.PureComponent<PuzzlePageSidebarProps> {
               chatReady={this.props.chatReady}
               chatMessages={this.props.chatMessages}
               displayNames={this.props.displayNames}
+              huntId={this.props.huntId}
               puzzleId={this.props.activePuzzle._id}
             />
           </SplitPanePlus>
@@ -631,7 +507,6 @@ interface PuzzlePageMetadataParams {
 }
 
 interface PuzzlePageMetadataProps extends PuzzlePageMetadataParams {
-  viewCount: number;
   canUpdate: boolean;
   hasGuessQueue: boolean;
 }
@@ -777,10 +652,6 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
               <DocumentDisplay document={this.props.document} displayMode="link" />
             </span>
           )}
-          <ViewCountDisplay
-            count={this.props.viewCount}
-            name={`puzzle:${this.props.puzzle._id}`}
-          />
           {
             !isAdministrivia && (
               this.props.hasGuessQueue ?
@@ -819,11 +690,9 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
 }
 
 const PuzzlePageMetadataContainer = withTracker(({ puzzle }: PuzzlePageMetadataParams) => {
-  const count = SubscriberCounters.findOne(`puzzle:${puzzle._id}`);
   const hunt = Hunts.findOne(puzzle.hunt);
   const hasGuessQueue = !!(hunt && hunt.hasGuessQueue);
   return {
-    viewCount: count ? count.value : 0,
     canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     hasGuessQueue,
   };
@@ -1239,7 +1108,7 @@ interface PuzzlePageState {
   defaultsAppliedForPuzzle: string;
 }
 
-class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
+class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
   private puzzlePageEl: HTMLElement | null;
 
   constructor(props: PuzzlePageProps) {
@@ -1351,6 +1220,7 @@ class PuzzlePage extends React.Component<PuzzlePageProps, PuzzlePageState> {
         onChangeSidebarConfig={this.onChangeSidebarConfig}
         isDesktop={this.state.isDesktop}
         isStackable={this.state.isStackable}
+        huntId={this.props.match.params.huntId}
       />
     );
 
@@ -1420,10 +1290,12 @@ const tracker = withTracker(({ match }: PuzzlePageWithRouterParams) => {
 
   // Add the current user to the collection of people viewing this puzzle.
   // Don't use the subs manager - we don't want this cached.
-  Meteor.subscribe('subscribers.inc', `puzzle:${params.puzzleId}`, {
+  const subscribersTopic = `puzzle:${params.puzzleId}`;
+  Meteor.subscribe('subscribers.inc', subscribersTopic, {
     puzzle: params.puzzleId,
     hunt: params.huntId,
   });
+  const subscribersHandle = Meteor.subscribe('subscribers.fetch', subscribersTopic);
 
   const displayNamesHandle = Profiles.subscribeDisplayNames();
   let displayNames = {};
@@ -1439,7 +1311,7 @@ const tracker = withTracker(({ match }: PuzzlePageWithRouterParams) => {
   // Track the tally of people viewing this puzzle.
   Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
 
-  const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && displayNamesHandle.ready();
+  const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && subscribersHandle.ready() && displayNamesHandle.ready();
 
   let allPuzzles: PuzzleType[];
   let allTags: TagType[];

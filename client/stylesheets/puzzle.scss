@@ -313,6 +313,169 @@ table.puzzle-list {
   }
 }
 
+.chatter-section {
+  flex: 0;
+  background-color: #ebd0e3;
+  font-size: 12px;
+  line-height: 12px;
+  border-bottom: 1px solid #000;
+
+  .av-actions {
+    display: flex;
+    flex-direction: row;
+    //margin-top: 6px;
+
+    .btn {
+      flex: 1;
+      padding: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0;
+    }
+  }
+}
+
+.chatter-subsection {
+  position: relative;
+  padding-top: 6px;
+
+  header {
+    position: absolute;
+    top: 6px;
+    left: 2px;
+    z-index: 20;
+  }
+
+  .people-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-height: 12px; // So that when there's no people it doesn't collapse entirely
+  }
+
+  .people-item {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    background: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 24px;
+    color: black;
+    line-height: 24px;
+    margin-left: 4px;
+    position: relative;
+
+    .icon {
+      font-size: 12px;
+      width: 16px;
+      text-align: center;
+      color: $danger;
+      height: 50%;
+    }
+
+    $mutedTop: -4px;
+    $mutedRight: -2px;
+    $deafenDiff: 2px;
+
+    &.muted .muted-icon {
+      position: absolute;
+      top: $mutedTop;
+      right: $mutedRight;
+    }
+
+    &.deafened {
+      color: $secondary;
+      background: #ffffff88;
+      border: $deafenDiff solid white;
+
+      .muted-icon {
+        position: absolute;
+        top: $mutedTop - $deafenDiff;
+        right: $mutedRight - $deafenDiff;
+      }
+
+      .deafened-icon {
+        position: absolute;
+        bottom: 1px;
+        right: $mutedRight - $deafenDiff;
+      }
+    }
+
+    .initial {
+      z-index: 10;
+    }
+
+    &.live .initial {
+      // white border around initial
+      // aids readability if the spectrum graph is high
+      text-shadow: -1px 1px 0 white,
+				  1px 1px 0 white,
+				 1px -1px 0 white,
+				-1px -1px 0 white;
+    }
+
+    .connection {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: #cccccc;
+
+      &.checking {
+        background-color: #bbdcff;
+      }
+
+      &.connected, &.completed {
+        background-color: #3d98fa;
+      }
+
+      &.disconnected {
+        background-color: red;
+      }
+
+      &.failed {
+        background-color: maroon;
+      }
+
+      &.closed {
+        background-color: black;
+      }
+    }
+
+    &.deafened .connection {
+      bottom: -$deafenDiff;
+      left: -$deafenDiff;
+      right: -$deafenDiff;
+      width: auto;
+    }
+
+    .spectrogram {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+    }
+  }
+}
+
+.chatter-tooltip {
+  // Force chatter tooltip overlay to get larger than the default
+  // react-bootstrap stylesheet permits.  We can only apply classes to the root
+  // tooltip <div>; the .tooltip-inner className is controlled by
+  // react-bootstrap/popper.
+  .tooltip-inner {
+    max-width: 300px;
+  }
+}
+
 .chat-history {
   flex: 1 1 auto;
   overflow-y: auto;
