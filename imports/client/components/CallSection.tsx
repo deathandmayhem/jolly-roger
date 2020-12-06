@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
-import { faMicrophone, faHeadphonesAlt } from '@fortawesome/free-solid-svg-icons';
+import { faMicrophoneSlash, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React from 'react';
@@ -82,8 +82,8 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
         >
           <span className="initial">{initial}</span>
           <div className="webrtc">
-            {this.props.muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophone} /></span>}
-            {this.props.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faHeadphonesAlt} /></span>}
+            {this.props.muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
+            {this.props.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
             {!this.props.spectraDisabled && !this.props.muted && !this.props.deafened ? (
               <Spectrum
                 className="spectrogram"
