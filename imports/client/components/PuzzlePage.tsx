@@ -80,10 +80,10 @@ const DefaultSidebarWidth = 300;
 //
 //   Wide (>=MinimiumDesktopWidth) - "desktop"
 //    _____________________________
-//   |      |         b            |
-//   |  a   |______________________|
+//   |              b              |
+//   |_____________________________|
 //   |      |                      |
-//   |      |                      |
+//   |   a  |                      |
 //   |      |         c            |
 //   |      |                      |
 //   |______|______________________|
@@ -988,17 +988,6 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
       return <div className="puzzle-page" ref={(el) => { this.puzzlePageEl = el; }}><span>loading...</span></div>;
     }
     const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.match.params.puzzleId)!;
-    const metadata = (
-      <PuzzlePageMetadataContainer
-        puzzle={activePuzzle}
-        allTags={this.props.allTags}
-        allPuzzles={this.props.allPuzzles}
-        guesses={this.props.allGuesses}
-        displayNames={this.props.displayNames}
-        isDesktop={this.state.isDesktop}
-        document={this.props.document}
-      />
-    );
     const chat = (
       <ChatSection
         chatReady={this.props.chatReady}
@@ -1010,8 +999,17 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
     );
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
-        {this.state.isDesktop ? (
-          <div className="puzzle-page" ref={(el) => { this.puzzlePageEl = el; }}>
+        <div className={classnames('puzzle-page', !this.state.isDesktop && 'narrow')} ref={(el) => { this.puzzlePageEl = el; }}>
+          <PuzzlePageMetadataContainer
+            puzzle={activePuzzle}
+            allTags={this.props.allTags}
+            allPuzzles={this.props.allPuzzles}
+            guesses={this.props.allGuesses}
+            displayNames={this.props.displayNames}
+            isDesktop={this.state.isDesktop}
+            document={this.props.document}
+          />
+          {this.state.isDesktop ? (
             <SplitPanePlus
               split="vertical"
               minSize={MinimumSidebarWidth}
@@ -1023,18 +1021,12 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
               onPaneChanged={this.onChangeSideBarSize}
             >
               {chat}
-              <div className="puzzle-content">
-                {metadata}
-                <PuzzlePageMultiplayerDocument document={this.props.document} />
-              </div>
+              <PuzzlePageMultiplayerDocument document={this.props.document} />
             </SplitPanePlus>
-          </div>
-        ) : (
-          <div className="puzzle-page narrow">
-            {metadata}
-            {chat}
-          </div>
-        )}
+          ) : (
+            chat
+          )}
+        </div>
       </DocumentTitle>
     );
   }
