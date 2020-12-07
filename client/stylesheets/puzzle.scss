@@ -182,6 +182,18 @@ table.puzzle-list {
 
 .tag-popover {
   cursor: default;
+  position: relative;
+
+  /* Fill the space between the button and the popover, so the cursor can safely travel there */
+  &.tag-popover-open:after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0%;
+    width: 100%;
+    height: $popover-arrow-height;
+  }
 }
 
 .tag .btn.tag-remove-button {

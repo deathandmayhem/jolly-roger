@@ -36,14 +36,37 @@ interface PopoverRelatedProps {
 
 type TagProps = BaseTagProps & (DoNotPopoverRelatedProps | PopoverRelatedProps);
 
-class Tag extends React.PureComponent<TagProps> {
+interface TagState {
+  showPopover: boolean;
+}
+
+class Tag extends React.Component<TagProps, TagState> {
   static displayName = 'Tag';
+
+  constructor(props: TagProps) {
+    super(props);
+    this.state = {
+      showPopover: false,
+    };
+  }
 
   onRemove = () => {
     if (this.props.onRemove) {
       this.props.onRemove(this.props.tag._id);
     }
   };
+
+  onOverlayTriggerToggle = (nextShow: boolean) => {
+    this.setState({ showPopover: nextShow });
+  }
+
+  onPopoverMouseEnter = () => {
+    this.setState({ showPopover: true });
+  }
+
+  onPopoverMouseLeave = () => {
+    this.setState({ showPopover: false });
+  }
 
   render() {
     const name = this.props.tag.name;
@@ -55,6 +78,7 @@ class Tag extends React.PureComponent<TagProps> {
     const isPriority = name.lastIndexOf('priority:', 0) === 0;
     const classNames = classnames('tag',
       this.props.popoverRelated ? 'tag-popover' : null,
+      this.state.showPopover ? 'tag-popover-open' : null,
       isAdministrivia ? 'tag-administrivia' : null,
       isMeta ? 'tag-meta' : null,
       isGroup ? 'tag-group' : null,
@@ -97,7 +121,12 @@ class Tag extends React.PureComponent<TagProps> {
         this.props.allPuzzles.filter((p) => p.tags.indexOf(sharedTag._id) !== -1) :
         [];
       const popover = (
-        <Popover id={`tag-${this.props.tag._id}`} className="related-puzzle-popover">
+        <Popover
+          id={`tag-${this.props.tag._id}`}
+          className="related-puzzle-popover"
+          onMouseEnter={this.onPopoverMouseEnter}
+          onMouseLeave={this.onPopoverMouseLeave}
+        >
           <Popover.Title>{sharedTagName}</Popover.Title>
           <Popover.Content>
             <RelatedPuzzleList
@@ -112,7 +141,13 @@ class Tag extends React.PureComponent<TagProps> {
         </Popover>
       );
       return (
-        <OverlayTrigger placement="bottom" overlay={popover}>
+        <OverlayTrigger
+          placement="bottom"
+          overlay={popover}
+          trigger={['hover', 'focus']}
+          onToggle={this.onOverlayTriggerToggle}
+          show={this.state.showPopover}
+        >
           {tagElement}
         </OverlayTrigger>
       );
