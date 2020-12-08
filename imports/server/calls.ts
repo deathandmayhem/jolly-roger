@@ -1,7 +1,11 @@
+import crypto from 'crypto';
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
+import { Random } from 'meteor/random';
+import Ansible from '../ansible';
 import CallParticipants from '../lib/models/call_participants';
 import CallSignals from '../lib/models/call_signals';
+import Settings from '../lib/models/settings';
 import { serverId, registerPeriodicCleanupHook } from './garbage-collection';
 
 // Swap this to true if debugging participant/signal GC
@@ -108,6 +112,55 @@ Meteor.methods({
       },
     });
   },
+});
+
+Meteor.publish('rtcconfig', function () {
+  // Another fake collection to make it easy to retrieve/track readiness of
+  // some dynamically-generated TURN server credentials.
+  if (!this.userId) {
+    throw new Meteor.Error(401, 'Not logged in');
+  }
+
+  // Make sure we have a TURN server secret.
+  const maybeTurnServerConfig = Settings.findOne({ name: 'webrtc.turnserver' });
+  const turnServerConfig = maybeTurnServerConfig && maybeTurnServerConfig.name === 'webrtc.turnserver' && maybeTurnServerConfig.value;
+  const turnServerSecret = turnServerConfig && turnServerConfig.secret;
+  if (!turnServerSecret) {
+    Ansible.log('TURN server secret not configured on server');
+    this.ready();
+    return;
+  }
+
+  // Make sure we also have TURN server URLs.
+  const turnServerUrls = (turnServerConfig && turnServerConfig.urls) || [];
+  if (turnServerUrls.length === 0) {
+    Ansible.log('TURN server URLs not configured on server');
+    this.ready();
+    return;
+  }
+
+  // Generate a username/credential that the TURN server will accept.
+
+  // 3 days in seconds should be more than enough to get through hunt.
+  // I sincerely doubt that any browser tab will be on a single call for that
+  // long.
+  const validityWindow = 3 * 24 * 60 * 60;
+  const validUntil = Math.floor(Date.now() / 1000) + validityWindow;
+  const nonce = Random.id();
+  const username = `${validUntil}:${nonce}`;
+
+  const hmac = crypto.createHmac('sha1', turnServerSecret);
+  hmac.update(username);
+  const credential = hmac.digest('base64');
+
+  this.added('rtcconfig', 'rtcconfig', {
+    _id: 'rtcconfig',
+    username,
+    credential,
+    urls: turnServerUrls,
+  });
+
+  this.ready();
 });
 
 Meteor.publish('call.metadata', function (hunt, call) {

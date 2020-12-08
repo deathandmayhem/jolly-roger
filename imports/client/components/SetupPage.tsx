@@ -14,7 +14,6 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
-import PublicSettings from '../../lib/models/public_settings';
 import Settings from '../../lib/models/settings';
 import { DiscordGuilds, DiscordGuildType } from '../discord';
 
@@ -958,11 +957,13 @@ class DiscordIntegrationSection extends React.Component<DiscordIntegrationSectio
 }
 
 interface WebRTCServersFormProps {
-  turnServerUrls: string[];
+  urls: string[];
+  secret: string;
 }
 
 interface WebRTCServersFormState {
-  url: string;
+  urls: string;
+  secret: string;
   submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
   submitError: string;
 }
@@ -971,7 +972,8 @@ class WebRTCServersForm extends React.Component<WebRTCServersFormProps, WebRTCSe
   constructor(props: WebRTCServersFormProps) {
     super(props);
     this.state = {
-      url: props.turnServerUrls.length > 0 ? props.turnServerUrls[0] : '',
+      urls: props.urls.length > 0 ? props.urls.join(',') : '',
+      secret: props.secret || '',
       submitState: SubmitState.IDLE,
       submitError: '',
     };
@@ -985,19 +987,26 @@ class WebRTCServersForm extends React.Component<WebRTCServersFormProps, WebRTCSe
 
   onUrlChange: FormControlProps['onChange'] = (e) => {
     this.setState({
-      url: e.currentTarget.value,
+      urls: e.currentTarget.value,
+    });
+  };
+
+  onSecretChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      secret: e.currentTarget.value,
     });
   };
 
   onSubmit = (e: React.FormEvent<any>) => {
     e.preventDefault();
 
-    const url = this.state.url.trim();
+    const urls = this.state.urls.trim().split(',');
+    const secret = this.state.secret.trim();
 
     this.setState({
       submitState: SubmitState.SUBMITTING,
     });
-    Meteor.call('setupTurnServerUrls', [url], (err?: Error) => {
+    Meteor.call('setupTurnServerConfig', secret, urls, (err?: Error) => {
       if (err) {
         this.setState({
           submitState: SubmitState.ERROR,
@@ -1028,15 +1037,28 @@ class WebRTCServersForm extends React.Component<WebRTCServersFormProps, WebRTCSe
         <form onSubmit={this.onSubmit}>
           <FormGroup>
             <FormLabel htmlFor="jr-setup-edit-webrtc-turn-server-url">
-              Turn server URL
+              TURN server URLs (comma-separated)
             </FormLabel>
             <FormControl
               id="jr-setup-edit-webrtc-turn-server-url"
               type="text"
               placeholder=""
-              value={this.state.url}
+              value={this.state.urls}
               disabled={shouldDisableForm}
               onChange={this.onUrlChange}
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormLabel htmlFor="jr-setup-edit-webrtc-turn-server-secret">
+              TURN server shared secret
+            </FormLabel>
+            <FormControl
+              id="jr-setup-edit-webrtc-turn-server-secret"
+              type="text"
+              placeholder=""
+              value={this.state.secret}
+              disabled={shouldDisableForm}
+              onChange={this.onSecretChange}
             />
           </FormGroup>
           <Button variant="primary" type="submit" onClick={this.onSubmit} disabled={shouldDisableForm}>Save</Button>
@@ -1048,6 +1070,7 @@ class WebRTCServersForm extends React.Component<WebRTCServersFormProps, WebRTCSe
 
 interface WebRTCSectionProps {
   turnServerUrls: string[];
+  turnServerSecret: string;
 }
 
 class WebRTCSection extends React.Component<WebRTCSectionProps> {
@@ -1059,7 +1082,50 @@ class WebRTCSection extends React.Component<WebRTCSectionProps> {
             WebRTC
           </span>
         </h1>
-        <WebRTCServersForm turnServerUrls={this.props.turnServerUrls} />
+
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
+            <span>Turn server configuration</span>
+          </h2>
+          <p>
+            To use WebRTC, you need to configure a STUN/TURN server which you
+            operate.  Specifically, you must provide at least one URL (like
+            {' '}
+            <code>stun:turn.deathandmayhem.com</code>
+            {' '}
+            or
+            {' '}
+            <code>turn:turn.deathandmayhem.com</code>
+            ) for clients to be able to discover ICE candidates and connect
+            directly to each other to exchange audio streams.
+          </p>
+
+          <p>
+            Since TURN involves relaying, which is expensive in terms of
+            bandwidth for the server operator, it also requires authentication.
+            The simplest deployment supporting authentication involves a single
+            shared secret between Jolly Roger and the TURN server, per
+            {' '}
+            <a target="_blank" rel="noopener noreferrer" href="https://tools.ietf.org/html/draft-uberti-behave-turn-rest-00">
+              A REST API For Access to TURN Services
+            </a>.
+            Generate a random string, then provide it both here and in the
+            configuration for your TURN server.  If you plan to run
+            {' '}
+            <a target="_blank" rel="noopener noreferrer" href="https://github.com/coturn/coturn">
+              coturn
+            </a>
+            , this means a config file with:
+          </p>
+          <pre>
+            use-auth-secret<br />
+            static-auth-secret={this.props.turnServerSecret}
+          </pre>
+          <WebRTCServersForm
+            secret={this.props.turnServerSecret}
+            urls={this.props.turnServerUrls}
+          />
+        </div>
       </section>
     );
   }
@@ -1255,6 +1321,7 @@ interface SetupPageRewriteProps {
   discordGuild?: DiscordGuildType;
 
   turnServerUrls: string[];
+  turnServerSecret: string;
 
   flagDisableGoogleIntegration: boolean;
   flagDisableGdrivePermissions: boolean;
@@ -1302,6 +1369,7 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
         />
         <WebRTCSection
           turnServerUrls={this.props.turnServerUrls}
+          turnServerSecret={this.props.turnServerSecret}
         />
         <CircuitBreakerSection
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
@@ -1340,8 +1408,10 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   const discordGuild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' ? discordGuildDoc.value.guild : undefined;
 
   // WebRTC
-  const turnServerConfig = PublicSettings.findOne({ name: 'webrtc.turnserver' });
-  const turnServerUrls = (turnServerConfig && turnServerConfig.name === 'webrtc.turnserver' && turnServerConfig.value.urls) || [];
+  const maybeTurnServerConfig = Settings.findOne({ name: 'webrtc.turnserver' });
+  const turnServerConfig = maybeTurnServerConfig && maybeTurnServerConfig.name === 'webrtc.turnserver' && maybeTurnServerConfig.value;
+  const turnServerUrls = (turnServerConfig && turnServerConfig.urls) || [];
+  const turnServerSecret = (turnServerConfig && turnServerConfig.secret) || '';
 
   // Circuit breakers
   const flagDisableGoogleIntegration = Flags.active('disable.google');
@@ -1366,6 +1436,7 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     discordGuild,
 
     turnServerUrls,
+    turnServerSecret,
 
     flagDisableGoogleIntegration,
     flagDisableGdrivePermissions,

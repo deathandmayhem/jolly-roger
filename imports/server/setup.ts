@@ -7,7 +7,6 @@ import { Roles } from 'meteor/nicolaslopezj:roles';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../ansible';
 import { API_BASE } from '../lib/discord';
-import PublicSettings from '../lib/models/public_settings';
 import Settings from '../lib/models/settings';
 import { DiscordBot } from './discord';
 
@@ -184,13 +183,22 @@ Meteor.methods({
     }
   },
 
-  setupTurnServerUrls(urls: unknown) {
+  setupTurnServerConfig(secret: unknown, urls: unknown) {
     check(this.userId, String);
     Roles.checkPermission(this.userId, 'webrtc.configureServers');
+    check(secret, String);
     check(urls, [String]);
 
-    PublicSettings.upsert({ name: 'webrtc.turnserver' },
-      { $set: { 'value.urls': urls } });
+    if (secret || urls.length > 0) {
+      Settings.upsert({ name: 'webrtc.turnserver' }, {
+        $set: {
+          'value.secret': secret,
+          'value.urls': urls,
+        },
+      });
+    } else {
+      Settings.remove({ name: 'webrtc.turnserver' });
+    }
   },
 });
 

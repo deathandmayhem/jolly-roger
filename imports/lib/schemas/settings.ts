@@ -38,6 +38,13 @@ export const SettingCodec = t.intersection([
         guild: GuildType,
       }),
     }),
+    t.type({
+      name: t.literal('webrtc.turnserver'),
+      value: t.type({
+        secret: t.string,
+        urls: t.array(t.string),
+      }),
+    }),
   ]),
 ]);
 export type SettingType = t.TypeOf<typeof SettingCodec>;

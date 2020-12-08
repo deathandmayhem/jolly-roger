@@ -12,6 +12,7 @@ import CallParticipants from '../../lib/models/call_participants';
 import Profiles from '../../lib/models/profiles';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import { ProfileType } from '../../lib/schemas/profiles';
+import { RTCConfigType, RTCConfig } from '../rtc_config';
 import CallLinkBox from './CallLinkBox';
 import Spectrum from './Spectrum';
 
@@ -29,6 +30,8 @@ interface RTCCallSectionParams {
 }
 
 interface RTCCallSectionProps extends RTCCallSectionParams {
+  rtcConfigReady: boolean;
+  rtcConfig: RTCConfigType | undefined;
   participantsReady: boolean;
   participants: CallParticipantType[];
   selfParticipant: CallParticipantType | undefined;
@@ -105,8 +108,16 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
   };
 
   render() {
-    if (!this.props.participantsReady || !this.props.signalsReady) {
+    if (!this.props.rtcConfigReady || !this.props.participantsReady || !this.props.signalsReady) {
       return <div />;
+    }
+
+    if (!this.props.rtcConfig) {
+      return (
+        <div>
+          WebRTC misconfigured on the server.  Contact your server administrator.
+        </div>
+      );
     }
 
     const callerCount = this.props.participants.length;
@@ -141,6 +152,7 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
               return (
                 <CallLinkBox
                   key={p._id}
+                  rtcConfig={this.props.rtcConfig!}
                   selfParticipant={this.props.selfParticipant!}
                   peerParticipant={p}
                   localStream={this.props.localStream}
@@ -164,6 +176,9 @@ const tracker = withTracker((params: RTCCallSectionParams) => {
     call: params.puzzleId,
   }).fetch() : [];
 
+  const rtcConfigSub = Meteor.subscribe('rtcconfig');
+  const rtcConfig = RTCConfig.findOne('rtcconfig');
+
   const selfUserId = Meteor.userId() || undefined;
   const selfProfile = selfUserId ? Profiles.findOne(selfUserId) : undefined;
   const selfParticipant = participants.find((p) => {
@@ -180,6 +195,8 @@ const tracker = withTracker((params: RTCCallSectionParams) => {
   const spectraDisabled = Flags.active('disable.spectra');
 
   return {
+    rtcConfigReady: rtcConfigSub.ready(),
+    rtcConfig,
     participantsReady: joinSub.ready(),
     selfParticipant,
     selfProfile,
