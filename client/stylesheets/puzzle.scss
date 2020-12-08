@@ -214,6 +214,11 @@ table.puzzle-list {
   margin: 0 0 0 6px;
 }
 
+.tag-list-empty-label {
+  color: #808080;
+  margin-right: 4px;
+}
+
 /*Guessing and History Modal */
 .guess-history-table td.answer {
   word-break: break-all;
@@ -543,7 +548,6 @@ table.puzzle-list {
   align-items: flex-start;
   align-content: flex-start;
   flex-wrap: wrap;
-  margin-left: 4px;
 }
 
 .puzzle-metadata-row .btn {
