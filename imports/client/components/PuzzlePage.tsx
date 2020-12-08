@@ -357,6 +357,7 @@ class ChatSection extends React.PureComponent<ChatSectionProps> {
 interface PuzzlePageMetadataParams {
   puzzle: PuzzleType;
   allTags: TagType[];
+  allPuzzles: PuzzleType[];
   guesses: GuessType[];
   displayNames: Record<string, string>;
   document?: DocumentType;
@@ -487,6 +488,9 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             onRemoveTag={this.onRemoveTag}
             linkToSearch={false}
             showControls={this.props.isDesktop}
+            popoverRelated
+            allPuzzles={this.props.allPuzzles}
+            allTags={this.props.allTags}
           />
         </div>
         <div className="puzzle-metadata-row puzzle-metadata-action-row">
@@ -988,6 +992,7 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
       <PuzzlePageMetadataContainer
         puzzle={activePuzzle}
         allTags={this.props.allTags}
+        allPuzzles={this.props.allPuzzles}
         guesses={this.props.allGuesses}
         displayNames={this.props.displayNames}
         isDesktop={this.state.isDesktop}

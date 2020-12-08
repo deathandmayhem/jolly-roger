@@ -180,6 +180,10 @@ table.puzzle-list {
   text-decoration: none;
 }
 
+.tag-popover {
+  cursor: default;
+}
+
 .tag .btn.tag-remove-button {
   height: 18px;
   line-height: 16px;
@@ -581,6 +585,10 @@ table.puzzle-list {
   right: 0;
   bottom: 0;
   left: 0;
+}
+
+.popover.related-puzzle-popover {
+  max-width: 100%;
 }
 
 .SplitPane > .Pane.collapsing:before {
