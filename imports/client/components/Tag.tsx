@@ -1,3 +1,5 @@
+import { detectOverflow } from '@popperjs/core';
+import type { ModifierArguments, Modifier, Padding } from '@popperjs/core';
 import classnames from 'classnames';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
@@ -8,6 +10,13 @@ import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import RelatedPuzzleList from './RelatedPuzzleList';
 
+const PopoverPadding = {
+  top: 10,
+  bottom: 10,
+  left: 5,
+  right: 5,
+};
+
 // Calculate the tag name to use when determining related puzzles
 // There may be more cases here in the future
 function getRelatedPuzzlesSharedTagName(name: string) {
@@ -16,6 +25,38 @@ function getRelatedPuzzlesSharedTagName(name: string) {
   }
   return name;
 }
+
+type PopperScreenFitOptions = {padding: Padding}
+
+const PopperScreenFit : Modifier<'screenFit', PopperScreenFitOptions> = {
+  name: 'screenFit',
+  enabled: true,
+  phase: 'beforeWrite',
+  requiresIfExists: ['offset', 'preventOverflow'],
+  fn({ state, options } : ModifierArguments<PopperScreenFitOptions>) {
+    // Default to using preventOverflow's options to enforce consistent padding
+    const preventOverflowMod = state.orderedModifiers.find((m) => m.name === 'preventOverflow');
+    const padding = options.padding || preventOverflowMod?.options?.padding || {};
+    const overflow = detectOverflow(state, { padding });
+    const { height, width } = state.rects.popper;
+    const placementEdge = state.placement.split('-')[0];
+    // detectOverflow isn't aware of preventOverflow's shift, so overflow can appear on either side
+    // Have to work in terms of max because narrowing width might result in increasing height
+    let maxWidth;
+    let maxHeight;
+    if (placementEdge === 'top' || placementEdge === 'bottom') {
+      maxWidth = width - overflow.right - overflow.left;
+      maxHeight = height - overflow[placementEdge];
+    } else if (placementEdge === 'left' || placementEdge === 'right') {
+      maxHeight = height - overflow.top - overflow.bottom;
+      maxWidth = width - overflow[placementEdge];
+    } else {
+      return;
+    }
+    state.styles.popper.maxHeight = `${maxHeight}px`; // eslint-disable-line no-param-reassign
+    state.styles.popper.maxWidth = `${maxWidth}px`; // eslint-disable-line no-param-reassign
+  },
+};
 
 interface BaseTagProps {
   tag: TagType;
@@ -147,6 +188,14 @@ class Tag extends React.Component<TagProps, TagState> {
           trigger={['hover', 'focus']}
           onToggle={this.onOverlayTriggerToggle}
           show={this.state.showPopover}
+          popperConfig={
+            {
+              modifiers: [
+                { name: 'preventOverflow', options: { padding: PopoverPadding } },
+                PopperScreenFit,
+              ],
+            }
+          }
         >
           {tagElement}
         </OverlayTrigger>

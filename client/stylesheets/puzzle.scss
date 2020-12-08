@@ -193,6 +193,7 @@ table.puzzle-list {
     left: 0%;
     width: 100%;
     height: $popover-arrow-height;
+    z-index: 2;
   }
 }
 
@@ -600,7 +601,13 @@ table.puzzle-list {
 }
 
 .popover.related-puzzle-popover {
-  max-width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+
+  .popover-body {
+    overflow: scroll;
+  }
 }
 
 .SplitPane > .Pane.collapsing:before {
