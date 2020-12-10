@@ -606,7 +606,7 @@ table.puzzle-list {
   flex-direction: column;
 
   .popover-body {
-    overflow: scroll;
+    overflow: auto;
   }
 }
 
