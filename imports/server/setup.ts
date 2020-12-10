@@ -120,7 +120,7 @@ Meteor.methods({
     });
 
     // Test the client id/secret.
-    const postData = 'grant_type=client_credentials&scope=identify+connections';
+    const postData = 'grant_type=client_credentials&scope=identify%20connections';
     const headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
     };
