@@ -9,10 +9,10 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import Flags from '../../flags';
 import CallSignals from '../../lib/models/call_signals';
 import Profiles from '../../lib/models/profiles';
-import PublicSettings from '../../lib/models/public_settings';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import { CallSignalType, CallSignalMessageType } from '../../lib/schemas/call_signals';
 import { ProfileType } from '../../lib/schemas/profiles';
+import { RTCConfigType } from '../rtc_config';
 import Spectrum from './Spectrum';
 
 interface CallLinkBoxState {
@@ -20,6 +20,7 @@ interface CallLinkBoxState {
 }
 
 interface CallLinkBoxParams {
+  rtcConfig: RTCConfigType;
   selfParticipant: CallParticipantType;
   peerParticipant: CallParticipantType;
   localStream: MediaStream;
@@ -30,7 +31,6 @@ interface CallLinkBoxParams {
 interface CallLinkBoxProps extends CallLinkBoxParams {
   signal: CallSignalType | undefined;
   peerProfile: ProfileType | undefined;
-  turnServerUrls: string[];
   spectraDisabled: boolean;
 }
 
@@ -68,13 +68,14 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
     // our peer.
     this.remoteStream = new MediaStream();
 
+    const { username, credential, urls } = props.rtcConfig;
     const rtcConfig = {
       iceServers: [
-        // Example:
-        // { urls: ['stun:turn.zarvox.org', 'turn:turn.zarvox.org:3478?transport=udp'] },
-        // I'm including a fallback here to the author's personal STUN server to
-        // make this easier to test out-of-the-box.  TODO: remove fallback value
-        { urls: props.turnServerUrls || 'stun:turn.zarvox.org' },
+        {
+          username,
+          credential,
+          urls,
+        },
       ],
     };
 
@@ -326,16 +327,11 @@ const tracker = withTracker((params: CallLinkBoxParams) => {
   });
 
   const peerProfile = Profiles.findOne(params.peerParticipant.createdBy);
-
-  const turnServerConfig = PublicSettings.findOne({ name: 'webrtc.turnserver' });
-  const turnServerUrls = (turnServerConfig && turnServerConfig.name === 'webrtc.turnserver' && turnServerConfig.value.urls) || [];
-
   const spectraDisabled = Flags.active('disable.spectra');
 
   return {
     signal,
     peerProfile,
-    turnServerUrls,
     spectraDisabled,
   };
 });

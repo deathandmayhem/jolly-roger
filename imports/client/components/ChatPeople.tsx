@@ -313,7 +313,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
                 {`${rtcViewers.length} caller${rtcViewers.length !== 1 ? 's' : ''}`}
               </header>
               <div className="people-list">
-                {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
+                {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} {...viewer} />)}
               </div>
             </div>
           </>
