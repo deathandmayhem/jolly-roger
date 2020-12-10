@@ -86,6 +86,13 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
       this.props.layout === 'table' ? 'puzzle-table-row' : null,
       isAdministrivia ? 'administrivia' : null);
 
+    const answers = this.props.puzzle.answers.map((answer, i) => {
+      return (
+        // eslint-disable-next-line react/no-array-index-key
+        <PuzzleAnswer key={`${i}-${answer}`} answer={answer} />
+      );
+    });
+
     if (this.props.layout === 'table') {
       return (
         <tr className={puzzleClasses}>
@@ -95,7 +102,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
             <Link to={linkTarget}>{this.props.puzzle.title}</Link>
           </td>
           <td className="puzzle-answer">
-            <PuzzleAnswer answer={this.props.puzzle.answers.join(',')} />
+            {answers}
           </td>
         </tr>
       );
@@ -135,7 +142,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
           ) : null}
         </div>
         <div className="puzzle-answer">
-          <PuzzleAnswer answer={this.props.puzzle.answers.join(',')} />
+          {answers}
         </div>
         <TagList puzzle={this.props.puzzle} tags={ownTags} linkToSearch={this.props.layout === 'grid'} popoverRelated={false} />
       </div>

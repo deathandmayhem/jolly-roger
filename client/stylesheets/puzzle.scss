@@ -33,6 +33,12 @@
   }
 }
 
+.puzzle-answer > .answer {
+  display: block;
+  text-indent: -2ch;
+  padding-left: 2ch;
+}
+
 .puzzle.puzzle-grid {
   display: flex;
   flex-direction: row;
