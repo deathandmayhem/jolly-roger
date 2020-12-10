@@ -114,9 +114,12 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
             showOnMount
           />
         ) : null}
+        {this.props.canUpdate && (
+          <div className="puzzle-edit-button">
+            {this.editButton()}
+          </div>
+        )}
         <div className="puzzle-title">
-          {this.editButton()}
-          {' '}
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
         </div>
         {this.props.layout === 'grid' ? (

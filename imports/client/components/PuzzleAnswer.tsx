@@ -9,10 +9,8 @@ class PuzzleAnswer extends React.PureComponent<PuzzleAnswerProps> {
 
   render() {
     return (
-      <span className="answer-wrapper">
-        <span className="answer">
-          {this.props.answer}
-        </span>
+      <span className="answer">
+        {this.props.answer}
       </span>
     );
   }
