@@ -120,15 +120,13 @@ Meteor.methods({
     });
 
     // Test the client id/secret.
-    const postData = 'grant_type=client_credentials&scope=identify%20connections';
-    const headers = {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    };
     const authString = `${clientId}:${clientSecret}`;
     const resp = HTTP.post(`${API_BASE}/oauth2/token`, {
-      content: postData,
-      headers,
       auth: authString,
+      params: {
+        grant_type: 'client_credentials',
+        scope: 'identify',
+      },
     });
 
     if (resp.statusCode === 200) {
