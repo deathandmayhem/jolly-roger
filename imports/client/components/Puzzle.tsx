@@ -122,19 +122,17 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
         <div className="puzzle-title">
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
         </div>
-        {this.props.layout === 'grid' ? (
-          <div className="puzzle-link">
-            {this.props.puzzle.url ? (
-              <span>
-                <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
-                  <FontAwesomeIcon icon={faPuzzlePiece} />
-                </a>
-              </span>
-            ) : null}
-          </div>
-        ) : null}
         <div className="puzzle-view-count">
           {!(this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount) && !isAdministrivia && <SubscriberCount puzzleId={this.props.puzzle._id} />}
+        </div>
+        <div className="puzzle-link">
+          {this.props.puzzle.url ? (
+            <span>
+              <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
+                <FontAwesomeIcon icon={faPuzzlePiece} />
+              </a>
+            </span>
+          ) : null}
         </div>
         <div className="puzzle-answer">
           <PuzzleAnswer answer={this.props.puzzle.answers.join(',')} />
