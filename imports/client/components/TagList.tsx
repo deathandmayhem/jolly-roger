@@ -9,7 +9,7 @@ import { TagType } from '../../lib/schemas/tags';
 import Tag from './Tag';
 import TagEditor from './TagEditor';
 
-interface TagListProps {
+interface BaseTagListProps {
   puzzle: PuzzleType;
   tags: TagType[];
   onCreateTag?: (tagName: string) => void; // if provided, will show UI for adding a new tag
@@ -17,6 +17,18 @@ interface TagListProps {
   linkToSearch: boolean;
   showControls?: boolean;
 }
+
+interface DoNotPopoverRelatedProps {
+  popoverRelated: false;
+}
+
+interface PopoverRelatedProps {
+  popoverRelated: true;
+  allPuzzles: PuzzleType[];
+  allTags: TagType[];
+}
+
+type TagListProps = BaseTagListProps & (DoNotPopoverRelatedProps | PopoverRelatedProps);
 
 interface TagListState {
   editing: boolean;
@@ -118,6 +130,9 @@ class TagList extends React.PureComponent<TagListProps, TagListState> {
           tag={tags[i]}
           onRemove={this.state.removing ? this.removeTag : undefined}
           linkToSearch={this.props.linkToSearch}
+          popoverRelated={this.props.popoverRelated}
+          allPuzzles={this.props.popoverRelated ? this.props.allPuzzles : []}
+          allTags={this.props.popoverRelated ? this.props.allTags : []}
         />
       );
     }

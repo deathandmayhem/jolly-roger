@@ -16,9 +16,6 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
-import Nav from 'react-bootstrap/Nav';
-import NavItem from 'react-bootstrap/NavItem';
-import NavLink from 'react-bootstrap/NavLink';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
 import Table from 'react-bootstrap/Table';
@@ -44,7 +41,6 @@ import ChatPeople from './ChatPeople';
 import DocumentDisplay from './Documents';
 import ModalForm from './ModalForm';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
-import RelatedPuzzleGroups from './RelatedPuzzleGroups';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
 
@@ -54,26 +50,20 @@ const FilteredChatFields: ('_id' | 'puzzle' | 'text' | 'sender' | 'timestamp')[]
 type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[0]>
 
 const MinimumDesktopWidth = 600;
-const MinimumDesktopStackingHeight = 400; // In two column mode, allow stacking at smaller heights
-const MinimumMobileStackingHeight = 740; // Captures iPhone Plus but not iPad Mini
 const MinimumSidebarWidth = 150;
 const MinimumDocumentWidth = 375;
-const MinimumChatHeight = 96;
-
 const DefaultSidebarWidth = 300;
-const DefaultChatHeightFraction = 0.6;
 
 // PuzzlePage has some pretty unique properties:
 //
 // * It's the only page which iframes other sites.  Doing so requires that we
 //   specify the absolute size and position of the iframe, which makes us need
 //   position: fixed.
-// * There's up to four interesting pieces of content shown on this page:
-//   * Related puzzles
+// * There's up to three interesting pieces of content shown on this page:
 //   * Chat
 //   * Puzzle metadata (title, solved, puzzle link, guesses, tags)
 //   * The collaborative document (usually a spreadsheet)
-//   All four of them may have more content than fits reasonably on the screen,
+//   All three of them may have more content than fits reasonably on the screen,
 //   so managing their sizes effectively is important.
 // * At smaller screen sizes, we try to collapse content so the most useful
 //   interactions are still possible.  On mobile, it often makes more sense to
@@ -81,81 +71,31 @@ const DefaultChatHeightFraction = 0.6;
 //   puzzle you're looking at) are the most important panes, since when people
 //   are on runarounds the chat is the thing they want to see/write in most, and
 //   that's the most common time you'd be using jolly-roger from a mobile device.
-//   The least important view is usually related puzzles, since that's most useful
-//   for metas or seeing if there's a theme in the answers for the round, which
-//   people do less from mobile devices.
 //
 //   Given these priorities, we have several views:
 //
-//   a: related puzzles
-//   b: chat
-//   c: metadata
-//   d: document
+//   a: chat and voicechat
+//   b: metadata
+//   c: document
 //
-//   With abundant space ("desktop"):
+//   Wide (>=MinimiumDesktopWidth) - "desktop"
 //    _____________________________
-//   |      |         c            |
+//   |      |         b            |
 //   |  a   |______________________|
-//   |______|                      |
 //   |      |                      |
-//   |  b   |         d            |
+//   |      |                      |
+//   |      |         c            |
 //   |      |                      |
 //   |______|______________________|
 //
-//   If height is small (<MinimumDesktopStackingHeight), but width remains
-//   large (>=MinimumDesktopWidth), we collapse chat and related puzzles into a
-//   tabbed view (initial tab is chat)
-//    ____________________________
-//   |__|__|         c            |
-//   |     |______________________|
-//   | b/a |                      |
-//   |     |         d            |
-//   |_____|______________________|
-//
-//   If width is small (<MinimumDesktopWidth), we have two possible layouts:
-//     If height is large (>=MinimumMobileStackingHeight), we show three panes:
+//   Narrow (<MinimumDesktopWidth) - "mobile"
 //    ____________
-//   |     c     |
-//   |___________|
-//   |     a     |
-//   |___________|
-//   |           |
 //   |     b     |
+//   |___________|
+//   |           |
+//   |     a     |
 //   |           |
 //   |___________|
-//
-//     If height is also small (<MinimumMobileStackingHeight), we collapse chat
-//     and related puzzles into a tabset again:
-//    ____________
-//   |     c     |
-//   |___________|
-//   |_____|_____|
-//   |    b/a    |
-//   |           |
-//   |___________|
-
-interface RelatedPuzzleSectionProps {
-  activePuzzle: PuzzleType;
-  allPuzzles: PuzzleType[];
-  allTags: TagType[];
-}
-
-class RelatedPuzzleSection extends React.PureComponent<RelatedPuzzleSectionProps> {
-  render() {
-    return (
-      <div className="related-puzzles-section">
-        <div>Related:</div>
-        <RelatedPuzzleGroups
-          activePuzzle={this.props.activePuzzle}
-          allPuzzles={this.props.allPuzzles}
-          allTags={this.props.allTags}
-          canUpdate={false}
-          layout="table"
-        />
-      </div>
-    );
-  }
-}
 
 interface ChatMessageProps {
   message: FilteredChatMessageType;
@@ -414,92 +354,10 @@ class ChatSection extends React.PureComponent<ChatSectionProps> {
   }
 }
 
-interface PuzzlePageSidebarProps {
-  activePuzzle: PuzzleType;
-  allPuzzles: PuzzleType[];
-  allTags: TagType[];
-  chatReady: boolean;
-  chatMessages: FilteredChatMessageType[];
-  displayNames: Record<string, string>;
-  canUpdate: boolean;
-  huntId: string;
-  isDesktop: boolean;
-  isStackable: boolean;
-  showRelated: boolean;
-  chatHeight: number;
-  onChangeSidebarConfig: (size: number, showRelated: boolean) => void;
-}
-
-class PuzzlePageSidebar extends React.PureComponent<PuzzlePageSidebarProps> {
-  onChangeChatHeight = (newSize: number, newCollapse: 0 | 1 | 2) => {
-    this.props.onChangeSidebarConfig(newSize, newCollapse !== 1);
-  };
-
-  render() {
-    let collapse: 0 | 1 | 2 = 0;
-    if (this.props.isStackable) {
-      collapse = this.props.showRelated ? 0 : 1;
-    } else {
-      collapse = this.props.showRelated ? 2 : 1;
-    }
-    const classes = classnames('sidebar', { stackable: this.props.isStackable });
-    return (
-      <div className={classes}>
-        {!this.props.isStackable && (
-          <Nav variant="tabs" fill>
-            <NavItem>
-              <NavLink
-                active={!this.props.showRelated}
-                onClick={() => { this.props.onChangeSidebarConfig(this.props.chatHeight, false); }}
-              >
-                Chat
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink
-                active={this.props.showRelated}
-                onClick={() => { this.props.onChangeSidebarConfig(this.props.chatHeight, true); }}
-              >
-                Related
-              </NavLink>
-            </NavItem>
-          </Nav>
-        )}
-        <div className="split-pane-wrapper">
-          <SplitPanePlus
-            split="horizontal"
-            primary="second"
-            minSize={MinimumChatHeight}
-            autoCollapse1={50}
-            autoCollapse2={-1}
-            allowResize={this.props.isStackable}
-            scaling="relative"
-            onPaneChanged={this.onChangeChatHeight}
-            size={this.props.chatHeight}
-            collapsed={collapse}
-          >
-            <RelatedPuzzleSection
-              activePuzzle={this.props.activePuzzle}
-              allPuzzles={this.props.allPuzzles}
-              allTags={this.props.allTags}
-            />
-            <ChatSection
-              chatReady={this.props.chatReady}
-              chatMessages={this.props.chatMessages}
-              displayNames={this.props.displayNames}
-              huntId={this.props.huntId}
-              puzzleId={this.props.activePuzzle._id}
-            />
-          </SplitPanePlus>
-        </div>
-      </div>
-    );
-  }
-}
-
 interface PuzzlePageMetadataParams {
   puzzle: PuzzleType;
   allTags: TagType[];
+  allPuzzles: PuzzleType[];
   guesses: GuessType[];
   displayNames: Record<string, string>;
   document?: DocumentType;
@@ -630,6 +488,9 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             onRemoveTag={this.onRemoveTag}
             linkToSearch={false}
             showControls={this.props.isDesktop}
+            popoverRelated
+            allPuzzles={this.props.allPuzzles}
+            allTags={this.props.allTags}
           />
         </div>
         <div className="puzzle-metadata-row puzzle-metadata-action-row">
@@ -1038,36 +899,6 @@ class PuzzlePageMultiplayerDocument extends React.PureComponent<PuzzlePageMultip
   }
 }
 
-interface PuzzlePageContentProps {
-  puzzle: PuzzleType;
-  allTags: TagType[];
-  guesses: GuessType[];
-  displayNames: Record<string, string>;
-  document?: DocumentType;
-  isDesktop: boolean;
-}
-
-class PuzzlePageContent extends React.PureComponent<PuzzlePageContentProps> {
-  render() {
-    return (
-      <div className="puzzle-content">
-        <PuzzlePageMetadataContainer
-          puzzle={this.props.puzzle}
-          allTags={this.props.allTags}
-          guesses={this.props.guesses}
-          displayNames={this.props.displayNames}
-          isDesktop={this.props.isDesktop}
-          document={this.props.document}
-        />
-        {
-          this.props.isDesktop &&
-          <PuzzlePageMultiplayerDocument document={this.props.document} />
-        }
-      </div>
-    );
-  }
-}
-
 const findPuzzleById = function (puzzles: PuzzleType[], id: string) {
   for (let i = 0; i < puzzles.length; i++) {
     const puzzle = puzzles[i];
@@ -1101,11 +932,7 @@ interface PuzzlePageProps extends PuzzlePageWithRouterParams {
 
 interface PuzzlePageState {
   sidebarWidth: number,
-  chatHeight: number,
-  showRelated: boolean;
   isDesktop: boolean;
-  isStackable: boolean;
-  defaultsAppliedForPuzzle: string;
 }
 
 class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
@@ -1117,40 +944,14 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
     this.puzzlePageEl = null;
     this.state = {
       sidebarWidth: DefaultSidebarWidth,
-      chatHeight: 0,
-      showRelated: false,
       isDesktop: mode.isDesktop,
-      isStackable: mode.isStackable,
-      defaultsAppliedForPuzzle: '',
     };
-  }
-
-  // Update the default interface state exactly once (enforced by defaultsAppliedForPuzzle),
-  // as soon as puzzlesReady is true.
-  static getDerivedStateFromProps(props: Readonly<PuzzlePageProps>, state: PuzzlePageState): Partial<PuzzlePageState> | null {
-    if (state.defaultsAppliedForPuzzle !== props.match.params.puzzleId && props.puzzlesReady) {
-      // Show relatable puzzles by default if tags are consistant a meta
-      // Puzzles with is:meta, is:metameta and meta-for:* tags will show related puzzles by default
-      const tagsById = _.indexBy(props.allTags, '_id');
-      const activePuzzle = findPuzzleById(props.allPuzzles, props.match.params.puzzleId);
-      const puzzleTagIds = (activePuzzle && activePuzzle.tags) || [];
-      const puzzleTagNames = puzzleTagIds.map((tagId) => (tagId in tagsById ? tagsById[tagId].name : ''));
-      const isRelatable = puzzleTagNames.some((tagName: string) => {
-        return ['is:meta', 'is:metameta', 'administrivia'].includes(tagName) || tagName.startsWith('meta-for:');
-      });
-      return {
-        defaultsAppliedForPuzzle: props.match.params.puzzleId,
-        showRelated: state.showRelated || (state.isStackable && isRelatable),
-      };
-    }
-    return null;
   }
 
   componentDidMount() {
     window.addEventListener('resize', this.onResize);
     if (this.puzzlePageEl) {
       this.setState({
-        chatHeight: DefaultChatHeightFraction * this.puzzlePageEl.clientHeight,
         sidebarWidth: Math.min(DefaultSidebarWidth, this.puzzlePageEl.clientWidth - MinimumDocumentWidth),
       });
     }
@@ -1168,19 +969,7 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
   }
 
   onResize = () => {
-    const newMode = this.calculateViewMode();
-    // If resizing into unstackable mode, switch to just chat in all cases
-    if (this.state.isStackable && !newMode.isStackable) {
-      this.setState({ showRelated: false });
-    }
-    this.setState(newMode);
-  };
-
-  onChangeSidebarConfig = (newChatHeight: number, newShowRelated: boolean) => {
-    this.setState({
-      chatHeight: newChatHeight,
-      showRelated: newShowRelated,
-    });
+    this.setState(this.calculateViewMode());
   };
 
   onChangeSideBarSize = (newSidebarWidth: number) => {
@@ -1191,39 +980,34 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
   // but this component is designed for full-page use, so...
   calculateViewMode = () => {
     const newIsDesktop = window.innerWidth >= MinimumDesktopWidth;
-    const newIsStackable = window.innerHeight >= (newIsDesktop ? MinimumDesktopStackingHeight : MinimumMobileStackingHeight);
-    return {
-      isDesktop: newIsDesktop,
-      isStackable: newIsStackable,
-    };
+    return { isDesktop: newIsDesktop };
   };
 
   render() {
     if (!this.props.puzzlesReady) {
       return <div className="puzzle-page" ref={(el) => { this.puzzlePageEl = el; }}><span>loading...</span></div>;
     }
-
     const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.match.params.puzzleId)!;
-
-    const sidebar = (
-      <PuzzlePageSidebar
-        key="sidebar"
-        activePuzzle={activePuzzle}
-        allPuzzles={this.props.allPuzzles}
+    const metadata = (
+      <PuzzlePageMetadataContainer
+        puzzle={activePuzzle}
         allTags={this.props.allTags}
+        allPuzzles={this.props.allPuzzles}
+        guesses={this.props.allGuesses}
+        displayNames={this.props.displayNames}
+        isDesktop={this.state.isDesktop}
+        document={this.props.document}
+      />
+    );
+    const chat = (
+      <ChatSection
         chatReady={this.props.chatReady}
         chatMessages={this.props.chatMessages}
         displayNames={this.props.displayNames}
-        canUpdate={this.props.canUpdate}
-        showRelated={this.state.showRelated}
-        chatHeight={this.state.chatHeight}
-        onChangeSidebarConfig={this.onChangeSidebarConfig}
-        isDesktop={this.state.isDesktop}
-        isStackable={this.state.isStackable}
         huntId={this.props.match.params.huntId}
+        puzzleId={this.props.match.params.puzzleId}
       />
     );
-
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         {this.state.isDesktop ? (
@@ -1238,28 +1022,17 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
               size={this.state.sidebarWidth}
               onPaneChanged={this.onChangeSideBarSize}
             >
-              {sidebar}
-              <PuzzlePageContent
-                puzzle={activePuzzle}
-                allTags={this.props.allTags}
-                guesses={this.props.allGuesses}
-                displayNames={this.props.displayNames}
-                document={this.props.document}
-                isDesktop={this.state.isDesktop}
-              />
+              {chat}
+              <div className="puzzle-content">
+                {metadata}
+                <PuzzlePageMultiplayerDocument document={this.props.document} />
+              </div>
             </SplitPanePlus>
           </div>
         ) : (
           <div className="puzzle-page narrow">
-            <PuzzlePageMetadataContainer
-              puzzle={activePuzzle}
-              allTags={this.props.allTags}
-              guesses={this.props.allGuesses}
-              displayNames={this.props.displayNames}
-              document={this.props.document}
-              isDesktop={this.state.isDesktop}
-            />
-            {sidebar}
+            {metadata}
+            {chat}
           </div>
         )}
       </DocumentTitle>
@@ -1285,8 +1058,6 @@ const tracker = withTracker(({ match }: PuzzlePageWithRouterParams) => {
   // We can render some things on incomplete data, but most of them really need full data:
   // * Chat can be rendered with just chat messages and display names
   // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
-  // * Related puzzles probably only needs puzzles and tags, but right now it just gets the same
-  //   data that the puzzle metadata gets, so it blocks maybe-unnecessarily.
 
   // Add the current user to the collection of people viewing this puzzle.
   // Don't use the subs manager - we don't want this cached.

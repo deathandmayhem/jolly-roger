@@ -136,7 +136,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
         <div className="puzzle-answer">
           <PuzzleAnswer answer={this.props.puzzle.answers.join(',')} />
         </div>
-        <TagList puzzle={this.props.puzzle} tags={ownTags} linkToSearch={this.props.layout === 'grid'} />
+        <TagList puzzle={this.props.puzzle} tags={ownTags} linkToSearch={this.props.layout === 'grid'} popoverRelated={false} />
       </div>
     );
   }
