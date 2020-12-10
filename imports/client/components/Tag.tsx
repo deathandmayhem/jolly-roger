@@ -127,6 +127,17 @@ class Tag extends React.Component<TagProps, TagState> {
       isNeeds ? 'tag-needs' : null,
       isPriority ? 'tag-priority' : null);
 
+    // Browsers won't word-break on hyphens, so suggest
+    // Use wbr instead of zero-width space to make copy-paste reasonable
+    const nameWithBreaks:(String|JSX.Element)[] = [];
+    name.split(':').forEach((part, i, arr) => {
+      const withColon = i < arr.length - 1;
+      nameWithBreaks.push(`${part}${withColon ? ':' : ''}`);
+      if (withColon) {
+        // eslint-disable-next-line react/no-array-index-key
+        nameWithBreaks.push(<wbr key={`wbr-${i}-${part}`} />);
+      }
+    });
     let title;
     if (this.props.linkToSearch) {
       title = (
@@ -137,11 +148,11 @@ class Tag extends React.Component<TagProps, TagState> {
           }}
           className="tag-link"
         >
-          {name}
+          {nameWithBreaks}
         </Link>
       );
     } else {
-      title = name;
+      title = nameWithBreaks;
     }
 
     const tagElement = (
