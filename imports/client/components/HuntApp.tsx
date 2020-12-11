@@ -9,7 +9,6 @@ import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
-import DocumentTitle from 'react-document-title';
 import {
   withRouter, RouteComponentProps, Switch, Redirect, Route,
 } from 'react-router';
@@ -17,6 +16,7 @@ import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
 import AnnouncementsPage from './AnnouncementsPage';
 import CelebrationCenter from './CelebrationCenter';
+import DocumentTitle from './DocumentTitle';
 import GuessQueuePage from './GuessQueuePage';
 import HuntProfileListPage from './HuntProfileListPage';
 import PuzzleListPage from './PuzzleListPage';
