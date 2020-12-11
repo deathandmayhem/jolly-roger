@@ -768,7 +768,7 @@ class DiscordGuildForm extends React.Component<DiscordGuildFormProps, DiscordGui
         <form onSubmit={this.onSaveGuild}>
           <FormGroup>
             <FormLabel htmlFor="jr-setup-edit-discord-bot-guild">
-              Bot token
+              Guild
             </FormLabel>
             <FormControl
               id="jr-setup-edit-discord-bot-guild"
