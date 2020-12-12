@@ -86,6 +86,13 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
       this.props.layout === 'table' ? 'puzzle-table-row' : null,
       isAdministrivia ? 'administrivia' : null);
 
+    const answers = this.props.puzzle.answers.map((answer, i) => {
+      return (
+        // eslint-disable-next-line react/no-array-index-key
+        <PuzzleAnswer key={`${i}-${answer}`} answer={answer} />
+      );
+    });
+
     if (this.props.layout === 'table') {
       return (
         <tr className={puzzleClasses}>
@@ -95,7 +102,7 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
             <Link to={linkTarget}>{this.props.puzzle.title}</Link>
           </td>
           <td className="puzzle-answer">
-            <PuzzleAnswer answer={this.props.puzzle.answers.join(',')} />
+            {answers}
           </td>
         </tr>
       );
@@ -114,27 +121,28 @@ class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
             showOnMount
           />
         ) : null}
+        {this.props.canUpdate && (
+          <div className="puzzle-edit-button">
+            {this.editButton()}
+          </div>
+        )}
         <div className="puzzle-title">
-          {this.editButton()}
-          {' '}
           <Link to={linkTarget}>{this.props.puzzle.title}</Link>
         </div>
-        {this.props.layout === 'grid' ? (
-          <div className="puzzle-link">
-            {this.props.puzzle.url ? (
-              <span>
-                <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
-                  <FontAwesomeIcon icon={faPuzzlePiece} />
-                </a>
-              </span>
-            ) : null}
-          </div>
-        ) : null}
         <div className="puzzle-view-count">
           {!(this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount) && !isAdministrivia && <SubscriberCount puzzleId={this.props.puzzle._id} />}
         </div>
+        <div className="puzzle-link">
+          {this.props.puzzle.url ? (
+            <span>
+              <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
+                <FontAwesomeIcon icon={faPuzzlePiece} />
+              </a>
+            </span>
+          ) : null}
+        </div>
         <div className="puzzle-answer">
-          <PuzzleAnswer answer={this.props.puzzle.answers.join(',')} />
+          {answers}
         </div>
         <TagList puzzle={this.props.puzzle} tags={ownTags} linkToSearch={this.props.layout === 'grid'} popoverRelated={false} />
       </div>

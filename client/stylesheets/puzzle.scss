@@ -20,9 +20,6 @@
 }
 
 .puzzle {
-  margin-bottom: 4px;
-  vertical-align: top;
-
   &.unsolved {
     background-color: #f0f0f0;
   }
@@ -36,99 +33,96 @@
   }
 }
 
-.puzzle-grid {
+.puzzle-answer > .answer {
+  display: block;
+  text-indent: -2ch;
+  padding-left: 2ch;
+}
+
+.puzzle.puzzle-grid {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
+  align-items: first baseline;
   justify-content: flex-start;
-  padding-left: 4px;
-  min-height: 32px;
+  line-height: 24px;
+  padding: 4px 2px;
+  margin-bottom: 4px;
+
+  > * {
+    padding: 0 2px;
+    display: inline-block;
+    flex: none;
+  }
 
   .puzzle-title {
-    flex: 1 0 35%;
-    display: inline-block;
-    vertical-align: top;
-    word-wrap: break-word;
-    font-weight: bold;
+    flex: 4;
   }
 
   .puzzle-link {
-    flex: 1 1 1em;
-    display: inline-block;
-    vertical-align: top;
+    width: 26px;
     text-align: center;
   }
 
   .puzzle-view-count {
-    flex: 1 1 40px;
-    display: inline-block;
+    width: 5ch;
     text-align: center;
   }
 
   .puzzle-answer {
-    flex: 1 1 25%;
-    display: inline-block;
-    word-wrap: break-word;
-    word-break: break-all;
-    .answer-wrapper {
-      margin: 0;
+    flex: 3;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    // Don't let .puzzle-answer set the height unless it's more lines than .puzzle-title
+    // Courier New (frequently the default monospace font) has slightly different ascender and
+    // descender heights, causing .puzzle to render taller than intended when aligned by baseline
+    // (Line-height is large enough that this fix doesn't actually crop anything)
+    // Revisit once we choose a preferred monospace font
+    margin-bottom: -1px;
+  }
+
+  .tag-list {
+    flex: 3;
+    margin: -2px -4px -2px 0;
+  }
+
+  .puzzle-edit-button {
+    align-self: flex-start;
+
+    // Resize button to fit in one line-height
+    button {
+      display: block;
+      height: 24px;
+      width: 24px;
       padding: 0;
     }
   }
 
-  .tag-list {
-    flex: 1 10 25%;
-    display: inline-block;
-  }
-}
+  @media (max-width: 507px) {
+    flex-wrap: wrap;
 
-@media (max-width: 499px) {
-  .puzzle-title {
-    flex-basis: 35%;
-  }
-
-  .puzzle-link {
-    flex-basis: 15%;
-  }
-
-  .puzzle-view-count {
-    flex-basis: 5%;
-  }
-
-  .puzzle-answer {
-    flex-basis: 45%
-  }
-
-  .puzzle-grid .tag-list {
-     /* Push tags to new row in narrow views */
-    flex-basis: 100%;
-    width: 100%;
+    /* Push to new row in narrow views */
+    .puzzle-answer, .tag-list {
+      flex: 0 0 100%;
+    }
   }
 }
 
 table.puzzle-list {
   width: 100%;
   max-width: 100%;
-}
+  border-collapse: separate;
+  border-spacing: 0 4px;
 
-.puzzle-table-row {
-  .puzzle-title {
-    padding: 4px 0;
-    font-weight: bold;
-    word-wrap: break-word;
-  }
-
-  .puzzle-answer {
-    word-break: normal;
+  .puzzle.puzzle-table-row {
+    td {
+      padding: 0px 4px;
+      vertical-align: baseline;
+    }
   }
 }
 
-.answer-wrapper {
-  display: inline-block;
-  vertical-align: top;
-  padding: 2px;
-  margin: 2px;
+.puzzle-title {
+  font-weight: bold;
 }
 
 @font-face {
