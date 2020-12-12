@@ -1,9 +1,9 @@
 import React from 'react';
 import { BreadcrumbsProvider } from 'react-breadcrumbs-context';
-import DocumentTitle from 'react-document-title';
 import { Route, Switch } from 'react-router';
 import AllProfileListPage from './AllProfileListPage';
 import AuthenticatedRoute from './AuthenticatedRoute';
+import DocumentTitle from './DocumentTitle';
 import EnrollForm from './EnrollForm';
 import FirstUserForm from './FirstUserForm';
 import HuntApp from './HuntApp';
