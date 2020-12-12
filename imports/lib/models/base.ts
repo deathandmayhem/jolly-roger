@@ -19,6 +19,11 @@ export type FindOptions = FindOneOptions & {
   limit?: number;
 }
 
+type ValidateShape<T, Shape> =
+    T extends Partial<Shape> ?
+    Exclude<keyof T, keyof Shape> extends never ?
+    T : never : never;
+
 class Base<T extends BaseType> extends Mongo.Collection<T> {
   public name: string;
 
@@ -35,7 +40,7 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
   //   autovalues, it doesn't know which fields are actually required. This is a
   //   coarse workaround, but it's hard to pick the autoValue out from just the
   //   types.
-  insert(doc: Partial<T>, callback?: Function): string {
+  insert<U>(doc: ValidateShape<U, Partial<T>>, callback?: Function): string {
     return super.insert(<any>doc, callback);
   }
 
