@@ -480,7 +480,6 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
           {this.props.puzzle.answers.length > 0 && answerComponent}
         </div>
         <div className={classnames('puzzle-metadata-row', this.props.isDesktop && 'puzzle-metadata-tag-editor-row')}>
-          <div className="puzzle-metadata-tags-label">Tags: </div>
           <TagList
             puzzle={this.props.puzzle}
             tags={tags}
@@ -491,6 +490,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             popoverRelated
             allPuzzles={this.props.allPuzzles}
             allTags={this.props.allTags}
+            emptyMessage="No tags yet"
           />
         </div>
         <div className="puzzle-metadata-row puzzle-metadata-action-row">

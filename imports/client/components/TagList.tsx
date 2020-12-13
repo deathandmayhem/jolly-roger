@@ -16,6 +16,7 @@ interface BaseTagListProps {
   onRemoveTag?: (tagId: string) => void; // callback if user wants to remove a tag
   linkToSearch: boolean;
   showControls?: boolean;
+  emptyMessage: string;
 }
 
 interface DoNotPopoverRelatedProps {
@@ -38,7 +39,10 @@ interface TagListState {
 class TagList extends React.PureComponent<TagListProps, TagListState> {
   static displayName = 'TagList';
 
-  static defaultProps = { showControls: true };
+  static defaultProps = {
+    showControls: true,
+    emptyMessage: '',
+  };
 
   constructor(props: TagListProps) {
     super(props);
@@ -134,6 +138,12 @@ class TagList extends React.PureComponent<TagListProps, TagListState> {
           allPuzzles={this.props.popoverRelated ? this.props.allPuzzles : []}
           allTags={this.props.popoverRelated ? this.props.allTags : []}
         />
+      );
+    }
+
+    if (tags.length === 0 && this.props.emptyMessage) {
+      components.push(
+        <span className="tag-list-empty-label" key="noTagLabel">{this.props.emptyMessage}</span>
       );
     }
 
