@@ -5,8 +5,7 @@
 #
 # The jolly-roger environment consists of:
 #
-# - A VPC with a public subnet (no support currently for private
-#   subnets or NAT)
+# - A VPC with a public subnet
 #
 # - A system for fetching secrets using credstash which encrypts
 #   secrets using KMS and stores them in DynamoDB.
@@ -21,6 +20,9 @@
 #
 #   - An nginx instance for port 8443, listening for HTTP connections
 #     (HTTPS, unwrapped by ALB) and forwarding to the application
+#
+#   - A coturn server for STUN/TURN negotiations as part of audio
+#     conferencing
 #
 #   - The actual Meteor application
 #
@@ -62,9 +64,13 @@ Parameters:
     Description: ARN of the certificate to use
     Type: String
   AppUrl:
-    Description: The URL of application
+    Description: The domain name of application
     Type: String
     Default: future.deathandmayhem.com
+  DirectUrl:
+    Description: The domain name that points directly at the application servers
+    Type: String
+    Default: direct.deathandmayhem.com
   AppDomain:
     Description: The zone under which to create DNS records
     Type: AWS::Route53::HostedZone::Id
@@ -84,6 +90,11 @@ Parameters:
     Description: Desired number of instances for app server ASG
     Type: Number
     Default: 1
+  TurnSecret:
+    Description: TURN REST API secret
+    Type: String
+    AllowedPattern: "^[A-Za-z0-9]+$"
+    NoEcho: true
   PapertrailHost:
     Description: Log host for Papertrail
     Type: String
@@ -126,37 +137,37 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Description: Look up the latest Ubuntu AMI given specific parameters
-      Runtime: nodejs8.10
+      Runtime: nodejs12.x
       Handler: "index.main"
       Timeout: 10
       Role: !GetAtt AMILookupRole.Arn
       Code:
         ZipFile: |
+          const assert = require('assert');
           const https = require('https');
           const response = require('cfn-response');
-          const assert = require('assert');
 
-          const getContent = function(url) {
+          const getContent = function (url) {
             return new Promise((resolve, reject) => {
-              const request = https.get(url, (response) => {
-                if (response.statusCode < 200 || response.statusCode > 299) {
-                  reject(new Error('Error loading: ' + response.statusCode));
+              const request = https.get(url, (httpResponse) => {
+                if (httpResponse.statusCode < 200 || httpResponse.statusCode > 299) {
+                  reject(new Error(`Error loading: ${httpResponse.statusCode}`));
                 }
                 const body = [];
-                response.on('data', (chunk) => body.push(chunk));
-                response.on('end', () => resolve(body.join('')));
+                httpResponse.on('data', (chunk) => body.push(chunk));
+                httpResponse.on('end', () => resolve(body.join('')));
               });
               request.on('error', (err) => reject(err));
             });
           };
 
           // By promise-ifying this we can block the main function from resolving until this finishes
-          const sendResponse = function(event, context, status, data) {
+          const sendResponse = function (event, context, status, data) {
             return new Promise((resolve) => {
-              const fakeContext = Object.assign({}, context, { done: resolve });
+              const fakeContext = { ...context, done: resolve };
               response.send(event, fakeContext, status, data);
             });
-          }
+          };
 
           exports.main = async (event, context) => {
             try {
@@ -168,8 +179,8 @@ Resources:
               assert(suite && instanceType && arch && region && virtType);
 
               const raw = await getContent(`https://cloud-images.ubuntu.com/query/${suite}/server/released.current.txt`);
-              const data = raw.split('\n').map(l => l.split('\t')).
-                map(l => ({
+              const data = raw.split('\n').map((l) => l.split('\t'))
+                .map((l) => ({
                   suite: l[0],
                   stream: l[1],
                   tag: l[2],
@@ -181,15 +192,14 @@ Resources:
                   aki: l[8],
                   virttype: l[10],
                 }));
-              const match = data.find(l =>
-                l.suite === suite &&
+              const match = data.find((l) => l.suite === suite &&
                 l.itype === instanceType &&
                 l.arch === arch &&
                 l.region === region &&
                 l.virttype === virtType);
-              await sendResponse(event, context, response.SUCCESS, {AMI: match.ami});
+              await sendResponse(event, context, response.SUCCESS, { AMI: match.ami });
             } catch (e) {
-              await sendResponse(event, context, response.FAILED, {Error: e.message});
+              await sendResponse(event, context, response.FAILED, { Error: e.message });
             }
           };
   AMILookup:
@@ -201,6 +211,109 @@ Resources:
       InstanceType: ebs-ssd
       Architecture: amd64
       VirtualizationType: hvm
+
+  DNSUpdateRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: ["sts:AssumeRole"]
+      Policies:
+        - PolicyName: dns-update
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "arn:aws:logs:*:*:*"
+              - Effect: Allow
+                Action:
+                  - autoscaling:DescribeAutoScalingGroups
+                  - ec2:DescribeInstances
+                  - route53:ChangeResourceRecordSets
+                Resource: "*"
+  DNSUpdateFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Configure a DNS Round Robin Route53 record based on the instances in an ASG
+      Runtime: nodejs12.x
+      Handler: "index.main"
+      Timeout: 30
+      Role: !GetAtt DNSUpdateRole.Arn
+      Code:
+        ZipFile: |
+          const assert = require('assert');
+          const AWS = require('aws-sdk');
+
+          exports.main = async (event) => {
+            const autoscaling = new AWS.AutoScaling({ region: event.region });
+            const asgs = await autoscaling.describeAutoScalingGroups({
+              AutoScalingGroupNames: [event.detail.AutoScalingGroupName],
+            }).promise();
+
+            const asg = asgs.AutoScalingGroups[0];
+            assert(asg);
+
+            const dnsTag = asg.Tags.find((t) => t.Key === 'DNSName');
+            const zoneTag = asg.Tags.find((t) => t.Key === 'DNSZone');
+            if (!dnsTag || !zoneTag) {
+              return;
+            }
+
+            const instanceIds = asg.Instances.map((i) => i.InstanceId);
+            const ec2 = new AWS.EC2({ region: event.region });
+
+            const instances = (await ec2.describeInstances({ InstanceIds: instanceIds }))
+              .Reservations
+              .flatMap((r) => r.Instances);
+
+            const route53 = new AWS.Route53({});
+            const changeset = {
+              Changes: [
+                {
+                  Action: 'UPSERT',
+                  ResourceRecordSet: {
+                    Name: dnsTag.Value,
+                    Type: 'A',
+                    ResourceRecords: instances.map((i) => {
+                      return { Value: i.PublicIpAddress };
+                    }),
+                    TTL: 60,
+                  },
+                },
+              ],
+            };
+            await route53.changeResourceRecordSets({
+              ChangeBatch: changeset,
+              HostedZoneId: zoneTag.Value,
+            }).promise();
+          };
+  DNSUpdateRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - aws.autoscaling
+        detail-type:
+          - "EC2 Instance Launch Successful"
+          - "EC2 Instance Terminate Successful"
+          - "EC2 Instance Launch Unsuccessful"
+          - "EC2 Instance Terminate Unsuccessful"
+          - "EC2 Instance-launch Lifecycle Action"
+          - "EC2 Instance-terminate Lifecycle Action"
+        detail:
+          AutoScalingGroupName:
+          - !Ref AppAsg
+      Targets:
+        - Id: DNSUpdateFunction
+          Arn: !GetAtt DNSUpdateFunction.Arn
 
   VPC:
     Type: AWS::EC2::VPC
@@ -324,18 +437,33 @@ Resources:
           IpProtocol: tcp
           FromPort: 8443
           ToPort: 8443
-        # echo request
-        - CidrIp: 0.0.0.0/0
+        - Description: STUN/TURN TCP
+          CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 3478
+          ToPort: 3478
+        - Description: STUN/TURN UDP
+          CidrIp: 0.0.0.0/0
+          IpProtocol: udp
+          FromPort: 3478
+          ToPort: 3478
+        - Description: TURN relay ports
+          CidrIp: 0.0.0.0/0
+          IpProtocol: udp
+          FromPort: 49152
+          ToPort: 65535
+        - Description: ICMP echo request
+          CidrIp: 0.0.0.0/0
           IpProtocol: icmp
           FromPort: 8
           ToPort: -1
-        # echo reply
-        - CidrIp: 0.0.0.0/0
+        - Description: ICMP echo reply
+          CidrIp: 0.0.0.0/0
           IpProtocol: icmp
           FromPort: 0
           ToPort: -1
-        # frag needed
-        - CidrIp: 0.0.0.0/0
+        - Description: ICMP frag needed
+          CidrIp: 0.0.0.0/0
           IpProtocol: icmp
           FromPort: 3
           ToPort: 4
@@ -642,6 +770,9 @@ Resources:
                 ${PapertrailDockerConfig}
                 ${DatadogDockerConfig}
 
+                # Use host networking for better performance
+                - docker run --name coturn -d --restart=unless-stopped --network=host instrumentisto/coturn --log-file=stdout --external-ip='$(detect-external-ip)' --use-auth-secret --static-auth-secret=${TurnSecret}
+
                 - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx
 
                 - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e VIRTUAL_HOST=${AppUrl} -e ROOT_URL=https://${AppUrl} deathandmayhem/jolly-roger
@@ -682,6 +813,13 @@ Resources:
       TargetGroupARNs:
         - !Ref AppAlbTargetHTTP
         - !Ref AppAlbTargetHTTPS
+      Tags:
+        - Key: DNSName
+          Value: !Ref DirectUrl
+          PropagateAtLaunch: false
+        - Key: DNSZone
+          Value: !Ref AppDomain
+          PropagateAtLaunch: false
     UpdatePolicy:
       AutoScalingRollingUpdate:
         WaitOnResourceSignals: true
