@@ -1,5 +1,4 @@
-@import "../../node_modules/bootstrap/scss/functions";
-@import "../../node_modules/bootstrap/scss/variables";
+@import "theme";
 
 // Puzzle components helper styles
 // Puzzle lists/tables
@@ -123,7 +122,7 @@ table.puzzle-list {
 
 .answer, #jr-puzzle-guess {
   text-transform: uppercase;
-  font-family: "Emoji", "Source Code Pro", "Consolas", "Monaco", monospace, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: "Emoji", $font-family-monospace;
   font-weight: 300;
 }
 
