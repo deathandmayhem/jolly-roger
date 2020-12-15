@@ -1,0 +1,7 @@
+$font-family-sans-serif: "Source Sans Pro", "Helvetica Neue", "Helvetica", "Arial", sans-serif, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji";
+$font-family-monospace: "Source Code Pro", "Consolas", "Monaco", monospace, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji";
+$font-family-base: $font-family-sans-serif;
+
+@import "../../node_modules/bootstrap/scss/functions";
+@import "../../node_modules/bootstrap/scss/variables";
+@import "../../node_modules/bootstrap/scss/mixins";

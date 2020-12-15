@@ -1,5 +1,3 @@
-import '../node_modules/bootstrap/dist/css/bootstrap.css';
-
 // explicitly import all the stuff from lib/ since mainModule skips autoloading
 // things
 import '../imports/lib/config/accounts';

@@ -1,5 +1,4 @@
-@import "../../node_modules/bootstrap/scss/functions";
-@import "../../node_modules/bootstrap/scss/variables";
+@import "theme";
 
 // Puzzle components helper styles
 // Puzzle lists/tables
@@ -72,12 +71,6 @@
     flex: 3;
     overflow-wrap: break-word;
     overflow: hidden;
-    // Don't let .puzzle-answer set the height unless it's more lines than .puzzle-title
-    // Courier New (frequently the default monospace font) has slightly different ascender and
-    // descender heights, causing .puzzle to render taller than intended when aligned by baseline
-    // (Line-height is large enough that this fix doesn't actually crop anything)
-    // Revisit once we choose a preferred monospace font
-    margin-bottom: -1px;
   }
 
   .tag-list {
@@ -121,10 +114,6 @@ table.puzzle-list {
   }
 }
 
-.puzzle-title {
-  font-weight: bold;
-}
-
 @font-face {
   font-family: "Emoji";
   src: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji";
@@ -133,8 +122,8 @@ table.puzzle-list {
 
 .answer, #jr-puzzle-guess {
   text-transform: uppercase;
-  font-family: "Emoji", monospace, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
-  font-weight: bold;
+  font-family: "Emoji", $font-family-monospace;
+  font-weight: 300;
 }
 
 // Tags
