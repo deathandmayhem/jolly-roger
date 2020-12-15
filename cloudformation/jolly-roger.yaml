@@ -270,7 +270,10 @@ Resources:
             const instanceIds = asg.Instances.map((i) => i.InstanceId);
             const ec2 = new AWS.EC2({ region: event.region });
 
-            const instances = (await ec2.describeInstances({ InstanceIds: instanceIds }))
+            const instances = (await ec2
+              .describeInstances({ InstanceIds: instanceIds })
+              .promise()
+            )
               .Reservations
               .flatMap((r) => r.Instances);
 
