@@ -24,6 +24,8 @@ show their name, rather than "Anonymous Animal".
 Users who do not link a Google account (or don't have or use one) can still
 participate in the sheet anonymously.
 
+![Spreadsheet creation](screenshots/google_doc_creation.png)
+
 ### Per-puzzle chat rooms
 
 Jolly Roger provides its own persistent chat with each puzzle.  No need to
@@ -36,6 +38,8 @@ We intentionally keep the chat pane always visible on each puzzle page, so
 remote hunters desperately trying to get your attention are hard to
 accidentally ignore.
 
+![Chat](screenshots/chat.png)
+
 ### Tag-based structure
 
 In many hunts, it's not always clear from the beginning what puzzles will be
@@ -44,13 +48,26 @@ eschewing a top-down hierarchical round structure and instead allowing
 multiple tags to be applied to each puzzle to construct dynamic groupings as
 you gain more information about the hunt structure over time.
 
+Groups are automatically detected for any tag starting with `group:`.  The
+metapuzzle for a group is automatically recognized by having an additional
+`meta-for:` tag matching the group tag.
+
 We've found this approach able to be capable of modeling every hunt
 structure we've thrown at it.
+
+![Tag structure](screenshots/tag_structure.png)
 
 Once a metapuzzle is solved, the puzzles in that group are usually less
 interesting from a hunt-progress perspective, so we automatically reorder
 things on the puzzle list page, sending the whole group to the bottom of the
 list when you solve the meta for the group.
+
+Hover over any tag to see other puzzles that share that tag.  This is
+particularly useful for metas where you want to see the answers that feed into
+the meta, or for backsolving to see what constraints all answers in that group
+appear to satisfy.
+
+![Tags on hover](screenshots/tags_on_hover.png)
 
 ### Viewer tracking
 
@@ -64,6 +81,8 @@ you're looking for.
 Find puzzles in the growing list by searching for any piece of the title,
 answer, or tag.
 
+![filter search](screenshots/filter_search.png)
+
 ### Operator guess queue
 
 Avoid irritating Hunt HQ with your team's excessive ill-fated backsolving
@@ -73,6 +92,13 @@ combination of three letters."
 
 Or just make sure your team is ready to receive callbacks before calling
 things in.
+
+![Guess submission](screenshots/guess_submission.png)
+
+![Guess queue](screenshots/guess_queue.png)
+
+If you don't like the overhead of tracking and requiring operator submission,
+you can turn it off and let people mark their own answers as correct or not.
 
 ### Multiple answer support
 
@@ -91,6 +117,8 @@ and it Just Works™ with all the smart sorting too.
 Make sure everyone on the team sees teamwide announcements, whether they've
 been actively hunting the whole time or are dropping in and out and just
 need to get up to speed.
+
+![Announcements](screenshots/announcements.png)
 
 ### Realtime updates
 
