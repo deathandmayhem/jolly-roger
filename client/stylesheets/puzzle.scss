@@ -90,7 +90,7 @@
     }
   }
 
-  @media (max-width: 507px) {
+  @include media-breakpoint-down(xs) {
     flex-wrap: wrap;
 
     /* Push to new row in narrow views */
@@ -549,12 +549,6 @@ table.puzzle-list {
   display: inline-block;
   font-weight: bold;
   white-space: nowrap;
-  /* On very narrow windows, desperately try to prevent line wrap */
-  @media (max-width: 374px) {
-    .linkLabel {
-      display: none;
-    }
-  }
 }
 
 @media (any-pointer: fine) {

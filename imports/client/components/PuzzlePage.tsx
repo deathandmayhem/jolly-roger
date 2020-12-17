@@ -49,10 +49,12 @@ import TagList from './TagList';
 const FilteredChatFields: ('_id' | 'puzzle' | 'text' | 'sender' | 'timestamp')[] = ['_id', 'puzzle', 'text', 'sender', 'timestamp'];
 type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[0]>
 
-const MinimumDesktopWidth = 600;
-const MinimumSidebarWidth = 150;
-const MinimumDocumentWidth = 375;
+// It doesn't need to be, but this is consistent with the 576px transition used in other pages' css
+const MinimumSidebarWidth = 176;
+const MinimumDocumentWidth = 400;
 const DefaultSidebarWidth = 300;
+
+const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
 
 // PuzzlePage has some pretty unique properties:
 //
