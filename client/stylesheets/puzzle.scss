@@ -2,7 +2,7 @@
 
 // Puzzle components helper styles
 // Puzzle lists/tables
-.puzzle-group {
+.puzzle-group:not(:last-child) {
   margin-bottom: 16px;
 }
 

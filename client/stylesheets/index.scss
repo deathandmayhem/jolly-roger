@@ -1,10 +1,11 @@
 @import "theme";
 
 $navbar-height: 50px;
-$page-padding-top: 20px;
+$page-padding-y: 20px;
 
 .jolly-roger {
-  padding-top: $navbar-height + $page-padding-top;
+  padding-top: $navbar-height + $page-padding-y;
+  padding-bottom: $page-padding-y;
 
   .navbar {
     height: $navbar-height;
