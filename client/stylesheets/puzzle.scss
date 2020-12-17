@@ -210,12 +210,6 @@ table.puzzle-list {
 ////////////
 // Puzzle page styles
 .puzzle-page {
-  position: fixed;
-  top: 50px;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-
   .Pane > .puzzle-content, .Pane > .chat-section {
     position: absolute;
     top: 0;

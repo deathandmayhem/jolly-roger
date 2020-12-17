@@ -1,5 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
+import { faUser } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import BreadcrumbItem from 'react-bootstrap/BreadcrumbItem';
@@ -12,8 +14,6 @@ import NavItem from 'react-bootstrap/NavItem';
 import NavLink from 'react-bootstrap/NavLink';
 import Navbar from 'react-bootstrap/Navbar';
 import NavbarBrand from 'react-bootstrap/NavbarBrand';
-import NavbarCollapse from 'react-bootstrap/NavbarCollapse';
-import NavbarToggle from 'react-bootstrap/NavbarToggle';
 import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
 import { RouteComponentProps } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
@@ -39,7 +39,7 @@ class AppNavbar extends React.Component<AppNavbarProps> {
 
   render() {
     return (
-      <Navbar fixed="top" expand="md" bg="light" variant="light">
+      <Navbar fixed="top" bg="light" variant="light">
         <NavbarBrand>
           <Link to="/">
             <img src="/images/brand.png" alt="Jolly Roger logo" srcSet="/images/brand.png 1x, /images/brand@2x.png 2x" />
@@ -48,7 +48,7 @@ class AppNavbar extends React.Component<AppNavbarProps> {
         <BreadcrumbsConsumer>
           {({ crumbs }) => {
             return (
-              <Breadcrumb className="nav-breadcrumbs mr-auto">
+              <Breadcrumb className="nav-breadcrumbs">
                 {crumbs.map((crumb, index) => {
                   const last = (index === crumbs.length - 1);
                   if (last) {
@@ -71,23 +71,24 @@ class AppNavbar extends React.Component<AppNavbarProps> {
             );
           }}
         </BreadcrumbsConsumer>
-        <NavbarToggle />
-        <NavbarCollapse>
-          <Nav className="ml-auto">
-            <Dropdown as={NavItem}>
-              <DropdownToggle id="profileDropdown" as={NavLink}>{this.props.displayName}</DropdownToggle>
-              <DropdownMenu alignRight>
-                <RRBS.LinkContainer to={`/users/${this.props.userId}`}>
-                  <DropdownItem eventKey="1">My Profile</DropdownItem>
-                </RRBS.LinkContainer>
-                <DropdownItem eventKey="2" href="mailto:dfa-web@mit.edu">
-                  Report an issue
-                </DropdownItem>
-                <DropdownItem eventKey="3" onSelect={this.logout}>Sign out</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </Nav>
-        </NavbarCollapse>
+        <Nav className="ml-auto">
+          <Dropdown as={NavItem}>
+            <DropdownToggle id="profileDropdown" as={NavLink}>
+              <FontAwesomeIcon icon={faUser} />
+              {' '}
+              <span className="nav-username">{this.props.displayName}</span>
+            </DropdownToggle>
+            <DropdownMenu alignRight>
+              <RRBS.LinkContainer to={`/users/${this.props.userId}`}>
+                <DropdownItem eventKey="1">My Profile</DropdownItem>
+              </RRBS.LinkContainer>
+              <DropdownItem eventKey="2" href="mailto:dfa-web@mit.edu">
+                Report an issue
+              </DropdownItem>
+              <DropdownItem eventKey="3" onSelect={this.logout}>Sign out</DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </Nav>
       </Navbar>
     );
   }
