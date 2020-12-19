@@ -1,12 +1,5 @@
 @import "theme";
 
-@media (max-width: 767px) {
-  .puzzle-view-controls>* {
-    width: 100%;
-    margin-right: 0;
-  }
-}
-
 .puzzle-view-controls {
   display: flex;
   flex-wrap: wrap;
@@ -87,7 +80,12 @@
   }
 }
 
-@media (max-width: 506px) {
+@include media-breakpoint-down(xs) {
+  .puzzle-view-controls>* {
+    width: 100%;
+    margin-right: 0;
+  }
+
   .puzzle-list-link-label {
     display: none;
   }
