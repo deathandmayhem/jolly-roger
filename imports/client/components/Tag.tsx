@@ -93,6 +93,19 @@ class Tag extends React.Component<TagProps, TagState> {
     };
   }
 
+  componentDidMount() {
+    window.addEventListener('blur', this.onWindowBlur);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('blur', this.onWindowBlur);
+  }
+
+  // Necessary to ensure popover close when entering the iframe on devices that don't support hover
+  onWindowBlur = () => {
+    this.setState({ showPopover: false });
+  };
+
   onRemove = () => {
     if (this.props.onRemove) {
       this.props.onRemove(this.props.tag._id);
@@ -198,7 +211,7 @@ class Tag extends React.Component<TagProps, TagState> {
         <OverlayTrigger
           placement="bottom"
           overlay={popover}
-          trigger={['hover', 'focus']}
+          trigger={['hover', 'click']}
           onToggle={this.onOverlayTriggerToggle}
           show={this.state.showPopover}
           popperConfig={
