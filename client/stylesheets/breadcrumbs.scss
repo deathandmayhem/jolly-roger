@@ -1,41 +1,27 @@
-@import "theme";
+$breadcrumb-line-height: 22px;
+$breadcrumb-max-lines: 2;
+$breadcrumb-indent: 2ch;
 
-.jolly-roger .nav-breadcrumbs ol {
-  height: 50px; // navbar height
-  vertical-align: top; // Fill content from top
-  background-color: transparent;
+.jolly-roger .nav-breadcrumbs {
+  display: flex;
+  align-items: center;
+  height: $breadcrumb-line-height * $breadcrumb-max-lines;
+  line-height: $breadcrumb-line-height;
+  flex: 1;
 
-  display: inline-flex;
-  justify-content: flex-start;
-  align-items: center; // vertically center content...
-  flex-wrap: wrap; // ...but allow wrapping if horizontal space is limited
+  ol {
+    display: block;
+    background-color: transparent;
+    max-height: 100%;
+    overflow: hidden;
+    text-indent: (0 - $breadcrumb-indent);
+    margin: 0 0 0 $breadcrumb-indent;
+    padding-top: 0;
+    padding-bottom: 0;
 
-  overflow: hidden;
-
-  margin: 0; // override bootstrap style
-  padding: 8px 8px; // override bootstrap style to pack tighter (original was 8px 15px)
-
-  // See below for max-width at different screen sizes.
-}
-
-@include media-breakpoint-down(sm) {
-  .jolly-roger .nav-breadcrumbs {
-    // Don't cause the logo or hamburger button to wrap onto a new line.
-    // Size allowed is 100% of navbar width, minus 50px for the jolly-roger logo, and
-    // 1+12+30+12+1 + 8px = 64px for the toggle button.
-    max-width: calc(100% - 122px);
+    li {
+      display: inline;
+      text-indent: 0;
+    }
   }
-}
-
-@include media-breakpoint-up(md) {
-  .jolly-roger .nav-breadcrumbs {
-    max-width: calc(100vw - 280px); // Hopefully most people's names fit in 250px
-  }
-}
-
-.jolly-roger .nav-breadcrumbs li {
-  display: inline-block; // Apply ellipsis as needed to make fit on mobile
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }

@@ -987,7 +987,7 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
 
   render() {
     if (!this.props.puzzlesReady) {
-      return <div className="puzzle-page" ref={(el) => { this.puzzlePageEl = el; }}><span>loading...</span></div>;
+      return <div className="puzzle-page jolly-roger-fixed" ref={(el) => { this.puzzlePageEl = el; }}><span>loading...</span></div>;
     }
     const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.match.params.puzzleId)!;
     const metadata = (
@@ -1013,7 +1013,7 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
     return (
       <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
         {this.state.isDesktop ? (
-          <div className="puzzle-page" ref={(el) => { this.puzzlePageEl = el; }}>
+          <div className="puzzle-page jolly-roger-fixed" ref={(el) => { this.puzzlePageEl = el; }}>
             <SplitPanePlus
               split="vertical"
               minSize={MinimumSidebarWidth}
@@ -1032,7 +1032,7 @@ class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
             </SplitPanePlus>
           </div>
         ) : (
-          <div className="puzzle-page narrow">
+          <div className="puzzle-page narrow jolly-roger-fixed">
             {metadata}
             {chat}
           </div>
