@@ -503,11 +503,9 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
               target="_blank"
               rel="noreferrer noopener"
             >
-              <span className="linkLabel">
-                Puzzle
-                {' '}
-              </span>
               <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />
+              {' '}
+              <span className="link-label">Puzzle</span>
             </a>
           )}
           {this.props.document && (

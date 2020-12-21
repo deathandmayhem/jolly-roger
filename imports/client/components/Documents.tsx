@@ -44,11 +44,9 @@ class GoogleDocumentDisplay extends React.Component<DocumentDisplayProps> {
         return (
           <DeepLink className="gdrive-button" nativeUrl={deepUrl} browserUrl={url}>
             <a href={url} target="new">
-              <span className="linkLabel">
-                {title}
-                {' '}
-              </span>
               <FontAwesomeIcon fixedWidth icon={icon} />
+              {' '}
+              <span className="link-label">{title}</span>
             </a>
           </DeepLink>
         );
