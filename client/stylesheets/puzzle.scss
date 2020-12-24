@@ -114,15 +114,9 @@ table.puzzle-list {
   }
 }
 
-@font-face {
-  font-family: "Platform Emoji";
-  src: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji";
-  unicode-range: U+1F300-1FAFF, U+1F100-1F1FF, U+2300-23FF, U+2600-27BF;
-}
-
 .answer, #jr-puzzle-guess {
   text-transform: uppercase;
-  font-family: "Platform Emoji", $font-family-monospace;
+  font-family: $font-family-monospace;
   font-weight: 300;
 }
 
