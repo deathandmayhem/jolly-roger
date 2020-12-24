@@ -102,12 +102,24 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
     });
   };
 
-  onTagsChange = (value: {label: string, value: string}[] | undefined | null) => {
-    if (!value) {
-      return;
+  onTagsChange = (value: {label: string, value: string}[] | undefined | null, action: { action: string }) => {
+    let newTags = [];
+    switch (action.action) {
+      case 'clear':
+      case 'create-option':
+      case 'deselect-option':
+      case 'pop-value':
+      case 'remove-value':
+      case 'select-option':
+      case 'set-value':
+        newTags = value ? value.map((v) => v.value) : [];
+        break;
+      default:
+        return;
     }
+
     this.setState({
-      tags: value.map((v) => v.value),
+      tags: newTags,
       tagsDirty: true,
     });
   };
