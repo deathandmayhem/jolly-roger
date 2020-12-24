@@ -3,6 +3,12 @@
 // Answer monospace font
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap');
 
+@font-face {
+  font-family: "Platform Emoji";
+  src: local("Noto Color Emoji"), local("Apple Color Emoji"), local("Segoe UI Emoji");
+  unicode-range: U+1F300-1FAFF, U+1F100-1F1FF, U+200D, U+2300-23FF, U+2600-27BF;
+}
+
 @import "theme";
 @import "../../node_modules/bootstrap/scss/bootstrap";
 
