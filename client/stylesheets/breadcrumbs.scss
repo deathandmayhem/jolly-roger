@@ -1,6 +1,7 @@
 $breadcrumb-line-height: 22px;
 $breadcrumb-max-lines: 2;
 $breadcrumb-indent: 1rem;
+$breadcrumb-padding-x: 0.75rem;
 
 .jolly-roger .nav-breadcrumbs {
   display: flex;
@@ -15,9 +16,8 @@ $breadcrumb-indent: 1rem;
     max-height: 100%;
     overflow: hidden;
     text-indent: (0 - $breadcrumb-indent);
-    margin: 0 0 0 $breadcrumb-indent;
-    padding-top: 0;
-    padding-bottom: 0;
+    padding: 0 $breadcrumb-padding-x 0 $breadcrumb-padding-x + $breadcrumb-indent;
+    margin: 0;
 
     li {
       display: inline;
