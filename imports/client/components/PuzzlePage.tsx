@@ -437,25 +437,14 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
     this.editModalRef.current!.show();
   };
 
-  editButton = () => {
-    if (this.props.canUpdate) {
-      return (
-        <Button onClick={this.showEditModal} variant="secondary" size="sm" title="Edit puzzle...">
-          <FontAwesomeIcon icon={faEdit} />
-          {' '}
-          Edit
-        </Button>
-      );
-    }
-    return null;
-  };
-
   render() {
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
     const isAdministrivia = tags.find((t) => t.name === 'administrivia');
     const correctGuesses = this.props.guesses.filter((guess) => guess.state === 'correct');
-    const answersElement = correctGuesses.length > 0 ? (
+    const numGuesses = this.props.guesses.length;
+
+    const answersElement = correctGuesses.length > 0 && (
       <span className="puzzle-metadata-answers">
         {
           correctGuesses.map((guess) => (
@@ -468,8 +457,65 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
           ))
         }
       </span>
-    ) : null;
-    const numGuesses = this.props.guesses.length;
+    );
+
+    const puzzleLink = this.props.puzzle.url && (
+      <a
+        className="puzzle-metadata-external-link-button"
+        href={this.props.puzzle.url}
+        target="_blank"
+        rel="noreferrer noopener"
+      >
+        <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />
+        {' '}
+        <span className="link-label">Puzzle</span>
+      </a>
+    );
+
+    const documentLink = this.props.document && (
+      <span className={classnames(this.props.isDesktop && 'tablet-only')}>
+        <DocumentDisplay document={this.props.document} displayMode="link" />
+      </span>
+    );
+
+    const editButton = this.props.canUpdate && (
+      <Button onClick={this.showEditModal} variant="secondary" size="sm" title="Edit puzzle...">
+        <FontAwesomeIcon icon={faEdit} />
+        {' '}
+        Edit
+      </Button>
+    );
+
+    const guessButton = !isAdministrivia && (
+      this.props.hasGuessQueue ? (
+        <>
+          <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
+            <FontAwesomeIcon icon={faKey} />
+            {' Guess '}
+            <Badge variant="light">{numGuesses}</Badge>
+          </Button>
+          {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
+          <PuzzleGuessModal
+            ref={this.guessModalRef}
+            puzzle={this.props.puzzle}
+            guesses={this.props.guesses}
+            displayNames={this.props.displayNames}
+          />
+        </>
+      ) : (
+        <>
+          <Button variant="primary" size="sm" className="puzzle-metadata-answer-button" onClick={this.showAnswerModal}>
+            <FontAwesomeIcon icon={faKey} />
+            {' Answer'}
+          </Button>
+          {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
+          <PuzzleAnswerModal
+            ref={this.answerModalRef}
+            puzzle={this.props.puzzle}
+          />
+        </>
+      )
+    );
 
     return (
       <div className="puzzle-metadata">
@@ -482,58 +528,10 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
           onSubmit={this.onEdit}
         />
         <div className="puzzle-metadata-row puzzle-metadata-action-row">
-          {this.props.puzzle.url && (
-            <a
-              className="puzzle-metadata-external-link-button"
-              href={this.props.puzzle.url}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />
-              {' '}
-              <span className="link-label">Puzzle</span>
-            </a>
-          )}
-          {this.props.document && (
-            <span className={classnames(this.props.isDesktop && 'tablet-only')}>
-              <DocumentDisplay document={this.props.document} displayMode="link" />
-            </span>
-          )}
-          {this.editButton()}
-          {
-            !isAdministrivia && (
-              this.props.hasGuessQueue ?
-                (
-                  <>
-                    <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-                      <FontAwesomeIcon icon={faKey} />
-                      {' Guess '}
-                      <Badge variant="light">{numGuesses}</Badge>
-                    </Button>
-                    {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-                    <PuzzleGuessModal
-                      ref={this.guessModalRef}
-                      puzzle={this.props.puzzle}
-                      guesses={this.props.guesses}
-                      displayNames={this.props.displayNames}
-                    />
-                  </>
-                ) :
-                (
-                  <>
-                    <Button variant="primary" size="sm" className="puzzle-metadata-answer-button" onClick={this.showAnswerModal}>
-                      <FontAwesomeIcon icon={faKey} />
-                      {' Answer'}
-                    </Button>
-                    {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-                    <PuzzleAnswerModal
-                      ref={this.answerModalRef}
-                      puzzle={this.props.puzzle}
-                    />
-                  </>
-                )
-            )
-          }
+          {puzzleLink}
+          {documentLink}
+          {editButton}
+          {guessButton}
         </div>
         <div className="puzzle-metadata-row">
           {answersElement}
