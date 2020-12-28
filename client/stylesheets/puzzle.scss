@@ -123,6 +123,11 @@ table.puzzle-list {
 // Tags
 .tag-list {
   display: inline;
+
+  .tag-editor {
+    display: inline;
+    min-width: 200px;
+  }
 }
 
 .tag {
@@ -517,6 +522,11 @@ table.puzzle-list {
   align-items: flex-start;
   align-content: flex-start;
   flex-wrap: wrap;
+
+  .tag-editor {
+    flex-basis: 100%;
+    margin: 2px 0;
+  }
 }
 
 .puzzle-metadata-row .btn {

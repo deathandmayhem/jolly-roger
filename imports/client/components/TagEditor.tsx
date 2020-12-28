@@ -31,7 +31,7 @@ class TagEditor extends React.Component<TagEditorProps> {
       });
 
     return (
-      <span style={{ display: 'inline-block', minWidth: '200px' }}>
+      <span className="tag-editor">
         <Creatable
           options={options}
           autoFocus
