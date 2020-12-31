@@ -22,7 +22,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
       // any since this is known safe
       return this.insert(<any>{ name });
     } catch (e) {
-      if (e.name === 'MongoError' && e.code === 11000) {
+      if ((e.name === 'MongoError' || e.name === 'BulkWriteError') && e.code === 11000) {
         return null;
       }
 
@@ -34,7 +34,15 @@ const Locks = new class extends Mongo.Collection<LockType> {
     this.remove(lock);
   }
 
-  withLock<T>(name: string, critSection: () => T) {
+  renew(id: string) {
+    const updated = this.update(id, { $set: { renewedAt: new Date() } });
+    if (updated === 0) {
+      // we've already been preempted
+      throw new Error(`Lock was preempted: id=${id}`);
+    }
+  }
+
+  withLock<T>(name: string, critSection: (id: string) => T) {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       let handle;
@@ -47,30 +55,44 @@ const Locks = new class extends Mongo.Collection<LockType> {
         const removed = new Future();
         handle = cursor.observeChanges({
           removed() {
-            removed.return(true);
+            removed.return(undefined);
           },
         });
 
         // eslint-disable-next-line no-underscore-dangle
         lock = this._tryAcquire(name);
         if (lock) {
-          return critSection();
+          return critSection(lock);
         }
 
         // Lock is held, so wait until we can preempt and try again
-        const otherLock = cursor.fetch()[0];
-        const timeout = (otherLock.createdAt.getTime() + PREEMPT_TIMEOUT) - (new Date()).getTime();
-        Meteor.setTimeout(() => removed.return(false), timeout);
+        let timeoutHandle: number | undefined;
+        const monitorTimeout = () => {
+          const otherLock = cursor.fetch()[0];
+          const time = otherLock.renewedAt || otherLock.createdAt;
+          const timeout = (time.getTime() + PREEMPT_TIMEOUT) - (new Date()).getTime();
 
-        // If the lock can already be preempted, or we timed out, then
-        // preempt
-        if (timeout < 0 || !removed.wait()) {
+          if (timeout < 0) {
+            removed.return(otherLock);
+          } else {
+            timeoutHandle = Meteor.setTimeout(() => monitorTimeout(), timeout);
+          }
+        };
+        monitorTimeout();
+
+        // If we time out, then preempt
+        const preemptableLock: LockType = removed.wait();
+        if (timeoutHandle !== undefined) {
+          Meteor.clearTimeout(timeoutHandle);
+        }
+
+        if (preemptableLock) {
           // Stop the observe handle - the record is about to be
           // removed and we don't want to double-fire the future.
           handle.stop();
-          Ansible.log('Prempting lock', { id: otherLock._id, name });
-          // eslint-disable-next-line no-underscore-dangle
-          this._release(otherLock._id);
+          handle = undefined;
+          Ansible.log('Prempting lock', { id: preemptableLock._id, name });
+          this.remove({ _id: preemptableLock._id, renewedAt: preemptableLock.renewedAt });
         }
       } finally {
         if (handle) {
