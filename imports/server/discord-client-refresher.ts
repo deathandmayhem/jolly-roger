@@ -71,14 +71,20 @@ class DiscordClientRefresher {
 
       Meteor.defer(() => {
         Locks.withLock('discord-bot', (lock) => {
-          // If we get the lock, we're responsible for opening the websocket
-          // gateway connection
+          // The token gets set to null when the gateway is destroyed. If it's
+          // been destroyed, bail, since another defer process will have fired
+          // up
+          if (!client.token) {
+            return;
+          }
+
+          // Otherwise, if we get the lock, we're responsible for opening the
+          // websocket gateway connection
           MeteorPromise.await(client.login(this.botToken));
 
-          // The token gets set to null when the gateway is destroyed
           while (client.token !== null && client.ws.status === Discord.Constants.Status.READY) {
             Locks.renew(lock);
-            MeteorPromise.await(new Promise((r) => {
+            MeteorPromise.await(new Promise<void>((r) => {
               // Allow the class to cancel the promise early
               this.botRefreshResolve = r;
               setTimeout(r, PREEMPT_TIMEOUT / 2);
