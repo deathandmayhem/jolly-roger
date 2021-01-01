@@ -69,6 +69,10 @@ const Locks = new class extends Mongo.Collection<LockType> {
         let timeoutHandle: number | undefined;
         const monitorTimeout = () => {
           const otherLock = cursor.fetch()[0];
+          if (!otherLock) {
+            removed.return(undefined);
+          }
+
           const time = otherLock.renewedAt || otherLock.createdAt;
           const timeout = (time.getTime() + PREEMPT_TIMEOUT) - (new Date()).getTime();
 
