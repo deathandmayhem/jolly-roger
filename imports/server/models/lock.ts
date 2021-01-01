@@ -8,7 +8,7 @@ declare const Npm: any;
 const Future = Npm.require('fibers/future');
 
 // 10 seconds
-const PREEMPT_TIMEOUT = 10000;
+export const PREEMPT_TIMEOUT = 10000;
 
 const Locks = new class extends Mongo.Collection<LockType> {
   constructor() {
