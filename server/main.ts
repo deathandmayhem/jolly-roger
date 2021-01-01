@@ -16,6 +16,7 @@ import '../imports/server/api_keys';
 import '../imports/server/calls';
 import '../imports/server/chat';
 import '../imports/server/discord';
+import '../imports/server/discord-client-refresher';
 import '../imports/server/feature_flags';
 import '../imports/server/fixture';
 import '../imports/server/git_revision';

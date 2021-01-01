@@ -2,11 +2,11 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { Promise as MeteorPromise } from 'meteor/promise';
 import Discord from 'discord.js';
+import Flags from '../flags';
+import FeatureFlags from '../lib/models/feature_flags';
 import Settings from '../lib/models/settings';
 import { SettingType } from '../lib/schemas/settings';
 import Locks, { PREEMPT_TIMEOUT } from './models/lock';
-import Flags from 'imports/flags';
-import FeatureFlags from 'imports/lib/models/feature_flags';
 
 class DiscordClientRefresher {
   public client?: Discord.Client;
@@ -101,7 +101,7 @@ class DiscordClientRefresher {
             Locks.renew(lock);
             MeteorPromise.await(new Promise<void>((r) => {
               // Allow the class to cancel the promise early
-              this.botRefreshResolve = r;
+              this.botRefreshResolve = () => r();
               setTimeout(r, PREEMPT_TIMEOUT / 2);
             }));
           }
@@ -112,8 +112,8 @@ class DiscordClientRefresher {
 }
 
 const globalClientHolder = new DiscordClientRefresher();
-process.on('SIGINT', () => globalClientHolder.destroy());
-process.on('SIGTERM', () => globalClientHolder.destroy());
-process.on('exit', () => globalClientHolder.destroy());
+process.on('SIGINT', Meteor.bindEnvironment(() => globalClientHolder.destroy()));
+process.on('SIGTERM', Meteor.bindEnvironment(() => globalClientHolder.destroy()));
+process.on('exit', Meteor.bindEnvironment(() => globalClientHolder.destroy()));
 
 export default globalClientHolder;
