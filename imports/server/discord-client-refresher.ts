@@ -5,6 +5,8 @@ import Discord from 'discord.js';
 import Settings from '../lib/models/settings';
 import { SettingType } from '../lib/schemas/settings';
 import Locks, { PREEMPT_TIMEOUT } from './models/lock';
+import Flags from 'imports/flags';
+import FeatureFlags from 'imports/lib/models/feature_flags';
 
 class DiscordClientRefresher {
   public client?: Discord.Client;
@@ -14,6 +16,8 @@ class DiscordClientRefresher {
   private botConfigCursor: Mongo.Cursor<SettingType>
 
   private botConfigObserveHandle: Meteor.LiveQueryHandle;
+
+  private featureFlagObserveHandle: Meteor.LiveQueryHandle;
 
   private botRefreshResolve?: () => void;
 
@@ -26,6 +30,12 @@ class DiscordClientRefresher {
       changed: (doc) => this.updateBotConfig(doc),
       removed: () => this.clearBotConfig(),
     });
+
+    this.featureFlagObserveHandle = FeatureFlags.find({ name: 'disable.discord' }).observe({
+      added: () => this.refreshClient(),
+      changed: () => this.refreshClient(),
+      removed: () => this.refreshClient(),
+    });
   }
 
   ready() {
@@ -34,6 +44,7 @@ class DiscordClientRefresher {
 
   destroy() {
     this.botConfigObserveHandle.stop();
+    this.featureFlagObserveHandle.stop();
     this.clearBotConfig();
   }
 
@@ -60,6 +71,10 @@ class DiscordClientRefresher {
     if (this.botRefreshResolve) {
       this.botRefreshResolve();
       this.botRefreshResolve = undefined;
+    }
+
+    if (Flags.active('disable.discord')) {
+      return;
     }
 
     if (this.botToken) {
