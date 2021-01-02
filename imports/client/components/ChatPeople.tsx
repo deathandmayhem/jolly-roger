@@ -1,6 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { withTracker } from 'meteor/react-meteor-data';
+import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { ReactChild } from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -81,6 +83,9 @@ interface ChatPeopleState {
   // leave you muted, and we'd lose that bit otherwise.)
   muted: boolean;
   deafened: boolean;
+  // When true, callers/viewers are listed individually
+  callersExpanded: boolean;
+  viewersExpanded: boolean;
 
   audioContext: AudioContext | undefined;
   rawMediaSource: MediaStream | undefined;
@@ -118,6 +123,8 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
       error: '',
       muted: false,
       deafened: false,
+      callersExpanded: true,
+      viewersExpanded: false,
 
       audioContext: undefined,
       rawMediaSource: undefined,
@@ -297,8 +304,21 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
     });
   };
 
+  toggleCallersExpanded = () => {
+    this.setState((prevState) => ({
+      callersExpanded: !prevState.callersExpanded,
+    }));
+  }
+
+  toggleViewersExpanded = () => {
+    this.setState((prevState) => ({
+      viewersExpanded: !prevState.viewersExpanded,
+    }));
+  }
+
   renderCallersSubsection = () => {
     const { rtcViewers, huntId, puzzleId } = this.props;
+    const callersHeaderIcon = this.state.callersExpanded ? faCaretDown : faCaretRight;
     switch (this.state.state) {
       case CallState.CHAT_ONLY:
       case CallState.REQUESTING_STREAM: {
@@ -309,12 +329,15 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
               <Button variant="primary" size="sm" block onClick={this.joinCall}>{joinLabel}</Button>
             </div>
             <div className="chatter-subsection av-chatters">
-              <header>
+              <header onClick={this.toggleCallersExpanded}>
+                <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
                 {`${rtcViewers.length} caller${rtcViewers.length !== 1 ? 's' : ''}`}
               </header>
-              <div className="people-list">
-                {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} {...viewer} />)}
-              </div>
+              {this.state.callersExpanded && (
+                <div className="people-list">
+                  {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} {...viewer} />)}
+                </div>
+              )}
             </div>
           </>
         );
@@ -332,6 +355,8 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
             deafened={this.state.deafened}
             audioContext={this.state.audioContext!}
             localStream={this.state.leveledStreamSource!}
+            callersExpanded={this.state.callersExpanded}
+            onToggleCallersExpanded={this.toggleCallersExpanded}
           />
         );
       case CallState.STREAM_ERROR:
@@ -359,17 +384,21 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
     }
 
     const totalViewers = viewers.length + unknown;
+    const viewersHeaderIcon = this.state.viewersExpanded ? faCaretDown : faCaretRight;
     return (
       <section className="chatter-section">
         <audio ref={this.htmlNodeRef} autoPlay playsInline muted />
         {!rtcDisabled && this.renderCallersSubsection()}
         <div className="chatter-subsection non-av-viewers">
-          <header>
+          <header onClick={this.toggleViewersExpanded}>
+            <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
             {`${totalViewers} viewer${totalViewers !== 1 ? 's' : ''}`}
           </header>
-          <div className="people-list">
-            {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
-          </div>
+          {this.state.viewersExpanded && (
+            <div className="people-list">
+              {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
+            </div>
+          )}
         </div>
       </section>
     );

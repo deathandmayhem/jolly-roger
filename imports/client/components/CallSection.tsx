@@ -1,6 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
-import { faMicrophoneSlash, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
+import {
+  faMicrophoneSlash,
+  faVolumeMute,
+  faCaretDown,
+  faCaretRight,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React from 'react';
@@ -27,6 +32,8 @@ interface RTCCallSectionParams {
   deafened: boolean;
   audioContext: AudioContext;
   localStream: MediaStream;
+  callersExpanded: boolean;
+  onToggleCallersExpanded(): void;
 }
 
 interface RTCCallSectionProps extends RTCCallSectionParams {
@@ -123,6 +130,8 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
     const callerCount = this.props.participants.length;
     const others = this.nonSelfParticipants();
 
+    const callersHeaderIcon = this.props.callersExpanded ? faCaretDown : faCaretRight;
+
     return (
       <>
         <div className="av-actions">
@@ -143,25 +152,28 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
           <Button variant="danger" size="sm" onClick={this.leaveCall}>leave call</Button>
         </div>
         <div className="chatter-subsection av-chatters">
-          <header>
+          <header onClick={this.props.onToggleCallersExpanded}>
+            <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
             {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
           </header>
-          <div className="people-list">
-            {this.renderSelfBox()}
-            {this.props.signalsReady && this.props.selfParticipant && others.map((p) => {
-              return (
-                <CallLinkBox
-                  key={p._id}
-                  rtcConfig={this.props.rtcConfig!}
-                  selfParticipant={this.props.selfParticipant!}
-                  peerParticipant={p}
-                  localStream={this.props.localStream}
-                  audioContext={this.props.audioContext}
-                  deafened={this.props.deafened}
-                />
-              );
-            })}
-          </div>
+          {this.props.callersExpanded && (
+            <div className="people-list">
+              {this.renderSelfBox()}
+              {this.props.signalsReady && this.props.selfParticipant && others.map((p) => {
+                return (
+                  <CallLinkBox
+                    key={p._id}
+                    rtcConfig={this.props.rtcConfig!}
+                    selfParticipant={this.props.selfParticipant!}
+                    peerParticipant={p}
+                    localStream={this.props.localStream}
+                    audioContext={this.props.audioContext}
+                    deafened={this.props.deafened}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
       </>
     );
