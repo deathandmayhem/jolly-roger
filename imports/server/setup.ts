@@ -227,6 +227,10 @@ Meteor.publish('hasUsers', function () {
   this.ready();
 });
 
+const cacheDuration = 5000; // Cache guild listings for 5 seconds to avoid hitting ratelimits
+let cachedDiscordGuildsTimestamp = 0;
+let cachedDiscordGuilds: any[] = [];
+
 Meteor.publish('discord.guilds', function () {
   // Only allow admins to list guilds
   if (!this.userId || !Roles.userHasPermission(this.userId, 'discord.configureBot')) {
@@ -246,17 +250,19 @@ Meteor.publish('discord.guilds', function () {
     return [];
   }
 
-  // Fetch guilds from Discord API.
-  const bot = new DiscordBot(token);
-  let guilds;
-  try {
-    guilds = bot.listGuilds();
-  } catch (err) {
-    Ansible.log('Sub to discord.guilds: discord remote error', { err: JSON.stringify(err) });
-    return [];
+  if (Date.now() > cachedDiscordGuildsTimestamp + cacheDuration) {
+    // Fetch guilds from Discord API.
+    const bot = new DiscordBot(token);
+    try {
+      cachedDiscordGuilds = bot.listGuilds();
+      cachedDiscordGuildsTimestamp = Date.now();
+    } catch (err) {
+      Ansible.log('Sub to discord.guilds: discord remote error', { err: JSON.stringify(err) });
+      return [];
+    }
   }
 
-  guilds.forEach((guild: any) => {
+  cachedDiscordGuilds.forEach((guild: any) => {
     this.added('discord.guilds', guild.id, { name: guild.name });
   });
   this.ready();
