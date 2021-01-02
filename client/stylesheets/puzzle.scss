@@ -1,5 +1,9 @@
 @import "theme";
 
+$solved-puzzle-background-color: #dfffdf;
+$unsolved-puzzle-background-color: #f0f0f0;
+$administrivia-puzzle-background-color: #dfdfff;
+
 // Puzzle components helper styles
 // Puzzle lists/tables
 .puzzle-group:not(:last-child) {
@@ -20,15 +24,15 @@
 
 .puzzle {
   &.unsolved {
-    background-color: #f0f0f0;
+    background-color: $unsolved-puzzle-background-color;
   }
 
   &.solved {
-    background-color: #dfffdf;
+    background-color: $solved-puzzle-background-color;
   }
 
   &.administrivia {
-    background-color: #dfdfff;
+    background-color: $administrivia-puzzle-background-color;
   }
 }
 
@@ -502,7 +506,7 @@ table.puzzle-list {
     margin-left: 2px;
     padding: 0 6px;
     border-radius: 4px;
-    background-color: #00ff00;
+    background-color: $solved-puzzle-background-color;
     color: #000000;
     display: flex;
 
