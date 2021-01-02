@@ -2,7 +2,12 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import { faEdit, faPuzzlePiece, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import {
+  faEdit,
+  faPuzzlePiece,
+  faPaperPlane,
+  faKey,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import DOMPurify from 'dompurify';
@@ -10,6 +15,7 @@ import marked from 'marked';
 import moment from 'moment';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
+import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
@@ -431,27 +437,18 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
     this.editModalRef.current!.show();
   };
 
-  editButton = () => {
-    if (this.props.canUpdate) {
-      return (
-        <Button onClick={this.showEditModal} variant="outline-secondary" size="sm" title="Edit puzzle...">
-          <FontAwesomeIcon icon={faEdit} />
-        </Button>
-      );
-    }
-    return null;
-  };
-
   render() {
     const tagsById = _.indexBy(this.props.allTags, '_id');
     const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
     const isAdministrivia = tags.find((t) => t.name === 'administrivia');
     const correctGuesses = this.props.guesses.filter((guess) => guess.state === 'correct');
-    const answerComponent = correctGuesses.length > 0 ? (
+    const numGuesses = this.props.guesses.length;
+
+    const answersElement = correctGuesses.length > 0 ? (
       <span className="puzzle-metadata-answers">
         {
           correctGuesses.map((guess) => (
-            <span key={`answer-${guess._id}`} className="answer">
+            <span key={`answer-${guess._id}`} className="answer tag-like">
               <span>{guess.guess}</span>
               {!this.props.hasGuessQueue && (
                 <Button className="answer-remove-button" variant="success" onClick={() => this.onRemoveAnswer(guess._id)}>&#10006;</Button>
@@ -461,7 +458,65 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
         }
       </span>
     ) : null;
-    const numGuesses = this.props.guesses.length;
+
+    const puzzleLink = this.props.puzzle.url ? (
+      <a
+        className="puzzle-metadata-external-link-button"
+        href={this.props.puzzle.url}
+        target="_blank"
+        rel="noreferrer noopener"
+      >
+        <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />
+        {' '}
+        <span className="link-label">Puzzle</span>
+      </a>
+    ) : null;
+
+    const documentLink = this.props.document ? (
+      <span className={classnames(this.props.isDesktop && 'tablet-only')}>
+        <DocumentDisplay document={this.props.document} displayMode="link" />
+      </span>
+    ) : null;
+
+    const editButton = this.props.canUpdate ? (
+      <Button onClick={this.showEditModal} variant="secondary" size="sm" title="Edit puzzle...">
+        <FontAwesomeIcon icon={faEdit} />
+        {' '}
+        Edit
+      </Button>
+    ) : null;
+
+    let guessButton = null;
+    if (!isAdministrivia) {
+      guessButton = this.props.hasGuessQueue ? (
+        <>
+          <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
+            <FontAwesomeIcon icon={faKey} />
+            {' Guess '}
+            <Badge variant="light">{numGuesses}</Badge>
+          </Button>
+          {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
+          <PuzzleGuessModal
+            ref={this.guessModalRef}
+            puzzle={this.props.puzzle}
+            guesses={this.props.guesses}
+            displayNames={this.props.displayNames}
+          />
+        </>
+      ) : (
+        <>
+          <Button variant="primary" size="sm" className="puzzle-metadata-answer-button" onClick={this.showAnswerModal}>
+            <FontAwesomeIcon icon={faKey} />
+            {' Answer'}
+          </Button>
+          {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
+          <PuzzleAnswerModal
+            ref={this.answerModalRef}
+            puzzle={this.props.puzzle}
+          />
+        </>
+      );
+    }
 
     return (
       <div className="puzzle-metadata">
@@ -473,15 +528,16 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
           tags={this.props.allTags}
           onSubmit={this.onEdit}
         />
-        <div className="puzzle-metadata-row">
-          <div className="puzzle-metadata-title-set">
-            {this.editButton()}
-            {' '}
-            <span className="puzzle-metadata-title">{this.props.puzzle.title}</span>
-          </div>
-          {this.props.puzzle.answers.length > 0 && answerComponent}
+        <div className="puzzle-metadata-row puzzle-metadata-action-row">
+          {puzzleLink}
+          {documentLink}
+          {editButton}
+          {guessButton}
         </div>
-        <div className={classnames('puzzle-metadata-row', this.props.isDesktop && 'puzzle-metadata-tag-editor-row')}>
+        <div className="puzzle-metadata-row">
+          {answersElement}
+        </div>
+        <div className="puzzle-metadata-row">
           <TagList
             puzzle={this.props.puzzle}
             tags={tags}
@@ -494,58 +550,6 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             allTags={this.props.allTags}
             emptyMessage="No tags yet"
           />
-        </div>
-        <div className="puzzle-metadata-row puzzle-metadata-action-row">
-          {this.props.puzzle.url && (
-            <a
-              className="puzzle-metadata-external-link-button"
-              href={this.props.puzzle.url}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              <span className="linkLabel">
-                Puzzle
-                {' '}
-              </span>
-              <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />
-            </a>
-          )}
-          {this.props.document && (
-            <span className={classnames(this.props.isDesktop && 'tablet-only')}>
-              <DocumentDisplay document={this.props.document} displayMode="link" />
-            </span>
-          )}
-          {
-            !isAdministrivia && (
-              this.props.hasGuessQueue ?
-                (
-                  <>
-                    <Button variant="primary" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-                      { this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount ? `See ${numGuesses} ${numGuesses === 1 ? 'guess' : 'guesses'}` : `Guess (${numGuesses} so far)` }
-                    </Button>
-                    {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-                    <PuzzleGuessModal
-                      ref={this.guessModalRef}
-                      puzzle={this.props.puzzle}
-                      guesses={this.props.guesses}
-                      displayNames={this.props.displayNames}
-                    />
-                  </>
-                ) :
-                (
-                  <>
-                    <Button variant="primary" className="puzzle-metadata-answer-button" onClick={this.showAnswerModal}>
-                      {`Answer${this.props.puzzle.answers.length > 0 ? ` (${this.props.puzzle.answers.length} so far)` : ''}`}
-                    </Button>
-                    {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-                    <PuzzleAnswerModal
-                      ref={this.answerModalRef}
-                      puzzle={this.props.puzzle}
-                    />
-                  </>
-                )
-            )
-          }
         </div>
       </div>
     );

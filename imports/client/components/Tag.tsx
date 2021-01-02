@@ -1,3 +1,5 @@
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { detectOverflow } from '@popperjs/core';
 import type { ModifierArguments, Modifier, Padding } from '@popperjs/core';
 import classnames from 'classnames';
@@ -160,7 +162,7 @@ class Tag extends React.Component<TagProps, TagState> {
         {title}
         {this.props.onRemove && (
           <Button className="tag-remove-button" variant="danger" onClick={this.onRemove}>
-            &#10006;
+            <FontAwesomeIcon icon={faTimes} />
           </Button>
         )}
       </div>

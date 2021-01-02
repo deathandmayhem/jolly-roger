@@ -1,5 +1,9 @@
 @import "theme";
 
+$solved-puzzle-background-color: #dfffdf;
+$unsolved-puzzle-background-color: #f0f0f0;
+$administrivia-puzzle-background-color: #dfdfff;
+
 // Puzzle components helper styles
 // Puzzle lists/tables
 .puzzle-group:not(:last-child) {
@@ -20,15 +24,15 @@
 
 .puzzle {
   &.unsolved {
-    background-color: #f0f0f0;
+    background-color: $unsolved-puzzle-background-color;
   }
 
   &.solved {
-    background-color: #dfffdf;
+    background-color: $solved-puzzle-background-color;
   }
 
   &.administrivia {
-    background-color: #dfdfff;
+    background-color: $administrivia-puzzle-background-color;
   }
 }
 
@@ -123,9 +127,14 @@ table.puzzle-list {
 // Tags
 .tag-list {
   display: inline;
+
+  .tag-editor {
+    display: inline;
+    min-width: 200px;
+  }
 }
 
-.tag {
+.tag, .tag-like {
   display: inline-flex;
   align-items: center;
   line-height: 24px;
@@ -181,13 +190,11 @@ table.puzzle-list {
 }
 
 .tag .btn.tag-remove-button {
-  height: 18px;
-  line-height: 16px;
-  width: 18px;
+  height: 16px;
+  width: 16px;
+  line-height: 10px;
+  font-size: 10px;
   padding: 0;
-  display: inline-block;
-  vertical-align: middle;
-  text-align: center;
   margin: 0 0 0 6px;
 }
 
@@ -467,41 +474,41 @@ table.puzzle-list {
   display: flex;
   width: 100%;
   font-size: 14px;
-  line-height: 28px;
   align-items: flex-start;
   align-content: flex-start;
   justify-content: space-between;
 }
 
-.puzzle-metadata-title-set {
-  flex: 0 0 auto;
+.puzzle-metadata-action-row {
+  align-items: center;
+  flex-wrap: nowrap;
 
-  .puzzle-metadata-title {
-    font-weight: bold;
+  a {
+    margin-right: 8px;
+  }
+
+  button {
+    margin: 2px 0 2px 8px;
+
+    &:first-of-type {
+      margin-left: auto;
+    }
   }
 }
 
-.puzzle-metadata .view-count {
-  cursor: pointer;
-  white-space: nowrap;
+.puzzle-metadata-row .puzzle-metadata-answers, .puzzle-metadata-row .tag-list {
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+  flex-wrap: wrap;
 }
 
-.puzzle-metadata-answers {
-  flex: 1 1 auto;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  flex-wrap: wrap;
-
+.puzzle-metadata-row .puzzle-metadata-answers {
   .answer {
-    line-height: 24px;
-    height: 28px;
-    margin-left: 2px;
-    padding: 0 6px;
-    border-radius: 4px;
-    background-color: #00ff00;
+    background-color: $solved-puzzle-background-color;
     color: #000000;
-    display: flex;
 
     .answer-remove-button {
       color: default;
@@ -512,25 +519,18 @@ table.puzzle-list {
   }
 }
 
-.puzzle-metadata .tag-list {
-  display: flex;
-  flex-grow: 1;
-  justify-content: flex-start;
-  align-items: flex-start;
-  align-content: flex-start;
-  flex-wrap: wrap;
-}
+.puzzle-metadata-row .tag-list {
+  .tag-modify-button {
+    line-height: 22px;
+    padding: 0 6px;
+    margin: 2px 0;
+    position: relative;
+  }
 
-.puzzle-metadata-row .btn {
-  line-height: 22px;
-  padding: 0 6px;
-  margin: 2px 0;
-  border-width: 1px;
-  display: inline-block;
-}
-
-.puzzle-metadata-action-row {
-  flex-wrap: wrap;
+  .tag-editor {
+    flex-basis: 100%;
+    margin: 2px 0;
+  }
 }
 
 .puzzle-metadata .puzzle-metadata-external-link-button, .puzzle-metadata .gdrive-button {
@@ -540,7 +540,7 @@ table.puzzle-list {
 }
 
 @media (any-pointer: fine) {
-  .puzzle-metadata .tablet-only {
+  .tablet-only {
     display: none;
   }
 }
