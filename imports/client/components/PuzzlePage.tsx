@@ -444,7 +444,7 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
     const correctGuesses = this.props.guesses.filter((guess) => guess.state === 'correct');
     const numGuesses = this.props.guesses.length;
 
-    const answersElement = correctGuesses.length > 0 && (
+    const answersElement = correctGuesses.length > 0 ? (
       <span className="puzzle-metadata-answers">
         {
           correctGuesses.map((guess) => (
@@ -457,9 +457,9 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
           ))
         }
       </span>
-    );
+    ) : null;
 
-    const puzzleLink = this.props.puzzle.url && (
+    const puzzleLink = this.props.puzzle.url ? (
       <a
         className="puzzle-metadata-external-link-button"
         href={this.props.puzzle.url}
@@ -470,24 +470,25 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
         {' '}
         <span className="link-label">Puzzle</span>
       </a>
-    );
+    ) : null;
 
-    const documentLink = this.props.document && (
+    const documentLink = this.props.document ? (
       <span className={classnames(this.props.isDesktop && 'tablet-only')}>
         <DocumentDisplay document={this.props.document} displayMode="link" />
       </span>
-    );
+    ) : null;
 
-    const editButton = this.props.canUpdate && (
+    const editButton = this.props.canUpdate ? (
       <Button onClick={this.showEditModal} variant="secondary" size="sm" title="Edit puzzle...">
         <FontAwesomeIcon icon={faEdit} />
         {' '}
         Edit
       </Button>
-    );
+    ) : null;
 
-    const guessButton = !isAdministrivia && (
-      this.props.hasGuessQueue ? (
+    let guessButton = null;
+    if (!isAdministrivia) {
+      guessButton = this.props.hasGuessQueue ? (
         <>
           <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
             <FontAwesomeIcon icon={faKey} />
@@ -514,8 +515,8 @@ class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
             puzzle={this.props.puzzle}
           />
         </>
-      )
-    );
+      );
+    }
 
     return (
       <div className="puzzle-metadata">
