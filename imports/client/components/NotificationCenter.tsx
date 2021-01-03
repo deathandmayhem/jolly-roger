@@ -1,6 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { OAuth } from 'meteor/oauth';
 import { withTracker } from 'meteor/react-meteor-data';
+import { ServiceConfiguration } from 'meteor/service-configuration';
 import { faCopy, faSkullCrossbones, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
@@ -12,6 +14,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
+import Flags from '../../flags';
 import Announcements from '../../lib/models/announcements';
 import Guesses from '../../lib/models/guess';
 import Hunts from '../../lib/models/hunts';
@@ -24,6 +27,7 @@ import { HuntType } from '../../lib/schemas/hunts';
 import { PendingAnnouncementType } from '../../lib/schemas/pending_announcements';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
+import { requestDiscordCredential } from '../discord';
 
 /* eslint-disable max-len */
 
@@ -182,6 +186,84 @@ class GuessMessage extends React.PureComponent<GuessMessageProps> {
   }
 }
 
+interface DiscordMessageProps {
+  onDismiss: () => void;
+}
+
+enum DiscordMessageStatus {
+  IDLE = 'idle',
+  LINKING = 'linking',
+  ERROR = 'error',
+  SUCCESS = 'success',
+}
+
+type DiscordMessageState = {
+  status: DiscordMessageStatus;
+  error?: string;
+}
+
+class DiscordMessage extends React.PureComponent<DiscordMessageProps, DiscordMessageState> {
+  constructor(props: DiscordMessageProps) {
+    super(props);
+    this.state = {
+      status: DiscordMessageStatus.IDLE,
+    };
+  }
+
+  requestComplete = (token: string) => {
+    const secret = OAuth._retrieveCredentialSecret(token);
+    if (!secret) {
+      this.setState({ status: DiscordMessageStatus.IDLE });
+      return;
+    }
+
+    Meteor.call('linkUserDiscordAccount', token, secret, (error?: Error) => {
+      if (error) {
+        this.setState({ status: DiscordMessageStatus.ERROR, error: error.message });
+      } else {
+        this.setState({ status: DiscordMessageStatus.IDLE });
+      }
+    });
+  }
+
+  initiateOauthFlow = () => {
+    this.setState({ status: DiscordMessageStatus.LINKING });
+    requestDiscordCredential(this.requestComplete);
+  };
+
+  reset = () => {
+    this.setState({ status: DiscordMessageStatus.IDLE });
+  };
+
+  render() {
+    const msg = 'It looks like you\'re not in our Discord server, which Jolly Roger manages access to.  Get added:';
+    const actions = [
+      <li key="invite">
+        <button
+          type="button"
+          disabled={!(this.state.status === DiscordMessageStatus.IDLE || this.state.status === DiscordMessageStatus.ERROR)}
+          onClick={this.initiateOauthFlow}
+        >
+          Add me
+        </button>
+      </li>,
+    ];
+
+    return (
+      <li>
+        <MessengerSpinner />
+        <MessengerContent>
+          {msg}
+          <ul className="actions">
+            {actions}
+          </ul>
+          {this.state.status === DiscordMessageStatus.ERROR ? this.state.error! : null}
+        </MessengerContent>
+      </li>
+    );
+  }
+}
+
 interface AnnouncementMessageProps {
   id: string;
   announcement: AnnouncementType;
@@ -232,9 +314,12 @@ type NotificationCenterProps = {
   ready: boolean;
   announcements?: NotificationCenterAnnouncement[];
   guesses?: NotificationCenterGuess[];
+  discordEnabledOnServer?: boolean;
+  discordConfiguredByUser?: boolean;
 }
 
 interface NotificationCenterState {
+  hideDiscordSetupMessage: boolean;
   dismissedGuesses: Record<string, boolean>;
 }
 
@@ -242,9 +327,16 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
   constructor(props: NotificationCenterProps) {
     super(props);
     this.state = {
+      hideDiscordSetupMessage: false,
       dismissedGuesses: {},
     };
   }
+
+  hideDiscordSetupMessage = () => {
+    this.setState({
+      hideDiscordSetupMessage: true,
+    });
+  };
 
   dismissGuess = (guessId: string) => {
     const newState: Record<string, boolean> = {};
@@ -262,6 +354,12 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
 
     // Build a list of uninstantiated messages with their props, then create them
     const messages: any = [];
+
+    if (this.props.discordEnabledOnServer &&
+        !this.props.discordConfiguredByUser &&
+        !this.state.hideDiscordSetupMessage) {
+      messages.push(<DiscordMessage key="discord" onDismiss={this.hideDiscordSetupMessage} />);
+    }
 
     this.props.guesses.forEach((g) => {
       if (this.state.dismissedGuesses[g.guess._id]) return;
@@ -322,10 +420,15 @@ const NotificationCenterContainer = withTracker((_props: {}): NotificationCenter
     return { ready: false };
   }
 
+  const ownProfile = Profiles.findOne(Meteor.userId()!);
+  const discordEnabledOnServer = !!ServiceConfiguration.configurations.findOne({ service: 'discord' }) && !Flags.active('disable.discord');
+
   const data = {
     ready: guessesHandle.ready() && puzzlesHandle.ready() && huntsHandle.ready() && paHandle.ready(),
     announcements: [] as NotificationCenterAnnouncement[],
     guesses: [] as NotificationCenterGuess[],
+    discordEnabledOnServer,
+    discordConfiguredByUser: !!(ownProfile && ownProfile.discordAccount),
   };
 
   if (canUpdateGuesses) {
