@@ -252,7 +252,7 @@ Meteor.publish('discord.guilds', function () {
   try {
     guilds = bot.listGuilds();
   } catch (err) {
-    Ansible.log('Sub to discord.guilds: discord remote error', { err });
+    Ansible.log('Sub to discord.guilds: discord remote error', { err: JSON.stringify(err) });
     return [];
   }
 
