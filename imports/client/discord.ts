@@ -12,6 +12,15 @@ export type DiscordGuildType = {
 }
 export const DiscordGuilds = new Mongo.Collection<DiscordGuildType>('discord.guilds');
 
+// Pseudo-collection used by hunt config for selecting channel
+export type DiscordChannelType = {
+  _id: string;
+  name: string;
+  type: number;
+  position: number | undefined;
+}
+export const DiscordChannels = new Mongo.Collection<DiscordChannelType>('discord.channels');
+
 function requestDiscordCredential(credentialRequestCompleteCallback: any) {
   const options = {};
   const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });

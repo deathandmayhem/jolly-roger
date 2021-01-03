@@ -19,7 +19,8 @@ import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import Hunts from '../../lib/models/hunts';
-import { HuntType } from '../../lib/schemas/hunts';
+import { HuntType, SavedDiscordChannelType } from '../../lib/schemas/hunts';
+import { DiscordChannels, DiscordChannelType } from '../discord';
 import ModalForm from './ModalForm';
 
 /* eslint-disable max-len */
@@ -33,6 +34,109 @@ const splitLists = function (lists: string): string[] {
   return strippedLists.split(/[, ]+/);
 };
 
+interface DiscordChannelFormParams {
+  puzzleHooksDiscordChannel: SavedDiscordChannelType | undefined;
+  onChange: (next: SavedDiscordChannelType | undefined) => void;
+  disableForm: boolean;
+  idPrefix: string;
+}
+
+interface DiscordChannelFormProps extends DiscordChannelFormParams {
+  ready: boolean;
+  discordChannels: DiscordChannelType[];
+}
+
+class DiscordChannelForm extends React.Component<DiscordChannelFormProps> {
+  onPuzzleHooksDiscordChannelChanged: FormControlProps['onChange'] = (e) => {
+    if (e.currentTarget.value === 'empty') {
+      this.props.onChange(undefined);
+    } else {
+      const match = this.props.discordChannels.find((chan) => { return chan._id === e.currentTarget.value; });
+      if (match) {
+        const next = {
+          id: e.currentTarget.value,
+          name: match.name,
+        };
+        this.props.onChange(next);
+      }
+    }
+  };
+
+  formOptions = (): SavedDiscordChannelType[] => {
+    // List of the options.  Be sure to include the saved option if it's (for
+    // some reason) not present in the channel list.
+    const noneOption = {
+      id: 'empty',
+      name: 'disabled',
+    } as SavedDiscordChannelType;
+
+    const propsListOptions = this.props.discordChannels.map((chan) => {
+      return {
+        id: chan._id,
+        name: chan.name,
+      };
+    });
+
+    if (this.props.puzzleHooksDiscordChannel) {
+      if (!propsListOptions.find((opt) => {
+        return opt.id === this.props.puzzleHooksDiscordChannel!.id;
+      })) {
+        return [noneOption, this.props.puzzleHooksDiscordChannel, ...propsListOptions];
+      }
+    }
+    return [noneOption, ...propsListOptions];
+  };
+
+  render() {
+    if (!this.props.ready) {
+      return <div>Loading discord channels...</div>;
+    } else {
+      return (
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${this.props.idPrefix}puzzle-hooks-discord-channel`}>
+            Puzzle notifications Discord channel
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id={`${this.props.idPrefix}puzzle-hooks-discord-channel`}
+              as="select"
+              type="text"
+              placeholder=""
+              value={this.props.puzzleHooksDiscordChannel && this.props.puzzleHooksDiscordChannel.id}
+              disabled={this.props.disableForm}
+              onChange={this.onPuzzleHooksDiscordChannelChanged}
+            >
+              {this.formOptions().map(({ id, name }) => {
+                return (
+                  <option key={id} value={id}>{name}</option>
+                );
+              })}
+            </FormControl>
+            <FormText>
+              If this field is specified, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.
+            </FormText>
+          </Col>
+        </FormGroup>
+      );
+    }
+  }
+}
+
+const DiscordChannelFormContainer = withTracker((_params: DiscordChannelFormParams) => {
+  const discordChannelsHandle = Meteor.subscribe('discord.channels');
+  const discordChannels = DiscordChannels.find(
+    // We want only text channels, since those are the only ones we can bridge chat messages to.
+    { type: 0 },
+    // We want to sort them in the same order they're provided in the Discord UI.
+    { sort: { position: 1 } }
+  ).fetch();
+
+  return {
+    ready: discordChannelsHandle.ready(),
+    discordChannels,
+  };
+})(DiscordChannelForm);
+
 export interface HuntModalSubmit {
   // eslint-disable-next-line no-restricted-globals
   name: string;
@@ -42,6 +146,7 @@ export interface HuntModalSubmit {
   hasGuessQueue: boolean;
   homepageUrl: string;
   submitTemplate: string;
+  puzzleHooksDiscordChannel: SavedDiscordChannelType | undefined;
 }
 
 interface HuntModalFormProps {
@@ -84,6 +189,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         hasGuessQueue: !!this.props.hunt.hasGuessQueue,
         homepageUrl: this.props.hunt.homepageUrl || '',
         submitTemplate: this.props.hunt.submitTemplate || '',
+        puzzleHooksDiscordChannel: this.props.hunt.puzzleHooksDiscordChannel,
       });
     } else {
       return Object.assign(state, {
@@ -94,6 +200,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         hasGuessQueue: true,
         homepageUrl: '',
         submitTemplate: '',
+        puzzleHooksDiscordChannel: undefined,
       });
     }
   };
@@ -137,6 +244,12 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
   onSubmitTemplateChanged: FormControlProps['onChange'] = (e) => {
     this.setState({
       submitTemplate: e.currentTarget.value,
+    });
+  };
+
+  onPuzzleHooksDiscordChannelChanged = (next: SavedDiscordChannelType | undefined) => {
+    this.setState({
+      puzzleHooksDiscordChannel: next,
     });
   };
 
@@ -318,14 +431,30 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
           </Col>
         </FormGroup>
 
+        {/*
+          We've pushed the this all the way down to here so that we're not
+          making requests to the Discord API on every load of /hunts, since
+          that's a highly-trafficked page.  Better to only load the channel
+          list once the user is showing the modal.
+        */}
+        <DiscordChannelFormContainer
+          puzzleHooksDiscordChannel={this.state.puzzleHooksDiscordChannel}
+          onChange={this.onPuzzleHooksDiscordChannelChanged}
+          disableForm={disableForm}
+          idPrefix={idPrefix}
+        />
+
         {this.state.submitState === HuntModalFormSubmitState.FAILED && <Alert variant="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>
     );
   }
 }
 
-interface HuntProps {
+interface HuntParams {
   hunt: HuntType;
+}
+
+interface HuntProps extends HuntParams {
   canUpdate: boolean;
   canDestroy: boolean;
 }
@@ -343,9 +472,27 @@ class Hunt extends React.Component<HuntProps> {
 
   onEdit = (state: HuntModalSubmit, callback: (error?: Error) => void) => {
     Ansible.log('Updating hunt settings', { hunt: this.props.hunt._id, user: Meteor.userId(), state });
+
+    // $set will not remove keys from a document.  For that, we must specify
+    // $unset on the appropriate key(s).  Split out which keys we must set and
+    // unset to achieve the desired final state.
+    const toSet: { [key: string]: any; } = {};
+    const toUnset: { [key: string]: string; } = {};
+    Object.keys(state).forEach((key: string) => {
+      const typedKey = key as keyof HuntModalSubmit;
+      if (state[typedKey] === undefined) {
+        toUnset[typedKey] = '';
+      } else {
+        toSet[typedKey] = state[typedKey];
+      }
+    });
+
     Hunts.update(
       { _id: this.props.hunt._id },
-      { $set: state },
+      {
+        $set: toSet,
+        $unset: toUnset,
+      },
       {},
       callback
     );
@@ -424,7 +571,7 @@ class Hunt extends React.Component<HuntProps> {
   }
 }
 
-const HuntContainer = withTracker((_props: { hunt: HuntType }) => {
+const HuntContainer = withTracker((_params: HuntParams) => {
   return {
     canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
 

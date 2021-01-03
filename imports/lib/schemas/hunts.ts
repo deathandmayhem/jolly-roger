@@ -3,6 +3,13 @@ import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './base';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
+export const SavedDiscordChannelFields = t.type({
+  id: t.string,
+  name: t.string,
+});
+
+export type SavedDiscordChannelType = t.TypeOf<typeof SavedDiscordChannelFields>;
+
 const HuntFields = t.type({
   name: t.string,
   // Everyone that joins the hunt will be added to these mailing lists
@@ -22,7 +29,13 @@ const HuntFields = t.type({
   // (https://nodejs.org/api/url.html#url_class_url), which provides variables
   // like "host" and "pathname".
   submitTemplate: t.union([t.string, t.undefined]),
+  // If provided, then this is a link to the overall root hunt homepage and will
+  // be shown in the PuzzleListPage navbar.
   homepageUrl: t.union([t.string, t.undefined]),
+  // If provided, this is an object containing a Discord channel id and cached
+  // channel name (for local presentation) to which we should post puzzle
+  // create/solve messages as the server-configured Discord bot.
+  puzzleHooksDiscordChannel: t.union([SavedDiscordChannelFields, t.undefined]),
 });
 
 const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {
