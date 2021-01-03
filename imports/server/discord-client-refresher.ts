@@ -112,8 +112,9 @@ class DiscordClientRefresher {
 }
 
 const globalClientHolder = new DiscordClientRefresher();
-process.on('SIGINT', Meteor.bindEnvironment(() => globalClientHolder.destroy()));
-process.on('SIGTERM', Meteor.bindEnvironment(() => globalClientHolder.destroy()));
-process.on('exit', Meteor.bindEnvironment(() => globalClientHolder.destroy()));
+Meteor.startup(() => {
+  process.on('SIGINT', Meteor.bindEnvironment(() => globalClientHolder.destroy()));
+  process.on('SIGTERM', Meteor.bindEnvironment(() => globalClientHolder.destroy()));
+});
 
 export default globalClientHolder;
