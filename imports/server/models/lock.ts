@@ -5,7 +5,7 @@ import Ansible from '../../ansible';
 import LockSchema, { LockType } from '../schemas/lock';
 
 declare const Npm: any;
-const Future = Npm.require('fibers/future');
+const Future: typeof import('fibers/future') = Npm.require('fibers/future');
 
 // 10 seconds
 export const PREEMPT_TIMEOUT = 10000;
@@ -23,7 +23,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
       return this.insert(<any>{ name });
     } catch (e) {
       if ((e.name === 'MongoError' || e.name === 'BulkWriteError') && e.code === 11000) {
-        return null;
+        return undefined;
       }
 
       throw e;
@@ -45,16 +45,29 @@ const Locks = new class extends Mongo.Collection<LockType> {
   withLock<T>(name: string, critSection: (id: string) => T) {
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      let handle;
-      let lock;
+      let handle: Meteor.LiveQueryHandle | undefined;
+      let lock: string | undefined;
+      let timeoutHandle: number | undefined;
+
+      const cleanupWatches = () => {
+        if (handle) {
+          handle.stop();
+          handle = undefined;
+        }
+        if (timeoutHandle) {
+          Meteor.clearTimeout(timeoutHandle);
+          timeoutHandle = undefined;
+        }
+      };
       try {
         const cursor = this.find({ name });
 
         // Setup the watch now so we don't race between when we check
         // for the lock and when we wait for premption
-        const removed = new Future();
+        const removed = new Future<LockType | undefined>();
         handle = cursor.observeChanges({
           removed() {
+            cleanupWatches();
             removed.return(undefined);
           },
         });
@@ -66,10 +79,11 @@ const Locks = new class extends Mongo.Collection<LockType> {
         }
 
         // Lock is held, so wait until we can preempt and try again
-        let timeoutHandle: number | undefined;
         const monitorTimeout = () => {
           const otherLock = cursor.fetch()[0];
           if (!otherLock) {
+            // We raced with the cursor notification
+            cleanupWatches();
             removed.return(undefined);
           }
 
@@ -77,6 +91,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
           const timeout = (time.getTime() + PREEMPT_TIMEOUT) - (new Date()).getTime();
 
           if (timeout < 0) {
+            cleanupWatches();
             removed.return(otherLock);
           } else {
             timeoutHandle = Meteor.setTimeout(() => monitorTimeout(), timeout);
@@ -85,23 +100,13 @@ const Locks = new class extends Mongo.Collection<LockType> {
         monitorTimeout();
 
         // If we time out, then preempt
-        const preemptableLock: LockType = removed.wait();
-        if (timeoutHandle !== undefined) {
-          Meteor.clearTimeout(timeoutHandle);
-        }
-
+        const preemptableLock = removed.wait();
         if (preemptableLock) {
-          // Stop the observe handle - the record is about to be
-          // removed and we don't want to double-fire the future.
-          handle.stop();
-          handle = undefined;
           Ansible.log('Prempting lock', { id: preemptableLock._id, name });
           this.remove({ _id: preemptableLock._id, renewedAt: preemptableLock.renewedAt });
         }
       } finally {
-        if (handle) {
-          handle.stop();
-        }
+        cleanupWatches();
 
         if (lock) {
           // eslint-disable-next-line no-underscore-dangle
