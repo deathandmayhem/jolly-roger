@@ -95,7 +95,9 @@ class DiscordClientRefresher {
 
           // Otherwise, if we get the lock, we're responsible for opening the
           // websocket gateway connection
-          MeteorPromise.await(client.login(this.botToken));
+          const ready = new Promise<void>((r) => client.on('ready', r));
+          client.login(this.botToken);
+          MeteorPromise.await(ready);
 
           while (client.token !== null && client.ws.status === Discord.Constants.Status.READY) {
             Locks.renew(lock);
