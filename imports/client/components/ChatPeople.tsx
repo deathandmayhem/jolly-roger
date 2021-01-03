@@ -3,6 +3,7 @@ import { Random } from 'meteor/random';
 import { withTracker } from 'meteor/react-meteor-data';
 import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import classnames from 'classnames';
 import React, { ReactChild } from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -333,11 +334,9 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
                 <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
                 {`${rtcViewers.length} caller${rtcViewers.length !== 1 ? 's' : ''}`}
               </header>
-              {this.state.callersExpanded && (
-                <div className="people-list">
-                  {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} {...viewer} />)}
-                </div>
-              )}
+              <div className={classnames('people-list', { collapsed: !this.state.callersExpanded })}>
+                {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} {...viewer} />)}
+              </div>
             </div>
           </>
         );
@@ -394,11 +393,9 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
             <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
             {`${totalViewers} viewer${totalViewers !== 1 ? 's' : ''}`}
           </header>
-          {this.state.viewersExpanded && (
-            <div className="people-list">
-              {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
-            </div>
-          )}
+          <div className={classnames('people-list', { collapsed: !this.state.viewersExpanded })}>
+            {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
+          </div>
         </div>
       </section>
     );

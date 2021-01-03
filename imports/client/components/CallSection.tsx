@@ -156,24 +156,22 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
             <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
             {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
           </header>
-          {this.props.callersExpanded && (
-            <div className="people-list">
-              {this.renderSelfBox()}
-              {this.props.signalsReady && this.props.selfParticipant && others.map((p) => {
-                return (
-                  <CallLinkBox
-                    key={p._id}
-                    rtcConfig={this.props.rtcConfig!}
-                    selfParticipant={this.props.selfParticipant!}
-                    peerParticipant={p}
-                    localStream={this.props.localStream}
-                    audioContext={this.props.audioContext}
-                    deafened={this.props.deafened}
-                  />
-                );
-              })}
-            </div>
-          )}
+          <div className={classnames('people-list', { collapsed: !this.props.callersExpanded })}>
+            {this.renderSelfBox()}
+            {this.props.signalsReady && this.props.selfParticipant && others.map((p) => {
+              return (
+                <CallLinkBox
+                  key={p._id}
+                  rtcConfig={this.props.rtcConfig!}
+                  selfParticipant={this.props.selfParticipant!}
+                  peerParticipant={p}
+                  localStream={this.props.localStream}
+                  audioContext={this.props.audioContext}
+                  deafened={this.props.deafened}
+                />
+              );
+            })}
+          </div>
         </div>
       </>
     );

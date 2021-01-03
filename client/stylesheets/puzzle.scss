@@ -311,6 +311,10 @@ table.puzzle-list {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+
+    &.collapsed {
+      display: none;
+    }
   }
 
   .people-item {
