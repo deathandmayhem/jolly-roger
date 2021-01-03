@@ -63,7 +63,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
         const cursor = this.find({ name });
 
         // Setup the watch now so we don't race between when we check
-        // for the lock and when we wait for premption
+        // for the lock and when we wait for preemption
         const removed = new Future<LockType | undefined>();
         handle = cursor.observeChanges({
           removed() {
@@ -102,7 +102,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
         // If we time out, then preempt
         const preemptableLock = removed.wait();
         if (preemptableLock) {
-          Ansible.log('Prempting lock', { id: preemptableLock._id, name });
+          Ansible.log('Preempting lock', { id: preemptableLock._id, name });
           this.remove({ _id: preemptableLock._id, renewedAt: preemptableLock.renewedAt });
         }
       } finally {

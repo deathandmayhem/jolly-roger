@@ -14,7 +14,7 @@ export const PublicSettingCodec = t.intersection([
       }),
     }),
     // TODO: not actually implemented/used yet, but I needed a second possible
-    // value for io-ts to not choke on this being premptively labeled a tagged
+    // value for io-ts to not choke on this being preemptively labeled a tagged
     // union
     t.type({
       name: t.literal('branding'),
