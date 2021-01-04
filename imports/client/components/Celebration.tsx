@@ -14,10 +14,12 @@ class Celebration extends React.Component<CelebrationProps> {
 
   componentDidMount() {
     this.timer = window.setTimeout(() => { this.onClose(); }, 7000);
+    document.addEventListener('keydown', this.onKeyDown);
   }
 
   componentWillUnmount() {
     window.clearTimeout(this.timer);
+    document.removeEventListener('keydown', this.onKeyDown);
   }
 
   onClose = () => {
@@ -25,6 +27,13 @@ class Celebration extends React.Component<CelebrationProps> {
       this.props.onClose();
     }
   };
+
+  onKeyDown = (e: KeyboardEvent) => {
+    // Dismiss the celebration on esc
+    if (e.keyCode === 27) {
+      this.onClose();
+    }
+  }
 
   maybeClose = (e: React.MouseEvent) => {
     // Dismiss the celebration if you click on the overlay div (outside the content)
