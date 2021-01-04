@@ -125,7 +125,7 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
       muted: false,
       deafened: false,
       callersExpanded: true,
-      viewersExpanded: false,
+      viewersExpanded: true,
 
       audioContext: undefined,
       rawMediaSource: undefined,
