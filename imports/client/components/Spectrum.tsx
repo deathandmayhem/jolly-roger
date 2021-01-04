@@ -11,12 +11,13 @@ interface SpectrumProps {
   height: number;
   audioContext: AudioContext;
   className: string | undefined;
+  barCount?: number;
+  throttleFps?: number;
+  barFloor?: number;
+  smoothingTimeConstant?: number;
 }
 
-// How many milliseconds to ensure have passed before we do expensive
-// repainting work again.
-const THROTTLE_MAX_FPS = 30;
-const THROTTLE_MIN_MSEC_ELAPSED = 1000 / THROTTLE_MAX_FPS;
+const DEFAULT_THROTTLE_MAX_FPS = 30;
 
 class Spectrum extends React.Component<SpectrumProps> {
   private canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -31,16 +32,21 @@ class Spectrum extends React.Component<SpectrumProps> {
 
   private lastPainted: number;
 
+  private throttleMinMsecElapsed: number;
+
   constructor(props: SpectrumProps) {
     super(props);
 
     this.canvasRef = React.createRef();
-    this.analyserNode = this.props.audioContext.createAnalyser();
-    this.analyserNode.fftSize = 32;
-    this.analyserNode.smoothingTimeConstant = 0.4;
+    this.analyserNode = props.audioContext.createAnalyser();
+    this.analyserNode.fftSize = props.barCount !== undefined ? props.barCount * 2 : 32;
+    this.analyserNode.smoothingTimeConstant = (props.smoothingTimeConstant !== undefined ?
+      props.smoothingTimeConstant : 0.4);
     this.bufferLength = this.analyserNode.frequencyBinCount;
     this.analyserBuffer = new Uint8Array(this.bufferLength);
     this.lastPainted = 0;
+    this.throttleMinMsecElapsed = 1000 / (props.throttleFps !== undefined ?
+      props.throttleFps : DEFAULT_THROTTLE_MAX_FPS);
   }
 
   componentWillUnmount() {
@@ -70,9 +76,9 @@ class Spectrum extends React.Component<SpectrumProps> {
     // request call on next animation frame
     this.periodicHandle = window.requestAnimationFrame(this.drawSpectrum);
 
-    // Throttle: only do work if THROTTLE_MIN_MSEC_ELAPSED have passed since
+    // Throttle: only do work if throttleMinMsecElapsed have passed since
     // the last time we did work.
-    if (this.lastPainted + THROTTLE_MIN_MSEC_ELAPSED > time) {
+    if (this.lastPainted + this.throttleMinMsecElapsed > time) {
       return;
     }
 
@@ -89,7 +95,8 @@ class Spectrum extends React.Component<SpectrumProps> {
         let x = 0;
         for (let i = 0; i < (this.bufferLength / 2); i++) {
           // minimum bar height reduces some flickering
-          const barHeight = (Math.max(this.analyserBuffer[i], 32) * HEIGHT) / 255;
+          const barFloor = this.props.barFloor !== undefined ? this.props.barFloor : 32;
+          const barHeight = (Math.max(this.analyserBuffer[i], barFloor) * HEIGHT) / 255;
 
           // bootstrap blue is rgb(0, 123, 255)
           const redness = this.analyserBuffer[i] - 60 < 0 ?
