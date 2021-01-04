@@ -14,6 +14,7 @@ import FormText from 'react-bootstrap/FormText';
 import Flags from '../../flags';
 import { ProfileType } from '../../lib/schemas/profiles';
 import { requestDiscordCredential } from '../discord';
+import AudioConfig from './AudioConfig';
 import Gravatar from './Gravatar';
 
 interface GoogleLinkBlockProps {
@@ -509,6 +510,8 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
             Save
           </Button>
         </FormGroup>
+
+        <AudioConfig />
       </div>
     );
   }

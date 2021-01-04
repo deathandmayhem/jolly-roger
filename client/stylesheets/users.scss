@@ -1,3 +1,24 @@
 .profiles-summary {
   text-align: right;
 }
+
+.audio-self-test {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.spectrogram-y-axis-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.audio-self-test-spectrogram {
+  margin: 10px 4px;
+  border: 1px solid black;
+  width: 600px;
+  height: 400px;
+}
