@@ -118,13 +118,26 @@ class AudioConfig extends React.Component<AudioConfigProps, AudioConfigState> {
 
         <p>
           Click Start, then try speaking a few phrases, and typing for a bit to
-          see how loud your environment is.  Recommended level targets are:
+          see how loud your environment is.  While we&apos;ve enabled automatic gain
+          control, some microphones are more sensitive than others.
+          Some rough guidance:
         </p>
 
         <ul>
-          <li>Background noise: below -80dB across the whole spectrum</li>
-          <li>Speech: bars on the left should peak over -60dB or you&apos;ll be hard to hear</li>
-          <li>Try not to get louder than -35dB, or you will come across as quite loud</li>
+          <li>
+            When you aren&apos;t speaking, all bars should be below -70dBFS.  If
+            they aren&apos;t, consider moving to a quieter location if available.
+          </li>
+          <li>
+            When you are speaking: bars on the left should peak over -60dBFS or
+            you&apos;ll probably be somewhat hard to hear, so you may need to
+            speak up.
+          </li>
+          <li>
+            If you get louder than -35dBFS or so, you will probably come across
+            as quite loud, and it might be polite to either speak in a softer
+            tone or reduce your microphone volume.
+          </li>
         </ul>
 
         {this.state.status !== AudioConfigStatus.STREAMING ? (
@@ -153,14 +166,14 @@ class AudioConfig extends React.Component<AudioConfigProps, AudioConfigState> {
 
         <div className="audio-self-test">
           <div className="spectrogram-y-axis-labels">
-            <div>-30dB</div>
-            <div>-40dB</div>
-            <div>-50dB</div>
-            <div>-60dB</div>
-            <div>-70dB</div>
-            <div>-80dB</div>
-            <div>-90dB</div>
-            <div>-100dB</div>
+            <div>-30dBFS</div>
+            <div>-40dBFS</div>
+            <div>-50dBFS</div>
+            <div>-60dBFS</div>
+            <div>-70dBFS</div>
+            <div>-80dBFS</div>
+            <div>-90dBFS</div>
+            <div>-100dBFS</div>
           </div>
           {this.state.status === AudioConfigStatus.STREAMING ? (
             <Spectrum
