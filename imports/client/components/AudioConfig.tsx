@@ -2,7 +2,9 @@ import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import FormCheck from 'react-bootstrap/FormCheck';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
 import Spectrum from './Spectrum';
 
 interface AudioConfigProps {
@@ -17,19 +19,26 @@ enum AudioConfigStatus {
 
 interface AudioConfigState {
   status: AudioConfigStatus;
+  preferredDeviceId: string | undefined;
+  knownDevices: MediaDeviceInfo[];
   loopback: boolean;
   stream: MediaStream | undefined;
   audioContext: AudioContext | undefined;
   error: string | undefined;
 }
 
+export const PREFERRED_AUDIO_DEVICE_STORAGE_KEY = 'preferredAudioDevice';
+
 class AudioConfig extends React.Component<AudioConfigProps, AudioConfigState> {
   private audioRef: React.RefObject<HTMLAudioElement>;
 
   constructor(props: AudioConfigProps) {
     super(props);
+    const preferredDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) || undefined;
     this.state = {
       status: AudioConfigStatus.IDLE,
+      preferredDeviceId,
+      knownDevices: [],
       loopback: false,
       stream: undefined,
       audioContext: undefined,
@@ -37,7 +46,50 @@ class AudioConfig extends React.Component<AudioConfigProps, AudioConfigState> {
     };
 
     this.audioRef = React.createRef();
+    this.updateDeviceList();
   }
+
+  componentDidMount() {
+    // Add device change watcher
+    navigator.mediaDevices.addEventListener('devicechange', this.updateDeviceList);
+    // Add storage watcher
+    window.addEventListener('storage', this.onStorageEvent);
+  }
+
+  componentWillUnmount() {
+    // Remove device change watcher
+    navigator.mediaDevices.removeEventListener('devicechange', this.updateDeviceList);
+    // Remove storage watcher
+    window.removeEventListener('storage', this.onStorageEvent);
+  }
+
+  updateDeviceList = () => {
+    // TODO: re-request devices
+    navigator.mediaDevices.enumerateDevices().then((devices) => {
+      const inputs = devices.filter((dev) => dev.kind === 'audioinput');
+      this.setState({
+        knownDevices: inputs,
+      });
+    });
+  };
+
+  onStorageEvent = (e: StorageEvent) => {
+    if (e.key === PREFERRED_AUDIO_DEVICE_STORAGE_KEY) {
+      this.setState({
+        preferredDeviceId: e.newValue || undefined,
+      });
+    }
+  };
+
+  onDefaultDeviceChange: FormControlProps['onChange'] = (e) => {
+    const preferredDeviceId = e.target.value;
+    // Save preferred input device id to local storage.
+    localStorage.setItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY, preferredDeviceId);
+    // Also update the UI.
+    this.setState({
+      preferredDeviceId,
+    });
+  };
 
   onStartButtonClicked = (_e: React.FormEvent) => {
     if (navigator.mediaDevices) {
@@ -45,12 +97,14 @@ class AudioConfig extends React.Component<AudioConfigProps, AudioConfigState> {
         status: AudioConfigStatus.REQUESTING_STREAM,
       });
 
+      const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ||
+        undefined;
       const mediaStreamConstraints = {
         audio: {
           echoCancellation: { ideal: true },
           autoGainControl: { ideal: true },
           noiseSuppression: { ideal: true },
-          // TODO: opportunistically specify device constraint
+          deviceId: preferredAudioDeviceId,
         },
       };
 
@@ -109,7 +163,20 @@ class AudioConfig extends React.Component<AudioConfigProps, AudioConfigState> {
   render() {
     return (
       <section className="audio-self-test-section">
-        <h2>Audio self-test</h2>
+        <h2>Audio</h2>
+
+        <FormGroup controlId="default-capture-device">
+          <FormLabel>Selected audio input device</FormLabel>
+          <FormControl
+            as="select"
+            onChange={this.onDefaultDeviceChange}
+            value={this.state.preferredDeviceId}
+          >
+            {this.state.knownDevices.map((dev) => (
+              <option value={dev.deviceId} key={dev.deviceId}>{dev.label}</option>
+            ))}
+          </FormControl>
+        </FormGroup>
 
         {this.state.error ? <Alert variant="danger">{this.state.error}</Alert> : null}
         <p>
