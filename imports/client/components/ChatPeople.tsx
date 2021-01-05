@@ -13,6 +13,7 @@ import CallParticipants from '../../lib/models/call_participants';
 import Profiles from '../../lib/models/profiles';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
 import { Subscribers } from '../subscribers';
+import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from './AudioConfig';
 import CallSection from './CallSection';
 
 const tabId = Random.id();
@@ -210,12 +211,15 @@ class ChatPeople extends React.Component<ChatPeopleProps, ChatPeopleState> {
         state: CallState.REQUESTING_STREAM,
       });
 
+      const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ||
+        undefined;
       // Get the user media stream.
       const mediaStreamConstraints = {
         audio: {
           echoCancellation: { ideal: true },
           autoGainControl: { ideal: true },
           noiseSuppression: { ideal: true },
+          deviceId: preferredAudioDeviceId,
         },
         // TODO: conditionally allow video if enabled by feature flag?
       };
