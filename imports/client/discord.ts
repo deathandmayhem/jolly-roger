@@ -1,25 +1,22 @@
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
 import { OAuth } from 'meteor/oauth';
 import { Random } from 'meteor/random';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import { API_BASE, DiscordOAuthScopes } from '../lib/discord';
 
-// Psuedo-collection used by setup for selecting guild
+// Pseudo-type used for encapsulating guild data
 export type DiscordGuildType = {
-  _id: string;
+  id: string;
   name: string;
 }
-export const DiscordGuilds = new Mongo.Collection<DiscordGuildType>('discord.guilds');
 
-// Pseudo-collection used by hunt config for selecting channel
+// Pseudo-type used for encapsulating channel data
 export type DiscordChannelType = {
-  _id: string;
+  id: string;
   name: string;
-  type: number;
-  position: number | undefined;
+  type: string;
+  rawPosition: number | undefined;
 }
-export const DiscordChannels = new Mongo.Collection<DiscordChannelType>('discord.channels');
 
 function requestDiscordCredential(credentialRequestCompleteCallback: any) {
   const options = {};

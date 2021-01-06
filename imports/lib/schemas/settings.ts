@@ -5,7 +5,7 @@ import { inheritSchema, buildSchema } from './typedSchemas';
 // We can't represent tagged unions in SimpleSchema, so we use different types
 // for the actual type vs. the type used to derive the schema.
 const GuildType = t.type({
-  _id: t.string,
+  id: t.string,
   name: t.string,
 });
 export const SettingCodec = t.intersection([
