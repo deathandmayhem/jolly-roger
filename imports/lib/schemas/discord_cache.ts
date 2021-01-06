@@ -7,6 +7,7 @@ import { buildSchema, Overrides } from './typedSchemas';
 export const DiscordCacheCodec = t.type({
   _id: t.string,
   createdAt: date,
+  updatedAt: t.union([date, t.undefined]),
   snowflake: t.string,
   type: t.string,
   object: t.object,
@@ -23,6 +24,16 @@ const DiscordCacheOverrides: Overrides<t.TypeOf<typeof DiscordCacheCodec>> = {
         this.unset(); // Prevent user from supplying their own value
         return undefined;
       }
+    },
+  },
+
+  updatedAt: {
+    denyInsert: true,
+    autoValue() {
+      if (this.isUpdate) {
+        return new Date();
+      }
+      return undefined;
     },
   },
 
