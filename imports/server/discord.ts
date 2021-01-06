@@ -1,12 +1,8 @@
 import { HTTP } from 'meteor/http';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { OAuth } from 'meteor/oauth';
 import { ServiceConfiguration } from 'meteor/service-configuration';
-import Ansible from '../ansible';
-import Flags from '../flags';
 import { API_BASE, DiscordOAuthScopes } from '../lib/discord';
-import Settings from '../lib/models/settings';
 
 class DiscordAPIClient {
   private accessToken: string;
@@ -174,66 +170,5 @@ const handleOauthRequest = (query: any) => {
 };
 
 OAuth.registerService('discord', 2, null, handleOauthRequest);
-
-const cacheDuration = 5000;
-let channelsCache: any[] = [];
-let channelsCacheTimestamp = 0;
-
-Meteor.publish('discord.channels', function () {
-  if (!this.userId || !Roles.userHasPermission(this.userId, 'discord.listChannels')) {
-    Ansible.log('Sub to discord.channels not logged in as operator');
-    return [];
-  }
-
-  if (Flags.active('disable.discord')) {
-    return [];
-  }
-
-  const botSettings = Settings.findOne({ name: 'discord.bot' });
-  if (!botSettings || botSettings.name !== 'discord.bot') {
-    return [];
-  }
-
-  const token = botSettings.value && botSettings.value.token;
-  if (!token) {
-    Ansible.log('Sub to discord.channels: no bot token');
-    return [];
-  }
-
-  const guildSetting = Settings.findOne({ name: 'discord.guild' });
-  if (!guildSetting || guildSetting.name !== 'discord.guild') {
-    Ansible.log('No discord guild configured; will not enumerate channels');
-    return [];
-  }
-
-  const guildId = guildSetting.value && guildSetting.value.guild && guildSetting.value.guild._id;
-  if (!guildId) {
-    Ansible.log('No discord guild configured; will not enumerate channels');
-    return [];
-  }
-
-  // Fetch channels from the Discord API.
-  const bot = new DiscordBot(token);
-  if (Date.now() > channelsCacheTimestamp + cacheDuration) {
-    try {
-      channelsCache = bot.listGuildChannels(guildId);
-      channelsCacheTimestamp = Date.now();
-    } catch (err) {
-      Ansible.log('Sub to discord.channels: discord remote error', { err: JSON.stringify(err) });
-      return [];
-    }
-  }
-
-  channelsCache.forEach((channel: any) => {
-    this.added('discord.channels', channel.id, {
-      name: channel.name,
-      type: channel.type,
-      position: channel.position,
-    });
-  });
-  this.ready();
-  // eslint-disable-next-line
-  return;
-});
 
 export { DiscordAPIClient, DiscordBot };

@@ -14,8 +14,9 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
+import DiscordCache from '../../lib/models/discord_cache';
 import Settings from '../../lib/models/settings';
-import { DiscordGuilds, DiscordGuildType } from '../discord';
+import { DiscordGuildType } from '../discord';
 
 /* eslint-disable max-len, react/jsx-one-expression-per-line */
 
@@ -706,7 +707,7 @@ class DiscordGuildForm extends React.Component<DiscordGuildFormProps, DiscordGui
   constructor(props: DiscordGuildFormProps) {
     super(props);
     this.state = {
-      guildId: (props.guild && props.guild._id) || '',
+      guildId: (props.guild && props.guild.id) || '',
       submitState: SubmitState.IDLE,
       submitError: '',
     };
@@ -728,7 +729,7 @@ class DiscordGuildForm extends React.Component<DiscordGuildFormProps, DiscordGui
   onSaveGuild = (e: React.FormEvent<any>) => {
     e.preventDefault();
 
-    const guild = this.props.guilds.find((g) => g._id === this.state.guildId);
+    const guild = this.props.guilds.find((g) => g.id === this.state.guildId);
     this.setState({
       submitState: SubmitState.SUBMITTING,
     });
@@ -749,7 +750,7 @@ class DiscordGuildForm extends React.Component<DiscordGuildFormProps, DiscordGui
   render() {
     const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
     const noneOption = {
-      _id: 'empty',
+      id: 'empty',
       name: 'No guild assigned',
     };
     const formOptions = [noneOption, ...this.props.guilds];
@@ -779,9 +780,9 @@ class DiscordGuildForm extends React.Component<DiscordGuildFormProps, DiscordGui
               disabled={shouldDisableForm}
               onChange={this.onSelectedGuildChange}
             >
-              {formOptions.map(({ _id, name }) => {
+              {formOptions.map(({ id, name }) => {
                 return (
-                  <option key={_id} value={_id}>{name}</option>
+                  <option key={id} value={id}>{name}</option>
                 );
               })}
             </FormControl>
@@ -800,9 +801,9 @@ const DiscordGuildFormContainer = withTracker((_props: DiscordGuildFormContainer
   // Didn't seem worth making cleverer; this will get used ~once.
   const guildSub = Meteor.subscribe('discord.guilds');
   const ready = guildSub.ready();
-  const guilds = ready ? DiscordGuilds.find({}).fetch() : [];
+  const guilds = DiscordCache.find({ type: 'guild' }).fetch().map((c) => c.object as DiscordGuildType);
   return {
-    ready: false,
+    ready,
     guilds,
   };
 })(DiscordGuildForm);

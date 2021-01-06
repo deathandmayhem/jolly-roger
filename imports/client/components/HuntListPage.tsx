@@ -18,9 +18,10 @@ import Row from 'react-bootstrap/Row';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
+import DiscordCache from '../../lib/models/discord_cache';
 import Hunts from '../../lib/models/hunts';
 import { HuntType, SavedDiscordChannelType } from '../../lib/schemas/hunts';
-import { DiscordChannels, DiscordChannelType } from '../discord';
+import { DiscordChannelType } from '../discord';
 import ModalForm from './ModalForm';
 
 /* eslint-disable max-len */
@@ -51,7 +52,7 @@ class DiscordChannelForm extends React.Component<DiscordChannelFormProps> {
     if (e.currentTarget.value === 'empty') {
       this.props.onChange(undefined);
     } else {
-      const match = this.props.discordChannels.find((chan) => { return chan._id === e.currentTarget.value; });
+      const match = this.props.discordChannels.find((chan) => { return chan.id === e.currentTarget.value; });
       if (match) {
         const next = {
           id: e.currentTarget.value,
@@ -72,7 +73,7 @@ class DiscordChannelForm extends React.Component<DiscordChannelFormProps> {
 
     const propsListOptions = this.props.discordChannels.map((chan) => {
       return {
-        id: chan._id,
+        id: chan.id,
         name: chan.name,
       };
     });
@@ -123,16 +124,16 @@ class DiscordChannelForm extends React.Component<DiscordChannelFormProps> {
 }
 
 const DiscordChannelFormContainer = withTracker((_params: DiscordChannelFormParams) => {
-  const discordChannelsHandle = Meteor.subscribe('discord.channels');
-  const discordChannels = DiscordChannels.find(
+  const discordCacheHandle = Meteor.subscribe('discord.cache', { type: 'channel' });
+  const discordChannels = DiscordCache.find(
     // We want only text channels, since those are the only ones we can bridge chat messages to.
-    { type: 0 },
+    { 'object.type': 'text' },
     // We want to sort them in the same order they're provided in the Discord UI.
-    { sort: { position: 1 } }
-  ).fetch();
+    { sort: { 'object.rawPosition': 1 } }
+  ).map((cache) => cache.object as DiscordChannelType);
 
   return {
-    ready: discordChannelsHandle.ready(),
+    ready: discordCacheHandle.ready(),
     discordChannels,
   };
 })(DiscordChannelForm);

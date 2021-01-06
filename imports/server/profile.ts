@@ -100,19 +100,19 @@ Meteor.methods({
       // Invitations to the guild must be performed by the bot user.
       const bot = new DiscordBot(botToken);
       // If the user is already in the guild, no need to add them again.
-      const guildMember = bot.getUserInGuild(userInfo.id, guild._id);
+      const guildMember = bot.getUserInGuild(userInfo.id, guild.id);
       if (!guildMember) {
         Ansible.log('Adding user to guild', {
           user: this.userId,
           discordUser: userInfo.id,
-          guild: guild._id,
+          guild: guild.id,
         });
-        bot.addUserToGuild(userInfo.id, accessToken, guild._id);
+        bot.addUserToGuild(userInfo.id, accessToken, guild.id);
       } else {
         Ansible.log('User is already a member of guild', {
           user: this.userId,
           discordUser: userInfo.id,
-          guild: guild._id,
+          guild: guild.id,
         });
       }
     }

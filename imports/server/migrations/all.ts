@@ -27,3 +27,4 @@ import './25-remove-slack-featureflag';
 import './26-remove-subcounter-feature-flags';
 import './27-hunt-has-guess-queue';
 import './28-discord-cache-indexes';
+import './29-fix-guild-setting-id';
