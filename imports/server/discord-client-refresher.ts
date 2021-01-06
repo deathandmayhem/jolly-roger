@@ -2,10 +2,15 @@ import { Meteor } from 'meteor/meteor';
 import { Promise as MeteorPromise } from 'meteor/promise';
 import Discord from 'discord.js';
 import Flags from '../flags';
+import DiscordCache from '../lib/models/discord_cache';
 import FeatureFlags from '../lib/models/feature_flags';
 import Settings from '../lib/models/settings';
 import { SettingType } from '../lib/schemas/settings';
 import Locks, { PREEMPT_TIMEOUT } from './models/lock';
+
+type DiscordEventsWithArguments<Args> = {
+  [K in keyof Discord.ClientEvents]-?: Discord.ClientEvents[K] extends Args ? K : never;
+}[keyof Discord.ClientEvents]
 
 class DiscordClientRefresher {
   public client?: Discord.Client;
@@ -109,6 +114,19 @@ class DiscordClientRefresher {
             client.login(this.token);
             MeteorPromise.await(ready);
 
+            this.cacheResource(client, 'guild', client.guilds.cache, 'guildCreate', 'guildUpdate', 'guildDelete');
+            this.cacheResource(client, 'channel', client.channels.cache, 'channelCreate', 'channelUpdate', 'channelDelete');
+
+            // Role update events are global, but the cache of roles is not
+            const allRoles = client.guilds.cache.reduce((
+              roles: Map<Discord.Snowflake, Discord.Role>,
+              guild,
+            ) => {
+              guild.roles.cache.forEach((r) => roles.set(r.id, r));
+              return roles;
+            }, new Map());
+            this.cacheResource(client, 'role', allRoles, 'roleCreate', 'roleUpdate', 'roleDelete');
+
             const invalidated = new Promise<void>((r) => client.on('invalidated', r));
             const wakeup = new Promise<void>((r) => {
               this.wakeup = r;
@@ -130,6 +148,66 @@ class DiscordClientRefresher {
         });
       });
     }
+  }
+
+  cacheResource<
+    ResourceType extends Discord.Base & { id: Discord.Snowflake },
+    CreateEvent extends DiscordEventsWithArguments<[ResourceType]>,
+    UpdateEvent extends DiscordEventsWithArguments<[ResourceType, ResourceType]>,
+    DeleteEvent extends DiscordEventsWithArguments<[ResourceType]>,
+  >(
+    client: Discord.Client,
+    type: string,
+    cache: ReadonlyMap<Discord.Snowflake, ResourceType>,
+    createEvent: CreateEvent,
+    updateEvent: UpdateEvent,
+    deleteEvent: DeleteEvent,
+  ) {
+    const oldIds = DiscordCache.find({ type }).map((c) => c.snowflake);
+    const newIds = new Set(...cache.keys());
+    const toDelete = oldIds.filter((x) => !newIds.has(x));
+    DiscordCache.remove({ type, snowflake: { $in: toDelete } });
+
+    cache.forEach((v, k) => {
+      DiscordCache.upsert({
+        type,
+        snowflake: k,
+      }, {
+        $set: {
+          type,
+          snowflake: k,
+          object: v.toJSON(),
+        },
+      });
+    });
+
+    client.on(createEvent, (Meteor.bindEnvironment((r: ResourceType) => {
+      DiscordCache.upsert({
+        type,
+        snowflake: r.id,
+      }, {
+        $set: {
+          type,
+          snowflake: r.id,
+          object: r.toJSON(),
+        },
+      });
+    })) as any);
+    client.on(updateEvent, (Meteor.bindEnvironment((_oldR: ResourceType, r: ResourceType) => {
+      DiscordCache.upsert({
+        type,
+        snowflake: r.id,
+      }, {
+        $set: {
+          type,
+          snowflake: r.id,
+          object: r.toJSON(),
+        },
+      });
+    })) as any);
+    client.on(deleteEvent, (Meteor.bindEnvironment((r: ResourceType) => {
+      DiscordCache.remove({ type, snowflake: r.id });
+    })) as any);
   }
 }
 
