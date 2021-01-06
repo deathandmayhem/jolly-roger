@@ -774,7 +774,7 @@ Resources:
                 ${DatadogDockerConfig}
 
                 # Use host networking for better performance
-                - docker run --name coturn -d --restart=unless-stopped --network=host instrumentisto/coturn --log-file=stdout --external-ip='$(detect-external-ip)' --use-auth-secret --static-auth-secret=${TurnSecret}
+                - docker run --name coturn -d --restart=unless-stopped --network=host instrumentisto/coturn --log-file=stdout --external-ip='$(detect-external-ip)' --realm=${DirectUrl} --use-auth-secret --static-auth-secret=${TurnSecret}
 
                 - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx
 
