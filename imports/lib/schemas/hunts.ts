@@ -3,12 +3,12 @@ import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './base';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
-export const SavedDiscordChannelFields = t.type({
+export const SavedDiscordObjectFields = t.type({
   id: t.string,
   name: t.string,
 });
 
-export type SavedDiscordChannelType = t.TypeOf<typeof SavedDiscordChannelFields>;
+export type SavedDiscordObjectType = t.TypeOf<typeof SavedDiscordObjectFields>;
 
 const HuntFields = t.type({
   name: t.string,
@@ -35,7 +35,7 @@ const HuntFields = t.type({
   // If provided, this is an object containing a Discord channel id and cached
   // channel name (for local presentation) to which we should post puzzle
   // create/solve messages as the server-configured Discord bot.
-  puzzleHooksDiscordChannel: t.union([SavedDiscordChannelFields, t.undefined]),
+  puzzleHooksDiscordChannel: t.union([SavedDiscordObjectFields, t.undefined]),
 });
 
 const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {

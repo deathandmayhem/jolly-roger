@@ -18,6 +18,12 @@ export type DiscordChannelType = {
   rawPosition: number | undefined;
 }
 
+export type DiscordRoleType = {
+  id: string;
+  name: string;
+  rawPosition: number | undefined;
+}
+
 function requestDiscordCredential(credentialRequestCompleteCallback: any) {
   const options = {};
   const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });

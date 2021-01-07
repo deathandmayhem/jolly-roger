@@ -20,8 +20,8 @@ import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import DiscordCache from '../../lib/models/discord_cache';
 import Hunts from '../../lib/models/hunts';
-import { HuntType, SavedDiscordChannelType } from '../../lib/schemas/hunts';
-import { DiscordChannelType } from '../discord';
+import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/hunts';
+import { DiscordChannelType, DiscordRoleType } from '../discord';
 import ModalForm from './ModalForm';
 
 /* eslint-disable max-len */
@@ -35,108 +35,105 @@ const splitLists = function (lists: string): string[] {
   return strippedLists.split(/[, ]+/);
 };
 
-interface DiscordChannelFormParams {
-  puzzleHooksDiscordChannel: SavedDiscordChannelType | undefined;
-  onChange: (next: SavedDiscordChannelType | undefined) => void;
-  disableForm: boolean;
-  idPrefix: string;
+interface DiscordSelectorParams {
+  disable: boolean;
+  id: string;
+  value: SavedDiscordObjectType | undefined;
+  onChange: (next: SavedDiscordObjectType | undefined) => void;
 }
 
-interface DiscordChannelFormProps extends DiscordChannelFormParams {
+interface DiscordSelectorProps extends DiscordSelectorParams {
   ready: boolean;
-  discordChannels: DiscordChannelType[];
+  options: SavedDiscordObjectType[];
 }
 
-class DiscordChannelForm extends React.Component<DiscordChannelFormProps> {
-  onPuzzleHooksDiscordChannelChanged: FormControlProps['onChange'] = (e) => {
+class DiscordSelector extends React.Component<DiscordSelectorProps> {
+  onValueChanged: FormControlProps['onChange'] = (e) => {
     if (e.currentTarget.value === 'empty') {
       this.props.onChange(undefined);
     } else {
-      const match = this.props.discordChannels.find((chan) => { return chan.id === e.currentTarget.value; });
+      const match = this.props.options.find((obj) => { return obj.id === e.currentTarget.value; });
       if (match) {
-        const next = {
-          id: e.currentTarget.value,
-          name: match.name,
-        };
-        this.props.onChange(next);
+        this.props.onChange(match);
       }
     }
-  };
+  }
 
-  formOptions = (): SavedDiscordChannelType[] => {
+  formOptions = (): SavedDiscordObjectType[] => {
     // List of the options.  Be sure to include the saved option if it's (for
     // some reason) not present in the channel list.
     const noneOption = {
       id: 'empty',
       name: 'disabled',
-    } as SavedDiscordChannelType;
+    } as SavedDiscordObjectType;
 
-    const propsListOptions = this.props.discordChannels.map((chan) => {
-      return {
-        id: chan.id,
-        name: chan.name,
-      };
-    });
-
-    if (this.props.puzzleHooksDiscordChannel) {
-      if (!propsListOptions.find((opt) => {
-        return opt.id === this.props.puzzleHooksDiscordChannel!.id;
+    if (this.props.value) {
+      if (!this.props.options.find((opt) => {
+        return opt.id === this.props.value!.id;
       })) {
-        return [noneOption, this.props.puzzleHooksDiscordChannel, ...propsListOptions];
+        return [noneOption, this.props.value, ...this.props.options];
       }
     }
-    return [noneOption, ...propsListOptions];
-  };
+    return [noneOption, ...this.props.options];
+  }
 
   render() {
     if (!this.props.ready) {
-      return <div>Loading discord channels...</div>;
+      return <div>Loading discord resources...</div>;
     } else {
       return (
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor={`${this.props.idPrefix}puzzle-hooks-discord-channel`}>
-            Puzzle notifications Discord channel
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              id={`${this.props.idPrefix}puzzle-hooks-discord-channel`}
-              as="select"
-              type="text"
-              placeholder=""
-              value={this.props.puzzleHooksDiscordChannel && this.props.puzzleHooksDiscordChannel.id}
-              disabled={this.props.disableForm}
-              onChange={this.onPuzzleHooksDiscordChannelChanged}
-            >
-              {this.formOptions().map(({ id, name }) => {
-                return (
-                  <option key={id} value={id}>{name}</option>
-                );
-              })}
-            </FormControl>
-            <FormText>
-              If this field is specified, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.
-            </FormText>
-          </Col>
-        </FormGroup>
+        <FormControl
+          id={this.props.id}
+          as="select"
+          type="text"
+          placeholder=""
+          value={this.props.value && this.props.value.id}
+          disabled={this.props.disable}
+          onChange={this.onValueChanged}
+        >
+          {this.formOptions().map(({ id, name }) => {
+            return (
+              <option key={id} value={id}>{name}</option>
+            );
+          })}
+        </FormControl>
       );
     }
   }
 }
 
-const DiscordChannelFormContainer = withTracker((_params: DiscordChannelFormParams) => {
-  const discordCacheHandle = Meteor.subscribe('discord.cache', { type: 'channel' });
+const DiscordChannelSelector = withTracker((_params: DiscordSelectorParams) => {
+  const handle = Meteor.subscribe('discord.cache', { type: 'channel' });
+  const ready = handle.ready();
+
   const discordChannels = DiscordCache.find(
     // We want only text channels, since those are the only ones we can bridge chat messages to.
-    { 'object.type': 'text' },
+    { type: 'channel', 'object.type': 'text' },
     // We want to sort them in the same order they're provided in the Discord UI.
-    { sort: { 'object.rawPosition': 1 } }
-  ).map((cache) => cache.object as DiscordChannelType);
+    { sort: { 'object.rawPosition': 1 } },
+  ).map((cache) => cache.object as SavedDiscordObjectType);
 
   return {
-    ready: discordCacheHandle.ready(),
-    discordChannels,
+    ready,
+    options: discordChannels,
   };
-})(DiscordChannelForm);
+})(DiscordSelector);
+
+const DiscordRoleSelector = withTracker((_params: DiscordSelectorParams) => {
+  const handle = Meteor.subscribe('discord.cache', { type: 'role' });
+  const ready = handle.ready();
+
+  const discordRoles = DiscordCache.find(
+    { type: 'role' },
+    // We want to sort them in the same order they're provided in the Discord UI.
+    { sort: { 'object.rawPosition': 1 } },
+  ).map((cache) => cache.object as SavedDiscordObjectType);
+
+  return {
+    ready,
+    options: discordRoles,
+  };
+})(DiscordSelector);
 
 export interface HuntModalSubmit {
   // eslint-disable-next-line no-restricted-globals
@@ -147,7 +144,7 @@ export interface HuntModalSubmit {
   hasGuessQueue: boolean;
   homepageUrl: string;
   submitTemplate: string;
-  puzzleHooksDiscordChannel: SavedDiscordChannelType | undefined;
+  puzzleHooksDiscordChannel: SavedDiscordObjectType | undefined;
 }
 
 interface HuntModalFormProps {
@@ -248,7 +245,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
     });
   };
 
-  onPuzzleHooksDiscordChannelChanged = (next: SavedDiscordChannelType | undefined) => {
+  onPuzzleHooksDiscordChannelChanged = (next: SavedDiscordObjectType | undefined) => {
     this.setState({
       puzzleHooksDiscordChannel: next,
     });
@@ -438,18 +435,22 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
           </Col>
         </FormGroup>
 
-        {/*
-          We've pushed the this all the way down to here so that we're not
-          making requests to the Discord API on every load of /hunts, since
-          that's a highly-trafficked page.  Better to only load the channel
-          list once the user is showing the modal.
-        */}
-        <DiscordChannelFormContainer
-          puzzleHooksDiscordChannel={this.state.puzzleHooksDiscordChannel}
-          onChange={this.onPuzzleHooksDiscordChannelChanged}
-          disableForm={disableForm}
-          idPrefix={idPrefix}
-        />
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}puzzle-hooks-discord-channel`}>
+            Puzzle notifications Discord channel
+          </FormLabel>
+          <Col xs={9}>
+            <DiscordChannelSelector
+              id={`${idPrefix}puzzle-hooks-discord-channel`}
+              disable={disableForm}
+              value={this.state.puzzleHooksDiscordChannel}
+              onChange={this.onPuzzleHooksDiscordChannelChanged}
+            />
+            <FormText>
+              If this field is specified, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.
+            </FormText>
+          </Col>
+        </FormGroup>
 
         {this.state.submitState === HuntModalFormSubmitState.FAILED && <Alert variant="danger">{this.state.errorMessage}</Alert>}
       </ModalForm>
