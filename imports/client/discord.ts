@@ -20,7 +20,9 @@ export type DiscordChannelType = {
 
 export type DiscordRoleType = {
   id: string;
+  guild: string;
   name: string;
+  managed: boolean;
   rawPosition: number | undefined;
 }
 

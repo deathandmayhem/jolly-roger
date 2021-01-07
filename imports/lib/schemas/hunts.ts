@@ -36,6 +36,9 @@ const HuntFields = t.type({
   // channel name (for local presentation) to which we should post puzzle
   // create/solve messages as the server-configured Discord bot.
   puzzleHooksDiscordChannel: t.union([SavedDiscordObjectFields, t.undefined]),
+  // If provided, then members of the hunt who have also linked their Discord
+  // profile will be added to this role.
+  memberDiscordRole: t.union([SavedDiscordObjectFields, t.undefined]),
 });
 
 const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {

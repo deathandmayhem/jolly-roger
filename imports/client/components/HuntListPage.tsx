@@ -106,12 +106,13 @@ const DiscordChannelSelector = withTracker((_params: DiscordSelectorParams) => {
   const handle = Meteor.subscribe('discord.cache', { type: 'channel' });
   const ready = handle.ready();
 
-  const discordChannels = DiscordCache.find(
+  const discordChannels: SavedDiscordObjectType[] = DiscordCache.find(
     // We want only text channels, since those are the only ones we can bridge chat messages to.
     { type: 'channel', 'object.type': 'text' },
     // We want to sort them in the same order they're provided in the Discord UI.
     { sort: { 'object.rawPosition': 1 } },
-  ).map((cache) => cache.object as SavedDiscordObjectType);
+  )
+    .map((c) => c.object as DiscordChannelType)
 
   return {
     ready,
@@ -123,11 +124,25 @@ const DiscordRoleSelector = withTracker((_params: DiscordSelectorParams) => {
   const handle = Meteor.subscribe('discord.cache', { type: 'role' });
   const ready = handle.ready();
 
-  const discordRoles = DiscordCache.find(
+  const discordRoles: SavedDiscordObjectType[] = DiscordCache.find(
     { type: 'role' },
     // We want to sort them in the same order they're provided in the Discord UI.
     { sort: { 'object.rawPosition': 1 } },
-  ).map((cache) => cache.object as SavedDiscordObjectType);
+  )
+    .map((cache) => cache.object as DiscordRoleType)
+    .filter((role) => {
+      // The role whose id is the same as the guild is the @everyone role, don't want that
+      if (role.guild === role.id) {
+        return false;
+      }
+
+      // Managed roles are owned by an integration
+      if (role.managed) {
+        return false;
+      }
+
+      return true;
+    });
 
   return {
     ready,
@@ -145,6 +160,7 @@ export interface HuntModalSubmit {
   homepageUrl: string;
   submitTemplate: string;
   puzzleHooksDiscordChannel: SavedDiscordObjectType | undefined;
+  memberDiscordRole: SavedDiscordObjectType | undefined;
 }
 
 interface HuntModalFormProps {
@@ -188,6 +204,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         homepageUrl: this.props.hunt.homepageUrl || '',
         submitTemplate: this.props.hunt.submitTemplate || '',
         puzzleHooksDiscordChannel: this.props.hunt.puzzleHooksDiscordChannel,
+        memberDiscordRole: this.props.hunt.memberDiscordRole,
       });
     } else {
       return Object.assign(state, {
@@ -199,6 +216,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         homepageUrl: '',
         submitTemplate: '',
         puzzleHooksDiscordChannel: undefined,
+        memberDiscordRole: undefined,
       });
     }
   };
@@ -250,6 +268,12 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
       puzzleHooksDiscordChannel: next,
     });
   };
+
+  onMemberDiscordRoleChanged = (next: SavedDiscordObjectType | undefined) => {
+    this.setState({
+      memberDiscordRole: next,
+    });
+  }
 
   onFormSubmit = (callback: () => void) => {
     this.setState({ submitState: HuntModalFormSubmitState.SUBMITTING });
@@ -448,6 +472,23 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
             />
             <FormText>
               If this field is specified, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}member-discord-role`}>
+            Discord role for members
+          </FormLabel>
+          <Col xs={9}>
+            <DiscordRoleSelector
+              id={`${idPrefix}member-discord-role`}
+              disable={disableForm}
+              value={this.state.memberDiscordRole}
+              onChange={this.onMemberDiscordRoleChanged}
+            />
+            <FormText>
+              If set, then members of the hunt that have linked their Discord profile are added to the specified Discord role. Note that for continuity, if this setting is changed, Jolly Roger will not touch the old role (e.g. to remove members)
             </FormText>
           </Col>
         </FormGroup>
