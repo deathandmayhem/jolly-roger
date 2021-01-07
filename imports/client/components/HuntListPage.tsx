@@ -306,23 +306,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor={`${idPrefix}mailing-lists`}>
-            Mailing lists
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              id={`${idPrefix}mailing-lists`}
-              type="text"
-              value={this.state.mailingLists}
-              onChange={this.onMailingListsChanged}
-              disabled={disableForm}
-            />
-            <FormText>
-              Users joining this hunt will be automatically added to all of these (comma-separated) lists
-            </FormText>
-          </Col>
-        </FormGroup>
+        <h3>Users and permissions</h3>
 
         <FormGroup as={Row}>
           <FormLabel column xs={3} htmlFor={`${idPrefix}signup-message`}>
@@ -376,6 +360,8 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
           </Col>
         </FormGroup>
 
+        <h3>Hunt website</h3>
+
         <FormGroup as={Row}>
           <FormLabel column xs={3} htmlFor={`${idPrefix}homepage-url`}>
             Homepage URL
@@ -428,6 +414,26 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
               <code>{'{{{origin}}}/submit{{{pathname}}}'}</code>
               {' '}
               would work for the 2018 Mystery Hunt. If not specified, the puzzle URL is used as the link to the guess submission page.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <h3>External integrations</h3>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}mailing-lists`}>
+            Mailing lists
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id={`${idPrefix}mailing-lists`}
+              type="text"
+              value={this.state.mailingLists}
+              onChange={this.onMailingListsChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              Users joining this hunt will be automatically added to all of these (comma-separated) lists
             </FormText>
           </Col>
         </FormGroup>
