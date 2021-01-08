@@ -44,24 +44,28 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     return super.insert(<any>doc, callback);
   }
 
-  // All models have a destroy method which performs any cascading
-  // required (though since all models also have a "deleted" property
-  // that hides all children, the default implementation usually
-  // works)
-  destroy(id: string, callback?: (error: Error | null, updated: number) => void) {
+  // All models have a destroy method which marks them as soft-deleted,
+  // and allows specifying a callback to aid in performing any cascading
+  // required.  At the time of writing, we do not actually do any cascading.
+  destroy(selector: FindSelector<T>, callback?: (error: Error | null, updated: number) => void) {
     this.update(
-      id,
+      this[formatQuery](selector),
       // There are some weird interactions here betwen T being a generic type
       // and Partial<T> where Typescript isn't actually able to satisfy that
       // this value satisfies Mongo.Modifier<T>, so we need an explicit cast.
       <Mongo.Modifier<T>>{ $set: { deleted: true } },
-      {},
+      { multi: true },
       callback
     );
   }
 
-  undestroy(id: string, callback?: (error: Error | null, updated: number) => void) {
-    this.update(id, <Mongo.Modifier<T>>{ $set: { deleted: false } }, {}, callback);
+  undestroy(selector: FindSelector<T>, callback?: (error: Error | null, updated: number) => void) {
+    this.update(
+      this[formatQuery](selector),
+      <Mongo.Modifier<T>>{ $set: { deleted: false } },
+      { multi: true },
+      callback
+    );
   }
 
   [formatQuery](selector: FindSelector<T>): Mongo.Selector<T> {
