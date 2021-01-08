@@ -13,7 +13,7 @@ const debug = false;
 
 function cleanupHook(deadServers: string[]) {
   // Remove CallParticipants from dead server backends.
-  CallParticipants.remove({ server: { $in: deadServers } });
+  CallParticipants.destroy({ server: { $in: deadServers } });
 
   // Remove old CallSignals that reference a participant ID no longer found in CallParticipants
   const liveParticipants = CallParticipants.find({}).map((doc) => doc._id);
@@ -179,7 +179,7 @@ Meteor.publish('call.metadata', function (hunt, call) {
 
 function cleanupCallSub(participantId: string) {
   // Remove the participant
-  CallParticipants.remove(participantId);
+  CallParticipants.destroy(participantId);
   // Also remove any signalling documents they created.
   CallSignals.remove({
     $or: [
