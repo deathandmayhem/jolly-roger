@@ -75,7 +75,7 @@ const tracker = withTracker(({ match }: HuntProfileListPageWithRouterParams) => 
     { sort: { displayName: 1 } },
   ).fetch();
 
-  const canSyncDiscord = Roles.userHasPermission(Meteor.userId(), 'discord.viewCache');
+  const canSyncDiscord = Roles.userHasPermission(Meteor.userId(), 'discord.useBotAPIs');
 
   return {
     ready: ready as boolean,
