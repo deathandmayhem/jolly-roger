@@ -28,3 +28,5 @@ import './26-remove-subcounter-feature-flags';
 import './27-hunt-has-guess-queue';
 import './28-discord-cache-indexes';
 import './29-fix-guild-setting-id';
+import './30-index-call-participants';
+import './31-index-call-signals';
