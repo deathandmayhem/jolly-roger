@@ -106,7 +106,7 @@ Meteor.methods({
     check(huntId, String);
     check(this.userId, String);
 
-    Roles.checkPermission(this.userId, 'discord.viewCache', huntId);
+    Roles.checkPermission(this.userId, 'discord.useBotAPIs', huntId);
 
     Meteor.users.find({ hunts: huntId })
       .forEach((u) => {
