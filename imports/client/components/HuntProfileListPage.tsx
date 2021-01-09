@@ -21,6 +21,7 @@ interface HuntProfileListPageWithRouterParams extends
 interface HuntProfileListPageProps extends HuntProfileListPageWithRouterParams {
   ready: boolean;
   canInvite: boolean;
+  canSyncDiscord: boolean;
   profiles: ProfileType[];
 }
 
@@ -39,6 +40,7 @@ class HuntProfileListPage extends React.Component<HuntProfileListPageProps> {
             profiles={this.props.profiles}
             huntId={this.props.match.params.huntId}
             canInvite={this.props.canInvite}
+            canSyncDiscord={this.props.canSyncDiscord}
           />
         </Route>
       </Switch>
@@ -58,6 +60,7 @@ const tracker = withTracker(({ match }: HuntProfileListPageWithRouterParams) => 
     return {
       ready: false,
       canInvite: false,
+      canSyncDiscord: false,
       profiles: [],
     };
   }
@@ -72,7 +75,14 @@ const tracker = withTracker(({ match }: HuntProfileListPageWithRouterParams) => 
     { sort: { displayName: 1 } },
   ).fetch();
 
-  return { ready: ready as boolean, canInvite, profiles };
+  const canSyncDiscord = Roles.userHasPermission(Meteor.userId(), 'discord.viewCache');
+
+  return {
+    ready: ready as boolean,
+    canInvite,
+    canSyncDiscord,
+    profiles,
+  };
 });
 
 const HuntProfileListPageContainer = crumb(tracker(HuntProfileListPage));

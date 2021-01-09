@@ -6,6 +6,7 @@ Roles.registerAction('hunt.join', true);
 Roles.registerAction('discord.configureOAuth', true);
 Roles.registerAction('discord.configureBot', true);
 Roles.registerAction('discord.viewCache', true);
+Roles.registerAction('discord.updateRole', true);
 Roles.registerAction('users.makeOperator', true);
 Roles.registerAction('webrtc.configureServers', true);
 

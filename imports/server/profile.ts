@@ -5,6 +5,7 @@ import { OAuth } from 'meteor/oauth';
 import Ansible from '../ansible';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
+import addUserToDiscordRole from './addUserToDiscordRole';
 import { DiscordAPIClient, DiscordBot } from './discord';
 
 Meteor.methods({
@@ -116,6 +117,11 @@ Meteor.methods({
         });
       }
     }
+
+    const hunts = Meteor.user()!.hunts;
+    hunts.forEach((h) => {
+      addUserToDiscordRole(this.userId!, h);
+    });
   },
 
   unlinkUserDiscordAccount() {

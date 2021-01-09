@@ -543,7 +543,12 @@ class Hunt extends React.Component<HuntProps> {
         $unset: toUnset,
       },
       {},
-      callback
+      (err: Error) => {
+        if (!err) {
+          Meteor.call('syncDiscordRole', this.props.hunt._id);
+        }
+        callback(err);
+      },
     );
   };
 
@@ -659,7 +664,12 @@ class HuntListPage extends React.Component<HuntListPageProps> {
 
   onAdd = (state: HuntModalSubmit, callback: (error?: Error) => void): void => {
     Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
-    Hunts.insert(state, callback);
+    Hunts.insert(state, (err: Error, id: string) => {
+      if (!err) {
+        Meteor.call('syncDiscordRole', id);
+      }
+      callback(err);
+    });
   };
 
   showAddModal = () => {

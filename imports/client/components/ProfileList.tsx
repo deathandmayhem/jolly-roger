@@ -1,9 +1,11 @@
+import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
+import FormText from 'react-bootstrap/FormText';
 import InputGroup from 'react-bootstrap/InputGroup';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
@@ -13,6 +15,7 @@ import { ProfileType } from '../../lib/schemas/profiles';
 interface ProfileListProps {
   huntId?: string;
   canInvite?: boolean;
+  canSyncDiscord?: boolean;
   profiles: ProfileType[];
 }
 
@@ -61,6 +64,27 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
     });
   };
 
+  syncDiscordButton = () => {
+    if (!this.props.huntId || !this.props.canSyncDiscord) {
+      return null;
+    }
+
+    return (
+      <FormGroup>
+        <Button variant="warning" onClick={this.syncDiscord}>
+          Sync this hunt&apos;s Discord role
+        </Button>
+        <FormText>
+          (Click this if people are reporting that they can&apos; access hunt-specific channels)
+        </FormText>
+      </FormGroup>
+    );
+  }
+
+  syncDiscord = () => {
+    Meteor.call('syncDiscordRole', this.props.huntId);
+  }
+
   inviteToHuntItem = () => {
     if (!this.props.huntId || !this.props.canInvite) {
       return null;
@@ -100,6 +124,8 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
             {this.props.profiles.length}
           </div>
         </div>
+
+        {this.syncDiscordButton()}
 
         <FormGroup>
           <FormLabel htmlFor="jr-profile-list-search">

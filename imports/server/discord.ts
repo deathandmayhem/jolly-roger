@@ -96,6 +96,19 @@ class DiscordBot {
     }
   };
 
+  addUserToRole = (discordUserId: string, guildId: string, roleId: string) => {
+    try {
+      HTTP.put(`${API_BASE}/guilds/${guildId}/members/${discordUserId}/roles/${roleId}`, {
+        ...this.authHeaders(),
+      });
+    } catch (err) {
+      throw Object.assign(
+        new Meteor.Error(`Failed to add discord user ${discordUserId} to role ${roleId} (guild ${guildId}). ${err.message}`),
+        { response: err.response }
+      );
+    }
+  }
+
   listGuildChannels = (guildId: string) => {
     let response;
     try {

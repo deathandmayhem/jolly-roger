@@ -7,6 +7,7 @@ import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
 import Profiles from '../lib/models/profiles';
 import { HuntType } from '../lib/schemas/hunts';
+import addUserToDiscordRole from './addUserToDiscordRole';
 import List from './blanche';
 
 const existingJoinEmail = (user: Meteor.User | null, hunt: HuntType, joinerName: string | null) => {
@@ -82,6 +83,8 @@ Meteor.methods({
       });
     });
 
+    addUserToDiscordRole(joineeUser._id, huntId);
+
     if (newUser) {
       Accounts.sendEnrollmentEmail(joineeUser._id);
       Ansible.info('Sent invitation email to new user', { invitedBy: this.userId, email });
@@ -97,5 +100,17 @@ Meteor.methods({
         text: existingJoinEmail(joineeUser, hunt, joinerName),
       });
     }
+  },
+
+  syncDiscordRole(huntId: unknown) {
+    check(huntId, String);
+    check(this.userId, String);
+
+    Roles.checkPermission(this.userId, 'discord.viewCache', huntId);
+
+    Meteor.users.find({ hunts: huntId })
+      .forEach((u) => {
+        addUserToDiscordRole(u._id, huntId);
+      });
   },
 });
