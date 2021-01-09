@@ -9,6 +9,7 @@ import '../imports/server/migrations/all';
 
 // Other stuff in the server folder
 import '../imports/server/accounts';
+import '../imports/server/admin-debug';
 import '../imports/server/announcements';
 import '../imports/server/ansible';
 import '../imports/server/api-init';
