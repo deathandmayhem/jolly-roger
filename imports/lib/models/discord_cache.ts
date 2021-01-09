@@ -31,7 +31,7 @@ if (Meteor.isServer) {
       limit: Match.Maybe(Number),
     });
 
-    if (!this.userId || !Roles.userHasPermission(this.userId, 'discord.viewCache')) {
+    if (!this.userId || !Roles.userHasPermission(this.userId, 'discord.useBotAPIs')) {
       Ansible.log('Sub to discord.cache not logged in as operator');
       return [];
     }
