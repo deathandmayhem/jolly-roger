@@ -79,14 +79,15 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
             {this.renderError()}
 
             <form onSubmit={this.onSubmit} className="form-horizontal">
-              <FormGroup>
+              <FormGroup as={Row}>
                 <FormLabel
                   htmlFor="jr-invite-email"
-                  className="col-md-3"
+                  column
+                  md={3}
                 >
                   E-mail address
                 </FormLabel>
-                <div className="col-md-9">
+                <Col md={9}>
                   <FormControl
                     id="jr-invite-email"
                     type="email"
@@ -94,15 +95,15 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
                     onChange={this.onEmailChanged}
                     disabled={this.state.submitting}
                   />
-                </div>
+                </Col>
               </FormGroup>
 
               <FormGroup>
-                <div className="col-md-offset-3 col-md-9">
+                <Col md={{ offset: 3, span: 9 }}>
                   <Button type="submit" variant="primary" disabled={this.state.submitting}>
                     Send invite
                   </Button>
-                </div>
+                </Col>
               </FormGroup>
             </form>
           </Col>
