@@ -102,6 +102,39 @@ Meteor.methods({
     }
   },
 
+  bulkAddToHunt(huntId: unknown, emails: unknown) {
+    check(huntId, String);
+    check(emails, [String]);
+    check(this.userId, String);
+
+    Roles.checkPermission(this.userId, 'hunt.bulkJoin', huntId);
+
+    // We'll re-do this check but if we check it now the error reporting will be
+    // better
+    const hunt = Hunts.findOne(huntId);
+    if (!hunt) {
+      throw new Meteor.Error(404, 'Unknown hunt');
+    }
+
+    const errors: { email: string, error: Meteor.Error }[] = [];
+    emails.forEach((email) => {
+      try {
+        Meteor.call('addToHunt', huntId, email);
+      } catch (error) {
+        errors.push({ email, error });
+      }
+    });
+
+    if (errors.length > 0) {
+      const message = errors.map(({ email, error }) => {
+        const err = (error as any).sanitizedError ?? error;
+        return `${email}: ${err.reason}`;
+      })
+        .join('\n');
+      throw new Meteor.Error(500, `Failed to send invites for some emails:\n${message}`);
+    }
+  },
+
   syncDiscordRole(huntId: unknown) {
     check(huntId, String);
     check(this.userId, String);

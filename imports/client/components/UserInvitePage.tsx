@@ -1,4 +1,6 @@
 import { Meteor } from 'meteor/meteor';
+import { Roles } from 'meteor/nicolaslopezj:roles';
+import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -14,13 +16,19 @@ interface UserInvitePageParams {
   huntId: string;
 }
 
-interface UserInvitePageProps extends RouteComponentProps<UserInvitePageParams> {
+interface UserInvitePageWithRouterParams extends RouteComponentProps<UserInvitePageParams> {
+}
+
+interface UserInvitePageProps extends UserInvitePageWithRouterParams {
+  canBulkInvite: boolean;
 }
 
 interface UserInvitePageState {
   submitting: boolean;
   error?: Meteor.Error | null;
   email: string;
+  bulkEmails: string;
+  bulkError?: Meteor.Error | null;
 }
 
 class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePageState> {
@@ -30,6 +38,8 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
       submitting: false,
       error: null,
       email: '',
+      bulkEmails: '',
+      bulkError: null,
     };
   }
 
@@ -38,6 +48,12 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
       email: e.currentTarget.value,
     });
   };
+
+  onBulkEmailsChanged: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      bulkEmails: e.currentTarget.value,
+    });
+  }
 
   onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -52,10 +68,24 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
     });
   };
 
+  onBulkSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    this.setState({ submitting: true, bulkError: null });
+    const emails = this.state.bulkEmails.split('\n');
+    Meteor.call('bulkAddToHunt', this.props.match.params.huntId, emails, (error?: Meteor.Error) => {
+      this.setState({ submitting: false });
+      if (error) {
+        this.setState({ bulkError: error });
+      } else {
+        this.setState({ bulkEmails: '' });
+      }
+    });
+  }
+
   renderError = () => {
     if (this.state.error) {
       return (
-        <Alert variant="danger" className="text-center">
+        <Alert variant="danger">
           <p>{this.state.error.reason}</p>
         </Alert>
       );
@@ -63,6 +93,52 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
 
     return undefined;
   };
+
+  renderBulkError = () => {
+    if (this.state.bulkError) {
+      return (
+        <Alert variant="danger">
+          <p style={{ whiteSpace: 'pre-wrap' }}>{this.state.bulkError.reason}</p>
+        </Alert>
+      );
+    }
+
+    return undefined;
+  };
+
+  renderBulkInvite = () => {
+    if (!this.props.canBulkInvite) {
+      return null;
+    }
+
+    return (
+      <div>
+        <h2>Bulk invite</h2>
+
+        {this.renderBulkError()}
+
+        <form onSubmit={this.onBulkSubmit} className="form-horizontal">
+          <FormGroup controlId="jr-invite-bulk">
+            <FormLabel>
+              Email addresses (one per line)
+            </FormLabel>
+            <FormControl
+              as="textarea"
+              rows={10}
+              value={this.state.bulkEmails}
+              onChange={this.onBulkEmailsChanged}
+            />
+          </FormGroup>
+
+          <FormGroup>
+            <Button type="submit" variant="primary" disabled={this.state.submitting}>
+              Send bulk invites
+            </Button>
+          </FormGroup>
+        </form>
+      </div>
+    );
+  }
 
   render() {
     return (
@@ -79,14 +155,15 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
             {this.renderError()}
 
             <form onSubmit={this.onSubmit} className="form-horizontal">
-              <FormGroup>
+              <FormGroup as={Row}>
                 <FormLabel
                   htmlFor="jr-invite-email"
-                  className="col-md-3"
+                  column
+                  md={3}
                 >
                   E-mail address
                 </FormLabel>
-                <div className="col-md-9">
+                <Col md={9}>
                   <FormControl
                     id="jr-invite-email"
                     type="email"
@@ -94,17 +171,19 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
                     onChange={this.onEmailChanged}
                     disabled={this.state.submitting}
                   />
-                </div>
+                </Col>
               </FormGroup>
 
               <FormGroup>
-                <div className="col-md-offset-3 col-md-9">
+                <Col md={{ offset: 3, span: 9 }}>
                   <Button type="submit" variant="primary" disabled={this.state.submitting}>
                     Send invite
                   </Button>
-                </div>
+                </Col>
               </FormGroup>
             </form>
+
+            {this.renderBulkInvite()}
           </Col>
         </Row>
       </div>
@@ -112,10 +191,14 @@ class UserInvitePage extends React.Component<UserInvitePageProps, UserInvitePage
   }
 }
 
-const crumb = withBreadcrumb(({ match }: UserInvitePageProps) => {
+const crumb = withBreadcrumb(({ match }: UserInvitePageWithRouterParams) => {
   return { title: 'Invite', path: `/hunts/${match.params.huntId}/hunters/invite` };
 });
+const tracker = withTracker((_params: UserInvitePageWithRouterParams) => {
+  const canBulkInvite = Roles.userHasPermission(Meteor.userId(), 'hunt.bulkJoin');
+  return { canBulkInvite };
+});
 
-const UserInvitePageContainer = crumb(UserInvitePage);
+const UserInvitePageContainer = crumb(tracker(UserInvitePage));
 
 export default UserInvitePageContainer;
