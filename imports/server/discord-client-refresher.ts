@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { Promise as MeteorPromise } from 'meteor/promise';
+import { Promise } from 'meteor/promise';
 import Discord from 'discord.js';
 import Flags from '../flags';
 import DiscordCache from '../lib/models/discord_cache';
@@ -97,7 +97,7 @@ class DiscordClientRefresher {
           }
 
           // Start renewing the lock now in the background (remember -
-          // "background" includes calls to MeteorPromise.await)
+          // "background" includes calls to Promise.await)
           const renew = Meteor.setInterval(() => {
             try {
               Locks.renew(lock);
@@ -112,7 +112,7 @@ class DiscordClientRefresher {
             // gateway connection
             const ready = new Promise<void>((r) => client.on('ready', r));
             client.login(this.token);
-            MeteorPromise.await(ready);
+            Promise.await(ready);
 
             this.cacheResource(client, 'guild', client.guilds.cache, 'guildCreate', 'guildUpdate', 'guildDelete');
             this.cacheResource(client, 'channel', client.channels.cache, 'channelCreate', 'channelUpdate', 'channelDelete');
@@ -132,7 +132,7 @@ class DiscordClientRefresher {
               this.wakeup = r;
             });
 
-            const wokenUp = MeteorPromise.await(Promise.race([
+            const wokenUp = Promise.await(Promise.race([
               wakeup.then(() => true),
               invalidated.then(() => false),
             ]));

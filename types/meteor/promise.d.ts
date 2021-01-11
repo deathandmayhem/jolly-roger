@@ -1,5 +1,5 @@
 declare module 'meteor/promise' {
-  interface PromiseConstructor {
+  interface PromiseConstructor extends globalThis.PromiseConstructor {
     /* await takes a promise, blocks on it being fulfilled, then returns the
        result */
     await<T>(promise: PromiseLike<T>): T;
@@ -96,7 +96,7 @@ declare module 'meteor/promise' {
     ): Promise<ReturnType<T>>;
   }
 
-  interface Promise<T> {
+  interface Promise<T> extends globalThis.Promise<T> {
     /* await blocks until this is fulfilled, then returns the result */
     await(): T;
   }
