@@ -259,6 +259,7 @@ class DiscordMessage extends React.PureComponent<DiscordMessageProps, DiscordMes
           </ul>
           {this.state.status === DiscordMessageStatus.ERROR ? this.state.error! : null}
         </MessengerContent>
+        <MessengerDismissButton onDismiss={this.props.onDismiss} />
       </li>
     );
   }
