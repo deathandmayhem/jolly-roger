@@ -4,15 +4,14 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  >* {
-    margin-bottom:12px;
+  .btn-toolbar:not(:last-child) {
+    margin-right: 0.5em;
   }
-  .btn-toolbar {
-    margin-right: 4px;
-  }
-  .form-group {
+  .puzzle-list-filter-toolbar {
     flex: 1 1 0;
-    margin-right: 4px;
+    > .input-group {
+      width: 100%;
+    }
   }
 }
 
@@ -81,9 +80,12 @@
 }
 
 @include media-breakpoint-down(xs) {
-  .puzzle-view-controls>* {
-    width: 100%;
-    margin-right: 0;
+  .puzzle-view-controls > .btn-toolbar {
+    flex-basis: 100%;
+    &:not(:last-child) {
+      margin-right: 0;
+      margin-bottom: 0.5em;
+    }
   }
 
   .puzzle-list-link-label {

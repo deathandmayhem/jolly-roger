@@ -341,7 +341,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
       }
     }
     const addPuzzleContent = this.props.canAdd && (
-      <div className="add-puzzle-content">
+      <>
         <Button variant="primary" onClick={this.showAddModal}>Add a puzzle</Button>
         <PuzzleModalForm
           huntId={this.props.huntId}
@@ -349,13 +349,13 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
           ref={this.addModalRef}
           onSubmit={this.onAdd}
         />
-      </div>
+      </>
     );
     return (
       <div>
-        <FormLabel htmlFor="jr-puzzle-search">View puzzles by:</FormLabel>
-        <div className="puzzle-view-controls">
-          <div>
+        <FormGroup>
+          <FormLabel htmlFor="jr-puzzle-search">View puzzles by:</FormLabel>
+          <div className="puzzle-view-controls">
             <ButtonToolbar>
               <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={this.state.displayMode} onChange={this.switchView}>
                 <ToggleButton variant="outline-secondary" value="group">Group</ToggleButton>
@@ -369,27 +369,29 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
                 <ToggleButton variant="outline-secondary" value="true">Show solved</ToggleButton>
               </ToggleButtonGroup>
             </ButtonToolbar>
+            <ButtonToolbar className="puzzle-list-filter-toolbar">
+              <InputGroup>
+                <FormControl
+                  id="jr-puzzle-search"
+                  as="input"
+                  type="text"
+                  ref={this.searchBarRef}
+                  placeholder="Filter by title, answer, or tag"
+                  value={this.getSearchString()}
+                  onChange={this.onSearchStringChange}
+                />
+                <InputGroup.Append>
+                  <Button variant="outline-secondary" onClick={this.clearSearch}>
+                    Clear
+                  </Button>
+                </InputGroup.Append>
+              </InputGroup>
+            </ButtonToolbar>
+            <ButtonToolbar>
+              {addPuzzleContent}
+            </ButtonToolbar>
           </div>
-          <FormGroup>
-            <InputGroup>
-              <FormControl
-                id="jr-puzzle-search"
-                as="input"
-                type="text"
-                ref={this.searchBarRef}
-                placeholder="Filter by title, answer, or tag"
-                value={this.getSearchString()}
-                onChange={this.onSearchStringChange}
-              />
-              <InputGroup.Append>
-                <Button variant="outline-secondary" onClick={this.clearSearch}>
-                  Clear
-                </Button>
-              </InputGroup.Append>
-            </InputGroup>
-          </FormGroup>
-          {addPuzzleContent}
-        </div>
+        </FormGroup>
         {bodyComponent}
       </div>
     );
