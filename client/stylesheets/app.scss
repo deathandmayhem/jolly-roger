@@ -12,6 +12,15 @@
 @import "theme";
 @import "../../node_modules/bootstrap/scss/bootstrap";
 
+// Give outline buttons distinct hover and active styles
+$btn-outline-hover-tint: 80%;
+@each $color, $value in $theme-colors {
+  .btn-outline-#{$color}:hover {
+    background-color: mix(white, $value, $btn-outline-hover-tint);
+    color: $value;
+  }
+}
+
 .connection-status {
   position: fixed;
   top: 50px;
