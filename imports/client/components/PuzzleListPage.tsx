@@ -7,6 +7,7 @@ import {
   faMap,
   faReceipt,
   faUsers,
+  faEraser,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
@@ -358,15 +359,15 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
           <div className="puzzle-view-controls">
             <ButtonToolbar>
               <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={this.state.displayMode} onChange={this.switchView}>
-                <ToggleButton variant="outline-secondary" value="group">Group</ToggleButton>
-                <ToggleButton variant="outline-secondary" value="unlock">Unlock</ToggleButton>
+                <ToggleButton variant="light" value="group">Group</ToggleButton>
+                <ToggleButton variant="light" value="unlock">Unlock</ToggleButton>
               </ToggleButtonGroup>
               <ToggleButtonGroup
                 type="checkbox"
                 value={this.state.showSolved ? ['true'] : []}
                 onChange={this.changeShowSolved}
               >
-                <ToggleButton variant="outline-secondary" value="true">Show solved</ToggleButton>
+                <ToggleButton variant="light" value="true">Show solved</ToggleButton>
               </ToggleButtonGroup>
             </ButtonToolbar>
             <ButtonToolbar className="puzzle-list-filter-toolbar">
@@ -381,8 +382,8 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
                   onChange={this.onSearchStringChange}
                 />
                 <InputGroup.Append>
-                  <Button variant="outline-secondary" onClick={this.clearSearch}>
-                    Clear
+                  <Button variant="danger" onClick={this.clearSearch}>
+                    <FontAwesomeIcon icon={faEraser} />
                   </Button>
                 </InputGroup.Append>
               </InputGroup>
