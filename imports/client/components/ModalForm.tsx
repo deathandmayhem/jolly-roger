@@ -52,8 +52,20 @@ class ModalForm extends React.Component<ModalFormProps, ModalFormState> {
   };
 
   render() {
+    // Note: the animation=false is working around a regression in
+    // react-bootstrap that otherwise breaks autofocus:
+    // https://github.com/react-bootstrap/react-bootstrap/issues/5102
+    // There's a way to avoid breaking things without losing animation,
+    // but then we'd need to hold a ref to the `autoFocus` child to explicitly
+    // focus it in the Modal's `onEntered` callback, and from within this
+    // class we don't know which of the children should receive focus. So
+    // we just disable animations for now.  Makes the UI feel snappier anyway.
     return (
-      <Modal show={this.state.show} onHide={this.close}>
+      <Modal
+        animation={false}
+        show={this.state.show}
+        onHide={this.close}
+      >
         <form className="form-horizontal" onSubmit={this.submit}>
           <Modal.Header closeButton>
             <Modal.Title>
