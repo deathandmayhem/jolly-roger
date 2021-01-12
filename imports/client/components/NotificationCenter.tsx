@@ -298,6 +298,28 @@ class AnnouncementMessage extends React.PureComponent<AnnouncementMessageProps> 
   }
 }
 
+interface ProfileMissingMessageProps {
+  onDismiss: () => void;
+}
+function ProfileMissingMessage(props: ProfileMissingMessageProps) {
+  return (
+    <li>
+      <MessengerSpinner />
+      <MessengerContent dismissable>
+        Somehow you don&apos;t seem to have a profile.  (This can happen if you wind
+        up having to do a password reset before you successfully log in for the
+        first time.)  Please set a display name for yourself via
+        {' '}
+        <Link to="/users/me">
+          the profile page
+        </Link>
+        .
+      </MessengerContent>
+      <MessengerDismissButton onDismiss={props.onDismiss} />
+    </li>
+  );
+}
+
 interface NotificationCenterAnnouncement {
   pa: PendingAnnouncementType;
   announcement: AnnouncementType;
@@ -317,10 +339,12 @@ type NotificationCenterProps = {
   guesses?: NotificationCenterGuess[];
   discordEnabledOnServer?: boolean;
   discordConfiguredByUser?: boolean;
+  hasOwnProfile?: boolean;
 }
 
 interface NotificationCenterState {
   hideDiscordSetupMessage: boolean;
+  hideProfileSetupMessage: boolean;
   dismissedGuesses: Record<string, boolean>;
 }
 
@@ -329,6 +353,7 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
     super(props);
     this.state = {
       hideDiscordSetupMessage: false,
+      hideProfileSetupMessage: false,
       dismissedGuesses: {},
     };
   }
@@ -336,6 +361,12 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
   hideDiscordSetupMessage = () => {
     this.setState({
       hideDiscordSetupMessage: true,
+    });
+  };
+
+  hideProfileSetupMessage = () => {
+    this.setState({
+      hideProfileSetupMessage: true,
     });
   };
 
@@ -355,6 +386,13 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
 
     // Build a list of uninstantiated messages with their props, then create them
     const messages: any = [];
+
+    if (!this.props.hasOwnProfile && !this.state.hideProfileSetupMessage) {
+      messages.push(<ProfileMissingMessage
+        key="profile"
+        onDismiss={this.hideProfileSetupMessage}
+      />);
+    }
 
     if (this.props.discordEnabledOnServer &&
         !this.props.discordConfiguredByUser &&
@@ -430,6 +468,7 @@ const NotificationCenterContainer = withTracker((_props: {}): NotificationCenter
     guesses: [] as NotificationCenterGuess[],
     discordEnabledOnServer,
     discordConfiguredByUser: !!(ownProfile && ownProfile.discordAccount),
+    hasOwnProfile: !!(ownProfile),
   };
 
   if (canUpdateGuesses) {
