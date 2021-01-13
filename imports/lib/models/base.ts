@@ -27,10 +27,14 @@ type ValidateShape<T, Shape> =
 class Base<T extends BaseType> extends Mongo.Collection<T> {
   public name: string;
 
+  public tableName: string;
+
   constructor(name: string, options = {}) {
     // Namespace table name in mongo
-    super(`jr_${name}`, options);
+    const tableName = `jr_${name}`;
+    super(tableName, options);
     this.name = name;
+    this.tableName = tableName;
 
     // All models have standard roles
     this.attachRoles(`mongo.${name}`);
