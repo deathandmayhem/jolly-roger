@@ -46,6 +46,15 @@ class HooksRegistry {
       }
     }
   }
+
+  runChatMessageCreatedHooks(chatMessageId: string) {
+    for (let i = 0; i < this.registeredHooks.length; i++) {
+      const hook = this.registeredHooks[i];
+      if (hook.onChatMessageCreated) {
+        hook.onChatMessageCreated(chatMessageId);
+      }
+    }
+  }
 }
 
 export default HooksRegistry;
