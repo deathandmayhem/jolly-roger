@@ -435,13 +435,9 @@ const NotificationCenterContainer = withTracker((_props: {}): NotificationCenter
   const canUpdateGuesses = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
 
   // Yes this is hideous, but it just makes the logic easier
-  let guessesHandle = { ready: () => true };
-  let puzzlesHandle = { ready: () => true };
-  let huntsHandle = { ready: () => true };
+  let pendingGuessHandle = { ready: () => true };
   if (canUpdateGuesses) {
-    guessesHandle = Meteor.subscribe('mongo.guesses', { state: 'pending' });
-    puzzlesHandle = Meteor.subscribe('mongo.puzzles');
-    huntsHandle = Meteor.subscribe('mongo.hunts');
+    pendingGuessHandle = Meteor.subscribe('pendingGuesses');
   }
 
   // This is overly broad, but we likely already have the data cached locally
@@ -463,7 +459,7 @@ const NotificationCenterContainer = withTracker((_props: {}): NotificationCenter
   const discordEnabledOnServer = !!ServiceConfiguration.configurations.findOne({ service: 'discord' }) && !Flags.active('disable.discord');
 
   const data = {
-    ready: guessesHandle.ready() && puzzlesHandle.ready() && huntsHandle.ready() && paHandle.ready(),
+    ready: pendingGuessHandle.ready() && paHandle.ready(),
     announcements: [] as NotificationCenterAnnouncement[],
     guesses: [] as NotificationCenterGuess[],
     discordEnabledOnServer,
