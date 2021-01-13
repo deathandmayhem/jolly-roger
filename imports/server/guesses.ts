@@ -6,6 +6,7 @@ import Ansible from '../ansible';
 import Base from '../lib/models/base';
 import Guesses from '../lib/models/guess';
 import Hunts from '../lib/models/hunts';
+import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 import { BaseType } from '../lib/schemas/base';
 import { GuessType } from '../lib/schemas/guess';
@@ -259,6 +260,11 @@ Meteor.methods({
       confidence,
       state: 'pending',
     });
+
+    const profile = Profiles.findOne(this.userId);
+    const guesserDisplayName = (profile && profile.displayName) || '(no display name given)';
+    const message = `${guesserDisplayName} submitted guess "${guess}"`;
+    sendChatMessage(puzzleId, message, undefined);
   },
 
   addCorrectGuessForPuzzle(puzzleId: unknown, answer: unknown) {
