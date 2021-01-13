@@ -19,7 +19,7 @@ $administrivia-puzzle-background-color: #dfdfff;
 }
 
 .puzzle-list-wrapper {
-  padding-left: 16px;
+  padding-left: 1.25em;
 }
 
 .puzzle {
@@ -38,8 +38,8 @@ $administrivia-puzzle-background-color: #dfdfff;
 
 .puzzle-answer > .answer {
   display: block;
-  text-indent: -2ch;
-  padding-left: 2ch;
+  text-indent: -1.2em;
+  padding-left: 1.2em;
 }
 
 .puzzle.puzzle-grid {
