@@ -1,6 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import Flags from '../../flags';
+import ChatMessages from '../../lib/models/chats';
 import Hunts from '../../lib/models/hunts';
+import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import Settings from '../../lib/models/settings';
 import Tags from '../../lib/models/tags';
@@ -82,6 +84,59 @@ const DiscordHooks: Hookset = {
         },
       };
       bot.postMessageToChannel(hunt.puzzleHooksDiscordChannel.id, messageObj);
+    }
+  },
+
+  onChatMessageCreated(chatMessageId: string) {
+    const bot = makeDiscordBotFromSettings();
+    if (!bot) {
+      return;
+    }
+
+    const chatMessage = ChatMessages.findOne(chatMessageId)!;
+    const puzzle = Puzzles.findOne(chatMessage.puzzle)!;
+    const hunt = Hunts.findOne(chatMessage.hunt)!;
+    if (hunt.firehoseDiscordChannel) {
+      const channel = hunt.firehoseDiscordChannel.id;
+
+      let name: string;
+      if (!chatMessage.sender) {
+        name = 'Jolly Roger';
+      } else {
+        name = chatMessage.sender;
+        const profile = Profiles.findOne(chatMessage.sender);
+        if (profile && profile.discordAccount) {
+          name = profile.discordAccount.username;
+        } else if (profile && profile.displayName) {
+          name = profile.displayName;
+        }
+      }
+
+      const url = Meteor.absoluteUrl(`hunts/${chatMessage.hunt}/puzzles/${chatMessage.puzzle}`);
+      let title = puzzle.title;
+      if (title.length > 25) {
+        title = `${title.substring(0, 24)}…`;
+      }
+
+      const msg = {
+        embed: {
+          author: {
+            name,
+          },
+          url,
+          title,
+          description: chatMessage.text,
+        },
+        nonce: chatMessageId,
+        allowed_mentions: {
+          parse: [],
+        },
+      };
+
+      Meteor.defer(() => {
+        // send actual message
+        bot.postMessageToChannel(channel, msg);
+      });
     }
   },
 };

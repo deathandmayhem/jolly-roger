@@ -2,7 +2,6 @@ import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
-import ChatMessages from '../lib/models/chats';
 import Guesses from '../lib/models/guess';
 import Hunts from '../lib/models/hunts';
 import Puzzles from '../lib/models/puzzles';
@@ -13,13 +12,6 @@ import GlobalHooks from './global-hooks';
 function addChatMessage(guess: GuessType, newState: GuessType['state']): void {
   const message = `Guess ${guess.guess} was marked ${newState}`;
   sendChatMessage(guess.puzzle, message, undefined);
-  const puzzle = Puzzles.findOne(guess.puzzle)!;
-  ChatMessages.insert({
-    hunt: puzzle.hunt,
-    puzzle: guess.puzzle,
-    text: message,
-    timestamp: new Date(),
-  });
 }
 
 function transitionGuess(guess: GuessType, newState: GuessType['state']) {
