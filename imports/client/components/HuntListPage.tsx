@@ -160,6 +160,7 @@ export interface HuntModalSubmit {
   homepageUrl: string;
   submitTemplate: string;
   puzzleHooksDiscordChannel: SavedDiscordObjectType | undefined;
+  firehoseDiscordChannel: SavedDiscordObjectType | undefined;
   memberDiscordRole: SavedDiscordObjectType | undefined;
 }
 
@@ -204,6 +205,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         homepageUrl: this.props.hunt.homepageUrl || '',
         submitTemplate: this.props.hunt.submitTemplate || '',
         puzzleHooksDiscordChannel: this.props.hunt.puzzleHooksDiscordChannel,
+        firehoseDiscordChannel: this.props.hunt.firehoseDiscordChannel,
         memberDiscordRole: this.props.hunt.memberDiscordRole,
       });
     } else {
@@ -216,6 +218,7 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
         homepageUrl: '',
         submitTemplate: '',
         puzzleHooksDiscordChannel: undefined,
+        firehoseDiscordChannel: undefined,
         memberDiscordRole: undefined,
       });
     }
@@ -268,6 +271,12 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
       puzzleHooksDiscordChannel: next,
     });
   };
+
+  onFirehoseDiscordChannelChanged = (next: SavedDiscordObjectType | undefined) => {
+    this.setState({
+      firehoseDiscordChannel: next,
+    });
+  }
 
   onMemberDiscordRoleChanged = (next: SavedDiscordObjectType | undefined) => {
     this.setState({
@@ -472,6 +481,23 @@ class HuntModalForm extends React.Component<HuntModalFormProps, HuntModalFormSta
             />
             <FormText>
               If this field is specified, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor={`${idPrefix}firehose-discord-channel`}>
+            Firehose Discord channel
+          </FormLabel>
+          <Col xs={9}>
+            <DiscordChannelSelector
+              id={`${idPrefix}firehose-discord-channel`}
+              disable={disableForm}
+              value={this.state.firehoseDiscordChannel}
+              onChange={this.onFirehoseDiscordChannelChanged}
+            />
+            <FormText>
+              If this field is specified, all chat messages written in puzzles associated with this hunt will be mirrored to the specified Discord channel.
             </FormText>
           </Col>
         </FormGroup>

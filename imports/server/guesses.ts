@@ -7,10 +7,12 @@ import Guesses from '../lib/models/guess';
 import Hunts from '../lib/models/hunts';
 import Puzzles from '../lib/models/puzzles';
 import { GuessType } from '../lib/schemas/guess';
+import { sendChatMessage } from './chat';
 import GlobalHooks from './global-hooks';
 
 function addChatMessage(guess: GuessType, newState: GuessType['state']): void {
   const message = `Guess ${guess.guess} was marked ${newState}`;
+  sendChatMessage(guess.puzzle, message, undefined);
   const puzzle = Puzzles.findOne(guess.puzzle)!;
   ChatMessages.insert({
     hunt: puzzle.hunt,
