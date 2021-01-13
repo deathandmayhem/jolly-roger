@@ -4,6 +4,7 @@ import Discord from 'discord.js';
 import Flags from '../flags';
 import DiscordCache from '../lib/models/discord_cache';
 import FeatureFlags from '../lib/models/feature_flags';
+import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
 import { SettingType } from '../lib/schemas/settings';
 import Locks, { PREEMPT_TIMEOUT } from './models/lock';
@@ -126,6 +127,21 @@ class DiscordClientRefresher {
               return roles;
             }, new Map());
             this.cacheResource(client, 'role', allRoles, 'roleCreate', 'roleUpdate', 'roleDelete');
+
+            const updateUser = (u: Discord.User) => {
+              Profiles.update({
+                'discordAccount.id': u.id,
+              }, {
+                $set: {
+                  'discordAccount.username': u.username,
+                  'discordAccount.discriminator': u.discriminator,
+                },
+              }, {
+                multi: true,
+              });
+            };
+            client.on('userUpdate', (_, u) => updateUser(u));
+            client.users.cache.forEach(updateUser);
 
             const invalidated = new Promise<void>((r) => client.on('invalidated', r));
             const wakeup = new Promise<void>((r) => {
