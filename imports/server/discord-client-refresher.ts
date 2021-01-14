@@ -141,8 +141,8 @@ class DiscordClientRefresher {
                 multi: true,
               });
             };
-            client.on('userUpdate', (_, u) => updateUser(u));
-            client.users.cache.forEach(updateUser);
+            client.on('userUpdate', Meteor.bindEnvironment((_, u) => updateUser(u)));
+            client.users.cache.forEach(Meteor.bindEnvironment(updateUser));
 
             const invalidated = new Promise<void>((r) => client.on('invalidated', r));
             const wakeup = new Promise<void>((r) => {
