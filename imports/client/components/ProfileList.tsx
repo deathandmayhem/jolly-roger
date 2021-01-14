@@ -1,4 +1,6 @@
 import { Meteor } from 'meteor/meteor';
+import { faEraser } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -140,8 +142,8 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
               onChange={this.onSearchStringChange}
             />
             <InputGroup.Append>
-              <Button variant="outline-secondary" onClick={this.clearSearch}>
-                Clear
+              <Button variant="secondary" onClick={this.clearSearch}>
+                <FontAwesomeIcon icon={faEraser} />
               </Button>
             </InputGroup.Append>
           </InputGroup>

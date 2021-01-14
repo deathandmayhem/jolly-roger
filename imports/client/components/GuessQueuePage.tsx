@@ -2,6 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
+import { faEraser } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React from 'react';
 import Button from 'react-bootstrap/Button';
@@ -230,8 +232,8 @@ class GuessQueuePage extends React.Component<GuessQueuePageProps> {
               onChange={this.onSearchStringChange}
             />
             <InputGroup.Append>
-              <Button variant="outline-secondary" onClick={this.clearSearch}>
-                Clear
+              <Button variant="secondary" onClick={this.clearSearch}>
+                <FontAwesomeIcon icon={faEraser} />
               </Button>
             </InputGroup.Append>
           </InputGroup>
