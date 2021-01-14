@@ -12,6 +12,7 @@ const ProfileFieldsType = t.type({
   displayName: t.string,
   phoneNumber: t.union([t.string, t.undefined]),
   muteApplause: t.union([t.boolean, t.undefined]),
+  dingwords: t.union([t.array(t.string), t.undefined]),
 });
 
 const ProfileFieldsOverrides: Overrides<t.TypeOf<typeof ProfileFieldsType>> = {

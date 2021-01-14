@@ -16,6 +16,7 @@ Meteor.methods({
       displayName: String,
       phoneNumber: String,
       muteApplause: Boolean,
+      dingwords: [String],
     });
     const user = Meteor.users.findOne(this.userId)!;
     const primaryEmail = user.emails && user.emails[0].address;
@@ -29,6 +30,7 @@ Meteor.methods({
         primaryEmail,
         phoneNumber: newProfile.phoneNumber,
         muteApplause: newProfile.muteApplause,
+        dingwords: newProfile.dingwords,
         deleted: false,
       },
     }, {
