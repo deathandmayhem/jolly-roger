@@ -38,6 +38,15 @@ class OthersProfilePage extends React.Component<OthersProfilePageProps> {
             {profile.phoneNumber}
           </div>
         ) : null}
+        {profile.discordAccount ? (
+          <div>
+            Discord handle:
+            {' '}
+            {profile.discordAccount.username}
+            #
+            {profile.discordAccount.discriminator}
+          </div>
+        ) : null}
       </div>
     );
   }
