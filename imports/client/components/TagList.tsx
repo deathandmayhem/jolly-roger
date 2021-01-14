@@ -171,7 +171,7 @@ class TagList extends React.PureComponent<TagListProps, TagListState> {
         <ButtonGroup key="editRemoveGroup">
           {this.props.onCreateTag && (
             <Button
-              variant="outline-secondary"
+              variant="secondary"
               title="Add tag..."
               key="startEditing"
               className="tag-modify-button"
@@ -182,7 +182,7 @@ class TagList extends React.PureComponent<TagListProps, TagListState> {
           )}
           {this.props.onRemoveTag && tags.length > 0 && (
             <Button
-              variant="outline-secondary"
+              variant="secondary"
               title="Remove tag..."
               key="startRemoving"
               className="tag-modify-button"
