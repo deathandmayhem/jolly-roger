@@ -1,6 +1,7 @@
 import Announcements from './announcements';
 import CallParticipants from './call_participants';
 import CallSignals from './call_signals';
+import ChatNotifications from './chat_notifications';
 import ChatMessages from './chats';
 import DocumentPermissions from './document_permissions';
 import Documents from './documents';
@@ -18,6 +19,7 @@ const Models = {
   CallParticipants,
   CallSignals,
   ChatMessages,
+  ChatNotifications,
   DocumentPermissions,
   Documents,
   FeatureFlags,

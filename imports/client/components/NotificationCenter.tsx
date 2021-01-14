@@ -16,12 +16,14 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
 import Flags from '../../flags';
 import Announcements from '../../lib/models/announcements';
+import ChatNotifications from '../../lib/models/chat_notifications';
 import Guesses from '../../lib/models/guess';
 import Hunts from '../../lib/models/hunts';
 import PendingAnnouncements from '../../lib/models/pending_announcements';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import { AnnouncementType } from '../../lib/schemas/announcements';
+import { ChatNotificationType } from '../../lib/schemas/chat_notifications';
 import { GuessType } from '../../lib/schemas/guess';
 import { HuntType } from '../../lib/schemas/hunts';
 import { PendingAnnouncementType } from '../../lib/schemas/pending_announcements';
@@ -320,6 +322,32 @@ function ProfileMissingMessage(props: ProfileMissingMessageProps) {
   );
 }
 
+interface ChatNotificationMessageProps {
+  // TODO: add the requisite fields
+  cn: NotificationCenterChatNotification;
+  onDismiss: () => void;
+}
+function ChatNotificationMessage(props: ChatNotificationMessageProps) {
+  return (
+    <li>
+      <MessengerSpinner />
+      <MessengerContent dismissable>
+        <Link to={`/hunts/${props.cn.hunt._id}/puzzles/${props.cn.puzzle._id}`}>
+          {props.cn.puzzle.title}
+        </Link>
+        <div>
+          {props.cn.senderDisplayName}
+          {': '}
+          <div>
+            {props.cn.cn.text}
+          </div>
+        </div>
+      </MessengerContent>
+      <MessengerDismissButton onDismiss={props.onDismiss} />
+    </li>
+  );
+}
+
 interface NotificationCenterAnnouncement {
   pa: PendingAnnouncementType;
   announcement: AnnouncementType;
@@ -333,10 +361,18 @@ interface NotificationCenterGuess {
   guesser: string;
 }
 
+interface NotificationCenterChatNotification {
+  cn: ChatNotificationType;
+  hunt: HuntType;
+  puzzle: PuzzleType;
+  senderDisplayName: string;
+}
+
 type NotificationCenterProps = {
   ready: boolean;
   announcements?: NotificationCenterAnnouncement[];
   guesses?: NotificationCenterGuess[];
+  chatNotifications?: NotificationCenterChatNotification[];
   discordEnabledOnServer?: boolean;
   discordConfiguredByUser?: boolean;
   hasOwnProfile?: boolean;
@@ -379,8 +415,12 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
     });
   };
 
+  dismissChatNotification = (chatNotificationId: string) => {
+    Meteor.call('dismissChatNotification', chatNotificationId);
+  };
+
   render() {
-    if (!this.props.ready || !this.props.guesses || !this.props.announcements) {
+    if (!this.props.ready || !this.props.guesses || !this.props.announcements || !this.props.chatNotifications) {
       return <div />;
     }
 
@@ -423,6 +463,16 @@ class NotificationCenter extends React.Component<NotificationCenterProps, Notifi
       );
     });
 
+    this.props.chatNotifications.forEach((cn) => {
+      messages.push(
+        <ChatNotificationMessage
+          key={cn.cn._id}
+          cn={cn}
+          onDismiss={() => { this.dismissChatNotification(cn.cn._id); }}
+        />
+      );
+    });
+
     return (
       <ul className="notifications">
         {messages}
@@ -445,13 +495,21 @@ const NotificationCenterContainer = withTracker((_props: {}): NotificationCenter
   const displayNamesHandle = Profiles.subscribeDisplayNames();
   const announcementsHandle = Meteor.subscribe('mongo.announcements');
 
+  const disableDingwords = Flags.active('disable.dingwords');
+
+  let chatNotificationsHandle = { ready: () => true };
+  if (!disableDingwords) {
+    chatNotificationsHandle = Meteor.subscribe('chatNotifications');
+  }
+
   const query = {
     user: Meteor.userId()!,
   };
   const paHandle = Meteor.subscribe('mongo.pending_announcements', query);
 
   // Don't even try to put things together until we have the announcements loaded
-  if (!selfHandle.ready() || !displayNamesHandle.ready() || !announcementsHandle.ready()) {
+  if (!selfHandle.ready() || !displayNamesHandle.ready() || !announcementsHandle.ready() ||
+      !chatNotificationsHandle.ready()) {
     return { ready: false };
   }
 
@@ -462,6 +520,7 @@ const NotificationCenterContainer = withTracker((_props: {}): NotificationCenter
     ready: pendingGuessHandle.ready() && paHandle.ready(),
     announcements: [] as NotificationCenterAnnouncement[],
     guesses: [] as NotificationCenterGuess[],
+    chatNotifications: [] as NotificationCenterChatNotification[],
     discordEnabledOnServer,
     discordConfiguredByUser: !!(ownProfile && ownProfile.discordAccount),
     hasOwnProfile: !!(ownProfile),
@@ -486,6 +545,19 @@ const NotificationCenterContainer = withTracker((_props: {}): NotificationCenter
       createdByDisplayName: Profiles.findOne(announcement.createdBy)!.displayName,
     });
   });
+
+  if (!disableDingwords) {
+    ChatNotifications.find({}, { sort: { timestamp: 1 } }).forEach((cn) => {
+      const senderProfile = Profiles.findOne(cn.sender);
+      const senderDisplayName = (senderProfile && senderProfile.displayName) || '(no display name)';
+      data.chatNotifications.push({
+        cn,
+        puzzle: Puzzles.findOne(cn.puzzle)!,
+        hunt: Hunts.findOne(cn.hunt)!,
+        senderDisplayName,
+      });
+    });
+  }
 
   return data;
 })(NotificationCenter);

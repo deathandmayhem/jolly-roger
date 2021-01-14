@@ -1,4 +1,5 @@
 import Announcments from './announcements';
+import ChatNotifications from './chat_notifications';
 import ChatMessages from './chats';
 import DocumentPermissions from './document_permissions';
 import Documents from './documents';
@@ -14,6 +15,7 @@ import User from './users';
 const Schemas = {
   Announcments,
   ChatMessages,
+  ChatNotifications,
   DocumentPermissions,
   Documents,
   FeatureFlags,
