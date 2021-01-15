@@ -31,3 +31,4 @@ import './29-fix-guild-setting-id';
 import './30-index-call-participants';
 import './31-index-call-signals';
 import './32-index-chat-notifications';
+import './33-index-profile-dingwords';

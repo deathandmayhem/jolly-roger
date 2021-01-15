@@ -34,6 +34,7 @@ const DingwordHooks: Hookset = {
       _id: {
         $in: huntMembers,
       },
+      'dingwords.0': { $exists: true },
     }, { fields: { dingwords: 1 } });
 
     // For each user with dingwords, check if this message (normalized to
