@@ -92,7 +92,7 @@ function SignalMessage(props: SignalMessageProps) {
         <pre style={{ display: 'none' }}>{contentObj.sdp}</pre>
       </div>
     );
-  } else if (props.m.type === 'icecandidate') {
+  } else if (props.m.type === 'iceCandidate') {
     // Expect keys 'candidate', 'sdpMid', 'sdpMLineIndex',
     // of which we only really care about 'candidate'.
     if (contentObj) {
