@@ -7,6 +7,7 @@ import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import Flags from '../../flags';
+import { getAvatarCdnUrl } from '../../lib/discord';
 import CallSignals from '../../lib/models/call_signals';
 import Profiles from '../../lib/models/profiles';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
@@ -263,6 +264,8 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
 
   render() {
     const name = (this.props.peerProfile && this.props.peerProfile.displayName) || 'no profile wat';
+    const discordAccount = this.props.peerProfile && this.props.peerProfile.discordAccount;
+    const discordAvatarUrl = discordAccount ? getAvatarCdnUrl(discordAccount) : undefined;
     return (
       <OverlayTrigger
         key={`viewer-${this.props.peerParticipant._id}`}
@@ -293,7 +296,15 @@ class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState
             live: !this.props.peerParticipant.muted && !this.props.peerParticipant.deafened,
           })}
         >
-          <span className="initial">{name.slice(0, 1)}</span>
+          {discordAvatarUrl ? (
+            <img
+              alt={`${name}'s Discord avatar`}
+              className="discord-avatar"
+              src={discordAvatarUrl}
+            />
+          ) : (
+            <span className="initial">{name.slice(0, 1)}</span>
+          )}
           <div className="webrtc">
             {this.props.peerParticipant.muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
             {this.props.peerParticipant.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
@@ -326,6 +337,7 @@ const tracker = withTracker((params: CallLinkBoxParams) => {
     target: params.selfParticipant._id,
   });
 
+  // Subscription for Profiles is provided by ChatPeople.
   const peerProfile = Profiles.findOne(params.peerParticipant.createdBy);
   const spectraDisabled = Flags.active('disable.spectra');
 

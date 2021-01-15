@@ -1,13 +1,13 @@
 import * as t from 'io-ts';
 import { BaseCodec, BaseOverrides } from './base';
-import DiscordAccountType from './discord_account';
+import DiscordAccountFields from './discord_account';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 const ProfileFieldsType = t.type({
   // Autopopulated with the first of the user's email addresses?
   primaryEmail: t.string,
   googleAccount: t.union([t.string, t.undefined]),
-  discordAccount: t.union([DiscordAccountType, t.undefined]),
+  discordAccount: t.union([DiscordAccountFields, t.undefined]),
   // Initial value: ""
   displayName: t.string,
   phoneNumber: t.union([t.string, t.undefined]),
