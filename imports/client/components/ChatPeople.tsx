@@ -9,6 +9,7 @@ import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import Flags from '../../flags';
+import { getAvatarCdnUrl } from '../../lib/discord';
 import CallParticipants from '../../lib/models/call_participants';
 import Profiles from '../../lib/models/profiles';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
@@ -21,6 +22,7 @@ const tabId = Random.id();
 interface ViewerSubscriber {
   user: string;
   name: string;
+  discordAvatarUrl: string | undefined;
   tab: string | undefined;
 }
 
@@ -28,24 +30,34 @@ interface PersonBoxProps extends ViewerSubscriber {
   children?: ReactChild;
 }
 
-const ViewerPersonBox = ({
-  user, name, tab, children,
-}: PersonBoxProps) => (
-  <OverlayTrigger
-    key={`viewer-${user}-${tab}`}
-    placement="right"
-    overlay={(
-      <Tooltip id={`viewer-${user}-${tab}`}>
-        {name}
-      </Tooltip>
-    )}
-  >
-    <div key={`viewer-${user}-${tab}`} className="people-item">
-      <span className="initial">{name.slice(0, 1)}</span>
-      { children }
-    </div>
-  </OverlayTrigger>
-);
+function ViewerPersonBox({
+  user, name, discordAvatarUrl, tab, children,
+}: PersonBoxProps) {
+  return (
+    <OverlayTrigger
+      key={`viewer-${user}-${tab}`}
+      placement="right"
+      overlay={(
+        <Tooltip id={`viewer-${user}-${tab}`}>
+          {name}
+        </Tooltip>
+      )}
+    >
+      <div key={`viewer-${user}-${tab}`} className="people-item">
+        {discordAvatarUrl ? (
+          <img
+            alt={`${name}'s Discord avatar`}
+            src={discordAvatarUrl}
+            className="discord-avatar"
+          />
+        ) : (
+          <span className="initial">{name.slice(0, 1)}</span>
+        )}
+        { children }
+      </div>
+    </OverlayTrigger>
+  );
+}
 
 interface ChatPeopleParams {
   huntId: string;
@@ -418,7 +430,7 @@ const ChatPeopleContainer = withTracker(({ huntId, puzzleId }: ChatPeopleParams)
   const subscriberTopic = `puzzle:${puzzleId}`;
   const subscribersHandle = Meteor.subscribe('subscribers.fetch', subscriberTopic);
   const callMembersHandle = Meteor.subscribe('call.metadata', huntId, puzzleId);
-  const profilesHandle = Profiles.subscribeDisplayNames();
+  const profilesHandle = Profiles.subscribeAvatars();
 
   const ready = subscribersHandle.ready() && callMembersHandle.ready() && profilesHandle.ready();
   if (!ready) {
@@ -456,10 +468,18 @@ const ChatPeopleContainer = withTracker(({ huntId, puzzleId }: ChatPeopleParams)
       return;
     }
 
+    const discordAccount = profile.discordAccount;
+    const discordAvatarUrl = discordAccount && getAvatarCdnUrl(discordAccount);
+
     // If the same user is joined twice in CallParticipants (from two different
     // tabs), dedupe in the viewer listing.
     // (We include both in rtcParticipants still.)
-    rtcViewers.push({ user, name: profile.displayName, tab: p.tab });
+    rtcViewers.push({
+      user,
+      name: profile.displayName,
+      discordAvatarUrl,
+      tab: p.tab,
+    });
     rtcViewerIndex[user] = true;
   });
 
@@ -481,7 +501,15 @@ const ChatPeopleContainer = withTracker(({ huntId, puzzleId }: ChatPeopleParams)
       return;
     }
 
-    viewers.push({ user: s.user, name: profile.displayName, tab: undefined });
+    const discordAccount = profile.discordAccount;
+    const discordAvatarUrl = discordAccount && getAvatarCdnUrl(discordAccount);
+
+    viewers.push({
+      user: s.user,
+      name: profile.displayName,
+      discordAvatarUrl,
+      tab: undefined,
+    });
   });
 
   return {

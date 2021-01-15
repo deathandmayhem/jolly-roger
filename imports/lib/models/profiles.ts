@@ -11,6 +11,12 @@ const Profiles = new class extends Base<ProfileType> {
     return Meteor.subscribe('mongo.profiles', {}, { fields: { displayName: 1 } });
   }
 
+  subscribeAvatars() {
+    return Meteor.subscribe('mongo.profiles', {}, {
+      fields: { displayName: 1, discordAccount: 1 },
+    });
+  }
+
   displayNames() {
     const displayNames: Record<string, string> = {};
     this.find().forEach((p) => {

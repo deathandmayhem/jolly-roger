@@ -13,6 +13,7 @@ import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import Flags from '../../flags';
+import { getAvatarCdnUrl } from '../../lib/discord';
 import CallParticipants from '../../lib/models/call_participants';
 import Profiles from '../../lib/models/profiles';
 import { CallParticipantType } from '../../lib/schemas/call_participants';
@@ -69,6 +70,8 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
 
   renderSelfBox = () => {
     const selfProfile = this.props.selfProfile;
+    const discordAccount = selfProfile && selfProfile.discordAccount;
+    const discordAvatarUrl = discordAccount && getAvatarCdnUrl(discordAccount);
     const initial = selfProfile ? selfProfile.displayName.slice(0, 1) : 'U'; // get it?  it's you
     return (
       <OverlayTrigger
@@ -90,7 +93,15 @@ class RTCCallSection extends React.Component<RTCCallSectionProps> {
             live: !this.props.muted && !this.props.deafened,
           })}
         >
-          <span className="initial">{initial}</span>
+          {discordAvatarUrl ? (
+            <img
+              alt="Your own Discord avatar"
+              className="discord-avatar"
+              src={discordAvatarUrl}
+            />
+          ) : (
+            <span className="initial">{initial}</span>
+          )}
           <div className="webrtc">
             {this.props.muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
             {this.props.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
