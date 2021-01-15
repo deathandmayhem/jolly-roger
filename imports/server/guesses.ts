@@ -72,7 +72,7 @@ class PendingGuessWatcher {
 
     const user = Meteor.users.findOne(sub.userId)!;
 
-    this.guessCursor = Guesses.find({ state: 'pending', hunts: { $in: user.hunts } });
+    this.guessCursor = Guesses.find({ state: 'pending', hunt: { $in: user.hunts } });
     this.guesses = {};
     this.huntRefCounter = new RefCountedObserverMap(sub, Hunts);
     this.puzzleRefCounter = new RefCountedObserverMap(sub, Puzzles);
