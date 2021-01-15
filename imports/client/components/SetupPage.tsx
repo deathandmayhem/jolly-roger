@@ -1188,6 +1188,7 @@ interface CircuitBreakerSectionProps {
   flagDisableApplause: boolean;
   flagDisableWebrtc: boolean;
   flagDisableSpectra: boolean;
+  flagDisableDingwords: boolean;
 }
 
 class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> {
@@ -1301,6 +1302,24 @@ class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> 
             and battery for members of WebRTC calls.
           </p>
         </CircuitBreakerControl>
+        <CircuitBreakerControl
+          title="Dingwords"
+          featureDisabled={this.props.flagDisableDingwords}
+          onChange={(newValue) => this.setFlagValue('disable.dingwords', newValue)}
+        >
+          <p>
+            User-specified &quot;dingwords&quot; allow users to get notified if anyone
+            mentions a word of particular significance to the user in any of the puzzle
+            chats, so that they can potentially contribute.  However, this involves doing
+            substantial matching work for every chat message sent, and the CPU/DB load
+            involved have not been tested in production yet.
+          </p>
+          <p>
+            Disabling this feature means that Jolly Roger will no longer do expensive
+            work on each chat message sent, and no new dingword notifications will be
+            generated or displayed.
+          </p>
+        </CircuitBreakerControl>
       </section>
     );
   }
@@ -1329,6 +1348,7 @@ interface SetupPageRewriteProps {
   flagDisableApplause: boolean;
   flagDisableWebrtc: boolean;
   flagDisableSpectra: boolean;
+  flagDisableDingwords: boolean;
 }
 
 class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
@@ -1377,6 +1397,7 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
           flagDisableApplause={this.props.flagDisableApplause}
           flagDisableWebrtc={this.props.flagDisableWebrtc}
           flagDisableSpectra={this.props.flagDisableSpectra}
+          flagDisableDingwords={this.props.flagDisableDingwords}
         />
       </div>
     );
@@ -1420,6 +1441,7 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   const flagDisableApplause = Flags.active('disable.applause');
   const flagDisableWebrtc = Flags.active('disable.webrtc');
   const flagDisableSpectra = Flags.active('disable.spectra');
+  const flagDisableDingwords = Flags.active('disable.dingwords');
 
   return {
     ready: settingsHandle.ready(),
@@ -1444,6 +1466,7 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     flagDisableApplause,
     flagDisableWebrtc,
     flagDisableSpectra,
+    flagDisableDingwords,
   };
 });
 

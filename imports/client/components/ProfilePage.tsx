@@ -71,6 +71,7 @@ const tracker = withTracker(({ match }: ProfilePageWithRouterParams) => {
       displayName: '',
       primaryEmail: defaultEmail,
       phoneNumber: '',
+      dingwords: [],
       deleted: false,
       createdAt: new Date(),
       createdBy: user._id,

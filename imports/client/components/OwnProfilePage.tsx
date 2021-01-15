@@ -345,6 +345,7 @@ interface OwnProfilePageState {
   displayNameValue: string;
   phoneNumberValue: string;
   muteApplause: boolean;
+  dingwords: string;
   submitState: OwnProfilePageSubmitState,
   submitError: string;
 }
@@ -356,6 +357,8 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
       displayNameValue: this.props.initialProfile.displayName || '',
       phoneNumberValue: this.props.initialProfile.phoneNumber || '',
       muteApplause: this.props.initialProfile.muteApplause || false,
+      dingwords: this.props.initialProfile.dingwords ?
+        this.props.initialProfile.dingwords.join(',') : '',
       submitState: OwnProfilePageSubmitState.IDLE,
     } as OwnProfilePageState;
   }
@@ -378,6 +381,12 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
     });
   };
 
+  handleDingwordsChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      dingwords: e.currentTarget.value,
+    });
+  };
+
   toggleOperating = () => {
     const newState = !this.props.operating;
     if (newState) {
@@ -391,10 +400,14 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
     this.setState({
       submitState: OwnProfilePageSubmitState.SUBMITTING,
     });
+    const dingwords = this.state.dingwords.split(',').map((x) => {
+      return x.trim().toLowerCase();
+    }).filter((x) => x.length > 0);
     const newProfile = {
       displayName: this.state.displayNameValue,
       phoneNumber: this.state.phoneNumberValue,
       muteApplause: this.state.muteApplause,
+      dingwords,
     };
     Meteor.call('saveProfile', newProfile, (error?: Error) => {
       if (error) {
@@ -485,6 +498,26 @@ class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePage
           />
           <FormText>
             In case we need to reach you via phone.
+          </FormText>
+        </FormGroup>
+
+        <FormGroup>
+          <FormLabel htmlFor="jr-profile-edit-dingwords">
+            Dingwords (experimental)
+          </FormLabel>
+          <FormControl
+            id="jr-profile-edit-dingwords"
+            type="text"
+            value={this.state.dingwords}
+            disabled={shouldDisableForm}
+            onChange={this.handleDingwordsChange}
+            placeholder="cryptic,biology,chemistry"
+          />
+          <FormText>
+            Get an in-app notification if anyone sends a chat message
+            containing one of your comma-separated, case-insensitive dingwords
+            as a substring.  This feature is experimental and may be disabled
+            without notice.
           </FormText>
         </FormGroup>
 
