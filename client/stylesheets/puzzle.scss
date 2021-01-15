@@ -582,6 +582,20 @@ table.puzzle-list {
   .popover-body {
     overflow: auto;
   }
+
+  // Applying display:flex directly to popover-header leads to incorrect vertical sizing when the
+  // popover's height is constrained by the viewport. Use an inner div to avoid this.
+  .related-puzzle-popover-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .related-puzzle-popover-controls {
+    align-self: start;
+    margin-left: 8px;
+    flex: 0 0 auto;
+  }
 }
 
 .SplitPane > .Pane.collapsing:before {
