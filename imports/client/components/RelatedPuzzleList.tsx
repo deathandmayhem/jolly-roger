@@ -3,7 +3,7 @@ import React from 'react';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import PuzzleList from './PuzzleList';
-import puzzleInterestingness from './puzzleInterestingness';
+import { puzzleInterestingness } from './puzzle-sort-and-group';
 
 function sortPuzzlesByRelevanceWithinPuzzleGroup(
   puzzles: PuzzleType[],
@@ -34,7 +34,7 @@ interface RelatedPuzzleListProps {
   layout: 'grid' | 'table';
   canUpdate: boolean;
   sharedTag: TagType | undefined;
-  suppressSharedTag: boolean;
+  suppressedTagIds: string[];
 }
 
 class RelatedPuzzleList extends React.PureComponent<RelatedPuzzleListProps> {
@@ -50,16 +50,13 @@ class RelatedPuzzleList extends React.PureComponent<RelatedPuzzleListProps> {
       this.props.sharedTag,
       tagIndex
     );
-    const suppressTags = this.props.suppressSharedTag && this.props.sharedTag ?
-      [this.props.sharedTag._id] :
-      [];
     return (
       <PuzzleList
         puzzles={sortedPuzzles}
         allTags={this.props.allTags}
         layout={this.props.layout}
         canUpdate={this.props.canUpdate}
-        suppressTags={suppressTags}
+        suppressTags={this.props.suppressedTagIds}
       />
     );
   }

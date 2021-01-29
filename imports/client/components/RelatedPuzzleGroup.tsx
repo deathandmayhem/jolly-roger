@@ -2,20 +2,20 @@ import { _ } from 'meteor/underscore';
 import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import RelatedPuzzleList from './RelatedPuzzleList';
 import Tag from './Tag';
+import { PuzzleGroup } from './puzzle-sort-and-group';
 
 interface RelatedPuzzleGroupProps {
-  sharedTag: TagType | undefined;
+  group: PuzzleGroup;
   // noSharedTagLabel is used to label the group only if sharedTag is undefined.
   noSharedTagLabel: String;
-  relatedPuzzles: PuzzleType[];
   allTags: TagType[];
   includeCount?: boolean;
   layout: 'grid' | 'table';
   canUpdate: boolean;
+  suppressedTagIds: string[];
 }
 
 interface RelatedPuzzleGroupState {
@@ -43,14 +43,20 @@ class RelatedPuzzleGroup extends React.Component<RelatedPuzzleGroupProps, Relate
   };
 
   render() {
-    const puzzlePlural = this.props.relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles';
-    const countString = `(${this.props.relatedPuzzles.length} other ${puzzlePlural})`;
+    const relatedPuzzles = this.props.group.puzzles;
+    const sharedTag = this.props.group.sharedTag;
+    const puzzlePlural = relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles';
+    const countString = `(${relatedPuzzles.length} other ${puzzlePlural})`;
+    const suppressedTagIds = [...this.props.suppressedTagIds];
+    if (sharedTag) {
+      suppressedTagIds.push(sharedTag._id);
+    }
     return (
       <div className="puzzle-group">
         <div className="puzzle-group-header" onClick={this.toggleCollapse}>
           <FontAwesomeIcon fixedWidth icon={this.state.collapsed ? faCaretRight : faCaretDown} />
-          {this.props.sharedTag ? (
-            <Tag tag={this.props.sharedTag} linkToSearch={false} popoverRelated={false} />
+          {sharedTag ? (
+            <Tag tag={sharedTag} linkToSearch={false} popoverRelated={false} />
           ) : (
             <div className="tag tag-none">{this.props.noSharedTagLabel}</div>
           )}
@@ -59,13 +65,31 @@ class RelatedPuzzleGroup extends React.Component<RelatedPuzzleGroupProps, Relate
         {this.state.collapsed ? null : (
           <div className="puzzle-list-wrapper">
             <RelatedPuzzleList
-              relatedPuzzles={this.props.relatedPuzzles}
+              relatedPuzzles={relatedPuzzles}
               allTags={this.props.allTags}
               layout={this.props.layout}
               canUpdate={this.props.canUpdate}
-              sharedTag={this.props.sharedTag}
-              suppressSharedTag
+              sharedTag={sharedTag}
+              suppressedTagIds={suppressedTagIds}
             />
+            {this.props.group.subgroups.map((subgroup) => {
+              const subgroupSuppressedTagIds = [...suppressedTagIds];
+              if (subgroup.sharedTag) {
+                subgroupSuppressedTagIds.push(subgroup.sharedTag._id);
+              }
+              return (
+                <RelatedPuzzleGroup
+                  key={subgroup.sharedTag ? subgroup.sharedTag._id : 'ungrouped'}
+                  group={subgroup}
+                  noSharedTagLabel={this.props.noSharedTagLabel}
+                  allTags={this.props.allTags}
+                  includeCount={this.props.includeCount}
+                  layout={this.props.layout}
+                  canUpdate={this.props.canUpdate}
+                  suppressedTagIds={subgroupSuppressedTagIds}
+                />
+              );
+            })}
           </div>
         )}
       </div>
