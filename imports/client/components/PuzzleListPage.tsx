@@ -194,10 +194,8 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
         // We group and sort first, and only filter afterward, to avoid losing the
         // relative group structure as a result of removing some puzzles from
         // consideration.
-        const retainedIds: Record<string, undefined> = {};
-        this.filteredPuzzles(this.props.puzzles).forEach((puzzle) => {
-          retainedIds[puzzle._id] = undefined;
-        });
+        const retainedPuzzles = this.filteredPuzzles(this.props.puzzles);
+        const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
         const unfilteredGroups = puzzleGroupsByRelevance(this.props.puzzles, this.props.allTags);
         const puzzleGroups = filteredPuzzleGroups(unfilteredGroups, retainedIds);
         const groupComponents = puzzleGroups.map((g) => {

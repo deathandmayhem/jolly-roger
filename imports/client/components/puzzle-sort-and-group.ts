@@ -163,14 +163,14 @@ function dedupeGroup(g: PuzzleGroup): string[] {
 
 function filteredPuzzleGroup(
   group: PuzzleGroup,
-  retainedPuzzleIds: Record<string, undefined>
+  retainedPuzzleIds: Set<string>
 ): PuzzleGroup | undefined {
   const retainedSubgroups = group.subgroups.map((subgroup) => {
     return filteredPuzzleGroup(subgroup, retainedPuzzleIds);
   }).filter((x) => x !== undefined) as PuzzleGroup[];
 
   const retainedPuzzles = group.puzzles.filter((puzzle) => {
-    return Object.prototype.hasOwnProperty.call(retainedPuzzleIds, puzzle._id);
+    return retainedPuzzleIds.has(puzzle._id);
   });
 
   // If there are no remaining child puzzles nor any nonempty subgroups, then
@@ -189,7 +189,7 @@ function filteredPuzzleGroup(
 
 function filteredPuzzleGroups(
   groups: PuzzleGroup[],
-  retainedPuzzleIds: Record<string, undefined>
+  retainedPuzzleIds: Set<string>
 ): PuzzleGroup[] {
   return groups.map((group) => {
     return filteredPuzzleGroup(group, retainedPuzzleIds);
