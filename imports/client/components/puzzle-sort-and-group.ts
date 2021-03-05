@@ -8,11 +8,14 @@ interface PuzzleGroup {
   subgroups: PuzzleGroup[];
 }
 
-// We might attach these fields to a PuzzleGroup in this file, but please don't
-// use them outside of this file -- they may not have the invariants you seek.
-interface CachingPuzzleGroup extends PuzzleGroup {
-  puzzleIdCache?: Set<string>;
-  interestingnessCache?: number;
+// Used with interior mutability for preparing `PuzzleGroup`s suitable for
+// returning to users.
+interface InternalPuzzleGroup {
+  sharedTag?: TagType;
+  puzzles: PuzzleType[];
+  subgroups: InternalPuzzleGroup[];
+  puzzleIdCache: Set<string>;
+  interestingness: number;
 }
 
 function puzzleInterestingness(
@@ -67,7 +70,9 @@ function puzzleInterestingness(
   return minScore;
 }
 
-function interestingnessOfGroup(group: CachingPuzzleGroup, indexedTags: Record<string, TagType>) {
+function interestingnessOfGroup(
+  puzzles: PuzzleType[], sharedTag: TagType | undefined, indexedTags: Record<string, TagType>
+) {
   // Rough idea: sort, from top to bottom:
   // -3 administrivia always floats to the top
   // -2 Group with unsolved puzzle with matching meta-for:<this group>
@@ -75,8 +80,6 @@ function interestingnessOfGroup(group: CachingPuzzleGroup, indexedTags: Record<s
   //  0 Groups with no metas yet
   //  1 Ungrouped puzzles
   //  2 Groups with a solved puzzle with matching meta-for:<this group>
-  const puzzles = group.puzzles;
-  const sharedTag = group.sharedTag;
 
   // ungrouped puzzles go after groups, esp. after groups with a known unsolved meta.
   // Guarantees that if ia === ib, then sharedTag exists.
@@ -120,46 +123,24 @@ function interestingnessOfGroup(group: CachingPuzzleGroup, indexedTags: Record<s
   return 0;
 }
 
-function getInterestingnessOfGroup(
-  g: CachingPuzzleGroup, tagsByIndex: Record<string, TagType>
-): number {
-  // Cache interestingness, since we'll need to compute it for multiple comparison
-  if (g.interestingnessCache === undefined) {
-    // eslint-disable-next-line no-param-reassign
-    g.interestingnessCache = interestingnessOfGroup(g, tagsByIndex);
-  }
-  return g.interestingnessCache;
-}
-
-function compareGroups(
-  a: CachingPuzzleGroup, b: CachingPuzzleGroup, tagsByIndex: Record<string, TagType>
-): number {
+function compareGroups(a: InternalPuzzleGroup, b: InternalPuzzleGroup): number {
   // Sort groups by interestingness.
-  const ia = getInterestingnessOfGroup(a, tagsByIndex);
-  const ib = getInterestingnessOfGroup(b, tagsByIndex);
+  const ia = a.interestingness;
+  const ib = b.interestingness;
   if (ia !== ib) return ia - ib;
   // Within an interestingness class, sort tags by creation date, which should
   // roughly match hunt order.
   return a.sharedTag!.createdAt.getTime() - b.sharedTag!.createdAt.getTime();
 }
 
-function sortGroups(groups: PuzzleGroup[], tagsByIndex: Record<string, TagType>) {
+function sortGroups(groups: InternalPuzzleGroup[]) {
   groups.forEach((group) => {
-    sortGroups(group.subgroups, tagsByIndex);
+    sortGroups(group.subgroups);
   });
-  groups.sort((a, b) => compareGroups(a, b, tagsByIndex));
+  groups.sort((a, b) => compareGroups(a, b));
 }
 
-// Intended to be used before deduplication has occurred.
-function getPuzzleIds(g: CachingPuzzleGroup) {
-  if (g.puzzleIdCache === undefined) {
-    // eslint-disable-next-line no-param-reassign
-    g.puzzleIdCache = new Set(g.puzzles.map((p) => p._id));
-  }
-  return g.puzzleIdCache;
-}
-
-function isStrictSubgroup(subCand: CachingPuzzleGroup, parentCand: CachingPuzzleGroup) {
+function isStrictSubgroup(subCand: InternalPuzzleGroup, parentCand: InternalPuzzleGroup) {
   // A child group is considered a strict subgroup of a parent group if
   // * the parent contains every puzzle in the child, and
   // * the parent also contains at least one puzzle that the child does not contain.
@@ -174,16 +155,16 @@ function isStrictSubgroup(subCand: CachingPuzzleGroup, parentCand: CachingPuzzle
   }
 
   // first criterion: does every puzzle id in subCand appear in parentCand?
-  const parentIds = getPuzzleIds(parentCand);
+  const parentIds = parentCand.puzzleIdCache;
   return subCand.puzzles.every((p) => {
     return parentIds.has(p._id);
   });
 }
 
-function dedupedGroup(g: CachingPuzzleGroup): PuzzleGroup {
+function dedupedGroup(g: InternalPuzzleGroup): PuzzleGroup {
   const childMembers = new Set();
   g.subgroups.forEach((subgroup) => {
-    getPuzzleIds(subgroup).forEach((id) => {
+    subgroup.puzzleIdCache.forEach((id) => {
       childMembers.add(id);
     });
   });
@@ -266,12 +247,17 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
   }
 
   // Collect groups into a list.
-  const groups: PuzzleGroup[] = Object.keys(groupsMap).map((key) => {
-    const val = groupsMap[key];
+  const groups: InternalPuzzleGroup[] = Object.keys(groupsMap).map((key) => {
+    const puzzles = groupsMap[key];
+    const sharedTag = tagsByIndex[key];
+    const puzzleIdCache = new Set(puzzles.map((p) => p._id));
+    const interestingness = interestingnessOfGroup(puzzles, sharedTag, tagsByIndex);
     return {
-      sharedTag: tagsByIndex[key],
-      puzzles: val,
+      sharedTag,
+      puzzles,
       subgroups: [],
+      puzzleIdCache,
+      interestingness,
     };
   });
 
@@ -340,14 +326,18 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
 
   // Add the ungrouped puzzles too, if there are any.
   if (ungroupedPuzzles.length > 0) {
+    const ungroupedPuzzleIdCache = new Set(ungroupedPuzzles.map((p) => p._id));
+    const interestingness = interestingnessOfGroup(ungroupedPuzzles, undefined, tagsByIndex);
     groups.push({
       puzzles: ungroupedPuzzles,
       subgroups: [],
+      puzzleIdCache: ungroupedPuzzleIdCache,
+      interestingness,
     });
   }
 
   // Sort groups by interestingness.
-  sortGroups(groups, tagsByIndex);
+  sortGroups(groups);
 
   // For each group, remove any members of puzzles that are also members of
   // any of their subgroups, so the puzzles will only be shown in the
