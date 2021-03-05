@@ -180,22 +180,23 @@ function isStrictSubgroup(subCand: CachingPuzzleGroup, parentCand: CachingPuzzle
   });
 }
 
-// Mutates g in place!
-function dedupeGroup(g: PuzzleGroup): string[] {
-  // Returns the list of puzzle ids which are recursively represented by this
-  // group (either directly, or indirectly).
-
-  const originalIds = g.puzzles.map((p) => p._id);
-  const childMembers = _.uniq(g.subgroups.flatMap((subg) => dedupeGroup(subg)));
-
-  childMembers.forEach((pId) => {
-    const idx = g.puzzles.findIndex((p) => p._id === pId);
-    if (idx !== -1) {
-      g.puzzles.splice(idx, 1);
-    }
+function dedupedGroup(g: CachingPuzzleGroup): PuzzleGroup {
+  const childMembers = new Set();
+  g.subgroups.forEach((subgroup) => {
+    getPuzzleIds(subgroup).forEach((id) => {
+      childMembers.add(id);
+    });
+  });
+  const dedupedSubgroups = g.subgroups.map((subgroup) => dedupedGroup(subgroup));
+  const dedupedPuzzles = g.puzzles.filter((puzzle) => {
+    return !childMembers.has(puzzle._id);
   });
 
-  return originalIds;
+  return {
+    sharedTag: g.sharedTag,
+    puzzles: dedupedPuzzles,
+    subgroups: dedupedSubgroups,
+  };
 }
 
 function filteredPuzzleGroup(
@@ -351,11 +352,7 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
   // For each group, remove any members of puzzles that are also members of
   // any of their subgroups, so the puzzles will only be shown in the
   // wholly-contained subgroup.
-  groups.forEach((group) => {
-    dedupeGroup(group);
-  });
-
-  return groups;
+  return groups.map((group) => dedupedGroup(group));
 }
 
 export {
