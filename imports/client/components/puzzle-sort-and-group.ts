@@ -8,6 +8,13 @@ interface PuzzleGroup {
   subgroups: PuzzleGroup[];
 }
 
+// We might attach these fields to a PuzzleGroup in this file, but please don't
+// use them outside of this file -- they may not have the invariants you seek.
+interface CachingPuzzleGroup extends PuzzleGroup {
+  puzzleIdCache?: Set<string>;
+  interestingnessCache?: number;
+}
+
 function puzzleInterestingness(
   puzzle: PuzzleType,
   indexedTags: Record<string, TagType>,
@@ -60,7 +67,7 @@ function puzzleInterestingness(
   return minScore;
 }
 
-function interestingnessOfGroup(group: PuzzleGroup, indexedTags: Record<string, TagType>) {
+function interestingnessOfGroup(group: CachingPuzzleGroup, indexedTags: Record<string, TagType>) {
   // Rough idea: sort, from top to bottom:
   // -3 administrivia always floats to the top
   // -2 Group with unsolved puzzle with matching meta-for:<this group>
@@ -113,10 +120,23 @@ function interestingnessOfGroup(group: PuzzleGroup, indexedTags: Record<string, 
   return 0;
 }
 
-function compareGroups(a: PuzzleGroup, b: PuzzleGroup, tagsByIndex: Record<string, TagType>) {
+function getInterestingnessOfGroup(
+  g: CachingPuzzleGroup, tagsByIndex: Record<string, TagType>
+): number {
+  // Cache interestingness, since we'll need to compute it for multiple comparison
+  if (g.interestingnessCache === undefined) {
+    // eslint-disable-next-line no-param-reassign
+    g.interestingnessCache = interestingnessOfGroup(g, tagsByIndex);
+  }
+  return g.interestingnessCache;
+}
+
+function compareGroups(
+  a: CachingPuzzleGroup, b: CachingPuzzleGroup, tagsByIndex: Record<string, TagType>
+): number {
   // Sort groups by interestingness.
-  const ia = interestingnessOfGroup(a, tagsByIndex);
-  const ib = interestingnessOfGroup(b, tagsByIndex);
+  const ia = getInterestingnessOfGroup(a, tagsByIndex);
+  const ib = getInterestingnessOfGroup(b, tagsByIndex);
   if (ia !== ib) return ia - ib;
   // Within an interestingness class, sort tags by creation date, which should
   // roughly match hunt order.
@@ -130,17 +150,34 @@ function sortGroups(groups: PuzzleGroup[], tagsByIndex: Record<string, TagType>)
   groups.sort((a, b) => compareGroups(a, b, tagsByIndex));
 }
 
-function isStrictSubgroup(subCand: PuzzleGroup, parentCand: PuzzleGroup) {
-  // At the point we're calling this, we ignore subGroups, which are not yet
-  // populated, and consider only puzzles.
-  const childIds = subCand.puzzles.map((p) => p._id);
-  const parentIds = parentCand.puzzles.map((p) => p._id);
-  const contained = _.intersection(parentIds, childIds);
-  const parentOnly = _.difference(parentIds, childIds);
-  // A group is a strict subgroup if the parent contains every puzzle in the
-  // child, and also contains at least one puzzle that the child does not
-  // contain.
-  return contained.length === childIds.length && parentOnly.length > 0;
+// Intended to be used before deduplication has occurred.
+function getPuzzleIds(g: CachingPuzzleGroup) {
+  if (g.puzzleIdCache === undefined) {
+    // eslint-disable-next-line no-param-reassign
+    g.puzzleIdCache = new Set(g.puzzles.map((p) => p._id));
+  }
+  return g.puzzleIdCache;
+}
+
+function isStrictSubgroup(subCand: CachingPuzzleGroup, parentCand: CachingPuzzleGroup) {
+  // A child group is considered a strict subgroup of a parent group if
+  // * the parent contains every puzzle in the child, and
+  // * the parent also contains at least one puzzle that the child does not contain.
+
+  // At the point we're calling this, we ignore the `subgroups` field, which are not yet
+  // populated, and consider only puzzles for determining subgroupiness.
+
+  if (subCand.puzzles.length >= parentCand.puzzles.length) {
+    // If the subgroup is the same size as or larger than the parent candidate,
+    // it can't be contained by the parent candidate group (second criterion above)
+    return false;
+  }
+
+  // first criterion: does every puzzle id in subCand appear in parentCand?
+  const parentIds = getPuzzleIds(parentCand);
+  return subCand.puzzles.every((p) => {
+    return parentIds.has(p._id);
+  });
 }
 
 // Mutates g in place!
