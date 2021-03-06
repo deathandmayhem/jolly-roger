@@ -30,8 +30,7 @@ import { TagType } from '../../lib/schemas/tags';
 import PuzzleList from './PuzzleList';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
-
-/* eslint-disable max-len */
+import { filteredPuzzleGroups, puzzleGroupsByRelevance } from './puzzle-sort-and-group';
 
 interface PuzzleListViewProps extends RouteComponentProps {
   huntId: string
@@ -39,11 +38,6 @@ interface PuzzleListViewProps extends RouteComponentProps {
   canUpdate: boolean;
   puzzles: PuzzleType[];
   allTags: TagType[];
-}
-
-interface PuzzleGroup {
-  sharedTag?: TagType;
-  puzzles: PuzzleType[];
 }
 
 interface PuzzleListViewState {
@@ -136,23 +130,28 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     };
   };
 
-  filteredPuzzles = (puzzles: PuzzleType[]) => {
-    const searchKeys = this.getSearchString().split(' ');
-    let interestingPuzzles;
+  filteredPuzzles = (puzzles: PuzzleType[]): PuzzleType[] => {
+    const matchingSearch = this.puzzlesMatchingSearchString(puzzles);
+    return this.puzzlesMatchingSolvedFilter(matchingSearch);
+  };
 
+  puzzlesMatchingSearchString = (puzzles: PuzzleType[]): PuzzleType[] => {
+    const searchKeys = this.getSearchString().split(' ');
     if (searchKeys.length === 1 && searchKeys[0] === '') {
       // No search query, so no need to do fancy search computation
-      interestingPuzzles = puzzles;
+      return puzzles;
     } else {
       const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => { return key.length > 0; });
       const isInteresting = this.compileMatcher(searchKeysWithEmptyKeysRemoved);
-      interestingPuzzles = puzzles.filter(isInteresting);
+      return puzzles.filter(isInteresting);
     }
+  };
 
+  puzzlesMatchingSolvedFilter = (puzzles: PuzzleType[]): PuzzleType[] => {
     if (this.state.showSolved) {
-      return interestingPuzzles;
+      return puzzles;
     } else {
-      return interestingPuzzles.filter((puzzle) => {
+      return puzzles.filter((puzzle) => {
         return (puzzle.answers.length < puzzle.expectedAnswerCount);
       });
     }
@@ -164,127 +163,6 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
 
     // Sort by creation timestamp
     return _.sortBy(filteredPuzzles, (puzzle) => { return puzzle.createdAt; });
-  };
-
-  puzzleGroupsByRelevance = (): PuzzleGroup[] => {
-    // First, filter puzzles by search keys and unsolved (if selected).
-    const filteredPuzzles = this.filteredPuzzles(this.props.puzzles);
-
-    // Extract remaining puzzles into groups (including the
-    // "administrivia" group).  Collect puzzles that appear in no
-    // groups into a final group, "ungrouped".  Each group (except
-    // ungrouped) has shape:
-    // {
-    //   sharedTag: (tag shape),
-    //   puzzles: [(puzzle shape)],
-    // }
-
-    const groupsMap: Record<string, PuzzleType[]> = {}; // Maps tag id to list of puzzles holding that tag.
-    const ungroupedPuzzles = []; // For collecting puzzles that are not included in any group
-    const tagsByIndex = _.indexBy(this.props.allTags, '_id');
-    for (let i = 0; i < filteredPuzzles.length; i++) {
-      const puzzle = filteredPuzzles[i];
-      let grouped = false;
-      for (let j = 0; j < puzzle.tags.length; j++) {
-        const tag = tagsByIndex[puzzle.tags[j]];
-        // On new puzzle creation, if a tag s new as well, we can receive the new Puzzle object (and
-        // rerender) before the new Tag object streams in, so it's possible that we don't have a tag
-        // object for a given ID, and that tag here will be undefined.
-        if (tag && tag.name && (tag.name === 'administrivia' ||
-            tag.name.lastIndexOf('group:', 0) === 0)) {
-          grouped = true;
-          if (!groupsMap[tag._id]) {
-            groupsMap[tag._id] = [];
-          }
-
-          groupsMap[tag._id].push(puzzle);
-        }
-      }
-
-      if (!grouped) {
-        ungroupedPuzzles.push(puzzle);
-      }
-    }
-
-    // Collect groups into a list.
-    const groups: PuzzleGroup[] = Object.keys(groupsMap).map((key) => {
-      const val = groupsMap[key];
-      return {
-        sharedTag: tagsByIndex[key],
-        puzzles: val,
-      };
-    });
-
-    // Add the ungrouped puzzles too, if there are any.
-    if (ungroupedPuzzles.length > 0) {
-      groups.push({
-        puzzles: ungroupedPuzzles,
-      });
-    }
-
-    // Sort groups by interestingness.
-    // Within an interestingness class, sort tags by creation date, which should roughly match hunt order.
-    groups.sort((a, b) => {
-      const ia = this.interestingnessOfGroup(a, tagsByIndex);
-      const ib = this.interestingnessOfGroup(b, tagsByIndex);
-      if (ia !== ib) return ia - ib;
-      return a.sharedTag!.createdAt.getTime() - b.sharedTag!.createdAt.getTime();
-    });
-
-    return groups;
-  };
-
-  interestingnessOfGroup = (group: PuzzleGroup, indexedTags: Record<string, TagType>) => {
-    // Rough idea: sort, from top to bottom:
-    // -3 administrivia always floats to the top
-    // -2 Group with unsolved puzzle with matching meta-for:<this group>
-    // -1 Group with some other unsolved is:meta puzzle
-    //  0 Groups with no metas yet
-    //  1 Ungrouped puzzles
-    //  2 Groups with a solved puzzle with matching meta-for:<this group>
-    const puzzles = group.puzzles;
-    const sharedTag = group.sharedTag;
-
-    // ungrouped puzzles go after groups, esp. after groups with a known unsolved meta.
-    // Guarantees that if ia === ib, then sharedTag exists.
-    if (!sharedTag) return 1;
-
-    if (sharedTag.name === 'administrivia') {
-      return -3;
-    }
-
-    // Look for a puzzle with meta-for:(this group's shared tag)
-    let metaForTag;
-    if (sharedTag && sharedTag.name.lastIndexOf('group:', 0) === 0) {
-      metaForTag = `meta-for:${sharedTag.name.slice('group:'.length)}`;
-    }
-
-    let hasUnsolvedMeta = false;
-    for (let i = 0; i < puzzles.length; i++) {
-      const puzzle = puzzles[i];
-      for (let j = 0; j < puzzle.tags.length; j++) {
-        const tag = indexedTags[puzzle.tags[j]];
-
-        if (tag) {
-          // tag may be undefined if we get tag IDs before the new Tag arrives from the server;
-          // ignore such tags for sorting purposes
-
-          if (metaForTag && tag.name === metaForTag) {
-            // This puzzle is meta-for: the group.
-            if (puzzle.answers.length >= puzzle.expectedAnswerCount) {
-              return 2;
-            } else {
-              return -2;
-            }
-          } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !(puzzle.answers.length >= puzzle.expectedAnswerCount)) {
-            hasUnsolvedMeta = true;
-          }
-        }
-      }
-    }
-
-    if (hasUnsolvedMeta) return -1;
-    return 0;
   };
 
   clearSearch = () => {
@@ -313,18 +191,28 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     let bodyComponent;
     switch (this.state.displayMode) { // eslint-disable-line default-case
       case 'group': {
-        const puzzleGroups = this.puzzleGroupsByRelevance();
+        // We group and sort first, and only filter afterward, to avoid losing the
+        // relative group structure as a result of removing some puzzles from
+        // consideration.
+        const retainedPuzzles = this.filteredPuzzles(this.props.puzzles);
+        const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
+        const unfilteredGroups = puzzleGroupsByRelevance(this.props.puzzles, this.props.allTags);
+        const puzzleGroups = filteredPuzzleGroups(unfilteredGroups, retainedIds);
         const groupComponents = puzzleGroups.map((g) => {
+          const suppressedTagIds = [];
+          if (g.sharedTag) {
+            suppressedTagIds.push(g.sharedTag._id);
+          }
           return (
             <RelatedPuzzleGroup
               key={g.sharedTag ? g.sharedTag._id : 'ungrouped'}
-              sharedTag={g.sharedTag}
+              group={g}
               noSharedTagLabel="(no group specified)"
-              relatedPuzzles={g.puzzles}
               allTags={this.props.allTags}
               includeCount={false}
               layout="grid"
               canUpdate={this.props.canUpdate}
+              suppressedTagIds={suppressedTagIds}
             />
           );
         });

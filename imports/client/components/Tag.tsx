@@ -202,7 +202,7 @@ class Tag extends React.Component<TagProps, TagState> {
               layout="table"
               canUpdate={false}
               sharedTag={this.props.tag}
-              suppressSharedTag={false}
+              suppressedTagIds={[]}
             />
           </Popover.Content>
         </Popover>
