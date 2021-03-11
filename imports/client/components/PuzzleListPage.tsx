@@ -11,6 +11,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
+import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
@@ -130,11 +131,6 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     };
   };
 
-  filteredPuzzles = (puzzles: PuzzleType[]): PuzzleType[] => {
-    const matchingSearch = this.puzzlesMatchingSearchString(puzzles);
-    return this.puzzlesMatchingSolvedFilter(matchingSearch);
-  };
-
   puzzlesMatchingSearchString = (puzzles: PuzzleType[]): PuzzleType[] => {
     const searchKeys = this.getSearchString().split(' ');
     if (searchKeys.length === 1 && searchKeys[0] === '') {
@@ -155,14 +151,6 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
         return (puzzle.answers.length < puzzle.expectedAnswerCount);
       });
     }
-  };
-
-  puzzlesByUnlock = () => {
-    // Sort and group after filtering
-    const filteredPuzzles = this.filteredPuzzles(this.props.puzzles);
-
-    // Sort by creation timestamp
-    return _.sortBy(filteredPuzzles, (puzzle) => { return puzzle.createdAt; });
   };
 
   clearSearch = () => {
@@ -187,15 +175,28 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     }
   };
 
-  render() {
-    let bodyComponent;
+  renderList = () => {
+    const matchingSearch = this.puzzlesMatchingSearchString(this.props.puzzles);
+    const matchingSearchAndSolved = this.puzzlesMatchingSolvedFilter(matchingSearch);
+    // Normally, we'll just show matchingSearchAndSolved, but if that produces
+    // no results, and there *is* a solved puzzle that is not being displayed due
+    // to the solved filter, then show that and a note that we're showing solved
+    // puzzles because no unsolved puzzles matched.
+    const solvedOverConstrains = matchingSearch.length > 0 && matchingSearchAndSolved.length === 0;
+    const retainedPuzzles = solvedOverConstrains ? matchingSearch : matchingSearchAndSolved;
+    const maybeMatchWarning = solvedOverConstrains && (
+      <Alert variant="info">
+        No matches found in unsolved puzzles; showing matches from solved puzzles
+      </Alert>
+    );
+    const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
+
+    let listComponent;
     switch (this.state.displayMode) { // eslint-disable-line default-case
       case 'group': {
         // We group and sort first, and only filter afterward, to avoid losing the
         // relative group structure as a result of removing some puzzles from
         // consideration.
-        const retainedPuzzles = this.filteredPuzzles(this.props.puzzles);
-        const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
         const unfilteredGroups = puzzleGroupsByRelevance(this.props.puzzles, this.props.allTags);
         const puzzleGroups = filteredPuzzleGroups(unfilteredGroups, retainedIds);
         const groupComponents = puzzleGroups.map((g) => {
@@ -216,19 +217,32 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
             />
           );
         });
-        bodyComponent = (
-          <div>
-            {groupComponents}
-          </div>
-        );
+        listComponent = groupComponents;
         break;
       }
       case 'unlock': {
-        const puzzles = this.puzzlesByUnlock();
-        bodyComponent = <PuzzleList puzzles={puzzles} allTags={this.props.allTags} layout="grid" canUpdate={this.props.canUpdate} />;
+        const puzzlesByUnlock = _.sortBy(this.props.puzzles, (p) => { return p.createdAt; });
+        const retainedPuzzlesByUnlock = puzzlesByUnlock.filter((p) => retainedIds.has(p._id));
+        listComponent = (
+          <PuzzleList
+            puzzles={retainedPuzzlesByUnlock}
+            allTags={this.props.allTags}
+            layout="grid"
+            canUpdate={this.props.canUpdate}
+          />
+        );
         break;
       }
     }
+    return (
+      <div>
+        {maybeMatchWarning}
+        {listComponent}
+      </div>
+    );
+  };
+
+  render() {
     const addPuzzleContent = this.props.canAdd && (
       <>
         <Button variant="primary" onClick={this.showAddModal}>Add a puzzle</Button>
@@ -281,7 +295,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
             </ButtonToolbar>
           </div>
         </FormGroup>
-        {bodyComponent}
+        {this.renderList()}
       </div>
     );
   }
