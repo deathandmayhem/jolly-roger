@@ -26,12 +26,33 @@ interface ProfileListState {
 }
 
 class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
+  private searchBarRef: React.RefObject<HTMLInputElement>
+
   constructor(props: ProfileListProps) {
     super(props);
     this.state = {
       searchString: '',
     };
+    this.searchBarRef = React.createRef();
   }
+
+  componentDidMount() {
+    window.addEventListener('keydown', this.maybeStealCtrlF);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.maybeStealCtrlF);
+  }
+
+  maybeStealCtrlF = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'f') {
+      e.preventDefault();
+      const node = this.searchBarRef.current;
+      if (node) {
+        node.focus();
+      }
+    }
+  };
 
   // The type annotation on FormControl is wrong here - the event is from the
   // input element, not the FormControl React component
@@ -137,6 +158,7 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
             <FormControl
               id="jr-profile-list-search"
               type="text"
+              ref={this.searchBarRef}
               placeholder="search by name..."
               value={this.state.searchString}
               onChange={this.onSearchStringChange}

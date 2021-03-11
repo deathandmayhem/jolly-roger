@@ -148,6 +148,31 @@ interface GuessQueuePageProps extends GuessQueuePageWithRouterParams {
 }
 
 class GuessQueuePage extends React.Component<GuessQueuePageProps> {
+  private searchBarRef: React.RefObject<HTMLInputElement>
+
+  constructor(props: GuessQueuePageProps) {
+    super(props);
+    this.searchBarRef = React.createRef();
+  }
+
+  componentDidMount() {
+    window.addEventListener('keydown', this.maybeStealCtrlF);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.maybeStealCtrlF);
+  }
+
+  maybeStealCtrlF = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'f') {
+      e.preventDefault();
+      const node = this.searchBarRef.current;
+      if (node) {
+        node.focus();
+      }
+    }
+  };
+
   onSearchStringChange: FormControlProps['onChange'] = (e) => {
     this.setSearchString(e.currentTarget.value);
   };
@@ -227,6 +252,7 @@ class GuessQueuePage extends React.Component<GuessQueuePageProps> {
               id="jr-guess-search"
               as="input"
               type="text"
+              ref={this.searchBarRef}
               placeholder="Filter by title or answer"
               value={this.getSearchString()}
               onChange={this.onSearchStringChange}

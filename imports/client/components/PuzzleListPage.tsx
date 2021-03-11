@@ -64,7 +64,22 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
 
   componentDidMount() {
     this.searchBarRef.current!.focus();
+    window.addEventListener('keydown', this.maybeStealCtrlF);
   }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.maybeStealCtrlF);
+  }
+
+  maybeStealCtrlF = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'f') {
+      e.preventDefault();
+      const node = this.searchBarRef.current;
+      if (node) {
+        node.focus();
+      }
+    }
+  };
 
   onAdd = (state: PuzzleModalFormSubmitPayload, callback: (error?: Error) => void) => {
     const { docType, ...puzzle } = state;
