@@ -1,4 +1,5 @@
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { _ } from 'meteor/underscore';
+import { faTimes, faCopy } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { detectOverflow } from '@popperjs/core';
 import type { ModifierArguments, Modifier, Padding } from '@popperjs/core';
@@ -10,7 +11,7 @@ import Popover from 'react-bootstrap/Popover';
 import { Link } from 'react-router-dom';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
-import RelatedPuzzleList from './RelatedPuzzleList';
+import { RelatedPuzzleList, sortPuzzlesByRelevanceWithinPuzzleGroup } from './RelatedPuzzleList';
 
 const PopoverPadding = {
   top: 10,
@@ -124,6 +125,40 @@ class Tag extends React.Component<TagProps, TagState> {
     this.setState({ showPopover: false });
   }
 
+  copyRelatedPuzzlesToClipboard = () => {
+    if (!this.props.popoverRelated) {
+      return;
+    }
+    const tagIndex = _.indexBy(this.props.allTags, '_id');
+    const sharedTagName = getRelatedPuzzlesSharedTagName(this.props.tag.name);
+    const sharedTag = this.props.allTags.find((t) => t.name === sharedTagName);
+    const relatedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
+      this.getRelatedPuzzles(),
+      sharedTag,
+      tagIndex
+    );
+    const clipboardData = relatedPuzzles.map((puzzle) => {
+      const minRowCnt = puzzle.expectedAnswerCount >= 1 ? puzzle.expectedAnswerCount : 1;
+      const missingCnt = minRowCnt > puzzle.answers.length ? minRowCnt - puzzle.answers.length : 0;
+      const answers = puzzle.answers.concat(Array(missingCnt).fill(''));
+      return answers.map((answer) => {
+        return `${puzzle.title}\t${answer.toUpperCase()}`;
+      }).join('\n');
+    }).join('\n');
+    navigator.clipboard.writeText(clipboardData);
+  }
+
+  getRelatedPuzzles = () => {
+    if (!this.props.popoverRelated) {
+      return [];
+    }
+    const sharedTagName = getRelatedPuzzlesSharedTagName(this.props.tag.name);
+    const sharedTag = this.props.allTags.find((t) => t.name === sharedTagName);
+    return sharedTag ?
+      this.props.allPuzzles.filter((p) => p.tags.indexOf(sharedTag._id) !== -1) :
+      [];
+  }
+
   render() {
     const name = this.props.tag.name;
     const isAdministrivia = name === 'administrivia';
@@ -183,10 +218,7 @@ class Tag extends React.Component<TagProps, TagState> {
 
     if (this.props.popoverRelated) {
       const sharedTagName = getRelatedPuzzlesSharedTagName(this.props.tag.name);
-      const sharedTag = this.props.allTags.find((t) => t.name === sharedTagName);
-      const relatedPuzzles = sharedTag ?
-        this.props.allPuzzles.filter((p) => p.tags.indexOf(sharedTag._id) !== -1) :
-        [];
+      const relatedPuzzles = this.getRelatedPuzzles();
       const popover = (
         <Popover
           id={`tag-${this.props.tag._id}`}
@@ -194,7 +226,23 @@ class Tag extends React.Component<TagProps, TagState> {
           onMouseEnter={this.onPopoverMouseEnter}
           onMouseLeave={this.onPopoverMouseLeave}
         >
-          <Popover.Title>{sharedTagName}</Popover.Title>
+          <Popover.Title>
+            <div className="related-puzzle-popover-header-inner">
+              {sharedTagName}
+              <div className="related-puzzle-popover-controls">
+                <Button
+                  className="tag-copy-button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={this.copyRelatedPuzzlesToClipboard}
+                >
+                  <FontAwesomeIcon icon={faCopy} />
+                  {'    '}
+                  Copy
+                </Button>
+              </div>
+            </div>
+          </Popover.Title>
           <Popover.Content>
             <RelatedPuzzleList
               relatedPuzzles={relatedPuzzles}

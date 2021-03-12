@@ -63,3 +63,4 @@ class RelatedPuzzleList extends React.PureComponent<RelatedPuzzleListProps> {
 }
 
 export default RelatedPuzzleList;
+export { RelatedPuzzleList, sortPuzzlesByRelevanceWithinPuzzleGroup };
