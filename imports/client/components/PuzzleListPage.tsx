@@ -46,6 +46,10 @@ interface PuzzleListViewState {
   showSolved: boolean;
 }
 
+function showSolvedStorageKey(huntId: string): string {
+  return `showsolved-${huntId}`;
+}
+
 class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListViewState> {
   addModalRef: React.RefObject<PuzzleModalForm>
 
@@ -55,9 +59,12 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
 
   constructor(props: PuzzleListViewProps) {
     super(props);
+    const showSolvedKey = showSolvedStorageKey(props.huntId);
+    const localStorageShowSolved = localStorage.getItem(showSolvedKey);
+    const showSolved = !(localStorageShowSolved === 'false');
     this.state = {
       displayMode: 'group',
-      showSolved: true,
+      showSolved,
     };
     this.addModalRef = React.createRef();
     this.searchBarRef = React.createRef();
@@ -179,9 +186,21 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
   };
 
   changeShowSolved = () => {
-    this.setState((oldState) => ({
-      showSolved: !oldState.showSolved,
-    }));
+    this.setState((oldState) => {
+      const newState = !oldState.showSolved;
+      // Try to save the new state in localStorage, so that we'll use the
+      // last-set value again the next time we load up this view.
+      try {
+        // Note: localStorage serialization converts booleans to strings anyway
+        localStorage.setItem(showSolvedStorageKey(this.props.huntId), `${newState}`);
+      } catch (e) {
+        // Ignore failure to set value in storage; this is best-effort and if
+        // localStorage isn't available then whatever
+      }
+      return {
+        showSolved: newState,
+      };
+    });
   };
 
   showAddModal = () => {
