@@ -190,15 +190,7 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
     }
   };
 
-  renderList = () => {
-    const matchingSearch = this.puzzlesMatchingSearchString(this.props.puzzles);
-    const matchingSearchAndSolved = this.puzzlesMatchingSolvedFilter(matchingSearch);
-    // Normally, we'll just show matchingSearchAndSolved, but if that produces
-    // no results, and there *is* a solved puzzle that is not being displayed due
-    // to the solved filter, then show that and a note that we're showing solved
-    // puzzles because no unsolved puzzles matched.
-    const solvedOverConstrains = matchingSearch.length > 0 && matchingSearchAndSolved.length === 0;
-    const retainedPuzzles = solvedOverConstrains ? matchingSearch : matchingSearchAndSolved;
+  renderList = (retainedPuzzles: PuzzleType[], solvedOverConstrains: boolean) => {
     const maybeMatchWarning = solvedOverConstrains && (
       <Alert variant="info">
         No matches found in unsolved puzzles; showing matches from solved puzzles
@@ -269,48 +261,65 @@ class PuzzleListView extends React.Component<PuzzleListViewProps, PuzzleListView
         />
       </>
     );
+
+    const matchingSearch = this.puzzlesMatchingSearchString(this.props.puzzles);
+    const matchingSearchAndSolved = this.puzzlesMatchingSolvedFilter(matchingSearch);
+    // Normally, we'll just show matchingSearchAndSolved, but if that produces
+    // no results, and there *is* a solved puzzle that is not being displayed due
+    // to the solved filter, then show that and a note that we're showing solved
+    // puzzles because no unsolved puzzles matched.
+    const solvedOverConstrains = matchingSearch.length > 0 && matchingSearchAndSolved.length === 0;
+    const retainedPuzzles = solvedOverConstrains ? matchingSearch : matchingSearchAndSolved;
+
     return (
       <div>
         <FormGroup>
-          <FormLabel htmlFor="jr-puzzle-search">View puzzles by:</FormLabel>
           <div className="puzzle-view-controls">
-            <ButtonToolbar>
-              <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={this.state.displayMode} onChange={this.switchView}>
-                <ToggleButton variant="outline-info" value="group">Group</ToggleButton>
-                <ToggleButton variant="outline-info" value="unlock">Unlock</ToggleButton>
-              </ToggleButtonGroup>
-              <ToggleButtonGroup
-                type="checkbox"
-                value={this.state.showSolved ? ['true'] : []}
-                onChange={this.changeShowSolved}
-              >
-                <ToggleButton variant="outline-info" value="true">Show solved</ToggleButton>
-              </ToggleButtonGroup>
-            </ButtonToolbar>
-            <ButtonToolbar className="puzzle-list-filter-toolbar">
-              <InputGroup>
-                <FormControl
-                  id="jr-puzzle-search"
-                  as="input"
-                  type="text"
-                  ref={this.searchBarRef}
-                  placeholder="Filter by title, answer, or tag"
-                  value={this.getSearchString()}
-                  onChange={this.onSearchStringChange}
-                />
-                <InputGroup.Append>
-                  <Button variant="secondary" onClick={this.clearSearch}>
-                    <FontAwesomeIcon icon={faEraser} />
-                  </Button>
-                </InputGroup.Append>
-              </InputGroup>
-            </ButtonToolbar>
+            <div className="puzzle-view-controls-section">
+              <FormLabel>View puzzles by:</FormLabel>
+              <ButtonToolbar className="puzzle-view-buttons">
+                <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={this.state.displayMode} onChange={this.switchView}>
+                  <ToggleButton variant="outline-info" value="group">Group</ToggleButton>
+                  <ToggleButton variant="outline-info" value="unlock">Unlock</ToggleButton>
+                </ToggleButtonGroup>
+                <ToggleButtonGroup
+                  type="checkbox"
+                  value={this.state.showSolved ? ['true'] : []}
+                  onChange={this.changeShowSolved}
+                >
+                  <ToggleButton variant="outline-info" value="true">Show solved</ToggleButton>
+                </ToggleButtonGroup>
+              </ButtonToolbar>
+            </div>
+            <div className="puzzle-view-controls-section expand">
+              <FormLabel htmlFor="jr-puzzle-search">
+                {`Showing ${retainedPuzzles.length}/${this.props.puzzles.length} items`}
+              </FormLabel>
+              <ButtonToolbar className="puzzle-list-filter-toolbar">
+                <InputGroup>
+                  <FormControl
+                    id="jr-puzzle-search"
+                    as="input"
+                    type="text"
+                    ref={this.searchBarRef}
+                    placeholder="Filter by title, answer, or tag"
+                    value={this.getSearchString()}
+                    onChange={this.onSearchStringChange}
+                  />
+                  <InputGroup.Append>
+                    <Button variant="secondary" onClick={this.clearSearch}>
+                      <FontAwesomeIcon icon={faEraser} />
+                    </Button>
+                  </InputGroup.Append>
+                </InputGroup>
+              </ButtonToolbar>
+            </div>
             <ButtonToolbar>
               {addPuzzleContent}
             </ButtonToolbar>
           </div>
         </FormGroup>
-        {this.renderList()}
+        {this.renderList(retainedPuzzles, solvedOverConstrains)}
       </div>
     );
   }

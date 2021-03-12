@@ -3,15 +3,26 @@
 .puzzle-view-controls {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-end;
   justify-content: space-between;
-  .btn-toolbar:not(:last-child) {
-    margin-right: 0.5em;
+  .expand {
+    flex: 1 1 auto;
   }
-  .puzzle-list-filter-toolbar {
-    flex: 1 1 0;
-    > .input-group {
-      width: 100%;
+  .puzzle-view-controls-section {
+    &:not(:last-child) {
+      margin-right: 0.5em;
     }
+    .puzzle-list-filter-toolbar {
+      flex: 1 1 auto;
+      width: 100%;
+      .input-group {
+        width: 100%;
+      }
+    }
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
   }
 }
 
