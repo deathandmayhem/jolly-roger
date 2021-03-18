@@ -5,7 +5,7 @@ import { OAuth } from 'meteor/oauth';
 import { withTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
-import React from 'react';
+import React, { ReactChild } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
@@ -1521,6 +1521,159 @@ class WebRTCSection extends React.Component<WebRTCSectionProps> {
   }
 }
 
+interface BrandingAssetRowProps {
+  asset: string;
+  backgroundSize?: string;
+  children?: ReactChild;
+}
+
+interface BrandingAssetRowState {
+  submitState: SubmitState;
+  submitError: string;
+}
+
+class BrandingAssetRow extends React.Component<BrandingAssetRowProps, BrandingAssetRowState> {
+  constructor(props: BrandingAssetRowProps) {
+    super(props);
+    this.state = {
+      submitState: SubmitState.IDLE,
+      submitError: '',
+    };
+  }
+
+  dismissAlert = () => {
+    this.setState({ submitState: SubmitState.IDLE });
+  };
+
+  onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const UPLOAD_SIZE_LIMIT = 1024 * 1024; // 1 MiB
+      if (file.size > UPLOAD_SIZE_LIMIT) {
+        this.setState({
+          submitState: SubmitState.ERROR,
+          submitError: `${file.name} is too large at ${file.size} bytes (limit is ${UPLOAD_SIZE_LIMIT})`,
+        });
+      }
+      this.setState({
+        submitState: SubmitState.SUBMITTING,
+      });
+      Meteor.call('setupGetUploadToken', this.props.asset, file.type, (err?: Error, uploadToken?: string) => {
+        if (err) {
+          this.setState({
+            submitState: SubmitState.ERROR,
+            submitError: err.message,
+          });
+        } else {
+          fetch(`/asset/${uploadToken}`, {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            headers: {
+              'Content-Type': file.type,
+            },
+            body: file,
+          }).then((resp) => {
+            if (resp.ok) {
+              this.setState({
+                submitState: SubmitState.SUCCESS,
+              });
+            } else {
+              this.setState({
+                submitState: SubmitState.ERROR,
+                submitError: `${resp.status} ${resp.statusText}`,
+              });
+            }
+          }).catch((error) => {
+            this.setState({
+              submitState: SubmitState.ERROR,
+              submitError: error,
+            });
+          });
+        }
+      });
+    }
+  };
+
+  render() {
+    return (
+      <div className="branding-row">
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'error' ? (
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.submitError}
+          </Alert>
+        ) : null}
+        <div className="branding-row-content">
+          <div
+            className="branding-row-image"
+            style={{
+              backgroundImage: `url("/asset/${this.props.asset}")`,
+              backgroundSize: this.props.backgroundSize || 'auto',
+            }}
+          />
+          <label htmlFor={`asset-input-${this.props.asset}`}>
+            <div>{this.props.asset}</div>
+            <div>{this.props.children}</div>
+            <input id={`asset-input-${this.props.asset}`} type="file" onChange={this.onFileSelected} />
+          </label>
+        </div>
+      </div>
+    );
+  }
+}
+
+interface BrandingSectionProps {
+}
+
+class BrandingSection extends React.Component<BrandingSectionProps> {
+  render() {
+    return (
+      <section id="branding">
+        <h1 className="setup-section-header">
+          <span className="setup-section-header-label">
+            Branding
+          </span>
+        </h1>
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
+            <span>Essential imagery</span>
+          </h2>
+          <BrandingAssetRow asset="brand.png">
+            Brand icon, 50x50 pixels, shown in the top left of all logged-in pages
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="brand@2x.png">
+            Brand icon @ 2x res for high-DPI displays, 100x100 pixels, shown in the top left of all logged-in pages.
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="hero.png" backgroundSize="contain">
+            Hero image, approximately 510x297 pixels, shown on the login/enroll/password-reset pages.
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="hero@2x.png" backgroundSize="contain">
+            Hero image, approximately 510x297 pixels, shown on the login/enroll/password-reset pages.
+          </BrandingAssetRow>
+        </div>
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
+            <span>Favicons and related iconography</span>
+          </h2>
+          <BrandingAssetRow asset="android-chrome-192x192.png" />
+          <BrandingAssetRow asset="android-chrome-512x512.png" backgroundSize="contain" />
+          <BrandingAssetRow asset="apple-touch-icon-precomposed.png" />
+          <BrandingAssetRow asset="apple-touch-icon.png" />
+          <BrandingAssetRow asset="favicon-16x16.png" />
+          <BrandingAssetRow asset="favicon-32x32.png" />
+          <BrandingAssetRow asset="favicon.ico" />
+          <BrandingAssetRow asset="mstile-150x150.png" />
+          <BrandingAssetRow asset="safari-pinned-tab.svg" backgroundSize="contain" />
+        </div>
+      </section>
+    );
+  }
+}
+
 interface CircuitBreakerControlProps {
   // disabled should be false if the circuit breaker is not intentionally disabling the feature,
   // and true if the feature is currently disabled.
@@ -1786,6 +1939,7 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
           turnServerUrls={this.props.turnServerUrls}
           turnServerSecret={this.props.turnServerSecret}
         />
+        <BrandingSection />
         <CircuitBreakerSection
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
           flagDisableApplause={this.props.flagDisableApplause}

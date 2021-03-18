@@ -42,7 +42,7 @@ class AppNavbar extends React.Component<AppNavbarProps> {
       <Navbar fixed="top" bg="light" variant="light">
         <NavbarBrand>
           <Link to="/">
-            <img src="/images/brand.png" alt="Jolly Roger logo" srcSet="/images/brand.png 1x, /images/brand@2x.png 2x" />
+            <img src="/asset/brand.png" alt="Jolly Roger logo" srcSet="/asset/brand.png 1x, /asset/brand@2x.png 2x" />
           </Link>
         </NavbarBrand>
         <BreadcrumbsConsumer>

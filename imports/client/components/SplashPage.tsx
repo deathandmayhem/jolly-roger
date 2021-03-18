@@ -15,7 +15,7 @@ class SplashPage extends React.Component<SplashPageProps> {
       <Container>
         <Jumbotron id="jr-login">
           <Container>
-            <Image src="/images/hero.png" className="d-block mx-auto" srcSet="/images/hero.png 1x, /images/hero@2x.png 2x" />
+            <Image src="/asset/hero.png" className="d-block mx-auto" srcSet="/asset/hero.png 1x, /asset/hero@2x.png 2x" />
             <Row>
               <Col md={{ span: 6, offset: 3 }}>
                 {this.props.children}
