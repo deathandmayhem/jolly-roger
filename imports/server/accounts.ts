@@ -1,9 +1,11 @@
-import { URL } from 'url';
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import logfmt from 'logfmt';
+import Mustache from 'mustache';
 import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
+import Settings from '../lib/models/settings';
+import { SettingType } from '../lib/schemas/settings';
 
 type LoginInfo = {
   type: string,
@@ -81,41 +83,32 @@ Accounts.onLoginFailure((info: LoginInfo) => {
 Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl(`enroll/${token}`);
 Accounts.urls.resetPassword = (token) => Meteor.absoluteUrl(`reset-password/${token}`);
 
-// Set from address to our domain - something like operators@deathandmayhem.com
-Accounts.emailTemplates.from = `operators@${new URL(Meteor.absoluteUrl('')).hostname}`;
-Accounts.emailTemplates.enrollAccount.subject = () => {
-  return `[jolly-roger] You're invited to ${Accounts.emailTemplates.siteName}`;
-};
-
-Accounts.emailTemplates.enrollAccount.text = (user, url: string) => {
-  const hunts = Hunts.find({ _id: { $in: (<Meteor.User>user).hunts } }).fetch();
-  const email = user && user.emails && user.emails[0] && user.emails[0].address;
-  const huntNames = hunts.map((h) => h.name);
-  const huntLists = [...new Set(hunts.map((h) => h.mailingLists).flat())];
-  const huntExcerpt = 'Once you register your account, you\'ll also be signed up for these ' +
-    'specific hunts:\n' +
-    '\n' +
-    `${huntNames.join(', ')}\n` +
-    '\n';
-  const listExcerpt = 'You\'ve also been put onto a handful of mailing lists for communication ' +
-    'about these and future hunts:\n' +
-    '\n' +
-    `${huntLists.join(', ')}\n` +
-    '\n';
-
-  return 'Hiya!\n' +
+const DEFAULT_ENROLL_ACCOUNT_SUBJECT_TEMPLATE = '[jolly-roger] You\'re invited to {{siteName}}';
+const DEFAULT_ENROLL_ACCOUNT_TEMPLATE = 'Hiya!\n' +
     '\n' +
     'Someone on Death and Mayhem has invited you to join our internal team website and ' +
-    `virtual headquarters, ${Accounts.emailTemplates.siteName}, so that you can join us for the ` +
-    'MIT Mystery Hunt.\n' +
+    'virtual headquarters, {{siteName}}, so that you can join us ' +
+    'for the MIT Mystery Hunt.\n' +
     '\n' +
     'To create your account, simply click the link below, fill out a few details for us, and ' +
     'click "Register".\n' +
     '\n' +
-    `${url}\n` +
+    '{{url}}\n' +
     '\n' +
-    `${huntNames.length !== 0 ? huntExcerpt : ''}` +
-    `${huntLists.length !== 0 ? listExcerpt : ''}` +
+    '{{#huntNamesCount}}' +
+    'Once you register your account, you\'ll also be signed up ' +
+    'for these specific hunts:\n' +
+    '\n' +
+    '{{huntNamesCommaSeparated}}\n' +
+    '\n' +
+    '{{/huntNamesCount}}' +
+    '{{#mailingListsCount}}' +
+    'You\'ve also been put onto a handful of mailing lists for ' +
+    'communication about these and future hunts:\n' +
+    '\n' +
+    '{{mailingListsCommaSeparated}}' +
+    '\n' +
+    '{{/mailingListsCount}}' +
     'After you\'ve registered your account, you can keep it permanently. We\'ll use it if you ' +
     'hunt with us again.\n' +
     '\n' +
@@ -125,5 +118,80 @@ Accounts.emailTemplates.enrollAccount.text = (user, url: string) => {
     'Happy Puzzling,\n' +
     '- The Jolly Roger Web Team\n' +
     '\n' +
-    `This message was sent to ${email}`;
-};
+    'This message was sent to {{email}}';
+
+function makeView(user: Meteor.User | null, url: string) {
+  const hunts = Hunts.find({ _id: { $in: (<Meteor.User>user).hunts } }).fetch();
+  const email = user && user.emails && user.emails[0] && user.emails[0].address;
+  const huntNames = hunts.map((h) => h.name);
+  const huntNamesCount = huntNames.length;
+  const huntNamesCommaSeparated = huntNames.join(', ');
+  const mailingLists = [...new Set(hunts.map((h) => h.mailingLists).flat())];
+  const mailingListsCount = mailingLists.length;
+  const mailingListsCommaSeparated = mailingLists.join(', ');
+  return {
+    huntNames,
+    huntNamesCount,
+    huntNamesCommaSeparated,
+    mailingLists,
+    mailingListsCount,
+    mailingListsCommaSeparated,
+    siteName: Accounts.emailTemplates.siteName,
+    email,
+    url,
+  };
+}
+
+function updateEmailTemplatesHooks(doc: SettingType) {
+  if (doc.name !== 'email.branding') {
+    return; // this should be impossible
+  }
+
+  Accounts.emailTemplates.from = doc.value.from ? doc.value.from : 'no-reply@example.com';
+  Accounts.emailTemplates.enrollAccount.subject = (user: Meteor.User) => {
+    const view = {
+      user,
+      siteName: Accounts.emailTemplates.siteName,
+    };
+    if (doc.value.enrollAccountMessageSubjectTemplate) {
+      return Mustache.render(doc.value.enrollAccountMessageSubjectTemplate, view);
+    } else {
+      return Mustache.render(DEFAULT_ENROLL_ACCOUNT_SUBJECT_TEMPLATE, view);
+    }
+  };
+  Accounts.emailTemplates.enrollAccount.text = (user, url: string) => {
+    const view = makeView(user, url);
+    if (doc.value.enrollAccountMessageTemplate) {
+      return Mustache.render(doc.value.enrollAccountMessageTemplate, view);
+    } else {
+      return Mustache.render(DEFAULT_ENROLL_ACCOUNT_TEMPLATE, view);
+    }
+  };
+}
+
+function clearEmailTemplatesHooks() {
+  Accounts.emailTemplates.from = 'no-reply@example.com';
+  Accounts.emailTemplates.enrollAccount.subject = () => {
+    return `[jolly-roger] You're invited to ${Accounts.emailTemplates.siteName}`;
+  };
+  Accounts.emailTemplates.enrollAccount.text = (user, url: string) => {
+    const view = makeView(user, url);
+    return Mustache.render(DEFAULT_ENROLL_ACCOUNT_TEMPLATE, view);
+  };
+}
+
+// Scope hoisted to keep the handle alive beyond the startup block.
+let configCursor;
+
+Meteor.startup(() => {
+  // Initialize to default values
+  clearEmailTemplatesHooks();
+
+  // Set up observer
+  configCursor = Settings.find({ name: 'email.branding' });
+  configCursor.observe({
+    added: (doc) => updateEmailTemplatesHooks(doc),
+    changed: (doc) => updateEmailTemplatesHooks(doc),
+    removed: () => clearEmailTemplatesHooks(),
+  });
+});

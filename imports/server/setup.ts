@@ -197,6 +197,32 @@ Meteor.methods({
       Settings.remove({ name: 'webrtc.turnserver' });
     }
   },
+
+  setupEmailBranding(from: unknown, enrollSubject: unknown, enrollMessage: unknown,
+    joinSubject: unknown, joinMessage: unknown) {
+    check(this.userId, String);
+    Roles.checkPermission(this.userId, 'email.configureBranding');
+    check(from, Match.Optional(String));
+    check(enrollSubject, Match.Optional(String));
+    check(enrollMessage, Match.Optional(String));
+    check(joinSubject, Match.Optional(String));
+    check(joinMessage, Match.Optional(String));
+
+    const value = {
+      from: from || undefined,
+      enrollAccountMessageSubjectTemplate: enrollSubject || undefined,
+      enrollAccountMessageTemplate: enrollMessage || undefined,
+      existingJoinMessageSubjectTemplate: joinSubject || undefined,
+      existingJoinMessageTemplate: joinMessage || undefined,
+    };
+
+    Settings.upsert({ name: 'email.branding' }, {
+      $set: {
+        name: 'email.branding',
+        value,
+      },
+    });
+  },
 });
 
 Meteor.publish('hasUsers', function () {
