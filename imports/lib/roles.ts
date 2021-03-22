@@ -10,6 +10,7 @@ Roles.registerAction('discord.useBotAPIs', true);
 Roles.registerAction('discord.updateRole', true);
 Roles.registerAction('users.makeOperator', true);
 Roles.registerAction('webrtc.configureServers', true);
+Roles.registerAction('email.configureBranding', true);
 
 const InactiveOperatorRole = new Roles.Role('inactiveOperator');
 InactiveOperatorRole.allow('users.makeOperator', () => true);

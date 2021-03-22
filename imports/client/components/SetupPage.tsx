@@ -12,10 +12,12 @@ import Button from 'react-bootstrap/Button';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
+import FormText from 'react-bootstrap/FormText';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
 import DiscordCache from '../../lib/models/discord_cache';
 import Settings from '../../lib/models/settings';
+import { SettingType } from '../../lib/schemas/settings';
 import { DiscordGuildType } from '../discord';
 
 /* eslint-disable max-len, react/jsx-one-expression-per-line */
@@ -359,7 +361,7 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
     const templateBadgeVariant = this.props.spreadsheetTemplate ? 'success' : 'warning';
 
     return (
-      <section>
+      <section id="google">
         <h1 className="setup-section-header">
           <span className="setup-section-header-label">
             Google integration
@@ -469,6 +471,393 @@ class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionP
             initialDocTemplate={this.props.docTemplate}
           />
         </div>
+      </section>
+    );
+  }
+}
+
+interface EmailConfigFormProps {
+  initialConfig: SettingType | undefined;
+}
+
+interface EmailConfigFormState {
+  from: string;
+  enrollAccountSubject: string;
+  enrollAccountMessage: string;
+  existingJoinSubject: string;
+  existingJoinMessage: string;
+  submitState: SubmitState;
+  submitError: string;
+}
+
+class EmailConfigForm extends React.Component<EmailConfigFormProps, EmailConfigFormState> {
+  constructor(props: EmailConfigFormProps) {
+    super(props);
+    const initialConfig = this.props.initialConfig;
+    let initialState = {
+      from: '',
+      enrollAccountSubject: '',
+      enrollAccountMessage: '',
+      existingJoinSubject: '',
+      existingJoinMessage: '',
+      submitState: SubmitState.IDLE,
+      submitError: '',
+    };
+    if (initialConfig && initialConfig.name === 'email.branding') {
+      const value = initialConfig.value;
+      initialState = {
+        from: value.from || '',
+        enrollAccountSubject: value.enrollAccountMessageSubjectTemplate || '',
+        enrollAccountMessage: value.enrollAccountMessageTemplate || '',
+        existingJoinSubject: value.existingJoinMessageSubjectTemplate || '',
+        existingJoinMessage: value.existingJoinMessageTemplate || '',
+        submitState: SubmitState.IDLE,
+        submitError: '',
+      };
+    }
+
+    this.state = initialState;
+  }
+
+  dismissAlert = () => {
+    this.setState({ submitState: SubmitState.IDLE });
+  };
+
+  onFromChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      from: e.currentTarget.value,
+    });
+  };
+
+  onEnrollSubjectChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      enrollAccountSubject: e.currentTarget.value,
+    });
+  };
+
+  onEnrollMessageChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      enrollAccountMessage: e.currentTarget.value,
+    });
+  };
+
+  onJoinSubjectChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      existingJoinSubject: e.currentTarget.value,
+    });
+  };
+
+  onJoinMessageChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      existingJoinMessage: e.currentTarget.value,
+    });
+  };
+
+  saveConfig = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    const from = this.state.from.trim();
+    const enrollAccountMessageSubject = this.state.enrollAccountSubject.trim();
+    const enrollAccountMessage = this.state.enrollAccountMessage.trim();
+    const existingJoinMessageSubject = this.state.existingJoinSubject.trim();
+    const existingJoinMessage = this.state.existingJoinMessage.trim();
+    this.setState({
+      submitState: SubmitState.SUBMITTING,
+    });
+    Meteor.call('setupEmailBranding', from, enrollAccountMessageSubject, enrollAccountMessage,
+      existingJoinMessageSubject, existingJoinMessage, (error?: Error) => {
+        if (error) {
+          this.setState({
+            submitState: SubmitState.ERROR,
+            submitError: error.message,
+          });
+        } else {
+          this.setState({ submitState: SubmitState.SUCCESS });
+        }
+      });
+  };
+
+  render() {
+    const shouldDisableForm = this.state.submitState === 'submitting';
+    return (
+      <div>
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'error' ? (
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.submitError}
+          </Alert>
+        ) : null}
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-email-from">
+            Email &quot;From&quot; address
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-email-from"
+            aria-describedby="jr-setup-edit-email-from-description"
+            type="text"
+            value={this.state.from}
+            disabled={shouldDisableForm}
+            onChange={this.onFromChange}
+          />
+          <FormText id="jr-setup-edit-email-from-description">
+            The credentials you configured for <code>MAIL_URL</code> must be
+            able to send email as this address.
+          </FormText>
+        </FormGroup>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-email-enroll-subject">
+            New user invite email subject
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-email-enroll-subject"
+            aria-describedby="jr-setup-edit-email-enroll-subject-description"
+            type="text"
+            value={this.state.enrollAccountSubject}
+            disabled={shouldDisableForm}
+            onChange={this.onEnrollSubjectChange}
+          />
+          <FormText id="jr-setup-edit-email-enroll-subject-description" muted>
+            This is a Mustache template.  The only variable available is:
+            {' '}
+            <code>
+              {'{{siteName}}'}
+            </code>
+            {' (domain name).'}
+          </FormText>
+        </FormGroup>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-email-enroll-message">
+            New user invite email contents
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-email-enroll-message"
+            aria-describedby="jr-setup-edit-email-enroll-message-description"
+            as="textarea"
+            rows={8}
+            value={this.state.enrollAccountMessage}
+            disabled={shouldDisableForm}
+            onChange={this.onEnrollMessageChange}
+          />
+          <FormText id="jr-setup-edit-email-enroll-message-description" muted>
+            This is a Mustache template.  Available variables are:
+            <ul>
+              <li>
+                <code>
+                  {'{{&url}}'}
+                </code>
+                {' '}
+                (user&apos;s invite link, the ampersand is required to avoid
+                HTML escaping which will break the link)
+              </li>
+              <li>
+                <code>
+                  {'{{email}}'}
+                </code>
+                {' '}
+                (user&apos;s email address, so they can know what email address
+                to use as their username in the future)
+              </li>
+              <li>
+                <code>
+                  {'{{siteName}}'}
+                </code>
+                {' '}
+                (domain name of this site)
+              </li>
+              <li>
+                <code>
+                  {'{{huntNamesCommaSeparated}}'}
+                </code>
+                {' '}
+                (a string containing a comma-separated list of the hunts the
+                user is being invited to)
+              </li>
+              <li>
+                <code>
+                  {'{{#huntNamesCount}}'}
+                </code>
+                /
+                <code>
+                  {'{{/huntNamesCount}}'}
+                </code>
+                {' '}
+                (start/end of conditional block that will only be rendered if
+                the user is being invited to at least one hunt)
+              </li>
+              <li>
+                <code>
+                  {'{{mailingListsCommaSeparated}}'}
+                </code>
+                {' '}
+                (a string containing a comma-separated list of the mailing
+                lists the user has been added to)
+              </li>
+              <li>
+                <code>
+                  {'{{#mailingListsCount}}'}
+                </code>
+                /
+                <code>
+                  {'{{/mailingListsCount}}'}
+                </code>
+                {' '}
+                (start/end of conditional block that will only be rendered if
+                the user is being added to at least one mailing list)
+              </li>
+            </ul>
+          </FormText>
+        </FormGroup>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-email-existing-join-subject">
+            Existing user added-to-hunt email subject
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-email-existing-join-subject"
+            aria-describedby="jr-setup-edit-email-existing-join-subject-description"
+            type="text"
+            value={this.state.existingJoinSubject}
+            disabled={shouldDisableForm}
+            onChange={this.onJoinSubjectChange}
+          />
+          <FormText id="jr-setup-edit-email-existing-join-subject-description" muted>
+            This is a Mustache template.  The following variables are available:
+            <ul>
+              <li>
+                <code>
+                  {'{{siteName}}'}
+                </code>
+                {' '}
+                (domain name of this site)
+              </li>
+              <li>
+                <code>
+                  {'{{huntName}}'}
+                </code>
+                {' '}
+                (name of the hunt the user is being invited to)
+              </li>
+            </ul>
+          </FormText>
+        </FormGroup>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-email-existing-join-message">
+            Existing user added-to-hunt email contents
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-email-existing-join-message"
+            aria-describedby="jr-setup-edit-email-existing-join-message-description"
+            as="textarea"
+            rows={8}
+            value={this.state.existingJoinMessage}
+            disabled={shouldDisableForm}
+            onChange={this.onJoinMessageChange}
+          />
+          <FormText id="jr-setup-edit-email-existing-join-message-description" muted>
+            This is a Mustache template.  Available variables are:
+            <ul>
+              <li>
+                <code>
+                  {'{{email}}'}
+                </code>
+                {' '}
+                (user&apos;s email address, so they can know what email address
+                of the dozen that the user might have that forward to the same
+                inbox this message was sent to)
+              </li>
+              <li>
+                <code>
+                  {'{{huntName}}'}
+                </code>
+                {' '}
+                (name of the hunt the recipient is being added to)
+              </li>
+              <li>
+                <code>
+                  {'{{siteName}}'}
+                </code>
+                {' '}
+                (domain name of this site)
+              </li>
+              <li>
+                <code>
+                  {'{{joinerName}}'}
+                </code>
+                {' '}
+                (if available, the display name of the user who invited the recipient of the email to the hunt in question)
+              </li>
+              <li>
+                <code>
+                  {'{{mailingListsCommaSeparated}}'}
+                </code>
+                {' '}
+                (a string containing a comma-separated list of the mailing
+                lists the user has been added to)
+              </li>
+              <li>
+                <code>
+                  {'{{#mailingListsCount}}'}
+                </code>
+                /
+                <code>
+                  {'{{/mailingListsCount}}'}
+                </code>
+                {' '}
+                (start/end of conditional block that will only be rendered if
+                the user is being added to at least one mailing list)
+              </li>
+            </ul>
+          </FormText>
+        </FormGroup>
+        <Button variant="primary" onClick={this.saveConfig} disabled={shouldDisableForm}>Save</Button>
+      </div>
+    );
+  }
+}
+
+interface EmailConfigSectionProps {
+  config: SettingType | undefined;
+}
+
+class EmailConfigSection extends React.Component<EmailConfigSectionProps> {
+  render() {
+    const configured = this.props.config && this.props.config.name === 'email.branding' && this.props.config.value.from;
+    const badgeVariant = configured ? 'success' : 'warning';
+    return (
+      <section id="email">
+        <h1 className="setup-section-header">
+          <span className="setup-section-header-label">
+            Email configuration
+          </span>
+          <Badge variant={badgeVariant}>
+            {configured ? 'Configured' : 'Unconfigured'}
+          </Badge>
+        </h1>
+        <p>
+          Jolly Roger sends email for a few reasons:
+        </p>
+        <ul>
+          <li>When a user is first invited to Jolly Roger</li>
+          <li>When an existing user is added to a particular Hunt</li>
+          <li>When a user initiates a password reset</li>
+        </ul>
+        <p>
+          This section allows setting the &quot;From&quot; address, as well as
+          providing subject and content templates for the enrollment and
+          existing-user-hunt-added emails.
+        </p>
+        <p>
+          Most of these fields are interpreted as Mustache templates.  See
+          {' '}
+          <a target="_blank" rel="noopener noreferrer" href="https://github.com/janl/mustache.js">
+            the mustache.js docs
+          </a>
+          {' '}
+          for an overview of the supported syntax.  The <code>view</code>
+          variables available to each context are described below.
+        </p>
+        <EmailConfigForm initialConfig={this.props.config} />
       </section>
     );
   }
@@ -838,7 +1227,7 @@ class DiscordIntegrationSection extends React.Component<DiscordIntegrationSectio
     const guildBadgeLabel = this.props.guild ? 'configured' : 'unconfigured';
     const guildBadgeVariant = this.props.guild ? 'success' : 'warning';
     return (
-      <section>
+      <section id="discord">
         <h1 className="setup-section-header">
           <span className="setup-section-header-label">
             Discord integration
@@ -1077,7 +1466,7 @@ interface WebRTCSectionProps {
 class WebRTCSection extends React.Component<WebRTCSectionProps> {
   render() {
     return (
-      <section>
+      <section id="webrtc">
         <h1 className="setup-section-header">
           <span className="setup-section-header-label">
             WebRTC
@@ -1199,7 +1588,7 @@ class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> 
 
   render() {
     return (
-      <section>
+      <section id="circuit-breakers">
         <h1 className="setup-section-header">
           Circuit breakers
         </h1>
@@ -1335,6 +1724,8 @@ interface SetupPageRewriteProps {
   docTemplate?: string;
   spreadsheetTemplate?: string;
 
+  emailConfig: SettingType | undefined;
+
   discordOAuthConfig?: Configuration;
   flagDisableDiscord: boolean;
   discordBotToken?: string;
@@ -1381,6 +1772,9 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
           docTemplate={this.props.docTemplate}
           spreadsheetTemplate={this.props.spreadsheetTemplate}
         />
+        <EmailConfigSection
+          config={this.props.emailConfig}
+        />
         <DiscordIntegrationSection
           oauthSettings={this.props.discordOAuthConfig}
           configured={discordConfigured}
@@ -1421,6 +1815,9 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   const spreadsheetTemplateId = spreadsheetTemplate && spreadsheetTemplate.name === 'gdrive.template.spreadsheet' ?
     spreadsheetTemplate.value.id : undefined;
 
+  // Email
+  const emailConfig = Settings.findOne({ name: 'email.branding' });
+
   // Discord
   const discordOAuthConfig = ServiceConfiguration.configurations.findOne({ service: 'discord' });
   const flagDisableDiscord = Flags.active('disable.discord');
@@ -1452,6 +1849,8 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     gdriveCredential,
     docTemplate: docTemplateId,
     spreadsheetTemplate: spreadsheetTemplateId,
+
+    emailConfig,
 
     discordOAuthConfig,
     flagDisableDiscord,

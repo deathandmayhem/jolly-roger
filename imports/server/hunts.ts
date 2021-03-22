@@ -3,38 +3,75 @@ import { check } from 'meteor/check';
 import { Email } from 'meteor/email';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import Mustache from 'mustache';
 import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
 import Profiles from '../lib/models/profiles';
+import Settings from '../lib/models/settings';
 import { HuntType } from '../lib/schemas/hunts';
+import { SettingType } from '../lib/schemas/settings';
 import addUserToDiscordRole from './addUserToDiscordRole';
 import List from './blanche';
 
-const existingJoinEmail = (user: Meteor.User | null, hunt: HuntType, joinerName: string | null) => {
-  const email = user && user.emails && user.emails[0] && user.emails[0].address;
-  const huntExcerpt = 'You\'ve also been put onto a handful of mailing lists for communications ' +
-    'about these and future hunts:\n' +
-    '\n' +
-    `${hunt.mailingLists.join(', ')}\n` +
-    '\n';
+const DEFAULT_EXISTING_JOIN_SUBJECT = '[jolly-roger] Added to {{huntName}} on {{siteName}}';
 
-  return 'Hiya!\n' +
+function renderExistingJoinEmailSubject(setting: SettingType | undefined, hunt: HuntType) {
+  const view = {
+    siteName: Accounts.emailTemplates.siteName,
+    huntName: hunt.name,
+  };
+
+  if (setting && setting.name === 'email.branding') {
+    if (setting.value.existingJoinMessageSubjectTemplate) {
+      return Mustache.render(setting.value.existingJoinMessageSubjectTemplate, view);
+    }
+  }
+
+  return Mustache.render(DEFAULT_EXISTING_JOIN_SUBJECT, view);
+}
+
+const DEFAULT_EXISTING_JOIN_TEMPLATE = 'Hiya!\n' +
     '\n' +
     'You\'ve been added to to a new hunt on Death and Mayhem\'s virtual headquarters ' +
-    `${Accounts.emailTemplates.siteName}${joinerName ? ` by ${joinerName}` : ''}, so that you ` +
-    'can join us for the MIT Mystery Hunt.\n' +
+    '{{siteName}}{{#joinerName}} by {{joinerName}}{{/joinerName}}, so that you can join' +
+    'us for the MIT Mystery Hunt.\n' +
     '\n' +
-    `You've been added to this hunt: ${hunt.name}\n` +
+    'You\'ve been added to this hunt: {{huntName}}\n' +
     '\n' +
-    `${hunt.mailingLists.length !== 0 ? huntExcerpt : ''}` +
-    'The site itself is under pretty active construction, so expect quite a few changes in the ' +
-    'next few days, but let us know if you run into any major bugs at dfa-web@mit.edu.\n' +
+    '{{#mailingListsCount}}' +
+    'You\'ve also been put onto a handful of mailing lists for communications ' +
+    'about these and future hunts:\n' +
+    '\n' +
+    '{{mailingListsCommaSeparated}}\n' +
+    '\n' +
+    '{{/mailingListsCount}}' +
+    'Let us know if you run into any issues at dfa-web@mit.edu.\n' +
     '\n' +
     'Happy Puzzling,\n' +
     '- The Jolly Roger Web Team\n' +
     '\n' +
-    `This message was sent to ${email}`;
-};
+    'This message was sent to {{email}}';
+
+function renderExistingJoinEmail(setting: SettingType | undefined, user: Meteor.User | null,
+  hunt: HuntType, joinerName: string | null) {
+  const email = user && user.emails && user.emails[0] && user.emails[0].address;
+  const view = {
+    siteName: Accounts.emailTemplates.siteName,
+    joinerName,
+    huntName: hunt.name,
+    mailingListsCount: hunt.mailingLists.length,
+    mailingListsCommaSeparated: hunt.mailingLists.join(', '),
+    email,
+  };
+
+  if (setting && setting.name === 'email.branding') {
+    if (setting.value.existingJoinMessageTemplate) {
+      return Mustache.render(setting.value.existingJoinMessageTemplate, view);
+    }
+  }
+
+  return Mustache.render(DEFAULT_EXISTING_JOIN_TEMPLATE, view);
+}
 
 Meteor.methods({
   addToHunt(huntId: unknown, email: unknown) {
@@ -93,11 +130,14 @@ Meteor.methods({
       const joinerName = joinerProfile && joinerProfile.displayName !== '' ?
         joinerProfile.displayName :
         null;
+      const settingsDoc = Settings.findOne({ name: 'email.branding' });
+      const subject = renderExistingJoinEmailSubject(settingsDoc, hunt);
+      const text = renderExistingJoinEmail(settingsDoc, joineeUser, hunt, joinerName);
       Email.send({
         from: Accounts.emailTemplates.from,
         to: email,
-        subject: `[jolly-roger] Added to ${hunt.name} on ${Accounts.emailTemplates.siteName}`,
-        text: existingJoinEmail(joineeUser, hunt, joinerName),
+        subject,
+        text,
       });
     }
   },

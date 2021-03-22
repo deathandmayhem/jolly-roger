@@ -45,6 +45,16 @@ export const SettingCodec = t.intersection([
         urls: t.array(t.string),
       }),
     }),
+    t.type({
+      name: t.literal('email.branding'),
+      value: t.type({
+        from: t.union([t.string, t.undefined]),
+        enrollAccountMessageSubjectTemplate: t.union([t.string, t.undefined]),
+        enrollAccountMessageTemplate: t.union([t.string, t.undefined]),
+        existingJoinMessageSubjectTemplate: t.union([t.string, t.undefined]),
+        existingJoinMessageTemplate: t.union([t.string, t.undefined]),
+      }),
+    }),
   ]),
 ]);
 export type SettingType = t.TypeOf<typeof SettingCodec>;
