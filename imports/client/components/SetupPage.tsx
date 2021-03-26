@@ -1668,9 +1668,6 @@ class BrandingSection extends React.Component<BrandingSectionProps> {
           <BrandingAssetRow asset="android-chrome-512x512.png" backgroundSize="contain">
             Android Chrome favicon at 512x512 pixels
           </BrandingAssetRow>
-          <BrandingAssetRow asset="apple-touch-icon-precomposed.png">
-            Squircle Apple touch icon at 180x180 pixels.
-          </BrandingAssetRow>
           <BrandingAssetRow asset="apple-touch-icon.png">
             Square Apple touch icon at 180x180 pixels
           </BrandingAssetRow>
