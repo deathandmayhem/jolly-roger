@@ -11,6 +11,7 @@ onPageLoad((sink) => {
       '  <link rel="icon" type="image/png" sizes="16x16" href="/asset/favicon-16x16.png">\n' +
       '  <link rel="manifest" href="/site.webmanifest">\n' +
       '  <link rel="mask-icon" href="/asset/safari-pinned-tab.svg" color="#5bbad5">\n' +
+      '  <meta name="msapplication-config" content="/browserconfig.xml">\n' +
       '  <meta name="msapplication-TileColor" content="#000000">\n' +
       '  <meta name="theme-color" content="#ffffff">\n' +
       '  <title>Jolly Roger</title>\n'
