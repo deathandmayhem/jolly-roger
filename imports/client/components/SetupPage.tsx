@@ -1646,28 +1646,49 @@ class BrandingSection extends React.Component<BrandingSectionProps> {
             Brand icon, 50x50 pixels, shown in the top left of all logged-in pages
           </BrandingAssetRow>
           <BrandingAssetRow asset="brand@2x.png">
-            Brand icon @ 2x res for high-DPI displays, 100x100 pixels, shown in the top left of all logged-in pages.
+            Brand icon @ 2x res for high-DPI displays, 100x100 pixels, shown in
+            the top left of all logged-in pages.
           </BrandingAssetRow>
           <BrandingAssetRow asset="hero.png" backgroundSize="contain">
-            Hero image, approximately 510x297 pixels, shown on the login/enroll/password-reset pages.
+            Hero image, approximately 510x297 pixels, shown on the
+            login/enroll/password-reset pages.
           </BrandingAssetRow>
           <BrandingAssetRow asset="hero@2x.png" backgroundSize="contain">
-            Hero image, approximately 510x297 pixels, shown on the login/enroll/password-reset pages.
+            Hero image @ 2x res for high-DPI displays, approximately 1020x595
+            pixels, shown on the login/enroll/password-reset pages.
           </BrandingAssetRow>
         </div>
         <div className="setup-subsection">
           <h2 className="setup-subsection-header">
             <span>Favicons and related iconography</span>
           </h2>
-          <BrandingAssetRow asset="android-chrome-192x192.png" />
-          <BrandingAssetRow asset="android-chrome-512x512.png" backgroundSize="contain" />
-          <BrandingAssetRow asset="apple-touch-icon-precomposed.png" />
-          <BrandingAssetRow asset="apple-touch-icon.png" />
-          <BrandingAssetRow asset="favicon-16x16.png" />
-          <BrandingAssetRow asset="favicon-32x32.png" />
-          <BrandingAssetRow asset="favicon.ico" />
-          <BrandingAssetRow asset="mstile-150x150.png" />
-          <BrandingAssetRow asset="safari-pinned-tab.svg" backgroundSize="contain" />
+          <BrandingAssetRow asset="android-chrome-192x192.png">
+            Android Chrome favicon at 192x192 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="android-chrome-512x512.png" backgroundSize="contain">
+            Android Chrome favicon at 512x512 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="apple-touch-icon-precomposed.png">
+            Squircle Apple touch icon at 180x180 pixels.
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="apple-touch-icon.png">
+            Square Apple touch icon at 180x180 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="favicon-16x16.png">
+            Favicon as PNG at 16x16 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="favicon-32x32.png">
+            Favicon as PNG at 32x32 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="favicon.ico">
+            Legacy favicon as ICO format at 48x48 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="mstile-150x150.png">
+            Tile used by Windows, IE, and Edge, as PNG at 150x150 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="safari-pinned-tab.svg" backgroundSize="contain">
+            Black-and-transparent SVG used by Safari for pinned tabs
+          </BrandingAssetRow>
         </div>
       </section>
     );
