@@ -8,6 +8,7 @@ import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../ansible';
 import { API_BASE } from '../lib/discord';
 import Settings from '../lib/models/settings';
+import UploadTokens from './models/upload_tokens';
 
 Meteor.methods({
   provisionFirstUser(email: unknown, password: unknown) {
@@ -222,6 +223,15 @@ Meteor.methods({
         value,
       },
     });
+  },
+
+  setupGetUploadToken(assetName: unknown, assetMimeType: unknown) {
+    check(this.userId, String);
+    Roles.checkPermission(this.userId, 'asset.upload');
+    check(assetName, String);
+    check(assetMimeType, String);
+    const token = UploadTokens.insert({ asset: assetName, mimeType: assetMimeType });
+    return token;
   },
 });
 
