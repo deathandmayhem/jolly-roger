@@ -5,7 +5,7 @@ import { OAuth } from 'meteor/oauth';
 import { withTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
-import React from 'react';
+import React, { ReactChild } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
@@ -15,8 +15,10 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
+import BlobMappings from '../../lib/models/blob_mappings';
 import DiscordCache from '../../lib/models/discord_cache';
 import Settings from '../../lib/models/settings';
+import { BlobMappingType } from '../../lib/schemas/blob_mapping';
 import { SettingType } from '../../lib/schemas/settings';
 import { DiscordGuildType } from '../discord';
 
@@ -1521,6 +1523,180 @@ class WebRTCSection extends React.Component<WebRTCSectionProps> {
   }
 }
 
+interface BrandingAssetRowProps {
+  asset: string;
+  blob: BlobMappingType | undefined;
+  backgroundSize?: string;
+  children?: ReactChild;
+}
+
+interface BrandingAssetRowState {
+  submitState: SubmitState;
+  submitError: string;
+}
+
+class BrandingAssetRow extends React.Component<BrandingAssetRowProps, BrandingAssetRowState> {
+  constructor(props: BrandingAssetRowProps) {
+    super(props);
+    this.state = {
+      submitState: SubmitState.IDLE,
+      submitError: '',
+    };
+  }
+
+  dismissAlert = () => {
+    this.setState({ submitState: SubmitState.IDLE });
+  };
+
+  onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const UPLOAD_SIZE_LIMIT = 1024 * 1024; // 1 MiB
+      if (file.size > UPLOAD_SIZE_LIMIT) {
+        this.setState({
+          submitState: SubmitState.ERROR,
+          submitError: `${file.name} is too large at ${file.size} bytes (limit is ${UPLOAD_SIZE_LIMIT})`,
+        });
+      }
+      this.setState({
+        submitState: SubmitState.SUBMITTING,
+      });
+      Meteor.call('setupGetUploadToken', this.props.asset, file.type, (err?: Error, uploadToken?: string) => {
+        if (err) {
+          this.setState({
+            submitState: SubmitState.ERROR,
+            submitError: err.message,
+          });
+        } else {
+          fetch(`/asset/${uploadToken}`, {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            headers: {
+              'Content-Type': file.type,
+            },
+            body: file,
+          }).then((resp) => {
+            if (resp.ok) {
+              this.setState({
+                submitState: SubmitState.SUCCESS,
+              });
+            } else {
+              this.setState({
+                submitState: SubmitState.ERROR,
+                submitError: `${resp.status} ${resp.statusText}`,
+              });
+            }
+          }).catch((error) => {
+            this.setState({
+              submitState: SubmitState.ERROR,
+              submitError: error,
+            });
+          });
+        }
+      });
+    }
+  };
+
+  render() {
+    // If no BlobMapping is present for this asset, fall back to the default one from the public/images folder
+    const blobUrl = this.props.blob ? `/asset/${this.props.blob.blob}` : `/images/${this.props.asset}`;
+    return (
+      <div className="branding-row">
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'error' ? (
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.submitError}
+          </Alert>
+        ) : null}
+        <div className="branding-row-content">
+          <div
+            className="branding-row-image"
+            style={{
+              backgroundImage: `url("${blobUrl}")`,
+              backgroundSize: this.props.backgroundSize || 'auto',
+            }}
+          />
+          <label htmlFor={`asset-input-${this.props.asset}`}>
+            <div>{this.props.asset}</div>
+            <div>{this.props.children}</div>
+            <input id={`asset-input-${this.props.asset}`} type="file" onChange={this.onFileSelected} />
+          </label>
+        </div>
+      </div>
+    );
+  }
+}
+
+interface BrandingSectionProps {
+  blobMappings: BlobMappingType[];
+}
+
+class BrandingSection extends React.Component<BrandingSectionProps> {
+  render() {
+    const blobMap = _.indexBy(this.props.blobMappings, '_id');
+
+    return (
+      <section id="branding">
+        <h1 className="setup-section-header">
+          <span className="setup-section-header-label">
+            Branding
+          </span>
+        </h1>
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
+            <span>Essential imagery</span>
+          </h2>
+          <BrandingAssetRow asset="brand.png" blob={blobMap['brand.png']}>
+            Brand icon, 50x50 pixels, shown in the top left of all logged-in pages
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="brand@2x.png" blob={blobMap['brand@2x.png']}>
+            Brand icon @ 2x res for high-DPI displays, 100x100 pixels, shown in
+            the top left of all logged-in pages.
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="hero.png" blob={blobMap['hero.png']} backgroundSize="contain">
+            Hero image, approximately 510x297 pixels, shown on the
+            login/enroll/password-reset pages.
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="hero@2x.png" blob={blobMap['hero@2x.png']} backgroundSize="contain">
+            Hero image @ 2x res for high-DPI displays, approximately 1020x595
+            pixels, shown on the login/enroll/password-reset pages.
+          </BrandingAssetRow>
+        </div>
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
+            <span>Favicons and related iconography</span>
+          </h2>
+          <BrandingAssetRow asset="android-chrome-192x192.png" blob={blobMap['android-chrome-192x192.png']}>
+            Android Chrome favicon at 192x192 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="android-chrome-512x512.png" blob={blobMap['android-chrome-512x512.png']} backgroundSize="contain">
+            Android Chrome favicon at 512x512 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="apple-touch-icon.png" blob={blobMap['apple-touch-icon.png']}>
+            Square Apple touch icon at 180x180 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="favicon-16x16.png" blob={blobMap['favicon-16x16.png']}>
+            Favicon as PNG at 16x16 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="favicon-32x32.png" blob={blobMap['favicon-32x32.png']}>
+            Favicon as PNG at 32x32 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="mstile-150x150.png" blob={blobMap['mstile-150x150.png']}>
+            Tile used by Windows, IE, and Edge, as PNG at 150x150 pixels
+          </BrandingAssetRow>
+          <BrandingAssetRow asset="safari-pinned-tab.svg" blob={blobMap['safari-pinned-tab.svg']} backgroundSize="contain">
+            Black-and-transparent SVG used by Safari for pinned tabs
+          </BrandingAssetRow>
+        </div>
+      </section>
+    );
+  }
+}
+
 interface CircuitBreakerControlProps {
   // disabled should be false if the circuit breaker is not intentionally disabling the feature,
   // and true if the feature is currently disabled.
@@ -1740,6 +1916,8 @@ interface SetupPageRewriteProps {
   flagDisableWebrtc: boolean;
   flagDisableSpectra: boolean;
   flagDisableDingwords: boolean;
+
+  blobMappings: BlobMappingType[];
 }
 
 class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
@@ -1786,6 +1964,9 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
           turnServerUrls={this.props.turnServerUrls}
           turnServerSecret={this.props.turnServerSecret}
         />
+        <BrandingSection
+          blobMappings={this.props.blobMappings}
+        />
         <CircuitBreakerSection
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
           flagDisableApplause={this.props.flagDisableApplause}
@@ -1804,6 +1985,9 @@ const tracker = withTracker((): SetupPageRewriteProps => {
 
   // We need to fetch the contents of the Settings table
   const settingsHandle = Meteor.subscribe('mongo.settings');
+
+  // We also need the asset mappings
+  const blobMappingsHandle = Meteor.subscribe('mongo.blob_mappings');
 
   // Google
   const googleConfig = ServiceConfiguration.configurations.findOne({ service: 'google' });
@@ -1841,7 +2025,7 @@ const tracker = withTracker((): SetupPageRewriteProps => {
   const flagDisableDingwords = Flags.active('disable.dingwords');
 
   return {
-    ready: settingsHandle.ready(),
+    ready: settingsHandle.ready() && blobMappingsHandle.ready(),
 
     canConfigure,
 
@@ -1866,6 +2050,8 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     flagDisableWebrtc,
     flagDisableSpectra,
     flagDisableDingwords,
+
+    blobMappings: blobMappingsHandle.ready() ? BlobMappings.find({}).fetch() : [],
   };
 });
 

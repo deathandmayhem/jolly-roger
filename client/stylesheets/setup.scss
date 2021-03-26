@@ -61,3 +61,24 @@
     margin-left: 8px;
   }
 }
+
+.branding-row {
+  &:not(:last-child) {
+    margin-bottom: 8px;
+  }
+}
+
+.branding-row-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.branding-row-image {
+  width: 200px;
+  height: 200px;
+  background-position: center;
+  background-repeat: no-repeat;
+  // background-size and background-image are defined inline per div
+}
