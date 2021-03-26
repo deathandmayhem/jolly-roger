@@ -3,6 +3,7 @@ import { _ } from 'meteor/underscore';
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
 import SimpleSchema from 'simpl-schema';
+import { uint8Array } from './types';
 
 type NumberOverrides<T> = T extends number ? {
   min?: number | (() => number);
@@ -166,6 +167,8 @@ const buildField = function <T> (
         return fields[0][1];
       })),
     ]];
+  } else if (<any>fieldCodec === uint8Array) {
+    return [[fieldName, { ...overrides, type: Uint8Array, optional }]];
   } else if (fieldCodec instanceof t.StringType) {
     return [[fieldName, { ...overrides, type: String, optional }]];
   } else if (
