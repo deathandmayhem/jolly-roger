@@ -199,6 +199,23 @@ Meteor.methods({
     }
   },
 
+  setupSetTeamName(teamName: unknown) {
+    check(this.userId, String);
+    Roles.checkPermission(this.userId, 'setTeamName');
+    check(teamName, Match.Maybe(String));
+    if (teamName) {
+      Settings.upsert({ name: 'teamname' }, {
+        $set: {
+          value: {
+            teamName,
+          },
+        },
+      });
+    } else {
+      Settings.remove({ name: 'teamname' });
+    }
+  },
+
   setupEmailBranding(from: unknown, enrollSubject: unknown, enrollMessage: unknown,
     joinSubject: unknown, joinMessage: unknown) {
     check(this.userId, String);
@@ -258,6 +275,34 @@ Meteor.publish('hasUsers', function () {
       }
     });
   }
+
+  this.ready();
+});
+
+Meteor.publish('teamName', function () {
+  const cursor = Settings.find({ name: 'teamname' });
+  let tracked = false;
+  const handle: Meteor.LiveQueryHandle = cursor.observe({
+    added: (doc) => {
+      if (doc.name === 'teamname' && doc.value && doc.value.teamName) {
+        tracked = true;
+        this.added('teamName', 'teamName', { name: doc.value.teamName });
+      }
+    },
+    changed: (newDoc) => {
+      if (newDoc.name === 'teamname' && newDoc.value.teamName) {
+        this.changed('teamName', 'teamName', { name: newDoc.value.teamName });
+      }
+    },
+    removed: () => {
+      if (tracked) {
+        this.removed('teamName', 'teamName');
+      }
+    },
+  });
+  this.onStop(() => {
+    handle.stop();
+  });
 
   this.ready();
 });

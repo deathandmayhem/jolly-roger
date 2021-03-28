@@ -13,6 +13,7 @@ import {
 } from './gdrive';
 import DriveClient from './gdrive-client-refresher';
 import GlobalHooks from './global-hooks';
+import getTeamName from './team_name';
 
 function getOrCreateTagByName(huntId: string, name: string): {
   _id: string,
@@ -123,7 +124,8 @@ Meteor.methods({
     if (oldPuzzle.title !== puzzle.title) {
       Meteor.defer(Meteor.bindEnvironment(() => {
         const doc = ensureDocument({ _id: puzzleId, ...puzzle });
-        renameDocument(doc.value.id, `${puzzle.title}: Death and Mayhem`);
+        const teamName = getTeamName();
+        renameDocument(doc.value.id, `${puzzle.title}: ${teamName}`);
       }));
     }
   },

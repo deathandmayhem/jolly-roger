@@ -1521,6 +1521,92 @@ class WebRTCSection extends React.Component<WebRTCSectionProps> {
   }
 }
 
+interface BrandingTeamNameProps {
+  initialTeamName: string | undefined;
+}
+
+interface BrandingTeamNameState {
+  teamName: string;
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
+  submitError: string;
+}
+
+class BrandingTeamName extends React.Component<BrandingTeamNameProps, BrandingTeamNameState> {
+  constructor(props: BrandingTeamNameProps) {
+    super(props);
+    this.state = {
+      teamName: props.initialTeamName || '',
+      submitState: SubmitState.IDLE,
+      submitError: '',
+    };
+  }
+
+  onTeamNameChange: FormControlProps['onChange'] = (e) => {
+    this.setState({
+      teamName: e.currentTarget.value,
+    });
+  };
+
+  dismissAlert = () => {
+    this.setState({
+      submitState: SubmitState.IDLE,
+    });
+  };
+
+  onSubmit = (e: React.FormEvent<any>) => {
+    e.preventDefault();
+    this.setState({
+      submitState: SubmitState.SUBMITTING,
+    });
+    Meteor.call('setupSetTeamName', this.state.teamName, (err?: Error) => {
+      if (err) {
+        this.setState({
+          submitState: SubmitState.ERROR,
+          submitError: err.message,
+        });
+      } else {
+        this.setState({
+          submitState: SubmitState.SUCCESS,
+        });
+      }
+    });
+  };
+
+  render() {
+    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
+    return (
+      <div>
+        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
+        {this.state.submitState === 'error' ? (
+          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
+            Saving failed:
+            {' '}
+            {this.state.submitError}
+          </Alert>
+        ) : null}
+
+        <form onSubmit={this.onSubmit}>
+          <FormGroup>
+            <FormLabel htmlFor="jr-setup-edit-team-name">
+              Team name
+            </FormLabel>
+            <FormControl
+              id="jr-setup-edit-team-name"
+              type="text"
+              placeholder=""
+              value={this.state.teamName}
+              disabled={shouldDisableForm}
+              onChange={this.onTeamNameChange}
+            />
+          </FormGroup>
+          <Button variant="primary" type="submit" onClick={this.onSubmit} disabled={shouldDisableForm}>Save</Button>
+        </form>
+      </div>
+    );
+  }
+}
+
 interface BrandingAssetRowProps {
   asset: string;
   backgroundSize?: string;
@@ -1627,6 +1713,7 @@ class BrandingAssetRow extends React.Component<BrandingAssetRowProps, BrandingAs
 }
 
 interface BrandingSectionProps {
+  teamName: string | undefined;
 }
 
 class BrandingSection extends React.Component<BrandingSectionProps> {
@@ -1638,6 +1725,20 @@ class BrandingSection extends React.Component<BrandingSectionProps> {
             Branding
           </span>
         </h1>
+        <div className="setup-subsection">
+          <h2 className="setup-subsection-header">
+            <span>Team name</span>
+          </h2>
+          <p>
+            The team name is displayed:
+          </p>
+          <ul>
+            <li>on the login page</li>
+            <li>in the filenames of any Google Docs/Sheets created by Jolly Roger</li>
+            <li>and anywhere else we may refer to the team that owns this Jolly Roger instance.</li>
+          </ul>
+          <BrandingTeamName initialTeamName={this.props.teamName} />
+        </div>
         <div className="setup-subsection">
           <h2 className="setup-subsection-header">
             <span>Essential imagery</span>
@@ -1896,6 +1997,7 @@ interface SetupPageRewriteProps {
   spreadsheetTemplate?: string;
 
   emailConfig: SettingType | undefined;
+  teamName: string | undefined;
 
   discordOAuthConfig?: Configuration;
   flagDisableDiscord: boolean;
@@ -1957,7 +2059,9 @@ class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
           turnServerUrls={this.props.turnServerUrls}
           turnServerSecret={this.props.turnServerSecret}
         />
-        <BrandingSection />
+        <BrandingSection
+          teamName={this.props.teamName}
+        />
         <CircuitBreakerSection
           flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
           flagDisableApplause={this.props.flagDisableApplause}
@@ -1989,6 +2093,10 @@ const tracker = withTracker((): SetupPageRewriteProps => {
 
   // Email
   const emailConfig = Settings.findOne({ name: 'email.branding' });
+
+  // Team name
+  const teamNameDoc = Settings.findOne({ name: 'teamname' });
+  const teamName = teamNameDoc && teamNameDoc.name === 'teamname' ? teamNameDoc.value.teamName : undefined;
 
   // Discord
   const discordOAuthConfig = ServiceConfiguration.configurations.findOne({ service: 'discord' });
@@ -2022,6 +2130,7 @@ const tracker = withTracker((): SetupPageRewriteProps => {
     docTemplate: docTemplateId,
     spreadsheetTemplate: spreadsheetTemplateId,
 
+    teamName,
     emailConfig,
 
     discordOAuthConfig,
