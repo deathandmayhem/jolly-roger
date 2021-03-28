@@ -5,6 +5,7 @@ import Documents from '../lib/models/documents';
 import Settings from '../lib/models/settings';
 import DriveClient from './gdrive-client-refresher';
 import Locks from './models/lock';
+import getTeamName from './team_name';
 
 export const MimeTypes = {
   spreadsheet: 'application/vnd.google-apps.spreadsheet',
@@ -96,7 +97,8 @@ export function ensureDocument(puzzle: {
           puzzle: puzzle._id,
         });
 
-        const googleDocId = createDocument(`${puzzle.title}: Death and Mayhem`, type);
+        const teamName = getTeamName();
+        const googleDocId = createDocument(`${puzzle.title}: ${teamName}`, type);
         const newDoc = {
           hunt: puzzle.hunt,
           puzzle: puzzle._id,

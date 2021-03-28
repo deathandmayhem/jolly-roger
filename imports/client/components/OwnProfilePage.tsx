@@ -14,6 +14,7 @@ import FormText from 'react-bootstrap/FormText';
 import Flags from '../../flags';
 import { ProfileType } from '../../lib/schemas/profiles';
 import { requestDiscordCredential } from '../discord';
+import TeamName from '../team_name';
 import AudioConfig from './AudioConfig';
 import Gravatar from './Gravatar';
 
@@ -184,6 +185,7 @@ interface DiscordLinkBlockProps {
   profile: ProfileType;
   config: Configuration | undefined;
   discordDisabled: boolean;
+  teamName: string;
 }
 
 type DiscordLinkBlockState = {
@@ -310,7 +312,10 @@ class DiscordLinkBlock extends React.Component<DiscordLinkBlockProps, DiscordLin
           {this.unlinkButton()}
         </div>
         <FormText>
-          Linking your Discord account will add you to the Death & Mayhem
+          Linking your Discord account will add you to the
+          {' '}
+          {this.props.teamName}
+          {' '}
           Discord server.  Additionally, we&apos;ll be able to link up your identity
           there and in jolly-roger chat.
         </FormText>
@@ -322,9 +327,13 @@ class DiscordLinkBlock extends React.Component<DiscordLinkBlockProps, DiscordLin
 const DiscordLinkBlockContainer = withTracker((_props: { profile: ProfileType }) => {
   const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });
   const discordDisabled = Flags.active('disable.discord');
+  Meteor.subscribe('teamName');
+  const teamNameObj = TeamName.findOne('teamName');
+  const teamName = teamNameObj ? teamNameObj.name : 'Default Team Name';
   return {
     config,
     discordDisabled,
+    teamName,
   };
 })(DiscordLinkBlock);
 
