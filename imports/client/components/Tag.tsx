@@ -1,5 +1,6 @@
 import { _ } from 'meteor/underscore';
-import { faTimes, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
+import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { detectOverflow } from '@popperjs/core';
 import type { ModifierArguments, Modifier, Padding } from '@popperjs/core';

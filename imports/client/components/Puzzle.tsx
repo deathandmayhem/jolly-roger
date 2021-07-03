@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
-import { faEdit, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
+import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
+import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React from 'react';

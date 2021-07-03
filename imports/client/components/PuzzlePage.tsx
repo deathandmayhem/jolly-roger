@@ -2,12 +2,10 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import {
-  faEdit,
-  faPuzzlePiece,
-  faPaperPlane,
-  faKey,
-} from '@fortawesome/free-solid-svg-icons';
+import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
+import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane';
+import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import DOMPurify from 'dompurify';

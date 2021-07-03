@@ -1,11 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
-import {
-  faMicrophoneSlash,
-  faVolumeMute,
-  faCaretDown,
-  faCaretRight,
-} from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
+import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
+import { faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons/faMicrophoneSlash';
+import { faVolumeMute } from '@fortawesome/free-solid-svg-icons/faVolumeMute';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React from 'react';

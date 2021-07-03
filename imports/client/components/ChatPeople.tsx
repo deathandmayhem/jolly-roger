@@ -1,7 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { withTracker } from 'meteor/react-meteor-data';
-import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
+import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React, { ReactChild } from 'react';

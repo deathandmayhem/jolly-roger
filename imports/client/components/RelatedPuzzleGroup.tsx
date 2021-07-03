@@ -1,5 +1,6 @@
 import { _ } from 'meteor/underscore';
-import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
+import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import { TagType } from '../../lib/schemas/tags';
