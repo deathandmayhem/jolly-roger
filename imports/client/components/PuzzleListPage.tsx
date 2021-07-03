@@ -2,13 +2,11 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { withTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import {
-  faBullhorn,
-  faMap,
-  faReceipt,
-  faUsers,
-  faEraser,
-} from '@fortawesome/free-solid-svg-icons';
+import { faBullhorn } from '@fortawesome/free-solid-svg-icons/faBullhorn';
+import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
+import { faMap } from '@fortawesome/free-solid-svg-icons/faMap';
+import { faReceipt } from '@fortawesome/free-solid-svg-icons/faReceipt';
+import { faUsers } from '@fortawesome/free-solid-svg-icons/faUsers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
