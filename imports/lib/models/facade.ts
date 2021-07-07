@@ -1,4 +1,5 @@
 import Announcements from './announcements';
+import BlobMappings from './blob_mappings';
 import CallParticipants from './call_participants';
 import CallSignals from './call_signals';
 import ChatNotifications from './chat_notifications';
@@ -16,6 +17,7 @@ import Tags from './tags';
 
 const Models = {
   Announcements,
+  BlobMappings,
   CallParticipants,
   CallSignals,
   ChatMessages,
