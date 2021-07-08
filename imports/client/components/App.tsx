@@ -18,6 +18,7 @@ import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
 import { RouteComponentProps } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
+import { lookupUrl } from '../../lib/models/blob_mappings';
 import Profiles from '../../lib/models/profiles';
 import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
@@ -25,6 +26,8 @@ import NotificationCenter from './NotificationCenter';
 interface AppNavbarProps extends RouteComponentProps {
   userId: string;
   displayName: string;
+  brandSrc: string;
+  brandSrc2x: string;
 }
 
 class AppNavbar extends React.Component<AppNavbarProps> {
@@ -38,11 +41,19 @@ class AppNavbar extends React.Component<AppNavbarProps> {
   };
 
   render() {
+    // Note: the .brand class on the <img> ensures that the logo takes up the
+    // correct amount of space in the top bar even if we haven't actually picked
+    // a nonempty source for it yet.
     return (
       <Navbar fixed="top" bg="light" variant="light">
         <NavbarBrand>
           <Link to="/">
-            <img src="/images/brand.png" alt="Jolly Roger logo" srcSet="/images/brand.png 1x, /images/brand@2x.png 2x" />
+            <img
+              className="brand"
+              src={this.props.brandSrc}
+              alt="Jolly Roger logo"
+              srcSet={`${this.props.brandSrc} 1x, ${this.props.brandSrc2x} 2x`}
+            />
           </Link>
         </NavbarBrand>
         <BreadcrumbsConsumer>
@@ -105,9 +116,17 @@ const AppNavbarContainer = withTracker((_props: RouteComponentProps) => {
   const profile = Profiles.findOne(userId);
   const displayName = profileSub.ready() ?
     ((profile && profile.displayName) || '<no name given>') : 'loading...';
+
+  const blobMapSub = Meteor.subscribe('mongo.blob_mappings');
+  // Use an empty url as the default URL value while BlobMappings are still
+  // loading to avoid a flash of the default logo.
+  const brandSrc = blobMapSub.ready() ? lookupUrl('brand.png') : '';
+  const brandSrc2x = blobMapSub.ready() ? lookupUrl('brand@2x.png') : '';
   return {
     userId,
     displayName,
+    brandSrc,
+    brandSrc2x,
   };
 })(AppNavbar);
 

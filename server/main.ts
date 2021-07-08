@@ -24,6 +24,9 @@ import '../imports/server/fixture';
 import '../imports/server/git_revision';
 import '../imports/server/guesses';
 import '../imports/server/hunts';
+import '../imports/server/assets';
+import '../imports/server/browserconfig';
+import '../imports/server/site-manifest';
 import '../imports/server/migrations-run'; // runs migrations
 import '../imports/server/profile';
 import '../imports/server/puzzle';

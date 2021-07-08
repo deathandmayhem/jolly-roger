@@ -1,8 +1,10 @@
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
+import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
+import TeamName from '../team_name';
 
 /* eslint-disable max-len, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
 
@@ -13,12 +15,17 @@ export enum AccountFormFormat {
   RESET_PWD = 'resetPwd',
 }
 
-type AccountFormProps = {
+type AccountFormParams = {
   format: AccountFormFormat.LOGIN | AccountFormFormat.REQUEST_PW_RESET;
   onFormatChange: () => void;
 } | {
   format: AccountFormFormat.ENROLL | AccountFormFormat.RESET_PWD;
   token: string;
+}
+
+type AccountFormProps = AccountFormParams & {
+  teamName: string;
+  ready: boolean;
 }
 
 enum AccountFormSubmitState {
@@ -193,13 +200,17 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
   };
 
   render() {
+    if (!this.props.ready) {
+      return <div>loading...</div>;
+    }
+
     // I'm mimicking the DOM used by AccountTemplates for this form so I can reuse their CSS.  It
     // would probably be good to refactor this to use ReactBootstrap/additional styles directly and
     // drop AccountTemplates entirely.
     const submitting = this.state.submitState === AccountFormSubmitState.SUBMITTING;
     const format = this.props.format || AccountFormFormat.LOGIN;
     const title = {
-      [AccountFormFormat.LOGIN]: 'Jolly Roger: Death and Mayhem Virtual HQ',
+      [AccountFormFormat.LOGIN]: `Jolly Roger: ${this.props.teamName} Virtual HQ`,
       [AccountFormFormat.ENROLL]: 'Create an Account',
       [AccountFormFormat.REQUEST_PW_RESET]: 'Reset your password',
       [AccountFormFormat.RESET_PWD]: 'Reset your password',
@@ -325,4 +336,14 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
   }
 }
 
-export default AccountForm;
+const tracker = withTracker((_params: AccountFormParams) => {
+  const teamNameSub = Meteor.subscribe('teamName');
+  const teamNameObj = TeamName.findOne('teamName');
+  const teamName = teamNameObj ? teamNameObj.name : 'Default Team Name';
+  return {
+    ready: teamNameSub.ready(),
+    teamName,
+  };
+});
+
+export default tracker(AccountForm);

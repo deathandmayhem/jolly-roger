@@ -4,10 +4,24 @@ import { Google } from 'meteor/google-oauth';
 import { HTTP } from 'meteor/http';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import { Random } from 'meteor/random';
 import { ServiceConfiguration } from 'meteor/service-configuration';
+import moment from 'moment';
 import Ansible from '../ansible';
 import { API_BASE } from '../lib/discord';
 import Settings from '../lib/models/settings';
+import UploadTokens from './models/upload_tokens';
+
+// Clean up upload tokens that didn't get used within a minute
+function cleanupUploadTokens() {
+  const oldestValidTime = moment().subtract('60', 'seconds').toDate();
+  UploadTokens.remove({ createdAt: { $lt: oldestValidTime } });
+}
+function periodic() {
+  Meteor.setTimeout(periodic, 15000 + (15000 * Random.fraction()));
+  cleanupUploadTokens();
+}
+Meteor.startup(() => periodic());
 
 Meteor.methods({
   provisionFirstUser(email: unknown, password: unknown) {
@@ -198,6 +212,23 @@ Meteor.methods({
     }
   },
 
+  setupSetTeamName(teamName: unknown) {
+    check(this.userId, String);
+    Roles.checkPermission(this.userId, 'setTeamName');
+    check(teamName, Match.Maybe(String));
+    if (teamName) {
+      Settings.upsert({ name: 'teamname' }, {
+        $set: {
+          value: {
+            teamName,
+          },
+        },
+      });
+    } else {
+      Settings.remove({ name: 'teamname' });
+    }
+  },
+
   setupEmailBranding(from: unknown, enrollSubject: unknown, enrollMessage: unknown,
     joinSubject: unknown, joinMessage: unknown) {
     check(this.userId, String);
@@ -222,6 +253,15 @@ Meteor.methods({
         value,
       },
     });
+  },
+
+  setupGetUploadToken(assetName: unknown, assetMimeType: unknown) {
+    check(this.userId, String);
+    Roles.checkPermission(this.userId, 'asset.upload');
+    check(assetName, String);
+    check(assetMimeType, String);
+    const token = UploadTokens.insert({ asset: assetName, mimeType: assetMimeType });
+    return token;
   },
 });
 
@@ -248,6 +288,34 @@ Meteor.publish('hasUsers', function () {
       }
     });
   }
+
+  this.ready();
+});
+
+Meteor.publish('teamName', function () {
+  const cursor = Settings.find({ name: 'teamname' });
+  let tracked = false;
+  const handle: Meteor.LiveQueryHandle = cursor.observe({
+    added: (doc) => {
+      if (doc.name === 'teamname' && doc.value && doc.value.teamName) {
+        tracked = true;
+        this.added('teamName', 'teamName', { name: doc.value.teamName });
+      }
+    },
+    changed: (newDoc) => {
+      if (newDoc.name === 'teamname' && newDoc.value.teamName) {
+        this.changed('teamName', 'teamName', { name: newDoc.value.teamName });
+      }
+    },
+    removed: () => {
+      if (tracked) {
+        this.removed('teamName', 'teamName');
+      }
+    },
+  });
+  this.onStop(() => {
+    handle.stop();
+  });
 
   this.ready();
 });

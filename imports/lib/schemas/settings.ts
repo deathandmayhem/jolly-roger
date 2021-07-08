@@ -55,6 +55,12 @@ export const SettingCodec = t.intersection([
         existingJoinMessageTemplate: t.union([t.string, t.undefined]),
       }),
     }),
+    t.type({
+      name: t.literal('teamname'),
+      value: t.type({
+        teamName: t.string,
+      }),
+    }),
   ]),
 ]);
 export type SettingType = t.TypeOf<typeof SettingCodec>;
