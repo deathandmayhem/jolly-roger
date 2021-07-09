@@ -4,7 +4,7 @@
 # 'meteor add' and 'meteor remove' will edit this file for you,
 # but you can also edit it by hand.
 
-ecmascript@0.15.0
+ecmascript@0.15.1
 ecmascript-collections
 accounts-password@1.7.0
 audit-argument-checks@1.0.7
@@ -14,7 +14,7 @@ aldeed:schema-index
 nicolaslopezj:roles
 meteor-base@1.4.0
 mobile-experience@1.1.0
-mongo@1.10.1
+mongo@1.11.0
 logging@1.2.0
 reload@1.3.1
 random@1.2.0
@@ -36,7 +36,7 @@ google-oauth@1.3.0
 dynamic-import@0.6.0
 underscore@1.0.10
 server-render@0.3.1
-typescript@4.1.2
+typescript@4.2.2
 xolvio:cleaner
 deanius:promise
 hot-module-replacement@0.2.0
