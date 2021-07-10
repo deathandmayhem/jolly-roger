@@ -4,16 +4,12 @@ interface PuzzleAnswerProps {
   answer: string;
 }
 
-class PuzzleAnswer extends React.PureComponent<PuzzleAnswerProps> {
-  static displayName = 'PuzzleAnswer';
+const PuzzleAnswer = (props: PuzzleAnswerProps) => {
+  return (
+    <span className="answer">
+      {props.answer}
+    </span>
+  );
+};
 
-  render() {
-    return (
-      <span className="answer">
-        {this.props.answer}
-      </span>
-    );
-  }
-}
-
-export default PuzzleAnswer;
+export default React.memo(PuzzleAnswer);
