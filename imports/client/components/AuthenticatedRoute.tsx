@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
-import { withTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect, Route, RouteComponentProps } from 'react-router';
 import App from './App';
 
@@ -16,95 +16,72 @@ interface AuthenticatedRouteProps {
   strict?: boolean;
 }
 
-interface AuthWrapperContainerProps extends RouteComponentProps {
+interface AuthWrapperProps extends RouteComponentProps {
   component: React.ComponentType<RouteComponentProps<any>> | React.ComponentType<any>;
 }
 
-interface AuthWrapperProps extends AuthWrapperContainerProps {
-  loggingIn: boolean;
-  userId: string | null;
-}
+const AuthWrapper = React.memo((props: AuthWrapperProps) => {
+  const tracker = useTracker(() => {
+    return {
+      loggingIn: Meteor.loggingIn(),
+      userId: Meteor.userId(),
+    };
+  }, []);
 
-interface AuthWrapperState {
-  loading: boolean;
-}
+  const [loading, setLoading] = useState<boolean>(true);
 
-class AuthWrapper extends React.PureComponent<AuthWrapperProps, AuthWrapperState> {
-  constructor(props: AuthWrapperProps) {
-    super(props);
-    this.state = { loading: true };
-  }
-
-  componentDidMount() {
-    this.checkReady();
-  }
-
-  componentDidUpdate() {
-    this.checkReady();
-  }
-
-  checkReady = () => {
-    if (this.state.loading) {
-      if (!this.props.loggingIn) {
-        this.setState({ loading: false });
+  useEffect(() => {
+    // Check if we're done logging in
+    if (loading) {
+      if (!tracker.loggingIn) {
+        setLoading(false);
       }
     }
-  };
+  }, [loading, tracker.loggingIn]);
 
-  render() {
-    // JSX is case-sensitive, so uppercase component before attempting to render.
-    // Peel off the other wrapper-specific props while we're here.
-    const {
-      component: Component, loggingIn, userId, ...rest
-    } = this.props;
+  // JSX is case-sensitive, so uppercase component before attempting to render.
+  // Peel off the other wrapper-specific props while we're here.
+  const {
+    component: Component, ...rest
+  } = props;
 
-    if (this.state.loading) {
-      return <div />;
-    }
-
-    if (!this.props.userId) {
-      const stateToSave = _.pick(this.props.location, 'pathname', 'search');
-      return (
-        <Redirect to={{
-          pathname: '/login',
-          state: stateToSave,
-        }}
-        />
-      );
-    }
-
-    return (
-      <App {...rest}>
-        <Component {...rest} />
-      </App>
-    );
+  if (loading) {
+    return <div />;
   }
-}
 
-const AuthWrapperContainer = withTracker((_props: AuthWrapperContainerProps) => {
-  return {
-    loggingIn: Meteor.loggingIn(),
-    userId: Meteor.userId(),
-  };
-})(AuthWrapper);
-
-class AuthenticatedRoute extends React.PureComponent<AuthenticatedRouteProps> {
-  render() {
-    // Pull off the component, which we'll pass to AuthWrapperContainer.
-    // The rest of the props are from RouteProps, to which we'll add our
-    // custom `render`.
-    const { component, ...rest } = this.props;
+  if (!tracker.userId) {
+    const stateToSave = _.pick(props.location, 'pathname', 'search');
     return (
-      <Route
-        {...rest}
-        render={(props: RouteComponentProps) => {
-          return (
-            <AuthWrapperContainer component={component} {...props} />
-          );
-        }}
+      <Redirect to={{
+        pathname: '/login',
+        state: stateToSave,
+      }}
       />
     );
   }
-}
+
+  return (
+    <App {...rest}>
+      <Component {...rest} />
+    </App>
+  );
+});
+
+const AuthenticatedRoute = React.memo((authedRouteProps: AuthenticatedRouteProps) => {
+  // Pull off the component, which we'll pass to AuthWrapperContainer.
+  // The rest of the props are from RouteProps, to which we'll add our
+  // custom `render`.
+  const { component, ...rest } = authedRouteProps;
+  return (
+    <Route
+      {...rest}
+      render={(genericRouteProps: RouteComponentProps) => {
+        return (
+          <AuthWrapper component={component} {...genericRouteProps} />
+        );
+      }}
+    />
+  );
+});
 
 export default AuthenticatedRoute;
