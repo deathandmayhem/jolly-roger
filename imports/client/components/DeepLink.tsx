@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 
 interface DeepLinkProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -19,55 +19,52 @@ type DeepLinkState = {
   startNativeLoad: Date;
 };
 
-class DeepLink extends React.Component<DeepLinkProps, DeepLinkState> {
-  constructor(props: DeepLinkProps) {
-    super(props);
-    this.state = { state: DeepLinkLoadState.IDLE };
-  }
+const DeepLinkHook = (props: DeepLinkProps) => {
+  const [state, setState] = useState<DeepLinkState>({
+    state: DeepLinkLoadState.IDLE,
+  });
 
-  onAttemptingNativeTimeout = () => {
-    if (this.state.state === DeepLinkLoadState.IDLE) {
+  const browserOpen = useCallback(() => {
+    window.open(props.browserUrl, '_blank');
+  }, [props.browserUrl]);
+
+  const onAttemptingNativeTimeout = useCallback(() => {
+    if (state.state === DeepLinkLoadState.IDLE) {
       return;
     }
 
-    this.setState({ state: DeepLinkLoadState.IDLE });
-    if (new Date().getTime() - this.state.startNativeLoad.getTime() < 10000) {
-      this.browserOpen();
+    setState({ state: DeepLinkLoadState.IDLE });
+    if (new Date().getTime() - state.startNativeLoad.getTime() < 10000) {
+      browserOpen();
     }
-  };
+  }, [state, browserOpen]);
 
-  onClick = (e: React.MouseEvent) => {
+  const onClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     // window.orientation is a good proxy for mobile device
     if (window.orientation) {
-      this.setState({ state: DeepLinkLoadState.ATTEMPTING_NATIVE, startNativeLoad: new Date() });
-      Meteor.setTimeout(this.onAttemptingNativeTimeout, 25);
+      setState({ state: DeepLinkLoadState.ATTEMPTING_NATIVE, startNativeLoad: new Date() });
+      Meteor.setTimeout(onAttemptingNativeTimeout, 25);
     } else {
-      this.browserOpen();
+      browserOpen();
     }
-  };
+  }, [browserOpen, onAttemptingNativeTimeout]);
 
-  browserOpen = () => {
-    window.open(this.props.browserUrl, '_blank');
-  };
-
-  nativeIframe = () => {
+  const nativeIframe = () => {
     return (
-      <iframe title="Open document" width="1px" height="1px" src={this.props.nativeUrl} />
+      <iframe title="Open document" width="1px" height="1px" src={props.nativeUrl} />
     );
   };
 
-  render() {
-    const {
-      children, nativeUrl, browserUrl, ...rest
-    } = this.props;
-    return (
-      <div onClick={this.onClick} {...rest}>
-        {this.state.state === 'attemptingNative' && this.nativeIframe()}
-        {children}
-      </div>
-    );
-  }
-}
+  const {
+    children, nativeUrl, browserUrl, ...rest
+  } = props;
+  return (
+    <div onClick={onClick} {...rest}>
+      {state.state === 'attemptingNative' && nativeIframe()}
+      {children}
+    </div>
+  );
+};
 
-export default DeepLink;
+export default DeepLinkHook;
