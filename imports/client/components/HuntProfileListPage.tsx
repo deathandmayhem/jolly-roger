@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import { withTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import { withBreadcrumb } from 'react-breadcrumbs-context';
@@ -18,73 +18,71 @@ interface HuntProfileListPageWithRouterParams extends
   RouteComponentProps<HuntProfileListPageParams> {
 }
 
-interface HuntProfileListPageProps extends HuntProfileListPageWithRouterParams {
+interface HuntProfileListPageTracker {
   ready: boolean;
   canInvite: boolean;
   canSyncDiscord: boolean;
   profiles: ProfileType[];
 }
 
-class HuntProfileListPage extends React.Component<HuntProfileListPageProps> {
-  render() {
-    if (!this.props.ready) {
-      return <div>loading...</div>;
+const HuntProfileListPage = (props: HuntProfileListPageWithRouterParams) => {
+  const tracker = useTracker<HuntProfileListPageTracker>(() => {
+    const huntId = props.match.params.huntId;
+    const usersHandle = Meteor.subscribe('huntMembers', huntId);
+    const profilesHandle = Meteor.subscribe('mongo.profiles');
+
+    const ready = usersHandle.ready() && profilesHandle.ready();
+    if (!ready) {
+      return {
+        ready: false,
+        canInvite: false,
+        canSyncDiscord: false,
+        profiles: [],
+      };
     }
 
-    const match = this.props.match;
-    return (
-      <Switch>
-        <Route path={`${match.path}/invite`} component={UserInvitePage} />
-        <Route path={`${match.path}`}>
-          <ProfileList
-            profiles={this.props.profiles}
-            huntId={this.props.match.params.huntId}
-            canInvite={this.props.canInvite}
-            canSyncDiscord={this.props.canSyncDiscord}
-          />
-        </Route>
-      </Switch>
+    const canInvite = Roles.userHasPermission(
+      Meteor.userId(), 'hunt.join', huntId
     );
+
+    const hunters = Meteor.users.find({ hunts: huntId }).map((u) => u._id) as string[];
+    const profiles = Profiles.find(
+      { _id: { $in: hunters } },
+      { sort: { displayName: 1 } },
+    ).fetch();
+
+    const canSyncDiscord = Roles.userHasPermission(Meteor.userId(), 'discord.useBotAPIs');
+
+    return {
+      ready: ready as boolean,
+      canInvite,
+      canSyncDiscord,
+      profiles,
+    };
+  }, [props.match.params.huntId]);
+  if (!tracker.ready) {
+    return <div>loading...</div>;
   }
-}
+
+  const match = props.match;
+  return (
+    <Switch>
+      <Route path={`${match.path}/invite`} component={UserInvitePage} />
+      <Route path={`${match.path}`}>
+        <ProfileList
+          profiles={tracker.profiles}
+          huntId={props.match.params.huntId}
+          canInvite={tracker.canInvite}
+          canSyncDiscord={tracker.canSyncDiscord}
+        />
+      </Route>
+    </Switch>
+  );
+};
 
 const crumb = withBreadcrumb(({ match }: HuntProfileListPageWithRouterParams) => {
   return { title: 'Hunters', path: `/hunts/${match.params.huntId}/hunters` };
 });
-const tracker = withTracker(({ match }: HuntProfileListPageWithRouterParams) => {
-  const usersHandle = Meteor.subscribe('huntMembers', match.params.huntId);
-  const profilesHandle = Meteor.subscribe('mongo.profiles');
-
-  const ready = usersHandle.ready() && profilesHandle.ready();
-  if (!ready) {
-    return {
-      ready: false,
-      canInvite: false,
-      canSyncDiscord: false,
-      profiles: [],
-    };
-  }
-
-  const canInvite = Roles.userHasPermission(
-    Meteor.userId(), 'hunt.join', match.params.huntId
-  );
-
-  const hunters = Meteor.users.find({ hunts: match.params.huntId }).map((u) => u._id) as string[];
-  const profiles = Profiles.find(
-    { _id: { $in: hunters } },
-    { sort: { displayName: 1 } },
-  ).fetch();
-
-  const canSyncDiscord = Roles.userHasPermission(Meteor.userId(), 'discord.useBotAPIs');
-
-  return {
-    ready: ready as boolean,
-    canInvite,
-    canSyncDiscord,
-    profiles,
-  };
-});
-
-const HuntProfileListPageContainer = crumb(tracker(HuntProfileListPage));
+const HuntProfileListPageContainer = crumb(HuntProfileListPage);
 
 export default HuntProfileListPageContainer;
