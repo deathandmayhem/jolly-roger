@@ -142,6 +142,7 @@ class AccountForm extends React.Component<AccountFormProps, AccountFormState> {
       displayName: this.state.displayName,
       phoneNumber: this.state.phoneNumber,
       muteApplause: false,
+      dingwords: [],
     };
 
     this.setState({
