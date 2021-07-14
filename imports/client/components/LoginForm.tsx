@@ -1,32 +1,22 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import AccountForm, { AccountFormFormat } from './AccountForm';
 
-interface LoginFormState {
-  format: AccountFormFormat.LOGIN | AccountFormFormat.REQUEST_PW_RESET;
-}
+type LoginFormFormat = AccountFormFormat.LOGIN | AccountFormFormat.REQUEST_PW_RESET;
 
-class LoginForm extends React.Component<{}, LoginFormState> {
-  constructor(props: {}) {
-    super(props);
-    this.state = {
-      format: AccountFormFormat.LOGIN,
-    };
-  }
-
-  changeFormat = () => {
-    this.setState((prevState) => {
-      const newFormat = (prevState.format === AccountFormFormat.LOGIN) ?
+const LoginForm = () => {
+  const [format, setFormat] = useState<LoginFormFormat>(AccountFormFormat.LOGIN);
+  const toggleFormat = useCallback(() => {
+    setFormat((prevFormat) => {
+      const newFormat = (prevFormat === AccountFormFormat.LOGIN) ?
         AccountFormFormat.REQUEST_PW_RESET :
         AccountFormFormat.LOGIN;
-      return { format: newFormat };
+      return newFormat;
     });
-  };
+  }, []);
 
-  render() {
-    return (
-      <AccountForm format={this.state.format} onFormatChange={this.changeFormat} />
-    );
-  }
-}
+  return (
+    <AccountForm format={format} onFormatChange={toggleFormat} />
+  );
+};
 
 export default LoginForm;
