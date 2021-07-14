@@ -4,7 +4,9 @@ import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
-import React from 'react';
+import React, {
+  useCallback, useMemo, useRef, useState,
+} from 'react';
 import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
@@ -26,129 +28,115 @@ interface PuzzleProps {
   suppressTags?: string[];
 }
 
-interface PuzzleState {
-  showEditModal: boolean;
-}
+const Puzzle = React.memo((props: PuzzleProps) => {
+  // Generating the edit modals for all puzzles is expensive, so we do it
+  // lazily. The first time the modal button is clicked, we change this state
+  // variable, which causes us to mount a new modal, which is set to open on
+  // mount. Subsequent times, we just open the existing modal.
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const modalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
 
-class Puzzle extends React.PureComponent<PuzzleProps, PuzzleState> {
-  private modalRef: React.RefObject<PuzzleModalForm>;
+  const onEdit = useCallback((
+    state: PuzzleModalFormSubmitPayload,
+    callback: (error?: Error) => void
+  ) => {
+    Ansible.log('Updating puzzle properties', { puzzle: props.puzzle._id, user: Meteor.userId(), state });
+    Meteor.call('updatePuzzle', props.puzzle._id, state, callback);
+  }, [props.puzzle._id]);
 
-  static displayName = 'Puzzle';
-
-  constructor(props: PuzzleProps) {
-    super(props);
-    this.state = {
-      // Generating the edit modals for all puzzles is expensive, so we do it
-      // lazily. The first time the modal button is clicked, we change this state
-      // variable, which causes us to mount a new modal, which is set to open on
-      // mount. Subsequent times, we just open the existing modal.
-      showEditModal: false,
-    };
-    this.modalRef = React.createRef();
-  }
-
-  onEdit = (state: PuzzleModalFormSubmitPayload, callback: (error?: Error) => void) => {
-    Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
-    Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
-  };
-
-  showEditModal = () => {
-    if (this.state.showEditModal && this.modalRef.current) {
-      this.modalRef.current.show();
+  const onShowEditModal = useCallback(() => {
+    if (showEditModal && modalRef.current) {
+      modalRef.current.show();
     } else {
-      this.setState({
-        showEditModal: true,
-      });
+      setShowEditModal(true);
     }
-  };
+  }, [showEditModal]);
 
-  editButton = () => {
-    if (this.props.canUpdate) {
+  const editButton = useMemo(() => {
+    if (props.canUpdate) {
       return (
-        <Button onClick={this.showEditModal} variant="light" size="sm" title="Edit puzzle...">
+        <Button onClick={onShowEditModal} variant="light" size="sm" title="Edit puzzle...">
           <FontAwesomeIcon icon={faEdit} />
         </Button>
       );
     }
     return null;
-  };
+  }, [props.canUpdate, onShowEditModal]);
 
-  render() {
-    // id, title, answer, tags
-    const linkTarget = `/hunts/${this.props.puzzle.hunt}/puzzles/${this.props.puzzle._id}`;
-    const tagIndex = _.indexBy(this.props.allTags, '_id');
-    const shownTags = _.difference(this.props.puzzle.tags, this.props.suppressTags || []);
-    const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; }).filter(Boolean);
-    const isAdministrivia = this.props.puzzle.tags.find((t) => { return tagIndex[t] && tagIndex[t].name === 'administrivia'; });
+  // id, title, answer, tags
+  const linkTarget = `/hunts/${props.puzzle.hunt}/puzzles/${props.puzzle._id}`;
+  const tagIndex = _.indexBy(props.allTags, '_id');
+  const shownTags = _.difference(props.puzzle.tags, props.suppressTags || []);
+  const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; }).filter(Boolean);
+  const isAdministrivia = props.puzzle.tags.find((t) => { return tagIndex[t] && tagIndex[t].name === 'administrivia'; });
 
-    const puzzleClasses = classnames('puzzle',
-      this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount ? 'solved' : 'unsolved',
-      this.props.layout === 'grid' ? 'puzzle-grid' : null,
-      this.props.layout === 'table' ? 'puzzle-table-row' : null,
-      isAdministrivia ? 'administrivia' : null);
+  const puzzleClasses = classnames('puzzle',
+    props.puzzle.answers.length >= props.puzzle.expectedAnswerCount ? 'solved' : 'unsolved',
+    props.layout === 'grid' ? 'puzzle-grid' : null,
+    props.layout === 'table' ? 'puzzle-table-row' : null,
+    isAdministrivia ? 'administrivia' : null);
 
-    const answers = this.props.puzzle.answers.map((answer, i) => {
-      return (
-        // eslint-disable-next-line react/no-array-index-key
-        <PuzzleAnswer key={`${i}-${answer}`} answer={answer} />
-      );
-    });
-
-    if (this.props.layout === 'table') {
-      return (
-        <tr className={puzzleClasses}>
-          <td className="puzzle-title">
-            {this.editButton()}
-            {' '}
-            <Link to={linkTarget}>{this.props.puzzle.title}</Link>
-          </td>
-          <td className="puzzle-answer">
-            {answers}
-          </td>
-        </tr>
-      );
-    }
-
+  const answers = props.puzzle.answers.map((answer, i) => {
     return (
-      <div className={puzzleClasses}>
-        {this.state.showEditModal ? (
-          <PuzzleModalForm
-            key={this.props.puzzle._id}
-            ref={this.modalRef}
-            puzzle={this.props.puzzle}
-            huntId={this.props.puzzle.hunt}
-            tags={this.props.allTags}
-            onSubmit={this.onEdit}
-            showOnMount
-          />
-        ) : null}
-        {this.props.canUpdate && (
-          <div className="puzzle-edit-button">
-            {this.editButton()}
-          </div>
-        )}
-        <div className="puzzle-title">
-          <Link to={linkTarget}>{this.props.puzzle.title}</Link>
-        </div>
-        <div className="puzzle-view-count">
-          {!(this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount) && !isAdministrivia && <SubscriberCount puzzleId={this.props.puzzle._id} />}
-        </div>
-        <div className="puzzle-link">
-          {this.props.puzzle.url ? (
-            <span>
-              <a href={this.props.puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
-                <FontAwesomeIcon icon={faPuzzlePiece} />
-              </a>
-            </span>
-          ) : null}
-        </div>
-        <div className="puzzle-answer">
+      // eslint-disable-next-line react/no-array-index-key
+      <PuzzleAnswer key={`${i}-${answer}`} answer={answer} />
+    );
+  });
+
+  if (props.layout === 'table') {
+    return (
+      <tr className={puzzleClasses}>
+        <td className="puzzle-title">
+          {editButton}
+          {' '}
+          <Link to={linkTarget}>{props.puzzle.title}</Link>
+        </td>
+        <td className="puzzle-answer">
           {answers}
-        </div>
-        <TagList puzzle={this.props.puzzle} tags={ownTags} linkToSearch={this.props.layout === 'grid'} popoverRelated={false} />
-      </div>
+        </td>
+      </tr>
     );
   }
-}
+
+  return (
+    <div className={puzzleClasses}>
+      {showEditModal ? (
+        <PuzzleModalForm
+          key={props.puzzle._id}
+          ref={modalRef}
+          puzzle={props.puzzle}
+          huntId={props.puzzle.hunt}
+          tags={props.allTags}
+          onSubmit={onEdit}
+          showOnMount
+        />
+      ) : null}
+      {props.canUpdate && (
+        <div className="puzzle-edit-button">
+          {editButton}
+        </div>
+      )}
+      <div className="puzzle-title">
+        <Link to={linkTarget}>{props.puzzle.title}</Link>
+      </div>
+      <div className="puzzle-view-count">
+        {!(props.puzzle.answers.length >= props.puzzle.expectedAnswerCount) && !isAdministrivia && <SubscriberCount puzzleId={props.puzzle._id} />}
+      </div>
+      <div className="puzzle-link">
+        {props.puzzle.url ? (
+          <span>
+            <a href={props.puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
+              <FontAwesomeIcon icon={faPuzzlePiece} />
+            </a>
+          </span>
+        ) : null}
+      </div>
+      <div className="puzzle-answer">
+        {answers}
+      </div>
+      <TagList puzzle={props.puzzle} tags={ownTags} linkToSearch={props.layout === 'grid'} popoverRelated={false} />
+    </div>
+  );
+});
 
 export default Puzzle;
