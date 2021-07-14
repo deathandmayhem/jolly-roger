@@ -9,12 +9,10 @@ interface PasswordResetFormParams {
 interface PasswordResetFormProps extends RouteComponentProps<PasswordResetFormParams> {
 }
 
-class PasswordResetForm extends React.Component<PasswordResetFormProps> {
-  render() {
-    return (
-      <AccountForm format={AccountFormFormat.RESET_PWD} token={this.props.match.params.token} />
-    );
-  }
-}
+const PasswordResetForm = (props: PasswordResetFormProps) => {
+  return (
+    <AccountForm format={AccountFormFormat.RESET_PWD} token={props.match.params.token} />
+  );
+};
 
 export default PasswordResetForm;
