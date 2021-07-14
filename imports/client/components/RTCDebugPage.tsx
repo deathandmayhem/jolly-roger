@@ -1,10 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import { withTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import CallParticipants from '../../lib/models/call_participants';
@@ -191,10 +191,7 @@ function PeerSummary(props: PeerSummaryProps) {
   );
 }
 
-interface RTCDebugPageParams {
-}
-
-interface RTCDebugPageProps extends RTCDebugPageParams {
+interface RTCDebugPageTracker {
   ready: boolean;
   isAdmin: boolean;
   participants: CallParticipantType[];
@@ -203,31 +200,43 @@ interface RTCDebugPageProps extends RTCDebugPageParams {
   profiles: ProfileType[];
 }
 
-interface RTCDebugPageState {
-  focusedParticipant: CallParticipantType | undefined;
-}
+const RTCDebugPage = () => {
+  const tracker = useTracker<RTCDebugPageTracker>(() => {
+    const isAdmin = Roles.userHasRole(Meteor.userId()!, 'admin');
+    const rtcdebugSub = Meteor.subscribe('rtcdebug');
+    const puzzlesSub = Meteor.subscribe('mongo.puzzles');
+    const profilesSub = Profiles.subscribeDisplayNames();
 
-class RTCDebugPage extends React.Component<RTCDebugPageProps, RTCDebugPageState> {
-  constructor(props: RTCDebugPageProps) {
-    super(props);
-    this.state = {
-      focusedParticipant: undefined,
+    const ready = rtcdebugSub.ready() && puzzlesSub.ready() && profilesSub.ready();
+
+    const participants = ready ? CallParticipants.find({}).fetch() : [];
+    const signals = ready ? CallSignals.find({}).fetch() : [];
+    const puzzles = ready ? Puzzles.find({}).fetch() : [];
+    const profiles = ready ? Profiles.find({}).fetch() : [];
+
+    return {
+      isAdmin,
+      ready,
+      participants,
+      signals,
+      puzzles,
+      profiles,
     };
-  }
+  }, []);
 
-  onFocusParticipant = (participant: CallParticipantType | undefined) => {
-    this.setState({
-      focusedParticipant: participant,
-    });
-  };
+  const [focusedParticipant, setFocusedParticipant] =
+    useState<CallParticipantType | undefined>(undefined);
+  const onFocusParticipant = useCallback((participant: CallParticipantType | undefined) => {
+    setFocusedParticipant(participant);
+  }, []);
 
-  renderPage = () => {
-    if (!this.props.isAdmin) {
+  const renderPage = useCallback(() => {
+    if (!tracker.isAdmin) {
       return <p>You are not an admin.</p>;
     }
 
-    const participantsByCall = _.groupBy(this.props.participants, 'call');
-    const puzzlesById = _.indexBy(this.props.puzzles, '_id');
+    const participantsByCall = _.groupBy(tracker.participants, 'call');
+    const puzzlesById = _.indexBy(tracker.puzzles, '_id');
     const callPuzzleIds = Object.keys(participantsByCall);
     const callsJoinedToPuzzles = callPuzzleIds.map((pId) => {
       return {
@@ -235,7 +244,7 @@ class RTCDebugPage extends React.Component<RTCDebugPageProps, RTCDebugPageState>
         participants: participantsByCall[pId],
       };
     });
-    const profilesById = _.indexBy(this.props.profiles, '_id');
+    const profilesById = _.indexBy(tracker.profiles, '_id');
 
     const callSummaries = callsJoinedToPuzzles.map((call) => {
       return (
@@ -244,21 +253,21 @@ class RTCDebugPage extends React.Component<RTCDebugPageProps, RTCDebugPageState>
           puzzle={call.puzzle}
           participants={call.participants}
           profilesById={profilesById}
-          onFocusParticipant={this.onFocusParticipant}
+          onFocusParticipant={onFocusParticipant}
         />
       );
     });
 
     let focusedView;
-    const fp = this.state.focusedParticipant;
+    const fp = focusedParticipant;
     if (fp !== undefined) {
       // Okay, let's explore that participant.
       // Who else should they expect to be connected with?  All other members of the same call.
-      const otherParticipants = participantsByCall[fp.call].filter((p) => p._id !== fp._id);
+      const otherParticipants = (participantsByCall[fp.call] || []).filter((p) => p._id !== fp._id);
 
       const peerSummaries = otherParticipants.map((p) => {
-        const signalOut = this.props.signals.find((s) => s.sender === fp._id && s.target === p._id);
-        const signalIn = this.props.signals.find((s) => s.target === fp._id && s.sender === p._id);
+        const signalOut = tracker.signals.find((s) => s.sender === fp._id && s.target === p._id);
+        const signalIn = tracker.signals.find((s) => s.target === fp._id && s.sender === p._id);
         return (
           <PeerSummary
             key={p._id}
@@ -277,6 +286,7 @@ class RTCDebugPage extends React.Component<RTCDebugPageProps, RTCDebugPageState>
         <div>
           <h1>
             Focus on participant
+            {' '}
             <code>{fp._id}</code>
             {' '}
             (
@@ -302,49 +312,22 @@ class RTCDebugPage extends React.Component<RTCDebugPageProps, RTCDebugPageState>
         {focusedView}
       </div>
     );
-  };
+  }, [tracker, focusedParticipant]);
 
-  render() {
-    return (
-      <div>
-        <p>
-          This page exists for server admins to examine server WebRTC state for
-          all users, for the purposes of debugging issues with calls.  It can:
-        </p>
-        <ul>
-          <li>Show all call participants and any related signaling information</li>
-          <li>TODO: Attempt to recognize bad or incomplete signal states.</li>
-        </ul>
+  return (
+    <div>
+      <p>
+        This page exists for server admins to examine server WebRTC state for
+        all users, for the purposes of debugging issues with calls.  It can:
+      </p>
+      <ul>
+        <li>Show all call participants and any related signaling information</li>
+        <li>TODO: Attempt to recognize bad or incomplete signal states.</li>
+      </ul>
 
-        {this.props.ready ? this.renderPage() : <div>loading...</div>}
-      </div>
-    );
-  }
-}
+      {tracker.ready ? renderPage() : <div>loading...</div>}
+    </div>
+  );
+};
 
-const tracker = withTracker((_props: RTCDebugPageParams): RTCDebugPageProps => {
-  const isAdmin = Roles.userHasRole(Meteor.userId()!, 'admin');
-  const rtcdebugSub = Meteor.subscribe('rtcdebug');
-  const puzzlesSub = Meteor.subscribe('mongo.puzzles');
-  const profilesSub = Profiles.subscribeDisplayNames();
-
-  const ready = rtcdebugSub.ready() && puzzlesSub.ready() && profilesSub.ready();
-
-  const participants = ready ? CallParticipants.find({}).fetch() : [];
-  const signals = ready ? CallSignals.find({}).fetch() : [];
-  const puzzles = ready ? Puzzles.find({}).fetch() : [];
-  const profiles = ready ? Profiles.find({}).fetch() : [];
-
-  return {
-    isAdmin,
-    ready,
-    participants,
-    signals,
-    puzzles,
-    profiles,
-  };
-});
-
-const RTCDebugPageContainer = tracker(RTCDebugPage);
-
-export default RTCDebugPageContainer;
+export default RTCDebugPage;
