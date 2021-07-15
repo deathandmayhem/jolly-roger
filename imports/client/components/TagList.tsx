@@ -2,7 +2,7 @@ import { _ } from 'meteor/underscore';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import { PuzzleType } from '../../lib/schemas/puzzles';
@@ -17,7 +17,7 @@ interface BaseTagListProps {
   onRemoveTag?: (tagId: string) => void; // callback if user wants to remove a tag
   linkToSearch: boolean;
   showControls?: boolean;
-  emptyMessage: string;
+  emptyMessage?: string;
 }
 
 interface DoNotPopoverRelatedProps {
@@ -32,176 +32,158 @@ interface PopoverRelatedProps {
 
 type TagListProps = BaseTagListProps & (DoNotPopoverRelatedProps | PopoverRelatedProps);
 
-interface TagListState {
-  editing: boolean;
-  removing: boolean;
-}
-
-class TagList extends React.PureComponent<TagListProps, TagListState> {
-  static displayName = 'TagList';
-
-  static defaultProps = {
-    showControls: true,
-    emptyMessage: '',
-  };
-
-  constructor(props: TagListProps) {
-    super(props);
-    this.state = {
-      editing: false,
-      removing: false,
-    };
+const soloTagInterestingness = (tag: TagType) => {
+  if (tag.name === 'is:metameta') {
+    return -6;
+  } else if (tag.name === 'is:meta') {
+    return -5;
+  } else if (tag.name.lastIndexOf('meta-for:', 0) === 0) {
+    return -4;
+  } else if (tag.name.lastIndexOf('group:', 0) === 0) {
+    return -3;
+  } else if (tag.name.lastIndexOf('needs:', 0) === 0) {
+    return -2;
+  } else if (tag.name.lastIndexOf('priority:', 0) === 0) {
+    return -1;
+  } else {
+    return 0;
   }
+};
 
-  submitTag = (newTagName: string) => {
+const sortedTagsForSinglePuzzle = (tags: TagType[]) => {
+  // The sort order for tags should probably be:
+  // * "is:metameta" first
+  // * then "is:meta"
+  // * "meta:*" comes next (sorted alphabetically, if multiple are present)
+  // * all other tags, sorted alphabetically
+  const sortedTags = tags.slice(0);
+
+  sortedTags.sort((a, b) => {
+    const ia = soloTagInterestingness(a);
+    const ib = soloTagInterestingness(b);
+    if (ia !== ib) {
+      return ia - ib;
+    } else {
+      return a.name.localeCompare(b.name);
+    }
+  });
+
+  return sortedTags;
+};
+
+const TagList = React.memo((props: TagListProps) => {
+  const [editing, setEditing] = useState<boolean>(false);
+  const [removing, setRemoving] = useState<boolean>(false);
+
+  const submitTag = useCallback((newTagName: string) => {
     // TODO: submitTag should use the value passed in from the child, which may have done some
     // autocomplete matching that this component doesn't know about.
-    if (this.props.onCreateTag) {
-      this.props.onCreateTag(newTagName);
+    if (props.onCreateTag) {
+      props.onCreateTag(newTagName);
     }
-    this.setState({
-      editing: false,
-    });
-  };
+    setEditing(false);
+  }, [props.onCreateTag]);
 
-  startEditing = () => {
-    this.setState({ editing: true });
-  };
+  const startEditing = useCallback(() => {
+    setEditing(true);
+  }, []);
 
-  stopEditing = () => {
-    this.setState({ editing: false });
-  };
+  const stopEditing = useCallback(() => {
+    setEditing(false);
+  }, []);
 
-  startRemoving = () => {
-    this.setState({ removing: true });
-  };
+  const startRemoving = useCallback(() => {
+    setRemoving(true);
+  }, []);
 
-  stopRemoving = () => {
-    this.setState({ removing: false });
-  };
+  const stopRemoving = useCallback(() => {
+    setRemoving(false);
+  }, []);
 
-  removeTag = (tagIdToRemove: string) => {
-    if (this.props.onRemoveTag) {
-      this.props.onRemoveTag(tagIdToRemove);
+  const removeTag = useCallback((tagIdToRemove: string) => {
+    if (props.onRemoveTag) {
+      props.onRemoveTag(tagIdToRemove);
     }
-  };
+  }, [props.onRemoveTag]);
 
-  soloTagInterestingness = (tag: TagType) => {
-    if (tag.name === 'is:metameta') {
-      return -6;
-    } else if (tag.name === 'is:meta') {
-      return -5;
-    } else if (tag.name.lastIndexOf('meta-for:', 0) === 0) {
-      return -4;
-    } else if (tag.name.lastIndexOf('group:', 0) === 0) {
-      return -3;
-    } else if (tag.name.lastIndexOf('needs:', 0) === 0) {
-      return -2;
-    } else if (tag.name.lastIndexOf('priority:', 0) === 0) {
-      return -1;
-    } else {
-      return 0;
-    }
-  };
+  const showControls = props.showControls ?? true;
+  const emptyMessage = props.emptyMessage ?? '';
 
-  sortedTagsForSinglePuzzle = (tags: TagType[]) => {
-    // The sort order for tags should probably be:
-    // * "is:metameta" first
-    // * then "is:meta"
-    // * "meta:*" comes next (sorted alphabetically, if multiple are present)
-    // * all other tags, sorted alphabetically
-    const sortedTags = tags.slice(0);
-
-    sortedTags.sort((a, b) => {
-      const ia = this.soloTagInterestingness(a);
-      const ib = this.soloTagInterestingness(b);
-      if (ia !== ib) {
-        return ia - ib;
-      } else {
-        return a.name.localeCompare(b.name);
-      }
-    });
-
-    return sortedTags;
-  };
-
-  render() {
-    const tags = this.sortedTagsForSinglePuzzle(this.props.tags);
-    const components = [];
-    for (let i = 0; i < tags.length; i++) {
-      components.push(
-        <Tag
-          key={tags[i]._id}
-          tag={tags[i]}
-          onRemove={this.state.removing ? this.removeTag : undefined}
-          linkToSearch={this.props.linkToSearch}
-          popoverRelated={this.props.popoverRelated}
-          allPuzzles={this.props.popoverRelated ? this.props.allPuzzles : []}
-          allTags={this.props.popoverRelated ? this.props.allTags : []}
-        />
-      );
-    }
-
-    if (tags.length === 0 && this.props.emptyMessage) {
-      components.push(
-        <span className="tag-list-empty-label" key="noTagLabel">{this.props.emptyMessage}</span>
-      );
-    }
-
-    if (this.state.editing) {
-      components.push(
-        <TagEditor
-          key="tagEditor"
-          puzzle={this.props.puzzle}
-          onSubmit={this.submitTag}
-          onCancel={this.stopEditing}
-        />
-      );
-    } else if (this.state.removing) {
-      components.push(
-        <Button
-          key="stopRemoving"
-          className="tag-modify-button"
-          onClick={this.stopRemoving}
-        >
-          Done removing
-        </Button>
-      );
-    } else if (this.props.showControls && (this.props.onCreateTag || this.props.onRemoveTag)) {
-      components.push(
-        <ButtonGroup key="editRemoveGroup">
-          {this.props.onCreateTag && (
-            <Button
-              variant="secondary"
-              title="Add tag..."
-              key="startEditing"
-              className="tag-modify-button"
-              onClick={this.startEditing}
-            >
-              <FontAwesomeIcon fixedWidth icon={faPlus} />
-            </Button>
-          )}
-          {this.props.onRemoveTag && tags.length > 0 && (
-            <Button
-              variant="secondary"
-              title="Remove tag..."
-              key="startRemoving"
-              className="tag-modify-button"
-              onClick={this.startRemoving}
-            >
-              <FontAwesomeIcon fixedWidth icon={faMinus} />
-            </Button>
-          )}
-        </ButtonGroup>
-      );
-    }
-
-    return (
-      <div className="tag-list">
-        {components}
-      </div>
+  const tags = sortedTagsForSinglePuzzle(props.tags);
+  const components = [];
+  for (let i = 0; i < tags.length; i++) {
+    components.push(
+      <Tag
+        key={tags[i]._id}
+        tag={tags[i]}
+        onRemove={removing ? removeTag : undefined}
+        linkToSearch={props.linkToSearch}
+        popoverRelated={props.popoverRelated}
+        allPuzzles={props.popoverRelated ? props.allPuzzles : []}
+        allTags={props.popoverRelated ? props.allTags : []}
+      />
     );
   }
-}
+
+  if (tags.length === 0 && emptyMessage) {
+    components.push(
+      <span className="tag-list-empty-label" key="noTagLabel">{emptyMessage}</span>
+    );
+  }
+
+  if (editing) {
+    components.push(
+      <TagEditor
+        key="tagEditor"
+        puzzle={props.puzzle}
+        onSubmit={submitTag}
+        onCancel={stopEditing}
+      />
+    );
+  } else if (removing) {
+    components.push(
+      <Button
+        key="stopRemoving"
+        className="tag-modify-button"
+        onClick={stopRemoving}
+      >
+        Done removing
+      </Button>
+    );
+  } else if (showControls && (props.onCreateTag || props.onRemoveTag)) {
+    components.push(
+      <ButtonGroup key="editRemoveGroup">
+        {props.onCreateTag && (
+          <Button
+            variant="secondary"
+            title="Add tag..."
+            key="startEditing"
+            className="tag-modify-button"
+            onClick={startEditing}
+          >
+            <FontAwesomeIcon fixedWidth icon={faPlus} />
+          </Button>
+        )}
+        {props.onRemoveTag && tags.length > 0 && (
+          <Button
+            variant="secondary"
+            title="Remove tag..."
+            key="startRemoving"
+            className="tag-modify-button"
+            onClick={startRemoving}
+          >
+            <FontAwesomeIcon fixedWidth icon={faMinus} />
+          </Button>
+        )}
+      </ButtonGroup>
+    );
+  }
+
+  return (
+    <div className="tag-list">
+      {components}
+    </div>
+  );
+});
 
 export default TagList;
