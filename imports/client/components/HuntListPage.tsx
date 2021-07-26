@@ -19,13 +19,13 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import Row from 'react-bootstrap/Row';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import DiscordCache from '../../lib/models/discord_cache';
 import Hunts from '../../lib/models/hunts';
 import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/hunts';
 import { DiscordChannelType, DiscordRoleType } from '../discord';
+import { withBreadcrumb } from '../hooks/breadcrumb';
 import ModalForm from './ModalForm';
 
 /* eslint-disable max-len */

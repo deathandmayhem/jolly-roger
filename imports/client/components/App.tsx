@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import BreadcrumbItem from 'react-bootstrap/BreadcrumbItem';
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -14,12 +14,12 @@ import NavItem from 'react-bootstrap/NavItem';
 import NavLink from 'react-bootstrap/NavLink';
 import Navbar from 'react-bootstrap/Navbar';
 import NavbarBrand from 'react-bootstrap/NavbarBrand';
-import { BreadcrumbsConsumer } from 'react-breadcrumbs-context';
 import { RouteComponentProps } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
 import { lookupUrl } from '../../lib/models/blob_mappings';
 import Profiles from '../../lib/models/profiles';
+import { useBreadcrumbItems } from '../hooks/breadcrumb';
 import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
 
@@ -60,6 +60,32 @@ const AppNavbar = (props: RouteComponentProps) => {
     });
   }, [props.history]);
 
+  const crumbs = useBreadcrumbItems();
+  const breadcrumbsComponent = useMemo(() => {
+    return (
+      <Breadcrumb className="nav-breadcrumbs">
+        {crumbs.map((crumb, index) => {
+          const last = (index === crumbs.length - 1);
+          if (last) {
+            return (
+              <BreadcrumbItem key={crumb.path} active>
+                {crumb.title}
+              </BreadcrumbItem>
+            );
+          } else {
+            return (
+              <RRBS.LinkContainer key={crumb.path} to={crumb.path}>
+                <BreadcrumbItem active={false}>
+                  {crumb.title}
+                </BreadcrumbItem>
+              </RRBS.LinkContainer>
+            );
+          }
+        })}
+      </Breadcrumb>
+    );
+  }, [crumbs]);
+
   // Note: the .brand class on the <img> ensures that the logo takes up the
   // correct amount of space in the top bar even if we haven't actually picked
   // a nonempty source for it yet.
@@ -75,32 +101,7 @@ const AppNavbar = (props: RouteComponentProps) => {
           />
         </Link>
       </NavbarBrand>
-      <BreadcrumbsConsumer>
-        {({ crumbs }) => {
-          return (
-            <Breadcrumb className="nav-breadcrumbs">
-              {crumbs.map((crumb, index) => {
-                const last = (index === crumbs.length - 1);
-                if (last) {
-                  return (
-                    <BreadcrumbItem key={crumb.path} active>
-                      {crumb.title}
-                    </BreadcrumbItem>
-                  );
-                } else {
-                  return (
-                    <RRBS.LinkContainer key={crumb.path} to={crumb.path}>
-                      <BreadcrumbItem active={false}>
-                        {crumb.title}
-                      </BreadcrumbItem>
-                    </RRBS.LinkContainer>
-                  );
-                }
-              })}
-            </Breadcrumb>
-          );
-        }}
-      </BreadcrumbsConsumer>
+      {breadcrumbsComponent}
       <Nav className="ml-auto">
         <Dropdown as={NavItem}>
           <DropdownToggle id="profileDropdown" as={NavLink}>

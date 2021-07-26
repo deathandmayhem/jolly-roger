@@ -1,6 +1,6 @@
 import React from 'react';
-import { BreadcrumbsProvider } from 'react-breadcrumbs-context';
 import { Route, Switch } from 'react-router';
+import { BreadcrumbsProvider } from '../hooks/breadcrumb';
 import AllProfileListPage from './AllProfileListPage';
 import AuthenticatedRoute from './AuthenticatedRoute';
 import DocumentTitle from './DocumentTitle';

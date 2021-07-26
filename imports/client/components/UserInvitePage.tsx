@@ -9,8 +9,8 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { RouteComponentProps } from 'react-router';
+import { withBreadcrumb } from '../hooks/breadcrumb';
 
 interface UserInvitePageParams {
   huntId: string;

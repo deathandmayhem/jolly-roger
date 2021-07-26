@@ -13,7 +13,6 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
 import BlobMappings from '../../lib/models/blob_mappings';
 import DiscordCache from '../../lib/models/discord_cache';
@@ -21,6 +20,7 @@ import Settings from '../../lib/models/settings';
 import { BlobMappingType } from '../../lib/schemas/blob_mapping';
 import { SettingType } from '../../lib/schemas/settings';
 import { DiscordGuildType } from '../discord';
+import { withBreadcrumb } from '../hooks/breadcrumb';
 
 /* eslint-disable max-len, react/jsx-one-expression-per-line */
 

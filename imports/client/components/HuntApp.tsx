@@ -8,12 +8,12 @@ import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import {
   withRouter, RouteComponentProps, Switch, Redirect, Route,
 } from 'react-router';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
+import { withBreadcrumb } from '../hooks/breadcrumb';
 import AnnouncementsPage from './AnnouncementsPage';
 import CelebrationCenter from './CelebrationCenter';
 import DocumentTitle from './DocumentTitle';
@@ -191,7 +191,10 @@ class HuntApp extends React.PureComponent<HuntAppProps> {
 
 const huntsCrumb = withBreadcrumb<HuntAppWithRouterParams>({ title: 'Hunts', path: '/hunts' });
 const huntCrumb = withBreadcrumb(({ match, ready, hunt }: HuntAppProps) => {
-  return { title: ready && hunt ? hunt.name : 'loading...', path: `/hunts/${match.params.huntId}` };
+  return {
+    title: (ready && hunt) ? hunt.name : 'loading...',
+    path: `/hunts/${match.params.huntId}`,
+  };
 });
 const tracker = withTracker(({ match }: HuntAppWithRouterParams) => {
   const userHandle = Meteor.subscribe('selfHuntMembership');

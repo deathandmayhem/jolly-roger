@@ -10,7 +10,6 @@ import Button from 'react-bootstrap/Button';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import Guesses from '../../lib/models/guess';
@@ -21,6 +20,7 @@ import { GuessType } from '../../lib/schemas/guess';
 import { HuntType } from '../../lib/schemas/hunts';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
+import { withBreadcrumb } from '../hooks/breadcrumb';
 
 /* eslint-disable max-len */
 

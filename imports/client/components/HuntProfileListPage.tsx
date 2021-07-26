@@ -3,10 +3,10 @@ import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import React from 'react';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { Route, RouteComponentProps, Switch } from 'react-router';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
+import { withBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 import UserInvitePage from './UserInvitePage';
 

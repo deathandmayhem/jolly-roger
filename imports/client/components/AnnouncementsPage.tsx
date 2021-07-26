@@ -8,11 +8,11 @@ import moment from 'moment';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { RouteComponentProps } from 'react-router';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
 import { AnnouncementType } from '../../lib/schemas/announcements';
+import { withBreadcrumb } from '../hooks/breadcrumb';
 
 /* eslint-disable max-len */
 

@@ -1,9 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
+import { withBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 
 interface AllProfileListPageTracker {
