@@ -174,35 +174,6 @@ function useBreadcrumb(crumb: Crumb): void {
   }, [crumb.title, crumb.path]);
 }
 
-type BreadcrumbWrapperProps = {
-  crumb: Crumb;
-  children: React.ReactNode;
-}
-
-// I can't figure out the incantation to make this typecheck, so we have one
-// `any` that I'd like to eliminate.  I'm not too worried about it, since the
-// rest all typechecks and we can drop BreadcrumbWrapper entirely once we
-// burn down usages of `withBreadcrumb`.
-const BreadcrumbWrapper = (props: BreadcrumbWrapperProps): any => {
-  useBreadcrumb(props.crumb);
-
-  return React.Children.only(props.children);
-};
-
-function withBreadcrumb<T>(crumb: Crumb | ((props: T) => Crumb)):
-    (component: React.ComponentType<T>) => React.FunctionComponent<T> {
-  return (WrappedComponent: React.ComponentType<T>) => {
-    return (props: T) => {
-      const flatCrumb = typeof crumb === 'function' ? crumb(props) : crumb;
-      return (
-        <BreadcrumbWrapper crumb={flatCrumb}>
-          <WrappedComponent {...props} />
-        </BreadcrumbWrapper>
-      );
-    };
-  };
-}
-
 const useBreadcrumbItems = () => {
   const subscriptionRef = useRef<BreadcrumbSubscribeHandle | undefined>(undefined);
   const [crumbs, setCrumbs] = useState<CrumbWithId[]>([]);
@@ -223,5 +194,5 @@ const useBreadcrumbItems = () => {
 };
 
 export {
-  Crumb, BreadcrumbsProvider, useBreadcrumb, useBreadcrumbItems, withBreadcrumb,
+  Crumb, BreadcrumbsProvider, useBreadcrumb, useBreadcrumbItems,
 };
