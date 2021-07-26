@@ -20,7 +20,7 @@ import Settings from '../../lib/models/settings';
 import { BlobMappingType } from '../../lib/schemas/blob_mapping';
 import { SettingType } from '../../lib/schemas/settings';
 import { DiscordGuildType } from '../discord';
-import { withBreadcrumb } from '../hooks/breadcrumb';
+import { useBreadcrumb } from '../hooks/breadcrumb';
 
 /* eslint-disable max-len, react/jsx-one-expression-per-line */
 
@@ -1794,6 +1794,7 @@ interface SetupPageTracker {
 }
 
 const SetupPage = () => {
+  useBreadcrumb({ title: 'Server setup', path: '/setup' });
   const tracker = useTracker<SetupPageTracker>(() => {
     const canConfigure = Roles.userHasRole(Meteor.userId()!, 'admin');
 
@@ -1931,6 +1932,4 @@ const SetupPage = () => {
   );
 };
 
-const crumb = withBreadcrumb({ title: 'Server setup', path: '/setup' });
-
-export default crumb(SetupPage);
+export default SetupPage;

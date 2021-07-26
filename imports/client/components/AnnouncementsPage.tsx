@@ -12,7 +12,7 @@ import { RouteComponentProps } from 'react-router';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
 import { AnnouncementType } from '../../lib/schemas/announcements';
-import { withBreadcrumb } from '../hooks/breadcrumb';
+import { useBreadcrumb } from '../hooks/breadcrumb';
 
 /* eslint-disable max-len */
 
@@ -112,6 +112,7 @@ interface AnnouncementsPageTracker {
 }
 
 const AnnouncementsPage = (props: AnnouncementsPageWithRouterParams) => {
+  useBreadcrumb({ title: 'Announcements', path: `/hunts/${props.match.params.huntId}/announcements` });
   const tracker = useTracker<AnnouncementsPageTracker>(() => {
     // We already have subscribed to mongo.announcements on the main page, since we want to be able
     // to show them on any page.  So we don't *need* to make the subscription here...
@@ -164,9 +165,4 @@ const AnnouncementsPage = (props: AnnouncementsPageWithRouterParams) => {
   );
 };
 
-const crumb = withBreadcrumb(({ match }: AnnouncementsPageWithRouterParams) => {
-  return { title: 'Announcements', path: `/hunts/${match.params.huntId}/announcements` };
-});
-
-const AnnouncementsPageContainer = crumb(AnnouncementsPage);
-export default AnnouncementsPageContainer;
+export default AnnouncementsPage;

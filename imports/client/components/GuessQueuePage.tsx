@@ -20,7 +20,7 @@ import { GuessType } from '../../lib/schemas/guess';
 import { HuntType } from '../../lib/schemas/hunts';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
-import { withBreadcrumb } from '../hooks/breadcrumb';
+import { useBreadcrumb } from '../hooks/breadcrumb';
 
 /* eslint-disable max-len */
 
@@ -137,7 +137,9 @@ interface GuessQueuePageProps extends GuessQueuePageWithRouterParams {
   canEdit: boolean;
 }
 
-const GuessQueuePageHook = (props: GuessQueuePageWithRouterParams) => {
+const GuessQueuePage = (props: GuessQueuePageWithRouterParams) => {
+  useBreadcrumb({ title: 'Guess queue', path: `/hunts/${props.match.params.huntId}/guesses` });
+
   const tracker = useTracker(() => {
     const huntId = props.match.params.huntId;
     const huntHandle = Meteor.subscribe('mongo.hunts', {
@@ -293,10 +295,4 @@ const GuessQueuePageHook = (props: GuessQueuePageWithRouterParams) => {
   );
 };
 
-const crumb = withBreadcrumb(({ match }: GuessQueuePageWithRouterParams) => {
-  return { title: 'Guess queue', path: `/hunts/${match.params.huntId}/guesses` };
-});
-
-const GuessQueuePageContainer = crumb(GuessQueuePageHook);
-
-export default GuessQueuePageContainer;
+export default GuessQueuePage;

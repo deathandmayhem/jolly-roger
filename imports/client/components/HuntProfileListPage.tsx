@@ -6,7 +6,7 @@ import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
-import { withBreadcrumb } from '../hooks/breadcrumb';
+import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 import UserInvitePage from './UserInvitePage';
 
@@ -26,6 +26,7 @@ interface HuntProfileListPageTracker {
 }
 
 const HuntProfileListPage = (props: HuntProfileListPageWithRouterParams) => {
+  useBreadcrumb({ title: 'Hunters', path: `/hunts/${props.match.params.huntId}/hunters` });
   const tracker = useTracker<HuntProfileListPageTracker>(() => {
     const huntId = props.match.params.huntId;
     const usersHandle = Meteor.subscribe('huntMembers', huntId);
@@ -80,9 +81,4 @@ const HuntProfileListPage = (props: HuntProfileListPageWithRouterParams) => {
   );
 };
 
-const crumb = withBreadcrumb(({ match }: HuntProfileListPageWithRouterParams) => {
-  return { title: 'Hunters', path: `/hunts/${match.params.huntId}/hunters` };
-});
-const HuntProfileListPageContainer = crumb(HuntProfileListPage);
-
-export default HuntProfileListPageContainer;
+export default HuntProfileListPage;

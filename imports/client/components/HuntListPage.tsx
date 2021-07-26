@@ -25,7 +25,7 @@ import DiscordCache from '../../lib/models/discord_cache';
 import Hunts from '../../lib/models/hunts';
 import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/hunts';
 import { DiscordChannelType, DiscordRoleType } from '../discord';
-import { withBreadcrumb } from '../hooks/breadcrumb';
+import { useBreadcrumb } from '../hooks/breadcrumb';
 import ModalForm from './ModalForm';
 
 /* eslint-disable max-len */
@@ -613,6 +613,7 @@ interface HuntListPageProps {
 }
 
 const HuntListPage = () => {
+  useBreadcrumb({ title: 'Hunts', path: '/hunts' });
   const tracker: HuntListPageProps = useTracker(() => {
     const huntListHandle = Meteor.subscribe('mongo.hunts');
     const myHuntsHandle = Meteor.subscribe('selfHuntMembership');
@@ -703,7 +704,4 @@ const HuntListPage = () => {
   );
 };
 
-const crumb = withBreadcrumb<{}>({ title: 'Hunts', path: '/hunts' });
-const HuntListContainer = crumb(HuntListPage);
-
-export default HuntListContainer;
+export default HuntListPage;
