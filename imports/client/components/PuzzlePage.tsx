@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import { useTracker, withTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
@@ -41,7 +41,7 @@ import { DocumentType } from '../../lib/schemas/documents';
 import { GuessType } from '../../lib/schemas/guess';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
-import { withBreadcrumb } from '../hooks/breadcrumb';
+import { useBreadcrumb } from '../hooks/breadcrumb';
 import ChatPeople from './ChatPeople';
 import DocumentTitle from './DocumentTitle';
 import DocumentDisplay from './Documents';
@@ -900,7 +900,7 @@ interface PuzzlePageParams {
 interface PuzzlePageWithRouterParams extends RouteComponentProps<PuzzlePageParams> {
 }
 
-interface PuzzlePageProps extends PuzzlePageWithRouterParams {
+interface PuzzlePageTracker {
   puzzlesReady: boolean;
   allPuzzles: PuzzleType[];
   allTags: TagType[];
@@ -912,208 +912,179 @@ interface PuzzlePageProps extends PuzzlePageWithRouterParams {
   canUpdate: boolean;
 }
 
-interface PuzzlePageState {
-  sidebarWidth: number,
-  isDesktop: boolean;
-}
+const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
+  const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
+  const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
+  const [isDesktop, setIsDesktop] = useState<boolean>(window.innerWidth >= MinimumDesktopWidth);
 
-class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
-  private puzzlePageEl: HTMLElement | null;
+  const tracker = useTracker<PuzzlePageTracker>(() => {
+    const { params } = props.match;
+    // There are some model dependencies that we have to be careful about:
+    //
+    // * We show the displayname of the person who submitted a guess, so guesses depends on display names
+    // * Chat messages show the displayname of the sender, so chatmessages depends on display names
+    // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
+    //
+    // We can render some things on incomplete data, but most of them really need full data:
+    // * Chat can be rendered with just chat messages and display names
+    // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
 
-  constructor(props: PuzzlePageProps) {
-    super(props);
-    const mode = this.calculateViewMode();
-    this.puzzlePageEl = null;
-    this.state = {
-      sidebarWidth: DefaultSidebarWidth,
-      isDesktop: mode.isDesktop,
+    // Add the current user to the collection of people viewing this puzzle.
+    // Don't use the subs manager - we don't want this cached.
+    const subscribersTopic = `puzzle:${params.puzzleId}`;
+    Meteor.subscribe('subscribers.inc', subscribersTopic, {
+      puzzle: params.puzzleId,
+      hunt: params.huntId,
+    });
+    const subscribersHandle = Meteor.subscribe('subscribers.fetch', subscribersTopic);
+
+    const displayNamesHandle = Profiles.subscribeDisplayNames();
+    let displayNames = {};
+    if (displayNamesHandle.ready()) {
+      displayNames = Profiles.displayNames();
+    }
+
+    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: params.huntId });
+    const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: params.huntId });
+    const guessesHandle = Meteor.subscribe('mongo.guesses', { puzzle: params.puzzleId });
+    const documentsHandle = Meteor.subscribe('mongo.documents', { puzzle: params.puzzleId });
+
+    // Track the tally of people viewing this puzzle.
+    Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
+
+    const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && subscribersHandle.ready() && displayNamesHandle.ready();
+
+    let allPuzzles: PuzzleType[];
+    let allTags: TagType[];
+    let allGuesses: GuessType[];
+    let document: DocumentType | undefined;
+    // There's no sense in doing this expensive computation here if we're still loading data,
+    // since we're not going to render the children.
+    if (puzzlesReady) {
+      allPuzzles = Puzzles.find({ hunt: params.huntId }).fetch();
+      allTags = Tags.find({ hunt: params.huntId }).fetch();
+      allGuesses = Guesses.find({ hunt: params.huntId, puzzle: params.puzzleId }).fetch();
+
+      // Sort by created at so that the "first" document always has consistent meaning
+      document = Documents.findOne({ puzzle: params.puzzleId }, { sort: { createdAt: 1 } });
+    } else {
+      allPuzzles = [];
+      allTags = [];
+      allGuesses = [];
+      document = undefined;
+    }
+
+    const chatFields: Record<string, number> = {};
+    FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
+    const chatHandle = Meteor.subscribe(
+      'mongo.chatmessages',
+      { puzzle: params.puzzleId },
+      { fields: chatFields }
+    );
+
+    // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
+    // other collections.
+    const chatReady = chatHandle.ready() && displayNamesHandle.ready();
+    const chatMessages = (chatReady && ChatMessages.find(
+      { puzzle: params.puzzleId },
+      { sort: { timestamp: 1 } },
+    ).fetch()) || [];
+    return {
+      puzzlesReady,
+      allPuzzles,
+      allTags,
+      chatReady,
+      chatMessages,
+      displayNames,
+      allGuesses,
+      document,
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     };
-  }
+  }, [props.match.params.huntId, props.match.params.puzzleId]);
 
-  componentDidMount() {
-    window.addEventListener('resize', this.onResize);
-    if (this.puzzlePageEl) {
-      this.setState({
-        sidebarWidth: Math.min(DefaultSidebarWidth, this.puzzlePageEl.clientWidth - MinimumDocumentWidth),
-      });
-    }
-    Meteor.call('ensureDocumentAndPermissions', this.props.match.params.puzzleId);
-  }
-
-  componentDidUpdate(prevProps: PuzzlePageProps) {
-    if (prevProps.match.params.puzzleId !== this.props.match.params.puzzleId) {
-      Meteor.call('ensureDocumentAndPermissions', this.props.match.params.puzzleId);
-    }
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.onResize);
-  }
-
-  onResize = () => {
-    this.setState(this.calculateViewMode());
-  };
-
-  onChangeSideBarSize = (newSidebarWidth: number) => {
-    this.setState({ sidebarWidth: newSidebarWidth });
-  };
-
-  // Ideally these should be based on size of the component (and the trigger changed appropriately)
-  // but this component is designed for full-page use, so...
-  calculateViewMode = () => {
-    const newIsDesktop = window.innerWidth >= MinimumDesktopWidth;
-    return { isDesktop: newIsDesktop };
-  };
-
-  render() {
-    if (!this.props.puzzlesReady) {
-      return <div className="puzzle-page jolly-roger-fixed" ref={(el) => { this.puzzlePageEl = el; }}><span>loading...</span></div>;
-    }
-    const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.match.params.puzzleId)!;
-    const metadata = (
-      <PuzzlePageMetadata
-        puzzle={activePuzzle}
-        allTags={this.props.allTags}
-        allPuzzles={this.props.allPuzzles}
-        guesses={this.props.allGuesses}
-        displayNames={this.props.displayNames}
-        isDesktop={this.state.isDesktop}
-        document={this.props.document}
-      />
-    );
-    const chat = (
-      <ChatSection
-        chatReady={this.props.chatReady}
-        chatMessages={this.props.chatMessages}
-        displayNames={this.props.displayNames}
-        huntId={this.props.match.params.huntId}
-        puzzleId={this.props.match.params.puzzleId}
-      />
-    );
-    return (
-      <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
-        {this.state.isDesktop ? (
-          <div className="puzzle-page jolly-roger-fixed" ref={(el) => { this.puzzlePageEl = el; }}>
-            <SplitPanePlus
-              split="vertical"
-              minSize={MinimumSidebarWidth}
-              maxSize={-MinimumDocumentWidth}
-              primary="first"
-              autoCollapse1={-1}
-              autoCollapse2={-1}
-              size={this.state.sidebarWidth}
-              onPaneChanged={this.onChangeSideBarSize}
-            >
-              {chat}
-              <div className="puzzle-content">
-                {metadata}
-                <PuzzlePageMultiplayerDocument document={this.props.document} />
-              </div>
-            </SplitPanePlus>
-          </div>
-        ) : (
-          <div className="puzzle-page narrow jolly-roger-fixed">
-            {metadata}
-            {chat}
-          </div>
-        )}
-      </DocumentTitle>
-    );
-  }
-}
-
-const crumb = withBreadcrumb(({ match, puzzlesReady, allPuzzles }) => {
-  const activePuzzle = findPuzzleById(allPuzzles, match.params.puzzleId)!;
-  return {
-    title: puzzlesReady ? activePuzzle.title : 'loading...',
-    path: `/hunts/${match.params.huntId}/puzzles/${match.params.puzzleId}`,
-  };
-});
-const tracker = withTracker(({ match }: PuzzlePageWithRouterParams) => {
-  const { params } = match;
-  // There are some model dependencies that we have to be careful about:
-  //
-  // * We show the displayname of the person who submitted a guess, so guesses depends on display names
-  // * Chat messages show the displayname of the sender, so chatmessages depends on display names
-  // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
-  //
-  // We can render some things on incomplete data, but most of them really need full data:
-  // * Chat can be rendered with just chat messages and display names
-  // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
-
-  // Add the current user to the collection of people viewing this puzzle.
-  // Don't use the subs manager - we don't want this cached.
-  const subscribersTopic = `puzzle:${params.puzzleId}`;
-  Meteor.subscribe('subscribers.inc', subscribersTopic, {
-    puzzle: params.puzzleId,
-    hunt: params.huntId,
+  const activePuzzle = findPuzzleById(tracker.allPuzzles, props.match.params.puzzleId);
+  useBreadcrumb({
+    title: tracker.puzzlesReady ? activePuzzle!.title : 'loading...',
+    path: `/hunts/${props.match.params.huntId}/puzzles/${props.match.params.puzzleId}`,
   });
-  const subscribersHandle = Meteor.subscribe('subscribers.fetch', subscribersTopic);
 
-  const displayNamesHandle = Profiles.subscribeDisplayNames();
-  let displayNames = {};
-  if (displayNamesHandle.ready()) {
-    displayNames = Profiles.displayNames();
+  const onResize = useCallback(() => {
+    setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
+  }, []);
+
+  const onChangeSideBarSize = useCallback((newSidebarWidth: number) => {
+    setSidebarWidth(newSidebarWidth);
+  }, []);
+
+  useEffect(() => {
+    // Populate sidebar width on mount
+    if (puzzlePageDivRef.current) {
+      setSidebarWidth(Math.min(DefaultSidebarWidth, puzzlePageDivRef.current.clientWidth - MinimumDocumentWidth));
+    }
+
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    Meteor.call('ensureDocumentAndPermissions', props.match.params.puzzleId);
+  }, [props.match.params.puzzleId]);
+
+  if (!tracker.puzzlesReady) {
+    return <div className="puzzle-page jolly-roger-fixed" ref={puzzlePageDivRef}><span>loading...</span></div>;
   }
-
-  const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: params.huntId });
-  const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: params.huntId });
-  const guessesHandle = Meteor.subscribe('mongo.guesses', { puzzle: params.puzzleId });
-  const documentsHandle = Meteor.subscribe('mongo.documents', { puzzle: params.puzzleId });
-
-  // Track the tally of people viewing this puzzle.
-  Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
-
-  const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && subscribersHandle.ready() && displayNamesHandle.ready();
-
-  let allPuzzles: PuzzleType[];
-  let allTags: TagType[];
-  let allGuesses: GuessType[];
-  let document: DocumentType | undefined;
-  // There's no sense in doing this expensive computation here if we're still loading data,
-  // since we're not going to render the children.
-  if (puzzlesReady) {
-    allPuzzles = Puzzles.find({ hunt: params.huntId }).fetch();
-    allTags = Tags.find({ hunt: params.huntId }).fetch();
-    allGuesses = Guesses.find({ hunt: params.huntId, puzzle: params.puzzleId }).fetch();
-
-    // Sort by created at so that the "first" document always has consistent meaning
-    document = Documents.findOne({ puzzle: params.puzzleId }, { sort: { createdAt: 1 } });
-  } else {
-    allPuzzles = [];
-    allTags = [];
-    allGuesses = [];
-    document = undefined;
-  }
-
-  const chatFields: Record<string, number> = {};
-  FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
-  const chatHandle = Meteor.subscribe(
-    'mongo.chatmessages',
-    { puzzle: params.puzzleId },
-    { fields: chatFields }
+  const metadata = (
+    <PuzzlePageMetadata
+      puzzle={activePuzzle!}
+      allTags={tracker.allTags}
+      allPuzzles={tracker.allPuzzles}
+      guesses={tracker.allGuesses}
+      displayNames={tracker.displayNames}
+      isDesktop={isDesktop}
+      document={tracker.document}
+    />
   );
-
-  // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
-  // other collections.
-  const chatReady = chatHandle.ready() && displayNamesHandle.ready();
-  const chatMessages = (chatReady && ChatMessages.find(
-    { puzzle: params.puzzleId },
-    { sort: { timestamp: 1 } },
-  ).fetch()) || [];
-  return {
-    puzzlesReady,
-    allPuzzles,
-    allTags,
-    chatReady,
-    chatMessages,
-    displayNames,
-    allGuesses,
-    document,
-    canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
-  };
+  const chat = (
+    <ChatSection
+      chatReady={tracker.chatReady}
+      chatMessages={tracker.chatMessages}
+      displayNames={tracker.displayNames}
+      huntId={props.match.params.huntId}
+      puzzleId={props.match.params.puzzleId}
+    />
+  );
+  return (
+    <DocumentTitle title={`${activePuzzle!.title} :: Jolly Roger`}>
+      {isDesktop ? (
+        <div className="puzzle-page jolly-roger-fixed" ref={puzzlePageDivRef}>
+          <SplitPanePlus
+            split="vertical"
+            minSize={MinimumSidebarWidth}
+            maxSize={-MinimumDocumentWidth}
+            primary="first"
+            autoCollapse1={-1}
+            autoCollapse2={-1}
+            size={sidebarWidth}
+            onPaneChanged={onChangeSideBarSize}
+          >
+            {chat}
+            <div className="puzzle-content">
+              {metadata}
+              <PuzzlePageMultiplayerDocument document={tracker.document} />
+            </div>
+          </SplitPanePlus>
+        </div>
+      ) : (
+        <div className="puzzle-page narrow jolly-roger-fixed">
+          {metadata}
+          {chat}
+        </div>
+      )}
+    </DocumentTitle>
+  );
 });
 
-const PuzzlePageContainer = tracker(crumb(PuzzlePage));
-
-export default PuzzlePageContainer;
+export default PuzzlePage;
