@@ -1,10 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import { withTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
-import React from 'react';
+import React, { useMemo } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
@@ -13,7 +13,7 @@ import {
 } from 'react-router';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
-import { withBreadcrumb } from '../hooks/breadcrumb';
+import { useBreadcrumb } from '../hooks/breadcrumb';
 import AnnouncementsPage from './AnnouncementsPage';
 import CelebrationCenter from './CelebrationCenter';
 import DocumentTitle from './DocumentTitle';
@@ -120,10 +120,7 @@ interface HuntAppParams {
   huntId: string;
 }
 
-interface HuntAppWithRouterParams extends RouteComponentProps<HuntAppParams> {
-}
-
-interface HuntAppProps extends HuntAppWithRouterParams {
+interface HuntAppTracker {
   ready: boolean;
   hunt?: HuntType;
   member: boolean;
@@ -131,90 +128,89 @@ interface HuntAppProps extends HuntAppWithRouterParams {
   canJoin: boolean;
 }
 
-class HuntApp extends React.PureComponent<HuntAppProps> {
-  renderBody = () => {
-    if (!this.props.ready) {
+const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
+  useBreadcrumb({ title: 'Hunts', path: '/hunts' });
+
+  const { huntId } = props.match.params;
+  const tracker = useTracker<HuntAppTracker>(() => {
+    const userHandle = Meteor.subscribe('selfHuntMembership');
+    // Subscribe to deleted and non-deleted hunts separately so that we can reuse
+    // the non-deleted subscription
+    const huntHandle = Meteor.subscribe('mongo.hunts', { _id: huntId });
+    const deletedHuntHandle = Meteor.subscribe('mongo.hunts.deleted', {
+      _id: huntId,
+    });
+    const user = Meteor.user();
+    const member = !!user && _.contains(user.hunts, huntId);
+    return {
+      ready: userHandle.ready() && huntHandle.ready() && deletedHuntHandle.ready(),
+      hunt: Hunts.findOneAllowingDeleted(huntId),
+      member,
+      canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+      canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', huntId),
+    };
+  }, [huntId]);
+
+  useBreadcrumb({
+    title: (tracker.ready && tracker.hunt) ? tracker.hunt.name : 'loading...',
+    path: `/hunts/${huntId}`,
+  });
+
+  const title = tracker.hunt ? `${tracker.hunt.name} :: Jolly Roger` : '';
+
+  const body = useMemo(() => {
+    if (!tracker.ready) {
       return <span>loading...</span>;
     }
 
-    if (!this.props.hunt) {
+    if (!tracker.hunt) {
       return <span>This hunt does not exist</span>;
     }
 
-    if (this.props.hunt.deleted) {
+    if (tracker.hunt.deleted) {
       return (
         <HuntDeletedErrorWithRouter
-          hunt={this.props.hunt}
-          canUndestroy={this.props.canUndestroy}
+          hunt={tracker.hunt}
+          canUndestroy={tracker.canUndestroy}
         />
       );
     }
 
-    if (!this.props.member) {
-      return <HuntMemberErrorWithRouter hunt={this.props.hunt} canJoin={this.props.canJoin} />;
+    if (!tracker.member) {
+      return <HuntMemberErrorWithRouter hunt={tracker.hunt} canJoin={tracker.canJoin} />;
     }
 
-    const match = this.props.match;
+    const { path } = props.match;
     return (
       <Route path="/">
         <Switch>
-          <Route path={`${match.path}/announcements`} component={AnnouncementsPage} />
-          <Route path={`${match.path}/guesses`} component={GuessQueuePage} />
-          <Route path={`${match.path}/hunters`} component={HuntProfileListPage} />
-          <Route path={`${match.path}/puzzles/:puzzleId`} component={PuzzlePage} />
-          <Route path={`${match.path}/puzzles`} component={PuzzleListPage} />
+          <Route path={`${path}/announcements`} component={AnnouncementsPage} />
+          <Route path={`${path}/guesses`} component={GuessQueuePage} />
+          <Route path={`${path}/hunters`} component={HuntProfileListPage} />
+          <Route path={`${path}/puzzles/:puzzleId`} component={PuzzlePage} />
+          <Route path={`${path}/puzzles`} component={PuzzleListPage} />
           <Route
-            path={`${match.path}`}
+            path={`${path}`}
             exact
             render={() => {
-              return <Redirect to={`/hunts/${this.props.match.params.huntId}/puzzles`} />;
+              return <Redirect to={`/hunts/${huntId}/puzzles`} />;
             }}
           />
         </Switch>
       </Route>
     );
-  };
+  }, [
+    tracker.ready, tracker.hunt, tracker.canUndestroy, tracker.canJoin, props.match.path, huntId,
+  ]);
 
-  render() {
-    const title = this.props.hunt ? `${this.props.hunt.name} :: Jolly Roger` : '';
-
-    return (
-      <DocumentTitle title={title}>
-        <div>
-          <CelebrationCenter huntId={this.props.match.params.huntId} />
-          {this.renderBody()}
-        </div>
-      </DocumentTitle>
-    );
-  }
-}
-
-const huntsCrumb = withBreadcrumb<HuntAppWithRouterParams>({ title: 'Hunts', path: '/hunts' });
-const huntCrumb = withBreadcrumb(({ match, ready, hunt }: HuntAppProps) => {
-  return {
-    title: (ready && hunt) ? hunt.name : 'loading...',
-    path: `/hunts/${match.params.huntId}`,
-  };
-});
-const tracker = withTracker(({ match }: HuntAppWithRouterParams) => {
-  const userHandle = Meteor.subscribe('selfHuntMembership');
-  // Subscribe to deleted and non-deleted hunts separately so that we can reuse
-  // the non-deleted subscription
-  const huntHandle = Meteor.subscribe('mongo.hunts', { _id: match.params.huntId });
-  const deletedHuntHandle = Meteor.subscribe('mongo.hunts.deleted', {
-    _id: match.params.huntId,
-  });
-  const user = Meteor.user();
-  const member = !!user && _.contains(user.hunts, match.params.huntId);
-  return {
-    ready: userHandle.ready() && huntHandle.ready() && deletedHuntHandle.ready(),
-    hunt: Hunts.findOneAllowingDeleted(match.params.huntId),
-    member,
-    canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
-    canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', match.params.huntId),
-  };
+  return (
+    <DocumentTitle title={title}>
+      <div>
+        <CelebrationCenter huntId={huntId} />
+        {body}
+      </div>
+    </DocumentTitle>
+  );
 });
 
-const HuntAppContainer = huntsCrumb(tracker(huntCrumb(HuntApp)));
-
-export default HuntAppContainer;
+export default HuntApp;
