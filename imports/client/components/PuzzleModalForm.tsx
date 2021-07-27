@@ -11,7 +11,7 @@ import Creatable from 'react-select/creatable';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import LabelledRadioGroup from './LabelledRadioGroup';
-import ModalForm from './ModalForm';
+import ModalForm, { ModalFormHandle } from './ModalForm';
 
 /* eslint-disable max-len */
 
@@ -69,7 +69,7 @@ const PuzzleModalForm = React.forwardRef((
   const [tagsDirty, setTagsDirty] = useState<boolean>(false);
   const [expectedAnswerCountDirty, setExpectedAnswerCountDirty] = useState<boolean>(false);
 
-  const formRef = useRef<ModalForm>(null);
+  const formRef = useRef<ModalFormHandle>(null);
 
   const onTitleChange: FormControlProps['onChange'] = useCallback((event) => {
     setTitle(event.currentTarget.value);

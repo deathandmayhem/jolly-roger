@@ -26,7 +26,7 @@ import Hunts from '../../lib/models/hunts';
 import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/hunts';
 import { DiscordChannelType, DiscordRoleType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
-import ModalForm from './ModalForm';
+import ModalForm, { ModalFormHandle } from './ModalForm';
 
 /* eslint-disable max-len */
 
@@ -210,7 +210,7 @@ const HuntModalForm = React.forwardRef((props: HuntModalFormProps, forwardedRef:
   const [firehoseDiscordChannel, setFirehoseDiscordChannel] = useState<SavedDiscordObjectType | undefined>(props.hunt?.firehoseDiscordChannel);
   const [memberDiscordRole, setMemberDiscordRole] = useState<SavedDiscordObjectType | undefined>(props.hunt?.memberDiscordRole);
 
-  const formRef = useRef<ModalForm>(null);
+  const formRef = useRef<ModalFormHandle>(null);
 
   useImperativeHandle(forwardedRef, () => ({
     show: () => {
@@ -516,7 +516,7 @@ const Hunt = React.memo((props: HuntProps) => {
   }, []);
 
   const editModalRef = useRef<React.ElementRef<typeof HuntModalForm>>(null);
-  const deleteModalRef = useRef<ModalForm>(null);
+  const deleteModalRef = useRef<ModalFormHandle>(null);
 
   const onEdit = useCallback((state: HuntModalSubmit, callback: (error?: Error) => void) => {
     Ansible.log('Updating hunt settings', { hunt: props.hunt._id, user: Meteor.userId(), state });
@@ -632,7 +632,7 @@ const HuntListPage = () => {
     };
   }, []);
 
-  const addModalRef = useRef<React.ElementRef<typeof HuntModalForm>>(null);
+  const addModalRef = useRef<HuntModalFormHandle>(null);
 
   const onAdd = useCallback((state: HuntModalSubmit, callback: (error?: Error) => void): void => {
     Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });

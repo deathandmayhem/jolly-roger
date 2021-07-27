@@ -45,7 +45,7 @@ import { useBreadcrumb } from '../hooks/breadcrumb';
 import ChatPeople from './ChatPeople';
 import DocumentTitle from './DocumentTitle';
 import DocumentDisplay from './Documents';
-import ModalForm from './ModalForm';
+import ModalForm, { ModalFormHandle } from './ModalForm';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
@@ -782,7 +782,7 @@ const PuzzleAnswerModal = React.forwardRef((props: PuzzleAnswerModalProps, forwa
     useState<PuzzleAnswerSubmitState>(PuzzleAnswerSubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
-  const formRef = useRef<React.ElementRef<typeof ModalForm>>(null);
+  const formRef = useRef<ModalFormHandle>(null);
 
   const show = useCallback(() => {
     if (formRef.current) {
@@ -796,7 +796,7 @@ const PuzzleAnswerModal = React.forwardRef((props: PuzzleAnswerModalProps, forwa
 
   const hide = useCallback(() => {
     if (formRef.current) {
-      formRef.current.close();
+      formRef.current.hide();
     }
   }, []);
 
