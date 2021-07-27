@@ -15,41 +15,37 @@ interface PuzzleListProps {
   suppressTags?: string[];
 }
 
-class PuzzleList extends React.PureComponent<PuzzleListProps> {
-  static displayName = 'PuzzleList';
+const PuzzleList = React.memo((props: PuzzleListProps) => {
+  // This component just renders the puzzles provided, in order.
+  // Adjusting order based on tags, tag groups, etc. is to be done at
+  // a higher layer.
+  const puzzles = [];
+  for (let i = 0; i < props.puzzles.length; i++) {
+    const puz = props.puzzles[i];
+    puzzles.push(<Puzzle
+      key={puz._id}
+      puzzle={puz}
+      allTags={props.allTags}
+      layout={props.layout}
+      canUpdate={props.canUpdate}
+      suppressTags={props.suppressTags}
+    />);
+  }
 
-  render() {
-    // This component just renders the puzzles provided, in order.
-    // Adjusting order based on tags, tag groups, etc. is to be done at
-    // a higher layer.
-    const puzzles = [];
-    for (let i = 0; i < this.props.puzzles.length; i++) {
-      const puz = this.props.puzzles[i];
-      puzzles.push(<Puzzle
-        key={puz._id}
-        puzzle={puz}
-        allTags={this.props.allTags}
-        layout={this.props.layout}
-        canUpdate={this.props.canUpdate}
-        suppressTags={this.props.suppressTags}
-      />);
-    }
-
-    if (this.props.layout === 'table') {
-      return (
-        <table className="puzzle-list">
-          <tbody>
-            {puzzles}
-          </tbody>
-        </table>
-      );
-    }
+  if (props.layout === 'table') {
     return (
-      <div className="puzzle-list">
-        {puzzles}
-      </div>
+      <table className="puzzle-list">
+        <tbody>
+          {puzzles}
+        </tbody>
+      </table>
     );
   }
-}
+  return (
+    <div className="puzzle-list">
+      {puzzles}
+    </div>
+  );
+});
 
 export default PuzzleList;
