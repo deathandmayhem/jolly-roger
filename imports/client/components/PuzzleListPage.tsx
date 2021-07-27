@@ -29,7 +29,9 @@ import { HuntType } from '../../lib/schemas/hunts';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import PuzzleList from './PuzzleList';
-import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
+import PuzzleModalForm, {
+  PuzzleModalFormHandle, PuzzleModalFormSubmitPayload,
+} from './PuzzleModalForm';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 import { filteredPuzzleGroups, puzzleGroupsByRelevance } from './puzzle-sort-and-group';
 
@@ -46,7 +48,7 @@ function showSolvedStorageKey(huntId: string): string {
 }
 
 const PuzzleListView = (props: PuzzleListViewProps) => {
-  const addModalRef = useRef<PuzzleModalForm>(null);
+  const addModalRef = useRef<PuzzleModalFormHandle>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
   const [displayMode, setDisplayMode] = useState<string>('group');
   const [showSolved, setShowSolved] = useState<boolean>(() => {

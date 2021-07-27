@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {
+  useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState,
+} from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Col from 'react-bootstrap/Col';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
@@ -16,7 +18,7 @@ import ModalForm from './ModalForm';
 export interface PuzzleModalFormSubmitPayload {
   hunt: string;
   title: string;
-  url: string;
+  url: string | undefined;
   tags: string[];
   docType?: string;
   expectedAnswerCount: number;
@@ -37,72 +39,51 @@ enum PuzzleModalFormSubmitState {
   FAILED = 'failed',
 }
 
-interface PuzzleModalFormState {
-  title: string;
-  url: string;
-  tags: string[];
-  docType?: string;
-  expectedAnswerCount: number;
-  submitState: PuzzleModalFormSubmitState;
-  errorMessage: string;
-  titleDirty: boolean;
-  urlDirty: boolean;
-  tagsDirty: boolean;
-  expectedAnswerCountDirty: boolean;
+export type PuzzleModalFormHandle = {
+  show: () => void;
 }
 
-class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalFormState> {
-  formRef: React.RefObject<ModalForm>;
+const PuzzleModalForm = React.forwardRef((
+  props: PuzzleModalFormProps, forwardedRef: React.Ref<PuzzleModalFormHandle>
+) => {
+  const { puzzle } = props;
 
-  static displayName = 'PuzzleModalForm';
+  const tagNamesForIds = useCallback((tagIds: string[]) => {
+    const tagNames: Record<string, string> = {};
+    props.tags.forEach((t) => { tagNames[t._id] = t.name; });
+    return tagIds.map((t) => tagNames[t]);
+  }, [props.tags]);
 
-  constructor(props: PuzzleModalFormProps, context?: any) {
-    super(props, context);
-    const state = {
-      submitState: PuzzleModalFormSubmitState.IDLE,
-      errorMessage: '',
-      titleDirty: false,
-      urlDirty: false,
-      tagsDirty: false,
-      expectedAnswerCountDirty: false,
-    };
+  const [title, setTitle] = useState<string>(puzzle ? puzzle.title : '');
+  const [url, setUrl] = useState<string | undefined>(puzzle ? puzzle.url : undefined);
+  const [tags, setTags] = useState<string[]>(puzzle ? tagNamesForIds(puzzle.tags) : []);
+  const [docType, setDocType] =
+    useState<string | undefined>(puzzle ? undefined : 'spreadsheet');
+  const [expectedAnswerCount, setExpectedAnswerCount] =
+    useState<number>(puzzle ? puzzle.expectedAnswerCount : 1);
+  const [submitState, setSubmitState] =
+    useState<PuzzleModalFormSubmitState>(PuzzleModalFormSubmitState.IDLE);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [titleDirty, setTitleDirty] = useState<boolean>(false);
+  const [urlDirty, setUrlDirty] = useState<boolean>(false);
+  const [tagsDirty, setTagsDirty] = useState<boolean>(false);
+  const [expectedAnswerCountDirty, setExpectedAnswerCountDirty] = useState<boolean>(false);
 
-    this.formRef = React.createRef();
+  const formRef = useRef<ModalForm>(null);
 
-    if (props.puzzle) {
-      this.state = Object.assign(state, this.stateFromPuzzle(props.puzzle));
-    } else {
-      this.state = Object.assign(state, {
-        title: '',
-        url: '',
-        tags: [],
-        docType: 'spreadsheet',
-        expectedAnswerCount: 1,
-      });
-    }
-  }
+  const onTitleChange: FormControlProps['onChange'] = useCallback((event) => {
+    setTitle(event.currentTarget.value);
+    setTitleDirty(true);
+  }, []);
 
-  componentDidMount() {
-    if (this.props.showOnMount) {
-      this.show();
-    }
-  }
+  const onUrlChange: FormControlProps['onChange'] = useCallback((event) => {
+    setUrl(event.currentTarget.value);
+    setUrlDirty(true);
+  }, []);
 
-  onTitleChange: FormControlProps['onChange'] = (event) => {
-    this.setState({
-      title: event.currentTarget.value,
-      titleDirty: true,
-    });
-  };
-
-  onUrlChange: FormControlProps['onChange'] = (event) => {
-    this.setState({
-      url: event.currentTarget.value,
-      urlDirty: true,
-    });
-  };
-
-  onTagsChange = (value: {label: string, value: string}[] | undefined | null, action: { action: string }) => {
+  const onTagsChange = useCallback((
+    value: {label: string, value: string}[] | undefined | null, action: { action: string }
+  ) => {
     let newTags = [];
     switch (action.action) {
       case 'clear':
@@ -118,225 +99,210 @@ class PuzzleModalForm extends React.Component<PuzzleModalFormProps, PuzzleModalF
         return;
     }
 
-    this.setState({
-      tags: newTags,
-      tagsDirty: true,
-    });
-  };
+    setTags(newTags);
+    setTagsDirty(true);
+  }, []);
 
-  onDocTypeChange = (newValue: string) => {
-    this.setState({
-      docType: newValue,
-    });
-  };
+  const onDocTypeChange = useCallback((newValue: string) => {
+    setDocType(newValue);
+  }, []);
 
-  onExpectedAnswerCountChange: FormControlProps['onChange'] = (event) => {
+  const onExpectedAnswerCountChange: FormControlProps['onChange'] = useCallback((event) => {
     const string = event.currentTarget.value;
     const value = Number(string);
-    this.setState({
-      expectedAnswerCount: value,
-      expectedAnswerCountDirty: true,
-    });
-  };
+    setExpectedAnswerCount(value);
+    setExpectedAnswerCountDirty(true);
+  }, []);
 
-  onFormSubmit = (callback: () => void) => {
-    this.setState({ submitState: PuzzleModalFormSubmitState.SUBMITTING });
+  const onFormSubmit = useCallback((callback: () => void) => {
+    setSubmitState(PuzzleModalFormSubmitState.SUBMITTING);
     const payload: PuzzleModalFormSubmitPayload = {
-      hunt: this.props.huntId,
-      title: this.state.title,
-      url: this.state.url,
-      tags: this.state.tags,
-      expectedAnswerCount: this.state.expectedAnswerCount,
+      hunt: props.huntId,
+      title,
+      url: url || undefined, // Make sure we send undefined if url is falsy
+      tags,
+      expectedAnswerCount,
     };
-    if (this.state.docType) {
-      payload.docType = this.state.docType;
+    if (docType) {
+      payload.docType = docType;
     }
-    this.props.onSubmit(payload, (error) => {
+    props.onSubmit(payload, (error) => {
       if (error) {
-        this.setState({
-          submitState: PuzzleModalFormSubmitState.FAILED,
-          errorMessage: error.message,
-        });
+        setErrorMessage(error.message);
+        setSubmitState(PuzzleModalFormSubmitState.FAILED);
       } else {
-        this.setState({
-          submitState: PuzzleModalFormSubmitState.IDLE,
-          errorMessage: '',
-          titleDirty: false,
-          urlDirty: false,
-          tagsDirty: false,
-          expectedAnswerCountDirty: false,
-        });
+        setSubmitState(PuzzleModalFormSubmitState.IDLE);
+        setErrorMessage('');
+        setTitleDirty(false);
+        setUrlDirty(false);
+        setTagsDirty(false);
+        setExpectedAnswerCountDirty(false);
         callback();
       }
     });
-  };
+  }, [
+    props.onSubmit, props.huntId, title, url, tags, expectedAnswerCount, docType,
+  ]);
 
-  tagNamesForIds = (tagIds: string[]) => {
-    const tagNames: Record<string, string> = {};
-    this.props.tags.forEach((t) => { tagNames[t._id] = t.name; });
-    return tagIds.map((t) => tagNames[t]);
-  };
-
-  stateFromPuzzle = (puzzle: PuzzleType) => {
-    return {
-      title: puzzle.title,
-      url: puzzle.url || '',
-      tags: this.tagNamesForIds(puzzle.tags),
-      expectedAnswerCount: puzzle.expectedAnswerCount,
-    };
-  };
-
-  show = () => {
-    if (this.formRef.current) {
-      this.formRef.current.show();
+  const show = useCallback(() => {
+    if (formRef.current) {
+      formRef.current.show();
     }
-  };
+  }, []);
 
-  currentTitle = () => {
-    if (!this.state.titleDirty && this.props.puzzle) {
-      return this.props.puzzle.title;
+  const currentTitle = useMemo(() => {
+    if (!titleDirty && props.puzzle) {
+      return props.puzzle.title;
     } else {
-      return this.state.title;
+      return title;
     }
-  };
+  }, [titleDirty, props.puzzle, title]);
 
-  currentUrl = () => {
-    if (!this.state.urlDirty && this.props.puzzle) {
-      return this.props.puzzle.url;
+  const currentUrl = useMemo(() => {
+    if (!urlDirty && props.puzzle) {
+      return props.puzzle.url;
     } else {
-      return this.state.url;
+      return url;
     }
-  };
+  }, [urlDirty, props.puzzle, url]);
 
-  currentTags = () => {
-    if (!this.state.tagsDirty && this.props.puzzle) {
-      return this.tagNamesForIds(this.props.puzzle.tags);
+  const currentTags = useMemo(() => {
+    if (!tagsDirty && props.puzzle) {
+      return tagNamesForIds(props.puzzle.tags);
     } else {
-      return this.state.tags;
+      return tags;
     }
-  };
+  }, [tagsDirty, props.puzzle, tagNamesForIds, tags]);
 
-  currentExpectedAnswerCount = () => {
-    if (!this.state.expectedAnswerCountDirty && this.props.puzzle) {
-      return this.props.puzzle.expectedAnswerCount;
+  const currentExpectedAnswerCount = useMemo(() => {
+    if (!expectedAnswerCountDirty && props.puzzle) {
+      return props.puzzle.expectedAnswerCount;
     } else {
-      return this.state.expectedAnswerCount;
+      return expectedAnswerCount;
     }
-  };
+  }, [expectedAnswerCountDirty, props.puzzle, expectedAnswerCount]);
 
-  render() {
-    const disableForm = this.state.submitState === PuzzleModalFormSubmitState.SUBMITTING;
+  useImperativeHandle(forwardedRef, () => ({
+    show,
+  }));
 
-    const selectOptions = [...this.props.tags.map((t) => t.name), ...this.state.tags]
-      .filter(Boolean)
-      .map((t) => {
-        return { value: t, label: t };
-      });
+  useEffect(() => {
+    if (props.showOnMount) {
+      show();
+    }
+  }, []);
 
-    const docTypeSelector = !this.props.puzzle && this.state.docType ? (
+  const disableForm = submitState === PuzzleModalFormSubmitState.SUBMITTING;
+
+  const selectOptions = [...props.tags.map((t) => t.name), ...tags]
+    .filter(Boolean)
+    .map((t) => {
+      return { value: t, label: t };
+    });
+
+  const docTypeSelector = !props.puzzle && docType ? (
+    <FormGroup as={Row}>
+      <FormLabel column xs={3} htmlFor="jr-new-puzzle-doc-type">
+        Document type
+      </FormLabel>
+      <Col xs={9}>
+        <LabelledRadioGroup
+          header=""
+          name="jr-new-puzzle-doc-type"
+          options={[
+            {
+              value: 'spreadsheet',
+              label: 'Spreadsheet',
+            },
+            {
+              value: 'document',
+              label: 'Document',
+            },
+          ]}
+          initialValue={docType}
+          help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
+          onChange={onDocTypeChange}
+        />
+      </Col>
+    </FormGroup>
+  ) : null;
+
+  return (
+    <ModalForm
+      ref={formRef}
+      title={props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
+      onSubmit={onFormSubmit}
+      submitDisabled={disableForm}
+    >
       <FormGroup as={Row}>
-        <FormLabel column xs={3} htmlFor="jr-new-puzzle-doc-type">
-          Document type
+        <FormLabel column xs={3} htmlFor="jr-new-puzzle-title">
+          Title
         </FormLabel>
         <Col xs={9}>
-          <LabelledRadioGroup
-            header=""
-            name="jr-new-puzzle-doc-type"
-            options={[
-              {
-                value: 'spreadsheet',
-                label: 'Spreadsheet',
-              },
-              {
-                value: 'document',
-                label: 'Document',
-              },
-            ]}
-            initialValue={this.state.docType}
-            help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
-            onChange={this.onDocTypeChange}
+          <FormControl
+            id="jr-new-puzzle-title"
+            type="text"
+            autoFocus
+            disabled={disableForm}
+            onChange={onTitleChange}
+            value={currentTitle}
           />
         </Col>
       </FormGroup>
-    ) : null;
 
-    return (
-      <ModalForm
-        ref={this.formRef}
-        title={this.props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
-        onSubmit={this.onFormSubmit}
-        submitDisabled={disableForm}
-      >
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor="jr-new-puzzle-title">
-            Title
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              id="jr-new-puzzle-title"
-              type="text"
-              autoFocus
-              disabled={disableForm}
-              onChange={this.onTitleChange}
-              value={this.currentTitle()}
-            />
-          </Col>
-        </FormGroup>
+      <FormGroup as={Row}>
+        <FormLabel column xs={3} htmlFor="jr-new-puzzle-url">
+          URL
+        </FormLabel>
+        <Col xs={9}>
+          <FormControl
+            id="jr-new-puzzle-url"
+            type="text"
+            disabled={disableForm}
+            onChange={onUrlChange}
+            value={currentUrl}
+          />
+        </Col>
+      </FormGroup>
 
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor="jr-new-puzzle-url">
-            URL
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              id="jr-new-puzzle-url"
-              type="text"
-              disabled={disableForm}
-              onChange={this.onUrlChange}
-              value={this.currentUrl()}
-            />
-          </Col>
-        </FormGroup>
+      <FormGroup as={Row}>
+        <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags">
+          Tags
+        </FormLabel>
+        <Col xs={9}>
+          <Creatable
+            id="jr-new-puzzle-tags"
+            options={selectOptions}
+            isMulti
+            disabled={disableForm}
+            onChange={onTagsChange as any /* onChange type declaration doesn't understand isMulti */}
+            value={currentTags.map((t) => { return { label: t, value: t }; })}
+          />
+        </Col>
+      </FormGroup>
 
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags">
-            Tags
-          </FormLabel>
-          <Col xs={9}>
-            <Creatable
-              id="jr-new-puzzle-tags"
-              options={selectOptions}
-              isMulti
-              disabled={disableForm}
-              onChange={this.onTagsChange as any /* onChange type declaration doesn't understand isMulti */}
-              value={this.currentTags().map((t) => { return { label: t, value: t }; })}
-            />
-          </Col>
-        </FormGroup>
+      {docTypeSelector}
 
-        {docTypeSelector}
+      <FormGroup as={Row}>
+        <FormLabel column xs={3} htmlFor="jr-new-puzzle-expected-answer-count">
+          Expected # of answers
+        </FormLabel>
+        <Col xs={9}>
+          <FormControl
+            id="jr-new-puzzle-expected-answer-count"
+            type="number"
+            disabled={disableForm}
+            onChange={onExpectedAnswerCountChange}
+            value={currentExpectedAnswerCount}
+            min={1}
+            step={1}
+          />
+        </Col>
+      </FormGroup>
 
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor="jr-new-puzzle-expected-answer-count">
-            Expected # of answers
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              id="jr-new-puzzle-expected-answer-count"
-              type="number"
-              disabled={disableForm}
-              onChange={this.onExpectedAnswerCountChange}
-              value={this.currentExpectedAnswerCount()}
-              min={1}
-              step={1}
-            />
-          </Col>
-        </FormGroup>
-
-        {this.state.submitState === PuzzleModalFormSubmitState.FAILED && <Alert variant="danger">{this.state.errorMessage}</Alert>}
-      </ModalForm>
-    );
-  }
-}
+      {submitState === PuzzleModalFormSubmitState.FAILED && <Alert variant="danger">{errorMessage}</Alert>}
+    </ModalForm>
+  );
+});
 
 export default PuzzleModalForm;
