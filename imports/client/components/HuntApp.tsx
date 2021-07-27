@@ -4,13 +4,14 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import {
-  withRouter, RouteComponentProps, Switch, Redirect, Route,
+  RouteComponentProps, Switch, Redirect, Route,
 } from 'react-router';
+import { useHistory } from 'react-router-dom';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
 import { useBreadcrumb } from '../hooks/breadcrumb';
@@ -22,99 +23,95 @@ import HuntProfileListPage from './HuntProfileListPage';
 import PuzzleListPage from './PuzzleListPage';
 import PuzzlePage from './PuzzlePage';
 
-interface HuntDeletedErrorProps extends RouteComponentProps {
+interface HuntDeletedErrorProps {
   hunt: HuntType;
   canUndestroy: boolean;
 }
 
-class HuntDeletedError extends React.PureComponent<HuntDeletedErrorProps> {
-  undestroy = () => {
-    Hunts.undestroy(this.props.hunt._id);
-  };
+const HuntDeletedError = React.memo((props: HuntDeletedErrorProps) => {
+  const undestroy = useCallback(() => {
+    Hunts.undestroy(props.hunt._id);
+  }, [props.hunt._id]);
 
-  undestroyButton = () => {
-    if (this.props.canUndestroy) {
+  const undestroyButton = useMemo(() => {
+    if (props.canUndestroy) {
       return (
-        <Button variant="primary" onClick={this.undestroy}>
+        <Button variant="primary" onClick={undestroy}>
           Undelete this hunt
         </Button>
       );
     }
     return null;
-  };
+  }, [props.canUndestroy, undestroy]);
 
-  render() {
-    return (
-      <div>
-        <Alert variant="danger">
-          This hunt has been deleted, so there&apos;s nothing much to see here anymore.
-        </Alert>
+  const history = useHistory();
 
-        <ButtonToolbar>
-          <Button variant="light" onClick={this.props.history.goBack}>
-            Whoops! Get me out of here
-          </Button>
-          {this.undestroyButton()}
-        </ButtonToolbar>
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      <Alert variant="danger">
+        This hunt has been deleted, so there&apos;s nothing much to see here anymore.
+      </Alert>
 
-const HuntDeletedErrorWithRouter = withRouter(HuntDeletedError);
+      <ButtonToolbar>
+        <Button variant="light" onClick={history.goBack}>
+          Whoops! Get me out of here
+        </Button>
+        {undestroyButton}
+      </ButtonToolbar>
+    </div>
+  );
+});
 
-interface HuntMemberErrorProps extends RouteComponentProps {
+interface HuntMemberErrorProps {
   hunt: HuntType;
   canJoin: boolean;
 }
 
-class HuntMemberError extends React.PureComponent<HuntMemberErrorProps> {
-  join = () => {
+const HuntMemberError = React.memo((props: HuntMemberErrorProps) => {
+  const join = useCallback(() => {
     const user = Meteor.user();
     if (!user || !user.emails) {
       return;
     }
-    Meteor.call('addToHunt', this.props.hunt._id, user.emails[0].address);
-  };
+    Meteor.call('addToHunt', props.hunt._id, user.emails[0].address);
+  }, [props.hunt._id]);
 
-  joinButton = () => {
-    if (this.props.canJoin) {
+  const joinButton = useMemo(() => {
+    if (props.canJoin) {
       return (
-        <Button variant="primary" onClick={this.join}>
+        <Button variant="primary" onClick={join}>
           Use operator permissions to join
         </Button>
       );
     }
     return null;
-  };
+  }, [props.canJoin, join]);
 
-  render() {
-    const msg = marked(DOMPurify.sanitize(this.props.hunt.signupMessage || ''));
-    return (
-      <div>
-        <Alert variant="warning">
-          You&apos;re not signed up for this hunt (
-          {this.props.hunt.name}
-          ) yet.
-        </Alert>
+  const history = useHistory();
 
-        <div
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: msg }}
-        />
+  const msg = marked(DOMPurify.sanitize(props.hunt.signupMessage || ''));
+  return (
+    <div>
+      <Alert variant="warning">
+        You&apos;re not signed up for this hunt (
+        {props.hunt.name}
+        ) yet.
+      </Alert>
 
-        <ButtonToolbar>
-          <Button variant="light" onClick={this.props.history.goBack}>
-            Whoops! Get me out of here
-          </Button>
-          {this.joinButton()}
-        </ButtonToolbar>
-      </div>
-    );
-  }
-}
+      <div
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: msg }}
+      />
 
-const HuntMemberErrorWithRouter = withRouter(HuntMemberError);
+      <ButtonToolbar>
+        <Button variant="light" onClick={history.goBack}>
+          Whoops! Get me out of here
+        </Button>
+        {joinButton}
+      </ButtonToolbar>
+    </div>
+  );
+});
 
 interface HuntAppParams {
   huntId: string;
@@ -169,7 +166,7 @@ const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
 
     if (tracker.hunt.deleted) {
       return (
-        <HuntDeletedErrorWithRouter
+        <HuntDeletedError
           hunt={tracker.hunt}
           canUndestroy={tracker.canUndestroy}
         />
@@ -177,7 +174,7 @@ const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
     }
 
     if (!tracker.member) {
-      return <HuntMemberErrorWithRouter hunt={tracker.hunt} canJoin={tracker.canJoin} />;
+      return <HuntMemberError hunt={tracker.hunt} canJoin={tracker.canJoin} />;
     }
 
     const { path } = props.match;
