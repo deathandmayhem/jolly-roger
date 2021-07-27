@@ -15,7 +15,7 @@ import { CallParticipantType } from '../../lib/schemas/call_participants';
 import { CallSignalType, CallSignalMessageType } from '../../lib/schemas/call_signals';
 import { ProfileType } from '../../lib/schemas/profiles';
 import { RTCConfigType } from '../rtc_config';
-import Spectrum from './Spectrum';
+import Spectrum, { SpectrumHandle } from './Spectrum';
 
 interface CallLinkBoxState {
   iceConnectionState: RTCIceConnectionState;
@@ -39,7 +39,7 @@ interface CallLinkBoxProps extends CallLinkBoxParams {
 class CallLinkBox extends React.PureComponent<CallLinkBoxProps, CallLinkBoxState> {
   private audioRef: React.RefObject<HTMLVideoElement>;
 
-  private spectrumComponent: Spectrum | null;
+  private spectrumComponent: SpectrumHandle | null;
 
   private spectrumStream: MediaStream | undefined;
 

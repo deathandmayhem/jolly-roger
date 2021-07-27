@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {
+  useCallback, useEffect, useImperativeHandle, useRef,
+} from 'react';
 
 // Note: this is incomplete; I didn't figure out how I wanted to feed a stream
 // to the Spectrum component.  I don't love making it a prop, since I really need
@@ -19,44 +21,83 @@ interface SpectrumProps {
 
 const DEFAULT_THROTTLE_MAX_FPS = 30;
 
-class Spectrum extends React.Component<SpectrumProps> {
-  private canvasRef: React.RefObject<HTMLCanvasElement>;
+export type SpectrumHandle = {
+  connect: (stream: MediaStream) => void;
+}
 
-  private analyserNode: AnalyserNode;
-
-  private bufferLength: number;
-
-  private analyserBuffer: Uint8Array;
-
-  private periodicHandle: number | undefined;
-
-  private lastPainted: number;
-
-  private throttleMinMsecElapsed: number;
-
-  constructor(props: SpectrumProps) {
-    super(props);
-
-    this.canvasRef = React.createRef();
-    this.analyserNode = props.audioContext.createAnalyser();
-    this.analyserNode.fftSize = props.barCount !== undefined ? props.barCount * 2 : 32;
-    this.analyserNode.smoothingTimeConstant = (props.smoothingTimeConstant !== undefined ?
+const Spectrum = React.forwardRef((
+  props: SpectrumProps, forwardedRef: React.Ref<SpectrumHandle>
+) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const bufferLength = useRef<number>(0);
+  const analyserNode = useRef<AnalyserNode | undefined>(undefined);
+  const analyserBuffer = useRef<Uint8Array | undefined>(undefined);
+  if (analyserNode.current === undefined) {
+    analyserNode.current = props.audioContext.createAnalyser();
+    analyserNode.current.fftSize = props.barCount !== undefined ? props.barCount * 2 : 32;
+    analyserNode.current.smoothingTimeConstant = (props.smoothingTimeConstant !== undefined ?
       props.smoothingTimeConstant : 0.4);
-    this.bufferLength = this.analyserNode.frequencyBinCount;
-    this.analyserBuffer = new Uint8Array(this.bufferLength);
-    this.lastPainted = 0;
-    this.throttleMinMsecElapsed = 1000 / (props.throttleFps !== undefined ?
-      props.throttleFps : DEFAULT_THROTTLE_MAX_FPS);
+    bufferLength.current = analyserNode.current.frequencyBinCount;
+    analyserBuffer.current = new Uint8Array(bufferLength.current);
   }
 
-  componentWillUnmount() {
-    if (this.periodicHandle) {
-      window.cancelAnimationFrame(this.periodicHandle);
-      this.periodicHandle = undefined;
+  const periodicHandle = useRef<number | undefined>(undefined);
+  const lastPainted = useRef<number>(0);
+  const throttleMinMsecValue = 1000 / (props.throttleFps !== undefined ?
+    props.throttleFps : DEFAULT_THROTTLE_MAX_FPS);
+  const throttleMinMsecElapsed = useRef<number>(throttleMinMsecValue);
+
+  useEffect(() => {
+    return () => {
+      if (periodicHandle.current) {
+        window.cancelAnimationFrame(periodicHandle.current);
+        periodicHandle.current = undefined;
+      }
+    };
+  }, []);
+
+  const drawSpectrum = useCallback((time: number) => {
+    // request call on next animation frame
+    periodicHandle.current = window.requestAnimationFrame(drawSpectrum);
+
+    // Throttle: only do work if throttleMinMsecElapsed have passed since
+    // the last time we did work.
+    if (lastPainted.current + throttleMinMsecElapsed.current > time) {
+      return;
     }
-  }
 
-  connect = (stream: MediaStream) => {
+    lastPainted.current = time;
+    analyserNode.current!.getByteFrequencyData(analyserBuffer.current!);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const canvasCtx = canvas.getContext('2d');
+      if (canvasCtx) {
+        const WIDTH = props.width;
+        const HEIGHT = props.height;
+        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+        const barWidth = (WIDTH / (bufferLength.current / 2));
+        let x = 0;
+        for (let i = 0; i < (bufferLength.current / 2); i++) {
+          // minimum bar height reduces some flickering
+          const barFloor = props.barFloor !== undefined ? props.barFloor : 32;
+          const barHeight = (Math.max(analyserBuffer.current![i], barFloor) * HEIGHT) / 255;
+
+          // bootstrap blue is rgb(0, 123, 255)
+          const redness = analyserBuffer.current![i] - 60 < 0 ?
+            0 :
+            analyserBuffer.current![i] / 2;
+          const greenness = analyserBuffer.current![i] - 60 < 0 ?
+            123 :
+            123 + (analyserBuffer.current![i] - 123) / 2;
+          canvasCtx.fillStyle = `rgb(${redness},${greenness},255)`;
+          canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+          x += barWidth + 1;
+        }
+      }
+    }
+  }, [props.width, props.height, props.barFloor]);
+
+  const connect = useCallback((stream: MediaStream) => {
     // This audio element is a workaround for
     // https://bugs.chromium.org/p/chromium/issues/detail?id=933677 wherein
     // audio tracks from a peer connection never deliver data into a WebAudio
@@ -65,64 +106,27 @@ class Spectrum extends React.Component<SpectrumProps> {
     const stubAudioElement = document.createElement('audio');
     stubAudioElement.muted = true;
     stubAudioElement.srcObject = stream;
-    const wrapperStreamSource = this.props.audioContext.createMediaStreamSource(stream);
-    wrapperStreamSource.connect(this.analyserNode);
+    const wrapperStreamSource = props.audioContext.createMediaStreamSource(stream);
+    wrapperStreamSource.connect(analyserNode.current!);
 
-    // Schedule periodic spectrogram paintings
-    this.periodicHandle = window.requestAnimationFrame(this.drawSpectrum);
-  };
-
-  drawSpectrum = (time: number) => {
-    // request call on next animation frame
-    this.periodicHandle = window.requestAnimationFrame(this.drawSpectrum);
-
-    // Throttle: only do work if throttleMinMsecElapsed have passed since
-    // the last time we did work.
-    if (this.lastPainted + this.throttleMinMsecElapsed > time) {
-      return;
+    // Schedule periodic spectrogram paintings, if not already running.
+    if (!periodicHandle.current) {
+      periodicHandle.current = window.requestAnimationFrame(drawSpectrum);
     }
+  }, [props.audioContext, drawSpectrum]);
 
-    this.lastPainted = time;
-    this.analyserNode.getByteFrequencyData(this.analyserBuffer);
-    const canvas = this.canvasRef.current;
-    if (canvas) {
-      const canvasCtx = canvas.getContext('2d');
-      if (canvasCtx) {
-        const WIDTH = this.props.width;
-        const HEIGHT = this.props.height;
-        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-        const barWidth = (WIDTH / (this.bufferLength / 2));
-        let x = 0;
-        for (let i = 0; i < (this.bufferLength / 2); i++) {
-          // minimum bar height reduces some flickering
-          const barFloor = this.props.barFloor !== undefined ? this.props.barFloor : 32;
-          const barHeight = (Math.max(this.analyserBuffer[i], barFloor) * HEIGHT) / 255;
+  useImperativeHandle(forwardedRef, () => ({
+    connect,
+  }));
 
-          // bootstrap blue is rgb(0, 123, 255)
-          const redness = this.analyserBuffer[i] - 60 < 0 ?
-            0 :
-            this.analyserBuffer[i] / 2;
-          const greenness = this.analyserBuffer[i] - 60 < 0 ?
-            123 :
-            123 + (this.analyserBuffer[i] - 123) / 2;
-          canvasCtx.fillStyle = `rgb(${redness},${greenness},255)`;
-          canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
-          x += barWidth + 1;
-        }
-      }
-    }
-  };
+  return (
+    <canvas
+      className={props.className}
+      width={props.width}
+      height={props.height}
+      ref={canvasRef}
+    />
+  );
+});
 
-  render() {
-    return (
-      <canvas
-        className={this.props.className}
-        width={this.props.width}
-        height={this.props.height}
-        ref={this.canvasRef}
-      />
-    );
-  }
-}
-
-export default Spectrum;
+export default React.memo(Spectrum);
