@@ -139,6 +139,12 @@ const AudioConfig = () => {
     setLoopback((prevLoopback) => !prevLoopback);
   }, []);
 
+  const spectrumRefCallback = useCallback((spectrum) => {
+    if (spectrum) {
+      spectrum.connect(stream!);
+    }
+  }, []);
+
   return (
     <section className="audio-self-test-section">
       <h2>Audio</h2>
@@ -230,12 +236,7 @@ const AudioConfig = () => {
             throttleFps={60}
             barFloor={0}
             smoothingTimeConstant={0.7}
-            ref={((spectrum) => {
-              if (spectrum) {
-                spectrum.connect(stream!);
-              }
-            }
-            )}
+            ref={spectrumRefCallback}
           />
         ) : <div className="audio-self-test-spectrogram" />}
       </div>

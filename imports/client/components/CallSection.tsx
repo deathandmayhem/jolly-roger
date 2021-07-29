@@ -104,6 +104,12 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
     props.onLeaveCall();
   }, [props.onLeaveCall]);
 
+  const spectrumRefCallback = useCallback((spectrum) => {
+    if (spectrum) {
+      spectrum.connect(props.localStream);
+    }
+  }, [props.localStream]);
+
   const selfProfile = tracker.selfProfile;
   const discordAccount = selfProfile && selfProfile.discordAccount;
   const discordAvatarUrl = discordAccount && getAvatarCdnUrl(discordAccount);
@@ -146,12 +152,7 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
               width={40}
               height={40}
               audioContext={props.audioContext}
-              ref={((spectrum) => {
-                if (spectrum) {
-                  spectrum.connect(props.localStream);
-                }
-              }
-              )}
+              ref={spectrumRefCallback}
             />
           ) : null}
         </div>
