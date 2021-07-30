@@ -1,9 +1,9 @@
 import React from 'react';
 import { Route, Switch } from 'react-router';
 import { BreadcrumbsProvider } from '../hooks/breadcrumb';
+import useDocumentTitle from '../hooks/use-document-title';
 import AllProfileListPage from './AllProfileListPage';
 import AuthenticatedRoute from './AuthenticatedRoute';
-import DocumentTitle from './DocumentTitle';
 import EnrollForm from './EnrollForm';
 import FirstUserForm from './FirstUserForm';
 import HuntApp from './HuntApp';
@@ -17,29 +17,29 @@ import SetupPage from './SetupPage';
 import UnauthenticatedRoute from './UnauthenticatedRoute';
 
 const Routes = React.memo(() => {
+  useDocumentTitle('Jolly Roger');
+
   return (
-    <DocumentTitle title="Jolly Roger">
-      <BreadcrumbsProvider>
-        <Switch>
-          {/* Index redirect */}
-          <Route exact path="/" component={RootRedirector} />
+    <BreadcrumbsProvider>
+      <Switch>
+        {/* Index redirect */}
+        <Route exact path="/" component={RootRedirector} />
 
-          {/* Authenticated routes - if user not logged in, get redirected to /login */}
-          <AuthenticatedRoute path="/hunts/:huntId" component={HuntApp} />
-          <AuthenticatedRoute path="/hunts" component={HuntListPage} />
-          <AuthenticatedRoute path="/users/:userId" component={ProfilePage} />
-          <AuthenticatedRoute path="/users" component={AllProfileListPage} />
-          <AuthenticatedRoute path="/setup" component={SetupPage} />
-          <AuthenticatedRoute path="/rtcdebug" component={RTCDebugPage} />
+        {/* Authenticated routes - if user not logged in, get redirected to /login */}
+        <AuthenticatedRoute path="/hunts/:huntId" component={HuntApp} />
+        <AuthenticatedRoute path="/hunts" component={HuntListPage} />
+        <AuthenticatedRoute path="/users/:userId" component={ProfilePage} />
+        <AuthenticatedRoute path="/users" component={AllProfileListPage} />
+        <AuthenticatedRoute path="/setup" component={SetupPage} />
+        <AuthenticatedRoute path="/rtcdebug" component={RTCDebugPage} />
 
-          {/* Unauthenticated routes - if user already logged in, get redirected to /hunts */}
-          <UnauthenticatedRoute path="/login" component={LoginForm} />
-          <UnauthenticatedRoute path="/reset-password/:token" component={PasswordResetForm} />
-          <UnauthenticatedRoute path="/enroll/:token" component={EnrollForm} />
-          <UnauthenticatedRoute path="/create-first-user" component={FirstUserForm} />
-        </Switch>
-      </BreadcrumbsProvider>
-    </DocumentTitle>
+        {/* Unauthenticated routes - if user already logged in, get redirected to /hunts */}
+        <UnauthenticatedRoute path="/login" component={LoginForm} />
+        <UnauthenticatedRoute path="/reset-password/:token" component={PasswordResetForm} />
+        <UnauthenticatedRoute path="/enroll/:token" component={EnrollForm} />
+        <UnauthenticatedRoute path="/create-first-user" component={FirstUserForm} />
+      </Switch>
+    </BreadcrumbsProvider>
   );
 });
 

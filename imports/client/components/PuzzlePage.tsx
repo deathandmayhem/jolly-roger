@@ -42,8 +42,8 @@ import { GuessType } from '../../lib/schemas/guess';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useDocumentTitle from '../hooks/use-document-title';
 import ChatPeople from './ChatPeople';
-import DocumentTitle from './DocumentTitle';
 import DocumentDisplay from './Documents';
 import ModalForm, { ModalFormHandle } from './ModalForm';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
@@ -1008,6 +1008,9 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
     path: `/hunts/${props.match.params.huntId}/puzzles/${props.match.params.puzzleId}`,
   });
 
+  const title = `${activePuzzle ? activePuzzle.title : 'loading puzzle title...'} :: Jolly Roger`;
+  useDocumentTitle(title);
+
   const onResize = useCallback(() => {
     setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
   }, []);
@@ -1056,34 +1059,36 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
       puzzleId={props.match.params.puzzleId}
     />
   );
-  return (
-    <DocumentTitle title={`${activePuzzle!.title} :: Jolly Roger`}>
-      {isDesktop ? (
-        <div className="puzzle-page jolly-roger-fixed" ref={puzzlePageDivRef}>
-          <SplitPanePlus
-            split="vertical"
-            minSize={MinimumSidebarWidth}
-            maxSize={-MinimumDocumentWidth}
-            primary="first"
-            autoCollapse1={-1}
-            autoCollapse2={-1}
-            size={sidebarWidth}
-            onPaneChanged={onChangeSideBarSize}
-          >
-            {chat}
-            <div className="puzzle-content">
-              {metadata}
-              <PuzzlePageMultiplayerDocument document={tracker.document} />
-            </div>
-          </SplitPanePlus>
-        </div>
-      ) : (
-        <div className="puzzle-page narrow jolly-roger-fixed">
-          {metadata}
+
+  if (isDesktop) {
+    return (
+      <div className="puzzle-page jolly-roger-fixed" ref={puzzlePageDivRef}>
+        <SplitPanePlus
+          split="vertical"
+          minSize={MinimumSidebarWidth}
+          maxSize={-MinimumDocumentWidth}
+          primary="first"
+          autoCollapse1={-1}
+          autoCollapse2={-1}
+          size={sidebarWidth}
+          onPaneChanged={onChangeSideBarSize}
+        >
           {chat}
-        </div>
-      )}
-    </DocumentTitle>
+          <div className="puzzle-content">
+            {metadata}
+            <PuzzlePageMultiplayerDocument document={tracker.document} />
+          </div>
+        </SplitPanePlus>
+      </div>
+    );
+  }
+
+  // Non-desktop (narrow layout)
+  return (
+    <div className="puzzle-page narrow jolly-roger-fixed">
+      {metadata}
+      {chat}
+    </div>
   );
 });
 

@@ -15,9 +15,9 @@ import { useHistory } from 'react-router-dom';
 import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useDocumentTitle from '../hooks/use-document-title';
 import AnnouncementsPage from './AnnouncementsPage';
 import CelebrationCenter from './CelebrationCenter';
-import DocumentTitle from './DocumentTitle';
 import GuessQueuePage from './GuessQueuePage';
 import HuntProfileListPage from './HuntProfileListPage';
 import PuzzleListPage from './PuzzleListPage';
@@ -155,6 +155,8 @@ const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
 
   const title = tracker.hunt ? `${tracker.hunt.name} :: Jolly Roger` : '';
 
+  useDocumentTitle(title);
+
   const body = useMemo(() => {
     if (!tracker.ready) {
       return <span>loading...</span>;
@@ -201,12 +203,10 @@ const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
   ]);
 
   return (
-    <DocumentTitle title={title}>
-      <div>
-        <CelebrationCenter huntId={huntId} />
-        {body}
-      </div>
-    </DocumentTitle>
+    <div>
+      <CelebrationCenter huntId={huntId} />
+      {body}
+    </div>
   );
 });
 
