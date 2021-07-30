@@ -1,7 +1,9 @@
 import { _ } from 'meteor/underscore';
 import classnames from 'classnames';
 import elementResizeDetectorMaker from 'element-resize-detector';
-import React from 'react';
+import React, {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 import SplitPane, { SplitPaneProps } from 'react-split-pane';
 
 /*
@@ -73,24 +75,29 @@ import SplitPane, { SplitPaneProps } from 'react-split-pane';
       Styles applied to the resizer
 */
 
-/* Why is this necessary? These should already be in SplitPaneProps */
+// Why is this necessary? These should already be in SplitPaneProps, but
+// hilariously SplitPane provides broken TS declarations that don't actually
+// declare types for all the props it accepts.  So we use this so we can
+// accurately type the full set of props we pass to SplitPane.
 interface FullSplitPaneProps extends SplitPaneProps {
-  pane1ClassName?: string;
-  pane2ClassName?: string;
+  children: React.ReactNode[],
+  paneClassName?: string,
+  pane1ClassName?: string,
+  pane2ClassName?: string,
 }
 
 interface SplitPanePlusProps {
   children: React.ReactNode[],
   size: number,
-  collapsed: 0 | 1 | 2,
+  collapsed?: 0 | 1 | 2,
   primary: 'first' | 'second',
   split: 'vertical' | 'horizontal',
-  allowResize: boolean,
+  allowResize?: boolean,
   minSize: number,
   maxSize: number,
   autoCollapse1: number,
   autoCollapse2: number,
-  scaling: 'absolute' | 'relative',
+  scaling?: 'absolute' | 'relative',
   onPaneChanged?: (size: number, collapsed: 0 | 1 | 2, cause: 'drag' | 'resize') => void,
   step?: number,
   className?: string,
@@ -110,219 +117,255 @@ interface SplitPanePlusState {
   dragInProgress: boolean;
 }
 
-class SplitPanePlus extends React.Component<SplitPanePlusProps, SplitPanePlusState> {
-  private ref: React.RefObject<HTMLDivElement>
+const SplitPanePlusHook = (props: SplitPanePlusProps) => {
+  const [state, setState] = useState<SplitPanePlusState>({
+    collapseWarning: 0,
+    dragInProgress: false,
+  });
 
-  private erd?: elementResizeDetectorMaker.Erd
+  // Unpack props with defaults
+  const {
+    children,
+    size,
+    collapsed = 0,
+    primary = 'first',
+    split = 'vertical',
+    allowResize = true,
+    minSize = 0,
+    maxSize = 0,
+    autoCollapse1 = 50,
+    autoCollapse2 = 50,
+    scaling = 'absolute',
+    onPaneChanged,
+    step,
+    className,
+    style,
+    paneClassName,
+    paneStyle,
+    pane1ClassName,
+    pane1Style,
+    pane2ClassName,
+    pane2Style,
+    resizerClassName,
+    resizerStyle,
+  } = props;
 
-  static defaultProps: Partial<SplitPanePlusProps> = {
-    collapsed: 0,
-    primary: 'first',
-    split: 'vertical',
-    allowResize: true,
-    minSize: 0,
-    maxSize: 0,
-    autoCollapse1: 50,
-    autoCollapse2: 50,
-    scaling: 'absolute',
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  const erdRef = useRef<elementResizeDetectorMaker.Erd | undefined>(undefined);
+  const getErd = (): elementResizeDetectorMaker.Erd => {
+    if (!erdRef.current) {
+      erdRef.current = elementResizeDetectorMaker({ strategy: 'scroll' });
+    }
+    return erdRef.current;
   };
 
-  constructor(props: SplitPanePlusProps) {
-    super(props);
-    this.state = {
-      collapseWarning: 0,
-      dragInProgress: false,
-    };
-    this.ref = React.createRef();
-  }
-
-  componentDidMount() {
-    this.erd = elementResizeDetectorMaker({ strategy: 'scroll' });
-    this.erd.listenTo(this.splitPaneNode()!, _.throttle(this.onResize, 50));
-    // This is an inelegant way of preventing the browser from going into selection mode and
-    // overriding the cursor. It also has to be accompanied by additional cursor styles for the
-    // pane below (in puzzle.scss).
-    const resizerEl = this.resizerNode();
-    if (resizerEl) {
-      resizerEl.addEventListener('mousedown', (ev) => { ev.preventDefault(); });
+  const splitPaneNode = useCallback(() => {
+    if (!ref.current || !(ref.current.firstChild instanceof HTMLElement)) {
+      return null;
     }
-  }
+    return ref.current.firstChild;
+  }, []);
 
-  componentWillUnmount() {
-    if (this.erd) {
-      this.erd.uninstall(this.splitPaneNode()!);
+  const findChildByClass = useCallback((classNameSought: string): HTMLElement | null => {
+    const root = splitPaneNode();
+    return root && _.find(root.children, (n) => {
+      return n.classList.contains(classNameSought);
+    }) as HTMLElement;
+  }, [splitPaneNode]);
+
+  const primaryPaneNode = useCallback((): HTMLElement | null => {
+    return findChildByClass(`Pane${primary === 'first' ? 1 : 2}`);
+  }, [findChildByClass, primary]);
+
+  // Unused.
+  /*
+  const secondaryPaneNode = useCallback((): HTMLElement | null => {
+    return findChildByClass(`Pane${primary === 'first' ? 2 : 1}`);
+  }, [findChildByClass, primary]);
+  */
+
+  const resizerNode = useCallback((): HTMLElement | null => {
+    return findChildByClass('Resizer');
+  }, [findChildByClass]);
+
+  const measure = useCallback((elem: HTMLElement | null): number => {
+    if (!elem) {
+      return NaN;
     }
-  }
+    return split === 'vertical' ? elem.clientWidth : elem.clientHeight;
+  }, [split]);
 
-  onResize = () => {
-    if (!this.splitPaneNode()) {
+  const calculateCollapse = useCallback((proposedSize: number) => {
+    const fullSize = measure(splitPaneNode());
+    let autoCollapsePrimary = autoCollapse1;
+    let autoCollapseSecondary = autoCollapse2;
+    if (primary !== 'first') {
+      autoCollapsePrimary = autoCollapse2;
+      autoCollapseSecondary = autoCollapse1;
+    }
+    if (autoCollapsePrimary >= 0 && proposedSize <= autoCollapsePrimary) {
+      return primary === 'first' ? 1 : 2;
+    } else if (autoCollapseSecondary >= 0 && proposedSize >= fullSize - autoCollapseSecondary) {
+      return primary === 'first' ? 2 : 1;
+    }
+    return 0;
+  }, [measure, splitPaneNode, autoCollapse1, autoCollapse2, primary]);
+
+  const onResize = useCallback(() => {
+    if (!splitPaneNode()) {
       return;
     }
-    let newSize: number = this.measure(this.primaryPaneNode());
-    const fullSize = this.measure(this.splitPaneNode());
-    const fullMax = this.props.maxSize <= 0 ? fullSize + this.props.maxSize : this.props.maxSize;
-    newSize = Math.min(Math.max(this.props.minSize, newSize), fullMax);
-    const newCollapsed = this.calculateCollapse(newSize);
-    if (newSize !== this.props.size || newCollapsed !== this.props.collapsed) {
-      if (this.props.onPaneChanged) {
-        this.props.onPaneChanged(newSize, newCollapsed, 'resize');
+    let newSize: number = measure(primaryPaneNode());
+    const fullSize = measure(splitPaneNode());
+    const fullMax = maxSize <= 0 ? fullSize + maxSize : maxSize;
+    newSize = Math.min(Math.max(minSize, newSize), fullMax);
+    const newCollapsed = calculateCollapse(newSize);
+    if (newSize !== size || newCollapsed !== collapsed) {
+      if (onPaneChanged) {
+        onPaneChanged(newSize, newCollapsed, 'resize');
       }
     }
-    this.forceUpdate();
-  }
 
-  onChange = (size: number) => {
+    // TODO: figure out how to force this or what to setstate
+    // this.forceUpdate();
+  }, [
+    splitPaneNode, measure, primaryPaneNode, maxSize, minSize, calculateCollapse,
+    size, collapsed, onPaneChanged,
+  ]);
+
+  const preventDefault = useCallback((ev) => {
+    ev.preventDefault();
+  }, []);
+
+  useEffect(() => {
+    const erd = getErd();
+    const node = splitPaneNode();
+    if (node) {
+      erd.listenTo(node, _.throttle(onResize, 50));
+    }
+
+    const resizerEl = resizerNode();
+    if (resizerEl) {
+      resizerEl.addEventListener('mousedown', preventDefault);
+    }
+
+    return () => {
+      if (resizerEl) {
+        resizerEl.removeEventListener('mousedown', preventDefault);
+      }
+      if (node) {
+        erd.uninstall(node);
+      }
+    };
+  }, []);
+
+  const onChange = useCallback((newSize: number) => {
     // Setting dragInProgress in onDragStarted creates a frame of strangeness
-    this.setState({ dragInProgress: true, collapseWarning: this.calculateCollapse(size) });
-  }
+    setState({
+      dragInProgress: true,
+      collapseWarning: calculateCollapse(newSize),
+    });
+  }, [calculateCollapse]);
 
-  onDragFinished = (rawSize: number | string) => {
-    this.setState({
+  const onDragFinished = useCallback((rawSize: number | string) => {
+    setState({
       collapseWarning: 0,
       dragInProgress: false,
     });
     // May be called with a number or a string representing a percentage
-    let size: number = Number(rawSize);
+    let newSize: number = Number(rawSize);
     if (typeof rawSize === 'string') {
       const rawSizeAsPercent: number = Number(rawSize.slice(0, -1));
       if (rawSize.slice(-1) === '%' && !Number.isNaN(rawSizeAsPercent)) {
-        size = (rawSizeAsPercent * this.measure(this.splitPaneNode())) / 100.0;
+        newSize = (rawSizeAsPercent * measure(splitPaneNode())) / 100.0;
       }
     }
-    if (!Number.isNaN(size) && this.props.onPaneChanged) {
-      this.props.onPaneChanged(size, this.calculateCollapse(size), 'drag');
+    if (!Number.isNaN(newSize) && onPaneChanged) {
+      onPaneChanged(newSize, calculateCollapse(newSize), 'drag');
     }
-  }
+  }, [measure, splitPaneNode, onPaneChanged, calculateCollapse]);
 
-  calculateCollapse(size: number) {
-    const fullSize = this.measure(this.splitPaneNode());
-    let autoCollapsePrimary = this.props.autoCollapse1;
-    let autoCollapseSecondary = this.props.autoCollapse2;
-    if (this.props.primary !== 'first') {
-      autoCollapsePrimary = this.props.autoCollapse2;
-      autoCollapseSecondary = this.props.autoCollapse1;
-    }
-    if (autoCollapsePrimary >= 0 && size <= autoCollapsePrimary) {
-      return this.props.primary === 'first' ? 1 : 2;
-    } else if (autoCollapseSecondary >= 0 && size >= fullSize - autoCollapseSecondary) {
-      return this.props.primary === 'first' ? 2 : 1;
-    }
-    return 0;
-  }
+  const paneProps: FullSplitPaneProps = {
+    children,
+    primary,
+    split,
+    allowResize,
+    step,
+    minSize,
+    maxSize,
+    className,
+    style,
+    paneClassName,
+    paneStyle,
+    pane1ClassName,
+    pane1Style,
+    pane2ClassName,
+    pane2Style,
+    resizerClassName,
+    resizerStyle,
+  };
 
-  splitPaneNode(): HTMLElement | null {
-    if (!this.ref.current || !(this.ref.current.firstChild instanceof HTMLElement)) {
-      return null;
-    }
-    return this.ref.current.firstChild;
+  const defaultPaneStyle: React.CSSProperties = { overflow: 'auto' };
+  paneProps.paneStyle = { ...defaultPaneStyle, ...paneStyle };
+  // Prevents the flexbox from overfilling, accommodating large size passed as prop
+  // Also allows use of 100% width in collapse (even though resizer takes up some space)
+  const defaultResizerStyle: React.CSSProperties = { flexGrow: 0, flexShrink: 0 };
+  paneProps.resizerStyle = { ...defaultResizerStyle, ...resizerStyle };
+  const defaultPrimaryPaneStyle: React.CSSProperties = { flexShrink: 1 };
+  if (primary === 'first') {
+    paneProps.pane1Style = { ...defaultPrimaryPaneStyle, ...pane1Style };
+  } else {
+    paneProps.pane2Style = { ...defaultPrimaryPaneStyle, ...pane2Style };
   }
-
-  primaryPaneNode(): HTMLElement | null {
-    return this.findChildByClass(`Pane${this.props.primary === 'first' ? 1 : 2}`);
+  paneProps.className = classnames(paneProps.className, { dragging: state.dragInProgress });
+  paneProps.pane1ClassName = classnames(paneProps.pane1ClassName, {
+    collapsing: state.collapseWarning === 1,
+    collapsed: collapsed === 1 && !state.dragInProgress,
+  });
+  paneProps.pane2ClassName = classnames(paneProps.pane2ClassName, {
+    collapsing: state.collapseWarning === 2,
+    collapsed: collapsed === 2 && !state.dragInProgress,
+  });
+  paneProps.resizerClassName = classnames(paneProps.resizerClassName, {
+    collapsedAdjacent: collapsed > 0 && !state.dragInProgress,
+    collapsedPrevious: collapsed === 1 && !state.dragInProgress,
+    collapsedNext: collapsed === 2 && !state.dragInProgress,
+  });
+  // If no resizerClassName is provided to SplitPane, a default is used, but if '' is provided,
+  // no class is assigned. Any other provided string is appended to the default.
+  // Work around this by never passing '' as resizerClassName.
+  if (paneProps.resizerClassName === '') {
+    delete paneProps.resizerClassName;
   }
-
-  secondaryPaneNode(): HTMLElement | null {
-    return this.findChildByClass(`Pane${this.props.primary === 'first' ? 2 : 1}`);
+  // The docs suggest that maxSize <= 0 should limit the primary pane to the the container
+  // (representing size of the secondary). While this works with negative maxSize, it doesn't
+  // seem to work with 0. This workaround using epsilon isn't ideal, but is good enough in
+  // practice.
+  if (paneProps.maxSize === 0) {
+    paneProps.maxSize = -Number.MIN_VALUE;
   }
-
-  resizerNode(): HTMLElement | null {
-    return this.findChildByClass('Resizer');
-  }
-
-  findChildByClass(className: string): HTMLElement | null {
-    const root = this.splitPaneNode();
-    return root && _.find(root.children, (n) => n.classList.contains(className)) as HTMLElement;
-  }
-
-  measure(elem: HTMLElement | null): number {
-    if (!elem) {
-      return NaN;
-    }
-    return this.props.split === 'vertical' ? elem.clientWidth : elem.clientHeight;
-  }
-
-  render() {
-    const paneProps: FullSplitPaneProps = _.pick(
-      this.props,
-      'children',
-      'primary',
-      'split',
-      'allowResize',
-      'step',
-      'minSize',
-      'maxSize',
-      'className',
-      'style',
-      'paneClassName',
-      'paneStyle',
-      'pane1ClassName',
-      'pane1Style',
-      'pane2ClassName',
-      'pane2Style',
-      'resizerClassName',
-      'resizerStyle',
-    );
-    const defaultPaneStyle: React.CSSProperties = { overflow: 'auto' };
-    paneProps.paneStyle = { ...defaultPaneStyle, ...this.props.paneStyle };
-    // Prevents the flexbox from overfilling, accommodating large size passed as prop
-    // Also allows use of 100% width in collapse (even though resizer takes up some space)
-    const defaultResizerStyle: React.CSSProperties = { flexGrow: 0, flexShrink: 0 };
-    paneProps.resizerStyle = { ...defaultResizerStyle, ...this.props.resizerStyle };
-    const defaultPrimaryPaneStyle: React.CSSProperties = { flexShrink: 1 };
-    if (this.props.primary === 'first') {
-      paneProps.pane1Style = { ...defaultPrimaryPaneStyle, ...this.props.pane1Style };
-    } else {
-      paneProps.pane2Style = { ...defaultPrimaryPaneStyle, ...this.props.pane2Style };
-    }
-    paneProps.className = classnames(paneProps.className, { dragging: this.state.dragInProgress });
-    paneProps.pane1ClassName = classnames(paneProps.pane1ClassName, {
-      collapsing: this.state.collapseWarning === 1,
-      collapsed: this.props.collapsed === 1 && !this.state.dragInProgress,
-    });
-    paneProps.pane2ClassName = classnames(paneProps.pane2ClassName, {
-      collapsing: this.state.collapseWarning === 2,
-      collapsed: this.props.collapsed === 2 && !this.state.dragInProgress,
-    });
-    paneProps.resizerClassName = classnames(paneProps.resizerClassName, {
-      collapsedAdjacent: this.props.collapsed > 0 && !this.state.dragInProgress,
-      collapsedPrevious: this.props.collapsed === 1 && !this.state.dragInProgress,
-      collapsedNext: this.props.collapsed === 2 && !this.state.dragInProgress,
-    });
-    // If no resizerClassName is provided to SplitPane, a default is used, but if '' is provided,
-    // no class is assigned. Any other provided string is appended to the default.
-    // Work around this by never passing '' as resizerClassName.
-    if (paneProps.resizerClassName === '') {
-      delete paneProps.resizerClassName;
-    }
-    // The docs suggest that maxSize <= 0 should limit the primary pane to the the container
-    // (representing size of the secondary). While this works with negative maxSize, it doesn't
-    // seem to work with 0. This workaround using epsilon isn't ideal, but is good enough in
-    // practice.
-    if (paneProps.maxSize === 0) {
-      paneProps.maxSize = -Number.MIN_VALUE;
-    }
-    paneProps.onDragFinished = this.onDragFinished;
-    paneProps.onChange = this.onChange;
-    if (!this.state.dragInProgress) {
-      if (this.props.collapsed > 0) {
-        if (this.props.collapsed === 1) {
-          paneProps.size = this.props.primary === 'first' ? '0%' : '100%';
-        } else {
-          paneProps.size = this.props.primary === 'first' ? '100%' : '0%';
-        }
-      } else if (this.props.scaling === 'relative' && this.splitPaneNode()) {
-        const relativeSize: number = this.props.size / this.measure(this.splitPaneNode());
-        paneProps.size = `${relativeSize * 100.0}%`;
+  paneProps.onDragFinished = onDragFinished;
+  paneProps.onChange = onChange;
+  if (!state.dragInProgress) {
+    if (collapsed > 0) {
+      if (collapsed === 1) {
+        paneProps.size = primary === 'first' ? '0%' : '100%';
       } else {
-        paneProps.size = this.props.size;
+        paneProps.size = primary === 'first' ? '100%' : '0%';
       }
+    } else if (scaling === 'relative' && splitPaneNode()) {
+      const relativeSize: number = size / measure(splitPaneNode());
+      paneProps.size = `${relativeSize * 100.0}%`;
+    } else {
+      paneProps.size = size;
     }
-    return (
-      <div className="SplitPanePlus" ref={this.ref}>
-        <SplitPane {...paneProps} />
-      </div>
-    );
   }
-}
+  return (
+    <div className="SplitPanePlus" ref={ref}>
+      <SplitPane {...paneProps} />
+    </div>
+  );
+};
 
-export default SplitPanePlus;
+export default SplitPanePlusHook;
