@@ -1447,15 +1447,15 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
               'Content-Type': file.type,
             },
             body: file,
-          }).then((resp) => {
+          }).then((resp: Response) => {
             if (resp.ok) {
               setSubmitState(SubmitState.SUCCESS);
             } else {
               setSubmitError(`${resp.status} ${resp.statusText}`);
               setSubmitState(SubmitState.ERROR);
             }
-          }).catch((error) => {
-            setSubmitError(error);
+          }).catch((error: Error) => {
+            setSubmitError(error.message);
             setSubmitState(SubmitState.ERROR);
           });
         }

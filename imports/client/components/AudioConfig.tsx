@@ -4,10 +4,10 @@ import React, {
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import FormCheck from 'react-bootstrap/FormCheck';
-import FormControl from 'react-bootstrap/FormControl';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
-import Spectrum from './Spectrum';
+import Spectrum, { SpectrumHandle } from './Spectrum';
 
 enum AudioConfigStatus {
   IDLE = 'idle',
@@ -33,7 +33,7 @@ const AudioConfig = () => {
 
   const updateDeviceList = useCallback(() => {
     if (navigator.mediaDevices) {
-      navigator.mediaDevices.enumerateDevices().then((devices) => {
+      navigator.mediaDevices.enumerateDevices().then((devices: MediaDeviceInfo[]) => {
         const inputs = devices.filter((dev) => dev.kind === 'audioinput');
         setKnownDevices(inputs);
       });
@@ -66,7 +66,7 @@ const AudioConfig = () => {
     };
   }, [updateDeviceList, onStorageEvent]);
 
-  const onDefaultDeviceChange = useCallback((e) => {
+  const onDefaultDeviceChange: FormControlProps['onChange'] = useCallback((e) => {
     const newPreferredDeviceId = e.target.value;
     // Save preferred input device id to local storage.
     localStorage.setItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY, newPreferredDeviceId);
@@ -139,7 +139,7 @@ const AudioConfig = () => {
     setLoopback((prevLoopback) => !prevLoopback);
   }, []);
 
-  const spectrumRefCallback = useCallback((spectrum) => {
+  const spectrumRefCallback = useCallback((spectrum: SpectrumHandle | null) => {
     if (spectrum) {
       spectrum.connect(stream!);
     }

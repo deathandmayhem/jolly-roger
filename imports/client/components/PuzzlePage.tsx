@@ -294,6 +294,10 @@ const ChatInput = React.memo((props: ChatInputProps) => {
     }
   }, [onHeightChange]);
 
+  const preventDefaultCallback = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+  }, []);
+
   return (
     <div className="chat-input-row">
       <TextareaAutosize
@@ -312,7 +316,7 @@ const ChatInput = React.memo((props: ChatInputProps) => {
       <Button
         variant="light"
         onClick={sendMessageIfHasText}
-        onMouseDown={(e) => e.preventDefault()}
+        onMouseDown={preventDefaultCallback}
         disabled={text.length === 0}
         tabIndex={-1}
       >

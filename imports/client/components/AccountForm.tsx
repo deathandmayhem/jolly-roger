@@ -49,10 +49,18 @@ const AccountForm = (props: AccountFormProps) => {
   const [displayName, setDisplayName] = useState<string>('');
   const [phoneNumber, setPhoneNumber] = useState<string>('');
 
-  const setEmailCallback = useCallback((e) => setEmail(e.currentTarget.value), []);
-  const setPasswordCallback = useCallback((e) => setPassword(e.currentTarget.value), []);
-  const setDisplayNameCallback = useCallback((e) => setDisplayName(e.currentTarget.value), []);
-  const setPhoneNumberCallback = useCallback((e) => setPhoneNumber(e.currentTarget.value), []);
+  const setEmailCallback = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.currentTarget.value);
+  }, []);
+  const setPasswordCallback = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.currentTarget.value);
+  }, []);
+  const setDisplayNameCallback = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setDisplayName(e.currentTarget.value);
+  }, []);
+  const setPhoneNumberCallback = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhoneNumber(e.currentTarget.value);
+  }, []);
   const toggleWantPasswordReset = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     if (props.format === AccountFormFormat.LOGIN || props.format === AccountFormFormat.REQUEST_PW_RESET) {

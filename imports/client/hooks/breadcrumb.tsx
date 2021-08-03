@@ -21,12 +21,14 @@ type BreadcrumbSubscribeHandle = {
   unsubscribe: () => void;
 }
 
+type BreadcrumbSubscribeCallback = (crumbs: CrumbWithId[]) => void;
+
 type BreadcrumbContextType = {
   addCrumb: (crumb: Crumb) => CrumbId;
   removeCrumb: (crumbId: CrumbId) => void;
   updateCrumb: (crumbId: CrumbId, crumb: Crumb) => void;
   flushUpdates: () => void;
-  subscribe: (listener: (crumbs: CrumbWithId[]) => void) => BreadcrumbSubscribeHandle;
+  subscribe: (listener: BreadcrumbSubscribeCallback) => BreadcrumbSubscribeHandle;
 }
 
 const defaultCallbacks: BreadcrumbContextType = {
@@ -34,7 +36,7 @@ const defaultCallbacks: BreadcrumbContextType = {
   removeCrumb: (_crumbId: CrumbId) => { },
   updateCrumb: (_crumbId: CrumbId, _crumb: Crumb) => { },
   flushUpdates: () => { },
-  subscribe: (_listener: (crumbs: CrumbWithId[]) => void) => {
+  subscribe: (_listener: BreadcrumbSubscribeCallback) => {
     return {
       unsubscribe() {
       },
@@ -111,7 +113,7 @@ function BreadcrumbsProvider(props: BreadcrumbProviderProps) {
     listenersRef.current.forEach((listener) => listener(crumbsRef.current));
   }, []);
 
-  const subscribe = useCallback((listener) => {
+  const subscribe = useCallback((listener: BreadcrumbSubscribeCallback) => {
     listenersRef.current.push(listener);
     listener(crumbsRef.current);
 
