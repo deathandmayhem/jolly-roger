@@ -1,9 +1,9 @@
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
-import { withTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import FormCheck from 'react-bootstrap/FormCheck';
@@ -20,6 +20,9 @@ import Gravatar from './Gravatar';
 
 interface GoogleLinkBlockProps {
   profile: ProfileType;
+}
+
+interface GoogleLinkBlockTracker {
   googleDisabled: boolean;
   config: Configuration | undefined;
 }
@@ -37,143 +40,118 @@ type GoogleLinkBlockState = {
   error: Error;
 }
 
-class GoogleLinkBlock extends React.Component<GoogleLinkBlockProps, GoogleLinkBlockState> {
-  constructor(props: GoogleLinkBlockProps) {
-    super(props);
-    this.state = { state: GoogleLinkBlockLinkState.IDLE };
-  }
+const GoogleLinkBlock = (props: GoogleLinkBlockProps) => {
+  const [state, setState] =
+    useState<GoogleLinkBlockState>({ state: GoogleLinkBlockLinkState.IDLE });
 
-  onLink = () => {
-    this.setState({ state: GoogleLinkBlockLinkState.LINKING });
-    Google.requestCredential(this.requestComplete);
-  };
+  const tracker = useTracker<GoogleLinkBlockTracker>(() => {
+    const config = ServiceConfiguration.configurations.findOne({
+      service: 'google',
+    }) as Configuration | undefined;
+    const googleDisabled = Flags.active('disable.google');
+    return { config, googleDisabled };
+  }, []);
 
-  onUnlink = () => {
-    Meteor.call('unlinkUserGoogleAccount');
-  };
-
-  requestComplete = (token: string) => {
+  const requestComplete = useCallback((token: string) => {
     const secret = OAuth._retrieveCredentialSecret(token);
     if (!secret) {
-      this.setState({ state: GoogleLinkBlockLinkState.IDLE });
+      setState({ state: GoogleLinkBlockLinkState.IDLE });
       return;
     }
 
     Meteor.call('linkUserGoogleAccount', token, secret, (error?: Error) => {
       if (error) {
-        this.setState({ state: GoogleLinkBlockLinkState.ERROR, error });
+        setState({ state: GoogleLinkBlockLinkState.ERROR, error });
       } else {
-        this.setState({ state: GoogleLinkBlockLinkState.IDLE });
+        setState({ state: GoogleLinkBlockLinkState.IDLE });
       }
     });
-  };
+  }, []);
 
-  dismissAlert = () => {
-    this.setState({ state: GoogleLinkBlockLinkState.IDLE });
-  };
+  const onLink = useCallback(() => {
+    setState({ state: GoogleLinkBlockLinkState.LINKING });
+    Google.requestCredential(requestComplete);
+  }, [requestComplete]);
 
-  errorAlert = () => {
-    if (this.state.state === 'error') {
-      return (
-        <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-          Linking Google account failed:
-          {' '}
-          {this.state.error.message}
-        </Alert>
-      );
-    }
-    return null;
-  };
+  const onUnlink = useCallback(() => {
+    Meteor.call('unlinkUserGoogleAccount');
+  }, []);
 
-  linkButton = () => {
-    if (this.state.state === GoogleLinkBlockLinkState.LINKING) {
+  const dismissAlert = useCallback(() => {
+    setState({ state: GoogleLinkBlockLinkState.IDLE });
+  }, []);
+
+  const linkButton = () => {
+    if (state.state === GoogleLinkBlockLinkState.LINKING) {
       return <Button variant="primary" disabled>Linking...</Button>;
     }
 
-    if (this.props.googleDisabled) {
+    if (tracker.googleDisabled) {
       return <Button variant="primary" disabled>Google integration currently disabled</Button>;
     }
 
-    const text = (this.props.profile.googleAccount) ?
+    const text = (props.profile.googleAccount) ?
       'Link a different Google account' :
       'Link your Google account';
 
     return (
-      <Button variant="primary" onClick={this.onLink}>
+      <Button variant="primary" onClick={onLink}>
         {text}
       </Button>
     );
   };
 
-  unlinkButton = () => {
-    if (this.props.profile.googleAccount) {
-      return (
-        <Button variant="danger" onClick={this.onUnlink}>
-          Unlink
-        </Button>
-      );
-    }
-
-    return null;
-  };
-
-  currentAccount = () => {
-    if (this.props.profile.googleAccount) {
-      return (
-        <div>
-          Currently linked to
-          {' '}
-          {this.props.profile.googleAccount}
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  render() {
-    if (!this.props.config) {
-      return <div />;
-    }
-
-    return (
-      <FormGroup>
-        <FormLabel>
-          Google Account
-        </FormLabel>
-        {this.errorAlert()}
-        <div>
-          {this.currentAccount()}
-          {this.linkButton()}
-          {' '}
-          {this.unlinkButton()}
-        </div>
-        <FormText>
-          Linking your Google account isn&apos;t required, but this will
-          let other people see who you are on puzzles&apos; Google
-          Spreadsheet docs (instead of being an
-          {' '}
-          <a
-            href="https://support.google.com/docs/answer/2494888?visit_id=1-636184745566842981-35709989&hl=en&rd=1"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            anonymous animal
-          </a>
-          ), and we&apos;ll use it to give you access to our practice
-          puzzles. (You can only have one Google account linked, so
-          linking a new one will cause us to forget the old one).
-        </FormText>
-      </FormGroup>
-    );
+  if (!tracker.config) {
+    return <div />;
   }
-}
 
-const GoogleLinkBlockContainer = withTracker((_props: { profile: ProfileType }) => {
-  const config = ServiceConfiguration.configurations.findOne({ service: 'google' }) as Configuration | undefined;
-  const googleDisabled = Flags.active('disable.google');
-  return { config, googleDisabled };
-})(GoogleLinkBlock);
+  return (
+    <FormGroup>
+      <FormLabel>
+        Google Account
+      </FormLabel>
+      {state.state === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Linking Google account failed:
+          {' '}
+          {state.error.message}
+        </Alert>
+      ) : undefined}
+      <div>
+        {props.profile.googleAccount ? (
+          <div>
+            Currently linked to
+            {' '}
+            {props.profile.googleAccount}
+          </div>
+        ) : undefined}
+        {linkButton()}
+        {' '}
+        {props.profile.googleAccount ? (
+          <Button variant="danger" onClick={onUnlink}>
+            Unlink
+          </Button>
+        ) : undefined}
+      </div>
+      <FormText>
+        Linking your Google account isn&apos;t required, but this will
+        let other people see who you are on puzzles&apos; Google
+        Spreadsheet docs (instead of being an
+        {' '}
+        <a
+          href="https://support.google.com/docs/answer/2494888?visit_id=1-636184745566842981-35709989&hl=en&rd=1"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          anonymous animal
+        </a>
+        ), and we&apos;ll use it to give you access to our practice
+        puzzles. (You can only have one Google account linked, so
+        linking a new one will cause us to forget the old one).
+      </FormText>
+    </FormGroup>
+  );
+};
 
 enum DiscordLinkBlockLinkState {
   IDLE = 'idle',
@@ -183,6 +161,9 @@ enum DiscordLinkBlockLinkState {
 
 interface DiscordLinkBlockProps {
   profile: ProfileType;
+}
+
+interface DiscordLinkBlockTracker {
   config: Configuration | undefined;
   discordDisabled: boolean;
   teamName: string;
@@ -195,91 +176,87 @@ type DiscordLinkBlockState = {
   error: Error;
 }
 
-class DiscordLinkBlock extends React.Component<DiscordLinkBlockProps, DiscordLinkBlockState> {
-  constructor(props: DiscordLinkBlockProps) {
-    super(props);
-    this.state = {
-      state: DiscordLinkBlockLinkState.IDLE,
+const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
+  const [state, setState] =
+    useState<DiscordLinkBlockState>({ state: DiscordLinkBlockLinkState.IDLE });
+
+  const tracker = useTracker<DiscordLinkBlockTracker>(() => {
+    const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });
+    const discordDisabled = Flags.active('disable.discord');
+    Meteor.subscribe('teamName');
+    const teamNameObj = TeamName.findOne('teamName');
+    const teamName = teamNameObj ? teamNameObj.name : 'Default Team Name';
+    return {
+      config,
+      discordDisabled,
+      teamName,
     };
-  }
+  }, []);
 
-  onLink = () => {
-    this.setState({ state: DiscordLinkBlockLinkState.LINKING });
-    requestDiscordCredential(this.requestComplete);
-  };
-
-  onUnlink = () => {
-    Meteor.call('unlinkUserDiscordAccount');
-  };
-
-  requestComplete = (token: string) => {
+  const requestComplete = useCallback((token: string) => {
     const secret = OAuth._retrieveCredentialSecret(token);
     if (!secret) {
-      this.setState({ state: DiscordLinkBlockLinkState.IDLE });
+      setState({ state: DiscordLinkBlockLinkState.IDLE });
       return;
     }
 
     Meteor.call('linkUserDiscordAccount', token, secret, (error?: Error) => {
       if (error) {
-        this.setState({ state: DiscordLinkBlockLinkState.ERROR, error });
+        setState({ state: DiscordLinkBlockLinkState.ERROR, error });
       } else {
-        this.setState({ state: DiscordLinkBlockLinkState.IDLE });
+        setState({ state: DiscordLinkBlockLinkState.IDLE });
       }
     });
-  };
+  }, []);
 
-  dismissAlert = () => {
-    this.setState({ state: DiscordLinkBlockLinkState.IDLE });
-  };
+  const onLink = useCallback(() => {
+    setState({ state: DiscordLinkBlockLinkState.LINKING });
+    requestDiscordCredential(requestComplete);
+  }, [requestComplete]);
 
-  errorAlert = () => {
-    if (this.state.state === 'error') {
-      return (
-        <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-          Linking Discord account failed:
-          {' '}
-          {this.state.error.message}
-        </Alert>
-      );
-    }
-    return null;
-  };
+  const onUnlink = useCallback(() => {
+    Meteor.call('unlinkUserDiscordAccount');
+  }, []);
 
-  linkButton = () => {
-    if (this.state.state === DiscordLinkBlockLinkState.LINKING) {
+  const dismissAlert = useCallback(() => {
+    setState({ state: DiscordLinkBlockLinkState.IDLE });
+  }, []);
+
+  const linkButton = useMemo(() => {
+    if (state.state === DiscordLinkBlockLinkState.LINKING) {
       return <Button variant="primary" disabled>Linking...</Button>;
     }
 
-    if (this.props.discordDisabled) {
+    if (tracker.discordDisabled) {
       return <Button variant="primary" disabled>Discord integration currently disabled</Button>;
     }
 
-    const text = (this.props.profile.discordAccount) ?
+    const text = (props.profile.discordAccount) ?
       'Link a different Discord account' :
       'Link your Discord account';
 
     return (
-      <Button variant="primary" onClick={this.onLink}>
+      <Button variant="primary" onClick={onLink}>
         {text}
       </Button>
     );
-  };
+  }, [state.state, tracker.discordDisabled, props.profile.discordAccount, onLink]);
 
-  unlinkButton = () => {
-    if (this.props.profile.discordAccount) {
+  const unlinkButton = useMemo(() => {
+    if (props.profile.discordAccount) {
       return (
-        <Button variant="danger" onClick={this.onUnlink}>
+        <Button variant="danger" onClick={onUnlink}>
           Unlink
         </Button>
       );
     }
 
     return null;
-  };
+  }, [props.profile.discordAccount, onUnlink]);
 
-  currentAccount = () => {
-    if (this.props.profile.discordAccount) {
-      const acct = this.props.profile.discordAccount;
+  const currentAccount = useMemo(() => {
+    if (props.profile.discordAccount) {
+      const acct = props.profile.discordAccount;
       return (
         <div>
           Currently linked to
@@ -292,50 +269,41 @@ class DiscordLinkBlock extends React.Component<DiscordLinkBlockProps, DiscordLin
     }
 
     return null;
-  };
+  }, [props.profile.discordAccount]);
 
-  render() {
-    if (!this.props.config) {
-      return <div />;
-    }
-
-    return (
-      <FormGroup>
-        <FormLabel>
-          Discord account
-        </FormLabel>
-        {this.errorAlert()}
-        <div>
-          {this.currentAccount()}
-          {this.linkButton()}
-          {' '}
-          {this.unlinkButton()}
-        </div>
-        <FormText>
-          Linking your Discord account will add you to the
-          {' '}
-          {this.props.teamName}
-          {' '}
-          Discord server.  Additionally, we&apos;ll be able to link up your identity
-          there and in jolly-roger chat.
-        </FormText>
-      </FormGroup>
-    );
+  if (!tracker.config) {
+    return <div />;
   }
-}
 
-const DiscordLinkBlockContainer = withTracker((_props: { profile: ProfileType }) => {
-  const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });
-  const discordDisabled = Flags.active('disable.discord');
-  Meteor.subscribe('teamName');
-  const teamNameObj = TeamName.findOne('teamName');
-  const teamName = teamNameObj ? teamNameObj.name : 'Default Team Name';
-  return {
-    config,
-    discordDisabled,
-    teamName,
-  };
-})(DiscordLinkBlock);
+  return (
+    <FormGroup>
+      <FormLabel>
+        Discord account
+      </FormLabel>
+      {state.state === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Linking Discord account failed:
+          {' '}
+          {state.error.message}
+        </Alert>
+      ) : undefined}
+      <div>
+        {currentAccount}
+        {linkButton}
+        {' '}
+        {unlinkButton}
+      </div>
+      <FormText>
+        Linking your Discord account will add you to the
+        {' '}
+        {tracker.teamName}
+        {' '}
+        Discord server.  Additionally, we&apos;ll be able to link up your identity
+        there and in jolly-roger chat.
+      </FormText>
+    </FormGroup>
+  );
+};
 
 interface OwnProfilePageProps {
   initialProfile: ProfileType;
@@ -350,213 +318,184 @@ enum OwnProfilePageSubmitState {
   ERROR = 'error',
 }
 
-interface OwnProfilePageState {
-  displayNameValue: string;
-  phoneNumberValue: string;
-  muteApplause: boolean;
-  dingwords: string;
-  submitState: OwnProfilePageSubmitState,
-  submitError: string;
-}
+const OwnProfilePage = (props: OwnProfilePageProps) => {
+  const [displayName, setDisplayName] = useState<string>(props.initialProfile.displayName || '');
+  const [phoneNumber, setPhoneNumber] = useState<string>(props.initialProfile.phoneNumber || '');
+  const [muteApplause, setMuteApplause] =
+    useState<boolean>(props.initialProfile.muteApplause || false);
+  const [dingwordsFlat, setDingwordsFlat] = useState<string>(props.initialProfile.dingwords ?
+    props.initialProfile.dingwords.join(',') : '');
+  const [submitState, setSubmitState] =
+    useState<OwnProfilePageSubmitState>(OwnProfilePageSubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
 
-class OwnProfilePage extends React.Component<OwnProfilePageProps, OwnProfilePageState> {
-  constructor(props: OwnProfilePageProps) {
-    super(props);
-    this.state = {
-      displayNameValue: this.props.initialProfile.displayName || '',
-      phoneNumberValue: this.props.initialProfile.phoneNumber || '',
-      muteApplause: this.props.initialProfile.muteApplause || false,
-      dingwords: this.props.initialProfile.dingwords ?
-        this.props.initialProfile.dingwords.join(',') : '',
-      submitState: OwnProfilePageSubmitState.IDLE,
-    } as OwnProfilePageState;
-  }
+  const onDisableApplauseChange = useCallback((e: React.FormEvent<HTMLInputElement>) => {
+    setMuteApplause(e.currentTarget.checked);
+  }, []);
 
-  onDisableApplauseChange = (e: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      muteApplause: e.currentTarget.checked,
-    });
-  };
+  const handleDisplayNameFieldChange: FormControlProps['onChange'] = useCallback((e) => {
+    setDisplayName(e.currentTarget.value);
+  }, []);
 
-  handleDisplayNameFieldChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      displayNameValue: e.currentTarget.value,
-    });
-  };
+  const handlePhoneNumberFieldChange: FormControlProps['onChange'] = useCallback((e) => {
+    setPhoneNumber(e.currentTarget.value);
+  }, []);
 
-  handlePhoneNumberFieldChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      phoneNumberValue: e.currentTarget.value,
-    });
-  };
+  const handleDingwordsChange: FormControlProps['onChange'] = useCallback((e) => {
+    setDingwordsFlat(e.currentTarget.value);
+  }, []);
 
-  handleDingwordsChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      dingwords: e.currentTarget.value,
-    });
-  };
-
-  toggleOperating = () => {
-    const newState = !this.props.operating;
+  const toggleOperating = useCallback(() => {
+    const newState = !props.operating;
     if (newState) {
       Meteor.call('makeOperator', Meteor.userId());
     } else {
       Meteor.call('stopOperating');
     }
-  };
+  }, [props.operating]);
 
-  handleSaveForm = () => {
-    this.setState({
-      submitState: OwnProfilePageSubmitState.SUBMITTING,
-    });
-    const dingwords = this.state.dingwords.split(',').map((x) => {
+  const handleSaveForm = useCallback(() => {
+    setSubmitState(OwnProfilePageSubmitState.SUBMITTING);
+    const dingwords = dingwordsFlat.split(',').map((x) => {
       return x.trim().toLowerCase();
     }).filter((x) => x.length > 0);
     const newProfile = {
-      displayName: this.state.displayNameValue,
-      phoneNumber: this.state.phoneNumberValue,
-      muteApplause: this.state.muteApplause,
+      displayName,
+      phoneNumber,
+      muteApplause,
       dingwords,
     };
     Meteor.call('saveProfile', newProfile, (error?: Error) => {
       if (error) {
-        this.setState({
-          submitState: OwnProfilePageSubmitState.ERROR,
-          submitError: error.message,
-        });
+        setSubmitError(error.message);
+        setSubmitState(OwnProfilePageSubmitState.ERROR);
       } else {
-        this.setState({
-          submitState: OwnProfilePageSubmitState.SUCCESS,
-        });
+        setSubmitState(OwnProfilePageSubmitState.SUCCESS);
       }
     });
-  };
+  }, [dingwordsFlat, displayName, muteApplause, phoneNumber]);
 
-  dismissAlert = () => {
-    this.setState({
-      submitState: OwnProfilePageSubmitState.IDLE,
-    });
-  };
+  const dismissAlert = useCallback(() => {
+    setSubmitState(OwnProfilePageSubmitState.IDLE);
+  }, []);
 
-  render() {
-    const shouldDisableForm = (this.state.submitState === 'submitting');
-    return (
-      <div>
-        <h1>Account information</h1>
-        {this.props.canMakeOperator ? <FormCheck type="checkbox" checked={this.props.operating} onChange={this.toggleOperating} label="Operating" /> : null}
-        <FormGroup>
-          <FormLabel htmlFor="jr-profile-edit-email">
-            Email address
-          </FormLabel>
-          <FormControl
-            id="jr-profile-edit-email"
-            type="text"
-            value={this.props.initialProfile.primaryEmail}
-            disabled
-          />
-          <FormText>
-            This is the email address associated with your account.  The
-            profile picture below is the image associated with that email
-            address from
-            {' '}
-            <a href="https://gravatar.com">gravatar.com</a>
-            .
-          </FormText>
-          <Gravatar email={this.props.initialProfile.primaryEmail} />
-        </FormGroup>
-        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.submitError}
-          </Alert>
-        ) : null}
+  const shouldDisableForm = (submitState === 'submitting');
+  return (
+    <div>
+      <h1>Account information</h1>
+      {props.canMakeOperator ? <FormCheck type="checkbox" checked={props.operating} onChange={toggleOperating} label="Operating" /> : null}
+      <FormGroup>
+        <FormLabel htmlFor="jr-profile-edit-email">
+          Email address
+        </FormLabel>
+        <FormControl
+          id="jr-profile-edit-email"
+          type="text"
+          value={props.initialProfile.primaryEmail}
+          disabled
+        />
+        <FormText>
+          This is the email address associated with your account.  The
+          profile picture below is the image associated with that email
+          address from
+          {' '}
+          <a href="https://gravatar.com">gravatar.com</a>
+          .
+        </FormText>
+        <Gravatar email={props.initialProfile.primaryEmail} />
+      </FormGroup>
+      {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {submitError}
+        </Alert>
+      ) : null}
 
-        <GoogleLinkBlockContainer profile={this.props.initialProfile} />
+      <GoogleLinkBlock profile={props.initialProfile} />
 
-        <DiscordLinkBlockContainer profile={this.props.initialProfile} />
+      <DiscordLinkBlock profile={props.initialProfile} />
 
-        <FormGroup>
-          <FormLabel htmlFor="jr-profile-edit-display-name">
-            Display name
-          </FormLabel>
-          <FormControl
-            id="jr-profile-edit-display-name"
-            type="text"
-            value={this.state.displayNameValue}
-            disabled={shouldDisableForm}
-            onChange={this.handleDisplayNameFieldChange}
-          />
-          <FormText>
-            We suggest your full name, to avoid ambiguity.
-          </FormText>
-        </FormGroup>
+      <FormGroup>
+        <FormLabel htmlFor="jr-profile-edit-display-name">
+          Display name
+        </FormLabel>
+        <FormControl
+          id="jr-profile-edit-display-name"
+          type="text"
+          value={displayName}
+          disabled={shouldDisableForm}
+          onChange={handleDisplayNameFieldChange}
+        />
+        <FormText>
+          We suggest your full name, to avoid ambiguity.
+        </FormText>
+      </FormGroup>
 
-        <FormGroup>
-          <FormLabel htmlFor="jr-profile-edit-phone">
-            Phone number (optional)
-          </FormLabel>
-          <FormControl
-            id="jr-profile-edit-phone"
-            type="text"
-            value={this.state.phoneNumberValue}
-            disabled={shouldDisableForm}
-            onChange={this.handlePhoneNumberFieldChange}
-          />
-          <FormText>
-            In case we need to reach you via phone.
-          </FormText>
-        </FormGroup>
+      <FormGroup>
+        <FormLabel htmlFor="jr-profile-edit-phone">
+          Phone number (optional)
+        </FormLabel>
+        <FormControl
+          id="jr-profile-edit-phone"
+          type="text"
+          value={phoneNumber}
+          disabled={shouldDisableForm}
+          onChange={handlePhoneNumberFieldChange}
+        />
+        <FormText>
+          In case we need to reach you via phone.
+        </FormText>
+      </FormGroup>
 
-        <FormGroup>
-          <FormLabel htmlFor="jr-profile-edit-dingwords">
-            Dingwords (experimental)
-          </FormLabel>
-          <FormControl
-            id="jr-profile-edit-dingwords"
-            type="text"
-            value={this.state.dingwords}
-            disabled={shouldDisableForm}
-            onChange={this.handleDingwordsChange}
-            placeholder="cryptic,biology,chemistry"
-          />
-          <FormText>
-            Get an in-app notification if anyone sends a chat message
-            containing one of your comma-separated, case-insensitive dingwords
-            as a substring.  This feature is experimental and may be disabled
-            without notice.
-          </FormText>
-        </FormGroup>
+      <FormGroup>
+        <FormLabel htmlFor="jr-profile-edit-dingwords">
+          Dingwords (experimental)
+        </FormLabel>
+        <FormControl
+          id="jr-profile-edit-dingwords"
+          type="text"
+          value={dingwordsFlat}
+          disabled={shouldDisableForm}
+          onChange={handleDingwordsChange}
+          placeholder="cryptic,biology,chemistry"
+        />
+        <FormText>
+          Get an in-app notification if anyone sends a chat message
+          containing one of your comma-separated, case-insensitive dingwords
+          as a substring.  This feature is experimental and may be disabled
+          without notice.
+        </FormText>
+      </FormGroup>
 
-        <FormGroup>
-          <FormCheck
-            type="checkbox"
-            checked={this.state.muteApplause}
-            onChange={this.onDisableApplauseChange}
-            label="Mute applause"
-          />
-          <FormText>
-            Enable this option if you find the applause sound when we solve a puzzle annoying.
-          </FormText>
-        </FormGroup>
+      <FormGroup>
+        <FormCheck
+          type="checkbox"
+          checked={muteApplause}
+          onChange={onDisableApplauseChange}
+          label="Mute applause"
+        />
+        <FormText>
+          Enable this option if you find the applause sound when we solve a puzzle annoying.
+        </FormText>
+      </FormGroup>
 
-        <FormGroup>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={shouldDisableForm}
-            onClick={this.handleSaveForm}
-          >
-            Save
-          </Button>
-        </FormGroup>
+      <FormGroup>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={shouldDisableForm}
+          onClick={handleSaveForm}
+        >
+          Save
+        </Button>
+      </FormGroup>
 
-        <AudioConfig />
-      </div>
-    );
-  }
-}
+      <AudioConfig />
+    </div>
+  );
+};
 
 export default OwnProfilePage;

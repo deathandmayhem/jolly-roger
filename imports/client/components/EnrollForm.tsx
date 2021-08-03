@@ -9,12 +9,10 @@ interface EnrollFormParams {
 interface EnrollFormProps extends RouteComponentProps<EnrollFormParams> {
 }
 
-class EnrollForm extends React.Component<EnrollFormProps> {
-  render() {
-    return (
-      <AccountForm format={AccountFormFormat.ENROLL} token={this.props.match.params.token} />
-    );
-  }
-}
+const EnrollForm = (props: EnrollFormProps) => {
+  return (
+    <AccountForm format={AccountFormFormat.ENROLL} token={props.match.params.token} />
+  );
+};
 
 export default EnrollForm;

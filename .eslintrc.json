@@ -1,4 +1,5 @@
 {
+  "root": true,
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "allowImportExportEverywhere": false
@@ -11,7 +12,8 @@
     "airbnb",
     "plugin:meteor/recommended",
     "plugin:import/errors",
-    "plugin:import/warnings"
+    "plugin:import/warnings",
+    "plugin:react-hooks/recommended"
   ],
   "settings": {
     "import/resolver": {

@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {
+  useCallback, useEffect, useImperativeHandle, useRef, useState,
+} from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 
@@ -11,90 +13,93 @@ interface ModalFormProps {
   children: React.ReactNode;
 }
 
-interface ModalFormState {
-  show: boolean;
+export type ModalFormHandle = {
+  show: () => void;
+  hide: () => void;
 }
 
-class ModalForm extends React.Component<ModalFormProps, ModalFormState> {
-  private dontTryToClose?: boolean;
+const ModalForm = React.forwardRef((
+  props: ModalFormProps, forwardedRef: React.Ref<ModalFormHandle>
+) => {
+  const [isShown, setIsShown] = useState<boolean>(false);
+  const dontTryToHide = useRef<boolean>(false);
 
-  static defaultProps = {
-    submitLabel: 'Save',
-    submitStyle: 'primary',
-  };
+  const show = useCallback(() => {
+    setIsShown(true);
+  }, []);
 
-  constructor(props: ModalFormProps) {
-    super(props);
-    this.state = { show: false };
-  }
+  const hide = useCallback(() => {
+    setIsShown(false);
+  }, []);
 
-  componentWillUnmount() {
-    this.dontTryToClose = true;
-  }
+  useImperativeHandle(forwardedRef, () => ({
+    show,
+    hide,
+  }));
 
-  show = () => {
-    this.setState({ show: true });
-  };
+  useEffect(() => {
+    return () => {
+      dontTryToHide.current = true;
+    };
+  }, []);
 
-  close = () => {
-    this.setState({ show: false });
-  };
-
-  submit = (e: React.FormEvent) => {
+  const { onSubmit } = props;
+  const submit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    this.props.onSubmit(() => {
+    onSubmit(() => {
       // For delete forms, it's possible that the component gets
       // deleted and unmounted before the callback gets called.
-      if (!this.dontTryToClose) {
-        this.close();
+      if (!dontTryToHide.current) {
+        hide();
       }
     });
-  };
+  }, [onSubmit, hide]);
 
-  render() {
-    // Note: the animation=false is working around a regression in
-    // react-bootstrap that otherwise breaks autofocus:
-    // https://github.com/react-bootstrap/react-bootstrap/issues/5102
-    // There's a way to avoid breaking things without losing animation,
-    // but then we'd need to hold a ref to the `autoFocus` child to explicitly
-    // focus it in the Modal's `onEntered` callback, and from within this
-    // class we don't know which of the children should receive focus. So
-    // we just disable animations for now.  Makes the UI feel snappier anyway.
-    return (
-      <Modal
-        animation={false}
-        show={this.state.show}
-        onHide={this.close}
-      >
-        <form className="form-horizontal" onSubmit={this.submit}>
-          <Modal.Header closeButton>
-            <Modal.Title>
-              {this.props.title}
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {this.props.children}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-              variant="light"
-              onClick={this.close}
-              disabled={this.props.submitDisabled}
-            >
-              Close
-            </Button>
-            <Button
-              variant={this.props.submitStyle}
-              type="submit"
-              disabled={this.props.submitDisabled}
-            >
-              {this.props.submitLabel}
-            </Button>
-          </Modal.Footer>
-        </form>
-      </Modal>
-    );
-  }
-}
+  const submitLabel = props.submitLabel || 'Save';
+  const submitStyle = props.submitStyle || 'primary';
+
+  // Note: the animation=false is working around a regression in
+  // react-bootstrap that otherwise breaks autofocus:
+  // https://github.com/react-bootstrap/react-bootstrap/issues/5102
+  // There's a way to avoid breaking things without losing animation,
+  // but then we'd need to hold a ref to the `autoFocus` child to explicitly
+  // focus it in the Modal's `onEntered` callback, and from within this
+  // class we don't know which of the children should receive focus. So
+  // we just disable animations for now.  Makes the UI feel snappier anyway.
+  return (
+    <Modal
+      animation={false}
+      show={isShown}
+      onHide={hide}
+    >
+      <form className="form-horizontal" onSubmit={submit}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {props.title}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {props.children}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="light"
+            onClick={hide}
+            disabled={props.submitDisabled}
+          >
+            Close
+          </Button>
+          <Button
+            variant={submitStyle}
+            type="submit"
+            disabled={props.submitDisabled}
+          >
+            {submitLabel}
+          </Button>
+        </Modal.Footer>
+      </form>
+    </Modal>
+  );
+});
 
 export default ModalForm;

@@ -1,11 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import { withTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { RouteComponentProps } from 'react-router';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
+import { useBreadcrumb } from '../hooks/breadcrumb';
 import OthersProfilePage from './OthersProfilePage';
 import OwnProfilePage from './OwnProfilePage';
 
@@ -13,10 +13,7 @@ interface ProfilePageParams {
   userId: string;
 }
 
-interface ProfilePageWithRouterParams extends RouteComponentProps<ProfilePageParams> {
-}
-
-interface ProfilePageProps extends ProfilePageWithRouterParams {
+interface ProfilePageTracker {
   ready: boolean;
   isSelf: boolean;
   profile: ProfileType;
@@ -25,69 +22,66 @@ interface ProfilePageProps extends ProfilePageWithRouterParams {
   targetIsOperator: boolean;
 }
 
-class ProfilePage extends React.Component<ProfilePageProps> {
-  render() {
-    if (!this.props.ready) {
-      return <div>loading...</div>;
-    } else if (this.props.isSelf) {
-      return (
-        <OwnProfilePage
-          initialProfile={this.props.profile}
-          canMakeOperator={this.props.viewerCanMakeOperator}
-          operating={this.props.viewerIsOperator}
-        />
-      );
-    }
+const ProfilePage = (props: RouteComponentProps<ProfilePageParams>) => {
+  useBreadcrumb({ title: 'Users', path: '/users' });
 
+  const { userId } = props.match.params;
+  const tracker = useTracker<ProfilePageTracker>(() => {
+    const uid = userId === 'me' ? Meteor.userId()! : userId;
+
+    const profileHandle = Meteor.subscribe('mongo.profiles', { _id: uid });
+    const userRolesHandle = Meteor.subscribe('userRoles', uid);
+    const user = Meteor.user()!;
+    const defaultEmail = user.emails![0].address!;
+    const data = {
+      ready: !!user && profileHandle.ready() && userRolesHandle.ready(),
+      isSelf: (Meteor.userId() === uid),
+      profile: Profiles.findOne(uid) || {
+        _id: uid,
+        displayName: '',
+        primaryEmail: defaultEmail,
+        phoneNumber: '',
+        dingwords: [],
+        deleted: false,
+        createdAt: new Date(),
+        createdBy: user._id,
+        updatedAt: undefined,
+        updatedBy: undefined,
+        googleAccount: undefined,
+        discordAccount: undefined,
+        muteApplause: undefined,
+      },
+      viewerCanMakeOperator: Roles.userHasPermission(Meteor.userId(), 'users.makeOperator'),
+      viewerIsOperator: Roles.userHasRole(Meteor.userId()!, 'operator'),
+      targetIsOperator: Roles.userHasPermission(uid, 'users.makeOperator'),
+    };
+    return data;
+  }, [userId]);
+
+  useBreadcrumb({
+    title: tracker.ready ? tracker.profile.displayName : 'loading...',
+    path: `/users/${userId}`,
+  });
+
+  if (!tracker.ready) {
+    return <div>loading...</div>;
+  } else if (tracker.isSelf) {
     return (
-      <OthersProfilePage
-        profile={this.props.profile}
-        viewerCanMakeOperator={this.props.viewerCanMakeOperator}
-        targetIsOperator={this.props.targetIsOperator}
+      <OwnProfilePage
+        initialProfile={tracker.profile}
+        canMakeOperator={tracker.viewerCanMakeOperator}
+        operating={tracker.viewerIsOperator}
       />
     );
   }
-}
 
-const usersCrumb = withBreadcrumb<ProfilePageWithRouterParams>({ title: 'Users', path: '/users' });
-const userCrumb = withBreadcrumb(({ match, ready, profile }: ProfilePageProps) => {
-  return {
-    title: ready ? profile.displayName : 'loading...',
-    path: `/users/${match.params.userId}`,
-  };
-});
-const tracker = withTracker(({ match }: ProfilePageWithRouterParams) => {
-  const uid = match.params.userId === 'me' ? Meteor.userId()! : match.params.userId;
+  return (
+    <OthersProfilePage
+      profile={tracker.profile}
+      viewerCanMakeOperator={tracker.viewerCanMakeOperator}
+      targetIsOperator={tracker.targetIsOperator}
+    />
+  );
+};
 
-  const profileHandle = Meteor.subscribe('mongo.profiles', { _id: uid });
-  const userRolesHandle = Meteor.subscribe('userRoles', uid);
-  const user = Meteor.user()!;
-  const defaultEmail = user.emails![0].address!;
-  const data = {
-    ready: !!user && profileHandle.ready() && userRolesHandle.ready(),
-    isSelf: (Meteor.userId() === uid),
-    profile: Profiles.findOne(uid) || {
-      _id: uid,
-      displayName: '',
-      primaryEmail: defaultEmail,
-      phoneNumber: '',
-      dingwords: [],
-      deleted: false,
-      createdAt: new Date(),
-      createdBy: user._id,
-      updatedAt: undefined,
-      updatedBy: undefined,
-      googleAccount: undefined,
-      discordAccount: undefined,
-      muteApplause: undefined,
-    },
-    viewerCanMakeOperator: Roles.userHasPermission(Meteor.userId(), 'users.makeOperator'),
-    viewerIsOperator: Roles.userHasRole(Meteor.userId()!, 'operator'),
-    targetIsOperator: Roles.userHasPermission(uid, 'users.makeOperator'),
-  };
-  return data;
-});
-
-const ProfilePageContainer = usersCrumb(tracker(userCrumb(ProfilePage)));
-
-export default ProfilePageContainer;
+export default ProfilePage;

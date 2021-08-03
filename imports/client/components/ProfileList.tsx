@@ -1,7 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React from 'react';
+import React, {
+  useCallback, useEffect, useMemo, useRef, useState,
+} from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
@@ -21,49 +23,36 @@ interface ProfileListProps {
   profiles: ProfileType[];
 }
 
-interface ProfileListState {
-  searchString: string;
-}
+const ProfileList = (props: ProfileListProps) => {
+  const [searchString, setSearchString] = useState<string>('');
 
-class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
-  private searchBarRef: React.RefObject<HTMLInputElement>
+  const searchBarRef = useRef<HTMLInputElement>(null); // Wrong type but I should fix it
 
-  constructor(props: ProfileListProps) {
-    super(props);
-    this.state = {
-      searchString: '',
-    };
-    this.searchBarRef = React.createRef();
-  }
-
-  componentDidMount() {
-    window.addEventListener('keydown', this.maybeStealCtrlF);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.maybeStealCtrlF);
-  }
-
-  maybeStealCtrlF = (e: KeyboardEvent) => {
+  const maybeStealCtrlF = useCallback((e: KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'f') {
       e.preventDefault();
-      const node = this.searchBarRef.current;
+      const node = searchBarRef.current;
       if (node) {
         node.focus();
       }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('keydown', maybeStealCtrlF);
+    return () => {
+      window.removeEventListener('keydown', maybeStealCtrlF);
+    };
+  }, [maybeStealCtrlF]);
 
   // The type annotation on FormControl is wrong here - the event is from the
   // input element, not the FormControl React component
-  onSearchStringChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      searchString: e.currentTarget.value,
-    });
-  };
+  const onSearchStringChange: FormControlProps['onChange'] = useCallback((e) => {
+    setSearchString(e.currentTarget.value);
+  }, []);
 
-  compileMatcher = () => {
-    const searchKeys = this.state.searchString.split(' ');
+  const matcher = useMemo(() => {
+    const searchKeys = searchString.split(' ');
     const toMatch = searchKeys.filter(Boolean).map((s) => s.toLowerCase());
     const isInteresting = (profile: ProfileType) => {
       for (let i = 0; i < toMatch.length; i++) {
@@ -79,51 +68,49 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
     };
 
     return isInteresting;
-  };
+  }, [searchString]);
 
-  clearSearch = () => {
-    this.setState({
-      searchString: '',
-    });
-  };
+  const clearSearch = useCallback(() => {
+    setSearchString('');
+  }, []);
 
-  syncDiscordButton = () => {
-    if (!this.props.huntId || !this.props.canSyncDiscord) {
+  const syncDiscord = useCallback(() => {
+    Meteor.call('syncDiscordRole', props.huntId);
+  }, [props.huntId]);
+
+  const syncDiscordButton = useMemo(() => {
+    if (!props.huntId || !props.canSyncDiscord) {
       return null;
     }
 
     return (
       <FormGroup>
-        <Button variant="warning" onClick={this.syncDiscord}>
+        <Button variant="warning" onClick={syncDiscord}>
           Sync this hunt&apos;s Discord role
         </Button>
         <FormText>
-          (Click this if people are reporting that they can&apos; access hunt-specific channels)
+          (Click this if people are reporting that they can&apos;t access hunt-specific channels)
         </FormText>
       </FormGroup>
     );
-  }
+  }, [props.huntId, props.canSyncDiscord, syncDiscord]);
 
-  syncDiscord = () => {
-    Meteor.call('syncDiscordRole', this.props.huntId);
-  }
-
-  inviteToHuntItem = () => {
-    if (!this.props.huntId || !this.props.canInvite) {
+  const inviteToHuntItem = useMemo(() => {
+    if (!props.huntId || !props.canInvite) {
       return null;
     }
 
     return (
-      <RRBS.LinkContainer to={`/hunts/${this.props.huntId}/hunters/invite`}>
+      <RRBS.LinkContainer to={`/hunts/${props.huntId}/hunters/invite`}>
         <ListGroupItem action>
           <strong>Invite someone...</strong>
         </ListGroupItem>
       </RRBS.LinkContainer>
     );
-  };
+  }, [props.huntId, props.canInvite]);
 
-  globalInfo = () => {
-    if (this.props.huntId) {
+  const globalInfo = useMemo(() => {
+    if (props.huntId) {
       return null;
     }
 
@@ -133,59 +120,57 @@ class ProfileList extends React.Component<ProfileListProps, ProfileListState> {
         Mystery Hunt. For that, go to the hunt page and click on &quot;Hunters&quot;.
       </Alert>
     );
-  };
+  }, [props.huntId]);
 
-  render() {
-    const profiles = this.props.profiles.filter(this.compileMatcher());
-    return (
-      <div>
-        <h1>List of hunters</h1>
-        <div className="profiles-summary">
-          <div>
-            Total hunters:
-            {' '}
-            {this.props.profiles.length}
-          </div>
+  const profiles = props.profiles.filter(matcher);
+  return (
+    <div>
+      <h1>List of hunters</h1>
+      <div className="profiles-summary">
+        <div>
+          Total hunters:
+          {' '}
+          {props.profiles.length}
         </div>
-
-        {this.syncDiscordButton()}
-
-        <FormGroup>
-          <FormLabel htmlFor="jr-profile-list-search">
-            Search
-          </FormLabel>
-          <InputGroup>
-            <FormControl
-              id="jr-profile-list-search"
-              type="text"
-              ref={this.searchBarRef}
-              placeholder="search by name..."
-              value={this.state.searchString}
-              onChange={this.onSearchStringChange}
-            />
-            <InputGroup.Append>
-              <Button variant="secondary" onClick={this.clearSearch}>
-                <FontAwesomeIcon icon={faEraser} />
-              </Button>
-            </InputGroup.Append>
-          </InputGroup>
-        </FormGroup>
-
-        {this.globalInfo()}
-
-        <ListGroup>
-          {this.inviteToHuntItem()}
-          {profiles.map((profile) => (
-            <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
-              <ListGroupItem action>
-                {profile.displayName || '<no name provided>'}
-              </ListGroupItem>
-            </RRBS.LinkContainer>
-          ))}
-        </ListGroup>
       </div>
-    );
-  }
-}
+
+      {syncDiscordButton}
+
+      <FormGroup>
+        <FormLabel htmlFor="jr-profile-list-search">
+          Search
+        </FormLabel>
+        <InputGroup>
+          <FormControl
+            id="jr-profile-list-search"
+            type="text"
+            ref={searchBarRef}
+            placeholder="search by name..."
+            value={searchString}
+            onChange={onSearchStringChange}
+          />
+          <InputGroup.Append>
+            <Button variant="secondary" onClick={clearSearch}>
+              <FontAwesomeIcon icon={faEraser} />
+            </Button>
+          </InputGroup.Append>
+        </InputGroup>
+      </FormGroup>
+
+      {globalInfo}
+
+      <ListGroup>
+        {inviteToHuntItem}
+        {profiles.map((profile) => (
+          <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
+            <ListGroupItem action>
+              {profile.displayName || '<no name provided>'}
+            </ListGroupItem>
+          </RRBS.LinkContainer>
+        ))}
+      </ListGroup>
+    </div>
+  );
+};
 
 export default ProfileList;

@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { detectOverflow } from '@popperjs/core';
 import type { ModifierArguments, Modifier, Padding } from '@popperjs/core';
 import classnames from 'classnames';
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Popover from 'react-bootstrap/Popover';
@@ -81,60 +81,64 @@ interface PopoverRelatedProps {
 
 type TagProps = BaseTagProps & (DoNotPopoverRelatedProps | PopoverRelatedProps);
 
-interface TagState {
-  showPopover: boolean;
-}
+const Tag = (props: TagProps) => {
+  const [showPopover, setShowPopover] = useState<boolean>(false);
 
-class Tag extends React.Component<TagProps, TagState> {
-  static displayName = 'Tag';
+  const onOverlayTriggerToggle = useCallback((nextShow: boolean) => {
+    setShowPopover(nextShow);
+  }, []);
 
-  constructor(props: TagProps) {
-    super(props);
-    this.state = {
-      showPopover: false,
+  const doShowPopover = useCallback(() => {
+    setShowPopover(true);
+  }, []);
+
+  const doHidePopover = useCallback(() => {
+    setShowPopover(false);
+  }, []);
+
+  useEffect(() => {
+    // Necessary to ensure the popover closes when entering the iframe on
+    // devices that don't support hover
+    window.addEventListener('blur', doHidePopover);
+    return () => {
+      window.removeEventListener('blur', doHidePopover);
     };
-  }
+  }, [doHidePopover]);
 
-  componentDidMount() {
-    window.addEventListener('blur', this.onWindowBlur);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('blur', this.onWindowBlur);
-  }
-
-  // Necessary to ensure popover close when entering the iframe on devices that don't support hover
-  onWindowBlur = () => {
-    this.setState({ showPopover: false });
-  };
-
-  onRemove = () => {
-    if (this.props.onRemove) {
-      this.props.onRemove(this.props.tag._id);
+  const { onRemove, tag } = props;
+  const onRemoveCb = useCallback(() => {
+    if (onRemove) {
+      onRemove(tag._id);
     }
-  };
+  }, [onRemove, tag._id]);
 
-  onOverlayTriggerToggle = (nextShow: boolean) => {
-    this.setState({ showPopover: nextShow });
-  }
+  const allTagsIfPresent = props.popoverRelated ? props.allTags : undefined;
+  const allPuzzlesIfPresent = props.popoverRelated ? props.allPuzzles : undefined;
+  const getRelatedPuzzles = useCallback(() => {
+    if (!props.popoverRelated) {
+      return [];
+    }
+    const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
+    const sharedTag = allTagsIfPresent!.find((t) => t.name === sharedTagName);
+    return sharedTag ?
+      allPuzzlesIfPresent!.filter((p) => p.tags.indexOf(sharedTag._id) !== -1) :
+      [];
+  }, [
+    props.popoverRelated,
+    props.tag.name,
+    allTagsIfPresent,
+    allPuzzlesIfPresent,
+  ]);
 
-  onPopoverMouseEnter = () => {
-    this.setState({ showPopover: true });
-  }
-
-  onPopoverMouseLeave = () => {
-    this.setState({ showPopover: false });
-  }
-
-  copyRelatedPuzzlesToClipboard = () => {
-    if (!this.props.popoverRelated) {
+  const copyRelatedPuzzlesToClipboard = useCallback(() => {
+    if (!props.popoverRelated) {
       return;
     }
-    const tagIndex = _.indexBy(this.props.allTags, '_id');
-    const sharedTagName = getRelatedPuzzlesSharedTagName(this.props.tag.name);
-    const sharedTag = this.props.allTags.find((t) => t.name === sharedTagName);
+    const tagIndex = _.indexBy(allTagsIfPresent!, '_id');
+    const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
+    const sharedTag = allTagsIfPresent!.find((t) => t.name === sharedTagName);
     const relatedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
-      this.getRelatedPuzzles(),
+      getRelatedPuzzles(),
       sharedTag,
       tagIndex
     );
@@ -147,138 +151,130 @@ class Tag extends React.Component<TagProps, TagState> {
       }).join('\n');
     }).join('\n');
     navigator.clipboard.writeText(clipboardData);
-  }
+  }, [
+    props.popoverRelated,
+    props.tag.name,
+    allTagsIfPresent,
+    getRelatedPuzzles,
+  ]);
 
-  getRelatedPuzzles = () => {
-    if (!this.props.popoverRelated) {
-      return [];
+  const name = props.tag.name;
+  const isAdministrivia = name === 'administrivia';
+  const isMeta = name === 'is:meta' || name === 'is:metameta';
+  const isGroup = name.lastIndexOf('group:', 0) === 0;
+  const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
+  const isNeeds = name.lastIndexOf('needs:', 0) === 0;
+  const isPriority = name.lastIndexOf('priority:', 0) === 0;
+  const classNames = classnames('tag',
+    props.popoverRelated ? 'tag-popover' : null,
+    showPopover ? 'tag-popover-open' : null,
+    isAdministrivia ? 'tag-administrivia' : null,
+    isMeta ? 'tag-meta' : null,
+    isGroup ? 'tag-group' : null,
+    isMetaFor ? 'tag-meta-for' : null,
+    isNeeds ? 'tag-needs' : null,
+    isPriority ? 'tag-priority' : null);
+
+  // Browsers won't word-break on hyphens, so suggest
+  // Use wbr instead of zero-width space to make copy-paste reasonable
+  const nameWithBreaks:(String|JSX.Element)[] = [];
+  name.split(':').forEach((part, i, arr) => {
+    const withColon = i < arr.length - 1;
+    nameWithBreaks.push(`${part}${withColon ? ':' : ''}`);
+    if (withColon) {
+      // eslint-disable-next-line react/no-array-index-key
+      nameWithBreaks.push(<wbr key={`wbr-${i}-${part}`} />);
     }
-    const sharedTagName = getRelatedPuzzlesSharedTagName(this.props.tag.name);
-    const sharedTag = this.props.allTags.find((t) => t.name === sharedTagName);
-    return sharedTag ?
-      this.props.allPuzzles.filter((p) => p.tags.indexOf(sharedTag._id) !== -1) :
-      [];
-  }
-
-  render() {
-    const name = this.props.tag.name;
-    const isAdministrivia = name === 'administrivia';
-    const isMeta = name === 'is:meta' || name === 'is:metameta';
-    const isGroup = name.lastIndexOf('group:', 0) === 0;
-    const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
-    const isNeeds = name.lastIndexOf('needs:', 0) === 0;
-    const isPriority = name.lastIndexOf('priority:', 0) === 0;
-    const classNames = classnames('tag',
-      this.props.popoverRelated ? 'tag-popover' : null,
-      this.state.showPopover ? 'tag-popover-open' : null,
-      isAdministrivia ? 'tag-administrivia' : null,
-      isMeta ? 'tag-meta' : null,
-      isGroup ? 'tag-group' : null,
-      isMetaFor ? 'tag-meta-for' : null,
-      isNeeds ? 'tag-needs' : null,
-      isPriority ? 'tag-priority' : null);
-
-    // Browsers won't word-break on hyphens, so suggest
-    // Use wbr instead of zero-width space to make copy-paste reasonable
-    const nameWithBreaks:(String|JSX.Element)[] = [];
-    name.split(':').forEach((part, i, arr) => {
-      const withColon = i < arr.length - 1;
-      nameWithBreaks.push(`${part}${withColon ? ':' : ''}`);
-      if (withColon) {
-        // eslint-disable-next-line react/no-array-index-key
-        nameWithBreaks.push(<wbr key={`wbr-${i}-${part}`} />);
-      }
-    });
-    let title;
-    if (this.props.linkToSearch) {
-      title = (
-        <Link
-          to={{
-            pathname: `/hunts/${this.props.tag.hunt}/puzzles`,
-            search: `q=${this.props.tag.name}`,
-          }}
-          className="tag-link"
-        >
-          {nameWithBreaks}
-        </Link>
-      );
-    } else {
-      title = nameWithBreaks;
-    }
-
-    const tagElement = (
-      <div className={classNames}>
-        {title}
-        {this.props.onRemove && (
-          <Button className="tag-remove-button" variant="danger" onClick={this.onRemove}>
-            <FontAwesomeIcon icon={faTimes} />
-          </Button>
-        )}
-      </div>
+  });
+  let title;
+  if (props.linkToSearch) {
+    title = (
+      <Link
+        to={{
+          pathname: `/hunts/${props.tag.hunt}/puzzles`,
+          search: `q=${props.tag.name}`,
+        }}
+        className="tag-link"
+      >
+        {nameWithBreaks}
+      </Link>
     );
-
-    if (this.props.popoverRelated) {
-      const sharedTagName = getRelatedPuzzlesSharedTagName(this.props.tag.name);
-      const relatedPuzzles = this.getRelatedPuzzles();
-      const popover = (
-        <Popover
-          id={`tag-${this.props.tag._id}`}
-          className="related-puzzle-popover"
-          onMouseEnter={this.onPopoverMouseEnter}
-          onMouseLeave={this.onPopoverMouseLeave}
-        >
-          <Popover.Title>
-            <div className="related-puzzle-popover-header-inner">
-              {sharedTagName}
-              <div className="related-puzzle-popover-controls">
-                <Button
-                  className="tag-copy-button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={this.copyRelatedPuzzlesToClipboard}
-                >
-                  <FontAwesomeIcon icon={faCopy} />
-                  {'    '}
-                  Copy
-                </Button>
-              </div>
-            </div>
-          </Popover.Title>
-          <Popover.Content>
-            <RelatedPuzzleList
-              relatedPuzzles={relatedPuzzles}
-              allTags={this.props.allTags}
-              layout="table"
-              canUpdate={false}
-              sharedTag={this.props.tag}
-              suppressedTagIds={[]}
-            />
-          </Popover.Content>
-        </Popover>
-      );
-      return (
-        <OverlayTrigger
-          placement="bottom"
-          overlay={popover}
-          trigger={['hover', 'click']}
-          onToggle={this.onOverlayTriggerToggle}
-          show={this.state.showPopover}
-          popperConfig={
-            {
-              modifiers: [
-                { name: 'preventOverflow', options: { padding: PopoverPadding } },
-                PopperScreenFit,
-              ],
-            }
-          }
-        >
-          {tagElement}
-        </OverlayTrigger>
-      );
-    } else {
-      return tagElement;
-    }
+  } else {
+    title = nameWithBreaks;
   }
-}
+
+  const tagElement = (
+    <div className={classNames}>
+      {title}
+      {props.onRemove && (
+        <Button className="tag-remove-button" variant="danger" onClick={onRemoveCb}>
+          <FontAwesomeIcon icon={faTimes} />
+        </Button>
+      )}
+    </div>
+  );
+
+  if (props.popoverRelated) {
+    const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
+    const relatedPuzzles = getRelatedPuzzles();
+    const popover = (
+      <Popover
+        id={`tag-${props.tag._id}`}
+        className="related-puzzle-popover"
+        onMouseEnter={doShowPopover}
+        onMouseLeave={doHidePopover}
+      >
+        <Popover.Title>
+          <div className="related-puzzle-popover-header-inner">
+            {sharedTagName}
+            <div className="related-puzzle-popover-controls">
+              <Button
+                className="tag-copy-button"
+                variant="secondary"
+                size="sm"
+                onClick={copyRelatedPuzzlesToClipboard}
+              >
+                <FontAwesomeIcon icon={faCopy} />
+                {'    '}
+                Copy
+              </Button>
+            </div>
+          </div>
+        </Popover.Title>
+        <Popover.Content>
+          <RelatedPuzzleList
+            relatedPuzzles={relatedPuzzles}
+            allTags={props.allTags}
+            layout="table"
+            canUpdate={false}
+            sharedTag={props.tag}
+            suppressedTagIds={[]}
+          />
+        </Popover.Content>
+      </Popover>
+    );
+    return (
+      <OverlayTrigger
+        placement="bottom"
+        overlay={popover}
+        trigger={['hover', 'click']}
+        onToggle={onOverlayTriggerToggle}
+        show={showPopover}
+        popperConfig={
+          {
+            modifiers: [
+              { name: 'preventOverflow', options: { padding: PopoverPadding } },
+              PopperScreenFit,
+            ],
+          }
+        }
+      >
+        {tagElement}
+      </OverlayTrigger>
+    );
+  } else {
+    return tagElement;
+  }
+};
 
 export default Tag;

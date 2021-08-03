@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 interface CelebrationProps {
@@ -9,62 +9,76 @@ interface CelebrationProps {
   onClose: () => void;
 }
 
-class Celebration extends React.Component<CelebrationProps> {
-  private timer?: number;
+const Celebration = (props: CelebrationProps) => {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  componentDidMount() {
-    this.timer = window.setTimeout(() => { this.onClose(); }, 7000);
-    document.addEventListener('keydown', this.onKeyDown);
-  }
+  const { onClose } = props;
 
-  componentWillUnmount() {
-    window.clearTimeout(this.timer);
-    document.removeEventListener('keydown', this.onKeyDown);
-  }
-
-  onClose = () => {
-    if (this.props.onClose) {
-      this.props.onClose();
+  const onCloseCb = useCallback(() => {
+    if (onClose) {
+      onClose();
     }
-  };
+  }, [onClose]);
 
-  onKeyDown = (e: KeyboardEvent) => {
+  const onKeyDown = useCallback((e: KeyboardEvent) => {
     // Dismiss the celebration on esc
     if (e.keyCode === 27) {
-      this.onClose();
+      onCloseCb();
     }
-  }
+  }, [onCloseCb]);
 
-  maybeClose = (e: React.MouseEvent) => {
+  const maybeClose = useCallback((e: React.MouseEvent) => {
     // Dismiss the celebration if you click on the overlay div (outside the content)
     if (e.target === e.currentTarget) {
-      this.onClose();
+      onCloseCb();
     }
-  };
+  }, [onCloseCb]);
 
-  render() {
-    return (
-      <div className="celebration-overlay" onClick={this.maybeClose}>
-        <div className="celebration">
-          <button type="button" className="close" onClick={this.onClose} aria-label="Close">
-            <span aria-hidden="true">×</span>
-          </button>
-          {this.props.playAudio ? <audio src="/audio/applause.mp3" autoPlay /> : null}
-          <h1>
-            We solved
-            {' '}
-            <Link to={this.props.url}>{this.props.title}</Link>
-            !
-          </h1>
-          <h2>
-            Answer:
-            {' '}
-            <span className="answer">{this.props.answer}</span>
-          </h2>
-        </div>
+  // Automatically dismiss self after 7 seconds
+  useEffect(() => {
+    const timer = window.setTimeout(() => { onCloseCb(); }, 7000);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [onCloseCb]);
+
+  // Allow pressing escape key to close the overlay
+  useEffect(() => {
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onKeyDown]);
+
+  useEffect(() => {
+    // Steal focus to the close button on display
+    const closeButton = closeButtonRef.current;
+    if (closeButton) {
+      closeButton.focus();
+    }
+  });
+
+  return (
+    <div className="celebration-overlay" onClick={maybeClose}>
+      <div className="celebration">
+        <button type="button" className="close" onClick={onCloseCb} aria-label="Close" ref={closeButtonRef}>
+          <span aria-hidden="true">×</span>
+        </button>
+        {props.playAudio ? <audio src="/audio/applause.mp3" autoPlay /> : null}
+        <h1>
+          We solved
+          {' '}
+          <Link to={props.url}>{props.title}</Link>
+          !
+        </h1>
+        <h2>
+          Answer:
+          {' '}
+          <span className="answer">{props.answer}</span>
+        </h2>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default Celebration;

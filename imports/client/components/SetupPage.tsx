@@ -2,10 +2,10 @@ import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { OAuth } from 'meteor/oauth';
-import { withTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
-import React, { ReactChild } from 'react';
+import React, { ReactChild, useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
@@ -13,7 +13,6 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import Flags from '../../flags';
 import BlobMappings from '../../lib/models/blob_mappings';
 import DiscordCache from '../../lib/models/discord_cache';
@@ -21,6 +20,7 @@ import Settings from '../../lib/models/settings';
 import { BlobMappingType } from '../../lib/schemas/blob_mapping';
 import { SettingType } from '../../lib/schemas/settings';
 import { DiscordGuildType } from '../discord';
+import { useBreadcrumb } from '../hooks/breadcrumb';
 
 /* eslint-disable max-len, react/jsx-one-expression-per-line */
 
@@ -43,119 +43,108 @@ interface GoogleOAuthFormProps {
   initialClientId?: string;
 }
 
-type GoogleOAuthFormState = {
-  clientId: string;
-  clientSecret: string;
-} & ({
+type GoogleOAuthFormSubmitState = ({
   submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS
 } | {
   submitState: SubmitState.ERROR;
   submitError: string;
-})
+});
 
-class GoogleOAuthForm extends React.Component<GoogleOAuthFormProps, GoogleOAuthFormState> {
-  constructor(props: GoogleOAuthFormProps) {
-    super(props);
-    const clientId = props.initialClientId || '';
-    this.state = {
+const GoogleOAuthForm = (props: GoogleOAuthFormProps) => {
+  const [state, setState] = useState<GoogleOAuthFormSubmitState>({
+    submitState: SubmitState.IDLE,
+  });
+  const [clientId, setClientId] = useState<string>(props.initialClientId || '');
+  const [clientSecret, setClientSecret] = useState<string>('');
+
+  const dismissAlert = useCallback(() => {
+    setState({
       submitState: SubmitState.IDLE,
-      clientId,
-      clientSecret: '',
-    } as GoogleOAuthFormState;
-  }
+    });
+  }, []);
 
-  dismissAlert = () => {
-    this.setState({ submitState: SubmitState.IDLE });
-  };
-
-  onSubmitOauthConfiguration = (e: React.FormEvent<any>) => {
+  const onSubmitOauthConfiguration = useCallback((e: React.FormEvent<any>) => {
     e.preventDefault();
 
-    const clientId = this.state.clientId.trim();
-    const clientSecret = this.state.clientSecret.trim();
+    const trimmedClientId = clientId.trim();
+    const trimmedClientSecret = clientSecret.trim();
 
-    if (clientId.length > 0 && clientSecret.length === 0) {
-      this.setState({
+    if (trimmedClientId.length > 0 && trimmedClientSecret.length === 0) {
+      setState({
         submitState: SubmitState.ERROR,
         submitError: 'You appear to be clearing the secret but not the client ID.  Please provide a secret.',
-      } as GoogleOAuthFormState);
+      });
     } else {
-      this.setState({
+      setState({
         submitState: SubmitState.SUBMITTING,
       });
-      Meteor.call('setupGoogleOAuthClient', clientId, clientSecret, (err?: Error) => {
+      Meteor.call('setupGoogleOAuthClient', trimmedClientId, trimmedClientSecret, (err?: Error) => {
         if (err) {
-          this.setState({
+          setState({
             submitState: SubmitState.ERROR,
             submitError: err.message,
-          } as GoogleOAuthFormState);
+          });
         } else {
-          this.setState({
+          setState({
             submitState: SubmitState.SUCCESS,
           });
         }
       });
     }
-  };
+  }, [clientId, clientSecret]);
 
-  onClientIdChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      clientId: e.currentTarget.value,
-    });
-  };
+  const onClientIdChange: FormControlProps['onChange'] = useCallback((e) => {
+    setClientId(e.currentTarget.value);
+  }, []);
 
-  onClientSecretChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      clientSecret: e.currentTarget.value,
-    });
-  };
+  const onClientSecretChange: FormControlProps['onChange'] = useCallback((e) => {
+    setClientSecret(e.currentTarget.value);
+  }, []);
 
-  render() {
-    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
-    const secretPlaceholder = this.props.isConfigured ? '<configured secret not revealed>' : '';
-    return (
-      <form onSubmit={this.onSubmitOauthConfiguration}>
-        {this.state.submitState === SubmitState.SUBMITTING ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === SubmitState.ERROR ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === SubmitState.ERROR ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.submitError}
-          </Alert>
-        ) : null}
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-google-client-id">
-            Client ID
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-google-client-id"
-            type="text"
-            value={this.state.clientId}
-            disabled={shouldDisableForm}
-            onChange={this.onClientIdChange}
-          />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-google-client-secret">
-            Client secret
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-google-client-secret"
-            type="text"
-            value={this.state.clientSecret}
-            disabled={shouldDisableForm}
-            onChange={this.onClientSecretChange}
-            placeholder={secretPlaceholder}
-          />
-        </FormGroup>
-        <Button variant="primary" type="submit" disabled={shouldDisableForm} onSubmit={this.onSubmitOauthConfiguration}>
-          Save
-        </Button>
-      </form>
-    );
-  }
-}
+  const shouldDisableForm = state.submitState === SubmitState.SUBMITTING;
+  const secretPlaceholder = props.isConfigured ? '<configured secret not revealed>' : '';
+  return (
+    <form onSubmit={onSubmitOauthConfiguration}>
+      {state.submitState === SubmitState.SUBMITTING ? <Alert variant="info">Saving...</Alert> : null}
+      {state.submitState === SubmitState.ERROR ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {state.submitState === SubmitState.ERROR ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {state.submitError}
+        </Alert>
+      ) : null}
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-google-client-id">
+          Client ID
+        </FormLabel>
+        <FormControl
+          id="jr-setup-edit-google-client-id"
+          type="text"
+          value={clientId}
+          disabled={shouldDisableForm}
+          onChange={onClientIdChange}
+        />
+      </FormGroup>
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-google-client-secret">
+          Client secret
+        </FormLabel>
+        <FormControl
+          id="jr-setup-edit-google-client-secret"
+          type="text"
+          value={clientSecret}
+          disabled={shouldDisableForm}
+          onChange={onClientSecretChange}
+          placeholder={secretPlaceholder}
+        />
+      </FormGroup>
+      <Button variant="primary" type="submit" disabled={shouldDisableForm} onSubmit={onSubmitOauthConfiguration}>
+        Save
+      </Button>
+    </form>
+  );
+};
 
 type GoogleAuthorizeDriveClientFormState = {
   submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS;
@@ -164,158 +153,141 @@ type GoogleAuthorizeDriveClientFormState = {
   error: Error;
 }
 
-class GoogleAuthorizeDriveClientForm extends React.Component<{}, GoogleAuthorizeDriveClientFormState> {
-  constructor(props: {}) {
-    super(props);
-    this.state = {
-      submitState: SubmitState.IDLE,
-    };
-  }
+const GoogleAuthorizeDriveClientForm = () => {
+  const [state, setState] = useState<GoogleAuthorizeDriveClientFormState>({
+    submitState: SubmitState.IDLE,
+  });
 
-  dismissAlert = () => {
-    this.setState({ submitState: SubmitState.IDLE });
-  };
+  const dismissAlert = useCallback(() => {
+    setState({ submitState: SubmitState.IDLE });
+  }, []);
 
-  requestComplete = (token: string) => {
+  const requestComplete = useCallback((token: string) => {
     const secret = OAuth._retrieveCredentialSecret(token);
-    this.setState({ submitState: SubmitState.SUBMITTING });
+    setState({ submitState: SubmitState.SUBMITTING });
     Meteor.call('setupGdriveCreds', token, secret, (error?: Error) => {
       if (error) {
-        this.setState({ submitState: SubmitState.ERROR, error });
+        setState({ submitState: SubmitState.ERROR, error });
       } else {
-        this.setState({ submitState: SubmitState.SUCCESS });
+        setState({ submitState: SubmitState.SUCCESS });
       }
     });
-  };
+  }, []);
 
-  showPopup = () => {
+  const showPopup = useCallback(() => {
     Google.requestCredential({
       requestPermissions: ['email', 'https://www.googleapis.com/auth/drive'],
       requestOfflineToken: true,
-    }, this.requestComplete);
+    }, requestComplete);
     return false;
-  };
+  }, [requestComplete]);
 
-  render() {
-    return (
-      <div>
-        {this.state.submitState === SubmitState.SUBMITTING ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === SubmitState.SUCCESS ? <Alert variant="success" onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === SubmitState.ERROR ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.error.message}
-          </Alert>
-        ) : null}
-        <Button variant="primary" onClick={this.showPopup}>Link a Google account</Button>
-        for Google Drive management. (This will replace any previously configured account)
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      {state.submitState === SubmitState.SUBMITTING ? <Alert variant="info">Saving...</Alert> : null}
+      {state.submitState === SubmitState.SUCCESS ? <Alert variant="success" onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {state.submitState === SubmitState.ERROR ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {state.error.message}
+        </Alert>
+      ) : null}
+      <Button variant="primary" onClick={showPopup}>Link a Google account</Button>
+      for Google Drive management. (This will replace any previously configured account)
+    </div>
+  );
+};
 
 interface GoogleDriveTemplateFormProps {
   initialDocTemplate?: string;
   initialSpreadsheetTemplate?: string;
 }
 
-type GoogleDriveTemplateFormState = {
-  docTemplate: string;
-  spreadsheetTemplate: string;
-} & ({
+type GoogleDriveTemplateFormState = ({
   submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS;
 } | {
   submitState: SubmitState.ERROR;
   error: Error;
 })
 
-class GoogleDriveTemplateForm extends React.Component<GoogleDriveTemplateFormProps, GoogleDriveTemplateFormState> {
-  constructor(props: GoogleDriveTemplateFormProps) {
-    super(props);
-    this.state = {
-      submitState: SubmitState.IDLE,
-      docTemplate: props.initialDocTemplate || '',
-      spreadsheetTemplate: props.initialSpreadsheetTemplate || '',
-    };
-  }
+const GoogleDriveTemplateForm = (props: GoogleDriveTemplateFormProps) => {
+  const [state, setState] = useState<GoogleDriveTemplateFormState>({
+    submitState: SubmitState.IDLE,
+  });
+  const [docTemplate, setDocTemplate] = useState<string>(props.initialDocTemplate || '');
+  const [spreadsheetTemplate, setSpreadsheetTemplate] = useState<string>(props.initialSpreadsheetTemplate || '');
 
-  dismissAlert = () => {
-    this.setState({ submitState: SubmitState.IDLE });
-  };
+  const dismissAlert = useCallback(() => {
+    setState({ submitState: SubmitState.IDLE });
+  }, []);
 
-  onSpreadsheetTemplateChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      spreadsheetTemplate: e.currentTarget.value,
-    });
-  };
+  const onSpreadsheetTemplateChange: FormControlProps['onChange'] = useCallback((e) => {
+    setSpreadsheetTemplate(e.currentTarget.value);
+  }, []);
 
-  onDocTemplateChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      docTemplate: e.currentTarget.value,
-    });
-  };
+  const onDocTemplateChange: FormControlProps['onChange'] = useCallback((e) => {
+    setDocTemplate(e.currentTarget.value);
+  }, []);
 
-  saveTemplates = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const saveTemplates = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    const ssTemplate = this.state.spreadsheetTemplate.trim();
+    const ssTemplate = spreadsheetTemplate.trim();
     const ssId = ssTemplate.length > 0 ? ssTemplate : undefined;
-    const docTemplateString = this.state.docTemplate.trim();
+    const docTemplateString = docTemplate.trim();
     const docId = docTemplateString.length > 0 ? docTemplateString : undefined;
-    this.setState({
+    setState({
       submitState: SubmitState.SUBMITTING,
     });
     Meteor.call('setupGdriveTemplates', ssId, docId, (error?: Error) => {
       if (error) {
-        this.setState({ submitState: SubmitState.ERROR, error } as GoogleDriveTemplateFormState);
+        setState({ submitState: SubmitState.ERROR, error });
       } else {
-        this.setState({ submitState: SubmitState.SUCCESS });
+        setState({ submitState: SubmitState.SUCCESS });
       }
     });
-  };
+  }, [spreadsheetTemplate, docTemplate]);
 
-  render() {
-    const shouldDisableForm = this.state.submitState === 'submitting';
-    return (
-      <div>
-        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.error.message}
-          </Alert>
-        ) : null}
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-gdrive-sheet-template">
-            Spreadsheet template doc id
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-gdrive-sheet-template"
-            type="text"
-            value={this.state.spreadsheetTemplate}
-            disabled={shouldDisableForm}
-            onChange={this.onSpreadsheetTemplateChange}
-          />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-gdrive-doc-template">
-            Document template doc id
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-gdrive-doc-template"
-            type="text"
-            value={this.state.docTemplate}
-            disabled={shouldDisableForm}
-            onChange={this.onDocTemplateChange}
-          />
-        </FormGroup>
-        <Button variant="primary" onClick={this.saveTemplates} disabled={shouldDisableForm}>Save</Button>
-      </div>
-    );
-  }
-}
+  const shouldDisableForm = state.submitState === 'submitting';
+  return (
+    <div>
+      {state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {state.submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {state.submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {state.error.message}
+        </Alert>
+      ) : null}
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-gdrive-sheet-template">
+          Spreadsheet template doc id
+        </FormLabel>
+        <FormControl
+          id="jr-setup-edit-gdrive-sheet-template"
+          type="text"
+          value={spreadsheetTemplate}
+          disabled={shouldDisableForm}
+          onChange={onSpreadsheetTemplateChange}
+        />
+      </FormGroup>
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-gdrive-doc-template">
+          Document template doc id
+        </FormLabel>
+        <FormControl
+          id="jr-setup-edit-gdrive-doc-template"
+          type="text"
+          value={docTemplate}
+          disabled={shouldDisableForm}
+          onChange={onDocTemplateChange}
+        />
+      </FormGroup>
+      <Button variant="primary" onClick={saveTemplates} disabled={shouldDisableForm}>Save</Button>
+    </div>
+  );
+};
 
 interface GoogleIntegrationSectionProps {
   oauthSettings: any;
@@ -325,545 +297,501 @@ interface GoogleIntegrationSectionProps {
   enabled: boolean;
 }
 
-class GoogleIntegrationSection extends React.Component<GoogleIntegrationSectionProps> {
-  onToggleEnabled = () => {
-    const newValue = !this.props.enabled;
+const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
+  const onToggleEnabled = useCallback(() => {
+    const newValue = !props.enabled;
     const ffValue = newValue ? 'off' : 'on';
     Meteor.call('setFeatureFlag', 'disable.google', ffValue);
-  };
+  }, [props.enabled]);
 
-  disconnectGdrive = () => {
+  const disconnectGdrive = useCallback(() => {
     Meteor.call('clearGdriveCreds');
-  };
+  }, []);
 
-  render() {
-    const firstButtonLabel = this.props.enabled ? 'Enabled' : 'Enable';
-    const secondButtonLabel = this.props.enabled ? 'Disable' : 'Disabled';
-    const clientId = (this.props.oauthSettings && this.props.oauthSettings.clientId) || '';
+  const firstButtonLabel = props.enabled ? 'Enabled' : 'Enable';
+  const secondButtonLabel = props.enabled ? 'Disable' : 'Disabled';
+  const clientId = (props.oauthSettings && props.oauthSettings.clientId) || '';
 
-    let stepsDone = 0;
-    if (this.props.oauthSettings) {
-      stepsDone += 1;
-    }
-    if (this.props.gdriveCredential) {
-      stepsDone += 1;
-    }
-    if (this.props.spreadsheetTemplate) {
-      stepsDone += 1;
-    }
-
-    const comp = googleCompletenessStrings[stepsDone];
-    const compBadgeVariant = stepsDone === 3 ? 'success' : 'warning';
-    const oauthBadgeLabel = this.props.oauthSettings ? 'configured' : 'unconfigured';
-    const oauthBadgeVariant = this.props.oauthSettings ? 'success' : 'warning';
-    const driveBadgeLabel = this.props.gdriveCredential ? 'configured' : 'unconfigured';
-    const driveBadgeVariant = this.props.gdriveCredential ? 'success' : 'warning';
-    const maybeDriveUserEmail = this.props.gdriveCredential && this.props.gdriveCredential.value && this.props.gdriveCredential.value.email;
-    const templateBadgeLabel = this.props.spreadsheetTemplate ? 'configured' : 'unconfigured';
-    const templateBadgeVariant = this.props.spreadsheetTemplate ? 'success' : 'warning';
-
-    return (
-      <section id="google">
-        <h1 className="setup-section-header">
-          <span className="setup-section-header-label">
-            Google integration
-          </span>
-          <Badge variant={compBadgeVariant}>
-            {comp}
-          </Badge>
-          <span className="setup-section-header-buttons">
-            <Button variant="light" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
-              {firstButtonLabel}
-            </Button>
-            <Button variant="light" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
-              {secondButtonLabel}
-            </Button>
-          </span>
-        </h1>
-        <p>
-          There are three pieces to Jolly Roger&apos;s Google integration capabilities:
-        </p>
-        <ol>
-          <li>
-            The OAuth client, which allows Jolly Roger to have users link
-            their Google account to their Jolly Roger account.
-          </li>
-          <li>
-            Google Drive automation, which automatically creates and shares
-            spreadsheets and documents with users when they try to load that
-            puzzle page in Jolly Roger.
-          </li>
-          <li>
-            Template documents, which allow customizing the spreadsheet or
-            doc to be used as a template when new puzzles are created.  This is
-            particularly useful for making all cells use a monospace font by
-            default.
-          </li>
-        </ol>
-
-        <div className="setup-subsection">
-          <h2 className="setup-subsection-header">
-            <span>OAuth client</span>
-            {' '}
-            <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
-          </h2>
-          <p>
-            Integrating with Google requires registering an app ID which
-            identifies your Jolly Roger instance, and obtaining an app secret
-            which proves to Google that you are the operator of this app.
-          </p>
-          <ul>
-            <li>
-              Follow <a href="https://support.google.com/googleapi/answer/6158849" target="_blank" rel="noopener noreferrer">Google&apos;s instructions</a> on how to create an app and register an OAuth 2.0 client.
-              You can ignore the bit about &quot;Service accounts, web applications, and installed applications&quot;.
-            </li>
-            <li>Set <strong>Authorized JavaScript origins</strong> to <span>{Meteor.absoluteUrl('')}</span></li>
-            <li>Set <strong>Authorized redirect URI</strong> to <span>{Meteor.absoluteUrl('/_oauth/google')}</span></li>
-          </ul>
-          <p>
-            Then, copy the client ID and secret into the fields here and click the Save button.
-          </p>
-          <GoogleOAuthForm initialClientId={clientId} isConfigured={!!this.props.oauthSettings} />
-        </div>
-
-        <div className="setup-subsection">
-          <h2 className="setup-subsection-header">
-            <span>Drive user</span>
-            {' '}
-            <Badge variant={driveBadgeVariant}>{driveBadgeLabel}</Badge>
-          </h2>
-          <p>
-            Jolly Roger automates the creation of Google spreadsheets and
-            documents for each puzzle, as well as sharing them with any viewer who
-            has linked their Google account to their profile.
-            To do so, Jolly Roger needs to be authenticated as some Google
-            Drive user which will create and own each spreadsheet and document.
-            In production, Death and Mayhem use a separate Google account not
-            associated with any particular hunter for this purpose, and we
-            recommend this setup.
-          </p>
-          {maybeDriveUserEmail && (
-            <p>
-              Currently connected as <strong>{maybeDriveUserEmail}</strong>. <Button onClick={this.disconnectGdrive}>Disconnect</Button>
-            </p>
-          )}
-          <GoogleAuthorizeDriveClientForm />
-        </div>
-
-        <div className="setup-subsection">
-          <h2 className="setup-subsection-header">
-            <span>Document templates</span>
-            {' '}
-            <Badge variant={templateBadgeVariant}>{templateBadgeLabel}</Badge>
-          </h2>
-          <p>
-            Jolly Roger can create new documents for each puzzle it&apos; made aware of,
-            but teams often would prefer that it make a new copy of some template document
-            or spreadsheet.  For instance, you might use this to set the default typeface
-            to be a monospace font, or to embed your team&apos;s set of Sheets macros, or
-            whatever other script you may wish to integrate.
-          </p>
-          <ul>
-            <li>If you wish to use templates, enter the document id (the part of a docs/sheets link after &quot;https://docs.google.com/document/d/&quot; and before &quot;/edit&quot;) for the appropriate template below and press Save.</li>
-            <li>To disable templates, replace the template ID with an empty string and press Save.</li>
-            <li>Template documents must be accessible by the Drive user connected above.</li>
-          </ul>
-          <GoogleDriveTemplateForm
-            initialSpreadsheetTemplate={this.props.spreadsheetTemplate}
-            initialDocTemplate={this.props.docTemplate}
-          />
-        </div>
-      </section>
-    );
+  let stepsDone = 0;
+  if (props.oauthSettings) {
+    stepsDone += 1;
   }
-}
+  if (props.gdriveCredential) {
+    stepsDone += 1;
+  }
+  if (props.spreadsheetTemplate) {
+    stepsDone += 1;
+  }
+
+  const comp = googleCompletenessStrings[stepsDone];
+  const compBadgeVariant = stepsDone === 3 ? 'success' : 'warning';
+  const oauthBadgeLabel = props.oauthSettings ? 'configured' : 'unconfigured';
+  const oauthBadgeVariant = props.oauthSettings ? 'success' : 'warning';
+  const driveBadgeLabel = props.gdriveCredential ? 'configured' : 'unconfigured';
+  const driveBadgeVariant = props.gdriveCredential ? 'success' : 'warning';
+  const maybeDriveUserEmail = props.gdriveCredential && props.gdriveCredential.value && props.gdriveCredential.value.email;
+  const templateBadgeLabel = props.spreadsheetTemplate ? 'configured' : 'unconfigured';
+  const templateBadgeVariant = props.spreadsheetTemplate ? 'success' : 'warning';
+
+  return (
+    <section id="google">
+      <h1 className="setup-section-header">
+        <span className="setup-section-header-label">
+          Google integration
+        </span>
+        <Badge variant={compBadgeVariant}>
+          {comp}
+        </Badge>
+        <span className="setup-section-header-buttons">
+          <Button variant="light" disabled={props.enabled} onClick={onToggleEnabled}>
+            {firstButtonLabel}
+          </Button>
+          <Button variant="light" disabled={!props.enabled} onClick={onToggleEnabled}>
+            {secondButtonLabel}
+          </Button>
+        </span>
+      </h1>
+      <p>
+        There are three pieces to Jolly Roger&apos;s Google integration capabilities:
+      </p>
+      <ol>
+        <li>
+          The OAuth client, which allows Jolly Roger to have users link
+          their Google account to their Jolly Roger account.
+        </li>
+        <li>
+          Google Drive automation, which automatically creates and shares
+          spreadsheets and documents with users when they try to load that
+          puzzle page in Jolly Roger.
+        </li>
+        <li>
+          Template documents, which allow customizing the spreadsheet or
+          doc to be used as a template when new puzzles are created.  This is
+          particularly useful for making all cells use a monospace font by
+          default.
+        </li>
+      </ol>
+
+      <div className="setup-subsection">
+        <h2 className="setup-subsection-header">
+          <span>OAuth client</span>
+          {' '}
+          <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
+        </h2>
+        <p>
+          Integrating with Google requires registering an app ID which
+          identifies your Jolly Roger instance, and obtaining an app secret
+          which proves to Google that you are the operator of this app.
+        </p>
+        <ul>
+          <li>
+            Follow <a href="https://support.google.com/googleapi/answer/6158849" target="_blank" rel="noopener noreferrer">Google&apos;s instructions</a> on how to create an app and register an OAuth 2.0 client.
+            You can ignore the bit about &quot;Service accounts, web applications, and installed applications&quot;.
+          </li>
+          <li>Set <strong>Authorized JavaScript origins</strong> to <span>{Meteor.absoluteUrl('')}</span></li>
+          <li>Set <strong>Authorized redirect URI</strong> to <span>{Meteor.absoluteUrl('/_oauth/google')}</span></li>
+        </ul>
+        <p>
+          Then, copy the client ID and secret into the fields here and click the Save button.
+        </p>
+        <GoogleOAuthForm initialClientId={clientId} isConfigured={!!props.oauthSettings} />
+      </div>
+
+      <div className="setup-subsection">
+        <h2 className="setup-subsection-header">
+          <span>Drive user</span>
+          {' '}
+          <Badge variant={driveBadgeVariant}>{driveBadgeLabel}</Badge>
+        </h2>
+        <p>
+          Jolly Roger automates the creation of Google spreadsheets and
+          documents for each puzzle, as well as sharing them with any viewer who
+          has linked their Google account to their profile.
+          To do so, Jolly Roger needs to be authenticated as some Google
+          Drive user which will create and own each spreadsheet and document.
+          In production, Death and Mayhem use a separate Google account not
+          associated with any particular hunter for this purpose, and we
+          recommend this setup.
+        </p>
+        {maybeDriveUserEmail && (
+          <p>
+            Currently connected as <strong>{maybeDriveUserEmail}</strong>. <Button onClick={disconnectGdrive}>Disconnect</Button>
+          </p>
+        )}
+        <GoogleAuthorizeDriveClientForm />
+      </div>
+
+      <div className="setup-subsection">
+        <h2 className="setup-subsection-header">
+          <span>Document templates</span>
+          {' '}
+          <Badge variant={templateBadgeVariant}>{templateBadgeLabel}</Badge>
+        </h2>
+        <p>
+          Jolly Roger can create new documents for each puzzle it&apos; made aware of,
+          but teams often would prefer that it make a new copy of some template document
+          or spreadsheet.  For instance, you might use this to set the default typeface
+          to be a monospace font, or to embed your team&apos;s set of Sheets macros, or
+          whatever other script you may wish to integrate.
+        </p>
+        <ul>
+          <li>If you wish to use templates, enter the document id (the part of a docs/sheets link after &quot;https://docs.google.com/document/d/&quot; and before &quot;/edit&quot;) for the appropriate template below and press Save.</li>
+          <li>To disable templates, replace the template ID with an empty string and press Save.</li>
+          <li>Template documents must be accessible by the Drive user connected above.</li>
+        </ul>
+        <GoogleDriveTemplateForm
+          initialSpreadsheetTemplate={props.spreadsheetTemplate}
+          initialDocTemplate={props.docTemplate}
+        />
+      </div>
+    </section>
+  );
+};
 
 interface EmailConfigFormProps {
   initialConfig: SettingType | undefined;
 }
 
-interface EmailConfigFormState {
-  from: string;
-  enrollAccountSubject: string;
-  enrollAccountMessage: string;
-  existingJoinSubject: string;
-  existingJoinMessage: string;
-  submitState: SubmitState;
-  submitError: string;
-}
+const EmailConfigForm = (props: EmailConfigFormProps) => {
+  const initialConfig = (props.initialConfig && props.initialConfig.name === 'email.branding') ? props.initialConfig : undefined;
+  const [from, setFrom] = useState<string>(initialConfig?.value.from || '');
+  const [enrollAccountSubject, setEnrollAccountSubject] =
+    useState<string>(initialConfig?.value.enrollAccountMessageSubjectTemplate || '');
+  const [enrollAccountMessage, setEnrollAccountMessage] =
+    useState<string>(initialConfig?.value.enrollAccountMessageTemplate || '');
+  const [existingJoinSubject, setExistingJoinSubject] =
+    useState<string>(initialConfig?.value.existingJoinMessageSubjectTemplate || '');
+  const [existingJoinMessage, setExistingJoinMessage] =
+    useState<string>(initialConfig?.value.existingJoinMessageTemplate || '');
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
 
-class EmailConfigForm extends React.Component<EmailConfigFormProps, EmailConfigFormState> {
-  constructor(props: EmailConfigFormProps) {
-    super(props);
-    const initialConfig = this.props.initialConfig;
-    let initialState = {
-      from: '',
-      enrollAccountSubject: '',
-      enrollAccountMessage: '',
-      existingJoinSubject: '',
-      existingJoinMessage: '',
-      submitState: SubmitState.IDLE,
-      submitError: '',
-    };
-    if (initialConfig && initialConfig.name === 'email.branding') {
-      const value = initialConfig.value;
-      initialState = {
-        from: value.from || '',
-        enrollAccountSubject: value.enrollAccountMessageSubjectTemplate || '',
-        enrollAccountMessage: value.enrollAccountMessageTemplate || '',
-        existingJoinSubject: value.existingJoinMessageSubjectTemplate || '',
-        existingJoinMessage: value.existingJoinMessageTemplate || '',
-        submitState: SubmitState.IDLE,
-        submitError: '',
-      };
-    }
+  const dismissAlert = useCallback(() => {
+    setSubmitState(SubmitState.IDLE);
+  }, []);
 
-    this.state = initialState;
-  }
+  const onFromChange: FormControlProps['onChange'] = useCallback((e) => {
+    setFrom(e.currentTarget.value);
+  }, []);
 
-  dismissAlert = () => {
-    this.setState({ submitState: SubmitState.IDLE });
-  };
+  const onEnrollSubjectChange: FormControlProps['onChange'] = useCallback((e) => {
+    setEnrollAccountSubject(e.currentTarget.value);
+  }, []);
 
-  onFromChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      from: e.currentTarget.value,
-    });
-  };
+  const onEnrollMessageChange: FormControlProps['onChange'] = useCallback((e) => {
+    setEnrollAccountMessage(e.currentTarget.value);
+  }, []);
 
-  onEnrollSubjectChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      enrollAccountSubject: e.currentTarget.value,
-    });
-  };
+  const onJoinSubjectChange: FormControlProps['onChange'] = useCallback((e) => {
+    setExistingJoinSubject(e.currentTarget.value);
+  }, []);
 
-  onEnrollMessageChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      enrollAccountMessage: e.currentTarget.value,
-    });
-  };
+  const onJoinMessageChange: FormControlProps['onChange'] = useCallback((e) => {
+    setExistingJoinMessage(e.currentTarget.value);
+  }, []);
 
-  onJoinSubjectChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      existingJoinSubject: e.currentTarget.value,
-    });
-  };
-
-  onJoinMessageChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      existingJoinMessage: e.currentTarget.value,
-    });
-  };
-
-  saveConfig = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const saveConfig = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    const from = this.state.from.trim();
-    const enrollAccountMessageSubject = this.state.enrollAccountSubject.trim();
-    const enrollAccountMessage = this.state.enrollAccountMessage.trim();
-    const existingJoinMessageSubject = this.state.existingJoinSubject.trim();
-    const existingJoinMessage = this.state.existingJoinMessage.trim();
-    this.setState({
-      submitState: SubmitState.SUBMITTING,
-    });
-    Meteor.call('setupEmailBranding', from, enrollAccountMessageSubject, enrollAccountMessage,
-      existingJoinMessageSubject, existingJoinMessage, (error?: Error) => {
+    const trimmedFrom = from.trim();
+    const trimmedEnrollAccountMessageSubject = enrollAccountSubject.trim();
+    const trimmedEnrollAccountMessage = enrollAccountMessage.trim();
+    const trimmedExistingJoinMessageSubject = existingJoinSubject.trim();
+    const trimmedExistingJoinMessage = existingJoinMessage.trim();
+    setSubmitState(SubmitState.SUBMITTING);
+    Meteor.call('setupEmailBranding', trimmedFrom, trimmedEnrollAccountMessageSubject,
+      trimmedEnrollAccountMessage, trimmedExistingJoinMessageSubject, trimmedExistingJoinMessage,
+      (error?: Error) => {
         if (error) {
-          this.setState({
-            submitState: SubmitState.ERROR,
-            submitError: error.message,
-          });
+          setSubmitError(error.message);
+          setSubmitState(SubmitState.ERROR);
         } else {
-          this.setState({ submitState: SubmitState.SUCCESS });
+          setSubmitState(SubmitState.SUCCESS);
         }
       });
-  };
+  }, [from, enrollAccountSubject, enrollAccountMessage, existingJoinSubject, existingJoinMessage]);
 
-  render() {
-    const shouldDisableForm = this.state.submitState === 'submitting';
-    return (
-      <div>
-        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.submitError}
-          </Alert>
-        ) : null}
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-email-from">
-            Email &quot;From&quot; address
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-email-from"
-            aria-describedby="jr-setup-edit-email-from-description"
-            type="text"
-            value={this.state.from}
-            disabled={shouldDisableForm}
-            onChange={this.onFromChange}
-          />
-          <FormText id="jr-setup-edit-email-from-description">
-            The credentials you configured for <code>MAIL_URL</code> must be
-            able to send email as this address.
-          </FormText>
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-email-enroll-subject">
-            New user invite email subject
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-email-enroll-subject"
-            aria-describedby="jr-setup-edit-email-enroll-subject-description"
-            type="text"
-            value={this.state.enrollAccountSubject}
-            disabled={shouldDisableForm}
-            onChange={this.onEnrollSubjectChange}
-          />
-          <FormText id="jr-setup-edit-email-enroll-subject-description" muted>
-            This is a Mustache template.  The only variable available is:
-            {' '}
-            <code>
-              {'{{siteName}}'}
-            </code>
-            {' (domain name).'}
-          </FormText>
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-email-enroll-message">
-            New user invite email contents
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-email-enroll-message"
-            aria-describedby="jr-setup-edit-email-enroll-message-description"
-            as="textarea"
-            rows={8}
-            value={this.state.enrollAccountMessage}
-            disabled={shouldDisableForm}
-            onChange={this.onEnrollMessageChange}
-          />
-          <FormText id="jr-setup-edit-email-enroll-message-description" muted>
-            This is a Mustache template.  Available variables are:
-            <ul>
-              <li>
-                <code>
-                  {'{{&url}}'}
-                </code>
-                {' '}
-                (user&apos;s invite link, the ampersand is required to avoid
-                HTML escaping which will break the link)
-              </li>
-              <li>
-                <code>
-                  {'{{email}}'}
-                </code>
-                {' '}
-                (user&apos;s email address, so they can know what email address
-                to use as their username in the future)
-              </li>
-              <li>
-                <code>
-                  {'{{siteName}}'}
-                </code>
-                {' '}
-                (domain name of this site)
-              </li>
-              <li>
-                <code>
-                  {'{{huntNamesCommaSeparated}}'}
-                </code>
-                {' '}
-                (a string containing a comma-separated list of the hunts the
-                user is being invited to)
-              </li>
-              <li>
-                <code>
-                  {'{{#huntNamesCount}}'}
-                </code>
-                /
-                <code>
-                  {'{{/huntNamesCount}}'}
-                </code>
-                {' '}
-                (start/end of conditional block that will only be rendered if
-                the user is being invited to at least one hunt)
-              </li>
-              <li>
-                <code>
-                  {'{{mailingListsCommaSeparated}}'}
-                </code>
-                {' '}
-                (a string containing a comma-separated list of the mailing
-                lists the user has been added to)
-              </li>
-              <li>
-                <code>
-                  {'{{#mailingListsCount}}'}
-                </code>
-                /
-                <code>
-                  {'{{/mailingListsCount}}'}
-                </code>
-                {' '}
-                (start/end of conditional block that will only be rendered if
-                the user is being added to at least one mailing list)
-              </li>
-            </ul>
-          </FormText>
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-email-existing-join-subject">
-            Existing user added-to-hunt email subject
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-email-existing-join-subject"
-            aria-describedby="jr-setup-edit-email-existing-join-subject-description"
-            type="text"
-            value={this.state.existingJoinSubject}
-            disabled={shouldDisableForm}
-            onChange={this.onJoinSubjectChange}
-          />
-          <FormText id="jr-setup-edit-email-existing-join-subject-description" muted>
-            This is a Mustache template.  The following variables are available:
-            <ul>
-              <li>
-                <code>
-                  {'{{siteName}}'}
-                </code>
-                {' '}
-                (domain name of this site)
-              </li>
-              <li>
-                <code>
-                  {'{{huntName}}'}
-                </code>
-                {' '}
-                (name of the hunt the user is being invited to)
-              </li>
-            </ul>
-          </FormText>
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-email-existing-join-message">
-            Existing user added-to-hunt email contents
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-email-existing-join-message"
-            aria-describedby="jr-setup-edit-email-existing-join-message-description"
-            as="textarea"
-            rows={8}
-            value={this.state.existingJoinMessage}
-            disabled={shouldDisableForm}
-            onChange={this.onJoinMessageChange}
-          />
-          <FormText id="jr-setup-edit-email-existing-join-message-description" muted>
-            This is a Mustache template.  Available variables are:
-            <ul>
-              <li>
-                <code>
-                  {'{{email}}'}
-                </code>
-                {' '}
-                (user&apos;s email address, so they can know what email address
-                of the dozen that the user might have that forward to the same
-                inbox this message was sent to)
-              </li>
-              <li>
-                <code>
-                  {'{{huntName}}'}
-                </code>
-                {' '}
-                (name of the hunt the recipient is being added to)
-              </li>
-              <li>
-                <code>
-                  {'{{siteName}}'}
-                </code>
-                {' '}
-                (domain name of this site)
-              </li>
-              <li>
-                <code>
-                  {'{{joinerName}}'}
-                </code>
-                {' '}
-                (if available, the display name of the user who invited the recipient of the email to the hunt in question)
-              </li>
-              <li>
-                <code>
-                  {'{{mailingListsCommaSeparated}}'}
-                </code>
-                {' '}
-                (a string containing a comma-separated list of the mailing
-                lists the user has been added to)
-              </li>
-              <li>
-                <code>
-                  {'{{#mailingListsCount}}'}
-                </code>
-                /
-                <code>
-                  {'{{/mailingListsCount}}'}
-                </code>
-                {' '}
-                (start/end of conditional block that will only be rendered if
-                the user is being added to at least one mailing list)
-              </li>
-            </ul>
-          </FormText>
-        </FormGroup>
-        <Button variant="primary" onClick={this.saveConfig} disabled={shouldDisableForm}>Save</Button>
-      </div>
-    );
-  }
-}
+  const shouldDisableForm = submitState === 'submitting';
+  return (
+    <div>
+      {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {submitError}
+        </Alert>
+      ) : null}
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-email-from">
+          Email &quot;From&quot; address
+        </FormLabel>
+        <FormControl
+          id="jr-setup-edit-email-from"
+          aria-describedby="jr-setup-edit-email-from-description"
+          type="text"
+          value={from}
+          disabled={shouldDisableForm}
+          onChange={onFromChange}
+        />
+        <FormText id="jr-setup-edit-email-from-description">
+          The credentials you configured for <code>MAIL_URL</code> must be
+          able to send email as this address.
+        </FormText>
+      </FormGroup>
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-email-enroll-subject">
+          New user invite email subject
+        </FormLabel>
+        <FormControl
+          id="jr-setup-edit-email-enroll-subject"
+          aria-describedby="jr-setup-edit-email-enroll-subject-description"
+          type="text"
+          value={enrollAccountSubject}
+          disabled={shouldDisableForm}
+          onChange={onEnrollSubjectChange}
+        />
+        <FormText id="jr-setup-edit-email-enroll-subject-description" muted>
+          This is a Mustache template.  The only variable available is:
+          {' '}
+          <code>
+            {'{{siteName}}'}
+          </code>
+          {' (domain name).'}
+        </FormText>
+      </FormGroup>
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-email-enroll-message">
+          New user invite email contents
+        </FormLabel>
+        <FormControl
+          id="jr-setup-edit-email-enroll-message"
+          aria-describedby="jr-setup-edit-email-enroll-message-description"
+          as="textarea"
+          rows={8}
+          value={enrollAccountMessage}
+          disabled={shouldDisableForm}
+          onChange={onEnrollMessageChange}
+        />
+        <FormText id="jr-setup-edit-email-enroll-message-description" muted>
+          This is a Mustache template.  Available variables are:
+          <ul>
+            <li>
+              <code>
+                {'{{&url}}'}
+              </code>
+              {' '}
+              (user&apos;s invite link, the ampersand is required to avoid
+              HTML escaping which will break the link)
+            </li>
+            <li>
+              <code>
+                {'{{email}}'}
+              </code>
+              {' '}
+              (user&apos;s email address, so they can know what email address
+              to use as their username in the future)
+            </li>
+            <li>
+              <code>
+                {'{{siteName}}'}
+              </code>
+              {' '}
+              (domain name of this site)
+            </li>
+            <li>
+              <code>
+                {'{{huntNamesCommaSeparated}}'}
+              </code>
+              {' '}
+              (a string containing a comma-separated list of the hunts the
+              user is being invited to)
+            </li>
+            <li>
+              <code>
+                {'{{#huntNamesCount}}'}
+              </code>
+              /
+              <code>
+                {'{{/huntNamesCount}}'}
+              </code>
+              {' '}
+              (start/end of conditional block that will only be rendered if
+              the user is being invited to at least one hunt)
+            </li>
+            <li>
+              <code>
+                {'{{mailingListsCommaSeparated}}'}
+              </code>
+              {' '}
+              (a string containing a comma-separated list of the mailing
+              lists the user has been added to)
+            </li>
+            <li>
+              <code>
+                {'{{#mailingListsCount}}'}
+              </code>
+              /
+              <code>
+                {'{{/mailingListsCount}}'}
+              </code>
+              {' '}
+              (start/end of conditional block that will only be rendered if
+              the user is being added to at least one mailing list)
+            </li>
+          </ul>
+        </FormText>
+      </FormGroup>
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-email-existing-join-subject">
+          Existing user added-to-hunt email subject
+        </FormLabel>
+        <FormControl
+          id="jr-setup-edit-email-existing-join-subject"
+          aria-describedby="jr-setup-edit-email-existing-join-subject-description"
+          type="text"
+          value={existingJoinSubject}
+          disabled={shouldDisableForm}
+          onChange={onJoinSubjectChange}
+        />
+        <FormText id="jr-setup-edit-email-existing-join-subject-description" muted>
+          This is a Mustache template.  The following variables are available:
+          <ul>
+            <li>
+              <code>
+                {'{{siteName}}'}
+              </code>
+              {' '}
+              (domain name of this site)
+            </li>
+            <li>
+              <code>
+                {'{{huntName}}'}
+              </code>
+              {' '}
+              (name of the hunt the user is being invited to)
+            </li>
+          </ul>
+        </FormText>
+      </FormGroup>
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-email-existing-join-message">
+          Existing user added-to-hunt email contents
+        </FormLabel>
+        <FormControl
+          id="jr-setup-edit-email-existing-join-message"
+          aria-describedby="jr-setup-edit-email-existing-join-message-description"
+          as="textarea"
+          rows={8}
+          value={existingJoinMessage}
+          disabled={shouldDisableForm}
+          onChange={onJoinMessageChange}
+        />
+        <FormText id="jr-setup-edit-email-existing-join-message-description" muted>
+          This is a Mustache template.  Available variables are:
+          <ul>
+            <li>
+              <code>
+                {'{{email}}'}
+              </code>
+              {' '}
+              (user&apos;s email address, so they can know what email address
+              of the dozen that the user might have that forward to the same
+              inbox this message was sent to)
+            </li>
+            <li>
+              <code>
+                {'{{huntName}}'}
+              </code>
+              {' '}
+              (name of the hunt the recipient is being added to)
+            </li>
+            <li>
+              <code>
+                {'{{siteName}}'}
+              </code>
+              {' '}
+              (domain name of this site)
+            </li>
+            <li>
+              <code>
+                {'{{joinerName}}'}
+              </code>
+              {' '}
+              (if available, the display name of the user who invited the recipient of the email to the hunt in question)
+            </li>
+            <li>
+              <code>
+                {'{{mailingListsCommaSeparated}}'}
+              </code>
+              {' '}
+              (a string containing a comma-separated list of the mailing
+              lists the user has been added to)
+            </li>
+            <li>
+              <code>
+                {'{{#mailingListsCount}}'}
+              </code>
+              /
+              <code>
+                {'{{/mailingListsCount}}'}
+              </code>
+              {' '}
+              (start/end of conditional block that will only be rendered if
+              the user is being added to at least one mailing list)
+            </li>
+          </ul>
+        </FormText>
+      </FormGroup>
+      <Button variant="primary" onClick={saveConfig} disabled={shouldDisableForm}>Save</Button>
+    </div>
+  );
+};
 
 interface EmailConfigSectionProps {
   config: SettingType | undefined;
 }
 
-class EmailConfigSection extends React.Component<EmailConfigSectionProps> {
-  render() {
-    const configured = this.props.config && this.props.config.name === 'email.branding' && this.props.config.value.from;
-    const badgeVariant = configured ? 'success' : 'warning';
-    return (
-      <section id="email">
-        <h1 className="setup-section-header">
-          <span className="setup-section-header-label">
-            Email configuration
-          </span>
-          <Badge variant={badgeVariant}>
-            {configured ? 'Configured' : 'Unconfigured'}
-          </Badge>
-        </h1>
-        <p>
-          Jolly Roger sends email for a few reasons:
-        </p>
-        <ul>
-          <li>When a user is first invited to Jolly Roger</li>
-          <li>When an existing user is added to a particular Hunt</li>
-          <li>When a user initiates a password reset</li>
-        </ul>
-        <p>
-          This section allows setting the &quot;From&quot; address, as well as
-          providing subject and content templates for the enrollment and
-          existing-user-hunt-added emails.
-        </p>
-        <p>
-          Most of these fields are interpreted as Mustache templates.  See
-          {' '}
-          <a target="_blank" rel="noopener noreferrer" href="https://github.com/janl/mustache.js">
-            the mustache.js docs
-          </a>
-          {' '}
-          for an overview of the supported syntax.  The <code>view</code>
-          variables available to each context are described below.
-        </p>
-        <EmailConfigForm initialConfig={this.props.config} />
-      </section>
-    );
-  }
-}
+const EmailConfigSection = (props: EmailConfigSectionProps) => {
+  const configured = props.config && props.config.name === 'email.branding' && props.config.value.from;
+  const badgeVariant = configured ? 'success' : 'warning';
+  return (
+    <section id="email">
+      <h1 className="setup-section-header">
+        <span className="setup-section-header-label">
+          Email configuration
+        </span>
+        <Badge variant={badgeVariant}>
+          {configured ? 'Configured' : 'Unconfigured'}
+        </Badge>
+      </h1>
+      <p>
+        Jolly Roger sends email for a few reasons:
+      </p>
+      <ul>
+        <li>When a user is first invited to Jolly Roger</li>
+        <li>When an existing user is added to a particular Hunt</li>
+        <li>When a user initiates a password reset</li>
+      </ul>
+      <p>
+        This section allows setting the &quot;From&quot; address, as well as
+        providing subject and content templates for the enrollment and
+        existing-user-hunt-added emails.
+      </p>
+      <p>
+        Most of these fields are interpreted as Mustache templates.  See
+        {' '}
+        <a target="_blank" rel="noopener noreferrer" href="https://github.com/janl/mustache.js">
+          the mustache.js docs
+        </a>
+        {' '}
+        for an overview of the supported syntax.  The <code>view</code>
+        variables available to each context are described below.
+      </p>
+      <EmailConfigForm initialConfig={props.config} />
+    </section>
+  );
+};
 
 interface DiscordOAuthFormProps {
   configured: boolean;
@@ -871,333 +799,257 @@ interface DiscordOAuthFormProps {
   oauthSettings: any;
 }
 
-interface DiscordOAuthFormState {
-  clientId: string;
-  clientSecret: string;
-  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
-  submitError: string;
-}
+const DiscordOAuthForm = (props: DiscordOAuthFormProps) => {
+  const [clientId, setClientId] =
+    useState<string>((props.oauthSettings && props.oauthSettings.appId) || '');
+  const [clientSecret, setClientSecret] =
+    useState<string>((props.oauthSettings && props.oauthSettings.secret) || '');
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
 
-class DiscordOAuthForm extends React.Component<DiscordOAuthFormProps, DiscordOAuthFormState> {
-  constructor(props: DiscordOAuthFormProps) {
-    super(props);
-    this.state = {
-      clientId: (props.oauthSettings && props.oauthSettings.appId) || '',
-      clientSecret: (props.oauthSettings && props.oauthSettings.secret) || '',
-      submitState: SubmitState.IDLE,
-      submitError: '',
-    };
-  }
+  const dismissAlert = useCallback(() => {
+    setSubmitState(SubmitState.IDLE);
+  }, []);
 
-  dismissAlert = () => {
-    this.setState({
-      submitState: SubmitState.IDLE,
-    });
-  };
+  const onClientIdChange: FormControlProps['onChange'] = useCallback((e) => {
+    setClientId(e.currentTarget.value);
+  }, []);
 
-  onClientIdChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      clientId: e.currentTarget.value,
-    });
-  };
+  const onClientSecretChange: FormControlProps['onChange'] = useCallback((e) => {
+    setClientSecret(e.currentTarget.value);
+  }, []);
 
-  onClientSecretChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      clientSecret: e.currentTarget.value,
-    });
-  };
-
-  onSubmitOauthConfiguration = (e: React.FormEvent<any>) => {
+  const onSubmitOauthConfiguration = useCallback((e: React.FormEvent<any>) => {
     e.preventDefault();
 
-    const clientId = this.state.clientId.trim();
-    const clientSecret = this.state.clientSecret.trim();
+    const trimmedClientId = clientId.trim();
+    const trimmedClientSecret = clientSecret.trim();
 
-    if (clientId.length > 0 && clientSecret.length === 0) {
-      this.setState({
-        submitState: SubmitState.ERROR,
-        submitError: 'You appear to be clearing the secret but not the client ID.  Please provide a secret.',
-      } as DiscordOAuthFormState);
+    if (trimmedClientId.length > 0 && trimmedClientSecret.length === 0) {
+      setSubmitError('You appear to be clearing the secret but not the client ID.  Please provide a secret.');
+      setSubmitState(SubmitState.ERROR);
     } else {
-      this.setState({
-        submitState: SubmitState.SUBMITTING,
-      });
-      Meteor.call('setupDiscordOAuthClient', clientId, clientSecret, (err?: Error) => {
-        if (err) {
-          this.setState({
-            submitState: SubmitState.ERROR,
-            submitError: err.message,
-          } as DiscordOAuthFormState);
-        } else {
-          this.setState({
-            submitState: SubmitState.SUCCESS,
-          });
-        }
-      });
+      setSubmitState(SubmitState.SUBMITTING);
+      Meteor.call('setupDiscordOAuthClient', trimmedClientId, trimmedClientSecret,
+        (err?: Error) => {
+          if (err) {
+            setSubmitError(err.message);
+            setSubmitState(SubmitState.ERROR);
+          } else {
+            setSubmitState(SubmitState.SUCCESS);
+          }
+        });
     }
-  };
+  }, [clientId, clientSecret]);
 
-  render() {
-    const shouldDisableForm = this.state.submitState === 'submitting';
-    const configured = !!this.props.oauthSettings;
-    const secretPlaceholder = configured ? '<configured secret not revealed>' : '';
-    return (
-      <div>
-        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.submitError}
-          </Alert>
-        ) : null}
+  const shouldDisableForm = submitState === 'submitting';
+  const configured = !!props.oauthSettings;
+  const secretPlaceholder = configured ? '<configured secret not revealed>' : '';
+  return (
+    <div>
+      {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {submitError}
+        </Alert>
+      ) : null}
 
-        {/* TODO: UI for client ID and client secret */}
-        <form onSubmit={this.onSubmitOauthConfiguration}>
-          <FormGroup>
-            <FormLabel htmlFor="jr-setup-edit-discord-client-id">
-              Client ID
-            </FormLabel>
-            <FormControl
-              id="jr-setup-edit-discord-client-id"
-              type="text"
-              placeholder=""
-              value={this.state.clientId}
-              disabled={shouldDisableForm}
-              onChange={this.onClientIdChange}
-            />
-          </FormGroup>
-          <FormGroup>
-            <FormLabel htmlFor="jr-setup-edit-discord-client-secret">
-              Client Secret
-            </FormLabel>
-            <FormControl
-              id="jr-setup-edit-discord-client-secret"
-              type="text"
-              placeholder={secretPlaceholder}
-              value={this.state.clientSecret}
-              disabled={shouldDisableForm}
-              onChange={this.onClientSecretChange}
-            />
-          </FormGroup>
-          <Button variant="primary" type="submit" onClick={this.onSubmitOauthConfiguration} disabled={shouldDisableForm}>Save</Button>
-        </form>
-      </div>
-    );
-  }
-}
+      {/* TODO: UI for client ID and client secret */}
+      <form onSubmit={onSubmitOauthConfiguration}>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-discord-client-id">
+            Client ID
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-discord-client-id"
+            type="text"
+            placeholder=""
+            value={clientId}
+            disabled={shouldDisableForm}
+            onChange={onClientIdChange}
+          />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-discord-client-secret">
+            Client Secret
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-discord-client-secret"
+            type="text"
+            placeholder={secretPlaceholder}
+            value={clientSecret}
+            disabled={shouldDisableForm}
+            onChange={onClientSecretChange}
+          />
+        </FormGroup>
+        <Button variant="primary" type="submit" onClick={onSubmitOauthConfiguration} disabled={shouldDisableForm}>Save</Button>
+      </form>
+    </div>
+  );
+};
 
 interface DiscordBotFormProps {
   botToken?: string
 }
 
-interface DiscordBotFormState {
-  botToken: string;
-  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
-  submitError: string;
-}
+const DiscordBotForm = (props: DiscordBotFormProps) => {
+  const [botToken, setBotToken] = useState<string>(props.botToken || '');
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
 
-class DiscordBotForm extends React.Component<DiscordBotFormProps, DiscordBotFormState> {
-  constructor(props: DiscordBotFormProps) {
-    super(props);
-    this.state = {
-      botToken: props.botToken || '',
-      submitState: SubmitState.IDLE,
-      submitError: '',
-    };
-  }
+  const dismissAlert = useCallback(() => {
+    setSubmitState(SubmitState.IDLE);
+  }, []);
 
-  dismissAlert = () => {
-    this.setState({
-      submitState: SubmitState.IDLE,
-    });
-  };
+  const onBotTokenChange: FormControlProps['onChange'] = useCallback((e) => {
+    setBotToken(e.currentTarget.value);
+  }, []);
 
-  onBotTokenChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      botToken: e.currentTarget.value,
-    });
-  };
-
-  onSubmitBotToken = (e: React.FormEvent<any>) => {
+  const onSubmitBotToken = useCallback((e: React.FormEvent<any>) => {
     e.preventDefault();
+    const trimmedBotToken = botToken.trim();
 
-    const botToken = this.state.botToken.trim();
-
-    this.setState({
-      submitState: SubmitState.SUBMITTING,
-    });
-    Meteor.call('setupDiscordBotToken', botToken, (err?: Error) => {
+    setSubmitState(SubmitState.SUBMITTING);
+    Meteor.call('setupDiscordBotToken', trimmedBotToken, (err?: Error) => {
       if (err) {
-        this.setState({
-          submitState: SubmitState.ERROR,
-          submitError: err.message,
-        });
+        setSubmitError(err.message);
+        setSubmitState(SubmitState.ERROR);
       } else {
-        this.setState({
-          submitState: SubmitState.SUCCESS,
-        });
+        setSubmitState(SubmitState.SUCCESS);
       }
     });
-  };
+  }, [botToken]);
 
-  render() {
-    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
-    return (
-      <div>
-        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.submitError}
-          </Alert>
-        ) : null}
+  const shouldDisableForm = submitState === SubmitState.SUBMITTING;
+  return (
+    <div>
+      {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {submitError}
+        </Alert>
+      ) : null}
 
-        <form onSubmit={this.onSubmitBotToken}>
-          <FormGroup>
-            <FormLabel htmlFor="jr-setup-edit-discord-bot-token">
-              Bot token
-            </FormLabel>
-            <FormControl
-              id="jr-setup-edit-discord-bot-token"
-              type="text"
-              placeholder=""
-              value={this.state.botToken}
-              disabled={shouldDisableForm}
-              onChange={this.onBotTokenChange}
-            />
-          </FormGroup>
-          <Button variant="primary" type="submit" onClick={this.onSubmitBotToken} disabled={shouldDisableForm}>Save</Button>
-        </form>
-      </div>
-    );
-  }
-}
+      <form onSubmit={onSubmitBotToken}>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-discord-bot-token">
+            Bot token
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-discord-bot-token"
+            type="text"
+            placeholder=""
+            value={botToken}
+            disabled={shouldDisableForm}
+            onChange={onBotTokenChange}
+          />
+        </FormGroup>
+        <Button variant="primary" type="submit" onClick={onSubmitBotToken} disabled={shouldDisableForm}>Save</Button>
+      </form>
+    </div>
+  );
+};
 
-interface DiscordGuildFormContainerProps {
+interface DiscordGuildFormProps {
   // initial value from settings
   guild?: DiscordGuildType;
 }
 
-interface DiscordGuildFormProps extends DiscordGuildFormContainerProps {
+interface DiscordGuildFormTracker {
   ready: boolean;
   // List of possible guilds from server
   guilds: DiscordGuildType[];
 }
 
-interface DiscordGuildFormState {
-  guildId: string;
-  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
-  submitError: string;
-}
-
-class DiscordGuildForm extends React.Component<DiscordGuildFormProps, DiscordGuildFormState> {
-  constructor(props: DiscordGuildFormProps) {
-    super(props);
-    this.state = {
-      guildId: (props.guild && props.guild.id) || '',
-      submitState: SubmitState.IDLE,
-      submitError: '',
+const DiscordGuildForm = (props: DiscordGuildFormProps) => {
+  const tracker = useTracker<DiscordGuildFormTracker>(() => {
+    const guildSub = Meteor.subscribe('discord.guilds');
+    const ready = guildSub.ready();
+    const guilds = DiscordCache.find({ type: 'guild' }).fetch().map((c) => c.object as DiscordGuildType);
+    return {
+      ready,
+      guilds,
     };
-  }
+  }, []);
 
-  dismissAlert = () => {
-    this.setState({
-      submitState: SubmitState.IDLE,
-    });
-  };
+  const [guildId, setGuildId] = useState<string>((props.guild && props.guild.id) || '');
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
 
-  onSelectedGuildChange: FormControlProps['onChange'] = (e) => {
+  const dismissAlert = useCallback(() => {
+    setSubmitState(SubmitState.IDLE);
+  }, []);
+
+  const onSelectedGuildChange: FormControlProps['onChange'] = useCallback((e) => {
     const newValue = e.currentTarget.value === 'empty' ? '' : e.currentTarget.value;
-    this.setState({
-      guildId: newValue,
-    });
-  };
+    setGuildId(newValue);
+  }, []);
 
-  onSaveGuild = (e: React.FormEvent<any>) => {
+  const onSaveGuild = useCallback((e: React.FormEvent<any>) => {
     e.preventDefault();
 
-    const guild = this.props.guilds.find((g) => g.id === this.state.guildId);
-    this.setState({
-      submitState: SubmitState.SUBMITTING,
-    });
+    const guild = tracker.guilds.find((g) => g.id === guildId);
+    setSubmitState(SubmitState.SUBMITTING);
     Meteor.call('setupDiscordBotGuild', guild, (err?: Error) => {
       if (err) {
-        this.setState({
-          submitState: SubmitState.ERROR,
-          submitError: err.message,
-        });
+        setSubmitError(err.message);
+        setSubmitState(SubmitState.ERROR);
       } else {
-        this.setState({
-          submitState: SubmitState.SUCCESS,
-        });
+        setSubmitState(SubmitState.SUCCESS);
       }
     });
+  }, [tracker.guilds, guildId]);
+
+  const shouldDisableForm = submitState === SubmitState.SUBMITTING;
+  const noneOption = {
+    id: 'empty',
+    name: 'No guild assigned',
   };
+  const formOptions = [noneOption, ...tracker.guilds];
+  return (
+    <div>
+      {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {submitError}
+        </Alert>
+      ) : null}
 
-  render() {
-    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
-    const noneOption = {
-      id: 'empty',
-      name: 'No guild assigned',
-    };
-    const formOptions = [noneOption, ...this.props.guilds];
-    return (
-      <div>
-        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.submitError}
-          </Alert>
-        ) : null}
-
-        <form onSubmit={this.onSaveGuild}>
-          <FormGroup>
-            <FormLabel htmlFor="jr-setup-edit-discord-bot-guild">
-              Guild
-            </FormLabel>
-            <FormControl
-              id="jr-setup-edit-discord-bot-guild"
-              as="select"
-              type="text"
-              placeholder=""
-              value={this.state.guildId}
-              disabled={shouldDisableForm}
-              onChange={this.onSelectedGuildChange}
-            >
-              {formOptions.map(({ id, name }) => {
-                return (
-                  <option key={id} value={id}>{name}</option>
-                );
-              })}
-            </FormControl>
-          </FormGroup>
-          <Button variant="primary" type="submit" onClick={this.onSaveGuild} disabled={shouldDisableForm}>Save</Button>
-        </form>
-      </div>
-    );
-  }
-}
-
-const DiscordGuildFormContainer = withTracker((_props: DiscordGuildFormContainerProps) => {
-  // DiscordGuilds is a pseudocollection, and the subscribe here causes the
-  // server to do a call against the Discord API to list guilds the user is in.
-  // It's not reactive; you might have to refresh the page to get it to update.
-  // Didn't seem worth making cleverer; this will get used ~once.
-  const guildSub = Meteor.subscribe('discord.guilds');
-  const ready = guildSub.ready();
-  const guilds = DiscordCache.find({ type: 'guild' }).fetch().map((c) => c.object as DiscordGuildType);
-  return {
-    ready,
-    guilds,
-  };
-})(DiscordGuildForm);
+      <form onSubmit={onSaveGuild}>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-discord-bot-guild">
+            Guild
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-discord-bot-guild"
+            as="select"
+            type="text"
+            placeholder=""
+            value={guildId}
+            disabled={shouldDisableForm}
+            onChange={onSelectedGuildChange}
+          >
+            {formOptions.map(({ id, name }) => {
+              return (
+                <option key={id} value={id}>{name}</option>
+              );
+            })}
+          </FormControl>
+        </FormGroup>
+        <Button variant="primary" type="submit" onClick={onSaveGuild} disabled={shouldDisableForm}>Save</Button>
+      </form>
+    </div>
+  );
+};
 
 interface DiscordIntegrationSectionProps {
   configured: boolean;
@@ -1207,407 +1059,355 @@ interface DiscordIntegrationSectionProps {
   guild?: DiscordGuildType;
 }
 
-class DiscordIntegrationSection extends React.Component<DiscordIntegrationSectionProps> {
-  onToggleEnabled = () => {
-    const newValue = !this.props.enabled;
+const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
+  const onToggleEnabled = useCallback(() => {
+    const newValue = !props.enabled;
     const ffValue = newValue ? 'off' : 'on';
     Meteor.call('setFeatureFlag', 'disable.discord', ffValue);
-  };
+  }, [props.enabled]);
 
-  render() {
-    const firstButtonLabel = this.props.enabled ? 'Enabled' : 'Enable';
-    const secondButtonLabel = this.props.enabled ? 'Disable' : 'Disabled';
+  const firstButtonLabel = props.enabled ? 'Enabled' : 'Enable';
+  const secondButtonLabel = props.enabled ? 'Disable' : 'Disabled';
 
-    const configured = !!this.props.oauthSettings;
-    const headerBadgeVariant = configured ? 'success' : 'warning';
-    const clientId = this.props.oauthSettings && this.props.oauthSettings.appId;
-    const addGuildLink = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&scope=bot&permissions=8`;
-    const oauthBadgeLabel = this.props.oauthSettings ? 'configured' : 'unconfigured';
-    const oauthBadgeVariant = this.props.oauthSettings ? 'success' : 'warning';
-    const botBadgeLabel = this.props.botToken ? 'configured' : 'unconfigured';
-    const botBadgeVariant = this.props.botToken ? 'success' : 'warning';
-    const guildBadgeLabel = this.props.guild ? 'configured' : 'unconfigured';
-    const guildBadgeVariant = this.props.guild ? 'success' : 'warning';
-    return (
-      <section id="discord">
-        <h1 className="setup-section-header">
-          <span className="setup-section-header-label">
-            Discord integration
-          </span>
-          <Badge variant={headerBadgeVariant}>
-            {configured ? 'Configured' : 'Unconfigured'}
-          </Badge>
-          {configured && (
-          <span className="setup-section-header-buttons">
-            <Button variant="light" disabled={this.props.enabled} onClick={this.onToggleEnabled}>
-              {firstButtonLabel}
-            </Button>
-            <Button variant="light" disabled={!this.props.enabled} onClick={this.onToggleEnabled}>
-              {secondButtonLabel}
-            </Button>
-          </span>
-          )}
-        </h1>
+  const configured = !!props.oauthSettings;
+  const headerBadgeVariant = configured ? 'success' : 'warning';
+  const clientId = props.oauthSettings && props.oauthSettings.appId;
+  const addGuildLink = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&scope=bot&permissions=8`;
+  const oauthBadgeLabel = props.oauthSettings ? 'configured' : 'unconfigured';
+  const oauthBadgeVariant = props.oauthSettings ? 'success' : 'warning';
+  const botBadgeLabel = props.botToken ? 'configured' : 'unconfigured';
+  const botBadgeVariant = props.botToken ? 'success' : 'warning';
+  const guildBadgeLabel = props.guild ? 'configured' : 'unconfigured';
+  const guildBadgeVariant = props.guild ? 'success' : 'warning';
+  return (
+    <section id="discord">
+      <h1 className="setup-section-header">
+        <span className="setup-section-header-label">
+          Discord integration
+        </span>
+        <Badge variant={headerBadgeVariant}>
+          {configured ? 'Configured' : 'Unconfigured'}
+        </Badge>
+        {configured && (
+        <span className="setup-section-header-buttons">
+          <Button variant="light" disabled={props.enabled} onClick={onToggleEnabled}>
+            {firstButtonLabel}
+          </Button>
+          <Button variant="light" disabled={!props.enabled} onClick={onToggleEnabled}>
+            {secondButtonLabel}
+          </Button>
+        </span>
+        )}
+      </h1>
 
+      <p>
+        Jolly Roger supports a Discord integration, where this instance
+        connects to Discord as a bot user with several useful capabilities.
+      </p>
+      <ul>
+        <li>It can invite users to a guild (&quot;server&quot;) that it is a member of</li>
+        <li>It can send messages to a channel on new puzzle creation, or when a puzzle is solved</li>
+        <li>It can send messages to a channel when a new announcement is created</li>
+        <li>It can send messages to a channel when users write chat messages on puzzle pages</li>
+      </ul>
+      <p>
+        There are multiple pieces to Jolly Roger&apos;s Discord integration capabilities:
+      </p>
+      <ol>
+        <li>
+          The OAuth client, which allows Jolly Roger to have users link
+          their Discord account to their Jolly Roger account.  This enables
+          Jolly Roger to correlate chat messages sent on Discord with user
+          accounts within Jolly Roger.
+        </li>
+        <li>
+          The bot account, which allows Jolly Roger to programmatically
+          manage guild (&quot;server&quot;) invitations to members.
+        </li>
+        <li>
+          Guild selection, since Discord bots can be part of multiple guilds.
+        </li>
+      </ol>
+
+      <div className="setup-subsection">
+        <h2 className="setup-subsection-header">
+          <span>OAuth client</span>
+          {' '}
+          <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
+        </h2>
         <p>
-          Jolly Roger supports a Discord integration, where this instance
-          connects to Discord as a bot user with several useful capabilities.
+          Jolly Roger can allow Discord users to grant limited access to
+          their Discord account for the purposes of adding them to a guild
+          and linking their chat messages between the two services.
         </p>
-        <ul>
-          <li>(TODO): It can invite users to a guild (&quot;server&quot;) that it is a member of</li>
-          <li>(TODO): It can send messages to a channel on new puzzle creation, or when a puzzle is solved</li>
-          <li>(TODO): It can send messages to a channel when a new announcement is created</li>
-          <li>(TODO): It can send messages to a channel when users write chat messages on puzzle pages</li>
-        </ul>
         <p>
-          There are multiple pieces to Jolly Roger&apos;s Discord integration capabilities:
+          To enable Discord OAuth integration, you will need to:
         </p>
         <ol>
-          <li>
-            The OAuth client, which allows Jolly Roger to have users link
-            their Discord account to their Jolly Roger account.  This enables
-            Jolly Roger to correlate chat messages sent on Discord with user
-            accounts within Jolly Roger.
-          </li>
-          <li>
-            The bot account, which allows Jolly Roger to programmatically
-            manage guild (&quot;server&quot;) invitations to members.
-          </li>
-          <li>
-            Guild selection, since Discord bots can be part of multiple guilds.
-          </li>
+          <li>Create a new Discord application at <a href="https://discord.com/developers/applications">https://discord.com/developers/applications</a></li>
+          <li>In the OAuth2 section, add a redirect pointing to <span>{Meteor.absoluteUrl('/_oauth/discord')}</span></li>
+          <li>In the Bot section, create a bot account.</li>
+          <li>Copy the Client ID and Client Secret from the &quot;General Information&quot; section and paste them here below.</li>
+          <li>Copy the Token from the Bot section and paste it below.</li>
+          <li>Click the save button below.</li>
+          <li>Then, after you have successfully saved the client secret and bot token: as the guild (&quot;server&quot;) owner, <a href={addGuildLink}>add the bot to your Discord guild here</a>.</li>
         </ol>
+        <DiscordOAuthForm
+          configured={props.configured}
+          enabled={props.enabled}
+          oauthSettings={props.oauthSettings}
+        />
+      </div>
 
-        <div className="setup-subsection">
-          <h2 className="setup-subsection-header">
-            <span>OAuth client</span>
-            {' '}
-            <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
-          </h2>
-          <p>
-            Jolly Roger can allow Discord users to grant limited access to
-            their Discord account for the purposes of adding them to a guild
-            and linking their chat messages between the two services.
-          </p>
-          <p>
-            To enable Discord OAuth integration, you will need to:
-          </p>
-          <ol>
-            <li>Create a new Discord application at <a href="https://discord.com/developers/applications">https://discord.com/developers/applications</a></li>
-            <li>In the OAuth2 section, add a redirect pointing to <span>{Meteor.absoluteUrl('/_oauth/discord')}</span></li>
-            <li>In the Bot section, create a bot account.</li>
-            <li>Copy the Client ID and Client Secret from the &quot;General Information&quot; section and paste them here below.</li>
-            <li>Copy the Token from the Bot section and paste it below.</li>
-            <li>Click the save button below.</li>
-            <li>Then, after you have successfully saved the client secret and bot token: as the guild (&quot;server&quot;) owner, <a href={addGuildLink}>add the bot to your Discord guild here</a>.</li>
-          </ol>
-          <DiscordOAuthForm
-            configured={this.props.configured}
-            enabled={this.props.enabled}
-            oauthSettings={this.props.oauthSettings}
-          />
-        </div>
+      <div className="setup-subsection">
+        <h2 className="setup-subsection-header">
+          <span>Bot account</span>
+          {' '}
+          <Badge variant={botBadgeVariant}>{botBadgeLabel}</Badge>
+        </h2>
+        <p>
+          Since Discord only allows guild invitations to be managed by bot
+          accounts, to use Jolly Roger to automate Discord guild membership,
+          you must create a bot account, save its token here, and then add
+          it to the guild for which you wish to automate invites.
+        </p>
+        <DiscordBotForm
+          botToken={props.botToken}
+        />
+      </div>
 
-        <div className="setup-subsection">
-          <h2 className="setup-subsection-header">
-            <span>Bot account</span>
-            {' '}
-            <Badge variant={botBadgeVariant}>{botBadgeLabel}</Badge>
-          </h2>
-          <p>
-            Since Discord only allows guild invitations to be managed by bot
-            accounts, to use Jolly Roger to automate Discord guild membership,
-            you must create a bot account, save its token here, and then add
-            it to the guild for which you wish to automate invites.
-          </p>
-          <DiscordBotForm
-            botToken={this.props.botToken}
-          />
-        </div>
+      <div className="setup-subsection">
+        <h2 className="setup-subsection-header">
+          <span>Guild</span>
+          {' '}
+          <Badge variant={guildBadgeVariant}>{guildBadgeLabel}</Badge>
+        </h2>
+        <p>
+          Since bots can be part of multiple guilds, you&apos;ll need to specify
+          which one you want Jolly Roger to add users to.  Note that Discord
+          bots can only add other users to guilds which they are already a
+          member of, so if you see no guilds selectable here, you may need
+          to first <a href={addGuildLink}>add the bot to your guild</a>.
+        </p>
 
-        <div className="setup-subsection">
-          <h2 className="setup-subsection-header">
-            <span>Guild</span>
-            {' '}
-            <Badge variant={guildBadgeVariant}>{guildBadgeLabel}</Badge>
-          </h2>
-          <p>
-            Since bots can be part of multiple guilds, you&apos;ll need to specify
-            which one you want Jolly Roger to add users to.  Note that Discord
-            bots can only add other users to guilds which they are already a
-            member of, so if you see no guilds selectable here, you may need
-            to first <a href={addGuildLink}>add the bot to your guild</a>.
-          </p>
-
-          <DiscordGuildFormContainer
-            guild={this.props.guild}
-          />
-        </div>
-      </section>
-    );
-  }
-}
+        <DiscordGuildForm
+          guild={props.guild}
+        />
+      </div>
+    </section>
+  );
+};
 
 interface WebRTCServersFormProps {
   urls: string[];
   secret: string;
 }
 
-interface WebRTCServersFormState {
-  urls: string;
-  secret: string;
-  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
-  submitError: string;
-}
+const WebRTCServersForm = (props: WebRTCServersFormProps) => {
+  const [urlsFlat, setUrlsFlat] =
+    useState<string>(props.urls.length > 0 ? props.urls.join(',') : '');
+  const [secret, setSecret] = useState<string>(props.secret || '');
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
 
-class WebRTCServersForm extends React.Component<WebRTCServersFormProps, WebRTCServersFormState> {
-  constructor(props: WebRTCServersFormProps) {
-    super(props);
-    this.state = {
-      urls: props.urls.length > 0 ? props.urls.join(',') : '',
-      secret: props.secret || '',
-      submitState: SubmitState.IDLE,
-      submitError: '',
-    };
-  }
+  const dismissAlert = useCallback(() => {
+    setSubmitState(SubmitState.IDLE);
+  }, []);
 
-  dismissAlert = () => {
-    this.setState({
-      submitState: SubmitState.IDLE,
-    });
-  };
+  const onUrlChange: FormControlProps['onChange'] = useCallback((e) => {
+    setUrlsFlat(e.currentTarget.value);
+  }, []);
 
-  onUrlChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      urls: e.currentTarget.value,
-    });
-  };
+  const onSecretChange: FormControlProps['onChange'] = useCallback((e) => {
+    setSecret(e.currentTarget.value);
+  }, []);
 
-  onSecretChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      secret: e.currentTarget.value,
-    });
-  };
-
-  onSubmit = (e: React.FormEvent<any>) => {
+  const onSubmit = useCallback((e: React.FormEvent<any>) => {
     e.preventDefault();
 
-    const urls = this.state.urls.trim().split(',');
-    const secret = this.state.secret.trim();
+    const urls = urlsFlat.trim().split(',');
+    const trimmedSecret = secret.trim();
 
-    this.setState({
-      submitState: SubmitState.SUBMITTING,
-    });
-    Meteor.call('setupTurnServerConfig', secret, urls, (err?: Error) => {
+    setSubmitState(SubmitState.SUBMITTING);
+    Meteor.call('setupTurnServerConfig', trimmedSecret, urls, (err?: Error) => {
       if (err) {
-        this.setState({
-          submitState: SubmitState.ERROR,
-          submitError: err.message,
-        });
+        setSubmitError(err.message);
+        setSubmitState(SubmitState.ERROR);
       } else {
-        this.setState({
-          submitState: SubmitState.SUCCESS,
-        });
+        setSubmitState(SubmitState.SUCCESS);
       }
     });
-  };
+  }, [urlsFlat, secret]);
 
-  render() {
-    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
-    return (
-      <div>
-        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.submitError}
-          </Alert>
-        ) : null}
+  const shouldDisableForm = submitState === SubmitState.SUBMITTING;
+  return (
+    <div>
+      {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {submitError}
+        </Alert>
+      ) : null}
 
-        <form onSubmit={this.onSubmit}>
-          <FormGroup>
-            <FormLabel htmlFor="jr-setup-edit-webrtc-turn-server-url">
-              TURN server URLs (comma-separated)
-            </FormLabel>
-            <FormControl
-              id="jr-setup-edit-webrtc-turn-server-url"
-              type="text"
-              placeholder=""
-              value={this.state.urls}
-              disabled={shouldDisableForm}
-              onChange={this.onUrlChange}
-            />
-          </FormGroup>
-          <FormGroup>
-            <FormLabel htmlFor="jr-setup-edit-webrtc-turn-server-secret">
-              TURN server shared secret
-            </FormLabel>
-            <FormControl
-              id="jr-setup-edit-webrtc-turn-server-secret"
-              type="text"
-              placeholder=""
-              value={this.state.secret}
-              disabled={shouldDisableForm}
-              onChange={this.onSecretChange}
-            />
-          </FormGroup>
-          <Button variant="primary" type="submit" onClick={this.onSubmit} disabled={shouldDisableForm}>Save</Button>
-        </form>
-      </div>
-    );
-  }
-}
+      <form onSubmit={onSubmit}>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-webrtc-turn-server-url">
+            TURN server URLs (comma-separated)
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-webrtc-turn-server-url"
+            type="text"
+            placeholder=""
+            value={urlsFlat}
+            disabled={shouldDisableForm}
+            onChange={onUrlChange}
+          />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-webrtc-turn-server-secret">
+            TURN server shared secret
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-webrtc-turn-server-secret"
+            type="text"
+            placeholder=""
+            value={secret}
+            disabled={shouldDisableForm}
+            onChange={onSecretChange}
+          />
+        </FormGroup>
+        <Button variant="primary" type="submit" onClick={onSubmit} disabled={shouldDisableForm}>Save</Button>
+      </form>
+    </div>
+  );
+};
 
 interface WebRTCSectionProps {
   turnServerUrls: string[];
   turnServerSecret: string;
 }
 
-class WebRTCSection extends React.Component<WebRTCSectionProps> {
-  render() {
-    return (
-      <section id="webrtc">
-        <h1 className="setup-section-header">
-          <span className="setup-section-header-label">
-            WebRTC
-          </span>
-        </h1>
+const WebRTCSection = (props: WebRTCSectionProps) => {
+  return (
+    <section id="webrtc">
+      <h1 className="setup-section-header">
+        <span className="setup-section-header-label">
+          WebRTC
+        </span>
+      </h1>
 
-        <div className="setup-subsection">
-          <h2 className="setup-subsection-header">
-            <span>Turn server configuration</span>
-          </h2>
-          <p>
-            To use WebRTC, you need to configure a STUN/TURN server which you
-            operate.  Specifically, you must provide at least one URL (like
-            {' '}
-            <code>stun:turn.deathandmayhem.com</code>
-            {' '}
-            or
-            {' '}
-            <code>turn:turn.deathandmayhem.com</code>
-            ) for clients to be able to discover ICE candidates and connect
-            directly to each other to exchange audio streams.
-          </p>
+      <div className="setup-subsection">
+        <h2 className="setup-subsection-header">
+          <span>Turn server configuration</span>
+        </h2>
+        <p>
+          To use WebRTC, you need to configure a STUN/TURN server which you
+          operate.  Specifically, you must provide at least one URL (like
+          {' '}
+          <code>stun:turn.deathandmayhem.com</code>
+          {' '}
+          or
+          {' '}
+          <code>turn:turn.deathandmayhem.com</code>
+          ) for clients to be able to discover ICE candidates and connect
+          directly to each other to exchange audio streams.
+        </p>
 
-          <p>
-            Since TURN involves relaying, which is expensive in terms of
-            bandwidth for the server operator, it also requires authentication.
-            The simplest deployment supporting authentication involves a single
-            shared secret between Jolly Roger and the TURN server, per
-            {' '}
-            <a target="_blank" rel="noopener noreferrer" href="https://tools.ietf.org/html/draft-uberti-behave-turn-rest-00">
-              A REST API For Access to TURN Services
-            </a>.
-            Generate a random string, then provide it both here and in the
-            configuration for your TURN server.  If you plan to run
-            {' '}
-            <a target="_blank" rel="noopener noreferrer" href="https://github.com/coturn/coturn">
-              coturn
-            </a>
-            , this means a config file with:
-          </p>
-          <pre>
-            use-auth-secret<br />
-            static-auth-secret={this.props.turnServerSecret}
-          </pre>
-          <WebRTCServersForm
-            secret={this.props.turnServerSecret}
-            urls={this.props.turnServerUrls}
-          />
-        </div>
-      </section>
-    );
-  }
-}
+        <p>
+          Since TURN involves relaying, which is expensive in terms of
+          bandwidth for the server operator, it also requires authentication.
+          The simplest deployment supporting authentication involves a single
+          shared secret between Jolly Roger and the TURN server, per
+          {' '}
+          <a target="_blank" rel="noopener noreferrer" href="https://tools.ietf.org/html/draft-uberti-behave-turn-rest-00">
+            A REST API For Access to TURN Services
+          </a>.
+          Generate a random string, then provide it both here and in the
+          configuration for your TURN server.  If you plan to run
+          {' '}
+          <a target="_blank" rel="noopener noreferrer" href="https://github.com/coturn/coturn">
+            coturn
+          </a>
+          , this means a config file with:
+        </p>
+        <pre>
+          use-auth-secret<br />
+          static-auth-secret={props.turnServerSecret}
+        </pre>
+        <WebRTCServersForm
+          secret={props.turnServerSecret}
+          urls={props.turnServerUrls}
+        />
+      </div>
+    </section>
+  );
+};
 
 interface BrandingTeamNameProps {
   initialTeamName: string | undefined;
 }
 
-interface BrandingTeamNameState {
-  teamName: string;
-  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS | SubmitState.ERROR;
-  submitError: string;
-}
+const BrandingTeamName = (props: BrandingTeamNameProps) => {
+  const [teamName, setTeamName] = useState<string>(props.initialTeamName || '');
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
 
-class BrandingTeamName extends React.Component<BrandingTeamNameProps, BrandingTeamNameState> {
-  constructor(props: BrandingTeamNameProps) {
-    super(props);
-    this.state = {
-      teamName: props.initialTeamName || '',
-      submitState: SubmitState.IDLE,
-      submitError: '',
-    };
-  }
+  const onTeamNameChange: FormControlProps['onChange'] = useCallback((e) => {
+    setTeamName(e.currentTarget.value);
+  }, []);
 
-  onTeamNameChange: FormControlProps['onChange'] = (e) => {
-    this.setState({
-      teamName: e.currentTarget.value,
-    });
-  };
+  const dismissAlert = useCallback(() => {
+    setSubmitState(SubmitState.IDLE);
+  }, []);
 
-  dismissAlert = () => {
-    this.setState({
-      submitState: SubmitState.IDLE,
-    });
-  };
-
-  onSubmit = (e: React.FormEvent<any>) => {
+  const onSubmit = useCallback((e: React.FormEvent<any>) => {
     e.preventDefault();
-    this.setState({
-      submitState: SubmitState.SUBMITTING,
-    });
-    Meteor.call('setupSetTeamName', this.state.teamName, (err?: Error) => {
+    setSubmitState(SubmitState.SUBMITTING);
+    Meteor.call('setupSetTeamName', teamName, (err?: Error) => {
       if (err) {
-        this.setState({
-          submitState: SubmitState.ERROR,
-          submitError: err.message,
-        });
+        setSubmitError(err.message);
+        setSubmitState(SubmitState.ERROR);
       } else {
-        this.setState({
-          submitState: SubmitState.SUCCESS,
-        });
+        setSubmitState(SubmitState.SUCCESS);
       }
     });
-  };
+  }, [teamName]);
 
-  render() {
-    const shouldDisableForm = this.state.submitState === SubmitState.SUBMITTING;
-    return (
-      <div>
-        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.submitError}
-          </Alert>
-        ) : null}
+  const shouldDisableForm = submitState === SubmitState.SUBMITTING;
+  return (
+    <div>
+      {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {submitError}
+        </Alert>
+      ) : null}
 
-        <form onSubmit={this.onSubmit}>
-          <FormGroup>
-            <FormLabel htmlFor="jr-setup-edit-team-name">
-              Team name
-            </FormLabel>
-            <FormControl
-              id="jr-setup-edit-team-name"
-              type="text"
-              placeholder=""
-              value={this.state.teamName}
-              disabled={shouldDisableForm}
-              onChange={this.onTeamNameChange}
-            />
-          </FormGroup>
-          <Button variant="primary" type="submit" onClick={this.onSubmit} disabled={shouldDisableForm}>Save</Button>
-        </form>
-      </div>
-    );
-  }
-}
+      <form onSubmit={onSubmit}>
+        <FormGroup>
+          <FormLabel htmlFor="jr-setup-edit-team-name">
+            Team name
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-team-name"
+            type="text"
+            placeholder=""
+            value={teamName}
+            disabled={shouldDisableForm}
+            onChange={onTeamNameChange}
+          />
+        </FormGroup>
+        <Button variant="primary" type="submit" onClick={onSubmit} disabled={shouldDisableForm}>Save</Button>
+      </form>
+    </div>
+  );
+};
 
 interface BrandingAssetRowProps {
   asset: string;
@@ -1616,43 +1416,28 @@ interface BrandingAssetRowProps {
   children?: ReactChild;
 }
 
-interface BrandingAssetRowState {
-  submitState: SubmitState;
-  submitError: string;
-}
+const BrandingAssetRow = (props: BrandingAssetRowProps) => {
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
 
-class BrandingAssetRow extends React.Component<BrandingAssetRowProps, BrandingAssetRowState> {
-  constructor(props: BrandingAssetRowProps) {
-    super(props);
-    this.state = {
-      submitState: SubmitState.IDLE,
-      submitError: '',
-    };
-  }
+  const dismissAlert = useCallback(() => {
+    setSubmitState(SubmitState.IDLE);
+  }, []);
 
-  dismissAlert = () => {
-    this.setState({ submitState: SubmitState.IDLE });
-  };
-
-  onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileSelected = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const UPLOAD_SIZE_LIMIT = 1024 * 1024; // 1 MiB
       if (file.size > UPLOAD_SIZE_LIMIT) {
-        this.setState({
-          submitState: SubmitState.ERROR,
-          submitError: `${file.name} is too large at ${file.size} bytes (limit is ${UPLOAD_SIZE_LIMIT})`,
-        });
+        setSubmitError(`${file.name} is too large at ${file.size} bytes (limit is ${UPLOAD_SIZE_LIMIT})`);
+        setSubmitState(SubmitState.ERROR);
+        return;
       }
-      this.setState({
-        submitState: SubmitState.SUBMITTING,
-      });
-      Meteor.call('setupGetUploadToken', this.props.asset, file.type, (err?: Error, uploadToken?: string) => {
+      setSubmitState(SubmitState.SUBMITTING);
+      Meteor.call('setupGetUploadToken', props.asset, file.type, (err?: Error, uploadToken?: string) => {
         if (err) {
-          this.setState({
-            submitState: SubmitState.ERROR,
-            submitError: err.message,
-          });
+          setSubmitError(err.message);
+          setSubmitState(SubmitState.ERROR);
         } else {
           fetch(`/asset/${uploadToken}`, {
             method: 'POST',
@@ -1662,141 +1447,131 @@ class BrandingAssetRow extends React.Component<BrandingAssetRowProps, BrandingAs
               'Content-Type': file.type,
             },
             body: file,
-          }).then((resp) => {
+          }).then((resp: Response) => {
             if (resp.ok) {
-              this.setState({
-                submitState: SubmitState.SUCCESS,
-              });
+              setSubmitState(SubmitState.SUCCESS);
             } else {
-              this.setState({
-                submitState: SubmitState.ERROR,
-                submitError: `${resp.status} ${resp.statusText}`,
-              });
+              setSubmitError(`${resp.status} ${resp.statusText}`);
+              setSubmitState(SubmitState.ERROR);
             }
-          }).catch((error) => {
-            this.setState({
-              submitState: SubmitState.ERROR,
-              submitError: error,
-            });
+          }).catch((error: Error) => {
+            setSubmitError(error.message);
+            setSubmitState(SubmitState.ERROR);
           });
         }
       });
     }
-  };
+  }, [props.asset]);
 
-  render() {
-    // If no BlobMapping is present for this asset, fall back to the default one from the public/images folder
-    const blobUrl = this.props.blob ? `/asset/${this.props.blob.blob}` : `/images/${this.props.asset}`;
-    return (
-      <div className="branding-row">
-        {this.state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-        {this.state.submitState === 'success' ? <Alert variant="success" dismissible onClose={this.dismissAlert}>Saved changes.</Alert> : null}
-        {this.state.submitState === 'error' ? (
-          <Alert variant="danger" dismissible onClose={this.dismissAlert}>
-            Saving failed:
-            {' '}
-            {this.state.submitError}
-          </Alert>
-        ) : null}
-        <div className="branding-row-content">
-          <div
-            className="branding-row-image"
-            style={{
-              backgroundImage: `url("${blobUrl}")`,
-              backgroundSize: this.props.backgroundSize || 'auto',
-            }}
-          />
-          <label htmlFor={`asset-input-${this.props.asset}`}>
-            <div>{this.props.asset}</div>
-            <div>{this.props.children}</div>
-            <input id={`asset-input-${this.props.asset}`} type="file" onChange={this.onFileSelected} />
-          </label>
-        </div>
+  // If no BlobMapping is present for this asset, fall back to the default one from the public/images folder
+  const blobUrl = props.blob ? `/asset/${props.blob.blob}` : `/images/${props.asset}`;
+  return (
+    <div className="branding-row">
+      {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {submitError}
+        </Alert>
+      ) : null}
+      <div className="branding-row-content">
+        <div
+          className="branding-row-image"
+          style={{
+            backgroundImage: `url("${blobUrl}")`,
+            backgroundSize: props.backgroundSize || 'auto',
+          }}
+        />
+        <label htmlFor={`asset-input-${props.asset}`}>
+          <div>{props.asset}</div>
+          <div>{props.children}</div>
+          <input id={`asset-input-${props.asset}`} type="file" onChange={onFileSelected} />
+        </label>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 interface BrandingSectionProps {
   blobMappings: BlobMappingType[];
   teamName: string | undefined;
 }
 
-class BrandingSection extends React.Component<BrandingSectionProps> {
-  render() {
-    const blobMap = _.indexBy(this.props.blobMappings, '_id');
+const BrandingSection = (props: BrandingSectionProps) => {
+  const blobMap = _.indexBy(props.blobMappings, '_id');
 
-    return (
-      <section id="branding">
-        <h1 className="setup-section-header">
-          <span className="setup-section-header-label">
-            Branding
-          </span>
-        </h1>
-        <div className="setup-subsection">
-          <h2 className="setup-subsection-header">
-            <span>Team name</span>
-          </h2>
-          <p>
-            The team name is displayed:
-          </p>
-          <ul>
-            <li>on the login page</li>
-            <li>in the filenames of any Google Docs/Sheets created by Jolly Roger</li>
-            <li>and anywhere else we may refer to the team that owns this Jolly Roger instance.</li>
-          </ul>
-          <BrandingTeamName initialTeamName={this.props.teamName} />
-        </div>
-        <div className="setup-subsection">
-          <h2 className="setup-subsection-header">
-            <span>Essential imagery</span>
-          </h2>
-          <BrandingAssetRow asset="brand.png" blob={blobMap['brand.png']}>
-            Brand icon, 50x50 pixels, shown in the top left of all logged-in pages
-          </BrandingAssetRow>
-          <BrandingAssetRow asset="brand@2x.png" blob={blobMap['brand@2x.png']}>
-            Brand icon @ 2x res for high-DPI displays, 100x100 pixels, shown in
-            the top left of all logged-in pages.
-          </BrandingAssetRow>
-          <BrandingAssetRow asset="hero.png" blob={blobMap['hero.png']} backgroundSize="contain">
-            Hero image, approximately 510x297 pixels, shown on the
-            login/enroll/password-reset pages.
-          </BrandingAssetRow>
-          <BrandingAssetRow asset="hero@2x.png" blob={blobMap['hero@2x.png']} backgroundSize="contain">
-            Hero image @ 2x res for high-DPI displays, approximately 1020x595
-            pixels, shown on the login/enroll/password-reset pages.
-          </BrandingAssetRow>
-        </div>
-        <div className="setup-subsection">
-          <h2 className="setup-subsection-header">
-            <span>Favicons and related iconography</span>
-          </h2>
-          <BrandingAssetRow asset="android-chrome-192x192.png" blob={blobMap['android-chrome-192x192.png']}>
-            Android Chrome favicon at 192x192 pixels
-          </BrandingAssetRow>
-          <BrandingAssetRow asset="android-chrome-512x512.png" blob={blobMap['android-chrome-512x512.png']} backgroundSize="contain">
-            Android Chrome favicon at 512x512 pixels
-          </BrandingAssetRow>
-          <BrandingAssetRow asset="apple-touch-icon.png" blob={blobMap['apple-touch-icon.png']}>
-            Square Apple touch icon at 180x180 pixels
-          </BrandingAssetRow>
-          <BrandingAssetRow asset="favicon-16x16.png" blob={blobMap['favicon-16x16.png']}>
-            Favicon as PNG at 16x16 pixels
-          </BrandingAssetRow>
-          <BrandingAssetRow asset="favicon-32x32.png" blob={blobMap['favicon-32x32.png']}>
-            Favicon as PNG at 32x32 pixels
-          </BrandingAssetRow>
-          <BrandingAssetRow asset="mstile-150x150.png" blob={blobMap['mstile-150x150.png']}>
-            Tile used by Windows, IE, and Edge, as PNG at 150x150 pixels
-          </BrandingAssetRow>
-          <BrandingAssetRow asset="safari-pinned-tab.svg" blob={blobMap['safari-pinned-tab.svg']} backgroundSize="contain">
-            Black-and-transparent SVG used by Safari for pinned tabs
-          </BrandingAssetRow>
-        </div>
-      </section>
-    );
-  }
-}
+  return (
+    <section id="branding">
+      <h1 className="setup-section-header">
+        <span className="setup-section-header-label">
+          Branding
+        </span>
+      </h1>
+      <div className="setup-subsection">
+        <h2 className="setup-subsection-header">
+          <span>Team name</span>
+        </h2>
+        <p>
+          The team name is displayed:
+        </p>
+        <ul>
+          <li>on the login page</li>
+          <li>in the filenames of any Google Docs/Sheets created by Jolly Roger</li>
+          <li>and anywhere else we may refer to the team that owns this Jolly Roger instance.</li>
+        </ul>
+        <BrandingTeamName initialTeamName={props.teamName} />
+      </div>
+      <div className="setup-subsection">
+        <h2 className="setup-subsection-header">
+          <span>Essential imagery</span>
+        </h2>
+        <BrandingAssetRow asset="brand.png" blob={blobMap['brand.png']}>
+          Brand icon, 50x50 pixels, shown in the top left of all logged-in pages
+        </BrandingAssetRow>
+        <BrandingAssetRow asset="brand@2x.png" blob={blobMap['brand@2x.png']}>
+          Brand icon @ 2x res for high-DPI displays, 100x100 pixels, shown in
+          the top left of all logged-in pages.
+        </BrandingAssetRow>
+        <BrandingAssetRow asset="hero.png" blob={blobMap['hero.png']} backgroundSize="contain">
+          Hero image, approximately 510x297 pixels, shown on the
+          login/enroll/password-reset pages.
+        </BrandingAssetRow>
+        <BrandingAssetRow asset="hero@2x.png" blob={blobMap['hero@2x.png']} backgroundSize="contain">
+          Hero image @ 2x res for high-DPI displays, approximately 1020x595
+          pixels, shown on the login/enroll/password-reset pages.
+        </BrandingAssetRow>
+      </div>
+      <div className="setup-subsection">
+        <h2 className="setup-subsection-header">
+          <span>Favicons and related iconography</span>
+        </h2>
+        <BrandingAssetRow asset="android-chrome-192x192.png" blob={blobMap['android-chrome-192x192.png']}>
+          Android Chrome favicon at 192x192 pixels
+        </BrandingAssetRow>
+        <BrandingAssetRow asset="android-chrome-512x512.png" blob={blobMap['android-chrome-512x512.png']} backgroundSize="contain">
+          Android Chrome favicon at 512x512 pixels
+        </BrandingAssetRow>
+        <BrandingAssetRow asset="apple-touch-icon.png" blob={blobMap['apple-touch-icon.png']}>
+          Square Apple touch icon at 180x180 pixels
+        </BrandingAssetRow>
+        <BrandingAssetRow asset="favicon-16x16.png" blob={blobMap['favicon-16x16.png']}>
+          Favicon as PNG at 16x16 pixels
+        </BrandingAssetRow>
+        <BrandingAssetRow asset="favicon-32x32.png" blob={blobMap['favicon-32x32.png']}>
+          Favicon as PNG at 32x32 pixels
+        </BrandingAssetRow>
+        <BrandingAssetRow asset="mstile-150x150.png" blob={blobMap['mstile-150x150.png']}>
+          Tile used by Windows, IE, and Edge, as PNG at 150x150 pixels
+        </BrandingAssetRow>
+        <BrandingAssetRow asset="safari-pinned-tab.svg" blob={blobMap['safari-pinned-tab.svg']} backgroundSize="contain">
+          Black-and-transparent SVG used by Safari for pinned tabs
+        </BrandingAssetRow>
+      </div>
+    </section>
+  );
+};
 
 interface CircuitBreakerControlProps {
   // disabled should be false if the circuit breaker is not intentionally disabling the feature,
@@ -1814,40 +1589,41 @@ interface CircuitBreakerControlProps {
   onChange: (desiredState: boolean) => void;
 }
 
-class CircuitBreakerControl extends React.Component<CircuitBreakerControlProps> {
-  onChange = () => {
-    const desiredState = !this.props.featureDisabled;
-    this.props.onChange(desiredState);
-  };
+const CircuitBreakerControl = (props: CircuitBreakerControlProps) => {
+  const {
+    featureDisabled, title, children, onChange,
+  } = props;
+  const onChangeCb = useCallback(() => {
+    const desiredState = !featureDisabled;
+    onChange(desiredState);
+  }, [onChange, featureDisabled]);
 
-  render() {
-    // Is the feature that this circuit breaker disables currently available?
-    const featureIsEnabled = !this.props.featureDisabled;
-    const firstButtonLabel = featureIsEnabled ? 'Enabled' : 'Enable';
-    const secondButtonLabel = featureIsEnabled ? 'Disable' : 'Disabled';
+  // Is the feature that this circuit breaker disables currently available?
+  const featureIsEnabled = !featureDisabled;
+  const firstButtonLabel = featureIsEnabled ? 'Enabled' : 'Enable';
+  const secondButtonLabel = featureIsEnabled ? 'Disable' : 'Disabled';
 
-    return (
-      <div className="circuit-breaker">
-        <div className="circuit-breaker-row">
-          <div className="circuit-breaker-label">
-            {this.props.title}
-          </div>
-          <div className="circuit-breaker-buttons">
-            <Button variant="light" disabled={featureIsEnabled} onClick={this.onChange}>
-              {firstButtonLabel}
-            </Button>
-            <Button variant="light" disabled={!featureIsEnabled} onClick={this.onChange}>
-              {secondButtonLabel}
-            </Button>
-          </div>
+  return (
+    <div className="circuit-breaker">
+      <div className="circuit-breaker-row">
+        <div className="circuit-breaker-label">
+          {title}
         </div>
-        <div className="circuit-breaker-description">
-          {this.props.children}
+        <div className="circuit-breaker-buttons">
+          <Button variant="light" disabled={featureIsEnabled} onClick={onChangeCb}>
+            {firstButtonLabel}
+          </Button>
+          <Button variant="light" disabled={!featureIsEnabled} onClick={onChangeCb}>
+            {secondButtonLabel}
+          </Button>
         </div>
       </div>
-    );
-  }
-}
+      <div className="circuit-breaker-description">
+        {children}
+      </div>
+    </div>
+  );
+};
 
 interface CircuitBreakerSectionProps {
   flagDisableGdrivePermissions: boolean;
@@ -1857,141 +1633,139 @@ interface CircuitBreakerSectionProps {
   flagDisableDingwords: boolean;
 }
 
-class CircuitBreakerSection extends React.Component<CircuitBreakerSectionProps> {
-  setFlagValue(flag: string, value: boolean) {
+const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
+  const setFlagValue = useCallback((flag: string, value: boolean) => {
     const type = value ? 'on' : 'off';
     Meteor.call('setFeatureFlag', flag, type);
-  }
+  }, []);
 
-  render() {
-    return (
-      <section id="circuit-breakers">
-        <h1 className="setup-section-header">
-          Circuit breakers
-        </h1>
+  return (
+    <section id="circuit-breakers">
+      <h1 className="setup-section-header">
+        Circuit breakers
+      </h1>
+      <p>
+        Jolly Roger has several features which can be responsible for high
+        server load or increased latency.  We allow them to be disabled at
+        runtime to enable graceful degradation if your deployment is having
+        issues.
+      </p>
+      <CircuitBreakerControl
+        title="Drive permission sharing"
+        featureDisabled={props.flagDisableGdrivePermissions}
+        onChange={(newValue) => setFlagValue('disable.gdrive_permissions', newValue)}
+      >
         <p>
-          Jolly Roger has several features which can be responsible for high
-          server load or increased latency.  We allow them to be disabled at
-          runtime to enable graceful degradation if your deployment is having
-          issues.
+          When Jolly Roger creates a spreadsheet or document, we grant
+          anonymous access to the sheet or doc by link.  This has the unfortunate
+          effect of making all viewers appear unidentified, e.g. Anonymous
+          Aardvark, since otherwise Google Doc scripting tools could be used to
+          harvest information about anyone who opens a link viewers.
         </p>
-        <CircuitBreakerControl
-          title="Drive permission sharing"
-          featureDisabled={this.props.flagDisableGdrivePermissions}
-          onChange={(newValue) => this.setFlagValue('disable.gdrive_permissions', newValue)}
-        >
-          <p>
-            When Jolly Roger creates a spreadsheet or document, we grant
-            anonymous access to the sheet or doc by link.  This has the unfortunate
-            effect of making all viewers appear unidentified, e.g. Anonymous
-            Aardvark, since otherwise Google Doc scripting tools could be used to
-            harvest information about anyone who opens a link viewers.
-          </p>
-          <p>
-            If, however, the document has already been explicitly shared with a particular google account,
-            then that user&apos;s identity will be revealed in the document, which means you can see who it is
-            editing or highlighting what cell in the spreadsheet and whatnot.
-          </p>
-          <p>
-            Since sharing documents with N people in a hunt is N API calls, to
-            avoid getting rate-limited by Google, we opt to do this sharing lazily
-            when hunters open the puzzle page.
-          </p>
-          <p>
-            Disabling this feature means that Jolly Roger will continue to
-            create documents, but will not attempt to share them to users that have
-            linked their Google identity.  As a result, new documents will show
-            entirely anonymous animal users, and users looking at documents for the
-            first time will also remain anonymous within the Google iframe.
-          </p>
-        </CircuitBreakerControl>
-        <CircuitBreakerControl
-          title="Celebrations"
-          featureDisabled={this.props.flagDisableApplause}
-          onChange={(newValue) => this.setFlagValue('disable.applause', newValue)}
-        >
-          <p>
-            Some teams like broadcasting when a puzzle is solved, to make
-            people aware of the shape of correct answers and to celebrate progress.
-            Others do not, prefering to avoid distracting people or creating
-            sound, especially since some puzzles involve audio cues.
-            While individual users can squelch applause in their
-            profile/settings, we also provide this global toggle if your team
-            prefers to forgo this celebratory opportunity.
-          </p>
-          <p>
-            Disabling this feature means that Jolly Roger will not show a modal
-            and play an applause sound to all open tabs of all members of a
-            particular hunt when a puzzle in that hunt is solved.
-          </p>
-        </CircuitBreakerControl>
-        <CircuitBreakerControl
-          title="WebRTC calls"
-          featureDisabled={this.props.flagDisableWebrtc}
-          onChange={(newValue) => this.setFlagValue('disable.webrtc', newValue)}
-        >
-          <p>
-            Jolly Roger has experimental support for making WebRTC audio calls
-            built into each puzzle page.  Jolly Roger provides the signaling
-            server and all members of the call establish a direct connection to
-            all other members of the same call (which is more complex at the
-            edge, but avoids needing to operate a separate high-capacity,
-            latency-sensitive reencoding server).  Note that video calls are
-            not currently supported primarily due to the bandwidth constraints
-            the mesh connectivity would imply -- video consumes 60x the bitrate
-            of audio, and we estimate most residential network connections to
-            only be able to reliably support around 4 call participants at a
-            time before significant degradation.
-          </p>
-          <p>
-            Disabling this feature means that Jolly Roger will not show an
-            audiocall section in the UI on the puzzle page, nor will clients
-            join calls.  The server will still service WebRTC-related
-            subscriptions and methods, but we expect clients to not generate
-            such load once the flag is flipped.
-          </p>
-        </CircuitBreakerControl>
-        <CircuitBreakerControl
-          title="WebRTC call spectrograms"
-          featureDisabled={this.props.flagDisableSpectra}
-          onChange={(newValue) => this.setFlagValue('disable.spectra', newValue)}
-        >
-          <p>
-            In the WebRTC call UI, we show audio activity via spectrograms.
-            However, this is expensive, since it involves doing FFTs and updating
-            visualizations every frame, for every client.  We provide a feature
-            flag to disable these spectra.
-          </p>
-          <p>
-            Disabling this feature means that Jolly Roger will not show any
-            visual indicator of who in a call is talking, but will use less CPU
-            and battery for members of WebRTC calls.
-          </p>
-        </CircuitBreakerControl>
-        <CircuitBreakerControl
-          title="Dingwords"
-          featureDisabled={this.props.flagDisableDingwords}
-          onChange={(newValue) => this.setFlagValue('disable.dingwords', newValue)}
-        >
-          <p>
-            User-specified &quot;dingwords&quot; allow users to get notified if anyone
-            mentions a word of particular significance to the user in any of the puzzle
-            chats, so that they can potentially contribute.  However, this involves doing
-            substantial matching work for every chat message sent, and the CPU/DB load
-            involved have not been tested in production yet.
-          </p>
-          <p>
-            Disabling this feature means that Jolly Roger will no longer do expensive
-            work on each chat message sent, and no new dingword notifications will be
-            generated or displayed.
-          </p>
-        </CircuitBreakerControl>
-      </section>
-    );
-  }
-}
+        <p>
+          If, however, the document has already been explicitly shared with a particular google account,
+          then that user&apos;s identity will be revealed in the document, which means you can see who it is
+          editing or highlighting what cell in the spreadsheet and whatnot.
+        </p>
+        <p>
+          Since sharing documents with N people in a hunt is N API calls, to
+          avoid getting rate-limited by Google, we opt to do this sharing lazily
+          when hunters open the puzzle page.
+        </p>
+        <p>
+          Disabling this feature means that Jolly Roger will continue to
+          create documents, but will not attempt to share them to users that have
+          linked their Google identity.  As a result, new documents will show
+          entirely anonymous animal users, and users looking at documents for the
+          first time will also remain anonymous within the Google iframe.
+        </p>
+      </CircuitBreakerControl>
+      <CircuitBreakerControl
+        title="Celebrations"
+        featureDisabled={props.flagDisableApplause}
+        onChange={(newValue) => setFlagValue('disable.applause', newValue)}
+      >
+        <p>
+          Some teams like broadcasting when a puzzle is solved, to make
+          people aware of the shape of correct answers and to celebrate progress.
+          Others do not, prefering to avoid distracting people or creating
+          sound, especially since some puzzles involve audio cues.
+          While individual users can squelch applause in their
+          profile/settings, we also provide this global toggle if your team
+          prefers to forgo this celebratory opportunity.
+        </p>
+        <p>
+          Disabling this feature means that Jolly Roger will not show a modal
+          and play an applause sound to all open tabs of all members of a
+          particular hunt when a puzzle in that hunt is solved.
+        </p>
+      </CircuitBreakerControl>
+      <CircuitBreakerControl
+        title="WebRTC calls"
+        featureDisabled={props.flagDisableWebrtc}
+        onChange={(newValue) => setFlagValue('disable.webrtc', newValue)}
+      >
+        <p>
+          Jolly Roger has experimental support for making WebRTC audio calls
+          built into each puzzle page.  Jolly Roger provides the signaling
+          server and all members of the call establish a direct connection to
+          all other members of the same call (which is more complex at the
+          edge, but avoids needing to operate a separate high-capacity,
+          latency-sensitive reencoding server).  Note that video calls are
+          not currently supported primarily due to the bandwidth constraints
+          the mesh connectivity would imply -- video consumes 60x the bitrate
+          of audio, and we estimate most residential network connections to
+          only be able to reliably support around 4 call participants at a
+          time before significant degradation.
+        </p>
+        <p>
+          Disabling this feature means that Jolly Roger will not show an
+          audiocall section in the UI on the puzzle page, nor will clients
+          join calls.  The server will still service WebRTC-related
+          subscriptions and methods, but we expect clients to not generate
+          such load once the flag is flipped.
+        </p>
+      </CircuitBreakerControl>
+      <CircuitBreakerControl
+        title="WebRTC call spectrograms"
+        featureDisabled={props.flagDisableSpectra}
+        onChange={(newValue) => setFlagValue('disable.spectra', newValue)}
+      >
+        <p>
+          In the WebRTC call UI, we show audio activity via spectrograms.
+          However, this is expensive, since it involves doing FFTs and updating
+          visualizations every frame, for every client.  We provide a feature
+          flag to disable these spectra.
+        </p>
+        <p>
+          Disabling this feature means that Jolly Roger will not show any
+          visual indicator of who in a call is talking, but will use less CPU
+          and battery for members of WebRTC calls.
+        </p>
+      </CircuitBreakerControl>
+      <CircuitBreakerControl
+        title="Dingwords"
+        featureDisabled={props.flagDisableDingwords}
+        onChange={(newValue) => setFlagValue('disable.dingwords', newValue)}
+      >
+        <p>
+          User-specified &quot;dingwords&quot; allow users to get notified if anyone
+          mentions a word of particular significance to the user in any of the puzzle
+          chats, so that they can potentially contribute.  However, this involves doing
+          substantial matching work for every chat message sent, and the CPU/DB load
+          involved have not been tested in production yet.
+        </p>
+        <p>
+          Disabling this feature means that Jolly Roger will no longer do expensive
+          work on each chat message sent, and no new dingword notifications will be
+          generated or displayed.
+        </p>
+      </CircuitBreakerControl>
+    </section>
+  );
+};
 
-interface SetupPageRewriteProps {
+interface SetupPageTracker {
   ready: boolean;
 
   canConfigure: boolean;
@@ -2022,145 +1796,143 @@ interface SetupPageRewriteProps {
   blobMappings: BlobMappingType[];
 }
 
-class SetupPageRewrite extends React.Component<SetupPageRewriteProps> {
-  render() {
-    if (!this.props.ready) {
-      return (
-        <div className="setup-page">
-          Loading...
-        </div>
-      );
-    }
+const SetupPage = () => {
+  useBreadcrumb({ title: 'Server setup', path: '/setup' });
+  const tracker = useTracker<SetupPageTracker>(() => {
+    const canConfigure = Roles.userHasRole(Meteor.userId()!, 'admin');
 
-    if (!this.props.canConfigure) {
-      return (
-        <div className="setup-page">
-          <h1>Not authorized</h1>
-          <p>This page allows server admins to reconfigure the server, but you&apos;re not an admin.</p>
-        </div>
-      );
-    }
+    // We need to fetch the contents of the Settings table
+    const settingsHandle = Meteor.subscribe('mongo.settings');
 
-    const discordConfigured = !!this.props.discordOAuthConfig;
-    const discordEnabled = !this.props.flagDisableDiscord;
+    // We also need the asset mappings
+    const blobMappingsHandle = Meteor.subscribe('mongo.blob_mappings');
+
+    // Google
+    const googleConfig = ServiceConfiguration.configurations.findOne({ service: 'google' });
+    const gdriveCredential = Settings.findOne({ name: 'gdrive.credential' });
+    const docTemplate = Settings.findOne({ name: 'gdrive.template.document' });
+    const docTemplateId = docTemplate && docTemplate.name === 'gdrive.template.document' ?
+      docTemplate.value.id : undefined;
+    const spreadsheetTemplate = Settings.findOne({ name: 'gdrive.template.spreadsheet' });
+    const spreadsheetTemplateId = spreadsheetTemplate && spreadsheetTemplate.name === 'gdrive.template.spreadsheet' ?
+      spreadsheetTemplate.value.id : undefined;
+
+    // Email
+    const emailConfig = Settings.findOne({ name: 'email.branding' });
+
+    // Team name
+    const teamNameDoc = Settings.findOne({ name: 'teamname' });
+    const teamName = teamNameDoc && teamNameDoc.name === 'teamname' ? teamNameDoc.value.teamName : undefined;
+
+    // Discord
+    const discordOAuthConfig = ServiceConfiguration.configurations.findOne({ service: 'discord' });
+    const flagDisableDiscord = Flags.active('disable.discord');
+    const discordBotTokenDoc = Settings.findOne({ name: 'discord.bot' });
+    const discordBotToken = discordBotTokenDoc && discordBotTokenDoc.name === 'discord.bot' ? discordBotTokenDoc.value.token : undefined;
+    const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
+    const discordGuild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' ? discordGuildDoc.value.guild : undefined;
+
+    // WebRTC
+    const maybeTurnServerConfig = Settings.findOne({ name: 'webrtc.turnserver' });
+    const turnServerConfig = maybeTurnServerConfig && maybeTurnServerConfig.name === 'webrtc.turnserver' && maybeTurnServerConfig.value;
+    const turnServerUrls = (turnServerConfig && turnServerConfig.urls) || [];
+    const turnServerSecret = (turnServerConfig && turnServerConfig.secret) || '';
+
+    // Circuit breakers
+    const flagDisableGoogleIntegration = Flags.active('disable.google');
+    const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
+    const flagDisableApplause = Flags.active('disable.applause');
+    const flagDisableWebrtc = Flags.active('disable.webrtc');
+    const flagDisableSpectra = Flags.active('disable.spectra');
+    const flagDisableDingwords = Flags.active('disable.dingwords');
+
+    return {
+      ready: settingsHandle.ready() && blobMappingsHandle.ready(),
+
+      canConfigure,
+
+      googleConfig,
+      gdriveCredential,
+      docTemplate: docTemplateId,
+      spreadsheetTemplate: spreadsheetTemplateId,
+
+      teamName,
+      emailConfig,
+
+      discordOAuthConfig,
+      flagDisableDiscord,
+      discordBotToken,
+      discordGuild,
+
+      turnServerUrls,
+      turnServerSecret,
+
+      flagDisableGoogleIntegration,
+      flagDisableGdrivePermissions,
+      flagDisableApplause,
+      flagDisableWebrtc,
+      flagDisableSpectra,
+      flagDisableDingwords,
+
+      blobMappings: blobMappingsHandle.ready() ? BlobMappings.find({}).fetch() : [],
+    };
+  }, []);
+
+  if (!tracker.ready) {
     return (
       <div className="setup-page">
-        <GoogleIntegrationSection
-          oauthSettings={this.props.googleConfig}
-          enabled={!this.props.flagDisableGoogleIntegration}
-          gdriveCredential={this.props.gdriveCredential}
-          docTemplate={this.props.docTemplate}
-          spreadsheetTemplate={this.props.spreadsheetTemplate}
-        />
-        <EmailConfigSection
-          config={this.props.emailConfig}
-        />
-        <DiscordIntegrationSection
-          oauthSettings={this.props.discordOAuthConfig}
-          configured={discordConfigured}
-          enabled={discordEnabled}
-          botToken={this.props.discordBotToken}
-          guild={this.props.discordGuild}
-        />
-        <WebRTCSection
-          turnServerUrls={this.props.turnServerUrls}
-          turnServerSecret={this.props.turnServerSecret}
-        />
-        <BrandingSection
-          blobMappings={this.props.blobMappings}
-          teamName={this.props.teamName}
-        />
-        <CircuitBreakerSection
-          flagDisableGdrivePermissions={this.props.flagDisableGdrivePermissions}
-          flagDisableApplause={this.props.flagDisableApplause}
-          flagDisableWebrtc={this.props.flagDisableWebrtc}
-          flagDisableSpectra={this.props.flagDisableSpectra}
-          flagDisableDingwords={this.props.flagDisableDingwords}
-        />
+        Loading...
       </div>
     );
   }
-}
 
-const crumb = withBreadcrumb({ title: 'Server setup', path: '/setup' });
-const tracker = withTracker((): SetupPageRewriteProps => {
-  const canConfigure = Roles.userHasRole(Meteor.userId()!, 'admin');
+  if (!tracker.canConfigure) {
+    return (
+      <div className="setup-page">
+        <h1>Not authorized</h1>
+        <p>This page allows server admins to reconfigure the server, but you&apos;re not an admin.</p>
+      </div>
+    );
+  }
 
-  // We need to fetch the contents of the Settings table
-  const settingsHandle = Meteor.subscribe('mongo.settings');
+  const discordConfigured = !!tracker.discordOAuthConfig;
+  const discordEnabled = !tracker.flagDisableDiscord;
+  return (
+    <div className="setup-page">
+      <GoogleIntegrationSection
+        oauthSettings={tracker.googleConfig}
+        enabled={!tracker.flagDisableGoogleIntegration}
+        gdriveCredential={tracker.gdriveCredential}
+        docTemplate={tracker.docTemplate}
+        spreadsheetTemplate={tracker.spreadsheetTemplate}
+      />
+      <EmailConfigSection
+        config={tracker.emailConfig}
+      />
+      <DiscordIntegrationSection
+        oauthSettings={tracker.discordOAuthConfig}
+        configured={discordConfigured}
+        enabled={discordEnabled}
+        botToken={tracker.discordBotToken}
+        guild={tracker.discordGuild}
+      />
+      <WebRTCSection
+        turnServerUrls={tracker.turnServerUrls}
+        turnServerSecret={tracker.turnServerSecret}
+      />
+      <BrandingSection
+        blobMappings={tracker.blobMappings}
+        teamName={tracker.teamName}
+      />
+      <CircuitBreakerSection
+        flagDisableGdrivePermissions={tracker.flagDisableGdrivePermissions}
+        flagDisableApplause={tracker.flagDisableApplause}
+        flagDisableWebrtc={tracker.flagDisableWebrtc}
+        flagDisableSpectra={tracker.flagDisableSpectra}
+        flagDisableDingwords={tracker.flagDisableDingwords}
+      />
+    </div>
+  );
+};
 
-  // We also need the asset mappings
-  const blobMappingsHandle = Meteor.subscribe('mongo.blob_mappings');
-
-  // Google
-  const googleConfig = ServiceConfiguration.configurations.findOne({ service: 'google' });
-  const gdriveCredential = Settings.findOne({ name: 'gdrive.credential' });
-  const docTemplate = Settings.findOne({ name: 'gdrive.template.document' });
-  const docTemplateId = docTemplate && docTemplate.name === 'gdrive.template.document' ?
-    docTemplate.value.id : undefined;
-  const spreadsheetTemplate = Settings.findOne({ name: 'gdrive.template.spreadsheet' });
-  const spreadsheetTemplateId = spreadsheetTemplate && spreadsheetTemplate.name === 'gdrive.template.spreadsheet' ?
-    spreadsheetTemplate.value.id : undefined;
-
-  // Email
-  const emailConfig = Settings.findOne({ name: 'email.branding' });
-
-  // Team name
-  const teamNameDoc = Settings.findOne({ name: 'teamname' });
-  const teamName = teamNameDoc && teamNameDoc.name === 'teamname' ? teamNameDoc.value.teamName : undefined;
-
-  // Discord
-  const discordOAuthConfig = ServiceConfiguration.configurations.findOne({ service: 'discord' });
-  const flagDisableDiscord = Flags.active('disable.discord');
-  const discordBotTokenDoc = Settings.findOne({ name: 'discord.bot' });
-  const discordBotToken = discordBotTokenDoc && discordBotTokenDoc.name === 'discord.bot' ? discordBotTokenDoc.value.token : undefined;
-  const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
-  const discordGuild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' ? discordGuildDoc.value.guild : undefined;
-
-  // WebRTC
-  const maybeTurnServerConfig = Settings.findOne({ name: 'webrtc.turnserver' });
-  const turnServerConfig = maybeTurnServerConfig && maybeTurnServerConfig.name === 'webrtc.turnserver' && maybeTurnServerConfig.value;
-  const turnServerUrls = (turnServerConfig && turnServerConfig.urls) || [];
-  const turnServerSecret = (turnServerConfig && turnServerConfig.secret) || '';
-
-  // Circuit breakers
-  const flagDisableGoogleIntegration = Flags.active('disable.google');
-  const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
-  const flagDisableApplause = Flags.active('disable.applause');
-  const flagDisableWebrtc = Flags.active('disable.webrtc');
-  const flagDisableSpectra = Flags.active('disable.spectra');
-  const flagDisableDingwords = Flags.active('disable.dingwords');
-
-  return {
-    ready: settingsHandle.ready() && blobMappingsHandle.ready(),
-
-    canConfigure,
-
-    googleConfig,
-    gdriveCredential,
-    docTemplate: docTemplateId,
-    spreadsheetTemplate: spreadsheetTemplateId,
-
-    teamName,
-    emailConfig,
-
-    discordOAuthConfig,
-    flagDisableDiscord,
-    discordBotToken,
-    discordGuild,
-
-    turnServerUrls,
-    turnServerSecret,
-
-    flagDisableGoogleIntegration,
-    flagDisableGdrivePermissions,
-    flagDisableApplause,
-    flagDisableWebrtc,
-    flagDisableSpectra,
-    flagDisableDingwords,
-
-    blobMappings: blobMappingsHandle.ready() ? BlobMappings.find({}).fetch() : [],
-  };
-});
-
-export default crumb(tracker(SetupPageRewrite));
+export default SetupPage;

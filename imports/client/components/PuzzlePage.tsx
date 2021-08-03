@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
-import { withTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
@@ -11,7 +11,9 @@ import classnames from 'classnames';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
 import moment from 'moment';
-import React from 'react';
+import React, {
+  useCallback, useEffect, useImperativeHandle, useRef, useState,
+} from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
@@ -24,7 +26,6 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
 import Table from 'react-bootstrap/Table';
 import Tooltip from 'react-bootstrap/Tooltip';
-import { withBreadcrumb } from 'react-breadcrumbs-context';
 import { RouteComponentProps } from 'react-router';
 import TextareaAutosize from 'react-textarea-autosize';
 import Ansible from '../../ansible';
@@ -40,10 +41,11 @@ import { DocumentType } from '../../lib/schemas/documents';
 import { GuessType } from '../../lib/schemas/guess';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
+import { useBreadcrumb } from '../hooks/breadcrumb';
+import useDocumentTitle from '../hooks/use-document-title';
 import ChatPeople from './ChatPeople';
-import DocumentTitle from './DocumentTitle';
 import DocumentDisplay from './Documents';
-import ModalForm from './ModalForm';
+import ModalForm, { ModalFormHandle } from './ModalForm';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
@@ -110,116 +112,131 @@ interface ChatMessageProps {
   suppressSender: boolean;
 }
 
-class ChatMessage extends React.PureComponent<ChatMessageProps> {
-  render() {
-    const ts = moment(this.props.message.timestamp).calendar(undefined, {
-      sameDay: 'LT',
-    });
-    const classes = classnames('chat-message', this.props.isSystemMessage && 'system-message');
+const ChatMessage = React.memo((props: ChatMessageProps) => {
+  const ts = moment(props.message.timestamp).calendar(undefined, {
+    sameDay: 'LT',
+  });
+  const classes = classnames('chat-message', props.isSystemMessage && 'system-message');
 
-    return (
-      <div className={classes}>
-        {!this.props.suppressSender && <span className="chat-timestamp">{ts}</span>}
-        {!this.props.suppressSender && <strong>{this.props.senderDisplayName}</strong>}
-        <span
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(this.props.message.text)) }}
-        />
-      </div>
-    );
-  }
-}
+  return (
+    <div className={classes}>
+      {!props.suppressSender && <span className="chat-timestamp">{ts}</span>}
+      {!props.suppressSender && <strong>{props.senderDisplayName}</strong>}
+      <span
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(props.message.text)) }}
+      />
+    </div>
+  );
+});
 
 interface ChatHistoryProps {
   chatMessages: FilteredChatMessageType[];
   displayNames: Record<string, string>;
 }
 
-class ChatHistory extends React.PureComponent<ChatHistoryProps> {
-  ref: React.RefObject<HTMLDivElement>
+type ChatHistoryHandle = {
+  forceScrollBottom: () => void;
+  maybeForceScrollBottom: () => void;
+}
 
-  resizeHandler?: () => void;
+// TODO: chat scrolling is still kinda broken -- on initial pageload, it seems that we render, then only after the viewers data loads,
+// we draw boxes for viewers, which results in ChatHistory getting placed in a smaller area, but it doesn't get any event/callback for this.
+// The solution is probably to make sure that when ChatPeople rerenders, we find some way to trigger a maybeForceScrollBottom() here.
+const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: React.Ref<ChatHistoryHandle>) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const shouldScroll = useRef<boolean>(true);
 
-  shouldScroll: boolean;
-
-  constructor(props: ChatHistoryProps) {
-    super(props);
-    this.ref = React.createRef();
-    this.shouldScroll = false;
-  }
-
-  componentDidMount() {
-    // Scroll to end of chat.
-    this.forceScrollBottom();
-
-    // Make sure when the window is resized, we stick to the bottom if we were there
-    this.resizeHandler = () => {
-      this.maybeForceScrollBottom();
-    };
-
-    window.addEventListener('resize', this.resizeHandler);
-  }
-
-  componentDidUpdate() {
-    this.maybeForceScrollBottom();
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.resizeHandler!);
-  }
-
-  onScroll = () => {
-    this.saveShouldScroll();
-  };
-
-  saveShouldScroll = () => {
+  const saveShouldScroll = useCallback(() => {
     // Save whether the current scrollTop is equal to the ~maximum scrollTop.
     // If so, then we should make the log "stick" to the bottom, by manually scrolling to the bottom
     // when needed.
-    const messagePane = this.ref.current!;
+    const messagePane = ref.current;
+    if (!messagePane) {
+      return;
+    }
 
     // Include a 5 px fudge factor to account for bad scrolling and
     // fractional pixels
-    this.shouldScroll = (messagePane.clientHeight + messagePane.scrollTop + 5 >= messagePane.scrollHeight);
-  };
+    shouldScroll.current = (messagePane.clientHeight + messagePane.scrollTop + 5 >= messagePane.scrollHeight);
+    console.log(`shouldScroll: ${shouldScroll.current}`);
+  }, []);
 
-  maybeForceScrollBottom = () => {
-    if (this.shouldScroll) {
-      this.forceScrollBottom();
+  const forceScrollBottom = useCallback(() => {
+    console.log('forceScrollBottom called');
+    const messagePane = ref.current;
+    if (messagePane) {
+      messagePane.scrollTop = messagePane.scrollHeight;
+      shouldScroll.current = true;
     }
-  };
+  }, []);
 
-  forceScrollBottom = () => {
-    const messagePane = this.ref.current!;
-    messagePane.scrollTop = messagePane.scrollHeight;
-    this.shouldScroll = true;
-  };
+  const maybeForceScrollBottom = useCallback(() => {
+    console.log('maybeForceScrollBottom called');
+    if (shouldScroll.current) {
+      forceScrollBottom();
+    }
+  }, [forceScrollBottom]);
 
-  render() {
-    return (
-      <div ref={this.ref} className="chat-history" onScroll={this.onScroll}>
-        {this.props.chatMessages.length === 0 && <div className="chat-placeholder" key="no-message"><span>No chatter yet. Say something?</span></div>}
-        {this.props.chatMessages.map((msg, index, messages) => {
-          const displayName = (msg.sender !== undefined) ? this.props.displayNames[msg.sender] : 'jolly-roger';
-          // Only suppress sender and timestamp if:
-          // * this is not the first message
-          // * this message was sent by the same person as the previous message
-          // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
-          const suppressSender = index > 0 && messages[index - 1].sender === msg.sender && messages[index - 1].timestamp.getTime() + 60000 > msg.timestamp.getTime();
-          return (
-            <ChatMessage
-              key={msg._id}
-              message={msg}
-              senderDisplayName={displayName}
-              isSystemMessage={msg.sender === undefined}
-              suppressSender={suppressSender}
-            />
-          );
-        })}
-      </div>
-    );
-  }
-}
+  useImperativeHandle(forwardedRef, () => ({
+    forceScrollBottom,
+    maybeForceScrollBottom,
+  }));
+
+  const resizeHandler = useCallback(() => {
+    maybeForceScrollBottom();
+  }, [maybeForceScrollBottom]);
+
+  useEffect(() => {
+    // Scroll to end of chat on initial mount.
+    forceScrollBottom();
+  }, [forceScrollBottom]);
+
+  useEffect(() => {
+    // Add resize handler
+    window.addEventListener('resize', resizeHandler);
+
+    return () => {
+      window.removeEventListener('resize', resizeHandler);
+    };
+  }, [resizeHandler]);
+
+  useEffect(() => {
+    // Whenever we rerender, check if we should be scrolling to the bottom.
+    maybeForceScrollBottom();
+  });
+
+  return (
+    <div ref={ref} className="chat-history" onScroll={saveShouldScroll}>
+      {props.chatMessages.length === 0 ? (
+        <div className="chat-placeholder" key="no-message">
+          <span>No chatter yet. Say something?</span>
+        </div>
+      ) : undefined}
+      {props.chatMessages.map((msg, index, messages) => {
+        const displayName = (msg.sender !== undefined) ? props.displayNames[msg.sender] : 'jolly-roger';
+        // Only suppress sender and timestamp if:
+        // * this is not the first message
+        // * this message was sent by the same person as the previous message
+        // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
+        const suppressSender = index > 0 && messages[index - 1].sender === msg.sender && messages[index - 1].timestamp.getTime() + 60000 > msg.timestamp.getTime();
+        return (
+          <ChatMessage
+            key={msg._id}
+            message={msg}
+            senderDisplayName={displayName}
+            isSystemMessage={msg.sender === undefined}
+            suppressSender={suppressSender}
+          />
+        );
+      })}
+    </div>
+  );
+});
+
+// The ESlint prop-types check seems to stumble over prop type checks somehow
+// if we put the memo() and forwardRef() on the same line above.
+const ChatHistoryMemo = React.memo(ChatHistory);
 
 const chatInputStyles = {
   textarea: {
@@ -241,84 +258,73 @@ interface ChatInputProps {
   puzzleId: string;
 }
 
-interface ChatInputState {
-  text: string;
-}
+const ChatInput = React.memo((props: ChatInputProps) => {
+  const [text, setText] = useState<string>('');
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-class ChatInput extends React.PureComponent<ChatInputProps, ChatInputState> {
-  textAreaRef: React.RefObject<HTMLTextAreaElement>
+  const { onHeightChange, onMessageSent, puzzleId } = props;
 
-  constructor(props: ChatInputProps) {
-    super(props);
-    this.textAreaRef = React.createRef();
-    this.state = {
-      text: '',
-    };
-  }
+  const onInputChanged = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+  }, []);
 
-  onInputChanged = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    this.setState({
-      text: e.target.value,
-    });
-  };
-
-  sendMessageIfHasText = () => {
-    if (this.textAreaRef.current) {
-      this.textAreaRef.current.focus();
+  const sendMessageIfHasText = useCallback(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.focus();
     }
-    if (this.state.text) {
-      Meteor.call('sendChatMessage', this.props.puzzleId, this.state.text);
-      this.setState({
-        text: '',
-      });
-      if (this.props.onMessageSent) {
-        this.props.onMessageSent();
+    if (text) {
+      Meteor.call('sendChatMessage', puzzleId, text);
+      setText('');
+      if (onMessageSent) {
+        onMessageSent();
       }
     }
-  };
+  }, [text, puzzleId, onMessageSent]);
 
-  onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      this.sendMessageIfHasText();
+      sendMessageIfHasText();
     }
-  };
+  }, [sendMessageIfHasText]);
 
-  onHeightChange = (newHeight: number) => {
-    if (this.props.onHeightChange) {
-      this.props.onHeightChange(newHeight);
+  const onHeightChangeCb = useCallback((newHeight: number) => {
+    if (onHeightChange) {
+      onHeightChange(newHeight);
     }
-  };
+  }, [onHeightChange]);
 
-  render() {
-    return (
-      <div className="chat-input-row">
-        <TextareaAutosize
-          ref={this.textAreaRef}
-          className="form-control"
-          style={chatInputStyles.textarea}
-          maxLength={4000}
-          minRows={1}
-          maxRows={12}
-          value={this.state.text}
-          onChange={this.onInputChanged}
-          onKeyDown={this.onKeyDown}
-          onHeightChange={this.onHeightChange}
-          placeholder="Chat"
-        />
-        <Button
-          variant="light"
-          onClick={this.sendMessageIfHasText}
-          onMouseDown={(e) => e.preventDefault()}
-          disabled={this.state.text.length === 0}
-          tabIndex={-1}
-        >
-          <FontAwesomeIcon icon={faPaperPlane} />
-        </Button>
-      </div>
-    );
-  }
-}
+  const preventDefaultCallback = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+  }, []);
+
+  return (
+    <div className="chat-input-row">
+      <TextareaAutosize
+        ref={textAreaRef}
+        className="form-control"
+        style={chatInputStyles.textarea}
+        maxLength={4000}
+        minRows={1}
+        maxRows={12}
+        value={text}
+        onChange={onInputChanged}
+        onKeyDown={onKeyDown}
+        onHeightChange={onHeightChangeCb}
+        placeholder="Chat"
+      />
+      <Button
+        variant="light"
+        onClick={sendMessageIfHasText}
+        onMouseDown={preventDefaultCallback}
+        disabled={text.length === 0}
+        tabIndex={-1}
+      >
+        <FontAwesomeIcon icon={faPaperPlane} />
+      </Button>
+    </div>
+  );
+});
 
 interface ChatSectionProps {
   chatReady: boolean;
@@ -328,39 +334,36 @@ interface ChatSectionProps {
   huntId: string;
 }
 
-class ChatSection extends React.PureComponent<ChatSectionProps> {
-  historyRef: React.RefObject<ChatHistory>
+const ChatSection = React.memo((props: ChatSectionProps) => {
+  const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
 
-  constructor(props: ChatSectionProps) {
-    super(props);
-    this.historyRef = React.createRef();
-  }
+  const onInputHeightChange = useCallback(() => {
+    if (historyRef.current) {
+      historyRef.current.maybeForceScrollBottom();
+    }
+  }, []);
 
-  onInputHeightChange = () => {
-    this.historyRef.current!.maybeForceScrollBottom();
-  };
+  const onMessageSent = useCallback(() => {
+    if (historyRef.current) {
+      historyRef.current.forceScrollBottom();
+    }
+  }, []);
 
-  onMessageSent = () => {
-    this.historyRef.current!.forceScrollBottom();
-  };
+  return (
+    <div className="chat-section">
+      {props.chatReady ? null : <span>loading...</span>}
+      <ChatPeople huntId={props.huntId} puzzleId={props.puzzleId} />
+      <ChatHistoryMemo ref={historyRef} chatMessages={props.chatMessages} displayNames={props.displayNames} />
+      <ChatInput
+        puzzleId={props.puzzleId}
+        onHeightChange={onInputHeightChange}
+        onMessageSent={onMessageSent}
+      />
+    </div>
+  );
+});
 
-  render() {
-    return (
-      <div className="chat-section">
-        {this.props.chatReady ? null : <span>loading...</span>}
-        <ChatPeople huntId={this.props.huntId} puzzleId={this.props.puzzleId} />
-        <ChatHistory ref={this.historyRef} chatMessages={this.props.chatMessages} displayNames={this.props.displayNames} />
-        <ChatInput
-          puzzleId={this.props.puzzleId}
-          onHeightChange={this.onInputHeightChange}
-          onMessageSent={this.onMessageSent}
-        />
-      </div>
-    );
-  }
-}
-
-interface PuzzlePageMetadataParams {
+interface PuzzlePageMetadataProps {
   puzzle: PuzzleType;
   allTags: TagType[];
   allPuzzles: PuzzleType[];
@@ -370,198 +373,195 @@ interface PuzzlePageMetadataParams {
   isDesktop: boolean;
 }
 
-interface PuzzlePageMetadataProps extends PuzzlePageMetadataParams {
+interface PuzzlePageMetadataTracker {
   canUpdate: boolean;
   hasGuessQueue: boolean;
 }
 
-class PuzzlePageMetadata extends React.Component<PuzzlePageMetadataProps> {
-  editModalRef: React.RefObject<PuzzleModalForm>
+const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
+  const tracker = useTracker<PuzzlePageMetadataTracker>(() => {
+    const hunt = Hunts.findOne(props.puzzle.hunt);
+    const hasGuessQueue = !!(hunt && hunt.hasGuessQueue);
+    return {
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
+      hasGuessQueue,
+    };
+  }, [props.puzzle.hunt]);
 
-  guessModalRef: React.RefObject<PuzzleGuessModal>
-
-  answerModalRef: React.RefObject<PuzzleAnswerModal>
-
-  constructor(props: PuzzlePageMetadataProps) {
-    super(props);
-    this.editModalRef = React.createRef();
-    this.guessModalRef = React.createRef();
-    this.answerModalRef = React.createRef();
-  }
-
-  onCreateTag = (newTagName: string) => {
-    Meteor.call('addTagToPuzzle', this.props.puzzle._id, newTagName, (error?: Error) => {
+  const editModalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
+  const guessModalRef = useRef<React.ElementRef<typeof PuzzleGuessModal>>(null);
+  const answerModalRef = useRef<React.ElementRef<typeof PuzzleAnswerModal>>(null);
+  const onCreateTag = useCallback((newTagName: string) => {
+    Meteor.call('addTagToPuzzle', props.puzzle._id, newTagName, (error?: Error) => {
       // Not really much we can do in the case of a failure, but let's log it anyway
       if (error) {
         console.log('failed to create tag:');
         console.log(error);
       }
     });
-  };
+  }, [props.puzzle._id]);
 
-  onRemoveTag = (tagIdToRemove: string) => {
-    Meteor.call('removeTagFromPuzzle', this.props.puzzle._id, tagIdToRemove, (error?: Error) => {
+  const onRemoveTag = useCallback((tagIdToRemove: string) => {
+    Meteor.call('removeTagFromPuzzle', props.puzzle._id, tagIdToRemove, (error?: Error) => {
       // Not really much we can do in the case of a failure, but again, let's log it anyway
       if (error) {
         console.log('failed to remove tag:');
         console.log(error);
       }
     });
-  };
+  }, [props.puzzle._id]);
 
-  onRemoveAnswer = (answer: string) => {
-    Meteor.call('removeAnswerFromPuzzle', this.props.puzzle._id, answer, (error?: Error) => {
+  const onRemoveAnswer = useCallback((answer: string) => {
+    Meteor.call('removeAnswerFromPuzzle', props.puzzle._id, answer, (error?: Error) => {
       // Not really much we can do in the case of a failure, but again, let's log it anyway
       if (error) {
         console.log(`failed remove answer ${answer}:`, error);
       }
     });
-  }
+  }, [props.puzzle._id]);
 
-  onEdit = (state: PuzzleModalFormSubmitPayload, callback: (err?: Error) => void) => {
-    Ansible.log('Updating puzzle properties', { puzzle: this.props.puzzle._id, user: Meteor.userId(), state });
-    Meteor.call('updatePuzzle', this.props.puzzle._id, state, callback);
-  };
+  const onEdit = useCallback((
+    state: PuzzleModalFormSubmitPayload,
+    callback: (err?: Error) => void
+  ) => {
+    Ansible.log('Updating puzzle properties', { puzzle: props.puzzle._id, user: Meteor.userId(), state });
+    Meteor.call('updatePuzzle', props.puzzle._id, state, callback);
+  }, [props.puzzle._id]);
 
-  showGuessModal = () => {
-    this.guessModalRef.current!.show();
-  };
-
-  showAnswerModal = () => {
-    this.answerModalRef.current!.show();
-  }
-
-  showEditModal = () => {
-    this.editModalRef.current!.show();
-  };
-
-  render() {
-    const tagsById = _.indexBy(this.props.allTags, '_id');
-    const tags = this.props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
-    const isAdministrivia = tags.find((t) => t.name === 'administrivia');
-    const correctGuesses = this.props.guesses.filter((guess) => guess.state === 'correct');
-    const numGuesses = this.props.guesses.length;
-
-    const answersElement = correctGuesses.length > 0 ? (
-      <span className="puzzle-metadata-answers">
-        {
-          correctGuesses.map((guess) => (
-            <span key={`answer-${guess._id}`} className="answer tag-like">
-              <span>{guess.guess}</span>
-              {!this.props.hasGuessQueue && (
-                <Button className="answer-remove-button" variant="success" onClick={() => this.onRemoveAnswer(guess._id)}>&#10006;</Button>
-              )}
-            </span>
-          ))
-        }
-      </span>
-    ) : null;
-
-    const puzzleLink = this.props.puzzle.url ? (
-      <a
-        className="puzzle-metadata-external-link-button"
-        href={this.props.puzzle.url}
-        target="_blank"
-        rel="noreferrer noopener"
-      >
-        <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />
-        {' '}
-        <span className="link-label">Puzzle</span>
-      </a>
-    ) : null;
-
-    const documentLink = this.props.document ? (
-      <span className={classnames(this.props.isDesktop && 'tablet-only')}>
-        <DocumentDisplay document={this.props.document} displayMode="link" />
-      </span>
-    ) : null;
-
-    const editButton = this.props.canUpdate ? (
-      <Button onClick={this.showEditModal} variant="secondary" size="sm" title="Edit puzzle...">
-        <FontAwesomeIcon icon={faEdit} />
-        {' '}
-        Edit
-      </Button>
-    ) : null;
-
-    let guessButton = null;
-    if (!isAdministrivia) {
-      guessButton = this.props.hasGuessQueue ? (
-        <>
-          <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={this.showGuessModal}>
-            <FontAwesomeIcon icon={faKey} />
-            {' Guess '}
-            <Badge variant="light">{numGuesses}</Badge>
-          </Button>
-          {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-          <PuzzleGuessModal
-            ref={this.guessModalRef}
-            puzzle={this.props.puzzle}
-            guesses={this.props.guesses}
-            displayNames={this.props.displayNames}
-          />
-        </>
-      ) : (
-        <>
-          <Button variant="primary" size="sm" className="puzzle-metadata-answer-button" onClick={this.showAnswerModal}>
-            <FontAwesomeIcon icon={faKey} />
-            {' Answer'}
-          </Button>
-          {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-          <PuzzleAnswerModal
-            ref={this.answerModalRef}
-            puzzle={this.props.puzzle}
-          />
-        </>
-      );
+  const showGuessModal = useCallback(() => {
+    if (guessModalRef.current) {
+      guessModalRef.current.show();
     }
+  }, []);
 
-    return (
-      <div className="puzzle-metadata">
-        <PuzzleModalForm
-          key={this.props.puzzle._id}
-          ref={this.editModalRef}
-          puzzle={this.props.puzzle}
-          huntId={this.props.puzzle.hunt}
-          tags={this.props.allTags}
-          onSubmit={this.onEdit}
+  const showAnswerModal = useCallback(() => {
+    if (answerModalRef.current) {
+      answerModalRef.current.show();
+    }
+  }, []);
+
+  const showEditModal = useCallback(() => {
+    if (editModalRef.current) {
+      editModalRef.current.show();
+    }
+  }, []);
+
+  const tagsById = _.indexBy(props.allTags, '_id');
+  const tags = props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
+  const isAdministrivia = tags.find((t) => t.name === 'administrivia');
+  const correctGuesses = props.guesses.filter((guess) => guess.state === 'correct');
+  const numGuesses = props.guesses.length;
+
+  const answersElement = correctGuesses.length > 0 ? (
+    <span className="puzzle-metadata-answers">
+      {
+        correctGuesses.map((guess) => (
+          <span key={`answer-${guess._id}`} className="answer tag-like">
+            <span>{guess.guess}</span>
+            {!tracker.hasGuessQueue && (
+              <Button className="answer-remove-button" variant="success" onClick={() => onRemoveAnswer(guess._id)}>&#10006;</Button>
+            )}
+          </span>
+        ))
+      }
+    </span>
+  ) : null;
+
+  const puzzleLink = props.puzzle.url ? (
+    <a
+      className="puzzle-metadata-external-link-button"
+      href={props.puzzle.url}
+      target="_blank"
+      rel="noreferrer noopener"
+    >
+      <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />
+      {' '}
+      <span className="link-label">Puzzle</span>
+    </a>
+  ) : null;
+
+  const documentLink = props.document ? (
+    <span className={classnames(props.isDesktop && 'tablet-only')}>
+      <DocumentDisplay document={props.document} displayMode="link" />
+    </span>
+  ) : null;
+
+  const editButton = tracker.canUpdate ? (
+    <Button onClick={showEditModal} variant="secondary" size="sm" title="Edit puzzle...">
+      <FontAwesomeIcon icon={faEdit} />
+      {' '}
+      Edit
+    </Button>
+  ) : null;
+
+  let guessButton = null;
+  if (!isAdministrivia) {
+    guessButton = tracker.hasGuessQueue ? (
+      <>
+        <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={showGuessModal}>
+          <FontAwesomeIcon icon={faKey} />
+          {' Guess '}
+          <Badge variant="light">{numGuesses}</Badge>
+        </Button>
+        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
+        <PuzzleGuessModal
+          ref={guessModalRef}
+          puzzle={props.puzzle}
+          guesses={props.guesses}
+          displayNames={props.displayNames}
         />
-        <div className="puzzle-metadata-row puzzle-metadata-action-row">
-          {puzzleLink}
-          {documentLink}
-          {editButton}
-          {guessButton}
-        </div>
-        <div className="puzzle-metadata-row">
-          {answersElement}
-        </div>
-        <div className="puzzle-metadata-row">
-          <TagList
-            puzzle={this.props.puzzle}
-            tags={tags}
-            onCreateTag={this.onCreateTag}
-            onRemoveTag={this.onRemoveTag}
-            linkToSearch={false}
-            showControls={this.props.isDesktop}
-            popoverRelated
-            allPuzzles={this.props.allPuzzles}
-            allTags={this.props.allTags}
-            emptyMessage="No tags yet"
-          />
-        </div>
-      </div>
+      </>
+    ) : (
+      <>
+        <Button variant="primary" size="sm" className="puzzle-metadata-answer-button" onClick={showAnswerModal}>
+          <FontAwesomeIcon icon={faKey} />
+          {' Answer'}
+        </Button>
+        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
+        <PuzzleAnswerModal
+          ref={answerModalRef}
+          puzzle={props.puzzle}
+        />
+      </>
     );
   }
-}
 
-const PuzzlePageMetadataContainer = withTracker(({ puzzle }: PuzzlePageMetadataParams) => {
-  const hunt = Hunts.findOne(puzzle.hunt);
-  const hasGuessQueue = !!(hunt && hunt.hasGuessQueue);
-  return {
-    canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
-    hasGuessQueue,
-  };
-})(PuzzlePageMetadata);
+  return (
+    <div className="puzzle-metadata">
+      <PuzzleModalForm
+        key={props.puzzle._id}
+        ref={editModalRef}
+        puzzle={props.puzzle}
+        huntId={props.puzzle.hunt}
+        tags={props.allTags}
+        onSubmit={onEdit}
+      />
+      <div className="puzzle-metadata-row puzzle-metadata-action-row">
+        {puzzleLink}
+        {documentLink}
+        {editButton}
+        {guessButton}
+      </div>
+      <div className="puzzle-metadata-row">
+        {answersElement}
+      </div>
+      <div className="puzzle-metadata-row">
+        <TagList
+          puzzle={props.puzzle}
+          tags={tags}
+          onCreateTag={onCreateTag}
+          onRemoveTag={onRemoveTag}
+          linkToSearch={false}
+          showControls={props.isDesktop}
+          popoverRelated
+          allPuzzles={props.allPuzzles}
+          allTags={props.allTags}
+          emptyMessage="No tags yet"
+        />
+      </div>
+    </div>
+  );
+};
 
 interface PuzzleGuessModalProps {
   puzzle: PuzzleType;
@@ -574,215 +574,198 @@ enum PuzzleGuessSubmitState {
   FAILED = 'failed',
 }
 
-type PuzzleGuessModalState = {
-  guessInput: string;
-  directionInput: number;
-  confidenceInput: number;
-} & ({
-  confirmingSubmit: false;
-} | {
-  confirmingSubmit: true;
-  confirmationMessage: string;
-}) & ({
-  submitState: PuzzleGuessSubmitState.IDLE;
-} | {
-  submitState: PuzzleGuessSubmitState.FAILED;
-  errorMessage: string;
-})
+type PuzzleGuessModalHandle = {
+  show: () => void;
+};
 
-class PuzzleGuessModal extends React.Component<PuzzleGuessModalProps, PuzzleGuessModalState> {
-  formRef: React.RefObject<ModalForm>
+const PuzzleGuessModal = React.forwardRef((
+  props: PuzzleGuessModalProps,
+  forwardedRef: React.Ref<PuzzleGuessModalHandle>
+) => {
+  const [guessInput, setGuessInput] = useState<string>('');
+  const [directionInput, setDirectionInput] = useState<number>(0);
+  const [confidenceInput, setConfidenceInput] = useState<number>(50);
+  const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
+  const [confirmationMessage, setConfirmationMessage] = useState<string>('');
+  const [submitState, setSubmitState] =
+    useState<PuzzleGuessSubmitState>(PuzzleGuessSubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
+  const formRef = useRef<React.ElementRef<typeof ModalForm>>(null);
 
-  constructor(props: PuzzleGuessModalProps) {
-    super(props);
-    this.state = {
-      guessInput: '',
-      directionInput: 0,
-      confidenceInput: 50,
-      submitState: PuzzleGuessSubmitState.IDLE,
-      confirmingSubmit: false,
-    };
-    this.formRef = React.createRef();
-  }
+  useImperativeHandle(forwardedRef, () => ({
+    show: () => {
+      if (formRef.current) {
+        formRef.current.show();
+      }
+    },
+  }));
 
-  onGuessInputChange: FormControlProps['onChange'] = (event) => {
-    this.setState({
-      guessInput: event.currentTarget.value.toUpperCase(),
-      confirmingSubmit: false,
-    });
-  };
+  const onGuessInputChange: FormControlProps['onChange'] = useCallback((event) => {
+    setGuessInput(event.currentTarget.value.toUpperCase());
+    setConfirmingSubmit(false);
+  }, []);
 
-  onDirectionInputChange: FormControlProps['onChange'] = (event) => {
-    this.setState({ directionInput: parseInt(event.currentTarget.value, 10) });
-  };
+  const onDirectionInputChange: FormControlProps['onChange'] = useCallback((event) => {
+    setDirectionInput(parseInt(event.currentTarget.value, 10));
+  }, []);
 
-  onConfidenceInputChange: FormControlProps['onChange'] = (event) => {
-    this.setState({ confidenceInput: parseInt(event.currentTarget.value, 10) });
-  };
+  const onConfidenceInputChange: FormControlProps['onChange'] = useCallback((event) => {
+    setConfidenceInput(parseInt(event.currentTarget.value, 10));
+  }, []);
 
-  onSubmitGuess = () => {
-    const repeatGuess = this.props.guesses.find((g) => { return g.guess === this.state.guessInput; });
-    const alreadySolved = this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount;
-    if ((repeatGuess || alreadySolved) && !this.state.confirmingSubmit) {
+  const onSubmitGuess = useCallback(() => {
+    const repeatGuess = props.guesses.find((g) => { return g.guess === guessInput; });
+    const alreadySolved = props.puzzle.answers.length >= props.puzzle.expectedAnswerCount;
+    if ((repeatGuess || alreadySolved) && !confirmingSubmit) {
       const repeatGuessStr = repeatGuess ? 'This answer has already been submitted. ' : '';
       const alreadySolvedStr = alreadySolved ? 'This puzzle has already been solved. ' : '';
       const msg = `${alreadySolvedStr} ${repeatGuessStr} Are you sure you want to submit this guess?`;
-      this.setState({
-        confirmingSubmit: true,
-        confirmationMessage: msg,
-      } as PuzzleGuessModalState);
+      setConfirmationMessage(msg);
+      setConfirmingSubmit(true);
     } else {
       Meteor.call(
         'addGuessForPuzzle',
-        this.props.puzzle._id,
-        this.state.guessInput,
-        this.state.directionInput,
-        this.state.confidenceInput,
+        props.puzzle._id,
+        guessInput,
+        directionInput,
+        confidenceInput,
         (error?: Error) => {
           if (error) {
-            this.setState({
-              submitState: PuzzleGuessSubmitState.FAILED,
-              errorMessage: error.message,
-            } as PuzzleGuessModalState);
+            setSubmitError(error.message);
+            setSubmitState(PuzzleGuessSubmitState.FAILED);
             console.log(error);
+          } else {
+            // Clear the input box.  Don't dismiss the dialog.
+            setGuessInput('');
           }
-
-          // Clear the input box.  Don't dismiss the dialog.
-          this.setState({
-            confirmingSubmit: false,
-          });
+          setConfirmingSubmit(false);
         },
       );
     }
-  };
+  }, [
+    props.guesses, props.puzzle._id, props.puzzle.answers, props.puzzle.expectedAnswerCount,
+    guessInput, directionInput, confidenceInput, confirmingSubmit,
+  ]);
 
-  clearError = () => {
-    this.setState({
-      submitState: PuzzleGuessSubmitState.IDLE,
-    });
-  };
+  const clearError = useCallback(() => {
+    setSubmitState(PuzzleGuessSubmitState.IDLE);
+  }, []);
 
-  show = () => {
-    this.formRef.current!.show();
-  };
+  const directionTooltip = (
+    <Tooltip id="guess-direction-tooltip">
+      Current value:
+      {' '}
+      {directionInput}
+    </Tooltip>
+  );
+  const confidenceTooltip = (
+    <Tooltip id="guess-confidence-tooltip">
+      Current value:
+      {' '}
+      {confidenceInput}
+    </Tooltip>
+  );
 
-  render() {
-    const directionTooltip = (
-      <Tooltip id="guess-direction-tooltip">
-        Current value:
-        {' '}
-        {this.state.directionInput}
-      </Tooltip>
-    );
-    const confidenceTooltip = (
-      <Tooltip id="guess-confidence-tooltip">
-        Current value:
-        {' '}
-        {this.state.confidenceInput}
-      </Tooltip>
-    );
+  return (
+    <ModalForm
+      ref={formRef}
+      title={`${props.puzzle.answers.length >= props.puzzle.expectedAnswerCount ? 'Guess history for' : 'Submit answer to'} ${props.puzzle.title}`}
+      onSubmit={onSubmitGuess}
+      submitLabel={confirmingSubmit ? 'Confirm Submit' : 'Submit'}
+    >
+      <FormGroup as={Row}>
+        <FormLabel column xs={3} htmlFor="jr-puzzle-guess">
+          Guess
+        </FormLabel>
+        <Col xs={9}>
+          <FormControl
+            type="text"
+            id="jr-puzzle-guess"
+            autoFocus
+            autoComplete="off"
+            onChange={onGuessInputChange}
+            value={guessInput}
+          />
+        </Col>
+      </FormGroup>
 
-    return (
-      <ModalForm
-        ref={this.formRef}
-        title={`${this.props.puzzle.answers.length >= this.props.puzzle.expectedAnswerCount ? 'Guess history for' : 'Submit answer to'} ${this.props.puzzle.title}`}
-        onSubmit={this.onSubmitGuess}
-        submitLabel={this.state.confirmingSubmit ? 'Confirm Submit' : 'Submit'}
-      >
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor="jr-puzzle-guess">
-            Guess
-          </FormLabel>
-          <Col xs={9}>
+      <FormGroup as={Row}>
+        <FormLabel column xs={3} htmlFor="jr-puzzle-guess-direction">
+          Solve direction
+        </FormLabel>
+        <Col xs={9}>
+          <OverlayTrigger placement="right" overlay={directionTooltip}>
             <FormControl
-              type="text"
-              id="jr-puzzle-guess"
-              autoFocus
-              autoComplete="off"
-              onChange={this.onGuessInputChange}
-              value={this.state.guessInput}
+              type="range"
+              id="jr-puzzle-guess-direction"
+              min={-10}
+              max={10}
+              step={1}
+              onChange={onDirectionInputChange}
+              value={directionInput}
             />
-          </Col>
-        </FormGroup>
+          </OverlayTrigger>
+          <FormText>
+            Pick a number between -10 (backsolved without opening
+            the puzzle) to 10 (forward-solved without seeing the
+            round) to indicate if you forward- or back-solved.
+          </FormText>
+        </Col>
+      </FormGroup>
 
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-direction">
-            Solve direction
-          </FormLabel>
-          <Col xs={9}>
-            <OverlayTrigger placement="right" overlay={directionTooltip}>
-              <FormControl
-                type="range"
-                id="jr-puzzle-guess-direction"
-                min={-10}
-                max={10}
-                step={1}
-                onChange={this.onDirectionInputChange}
-                value={this.state.directionInput}
-              />
-            </OverlayTrigger>
-            <FormText>
-              Pick a number between -10 (backsolved without opening
-              the puzzle) to 10 (forward-solved without seeing the
-              round) to indicate if you forward- or back-solved.
-            </FormText>
-          </Col>
-        </FormGroup>
+      <FormGroup as={Row}>
+        <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
+          Confidence
+        </FormLabel>
+        <Col xs={9}>
+          <OverlayTrigger placement="right" overlay={confidenceTooltip}>
+            <FormControl
+              type="range"
+              id="jr-puzzle-guess-confidence"
+              min={0}
+              max={100}
+              step={1}
+              onChange={onConfidenceInputChange}
+              value={confidenceInput}
+            />
+          </OverlayTrigger>
+          <FormText>
+            Pick a number between 0 and 100 for the probability that
+            you think this answer is right.
+          </FormText>
+        </Col>
+      </FormGroup>
 
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
-            Confidence
-          </FormLabel>
-          <Col xs={9}>
-            <OverlayTrigger placement="right" overlay={confidenceTooltip}>
-              <FormControl
-                type="range"
-                id="jr-puzzle-guess-confidence"
-                min={0}
-                max={100}
-                step={1}
-                onChange={this.onConfidenceInputChange}
-                value={this.state.confidenceInput}
-              />
-            </OverlayTrigger>
-            <FormText>
-              Pick a number between 0 and 100 for the probability that
-              you think this answer is right.
-            </FormText>
-          </Col>
-        </FormGroup>
-
-        {this.props.guesses.length === 0 ? <div>No previous submissions.</div> : [
-          <div key="label">Previous submissions:</div>,
-          <Table className="guess-history-table" key="table" bordered size="sm">
-            <thead>
-              <tr>
-                <th>Guess</th>
-                <th>Time</th>
-                <th>Submitter</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {_.sortBy(this.props.guesses, 'createdAt').reverse().map((guess) => {
-                return (
-                  <tr key={guess._id} className={`guess-${guess.state}`}>
-                    <td className="answer">{guess.guess}</td>
-                    <td>{moment(guess.createdAt).calendar()}</td>
-                    <td>{this.props.displayNames[guess.createdBy]}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{guess.state}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>,
-        ]}
-        {this.state.confirmingSubmit ? <Alert variant="warning">{this.state.confirmationMessage}</Alert> : null}
-        {this.state.submitState === PuzzleGuessSubmitState.FAILED ? <Alert variant="danger" dismissible onClose={this.clearError}>{this.state.errorMessage}</Alert> : null}
-      </ModalForm>
-    );
-  }
-}
+      {props.guesses.length === 0 ? <div>No previous submissions.</div> : [
+        <div key="label">Previous submissions:</div>,
+        <Table className="guess-history-table" key="table" bordered size="sm">
+          <thead>
+            <tr>
+              <th>Guess</th>
+              <th>Time</th>
+              <th>Submitter</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {_.sortBy(props.guesses, 'createdAt').reverse().map((guess) => {
+              return (
+                <tr key={guess._id} className={`guess-${guess.state}`}>
+                  <td className="answer">{guess.guess}</td>
+                  <td>{moment(guess.createdAt).calendar()}</td>
+                  <td>{props.displayNames[guess.createdBy]}</td>
+                  <td style={{ textTransform: 'capitalize' }}>{guess.state}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>,
+      ]}
+      {confirmingSubmit ? <Alert variant="warning">{confirmationMessage}</Alert> : null}
+      {submitState === PuzzleGuessSubmitState.FAILED ? <Alert variant="danger" dismissible onClose={clearError}>{submitError}</Alert> : null}
+    </ModalForm>
+  );
+});
 
 interface PuzzleAnswerModalProps {
   puzzle: PuzzleType;
@@ -795,113 +778,114 @@ enum PuzzleAnswerSubmitState {
   FAILED = 'failed',
 }
 
-interface PuzzleAnswerModalState {
-  answer: string;
-  submitState: PuzzleAnswerSubmitState;
-  error: string;
+type PuzzleAnswerModalHandle = {
+  show: () => void;
 }
 
-class PuzzleAnswerModal extends React.Component<PuzzleAnswerModalProps, PuzzleAnswerModalState> {
-  formRef: React.RefObject<ModalForm>
+const PuzzleAnswerModal = React.forwardRef((props: PuzzleAnswerModalProps, forwardedRef: React.Ref<PuzzleAnswerModalHandle>) => {
+  const [answer, setAnswer] = useState<string>('');
+  const [submitState, setSubmitState] =
+    useState<PuzzleAnswerSubmitState>(PuzzleAnswerSubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
 
-  constructor(props: PuzzleAnswerModalProps) {
-    super(props);
-    this.state = {
-      answer: '',
-      submitState: PuzzleAnswerSubmitState.IDLE,
-      error: '',
-    };
-    this.formRef = React.createRef();
-  }
+  const formRef = useRef<ModalFormHandle>(null);
 
-  show = () => {
-    this.formRef?.current!.show();
-  }
+  const show = useCallback(() => {
+    if (formRef.current) {
+      formRef.current.show();
+    }
+  }, []);
 
-  hide = () => {
-    this.formRef?.current!.close();
-  }
+  useImperativeHandle(forwardedRef, () => ({
+    show,
+  }));
 
-  onSubmit = () => {
-    this.setState({
-      submitState: PuzzleAnswerSubmitState.SUBMITTING,
-      error: '',
-    });
+  const hide = useCallback(() => {
+    if (formRef.current) {
+      formRef.current.hide();
+    }
+  }, []);
+
+  const onAnswerChange: FormControlProps['onChange'] = useCallback((e) => {
+    setAnswer(e.currentTarget.value);
+  }, []);
+
+  const onDismissError = useCallback(() => {
+    setSubmitState(PuzzleAnswerSubmitState.IDLE);
+    setSubmitError('');
+  }, []);
+
+  const onSubmit = useCallback(() => {
+    setSubmitState(PuzzleAnswerSubmitState.SUBMITTING);
+    setSubmitError('');
     Meteor.call(
       'addCorrectGuessForPuzzle',
-      this.props.puzzle._id,
-      this.state.answer,
+      props.puzzle._id,
+      answer,
       (error?: Error) => {
         if (error) {
-          this.setState({
-            submitState: PuzzleAnswerSubmitState.FAILED,
-            error: error.message,
-          });
+          setSubmitError(error.message);
+          setSubmitState(PuzzleAnswerSubmitState.FAILED);
         } else {
-          this.setState({
-            answer: '',
-            submitState: PuzzleAnswerSubmitState.IDLE,
-          }, this.hide);
+          setAnswer('');
+          setSubmitState(PuzzleAnswerSubmitState.IDLE);
+          hide();
         }
       },
     );
-  }
+  }, [props.puzzle._id, answer, hide]);
 
-  render() {
-    return (
-      <ModalForm
-        ref={this.formRef}
-        title={`Submit answer to ${this.props.puzzle.title}`}
-        onSubmit={this.onSubmit}
-        submitLabel={this.state.submitState === PuzzleAnswerSubmitState.SUBMITTING ? 'Confirm Submit' : 'Submit'}
-      >
-        <FormGroup as={Row}>
-          <FormLabel column xs={3} htmlFor="jr-puzzle-answer">
-            Answer
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              type="text"
-              id="jr-puzzle-answer"
-              autoFocus
-              autoComplete="off"
-              onChange={(e) => this.setState({ answer: e.target.value })}
-              value={this.state.answer}
-            />
-          </Col>
-        </FormGroup>
+  return (
+    <ModalForm
+      ref={formRef}
+      title={`Submit answer to ${props.puzzle.title}`}
+      onSubmit={onSubmit}
+      submitLabel={submitState === PuzzleAnswerSubmitState.SUBMITTING ? 'Confirm Submit' : 'Submit'}
+    >
+      <FormGroup as={Row}>
+        <FormLabel column xs={3} htmlFor="jr-puzzle-answer">
+          Answer
+        </FormLabel>
+        <Col xs={9}>
+          <FormControl
+            type="text"
+            id="jr-puzzle-answer"
+            autoFocus
+            autoComplete="off"
+            onChange={onAnswerChange}
+            value={answer}
+          />
+        </Col>
+      </FormGroup>
 
-        {this.state.submitState === PuzzleAnswerSubmitState.FAILED && (
-          <Alert variant="danger" dismissible onClose={() => this.setState({ submitState: PuzzleAnswerSubmitState.IDLE })}>
-            { this.state.error || 'Something went wrong. Try again, or contact an admin?' }
-          </Alert>
-        )}
-      </ModalForm>
-    );
-  }
-}
+      {submitState === PuzzleAnswerSubmitState.FAILED ? (
+        <Alert variant="danger" dismissible onClose={onDismissError}>
+          { submitError || 'Something went wrong. Try again, or contact an admin?' }
+        </Alert>
+      ) : undefined}
+    </ModalForm>
+  );
+});
 
 interface PuzzlePageMultiplayerDocumentProps {
   document?: DocumentType;
 }
 
-class PuzzlePageMultiplayerDocument extends React.PureComponent<PuzzlePageMultiplayerDocumentProps> {
-  render() {
-    if (!this.props.document) {
-      return (
-        <div className="puzzle-document puzzle-document-message">
-          Attempting to load collaborative document...
-        </div>
-      );
-    }
-
+const PuzzlePageMultiplayerDocument = React.memo((props: PuzzlePageMultiplayerDocumentProps) => {
+  if (!props.document) {
     return (
-      <div className="puzzle-document">
-        <DocumentDisplay document={this.props.document} displayMode="embed" />
+      <div className="puzzle-document puzzle-document-message">
+        Attempting to load collaborative document...
       </div>
     );
   }
-}
+
+  return (
+    <div className="puzzle-document">
+      <DocumentDisplay document={props.document} displayMode="embed" />
+    </div>
+  );
+});
 
 const findPuzzleById = function (puzzles: PuzzleType[], id: string) {
   for (let i = 0; i < puzzles.length; i++) {
@@ -922,7 +906,7 @@ interface PuzzlePageParams {
 interface PuzzlePageWithRouterParams extends RouteComponentProps<PuzzlePageParams> {
 }
 
-interface PuzzlePageProps extends PuzzlePageWithRouterParams {
+interface PuzzlePageTracker {
   puzzlesReady: boolean;
   allPuzzles: PuzzleType[];
   allTags: TagType[];
@@ -934,208 +918,184 @@ interface PuzzlePageProps extends PuzzlePageWithRouterParams {
   canUpdate: boolean;
 }
 
-interface PuzzlePageState {
-  sidebarWidth: number,
-  isDesktop: boolean;
-}
+const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
+  const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
+  const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
+  const [isDesktop, setIsDesktop] = useState<boolean>(window.innerWidth >= MinimumDesktopWidth);
 
-class PuzzlePage extends React.PureComponent<PuzzlePageProps, PuzzlePageState> {
-  private puzzlePageEl: HTMLElement | null;
+  const tracker = useTracker<PuzzlePageTracker>(() => {
+    const { params } = props.match;
+    // There are some model dependencies that we have to be careful about:
+    //
+    // * We show the displayname of the person who submitted a guess, so guesses depends on display names
+    // * Chat messages show the displayname of the sender, so chatmessages depends on display names
+    // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
+    //
+    // We can render some things on incomplete data, but most of them really need full data:
+    // * Chat can be rendered with just chat messages and display names
+    // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
 
-  constructor(props: PuzzlePageProps) {
-    super(props);
-    const mode = this.calculateViewMode();
-    this.puzzlePageEl = null;
-    this.state = {
-      sidebarWidth: DefaultSidebarWidth,
-      isDesktop: mode.isDesktop,
+    // Add the current user to the collection of people viewing this puzzle.
+    // Don't use the subs manager - we don't want this cached.
+    const subscribersTopic = `puzzle:${params.puzzleId}`;
+    Meteor.subscribe('subscribers.inc', subscribersTopic, {
+      puzzle: params.puzzleId,
+      hunt: params.huntId,
+    });
+    const subscribersHandle = Meteor.subscribe('subscribers.fetch', subscribersTopic);
+
+    const displayNamesHandle = Profiles.subscribeDisplayNames();
+    let displayNames = {};
+    if (displayNamesHandle.ready()) {
+      displayNames = Profiles.displayNames();
+    }
+
+    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: params.huntId });
+    const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: params.huntId });
+    const guessesHandle = Meteor.subscribe('mongo.guesses', { puzzle: params.puzzleId });
+    const documentsHandle = Meteor.subscribe('mongo.documents', { puzzle: params.puzzleId });
+
+    // Track the tally of people viewing this puzzle.
+    Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
+
+    const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && subscribersHandle.ready() && displayNamesHandle.ready();
+
+    let allPuzzles: PuzzleType[];
+    let allTags: TagType[];
+    let allGuesses: GuessType[];
+    let document: DocumentType | undefined;
+    // There's no sense in doing this expensive computation here if we're still loading data,
+    // since we're not going to render the children.
+    if (puzzlesReady) {
+      allPuzzles = Puzzles.find({ hunt: params.huntId }).fetch();
+      allTags = Tags.find({ hunt: params.huntId }).fetch();
+      allGuesses = Guesses.find({ hunt: params.huntId, puzzle: params.puzzleId }).fetch();
+
+      // Sort by created at so that the "first" document always has consistent meaning
+      document = Documents.findOne({ puzzle: params.puzzleId }, { sort: { createdAt: 1 } });
+    } else {
+      allPuzzles = [];
+      allTags = [];
+      allGuesses = [];
+      document = undefined;
+    }
+
+    const chatFields: Record<string, number> = {};
+    FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
+    const chatHandle = Meteor.subscribe(
+      'mongo.chatmessages',
+      { puzzle: params.puzzleId },
+      { fields: chatFields }
+    );
+
+    // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
+    // other collections.
+    const chatReady = chatHandle.ready() && displayNamesHandle.ready();
+    const chatMessages = (chatReady && ChatMessages.find(
+      { puzzle: params.puzzleId },
+      { sort: { timestamp: 1 } },
+    ).fetch()) || [];
+    return {
+      puzzlesReady,
+      allPuzzles,
+      allTags,
+      chatReady,
+      chatMessages,
+      displayNames,
+      allGuesses,
+      document,
+      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
     };
-  }
+  }, [props.match.params.huntId, props.match.params.puzzleId]);
 
-  componentDidMount() {
-    window.addEventListener('resize', this.onResize);
-    if (this.puzzlePageEl) {
-      this.setState({
-        sidebarWidth: Math.min(DefaultSidebarWidth, this.puzzlePageEl.clientWidth - MinimumDocumentWidth),
-      });
-    }
-    Meteor.call('ensureDocumentAndPermissions', this.props.match.params.puzzleId);
-  }
-
-  componentDidUpdate(prevProps: PuzzlePageProps) {
-    if (prevProps.match.params.puzzleId !== this.props.match.params.puzzleId) {
-      Meteor.call('ensureDocumentAndPermissions', this.props.match.params.puzzleId);
-    }
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.onResize);
-  }
-
-  onResize = () => {
-    this.setState(this.calculateViewMode());
-  };
-
-  onChangeSideBarSize = (newSidebarWidth: number) => {
-    this.setState({ sidebarWidth: newSidebarWidth });
-  };
-
-  // Ideally these should be based on size of the component (and the trigger changed appropriately)
-  // but this component is designed for full-page use, so...
-  calculateViewMode = () => {
-    const newIsDesktop = window.innerWidth >= MinimumDesktopWidth;
-    return { isDesktop: newIsDesktop };
-  };
-
-  render() {
-    if (!this.props.puzzlesReady) {
-      return <div className="puzzle-page jolly-roger-fixed" ref={(el) => { this.puzzlePageEl = el; }}><span>loading...</span></div>;
-    }
-    const activePuzzle = findPuzzleById(this.props.allPuzzles, this.props.match.params.puzzleId)!;
-    const metadata = (
-      <PuzzlePageMetadataContainer
-        puzzle={activePuzzle}
-        allTags={this.props.allTags}
-        allPuzzles={this.props.allPuzzles}
-        guesses={this.props.allGuesses}
-        displayNames={this.props.displayNames}
-        isDesktop={this.state.isDesktop}
-        document={this.props.document}
-      />
-    );
-    const chat = (
-      <ChatSection
-        chatReady={this.props.chatReady}
-        chatMessages={this.props.chatMessages}
-        displayNames={this.props.displayNames}
-        huntId={this.props.match.params.huntId}
-        puzzleId={this.props.match.params.puzzleId}
-      />
-    );
-    return (
-      <DocumentTitle title={`${activePuzzle.title} :: Jolly Roger`}>
-        {this.state.isDesktop ? (
-          <div className="puzzle-page jolly-roger-fixed" ref={(el) => { this.puzzlePageEl = el; }}>
-            <SplitPanePlus
-              split="vertical"
-              minSize={MinimumSidebarWidth}
-              maxSize={-MinimumDocumentWidth}
-              primary="first"
-              autoCollapse1={-1}
-              autoCollapse2={-1}
-              size={this.state.sidebarWidth}
-              onPaneChanged={this.onChangeSideBarSize}
-            >
-              {chat}
-              <div className="puzzle-content">
-                {metadata}
-                <PuzzlePageMultiplayerDocument document={this.props.document} />
-              </div>
-            </SplitPanePlus>
-          </div>
-        ) : (
-          <div className="puzzle-page narrow jolly-roger-fixed">
-            {metadata}
-            {chat}
-          </div>
-        )}
-      </DocumentTitle>
-    );
-  }
-}
-
-const crumb = withBreadcrumb(({ match, puzzlesReady, allPuzzles }) => {
-  const activePuzzle = findPuzzleById(allPuzzles, match.params.puzzleId)!;
-  return {
-    title: puzzlesReady ? activePuzzle.title : 'loading...',
-    path: `/hunts/${match.params.huntId}/puzzles/${match.params.puzzleId}`,
-  };
-});
-const tracker = withTracker(({ match }: PuzzlePageWithRouterParams) => {
-  const { params } = match;
-  // There are some model dependencies that we have to be careful about:
-  //
-  // * We show the displayname of the person who submitted a guess, so guesses depends on display names
-  // * Chat messages show the displayname of the sender, so chatmessages depends on display names
-  // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
-  //
-  // We can render some things on incomplete data, but most of them really need full data:
-  // * Chat can be rendered with just chat messages and display names
-  // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
-
-  // Add the current user to the collection of people viewing this puzzle.
-  // Don't use the subs manager - we don't want this cached.
-  const subscribersTopic = `puzzle:${params.puzzleId}`;
-  Meteor.subscribe('subscribers.inc', subscribersTopic, {
-    puzzle: params.puzzleId,
-    hunt: params.huntId,
+  const activePuzzle = findPuzzleById(tracker.allPuzzles, props.match.params.puzzleId);
+  useBreadcrumb({
+    title: tracker.puzzlesReady ? activePuzzle!.title : 'loading...',
+    path: `/hunts/${props.match.params.huntId}/puzzles/${props.match.params.puzzleId}`,
   });
-  const subscribersHandle = Meteor.subscribe('subscribers.fetch', subscribersTopic);
 
-  const displayNamesHandle = Profiles.subscribeDisplayNames();
-  let displayNames = {};
-  if (displayNamesHandle.ready()) {
-    displayNames = Profiles.displayNames();
+  const title = `${activePuzzle ? activePuzzle.title : 'loading puzzle title...'} :: Jolly Roger`;
+  useDocumentTitle(title);
+
+  const onResize = useCallback(() => {
+    setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
+  }, []);
+
+  const onChangeSideBarSize = useCallback((newSidebarWidth: number) => {
+    setSidebarWidth(newSidebarWidth);
+  }, []);
+
+  useEffect(() => {
+    // Populate sidebar width on mount
+    if (puzzlePageDivRef.current) {
+      setSidebarWidth(Math.min(DefaultSidebarWidth, puzzlePageDivRef.current.clientWidth - MinimumDocumentWidth));
+    }
+
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+    };
+  }, [onResize]);
+
+  useEffect(() => {
+    Meteor.call('ensureDocumentAndPermissions', props.match.params.puzzleId);
+  }, [props.match.params.puzzleId]);
+
+  if (!tracker.puzzlesReady) {
+    return <div className="puzzle-page jolly-roger-fixed" ref={puzzlePageDivRef}><span>loading...</span></div>;
   }
-
-  const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: params.huntId });
-  const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: params.huntId });
-  const guessesHandle = Meteor.subscribe('mongo.guesses', { puzzle: params.puzzleId });
-  const documentsHandle = Meteor.subscribe('mongo.documents', { puzzle: params.puzzleId });
-
-  // Track the tally of people viewing this puzzle.
-  Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
-
-  const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && subscribersHandle.ready() && displayNamesHandle.ready();
-
-  let allPuzzles: PuzzleType[];
-  let allTags: TagType[];
-  let allGuesses: GuessType[];
-  let document: DocumentType | undefined;
-  // There's no sense in doing this expensive computation here if we're still loading data,
-  // since we're not going to render the children.
-  if (puzzlesReady) {
-    allPuzzles = Puzzles.find({ hunt: params.huntId }).fetch();
-    allTags = Tags.find({ hunt: params.huntId }).fetch();
-    allGuesses = Guesses.find({ hunt: params.huntId, puzzle: params.puzzleId }).fetch();
-
-    // Sort by created at so that the "first" document always has consistent meaning
-    document = Documents.findOne({ puzzle: params.puzzleId }, { sort: { createdAt: 1 } });
-  } else {
-    allPuzzles = [];
-    allTags = [];
-    allGuesses = [];
-    document = undefined;
-  }
-
-  const chatFields: Record<string, number> = {};
-  FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
-  const chatHandle = Meteor.subscribe(
-    'mongo.chatmessages',
-    { puzzle: params.puzzleId },
-    { fields: chatFields }
+  const metadata = (
+    <PuzzlePageMetadata
+      puzzle={activePuzzle!}
+      allTags={tracker.allTags}
+      allPuzzles={tracker.allPuzzles}
+      guesses={tracker.allGuesses}
+      displayNames={tracker.displayNames}
+      isDesktop={isDesktop}
+      document={tracker.document}
+    />
+  );
+  const chat = (
+    <ChatSection
+      chatReady={tracker.chatReady}
+      chatMessages={tracker.chatMessages}
+      displayNames={tracker.displayNames}
+      huntId={props.match.params.huntId}
+      puzzleId={props.match.params.puzzleId}
+    />
   );
 
-  // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
-  // other collections.
-  const chatReady = chatHandle.ready() && displayNamesHandle.ready();
-  const chatMessages = (chatReady && ChatMessages.find(
-    { puzzle: params.puzzleId },
-    { sort: { timestamp: 1 } },
-  ).fetch()) || [];
-  return {
-    puzzlesReady,
-    allPuzzles,
-    allTags,
-    chatReady,
-    chatMessages,
-    displayNames,
-    allGuesses,
-    document,
-    canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
-  };
+  if (isDesktop) {
+    return (
+      <div className="puzzle-page jolly-roger-fixed" ref={puzzlePageDivRef}>
+        <SplitPanePlus
+          split="vertical"
+          minSize={MinimumSidebarWidth}
+          maxSize={-MinimumDocumentWidth}
+          primary="first"
+          autoCollapse1={-1}
+          autoCollapse2={-1}
+          size={sidebarWidth}
+          onPaneChanged={onChangeSideBarSize}
+        >
+          {chat}
+          <div className="puzzle-content">
+            {metadata}
+            <PuzzlePageMultiplayerDocument document={tracker.document} />
+          </div>
+        </SplitPanePlus>
+      </div>
+    );
+  }
+
+  // Non-desktop (narrow layout)
+  return (
+    <div className="puzzle-page narrow jolly-roger-fixed">
+      {metadata}
+      {chat}
+    </div>
+  );
 });
 
-const PuzzlePageContainer = tracker(crumb(PuzzlePage));
-
-export default PuzzlePageContainer;
+export default PuzzlePage;

@@ -1,14 +1,13 @@
-import React from 'react';
+import React, {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import FormCheck from 'react-bootstrap/FormCheck';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
-import Spectrum from './Spectrum';
-
-interface AudioConfigProps {
-}
+import Spectrum, { SpectrumHandle } from './Spectrum';
 
 enum AudioConfigStatus {
   IDLE = 'idle',
@@ -17,260 +16,239 @@ enum AudioConfigStatus {
   STREAMING = 'streaming',
 }
 
-interface AudioConfigState {
-  status: AudioConfigStatus;
-  preferredDeviceId: string | undefined;
-  knownDevices: MediaDeviceInfo[];
-  loopback: boolean;
-  stream: MediaStream | undefined;
-  audioContext: AudioContext | undefined;
-  error: string | undefined;
-}
-
 export const PREFERRED_AUDIO_DEVICE_STORAGE_KEY = 'preferredAudioDevice';
 
-class AudioConfig extends React.Component<AudioConfigProps, AudioConfigState> {
-  private audioRef: React.RefObject<HTMLAudioElement>;
+const AudioConfig = () => {
+  const [status, setStatus] = useState<AudioConfigStatus>(AudioConfigStatus.IDLE);
+  const [preferredDeviceId, setPreferredDeviceId] = useState<string | undefined>(() => {
+    return localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) || undefined;
+  });
+  const [knownDevices, setKnownDevices] = useState<MediaDeviceInfo[]>([]);
+  const [loopback, setLoopback] = useState<boolean>(false);
+  const [stream, setStream] = useState<MediaStream | undefined>(undefined);
+  const [audioContext, setAudioContext] = useState<AudioContext | undefined>(undefined);
+  const [error, setError] = useState<string | undefined>(undefined);
 
-  constructor(props: AudioConfigProps) {
-    super(props);
-    const preferredDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) || undefined;
-    this.state = {
-      status: AudioConfigStatus.IDLE,
-      preferredDeviceId,
-      knownDevices: [],
-      loopback: false,
-      stream: undefined,
-      audioContext: undefined,
-      error: undefined,
-    };
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    this.audioRef = React.createRef();
-    this.updateDeviceList();
-  }
-
-  componentDidMount() {
-    // Add device change watcher
-    navigator.mediaDevices.addEventListener('devicechange', this.updateDeviceList);
-    // Add storage watcher
-    window.addEventListener('storage', this.onStorageEvent);
-  }
-
-  componentWillUnmount() {
-    // Remove device change watcher
-    navigator.mediaDevices.removeEventListener('devicechange', this.updateDeviceList);
-    // Remove storage watcher
-    window.removeEventListener('storage', this.onStorageEvent);
-  }
-
-  updateDeviceList = () => {
-    // TODO: re-request devices
-    navigator.mediaDevices.enumerateDevices().then((devices) => {
-      const inputs = devices.filter((dev) => dev.kind === 'audioinput');
-      this.setState({
-        knownDevices: inputs,
-      });
-    });
-  };
-
-  onStorageEvent = (e: StorageEvent) => {
-    if (e.key === PREFERRED_AUDIO_DEVICE_STORAGE_KEY) {
-      this.setState({
-        preferredDeviceId: e.newValue || undefined,
+  const updateDeviceList = useCallback(() => {
+    if (navigator.mediaDevices) {
+      navigator.mediaDevices.enumerateDevices().then((devices: MediaDeviceInfo[]) => {
+        const inputs = devices.filter((dev) => dev.kind === 'audioinput');
+        setKnownDevices(inputs);
       });
     }
-  };
+  }, []);
 
-  onDefaultDeviceChange: FormControlProps['onChange'] = (e) => {
-    const preferredDeviceId = e.target.value;
-    // Save preferred input device id to local storage.
-    localStorage.setItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY, preferredDeviceId);
-    // Also update the UI.
-    this.setState({
-      preferredDeviceId,
-    });
-  };
+  const onStorageEvent = useCallback((e: StorageEvent) => {
+    if (e.key === PREFERRED_AUDIO_DEVICE_STORAGE_KEY) {
+      setPreferredDeviceId(e.newValue || undefined);
+    }
+  }, []);
 
-  onStartButtonClicked = (_e: React.FormEvent) => {
+  useEffect(() => {
+    // Populate the device list.
+    updateDeviceList();
+    // Add device change watcher
     if (navigator.mediaDevices) {
-      this.setState({
-        status: AudioConfigStatus.REQUESTING_STREAM,
-      });
+      navigator.mediaDevices.addEventListener('devicechange', updateDeviceList);
+    }
+    // Add storage watcher
+    window.addEventListener('storage', onStorageEvent);
 
-      const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ||
-        undefined;
+    return () => {
+      // Remove device change watcher
+      if (navigator.mediaDevices) {
+        navigator.mediaDevices.removeEventListener('devicechange', updateDeviceList);
+      }
+      // Remove storage watcher
+      window.removeEventListener('storage', onStorageEvent);
+    };
+  }, [updateDeviceList, onStorageEvent]);
+
+  const onDefaultDeviceChange: FormControlProps['onChange'] = useCallback((e) => {
+    const newPreferredDeviceId = e.target.value;
+    // Save preferred input device id to local storage.
+    localStorage.setItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY, newPreferredDeviceId);
+    // Also update the UI.
+    setPreferredDeviceId(newPreferredDeviceId);
+  }, []);
+
+  const gotMediaStream = useCallback((mediaStream: MediaStream) => {
+    // @ts-ignore ts doesn't know about the possible existence of webkitAudioContext
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const newAudioContext = new AudioContext();
+    // Be sure to set audioContext *before* setting status to STREAMING, lest we try
+    // to pass an undefined audioContext to a child component
+    setStream(mediaStream);
+    setAudioContext(newAudioContext);
+    setStatus(AudioConfigStatus.STREAMING);
+
+    // Hook up stream to loopback element.  Don't worry, it starts out muted.
+    const audio = audioRef.current;
+    if (audio) {
+      audio.srcObject = mediaStream;
+    }
+
+    // Now that we have been granted a stream from the user, re-request the device
+    // list, in case the first time we enumerated, the user agent had not yet
+    // given us nonempty labels describing the devices from which to capture.
+    // See https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo/label#value
+    // for additional background.
+    updateDeviceList();
+  }, [updateDeviceList]);
+
+  const handleMediaStreamError = useCallback((e: MediaStreamError) => {
+    setStatus(AudioConfigStatus.STREAM_ERROR);
+    setError(`Couldn't get local microphone: ${e.message}`);
+  }, []);
+
+  const onStartButtonClicked = useCallback((_e: React.FormEvent) => {
+    if (navigator.mediaDevices) {
+      setStatus(AudioConfigStatus.REQUESTING_STREAM);
+      const freshPreferredAudioDeviceId =
+        localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) || undefined;
       const mediaStreamConstraints = {
         audio: {
           echoCancellation: { ideal: true },
           autoGainControl: { ideal: true },
           noiseSuppression: { ideal: true },
-          deviceId: preferredAudioDeviceId,
+          deviceId: freshPreferredAudioDeviceId,
         },
       };
 
       navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
-        .then(this.gotMediaStream)
-        .catch(this.handleMediaStreamError);
+        .then(gotMediaStream)
+        .catch(handleMediaStreamError);
     } else {
-      this.setState({
-        status: AudioConfigStatus.STREAM_ERROR,
-        error: 'Couldn\'t get local microphone: browser denies access on non-HTTPS origins',
-      });
+      setStatus(AudioConfigStatus.STREAM_ERROR);
+      setError('Couldn\'t get local microphone: browser denies access on non-HTTPS origins');
     }
-  };
+  }, [gotMediaStream, handleMediaStreamError]);
 
-  onStopButtonClicked = (_e: React.FormEvent) => {
-    if (this.state.stream) {
-      this.state.stream.getTracks().forEach((t) => t.stop());
+  const onStopButtonClicked = useCallback((_e: React.FormEvent) => {
+    if (stream) {
+      stream.getTracks().forEach((t) => t.stop());
     }
-    this.setState({
-      status: AudioConfigStatus.IDLE,
-      stream: undefined,
-      loopback: false,
-    });
-  };
+    setStatus(AudioConfigStatus.IDLE);
+    setStream(undefined);
+    setLoopback(false);
+  }, [stream]);
 
-  gotMediaStream = (mediaStream: MediaStream) => {
-    // @ts-ignore ts doesn't know about the possible existence of webkitAudioContext
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    const audioContext = new AudioContext();
-    this.setState({
-      status: AudioConfigStatus.STREAMING,
-      stream: mediaStream,
-      audioContext,
-    });
+  const toggleLoopback = useCallback(() => {
+    setLoopback((prevLoopback) => !prevLoopback);
+  }, []);
 
-    // Hook up stream to loopback element.  Don't worry, it starts out muted.
-    const audio = this.audioRef.current;
-    if (audio) {
-      audio.srcObject = mediaStream;
+  const spectrumRefCallback = useCallback((spectrum: SpectrumHandle | null) => {
+    if (spectrum) {
+      spectrum.connect(stream!);
     }
-  };
+  }, [stream]);
 
-  handleMediaStreamError = (e: MediaStreamError) => {
-    this.setState({
-      status: AudioConfigStatus.STREAM_ERROR,
-      error: `Couldn't get local microphone: ${e.message}`,
-    });
-  };
+  return (
+    <section className="audio-self-test-section">
+      <h2>Audio</h2>
 
-  toggleLoopback = () => {
-    this.setState((oldState) => ({
-      loopback: !oldState.loopback,
-    }));
-  };
+      <FormGroup controlId="default-capture-device">
+        <FormLabel>Selected audio input device</FormLabel>
+        <FormControl
+          as="select"
+          onChange={onDefaultDeviceChange}
+          value={preferredDeviceId}
+        >
+          {knownDevices.map((dev) => (
+            <option value={dev.deviceId} key={dev.deviceId}>{dev.label}</option>
+          ))}
+        </FormControl>
+      </FormGroup>
 
-  render() {
-    return (
-      <section className="audio-self-test-section">
-        <h2>Audio</h2>
+      {error ? <Alert variant="danger">{error}</Alert> : null}
+      <p>
+        You can test your microphone levels here.
+      </p>
 
-        <FormGroup controlId="default-capture-device">
-          <FormLabel>Selected audio input device</FormLabel>
-          <FormControl
-            as="select"
-            onChange={this.onDefaultDeviceChange}
-            value={this.state.preferredDeviceId}
-          >
-            {this.state.knownDevices.map((dev) => (
-              <option value={dev.deviceId} key={dev.deviceId}>{dev.label}</option>
-            ))}
-          </FormControl>
-        </FormGroup>
+      <p>
+        Click Start, then try speaking a few phrases, and typing for a bit to
+        see how loud your environment is.  While we&apos;ve enabled automatic gain
+        control, some microphones are more sensitive than others.
+        Some rough guidance:
+      </p>
 
-        {this.state.error ? <Alert variant="danger">{this.state.error}</Alert> : null}
-        <p>
-          You can test your microphone levels here.
-        </p>
+      <ul>
+        <li>
+          When you aren&apos;t speaking, all bars should be below -70dBFS.  If
+          they aren&apos;t, consider moving to a quieter location if available.
+        </li>
+        <li>
+          When you are speaking: bars on the left should peak over -60dBFS or
+          you&apos;ll probably be somewhat hard to hear, so you may need to
+          speak up.
+        </li>
+        <li>
+          If you get louder than -35dBFS or so, you will probably come across
+          as quite loud, and it might be polite to either speak in a softer
+          tone or reduce your microphone volume.
+        </li>
+      </ul>
 
-        <p>
-          Click Start, then try speaking a few phrases, and typing for a bit to
-          see how loud your environment is.  While we&apos;ve enabled automatic gain
-          control, some microphones are more sensitive than others.
-          Some rough guidance:
-        </p>
+      {status !== AudioConfigStatus.STREAMING ? (
+        <Button variant="secondary" onClick={onStartButtonClicked}>
+          Start
+        </Button>
+      ) : (
+        <Button variant="secondary" onClick={onStopButtonClicked}>
+          Stop
+        </Button>
+      )}
 
-        <ul>
-          <li>
-            When you aren&apos;t speaking, all bars should be below -70dBFS.  If
-            they aren&apos;t, consider moving to a quieter location if available.
-          </li>
-          <li>
-            When you are speaking: bars on the left should peak over -60dBFS or
-            you&apos;ll probably be somewhat hard to hear, so you may need to
-            speak up.
-          </li>
-          <li>
-            If you get louder than -35dBFS or so, you will probably come across
-            as quite loud, and it might be polite to either speak in a softer
-            tone or reduce your microphone volume.
-          </li>
-        </ul>
-
-        {this.state.status !== AudioConfigStatus.STREAMING ? (
-          <Button variant="secondary" onClick={this.onStartButtonClicked}>
-            Start
-          </Button>
-        ) : (
-          <Button variant="secondary" onClick={this.onStopButtonClicked}>
-            Stop
-          </Button>
-        )}
-
-        <p>
-          You can check this box to play your microphone output out through
-          your speakers, but if you&apos;re not wearing headphones, you&apos;ll likely
-          produce feedback.  You have been warned!
-        </p>
-        <FormGroup controlId="audio-self-test-loopback">
-          <FormCheck
-            type="checkbox"
-            label="Play captured audio"
-            checked={this.state.loopback}
-            onChange={this.toggleLoopback}
-          />
-        </FormGroup>
-
-        <div className="audio-self-test">
-          <div className="spectrogram-y-axis-labels">
-            <div>-30dBFS</div>
-            <div>-40dBFS</div>
-            <div>-50dBFS</div>
-            <div>-60dBFS</div>
-            <div>-70dBFS</div>
-            <div>-80dBFS</div>
-            <div>-90dBFS</div>
-            <div>-100dBFS</div>
-          </div>
-          {this.state.status === AudioConfigStatus.STREAMING ? (
-            <Spectrum
-              className="audio-self-test-spectrogram"
-              width={600}
-              height={400}
-              audioContext={this.state.audioContext!}
-              barCount={128}
-              throttleFps={60}
-              barFloor={0}
-              smoothingTimeConstant={0.7}
-              ref={((spectrum) => {
-                if (spectrum) {
-                  spectrum.connect(this.state.stream!);
-                }
-              }
-              )}
-            />
-          ) : <div className="audio-self-test-spectrogram" />}
-        </div>
-        <audio
-          ref={this.audioRef}
-          className="audio-sink"
-          autoPlay
-          playsInline
-          muted={!this.state.loopback}
+      <p>
+        You can check this box to play your microphone output out through
+        your speakers, but if you&apos;re not wearing headphones, you&apos;ll likely
+        produce feedback.  You have been warned!
+      </p>
+      <FormGroup controlId="audio-self-test-loopback">
+        <FormCheck
+          type="checkbox"
+          label="Play captured audio"
+          checked={loopback}
+          onChange={toggleLoopback}
         />
-      </section>
-    );
-  }
-}
+      </FormGroup>
+
+      <div className="audio-self-test">
+        <div className="spectrogram-y-axis-labels">
+          <div>-30dBFS</div>
+          <div>-40dBFS</div>
+          <div>-50dBFS</div>
+          <div>-60dBFS</div>
+          <div>-70dBFS</div>
+          <div>-80dBFS</div>
+          <div>-90dBFS</div>
+          <div>-100dBFS</div>
+        </div>
+        {status === AudioConfigStatus.STREAMING ? (
+          <Spectrum
+            className="audio-self-test-spectrogram"
+            width={600}
+            height={400}
+            audioContext={audioContext!}
+            barCount={128}
+            throttleFps={60}
+            barFloor={0}
+            smoothingTimeConstant={0.7}
+            ref={spectrumRefCallback}
+          />
+        ) : <div className="audio-self-test-spectrogram" />}
+      </div>
+      <audio
+        ref={audioRef}
+        className="audio-sink"
+        autoPlay
+        playsInline
+        muted={!loopback}
+      />
+    </section>
+  );
+};
 
 export default AudioConfig;

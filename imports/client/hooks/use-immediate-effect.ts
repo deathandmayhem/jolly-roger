@@ -1,0 +1,33 @@
+import { useEffect, useRef } from 'react';
+import type { EffectCallback } from 'react';
+
+function depsDiffer<T>(deps1?: Array<T>, deps2?: Array<T>) {
+  return !((Array.isArray(deps1) && Array.isArray(deps2)) &&
+    deps1.length === deps2.length &&
+    deps1.every((dep, idx) => Object.is(dep, deps2[idx]))
+  );
+}
+
+type EffectCleanupCallback = () => void | undefined;
+
+export default function useImmediateEffect<T>(effectBody: EffectCallback, deps?: Array<T>) {
+  const cleanupRef = useRef<EffectCleanupCallback | void>(undefined);
+  const depsRef = useRef<Array<T> | undefined>();
+
+  if (!depsRef.current || depsDiffer(depsRef.current, deps)) {
+    depsRef.current = deps;
+    if (cleanupRef.current) {
+      cleanupRef.current();
+    }
+
+    cleanupRef.current = effectBody();
+  }
+
+  useEffect(() => {
+    return () => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+    };
+  }, []);
+}

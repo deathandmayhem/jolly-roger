@@ -37,30 +37,26 @@ interface RelatedPuzzleListProps {
   suppressedTagIds: string[];
 }
 
-class RelatedPuzzleList extends React.PureComponent<RelatedPuzzleListProps> {
-  static displayName = 'RelatedPuzzleList';
-
-  render() {
-    // Sort the puzzles within each tag group by interestingness.  For instance, metas
-    // should probably be at the top of the group, then of the round puzzles, unsolved should
-    // maybe sort above solved, and then perhaps by unlock order.
-    const tagIndex = _.indexBy(this.props.allTags, '_id');
-    const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
-      this.props.relatedPuzzles,
-      this.props.sharedTag,
-      tagIndex
-    );
-    return (
-      <PuzzleList
-        puzzles={sortedPuzzles}
-        allTags={this.props.allTags}
-        layout={this.props.layout}
-        canUpdate={this.props.canUpdate}
-        suppressTags={this.props.suppressedTagIds}
-      />
-    );
-  }
-}
+const RelatedPuzzleList = React.memo((props: RelatedPuzzleListProps) => {
+  // Sort the puzzles within each tag group by interestingness.  For instance, metas
+  // should probably be at the top of the group, then of the round puzzles, unsolved should
+  // maybe sort above solved, and then perhaps by unlock order.
+  const tagIndex = _.indexBy(props.allTags, '_id');
+  const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
+    props.relatedPuzzles,
+    props.sharedTag,
+    tagIndex
+  );
+  return (
+    <PuzzleList
+      puzzles={sortedPuzzles}
+      allTags={props.allTags}
+      layout={props.layout}
+      canUpdate={props.canUpdate}
+      suppressTags={props.suppressedTagIds}
+    />
+  );
+});
 
 export default RelatedPuzzleList;
 export { RelatedPuzzleList, sortPuzzlesByRelevanceWithinPuzzleGroup };

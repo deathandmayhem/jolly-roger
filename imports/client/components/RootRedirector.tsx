@@ -1,50 +1,48 @@
 import { Meteor } from 'meteor/meteor';
-import { withTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { Redirect } from 'react-router';
 import HasUsers from '../has_users';
 
-interface RootRedirectorProps {
+interface RootRedirectorTracker {
   loggingIn: boolean;
   userId: string | null;
   hasUsersReady: boolean;
   hasUser: boolean;
 }
 
-class RootRedirector extends React.Component<RootRedirectorProps> {
-  render() {
-    if (this.props.loggingIn) {
-      return <div>loading redirector...</div>;
-    }
+const RootRedirector = () => {
+  const tracker = useTracker<RootRedirectorTracker>(() => {
+    const hasUsersHandle = Meteor.subscribe('hasUsers');
+    const hasUser = !!HasUsers.findOne({});
 
-    if (this.props.userId) {
-      // Logged in.
-      return <Redirect to={{ pathname: '/hunts' }} />;
-    }
+    return {
+      loggingIn: Meteor.loggingIn(),
+      userId: Meteor.userId(),
+      hasUsersReady: hasUsersHandle.ready(),
+      hasUser,
+    };
+  }, []);
 
-    // Definitely not logged in.  Wait for the hasUsers sub to be ready,
-    // and then if there's a user, go to the login page, and if not, go
-    // to the create-first-user page.
-    if (!this.props.hasUsersReady) {
-      return <div>loading redirector...</div>;
-    } else if (this.props.hasUser) {
-      return <Redirect to={{ pathname: '/login' }} />;
-    } else {
-      return <Redirect to={{ pathname: '/create-first-user' }} />;
-    }
+  if (tracker.loggingIn) {
+    return <div>loading redirector...</div>;
   }
-}
 
-const RootRedirectorContainer = withTracker(() => {
-  const hasUsersHandle = Meteor.subscribe('hasUsers');
-  const hasUser = !!HasUsers.findOne({});
+  if (tracker.userId) {
+    // Logged in.
+    return <Redirect to={{ pathname: '/hunts' }} />;
+  }
 
-  return {
-    loggingIn: Meteor.loggingIn(),
-    userId: Meteor.userId(),
-    hasUsersReady: hasUsersHandle.ready(),
-    hasUser,
-  };
-})(RootRedirector);
+  // Definitely not logged in.  Wait for the hasUsers sub to be ready,
+  // and then if there's a user, go to the login page, and if not, go
+  // to the create-first-user page.
+  if (!tracker.hasUsersReady) {
+    return <div>loading redirector...</div>;
+  } else if (tracker.hasUser) {
+    return <Redirect to={{ pathname: '/login' }} />;
+  } else {
+    return <Redirect to={{ pathname: '/create-first-user' }} />;
+  }
+};
 
-export default RootRedirectorContainer;
+export default RootRedirector;

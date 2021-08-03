@@ -9,17 +9,15 @@ interface GravatarProps {
   email: string;
 }
 
-class Gravatar extends React.PureComponent<GravatarProps> {
-  render() {
-    return (
-      <div>
-        <img
-          src={`https://www.gravatar.com/avatar/${gravatarHash(this.props.email)}?d=identicon`}
-          alt="Avatar"
-        />
-      </div>
-    );
-  }
-}
+const Gravatar = (props: GravatarProps) => {
+  return (
+    <div>
+      <img
+        src={`https://www.gravatar.com/avatar/${gravatarHash(props.email)}?d=identicon`}
+        alt="Avatar"
+      />
+    </div>
+  );
+};
 
-export default Gravatar;
+export default React.memo(Gravatar);
