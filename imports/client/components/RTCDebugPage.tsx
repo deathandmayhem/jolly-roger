@@ -312,7 +312,7 @@ const RTCDebugPage = () => {
         {focusedView}
       </div>
     );
-  }, [tracker, focusedParticipant]);
+  }, [tracker, focusedParticipant, onFocusParticipant]);
 
   return (
     <div>

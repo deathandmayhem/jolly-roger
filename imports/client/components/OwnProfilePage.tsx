@@ -212,7 +212,7 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
   const onLink = useCallback(() => {
     setState({ state: DiscordLinkBlockLinkState.LINKING });
     requestDiscordCredential(requestComplete);
-  }, []);
+  }, [requestComplete]);
 
   const onUnlink = useCallback(() => {
     Meteor.call('unlinkUserDiscordAccount');

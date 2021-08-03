@@ -46,13 +46,15 @@ export type PuzzleModalFormHandle = {
 const PuzzleModalForm = React.forwardRef((
   props: PuzzleModalFormProps, forwardedRef: React.Ref<PuzzleModalFormHandle>
 ) => {
-  const { puzzle } = props;
+  const {
+    huntId, puzzle, tags: propsTags, onSubmit, showOnMount,
+  } = props;
 
   const tagNamesForIds = useCallback((tagIds: string[]) => {
     const tagNames: Record<string, string> = {};
-    props.tags.forEach((t) => { tagNames[t._id] = t.name; });
+    propsTags.forEach((t) => { tagNames[t._id] = t.name; });
     return tagIds.map((t) => tagNames[t]);
-  }, [props.tags]);
+  }, [propsTags]);
 
   const [title, setTitle] = useState<string>(puzzle ? puzzle.title : '');
   const [url, setUrl] = useState<string | undefined>(puzzle ? puzzle.url : undefined);
@@ -117,7 +119,7 @@ const PuzzleModalForm = React.forwardRef((
   const onFormSubmit = useCallback((callback: () => void) => {
     setSubmitState(PuzzleModalFormSubmitState.SUBMITTING);
     const payload: PuzzleModalFormSubmitPayload = {
-      hunt: props.huntId,
+      hunt: huntId,
       title,
       url: url || undefined, // Make sure we send undefined if url is falsy
       tags,
@@ -126,7 +128,7 @@ const PuzzleModalForm = React.forwardRef((
     if (docType) {
       payload.docType = docType;
     }
-    props.onSubmit(payload, (error) => {
+    onSubmit(payload, (error) => {
       if (error) {
         setErrorMessage(error.message);
         setSubmitState(PuzzleModalFormSubmitState.FAILED);
@@ -141,7 +143,7 @@ const PuzzleModalForm = React.forwardRef((
       }
     });
   }, [
-    props.onSubmit, props.huntId, title, url, tags, expectedAnswerCount, docType,
+    onSubmit, huntId, title, url, tags, expectedAnswerCount, docType,
   ]);
 
   const show = useCallback(() => {
@@ -187,14 +189,14 @@ const PuzzleModalForm = React.forwardRef((
   }));
 
   useEffect(() => {
-    if (props.showOnMount) {
+    if (showOnMount) {
       show();
     }
-  }, []);
+  }, [showOnMount, show]);
 
   const disableForm = submitState === PuzzleModalFormSubmitState.SUBMITTING;
 
-  const selectOptions = [...props.tags.map((t) => t.name), ...tags]
+  const selectOptions = [...propsTags.map((t) => t.name), ...tags]
     .filter(Boolean)
     .map((t) => {
       return { value: t, label: t };

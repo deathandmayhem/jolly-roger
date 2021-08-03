@@ -187,7 +187,7 @@ const GuessQueuePage = (props: GuessQueuePageWithRouterParams) => {
     return () => {
       window.removeEventListener('keydown', maybeStealCtrlF);
     };
-  }, []);
+  }, [maybeStealCtrlF]);
 
   const setSearchString = useCallback((val: string) => {
     const u = new URLSearchParams(props.location.search);

@@ -43,7 +43,7 @@ const ProfileList = (props: ProfileListProps) => {
     return () => {
       window.removeEventListener('keydown', maybeStealCtrlF);
     };
-  }, []);
+  }, [maybeStealCtrlF]);
 
   // The type annotation on FormControl is wrong here - the event is from the
   // input element, not the FormControl React component

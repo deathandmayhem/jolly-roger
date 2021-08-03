@@ -11,33 +11,36 @@ interface CelebrationProps {
 
 const Celebration = (props: CelebrationProps) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const onClose = useCallback(() => {
-    if (props.onClose) {
-      props.onClose();
+
+  const { onClose } = props;
+
+  const onCloseCb = useCallback(() => {
+    if (onClose) {
+      onClose();
     }
-  }, [props.onClose]);
+  }, [onClose]);
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     // Dismiss the celebration on esc
     if (e.keyCode === 27) {
-      onClose();
+      onCloseCb();
     }
-  }, [onClose]);
+  }, [onCloseCb]);
 
   const maybeClose = useCallback((e: React.MouseEvent) => {
     // Dismiss the celebration if you click on the overlay div (outside the content)
     if (e.target === e.currentTarget) {
-      onClose();
+      onCloseCb();
     }
-  }, [onClose]);
+  }, [onCloseCb]);
 
   // Automatically dismiss self after 7 seconds
   useEffect(() => {
-    const timer = window.setTimeout(() => { onClose(); }, 7000);
+    const timer = window.setTimeout(() => { onCloseCb(); }, 7000);
     return () => {
       window.clearTimeout(timer);
     };
-  }, []);
+  }, [onCloseCb]);
 
   // Allow pressing escape key to close the overlay
   useEffect(() => {
@@ -58,7 +61,7 @@ const Celebration = (props: CelebrationProps) => {
   return (
     <div className="celebration-overlay" onClick={maybeClose}>
       <div className="celebration">
-        <button type="button" className="close" onClick={onClose} aria-label="Close" ref={closeButtonRef}>
+        <button type="button" className="close" onClick={onCloseCb} aria-label="Close" ref={closeButtonRef}>
           <span aria-hidden="true">×</span>
         </button>
         {props.playAudio ? <audio src="/audio/applause.mp3" autoPlay /> : null}

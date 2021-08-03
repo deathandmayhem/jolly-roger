@@ -48,11 +48,26 @@ interface RTCCallSectionTrackerData {
 }
 
 const RTCCallSection = (props: RTCCallSectionProps) => {
+  const {
+    huntId,
+    puzzleId,
+    tabId,
+    onLeaveCall,
+    onToggleMute,
+    onToggleDeafen,
+    muted,
+    deafened,
+    audioContext,
+    localStream,
+    callersExpanded,
+    onToggleCallersExpanded,
+  } = props;
+
   const tracker: RTCCallSectionTrackerData = useTracker(() => {
-    const joinSub = Meteor.subscribe('call.join', props.huntId, props.puzzleId, props.tabId);
+    const joinSub = Meteor.subscribe('call.join', huntId, puzzleId, tabId);
     const participants = joinSub.ready() ? CallParticipants.find({
-      hunt: props.huntId,
-      call: props.puzzleId,
+      hunt: huntId,
+      call: puzzleId,
     }).fetch() : [];
 
     const rtcConfigSub = Meteor.subscribe('rtcconfig');
@@ -61,7 +76,7 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
     const selfUserId = Meteor.userId() || undefined;
     const selfProfile = selfUserId ? Profiles.findOne(selfUserId) : undefined;
     const selfParticipant = participants.find((p) => {
-      return p.createdBy === selfUserId && p.tab === props.tabId;
+      return p.createdBy === selfUserId && p.tab === tabId;
     });
     let signalsReady;
     if (selfParticipant) {
@@ -84,31 +99,31 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
       selfUserId,
       spectraDisabled,
     };
-  }, [props.huntId, props.puzzleId, props.tabId]);
+  }, [huntId, puzzleId, tabId]);
 
   const nonSelfParticipants = useCallback(() => {
     return tracker.participants.filter((p) => {
-      return (p.createdBy !== tracker.selfUserId) || (p.tab !== props.tabId);
+      return (p.createdBy !== tracker.selfUserId) || (p.tab !== tabId);
     });
-  }, [tracker.participants, tracker.selfUserId, props.tabId]);
+  }, [tracker.participants, tracker.selfUserId, tabId]);
 
   const toggleMuted = useCallback(() => {
-    props.onToggleMute();
-  }, [props.onToggleMute]);
+    onToggleMute();
+  }, [onToggleMute]);
 
   const toggleDeafened = useCallback(() => {
-    props.onToggleDeafen();
-  }, [props.onToggleDeafen]);
+    onToggleDeafen();
+  }, [onToggleDeafen]);
 
   const leaveCall = useCallback(() => {
-    props.onLeaveCall();
-  }, [props.onLeaveCall]);
+    onLeaveCall();
+  }, [onLeaveCall]);
 
   const spectrumRefCallback = useCallback((spectrum) => {
     if (spectrum) {
-      spectrum.connect(props.localStream);
+      spectrum.connect(localStream);
     }
-  }, [props.localStream]);
+  }, [localStream]);
 
   const selfProfile = tracker.selfProfile;
   const discordAccount = selfProfile && selfProfile.discordAccount;
@@ -121,17 +136,17 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
       overlay={(
         <Tooltip id="caller-self">
           <div>You are in the call.</div>
-          {props.muted && <div>You are currently muted and will transmit no audio.</div>}
-          {props.deafened && <div>You are currently deafened and will hear no audio.</div>}
+          {muted && <div>You are currently muted and will transmit no audio.</div>}
+          {deafened && <div>You are currently deafened and will hear no audio.</div>}
         </Tooltip>
       )}
     >
       <div
         key="self"
         className={classnames('people-item', {
-          muted: props.muted,
-          deafened: props.deafened,
-          live: !props.muted && !props.deafened,
+          muted,
+          deafened,
+          live: !muted && !deafened,
         })}
       >
         {discordAvatarUrl ? (
@@ -144,14 +159,14 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
           <span className="initial">{initial}</span>
         )}
         <div className="webrtc">
-          {props.muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
-          {props.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
-          {!tracker.spectraDisabled && !props.muted && !props.deafened ? (
+          {muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
+          {deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
+          {!tracker.spectraDisabled && !muted && !deafened ? (
             <Spectrum
               className="spectrogram"
               width={40}
               height={40}
-              audioContext={props.audioContext}
+              audioContext={audioContext}
               ref={spectrumRefCallback}
             />
           ) : null}
@@ -175,33 +190,33 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
   const callerCount = tracker.participants.length;
   const others = nonSelfParticipants();
 
-  const callersHeaderIcon = props.callersExpanded ? faCaretDown : faCaretRight;
+  const callersHeaderIcon = callersExpanded ? faCaretDown : faCaretRight;
 
   return (
     <>
       <div className="av-actions">
         <Button
-          variant={props.muted ? 'secondary' : 'light'}
+          variant={muted ? 'secondary' : 'light'}
           size="sm"
           onClick={toggleMuted}
         >
-          {props.muted ? 'unmute' : 'mute self'}
+          {muted ? 'unmute' : 'mute self'}
         </Button>
         <Button
-          variant={props.deafened ? 'secondary' : 'light'}
+          variant={deafened ? 'secondary' : 'light'}
           size="sm"
           onClick={toggleDeafened}
         >
-          {props.deafened ? 'undeafen' : 'deafen self'}
+          {deafened ? 'undeafen' : 'deafen self'}
         </Button>
         <Button variant="danger" size="sm" onClick={leaveCall}>leave call</Button>
       </div>
       <div className="chatter-subsection av-chatters">
-        <header onClick={props.onToggleCallersExpanded}>
+        <header onClick={onToggleCallersExpanded}>
           <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
           {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
         </header>
-        <div className={classnames('people-list', { collapsed: !props.callersExpanded })}>
+        <div className={classnames('people-list', { collapsed: !callersExpanded })}>
           {selfBox}
           {tracker.signalsReady && tracker.selfParticipant && others.map((p) => {
             return (
@@ -210,9 +225,9 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
                 rtcConfig={tracker.rtcConfig!}
                 selfParticipant={tracker.selfParticipant!}
                 peerParticipant={p}
-                localStream={props.localStream}
-                audioContext={props.audioContext}
-                deafened={props.deafened}
+                localStream={localStream}
+                audioContext={audioContext}
+                deafened={deafened}
               />
             );
           })}

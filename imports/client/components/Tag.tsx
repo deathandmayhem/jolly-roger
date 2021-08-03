@@ -103,37 +103,40 @@ const Tag = (props: TagProps) => {
     return () => {
       window.removeEventListener('blur', doHidePopover);
     };
-  }, []);
+  }, [doHidePopover]);
 
-  const onRemove = useCallback(() => {
-    if (props.onRemove) {
-      props.onRemove(props.tag._id);
+  const { onRemove, tag } = props;
+  const onRemoveCb = useCallback(() => {
+    if (onRemove) {
+      onRemove(tag._id);
     }
-  }, [props.onRemove, props.tag._id]);
+  }, [onRemove, tag._id]);
 
+  const allTagsIfPresent = props.popoverRelated ? props.allTags : undefined;
+  const allPuzzlesIfPresent = props.popoverRelated ? props.allPuzzles : undefined;
   const getRelatedPuzzles = useCallback(() => {
     if (!props.popoverRelated) {
       return [];
     }
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
-    const sharedTag = props.allTags.find((t) => t.name === sharedTagName);
+    const sharedTag = allTagsIfPresent!.find((t) => t.name === sharedTagName);
     return sharedTag ?
-      props.allPuzzles.filter((p) => p.tags.indexOf(sharedTag._id) !== -1) :
+      allPuzzlesIfPresent!.filter((p) => p.tags.indexOf(sharedTag._id) !== -1) :
       [];
   }, [
     props.popoverRelated,
     props.tag.name,
-    (props.popoverRelated ? props.allTags : undefined),
-    (props.popoverRelated ? props.allPuzzles : undefined),
+    allTagsIfPresent,
+    allPuzzlesIfPresent,
   ]);
 
   const copyRelatedPuzzlesToClipboard = useCallback(() => {
     if (!props.popoverRelated) {
       return;
     }
-    const tagIndex = _.indexBy(props.allTags, '_id');
+    const tagIndex = _.indexBy(allTagsIfPresent!, '_id');
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
-    const sharedTag = props.allTags.find((t) => t.name === sharedTagName);
+    const sharedTag = allTagsIfPresent!.find((t) => t.name === sharedTagName);
     const relatedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
       getRelatedPuzzles(),
       sharedTag,
@@ -151,7 +154,7 @@ const Tag = (props: TagProps) => {
   }, [
     props.popoverRelated,
     props.tag.name,
-    (props.popoverRelated ? props.allTags : undefined),
+    allTagsIfPresent,
     getRelatedPuzzles,
   ]);
 
@@ -204,7 +207,7 @@ const Tag = (props: TagProps) => {
     <div className={classNames}>
       {title}
       {props.onRemove && (
-        <Button className="tag-remove-button" variant="danger" onClick={onRemove}>
+        <Button className="tag-remove-button" variant="danger" onClick={onRemoveCb}>
           <FontAwesomeIcon icon={faTimes} />
         </Button>
       )}

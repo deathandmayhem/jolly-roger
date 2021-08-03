@@ -440,7 +440,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
       // Stop any tracks that might be running.
       stopTracks(audioState.rawMediaSource);
     };
-  }, []);
+  }, [audioState.rawMediaSource]);
 
   if (!ready) {
     return null;

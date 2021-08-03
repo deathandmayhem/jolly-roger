@@ -1590,13 +1590,16 @@ interface CircuitBreakerControlProps {
 }
 
 const CircuitBreakerControl = (props: CircuitBreakerControlProps) => {
-  const onChange = useCallback(() => {
-    const desiredState = !props.featureDisabled;
-    props.onChange(desiredState);
-  }, [props.onChange, props.featureDisabled]);
+  const {
+    featureDisabled, title, children, onChange,
+  } = props;
+  const onChangeCb = useCallback(() => {
+    const desiredState = !featureDisabled;
+    onChange(desiredState);
+  }, [onChange, featureDisabled]);
 
   // Is the feature that this circuit breaker disables currently available?
-  const featureIsEnabled = !props.featureDisabled;
+  const featureIsEnabled = !featureDisabled;
   const firstButtonLabel = featureIsEnabled ? 'Enabled' : 'Enable';
   const secondButtonLabel = featureIsEnabled ? 'Disable' : 'Disabled';
 
@@ -1604,19 +1607,19 @@ const CircuitBreakerControl = (props: CircuitBreakerControlProps) => {
     <div className="circuit-breaker">
       <div className="circuit-breaker-row">
         <div className="circuit-breaker-label">
-          {props.title}
+          {title}
         </div>
         <div className="circuit-breaker-buttons">
-          <Button variant="light" disabled={featureIsEnabled} onClick={onChange}>
+          <Button variant="light" disabled={featureIsEnabled} onClick={onChangeCb}>
             {firstButtonLabel}
           </Button>
-          <Button variant="light" disabled={!featureIsEnabled} onClick={onChange}>
+          <Button variant="light" disabled={!featureIsEnabled} onClick={onChangeCb}>
             {secondButtonLabel}
           </Button>
         </div>
       </div>
       <div className="circuit-breaker-description">
-        {props.children}
+        {children}
       </div>
     </div>
   );

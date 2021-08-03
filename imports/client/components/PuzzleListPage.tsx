@@ -108,7 +108,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
 
   const onSearchStringChange: FormControlProps['onChange'] = useCallback((e) => {
     setSearchString(e.currentTarget.value);
-  }, []);
+  }, [setSearchString]);
 
   const compileMatcher = useCallback((searchKeys: string[]): (p: PuzzleType) => boolean => {
     const tagNames: Record<string, string> = {};
@@ -169,7 +169,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
 
   const clearSearch = useCallback(() => {
     setSearchString('');
-  }, []);
+  }, [setSearchString]);
 
   const switchView = useCallback((newMode: 'group' | 'unlock') => {
     setDisplayMode(newMode);

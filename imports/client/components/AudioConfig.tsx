@@ -133,7 +133,7 @@ const AudioConfig = () => {
     setStatus(AudioConfigStatus.IDLE);
     setStream(undefined);
     setLoopback(false);
-  }, []);
+  }, [stream]);
 
   const toggleLoopback = useCallback(() => {
     setLoopback((prevLoopback) => !prevLoopback);
@@ -143,7 +143,7 @@ const AudioConfig = () => {
     if (spectrum) {
       spectrum.connect(stream!);
     }
-  }, []);
+  }, [stream]);
 
   return (
     <section className="audio-self-test-section">

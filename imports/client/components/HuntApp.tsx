@@ -128,7 +128,9 @@ interface HuntAppTracker {
 const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
 
-  const { huntId } = props.match.params;
+  const { match } = props;
+  const { path } = match;
+  const { huntId } = match.params;
   const tracker = useTracker<HuntAppTracker>(() => {
     const userHandle = Meteor.subscribe('selfHuntMembership');
     // Subscribe to deleted and non-deleted hunts separately so that we can reuse
@@ -179,7 +181,6 @@ const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
       return <HuntMemberError hunt={tracker.hunt} canJoin={tracker.canJoin} />;
     }
 
-    const { path } = props.match;
     return (
       <Route path="/">
         <Switch>
@@ -199,7 +200,8 @@ const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
       </Route>
     );
   }, [
-    tracker.ready, tracker.hunt, tracker.canUndestroy, tracker.canJoin, props.match.path, huntId,
+    tracker.ready, tracker.member, tracker.hunt, tracker.canUndestroy, tracker.canJoin, path,
+    huntId,
   ]);
 
   return (

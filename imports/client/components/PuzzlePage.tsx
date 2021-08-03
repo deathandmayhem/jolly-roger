@@ -262,6 +262,8 @@ const ChatInput = React.memo((props: ChatInputProps) => {
   const [text, setText] = useState<string>('');
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
+  const { onHeightChange, onMessageSent, puzzleId } = props;
+
   const onInputChanged = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
   }, []);
@@ -271,13 +273,13 @@ const ChatInput = React.memo((props: ChatInputProps) => {
       textAreaRef.current.focus();
     }
     if (text) {
-      Meteor.call('sendChatMessage', props.puzzleId, text);
+      Meteor.call('sendChatMessage', puzzleId, text);
       setText('');
-      if (props.onMessageSent) {
-        props.onMessageSent();
+      if (onMessageSent) {
+        onMessageSent();
       }
     }
-  }, [text, props.puzzleId, props.onMessageSent]);
+  }, [text, puzzleId, onMessageSent]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -286,11 +288,11 @@ const ChatInput = React.memo((props: ChatInputProps) => {
     }
   }, [sendMessageIfHasText]);
 
-  const onHeightChange = useCallback((newHeight: number) => {
-    if (props.onHeightChange) {
-      props.onHeightChange(newHeight);
+  const onHeightChangeCb = useCallback((newHeight: number) => {
+    if (onHeightChange) {
+      onHeightChange(newHeight);
     }
-  }, [props.onHeightChange]);
+  }, [onHeightChange]);
 
   return (
     <div className="chat-input-row">
@@ -304,7 +306,7 @@ const ChatInput = React.memo((props: ChatInputProps) => {
         value={text}
         onChange={onInputChanged}
         onKeyDown={onKeyDown}
-        onHeightChange={onHeightChange}
+        onHeightChange={onHeightChangeCb}
         placeholder="Chat"
       />
       <Button
@@ -1030,7 +1032,7 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
     return () => {
       window.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [onResize]);
 
   useEffect(() => {
     Meteor.call('ensureDocumentAndPermissions', props.match.params.puzzleId);

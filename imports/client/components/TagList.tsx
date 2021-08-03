@@ -75,14 +75,16 @@ const TagList = React.memo((props: TagListProps) => {
   const [editing, setEditing] = useState<boolean>(false);
   const [removing, setRemoving] = useState<boolean>(false);
 
+  const { onCreateTag, onRemoveTag } = props;
+
   const submitTag = useCallback((newTagName: string) => {
     // TODO: submitTag should use the value passed in from the child, which may have done some
     // autocomplete matching that this component doesn't know about.
-    if (props.onCreateTag) {
-      props.onCreateTag(newTagName);
+    if (onCreateTag) {
+      onCreateTag(newTagName);
     }
     setEditing(false);
-  }, [props.onCreateTag]);
+  }, [onCreateTag]);
 
   const startEditing = useCallback(() => {
     setEditing(true);
@@ -101,10 +103,10 @@ const TagList = React.memo((props: TagListProps) => {
   }, []);
 
   const removeTag = useCallback((tagIdToRemove: string) => {
-    if (props.onRemoveTag) {
-      props.onRemoveTag(tagIdToRemove);
+    if (onRemoveTag) {
+      onRemoveTag(tagIdToRemove);
     }
-  }, [props.onRemoveTag]);
+  }, [onRemoveTag]);
 
   const showControls = props.showControls ?? true;
   const emptyMessage = props.emptyMessage ?? '';
@@ -150,10 +152,10 @@ const TagList = React.memo((props: TagListProps) => {
         Done removing
       </Button>
     );
-  } else if (showControls && (props.onCreateTag || props.onRemoveTag)) {
+  } else if (showControls && (onCreateTag || onRemoveTag)) {
     components.push(
       <ButtonGroup key="editRemoveGroup">
-        {props.onCreateTag && (
+        {onCreateTag && (
           <Button
             variant="secondary"
             title="Add tag..."
@@ -164,7 +166,7 @@ const TagList = React.memo((props: TagListProps) => {
             <FontAwesomeIcon fixedWidth icon={faPlus} />
           </Button>
         )}
-        {props.onRemoveTag && tags.length > 0 && (
+        {onRemoveTag && tags.length > 0 && (
           <Button
             variant="secondary"
             title="Remove tag..."

@@ -258,7 +258,7 @@ const SplitPanePlusHook = (props: SplitPanePlusProps) => {
         erd.uninstall(node);
       }
     };
-  }, []);
+  }, [onResize, preventDefault, resizerNode, splitPaneNode]);
 
   const onChange = useCallback((newSize: number) => {
     // Setting dragInProgress in onDragStarted creates a frame of strangeness

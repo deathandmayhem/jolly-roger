@@ -5,7 +5,7 @@ import { faVolumeMute } from '@fortawesome/free-solid-svg-icons/faVolumeMute';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React, {
-  useCallback, useEffect, useRef, useState,
+  useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -35,14 +35,23 @@ interface CallLinkBoxTracker {
 }
 
 const CallLinkBox = (props: CallLinkBoxProps) => {
+  const {
+    rtcConfig: rtcConfigProps,
+    selfParticipant,
+    peerParticipant,
+    localStream,
+    audioContext,
+    deafened,
+  } = props;
+
   const tracker = useTracker<CallLinkBoxTracker>(() => {
     const signal = CallSignals.findOne({
-      sender: props.peerParticipant._id,
-      target: props.selfParticipant._id,
+      sender: peerParticipant._id,
+      target: selfParticipant._id,
     });
 
     // Subscription for Profiles is provided by ChatPeople.
-    const peerProfile = Profiles.findOne(props.peerParticipant.createdBy);
+    const peerProfile = Profiles.findOne(peerParticipant.createdBy);
     const spectraDisabled = Flags.active('disable.spectra');
 
     return {
@@ -50,7 +59,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
       peerProfile,
       spectraDisabled,
     };
-  }, [props.selfParticipant, props.peerParticipant]);
+  }, [selfParticipant, peerParticipant]);
 
   const [iceConnectionState, setIceConnectionState] = useState<RTCIceConnectionState>('new');
   const audioRef = useRef<HTMLVideoElement | null>(null);
@@ -59,31 +68,33 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
   const remoteStream = useRef<MediaStream>(new MediaStream());
   const prevSignalsProcessed = useRef<number>(0);
 
-  const { username, credential, urls } = props.rtcConfig;
-  const rtcConfig = {
-    iceServers: [
-      {
-        username,
-        credential,
-        urls,
-      },
-    ],
-  };
+  const { username, credential, urls } = rtcConfigProps;
+  const rtcConfig = useMemo(() => {
+    return {
+      iceServers: [
+        {
+          username,
+          credential,
+          urls,
+        },
+      ],
+    };
+  }, [username, credential, urls]);
 
-  const isInitiator = props.selfParticipant._id < props.peerParticipant._id;
+  const isInitiator = selfParticipant._id < peerParticipant._id;
 
   const peerConnectionRef = useRef<RTCPeerConnection | undefined>(undefined);
-  const getPeerConnection = (): RTCPeerConnection => {
+  const getPeerConnection = useCallback((): RTCPeerConnection => {
     if (!peerConnectionRef.current) {
       peerConnectionRef.current = new RTCPeerConnection(rtcConfig);
     }
     return peerConnectionRef.current;
-  };
+  }, [rtcConfig]);
 
-  const log = (...args: any) => {
+  const log = useCallback((...args: any) => {
     // eslint-disable-next-line no-console
-    console.log(props.peerParticipant._id, ...args);
-  };
+    console.log(peerParticipant._id, ...args);
+  }, [peerParticipant._id]);
 
   const onAnswerCreated = useCallback((answer: RTCSessionDescriptionInit) => {
     // log('onAnswerCreated', answer);
@@ -92,12 +103,12 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
       type: answer.type,
       sdp: answer.sdp,
     };
-    Meteor.call('signalPeer', props.selfParticipant._id, props.peerParticipant._id, { type: 'sdp', content: JSON.stringify(answerObj) });
-  }, [props.selfParticipant._id, props.peerParticipant._id]);
+    Meteor.call('signalPeer', selfParticipant._id, peerParticipant._id, { type: 'sdp', content: JSON.stringify(answerObj) });
+  }, [selfParticipant._id, peerParticipant._id, getPeerConnection]);
 
   const onAnswerCreatedFailure = useCallback((err: DOMException) => {
     log('onAnswerCreatedFailure', err);
-  }, []);
+  }, [log]);
 
   const onRemoteDescriptionSet = useCallback(() => {
     // log('remoteDescriptionSet');
@@ -107,11 +118,11 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
         .then(onAnswerCreated)
         .catch(onAnswerCreatedFailure);
     }
-  }, [onAnswerCreated]);
+  }, [isInitiator, getPeerConnection, onAnswerCreated, onAnswerCreatedFailure]);
 
   const onRemoteDescriptionSetFailure = useCallback((err: Error) => {
     log('remoteDescriptionSetFailure', err);
-  }, []);
+  }, [log]);
 
   const handleSignal = useCallback((message: CallSignalMessageType) => {
     const pc = getPeerConnection();
@@ -137,14 +148,14 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     } else {
       log('dunno what this message is:', message);
     }
-  }, [onRemoteDescriptionSet, onRemoteDescriptionSetFailure]);
+  }, [onRemoteDescriptionSet, onRemoteDescriptionSetFailure, getPeerConnection, log]);
 
   const processSignalMessages = useCallback((
     messages: CallSignalMessageType[], previouslyProcessed: number
   ) => {
     const len = messages.length;
     for (let i = previouslyProcessed; i < len; i++) {
-      // log(`signal ${i}: ${JSON.stringify(this.props.signal.messages[i])}`);
+      // log(`signal ${i}: ${JSON.stringify(messages[i])}`);
       handleSignal(messages[i]);
     }
   }, [handleSignal]);
@@ -156,16 +167,16 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     }
 
     Meteor.call('signalPeer',
-      props.selfParticipant._id,
-      props.peerParticipant._id,
+      selfParticipant._id,
+      peerParticipant._id,
       { type: 'iceCandidate', content: JSON.stringify(iceCandidate) });
-  }, [props.selfParticipant._id, props.peerParticipant._id]);
+  }, [selfParticipant._id, peerParticipant._id, log]);
 
   const onIceConnectionStateChange = useCallback((_e: Event) => {
     // log('new ice connection state change:');
     // log(e);
     setIceConnectionState(getPeerConnection().iceConnectionState);
-  }, []);
+  }, [getPeerConnection]);
 
   const connectSpectrogramIfReady = useCallback(() => {
     // Connect the stream to the spectrogram if ready.
@@ -196,7 +207,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     if (audioRef.current) {
       audioRef.current.srcObject = remoteStream.current;
     }
-  }, []);
+  }, [connectSpectrogramIfReady, log]);
 
   const onLocalOfferCreated = useCallback((offer: RTCSessionDescriptionInit) => {
     // log('onLocalOfferCreated');
@@ -206,8 +217,8 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
       type: offer.type,
       sdp: offer.sdp,
     };
-    Meteor.call('signalPeer', props.selfParticipant._id, props.peerParticipant._id, { type: 'sdp', content: JSON.stringify(offerObj) });
-  }, [props.selfParticipant._id, props.peerParticipant._id]);
+    Meteor.call('signalPeer', selfParticipant._id, peerParticipant._id, { type: 'sdp', content: JSON.stringify(offerObj) });
+  }, [selfParticipant._id, peerParticipant._id, getPeerConnection]);
 
   const onNegotiationNeeded = useCallback((_e: Event) => {
     // If we're the initiator, get the ball rolling.  Create an
@@ -225,7 +236,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     }
 
     // log('negotiationNeeded', e);
-  }, [isInitiator, onLocalOfferCreated]);
+  }, [isInitiator, getPeerConnection, onLocalOfferCreated]);
 
   useEffect(() => {
     const pc = getPeerConnection();
@@ -233,7 +244,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     return () => {
       pc.removeEventListener('icecandidate', onNewLocalCandidate);
     };
-  }, [onNewLocalCandidate]);
+  }, [getPeerConnection, onNewLocalCandidate]);
 
   useEffect(() => {
     const pc = getPeerConnection();
@@ -243,7 +254,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     return () => {
       pc.removeEventListener('iceconnectionstatechange', onIceConnectionStateChange);
     };
-  }, [onIceConnectionStateChange]);
+  }, [getPeerConnection, onIceConnectionStateChange]);
 
   useEffect(() => {
     const pc = getPeerConnection();
@@ -251,7 +262,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     return () => {
       pc.removeEventListener('track', onNewRemoteTrack);
     };
-  }, [onNewRemoteTrack]);
+  }, [getPeerConnection, onNewRemoteTrack]);
 
   useEffect(() => {
     const pc = getPeerConnection();
@@ -259,7 +270,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     return () => {
       pc.removeEventListener('negotiationneeded', onNegotiationNeeded);
     };
-  }, [onNegotiationNeeded]);
+  }, [getPeerConnection, onNegotiationNeeded]);
 
   useEffect(() => {
     // If tracker.signal.messages changes, process any new messages we got.
@@ -269,12 +280,12 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
       // And save our index in the signals array, so we pick up where we left off.
       prevSignalsProcessed.current = tracker.signal.messages.length;
     }
-  }, [tracker.signal]);
+  }, [tracker.signal, processSignalMessages]);
 
-  const showSpectrum = !tracker.spectraDisabled && !props.peerParticipant.muted;
+  const showSpectrum = !tracker.spectraDisabled && !peerParticipant.muted;
   useEffect(() => {
     connectSpectrogramIfReady();
-  }, [showSpectrum]);
+  }, [connectSpectrogramIfReady, showSpectrum]);
 
   const spectrumRefCallback = useCallback((spectrum) => {
     spectrumRef.current = spectrum;
@@ -288,10 +299,10 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     const pc = getPeerConnection();
 
     // Add stream to RTCPeerConnection for self.
-    const tracks = props.localStream.getTracks();
+    const tracks = localStream.getTracks();
     for (let i = 0; i < tracks.length; i++) {
       const track = tracks[i];
-      // log(track, props.localStream);
+      // log(track, localStream);
       pc.addTrack(track);
     }
 
@@ -299,18 +310,18 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     return () => {
       pc.close();
     };
-  }, []);
+  }, [getPeerConnection, localStream]);
 
   const name = (tracker.peerProfile && tracker.peerProfile.displayName) || 'no profile wat';
   const discordAccount = tracker.peerProfile && tracker.peerProfile.discordAccount;
   const discordAvatarUrl = discordAccount ? getAvatarCdnUrl(discordAccount) : undefined;
   return (
     <OverlayTrigger
-      key={`viewer-${props.peerParticipant._id}`}
+      key={`viewer-${peerParticipant._id}`}
       placement="right"
       overlay={(
         <Tooltip
-          id={`caller-${props.peerParticipant._id}`}
+          id={`caller-${peerParticipant._id}`}
           className="chatter-tooltip"
         >
           <div>{name}</div>
@@ -319,19 +330,19 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
             {' '}
             {iceConnectionState}
           </div>
-          {props.peerParticipant.muted &&
+          {peerParticipant.muted &&
             <div>Muted (no one can hear them)</div>}
-          {props.peerParticipant.deafened &&
+          {peerParticipant.deafened &&
             <div>Deafened (they can&apos;t hear anyone)</div>}
         </Tooltip>
       )}
     >
       <div
-        key={`viewer-${props.peerParticipant._id}`}
+        key={`viewer-${peerParticipant._id}`}
         className={classnames('people-item', {
-          muted: props.peerParticipant.muted,
-          deafened: props.peerParticipant.deafened,
-          live: !props.peerParticipant.muted && !props.peerParticipant.deafened,
+          muted: peerParticipant.muted,
+          deafened: peerParticipant.deafened,
+          live: !peerParticipant.muted && !peerParticipant.deafened,
         })}
       >
         {discordAvatarUrl ? (
@@ -344,20 +355,20 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
           <span className="initial">{name.slice(0, 1)}</span>
         )}
         <div className="webrtc">
-          {props.peerParticipant.muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
-          {props.peerParticipant.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
+          {peerParticipant.muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
+          {peerParticipant.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
           {showSpectrum ? (
             <Spectrum
               className="spectrogram"
               width={40}
               height={40}
-              audioContext={props.audioContext}
+              audioContext={audioContext}
               ref={spectrumRefCallback}
             />
           ) : null}
           <span className={`connection ${iceConnectionState}`} />
         </div>
-        <audio ref={audioRef} className="audio-sink" autoPlay playsInline muted={props.deafened} />
+        <audio ref={audioRef} className="audio-sink" autoPlay playsInline muted={deafened} />
       </div>
     </OverlayTrigger>
   );

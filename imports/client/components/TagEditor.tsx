@@ -22,11 +22,12 @@ const TagEditor = (props: TagEditorProps) => {
     };
   }, [props.puzzle.hunt]);
 
+  const { onCancel } = props;
   const onBlur = useCallback(() => {
     // Treat blur as "no I didn't mean to do that".  We may have to change this
     // once we have autocomplete .
-    props.onCancel();
-  }, [props.onCancel]);
+    onCancel();
+  }, [onCancel]);
 
   const options = tracker.allTags
     .map((t) => t.name)

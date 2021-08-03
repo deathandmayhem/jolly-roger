@@ -71,21 +71,25 @@ interface GuessMessageProps {
 }
 
 const GuessMessage = React.memo((props: GuessMessageProps) => {
+  const {
+    guess, puzzle, hunt, guesser, onDismiss,
+  } = props;
+
   const markCorrect = useCallback(() => {
-    Meteor.call('markGuessCorrect', props.guess._id);
-  }, [props.guess._id]);
+    Meteor.call('markGuessCorrect', guess._id);
+  }, [guess._id]);
 
   const markIncorrect = useCallback(() => {
-    Meteor.call('markGuessIncorrect', props.guess._id);
-  }, [props.guess._id]);
+    Meteor.call('markGuessIncorrect', guess._id);
+  }, [guess._id]);
 
   const markRejected = useCallback(() => {
-    Meteor.call('markGuessRejected', props.guess._id);
-  }, [props.guess._id]);
+    Meteor.call('markGuessRejected', guess._id);
+  }, [guess._id]);
 
   const dismissGuess = useCallback(() => {
-    props.onDismiss(props.guess._id);
-  }, [props.onDismiss, props.guess._id]);
+    onDismiss(guess._id);
+  }, [onDismiss, guess._id]);
 
   const directionTooltip = (
     <Tooltip id="direction-tooltip">
@@ -113,7 +117,7 @@ const GuessMessage = React.memo((props: GuessMessageProps) => {
     </Tooltip>
   );
 
-  const linkTarget = `/hunts/${props.puzzle.hunt}/puzzles/${props.puzzle._id}`;
+  const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
 
   return (
     <li>
@@ -122,21 +126,21 @@ const GuessMessage = React.memo((props: GuessMessageProps) => {
         <div>
           Guess for
           {' '}
-          {props.puzzle.title}
+          {puzzle.title}
           {' '}
           from
           {' '}
-          <span className="breakable">{props.guesser}</span>
+          <span className="breakable">{guesser}</span>
           :
           {' '}
-          <span className="breakable">{props.guess.guess}</span>
+          <span className="breakable">{guess.guess}</span>
         </div>
         <div>
           <OverlayTrigger placement="bottom" overlay={directionTooltip}>
             <span>
               Solve direction:
               {' '}
-              {props.guess.direction}
+              {guess.direction}
             </span>
           </OverlayTrigger>
         </div>
@@ -145,7 +149,7 @@ const GuessMessage = React.memo((props: GuessMessageProps) => {
             <span>
               Confidence:
               {' '}
-              {props.guess.confidence}
+              {guess.confidence}
               %
             </span>
           </OverlayTrigger>
@@ -153,7 +157,7 @@ const GuessMessage = React.memo((props: GuessMessageProps) => {
         <ul className="actions">
           <li>
             <OverlayTrigger placement="top" overlay={copyTooltip}>
-              <CopyToClipboard text={props.guess.guess}>
+              <CopyToClipboard text={guess.guess}>
                 <button type="button" aria-label="Copy"><FontAwesomeIcon icon={faCopy} /></button>
               </CopyToClipboard>
             </OverlayTrigger>
@@ -165,7 +169,7 @@ const GuessMessage = React.memo((props: GuessMessageProps) => {
           </li>
           <li>
             <OverlayTrigger placement="top" overlay={extLinkTooltip}>
-              <a href={guessURL(props.hunt, props.puzzle)} target="_blank" rel="noopener noreferrer">
+              <a href={guessURL(hunt, puzzle)} target="_blank" rel="noopener noreferrer">
                 <FontAwesomeIcon icon={faPuzzlePiece} />
               </a>
             </OverlayTrigger>

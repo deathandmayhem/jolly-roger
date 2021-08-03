@@ -43,16 +43,17 @@ const ModalForm = React.forwardRef((
     };
   }, []);
 
+  const { onSubmit } = props;
   const submit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    props.onSubmit(() => {
+    onSubmit(() => {
       // For delete forms, it's possible that the component gets
       // deleted and unmounted before the callback gets called.
       if (!dontTryToHide.current) {
         hide();
       }
     });
-  }, [props.onSubmit, hide]);
+  }, [onSubmit, hide]);
 
   const submitLabel = props.submitLabel || 'Save';
   const submitStyle = props.submitStyle || 'primary';

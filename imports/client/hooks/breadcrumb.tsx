@@ -143,14 +143,18 @@ function useBreadcrumb(crumb: Crumb): void {
   const crumbId = useRef<string | null>(null);
   const firstRender = useRef<boolean>(true);
 
+  const {
+    addCrumb, removeCrumb, updateCrumb, flushUpdates,
+  } = ctx;
+
   useImmediateEffect(() => {
-    crumbId.current = ctx.addCrumb(crumb);
+    crumbId.current = addCrumb(crumb);
     // console.log(`mount ${crumbId.current}`);
 
     return () => {
       if (crumbId.current) {
         // console.log(`unmount ${crumbId.current}`);
-        ctx.removeCrumb(crumbId.current);
+        removeCrumb(crumbId.current);
         crumbId.current = null;
       }
     };
@@ -162,16 +166,16 @@ function useBreadcrumb(crumb: Crumb): void {
       // On first render, trigger a flush of the crumbs, since `addCrumb` has
       // to run immediately (to preserve breadcrumb mount order), but the
       // setState it will trigger can't run during the render phase.
-      ctx.flushUpdates();
+      flushUpdates();
     }
-  }, []);
+  }, [flushUpdates]);
 
   useEffect(() => {
     if (crumbId.current) {
       // console.log(`update ${crumbId.current}`);
-      ctx.updateCrumb(crumbId.current, crumb);
+      updateCrumb(crumbId.current, crumb);
     }
-  }, [crumb.title, crumb.path]);
+  }, [updateCrumb, crumb]);
 }
 
 const useBreadcrumbItems = () => {

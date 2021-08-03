@@ -62,11 +62,13 @@ interface LabelledRadioGroupProps {
 const LabelledRadioGroup = (props: LabelledRadioGroupProps) => {
   const [value, setValue] = useState<string>(props.initialValue);
 
+  const { onChange } = props;
+
   const onValueChanged = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const v = event.target.value;
     setValue(v);
-    props.onChange(v);
-  }, [props.onChange]);
+    onChange(v);
+  }, [onChange]);
 
   const buttons = props.options.map((option, index) => {
     return (

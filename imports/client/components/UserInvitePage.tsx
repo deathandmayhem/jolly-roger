@@ -47,7 +47,7 @@ const UserInvitePage = (props: RouteComponentProps<UserInvitePageParams>) => {
     setSubmitting(true);
     Meteor.call('addToHunt', huntId, email, (inviteError?: Meteor.Error) => {
       setSubmitting(false);
-      if (error) {
+      if (inviteError) {
         setError(inviteError);
       } else {
         props.history.push(`/hunts/${huntId}`);
@@ -62,7 +62,7 @@ const UserInvitePage = (props: RouteComponentProps<UserInvitePageParams>) => {
     const emails = bulkEmails.split('\n');
     Meteor.call('bulkAddToHunt', huntId, emails, (bulkInviteError?: Meteor.Error) => {
       setSubmitting(false);
-      if (error) {
+      if (bulkInviteError) {
         setBulkError(bulkInviteError);
       } else {
         setBulkEmails('');

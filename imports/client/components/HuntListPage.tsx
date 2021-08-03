@@ -52,16 +52,19 @@ interface DiscordSelectorProps extends DiscordSelectorParams {
 }
 
 const DiscordSelector = (props: DiscordSelectorProps) => {
+  const {
+    disable, value, onChange, ready, options,
+  } = props;
   const onValueChanged: FormControlProps['onChange'] = useCallback((e) => {
     if (e.currentTarget.value === 'empty') {
-      props.onChange(undefined);
+      onChange(undefined);
     } else {
-      const match = props.options.find((obj) => { return obj.id === e.currentTarget.value; });
+      const match = options.find((obj) => { return obj.id === e.currentTarget.value; });
       if (match) {
-        props.onChange(match);
+        onChange(match);
       }
     }
-  }, [props.onChange, props.options]);
+  }, [onChange, options]);
 
   const formOptions = useCallback((): SavedDiscordObjectType[] => {
     // List of the options.  Be sure to include the saved option if it's (for
@@ -71,17 +74,17 @@ const DiscordSelector = (props: DiscordSelectorProps) => {
       name: 'disabled',
     } as SavedDiscordObjectType;
 
-    if (props.value) {
-      if (!props.options.find((opt) => {
-        return opt.id === props.value!.id;
+    if (value) {
+      if (!options.find((opt) => {
+        return opt.id === value!.id;
       })) {
-        return [noneOption, props.value, ...props.options];
+        return [noneOption, value, ...options];
       }
     }
-    return [noneOption, ...props.options];
-  }, [props.value, props.options]);
+    return [noneOption, ...options];
+  }, [value, options]);
 
-  if (!props.ready) {
+  if (!ready) {
     return <div>Loading discord resources...</div>;
   } else {
     return (
@@ -90,8 +93,8 @@ const DiscordSelector = (props: DiscordSelectorProps) => {
         as="select"
         type="text"
         placeholder=""
-        value={props.value && props.value.id}
-        disabled={props.disable}
+        value={value && value.id}
+        disabled={disable}
         onChange={onValueChanged}
       >
         {formOptions().map(({ id, name }) => {
