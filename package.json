@@ -34,7 +34,7 @@
     "lru-cache": "^6.0.0",
     "marked": "^0.7.0",
     "md5": "^2.3.0",
-    "meteor-node-stubs": "^1.0.1",
+    "meteor-node-stubs": "^1.1.0",
     "mime-types": "^2.1.29",
     "moment": "^2.29.0",
     "monocle-ts": "^2.3.3",
