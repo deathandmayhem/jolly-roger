@@ -5,9 +5,6 @@ import '../imports/lib/config/accounts';
 // register actions and roles
 import '../imports/lib/roles';
 
-// Configure marked
-import '../imports/client/marked';
-
 // explicitly import all the stuff from client/
 import '../imports/client/main';
 import '../imports/client/close';

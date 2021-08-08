@@ -2,8 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import DOMPurify from 'dompurify';
-import marked from 'marked';
 import React, { useCallback, useMemo } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -16,6 +14,7 @@ import Hunts from '../../lib/models/hunts';
 import { HuntType } from '../../lib/schemas/hunts';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/use-document-title';
+import markdown from '../markdown';
 import AnnouncementsPage from './AnnouncementsPage';
 import CelebrationCenter from './CelebrationCenter';
 import GuessQueuePage from './GuessQueuePage';
@@ -89,7 +88,7 @@ const HuntMemberError = React.memo((props: HuntMemberErrorProps) => {
 
   const history = useHistory();
 
-  const msg = marked(DOMPurify.sanitize(props.hunt.signupMessage || ''));
+  const msg = markdown(props.hunt.signupMessage || '');
   return (
     <div>
       <Alert variant="warning">

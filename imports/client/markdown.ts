@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import marked from 'marked';
 
 (marked.InlineLexer.rules.gfm as marked.Rules).em = /^\b_((?:__|[^_])+?)_\b/;
@@ -11,4 +12,6 @@ const renderer = new class extends marked.Renderer {
   }
 }();
 
-marked.setOptions({ renderer });
+export default function markdown(text: string) {
+  return marked(DOMPurify.sanitize(text), { renderer });
+}

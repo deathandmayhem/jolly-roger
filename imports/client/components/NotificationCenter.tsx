@@ -8,8 +8,6 @@ import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { faSkullCrossbones } from '@fortawesome/free-solid-svg-icons/faSkullCrossbones';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
-import DOMPurify from 'dompurify';
-import marked from 'marked';
 import React, { useCallback, useState } from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -32,6 +30,7 @@ import { PendingAnnouncementType } from '../../lib/schemas/pending_announcements
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
+import markdown from '../markdown';
 
 /* eslint-disable max-len */
 
@@ -271,7 +270,7 @@ const AnnouncementMessage = React.memo((props: AnnouncementMessageProps) => {
       <MessengerContent dismissable>
         <div
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(props.announcement.message)) }}
+          dangerouslySetInnerHTML={{ __html: markdown(props.announcement.message) }}
         />
         <footer>
           {'- '}
