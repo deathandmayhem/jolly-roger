@@ -1,5 +1,5 @@
 import { Accounts } from 'meteor/accounts-base';
-import { check } from 'meteor/check';
+import { check, Match } from 'meteor/check';
 import { Email } from 'meteor/email';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
@@ -9,7 +9,7 @@ import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
-import { HuntType } from '../lib/schemas/hunts';
+import { HuntInsertFields, HuntType } from '../lib/schemas/hunts';
 import { SettingType } from '../lib/schemas/settings';
 import addUserToDiscordRole from './addUserToDiscordRole';
 import List from './blanche';
@@ -74,7 +74,96 @@ function renderExistingJoinEmail(setting: SettingType | undefined, user: Meteor.
   return Mustache.render(DEFAULT_EXISTING_JOIN_TEMPLATE, view);
 }
 
+const SavedDiscordObjectFields = {
+  id: String,
+  name: String,
+};
+
+const HuntShape = {
+  name: String,
+  mailingLists: [String],
+  signupMessage: Match.Optional(String),
+  openSignups: Boolean,
+  hasGuessQueue: Boolean,
+  submitTemplate: Match.Optional(String),
+  homepageUrl: Match.Optional(String),
+  puzzleHooksDiscordChannel: Match.Optional(SavedDiscordObjectFields),
+  firehoseDiscordChannel: Match.Optional(SavedDiscordObjectFields),
+  memberDiscordRole: Match.Optional(SavedDiscordObjectFields),
+};
+
+const checkAdmin = (userId: string) => {
+  if (!userId || !Roles.userHasRole(userId, 'admin')) {
+    throw new Meteor.Error('unauthorized', 'Must be logged in as admin');
+  }
+};
+
 Meteor.methods({
+  createHunt(value: unknown) {
+    check(this.userId, String);
+    checkAdmin(this.userId);
+    // Despite looking right to me, TS seems to trip over the [String] pattern for mailingLists.
+    // @ts-ignore Something is wrong with check's array-of-strings typing
+    check(value, HuntShape);
+
+    const huntId = Hunts.insert(value as HuntInsertFields);
+
+    // Sync discord roles
+    MeteorUsers.find({ hunts: huntId })
+      .forEach((u) => {
+        addUserToDiscordRole(u._id, huntId);
+      });
+
+    return huntId;
+  },
+
+  updateHunt(huntId: unknown, value: unknown) {
+    check(this.userId, String);
+    checkAdmin(this.userId);
+    check(huntId, String);
+    // Despite looking right to me, TS seems to trip over the [String] pattern for mailingLists.
+    // @ts-ignore Something is wrong with check's array-of-strings typing
+    check(value, HuntShape);
+
+    const typedValue = value as HuntInsertFields;
+
+    // $set will not remove keys from a document.  For that, we must specify
+    // $unset on the appropriate key(s).  Split out which keys we must set and
+    // unset to achieve the desired final state.
+    const toSet: { [key: string]: any; } = {};
+    const toUnset: { [key: string]: string; } = {};
+    Object.keys(HuntShape).forEach((key: string) => {
+      const typedKey = key as keyof typeof HuntShape;
+      if (typedValue[typedKey] === undefined) {
+        toUnset[typedKey] = '';
+      } else {
+        toSet[typedKey] = typedValue[typedKey];
+      }
+    });
+
+    Hunts.update(
+      { _id: huntId },
+      {
+        $set: toSet,
+        $unset: toUnset,
+      }
+    );
+
+    // Sync discord roles
+    MeteorUsers.find({ hunts: huntId })
+      .forEach((u) => {
+        addUserToDiscordRole(u._id, huntId);
+      });
+  },
+
+  destroyHunt(huntId: unknown) {
+    check(this.userId, String);
+    checkAdmin(this.userId);
+    check(huntId, String);
+
+    Hunts.destroy(huntId);
+  },
+
   addToHunt(huntId: unknown, email: unknown) {
     check(huntId, String);
     check(email, String);

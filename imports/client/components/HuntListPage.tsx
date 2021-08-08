@@ -522,39 +522,16 @@ const Hunt = React.memo((props: HuntProps) => {
 
   const onEdit = useCallback((state: HuntModalSubmit, callback: (error?: Error) => void) => {
     Ansible.log('Updating hunt settings', { hunt: props.hunt._id, user: Meteor.userId(), state });
-
-    // $set will not remove keys from a document.  For that, we must specify
-    // $unset on the appropriate key(s).  Split out which keys we must set and
-    // unset to achieve the desired final state.
-    const toSet: { [key: string]: any; } = {};
-    const toUnset: { [key: string]: string; } = {};
-    Object.keys(state).forEach((key: string) => {
-      const typedKey = key as keyof HuntModalSubmit;
-      if (state[typedKey] === undefined) {
-        toUnset[typedKey] = '';
-      } else {
-        toSet[typedKey] = state[typedKey];
-      }
-    });
-
-    Hunts.update(
-      { _id: props.hunt._id },
-      {
-        $set: toSet,
-        $unset: toUnset,
-      },
-      {},
-      (err: Error) => {
-        if (!err) {
-          Meteor.call('syncDiscordRole', props.hunt._id);
-        }
-        callback(err);
-      },
-    );
+    Meteor.call('updateHunt', props.hunt._id, state, callback);
   }, [props.hunt._id]);
 
   const onDelete = useCallback((callback: () => void) => {
-    Hunts.destroy(props.hunt._id, callback);
+    Meteor.call('destroyHunt', props.hunt._id, (err?: Error) => {
+      if (err) {
+        Ansible.log('Failed to destroy hunt', { hunt: props.hunt._id, user: Meteor.userId() });
+      }
+      callback();
+    });
   }, [props.hunt._id]);
 
   const showEditModal = useCallback(() => {
@@ -638,12 +615,7 @@ const HuntListPage = () => {
 
   const onAdd = useCallback((state: HuntModalSubmit, callback: (error?: Error) => void): void => {
     Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
-    Hunts.insert(state, (err: Error, id: string) => {
-      if (!err) {
-        Meteor.call('syncDiscordRole', id);
-      }
-      callback(err);
-    });
+    Meteor.call('createHunt', state, callback);
   }, []);
 
   const showAddModal = useCallback(() => {
