@@ -4,11 +4,11 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
-import moment from 'moment';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import { RouteComponentProps } from 'react-router';
+import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
 import { AnnouncementType } from '../../lib/schemas/announcements';
@@ -86,7 +86,7 @@ const Announcement = (props: AnnouncementProps) => {
   return (
     <div className="announcement">
       <div className="announcement-origin">
-        <div className="announcement-timestamp">{moment(ann.createdAt).calendar()}</div>
+        <div className="announcement-timestamp">{calendarTimeFormat(ann.createdAt)}</div>
         <div>{props.displayNames[ann.createdBy]}</div>
       </div>
       <div

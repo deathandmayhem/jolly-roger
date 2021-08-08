@@ -8,9 +8,8 @@ import '../imports/lib/models/users';
 // register actions and roles
 import '../imports/lib/roles';
 
-// Configure marked and moment
+// Configure marked
 import '../imports/client/marked';
-import '../imports/client/moment';
 
 // explicitly import all the stuff from client/
 import '../imports/client/main';
