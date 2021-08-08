@@ -2,29 +2,24 @@
 // things
 import '../imports/lib/config/accounts';
 
-// attach the users schema to Meteor.users
-import '../imports/lib/models/users';
-
 // register actions and roles
 import '../imports/lib/roles';
-
-// Configure marked
-import '../imports/client/marked';
 
 // explicitly import all the stuff from client/
 import '../imports/client/main';
 import '../imports/client/close';
 
-// Export the schemas and models facades for interaction from the console
-import ModelsFacade from '../imports/lib/models/facade';
-import SchemasFacade from '../imports/lib/schemas/facade';
-
 declare global {
   interface Window {
-    Schemas: typeof SchemasFacade;
-    Models: typeof ModelsFacade;
+    loadFacades: () => void;
   }
 }
 
-window.Schemas = SchemasFacade;
-window.Models = ModelsFacade;
+window.loadFacades = async () => {
+  const [models, schemas] = await Promise.all([
+    import('../imports/lib/models/facade'),
+    import('../imports/lib/schemas/facade'),
+  ]);
+  Object.defineProperty(window, 'Models', { value: models.default });
+  Object.defineProperty(window, 'Schemas', { value: schemas.default });
+};

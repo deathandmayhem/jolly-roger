@@ -3,6 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import Announcements from '../lib/models/announcements';
+import MeteorUsers from '../lib/models/meteor_users';
 import PendingAnnouncements from '../lib/models/pending_announcements';
 
 Meteor.methods({
@@ -19,7 +20,7 @@ Meteor.methods({
       message,
     });
 
-    Meteor.users.find({ hunts: huntId }).forEach((user) => {
+    MeteorUsers.find({ hunts: huntId }).forEach((user) => {
       PendingAnnouncements.insert({
         hunt: huntId,
         announcement: id,

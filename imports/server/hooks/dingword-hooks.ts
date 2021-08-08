@@ -1,7 +1,7 @@
-import { Meteor } from 'meteor/meteor';
 import Flags from '../../flags';
 import ChatNotifications from '../../lib/models/chat_notifications';
 import ChatMessages from '../../lib/models/chats';
+import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
 import Hookset from './hookset';
 
@@ -21,7 +21,7 @@ const DingwordHooks: Hookset = {
     }
 
     // Find all users who are in this hunt.
-    const huntMembers = Meteor.users.find({
+    const huntMembers = MeteorUsers.find({
       hunts: chatMessage.hunt,
     }, {
       fields: { _id: 1 },

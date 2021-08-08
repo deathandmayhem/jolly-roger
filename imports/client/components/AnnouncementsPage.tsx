@@ -2,8 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
-import DOMPurify from 'dompurify';
-import marked from 'marked';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -13,6 +11,7 @@ import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
 import { AnnouncementType } from '../../lib/schemas/announcements';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import markdown from '../markdown';
 
 /* eslint-disable max-len */
 
@@ -91,7 +90,7 @@ const Announcement = (props: AnnouncementProps) => {
       </div>
       <div
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(ann.message)) }}
+        dangerouslySetInnerHTML={{ __html: markdown(ann.message) }}
       />
     </div>
   );

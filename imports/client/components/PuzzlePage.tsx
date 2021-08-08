@@ -8,8 +8,6 @@ import { faPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
-import DOMPurify from 'dompurify';
-import marked from 'marked';
 import React, {
   useCallback, useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
@@ -43,6 +41,7 @@ import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/use-document-title';
+import markdown from '../markdown';
 import ChatPeople from './ChatPeople';
 import DocumentDisplay from './Documents';
 import ModalForm, { ModalFormHandle } from './ModalForm';
@@ -122,7 +121,7 @@ const ChatMessage = React.memo((props: ChatMessageProps) => {
       {!props.suppressSender && <strong>{props.senderDisplayName}</strong>}
       <span
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: marked(DOMPurify.sanitize(props.message.text)) }}
+        dangerouslySetInnerHTML={{ __html: markdown(props.message.text) }}
       />
     </div>
   );

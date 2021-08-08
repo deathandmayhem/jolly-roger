@@ -4,6 +4,7 @@ import logfmt from 'logfmt';
 import Mustache from 'mustache';
 import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
+import MeteorUsers from '../lib/models/meteor_users';
 import Settings from '../lib/models/settings';
 import { SettingType } from '../lib/schemas/settings';
 
@@ -49,7 +50,7 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
 Accounts.onLogin((info: LoginInfo) => {
   if (!info.user || !info.user._id) throw new Meteor.Error(500, 'Something has gone horribly wrong');
   // Capture login time
-  Meteor.users.update(info.user._id, { $set: { lastLogin: new Date() } });
+  MeteorUsers.update(info.user._id, { $set: { lastLogin: new Date() } });
 
   if (info.type === 'resume') {
     return;

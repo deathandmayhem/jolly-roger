@@ -6,6 +6,7 @@ import { Roles } from 'meteor/nicolaslopezj:roles';
 import Mustache from 'mustache';
 import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
+import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
 import { HuntType } from '../lib/schemas/hunts';
@@ -90,7 +91,7 @@ Meteor.methods({
     const newUser = joineeUser === undefined;
     if (!joineeUser) {
       const joineeUserId = Accounts.createUser({ email });
-      joineeUser = Meteor.users.findOne(joineeUserId)!;
+      joineeUser = MeteorUsers.findOne(joineeUserId)!;
     }
     if (!joineeUser._id) throw new Meteor.Error(500, 'Something has gone terribly wrong');
 
@@ -108,7 +109,7 @@ Meteor.methods({
       joinee: joineeUser._id,
       hunt: huntId,
     });
-    Meteor.users.update(joineeUser._id, { $addToSet: { hunts: { $each: [huntId] } } });
+    MeteorUsers.update(joineeUser._id, { $addToSet: { hunts: { $each: [huntId] } } });
     const joineeEmails = (joineeUser.emails || []).map((e) => e.address);
 
     hunt.mailingLists.forEach((listName) => {
@@ -181,7 +182,7 @@ Meteor.methods({
 
     Roles.checkPermission(this.userId, 'discord.useBotAPIs', huntId);
 
-    Meteor.users.find({ hunts: huntId })
+    MeteorUsers.find({ hunts: huntId })
       .forEach((u) => {
         addUserToDiscordRole(u._id, huntId);
       });

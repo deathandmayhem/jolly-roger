@@ -3,6 +3,7 @@ import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
 import Ansible from '../ansible';
+import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
 import addUserToDiscordRole from './addUserToDiscordRole';
@@ -18,7 +19,7 @@ Meteor.methods({
       muteApplause: Boolean,
       dingwords: [String],
     });
-    const user = Meteor.users.findOne(this.userId)!;
+    const user = MeteorUsers.findOne(this.userId)!;
     const primaryEmail = user.emails && user.emails[0].address;
 
     Ansible.log('Updating profile for user', { user: this.userId });
@@ -74,7 +75,7 @@ Meteor.methods({
     });
 
     // Save the user's credentials to their User object, under services.discord.
-    Meteor.users.update(this.userId, {
+    MeteorUsers.update(this.userId, {
       $set: {
         'services.discord': credential.serviceData,
       },
@@ -132,7 +133,7 @@ Meteor.methods({
     // TODO: tell Discord to revoke the token?
 
     // Remove token (secret) from the user object in the database.
-    Meteor.users.update(this.userId, {
+    MeteorUsers.update(this.userId, {
       $unset: { 'services.discord': '' },
     });
 

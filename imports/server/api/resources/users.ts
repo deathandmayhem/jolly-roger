@@ -3,6 +3,7 @@ import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import express from 'express';
+import MeteorUsers from '../../../lib/models/meteor_users';
 import Profiles from '../../../lib/models/profiles';
 import { ProfileType } from '../../../lib/schemas/profiles';
 
@@ -19,7 +20,7 @@ function findUserByEmail(email: string): {
 
   const profile = Profiles.findOne({ googleAccount: email });
   if (profile) {
-    return { profile, user: Meteor.users.findOne(profile._id) };
+    return { profile, user: MeteorUsers.findOne(profile._id) };
   }
 
   const user = <Meteor.User | undefined>Accounts.findUserByEmail(email);
