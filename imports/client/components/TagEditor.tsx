@@ -1,9 +1,11 @@
 import { useTracker } from 'meteor/react-meteor-data';
-import React, { useCallback } from 'react';
-import Creatable from 'react-select/creatable';
+import React, { Suspense, useCallback } from 'react';
 import Tags from '../../lib/models/tags';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
+import Loading from './Loading';
+
+const Creatable = React.lazy(() => import('react-select/creatable'));
 
 interface TagEditorProps {
   puzzle: PuzzleType;
@@ -37,15 +39,17 @@ const TagEditor = (props: TagEditorProps) => {
     });
 
   return (
-    <span className="tag-editor">
-      <Creatable
-        options={options}
-        autoFocus
-        openMenuOnFocus
-        onChange={(v) => props.onSubmit((v as {value: string}).value)}
-        onBlur={onBlur}
-      />
-    </span>
+    <Suspense fallback={<Loading inline />}>
+      <span className="tag-editor">
+        <Creatable
+          options={options}
+          autoFocus
+          openMenuOnFocus
+          onChange={(v: typeof options[0]) => props.onSubmit((v as {value: string}).value)}
+          onBlur={onBlur}
+        />
+      </span>
+    </Suspense>
   );
 };
 
