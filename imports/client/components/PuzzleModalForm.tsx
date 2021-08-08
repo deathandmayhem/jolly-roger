@@ -1,4 +1,5 @@
 import React, {
+  Suspense,
   useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
@@ -7,11 +8,13 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
-import Creatable from 'react-select/creatable';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
 import LabelledRadioGroup from './LabelledRadioGroup';
+import Loading from './Loading';
 import ModalForm, { ModalFormHandle } from './ModalForm';
+
+const Creatable = React.lazy(() => import('react-select/creatable'));
 
 /* eslint-disable max-len */
 
@@ -230,80 +233,82 @@ const PuzzleModalForm = React.forwardRef((
   ) : null;
 
   return (
-    <ModalForm
-      ref={formRef}
-      title={props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
-      onSubmit={onFormSubmit}
-      submitDisabled={disableForm}
-    >
-      <FormGroup as={Row}>
-        <FormLabel column xs={3} htmlFor="jr-new-puzzle-title">
-          Title
-        </FormLabel>
-        <Col xs={9}>
-          <FormControl
-            id="jr-new-puzzle-title"
-            type="text"
-            autoFocus
-            disabled={disableForm}
-            onChange={onTitleChange}
-            value={currentTitle}
-          />
-        </Col>
-      </FormGroup>
+    <Suspense fallback={<div><Loading /></div>}>
+      <ModalForm
+        ref={formRef}
+        title={props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
+        onSubmit={onFormSubmit}
+        submitDisabled={disableForm}
+      >
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-title">
+            Title
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="jr-new-puzzle-title"
+              type="text"
+              autoFocus
+              disabled={disableForm}
+              onChange={onTitleChange}
+              value={currentTitle}
+            />
+          </Col>
+        </FormGroup>
 
-      <FormGroup as={Row}>
-        <FormLabel column xs={3} htmlFor="jr-new-puzzle-url">
-          URL
-        </FormLabel>
-        <Col xs={9}>
-          <FormControl
-            id="jr-new-puzzle-url"
-            type="text"
-            disabled={disableForm}
-            onChange={onUrlChange}
-            value={currentUrl}
-          />
-        </Col>
-      </FormGroup>
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-url">
+            URL
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="jr-new-puzzle-url"
+              type="text"
+              disabled={disableForm}
+              onChange={onUrlChange}
+              value={currentUrl}
+            />
+          </Col>
+        </FormGroup>
 
-      <FormGroup as={Row}>
-        <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags">
-          Tags
-        </FormLabel>
-        <Col xs={9}>
-          <Creatable
-            id="jr-new-puzzle-tags"
-            options={selectOptions}
-            isMulti
-            disabled={disableForm}
-            onChange={onTagsChange as any /* onChange type declaration doesn't understand isMulti */}
-            value={currentTags.map((t) => { return { label: t, value: t }; })}
-          />
-        </Col>
-      </FormGroup>
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags">
+            Tags
+          </FormLabel>
+          <Col xs={9}>
+            <Creatable
+              id="jr-new-puzzle-tags"
+              options={selectOptions}
+              isMulti
+              disabled={disableForm}
+              onChange={onTagsChange as any /* onChange type declaration doesn't understand isMulti */}
+              value={currentTags.map((t) => { return { label: t, value: t }; })}
+            />
+          </Col>
+        </FormGroup>
 
-      {docTypeSelector}
+        {docTypeSelector}
 
-      <FormGroup as={Row}>
-        <FormLabel column xs={3} htmlFor="jr-new-puzzle-expected-answer-count">
-          Expected # of answers
-        </FormLabel>
-        <Col xs={9}>
-          <FormControl
-            id="jr-new-puzzle-expected-answer-count"
-            type="number"
-            disabled={disableForm}
-            onChange={onExpectedAnswerCountChange}
-            value={currentExpectedAnswerCount}
-            min={1}
-            step={1}
-          />
-        </Col>
-      </FormGroup>
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="jr-new-puzzle-expected-answer-count">
+            Expected # of answers
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="jr-new-puzzle-expected-answer-count"
+              type="number"
+              disabled={disableForm}
+              onChange={onExpectedAnswerCountChange}
+              value={currentExpectedAnswerCount}
+              min={1}
+              step={1}
+            />
+          </Col>
+        </FormGroup>
 
-      {submitState === PuzzleModalFormSubmitState.FAILED && <Alert variant="danger">{errorMessage}</Alert>}
-    </ModalForm>
+        {submitState === PuzzleModalFormSubmitState.FAILED && <Alert variant="danger">{errorMessage}</Alert>}
+      </ModalForm>
+    </Suspense>
   );
 });
 
