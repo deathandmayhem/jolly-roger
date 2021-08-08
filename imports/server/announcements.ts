@@ -1,10 +1,10 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import Announcements from '../lib/models/announcements';
 import MeteorUsers from '../lib/models/meteor_users';
 import PendingAnnouncements from '../lib/models/pending_announcements';
+import { userMayAddAnnouncementToHunt } from '../lib/permission_stubs';
 
 Meteor.methods({
   postAnnouncement(huntId: unknown, message: unknown) {
@@ -12,7 +12,9 @@ Meteor.methods({
     check(huntId, String);
     check(message, String);
 
-    Roles.checkPermission(this.userId, 'mongo.announcements.insert');
+    if (!userMayAddAnnouncementToHunt(this.userId, huntId)) {
+      throw new Meteor.Error(401, `User ${this.userId} may not create annoucements for hunt ${huntId}`);
+    }
 
     Ansible.log('Creating an announcement', { user: this.userId, hunt: huntId, message });
     const id = Announcements.insert({

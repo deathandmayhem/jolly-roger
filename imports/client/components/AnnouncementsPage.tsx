@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
@@ -8,6 +7,7 @@ import { RouteComponentProps } from 'react-router';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
+import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/announcements';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import markdown from '../markdown';
@@ -115,7 +115,8 @@ const AnnouncementsPage = (props: AnnouncementsPageWithRouterParams) => {
     // We already have subscribed to mongo.announcements on the main page, since we want to be able
     // to show them on any page.  So we don't *need* to make the subscription here...
     // ...except that we might want to wait to render until we've received all of them?  IDK.
-    const announcementsHandle = Meteor.subscribe('mongo.announcements', { hunt: props.match.params.huntId });
+    const huntId = props.match.params.huntId;
+    const announcementsHandle = Meteor.subscribe('mongo.announcements', { hunt: huntId });
     const displayNamesHandle = Profiles.subscribeDisplayNames();
     const ready = announcementsHandle.ready() && displayNamesHandle.ready();
 
@@ -128,7 +129,7 @@ const AnnouncementsPage = (props: AnnouncementsPageWithRouterParams) => {
       announcements = Announcements.find({ hunt: props.match.params.huntId }, { sort: { createdAt: 1 } }).fetch();
       displayNames = Profiles.displayNames();
     }
-    const canCreateAnnouncements = Roles.userHasPermission(Meteor.userId(), 'mongo.announcements.insert');
+    const canCreateAnnouncements = userMayAddAnnouncementToHunt(Meteor.userId(), huntId);
 
     return {
       ready,
