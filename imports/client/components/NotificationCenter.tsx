@@ -260,9 +260,15 @@ interface AnnouncementMessageProps {
 }
 
 const AnnouncementMessage = React.memo((props: AnnouncementMessageProps) => {
+  const [dismissed, setDismissed] = useState<boolean>(false);
   const onDismiss = useCallback(() => {
-    PendingAnnouncements.remove(props.id);
+    setDismissed(true);
+    Meteor.call('dismissPendingAnnouncement', props.id);
   }, [props.id]);
+
+  if (dismissed) {
+    return null;
+  }
 
   return (
     <li>

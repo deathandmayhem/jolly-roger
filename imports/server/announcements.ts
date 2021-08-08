@@ -28,4 +28,14 @@ Meteor.methods({
       });
     });
   },
+
+  dismissPendingAnnouncement(pendingAnnouncementId: unknown) {
+    check(this.userId, String);
+    check(pendingAnnouncementId, String);
+
+    PendingAnnouncements.remove({
+      _id: pendingAnnouncementId,
+      user: this.userId,
+    });
+  },
 });
