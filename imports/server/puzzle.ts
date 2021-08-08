@@ -5,6 +5,7 @@ import { Random } from 'meteor/random';
 import Ansible from '../ansible';
 import Flags from '../flags';
 import DocumentPermissions from '../lib/models/document_permissions';
+import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 import Tags from '../lib/models/tags';
@@ -198,7 +199,7 @@ Meteor.methods({
     check(this.userId, String);
     check(puzzleId, String);
 
-    const user = Meteor.users.findOne(this.userId)!;
+    const user = MeteorUsers.findOne(this.userId)!;
     const puzzle = Puzzles.findOne(puzzleId);
     if (!puzzle || !user.hunts.includes(puzzle.hunt)) {
       throw new Meteor.Error(404, 'Unknown puzzle');

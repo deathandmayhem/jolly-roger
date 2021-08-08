@@ -2,6 +2,7 @@ import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { _ } from 'meteor/underscore';
 import Mustache from 'mustache';
+import MeteorUsers from './lib/models/meteor_users';
 import { HuntType } from './lib/schemas/hunts';
 import { PuzzleType } from './lib/schemas/puzzles';
 
@@ -26,7 +27,7 @@ const huntsMatchingCurrentUser = function <T extends HuntModel> (
   // As a note: this will not re-publish if the user's hunt membership
   // changes, so use it carefully (basically, use it when you already
   // know the user is a member of the hunt in question).
-  const u = Meteor.users.findOne(this.userId);
+  const u = MeteorUsers.findOne(this.userId);
   if (!u) {
     throw new Meteor.Error(401, 'Unauthenticated');
   }

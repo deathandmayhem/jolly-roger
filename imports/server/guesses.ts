@@ -5,6 +5,7 @@ import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import Guesses from '../lib/models/guess';
 import Hunts from '../lib/models/hunts';
+import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 import { GuessType } from '../lib/schemas/guess';
@@ -70,7 +71,7 @@ class PendingGuessWatcher {
   constructor(sub: Subscription) {
     this.sub = sub;
 
-    const user = Meteor.users.findOne(sub.userId)!;
+    const user = MeteorUsers.findOne(sub.userId)!;
 
     this.guessCursor = Guesses.find({ state: 'pending', hunt: { $in: user.hunts } });
     this.guesses = {};

@@ -2,9 +2,6 @@
 // things
 import '../imports/lib/config/accounts';
 
-// attach the users schema to Meteor.users
-import '../imports/lib/models/users';
-
 // register actions and roles
 import '../imports/lib/roles';
 

@@ -8,3 +8,7 @@ import UserSchema from '../schemas/users';
 // extension, and by casting we switch from the non-extended type to the
 // extended one. This seemed a little better than just casting to any.
 (<Mongo.Collection<Meteor.User>>Meteor.users).attachSchema(UserSchema);
+
+// Re-export Meteor.users. We should require this instead of using Meteor.users
+// directly to ensure that the schema has always been attached.
+export default Meteor.users;

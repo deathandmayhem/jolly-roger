@@ -8,6 +8,7 @@ import { Random } from 'meteor/random';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../ansible';
 import { API_BASE } from '../lib/discord';
+import MeteorUsers from '../lib/models/meteor_users';
 import Settings from '../lib/models/settings';
 import UploadTokens from './models/upload_tokens';
 
@@ -33,7 +34,7 @@ Meteor.methods({
 
     // Refuse to create the user if any users already exist
     // This is theoretically racy but is probably fine in practice
-    const existingUser = Meteor.users.findOne({});
+    const existingUser = MeteorUsers.findOne({});
     if (existingUser) {
       throw new Meteor.Error(403, 'The first user already exists.');
     }
@@ -268,7 +269,7 @@ Meteor.publish('hasUsers', function () {
   // Publish a pseudo-collection which just communicates if there are any users
   // at all, so we can either guide users through the server setup flow or just
   // point them at the login page.
-  const cursor = Meteor.users.find();
+  const cursor = MeteorUsers.find();
   if (cursor.count() > 0) {
     this.added('hasUsers', 'hasUsers', { hasUsers: true });
   } else {

@@ -4,6 +4,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router';
+import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
 import { ProfileType } from '../../lib/schemas/profiles';
 import { useBreadcrumb } from '../hooks/breadcrumb';
@@ -46,7 +47,7 @@ const HuntProfileListPage = (props: HuntProfileListPageWithRouterParams) => {
       Meteor.userId(), 'hunt.join', huntId
     );
 
-    const hunters = Meteor.users.find({ hunts: huntId }).map((u) => u._id) as string[];
+    const hunters = MeteorUsers.find({ hunts: huntId }).map((u) => u._id) as string[];
     const profiles = Profiles.find(
       { _id: { $in: hunters } },
       { sort: { displayName: 1 } },

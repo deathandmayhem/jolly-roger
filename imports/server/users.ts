@@ -1,13 +1,14 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
+import MeteorUsers from '../lib/models/meteor_users';
 
 Meteor.publish('selfHuntMembership', function () {
   if (!this.userId) {
     return [];
   }
 
-  return Meteor.users.find(this.userId, { fields: { hunts: 1 } });
+  return MeteorUsers.find(this.userId, { fields: { hunts: 1 } });
 });
 
 Meteor.publish('huntMembers', function (huntId: string) {
@@ -17,14 +18,14 @@ Meteor.publish('huntMembers', function (huntId: string) {
     return [];
   }
 
-  const u = Meteor.users.findOne(this.userId)!;
+  const u = MeteorUsers.findOne(this.userId)!;
   // Note: this is not reactive, so if hunt membership changes, this
   // behavior will change
   if (!u.hunts.includes(huntId)) {
     return [];
   }
 
-  return Meteor.users.find({ hunts: huntId }, { fields: { hunts: 1 } });
+  return MeteorUsers.find({ hunts: huntId }, { fields: { hunts: 1 } });
 });
 
 Meteor.publish('userRoles', function (targetUserId: string) {
@@ -35,5 +36,5 @@ Meteor.publish('userRoles', function (targetUserId: string) {
     return [];
   }
 
-  return Meteor.users.find(targetUserId, { fields: { roles: 1 } });
+  return MeteorUsers.find(targetUserId, { fields: { roles: 1 } });
 });
