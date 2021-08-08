@@ -10,13 +10,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
-import moment from 'moment';
 import React, { useCallback, useState } from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
 import Flags from '../../flags';
+import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/announcements';
 import ChatNotifications from '../../lib/models/chat_notifications';
 import Guesses from '../../lib/models/guess';
@@ -277,7 +277,7 @@ const AnnouncementMessage = React.memo((props: AnnouncementMessageProps) => {
           {'- '}
           {props.createdByDisplayName}
           {', '}
-          {moment(props.announcement.createdAt).calendar()}
+          {calendarTimeFormat(props.announcement.createdAt)}
         </footer>
       </MessengerContent>
       <MessengerDismissButton onDismiss={onDismiss} />

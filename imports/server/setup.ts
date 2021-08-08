@@ -6,7 +6,6 @@ import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { Random } from 'meteor/random';
 import { ServiceConfiguration } from 'meteor/service-configuration';
-import moment from 'moment';
 import Ansible from '../ansible';
 import { API_BASE } from '../lib/discord';
 import Settings from '../lib/models/settings';
@@ -14,7 +13,7 @@ import UploadTokens from './models/upload_tokens';
 
 // Clean up upload tokens that didn't get used within a minute
 function cleanupUploadTokens() {
-  const oldestValidTime = moment().subtract('60', 'seconds').toDate();
+  const oldestValidTime = new Date(Date.now() - 60 * 1000);
   UploadTokens.remove({ createdAt: { $lt: oldestValidTime } });
 }
 function periodic() {

@@ -10,7 +10,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import DOMPurify from 'dompurify';
 import marked from 'marked';
-import moment from 'moment';
 import React, {
   useCallback, useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
@@ -29,6 +28,7 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import { RouteComponentProps } from 'react-router';
 import TextareaAutosize from 'react-textarea-autosize';
 import Ansible from '../../ansible';
+import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import ChatMessages from '../../lib/models/chats';
 import Documents from '../../lib/models/documents';
 import Guesses from '../../lib/models/guess';
@@ -113,9 +113,7 @@ interface ChatMessageProps {
 }
 
 const ChatMessage = React.memo((props: ChatMessageProps) => {
-  const ts = moment(props.message.timestamp).calendar(undefined, {
-    sameDay: 'LT',
-  });
+  const ts = shortCalendarTimeFormat(props.message.timestamp);
   const classes = classnames('chat-message', props.isSystemMessage && 'system-message');
 
   return (
@@ -752,7 +750,7 @@ const PuzzleGuessModal = React.forwardRef((
               return (
                 <tr key={guess._id} className={`guess-${guess.state}`}>
                   <td className="answer">{guess.guess}</td>
-                  <td>{moment(guess.createdAt).calendar()}</td>
+                  <td>{calendarTimeFormat(guess.createdAt)}</td>
                   <td>{props.displayNames[guess.createdBy]}</td>
                   <td style={{ textTransform: 'capitalize' }}>{guess.state}</td>
                 </tr>

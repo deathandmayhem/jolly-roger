@@ -4,7 +4,6 @@
 
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import moment from 'moment';
 import Servers from './models/servers';
 
 const serverId = Random.id();
@@ -23,7 +22,7 @@ function cleanup() {
   // OK for the timeouts here to be generous. Servers get 120 seconds
   // to update before their records are GC'd. Should be long enough to
   // account for transients
-  const timeout = moment().subtract('120', 'seconds').toDate();
+  const timeout = new Date(Date.now() - 120 * 1000);
   const deadServers = Servers.find({ updatedAt: { $lt: timeout } })
     .map((server) => server._id);
   if (deadServers.length === 0) {
