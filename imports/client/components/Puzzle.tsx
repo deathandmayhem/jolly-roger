@@ -112,17 +112,17 @@ const Puzzle = React.memo((props: PuzzleProps) => {
         />
       ) : null}
       {props.canUpdate && (
-        <div className="puzzle-edit-button">
+        <div className="puzzle-column puzzle-edit-button">
           {editButton}
         </div>
       )}
-      <div className="puzzle-title">
+      <div className="puzzle-column puzzle-title">
         <Link to={linkTarget}>{props.puzzle.title}</Link>
       </div>
-      <div className="puzzle-view-count">
+      <div className="puzzle-column puzzle-view-count">
         {!(props.puzzle.answers.length >= props.puzzle.expectedAnswerCount) && !isAdministrivia && <SubscriberCount puzzleId={props.puzzle._id} />}
       </div>
-      <div className="puzzle-link">
+      <div className="puzzle-column puzzle-link">
         {props.puzzle.url ? (
           <span>
             <a href={props.puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
@@ -131,10 +131,10 @@ const Puzzle = React.memo((props: PuzzleProps) => {
           </span>
         ) : null}
       </div>
-      <div className="puzzle-answer">
+      <div className="puzzle-column puzzle-answer">
         {answers}
       </div>
-      <TagList puzzle={props.puzzle} tags={ownTags} linkToSearch={props.layout === 'grid'} popoverRelated={false} />
+      <TagList className="puzzle-column" puzzle={props.puzzle} tags={ownTags} linkToSearch={props.layout === 'grid'} popoverRelated={false} />
     </div>
   );
 });

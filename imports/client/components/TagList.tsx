@@ -11,6 +11,7 @@ import Tag from './Tag';
 import TagEditor from './TagEditor';
 
 interface BaseTagListProps {
+  className?: string;
   puzzle: PuzzleType;
   tags: TagType[];
   onCreateTag?: (tagName: string) => void; // if provided, will show UI for adding a new tag
@@ -182,7 +183,7 @@ const TagList = React.memo((props: TagListProps) => {
   }
 
   return (
-    <div className="tag-list">
+    <div className={`tag-list ${props.className}`}>
       {components}
     </div>
   );
