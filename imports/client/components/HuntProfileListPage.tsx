@@ -5,6 +5,7 @@ import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router';
 import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
+import { userMayAddUsersToHunt } from '../../lib/permission_stubs';
 import { ProfileType } from '../../lib/schemas/profiles';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
@@ -42,10 +43,7 @@ const HuntProfileListPage = (props: HuntProfileListPageWithRouterParams) => {
       };
     }
 
-    const canInvite = Roles.userHasPermission(
-      Meteor.userId(), 'hunt.join', huntId
-    );
-
+    const canInvite = userMayAddUsersToHunt(Meteor.userId(), huntId);
     const hunters = MeteorUsers.find({ hunts: huntId }).map((u) => u._id) as string[];
     const profiles = Profiles.find(
       { _id: { $in: hunters } },

@@ -10,6 +10,7 @@ import {
 } from 'react-router';
 import { useHistory } from 'react-router-dom';
 import Hunts from '../../lib/models/hunts';
+import { userMayAddUsersToHunt } from '../../lib/permission_stubs';
 import { HuntType } from '../../lib/schemas/hunts';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/use-document-title';
@@ -144,7 +145,7 @@ const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
       hunt: Hunts.findOneAllowingDeleted(huntId),
       member,
       canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
-      canJoin: Roles.userHasPermission(Meteor.userId(), 'hunt.join', huntId),
+      canJoin: userMayAddUsersToHunt(Meteor.userId(), huntId),
     };
   }, [huntId]);
 

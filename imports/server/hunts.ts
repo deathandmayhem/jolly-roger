@@ -9,6 +9,7 @@ import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
+import { userMayAddUsersToHunt } from '../lib/permission_stubs';
 import { HuntInsertFields, HuntType } from '../lib/schemas/hunts';
 import { SettingType } from '../lib/schemas/settings';
 import addUserToDiscordRole from './addUserToDiscordRole';
@@ -174,7 +175,9 @@ Meteor.methods({
       throw new Meteor.Error(404, 'Unknown hunt');
     }
 
-    Roles.checkPermission(this.userId, 'hunt.join', huntId);
+    if (!userMayAddUsersToHunt(this.userId, huntId)) {
+      throw new Meteor.Error(401, `User ${this.userId} may not add members to ${huntId}`);
+    }
 
     let joineeUser = <Meteor.User | undefined>Accounts.findUserByEmail(email);
     const newUser = joineeUser === undefined;
