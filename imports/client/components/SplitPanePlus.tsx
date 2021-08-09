@@ -162,34 +162,36 @@ const SplitPanePlusHook = (props: SplitPanePlusProps) => {
 
   const splitPaneNode = useCallback(() => {
     if (!ref.current || !(ref.current.firstChild instanceof HTMLElement)) {
-      return null;
+      return undefined;
     }
     return ref.current.firstChild;
   }, []);
 
-  const findChildByClass = useCallback((classNameSought: string): HTMLElement | null => {
-    const root = splitPaneNode();
-    return root && _.find(root.children, (n) => {
-      return n.classList.contains(classNameSought);
-    }) as HTMLElement;
-  }, [splitPaneNode]);
+  const findChildByClass = useCallback(
+    (classNameSought: string): Element | undefined => {
+      const root = splitPaneNode();
+      return root && Array.from(root.children).find((n) => {
+        return n.classList.contains(classNameSought);
+      });
+    }, [splitPaneNode]
+  );
 
-  const primaryPaneNode = useCallback((): HTMLElement | null => {
+  const primaryPaneNode = useCallback((): Element | undefined => {
     return findChildByClass(`Pane${primary === 'first' ? 1 : 2}`);
   }, [findChildByClass, primary]);
 
   // Unused.
   /*
-  const secondaryPaneNode = useCallback((): HTMLElement | null => {
+  const secondaryPaneNode = useCallback((): Element | undefined => {
     return findChildByClass(`Pane${primary === 'first' ? 2 : 1}`);
   }, [findChildByClass, primary]);
   */
 
-  const resizerNode = useCallback((): HTMLElement | null => {
+  const resizerNode = useCallback((): Element | undefined => {
     return findChildByClass('Resizer');
   }, [findChildByClass]);
 
-  const measure = useCallback((elem: HTMLElement | null): number => {
+  const measure = useCallback((elem: Element | undefined): number => {
     if (!elem) {
       return NaN;
     }

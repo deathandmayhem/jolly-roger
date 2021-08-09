@@ -1,6 +1,5 @@
 import child from 'child_process';
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import Ansible from '../ansible';
 
 const execFile = Meteor.wrapAsync(child.execFile);
@@ -27,27 +26,29 @@ class List {
 
   members(): string[] {
     const out = blanche([this.name]);
-    return _.compact(_.map(out.trim().split('\n'), (line) => {
-      // Technically some of these are probably type STRING, but the
-      // distinction isn't important here
-      let type = 'USER';
-      let member = line;
-      if (line.indexOf(':') !== -1) {
-        [type, member] = line.split(':');
-      }
+    return out.trim().split('\n')
+      .map((line) => {
+        // Technically some of these are probably type STRING, but the
+        // distinction isn't important here
+        let type = 'USER';
+        let member = line;
+        if (line.indexOf(':') !== -1) {
+          [type, member] = line.split(':');
+        }
 
-      if (member.indexOf('@') === -1) {
-        member += '@mit.edu';
-      }
+        if (member.indexOf('@') === -1) {
+          member += '@mit.edu';
+        }
 
-      switch (type) {
-        case 'USER':
-        case 'LIST':
-          return member;
-        default:
-          return undefined;
-      }
-    }));
+        switch (type) {
+          case 'USER':
+          case 'LIST':
+            return member;
+          default:
+            return undefined;
+        }
+      })
+      .filter<string>((v): v is string => v !== undefined);
   }
 
   add(member: string): boolean {

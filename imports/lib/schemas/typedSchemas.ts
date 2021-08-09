@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
 import SimpleSchema from 'simpl-schema';
@@ -186,15 +185,13 @@ const buildField = function <T> (
   } else if (<any>fieldCodec === date) {
     return [[fieldName, { ...overrides, type: Date, optional }]];
   } else if (fieldCodec instanceof t.ArrayType) {
-    const schemaOverrides = _.omit(overrides, 'array');
-    const arrayOverrides = overrides && (<ArrayOverrides<any[]>>overrides).array;
+    const { array: arrayOverrides = undefined, ...schemaOverrides } = (overrides || {}) as any;
     return [
       [fieldName, { ...schemaOverrides, type: Array, optional }],
       ...buildField(`${fieldName}.$`, fieldCodec.type, arrayOverrides),
     ];
   } else if (fieldCodec instanceof t.InterfaceType) {
-    const schemaOverrides = _.omit(overrides, 'nested');
-    const nestedOverrides = overrides && (<ObjectOverrides<Record<string, any>>>overrides).nested;
+    const { nested: nestedOverrides = undefined, ...schemaOverrides } = (overrides || {}) as any;
     return [[fieldName, {
       ...schemaOverrides,
       // eslint-disable-next-line @typescript-eslint/no-use-before-define

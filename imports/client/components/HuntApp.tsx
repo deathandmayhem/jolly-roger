@@ -1,7 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import React, { useCallback, useMemo } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -139,7 +138,7 @@ const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
       _id: huntId,
     });
     const user = Meteor.user();
-    const member = !!user && _.contains(user.hunts, huntId);
+    const member = !!user && user.hunts.includes(huntId);
     return {
       ready: userHandle.ready() && huntHandle.ready() && deletedHuntHandle.ready(),
       hunt: Hunts.findOneAllowingDeleted(huntId),

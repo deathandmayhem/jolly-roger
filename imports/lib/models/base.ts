@@ -1,7 +1,6 @@
 import { check, Match } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { _ } from 'meteor/underscore';
 import { BaseType } from '../schemas/base';
 
 const formatQuery = Symbol('formatQuery');
@@ -98,28 +97,28 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
 
   find(selector: FindSelector<T> = {}, options: FindOptions = {}) {
     return super.find(
-      _.extend({ deleted: false }, this[formatQuery](selector)),
+      { deleted: false as any, ...this[formatQuery](selector) },
       this[formatOptions](options)
     );
   }
 
   findOne(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
     return super.findOne(
-      _.extend({ deleted: false }, this[formatQuery](selector)),
+      { deleted: false as any, ...this[formatQuery](selector) },
       this[formatOptions](options)
     );
   }
 
   findDeleted(selector: FindSelector<T> = {}, options: FindOptions = {}) {
     return super.find(
-      _.extend({ deleted: true }, this[formatQuery](selector)),
+      { deleted: true as any, ...this[formatQuery](selector) },
       this[formatOptions](options)
     );
   }
 
   findOneDeleted(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
     return super.findOne(
-      _.extend({ deleted: true }, this[formatQuery](selector)),
+      { deleted: true as any, ...this[formatQuery](selector) },
       this[formatOptions](options)
     );
   }
