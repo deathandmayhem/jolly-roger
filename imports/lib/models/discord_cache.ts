@@ -3,6 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../../ansible';
+import { userMayUseDiscordBotAPIs } from '../permission_stubs';
 import DiscordCacheSchema, { DiscordCacheType } from '../schemas/discord_cache';
 import { FindOptions } from './base';
 import Settings from './settings';
@@ -31,7 +32,7 @@ if (Meteor.isServer) {
       limit: Match.Maybe(Number),
     });
 
-    if (!this.userId || !Roles.userHasPermission(this.userId, 'discord.useBotAPIs')) {
+    if (!this.userId || !userMayUseDiscordBotAPIs(this.userId)) {
       Ansible.log('Sub to discord.cache not logged in as operator');
       return [];
     }

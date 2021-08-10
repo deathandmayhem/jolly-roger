@@ -9,7 +9,11 @@ import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
-import { userMayAddUsersToHunt, userMayBulkAddToHunt } from '../lib/permission_stubs';
+import {
+  userMayAddUsersToHunt,
+  userMayBulkAddToHunt,
+  userMayUseDiscordBotAPIs,
+} from '../lib/permission_stubs';
 import { HuntInsertFields, HuntType } from '../lib/schemas/hunts';
 import { SettingType } from '../lib/schemas/settings';
 import addUserToDiscordRole from './addUserToDiscordRole';
@@ -274,7 +278,9 @@ Meteor.methods({
     check(huntId, String);
     check(this.userId, String);
 
-    Roles.checkPermission(this.userId, 'discord.useBotAPIs', huntId);
+    if (!userMayUseDiscordBotAPIs(this.userId)) {
+      throw new Meteor.Error(401, `User ${this.userId} not permitted to access Discord bot APIs`);
+    }
 
     MeteorUsers.find({ hunts: huntId })
       .forEach((u) => {

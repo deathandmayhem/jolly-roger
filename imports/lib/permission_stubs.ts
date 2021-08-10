@@ -162,3 +162,26 @@ export function userMayBulkAddToHunt(userId: string | null | undefined, huntId: 
 
   return false;
 }
+
+export function userMayUseDiscordBotAPIs(userId: string | null | undefined): boolean {
+  if (!userId) {
+    return false;
+  }
+
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+
+  if (user.roles && user.roles.includes('admin')) {
+    return true;
+  }
+
+  // TODO: we should figure out more sensible policy here if we want to support
+  // general hunt creation
+  if (user.roles && user.roles.includes('operator')) {
+    return true;
+  }
+
+  return false;
+}

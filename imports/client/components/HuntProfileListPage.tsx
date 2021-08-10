@@ -1,11 +1,10 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router';
 import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
-import { userMayAddUsersToHunt } from '../../lib/permission_stubs';
+import { userMayAddUsersToHunt, userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
 import { ProfileType } from '../../lib/schemas/profiles';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
@@ -50,7 +49,7 @@ const HuntProfileListPage = (props: HuntProfileListPageWithRouterParams) => {
       { sort: { displayName: 1 } },
     ).fetch();
 
-    const canSyncDiscord = Roles.userHasPermission(Meteor.userId(), 'discord.useBotAPIs');
+    const canSyncDiscord = userMayUseDiscordBotAPIs(Meteor.userId());
 
     return {
       ready: ready as boolean,
