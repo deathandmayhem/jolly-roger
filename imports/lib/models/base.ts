@@ -1,6 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
+import isAdmin from '../is-admin';
 import { BaseType } from '../schemas/base';
 
 const formatQuery = Symbol('formatQuery');
@@ -34,6 +35,23 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     super(tableName, options);
     this.name = name;
     this.tableName = tableName;
+
+    // Let admins get away with absolutely anything from the client.
+    // This is an affordance intended for use by a human trying to fix things
+    // in production with the `Models` global manually populated by the
+    // `loadFacades()` global function, and these allow rules should never be
+    // relied upon by any client-side code that is part of the application.
+    this.allow({
+      insert(userId, _doc) {
+        return isAdmin(userId);
+      },
+      update(userId, _doc, _fieldNames, _modifier) {
+        return isAdmin(userId);
+      },
+      remove(userId, _doc) {
+        return isAdmin(userId);
+      },
+    });
   }
 
   // @ts-ignore Because the Mongo.Collection doesn't know about SimpleSchema

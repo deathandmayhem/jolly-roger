@@ -1,5 +1,5 @@
+import isAdmin from '../../lib/is-admin';
 import Base from '../../lib/models/base';
-import { isAdmin } from '../../lib/permission_stubs';
 import APIKeysSchema, { APIKeyType } from '../schemas/api_keys';
 
 const APIKeys = new Base<APIKeyType>('api_keys');

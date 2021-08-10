@@ -2,7 +2,7 @@ import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import Ansible from '../ansible';
-import { isAdmin } from '../lib/permission_stubs';
+import isAdmin from '../lib/is-admin';
 import APIKeys from './models/api_keys';
 import Locks from './models/lock';
 

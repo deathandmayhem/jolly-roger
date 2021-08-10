@@ -1,7 +1,8 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
+import isAdmin from '../lib/is-admin';
 import MeteorUsers from '../lib/models/meteor_users';
-import { isAdmin, deprecatedUserMayMakeOperator } from '../lib/permission_stubs';
+import { deprecatedUserMayMakeOperator } from '../lib/permission_stubs';
 
 Meteor.publish('selfHuntMembership', function () {
   if (!this.userId) {

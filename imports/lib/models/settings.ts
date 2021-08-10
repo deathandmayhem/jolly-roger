@@ -1,7 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { isAdmin } from '../permission_stubs';
+import isAdmin from '../is-admin';
 import SettingsSchema, { SettingType } from '../schemas/settings';
 import Base, { FindOptions } from './base';
 

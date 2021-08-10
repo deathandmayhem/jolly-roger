@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import isAdmin from './is-admin';
 import Hunts from './models/hunts';
 import MeteorUsers from './models/meteor_users';
 
@@ -205,20 +206,6 @@ export function userMayUseDiscordBotAPIs(userId: string | null | undefined): boo
     return true;
   }
 
-  return false;
-}
-
-export function isAdmin(userId: string | null | undefined): boolean {
-  if (!userId) {
-    return false;
-  }
-  const user = MeteorUsers.findOne(userId);
-  if (!user) {
-    return false;
-  }
-  if (user.roles && user.roles.includes('admin')) {
-    return true;
-  }
   return false;
 }
 
