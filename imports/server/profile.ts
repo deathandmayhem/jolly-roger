@@ -121,8 +121,7 @@ Meteor.methods({
       }
     }
 
-    const hunts = Meteor.user()!.hunts;
-    hunts.forEach((h) => {
+    Meteor.user()!.hunts?.forEach((h) => {
       addUserToDiscordRole(this.userId!, h);
     });
   },

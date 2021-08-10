@@ -201,7 +201,7 @@ Meteor.methods({
 
     const user = MeteorUsers.findOne(this.userId)!;
     const puzzle = Puzzles.findOne(puzzleId);
-    if (!puzzle || !user.hunts.includes(puzzle.hunt)) {
+    if (!puzzle || !user.hunts?.includes(puzzle.hunt)) {
       throw new Meteor.Error(404, 'Unknown puzzle');
     }
 

@@ -21,7 +21,7 @@ Meteor.publish('huntMembers', function (huntId: string) {
   const u = MeteorUsers.findOne(this.userId)!;
   // Note: this is not reactive, so if hunt membership changes, this
   // behavior will change
-  if (!u.hunts.includes(huntId)) {
+  if (!u.hunts?.includes(huntId)) {
     return [];
   }
 

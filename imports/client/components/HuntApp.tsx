@@ -138,7 +138,7 @@ const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
       _id: huntId,
     });
     const user = Meteor.user();
-    const member = !!user && user.hunts.includes(huntId);
+    const member = user?.hunts?.includes(huntId) ?? false;
     return {
       ready: userHandle.ready() && huntHandle.ready() && deletedHuntHandle.ready(),
       hunt: Hunts.findOneAllowingDeleted(huntId),
