@@ -2,9 +2,6 @@
 // things
 import '../imports/lib/config/accounts';
 
-// register actions and roles
-import '../imports/lib/roles';
-
 // explicitly import all the stuff from client/
 import '../imports/client/main';
 import '../imports/client/close';

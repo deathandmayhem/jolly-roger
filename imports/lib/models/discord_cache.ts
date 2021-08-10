@@ -1,9 +1,11 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../../ansible';
-import { userMayUseDiscordBotAPIs } from '../permission_stubs';
+import {
+  userMayUseDiscordBotAPIs,
+  userMayConfigureDiscordBot,
+} from '../permission_stubs';
 import DiscordCacheSchema, { DiscordCacheType } from '../schemas/discord_cache';
 import { FindOptions } from './base';
 import Settings from './settings';
@@ -12,7 +14,7 @@ const DiscordCache = new Mongo.Collection<DiscordCacheType>('discord_cache');
 DiscordCache.attachSchema(DiscordCacheSchema);
 if (Meteor.isServer) {
   Meteor.publish('discord.guilds', function () {
-    if (!this.userId || !Roles.userHasPermission(this.userId, 'discord.configureBot')) {
+    if (!this.userId || !userMayConfigureDiscordBot(this.userId)) {
       Ansible.log('Sub to discord.guilds not logged in as admin');
       return [];
     }

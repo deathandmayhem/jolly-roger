@@ -185,3 +185,49 @@ export function userMayUseDiscordBotAPIs(userId: string | null | undefined): boo
 
   return false;
 }
+
+function isAdmin(userId: string | null | undefined): boolean {
+  if (!userId) {
+    return false;
+  }
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+  if (user.roles && user.roles.includes('admin')) {
+    return true;
+  }
+  return false;
+}
+
+export function userMayConfigureGdrive(userId: string | null | undefined): boolean {
+  return isAdmin(userId);
+}
+
+export function userMayConfigureGoogleOAuth(userId: string | null | undefined): boolean {
+  return isAdmin(userId);
+}
+
+export function userMayConfigureDiscordOAuth(userId: string | null | undefined): boolean {
+  return isAdmin(userId);
+}
+
+export function userMayConfigureDiscordBot(userId: string | null | undefined): boolean {
+  return isAdmin(userId);
+}
+
+export function userMayConfigureWebRTCServers(userId: string | null | undefined): boolean {
+  return isAdmin(userId);
+}
+
+export function userMayConfigureEmailBranding(userId: string | null | undefined): boolean {
+  return isAdmin(userId);
+}
+
+export function userMayConfigureTeamName(userId: string | null | undefined): boolean {
+  return isAdmin(userId);
+}
+
+export function userMayConfigureAssets(userId: string | null | undefined): boolean {
+  return isAdmin(userId);
+}
