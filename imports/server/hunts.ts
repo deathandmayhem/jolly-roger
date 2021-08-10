@@ -14,7 +14,7 @@ import {
   userMayBulkAddToHunt,
   userMayUseDiscordBotAPIs,
 } from '../lib/permission_stubs';
-import { HuntInsertFields, HuntType } from '../lib/schemas/hunts';
+import { HuntType } from '../lib/schemas/hunts';
 import { SettingType } from '../lib/schemas/settings';
 import addUserToDiscordRole from './addUserToDiscordRole';
 import List from './blanche';
@@ -86,7 +86,7 @@ const SavedDiscordObjectFields = {
 
 const HuntShape = {
   name: String,
-  mailingLists: [String],
+  mailingLists: [String] as [StringConstructor],
   signupMessage: Match.Optional(String),
   openSignups: Boolean,
   hasGuessQueue: Boolean,
@@ -101,11 +101,9 @@ Meteor.methods({
   createHunt(value: unknown) {
     check(this.userId, String);
     checkAdmin(this.userId);
-    // Despite looking right to me, TS seems to trip over the [String] pattern for mailingLists.
-    // @ts-ignore Something is wrong with check's array-of-strings typing
     check(value, HuntShape);
 
-    const huntId = Hunts.insert(value as HuntInsertFields);
+    const huntId = Hunts.insert(value);
 
     // Sync discord roles
     MeteorUsers.find({ hunts: huntId })
@@ -120,11 +118,7 @@ Meteor.methods({
     check(this.userId, String);
     checkAdmin(this.userId);
     check(huntId, String);
-    // Despite looking right to me, TS seems to trip over the [String] pattern for mailingLists.
-    // @ts-ignore Something is wrong with check's array-of-strings typing
     check(value, HuntShape);
-
-    const typedValue = value as HuntInsertFields;
 
     // $set will not remove keys from a document.  For that, we must specify
     // $unset on the appropriate key(s).  Split out which keys we must set and
@@ -133,10 +127,10 @@ Meteor.methods({
     const toUnset: { [key: string]: string; } = {};
     Object.keys(HuntShape).forEach((key: string) => {
       const typedKey = key as keyof typeof HuntShape;
-      if (typedValue[typedKey] === undefined) {
+      if (value[typedKey] === undefined) {
         toUnset[typedKey] = '';
       } else {
-        toSet[typedKey] = typedValue[typedKey];
+        toSet[typedKey] = value[typedKey];
       }
     });
 

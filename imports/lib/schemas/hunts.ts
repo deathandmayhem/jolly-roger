@@ -44,8 +44,6 @@ const HuntFields = t.type({
   memberDiscordRole: t.union([SavedDiscordObjectFields, t.undefined]),
 });
 
-export type HuntInsertFields = t.TypeOf<typeof HuntFields>;
-
 const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {
   mailingLists: {
     defaultValue: [],
