@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
@@ -22,6 +21,7 @@ import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import DiscordCache from '../../lib/models/discord_cache';
 import Hunts from '../../lib/models/hunts';
+import { userMayCreateHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/hunts';
 import { DiscordChannelType, DiscordRoleType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
@@ -508,14 +508,15 @@ interface HuntProps {
 
 const Hunt = React.memo((props: HuntProps) => {
   const tracker = useTracker(() => {
+    const huntId = props.hunt._id;
     return {
-      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+      canUpdate: userMayUpdateHunt(Meteor.userId(), huntId),
 
       // Because we delete by setting the deleted flag, you only need
       // update to "remove" something
-      canDestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+      canDestroy: userMayUpdateHunt(Meteor.userId(), huntId),
     };
-  }, []);
+  }, [props.hunt._id]);
 
   const editModalRef = useRef<React.ElementRef<typeof HuntModalForm>>(null);
   const deleteModalRef = useRef<ModalFormHandle>(null);
@@ -605,7 +606,7 @@ const HuntListPage = () => {
 
     return {
       ready,
-      canAdd: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.insert'),
+      canAdd: userMayCreateHunt(Meteor.userId()),
       hunts: Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
       myHunts,
     };

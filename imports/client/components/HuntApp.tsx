@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useMemo } from 'react';
 import Alert from 'react-bootstrap/Alert';
@@ -10,7 +9,7 @@ import {
 } from 'react-router';
 import { useHistory } from 'react-router-dom';
 import Hunts from '../../lib/models/hunts';
-import { userMayAddUsersToHunt } from '../../lib/permission_stubs';
+import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import { HuntType } from '../../lib/schemas/hunts';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/use-document-title';
@@ -144,7 +143,7 @@ const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
       ready: userHandle.ready() && huntHandle.ready() && deletedHuntHandle.ready(),
       hunt: Hunts.findOneAllowingDeleted(huntId),
       member,
-      canUndestroy: Roles.userHasPermission(Meteor.userId(), 'mongo.hunts.update'),
+      canUndestroy: userMayUpdateHunt(Meteor.userId(), huntId),
       canJoin: userMayAddUsersToHunt(Meteor.userId(), huntId),
     };
   }, [huntId]);

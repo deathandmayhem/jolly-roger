@@ -297,3 +297,12 @@ export function userMayWritePuzzlesForHunt(
   }
   return false;
 }
+
+export function userMayCreateHunt(userId: string | null | undefined): boolean {
+  return isAdmin(userId);
+}
+
+export function userMayUpdateHunt(userId: string | null | undefined, _huntId: string): boolean {
+  // TODO: make this driven by if you're an operator of the hunt in question
+  return isAdmin(userId);
+}
