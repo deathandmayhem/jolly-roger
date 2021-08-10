@@ -97,28 +97,28 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
 
   find(selector: FindSelector<T> = {}, options: FindOptions = {}) {
     return super.find(
-      { deleted: false as any, ...this[formatQuery](selector) },
+      { ...this[formatQuery](selector), deleted: false as any },
       this[formatOptions](options)
     );
   }
 
   findOne(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
     return super.findOne(
-      { deleted: false as any, ...this[formatQuery](selector) },
+      { ...this[formatQuery](selector), deleted: false as any },
       this[formatOptions](options)
     );
   }
 
   findDeleted(selector: FindSelector<T> = {}, options: FindOptions = {}) {
     return super.find(
-      { deleted: true as any, ...this[formatQuery](selector) },
+      { ...this[formatQuery](selector), deleted: true as any },
       this[formatOptions](options)
     );
   }
 
   findOneDeleted(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
     return super.findOne(
-      { deleted: true as any, ...this[formatQuery](selector) },
+      { ...this[formatQuery](selector), deleted: true as any },
       this[formatOptions](options)
     );
   }
