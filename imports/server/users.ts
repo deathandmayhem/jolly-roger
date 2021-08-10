@@ -32,7 +32,10 @@ Meteor.publish('userRoles', function (targetUserId: string) {
   check(targetUserId, String);
 
   // Only publish other users' roles to admins and other (potentially-inactive) operators.
-  if (!Roles.userHasRole(this.userId, 'admin') && !Roles.userHasPermission(this.userId, 'users.makeOperator')) {
+  // TODO: rethink operator status to allow it to be contextualized by hunt.
+  if (!Roles.userHasRole(this.userId, 'admin') &&
+      !Roles.userHasRole(this.userId, 'operator') &&
+      !Roles.userHasRole(this.userId, 'inactiveOperator')) {
     return [];
   }
 

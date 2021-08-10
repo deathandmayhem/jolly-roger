@@ -41,7 +41,17 @@ export function userMayAddUsersToHunt(userId: string | null | undefined, huntId:
 }
 
 function isActiveOperatorForHunt(user: Meteor.User, _huntId: string): boolean {
+  // Today, this function doesn't consider the huntId scope, but some day, we'd like it to.
   if (user.roles && user.roles.includes('operator')) {
+    return true;
+  }
+
+  return false;
+}
+
+function isInactiveOperatorForHunt(user: Meteor.User, _huntId: string): boolean {
+  // Today, this function doesn't consider the huntId scope, but some day, we'd like it to.
+  if (user.roles && user.roles.includes('inactiveOperator')) {
     return true;
   }
 
@@ -71,6 +81,61 @@ export function userMayAddAnnouncementToHunt(
   }
 
   if (isActiveOperatorForHunt(user, huntId)) {
+    return true;
+  }
+
+  return false;
+}
+
+export function userMayMakeOtherUserOperatorForHunt(
+  userId: string | null | undefined, otherUserId: string, huntId: string
+): boolean {
+  if (!userId) {
+    return false;
+  }
+
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+
+  if (user.roles && user.roles.includes('admin')) {
+    return true;
+  }
+
+  const otherUser = MeteorUsers.findOne(otherUserId);
+  if (!otherUser) {
+    return false;
+  }
+
+  const hunt = Hunts.findOne(huntId);
+  if (!hunt) {
+    return false;
+  }
+
+  if (isActiveOperatorForHunt(user, huntId) || isInactiveOperatorForHunt(user, huntId)) {
+    return true;
+  }
+
+  return false;
+}
+
+export function deprecatedUserMayMakeOperator(userId: string | null | undefined): boolean {
+  // TODO: move away from this in favor of hunt-scoped operator status
+  if (!userId) {
+    return false;
+  }
+
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+
+  if (user.roles && user.roles.includes('admin')) {
+    return true;
+  }
+
+  if (user.roles && (user.roles.includes('inactiveOperator') || user.roles.includes('operator'))) {
     return true;
   }
 
