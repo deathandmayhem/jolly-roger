@@ -120,6 +120,28 @@ export function userMayMakeOtherUserOperatorForHunt(
   return false;
 }
 
+export function deprecatedIsActiveOperator(userId: string | null | undefined): boolean {
+  // TODO: move away from this in favor of hunt-scoped operator status
+  if (!userId) {
+    return false;
+  }
+
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+
+  if (user.roles && user.roles.includes('admin')) {
+    return true;
+  }
+
+  if (user.roles && user.roles.includes('operator')) {
+    return true;
+  }
+
+  return false;
+}
+
 export function deprecatedUserMayMakeOperator(userId: string | null | undefined): boolean {
   // TODO: move away from this in favor of hunt-scoped operator status
   if (!userId) {
@@ -236,4 +258,23 @@ export function userMayConfigureTeamName(userId: string | null | undefined): boo
 
 export function userMayConfigureAssets(userId: string | null | undefined): boolean {
   return isAdmin(userId);
+}
+
+export function userMayUpdateGuessesForHunt(
+  userId: string | null | undefined, huntId: string
+): boolean {
+  if (!userId) {
+    return false;
+  }
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+  if (user.roles && user.roles.includes('admin')) {
+    return true;
+  }
+  if (isActiveOperatorForHunt(user, huntId)) {
+    return true;
+  }
+  return false;
 }
