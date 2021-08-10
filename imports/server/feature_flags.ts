@@ -1,7 +1,7 @@
 import { Match, check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import FeatureFlags from '../lib/models/feature_flags';
+import { checkAdmin } from '../lib/permission_stubs';
 
 Meteor.methods({
   setFeatureFlag(name: unknown, type: unknown, random: unknown = undefined) {
@@ -10,7 +10,8 @@ Meteor.methods({
     check(type, Match.OneOf('off', 'on', 'random_by'));
     check(random, type === 'random_by' ? Number : undefined);
 
-    Roles.checkPermission(this.userId, 'mongo.featureflags.update');
+    // Feature flags may only be updated by admins
+    checkAdmin(this.userId);
 
     FeatureFlags.upsert({ name }, { $set: { type, random } });
   },

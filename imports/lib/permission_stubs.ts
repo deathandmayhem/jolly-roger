@@ -200,6 +200,12 @@ function isAdmin(userId: string | null | undefined): boolean {
   return false;
 }
 
+export function checkAdmin(userId: string | null | undefined) {
+  if (!isAdmin(userId)) {
+    throw new Meteor.Error(401, 'Must be admin');
+  }
+}
+
 export function userMayConfigureGdrive(userId: string | null | undefined): boolean {
   return isAdmin(userId);
 }
