@@ -141,3 +141,24 @@ export function deprecatedUserMayMakeOperator(userId: string | null | undefined)
 
   return false;
 }
+
+export function userMayBulkAddToHunt(userId: string | null | undefined, huntId: string): boolean {
+  if (!userId) {
+    return false;
+  }
+
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+
+  if (user.roles && user.roles.includes('admin')) {
+    return true;
+  }
+
+  if (isActiveOperatorForHunt(user, huntId) || isInactiveOperatorForHunt(user, huntId)) {
+    return true;
+  }
+
+  return false;
+}

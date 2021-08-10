@@ -9,7 +9,7 @@ import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
-import { userMayAddUsersToHunt } from '../lib/permission_stubs';
+import { userMayAddUsersToHunt, userMayBulkAddToHunt } from '../lib/permission_stubs';
 import { HuntInsertFields, HuntType } from '../lib/schemas/hunts';
 import { SettingType } from '../lib/schemas/settings';
 import addUserToDiscordRole from './addUserToDiscordRole';
@@ -240,7 +240,9 @@ Meteor.methods({
     check(emails, [String]);
     check(this.userId, String);
 
-    Roles.checkPermission(this.userId, 'hunt.bulkJoin', huntId);
+    if (!userMayBulkAddToHunt(this.userId, huntId)) {
+      throw new Meteor.Error(401, `User ${this.userId} may not bulk-invite to hunt ${huntId}`);
+    }
 
     // We'll re-do this check but if we check it now the error reporting will be
     // better
