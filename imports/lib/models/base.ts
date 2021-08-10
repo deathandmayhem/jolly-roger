@@ -34,9 +34,6 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     super(tableName, options);
     this.name = name;
     this.tableName = tableName;
-
-    // All models have standard roles
-    this.attachRoles(`mongo.${name}`);
   }
 
   // @ts-ignore Because the Mongo.Collection doesn't know about SimpleSchema

@@ -1,7 +1,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import MeteorUsers from '../lib/models/meteor_users';
+import { isAdmin, deprecatedUserMayMakeOperator } from '../lib/permission_stubs';
 
 Meteor.publish('selfHuntMembership', function () {
   if (!this.userId) {
@@ -33,9 +33,7 @@ Meteor.publish('userRoles', function (targetUserId: string) {
 
   // Only publish other users' roles to admins and other (potentially-inactive) operators.
   // TODO: rethink operator status to allow it to be contextualized by hunt.
-  if (!Roles.userHasRole(this.userId, 'admin') &&
-      !Roles.userHasRole(this.userId, 'operator') &&
-      !Roles.userHasRole(this.userId, 'inactiveOperator')) {
+  if (!isAdmin(this.userId) && !deprecatedUserMayMakeOperator(this.userId)) {
     return [];
   }
 

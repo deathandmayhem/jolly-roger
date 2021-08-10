@@ -208,7 +208,7 @@ export function userMayUseDiscordBotAPIs(userId: string | null | undefined): boo
   return false;
 }
 
-function isAdmin(userId: string | null | undefined): boolean {
+export function isAdmin(userId: string | null | undefined): boolean {
   if (!userId) {
     return false;
   }
@@ -305,4 +305,64 @@ export function userMayCreateHunt(userId: string | null | undefined): boolean {
 export function userMayUpdateHunt(userId: string | null | undefined, _huntId: string): boolean {
   // TODO: make this driven by if you're an operator of the hunt in question
   return isAdmin(userId);
+}
+
+export function addUserToRole(userId: string, role: string) {
+  return MeteorUsers.update({
+    _id: userId,
+  }, {
+    $addToSet: {
+      roles: {
+        $each: [role],
+      },
+    },
+  });
+}
+
+export function addUserToRoles(userId: string, roles: string[]) {
+  return MeteorUsers.update({
+    _id: userId,
+  }, {
+    $addToSet: {
+      roles: {
+        $each: roles,
+      },
+    },
+  });
+}
+
+export function removeUserFromRole(userId: string, role: string) {
+  return MeteorUsers.update({
+    _id: userId,
+  }, {
+    $pullAll: {
+      roles: [role],
+    },
+  });
+}
+
+export function removeUserFromRoles(userId: string, roles: string[]) {
+  return MeteorUsers.update({
+    _id: userId,
+  }, {
+    $pullAll: {
+      roles,
+    },
+  });
+}
+
+if (Meteor.isServer) {
+  Meteor.publish('roles', function () {
+    return MeteorUsers.find({
+      _id: this.userId,
+    }, {
+      fields: {
+        roles: 1,
+      },
+    });
+  });
+}
+
+if (Meteor.isClient) {
+  Meteor.subscribe('roles');
 }

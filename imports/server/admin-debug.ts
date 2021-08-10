@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import CallParticipants from '../lib/models/call_participants';
 import CallSignals from '../lib/models/call_signals';
+import { checkAdmin } from '../lib/permission_stubs';
 
 // Publish all call signals only to admins to support /rtcdebug
 Meteor.publish('rtcdebug', function () {
@@ -9,9 +9,7 @@ Meteor.publish('rtcdebug', function () {
     throw new Meteor.Error(401, 'Not logged in');
   }
 
-  if (!Roles.userHasRole(this.userId, 'admin')) {
-    throw new Meteor.Error(401, 'Not an admin');
-  }
+  checkAdmin(this.userId);
 
   return [
     CallParticipants.find({}),

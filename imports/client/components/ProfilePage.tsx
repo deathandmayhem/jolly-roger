@@ -1,10 +1,12 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import Profiles from '../../lib/models/profiles';
-import { deprecatedUserMayMakeOperator } from '../../lib/permission_stubs';
+import {
+  deprecatedUserMayMakeOperator,
+  deprecatedIsActiveOperator,
+} from '../../lib/permission_stubs';
 import { ProfileType } from '../../lib/schemas/profiles';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import OthersProfilePage from './OthersProfilePage';
@@ -53,7 +55,7 @@ const ProfilePage = (props: RouteComponentProps<ProfilePageParams>) => {
         muteApplause: undefined,
       },
       viewerCanMakeOperator: deprecatedUserMayMakeOperator(Meteor.userId()),
-      viewerIsOperator: Roles.userHasRole(Meteor.userId()!, 'operator'),
+      viewerIsOperator: deprecatedIsActiveOperator(Meteor.userId()),
       targetIsOperator: deprecatedUserMayMakeOperator(uid),
     };
     return data;

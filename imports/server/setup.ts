@@ -3,7 +3,6 @@ import { Match, check } from 'meteor/check';
 import { Google } from 'meteor/google-oauth';
 import { HTTP } from 'meteor/http';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { Random } from 'meteor/random';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../ansible';
@@ -11,6 +10,7 @@ import { API_BASE } from '../lib/discord';
 import MeteorUsers from '../lib/models/meteor_users';
 import Settings from '../lib/models/settings';
 import {
+  addUserToRoles,
   userMayConfigureGdrive,
   userMayConfigureGoogleOAuth,
   userMayConfigureDiscordOAuth,
@@ -50,7 +50,7 @@ Meteor.methods({
     }
 
     const firstUserId = Accounts.createUser({ email, password });
-    Roles.addUserToRoles(firstUserId, ['admin', 'operator']);
+    addUserToRoles(firstUserId, ['admin', 'operator']);
   },
 
   setupGoogleOAuthClient(clientId: unknown, secret: unknown) {

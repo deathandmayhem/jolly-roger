@@ -2,7 +2,6 @@ import { Accounts } from 'meteor/accounts-base';
 import { check, Match } from 'meteor/check';
 import { Email } from 'meteor/email';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import Mustache from 'mustache';
 import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
@@ -10,6 +9,7 @@ import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
 import {
+  checkAdmin,
   userMayAddUsersToHunt,
   userMayBulkAddToHunt,
   userMayUseDiscordBotAPIs,
@@ -95,12 +95,6 @@ const HuntShape = {
   puzzleHooksDiscordChannel: Match.Optional(SavedDiscordObjectFields),
   firehoseDiscordChannel: Match.Optional(SavedDiscordObjectFields),
   memberDiscordRole: Match.Optional(SavedDiscordObjectFields),
-};
-
-const checkAdmin = (userId: string) => {
-  if (!userId || !Roles.userHasRole(userId, 'admin')) {
-    throw new Meteor.Error('unauthorized', 'Must be logged in as admin');
-  }
 };
 
 Meteor.methods({
