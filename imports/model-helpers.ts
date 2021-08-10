@@ -37,16 +37,16 @@ const huntsMatchingCurrentUser = function <T extends HuntModel> (
   if (q.hunt) {
     if (q.hunt instanceof RegExp) {
       // stop your shenanigans
-      huntList = u.hunts;
+      huntList = u.hunts || [];
     } else if (typeof q.hunt === 'object') {
       // if q.hunt is still an object, then it must be a FieldExpression
-      huntList = _.intersection(u.hunts, q.hunt.$in || []);
+      huntList = _.intersection(u.hunts || [], q.hunt.$in || []);
     } else {
       // otherwise it's a string
-      huntList = _.intersection(u.hunts, [q.hunt]);
+      huntList = _.intersection(u.hunts || [], [q.hunt]);
     }
   } else {
-    huntList = u.hunts;
+    huntList = u.hunts || [];
   }
 
   // typescript comes so close to being able to infer this, but seems to

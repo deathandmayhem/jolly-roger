@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import React, { useEffect, useState } from 'react';
 import { Redirect, Route, RouteComponentProps } from 'react-router';
 import App from './App';
@@ -50,11 +49,11 @@ const AuthWrapper = React.memo((props: AuthWrapperProps) => {
   }
 
   if (!tracker.userId) {
-    const stateToSave = _.pick(props.location, 'pathname', 'search');
+    const { pathname, search } = props.location;
     return (
       <Redirect to={{
         pathname: '/login',
-        state: stateToSave,
+        state: { pathname, search },
       }}
       />
     );

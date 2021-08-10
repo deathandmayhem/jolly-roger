@@ -1,7 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router';
 import MeteorUsers from '../../lib/models/meteor_users';

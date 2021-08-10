@@ -95,7 +95,7 @@ Meteor.methods({
     }
     if (!joineeUser._id) throw new Meteor.Error(500, 'Something has gone terribly wrong');
 
-    if (joineeUser.hunts.includes(huntId)) {
+    if (joineeUser.hunts?.includes(huntId)) {
       Ansible.log('Tried to add user to hunt but they were already a member', {
         joiner: this.userId,
         joinee: joineeUser._id,

@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import React, { useEffect, useState } from 'react';
 import { Redirect, Route, RouteComponentProps } from 'react-router';
 import SplashPage from './SplashPage';
@@ -50,7 +49,7 @@ const UnauthWrapper = React.memo((props: UnauthWrapperProps) => {
   }
 
   if (tracker.userId) {
-    const state = _.extend({ pathname: '/', search: undefined }, props.location.state);
+    const state = { pathname: '/', search: undefined, ...(props.location.state as any) };
     return (
       <Redirect to={{
         pathname: state.pathname,

@@ -1,7 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
@@ -624,7 +623,7 @@ const HuntListPage = () => {
 
     const myHunts: Record<string, boolean> = {};
     if (ready) {
-      Meteor.user()!.hunts.forEach((hunt) => { myHunts[hunt] = true; });
+      Meteor.user()?.hunts?.forEach((hunt) => { myHunts[hunt] = true; });
     }
 
     return {
