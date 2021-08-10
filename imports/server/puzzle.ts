@@ -1,6 +1,5 @@
 import { Match, check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { Random } from 'meteor/random';
 import Ansible from '../ansible';
 import Flags from '../flags';
@@ -9,6 +8,7 @@ import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 import Tags from '../lib/models/tags';
+import { userMayWritePuzzlesForHunt } from '../lib/permission_stubs';
 import {
   ensureDocument, renameDocument, grantPermission, MimeTypes,
 } from './gdrive';
@@ -46,7 +46,12 @@ Meteor.methods({
     }));
     check(docType, Match.OneOf(...Object.keys(MimeTypes) as (keyof typeof MimeTypes)[]));
 
-    Roles.checkPermission(this.userId, 'mongo.puzzles.insert');
+    if (!userMayWritePuzzlesForHunt(this.userId, puzzle.hunt)) {
+      throw new Meteor.Error(
+        401,
+        `User ${this.userId} may not create new puzzles for hunt ${puzzle.hunt}`
+      );
+    }
 
     // Look up each tag by name and map them to tag IDs.
     const tagIds = puzzle.tags.map((tagName) => {
@@ -95,11 +100,15 @@ Meteor.methods({
       expectedAnswerCount: Number,
     }));
 
-    Roles.checkPermission(this.userId, 'mongo.puzzles.update');
-
     const oldPuzzle = Puzzles.findOne(puzzleId);
     if (!oldPuzzle) {
       throw new Meteor.Error(404, 'Unknown puzzle id');
+    }
+    if (!userMayWritePuzzlesForHunt(this.userId, oldPuzzle.hunt)) {
+      throw new Meteor.Error(
+        401,
+        `User ${this.userId} may not modify puzzles from hunt ${oldPuzzle.hunt}`
+      );
     }
     if (oldPuzzle.hunt !== puzzle.hunt) {
       throw new Meteor.Error(400, 'Can not change the hunt of a puzzle. That would be weird');

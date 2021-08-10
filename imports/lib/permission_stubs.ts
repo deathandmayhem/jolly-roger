@@ -278,3 +278,22 @@ export function userMayUpdateGuessesForHunt(
   }
   return false;
 }
+
+export function userMayWritePuzzlesForHunt(
+  userId: string | null | undefined, huntId: string
+): boolean {
+  if (!userId) {
+    return false;
+  }
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+  if (user.roles && user.roles.includes('admin')) {
+    return true;
+  }
+  if (isActiveOperatorForHunt(user, huntId)) {
+    return true;
+  }
+  return false;
+}

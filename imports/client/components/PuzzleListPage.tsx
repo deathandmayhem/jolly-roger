@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons/faBullhorn';
@@ -25,6 +24,7 @@ import { Link } from 'react-router-dom';
 import Hunts from '../../lib/models/hunts';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
+import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { HuntType } from '../../lib/schemas/hunts';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { TagType } from '../../lib/schemas/tags';
@@ -360,8 +360,8 @@ const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
     const hunt = Hunts.findOne({ _id: huntId })!;
     return {
       ready,
-      canAdd: ready && Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.insert'),
-      canUpdate: ready && Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
+      canAdd: ready && userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
+      canUpdate: ready && userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
       allPuzzles: ready ? Puzzles.find({ hunt: huntId }).fetch() : [],
       allTags: ready ? Tags.find({ hunt: huntId }).fetch() : [],
       hunt,
