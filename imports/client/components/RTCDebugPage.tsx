@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch';
@@ -7,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
+import isAdmin from '../../lib/is-admin';
 import CallParticipants from '../../lib/models/call_participants';
 import CallSignals from '../../lib/models/call_signals';
 import Profiles from '../../lib/models/profiles';
@@ -193,7 +193,7 @@ function PeerSummary(props: PeerSummaryProps) {
 
 interface RTCDebugPageTracker {
   ready: boolean;
-  isAdmin: boolean;
+  viewerIsAdmin: boolean;
   participants: CallParticipantType[];
   signals: CallSignalType[];
   puzzles: PuzzleType[];
@@ -202,7 +202,7 @@ interface RTCDebugPageTracker {
 
 const RTCDebugPage = () => {
   const tracker = useTracker<RTCDebugPageTracker>(() => {
-    const isAdmin = Roles.userHasRole(Meteor.userId()!, 'admin');
+    const viewerIsAdmin = isAdmin(Meteor.userId());
     const rtcdebugSub = Meteor.subscribe('rtcdebug');
     const puzzlesSub = Meteor.subscribe('mongo.puzzles');
     const profilesSub = Profiles.subscribeDisplayNames();
@@ -215,7 +215,7 @@ const RTCDebugPage = () => {
     const profiles = ready ? Profiles.find({}).fetch() : [];
 
     return {
-      isAdmin,
+      viewerIsAdmin,
       ready,
       participants,
       signals,
@@ -231,7 +231,7 @@ const RTCDebugPage = () => {
   }, []);
 
   const renderPage = useCallback(() => {
-    if (!tracker.isAdmin) {
+    if (!tracker.viewerIsAdmin) {
       return <p>You are not an admin.</p>;
     }
 

@@ -1,13 +1,13 @@
 import { check } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import Ansible from '../ansible';
 import Guesses from '../lib/models/guess';
 import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
+import { userMayUpdateGuessesForHunt, deprecatedIsActiveOperator } from '../lib/permission_stubs';
 import { GuessType } from '../lib/schemas/guess';
 import { HuntType } from '../lib/schemas/hunts';
 import { PuzzleType } from '../lib/schemas/puzzles';
@@ -52,6 +52,12 @@ function transitionGuess(guess: GuessType, newState: GuessType['state']) {
       },
     });
     GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle);
+  }
+}
+
+function checkMayUpdateGuess(userId: string | null | undefined, huntId: string) {
+  if (!userMayUpdateGuessesForHunt(userId, huntId)) {
+    throw new Meteor.Error(401, 'Must be permitted to update guesses');
   }
 }
 
@@ -132,7 +138,9 @@ class PendingGuessWatcher {
 Meteor.publish('pendingGuesses', function () {
   check(this.userId, String);
 
-  Roles.checkPermission(this.userId, 'mongo.guesses.update');
+  if (!deprecatedIsActiveOperator(this.userId)) {
+    throw new Meteor.Error(401, 'Must be active operator to subscribe to pendingGuesses');
+  }
 
   const watcher = new PendingGuessWatcher(this);
   this.onStop(() => watcher.shutdown());
@@ -259,11 +267,11 @@ Meteor.methods({
 
   markGuessPending(guessId: unknown) {
     check(guessId, String);
-    Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
     if (!guess) {
       throw new Meteor.Error(404, 'No such guess');
     }
+    checkMayUpdateGuess(this.userId, guess.hunt);
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'pending' });
     transitionGuess(guess, 'pending');
@@ -271,11 +279,11 @@ Meteor.methods({
 
   markGuessCorrect(guessId: unknown) {
     check(guessId, String);
-    Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
     if (!guess) {
       throw new Meteor.Error(404, 'No such guess');
     }
+    checkMayUpdateGuess(this.userId, guess.hunt);
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'correct' });
     transitionGuess(guess, 'correct');
@@ -283,11 +291,11 @@ Meteor.methods({
 
   markGuessIncorrect(guessId: unknown) {
     check(guessId, String);
-    Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
     if (!guess) {
       throw new Meteor.Error(404, 'No such guess');
     }
+    checkMayUpdateGuess(this.userId, guess.hunt);
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'incorrect' });
     transitionGuess(guess, 'incorrect');
@@ -295,11 +303,11 @@ Meteor.methods({
 
   markGuessRejected(guessId: unknown) {
     check(guessId, String);
-    Roles.checkPermission(this.userId, 'mongo.guesses.update');
     const guess = Guesses.findOne(guessId);
     if (!guess) {
       throw new Meteor.Error(404, 'No such guess');
     }
+    checkMayUpdateGuess(this.userId, guess.hunt);
     Ansible.log('Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state: 'rejected' });
     transitionGuess(guess, 'rejected');

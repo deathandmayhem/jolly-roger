@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { OAuth } from 'meteor/oauth';
 import { useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
@@ -22,6 +21,7 @@ import Hunts from '../../lib/models/hunts';
 import PendingAnnouncements from '../../lib/models/pending_announcements';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
+import { deprecatedIsActiveOperator } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/announcements';
 import { ChatNotificationType } from '../../lib/schemas/chat_notifications';
 import { GuessType } from '../../lib/schemas/guess';
@@ -260,9 +260,15 @@ interface AnnouncementMessageProps {
 }
 
 const AnnouncementMessage = React.memo((props: AnnouncementMessageProps) => {
+  const [dismissed, setDismissed] = useState<boolean>(false);
   const onDismiss = useCallback(() => {
-    PendingAnnouncements.remove(props.id);
+    setDismissed(true);
+    Meteor.call('dismissPendingAnnouncement', props.id);
   }, [props.id]);
+
+  if (dismissed) {
+    return null;
+  }
 
   return (
     <li>
@@ -364,7 +370,7 @@ type NotificationCenterTracker = {
 
 const NotificationCenter = () => {
   const tracker: NotificationCenterTracker = useTracker(() => {
-    const canUpdateGuesses = Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update');
+    const canUpdateGuesses = deprecatedIsActiveOperator(Meteor.userId());
 
     // Yes this is hideous, but it just makes the logic easier
     let pendingGuessHandle = { ready: () => true };

@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
@@ -34,6 +33,7 @@ import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
+import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { ChatMessageType } from '../../lib/schemas/chats';
 import { DocumentType } from '../../lib/schemas/documents';
 import { GuessType } from '../../lib/schemas/guess';
@@ -380,7 +380,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
     const hunt = Hunts.findOne(props.puzzle.hunt);
     const hasGuessQueue = !!(hunt && hunt.hasGuessQueue);
     return {
-      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
+      canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), props.puzzle.hunt),
       hasGuessQueue,
     };
   }, [props.puzzle.hunt]);
@@ -1001,7 +1001,7 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
       displayNames,
       allGuesses,
       document,
-      canUpdate: Roles.userHasPermission(Meteor.userId(), 'mongo.puzzles.update'),
+      canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), params.huntId),
     };
   }, [props.match.params.huntId, props.match.params.puzzleId]);
 

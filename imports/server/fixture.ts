@@ -1,15 +1,18 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import huntFixtures from '../fixtures';
 import Hunts from '../lib/models/hunts';
 import Puzzles from '../lib/models/puzzles';
 import Tags from '../lib/models/tags';
+import { userMayCreateHunt } from '../lib/permission_stubs';
 
 Meteor.methods({
   createFixtureHunt() {
     check(this.userId, String);
-    Roles.checkPermission(this.userId, 'mongo.hunts.insert');
+
+    if (!userMayCreateHunt(this.userId)) {
+      throw new Meteor.Error(401, 'Must be allowed to create hunt');
+    }
 
     const huntId = 'cSB2bWf3BToQ9NBju'; // fixture hunt id
     const data = huntFixtures[huntId];

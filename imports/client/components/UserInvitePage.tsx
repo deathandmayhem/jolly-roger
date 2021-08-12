@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useMemo, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
@@ -10,6 +9,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
 import { RouteComponentProps } from 'react-router';
+import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 
 interface UserInvitePageParams {
@@ -30,9 +30,9 @@ const UserInvitePage = (props: RouteComponentProps<UserInvitePageParams>) => {
   const [bulkError, setBulkError] = useState<Meteor.Error | undefined>(undefined);
 
   const tracker = useTracker<UserInvitePageTracker>(() => {
-    const canBulkInvite = Roles.userHasPermission(Meteor.userId(), 'hunt.bulkJoin');
+    const canBulkInvite = userMayBulkAddToHunt(Meteor.userId(), huntId);
     return { canBulkInvite };
-  }, []);
+  }, [huntId]);
 
   const onEmailChanged: FormControlProps['onChange'] = useCallback((e) => {
     setEmail(e.currentTarget.value);

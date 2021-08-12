@@ -3,13 +3,23 @@ import { Match, check } from 'meteor/check';
 import { Google } from 'meteor/google-oauth';
 import { HTTP } from 'meteor/http';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { Random } from 'meteor/random';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../ansible';
 import { API_BASE } from '../lib/discord';
 import MeteorUsers from '../lib/models/meteor_users';
 import Settings from '../lib/models/settings';
+import {
+  addUserToRoles,
+  userMayConfigureGdrive,
+  userMayConfigureGoogleOAuth,
+  userMayConfigureDiscordOAuth,
+  userMayConfigureDiscordBot,
+  userMayConfigureWebRTCServers,
+  userMayConfigureTeamName,
+  userMayConfigureEmailBranding,
+  userMayConfigureAssets,
+} from '../lib/permission_stubs';
 import UploadTokens from './models/upload_tokens';
 
 // Clean up upload tokens that didn't get used within a minute
@@ -40,14 +50,16 @@ Meteor.methods({
     }
 
     const firstUserId = Accounts.createUser({ email, password });
-    Roles.addUserToRoles(firstUserId, ['admin', 'operator']);
+    addUserToRoles(firstUserId, ['admin', 'operator']);
   },
 
   setupGoogleOAuthClient(clientId: unknown, secret: unknown) {
     check(this.userId, String);
     check(clientId, String);
     check(secret, String);
-    Roles.checkPermission(this.userId, 'google.configureOAuth');
+    if (!userMayConfigureGoogleOAuth(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure Google OAuth');
+    }
 
     Ansible.log('Configuring google oauth client', {
       clientId,
@@ -66,7 +78,9 @@ Meteor.methods({
     check(this.userId, String);
     check(key, String);
     check(secret, String);
-    Roles.checkPermission(this.userId, 'gdrive.credential');
+    if (!userMayConfigureGdrive(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure gdrive');
+    }
 
     const credential = Google.retrieveCredential(key, secret);
     const { refreshToken, email } = credential.serviceData;
@@ -80,7 +94,9 @@ Meteor.methods({
 
   clearGdriveCreds() {
     check(this.userId, String);
-    Roles.checkPermission(this.userId, 'gdrive.credential');
+    if (!userMayConfigureGdrive(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure gdrive');
+    }
     Ansible.log('Clearing Gdrive creds', {
       user: this.userId,
     });
@@ -93,7 +109,9 @@ Meteor.methods({
     check(documentTemplate, Match.Maybe(String));
     // Only let the same people that can credential gdrive configure templates,
     // which today is just admins
-    Roles.checkPermission(this.userId, 'gdrive.credential');
+    if (!userMayConfigureGdrive(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure gdrive');
+    }
 
     // In an ideal world, maybe we'd verify that the document IDs we were given
     // are actually like valid documents that we can reach or something.
@@ -116,7 +134,9 @@ Meteor.methods({
     check(this.userId, String);
     check(clientId, String);
     check(clientSecret, String);
-    Roles.checkPermission(this.userId, 'discord.configureOAuth');
+    if (!userMayConfigureDiscordOAuth(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure Discord OAuth');
+    }
 
     if (!clientId && !clientSecret) {
       Ansible.log('Disabling discord oauth client', {
@@ -157,7 +177,9 @@ Meteor.methods({
   setupDiscordBotToken(token: unknown) {
     check(this.userId, String);
     check(token, String);
-    Roles.checkPermission(this.userId, 'discord.configureBot');
+    if (!userMayConfigureDiscordBot(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure Discord Bot');
+    }
 
     if (token) {
       Ansible.log('Configuring discord bot token (token redacted)', {
@@ -175,7 +197,9 @@ Meteor.methods({
 
   setupDiscordBotGuild(guild: unknown) {
     check(this.userId, String);
-    Roles.checkPermission(this.userId, 'discord.configureBot');
+    if (!userMayConfigureDiscordBot(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure Discord Bot');
+    }
     check(guild, Match.Maybe({
       _id: String,
       name: String,
@@ -196,7 +220,9 @@ Meteor.methods({
 
   setupTurnServerConfig(secret: unknown, urls: unknown) {
     check(this.userId, String);
-    Roles.checkPermission(this.userId, 'webrtc.configureServers');
+    if (!userMayConfigureWebRTCServers(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure TURN server config');
+    }
     check(secret, String);
     check(urls, [String]);
 
@@ -214,7 +240,9 @@ Meteor.methods({
 
   setupSetTeamName(teamName: unknown) {
     check(this.userId, String);
-    Roles.checkPermission(this.userId, 'setTeamName');
+    if (!userMayConfigureTeamName(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure team name');
+    }
     check(teamName, Match.Maybe(String));
     if (teamName) {
       Settings.upsert({ name: 'teamname' }, {
@@ -232,7 +260,9 @@ Meteor.methods({
   setupEmailBranding(from: unknown, enrollSubject: unknown, enrollMessage: unknown,
     joinSubject: unknown, joinMessage: unknown) {
     check(this.userId, String);
-    Roles.checkPermission(this.userId, 'email.configureBranding');
+    if (!userMayConfigureEmailBranding(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure email branding');
+    }
     check(from, Match.Optional(String));
     check(enrollSubject, Match.Optional(String));
     check(enrollMessage, Match.Optional(String));
@@ -257,7 +287,9 @@ Meteor.methods({
 
   setupGetUploadToken(assetName: unknown, assetMimeType: unknown) {
     check(this.userId, String);
-    Roles.checkPermission(this.userId, 'asset.upload');
+    if (!userMayConfigureAssets(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure branding assets');
+    }
     check(assetName, String);
     check(assetMimeType, String);
     const token = UploadTokens.insert({ asset: assetName, mimeType: assetMimeType });

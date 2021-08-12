@@ -1,14 +1,19 @@
 import { Accounts } from 'meteor/accounts-base';
-import { check } from 'meteor/check';
+import { check, Match } from 'meteor/check';
 import { Email } from 'meteor/email';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import Mustache from 'mustache';
 import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
+import {
+  checkAdmin,
+  userMayAddUsersToHunt,
+  userMayBulkAddToHunt,
+  userMayUseDiscordBotAPIs,
+} from '../lib/permission_stubs';
 import { HuntType } from '../lib/schemas/hunts';
 import { SettingType } from '../lib/schemas/settings';
 import addUserToDiscordRole from './addUserToDiscordRole';
@@ -74,7 +79,84 @@ function renderExistingJoinEmail(setting: SettingType | undefined, user: Meteor.
   return Mustache.render(DEFAULT_EXISTING_JOIN_TEMPLATE, view);
 }
 
+const SavedDiscordObjectFields = {
+  id: String,
+  name: String,
+};
+
+const HuntShape = {
+  name: String,
+  mailingLists: [String] as [StringConstructor],
+  signupMessage: Match.Optional(String),
+  openSignups: Boolean,
+  hasGuessQueue: Boolean,
+  submitTemplate: Match.Optional(String),
+  homepageUrl: Match.Optional(String),
+  puzzleHooksDiscordChannel: Match.Optional(SavedDiscordObjectFields),
+  firehoseDiscordChannel: Match.Optional(SavedDiscordObjectFields),
+  memberDiscordRole: Match.Optional(SavedDiscordObjectFields),
+};
+
 Meteor.methods({
+  createHunt(value: unknown) {
+    check(this.userId, String);
+    checkAdmin(this.userId);
+    check(value, HuntShape);
+
+    const huntId = Hunts.insert(value);
+
+    // Sync discord roles
+    MeteorUsers.find({ hunts: huntId })
+      .forEach((u) => {
+        addUserToDiscordRole(u._id, huntId);
+      });
+
+    return huntId;
+  },
+
+  updateHunt(huntId: unknown, value: unknown) {
+    check(this.userId, String);
+    checkAdmin(this.userId);
+    check(huntId, String);
+    check(value, HuntShape);
+
+    // $set will not remove keys from a document.  For that, we must specify
+    // $unset on the appropriate key(s).  Split out which keys we must set and
+    // unset to achieve the desired final state.
+    const toSet: { [key: string]: any; } = {};
+    const toUnset: { [key: string]: string; } = {};
+    Object.keys(HuntShape).forEach((key: string) => {
+      const typedKey = key as keyof typeof HuntShape;
+      if (value[typedKey] === undefined) {
+        toUnset[typedKey] = '';
+      } else {
+        toSet[typedKey] = value[typedKey];
+      }
+    });
+
+    Hunts.update(
+      { _id: huntId },
+      {
+        $set: toSet,
+        $unset: toUnset,
+      }
+    );
+
+    // Sync discord roles
+    MeteorUsers.find({ hunts: huntId })
+      .forEach((u) => {
+        addUserToDiscordRole(u._id, huntId);
+      });
+  },
+
+  destroyHunt(huntId: unknown) {
+    check(this.userId, String);
+    checkAdmin(this.userId);
+    check(huntId, String);
+
+    Hunts.destroy(huntId);
+  },
+
   addToHunt(huntId: unknown, email: unknown) {
     check(huntId, String);
     check(email, String);
@@ -85,7 +167,9 @@ Meteor.methods({
       throw new Meteor.Error(404, 'Unknown hunt');
     }
 
-    Roles.checkPermission(this.userId, 'hunt.join', huntId);
+    if (!userMayAddUsersToHunt(this.userId, huntId)) {
+      throw new Meteor.Error(401, `User ${this.userId} may not add members to ${huntId}`);
+    }
 
     let joineeUser = <Meteor.User | undefined>Accounts.findUserByEmail(email);
     const newUser = joineeUser === undefined;
@@ -148,7 +232,9 @@ Meteor.methods({
     check(emails, [String]);
     check(this.userId, String);
 
-    Roles.checkPermission(this.userId, 'hunt.bulkJoin', huntId);
+    if (!userMayBulkAddToHunt(this.userId, huntId)) {
+      throw new Meteor.Error(401, `User ${this.userId} may not bulk-invite to hunt ${huntId}`);
+    }
 
     // We'll re-do this check but if we check it now the error reporting will be
     // better
@@ -180,7 +266,9 @@ Meteor.methods({
     check(huntId, String);
     check(this.userId, String);
 
-    Roles.checkPermission(this.userId, 'discord.useBotAPIs', huntId);
+    if (!userMayUseDiscordBotAPIs(this.userId)) {
+      throw new Meteor.Error(401, `User ${this.userId} not permitted to access Discord bot APIs`);
+    }
 
     MeteorUsers.find({ hunts: huntId })
       .forEach((u) => {

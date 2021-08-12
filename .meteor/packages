@@ -11,7 +11,6 @@ audit-argument-checks@1.0.7
 aldeed:collection2@3.0.0
 aldeed:schema-deny
 aldeed:schema-index
-nicolaslopezj:roles
 meteor-base@1.4.0
 mobile-experience@1.1.0
 mongo@1.11.0

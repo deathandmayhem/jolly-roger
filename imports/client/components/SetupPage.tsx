@@ -1,6 +1,5 @@
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { OAuth } from 'meteor/oauth';
 import { useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
@@ -14,6 +13,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import Flags from '../../flags';
+import isAdmin from '../../lib/is-admin';
 import BlobMappings from '../../lib/models/blob_mappings';
 import DiscordCache from '../../lib/models/discord_cache';
 import Settings from '../../lib/models/settings';
@@ -1799,7 +1799,7 @@ interface SetupPageTracker {
 const SetupPage = () => {
   useBreadcrumb({ title: 'Server setup', path: '/setup' });
   const tracker = useTracker<SetupPageTracker>(() => {
-    const canConfigure = Roles.userHasRole(Meteor.userId()!, 'admin');
+    const canConfigure = isAdmin(Meteor.userId());
 
     // We need to fetch the contents of the Settings table
     const settingsHandle = Meteor.subscribe('mongo.settings');

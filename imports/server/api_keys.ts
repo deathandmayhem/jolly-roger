@@ -1,13 +1,13 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { Random } from 'meteor/random';
 import Ansible from '../ansible';
+import isAdmin from '../lib/is-admin';
 import APIKeys from './models/api_keys';
 import Locks from './models/lock';
 
 const userForKeyOperation = function userForKeyOperation(currentUser: string, forUser?: string) {
-  const canOverrideUser = Roles.userHasRole(currentUser, 'admin');
+  const canOverrideUser = isAdmin(currentUser);
 
   if (forUser && !canOverrideUser) {
     throw new Meteor.Error(403, 'Only server admins can fetch other users\' keys');

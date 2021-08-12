@@ -150,7 +150,7 @@ const Down = class Down {
     await Meteor.subscribeAll([
       ['meteor.loginServiceConfiguration'],
       ['meteor_autoupdate_clientVersions'],
-      ['nicolaslopezj_roles'],
+      ['roles'],
     ]);
 
     await this.login(Meteor);

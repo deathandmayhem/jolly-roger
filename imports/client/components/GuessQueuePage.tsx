@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/nicolaslopezj:roles';
 import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
@@ -16,6 +15,7 @@ import Guesses from '../../lib/models/guess';
 import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
+import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
 import { GuessType } from '../../lib/schemas/guess';
 import { HuntType } from '../../lib/schemas/hunts';
 import { PuzzleType } from '../../lib/schemas/puzzles';
@@ -158,7 +158,7 @@ const GuessQueuePage = (props: GuessQueuePageWithRouterParams) => {
       guesses: [],
       puzzles: {},
       displayNames: {},
-      canEdit: Roles.userHasPermission(Meteor.userId(), 'mongo.guesses.update'),
+      canEdit: userMayUpdateGuessesForHunt(Meteor.userId(), huntId),
     };
     if (ready) {
       data.hunt = Hunts.findOne({ _id: huntId });
