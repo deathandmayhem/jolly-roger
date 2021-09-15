@@ -51,6 +51,7 @@
     "react-split-pane": "^0.1.92",
     "react-textarea-autosize": "^8.2.0",
     "simpl-schema": "^1.10.2",
+    "styled-components": "^5.3.1",
     "url": "^0.11.0"
   },
   "devDependencies": {
@@ -77,10 +78,12 @@
     "@types/react-router-dom": "^5.1.5",
     "@types/react-select": "^3.0.21",
     "@types/simpl-schema": "^0.2.9",
+    "@types/styled-components": "^5.1.14",
     "@types/ws": "^7.4.0",
     "@typescript-eslint/eslint-plugin": "^4.9.1",
     "@typescript-eslint/parser": "^4.9.1",
     "assert": "^2.0.0",
+    "babel-plugin-styled-components": "^1.13.2",
     "chai": "^4.2.0",
     "diff": "^4.0.2",
     "enzyme": "^3.11.0",

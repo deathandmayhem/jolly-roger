@@ -12,6 +12,7 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
+import styled from 'styled-components';
 import Flags from '../../flags';
 import isAdmin from '../../lib/is-admin';
 import BlobMappings from '../../lib/models/blob_mappings';
@@ -23,6 +24,48 @@ import { DiscordGuildType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 
 /* eslint-disable max-len, react/jsx-one-expression-per-line */
+
+const Section = styled.section`
+  margin-bottom: 24px;
+`;
+
+const SectionHeader = styled.h1`
+  background-color: #f0f0f0;
+  font-size: 18px;
+  border-bottom: 1px solid black;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+`;
+
+const SectionHeaderLabel = styled.span`
+  flex: 1 1 auto;
+`;
+
+const SectionHeaderButtons = styled.span`
+  flex: 0 0 auto;
+  button {
+    margin-left: 8px;
+    margin-bottom: 8px;
+  }
+`;
+
+const Subsection = styled.div`
+  &:not(:last-child) {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+  }
+`;
+
+const SubsectionHeader = styled.h2`
+  font-size: 16px;
+  font-weight: bold;
+  //background-color: #f0f0f0
+`;
 
 enum SubmitState {
   IDLE = 'idle',
@@ -334,23 +377,23 @@ const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
   const templateBadgeVariant = props.spreadsheetTemplate ? 'success' : 'warning';
 
   return (
-    <section id="google">
-      <h1 className="setup-section-header">
-        <span className="setup-section-header-label">
+    <Section id="google">
+      <SectionHeader>
+        <SectionHeaderLabel>
           Google integration
-        </span>
+        </SectionHeaderLabel>
         <Badge variant={compBadgeVariant}>
           {comp}
         </Badge>
-        <span className="setup-section-header-buttons">
+        <SectionHeaderButtons>
           <Button variant="light" disabled={props.enabled} onClick={onToggleEnabled}>
             {firstButtonLabel}
           </Button>
           <Button variant="light" disabled={!props.enabled} onClick={onToggleEnabled}>
             {secondButtonLabel}
           </Button>
-        </span>
-      </h1>
+        </SectionHeaderButtons>
+      </SectionHeader>
       <p>
         There are three pieces to Jolly Roger&apos;s Google integration capabilities:
       </p>
@@ -372,12 +415,12 @@ const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
         </li>
       </ol>
 
-      <div className="setup-subsection">
-        <h2 className="setup-subsection-header">
+      <Subsection>
+        <SubsectionHeader>
           <span>OAuth client</span>
           {' '}
           <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
-        </h2>
+        </SubsectionHeader>
         <p>
           Integrating with Google requires registering an app ID which
           identifies your Jolly Roger instance, and obtaining an app secret
@@ -395,14 +438,14 @@ const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
           Then, copy the client ID and secret into the fields here and click the Save button.
         </p>
         <GoogleOAuthForm initialClientId={clientId} isConfigured={!!props.oauthSettings} />
-      </div>
+      </Subsection>
 
-      <div className="setup-subsection">
-        <h2 className="setup-subsection-header">
+      <Subsection>
+        <SubsectionHeader>
           <span>Drive user</span>
           {' '}
           <Badge variant={driveBadgeVariant}>{driveBadgeLabel}</Badge>
-        </h2>
+        </SubsectionHeader>
         <p>
           Jolly Roger automates the creation of Google spreadsheets and
           documents for each puzzle, as well as sharing them with any viewer who
@@ -419,14 +462,14 @@ const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
           </p>
         )}
         <GoogleAuthorizeDriveClientForm />
-      </div>
+      </Subsection>
 
-      <div className="setup-subsection">
-        <h2 className="setup-subsection-header">
+      <Subsection>
+        <SubsectionHeader>
           <span>Document templates</span>
           {' '}
           <Badge variant={templateBadgeVariant}>{templateBadgeLabel}</Badge>
-        </h2>
+        </SubsectionHeader>
         <p>
           Jolly Roger can create new documents for each puzzle it&apos; made aware of,
           but teams often would prefer that it make a new copy of some template document
@@ -443,8 +486,8 @@ const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
           initialSpreadsheetTemplate={props.spreadsheetTemplate}
           initialDocTemplate={props.docTemplate}
         />
-      </div>
-    </section>
+      </Subsection>
+    </Section>
   );
 };
 
@@ -756,15 +799,15 @@ const EmailConfigSection = (props: EmailConfigSectionProps) => {
   const configured = props.config && props.config.name === 'email.branding' && props.config.value.from;
   const badgeVariant = configured ? 'success' : 'warning';
   return (
-    <section id="email">
-      <h1 className="setup-section-header">
-        <span className="setup-section-header-label">
+    <Section id="email">
+      <SectionHeader>
+        <SectionHeaderLabel>
           Email configuration
-        </span>
+        </SectionHeaderLabel>
         <Badge variant={badgeVariant}>
           {configured ? 'Configured' : 'Unconfigured'}
         </Badge>
-      </h1>
+      </SectionHeader>
       <p>
         Jolly Roger sends email for a few reasons:
       </p>
@@ -789,7 +832,7 @@ const EmailConfigSection = (props: EmailConfigSectionProps) => {
         variables available to each context are described below.
       </p>
       <EmailConfigForm initialConfig={props.config} />
-    </section>
+    </Section>
   );
 };
 
@@ -1080,25 +1123,25 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
   const guildBadgeLabel = props.guild ? 'configured' : 'unconfigured';
   const guildBadgeVariant = props.guild ? 'success' : 'warning';
   return (
-    <section id="discord">
-      <h1 className="setup-section-header">
-        <span className="setup-section-header-label">
+    <Section id="discord">
+      <SectionHeader>
+        <SectionHeaderLabel>
           Discord integration
-        </span>
+        </SectionHeaderLabel>
         <Badge variant={headerBadgeVariant}>
           {configured ? 'Configured' : 'Unconfigured'}
         </Badge>
         {configured && (
-        <span className="setup-section-header-buttons">
+        <SectionHeaderButtons>
           <Button variant="light" disabled={props.enabled} onClick={onToggleEnabled}>
             {firstButtonLabel}
           </Button>
           <Button variant="light" disabled={!props.enabled} onClick={onToggleEnabled}>
             {secondButtonLabel}
           </Button>
-        </span>
+        </SectionHeaderButtons>
         )}
-      </h1>
+      </SectionHeader>
 
       <p>
         Jolly Roger supports a Discord integration, where this instance
@@ -1129,12 +1172,12 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
         </li>
       </ol>
 
-      <div className="setup-subsection">
-        <h2 className="setup-subsection-header">
+      <Subsection>
+        <SubsectionHeader>
           <span>OAuth client</span>
           {' '}
           <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
-        </h2>
+        </SubsectionHeader>
         <p>
           Jolly Roger can allow Discord users to grant limited access to
           their Discord account for the purposes of adding them to a guild
@@ -1157,14 +1200,14 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
           enabled={props.enabled}
           oauthSettings={props.oauthSettings}
         />
-      </div>
+      </Subsection>
 
-      <div className="setup-subsection">
-        <h2 className="setup-subsection-header">
+      <Subsection>
+        <SubsectionHeader>
           <span>Bot account</span>
           {' '}
           <Badge variant={botBadgeVariant}>{botBadgeLabel}</Badge>
-        </h2>
+        </SubsectionHeader>
         <p>
           Since Discord only allows guild invitations to be managed by bot
           accounts, to use Jolly Roger to automate Discord guild membership,
@@ -1174,14 +1217,14 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
         <DiscordBotForm
           botToken={props.botToken}
         />
-      </div>
+      </Subsection>
 
-      <div className="setup-subsection">
-        <h2 className="setup-subsection-header">
+      <Subsection>
+        <SubsectionHeader>
           <span>Guild</span>
           {' '}
           <Badge variant={guildBadgeVariant}>{guildBadgeLabel}</Badge>
-        </h2>
+        </SubsectionHeader>
         <p>
           Since bots can be part of multiple guilds, you&apos;ll need to specify
           which one you want Jolly Roger to add users to.  Note that Discord
@@ -1193,8 +1236,8 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
         <DiscordGuildForm
           guild={props.guild}
         />
-      </div>
-    </section>
+      </Subsection>
+    </Section>
   );
 };
 
@@ -1292,17 +1335,17 @@ interface WebRTCSectionProps {
 
 const WebRTCSection = (props: WebRTCSectionProps) => {
   return (
-    <section id="webrtc">
-      <h1 className="setup-section-header">
-        <span className="setup-section-header-label">
+    <Section id="webrtc">
+      <SectionHeader>
+        <SectionHeaderLabel>
           WebRTC
-        </span>
-      </h1>
+        </SectionHeaderLabel>
+      </SectionHeader>
 
-      <div className="setup-subsection">
-        <h2 className="setup-subsection-header">
+      <Subsection>
+        <SubsectionHeader>
           <span>Turn server configuration</span>
-        </h2>
+        </SubsectionHeader>
         <p>
           To use WebRTC, you need to configure a STUN/TURN server which you
           operate.  Specifically, you must provide at least one URL (like
@@ -1341,8 +1384,8 @@ const WebRTCSection = (props: WebRTCSectionProps) => {
           secret={props.turnServerSecret}
           urls={props.turnServerUrls}
         />
-      </div>
-    </section>
+      </Subsection>
+    </Section>
   );
 };
 
@@ -1416,6 +1459,27 @@ interface BrandingAssetRowProps {
   children?: ReactChild;
 }
 
+const BrandingRow = styled.div`
+  &:not(:last-child) {
+    margin-bottom: 8px;
+  }
+`;
+
+const BrandingRowContent = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+`;
+
+const BrandingRowImage = styled.div`
+  width: 200px;
+  height: 200px;
+  background-position: center;
+  background-repeat: no-repeat;
+  // background-size and background-image are defined inline per div
+`;
+
 const BrandingAssetRow = (props: BrandingAssetRowProps) => {
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
@@ -1466,7 +1530,7 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
   // If no BlobMapping is present for this asset, fall back to the default one from the public/images folder
   const blobUrl = props.blob ? `/asset/${props.blob.blob}` : `/images/${props.asset}`;
   return (
-    <div className="branding-row">
+    <BrandingRow>
       {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
       {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
       {submitState === 'error' ? (
@@ -1476,9 +1540,8 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
           {submitError}
         </Alert>
       ) : null}
-      <div className="branding-row-content">
-        <div
-          className="branding-row-image"
+      <BrandingRowContent>
+        <BrandingRowImage
           style={{
             backgroundImage: `url("${blobUrl}")`,
             backgroundSize: props.backgroundSize || 'auto',
@@ -1489,8 +1552,8 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
           <div>{props.children}</div>
           <input id={`asset-input-${props.asset}`} type="file" onChange={onFileSelected} />
         </label>
-      </div>
-    </div>
+      </BrandingRowContent>
+    </BrandingRow>
   );
 };
 
@@ -1503,16 +1566,16 @@ const BrandingSection = (props: BrandingSectionProps) => {
   const blobMap = _.indexBy(props.blobMappings, '_id');
 
   return (
-    <section id="branding">
-      <h1 className="setup-section-header">
-        <span className="setup-section-header-label">
+    <Section id="branding">
+      <SectionHeader>
+        <SectionHeaderLabel>
           Branding
-        </span>
-      </h1>
-      <div className="setup-subsection">
-        <h2 className="setup-subsection-header">
+        </SectionHeaderLabel>
+      </SectionHeader>
+      <Subsection>
+        <SubsectionHeader>
           <span>Team name</span>
-        </h2>
+        </SubsectionHeader>
         <p>
           The team name is displayed:
         </p>
@@ -1522,11 +1585,11 @@ const BrandingSection = (props: BrandingSectionProps) => {
           <li>and anywhere else we may refer to the team that owns this Jolly Roger instance.</li>
         </ul>
         <BrandingTeamName initialTeamName={props.teamName} />
-      </div>
-      <div className="setup-subsection">
-        <h2 className="setup-subsection-header">
+      </Subsection>
+      <Subsection>
+        <SubsectionHeader>
           <span>Essential imagery</span>
-        </h2>
+        </SubsectionHeader>
         <BrandingAssetRow asset="brand.png" blob={blobMap['brand.png']}>
           Brand icon, 50x50 pixels, shown in the top left of all logged-in pages
         </BrandingAssetRow>
@@ -1542,11 +1605,11 @@ const BrandingSection = (props: BrandingSectionProps) => {
           Hero image @ 2x res for high-DPI displays, approximately 1020x595
           pixels, shown on the login/enroll/password-reset pages.
         </BrandingAssetRow>
-      </div>
-      <div className="setup-subsection">
-        <h2 className="setup-subsection-header">
+      </Subsection>
+      <Subsection>
+        <SubsectionHeader>
           <span>Favicons and related iconography</span>
-        </h2>
+        </SubsectionHeader>
         <BrandingAssetRow asset="android-chrome-192x192.png" blob={blobMap['android-chrome-192x192.png']}>
           Android Chrome favicon at 192x192 pixels
         </BrandingAssetRow>
@@ -1568,8 +1631,8 @@ const BrandingSection = (props: BrandingSectionProps) => {
         <BrandingAssetRow asset="safari-pinned-tab.svg" blob={blobMap['safari-pinned-tab.svg']} backgroundSize="contain">
           Black-and-transparent SVG used by Safari for pinned tabs
         </BrandingAssetRow>
-      </div>
-    </section>
+      </Subsection>
+    </Section>
   );
 };
 
@@ -1589,6 +1652,31 @@ interface CircuitBreakerControlProps {
   onChange: (desiredState: boolean) => void;
 }
 
+const CircuitBreaker = styled.div`
+  margin-bottom: 16px;
+`;
+
+const CircuitBreakerRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  background: #eee;
+`;
+
+const CircuitBreakerLabel = styled.div`
+  font-size: 16px;
+  flex: 1 1 auto;
+`;
+
+const CircuitBreakerButtons = styled.div`
+  flex: 0 0 auto;
+  button {
+    margin-left: 8px;
+  }
+`;
+
 const CircuitBreakerControl = (props: CircuitBreakerControlProps) => {
   const {
     featureDisabled, title, children, onChange,
@@ -1604,24 +1692,24 @@ const CircuitBreakerControl = (props: CircuitBreakerControlProps) => {
   const secondButtonLabel = featureIsEnabled ? 'Disable' : 'Disabled';
 
   return (
-    <div className="circuit-breaker">
-      <div className="circuit-breaker-row">
-        <div className="circuit-breaker-label">
+    <CircuitBreaker>
+      <CircuitBreakerRow>
+        <CircuitBreakerLabel>
           {title}
-        </div>
-        <div className="circuit-breaker-buttons">
+        </CircuitBreakerLabel>
+        <CircuitBreakerButtons>
           <Button variant="light" disabled={featureIsEnabled} onClick={onChangeCb}>
             {firstButtonLabel}
           </Button>
           <Button variant="light" disabled={!featureIsEnabled} onClick={onChangeCb}>
             {secondButtonLabel}
           </Button>
-        </div>
-      </div>
+        </CircuitBreakerButtons>
+      </CircuitBreakerRow>
       <div className="circuit-breaker-description">
         {children}
       </div>
-    </div>
+    </CircuitBreaker>
   );
 };
 
@@ -1640,10 +1728,10 @@ const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
   }, []);
 
   return (
-    <section id="circuit-breakers">
-      <h1 className="setup-section-header">
+    <Section id="circuit-breakers">
+      <SectionHeader>
         Circuit breakers
-      </h1>
+      </SectionHeader>
       <p>
         Jolly Roger has several features which can be responsible for high
         server load or increased latency.  We allow them to be disabled at
@@ -1761,7 +1849,7 @@ const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
           generated or displayed.
         </p>
       </CircuitBreakerControl>
-    </section>
+    </Section>
   );
 };
 
@@ -1880,7 +1968,7 @@ const SetupPage = () => {
 
   if (!tracker.ready) {
     return (
-      <div className="setup-page">
+      <div>
         Loading...
       </div>
     );
@@ -1888,7 +1976,7 @@ const SetupPage = () => {
 
   if (!tracker.canConfigure) {
     return (
-      <div className="setup-page">
+      <div>
         <h1>Not authorized</h1>
         <p>This page allows server admins to reconfigure the server, but you&apos;re not an admin.</p>
       </div>
@@ -1898,7 +1986,7 @@ const SetupPage = () => {
   const discordConfigured = !!tracker.discordOAuthConfig;
   const discordEnabled = !tracker.flagDisableDiscord;
   return (
-    <div className="setup-page">
+    <div>
       <GoogleIntegrationSection
         oauthSettings={tracker.googleConfig}
         enabled={!tracker.flagDisableGoogleIntegration}
