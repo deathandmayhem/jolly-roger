@@ -3,7 +3,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useMemo } from 'react';
-import Breadcrumb from 'react-bootstrap/Breadcrumb';
+import BSBreadcrumb from 'react-bootstrap/Breadcrumb';
 import BreadcrumbItem from 'react-bootstrap/BreadcrumbItem';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownItem from 'react-bootstrap/DropdownItem';
@@ -30,6 +30,34 @@ interface AppNavbarTracker {
   brandSrc: string;
   brandSrc2x: string;
 }
+
+const Breadcrumb = styled(BSBreadcrumb).attrs(() => ({
+  $lineHeight: '22px',
+  $maxLines: 2,
+  $indent: '1rem',
+  $paddingX: '0.75rem',
+}))`
+  display: flex;
+  align-items: center;
+  height: calc(${(props) => props.$lineHeight} * ${(props) => props.$maxLines});
+  line-height: ${(props) => props.$lineHeight};
+  flex: 1;
+
+  ol {
+    display: block;
+    background-color: transparent;
+    max-height: 100%;
+    overflow: hidden;
+    text-indent: -${(props) => props.$indent};
+    padding: 0 ${(props) => props.$paddingX} 0 calc(${(props) => props.$paddingX} + ${(props) => props.$indent});
+    margin: 0;
+
+    li {
+      display: inline;
+      text-indent: 0;
+    }
+  }
+`;
 
 const Brand = styled.img`
   width: 50px;
@@ -69,7 +97,7 @@ const AppNavbar = (props: RouteComponentProps) => {
   const crumbs = useBreadcrumbItems();
   const breadcrumbsComponent = useMemo(() => {
     return (
-      <Breadcrumb className="nav-breadcrumbs">
+      <Breadcrumb>
         {crumbs.map((crumb, index) => {
           const last = (index === crumbs.length - 1);
           if (last) {
