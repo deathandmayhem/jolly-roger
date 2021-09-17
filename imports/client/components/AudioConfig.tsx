@@ -7,6 +7,7 @@ import FormCheck from 'react-bootstrap/FormCheck';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
+import styled from 'styled-components';
 import Spectrum, { SpectrumHandle } from './Spectrum';
 
 enum AudioConfigStatus {
@@ -17,6 +18,28 @@ enum AudioConfigStatus {
 }
 
 export const PREFERRED_AUDIO_DEVICE_STORAGE_KEY = 'preferredAudioDevice';
+
+const AudioSelfTest = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+`;
+
+const SpectrogramYAxisLabels = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+`;
+
+const Spectrogram = styled.div`
+  position: relative;
+  margin: 10px 4px;
+  border: 1px solid black;
+  width: 600px;
+  height: 400px;
+`;
 
 const AudioConfig = () => {
   const [status, setStatus] = useState<AudioConfigStatus>(AudioConfigStatus.IDLE);
@@ -212,8 +235,8 @@ const AudioConfig = () => {
         />
       </FormGroup>
 
-      <div className="audio-self-test">
-        <div className="spectrogram-y-axis-labels">
+      <AudioSelfTest>
+        <SpectrogramYAxisLabels>
           <div>-30dBFS</div>
           <div>-40dBFS</div>
           <div>-50dBFS</div>
@@ -222,21 +245,22 @@ const AudioConfig = () => {
           <div>-80dBFS</div>
           <div>-90dBFS</div>
           <div>-100dBFS</div>
-        </div>
-        {status === AudioConfigStatus.STREAMING ? (
-          <Spectrum
-            className="audio-self-test-spectrogram"
-            width={600}
-            height={400}
-            audioContext={audioContext!}
-            barCount={128}
-            throttleFps={60}
-            barFloor={0}
-            smoothingTimeConstant={0.7}
-            ref={spectrumRefCallback}
-          />
-        ) : <div className="audio-self-test-spectrogram" />}
-      </div>
+        </SpectrogramYAxisLabels>
+        <Spectrogram>
+          {status === AudioConfigStatus.STREAMING && (
+            <Spectrum
+              width={600}
+              height={400}
+              audioContext={audioContext!}
+              barCount={128}
+              throttleFps={60}
+              barFloor={0}
+              smoothingTimeConstant={0.7}
+              ref={spectrumRefCallback}
+            />
+          )}
+        </Spectrogram>
+      </AudioSelfTest>
       <audio
         ref={audioRef}
         className="audio-sink"

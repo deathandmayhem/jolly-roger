@@ -349,7 +349,6 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
           {peerParticipant.deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
           {showSpectrum ? (
             <Spectrum
-              className="spectrogram"
               width={40}
               height={40}
               audioContext={audioContext}

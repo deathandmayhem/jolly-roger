@@ -14,7 +14,12 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import * as RRBS from 'react-router-bootstrap';
+import styled from 'styled-components';
 import { ProfileType } from '../../lib/schemas/profile';
+
+const ProfilesSummary = styled.div`
+  text-align: right;
+`;
 
 interface ProfileListProps {
   huntId?: string;
@@ -58,8 +63,8 @@ const ProfileList = (props: ProfileListProps) => {
       for (let i = 0; i < toMatch.length; i++) {
         const searchKey = toMatch[i];
         if (profile.displayName.toLowerCase().indexOf(searchKey) === -1 &&
-            profile.primaryEmail.toLowerCase().indexOf(searchKey) === -1 &&
-            (!profile.phoneNumber || profile.phoneNumber.toLowerCase().indexOf(searchKey) === -1)) {
+          profile.primaryEmail.toLowerCase().indexOf(searchKey) === -1 &&
+          (!profile.phoneNumber || profile.phoneNumber.toLowerCase().indexOf(searchKey) === -1)) {
           return false;
         }
       }
@@ -126,13 +131,11 @@ const ProfileList = (props: ProfileListProps) => {
   return (
     <div>
       <h1>List of hunters</h1>
-      <div className="profiles-summary">
-        <div>
-          Total hunters:
-          {' '}
-          {props.profiles.length}
-        </div>
-      </div>
+      <ProfilesSummary>
+        Total hunters:
+        {' '}
+        {props.profiles.length}
+      </ProfilesSummary>
 
       {syncDiscordButton}
 
