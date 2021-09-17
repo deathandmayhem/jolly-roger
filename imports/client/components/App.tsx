@@ -17,6 +17,7 @@ import NavbarBrand from 'react-bootstrap/NavbarBrand';
 import { RouteComponentProps } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 import { lookupUrl } from '../../lib/models/blob_mappings';
 import Profiles from '../../lib/models/profiles';
 import { useBreadcrumbItems } from '../hooks/breadcrumb';
@@ -29,6 +30,11 @@ interface AppNavbarTracker {
   brandSrc: string;
   brandSrc2x: string;
 }
+
+const Brand = styled.img`
+  width: 50px;
+  height: 50px;
+`;
 
 const AppNavbar = (props: RouteComponentProps) => {
   const tracker = useTracker<AppNavbarTracker>(() => {
@@ -93,8 +99,7 @@ const AppNavbar = (props: RouteComponentProps) => {
     <Navbar fixed="top" bg="light" variant="light">
       <NavbarBrand>
         <Link to="/">
-          <img
-            className="brand"
+          <Brand
             src={tracker.brandSrc}
             alt="Jolly Roger logo"
             srcSet={`${tracker.brandSrc} 1x, ${tracker.brandSrc2x} 2x`}
@@ -139,9 +144,7 @@ const App = (props: AppProps) => {
     <div>
       <NotificationCenter />
       <AppNavbar {...routeComponentProps} />
-      <div className="connection-status">
-        <ConnectionStatus />
-      </div>
+      <ConnectionStatus />
       <div className="container-fluid">
         {props.children}
       </div>
