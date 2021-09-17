@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
+import styled from 'styled-components';
 import isAdmin from '../../lib/is-admin';
 import CallParticipants from '../../lib/models/call_participants';
 import CallSignals from '../../lib/models/call_signals';
@@ -38,12 +39,18 @@ function ParticipantSummary(props: ParticipantSummaryProps) {
   );
 }
 
+const CallSummaryParticipants = styled.ul`
+  list-style-type: none;
+  padding-left: 0;
+`;
+
 interface CallSummaryProps {
   participants: CallParticipantType[];
   onFocusParticipant(participant: CallParticipantType): void;
   profilesById: { [key: string]: ProfileType; };
   puzzle: PuzzleType;
 }
+
 function CallSummary(props: CallSummaryProps) {
   const participants = props.participants.map((p) => {
     return (
@@ -66,9 +73,9 @@ function CallSummary(props: CallSummaryProps) {
         {' '}
         callers)
       </h3>
-      <ul className="rtc-debug-call-summary-participants">
+      <CallSummaryParticipants>
         {participants}
-      </ul>
+      </CallSummaryParticipants>
     </div>
   );
 }
@@ -117,12 +124,16 @@ function SignalMessage(props: SignalMessageProps) {
   );
 }
 
+const SignalsTableStyled = styled(Table)`
+  margin-left: 2em;
+`;
+
 interface SignalsTableProps {
   messages: CallSignalType['messages'];
 }
 function SignalsTable(props: SignalsTableProps) {
   return (
-    <Table striped bordered hover size="sm" className="rtc-debug-peer-summary-signals-table">
+    <SignalsTableStyled striped bordered hover size="sm">
       <thead>
         <tr>
           <th>type</th>
@@ -132,9 +143,13 @@ function SignalsTable(props: SignalsTableProps) {
       <tbody>
         {props.messages.map((m) => { return <SignalMessage key={m.content} m={m} />; })}
       </tbody>
-    </Table>
+    </SignalsTableStyled>
   );
 }
+
+const PeerSummarySignals = styled.div`
+  margin-left: 2em;
+`;
 
 interface PeerSummaryProps {
   selfPeer: CallParticipantType;
@@ -169,7 +184,7 @@ function PeerSummary(props: PeerSummaryProps) {
         {otherRole}
         )
       </h3>
-      <div className="rtc-debug-peer-summary-signals">
+      <PeerSummarySignals>
         <div>
           <h4>
             {`Signals sent (${props.signalOut ? props.signalOut.messages.length : 0}) `}
@@ -186,7 +201,7 @@ function PeerSummary(props: PeerSummaryProps) {
           {props.signalIn ? <SignalsTable messages={props.signalIn.messages} /> :
           <div>No signals received</div>}
         </div>
-      </div>
+      </PeerSummarySignals>
     </div>
   );
 }
