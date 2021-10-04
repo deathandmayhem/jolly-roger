@@ -31,12 +31,9 @@ import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
 import markdown from '../markdown';
+import Breakable from './Breakable';
 
 /* eslint-disable max-len */
-
-const Breakable = styled.span`
-  word-wrap: break-word;
-`;
 
 const StyledDismissButton = styled.button`
   background: none;
