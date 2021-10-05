@@ -4,6 +4,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
 import styled from 'styled-components';
 import TeamName from '../team_name';
 
@@ -204,11 +205,9 @@ const AccountForm = (props: AccountFormProps) => {
   }[props.format];
 
   const emailInput = (
-    <div className="form-group">
-      <label htmlFor="at-field-email">Email</label>
-      <input
-        id="at-field-email"
-        className="form-control"
+    <Form.Group controlId="at-field-email">
+      <Form.Label>Email</Form.Label>
+      <Form.Control
         type="email"
         placeholder="Email"
         autoCapitalize="none"
@@ -216,14 +215,12 @@ const AccountForm = (props: AccountFormProps) => {
         onChange={setEmailCallback}
         disabled={submitting}
       />
-    </div>
+    </Form.Group>
   );
   const pwInput = (
-    <div className="form-group">
-      <label htmlFor="at-field-password">Password</label>
-      <input
-        id="at-field-password"
-        className="form-control"
+    <Form.Group controlId="at-field-password">
+      <Form.Label>Password</Form.Label>
+      <Form.Control
         type="password"
         placeholder="Password"
         autoCapitalize="none"
@@ -231,14 +228,12 @@ const AccountForm = (props: AccountFormProps) => {
         onChange={setPasswordCallback}
         disabled={submitting}
       />
-    </div>
+    </Form.Group>
   );
   const enrollmentFields = [
-    <div className="form-group">
-      <label htmlFor="at-field-displayname">Full name</label>
-      <input
-        id="at-field-displayname"
-        className="form-control"
+    <Form.Group controlId="at-field-displayname">
+      <Form.Label>Full name</Form.Label>
+      <Form.Control
         type="text"
         placeholder="Ben Bitdiddle"
         autoCapitalize="none"
@@ -246,23 +241,21 @@ const AccountForm = (props: AccountFormProps) => {
         onChange={setDisplayNameCallback}
         disabled={submitting}
       />
-      <span className="help-block">For use in chat</span>
-    </div>,
-    <div className="form-group">
-      <label htmlFor="at-field-phonenumber">Phone Number</label>
-      <input
-        id="at-field-phonenumber"
-        className="form-control"
+      <Form.Text>For use in chat</Form.Text>
+    </Form.Group>,
+    <Form.Group controlId="at-field-phonenumber">
+      <Form.Label>Phone Number</Form.Label>
+      <Form.Control
         type="tel"
         placeholder="+16173244699"
         onChange={setPhoneNumberCallback}
         disabled={submitting}
       />
-      <span className="help-block">
+      <Form.Text>
         Optional, but helpful if HQ needs to reach you while you&apos;re
         on a runaround or at an event puzzle.
-      </span>
-    </div>,
+      </Form.Text>
+    </Form.Group>,
   ];
   const pwResetOptionComponent = props.format === AccountFormFormat.LOGIN ? (
     <div>
@@ -296,7 +289,7 @@ const AccountForm = (props: AccountFormProps) => {
             {props.format === AccountFormFormat.LOGIN || props.format === AccountFormFormat.ENROLL || props.format === AccountFormFormat.RESET_PWD ? pwInput : null}
             {pwResetOptionComponent}
             {props.format === AccountFormFormat.ENROLL ? enrollmentFields : null}
-            <Button size="lg" variant="outline-secondary" block className="submit" type="submit" disabled={submitting}>
+            <Button size="lg" variant="outline-secondary" block type="submit" disabled={submitting}>
               {buttonText}
             </Button>
             {backToMainForm}
