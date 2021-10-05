@@ -4,6 +4,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
+import styled from 'styled-components';
 import TeamName from '../team_name';
 
 /* eslint-disable max-len, jsx-a11y/anchor-is-valid, jsx-a11y/label-has-associated-control, jsx-a11y/label-has-for */
@@ -14,6 +15,32 @@ export enum AccountFormFormat {
   ENROLL = 'enroll',
   RESET_PWD = 'resetPwd',
 }
+
+// Styles originally taken from https://git.io/vupVU
+
+const StyledForm = styled.div`
+  float: none;
+  margin: auto;
+  overflow: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  padding: 15px;
+`;
+
+const StyledTitle = styled.h3`
+  margin-top: 0px;
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+`;
+
+const StyledModeSwitchLink = styled.div`
+  margin-top: 20px;
+  margin-bottom: 30px;
+  text-align: center;
+`;
 
 type AccountFormProps = {
   format: AccountFormFormat.LOGIN | AccountFormFormat.REQUEST_PW_RESET;
@@ -177,47 +204,42 @@ const AccountForm = (props: AccountFormProps) => {
   }[props.format];
 
   const emailInput = (
-    <div className="at-input form-group">
-      <label className="control-label" htmlFor="at-field-email">Email</label>
+    <div className="form-group">
+      <label htmlFor="at-field-email">Email</label>
       <input
         id="at-field-email"
         className="form-control"
         type="email"
-        name="at-field-email"
         placeholder="Email"
         autoCapitalize="none"
         autoCorrect="off"
         onChange={setEmailCallback}
         disabled={submitting}
       />
-      <span className="help-block" hidden />
     </div>
   );
   const pwInput = (
-    <div>
-      <label className="control-label" htmlFor="at-field-password">Password</label>
+    <div className="form-group">
+      <label htmlFor="at-field-password">Password</label>
       <input
         id="at-field-password"
         className="form-control"
         type="password"
-        name="at-field-password"
         placeholder="Password"
         autoCapitalize="none"
         autoCorrect="off"
         onChange={setPasswordCallback}
         disabled={submitting}
       />
-      <span className="help-block" hidden />
     </div>
   );
   const enrollmentFields = [
-    <div className="at-input form-group">
-      <label className="control-label" htmlFor="at-field-displayname">Full name</label>
+    <div className="form-group">
+      <label htmlFor="at-field-displayname">Full name</label>
       <input
         id="at-field-displayname"
         className="form-control"
         type="text"
-        name="at-field-displayname"
         placeholder="Ben Bitdiddle"
         autoCapitalize="none"
         autoCorrect="off"
@@ -226,13 +248,12 @@ const AccountForm = (props: AccountFormProps) => {
       />
       <span className="help-block">For use in chat</span>
     </div>,
-    <div className="at-input form-group">
-      <label className="control-label" htmlFor="at-field-phonenumber">Phone Number</label>
+    <div className="form-group">
+      <label htmlFor="at-field-phonenumber">Phone Number</label>
       <input
         id="at-field-phonenumber"
         className="form-control"
         type="tel"
-        name="at-field-phonenumber"
         placeholder="+16173244699"
         onChange={setPhoneNumberCallback}
         disabled={submitting}
@@ -244,32 +265,30 @@ const AccountForm = (props: AccountFormProps) => {
     </div>,
   ];
   const pwResetOptionComponent = props.format === AccountFormFormat.LOGIN ? (
-    <div className="at-pwd-link">
+    <div>
       <p>
         {/* TODO: prefer <Button variant="link"> */}
-        <a href="#" id="at-forgotPwd" className="at-link at-pwd" onClick={toggleWantPasswordReset}>
+        <a href="#" onClick={toggleWantPasswordReset}>
           Forgot your password?
         </a>
       </p>
     </div>
   ) : null;
   const backToMainForm = props.format === AccountFormFormat.REQUEST_PW_RESET ? (
-    <div className="at-signin-link">
+    <StyledModeSwitchLink>
       <p>
         {/* TODO: prefer <Button variant="link"> */}
         If you already have an account,
         {' '}
-        <a href="#" id="at-signIn" className="at-link at-signin" onClick={toggleWantPasswordReset}>sign in</a>
+        <a href="#" onClick={toggleWantPasswordReset}>sign in</a>
       </p>
-    </div>
+    </StyledModeSwitchLink>
   ) : null;
   return (
-    <div className="at-form">
-      <div className="at-title">
-        <h3>{title}</h3>
-      </div>
+    <StyledForm>
+      <StyledTitle>{title}</StyledTitle>
       <div>
-        <form id="at-pwd-form" noValidate action="#" method="POST" onSubmit={submitFormCallback}>
+        <form noValidate action="#" method="POST" onSubmit={submitFormCallback}>
           <fieldset>
             {submitState === AccountFormSubmitState.FAILED ? <Alert variant="danger">{errorMessage}</Alert> : null}
             {submitState === AccountFormSubmitState.SUCCESS && successMessage ? <Alert variant="success">{successMessage}</Alert> : null}
@@ -277,14 +296,14 @@ const AccountForm = (props: AccountFormProps) => {
             {props.format === AccountFormFormat.LOGIN || props.format === AccountFormFormat.ENROLL || props.format === AccountFormFormat.RESET_PWD ? pwInput : null}
             {pwResetOptionComponent}
             {props.format === AccountFormFormat.ENROLL ? enrollmentFields : null}
-            <Button id="at-btn" size="lg" variant="outline-secondary" block className="at-btn submit" type="submit" disabled={submitting}>
+            <Button size="lg" variant="outline-secondary" block className="submit" type="submit" disabled={submitting}>
               {buttonText}
             </Button>
             {backToMainForm}
           </fieldset>
         </form>
       </div>
-    </div>
+    </StyledForm>
   );
 };
 
