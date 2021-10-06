@@ -1,26 +1,6 @@
 @import "theme";
 
 $navbar-height: 50px;
-$page-padding-y: 20px;
-
-.jolly-roger {
-  padding-top: $navbar-height + $page-padding-y;
-  padding-bottom: $page-padding-y;
-
-  .navbar {
-    height: $navbar-height;
-  }
-
-  .navbar-brand {
-    margin: 0 0 0 (0 - $navbar-padding-x);
-  }
-
-  .nav-username {
-    @include media-breakpoint-down(xs) {
-      display: none;
-    }
-  }
-}
 
 .jolly-roger-fixed {
   position: fixed;

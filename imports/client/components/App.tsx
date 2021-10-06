@@ -31,16 +31,12 @@ interface AppNavbarTracker {
   brandSrc2x: string;
 }
 
-const Breadcrumb = styled(BSBreadcrumb).attrs(() => ({
-  $lineHeight: '22px',
-  $maxLines: 2,
-  $indent: '1rem',
-  $paddingX: '0.75rem',
-}))`
+const NavBarHeight = '50px';
+
+const Breadcrumb = styled(BSBreadcrumb)`
   display: flex;
   align-items: center;
-  height: calc(${(props) => props.$lineHeight} * ${(props) => props.$maxLines});
-  line-height: ${(props) => props.$lineHeight};
+  height: ${NavBarHeight};
   flex: 1;
 
   ol {
@@ -48,9 +44,8 @@ const Breadcrumb = styled(BSBreadcrumb).attrs(() => ({
     background-color: transparent;
     max-height: 100%;
     overflow: hidden;
-    text-indent: -${(props) => props.$indent};
-    padding: 0 ${(props) => props.$paddingX} 0 calc(${(props) => props.$paddingX} + ${(props) => props.$indent});
     margin: 0;
+    padding: 0;
 
     li {
       display: inline;
@@ -59,9 +54,18 @@ const Breadcrumb = styled(BSBreadcrumb).attrs(() => ({
   }
 `;
 
+const NavUsername = styled.span`
+  // Bootstrap breakpoints are stored as variables on the root element, but you
+  // can't use a variable directly in a media query, so we have to pull it out
+  // with code.
+  @media (max-width: ${() => window.getComputedStyle(document.body).getPropertyValue('--breakpoint-sm')}) {
+    display: none;
+  }
+`;
+
 const Brand = styled.img`
-  width: 50px;
-  height: 50px;
+  width: ${NavBarHeight};
+  height: ${NavBarHeight};
 `;
 
 const AppNavbar = (props: RouteComponentProps) => {
@@ -124,8 +128,8 @@ const AppNavbar = (props: RouteComponentProps) => {
   // correct amount of space in the top bar even if we haven't actually picked
   // a nonempty source for it yet.
   return (
-    <Navbar fixed="top" bg="light" variant="light">
-      <NavbarBrand>
+    <Navbar sticky="top" bg="light" variant="light" className="px-0 py-0">
+      <NavbarBrand className="p-0">
         <Link to="/">
           <Brand
             src={tracker.brandSrc}
@@ -140,7 +144,7 @@ const AppNavbar = (props: RouteComponentProps) => {
           <DropdownToggle id="profileDropdown" as={NavLink}>
             <FontAwesomeIcon icon={faUser} />
             {' '}
-            <span className="nav-username">{tracker.displayName}</span>
+            <NavUsername>{tracker.displayName}</NavUsername>
           </DropdownToggle>
           <DropdownMenu alignRight>
             <RRBS.LinkContainer to={`/users/${tracker.userId}`}>
@@ -173,7 +177,7 @@ const App = (props: AppProps) => {
       <NotificationCenter />
       <AppNavbar {...routeComponentProps} />
       <ConnectionStatus />
-      <div className="container-fluid">
+      <div className="container-fluid pt-2">
         {props.children}
       </div>
     </div>
