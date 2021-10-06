@@ -15,10 +15,6 @@ $page-padding-y: 20px;
     margin: 0 0 0 (0 - $navbar-padding-x);
   }
 
-  .navbar-collapse {
-    flex-grow: 0;
-  }
-
   .nav-username {
     @include media-breakpoint-down(xs) {
       display: none;
