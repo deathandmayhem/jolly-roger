@@ -1,5 +1,5 @@
 import styled from 'styled-components';
 
 export default styled.span`
-  word-wrap: break-word;
+  overflow-wrap: break-word;
 `;
