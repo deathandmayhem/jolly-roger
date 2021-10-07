@@ -12,15 +12,9 @@ const Reset = createGlobalStyle`
     unicode-range: U+1F300-1FAFF, U+1F100-1F1FF, U+200D, U+2300-23FF, U+2600-27BF;
   }
 
-  // As recommended by Paul Irish: https://www.paulirish.com/2012/box-sizing-border-box-ftw/
   html {
     width: 100%;
     height: 100%;
-    box-sizing: border-box;
-  }
-
-  *, *:before, *:after {
-    box-sizing: inherit;
   }
 
   // Prevent mobile safari zoom
