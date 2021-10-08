@@ -15,10 +15,13 @@ jobs:
       with:
         path: ~/.meteor
         key: ${{ runner.os }}-meteor-install-${{ hashFiles('.meteor/versions') }}
+    - id: meteor-version
+      run: |
+       printf "METEOR_RELEASE=%q\n" "$(sed -e 's/^METEOR@//' .meteor/release | tr -d '\n')" >> $GITHUB_ENV
     - uses: meteorengineer/setup-meteor@v1
       if: steps.cache-meteor.outputs.cache-hit != 'true'
       with:
-        meteor-release: '1.8'
+        meteor-release: ${{ env.METEOR_RELEASE }}
     - uses: actions/cache@v1
       id: cache-npm
       with:
