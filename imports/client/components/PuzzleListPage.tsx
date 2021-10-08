@@ -21,6 +21,7 @@ import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 import Hunts from '../../lib/models/hunts';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
@@ -346,6 +347,52 @@ interface PuzzleListPageTracker {
   hunt: HuntType;
 }
 
+const StyledPuzzleListLinkList = styled.ul`
+  list-style: none;
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  width: 100%;
+  margin: 0 0 8px 0;
+  padding: 0;
+  border-color: #cfcfcf;
+  border-style: solid;
+  border-width: 1px 0;
+`;
+
+const StyledPuzzleListLink = styled.li`
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 0;
+`;
+
+const StyledPuzzleListLinkAnchor = styled(Link)`
+  flex: 1 1 0;
+  display: flex;
+  height: 38px;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: bold;
+  &:hover {
+    background-color: #f8f8f8;
+  }
+`;
+
+const StyledPuzzleListExternalLink = styled(StyledPuzzleListLink)`
+  flex: 0 0 40px;
+`;
+
+const StyledPuzzleListLinkLabel = styled.span`
+  margin-left: 4px;
+  @media (max-width: ${() => window.getComputedStyle(document.body).getPropertyValue('--breakpoint-sm')}) {
+    display: none;
+  }
+`;
+
 const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
   const tracker: PuzzleListPageTracker = useTracker(() => {
     const huntId = props.match.params.huntId;
@@ -369,12 +416,11 @@ const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
   }, [props.match.params.huntId]);
 
   const huntLink = tracker.hunt.homepageUrl && (
-    <li className="puzzle-list-link-external">
-      <a href={tracker.hunt.homepageUrl} target="_blank" rel="noopener noreferrer" title="Open the hunt homepage">
+    <StyledPuzzleListExternalLink>
+      <Button as="a" href={tracker.hunt.homepageUrl} className="rounded-0" target="_blank" rel="noopener noreferrer" title="Open the hunt homepage">
         <FontAwesomeIcon icon={faMap} />
-        <span className="puzzle-list-link-label">Hunt homepage</span>
-      </a>
-    </li>
+      </Button>
+    </StyledPuzzleListExternalLink>
   );
   const puzzleList = tracker.ready ? (
     <PuzzleListView
@@ -392,27 +438,27 @@ const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
   );
   return (
     <div>
-      <ul className="puzzle-list-links">
+      <StyledPuzzleListLinkList>
         {huntLink}
-        <li>
-          <Link to={`/hunts/${props.match.params.huntId}/announcements`}>
+        <StyledPuzzleListLink>
+          <StyledPuzzleListLinkAnchor to={`/hunts/${props.match.params.huntId}/announcements`}>
             <FontAwesomeIcon icon={faBullhorn} />
-            <span className="puzzle-list-link-label">Announcements</span>
-          </Link>
-        </li>
-        <li>
-          <Link to={`/hunts/${props.match.params.huntId}/guesses`}>
+            <StyledPuzzleListLinkLabel>Announcements</StyledPuzzleListLinkLabel>
+          </StyledPuzzleListLinkAnchor>
+        </StyledPuzzleListLink>
+        <StyledPuzzleListLink>
+          <StyledPuzzleListLinkAnchor to={`/hunts/${props.match.params.huntId}/guesses`}>
             <FontAwesomeIcon icon={faReceipt} />
-            <span className="puzzle-list-link-label">Guess queue</span>
-          </Link>
-        </li>
-        <li>
-          <Link to={`/hunts/${props.match.params.huntId}/hunters`}>
+            <StyledPuzzleListLinkLabel>Guess queue</StyledPuzzleListLinkLabel>
+          </StyledPuzzleListLinkAnchor>
+        </StyledPuzzleListLink>
+        <StyledPuzzleListLink>
+          <StyledPuzzleListLinkAnchor to={`/hunts/${props.match.params.huntId}/hunters`}>
             <FontAwesomeIcon icon={faUsers} />
-            <span className="puzzle-list-link-label">Hunters</span>
-          </Link>
-        </li>
-      </ul>
+            <StyledPuzzleListLinkLabel>Hunters</StyledPuzzleListLinkLabel>
+          </StyledPuzzleListLinkAnchor>
+        </StyledPuzzleListLink>
+      </StyledPuzzleListLinkList>
       {puzzleList}
     </div>
   );
