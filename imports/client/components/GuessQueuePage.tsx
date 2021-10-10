@@ -21,7 +21,7 @@ import { HuntType } from '../../lib/schemas/hunt';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
-import Breakable from './Breakable';
+import Breakable from './styling/Breakable';
 
 /* eslint-disable max-len */
 

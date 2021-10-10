@@ -35,6 +35,7 @@ import PuzzleModalForm, {
 } from './PuzzleModalForm';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 import { filteredPuzzleGroups, puzzleGroupsByRelevance } from './puzzle-sort-and-group';
+import { mediaBreakpointDown } from './styling/responsive';
 
 interface PuzzleListViewProps extends RouteComponentProps {
   huntId: string
@@ -390,9 +391,9 @@ const StyledPuzzleListExternalLink = styled(StyledPuzzleListLink)`
 
 const StyledPuzzleListLinkLabel = styled.span`
   margin-left: 4px;
-  @media (max-width: ${() => window.getComputedStyle(document.body).getPropertyValue('--breakpoint-sm')}) {
+  ${mediaBreakpointDown('sm')`
     display: none;
-  }
+  `}
 `;
 
 const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {

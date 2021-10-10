@@ -23,6 +23,7 @@ import Profiles from '../../lib/models/profiles';
 import { useBreadcrumbItems } from '../hooks/breadcrumb';
 import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
+import { mediaBreakpointDown } from './styling/responsive';
 
 interface AppNavbarTracker {
   userId: string;
@@ -55,12 +56,9 @@ const Breadcrumb = styled(BSBreadcrumb)`
 `;
 
 const NavUsername = styled.span`
-  // Bootstrap breakpoints are stored as variables on the root element, but you
-  // can't use a variable directly in a media query, so we have to pull it out
-  // with code.
-  @media (max-width: ${() => window.getComputedStyle(document.body).getPropertyValue('--breakpoint-sm')}) {
+  ${mediaBreakpointDown('sm')`
     display: none;
-  }
+  `}
 `;
 
 const Brand = styled.img`

@@ -31,7 +31,7 @@ import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
 import markdown from '../markdown';
-import Breakable from './Breakable';
+import Breakable from './styling/Breakable';
 
 /* eslint-disable max-len */
 
