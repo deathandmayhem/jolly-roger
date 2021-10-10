@@ -321,9 +321,11 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
               </InputGroup>
             </ButtonToolbar>
           </div>
-          <ButtonToolbar>
-            {addPuzzleContent}
-          </ButtonToolbar>
+          <div className="puzzle-view-controls-section">
+            <ButtonToolbar>
+              {addPuzzleContent}
+            </ButtonToolbar>
+          </div>
         </div>
       </FormGroup>
       {renderList(retainedPuzzles, solvedOverConstrains)}

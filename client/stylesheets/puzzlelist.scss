@@ -23,7 +23,15 @@
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-end;
-  }
+
+    @include media-breakpoint-down(xs) {
+      flex-basis: 100%;
+      &:not(:last-child) {
+        margin-right: 0;
+        margin-bottom: 0.5em;
+      }
+    }
+}
 }
 
 .puzzle-list-show-solved {
@@ -37,15 +45,5 @@
   margin-bottom: 16px;
   .puzzles {
     padding-left: 16px;
-  }
-}
-
-@include media-breakpoint-down(xs) {
-  .puzzle-view-controls > .btn-toolbar {
-    flex-basis: 100%;
-    &:not(:last-child) {
-      margin-right: 0;
-      margin-bottom: 0.5em;
-    }
   }
 }
