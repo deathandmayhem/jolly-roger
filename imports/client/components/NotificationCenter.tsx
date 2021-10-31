@@ -25,7 +25,7 @@ import { deprecatedIsActiveOperator } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/announcement';
 import { ChatNotificationType } from '../../lib/schemas/chat_notification';
 import { GuessType } from '../../lib/schemas/guess';
-import { HuntType } from '../../lib/schemas/hunts';
+import { HuntType } from '../../lib/schemas/hunt';
 import { PendingAnnouncementType } from '../../lib/schemas/pending_announcements';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';

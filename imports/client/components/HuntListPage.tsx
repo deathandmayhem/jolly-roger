@@ -22,7 +22,7 @@ import Ansible from '../../ansible';
 import DiscordCache from '../../lib/models/discord_cache';
 import Hunts from '../../lib/models/hunts';
 import { userMayCreateHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
-import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/hunts';
+import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/hunt';
 import { DiscordChannelType, DiscordRoleType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ModalForm, { ModalFormHandle } from './ModalForm';

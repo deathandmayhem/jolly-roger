@@ -10,7 +10,7 @@ import {
 import { useHistory } from 'react-router-dom';
 import Hunts from '../../lib/models/hunts';
 import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
-import { HuntType } from '../../lib/schemas/hunts';
+import { HuntType } from '../../lib/schemas/hunt';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/use-document-title';
 import markdown from '../markdown';

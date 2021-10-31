@@ -6,7 +6,7 @@ import ChatNotifications from '../lib/models/chat_notifications';
 import Hunts from '../lib/models/hunts';
 import Puzzles from '../lib/models/puzzles';
 import { ChatNotificationType } from '../lib/schemas/chat_notification';
-import { HuntType } from '../lib/schemas/hunts';
+import { HuntType } from '../lib/schemas/hunt';
 import { PuzzleType } from '../lib/schemas/puzzles';
 import RefCountedObserverMap from './refcounted-observer-map';
 

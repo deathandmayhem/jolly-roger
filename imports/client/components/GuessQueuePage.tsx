@@ -17,7 +17,7 @@ import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
 import { GuessType } from '../../lib/schemas/guess';
-import { HuntType } from '../../lib/schemas/hunts';
+import { HuntType } from '../../lib/schemas/hunt';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
