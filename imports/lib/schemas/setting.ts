@@ -75,6 +75,6 @@ const [SettingSchemaCodec, SettingOverrides] = inheritSchema(
   BaseOverrides, {},
 );
 
-const Settings = buildSchema(SettingSchemaCodec, SettingOverrides);
+const Setting = buildSchema(SettingSchemaCodec, SettingOverrides);
 
-export default Settings;
+export default Setting;
