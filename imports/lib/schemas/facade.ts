@@ -6,7 +6,7 @@ import ChatMessage from './chat';
 import DocumentPermission from './document_permission';
 import DocumentSchema from './document';
 import FeatureFlag from './feature_flag';
-import Guesses from './guess';
+import Guess from './guess';
 import Hunt from './hunt';
 import PendingAnnouncements from './pending_announcements';
 import Profiles from './profiles';
@@ -23,7 +23,7 @@ const Schemas = {
   DocumentPermission,
   Document: DocumentSchema,
   FeatureFlag,
-  Guesses,
+  Guess,
   Hunt,
   PendingAnnouncements,
   Profiles,
