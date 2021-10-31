@@ -8,7 +8,7 @@ import DocumentSchema from './document';
 import FeatureFlag from './feature_flag';
 import Guess from './guess';
 import Hunt from './hunt';
-import PendingAnnouncements from './pending_announcements';
+import PendingAnnouncement from './pending_announcement';
 import Profiles from './profiles';
 import Puzzles from './puzzles';
 import Tags from './tags';
@@ -25,7 +25,7 @@ const Schemas = {
   FeatureFlag,
   Guess,
   Hunt,
-  PendingAnnouncements,
+  PendingAnnouncement,
   Profiles,
   Puzzles,
   Tags,

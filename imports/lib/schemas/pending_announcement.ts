@@ -30,6 +30,6 @@ export type PendingAnnouncementType = t.TypeOf<typeof PendingAnnouncementCodec>;
 
 // Broadcast announcements that have not yet been viewed by a given
 // user
-const PendingAnnouncements = buildSchema(PendingAnnouncementCodec, PendingAnnouncementOverrides);
+const PendingAnnouncement = buildSchema(PendingAnnouncementCodec, PendingAnnouncementOverrides);
 
-export default PendingAnnouncements;
+export default PendingAnnouncement;
