@@ -22,7 +22,7 @@ import PendingAnnouncements from '../../lib/models/pending_announcements';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import { deprecatedIsActiveOperator } from '../../lib/permission_stubs';
-import { AnnouncementType } from '../../lib/schemas/announcements';
+import { AnnouncementType } from '../../lib/schemas/announcement';
 import { ChatNotificationType } from '../../lib/schemas/chat_notifications';
 import { GuessType } from '../../lib/schemas/guess';
 import { HuntType } from '../../lib/schemas/hunts';

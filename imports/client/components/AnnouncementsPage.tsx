@@ -8,7 +8,7 @@ import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
 import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
-import { AnnouncementType } from '../../lib/schemas/announcements';
+import { AnnouncementType } from '../../lib/schemas/announcement';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import markdown from '../markdown';
 
