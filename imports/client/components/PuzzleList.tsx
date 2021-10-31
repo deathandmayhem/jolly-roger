@@ -1,6 +1,6 @@
 import React from 'react';
 import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tags';
+import { TagType } from '../../lib/schemas/tag';
 import Puzzle from './Puzzle';
 
 /* eslint-disable max-len */

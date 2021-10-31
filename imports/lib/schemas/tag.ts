@@ -21,6 +21,6 @@ const [TagCodec, TagOverrides] = inheritSchema(
 export { TagCodec };
 export type TagType = t.TypeOf<typeof TagCodec>;
 
-const Tags = buildSchema(TagCodec, TagOverrides);
+const Tag = buildSchema(TagCodec, TagOverrides);
 
-export default Tags;
+export default Tag;

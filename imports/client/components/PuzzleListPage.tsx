@@ -27,7 +27,7 @@ import Tags from '../../lib/models/tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { HuntType } from '../../lib/schemas/hunt';
 import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tags';
+import { TagType } from '../../lib/schemas/tag';
 import PuzzleList from './PuzzleList';
 import PuzzleModalForm, {
   PuzzleModalFormHandle, PuzzleModalFormSubmitPayload,

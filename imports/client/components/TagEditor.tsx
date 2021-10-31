@@ -2,7 +2,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import React, { Suspense, useCallback } from 'react';
 import Tags from '../../lib/models/tags';
 import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tags';
+import { TagType } from '../../lib/schemas/tag';
 import Loading from './Loading';
 
 const Creatable = React.lazy(() => import('react-select/creatable'));

@@ -9,7 +9,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
 import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tags';
+import { TagType } from '../../lib/schemas/tag';
 import LabelledRadioGroup from './LabelledRadioGroup';
 import Loading from './Loading';
 import ModalForm, { ModalFormHandle } from './ModalForm';

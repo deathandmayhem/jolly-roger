@@ -13,7 +13,7 @@ import Profile from './profile';
 import PublicSetting from './public_setting';
 import Puzzle from './puzzle';
 import Setting from './setting';
-import Tags from './tags';
+import Tag from './tag';
 import User from './users';
 
 const Schemas = {
@@ -32,7 +32,7 @@ const Schemas = {
   PublicSetting,
   Puzzle,
   Setting,
-  Tags,
+  Tag,
   User,
 };
 

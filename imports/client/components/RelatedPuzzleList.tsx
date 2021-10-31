@@ -1,7 +1,7 @@
 import { _ } from 'meteor/underscore';
 import React from 'react';
 import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tags';
+import { TagType } from '../../lib/schemas/tag';
 import PuzzleList from './PuzzleList';
 import { puzzleInterestingness } from './puzzle-sort-and-group';
 

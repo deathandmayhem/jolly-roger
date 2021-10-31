@@ -38,7 +38,7 @@ import { ChatMessageType } from '../../lib/schemas/chat';
 import { DocumentType } from '../../lib/schemas/document';
 import { GuessType } from '../../lib/schemas/guess';
 import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tags';
+import { TagType } from '../../lib/schemas/tag';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/use-document-title';
 import markdown from '../markdown';
