@@ -27,7 +27,7 @@ import { ChatNotificationType } from '../../lib/schemas/chat_notification';
 import { GuessType } from '../../lib/schemas/guess';
 import { HuntType } from '../../lib/schemas/hunt';
 import { PendingAnnouncementType } from '../../lib/schemas/pending_announcement';
-import { PuzzleType } from '../../lib/schemas/puzzles';
+import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
 import markdown from '../markdown';

@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Flags from '../../flags';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
-import { PuzzleType } from '../../lib/schemas/puzzles';
+import { PuzzleType } from '../../lib/schemas/puzzle';
 import Celebration from './Celebration';
 
 interface CelebrationCenterProps {

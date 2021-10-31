@@ -1,5 +1,5 @@
 import { _ } from 'meteor/underscore';
-import { PuzzleType } from 'imports/lib/schemas/puzzles';
+import { PuzzleType } from 'imports/lib/schemas/puzzle';
 import { TagType } from 'imports/lib/schemas/tags';
 
 interface PuzzleGroup {

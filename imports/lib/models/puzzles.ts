@@ -1,5 +1,5 @@
 import { huntsMatchingCurrentUser } from '../../model-helpers';
-import PuzzlesSchema, { PuzzleType } from '../schemas/puzzles';
+import PuzzleSchema, { PuzzleType } from '../schemas/puzzle';
 import Base from './base';
 
 const Puzzles = new Base<PuzzleType>('puzzles', {
@@ -7,7 +7,7 @@ const Puzzles = new Base<PuzzleType>('puzzles', {
     return { ...doc, tags: [...new Set(doc.tags)] };
   },
 });
-Puzzles.attachSchema(PuzzlesSchema);
+Puzzles.attachSchema(PuzzleSchema);
 Puzzles.publish(huntsMatchingCurrentUser);
 
 export default Puzzles;

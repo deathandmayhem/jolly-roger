@@ -1,5 +1,5 @@
 import React from 'react';
-import { PuzzleType } from '../../lib/schemas/puzzles';
+import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tags';
 import Puzzle from './Puzzle';
 

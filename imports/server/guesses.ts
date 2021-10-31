@@ -10,7 +10,7 @@ import Puzzles from '../lib/models/puzzles';
 import { userMayUpdateGuessesForHunt, deprecatedIsActiveOperator } from '../lib/permission_stubs';
 import { GuessType } from '../lib/schemas/guess';
 import { HuntType } from '../lib/schemas/hunt';
-import { PuzzleType } from '../lib/schemas/puzzles';
+import { PuzzleType } from '../lib/schemas/puzzle';
 import { sendChatMessage } from './chat';
 import GlobalHooks from './global-hooks';
 import RefCountedObserverMap from './refcounted-observer-map';

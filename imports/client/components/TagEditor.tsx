@@ -1,7 +1,7 @@
 import { useTracker } from 'meteor/react-meteor-data';
 import React, { Suspense, useCallback } from 'react';
 import Tags from '../../lib/models/tags';
-import { PuzzleType } from '../../lib/schemas/puzzles';
+import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tags';
 import Loading from './Loading';
 
