@@ -18,6 +18,6 @@ const [FeatureFlagCodec, FeatureFlagOverrides] = inheritSchema(
 export { FeatureFlagCodec };
 export type FeatureFlagType = t.TypeOf<typeof FeatureFlagCodec>
 
-const FeatureFlags = buildSchema(FeatureFlagCodec, FeatureFlagOverrides);
+const FeatureFlag = buildSchema(FeatureFlagCodec, FeatureFlagOverrides);
 
-export default FeatureFlags;
+export default FeatureFlag;
