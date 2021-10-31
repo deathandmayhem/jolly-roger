@@ -2,7 +2,7 @@ import Announcment from './announcement';
 import CallParticipant from './call_participant';
 import CallSignal from './call_signal';
 import ChatNotification from './chat_notification';
-import ChatMessages from './chats';
+import ChatMessage from './chat';
 import DocumentPermissions from './document_permissions';
 import Documents from './documents';
 import FeatureFlags from './feature_flags';
@@ -18,7 +18,7 @@ const Schemas = {
   Announcment,
   CallParticipant,
   CallSignal,
-  ChatMessages,
+  ChatMessage,
   ChatNotification,
   DocumentPermissions,
   Documents,

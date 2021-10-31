@@ -34,7 +34,7 @@ import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
-import { ChatMessageType } from '../../lib/schemas/chats';
+import { ChatMessageType } from '../../lib/schemas/chat';
 import { DocumentType } from '../../lib/schemas/documents';
 import { GuessType } from '../../lib/schemas/guess';
 import { PuzzleType } from '../../lib/schemas/puzzles';
