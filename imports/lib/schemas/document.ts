@@ -49,6 +49,7 @@ const [DocumentSchemaCodec, DocumentOverrides] = inheritSchema(
   BaseOverrides, DocumentFieldsOverrides,
 );
 
-const Documents = buildSchema(DocumentSchemaCodec, DocumentOverrides);
+// Not named Document because Document is an interface reserved by the Web Platform
+const DocumentSchema = buildSchema(DocumentSchemaCodec, DocumentOverrides);
 
-export default Documents;
+export default DocumentSchema;

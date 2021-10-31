@@ -4,7 +4,7 @@ import CallSignal from './call_signal';
 import ChatNotification from './chat_notification';
 import ChatMessage from './chat';
 import DocumentPermission from './document_permission';
-import Documents from './documents';
+import DocumentSchema from './document';
 import FeatureFlags from './feature_flags';
 import Guesses from './guess';
 import Hunts from './hunts';
@@ -21,7 +21,7 @@ const Schemas = {
   ChatMessage,
   ChatNotification,
   DocumentPermission,
-  Documents,
+  Document: DocumentSchema,
   FeatureFlags,
   Guesses,
   Hunts,
