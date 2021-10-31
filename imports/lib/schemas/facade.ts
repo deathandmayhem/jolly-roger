@@ -3,7 +3,7 @@ import CallParticipant from './call_participant';
 import CallSignal from './call_signal';
 import ChatNotification from './chat_notification';
 import ChatMessage from './chat';
-import DocumentPermissions from './document_permissions';
+import DocumentPermission from './document_permission';
 import Documents from './documents';
 import FeatureFlags from './feature_flags';
 import Guesses from './guess';
@@ -20,7 +20,7 @@ const Schemas = {
   CallSignal,
   ChatMessage,
   ChatNotification,
-  DocumentPermissions,
+  DocumentPermission,
   Documents,
   FeatureFlags,
   Guesses,
