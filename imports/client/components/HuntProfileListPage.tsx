@@ -5,7 +5,7 @@ import { Route, RouteComponentProps, Switch } from 'react-router';
 import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
 import { userMayAddUsersToHunt, userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
-import { ProfileType } from '../../lib/schemas/profiles';
+import { ProfileType } from '../../lib/schemas/profile';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 import UserInvitePage from './UserInvitePage';

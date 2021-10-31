@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import React, { useCallback } from 'react';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
-import { ProfileType } from '../../lib/schemas/profiles';
+import { ProfileType } from '../../lib/schemas/profile';
 import Gravatar from './Gravatar';
 
 interface OthersProfilePageProps {

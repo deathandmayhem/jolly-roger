@@ -13,7 +13,7 @@ import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import { CallParticipantType } from '../../lib/schemas/call_participant';
 import { CallSignalType } from '../../lib/schemas/call_signal';
-import { ProfileType } from '../../lib/schemas/profiles';
+import { ProfileType } from '../../lib/schemas/profile';
 import { PuzzleType } from '../../lib/schemas/puzzles';
 
 interface ParticipantSummaryProps {

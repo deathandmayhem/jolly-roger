@@ -9,7 +9,7 @@ import FeatureFlag from './feature_flag';
 import Guess from './guess';
 import Hunt from './hunt';
 import PendingAnnouncement from './pending_announcement';
-import Profiles from './profiles';
+import Profile from './profile';
 import Puzzles from './puzzles';
 import Tags from './tags';
 import User from './users';
@@ -26,7 +26,7 @@ const Schemas = {
   Guess,
   Hunt,
   PendingAnnouncement,
-  Profiles,
+  Profile,
   Puzzles,
   Tags,
   User,
