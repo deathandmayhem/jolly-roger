@@ -47,6 +47,6 @@ const SubscriberOverrides: Overrides<SubscriberType> = {
   },
 };
 
-const Subscribers = buildSchema(SubscriberCodec, SubscriberOverrides);
+const Subscriber = buildSchema(SubscriberCodec, SubscriberOverrides);
 
-export default Subscribers;
+export default Subscriber;
