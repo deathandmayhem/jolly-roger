@@ -7,7 +7,7 @@ import ChatMessages from './chats';
 import DocumentPermissions from './document_permissions';
 import Documents from './documents';
 import FeatureFlags from './feature_flags';
-import Guesses from './guess';
+import Guesses from './guesses';
 import Hunts from './hunts';
 import PendingAnnouncements from './pending_announcements';
 import Profiles from './profiles';

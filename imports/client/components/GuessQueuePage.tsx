@@ -11,7 +11,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
-import Guesses from '../../lib/models/guess';
+import Guesses from '../../lib/models/guesses';
 import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';

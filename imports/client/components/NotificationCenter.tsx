@@ -16,7 +16,7 @@ import Flags from '../../flags';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/announcements';
 import ChatNotifications from '../../lib/models/chat_notifications';
-import Guesses from '../../lib/models/guess';
+import Guesses from '../../lib/models/guesses';
 import Hunts from '../../lib/models/hunts';
 import PendingAnnouncements from '../../lib/models/pending_announcements';
 import Profiles from '../../lib/models/profiles';

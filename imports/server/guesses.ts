@@ -2,7 +2,7 @@ import { check } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import Ansible from '../ansible';
-import Guesses from '../lib/models/guess';
+import Guesses from '../lib/models/guesses';
 import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';

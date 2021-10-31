@@ -28,7 +28,7 @@ import Ansible from '../../ansible';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import ChatMessages from '../../lib/models/chats';
 import Documents from '../../lib/models/documents';
-import Guesses from '../../lib/models/guess';
+import Guesses from '../../lib/models/guesses';
 import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
