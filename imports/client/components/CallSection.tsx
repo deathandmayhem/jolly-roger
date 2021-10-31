@@ -14,7 +14,7 @@ import Flags from '../../flags';
 import { getAvatarCdnUrl } from '../../lib/discord';
 import CallParticipants from '../../lib/models/call_participants';
 import Profiles from '../../lib/models/profiles';
-import { CallParticipantType } from '../../lib/schemas/call_participants';
+import { CallParticipantType } from '../../lib/schemas/call_participant';
 import { ProfileType } from '../../lib/schemas/profiles';
 import { RTCConfigType, RTCConfig } from '../rtc_config';
 import CallLinkBox from './CallLinkBox';

@@ -1,9 +1,9 @@
 import { huntsMatchingCurrentUser } from '../../model-helpers';
-import CallParticipantsSchema, { CallParticipantType } from '../schemas/call_participants';
+import CallParticipantSchema, { CallParticipantType } from '../schemas/call_participant';
 import Base from './base';
 
 const CallParticipants = new Base<CallParticipantType>('call_participants');
-CallParticipants.attachSchema(CallParticipantsSchema);
+CallParticipants.attachSchema(CallParticipantSchema);
 CallParticipants.publish(huntsMatchingCurrentUser);
 
 export default CallParticipants;

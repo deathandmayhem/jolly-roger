@@ -1,4 +1,5 @@
 import Announcment from './announcement';
+import CallParticipant from './call_participant';
 import ChatNotifications from './chat_notifications';
 import ChatMessages from './chats';
 import DocumentPermissions from './document_permissions';
@@ -14,6 +15,7 @@ import User from './users';
 
 const Schemas = {
   Announcment,
+  CallParticipant,
   ChatMessages,
   ChatNotifications,
   DocumentPermissions,
