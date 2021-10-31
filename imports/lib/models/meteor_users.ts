@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import UserSchema from '../schemas/users';
+import UserSchema from '../schemas/user';
 
 // I don't totally understand ambient types. As far as I can tell, the provided
 // ambient types for Meteor.users don't load our extensions to Mongo.Collection.

@@ -14,7 +14,7 @@ import PublicSetting from './public_setting';
 import Puzzle from './puzzle';
 import Setting from './setting';
 import Tag from './tag';
-import User from './users';
+import User from './user';
 
 const Schemas = {
   Announcment,
