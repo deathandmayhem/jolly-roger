@@ -15,7 +15,7 @@ import Flags from '../../flags';
 import { getAvatarCdnUrl } from '../../lib/discord';
 import CallParticipants from '../../lib/models/call_participants';
 import Profiles from '../../lib/models/profiles';
-import { CallParticipantType } from '../../lib/schemas/call_participants';
+import { CallParticipantType } from '../../lib/schemas/call_participant';
 import { Subscribers } from '../subscribers';
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from './AudioConfig';
 import CallSection from './CallSection';

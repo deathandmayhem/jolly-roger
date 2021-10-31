@@ -1,7 +1,7 @@
 import { Mongo } from 'meteor/mongo';
-import SubscribersSchema, { SubscriberType } from '../schemas/subscribers';
+import SubscriberSchema, { SubscriberType } from '../schemas/subscriber';
 
 const Subscribers = new Mongo.Collection<SubscriberType>('jr_subscribers');
-Subscribers.attachSchema(SubscribersSchema);
+Subscribers.attachSchema(SubscriberSchema);
 
 export default Subscribers;

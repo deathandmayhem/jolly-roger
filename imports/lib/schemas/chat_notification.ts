@@ -46,6 +46,6 @@ export { ChatNotificationCodec };
 export type ChatNotificationType = t.TypeOf<typeof ChatNotificationCodec>;
 
 // A single chat message
-const ChatNotifications = buildSchema(ChatNotificationCodec, ChatNotificationOverrides);
+const ChatNotification = buildSchema(ChatNotificationCodec, ChatNotificationOverrides);
 
-export default ChatNotifications;
+export default ChatNotification;

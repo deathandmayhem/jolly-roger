@@ -1,8 +1,8 @@
-import FeatureFlagsSchema, { FeatureFlagType } from '../schemas/feature_flags';
+import FeatureFlagSchema, { FeatureFlagType } from '../schemas/feature_flag';
 import Base from './base';
 
 const FeatureFlags = new Base<FeatureFlagType>('featureflags');
-FeatureFlags.attachSchema(FeatureFlagsSchema);
+FeatureFlags.attachSchema(FeatureFlagSchema);
 
 // All feature flags are accessible
 FeatureFlags.publish();

@@ -1,30 +1,42 @@
-import Announcments from './announcements';
-import ChatNotifications from './chat_notifications';
-import ChatMessages from './chats';
-import DocumentPermissions from './document_permissions';
-import Documents from './documents';
-import FeatureFlags from './feature_flags';
-import Guesses from './guess';
-import Hunts from './hunts';
-import PendingAnnouncements from './pending_announcements';
-import Profiles from './profiles';
-import Puzzles from './puzzles';
-import Tags from './tags';
-import User from './users';
+import Announcment from './announcement';
+import BlobMapping from './blob_mapping';
+import CallParticipant from './call_participant';
+import CallSignal from './call_signal';
+import ChatMessage from './chat';
+import ChatNotification from './chat_notification';
+import DiscordCache from './discord_cache';
+import DocumentSchema from './document';
+import DocumentPermission from './document_permission';
+import FeatureFlag from './feature_flag';
+import Guess from './guess';
+import Hunt from './hunt';
+import PendingAnnouncement from './pending_announcement';
+import Profile from './profile';
+import PublicSetting from './public_setting';
+import Puzzle from './puzzle';
+import Setting from './setting';
+import Tag from './tag';
+import User from './user';
 
 const Schemas = {
-  Announcments,
-  ChatMessages,
-  ChatNotifications,
-  DocumentPermissions,
-  Documents,
-  FeatureFlags,
-  Guesses,
-  Hunts,
-  PendingAnnouncements,
-  Profiles,
-  Puzzles,
-  Tags,
+  Announcment,
+  BlobMapping,
+  CallParticipant,
+  CallSignal,
+  ChatMessage,
+  ChatNotification,
+  DiscordCache,
+  DocumentPermission,
+  Document: DocumentSchema,
+  FeatureFlag,
+  Guess,
+  Hunt,
+  PendingAnnouncement,
+  Profile,
+  PublicSetting,
+  Puzzle,
+  Setting,
+  Tag,
   User,
 };
 

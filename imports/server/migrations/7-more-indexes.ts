@@ -1,6 +1,6 @@
 import { Migrations } from 'meteor/percolate:migrations';
 import Documents from '../../lib/models/documents';
-import Guesses from '../../lib/models/guess';
+import Guesses from '../../lib/models/guesses';
 import MeteorUsers from '../../lib/models/meteor_users';
 import Tags from '../../lib/models/tags';
 import dropIndex from './drop-index';

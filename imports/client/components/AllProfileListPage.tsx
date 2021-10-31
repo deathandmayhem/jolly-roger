@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import Profiles from '../../lib/models/profiles';
-import { ProfileType } from '../../lib/schemas/profiles';
+import { ProfileType } from '../../lib/schemas/profile';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 

@@ -1,9 +1,9 @@
 import { huntsMatchingCurrentUser } from '../../model-helpers';
-import DocumentsSchema, { DocumentType } from '../schemas/documents';
+import DocumentSchema, { DocumentType } from '../schemas/document';
 import Base from './base';
 
 const Documents = new Base<DocumentType>('documents');
-Documents.attachSchema(DocumentsSchema);
+Documents.attachSchema(DocumentSchema);
 Documents.publish(huntsMatchingCurrentUser);
 
 export default Documents;

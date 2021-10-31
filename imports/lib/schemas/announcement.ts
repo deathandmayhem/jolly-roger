@@ -23,6 +23,6 @@ export type AnnouncementType = t.TypeOf<typeof AnnouncementCodec>;
 
 // A broadcast message from a hunt operator to be displayed
 // to all participants in the specified hunt.
-const Announcements = buildSchema(AnnouncementCodec, AnnouncementOverrides);
+const Announcement = buildSchema(AnnouncementCodec, AnnouncementOverrides);
 
-export default Announcements;
+export default Announcement;

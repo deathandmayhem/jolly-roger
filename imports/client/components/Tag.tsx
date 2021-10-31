@@ -10,8 +10,8 @@ import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Popover from 'react-bootstrap/Popover';
 import { Link } from 'react-router-dom';
-import { PuzzleType } from '../../lib/schemas/puzzles';
-import { TagType } from '../../lib/schemas/tags';
+import { PuzzleType } from '../../lib/schemas/puzzle';
+import { TagType } from '../../lib/schemas/tag';
 import { RelatedPuzzleList, sortPuzzlesByRelevanceWithinPuzzleGroup } from './RelatedPuzzleList';
 
 const PopoverPadding = {

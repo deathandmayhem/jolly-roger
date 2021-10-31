@@ -1,9 +1,9 @@
 import { Subscription } from 'meteor/meteor';
-import DocumentPermissionsSchema, { DocumentPermissionType } from '../schemas/document_permissions';
+import DocumentPermissionSchema, { DocumentPermissionType } from '../schemas/document_permission';
 import Base from './base';
 
 const DocumentPermissions = new Base<DocumentPermissionType>('document_perms');
-DocumentPermissions.attachSchema(DocumentPermissionsSchema);
+DocumentPermissions.attachSchema(DocumentPermissionSchema);
 DocumentPermissions.publish(function (this: Subscription, q) {
   return { ...q, user: this.userId };
 });

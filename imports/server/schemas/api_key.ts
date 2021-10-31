@@ -24,6 +24,6 @@ const [APIKeyCodec, APIKeyOverrides] = inheritSchema(
 export { APIKeyCodec };
 export type APIKeyType = t.TypeOf<typeof APIKeyCodec>;
 
-const APIKeys = buildSchema(APIKeyCodec, APIKeyOverrides);
+const APIKey = buildSchema(APIKeyCodec, APIKeyOverrides);
 
-export default APIKeys;
+export default APIKey;

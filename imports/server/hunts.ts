@@ -14,8 +14,8 @@ import {
   userMayBulkAddToHunt,
   userMayUseDiscordBotAPIs,
 } from '../lib/permission_stubs';
-import { HuntType } from '../lib/schemas/hunts';
-import { SettingType } from '../lib/schemas/settings';
+import { HuntType } from '../lib/schemas/hunt';
+import { SettingType } from '../lib/schemas/setting';
 import addUserToDiscordRole from './addUserToDiscordRole';
 import List from './blanche';
 

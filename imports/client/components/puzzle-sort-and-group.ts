@@ -1,6 +1,6 @@
 import { _ } from 'meteor/underscore';
-import { PuzzleType } from 'imports/lib/schemas/puzzles';
-import { TagType } from 'imports/lib/schemas/tags';
+import { PuzzleType } from '../../lib/schemas/puzzle';
+import { TagType } from '../../lib/schemas/tag';
 
 interface PuzzleGroup {
   sharedTag?: TagType;

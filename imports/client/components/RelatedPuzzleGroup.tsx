@@ -2,7 +2,7 @@ import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useState } from 'react';
-import { TagType } from '../../lib/schemas/tags';
+import { TagType } from '../../lib/schemas/tag';
 import RelatedPuzzleList from './RelatedPuzzleList';
 import Tag from './Tag';
 import { PuzzleGroup } from './puzzle-sort-and-group';

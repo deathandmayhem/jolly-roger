@@ -10,8 +10,8 @@ import React, {
 import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
-import { PuzzleType } from '../../lib/schemas/puzzles';
-import { TagType } from '../../lib/schemas/tags';
+import { PuzzleType } from '../../lib/schemas/puzzle';
+import { TagType } from '../../lib/schemas/tag';
 import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SubscriberCount from './SubscriberCount';

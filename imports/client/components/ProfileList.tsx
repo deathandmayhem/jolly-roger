@@ -14,7 +14,7 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import * as RRBS from 'react-router-bootstrap';
-import { ProfileType } from '../../lib/schemas/profiles';
+import { ProfileType } from '../../lib/schemas/profile';
 
 interface ProfileListProps {
   huntId?: string;

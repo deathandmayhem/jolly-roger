@@ -3,7 +3,7 @@ import { faFileAlt } from '@fortawesome/free-solid-svg-icons/faFileAlt';
 import { faTable } from '@fortawesome/free-solid-svg-icons/faTable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import { DocumentType } from '../../lib/schemas/documents';
+import { DocumentType } from '../../lib/schemas/document';
 import DeepLink from './DeepLink';
 
 interface DocumentDisplayProps {

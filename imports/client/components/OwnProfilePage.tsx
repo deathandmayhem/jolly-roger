@@ -12,7 +12,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import Flags from '../../flags';
-import { ProfileType } from '../../lib/schemas/profiles';
+import { ProfileType } from '../../lib/schemas/profile';
 import { requestDiscordCredential } from '../discord';
 import TeamName from '../team_name';
 import AudioConfig from './AudioConfig';

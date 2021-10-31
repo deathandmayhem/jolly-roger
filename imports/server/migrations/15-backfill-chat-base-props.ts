@@ -1,7 +1,7 @@
 import { Migrations } from 'meteor/percolate:migrations';
 import ChatMessages from '../../lib/models/chats';
 import Puzzles from '../../lib/models/puzzles';
-import { PuzzleType } from '../../lib/schemas/puzzles';
+import { PuzzleType } from '../../lib/schemas/puzzle';
 import dropIndex from './drop-index';
 
 Migrations.add({

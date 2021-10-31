@@ -29,6 +29,6 @@ const [DocumentPermissionCodec, DocumentPermissionOverrides] = inheritSchema(
 export { DocumentPermissionCodec };
 export type DocumentPermissionType = t.TypeOf<typeof DocumentPermissionCodec>;
 
-const DocumentPermissions = buildSchema(DocumentPermissionCodec, DocumentPermissionOverrides);
+const DocumentPermission = buildSchema(DocumentPermissionCodec, DocumentPermissionOverrides);
 
-export default DocumentPermissions;
+export default DocumentPermission;

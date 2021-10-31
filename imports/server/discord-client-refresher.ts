@@ -6,7 +6,7 @@ import DiscordCache from '../lib/models/discord_cache';
 import FeatureFlags from '../lib/models/feature_flags';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
-import { SettingType } from '../lib/schemas/settings';
+import { SettingType } from '../lib/schemas/setting';
 import Locks, { PREEMPT_TIMEOUT } from './models/lock';
 
 type DiscordEventsWithArguments<Args> = {

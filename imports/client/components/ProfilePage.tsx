@@ -7,7 +7,7 @@ import {
   deprecatedUserMayMakeOperator,
   deprecatedIsActiveOperator,
 } from '../../lib/permission_stubs';
-import { ProfileType } from '../../lib/schemas/profiles';
+import { ProfileType } from '../../lib/schemas/profile';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import OthersProfilePage from './OthersProfilePage';
 import OwnProfilePage from './OwnProfilePage';

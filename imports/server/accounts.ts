@@ -6,7 +6,7 @@ import Ansible from '../ansible';
 import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Settings from '../lib/models/settings';
-import { SettingType } from '../lib/schemas/settings';
+import { SettingType } from '../lib/schemas/setting';
 
 type LoginInfo = {
   type: string,

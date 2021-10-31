@@ -3,8 +3,8 @@ import { Mongo } from 'meteor/mongo';
 import { _ } from 'meteor/underscore';
 import Mustache from 'mustache';
 import MeteorUsers from './lib/models/meteor_users';
-import { HuntType } from './lib/schemas/hunts';
-import { PuzzleType } from './lib/schemas/puzzles';
+import { HuntType } from './lib/schemas/hunt';
+import { PuzzleType } from './lib/schemas/puzzle';
 
 const answerify = function (answer: string): string {
   return answer.toUpperCase();

@@ -5,7 +5,7 @@ import express from 'express';
 import MeteorUsers from '../../../lib/models/meteor_users';
 import Profiles from '../../../lib/models/profiles';
 import { deprecatedUserMayMakeOperator } from '../../../lib/permission_stubs';
-import { ProfileType } from '../../../lib/schemas/profiles';
+import { ProfileType } from '../../../lib/schemas/profile';
 
 // eslint-disable-next-line new-cap
 const router = express.Router();

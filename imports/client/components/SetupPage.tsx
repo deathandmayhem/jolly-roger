@@ -18,7 +18,7 @@ import BlobMappings from '../../lib/models/blob_mappings';
 import DiscordCache from '../../lib/models/discord_cache';
 import Settings from '../../lib/models/settings';
 import { BlobMappingType } from '../../lib/schemas/blob_mapping';
-import { SettingType } from '../../lib/schemas/settings';
+import { SettingType } from '../../lib/schemas/setting';
 import { DiscordGuildType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 

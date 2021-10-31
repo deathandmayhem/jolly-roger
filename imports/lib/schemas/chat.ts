@@ -36,6 +36,6 @@ export { ChatMessageCodec };
 export type ChatMessageType = t.TypeOf<typeof ChatMessageCodec>;
 
 // A single chat message
-const ChatMessages = buildSchema(ChatMessageCodec, ChatMessageOverrides);
+const ChatMessage = buildSchema(ChatMessageCodec, ChatMessageOverrides);
 
-export default ChatMessages;
+export default ChatMessage;

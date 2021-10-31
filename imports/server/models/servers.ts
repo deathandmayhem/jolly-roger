@@ -1,7 +1,7 @@
 import { Mongo } from 'meteor/mongo';
-import ServersSchema, { ServerType } from '../schemas/servers';
+import ServerSchema, { ServerType } from '../schemas/server';
 
 const Servers = new Mongo.Collection<ServerType>('jr_servers');
-Servers.attachSchema(ServersSchema);
+Servers.attachSchema(ServerSchema);
 
 export default Servers;

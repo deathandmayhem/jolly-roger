@@ -5,7 +5,7 @@ import { ServiceConfiguration, Configuration } from 'meteor/service-configuratio
 import { OAuth2Client } from 'google-auth-library';
 import { google, drive_v3 } from 'googleapis';
 import Settings from '../lib/models/settings';
-import { SettingType } from '../lib/schemas/settings';
+import { SettingType } from '../lib/schemas/setting';
 
 class GDriveClientRefresher {
   public gdrive?: drive_v3.Drive;

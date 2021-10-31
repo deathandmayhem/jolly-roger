@@ -46,6 +46,6 @@ const [PuzzleCodec, PuzzleOverrides] = inheritSchema(
 export { PuzzleCodec };
 export type PuzzleType = t.TypeOf<typeof PuzzleCodec>;
 
-const Puzzles = buildSchema(PuzzleCodec, PuzzleOverrides);
+const Puzzle = buildSchema(PuzzleCodec, PuzzleOverrides);
 
-export default Puzzles;
+export default Puzzle;

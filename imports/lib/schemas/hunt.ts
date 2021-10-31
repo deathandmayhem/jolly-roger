@@ -63,6 +63,6 @@ const [HuntCodec, HuntOverrides] = inheritSchema(
 export { HuntCodec };
 export type HuntType = t.TypeOf<typeof HuntCodec>;
 
-const Hunts = buildSchema(HuntCodec, HuntOverrides);
+const Hunt = buildSchema(HuntCodec, HuntOverrides);
 
-export default Hunts;
+export default Hunt;

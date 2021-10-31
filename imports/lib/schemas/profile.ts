@@ -28,6 +28,6 @@ export type ProfileType = t.TypeOf<typeof ProfileCodec>;
 // A profile for a user.
 // Note that we're using a separate schema from users.$.profile, because there are weird
 // non-overridable allow/deny rules that mean we can't trust them to have any useful schema.
-const Profiles = buildSchema(ProfileCodec, ProfileOverrides);
+const Profile = buildSchema(ProfileCodec, ProfileOverrides);
 
-export default Profiles;
+export default Profile;
