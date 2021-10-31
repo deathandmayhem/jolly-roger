@@ -1,9 +1,9 @@
 import { Meteor } from 'meteor/meteor';
-import PublicSettingsSchema, { PublicSettingType } from '../schemas/public_settings';
+import PublicSettingSchema, { PublicSettingType } from '../schemas/public_setting';
 import Base from './base';
 
 const PublicSettings = new Base<PublicSettingType>('public_settings');
-PublicSettings.attachSchema(PublicSettingsSchema);
+PublicSettings.attachSchema(PublicSettingSchema);
 
 // All public settings are accessible by all clients at all times, including to
 // not-logged-in-users.

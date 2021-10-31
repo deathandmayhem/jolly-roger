@@ -10,6 +10,7 @@ import Guess from './guess';
 import Hunt from './hunt';
 import PendingAnnouncement from './pending_announcement';
 import Profile from './profile';
+import PublicSetting from './public_setting';
 import Puzzles from './puzzles';
 import Tags from './tags';
 import User from './users';
@@ -27,6 +28,7 @@ const Schemas = {
   Hunt,
   PendingAnnouncement,
   Profile,
+  PublicSetting,
   Puzzles,
   Tags,
   User,

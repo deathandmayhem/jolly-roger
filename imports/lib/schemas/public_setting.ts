@@ -37,6 +37,6 @@ const [PublicSettingSchemaCodec, PublicSettingOverrides] = inheritSchema(
   BaseOverrides, {},
 );
 
-const PublicSettings = buildSchema(PublicSettingSchemaCodec, PublicSettingOverrides);
+const PublicSetting = buildSchema(PublicSettingSchemaCodec, PublicSettingOverrides);
 
-export default PublicSettings;
+export default PublicSetting;
