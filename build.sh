@@ -11,7 +11,7 @@ apt-get install --no-install-recommends -y apt-transport-https ca-certificates g
 curl -s https://debathena.mit.edu/apt/debathena-archive.asc | apt-key add -
 echo "deb http://debathena.mit.edu/apt bionic debathena debathena-config debathena-system" > /etc/apt/sources.list.d/debathena.list
 curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
-echo "deb https://deb.nodesource.com/node_12.x bionic main" > /etc/apt/sources.list.d/node.list
+echo "deb https://deb.nodesource.com/node_14.x bionic main" > /etc/apt/sources.list.d/node.list
 
 # Install build deps
 apt-get update
