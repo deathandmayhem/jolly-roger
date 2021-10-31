@@ -1,9 +1,9 @@
 import isAdmin from '../../lib/is-admin';
 import Base from '../../lib/models/base';
-import APIKeysSchema, { APIKeyType } from '../schemas/api_keys';
+import APIKeySchema, { APIKeyType } from '../schemas/api_key';
 
 const APIKeys = new Base<APIKeyType>('api_keys');
-APIKeys.attachSchema(APIKeysSchema);
+APIKeys.attachSchema(APIKeySchema);
 APIKeys.publish(function (q) {
   // Server admins can access all API keys
   if (isAdmin(this.userId)) {
