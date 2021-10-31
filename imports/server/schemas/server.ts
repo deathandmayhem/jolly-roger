@@ -18,6 +18,6 @@ const ServerOverrides: Overrides<ServerType> = {
   },
 };
 
-const Servers = buildSchema(ServerCodec, ServerOverrides);
+const Server = buildSchema(ServerCodec, ServerOverrides);
 
-export default Servers;
+export default Server;
