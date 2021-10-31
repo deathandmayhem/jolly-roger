@@ -1,8 +1,10 @@
 import Announcment from './announcement';
+import BlobMapping from './blob_mapping';
 import CallParticipant from './call_participant';
 import CallSignal from './call_signal';
 import ChatNotification from './chat_notification';
 import ChatMessage from './chat';
+import DiscordCache from './discord_cache';
 import DocumentPermission from './document_permission';
 import DocumentSchema from './document';
 import FeatureFlag from './feature_flag';
@@ -18,10 +20,12 @@ import User from './user';
 
 const Schemas = {
   Announcment,
+  BlobMapping,
   CallParticipant,
   CallSignal,
   ChatMessage,
   ChatNotification,
+  DiscordCache,
   DocumentPermission,
   Document: DocumentSchema,
   FeatureFlag,
