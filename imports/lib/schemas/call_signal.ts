@@ -35,6 +35,6 @@ const [CallSignalCodec, CallSignalOverrides] = inheritSchema(
 export { CallSignalCodec };
 export type CallSignalType = t.TypeOf<typeof CallSignalCodec>;
 
-const CallSignals = buildSchema(CallSignalCodec, CallSignalOverrides);
+const CallSignal = buildSchema(CallSignalCodec, CallSignalOverrides);
 
-export default CallSignals;
+export default CallSignal;

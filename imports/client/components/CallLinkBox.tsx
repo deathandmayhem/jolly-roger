@@ -14,7 +14,7 @@ import { getAvatarCdnUrl } from '../../lib/discord';
 import CallSignals from '../../lib/models/call_signals';
 import Profiles from '../../lib/models/profiles';
 import { CallParticipantType } from '../../lib/schemas/call_participant';
-import { CallSignalType, CallSignalMessageType } from '../../lib/schemas/call_signals';
+import { CallSignalType, CallSignalMessageType } from '../../lib/schemas/call_signal';
 import { ProfileType } from '../../lib/schemas/profiles';
 import { RTCConfigType } from '../rtc_config';
 import Spectrum, { SpectrumHandle } from './Spectrum';
