@@ -27,7 +27,7 @@ meteorhacks:cluster
 meteortesting:browser-tests
 meteortesting:mocha
 standard-minifier-css@1.7.4
-standard-minifier-js@2.7.1
+standard-minifier-js@2.7.2
 react-meteor-data@2.1.2
 fourseven:scss@4.15.0
 shell-server@0.5.0
