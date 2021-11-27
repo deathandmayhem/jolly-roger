@@ -335,62 +335,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
 
   const { muted, deafened } = localAudioControls;
 
-  const gotLocalMediaStream = useCallback((mediaStream: MediaStream) => {
-    // @ts-ignore ts doesn't know about the possible existence of webkitAudioContext
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    const audioContext = new AudioContext();
-    const wrapperStreamDestination = audioContext.createMediaStreamDestination();
-    const gainNode = audioContext.createGain();
-    const gainValue = muted ? 0.0 : 1.0;
-    gainNode.gain.setValueAtTime(gainValue, audioContext.currentTime);
-
-    const leveledStreamSource = new MediaStream();
-    const rawTracks = mediaStream.getTracks();
-    for (let i = 0; i < rawTracks.length; i++) {
-      const rawTrack = rawTracks[i];
-      if (rawTrack.kind === 'audio') {
-        // Chrome doesn't support createMediaStreamTrackSource, so stuff the
-        // track in another stream.
-        const stubStream = new MediaStream();
-        stubStream.addTrack(rawTrack);
-        const wrapperStreamSource = audioContext.createMediaStreamSource(stubStream);
-
-        // Wire up the audio track to the gain node.
-        wrapperStreamSource.connect(gainNode);
-
-        // Then wire up the output of that gain node to our levels-adjusted track.
-        gainNode.connect(wrapperStreamDestination);
-        const innerTracks = wrapperStreamDestination.stream.getTracks();
-        const leveledAudioTrack = innerTracks[0];
-
-        // Add that track to our post-level-adjustment stream.
-        leveledStreamSource.addTrack(leveledAudioTrack);
-      }
-      if (rawTrack.kind === 'video') {
-        leveledStreamSource.addTrack(rawTrack);
-      }
-    }
-
-    const htmlNode = htmlNodeRef.current;
-    if (htmlNode) {
-      htmlNode.srcObject = leveledStreamSource;
-    }
-
-    setAudioState({
-      audioContext,
-      rawMediaSource: mediaStream,
-      gainNode,
-      leveledStreamSource,
-    });
-    setCallState(CallState.IN_CALL);
-  }, [muted]);
-
-  const handleLocalMediaStreamError = useCallback((e: MediaStreamError) => {
-    setError(`Couldn't get local microphone: ${e.message}`);
-    setCallState(CallState.STREAM_ERROR);
-  }, []);
-
-  const joinCall = useCallback(() => {
+  const joinCall = useCallback(async () => {
     if (navigator.mediaDevices) {
       setCallState(CallState.REQUESTING_STREAM);
       const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ||
@@ -406,14 +351,67 @@ const ChatPeople = (props: ChatPeopleProps) => {
         // TODO: conditionally allow video if enabled by feature flag?
       };
 
-      navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
-        .then(gotLocalMediaStream)
-        .catch(handleLocalMediaStreamError);
+      let mediaStream: MediaStream | undefined;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
+      } catch (e) {
+        setError(`Couldn't get local microphone: ${(e as Error).message}`);
+        setCallState(CallState.STREAM_ERROR);
+        return;
+      }
+
+      const AudioContext = window.AudioContext ||
+        (window as {webkitAudioContext?: AudioContext}).webkitAudioContext;
+      const audioContext = new AudioContext();
+      const wrapperStreamDestination = audioContext.createMediaStreamDestination();
+      const gainNode = audioContext.createGain();
+      const gainValue = muted ? 0.0 : 1.0;
+      gainNode.gain.setValueAtTime(gainValue, audioContext.currentTime);
+
+      const leveledStreamSource = new MediaStream();
+      const rawTracks = mediaStream.getTracks();
+      for (let i = 0; i < rawTracks.length; i++) {
+        const rawTrack = rawTracks[i];
+        if (rawTrack.kind === 'audio') {
+          // Chrome doesn't support createMediaStreamTrackSource, so stuff the
+          // track in another stream.
+          const stubStream = new MediaStream();
+          stubStream.addTrack(rawTrack);
+          const wrapperStreamSource = audioContext.createMediaStreamSource(stubStream);
+
+          // Wire up the audio track to the gain node.
+          wrapperStreamSource.connect(gainNode);
+
+          // Then wire up the output of that gain node to our levels-adjusted track.
+          gainNode.connect(wrapperStreamDestination);
+          const innerTracks = wrapperStreamDestination.stream.getTracks();
+          const leveledAudioTrack = innerTracks[0];
+
+          // Add that track to our post-level-adjustment stream.
+          leveledStreamSource.addTrack(leveledAudioTrack);
+        }
+        if (rawTrack.kind === 'video') {
+          leveledStreamSource.addTrack(rawTrack);
+        }
+      }
+
+      const htmlNode = htmlNodeRef.current;
+      if (htmlNode) {
+        htmlNode.srcObject = leveledStreamSource;
+      }
+
+      setAudioState({
+        audioContext,
+        rawMediaSource: mediaStream,
+        gainNode,
+        leveledStreamSource,
+      });
+      setCallState(CallState.IN_CALL);
     } else {
       setError('Couldn\'t get local microphone: browser denies access on non-HTTPS origins');
       setCallState(CallState.STREAM_ERROR);
     }
-  }, [gotLocalMediaStream, handleLocalMediaStreamError]);
+  }, [muted]);
 
   const leaveCall = useCallback(() => {
     stopTracks(audioState.rawMediaSource);

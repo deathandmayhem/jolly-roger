@@ -96,35 +96,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     console.log(peerParticipant._id, ...args);
   }, [peerParticipant._id]);
 
-  const onAnswerCreated = useCallback((answer: RTCSessionDescriptionInit) => {
-    // log('onAnswerCreated', answer);
-    getPeerConnection().setLocalDescription(answer);
-    const answerObj = {
-      type: answer.type,
-      sdp: answer.sdp,
-    };
-    Meteor.call('signalPeer', selfParticipant._id, peerParticipant._id, { type: 'sdp', content: JSON.stringify(answerObj) });
-  }, [selfParticipant._id, peerParticipant._id, getPeerConnection]);
-
-  const onAnswerCreatedFailure = useCallback((err: DOMException) => {
-    log('onAnswerCreatedFailure', err);
-  }, [log]);
-
-  const onRemoteDescriptionSet = useCallback(() => {
-    // log('remoteDescriptionSet');
-    if (!isInitiator) {
-      const pc = getPeerConnection();
-      pc.createAnswer()
-        .then(onAnswerCreated)
-        .catch(onAnswerCreatedFailure);
-    }
-  }, [isInitiator, getPeerConnection, onAnswerCreated, onAnswerCreatedFailure]);
-
-  const onRemoteDescriptionSetFailure = useCallback((err: Error) => {
-    log('remoteDescriptionSetFailure', err);
-  }, [log]);
-
-  const handleSignal = useCallback((message: CallSignalMessageType) => {
+  const handleSignal = useCallback(async (message: CallSignalMessageType) => {
     const pc = getPeerConnection();
     if (message.type === 'sdp') {
       // log('handle sdp');
@@ -132,9 +104,30 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
       // Set it.  In the callback, create an answer, then set that as
       // the local description, then signal the initiator.
       const sdpDesc = JSON.parse(message.content);
-      pc.setRemoteDescription(sdpDesc)
-        .then(onRemoteDescriptionSet)
-        .catch(onRemoteDescriptionSetFailure);
+      try {
+        await pc.setRemoteDescription(sdpDesc);
+        // log('remoteDescriptionSet');
+      } catch (err) {
+        log('remoteDescriptionSetFailure', err);
+        return;
+      }
+
+      if (isInitiator) {
+        return;
+      }
+
+      try {
+        const answer = await pc.createAnswer();
+        // log('onAnswerCreated', answer);
+        getPeerConnection().setLocalDescription(answer);
+        const answerObj = {
+          type: answer.type,
+          sdp: answer.sdp,
+        };
+        Meteor.call('signalPeer', selfParticipant._id, peerParticipant._id, { type: 'sdp', content: JSON.stringify(answerObj) });
+      } catch (e) {
+        log('onAnswerCreatedFailure', e);
+      }
     } else if (message.type === 'iceCandidate') {
       // log('handle ice', message.content);
       const iceDesc = JSON.parse(message.content);
@@ -148,7 +141,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     } else {
       log('dunno what this message is:', message);
     }
-  }, [onRemoteDescriptionSet, onRemoteDescriptionSetFailure, getPeerConnection, log]);
+  }, [isInitiator, getPeerConnection, selfParticipant._id, peerParticipant._id, log]);
 
   const processSignalMessages = useCallback((
     messages: CallSignalMessageType[], previouslyProcessed: number
@@ -209,18 +202,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     }
   }, [connectSpectrogramIfReady, log]);
 
-  const onLocalOfferCreated = useCallback((offer: RTCSessionDescriptionInit) => {
-    // log('onLocalOfferCreated');
-    // log(offer);
-    getPeerConnection().setLocalDescription(offer);
-    const offerObj = {
-      type: offer.type,
-      sdp: offer.sdp,
-    };
-    Meteor.call('signalPeer', selfParticipant._id, peerParticipant._id, { type: 'sdp', content: JSON.stringify(offerObj) });
-  }, [selfParticipant._id, peerParticipant._id, getPeerConnection]);
-
-  const onNegotiationNeeded = useCallback((_e: Event) => {
+  const onNegotiationNeeded = useCallback(async (_e: Event) => {
     // If we're the initiator, get the ball rolling.  Create an
     // offer, so we'll:
     // 1) generate an SDP descriptor and
@@ -232,11 +214,19 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
     // is.  (This is fine; we already have the stream by the time we
     // construct a CallLink.)
     if (isInitiator) {
-      getPeerConnection().createOffer().then(onLocalOfferCreated);
+      const offer = await getPeerConnection().createOffer();
+      // log('onLocalOfferCreated');
+      // log(offer);
+      getPeerConnection().setLocalDescription(offer);
+      const offerObj = {
+        type: offer.type,
+        sdp: offer.sdp,
+      };
+      Meteor.call('signalPeer', selfParticipant._id, peerParticipant._id, { type: 'sdp', content: JSON.stringify(offerObj) });
     }
 
     // log('negotiationNeeded', e);
-  }, [isInitiator, getPeerConnection, onLocalOfferCreated]);
+  }, [isInitiator, getPeerConnection, selfParticipant._id, peerParticipant._id]);
 
   useEffect(() => {
     const pc = getPeerConnection();
