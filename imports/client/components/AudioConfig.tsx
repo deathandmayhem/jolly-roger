@@ -31,12 +31,11 @@ const AudioConfig = () => {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const updateDeviceList = useCallback(() => {
+  const updateDeviceList = useCallback(async () => {
     if (navigator.mediaDevices) {
-      navigator.mediaDevices.enumerateDevices().then((devices: MediaDeviceInfo[]) => {
-        const inputs = devices.filter((dev) => dev.kind === 'audioinput');
-        setKnownDevices(inputs);
-      });
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const inputs = devices.filter((dev) => dev.kind === 'audioinput');
+      setKnownDevices(inputs);
     }
   }, []);
 
@@ -74,36 +73,7 @@ const AudioConfig = () => {
     setPreferredDeviceId(newPreferredDeviceId);
   }, []);
 
-  const gotMediaStream = useCallback((mediaStream: MediaStream) => {
-    // @ts-ignore ts doesn't know about the possible existence of webkitAudioContext
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    const newAudioContext = new AudioContext();
-    // Be sure to set audioContext *before* setting status to STREAMING, lest we try
-    // to pass an undefined audioContext to a child component
-    setStream(mediaStream);
-    setAudioContext(newAudioContext);
-    setStatus(AudioConfigStatus.STREAMING);
-
-    // Hook up stream to loopback element.  Don't worry, it starts out muted.
-    const audio = audioRef.current;
-    if (audio) {
-      audio.srcObject = mediaStream;
-    }
-
-    // Now that we have been granted a stream from the user, re-request the device
-    // list, in case the first time we enumerated, the user agent had not yet
-    // given us nonempty labels describing the devices from which to capture.
-    // See https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo/label#value
-    // for additional background.
-    updateDeviceList();
-  }, [updateDeviceList]);
-
-  const handleMediaStreamError = useCallback((e: MediaStreamError) => {
-    setStatus(AudioConfigStatus.STREAM_ERROR);
-    setError(`Couldn't get local microphone: ${e.message}`);
-  }, []);
-
-  const onStartButtonClicked = useCallback((_e: React.FormEvent) => {
+  const onStartButtonClicked = useCallback(async (_e: React.FormEvent) => {
     if (navigator.mediaDevices) {
       setStatus(AudioConfigStatus.REQUESTING_STREAM);
       const freshPreferredAudioDeviceId =
@@ -117,14 +87,41 @@ const AudioConfig = () => {
         },
       };
 
-      navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
-        .then(gotMediaStream)
-        .catch(handleMediaStreamError);
+      let mediaStream: MediaStream | undefined;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
+      } catch (e) {
+        setStatus(AudioConfigStatus.STREAM_ERROR);
+        setError(`Couldn't get local microphone: ${(e as Error).message}`);
+        return;
+      }
+
+      const AudioContext = window.AudioContext ||
+        (window as {webkitAudioContext?: AudioContext}).webkitAudioContext;
+      const newAudioContext = new AudioContext();
+      // Be sure to set audioContext *before* setting status to STREAMING, lest we try
+      // to pass an undefined audioContext to a child component
+      setStream(mediaStream);
+      setAudioContext(newAudioContext);
+      setStatus(AudioConfigStatus.STREAMING);
+
+      // Hook up stream to loopback element.  Don't worry, it starts out muted.
+      const audio = audioRef.current;
+      if (audio) {
+        audio.srcObject = mediaStream;
+      }
+
+      // Now that we have been granted a stream from the user, re-request the device
+      // list, in case the first time we enumerated, the user agent had not yet
+      // given us nonempty labels describing the devices from which to capture.
+      // See https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo/label#value
+      // for additional background.
+      updateDeviceList();
     } else {
       setStatus(AudioConfigStatus.STREAM_ERROR);
       setError('Couldn\'t get local microphone: browser denies access on non-HTTPS origins');
     }
-  }, [gotMediaStream, handleMediaStreamError]);
+  }, [updateDeviceList]);
 
   const onStopButtonClicked = useCallback((_e: React.FormEvent) => {
     if (stream) {
