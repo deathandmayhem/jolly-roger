@@ -45,6 +45,47 @@ interface PuzzleListViewProps extends RouteComponentProps {
   allTags: TagType[];
 }
 
+const ViewControls = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+`;
+
+const ViewControlsSection = styled.div`
+  &:not(:last-child) {
+    margin-right: 0.5em;
+  }
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+
+  ${mediaBreakpointDown('xs')`
+    &:not(:last-child) {
+      margin-right: 0;
+      margin-bottom: 0.5em;
+    }
+    flex-basis: 100%;
+  `}
+`;
+
+const ViewControlsSectionExpand = styled(ViewControlsSection)`
+  flex: 1 1 auto;
+`;
+
+const FilterToolbar = styled(ButtonToolbar)`
+  flex: 1 1 auto;
+  width: 100%;
+`;
+
+const FilterToolbarInputGroup = styled(InputGroup)`
+  /* precedence boost needed because otherwise default input group styling is more specific */
+  && {
+    width: 100%;
+  }
+`;
+
 function showSolvedStorageKey(huntId: string): string {
   return `showsolved-${huntId}`;
 }
@@ -282,8 +323,8 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
   return (
     <div>
       <FormGroup>
-        <div className="puzzle-view-controls">
-          <div className="puzzle-view-controls-section">
+        <ViewControls>
+          <ViewControlsSection>
             <FormLabel>View puzzles by:</FormLabel>
             <ButtonToolbar className="puzzle-view-buttons">
               <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={displayMode} onChange={switchView}>
@@ -298,13 +339,13 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
                 <ToggleButton variant="outline-info" value="true">Show solved</ToggleButton>
               </ToggleButtonGroup>
             </ButtonToolbar>
-          </div>
-          <div className="puzzle-view-controls-section expand">
+          </ViewControlsSection>
+          <ViewControlsSectionExpand>
             <FormLabel htmlFor="jr-puzzle-search">
               {`Showing ${retainedPuzzles.length}/${props.puzzles.length} items`}
             </FormLabel>
-            <ButtonToolbar className="puzzle-list-filter-toolbar">
-              <InputGroup>
+            <FilterToolbar>
+              <FilterToolbarInputGroup>
                 <FormControl
                   id="jr-puzzle-search"
                   as="input"
@@ -319,15 +360,15 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
                     <FontAwesomeIcon icon={faEraser} />
                   </Button>
                 </InputGroup.Append>
-              </InputGroup>
-            </ButtonToolbar>
-          </div>
-          <div className="puzzle-view-controls-section">
+              </FilterToolbarInputGroup>
+            </FilterToolbar>
+          </ViewControlsSectionExpand>
+          <ViewControlsSection>
             <ButtonToolbar>
               {addPuzzleContent}
             </ButtonToolbar>
-          </div>
-        </div>
+          </ViewControlsSection>
+        </ViewControls>
       </FormGroup>
       {renderList(retainedPuzzles, solvedOverConstrains)}
     </div>
