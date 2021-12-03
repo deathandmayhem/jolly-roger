@@ -48,6 +48,7 @@ import ModalForm, { ModalFormHandle } from './ModalForm';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
+import FixedLayout from './styling/FixedLayout';
 
 /* eslint-disable max-len, no-console */
 
@@ -1040,7 +1041,7 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
   }, [props.match.params.puzzleId]);
 
   if (!tracker.puzzlesReady) {
-    return <div className="puzzle-page jolly-roger-fixed" ref={puzzlePageDivRef}><span>loading...</span></div>;
+    return <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}><span>loading...</span></FixedLayout>;
   }
   const metadata = (
     <PuzzlePageMetadata
@@ -1065,7 +1066,7 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
 
   if (isDesktop) {
     return (
-      <div className="puzzle-page jolly-roger-fixed" ref={puzzlePageDivRef}>
+      <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
         <SplitPanePlus
           split="vertical"
           minSize={MinimumSidebarWidth}
@@ -1082,16 +1083,16 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
             <PuzzlePageMultiplayerDocument document={tracker.document} />
           </div>
         </SplitPanePlus>
-      </div>
+      </FixedLayout>
     );
   }
 
   // Non-desktop (narrow layout)
   return (
-    <div className="puzzle-page narrow jolly-roger-fixed">
+    <FixedLayout className="puzzle-page narrow">
       {metadata}
       {chat}
-    </div>
+    </FixedLayout>
   );
 });
 

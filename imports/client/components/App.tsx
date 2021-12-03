@@ -23,6 +23,7 @@ import Profiles from '../../lib/models/profiles';
 import { useBreadcrumbItems } from '../hooks/breadcrumb';
 import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
+import { NavBarHeight } from './styling/constants';
 import { mediaBreakpointDown } from './styling/responsive';
 
 interface AppNavbarTracker {
@@ -31,8 +32,6 @@ interface AppNavbarTracker {
   brandSrc: string;
   brandSrc2x: string;
 }
-
-const NavBarHeight = '50px';
 
 const Breadcrumb = styled(BSBreadcrumb)`
   display: flex;
