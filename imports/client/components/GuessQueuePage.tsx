@@ -132,7 +132,7 @@ ${(props) => !props.disabled && css`
 const formatDate = (date: Date) => {
   // We only care about days in so far as which day of hunt this guess was submitted on
   const day = daysOfWeek[date.getDay()];
-  return `${date.toLocaleTimeString()} on ${day} `;
+  return `${date.toLocaleTimeString()} on ${day}`;
 };
 
 const GuessBlock = React.memo((props: GuessBlockProps) => {
@@ -175,7 +175,7 @@ const GuessBlock = React.memo((props: GuessBlockProps) => {
           {'Puzzle: '}
           <a href={guessURL(props.hunt, props.puzzle)} target="_blank" rel="noopener noreferrer">{props.puzzle.title}</a>
           {' ('}
-          <Link to={`/ hunts / ${props.puzzle.hunt} /puzzles/${props.puzzle._id} `}>discussion</Link>
+          <Link to={`/hunts/${props.puzzle.hunt}/puzzles/${props.puzzle._id}`}>discussion</Link>
           )
         </div>
         <div>
@@ -210,7 +210,7 @@ interface GuessQueuePageProps extends GuessQueuePageWithRouterParams {
 }
 
 const GuessQueuePage = (props: GuessQueuePageWithRouterParams) => {
-  useBreadcrumb({ title: 'Guess queue', path: `/ hunts / ${props.match.params.huntId} /guesses` });
+  useBreadcrumb({ title: 'Guess queue', path: `/hunts/${props.match.params.huntId}/guesses` });
 
   const tracker = useTracker(() => {
     const huntId = props.match.params.huntId;
