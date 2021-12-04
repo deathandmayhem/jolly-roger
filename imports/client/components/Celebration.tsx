@@ -30,7 +30,7 @@ const CelebrationContainer = styled.div`
   padding: 24px;
 `;
 
-const CelebrationClose = styled.button`
+const CelebrationCloseButton = styled.button`
   position: absolute;
   top: 0;
   right: 0;
@@ -88,9 +88,9 @@ const Celebration = (props: CelebrationProps) => {
   return (
     <CelebrationOverlay onClick={maybeClose}>
       <CelebrationContainer>
-        <CelebrationClose type="button" onClick={onCloseCb} aria-label="Close" ref={closeButtonRef}>
+        <CelebrationCloseButton type="button" onClick={onCloseCb} aria-label="Close" ref={closeButtonRef}>
           <span aria-hidden="true">×</span>
-        </CelebrationClose>
+        </CelebrationCloseButton>
         {props.playAudio ? <audio src="/audio/applause.mp3" autoPlay /> : null}
         <h1>
           We solved
