@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 
 interface CelebrationProps {
   url: string;
@@ -8,6 +9,32 @@ interface CelebrationProps {
   playAudio: boolean;
   onClose: () => void;
 }
+
+const CelebrationOverlay = styled.div`
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  background-color: rgba(0, 0, 0, .20);
+  z-index: 1050;
+`;
+
+const CelebrationContainer = styled.div`
+  background-color: #f0fff0;
+  padding: 24px;
+`;
+
+const CelebrationCloseButton = styled.button`
+  position: absolute;
+  top: 0;
+  right: 0;
+`;
 
 const Celebration = (props: CelebrationProps) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -59,11 +86,11 @@ const Celebration = (props: CelebrationProps) => {
   });
 
   return (
-    <div className="celebration-overlay" onClick={maybeClose}>
-      <div className="celebration">
-        <button type="button" className="close" onClick={onCloseCb} aria-label="Close" ref={closeButtonRef}>
+    <CelebrationOverlay onClick={maybeClose}>
+      <CelebrationContainer>
+        <CelebrationCloseButton type="button" onClick={onCloseCb} aria-label="Close" ref={closeButtonRef}>
           <span aria-hidden="true">×</span>
-        </button>
+        </CelebrationCloseButton>
         {props.playAudio ? <audio src="/audio/applause.mp3" autoPlay /> : null}
         <h1>
           We solved
@@ -76,8 +103,8 @@ const Celebration = (props: CelebrationProps) => {
           {' '}
           <span className="answer">{props.answer}</span>
         </h2>
-      </div>
-    </div>
+      </CelebrationContainer>
+    </CelebrationOverlay>
   );
 };
 

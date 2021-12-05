@@ -21,6 +21,7 @@ import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 import Hunts from '../../lib/models/hunts';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
@@ -34,6 +35,7 @@ import PuzzleModalForm, {
 } from './PuzzleModalForm';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 import { filteredPuzzleGroups, puzzleGroupsByRelevance } from './puzzle-sort-and-group';
+import { mediaBreakpointDown } from './styling/responsive';
 
 interface PuzzleListViewProps extends RouteComponentProps {
   huntId: string
@@ -42,6 +44,47 @@ interface PuzzleListViewProps extends RouteComponentProps {
   puzzles: PuzzleType[];
   allTags: TagType[];
 }
+
+const ViewControls = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+`;
+
+const ViewControlsSection = styled.div`
+  &:not(:last-child) {
+    margin-right: 0.5em;
+  }
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+
+  ${mediaBreakpointDown('xs')`
+    &:not(:last-child) {
+      margin-right: 0;
+      margin-bottom: 0.5em;
+    }
+    flex-basis: 100%;
+  `}
+`;
+
+const ViewControlsSectionExpand = styled(ViewControlsSection)`
+  flex: 1 1 auto;
+`;
+
+const FilterToolbar = styled(ButtonToolbar)`
+  flex: 1 1 auto;
+  width: 100%;
+`;
+
+const FilterToolbarInputGroup = styled(InputGroup)`
+  /* precedence boost needed because otherwise default input group styling is more specific */
+  && {
+    width: 100%;
+  }
+`;
 
 function showSolvedStorageKey(huntId: string): string {
   return `showsolved-${huntId}`;
@@ -280,8 +323,8 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
   return (
     <div>
       <FormGroup>
-        <div className="puzzle-view-controls">
-          <div className="puzzle-view-controls-section">
+        <ViewControls>
+          <ViewControlsSection>
             <FormLabel>View puzzles by:</FormLabel>
             <ButtonToolbar className="puzzle-view-buttons">
               <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={displayMode} onChange={switchView}>
@@ -296,13 +339,13 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
                 <ToggleButton variant="outline-info" value="true">Show solved</ToggleButton>
               </ToggleButtonGroup>
             </ButtonToolbar>
-          </div>
-          <div className="puzzle-view-controls-section expand">
+          </ViewControlsSection>
+          <ViewControlsSectionExpand>
             <FormLabel htmlFor="jr-puzzle-search">
               {`Showing ${retainedPuzzles.length}/${props.puzzles.length} items`}
             </FormLabel>
-            <ButtonToolbar className="puzzle-list-filter-toolbar">
-              <InputGroup>
+            <FilterToolbar>
+              <FilterToolbarInputGroup>
                 <FormControl
                   id="jr-puzzle-search"
                   as="input"
@@ -317,13 +360,15 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
                     <FontAwesomeIcon icon={faEraser} />
                   </Button>
                 </InputGroup.Append>
-              </InputGroup>
+              </FilterToolbarInputGroup>
+            </FilterToolbar>
+          </ViewControlsSectionExpand>
+          <ViewControlsSection>
+            <ButtonToolbar>
+              {addPuzzleContent}
             </ButtonToolbar>
-          </div>
-          <ButtonToolbar>
-            {addPuzzleContent}
-          </ButtonToolbar>
-        </div>
+          </ViewControlsSection>
+        </ViewControls>
       </FormGroup>
       {renderList(retainedPuzzles, solvedOverConstrains)}
     </div>
@@ -345,6 +390,52 @@ interface PuzzleListPageTracker {
   allTags: TagType[];
   hunt: HuntType;
 }
+
+const StyledPuzzleListLinkList = styled.ul`
+  list-style: none;
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  width: 100%;
+  margin: 0 0 8px 0;
+  padding: 0;
+  border-color: #cfcfcf;
+  border-style: solid;
+  border-width: 1px 0;
+`;
+
+const StyledPuzzleListLink = styled.li`
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 0;
+`;
+
+const StyledPuzzleListLinkAnchor = styled(Link)`
+  flex: 1 1 0;
+  display: flex;
+  height: 38px;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: bold;
+  &:hover {
+    background-color: #f8f8f8;
+  }
+`;
+
+const StyledPuzzleListExternalLink = styled(StyledPuzzleListLink)`
+  flex: 0 0 40px;
+`;
+
+const StyledPuzzleListLinkLabel = styled.span`
+  margin-left: 4px;
+  ${mediaBreakpointDown('sm')`
+    display: none;
+  `}
+`;
 
 const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
   const tracker: PuzzleListPageTracker = useTracker(() => {
@@ -369,12 +460,11 @@ const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
   }, [props.match.params.huntId]);
 
   const huntLink = tracker.hunt.homepageUrl && (
-    <li className="puzzle-list-link-external">
-      <a href={tracker.hunt.homepageUrl} target="_blank" rel="noopener noreferrer" title="Open the hunt homepage">
+    <StyledPuzzleListExternalLink>
+      <Button as="a" href={tracker.hunt.homepageUrl} className="rounded-0" target="_blank" rel="noopener noreferrer" title="Open the hunt homepage">
         <FontAwesomeIcon icon={faMap} />
-        <span className="puzzle-list-link-label">Hunt homepage</span>
-      </a>
-    </li>
+      </Button>
+    </StyledPuzzleListExternalLink>
   );
   const puzzleList = tracker.ready ? (
     <PuzzleListView
@@ -392,27 +482,27 @@ const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
   );
   return (
     <div>
-      <ul className="puzzle-list-links">
+      <StyledPuzzleListLinkList>
         {huntLink}
-        <li>
-          <Link to={`/hunts/${props.match.params.huntId}/announcements`}>
+        <StyledPuzzleListLink>
+          <StyledPuzzleListLinkAnchor to={`/hunts/${props.match.params.huntId}/announcements`}>
             <FontAwesomeIcon icon={faBullhorn} />
-            <span className="puzzle-list-link-label">Announcements</span>
-          </Link>
-        </li>
-        <li>
-          <Link to={`/hunts/${props.match.params.huntId}/guesses`}>
+            <StyledPuzzleListLinkLabel>Announcements</StyledPuzzleListLinkLabel>
+          </StyledPuzzleListLinkAnchor>
+        </StyledPuzzleListLink>
+        <StyledPuzzleListLink>
+          <StyledPuzzleListLinkAnchor to={`/hunts/${props.match.params.huntId}/guesses`}>
             <FontAwesomeIcon icon={faReceipt} />
-            <span className="puzzle-list-link-label">Guess queue</span>
-          </Link>
-        </li>
-        <li>
-          <Link to={`/hunts/${props.match.params.huntId}/hunters`}>
+            <StyledPuzzleListLinkLabel>Guess queue</StyledPuzzleListLinkLabel>
+          </StyledPuzzleListLinkAnchor>
+        </StyledPuzzleListLink>
+        <StyledPuzzleListLink>
+          <StyledPuzzleListLinkAnchor to={`/hunts/${props.match.params.huntId}/hunters`}>
             <FontAwesomeIcon icon={faUsers} />
-            <span className="puzzle-list-link-label">Hunters</span>
-          </Link>
-        </li>
-      </ul>
+            <StyledPuzzleListLinkLabel>Hunters</StyledPuzzleListLinkLabel>
+          </StyledPuzzleListLinkAnchor>
+        </StyledPuzzleListLink>
+      </StyledPuzzleListLinkList>
       {puzzleList}
     </div>
   );

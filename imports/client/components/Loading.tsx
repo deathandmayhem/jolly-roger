@@ -1,12 +1,27 @@
 import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import classNames from 'classnames';
 import React from 'react';
+import styled from 'styled-components';
+
+const Fullsize = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.5);
+`;
+
+const Inline = styled.div``;
 
 export default React.memo(({ inline = false }: { inline?: boolean }) => {
+  const Component = inline ? Inline : Fullsize;
   return (
-    <div className={classNames('loading', inline ? 'loading-inline' : 'loading-fullsize')}>
+    <Component>
       <FontAwesomeIcon icon={faSpinner} color="#aaa" size={inline ? undefined : '3x'} pulse />
-    </div>
+    </Component>
   );
 });

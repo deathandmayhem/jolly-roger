@@ -1,6 +1,7 @@
 import React, {
   useCallback, useEffect, useImperativeHandle, useRef,
 } from 'react';
+import styled from 'styled-components';
 
 // Note: this is incomplete; I didn't figure out how I wanted to feed a stream
 // to the Spectrum component.  I don't love making it a prop, since I really need
@@ -8,11 +9,18 @@ import React, {
 // But I also don't wanna like make it a whole ref and then call methods on it because
 // that also feels a bit weird.  Maybe that's the way to go though?
 
+const SpectrumCanvas = styled.canvas`
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+`;
+
 interface SpectrumProps {
   width: number;
   height: number;
   audioContext: AudioContext;
-  className: string | undefined;
   barCount?: number;
   throttleFps?: number;
   barFloor?: number;
@@ -120,8 +128,7 @@ const Spectrum = React.forwardRef((
   }));
 
   return (
-    <canvas
-      className={props.className}
+    <SpectrumCanvas
       width={props.width}
       height={props.height}
       ref={canvasRef}

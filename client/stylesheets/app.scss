@@ -3,12 +3,6 @@
 // Answer monospace font
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap');
 
-@font-face {
-  font-family: "Platform Emoji";
-  src: local("Noto Color Emoji"), local("Apple Color Emoji"), local("Segoe UI Emoji");
-  unicode-range: U+1F300-1FAFF, U+1F100-1F1FF, U+200D, U+2300-23FF, U+2600-27BF;
-}
-
 @import "theme";
 @import "../../node_modules/bootstrap/scss/bootstrap";
 
@@ -19,24 +13,4 @@ $btn-outline-hover-tint: 80%;
     background-color: mix(white, $value, $btn-outline-hover-tint);
     color: $value;
   }
-}
-
-.connection-status {
-  position: fixed;
-  top: 50px;
-  left: 0px;
-  right: 0px;
-  // This z-index is chosen to be higher than any z-index used by Bootstrap
-  // (which are all in the 1000-1100 range)
-  z-index: 10000;
-}
-
-/* Prevent mobile safari zoom */
-input[type="text"], textarea {
-  font-size: 16px!important;
-}
-
-.brand {
-  width: 50px;
-  height: 50px;
 }

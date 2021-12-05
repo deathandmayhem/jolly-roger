@@ -3,7 +3,6 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import classnames from 'classnames';
 import React, { useCallback, useEffect, useRef } from 'react';
 import Button from 'react-bootstrap/Button';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
@@ -11,6 +10,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
+import styled, { css } from 'styled-components';
 import Guesses from '../../lib/models/guesses';
 import Hunts from '../../lib/models/hunts';
 import Profiles from '../../lib/models/profiles';
@@ -21,6 +21,7 @@ import { HuntType } from '../../lib/schemas/hunt';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import Breakable from './styling/Breakable';
 
 /* eslint-disable max-len */
 
@@ -57,6 +58,77 @@ interface GuessBlockProps {
   puzzle: PuzzleType;
 }
 
+const StyledGuessBlock = styled.div<{ $state: GuessType['state'] }>`
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: row;
+  background-color: ${(props) => {
+    switch (props.$state) {
+      case 'correct':
+        return '#f0fff0';
+      case 'incorrect':
+        return '#fff0f0';
+      case 'rejected':
+        return '#f0f0f0';
+      case 'pending':
+        return '#f0f0ff';
+      default:
+        return '#fff';
+    }
+  }};
+`;
+
+const StyledGuessInfo = styled.div`
+  flex: 1 0 50%;
+  overflow-x: hidden;
+`;
+
+const StyledGuessButtonGroup = styled.div`
+  flex: 0 1 330px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: space-between;
+  padding: 0px;
+`;
+
+const StyledGuessButton = styled.button`
+  flex: 1 1 72px;
+  border-radius: 5px;
+  margin: 4px;
+  border: 0px;
+  background-color: transparent;
+`;
+
+const StyledGuessButtonCorrect = styled(StyledGuessButton)`
+${(props) => !props.disabled && css`
+    border: 1px solid #00ff00;
+    background-color: #f0fff0;
+  `}
+`;
+
+const StyledGuessButtonIncorrect = styled(StyledGuessButton)`
+${(props) => !props.disabled && css`
+    border: 1px solid #ff0000;
+    background-color: #fff0f0;
+  `}
+`;
+
+const StyledGuessButtonRejected = styled(StyledGuessButton)`
+${(props) => !props.disabled && css`
+    border: 1px solid #000000;
+    background-color: #f0f0f0;
+  `}
+`;
+
+const StyledGuessButtonPending = styled(StyledGuessButton)`
+${(props) => !props.disabled && css`
+    border: 1px solid #0000ff;
+    background-color: #f0f0ff;
+  `}
+`;
+
 const formatDate = (date: Date) => {
   // We only care about days in so far as which day of hunt this guess was submitted on
   const day = daysOfWeek[date.getDay()];
@@ -83,21 +155,21 @@ const GuessBlock = React.memo((props: GuessBlockProps) => {
   const guess = props.guess;
   const timestamp = formatDate(guess.createdAt);
   const guessButtons = (
-    <div className="guess-button-group">
-      {guess.state === 'correct' ? <button type="button" className="guess-button guess-button-disabled" disabled>Correct</button> : <button type="button" className="guess-button guess-button-correct" onClick={markCorrect}>Mark correct</button>}
-      {guess.state === 'incorrect' ? <button type="button" className="guess-button guess-button-disabled" disabled>Incorrect</button> : <button type="button" className="guess-button guess-button-incorrect" onClick={markIncorrect}>Mark incorrect</button>}
-      {guess.state === 'rejected' ? <button type="button" className="guess-button guess-button-disabled" disabled>Rejected</button> : <button type="button" className="guess-button guess-button-rejected" onClick={markRejected}>Mark rejected</button>}
-      {guess.state === 'pending' ? <button type="button" className="guess-button guess-button-disabled" disabled>Pending</button> : <button type="button" className="guess-button guess-button-pending" onClick={markPending}>Mark pending</button>}
-    </div>
+    <StyledGuessButtonGroup>
+      <StyledGuessButtonCorrect onClick={markCorrect} disabled={guess.state === 'correct'}>Correct</StyledGuessButtonCorrect>
+      <StyledGuessButtonIncorrect onClick={markIncorrect} disabled={guess.state === 'incorrect'}>Incorrect</StyledGuessButtonIncorrect>
+      <StyledGuessButtonRejected onClick={markRejected} disabled={guess.state === 'rejected'}>Rejected</StyledGuessButtonRejected>
+      <StyledGuessButtonPending onClick={markPending} disabled={guess.state === 'pending'}>Pending</StyledGuessButtonPending>
+    </StyledGuessButtonGroup>
   );
 
   return (
-    <div className={classnames('guess', `guess-${guess.state}`)}>
-      <div className="guess-info">
+    <StyledGuessBlock $state={guess.state}>
+      <StyledGuessInfo>
         <div>
           {timestamp}
           {' from '}
-          <span className="breakable">{props.createdByDisplayName || '<no name given>'}</span>
+          <Breakable>{props.createdByDisplayName || '<no name given>'}</Breakable>
         </div>
         <div>
           {'Puzzle: '}
@@ -115,9 +187,9 @@ const GuessBlock = React.memo((props: GuessBlockProps) => {
           {guess.confidence}
         </div>
         <div><AutoSelectInput value={guess.guess} /></div>
-      </div>
-      {props.canEdit ? guessButtons : <div className="guess-button-group">{guess.state}</div>}
-    </div>
+      </StyledGuessInfo>
+      {props.canEdit ? guessButtons : <StyledGuessButtonGroup>{guess.state}</StyledGuessButtonGroup>}
+    </StyledGuessBlock>
   );
 });
 

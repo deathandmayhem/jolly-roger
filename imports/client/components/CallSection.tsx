@@ -163,7 +163,6 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
           {deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
           {!tracker.spectraDisabled && !muted && !deafened ? (
             <Spectrum
-              className="spectrogram"
               width={40}
               height={40}
               audioContext={audioContext}

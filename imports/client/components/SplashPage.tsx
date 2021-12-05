@@ -3,10 +3,20 @@ import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
-import Image from 'react-bootstrap/Image';
-import Jumbotron from 'react-bootstrap/Jumbotron';
+import BSImage from 'react-bootstrap/Image';
+import BSJumbotron from 'react-bootstrap/Jumbotron';
 import Row from 'react-bootstrap/Row';
+import styled from 'styled-components';
 import { lookupUrl } from '../../lib/models/blob_mappings';
+
+const Jumbotron = styled(BSJumbotron)`
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+`;
+
+const Image = styled(BSImage)`
+  max-width: 50%;
+`;
 
 interface SplashPageProps {
   children: React.ReactNode;

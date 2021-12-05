@@ -4,6 +4,7 @@ import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import { RouteComponentProps } from 'react-router';
+import styled from 'styled-components';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/announcements';
 import Profiles from '../../lib/models/profiles';
@@ -23,6 +24,26 @@ enum AnnouncementFormSubmitState {
   SUBMITTING = 'submitting',
   FAILED = 'failed',
 }
+
+const AnnouncementFormContainer = styled.div`
+  background-color: #f0f0f0;
+  padding: 16px;
+
+  h3 {
+    margin-top: 0px;
+  }
+
+  textarea {
+    width: 100%;
+  }
+
+  .button-row {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+`;
 
 const AnnouncementForm = (props: AnnouncementFormProps) => {
   const [message, setMessage] = useState<string>('');
@@ -49,7 +70,7 @@ const AnnouncementForm = (props: AnnouncementFormProps) => {
   }, [message, props.huntId]);
 
   return (
-    <div className="announcement-form">
+    <AnnouncementFormContainer>
       <h3>Write an announcement:</h3>
       {submitState === 'failed' ? <Alert variant="danger">{errorMessage}</Alert> : null}
       <textarea
@@ -67,7 +88,7 @@ const AnnouncementForm = (props: AnnouncementFormProps) => {
           Send
         </Button>
       </div>
-    </div>
+    </AnnouncementFormContainer>
   );
 };
 
@@ -76,22 +97,37 @@ interface AnnouncementProps {
   displayNames: Record<string, string>;
 }
 
+const AnnouncementContainer = styled.div`
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  background-color: #eee;
+`;
+
+const AnnouncementOrigin = styled.div`
+  text-align: right;
+`;
+
+const AnnouncementTimestamp = styled.div`
+  text-align: right;
+`;
+
 const Announcement = (props: AnnouncementProps) => {
   const ann = props.announcement;
 
   // TODO: All the styles here could stand to be improved, but this gets it on the screen in a
   // minimally-offensive manner, and preserves the intent of newlines.
   return (
-    <div className="announcement">
-      <div className="announcement-origin">
-        <div className="announcement-timestamp">{calendarTimeFormat(ann.createdAt)}</div>
+    <AnnouncementContainer>
+      <AnnouncementOrigin>
+        <AnnouncementTimestamp>{calendarTimeFormat(ann.createdAt)}</AnnouncementTimestamp>
         <div>{props.displayNames[ann.createdBy]}</div>
-      </div>
+      </AnnouncementOrigin>
       <div
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: markdown(ann.message) }}
       />
-    </div>
+    </AnnouncementContainer>
   );
 };
 

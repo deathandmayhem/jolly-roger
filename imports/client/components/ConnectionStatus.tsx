@@ -4,6 +4,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import React, { useEffect, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
+import styled from 'styled-components';
 import Ansible from '../../ansible';
 
 interface WaitingAlertProps {
@@ -38,6 +39,16 @@ const WaitingAlert = (props: WaitingAlertProps) => {
   );
 };
 
+const ConnectionStatusContainer = styled.div`
+  position: fixed;
+  top: 50px;
+  left: 0px;
+  right: 0px;
+  // This z-index is chosen to be higher than any z-index used by Bootstrap
+  // (which are all in the 1000-1100 range)
+  z-index: 10000;
+`;
+
 const ConnectionStatus = () => {
   const meteorStatus: DDP.DDPStatus = useTracker(() => {
     return Meteor.status();
@@ -46,33 +57,41 @@ const ConnectionStatus = () => {
   switch (meteorStatus.status) {
     case 'connecting':
       return (
-        <Alert variant="warning">
-          Trying to reconnect to Jolly Roger...
-        </Alert>
+        <ConnectionStatusContainer>
+          <Alert variant="warning">
+            Trying to reconnect to Jolly Roger...
+          </Alert>
+        </ConnectionStatusContainer>
       );
     case 'failed':
       return (
-        <Alert variant="danger">
-          <strong>Oh no!</strong>
-          {' '}
-          Unable to connect to Jolly Roger:
-          {meteorStatus.reason}
-        </Alert>
+        <ConnectionStatusContainer>
+          <Alert variant="danger">
+            <strong>Oh no!</strong>
+            {' '}
+            Unable to connect to Jolly Roger:
+            {meteorStatus.reason}
+          </Alert>
+        </ConnectionStatusContainer>
       );
     case 'waiting': {
       return (
-        <WaitingAlert retryTime={meteorStatus.retryTime} />
+        <ConnectionStatusContainer>
+          <WaitingAlert retryTime={meteorStatus.retryTime} />
+        </ConnectionStatusContainer>
       );
     }
     case 'offline':
       return (
-        <Alert variant="warning">
-          <strong>Warning!</strong>
-          {' '}
-          Currently not connected to Jolly Roger server. Changes will be synced when you
-          reconnect.
-          <Button variant="link" onClick={Meteor.reconnect}>reconnect now</Button>
-        </Alert>
+        <ConnectionStatusContainer>
+          <Alert variant="warning">
+            <strong>Warning!</strong>
+            {' '}
+            Currently not connected to Jolly Roger server. Changes will be synced when you
+            reconnect.
+            <Button variant="link" onClick={Meteor.reconnect}>reconnect now</Button>
+          </Alert>
+        </ConnectionStatusContainer>
       );
     case 'connected':
       return null;

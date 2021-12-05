@@ -6,12 +6,12 @@ import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { faSkullCrossbones } from '@fortawesome/free-solid-svg-icons/faSkullCrossbones';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import classnames from 'classnames';
 import React, { useCallback, useState } from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 import Flags from '../../flags';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/announcements';
@@ -31,33 +31,121 @@ import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
 import markdown from '../markdown';
+import Breakable from './styling/Breakable';
 
 /* eslint-disable max-len */
+
+const StyledDismissButton = styled.button`
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+  font-weight: bold;
+  right: 0px;
+  top: 0px;
+  color: #888;
+  &:hover {
+    color: #f0f0f0;
+  }
+`;
+
+const StyledNotificationMessage = styled.li`
+  width: 100%;
+  position: relative;
+  background-color: #404040;
+  color: #f0f0f0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow: hidden;
+
+  &:first-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+  }
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #595959;
+  }
+
+  &:last-child {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+`;
+
+const StyledNotificationActionBar = styled.ul`
+  display: block;
+  list-style-type: none;
+  margin: 0px;
+  padding: 0px;
+  display: flex;
+  flex-direction: row;
+`;
+
+const StyledNotificationActionItem = styled.li`
+  margin-left: 0px;
+  margin-top: 8px;
+  margin-right: 8px;
+  margin-bottom: 4px;
+  display: inline-block;
+
+  a, button {
+    display: inline-block;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background-color: #2e2e2e;
+    color: #aaaaaa;
+    &:hover {
+      color: #f0f0f0;
+      cursor: pointer;
+      text-decoration: none;
+    }
+  }
+`;
 
 interface MessengerDismissButtonProps {
   onDismiss: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const MessengerDismissButton = React.memo((props: MessengerDismissButtonProps) => {
-  return <button type="button" className="dismiss" onClick={props.onDismiss}>×</button>;
+  return <StyledDismissButton type="button" onClick={props.onDismiss}>×</StyledDismissButton>;
 });
 
-interface MessengerContentProps {
-  dismissable?: boolean;
-  children: React.ReactNode;
-}
+const MessengerContent = styled.div`
+  overflow-x: hidden; // overflow-wrap on children just overflows the box without this
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+`;
 
-const MessengerContent = React.memo((props: MessengerContentProps) => {
-  const { dismissable, children } = props;
-  const classes = classnames('content', { dismissable });
-  return <div className={classes}>{children}</div>;
-});
+const StyledSpinnerBox = styled.div`
+  background-color: #292929;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 55px;
+  flex: 0 0 55px;
+`;
+
+const StyledSpinner = styled.div`
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background-color: #61c4b8;
+`;
 
 const MessengerSpinner = React.memo(() => {
   return (
-    <div className="spinner-box">
-      <div className="spinner" />
-    </div>
+    <StyledSpinnerBox>
+      <StyledSpinner />
+    </StyledSpinnerBox>
   );
 });
 
@@ -119,9 +207,9 @@ const GuessMessage = React.memo((props: GuessMessageProps) => {
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
 
   return (
-    <li>
+    <StyledNotificationMessage>
       <MessengerSpinner />
-      <MessengerContent dismissable>
+      <MessengerContent>
         <div>
           Guess for
           {' '}
@@ -129,10 +217,10 @@ const GuessMessage = React.memo((props: GuessMessageProps) => {
           {' '}
           from
           {' '}
-          <span className="breakable">{guesser}</span>
+          <Breakable>{guesser}</Breakable>
           :
           {' '}
-          <span className="breakable">{guess.guess}</span>
+          <Breakable>{guess.guess}</Breakable>
         </div>
         <div>
           <OverlayTrigger placement="bottom" overlay={directionTooltip}>
@@ -153,35 +241,35 @@ const GuessMessage = React.memo((props: GuessMessageProps) => {
             </span>
           </OverlayTrigger>
         </div>
-        <ul className="actions">
-          <li>
+        <StyledNotificationActionBar>
+          <StyledNotificationActionItem>
             <OverlayTrigger placement="top" overlay={copyTooltip}>
               <CopyToClipboard text={guess.guess}>
                 <button type="button" aria-label="Copy"><FontAwesomeIcon icon={faCopy} /></button>
               </CopyToClipboard>
             </OverlayTrigger>
-          </li>
-          <li>
+          </StyledNotificationActionItem>
+          <StyledNotificationActionItem>
             <OverlayTrigger placement="top" overlay={jrLinkTooltip}>
               <Link to={linkTarget}><FontAwesomeIcon icon={faSkullCrossbones} /></Link>
             </OverlayTrigger>
-          </li>
-          <li>
+          </StyledNotificationActionItem>
+          <StyledNotificationActionItem>
             <OverlayTrigger placement="top" overlay={extLinkTooltip}>
               <a href={guessURL(hunt, puzzle)} target="_blank" rel="noopener noreferrer">
                 <FontAwesomeIcon icon={faPuzzlePiece} />
               </a>
             </OverlayTrigger>
-          </li>
-        </ul>
-        <ul className="actions">
-          <li><button type="button" onClick={markCorrect}>Correct</button></li>
-          <li><button type="button" onClick={markIncorrect}>Incorrect</button></li>
-          <li><button type="button" onClick={markRejected}>Reject</button></li>
-        </ul>
+          </StyledNotificationActionItem>
+        </StyledNotificationActionBar>
+        <StyledNotificationActionBar>
+          <StyledNotificationActionItem><button type="button" onClick={markCorrect}>Correct</button></StyledNotificationActionItem>
+          <StyledNotificationActionItem><button type="button" onClick={markIncorrect}>Incorrect</button></StyledNotificationActionItem>
+          <StyledNotificationActionItem><button type="button" onClick={markRejected}>Reject</button></StyledNotificationActionItem>
+        </StyledNotificationActionBar>
       </MessengerContent>
       <MessengerDismissButton onDismiss={dismissGuess} />
-    </li>
+    </StyledNotificationMessage>
   );
 });
 
@@ -227,7 +315,7 @@ const DiscordMessage = React.memo((props: DiscordMessageProps) => {
 
   const msg = 'It looks like you\'re not in our Discord server, which Jolly Roger manages access to.  Get added:';
   const actions = [
-    <li key="invite">
+    <StyledNotificationActionItem key="invite">
       <button
         type="button"
         disabled={!(state.status === DiscordMessageStatus.IDLE || state.status === DiscordMessageStatus.ERROR)}
@@ -235,21 +323,21 @@ const DiscordMessage = React.memo((props: DiscordMessageProps) => {
       >
         Add me
       </button>
-    </li>,
+    </StyledNotificationActionItem>,
   ];
 
   return (
-    <li>
+    <StyledNotificationMessage>
       <MessengerSpinner />
       <MessengerContent>
         {msg}
-        <ul className="actions">
+        <StyledNotificationActionBar>
           {actions}
-        </ul>
+        </StyledNotificationActionBar>
         {state.status === DiscordMessageStatus.ERROR ? state.error! : null}
       </MessengerContent>
       <MessengerDismissButton onDismiss={props.onDismiss} />
-    </li>
+    </StyledNotificationMessage>
   );
 });
 
@@ -271,9 +359,9 @@ const AnnouncementMessage = React.memo((props: AnnouncementMessageProps) => {
   }
 
   return (
-    <li>
+    <StyledNotificationMessage>
       <MessengerSpinner />
-      <MessengerContent dismissable>
+      <MessengerContent>
         <div
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: markdown(props.announcement.message) }}
@@ -286,7 +374,7 @@ const AnnouncementMessage = React.memo((props: AnnouncementMessageProps) => {
         </footer>
       </MessengerContent>
       <MessengerDismissButton onDismiss={onDismiss} />
-    </li>
+    </StyledNotificationMessage>
   );
 });
 
@@ -295,9 +383,9 @@ interface ProfileMissingMessageProps {
 }
 function ProfileMissingMessage(props: ProfileMissingMessageProps) {
   return (
-    <li>
+    <StyledNotificationMessage>
       <MessengerSpinner />
-      <MessengerContent dismissable>
+      <MessengerContent>
         Somehow you don&apos;t seem to have a profile.  (This can happen if you wind
         up having to do a password reset before you successfully log in for the
         first time.)  Please set a display name for yourself via
@@ -308,7 +396,7 @@ function ProfileMissingMessage(props: ProfileMissingMessageProps) {
         .
       </MessengerContent>
       <MessengerDismissButton onDismiss={props.onDismiss} />
-    </li>
+    </StyledNotificationMessage>
   );
 }
 
@@ -319,9 +407,9 @@ interface ChatNotificationMessageProps {
 }
 function ChatNotificationMessage(props: ChatNotificationMessageProps) {
   return (
-    <li>
+    <StyledNotificationMessage>
       <MessengerSpinner />
-      <MessengerContent dismissable>
+      <MessengerContent>
         <Link to={`/hunts/${props.cn.hunt._id}/puzzles/${props.cn.puzzle._id}`}>
           {props.cn.puzzle.title}
         </Link>
@@ -334,7 +422,7 @@ function ChatNotificationMessage(props: ChatNotificationMessageProps) {
         </div>
       </MessengerContent>
       <MessengerDismissButton onDismiss={props.onDismiss} />
-    </li>
+    </StyledNotificationMessage>
   );
 }
 
@@ -368,6 +456,16 @@ type NotificationCenterTracker = {
   hasOwnProfile?: boolean;
 }
 
+const StyledNotificationCenter = styled.ul`
+  position: fixed;
+  width: 350px;
+  top: 20px;
+  right: 20px;
+  margin: 0;
+  padding: 0;
+  z-index: 1050;
+`;
+
 const NotificationCenter = () => {
   const tracker: NotificationCenterTracker = useTracker(() => {
     const canUpdateGuesses = deprecatedIsActiveOperator(Meteor.userId());
@@ -397,7 +495,7 @@ const NotificationCenter = () => {
 
     // Don't even try to put things together until we have the announcements loaded
     if (!selfHandle.ready() || !displayNamesHandle.ready() || !announcementsHandle.ready() ||
-        !chatNotificationsHandle.ready()) {
+      !chatNotificationsHandle.ready()) {
       return { ready: false };
     }
 
@@ -490,8 +588,8 @@ const NotificationCenter = () => {
   }
 
   if (tracker.discordEnabledOnServer &&
-      !tracker.discordConfiguredByUser &&
-      !hideDiscordSetupMessage) {
+    !tracker.discordConfiguredByUser &&
+    !hideDiscordSetupMessage) {
     messages.push(<DiscordMessage key="discord" onDismiss={onHideDiscordSetupMessage} />);
   }
 
@@ -529,9 +627,9 @@ const NotificationCenter = () => {
   });
 
   return (
-    <ul className="notifications">
+    <StyledNotificationCenter>
       {messages}
-    </ul>
+    </StyledNotificationCenter>
   );
 };
 

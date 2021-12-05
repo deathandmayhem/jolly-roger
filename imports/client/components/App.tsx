@@ -3,7 +3,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useMemo } from 'react';
-import Breadcrumb from 'react-bootstrap/Breadcrumb';
+import BSBreadcrumb from 'react-bootstrap/Breadcrumb';
 import BreadcrumbItem from 'react-bootstrap/BreadcrumbItem';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownItem from 'react-bootstrap/DropdownItem';
@@ -17,11 +17,14 @@ import NavbarBrand from 'react-bootstrap/NavbarBrand';
 import { RouteComponentProps } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 import { lookupUrl } from '../../lib/models/blob_mappings';
 import Profiles from '../../lib/models/profiles';
 import { useBreadcrumbItems } from '../hooks/breadcrumb';
 import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
+import { NavBarHeight } from './styling/constants';
+import { mediaBreakpointDown } from './styling/responsive';
 
 interface AppNavbarTracker {
   userId: string;
@@ -29,6 +32,38 @@ interface AppNavbarTracker {
   brandSrc: string;
   brandSrc2x: string;
 }
+
+const Breadcrumb = styled(BSBreadcrumb)`
+  display: flex;
+  align-items: center;
+  height: ${NavBarHeight};
+  flex: 1;
+
+  ol {
+    display: block;
+    background-color: transparent;
+    max-height: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+
+    li {
+      display: inline;
+      text-indent: 0;
+    }
+  }
+`;
+
+const NavUsername = styled.span`
+  ${mediaBreakpointDown('sm')`
+    display: none;
+  `}
+`;
+
+const Brand = styled.img`
+  width: ${NavBarHeight};
+  height: ${NavBarHeight};
+`;
 
 const AppNavbar = (props: RouteComponentProps) => {
   const tracker = useTracker<AppNavbarTracker>(() => {
@@ -63,7 +98,7 @@ const AppNavbar = (props: RouteComponentProps) => {
   const crumbs = useBreadcrumbItems();
   const breadcrumbsComponent = useMemo(() => {
     return (
-      <Breadcrumb className="nav-breadcrumbs">
+      <Breadcrumb>
         {crumbs.map((crumb, index) => {
           const last = (index === crumbs.length - 1);
           if (last) {
@@ -90,11 +125,10 @@ const AppNavbar = (props: RouteComponentProps) => {
   // correct amount of space in the top bar even if we haven't actually picked
   // a nonempty source for it yet.
   return (
-    <Navbar fixed="top" bg="light" variant="light">
-      <NavbarBrand>
+    <Navbar sticky="top" bg="light" variant="light" className="px-0 py-0">
+      <NavbarBrand className="p-0">
         <Link to="/">
-          <img
-            className="brand"
+          <Brand
             src={tracker.brandSrc}
             alt="Jolly Roger logo"
             srcSet={`${tracker.brandSrc} 1x, ${tracker.brandSrc2x} 2x`}
@@ -107,7 +141,7 @@ const AppNavbar = (props: RouteComponentProps) => {
           <DropdownToggle id="profileDropdown" as={NavLink}>
             <FontAwesomeIcon icon={faUser} />
             {' '}
-            <span className="nav-username">{tracker.displayName}</span>
+            <NavUsername>{tracker.displayName}</NavUsername>
           </DropdownToggle>
           <DropdownMenu alignRight>
             <RRBS.LinkContainer to={`/users/${tracker.userId}`}>
@@ -139,10 +173,8 @@ const App = (props: AppProps) => {
     <div>
       <NotificationCenter />
       <AppNavbar {...routeComponentProps} />
-      <div className="connection-status">
-        <ConnectionStatus />
-      </div>
-      <div className="container-fluid">
+      <ConnectionStatus />
+      <div className="container-fluid pt-2">
         {props.children}
       </div>
     </div>
