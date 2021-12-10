@@ -1,6 +1,7 @@
 // Locks are a server-only class
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
+import { NpmModuleMongodb } from 'meteor/npm-mongo';
 import Ansible from '../../ansible';
 import LockSchema, { LockType } from '../schemas/lock';
 
@@ -22,7 +23,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
       // any since this is known safe
       return this.insert(<any>{ name });
     } catch (e) {
-      if ((e.name === 'MongoError' || e.name === 'BulkWriteError') && e.code === 11000) {
+      if (!(e instanceof NpmModuleMongodb.MongoError) || e.code !== 11000) {
         return undefined;
       }
 
