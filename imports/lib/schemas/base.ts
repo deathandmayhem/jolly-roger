@@ -33,12 +33,15 @@ export const BaseOverrides: Overrides<BaseType> = {
   },
   createdAt: {
     autoValue() {
+      if (this.isSet) {
+        return undefined;
+      }
+
       if (this.isInsert) {
         return new Date();
       } else if (this.isUpsert) {
         return { $setOnInsert: new Date() };
       } else {
-        this.unset(); // Prevent user from supplying their own value
         return undefined;
       }
     },
@@ -46,12 +49,15 @@ export const BaseOverrides: Overrides<BaseType> = {
   createdBy: {
     regEx: SimpleSchema.RegEx.Id,
     autoValue() {
+      if (this.isSet) {
+        return undefined;
+      }
+
       if (this.isInsert) {
         return this.userId;
       } else if (this.isUpsert) {
         return { $setOnInsert: this.userId };
       } else {
-        this.unset(); // Prevent user from supplying their own value
         return undefined;
       }
     },
@@ -59,6 +65,10 @@ export const BaseOverrides: Overrides<BaseType> = {
   updatedAt: {
     denyInsert: true,
     autoValue() {
+      if (this.isSet) {
+        return undefined;
+      }
+
       if (this.isUpdate) {
         return new Date();
       }
@@ -69,6 +79,10 @@ export const BaseOverrides: Overrides<BaseType> = {
     regEx: SimpleSchema.RegEx.Id,
     denyInsert: true,
     autoValue() {
+      if (this.isSet) {
+        return undefined;
+      }
+
       if (this.isUpdate) {
         return this.userId;
       }

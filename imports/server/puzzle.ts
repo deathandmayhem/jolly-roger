@@ -1,5 +1,6 @@
 import { Match, check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
+import { NpmModuleMongodb } from 'meteor/npm-mongo';
 import { Random } from 'meteor/random';
 import Ansible from '../ansible';
 import Flags from '../flags';
@@ -247,7 +248,7 @@ Meteor.methods({
       DocumentPermissions.insert(perm);
     } catch (e) {
       // 11000 is a duplicate key error
-      if (e.name !== 'MongoError' || e.code !== 11000) {
+      if (!(e instanceof NpmModuleMongodb.MongoError) || e.code !== 11000) {
         throw e;
       }
     }
