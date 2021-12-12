@@ -1,4 +1,4 @@
-import { Meteor, Subscription } from 'meteor/meteor';
+import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { _ } from 'meteor/underscore';
 import Mustache from 'mustache';
@@ -15,7 +15,7 @@ interface HuntModel {
 }
 
 const huntsMatchingCurrentUser = function <T extends HuntModel> (
-  this: Subscription,
+  userId: string,
   origQuery: Mongo.Query<T>,
 ): Mongo.Query<T> {
   // Adds a filter to the query to only show results from hunts that the user is a member of.
@@ -27,7 +27,7 @@ const huntsMatchingCurrentUser = function <T extends HuntModel> (
   // As a note: this will not re-publish if the user's hunt membership
   // changes, so use it carefully (basically, use it when you already
   // know the user is a member of the hunt in question).
-  const u = MeteorUsers.findOne(this.userId);
+  const u = MeteorUsers.findOne(userId);
   if (!u) {
     throw new Meteor.Error(401, 'Unauthenticated');
   }

@@ -4,13 +4,13 @@ import APIKeySchema, { APIKeyType } from '../schemas/api_key';
 
 const APIKeys = new Base<APIKeyType>('api_keys');
 APIKeys.attachSchema(APIKeySchema);
-APIKeys.publish(function (q) {
+APIKeys.publish((userId, q) => {
   // Server admins can access all API keys
-  if (isAdmin(this.userId)) {
+  if (isAdmin(userId)) {
     return q;
   }
 
-  return [];
+  return undefined;
 });
 
 export default APIKeys;
