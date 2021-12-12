@@ -10,6 +10,9 @@ At its core, it allows tracking puzzles and guesses in an ever-evolving hunt
 structure, and provides a chat room and a Google spreadsheet for each
 puzzle.
 
+Want to help develop Jolly Roger? Join our Discord server
+
+[![Join our Discord server](https://discordapp.com/api/guilds/778431482171490305/widget.png?style=banner3)](https://discord.gg/kdsNjaxmHZ)
 
 ## Features
 
