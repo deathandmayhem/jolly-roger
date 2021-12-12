@@ -1,4 +1,4 @@
-import Announcment from './announcement';
+import Announcement from './announcement';
 import BlobMapping from './blob_mapping';
 import CallParticipant from './call_participant';
 import CallSignal from './call_signal';
@@ -19,7 +19,7 @@ import Tag from './tag';
 import User from './user';
 
 const Schemas = {
-  Announcment,
+  Announcement,
   BlobMapping,
   CallParticipant,
   CallSignal,
