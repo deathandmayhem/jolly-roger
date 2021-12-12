@@ -54,9 +54,6 @@
     "react/no-multi-comp": ["off"],
     "max-classes-per-file": ["off"],
 
-    // Specifying explicit propTypes is worthwhile
-    "react/prefer-stateless-function": ["off"],
-
     // Absolute imports work with Meteor, but aren't well-understood by IDEs, like VS Code
     "import/no-absolute-path": ["error"],
 
@@ -76,22 +73,9 @@
       "newlines-between": "never"
     }],
 
-    // This seems incompatible with React.createClass
-    "react/no-this-in-sfc": ["off"],
-
-    // We should really fix this if we can
-    "react/forbid-prop-types": ["off"],
-
     // This is complaining a lot and I don't really want to write dozens of lines of
     // default prop values of `undefined`
     "react/require-default-props": ["off"],
-
-    // This rule seems to be failing to detect that accessing this.props inside
-    // fat-arrow functions in fact use the prop
-    "react/no-unused-prop-types": ["off"],
-
-    // TypeScript doesn't support setting the property assignment style
-    "react/static-property-placement": ["error", "static public field"],
 
     // We use spread props a lot for HOCs or other wrapper-type components
     "react/jsx-props-no-spreading": ["off"],
@@ -106,6 +90,9 @@
 
     // "name" is a useful variable
     "no-restricted-globals": ["off"],
+
+    // Detect missing deps for non-standard hooks
+    "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useTracker" }],
 
     // Match existing style
     "operator-linebreak": ["error", "after"],
