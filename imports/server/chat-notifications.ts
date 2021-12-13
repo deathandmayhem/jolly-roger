@@ -26,7 +26,7 @@ class ChatNotificationWatcher {
   constructor(sub: Subscription) {
     this.sub = sub;
     this.chatNotifCursor = ChatNotifications.find({
-      user: sub.userId,
+      user: sub.userId!,
     });
     this.notifications = {};
     this.huntRefCounter = new RefCountedObserverMap(sub, Hunts);

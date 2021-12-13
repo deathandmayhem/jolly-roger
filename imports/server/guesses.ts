@@ -77,7 +77,7 @@ class PendingGuessWatcher {
   constructor(sub: Subscription) {
     this.sub = sub;
 
-    const user = MeteorUsers.findOne(sub.userId)!;
+    const user = MeteorUsers.findOne(sub.userId!)!;
 
     this.guessCursor = Guesses.find({ state: 'pending', hunt: { $in: user.hunts } });
     this.guesses = {};

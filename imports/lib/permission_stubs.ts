@@ -340,6 +340,10 @@ export function removeUserFromRoles(userId: string, roles: string[]) {
 
 if (Meteor.isServer) {
   Meteor.publish('roles', function () {
+    if (!this.userId) {
+      return [];
+    }
+
     return MeteorUsers.find({
       _id: this.userId,
     }, {

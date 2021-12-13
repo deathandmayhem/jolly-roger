@@ -13,7 +13,6 @@ export type FindOneOptions = {
   skip?: number;
   fields?: Mongo.FieldSpecifier;
   reactive?: boolean;
-  transform?: Function | null;
 }
 export type FindOptions = FindOneOptions & {
   limit?: number;
@@ -146,7 +145,7 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     return super.findOne(selector, options);
   }
 
-  publish(modifier?: (this: Subscription, q: Mongo.Selector<T>) => Mongo.Selector<T>) {
+  publish(modifier?: (userId: string, q: Mongo.Selector<T>) => Mongo.Selector<T> | undefined) {
     if (!Meteor.isServer) {
       return;
     }
@@ -167,9 +166,12 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
           return [];
         }
 
-        let query = q;
+        let query: Mongo.Selector<T> | undefined = q;
         if (modifier) {
-          query = modifier.apply(this, [q]);
+          query = modifier(this.userId, q);
+        }
+        if (!query) {
+          return [];
         }
 
         return findFunc(query, opts);
