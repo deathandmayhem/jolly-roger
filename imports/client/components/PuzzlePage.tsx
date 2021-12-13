@@ -921,8 +921,9 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
   const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
   const [isDesktop, setIsDesktop] = useState<boolean>(window.innerWidth >= MinimumDesktopWidth);
 
+  const { huntId, puzzleId } = props.match.params;
+
   const tracker = useTracker<PuzzlePageTracker>(() => {
-    const { params } = props.match;
     // There are some model dependencies that we have to be careful about:
     //
     // * We show the displayname of the person who submitted a guess, so guesses depends on display names
@@ -935,10 +936,10 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
 
     // Add the current user to the collection of people viewing this puzzle.
     // Don't use the subs manager - we don't want this cached.
-    const subscribersTopic = `puzzle:${params.puzzleId}`;
+    const subscribersTopic = `puzzle:${puzzleId}`;
     Meteor.subscribe('subscribers.inc', subscribersTopic, {
-      puzzle: params.puzzleId,
-      hunt: params.huntId,
+      puzzle: puzzleId,
+      hunt: huntId,
     });
     const subscribersHandle = Meteor.subscribe('subscribers.fetch', subscribersTopic);
 
@@ -948,13 +949,13 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
       displayNames = Profiles.displayNames();
     }
 
-    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: params.huntId });
-    const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: params.huntId });
-    const guessesHandle = Meteor.subscribe('mongo.guesses', { puzzle: params.puzzleId });
-    const documentsHandle = Meteor.subscribe('mongo.documents', { puzzle: params.puzzleId });
+    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: huntId });
+    const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: huntId });
+    const guessesHandle = Meteor.subscribe('mongo.guesses', { puzzle: puzzleId });
+    const documentsHandle = Meteor.subscribe('mongo.documents', { puzzle: puzzleId });
 
     // Track the tally of people viewing this puzzle.
-    Meteor.subscribe('subscribers.counts', { hunt: params.huntId });
+    Meteor.subscribe('subscribers.counts', { hunt: huntId });
 
     const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && subscribersHandle.ready() && displayNamesHandle.ready();
 
@@ -965,12 +966,12 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
     // There's no sense in doing this expensive computation here if we're still loading data,
     // since we're not going to render the children.
     if (puzzlesReady) {
-      allPuzzles = Puzzles.find({ hunt: params.huntId }).fetch();
-      allTags = Tags.find({ hunt: params.huntId }).fetch();
-      allGuesses = Guesses.find({ hunt: params.huntId, puzzle: params.puzzleId }).fetch();
+      allPuzzles = Puzzles.find({ hunt: huntId }).fetch();
+      allTags = Tags.find({ hunt: huntId }).fetch();
+      allGuesses = Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch();
 
       // Sort by created at so that the "first" document always has consistent meaning
-      document = Documents.findOne({ puzzle: params.puzzleId }, { sort: { createdAt: 1 } });
+      document = Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } });
     } else {
       allPuzzles = [];
       allTags = [];
@@ -982,7 +983,7 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
     FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
     const chatHandle = Meteor.subscribe(
       'mongo.chatmessages',
-      { puzzle: params.puzzleId },
+      { puzzle: puzzleId },
       { fields: chatFields }
     );
 
@@ -990,7 +991,7 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
     // other collections.
     const chatReady = chatHandle.ready() && displayNamesHandle.ready();
     const chatMessages = (chatReady && ChatMessages.find(
-      { puzzle: params.puzzleId },
+      { puzzle: puzzleId },
       { sort: { timestamp: 1 } },
     ).fetch()) || [];
     return {
@@ -1002,14 +1003,14 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
       displayNames,
       allGuesses,
       document,
-      canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), params.huntId),
+      canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
     };
-  }, [props.match.params.huntId, props.match.params.puzzleId]);
+  }, [huntId, puzzleId]);
 
-  const activePuzzle = findPuzzleById(tracker.allPuzzles, props.match.params.puzzleId);
+  const activePuzzle = findPuzzleById(tracker.allPuzzles, puzzleId);
   useBreadcrumb({
     title: tracker.puzzlesReady ? activePuzzle!.title : 'loading...',
-    path: `/hunts/${props.match.params.huntId}/puzzles/${props.match.params.puzzleId}`,
+    path: `/hunts/${huntId}/puzzles/${puzzleId}`,
   });
 
   const title = `${activePuzzle ? activePuzzle.title : 'loading puzzle title...'} :: Jolly Roger`;

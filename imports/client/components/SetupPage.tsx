@@ -837,8 +837,6 @@ const EmailConfigSection = (props: EmailConfigSectionProps) => {
 };
 
 interface DiscordOAuthFormProps {
-  configured: boolean;
-  enabled: boolean;
   oauthSettings: any;
 }
 
@@ -1095,7 +1093,6 @@ const DiscordGuildForm = (props: DiscordGuildFormProps) => {
 };
 
 interface DiscordIntegrationSectionProps {
-  configured: boolean;
   enabled: boolean;
   oauthSettings?: Configuration;
   botToken?: string;
@@ -1195,11 +1192,7 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
           <li>Click the save button below.</li>
           <li>Then, after you have successfully saved the client secret and bot token: as the guild (&quot;server&quot;) owner, <a href={addGuildLink}>add the bot to your Discord guild here</a>.</li>
         </ol>
-        <DiscordOAuthForm
-          configured={props.configured}
-          enabled={props.enabled}
-          oauthSettings={props.oauthSettings}
-        />
+        <DiscordOAuthForm oauthSettings={props.oauthSettings} />
       </Subsection>
 
       <Subsection>
@@ -1983,7 +1976,6 @@ const SetupPage = () => {
     );
   }
 
-  const discordConfigured = !!tracker.discordOAuthConfig;
   const discordEnabled = !tracker.flagDisableDiscord;
   return (
     <div>
@@ -1999,7 +1991,6 @@ const SetupPage = () => {
       />
       <DiscordIntegrationSection
         oauthSettings={tracker.discordOAuthConfig}
-        configured={discordConfigured}
         enabled={discordEnabled}
         botToken={tracker.discordBotToken}
         guild={tracker.discordGuild}
