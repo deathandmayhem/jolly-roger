@@ -8,6 +8,7 @@ import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
 import { SettingType } from '../lib/schemas/setting';
 import Locks, { PREEMPT_TIMEOUT } from './models/lock';
+import onExit from './onExit';
 
 type DiscordEventsWithArguments<Args> = {
   [K in keyof Discord.ClientEvents]-?: Discord.ClientEvents[K] extends Args ? K : never;
@@ -230,8 +231,7 @@ class DiscordClientRefresher {
 
 const globalClientHolder = new DiscordClientRefresher();
 Meteor.startup(() => {
-  process.on('SIGINT', Meteor.bindEnvironment(() => globalClientHolder.shutdown()));
-  process.on('SIGTERM', Meteor.bindEnvironment(() => globalClientHolder.shutdown()));
+  onExit(Meteor.bindEnvironment(() => globalClientHolder.shutdown()));
 });
 
 export default globalClientHolder;
