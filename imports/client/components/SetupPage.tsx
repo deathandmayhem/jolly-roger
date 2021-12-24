@@ -1012,7 +1012,10 @@ const DiscordGuildForm = (props: DiscordGuildFormProps) => {
   const tracker = useTracker<DiscordGuildFormTracker>(() => {
     const guildSub = Meteor.subscribe('discord.guilds');
     const ready = guildSub.ready();
-    const guilds = DiscordCache.find({ type: 'guild' }).fetch().map((c) => c.object as DiscordGuildType);
+    const guilds = DiscordCache.find({ type: 'guild' }).fetch().map((c) => {
+      const { id, name } = c.object as DiscordGuildType;
+      return { id, name };
+    });
     return {
       ready,
       guilds,

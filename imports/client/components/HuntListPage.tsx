@@ -115,7 +115,11 @@ const DiscordChannelSelector = (params: DiscordSelectorParams) => {
       // We want to sort them in the same order they're provided in the Discord UI.
       { sort: { 'object.rawPosition': 1 } },
     )
-      .map((c) => c.object as DiscordChannelType);
+      .map((c) => {
+        // Pick just the fields that we store
+        const { id, name } = c.object as DiscordChannelType;
+        return { id, name };
+      });
 
     return {
       ready: handle.ready(),
@@ -152,6 +156,11 @@ const DiscordRoleSelector = (params: DiscordSelectorParams) => {
         }
 
         return true;
+      })
+      .map((role) => {
+        // Pick just the fields that we store
+        const { id, name } = role;
+        return { id, name };
       });
 
     return {
