@@ -206,7 +206,7 @@ Resources:
     Type: Custom::AMILookup
     Properties:
       ServiceToken: !GetAtt AMILookupFunction.Arn
-      Suite: bionic
+      Suite: focal
       Region: !Ref "AWS::Region"
       InstanceType: ebs-ssd
       Architecture: amd64
@@ -650,8 +650,8 @@ Resources:
                 - htop
                 - moreutils
                 - nvme-cli
-                - python-dev
-                - python-pip
+                - python3-dev
+                - python3-pip
 
               ${PapertrailRsyslogConfig}
 
@@ -754,7 +754,7 @@ Resources:
                 - set -eux
 
                 # Whatever happens, let cloudformation know
-                - pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+                - pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
                 - cleanup() { ret=$?; set +e; cfn-signal -e $ret -r "runcmds complete" --stack=${AWS::StackName} --region=${AWS::Region} --resource=AppAsg; exit $ret; }
                 - trap cleanup EXIT
 
