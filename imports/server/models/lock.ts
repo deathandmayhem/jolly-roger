@@ -23,7 +23,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
       // any since this is known safe
       return this.insert(<any>{ name });
     } catch (e) {
-      if (!(e instanceof NpmModuleMongodb.MongoError) || e.code !== 11000) {
+      if (e instanceof NpmModuleMongodb.MongoError && e.code === 11000) {
         return undefined;
       }
 
