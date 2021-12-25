@@ -201,7 +201,7 @@ Meteor.methods({
       throw new Meteor.Error(401, 'Must be admin to configure Discord Bot');
     }
     check(guild, Match.Maybe({
-      _id: String,
+      id: String,
       name: String,
     }));
 
