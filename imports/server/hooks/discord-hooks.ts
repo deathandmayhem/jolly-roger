@@ -45,13 +45,12 @@ const DiscordHooks: Hookset = {
         return t ? t.name : '';
       }).filter((t) => t.length > 0);
       const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(', ');
+      const fields = tags.length > 0 ? [{ name: 'Tags', value: tags, inline: true }] : undefined;
       const messageObj = {
         embed: {
           title,
           url,
-          fields: [
-            { name: 'Tags', value: tags, inline: true },
-          ],
+          fields,
         },
       };
       bot.postMessageToChannel(hunt.puzzleHooksDiscordChannel.id, messageObj);
