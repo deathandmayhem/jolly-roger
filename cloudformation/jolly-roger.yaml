@@ -531,11 +531,6 @@ Resources:
           VirtualName: ephemeral0
         - DeviceName: /dev/sdc
           VirtualName: ephemeral1
-        - DeviceName: /dev/sdf
-          Ebs:
-            VolumeType: gp2
-            VolumeSize: 2
-            DeleteOnTermination: true
       InstanceType: !Ref AppInstanceType
       SecurityGroups:
         - !Ref AppSecurityGroup
@@ -628,8 +623,9 @@ Resources:
                   ssh_import_id: gh:zarvox
                   sudo: ALL=(ALL) NOPASSWD:ALL
 
-              mounts:
-                - [/dev/xvdf, none, swap, sw, 0, 0]
+              swap:
+                filename: "/swapfile"
+                size: 2147483648 # 2GB
 
               packages:
                 - awscli
@@ -667,61 +663,7 @@ Resources:
                     location /healthcheck {
                       return 200 "OK\n";
                     }
-                - path: /usr/local/bin/find-swap
-                  permissions: '0755'
-                  content: |
-                    #!/usr/bin/python3
 
-                    """Usage: find-swap [sdf]
-
-                    Discovers the actual device node for a given volume given its "device name" as
-                    passed in the EC2 block device mapping.
-                    """
-
-                    import json
-                    import os
-                    import re
-                    import subprocess
-                    import sys
-
-
-                    def main():
-                      name = sys.argv[1]
-                      # We expect a name, not a device path, but deal with it if we get one
-                      if name.startswith('/dev/'):
-                        name = name[len('/dev/'):]
-
-                      # Try some common near misses
-                      devices = [
-                        name,
-                        re.sub(r'^sd', 'hd', name),
-                        re.sub(r'^sd', 'xvd', name),
-                      ]
-                      for dev in devices:
-                        path = os.path.join('/dev', dev)
-                        if os.path.exists(path):
-                          print(path)
-                          sys.exit(0)
-
-                      # OK looks like we're in NVMe territory
-                      nvme_devices = json.loads(subprocess.check_output(['nvme', 'list', '-o', 'json']))
-                      for nvme_device in nvme_devices['Devices']:
-                        path = nvme_device['DevicePath']
-
-                        controller_identity = subprocess.check_output(
-                          ['nvme', 'id-ctrl', '-o', 'binary', path],
-                          stderr=open('/dev/null', 'a')
-                        )
-                        vendor_id = controller_identity[0xc00:0xc20].rstrip().decode('utf-8')
-                        if vendor_id == name:
-                          print(path)
-                          sys.exit(0)
-
-                      # Didn't find anything
-                      sys.exit(1)
-
-                    if __name__ == "__main__":
-                      main()
               runcmd:
                 - set -eux
 
@@ -733,14 +675,6 @@ Resources:
                 # Uninstall Amazon SSM manager and snapd - we don't use them, and they eat memory (and cause swap-thrashing)
                 - snap remove amazon-ssm-agent
                 - sudo apt-get remove -y snapd
-
-                - SWAP_DEV="$(/usr/local/bin/find-swap sdf)"
-                - if [ -n "$SWAP_DEV" ]; then
-                -   SWAP_UUID="$(uuidgen)"
-                -   mkswap -U "$SWAP_UUID" "$SWAP_DEV"
-                -   echo "UUID=$SWAP_UUID none swap sw 0 0" >> /etc/fstab
-                -   swapon -a
-                - fi
 
                 - pip install 'credstash==1.12.0'
                 - export AWS_DEFAULT_REGION=${AWS::Region}
