@@ -758,6 +758,10 @@ Resources:
                 - cleanup() { ret=$?; set +e; cfn-signal -e $ret -r "runcmds complete" --stack=${AWS::StackName} --region=${AWS::Region} --resource=AppAsg; exit $ret; }
                 - trap cleanup EXIT
 
+                # Uninstall Amazon SSM manager and snapd - we don't use them, and they eat memory (and cause swap-thrashing)
+                - snap remove amazon-ssm-agent
+                - sudo apt-get remove -y snapd
+
                 - SWAP_DEV="$(/usr/local/bin/find-swap sdf)"
                 - if [ -n "$SWAP_DEV" ]; then
                 -   SWAP_UUID="$(uuidgen)"
