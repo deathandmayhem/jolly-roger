@@ -434,10 +434,6 @@ Resources:
           ToPort: 22
         - SourceSecurityGroupId: !Ref AppAlbSecurityGroup
           IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-        - SourceSecurityGroupId: !Ref AppAlbSecurityGroup
-          IpProtocol: tcp
           FromPort: 8443
           ToPort: 8443
         - Description: STUN/TURN TCP
@@ -481,24 +477,11 @@ Resources:
         - !Ref PublicSubnet2
       SecurityGroups:
         - !Ref AppAlbSecurityGroup
-  AppAlbTargetHTTP:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      HealthCheckProtocol: HTTP
-      HealthCheckPort: 80
-      HealthCheckPath: /healthcheck
-      HealthCheckIntervalSeconds: 5
-      HealthCheckTimeoutSeconds: 4
-      HealthyThresholdCount: 2
-      UnhealthyThresholdCount: 2
-      Protocol: HTTP
-      Port: 80
-      VpcId: !Ref VPC
   AppAlbTargetHTTPS:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckProtocol: HTTP
-      HealthCheckPort: 80
+      HealthCheckPort: 8443
       HealthCheckPath: /healthcheck
       HealthCheckIntervalSeconds: 5
       HealthCheckTimeoutSeconds: 4
@@ -514,8 +497,14 @@ Resources:
       Protocol: HTTP
       Port: 80
       DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref AppAlbTargetHTTP
+        - Type: redirect
+          RedirectConfig:
+            Protocol: "HTTPS"
+            Port: 443
+            Host: "#{host}"
+            Path: "/#{path}"
+            Query: "#{query}"
+            StatusCode: "HTTP_301"
   AppAlbListenerHTTPS:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -674,21 +663,9 @@ Resources:
 
                     set_real_ip_from 10.0.0.0/8;
                     real_ip_header X-Forwarded-For;
-                - path: /etc/nginx-http/conf.d/default.conf
-                  content: |
-                    server {
-                      listen 80;
-                      access_log /var/log/nginx/access.log main;
 
-                      set_real_ip_from 10.0.0.0/8;
-                      real_ip_header X-Forwarded-For;
-
-                      location /healthcheck {
-                        return 200 "OK\n";
-                      }
-                      location / {
-                        return 301 https://$host$request_uri;
-                      }
+                    location /healthcheck {
+                      return 200 "OK\n";
                     }
                 - path: /etc/systemd/system/docker.service.d/docker.conf
                   content: |
@@ -780,8 +757,6 @@ Resources:
                 # Use host networking for better performance
                 - docker run --name coturn -d --restart=unless-stopped --network=host instrumentisto/coturn --log-file=stdout --external-ip='$(detect-external-ip)' --realm=${DirectUrl} --use-auth-secret --static-auth-secret=${TurnSecret}
 
-                - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx
-
                 - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e VIRTUAL_HOST=${AppUrl} -e ROOT_URL=https://${AppUrl} deathandmayhem/jolly-roger
 
                 - docker run --name nginx-https -d --restart=unless-stopped -p 8443:80 -e DEFAULT_HOST=${AppUrl} -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/nginx-https/cache.conf:/etc/nginx/conf.d/cache.conf -v /etc/nginx-https/vhost.d:/etc/nginx/vhost.d jwilder/nginx-proxy
@@ -818,7 +793,6 @@ Resources:
       MinSize: !Ref AppMinSize
       DesiredCapacity: !Ref AppDesiredCapacity
       TargetGroupARNs:
-        - !Ref AppAlbTargetHTTP
         - !Ref AppAlbTargetHTTPS
       Tags:
         - Key: DNSName
