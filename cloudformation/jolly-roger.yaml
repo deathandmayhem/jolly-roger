@@ -667,11 +667,6 @@ Resources:
                     location /healthcheck {
                       return 200 "OK\n";
                     }
-                - path: /etc/systemd/system/docker.service.d/docker.conf
-                  content: |
-                    [Service]
-                    ExecStart=
-                    ExecStart=/usr/bin/dockerd -H fd:// --storage-driver=overlay2
                 - path: /usr/local/bin/find-swap
                   permissions: '0755'
                   content: |
