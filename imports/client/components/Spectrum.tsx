@@ -1,13 +1,7 @@
 import React, {
-  useCallback, useEffect, useImperativeHandle, useRef,
+  useCallback, useEffect, useRef,
 } from 'react';
 import styled from 'styled-components';
-
-// Note: this is incomplete; I didn't figure out how I wanted to feed a stream
-// to the Spectrum component.  I don't love making it a prop, since I really need
-// to do stuff on change, to make sure that my WebAudio graph is appropriately updated.
-// But I also don't wanna like make it a whole ref and then call methods on it because
-// that also feels a bit weird.  Maybe that's the way to go though?
 
 const SpectrumCanvas = styled.canvas`
     position: absolute;
@@ -21,6 +15,7 @@ interface SpectrumProps {
   width: number;
   height: number;
   audioContext: AudioContext;
+  stream: MediaStream;
   barCount?: number;
   throttleFps?: number;
   barFloor?: number;
@@ -29,13 +24,7 @@ interface SpectrumProps {
 
 const DEFAULT_THROTTLE_MAX_FPS = 30;
 
-export type SpectrumHandle = {
-  connect: (stream: MediaStream) => void;
-}
-
-const Spectrum = React.forwardRef((
-  props: SpectrumProps, forwardedRef: React.Ref<SpectrumHandle>
-) => {
+const Spectrum = (props: SpectrumProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const bufferLength = useRef<number>(0);
   const analyserNode = useRef<AnalyserNode | undefined>(undefined);
@@ -105,27 +94,18 @@ const Spectrum = React.forwardRef((
     }
   }, [props.width, props.height, props.barFloor]);
 
-  const connect = useCallback((stream: MediaStream) => {
-    // This audio element is a workaround for
-    // https://bugs.chromium.org/p/chromium/issues/detail?id=933677 wherein
-    // audio tracks from a peer connection never deliver data into a WebAudio
-    // context unless they are first made the srcObject of some audio or
-    // video element.
-    const stubAudioElement = document.createElement('audio');
-    stubAudioElement.muted = true;
-    stubAudioElement.srcObject = stream;
-    const wrapperStreamSource = props.audioContext.createMediaStreamSource(stream);
+  useEffect(() => {
+    const wrapperStreamSource = props.audioContext.createMediaStreamSource(props.stream);
     wrapperStreamSource.connect(analyserNode.current!);
 
     // Schedule periodic spectrogram paintings, if not already running.
     if (!periodicHandle.current) {
       periodicHandle.current = window.requestAnimationFrame(drawSpectrum);
     }
-  }, [props.audioContext, drawSpectrum]);
-
-  useImperativeHandle(forwardedRef, () => ({
-    connect,
-  }));
+    return () => {
+      wrapperStreamSource.disconnect();
+    };
+  }, [props.audioContext, props.stream, drawSpectrum]);
 
   return (
     <SpectrumCanvas
@@ -134,6 +114,6 @@ const Spectrum = React.forwardRef((
       ref={canvasRef}
     />
   );
-});
+};
 
 export default React.memo(Spectrum);

@@ -1237,154 +1237,6 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
   );
 };
 
-interface WebRTCServersFormProps {
-  urls: string[];
-  secret: string;
-}
-
-const WebRTCServersForm = (props: WebRTCServersFormProps) => {
-  const [urlsFlat, setUrlsFlat] =
-    useState<string>(props.urls.length > 0 ? props.urls.join(',') : '');
-  const [secret, setSecret] = useState<string>(props.secret || '');
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>('');
-
-  const dismissAlert = useCallback(() => {
-    setSubmitState(SubmitState.IDLE);
-  }, []);
-
-  const onUrlChange: FormControlProps['onChange'] = useCallback((e) => {
-    setUrlsFlat(e.currentTarget.value);
-  }, []);
-
-  const onSecretChange: FormControlProps['onChange'] = useCallback((e) => {
-    setSecret(e.currentTarget.value);
-  }, []);
-
-  const onSubmit = useCallback((e: React.FormEvent<any>) => {
-    e.preventDefault();
-
-    const urls = urlsFlat.trim().split(',');
-    const trimmedSecret = secret.trim();
-
-    setSubmitState(SubmitState.SUBMITTING);
-    Meteor.call('setupTurnServerConfig', trimmedSecret, urls, (err?: Error) => {
-      if (err) {
-        setSubmitError(err.message);
-        setSubmitState(SubmitState.ERROR);
-      } else {
-        setSubmitState(SubmitState.SUCCESS);
-      }
-    });
-  }, [urlsFlat, secret]);
-
-  const shouldDisableForm = submitState === SubmitState.SUBMITTING;
-  return (
-    <div>
-      {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
-      {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
-      {submitState === 'error' ? (
-        <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed:
-          {' '}
-          {submitError}
-        </Alert>
-      ) : null}
-
-      <form onSubmit={onSubmit}>
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-webrtc-turn-server-url">
-            TURN server URLs (comma-separated)
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-webrtc-turn-server-url"
-            type="text"
-            placeholder=""
-            value={urlsFlat}
-            disabled={shouldDisableForm}
-            onChange={onUrlChange}
-          />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="jr-setup-edit-webrtc-turn-server-secret">
-            TURN server shared secret
-          </FormLabel>
-          <FormControl
-            id="jr-setup-edit-webrtc-turn-server-secret"
-            type="text"
-            placeholder=""
-            value={secret}
-            disabled={shouldDisableForm}
-            onChange={onSecretChange}
-          />
-        </FormGroup>
-        <Button variant="primary" type="submit" onClick={onSubmit} disabled={shouldDisableForm}>Save</Button>
-      </form>
-    </div>
-  );
-};
-
-interface WebRTCSectionProps {
-  turnServerUrls: string[];
-  turnServerSecret: string;
-}
-
-const WebRTCSection = (props: WebRTCSectionProps) => {
-  return (
-    <Section id="webrtc">
-      <SectionHeader>
-        <SectionHeaderLabel>
-          WebRTC
-        </SectionHeaderLabel>
-      </SectionHeader>
-
-      <Subsection>
-        <SubsectionHeader>
-          <span>Turn server configuration</span>
-        </SubsectionHeader>
-        <p>
-          To use WebRTC, you need to configure a STUN/TURN server which you
-          operate.  Specifically, you must provide at least one URL (like
-          {' '}
-          <code>stun:turn.deathandmayhem.com</code>
-          {' '}
-          or
-          {' '}
-          <code>turn:turn.deathandmayhem.com</code>
-          ) for clients to be able to discover ICE candidates and connect
-          directly to each other to exchange audio streams.
-        </p>
-
-        <p>
-          Since TURN involves relaying, which is expensive in terms of
-          bandwidth for the server operator, it also requires authentication.
-          The simplest deployment supporting authentication involves a single
-          shared secret between Jolly Roger and the TURN server, per
-          {' '}
-          <a target="_blank" rel="noopener noreferrer" href="https://tools.ietf.org/html/draft-uberti-behave-turn-rest-00">
-            A REST API For Access to TURN Services
-          </a>.
-          Generate a random string, then provide it both here and in the
-          configuration for your TURN server.  If you plan to run
-          {' '}
-          <a target="_blank" rel="noopener noreferrer" href="https://github.com/coturn/coturn">
-            coturn
-          </a>
-          , this means a config file with:
-        </p>
-        <pre>
-          use-auth-secret<br />
-          static-auth-secret={props.turnServerSecret}
-        </pre>
-        <WebRTCServersForm
-          secret={props.turnServerSecret}
-          urls={props.turnServerUrls}
-        />
-      </Subsection>
-    </Section>
-  );
-};
-
 interface BrandingTeamNameProps {
   initialTeamName: string | undefined;
 }
@@ -1867,9 +1719,6 @@ interface SetupPageTracker {
   discordBotToken?: string;
   discordGuild?: DiscordGuildType;
 
-  turnServerUrls: string[];
-  turnServerSecret: string;
-
   flagDisableGoogleIntegration: boolean;
   flagDisableGdrivePermissions: boolean;
   flagDisableApplause: boolean;
@@ -1916,12 +1765,6 @@ const SetupPage = () => {
     const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
     const discordGuild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' ? discordGuildDoc.value.guild : undefined;
 
-    // WebRTC
-    const maybeTurnServerConfig = Settings.findOne({ name: 'webrtc.turnserver' });
-    const turnServerConfig = maybeTurnServerConfig && maybeTurnServerConfig.name === 'webrtc.turnserver' && maybeTurnServerConfig.value;
-    const turnServerUrls = (turnServerConfig && turnServerConfig.urls) || [];
-    const turnServerSecret = (turnServerConfig && turnServerConfig.secret) || '';
-
     // Circuit breakers
     const flagDisableGoogleIntegration = Flags.active('disable.google');
     const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
@@ -1947,9 +1790,6 @@ const SetupPage = () => {
       flagDisableDiscord,
       discordBotToken,
       discordGuild,
-
-      turnServerUrls,
-      turnServerSecret,
 
       flagDisableGoogleIntegration,
       flagDisableGdrivePermissions,
@@ -1997,10 +1837,6 @@ const SetupPage = () => {
         enabled={discordEnabled}
         botToken={tracker.discordBotToken}
         guild={tracker.discordGuild}
-      />
-      <WebRTCSection
-        turnServerUrls={tracker.turnServerUrls}
-        turnServerSecret={tracker.turnServerSecret}
       />
       <BrandingSection
         blobMappings={tracker.blobMappings}

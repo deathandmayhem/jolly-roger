@@ -8,7 +8,7 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import styled from 'styled-components';
-import Spectrum, { SpectrumHandle } from './Spectrum';
+import Spectrum from './Spectrum';
 
 enum AudioConfigStatus {
   IDLE = 'idle',
@@ -159,12 +159,6 @@ const AudioConfig = () => {
     setLoopback((prevLoopback) => !prevLoopback);
   }, []);
 
-  const spectrumRefCallback = useCallback((spectrum: SpectrumHandle | null) => {
-    if (spectrum) {
-      spectrum.connect(stream!);
-    }
-  }, [stream]);
-
   return (
     <section className="audio-self-test-section">
       <h2>Audio</h2>
@@ -252,11 +246,11 @@ const AudioConfig = () => {
               width={600}
               height={400}
               audioContext={audioContext!}
+              stream={stream!}
               barCount={128}
               throttleFps={60}
               barFloor={0}
               smoothingTimeConstant={0.7}
-              ref={spectrumRefCallback}
             />
           )}
         </Spectrogram>

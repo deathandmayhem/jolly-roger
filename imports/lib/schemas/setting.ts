@@ -39,13 +39,6 @@ export const SettingCodec = t.intersection([
       }),
     }),
     t.type({
-      name: t.literal('webrtc.turnserver'),
-      value: t.type({
-        secret: t.string,
-        urls: t.array(t.string),
-      }),
-    }),
-    t.type({
       name: t.literal('email.branding'),
       value: t.type({
         from: t.union([t.string, t.undefined]),

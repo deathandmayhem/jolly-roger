@@ -231,10 +231,6 @@ export function userMayConfigureDiscordBot(userId: string | null | undefined): b
   return isAdmin(userId);
 }
 
-export function userMayConfigureWebRTCServers(userId: string | null | undefined): boolean {
-  return isAdmin(userId);
-}
-
 export function userMayConfigureEmailBranding(userId: string | null | undefined): boolean {
   return isAdmin(userId);
 }
@@ -292,6 +288,26 @@ export function userMayCreateHunt(userId: string | null | undefined): boolean {
 export function userMayUpdateHunt(userId: string | null | undefined, _huntId: string): boolean {
   // TODO: make this driven by if you're an operator of the hunt in question
   return isAdmin(userId);
+}
+
+export function userMayJoinCallsForHunt(
+  userId: string | null | undefined,
+  huntId: string,
+): boolean {
+  if (!userId) {
+    return false;
+  }
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+  if (user.roles && user.roles.includes('admin')) {
+    return true;
+  }
+  if (user.hunts && user.hunts.includes(huntId)) {
+    return true;
+  }
+  return false;
 }
 
 export function addUserToRole(userId: string, role: string) {
