@@ -92,7 +92,7 @@
     "no-restricted-globals": ["off"],
 
     // Detect missing deps for non-standard hooks
-    "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useTracker" }],
+    "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useTracker|useFind" }],
 
     // Match existing style
     "operator-linebreak": ["error", "after"],
