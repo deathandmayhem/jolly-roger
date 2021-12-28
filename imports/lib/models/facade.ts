@@ -12,7 +12,6 @@ import Guesses from './guesses';
 import Hunts from './hunts';
 import PendingAnnouncements from './pending_announcements';
 import Profiles from './profiles';
-import PublicSettings from './public_settings';
 import Puzzles from './puzzles';
 import Servers from './servers';
 import Settings from './settings';
@@ -33,7 +32,6 @@ const Models = {
   Hunts,
   PendingAnnouncements,
   Profiles,
-  PublicSettings,
   Puzzles,
   Servers,
   Settings,
