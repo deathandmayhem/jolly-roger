@@ -303,8 +303,7 @@ const CallLinkBox = (props: CallLinkBoxProps) => {
   }, [getPeerConnection, localStream]);
 
   const name = (tracker.peerProfile && tracker.peerProfile.displayName) || 'no profile wat';
-  const discordAccount = tracker.peerProfile && tracker.peerProfile.discordAccount;
-  const discordAvatarUrl = discordAccount ? getAvatarCdnUrl(discordAccount) : undefined;
+  const discordAvatarUrl = getAvatarCdnUrl(tracker.peerProfile?.discordAccount);
   return (
     <OverlayTrigger
       key={`viewer-${peerParticipant._id}`}

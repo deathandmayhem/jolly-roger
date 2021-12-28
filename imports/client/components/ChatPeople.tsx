@@ -196,8 +196,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
         return;
       }
 
-      const discordAccount = profile.discordAccount;
-      const discordAvatarUrl = discordAccount && getAvatarCdnUrl(discordAccount);
+      const discordAvatarUrl = getAvatarCdnUrl(profile?.discordAccount);
 
       // If the same user is joined twice in CallParticipants (from two different
       // tabs), dedupe in the viewer listing.
@@ -229,8 +228,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
         return;
       }
 
-      const discordAccount = profile.discordAccount;
-      const discordAvatarUrl = discordAccount && getAvatarCdnUrl(discordAccount);
+      const discordAvatarUrl = getAvatarCdnUrl(profile?.discordAccount);
 
       viewers.push({
         user: s.user,

@@ -126,8 +126,7 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
   }, [localStream]);
 
   const selfProfile = tracker.selfProfile;
-  const discordAccount = selfProfile && selfProfile.discordAccount;
-  const discordAvatarUrl = discordAccount && getAvatarCdnUrl(discordAccount);
+  const discordAvatarUrl = getAvatarCdnUrl(selfProfile?.discordAccount);
   const initial = selfProfile ? selfProfile.displayName.slice(0, 1) : 'U'; // get it?  it's you
   const selfBox = (
     <OverlayTrigger
