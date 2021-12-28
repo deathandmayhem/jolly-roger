@@ -2,9 +2,10 @@
 // previous server instances that would normally have taken care of cleanup
 // themselves, but terminated ungracefully.
 
+import os from 'os';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import Servers from './models/servers';
+import Servers from '../lib/models/servers';
 
 const serverId = Random.id();
 
@@ -16,7 +17,13 @@ function registerPeriodicCleanupHook(f: (deadServers: string[]) => void): void {
 }
 
 function cleanup() {
-  Servers.upsert({ _id: serverId }, {});
+  Servers.upsert({ _id: serverId }, {
+    $set: {
+      pid: process.pid,
+      hostname: os.hostname(),
+    },
+  });
+
 
   // Servers disappearing should be a fairly rare occurrence, so it's
   // OK for the timeouts here to be generous. Servers get 120 seconds

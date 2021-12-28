@@ -14,6 +14,7 @@ import PendingAnnouncement from './pending_announcement';
 import Profile from './profile';
 import PublicSetting from './public_setting';
 import Puzzle from './puzzle';
+import Server from './server';
 import Setting from './setting';
 import Tag from './tag';
 import User from './user';
@@ -35,6 +36,7 @@ const Schemas = {
   Profile,
   PublicSetting,
   Puzzle,
+  Server,
   Setting,
   Tag,
   User,
