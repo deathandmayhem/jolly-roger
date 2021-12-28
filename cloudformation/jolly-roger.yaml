@@ -434,10 +434,6 @@ Resources:
           ToPort: 22
         - SourceSecurityGroupId: !Ref AppAlbSecurityGroup
           IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-        - SourceSecurityGroupId: !Ref AppAlbSecurityGroup
-          IpProtocol: tcp
           FromPort: 8443
           ToPort: 8443
         - Description: STUN/TURN TCP
@@ -481,24 +477,11 @@ Resources:
         - !Ref PublicSubnet2
       SecurityGroups:
         - !Ref AppAlbSecurityGroup
-  AppAlbTargetHTTP:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      HealthCheckProtocol: HTTP
-      HealthCheckPort: 80
-      HealthCheckPath: /healthcheck
-      HealthCheckIntervalSeconds: 5
-      HealthCheckTimeoutSeconds: 4
-      HealthyThresholdCount: 2
-      UnhealthyThresholdCount: 2
-      Protocol: HTTP
-      Port: 80
-      VpcId: !Ref VPC
   AppAlbTargetHTTPS:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckProtocol: HTTP
-      HealthCheckPort: 80
+      HealthCheckPort: 8443
       HealthCheckPath: /healthcheck
       HealthCheckIntervalSeconds: 5
       HealthCheckTimeoutSeconds: 4
@@ -514,8 +497,14 @@ Resources:
       Protocol: HTTP
       Port: 80
       DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref AppAlbTargetHTTP
+        - Type: redirect
+          RedirectConfig:
+            Protocol: "HTTPS"
+            Port: 443
+            Host: "#{host}"
+            Path: "/#{path}"
+            Query: "#{query}"
+            StatusCode: "HTTP_301"
   AppAlbListenerHTTPS:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -542,11 +531,6 @@ Resources:
           VirtualName: ephemeral0
         - DeviceName: /dev/sdc
           VirtualName: ephemeral1
-        - DeviceName: /dev/sdf
-          Ebs:
-            VolumeType: gp2
-            VolumeSize: 2
-            DeleteOnTermination: true
       InstanceType: !Ref AppInstanceType
       SecurityGroups:
         - !Ref AppSecurityGroup
@@ -639,8 +623,9 @@ Resources:
                   ssh_import_id: gh:zarvox
                   sudo: ALL=(ALL) NOPASSWD:ALL
 
-              mounts:
-                - [/dev/xvdf, none, swap, sw, 0, 0]
+              swap:
+                filename: "/swapfile"
+                size: 2147483648 # 2GB
 
               packages:
                 - awscli
@@ -674,82 +659,11 @@ Resources:
 
                     set_real_ip_from 10.0.0.0/8;
                     real_ip_header X-Forwarded-For;
-                - path: /etc/nginx-http/conf.d/default.conf
-                  content: |
-                    server {
-                      listen 80;
-                      access_log /var/log/nginx/access.log main;
 
-                      set_real_ip_from 10.0.0.0/8;
-                      real_ip_header X-Forwarded-For;
-
-                      location /healthcheck {
-                        return 200 "OK\n";
-                      }
-                      location / {
-                        return 301 https://$host$request_uri;
-                      }
+                    location /healthcheck {
+                      return 200 "OK\n";
                     }
-                - path: /etc/systemd/system/docker.service.d/docker.conf
-                  content: |
-                    [Service]
-                    ExecStart=
-                    ExecStart=/usr/bin/dockerd -H fd:// --storage-driver=overlay2
-                - path: /usr/local/bin/find-swap
-                  permissions: '0755'
-                  content: |
-                    #!/usr/bin/python3
 
-                    """Usage: find-swap [sdf]
-
-                    Discovers the actual device node for a given volume given its "device name" as
-                    passed in the EC2 block device mapping.
-                    """
-
-                    import json
-                    import os
-                    import re
-                    import subprocess
-                    import sys
-
-
-                    def main():
-                      name = sys.argv[1]
-                      # We expect a name, not a device path, but deal with it if we get one
-                      if name.startswith('/dev/'):
-                        name = name[len('/dev/'):]
-
-                      # Try some common near misses
-                      devices = [
-                        name,
-                        re.sub(r'^sd', 'hd', name),
-                        re.sub(r'^sd', 'xvd', name),
-                      ]
-                      for dev in devices:
-                        path = os.path.join('/dev', dev)
-                        if os.path.exists(path):
-                          print(path)
-                          sys.exit(0)
-
-                      # OK looks like we're in NVMe territory
-                      nvme_devices = json.loads(subprocess.check_output(['nvme', 'list', '-o', 'json']))
-                      for nvme_device in nvme_devices['Devices']:
-                        path = nvme_device['DevicePath']
-
-                        controller_identity = subprocess.check_output(
-                          ['nvme', 'id-ctrl', '-o', 'binary', path],
-                          stderr=open('/dev/null', 'a')
-                        )
-                        vendor_id = controller_identity[0xc00:0xc20].rstrip().decode('utf-8')
-                        if vendor_id == name:
-                          print(path)
-                          sys.exit(0)
-
-                      # Didn't find anything
-                      sys.exit(1)
-
-                    if __name__ == "__main__":
-                      main()
               runcmd:
                 - set -eux
 
@@ -762,14 +676,6 @@ Resources:
                 - snap remove amazon-ssm-agent
                 - sudo apt-get remove -y snapd
 
-                - SWAP_DEV="$(/usr/local/bin/find-swap sdf)"
-                - if [ -n "$SWAP_DEV" ]; then
-                -   SWAP_UUID="$(uuidgen)"
-                -   mkswap -U "$SWAP_UUID" "$SWAP_DEV"
-                -   echo "UUID=$SWAP_UUID none swap sw 0 0" >> /etc/fstab
-                -   swapon -a
-                - fi
-
                 - pip install 'credstash==1.12.0'
                 - export AWS_DEFAULT_REGION=${AWS::Region}
 
@@ -779,8 +685,6 @@ Resources:
 
                 # Use host networking for better performance
                 - docker run --name coturn -d --restart=unless-stopped --network=host instrumentisto/coturn --log-file=stdout --external-ip='$(detect-external-ip)' --realm=${DirectUrl} --use-auth-secret --static-auth-secret=${TurnSecret}
-
-                - docker run --name nginx-http -d --restart=unless-stopped -p 80:80 -v /etc/nginx-http/conf.d:/etc/nginx/conf.d nginx
 
                 - docker run --name jolly-roger -d --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e VIRTUAL_HOST=${AppUrl} -e ROOT_URL=https://${AppUrl} deathandmayhem/jolly-roger
 
@@ -818,7 +722,6 @@ Resources:
       MinSize: !Ref AppMinSize
       DesiredCapacity: !Ref AppDesiredCapacity
       TargetGroupARNs:
-        - !Ref AppAlbTargetHTTP
         - !Ref AppAlbTargetHTTPS
       Tags:
         - Key: DNSName
