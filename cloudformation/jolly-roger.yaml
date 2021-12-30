@@ -663,6 +663,15 @@ Resources:
                     location /healthcheck {
                       return 200 "OK\n";
                     }
+                - path: /etc/datadog-agent/datadog.yaml
+                  content: |
+                    apm_config:
+                      enabled: false
+                    compliance_config:
+                      enabled: false
+                    runtime_security_config:
+                      enabled: false
+                    use_dogstatsd: false
 
               runcmd:
                 - set -eux
@@ -704,7 +713,11 @@ Resources:
                 - ''
               DatadogDockerConfig: !If
                 - HaveDatadog
-                - !Sub '- docker run --name dd-agent -d --restart=unless-stopped -h `hostname` -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=${DatadogApiKey} datadog/agent:latest'
+                - !Sub |
+                  - docker run --name dd-agent -d --restart=unless-stopped -h `hostname` -v /etc/datadog-agent/datadog.yaml:/etc/datadog-agent/datadog.yaml -v /var/run/docker.sock:/var/run/docker.sock -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=${DatadogApiKey} datadog/agent:latest
+                  # this is a hack to stop the security agent, which doesn't seem to want to stop on its own, and free up some memory
+                  - sleep 5
+                  - docker exec dd-agent s6-svc -d /var/run/s6/services/security/ || true
                 - ''
     DependsOn:
       - InternetGatewayAttachment
