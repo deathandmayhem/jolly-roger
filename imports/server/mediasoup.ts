@@ -589,11 +589,22 @@ const lookupIPSource = async (ipv: 'v4' | 'v6', [resolver, hostname, rrtype]: IP
   }
 };
 
+const lookupIPSources = async (ipv: 'v4' | 'v6') => {
+  const sources = IPSources[ipv];
+  const resolutions = Promise.all(sources.map(async (source) => {
+    try {
+      return await lookupIPSource(ipv, source);
+    } catch (e) {
+      return undefined;
+    }
+  }));
+  const ips = (await resolutions).filter((res): res is string[] => res !== undefined);
+  // Get unique set of IPs
+  return [...new Set(ips.flat())];
+};
+
 const getPublicIPAddresses = async (): Promise<types.TransportListenIp[]> => {
-  const [ipv4, ipv6] = await Promise.all([
-    Promise.race(IPSources.v4.map((s) => lookupIPSource('v4', s))),
-    Promise.race(IPSources.v6.map((s) => lookupIPSource('v6', s))),
-  ]);
+  const [ipv4, ipv6] = await Promise.all([lookupIPSources('v4'), lookupIPSources('v6')]);
   return [
     ipv4.map((a) => { return { ip: '0.0.0.0', announcedIp: a }; }),
     ipv6.map((a) => { return { ip: '::', announcedIp: a }; }),
