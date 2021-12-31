@@ -15,7 +15,9 @@ const Fullsize = styled.div`
   background: rgba(255, 255, 255, 0.5);
 `;
 
-const Inline = styled.div``;
+const Inline = styled.span`
+  padding: 0.25rem;
+`;
 
 export default React.memo(({ inline = false }: { inline?: boolean }) => {
   const Component = inline ? Inline : Fullsize;

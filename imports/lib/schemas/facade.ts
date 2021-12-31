@@ -1,7 +1,5 @@
 import Announcement from './announcement';
 import BlobMapping from './blob_mapping';
-import CallParticipant from './call_participant';
-import CallSignal from './call_signal';
 import ChatMessage from './chat';
 import ChatNotification from './chat_notification';
 import DiscordCache from './discord_cache';
@@ -10,10 +8,22 @@ import DocumentPermission from './document_permission';
 import FeatureFlag from './feature_flag';
 import Guess from './guess';
 import Hunt from './hunt';
+import ConnectAck from './mediasoup/connect_ack';
+import ConnectRequest from './mediasoup/connect_request';
+import Consumer from './mediasoup/consumer';
+import ConsumerAck from './mediasoup/consumer_ack';
+import Peer from './mediasoup/peer';
+import ProducerClient from './mediasoup/producer_client';
+import ProducerServer from './mediasoup/producer_server';
+import Room from './mediasoup/room';
+import Router from './mediasoup/router';
+import Transport from './mediasoup/transport';
+import TransportRequest from './mediasoup/transport_request';
+import TransportState from './mediasoup/transport_state';
 import PendingAnnouncement from './pending_announcement';
 import Profile from './profile';
-import PublicSetting from './public_setting';
 import Puzzle from './puzzle';
+import Server from './server';
 import Setting from './setting';
 import Tag from './tag';
 import User from './user';
@@ -21,8 +31,6 @@ import User from './user';
 const Schemas = {
   Announcement,
   BlobMapping,
-  CallParticipant,
-  CallSignal,
   ChatMessage,
   ChatNotification,
   DiscordCache,
@@ -31,10 +39,24 @@ const Schemas = {
   FeatureFlag,
   Guess,
   Hunt,
+  MediaSoup: {
+    ConnectAck,
+    ConnectRequest,
+    Consumer,
+    ConsumerAck,
+    Peer,
+    ProducerClient,
+    ProducerServer,
+    Room,
+    Router,
+    Transport,
+    TransportRequest,
+    TransportState,
+  },
   PendingAnnouncement,
   Profile,
-  PublicSetting,
   Puzzle,
+  Server,
   Setting,
   Tag,
   User,

@@ -1,9 +1,11 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
+import { Overrides, buildSchema } from './typedSchemas';
 
 export const ServerCodec = t.type({
   _id: t.string,
+  hostname: t.string,
+  pid: t.number,
   // unlike most updatedAt values, this one also gets set on created
   // for convenience
   updatedAt: date,

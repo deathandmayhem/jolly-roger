@@ -390,26 +390,6 @@ table.puzzle-list {
       width: 100%;
       height: 3px;
       background-color: #cccccc;
-
-      &.checking {
-        background-color: #bbdcff;
-      }
-
-      &.connected, &.completed {
-        background-color: #3d98fa;
-      }
-
-      &.disconnected {
-        background-color: red;
-      }
-
-      &.failed {
-        background-color: maroon;
-      }
-
-      &.closed {
-        background-color: black;
-      }
     }
 
     &.deafened .connection {

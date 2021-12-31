@@ -15,7 +15,6 @@ import {
   userMayConfigureGoogleOAuth,
   userMayConfigureDiscordOAuth,
   userMayConfigureDiscordBot,
-  userMayConfigureWebRTCServers,
   userMayConfigureTeamName,
   userMayConfigureEmailBranding,
   userMayConfigureAssets,
@@ -215,26 +214,6 @@ Meteor.methods({
       });
     } else {
       Settings.remove({ name: 'discord.guild' });
-    }
-  },
-
-  setupTurnServerConfig(secret: unknown, urls: unknown) {
-    check(this.userId, String);
-    if (!userMayConfigureWebRTCServers(this.userId)) {
-      throw new Meteor.Error(401, 'Must be admin to configure TURN server config');
-    }
-    check(secret, String);
-    check(urls, [String]);
-
-    if (secret || urls.length > 0) {
-      Settings.upsert({ name: 'webrtc.turnserver' }, {
-        $set: {
-          'value.secret': secret,
-          'value.urls': urls,
-        },
-      });
-    } else {
-      Settings.remove({ name: 'webrtc.turnserver' });
     }
   },
 

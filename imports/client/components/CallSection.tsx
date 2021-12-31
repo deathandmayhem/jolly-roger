@@ -1,137 +1,200 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useTracker, useSubscribe, useFind } from 'meteor/react-meteor-data';
+import { _ } from 'meteor/underscore';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons/faMicrophoneSlash';
 import { faVolumeMute } from '@fortawesome/free-solid-svg-icons/faVolumeMute';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
-import React, { useCallback } from 'react';
+import { Device, types } from 'mediasoup-client';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import Flags from '../../flags';
 import { getAvatarCdnUrl } from '../../lib/discord';
-import CallParticipants from '../../lib/models/call_participants';
+import ConnectAcks from '../../lib/models/mediasoup/connect_acks';
+import Consumers from '../../lib/models/mediasoup/consumers';
+import Peers from '../../lib/models/mediasoup/peers';
+import ProducerServers from '../../lib/models/mediasoup/producer_servers';
+import Routers from '../../lib/models/mediasoup/routers';
+import Transports from '../../lib/models/mediasoup/transports';
 import Profiles from '../../lib/models/profiles';
-import { CallParticipantType } from '../../lib/schemas/call_participant';
-import { ProfileType } from '../../lib/schemas/profile';
-import { RTCConfigType, RTCConfig } from '../rtc_config';
-import CallLinkBox from './CallLinkBox';
+import { ConsumerType } from '../../lib/schemas/mediasoup/consumer';
+import { PeerType } from '../../lib/schemas/mediasoup/peer';
+import { RouterType } from '../../lib/schemas/mediasoup/router';
+import { TransportType } from '../../lib/schemas/mediasoup/transport';
+import Loading from './Loading';
 import Spectrum from './Spectrum';
 
-interface RTCCallSectionProps {
-  huntId: string;
-  puzzleId: string;
-  tabId: string;
-  onLeaveCall(): void;
-  onToggleMute(): void;
-  onToggleDeafen(): void;
+// If we're waiting for a particular piece of server state for more than 1s,
+// something might be wrong so throw up a warning
+const JoiningCall = ({ details }: { details?: string }) => {
+  const [showAlert, setShowAlert] = useState(false);
+
+  useEffect(() => {
+    const handle = Meteor.setTimeout(() => setShowAlert(true), 1000);
+    return () => Meteor.clearTimeout(handle);
+  }, []);
+
+  if (!showAlert) {
+    return null;
+  }
+
+  return (
+    <Alert variant="warning">
+      <p>
+        <Loading inline />
+        Waiting for server to confirm your connection. This can happen if a new version of Jolly
+        Roger was just deployed or if one of our servers failed. It should recover on its own
+        shortly, but if not try leaving and rejoining the call.
+      </p>
+
+      {details && (
+        <p>
+          Details:
+          {' '}
+          {details}
+        </p>
+      )}
+    </Alert>
+  );
+};
+
+type ProducerCallback = ({ id }: { id: string }) => void;
+
+const ProducerManager = ({
+  muted,
+  track,
+  transport,
+}: {
   muted: boolean;
-  deafened: boolean;
-  audioContext: AudioContext;
-  localStream: MediaStream;
-  callersExpanded: boolean;
-  onToggleCallersExpanded(): void;
-}
+  track: MediaStreamTrack;
+  transport: types.Transport;
+}) => {
+  const [dupedTrack, setDupedTrack] = useState<MediaStreamTrack>();
+  useEffect(() => {
+    setDupedTrack(track.clone());
+  }, [track]);
 
-interface RTCCallSectionTrackerData {
-  rtcConfigReady: boolean;
-  rtcConfig: RTCConfigType | undefined;
-  participantsReady: boolean;
-  participants: CallParticipantType[];
-  selfParticipant: CallParticipantType | undefined;
-  signalsReady: boolean;
-  selfUserId: string | undefined;
-  selfProfile: ProfileType | undefined;
-  spectraDisabled: boolean;
-}
-
-const RTCCallSection = (props: RTCCallSectionProps) => {
-  const {
-    huntId,
-    puzzleId,
-    tabId,
-    onLeaveCall,
-    onToggleMute,
-    onToggleDeafen,
-    muted,
-    deafened,
-    audioContext,
-    localStream,
-    callersExpanded,
-    onToggleCallersExpanded,
-  } = props;
-
-  const tracker: RTCCallSectionTrackerData = useTracker(() => {
-    const joinSub = Meteor.subscribe('call.join', huntId, puzzleId, tabId);
-    const participants = joinSub.ready() ? CallParticipants.find({
-      hunt: huntId,
-      call: puzzleId,
-    }).fetch() : [];
-
-    const rtcConfigSub = Meteor.subscribe('rtcconfig');
-    const rtcConfig = RTCConfig.findOne('rtcconfig');
-
-    const selfUserId = Meteor.userId() || undefined;
-    const selfProfile = selfUserId ? Profiles.findOne(selfUserId) : undefined;
-    const selfParticipant = participants.find((p) => {
-      return p.createdBy === selfUserId && p.tab === tabId;
-    });
-    let signalsReady;
-    if (selfParticipant) {
-      const signalsSub = Meteor.subscribe('call.signal', selfParticipant._id);
-      signalsReady = signalsSub.ready();
-    } else {
-      signalsReady = false;
-    }
-
-    const spectraDisabled = Flags.active('disable.spectra');
-
-    return {
-      rtcConfigReady: rtcConfigSub.ready(),
-      rtcConfig,
-      participantsReady: joinSub.ready(),
-      selfParticipant,
-      selfProfile,
-      participants,
-      signalsReady,
-      selfUserId,
-      spectraDisabled,
+  const [producer, setProducer] = useState<types.Producer>();
+  useEffect(() => {
+    return () => {
+      producer?.close();
     };
-  }, [huntId, puzzleId, tabId]);
+  }, [producer]);
 
-  const nonSelfParticipants = useCallback(() => {
-    return tracker.participants.filter((p) => {
-      return (p.createdBy !== tracker.selfUserId) || (p.tab !== tabId);
-    });
-  }, [tracker.participants, tracker.selfUserId, tabId]);
+  const [producerParams, setProducerParams] = useState<[string, string]>();
+  const producerServerCallback = useRef<ProducerCallback>();
 
-  const toggleMuted = useCallback(() => {
-    onToggleMute();
-  }, [onToggleMute]);
-
-  const toggleDeafened = useCallback(() => {
-    onToggleDeafen();
-  }, [onToggleDeafen]);
-
-  const leaveCall = useCallback(() => {
-    onLeaveCall();
-  }, [onLeaveCall]);
-
-  const spectrumRefCallback = useCallback((spectrum) => {
-    if (spectrum) {
-      spectrum.connect(localStream);
+  useEffect(() => {
+    if (producer && muted !== producer.paused) {
+      producer[muted ? 'pause' : 'resume']();
+      Meteor.call('mediasoup:producer_set_paused', producer.id, muted);
     }
-  }, [localStream]);
+  }, [muted, producer]);
 
-  const selfProfile = tracker.selfProfile;
-  const discordAccount = selfProfile && selfProfile.discordAccount;
-  const discordAvatarUrl = discordAccount && getAvatarCdnUrl(discordAccount);
-  const initial = selfProfile ? selfProfile.displayName.slice(0, 1) : 'U'; // get it?  it's you
-  const selfBox = (
+  const onProduce = useCallback((
+    { kind, rtpParameters, appData }: {
+      kind: string,
+      rtpParameters:
+      types.RtpParameters,
+      appData: any,
+    },
+    callback: ProducerCallback,
+  ) => {
+    if (dupedTrack?.id !== appData.trackId) {
+      return;
+    }
+
+    producerServerCallback.current = callback;
+    setProducerParams([kind, JSON.stringify(rtpParameters)]);
+  }, [dupedTrack?.id]);
+  useEffect(() => {
+    transport.on('produce', onProduce);
+    return () => {
+      transport.off('produce', onProduce);
+    };
+  }, [transport, onProduce]);
+
+  useEffect(() => {
+    const observer = ProducerServers.find({ trackId: dupedTrack?.id }).observeChanges({
+      added: (_id, fields) => {
+        producerServerCallback.current?.({ id: fields.producerId! });
+        producerServerCallback.current = undefined;
+      },
+    });
+    return () => observer.stop();
+  }, [dupedTrack?.id]);
+
+  useEffect(() => {
+    if (!dupedTrack) {
+      return;
+    }
+    (async () => {
+      // transport.produce will emit a 'produce' event before it resolves,
+      // triggering onProduce above
+      const newProducer = await transport.produce({
+        track: dupedTrack,
+        zeroRtpOnPause: true,
+        appData: { trackId: dupedTrack.id },
+      });
+      setProducer(newProducer);
+    })();
+  }, [transport, dupedTrack]);
+
+  useSubscribe(producerParams ? 'mediasoup:producer' : undefined, transport.appData._id, dupedTrack?.id, ...(producerParams ?? []));
+
+  return null;
+};
+
+const ProducerBox = ({
+  muted,
+  deafened,
+  audioContext,
+  stream,
+  transport,
+}: {
+  muted: boolean,
+  deafened: boolean,
+  audioContext: AudioContext,
+  stream: MediaStream,
+  transport: types.Transport,
+}) => {
+  const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
+  const { initial, discordAvatarUrl } = useTracker(() => {
+    const profile = Profiles.findOne(Meteor.userId()!);
+    return {
+      initial: profile ? profile.displayName.slice(0, 1) : 'U', // get it?  it's you
+      discordAvatarUrl: getAvatarCdnUrl(profile?.discordAccount),
+    };
+  });
+
+  const [tracks, setTracks] = useState<MediaStreamTrack[]>([]);
+  useEffect(() => {
+    // Use Meteor.defer here because the addtrack/removetrack events seem to
+    // sometimes fire _before_ the track has actually been added to the stream's
+    // track set.
+    const captureTracks = () => Meteor.defer(() => setTracks(stream.getTracks()));
+    captureTracks();
+    stream.addEventListener('addtrack', captureTracks);
+    stream.addEventListener('removetrack', captureTracks);
+    return () => {
+      stream.removeEventListener('addtrack', captureTracks);
+      stream.removeEventListener('removetrack', captureTracks);
+    };
+  }, [stream]);
+
+  return (
     <OverlayTrigger
-      key="self"
       placement="right"
       overlay={(
         <Tooltip id="caller-self">
@@ -142,7 +205,6 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
       )}
     >
       <div
-        key="self"
         className={classnames('people-item', {
           muted,
           deafened,
@@ -161,79 +223,557 @@ const RTCCallSection = (props: RTCCallSectionProps) => {
         <div className="webrtc">
           {muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
           {deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
-          {!tracker.spectraDisabled && !muted && !deafened ? (
+          {!spectraDisabled && !muted && !deafened ? (
             <Spectrum
               width={40}
               height={40}
               audioContext={audioContext}
-              ref={spectrumRefCallback}
+              stream={stream}
             />
           ) : null}
+          <span className="connection" />
         </div>
+        {tracks.map((track) => (
+          <ProducerManager
+            key={track.id}
+            muted={muted}
+            track={track}
+            transport={transport}
+          />
+        ))}
       </div>
     </OverlayTrigger>
   );
+};
 
-  if (!tracker.rtcConfigReady || !tracker.participantsReady || !tracker.signalsReady) {
-    return <div />;
-  }
+const ConsumerManager = ({
+  stream,
+  recvTransport,
+  serverConsumer,
+}: {
+  stream: MediaStream;
+  recvTransport: types.Transport,
+  serverConsumer: ConsumerType,
+}) => {
+  const [consumer, setConsumer] = useState<types.Consumer>();
+  useEffect(() => {
+    if (!consumer) {
+      return () => {};
+    }
+    stream.addTrack(consumer.track);
+    return () => {
+      stream.removeTrack(consumer.track);
+      consumer.close();
+    };
+  }, [stream, consumer]);
 
-  if (!tracker.rtcConfig) {
-    return (
-      <div>
-        WebRTC misconfigured on the server.  Contact your server administrator.
+  const {
+    _id: meteorConsumerId,
+    consumerId: mediasoupConsumerId,
+    producerId,
+    kind,
+    rtpParameters,
+    paused,
+  } = serverConsumer;
+
+  useEffect(() => {
+    if (!consumer) {
+      return;
+    }
+
+    if (paused) {
+      consumer.pause();
+    } else {
+      consumer.resume();
+    }
+  }, [consumer, paused]);
+
+  useEffect(() => {
+    (async () => {
+      const newConsumer = await recvTransport.consume({
+        id: mediasoupConsumerId,
+        producerId,
+        kind,
+        rtpParameters: JSON.parse(rtpParameters),
+      });
+      setConsumer(newConsumer);
+      Meteor.call('mediasoup:consumer_ack', meteorConsumerId);
+    })();
+  }, [meteorConsumerId, mediasoupConsumerId, producerId, kind, rtpParameters, recvTransport]);
+
+  return null;
+};
+
+const PeerBox = ({
+  audioContext,
+  selfDeafened,
+  recvTransport,
+  peer,
+  consumers,
+}: {
+  audioContext: AudioContext,
+  selfDeafened: boolean,
+  recvTransport: types.Transport,
+  peer: PeerType,
+  consumers: ConsumerType[],
+}) => {
+  const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
+  const { name, discordAvatarUrl } = useTracker(() => {
+    const profile = Profiles.findOne(peer.createdBy);
+    return {
+      name: profile?.displayName ?? 'no profile wat',
+      discordAvatarUrl: getAvatarCdnUrl(profile?.discordAccount),
+    };
+  }, [peer.createdBy]);
+
+  // This stream will have tracks added to/removed from it by the
+  // ConsumerManager children components
+  const { current: stream } = useRef(new MediaStream());
+  const [streamActive, setStreamActive] = useState(false);
+  useEffect(() => {
+    const updateActive = (evt: Event) => setStreamActive(evt.type === 'active');
+    stream.addEventListener('active', updateActive);
+    stream.addEventListener('inactive', updateActive);
+    return () => {
+      stream.removeEventListener('active', updateActive);
+      stream.removeEventListener('inactive', updateActive);
+    };
+  }, [stream]);
+
+  const audioRef = useCallback((audio: HTMLAudioElement | null) => {
+    if (!streamActive || !audio) {
+      return;
+    }
+
+    // eslint-disable-next-line no-param-reassign
+    audio.srcObject = stream;
+  }, [streamActive, stream]);
+
+  const { muted, deafened } = peer;
+
+  return (
+    <OverlayTrigger
+      placement="right"
+      overlay={(
+        <Tooltip
+          id={`caller-${peer._id}`}
+          className="chatter-tooltip"
+        >
+          <div>{name}</div>
+          {muted &&
+            <div>Muted (no one can hear them)</div>}
+          {deafened &&
+            <div>Deafened (they can&apos;t hear anyone)</div>}
+        </Tooltip>
+      )}
+    >
+      <div
+        className={classnames('people-item', {
+          muted,
+          deafened,
+          live: !muted && !deafened,
+        })}
+      >
+        {discordAvatarUrl ? (
+          <img
+            alt={`${name}'s Discord avatar`}
+            className="discord-avatar"
+            src={discordAvatarUrl}
+          />
+        ) : (
+          <span className="initial">{name.slice(0, 1)}</span>
+        )}
+        <div className="webrtc">
+          {muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
+          {deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
+          {!spectraDisabled && !muted && streamActive ? (
+            <Spectrum
+              width={40}
+              height={40}
+              audioContext={audioContext}
+              stream={stream}
+            />
+          ) : null}
+          <span className="connection" />
+        </div>
+        <audio ref={audioRef} className="audio-sink" autoPlay playsInline muted={selfDeafened} />
+        {consumers.map((consumer) => (
+          <ConsumerManager
+            key={consumer._id}
+            stream={stream}
+            recvTransport={recvTransport}
+            serverConsumer={consumer}
+          />
+        ))}
       </div>
+    </OverlayTrigger>
+  );
+};
+
+const Callers = ({
+  puzzleId,
+  muted,
+  deafened,
+  audioContext,
+  localStream,
+  callersExpanded,
+  onToggleCallersExpanded,
+  otherPeers,
+  sendTransport,
+  recvTransport,
+}: {
+  puzzleId: string,
+  muted: boolean;
+  deafened: boolean;
+  audioContext: AudioContext;
+  localStream: MediaStream;
+  callersExpanded: boolean;
+  onToggleCallersExpanded(): void;
+  otherPeers: PeerType[];
+  sendTransport: types.Transport;
+  recvTransport: types.Transport;
+}) => {
+  const callersHeaderIcon = callersExpanded ? faCaretDown : faCaretRight;
+  const callerCount = otherPeers.length + 1; // +1 for self
+
+  const consumers = useFind(() => Consumers.find({ call: puzzleId }, { sort: { _id: 1 } }),
+    [puzzleId]);
+  const groupedConsumers = useMemo(() => {
+    return _.groupBy(consumers, (consumer) => consumer.producerPeer);
+  }, [consumers]);
+  const peerBoxes = otherPeers.map((peer) => {
+    return (
+      <PeerBox
+        key={peer._id}
+        selfDeafened={deafened}
+        audioContext={audioContext}
+        recvTransport={recvTransport}
+        peer={peer}
+        consumers={groupedConsumers[peer._id] ?? []}
+      />
     );
+  });
+
+  return (
+    <div className="chatter-subsection av-chatters">
+      <header onClick={onToggleCallersExpanded}>
+        <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
+        {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
+      </header>
+      <div className={classnames('people-list', { collapsed: !callersExpanded })}>
+        <ProducerBox
+          muted={muted}
+          deafened={deafened}
+          audioContext={audioContext}
+          stream={localStream}
+          transport={sendTransport}
+        />
+        {peerBoxes}
+      </div>
+    </div>
+  );
+};
+
+const useTransport = (
+  device: types.Device,
+  transportParams: TransportType,
+) => {
+  const [transport, setTransport] = useState<types.Transport>();
+  const connectRef = useRef<() => void>();
+
+  const {
+    _id,
+    direction,
+    transportId,
+    iceParameters,
+    iceCandidates,
+    dtlsParameters: serverDtlsParameters,
+  } = transportParams;
+
+  useEffect(() => {
+    const method = direction === 'send' ? 'createSendTransport' : 'createRecvTransport';
+    const newTransport = device[method]({
+      id: transportId,
+      iceParameters: JSON.parse(iceParameters),
+      iceCandidates: JSON.parse(iceCandidates),
+      dtlsParameters: JSON.parse(serverDtlsParameters),
+      appData: {
+        _id,
+      },
+    });
+    newTransport.on('connect', ({ dtlsParameters: clientDtlsParameters }, callback) => {
+      connectRef.current = callback;
+      // No need to set a callback here, since the ConnectAck record acts as a
+      // callback
+      Meteor.call('mediasoup:transport_connect', _id, JSON.stringify(clientDtlsParameters));
+    });
+    setTransport(newTransport);
+    return () => {
+      newTransport.close();
+    };
+  }, [device, _id, direction, transportId, iceParameters, iceCandidates, serverDtlsParameters]);
+
+  return [transport, connectRef] as const;
+};
+
+const CallTransportConnector = ({
+  puzzleId,
+  muted,
+  deafened,
+  audioContext,
+  localStream,
+  callersExpanded,
+  onToggleCallersExpanded,
+  selfPeer,
+  otherPeers,
+  device,
+  sendServerParams,
+  recvServerParams,
+}: {
+  puzzleId: string,
+  muted: boolean;
+  deafened: boolean;
+  audioContext: AudioContext;
+  localStream: MediaStream;
+  callersExpanded: boolean;
+  onToggleCallersExpanded(): void;
+  selfPeer: PeerType;
+  otherPeers: PeerType[];
+  device: types.Device;
+  sendServerParams: TransportType;
+  recvServerParams: TransportType;
+}) => {
+  // Because our connection might be to a different server than the mediasoup
+  // router is hosted on, the Meteor transport_connect call will return before
+  // the connection parameters have been passed to the server-side transport.
+  // Therefore, stash the acknowledgement callback on a ref and call it once the
+  // corresponding ConnectAck db record is created.
+  const [sendTransport, sendTransportConnectCallback] = useTransport(device, sendServerParams);
+  const [recvTransport, recvTransportConnectCallback] = useTransport(device, recvServerParams);
+  useEffect(() => {
+    const observer = ConnectAcks.find({ peer: selfPeer._id }).observeChanges({
+      added: (_id, fields) => {
+        if (fields.direction === 'send') {
+          sendTransportConnectCallback.current?.();
+          sendTransportConnectCallback.current = undefined;
+        } else if (fields.direction === 'recv') {
+          recvTransportConnectCallback.current?.();
+          recvTransportConnectCallback.current = undefined;
+        }
+      },
+    });
+    return () => observer.stop();
+  }, [selfPeer._id, sendTransportConnectCallback, recvTransportConnectCallback]);
+
+  if (!sendTransport || !recvTransport) {
+    // No JoiningCall warning here - if we have params coming in we're
+    // guaranteed to create the local transports
+    return null;
   }
 
-  const callerCount = tracker.participants.length;
-  const others = nonSelfParticipants();
+  return (
+    <Callers
+      puzzleId={puzzleId}
+      muted={muted}
+      deafened={deafened}
+      audioContext={audioContext}
+      localStream={localStream}
+      callersExpanded={callersExpanded}
+      onToggleCallersExpanded={onToggleCallersExpanded}
+      otherPeers={otherPeers}
+      sendTransport={sendTransport}
+      recvTransport={recvTransport}
+    />
+  );
+};
 
-  const callersHeaderIcon = callersExpanded ? faCaretDown : faCaretRight;
+const CallTransportCreator = ({
+  puzzleId,
+  muted,
+  deafened,
+  audioContext,
+  localStream,
+  callersExpanded,
+  onToggleCallersExpanded,
+  selfPeer,
+  otherPeers,
+  router,
+}: {
+  puzzleId: string,
+  muted: boolean;
+  deafened: boolean;
+  audioContext: AudioContext;
+  localStream: MediaStream;
+  callersExpanded: boolean;
+  onToggleCallersExpanded(): void;
+  selfPeer: PeerType;
+  otherPeers: PeerType[];
+  router: RouterType;
+}) => {
+  const [device, setDevice] = useState<types.Device>();
+  useEffect(() => {
+    const newDevice = new Device();
+    newDevice.load({
+      routerRtpCapabilities: JSON.parse(router.rtpCapabilities),
+    }).then(() => setDevice(newDevice));
+  }, [router.rtpCapabilities]);
 
+  useSubscribe(device ? 'mediasoup:transports' : undefined, selfPeer._id, JSON.stringify(device?.rtpCapabilities));
+  const { sendServerParams, recvServerParams } = useTracker(() => {
+    return {
+      // Note that these queries don't pin to the specific TransportRequest
+      // created by the subscription above, so for some reason we delete and
+      // recreate that subscription, we might transiently see the old Transports
+      // instead of the current ones. As the old subscription is torn down, the
+      // old Transports will be deleted as well, so this should converge on its
+      // own.
+      sendServerParams: Transports.findOne({ peer: selfPeer._id, direction: 'send' }),
+      recvServerParams: Transports.findOne({ peer: selfPeer._id, direction: 'recv' }),
+    };
+  }, [selfPeer._id]);
+
+  if (!device) {
+    return null;
+  }
+
+  if (!sendServerParams || !recvServerParams) {
+    return <JoiningCall details="Missing transport parameters" />;
+  }
+
+  return (
+    <CallTransportConnector
+      puzzleId={puzzleId}
+      muted={muted}
+      deafened={deafened}
+      audioContext={audioContext}
+      localStream={localStream}
+      callersExpanded={callersExpanded}
+      onToggleCallersExpanded={onToggleCallersExpanded}
+      selfPeer={selfPeer}
+      otherPeers={otherPeers}
+      device={device}
+      sendServerParams={sendServerParams}
+      recvServerParams={recvServerParams}
+    />
+  );
+};
+
+const CallJoiner = ({
+  huntId,
+  puzzleId,
+  tabId,
+  muted,
+  deafened,
+  audioContext,
+  localStream,
+  callersExpanded,
+  onToggleCallersExpanded,
+}: {
+  huntId: string;
+  puzzleId: string;
+  tabId: string;
+  muted: boolean;
+  deafened: boolean;
+  audioContext: AudioContext;
+  localStream: MediaStream;
+  callersExpanded: boolean;
+  onToggleCallersExpanded(): void;
+}) => {
+  useSubscribe('mediasoup:join', huntId, puzzleId, tabId);
+
+  const userId = useTracker(() => Meteor.userId(), []);
+  const peers = useFind(() => Peers.find({ call: puzzleId }));
+  const selfPeer = useMemo(() => {
+    return peers.find((peer) => peer.createdBy === userId && peer.tab === tabId);
+  }, [peers, tabId, userId]);
+  const otherPeers = useMemo(() => peers.filter((p) => p._id !== selfPeer?._id),
+    [peers, selfPeer?._id]);
+  const router = useTracker(() => Routers.findOne({ call: puzzleId }), [puzzleId]);
+
+  if (!selfPeer) {
+    return <JoiningCall details="Missing peer record for self" />;
+  }
+  if (!router) {
+    return <JoiningCall details="Missing router" />;
+  }
+
+  return (
+    <>
+      <CallTransportCreator
+        puzzleId={puzzleId}
+        muted={muted}
+        deafened={deafened}
+        audioContext={audioContext}
+        localStream={localStream}
+        callersExpanded={callersExpanded}
+        onToggleCallersExpanded={onToggleCallersExpanded}
+        selfPeer={selfPeer}
+        otherPeers={otherPeers}
+        router={router}
+      />
+    </>
+  );
+};
+
+const CallSection = ({
+  huntId,
+  puzzleId,
+  tabId,
+  muted,
+  deafened,
+  onToggleMute,
+  onToggleDeafen,
+  onLeaveCall,
+  audioContext,
+  localStream,
+  callersExpanded,
+  onToggleCallersExpanded,
+}: {
+  huntId: string;
+  puzzleId: string;
+  tabId: string;
+  muted: boolean;
+  deafened: boolean;
+  onToggleMute(): void;
+  onToggleDeafen(): void;
+  onLeaveCall(): void;
+  audioContext: AudioContext;
+  localStream: MediaStream;
+  callersExpanded: boolean;
+  onToggleCallersExpanded(): void;
+}) => {
   return (
     <>
       <div className="av-actions">
         <Button
           variant={muted ? 'secondary' : 'light'}
           size="sm"
-          onClick={toggleMuted}
+          onClick={onToggleMute}
         >
           {muted ? 'unmute' : 'mute self'}
         </Button>
         <Button
           variant={deafened ? 'secondary' : 'light'}
           size="sm"
-          onClick={toggleDeafened}
+          onClick={onToggleDeafen}
         >
           {deafened ? 'undeafen' : 'deafen self'}
         </Button>
-        <Button variant="danger" size="sm" onClick={leaveCall}>leave call</Button>
+        <Button variant="danger" size="sm" onClick={onLeaveCall}>leave call</Button>
       </div>
-      <div className="chatter-subsection av-chatters">
-        <header onClick={onToggleCallersExpanded}>
-          <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
-          {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
-        </header>
-        <div className={classnames('people-list', { collapsed: !callersExpanded })}>
-          {selfBox}
-          {tracker.signalsReady && tracker.selfParticipant && others.map((p) => {
-            return (
-              <CallLinkBox
-                key={p._id}
-                rtcConfig={tracker.rtcConfig!}
-                selfParticipant={tracker.selfParticipant!}
-                peerParticipant={p}
-                localStream={localStream}
-                audioContext={audioContext}
-                deafened={deafened}
-              />
-            );
-          })}
-        </div>
-      </div>
+      <CallJoiner
+        huntId={huntId}
+        puzzleId={puzzleId}
+        tabId={tabId}
+        muted={muted}
+        deafened={deafened}
+        audioContext={audioContext}
+        localStream={localStream}
+        callersExpanded={callersExpanded}
+        onToggleCallersExpanded={onToggleCallersExpanded}
+      />
     </>
   );
 };
 
-export default RTCCallSection;
+export default CallSection;
