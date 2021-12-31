@@ -15,11 +15,12 @@ echo "deb https://deb.nodesource.com/node_14.x bionic main" > /etc/apt/sources.l
 
 # Install build deps
 apt-get update
-apt-get install --no-install-recommends -y python python-pip python-dev python-setuptools python-wheel build-essential debathena-moira-clients kstart nodejs git
+apt-get install --no-install-recommends -y python3 python3-pip python3-dev python3-setuptools python3-wheel build-essential debathena-moira-clients kstart nodejs git
 
-pip install 'credstash==1.12.0'
+pip3 install 'credstash==1.12.0'
 
 # Install meteor and build app
+export PYTHON=python3
 METEOR_RELEASE="$(sed -e 's/.*@//g' .meteor/release)"
 curl -sL https://install.meteor.com?release=$METEOR_RELEASE | sh
 meteor npm i
@@ -32,7 +33,7 @@ cp -a /app/scripts /built_app/scripts
 
 # Cleanup
 rm -rf ~/.meteor /app
-apt-get remove -y python-dev build-essential git
+apt-get remove -y python3-dev build-essential git
 apt-get autoremove -y
 apt-get clean
 rm -rf /var/lib/apt/lists/*
