@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Meteor } from 'meteor/meteor';
 import { useTracker, useSubscribe, useFind } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
@@ -140,6 +141,7 @@ const ProducerManager = ({
       return;
     }
     (async () => {
+      console.log('Creating Mediasoup producer', { track: dupedTrack.id });
       // transport.produce will emit a 'produce' event before it resolves,
       // triggering onProduce above
       const newProducer = await transport.produce({
@@ -284,6 +286,7 @@ const ConsumerManager = ({
 
   useEffect(() => {
     (async () => {
+      console.log('Creating new Mediasoup consumer', { mediasoupConsumerId, producerId });
       const newConsumer = await recvTransport.consume({
         id: mediasoupConsumerId,
         producerId,
@@ -490,6 +493,7 @@ const useTransport = (
   } = transportParams;
 
   useEffect(() => {
+    console.log('Creating new Mediasoup transport', { transportId, direction });
     const method = direction === 'send' ? 'createSendTransport' : 'createRecvTransport';
     const newTransport = device[method]({
       id: transportId,
@@ -611,10 +615,14 @@ const CallTransportCreator = ({
 }) => {
   const [device, setDevice] = useState<types.Device>();
   useEffect(() => {
-    const newDevice = new Device();
-    newDevice.load({
-      routerRtpCapabilities: JSON.parse(router.rtpCapabilities),
-    }).then(() => setDevice(newDevice));
+    (async () => {
+      console.log('Creating new Mediasoup device');
+      const newDevice = new Device();
+      await newDevice.load({
+        routerRtpCapabilities: JSON.parse(router.rtpCapabilities),
+      });
+      setDevice(newDevice);
+    })();
   }, [router.rtpCapabilities]);
 
   useSubscribe(device ? 'mediasoup:transports' : undefined, selfPeer._id, JSON.stringify(device?.rtpCapabilities));
