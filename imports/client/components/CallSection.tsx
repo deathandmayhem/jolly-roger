@@ -247,25 +247,19 @@ const ProducerBox = ({
 };
 
 const ConsumerManager = ({
-  stream,
+  setTrack,
   recvTransport,
   serverConsumer,
 }: {
-  stream: MediaStream;
+  setTrack: (consumer: string, track?: MediaStreamTrack) => void;
   recvTransport: types.Transport,
   serverConsumer: ConsumerType,
 }) => {
   const [consumer, setConsumer] = useState<types.Consumer>();
   useEffect(() => {
-    if (!consumer) {
-      return () => {};
-    }
-    stream.addTrack(consumer.track);
-    return () => {
-      stream.removeTrack(consumer.track);
-      consumer.close();
-    };
-  }, [stream, consumer]);
+    setTrack(serverConsumer._id, consumer?.track);
+    return () => setTrack(serverConsumer._id, undefined);
+  }, [serverConsumer._id, consumer?.track, setTrack]);
 
   const {
     _id: meteorConsumerId,
@@ -326,28 +320,33 @@ const PeerBox = ({
     };
   }, [peer.createdBy]);
 
-  // This stream will have tracks added to/removed from it by the
-  // ConsumerManager children components
   const { current: stream } = useRef(new MediaStream());
-  const [streamActive, setStreamActive] = useState(false);
-  useEffect(() => {
-    const updateActive = (evt: Event) => setStreamActive(evt.type === 'active');
-    stream.addEventListener('active', updateActive);
-    stream.addEventListener('inactive', updateActive);
-    return () => {
-      stream.removeEventListener('active', updateActive);
-      stream.removeEventListener('inactive', updateActive);
-    };
+
+  const [tracks, setTracks] = useState<Map<string, MediaStreamTrack>>(new Map());
+  const setTrack = useCallback((consumer: string, track?: MediaStreamTrack) => {
+    setTracks((prevTracks) => {
+      const prevTrack = prevTracks.get(consumer);
+      const newTracks = new Map(prevTracks);
+
+      if (prevTrack) {
+        stream.removeTrack(prevTrack);
+        newTracks.delete(consumer);
+      }
+      if (track) {
+        stream.addTrack(track);
+        newTracks.set(consumer, track);
+      }
+
+      return newTracks;
+    });
   }, [stream]);
 
-  const audioRef = useCallback((audio: HTMLAudioElement | null) => {
-    if (!streamActive || !audio) {
-      return;
+  const audioRef = useRef<HTMLAudioElement>(null);
+  useEffect(() => {
+    if (audioRef.current && tracks.size > 0) {
+      audioRef.current.srcObject = stream;
     }
-
-    // eslint-disable-next-line no-param-reassign
-    audio.srcObject = stream;
-  }, [streamActive, stream]);
+  }, [tracks, stream]);
 
   const { muted, deafened } = peer;
 
@@ -386,7 +385,7 @@ const PeerBox = ({
         <div className="webrtc">
           {muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
           {deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
-          {!spectraDisabled && !muted && streamActive ? (
+          {!spectraDisabled && !muted && (tracks.size > 0) ? (
             <Spectrum
               width={40}
               height={40}
@@ -400,7 +399,7 @@ const PeerBox = ({
         {consumers.map((consumer) => (
           <ConsumerManager
             key={consumer._id}
-            stream={stream}
+            setTrack={setTrack}
             recvTransport={recvTransport}
             serverConsumer={consumer}
           />
