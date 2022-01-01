@@ -250,10 +250,14 @@ const ConsumerManager = ({
   stream,
   recvTransport,
   serverConsumer,
+  onTrackAdded,
+  onTrackRemoved,
 }: {
   stream: MediaStream;
   recvTransport: types.Transport,
   serverConsumer: ConsumerType,
+  onTrackAdded: () => void,
+  onTrackRemoved: () => void,
 }) => {
   const [consumer, setConsumer] = useState<types.Consumer>();
   useEffect(() => {
@@ -261,11 +265,13 @@ const ConsumerManager = ({
       return () => {};
     }
     stream.addTrack(consumer.track);
+    onTrackAdded();
     return () => {
       stream.removeTrack(consumer.track);
       consumer.close();
+      onTrackRemoved();
     };
-  }, [stream, consumer]);
+  }, [stream, consumer, onTrackAdded, onTrackRemoved]);
 
   const {
     _id: meteorConsumerId,
@@ -329,25 +335,34 @@ const PeerBox = ({
   // This stream will have tracks added to/removed from it by the
   // ConsumerManager children components
   const { current: stream } = useRef(new MediaStream());
+  const trackCount = useRef<number>(0);
   const [streamActive, setStreamActive] = useState(false);
-  useEffect(() => {
-    const updateActive = (evt: Event) => setStreamActive(evt.type === 'active');
-    stream.addEventListener('active', updateActive);
-    stream.addEventListener('inactive', updateActive);
-    return () => {
-      stream.removeEventListener('active', updateActive);
-      stream.removeEventListener('inactive', updateActive);
-    };
-  }, [stream]);
 
-  const audioRef = useCallback((audio: HTMLAudioElement | null) => {
-    if (!streamActive || !audio) {
-      return;
+  const onTrackAdded = useCallback(() => {
+    trackCount.current += 1;
+    setStreamActive(trackCount.current > 0);
+  }, []);
+
+  const onTrackRemoved = useCallback(() => {
+    trackCount.current -= 1;
+    setStreamActive(trackCount.current > 0);
+  }, []);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const connectStreamIfReady = useCallback(() => {
+    if (streamActive && audioRef.current) {
+      audioRef.current.srcObject = stream;
     }
-
-    // eslint-disable-next-line no-param-reassign
-    audio.srcObject = stream;
   }, [streamActive, stream]);
+
+  const audioRefCb = useCallback((audio: HTMLAudioElement | null) => {
+    audioRef.current = audio;
+    connectStreamIfReady();
+  }, [connectStreamIfReady]);
+
+  useEffect(() => {
+    connectStreamIfReady();
+  }, [connectStreamIfReady]);
 
   const { muted, deafened } = peer;
 
@@ -396,13 +411,15 @@ const PeerBox = ({
           ) : null}
           <span className="connection" />
         </div>
-        <audio ref={audioRef} className="audio-sink" autoPlay playsInline muted={selfDeafened} />
+        <audio ref={audioRefCb} className="audio-sink" autoPlay playsInline muted={selfDeafened} />
         {consumers.map((consumer) => (
           <ConsumerManager
             key={consumer._id}
             stream={stream}
             recvTransport={recvTransport}
             serverConsumer={consumer}
+            onTrackAdded={onTrackAdded}
+            onTrackRemoved={onTrackRemoved}
           />
         ))}
       </div>
