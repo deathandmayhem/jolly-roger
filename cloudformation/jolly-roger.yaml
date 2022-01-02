@@ -664,7 +664,7 @@ Resources:
 
                 ${PapertrailDockerConfig}
 
-                - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} deathandmayhem/jolly-roger
+                - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} ghcr.io/deathandmayhem/jolly-roger
                 - docker run --name nginx -d --network=host --restart=unless-stopped -v /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf nginx
                 - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --interval 30 --cleanup
             -
