@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
+import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
   useCallback, useEffect, useMemo, useRef, useState,
@@ -15,10 +16,32 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import * as RRBS from 'react-router-bootstrap';
 import styled from 'styled-components';
+import { getAvatarCdnUrl } from '../../lib/discord';
 import { ProfileType } from '../../lib/schemas/profile';
 
 const ProfilesSummary = styled.div`
   text-align: right;
+`;
+
+const StyledListGroupItem = styled(ListGroupItem)`
+  padding: .25rem;
+  width: 100%;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+`;
+
+const ImageBlock = styled.div`
+  width: 40px;
+  height: 40px;
+  flex: none;
+  margin-right: .5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 `;
 
 interface ProfileListProps {
@@ -64,7 +87,8 @@ const ProfileList = (props: ProfileListProps) => {
         const searchKey = toMatch[i];
         if (profile.displayName.toLowerCase().indexOf(searchKey) === -1 &&
           profile.primaryEmail.toLowerCase().indexOf(searchKey) === -1 &&
-          (!profile.phoneNumber || profile.phoneNumber.toLowerCase().indexOf(searchKey) === -1)) {
+          (!profile.phoneNumber || profile.phoneNumber.toLowerCase().indexOf(searchKey) === -1) &&
+          (!profile.discordAccount || `${profile.discordAccount.username.toLowerCase()}#${profile.discordAccount.discriminator}`.indexOf(searchKey) === -1)) {
           return false;
         }
       }
@@ -107,9 +131,12 @@ const ProfileList = (props: ProfileListProps) => {
 
     return (
       <RRBS.LinkContainer to={`/hunts/${props.huntId}/hunters/invite`}>
-        <ListGroupItem action>
+        <StyledListGroupItem action>
+          <ImageBlock>
+            <FontAwesomeIcon icon={faPlus} />
+          </ImageBlock>
           <strong>Invite someone...</strong>
-        </ListGroupItem>
+        </StyledListGroupItem>
       </RRBS.LinkContainer>
     );
   }, [props.huntId, props.canInvite]);
@@ -148,7 +175,7 @@ const ProfileList = (props: ProfileListProps) => {
             id="jr-profile-list-search"
             type="text"
             ref={searchBarRef}
-            placeholder="search by name..."
+            placeholder="search by name, email, phone, Discord..."
             value={searchString}
             onChange={onSearchStringChange}
           />
@@ -164,13 +191,26 @@ const ProfileList = (props: ProfileListProps) => {
 
       <ListGroup>
         {inviteToHuntItem}
-        {profiles.map((profile) => (
-          <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
-            <ListGroupItem action>
-              {profile.displayName || '<no name provided>'}
-            </ListGroupItem>
-          </RRBS.LinkContainer>
-        ))}
+        {profiles.map((profile) => {
+          const name = profile.displayName || '<no name provided>';
+          const discordAvatarUrl = getAvatarCdnUrl(profile.discordAccount);
+          return (
+            <RRBS.LinkContainer key={profile._id} to={`/users/${profile._id}`}>
+              <StyledListGroupItem action>
+                <ImageBlock>
+                  {discordAvatarUrl && (
+                    <img
+                      alt={`${name}'s Discord avatar`}
+                      src={discordAvatarUrl}
+                      className="discord-avatar"
+                    />
+                  )}
+                </ImageBlock>
+                {name}
+              </StyledListGroupItem>
+            </RRBS.LinkContainer>
+          );
+        })}
       </ListGroup>
     </div>
   );
