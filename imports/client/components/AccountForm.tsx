@@ -43,6 +43,11 @@ const StyledModeSwitchLink = styled.div`
   text-align: center;
 `;
 
+const NoPaddingLinkButton = styled(Button)`
+  padding: 0px;
+  vertical-align: baseline;
+`;
+
 type AccountFormProps = {
   format: AccountFormFormat.LOGIN | AccountFormFormat.REQUEST_PW_RESET;
   onFormatChange: () => void;
@@ -260,20 +265,20 @@ const AccountForm = (props: AccountFormProps) => {
   const pwResetOptionComponent = props.format === AccountFormFormat.LOGIN ? (
     <div>
       <p>
-        {/* TODO: prefer <Button variant="link"> */}
-        <a href="#" onClick={toggleWantPasswordReset}>
+        <NoPaddingLinkButton variant="link" onClick={toggleWantPasswordReset}>
           Forgot your password?
-        </a>
+        </NoPaddingLinkButton>
       </p>
     </div>
   ) : null;
   const backToMainForm = props.format === AccountFormFormat.REQUEST_PW_RESET ? (
     <StyledModeSwitchLink>
       <p>
-        {/* TODO: prefer <Button variant="link"> */}
         If you already have an account,
         {' '}
-        <a href="#" onClick={toggleWantPasswordReset}>sign in</a>
+        <NoPaddingLinkButton variant="link" onClick={toggleWantPasswordReset}>
+          sign in
+        </NoPaddingLinkButton>
       </p>
     </StyledModeSwitchLink>
   ) : null;
