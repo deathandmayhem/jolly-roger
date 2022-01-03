@@ -295,6 +295,21 @@ Resources:
           IpProtocol: tcp
           FromPort: 443
           ToPort: 443
+        - Description: ICMP echo request
+          CidrIp: 0.0.0.0/0
+          IpProtocol: icmp
+          FromPort: 8
+          ToPort: -1
+        - Description: ICMP echo reply
+          CidrIp: 0.0.0.0/0
+          IpProtocol: icmp
+          FromPort: 0
+          ToPort: -1
+        - Description: ICMP frag needed
+          CidrIp: 0.0.0.0/0
+          IpProtocol: icmp
+          FromPort: 3
+          ToPort: 4
       VpcId: !Ref VPC
   AppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
