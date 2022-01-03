@@ -1,2 +1,5 @@
+Dockerfile
 .meteor/local
 node_modules
+cloudformation
+.github/workflows
