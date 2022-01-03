@@ -298,6 +298,11 @@ const ConsumerManager = ({
     })();
   }, [meteorConsumerId, mediasoupConsumerId, producerId, kind, rtpParameters, recvTransport]);
 
+  // Use a separate useEffect here since the above will return before the promise resolves
+  useEffect(() => {
+    return () => consumer?.close();
+  }, [consumer]);
+
   return null;
 };
 
