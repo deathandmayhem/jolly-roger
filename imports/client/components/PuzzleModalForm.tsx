@@ -300,7 +300,7 @@ const PuzzleModalForm = React.forwardRef((
               disabled={disableForm}
               onChange={onExpectedAnswerCountChange}
               value={currentExpectedAnswerCount}
-              min={1}
+              min={0}
               step={1}
             />
           </Col>

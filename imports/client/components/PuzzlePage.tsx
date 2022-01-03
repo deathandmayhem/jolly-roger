@@ -446,7 +446,6 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
 
   const tagsById = _.indexBy(props.allTags, '_id');
   const tags = props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
-  const isAdministrivia = tags.find((t) => t.name === 'administrivia');
   const correctGuesses = props.guesses.filter((guess) => guess.state === 'correct');
   const numGuesses = props.guesses.length;
 
@@ -493,7 +492,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
   ) : null;
 
   let guessButton = null;
-  if (!isAdministrivia) {
+  if (props.puzzle.expectedAnswerCount > 0) {
     guessButton = tracker.hasGuessQueue ? (
       <>
         <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={showGuessModal}>

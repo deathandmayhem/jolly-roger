@@ -68,13 +68,13 @@ const Puzzle = React.memo((props: PuzzleProps) => {
   const tagIndex = _.indexBy(props.allTags, '_id');
   const shownTags = _.difference(props.puzzle.tags, props.suppressTags || []);
   const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; }).filter(Boolean);
-  const isAdministrivia = props.puzzle.tags.find((t) => { return tagIndex[t] && tagIndex[t].name === 'administrivia'; });
 
   const puzzleClasses = classnames('puzzle',
-    props.puzzle.answers.length >= props.puzzle.expectedAnswerCount ? 'solved' : 'unsolved',
+    props.puzzle.expectedAnswerCount === 0 ? 'administrivia' : null,
+    props.puzzle.expectedAnswerCount > 0 && props.puzzle.answers.length >= props.puzzle.expectedAnswerCount ? 'solved' : null,
+    props.puzzle.expectedAnswerCount > 0 && props.puzzle.answers.length < props.puzzle.expectedAnswerCount ? 'unsolved' : null,
     props.layout === 'grid' ? 'puzzle-grid' : null,
-    props.layout === 'table' ? 'puzzle-table-row' : null,
-    isAdministrivia ? 'administrivia' : null);
+    props.layout === 'table' ? 'puzzle-table-row' : null);
 
   const answers = props.puzzle.answers.map((answer, i) => {
     return (
@@ -120,7 +120,7 @@ const Puzzle = React.memo((props: PuzzleProps) => {
         <Link to={linkTarget}>{props.puzzle.title}</Link>
       </div>
       <div className="puzzle-column puzzle-view-count">
-        {!(props.puzzle.answers.length >= props.puzzle.expectedAnswerCount) && !isAdministrivia && <SubscriberCount puzzleId={props.puzzle._id} />}
+        {!(props.puzzle.answers.length >= props.puzzle.expectedAnswerCount) && <SubscriberCount puzzleId={props.puzzle._id} />}
       </div>
       <div className="puzzle-column puzzle-link">
         {props.puzzle.url ? (
