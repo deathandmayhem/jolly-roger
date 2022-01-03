@@ -1,6 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { NpmModuleMongodb } from 'meteor/npm-mongo';
+import Ansible from '../ansible';
 import Flags from '../flags';
 import ConnectAcks from '../lib/models/mediasoup/connect_acks';
 import ConnectRequests from '../lib/models/mediasoup/connect_requests';
@@ -145,6 +146,8 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
       muted: false,
       deafened: false,
     });
+
+    Ansible.log('Peer joined call', { peer: peerId, call, createdBy: this.userId });
   });
 
   this.onStop(() => {

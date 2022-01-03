@@ -21,7 +21,6 @@ import TransportStates from '../lib/models/mediasoup/transport_states';
 import Transports from '../lib/models/mediasoup/transports';
 import { ConnectRequestType } from '../lib/schemas/mediasoup/connect_request';
 import { ConsumerAckType } from '../lib/schemas/mediasoup/consumer_ack';
-import { PeerType } from '../lib/schemas/mediasoup/peer';
 import { ProducerClientType } from '../lib/schemas/mediasoup/producer_client';
 import { RoomType } from '../lib/schemas/mediasoup/room';
 import { TransportRequestType } from '../lib/schemas/mediasoup/transport_request';
@@ -83,7 +82,8 @@ class SFU {
     this.onWorkerCreated(this.worker);
 
     this.peersHandle = Peers.find({}).observeChanges({
-      added: (id, fields) => this.peerCreated({ _id: id, ...fields } as PeerType),
+      // Use this as an opportunity to cleanup data created as part of the
+      // transport negotiation
       removed: (id) => this.peerRemoved(id),
     });
 
@@ -382,10 +382,6 @@ class SFU {
   }
 
   // Mongo callbacks
-
-  peerCreated(peer: PeerType) {
-    Ansible.log('Peer joined call', { peer: peer._id, call: peer.call, createdBy: peer.createdBy });
-  }
 
   peerRemoved(id: string) {
     this.peerToRtpCapabilities.delete(id);
