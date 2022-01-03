@@ -86,6 +86,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
             // We raced with the cursor notification
             cleanupWatches();
             removed.return(undefined);
+            return;
           }
 
           const time = otherLock.renewedAt || otherLock.createdAt;
