@@ -15,13 +15,12 @@ import FormText from 'react-bootstrap/FormText';
 import styled from 'styled-components';
 import Flags from '../../flags';
 import isAdmin from '../../lib/is-admin';
-import BlobMappings from '../../lib/models/blob_mappings';
 import DiscordCache from '../../lib/models/discord_cache';
 import Settings from '../../lib/models/settings';
-import { BlobMappingType } from '../../lib/schemas/blob_mapping';
 import { SettingType } from '../../lib/schemas/setting';
 import { DiscordGuildType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import lookupUrl from '../lookupUrl';
 
 /* eslint-disable max-len, react/jsx-one-expression-per-line */
 
@@ -1302,7 +1301,6 @@ const BrandingTeamName = (props: BrandingTeamNameProps) => {
 
 interface BrandingAssetRowProps {
   asset: string;
-  blob: BlobMappingType | undefined;
   backgroundSize?: string;
   children?: ReactChild;
 }
@@ -1376,7 +1374,7 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
   }, [props.asset]);
 
   // If no BlobMapping is present for this asset, fall back to the default one from the public/images folder
-  const blobUrl = props.blob ? `/asset/${props.blob.blob}` : `/images/${props.asset}`;
+  const blobUrl = useTracker(() => lookupUrl(props.asset));
   return (
     <BrandingRow>
       {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
@@ -1406,13 +1404,10 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
 };
 
 interface BrandingSectionProps {
-  blobMappings: BlobMappingType[];
   teamName: string | undefined;
 }
 
 const BrandingSection = (props: BrandingSectionProps) => {
-  const blobMap = _.indexBy(props.blobMappings, '_id');
-
   return (
     <Section id="branding">
       <SectionHeader>
@@ -1434,22 +1429,23 @@ const BrandingSection = (props: BrandingSectionProps) => {
         </ul>
         <BrandingTeamName initialTeamName={props.teamName} />
       </Subsection>
+      {/* Adding a new branding asset? Make sure to add it to imports/server/lookupUrl.ts as well */}
       <Subsection>
         <SubsectionHeader>
           <span>Essential imagery</span>
         </SubsectionHeader>
-        <BrandingAssetRow asset="brand.png" blob={blobMap['brand.png']}>
+        <BrandingAssetRow asset="brand.png">
           Brand icon, 50x50 pixels, shown in the top left of all logged-in pages
         </BrandingAssetRow>
-        <BrandingAssetRow asset="brand@2x.png" blob={blobMap['brand@2x.png']}>
+        <BrandingAssetRow asset="brand@2x.png">
           Brand icon @ 2x res for high-DPI displays, 100x100 pixels, shown in
           the top left of all logged-in pages.
         </BrandingAssetRow>
-        <BrandingAssetRow asset="hero.png" blob={blobMap['hero.png']} backgroundSize="contain">
+        <BrandingAssetRow asset="hero.png" backgroundSize="contain">
           Hero image, approximately 510x297 pixels, shown on the
           login/enroll/password-reset pages.
         </BrandingAssetRow>
-        <BrandingAssetRow asset="hero@2x.png" blob={blobMap['hero@2x.png']} backgroundSize="contain">
+        <BrandingAssetRow asset="hero@2x.png" backgroundSize="contain">
           Hero image @ 2x res for high-DPI displays, approximately 1020x595
           pixels, shown on the login/enroll/password-reset pages.
         </BrandingAssetRow>
@@ -1458,25 +1454,25 @@ const BrandingSection = (props: BrandingSectionProps) => {
         <SubsectionHeader>
           <span>Favicons and related iconography</span>
         </SubsectionHeader>
-        <BrandingAssetRow asset="android-chrome-192x192.png" blob={blobMap['android-chrome-192x192.png']}>
+        <BrandingAssetRow asset="android-chrome-192x192.png">
           Android Chrome favicon at 192x192 pixels
         </BrandingAssetRow>
-        <BrandingAssetRow asset="android-chrome-512x512.png" blob={blobMap['android-chrome-512x512.png']} backgroundSize="contain">
+        <BrandingAssetRow asset="android-chrome-512x512.png" backgroundSize="contain">
           Android Chrome favicon at 512x512 pixels
         </BrandingAssetRow>
-        <BrandingAssetRow asset="apple-touch-icon.png" blob={blobMap['apple-touch-icon.png']}>
+        <BrandingAssetRow asset="apple-touch-icon.png">
           Square Apple touch icon at 180x180 pixels
         </BrandingAssetRow>
-        <BrandingAssetRow asset="favicon-16x16.png" blob={blobMap['favicon-16x16.png']}>
+        <BrandingAssetRow asset="favicon-16x16.png">
           Favicon as PNG at 16x16 pixels
         </BrandingAssetRow>
-        <BrandingAssetRow asset="favicon-32x32.png" blob={blobMap['favicon-32x32.png']}>
+        <BrandingAssetRow asset="favicon-32x32.png">
           Favicon as PNG at 32x32 pixels
         </BrandingAssetRow>
-        <BrandingAssetRow asset="mstile-150x150.png" blob={blobMap['mstile-150x150.png']}>
+        <BrandingAssetRow asset="mstile-150x150.png">
           Tile used by Windows, IE, and Edge, as PNG at 150x150 pixels
         </BrandingAssetRow>
-        <BrandingAssetRow asset="safari-pinned-tab.svg" blob={blobMap['safari-pinned-tab.svg']} backgroundSize="contain">
+        <BrandingAssetRow asset="safari-pinned-tab.svg" backgroundSize="contain">
           Black-and-transparent SVG used by Safari for pinned tabs
         </BrandingAssetRow>
       </Subsection>
@@ -1725,8 +1721,6 @@ interface SetupPageTracker {
   flagDisableWebrtc: boolean;
   flagDisableSpectra: boolean;
   flagDisableDingwords: boolean;
-
-  blobMappings: BlobMappingType[];
 }
 
 const SetupPage = () => {
@@ -1794,8 +1788,6 @@ const SetupPage = () => {
       flagDisableWebrtc,
       flagDisableSpectra,
       flagDisableDingwords,
-
-      blobMappings: BlobMappings.find({}).fetch(),
     };
   }, []);
 
@@ -1836,7 +1828,6 @@ const SetupPage = () => {
         guild={tracker.discordGuild}
       />
       <BrandingSection
-        blobMappings={tracker.blobMappings}
         teamName={tracker.teamName}
       />
       <CircuitBreakerSection

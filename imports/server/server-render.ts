@@ -1,5 +1,5 @@
 import { onPageLoad } from 'meteor/server-render';
-import { lookupUrl } from '../lib/models/blob_mappings';
+import lookupUrl from './lookupUrl';
 
 onPageLoad((sink) => {
   if (sink.appendToHead) {

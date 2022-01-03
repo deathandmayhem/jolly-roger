@@ -6,7 +6,7 @@ import BSImage from 'react-bootstrap/Image';
 import BSJumbotron from 'react-bootstrap/Jumbotron';
 import Row from 'react-bootstrap/Row';
 import styled from 'styled-components';
-import { lookupUrl } from '../../lib/models/blob_mappings';
+import lookupUrl from '../lookupUrl';
 
 const Jumbotron = styled(BSJumbotron)`
   padding-top: 2rem;
