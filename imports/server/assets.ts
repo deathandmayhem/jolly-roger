@@ -8,6 +8,7 @@ import mime from 'mime-types';
 import BlobMappings from '../lib/models/blob_mappings';
 import Blobs from './models/blobs';
 import UploadTokens from './models/upload_tokens';
+import onExit from './onExit';
 
 /* eslint-disable no-console */
 
@@ -16,6 +17,36 @@ import UploadTokens from './models/upload_tokens';
 declare global {
   const Assets: any;
 }
+
+// Include blob mappings in the runtime config, for faster loading, in addition
+// to publishing it (for live updates)
+const cachedDBMappings: Map<string, string> = new Map();
+Meteor.startup(() => {
+  const observer = BlobMappings.find().observeChanges({
+    added: (id, doc) => {
+      cachedDBMappings.set(id, doc.blob!);
+    },
+    changed: (id, doc) => {
+      if (doc.blob) {
+        cachedDBMappings.set(id, doc.blob);
+      }
+    },
+    removed: (id) => {
+      cachedDBMappings.delete(id);
+    },
+  });
+  onExit(() => observer.stop());
+});
+
+WebApp.addRuntimeConfigHook(({ encodedCurrentConfig }) => {
+  const config = WebApp.decodeRuntimeConfig(encodedCurrentConfig);
+  config.blobMappings = Object.fromEntries(cachedDBMappings);
+  return WebApp.encodeRuntimeConfig(config);
+});
+
+Meteor.publish('mongo.blob_mappings', () => {
+  return BlobMappings.find({});
+});
 
 const app = express();
 

@@ -1737,9 +1737,6 @@ const SetupPage = () => {
     // We need to fetch the contents of the Settings table
     const settingsHandle = Meteor.subscribe('mongo.settings');
 
-    // We also need the asset mappings
-    const blobMappingsHandle = Meteor.subscribe('mongo.blob_mappings');
-
     // Google
     const googleConfig = ServiceConfiguration.configurations.findOne({ service: 'google' });
     const gdriveCredential = Settings.findOne({ name: 'gdrive.credential' });
@@ -1774,7 +1771,7 @@ const SetupPage = () => {
     const flagDisableDingwords = Flags.active('disable.dingwords');
 
     return {
-      ready: settingsHandle.ready() && blobMappingsHandle.ready(),
+      ready: settingsHandle.ready(),
 
       canConfigure,
 
@@ -1798,7 +1795,7 @@ const SetupPage = () => {
       flagDisableSpectra,
       flagDisableDingwords,
 
-      blobMappings: blobMappingsHandle.ready() ? BlobMappings.find({}).fetch() : [],
+      blobMappings: BlobMappings.find({}).fetch(),
     };
   }, []);
 

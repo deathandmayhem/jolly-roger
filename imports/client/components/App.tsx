@@ -73,11 +73,8 @@ const AppNavbar = (props: RouteComponentProps) => {
     const displayName = profileSub.ready() ?
       ((profile && profile.displayName) || '<no name given>') : 'loading...';
 
-    const blobMapSub = Meteor.subscribe('mongo.blob_mappings');
-    // Use an empty url as the default URL value while BlobMappings are still
-    // loading to avoid a flash of the default logo.
-    const brandSrc = blobMapSub.ready() ? lookupUrl('brand.png') : '';
-    const brandSrc2x = blobMapSub.ready() ? lookupUrl('brand@2x.png') : '';
+    const brandSrc = lookupUrl('brand.png');
+    const brandSrc2x = lookupUrl('brand@2x.png');
     return {
       userId,
       displayName,

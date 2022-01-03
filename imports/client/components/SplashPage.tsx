@@ -1,4 +1,3 @@
-import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import Col from 'react-bootstrap/Col';
@@ -24,9 +23,8 @@ interface SplashPageProps {
 
 const SplashPage = (props: SplashPageProps) => {
   const data = useTracker(() => {
-    const blobMappingsSub = Meteor.subscribe('mongo.blob_mappings');
-    const heroSrc = blobMappingsSub.ready() ? lookupUrl('hero.png') : '';
-    const heroSrc2x = blobMappingsSub.ready() ? lookupUrl('hero@2x.png') : '';
+    const heroSrc = lookupUrl('hero.png');
+    const heroSrc2x = lookupUrl('hero@2x.png');
     return {
       heroSrc,
       heroSrc2x,
