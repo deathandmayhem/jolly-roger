@@ -205,7 +205,10 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
       return puzzles;
     } else {
       return puzzles.filter((puzzle) => {
-        return (puzzle.answers.length < puzzle.expectedAnswerCount);
+        // Items with no expected answer are always shown, since they're
+        // generally pinned administrivia.
+        return (puzzle.expectedAnswerCount === 0 ||
+          puzzle.answers.length < puzzle.expectedAnswerCount);
       });
     }
   }, [showSolved]);
