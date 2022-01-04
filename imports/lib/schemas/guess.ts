@@ -35,7 +35,7 @@ const GuessFieldsOverrides: Overrides<t.TypeOf<typeof GuessFields>> = {
   },
   guess: {
     autoValue() {
-      if (this.isSet) {
+      if (this.isSet && this.value) {
         return answerify(this.value);
       }
 

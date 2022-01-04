@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema, { SimpleSchemaDefinition } from 'simpl-schema';
 import { uint8Array } from './types';
 
 type NumberOverrides<T> = T extends number ? {
@@ -39,18 +39,18 @@ type ObjectOverrides<T> = T extends Record<string, any> ? {
 
 interface FieldInfo {
   isSet: boolean;
-  value: any;
-  operator?: string;
+  value?: any;
+  operator?: string | null;
 }
 
 type AutoValueFlatten<T> = T extends any[] ? T[0] : T;
 interface AutoValueThis<T> {
   key: string;
-  value: T | AutoValueFlatten<T>;
+  value?: T | AutoValueFlatten<T> | undefined;
   closestSubschemaFieldName: string | null;
   isSet: boolean;
   unset: () => void;
-  operator?: string;
+  operator?: string | null;
   field: (name: string) => FieldInfo;
   siblingField: (name: string) => FieldInfo;
   parentField: () => FieldInfo;
@@ -217,7 +217,7 @@ export const buildSchema = function <
   schemaCodec: t.InterfaceType<P, T>,
   overrides: Overrides<T>
 ): SimpleSchema {
-  const schema: Record<string, FieldDefinition<any>> = {};
+  const schema: SimpleSchemaDefinition = {};
   Object.keys(schemaCodec.props).forEach((k) => {
     // Don't include the _id field in the schema, as it makes some operations
     // validate strangely (c.f. aldeed/meteor-collection2#124)

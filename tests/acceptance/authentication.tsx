@@ -40,6 +40,10 @@ if (Meteor.isClient) {
     require('../../imports/client/components/Routes').default;
 
   describe('no users', function () {
+    before(async function () {
+      await Meteor.callPromise('test.resetDatabase');
+    });
+
     it('redirects to the create-first-user page', async function () {
       this.timeout(2000);
       const history = createMemoryHistory();

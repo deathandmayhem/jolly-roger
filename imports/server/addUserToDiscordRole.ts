@@ -50,6 +50,6 @@ export default (userId: string, huntId: string) => {
     MeteorPromise.await(discord.addUserToRole(profile.discordAccount.id, guild.id, roleId));
     Ansible.log('Successfully added user to Discord role', { userId, huntId, roleId });
   } catch (e) {
-    Ansible.log('Error while adding user to Discord role', { err: e.message });
+    Ansible.log('Error while adding user to Discord role', { err: (e instanceof Error ? e.message : e) });
   }
 };

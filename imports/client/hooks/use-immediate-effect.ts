@@ -8,10 +8,8 @@ function depsDiffer<T>(deps1?: Array<T>, deps2?: Array<T>) {
   );
 }
 
-type EffectCleanupCallback = () => void | undefined;
-
 export default function useImmediateEffect<T>(effectBody: EffectCallback, deps?: Array<T>) {
-  const cleanupRef = useRef<EffectCleanupCallback | void>(undefined);
+  const cleanupRef = useRef<ReturnType<EffectCallback>>(undefined);
   const depsRef = useRef<Array<T> | undefined>();
 
   if (!depsRef.current || depsDiffer(depsRef.current, deps)) {
