@@ -9,6 +9,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # Install build deps
 RUN <<EOF
+  set -eux
   apt-get update
   apt-get install --no-install-recommends -y curl python3 python3-pip python3-dev python3-setuptools python3-wheel build-essential git
 EOF
@@ -50,6 +51,7 @@ FROM ubuntu:18.04
 
 # Install runtime deps
 RUN <<EOF
+  set -eux
   . /etc/os-release
 
   # Install apt https support for node.  Install gnupg so that apt-key add works.
