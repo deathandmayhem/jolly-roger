@@ -12,6 +12,7 @@ import { Device, types } from 'mediasoup-client';
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -539,6 +540,7 @@ const CallTransportConnector = ({
   device,
   sendServerParams,
   recvServerParams,
+  onHeightChange,
 }: {
   puzzleId: string,
   muted: boolean;
@@ -552,6 +554,7 @@ const CallTransportConnector = ({
   device: types.Device;
   sendServerParams: TransportType;
   recvServerParams: TransportType;
+  onHeightChange(): void;
 }) => {
   // Because our connection might be to a different server than the mediasoup
   // router is hosted on, the Meteor transport_connect call will return before
@@ -574,6 +577,12 @@ const CallTransportConnector = ({
     });
     return () => observer.stop();
   }, [selfPeer._id, sendTransportConnectCallback, recvTransportConnectCallback]);
+
+  const notReadyYet = !sendTransport || !recvTransport;
+  useLayoutEffect(() => {
+    // Notify any time we might change the height of what we render
+    onHeightChange();
+  }, [onHeightChange, notReadyYet, callersExpanded, otherPeers.length]);
 
   if (!sendTransport || !recvTransport) {
     // No JoiningCall warning here - if we have params coming in we're
@@ -608,6 +617,7 @@ const CallTransportCreator = ({
   selfPeer,
   otherPeers,
   router,
+  onHeightChange,
 }: {
   puzzleId: string,
   muted: boolean;
@@ -619,6 +629,7 @@ const CallTransportCreator = ({
   selfPeer: PeerType;
   otherPeers: PeerType[];
   router: RouterType;
+  onHeightChange(): void;
 }) => {
   const [device, setDevice] = useState<types.Device>();
   useEffect(() => {
@@ -646,6 +657,11 @@ const CallTransportCreator = ({
     };
   }, [selfPeer._id]);
 
+  const hasDevice = !!device;
+  useLayoutEffect(() => {
+    onHeightChange();
+  }, [onHeightChange, hasDevice, sendServerParams?._id, recvServerParams?._id]);
+
   if (!device) {
     return null;
   }
@@ -668,6 +684,7 @@ const CallTransportCreator = ({
       device={device}
       sendServerParams={sendServerParams}
       recvServerParams={recvServerParams}
+      onHeightChange={onHeightChange}
     />
   );
 };
@@ -682,6 +699,7 @@ const CallJoiner = ({
   localStream,
   callersExpanded,
   onToggleCallersExpanded,
+  onHeightChange,
 }: {
   huntId: string;
   puzzleId: string;
@@ -692,6 +710,7 @@ const CallJoiner = ({
   localStream: MediaStream;
   callersExpanded: boolean;
   onToggleCallersExpanded(): void;
+  onHeightChange(): void;
 }) => {
   useSubscribe('mediasoup:join', huntId, puzzleId, tabId);
 
@@ -705,6 +724,11 @@ const CallJoiner = ({
     [peers, selfPeer?._id]
   );
   const router = useTracker(() => Routers.findOne({ call: puzzleId }), [puzzleId]);
+
+  useLayoutEffect(() => {
+    // We might change height when showing the JoiningCall message
+    onHeightChange();
+  }, [onHeightChange, selfPeer, router]);
 
   if (!selfPeer) {
     return <JoiningCall details="Missing peer record for self" />;
@@ -725,6 +749,7 @@ const CallJoiner = ({
       selfPeer={selfPeer}
       otherPeers={otherPeers}
       router={router}
+      onHeightChange={onHeightChange}
     />
   );
 };
@@ -742,6 +767,7 @@ const CallSection = ({
   localStream,
   callersExpanded,
   onToggleCallersExpanded,
+  onHeightChange,
 }: {
   huntId: string;
   puzzleId: string;
@@ -755,6 +781,7 @@ const CallSection = ({
   localStream: MediaStream;
   callersExpanded: boolean;
   onToggleCallersExpanded(): void;
+  onHeightChange(): void;
 }) => {
   return (
     <>
@@ -785,6 +812,7 @@ const CallSection = ({
         localStream={localStream}
         callersExpanded={callersExpanded}
         onToggleCallersExpanded={onToggleCallersExpanded}
+        onHeightChange={onHeightChange}
       />
     </>
   );

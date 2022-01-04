@@ -54,6 +54,8 @@ import SplitPane, { SplitPaneProps } from 'react-split-pane';
       If 'relative', primary and secondary panes will retain their proportions during resize.
     step?: number
       Step size when dragging
+    onChanged?: (size: number, collapsed: 0 | 1 | 2) => void
+      Callback triggered per-frame to indicate a change in pane size during a drag.
     onPaneChanged?: (size: number, collapsed: 0 | 1 | 2, cause: 'drag' | 'resize') => void
       Callback triggered to request a change to size or collapsed state. Drag events will call
       this once, at the end of the event. Resize events will call this whenever the currently
@@ -98,6 +100,7 @@ interface SplitPanePlusProps {
   autoCollapse1: number,
   autoCollapse2: number,
   scaling?: 'absolute' | 'relative',
+  onChanged?: (size: number, collapsed: 0 | 1 | 2) => void,
   onPaneChanged?: (size: number, collapsed: 0 | 1 | 2, cause: 'drag' | 'resize') => void,
   step?: number,
   className?: string,
@@ -136,6 +139,7 @@ const SplitPanePlusHook = (props: SplitPanePlusProps) => {
     autoCollapse1 = 50,
     autoCollapse2 = 50,
     scaling = 'absolute',
+    onChanged,
     onPaneChanged,
     step,
     className,
@@ -262,11 +266,15 @@ const SplitPanePlusHook = (props: SplitPanePlusProps) => {
 
   const onChange = useCallback((newSize: number) => {
     // Setting dragInProgress in onDragStarted creates a frame of strangeness
+    const nextCollapse = calculateCollapse(newSize);
     setState({
       dragInProgress: true,
-      collapseWarning: calculateCollapse(newSize),
+      collapseWarning: nextCollapse,
     });
-  }, [calculateCollapse]);
+    if (onChanged) {
+      onChanged(newSize, nextCollapse);
+    }
+  }, [calculateCollapse, onChanged]);
 
   const onDragFinished = useCallback((rawSize: number | string) => {
     setState({
