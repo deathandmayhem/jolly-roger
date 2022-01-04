@@ -15,6 +15,7 @@ import useDocumentTitle from '../hooks/use-document-title';
 import markdown from '../markdown';
 import AnnouncementsPage from './AnnouncementsPage';
 import CelebrationCenter from './CelebrationCenter';
+import FirehosePage from './FirehosePage';
 import GuessQueuePage from './GuessQueuePage';
 import HuntProfileListPage from './HuntProfileListPage';
 import PuzzleListPage from './PuzzleListPage';
@@ -177,6 +178,7 @@ const HuntApp = React.memo(() => {
     return (
       <Routes>
         <Route path="announcements" element={<AnnouncementsPage />} />
+        <Route path="firehose" element={<FirehosePage />} />
         <Route path="guesses" element={<GuessQueuePage />} />
         <Route path="hunters/*" element={<HuntProfileListPage />} />
         <Route path="puzzles/:puzzleId" element={<PuzzlePage />} />
