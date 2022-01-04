@@ -3,6 +3,8 @@ import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
 import { uint8Array } from '../../lib/schemas/types';
 
 export const BlobCodec = t.type({
+  // ASCII hex string of the sha256 hash of the blob contents
+  _id: t.string,
   // Blob contents
   value: uint8Array,
   // Browser-detected MIME type, like 'image/png'

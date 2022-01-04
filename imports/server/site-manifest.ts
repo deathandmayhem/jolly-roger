@@ -1,7 +1,7 @@
 import http from 'http';
 import { Meteor } from 'meteor/meteor';
 import { WebApp } from 'meteor/webapp';
-import { lookupUrl } from '../lib/models/blob_mappings';
+import lookupUrl from './lookupUrl';
 
 // Server-side dynamic rendering of /site.webmanifest to ensure we use custom
 // icon assets when provided by the server admin.

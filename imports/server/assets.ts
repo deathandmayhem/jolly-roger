@@ -1,21 +1,110 @@
 import crypto from 'crypto';
+import fs from 'fs/promises';
+import path from 'path';
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
+import { Promise as MeteorPromise } from 'meteor/promise';
 import { WebApp } from 'meteor/webapp';
-/* global Assets */
 import express from 'express';
 import mime from 'mime-types';
 import BlobMappings from '../lib/models/blob_mappings';
 import Blobs from './models/blobs';
 import UploadTokens from './models/upload_tokens';
+import onExit from './onExit';
+import { BlobType } from './schemas/blob';
 
 /* eslint-disable no-console */
 
 // Meteor has no way to import Assets under ES6 modules; it's just always a
 // global that all server code can access.
 declare global {
-  const Assets: any;
+  const Assets: {
+    absoluteFilePath(assetPath: string): string | undefined;
+  };
 }
+
+// eslint-disable-next-line import/prefer-default-export
+export const defaultAssets: Map<string, BlobType> = new Map();
+export const defaultMappings: Map<string, string> = new Map();
+// Changing this list? Make sure to update imports/client/components/SetupPage.tsx as well
+const hashes = [
+  'brand.png',
+  'brand@2x.png',
+  'hero.png',
+  'hero@2x.png',
+  'android-chrome-192x192.png',
+  'android-chrome-512x512.png',
+  'apple-touch-icon.png',
+  'favicon-16x16.png',
+  'favicon-32x32.png',
+  'mstile-150x150.png',
+  'safari-pinned-tab.svg',
+].map(async (assetName) => {
+  const assetPath = Assets.absoluteFilePath(`default-branding/${assetName}`)!;
+  const data = await fs.readFile(assetPath);
+  const id = crypto.createHash('sha256').update(data).digest('hex');
+  const md5 = crypto.createHash('md5').update(data).digest('hex');
+  const mimeType = mime.contentType(path.extname(assetPath)) || 'application/octet-stream';
+
+  defaultMappings.set(assetName, id);
+  defaultAssets.set(id, {
+    _id: id,
+    value: data,
+    mimeType,
+    md5,
+    size: data.length,
+  });
+});
+
+MeteorPromise.awaitAll(hashes);
+
+// Include blob mappings in the runtime config, for faster loading, in addition
+// to publishing it (for live updates)
+export const cachedDBMappings: Map<string, string> = new Map();
+Meteor.startup(() => {
+  const observer = BlobMappings.find().observeChanges({
+    added: (id, doc) => {
+      cachedDBMappings.set(id, doc.blob!);
+    },
+    changed: (id, doc) => {
+      if (doc.blob) {
+        cachedDBMappings.set(id, doc.blob);
+      }
+    },
+    removed: (id) => {
+      cachedDBMappings.delete(id);
+    },
+  });
+  onExit(() => observer.stop());
+});
+
+Meteor.publish('mongo.blob_mappings', () => {
+  return BlobMappings.find({});
+});
+
+WebApp.addRuntimeConfigHook(({ encodedCurrentConfig }) => {
+  const config = WebApp.decodeRuntimeConfig(encodedCurrentConfig);
+  config.blobMappings = Object.fromEntries(cachedDBMappings);
+  config.defaultBlobMappings = Object.fromEntries(defaultMappings);
+  return WebApp.encodeRuntimeConfig(config);
+});
+
+// Keep the current set of assets in memory for faster access.
+const dbAssets: Map<string, BlobType> = new Map();
+Meteor.startup(() => {
+  const observer = Blobs.find().observe({
+    added: (doc) => {
+      dbAssets.set(doc._id, doc);
+    },
+    changed: (doc) => {
+      dbAssets.set(doc._id, doc);
+    },
+    removed: (doc) => {
+      dbAssets.delete(doc._id);
+    },
+  });
+  onExit(() => observer.stop());
+});
 
 const app = express();
 
@@ -24,31 +113,14 @@ const router = express.Router();
 router.get('/:asset', (req, res) => {
   check(req.params.asset, String);
 
-  // First: see if there's an blob with this name in the DB
-  const maybeBlob = Blobs.findOne(req.params.asset);
-  if (maybeBlob) {
-    // If so, deserialize it and return it
-    const buff = Buffer.from(maybeBlob.value);
+  const blob = dbAssets.get(req.params.asset) || defaultAssets.get(req.params.asset);
+  if (blob) {
+    const buff = Buffer.from(blob.value);
     res.statusCode = 200;
-    res.setHeader('ETag', maybeBlob.md5);
-    res.setHeader('Content-Type', maybeBlob.mimeType);
+    res.setHeader('ETag', blob.md5);
+    res.setHeader('Content-Type', blob.mimeType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     res.send(buff);
-    res.end();
-    return;
-  }
-
-  // Next: see if there's a packaged asset with this name in the DB
-  let packagedAsset;
-  try {
-    packagedAsset = Assets.getBinary(req.params.asset);
-  } catch (_e) {
-    // guess there wasn't an asset with that name
-  }
-  if (packagedAsset) {
-    res.statusCode = 200;
-    const mimeType = mime.contentType(req.params.asset);
-    res.setHeader('Content-Type', mimeType || 'application/octet-stream');
-    res.send(Buffer.from(packagedAsset));
     res.end();
     return;
   }
