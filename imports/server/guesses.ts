@@ -62,17 +62,17 @@ function checkMayUpdateGuess(userId: string | null | undefined, huntId: string) 
 }
 
 class PendingGuessWatcher {
-  sub: Subscription
+  sub: Subscription;
 
-  guessCursor: Mongo.Cursor<GuessType>
+  guessCursor: Mongo.Cursor<GuessType>;
 
-  guessWatch: Meteor.LiveQueryHandle
+  guessWatch: Meteor.LiveQueryHandle;
 
-  guesses: Record<string, GuessType>
+  guesses: Record<string, GuessType>;
 
   huntRefCounter: RefCountedObserverMap<HuntType>;
 
-  puzzleRefCounter: RefCountedObserverMap<PuzzleType>
+  puzzleRefCounter: RefCountedObserverMap<PuzzleType>;
 
   constructor(sub: Subscription) {
     this.sub = sub;
@@ -272,8 +272,10 @@ Meteor.methods({
       throw new Meteor.Error(404, 'No such guess');
     }
     checkMayUpdateGuess(this.userId, guess.hunt);
-    Ansible.log('Transitioning guess to new state',
-      { user: this.userId, guess: guess._id, state: 'pending' });
+    Ansible.log(
+      'Transitioning guess to new state',
+      { user: this.userId, guess: guess._id, state: 'pending' }
+    );
     transitionGuess(guess, 'pending');
   },
 
@@ -284,8 +286,10 @@ Meteor.methods({
       throw new Meteor.Error(404, 'No such guess');
     }
     checkMayUpdateGuess(this.userId, guess.hunt);
-    Ansible.log('Transitioning guess to new state',
-      { user: this.userId, guess: guess._id, state: 'correct' });
+    Ansible.log(
+      'Transitioning guess to new state',
+      { user: this.userId, guess: guess._id, state: 'correct' }
+    );
     transitionGuess(guess, 'correct');
   },
 
@@ -296,8 +300,10 @@ Meteor.methods({
       throw new Meteor.Error(404, 'No such guess');
     }
     checkMayUpdateGuess(this.userId, guess.hunt);
-    Ansible.log('Transitioning guess to new state',
-      { user: this.userId, guess: guess._id, state: 'incorrect' });
+    Ansible.log(
+      'Transitioning guess to new state',
+      { user: this.userId, guess: guess._id, state: 'incorrect' }
+    );
     transitionGuess(guess, 'incorrect');
   },
 
@@ -308,8 +314,10 @@ Meteor.methods({
       throw new Meteor.Error(404, 'No such guess');
     }
     checkMayUpdateGuess(this.userId, guess.hunt);
-    Ansible.log('Transitioning guess to new state',
-      { user: this.userId, guess: guess._id, state: 'rejected' });
+    Ansible.log(
+      'Transitioning guess to new state',
+      { user: this.userId, guess: guess._id, state: 'rejected' }
+    );
     transitionGuess(guess, 'rejected');
   },
 });

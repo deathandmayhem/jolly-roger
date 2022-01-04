@@ -54,8 +54,10 @@ const TransportFieldsOverrides: Overrides<t.TypeOf<typeof TransportFields>> = {
 };
 
 const [TransportCodec, TransportOverrides] = inheritSchema(
-  BaseCodec, TransportFields,
-  BaseOverrides, TransportFieldsOverrides,
+  BaseCodec,
+  TransportFields,
+  BaseOverrides,
+  TransportFieldsOverrides,
 );
 
 export { TransportCodec };

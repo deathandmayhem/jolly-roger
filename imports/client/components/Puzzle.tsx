@@ -69,12 +69,14 @@ const Puzzle = React.memo((props: PuzzleProps) => {
   const shownTags = _.difference(props.puzzle.tags, props.suppressTags || []);
   const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; }).filter(Boolean);
 
-  const puzzleClasses = classnames('puzzle',
+  const puzzleClasses = classnames(
+    'puzzle',
     props.puzzle.expectedAnswerCount === 0 ? 'administrivia' : null,
     props.puzzle.expectedAnswerCount > 0 && props.puzzle.answers.length >= props.puzzle.expectedAnswerCount ? 'solved' : null,
     props.puzzle.expectedAnswerCount > 0 && props.puzzle.answers.length < props.puzzle.expectedAnswerCount ? 'unsolved' : null,
     props.layout === 'grid' ? 'puzzle-grid' : null,
-    props.layout === 'table' ? 'puzzle-table-row' : null);
+    props.layout === 'table' ? 'puzzle-table-row' : null
+  );
 
   const answers = props.puzzle.answers.map((answer, i) => {
     return (

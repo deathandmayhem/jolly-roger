@@ -71,7 +71,9 @@ function puzzleInterestingness(
 }
 
 function interestingnessOfGroup(
-  puzzles: PuzzleType[], sharedTag: TagType | undefined, indexedTags: Record<string, TagType>
+  puzzles: PuzzleType[],
+  sharedTag: TagType | undefined,
+  indexedTags: Record<string, TagType>,
 ) {
   // Rough idea: sort, from top to bottom:
   // -3 administrivia always floats to the top

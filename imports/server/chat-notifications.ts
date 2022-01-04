@@ -11,17 +11,17 @@ import { PuzzleType } from '../lib/schemas/puzzle';
 import RefCountedObserverMap from './refcounted-observer-map';
 
 class ChatNotificationWatcher {
-  sub: Subscription
+  sub: Subscription;
 
-  chatNotifCursor: Mongo.Cursor<ChatNotificationType>
+  chatNotifCursor: Mongo.Cursor<ChatNotificationType>;
 
-  chatNotifWatch: Meteor.LiveQueryHandle
+  chatNotifWatch: Meteor.LiveQueryHandle;
 
-  notifications: Record<string, ChatNotificationType>
+  notifications: Record<string, ChatNotificationType>;
 
-  huntRefCounter: RefCountedObserverMap<HuntType>
+  huntRefCounter: RefCountedObserverMap<HuntType>;
 
-  puzzleRefCounter: RefCountedObserverMap<PuzzleType>
+  puzzleRefCounter: RefCountedObserverMap<PuzzleType>;
 
   constructor(sub: Subscription) {
     this.sub = sub;

@@ -20,7 +20,9 @@ Meteor.methods({
 });
 
 function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 async function conditionTrueByTimeout(conditionFunc: () => boolean, timeoutMsec: number) {

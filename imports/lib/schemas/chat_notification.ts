@@ -39,8 +39,10 @@ const ChatNotificationFieldsOverrides: Overrides<t.TypeOf<typeof ChatNotificatio
 };
 
 const [ChatNotificationCodec, ChatNotificationOverrides] = inheritSchema(
-  BaseCodec, ChatNotificationFields,
-  BaseOverrides, ChatNotificationFieldsOverrides,
+  BaseCodec,
+  ChatNotificationFields,
+  BaseOverrides,
+  ChatNotificationFieldsOverrides,
 );
 export { ChatNotificationCodec };
 export type ChatNotificationType = t.TypeOf<typeof ChatNotificationCodec>;

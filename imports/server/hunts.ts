@@ -58,8 +58,12 @@ const DEFAULT_EXISTING_JOIN_TEMPLATE = 'Hiya!\n' +
     '\n' +
     'This message was sent to {{email}}';
 
-function renderExistingJoinEmail(setting: SettingType | undefined, user: Meteor.User | null,
-  hunt: HuntType, joinerName: string | null) {
+function renderExistingJoinEmail(
+  setting: SettingType | undefined,
+  user: Meteor.User | null,
+  hunt: HuntType,
+  joinerName: string | null
+) {
   const email = user && user.emails && user.emails[0] && user.emails[0].address;
   const view = {
     siteName: Accounts.emailTemplates.siteName,

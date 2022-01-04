@@ -15,8 +15,10 @@ const TagFieldsOverrides: Overrides<t.TypeOf<typeof TagFields>> = {
 };
 
 const [TagCodec, TagOverrides] = inheritSchema(
-  BaseCodec, TagFields,
-  BaseOverrides, TagFieldsOverrides,
+  BaseCodec,
+  TagFields,
+  BaseOverrides,
+  TagFieldsOverrides,
 );
 export { TagCodec };
 export type TagType = t.TypeOf<typeof TagCodec>;

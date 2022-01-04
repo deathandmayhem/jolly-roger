@@ -29,8 +29,10 @@ const RouterFieldsOverrides: Overrides<t.TypeOf<typeof RouterFields>> = {
 };
 
 const [RouterCodec, RouterOverrides] = inheritSchema(
-  BaseCodec, RouterFields,
-  BaseOverrides, RouterFieldsOverrides,
+  BaseCodec,
+  RouterFields,
+  BaseOverrides,
+  RouterFieldsOverrides,
 );
 
 export { RouterCodec };

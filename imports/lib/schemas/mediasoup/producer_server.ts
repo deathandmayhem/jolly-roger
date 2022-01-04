@@ -45,8 +45,10 @@ const ProducerServerFieldsOverrides: Overrides<t.TypeOf<typeof ProducerServerFie
 };
 
 const [ProducerServerCodec, ProducerServerOverrides] = inheritSchema(
-  BaseCodec, ProducerServerFields,
-  BaseOverrides, ProducerServerFieldsOverrides,
+  BaseCodec,
+  ProducerServerFields,
+  BaseOverrides,
+  ProducerServerFieldsOverrides,
 );
 
 export { ProducerServerCodec };

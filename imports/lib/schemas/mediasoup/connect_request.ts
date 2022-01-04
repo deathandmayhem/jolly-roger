@@ -48,8 +48,10 @@ const ConnectRequestFieldsOverrides: Overrides<t.TypeOf<typeof ConnectRequestFie
 };
 
 const [ConnectRequestCodec, ConnectRequestOverrides] = inheritSchema(
-  BaseCodec, ConnectRequestFields,
-  BaseOverrides, ConnectRequestFieldsOverrides,
+  BaseCodec,
+  ConnectRequestFields,
+  BaseOverrides,
+  ConnectRequestFieldsOverrides,
 );
 
 export { ConnectRequestCodec };

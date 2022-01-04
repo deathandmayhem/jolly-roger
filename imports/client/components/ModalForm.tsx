@@ -19,7 +19,8 @@ export type ModalFormHandle = {
 }
 
 const ModalForm = React.forwardRef((
-  props: ModalFormProps, forwardedRef: React.Ref<ModalFormHandle>
+  props: ModalFormProps,
+  forwardedRef: React.Ref<ModalFormHandle>,
 ) => {
   const [isShown, setIsShown] = useState<boolean>(false);
   const dontTryToHide = useRef<boolean>(false);

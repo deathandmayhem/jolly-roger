@@ -11,7 +11,8 @@ Settings.attachSchema(SettingSchema);
 // Publish manually instead of through Base.publish because we need to block the
 // query for non-admins, and Base.publish doesn't support permission checks.
 if (Meteor.isServer) {
-  Meteor.publish('mongo.settings',
+  Meteor.publish(
+    'mongo.settings',
     function (q: Mongo.Selector<SettingType> = {}, opts: FindOptions = {}) {
       check(q, Object);
       check(opts, {
@@ -27,6 +28,7 @@ if (Meteor.isServer) {
       }
 
       return Settings.find(q, opts);
-    });
+    }
+  );
 }
 export default Settings;

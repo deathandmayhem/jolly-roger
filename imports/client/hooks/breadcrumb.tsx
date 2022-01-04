@@ -50,7 +50,7 @@ type BreadcrumbProviderProps = {
   children: React.ReactNode;
 }
 
-function BreadcrumbsProvider(props: BreadcrumbProviderProps) {
+const BreadcrumbsProvider = (props: BreadcrumbProviderProps) => {
   const crumbsRef = useRef<CrumbWithId[]>([]);
   const listenersRef = useRef<((crumbs: CrumbWithId[]) => void)[]>([]);
 
@@ -138,7 +138,7 @@ function BreadcrumbsProvider(props: BreadcrumbProviderProps) {
       {props.children}
     </BreadcrumbContext.Provider>
   );
-}
+};
 
 function useBreadcrumb(crumb: Crumb): void {
   const ctx = useContext<BreadcrumbContextType>(BreadcrumbContext);

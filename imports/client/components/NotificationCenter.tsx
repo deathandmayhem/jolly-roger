@@ -381,7 +381,7 @@ const AnnouncementMessage = React.memo((props: AnnouncementMessageProps) => {
 interface ProfileMissingMessageProps {
   onDismiss: () => void;
 }
-function ProfileMissingMessage(props: ProfileMissingMessageProps) {
+const ProfileMissingMessage = (props: ProfileMissingMessageProps) => {
   return (
     <StyledNotificationMessage>
       <MessengerSpinner />
@@ -398,14 +398,14 @@ function ProfileMissingMessage(props: ProfileMissingMessageProps) {
       <MessengerDismissButton onDismiss={props.onDismiss} />
     </StyledNotificationMessage>
   );
-}
+};
 
 interface ChatNotificationMessageProps {
   // TODO: add the requisite fields
   cn: NotificationCenterChatNotification;
   onDismiss: () => void;
 }
-function ChatNotificationMessage(props: ChatNotificationMessageProps) {
+const ChatNotificationMessage = (props: ChatNotificationMessageProps) => {
   return (
     <StyledNotificationMessage>
       <MessengerSpinner />
@@ -424,7 +424,7 @@ function ChatNotificationMessage(props: ChatNotificationMessageProps) {
       <MessengerDismissButton onDismiss={props.onDismiss} />
     </StyledNotificationMessage>
   );
-}
+};
 
 interface NotificationCenterAnnouncement {
   pa: PendingAnnouncementType;

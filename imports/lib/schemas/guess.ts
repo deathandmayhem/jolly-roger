@@ -53,8 +53,10 @@ const GuessFieldsOverrides: Overrides<t.TypeOf<typeof GuessFields>> = {
 };
 
 const [GuessCodec, GuessOverrides] = inheritSchema(
-  BaseCodec, GuessFields,
-  BaseOverrides, GuessFieldsOverrides
+  BaseCodec,
+  GuessFields,
+  BaseOverrides,
+  GuessFieldsOverrides
 );
 export { GuessCodec };
 export type GuessType = t.TypeOf<typeof GuessCodec>;

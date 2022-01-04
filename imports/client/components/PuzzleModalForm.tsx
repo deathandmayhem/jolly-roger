@@ -50,9 +50,7 @@ export type PuzzleModalFormHandle = {
   show: () => void;
 }
 
-const PuzzleModalForm = React.forwardRef((
-  props: PuzzleModalFormProps, forwardedRef: React.Ref<PuzzleModalFormHandle>
-) => {
+const PuzzleModalForm = React.forwardRef((props: PuzzleModalFormProps, forwardedRef: React.Ref<PuzzleModalFormHandle>) => {
   const {
     huntId, puzzle, tags: propsTags, onSubmit, showOnMount,
   } = props;
@@ -90,9 +88,7 @@ const PuzzleModalForm = React.forwardRef((
     setUrlDirty(true);
   }, []);
 
-  const onTagsChange = useCallback((
-    value: readonly TagSelectOption[], action: ActionMeta<TagSelectOption>
-  ) => {
+  const onTagsChange = useCallback((value: readonly TagSelectOption[], action: ActionMeta<TagSelectOption>) => {
     let newTags = [];
     switch (action.action) {
       case 'clear':

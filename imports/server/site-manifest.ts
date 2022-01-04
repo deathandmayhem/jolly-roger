@@ -6,8 +6,11 @@ import lookupUrl from './lookupUrl';
 // Server-side dynamic rendering of /site.webmanifest to ensure we use custom
 // icon assets when provided by the server admin.
 
-const serveSiteManifest = (_req: http.IncomingMessage, res: http.ServerResponse,
-  _next: Function) => {
+const serveSiteManifest = (
+  _req: http.IncomingMessage,
+  res: http.ServerResponse,
+  _next: Function
+) => {
   const android192Src = lookupUrl('android-chrome-192x192.png');
   const android512Src = lookupUrl('android-chrome-512x512.png');
   const manifest = {

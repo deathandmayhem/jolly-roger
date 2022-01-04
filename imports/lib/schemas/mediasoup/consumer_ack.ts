@@ -45,8 +45,10 @@ const ConsumerAckFieldsOverrides: Overrides<t.TypeOf<typeof ConsumerAckFields>> 
 };
 
 const [ConsumerAckCodec, ConsumerAckOverrides] = inheritSchema(
-  BaseCodec, ConsumerAckFields,
-  BaseOverrides, ConsumerAckFieldsOverrides,
+  BaseCodec,
+  ConsumerAckFields,
+  BaseOverrides,
+  ConsumerAckFieldsOverrides,
 );
 
 export { ConsumerAckCodec };

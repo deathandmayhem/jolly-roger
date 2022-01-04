@@ -18,8 +18,10 @@ const APIKeyFieldsOverrides: Overrides<t.TypeOf<typeof APIKeyFields>> = {
 };
 
 const [APIKeyCodec, APIKeyOverrides] = inheritSchema(
-  BaseCodec, APIKeyFields,
-  BaseOverrides, APIKeyFieldsOverrides,
+  BaseCodec,
+  APIKeyFields,
+  BaseOverrides,
+  APIKeyFieldsOverrides,
 );
 export { APIKeyCodec };
 export type APIKeyType = t.TypeOf<typeof APIKeyCodec>;

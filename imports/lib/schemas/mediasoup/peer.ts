@@ -34,8 +34,10 @@ const PeerFieldsOverrides: Overrides<t.TypeOf<typeof PeerFields>> = {
 };
 
 const [PeerCodec, PeerOverrides] = inheritSchema(
-  BaseCodec, PeerFields,
-  BaseOverrides, PeerFieldsOverrides,
+  BaseCodec,
+  PeerFields,
+  BaseOverrides,
+  PeerFieldsOverrides,
 );
 
 export { PeerCodec };

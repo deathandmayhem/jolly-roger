@@ -140,7 +140,7 @@ class DiscordBot {
         { response: text }
       );
     }
-  }
+  };
 
   listGuildChannels = async (guildId: string) => {
     let response: Response;

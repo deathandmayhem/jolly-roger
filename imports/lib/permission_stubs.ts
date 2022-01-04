@@ -61,7 +61,8 @@ function isInactiveOperatorForHunt(user: Meteor.User, _huntId: string): boolean 
 
 // Admins and active operators may add announcements to a hunt.
 export function userMayAddAnnouncementToHunt(
-  userId: string | null | undefined, huntId: string
+  userId: string | null | undefined,
+  huntId: string,
 ): boolean {
   if (!userId) {
     return false;
@@ -89,7 +90,9 @@ export function userMayAddAnnouncementToHunt(
 }
 
 export function userMayMakeOtherUserOperatorForHunt(
-  userId: string | null | undefined, otherUserId: string, huntId: string
+  userId: string | null | undefined,
+  otherUserId: string,
+  huntId: string,
 ): boolean {
   if (!userId) {
     return false;
@@ -244,7 +247,8 @@ export function userMayConfigureAssets(userId: string | null | undefined): boole
 }
 
 export function userMayUpdateGuessesForHunt(
-  userId: string | null | undefined, huntId: string
+  userId: string | null | undefined,
+  huntId: string,
 ): boolean {
   if (!userId) {
     return false;
@@ -263,7 +267,8 @@ export function userMayUpdateGuessesForHunt(
 }
 
 export function userMayWritePuzzlesForHunt(
-  userId: string | null | undefined, huntId: string
+  userId: string | null | undefined,
+  huntId: string,
 ): boolean {
   if (!userId) {
     return false;

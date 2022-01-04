@@ -443,8 +443,10 @@ const Callers = ({
   const callersHeaderIcon = callersExpanded ? faCaretDown : faCaretRight;
   const callerCount = otherPeers.length + 1; // +1 for self
 
-  const consumers = useFind(() => Consumers.find({ call: puzzleId }, { sort: { _id: 1 } }),
-    [puzzleId]);
+  const consumers = useFind(
+    () => Consumers.find({ call: puzzleId }, { sort: { _id: 1 } }),
+    [puzzleId]
+  );
   const groupedConsumers = useMemo(() => {
     return _.groupBy(consumers, (consumer) => consumer.producerPeer);
   }, [consumers]);
@@ -698,8 +700,10 @@ const CallJoiner = ({
   const selfPeer = useMemo(() => {
     return peers.find((peer) => peer.createdBy === userId && peer.tab === tabId);
   }, [peers, tabId, userId]);
-  const otherPeers = useMemo(() => peers.filter((p) => p._id !== selfPeer?._id),
-    [peers, selfPeer?._id]);
+  const otherPeers = useMemo(
+    () => peers.filter((p) => p._id !== selfPeer?._id),
+    [peers, selfPeer?._id]
+  );
   const router = useTracker(() => Routers.findOne({ call: puzzleId }), [puzzleId]);
 
   if (!selfPeer) {
@@ -710,20 +714,18 @@ const CallJoiner = ({
   }
 
   return (
-    <>
-      <CallTransportCreator
-        puzzleId={puzzleId}
-        muted={muted}
-        deafened={deafened}
-        audioContext={audioContext}
-        localStream={localStream}
-        callersExpanded={callersExpanded}
-        onToggleCallersExpanded={onToggleCallersExpanded}
-        selfPeer={selfPeer}
-        otherPeers={otherPeers}
-        router={router}
-      />
-    </>
+    <CallTransportCreator
+      puzzleId={puzzleId}
+      muted={muted}
+      deafened={deafened}
+      audioContext={audioContext}
+      localStream={localStream}
+      callersExpanded={callersExpanded}
+      onToggleCallersExpanded={onToggleCallersExpanded}
+      selfPeer={selfPeer}
+      otherPeers={otherPeers}
+      router={router}
+    />
   );
 };
 

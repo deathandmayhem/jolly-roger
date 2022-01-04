@@ -22,8 +22,10 @@ const PendingAnnouncementFieldsOverrides: Overrides<t.TypeOf<typeof PendingAnnou
 };
 
 const [PendingAnnouncementCodec, PendingAnnouncementOverrides] = inheritSchema(
-  BaseCodec, PendingAnnouncementFields,
-  BaseOverrides, PendingAnnouncementFieldsOverrides,
+  BaseCodec,
+  PendingAnnouncementFields,
+  BaseOverrides,
+  PendingAnnouncementFieldsOverrides,
 );
 export { PendingAnnouncementCodec };
 export type PendingAnnouncementType = t.TypeOf<typeof PendingAnnouncementCodec>;

@@ -64,8 +64,10 @@ const SettingFields = t.type({
 });
 
 const [SettingSchemaCodec, SettingOverrides] = inheritSchema(
-  BaseCodec, SettingFields,
-  BaseOverrides, {},
+  BaseCodec,
+  SettingFields,
+  BaseOverrides,
+  {},
 );
 
 const Setting = buildSchema(SettingSchemaCodec, SettingOverrides);

@@ -15,9 +15,9 @@ class GDriveClientRefresher {
 
   private oauthRefreshToken?: string;
 
-  private oauthConfigCursor: Mongo.Cursor<Configuration>
+  private oauthConfigCursor: Mongo.Cursor<Configuration>;
 
-  private oauthCredentialCursor: Mongo.Cursor<SettingType>
+  private oauthCredentialCursor: Mongo.Cursor<SettingType>;
 
   constructor() {
     this.gdrive = undefined;

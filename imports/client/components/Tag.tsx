@@ -165,7 +165,8 @@ const Tag = (props: TagProps) => {
   const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
   const isNeeds = name.lastIndexOf('needs:', 0) === 0;
   const isPriority = name.lastIndexOf('priority:', 0) === 0;
-  const classNames = classnames('tag',
+  const classNames = classnames(
+    'tag',
     props.popoverRelated ? 'tag-popover' : null,
     showPopover ? 'tag-popover-open' : null,
     isAdministrivia ? 'tag-administrivia' : null,
@@ -173,7 +174,8 @@ const Tag = (props: TagProps) => {
     isGroup ? 'tag-group' : null,
     isMetaFor ? 'tag-meta-for' : null,
     isNeeds ? 'tag-needs' : null,
-    isPriority ? 'tag-priority' : null);
+    isPriority ? 'tag-priority' : null
+  );
 
   // Browsers won't word-break on hyphens, so suggest
   // Use wbr instead of zero-width space to make copy-paste reasonable

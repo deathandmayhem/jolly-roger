@@ -167,14 +167,12 @@ const SplitPanePlusHook = (props: SplitPanePlusProps) => {
     return ref.current.firstChild;
   }, []);
 
-  const findChildByClass = useCallback(
-    (classNameSought: string): Element | undefined => {
-      const root = splitPaneNode();
-      return root && Array.from(root.children).find((n) => {
-        return n.classList.contains(classNameSought);
-      });
-    }, [splitPaneNode]
-  );
+  const findChildByClass = useCallback((classNameSought: string): Element | undefined => {
+    const root = splitPaneNode();
+    return root && Array.from(root.children).find((n) => {
+      return n.classList.contains(classNameSought);
+    });
+  }, [splitPaneNode]);
 
   const primaryPaneNode = useCallback((): Element | undefined => {
     return findChildByClass(`Pane${primary === 'first' ? 1 : 2}`);

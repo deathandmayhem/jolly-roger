@@ -57,8 +57,10 @@ const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {
 };
 
 const [HuntCodec, HuntOverrides] = inheritSchema(
-  BaseCodec, HuntFields,
-  BaseOverrides, HuntFieldsOverrides,
+  BaseCodec,
+  HuntFields,
+  BaseOverrides,
+  HuntFieldsOverrides,
 );
 export { HuntCodec };
 export type HuntType = t.TypeOf<typeof HuntCodec>;

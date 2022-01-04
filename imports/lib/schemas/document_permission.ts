@@ -23,8 +23,10 @@ const DocumentPermissionFieldsOverrides: Overrides<t.TypeOf<typeof DocumentPermi
 };
 
 const [DocumentPermissionCodec, DocumentPermissionOverrides] = inheritSchema(
-  BaseCodec, DocumentPermissionFields,
-  BaseOverrides, DocumentPermissionFieldsOverrides,
+  BaseCodec,
+  DocumentPermissionFields,
+  BaseOverrides,
+  DocumentPermissionFieldsOverrides,
 );
 export { DocumentPermissionCodec };
 export type DocumentPermissionType = t.TypeOf<typeof DocumentPermissionCodec>;

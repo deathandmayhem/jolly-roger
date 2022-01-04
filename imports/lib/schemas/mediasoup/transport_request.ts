@@ -34,8 +34,10 @@ const TransportRequestFieldsOverrides: Overrides<t.TypeOf<typeof TransportReques
 };
 
 const [TransportRequestCodec, TransportRequestOverrides] = inheritSchema(
-  BaseCodec, TransportRequestFields,
-  BaseOverrides, TransportRequestFieldsOverrides,
+  BaseCodec,
+  TransportRequestFields,
+  BaseOverrides,
+  TransportRequestFieldsOverrides,
 );
 
 export { TransportRequestCodec };

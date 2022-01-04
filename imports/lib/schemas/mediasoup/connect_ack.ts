@@ -39,8 +39,10 @@ const ConnectAckFieldsOverrides: Overrides<t.TypeOf<typeof ConnectAckFields>> = 
 };
 
 const [ConnectAckCodec, ConnectAckOverrides] = inheritSchema(
-  BaseCodec, ConnectAckFields,
-  BaseOverrides, ConnectAckFieldsOverrides,
+  BaseCodec,
+  ConnectAckFields,
+  BaseOverrides,
+  ConnectAckFieldsOverrides,
 );
 
 export { ConnectAckCodec };
