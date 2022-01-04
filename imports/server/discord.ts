@@ -1,6 +1,7 @@
-import { HTTP } from 'meteor/http';
+import { fetch } from 'meteor/fetch';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
+import { Promise as MeteorPromise } from 'meteor/promise';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import { API_BASE, DiscordOAuthScopes } from '../lib/discord';
 
@@ -11,26 +12,33 @@ class DiscordAPIClient {
     this.accessToken = accessToken;
   }
 
-  retrieveUserInfo = () => {
-    let response;
+  retrieveUserInfo = async () => {
+    let response: Response;
     try {
-      response = HTTP.get(`${API_BASE}/users/@me`, {
+      response = await fetch(`${API_BASE}/users/@me`, {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
         },
       });
-    } catch (err) {
+    } catch (e) {
+      throw new Meteor.Error(`Failed to retrieve user data from Discord. ${e instanceof Error ? e.message : e}`);
+    }
+
+    if (!response.ok) {
+      const text = await response.text();
       throw Object.assign(
-        new Meteor.Error(`Failed to retrieve user data from Discord. ${err.message}`),
-        { response: err.response }
+        new Meteor.Error(`Failed to retrieve user data from Discord. ${response.statusText}`),
+        { response: text }
       );
     }
 
+    const data = await response.json();
+
     return {
-      id: response.data.id,
-      username: response.data.username,
-      discriminator: response.data.discriminator,
-      avatar: response.data.avatar,
+      id: data.id,
+      username: data.username,
+      discriminator: data.discriminator,
+      avatar: data.avatar,
     };
   };
 }
@@ -42,7 +50,7 @@ class DiscordBot {
     this.botToken = botToken;
   }
 
-  authHeaders = () => {
+  authHeaders = (): RequestInit => {
     return {
       headers: {
         Authorization: `Bot ${this.botToken}`,
@@ -50,93 +58,126 @@ class DiscordBot {
     };
   };
 
-  listGuilds = () => {
-    const response = HTTP.get(`${API_BASE}/users/@me/guilds`, {
-      ...this.authHeaders(),
-    });
-
-    return response.data;
-  };
-
-  getUserInGuild = (discordUserId: string, guildId: string) => {
-    let response;
+  listGuilds = async () => {
+    let response: Response;
     try {
-      response = HTTP.get(`${API_BASE}/guilds/${guildId}/members/${discordUserId}`, {
-        ...this.authHeaders(),
-      });
-    } catch (err) {
-      if (err.response && err.response.statusCode === 404) {
-        // No such user.
-        return undefined;
-      }
+      response = await fetch(`${API_BASE}/users/@me/guilds`, this.authHeaders());
+    } catch (e) {
+      throw new Meteor.Error(`Failed to retrieve guilds from Discord. ${e instanceof Error ? e.message : e}`);
+    }
 
+    if (!response.ok) {
+      const text = await response.text();
       throw Object.assign(
-        new Meteor.Error(`Failed to retrieve guild ${guildId} member with discord user id ${discordUserId}. ${err.message}`),
-        { response: err.response }
+        new Meteor.Error(`Failed to retrieve guilds from Discord. ${response.statusText}`),
+        { response: text }
       );
     }
 
-    return response.data;
+    return response.json();
   };
 
-  addUserToGuild = (discordUserId: string, discordUserToken: string, guildId: string) => {
+  getUserInGuild = async (discordUserId: string, guildId: string) => {
+    let response: Response;
     try {
-      const opts = {
-        ...this.authHeaders(),
-        data: {
-          access_token: discordUserToken,
-        },
-      };
-      HTTP.put(`${API_BASE}/guilds/${guildId}/members/${discordUserId}`, opts);
-    } catch (err) {
+      response = await fetch(`${API_BASE}/guilds/${guildId}/members/${discordUserId}`, this.authHeaders());
+    } catch (e) {
+      throw new Meteor.Error(`Failed to retrieve guild ${guildId} member ${discordUserId} from Discord. ${e instanceof Error ? e.message : e}`);
+    }
+
+    if (response.status === 404) {
+      // No such user
+      return undefined;
+    }
+
+    if (!response.ok) {
+      const text = await response.text();
       throw Object.assign(
-        new Meteor.Error(`Failed to add discord user ${discordUserId} to guild ${guildId}. ${err.message}`),
-        { response: err.response }
+        new Meteor.Error(`Failed to retrieve guild ${guildId} member ${discordUserId} from Discord. ${response.statusText}`),
+        { response: text }
+      );
+    }
+
+    return response.json();
+  };
+
+  addUserToGuild = async (discordUserId: string, discordUserToken: string, guildId: string) => {
+    const opts = this.authHeaders();
+    opts.method = 'PUT';
+    opts.body = JSON.stringify({ access_token: discordUserToken });
+    opts.headers = { ...opts.headers, 'Content-Type': 'application/json' };
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE}/guilds/${guildId}/members/${discordUserId}`, opts);
+    } catch (e) {
+      throw new Meteor.Error(`Failed to add discord user ${discordUserId} to guild ${guildId}. ${e instanceof Error ? e.message : e}`);
+    }
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw Object.assign(
+        new Meteor.Error(`Failed to add discord user ${discordUserId} to guild ${guildId}. ${response.statusText}`),
+        { response: text }
       );
     }
   };
 
-  addUserToRole = (discordUserId: string, guildId: string, roleId: string) => {
+  addUserToRole = async (discordUserId: string, guildId: string, roleId: string) => {
+    let response: Response;
     try {
-      HTTP.put(`${API_BASE}/guilds/${guildId}/members/${discordUserId}/roles/${roleId}`, {
+      response = await fetch(`${API_BASE}/guilds/${guildId}/members/${discordUserId}/roles/${roleId}`, {
         ...this.authHeaders(),
+        method: 'PUT',
       });
-    } catch (err) {
+    } catch (e) {
+      throw new Meteor.Error(`Failed to add discord user ${discordUserId} to role ${roleId} (guild ${guildId}). ${e instanceof Error ? e.message : e}`);
+    }
+
+    if (!response.ok) {
+      const text = await response.text();
       throw Object.assign(
-        new Meteor.Error(`Failed to add discord user ${discordUserId} to role ${roleId} (guild ${guildId}). ${err.message}`),
-        { response: err.response }
+        new Meteor.Error(`Failed to add discord user ${discordUserId} to role ${roleId} (guild ${guildId}). ${response.statusText}`),
+        { response: text }
       );
     }
   }
 
-  listGuildChannels = (guildId: string) => {
-    let response;
+  listGuildChannels = async (guildId: string) => {
+    let response: Response;
     try {
-      const opts = {
-        ...this.authHeaders(),
-      };
-      response = HTTP.get(`${API_BASE}/guilds/${guildId}/channels`, opts);
-    } catch (err) {
+      response = await fetch(`${API_BASE}/guilds/${guildId}/channels`, this.authHeaders());
+    } catch (e) {
+      throw new Meteor.Error(`Failed to list channels of guild ${guildId}. ${e instanceof Error ? e.message : e}`);
+    }
+
+    if (!response.ok) {
+      const text = await response.text();
       throw Object.assign(
-        new Meteor.Error(`Failed to list channels of guild ${guildId}. ${err.message}`),
-        { response: err.response }
+        new Meteor.Error(`Failed to list channels of guild ${guildId}. ${response.statusText}`),
+        { response: text }
       );
     }
 
-    return response.data;
+    return response.json();
   };
 
-  postMessageToChannel = (channelId: string, message: object) => {
+  postMessageToChannel = async (channelId: string, message: object) => {
+    let response: Response;
     try {
-      const opts = {
-        ...this.authHeaders(),
-        data: message,
-      };
-      HTTP.post(`${API_BASE}/channels/${channelId}/messages`, opts);
-    } catch (err) {
+      const opts = this.authHeaders();
+      opts.method = 'POST';
+      opts.body = JSON.stringify(message);
+      opts.headers = { ...opts.headers, 'Content-Type': 'application/json' };
+      response = await fetch(`${API_BASE}/channels/${channelId}/messages`, opts);
+    } catch (e) {
+      throw new Meteor.Error(`Failed to post message to channel ${channelId}. ${e instanceof Error ? e.message : e}`);
+    }
+
+    if (!response.ok) {
+      const text = await response.text();
       throw Object.assign(
-        new Meteor.Error(`Failed to post message to channel ${channelId}. ${err.message}`),
-        { response: err.response }
+        new Meteor.Error(`Failed to post message to channel ${channelId}. ${response.statusText}`),
+        { response: text }
       );
     }
   };
@@ -148,36 +189,44 @@ const handleOauthRequest = (query: any) => {
     throw new Meteor.Error('Missing service configuration for discord');
   }
 
-  let response;
+  let response: Response;
   try {
-    response = HTTP.post(`${API_BASE}/oauth2/token`, {
-      params: {
+    response = MeteorPromise.await(fetch(`${API_BASE}/oauth2/token`, {
+      method: 'POST',
+      body: new URLSearchParams({
         client_id: config.appId,
         client_secret: OAuth.openSecret(config.secret),
         grant_type: 'authorization_code',
         code: query.code,
         redirect_uri: OAuth._redirectUri('discord', config),
         scope: DiscordOAuthScopes.join(' '),
-      },
-    });
-  } catch (err) {
+      }),
+    }));
+  } catch (e) {
+    throw new Meteor.Error(`Failed to complete OAuth handshake with Discord. ${e instanceof Error ? e.message : e}`);
+  }
+
+  if (!response.ok) {
+    const text = MeteorPromise.await(response.text());
     throw Object.assign(
-      new Meteor.Error(`Failed to complete OAuth handshake with Discord. ${err.message}`),
-      { response: err.response }
+      new Meteor.Error(`Failed to complete OAuth handshake with Discord. ${response.statusText}`),
+      { response: text }
     );
   }
 
+  const data = MeteorPromise.await(response.json());
+
   return {
     serviceData: {
-      accessToken: response.data.access_token,
-      tokenType: response.data.token_type,
-      refreshToken: response.data.refresh_token,
+      accessToken: data.access_token,
+      tokenType: data.token_type,
+      refreshToken: data.refresh_token,
       receivedAt: new Date(),
       // `expiresIn` is the number of seconds since `receivedAt` at which this
       // access token expires.  The refresh token is presumably good
       // indefinitely.
-      expiresIn: response.data.expires_in,
-      scope: response.data.scope,
+      expiresIn: data.expires_in,
+      scope: data.scope,
     },
   };
 };

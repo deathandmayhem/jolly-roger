@@ -1,8 +1,9 @@
 import { Accounts } from 'meteor/accounts-base';
 import { Match, check } from 'meteor/check';
+import { fetch } from 'meteor/fetch';
 import { Google } from 'meteor/google-oauth';
-import { HTTP } from 'meteor/http';
 import { Meteor } from 'meteor/meteor';
+import { Promise as MeteorPromise } from 'meteor/promise';
 import { Random } from 'meteor/random';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../ansible';
@@ -151,16 +152,18 @@ Meteor.methods({
     });
 
     // Test the client id/secret.
-    const authString = `${clientId}:${clientSecret}`;
-    const resp = HTTP.post(`${API_BASE}/oauth2/token`, {
-      auth: authString,
-      params: {
+    const resp = MeteorPromise.await(fetch(`${API_BASE}/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+      },
+      body: new URLSearchParams({
         grant_type: 'client_credentials',
         scope: 'identify',
-      },
-    });
+      }),
+    }));
 
-    if (resp.statusCode === 200) {
+    if (resp.ok) {
       ServiceConfiguration.configurations.upsert({ service: 'discord' }, {
         $set: {
           appId: clientId,
@@ -169,7 +172,8 @@ Meteor.methods({
         },
       });
     } else {
-      throw new Meteor.Error('Discord credential test failed');
+      const text = MeteorPromise.await(resp.text());
+      throw new Meteor.Error(`Discord credential test failed: ${text}`);
     }
   },
 
