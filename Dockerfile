@@ -30,7 +30,11 @@ RUN --mount=type=cache,target=/root/.npm meteor npm ci
 
 # Run lint
 COPY . /app
-RUN meteor npm run lint
+RUN <<EOF
+  set -eux
+  meteor npm run lint
+  meteor npm run test
+EOF
 
 # Generate production build
 RUN --mount=type=cache,target=/app/.meteor/local/ meteor build --allow-superuser --directory /built_app --server=http://localhost:3000
