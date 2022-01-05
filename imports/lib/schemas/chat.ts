@@ -29,8 +29,10 @@ const ChatMessageFieldsOverrides: Overrides<t.TypeOf<typeof ChatMessageFields>> 
 };
 
 const [ChatMessageCodec, ChatMessageOverrides] = inheritSchema(
-  BaseCodec, ChatMessageFields,
-  BaseOverrides, ChatMessageFieldsOverrides,
+  BaseCodec,
+  ChatMessageFields,
+  BaseOverrides,
+  ChatMessageFieldsOverrides,
 );
 export { ChatMessageCodec };
 export type ChatMessageType = t.TypeOf<typeof ChatMessageCodec>;

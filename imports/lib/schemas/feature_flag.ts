@@ -12,8 +12,10 @@ const FeatureFlagFields = t.type({
 });
 
 const [FeatureFlagCodec, FeatureFlagOverrides] = inheritSchema(
-  BaseCodec, FeatureFlagFields,
-  BaseOverrides, {},
+  BaseCodec,
+  FeatureFlagFields,
+  BaseOverrides,
+  {},
 );
 export { FeatureFlagCodec };
 export type FeatureFlagType = t.TypeOf<typeof FeatureFlagCodec>

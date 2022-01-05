@@ -1,0 +1,4 @@
+# eslint-import-resolver-typescript depends on the resolve package, whose test
+# suite includes malformed package.json files, which by default meteor will try
+# and fail to parse
+**/node_modules/*/test

@@ -45,8 +45,10 @@ const DocumentFieldsOverrides: Overrides<t.TypeOf<typeof DocumentFields>> = {
 };
 
 const [DocumentSchemaCodec, DocumentOverrides] = inheritSchema(
-  BaseCodec, DocumentFields,
-  BaseOverrides, DocumentFieldsOverrides,
+  BaseCodec,
+  DocumentFields,
+  BaseOverrides,
+  DocumentFieldsOverrides,
 );
 
 // Not named Document because Document is an interface reserved by the Web Platform

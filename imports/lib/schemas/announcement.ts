@@ -15,8 +15,10 @@ const AnnouncementFieldsOverrides: Overrides<t.TypeOf<typeof AnnouncementFields>
 };
 
 const [AnnouncementCodec, AnnouncementOverrides] = inheritSchema(
-  BaseCodec, AnnouncementFields,
-  BaseOverrides, AnnouncementFieldsOverrides,
+  BaseCodec,
+  AnnouncementFields,
+  BaseOverrides,
+  AnnouncementFieldsOverrides,
 );
 export { AnnouncementCodec };
 export type AnnouncementType = t.TypeOf<typeof AnnouncementCodec>;

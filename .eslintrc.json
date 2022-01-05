@@ -48,6 +48,10 @@
         ]
       }
     ],
+    "camelcase": ["error", {
+      "properties": "never",
+      "allow": ["__meteor_runtime_config__"]
+    }],
 
     // We have files with multiple React components.  Maybe we should split them out
     // later, but right now I don't want to deal with this
@@ -106,6 +110,9 @@
     }],
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "react/destructuring-assignment": ["off"],
+    "react/function-component-definition": ["error", {
+      "namedComponents": "arrow-function"
+    }],
     "jsx-a11y/accessible-emoji": ["off"],
     "jsx-a11y/click-events-have-key-events": ["off"],
     "jsx-a11y/no-static-element-interactions": ["off"],

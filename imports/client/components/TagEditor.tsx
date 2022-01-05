@@ -5,7 +5,8 @@ import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
 import Loading from './Loading';
 
-const Creatable = React.lazy(() => import('react-select/creatable'));
+// Casting away the React.lazy because otherwise we lose access to the generic parameter
+const Creatable = React.lazy(() => import('react-select/creatable')) as typeof import('react-select/creatable').default;
 
 interface TagEditorProps {
   puzzle: PuzzleType;
@@ -45,7 +46,7 @@ const TagEditor = (props: TagEditorProps) => {
           options={options}
           autoFocus
           openMenuOnFocus
-          onChange={(v: typeof options[0]) => props.onSubmit((v as {value: string}).value)}
+          onChange={(v) => v && props.onSubmit(v.value)}
           onBlur={onBlur}
         />
       </span>

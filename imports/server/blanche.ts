@@ -8,12 +8,12 @@ const blanche = (args: string[]): string => {
   try {
     return execFile('blanche', args, { stdio: ['ignore', 'pipe', process.stderr] });
   } catch (e) {
-    if (e.code !== 'ENOENT') {
-      throw e;
+    if (e instanceof Error && (e as any).code === 'ENOENT') {
+      Ansible.warn('Would run blanche, but it\'s not available', { args });
+      return '';
     }
 
-    Ansible.warn('Would run blanche, but it\'s not available', { args });
-    return '';
+    throw e;
   }
 };
 

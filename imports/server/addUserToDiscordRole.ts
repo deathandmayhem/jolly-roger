@@ -1,3 +1,4 @@
+import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../ansible';
 import Flags from '../flags';
 import Hunts from '../lib/models/hunts';
@@ -46,9 +47,9 @@ export default (userId: string, huntId: string) => {
 
   const discord = new DiscordBot(botToken);
   try {
-    discord.addUserToRole(profile.discordAccount.id, guild.id, roleId);
+    MeteorPromise.await(discord.addUserToRole(profile.discordAccount.id, guild.id, roleId));
     Ansible.log('Successfully added user to Discord role', { userId, huntId, roleId });
   } catch (e) {
-    Ansible.log('Error while adding user to Discord role', { err: e.message });
+    Ansible.log('Error while adding user to Discord role', { err: (e instanceof Error ? e.message : e) });
   }
 };

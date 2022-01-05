@@ -40,8 +40,10 @@ const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
 };
 
 const [PuzzleCodec, PuzzleOverrides] = inheritSchema(
-  BaseCodec, PuzzleFields,
-  BaseOverrides, PuzzleFieldsOverrides,
+  BaseCodec,
+  PuzzleFields,
+  BaseOverrides,
+  PuzzleFieldsOverrides,
 );
 export { PuzzleCodec };
 export type PuzzleType = t.TypeOf<typeof PuzzleCodec>;

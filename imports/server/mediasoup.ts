@@ -213,7 +213,7 @@ class SFU {
         peer: producer.appData.peer,
         transport: consumerTransport.id,
         producer: producer.id,
-        error: e.message,
+        error: (e instanceof Error ? e.message : e),
       });
     }
   }
@@ -401,7 +401,7 @@ class SFU {
     try {
       await router;
     } catch (e) {
-      Ansible.error('Error creating router', { call: room.call, error: e.message });
+      Ansible.error('Error creating router', { call: room.call, error: (e instanceof Error ? e.message : e) });
     }
   }
 
@@ -446,7 +446,7 @@ class SFU {
     try {
       await transports;
     } catch (e) {
-      Ansible.error('Error creating transport', { transport_request: transportRequest._id, error: e.message });
+      Ansible.error('Error creating transport', { transport_request: transportRequest._id, error: (e instanceof Error ? e.message : e) });
     }
   }
 
@@ -479,7 +479,7 @@ class SFU {
         createdBy: connectRequest.createdBy,
       });
     } catch (e) {
-      Ansible.error('Error connecting transport', { transport: transport.id, error: e.message });
+      Ansible.error('Error connecting transport', { transport: transport.id, error: (e instanceof Error ? e.message : e) });
     }
   }
 
@@ -508,7 +508,7 @@ class SFU {
     try {
       await mediasoupProducer;
     } catch (e) {
-      Ansible.error('Error creating producer', { producer: producer._id, error: e.message });
+      Ansible.error('Error creating producer', { producer: producer._id, error: (e instanceof Error ? e.message : e) });
     }
   }
 

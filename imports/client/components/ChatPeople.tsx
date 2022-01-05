@@ -33,9 +33,9 @@ interface PersonBoxProps extends ViewerSubscriber {
   children?: ReactChild;
 }
 
-function ViewerPersonBox({
+const ViewerPersonBox = ({
   user, name, discordAvatarUrl, tab, children,
-}: PersonBoxProps) {
+}: PersonBoxProps) => {
   return (
     <OverlayTrigger
       key={`viewer-${user}-${tab}`}
@@ -60,7 +60,7 @@ function ViewerPersonBox({
       </div>
     </OverlayTrigger>
   );
-}
+};
 
 interface ChatPeopleProps {
   huntId: string;

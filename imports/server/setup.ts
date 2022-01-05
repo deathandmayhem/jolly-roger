@@ -1,8 +1,9 @@
 import { Accounts } from 'meteor/accounts-base';
 import { Match, check } from 'meteor/check';
+import { fetch } from 'meteor/fetch';
 import { Google } from 'meteor/google-oauth';
-import { HTTP } from 'meteor/http';
 import { Meteor } from 'meteor/meteor';
+import { Promise as MeteorPromise } from 'meteor/promise';
 import { Random } from 'meteor/random';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../ansible';
@@ -87,8 +88,10 @@ Meteor.methods({
       email,
       user: this.userId,
     });
-    Settings.upsert({ name: 'gdrive.credential' },
-      { $set: { value: { refreshToken, email } } });
+    Settings.upsert(
+      { name: 'gdrive.credential' },
+      { $set: { value: { refreshToken, email } } }
+    );
   },
 
   clearGdriveCreds() {
@@ -115,15 +118,19 @@ Meteor.methods({
     // In an ideal world, maybe we'd verify that the document IDs we were given
     // are actually like valid documents that we can reach or something.
     if (spreadsheetTemplate) {
-      Settings.upsert({ name: 'gdrive.template.spreadsheet' },
-        { $set: { value: { id: spreadsheetTemplate } } });
+      Settings.upsert(
+        { name: 'gdrive.template.spreadsheet' },
+        { $set: { value: { id: spreadsheetTemplate } } }
+      );
     } else {
       Settings.remove({ name: 'gdrive.template.spreadsheet' });
     }
 
     if (documentTemplate) {
-      Settings.upsert({ name: 'gdrive.template.document' },
-        { $set: { value: { id: documentTemplate } } });
+      Settings.upsert(
+        { name: 'gdrive.template.document' },
+        { $set: { value: { id: documentTemplate } } }
+      );
     } else {
       Settings.remove({ name: 'gdrive.template.document' });
     }
@@ -151,16 +158,18 @@ Meteor.methods({
     });
 
     // Test the client id/secret.
-    const authString = `${clientId}:${clientSecret}`;
-    const resp = HTTP.post(`${API_BASE}/oauth2/token`, {
-      auth: authString,
-      params: {
+    const resp = MeteorPromise.await(fetch(`${API_BASE}/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+      },
+      body: new URLSearchParams({
         grant_type: 'client_credentials',
         scope: 'identify',
-      },
-    });
+      }),
+    }));
 
-    if (resp.statusCode === 200) {
+    if (resp.ok) {
       ServiceConfiguration.configurations.upsert({ service: 'discord' }, {
         $set: {
           appId: clientId,
@@ -169,7 +178,8 @@ Meteor.methods({
         },
       });
     } else {
-      throw new Meteor.Error('Discord credential test failed');
+      const text = MeteorPromise.await(resp.text());
+      throw new Meteor.Error(`Discord credential test failed: ${text}`);
     }
   },
 
@@ -184,8 +194,10 @@ Meteor.methods({
       Ansible.log('Configuring discord bot token (token redacted)', {
         user: this.userId,
       });
-      Settings.upsert({ name: 'discord.bot' },
-        { $set: { 'value.token': token } });
+      Settings.upsert(
+        { name: 'discord.bot' },
+        { $set: { 'value.token': token } }
+      );
     } else {
       Ansible.log('Discarding discord bot token', {
         user: this.userId,
@@ -236,8 +248,13 @@ Meteor.methods({
     }
   },
 
-  setupEmailBranding(from: unknown, enrollSubject: unknown, enrollMessage: unknown,
-    joinSubject: unknown, joinMessage: unknown) {
+  setupEmailBranding(
+    from: unknown,
+    enrollSubject: unknown,
+    enrollMessage: unknown,
+    joinSubject: unknown,
+    joinMessage: unknown
+  ) {
     check(this.userId, String);
     if (!userMayConfigureEmailBranding(this.userId)) {
       throw new Meteor.Error(401, 'Must be admin to configure email branding');

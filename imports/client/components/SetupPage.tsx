@@ -540,8 +540,13 @@ const EmailConfigForm = (props: EmailConfigFormProps) => {
     const trimmedExistingJoinMessageSubject = existingJoinSubject.trim();
     const trimmedExistingJoinMessage = existingJoinMessage.trim();
     setSubmitState(SubmitState.SUBMITTING);
-    Meteor.call('setupEmailBranding', trimmedFrom, trimmedEnrollAccountMessageSubject,
-      trimmedEnrollAccountMessage, trimmedExistingJoinMessageSubject, trimmedExistingJoinMessage,
+    Meteor.call(
+      'setupEmailBranding',
+      trimmedFrom,
+      trimmedEnrollAccountMessageSubject,
+      trimmedEnrollAccountMessage,
+      trimmedExistingJoinMessageSubject,
+      trimmedExistingJoinMessage,
       (error?: Error) => {
         if (error) {
           setSubmitError(error.message);
@@ -549,7 +554,8 @@ const EmailConfigForm = (props: EmailConfigFormProps) => {
         } else {
           setSubmitState(SubmitState.SUCCESS);
         }
-      });
+      }
+    );
   }, [from, enrollAccountSubject, enrollAccountMessage, existingJoinSubject, existingJoinMessage]);
 
   const shouldDisableForm = submitState === 'submitting';
@@ -870,7 +876,10 @@ const DiscordOAuthForm = (props: DiscordOAuthFormProps) => {
       setSubmitState(SubmitState.ERROR);
     } else {
       setSubmitState(SubmitState.SUBMITTING);
-      Meteor.call('setupDiscordOAuthClient', trimmedClientId, trimmedClientSecret,
+      Meteor.call(
+        'setupDiscordOAuthClient',
+        trimmedClientId,
+        trimmedClientSecret,
         (err?: Error) => {
           if (err) {
             setSubmitError(err.message);
@@ -878,7 +887,8 @@ const DiscordOAuthForm = (props: DiscordOAuthFormProps) => {
           } else {
             setSubmitState(SubmitState.SUCCESS);
           }
-        });
+        }
+      );
     }
   }, [clientId, clientSecret]);
 

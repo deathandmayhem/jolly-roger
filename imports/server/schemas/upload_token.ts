@@ -18,8 +18,10 @@ export const UploadTokenFields = t.type({
 const UploadTokenFieldsOverrides: Overrides<t.TypeOf<typeof UploadTokenFields>> = {};
 
 const [UploadTokenCodec, UploadTokenOverrides] = inheritSchema(
-  BaseCodec, UploadTokenFields,
-  BaseOverrides, UploadTokenFieldsOverrides
+  BaseCodec,
+  UploadTokenFields,
+  BaseOverrides,
+  UploadTokenFieldsOverrides
 );
 
 export type UploadTokenType = t.TypeOf<typeof UploadTokenCodec>;

@@ -2,6 +2,7 @@ import { check } from 'meteor/check';
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
+import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../ansible';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
@@ -84,7 +85,7 @@ Meteor.methods({
     // Use OAuth token to retrieve user's identifier
     const { accessToken } = credential.serviceData;
     const apiClient = new DiscordAPIClient(accessToken);
-    const userInfo = apiClient.retrieveUserInfo();
+    const userInfo = MeteorPromise.await(apiClient.retrieveUserInfo());
 
     // Save user's id, identifier, and avatar to their profile.
     Profiles.update(this.userId, {
@@ -104,14 +105,14 @@ Meteor.methods({
       // Invitations to the guild must be performed by the bot user.
       const bot = new DiscordBot(botToken);
       // If the user is already in the guild, no need to add them again.
-      const guildMember = bot.getUserInGuild(userInfo.id, guild.id);
+      const guildMember = MeteorPromise.await(bot.getUserInGuild(userInfo.id, guild.id));
       if (!guildMember) {
         Ansible.log('Adding user to guild', {
           user: this.userId,
           discordUser: userInfo.id,
           guild: guild.id,
         });
-        bot.addUserToGuild(userInfo.id, accessToken, guild.id);
+        MeteorPromise.await(bot.addUserToGuild(userInfo.id, accessToken, guild.id));
       } else {
         Ansible.log('User is already a member of guild', {
           user: this.userId,

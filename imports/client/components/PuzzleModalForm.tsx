@@ -8,15 +8,19 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
+import type { ActionMeta } from 'react-select';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
 import LabelledRadioGroup from './LabelledRadioGroup';
 import Loading from './Loading';
 import ModalForm, { ModalFormHandle } from './ModalForm';
 
-const Creatable = React.lazy(() => import('react-select/creatable'));
+// Casting away the React.lazy because otherwise we lose access to the generic parameter
+const Creatable = React.lazy(() => import('react-select/creatable')) as typeof import('react-select/creatable').default;
 
 /* eslint-disable max-len */
+
+type TagSelectOption = { value: string, label: string };
 
 export interface PuzzleModalFormSubmitPayload {
   hunt: string;
@@ -46,9 +50,7 @@ export type PuzzleModalFormHandle = {
   show: () => void;
 }
 
-const PuzzleModalForm = React.forwardRef((
-  props: PuzzleModalFormProps, forwardedRef: React.Ref<PuzzleModalFormHandle>
-) => {
+const PuzzleModalForm = React.forwardRef((props: PuzzleModalFormProps, forwardedRef: React.Ref<PuzzleModalFormHandle>) => {
   const {
     huntId, puzzle, tags: propsTags, onSubmit, showOnMount,
   } = props;
@@ -86,9 +88,7 @@ const PuzzleModalForm = React.forwardRef((
     setUrlDirty(true);
   }, []);
 
-  const onTagsChange = useCallback((
-    value: {label: string, value: string}[] | undefined | null, action: { action: string }
-  ) => {
+  const onTagsChange = useCallback((value: readonly TagSelectOption[], action: ActionMeta<TagSelectOption>) => {
     let newTags = [];
     switch (action.action) {
       case 'clear':
@@ -97,8 +97,7 @@ const PuzzleModalForm = React.forwardRef((
       case 'pop-value':
       case 'remove-value':
       case 'select-option':
-      case 'set-value':
-        newTags = value ? value.map((v) => v.value) : [];
+        newTags = value.map((v) => v.value);
         break;
       default:
         return;
@@ -199,7 +198,7 @@ const PuzzleModalForm = React.forwardRef((
 
   const disableForm = submitState === PuzzleModalFormSubmitState.SUBMITTING;
 
-  const selectOptions = [...propsTags.map((t) => t.name), ...tags]
+  const selectOptions: TagSelectOption[] = [...propsTags.map((t) => t.name), ...tags]
     .filter(Boolean)
     .map((t) => {
       return { value: t, label: t };
@@ -280,8 +279,8 @@ const PuzzleModalForm = React.forwardRef((
               id="jr-new-puzzle-tags"
               options={selectOptions}
               isMulti
-              disabled={disableForm}
-              onChange={onTagsChange as any /* onChange type declaration doesn't understand isMulti */}
+              isDisabled={disableForm}
+              onChange={onTagsChange}
               value={currentTags.map((t) => { return { label: t, value: t }; })}
             />
           </Col>

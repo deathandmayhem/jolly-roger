@@ -2,7 +2,6 @@
 import { Mongo } from 'meteor/mongo';
 import { OAuth } from 'meteor/oauth';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
-import { OAuth2Client } from 'google-auth-library';
 import { google, drive_v3 } from 'googleapis';
 import Settings from '../lib/models/settings';
 import { SettingType } from '../lib/schemas/setting';
@@ -10,15 +9,15 @@ import { SettingType } from '../lib/schemas/setting';
 class GDriveClientRefresher {
   public gdrive?: drive_v3.Drive;
 
-  private oauthClient?: OAuth2Client;
+  private oauthClient?: InstanceType<typeof google.auth.OAuth2>;
 
   private oauthConfig?: Configuration;
 
   private oauthRefreshToken?: string;
 
-  private oauthConfigCursor: Mongo.Cursor<Configuration>
+  private oauthConfigCursor: Mongo.Cursor<Configuration>;
 
-  private oauthCredentialCursor: Mongo.Cursor<SettingType>
+  private oauthCredentialCursor: Mongo.Cursor<SettingType>;
 
   constructor() {
     this.gdrive = undefined;

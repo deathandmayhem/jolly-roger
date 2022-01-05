@@ -19,8 +19,10 @@ const ProfileFieldsOverrides: Overrides<t.TypeOf<typeof ProfileFieldsType>> = {
 };
 
 const [ProfileCodec, ProfileOverrides] = inheritSchema(
-  BaseCodec, ProfileFieldsType,
-  BaseOverrides, ProfileFieldsOverrides,
+  BaseCodec,
+  ProfileFieldsType,
+  BaseOverrides,
+  ProfileFieldsOverrides,
 );
 export { ProfileCodec };
 export type ProfileType = t.TypeOf<typeof ProfileCodec>;

@@ -23,8 +23,10 @@ const RoomFieldsOverrides: Overrides<t.TypeOf<typeof RoomFields>> = {
 };
 
 const [RoomCodec, RoomOverrides] = inheritSchema(
-  BaseCodec, RoomFields,
-  BaseOverrides, RoomFieldsOverrides,
+  BaseCodec,
+  RoomFields,
+  BaseOverrides,
+  RoomFieldsOverrides,
 );
 
 export { RoomCodec };

@@ -58,8 +58,12 @@ const DEFAULT_EXISTING_JOIN_TEMPLATE = 'Hiya!\n' +
     '\n' +
     'This message was sent to {{email}}';
 
-function renderExistingJoinEmail(setting: SettingType | undefined, user: Meteor.User | null,
-  hunt: HuntType, joinerName: string | null) {
+function renderExistingJoinEmail(
+  setting: SettingType | undefined,
+  user: Meteor.User | null,
+  hunt: HuntType,
+  joinerName: string | null
+) {
   const email = user && user.emails && user.emails[0] && user.emails[0].address;
   const view = {
     siteName: Accounts.emailTemplates.siteName,
@@ -243,7 +247,7 @@ Meteor.methods({
       throw new Meteor.Error(404, 'Unknown hunt');
     }
 
-    const errors: { email: string, error: Meteor.Error }[] = [];
+    const errors: { email: string, error: any }[] = [];
     emails.forEach((email) => {
       try {
         Meteor.call('addToHunt', huntId, email);
@@ -254,7 +258,7 @@ Meteor.methods({
 
     if (errors.length > 0) {
       const message = errors.map(({ email, error }) => {
-        const err = (error as any).sanitizedError ?? error;
+        const err = error.sanitizedError ?? error;
         return `${email}: ${err.reason}`;
       })
         .join('\n');
