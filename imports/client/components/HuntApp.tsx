@@ -127,7 +127,7 @@ const HuntApp = React.memo(() => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
 
   const { huntId } = useParams<HuntAppParams>();
-  const { path } = useRouteMatch();
+  const { path, url } = useRouteMatch();
   const tracker = useTracker<HuntAppTracker>(() => {
     const userHandle = Meteor.subscribe('selfHuntMembership');
     // Subscribe to deleted and non-deleted hunts separately so that we can reuse
@@ -181,24 +181,17 @@ const HuntApp = React.memo(() => {
     return (
       <Route path="/">
         <Switch>
-          <Route path={`${path}/announcements`} component={AnnouncementsPage} />
-          <Route path={`${path}/guesses`} component={GuessQueuePage} />
-          <Route path={`${path}/hunters`} component={HuntProfileListPage} />
-          <Route path={`${path}/puzzles/:puzzleId`} component={PuzzlePage} />
-          <Route path={`${path}/puzzles`} component={PuzzleListPage} />
-          <Route
-            path={`${path}`}
-            exact
-            render={() => {
-              return <Redirect to={`/hunts/${huntId}/puzzles`} />;
-            }}
-          />
+          <Route path={`${path}/announcements`} render={() => <AnnouncementsPage />} />
+          <Route path={`${path}/guesses`} render={() => <GuessQueuePage />} />
+          <Route path={`${path}/hunters`} render={() => <HuntProfileListPage />} />
+          <Route path={`${path}/puzzles/:puzzleId`} render={() => <PuzzlePage />} />
+          <Route path={`${path}/puzzles`} render={() => <PuzzleListPage />} />
+          <Route path={`${path}`} exact render={() => <Redirect to={`${url}/puzzles`} />} />
         </Switch>
       </Route>
     );
   }, [
-    tracker.ready, tracker.member, tracker.hunt, tracker.canUndestroy, tracker.canJoin, path,
-    huntId,
+    tracker.ready, tracker.member, tracker.hunt, tracker.canUndestroy, tracker.canJoin, path, url,
   ]);
 
   return (

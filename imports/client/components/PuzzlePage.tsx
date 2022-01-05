@@ -22,6 +22,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
 import Table from 'react-bootstrap/Table';
 import Tooltip from 'react-bootstrap/Tooltip';
+import { useParams } from 'react-router';
 import TextareaAutosize from 'react-textarea-autosize';
 import Ansible from '../../ansible';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
@@ -48,7 +49,6 @@ import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
 import FixedLayout from './styling/FixedLayout';
-import { useParams } from 'react-router';
 
 /* eslint-disable max-len, no-console */
 

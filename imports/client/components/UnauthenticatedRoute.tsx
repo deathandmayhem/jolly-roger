@@ -1,26 +1,16 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React, { useEffect, useState } from 'react';
-import { Redirect, Route, useLocation } from 'react-router';
+import {
+  Redirect, Route, RouteProps, useLocation,
+} from 'react-router';
 import SplashPage from './SplashPage';
 
-// UnauthenticatedRouteProps is intended to support and forward a subset of
-// react-router's RouteProps with the additional constraint that only
-// `component` is allowed (not `render` nor `children`)
-interface UnauthenticatedRouteProps {
-  component: React.ComponentType<any>;
-  path: string | string[];
-  exact?: boolean;
-  sensitive?: boolean;
-  strict?: boolean;
-}
-
 interface UnauthWrapperProps {
-  component: React.ComponentType<any>;
+  render: () => React.ReactNode;
 }
 
-// JSX is case-sensitive, so uppercase component before attempting to render.
-const UnauthWrapper = React.memo(({ component: Component }: UnauthWrapperProps) => {
+const UnauthWrapper = React.memo(({ render }: UnauthWrapperProps) => {
   const location = useLocation();
 
   const tracker = useTracker(() => {
@@ -57,19 +47,19 @@ const UnauthWrapper = React.memo(({ component: Component }: UnauthWrapperProps) 
   }
 
   return (
-    <Component />
+    <SplashPage>
+      {render()}
+    </SplashPage>
   );
 });
 
-const UnauthenticatedRoute = React.memo((unauthedRouteProps: UnauthenticatedRouteProps) => {
-  // Pull off the component, which we'll pass to UnauthWrapper.
+const UnauthenticatedRoute = React.memo((props: Exclude<RouteProps, 'component' | 'children'> & UnauthWrapperProps) => {
+  // Pull off the render method, which we'll pass to UnauthWrapper.
   // The rest of the props are from RouteProps
-  const { component, ...rest } = unauthedRouteProps;
+  const { render, ...rest } = props;
   return (
     <Route {...rest}>
-      <SplashPage>
-        <UnauthWrapper component={component} />
-      </SplashPage>
+      <UnauthWrapper render={render} />
     </Route>
   );
 });

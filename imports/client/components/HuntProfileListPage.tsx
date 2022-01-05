@@ -1,7 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import { Route, Switch, useParams, useRouteMatch } from 'react-router';
+import {
+  Route, Switch, useParams, useRouteMatch,
+} from 'react-router';
 import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
 import { userMayAddUsersToHunt, userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
@@ -61,15 +63,18 @@ const HuntProfileListPage = () => {
 
   return (
     <Switch>
-      <Route path={`${path}/invite`} component={UserInvitePage} />
-      <Route path={`${path}`}>
-        <ProfileList
-          profiles={tracker.profiles}
-          huntId={huntId}
-          canInvite={tracker.canInvite}
-          canSyncDiscord={tracker.canSyncDiscord}
-        />
-      </Route>
+      <Route path={`${path}/invite`} render={() => <UserInvitePage />} />
+      <Route
+        path={`${path}`}
+        render={() => (
+          <ProfileList
+            profiles={tracker.profiles}
+            huntId={huntId}
+            canInvite={tracker.canInvite}
+            canSyncDiscord={tracker.canSyncDiscord}
+          />
+        )}
+      />
     </Switch>
   );
 };

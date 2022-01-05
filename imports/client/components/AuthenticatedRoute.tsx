@@ -2,27 +2,15 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React, { useEffect, useState } from 'react';
 import {
-  Redirect, Route, useLocation,
+  Redirect, Route, RouteProps, useLocation,
 } from 'react-router';
 import App from './App';
 
-// AuthenticatedRouteProps is intended to support and forward a subset of
-// react-router's RouteProps with the additional constraint that only
-// `component` is allowed (not `render` nor `children`)
-interface AuthenticatedRouteProps {
-  component: React.ComponentType<any>;
-  path: string | string[];
-  exact?: boolean;
-  sensitive?: boolean;
-  strict?: boolean;
-}
-
 interface AuthWrapperProps {
-  component: React.ComponentType<any>;
+  render: () => React.ReactNode;
 }
 
-/// JSX is case-sensitive so uppercase component before attempting to render.
-const AuthWrapper = React.memo(({ component: Component }: AuthWrapperProps) => {
+const AuthWrapper = React.memo(({ render }: AuthWrapperProps) => {
   const location = useLocation();
 
   const tracker = useTracker(() => {
@@ -60,18 +48,18 @@ const AuthWrapper = React.memo(({ component: Component }: AuthWrapperProps) => {
 
   return (
     <App>
-      <Component />
+      {render()}
     </App>
   );
 });
 
-const AuthenticatedRoute = React.memo((authedRouteProps: AuthenticatedRouteProps) => {
+const AuthenticatedRoute = React.memo((props: Exclude<RouteProps, 'component' | 'children'> & AuthWrapperProps) => {
   // Pull off the component, which we'll pass to AuthWrapperContainer.
   // The rest of the props are from RouteProps
-  const { component, ...rest } = authedRouteProps;
+  const { render, ...rest } = props;
   return (
     <Route {...rest}>
-      <AuthWrapper component={component} />
+      <AuthWrapper render={render} />
     </Route>
   );
 });

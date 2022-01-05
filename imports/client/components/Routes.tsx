@@ -26,21 +26,21 @@ const Routes = React.memo(() => {
       <Suspense fallback={<Loading />}>
         <Switch>
           {/* Index redirect */}
-          <Route exact path="/" component={RootRedirector} />
+          <Route exact path="/" render={() => <RootRedirector />} />
 
           {/* Authenticated routes - if user not logged in, get redirected to /login */}
-          <AuthenticatedRoute path="/hunts/:huntId" component={HuntApp} />
-          <AuthenticatedRoute path="/hunts" component={HuntListPage} />
-          <AuthenticatedRoute path="/users/:userId" component={ProfilePage} />
-          <AuthenticatedRoute path="/users" component={AllProfileListPage} />
-          <AuthenticatedRoute path="/setup" component={SetupPage} />
-          <AuthenticatedRoute path="/rtcdebug" component={RTCDebugPage} />
+          <AuthenticatedRoute path="/hunts/:huntId" render={() => <HuntApp />} />
+          <AuthenticatedRoute path="/hunts" render={() => <HuntListPage />} />
+          <AuthenticatedRoute path="/users/:userId" render={() => <ProfilePage />} />
+          <AuthenticatedRoute path="/users" render={() => <AllProfileListPage />} />
+          <AuthenticatedRoute path="/setup" render={() => <SetupPage />} />
+          <AuthenticatedRoute path="/rtcdebug" render={() => <RTCDebugPage />} />
 
           {/* Unauthenticated routes - if user already logged in, get redirected to /hunts */}
-          <UnauthenticatedRoute path="/login" component={LoginForm} />
-          <UnauthenticatedRoute path="/reset-password/:token" component={PasswordResetForm} />
-          <UnauthenticatedRoute path="/enroll/:token" component={EnrollForm} />
-          <UnauthenticatedRoute path="/create-first-user" component={FirstUserForm} />
+          <UnauthenticatedRoute path="/login" render={() => <LoginForm />} />
+          <UnauthenticatedRoute path="/reset-password/:token" render={() => <PasswordResetForm />} />
+          <UnauthenticatedRoute path="/enroll/:token" render={() => <EnrollForm />} />
+          <UnauthenticatedRoute path="/create-first-user" render={() => <FirstUserForm />} />
         </Switch>
       </Suspense>
     </BreadcrumbsProvider>
