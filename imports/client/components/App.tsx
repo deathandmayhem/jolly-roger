@@ -3,8 +3,6 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useMemo } from 'react';
-import BSBreadcrumb from 'react-bootstrap/Breadcrumb';
-import BreadcrumbItem from 'react-bootstrap/BreadcrumbItem';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownItem from 'react-bootstrap/DropdownItem';
 import DropdownMenu from 'react-bootstrap/DropdownMenu';
@@ -33,23 +31,32 @@ interface AppNavbarTracker {
   brandSrc2x: string;
 }
 
-const Breadcrumb = styled(BSBreadcrumb)`
+const Breadcrumb = styled.nav`
   display: flex;
   align-items: center;
   height: ${NavBarHeight};
   flex: 1;
+`;
 
-  ol {
-    display: block;
-    background-color: transparent;
-    max-height: 100%;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
+const BreadcrumbList = styled.ol`
+  list-style: none;
+  display: block;
+  max-height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+`;
 
-    li {
-      display: inline;
-      text-indent: 0;
+const BreadcrumbItem = styled.li`
+  display: inline;
+  text-indent: 0;
+  color: #6c757d;
+
+  + li {
+    padding-left: 0.5rem;
+    &:before {
+      content: '/';
+      padding-right: 0.5rem;
     }
   }
 `;
@@ -95,25 +102,29 @@ const AppNavbar = (props: RouteComponentProps) => {
   const crumbs = useBreadcrumbItems();
   const breadcrumbsComponent = useMemo(() => {
     return (
-      <Breadcrumb>
-        {crumbs.map((crumb, index) => {
-          const last = (index === crumbs.length - 1);
-          if (last) {
-            return (
-              <BreadcrumbItem key={crumb.path} active>
-                {crumb.title}
-              </BreadcrumbItem>
-            );
-          } else {
-            return (
-              <RRBS.LinkContainer key={crumb.path} to={crumb.path}>
-                <BreadcrumbItem active={false}>
+      <Breadcrumb aria-label="breadcrumb">
+        <BreadcrumbList>
+          {crumbs.map((crumb, index) => {
+            const last = (index === crumbs.length - 1);
+            if (last) {
+              return (
+                <BreadcrumbItem key={crumb.path} aria-current="page">
                   {crumb.title}
                 </BreadcrumbItem>
-              </RRBS.LinkContainer>
-            );
-          }
-        })}
+              );
+            } else {
+              return (
+                <BreadcrumbItem
+                  key={crumb.path}
+                >
+                  <Link to={crumb.path}>
+                    {crumb.title}
+                  </Link>
+                </BreadcrumbItem>
+              );
+            }
+          })}
+        </BreadcrumbList>
       </Breadcrumb>
     );
   }, [crumbs]);
