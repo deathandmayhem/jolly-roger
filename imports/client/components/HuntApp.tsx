@@ -5,7 +5,7 @@ import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import {
-  RouteComponentProps, Switch, Redirect, Route,
+  Switch, Redirect, Route, useParams, useRouteMatch,
 } from 'react-router';
 import { useHistory } from 'react-router-dom';
 import Hunts from '../../lib/models/hunts';
@@ -123,12 +123,11 @@ interface HuntAppTracker {
   canJoin: boolean;
 }
 
-const HuntApp = React.memo((props: RouteComponentProps<HuntAppParams>) => {
+const HuntApp = React.memo(() => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
 
-  const { match } = props;
-  const { path } = match;
-  const { huntId } = match.params;
+  const { huntId } = useParams<HuntAppParams>();
+  const { path } = useRouteMatch();
   const tracker = useTracker<HuntAppTracker>(() => {
     const userHandle = Meteor.subscribe('selfHuntMembership');
     // Subscribe to deleted and non-deleted hunts separately so that we can reuse

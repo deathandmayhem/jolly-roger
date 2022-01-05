@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router';
 import Profiles from '../../lib/models/profiles';
 import {
   deprecatedUserMayMakeOperator,
@@ -25,10 +25,10 @@ interface ProfilePageTracker {
   targetIsOperator: boolean;
 }
 
-const ProfilePage = (props: RouteComponentProps<ProfilePageParams>) => {
+const ProfilePage = () => {
   useBreadcrumb({ title: 'Users', path: '/users' });
 
-  const { userId } = props.match.params;
+  const { userId } = useParams<ProfilePageParams>();
   const tracker = useTracker<ProfilePageTracker>(() => {
     const uid = userId === 'me' ? Meteor.userId()! : userId;
 

@@ -1,25 +1,28 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React, { useEffect, useState } from 'react';
-import { Redirect, Route, RouteComponentProps } from 'react-router';
+import { Redirect, Route, useLocation } from 'react-router';
 import SplashPage from './SplashPage';
 
 // UnauthenticatedRouteProps is intended to support and forward a subset of
 // react-router's RouteProps with the additional constraint that only
 // `component` is allowed (not `render` nor `children`)
 interface UnauthenticatedRouteProps {
-  component: React.ComponentType<RouteComponentProps<any>> | React.ComponentType<any>;
+  component: React.ComponentType<any>;
   path: string | string[];
   exact?: boolean;
   sensitive?: boolean;
   strict?: boolean;
 }
 
-interface UnauthWrapperProps extends RouteComponentProps {
-  component: React.ComponentType<RouteComponentProps<any>> | React.ComponentType<any>;
+interface UnauthWrapperProps {
+  component: React.ComponentType<any>;
 }
 
-const UnauthWrapper = React.memo((props: UnauthWrapperProps) => {
+// JSX is case-sensitive, so uppercase component before attempting to render.
+const UnauthWrapper = React.memo(({ component: Component }: UnauthWrapperProps) => {
+  const location = useLocation();
+
   const tracker = useTracker(() => {
     return {
       loggingIn: Meteor.loggingIn(),
@@ -38,18 +41,12 @@ const UnauthWrapper = React.memo((props: UnauthWrapperProps) => {
     }
   }, [loading, tracker.loggingIn]);
 
-  // JSX is case-sensitive, so uppercase component before attempting to render.
-  // Peel off the other wrapper-specific props while we're here.
-  const {
-    component: Component, ...rest
-  } = props;
-
   if (loading) {
     return <div />;
   }
 
   if (tracker.userId) {
-    const state = { pathname: '/', search: undefined, ...(props.location.state as any) };
+    const state = { pathname: '/', search: undefined, ...(location.state as any) };
     return (
       <Redirect to={{
         pathname: state.pathname,
@@ -60,26 +57,20 @@ const UnauthWrapper = React.memo((props: UnauthWrapperProps) => {
   }
 
   return (
-    <Component {...rest} />
+    <Component />
   );
 });
 
 const UnauthenticatedRoute = React.memo((unauthedRouteProps: UnauthenticatedRouteProps) => {
   // Pull off the component, which we'll pass to UnauthWrapper.
-  // The rest of the props are from RouteProps, to which we'll add our
-  // custom `render`.
+  // The rest of the props are from RouteProps
   const { component, ...rest } = unauthedRouteProps;
   return (
-    <Route
-      {...rest}
-      render={(genericRouteProps: RouteComponentProps) => {
-        return (
-          <SplashPage>
-            <UnauthWrapper component={component} {...genericRouteProps} />
-          </SplashPage>
-        );
-      }}
-    />
+    <Route {...rest}>
+      <SplashPage>
+        <UnauthWrapper component={component} />
+      </SplashPage>
+    </Route>
   );
 });
 

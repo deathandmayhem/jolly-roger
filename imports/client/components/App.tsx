@@ -12,7 +12,7 @@ import NavItem from 'react-bootstrap/NavItem';
 import NavLink from 'react-bootstrap/NavLink';
 import Navbar from 'react-bootstrap/Navbar';
 import NavbarBrand from 'react-bootstrap/NavbarBrand';
-import { RouteComponentProps } from 'react-router';
+import { useHistory } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
@@ -72,7 +72,7 @@ const Brand = styled.img`
   height: ${NavBarHeight};
 `;
 
-const AppNavbar = (props: RouteComponentProps) => {
+const AppNavbar = () => {
   const tracker = useTracker<AppNavbarTracker>(() => {
     const userId = Meteor.userId()!;
     const profileSub = Meteor.subscribe('mongo.profiles', { _id: userId });
@@ -90,14 +90,15 @@ const AppNavbar = (props: RouteComponentProps) => {
     };
   }, []);
 
+  const history = useHistory();
   const logout = useCallback(() => {
     // Logout, then immediately redirect to the login page
     Meteor.logout(() => {
-      props.history.replace({
+      history.replace({
         pathname: '/login',
       });
     });
-  }, [props.history]);
+  }, [history]);
 
   const crumbs = useBreadcrumbItems();
   const breadcrumbsComponent = useMemo(() => {
@@ -171,19 +172,14 @@ const AppNavbar = (props: RouteComponentProps) => {
   );
 };
 
-interface AppProps extends RouteComponentProps {
-  children: React.ReactNode;
-}
-
-const App = (props: AppProps) => {
-  const { children, ...routeComponentProps } = props;
+const App = ({ children }: { children: React.ReactNode }) => {
   return (
     <div>
       <NotificationCenter />
-      <AppNavbar {...routeComponentProps} />
+      <AppNavbar />
       <ConnectionStatus />
       <div className="container-fluid pt-2">
-        {props.children}
+        {children}
       </div>
     </div>
   );

@@ -8,8 +8,9 @@ import Button from 'react-bootstrap/Button';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
-import { RouteComponentProps } from 'react-router';
-import { Link } from 'react-router-dom';
+import {
+  Link, useHistory, useLocation, useParams,
+} from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import Guesses from '../../lib/models/guesses';
 import Hunts from '../../lib/models/hunts';
@@ -197,10 +198,7 @@ interface GuessQueuePageParams {
   huntId: string;
 }
 
-interface GuessQueuePageWithRouterParams extends RouteComponentProps<GuessQueuePageParams> {
-}
-
-interface GuessQueuePageProps extends GuessQueuePageWithRouterParams {
+interface GuessQueuePageProps {
   ready: boolean;
   hunt?: HuntType;
   guesses: GuessType[];
@@ -209,11 +207,14 @@ interface GuessQueuePageProps extends GuessQueuePageWithRouterParams {
   canEdit: boolean;
 }
 
-const GuessQueuePage = (props: GuessQueuePageWithRouterParams) => {
-  useBreadcrumb({ title: 'Guess queue', path: `/hunts/${props.match.params.huntId}/guesses` });
+const GuessQueuePage = () => {
+  const { huntId } = useParams<GuessQueuePageParams>();
+  const location = useLocation();
+  const history = useHistory();
+
+  useBreadcrumb({ title: 'Guess queue', path: `/hunts/${huntId}/guesses` });
 
   const tracker = useTracker(() => {
-    const huntId = props.match.params.huntId;
     const huntHandle = Meteor.subscribe('mongo.hunts', {
       _id: huntId,
     });
@@ -225,7 +226,7 @@ const GuessQueuePage = (props: GuessQueuePageWithRouterParams) => {
     });
     const displayNamesHandle = Profiles.subscribeDisplayNames();
     const ready = huntHandle.ready() && guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
-    const data: Pick<GuessQueuePageProps, Exclude<keyof GuessQueuePageProps, keyof GuessQueuePageWithRouterParams>> = {
+    const data: GuessQueuePageProps = {
       ready,
       guesses: [],
       puzzles: {},
@@ -240,7 +241,7 @@ const GuessQueuePage = (props: GuessQueuePageWithRouterParams) => {
     }
 
     return data;
-  }, [props.match.params.huntId]);
+  }, [huntId]);
 
   const searchBarRef = useRef<HTMLInputElement>(null);
 
@@ -262,27 +263,27 @@ const GuessQueuePage = (props: GuessQueuePageWithRouterParams) => {
   }, [maybeStealCtrlF]);
 
   const setSearchString = useCallback((val: string) => {
-    const u = new URLSearchParams(props.location.search);
+    const u = new URLSearchParams(location.search);
     if (val) {
       u.set('q', val);
     } else {
       u.delete('q');
     }
-    props.history.replace({
-      pathname: props.location.pathname,
+    history.replace({
+      pathname: location.pathname,
       search: u.toString(),
     });
-  }, [props.history, props.location]);
+  }, [history, location]);
 
   const onSearchStringChange: FormControlProps['onChange'] = useCallback((e) => {
     setSearchString(e.currentTarget.value);
   }, [setSearchString]);
 
   const getSearchString = useCallback((): string => {
-    const u = new URLSearchParams(props.location.search);
+    const u = new URLSearchParams(location.search);
     const s = u.get('q');
     return s || '';
-  }, [props.location.search]);
+  }, [location.search]);
 
   const clearSearch = useCallback(() => {
     setSearchString('');
