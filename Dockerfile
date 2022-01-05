@@ -86,7 +86,12 @@ COPY --from=build /built_app /built_app
 COPY scripts /built_app/scripts
 
 ARG GIT_REVISION
-RUN [ -n "$GIT_REVISION" ] && echo $GIT_REVISION > /built_app/GIT_REVISION
+RUN <<EOF
+  set -eux
+  if [ -n "$GIT_REVISION" ]; then
+    echo $GIT_REVISION > /built_app/GIT_REVISION
+  fi
+EOF
 
 ENV PORT 80
 EXPOSE 80
