@@ -1,14 +1,17 @@
 # syntax=docker/dockerfile:1.3-labs
 
-# Build and test image
-# (No need to worry about creating intermediate images)
+# Build and test images (No need to worry about creating intermediate images)
+#
+# We use separate stages for running lint and test vs. building the production
+# bundle so that they can run in parallel
 
-FROM ubuntu:18.04 AS build
+FROM ubuntu:18.04 AS buildenv
 
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install build deps
 RUN <<EOF
+  set -eux
   apt-get update
   apt-get install --no-install-recommends -y curl python3 python3-pip python3-dev python3-setuptools python3-wheel build-essential git
 EOF
@@ -28,9 +31,18 @@ EOF
 COPY package.json package-lock.json /app
 RUN --mount=type=cache,target=/root/.npm meteor npm ci
 
-# Run lint
 COPY . /app
-RUN meteor npm run lint
+
+FROM buildenv AS test
+
+# Run lint
+RUN <<EOF
+  set -eux
+  meteor npm run lint
+  meteor npm run test
+EOF
+
+FROM buildenv AS build
 
 # Generate production build
 RUN --mount=type=cache,target=/app/.meteor/local/ meteor build --allow-superuser --directory /built_app --server=http://localhost:3000
@@ -42,10 +54,11 @@ RUN --mount=type=cache,target=/root/.npm meteor npm install --production
 # Production image
 # (Be careful about creating as few layers as possible)
 
-FROM ubuntu:18.04
+FROM ubuntu:18.04 AS production
 
 # Install runtime deps
 RUN <<EOF
+  set -eux
   . /etc/os-release
 
   # Install apt https support for node.  Install gnupg so that apt-key add works.
@@ -73,7 +86,12 @@ COPY --from=build /built_app /built_app
 COPY scripts /built_app/scripts
 
 ARG GIT_REVISION
-RUN [ -n "$GIT_REVISION" ] && echo $GIT_REVISION > /built_app/GIT_REVISION
+RUN <<EOF
+  set -eux
+  if [ -n "$GIT_REVISION" ]; then
+    echo $GIT_REVISION > /built_app/GIT_REVISION
+  fi
+EOF
 
 ENV PORT 80
 EXPOSE 80
