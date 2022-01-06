@@ -1,13 +1,9 @@
 import React from 'react';
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 import AccountForm, { AccountFormFormat } from './AccountForm';
 
-interface EnrollFormParams {
-  token: string;
-}
-
 const EnrollForm = () => {
-  const { token } = useParams<EnrollFormParams>();
+  const token = useParams<'token'>().token!;
   return (
     <AccountForm format={AccountFormFormat.ENROLL} token={token} />
   );

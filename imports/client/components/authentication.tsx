@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React, { useEffect, useState } from 'react';
-import { Redirect, useLocation } from 'react-router';
+import { Navigate, useLocation } from 'react-router-dom';
 import App from './App';
 import SplashPage from './SplashPage';
 
@@ -38,11 +38,9 @@ export const AuthenticatedPage = ({ children }: { children: React.ReactNode }) =
   if (!loggedIn) {
     const { pathname, search } = location;
     return (
-      <Redirect
-        to={{
-          pathname: '/login',
-          state: { pathname, search },
-        }}
+      <Navigate
+        to="/login"
+        state={{ pathname, search }}
       />
     );
   }
@@ -60,7 +58,7 @@ export const UnauthenticatedPage = ({ children }: { children: React.ReactNode })
 
   if (loggedIn) {
     const { pathname = '/', search = undefined } = (location.state as any) || {};
-    return <Redirect to={{ pathname, search }} />;
+    return <Navigate to={{ pathname, search }} />;
   }
 
   return <SplashPage>{children}</SplashPage>;

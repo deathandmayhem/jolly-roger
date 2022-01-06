@@ -2,8 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import {
-  Route, Switch, useParams, useRouteMatch,
-} from 'react-router';
+  Route, Routes, useParams,
+} from 'react-router-dom';
 import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
 import { userMayAddUsersToHunt, userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
@@ -11,10 +11,6 @@ import { ProfileType } from '../../lib/schemas/profile';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 import UserInvitePage from './UserInvitePage';
-
-interface HuntProfileListPageParams {
-  huntId: string;
-}
 
 interface HuntProfileListPageTracker {
   ready: boolean;
@@ -24,8 +20,7 @@ interface HuntProfileListPageTracker {
 }
 
 const HuntProfileListPage = () => {
-  const { huntId } = useParams<HuntProfileListPageParams>();
-  const { path } = useRouteMatch();
+  const huntId = useParams<'huntId'>().huntId!;
   useBreadcrumb({ title: 'Hunters', path: `/hunts/${huntId}/hunters` });
   const tracker = useTracker<HuntProfileListPageTracker>(() => {
     const usersHandle = Meteor.subscribe('huntMembers', huntId);
@@ -62,11 +57,11 @@ const HuntProfileListPage = () => {
   }
 
   return (
-    <Switch>
-      <Route path={`${path}/invite`} render={() => <UserInvitePage />} />
+    <Routes>
+      <Route path="invite" element={<UserInvitePage />} />
       <Route
-        path={`${path}`}
-        render={() => (
+        path=""
+        element={(
           <ProfileList
             profiles={tracker.profiles}
             huntId={huntId}
@@ -75,7 +70,7 @@ const HuntProfileListPage = () => {
           />
         )}
       />
-    </Switch>
+    </Routes>
   );
 };
 

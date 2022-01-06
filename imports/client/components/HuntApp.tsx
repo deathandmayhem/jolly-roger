@@ -5,9 +5,8 @@ import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import {
-  Switch, Redirect, Route, useParams, useRouteMatch,
-} from 'react-router';
-import { useHistory } from 'react-router-dom';
+  Navigate, Route, Routes, useNavigate, useParams,
+} from 'react-router-dom';
 import Hunts from '../../lib/models/hunts';
 import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import { HuntType } from '../../lib/schemas/hunt';
@@ -42,7 +41,8 @@ const HuntDeletedError = React.memo((props: HuntDeletedErrorProps) => {
     return null;
   }, [props.canUndestroy, undestroy]);
 
-  const history = useHistory();
+  const navigate = useNavigate();
+  const goBack = useCallback(() => navigate(-1), [navigate]);
 
   return (
     <div>
@@ -51,7 +51,7 @@ const HuntDeletedError = React.memo((props: HuntDeletedErrorProps) => {
       </Alert>
 
       <ButtonToolbar>
-        <Button variant="light" onClick={history.goBack}>
+        <Button variant="light" onClick={goBack}>
           Whoops! Get me out of here
         </Button>
         {undestroyButton}
@@ -85,7 +85,8 @@ const HuntMemberError = React.memo((props: HuntMemberErrorProps) => {
     return null;
   }, [props.canJoin, join]);
 
-  const history = useHistory();
+  const navigate = useNavigate();
+  const goBack = useCallback(() => navigate(-1), [navigate]);
 
   const msg = markdown(props.hunt.signupMessage || '');
   return (
@@ -102,7 +103,7 @@ const HuntMemberError = React.memo((props: HuntMemberErrorProps) => {
       />
 
       <ButtonToolbar>
-        <Button variant="light" onClick={history.goBack}>
+        <Button variant="light" onClick={goBack}>
           Whoops! Get me out of here
         </Button>
         {joinButton}
@@ -110,10 +111,6 @@ const HuntMemberError = React.memo((props: HuntMemberErrorProps) => {
     </div>
   );
 });
-
-interface HuntAppParams {
-  huntId: string;
-}
 
 interface HuntAppTracker {
   ready: boolean;
@@ -126,8 +123,7 @@ interface HuntAppTracker {
 const HuntApp = React.memo(() => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
 
-  const { huntId } = useParams<HuntAppParams>();
-  const { path, url } = useRouteMatch();
+  const huntId = useParams<'huntId'>().huntId!;
   const tracker = useTracker<HuntAppTracker>(() => {
     const userHandle = Meteor.subscribe('selfHuntMembership');
     // Subscribe to deleted and non-deleted hunts separately so that we can reuse
@@ -179,19 +175,17 @@ const HuntApp = React.memo(() => {
     }
 
     return (
-      <Route path="/">
-        <Switch>
-          <Route path={`${path}/announcements`} render={() => <AnnouncementsPage />} />
-          <Route path={`${path}/guesses`} render={() => <GuessQueuePage />} />
-          <Route path={`${path}/hunters`} render={() => <HuntProfileListPage />} />
-          <Route path={`${path}/puzzles/:puzzleId`} render={() => <PuzzlePage />} />
-          <Route path={`${path}/puzzles`} render={() => <PuzzleListPage />} />
-          <Route path={`${path}`} exact render={() => <Redirect to={`${url}/puzzles`} />} />
-        </Switch>
-      </Route>
+      <Routes>
+        <Route path="announcements" element={<AnnouncementsPage />} />
+        <Route path="guesses" element={<GuessQueuePage />} />
+        <Route path="hunters/*" element={<HuntProfileListPage />} />
+        <Route path="puzzles/:puzzleId" element={<PuzzlePage />} />
+        <Route path="puzzles" element={<PuzzleListPage />} />
+        <Route path="" element={<Navigate to="puzzles" />} />
+      </Routes>
     );
   }, [
-    tracker.ready, tracker.member, tracker.hunt, tracker.canUndestroy, tracker.canJoin, path, url,
+    tracker.ready, tracker.member, tracker.hunt, tracker.canUndestroy, tracker.canJoin,
   ]);
 
   return (

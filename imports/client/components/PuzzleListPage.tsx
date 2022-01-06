@@ -19,9 +19,7 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import InputGroup from 'react-bootstrap/InputGroup';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
-import {
-  Link, useHistory, useLocation, useParams,
-} from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Hunts from '../../lib/models/hunts';
 import Puzzles from '../../lib/models/puzzles';
@@ -92,8 +90,8 @@ function showSolvedStorageKey(huntId: string): string {
 }
 
 const PuzzleListView = (props: PuzzleListViewProps) => {
-  const location = useLocation();
-  const history = useHistory();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchString = searchParams.get('q') || '';
   const addModalRef = useRef<PuzzleModalFormHandle>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
   const [displayMode, setDisplayMode] = useState<string>('group');
@@ -132,25 +130,16 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
     Meteor.call('createPuzzle', puzzle, docType, callback);
   }, []);
 
-  const getSearchString = useCallback((): string => {
-    const u = new URLSearchParams(location.search);
-    const s = u.get('q');
-    return s || '';
-  }, [location.search]);
-
   const setSearchString = useCallback((val: string) => {
-    const u = new URLSearchParams(location.search);
+    const u = new URLSearchParams(searchParams);
     if (val) {
       u.set('q', val);
     } else {
       u.delete('q');
     }
 
-    history.replace({
-      pathname: location.pathname,
-      search: u.toString(),
-    });
-  }, [location.search, location.pathname, history]);
+    setSearchParams(u);
+  }, [searchParams, setSearchParams]);
 
   const onSearchStringChange: FormControlProps['onChange'] = useCallback((e) => {
     setSearchString(e.currentTarget.value);
@@ -192,7 +181,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
   }, [props.allTags]);
 
   const puzzlesMatchingSearchString = useCallback((puzzles: PuzzleType[]): PuzzleType[] => {
-    const searchKeys = getSearchString().split(' ');
+    const searchKeys = searchString.split(' ');
     if (searchKeys.length === 1 && searchKeys[0] === '') {
       // No search query, so no need to do fancy search computation
       return puzzles;
@@ -201,7 +190,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
       const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
       return puzzles.filter(isInteresting);
     }
-  }, [getSearchString, compileMatcher]);
+  }, [searchString, compileMatcher]);
 
   const puzzlesMatchingSolvedFilter = useCallback((puzzles: PuzzleType[]): PuzzleType[] => {
     if (showSolved) {
@@ -358,7 +347,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
                   type="text"
                   ref={searchBarRef}
                   placeholder="Filter by title, answer, or tag"
-                  value={getSearchString()}
+                  value={searchString}
                   onChange={onSearchStringChange}
                 />
                 <InputGroup.Append>
@@ -380,10 +369,6 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
     </div>
   );
 };
-
-interface PuzzleListPageParams {
-  huntId: string;
-}
 
 interface PuzzleListPageTracker {
   ready: boolean;
@@ -441,7 +426,7 @@ const StyledPuzzleListLinkLabel = styled.span`
 `;
 
 const PuzzleListPage = () => {
-  const { huntId } = useParams<PuzzleListPageParams>();
+  const huntId = useParams<'huntId'>().huntId!;
   const tracker: PuzzleListPageTracker = useTracker(() => {
     const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: huntId });
     const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: huntId });

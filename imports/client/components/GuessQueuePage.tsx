@@ -8,9 +8,7 @@ import Button from 'react-bootstrap/Button';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
-import {
-  Link, useHistory, useLocation, useParams,
-} from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import Guesses from '../../lib/models/guesses';
 import Hunts from '../../lib/models/hunts';
@@ -194,10 +192,6 @@ const GuessBlock = React.memo((props: GuessBlockProps) => {
   );
 });
 
-interface GuessQueuePageParams {
-  huntId: string;
-}
-
 interface GuessQueuePageProps {
   ready: boolean;
   hunt?: HuntType;
@@ -208,9 +202,9 @@ interface GuessQueuePageProps {
 }
 
 const GuessQueuePage = () => {
-  const { huntId } = useParams<GuessQueuePageParams>();
-  const location = useLocation();
-  const history = useHistory();
+  const huntId = useParams<'huntId'>().huntId!;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchString = searchParams.get('q') || '';
 
   useBreadcrumb({ title: 'Guess queue', path: `/hunts/${huntId}/guesses` });
 
@@ -263,27 +257,18 @@ const GuessQueuePage = () => {
   }, [maybeStealCtrlF]);
 
   const setSearchString = useCallback((val: string) => {
-    const u = new URLSearchParams(location.search);
+    const u = new URLSearchParams(searchParams);
     if (val) {
       u.set('q', val);
     } else {
       u.delete('q');
     }
-    history.replace({
-      pathname: location.pathname,
-      search: u.toString(),
-    });
-  }, [history, location]);
+    setSearchParams(u);
+  }, [searchParams, setSearchParams]);
 
   const onSearchStringChange: FormControlProps['onChange'] = useCallback((e) => {
     setSearchString(e.currentTarget.value);
   }, [setSearchString]);
-
-  const getSearchString = useCallback((): string => {
-    const u = new URLSearchParams(location.search);
-    const s = u.get('q');
-    return s || '';
-  }, [location.search]);
 
   const clearSearch = useCallback(() => {
     setSearchString('');
@@ -309,7 +294,7 @@ const GuessQueuePage = () => {
   }, [tracker.puzzles]);
 
   const filteredGuesses = useCallback((guesses: GuessType[]) => {
-    const searchKeys = getSearchString().split(' ');
+    const searchKeys = searchString.split(' ');
     let interestingGuesses;
 
     if (searchKeys.length === 1 && searchKeys[0] === '') {
@@ -321,7 +306,7 @@ const GuessQueuePage = () => {
     }
 
     return interestingGuesses;
-  }, [getSearchString, compileMatcher]);
+  }, [searchString, compileMatcher]);
 
   const hunt = tracker.hunt;
 
@@ -342,7 +327,7 @@ const GuessQueuePage = () => {
             type="text"
             ref={searchBarRef}
             placeholder="Filter by title or answer"
-            value={getSearchString()}
+            value={searchString}
             onChange={onSearchStringChange}
           />
           <InputGroup.Append>

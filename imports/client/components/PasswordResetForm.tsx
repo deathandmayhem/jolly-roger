@@ -1,13 +1,9 @@
 import React from 'react';
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 import AccountForm, { AccountFormFormat } from './AccountForm';
 
-interface PasswordResetFormParams {
-  token: string;
-}
-
 const PasswordResetForm = () => {
-  const { token } = useParams<PasswordResetFormParams>();
+  const token = useParams<'token'>().token!;
   return (
     <AccountForm format={AccountFormFormat.RESET_PWD} token={token} />
   );

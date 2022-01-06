@@ -3,7 +3,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/announcements';
@@ -131,10 +131,6 @@ const Announcement = (props: AnnouncementProps) => {
   );
 };
 
-interface AnnouncementsPageParams {
-  huntId: string;
-}
-
 interface AnnouncementsPageTracker {
   ready: boolean;
   canCreateAnnouncements: boolean;
@@ -143,7 +139,7 @@ interface AnnouncementsPageTracker {
 }
 
 const AnnouncementsPage = () => {
-  const { huntId } = useParams<AnnouncementsPageParams>();
+  const huntId = useParams<'huntId'>().huntId!;
   useBreadcrumb({ title: 'Announcements', path: `/hunts/${huntId}/announcements` });
   const tracker = useTracker<AnnouncementsPageTracker>(() => {
     // We already have subscribed to mongo.announcements on the main page, since we want to be able

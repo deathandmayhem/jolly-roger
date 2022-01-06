@@ -3,7 +3,6 @@ import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
 import { Tracker } from 'meteor/tracker';
 import { assert } from 'chai';
-import type { History, Location } from 'history';
 import React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
@@ -11,9 +10,11 @@ import './lib';
 import {
   MemoryRouter,
   Route,
+  Location,
   useLocation,
-  Switch,
-  useHistory,
+  Routes as ReactRouterRoutes,
+  NavigateFunction,
+  useNavigate,
 } from 'react-router-dom';
 
 const USER_EMAIL = 'jolly-roger@deathandmayhem.com';
@@ -56,11 +57,11 @@ if (Meteor.isClient) {
 
   let container: HTMLDivElement | null = null;
   const location: React.MutableRefObject<Location | null> = { current: null };
-  const history: React.MutableRefObject<History | null> = { current: null };
+  const navigate: React.MutableRefObject<NavigateFunction | null> = { current: null };
 
   const LocationCapture = () => {
     location.current = useLocation();
-    history.current = useHistory();
+    navigate.current = useNavigate();
     return null;
   };
 
@@ -68,9 +69,9 @@ if (Meteor.isClient) {
     return (
       <MemoryRouter>
         <Routes />
-        <Switch>
-          <Route path="*" render={() => <LocationCapture />} />
-        </Switch>
+        <ReactRouterRoutes>
+          <Route path="*" element={<LocationCapture />} />
+        </ReactRouterRoutes>
       </MemoryRouter>
     );
   };
@@ -88,7 +89,7 @@ if (Meteor.isClient) {
         container = null;
       }
       location.current = null;
-      history.current = null;
+      navigate.current = null;
     });
 
     describe('no users', function () {
@@ -120,7 +121,7 @@ if (Meteor.isClient) {
 
         // Attempt to go to a specific authenticated page
         await act(async () => {
-          history.current?.push('/hunts');
+          navigate.current?.('/hunts');
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/login', 'redirects to login from authenticated page');
@@ -138,7 +139,7 @@ if (Meteor.isClient) {
         await act(async () => {
           render(<TestApp />, container);
           await stabilize();
-          history.current?.push('/login');
+          navigate.current?.('/login');
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/hunts');
@@ -148,7 +149,7 @@ if (Meteor.isClient) {
         await act(async () => {
           render(<TestApp />, container);
           await stabilize();
-          history.current?.push('/hunts');
+          navigate.current?.('/hunts');
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/hunts');

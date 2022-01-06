@@ -22,7 +22,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
 import Table from 'react-bootstrap/Table';
 import Tooltip from 'react-bootstrap/Tooltip';
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
 import Ansible from '../../ansible';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
@@ -919,11 +919,6 @@ const findPuzzleById = function (puzzles: PuzzleType[], id: string) {
   return undefined;
 };
 
-interface PuzzlePageParams {
-  huntId: string;
-  puzzleId: string;
-}
-
 interface PuzzlePageTracker {
   puzzlesReady: boolean;
   allPuzzles: PuzzleType[];
@@ -942,7 +937,8 @@ const PuzzlePage = React.memo(() => {
   const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
   const [isDesktop, setIsDesktop] = useState<boolean>(window.innerWidth >= MinimumDesktopWidth);
 
-  const { huntId, puzzleId } = useParams<PuzzlePageParams>();
+  const huntId = useParams<'huntId'>().huntId!;
+  const puzzleId = useParams<'puzzleId'>().puzzleId!;
 
   const tracker = useTracker<PuzzlePageTracker>(() => {
     // There are some model dependencies that we have to be careful about:

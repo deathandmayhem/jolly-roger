@@ -12,9 +12,8 @@ import NavItem from 'react-bootstrap/NavItem';
 import NavLink from 'react-bootstrap/NavLink';
 import Navbar from 'react-bootstrap/Navbar';
 import NavbarBrand from 'react-bootstrap/NavbarBrand';
-import { useHistory } from 'react-router';
 import * as RRBS from 'react-router-bootstrap';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import Profiles from '../../lib/models/profiles';
 import { useBreadcrumbItems } from '../hooks/breadcrumb';
@@ -90,15 +89,11 @@ const AppNavbar = () => {
     };
   }, []);
 
-  const history = useHistory();
+  const navigate = useNavigate();
   const logout = useCallback(() => {
     // Logout, then immediately redirect to the login page
-    Meteor.logout(() => {
-      history.replace({
-        pathname: '/login',
-      });
-    });
-  }, [history]);
+    Meteor.logout(() => navigate('/login', { replace: true }));
+  }, [navigate]);
 
   const crumbs = useBreadcrumbItems();
   const breadcrumbsComponent = useMemo(() => {

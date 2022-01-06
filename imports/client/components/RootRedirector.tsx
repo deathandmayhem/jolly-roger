@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import { Redirect } from 'react-router';
+import { Navigate } from 'react-router-dom';
 import HasUsers from '../has_users';
 
 interface RootRedirectorTracker {
@@ -30,7 +30,7 @@ const RootRedirector = () => {
 
   if (tracker.userId) {
     // Logged in.
-    return <Redirect to={{ pathname: '/hunts' }} />;
+    return <Navigate to="/hunts" />;
   }
 
   // Definitely not logged in.  Wait for the hasUsers sub to be ready,
@@ -39,9 +39,9 @@ const RootRedirector = () => {
   if (!tracker.hasUsersReady) {
     return <div>loading redirector...</div>;
   } else if (tracker.hasUser) {
-    return <Redirect to={{ pathname: '/login' }} />;
+    return <Navigate to="/login" />;
   } else {
-    return <Redirect to={{ pathname: '/create-first-user' }} />;
+    return <Navigate to="/create-first-user" />;
   }
 };
 

@@ -8,21 +8,17 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
-import { useHistory, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router-dom';
 import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
 import { useBreadcrumb } from '../hooks/breadcrumb';
-
-interface UserInvitePageParams {
-  huntId: string;
-}
 
 interface UserInvitePageTracker {
   canBulkInvite: boolean;
 }
 
 const UserInvitePage = () => {
-  const { huntId } = useParams<UserInvitePageParams>();
-  const history = useHistory();
+  const huntId = useParams<'huntId'>().huntId!;
+  const navigate = useNavigate();
   useBreadcrumb({ title: 'Invite', path: `/hunts/${huntId}/hunters/invite` });
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<Meteor.Error | undefined>(undefined);
@@ -51,10 +47,10 @@ const UserInvitePage = () => {
       if (inviteError) {
         setError(inviteError);
       } else {
-        history.push(`/hunts/${huntId}`);
+        navigate(`/hunts/${huntId}`);
       }
     });
-  }, [huntId, email, history]);
+  }, [huntId, email, navigate]);
 
   const onBulkSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
