@@ -217,7 +217,7 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
     } else {
       snapToBottom();
     }
-  }, [props.chatMessages.length, saveScrollBottomTarget, scrollToTarget]);
+  }, [props.chatMessages.length, saveScrollBottomTarget, snapToBottom]);
 
   return (
     <div ref={ref} className="chat-history" onScroll={onScrollObserved}>
