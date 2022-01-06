@@ -6,7 +6,7 @@ import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React, {
-  ReactChild, useCallback, useEffect, useState,
+  ReactChild, useCallback, useEffect, useLayoutEffect, useState,
 } from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -65,6 +65,7 @@ const ViewerPersonBox = ({
 interface ChatPeopleProps {
   huntId: string;
   puzzleId: string;
+  onHeightChange: () => void;
 }
 
 interface ChatPeopleTracker {
@@ -146,7 +147,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
     leveledStreamSource: undefined,
   });
 
-  const { huntId, puzzleId } = props;
+  const { huntId, puzzleId, onHeightChange } = props;
 
   const tracker: ChatPeopleTracker = useTracker(() => {
     // A note on this feature flag: we still do the subs for call *metadata* for
@@ -416,6 +417,16 @@ const ChatPeople = (props: ChatPeopleProps) => {
     };
   }, [audioState.rawMediaSource]);
 
+  useLayoutEffect(() => {
+    // Notify parent whenever we might have changed size:
+    // * on viewers or rtcViewers counts change
+    // * on expand/collapse of the callers or viewers
+    // * when joining the audiocall
+    onHeightChange();
+  }, [
+    onHeightChange, rtcViewers.length, viewers.length, callersExpanded, viewersExpanded, callState,
+  ]);
+
   if (!ready) {
     return null;
   }
@@ -459,6 +470,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
             localStream={audioState.leveledStreamSource!}
             callersExpanded={callersExpanded}
             onToggleCallersExpanded={toggleCallersExpanded}
+            onHeightChange={onHeightChange}
           />
         );
       case CallState.STREAM_ERROR:

@@ -8,7 +8,7 @@ import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
 import React, {
-  useCallback, useEffect, useImperativeHandle, useRef, useState,
+  useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Badge from 'react-bootstrap/Badge';
@@ -134,78 +134,93 @@ interface ChatHistoryProps {
 }
 
 type ChatHistoryHandle = {
-  forceScrollBottom: () => void;
-  maybeForceScrollBottom: () => void;
+  saveScrollBottomTarget: () => void,
+  snapToBottom: () => void,
+  scrollToTarget: () => void;
 }
 
-// TODO: chat scrolling is still kinda broken -- on initial pageload, it seems that we render, then only after the viewers data loads,
-// we draw boxes for viewers, which results in ChatHistory getting placed in a smaller area, but it doesn't get any event/callback for this.
-// The solution is probably to make sure that when ChatPeople rerenders, we find some way to trigger a maybeForceScrollBottom() here.
 const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: React.Ref<ChatHistoryHandle>) => {
   const ref = useRef<HTMLDivElement>(null);
-  const shouldScroll = useRef<boolean>(true);
+  const scrollBottomTarget = useRef<number>(0);
+  const shouldIgnoreNextScrollEvent = useRef<boolean>(false);
 
-  const saveShouldScroll = useCallback(() => {
-    // Save whether the current scrollTop is equal to the ~maximum scrollTop.
-    // If so, then we should make the log "stick" to the bottom, by manually scrolling to the bottom
-    // when needed.
-    const messagePane = ref.current;
-    if (!messagePane) {
-      return;
-    }
-
-    // Include a 5 px fudge factor to account for bad scrolling and
-    // fractional pixels
-    shouldScroll.current = (messagePane.clientHeight + messagePane.scrollTop + 5 >= messagePane.scrollHeight);
-    console.log(`shouldScroll: ${shouldScroll.current}`);
-  }, []);
-
-  const forceScrollBottom = useCallback(() => {
-    console.log('forceScrollBottom called');
-    const messagePane = ref.current;
-    if (messagePane) {
-      messagePane.scrollTop = messagePane.scrollHeight;
-      shouldScroll.current = true;
+  const saveScrollBottomTarget = useCallback(() => {
+    if (ref.current) {
+      const rect = ref.current.getClientRects()[0];
+      const hiddenHeight = ref.current.scrollHeight - rect.height;
+      const distanceFromBottom = hiddenHeight - ref.current.scrollTop;
+      scrollBottomTarget.current = distanceFromBottom;
     }
   }, []);
 
-  const maybeForceScrollBottom = useCallback(() => {
-    console.log('maybeForceScrollBottom called');
-    if (shouldScroll.current) {
-      forceScrollBottom();
+  const onScrollObserved = useCallback(() => {
+    // When we call scrollToTarget and it actually changes scrollTop, this triggers a scroll event.
+    // If the element's scrollHeight or clientHeight changed after scrollToTarget was called, we'd
+    // mistakenly save an incorrect scrollBottomTarget.  So skip one scroll event when we self-induce
+    // this callback, so we only update the target distance from bottom when the user is actually
+    // scrolling.
+    if (shouldIgnoreNextScrollEvent.current) {
+      shouldIgnoreNextScrollEvent.current = false;
+    } else {
+      saveScrollBottomTarget();
     }
-  }, [forceScrollBottom]);
+  }, [saveScrollBottomTarget]);
+
+  const scrollToTarget = useCallback(() => {
+    if (ref.current) {
+      const rect = ref.current.getClientRects()[0];
+      const hiddenHeight = ref.current.scrollHeight - rect.height;
+      // if distanceFromBottom is hiddenHeight - scrollTop, then
+      // our desired scrollTop is hiddenHeight - distanceFromBottom
+      const scrollTopTarget = hiddenHeight - scrollBottomTarget.current;
+      if (ref.current.scrollTop !== scrollTopTarget) {
+        shouldIgnoreNextScrollEvent.current = true;
+        ref.current.scrollTop = scrollTopTarget;
+      }
+    }
+  }, []);
+
+  const snapToBottom = useCallback(() => {
+    scrollBottomTarget.current = 0;
+    scrollToTarget();
+  }, [scrollToTarget]);
 
   useImperativeHandle(forwardedRef, () => ({
-    forceScrollBottom,
-    maybeForceScrollBottom,
+    saveScrollBottomTarget,
+    snapToBottom,
+    scrollToTarget,
   }));
-
-  const resizeHandler = useCallback(() => {
-    maybeForceScrollBottom();
-  }, [maybeForceScrollBottom]);
 
   useEffect(() => {
     // Scroll to end of chat on initial mount.
-    forceScrollBottom();
-  }, [forceScrollBottom]);
+    scrollToTarget();
+  }, [scrollToTarget]);
 
   useEffect(() => {
-    // Add resize handler
-    window.addEventListener('resize', resizeHandler);
+    // Add resize handler that scrolls to target
+    window.addEventListener('resize', scrollToTarget);
 
     return () => {
-      window.removeEventListener('resize', resizeHandler);
+      window.removeEventListener('resize', scrollToTarget);
     };
-  }, [resizeHandler]);
+  }, [scrollToTarget]);
 
-  useEffect(() => {
-    // Whenever we rerender, check if we should be scrolling to the bottom.
-    maybeForceScrollBottom();
-  });
+  useLayoutEffect(() => {
+    // Whenever we rerender due to new messages arriving, make our
+    // distance-from-bottom match the previous one, if it's larger than some
+    // small fudge factor.  But if the user has actually scrolled into the backlog,
+    // don't move the backlog while they're reading it -- instead, assume they want
+    // to see the same messages in the same position, and adapt the target bottom
+    // distance instead.
+    if (scrollBottomTarget.current > 10) {
+      saveScrollBottomTarget();
+    } else {
+      snapToBottom();
+    }
+  }, [props.chatMessages.length, saveScrollBottomTarget, scrollToTarget]);
 
   return (
-    <div ref={ref} className="chat-history" onScroll={saveShouldScroll}>
+    <div ref={ref} className="chat-history" onScroll={onScrollObserved}>
       {props.chatMessages.length === 0 ? (
         <div className="chat-placeholder" key="no-message">
           <span>No chatter yet. Say something?</span>
@@ -332,34 +347,43 @@ interface ChatSectionProps {
   huntId: string;
 }
 
-const ChatSection = React.memo((props: ChatSectionProps) => {
+interface ChatSectionHandle {
+  scrollHistoryToTarget: () => void;
+}
+
+const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: React.Ref<ChatSectionHandle>) => {
   const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
 
-  const onInputHeightChange = useCallback(() => {
+  const scrollHistoryToTarget = useCallback(() => {
     if (historyRef.current) {
-      historyRef.current.maybeForceScrollBottom();
+      historyRef.current.scrollToTarget();
     }
   }, []);
 
   const onMessageSent = useCallback(() => {
     if (historyRef.current) {
-      historyRef.current.forceScrollBottom();
+      historyRef.current.snapToBottom();
     }
   }, []);
+
+  useImperativeHandle(forwardedRef, () => ({
+    scrollHistoryToTarget,
+  }));
 
   return (
     <div className="chat-section">
       {props.chatReady ? null : <span>loading...</span>}
-      <ChatPeople huntId={props.huntId} puzzleId={props.puzzleId} />
+      <ChatPeople huntId={props.huntId} puzzleId={props.puzzleId} onHeightChange={scrollHistoryToTarget} />
       <ChatHistoryMemo ref={historyRef} chatMessages={props.chatMessages} displayNames={props.displayNames} />
       <ChatInput
         puzzleId={props.puzzleId}
-        onHeightChange={onInputHeightChange}
+        onHeightChange={scrollHistoryToTarget}
         onMessageSent={onMessageSent}
       />
     </div>
   );
 });
+const ChatSectionMemo = React.memo(ChatSection);
 
 interface PuzzlePageMetadataProps {
   puzzle: PuzzleType;
@@ -917,6 +941,7 @@ interface PuzzlePageTracker {
 
 const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
+  const chatSectionRef = useRef<ChatSectionHandle | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
   const [isDesktop, setIsDesktop] = useState<boolean>(window.innerWidth >= MinimumDesktopWidth);
 
@@ -1017,11 +1042,27 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
 
   const onResize = useCallback(() => {
     setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
+    if (chatSectionRef.current) {
+      chatSectionRef.current.scrollHistoryToTarget();
+    }
   }, []);
 
-  const onChangeSideBarSize = useCallback((newSidebarWidth: number) => {
+  const onCommitSideBarSize = useCallback((newSidebarWidth: number) => {
     setSidebarWidth(newSidebarWidth);
   }, []);
+
+  const onChangeSideBarSize = useCallback(() => {
+    if (chatSectionRef.current) {
+      chatSectionRef.current.scrollHistoryToTarget();
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    // When sidebarWidth is updated, scroll history to the target
+    if (chatSectionRef.current) {
+      chatSectionRef.current.scrollHistoryToTarget();
+    }
+  }, [sidebarWidth]);
 
   useEffect(() => {
     // Populate sidebar width on mount
@@ -1055,7 +1096,8 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
     />
   );
   const chat = (
-    <ChatSection
+    <ChatSectionMemo
+      ref={chatSectionRef}
       chatReady={tracker.chatReady}
       chatMessages={tracker.chatMessages}
       displayNames={tracker.displayNames}
@@ -1075,7 +1117,8 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
           autoCollapse1={-1}
           autoCollapse2={-1}
           size={sidebarWidth}
-          onPaneChanged={onChangeSideBarSize}
+          onChanged={onChangeSideBarSize}
+          onPaneChanged={onCommitSideBarSize}
         >
           {chat}
           <div className="puzzle-content">
