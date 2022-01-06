@@ -215,7 +215,7 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
     if (scrollBottomTarget.current > 10) {
       saveScrollBottomTarget();
     } else {
-      scrollToTarget();
+      snapToBottom();
     }
   }, [props.chatMessages.length, saveScrollBottomTarget, scrollToTarget]);
 
