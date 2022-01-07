@@ -27,7 +27,7 @@
     "express": "^4.17.2",
     "fp-ts": "^2.11.5",
     "googleapis": "^92.0.0",
-    "history": "^4.10.1",
+    "history": "^5.2.0",
     "io-ts": "^2.2.16",
     "io-ts-types": "^0.5.16",
     "ip-address": "^8.1.0",
