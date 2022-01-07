@@ -19,8 +19,7 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import InputGroup from 'react-bootstrap/InputGroup';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
-import { RouteComponentProps } from 'react-router';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Hunts from '../../lib/models/hunts';
 import Puzzles from '../../lib/models/puzzles';
@@ -37,7 +36,7 @@ import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 import { filteredPuzzleGroups, puzzleGroupsByRelevance } from './puzzle-sort-and-group';
 import { mediaBreakpointDown } from './styling/responsive';
 
-interface PuzzleListViewProps extends RouteComponentProps {
+interface PuzzleListViewProps {
   huntId: string
   canAdd: boolean;
   canUpdate: boolean;
@@ -91,6 +90,8 @@ function showSolvedStorageKey(huntId: string): string {
 }
 
 const PuzzleListView = (props: PuzzleListViewProps) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchString = searchParams.get('q') || '';
   const addModalRef = useRef<PuzzleModalFormHandle>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
   const [displayMode, setDisplayMode] = useState<string>('group');
@@ -129,25 +130,16 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
     Meteor.call('createPuzzle', puzzle, docType, callback);
   }, []);
 
-  const getSearchString = useCallback((): string => {
-    const u = new URLSearchParams(props.location.search);
-    const s = u.get('q');
-    return s || '';
-  }, [props.location.search]);
-
   const setSearchString = useCallback((val: string) => {
-    const u = new URLSearchParams(props.location.search);
+    const u = new URLSearchParams(searchParams);
     if (val) {
       u.set('q', val);
     } else {
       u.delete('q');
     }
 
-    props.history.replace({
-      pathname: props.location.pathname,
-      search: u.toString(),
-    });
-  }, [props.location.search, props.location.pathname, props.history]);
+    setSearchParams(u);
+  }, [searchParams, setSearchParams]);
 
   const onSearchStringChange: FormControlProps['onChange'] = useCallback((e) => {
     setSearchString(e.currentTarget.value);
@@ -189,7 +181,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
   }, [props.allTags]);
 
   const puzzlesMatchingSearchString = useCallback((puzzles: PuzzleType[]): PuzzleType[] => {
-    const searchKeys = getSearchString().split(' ');
+    const searchKeys = searchString.split(' ');
     if (searchKeys.length === 1 && searchKeys[0] === '') {
       // No search query, so no need to do fancy search computation
       return puzzles;
@@ -198,7 +190,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
       const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
       return puzzles.filter(isInteresting);
     }
-  }, [getSearchString, compileMatcher]);
+  }, [searchString, compileMatcher]);
 
   const puzzlesMatchingSolvedFilter = useCallback((puzzles: PuzzleType[]): PuzzleType[] => {
     if (showSolved) {
@@ -355,7 +347,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
                   type="text"
                   ref={searchBarRef}
                   placeholder="Filter by title, answer, or tag"
-                  value={getSearchString()}
+                  value={searchString}
                   onChange={onSearchStringChange}
                 />
                 <InputGroup.Append>
@@ -377,13 +369,6 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
     </div>
   );
 };
-
-interface PuzzleListPageParams {
-  huntId: string;
-}
-
-interface PuzzleListPageWithRouterParams extends RouteComponentProps<PuzzleListPageParams> {
-}
 
 interface PuzzleListPageTracker {
   ready: boolean;
@@ -440,9 +425,9 @@ const StyledPuzzleListLinkLabel = styled.span`
   `}
 `;
 
-const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
+const PuzzleListPage = () => {
+  const huntId = useParams<'huntId'>().huntId!;
   const tracker: PuzzleListPageTracker = useTracker(() => {
-    const huntId = props.match.params.huntId;
     const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: huntId });
     const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: huntId });
 
@@ -460,7 +445,7 @@ const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
       allTags: ready ? Tags.find({ hunt: huntId }).fetch() : [],
       hunt,
     };
-  }, [props.match.params.huntId]);
+  }, [huntId]);
 
   const huntLink = tracker.hunt.homepageUrl && (
     <StyledPuzzleListExternalLink>
@@ -471,10 +456,7 @@ const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
   );
   const puzzleList = tracker.ready ? (
     <PuzzleListView
-      match={props.match}
-      history={props.history}
-      location={props.location}
-      huntId={props.match.params.huntId}
+      huntId={huntId}
       canAdd={tracker.canAdd}
       canUpdate={tracker.canUpdate}
       puzzles={tracker.allPuzzles}
@@ -488,19 +470,19 @@ const PuzzleListPage = (props: PuzzleListPageWithRouterParams) => {
       <StyledPuzzleListLinkList>
         {huntLink}
         <StyledPuzzleListLink>
-          <StyledPuzzleListLinkAnchor to={`/hunts/${props.match.params.huntId}/announcements`}>
+          <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/announcements`}>
             <FontAwesomeIcon icon={faBullhorn} />
             <StyledPuzzleListLinkLabel>Announcements</StyledPuzzleListLinkLabel>
           </StyledPuzzleListLinkAnchor>
         </StyledPuzzleListLink>
         <StyledPuzzleListLink>
-          <StyledPuzzleListLinkAnchor to={`/hunts/${props.match.params.huntId}/guesses`}>
+          <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/guesses`}>
             <FontAwesomeIcon icon={faReceipt} />
             <StyledPuzzleListLinkLabel>Guess queue</StyledPuzzleListLinkLabel>
           </StyledPuzzleListLinkAnchor>
         </StyledPuzzleListLink>
         <StyledPuzzleListLink>
-          <StyledPuzzleListLinkAnchor to={`/hunts/${props.match.params.huntId}/hunters`}>
+          <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/hunters`}>
             <FontAwesomeIcon icon={faUsers} />
             <StyledPuzzleListLinkLabel>Hunters</StyledPuzzleListLinkLabel>
           </StyledPuzzleListLinkAnchor>

@@ -1,11 +1,21 @@
 import { Accounts } from 'meteor/accounts-base';
+import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
+import { Tracker } from 'meteor/tracker';
 import { assert } from 'chai';
-import { mount } from 'enzyme';
-import { createMemoryHistory } from 'history';
 import React from 'react';
-import { Router } from 'react-router';
+import { render, unmountComponentAtNode } from 'react-dom';
+import { act } from 'react-dom/test-utils';
 import './lib';
+import {
+  MemoryRouter,
+  Route,
+  Location,
+  useLocation,
+  Routes as ReactRouterRoutes,
+  NavigateFunction,
+  useNavigate,
+} from 'react-router-dom';
 
 const USER_EMAIL = 'jolly-roger@deathandmayhem.com';
 const USER_PASSWORD = 'password';
@@ -19,101 +29,131 @@ Meteor.methods({
   },
 });
 
-function sleep(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
+// waitForSubscriptions and afterFlush both taken from
+// https://guide.meteor.com/testing.html#full-app-integration-test
 
-async function conditionTrueByTimeout(conditionFunc: () => boolean, timeoutMsec: number) {
-  const startTime = Date.now();
-  while (Date.now() < startTime + timeoutMsec) {
-    if (conditionFunc()) {
-      return true;
+const waitForSubscriptions = () => new Promise<void>((resolve) => {
+  const poll = Meteor.setInterval(() => {
+    // eslint-disable-next-line no-underscore-dangle
+    if (DDP._allSubscriptionsReady()) {
+      Meteor.clearInterval(poll);
+      resolve();
     }
-    // eslint-disable-next-line no-await-in-loop
-    await sleep(5);
-  }
-  return false;
-}
+  }, 200);
+});
+
+const afterFlush = () => new Promise<void>((resolve) => {
+  Tracker.afterFlush(resolve);
+});
+
+const stabilize = async () => {
+  await waitForSubscriptions();
+  await afterFlush();
+};
 
 if (Meteor.isClient) {
   const Routes: typeof import('../../imports/client/components/Routes').default =
     require('../../imports/client/components/Routes').default;
 
-  describe('no users', function () {
-    before(async function () {
-      await Meteor.callPromise('test.resetDatabase');
+  let container: HTMLDivElement | null = null;
+  const location: React.MutableRefObject<Location | null> = { current: null };
+  const navigate: React.MutableRefObject<NavigateFunction | null> = { current: null };
+
+  const LocationCapture = () => {
+    location.current = useLocation();
+    navigate.current = useNavigate();
+    return null;
+  };
+
+  const TestApp = () => {
+    return (
+      <MemoryRouter>
+        <Routes />
+        <ReactRouterRoutes>
+          <Route path="*" element={<LocationCapture />} />
+        </ReactRouterRoutes>
+      </MemoryRouter>
+    );
+  };
+
+  describe('authentication', function () {
+    beforeEach(function () {
+      container = document.createElement('div');
+      document.body.appendChild(container);
     });
 
-    it('redirects to the create-first-user page', async function () {
-      this.timeout(2000);
-      const history = createMemoryHistory();
-      mount(
-        <Router history={history}>
-          <Routes />
-        </Router>
-      );
-
-      // Give some time for the RootRedirector's hasUsers sub to complete
-      assert.isTrue(await conditionTrueByTimeout(() => {
-        return history.location.pathname === '/create-first-user';
-      }, 2000), 'got redirected to /create-first-user');
-    });
-  });
-
-  describe('has users but not logged in', function () {
-    before(async function () {
-      await Meteor.callPromise('test.resetDatabase');
-      await Meteor.callPromise('test.authentication.createUser');
+    afterEach(function () {
+      if (container) {
+        unmountComponentAtNode(container);
+        container.remove();
+        container = null;
+      }
+      location.current = null;
+      navigate.current = null;
     });
 
-    it('redirects to the login page', async function () {
-      this.timeout(4000);
-      const history = createMemoryHistory();
-      mount(
-        <Router history={history}>
-          <Routes />
-        </Router>
-      );
-      // Give some time for the RootRedirector's hasUsers sub to complete
-      assert.isTrue(await conditionTrueByTimeout(() => {
-        return history.location.pathname === '/login';
-      }, 2000), 'got redirected to /login');
+    describe('no users', function () {
+      before(async function () {
+        await Meteor.callPromise('test.resetDatabase');
+      });
 
-      history.push('/hunts');
-      assert.isTrue(await conditionTrueByTimeout(() => {
-        return history.location.pathname === '/login';
-      }, 2000), 'got re-redirected to /login');
-    });
-  });
-
-  describe('authenticated users', function () {
-    before(async function () {
-      await Meteor.callPromise('test.resetDatabase');
-      await Meteor.callPromise('test.authentication.createUser');
-      await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
+      it('redirects to the create-first-user page', async function () {
+        await act(async () => {
+          render(<TestApp />, container);
+          await stabilize();
+        });
+        assert.equal(location.current?.pathname, '/create-first-user');
+      });
     });
 
-    it('redirects away from the login page', function () {
-      const history = createMemoryHistory({ initialEntries: ['/login'] });
-      mount(
-        <Router history={history}>
-          <Routes />
-        </Router>
-      );
-      assert.equal(history.location.pathname, '/hunts');
+    describe('has users but not logged in', function () {
+      before(async function () {
+        await Meteor.callPromise('test.resetDatabase');
+        await Meteor.callPromise('test.authentication.createUser');
+      });
+
+      it('redirects to the login page', async function () {
+        await act(async () => {
+          render(<TestApp />, container);
+          await stabilize();
+        });
+        assert.equal(location.current?.pathname, '/login', 'redirects to login from root');
+
+        // Attempt to go to a specific authenticated page
+        await act(async () => {
+          navigate.current?.('/hunts');
+          await stabilize();
+        });
+        assert.equal(location.current?.pathname, '/login', 'redirects to login from authenticated page');
+      });
     });
 
-    it('does not redirect away from an authenticated page', function () {
-      const history = createMemoryHistory({ initialEntries: ['/hunts'] });
-      mount(
-        <Router history={history}>
-          <Routes />
-        </Router>
-      );
-      assert.equal(history.location.pathname, '/hunts');
-      assert.lengthOf(history.entries, 1);
+    describe('authenticated users', function () {
+      before(async function () {
+        await Meteor.callPromise('test.resetDatabase');
+        await Meteor.callPromise('test.authentication.createUser');
+        await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
+      });
+
+      it('redirects away from the login page', async function () {
+        await act(async () => {
+          render(<TestApp />, container);
+          await stabilize();
+          navigate.current?.('/login');
+          await stabilize();
+        });
+        assert.equal(location.current?.pathname, '/hunts');
+      });
+
+      it('does not redirect away from an authenticated page', async function () {
+        await act(async () => {
+          render(<TestApp />, container);
+          await stabilize();
+          navigate.current?.('/hunts');
+          await stabilize();
+        });
+        assert.equal(location.current?.pathname, '/hunts');
+      });
     });
   });
 }

@@ -22,7 +22,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
 import Table from 'react-bootstrap/Table';
 import Tooltip from 'react-bootstrap/Tooltip';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
 import Ansible from '../../ansible';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
@@ -919,14 +919,6 @@ const findPuzzleById = function (puzzles: PuzzleType[], id: string) {
   return undefined;
 };
 
-interface PuzzlePageParams {
-  huntId: string;
-  puzzleId: string;
-}
-
-interface PuzzlePageWithRouterParams extends RouteComponentProps<PuzzlePageParams> {
-}
-
 interface PuzzlePageTracker {
   puzzlesReady: boolean;
   allPuzzles: PuzzleType[];
@@ -939,13 +931,14 @@ interface PuzzlePageTracker {
   canUpdate: boolean;
 }
 
-const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
+const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
   const [isDesktop, setIsDesktop] = useState<boolean>(window.innerWidth >= MinimumDesktopWidth);
 
-  const { huntId, puzzleId } = props.match.params;
+  const huntId = useParams<'huntId'>().huntId!;
+  const puzzleId = useParams<'puzzleId'>().puzzleId!;
 
   const tracker = useTracker<PuzzlePageTracker>(() => {
     // There are some model dependencies that we have to be careful about:
@@ -1078,8 +1071,8 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
   }, [onResize]);
 
   useEffect(() => {
-    Meteor.call('ensureDocumentAndPermissions', props.match.params.puzzleId);
-  }, [props.match.params.puzzleId]);
+    Meteor.call('ensureDocumentAndPermissions', puzzleId);
+  }, [puzzleId]);
 
   if (!tracker.puzzlesReady) {
     return <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}><span>loading...</span></FixedLayout>;
@@ -1101,8 +1094,8 @@ const PuzzlePage = React.memo((props: PuzzlePageWithRouterParams) => {
       chatReady={tracker.chatReady}
       chatMessages={tracker.chatMessages}
       displayNames={tracker.displayNames}
-      huntId={props.match.params.huntId}
-      puzzleId={props.match.params.puzzleId}
+      huntId={huntId}
+      puzzleId={puzzleId}
     />
   );
 

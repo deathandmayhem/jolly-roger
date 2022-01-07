@@ -3,7 +3,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/announcements';
@@ -131,13 +131,6 @@ const Announcement = (props: AnnouncementProps) => {
   );
 };
 
-interface AnnouncementsPageParams {
-  huntId: string;
-}
-
-interface AnnouncementsPageWithRouterParams extends RouteComponentProps<AnnouncementsPageParams> {
-}
-
 interface AnnouncementsPageTracker {
   ready: boolean;
   canCreateAnnouncements: boolean;
@@ -145,13 +138,13 @@ interface AnnouncementsPageTracker {
   displayNames: Record<string, string>;
 }
 
-const AnnouncementsPage = (props: AnnouncementsPageWithRouterParams) => {
-  useBreadcrumb({ title: 'Announcements', path: `/hunts/${props.match.params.huntId}/announcements` });
+const AnnouncementsPage = () => {
+  const huntId = useParams<'huntId'>().huntId!;
+  useBreadcrumb({ title: 'Announcements', path: `/hunts/${huntId}/announcements` });
   const tracker = useTracker<AnnouncementsPageTracker>(() => {
     // We already have subscribed to mongo.announcements on the main page, since we want to be able
     // to show them on any page.  So we don't *need* to make the subscription here...
     // ...except that we might want to wait to render until we've received all of them?  IDK.
-    const huntId = props.match.params.huntId;
     const announcementsHandle = Meteor.subscribe('mongo.announcements', { hunt: huntId });
     const displayNamesHandle = Profiles.subscribeDisplayNames();
     const ready = announcementsHandle.ready() && displayNamesHandle.ready();
@@ -162,7 +155,7 @@ const AnnouncementsPage = (props: AnnouncementsPageWithRouterParams) => {
       announcements = [];
       displayNames = {};
     } else {
-      announcements = Announcements.find({ hunt: props.match.params.huntId }, { sort: { createdAt: 1 } }).fetch();
+      announcements = Announcements.find({ hunt: huntId }, { sort: { createdAt: 1 } }).fetch();
       displayNames = Profiles.displayNames();
     }
     const canCreateAnnouncements = userMayAddAnnouncementToHunt(Meteor.userId(), huntId);
@@ -173,7 +166,7 @@ const AnnouncementsPage = (props: AnnouncementsPageWithRouterParams) => {
       canCreateAnnouncements,
       displayNames,
     };
-  }, [props.match.params.huntId]);
+  }, [huntId]);
 
   if (!tracker.ready) {
     return <div>loading...</div>;
@@ -182,7 +175,7 @@ const AnnouncementsPage = (props: AnnouncementsPageWithRouterParams) => {
   return (
     <div>
       <h1>Announcements</h1>
-      {tracker.canCreateAnnouncements && <AnnouncementForm huntId={props.match.params.huntId} />}
+      {tracker.canCreateAnnouncements && <AnnouncementForm huntId={huntId} />}
       {/* ostensibly these should be ul and li, but then I have to deal with overriding
           block/inline and default margins and list style type and meh */}
       <div>

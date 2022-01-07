@@ -1,7 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import { Route, RouteComponentProps, Switch } from 'react-router';
+import {
+  Route, Routes, useParams,
+} from 'react-router-dom';
 import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
 import { userMayAddUsersToHunt, userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
@@ -10,14 +12,6 @@ import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 import UserInvitePage from './UserInvitePage';
 
-interface HuntProfileListPageParams {
-  huntId: string;
-}
-
-interface HuntProfileListPageWithRouterParams extends
-  RouteComponentProps<HuntProfileListPageParams> {
-}
-
 interface HuntProfileListPageTracker {
   ready: boolean;
   canInvite: boolean;
@@ -25,10 +19,10 @@ interface HuntProfileListPageTracker {
   profiles: ProfileType[];
 }
 
-const HuntProfileListPage = (props: HuntProfileListPageWithRouterParams) => {
-  useBreadcrumb({ title: 'Hunters', path: `/hunts/${props.match.params.huntId}/hunters` });
+const HuntProfileListPage = () => {
+  const huntId = useParams<'huntId'>().huntId!;
+  useBreadcrumb({ title: 'Hunters', path: `/hunts/${huntId}/hunters` });
   const tracker = useTracker<HuntProfileListPageTracker>(() => {
-    const huntId = props.match.params.huntId;
     const usersHandle = Meteor.subscribe('huntMembers', huntId);
     const profilesHandle = Meteor.subscribe('mongo.profiles');
 
@@ -57,24 +51,26 @@ const HuntProfileListPage = (props: HuntProfileListPageWithRouterParams) => {
       canSyncDiscord,
       profiles,
     };
-  }, [props.match.params.huntId]);
+  }, [huntId]);
   if (!tracker.ready) {
     return <div>loading...</div>;
   }
 
-  const match = props.match;
   return (
-    <Switch>
-      <Route path={`${match.path}/invite`} component={UserInvitePage} />
-      <Route path={`${match.path}`}>
-        <ProfileList
-          profiles={tracker.profiles}
-          huntId={props.match.params.huntId}
-          canInvite={tracker.canInvite}
-          canSyncDiscord={tracker.canSyncDiscord}
-        />
-      </Route>
-    </Switch>
+    <Routes>
+      <Route path="invite" element={<UserInvitePage />} />
+      <Route
+        path=""
+        element={(
+          <ProfileList
+            profiles={tracker.profiles}
+            huntId={huntId}
+            canInvite={tracker.canInvite}
+            canSyncDiscord={tracker.canSyncDiscord}
+          />
+        )}
+      />
+    </Routes>
   );
 };
 
