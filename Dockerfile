@@ -33,6 +33,9 @@ RUN <<EOF bash
   curl -sL https://install.meteor.com?release=\$METEOR_RELEASE | sh
 EOF
 
+# Install meteor deps (list is sufficient to do this)
+COPY .meteor /app/.meteor
+RUN METEOR_ALLOW_SUPERUSER=1 meteor list
 # Install app deps
 COPY package.json package-lock.json /app
 RUN --mount=type=cache,target=/root/.npm meteor npm ci
