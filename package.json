@@ -21,7 +21,7 @@
     "bcrypt": "^5.0.1",
     "bootstrap": "^4.6.1",
     "classnames": "^2.3.1",
-    "discord.js": "^12.5.3",
+    "discord.js": "^13.5.0",
     "dompurify": "^2.3.4",
     "element-resize-detector": "^1.2.4",
     "express": "^4.17.2",
