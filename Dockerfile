@@ -13,7 +13,13 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN <<EOF
   set -eux
   apt-get update
-  apt-get install --no-install-recommends -y curl python3 python3-pip python3-dev python3-setuptools python3-wheel build-essential git
+  apt-get install --no-install-recommends -y curl gnupg python3 python3-pip python3-dev python3-setuptools python3-wheel build-essential git
+
+  # Install chromium-browser's dependencies, which should match puppeteer's
+  # dependencies. Note: this will need to be updated when we upgrade to 20.04,
+  # as chromium-browser on 20.04 is a wrapper around a snap package (although
+  # `apt-get satisfy` will make it easier)
+  apt-get install --no-install-recommends -y $(apt-cache depends chromium-browser | sed -ne 's/^ *Depends://p')
 EOF
 
 WORKDIR /app
@@ -38,6 +44,7 @@ FROM buildenv AS test
 # Run lint
 RUN <<EOF
   set -eux
+  export METEOR_ALLOW_SUPERUSER=1
   meteor npm run lint
   meteor npm run test
 EOF
@@ -83,7 +90,8 @@ RUN <<EOF
 EOF
 
 COPY --from=build /built_app /built_app
-COPY scripts /built_app/scripts
+# Copy from test to force a dependency and ensure that the tests run
+COPY --from=test /app/scripts /built_app/scripts
 
 ARG GIT_REVISION
 RUN <<EOF
