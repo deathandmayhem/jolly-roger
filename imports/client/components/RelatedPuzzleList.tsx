@@ -35,6 +35,7 @@ interface RelatedPuzzleListProps {
   canUpdate: boolean;
   sharedTag: TagType | undefined;
   suppressedTagIds: string[];
+  segmentAnswers?: boolean;
 }
 
 const RelatedPuzzleList = React.memo((props: RelatedPuzzleListProps) => {
@@ -54,6 +55,7 @@ const RelatedPuzzleList = React.memo((props: RelatedPuzzleListProps) => {
       layout={props.layout}
       canUpdate={props.canUpdate}
       suppressTags={props.suppressedTagIds}
+      segmentAnswers={props.segmentAnswers}
     />
   );
 });
