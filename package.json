@@ -25,7 +25,7 @@
     "dompurify": "^2.3.4",
     "element-resize-detector": "^1.2.4",
     "express": "^4.17.2",
-    "fp-ts": "^2.11.5",
+    "fp-ts": "^2.11.6",
     "googleapis": "^92.0.0",
     "history": "^4.10.1",
     "io-ts": "^2.2.16",
