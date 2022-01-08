@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
+import { faInfo } from '@fortawesome/free-solid-svg-icons/faInfo';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,9 +22,10 @@ import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import DiscordCache from '../../lib/models/discord_cache';
 import Hunts from '../../lib/models/hunts';
+import Settings from '../../lib/models/settings';
 import { userMayCreateHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/hunt';
-import { DiscordChannelType, DiscordRoleType } from '../discord';
+import { SettingType } from '../../lib/schemas/setting';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ModalForm, { ModalFormHandle } from './ModalForm';
 
@@ -106,26 +108,26 @@ const DiscordSelector = (props: DiscordSelectorProps) => {
   }
 };
 
-const DiscordChannelSelector = (params: DiscordSelectorParams) => {
+const DiscordChannelSelector = (params: DiscordSelectorParams & { guildId: string }) => {
   const { ready, options } = useTracker(() => {
     const handle = Meteor.subscribe('discord.cache', { type: 'channel' });
-    const discordChannels: SavedDiscordObjectType[] = DiscordCache.find(
+    const discordChannels: SavedDiscordObjectType[] = DiscordCache.find({
+      type: 'channel',
+      'object.guild': params.guildId,
       // We want only text channels, since those are the only ones we can bridge chat messages to.
-      { type: 'channel', 'object.type': 'text' },
+      'object.type': 'text',
+    }, {
       // We want to sort them in the same order they're provided in the Discord UI.
-      { sort: { 'object.rawPosition': 1 } },
-    )
-      .map((c) => {
-        // Pick just the fields that we store
-        const { id, name } = c.object as DiscordChannelType;
-        return { id, name };
-      });
+      sort: { 'object.rawPosition': 1 },
+      fields: { 'object.id': 1, 'object.name': 1 },
+    })
+      .map((c) => c.object as SavedDiscordObjectType);
 
     return {
       ready: handle.ready(),
       options: discordChannels,
     };
-  }, []);
+  }, [params.guildId]);
   return (
     <DiscordSelector
       ready={ready}
@@ -135,39 +137,28 @@ const DiscordChannelSelector = (params: DiscordSelectorParams) => {
   );
 };
 
-const DiscordRoleSelector = (params: DiscordSelectorParams) => {
+const DiscordRoleSelector = (params: DiscordSelectorParams & { guildId: string }) => {
   const { ready, options } = useTracker(() => {
     const handle = Meteor.subscribe('discord.cache', { type: 'role' });
-    const discordRoles: SavedDiscordObjectType[] = DiscordCache.find(
-      { type: 'role' },
+    const discordRoles: SavedDiscordObjectType[] = DiscordCache.find({
+      type: 'role',
+      'object.guild': params.guildId,
+      // The role whose id is the same as the guild is the @everyone role, don't want that
+      'object.id': { $ne: params.guildId },
+      // Managed roles are owned by an integration
+      'object.managed': false,
+    }, {
       // We want to sort them in the same order they're provided in the Discord UI.
-      { sort: { 'object.rawPosition': 1 } },
-    )
-      .map((cache) => cache.object as DiscordRoleType)
-      .filter((role) => {
-        // The role whose id is the same as the guild is the @everyone role, don't want that
-        if (role.guild === role.id) {
-          return false;
-        }
-
-        // Managed roles are owned by an integration
-        if (role.managed) {
-          return false;
-        }
-
-        return true;
-      })
-      .map((role) => {
-        // Pick just the fields that we store
-        const { id, name } = role;
-        return { id, name };
-      });
+      sort: { 'object.rawPosition': 1 },
+      fields: { 'object.id': 1, 'object.name': 1 },
+    })
+      .map((c) => c.object as SavedDiscordObjectType);
 
     return {
       ready: handle.ready(),
       options: discordRoles,
     };
-  }, []);
+  }, [params.guildId]);
   return (
     <DiscordSelector
       ready={ready}
@@ -207,6 +198,12 @@ type HuntModalFormHandle = {
 }
 
 const HuntModalForm = React.forwardRef((props: HuntModalFormProps, forwardedRef: React.Ref<HuntModalFormHandle>) => {
+  useSubscribe('mongo.settings', { name: 'discord.guild' });
+  const guildId = useTracker(() => {
+    const setting = Settings.findOne({ name: 'discord.guild' }) as SettingType & { name: 'discord.guild' } | undefined;
+    return setting?.value.guild.id;
+  }, []);
+
   const [submitState, setSubmitState] = useState<HuntModalFormSubmitState>(HuntModalFormSubmitState.IDLE);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -455,56 +452,68 @@ const HuntModalForm = React.forwardRef((props: HuntModalFormProps, forwardedRef:
         </Col>
       </FormGroup>
 
-      <FormGroup as={Row}>
-        <FormLabel column xs={3} htmlFor={`${idPrefix}puzzle-hooks-discord-channel`}>
-          Puzzle notifications Discord channel
-        </FormLabel>
-        <Col xs={9}>
-          <DiscordChannelSelector
-            id={`${idPrefix}puzzle-hooks-discord-channel`}
-            disable={disableForm}
-            value={puzzleHooksDiscordChannel}
-            onChange={onPuzzleHooksDiscordChannelChanged}
-          />
-          <FormText>
-            If this field is specified, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.
-          </FormText>
-        </Col>
-      </FormGroup>
+      {guildId ? (
+        <>
+          <FormGroup as={Row}>
+            <FormLabel column xs={3} htmlFor={`${idPrefix}puzzle-hooks-discord-channel`}>
+              Puzzle notifications Discord channel
+            </FormLabel>
+            <Col xs={9}>
+              <DiscordChannelSelector
+                id={`${idPrefix}puzzle-hooks-discord-channel`}
+                guildId={guildId}
+                disable={disableForm}
+                value={puzzleHooksDiscordChannel}
+                onChange={onPuzzleHooksDiscordChannelChanged}
+              />
+              <FormText>
+                If this field is specified, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.
+              </FormText>
+            </Col>
+          </FormGroup>
 
-      <FormGroup as={Row}>
-        <FormLabel column xs={3} htmlFor={`${idPrefix}firehose-discord-channel`}>
-          Firehose Discord channel
-        </FormLabel>
-        <Col xs={9}>
-          <DiscordChannelSelector
-            id={`${idPrefix}firehose-discord-channel`}
-            disable={disableForm}
-            value={firehoseDiscordChannel}
-            onChange={onFirehoseDiscordChannelChanged}
-          />
-          <FormText>
-            If this field is specified, all chat messages written in puzzles associated with this hunt will be mirrored to the specified Discord channel.
-          </FormText>
-        </Col>
-      </FormGroup>
+          <FormGroup as={Row}>
+            <FormLabel column xs={3} htmlFor={`${idPrefix}firehose-discord-channel`}>
+              Firehose Discord channel
+            </FormLabel>
+            <Col xs={9}>
+              <DiscordChannelSelector
+                id={`${idPrefix}firehose-discord-channel`}
+                guildId={guildId}
+                disable={disableForm}
+                value={firehoseDiscordChannel}
+                onChange={onFirehoseDiscordChannelChanged}
+              />
+              <FormText>
+                If this field is specified, all chat messages written in puzzles associated with this hunt will be mirrored to the specified Discord channel.
+              </FormText>
+            </Col>
+          </FormGroup>
 
-      <FormGroup as={Row}>
-        <FormLabel column xs={3} htmlFor={`${idPrefix}member-discord-role`}>
-          Discord role for members
-        </FormLabel>
-        <Col xs={9}>
-          <DiscordRoleSelector
-            id={`${idPrefix}member-discord-role`}
-            disable={disableForm}
-            value={memberDiscordRole}
-            onChange={onMemberDiscordRoleChanged}
-          />
-          <FormText>
-            If set, then members of the hunt that have linked their Discord profile are added to the specified Discord role. Note that for continuity, if this setting is changed, Jolly Roger will not touch the old role (e.g. to remove members)
-          </FormText>
-        </Col>
-      </FormGroup>
+          <FormGroup as={Row}>
+            <FormLabel column xs={3} htmlFor={`${idPrefix}member-discord-role`}>
+              Discord role for members
+            </FormLabel>
+            <Col xs={9}>
+              <DiscordRoleSelector
+                id={`${idPrefix}member-discord-role`}
+                guildId={guildId}
+                disable={disableForm}
+                value={memberDiscordRole}
+                onChange={onMemberDiscordRoleChanged}
+              />
+              <FormText>
+                If set, then members of the hunt that have linked their Discord profile are added to the specified Discord role. Note that for continuity, if this setting is changed, Jolly Roger will not touch the old role (e.g. to remove members)
+              </FormText>
+            </Col>
+          </FormGroup>
+        </>
+      ) : (
+        <Alert variant="info">
+          <FontAwesomeIcon icon={faInfo} fixedWidth />
+          Discord has not been configured, so Discord settings are disabled.
+        </Alert>
+      )}
 
       {submitState === HuntModalFormSubmitState.FAILED && <Alert variant="danger">{errorMessage}</Alert>}
     </ModalForm>
