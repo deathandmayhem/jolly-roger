@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Accounts } from 'meteor/accounts-base';
 import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
@@ -26,6 +27,7 @@ Meteor.methods({
       email: USER_EMAIL,
       password: USER_PASSWORD,
     });
+    console.log('Created test user', { email: USER_EMAIL });
   },
 });
 
@@ -121,7 +123,7 @@ if (Meteor.isClient) {
 
         // Attempt to go to a specific authenticated page
         await act(async () => {
-          navigate.current?.('/hunts');
+          (navigate.current!)('/hunts');
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/login', 'redirects to login from authenticated page');
@@ -139,7 +141,7 @@ if (Meteor.isClient) {
         await act(async () => {
           render(<TestApp />, container);
           await stabilize();
-          navigate.current?.('/login');
+          (navigate.current!)('/login');
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/hunts');
@@ -149,7 +151,7 @@ if (Meteor.isClient) {
         await act(async () => {
           render(<TestApp />, container);
           await stabilize();
-          navigate.current?.('/hunts');
+          (navigate.current!)('/hunts');
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/hunts');
