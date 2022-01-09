@@ -2,7 +2,7 @@ import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
+import { ServiceConfiguration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
 import React, { ReactChild, useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
@@ -17,6 +17,7 @@ import Flags from '../../flags';
 import isAdmin from '../../lib/is-admin';
 import DiscordCache from '../../lib/models/discord_cache';
 import Settings from '../../lib/models/settings';
+import { SavedDiscordObjectType } from '../../lib/schemas/hunt';
 import { SettingType } from '../../lib/schemas/setting';
 import { DiscordGuildType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
@@ -331,49 +332,56 @@ const GoogleDriveTemplateForm = (props: GoogleDriveTemplateFormProps) => {
   );
 };
 
-interface GoogleIntegrationSectionProps {
-  oauthSettings: any;
-  gdriveCredential: any;
-  docTemplate?: string;
-  spreadsheetTemplate?: string;
-  enabled: boolean;
-}
+const GoogleIntegrationSection = () => {
+  const {
+    enabled, oauthSettings, gdriveCredential, docTemplate, spreadsheetTemplate,
+  } = useTracker(() => {
+    const docTemplateSetting = Settings.findOne({ name: 'gdrive.template.document' }) as SettingType & { name: 'gdrive.template.document' } | undefined;
+    const spreadsheetTemplateSetting = Settings.findOne({ name: 'gdrive.template.spreadsheet' }) as SettingType & { name: 'gdrive.template.spreadsheet' } | undefined;
+    const gdriveSetting = Settings.findOne({ name: 'gdrive.credential' }) as SettingType & { name: 'gdrive.credential' } | undefined;
+    return {
+      enabled: !Flags.active('disable.google'),
+      oauthSettings: ServiceConfiguration.configurations.findOne({ service: 'google' }) as any,
+      gdriveCredential: gdriveSetting,
+      docTemplate: docTemplateSetting?.value.id,
+      spreadsheetTemplate: spreadsheetTemplateSetting?.value.id,
+    };
+  }, []);
 
-const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
   const onToggleEnabled = useCallback(() => {
-    const newValue = !props.enabled;
+    const newValue = !enabled;
     const ffValue = newValue ? 'off' : 'on';
     Meteor.call('setFeatureFlag', 'disable.google', ffValue);
-  }, [props.enabled]);
+  }, [enabled]);
 
   const disconnectGdrive = useCallback(() => {
     Meteor.call('clearGdriveCreds');
   }, []);
 
-  const firstButtonLabel = props.enabled ? 'Enabled' : 'Enable';
-  const secondButtonLabel = props.enabled ? 'Disable' : 'Disabled';
-  const clientId = (props.oauthSettings && props.oauthSettings.clientId) || '';
+  const firstButtonLabel = enabled ? 'Enabled' : 'Enable';
+  const secondButtonLabel = enabled ? 'Disable' : 'Disabled';
+  const clientId = (oauthSettings && oauthSettings.clientId) || '';
 
   let stepsDone = 0;
-  if (props.oauthSettings) {
+  if (oauthSettings) {
     stepsDone += 1;
   }
-  if (props.gdriveCredential) {
+  if (gdriveCredential) {
     stepsDone += 1;
   }
-  if (props.spreadsheetTemplate) {
+  if (spreadsheetTemplate) {
     stepsDone += 1;
   }
 
   const comp = googleCompletenessStrings[stepsDone];
   const compBadgeVariant = stepsDone === 3 ? 'success' : 'warning';
-  const oauthBadgeLabel = props.oauthSettings ? 'configured' : 'unconfigured';
-  const oauthBadgeVariant = props.oauthSettings ? 'success' : 'warning';
-  const driveBadgeLabel = props.gdriveCredential ? 'configured' : 'unconfigured';
-  const driveBadgeVariant = props.gdriveCredential ? 'success' : 'warning';
-  const maybeDriveUserEmail = props.gdriveCredential && props.gdriveCredential.value && props.gdriveCredential.value.email;
-  const templateBadgeLabel = props.spreadsheetTemplate ? 'configured' : 'unconfigured';
-  const templateBadgeVariant = props.spreadsheetTemplate ? 'success' : 'warning';
+  const oauthBadgeLabel = oauthSettings ? 'configured' : 'unconfigured';
+  const oauthBadgeVariant = oauthSettings ? 'success' : 'warning';
+  const driveBadgeLabel = gdriveCredential ? 'configured' : 'unconfigured';
+  const driveBadgeVariant = gdriveCredential ? 'success' : 'warning';
+  const maybeDriveUserEmail = gdriveCredential && gdriveCredential.value && gdriveCredential.value.email;
+  const templateBadgeLabel = spreadsheetTemplate ? 'configured' : 'unconfigured';
+  const templateBadgeVariant = spreadsheetTemplate ? 'success' : 'warning';
 
   return (
     <Section id="google">
@@ -385,10 +393,10 @@ const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
           {comp}
         </Badge>
         <SectionHeaderButtons>
-          <Button variant="light" disabled={props.enabled} onClick={onToggleEnabled}>
+          <Button variant="light" disabled={enabled} onClick={onToggleEnabled}>
             {firstButtonLabel}
           </Button>
-          <Button variant="light" disabled={!props.enabled} onClick={onToggleEnabled}>
+          <Button variant="light" disabled={!enabled} onClick={onToggleEnabled}>
             {secondButtonLabel}
           </Button>
         </SectionHeaderButtons>
@@ -436,7 +444,7 @@ const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
         <p>
           Then, copy the client ID and secret into the fields here and click the Save button.
         </p>
-        <GoogleOAuthForm initialClientId={clientId} isConfigured={!!props.oauthSettings} />
+        <GoogleOAuthForm initialClientId={clientId} isConfigured={!!oauthSettings} />
       </Subsection>
 
       <Subsection>
@@ -482,8 +490,8 @@ const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
           <li>Template documents must be accessible by the Drive user connected above.</li>
         </ul>
         <GoogleDriveTemplateForm
-          initialSpreadsheetTemplate={props.spreadsheetTemplate}
-          initialDocTemplate={props.docTemplate}
+          initialSpreadsheetTemplate={spreadsheetTemplate}
+          initialDocTemplate={docTemplate}
         />
       </Subsection>
     </Section>
@@ -491,11 +499,11 @@ const GoogleIntegrationSection = (props: GoogleIntegrationSectionProps) => {
 };
 
 interface EmailConfigFormProps {
-  initialConfig: SettingType | undefined;
+  initialConfig?: SettingType & { name: 'email.branding' };
 }
 
 const EmailConfigForm = (props: EmailConfigFormProps) => {
-  const initialConfig = (props.initialConfig && props.initialConfig.name === 'email.branding') ? props.initialConfig : undefined;
+  const initialConfig = props.initialConfig;
   const [from, setFrom] = useState<string>(initialConfig?.value.from || '');
   const [enrollAccountSubject, setEnrollAccountSubject] =
     useState<string>(initialConfig?.value.enrollAccountMessageSubjectTemplate || '');
@@ -796,12 +804,11 @@ const EmailConfigForm = (props: EmailConfigFormProps) => {
   );
 };
 
-interface EmailConfigSectionProps {
-  config: SettingType | undefined;
-}
-
-const EmailConfigSection = (props: EmailConfigSectionProps) => {
-  const configured = props.config && props.config.name === 'email.branding' && props.config.value.from;
+const EmailConfigSection = () => {
+  const config = useTracker(() => {
+    return Settings.findOne({ name: 'email.branding' }) as SettingType & { name: 'email.branding' } | undefined;
+  }, []);
+  const configured = !!(config?.value.from);
   const badgeVariant = configured ? 'success' : 'warning';
   return (
     <Section id="email">
@@ -836,7 +843,7 @@ const EmailConfigSection = (props: EmailConfigSectionProps) => {
         for an overview of the supported syntax.  The <code>view</code>
         variables available to each context are described below.
       </p>
-      <EmailConfigForm initialConfig={props.config} />
+      <EmailConfigForm initialConfig={config} />
     </Section>
   );
 };
@@ -1011,24 +1018,12 @@ interface DiscordGuildFormProps {
   guild?: DiscordGuildType;
 }
 
-interface DiscordGuildFormTracker {
-  // List of possible guilds from server
-  guilds: DiscordGuildType[];
-}
-
 const DiscordGuildForm = (props: DiscordGuildFormProps) => {
   useSubscribe('discord.guilds');
-
-  const tracker = useTracker<DiscordGuildFormTracker>(() => {
-    const guilds = DiscordCache.find({ type: 'guild' }).fetch().map((c) => {
-      const { id, name } = c.object as DiscordGuildType;
-      return { id, name };
-    });
-    return {
-      guilds,
-    };
+  const guilds = useTracker(() => {
+    return DiscordCache.find({ type: 'guild' }, { fields: { 'object.id': 1, 'object.name': 1 } })
+      .map((c) => c.object as SavedDiscordObjectType);
   }, []);
-
   const [guildId, setGuildId] = useState<string>((props.guild && props.guild.id) || '');
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
@@ -1045,7 +1040,7 @@ const DiscordGuildForm = (props: DiscordGuildFormProps) => {
   const onSaveGuild = useCallback((e: React.FormEvent<any>) => {
     e.preventDefault();
 
-    const guild = tracker.guilds.find((g) => g.id === guildId);
+    const guild = guilds.find((g) => g.id === guildId);
     setSubmitState(SubmitState.SUBMITTING);
     Meteor.call('setupDiscordBotGuild', guild, (err?: Error) => {
       if (err) {
@@ -1055,14 +1050,14 @@ const DiscordGuildForm = (props: DiscordGuildFormProps) => {
         setSubmitState(SubmitState.SUCCESS);
       }
     });
-  }, [tracker.guilds, guildId]);
+  }, [guilds, guildId]);
 
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   const noneOption = {
     id: 'empty',
     name: 'No guild assigned',
   };
-  const formOptions = [noneOption, ...tracker.guilds];
+  const formOptions = [noneOption, ...guilds];
   return (
     <div>
       {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
@@ -1102,33 +1097,42 @@ const DiscordGuildForm = (props: DiscordGuildFormProps) => {
   );
 };
 
-interface DiscordIntegrationSectionProps {
-  enabled: boolean;
-  oauthSettings?: Configuration;
-  botToken?: string;
-  guild?: DiscordGuildType;
-}
+const DiscordIntegrationSection = () => {
+  const {
+    enabled,
+    oauthSettings,
+    botToken,
+    guild,
+  } = useTracker(() => {
+    const botSetting = Settings.findOne({ name: 'discord.bot' }) as SettingType & { name: 'discord.bot' } | undefined;
+    const guildSetting = Settings.findOne({ name: 'discord.guild' }) as SettingType & { name: 'discord.guild' } | undefined;
+    return {
+      enabled: !Flags.active('disable.discord'),
+      oauthSettings: ServiceConfiguration.configurations.findOne({ service: 'discord' }),
+      botToken: botSetting?.value.token,
+      guild: guildSetting?.value.guild,
+    };
+  }, []);
 
-const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
   const onToggleEnabled = useCallback(() => {
-    const newValue = !props.enabled;
+    const newValue = !enabled;
     const ffValue = newValue ? 'off' : 'on';
     Meteor.call('setFeatureFlag', 'disable.discord', ffValue);
-  }, [props.enabled]);
+  }, [enabled]);
 
-  const firstButtonLabel = props.enabled ? 'Enabled' : 'Enable';
-  const secondButtonLabel = props.enabled ? 'Disable' : 'Disabled';
+  const firstButtonLabel = enabled ? 'Enabled' : 'Enable';
+  const secondButtonLabel = enabled ? 'Disable' : 'Disabled';
 
-  const configured = !!props.oauthSettings;
+  const configured = !!oauthSettings;
   const headerBadgeVariant = configured ? 'success' : 'warning';
-  const clientId = props.oauthSettings && props.oauthSettings.appId;
+  const clientId = oauthSettings && oauthSettings.appId;
   const addGuildLink = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&scope=bot&permissions=8`;
-  const oauthBadgeLabel = props.oauthSettings ? 'configured' : 'unconfigured';
-  const oauthBadgeVariant = props.oauthSettings ? 'success' : 'warning';
-  const botBadgeLabel = props.botToken ? 'configured' : 'unconfigured';
-  const botBadgeVariant = props.botToken ? 'success' : 'warning';
-  const guildBadgeLabel = props.guild ? 'configured' : 'unconfigured';
-  const guildBadgeVariant = props.guild ? 'success' : 'warning';
+  const oauthBadgeLabel = oauthSettings ? 'configured' : 'unconfigured';
+  const oauthBadgeVariant = oauthSettings ? 'success' : 'warning';
+  const botBadgeLabel = botToken ? 'configured' : 'unconfigured';
+  const botBadgeVariant = botToken ? 'success' : 'warning';
+  const guildBadgeLabel = guild ? 'configured' : 'unconfigured';
+  const guildBadgeVariant = guild ? 'success' : 'warning';
   return (
     <Section id="discord">
       <SectionHeader>
@@ -1140,10 +1144,10 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
         </Badge>
         {configured && (
         <SectionHeaderButtons>
-          <Button variant="light" disabled={props.enabled} onClick={onToggleEnabled}>
+          <Button variant="light" disabled={enabled} onClick={onToggleEnabled}>
             {firstButtonLabel}
           </Button>
-          <Button variant="light" disabled={!props.enabled} onClick={onToggleEnabled}>
+          <Button variant="light" disabled={!enabled} onClick={onToggleEnabled}>
             {secondButtonLabel}
           </Button>
         </SectionHeaderButtons>
@@ -1202,7 +1206,7 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
           <li>Click the save button below.</li>
           <li>Then, after you have successfully saved the client secret and bot token: as the guild (&quot;server&quot;) owner, <a href={addGuildLink}>add the bot to your Discord guild here</a>.</li>
         </ol>
-        <DiscordOAuthForm oauthSettings={props.oauthSettings} />
+        <DiscordOAuthForm oauthSettings={oauthSettings} />
       </Subsection>
 
       <Subsection>
@@ -1218,7 +1222,7 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
           it to the guild for which you wish to automate invites.
         </p>
         <DiscordBotForm
-          botToken={props.botToken}
+          botToken={botToken}
         />
       </Subsection>
 
@@ -1237,19 +1241,20 @@ const DiscordIntegrationSection = (props: DiscordIntegrationSectionProps) => {
         </p>
 
         <DiscordGuildForm
-          guild={props.guild}
+          guild={guild}
         />
       </Subsection>
     </Section>
   );
 };
 
-interface BrandingTeamNameProps {
-  initialTeamName: string | undefined;
-}
+const BrandingTeamName = () => {
+  const initialTeamName = useTracker(() => {
+    const teamNameSetting = Settings.findOne({ name: 'teamname' }) as SettingType & { name: 'teamname' } | undefined;
+    return teamNameSetting?.value.teamName;
+  }, []);
 
-const BrandingTeamName = (props: BrandingTeamNameProps) => {
-  const [teamName, setTeamName] = useState<string>(props.initialTeamName || '');
+  const [teamName, setTeamName] = useState<string>(initialTeamName || '');
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -1383,7 +1388,7 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
   }, [props.asset]);
 
   // If no BlobMapping is present for this asset, fall back to the default one from the public/images folder
-  const blobUrl = useTracker(() => lookupUrl(props.asset));
+  const blobUrl = useTracker(() => lookupUrl(props.asset), [props.asset]);
   return (
     <BrandingRow>
       {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
@@ -1410,11 +1415,7 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
   );
 };
 
-interface BrandingSectionProps {
-  teamName: string | undefined;
-}
-
-const BrandingSection = (props: BrandingSectionProps) => {
+const BrandingSection = () => {
   return (
     <Section id="branding">
       <SectionHeader>
@@ -1434,7 +1435,7 @@ const BrandingSection = (props: BrandingSectionProps) => {
           <li>in the filenames of any Google Docs/Sheets created by Jolly Roger</li>
           <li>and anywhere else we may refer to the team that owns this Jolly Roger instance.</li>
         </ul>
-        <BrandingTeamName initialTeamName={props.teamName} />
+        <BrandingTeamName />
       </Subsection>
       {/* Adding a new branding asset? Make sure to add it to imports/server/lookupUrl.ts as well */}
       <Subsection>
@@ -1488,19 +1489,14 @@ const BrandingSection = (props: BrandingSectionProps) => {
 };
 
 interface CircuitBreakerControlProps {
-  // disabled should be false if the circuit breaker is not intentionally disabling the feature,
-  // and true if the feature is currently disabled.
-  // most features will have false here most of the time.
-  featureDisabled: boolean;
-
   // What do you call this circuit breaker?
   title: string;
 
+  // What is the database name for this flag
+  flagName: string;
+
   // some explanation of what this feature flag controls and why you might want to toggle it.
   children: React.ReactNode;
-
-  // callback to call when the user requests changing this flag's state
-  onChange: (desiredState: boolean) => void;
 }
 
 const CircuitBreaker = styled.div`
@@ -1530,12 +1526,18 @@ const CircuitBreakerButtons = styled.div`
 
 const CircuitBreakerControl = (props: CircuitBreakerControlProps) => {
   const {
-    featureDisabled, title, children, onChange,
+    title, flagName, children,
   } = props;
+
+  // disabled should be false if the circuit breaker is not intentionally disabling the feature,
+  // and true if the feature is currently disabled.
+  // most features will have false here most of the time.
+  const featureDisabled = useTracker(() => Flags.active(flagName), [flagName]);
+
   const onChangeCb = useCallback(() => {
     const desiredState = !featureDisabled;
-    onChange(desiredState);
-  }, [onChange, featureDisabled]);
+    Meteor.call('setFeatureFlag', flagName, desiredState ? 'on' : 'off');
+  }, [flagName, featureDisabled]);
 
   // Is the feature that this circuit breaker disables currently available?
   const featureIsEnabled = !featureDisabled;
@@ -1564,20 +1566,7 @@ const CircuitBreakerControl = (props: CircuitBreakerControlProps) => {
   );
 };
 
-interface CircuitBreakerSectionProps {
-  flagDisableGdrivePermissions: boolean;
-  flagDisableApplause: boolean;
-  flagDisableWebrtc: boolean;
-  flagDisableSpectra: boolean;
-  flagDisableDingwords: boolean;
-}
-
-const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
-  const setFlagValue = useCallback((flag: string, value: boolean) => {
-    const type = value ? 'on' : 'off';
-    Meteor.call('setFeatureFlag', flag, type);
-  }, []);
-
+const CircuitBreakerSection = () => {
   return (
     <Section id="circuit-breakers">
       <SectionHeader>
@@ -1591,8 +1580,7 @@ const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
       </p>
       <CircuitBreakerControl
         title="Drive permission sharing"
-        featureDisabled={props.flagDisableGdrivePermissions}
-        onChange={(newValue) => setFlagValue('disable.gdrive_permissions', newValue)}
+        flagName="disable.gdrive_permissions"
       >
         <p>
           When Jolly Roger creates a spreadsheet or document, we grant
@@ -1621,8 +1609,7 @@ const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
       </CircuitBreakerControl>
       <CircuitBreakerControl
         title="Celebrations"
-        featureDisabled={props.flagDisableApplause}
-        onChange={(newValue) => setFlagValue('disable.applause', newValue)}
+        flagName="disable.applause"
       >
         <p>
           Some teams like broadcasting when a puzzle is solved, to make
@@ -1641,8 +1628,7 @@ const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
       </CircuitBreakerControl>
       <CircuitBreakerControl
         title="WebRTC calls"
-        featureDisabled={props.flagDisableWebrtc}
-        onChange={(newValue) => setFlagValue('disable.webrtc', newValue)}
+        flagName="disable.webrtc"
       >
         <p>
           Jolly Roger has experimental support for making WebRTC audio calls
@@ -1667,8 +1653,7 @@ const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
       </CircuitBreakerControl>
       <CircuitBreakerControl
         title="WebRTC call spectrograms"
-        featureDisabled={props.flagDisableSpectra}
-        onChange={(newValue) => setFlagValue('disable.spectra', newValue)}
+        flagName="disable.spectra"
       >
         <p>
           In the WebRTC call UI, we show audio activity via spectrograms.
@@ -1684,8 +1669,7 @@ const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
       </CircuitBreakerControl>
       <CircuitBreakerControl
         title="Dingwords"
-        featureDisabled={props.flagDisableDingwords}
-        onChange={(newValue) => setFlagValue('disable.dingwords', newValue)}
+        flagName="disable.dingwords"
       >
         <p>
           User-specified &quot;dingwords&quot; allow users to get notified if anyone
@@ -1704,99 +1688,13 @@ const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
   );
 };
 
-interface SetupPageTracker {
-  canConfigure: boolean;
-
-  googleConfig: any;
-  gdriveCredential: any;
-  docTemplate?: string;
-  spreadsheetTemplate?: string;
-
-  emailConfig: SettingType | undefined;
-  teamName: string | undefined;
-
-  discordOAuthConfig?: Configuration;
-  flagDisableDiscord: boolean;
-  discordBotToken?: string;
-  discordGuild?: DiscordGuildType;
-
-  flagDisableGoogleIntegration: boolean;
-  flagDisableGdrivePermissions: boolean;
-  flagDisableApplause: boolean;
-  flagDisableWebrtc: boolean;
-  flagDisableSpectra: boolean;
-  flagDisableDingwords: boolean;
-}
-
 const SetupPage = () => {
   useBreadcrumb({ title: 'Server setup', path: '/setup' });
 
-  // We need to fetch the contents of the Settings table
-  const settingsLoading = useSubscribe('mongo.settings');
-  const loading = settingsLoading();
+  const loading = useSubscribe('mongo.settings');
+  const canConfigure = useTracker(() => isAdmin(Meteor.userId()), []);
 
-  const tracker = useTracker<SetupPageTracker>(() => {
-    const canConfigure = isAdmin(Meteor.userId());
-
-    // Google
-    const googleConfig = ServiceConfiguration.configurations.findOne({ service: 'google' });
-    const gdriveCredential = Settings.findOne({ name: 'gdrive.credential' });
-    const docTemplate = Settings.findOne({ name: 'gdrive.template.document' });
-    const docTemplateId = docTemplate && docTemplate.name === 'gdrive.template.document' ?
-      docTemplate.value.id : undefined;
-    const spreadsheetTemplate = Settings.findOne({ name: 'gdrive.template.spreadsheet' });
-    const spreadsheetTemplateId = spreadsheetTemplate && spreadsheetTemplate.name === 'gdrive.template.spreadsheet' ?
-      spreadsheetTemplate.value.id : undefined;
-
-    // Email
-    const emailConfig = Settings.findOne({ name: 'email.branding' });
-
-    // Team name
-    const teamNameDoc = Settings.findOne({ name: 'teamname' });
-    const teamName = teamNameDoc && teamNameDoc.name === 'teamname' ? teamNameDoc.value.teamName : undefined;
-
-    // Discord
-    const discordOAuthConfig = ServiceConfiguration.configurations.findOne({ service: 'discord' });
-    const flagDisableDiscord = Flags.active('disable.discord');
-    const discordBotTokenDoc = Settings.findOne({ name: 'discord.bot' });
-    const discordBotToken = discordBotTokenDoc && discordBotTokenDoc.name === 'discord.bot' ? discordBotTokenDoc.value.token : undefined;
-    const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
-    const discordGuild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' ? discordGuildDoc.value.guild : undefined;
-
-    // Circuit breakers
-    const flagDisableGoogleIntegration = Flags.active('disable.google');
-    const flagDisableGdrivePermissions = Flags.active('disable.gdrive_permissions');
-    const flagDisableApplause = Flags.active('disable.applause');
-    const flagDisableWebrtc = Flags.active('disable.webrtc');
-    const flagDisableSpectra = Flags.active('disable.spectra');
-    const flagDisableDingwords = Flags.active('disable.dingwords');
-
-    return {
-      canConfigure,
-
-      googleConfig,
-      gdriveCredential,
-      docTemplate: docTemplateId,
-      spreadsheetTemplate: spreadsheetTemplateId,
-
-      teamName,
-      emailConfig,
-
-      discordOAuthConfig,
-      flagDisableDiscord,
-      discordBotToken,
-      discordGuild,
-
-      flagDisableGoogleIntegration,
-      flagDisableGdrivePermissions,
-      flagDisableApplause,
-      flagDisableWebrtc,
-      flagDisableSpectra,
-      flagDisableDingwords,
-    };
-  }, []);
-
-  if (loading) {
+  if (loading()) {
     return (
       <div>
         Loading...
@@ -1804,7 +1702,7 @@ const SetupPage = () => {
     );
   }
 
-  if (!tracker.canConfigure) {
+  if (!canConfigure) {
     return (
       <div>
         <h1>Not authorized</h1>
@@ -1813,35 +1711,13 @@ const SetupPage = () => {
     );
   }
 
-  const discordEnabled = !tracker.flagDisableDiscord;
   return (
     <div>
-      <GoogleIntegrationSection
-        oauthSettings={tracker.googleConfig}
-        enabled={!tracker.flagDisableGoogleIntegration}
-        gdriveCredential={tracker.gdriveCredential}
-        docTemplate={tracker.docTemplate}
-        spreadsheetTemplate={tracker.spreadsheetTemplate}
-      />
-      <EmailConfigSection
-        config={tracker.emailConfig}
-      />
-      <DiscordIntegrationSection
-        oauthSettings={tracker.discordOAuthConfig}
-        enabled={discordEnabled}
-        botToken={tracker.discordBotToken}
-        guild={tracker.discordGuild}
-      />
-      <BrandingSection
-        teamName={tracker.teamName}
-      />
-      <CircuitBreakerSection
-        flagDisableGdrivePermissions={tracker.flagDisableGdrivePermissions}
-        flagDisableApplause={tracker.flagDisableApplause}
-        flagDisableWebrtc={tracker.flagDisableWebrtc}
-        flagDisableSpectra={tracker.flagDisableSpectra}
-        flagDisableDingwords={tracker.flagDisableDingwords}
-      />
+      <GoogleIntegrationSection />
+      <EmailConfigSection />
+      <DiscordIntegrationSection />
+      <BrandingSection />
+      <CircuitBreakerSection />
     </div>
   );
 };
