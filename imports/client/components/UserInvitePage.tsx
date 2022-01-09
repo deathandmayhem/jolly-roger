@@ -9,12 +9,17 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
 import { useNavigate, useParams } from 'react-router-dom';
+import styled from 'styled-components';
 import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 
 interface UserInvitePageTracker {
   canBulkInvite: boolean;
 }
+
+const BulkError = styled.p`
+  white-space: pre-wrap;
+`;
 
 const UserInvitePage = () => {
   const huntId = useParams<'huntId'>().huntId!;
@@ -74,7 +79,7 @@ const UserInvitePage = () => {
 
         {bulkError ? (
           <Alert variant="danger">
-            <p style={{ whiteSpace: 'pre-wrap' }}>{bulkError.reason}</p>
+            <BulkError>{bulkError.reason}</BulkError>
           </Alert>
         ) : undefined}
 

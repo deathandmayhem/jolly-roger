@@ -1,16 +1,20 @@
 import React, { useCallback, useState } from 'react';
+import styled from 'styled-components';
 
 /* eslint-disable max-len */
 
-const labelledRadioStyles: Record<string, React.CSSProperties> = {
-  radiolabel: {
-    display: 'block',
-    fontWeight: 'normal',
-  },
-  radio: {
-    margin: '8px',
-  },
-};
+const RadioHeader = styled.span`
+  font-weight: bold;
+`;
+
+const RadioLabel = styled.label`
+  display: block;
+  fontWeight: normal;
+`;
+
+const Radio = styled.input`
+  margin: 8px;
+`;
 
 interface LabelledRadioProps {
   id: string;
@@ -28,10 +32,9 @@ interface LabelledRadioProps {
 // instead.  Uses some bootstrap styles.
 const LabelledRadio = (props: LabelledRadioProps) => {
   return (
-    <label style={labelledRadioStyles.radiolabel} htmlFor={props.id}>
-      <input
+    <RadioLabel htmlFor={props.id}>
+      <Radio
         id={props.id}
-        style={labelledRadioStyles.radio}
         type="radio"
         name={props.name}
         onChange={props.onChange}
@@ -39,14 +42,8 @@ const LabelledRadio = (props: LabelledRadioProps) => {
         defaultChecked={!!props.defaultChecked}
       />
       {props.label}
-    </label>
+    </RadioLabel>
   );
-};
-
-const labelledRadioGroupStyles: Record<string, React.CSSProperties> = {
-  radioheader: {
-    fontWeight: 'bold',
-  },
 };
 
 interface LabelledRadioGroupProps {
@@ -85,7 +82,7 @@ const LabelledRadioGroup = (props: LabelledRadioGroupProps) => {
   });
   return (
     <div className="radio-group">
-      <span style={labelledRadioGroupStyles.radioheader}>{props.header}</span>
+      <RadioHeader>{props.header}</RadioHeader>
       <fieldset>
         {buttons}
       </fieldset>
