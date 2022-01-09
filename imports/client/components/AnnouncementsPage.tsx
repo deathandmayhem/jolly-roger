@@ -132,12 +132,6 @@ const Announcement = (props: AnnouncementProps) => {
   );
 };
 
-interface AnnouncementsPageTracker {
-  canCreateAnnouncements: boolean;
-  announcements: AnnouncementType[];
-  displayNames: Record<string, string>;
-}
-
 const AnnouncementsPage = () => {
   const huntId = useParams<'huntId'>().huntId!;
   useBreadcrumb({ title: 'Announcements', path: `/hunts/${huntId}/announcements` });
@@ -149,22 +143,11 @@ const AnnouncementsPage = () => {
   const displayNamesLoading = useSubscribeDisplayNames();
   const loading = announcementsLoading() || displayNamesLoading();
 
-  const tracker = useTracker<AnnouncementsPageTracker>(() => {
-    let announcements: AnnouncementType[];
-    let displayNames: Record<string, string>;
-    if (loading) {
-      announcements = [];
-      displayNames = {};
-    } else {
-      announcements = Announcements.find({ hunt: huntId }, { sort: { createdAt: 1 } }).fetch();
-      displayNames = Profiles.displayNames();
-    }
-    const canCreateAnnouncements = userMayAddAnnouncementToHunt(Meteor.userId(), huntId);
-
+  const { announcements, canCreateAnnouncements, displayNames } = useTracker(() => {
     return {
-      announcements,
-      canCreateAnnouncements,
-      displayNames,
+      announcements: loading ? [] : Announcements.find({ hunt: huntId }, { sort: { createdAt: 1 } }).fetch(),
+      canCreateAnnouncements: userMayAddAnnouncementToHunt(Meteor.userId(), huntId),
+      displayNames: loading ? {} : Profiles.displayNames(),
     };
   }, [loading, huntId]);
 
@@ -175,16 +158,16 @@ const AnnouncementsPage = () => {
   return (
     <div>
       <h1>Announcements</h1>
-      {tracker.canCreateAnnouncements && <AnnouncementForm huntId={huntId} />}
+      {canCreateAnnouncements && <AnnouncementForm huntId={huntId} />}
       {/* ostensibly these should be ul and li, but then I have to deal with overriding
           block/inline and default margins and list style type and meh */}
       <div>
-        {tracker.announcements.map((announcement) => {
+        {announcements.map((announcement) => {
           return (
             <Announcement
               key={announcement._id}
               announcement={announcement}
-              displayNames={tracker.displayNames}
+              displayNames={displayNames}
             />
           );
         })}

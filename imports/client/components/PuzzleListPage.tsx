@@ -26,7 +26,6 @@ import Hunts from '../../lib/models/hunts';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
-import { HuntType } from '../../lib/schemas/hunt';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
 import PuzzleList from './PuzzleList';
@@ -371,14 +370,6 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
   );
 };
 
-interface PuzzleListPageTracker {
-  canAdd: boolean;
-  canUpdate: boolean;
-  allPuzzles: PuzzleType[];
-  allTags: TagType[];
-  hunt: HuntType;
-}
-
 const StyledPuzzleListLinkList = styled.ul`
   list-style: none;
   display: flex;
@@ -434,21 +425,22 @@ const PuzzleListPage = () => {
 
   // Don't bother including this in loading - it's ok if it trickles in
   useSubscribe('subscribers.counts', { hunt: huntId });
-  const tracker: PuzzleListPageTracker = useTracker(() => {
-    // Assertion is safe because hunt is already subscribed and checked by HuntApp
-    const hunt = Hunts.findOne({ _id: huntId })!;
+  const {
+    canAdd, canUpdate, allPuzzles, allTags, hunt,
+  } = useTracker(() => {
     return {
+      // Assertion is safe because hunt is already subscribed and checked by HuntApp
+      hunt: Hunts.findOne({ _id: huntId })!,
       canAdd: loading ? false : userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
       canUpdate: loading ? false : userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
       allPuzzles: loading ? [] : Puzzles.find({ hunt: huntId }).fetch(),
       allTags: loading ? [] : Tags.find({ hunt: huntId }).fetch(),
-      hunt,
     };
   }, [loading, huntId]);
 
-  const huntLink = tracker.hunt.homepageUrl && (
+  const huntLink = hunt.homepageUrl && (
     <StyledPuzzleListExternalLink>
-      <Button as="a" href={tracker.hunt.homepageUrl} className="rounded-0" target="_blank" rel="noopener noreferrer" title="Open the hunt homepage">
+      <Button as="a" href={hunt.homepageUrl} className="rounded-0" target="_blank" rel="noopener noreferrer" title="Open the hunt homepage">
         <FontAwesomeIcon icon={faMap} />
       </Button>
     </StyledPuzzleListExternalLink>
@@ -458,10 +450,10 @@ const PuzzleListPage = () => {
   ) : (
     <PuzzleListView
       huntId={huntId}
-      canAdd={tracker.canAdd}
-      canUpdate={tracker.canUpdate}
-      puzzles={tracker.allPuzzles}
-      allTags={tracker.allTags}
+      canAdd={canAdd}
+      canUpdate={canUpdate}
+      puzzles={allPuzzles}
+      allTags={allTags}
     />
   );
   return (
@@ -487,7 +479,7 @@ const PuzzleListPage = () => {
           </StyledPuzzleListLinkAnchor>
         </StyledPuzzleListLink>
         {/* Show firehose link only to operators */}
-        {tracker.canUpdate && (
+        {canUpdate && (
           <StyledPuzzleListLink>
             <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/firehose`}>
               <FontAwesomeIcon icon={faFaucet} />

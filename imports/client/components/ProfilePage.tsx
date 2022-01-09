@@ -7,18 +7,9 @@ import {
   deprecatedUserMayMakeOperator,
   deprecatedIsActiveOperator,
 } from '../../lib/permission_stubs';
-import { ProfileType } from '../../lib/schemas/profile';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import OthersProfilePage from './OthersProfilePage';
 import OwnProfilePage from './OwnProfilePage';
-
-interface ProfilePageTracker {
-  isSelf: boolean;
-  profile: ProfileType;
-  viewerCanMakeOperator: boolean;
-  viewerIsOperator: boolean;
-  targetIsOperator: boolean;
-}
 
 const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) => {
   useBreadcrumb({ title: 'Users', path: '/users' });
@@ -27,11 +18,12 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
   const userRolesLoading = useSubscribe('userRoles', userId);
   const loading = profileLoading() || userRolesLoading();
 
-  const tracker = useTracker<ProfilePageTracker>(() => {
+  const {
+    profile, viewerCanMakeOperator, viewerIsOperator, targetIsOperator,
+  } = useTracker(() => {
     const user = Meteor.user()!;
     const defaultEmail = user.emails![0].address!;
-    const data = {
-      isSelf: (Meteor.userId() === userId),
+    return {
       profile: Profiles.findOne(userId) || {
         _id: userId,
         displayName: '',
@@ -51,11 +43,10 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
       viewerIsOperator: deprecatedIsActiveOperator(Meteor.userId()),
       targetIsOperator: deprecatedUserMayMakeOperator(userId),
     };
-    return data;
   }, [userId]);
 
   useBreadcrumb({
-    title: loading ? 'loading...' : tracker.profile.displayName,
+    title: loading ? 'loading...' : profile.displayName,
     path: `/users/${userId}`,
   });
 
@@ -64,18 +55,18 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
   } else if (isSelf) {
     return (
       <OwnProfilePage
-        initialProfile={tracker.profile}
-        canMakeOperator={tracker.viewerCanMakeOperator}
-        operating={tracker.viewerIsOperator}
+        initialProfile={profile}
+        canMakeOperator={viewerCanMakeOperator}
+        operating={viewerIsOperator}
       />
     );
   }
 
   return (
     <OthersProfilePage
-      profile={tracker.profile}
-      viewerCanMakeOperator={tracker.viewerCanMakeOperator}
-      targetIsOperator={tracker.targetIsOperator}
+      profile={profile}
+      viewerCanMakeOperator={viewerCanMakeOperator}
+      targetIsOperator={targetIsOperator}
     />
   );
 };

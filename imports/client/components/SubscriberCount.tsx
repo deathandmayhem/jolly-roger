@@ -8,16 +8,9 @@ interface SubscriberCountProps {
   puzzleId: string;
 }
 
-interface SubscriberCountTracker {
-  viewCount: number;
-}
-
 const SubscriberCount = (props: SubscriberCountProps) => {
-  const tracker = useTracker<SubscriberCountTracker>(() => {
-    const count = SubscriberCounters.findOne(`puzzle:${props.puzzleId}`);
-    return {
-      viewCount: count ? count.value : 0,
-    };
+  const viewCount = useTracker(() => {
+    return SubscriberCounters.findOne(`puzzle:${props.puzzleId}`)?.value ?? 0;
   }, [props.puzzleId]);
 
   const countTooltip = (
@@ -29,7 +22,7 @@ const SubscriberCount = (props: SubscriberCountProps) => {
     <OverlayTrigger placement="top" overlay={countTooltip}>
       <span>
         (
-        {tracker.viewCount}
+        {viewCount}
         )
       </span>
     </OverlayTrigger>

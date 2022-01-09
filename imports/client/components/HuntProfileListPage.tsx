@@ -7,16 +7,9 @@ import {
 import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
 import { userMayAddUsersToHunt, userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
-import { ProfileType } from '../../lib/schemas/profile';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 import UserInvitePage from './UserInvitePage';
-
-interface HuntProfileListPageTracker {
-  canInvite: boolean;
-  canSyncDiscord: boolean;
-  profiles: ProfileType[];
-}
 
 const HuntProfileListPage = () => {
   const huntId = useParams<'huntId'>().huntId!;
@@ -26,30 +19,20 @@ const HuntProfileListPage = () => {
   const profilesLoading = useSubscribe('mongo.profiles');
   const loading = usersLoading() || profilesLoading();
 
-  const tracker = useTracker<HuntProfileListPageTracker>(() => {
-    if (loading) {
-      return {
-        canInvite: false,
-        canSyncDiscord: false,
-        profiles: [],
-      };
-    }
-
-    const canInvite = userMayAddUsersToHunt(Meteor.userId(), huntId);
-    const hunters = MeteorUsers.find({ hunts: huntId }).map((u) => u._id) as string[];
-    const profiles = Profiles.find(
-      { _id: { $in: hunters } },
-      { sort: { displayName: 1 } },
-    ).fetch();
-
-    const canSyncDiscord = userMayUseDiscordBotAPIs(Meteor.userId());
-
+  const { canInvite, canSyncDiscord, profiles } = useTracker(() => {
     return {
-      canInvite,
-      canSyncDiscord,
-      profiles,
+      canInvite: userMayAddUsersToHunt(Meteor.userId(), huntId),
+      canSyncDiscord: userMayUseDiscordBotAPIs(Meteor.userId()),
+      profiles:
+        loading ?
+          [] :
+          Profiles.find(
+            { _id: { $in: MeteorUsers.find({ hunts: huntId }).map((u) => u._id) } },
+            { sort: { displayName: 1 } },
+          ).fetch(),
     };
-  }, [loading, huntId]);
+  }, [huntId, loading]);
+
   if (loading) {
     return <div>loading...</div>;
   }
@@ -61,10 +44,10 @@ const HuntProfileListPage = () => {
         path=""
         element={(
           <ProfileList
-            profiles={tracker.profiles}
+            profiles={profiles}
             huntId={huntId}
-            canInvite={tracker.canInvite}
-            canSyncDiscord={tracker.canSyncDiscord}
+            canInvite={canInvite}
+            canSyncDiscord={canSyncDiscord}
           />
         )}
       />

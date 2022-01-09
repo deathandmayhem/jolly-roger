@@ -2,7 +2,7 @@ import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
+import { ServiceConfiguration } from 'meteor/service-configuration';
 import React, { useCallback, useMemo, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -22,11 +22,6 @@ interface GoogleLinkBlockProps {
   profile: ProfileType;
 }
 
-interface GoogleLinkBlockTracker {
-  googleDisabled: boolean;
-  config: Configuration | undefined;
-}
-
 enum GoogleLinkBlockLinkState {
   IDLE = 'idle',
   LINKING = 'linking',
@@ -44,12 +39,13 @@ const GoogleLinkBlock = (props: GoogleLinkBlockProps) => {
   const [state, setState] =
     useState<GoogleLinkBlockState>({ state: GoogleLinkBlockLinkState.IDLE });
 
-  const tracker = useTracker<GoogleLinkBlockTracker>(() => {
-    const config = ServiceConfiguration.configurations.findOne({
-      service: 'google',
-    }) as Configuration | undefined;
-    const googleDisabled = Flags.active('disable.google');
-    return { config, googleDisabled };
+  const { config, googleDisabled } = useTracker(() => {
+    return {
+      config: ServiceConfiguration.configurations.findOne({
+        service: 'google',
+      }),
+      googleDisabled: Flags.active('disable.google'),
+    };
   }, []);
 
   const requestComplete = useCallback((token: string) => {
@@ -86,7 +82,7 @@ const GoogleLinkBlock = (props: GoogleLinkBlockProps) => {
       return <Button variant="primary" disabled>Linking...</Button>;
     }
 
-    if (tracker.googleDisabled) {
+    if (googleDisabled) {
       return <Button variant="primary" disabled>Google integration currently disabled</Button>;
     }
 
@@ -101,7 +97,7 @@ const GoogleLinkBlock = (props: GoogleLinkBlockProps) => {
     );
   };
 
-  if (!tracker.config) {
+  if (!config) {
     return <div />;
   }
 
@@ -163,12 +159,6 @@ interface DiscordLinkBlockProps {
   profile: ProfileType;
 }
 
-interface DiscordLinkBlockTracker {
-  config: Configuration | undefined;
-  discordDisabled: boolean;
-  teamName: string;
-}
-
 type DiscordLinkBlockState = {
   state: DiscordLinkBlockLinkState.IDLE | DiscordLinkBlockLinkState.LINKING;
 } | {
@@ -182,15 +172,11 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
 
   useSubscribe('teamName');
 
-  const tracker = useTracker<DiscordLinkBlockTracker>(() => {
-    const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });
-    const discordDisabled = Flags.active('disable.discord');
-    const teamNameObj = TeamName.findOne('teamName');
-    const teamName = teamNameObj ? teamNameObj.name : 'Default Team Name';
+  const { config, discordDisabled, teamName } = useTracker(() => {
     return {
-      config,
-      discordDisabled,
-      teamName,
+      config: ServiceConfiguration.configurations.findOne({ service: 'discord' }),
+      discordDisabled: Flags.active('disable.discord'),
+      teamName: TeamName.findOne('teamName')?.name ?? 'Default Team Name',
     };
   }, []);
 
@@ -228,7 +214,7 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
       return <Button variant="primary" disabled>Linking...</Button>;
     }
 
-    if (tracker.discordDisabled) {
+    if (discordDisabled) {
       return <Button variant="primary" disabled>Discord integration currently disabled</Button>;
     }
 
@@ -241,7 +227,7 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
         {text}
       </Button>
     );
-  }, [state.state, tracker.discordDisabled, props.profile.discordAccount, onLink]);
+  }, [state.state, discordDisabled, props.profile.discordAccount, onLink]);
 
   const unlinkButton = useMemo(() => {
     if (props.profile.discordAccount) {
@@ -272,7 +258,7 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
     return null;
   }, [props.profile.discordAccount]);
 
-  if (!tracker.config) {
+  if (!config) {
     return <div />;
   }
 
@@ -297,7 +283,7 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
       <FormText>
         Linking your Discord account will add you to the
         {' '}
-        {tracker.teamName}
+        {teamName}
         {' '}
         Discord server.  Additionally, we&apos;ll be able to link up your identity
         there and in jolly-roger chat.

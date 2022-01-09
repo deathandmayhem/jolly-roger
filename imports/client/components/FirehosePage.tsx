@@ -77,26 +77,17 @@ const FirehosePage = () => {
   const chatMessagesLoading = useSubscribe('mongo.chatmessages', { hunt: huntId });
   const loading = profilesLoading() || puzzlesLoading() || chatMessagesLoading();
 
-  const profilesTracker = useTracker(() => {
-    return {
-      displayNames: loading ? {} : Profiles.displayNames(),
-    };
-  }, [loading]);
-  const puzzlesTracker = useTracker(() => {
-    const puzzles = loading ? [] : Puzzles.find({ hunt: huntId }).fetch();
-    const indexedPuzzles = _.indexBy(puzzles, '_id');
-    return {
-      puzzles: indexedPuzzles,
-    };
-  }, [loading, huntId]);
-  const chatMessagesTracker = useTracker(() => {
-    const chatMessages = loading ?
+  const displayNames = useTracker(() => (loading ? {} : Profiles.displayNames()), [loading]);
+  const puzzles = useTracker(() => (
+    loading ?
+      {} :
+      _.indexBy(Puzzles.find({ hunt: huntId }).fetch(), '_id')
+  ), [loading, huntId]);
+  const chatMessages = useTracker(() => (
+    loading ?
       [] :
-      ChatMessages.find({ hunt: huntId }, { sort: { timestamp: 1 } }).fetch();
-    return {
-      chatMessages,
-    };
-  }, [loading, huntId]);
+      ChatMessages.find({ hunt: huntId }, { sort: { timestamp: 1 } }).fetch()
+  ), [loading, huntId]);
 
   const messagesPaneRef = useRef<HTMLDivElement>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
@@ -148,16 +139,16 @@ const FirehosePage = () => {
     };
   }, []);
 
-  const filteredChats = useCallback((chatMessages: ChatMessageType[]) => {
+  const filteredChats = useCallback((allChatMessages: ChatMessageType[]) => {
     const searchKeys = searchString.split(' ');
     let interestingChatMessages;
 
     if (searchKeys.length === 1 && searchKeys[0] === '') {
-      interestingChatMessages = chatMessages;
+      interestingChatMessages = allChatMessages;
     } else {
       const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => { return key.length > 0; });
       const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
-      interestingChatMessages = chatMessages.filter(isInteresting);
+      interestingChatMessages = allChatMessages.filter(isInteresting);
     }
 
     return interestingChatMessages;
@@ -186,8 +177,8 @@ const FirehosePage = () => {
   }, [shouldScrollBottom, forceScrollBottom]);
 
   const chats = useMemo(() => {
-    return filteredChats(chatMessagesTracker.chatMessages);
-  }, [filteredChats, chatMessagesTracker.chatMessages]);
+    return filteredChats(chatMessages);
+  }, [filteredChats, chatMessages]);
 
   const onLayoutMaybeChanged = useCallback(() => {
     // Any time the length of the chat changes, jump to the end if we were already there
@@ -243,8 +234,8 @@ const FirehosePage = () => {
               <Message
                 key={msg._id}
                 msg={msg}
-                puzzles={puzzlesTracker.puzzles}
-                displayNames={profilesTracker.displayNames}
+                puzzles={puzzles}
+                displayNames={displayNames}
               />
             );
           })}

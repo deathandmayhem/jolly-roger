@@ -23,12 +23,6 @@ import NotificationCenter from './NotificationCenter';
 import { NavBarHeight } from './styling/constants';
 import { mediaBreakpointDown } from './styling/responsive';
 
-interface AppNavbarTracker {
-  displayName: string;
-  brandSrc: string;
-  brandSrc2x: string;
-}
-
 const Breadcrumb = styled.nav`
   display: flex;
   align-items: center;
@@ -79,18 +73,15 @@ const AppNavbar = () => {
   const profileLoading = useSubscribe('mongo.profiles', { _id: userId });
   const loading = profileLoading();
 
-  const tracker = useTracker<AppNavbarTracker>(() => {
+  const { displayName, brandSrc, brandSrc2x } = useTracker(() => {
     const profile = Profiles.findOne(Meteor.userId()!);
-    const displayName = loading ?
-      'loading...' :
-      ((profile && profile.displayName) || '<no name given>');
 
-    const brandSrc = lookupUrl('brand.png');
-    const brandSrc2x = lookupUrl('brand@2x.png');
     return {
-      displayName,
-      brandSrc,
-      brandSrc2x,
+      displayName: loading ?
+        'loading...' :
+        ((profile && profile.displayName) || '<no name given>'),
+      brandSrc: lookupUrl('brand.png'),
+      brandSrc2x: lookupUrl('brand@2x.png'),
     };
   }, [loading]);
 
@@ -138,9 +129,9 @@ const AppNavbar = () => {
       <NavbarBrand className="p-0">
         <Link to="/">
           <Brand
-            src={tracker.brandSrc}
+            src={brandSrc}
             alt="Jolly Roger logo"
-            srcSet={`${tracker.brandSrc} 1x, ${tracker.brandSrc2x} 2x`}
+            srcSet={`${brandSrc} 1x, ${brandSrc2x} 2x`}
           />
         </Link>
       </NavbarBrand>
@@ -150,7 +141,7 @@ const AppNavbar = () => {
           <DropdownToggle id="profileDropdown" as={NavLink}>
             <FontAwesomeIcon icon={faUser} />
             {' '}
-            <NavUsername>{tracker.displayName}</NavUsername>
+            <NavUsername>{displayName}</NavUsername>
           </DropdownToggle>
           <DropdownMenu alignRight>
             <RRBS.LinkContainer to={`/users/${userId}`}>

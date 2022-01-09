@@ -65,12 +65,8 @@ enum AccountFormSubmitState {
 
 const AccountForm = (props: AccountFormProps) => {
   const loading = useSubscribe('teamName');
-  const tracker = useTracker(() => {
-    const teamNameObj = TeamName.findOne('teamName');
-    const teamName = teamNameObj ? teamNameObj.name : 'Default Team Name';
-    return {
-      teamName,
-    };
+  const teamName = useTracker(() => {
+    return TeamName.findOne('teamName')?.name ?? 'Default Team Name';
   }, []);
 
   const [submitState, setSubmitState] = useState<AccountFormSubmitState>(AccountFormSubmitState.IDLE);
@@ -195,7 +191,7 @@ const AccountForm = (props: AccountFormProps) => {
   // drop AccountTemplates entirely.
   const submitting = submitState === AccountFormSubmitState.SUBMITTING;
   const title = {
-    [AccountFormFormat.LOGIN]: `Jolly Roger: ${tracker.teamName} Virtual HQ`,
+    [AccountFormFormat.LOGIN]: `Jolly Roger: ${teamName} Virtual HQ`,
     [AccountFormFormat.ENROLL]: 'Create an Account',
     [AccountFormFormat.REQUEST_PW_RESET]: 'Reset your password',
     [AccountFormFormat.RESET_PWD]: 'Reset your password',

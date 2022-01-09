@@ -193,14 +193,6 @@ const GuessBlock = React.memo((props: GuessBlockProps) => {
   );
 });
 
-interface GuessQueuePageTracker {
-  hunt?: HuntType;
-  guesses: GuessType[];
-  puzzles: Record<string, PuzzleType>;
-  displayNames: Record<string, string>;
-  canEdit: boolean;
-}
-
 const GuessQueuePage = () => {
   const huntId = useParams<'huntId'>().huntId!;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -218,21 +210,16 @@ const GuessQueuePage = () => {
     puzzlesLoading() ||
     displayNamesLoading();
 
-  const tracker = useTracker(() => {
-    const data: GuessQueuePageTracker = {
-      guesses: [],
-      puzzles: {},
-      displayNames: {},
+  const {
+    hunt, guesses, puzzles, displayNames, canEdit,
+  } = useTracker(() => {
+    return {
+      hunt: Hunts.findOne({ _id: huntId }),
+      guesses: loading ? [] : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch(),
+      puzzles: loading ? {} : _.indexBy(Puzzles.find({ hunt: huntId }).fetch(), '_id'),
+      displayNames: loading ? {} : Profiles.displayNames(),
       canEdit: userMayUpdateGuessesForHunt(Meteor.userId(), huntId),
     };
-    if (!loading) {
-      data.hunt = Hunts.findOne({ _id: huntId });
-      data.guesses = Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch();
-      data.puzzles = _.indexBy(Puzzles.find({ hunt: huntId }).fetch(), '_id');
-      data.displayNames = Profiles.displayNames();
-    }
-
-    return data;
   }, [loading, huntId]);
 
   const searchBarRef = useRef<HTMLInputElement>(null);
@@ -279,7 +266,7 @@ const GuessQueuePage = () => {
     // either the guess or the puzzle title.
     const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
     return (guess) => {
-      const puzzle = tracker.puzzles[guess.puzzle];
+      const puzzle = puzzles[guess.puzzle];
       const guessText = guess.guess.toLowerCase();
 
       const titleWords = puzzle.title.toLowerCase().split(' ');
@@ -289,30 +276,26 @@ const GuessQueuePage = () => {
         return guessText.indexOf(key) !== -1 || titleWords.some((word) => word.startsWith(key));
       });
     };
-  }, [tracker.puzzles]);
+  }, [puzzles]);
 
-  const filteredGuesses = useCallback((guesses: GuessType[]) => {
+  const filteredGuesses = useCallback((allGuesses: GuessType[]) => {
     const searchKeys = searchString.split(' ');
     let interestingGuesses;
 
     if (searchKeys.length === 1 && searchKeys[0] === '') {
-      interestingGuesses = guesses;
+      interestingGuesses = allGuesses;
     } else {
       const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => { return key.length > 0; });
       const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
-      interestingGuesses = guesses.filter(isInteresting);
+      interestingGuesses = allGuesses.filter(isInteresting);
     }
 
     return interestingGuesses;
   }, [searchString, compileMatcher]);
 
-  const hunt = tracker.hunt;
-
   if (loading || !hunt) {
     return <div>loading...</div>;
   }
-
-  const guesses = filteredGuesses(tracker.guesses);
 
   return (
     <div>
@@ -335,15 +318,15 @@ const GuessQueuePage = () => {
           </InputGroup.Append>
         </InputGroup>
       </FormGroup>
-      {guesses.map((guess) => {
+      {filteredGuesses(guesses).map((guess) => {
         return (
           <GuessBlock
             key={guess._id}
             hunt={hunt}
             guess={guess}
-            createdByDisplayName={tracker.displayNames[guess.createdBy]}
-            puzzle={tracker.puzzles[guess.puzzle]}
-            canEdit={tracker.canEdit}
+            createdByDisplayName={displayNames[guess.createdBy]}
+            puzzle={puzzles[guess.puzzle]}
+            canEdit={canEdit}
           />
         );
       })}

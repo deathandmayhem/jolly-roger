@@ -447,15 +447,6 @@ interface NotificationCenterChatNotification {
   senderDisplayName: string;
 }
 
-type NotificationCenterTracker = {
-  announcements?: NotificationCenterAnnouncement[];
-  guesses?: NotificationCenterGuess[];
-  chatNotifications?: NotificationCenterChatNotification[];
-  discordEnabledOnServer?: boolean;
-  discordConfiguredByUser?: boolean;
-  hasOwnProfile?: boolean;
-}
-
 const StyledNotificationCenter = styled.ul`
   position: fixed;
   width: 350px;
@@ -489,23 +480,32 @@ const NotificationCenter = () => {
     pendingAnnouncementsLoading() ||
     chatNotificationsLoading();
 
-  const tracker: NotificationCenterTracker = useTracker(() => {
+  const {
+    announcements,
+    guesses,
+    chatNotifications,
+    discordEnabledOnServer,
+    discordConfiguredByUser,
+    hasOwnProfile,
+  } = useTracker(() => {
     // Don't even try to put things together until we have everything loaded
-    if (loading) {
-      return {};
-    }
-
-    const ownProfile = Profiles.findOne(Meteor.userId()!);
-    const discordEnabledOnServer = !!ServiceConfiguration.configurations.findOne({ service: 'discord' }) && !Flags.active('disable.discord');
-
     const data = {
       announcements: [] as NotificationCenterAnnouncement[],
       guesses: [] as NotificationCenterGuess[],
       chatNotifications: [] as NotificationCenterChatNotification[],
-      discordEnabledOnServer,
-      discordConfiguredByUser: !!(ownProfile && ownProfile.discordAccount),
-      hasOwnProfile: !!(ownProfile),
+      discordEnabledOnServer: false,
+      discordConfiguredByUser: false,
+      hasOwnProfile: false,
     };
+
+    if (loading) {
+      return data;
+    }
+
+    const ownProfile = Profiles.findOne(Meteor.userId()!);
+    data.discordEnabledOnServer = !!ServiceConfiguration.configurations.findOne({ service: 'discord' }) && !Flags.active('disable.discord');
+    data.hasOwnProfile = !!(ownProfile);
+    data.discordConfiguredByUser = !!(ownProfile && ownProfile.discordAccount);
 
     if (canUpdateGuesses) {
       Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).forEach((guess) => {
@@ -568,27 +568,27 @@ const NotificationCenter = () => {
     Meteor.call('dismissChatNotification', chatNotificationId);
   }, []);
 
-  if (loading || !tracker.guesses || !tracker.announcements || !tracker.chatNotifications) {
+  if (loading) {
     return <div />;
   }
 
   // Build a list of uninstantiated messages with their props, then create them
   const messages: any = [];
 
-  if (!tracker.hasOwnProfile && !hideProfileSetupMessage) {
+  if (!hasOwnProfile && !hideProfileSetupMessage) {
     messages.push(<ProfileMissingMessage
       key="profile"
       onDismiss={onHideProfileSetupMessage}
     />);
   }
 
-  if (tracker.discordEnabledOnServer &&
-    !tracker.discordConfiguredByUser &&
+  if (discordEnabledOnServer &&
+    !discordConfiguredByUser &&
     !hideDiscordSetupMessage) {
     messages.push(<DiscordMessage key="discord" onDismiss={onHideDiscordSetupMessage} />);
   }
 
-  tracker.guesses.forEach((g) => {
+  guesses.forEach((g) => {
     if (dismissedGuesses[g.guess._id]) return;
     messages.push(<GuessMessage
       key={g.guess._id}
@@ -600,7 +600,7 @@ const NotificationCenter = () => {
     />);
   });
 
-  tracker.announcements.forEach((a) => {
+  announcements.forEach((a) => {
     messages.push(
       <AnnouncementMessage
         key={a.pa._id}
@@ -611,7 +611,7 @@ const NotificationCenter = () => {
     );
   });
 
-  tracker.chatNotifications.forEach((cn) => {
+  chatNotifications.forEach((cn) => {
     messages.push(
       <ChatNotificationMessage
         key={cn.cn._id}

@@ -113,13 +113,6 @@ const HuntMemberError = React.memo((props: HuntMemberErrorProps) => {
   );
 });
 
-interface HuntAppTracker {
-  hunt?: HuntType;
-  member: boolean;
-  canUndestroy: boolean;
-  canJoin: boolean;
-}
-
 const HuntApp = React.memo(() => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
 
@@ -131,23 +124,23 @@ const HuntApp = React.memo(() => {
   const huntLoading = useSubscribe('mongo.hunts', { _id: huntId });
   const deletedHuntLoading = useSubscribe('mongo.hunts.deleted', { _id: huntId });
   const loading = userLoading() || huntLoading() || deletedHuntLoading();
-  const tracker = useTracker<HuntAppTracker>(() => {
-    const user = Meteor.user();
-    const member = user?.hunts?.includes(huntId) ?? false;
+  const {
+    hunt, member, canUndestroy, canJoin,
+  } = useTracker(() => {
     return {
       hunt: Hunts.findOneAllowingDeleted(huntId),
-      member,
+      member: Meteor.user()?.hunts?.includes(huntId) ?? false,
       canUndestroy: userMayUpdateHunt(Meteor.userId(), huntId),
       canJoin: userMayAddUsersToHunt(Meteor.userId(), huntId),
     };
   }, [huntId]);
 
   useBreadcrumb({
-    title: (loading || !tracker.hunt) ? 'loading...' : tracker.hunt.name,
+    title: (loading || !hunt) ? 'loading...' : hunt.name,
     path: `/hunts/${huntId}`,
   });
 
-  const title = tracker.hunt ? `${tracker.hunt.name} :: Jolly Roger` : '';
+  const title = hunt ? `${hunt.name} :: Jolly Roger` : '';
 
   useDocumentTitle(title);
 
@@ -156,21 +149,21 @@ const HuntApp = React.memo(() => {
       return <span>loading...</span>;
     }
 
-    if (!tracker.hunt) {
+    if (!hunt) {
       return <span>This hunt does not exist</span>;
     }
 
-    if (tracker.hunt.deleted) {
+    if (hunt.deleted) {
       return (
         <HuntDeletedError
-          hunt={tracker.hunt}
-          canUndestroy={tracker.canUndestroy}
+          hunt={hunt}
+          canUndestroy={canUndestroy}
         />
       );
     }
 
-    if (!tracker.member) {
-      return <HuntMemberError hunt={tracker.hunt} canJoin={tracker.canJoin} />;
+    if (!member) {
+      return <HuntMemberError hunt={hunt} canJoin={canJoin} />;
     }
 
     return (
@@ -185,7 +178,7 @@ const HuntApp = React.memo(() => {
       </Routes>
     );
   }, [
-    loading, tracker.member, tracker.hunt, tracker.canUndestroy, tracker.canJoin,
+    loading, member, hunt, canUndestroy, canJoin,
   ]);
 
   return (

@@ -25,13 +25,10 @@ const CelebrationCenter = (props: CelebrationCenterProps) => {
   // This should be effectively a noop, since we're already fetching it for every hunt
   useSubscribe('mongo.puzzles', { hunt: props.huntId });
 
-  const tracker = useTracker(() => {
-    const profile = Profiles.findOne({ _id: Meteor.userId()! });
-    const muted = !!(profile && profile.muteApplause);
-
+  const { disabled, muted } = useTracker(() => {
     return {
       disabled: Flags.active('disable.applause'),
-      muted,
+      muted: !!(Profiles.findOne({ _id: Meteor.userId()! })?.muteApplause),
     };
   }, []);
 
@@ -42,7 +39,7 @@ const CelebrationCenter = (props: CelebrationCenterProps) => {
     // 3) TODO: the user has not disabled it in their profile settings
     // Hack: disabled celebrations because I don't want to think about it right now
     // eslint-disable-next-line no-constant-condition
-    if ((window.orientation === undefined) && !tracker.disabled && false) {
+    if ((window.orientation === undefined) && !disabled && false) {
       setPlaybackQueue((prevPlaybackQueue) => {
         const newQueue = prevPlaybackQueue.concat([{
           puzzleId: puzzle._id,
@@ -54,7 +51,7 @@ const CelebrationCenter = (props: CelebrationCenterProps) => {
         return newQueue;
       });
     }
-  }, [tracker.disabled]);
+  }, [disabled]);
 
   useEffect(() => {
     const puzzleWatcher = Tracker.autorun(() => {
@@ -92,7 +89,7 @@ const CelebrationCenter = (props: CelebrationCenterProps) => {
         url={celebration.url}
         title={celebration.title}
         answer={celebration.answer}
-        playAudio={!tracker.muted}
+        playAudio={!muted}
         onClose={dismissCurrentCelebration}
       />
     );

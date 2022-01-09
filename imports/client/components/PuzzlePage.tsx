@@ -396,18 +396,11 @@ interface PuzzlePageMetadataProps {
   isDesktop: boolean;
 }
 
-interface PuzzlePageMetadataTracker {
-  canUpdate: boolean;
-  hasGuessQueue: boolean;
-}
-
 const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
-  const tracker = useTracker<PuzzlePageMetadataTracker>(() => {
-    const hunt = Hunts.findOne(props.puzzle.hunt);
-    const hasGuessQueue = !!(hunt && hunt.hasGuessQueue);
+  const { canUpdate, hasGuessQueue } = useTracker(() => {
     return {
       canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), props.puzzle.hunt),
-      hasGuessQueue,
+      hasGuessQueue: Hunts.findOne(props.puzzle.hunt)?.hasGuessQueue ?? false,
     };
   }, [props.puzzle.hunt]);
 
@@ -480,7 +473,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
         correctGuesses.map((guess) => (
           <span key={`answer-${guess._id}`} className="answer tag-like">
             <span>{guess.guess}</span>
-            {!tracker.hasGuessQueue && (
+            {!hasGuessQueue && (
               <Button className="answer-remove-button" variant="success" onClick={() => onRemoveAnswer(guess._id)}>&#10006;</Button>
             )}
           </span>
@@ -508,7 +501,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
     </span>
   ) : null;
 
-  const editButton = tracker.canUpdate ? (
+  const editButton = canUpdate ? (
     <Button onClick={showEditModal} variant="secondary" size="sm" title="Edit puzzle...">
       <FontAwesomeIcon icon={faEdit} />
       {' '}
@@ -518,7 +511,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
 
   let guessButton = null;
   if (props.puzzle.expectedAnswerCount > 0) {
-    guessButton = tracker.hasGuessQueue ? (
+    guessButton = hasGuessQueue ? (
       <>
         <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={showGuessModal}>
           <FontAwesomeIcon icon={faKey} />
@@ -920,16 +913,6 @@ const findPuzzleById = function (puzzles: PuzzleType[], id: string) {
   return undefined;
 };
 
-interface PuzzlePageTracker {
-  allPuzzles: PuzzleType[];
-  allTags: TagType[];
-  chatMessages: FilteredChatMessageType[];
-  displayNames: Record<string, string>;
-  allGuesses: GuessType[];
-  document?: DocumentType;
-  canUpdate: boolean;
-}
-
 const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
@@ -984,48 +967,30 @@ const PuzzlePage = React.memo(() => {
     chatMessagesLoading() ||
     displayNamesLoading();
 
-  const tracker = useTracker<PuzzlePageTracker>(() => {
-    const displayNames = puzzleDataLoading && chatDataLoading ? {} : Profiles.displayNames();
-
-    let allPuzzles: PuzzleType[];
-    let allTags: TagType[];
-    let allGuesses: GuessType[];
-    let document: DocumentType | undefined;
-    // There's no sense in doing this expensive computation here if we're still loading data,
-    // since we're not going to render the children.
-    if (puzzleDataLoading) {
-      allPuzzles = [];
-      allTags = [];
-      allGuesses = [];
-      document = undefined;
-    } else {
-      allPuzzles = Puzzles.find({ hunt: huntId }).fetch();
-      allTags = Tags.find({ hunt: huntId }).fetch();
-      allGuesses = Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch();
-
-      // Sort by created at so that the "first" document always has consistent meaning
-      document = Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } });
-    }
-
-    const chatMessages = (chatDataLoading ?
-      [] :
-      ChatMessages.find(
-        { puzzle: puzzleId },
-        { sort: { timestamp: 1 } },
-      ).fetch()
-    );
+  const {
+    displayNames, allPuzzles, allTags, allGuesses, document, chatMessages,
+  } = useTracker(() => {
     return {
-      allPuzzles,
-      allTags,
-      chatMessages,
-      displayNames,
-      allGuesses,
-      document,
-      canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
+      displayNames: puzzleDataLoading && chatDataLoading ? {} : Profiles.displayNames(),
+      allPuzzles: puzzleDataLoading ? [] : Puzzles.find({ hunt: huntId }).fetch(),
+      allTags: puzzleDataLoading ? [] : Tags.find({ hunt: huntId }).fetch(),
+      allGuesses: puzzleDataLoading ? [] : Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch(),
+      document:
+        puzzleDataLoading ?
+          undefined :
+          // Sort by created at so that the "first" document always has consistent meaning
+          Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } }),
+      chatMessages:
+        chatDataLoading ?
+          [] :
+          ChatMessages.find(
+            { puzzle: puzzleId },
+            { sort: { timestamp: 1 } },
+          ).fetch(),
     };
   }, [huntId, puzzleId, puzzleDataLoading, chatDataLoading]);
 
-  const activePuzzle = findPuzzleById(tracker.allPuzzles, puzzleId);
+  const activePuzzle = findPuzzleById(allPuzzles, puzzleId);
   useBreadcrumb({
     title: puzzleDataLoading ? 'loading...' : activePuzzle!.title,
     path: `/hunts/${huntId}/puzzles/${puzzleId}`,
@@ -1081,20 +1046,20 @@ const PuzzlePage = React.memo(() => {
   const metadata = (
     <PuzzlePageMetadata
       puzzle={activePuzzle!}
-      allTags={tracker.allTags}
-      allPuzzles={tracker.allPuzzles}
-      guesses={tracker.allGuesses}
-      displayNames={tracker.displayNames}
+      allTags={allTags}
+      allPuzzles={allPuzzles}
+      guesses={allGuesses}
+      displayNames={displayNames}
       isDesktop={isDesktop}
-      document={tracker.document}
+      document={document}
     />
   );
   const chat = (
     <ChatSectionMemo
       ref={chatSectionRef}
       chatDataLoading={chatDataLoading}
-      chatMessages={tracker.chatMessages}
-      displayNames={tracker.displayNames}
+      chatMessages={chatMessages}
+      displayNames={displayNames}
       huntId={huntId}
       puzzleId={puzzleId}
     />
@@ -1117,7 +1082,7 @@ const PuzzlePage = React.memo(() => {
           {chat}
           <div className="puzzle-content">
             {metadata}
-            <PuzzlePageMultiplayerDocument document={tracker.document} />
+            <PuzzlePageMultiplayerDocument document={document} />
           </div>
         </SplitPanePlus>
       </FixedLayout>

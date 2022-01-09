@@ -526,7 +526,7 @@ interface HuntProps {
 }
 
 const Hunt = React.memo((props: HuntProps) => {
-  const tracker = useTracker(() => {
+  const { canUpdate, canDestroy } = useTracker(() => {
     const huntId = props.hunt._id;
     return {
       canUpdate: userMayUpdateHunt(Meteor.userId(), huntId),
@@ -585,12 +585,12 @@ const Hunt = React.memo((props: HuntProps) => {
         &quot;? This will additionally delete all puzzles and associated state.
       </ModalForm>
       <ButtonGroup size="sm">
-        {tracker.canUpdate ? (
+        {canUpdate ? (
           <Button onClick={showEditModal} variant="outline-secondary" title="Edit hunt...">
             <FontAwesomeIcon fixedWidth icon={faEdit} />
           </Button>
         ) : undefined}
-        {tracker.canDestroy ? (
+        {canDestroy ? (
           <Button onClick={showDeleteModal} variant="danger" title="Delete hunt...">
             <FontAwesomeIcon fixedWidth icon={faMinus} />
           </Button>
@@ -604,30 +604,19 @@ const Hunt = React.memo((props: HuntProps) => {
   );
 });
 
-interface HuntListPageProps {
-  canAdd: boolean;
-  hunts: HuntType[];
-  myHunts: Record<string, boolean>;
-}
-
 const HuntListPage = () => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
   const huntsLoading = useSubscribe('mongo.hunts');
   const myHuntsLoading = useSubscribe('selfHuntMembership');
   const loading = huntsLoading() || myHuntsLoading();
 
-  const tracker: HuntListPageProps = useTracker(() => {
-    const myHunts: Record<string, boolean> = {};
-    if (!loading) {
-      Meteor.user()?.hunts?.forEach((hunt) => { myHunts[hunt] = true; });
-    }
-
+  const { canAdd, hunts, myHunts } = useTracker(() => {
     return {
       canAdd: userMayCreateHunt(Meteor.userId()),
       hunts: Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
-      myHunts,
+      myHunts: new Set(Meteor.user()?.hunts ?? []),
     };
-  }, [loading]);
+  }, []);
 
   const addModalRef = useRef<HuntModalFormHandle>(null);
 
@@ -648,9 +637,9 @@ const HuntListPage = () => {
   } else {
     const joinedHunts: JSX.Element[] = [];
     const otherHunts: JSX.Element[] = [];
-    tracker.hunts.forEach((hunt) => {
+    hunts.forEach((hunt) => {
       const huntTag = <Hunt key={hunt._id} hunt={hunt} />;
-      if (tracker.myHunts[hunt._id]) {
+      if (myHunts.has(hunt._id)) {
         joinedHunts.push(huntTag);
       } else {
         otherHunts.push(huntTag);
@@ -686,7 +675,7 @@ const HuntListPage = () => {
         ref={addModalRef}
         onSubmit={onAdd}
       />
-      {tracker.canAdd ? (
+      {canAdd ? (
         <Button onClick={showAddModal} variant="success" size="sm" title="Add new hunt...">
           <FontAwesomeIcon icon={faPlus} />
         </Button>

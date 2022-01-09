@@ -4,31 +4,23 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import HasUsers from '../has_users';
 
-interface RootRedirectorTracker {
-  loggingIn: boolean;
-  userId: string | null;
-  hasUser: boolean;
-}
-
 const RootRedirector = () => {
   const hasUsersLoading = useSubscribe('hasUsers');
   const loading = hasUsersLoading();
 
-  const tracker = useTracker<RootRedirectorTracker>(() => {
-    const hasUser = !!HasUsers.findOne({});
-
+  const { loggingIn, userId, hasUser } = useTracker(() => {
     return {
       loggingIn: Meteor.loggingIn(),
       userId: Meteor.userId(),
-      hasUser,
+      hasUser: !!HasUsers.findOne({}),
     };
   }, []);
 
-  if (tracker.loggingIn) {
+  if (loggingIn) {
     return <div>loading redirector...</div>;
   }
 
-  if (tracker.userId) {
+  if (userId) {
     // Logged in.
     return <Navigate to="/hunts" />;
   }
@@ -38,7 +30,7 @@ const RootRedirector = () => {
   // to the create-first-user page.
   if (loading) {
     return <div>loading redirector...</div>;
-  } else if (tracker.hasUser) {
+  } else if (hasUser) {
     return <Navigate to="/login" />;
   } else {
     return <Navigate to="/create-first-user" />;
