@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import Profiles from '../../lib/models/profiles';
 import {
   deprecatedUserMayMakeOperator,
@@ -21,22 +21,19 @@ interface ProfilePageTracker {
   targetIsOperator: boolean;
 }
 
-const ProfilePage = () => {
+const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) => {
   useBreadcrumb({ title: 'Users', path: '/users' });
 
-  const userId = useParams<'userId'>().userId!;
   const tracker = useTracker<ProfilePageTracker>(() => {
-    const uid = userId === 'me' ? Meteor.userId()! : userId;
-
-    const profileHandle = Meteor.subscribe('mongo.profiles', { _id: uid });
-    const userRolesHandle = Meteor.subscribe('userRoles', uid);
+    const profileHandle = Meteor.subscribe('mongo.profiles', { _id: userId });
+    const userRolesHandle = Meteor.subscribe('userRoles', userId);
     const user = Meteor.user()!;
     const defaultEmail = user.emails![0].address!;
     const data = {
       ready: !!user && profileHandle.ready() && userRolesHandle.ready(),
-      isSelf: (Meteor.userId() === uid),
-      profile: Profiles.findOne(uid) || {
-        _id: uid,
+      isSelf: (Meteor.userId() === userId),
+      profile: Profiles.findOne(userId) || {
+        _id: userId,
         displayName: '',
         primaryEmail: defaultEmail,
         phoneNumber: '',
@@ -52,7 +49,7 @@ const ProfilePage = () => {
       },
       viewerCanMakeOperator: deprecatedUserMayMakeOperator(Meteor.userId()),
       viewerIsOperator: deprecatedIsActiveOperator(Meteor.userId()),
-      targetIsOperator: deprecatedUserMayMakeOperator(uid),
+      targetIsOperator: deprecatedUserMayMakeOperator(userId),
     };
     return data;
   }, [userId]);
@@ -64,7 +61,7 @@ const ProfilePage = () => {
 
   if (!tracker.ready) {
     return <div>loading...</div>;
-  } else if (tracker.isSelf) {
+  } else if (isSelf) {
     return (
       <OwnProfilePage
         initialProfile={tracker.profile}
@@ -83,4 +80,15 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+const ProfileRedirect = () => {
+  const userId = useParams<'userId'>().userId!;
+  const self = useTracker(() => Meteor.userId()!, []);
+
+  if (userId === 'me') {
+    return <Navigate to={`/users/${self}`} replace />;
+  }
+
+  return <ProfilePage userId={userId} isSelf={userId === self} />;
+};
+
+export default ProfileRedirect;
