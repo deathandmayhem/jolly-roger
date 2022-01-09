@@ -37,6 +37,10 @@ const Breadcrumb = styled.nav`
   flex: 1;
 `;
 
+const ContentContainer = styled.div`
+  margin-top: ${NavBarHeight};
+`;
+
 const BreadcrumbList = styled.ol`
   list-style: none;
   display: block;
@@ -129,7 +133,7 @@ const AppNavbar = () => {
   // correct amount of space in the top bar even if we haven't actually picked
   // a nonempty source for it yet.
   return (
-    <Navbar sticky="top" bg="light" variant="light" className="px-0 py-0">
+    <Navbar fixed="top" bg="light" variant="light" className="px-0 py-0">
       <NavbarBrand className="p-0">
         <Link to="/">
           <Brand
@@ -173,9 +177,9 @@ const App = ({ children }: { children: React.ReactNode }) => {
       <NotificationCenter />
       <AppNavbar />
       <ConnectionStatus />
-      <div className="container-fluid pt-2">
+      <ContentContainer className="container-fluid pt-2">
         {children}
-      </div>
+      </ContentContainer>
     </div>
   );
 };
