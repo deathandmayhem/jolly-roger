@@ -1,4 +1,5 @@
 import { _ } from 'meteor/underscore';
+import { faAlignJustify } from '@fortawesome/free-solid-svg-icons/faAlignJustify';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -83,6 +84,7 @@ type TagProps = BaseTagProps & (DoNotPopoverRelatedProps | PopoverRelatedProps);
 
 const Tag = (props: TagProps) => {
   const [showPopover, setShowPopover] = useState<boolean>(false);
+  const [segmentAnswers, setSegmentAnswers] = useState<boolean>(false);
 
   const onOverlayTriggerToggle = useCallback((nextShow: boolean) => {
     setShowPopover(nextShow);
@@ -95,6 +97,10 @@ const Tag = (props: TagProps) => {
   const doHidePopover = useCallback(() => {
     setShowPopover(false);
   }, []);
+
+  const toggleSegmentAnswers = useCallback(() => {
+    setSegmentAnswers(!segmentAnswers);
+  }, [segmentAnswers]);
 
   useEffect(() => {
     // Necessary to ensure the popover closes when entering the iframe on
@@ -147,7 +153,9 @@ const Tag = (props: TagProps) => {
       const missingCnt = minRowCnt > puzzle.answers.length ? minRowCnt - puzzle.answers.length : 0;
       const answers = puzzle.answers.concat(Array(missingCnt).fill(''));
       return answers.map((answer) => {
-        return `${puzzle.title}\t${answer.toUpperCase()}`;
+        let formattedAnswer = answer.toUpperCase();
+        formattedAnswer = segmentAnswers ? formattedAnswer.replace(/\s+/g, '') : formattedAnswer;
+        return `${puzzle.title}\t${formattedAnswer}`;
       }).join('\n');
     }).join('\n');
     navigator.clipboard.writeText(clipboardData);
@@ -156,6 +164,7 @@ const Tag = (props: TagProps) => {
     props.tag.name,
     allTagsIfPresent,
     getRelatedPuzzles,
+    segmentAnswers,
   ]);
 
   const name = props.tag.name;
@@ -219,6 +228,7 @@ const Tag = (props: TagProps) => {
   if (props.popoverRelated) {
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
     const relatedPuzzles = getRelatedPuzzles();
+    const respaceButtonVariant = segmentAnswers ? 'secondary' : 'outline-secondary';
     const popover = (
       <Popover
         id={`tag-${props.tag._id}`}
@@ -230,6 +240,16 @@ const Tag = (props: TagProps) => {
           <div className="related-puzzle-popover-header-inner">
             {sharedTagName}
             <div className="related-puzzle-popover-controls">
+              <Button
+                className="tag-respace-button"
+                variant={respaceButtonVariant}
+                size="sm"
+                onClick={toggleSegmentAnswers}
+              >
+                <FontAwesomeIcon icon={faAlignJustify} />
+                {'    '}
+                Respace
+              </Button>
               <Button
                 className="tag-copy-button"
                 variant="secondary"
@@ -251,6 +271,7 @@ const Tag = (props: TagProps) => {
             canUpdate={false}
             sharedTag={props.tag}
             suppressedTagIds={[]}
+            segmentAnswers={segmentAnswers}
           />
         </Popover.Content>
       </Popover>

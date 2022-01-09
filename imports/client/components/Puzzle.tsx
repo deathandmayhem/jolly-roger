@@ -26,6 +26,7 @@ interface PuzzleProps {
   layout: 'grid' | 'table';
   canUpdate: boolean;
   suppressTags?: string[];
+  segmentAnswers?: boolean;
 }
 
 const Puzzle = React.memo((props: PuzzleProps) => {
@@ -81,7 +82,7 @@ const Puzzle = React.memo((props: PuzzleProps) => {
   const answers = props.puzzle.answers.map((answer, i) => {
     return (
       // eslint-disable-next-line react/no-array-index-key
-      <PuzzleAnswer key={`${i}-${answer}`} answer={answer} />
+      <PuzzleAnswer key={`${i}-${answer}`} answer={answer} respace={props.segmentAnswers} />
     );
   });
 

@@ -13,6 +13,7 @@ interface PuzzleListProps {
   layout: 'grid' | 'table';
   canUpdate: boolean;
   suppressTags?: string[];
+  segmentAnswers?: boolean;
 }
 
 const PuzzleList = React.memo((props: PuzzleListProps) => {
@@ -29,6 +30,7 @@ const PuzzleList = React.memo((props: PuzzleListProps) => {
       layout={props.layout}
       canUpdate={props.canUpdate}
       suppressTags={props.suppressTags}
+      segmentAnswers={props.segmentAnswers}
     />);
   }
 
