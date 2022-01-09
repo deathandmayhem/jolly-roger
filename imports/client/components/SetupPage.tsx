@@ -1,7 +1,7 @@
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
 import React, { ReactChild, useCallback, useState } from 'react';
@@ -1012,21 +1012,19 @@ interface DiscordGuildFormProps {
 }
 
 interface DiscordGuildFormTracker {
-  ready: boolean;
   // List of possible guilds from server
   guilds: DiscordGuildType[];
 }
 
 const DiscordGuildForm = (props: DiscordGuildFormProps) => {
+  useSubscribe('discord.guilds');
+
   const tracker = useTracker<DiscordGuildFormTracker>(() => {
-    const guildSub = Meteor.subscribe('discord.guilds');
-    const ready = guildSub.ready();
     const guilds = DiscordCache.find({ type: 'guild' }).fetch().map((c) => {
       const { id, name } = c.object as DiscordGuildType;
       return { id, name };
     });
     return {
-      ready,
       guilds,
     };
   }, []);
@@ -1707,8 +1705,6 @@ const CircuitBreakerSection = (props: CircuitBreakerSectionProps) => {
 };
 
 interface SetupPageTracker {
-  ready: boolean;
-
   canConfigure: boolean;
 
   googleConfig: any;
@@ -1734,11 +1730,13 @@ interface SetupPageTracker {
 
 const SetupPage = () => {
   useBreadcrumb({ title: 'Server setup', path: '/setup' });
+
+  // We need to fetch the contents of the Settings table
+  const settingsLoading = useSubscribe('mongo.settings');
+  const loading = settingsLoading();
+
   const tracker = useTracker<SetupPageTracker>(() => {
     const canConfigure = isAdmin(Meteor.userId());
-
-    // We need to fetch the contents of the Settings table
-    const settingsHandle = Meteor.subscribe('mongo.settings');
 
     // Google
     const googleConfig = ServiceConfiguration.configurations.findOne({ service: 'google' });
@@ -1774,8 +1772,6 @@ const SetupPage = () => {
     const flagDisableDingwords = Flags.active('disable.dingwords');
 
     return {
-      ready: settingsHandle.ready(),
-
       canConfigure,
 
       googleConfig,
@@ -1800,7 +1796,7 @@ const SetupPage = () => {
     };
   }, []);
 
-  if (!tracker.ready) {
+  if (loading) {
     return (
       <div>
         Loading...

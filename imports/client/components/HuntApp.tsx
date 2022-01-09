@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useMemo } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -114,7 +114,6 @@ const HuntMemberError = React.memo((props: HuntMemberErrorProps) => {
 });
 
 interface HuntAppTracker {
-  ready: boolean;
   hunt?: HuntType;
   member: boolean;
   canUndestroy: boolean;
@@ -125,18 +124,17 @@ const HuntApp = React.memo(() => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
 
   const huntId = useParams<'huntId'>().huntId!;
+
+  const userLoading = useSubscribe('selfHuntMembership');
+  // Subscribe to deleted and non-deleted hunts separately so that we can reuse
+  // the non-deleted subscription
+  const huntLoading = useSubscribe('mongo.hunts', { _id: huntId });
+  const deletedHuntLoading = useSubscribe('mongo.hunts.deleted', { _id: huntId });
+  const loading = userLoading() || huntLoading() || deletedHuntLoading();
   const tracker = useTracker<HuntAppTracker>(() => {
-    const userHandle = Meteor.subscribe('selfHuntMembership');
-    // Subscribe to deleted and non-deleted hunts separately so that we can reuse
-    // the non-deleted subscription
-    const huntHandle = Meteor.subscribe('mongo.hunts', { _id: huntId });
-    const deletedHuntHandle = Meteor.subscribe('mongo.hunts.deleted', {
-      _id: huntId,
-    });
     const user = Meteor.user();
     const member = user?.hunts?.includes(huntId) ?? false;
     return {
-      ready: userHandle.ready() && huntHandle.ready() && deletedHuntHandle.ready(),
       hunt: Hunts.findOneAllowingDeleted(huntId),
       member,
       canUndestroy: userMayUpdateHunt(Meteor.userId(), huntId),
@@ -145,7 +143,7 @@ const HuntApp = React.memo(() => {
   }, [huntId]);
 
   useBreadcrumb({
-    title: (tracker.ready && tracker.hunt) ? tracker.hunt.name : 'loading...',
+    title: (loading || !tracker.hunt) ? 'loading...' : tracker.hunt.name,
     path: `/hunts/${huntId}`,
   });
 
@@ -154,7 +152,7 @@ const HuntApp = React.memo(() => {
   useDocumentTitle(title);
 
   const body = useMemo(() => {
-    if (!tracker.ready) {
+    if (loading) {
       return <span>loading...</span>;
     }
 
@@ -187,7 +185,7 @@ const HuntApp = React.memo(() => {
       </Routes>
     );
   }, [
-    tracker.ready, tracker.member, tracker.hunt, tracker.canUndestroy, tracker.canJoin,
+    loading, tracker.member, tracker.hunt, tracker.canUndestroy, tracker.canJoin,
   ]);
 
   return (

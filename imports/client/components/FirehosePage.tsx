@@ -1,5 +1,4 @@
-import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -19,6 +18,7 @@ import Puzzles from '../../lib/models/puzzles';
 import { ChatMessageType } from '../../lib/schemas/chat';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import FixedLayout from './styling/FixedLayout';
 
 const FirehosePageLayout = styled.div`
@@ -72,38 +72,31 @@ const FirehosePage = () => {
 
   useBreadcrumb({ title: 'Firehose', path: `/hunts/${huntId}/firehose` });
 
+  const profilesLoading = useSubscribeDisplayNames();
+  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
+  const chatMessagesLoading = useSubscribe('mongo.chatmessages', { hunt: huntId });
+  const loading = profilesLoading() || puzzlesLoading() || chatMessagesLoading();
+
   const profilesTracker = useTracker(() => {
-    const profilesHandle = Profiles.subscribeDisplayNames();
-    const ready = profilesHandle.ready();
     return {
-      ready,
-      displayNames: ready ? Profiles.displayNames() : {},
+      displayNames: loading ? {} : Profiles.displayNames(),
     };
-  }, []);
+  }, [loading]);
   const puzzlesTracker = useTracker(() => {
-    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {
-      hunt: huntId,
-    });
-    const ready = puzzlesHandle.ready();
-    const puzzles = ready ? Puzzles.find({ hunt: huntId }).fetch() : [];
+    const puzzles = loading ? [] : Puzzles.find({ hunt: huntId }).fetch();
     const indexedPuzzles = _.indexBy(puzzles, '_id');
     return {
-      ready,
       puzzles: indexedPuzzles,
     };
-  }, [huntId]);
+  }, [loading, huntId]);
   const chatMessagesTracker = useTracker(() => {
-    const chatMessagesHandle = Meteor.subscribe('mongo.chatmessages', {
-      hunt: huntId,
-    });
-    const ready = chatMessagesHandle.ready();
-    const chatMessages = ready ?
-      ChatMessages.find({ hunt: huntId }, { sort: { timestamp: 1 } }).fetch() : [];
+    const chatMessages = loading ?
+      [] :
+      ChatMessages.find({ hunt: huntId }, { sort: { timestamp: 1 } }).fetch();
     return {
-      ready,
       chatMessages,
     };
-  }, [huntId]);
+  }, [loading, huntId]);
 
   const messagesPaneRef = useRef<HTMLDivElement>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
@@ -196,8 +189,6 @@ const FirehosePage = () => {
     return filteredChats(chatMessagesTracker.chatMessages);
   }, [filteredChats, chatMessagesTracker.chatMessages]);
 
-  const ready = profilesTracker.ready && puzzlesTracker.ready && chatMessagesTracker.ready;
-
   const onLayoutMaybeChanged = useCallback(() => {
     // Any time the length of the chat changes, jump to the end if we were already there
     maybeForceScrollBottom();
@@ -217,9 +208,9 @@ const FirehosePage = () => {
 
   useLayoutEffect(() => {
     onLayoutMaybeChanged();
-  }, [ready, onLayoutMaybeChanged, chats.length]);
+  }, [loading, onLayoutMaybeChanged, chats.length]);
 
-  if (!ready) {
+  if (loading) {
     return <div>loading...</div>;
   }
 

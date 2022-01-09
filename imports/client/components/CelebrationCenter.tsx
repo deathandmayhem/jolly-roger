@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { Tracker } from 'meteor/tracker';
 import React, { useCallback, useEffect, useState } from 'react';
 import Flags from '../../flags';
@@ -22,10 +22,10 @@ interface CelebrationCenterQueueItem {
 const CelebrationCenter = (props: CelebrationCenterProps) => {
   const [playbackQueue, setPlaybackQueue] = useState<CelebrationCenterQueueItem[]>([]);
 
-  const tracker = useTracker(() => {
-    // This should be effectively a noop, since we're already fetching it for every hunt
-    Meteor.subscribe('mongo.puzzles', { hunt: props.huntId });
+  // This should be effectively a noop, since we're already fetching it for every hunt
+  useSubscribe('mongo.puzzles', { hunt: props.huntId });
 
+  const tracker = useTracker(() => {
     const profile = Profiles.findOne({ _id: Meteor.userId()! });
     const muted = !!(profile && profile.muteApplause);
 
@@ -33,7 +33,7 @@ const CelebrationCenter = (props: CelebrationCenterProps) => {
       disabled: Flags.active('disable.applause'),
       muted,
     };
-  }, [props.huntId]);
+  }, []);
 
   const onPuzzleSolved = useCallback((puzzle: PuzzleType, newAnswer: string) => {
     // Only celebrate if:

@@ -1,7 +1,7 @@
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import React, { useCallback, useMemo, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
@@ -180,10 +180,11 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
   const [state, setState] =
     useState<DiscordLinkBlockState>({ state: DiscordLinkBlockLinkState.IDLE });
 
+  useSubscribe('teamName');
+
   const tracker = useTracker<DiscordLinkBlockTracker>(() => {
     const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });
     const discordDisabled = Flags.active('disable.discord');
-    Meteor.subscribe('teamName');
     const teamNameObj = TeamName.findOne('teamName');
     const teamName = teamNameObj ? teamNameObj.name : 'Default Team Name';
     return {

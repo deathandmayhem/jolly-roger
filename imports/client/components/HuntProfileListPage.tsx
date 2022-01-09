@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import {
   Route, Routes, useParams,
@@ -13,7 +13,6 @@ import ProfileList from './ProfileList';
 import UserInvitePage from './UserInvitePage';
 
 interface HuntProfileListPageTracker {
-  ready: boolean;
   canInvite: boolean;
   canSyncDiscord: boolean;
   profiles: ProfileType[];
@@ -22,14 +21,14 @@ interface HuntProfileListPageTracker {
 const HuntProfileListPage = () => {
   const huntId = useParams<'huntId'>().huntId!;
   useBreadcrumb({ title: 'Hunters', path: `/hunts/${huntId}/hunters` });
-  const tracker = useTracker<HuntProfileListPageTracker>(() => {
-    const usersHandle = Meteor.subscribe('huntMembers', huntId);
-    const profilesHandle = Meteor.subscribe('mongo.profiles');
 
-    const ready = usersHandle.ready() && profilesHandle.ready();
-    if (!ready) {
+  const usersLoading = useSubscribe('huntMembers', huntId);
+  const profilesLoading = useSubscribe('mongo.profiles');
+  const loading = usersLoading() || profilesLoading();
+
+  const tracker = useTracker<HuntProfileListPageTracker>(() => {
+    if (loading) {
       return {
-        ready: false,
         canInvite: false,
         canSyncDiscord: false,
         profiles: [],
@@ -46,13 +45,12 @@ const HuntProfileListPage = () => {
     const canSyncDiscord = userMayUseDiscordBotAPIs(Meteor.userId());
 
     return {
-      ready: ready as boolean,
       canInvite,
       canSyncDiscord,
       profiles,
     };
-  }, [huntId]);
-  if (!tracker.ready) {
+  }, [loading, huntId]);
+  if (loading) {
     return <div>loading...</div>;
   }
 

@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons/faBullhorn';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
@@ -372,7 +372,6 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
 };
 
 interface PuzzleListPageTracker {
-  ready: boolean;
   canAdd: boolean;
   canUpdate: boolean;
   allPuzzles: PuzzleType[];
@@ -428,25 +427,24 @@ const StyledPuzzleListLinkLabel = styled.span`
 
 const PuzzleListPage = () => {
   const huntId = useParams<'huntId'>().huntId!;
+
+  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
+  const tagsLoading = useSubscribe('mongo.tags', { hunt: huntId });
+  const loading = puzzlesLoading() || tagsLoading();
+
+  // Don't bother including this in loading - it's ok if it trickles in
+  useSubscribe('subscribers.counts', { hunt: huntId });
   const tracker: PuzzleListPageTracker = useTracker(() => {
-    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: huntId });
-    const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: huntId });
-
-    // Don't bother including this in ready - it's ok if it trickles in
-    Meteor.subscribe('subscribers.counts', { hunt: huntId });
-
-    const ready = puzzlesHandle.ready() && tagsHandle.ready();
     // Assertion is safe because hunt is already subscribed and checked by HuntApp
     const hunt = Hunts.findOne({ _id: huntId })!;
     return {
-      ready,
-      canAdd: ready && userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
-      canUpdate: ready && userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
-      allPuzzles: ready ? Puzzles.find({ hunt: huntId }).fetch() : [],
-      allTags: ready ? Tags.find({ hunt: huntId }).fetch() : [],
+      canAdd: loading ? false : userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
+      canUpdate: loading ? false : userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
+      allPuzzles: loading ? [] : Puzzles.find({ hunt: huntId }).fetch(),
+      allTags: loading ? [] : Tags.find({ hunt: huntId }).fetch(),
       hunt,
     };
-  }, [huntId]);
+  }, [loading, huntId]);
 
   const huntLink = tracker.hunt.homepageUrl && (
     <StyledPuzzleListExternalLink>
@@ -455,7 +453,9 @@ const PuzzleListPage = () => {
       </Button>
     </StyledPuzzleListExternalLink>
   );
-  const puzzleList = tracker.ready ? (
+  const puzzleList = loading ? (
+    <span>loading...</span>
+  ) : (
     <PuzzleListView
       huntId={huntId}
       canAdd={tracker.canAdd}
@@ -463,8 +463,6 @@ const PuzzleListPage = () => {
       puzzles={tracker.allPuzzles}
       allTags={tracker.allTags}
     />
-  ) : (
-    <span>loading...</span>
   );
   return (
     <div>

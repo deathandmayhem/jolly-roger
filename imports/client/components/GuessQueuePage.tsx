@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -20,6 +20,7 @@ import { HuntType } from '../../lib/schemas/hunt';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import Breakable from './styling/Breakable';
 
 /* eslint-disable max-len */
@@ -192,8 +193,7 @@ const GuessBlock = React.memo((props: GuessBlockProps) => {
   );
 });
 
-interface GuessQueuePageProps {
-  ready: boolean;
+interface GuessQueuePageTracker {
   hunt?: HuntType;
   guesses: GuessType[];
   puzzles: Record<string, PuzzleType>;
@@ -208,26 +208,24 @@ const GuessQueuePage = () => {
 
   useBreadcrumb({ title: 'Guess queue', path: `/hunts/${huntId}/guesses` });
 
+  const huntLoading = useSubscribe('mongo.hunts', { _id: huntId });
+  const guessesLoading = useSubscribe('mongo.guesses', { hunt: huntId });
+  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
+  const displayNamesLoading = useSubscribeDisplayNames();
+  const loading =
+    huntLoading() ||
+    guessesLoading() ||
+    puzzlesLoading() ||
+    displayNamesLoading();
+
   const tracker = useTracker(() => {
-    const huntHandle = Meteor.subscribe('mongo.hunts', {
-      _id: huntId,
-    });
-    const guessesHandle = Meteor.subscribe('mongo.guesses', {
-      hunt: huntId,
-    });
-    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {
-      hunt: huntId,
-    });
-    const displayNamesHandle = Profiles.subscribeDisplayNames();
-    const ready = huntHandle.ready() && guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
-    const data: GuessQueuePageProps = {
-      ready,
+    const data: GuessQueuePageTracker = {
       guesses: [],
       puzzles: {},
       displayNames: {},
       canEdit: userMayUpdateGuessesForHunt(Meteor.userId(), huntId),
     };
-    if (ready) {
+    if (!loading) {
       data.hunt = Hunts.findOne({ _id: huntId });
       data.guesses = Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch();
       data.puzzles = _.indexBy(Puzzles.find({ hunt: huntId }).fetch(), '_id');
@@ -235,7 +233,7 @@ const GuessQueuePage = () => {
     }
 
     return data;
-  }, [huntId]);
+  }, [loading, huntId]);
 
   const searchBarRef = useRef<HTMLInputElement>(null);
 
@@ -310,7 +308,7 @@ const GuessQueuePage = () => {
 
   const hunt = tracker.hunt;
 
-  if (!tracker.ready || !hunt) {
+  if (loading || !hunt) {
     return <div>loading...</div>;
   }
 

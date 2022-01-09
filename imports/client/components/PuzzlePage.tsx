@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
@@ -41,6 +41,7 @@ import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/use-document-title';
+import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import markdown from '../markdown';
 import ChatPeople from './ChatPeople';
 import DocumentDisplay from './Documents';
@@ -340,7 +341,7 @@ const ChatInput = React.memo((props: ChatInputProps) => {
 });
 
 interface ChatSectionProps {
-  chatReady: boolean;
+  chatDataLoading: boolean;
   chatMessages: FilteredChatMessageType[];
   displayNames: Record<string, string>;
   puzzleId: string;
@@ -372,7 +373,7 @@ const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: Rea
 
   return (
     <div className="chat-section">
-      {props.chatReady ? null : <span>loading...</span>}
+      {props.chatDataLoading ? <span>loading...</span> : null}
       <ChatPeople huntId={props.huntId} puzzleId={props.puzzleId} onHeightChange={scrollHistoryToTarget} />
       <ChatHistoryMemo ref={historyRef} chatMessages={props.chatMessages} displayNames={props.displayNames} />
       <ChatInput
@@ -920,10 +921,8 @@ const findPuzzleById = function (puzzles: PuzzleType[], id: string) {
 };
 
 interface PuzzlePageTracker {
-  puzzlesReady: boolean;
   allPuzzles: PuzzleType[];
   allTags: TagType[];
-  chatReady: boolean;
   chatMessages: FilteredChatMessageType[];
   displayNames: Record<string, string>;
   allGuesses: GuessType[];
@@ -940,41 +939,53 @@ const PuzzlePage = React.memo(() => {
   const huntId = useParams<'huntId'>().huntId!;
   const puzzleId = useParams<'puzzleId'>().puzzleId!;
 
+  // Add the current user to the collection of people viewing this puzzle.
+  const subscribersTopic = `puzzle:${puzzleId}`;
+  useSubscribe('subscribers.inc', subscribersTopic, {
+    puzzle: puzzleId,
+    hunt: huntId,
+  });
+
+  // Get the _list_ of subscribers to this puzzle and the _count_ of subscribers
+  // for all puzzles (it's OK if the latter trickles in)
+  const subscribersLoading = useSubscribe('subscribers.fetch', subscribersTopic);
+  useSubscribe('subscribers.counts', { hunt: huntId });
+
+  const displayNamesLoading = useSubscribeDisplayNames();
+
+  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
+  const tagsLoading = useSubscribe('mongo.tags', { hunt: huntId });
+  const guessesLoading = useSubscribe('mongo.guesses', { puzzle: puzzleId });
+  const documentsLoading = useSubscribe('mongo.documents', { puzzle: puzzleId });
+
+  const chatMessagesLoading = useSubscribe('mongo.chatmessages', {
+    puzzle: puzzleId,
+  }, {
+    fields: Object.fromEntries(FilteredChatFields.map((f) => [f, 1])),
+  });
+
+  // There are some model dependencies that we have to be careful about:
+  //
+  // * We show the displayname of the person who submitted a guess, so guesses depends on display names
+  // * Chat messages show the displayname of the sender, so chatmessages depends on display names
+  // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
+  //
+  // We can render some things on incomplete data, but most of them really need full data:
+  // * Chat can be rendered with just chat messages and display names
+  // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
+  const puzzleDataLoading =
+    puzzlesLoading() ||
+    tagsLoading() ||
+    guessesLoading() ||
+    documentsLoading() ||
+    subscribersLoading() ||
+    displayNamesLoading();
+  const chatDataLoading =
+    chatMessagesLoading() ||
+    displayNamesLoading();
+
   const tracker = useTracker<PuzzlePageTracker>(() => {
-    // There are some model dependencies that we have to be careful about:
-    //
-    // * We show the displayname of the person who submitted a guess, so guesses depends on display names
-    // * Chat messages show the displayname of the sender, so chatmessages depends on display names
-    // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
-    //
-    // We can render some things on incomplete data, but most of them really need full data:
-    // * Chat can be rendered with just chat messages and display names
-    // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
-
-    // Add the current user to the collection of people viewing this puzzle.
-    // Don't use the subs manager - we don't want this cached.
-    const subscribersTopic = `puzzle:${puzzleId}`;
-    Meteor.subscribe('subscribers.inc', subscribersTopic, {
-      puzzle: puzzleId,
-      hunt: huntId,
-    });
-    const subscribersHandle = Meteor.subscribe('subscribers.fetch', subscribersTopic);
-
-    const displayNamesHandle = Profiles.subscribeDisplayNames();
-    let displayNames = {};
-    if (displayNamesHandle.ready()) {
-      displayNames = Profiles.displayNames();
-    }
-
-    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: huntId });
-    const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: huntId });
-    const guessesHandle = Meteor.subscribe('mongo.guesses', { puzzle: puzzleId });
-    const documentsHandle = Meteor.subscribe('mongo.documents', { puzzle: puzzleId });
-
-    // Track the tally of people viewing this puzzle.
-    Meteor.subscribe('subscribers.counts', { hunt: huntId });
-
-    const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && subscribersHandle.ready() && displayNamesHandle.ready();
+    const displayNames = puzzleDataLoading && chatDataLoading ? {} : Profiles.displayNames();
 
     let allPuzzles: PuzzleType[];
     let allTags: TagType[];
@@ -982,51 +993,41 @@ const PuzzlePage = React.memo(() => {
     let document: DocumentType | undefined;
     // There's no sense in doing this expensive computation here if we're still loading data,
     // since we're not going to render the children.
-    if (puzzlesReady) {
+    if (puzzleDataLoading) {
+      allPuzzles = [];
+      allTags = [];
+      allGuesses = [];
+      document = undefined;
+    } else {
       allPuzzles = Puzzles.find({ hunt: huntId }).fetch();
       allTags = Tags.find({ hunt: huntId }).fetch();
       allGuesses = Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch();
 
       // Sort by created at so that the "first" document always has consistent meaning
       document = Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } });
-    } else {
-      allPuzzles = [];
-      allTags = [];
-      allGuesses = [];
-      document = undefined;
     }
 
-    const chatFields: Record<string, number> = {};
-    FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
-    const chatHandle = Meteor.subscribe(
-      'mongo.chatmessages',
-      { puzzle: puzzleId },
-      { fields: chatFields }
+    const chatMessages = (chatDataLoading ?
+      [] :
+      ChatMessages.find(
+        { puzzle: puzzleId },
+        { sort: { timestamp: 1 } },
+      ).fetch()
     );
-
-    // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
-    // other collections.
-    const chatReady = chatHandle.ready() && displayNamesHandle.ready();
-    const chatMessages = (chatReady && ChatMessages.find(
-      { puzzle: puzzleId },
-      { sort: { timestamp: 1 } },
-    ).fetch()) || [];
     return {
-      puzzlesReady,
       allPuzzles,
       allTags,
-      chatReady,
       chatMessages,
       displayNames,
       allGuesses,
       document,
       canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
     };
-  }, [huntId, puzzleId]);
+  }, [huntId, puzzleId, puzzleDataLoading, chatDataLoading]);
 
   const activePuzzle = findPuzzleById(tracker.allPuzzles, puzzleId);
   useBreadcrumb({
-    title: tracker.puzzlesReady ? activePuzzle!.title : 'loading...',
+    title: puzzleDataLoading ? 'loading...' : activePuzzle!.title,
     path: `/hunts/${huntId}/puzzles/${puzzleId}`,
   });
 
@@ -1074,7 +1075,7 @@ const PuzzlePage = React.memo(() => {
     Meteor.call('ensureDocumentAndPermissions', puzzleId);
   }, [puzzleId]);
 
-  if (!tracker.puzzlesReady) {
+  if (puzzleDataLoading) {
     return <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}><span>loading...</span></FixedLayout>;
   }
   const metadata = (
@@ -1091,7 +1092,7 @@ const PuzzlePage = React.memo(() => {
   const chat = (
     <ChatSectionMemo
       ref={chatSectionRef}
-      chatReady={tracker.chatReady}
+      chatDataLoading={chatDataLoading}
       chatMessages={tracker.chatMessages}
       displayNames={tracker.displayNames}
       huntId={huntId}

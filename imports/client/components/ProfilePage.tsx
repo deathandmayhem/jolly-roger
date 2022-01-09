@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import Profiles from '../../lib/models/profiles';
@@ -13,7 +13,6 @@ import OthersProfilePage from './OthersProfilePage';
 import OwnProfilePage from './OwnProfilePage';
 
 interface ProfilePageTracker {
-  ready: boolean;
   isSelf: boolean;
   profile: ProfileType;
   viewerCanMakeOperator: boolean;
@@ -24,13 +23,14 @@ interface ProfilePageTracker {
 const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) => {
   useBreadcrumb({ title: 'Users', path: '/users' });
 
+  const profileLoading = useSubscribe('mongo.profiles', { _id: userId });
+  const userRolesLoading = useSubscribe('userRoles', userId);
+  const loading = profileLoading() || userRolesLoading();
+
   const tracker = useTracker<ProfilePageTracker>(() => {
-    const profileHandle = Meteor.subscribe('mongo.profiles', { _id: userId });
-    const userRolesHandle = Meteor.subscribe('userRoles', userId);
     const user = Meteor.user()!;
     const defaultEmail = user.emails![0].address!;
     const data = {
-      ready: !!user && profileHandle.ready() && userRolesHandle.ready(),
       isSelf: (Meteor.userId() === userId),
       profile: Profiles.findOne(userId) || {
         _id: userId,
@@ -55,11 +55,11 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
   }, [userId]);
 
   useBreadcrumb({
-    title: tracker.ready ? tracker.profile.displayName : 'loading...',
+    title: loading ? 'loading...' : tracker.profile.displayName,
     path: `/users/${userId}`,
   });
 
-  if (!tracker.ready) {
+  if (loading) {
     return <div>loading...</div>;
   } else if (isSelf) {
     return (

@@ -48,13 +48,13 @@ interface DiscordSelectorParams {
 }
 
 interface DiscordSelectorProps extends DiscordSelectorParams {
-  ready: boolean;
+  loading: boolean;
   options: SavedDiscordObjectType[];
 }
 
 const DiscordSelector = (props: DiscordSelectorProps) => {
   const {
-    disable, value, onChange, ready, options,
+    disable, value, onChange, loading, options,
   } = props;
   const onValueChanged: FormControlProps['onChange'] = useCallback((e) => {
     if (e.currentTarget.value === 'empty') {
@@ -85,7 +85,7 @@ const DiscordSelector = (props: DiscordSelectorProps) => {
     return [noneOption, ...options];
   }, [value, options]);
 
-  if (!ready) {
+  if (loading) {
     return <div>Loading discord resources...</div>;
   } else {
     return (
@@ -109,8 +109,10 @@ const DiscordSelector = (props: DiscordSelectorProps) => {
 };
 
 const DiscordChannelSelector = (params: DiscordSelectorParams & { guildId: string }) => {
-  const { ready, options } = useTracker(() => {
-    const handle = Meteor.subscribe('discord.cache', { type: 'channel' });
+  const cacheLoading = useSubscribe('discord.cache', { type: 'channel' });
+  const loading = cacheLoading();
+
+  const { options } = useTracker(() => {
     const discordChannels: SavedDiscordObjectType[] = DiscordCache.find({
       type: 'channel',
       'object.guild': params.guildId,
@@ -124,13 +126,12 @@ const DiscordChannelSelector = (params: DiscordSelectorParams & { guildId: strin
       .map((c) => c.object as SavedDiscordObjectType);
 
     return {
-      ready: handle.ready(),
       options: discordChannels,
     };
   }, [params.guildId]);
   return (
     <DiscordSelector
-      ready={ready}
+      loading={loading}
       options={options}
       {...params}
     />
@@ -138,8 +139,9 @@ const DiscordChannelSelector = (params: DiscordSelectorParams & { guildId: strin
 };
 
 const DiscordRoleSelector = (params: DiscordSelectorParams & { guildId: string }) => {
-  const { ready, options } = useTracker(() => {
-    const handle = Meteor.subscribe('discord.cache', { type: 'role' });
+  const cacheLoading = useSubscribe('discord.cache', { type: 'role' });
+  const loading = cacheLoading();
+  const { options } = useTracker(() => {
     const discordRoles: SavedDiscordObjectType[] = DiscordCache.find({
       type: 'role',
       'object.guild': params.guildId,
@@ -155,13 +157,12 @@ const DiscordRoleSelector = (params: DiscordSelectorParams & { guildId: string }
       .map((c) => c.object as SavedDiscordObjectType);
 
     return {
-      ready: handle.ready(),
       options: discordRoles,
     };
   }, [params.guildId]);
   return (
     <DiscordSelector
-      ready={ready}
+      loading={loading}
       options={options}
       {...params}
     />
@@ -604,7 +605,6 @@ const Hunt = React.memo((props: HuntProps) => {
 });
 
 interface HuntListPageProps {
-  ready: boolean;
   canAdd: boolean;
   hunts: HuntType[];
   myHunts: Record<string, boolean>;
@@ -612,23 +612,22 @@ interface HuntListPageProps {
 
 const HuntListPage = () => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
-  const tracker: HuntListPageProps = useTracker(() => {
-    const huntListHandle = Meteor.subscribe('mongo.hunts');
-    const myHuntsHandle = Meteor.subscribe('selfHuntMembership');
-    const ready = huntListHandle.ready() && myHuntsHandle.ready();
+  const huntsLoading = useSubscribe('mongo.hunts');
+  const myHuntsLoading = useSubscribe('selfHuntMembership');
+  const loading = huntsLoading() || myHuntsLoading();
 
+  const tracker: HuntListPageProps = useTracker(() => {
     const myHunts: Record<string, boolean> = {};
-    if (ready) {
+    if (!loading) {
       Meteor.user()?.hunts?.forEach((hunt) => { myHunts[hunt] = true; });
     }
 
     return {
-      ready,
       canAdd: userMayCreateHunt(Meteor.userId()),
       hunts: Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
       myHunts,
     };
-  }, []);
+  }, [loading]);
 
   const addModalRef = useRef<HuntModalFormHandle>(null);
 
@@ -644,7 +643,9 @@ const HuntListPage = () => {
   }, []);
 
   const body = [];
-  if (tracker.ready) {
+  if (loading) {
+    body.push(<div key="loading">Loading...</div>);
+  } else {
     const joinedHunts: JSX.Element[] = [];
     const otherHunts: JSX.Element[] = [];
     tracker.hunts.forEach((hunt) => {
@@ -676,8 +677,6 @@ const HuntListPage = () => {
     } else {
       body.push(<div key="nootherhunts">There are no other hunts you haven&apos;t joined.</div>);
     }
-  } else {
-    body.push(<div key="loading">Loading...</div>);
   }
 
   return (

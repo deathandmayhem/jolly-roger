@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
@@ -30,6 +30,7 @@ import { PendingAnnouncementType } from '../../lib/schemas/pending_announcement'
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
+import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import markdown from '../markdown';
 import Breakable from './styling/Breakable';
 
@@ -447,7 +448,6 @@ interface NotificationCenterChatNotification {
 }
 
 type NotificationCenterTracker = {
-  ready: boolean;
   announcements?: NotificationCenterAnnouncement[];
   guesses?: NotificationCenterGuess[];
   chatNotifications?: NotificationCenterChatNotification[];
@@ -467,43 +467,38 @@ const StyledNotificationCenter = styled.ul`
 `;
 
 const NotificationCenter = () => {
+  const canUpdateGuesses = useTracker(() => deprecatedIsActiveOperator(Meteor.userId()));
+  const pendingGuessesLoading = useSubscribe(canUpdateGuesses ? 'pendingGuesses' : undefined);
+
+  // This is overly broad, but we likely already have the data cached locally
+  const userId = useTracker(() => Meteor.userId()!);
+  const selfProfileLoading = useSubscribe('mongo.profiles', { _id: userId });
+  const displayNamesLoading = useSubscribeDisplayNames();
+  const announcementsLoading = useSubscribe('mongo.announcements');
+  // pending_announcements implicitly limits to the current user
+  const pendingAnnouncementsLoading = useSubscribe('mongo.pending_announcements');
+
+  const disableDingwords = useTracker(() => Flags.active('disable.dingwords'));
+  const chatNotificationsLoading = useSubscribe(disableDingwords ? undefined : 'chatNotifications');
+
+  const loading =
+    pendingGuessesLoading() ||
+    selfProfileLoading() ||
+    displayNamesLoading() ||
+    announcementsLoading() ||
+    pendingAnnouncementsLoading() ||
+    chatNotificationsLoading();
+
   const tracker: NotificationCenterTracker = useTracker(() => {
-    const canUpdateGuesses = deprecatedIsActiveOperator(Meteor.userId());
-
-    // Yes this is hideous, but it just makes the logic easier
-    let pendingGuessHandle = { ready: () => true };
-    if (canUpdateGuesses) {
-      pendingGuessHandle = Meteor.subscribe('pendingGuesses');
-    }
-
-    // This is overly broad, but we likely already have the data cached locally
-    const selfHandle = Meteor.subscribe('mongo.profiles', { _id: Meteor.userId() });
-    const displayNamesHandle = Profiles.subscribeDisplayNames();
-    const announcementsHandle = Meteor.subscribe('mongo.announcements');
-
-    const disableDingwords = Flags.active('disable.dingwords');
-
-    let chatNotificationsHandle = { ready: () => true };
-    if (!disableDingwords) {
-      chatNotificationsHandle = Meteor.subscribe('chatNotifications');
-    }
-
-    const query = {
-      user: Meteor.userId()!,
-    };
-    const paHandle = Meteor.subscribe('mongo.pending_announcements', query);
-
-    // Don't even try to put things together until we have the announcements loaded
-    if (!selfHandle.ready() || !displayNamesHandle.ready() || !announcementsHandle.ready() ||
-      !chatNotificationsHandle.ready()) {
-      return { ready: false };
+    // Don't even try to put things together until we have everything loaded
+    if (loading) {
+      return {};
     }
 
     const ownProfile = Profiles.findOne(Meteor.userId()!);
     const discordEnabledOnServer = !!ServiceConfiguration.configurations.findOne({ service: 'discord' }) && !Flags.active('disable.discord');
 
     const data = {
-      ready: pendingGuessHandle.ready() && paHandle.ready(),
       announcements: [] as NotificationCenterAnnouncement[],
       guesses: [] as NotificationCenterGuess[],
       chatNotifications: [] as NotificationCenterChatNotification[],
@@ -523,7 +518,7 @@ const NotificationCenter = () => {
       });
     }
 
-    PendingAnnouncements.find(query, { sort: { createdAt: 1 } }).forEach((pa) => {
+    PendingAnnouncements.find({ user: Meteor.userId()! }, { sort: { createdAt: 1 } }).forEach((pa) => {
       const announcement = Announcements.findOne(pa.announcement)!;
       data.announcements.push({
         pa,
@@ -546,7 +541,7 @@ const NotificationCenter = () => {
     }
 
     return data;
-  }, []);
+  }, [loading, canUpdateGuesses, disableDingwords]);
 
   const [hideDiscordSetupMessage, setHideDiscordSetupMessage] = useState<boolean>(false);
   const [hideProfileSetupMessage, setHideProfileSetupMessage] = useState<boolean>(false);
@@ -573,7 +568,7 @@ const NotificationCenter = () => {
     Meteor.call('dismissChatNotification', chatNotificationId);
   }, []);
 
-  if (!tracker.ready || !tracker.guesses || !tracker.announcements || !tracker.chatNotifications) {
+  if (loading || !tracker.guesses || !tracker.announcements || !tracker.chatNotifications) {
     return <div />;
   }
 

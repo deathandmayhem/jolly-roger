@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -11,6 +11,7 @@ import Profiles from '../../lib/models/profiles';
 import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/announcement';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import markdown from '../markdown';
 
 /* eslint-disable max-len */
@@ -132,7 +133,6 @@ const Announcement = (props: AnnouncementProps) => {
 };
 
 interface AnnouncementsPageTracker {
-  ready: boolean;
   canCreateAnnouncements: boolean;
   announcements: AnnouncementType[];
   displayNames: Record<string, string>;
@@ -141,17 +141,18 @@ interface AnnouncementsPageTracker {
 const AnnouncementsPage = () => {
   const huntId = useParams<'huntId'>().huntId!;
   useBreadcrumb({ title: 'Announcements', path: `/hunts/${huntId}/announcements` });
-  const tracker = useTracker<AnnouncementsPageTracker>(() => {
-    // We already have subscribed to mongo.announcements on the main page, since we want to be able
-    // to show them on any page.  So we don't *need* to make the subscription here...
-    // ...except that we might want to wait to render until we've received all of them?  IDK.
-    const announcementsHandle = Meteor.subscribe('mongo.announcements', { hunt: huntId });
-    const displayNamesHandle = Profiles.subscribeDisplayNames();
-    const ready = announcementsHandle.ready() && displayNamesHandle.ready();
 
+  // We already have subscribed to mongo.announcements on the main page, since we want to be able
+  // to show them on any page.  So we don't *need* to make the subscription here...
+  // ...except that we might want to wait to render until we've received all of them?  IDK.
+  const announcementsLoading = useSubscribe('mongo.announcements', { hunt: huntId });
+  const displayNamesLoading = useSubscribeDisplayNames();
+  const loading = announcementsLoading() || displayNamesLoading();
+
+  const tracker = useTracker<AnnouncementsPageTracker>(() => {
     let announcements: AnnouncementType[];
     let displayNames: Record<string, string>;
-    if (!ready) {
+    if (loading) {
       announcements = [];
       displayNames = {};
     } else {
@@ -161,14 +162,13 @@ const AnnouncementsPage = () => {
     const canCreateAnnouncements = userMayAddAnnouncementToHunt(Meteor.userId(), huntId);
 
     return {
-      ready,
       announcements,
       canCreateAnnouncements,
       displayNames,
     };
-  }, [huntId]);
+  }, [loading, huntId]);
 
-  if (!tracker.ready) {
+  if (loading) {
     return <div>loading...</div>;
   }
 

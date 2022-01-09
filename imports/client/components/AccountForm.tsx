@@ -1,6 +1,6 @@
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -64,12 +64,11 @@ enum AccountFormSubmitState {
 }
 
 const AccountForm = (props: AccountFormProps) => {
+  const loading = useSubscribe('teamName');
   const tracker = useTracker(() => {
-    const teamNameSub = Meteor.subscribe('teamName');
     const teamNameObj = TeamName.findOne('teamName');
     const teamName = teamNameObj ? teamNameObj.name : 'Default Team Name';
     return {
-      ready: teamNameSub.ready(),
       teamName,
     };
   }, []);
@@ -187,7 +186,7 @@ const AccountForm = (props: AccountFormProps) => {
     }
   }, [tryLogin, tryPasswordReset, tryEnroll, tryCompletePasswordReset, props]);
 
-  if (!tracker.ready) {
+  if (loading()) {
     return <div>loading...</div>;
   }
 
