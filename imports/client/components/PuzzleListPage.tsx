@@ -3,6 +3,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons/faBullhorn';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
+import { faFaucet } from '@fortawesome/free-solid-svg-icons/faFaucet';
 import { faMap } from '@fortawesome/free-solid-svg-icons/faMap';
 import { faReceipt } from '@fortawesome/free-solid-svg-icons/faReceipt';
 import { faUsers } from '@fortawesome/free-solid-svg-icons/faUsers';
@@ -487,6 +488,15 @@ const PuzzleListPage = () => {
             <StyledPuzzleListLinkLabel>Hunters</StyledPuzzleListLinkLabel>
           </StyledPuzzleListLinkAnchor>
         </StyledPuzzleListLink>
+        {/* Show firehose link only to operators */}
+        {tracker.canUpdate && (
+          <StyledPuzzleListLink>
+            <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/firehose`}>
+              <FontAwesomeIcon icon={faFaucet} />
+              <StyledPuzzleListLinkLabel>Firehose</StyledPuzzleListLinkLabel>
+            </StyledPuzzleListLinkAnchor>
+          </StyledPuzzleListLink>
+        )}
       </StyledPuzzleListLinkList>
       {puzzleList}
     </div>
