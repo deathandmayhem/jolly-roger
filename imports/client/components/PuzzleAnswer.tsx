@@ -14,7 +14,18 @@ const PuzzleAnswer = React.memo((props: PuzzleAnswerProps) => {
   const respacedAnswer = respace ? props.answer.replace(/\s+/g, '') : props.answer;
   let formattedAnswer : React.ReactNode = respacedAnswer;
   if (respace && segmentSize > 0) {
-    const segments = respacedAnswer.match(new RegExp(`.{1,${segmentSize}}`, 'g')) || [];
+    // Use Intl.Segmenter (stage 3 proposal) if available to properly segment grapheme clusters
+    // Typescript is unaware of it, so there are a few any casts...
+    let graphemes:string[];
+    if (Intl !== undefined && (Intl as any).Segmenter !== undefined) {
+      const graphemeSegmenter = new (Intl as any).Segmenter('en', { granularity: 'grapheme' });
+      graphemes = Array.from(graphemeSegmenter.segment(respacedAnswer), (s) => (s as any).segment);
+    } else {
+      graphemes = Array.from(respacedAnswer);
+    }
+    const segments = Array.from(new Array(Math.ceil(graphemes.length / segmentSize)), (_x, i) => {
+      return graphemes.slice(i * segmentSize, (i + 1) * segmentSize);
+    });
     formattedAnswer = segments.map((segment, i) => (
       // eslint-disable-next-line react/no-array-index-key
       <span key={`segment-${i}`} className="answer-segment">
