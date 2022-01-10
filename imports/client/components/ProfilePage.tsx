@@ -18,27 +18,27 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
   const userRolesLoading = useSubscribe('userRoles', userId);
   const loading = profileLoading() || userRolesLoading();
 
-  const {
-    profile, viewerCanMakeOperator, viewerIsOperator, targetIsOperator,
-  } = useTracker(() => {
+  const profile = useTracker(() => {
     const user = Meteor.user()!;
     const defaultEmail = user.emails![0].address!;
+    return Profiles.findOne(userId) || {
+      _id: userId,
+      displayName: '',
+      primaryEmail: defaultEmail,
+      phoneNumber: '',
+      dingwords: [],
+      deleted: false,
+      createdAt: new Date(),
+      createdBy: user._id,
+      updatedAt: undefined,
+      updatedBy: undefined,
+      googleAccount: undefined,
+      discordAccount: undefined,
+      muteApplause: undefined,
+    };
+  }, [userId]);
+  const { viewerCanMakeOperator, viewerIsOperator, targetIsOperator } = useTracker(() => {
     return {
-      profile: Profiles.findOne(userId) || {
-        _id: userId,
-        displayName: '',
-        primaryEmail: defaultEmail,
-        phoneNumber: '',
-        dingwords: [],
-        deleted: false,
-        createdAt: new Date(),
-        createdBy: user._id,
-        updatedAt: undefined,
-        updatedBy: undefined,
-        googleAccount: undefined,
-        discordAccount: undefined,
-        muteApplause: undefined,
-      },
       viewerCanMakeOperator: deprecatedUserMayMakeOperator(Meteor.userId()),
       viewerIsOperator: deprecatedIsActiveOperator(Meteor.userId()),
       targetIsOperator: deprecatedUserMayMakeOperator(userId),

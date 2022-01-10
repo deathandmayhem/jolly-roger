@@ -143,13 +143,11 @@ const AnnouncementsPage = () => {
   const displayNamesLoading = useSubscribeDisplayNames();
   const loading = announcementsLoading() || displayNamesLoading();
 
-  const { announcements, canCreateAnnouncements, displayNames } = useTracker(() => {
-    return {
-      announcements: loading ? [] : Announcements.find({ hunt: huntId }, { sort: { createdAt: 1 } }).fetch(),
-      canCreateAnnouncements: userMayAddAnnouncementToHunt(Meteor.userId(), huntId),
-      displayNames: loading ? {} : Profiles.displayNames(),
-    };
-  }, [loading, huntId]);
+  const announcements = useTracker(() => (
+    loading ? [] : Announcements.find({ hunt: huntId }, { sort: { createdAt: 1 } }).fetch()
+  ), [loading, huntId]);
+  const displayNames = useTracker(() => (loading ? {} : Profiles.displayNames()), [loading]);
+  const canCreateAnnouncements = useTracker(() => userMayAddAnnouncementToHunt(Meteor.userId(), huntId), [huntId]);
 
   if (loading) {
     return <div>loading...</div>;

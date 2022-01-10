@@ -425,18 +425,25 @@ const PuzzleListPage = () => {
 
   // Don't bother including this in loading - it's ok if it trickles in
   useSubscribe('subscribers.counts', { hunt: huntId });
-  const {
-    canAdd, canUpdate, allPuzzles, allTags, hunt,
-  } = useTracker(() => {
+
+  // Assertion is safe because hunt is already subscribed and checked by HuntApp
+  const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
+  const allPuzzles = useTracker(() => (
+    loading ?
+      [] :
+      Puzzles.find({ hunt: huntId }).fetch()
+  ), [loading, huntId]);
+  const allTags = useTracker(() => (
+    loading ?
+      [] :
+      Tags.find({ hunt: huntId }).fetch()
+  ), [loading, huntId]);
+  const { canAdd, canUpdate } = useTracker(() => {
     return {
-      // Assertion is safe because hunt is already subscribed and checked by HuntApp
-      hunt: Hunts.findOne({ _id: huntId })!,
-      canAdd: loading ? false : userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
-      canUpdate: loading ? false : userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
-      allPuzzles: loading ? [] : Puzzles.find({ hunt: huntId }).fetch(),
-      allTags: loading ? [] : Tags.find({ hunt: huntId }).fetch(),
+      canAdd: userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
+      canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
     };
-  }, [loading, huntId]);
+  }, [huntId]);
 
   const huntLink = hunt.homepageUrl && (
     <StyledPuzzleListExternalLink>

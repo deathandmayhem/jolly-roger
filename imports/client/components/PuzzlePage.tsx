@@ -397,12 +397,8 @@ interface PuzzlePageMetadataProps {
 }
 
 const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
-  const { canUpdate, hasGuessQueue } = useTracker(() => {
-    return {
-      canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), props.puzzle.hunt),
-      hasGuessQueue: Hunts.findOne(props.puzzle.hunt)?.hasGuessQueue ?? false,
-    };
-  }, [props.puzzle.hunt]);
+  const hasGuessQueue = useTracker(() => Hunts.findOne(props.puzzle.hunt)?.hasGuessQueue ?? false, [props.puzzle.hunt]);
+  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.userId(), props.puzzle.hunt), [props.puzzle.hunt]);
 
   const editModalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
   const guessModalRef = useRef<React.ElementRef<typeof PuzzleGuessModal>>(null);
@@ -967,28 +963,40 @@ const PuzzlePage = React.memo(() => {
     chatMessagesLoading() ||
     displayNamesLoading();
 
-  const {
-    displayNames, allPuzzles, allTags, allGuesses, document, chatMessages,
-  } = useTracker(() => {
-    return {
-      displayNames: puzzleDataLoading && chatDataLoading ? {} : Profiles.displayNames(),
-      allPuzzles: puzzleDataLoading ? [] : Puzzles.find({ hunt: huntId }).fetch(),
-      allTags: puzzleDataLoading ? [] : Tags.find({ hunt: huntId }).fetch(),
-      allGuesses: puzzleDataLoading ? [] : Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch(),
-      document:
-        puzzleDataLoading ?
-          undefined :
-          // Sort by created at so that the "first" document always has consistent meaning
-          Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } }),
-      chatMessages:
-        chatDataLoading ?
-          [] :
-          ChatMessages.find(
-            { puzzle: puzzleId },
-            { sort: { timestamp: 1 } },
-          ).fetch(),
-    };
-  }, [huntId, puzzleId, puzzleDataLoading, chatDataLoading]);
+  const displayNames = useTracker(() => (
+    puzzleDataLoading && chatDataLoading ?
+      {} :
+      Profiles.displayNames()
+  ), [puzzleDataLoading, chatDataLoading]);
+  const allPuzzles = useTracker(() => (
+    puzzleDataLoading ?
+      [] :
+      Puzzles.find({ hunt: huntId }).fetch()
+  ), [huntId, puzzleDataLoading]);
+  const allTags = useTracker(() => (
+    puzzleDataLoading ?
+      [] :
+      Tags.find({ hunt: huntId }).fetch()
+  ), [huntId, puzzleDataLoading]);
+  const allGuesses = useTracker(() => (
+    puzzleDataLoading ?
+      [] :
+      Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch()
+  ), [huntId, puzzleDataLoading, puzzleId]);
+  const document = useTracker(() => (
+    puzzleDataLoading ?
+      undefined :
+      // Sort by created at so that the "first" document always has consistent meaning
+      Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } })
+  ), [puzzleDataLoading, puzzleId]);
+  const chatMessages = useTracker(() => (
+    chatDataLoading ?
+      [] :
+      ChatMessages.find(
+        { puzzle: puzzleId },
+        { sort: { timestamp: 1 } },
+      ).fetch()
+  ), [chatDataLoading, puzzleId]);
 
   const activePuzzle = findPuzzleById(allPuzzles, puzzleId);
   useBreadcrumb({

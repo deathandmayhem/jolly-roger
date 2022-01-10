@@ -25,12 +25,8 @@ const CelebrationCenter = (props: CelebrationCenterProps) => {
   // This should be effectively a noop, since we're already fetching it for every hunt
   useSubscribe('mongo.puzzles', { hunt: props.huntId });
 
-  const { disabled, muted } = useTracker(() => {
-    return {
-      disabled: Flags.active('disable.applause'),
-      muted: !!(Profiles.findOne({ _id: Meteor.userId()! })?.muteApplause),
-    };
-  }, []);
+  const disabled = useTracker(() => Flags.active('disable.applause'), []);
+  const muted = useTracker(() => !!(Profiles.findOne({ _id: Meteor.userId()! })?.muteApplause), []);
 
   const onPuzzleSolved = useCallback((puzzle: PuzzleType, newAnswer: string) => {
     // Only celebrate if:

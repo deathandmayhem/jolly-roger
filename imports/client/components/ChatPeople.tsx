@@ -148,12 +148,17 @@ const ChatPeople = (props: ChatPeopleProps) => {
 
   const loading = subscribersLoading() || callMembersLoading() || avatarsLoading();
 
+  // A note on this feature flag: we still do the subs for call *metadata* for
+  // simplicity even when webrtc is flagged off; we simply avoid rendering
+  // anything in the UI (which prevents clients from subbing to 'mediasoup:join'
+  // or doing signalling).
+  const rtcDisabled = useTracker(() => Flags.active('disable.webrtc'), []);
+
   const {
     unknown,
     viewers,
     rtcViewers,
     selfPeer,
-    rtcDisabled,
   } = useTracker(() => {
     if (loading) {
       return {
@@ -161,7 +166,6 @@ const ChatPeople = (props: ChatPeopleProps) => {
         viewers: [],
         rtcViewers: [],
         selfPeer: undefined,
-        rtcDisabled: false,
       };
     }
 
@@ -228,11 +232,6 @@ const ChatPeople = (props: ChatPeopleProps) => {
       viewers: viewersAcc,
       rtcViewers: rtcViewersAcc,
       selfPeer: self,
-      // A note on this feature flag: we still do the subs for call *metadata* for
-      // simplicity even when webrtc is flagged off; we simply avoid rendering
-      // anything in the UI (which prevents clients from subbing to 'mediasoup:join' or
-      // doing signalling).
-      rtcDisabled: Flags.active('disable.webrtc'),
     };
   }, [loading, subscriberTopic, huntId, puzzleId]);
 

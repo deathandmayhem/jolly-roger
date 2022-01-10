@@ -39,14 +39,8 @@ const GoogleLinkBlock = (props: GoogleLinkBlockProps) => {
   const [state, setState] =
     useState<GoogleLinkBlockState>({ state: GoogleLinkBlockLinkState.IDLE });
 
-  const { config, googleDisabled } = useTracker(() => {
-    return {
-      config: ServiceConfiguration.configurations.findOne({
-        service: 'google',
-      }),
-      googleDisabled: Flags.active('disable.google'),
-    };
-  }, []);
+  const config = useTracker(() => ServiceConfiguration.configurations.findOne({ service: 'google' }), []);
+  const googleDisabled = useTracker(() => Flags.active('disable.google'), []);
 
   const requestComplete = useCallback((token: string) => {
     const secret = OAuth._retrieveCredentialSecret(token);
@@ -172,13 +166,9 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
 
   useSubscribe('teamName');
 
-  const { config, discordDisabled, teamName } = useTracker(() => {
-    return {
-      config: ServiceConfiguration.configurations.findOne({ service: 'discord' }),
-      discordDisabled: Flags.active('disable.discord'),
-      teamName: TeamName.findOne('teamName')?.name ?? 'Default Team Name',
-    };
-  }, []);
+  const config = useTracker(() => ServiceConfiguration.configurations.findOne({ service: 'discord' }), []);
+  const discordDisabled = useTracker(() => Flags.active('disable.discord'), []);
+  const teamName = useTracker(() => TeamName.findOne('teamName')?.name ?? 'Default Team Name', []);
 
   const requestComplete = useCallback((token: string) => {
     const secret = OAuth._retrieveCredentialSecret(token);

@@ -73,17 +73,19 @@ const AppNavbar = () => {
   const profileLoading = useSubscribe('mongo.profiles', { _id: userId });
   const loading = profileLoading();
 
-  const { displayName, brandSrc, brandSrc2x } = useTracker(() => {
+  const displayName = useTracker(() => {
     const profile = Profiles.findOne(Meteor.userId()!);
 
+    return loading ?
+      'loading...' :
+      ((profile && profile.displayName) || '<no name given>');
+  }, [loading]);
+  const { brandSrc, brandSrc2x } = useTracker(() => {
     return {
-      displayName: loading ?
-        'loading...' :
-        ((profile && profile.displayName) || '<no name given>'),
       brandSrc: lookupUrl('brand.png'),
       brandSrc2x: lookupUrl('brand@2x.png'),
     };
-  }, [loading]);
+  }, []);
 
   const navigate = useNavigate();
   const logout = useCallback(() => {

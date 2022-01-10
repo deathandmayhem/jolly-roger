@@ -526,8 +526,9 @@ interface HuntProps {
 }
 
 const Hunt = React.memo((props: HuntProps) => {
+  const huntId = props.hunt._id;
+
   const { canUpdate, canDestroy } = useTracker(() => {
-    const huntId = props.hunt._id;
     return {
       canUpdate: userMayUpdateHunt(Meteor.userId(), huntId),
 
@@ -535,24 +536,24 @@ const Hunt = React.memo((props: HuntProps) => {
       // update to "remove" something
       canDestroy: userMayUpdateHunt(Meteor.userId(), huntId),
     };
-  }, [props.hunt._id]);
+  }, [huntId]);
 
   const editModalRef = useRef<React.ElementRef<typeof HuntModalForm>>(null);
   const deleteModalRef = useRef<ModalFormHandle>(null);
 
   const onEdit = useCallback((state: HuntModalSubmit, callback: (error?: Error) => void) => {
-    Ansible.log('Updating hunt settings', { hunt: props.hunt._id, user: Meteor.userId(), state });
-    Meteor.call('updateHunt', props.hunt._id, state, callback);
-  }, [props.hunt._id]);
+    Ansible.log('Updating hunt settings', { hunt: huntId, user: Meteor.userId(), state });
+    Meteor.call('updateHunt', huntId, state, callback);
+  }, [huntId]);
 
   const onDelete = useCallback((callback: () => void) => {
-    Meteor.call('destroyHunt', props.hunt._id, (err?: Error) => {
+    Meteor.call('destroyHunt', huntId, (err?: Error) => {
       if (err) {
-        Ansible.log('Failed to destroy hunt', { hunt: props.hunt._id, user: Meteor.userId() });
+        Ansible.log('Failed to destroy hunt', { hunt: huntId, user: Meteor.userId() });
       }
       callback();
     });
-  }, [props.hunt._id]);
+  }, [huntId]);
 
   const showEditModal = useCallback(() => {
     if (editModalRef.current) {
@@ -597,7 +598,7 @@ const Hunt = React.memo((props: HuntProps) => {
         ) : undefined}
       </ButtonGroup>
       {' '}
-      <Link to={`/hunts/${props.hunt._id}`}>
+      <Link to={`/hunts/${huntId}`}>
         {props.hunt.name}
       </Link>
     </li>
@@ -610,10 +611,10 @@ const HuntListPage = () => {
   const myHuntsLoading = useSubscribe('selfHuntMembership');
   const loading = huntsLoading() || myHuntsLoading();
 
-  const { canAdd, hunts, myHunts } = useTracker(() => {
+  const hunts = useTracker(() => Hunts.find({}, { sort: { createdAt: -1 } }).fetch());
+  const { canAdd, myHunts } = useTracker(() => {
     return {
       canAdd: userMayCreateHunt(Meteor.userId()),
-      hunts: Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
       myHunts: new Set(Meteor.user()?.hunts ?? []),
     };
   }, []);

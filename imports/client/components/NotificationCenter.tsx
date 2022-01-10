@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
+import { _ } from 'meteor/underscore';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { faSkullCrossbones } from '@fortawesome/free-solid-svg-icons/faSkullCrossbones';
@@ -26,7 +27,6 @@ import { AnnouncementType } from '../../lib/schemas/announcement';
 import { ChatNotificationType } from '../../lib/schemas/chat_notification';
 import { GuessType } from '../../lib/schemas/guess';
 import { HuntType } from '../../lib/schemas/hunt';
-import { PendingAnnouncementType } from '../../lib/schemas/pending_announcement';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
@@ -402,50 +402,35 @@ const ProfileMissingMessage = (props: ProfileMissingMessageProps) => {
 };
 
 interface ChatNotificationMessageProps {
-  // TODO: add the requisite fields
-  cn: NotificationCenterChatNotification;
-  onDismiss: () => void;
-}
-const ChatNotificationMessage = (props: ChatNotificationMessageProps) => {
-  return (
-    <StyledNotificationMessage>
-      <MessengerSpinner />
-      <MessengerContent>
-        <Link to={`/hunts/${props.cn.hunt._id}/puzzles/${props.cn.puzzle._id}`}>
-          {props.cn.puzzle.title}
-        </Link>
-        <div>
-          {props.cn.senderDisplayName}
-          {': '}
-          <div>
-            {props.cn.cn.text}
-          </div>
-        </div>
-      </MessengerContent>
-      <MessengerDismissButton onDismiss={props.onDismiss} />
-    </StyledNotificationMessage>
-  );
-};
-
-interface NotificationCenterAnnouncement {
-  pa: PendingAnnouncementType;
-  announcement: AnnouncementType;
-  createdByDisplayName: string;
-}
-
-interface NotificationCenterGuess {
-  guess: GuessType;
-  puzzle: PuzzleType;
-  hunt: HuntType;
-  guesser: string;
-}
-
-interface NotificationCenterChatNotification {
   cn: ChatNotificationType;
   hunt: HuntType;
   puzzle: PuzzleType;
   senderDisplayName: string;
+  onDismiss: (chatNotificationId: string) => void;
 }
+const ChatNotificationMessage = (props: ChatNotificationMessageProps) => {
+  const { onDismiss } = props;
+  const id = props.cn._id;
+  const dismiss = useCallback(() => onDismiss(id), [id, onDismiss]);
+  return (
+    <StyledNotificationMessage>
+      <MessengerSpinner />
+      <MessengerContent>
+        <Link to={`/hunts/${props.hunt._id}/puzzles/${props.puzzle._id}`}>
+          {props.puzzle.title}
+        </Link>
+        <div>
+          {props.senderDisplayName}
+          {': '}
+          <div>
+            {props.cn.text}
+          </div>
+        </div>
+      </MessengerContent>
+      <MessengerDismissButton onDismiss={dismiss} />
+    </StyledNotificationMessage>
+  );
+};
 
 const StyledNotificationCenter = styled.ul`
   position: fixed;
@@ -480,68 +465,38 @@ const NotificationCenter = () => {
     pendingAnnouncementsLoading() ||
     chatNotificationsLoading();
 
-  const {
-    announcements,
-    guesses,
-    chatNotifications,
-    discordEnabledOnServer,
-    discordConfiguredByUser,
-    hasOwnProfile,
-  } = useTracker(() => {
-    // Don't even try to put things together until we have everything loaded
-    const data = {
-      announcements: [] as NotificationCenterAnnouncement[],
-      guesses: [] as NotificationCenterGuess[],
-      chatNotifications: [] as NotificationCenterChatNotification[],
-      discordEnabledOnServer: false,
-      discordConfiguredByUser: false,
-      hasOwnProfile: false,
-    };
-
-    if (loading) {
-      return data;
-    }
-
+  const discordEnabledOnServer = useTracker(() => (
+    !!ServiceConfiguration.configurations.findOne({ service: 'discord' }) && !Flags.active('disable.discord')
+  ), []);
+  const { hasOwnProfile, discordConfiguredByUser } = useTracker(() => {
     const ownProfile = Profiles.findOne(Meteor.userId()!);
-    data.discordEnabledOnServer = !!ServiceConfiguration.configurations.findOne({ service: 'discord' }) && !Flags.active('disable.discord');
-    data.hasOwnProfile = !!(ownProfile);
-    data.discordConfiguredByUser = !!(ownProfile && ownProfile.discordAccount);
+    return {
+      hasOwnProfile: !!(ownProfile),
+      discordConfiguredByUser: !!(ownProfile && ownProfile.discordAccount),
+    };
+  }, []);
 
-    if (canUpdateGuesses) {
-      Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).forEach((guess) => {
-        data.guesses.push({
-          guess,
-          puzzle: Puzzles.findOne(guess.puzzle)!,
-          hunt: Hunts.findOne(guess.hunt)!,
-          guesser: Profiles.findOne(guess.createdBy)!.displayName,
-        });
-      });
-    }
+  // Lookup tables to support guesses/pendingAnnouncements/chatNotifications
+  const hunts = useTracker(() => (loading ? {} : _.indexBy(Hunts.find().fetch(), '_id')), [loading]);
+  const puzzles = useTracker(() => (loading ? {} : _.indexBy(Puzzles.find().fetch(), '_id')), [loading]);
+  const displayNames = useTracker(() => (loading ? {} : Profiles.displayNames()), [loading]);
+  const announcements = useTracker(() => (loading ? {} : _.indexBy(Announcements.find().fetch(), '_id')), [loading]);
 
-    PendingAnnouncements.find({ user: Meteor.userId()! }, { sort: { createdAt: 1 } }).forEach((pa) => {
-      const announcement = Announcements.findOne(pa.announcement)!;
-      data.announcements.push({
-        pa,
-        announcement,
-        createdByDisplayName: Profiles.findOne(announcement.createdBy)!.displayName,
-      });
-    });
-
-    if (!disableDingwords) {
-      ChatNotifications.find({}, { sort: { timestamp: 1 } }).forEach((cn) => {
-        const senderProfile = Profiles.findOne(cn.sender);
-        const senderDisplayName = (senderProfile && senderProfile.displayName) || '(no display name)';
-        data.chatNotifications.push({
-          cn,
-          puzzle: Puzzles.findOne(cn.puzzle)!,
-          hunt: Hunts.findOne(cn.hunt)!,
-          senderDisplayName,
-        });
-      });
-    }
-
-    return data;
-  }, [loading, canUpdateGuesses, disableDingwords]);
+  const guesses = useTracker(() => (
+    loading || !canUpdateGuesses ?
+      [] :
+      Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).fetch()
+  ), [loading, canUpdateGuesses]);
+  const pendingAnnouncements = useTracker(() => (
+    loading ?
+      [] :
+      PendingAnnouncements.find({ user: Meteor.userId()! }, { sort: { createdAt: 1 } }).fetch()
+  ), [loading]);
+  const chatNotifications = useTracker(() => (
+    loading || disableDingwords ?
+      [] :
+      ChatNotifications.find({}, { sort: { timestamp: 1 } }).fetch()
+  ), [loading, disableDingwords]);
 
   const [hideDiscordSetupMessage, setHideDiscordSetupMessage] = useState<boolean>(false);
   const [hideProfileSetupMessage, setHideProfileSetupMessage] = useState<boolean>(false);
@@ -573,7 +528,7 @@ const NotificationCenter = () => {
   }
 
   // Build a list of uninstantiated messages with their props, then create them
-  const messages: any = [];
+  const messages = [] as JSX.Element[];
 
   if (!hasOwnProfile && !hideProfileSetupMessage) {
     messages.push(<ProfileMissingMessage
@@ -589,24 +544,24 @@ const NotificationCenter = () => {
   }
 
   guesses.forEach((g) => {
-    if (dismissedGuesses[g.guess._id]) return;
+    if (dismissedGuesses[g._id]) return;
     messages.push(<GuessMessage
-      key={g.guess._id}
-      guess={g.guess}
-      puzzle={g.puzzle}
-      hunt={g.hunt}
-      guesser={g.guesser}
+      key={g._id}
+      guess={g}
+      puzzle={puzzles[g.puzzle]!}
+      hunt={hunts[g.hunt]!}
+      guesser={displayNames[g.createdBy]!}
       onDismiss={dismissGuess}
     />);
   });
 
-  announcements.forEach((a) => {
+  pendingAnnouncements.forEach((pa) => {
     messages.push(
       <AnnouncementMessage
-        key={a.pa._id}
-        id={a.pa._id}
-        announcement={a.announcement}
-        createdByDisplayName={a.createdByDisplayName}
+        key={pa._id}
+        id={pa._id}
+        announcement={announcements[pa.announcement]!}
+        createdByDisplayName={displayNames[pa.createdBy]!}
       />
     );
   });
@@ -614,9 +569,12 @@ const NotificationCenter = () => {
   chatNotifications.forEach((cn) => {
     messages.push(
       <ChatNotificationMessage
-        key={cn.cn._id}
+        key={cn._id}
         cn={cn}
-        onDismiss={() => { dismissChatNotification(cn.cn._id); }}
+        hunt={hunts[cn.hunt]!}
+        puzzle={puzzles[cn.puzzle]!}
+        senderDisplayName={displayNames[cn.sender]!}
+        onDismiss={dismissChatNotification}
       />
     );
   });

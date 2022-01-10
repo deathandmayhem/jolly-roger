@@ -124,11 +124,12 @@ const HuntApp = React.memo(() => {
   const huntLoading = useSubscribe('mongo.hunts', { _id: huntId });
   const deletedHuntLoading = useSubscribe('mongo.hunts.deleted', { _id: huntId });
   const loading = userLoading() || huntLoading() || deletedHuntLoading();
+
+  const hunt = useTracker(() => Hunts.findOneAllowingDeleted(huntId), [huntId]);
   const {
-    hunt, member, canUndestroy, canJoin,
+    member, canUndestroy, canJoin,
   } = useTracker(() => {
     return {
-      hunt: Hunts.findOneAllowingDeleted(huntId),
       member: Meteor.user()?.hunts?.includes(huntId) ?? false,
       canUndestroy: userMayUpdateHunt(Meteor.userId(), huntId),
       canJoin: userMayAddUsersToHunt(Meteor.userId(), huntId),

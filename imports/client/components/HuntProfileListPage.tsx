@@ -19,19 +19,21 @@ const HuntProfileListPage = () => {
   const profilesLoading = useSubscribe('mongo.profiles');
   const loading = usersLoading() || profilesLoading();
 
-  const { canInvite, canSyncDiscord, profiles } = useTracker(() => {
+  const profiles = useTracker(() => (
+    loading ?
+      [] :
+      Profiles.find(
+        { _id: { $in: MeteorUsers.find({ hunts: huntId }).map((u) => u._id) } },
+        { sort: { displayName: 1 } },
+      ).fetch()
+  ), [huntId, loading]);
+
+  const { canInvite, canSyncDiscord } = useTracker(() => {
     return {
       canInvite: userMayAddUsersToHunt(Meteor.userId(), huntId),
       canSyncDiscord: userMayUseDiscordBotAPIs(Meteor.userId()),
-      profiles:
-        loading ?
-          [] :
-          Profiles.find(
-            { _id: { $in: MeteorUsers.find({ hunts: huntId }).map((u) => u._id) } },
-            { sort: { displayName: 1 } },
-          ).fetch(),
     };
-  }, [huntId, loading]);
+  }, [huntId]);
 
   if (loading) {
     return <div>loading...</div>;

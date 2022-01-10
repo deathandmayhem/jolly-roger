@@ -333,15 +333,13 @@ const GoogleDriveTemplateForm = (props: GoogleDriveTemplateFormProps) => {
 };
 
 const GoogleIntegrationSection = () => {
-  const {
-    enabled, oauthSettings, gdriveCredential, docTemplate, spreadsheetTemplate,
-  } = useTracker(() => {
+  const enabled = useTracker(() => !Flags.active('disable.google'), []);
+  const oauthSettings = useTracker(() => ServiceConfiguration.configurations.findOne({ service: 'google' }) as any, []);
+  const { gdriveCredential, docTemplate, spreadsheetTemplate } = useTracker(() => {
     const docTemplateSetting = Settings.findOne({ name: 'gdrive.template.document' }) as SettingType & { name: 'gdrive.template.document' } | undefined;
     const spreadsheetTemplateSetting = Settings.findOne({ name: 'gdrive.template.spreadsheet' }) as SettingType & { name: 'gdrive.template.spreadsheet' } | undefined;
     const gdriveSetting = Settings.findOne({ name: 'gdrive.credential' }) as SettingType & { name: 'gdrive.credential' } | undefined;
     return {
-      enabled: !Flags.active('disable.google'),
-      oauthSettings: ServiceConfiguration.configurations.findOne({ service: 'google' }) as any,
       gdriveCredential: gdriveSetting,
       docTemplate: docTemplateSetting?.value.id,
       spreadsheetTemplate: spreadsheetTemplateSetting?.value.id,
@@ -1098,17 +1096,12 @@ const DiscordGuildForm = (props: DiscordGuildFormProps) => {
 };
 
 const DiscordIntegrationSection = () => {
-  const {
-    enabled,
-    oauthSettings,
-    botToken,
-    guild,
-  } = useTracker(() => {
+  const enabled = useTracker(() => !Flags.active('disable.discord'), []);
+  const oauthSettings = useTracker(() => ServiceConfiguration.configurations.findOne({ service: 'discord' }), []);
+  const { botToken, guild } = useTracker(() => {
     const botSetting = Settings.findOne({ name: 'discord.bot' }) as SettingType & { name: 'discord.bot' } | undefined;
     const guildSetting = Settings.findOne({ name: 'discord.guild' }) as SettingType & { name: 'discord.guild' } | undefined;
     return {
-      enabled: !Flags.active('disable.discord'),
-      oauthSettings: ServiceConfiguration.configurations.findOne({ service: 'discord' }),
       botToken: botSetting?.value.token,
       guild: guildSetting?.value.guild,
     };
