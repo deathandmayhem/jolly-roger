@@ -18,10 +18,13 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner';
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 import { faVideo } from '@fortawesome/free-solid-svg-icons/faVideo';
 import { faVolumeMute } from '@fortawesome/free-solid-svg-icons/faVolumeMute';
+import { faVolumeOff } from '@fortawesome/free-solid-svg-icons/faVolumeOff';
 import { faVolumeUp } from '@fortawesome/free-solid-svg-icons/faVolumeUp';
 import { faWifi } from '@fortawesome/free-solid-svg-icons/faWifi';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useContext, useMemo, useState } from 'react';
+import React, {
+  useContext, useEffect, useMemo, useState,
+} from 'react';
 import Accordion from 'react-bootstrap/Accordion';
 import AccordionContext from 'react-bootstrap/AccordionContext';
 import Alert from 'react-bootstrap/Alert';
@@ -37,8 +40,10 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
+import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
 import { getAvatarCdnUrl } from '../../lib/discord';
 import isAdmin from '../../lib/is-admin';
+import CallHistories from '../../lib/models/mediasoup/call_histories';
 import ConnectAcks from '../../lib/models/mediasoup/connect_acks';
 import ConnectRequests from '../../lib/models/mediasoup/connect_requests';
 import ConsumerAcks from '../../lib/models/mediasoup/consumer_acks';
@@ -690,6 +695,24 @@ const Room = ({ room }: { room: RoomType }) => {
   const currentRoom = useContext(AccordionContext);
   const active = currentRoom === room._id;
   const router = useTracker(() => Routers.findOne({ call: room.call }), [room.call]);
+  const lastActivity = useTracker(() => (
+    CallHistories.findOne({ call: room.call })?.lastActivity
+  ), [room.call]);
+  const [recentActivity, setRecentActivity] = useState<boolean>(false);
+  useEffect(() => {
+    let timeout: number | undefined;
+    const lastActivityMs = lastActivity?.getTime() ?? 0;
+    const recent = Date.now() - lastActivityMs < RECENT_ACTIVITY_TIME_WINDOW_MS;
+    setRecentActivity(recent);
+    if (recent) {
+      timeout = window.setTimeout(() => setRecentActivity(false), RECENT_ACTIVITY_TIME_WINDOW_MS);
+    }
+    return () => {
+      if (timeout) {
+        window.clearTimeout(timeout);
+      }
+    };
+  }, [lastActivity]);
   const peers = useFind(() => (
     Peers.find({ call: room.call }, { sort: { createdAt: 1 } })
   ), [room.call]);
@@ -697,6 +720,16 @@ const Room = ({ room }: { room: RoomType }) => {
     <Card>
       <Accordion.Toggle as={Card.Header} eventKey={room._id}>
         <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
+        <OverlayTrigger
+          placement="top"
+          overlay={(
+            <Tooltip id={`tooltip-room-active-${room._id}`}>
+              {recentActivity ? `Recent activity in the last ${RECENT_ACTIVITY_TIME_WINDOW_MS / 1000} seconds` : 'No recent activity'}
+            </Tooltip>
+          )}
+        >
+          <FontAwesomeIcon icon={recentActivity ? faVolumeUp : faVolumeOff} fixedWidth />
+        </OverlayTrigger>
         <CallDisplay call={room.call} />
       </Accordion.Toggle>
 
@@ -725,6 +758,10 @@ const Room = ({ room }: { room: RoomType }) => {
             <Col as="dd" xs={10}>
               <ClipButton text={room.routedServer} />
               <code>{room.routedServer}</code>
+            </Col>
+            <Col as="dt" xs={2}>Last activity</Col>
+            <Col as="dd" xs={10}>
+              {lastActivity?.toISOString() ?? 'Never'}
             </Col>
             {router && <RouterDetails router={router} />}
           </Row>

@@ -7,11 +7,16 @@ import { Overrides, inheritSchema, buildSchema } from '../typedSchemas';
 // mediasoup integration to create a router.
 
 const RoomFields = t.type({
+  hunt: t.string,
   call: t.string,
   routedServer: t.string,
 });
 
 const RoomFieldsOverrides: Overrides<t.TypeOf<typeof RoomFields>> = {
+  hunt: {
+    regEx: SimpleSchema.RegEx.Id,
+    denyUpdate: true,
+  },
   call: {
     regEx: SimpleSchema.RegEx.Id,
     denyUpdate: true,

@@ -11,10 +11,14 @@ import React, {
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import styled from 'styled-components';
 import Flags from '../../flags';
+import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
 import { getAvatarCdnUrl } from '../../lib/discord';
+import CallHistories from '../../lib/models/mediasoup/call_histories';
 import Peers from '../../lib/models/mediasoup/peers';
 import Profiles from '../../lib/models/profiles';
+import relativeTimeFormat from '../../lib/relativeTimeFormat';
 import { PeerType } from '../../lib/schemas/mediasoup/peer';
 import useSubscribeAvatars from '../hooks/use-subscribe-avatars';
 import { Subscribers } from '../subscribers';
@@ -62,6 +66,11 @@ const ViewerPersonBox = ({
     </OverlayTrigger>
   );
 };
+
+const PeopleListHeader = styled.header`
+  padding-left: 1rem;
+  text-indent: -1rem;
+`;
 
 interface ChatPeopleProps {
   huntId: string;
@@ -153,6 +162,29 @@ const ChatPeople = (props: ChatPeopleProps) => {
   // anything in the UI (which prevents clients from subbing to 'mediasoup:join'
   // or doing signalling).
   const rtcDisabled = useTracker(() => Flags.active('disable.webrtc'), []);
+
+  const recentVoiceActivity = useTracker(() => (
+    CallHistories.findOne({ call: puzzleId })?.lastActivity
+  ), [puzzleId]);
+  const [voiceActivityRelative, setVoiceActivityRelative] = useState<string>();
+  useEffect(() => {
+    let interval: number | undefined;
+    if (recentVoiceActivity) {
+      const formatter = () => relativeTimeFormat(recentVoiceActivity, {
+        complete: false,
+        minimumUnit: Meteor.isDevelopment ? 'second' : 'minute',
+      });
+      setVoiceActivityRelative(formatter());
+      interval = Meteor.setInterval(() => {
+        setVoiceActivityRelative(formatter());
+      }, RECENT_ACTIVITY_TIME_WINDOW_MS);
+    }
+    return () => {
+      if (interval) {
+        Meteor.clearInterval(interval);
+      }
+    };
+  }, [recentVoiceActivity]);
 
   const {
     unknown,
@@ -409,7 +441,13 @@ const ChatPeople = (props: ChatPeopleProps) => {
     // * when joining the audiocall
     onHeightChange();
   }, [
-    onHeightChange, rtcViewers.length, viewers.length, callersExpanded, viewersExpanded, callState,
+    onHeightChange,
+    rtcViewers.length,
+    viewers.length,
+    callersExpanded,
+    viewersExpanded,
+    callState,
+    voiceActivityRelative,
   ]);
 
   if (loading) {
@@ -429,10 +467,17 @@ const ChatPeople = (props: ChatPeopleProps) => {
               <Button variant="primary" size="sm" block onClick={joinCall}>{joinLabel}</Button>
             </div>
             <div className="chatter-subsection av-chatters">
-              <header onClick={toggleCallersExpanded}>
+              <PeopleListHeader onClick={toggleCallersExpanded}>
                 <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
                 {`${rtcViewers.length} caller${rtcViewers.length !== 1 ? 's' : ''}`}
-              </header>
+                {voiceActivityRelative && (
+                  <>
+                    {' (last voice activity: '}
+                    {voiceActivityRelative}
+                    )
+                  </>
+                )}
+              </PeopleListHeader>
               <div className={classnames('people-list', { collapsed: !callersExpanded })}>
                 {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} {...viewer} />)}
               </div>
@@ -476,10 +521,10 @@ const ChatPeople = (props: ChatPeopleProps) => {
     <section className="chatter-section">
       {!rtcDisabled && callersSubsection}
       <div className="chatter-subsection non-av-viewers">
-        <header onClick={toggleViewersExpanded}>
+        <PeopleListHeader onClick={toggleViewersExpanded}>
           <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
           {`${totalViewers} viewer${totalViewers !== 1 ? 's' : ''}`}
-        </header>
+        </PeopleListHeader>
         <div className={classnames('people-list', { collapsed: !viewersExpanded })}>
           {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
         </div>

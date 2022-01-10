@@ -5,8 +5,11 @@ import { Promise as MeteorPromise } from 'meteor/promise';
 import { _ } from 'meteor/underscore';
 import { Address6 } from 'ip-address';
 import { createWorker, types } from 'mediasoup';
+import { AudioLevelObserver } from 'mediasoup/node/lib/AudioLevelObserver';
 import Ansible from '../ansible';
+import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../lib/config/webrtc';
 import FeatureFlags from '../lib/models/feature_flags';
+import CallHistories from '../lib/models/mediasoup/call_histories';
 import ConnectAcks from '../lib/models/mediasoup/connect_acks';
 import ConnectRequests from '../lib/models/mediasoup/connect_requests';
 import ConsumerAcks from '../lib/models/mediasoup/consumer_acks';
@@ -43,6 +46,9 @@ class SFU {
 
   // Keyed to call id
   public routers: Map<string, types.Router> = new Map();
+
+  // Keyed to call id
+  public observers: Map<string, types.AudioLevelObserver> = new Map();
 
   // Keyed to "${transportRequest}:${direction}"
   public transports: Map<string, types.WebRtcTransport> = new Map();
@@ -245,15 +251,48 @@ class SFU {
       this.routers.delete(router.appData.call);
       Routers.remove({ routerId: router.id });
     }));
+    router.observer.on('newrtpobserver', Meteor.bindEnvironment(this.onRtpObserverCreated.bind(this)));
 
     this.routers.set(router.appData.call, router);
+    router.createAudioLevelObserver({
+      threshold: -50,
+      interval: 100,
+      appData: {
+        hunt: router.appData.hunt,
+        call: router.appData.call,
+      },
+    });
     Routers.insert({
+      hunt: router.appData.hunt,
       call: router.appData.call,
       createdServer: serverId,
       routerId: router.id,
       rtpCapabilities: JSON.stringify(router.rtpCapabilities),
       createdBy: router.appData.createdBy,
     });
+  }
+
+  onRtpObserverCreated(observer: types.RtpObserver) {
+    if (!(observer instanceof AudioLevelObserver)) {
+      return;
+    }
+
+    const updateLastActivity = _.throttle(Meteor.bindEnvironment(() => {
+      CallHistories.upsert({
+        hunt: observer.appData.hunt,
+        call: observer.appData.call,
+      }, { $set: { lastActivity: new Date() } });
+    }), RECENT_ACTIVITY_TIME_WINDOW_MS);
+
+    observer.observer.on('close', () => {
+      updateLastActivity.cancel();
+      this.observers.delete(observer.appData.call);
+    });
+    // No need to inspect volumes, as any volume is indicative of activity
+    // (absence of activity would translate to a "silence" event)
+    observer.observer.on('volumes', updateLastActivity);
+
+    this.observers.set(observer.appData.call, observer);
   }
 
   onTransportCreated(transport: types.Transport) {
@@ -338,6 +377,11 @@ class SFU {
       this.createConsumer(key.split(':')[1], transport, producer);
     });
 
+    const observer = this.observers.get(producer.appData.call);
+    if (observer) {
+      observer.addProducer({ producerId: producer.id });
+    }
+
     this.producers.set(producer.appData.producerClient, producer);
     ProducerServers.insert({
       createdServer: serverId,
@@ -392,6 +436,7 @@ class SFU {
     const router = this.worker.createRouter({
       mediaCodecs,
       appData: {
+        hunt: room.hunt,
         call: room.call,
         createdBy: room.createdBy,
       },
