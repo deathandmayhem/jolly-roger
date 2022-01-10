@@ -38,7 +38,6 @@ import { ChatMessageType } from '../../lib/schemas/chat';
 import { DocumentType } from '../../lib/schemas/document';
 import { GuessType } from '../../lib/schemas/guess';
 import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tag';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/use-document-title';
 import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
@@ -130,7 +129,7 @@ const ChatMessage = React.memo((props: ChatMessageProps) => {
 });
 
 interface ChatHistoryProps {
-  chatMessages: FilteredChatMessageType[];
+  puzzleId: string;
   displayNames: Record<string, string>;
 }
 
@@ -141,6 +140,13 @@ type ChatHistoryHandle = {
 }
 
 const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: React.Ref<ChatHistoryHandle>) => {
+  const chatMessages: FilteredChatMessageType[] = useTracker(() => (
+    ChatMessages.find(
+      { puzzle: props.puzzleId },
+      { sort: { timestamp: 1 } },
+    ).fetch()
+  ), [props.puzzleId]);
+
   const ref = useRef<HTMLDivElement>(null);
   const scrollBottomTarget = useRef<number>(0);
   const shouldIgnoreNextScrollEvent = useRef<boolean>(false);
@@ -218,16 +224,16 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
     } else {
       snapToBottom();
     }
-  }, [props.chatMessages.length, saveScrollBottomTarget, snapToBottom]);
+  }, [chatMessages.length, saveScrollBottomTarget, snapToBottom]);
 
   return (
     <div ref={ref} className="chat-history" onScroll={onScrollObserved}>
-      {props.chatMessages.length === 0 ? (
+      {chatMessages.length === 0 ? (
         <div className="chat-placeholder" key="no-message">
           <span>No chatter yet. Say something?</span>
         </div>
       ) : undefined}
-      {props.chatMessages.map((msg, index, messages) => {
+      {chatMessages.map((msg, index, messages) => {
         const displayName = (msg.sender !== undefined) ? props.displayNames[msg.sender] : 'jolly-roger';
         // Only suppress sender and timestamp if:
         // * this is not the first message
@@ -342,7 +348,6 @@ const ChatInput = React.memo((props: ChatInputProps) => {
 
 interface ChatSectionProps {
   chatDataLoading: boolean;
-  chatMessages: FilteredChatMessageType[];
   displayNames: Record<string, string>;
   puzzleId: string;
   huntId: string;
@@ -371,11 +376,14 @@ const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: Rea
     scrollHistoryToTarget,
   }));
 
+  if (props.chatDataLoading) {
+    return <div className="chat-section">loading...</div>;
+  }
+
   return (
     <div className="chat-section">
-      {props.chatDataLoading ? <span>loading...</span> : null}
       <ChatPeople huntId={props.huntId} puzzleId={props.puzzleId} onHeightChange={scrollHistoryToTarget} />
-      <ChatHistoryMemo ref={historyRef} chatMessages={props.chatMessages} displayNames={props.displayNames} />
+      <ChatHistoryMemo ref={historyRef} puzzleId={props.puzzleId} displayNames={props.displayNames} />
       <ChatInput
         puzzleId={props.puzzleId}
         onHeightChange={scrollHistoryToTarget}
@@ -388,57 +396,61 @@ const ChatSectionMemo = React.memo(ChatSection);
 
 interface PuzzlePageMetadataProps {
   puzzle: PuzzleType;
-  allTags: TagType[];
-  allPuzzles: PuzzleType[];
-  guesses: GuessType[];
   displayNames: Record<string, string>;
   document?: DocumentType;
   isDesktop: boolean;
 }
 
 const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
-  const hasGuessQueue = useTracker(() => Hunts.findOne(props.puzzle.hunt)?.hasGuessQueue ?? false, [props.puzzle.hunt]);
-  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.userId(), props.puzzle.hunt), [props.puzzle.hunt]);
+  const huntId = props.puzzle.hunt;
+  const puzzleId = props.puzzle._id;
+
+  const hasGuessQueue = useTracker(() => Hunts.findOne(huntId)?.hasGuessQueue ?? false, [huntId]);
+  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.userId(), huntId), [huntId]);
+
+  const allPuzzles = useTracker(() => Puzzles.find({ hunt: huntId }).fetch(), [huntId]);
+  const allTags = useTracker(() => Tags.find({ hunt: huntId }).fetch(), [huntId]);
+  const guesses = useTracker(() => Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch(), [huntId, puzzleId]);
 
   const editModalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
   const guessModalRef = useRef<React.ElementRef<typeof PuzzleGuessModal>>(null);
   const answerModalRef = useRef<React.ElementRef<typeof PuzzleAnswerModal>>(null);
   const onCreateTag = useCallback((newTagName: string) => {
-    Meteor.call('addTagToPuzzle', props.puzzle._id, newTagName, (error?: Error) => {
+    Meteor.call('addTagToPuzzle', puzzleId, newTagName, (error?: Error) => {
       // Not really much we can do in the case of a failure, but let's log it anyway
       if (error) {
         console.log('failed to create tag:');
         console.log(error);
       }
     });
-  }, [props.puzzle._id]);
+  }, [puzzleId]);
 
   const onRemoveTag = useCallback((tagIdToRemove: string) => {
-    Meteor.call('removeTagFromPuzzle', props.puzzle._id, tagIdToRemove, (error?: Error) => {
+    Meteor.call('removeTagFromPuzzle', puzzleId, tagIdToRemove, (error?: Error) => {
       // Not really much we can do in the case of a failure, but again, let's log it anyway
       if (error) {
         console.log('failed to remove tag:');
         console.log(error);
       }
     });
-  }, [props.puzzle._id]);
+  }, [puzzleId]);
 
   const onRemoveAnswer = useCallback((answer: string) => {
-    Meteor.call('removeAnswerFromPuzzle', props.puzzle._id, answer, (error?: Error) => {
+    Meteor.call('removeAnswerFromPuzzle', puzzleId, answer, (error?: Error) => {
       // Not really much we can do in the case of a failure, but again, let's log it anyway
       if (error) {
         console.log(`failed remove answer ${answer}:`, error);
       }
     });
-  }, [props.puzzle._id]);
+  }, [puzzleId]);
 
   const onEdit = useCallback((
     state: PuzzleModalFormSubmitPayload,
     callback: (err?: Error) => void
   ) => {
-    Ansible.log('Updating puzzle properties', { puzzle: props.puzzle._id, user: Meteor.userId(), state });
-    Meteor.call('updatePuzzle', props.puzzle._id, state, callback);
-  }, [props.puzzle._id]);
+    Ansible.log('Updating puzzle properties', { puzzle: puzzleId, user: Meteor.userId(), state });
+    Meteor.call('updatePuzzle', puzzleId, state, callback);
+  }, [puzzleId]);
 
   const showGuessModal = useCallback(() => {
     if (guessModalRef.current) {
@@ -458,10 +470,10 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
     }
   }, []);
 
-  const tagsById = _.indexBy(props.allTags, '_id');
+  const tagsById = _.indexBy(allTags, '_id');
   const tags = props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
-  const correctGuesses = props.guesses.filter((guess) => guess.state === 'correct');
-  const numGuesses = props.guesses.length;
+  const correctGuesses = guesses.filter((guess) => guess.state === 'correct');
+  const numGuesses = guesses.length;
 
   const answersElement = correctGuesses.length > 0 ? (
     <span className="puzzle-metadata-answers">
@@ -518,7 +530,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
         <PuzzleGuessModal
           ref={guessModalRef}
           puzzle={props.puzzle}
-          guesses={props.guesses}
+          guesses={guesses}
           displayNames={props.displayNames}
         />
       </>
@@ -540,11 +552,11 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
   return (
     <div className="puzzle-metadata">
       <PuzzleModalForm
-        key={props.puzzle._id}
+        key={puzzleId}
         ref={editModalRef}
         puzzle={props.puzzle}
-        huntId={props.puzzle.hunt}
-        tags={props.allTags}
+        huntId={huntId}
+        tags={allTags}
         onSubmit={onEdit}
       />
       <div className="puzzle-metadata-row puzzle-metadata-action-row">
@@ -565,8 +577,8 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
           linkToSearch={false}
           showControls={props.isDesktop}
           popoverRelated
-          allPuzzles={props.allPuzzles}
-          allTags={props.allTags}
+          allPuzzles={allPuzzles}
+          allTags={allTags}
           emptyMessage="No tags yet"
         />
       </div>
@@ -898,17 +910,6 @@ const PuzzlePageMultiplayerDocument = React.memo((props: PuzzlePageMultiplayerDo
   );
 });
 
-const findPuzzleById = function (puzzles: PuzzleType[], id: string) {
-  for (let i = 0; i < puzzles.length; i++) {
-    const puzzle = puzzles[i];
-    if (puzzle._id === id) {
-      return puzzle;
-    }
-  }
-
-  return undefined;
-};
-
 const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
@@ -968,37 +969,14 @@ const PuzzlePage = React.memo(() => {
       {} :
       Profiles.displayNames()
   ), [puzzleDataLoading, chatDataLoading]);
-  const allPuzzles = useTracker(() => (
-    puzzleDataLoading ?
-      [] :
-      Puzzles.find({ hunt: huntId }).fetch()
-  ), [huntId, puzzleDataLoading]);
-  const allTags = useTracker(() => (
-    puzzleDataLoading ?
-      [] :
-      Tags.find({ hunt: huntId }).fetch()
-  ), [huntId, puzzleDataLoading]);
-  const allGuesses = useTracker(() => (
-    puzzleDataLoading ?
-      [] :
-      Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch()
-  ), [huntId, puzzleDataLoading, puzzleId]);
+  // Sort by created at so that the "first" document always has consistent meaning
   const document = useTracker(() => (
     puzzleDataLoading ?
       undefined :
-      // Sort by created at so that the "first" document always has consistent meaning
       Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } })
   ), [puzzleDataLoading, puzzleId]);
-  const chatMessages = useTracker(() => (
-    chatDataLoading ?
-      [] :
-      ChatMessages.find(
-        { puzzle: puzzleId },
-        { sort: { timestamp: 1 } },
-      ).fetch()
-  ), [chatDataLoading, puzzleId]);
 
-  const activePuzzle = findPuzzleById(allPuzzles, puzzleId);
+  const activePuzzle = useTracker(() => Puzzles.findOne(puzzleId), [puzzleId]);
   useBreadcrumb({
     title: puzzleDataLoading ? 'loading...' : activePuzzle!.title,
     path: `/hunts/${huntId}/puzzles/${puzzleId}`,
@@ -1054,19 +1032,15 @@ const PuzzlePage = React.memo(() => {
   const metadata = (
     <PuzzlePageMetadata
       puzzle={activePuzzle!}
-      allTags={allTags}
-      allPuzzles={allPuzzles}
-      guesses={allGuesses}
+      document={document}
       displayNames={displayNames}
       isDesktop={isDesktop}
-      document={document}
     />
   );
   const chat = (
     <ChatSectionMemo
       ref={chatSectionRef}
       chatDataLoading={chatDataLoading}
-      chatMessages={chatMessages}
       displayNames={displayNames}
       huntId={huntId}
       puzzleId={puzzleId}

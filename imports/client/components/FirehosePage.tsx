@@ -35,19 +35,18 @@ const FirehosePageLayout = styled.div`
 
 interface MessageProps {
   msg: ChatMessageType;
-  displayNames: Record<string, string>;
-  puzzles: Record<string, PuzzleType>;
+  displayName: string;
+  puzzle: PuzzleType;
 }
 
-const Message = ({ msg, displayNames, puzzles }: MessageProps) => {
-  const displayName = msg.sender ? displayNames[msg.sender] : 'jolly-roger';
+const Message = ({ msg, displayName, puzzle }: MessageProps) => {
   const ts = shortCalendarTimeFormat(msg.timestamp);
   return (
     <div>
       [
       {ts}
       ] [
-      <Link to={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}>{puzzles[msg.puzzle].title}</Link>
+      <Link to={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}>{puzzle.title}</Link>
       {'] '}
       {displayName}
       {': '}
@@ -234,8 +233,8 @@ const FirehosePage = () => {
               <Message
                 key={msg._id}
                 msg={msg}
-                puzzles={puzzles}
-                displayNames={displayNames}
+                puzzle={puzzles[msg.puzzle]}
+                displayName={msg.sender ? displayNames[msg.sender] : 'jolly-roger'}
               />
             );
           })}

@@ -27,7 +27,6 @@ import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tag';
 import PuzzleList from './PuzzleList';
 import PuzzleModalForm, {
   PuzzleModalFormHandle, PuzzleModalFormSubmitPayload,
@@ -40,8 +39,6 @@ interface PuzzleListViewProps {
   huntId: string
   canAdd: boolean;
   canUpdate: boolean;
-  puzzles: PuzzleType[];
-  allTags: TagType[];
 }
 
 const ViewControls = styled.div`
@@ -90,6 +87,9 @@ function showSolvedStorageKey(huntId: string): string {
 }
 
 const PuzzleListView = (props: PuzzleListViewProps) => {
+  const allPuzzles = useTracker(() => Puzzles.find({ hunt: props.huntId }).fetch(), [props.huntId]);
+  const allTags = useTracker(() => Tags.find({ hunt: props.huntId }).fetch(), [props.huntId]);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const searchString = searchParams.get('q') || '';
   const addModalRef = useRef<PuzzleModalFormHandle>(null);
@@ -147,7 +147,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
 
   const compileMatcher = useCallback((searchKeys: string[]): (p: PuzzleType) => boolean => {
     const tagNames: Record<string, string> = {};
-    props.allTags.forEach((t) => {
+    allTags.forEach((t) => {
       tagNames[t._id] = t.name.toLowerCase();
     });
     const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
@@ -178,7 +178,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
         return false;
       });
     };
-  }, [props.allTags]);
+  }, [allTags]);
 
   const puzzlesMatchingSearchString = useCallback((puzzles: PuzzleType[]): PuzzleType[] => {
     const searchKeys = searchString.split(' ');
@@ -249,7 +249,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
         // We group and sort first, and only filter afterward, to avoid losing the
         // relative group structure as a result of removing some puzzles from
         // consideration.
-        const unfilteredGroups = puzzleGroupsByRelevance(props.puzzles, props.allTags);
+        const unfilteredGroups = puzzleGroupsByRelevance(allPuzzles, allTags);
         const puzzleGroups = filteredPuzzleGroups(unfilteredGroups, retainedIds);
         const groupComponents = puzzleGroups.map((g) => {
           const suppressedTagIds = [];
@@ -261,7 +261,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
               key={g.sharedTag ? g.sharedTag._id : 'ungrouped'}
               group={g}
               noSharedTagLabel="(no group specified)"
-              allTags={props.allTags}
+              allTags={allTags}
               includeCount={false}
               layout="grid"
               canUpdate={props.canUpdate}
@@ -273,12 +273,12 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
         break;
       }
       case 'unlock': {
-        const puzzlesByUnlock = _.sortBy(props.puzzles, (p) => { return p.createdAt; });
+        const puzzlesByUnlock = _.sortBy(allPuzzles, (p) => { return p.createdAt; });
         const retainedPuzzlesByUnlock = puzzlesByUnlock.filter((p) => retainedIds.has(p._id));
         listComponent = (
           <PuzzleList
             puzzles={retainedPuzzlesByUnlock}
-            allTags={props.allTags}
+            allTags={allTags}
             layout="grid"
             canUpdate={props.canUpdate}
           />
@@ -292,21 +292,21 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
         {listComponent}
       </div>
     );
-  }, [displayMode, props.puzzles, props.allTags, props.canUpdate]);
+  }, [displayMode, allPuzzles, allTags, props.canUpdate]);
 
   const addPuzzleContent = props.canAdd && (
     <>
       <Button variant="primary" onClick={showAddModal}>Add a puzzle</Button>
       <PuzzleModalForm
         huntId={props.huntId}
-        tags={props.allTags}
+        tags={allTags}
         ref={addModalRef}
         onSubmit={onAdd}
       />
     </>
   );
 
-  const matchingSearch = puzzlesMatchingSearchString(props.puzzles);
+  const matchingSearch = puzzlesMatchingSearchString(allPuzzles);
   const matchingSearchAndSolved = puzzlesMatchingSolvedFilter(matchingSearch);
   // Normally, we'll just show matchingSearchAndSolved, but if that produces
   // no results, and there *is* a solved puzzle that is not being displayed due
@@ -337,7 +337,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
           </ViewControlsSection>
           <ViewControlsSectionExpand>
             <FormLabel htmlFor="jr-puzzle-search">
-              {`Showing ${retainedPuzzles.length}/${props.puzzles.length} items`}
+              {`Showing ${retainedPuzzles.length}/${allPuzzles.length} items`}
             </FormLabel>
             <FilterToolbar>
               <FilterToolbarInputGroup>
@@ -428,16 +428,6 @@ const PuzzleListPage = () => {
 
   // Assertion is safe because hunt is already subscribed and checked by HuntApp
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
-  const allPuzzles = useTracker(() => (
-    loading ?
-      [] :
-      Puzzles.find({ hunt: huntId }).fetch()
-  ), [loading, huntId]);
-  const allTags = useTracker(() => (
-    loading ?
-      [] :
-      Tags.find({ hunt: huntId }).fetch()
-  ), [loading, huntId]);
   const { canAdd, canUpdate } = useTracker(() => {
     return {
       canAdd: userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
@@ -459,8 +449,6 @@ const PuzzleListPage = () => {
       huntId={huntId}
       canAdd={canAdd}
       canUpdate={canUpdate}
-      puzzles={allPuzzles}
-      allTags={allTags}
     />
   );
   return (

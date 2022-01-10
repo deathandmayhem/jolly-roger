@@ -95,7 +95,7 @@ const AnnouncementForm = (props: AnnouncementFormProps) => {
 
 interface AnnouncementProps {
   announcement: AnnouncementType;
-  displayNames: Record<string, string>;
+  displayName: string;
 }
 
 const AnnouncementContainer = styled.div`
@@ -122,7 +122,7 @@ const Announcement = (props: AnnouncementProps) => {
     <AnnouncementContainer>
       <AnnouncementOrigin>
         <AnnouncementTimestamp>{calendarTimeFormat(ann.createdAt)}</AnnouncementTimestamp>
-        <div>{props.displayNames[ann.createdBy]}</div>
+        <div>{props.displayName}</div>
       </AnnouncementOrigin>
       <div
         // eslint-disable-next-line react/no-danger
@@ -165,7 +165,7 @@ const AnnouncementsPage = () => {
             <Announcement
               key={announcement._id}
               announcement={announcement}
-              displayNames={displayNames}
+              displayName={displayNames[announcement.createdBy]}
             />
           );
         })}
