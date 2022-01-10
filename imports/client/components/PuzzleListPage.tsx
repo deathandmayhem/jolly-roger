@@ -112,10 +112,6 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
   }, []);
 
   useEffect(() => {
-    // Focus search bar on page load
-    if (searchBarRef.current) {
-      searchBarRef.current.focus();
-    }
     window.addEventListener('keydown', maybeStealCtrlF);
     return () => {
       window.removeEventListener('keydown', maybeStealCtrlF);

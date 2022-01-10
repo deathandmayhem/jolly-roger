@@ -38,7 +38,10 @@ const Breadcrumb = styled.nav`
 `;
 
 const ContentContainer = styled.div`
-  margin-top: ${NavBarHeight};
+  margin-top: calc(env(safe-area-inset-top, 0px) + ${NavBarHeight});
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
+  padding-left: max(env(safe-area-inset-left, 0px), 15px);
+  padding-right: max(env(safe-area-inset-right, 0px), 15px);
 `;
 
 const BreadcrumbList = styled.ol`
@@ -62,6 +65,12 @@ const BreadcrumbItem = styled.li`
       padding-right: 0.5rem;
     }
   }
+`;
+
+const NavbarInset = styled(Navbar)`
+  margin-top: env(safe-area-inset-top, 0px);
+  padding-left: env(safe-area-inset-right, 0px);
+  padding-right: calc(env(safe-area-inset-right, 0px) + 4px);
 `;
 
 const NavUsername = styled.span`
@@ -133,7 +142,7 @@ const AppNavbar = () => {
   // correct amount of space in the top bar even if we haven't actually picked
   // a nonempty source for it yet.
   return (
-    <Navbar fixed="top" bg="light" variant="light" className="px-0 py-0">
+    <NavbarInset fixed="top" bg="light" variant="light" className="py-0">
       <NavbarBrand className="p-0">
         <Link to="/">
           <Brand
@@ -167,7 +176,7 @@ const AppNavbar = () => {
           </DropdownMenu>
         </Dropdown>
       </Nav>
-    </Navbar>
+    </NavbarInset>
   );
 };
 

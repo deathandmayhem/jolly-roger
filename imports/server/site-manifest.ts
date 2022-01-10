@@ -30,6 +30,7 @@ const serveSiteManifest = (
     ],
     theme_color: '#ffffff',
     background_color: '#ffffff',
+    display: 'standalone',
   };
   const body = JSON.stringify(manifest);
 

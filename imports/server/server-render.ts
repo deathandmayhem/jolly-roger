@@ -11,7 +11,7 @@ onPageLoad((sink) => {
     sink.appendToHead(
       '  <meta charset="utf-8">\n' +
       '  <meta http-equiv="X-UA-Compatible" content="IE=edge">\n' +
-      '  <meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+      '  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n' +
       `  <link rel="apple-touch-icon" sizes="180x180" href="${appleTouchIconSrc}">\n` +
       `  <link rel="icon" type="image/png" sizes="32x32" href="${favicon32Src}">\n` +
       `  <link rel="icon" type="image/png" sizes="16x16" href="${favicon16Src}">\n` +
