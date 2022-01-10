@@ -2,7 +2,6 @@ import { useTracker } from 'meteor/react-meteor-data';
 import React, { Suspense, useCallback } from 'react';
 import Tags from '../../lib/models/tags';
 import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tag';
 import Loading from './Loading';
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
@@ -14,15 +13,9 @@ interface TagEditorProps {
   onCancel: () => void;
 }
 
-interface TagEditorTracker {
-  allTags: TagType[];
-}
-
 const TagEditor = (props: TagEditorProps) => {
-  const tracker = useTracker<TagEditorTracker>(() => {
-    return {
-      allTags: Tags.find({ hunt: props.puzzle.hunt }).fetch(),
-    };
+  const allTags = useTracker(() => {
+    return Tags.find({ hunt: props.puzzle.hunt }).fetch();
   }, [props.puzzle.hunt]);
 
   const { onCancel } = props;
@@ -32,7 +25,7 @@ const TagEditor = (props: TagEditorProps) => {
     onCancel();
   }, [onCancel]);
 
-  const options = tracker.allTags
+  const options = allTags
     .map((t) => t.name)
     .filter(Boolean)
     .map((t) => {

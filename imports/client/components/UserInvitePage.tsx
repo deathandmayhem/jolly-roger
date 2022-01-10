@@ -9,12 +9,13 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
 import { useNavigate, useParams } from 'react-router-dom';
+import styled from 'styled-components';
 import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 
-interface UserInvitePageTracker {
-  canBulkInvite: boolean;
-}
+const BulkError = styled.p`
+  white-space: pre-wrap;
+`;
 
 const UserInvitePage = () => {
   const huntId = useParams<'huntId'>().huntId!;
@@ -26,9 +27,8 @@ const UserInvitePage = () => {
   const [bulkEmails, setBulkEmails] = useState<string>('');
   const [bulkError, setBulkError] = useState<Meteor.Error | undefined>(undefined);
 
-  const tracker = useTracker<UserInvitePageTracker>(() => {
-    const canBulkInvite = userMayBulkAddToHunt(Meteor.userId(), huntId);
-    return { canBulkInvite };
+  const canBulkInvite = useTracker(() => {
+    return userMayBulkAddToHunt(Meteor.userId(), huntId);
   }, [huntId]);
 
   const onEmailChanged: FormControlProps['onChange'] = useCallback((e) => {
@@ -68,13 +68,13 @@ const UserInvitePage = () => {
   }, [huntId, bulkEmails]);
 
   const bulkInvite = useMemo(() => {
-    return tracker.canBulkInvite ? (
+    return canBulkInvite ? (
       <div>
         <h2>Bulk invite</h2>
 
         {bulkError ? (
           <Alert variant="danger">
-            <p style={{ whiteSpace: 'pre-wrap' }}>{bulkError.reason}</p>
+            <BulkError>{bulkError.reason}</BulkError>
           </Alert>
         ) : undefined}
 
@@ -99,7 +99,7 @@ const UserInvitePage = () => {
         </form>
       </div>
     ) : undefined;
-  }, [tracker.canBulkInvite, submitting, bulkEmails, bulkError, onBulkSubmit, onBulkEmailsChanged]);
+  }, [canBulkInvite, submitting, bulkEmails, bulkError, onBulkSubmit, onBulkEmailsChanged]);
 
   return (
     <div>

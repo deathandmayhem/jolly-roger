@@ -1,6 +1,6 @@
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -64,14 +64,9 @@ enum AccountFormSubmitState {
 }
 
 const AccountForm = (props: AccountFormProps) => {
-  const tracker = useTracker(() => {
-    const teamNameSub = Meteor.subscribe('teamName');
-    const teamNameObj = TeamName.findOne('teamName');
-    const teamName = teamNameObj ? teamNameObj.name : 'Default Team Name';
-    return {
-      ready: teamNameSub.ready(),
-      teamName,
-    };
+  const loading = useSubscribe('teamName');
+  const teamName = useTracker(() => {
+    return TeamName.findOne('teamName')?.name ?? 'Default Team Name';
   }, []);
 
   const [submitState, setSubmitState] = useState<AccountFormSubmitState>(AccountFormSubmitState.IDLE);
@@ -187,7 +182,7 @@ const AccountForm = (props: AccountFormProps) => {
     }
   }, [tryLogin, tryPasswordReset, tryEnroll, tryCompletePasswordReset, props]);
 
-  if (!tracker.ready) {
+  if (loading()) {
     return <div>loading...</div>;
   }
 
@@ -196,7 +191,7 @@ const AccountForm = (props: AccountFormProps) => {
   // drop AccountTemplates entirely.
   const submitting = submitState === AccountFormSubmitState.SUBMITTING;
   const title = {
-    [AccountFormFormat.LOGIN]: `Jolly Roger: ${tracker.teamName} Virtual HQ`,
+    [AccountFormFormat.LOGIN]: `Jolly Roger: ${teamName} Virtual HQ`,
     [AccountFormFormat.ENROLL]: 'Create an Account',
     [AccountFormFormat.REQUEST_PW_RESET]: 'Reset your password',
     [AccountFormFormat.RESET_PWD]: 'Reset your password',

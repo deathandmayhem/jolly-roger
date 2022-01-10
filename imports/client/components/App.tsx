@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useMemo } from 'react';
@@ -22,13 +22,6 @@ import ConnectionStatus from './ConnectionStatus';
 import NotificationCenter from './NotificationCenter';
 import { NavBarHeight } from './styling/constants';
 import { mediaBreakpointDown } from './styling/responsive';
-
-interface AppNavbarTracker {
-  userId: string;
-  displayName: string;
-  brandSrc: string;
-  brandSrc2x: string;
-}
 
 const Breadcrumb = styled.nav`
   display: flex;
@@ -76,20 +69,21 @@ const Brand = styled.img`
 `;
 
 const AppNavbar = () => {
-  const tracker = useTracker<AppNavbarTracker>(() => {
-    const userId = Meteor.userId()!;
-    const profileSub = Meteor.subscribe('mongo.profiles', { _id: userId });
-    const profile = Profiles.findOne(userId);
-    const displayName = profileSub.ready() ?
-      ((profile && profile.displayName) || '<no name given>') : 'loading...';
+  const userId = useTracker(() => Meteor.userId()!, []);
+  const profileLoading = useSubscribe('mongo.profiles', { _id: userId });
+  const loading = profileLoading();
 
-    const brandSrc = lookupUrl('brand.png');
-    const brandSrc2x = lookupUrl('brand@2x.png');
+  const displayName = useTracker(() => {
+    const profile = Profiles.findOne(Meteor.userId()!);
+
+    return loading ?
+      'loading...' :
+      ((profile && profile.displayName) || '<no name given>');
+  }, [loading]);
+  const { brandSrc, brandSrc2x } = useTracker(() => {
     return {
-      userId,
-      displayName,
-      brandSrc,
-      brandSrc2x,
+      brandSrc: lookupUrl('brand.png'),
+      brandSrc2x: lookupUrl('brand@2x.png'),
     };
   }, []);
 
@@ -137,9 +131,9 @@ const AppNavbar = () => {
       <NavbarBrand className="p-0">
         <Link to="/">
           <Brand
-            src={tracker.brandSrc}
+            src={brandSrc}
             alt="Jolly Roger logo"
-            srcSet={`${tracker.brandSrc} 1x, ${tracker.brandSrc2x} 2x`}
+            srcSet={`${brandSrc} 1x, ${brandSrc2x} 2x`}
           />
         </Link>
       </NavbarBrand>
@@ -149,10 +143,10 @@ const AppNavbar = () => {
           <DropdownToggle id="profileDropdown" as={NavLink}>
             <FontAwesomeIcon icon={faUser} />
             {' '}
-            <NavUsername>{tracker.displayName}</NavUsername>
+            <NavUsername>{displayName}</NavUsername>
           </DropdownToggle>
           <DropdownMenu alignRight>
-            <RRBS.LinkContainer to={`/users/${tracker.userId}`}>
+            <RRBS.LinkContainer to={`/users/${userId}`}>
               <DropdownItem eventKey="1">My Profile</DropdownItem>
             </RRBS.LinkContainer>
             <DropdownItem

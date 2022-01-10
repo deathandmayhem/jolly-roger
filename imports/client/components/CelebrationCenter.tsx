@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { Tracker } from 'meteor/tracker';
 import React, { useCallback, useEffect, useState } from 'react';
 import Flags from '../../flags';
@@ -22,18 +22,11 @@ interface CelebrationCenterQueueItem {
 const CelebrationCenter = (props: CelebrationCenterProps) => {
   const [playbackQueue, setPlaybackQueue] = useState<CelebrationCenterQueueItem[]>([]);
 
-  const tracker = useTracker(() => {
-    // This should be effectively a noop, since we're already fetching it for every hunt
-    Meteor.subscribe('mongo.puzzles', { hunt: props.huntId });
+  // This should be effectively a noop, since we're already fetching it for every hunt
+  useSubscribe('mongo.puzzles', { hunt: props.huntId });
 
-    const profile = Profiles.findOne({ _id: Meteor.userId()! });
-    const muted = !!(profile && profile.muteApplause);
-
-    return {
-      disabled: Flags.active('disable.applause'),
-      muted,
-    };
-  }, [props.huntId]);
+  const disabled = useTracker(() => Flags.active('disable.applause'), []);
+  const muted = useTracker(() => !!(Profiles.findOne({ _id: Meteor.userId()! })?.muteApplause), []);
 
   const onPuzzleSolved = useCallback((puzzle: PuzzleType, newAnswer: string) => {
     // Only celebrate if:
@@ -42,7 +35,7 @@ const CelebrationCenter = (props: CelebrationCenterProps) => {
     // 3) TODO: the user has not disabled it in their profile settings
     // Hack: disabled celebrations because I don't want to think about it right now
     // eslint-disable-next-line no-constant-condition
-    if ((window.orientation === undefined) && !tracker.disabled && false) {
+    if ((window.orientation === undefined) && !disabled && false) {
       setPlaybackQueue((prevPlaybackQueue) => {
         const newQueue = prevPlaybackQueue.concat([{
           puzzleId: puzzle._id,
@@ -54,7 +47,7 @@ const CelebrationCenter = (props: CelebrationCenterProps) => {
         return newQueue;
       });
     }
-  }, [tracker.disabled]);
+  }, [disabled]);
 
   useEffect(() => {
     const puzzleWatcher = Tracker.autorun(() => {
@@ -92,7 +85,7 @@ const CelebrationCenter = (props: CelebrationCenterProps) => {
         url={celebration.url}
         title={celebration.title}
         answer={celebration.answer}
-        playAudio={!tracker.muted}
+        playAudio={!muted}
         onClose={dismissCurrentCelebration}
       />
     );

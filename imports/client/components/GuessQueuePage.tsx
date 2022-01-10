@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -20,6 +20,7 @@ import { HuntType } from '../../lib/schemas/hunt';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import Breakable from './styling/Breakable';
 
 /* eslint-disable max-len */
@@ -192,15 +193,6 @@ const GuessBlock = React.memo((props: GuessBlockProps) => {
   );
 });
 
-interface GuessQueuePageProps {
-  ready: boolean;
-  hunt?: HuntType;
-  guesses: GuessType[];
-  puzzles: Record<string, PuzzleType>;
-  displayNames: Record<string, string>;
-  canEdit: boolean;
-}
-
 const GuessQueuePage = () => {
   const huntId = useParams<'huntId'>().huntId!;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -208,34 +200,21 @@ const GuessQueuePage = () => {
 
   useBreadcrumb({ title: 'Guess queue', path: `/hunts/${huntId}/guesses` });
 
-  const tracker = useTracker(() => {
-    const huntHandle = Meteor.subscribe('mongo.hunts', {
-      _id: huntId,
-    });
-    const guessesHandle = Meteor.subscribe('mongo.guesses', {
-      hunt: huntId,
-    });
-    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {
-      hunt: huntId,
-    });
-    const displayNamesHandle = Profiles.subscribeDisplayNames();
-    const ready = huntHandle.ready() && guessesHandle.ready() && puzzlesHandle.ready() && displayNamesHandle.ready();
-    const data: GuessQueuePageProps = {
-      ready,
-      guesses: [],
-      puzzles: {},
-      displayNames: {},
-      canEdit: userMayUpdateGuessesForHunt(Meteor.userId(), huntId),
-    };
-    if (ready) {
-      data.hunt = Hunts.findOne({ _id: huntId });
-      data.guesses = Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch();
-      data.puzzles = _.indexBy(Puzzles.find({ hunt: huntId }).fetch(), '_id');
-      data.displayNames = Profiles.displayNames();
-    }
+  const huntLoading = useSubscribe('mongo.hunts', { _id: huntId });
+  const guessesLoading = useSubscribe('mongo.guesses', { hunt: huntId });
+  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
+  const displayNamesLoading = useSubscribeDisplayNames();
+  const loading =
+    huntLoading() ||
+    guessesLoading() ||
+    puzzlesLoading() ||
+    displayNamesLoading();
 
-    return data;
-  }, [huntId]);
+  const hunt = useTracker(() => Hunts.findOne({ _id: huntId }), [huntId]);
+  const guesses = useTracker(() => (loading ? [] : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch()), [huntId, loading]);
+  const puzzles = useTracker(() => (loading ? {} : _.indexBy(Puzzles.find({ hunt: huntId }).fetch(), '_id')), [huntId, loading]);
+  const displayNames = useTracker(() => (loading ? {} : Profiles.displayNames()), [loading]);
+  const canEdit = useTracker(() => userMayUpdateGuessesForHunt(Meteor.userId(), huntId), [huntId]);
 
   const searchBarRef = useRef<HTMLInputElement>(null);
 
@@ -281,7 +260,7 @@ const GuessQueuePage = () => {
     // either the guess or the puzzle title.
     const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
     return (guess) => {
-      const puzzle = tracker.puzzles[guess.puzzle];
+      const puzzle = puzzles[guess.puzzle];
       const guessText = guess.guess.toLowerCase();
 
       const titleWords = puzzle.title.toLowerCase().split(' ');
@@ -291,30 +270,26 @@ const GuessQueuePage = () => {
         return guessText.indexOf(key) !== -1 || titleWords.some((word) => word.startsWith(key));
       });
     };
-  }, [tracker.puzzles]);
+  }, [puzzles]);
 
-  const filteredGuesses = useCallback((guesses: GuessType[]) => {
+  const filteredGuesses = useCallback((allGuesses: GuessType[]) => {
     const searchKeys = searchString.split(' ');
     let interestingGuesses;
 
     if (searchKeys.length === 1 && searchKeys[0] === '') {
-      interestingGuesses = guesses;
+      interestingGuesses = allGuesses;
     } else {
       const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => { return key.length > 0; });
       const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
-      interestingGuesses = guesses.filter(isInteresting);
+      interestingGuesses = allGuesses.filter(isInteresting);
     }
 
     return interestingGuesses;
   }, [searchString, compileMatcher]);
 
-  const hunt = tracker.hunt;
-
-  if (!tracker.ready || !hunt) {
+  if (loading || !hunt) {
     return <div>loading...</div>;
   }
-
-  const guesses = filteredGuesses(tracker.guesses);
 
   return (
     <div>
@@ -337,15 +312,15 @@ const GuessQueuePage = () => {
           </InputGroup.Append>
         </InputGroup>
       </FormGroup>
-      {guesses.map((guess) => {
+      {filteredGuesses(guesses).map((guess) => {
         return (
           <GuessBlock
             key={guess._id}
             hunt={hunt}
             guess={guess}
-            createdByDisplayName={tracker.displayNames[guess.createdBy]}
-            puzzle={tracker.puzzles[guess.puzzle]}
-            canEdit={tracker.canEdit}
+            createdByDisplayName={displayNames[guess.createdBy]}
+            puzzle={puzzles[guess.puzzle]}
+            canEdit={canEdit}
           />
         );
       })}

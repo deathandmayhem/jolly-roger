@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -16,6 +16,7 @@ import { getAvatarCdnUrl } from '../../lib/discord';
 import Peers from '../../lib/models/mediasoup/peers';
 import Profiles from '../../lib/models/profiles';
 import { PeerType } from '../../lib/schemas/mediasoup/peer';
+import useSubscribeAvatars from '../hooks/use-subscribe-avatars';
 import { Subscribers } from '../subscribers';
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from './AudioConfig';
 import CallSection from './CallSection';
@@ -66,15 +67,6 @@ interface ChatPeopleProps {
   huntId: string;
   puzzleId: string;
   onHeightChange: () => void;
-}
-
-interface ChatPeopleTracker {
-  ready: boolean;
-  viewers: ViewerSubscriber[];
-  rtcViewers: ViewerSubscriber[];
-  unknown: number;
-  selfPeer: PeerType | undefined;
-  rtcDisabled: boolean;
 }
 
 enum CallState {
@@ -149,50 +141,54 @@ const ChatPeople = (props: ChatPeopleProps) => {
 
   const { huntId, puzzleId, onHeightChange } = props;
 
-  const tracker: ChatPeopleTracker = useTracker(() => {
-    // A note on this feature flag: we still do the subs for call *metadata* for
-    // simplicity even when webrtc is flagged off; we simply avoid rendering
-    // anything in the UI (which prevents clients from subbing to 'mediasoup:join' or
-    // doing signalling).
-    const rtcDisabled = Flags.active('disable.webrtc');
+  const subscriberTopic = `puzzle:${puzzleId}`;
+  const subscribersLoading = useSubscribe('subscribers.fetch', subscriberTopic);
+  const callMembersLoading = useSubscribe('mediasoup:metadata', huntId, puzzleId);
+  const avatarsLoading = useSubscribeAvatars();
 
-    const subscriberTopic = `puzzle:${puzzleId}`;
-    const subscribersHandle = Meteor.subscribe('subscribers.fetch', subscriberTopic);
-    const callMembersHandle = Meteor.subscribe('mediasoup:metadata', huntId, puzzleId);
-    const profilesHandle = Profiles.subscribeAvatars();
+  const loading = subscribersLoading() || callMembersLoading() || avatarsLoading();
 
-    const ready = subscribersHandle.ready() && callMembersHandle.ready() && profilesHandle.ready();
-    if (!ready) {
+  // A note on this feature flag: we still do the subs for call *metadata* for
+  // simplicity even when webrtc is flagged off; we simply avoid rendering
+  // anything in the UI (which prevents clients from subbing to 'mediasoup:join'
+  // or doing signalling).
+  const rtcDisabled = useTracker(() => Flags.active('disable.webrtc'), []);
+
+  const {
+    unknown,
+    viewers,
+    rtcViewers,
+    selfPeer,
+  } = useTracker(() => {
+    if (loading) {
       return {
-        ready: false,
         unknown: 0,
         viewers: [],
         rtcViewers: [],
         selfPeer: undefined,
-        rtcDisabled,
       };
     }
 
-    let unknown = 0;
-    const viewers: ViewerSubscriber[] = [];
+    let unknownCount = 0;
+    const viewersAcc: ViewerSubscriber[] = [];
 
-    const rtcViewers: ViewerSubscriber[] = [];
+    const rtcViewersAcc: ViewerSubscriber[] = [];
     const rtcViewerIndex: Record<string, boolean> = {};
 
     const rtcParticipants = Peers.find({
       hunt: huntId,
       call: puzzleId,
     }).fetch();
-    let selfPeer: PeerType | undefined;
+    let self: PeerType | undefined;
     rtcParticipants.forEach((p) => {
       if (p.createdBy === Meteor.userId() && p.tab === tabId) {
-        selfPeer = p;
+        self = p;
       }
 
       const user = p.createdBy;
       const profile = Profiles.findOne(user);
       if (!profile || !profile.displayName) {
-        unknown += 1;
+        unknownCount += 1;
         return;
       }
 
@@ -200,7 +196,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
 
       // If the same user is joined twice (from two different tabs), dedupe in
       // the viewer listing. (We include both in rtcParticipants still.)
-      rtcViewers.push({
+      rtcViewersAcc.push({
         user,
         name: profile.displayName,
         discordAvatarUrl,
@@ -217,13 +213,13 @@ const ChatPeople = (props: ChatPeopleProps) => {
 
       const profile = Profiles.findOne(s.user);
       if (!profile || !profile.displayName) {
-        unknown += 1;
+        unknownCount += 1;
         return;
       }
 
       const discordAvatarUrl = getAvatarCdnUrl(profile?.discordAccount);
 
-      viewers.push({
+      viewersAcc.push({
         user: s.user,
         name: profile.displayName,
         discordAvatarUrl,
@@ -232,23 +228,12 @@ const ChatPeople = (props: ChatPeopleProps) => {
     });
 
     return {
-      ready,
-      unknown,
-      viewers,
-      rtcViewers,
-      selfPeer,
-      rtcDisabled,
+      unknown: unknownCount,
+      viewers: viewersAcc,
+      rtcViewers: rtcViewersAcc,
+      selfPeer: self,
     };
-  }, [huntId, puzzleId]);
-
-  const {
-    ready,
-    unknown,
-    viewers,
-    rtcViewers,
-    selfPeer,
-    rtcDisabled,
-  } = tracker;
+  }, [loading, subscriberTopic, huntId, puzzleId]);
 
   const updateGain = useCallback((muted: boolean) => {
     const newGain = muted ? 0.0 : 1.0;
@@ -427,7 +412,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
     onHeightChange, rtcViewers.length, viewers.length, callersExpanded, viewersExpanded, callState,
   ]);
 
-  if (!ready) {
+  if (loading) {
     return null;
   }
 

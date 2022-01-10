@@ -22,12 +22,10 @@ interface SplashPageProps {
 }
 
 const SplashPage = (props: SplashPageProps) => {
-  const data = useTracker(() => {
-    const heroSrc = lookupUrl('hero.png');
-    const heroSrc2x = lookupUrl('hero@2x.png');
+  const { heroSrc, heroSrc2x } = useTracker(() => {
     return {
-      heroSrc,
-      heroSrc2x,
+      heroSrc: lookupUrl('hero.png'),
+      heroSrc2x: lookupUrl('hero@2x.png'),
     };
   }, []);
 
@@ -35,7 +33,7 @@ const SplashPage = (props: SplashPageProps) => {
     <Container>
       <Jumbotron id="jr-login">
         <Container>
-          <Image src={data.heroSrc} className="d-block mx-auto" srcSet={`${data.heroSrc} 1x, ${data.heroSrc2x} 2x`} />
+          <Image src={heroSrc} className="d-block mx-auto" srcSet={`${heroSrc} 1x, ${heroSrc2x} 2x`} />
           <Row>
             <Col md={{ span: 6, offset: 3 }}>
               {props.children}

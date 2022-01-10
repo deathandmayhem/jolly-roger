@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useMemo } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -113,66 +113,58 @@ const HuntMemberError = React.memo((props: HuntMemberErrorProps) => {
   );
 });
 
-interface HuntAppTracker {
-  ready: boolean;
-  hunt?: HuntType;
-  member: boolean;
-  canUndestroy: boolean;
-  canJoin: boolean;
-}
-
 const HuntApp = React.memo(() => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
 
   const huntId = useParams<'huntId'>().huntId!;
-  const tracker = useTracker<HuntAppTracker>(() => {
-    const userHandle = Meteor.subscribe('selfHuntMembership');
-    // Subscribe to deleted and non-deleted hunts separately so that we can reuse
-    // the non-deleted subscription
-    const huntHandle = Meteor.subscribe('mongo.hunts', { _id: huntId });
-    const deletedHuntHandle = Meteor.subscribe('mongo.hunts.deleted', {
-      _id: huntId,
-    });
-    const user = Meteor.user();
-    const member = user?.hunts?.includes(huntId) ?? false;
+
+  const userLoading = useSubscribe('selfHuntMembership');
+  // Subscribe to deleted and non-deleted hunts separately so that we can reuse
+  // the non-deleted subscription
+  const huntLoading = useSubscribe('mongo.hunts', { _id: huntId });
+  const deletedHuntLoading = useSubscribe('mongo.hunts.deleted', { _id: huntId });
+  const loading = userLoading() || huntLoading() || deletedHuntLoading();
+
+  const hunt = useTracker(() => Hunts.findOneAllowingDeleted(huntId), [huntId]);
+  const {
+    member, canUndestroy, canJoin,
+  } = useTracker(() => {
     return {
-      ready: userHandle.ready() && huntHandle.ready() && deletedHuntHandle.ready(),
-      hunt: Hunts.findOneAllowingDeleted(huntId),
-      member,
+      member: Meteor.user()?.hunts?.includes(huntId) ?? false,
       canUndestroy: userMayUpdateHunt(Meteor.userId(), huntId),
       canJoin: userMayAddUsersToHunt(Meteor.userId(), huntId),
     };
   }, [huntId]);
 
   useBreadcrumb({
-    title: (tracker.ready && tracker.hunt) ? tracker.hunt.name : 'loading...',
+    title: (loading || !hunt) ? 'loading...' : hunt.name,
     path: `/hunts/${huntId}`,
   });
 
-  const title = tracker.hunt ? `${tracker.hunt.name} :: Jolly Roger` : '';
+  const title = hunt ? `${hunt.name} :: Jolly Roger` : '';
 
   useDocumentTitle(title);
 
   const body = useMemo(() => {
-    if (!tracker.ready) {
+    if (loading) {
       return <span>loading...</span>;
     }
 
-    if (!tracker.hunt) {
+    if (!hunt) {
       return <span>This hunt does not exist</span>;
     }
 
-    if (tracker.hunt.deleted) {
+    if (hunt.deleted) {
       return (
         <HuntDeletedError
-          hunt={tracker.hunt}
-          canUndestroy={tracker.canUndestroy}
+          hunt={hunt}
+          canUndestroy={canUndestroy}
         />
       );
     }
 
-    if (!tracker.member) {
-      return <HuntMemberError hunt={tracker.hunt} canJoin={tracker.canJoin} />;
+    if (!member) {
+      return <HuntMemberError hunt={hunt} canJoin={canJoin} />;
     }
 
     return (
@@ -187,7 +179,7 @@ const HuntApp = React.memo(() => {
       </Routes>
     );
   }, [
-    tracker.ready, tracker.member, tracker.hunt, tracker.canUndestroy, tracker.canJoin,
+    loading, member, hunt, canUndestroy, canJoin,
   ]);
 
   return (

@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import {
   Route, Routes, useParams,
@@ -7,52 +7,35 @@ import {
 import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
 import { userMayAddUsersToHunt, userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
-import { ProfileType } from '../../lib/schemas/profile';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 import UserInvitePage from './UserInvitePage';
 
-interface HuntProfileListPageTracker {
-  ready: boolean;
-  canInvite: boolean;
-  canSyncDiscord: boolean;
-  profiles: ProfileType[];
-}
-
 const HuntProfileListPage = () => {
   const huntId = useParams<'huntId'>().huntId!;
   useBreadcrumb({ title: 'Hunters', path: `/hunts/${huntId}/hunters` });
-  const tracker = useTracker<HuntProfileListPageTracker>(() => {
-    const usersHandle = Meteor.subscribe('huntMembers', huntId);
-    const profilesHandle = Meteor.subscribe('mongo.profiles');
 
-    const ready = usersHandle.ready() && profilesHandle.ready();
-    if (!ready) {
-      return {
-        ready: false,
-        canInvite: false,
-        canSyncDiscord: false,
-        profiles: [],
-      };
-    }
+  const usersLoading = useSubscribe('huntMembers', huntId);
+  const profilesLoading = useSubscribe('mongo.profiles');
+  const loading = usersLoading() || profilesLoading();
 
-    const canInvite = userMayAddUsersToHunt(Meteor.userId(), huntId);
-    const hunters = MeteorUsers.find({ hunts: huntId }).map((u) => u._id) as string[];
-    const profiles = Profiles.find(
-      { _id: { $in: hunters } },
-      { sort: { displayName: 1 } },
-    ).fetch();
+  const profiles = useTracker(() => (
+    loading ?
+      [] :
+      Profiles.find(
+        { _id: { $in: MeteorUsers.find({ hunts: huntId }).map((u) => u._id) } },
+        { sort: { displayName: 1 } },
+      ).fetch()
+  ), [huntId, loading]);
 
-    const canSyncDiscord = userMayUseDiscordBotAPIs(Meteor.userId());
-
+  const { canInvite, canSyncDiscord } = useTracker(() => {
     return {
-      ready: ready as boolean,
-      canInvite,
-      canSyncDiscord,
-      profiles,
+      canInvite: userMayAddUsersToHunt(Meteor.userId(), huntId),
+      canSyncDiscord: userMayUseDiscordBotAPIs(Meteor.userId()),
     };
   }, [huntId]);
-  if (!tracker.ready) {
+
+  if (loading) {
     return <div>loading...</div>;
   }
 
@@ -63,10 +46,10 @@ const HuntProfileListPage = () => {
         path=""
         element={(
           <ProfileList
-            profiles={tracker.profiles}
+            profiles={profiles}
             huntId={huntId}
-            canInvite={tracker.canInvite}
-            canSyncDiscord={tracker.canSyncDiscord}
+            canInvite={canInvite}
+            canSyncDiscord={canSyncDiscord}
           />
         )}
       />

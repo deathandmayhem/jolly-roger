@@ -1,20 +1,9 @@
-import { Meteor } from 'meteor/meteor';
 import ProfileSchema, { ProfileType } from '../schemas/profile';
 import Base from './base';
 
 const Profiles = new class extends Base<ProfileType> {
   constructor() {
     super('profiles');
-  }
-
-  subscribeDisplayNames() {
-    return Meteor.subscribe('mongo.profiles', {}, { fields: { displayName: 1 } });
-  }
-
-  subscribeAvatars() {
-    return Meteor.subscribe('mongo.profiles', {}, {
-      fields: { displayName: 1, discordAccount: 1 },
-    });
   }
 
   displayNames() {

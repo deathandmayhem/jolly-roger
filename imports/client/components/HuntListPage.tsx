@@ -48,13 +48,13 @@ interface DiscordSelectorParams {
 }
 
 interface DiscordSelectorProps extends DiscordSelectorParams {
-  ready: boolean;
+  loading: boolean;
   options: SavedDiscordObjectType[];
 }
 
 const DiscordSelector = (props: DiscordSelectorProps) => {
   const {
-    disable, value, onChange, ready, options,
+    disable, value, onChange, loading, options,
   } = props;
   const onValueChanged: FormControlProps['onChange'] = useCallback((e) => {
     if (e.currentTarget.value === 'empty') {
@@ -85,7 +85,7 @@ const DiscordSelector = (props: DiscordSelectorProps) => {
     return [noneOption, ...options];
   }, [value, options]);
 
-  if (!ready) {
+  if (loading) {
     return <div>Loading discord resources...</div>;
   } else {
     return (
@@ -109,8 +109,10 @@ const DiscordSelector = (props: DiscordSelectorProps) => {
 };
 
 const DiscordChannelSelector = (params: DiscordSelectorParams & { guildId: string }) => {
-  const { ready, options } = useTracker(() => {
-    const handle = Meteor.subscribe('discord.cache', { type: 'channel' });
+  const cacheLoading = useSubscribe('discord.cache', { type: 'channel' });
+  const loading = cacheLoading();
+
+  const { options } = useTracker(() => {
     const discordChannels: SavedDiscordObjectType[] = DiscordCache.find({
       type: 'channel',
       'object.guild': params.guildId,
@@ -124,13 +126,12 @@ const DiscordChannelSelector = (params: DiscordSelectorParams & { guildId: strin
       .map((c) => c.object as SavedDiscordObjectType);
 
     return {
-      ready: handle.ready(),
       options: discordChannels,
     };
   }, [params.guildId]);
   return (
     <DiscordSelector
-      ready={ready}
+      loading={loading}
       options={options}
       {...params}
     />
@@ -138,8 +139,9 @@ const DiscordChannelSelector = (params: DiscordSelectorParams & { guildId: strin
 };
 
 const DiscordRoleSelector = (params: DiscordSelectorParams & { guildId: string }) => {
-  const { ready, options } = useTracker(() => {
-    const handle = Meteor.subscribe('discord.cache', { type: 'role' });
+  const cacheLoading = useSubscribe('discord.cache', { type: 'role' });
+  const loading = cacheLoading();
+  const { options } = useTracker(() => {
     const discordRoles: SavedDiscordObjectType[] = DiscordCache.find({
       type: 'role',
       'object.guild': params.guildId,
@@ -155,13 +157,12 @@ const DiscordRoleSelector = (params: DiscordSelectorParams & { guildId: string }
       .map((c) => c.object as SavedDiscordObjectType);
 
     return {
-      ready: handle.ready(),
       options: discordRoles,
     };
   }, [params.guildId]);
   return (
     <DiscordSelector
-      ready={ready}
+      loading={loading}
       options={options}
       {...params}
     />
@@ -525,8 +526,9 @@ interface HuntProps {
 }
 
 const Hunt = React.memo((props: HuntProps) => {
-  const tracker = useTracker(() => {
-    const huntId = props.hunt._id;
+  const huntId = props.hunt._id;
+
+  const { canUpdate, canDestroy } = useTracker(() => {
     return {
       canUpdate: userMayUpdateHunt(Meteor.userId(), huntId),
 
@@ -534,24 +536,24 @@ const Hunt = React.memo((props: HuntProps) => {
       // update to "remove" something
       canDestroy: userMayUpdateHunt(Meteor.userId(), huntId),
     };
-  }, [props.hunt._id]);
+  }, [huntId]);
 
   const editModalRef = useRef<React.ElementRef<typeof HuntModalForm>>(null);
   const deleteModalRef = useRef<ModalFormHandle>(null);
 
   const onEdit = useCallback((state: HuntModalSubmit, callback: (error?: Error) => void) => {
-    Ansible.log('Updating hunt settings', { hunt: props.hunt._id, user: Meteor.userId(), state });
-    Meteor.call('updateHunt', props.hunt._id, state, callback);
-  }, [props.hunt._id]);
+    Ansible.log('Updating hunt settings', { hunt: huntId, user: Meteor.userId(), state });
+    Meteor.call('updateHunt', huntId, state, callback);
+  }, [huntId]);
 
   const onDelete = useCallback((callback: () => void) => {
-    Meteor.call('destroyHunt', props.hunt._id, (err?: Error) => {
+    Meteor.call('destroyHunt', huntId, (err?: Error) => {
       if (err) {
-        Ansible.log('Failed to destroy hunt', { hunt: props.hunt._id, user: Meteor.userId() });
+        Ansible.log('Failed to destroy hunt', { hunt: huntId, user: Meteor.userId() });
       }
       callback();
     });
-  }, [props.hunt._id]);
+  }, [huntId]);
 
   const showEditModal = useCallback(() => {
     if (editModalRef.current) {
@@ -584,49 +586,36 @@ const Hunt = React.memo((props: HuntProps) => {
         &quot;? This will additionally delete all puzzles and associated state.
       </ModalForm>
       <ButtonGroup size="sm">
-        {tracker.canUpdate ? (
+        {canUpdate ? (
           <Button onClick={showEditModal} variant="outline-secondary" title="Edit hunt...">
             <FontAwesomeIcon fixedWidth icon={faEdit} />
           </Button>
         ) : undefined}
-        {tracker.canDestroy ? (
+        {canDestroy ? (
           <Button onClick={showDeleteModal} variant="danger" title="Delete hunt...">
             <FontAwesomeIcon fixedWidth icon={faMinus} />
           </Button>
         ) : undefined}
       </ButtonGroup>
       {' '}
-      <Link to={`/hunts/${props.hunt._id}`}>
+      <Link to={`/hunts/${huntId}`}>
         {props.hunt.name}
       </Link>
     </li>
   );
 });
 
-interface HuntListPageProps {
-  ready: boolean;
-  canAdd: boolean;
-  hunts: HuntType[];
-  myHunts: Record<string, boolean>;
-}
-
 const HuntListPage = () => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
-  const tracker: HuntListPageProps = useTracker(() => {
-    const huntListHandle = Meteor.subscribe('mongo.hunts');
-    const myHuntsHandle = Meteor.subscribe('selfHuntMembership');
-    const ready = huntListHandle.ready() && myHuntsHandle.ready();
+  const huntsLoading = useSubscribe('mongo.hunts');
+  const myHuntsLoading = useSubscribe('selfHuntMembership');
+  const loading = huntsLoading() || myHuntsLoading();
 
-    const myHunts: Record<string, boolean> = {};
-    if (ready) {
-      Meteor.user()?.hunts?.forEach((hunt) => { myHunts[hunt] = true; });
-    }
-
+  const hunts = useTracker(() => Hunts.find({}, { sort: { createdAt: -1 } }).fetch());
+  const { canAdd, myHunts } = useTracker(() => {
     return {
-      ready,
       canAdd: userMayCreateHunt(Meteor.userId()),
-      hunts: Hunts.find({}, { sort: { createdAt: -1 } }).fetch(),
-      myHunts,
+      myHunts: new Set(Meteor.user()?.hunts ?? []),
     };
   }, []);
 
@@ -644,12 +633,14 @@ const HuntListPage = () => {
   }, []);
 
   const body = [];
-  if (tracker.ready) {
+  if (loading) {
+    body.push(<div key="loading">Loading...</div>);
+  } else {
     const joinedHunts: JSX.Element[] = [];
     const otherHunts: JSX.Element[] = [];
-    tracker.hunts.forEach((hunt) => {
+    hunts.forEach((hunt) => {
       const huntTag = <Hunt key={hunt._id} hunt={hunt} />;
-      if (tracker.myHunts[hunt._id]) {
+      if (myHunts.has(hunt._id)) {
         joinedHunts.push(huntTag);
       } else {
         otherHunts.push(huntTag);
@@ -676,8 +667,6 @@ const HuntListPage = () => {
     } else {
       body.push(<div key="nootherhunts">There are no other hunts you haven&apos;t joined.</div>);
     }
-  } else {
-    body.push(<div key="loading">Loading...</div>);
   }
 
   return (
@@ -687,7 +676,7 @@ const HuntListPage = () => {
         ref={addModalRef}
         onSubmit={onAdd}
       />
-      {tracker.canAdd ? (
+      {canAdd ? (
         <Button onClick={showAddModal} variant="success" size="sm" title="Add new hunt...">
           <FontAwesomeIcon icon={faPlus} />
         </Button>

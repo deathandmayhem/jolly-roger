@@ -1,5 +1,4 @@
-import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -19,6 +18,7 @@ import Puzzles from '../../lib/models/puzzles';
 import { ChatMessageType } from '../../lib/schemas/chat';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import FixedLayout from './styling/FixedLayout';
 
 const FirehosePageLayout = styled.div`
@@ -35,19 +35,18 @@ const FirehosePageLayout = styled.div`
 
 interface MessageProps {
   msg: ChatMessageType;
-  displayNames: Record<string, string>;
-  puzzles: Record<string, PuzzleType>;
+  displayName: string;
+  puzzle: PuzzleType;
 }
 
-const Message = ({ msg, displayNames, puzzles }: MessageProps) => {
-  const displayName = msg.sender ? displayNames[msg.sender] : 'jolly-roger';
+const Message = ({ msg, displayName, puzzle }: MessageProps) => {
   const ts = shortCalendarTimeFormat(msg.timestamp);
   return (
     <div>
       [
       {ts}
       ] [
-      <Link to={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}>{puzzles[msg.puzzle].title}</Link>
+      <Link to={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}>{puzzle.title}</Link>
       {'] '}
       {displayName}
       {': '}
@@ -72,38 +71,22 @@ const FirehosePage = () => {
 
   useBreadcrumb({ title: 'Firehose', path: `/hunts/${huntId}/firehose` });
 
-  const profilesTracker = useTracker(() => {
-    const profilesHandle = Profiles.subscribeDisplayNames();
-    const ready = profilesHandle.ready();
-    return {
-      ready,
-      displayNames: ready ? Profiles.displayNames() : {},
-    };
-  }, []);
-  const puzzlesTracker = useTracker(() => {
-    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', {
-      hunt: huntId,
-    });
-    const ready = puzzlesHandle.ready();
-    const puzzles = ready ? Puzzles.find({ hunt: huntId }).fetch() : [];
-    const indexedPuzzles = _.indexBy(puzzles, '_id');
-    return {
-      ready,
-      puzzles: indexedPuzzles,
-    };
-  }, [huntId]);
-  const chatMessagesTracker = useTracker(() => {
-    const chatMessagesHandle = Meteor.subscribe('mongo.chatmessages', {
-      hunt: huntId,
-    });
-    const ready = chatMessagesHandle.ready();
-    const chatMessages = ready ?
-      ChatMessages.find({ hunt: huntId }, { sort: { timestamp: 1 } }).fetch() : [];
-    return {
-      ready,
-      chatMessages,
-    };
-  }, [huntId]);
+  const profilesLoading = useSubscribeDisplayNames();
+  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
+  const chatMessagesLoading = useSubscribe('mongo.chatmessages', { hunt: huntId });
+  const loading = profilesLoading() || puzzlesLoading() || chatMessagesLoading();
+
+  const displayNames = useTracker(() => (loading ? {} : Profiles.displayNames()), [loading]);
+  const puzzles = useTracker(() => (
+    loading ?
+      {} :
+      _.indexBy(Puzzles.find({ hunt: huntId }).fetch(), '_id')
+  ), [loading, huntId]);
+  const chatMessages = useTracker(() => (
+    loading ?
+      [] :
+      ChatMessages.find({ hunt: huntId }, { sort: { timestamp: 1 } }).fetch()
+  ), [loading, huntId]);
 
   const messagesPaneRef = useRef<HTMLDivElement>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
@@ -155,16 +138,16 @@ const FirehosePage = () => {
     };
   }, []);
 
-  const filteredChats = useCallback((chatMessages: ChatMessageType[]) => {
+  const filteredChats = useCallback((allChatMessages: ChatMessageType[]) => {
     const searchKeys = searchString.split(' ');
     let interestingChatMessages;
 
     if (searchKeys.length === 1 && searchKeys[0] === '') {
-      interestingChatMessages = chatMessages;
+      interestingChatMessages = allChatMessages;
     } else {
       const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => { return key.length > 0; });
       const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
-      interestingChatMessages = chatMessages.filter(isInteresting);
+      interestingChatMessages = allChatMessages.filter(isInteresting);
     }
 
     return interestingChatMessages;
@@ -193,10 +176,8 @@ const FirehosePage = () => {
   }, [shouldScrollBottom, forceScrollBottom]);
 
   const chats = useMemo(() => {
-    return filteredChats(chatMessagesTracker.chatMessages);
-  }, [filteredChats, chatMessagesTracker.chatMessages]);
-
-  const ready = profilesTracker.ready && puzzlesTracker.ready && chatMessagesTracker.ready;
+    return filteredChats(chatMessages);
+  }, [filteredChats, chatMessages]);
 
   const onLayoutMaybeChanged = useCallback(() => {
     // Any time the length of the chat changes, jump to the end if we were already there
@@ -217,9 +198,9 @@ const FirehosePage = () => {
 
   useLayoutEffect(() => {
     onLayoutMaybeChanged();
-  }, [ready, onLayoutMaybeChanged, chats.length]);
+  }, [loading, onLayoutMaybeChanged, chats.length]);
 
-  if (!ready) {
+  if (loading) {
     return <div>loading...</div>;
   }
 
@@ -252,8 +233,8 @@ const FirehosePage = () => {
               <Message
                 key={msg._id}
                 msg={msg}
-                puzzles={puzzlesTracker.puzzles}
-                displayNames={profilesTracker.displayNames}
+                puzzle={puzzles[msg.puzzle]}
+                displayName={msg.sender ? displayNames[msg.sender] : 'jolly-roger'}
               />
             );
           })}

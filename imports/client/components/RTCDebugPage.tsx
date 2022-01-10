@@ -61,6 +61,8 @@ import { RoomType } from '../../lib/schemas/mediasoup/room';
 import { RouterType } from '../../lib/schemas/mediasoup/router';
 import { TransportType } from '../../lib/schemas/mediasoup/transport';
 import { ServerType } from '../../lib/schemas/server';
+import useSubscribeAvatars from '../hooks/use-subscribe-avatars';
+import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import Loading from './Loading';
 
 const ClipButton = ({ text }: { text: string }) => (
@@ -853,12 +855,15 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
 
 const RTCDebugPage = () => {
   const viewerIsAdmin = useTracker(() => isAdmin(Meteor.userId()));
-  const loadingDebugInfo = useSubscribe('mediasoup:debug');
-  const loadingPuzzles = useSubscribe('mongo.puzzles');
-  const profilesReady = useTracker(() => {
-    return Profiles.subscribeAvatars().ready() &&
-      Profiles.subscribeDisplayNames().ready();
-  });
+  const debugInfoLoading = useSubscribe('mediasoup:debug');
+  const puzzlesLoading = useSubscribe('mongo.puzzles');
+  const displayNamesLoading = useSubscribeDisplayNames();
+  const avatarsLoading = useSubscribeAvatars();
+  const loading =
+    debugInfoLoading() ||
+    puzzlesLoading() ||
+    displayNamesLoading() ||
+    avatarsLoading();
 
   const servers = useFind(() => Servers.find({}, { sort: { hostname: 1, pid: 1 } }), []);
   const rooms = useFind(() => Rooms.find({}, { sort: { createdAt: 1 } }));
@@ -872,7 +877,7 @@ const RTCDebugPage = () => {
     );
   }
 
-  if (loadingDebugInfo() || loadingPuzzles() || !profilesReady) {
+  if (loading) {
     return <Loading />;
   }
 

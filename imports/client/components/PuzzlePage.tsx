@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
@@ -38,9 +38,9 @@ import { ChatMessageType } from '../../lib/schemas/chat';
 import { DocumentType } from '../../lib/schemas/document';
 import { GuessType } from '../../lib/schemas/guess';
 import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tag';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/use-document-title';
+import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import markdown from '../markdown';
 import ChatPeople from './ChatPeople';
 import DocumentDisplay from './Documents';
@@ -129,7 +129,7 @@ const ChatMessage = React.memo((props: ChatMessageProps) => {
 });
 
 interface ChatHistoryProps {
-  chatMessages: FilteredChatMessageType[];
+  puzzleId: string;
   displayNames: Record<string, string>;
 }
 
@@ -140,6 +140,13 @@ type ChatHistoryHandle = {
 }
 
 const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: React.Ref<ChatHistoryHandle>) => {
+  const chatMessages: FilteredChatMessageType[] = useTracker(() => (
+    ChatMessages.find(
+      { puzzle: props.puzzleId },
+      { sort: { timestamp: 1 } },
+    ).fetch()
+  ), [props.puzzleId]);
+
   const ref = useRef<HTMLDivElement>(null);
   const scrollBottomTarget = useRef<number>(0);
   const shouldIgnoreNextScrollEvent = useRef<boolean>(false);
@@ -217,16 +224,16 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
     } else {
       snapToBottom();
     }
-  }, [props.chatMessages.length, saveScrollBottomTarget, snapToBottom]);
+  }, [chatMessages.length, saveScrollBottomTarget, snapToBottom]);
 
   return (
     <div ref={ref} className="chat-history" onScroll={onScrollObserved}>
-      {props.chatMessages.length === 0 ? (
+      {chatMessages.length === 0 ? (
         <div className="chat-placeholder" key="no-message">
           <span>No chatter yet. Say something?</span>
         </div>
       ) : undefined}
-      {props.chatMessages.map((msg, index, messages) => {
+      {chatMessages.map((msg, index, messages) => {
         const displayName = (msg.sender !== undefined) ? props.displayNames[msg.sender] : 'jolly-roger';
         // Only suppress sender and timestamp if:
         // * this is not the first message
@@ -340,8 +347,7 @@ const ChatInput = React.memo((props: ChatInputProps) => {
 });
 
 interface ChatSectionProps {
-  chatReady: boolean;
-  chatMessages: FilteredChatMessageType[];
+  chatDataLoading: boolean;
   displayNames: Record<string, string>;
   puzzleId: string;
   huntId: string;
@@ -370,11 +376,14 @@ const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: Rea
     scrollHistoryToTarget,
   }));
 
+  if (props.chatDataLoading) {
+    return <div className="chat-section">loading...</div>;
+  }
+
   return (
     <div className="chat-section">
-      {props.chatReady ? null : <span>loading...</span>}
       <ChatPeople huntId={props.huntId} puzzleId={props.puzzleId} onHeightChange={scrollHistoryToTarget} />
-      <ChatHistoryMemo ref={historyRef} chatMessages={props.chatMessages} displayNames={props.displayNames} />
+      <ChatHistoryMemo ref={historyRef} puzzleId={props.puzzleId} displayNames={props.displayNames} />
       <ChatInput
         puzzleId={props.puzzleId}
         onHeightChange={scrollHistoryToTarget}
@@ -387,68 +396,61 @@ const ChatSectionMemo = React.memo(ChatSection);
 
 interface PuzzlePageMetadataProps {
   puzzle: PuzzleType;
-  allTags: TagType[];
-  allPuzzles: PuzzleType[];
-  guesses: GuessType[];
   displayNames: Record<string, string>;
   document?: DocumentType;
   isDesktop: boolean;
 }
 
-interface PuzzlePageMetadataTracker {
-  canUpdate: boolean;
-  hasGuessQueue: boolean;
-}
-
 const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
-  const tracker = useTracker<PuzzlePageMetadataTracker>(() => {
-    const hunt = Hunts.findOne(props.puzzle.hunt);
-    const hasGuessQueue = !!(hunt && hunt.hasGuessQueue);
-    return {
-      canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), props.puzzle.hunt),
-      hasGuessQueue,
-    };
-  }, [props.puzzle.hunt]);
+  const huntId = props.puzzle.hunt;
+  const puzzleId = props.puzzle._id;
+
+  const hasGuessQueue = useTracker(() => Hunts.findOne(huntId)?.hasGuessQueue ?? false, [huntId]);
+  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.userId(), huntId), [huntId]);
+
+  const allPuzzles = useTracker(() => Puzzles.find({ hunt: huntId }).fetch(), [huntId]);
+  const allTags = useTracker(() => Tags.find({ hunt: huntId }).fetch(), [huntId]);
+  const guesses = useTracker(() => Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch(), [huntId, puzzleId]);
 
   const editModalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
   const guessModalRef = useRef<React.ElementRef<typeof PuzzleGuessModal>>(null);
   const answerModalRef = useRef<React.ElementRef<typeof PuzzleAnswerModal>>(null);
   const onCreateTag = useCallback((newTagName: string) => {
-    Meteor.call('addTagToPuzzle', props.puzzle._id, newTagName, (error?: Error) => {
+    Meteor.call('addTagToPuzzle', puzzleId, newTagName, (error?: Error) => {
       // Not really much we can do in the case of a failure, but let's log it anyway
       if (error) {
         console.log('failed to create tag:');
         console.log(error);
       }
     });
-  }, [props.puzzle._id]);
+  }, [puzzleId]);
 
   const onRemoveTag = useCallback((tagIdToRemove: string) => {
-    Meteor.call('removeTagFromPuzzle', props.puzzle._id, tagIdToRemove, (error?: Error) => {
+    Meteor.call('removeTagFromPuzzle', puzzleId, tagIdToRemove, (error?: Error) => {
       // Not really much we can do in the case of a failure, but again, let's log it anyway
       if (error) {
         console.log('failed to remove tag:');
         console.log(error);
       }
     });
-  }, [props.puzzle._id]);
+  }, [puzzleId]);
 
   const onRemoveAnswer = useCallback((answer: string) => {
-    Meteor.call('removeAnswerFromPuzzle', props.puzzle._id, answer, (error?: Error) => {
+    Meteor.call('removeAnswerFromPuzzle', puzzleId, answer, (error?: Error) => {
       // Not really much we can do in the case of a failure, but again, let's log it anyway
       if (error) {
         console.log(`failed remove answer ${answer}:`, error);
       }
     });
-  }, [props.puzzle._id]);
+  }, [puzzleId]);
 
   const onEdit = useCallback((
     state: PuzzleModalFormSubmitPayload,
     callback: (err?: Error) => void
   ) => {
-    Ansible.log('Updating puzzle properties', { puzzle: props.puzzle._id, user: Meteor.userId(), state });
-    Meteor.call('updatePuzzle', props.puzzle._id, state, callback);
-  }, [props.puzzle._id]);
+    Ansible.log('Updating puzzle properties', { puzzle: puzzleId, user: Meteor.userId(), state });
+    Meteor.call('updatePuzzle', puzzleId, state, callback);
+  }, [puzzleId]);
 
   const showGuessModal = useCallback(() => {
     if (guessModalRef.current) {
@@ -468,10 +470,10 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
     }
   }, []);
 
-  const tagsById = _.indexBy(props.allTags, '_id');
+  const tagsById = _.indexBy(allTags, '_id');
   const tags = props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
-  const correctGuesses = props.guesses.filter((guess) => guess.state === 'correct');
-  const numGuesses = props.guesses.length;
+  const correctGuesses = guesses.filter((guess) => guess.state === 'correct');
+  const numGuesses = guesses.length;
 
   const answersElement = correctGuesses.length > 0 ? (
     <span className="puzzle-metadata-answers">
@@ -479,7 +481,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
         correctGuesses.map((guess) => (
           <span key={`answer-${guess._id}`} className="answer tag-like">
             <span>{guess.guess}</span>
-            {!tracker.hasGuessQueue && (
+            {!hasGuessQueue && (
               <Button className="answer-remove-button" variant="success" onClick={() => onRemoveAnswer(guess._id)}>&#10006;</Button>
             )}
           </span>
@@ -507,7 +509,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
     </span>
   ) : null;
 
-  const editButton = tracker.canUpdate ? (
+  const editButton = canUpdate ? (
     <Button onClick={showEditModal} variant="secondary" size="sm" title="Edit puzzle...">
       <FontAwesomeIcon icon={faEdit} />
       {' '}
@@ -517,7 +519,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
 
   let guessButton = null;
   if (props.puzzle.expectedAnswerCount > 0) {
-    guessButton = tracker.hasGuessQueue ? (
+    guessButton = hasGuessQueue ? (
       <>
         <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={showGuessModal}>
           <FontAwesomeIcon icon={faKey} />
@@ -528,7 +530,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
         <PuzzleGuessModal
           ref={guessModalRef}
           puzzle={props.puzzle}
-          guesses={props.guesses}
+          guesses={guesses}
           displayNames={props.displayNames}
         />
       </>
@@ -550,11 +552,11 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
   return (
     <div className="puzzle-metadata">
       <PuzzleModalForm
-        key={props.puzzle._id}
+        key={puzzleId}
         ref={editModalRef}
         puzzle={props.puzzle}
-        huntId={props.puzzle.hunt}
-        tags={props.allTags}
+        huntId={huntId}
+        tags={allTags}
         onSubmit={onEdit}
       />
       <div className="puzzle-metadata-row puzzle-metadata-action-row">
@@ -575,8 +577,8 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
           linkToSearch={false}
           showControls={props.isDesktop}
           popoverRelated
-          allPuzzles={props.allPuzzles}
-          allTags={props.allTags}
+          allPuzzles={allPuzzles}
+          allTags={allTags}
           emptyMessage="No tags yet"
         />
       </div>
@@ -908,29 +910,6 @@ const PuzzlePageMultiplayerDocument = React.memo((props: PuzzlePageMultiplayerDo
   );
 });
 
-const findPuzzleById = function (puzzles: PuzzleType[], id: string) {
-  for (let i = 0; i < puzzles.length; i++) {
-    const puzzle = puzzles[i];
-    if (puzzle._id === id) {
-      return puzzle;
-    }
-  }
-
-  return undefined;
-};
-
-interface PuzzlePageTracker {
-  puzzlesReady: boolean;
-  allPuzzles: PuzzleType[];
-  allTags: TagType[];
-  chatReady: boolean;
-  chatMessages: FilteredChatMessageType[];
-  displayNames: Record<string, string>;
-  allGuesses: GuessType[];
-  document?: DocumentType;
-  canUpdate: boolean;
-}
-
 const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
@@ -940,93 +919,66 @@ const PuzzlePage = React.memo(() => {
   const huntId = useParams<'huntId'>().huntId!;
   const puzzleId = useParams<'puzzleId'>().puzzleId!;
 
-  const tracker = useTracker<PuzzlePageTracker>(() => {
-    // There are some model dependencies that we have to be careful about:
-    //
-    // * We show the displayname of the person who submitted a guess, so guesses depends on display names
-    // * Chat messages show the displayname of the sender, so chatmessages depends on display names
-    // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
-    //
-    // We can render some things on incomplete data, but most of them really need full data:
-    // * Chat can be rendered with just chat messages and display names
-    // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
+  // Add the current user to the collection of people viewing this puzzle.
+  const subscribersTopic = `puzzle:${puzzleId}`;
+  useSubscribe('subscribers.inc', subscribersTopic, {
+    puzzle: puzzleId,
+    hunt: huntId,
+  });
 
-    // Add the current user to the collection of people viewing this puzzle.
-    // Don't use the subs manager - we don't want this cached.
-    const subscribersTopic = `puzzle:${puzzleId}`;
-    Meteor.subscribe('subscribers.inc', subscribersTopic, {
-      puzzle: puzzleId,
-      hunt: huntId,
-    });
-    const subscribersHandle = Meteor.subscribe('subscribers.fetch', subscribersTopic);
+  // Get the _list_ of subscribers to this puzzle and the _count_ of subscribers
+  // for all puzzles (it's OK if the latter trickles in)
+  const subscribersLoading = useSubscribe('subscribers.fetch', subscribersTopic);
+  useSubscribe('subscribers.counts', { hunt: huntId });
 
-    const displayNamesHandle = Profiles.subscribeDisplayNames();
-    let displayNames = {};
-    if (displayNamesHandle.ready()) {
-      displayNames = Profiles.displayNames();
-    }
+  const displayNamesLoading = useSubscribeDisplayNames();
 
-    const puzzlesHandle = Meteor.subscribe('mongo.puzzles', { hunt: huntId });
-    const tagsHandle = Meteor.subscribe('mongo.tags', { hunt: huntId });
-    const guessesHandle = Meteor.subscribe('mongo.guesses', { puzzle: puzzleId });
-    const documentsHandle = Meteor.subscribe('mongo.documents', { puzzle: puzzleId });
+  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
+  const tagsLoading = useSubscribe('mongo.tags', { hunt: huntId });
+  const guessesLoading = useSubscribe('mongo.guesses', { puzzle: puzzleId });
+  const documentsLoading = useSubscribe('mongo.documents', { puzzle: puzzleId });
 
-    // Track the tally of people viewing this puzzle.
-    Meteor.subscribe('subscribers.counts', { hunt: huntId });
+  const chatMessagesLoading = useSubscribe('mongo.chatmessages', {
+    puzzle: puzzleId,
+  }, {
+    fields: Object.fromEntries(FilteredChatFields.map((f) => [f, 1])),
+  });
 
-    const puzzlesReady = puzzlesHandle.ready() && tagsHandle.ready() && guessesHandle.ready() && documentsHandle.ready() && subscribersHandle.ready() && displayNamesHandle.ready();
+  // There are some model dependencies that we have to be careful about:
+  //
+  // * We show the displayname of the person who submitted a guess, so guesses depends on display names
+  // * Chat messages show the displayname of the sender, so chatmessages depends on display names
+  // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
+  //
+  // We can render some things on incomplete data, but most of them really need full data:
+  // * Chat can be rendered with just chat messages and display names
+  // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
+  const puzzleDataLoading =
+    puzzlesLoading() ||
+    tagsLoading() ||
+    guessesLoading() ||
+    documentsLoading() ||
+    subscribersLoading() ||
+    displayNamesLoading();
+  const chatDataLoading =
+    chatMessagesLoading() ||
+    displayNamesLoading();
 
-    let allPuzzles: PuzzleType[];
-    let allTags: TagType[];
-    let allGuesses: GuessType[];
-    let document: DocumentType | undefined;
-    // There's no sense in doing this expensive computation here if we're still loading data,
-    // since we're not going to render the children.
-    if (puzzlesReady) {
-      allPuzzles = Puzzles.find({ hunt: huntId }).fetch();
-      allTags = Tags.find({ hunt: huntId }).fetch();
-      allGuesses = Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch();
+  const displayNames = useTracker(() => (
+    puzzleDataLoading && chatDataLoading ?
+      {} :
+      Profiles.displayNames()
+  ), [puzzleDataLoading, chatDataLoading]);
+  // Sort by created at so that the "first" document always has consistent meaning
+  const document = useTracker(() => (
+    puzzleDataLoading ?
+      undefined :
+      Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } })
+  ), [puzzleDataLoading, puzzleId]);
 
-      // Sort by created at so that the "first" document always has consistent meaning
-      document = Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } });
-    } else {
-      allPuzzles = [];
-      allTags = [];
-      allGuesses = [];
-      document = undefined;
-    }
-
-    const chatFields: Record<string, number> = {};
-    FilteredChatFields.forEach((f) => { chatFields[f] = 1; });
-    const chatHandle = Meteor.subscribe(
-      'mongo.chatmessages',
-      { puzzle: puzzleId },
-      { fields: chatFields }
-    );
-
-    // Chat is not ready until chat messages and display names have loaded, but doesn't care about any
-    // other collections.
-    const chatReady = chatHandle.ready() && displayNamesHandle.ready();
-    const chatMessages = (chatReady && ChatMessages.find(
-      { puzzle: puzzleId },
-      { sort: { timestamp: 1 } },
-    ).fetch()) || [];
-    return {
-      puzzlesReady,
-      allPuzzles,
-      allTags,
-      chatReady,
-      chatMessages,
-      displayNames,
-      allGuesses,
-      document,
-      canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
-    };
-  }, [huntId, puzzleId]);
-
-  const activePuzzle = findPuzzleById(tracker.allPuzzles, puzzleId);
+  const activePuzzle = useTracker(() => Puzzles.findOne(puzzleId), [puzzleId]);
   useBreadcrumb({
-    title: tracker.puzzlesReady ? activePuzzle!.title : 'loading...',
+    title: puzzleDataLoading ? 'loading...' : activePuzzle!.title,
     path: `/hunts/${huntId}/puzzles/${puzzleId}`,
   });
 
@@ -1074,26 +1026,22 @@ const PuzzlePage = React.memo(() => {
     Meteor.call('ensureDocumentAndPermissions', puzzleId);
   }, [puzzleId]);
 
-  if (!tracker.puzzlesReady) {
+  if (puzzleDataLoading) {
     return <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}><span>loading...</span></FixedLayout>;
   }
   const metadata = (
     <PuzzlePageMetadata
       puzzle={activePuzzle!}
-      allTags={tracker.allTags}
-      allPuzzles={tracker.allPuzzles}
-      guesses={tracker.allGuesses}
-      displayNames={tracker.displayNames}
+      document={document}
+      displayNames={displayNames}
       isDesktop={isDesktop}
-      document={tracker.document}
     />
   );
   const chat = (
     <ChatSectionMemo
       ref={chatSectionRef}
-      chatReady={tracker.chatReady}
-      chatMessages={tracker.chatMessages}
-      displayNames={tracker.displayNames}
+      chatDataLoading={chatDataLoading}
+      displayNames={displayNames}
       huntId={huntId}
       puzzleId={puzzleId}
     />
@@ -1116,7 +1064,7 @@ const PuzzlePage = React.memo(() => {
           {chat}
           <div className="puzzle-content">
             {metadata}
-            <PuzzlePageMultiplayerDocument document={tracker.document} />
+            <PuzzlePageMultiplayerDocument document={document} />
           </div>
         </SplitPanePlus>
       </FixedLayout>
