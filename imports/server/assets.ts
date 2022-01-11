@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -12,8 +13,6 @@ import Blobs from './models/blobs';
 import UploadTokens from './models/upload_tokens';
 import onExit from './onExit';
 import { BlobType } from './schemas/blob';
-
-/* eslint-disable no-console */
 
 // Meteor has no way to import Assets under ES6 modules; it's just always a
 // global that all server code can access.

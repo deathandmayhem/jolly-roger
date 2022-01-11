@@ -13,7 +13,8 @@
     "plugin:meteor/recommended",
     "plugin:import/errors",
     "plugin:import/warnings",
-    "plugin:react-hooks/recommended"
+    "plugin:react-hooks/recommended",
+    "plugin:eslint-comments/recommended"
   ],
   "settings": {
     "import/resolver": {
@@ -97,6 +98,9 @@
 
     // Detect missing deps for non-standard hooks
     "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useTracker|useFind" }],
+
+    // Allow disabling eslint rules on more than a single line, but only across a whole file
+    "eslint-comments/disable-enable-pair": ["error", { "allowWholeFile": true }],
 
     // Match existing style
     "operator-linebreak": ["error", "after"],

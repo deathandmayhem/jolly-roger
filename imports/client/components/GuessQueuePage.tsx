@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
@@ -22,8 +23,6 @@ import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import Breakable from './styling/Breakable';
-
-/* eslint-disable max-len */
 
 interface AutoSelectInputProps {
   value: string;

@@ -1,7 +1,6 @@
+/* eslint-disable max-len */
 import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
-
-/* eslint-disable max-len */
 
 const RadioHeader = styled.span`
   font-weight: bold;
