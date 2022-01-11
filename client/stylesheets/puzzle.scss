@@ -254,6 +254,8 @@ table.puzzle-list {
 
 .chat-input-row {
   padding: 8px;
+  //capitalize Max to prefer css max over scss max
+  padding-bottom: Max(env(safe-area-inset-bottom, 0px), 8px);
 }
 
 .chatter-section {
@@ -522,6 +524,8 @@ table.puzzle-list {
   bottom: 0;
   left: 0;
   border: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background-color: #f1f3f4;
 }
 
 .popover.related-puzzle-popover {
@@ -647,7 +651,7 @@ table.puzzle-list {
 }
 
 .Resizer {
-  background: #000;
+  background: $gray-600;
   z-index: 1;
   box-sizing: border-box;
   background-clip: padding-box;
