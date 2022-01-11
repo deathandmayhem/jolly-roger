@@ -12,11 +12,11 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import Flags from '../../flags';
+import { getAvatarCdnUrl } from '../../lib/discord';
 import { ProfileType } from '../../lib/schemas/profile';
 import { requestDiscordCredential } from '../discord';
 import TeamName from '../team_name';
 import AudioConfig from './AudioConfig';
-import Gravatar from './Gravatar';
 
 interface GoogleLinkBlockProps {
   profile: ProfileType;
@@ -238,6 +238,8 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
         <div>
           Currently linked to
           {' '}
+          <img src={getAvatarCdnUrl(acct)} alt="Discord Avatar" />
+          {' '}
           {acct.username}
           #
           {acct.discriminator}
@@ -371,15 +373,6 @@ const OwnProfilePage = (props: OwnProfilePageProps) => {
           value={props.initialProfile.primaryEmail}
           disabled
         />
-        <FormText>
-          This is the email address associated with your account.  The
-          profile picture below is the image associated with that email
-          address from
-          {' '}
-          <a href="https://gravatar.com">gravatar.com</a>
-          .
-        </FormText>
-        <Gravatar email={props.initialProfile.primaryEmail} />
       </FormGroup>
       {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
       {submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}

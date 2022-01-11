@@ -15,8 +15,8 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
   useBreadcrumb({ title: 'Users', path: '/users' });
 
   const profileLoading = useSubscribe('mongo.profiles', { _id: userId });
-  const userRolesLoading = useSubscribe('userRoles', userId);
-  const loading = profileLoading() || userRolesLoading();
+  const userInfoLoading = useSubscribe('userInfo', userId);
+  const loading = profileLoading() || userInfoLoading();
 
   const profile = useTracker(() => {
     const user = Meteor.user()!;
@@ -37,6 +37,7 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
       muteApplause: undefined,
     };
   }, [userId]);
+  const hunts = useTracker(() => Meteor.users.findOne(userId)?.hunts, [userId]);
   const { viewerCanMakeOperator, viewerIsOperator, targetIsOperator } = useTracker(() => {
     return {
       viewerCanMakeOperator: deprecatedUserMayMakeOperator(Meteor.userId()),
@@ -67,6 +68,7 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
       profile={profile}
       viewerCanMakeOperator={viewerCanMakeOperator}
       targetIsOperator={targetIsOperator}
+      huntMembership={hunts}
     />
   );
 };
