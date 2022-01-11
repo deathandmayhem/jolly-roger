@@ -147,7 +147,14 @@ const OthersProfilePage = (props: OthersProfilePageProps) => {
               <tr>
                 <th>All hunts participated</th>
                 <td>
-                  {loading ? 'loading...' : props.huntMembership.map((huntId) => hunts[huntId].name).join(', ')}
+                  {(
+                    loading ?
+                      'loading...' :
+                      props.huntMembership.map((huntId) => (
+                        hunts[huntId]?.name ?? `Unknown hunt ${huntId}`
+                      ))
+                        .join(', ')
+                  )}
                 </td>
               </tr>
             )}
