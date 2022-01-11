@@ -29,7 +29,7 @@ Meteor.publish('huntMembers', function (huntId: string) {
   return MeteorUsers.find({ hunts: huntId }, { fields: { hunts: 1 } });
 });
 
-Meteor.publish('userRoles', function (targetUserId: string) {
+Meteor.publish('userInfo', function (targetUserId: string) {
   check(targetUserId, String);
 
   // Only publish other users' roles to admins and other (potentially-inactive) operators.
@@ -38,5 +38,5 @@ Meteor.publish('userRoles', function (targetUserId: string) {
     return [];
   }
 
-  return MeteorUsers.find(targetUserId, { fields: { roles: 1 } });
+  return MeteorUsers.find(targetUserId, { fields: { roles: 1, hunts: 1 } });
 });
