@@ -1,6 +1,5 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { NpmModuleMongodb } from 'meteor/npm-mongo';
 import Ansible from '../ansible';
 import Flags from '../flags';
 import ConnectAcks from '../lib/models/mediasoup/connect_acks';
@@ -18,18 +17,8 @@ import Transports from '../lib/models/mediasoup/transports';
 import Servers from '../lib/models/servers';
 import { checkAdmin, userMayJoinCallsForHunt } from '../lib/permission_stubs';
 import { registerPeriodicCleanupHook, serverId } from './garbage-collection';
+import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import Locks from './models/lock';
-
-const ignoringDuplicateKeyErrors = (fn: () => void) => {
-  try {
-    fn();
-  } catch (e) {
-    // 11000 is a duplicate key error
-    if (!(e instanceof NpmModuleMongodb.MongoError) || e.code !== 11000) {
-      throw e;
-    }
-  }
-};
 
 registerPeriodicCleanupHook((deadServers) => {
   Peers.remove({ createdServer: { $in: deadServers } });
