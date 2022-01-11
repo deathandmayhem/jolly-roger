@@ -3,8 +3,8 @@ import { NavBarHeight } from './constants';
 
 export default styled.div`
   position: fixed;
-  top: ${NavBarHeight};
-  bottom: 0;
-  left: 0;
-  right: 0;
+  top: calc(env(safe-area-inset-top, 0px) + ${NavBarHeight});
+  bottom: calc(env(safe-area-inset-bottom, 0px));
+  left: env(safe-area-inset-left, 0px);
+  right: env(safe-area-inset-right, 0px);
 `;

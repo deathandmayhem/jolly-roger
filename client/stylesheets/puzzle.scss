@@ -263,6 +263,7 @@ table.puzzle-list {
   align-items: stretch;
   justify-content: space-between;
   border-top: $input-border-width solid $input-border-color;
+  border-bottom: $input-border-width solid $input-border-color;
   overflow: hidden;
   &:focus-within {
     border-color: $input-focus-border-color;
