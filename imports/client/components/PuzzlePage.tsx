@@ -1,3 +1,4 @@
+/* eslint-disable max-len, no-console */
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
@@ -49,8 +50,6 @@ import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
 import FixedLayout from './styling/FixedLayout';
-
-/* eslint-disable max-len, no-console */
 
 const FilteredChatFields: ('_id' | 'puzzle' | 'text' | 'sender' | 'timestamp')[] = ['_id', 'puzzle', 'text', 'sender', 'timestamp'];
 type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[0]>

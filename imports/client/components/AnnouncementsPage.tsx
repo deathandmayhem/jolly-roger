@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useState } from 'react';
@@ -13,8 +14,6 @@ import { AnnouncementType } from '../../lib/schemas/announcement';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import markdown from '../markdown';
-
-/* eslint-disable max-len */
 
 interface AnnouncementFormProps {
   huntId: string;

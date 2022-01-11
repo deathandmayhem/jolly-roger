@@ -1,9 +1,8 @@
+/* eslint-disable max-len */
 import React from 'react';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
 import Puzzle from './Puzzle';
-
-/* eslint-disable max-len */
 
 interface PuzzleListProps {
   // The puzzles to show in this list

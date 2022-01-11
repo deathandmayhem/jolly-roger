@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import React, {
   Suspense,
   useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState,
@@ -17,8 +18,6 @@ import ModalForm, { ModalFormHandle } from './ModalForm';
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 const Creatable = React.lazy(() => import('react-select/creatable')) as typeof import('react-select/creatable').default;
-
-/* eslint-disable max-len */
 
 type TagSelectOption = { value: string, label: string };
 

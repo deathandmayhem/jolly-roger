@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "mike-co.import-sorter",
+    "styled-components.vscode-styled-components",
+  ]
+}

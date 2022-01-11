@@ -1,6 +1,5 @@
 import { Match, check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { NpmModuleMongodb } from 'meteor/npm-mongo';
 import { Random } from 'meteor/random';
 import Ansible from '../ansible';
 import Flags from '../flags';
@@ -15,6 +14,7 @@ import {
 } from './gdrive';
 import DriveClient from './gdrive-client-refresher';
 import GlobalHooks from './global-hooks';
+import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import getTeamName from './team_name';
 
 function getOrCreateTagByName(huntId: string, name: string): {
@@ -244,13 +244,8 @@ Meteor.methods({
     Ansible.log('Granting permissions to document', perm);
     grantPermission(doc.value.id, profile.googleAccount, 'writer');
 
-    try {
+    ignoringDuplicateKeyErrors(() => {
       DocumentPermissions.insert(perm);
-    } catch (e) {
-      // 11000 is a duplicate key error
-      if (!(e instanceof NpmModuleMongodb.MongoError) || e.code !== 11000) {
-        throw e;
-      }
-    }
+    });
   },
 });

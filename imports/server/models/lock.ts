@@ -1,9 +1,9 @@
 // Locks are a server-only class
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { NpmModuleMongodb } from 'meteor/npm-mongo';
 import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../../ansible';
+import ignoringDuplicateKeyErrors from '../ignoringDuplicateKeyErrors';
 import LockSchema, { LockType } from '../schemas/lock';
 
 // 10 seconds
@@ -15,18 +15,12 @@ const Locks = new class extends Mongo.Collection<LockType> {
   }
 
   _tryAcquire(name: string) {
-    try {
+    return ignoringDuplicateKeyErrors(() => {
       // Because the Mongo.Collection doesn't know about SimpleSchema
       // autovalues, it doesn't know which fields are actually required. Cast to
       // any since this is known safe
       return this.insert(<any>{ name });
-    } catch (e) {
-      if (e instanceof NpmModuleMongodb.MongoError && e.code === 11000) {
-        return undefined;
-      }
-
-      throw e;
-    }
+    });
   }
 
   _release(lock: string) {

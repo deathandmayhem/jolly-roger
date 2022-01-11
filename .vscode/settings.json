@@ -1,0 +1,10 @@
+{
+  "editor.tabSize": 2,
+  "javascript.preferences.quoteStyle": "single",
+  "typescript.preferences.quoteStyle": "single",
+  // Always use relative imports for project files
+  "javascript.preferences.importModuleSpecifier": "relative",
+  "typescript.preferences.importModuleSpecifier": "relative",
+  // Use the version of Typescript embedded with the project
+  "typescript.tsdk": "node_modules/typescript/lib",
+}
