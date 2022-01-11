@@ -175,7 +175,7 @@ const HuntApp = React.memo(() => {
         <Route path="hunters/*" element={<HuntProfileListPage />} />
         <Route path="puzzles/:puzzleId" element={<PuzzlePage />} />
         <Route path="puzzles" element={<PuzzleListPage />} />
-        <Route path="" element={<Navigate to="puzzles" />} />
+        <Route path="" element={<Navigate to="puzzles" replace />} />
       </Routes>
     );
   }, [
