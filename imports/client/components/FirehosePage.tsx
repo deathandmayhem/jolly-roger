@@ -36,7 +36,7 @@ const FirehosePageLayout = styled.div`
 interface MessageProps {
   msg: ChatMessageType;
   displayName: string;
-  puzzle: PuzzleType;
+  puzzle: PuzzleType | undefined;
 }
 
 const Message = ({ msg, displayName, puzzle }: MessageProps) => {
@@ -46,7 +46,14 @@ const Message = ({ msg, displayName, puzzle }: MessageProps) => {
       [
       {ts}
       ] [
-      <Link to={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}>{puzzle.title}</Link>
+      {puzzle !== undefined ? (
+        <>
+          <span>{`${puzzle.deleted ? 'deleted: ' : ''}`}</span>
+          <Link to={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}>{puzzle.title}</Link>
+        </>
+      ) : (
+        <span>deleted: no data</span>
+      )}
       {'] '}
       {displayName}
       {': '}
@@ -72,7 +79,10 @@ const FirehosePage = () => {
   useBreadcrumb({ title: 'Firehose', path: `/hunts/${huntId}/firehose` });
 
   const profilesLoading = useSubscribeDisplayNames();
-  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
+  // We have some hunts where we've soft-deleted puzzles for various reasons
+  // after chat messages were sent.  To handle these situations more gracefully,
+  // we subscribe and fetch puzzles including those soft-deleted.
+  const puzzlesLoading = useSubscribe('mongo.puzzles.allowingDeleted', { hunt: huntId });
   const chatMessagesLoading = useSubscribe('mongo.chatmessages', { hunt: huntId });
   const loading = profilesLoading() || puzzlesLoading() || chatMessagesLoading();
 
@@ -80,7 +90,7 @@ const FirehosePage = () => {
   const puzzles = useTracker(() => (
     loading ?
       {} :
-      _.indexBy(Puzzles.find({ hunt: huntId }).fetch(), '_id')
+      _.indexBy(Puzzles.findAllowingDeleted({ hunt: huntId }).fetch(), '_id')
   ), [loading, huntId]);
   const chatMessages = useTracker(() => (
     loading ?
