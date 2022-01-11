@@ -791,16 +791,16 @@ const CallSection = ({
           size="sm"
           onClick={onToggleMute}
         >
-          {muted ? 'unmute' : 'mute self'}
+          {muted ? 'Unmute' : 'Mute self'}
         </Button>
         <Button
           variant={deafened ? 'secondary' : 'light'}
           size="sm"
           onClick={onToggleDeafen}
         >
-          {deafened ? 'undeafen' : 'deafen self'}
+          {deafened ? 'Undeafen' : 'Deafen self'}
         </Button>
-        <Button variant="danger" size="sm" onClick={onLeaveCall}>leave call</Button>
+        <Button variant="danger" size="sm" onClick={onLeaveCall}>Leave call</Button>
       </div>
       <CallJoiner
         huntId={huntId}

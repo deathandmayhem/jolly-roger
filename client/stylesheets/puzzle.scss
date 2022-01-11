@@ -234,6 +234,8 @@ table.puzzle-list {
   flex-direction: column;
 }
 
+$comm-pane-padding: 8px;
+
 // Chat
 .chat-section {
   flex: 1 1 auto;
@@ -253,9 +255,9 @@ table.puzzle-list {
 }
 
 .chat-input-row {
-  padding: 8px;
+  padding: $comm-pane-padding;
   //capitalize Max to prefer css max over scss max
-  padding-bottom: Max(env(safe-area-inset-bottom, 0px), 8px);
+  padding-bottom: Max(env(safe-area-inset-bottom, 0px), $comm-pane-padding);
 }
 
 .chatter-section {
@@ -263,12 +265,13 @@ table.puzzle-list {
   background-color: #ebd0e3;
   font-size: 12px;
   line-height: 12px;
-  border-bottom: 1px solid #000;
+  padding: $comm-pane-padding;
 
   .av-actions {
     display: flex;
     flex-direction: row;
-    //margin-top: 6px;
+    margin-bottom: $comm-pane-padding;
+    gap: $comm-pane-padding;
 
     .btn {
       flex: 1;
@@ -276,14 +279,15 @@ table.puzzle-list {
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 0;
     }
   }
 }
 
 .chatter-subsection {
+  margin-top: 4px;
+
   header {
-    margin: 4px 2px;
+    margin: 4px 0;
     cursor: pointer;
   }
 
@@ -291,6 +295,7 @@ table.puzzle-list {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+    gap: 4px;
 
     &.collapsed {
       display: none;
@@ -302,7 +307,7 @@ table.puzzle-list {
     width: 40px;
     height: 40px;
     background: white;
-
+    cursor: default;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -311,7 +316,6 @@ table.puzzle-list {
     font-size: 24px;
     color: black;
     line-height: 24px;
-    margin-left: 4px;
     position: relative;
 
     .icon {
@@ -397,7 +401,7 @@ table.puzzle-list {
 }
 
 .chat-message, .chat-placeholder {
-  padding: 0 8px;
+  padding: 0 $comm-pane-padding;
   margin-bottom: 2px;
   word-wrap: break-word;
   font-size: 14px;
