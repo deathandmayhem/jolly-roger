@@ -1,10 +1,9 @@
+/* eslint-disable no-console */
 import { Random } from 'meteor/random';
 import React, {
   useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 import useImmediateEffect from './use-immediate-effect';
-
-/* eslint-disable no-console */
 
 type Crumb = {
   path: string;

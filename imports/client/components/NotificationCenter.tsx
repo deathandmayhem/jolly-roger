@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
@@ -33,8 +34,6 @@ import { requestDiscordCredential } from '../discord';
 import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import markdown from '../markdown';
 import Breakable from './styling/Breakable';
-
-/* eslint-disable max-len */
 
 const StyledDismissButton = styled.button`
   background: none;

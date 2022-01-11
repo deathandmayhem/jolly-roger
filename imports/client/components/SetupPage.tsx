@@ -1,3 +1,4 @@
+/* eslint-disable max-len, react/jsx-one-expression-per-line */
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
@@ -22,8 +23,6 @@ import { SettingType } from '../../lib/schemas/setting';
 import { DiscordGuildType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import lookupUrl from '../lookupUrl';
-
-/* eslint-disable max-len, react/jsx-one-expression-per-line */
 
 const Section = styled.section`
   margin-bottom: 24px;

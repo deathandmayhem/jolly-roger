@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
@@ -28,8 +29,6 @@ import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/hunt';
 import { SettingType } from '../../lib/schemas/setting';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ModalForm, { ModalFormHandle } from './ModalForm';
-
-/* eslint-disable max-len */
 
 const splitLists = function (lists: string): string[] {
   const strippedLists = lists.trim();

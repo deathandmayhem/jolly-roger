@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
@@ -16,8 +17,6 @@ import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SubscriberCount from './SubscriberCount';
 import TagList from './TagList';
-
-/* eslint-disable max-len */
 
 interface PuzzleProps {
   puzzle: PuzzleType;
