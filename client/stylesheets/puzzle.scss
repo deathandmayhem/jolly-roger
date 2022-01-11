@@ -245,10 +245,6 @@ table.puzzle-list {
     margin-bottom: 0;
   }
 
-  textarea {
-    border-radius: 0;
-  }
-
   blockquote {
     font-size: 14px;
     margin-left: 10px;
@@ -257,30 +253,7 @@ table.puzzle-list {
 }
 
 .chat-input-row {
-  flex: none;
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  justify-content: space-between;
-  border-top: $input-border-width solid $input-border-color;
-  border-bottom: $input-border-width solid $input-border-color;
-  overflow: hidden;
-  &:focus-within {
-    border-color: $input-focus-border-color;
-    box-shadow: $input-focus-box-shadow;
-  }
-
-  textarea {
-    flex: 1 1 auto;
-    border: none;
-    &:focus {
-        box-shadow: none;
-    }
-  }
-
-  button {
-    border-radius: 0;
-  }
+  padding: 8px;
 }
 
 .chatter-section {
@@ -422,7 +395,7 @@ table.puzzle-list {
 }
 
 .chat-message, .chat-placeholder {
-  padding: 0 4px;
+  padding: 0 8px;
   margin-bottom: 2px;
   word-wrap: break-word;
   font-size: 14px;
