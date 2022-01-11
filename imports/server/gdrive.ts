@@ -1,8 +1,10 @@
 import { Meteor } from 'meteor/meteor';
+import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../ansible';
 import Flags from '../flags';
 import Documents from '../lib/models/documents';
 import Settings from '../lib/models/settings';
+import { SettingType } from '../lib/schemas/setting';
 import DriveClient from './gdrive-client-refresher';
 import Locks from './models/lock';
 import getTeamName from './team_name';
@@ -29,31 +31,26 @@ function createDocument(name: string, type: keyof typeof MimeTypes): string {
   checkClientOk();
   if (!DriveClient.gdrive) throw new Meteor.Error(500, 'Google integration is disabled');
 
-  const template = Settings.findOne({ name: `gdrive.template.${type}` as any });
+  const template = Settings.findOne({ name: `gdrive.template.${type}` as any }) as undefined | SettingType & (
+    { name: 'gdrive.template.document' } | { name: 'gdrive.template.spreadsheet' }
+  );
   const mimeType = MimeTypes[type];
 
-  let file;
-  if (template) {
-    if (template.name !== 'gdrive.template.document' && template.name !== 'gdrive.template.spreadsheet') {
-      throw new Meteor.Error(500, 'Unexpected Google Drive template document');
-    }
-
-    file = Meteor.wrapAsync(DriveClient.gdrive.files.copy, DriveClient.gdrive)({
+  const file = MeteorPromise.await(template ?
+    DriveClient.gdrive.files.copy({
       fileId: template.value.id,
-      resource: { name, mimeType },
-    });
-  } else {
-    file = Meteor.wrapAsync(DriveClient.gdrive.files.create, DriveClient.gdrive)({
-      resource: { name, mimeType },
-    });
-  }
+      requestBody: { name, mimeType },
+    }) :
+    DriveClient.gdrive.files.create({
+      requestBody: { name, mimeType },
+    }));
 
-  const fileId = file.data.id;
+  const fileId = file.data.id!;
 
-  Meteor.wrapAsync(DriveClient.gdrive.permissions.create, DriveClient.gdrive.permissions)({
+  MeteorPromise.await(DriveClient.gdrive.permissions.create({
     fileId,
-    resource: { role: 'writer', type: 'anyone' },
-  });
+    requestBody: { role: 'writer', type: 'anyone' },
+  }));
   return fileId;
 }
 
@@ -61,24 +58,24 @@ export function renameDocument(id: string, name: string): void {
   checkClientOk();
   if (!DriveClient.gdrive) return;
   // It's unclear if this can ever return an error
-  Meteor.wrapAsync(DriveClient.gdrive.files.update, DriveClient.gdrive)({
+  MeteorPromise.await(DriveClient.gdrive.files.update({
     fileId: id,
-    resource: { name },
-  });
+    requestBody: { name },
+  }));
 }
 
 export function grantPermission(id: string, email: string, permission: string): void {
   checkClientOk();
   if (!DriveClient.gdrive) return;
-  Meteor.wrapAsync(DriveClient.gdrive.permissions.create, DriveClient.gdrive.permissions)({
+  MeteorPromise.await(DriveClient.gdrive.permissions.create({
     fileId: id,
     sendNotificationEmail: false,
-    resource: {
+    requestBody: {
       type: 'user',
       emailAddress: email,
       role: permission,
     },
-  });
+  }));
 }
 
 export function ensureDocument(puzzle: {
