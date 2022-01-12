@@ -4,11 +4,13 @@ import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
 import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../ansible';
+import Flags from '../flags';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
 import addUserToDiscordRole from './addUserToDiscordRole';
 import { DiscordAPIClient, DiscordBot } from './discord';
+import { ensureHuntFolderPermission } from './gdrive';
 
 Meteor.methods({
   saveProfile(newProfile: unknown) {
@@ -57,6 +59,13 @@ Meteor.methods({
     });
 
     Profiles.update(this.userId, { $set: { googleAccount: email } });
+
+    if (!Flags.active('disable.google') && !Flags.active('disable.gdrive_permissions')) {
+      const hunts = Meteor.user()!.hunts;
+      hunts?.forEach((huntId) => {
+        ensureHuntFolderPermission(huntId, this.userId!, email);
+      });
+    }
   },
 
   unlinkUserGoogleAccount() {

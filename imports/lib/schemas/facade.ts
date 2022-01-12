@@ -4,8 +4,8 @@ import ChatMessage from './chat';
 import ChatNotification from './chat_notification';
 import DiscordCache from './discord_cache';
 import DocumentSchema from './document';
-import DocumentPermission from './document_permission';
 import FeatureFlag from './feature_flag';
+import FolderPermission from './folder_permission';
 import Guess from './guess';
 import Hunt from './hunt';
 import ConnectAck from './mediasoup/connect_ack';
@@ -34,7 +34,7 @@ const Schemas = {
   ChatMessage,
   ChatNotification,
   DiscordCache,
-  DocumentPermission,
+  FolderPermission,
   Document: DocumentSchema,
   FeatureFlag,
   Guess,

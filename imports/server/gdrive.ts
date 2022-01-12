@@ -3,10 +3,12 @@ import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../ansible';
 import Flags from '../flags';
 import Documents from '../lib/models/documents';
+import FolderPermissions from '../lib/models/folder_permissions';
 import Hunts from '../lib/models/hunts';
 import Settings from '../lib/models/settings';
 import { SettingType } from '../lib/schemas/setting';
 import DriveClient from './gdrive-client-refresher';
+import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import HuntFolders from './models/hunt_folders';
 import Locks from './models/lock';
 import getTeamName from './team_name';
@@ -92,7 +94,7 @@ export function moveDocument(id: string, newParentId: string): void {
 }
 
 export function huntFolderName(huntName: string) {
-  return `${getTeamName()} ${huntName}`;
+  return `${huntName}: ${getTeamName()}`;
 }
 
 export function puzzleDocumentName(puzzleTitle: string) {
@@ -147,6 +149,26 @@ export function ensureHuntFolder(hunt: { _id: string, name: string }) {
   }
 
   return folder!.folder;
+}
+
+export function ensureHuntFolderPermission(huntId: string, userId: string, googleAccount: string) {
+  const hunt = Hunts.findOne(huntId)!;
+  const folder = ensureHuntFolder(hunt);
+
+  const perm = {
+    folder,
+    user: userId,
+    googleAccount,
+  };
+  if (FolderPermissions.findOne(perm)) {
+    return;
+  }
+
+  Ansible.log('Granting permissions to folder', perm);
+  grantPermission(folder, googleAccount, 'reader');
+  ignoringDuplicateKeyErrors(() => {
+    FolderPermissions.insert(perm);
+  });
 }
 
 export function ensureDocument(puzzle: {

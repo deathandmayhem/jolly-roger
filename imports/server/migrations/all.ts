@@ -33,3 +33,4 @@ import './31-index-call-signals';
 import './32-index-chat-notifications';
 import './33-index-profile-dingwords';
 import './34-mediasoup-indexes';
+import './35-folder-permissions-indexes';

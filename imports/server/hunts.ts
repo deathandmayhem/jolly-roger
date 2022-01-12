@@ -4,6 +4,7 @@ import { Email } from 'meteor/email';
 import { Meteor } from 'meteor/meteor';
 import Mustache from 'mustache';
 import Ansible from '../ansible';
+import Flags from '../flags';
 import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
@@ -18,7 +19,9 @@ import { HuntType } from '../lib/schemas/hunt';
 import { SettingType } from '../lib/schemas/setting';
 import addUserToDiscordRole from './addUserToDiscordRole';
 import List from './blanche';
-import { ensureHuntFolder, huntFolderName, renameDocument } from './gdrive';
+import {
+  ensureHuntFolder, ensureHuntFolderPermission, huntFolderName, renameDocument,
+} from './gdrive';
 
 const DEFAULT_EXISTING_JOIN_SUBJECT = '[jolly-roger] Added to {{huntName}} on {{siteName}}';
 
@@ -227,20 +230,29 @@ Meteor.methods({
     if (newUser) {
       Accounts.sendEnrollmentEmail(joineeUser._id);
       Ansible.info('Sent invitation email to new user', { invitedBy: this.userId, email });
-    } else if (joineeUser._id !== this.userId) {
-      const joinerProfile = Profiles.findOne(this.userId);
-      const joinerName = joinerProfile && joinerProfile.displayName !== '' ?
-        joinerProfile.displayName :
-        null;
-      const settingsDoc = Settings.findOne({ name: 'email.branding' });
-      const subject = renderExistingJoinEmailSubject(settingsDoc, hunt);
-      const text = renderExistingJoinEmail(settingsDoc, joineeUser, hunt, joinerName);
-      Email.send({
-        from: Accounts.emailTemplates.from,
-        to: email,
-        subject,
-        text,
-      });
+    } else {
+      if (joineeUser._id !== this.userId) {
+        const joinerProfile = Profiles.findOne(this.userId);
+        const joinerName = joinerProfile && joinerProfile.displayName !== '' ?
+          joinerProfile.displayName :
+          null;
+        const settingsDoc = Settings.findOne({ name: 'email.branding' });
+        const subject = renderExistingJoinEmailSubject(settingsDoc, hunt);
+        const text = renderExistingJoinEmail(settingsDoc, joineeUser, hunt, joinerName);
+        Email.send({
+          from: Accounts.emailTemplates.from,
+          to: email,
+          subject,
+          text,
+        });
+      }
+
+      if (!Flags.active('disable.google') && !Flags.active('disable.gdrive_permissions')) {
+        const joineeProfile = Profiles.findOne(joineeUser._id);
+        if (joineeProfile?.googleAccount) {
+          ensureHuntFolderPermission(huntId, joineeUser._id, joineeProfile.googleAccount);
+        }
+      }
     }
   },
 
