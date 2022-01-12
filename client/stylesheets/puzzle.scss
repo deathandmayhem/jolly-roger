@@ -214,6 +214,9 @@ table.puzzle-list {
 
 ////////////
 // Puzzle page styles
+
+$puzzle-page-padding: 8px;
+
 .puzzle-page {
   .Pane > .puzzle-content, .Pane > .chat-section {
     position: absolute;
@@ -234,8 +237,6 @@ table.puzzle-list {
   flex-direction: column;
 }
 
-$comm-pane-padding: 8px;
-
 // Chat
 .chat-section {
   flex: 1 1 auto;
@@ -255,9 +256,9 @@ $comm-pane-padding: 8px;
 }
 
 .chat-input-row {
-  padding: $comm-pane-padding;
+  padding: $puzzle-page-padding;
   //capitalize Max to prefer css max over scss max
-  padding-bottom: Max(env(safe-area-inset-bottom, 0px), $comm-pane-padding);
+  padding-bottom: Max(env(safe-area-inset-bottom, 0px), $puzzle-page-padding);
 }
 
 .chatter-section {
@@ -265,13 +266,13 @@ $comm-pane-padding: 8px;
   background-color: #ebd0e3;
   font-size: 12px;
   line-height: 12px;
-  padding: $comm-pane-padding;
+  padding: $puzzle-page-padding;
 
   .av-actions {
     display: flex;
     flex-direction: row;
-    margin-bottom: $comm-pane-padding;
-    gap: $comm-pane-padding;
+    margin-bottom: $puzzle-page-padding;
+    gap: $puzzle-page-padding;
 
     .btn {
       flex: 1;
@@ -401,7 +402,7 @@ $comm-pane-padding: 8px;
 }
 
 .chat-message, .chat-placeholder {
-  padding: 0 $comm-pane-padding;
+  padding: 0 $puzzle-page-padding;
   margin-bottom: 2px;
   word-wrap: break-word;
   font-size: 14px;
@@ -420,7 +421,7 @@ $comm-pane-padding: 8px;
 // Puzzle metadata
 .puzzle-metadata {
   flex: none;
-  padding: 2px 8px;
+  padding: ($puzzle-page-padding - 2px) 8px;
   border-bottom: 1px solid #dadce0;
 }
 
