@@ -241,6 +241,100 @@ const GoogleAuthorizeDriveClientForm = () => {
   );
 };
 
+type GoogleDriveRootFormState = ({
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS
+} | {
+  submitState: SubmitState.ERROR;
+  error: Error;
+});
+
+const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
+  const [state, setState] = useState<GoogleDriveRootFormState>({
+    submitState: SubmitState.IDLE,
+  });
+  const [rootId, setRootId] = useState<string>(initialRootId || '');
+
+  const dismissAlert = useCallback(() => {
+    setState({ submitState: SubmitState.IDLE });
+  }, []);
+
+  const onRootIdChange: FormControlProps['onChange'] = useCallback((e) => {
+    setRootId(e.currentTarget.value);
+  }, []);
+
+  const saveRootId = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    const rootString = rootId.trim();
+    const root = rootString.length > 0 ? rootString : undefined;
+    setState({ submitState: SubmitState.SUBMITTING });
+    Meteor.call('setupGdriveRoot', root, (error?: Error) => {
+      if (error) {
+        setState({ submitState: SubmitState.ERROR, error });
+      } else {
+        setState({ submitState: SubmitState.SUCCESS });
+      }
+    });
+  }, [rootId]);
+
+  const reorganizeGoogleDrive = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setState({ submitState: SubmitState.SUBMITTING });
+    Meteor.call('reorganizeGoogleDrive', (error?: Error) => {
+      if (error) {
+        setState({ submitState: SubmitState.ERROR, error });
+      } else {
+        setState({ submitState: SubmitState.SUCCESS });
+      }
+    });
+  }, []);
+
+  const shouldDisableForm = state.submitState === 'submitting';
+
+  return (
+    <div>
+      {state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {state.submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {state.submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {state.error.message}
+        </Alert>
+      ) : null}
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-google-drive-root">
+          Google Drive root folder ID
+        </FormLabel>
+        <FormControl
+          id="jr-setup-edit-google-drive-root"
+          type="text"
+          value={rootId}
+          disabled={shouldDisableForm}
+          onChange={onRootIdChange}
+        />
+      </FormGroup>
+      <Button variant="primary" onClick={saveRootId} disabled={shouldDisableForm}>Save</Button>
+      <FormGroup>
+        <FormLabel htmlFor="jr-setup-edit-google-drive-reorganize">
+          Changing this setting does not automatically reorganize any existing
+          files or folders under the new root folder, but if you want to do
+          that, you can click the button below.
+        </FormLabel>
+        <div>
+          <Button
+            variant="secondary"
+            id="jr-setup-edit-google-drive-reorganize"
+            onClick={reorganizeGoogleDrive}
+            disabled={shouldDisableForm}
+          >
+            Reorganize Google Drive
+          </Button>
+        </div>
+      </FormGroup>
+    </div>
+  );
+};
+
 interface GoogleDriveTemplateFormProps {
   initialDocTemplate?: string;
   initialSpreadsheetTemplate?: string;
@@ -334,12 +428,16 @@ const GoogleDriveTemplateForm = (props: GoogleDriveTemplateFormProps) => {
 const GoogleIntegrationSection = () => {
   const enabled = useTracker(() => !Flags.active('disable.google'), []);
   const oauthSettings = useTracker(() => ServiceConfiguration.configurations.findOne({ service: 'google' }) as any, []);
-  const { gdriveCredential, docTemplate, spreadsheetTemplate } = useTracker(() => {
+  const {
+    gdriveCredential, root, docTemplate, spreadsheetTemplate,
+  } = useTracker(() => {
+    const rootSetting = Settings.findOne({ name: 'gdrive.root' }) as SettingType & { name: 'gdrive.root' } | undefined;
     const docTemplateSetting = Settings.findOne({ name: 'gdrive.template.document' }) as SettingType & { name: 'gdrive.template.document' } | undefined;
     const spreadsheetTemplateSetting = Settings.findOne({ name: 'gdrive.template.spreadsheet' }) as SettingType & { name: 'gdrive.template.spreadsheet' } | undefined;
     const gdriveSetting = Settings.findOne({ name: 'gdrive.credential' }) as SettingType & { name: 'gdrive.credential' } | undefined;
     return {
       gdriveCredential: gdriveSetting,
+      root: rootSetting?.value.id,
       docTemplate: docTemplateSetting?.value.id,
       spreadsheetTemplate: spreadsheetTemplateSetting?.value.id,
     };
@@ -377,6 +475,8 @@ const GoogleIntegrationSection = () => {
   const driveBadgeLabel = gdriveCredential ? 'configured' : 'unconfigured';
   const driveBadgeVariant = gdriveCredential ? 'success' : 'warning';
   const maybeDriveUserEmail = gdriveCredential && gdriveCredential.value && gdriveCredential.value.email;
+  const rootBadgeLabel = root ? 'configured' : 'unconfigured';
+  const rootBadgeVariant = root ? 'success' : 'info';
   const templateBadgeLabel = spreadsheetTemplate ? 'configured' : 'unconfigured';
   const templateBadgeVariant = spreadsheetTemplate ? 'success' : 'warning';
 
@@ -466,6 +566,28 @@ const GoogleIntegrationSection = () => {
           </p>
         )}
         <GoogleAuthorizeDriveClientForm />
+      </Subsection>
+
+      <Subsection>
+        <SubsectionHeader>
+          <span>(Optional) Root folder</span>
+          {' '}
+          <Badge variant={rootBadgeVariant}>{rootBadgeLabel}</Badge>
+        </SubsectionHeader>
+        <p>
+          Jolly Roger creates a new folder in Google Drive for every hunt. By
+          default, it will create this folder in the root of the Drive, but for
+          organization purposes you can choose to put everything in a folder of
+          your choosing.
+        </p>
+        <ul>
+          <li>If you wish to use a root folder, enter the folder ID (the part of a docs/sheets link after &quot;https://drive.google.com/drive/folders/&quot;) for the appropriate folder below and press Save.</li>
+          <li>To use the default root folder, replace the folder ID with an empty string and press Save.</li>
+          <li>The root folder must be accessible by the Drive user connected above.</li>
+        </ul>
+        <GoogleDriveRootForm
+          initialRootId={root}
+        />
       </Subsection>
 
       <Subsection>

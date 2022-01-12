@@ -19,6 +19,10 @@ export const SettingCodec = t.intersection([
       }),
     }),
     t.type({
+      name: t.literal('gdrive.root'),
+      value: t.type({ id: t.string }),
+    }),
+    t.type({
       name: t.literal('gdrive.template.document'),
       value: t.type({ id: t.string }),
     }),

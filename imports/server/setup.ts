@@ -6,9 +6,13 @@ import { Meteor } from 'meteor/meteor';
 import { Promise as MeteorPromise } from 'meteor/promise';
 import { Random } from 'meteor/random';
 import { ServiceConfiguration } from 'meteor/service-configuration';
+import { _ } from 'meteor/underscore';
 import Ansible from '../ansible';
 import { API_BASE } from '../lib/discord';
+import Documents from '../lib/models/documents';
+import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
+import Puzzles from '../lib/models/puzzles';
 import Settings from '../lib/models/settings';
 import {
   addUserToRoles,
@@ -20,6 +24,9 @@ import {
   userMayConfigureEmailBranding,
   userMayConfigureAssets,
 } from '../lib/permission_stubs';
+import { SettingType } from '../lib/schemas/setting';
+import { ensureDocument, ensureHuntFolder, moveDocument } from './gdrive';
+import HuntFolders from './models/hunt_folders';
 import UploadTokens from './models/upload_tokens';
 
 // Clean up upload tokens that didn't get used within a minute
@@ -103,6 +110,57 @@ Meteor.methods({
       user: this.userId,
     });
     Settings.remove({ name: 'gdrive.credential' });
+  },
+
+  setupGdriveRoot(root: unknown) {
+    check(this.userId, String);
+    check(root, Match.Maybe(String));
+    // Only let the same people that can credential gdrive configure root folder,
+    // which today is just admins
+    if (!userMayConfigureGdrive(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure gdrive');
+    }
+
+    if (root) {
+      Settings.upsert(
+        { name: 'gdrive.root' },
+        { $set: { value: { id: root } } }
+      );
+    } else {
+      Settings.remove({ name: 'gdrive.root' });
+    }
+  },
+
+  reorganizeGoogleDrive() {
+    check(this.userId, String);
+
+    // Only let the same people that can credential gdrive reorganize files,
+    // which today is just admins
+    if (!userMayConfigureGdrive(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure gdrive');
+    }
+
+    Ansible.log('Reorganizing Google Drive files');
+
+    // First make sure any existing folders are under the root
+    const root = Settings.findOne({ name: 'gdrive.root' }) as SettingType & { name: 'gdrive.root' } | undefined;
+    if (root) {
+      HuntFolders.find().forEach((hf) => {
+        moveDocument(hf.folder, root.value.id);
+      });
+    }
+
+    // Then create folders for any hunt that doesn't currently have one
+    Hunts.find().forEach((h) => {
+      ensureHuntFolder(h);
+    });
+
+    // Finally move all existing documents into the right folder
+    const puzzles = _.indexBy(Puzzles.find().fetch(), '_id');
+    Documents.find().forEach((d) => {
+      const puzzle = puzzles[d.puzzle];
+      if (puzzle && !d.value.folder) ensureDocument(puzzle);
+    });
   },
 
   setupGdriveTemplates(spreadsheetTemplate: unknown, documentTemplate: unknown) {
