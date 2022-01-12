@@ -152,7 +152,9 @@ export function ensureHuntFolder(hunt: { _id: string, name: string }) {
 }
 
 export function ensureHuntFolderPermission(huntId: string, userId: string, googleAccount: string) {
-  const hunt = Hunts.findOne(huntId)!;
+  const hunt = Hunts.findOneAllowingDeleted(huntId);
+  if (!hunt) return;
+
   const folder = ensureHuntFolder(hunt);
 
   const perm = {
@@ -176,7 +178,8 @@ export function ensureDocument(puzzle: {
   title: string,
   hunt: string,
 }, type: keyof typeof MimeTypes = 'spreadsheet') {
-  const folderId = ensureHuntFolder(Hunts.findOne(puzzle.hunt)!);
+  const hunt = Hunts.findOneAllowingDeleted(puzzle.hunt);
+  const folderId = hunt ? ensureHuntFolder(hunt) : undefined;
 
   let doc = Documents.findOne({ puzzle: puzzle._id });
   if (!doc) {
@@ -202,7 +205,7 @@ export function ensureDocument(puzzle: {
     });
   }
 
-  if (doc && doc.value.folder !== folderId) {
+  if (doc && folderId && doc.value.folder !== folderId) {
     moveDocument(doc.value.id, folderId);
     Documents.update(doc._id, { $set: { 'value.folder': folderId } });
     doc = Documents.findOne(doc._id)!;
