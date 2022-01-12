@@ -272,7 +272,6 @@ $puzzle-page-padding: 8px;
     display: flex;
     flex-direction: row;
     margin-bottom: $puzzle-page-padding;
-    gap: $puzzle-page-padding;
 
     .btn {
       flex: 1;
@@ -280,6 +279,10 @@ $puzzle-page-padding: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
+
+      + .btn {
+        margin-left: $puzzle-page-padding;
+      }
     }
   }
 }
@@ -296,7 +299,10 @@ $puzzle-page-padding: 8px;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 4px;
+
+    &:not(:empty) {
+      margin: -4px -4px 0 0;
+    }
 
     &.collapsed {
       display: none;
@@ -318,6 +324,7 @@ $puzzle-page-padding: 8px;
     color: black;
     line-height: 24px;
     position: relative;
+    margin: 4px 4px 0 0;
 
     .icon {
       font-size: 12px;
