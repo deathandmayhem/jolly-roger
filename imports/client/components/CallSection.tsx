@@ -234,7 +234,6 @@ const ProducerBox = ({
               stream={stream}
             />
           ) : null}
-          <span className="connection" />
         </div>
         {tracks.map((track) => (
           <ProducerManager
@@ -402,7 +401,6 @@ const PeerBox = ({
               stream={stream}
             />
           ) : null}
-          <span className="connection" />
         </div>
         <audio ref={audioRef} className="audio-sink" autoPlay playsInline muted={selfDeafened} />
         {consumers.map((consumer) => (

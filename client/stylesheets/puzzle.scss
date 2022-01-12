@@ -319,77 +319,50 @@ $puzzle-page-padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-transform: uppercase;
-    font-weight: bold;
-    font-size: 24px;
-    color: black;
-    line-height: 24px;
     position: relative;
     margin: 4px 4px 0 0;
 
     .icon {
       font-size: 12px;
       width: 16px;
-      text-align: center;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: $danger;
-      height: 50%;
-    }
-
-    $mutedTop: -4px;
-    $mutedRight: -2px;
-    $deafenDiff: 2px;
-
-    &.muted .muted-icon {
       position: absolute;
-      top: $mutedTop;
-      right: $mutedRight;
+      right: 0px;
+
+      &.muted-icon {
+        top: 0px;
+      }
+
+      &.deafened-icon {
+        bottom: 0px;
+      }
     }
 
-    &.deafened {
-      color: $secondary;
-      background: #ffffff88;
-      border: $deafenDiff solid white;
-
-      .muted-icon {
-        position: absolute;
-        top: $mutedTop - $deafenDiff;
-        right: $mutedRight - $deafenDiff;
-      }
-
-      .deafened-icon {
-        position: absolute;
-        bottom: 1px;
-        right: $mutedRight - $deafenDiff;
-      }
+    .discord-avatar {
+      width: 100%;
+      height: 100%;
     }
 
     .initial {
       z-index: 10;
+      text-transform: uppercase;
+      font-weight: bold;
+      font-size: 24px;
+      color: black;
+      line-height: 24px;
     }
 
     &.live .initial {
       // white border around initial
       // aids readability if the spectrum graph is high
-      text-shadow: -1px 1px 0 white,
-				  1px 1px 0 white,
-				 1px -1px 0 white,
-				-1px -1px 0 white;
-    }
-
-    .connection {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background-color: #cccccc;
-    }
-
-    &.deafened .connection {
-      bottom: -$deafenDiff;
-      left: -$deafenDiff;
-      right: -$deafenDiff;
-      width: auto;
+      text-shadow: -1px  1px 0 white,
+                    1px  1px 0 white,
+                    1px -1px 0 white,
+                   -1px -1px 0 white;
     }
   }
 }
