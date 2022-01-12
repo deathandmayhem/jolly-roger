@@ -4,6 +4,7 @@ import { Email } from 'meteor/email';
 import { Meteor } from 'meteor/meteor';
 import Mustache from 'mustache';
 import Ansible from '../ansible';
+import Flags from '../flags';
 import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
@@ -18,6 +19,9 @@ import { HuntType } from '../lib/schemas/hunt';
 import { SettingType } from '../lib/schemas/setting';
 import addUserToDiscordRole from './addUserToDiscordRole';
 import List from './blanche';
+import {
+  ensureHuntFolder, ensureHuntFolderPermission, huntFolderName, renameDocument,
+} from './gdrive';
 
 const DEFAULT_EXISTING_JOIN_SUBJECT = '[jolly-roger] Added to {{huntName}} on {{siteName}}';
 
@@ -109,11 +113,14 @@ Meteor.methods({
 
     const huntId = Hunts.insert(value);
 
-    // Sync discord roles
-    MeteorUsers.find({ hunts: huntId })
-      .forEach((u) => {
-        addUserToDiscordRole(u._id, huntId);
-      });
+    Meteor.defer(() => {
+      // Sync discord roles
+      MeteorUsers.find({ hunts: huntId })
+        .forEach((u) => {
+          addUserToDiscordRole(u._id, huntId);
+        });
+      ensureHuntFolder({ _id: huntId, name: value.name });
+    });
 
     return huntId;
   },
@@ -123,6 +130,8 @@ Meteor.methods({
     checkAdmin(this.userId);
     check(huntId, String);
     check(value, HuntShape);
+
+    const oldHunt = Hunts.findOne(huntId);
 
     // $set will not remove keys from a document.  For that, we must specify
     // $unset on the appropriate key(s).  Split out which keys we must set and
@@ -146,11 +155,18 @@ Meteor.methods({
       }
     );
 
-    // Sync discord roles
-    MeteorUsers.find({ hunts: huntId })
-      .forEach((u) => {
-        addUserToDiscordRole(u._id, huntId);
-      });
+    Meteor.defer(() => {
+      // Sync discord roles
+      MeteorUsers.find({ hunts: huntId })
+        .forEach((u) => {
+          addUserToDiscordRole(u._id, huntId);
+        });
+
+      if (oldHunt?.name !== value.name) {
+        const folderId = ensureHuntFolder({ _id: huntId, name: value.name });
+        renameDocument(folderId, huntFolderName(value.name));
+      }
+    });
   },
 
   destroyHunt(huntId: unknown) {
@@ -214,20 +230,29 @@ Meteor.methods({
     if (newUser) {
       Accounts.sendEnrollmentEmail(joineeUser._id);
       Ansible.info('Sent invitation email to new user', { invitedBy: this.userId, email });
-    } else if (joineeUser._id !== this.userId) {
-      const joinerProfile = Profiles.findOne(this.userId);
-      const joinerName = joinerProfile && joinerProfile.displayName !== '' ?
-        joinerProfile.displayName :
-        null;
-      const settingsDoc = Settings.findOne({ name: 'email.branding' });
-      const subject = renderExistingJoinEmailSubject(settingsDoc, hunt);
-      const text = renderExistingJoinEmail(settingsDoc, joineeUser, hunt, joinerName);
-      Email.send({
-        from: Accounts.emailTemplates.from,
-        to: email,
-        subject,
-        text,
-      });
+    } else {
+      if (joineeUser._id !== this.userId) {
+        const joinerProfile = Profiles.findOne(this.userId);
+        const joinerName = joinerProfile && joinerProfile.displayName !== '' ?
+          joinerProfile.displayName :
+          null;
+        const settingsDoc = Settings.findOne({ name: 'email.branding' });
+        const subject = renderExistingJoinEmailSubject(settingsDoc, hunt);
+        const text = renderExistingJoinEmail(settingsDoc, joineeUser, hunt, joinerName);
+        Email.send({
+          from: Accounts.emailTemplates.from,
+          to: email,
+          subject,
+          text,
+        });
+      }
+
+      if (!Flags.active('disable.google') && !Flags.active('disable.gdrive_permissions')) {
+        const joineeProfile = Profiles.findOne(joineeUser._id);
+        if (joineeProfile?.googleAccount) {
+          ensureHuntFolderPermission(huntId, joineeUser._id, joineeProfile.googleAccount);
+        }
+      }
     }
   },
 

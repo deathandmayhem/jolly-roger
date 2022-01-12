@@ -3,18 +3,16 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import Ansible from '../ansible';
 import Flags from '../flags';
-import DocumentPermissions from '../lib/models/document_permissions';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 import Tags from '../lib/models/tags';
 import { userMayWritePuzzlesForHunt } from '../lib/permission_stubs';
 import {
-  ensureDocument, renameDocument, grantPermission, MimeTypes,
+  ensureDocument, renameDocument, MimeTypes, ensureHuntFolderPermission,
 } from './gdrive';
 import DriveClient from './gdrive-client-refresher';
 import GlobalHooks from './global-hooks';
-import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import getTeamName from './team_name';
 
 function getOrCreateTagByName(huntId: string, name: string): {
@@ -217,7 +215,7 @@ Meteor.methods({
 
     this.unblock();
 
-    const doc = ensureDocument(puzzle);
+    ensureDocument(puzzle);
 
     if (Flags.active('disable.google')) {
       return;
@@ -232,20 +230,6 @@ Meteor.methods({
       return;
     }
 
-    const perm = {
-      document: doc._id,
-      user: this.userId,
-      googleAccount: profile.googleAccount,
-    };
-    if (DocumentPermissions.findOne(perm, { fields: { _id: 1 } })) {
-      return;
-    }
-
-    Ansible.log('Granting permissions to document', perm);
-    grantPermission(doc.value.id, profile.googleAccount, 'writer');
-
-    ignoringDuplicateKeyErrors(() => {
-      DocumentPermissions.insert(perm);
-    });
+    ensureHuntFolderPermission(puzzle.hunt, this.userId, profile.googleAccount);
   },
 });

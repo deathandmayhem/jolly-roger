@@ -19,6 +19,7 @@ export const DocumentCodec = t.intersection([
     value: t.type({
       type: t.union([t.literal('spreadsheet'), t.literal('document')]),
       id: t.string,
+      folder: t.union([t.string, t.undefined]),
     }),
   }),
 ]);

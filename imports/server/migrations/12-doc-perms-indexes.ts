@@ -1,13 +1,10 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import DocumentPermissions from '../../lib/models/document_permissions';
 
 Migrations.add({
   version: 12,
   name: 'Add indexes for document permissions',
   up() {
-    DocumentPermissions._ensureIndex(
-      { document: 1, user: 1, googleAccount: 1 },
-      { unique: true }
-    );
+    // This migration was used for the DocumentPermissions model, which has
+    // since been removed.
   },
 });

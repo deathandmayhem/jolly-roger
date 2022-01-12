@@ -3,9 +3,9 @@ import BlobMappings from './blob_mappings';
 import ChatNotifications from './chat_notifications';
 import ChatMessages from './chats';
 import DiscordCache from './discord_cache';
-import DocumentPermissions from './document_permissions';
 import Documents from './documents';
 import FeatureFlags from './feature_flags';
+import FolderPermissions from './folder_permissions';
 import Guesses from './guesses';
 import Hunts from './hunts';
 import ConnectAcks from './mediasoup/connect_acks';
@@ -33,9 +33,9 @@ const Models = {
   ChatMessages,
   ChatNotifications,
   DiscordCache,
-  DocumentPermissions,
   Documents,
   FeatureFlags,
+  FolderPermissions,
   Guesses,
   Hunts,
   MediaSoup: {
