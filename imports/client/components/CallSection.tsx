@@ -791,14 +791,14 @@ const CallSection = ({
           size="sm"
           onClick={onToggleMute}
         >
-          {muted ? 'Unmute' : 'Mute self'}
+          {muted ? 'Un\u00ADmute' : 'Mute self'}
         </Button>
         <Button
           variant={deafened ? 'secondary' : 'light'}
           size="sm"
           onClick={onToggleDeafen}
         >
-          {deafened ? 'Undeafen' : 'Deafen self'}
+          {deafened ? 'Un\u00ADdeafen' : 'Deafen self'}
         </Button>
         <Button variant="danger" size="sm" onClick={onLeaveCall}>Leave call</Button>
       </div>
