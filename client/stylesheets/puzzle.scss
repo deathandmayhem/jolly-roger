@@ -383,8 +383,7 @@ $puzzle-page-padding: 8px;
 }
 
 .chat-message, .chat-placeholder {
-  padding: 0 $puzzle-page-padding;
-  margin-bottom: 2px;
+  padding: 0px $puzzle-page-padding 2px;
   word-wrap: break-word;
   font-size: 14px;
   &.system-message {
