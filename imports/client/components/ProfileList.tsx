@@ -202,6 +202,8 @@ const ProfileList = (props: ProfileListProps) => {
                     <img
                       alt={`${name}'s Discord avatar`}
                       src={discordAvatarUrl}
+                      width={40}
+                      height={40}
                       className="discord-avatar"
                     />
                   )}

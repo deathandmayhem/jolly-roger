@@ -81,13 +81,20 @@ const OthersProfilePage = (props: OthersProfilePageProps) => {
                 placement="bottom-start"
                 overlay={(
                   <AvatarTooltip id="tooltip-avatar">
-                    <img src={discordAvatarUrlLarge} width={256} height={256} alt="Discord avatar" />
+                    <img
+                      alt="Discord avatar"
+                      src={discordAvatarUrlLarge}
+                      width={128}
+                      height={128}
+                    />
                   </AvatarTooltip>
                 )}
               >
                 <img
                   alt={`${profile.displayName}'s Discord avatar`}
                   src={discordAvatarUrl}
+                  width={40}
+                  height={40}
                   className="discord-avatar"
                 />
               </OverlayTrigger>

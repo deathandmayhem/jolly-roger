@@ -120,6 +120,8 @@ const UserDisplay = ({ userId }: { userId: string }) => {
         <img
           alt={`${name}'s Discord avatar`}
           src={discordAvatarUrl}
+          width={40}
+          height={40}
         />
       )}
       {' '}
