@@ -238,7 +238,7 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
         <div>
           Currently linked to
           {' '}
-          <img src={getAvatarCdnUrl(acct)} alt="Discord Avatar" />
+          <img src={getAvatarCdnUrl(acct)} width={40} height={40} alt="Discord Avatar" />
           {' '}
           {acct.username}
           #
