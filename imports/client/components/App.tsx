@@ -1,8 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons/faExclamationTriangle';
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useMemo } from 'react';
+import Alert from 'react-bootstrap/Alert';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownItem from 'react-bootstrap/DropdownItem';
 import DropdownMenu from 'react-bootstrap/DropdownMenu';
@@ -12,6 +14,9 @@ import NavItem from 'react-bootstrap/NavItem';
 import NavLink from 'react-bootstrap/NavLink';
 import Navbar from 'react-bootstrap/Navbar';
 import NavbarBrand from 'react-bootstrap/NavbarBrand';
+import Button from 'react-bootstrap/esm/Button';
+import Container from 'react-bootstrap/esm/Container';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import * as RRBS from 'react-router-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
@@ -76,6 +81,58 @@ const Brand = styled.img`
   width: ${NavBarHeight};
   height: ${NavBarHeight};
 `;
+
+const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
+  const navigate = useNavigate();
+  const goBack = useCallback(() => navigate(-1), [navigate]);
+  return (
+    <Container>
+      <Alert variant="danger">
+        <Alert.Heading>
+          <FontAwesomeIcon icon={faExclamationTriangle} fixedWidth />
+          {' '}
+          Something went wrong
+        </Alert.Heading>
+
+        <p>
+          Something went wrong while you were using Jolly Roger. This is most
+          likely a bug in the app, rather than something you did.
+        </p>
+
+        <p>
+          Send these details to the Jolly Roger team so that they can help fix
+          it:
+        </p>
+
+        <pre>
+          {error.stack}
+        </pre>
+
+        <p>
+          In the mean time, you can try resetting this part of the site or
+          going back to the last page (a particularly useful option if you just
+          clicked on a link)
+        </p>
+
+        <p>
+          <Button type="button" onClick={resetErrorBoundary}>
+            Reset
+          </Button>
+          {' '}
+          <Button type="button" onClick={goBack}>
+            Go back
+          </Button>
+        </p>
+
+        <p>
+          But that may just make things crash again. If it does, try navigating
+          to a different part of the site using the navigation bar at the top of
+          the page.
+        </p>
+      </Alert>
+    </Container>
+  );
+};
 
 const AppNavbar = () => {
   const userId = useTracker(() => Meteor.userId()!, []);
@@ -181,7 +238,9 @@ const App = ({ children }: { children: React.ReactNode }) => {
       <AppNavbar />
       <ConnectionStatus />
       <ContentContainer className="container-fluid pt-2">
-        {children}
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          {children}
+        </ErrorBoundary>
       </ContentContainer>
     </div>
   );
