@@ -22,6 +22,7 @@ import relativeTimeFormat from '../../lib/relativeTimeFormat';
 import { PeerType } from '../../lib/schemas/mediasoup/peer';
 import useSubscribeAvatars from '../hooks/use-subscribe-avatars';
 import { Subscribers } from '../subscribers';
+import { trace } from '../tracing';
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from './AudioConfig';
 import CallSection from './CallSection';
 
@@ -339,6 +340,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
   const { muted, deafened } = localAudioControls;
 
   const joinCall = useCallback(async () => {
+    trace('ChatPeople joinCall');
     if (navigator.mediaDevices) {
       setCallState(CallState.REQUESTING_STREAM);
       const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ||
@@ -412,6 +414,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
   }, [muted]);
 
   const leaveCall = useCallback(() => {
+    trace('ChatPeople leaveCall');
     stopTracks(audioState.rawMediaSource);
     setCallState(CallState.CHAT_ONLY);
     setLocalAudioControls({
@@ -429,12 +432,22 @@ const ChatPeople = (props: ChatPeopleProps) => {
   useEffect(() => {
     // When unmounting, stop any tracks that might be running
     return () => {
+      trace('ChatPeople stop tracks on unmount');
       // Stop any tracks that might be running.
       stopTracks(audioState.rawMediaSource);
     };
   }, [audioState.rawMediaSource]);
 
   useLayoutEffect(() => {
+    trace('ChatPeople useLayoutEffect', {
+      loading,
+      rtcViewers: rtcViewers.length,
+      viewers: viewers.length,
+      callersExpanded,
+      viewersExpanded,
+      callState,
+      voiceActivityRelative,
+    });
     // Notify parent whenever we might have changed size:
     // * on viewers or rtcViewers counts change
     // * on expand/collapse of the callers or viewers
@@ -450,6 +463,8 @@ const ChatPeople = (props: ChatPeopleProps) => {
     callState,
     voiceActivityRelative,
   ]);
+
+  trace('ChatPeople render', { loading });
 
   if (loading) {
     return null;

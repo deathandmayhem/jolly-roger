@@ -43,6 +43,7 @@ import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/use-document-title';
 import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import markdown from '../markdown';
+import { trace } from '../tracing';
 import ChatPeople from './ChatPeople';
 import DocumentDisplay from './Documents';
 import ModalForm, { ModalFormHandle } from './ModalForm';
@@ -153,8 +154,17 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
   const saveScrollBottomTarget = useCallback(() => {
     if (ref.current) {
       const rect = ref.current.getClientRects()[0];
-      const hiddenHeight = ref.current.scrollHeight - rect.height;
-      const distanceFromBottom = hiddenHeight - ref.current.scrollTop;
+      const scrollHeight = ref.current.scrollHeight;
+      const scrollTop = ref.current.scrollTop;
+      const hiddenHeight = scrollHeight - rect.height;
+      const distanceFromBottom = hiddenHeight - scrollTop;
+      trace('ChatHistory saveScrollBottomTarget', {
+        distanceFromBottom,
+        scrollHeight,
+        scrollTop,
+        rectHeight: rect.height,
+        hiddenHeight,
+      });
       scrollBottomTarget.current = distanceFromBottom;
     }
   }, []);
@@ -165,6 +175,7 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
     // mistakenly save an incorrect scrollBottomTarget.  So skip one scroll event when we self-induce
     // this callback, so we only update the target distance from bottom when the user is actually
     // scrolling.
+    trace('ChatHistory onScrollObserved', { ignoring: shouldIgnoreNextScrollEvent.current });
     if (shouldIgnoreNextScrollEvent.current) {
       shouldIgnoreNextScrollEvent.current = false;
     } else {
@@ -175,18 +186,32 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
   const scrollToTarget = useCallback(() => {
     if (ref.current) {
       const rect = ref.current.getClientRects()[0];
-      const hiddenHeight = ref.current.scrollHeight - rect.height;
+      const scrollHeight = ref.current.scrollHeight;
+      const scrollTop = ref.current.scrollTop;
+      const hiddenHeight = scrollHeight - rect.height;
       // if distanceFromBottom is hiddenHeight - scrollTop, then
       // our desired scrollTop is hiddenHeight - distanceFromBottom
       const scrollTopTarget = hiddenHeight - scrollBottomTarget.current;
-      if (ref.current.scrollTop !== scrollTopTarget) {
+      trace('ChatHistory scrollToTarget', {
+        hasRef: true,
+        target: scrollBottomTarget.current,
+        scrollHeight,
+        scrollTop,
+        rectHeight: rect.height,
+        hiddenHeight,
+        alreadyIgnoringNextScrollEvent: shouldIgnoreNextScrollEvent.current,
+      });
+      if (scrollTop !== scrollTopTarget) {
         shouldIgnoreNextScrollEvent.current = true;
         ref.current.scrollTop = scrollTopTarget;
       }
+    } else {
+      trace('ChatHistory scrollToTarget', { hasRef: false, target: scrollBottomTarget.current });
     }
   }, []);
 
   const snapToBottom = useCallback(() => {
+    trace('ChatHistory snapToBottom');
     scrollBottomTarget.current = 0;
     scrollToTarget();
   }, [scrollToTarget]);
@@ -197,10 +222,11 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
     scrollToTarget,
   }));
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Scroll to end of chat on initial mount.
-    scrollToTarget();
-  }, [scrollToTarget]);
+    trace('ChatHistory snapToBottom on mount');
+    snapToBottom();
+  }, [snapToBottom]);
 
   useEffect(() => {
     // Add resize handler that scrolls to target
@@ -218,6 +244,11 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
     // don't move the backlog while they're reading it -- instead, assume they want
     // to see the same messages in the same position, and adapt the target bottom
     // distance instead.
+    trace('ChatHistory useLayoutEffect', {
+      scrollBottomTarget: scrollBottomTarget.current,
+      action: (scrollBottomTarget.current > 10 ? 'save' : 'snap'),
+      messageCount: chatMessages.length,
+    });
     if (scrollBottomTarget.current > 10) {
       saveScrollBottomTarget();
     } else {
@@ -225,6 +256,7 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
     }
   }, [chatMessages.length, saveScrollBottomTarget, snapToBottom]);
 
+  trace('ChatHistory render', { messageCount: chatMessages.length });
   return (
     <div ref={ref} className="chat-history" onScroll={onScrollObserved}>
       {chatMessages.length === 0 ? (
@@ -363,12 +395,14 @@ const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: Rea
   const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
 
   const scrollHistoryToTarget = useCallback(() => {
+    trace('ChatSection scrollHistoryToTarget', { hasRef: !!historyRef.current });
     if (historyRef.current) {
       historyRef.current.scrollToTarget();
     }
   }, []);
 
   const onMessageSent = useCallback(() => {
+    trace('ChatSection onMessageSent', { hasRef: !!historyRef.current });
     if (historyRef.current) {
       historyRef.current.snapToBottom();
     }
@@ -377,6 +411,8 @@ const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: Rea
   useImperativeHandle(forwardedRef, () => ({
     scrollHistoryToTarget,
   }));
+
+  trace('ChatSection render', { chatDataLoading: props.chatDataLoading });
 
   if (props.chatDataLoading) {
     return <div className="chat-section">loading...</div>;
@@ -989,6 +1025,7 @@ const PuzzlePage = React.memo(() => {
 
   const onResize = useCallback(() => {
     setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
+    trace('PuzzlePage onResize', { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollHistoryToTarget();
     }
@@ -999,6 +1036,7 @@ const PuzzlePage = React.memo(() => {
   }, []);
 
   const onChangeSideBarSize = useCallback(() => {
+    trace('PuzzlePage onChangeSideBarSize', { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollHistoryToTarget();
     }
@@ -1006,6 +1044,7 @@ const PuzzlePage = React.memo(() => {
 
   useLayoutEffect(() => {
     // When sidebarWidth is updated, scroll history to the target
+    trace('PuzzlePage useLayoutEffect', { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollHistoryToTarget();
     }
@@ -1027,6 +1066,8 @@ const PuzzlePage = React.memo(() => {
   useEffect(() => {
     Meteor.call('ensureDocumentAndPermissions', puzzleId);
   }, [puzzleId]);
+
+  trace('PuzzlePage render', { puzzleDataLoading, chatDataLoading });
 
   if (puzzleDataLoading) {
     return <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}><span>loading...</span></FixedLayout>;
