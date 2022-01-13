@@ -34,6 +34,7 @@ import { ConsumerType } from '../../lib/schemas/mediasoup/consumer';
 import { PeerType } from '../../lib/schemas/mediasoup/peer';
 import { RouterType } from '../../lib/schemas/mediasoup/router';
 import { TransportType } from '../../lib/schemas/mediasoup/transport';
+import { trace } from '../tracing';
 import Loading from './Loading';
 import Spectrum from './Spectrum';
 
@@ -579,8 +580,19 @@ const CallTransportConnector = ({
   const notReadyYet = !sendTransport || !recvTransport;
   useLayoutEffect(() => {
     // Notify any time we might change the height of what we render
+    trace('CallTransportConnector useLayoutEffect', {
+      notReadyYet,
+      callersExpanded,
+      otherPeers: otherPeers.length,
+    });
     onHeightChange();
   }, [onHeightChange, notReadyYet, callersExpanded, otherPeers.length]);
+
+  trace('CallTransportConnector render', {
+    hasSend: !!sendTransport,
+    hasRecv: !!recvTransport,
+    otherPeers: otherPeers.length,
+  });
 
   if (!sendTransport || !recvTransport) {
     // No JoiningCall warning here - if we have params coming in we're
@@ -657,8 +669,19 @@ const CallTransportCreator = ({
 
   const hasDevice = !!device;
   useLayoutEffect(() => {
+    trace('CallSection useLayoutEffect', {
+      hasDevice,
+      sendId: sendServerParams?._id,
+      recvId: recvServerParams?._id,
+    });
     onHeightChange();
   }, [onHeightChange, hasDevice, sendServerParams?._id, recvServerParams?._id]);
+
+  trace('CallSection render', {
+    hasDevice,
+    sendServerParams,
+    recvServerParams,
+  });
 
   if (!device) {
     return null;
