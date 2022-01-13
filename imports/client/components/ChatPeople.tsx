@@ -441,6 +441,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
     // * when joining the audiocall
     onHeightChange();
   }, [
+    loading,
     onHeightChange,
     rtcViewers.length,
     viewers.length,
