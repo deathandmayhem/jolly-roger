@@ -319,28 +319,31 @@ const ChatInput = React.memo((props: ChatInputProps) => {
 
   return (
     <div className="chat-input-row">
-      <TextareaAutosize
-        ref={textAreaRef}
-        className="form-control"
-        style={chatInputStyles.textarea}
-        maxLength={4000}
-        minRows={1}
-        maxRows={12}
-        value={text}
-        onChange={onInputChanged}
-        onKeyDown={onKeyDown}
-        onHeightChange={onHeightChangeCb}
-        placeholder="Chat"
-      />
-      <Button
-        variant="light"
-        onClick={sendMessageIfHasText}
-        onMouseDown={preventDefaultCallback}
-        disabled={text.length === 0}
-        tabIndex={-1}
-      >
-        <FontAwesomeIcon icon={faPaperPlane} />
-      </Button>
+      <div className="input-group">
+        <TextareaAutosize
+          ref={textAreaRef}
+          className="form-control"
+          style={chatInputStyles.textarea}
+          maxLength={4000}
+          minRows={1}
+          maxRows={12}
+          value={text}
+          onChange={onInputChanged}
+          onKeyDown={onKeyDown}
+          onHeightChange={onHeightChangeCb}
+          placeholder="Chat"
+        />
+        <span className="input-group-append">
+          <Button
+            variant="secondary"
+            onClick={sendMessageIfHasText}
+            onMouseDown={preventDefaultCallback}
+            disabled={text.length === 0}
+          >
+            <FontAwesomeIcon icon={faPaperPlane} />
+          </Button>
+        </span>
+      </div>
     </div>
   );
 });

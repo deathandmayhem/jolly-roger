@@ -234,7 +234,6 @@ const ProducerBox = ({
               stream={stream}
             />
           ) : null}
-          <span className="connection" />
         </div>
         {tracks.map((track) => (
           <ProducerManager
@@ -402,7 +401,6 @@ const PeerBox = ({
               stream={stream}
             />
           ) : null}
-          <span className="connection" />
         </div>
         <audio ref={audioRef} className="audio-sink" autoPlay playsInline muted={selfDeafened} />
         {consumers.map((consumer) => (
@@ -791,16 +789,16 @@ const CallSection = ({
           size="sm"
           onClick={onToggleMute}
         >
-          {muted ? 'unmute' : 'mute self'}
+          {muted ? 'Un\u00ADmute' : 'Mute self'}
         </Button>
         <Button
           variant={deafened ? 'secondary' : 'light'}
           size="sm"
           onClick={onToggleDeafen}
         >
-          {deafened ? 'undeafen' : 'deafen self'}
+          {deafened ? 'Un\u00ADdeafen' : 'Deafen self'}
         </Button>
-        <Button variant="danger" size="sm" onClick={onLeaveCall}>leave call</Button>
+        <Button variant="danger" size="sm" onClick={onLeaveCall}>Leave call</Button>
       </div>
       <CallJoiner
         huntId={huntId}

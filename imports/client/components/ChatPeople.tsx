@@ -460,7 +460,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
     switch (callState) {
       case CallState.CHAT_ONLY:
       case CallState.REQUESTING_STREAM: {
-        const joinLabel = rtcViewers.length > 0 ? 'join audio call' : 'start audio call';
+        const joinLabel = rtcViewers.length > 0 ? 'Join audio call' : 'Start audio call';
         return (
           <>
             <div className="av-actions">

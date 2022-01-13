@@ -214,6 +214,9 @@ table.puzzle-list {
 
 ////////////
 // Puzzle page styles
+
+$puzzle-page-padding: 8px;
+
 .puzzle-page {
   .Pane > .puzzle-content, .Pane > .chat-section {
     position: absolute;
@@ -245,10 +248,6 @@ table.puzzle-list {
     margin-bottom: 0;
   }
 
-  textarea {
-    border-radius: 0;
-  }
-
   blockquote {
     font-size: 14px;
     margin-left: 10px;
@@ -257,30 +256,9 @@ table.puzzle-list {
 }
 
 .chat-input-row {
-  flex: none;
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  justify-content: space-between;
-  border-top: $input-border-width solid $input-border-color;
-  border-bottom: $input-border-width solid $input-border-color;
-  overflow: hidden;
-  &:focus-within {
-    border-color: $input-focus-border-color;
-    box-shadow: $input-focus-box-shadow;
-  }
-
-  textarea {
-    flex: 1 1 auto;
-    border: none;
-    &:focus {
-        box-shadow: none;
-    }
-  }
-
-  button {
-    border-radius: 0;
-  }
+  padding: $puzzle-page-padding;
+  //capitalize Max to prefer css max over scss max
+  padding-bottom: Max(env(safe-area-inset-bottom, 0px), $puzzle-page-padding);
 }
 
 .chatter-section {
@@ -288,27 +266,33 @@ table.puzzle-list {
   background-color: #ebd0e3;
   font-size: 12px;
   line-height: 12px;
-  border-bottom: 1px solid #000;
+  padding: $puzzle-page-padding;
 
   .av-actions {
     display: flex;
     flex-direction: row;
-    //margin-top: 6px;
+    margin-bottom: $puzzle-page-padding;
 
     .btn {
       flex: 1;
-      padding: 0 auto;
+      padding-right: 2px;
+      padding-left: 2px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 0;
+
+      + .btn {
+        margin-left: $puzzle-page-padding;
+      }
     }
   }
 }
 
 .chatter-subsection {
+  margin-top: 4px;
+
   header {
-    margin: 4px 2px;
+    margin: 4px 0;
     cursor: pointer;
   }
 
@@ -316,6 +300,10 @@ table.puzzle-list {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+
+    &:not(:empty) {
+      margin: -4px -4px 0 0;
+    }
 
     &.collapsed {
       display: none;
@@ -327,81 +315,54 @@ table.puzzle-list {
     width: 40px;
     height: 40px;
     background: white;
-
+    cursor: default;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-transform: uppercase;
-    font-weight: bold;
-    font-size: 24px;
-    color: black;
-    line-height: 24px;
-    margin-left: 4px;
     position: relative;
+    margin: 4px 4px 0 0;
 
     .icon {
       font-size: 12px;
       width: 16px;
-      text-align: center;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: $danger;
-      height: 50%;
-    }
-
-    $mutedTop: -4px;
-    $mutedRight: -2px;
-    $deafenDiff: 2px;
-
-    &.muted .muted-icon {
       position: absolute;
-      top: $mutedTop;
-      right: $mutedRight;
+      right: 0px;
+
+      &.muted-icon {
+        top: 0px;
+      }
+
+      &.deafened-icon {
+        bottom: 0px;
+      }
     }
 
-    &.deafened {
-      color: $secondary;
-      background: #ffffff88;
-      border: $deafenDiff solid white;
-
-      .muted-icon {
-        position: absolute;
-        top: $mutedTop - $deafenDiff;
-        right: $mutedRight - $deafenDiff;
-      }
-
-      .deafened-icon {
-        position: absolute;
-        bottom: 1px;
-        right: $mutedRight - $deafenDiff;
-      }
+    .discord-avatar {
+      width: 100%;
+      height: 100%;
     }
 
     .initial {
       z-index: 10;
+      text-transform: uppercase;
+      font-weight: bold;
+      font-size: 24px;
+      color: black;
+      line-height: 24px;
     }
 
     &.live .initial {
       // white border around initial
       // aids readability if the spectrum graph is high
-      text-shadow: -1px 1px 0 white,
-				  1px 1px 0 white,
-				 1px -1px 0 white,
-				-1px -1px 0 white;
-    }
-
-    .connection {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background-color: #cccccc;
-    }
-
-    &.deafened .connection {
-      bottom: -$deafenDiff;
-      left: -$deafenDiff;
-      right: -$deafenDiff;
-      width: auto;
+      text-shadow: -1px  1px 0 white,
+                    1px  1px 0 white,
+                    1px -1px 0 white,
+                   -1px -1px 0 white;
     }
   }
 }
@@ -422,8 +383,7 @@ table.puzzle-list {
 }
 
 .chat-message, .chat-placeholder {
-  padding: 0 4px;
-  margin-bottom: 2px;
+  padding: 0px $puzzle-page-padding 2px;
   word-wrap: break-word;
   font-size: 14px;
   &.system-message {
@@ -441,8 +401,8 @@ table.puzzle-list {
 // Puzzle metadata
 .puzzle-metadata {
   flex: none;
-  padding: 2px 4px;
-  border-bottom: 1px solid black;
+  padding: ($puzzle-page-padding - 2px) 8px;
+  border-bottom: 1px solid #dadce0;
 }
 
 .puzzle-metadata-row {
@@ -549,6 +509,8 @@ table.puzzle-list {
   bottom: 0;
   left: 0;
   border: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background-color: #f1f3f4;
 }
 
 .popover.related-puzzle-popover {
@@ -674,7 +636,7 @@ table.puzzle-list {
 }
 
 .Resizer {
-  background: #000;
+  background: $gray-600;
   z-index: 1;
   box-sizing: border-box;
   background-clip: padding-box;
