@@ -8,6 +8,7 @@ import FeatureFlag from './feature_flag';
 import FolderPermission from './folder_permission';
 import Guess from './guess';
 import Hunt from './hunt';
+import CallHistory from './mediasoup/call_history';
 import ConnectAck from './mediasoup/connect_ack';
 import ConnectRequest from './mediasoup/connect_request';
 import Consumer from './mediasoup/consumer';
@@ -40,6 +41,7 @@ const Schemas = {
   Guess,
   Hunt,
   MediaSoup: {
+    CallHistory,
     ConnectAck,
     ConnectRequest,
     Consumer,

@@ -2,6 +2,7 @@ import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Ansible from '../ansible';
 import Flags from '../flags';
+import CallHistories from '../lib/models/mediasoup/call_histories';
 import ConnectAcks from '../lib/models/mediasoup/connect_acks';
 import ConnectRequests from '../lib/models/mediasoup/connect_requests';
 import ConsumerAcks from '../lib/models/mediasoup/consumer_acks';
@@ -37,6 +38,7 @@ registerPeriodicCleanupHook((deadServers) => {
       if (peer) {
         ignoringDuplicateKeyErrors(() => {
           Rooms.insert({
+            hunt: room.hunt,
             call: room.call,
             routedServer: serverId,
             createdBy: peer.createdBy,
@@ -56,6 +58,7 @@ Meteor.publish('mediasoup:debug', function () {
 
   return [
     Servers.find(),
+    CallHistories.find(),
     Peers.find(),
     Rooms.find(),
     Routers.find(),
@@ -83,7 +86,10 @@ Meteor.publish('mediasoup:metadata', function (hunt, call) {
     throw new Meteor.Error(403, 'Not a member of this hunt');
   }
 
-  return Peers.find({ hunt, call });
+  return [
+    Peers.find({ hunt, call }),
+    CallHistories.find({ hunt, call }),
+  ];
 });
 
 Meteor.publish('mediasoup:join', function (hunt, call, tab) {
@@ -107,6 +113,7 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
   Locks.withLock(`mediasoup:room:${call}`, () => {
     if (!Rooms.findOne({ call })) {
       Rooms.insert({
+        hunt,
         call,
         routedServer: serverId,
       });

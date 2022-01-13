@@ -4,6 +4,7 @@ import { BaseCodec, BaseOverrides } from '../base';
 import { Overrides, buildSchema, inheritSchema } from '../typedSchemas';
 
 const RouterFields = t.type({
+  hunt: t.string,
   call: t.string,
   createdServer: t.string,
   routerId: t.string, // mediasoup identifier
@@ -11,6 +12,10 @@ const RouterFields = t.type({
 });
 
 const RouterFieldsOverrides: Overrides<t.TypeOf<typeof RouterFields>> = {
+  hunt: {
+    regEx: SimpleSchema.RegEx.Id,
+    denyUpdate: true,
+  },
   call: {
     regEx: SimpleSchema.RegEx.Id,
     denyUpdate: true,

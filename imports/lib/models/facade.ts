@@ -8,6 +8,7 @@ import FeatureFlags from './feature_flags';
 import FolderPermissions from './folder_permissions';
 import Guesses from './guesses';
 import Hunts from './hunts';
+import CallHistories from './mediasoup/call_histories';
 import ConnectAcks from './mediasoup/connect_acks';
 import ConnectRequests from './mediasoup/connect_requests';
 import ConsumerAcks from './mediasoup/consumer_acks';
@@ -39,6 +40,7 @@ const Models = {
   Guesses,
   Hunts,
   MediaSoup: {
+    CallHistories,
     ConsumerAcks,
     Consumers,
     ConnectAcks,
