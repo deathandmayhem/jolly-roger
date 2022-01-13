@@ -2,6 +2,7 @@
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
+import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classnames from 'classnames';
@@ -9,11 +10,13 @@ import React, {
   useCallback, useMemo, useRef, useState,
 } from 'react';
 import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/esm/ButtonGroup';
 import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
 import PuzzleAnswer from './PuzzleAnswer';
+import PuzzleDeleteModal from './PuzzleDeleteModal';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SubscriberCount from './SubscriberCount';
 import TagList from './TagList';
@@ -34,7 +37,9 @@ const Puzzle = React.memo((props: PuzzleProps) => {
   // variable, which causes us to mount a new modal, which is set to open on
   // mount. Subsequent times, we just open the existing modal.
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
-  const modalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
+  const editModalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
+  const [renderDeleteModal, setRenderDeleteModal] = useState<boolean>(false);
+  const deleteModalRef = useRef<React.ElementRef<typeof PuzzleDeleteModal>>(null);
 
   const onEdit = useCallback((
     state: PuzzleModalFormSubmitPayload,
@@ -45,23 +50,37 @@ const Puzzle = React.memo((props: PuzzleProps) => {
   }, [props.puzzle._id]);
 
   const onShowEditModal = useCallback(() => {
-    if (showEditModal && modalRef.current) {
-      modalRef.current.show();
+    if (showEditModal && editModalRef.current) {
+      editModalRef.current.show();
     } else {
       setShowEditModal(true);
     }
   }, [showEditModal]);
+  const onShowDeleteModal = useCallback(() => {
+    if (renderDeleteModal && deleteModalRef.current) {
+      deleteModalRef.current.show();
+    } else {
+      setRenderDeleteModal(true);
+    }
+  }, [renderDeleteModal]);
 
-  const editButton = useMemo(() => {
+  const editButtons = useMemo(() => {
     if (props.canUpdate) {
       return (
-        <Button onClick={onShowEditModal} variant="light" size="sm" title="Edit puzzle...">
-          <FontAwesomeIcon icon={faEdit} />
-        </Button>
+        <ButtonGroup size="sm">
+          <Button onClick={onShowEditModal} variant="light" title="Edit puzzle...">
+            <FontAwesomeIcon icon={faEdit} />
+          </Button>
+          {!props.puzzle.deleted && (
+            <Button onClick={onShowDeleteModal} variant="light" title="Delete puzzle...">
+              <FontAwesomeIcon icon={faMinus} />
+            </Button>
+          )}
+        </ButtonGroup>
       );
     }
     return null;
-  }, [props.canUpdate, onShowEditModal]);
+  }, [props.canUpdate, props.puzzle.deleted, onShowEditModal, onShowDeleteModal]);
 
   // id, title, answer, tags
   const linkTarget = `/hunts/${props.puzzle.hunt}/puzzles/${props.puzzle._id}`;
@@ -89,7 +108,7 @@ const Puzzle = React.memo((props: PuzzleProps) => {
     return (
       <tr className={puzzleClasses}>
         <td className="puzzle-title">
-          {editButton}
+          {editButtons}
           {' '}
           <Link to={linkTarget}>{props.puzzle.title}</Link>
         </td>
@@ -105,7 +124,7 @@ const Puzzle = React.memo((props: PuzzleProps) => {
       {showEditModal ? (
         <PuzzleModalForm
           key={props.puzzle._id}
-          ref={modalRef}
+          ref={editModalRef}
           puzzle={props.puzzle}
           huntId={props.puzzle.hunt}
           tags={props.allTags}
@@ -113,9 +132,15 @@ const Puzzle = React.memo((props: PuzzleProps) => {
           showOnMount
         />
       ) : null}
+      {renderDeleteModal && (
+        <PuzzleDeleteModal
+          ref={deleteModalRef}
+          puzzle={props.puzzle}
+        />
+      )}
       {props.canUpdate && (
         <div className="puzzle-column puzzle-edit-button">
-          {editButton}
+          {editButtons}
         </div>
       )}
       <div className="puzzle-column puzzle-title">

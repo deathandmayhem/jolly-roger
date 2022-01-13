@@ -19,11 +19,12 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
+import Modal from 'react-bootstrap/Modal';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
 import Table from 'react-bootstrap/Table';
 import Tooltip from 'react-bootstrap/Tooltip';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
 import Ansible from '../../ansible';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
@@ -307,6 +308,7 @@ interface ChatInputProps {
   onHeightChange: (newHeight: number) => void;
   onMessageSent: () => void;
   puzzleId: string;
+  puzzleDeleted: boolean;
 }
 
 const ChatInput = React.memo((props: ChatInputProps) => {
@@ -360,6 +362,7 @@ const ChatInput = React.memo((props: ChatInputProps) => {
           minRows={1}
           maxRows={12}
           value={text}
+          disabled={props.puzzleDeleted}
           onChange={onInputChanged}
           onKeyDown={onKeyDown}
           onHeightChange={onHeightChangeCb}
@@ -370,7 +373,7 @@ const ChatInput = React.memo((props: ChatInputProps) => {
             variant="secondary"
             onClick={sendMessageIfHasText}
             onMouseDown={preventDefaultCallback}
-            disabled={text.length === 0}
+            disabled={props.puzzleDeleted || text.length === 0}
           >
             <FontAwesomeIcon icon={faPaperPlane} />
           </Button>
@@ -382,6 +385,7 @@ const ChatInput = React.memo((props: ChatInputProps) => {
 
 interface ChatSectionProps {
   chatDataLoading: boolean;
+  puzzleDeleted: boolean;
   displayNames: Record<string, string>;
   puzzleId: string;
   huntId: string;
@@ -420,10 +424,16 @@ const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: Rea
 
   return (
     <div className="chat-section">
-      <ChatPeople huntId={props.huntId} puzzleId={props.puzzleId} onHeightChange={scrollHistoryToTarget} />
+      <ChatPeople
+        huntId={props.huntId}
+        puzzleId={props.puzzleId}
+        puzzleDeleted={props.puzzleDeleted}
+        onHeightChange={scrollHistoryToTarget}
+      />
       <ChatHistoryMemo ref={historyRef} puzzleId={props.puzzleId} displayNames={props.displayNames} />
       <ChatInput
         puzzleId={props.puzzleId}
+        puzzleDeleted={props.puzzleDeleted}
         onHeightChange={scrollHistoryToTarget}
         onMessageSent={onMessageSent}
       />
@@ -746,6 +756,7 @@ const PuzzleGuessModal = React.forwardRef((
             autoComplete="off"
             onChange={onGuessInputChange}
             value={guessInput}
+            disabled={props.puzzle.deleted}
           />
         </Col>
       </FormGroup>
@@ -764,6 +775,7 @@ const PuzzleGuessModal = React.forwardRef((
               step={1}
               onChange={onDirectionInputChange}
               value={directionInput}
+              disabled={props.puzzle.deleted}
             />
           </OverlayTrigger>
           <FormText>
@@ -788,6 +800,7 @@ const PuzzleGuessModal = React.forwardRef((
               step={1}
               onChange={onConfidenceInputChange}
               value={confidenceInput}
+              disabled={props.puzzle.deleted}
             />
           </OverlayTrigger>
           <FormText>
@@ -948,6 +961,75 @@ const PuzzlePageMultiplayerDocument = React.memo((props: PuzzlePageMultiplayerDo
   );
 });
 
+const PuzzleDeletedModal = ({
+  puzzleId, huntId, replacedBy,
+}: { puzzleId: string, huntId: string, replacedBy?: string }) => {
+  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.userId(), huntId), [huntId]);
+
+  const replacementLoading = useSubscribe('mongo.puzzles.allowingDeleted', { _id: replacedBy });
+  const loading = replacementLoading();
+
+  const replacement = useTracker(() => Puzzles.findOneAllowingDeleted(replacedBy), [replacedBy]);
+
+  const [show, setShow] = useState(true);
+  const hide = useCallback(() => setShow(false), []);
+
+  const undelete = useCallback(() => {
+    Meteor.call('undeletePuzzle', puzzleId);
+    hide();
+  }, [puzzleId, hide]);
+
+  if (loading) {
+    return null;
+  }
+
+  return (
+    <Modal show={show} onHide={hide} backdrop="static">
+      <Modal.Header closeButton>
+        <Modal.Title>
+          This Jolly Roger entry has been removed
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p>
+          An operator has deleted this puzzle from Jolly Roger. You can still
+          view it to extract information, but you won&apos;t be able to edit
+          the shared document or send new chat messages going forward.
+        </p>
+        <p>
+          We want to make sure this page doesn&apos;t distract folks on the
+          team going forward, so there are no links back to this page. If you
+          need to save any information, make sure to hold onto the URL until
+          you&apos;re done.
+        </p>
+        {replacedBy && (
+          <p>
+            This puzzle has been replaced by
+            {' '}
+            <Link to={`/puzzle/${replacedBy}`}>{replacement?.title ?? 'Another puzzle'}</Link>
+            .
+          </p>
+        )}
+        {canUpdate && (
+          <>
+            <p>
+              As an operator, you can un-delete this puzzle:
+            </p>
+            <Button variant="primary" onClick={undelete}>
+              Undelete
+            </Button>
+          </>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={hide}>
+          Close
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
 const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
@@ -971,6 +1053,7 @@ const PuzzlePage = React.memo(() => {
 
   const displayNamesLoading = useSubscribeDisplayNames();
 
+  const deletedPuzzleLoading = useSubscribe('mongo.puzzles.deleted', { _id: puzzleId });
   const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
   const tagsLoading = useSubscribe('mongo.tags', { hunt: huntId });
   const guessesLoading = useSubscribe('mongo.guesses', { puzzle: puzzleId });
@@ -984,14 +1067,22 @@ const PuzzlePage = React.memo(() => {
 
   // There are some model dependencies that we have to be careful about:
   //
-  // * We show the displayname of the person who submitted a guess, so guesses depends on display names
-  // * Chat messages show the displayname of the sender, so chatmessages depends on display names
-  // * Puzzle metadata needs puzzles, tags, guesses, documents, and display names.
+  // * We show the displayname of the person who submitted a guess, so guesses
+  //   depends on display names
+  // * Chat messages show the displayname of the sender, so chatmessages depends
+  //   on display names, and we need to know if the puzzle has been deleted to
+  //   block new messages
+  // * Puzzle metadata needs puzzles, tags, guesses, documents, and display
+  //   names.
   //
-  // We can render some things on incomplete data, but most of them really need full data:
-  // * Chat can be rendered with just chat messages and display names
-  // * Puzzle metadata needs puzzles, tags, documents, guesses, and display names
+  // We can render some things on incomplete data, but most of them really need
+  // full data:
+  // * Chat can be rendered with chat messages, display names, and the deleted
+  //   puzzle
+  // * Puzzle metadata needs puzzles, tags, documents, guesses, and display
+  //   names
   const puzzleDataLoading =
+    deletedPuzzleLoading() ||
     puzzlesLoading() ||
     tagsLoading() ||
     guessesLoading() ||
@@ -999,6 +1090,7 @@ const PuzzlePage = React.memo(() => {
     subscribersLoading() ||
     displayNamesLoading();
   const chatDataLoading =
+    deletedPuzzleLoading() ||
     chatMessagesLoading() ||
     displayNamesLoading();
 
@@ -1014,9 +1106,13 @@ const PuzzlePage = React.memo(() => {
       Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } })
   ), [puzzleDataLoading, puzzleId]);
 
-  const activePuzzle = useTracker(() => Puzzles.findOne(puzzleId), [puzzleId]);
+  const activePuzzle = useTracker(() => Puzzles.findOneAllowingDeleted(puzzleId), [puzzleId]);
+  const breadcrumbTitle =
+    puzzleDataLoading ?
+      'loading...' :
+      `${activePuzzle!.title}${activePuzzle!.deleted ? ' (deleted)' : ''}`;
   useBreadcrumb({
-    title: puzzleDataLoading ? 'loading...' : activePuzzle!.title,
+    title: breadcrumbTitle,
     path: `/hunts/${huntId}/puzzles/${puzzleId}`,
   });
 
@@ -1084,42 +1180,52 @@ const PuzzlePage = React.memo(() => {
     <ChatSectionMemo
       ref={chatSectionRef}
       chatDataLoading={chatDataLoading}
+      puzzleDeleted={activePuzzle?.deleted ?? false}
       displayNames={displayNames}
       huntId={huntId}
       puzzleId={puzzleId}
     />
   );
+  const deletedModal = activePuzzle?.deleted && (
+    <PuzzleDeletedModal puzzleId={puzzleId} huntId={huntId} replacedBy={activePuzzle.replacedBy} />
+  );
 
   if (isDesktop) {
     return (
-      <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
-        <SplitPanePlus
-          split="vertical"
-          minSize={MinimumSidebarWidth}
-          maxSize={-MinimumDocumentWidth}
-          primary="first"
-          autoCollapse1={-1}
-          autoCollapse2={-1}
-          size={sidebarWidth}
-          onChanged={onChangeSideBarSize}
-          onPaneChanged={onCommitSideBarSize}
-        >
-          {chat}
-          <div className="puzzle-content">
-            {metadata}
-            <PuzzlePageMultiplayerDocument document={document} />
-          </div>
-        </SplitPanePlus>
-      </FixedLayout>
+      <>
+        {deletedModal}
+        <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
+          <SplitPanePlus
+            split="vertical"
+            minSize={MinimumSidebarWidth}
+            maxSize={-MinimumDocumentWidth}
+            primary="first"
+            autoCollapse1={-1}
+            autoCollapse2={-1}
+            size={sidebarWidth}
+            onChanged={onChangeSideBarSize}
+            onPaneChanged={onCommitSideBarSize}
+          >
+            {chat}
+            <div className="puzzle-content">
+              {metadata}
+              <PuzzlePageMultiplayerDocument document={document} />
+            </div>
+          </SplitPanePlus>
+        </FixedLayout>
+      </>
     );
   }
 
   // Non-desktop (narrow layout)
   return (
-    <FixedLayout className="puzzle-page narrow">
-      {metadata}
-      {chat}
-    </FixedLayout>
+    <>
+      {deletedModal}
+      <FixedLayout className="puzzle-page narrow">
+        {metadata}
+        {chat}
+      </FixedLayout>
+    </>
   );
 });
 

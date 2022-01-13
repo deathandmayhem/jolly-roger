@@ -76,6 +76,7 @@ const PeopleListHeader = styled.header`
 interface ChatPeopleProps {
   huntId: string;
   puzzleId: string;
+  puzzleDeleted: boolean;
   onHeightChange: () => void;
 }
 
@@ -454,14 +455,15 @@ const ChatPeople = (props: ChatPeopleProps) => {
     // * when joining the audiocall
     onHeightChange();
   }, [
-    loading,
     onHeightChange,
+    loading,
     rtcViewers.length,
     viewers.length,
     callersExpanded,
     viewersExpanded,
     callState,
     voiceActivityRelative,
+    props.puzzleDeleted,
   ]);
 
   trace('ChatPeople render', { loading });
@@ -535,7 +537,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
   const viewersHeaderIcon = viewersExpanded ? faCaretDown : faCaretRight;
   return (
     <section className="chatter-section">
-      {!rtcDisabled && callersSubsection}
+      {!rtcDisabled && !props.puzzleDeleted && callersSubsection}
       <div className="chatter-subsection non-av-viewers">
         <PeopleListHeader onClick={toggleViewersExpanded}>
           <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
