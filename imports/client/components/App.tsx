@@ -3,7 +3,9 @@ import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons/faExclamationTriangle';
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useCallback, useMemo } from 'react';
+import React, {
+  useCallback, useEffect, useMemo, useState,
+} from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownItem from 'react-bootstrap/DropdownItem';
@@ -19,11 +21,13 @@ import Container from 'react-bootstrap/esm/Container';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import * as RRBS from 'react-router-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
+import StackTrace, { StackFrame } from 'stacktrace-js';
 import styled from 'styled-components';
 import Profiles from '../../lib/models/profiles';
 import { useBreadcrumbItems } from '../hooks/breadcrumb';
 import lookupUrl from '../lookupUrl';
 import ConnectionStatus from './ConnectionStatus';
+import Loading from './Loading';
 import NotificationCenter from './NotificationCenter';
 import { NavBarHeight } from './styling/constants';
 import { mediaBreakpointDown } from './styling/responsive';
@@ -83,6 +87,14 @@ const Brand = styled.img`
 `;
 
 const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
+  const [frames, setFrames] = useState<StackFrame[] | undefined>(undefined);
+
+  useEffect(() => {
+    (async () => {
+      setFrames(await StackTrace.fromError(error));
+    })();
+  }, [error]);
+
   const navigate = useNavigate();
   const goBack = useCallback(() => navigate(-1), [navigate]);
   return (
@@ -105,7 +117,15 @@ const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
         </p>
 
         <pre>
-          {error.stack}
+          {frames ? (
+            <>
+              {error.message}
+              {'\n'}
+              {frames.map((f) => `    ${f.toString()}`).join('\n')}
+            </>
+          ) : (
+            <Loading inline />
+          )}
         </pre>
 
         <p>
