@@ -341,6 +341,7 @@ const ChatInput = React.memo((props: ChatInputProps) => {
 
   const onHeightChangeCb = useCallback((newHeight: number) => {
     if (onHeightChange) {
+      trace('ChatInput onHeightChange', { newHeight });
       onHeightChange(newHeight);
     }
   }, [onHeightChange]);
@@ -393,11 +394,22 @@ interface ChatSectionHandle {
 
 const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: React.Ref<ChatSectionHandle>) => {
   const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
+  const scrollToTargetRequestRef = useRef<boolean>(false);
 
   const scrollHistoryToTarget = useCallback(() => {
-    trace('ChatSection scrollHistoryToTarget', { hasRef: !!historyRef.current });
+    trace('ChatSection scrollHistoryToTarget', {
+      hasRef: !!historyRef.current,
+      alreadyWantsDeferredScroll: scrollToTargetRequestRef.current,
+    });
     if (historyRef.current) {
       historyRef.current.scrollToTarget();
+    } else {
+      // useLayoutEffect runs effects depth-first, which means when this
+      // component is being rendered, the layout effects of our children
+      // will fire while historyRef is null.  So if we get a request to
+      // scroll to target during that time window, save it for later, and
+      // fire it off again in our own useLayoutEffect hook.
+      scrollToTargetRequestRef.current = true;
     }
   }, []);
 
@@ -411,6 +423,17 @@ const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: Rea
   useImperativeHandle(forwardedRef, () => ({
     scrollHistoryToTarget,
   }));
+
+  useLayoutEffect(() => {
+    trace('ChatSection useLayoutEffect', {
+      wantDeferredScroll: scrollToTargetRequestRef.current,
+      hasRef: !!historyRef.current,
+    });
+    if (scrollToTargetRequestRef.current && historyRef.current) {
+      scrollToTargetRequestRef.current = false;
+      historyRef.current.scrollToTarget();
+    }
+  });
 
   trace('ChatSection render', { chatDataLoading: props.chatDataLoading });
 
