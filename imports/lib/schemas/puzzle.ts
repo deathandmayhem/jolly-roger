@@ -11,6 +11,7 @@ const PuzzleFields = t.type({
   url: t.union([t.string, t.undefined]),
   answers: t.array(t.string),
   expectedAnswerCount: t.number,
+  replacedBy: t.union([t.string, t.undefined]),
 });
 
 const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
@@ -36,6 +37,9 @@ const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
 
       return undefined;
     },
+  },
+  replacedBy: {
+    regEx: SimpleSchema.RegEx.Id,
   },
 };
 

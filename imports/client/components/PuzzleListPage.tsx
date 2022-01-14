@@ -90,6 +90,17 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
   const allPuzzles = useTracker(() => Puzzles.find({ hunt: props.huntId }).fetch(), [props.huntId]);
   const allTags = useTracker(() => Tags.find({ hunt: props.huntId }).fetch(), [props.huntId]);
 
+  const deletedPuzzlesLoading = useSubscribe(
+    props.canUpdate ? 'mongo.puzzles.deleted' : undefined,
+    { hunt: props.huntId }
+  );
+  const deletedLoading = deletedPuzzlesLoading();
+  const deletedPuzzles = useTracker(() => (
+    !props.canUpdate || deletedLoading ?
+      undefined :
+      Puzzles.findDeleted({ hunt: props.huntId }).fetch()
+  ), [props.canUpdate, props.huntId, deletedLoading]);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const searchString = searchParams.get('q') || '';
   const addModalRef = useRef<PuzzleModalFormHandle>(null);
@@ -286,9 +297,21 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
       <div>
         {maybeMatchWarning}
         {listComponent}
+        {deletedPuzzles && deletedPuzzles.length > 0 && (
+          <RelatedPuzzleGroup
+            key="deleted"
+            group={{ puzzles: deletedPuzzles, subgroups: [] }}
+            noSharedTagLabel="Deleted puzzles (operator only)"
+            allTags={allTags}
+            includeCount={false}
+            layout="grid"
+            canUpdate={props.canUpdate}
+            suppressedTagIds={[]}
+          />
+        )}
       </div>
     );
-  }, [displayMode, allPuzzles, allTags, props.canUpdate]);
+  }, [displayMode, allPuzzles, deletedPuzzles, allTags, props.canUpdate]);
 
   const addPuzzleContent = props.canAdd && (
     <>

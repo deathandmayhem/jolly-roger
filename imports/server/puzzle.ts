@@ -3,13 +3,19 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import Ansible from '../ansible';
 import Flags from '../flags';
+import Documents from '../lib/models/documents';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 import Tags from '../lib/models/tags';
 import { userMayWritePuzzlesForHunt } from '../lib/permission_stubs';
 import {
-  ensureDocument, renameDocument, MimeTypes, ensureHuntFolderPermission,
+  ensureDocument,
+  renameDocument,
+  MimeTypes,
+  ensureHuntFolderPermission,
+  makeReadOnly,
+  makeReadWrite,
 } from './gdrive';
 import DriveClient from './gdrive-client-refresher';
 import GlobalHooks from './global-hooks';
@@ -136,6 +142,90 @@ Meteor.methods({
         const teamName = getTeamName();
         renameDocument(doc.value.id, `${puzzle.title}: ${teamName}`);
       }));
+    }
+  },
+
+  deletePuzzle(puzzleId: unknown, replacedBy: unknown) {
+    check(this.userId, String);
+    check(puzzleId, String);
+    check(replacedBy, Match.Maybe(String));
+
+    const puzzle = Puzzles.findOne(puzzleId);
+    if (!puzzle) {
+      throw new Meteor.Error(404, 'Unknown puzzle id');
+    }
+    if (!userMayWritePuzzlesForHunt(this.userId, puzzle.hunt)) {
+      throw new Meteor.Error(
+        401,
+        `User ${this.userId} may not modify puzzles from hunt ${puzzle.hunt}`
+      );
+    }
+
+    if (replacedBy) {
+      const replacedByPuzzle = Puzzles.findOne(replacedBy);
+      if (!replacedByPuzzle || replacedByPuzzle.hunt !== puzzle.hunt) {
+        throw new Meteor.Error(400, 'Invalid replacement puzzle');
+      }
+    }
+
+    Puzzles.update(puzzleId, {
+      $set: {
+        replacedBy: replacedBy || undefined,
+        deleted: true,
+      },
+    });
+
+    if (Flags.active('disable.google')) {
+      return;
+    }
+
+    if (Flags.active('disable.gdrive_permissions')) {
+      return;
+    }
+
+    const document = Documents.findOne({ puzzle: puzzleId });
+
+    if (document) {
+      makeReadOnly(document.value.id);
+    }
+  },
+
+  undeletePuzzle(puzzleId: unknown) {
+    check(this.userId, String);
+    check(puzzleId, String);
+
+    const puzzle = Puzzles.findOneDeleted(puzzleId);
+    if (!puzzle) {
+      throw new Meteor.Error(404, 'Unknown puzzle id');
+    }
+    if (!userMayWritePuzzlesForHunt(this.userId, puzzle.hunt)) {
+      throw new Meteor.Error(
+        401,
+        `User ${this.userId} may not modify puzzles from hunt ${puzzle.hunt}`
+      );
+    }
+
+    Puzzles.update(puzzleId, {
+      $set: {
+        deleted: false,
+      },
+      $unset: {
+        replacedBy: 1,
+      },
+    });
+
+    if (Flags.active('disable.google')) {
+      return;
+    }
+
+    if (Flags.active('disable.gdrive_permissions')) {
+      return;
+    }
+
+    const document = Documents.findOne({ puzzle: puzzleId });
+
+    if (document) {
+      makeReadWrite(document.value.id);
     }
   },
 

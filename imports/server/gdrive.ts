@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Promise as MeteorPromise } from 'meteor/promise';
+import { drive_v3 as drive } from 'googleapis';
 import Ansible from '../ansible';
 import Flags from '../flags';
 import Documents from '../lib/models/documents';
@@ -122,6 +123,55 @@ export function grantPermission(id: string, email: string, permission: string): 
       emailAddress: email,
       role: permission,
     },
+  }));
+}
+
+export function makeReadOnly(fileId: string): void {
+  checkClientOk();
+  const client = DriveClient.gdrive;
+  if (!client) return;
+
+  // Fetch all permissions so we can delete them
+  const permissions = [] as NonNullable<drive.Schema$PermissionList['permissions']>;
+  let token: string | undefined;
+  for (;;) {
+    const response = MeteorPromise.await(client.permissions.list({
+      fileId,
+      pageToken: token,
+    }));
+    const page = response.data;
+    if (page.permissions) {
+      permissions.push(...page.permissions);
+    }
+    const nextToken = response.data.nextPageToken;
+    if (!nextToken) break;
+    token = nextToken;
+  }
+
+  // Leave everyone with read-only access
+  MeteorPromise.await(client.permissions.create({
+    fileId,
+    requestBody: { role: 'viewer', type: 'anyone' },
+  }));
+
+  // Delete any editor permissions
+  permissions.forEach((permission) => {
+    if (permission.id && permission.role === 'writer') {
+      MeteorPromise.await(client.permissions.delete({
+        fileId,
+        permissionId: permission.id,
+      }));
+    }
+  });
+}
+
+export function makeReadWrite(fileId: string): void {
+  checkClientOk();
+  if (!DriveClient.gdrive) return;
+
+  MeteorPromise.await(DriveClient.gdrive.permissions.create({
+    fileId,
+    requestBody: { role: 'writer', type: 'anyone' },
   }));
 }
 
