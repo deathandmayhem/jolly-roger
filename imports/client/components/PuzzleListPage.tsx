@@ -419,7 +419,8 @@ const PuzzleListPage = () => {
   const tagsLoading = useSubscribe('mongo.tags', { hunt: huntId });
   const loading = puzzlesLoading() || tagsLoading();
 
-  // Don't bother including this in loading - it's ok if it trickles in
+  // Don't bother including these in loading - it's ok if they trickle in
+  useSubscribe('mongo.mediasoup_call_histories', { hunt: huntId });
   useSubscribe('subscribers.counts', { hunt: huntId });
 
   // Assertion is safe because hunt is already subscribed and checked by HuntApp

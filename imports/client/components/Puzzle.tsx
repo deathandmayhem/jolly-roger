@@ -13,9 +13,9 @@ import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
+import PuzzleActivity from './PuzzleActivity';
 import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
-import SubscriberCount from './SubscriberCount';
 import TagList from './TagList';
 
 interface PuzzleProps {
@@ -121,8 +121,8 @@ const Puzzle = React.memo((props: PuzzleProps) => {
       <div className="puzzle-column puzzle-title">
         <Link to={linkTarget}>{props.puzzle.title}</Link>
       </div>
-      <div className="puzzle-column puzzle-view-count">
-        {!(props.puzzle.answers.length >= props.puzzle.expectedAnswerCount) && <SubscriberCount puzzleId={props.puzzle._id} />}
+      <div className="puzzle-column puzzle-activity">
+        {!(props.puzzle.answers.length >= props.puzzle.expectedAnswerCount) && <PuzzleActivity huntId={props.puzzle.hunt} puzzleId={props.puzzle._id} unlockTime={props.puzzle.createdAt} />}
       </div>
       <div className="puzzle-column puzzle-link">
         {props.puzzle.url ? (
