@@ -1029,7 +1029,7 @@ const PuzzleDeletedModal = ({
           <p>
             This puzzle has been replaced by
             {' '}
-            <Link to={`/puzzle/${replacedBy}`}>{replacement?.title ?? 'Another puzzle'}</Link>
+            <Link to={`/hunts/${huntId}/puzzles/${replacedBy}`}>{replacement?.title ?? 'Another puzzle'}</Link>
             .
           </p>
         )}
