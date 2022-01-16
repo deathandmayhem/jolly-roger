@@ -105,7 +105,7 @@ Meteor.methods({
       expectedAnswerCount: Number,
     }));
 
-    const oldPuzzle = Puzzles.findOne(puzzleId);
+    const oldPuzzle = Puzzles.findOneAllowingDeleted(puzzleId);
     if (!oldPuzzle) {
       throw new Meteor.Error(404, 'Unknown puzzle id');
     }
