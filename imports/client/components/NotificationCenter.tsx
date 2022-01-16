@@ -251,7 +251,9 @@ const GuessMessage = React.memo((props: GuessMessageProps) => {
           </StyledNotificationActionItem>
           <StyledNotificationActionItem>
             <OverlayTrigger placement="top" overlay={jrLinkTooltip}>
-              <Link to={linkTarget}><FontAwesomeIcon icon={faSkullCrossbones} /></Link>
+              <a href={linkTarget} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faSkullCrossbones} />
+              </a>
             </OverlayTrigger>
           </StyledNotificationActionItem>
           <StyledNotificationActionItem>
