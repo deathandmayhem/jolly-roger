@@ -427,6 +427,9 @@ const ChatNotificationMessage = (props: ChatNotificationMessageProps) => {
             {props.cn.text}
           </div>
         </div>
+        <footer>
+          {calendarTimeFormat(props.cn.createdAt)}
+        </footer>
       </MessengerContent>
       <MessengerDismissButton onDismiss={dismiss} />
     </StyledNotificationMessage>
