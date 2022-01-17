@@ -7,14 +7,8 @@ import Button from 'react-bootstrap/Button';
 import styled from 'styled-components';
 import Ansible from '../../ansible';
 
-interface WaitingAlertProps {
-  retryTime: DDP.DDPStatus['retryTime'];
-}
-
-const WaitingAlert = (props: WaitingAlertProps) => {
-  const now = Date.now();
-  const retryTime = props.retryTime || now;
-  const [lastUpdated, setLastUpdated] = useState<number>(now);
+const WaitingAlert = ({ retryTime = Date.now() }: { retryTime: DDP.DDPStatus['retryTime'] }) => {
+  const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
 
   useEffect(() => {
     const timer = window.setInterval(() => {

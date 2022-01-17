@@ -51,10 +51,9 @@ interface DiscordSelectorProps extends DiscordSelectorParams {
   options: SavedDiscordObjectType[];
 }
 
-const DiscordSelector = (props: DiscordSelectorProps) => {
-  const {
-    disable, value, onChange, loading, options,
-  } = props;
+const DiscordSelector = ({
+  disable, id: formId, value, onChange, loading, options,
+}: DiscordSelectorProps) => {
   const onValueChanged: FormControlProps['onChange'] = useCallback((e) => {
     if (e.currentTarget.value === 'empty') {
       onChange(undefined);
@@ -89,7 +88,7 @@ const DiscordSelector = (props: DiscordSelectorProps) => {
   } else {
     return (
       <FormControl
-        id={props.id}
+        id={formId}
         as="select"
         type="text"
         placeholder=""
@@ -107,14 +106,14 @@ const DiscordSelector = (props: DiscordSelectorProps) => {
   }
 };
 
-const DiscordChannelSelector = (params: DiscordSelectorParams & { guildId: string }) => {
+const DiscordChannelSelector = ({ guildId, ...rest }: DiscordSelectorParams & { guildId: string }) => {
   const cacheLoading = useSubscribe('discord.cache', { type: 'channel' });
   const loading = cacheLoading();
 
   const { options } = useTracker(() => {
     const discordChannels: SavedDiscordObjectType[] = DiscordCache.find({
       type: 'channel',
-      'object.guild': params.guildId,
+      'object.guild': guildId,
       // We want only text channels, since those are the only ones we can bridge chat messages to.
       'object.type': 'text',
     }, {
@@ -127,25 +126,25 @@ const DiscordChannelSelector = (params: DiscordSelectorParams & { guildId: strin
     return {
       options: discordChannels,
     };
-  }, [params.guildId]);
+  }, [guildId]);
   return (
     <DiscordSelector
       loading={loading}
       options={options}
-      {...params}
+      {...rest}
     />
   );
 };
 
-const DiscordRoleSelector = (params: DiscordSelectorParams & { guildId: string }) => {
+const DiscordRoleSelector = ({ guildId, ...rest }: DiscordSelectorParams & { guildId: string }) => {
   const cacheLoading = useSubscribe('discord.cache', { type: 'role' });
   const loading = cacheLoading();
   const { options } = useTracker(() => {
     const discordRoles: SavedDiscordObjectType[] = DiscordCache.find({
       type: 'role',
-      'object.guild': params.guildId,
+      'object.guild': guildId,
       // The role whose id is the same as the guild is the @everyone role, don't want that
-      'object.id': { $ne: params.guildId },
+      'object.id': { $ne: guildId },
       // Managed roles are owned by an integration
       'object.managed': false,
     }, {
@@ -158,12 +157,12 @@ const DiscordRoleSelector = (params: DiscordSelectorParams & { guildId: string }
     return {
       options: discordRoles,
     };
-  }, [params.guildId]);
+  }, [guildId]);
   return (
     <DiscordSelector
       loading={loading}
       options={options}
-      {...params}
+      {...rest}
     />
   );
 };
@@ -182,11 +181,6 @@ export interface HuntModalSubmit {
   memberDiscordRole: SavedDiscordObjectType | undefined;
 }
 
-interface HuntModalFormProps {
-  hunt?: HuntType;
-  onSubmit: (state: HuntModalSubmit, callback: (error?: Error) => void) => void;
-}
-
 enum HuntModalFormSubmitState {
   IDLE = 'idle',
   SUBMITTING = 'submitting',
@@ -197,7 +191,12 @@ type HuntModalFormHandle = {
   show: () => void;
 }
 
-const HuntModalForm = React.forwardRef((props: HuntModalFormProps, forwardedRef: React.Ref<HuntModalFormHandle>) => {
+const HuntModalForm = React.forwardRef(({
+  hunt, onSubmit,
+}: {
+  hunt?: HuntType;
+  onSubmit: (state: HuntModalSubmit, callback: (error?: Error) => void) => void;
+}, forwardedRef: React.Ref<HuntModalFormHandle>) => {
   useSubscribe('mongo.settings', { name: 'discord.guild' });
   const guildId = useTracker(() => {
     const setting = Settings.findOne({ name: 'discord.guild' }) as SettingType & { name: 'discord.guild' } | undefined;
@@ -207,16 +206,16 @@ const HuntModalForm = React.forwardRef((props: HuntModalFormProps, forwardedRef:
   const [submitState, setSubmitState] = useState<HuntModalFormSubmitState>(HuntModalFormSubmitState.IDLE);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  const [name, setName] = useState<string>(props.hunt?.name ?? '');
-  const [mailingLists, setMailingLists] = useState<string>(props.hunt?.mailingLists.join(', ') ?? '');
-  const [signupMessage, setSignupMessage] = useState<string>(props.hunt?.signupMessage ?? '');
-  const [openSignups, setOpenSignups] = useState<boolean>(props.hunt?.openSignups ?? false);
-  const [hasGuessQueue, setHasGuessQueue] = useState<boolean>(props.hunt?.hasGuessQueue ?? true);
-  const [homepageUrl, setHomepageUrl] = useState<string>(props.hunt?.homepageUrl ?? '');
-  const [submitTemplate, setSubmitTemplate] = useState<string>(props.hunt?.submitTemplate ?? '');
-  const [puzzleHooksDiscordChannel, setPuzzleHooksDiscordChannel] = useState<SavedDiscordObjectType | undefined>(props.hunt?.puzzleHooksDiscordChannel);
-  const [firehoseDiscordChannel, setFirehoseDiscordChannel] = useState<SavedDiscordObjectType | undefined>(props.hunt?.firehoseDiscordChannel);
-  const [memberDiscordRole, setMemberDiscordRole] = useState<SavedDiscordObjectType | undefined>(props.hunt?.memberDiscordRole);
+  const [name, setName] = useState<string>(hunt?.name ?? '');
+  const [mailingLists, setMailingLists] = useState<string>(hunt?.mailingLists.join(', ') ?? '');
+  const [signupMessage, setSignupMessage] = useState<string>(hunt?.signupMessage ?? '');
+  const [openSignups, setOpenSignups] = useState<boolean>(hunt?.openSignups ?? false);
+  const [hasGuessQueue, setHasGuessQueue] = useState<boolean>(hunt?.hasGuessQueue ?? true);
+  const [homepageUrl, setHomepageUrl] = useState<string>(hunt?.homepageUrl ?? '');
+  const [submitTemplate, setSubmitTemplate] = useState<string>(hunt?.submitTemplate ?? '');
+  const [puzzleHooksDiscordChannel, setPuzzleHooksDiscordChannel] = useState<SavedDiscordObjectType | undefined>(hunt?.puzzleHooksDiscordChannel);
+  const [firehoseDiscordChannel, setFirehoseDiscordChannel] = useState<SavedDiscordObjectType | undefined>(hunt?.firehoseDiscordChannel);
+  const [memberDiscordRole, setMemberDiscordRole] = useState<SavedDiscordObjectType | undefined>(hunt?.memberDiscordRole);
 
   const formRef = useRef<ModalFormHandle>(null);
 
@@ -283,7 +282,7 @@ const HuntModalForm = React.forwardRef((props: HuntModalFormProps, forwardedRef:
       memberDiscordRole,
     };
 
-    props.onSubmit(sendState, (error?: Error) => {
+    onSubmit(sendState, (error?: Error) => {
       if (error) {
         setErrorMessage(error.message);
         setSubmitState(HuntModalFormSubmitState.FAILED);
@@ -296,11 +295,11 @@ const HuntModalForm = React.forwardRef((props: HuntModalFormProps, forwardedRef:
   };
 
   const disableForm = submitState === HuntModalFormSubmitState.SUBMITTING;
-  const idPrefix = props.hunt ? `jr-hunt-${props.hunt._id}-modal-` : 'jr-hunt-new-modal-';
+  const idPrefix = hunt ? `jr-hunt-${hunt._id}-modal-` : 'jr-hunt-new-modal-';
   return (
     <ModalForm
       ref={formRef}
-      title={props.hunt ? 'Edit Hunt' : 'New Hunt'}
+      title={hunt ? 'Edit Hunt' : 'New Hunt'}
       onSubmit={onFormSubmit}
       submitDisabled={disableForm}
     >
@@ -520,12 +519,8 @@ const HuntModalForm = React.forwardRef((props: HuntModalFormProps, forwardedRef:
   );
 });
 
-interface HuntProps {
-  hunt: HuntType;
-}
-
-const Hunt = React.memo((props: HuntProps) => {
-  const huntId = props.hunt._id;
+const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
+  const huntId = hunt._id;
 
   const { canUpdate, canDestroy } = useTracker(() => {
     return {
@@ -570,7 +565,7 @@ const Hunt = React.memo((props: HuntProps) => {
     <li>
       <HuntModalForm
         ref={editModalRef}
-        hunt={props.hunt}
+        hunt={hunt}
         onSubmit={onEdit}
       />
       <ModalForm
@@ -581,7 +576,7 @@ const Hunt = React.memo((props: HuntProps) => {
         onSubmit={onDelete}
       >
         Are you sure you want to delete &quot;
-        {props.hunt.name}
+        {hunt.name}
         &quot;? This will additionally delete all puzzles and associated state.
       </ModalForm>
       <ButtonGroup size="sm">
@@ -598,7 +593,7 @@ const Hunt = React.memo((props: HuntProps) => {
       </ButtonGroup>
       {' '}
       <Link to={`/hunts/${huntId}`}>
-        {props.hunt.name}
+        {hunt.name}
       </Link>
     </li>
   );

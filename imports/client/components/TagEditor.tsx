@@ -7,18 +7,17 @@ import Loading from './Loading';
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 const Creatable = React.lazy(() => import('react-select/creatable')) as typeof import('react-select/creatable').default;
 
-interface TagEditorProps {
+const TagEditor = ({
+  puzzle, onSubmit, onCancel,
+}: {
   puzzle: PuzzleType;
   onSubmit: (value: string) => void;
   onCancel: () => void;
-}
-
-const TagEditor = (props: TagEditorProps) => {
+}) => {
   const allTags = useTracker(() => {
-    return Tags.find({ hunt: props.puzzle.hunt }).fetch();
-  }, [props.puzzle.hunt]);
+    return Tags.find({ hunt: puzzle.hunt }).fetch();
+  }, [puzzle.hunt]);
 
-  const { onCancel } = props;
   const onBlur = useCallback(() => {
     // Treat blur as "no I didn't mean to do that".  We may have to change this
     // once we have autocomplete .
@@ -39,7 +38,7 @@ const TagEditor = (props: TagEditorProps) => {
           options={options}
           autoFocus
           openMenuOnFocus
-          onChange={(v) => v && props.onSubmit(v.value)}
+          onChange={(v) => v && onSubmit(v.value)}
           onBlur={onBlur}
         />
       </span>

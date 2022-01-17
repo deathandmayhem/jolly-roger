@@ -106,33 +106,28 @@ const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
 //   |           |
 //   |___________|
 
-interface ChatMessageProps {
+const ChatMessage = React.memo(({
+  message, senderDisplayName, isSystemMessage, suppressSender,
+}: {
   message: FilteredChatMessageType;
   senderDisplayName: string;
   isSystemMessage: boolean;
   suppressSender: boolean;
-}
-
-const ChatMessage = React.memo((props: ChatMessageProps) => {
-  const ts = shortCalendarTimeFormat(props.message.timestamp);
-  const classes = classnames('chat-message', props.isSystemMessage && 'system-message');
+}) => {
+  const ts = shortCalendarTimeFormat(message.timestamp);
+  const classes = classnames('chat-message', isSystemMessage && 'system-message');
 
   return (
     <div className={classes}>
-      {!props.suppressSender && <span className="chat-timestamp">{ts}</span>}
-      {!props.suppressSender && <strong>{props.senderDisplayName}</strong>}
+      {!suppressSender && <span className="chat-timestamp">{ts}</span>}
+      {!suppressSender && <strong>{senderDisplayName}</strong>}
       <span
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: markdown(props.message.text) }}
+        dangerouslySetInnerHTML={{ __html: markdown(message.text) }}
       />
     </div>
   );
 });
-
-interface ChatHistoryProps {
-  puzzleId: string;
-  displayNames: Record<string, string>;
-}
 
 type ChatHistoryHandle = {
   saveScrollBottomTarget: () => void,
@@ -140,13 +135,18 @@ type ChatHistoryHandle = {
   scrollToTarget: () => void;
 }
 
-const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: React.Ref<ChatHistoryHandle>) => {
+const ChatHistory = React.forwardRef(({
+  puzzleId, displayNames,
+}: {
+  puzzleId: string;
+  displayNames: Record<string, string>;
+}, forwardedRef: React.Ref<ChatHistoryHandle>) => {
   const chatMessages: FilteredChatMessageType[] = useTracker(() => (
     ChatMessages.find(
-      { puzzle: props.puzzleId },
+      { puzzle: puzzleId },
       { sort: { timestamp: 1 } },
     ).fetch()
-  ), [props.puzzleId]);
+  ), [puzzleId]);
 
   const ref = useRef<HTMLDivElement>(null);
   const scrollBottomTarget = useRef<number>(0);
@@ -266,7 +266,7 @@ const ChatHistory = React.forwardRef((props: ChatHistoryProps, forwardedRef: Rea
         </div>
       ) : undefined}
       {chatMessages.map((msg, index, messages) => {
-        const displayName = (msg.sender !== undefined) ? props.displayNames[msg.sender] : 'jolly-roger';
+        const displayName = (msg.sender !== undefined) ? displayNames[msg.sender] : 'jolly-roger';
         // Only suppress sender and timestamp if:
         // * this is not the first message
         // * this message was sent by the same person as the previous message
@@ -304,18 +304,16 @@ const chatInputStyles = {
   },
 };
 
-interface ChatInputProps {
+const ChatInput = React.memo(({
+  onHeightChange, onMessageSent, puzzleId, puzzleDeleted,
+}: {
   onHeightChange: (newHeight: number) => void;
   onMessageSent: () => void;
   puzzleId: string;
   puzzleDeleted: boolean;
-}
-
-const ChatInput = React.memo((props: ChatInputProps) => {
+}) => {
   const [text, setText] = useState<string>('');
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
-  const { onHeightChange, onMessageSent, puzzleId } = props;
 
   const onInputChanged = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
@@ -363,7 +361,7 @@ const ChatInput = React.memo((props: ChatInputProps) => {
           minRows={1}
           maxRows={12}
           value={text}
-          disabled={props.puzzleDeleted}
+          disabled={puzzleDeleted}
           onChange={onInputChanged}
           onKeyDown={onKeyDown}
           onHeightChange={onHeightChangeCb}
@@ -374,7 +372,7 @@ const ChatInput = React.memo((props: ChatInputProps) => {
             variant="secondary"
             onClick={sendMessageIfHasText}
             onMouseDown={preventDefaultCallback}
-            disabled={props.puzzleDeleted || text.length === 0}
+            disabled={puzzleDeleted || text.length === 0}
           >
             <FontAwesomeIcon icon={faPaperPlane} />
           </Button>
@@ -384,19 +382,19 @@ const ChatInput = React.memo((props: ChatInputProps) => {
   );
 });
 
-interface ChatSectionProps {
+interface ChatSectionHandle {
+  scrollHistoryToTarget: () => void;
+}
+
+const ChatSection = React.forwardRef(({
+  chatDataLoading, puzzleDeleted, displayNames, puzzleId, huntId,
+}: {
   chatDataLoading: boolean;
   puzzleDeleted: boolean;
   displayNames: Record<string, string>;
   puzzleId: string;
   huntId: string;
-}
-
-interface ChatSectionHandle {
-  scrollHistoryToTarget: () => void;
-}
-
-const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: React.Ref<ChatSectionHandle>) => {
+}, forwardedRef: React.Ref<ChatSectionHandle>) => {
   const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
   const scrollToTargetRequestRef = useRef<boolean>(false);
 
@@ -439,24 +437,24 @@ const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: Rea
     }
   });
 
-  trace('ChatSection render', { chatDataLoading: props.chatDataLoading });
+  trace('ChatSection render', { chatDataLoading });
 
-  if (props.chatDataLoading) {
+  if (chatDataLoading) {
     return <div className="chat-section">loading...</div>;
   }
 
   return (
     <div className="chat-section">
       <ChatPeople
-        huntId={props.huntId}
-        puzzleId={props.puzzleId}
-        puzzleDeleted={props.puzzleDeleted}
+        huntId={huntId}
+        puzzleId={puzzleId}
+        puzzleDeleted={puzzleDeleted}
         onHeightChange={scrollHistoryToTarget}
       />
-      <ChatHistoryMemo ref={historyRef} puzzleId={props.puzzleId} displayNames={props.displayNames} />
+      <ChatHistoryMemo ref={historyRef} puzzleId={puzzleId} displayNames={displayNames} />
       <ChatInput
-        puzzleId={props.puzzleId}
-        puzzleDeleted={props.puzzleDeleted}
+        puzzleId={puzzleId}
+        puzzleDeleted={puzzleDeleted}
         onHeightChange={scrollHistoryToTarget}
         onMessageSent={onMessageSent}
       />
@@ -465,16 +463,16 @@ const ChatSection = React.forwardRef((props: ChatSectionProps, forwardedRef: Rea
 });
 const ChatSectionMemo = React.memo(ChatSection);
 
-interface PuzzlePageMetadataProps {
+const PuzzlePageMetadata = ({
+  puzzle, displayNames, document, isDesktop,
+}: {
   puzzle: PuzzleType;
   displayNames: Record<string, string>;
   document?: DocumentType;
   isDesktop: boolean;
-}
-
-const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
-  const huntId = props.puzzle.hunt;
-  const puzzleId = props.puzzle._id;
+}) => {
+  const huntId = puzzle.hunt;
+  const puzzleId = puzzle._id;
 
   const hasGuessQueue = useTracker(() => Hunts.findOne(huntId)?.hasGuessQueue ?? false, [huntId]);
   const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.userId(), huntId), [huntId]);
@@ -542,7 +540,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
   }, []);
 
   const tagsById = _.indexBy(allTags, '_id');
-  const tags = props.puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
+  const tags = puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
   const correctGuesses = guesses.filter((guess) => guess.state === 'correct');
   const numGuesses = guesses.length;
 
@@ -561,10 +559,10 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
     </span>
   ) : null;
 
-  const puzzleLink = props.puzzle.url ? (
+  const puzzleLink = puzzle.url ? (
     <a
       className="puzzle-metadata-external-link-button"
-      href={props.puzzle.url}
+      href={puzzle.url}
       target="_blank"
       rel="noreferrer noopener"
     >
@@ -574,9 +572,9 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
     </a>
   ) : null;
 
-  const documentLink = props.document ? (
-    <span className={classnames(props.isDesktop && 'tablet-only')}>
-      <DocumentDisplay document={props.document} displayMode="link" />
+  const documentLink = document ? (
+    <span className={classnames(isDesktop && 'tablet-only')}>
+      <DocumentDisplay document={document} displayMode="link" />
     </span>
   ) : null;
 
@@ -589,7 +587,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
   ) : null;
 
   let guessButton = null;
-  if (props.puzzle.expectedAnswerCount > 0) {
+  if (puzzle.expectedAnswerCount > 0) {
     guessButton = hasGuessQueue ? (
       <>
         <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={showGuessModal}>
@@ -600,9 +598,9 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
         {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleGuessModal
           ref={guessModalRef}
-          puzzle={props.puzzle}
+          puzzle={puzzle}
           guesses={guesses}
-          displayNames={props.displayNames}
+          displayNames={displayNames}
         />
       </>
     ) : (
@@ -614,7 +612,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
         {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleAnswerModal
           ref={answerModalRef}
-          puzzle={props.puzzle}
+          puzzle={puzzle}
         />
       </>
     );
@@ -625,7 +623,7 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
       <PuzzleModalForm
         key={puzzleId}
         ref={editModalRef}
-        puzzle={props.puzzle}
+        puzzle={puzzle}
         huntId={huntId}
         tags={allTags}
         onSubmit={onEdit}
@@ -641,12 +639,12 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
       </div>
       <div className="puzzle-metadata-row">
         <TagList
-          puzzle={props.puzzle}
+          puzzle={puzzle}
           tags={tags}
           onCreateTag={onCreateTag}
           onRemoveTag={onRemoveTag}
           linkToSearch={false}
-          showControls={props.isDesktop}
+          showControls={isDesktop}
           popoverRelated
           allPuzzles={allPuzzles}
           allTags={allTags}
@@ -657,12 +655,6 @@ const PuzzlePageMetadata = (props: PuzzlePageMetadataProps) => {
   );
 };
 
-interface PuzzleGuessModalProps {
-  puzzle: PuzzleType;
-  guesses: GuessType[];
-  displayNames: Record<string, string>;
-}
-
 enum PuzzleGuessSubmitState {
   IDLE = 'idle',
   FAILED = 'failed',
@@ -672,10 +664,13 @@ type PuzzleGuessModalHandle = {
   show: () => void;
 };
 
-const PuzzleGuessModal = React.forwardRef((
-  props: PuzzleGuessModalProps,
-  forwardedRef: React.Ref<PuzzleGuessModalHandle>
-) => {
+const PuzzleGuessModal = React.forwardRef(({
+  puzzle, guesses, displayNames,
+}: {
+  puzzle: PuzzleType;
+  guesses: GuessType[];
+  displayNames: Record<string, string>;
+}, forwardedRef: React.Ref<PuzzleGuessModalHandle>) => {
   const [guessInput, setGuessInput] = useState<string>('');
   const [directionInput, setDirectionInput] = useState<number>(0);
   const [confidenceInput, setConfidenceInput] = useState<number>(50);
@@ -708,8 +703,8 @@ const PuzzleGuessModal = React.forwardRef((
   }, []);
 
   const onSubmitGuess = useCallback(() => {
-    const repeatGuess = props.guesses.find((g) => { return g.guess === guessInput; });
-    const alreadySolved = props.puzzle.answers.length >= props.puzzle.expectedAnswerCount;
+    const repeatGuess = guesses.find((g) => { return g.guess === guessInput; });
+    const alreadySolved = puzzle.answers.length >= puzzle.expectedAnswerCount;
     if ((repeatGuess || alreadySolved) && !confirmingSubmit) {
       const repeatGuessStr = repeatGuess ? 'This answer has already been submitted. ' : '';
       const alreadySolvedStr = alreadySolved ? 'This puzzle has already been solved. ' : '';
@@ -719,7 +714,7 @@ const PuzzleGuessModal = React.forwardRef((
     } else {
       Meteor.call(
         'addGuessForPuzzle',
-        props.puzzle._id,
+        puzzle._id,
         guessInput,
         directionInput,
         confidenceInput,
@@ -737,7 +732,7 @@ const PuzzleGuessModal = React.forwardRef((
       );
     }
   }, [
-    props.guesses, props.puzzle._id, props.puzzle.answers, props.puzzle.expectedAnswerCount,
+    guesses, puzzle._id, puzzle.answers, puzzle.expectedAnswerCount,
     guessInput, directionInput, confidenceInput, confirmingSubmit,
   ]);
 
@@ -763,7 +758,7 @@ const PuzzleGuessModal = React.forwardRef((
   return (
     <ModalForm
       ref={formRef}
-      title={`${props.puzzle.answers.length >= props.puzzle.expectedAnswerCount ? 'Guess history for' : 'Submit answer to'} ${props.puzzle.title}`}
+      title={`${puzzle.answers.length >= puzzle.expectedAnswerCount ? 'Guess history for' : 'Submit answer to'} ${puzzle.title}`}
       onSubmit={onSubmitGuess}
       submitLabel={confirmingSubmit ? 'Confirm Submit' : 'Submit'}
     >
@@ -779,7 +774,7 @@ const PuzzleGuessModal = React.forwardRef((
             autoComplete="off"
             onChange={onGuessInputChange}
             value={guessInput}
-            disabled={props.puzzle.deleted}
+            disabled={puzzle.deleted}
           />
         </Col>
       </FormGroup>
@@ -798,7 +793,7 @@ const PuzzleGuessModal = React.forwardRef((
               step={1}
               onChange={onDirectionInputChange}
               value={directionInput}
-              disabled={props.puzzle.deleted}
+              disabled={puzzle.deleted}
             />
           </OverlayTrigger>
           <FormText>
@@ -823,7 +818,7 @@ const PuzzleGuessModal = React.forwardRef((
               step={1}
               onChange={onConfidenceInputChange}
               value={confidenceInput}
-              disabled={props.puzzle.deleted}
+              disabled={puzzle.deleted}
             />
           </OverlayTrigger>
           <FormText>
@@ -833,7 +828,7 @@ const PuzzleGuessModal = React.forwardRef((
         </Col>
       </FormGroup>
 
-      {props.guesses.length === 0 ? <div>No previous submissions.</div> : [
+      {guesses.length === 0 ? <div>No previous submissions.</div> : [
         <div key="label">Previous submissions:</div>,
         <Table className="guess-history-table" key="table" bordered size="sm">
           <thead>
@@ -845,12 +840,12 @@ const PuzzleGuessModal = React.forwardRef((
             </tr>
           </thead>
           <tbody>
-            {_.sortBy(props.guesses, 'createdAt').reverse().map((guess) => {
+            {_.sortBy(guesses, 'createdAt').reverse().map((guess) => {
               return (
                 <tr key={guess._id} className={`guess-${guess.state}`}>
                   <td className="answer">{guess.guess}</td>
                   <td>{calendarTimeFormat(guess.createdAt)}</td>
-                  <td>{props.displayNames[guess.createdBy]}</td>
+                  <td>{displayNames[guess.createdBy]}</td>
                   <td style={{ textTransform: 'capitalize' }}>{guess.state}</td>
                 </tr>
               );
@@ -864,10 +859,6 @@ const PuzzleGuessModal = React.forwardRef((
   );
 });
 
-interface PuzzleAnswerModalProps {
-  puzzle: PuzzleType;
-}
-
 enum PuzzleAnswerSubmitState {
   IDLE = 'idle',
   SUBMITTING = 'submitting',
@@ -879,7 +870,9 @@ type PuzzleAnswerModalHandle = {
   show: () => void;
 }
 
-const PuzzleAnswerModal = React.forwardRef((props: PuzzleAnswerModalProps, forwardedRef: React.Ref<PuzzleAnswerModalHandle>) => {
+const PuzzleAnswerModal = React.forwardRef(({ puzzle }: {
+  puzzle: PuzzleType;
+}, forwardedRef: React.Ref<PuzzleAnswerModalHandle>) => {
   const [answer, setAnswer] = useState<string>('');
   const [submitState, setSubmitState] =
     useState<PuzzleAnswerSubmitState>(PuzzleAnswerSubmitState.IDLE);
@@ -917,7 +910,7 @@ const PuzzleAnswerModal = React.forwardRef((props: PuzzleAnswerModalProps, forwa
     setSubmitError('');
     Meteor.call(
       'addCorrectGuessForPuzzle',
-      props.puzzle._id,
+      puzzle._id,
       answer,
       (error?: Error) => {
         if (error) {
@@ -930,12 +923,12 @@ const PuzzleAnswerModal = React.forwardRef((props: PuzzleAnswerModalProps, forwa
         }
       },
     );
-  }, [props.puzzle._id, answer, hide]);
+  }, [puzzle._id, answer, hide]);
 
   return (
     <ModalForm
       ref={formRef}
-      title={`Submit answer to ${props.puzzle.title}`}
+      title={`Submit answer to ${puzzle.title}`}
       onSubmit={onSubmit}
       submitLabel={submitState === PuzzleAnswerSubmitState.SUBMITTING ? 'Confirm Submit' : 'Submit'}
     >
@@ -964,12 +957,10 @@ const PuzzleAnswerModal = React.forwardRef((props: PuzzleAnswerModalProps, forwa
   );
 });
 
-interface PuzzlePageMultiplayerDocumentProps {
+const PuzzlePageMultiplayerDocument = React.memo(({ document }: {
   document?: DocumentType;
-}
-
-const PuzzlePageMultiplayerDocument = React.memo((props: PuzzlePageMultiplayerDocumentProps) => {
-  if (!props.document) {
+}) => {
+  if (!document) {
     return (
       <div className="puzzle-document puzzle-document-message">
         Attempting to load collaborative document...
@@ -979,7 +970,7 @@ const PuzzlePageMultiplayerDocument = React.memo((props: PuzzlePageMultiplayerDo
 
   return (
     <div className="puzzle-document">
-      <DocumentDisplay document={props.document} displayMode="embed" />
+      <DocumentDisplay document={document} displayMode="embed" />
     </div>
   );
 });

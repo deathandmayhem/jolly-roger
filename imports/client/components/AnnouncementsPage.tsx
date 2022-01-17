@@ -15,10 +15,6 @@ import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import markdown from '../markdown';
 
-interface AnnouncementFormProps {
-  huntId: string;
-}
-
 enum AnnouncementFormSubmitState {
   IDLE = 'idle',
   SUBMITTING = 'submitting',
@@ -45,7 +41,7 @@ const AnnouncementFormContainer = styled.div`
   }
 `;
 
-const AnnouncementForm = (props: AnnouncementFormProps) => {
+const AnnouncementForm = ({ huntId }: { huntId: string }) => {
   const [message, setMessage] = useState<string>('');
   const [submitState, setSubmitState] = useState<AnnouncementFormSubmitState>(AnnouncementFormSubmitState.IDLE);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -57,7 +53,7 @@ const AnnouncementForm = (props: AnnouncementFormProps) => {
   const postAnnouncement = useCallback(() => {
     if (message) {
       setSubmitState(AnnouncementFormSubmitState.SUBMITTING);
-      Meteor.call('postAnnouncement', props.huntId, message, (error?: Error) => {
+      Meteor.call('postAnnouncement', huntId, message, (error?: Error) => {
         if (error) {
           setErrorMessage(error.message);
           setSubmitState(AnnouncementFormSubmitState.FAILED);
@@ -67,7 +63,7 @@ const AnnouncementForm = (props: AnnouncementFormProps) => {
         }
       });
     }
-  }, [message, props.huntId]);
+  }, [message, huntId]);
 
   return (
     <AnnouncementFormContainer>
@@ -92,11 +88,6 @@ const AnnouncementForm = (props: AnnouncementFormProps) => {
   );
 };
 
-interface AnnouncementProps {
-  announcement: AnnouncementType;
-  displayName: string;
-}
-
 const AnnouncementContainer = styled.div`
   margin-top: 8px;
   margin-bottom: 8px;
@@ -112,8 +103,10 @@ const AnnouncementTimestamp = styled.div`
   text-align: right;
 `;
 
-const Announcement = (props: AnnouncementProps) => {
-  const ann = props.announcement;
+const Announcement = ({ announcement, displayName }: {
+  announcement: AnnouncementType, displayName: string,
+}) => {
+  const ann = announcement;
 
   // TODO: All the styles here could stand to be improved, but this gets it on the screen in a
   // minimally-offensive manner, and preserves the intent of newlines.
@@ -121,7 +114,7 @@ const Announcement = (props: AnnouncementProps) => {
     <AnnouncementContainer>
       <AnnouncementOrigin>
         <AnnouncementTimestamp>{calendarTimeFormat(ann.createdAt)}</AnnouncementTimestamp>
-        <div>{props.displayName}</div>
+        <div>{displayName}</div>
       </AnnouncementOrigin>
       <div
         // eslint-disable-next-line react/no-danger

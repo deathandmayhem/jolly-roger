@@ -15,7 +15,12 @@ const Radio = styled.input`
   margin: 8px;
 `;
 
-interface LabelledRadioProps {
+// Bootstrap's approach to exclusive options does not look particularly good nor
+// does it produce accessibility-friendly markup, so here's a touch of our own
+// instead.  Uses some bootstrap styles.
+const LabelledRadio = ({
+  id, name, value, label, defaultChecked, onChange,
+}: {
   id: string;
   // eslint-disable-next-line no-restricted-globals
   // The name of the exclusive group for the radio buttons
@@ -24,28 +29,25 @@ interface LabelledRadioProps {
   label: string;
   defaultChecked: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-// Bootstrap's approach to exclusive options does not look particularly good nor
-// does it produce accessibility-friendly markup, so here's a touch of our own
-// instead.  Uses some bootstrap styles.
-const LabelledRadio = (props: LabelledRadioProps) => {
+}) => {
   return (
-    <RadioLabel htmlFor={props.id}>
+    <RadioLabel htmlFor={id}>
       <Radio
-        id={props.id}
+        id={id}
         type="radio"
-        name={props.name}
-        onChange={props.onChange}
-        value={props.value}
-        defaultChecked={!!props.defaultChecked}
+        name={name}
+        onChange={onChange}
+        value={value}
+        defaultChecked={!!defaultChecked}
       />
-      {props.label}
+      {label}
     </RadioLabel>
   );
 };
 
-interface LabelledRadioGroupProps {
+const LabelledRadioGroup = ({
+  header, name, options, onChange, initialValue, help,
+}: {
   header: string;
   // eslint-disable-next-line no-restricted-globals
   name: string; // The name of the exclusive group for the radio buttons
@@ -53,12 +55,8 @@ interface LabelledRadioGroupProps {
   onChange: (value: string) => void;
   initialValue: string;
   help: string;
-}
-
-const LabelledRadioGroup = (props: LabelledRadioGroupProps) => {
-  const [value, setValue] = useState<string>(props.initialValue);
-
-  const { onChange } = props;
+}) => {
+  const [value, setValue] = useState<string>(initialValue);
 
   const onValueChanged = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const v = event.target.value;
@@ -66,12 +64,12 @@ const LabelledRadioGroup = (props: LabelledRadioGroupProps) => {
     onChange(v);
   }, [onChange]);
 
-  const buttons = props.options.map((option, index) => {
+  const buttons = options.map((option, index) => {
     return (
       <LabelledRadio
-        id={`radiobutton-${props.name}-${index}`}
+        id={`radiobutton-${name}-${index}`}
         key={option.value}
-        name={props.name}
+        name={name}
         onChange={onValueChanged}
         label={option.label}
         value={option.value}
@@ -81,11 +79,11 @@ const LabelledRadioGroup = (props: LabelledRadioGroupProps) => {
   });
   return (
     <div className="radio-group">
-      <RadioHeader>{props.header}</RadioHeader>
+      <RadioHeader>{header}</RadioHeader>
       <fieldset>
         {buttons}
       </fieldset>
-      {props.help && <span className="help-block">{props.help}</span>}
+      {help && <span className="help-block">{help}</span>}
     </div>
   );
 };

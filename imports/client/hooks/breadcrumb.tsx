@@ -45,11 +45,7 @@ const defaultCallbacks: BreadcrumbContextType = {
 
 const BreadcrumbContext = React.createContext<BreadcrumbContextType>(defaultCallbacks);
 
-type BreadcrumbProviderProps = {
-  children: React.ReactNode;
-}
-
-const BreadcrumbsProvider = (props: BreadcrumbProviderProps) => {
+const BreadcrumbsProvider = ({ children }: { children: React.ReactNode }) => {
   const crumbsRef = useRef<CrumbWithId[]>([]);
   const listenersRef = useRef<((crumbs: CrumbWithId[]) => void)[]>([]);
 
@@ -134,7 +130,7 @@ const BreadcrumbsProvider = (props: BreadcrumbProviderProps) => {
 
   return (
     <BreadcrumbContext.Provider value={providerCallbacks}>
-      {props.children}
+      {children}
     </BreadcrumbContext.Provider>
   );
 };

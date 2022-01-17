@@ -113,7 +113,6 @@
       "functions": "ignore"
     }],
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
-    "react/destructuring-assignment": ["off"],
     "react/function-component-definition": ["error", {
       "namedComponents": "arrow-function"
     }],

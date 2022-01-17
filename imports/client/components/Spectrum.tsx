@@ -11,7 +11,13 @@ const SpectrumCanvas = styled.canvas`
     bottom: 0;
 `;
 
-interface SpectrumProps {
+const DEFAULT_THROTTLE_MAX_FPS = 30;
+
+const Spectrum = ({
+  width, height, audioContext, stream, barCount, throttleFps, smoothingTimeConstant,
+  // minimum bar height reduces some flickering
+  barFloor = 32,
+}: {
   width: number;
   height: number;
   audioContext: AudioContext;
@@ -20,28 +26,24 @@ interface SpectrumProps {
   throttleFps?: number;
   barFloor?: number;
   smoothingTimeConstant?: number;
-}
-
-const DEFAULT_THROTTLE_MAX_FPS = 30;
-
-const Spectrum = (props: SpectrumProps) => {
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const bufferLength = useRef<number>(0);
   const analyserNode = useRef<AnalyserNode | undefined>(undefined);
   const analyserBuffer = useRef<Uint8Array | undefined>(undefined);
   if (analyserNode.current === undefined) {
-    analyserNode.current = props.audioContext.createAnalyser();
-    analyserNode.current.fftSize = props.barCount !== undefined ? props.barCount * 2 : 32;
-    analyserNode.current.smoothingTimeConstant = (props.smoothingTimeConstant !== undefined ?
-      props.smoothingTimeConstant : 0.4);
+    analyserNode.current = audioContext.createAnalyser();
+    analyserNode.current.fftSize = barCount !== undefined ? barCount * 2 : 32;
+    analyserNode.current.smoothingTimeConstant = (smoothingTimeConstant !== undefined ?
+      smoothingTimeConstant : 0.4);
     bufferLength.current = analyserNode.current.frequencyBinCount;
     analyserBuffer.current = new Uint8Array(bufferLength.current);
   }
 
   const periodicHandle = useRef<number | undefined>(undefined);
   const lastPainted = useRef<number>(0);
-  const throttleMinMsecValue = 1000 / (props.throttleFps !== undefined ?
-    props.throttleFps : DEFAULT_THROTTLE_MAX_FPS);
+  const throttleMinMsecValue = 1000 / (throttleFps !== undefined ?
+    throttleFps : DEFAULT_THROTTLE_MAX_FPS);
   const throttleMinMsecElapsed = useRef<number>(throttleMinMsecValue);
 
   useEffect(() => {
@@ -69,14 +71,13 @@ const Spectrum = (props: SpectrumProps) => {
     if (canvas) {
       const canvasCtx = canvas.getContext('2d');
       if (canvasCtx) {
-        const WIDTH = props.width;
-        const HEIGHT = props.height;
+        const WIDTH = width;
+        const HEIGHT = height;
         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
         const barWidth = (WIDTH / (bufferLength.current / 2));
         let x = 0;
         for (let i = 0; i < (bufferLength.current / 2); i++) {
           // minimum bar height reduces some flickering
-          const barFloor = props.barFloor !== undefined ? props.barFloor : 32;
           const barHeight = (Math.max(analyserBuffer.current![i], barFloor) * HEIGHT) / 255;
 
           // bootstrap blue is rgb(0, 123, 255)
@@ -92,10 +93,10 @@ const Spectrum = (props: SpectrumProps) => {
         }
       }
     }
-  }, [props.width, props.height, props.barFloor]);
+  }, [width, height, barFloor]);
 
   useEffect(() => {
-    const wrapperStreamSource = props.audioContext.createMediaStreamSource(props.stream);
+    const wrapperStreamSource = audioContext.createMediaStreamSource(stream);
     wrapperStreamSource.connect(analyserNode.current!);
 
     // Schedule periodic spectrogram paintings, if not already running.
@@ -105,12 +106,12 @@ const Spectrum = (props: SpectrumProps) => {
     return () => {
       wrapperStreamSource.disconnect();
     };
-  }, [props.audioContext, props.stream, drawSpectrum]);
+  }, [audioContext, stream, drawSpectrum]);
 
   return (
     <SpectrumCanvas
-      width={props.width}
-      height={props.height}
+      width={width}
+      height={height}
       ref={canvasRef}
     />
   );

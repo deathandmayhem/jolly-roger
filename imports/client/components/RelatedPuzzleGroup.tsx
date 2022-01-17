@@ -7,7 +7,9 @@ import RelatedPuzzleList from './RelatedPuzzleList';
 import Tag from './Tag';
 import { PuzzleGroup } from './puzzle-sort-and-group';
 
-interface RelatedPuzzleGroupProps {
+const RelatedPuzzleGroup = ({
+  group, noSharedTagLabel = '(no tag)', allTags, includeCount, layout, canUpdate, suppressedTagIds,
+}: {
   group: PuzzleGroup;
   // noSharedTagLabel is used to label the group only if sharedTag is undefined.
   noSharedTagLabel?: String;
@@ -16,9 +18,7 @@ interface RelatedPuzzleGroupProps {
   layout: 'grid' | 'table';
   canUpdate: boolean;
   suppressedTagIds: string[];
-}
-
-const RelatedPuzzleGroup = (props: RelatedPuzzleGroupProps) => {
+}) => {
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const toggleCollapse = useCallback(() => {
     setCollapsed((prevCollapsed) => {
@@ -26,14 +26,13 @@ const RelatedPuzzleGroup = (props: RelatedPuzzleGroupProps) => {
     });
   }, []);
 
-  const relatedPuzzles = props.group.puzzles;
-  const sharedTag = props.group.sharedTag;
+  const { puzzles: relatedPuzzles, sharedTag } = group;
+
   const puzzlePlural = relatedPuzzles.length === 1 ? 'puzzle' : 'puzzles';
   const countString = `(${relatedPuzzles.length} other ${puzzlePlural})`;
-  const suppressedTagIds = [...props.suppressedTagIds];
-  const noSharedTagLabel = props.noSharedTagLabel || '(no tag)';
+  const allSuppressedTagIds = [...suppressedTagIds];
   if (sharedTag) {
-    suppressedTagIds.push(sharedTag._id);
+    allSuppressedTagIds.push(sharedTag._id);
   }
   return (
     <div className="puzzle-group">
@@ -44,20 +43,20 @@ const RelatedPuzzleGroup = (props: RelatedPuzzleGroupProps) => {
         ) : (
           <div className="tag tag-none">{noSharedTagLabel}</div>
         )}
-        {props.includeCount && <span>{countString}</span>}
+        {includeCount && <span>{countString}</span>}
       </div>
       {collapsed ? null : (
         <div className="puzzle-list-wrapper">
           <RelatedPuzzleList
             relatedPuzzles={relatedPuzzles}
-            allTags={props.allTags}
-            layout={props.layout}
-            canUpdate={props.canUpdate}
+            allTags={allTags}
+            layout={layout}
+            canUpdate={canUpdate}
             sharedTag={sharedTag}
-            suppressedTagIds={suppressedTagIds}
+            suppressedTagIds={allSuppressedTagIds}
           />
-          {props.group.subgroups.map((subgroup) => {
-            const subgroupSuppressedTagIds = [...suppressedTagIds];
+          {group.subgroups.map((subgroup) => {
+            const subgroupSuppressedTagIds = [...allSuppressedTagIds];
             if (subgroup.sharedTag) {
               subgroupSuppressedTagIds.push(subgroup.sharedTag._id);
             }
@@ -65,11 +64,11 @@ const RelatedPuzzleGroup = (props: RelatedPuzzleGroupProps) => {
               <RelatedPuzzleGroup
                 key={subgroup.sharedTag ? subgroup.sharedTag._id : 'ungrouped'}
                 group={subgroup}
-                noSharedTagLabel={props.noSharedTagLabel}
-                allTags={props.allTags}
-                includeCount={props.includeCount}
-                layout={props.layout}
-                canUpdate={props.canUpdate}
+                noSharedTagLabel={noSharedTagLabel}
+                allTags={allTags}
+                includeCount={includeCount}
+                layout={layout}
+                canUpdate={canUpdate}
                 suppressedTagIds={subgroupSuppressedTagIds}
               />
             );

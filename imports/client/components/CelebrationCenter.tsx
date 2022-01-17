@@ -8,10 +8,6 @@ import Puzzles from '../../lib/models/puzzles';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import Celebration from './Celebration';
 
-interface CelebrationCenterProps {
-  huntId: string;
-}
-
 interface CelebrationCenterQueueItem {
   puzzleId: string;
   url: string;
@@ -19,11 +15,11 @@ interface CelebrationCenterQueueItem {
   title: string;
 }
 
-const CelebrationCenter = (props: CelebrationCenterProps) => {
+const CelebrationCenter = ({ huntId }: { huntId: string }) => {
   const [playbackQueue, setPlaybackQueue] = useState<CelebrationCenterQueueItem[]>([]);
 
   // This should be effectively a noop, since we're already fetching it for every hunt
-  useSubscribe('mongo.puzzles', { hunt: props.huntId });
+  useSubscribe('mongo.puzzles', { hunt: huntId });
 
   const disabled = useTracker(() => Flags.active('disable.applause'), []);
   const muted = useTracker(() => !!(Profiles.findOne({ _id: Meteor.userId()! })?.muteApplause), []);
