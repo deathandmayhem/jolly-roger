@@ -120,39 +120,36 @@ interface SplitPanePlusState {
   dragInProgress: boolean;
 }
 
-const SplitPanePlusHook = (props: SplitPanePlusProps) => {
+const SplitPanePlusHook = ({
+  children,
+  size,
+  collapsed = 0,
+  primary = 'first',
+  split = 'vertical',
+  allowResize = true,
+  minSize = 0,
+  maxSize = 0,
+  autoCollapse1 = 50,
+  autoCollapse2 = 50,
+  scaling = 'absolute',
+  onChanged,
+  onPaneChanged,
+  step,
+  className,
+  style,
+  paneClassName,
+  paneStyle,
+  pane1ClassName,
+  pane1Style,
+  pane2ClassName,
+  pane2Style,
+  resizerClassName,
+  resizerStyle,
+}: SplitPanePlusProps) => {
   const [state, setState] = useState<SplitPanePlusState>({
     collapseWarning: 0,
     dragInProgress: false,
   });
-
-  // Unpack props with defaults
-  const {
-    children,
-    size,
-    collapsed = 0,
-    primary = 'first',
-    split = 'vertical',
-    allowResize = true,
-    minSize = 0,
-    maxSize = 0,
-    autoCollapse1 = 50,
-    autoCollapse2 = 50,
-    scaling = 'absolute',
-    onChanged,
-    onPaneChanged,
-    step,
-    className,
-    style,
-    paneClassName,
-    paneStyle,
-    pane1ClassName,
-    pane1Style,
-    pane2ClassName,
-    pane2Style,
-    resizerClassName,
-    resizerStyle,
-  } = props;
 
   const ref = useRef<HTMLDivElement | null>(null);
 

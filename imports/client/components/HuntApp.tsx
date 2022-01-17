@@ -21,18 +21,16 @@ import HuntProfileListPage from './HuntProfileListPage';
 import PuzzleListPage from './PuzzleListPage';
 import PuzzlePage from './PuzzlePage';
 
-interface HuntDeletedErrorProps {
+const HuntDeletedError = React.memo(({ hunt, canUndestroy }: {
   hunt: HuntType;
   canUndestroy: boolean;
-}
-
-const HuntDeletedError = React.memo((props: HuntDeletedErrorProps) => {
+}) => {
   const undestroy = useCallback(() => {
-    Hunts.undestroy(props.hunt._id);
-  }, [props.hunt._id]);
+    Hunts.undestroy(hunt._id);
+  }, [hunt._id]);
 
   const undestroyButton = useMemo(() => {
-    if (props.canUndestroy) {
+    if (canUndestroy) {
       return (
         <Button variant="primary" onClick={undestroy}>
           Undelete this hunt
@@ -40,7 +38,7 @@ const HuntDeletedError = React.memo((props: HuntDeletedErrorProps) => {
       );
     }
     return null;
-  }, [props.canUndestroy, undestroy]);
+  }, [canUndestroy, undestroy]);
 
   const navigate = useNavigate();
   const goBack = useCallback(() => navigate(-1), [navigate]);
@@ -61,22 +59,20 @@ const HuntDeletedError = React.memo((props: HuntDeletedErrorProps) => {
   );
 });
 
-interface HuntMemberErrorProps {
+const HuntMemberError = React.memo(({ hunt, canJoin }: {
   hunt: HuntType;
   canJoin: boolean;
-}
-
-const HuntMemberError = React.memo((props: HuntMemberErrorProps) => {
+}) => {
   const join = useCallback(() => {
     const user = Meteor.user();
     if (!user || !user.emails) {
       return;
     }
-    Meteor.call('addToHunt', props.hunt._id, user.emails[0].address);
-  }, [props.hunt._id]);
+    Meteor.call('addToHunt', hunt._id, user.emails[0].address);
+  }, [hunt._id]);
 
   const joinButton = useMemo(() => {
-    if (props.canJoin) {
+    if (canJoin) {
       return (
         <Button variant="primary" onClick={join}>
           Use operator permissions to join
@@ -84,17 +80,17 @@ const HuntMemberError = React.memo((props: HuntMemberErrorProps) => {
       );
     }
     return null;
-  }, [props.canJoin, join]);
+  }, [canJoin, join]);
 
   const navigate = useNavigate();
   const goBack = useCallback(() => navigate(-1), [navigate]);
 
-  const msg = markdown(props.hunt.signupMessage || '');
+  const msg = markdown(hunt.signupMessage || '');
   return (
     <div>
       <Alert variant="warning">
         You&apos;re not signed up for this hunt (
-        {props.hunt.name}
+        {hunt.name}
         ) yet.
       </Alert>
 

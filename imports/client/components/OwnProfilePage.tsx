@@ -18,10 +18,6 @@ import { requestDiscordCredential } from '../discord';
 import TeamName from '../team_name';
 import AudioConfig from './AudioConfig';
 
-interface GoogleLinkBlockProps {
-  profile: ProfileType;
-}
-
 enum GoogleLinkBlockLinkState {
   IDLE = 'idle',
   LINKING = 'linking',
@@ -35,7 +31,7 @@ type GoogleLinkBlockState = {
   error: Error;
 }
 
-const GoogleLinkBlock = (props: GoogleLinkBlockProps) => {
+const GoogleLinkBlock = ({ profile }: { profile: ProfileType }) => {
   const [state, setState] =
     useState<GoogleLinkBlockState>({ state: GoogleLinkBlockLinkState.IDLE });
 
@@ -80,7 +76,7 @@ const GoogleLinkBlock = (props: GoogleLinkBlockProps) => {
       return <Button variant="primary" disabled>Google integration currently disabled</Button>;
     }
 
-    const text = (props.profile.googleAccount) ?
+    const text = (profile.googleAccount) ?
       'Link a different Google account' :
       'Link your Google account';
 
@@ -108,16 +104,16 @@ const GoogleLinkBlock = (props: GoogleLinkBlockProps) => {
         </Alert>
       ) : undefined}
       <div>
-        {props.profile.googleAccount ? (
+        {profile.googleAccount ? (
           <div>
             Currently linked to
             {' '}
-            {props.profile.googleAccount}
+            {profile.googleAccount}
           </div>
         ) : undefined}
         {linkButton()}
         {' '}
-        {props.profile.googleAccount ? (
+        {profile.googleAccount ? (
           <Button variant="danger" onClick={onUnlink}>
             Unlink
           </Button>
@@ -149,10 +145,6 @@ enum DiscordLinkBlockLinkState {
   ERROR = 'error',
 }
 
-interface DiscordLinkBlockProps {
-  profile: ProfileType;
-}
-
 type DiscordLinkBlockState = {
   state: DiscordLinkBlockLinkState.IDLE | DiscordLinkBlockLinkState.LINKING;
 } | {
@@ -160,7 +152,7 @@ type DiscordLinkBlockState = {
   error: Error;
 }
 
-const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
+const DiscordLinkBlock = ({ profile }: { profile: ProfileType }) => {
   const [state, setState] =
     useState<DiscordLinkBlockState>({ state: DiscordLinkBlockLinkState.IDLE });
 
@@ -208,7 +200,7 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
       return <Button variant="primary" disabled>Discord integration currently disabled</Button>;
     }
 
-    const text = (props.profile.discordAccount) ?
+    const text = (profile.discordAccount) ?
       'Link a different Discord account' :
       'Link your Discord account';
 
@@ -217,10 +209,10 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
         {text}
       </Button>
     );
-  }, [state.state, discordDisabled, props.profile.discordAccount, onLink]);
+  }, [state.state, discordDisabled, profile.discordAccount, onLink]);
 
   const unlinkButton = useMemo(() => {
-    if (props.profile.discordAccount) {
+    if (profile.discordAccount) {
       return (
         <Button variant="danger" onClick={onUnlink}>
           Unlink
@@ -229,11 +221,11 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
     }
 
     return null;
-  }, [props.profile.discordAccount, onUnlink]);
+  }, [profile.discordAccount, onUnlink]);
 
   const currentAccount = useMemo(() => {
-    if (props.profile.discordAccount) {
-      const acct = props.profile.discordAccount;
+    if (profile.discordAccount) {
+      const acct = profile.discordAccount;
       return (
         <div>
           Currently linked to
@@ -248,7 +240,7 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
     }
 
     return null;
-  }, [props.profile.discordAccount]);
+  }, [profile.discordAccount]);
 
   if (!config) {
     return <div />;
@@ -284,12 +276,6 @@ const DiscordLinkBlock = (props: DiscordLinkBlockProps) => {
   );
 };
 
-interface OwnProfilePageProps {
-  initialProfile: ProfileType;
-  operating: boolean;
-  canMakeOperator: boolean;
-}
-
 enum OwnProfilePageSubmitState {
   IDLE = 'idle',
   SUBMITTING = 'submitting',
@@ -297,13 +283,19 @@ enum OwnProfilePageSubmitState {
   ERROR = 'error',
 }
 
-const OwnProfilePage = (props: OwnProfilePageProps) => {
-  const [displayName, setDisplayName] = useState<string>(props.initialProfile.displayName || '');
-  const [phoneNumber, setPhoneNumber] = useState<string>(props.initialProfile.phoneNumber || '');
+const OwnProfilePage = ({
+  initialProfile, operating, canMakeOperator,
+}: {
+  initialProfile: ProfileType;
+  operating: boolean;
+  canMakeOperator: boolean;
+}) => {
+  const [displayName, setDisplayName] = useState<string>(initialProfile.displayName || '');
+  const [phoneNumber, setPhoneNumber] = useState<string>(initialProfile.phoneNumber || '');
   const [muteApplause, setMuteApplause] =
-    useState<boolean>(props.initialProfile.muteApplause || false);
-  const [dingwordsFlat, setDingwordsFlat] = useState<string>(props.initialProfile.dingwords ?
-    props.initialProfile.dingwords.join(',') : '');
+    useState<boolean>(initialProfile.muteApplause || false);
+  const [dingwordsFlat, setDingwordsFlat] = useState<string>(initialProfile.dingwords ?
+    initialProfile.dingwords.join(',') : '');
   const [submitState, setSubmitState] =
     useState<OwnProfilePageSubmitState>(OwnProfilePageSubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
@@ -325,13 +317,13 @@ const OwnProfilePage = (props: OwnProfilePageProps) => {
   }, []);
 
   const toggleOperating = useCallback(() => {
-    const newState = !props.operating;
+    const newState = !operating;
     if (newState) {
       Meteor.call('makeOperator', Meteor.userId());
     } else {
       Meteor.call('stopOperating');
     }
-  }, [props.operating]);
+  }, [operating]);
 
   const handleSaveForm = useCallback(() => {
     setSubmitState(OwnProfilePageSubmitState.SUBMITTING);
@@ -362,7 +354,7 @@ const OwnProfilePage = (props: OwnProfilePageProps) => {
   return (
     <div>
       <h1>Account information</h1>
-      {props.canMakeOperator ? <FormCheck type="checkbox" checked={props.operating} onChange={toggleOperating} label="Operating" /> : null}
+      {canMakeOperator ? <FormCheck type="checkbox" checked={operating} onChange={toggleOperating} label="Operating" /> : null}
       <FormGroup>
         <FormLabel htmlFor="jr-profile-edit-email">
           Email address
@@ -370,7 +362,7 @@ const OwnProfilePage = (props: OwnProfilePageProps) => {
         <FormControl
           id="jr-profile-edit-email"
           type="text"
-          value={props.initialProfile.primaryEmail}
+          value={initialProfile.primaryEmail}
           disabled
         />
       </FormGroup>
@@ -384,9 +376,9 @@ const OwnProfilePage = (props: OwnProfilePageProps) => {
         </Alert>
       ) : null}
 
-      <GoogleLinkBlock profile={props.initialProfile} />
+      <GoogleLinkBlock profile={initialProfile} />
 
-      <DiscordLinkBlock profile={props.initialProfile} />
+      <DiscordLinkBlock profile={initialProfile} />
 
       <FormGroup>
         <FormLabel htmlFor="jr-profile-edit-display-name">

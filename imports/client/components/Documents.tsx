@@ -11,20 +11,20 @@ interface DocumentDisplayProps {
   displayMode: 'link' | 'embed';
 }
 
-const GoogleDocumentDisplay = (props: DocumentDisplayProps) => {
+const GoogleDocumentDisplay = ({ document, displayMode }: DocumentDisplayProps) => {
   let url: string;
   let deepUrl: string;
   let title: string;
   let icon: IconDefinition;
-  switch (props.document.value.type) {
+  switch (document.value.type) {
     case 'spreadsheet':
-      url = `https://docs.google.com/spreadsheets/d/${props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
+      url = `https://docs.google.com/spreadsheets/d/${document.value.id}/edit?ui=2&rm=embedded#gid=0`;
       deepUrl = `googlesheets://${url}`;
       title = 'Sheet';
       icon = faTable;
       break;
     case 'document':
-      url = `https://docs.google.com/document/d/${props.document.value.id}/edit?ui=2&rm=embedded#gid=0`;
+      url = `https://docs.google.com/document/d/${document.value.id}/edit?ui=2&rm=embedded#gid=0`;
       deepUrl = `googledocs://${url}`;
       title = 'Doc';
       icon = faFileAlt;
@@ -34,12 +34,12 @@ const GoogleDocumentDisplay = (props: DocumentDisplayProps) => {
         <span className="puzzle-document-message">
           Don&apos;t know how to link to a document of type
           {' '}
-          {props.document.value.type}
+          {document.value.type}
         </span>
       );
   }
 
-  switch (props.displayMode) {
+  switch (displayMode) {
     case 'link':
       return (
         <DeepLink className="gdrive-button" nativeUrl={deepUrl} browserUrl={url}>
@@ -60,19 +60,19 @@ const GoogleDocumentDisplay = (props: DocumentDisplayProps) => {
         <span className="puzzle-document-message">
           Unknown displayMode
           {' '}
-          {props.displayMode}
+          {displayMode}
         </span>
       );
   }
 };
 
-const DocumentDisplay = (props: DocumentDisplayProps) => {
-  switch (props.document.provider) {
+const DocumentDisplay = ({ document, displayMode }: DocumentDisplayProps) => {
+  switch (document.provider) {
     case 'google':
       return (
         <GoogleDocumentDisplay
-          document={props.document}
-          displayMode={props.displayMode}
+          document={document}
+          displayMode={displayMode}
         />
       );
     default:
@@ -80,7 +80,7 @@ const DocumentDisplay = (props: DocumentDisplayProps) => {
         <span className="puzzle-document-message">
           Unable to display document from provider
           {' '}
-          {props.document.provider}
+          {document.provider}
         </span>
       );
   }

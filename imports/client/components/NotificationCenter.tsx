@@ -107,12 +107,10 @@ const StyledNotificationActionItem = styled.li`
   }
 `;
 
-interface MessengerDismissButtonProps {
+const MessengerDismissButton = React.memo(({ onDismiss }: {
   onDismiss: (event: React.MouseEvent<HTMLButtonElement>) => void;
-}
-
-const MessengerDismissButton = React.memo((props: MessengerDismissButtonProps) => {
-  return <StyledDismissButton type="button" onClick={props.onDismiss}>×</StyledDismissButton>;
+}) => {
+  return <StyledDismissButton type="button" onClick={onDismiss}>×</StyledDismissButton>;
 });
 
 const MessengerContent = styled.div`
@@ -149,19 +147,15 @@ const MessengerSpinner = React.memo(() => {
   );
 });
 
-interface GuessMessageProps {
+const GuessMessage = React.memo(({
+  guess, puzzle, hunt, guesser, onDismiss,
+}: {
   guess: GuessType;
   puzzle: PuzzleType;
   hunt: HuntType;
   guesser: string;
   onDismiss: (guessId: string) => void;
-}
-
-const GuessMessage = React.memo((props: GuessMessageProps) => {
-  const {
-    guess, puzzle, hunt, guesser, onDismiss,
-  } = props;
-
+}) => {
   const markCorrect = useCallback(() => {
     Meteor.call('markGuessCorrect', guess._id);
   }, [guess._id]);
@@ -275,10 +269,6 @@ const GuessMessage = React.memo((props: GuessMessageProps) => {
   );
 });
 
-interface DiscordMessageProps {
-  onDismiss: () => void;
-}
-
 enum DiscordMessageStatus {
   IDLE = 'idle',
   LINKING = 'linking',
@@ -291,7 +281,9 @@ type DiscordMessageState = {
   error?: string;
 }
 
-const DiscordMessage = React.memo((props: DiscordMessageProps) => {
+const DiscordMessage = React.memo(({ onDismiss }: {
+  onDismiss: () => void;
+}) => {
   const [state, setState] = useState<DiscordMessageState>({ status: DiscordMessageStatus.IDLE });
 
   const requestComplete = useCallback((token: string) => {
@@ -338,23 +330,23 @@ const DiscordMessage = React.memo((props: DiscordMessageProps) => {
         </StyledNotificationActionBar>
         {state.status === DiscordMessageStatus.ERROR ? state.error! : null}
       </MessengerContent>
-      <MessengerDismissButton onDismiss={props.onDismiss} />
+      <MessengerDismissButton onDismiss={onDismiss} />
     </StyledNotificationMessage>
   );
 });
 
-interface AnnouncementMessageProps {
+const AnnouncementMessage = React.memo(({
+  id, announcement, createdByDisplayName,
+}: {
   id: string;
   announcement: AnnouncementType;
   createdByDisplayName: string;
-}
-
-const AnnouncementMessage = React.memo((props: AnnouncementMessageProps) => {
+}) => {
   const [dismissed, setDismissed] = useState<boolean>(false);
   const onDismiss = useCallback(() => {
     setDismissed(true);
-    Meteor.call('dismissPendingAnnouncement', props.id);
-  }, [props.id]);
+    Meteor.call('dismissPendingAnnouncement', id);
+  }, [id]);
 
   if (dismissed) {
     return null;
@@ -366,13 +358,13 @@ const AnnouncementMessage = React.memo((props: AnnouncementMessageProps) => {
       <MessengerContent>
         <div
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: markdown(props.announcement.message) }}
+          dangerouslySetInnerHTML={{ __html: markdown(announcement.message) }}
         />
         <footer>
           {'- '}
-          {props.createdByDisplayName}
+          {createdByDisplayName}
           {', '}
-          {calendarTimeFormat(props.announcement.createdAt)}
+          {calendarTimeFormat(announcement.createdAt)}
         </footer>
       </MessengerContent>
       <MessengerDismissButton onDismiss={onDismiss} />
@@ -380,10 +372,9 @@ const AnnouncementMessage = React.memo((props: AnnouncementMessageProps) => {
   );
 });
 
-interface ProfileMissingMessageProps {
+const ProfileMissingMessage = ({ onDismiss }: {
   onDismiss: () => void;
-}
-const ProfileMissingMessage = (props: ProfileMissingMessageProps) => {
+}) => {
   return (
     <StyledNotificationMessage>
       <MessengerSpinner />
@@ -397,38 +388,38 @@ const ProfileMissingMessage = (props: ProfileMissingMessageProps) => {
         </Link>
         .
       </MessengerContent>
-      <MessengerDismissButton onDismiss={props.onDismiss} />
+      <MessengerDismissButton onDismiss={onDismiss} />
     </StyledNotificationMessage>
   );
 };
 
-interface ChatNotificationMessageProps {
+const ChatNotificationMessage = ({
+  cn, hunt, puzzle, senderDisplayName, onDismiss,
+}: {
   cn: ChatNotificationType;
   hunt: HuntType;
   puzzle: PuzzleType;
   senderDisplayName: string;
   onDismiss: (chatNotificationId: string) => void;
-}
-const ChatNotificationMessage = (props: ChatNotificationMessageProps) => {
-  const { onDismiss } = props;
-  const id = props.cn._id;
+}) => {
+  const id = cn._id;
   const dismiss = useCallback(() => onDismiss(id), [id, onDismiss]);
   return (
     <StyledNotificationMessage>
       <MessengerSpinner />
       <MessengerContent>
-        <Link to={`/hunts/${props.hunt._id}/puzzles/${props.puzzle._id}`}>
-          {props.puzzle.title}
+        <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
+          {puzzle.title}
         </Link>
         <div>
-          {props.senderDisplayName}
+          {senderDisplayName}
           {': '}
           <div>
-            {props.cn.text}
+            {cn.text}
           </div>
         </div>
         <footer>
-          {calendarTimeFormat(props.cn.createdAt)}
+          {calendarTimeFormat(cn.createdAt)}
         </footer>
       </MessengerContent>
       <MessengerDismissButton onDismiss={dismiss} />

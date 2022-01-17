@@ -12,13 +12,6 @@ import { getAvatarCdnUrl } from '../../lib/discord';
 import Hunts from '../../lib/models/hunts';
 import { ProfileType } from '../../lib/schemas/profile';
 
-interface OthersProfilePageProps {
-  profile: ProfileType;
-  viewerCanMakeOperator: boolean;
-  targetIsOperator: boolean;
-  huntMembership?: string[];
-}
-
 const AvatarTooltip = styled(Tooltip)`
   opacity: 1 !important;
   .tooltip-inner {
@@ -32,23 +25,29 @@ const ProfileTable = styled.table`
   }
 `;
 
-const OthersProfilePage = (props: OthersProfilePageProps) => {
+const OthersProfilePage = ({
+  profile, viewerCanMakeOperator, targetIsOperator, huntMembership,
+}: {
+  profile: ProfileType;
+  viewerCanMakeOperator: boolean;
+  targetIsOperator: boolean;
+  huntMembership?: string[];
+}) => {
   const [shouldShowOperatorConfirm, setShouldShowOperatorConfirm] = useState(false);
   const showConfirm = useCallback(() => setShouldShowOperatorConfirm(true), []);
   const hideConfirm = useCallback(() => setShouldShowOperatorConfirm(false), []);
 
-  const huntsLoading = useSubscribe(props.viewerCanMakeOperator ? 'mongo.hunts' : undefined, {});
+  const huntsLoading = useSubscribe(viewerCanMakeOperator ? 'mongo.hunts' : undefined, {});
   const loading = huntsLoading();
   const hunts = useTracker(() => (loading ? {} : _.indexBy(Hunts.find().fetch(), '_id')), [loading]);
 
   const makeOperator = useCallback(() => {
-    Meteor.call('makeOperator', props.profile._id);
+    Meteor.call('makeOperator', profile._id);
     hideConfirm();
-  }, [props.profile._id, hideConfirm]);
+  }, [profile._id, hideConfirm]);
 
-  const profile = props.profile;
-  const showOperatorBadge = props.targetIsOperator;
-  const showMakeOperatorButton = props.viewerCanMakeOperator && !props.targetIsOperator;
+  const showOperatorBadge = targetIsOperator;
+  const showMakeOperatorButton = viewerCanMakeOperator && !targetIsOperator;
   const discordAvatarUrl = getAvatarCdnUrl(profile.discordAccount);
   const discordAvatarUrlLarge = getAvatarCdnUrl(profile.discordAccount, 256);
   return (
@@ -150,14 +149,14 @@ const OthersProfilePage = (props: OthersProfilePageProps) => {
                 )}
               </td>
             </tr>
-            {props.viewerCanMakeOperator && props.huntMembership && (
+            {viewerCanMakeOperator && huntMembership && (
               <tr>
                 <th>All hunts participated</th>
                 <td>
                   {(
                     loading ?
                       'loading...' :
-                      props.huntMembership.map((huntId) => (
+                      huntMembership.map((huntId) => (
                         hunts[huntId]?.name ?? `Unknown hunt ${huntId}`
                       ))
                         .join(', ')

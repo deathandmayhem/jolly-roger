@@ -28,7 +28,9 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(
   return sortedPuzzles;
 }
 
-interface RelatedPuzzleListProps {
+const RelatedPuzzleList = React.memo(({
+  relatedPuzzles, allTags, layout, canUpdate, sharedTag, suppressedTagIds, segmentAnswers,
+}: {
   relatedPuzzles: PuzzleType[];
   allTags: TagType[];
   layout: 'grid' | 'table';
@@ -36,26 +38,24 @@ interface RelatedPuzzleListProps {
   sharedTag: TagType | undefined;
   suppressedTagIds: string[];
   segmentAnswers?: boolean;
-}
-
-const RelatedPuzzleList = React.memo((props: RelatedPuzzleListProps) => {
+}) => {
   // Sort the puzzles within each tag group by interestingness.  For instance, metas
   // should probably be at the top of the group, then of the round puzzles, unsolved should
   // maybe sort above solved, and then perhaps by unlock order.
-  const tagIndex = _.indexBy(props.allTags, '_id');
+  const tagIndex = _.indexBy(allTags, '_id');
   const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
-    props.relatedPuzzles,
-    props.sharedTag,
+    relatedPuzzles,
+    sharedTag,
     tagIndex
   );
   return (
     <PuzzleList
       puzzles={sortedPuzzles}
-      allTags={props.allTags}
-      layout={props.layout}
-      canUpdate={props.canUpdate}
-      suppressTags={props.suppressedTagIds}
-      segmentAnswers={props.segmentAnswers}
+      allTags={allTags}
+      layout={layout}
+      canUpdate={canUpdate}
+      suppressTags={suppressedTagIds}
+      segmentAnswers={segmentAnswers}
     />
   );
 });

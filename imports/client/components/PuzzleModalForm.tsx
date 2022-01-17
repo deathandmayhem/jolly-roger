@@ -30,15 +30,6 @@ export interface PuzzleModalFormSubmitPayload {
   expectedAnswerCount: number;
 }
 
-interface PuzzleModalFormProps {
-  huntId: string;
-  puzzle?: PuzzleType;
-  // All known tags for this hunt
-  tags: TagType[];
-  onSubmit: (payload: PuzzleModalFormSubmitPayload, callback: (error?: Error) => void) => void;
-  showOnMount?: boolean;
-}
-
 enum PuzzleModalFormSubmitState {
   IDLE = 'idle',
   SUBMITTING = 'submitting',
@@ -49,11 +40,17 @@ export type PuzzleModalFormHandle = {
   show: () => void;
 }
 
-const PuzzleModalForm = React.forwardRef((props: PuzzleModalFormProps, forwardedRef: React.Ref<PuzzleModalFormHandle>) => {
-  const {
-    huntId, puzzle, tags: propsTags, onSubmit, showOnMount,
-  } = props;
+const PuzzleModalForm = React.forwardRef(({
+  huntId, puzzle, tags: propsTags, onSubmit, showOnMount,
+}: {
+  huntId: string;
+  puzzle?: PuzzleType;
+  // All known tags for this hunt
+  tags: TagType[];
+  onSubmit: (payload: PuzzleModalFormSubmitPayload, callback: (error?: Error) => void) => void;
+  showOnMount?: boolean;
 
+}, forwardedRef: React.Ref<PuzzleModalFormHandle>) => {
   const tagNamesForIds = useCallback((tagIds: string[]) => {
     const tagNames: Record<string, string> = {};
     propsTags.forEach((t) => { tagNames[t._id] = t.name; });
@@ -154,36 +151,36 @@ const PuzzleModalForm = React.forwardRef((props: PuzzleModalFormProps, forwarded
   }, []);
 
   const currentTitle = useMemo(() => {
-    if (!titleDirty && props.puzzle) {
-      return props.puzzle.title;
+    if (!titleDirty && puzzle) {
+      return puzzle.title;
     } else {
       return title;
     }
-  }, [titleDirty, props.puzzle, title]);
+  }, [titleDirty, puzzle, title]);
 
   const currentUrl = useMemo(() => {
-    if (!urlDirty && props.puzzle) {
-      return props.puzzle.url;
+    if (!urlDirty && puzzle) {
+      return puzzle.url;
     } else {
       return url;
     }
-  }, [urlDirty, props.puzzle, url]);
+  }, [urlDirty, puzzle, url]);
 
   const currentTags = useMemo(() => {
-    if (!tagsDirty && props.puzzle) {
-      return tagNamesForIds(props.puzzle.tags);
+    if (!tagsDirty && puzzle) {
+      return tagNamesForIds(puzzle.tags);
     } else {
       return tags;
     }
-  }, [tagsDirty, props.puzzle, tagNamesForIds, tags]);
+  }, [tagsDirty, puzzle, tagNamesForIds, tags]);
 
   const currentExpectedAnswerCount = useMemo(() => {
-    if (!expectedAnswerCountDirty && props.puzzle) {
-      return props.puzzle.expectedAnswerCount;
+    if (!expectedAnswerCountDirty && puzzle) {
+      return puzzle.expectedAnswerCount;
     } else {
       return expectedAnswerCount;
     }
-  }, [expectedAnswerCountDirty, props.puzzle, expectedAnswerCount]);
+  }, [expectedAnswerCountDirty, puzzle, expectedAnswerCount]);
 
   useImperativeHandle(forwardedRef, () => ({
     show,
@@ -203,7 +200,7 @@ const PuzzleModalForm = React.forwardRef((props: PuzzleModalFormProps, forwarded
       return { value: t, label: t };
     });
 
-  const docTypeSelector = !props.puzzle && docType ? (
+  const docTypeSelector = !puzzle && docType ? (
     <FormGroup as={Row}>
       <FormLabel column xs={3} htmlFor="jr-new-puzzle-doc-type">
         Document type
@@ -234,7 +231,7 @@ const PuzzleModalForm = React.forwardRef((props: PuzzleModalFormProps, forwarded
     <Suspense fallback={<div><Loading /></div>}>
       <ModalForm
         ref={formRef}
-        title={props.puzzle ? 'Edit puzzle' : 'Add puzzle'}
+        title={puzzle ? 'Edit puzzle' : 'Add puzzle'}
         onSubmit={onFormSubmit}
         submitDisabled={disableForm}
       >

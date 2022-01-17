@@ -80,11 +80,6 @@ const googleCompletenessStrings = [
   'Configured',
 ];
 
-interface GoogleOAuthFormProps {
-  isConfigured: boolean;
-  initialClientId?: string;
-}
-
 type GoogleOAuthFormSubmitState = ({
   submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS
 } | {
@@ -92,11 +87,14 @@ type GoogleOAuthFormSubmitState = ({
   submitError: string;
 });
 
-const GoogleOAuthForm = (props: GoogleOAuthFormProps) => {
+const GoogleOAuthForm = ({ isConfigured, initialClientId }: {
+  isConfigured: boolean;
+  initialClientId?: string;
+}) => {
   const [state, setState] = useState<GoogleOAuthFormSubmitState>({
     submitState: SubmitState.IDLE,
   });
-  const [clientId, setClientId] = useState<string>(props.initialClientId || '');
+  const [clientId, setClientId] = useState<string>(initialClientId || '');
   const [clientSecret, setClientSecret] = useState<string>('');
 
   const dismissAlert = useCallback(() => {
@@ -144,7 +142,7 @@ const GoogleOAuthForm = (props: GoogleOAuthFormProps) => {
   }, []);
 
   const shouldDisableForm = state.submitState === SubmitState.SUBMITTING;
-  const secretPlaceholder = props.isConfigured ? '<configured secret not revealed>' : '';
+  const secretPlaceholder = isConfigured ? '<configured secret not revealed>' : '';
   return (
     <form onSubmit={onSubmitOauthConfiguration}>
       {state.submitState === SubmitState.SUBMITTING ? <Alert variant="info">Saving...</Alert> : null}
@@ -335,11 +333,6 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
   );
 };
 
-interface GoogleDriveTemplateFormProps {
-  initialDocTemplate?: string;
-  initialSpreadsheetTemplate?: string;
-}
-
 type GoogleDriveTemplateFormState = ({
   submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS;
 } | {
@@ -347,12 +340,15 @@ type GoogleDriveTemplateFormState = ({
   error: Error;
 })
 
-const GoogleDriveTemplateForm = (props: GoogleDriveTemplateFormProps) => {
+const GoogleDriveTemplateForm = ({ initialDocTemplate, initialSpreadsheetTemplate }: {
+  initialDocTemplate?: string;
+  initialSpreadsheetTemplate?: string;
+}) => {
   const [state, setState] = useState<GoogleDriveTemplateFormState>({
     submitState: SubmitState.IDLE,
   });
-  const [docTemplate, setDocTemplate] = useState<string>(props.initialDocTemplate || '');
-  const [spreadsheetTemplate, setSpreadsheetTemplate] = useState<string>(props.initialSpreadsheetTemplate || '');
+  const [docTemplate, setDocTemplate] = useState<string>(initialDocTemplate || '');
+  const [spreadsheetTemplate, setSpreadsheetTemplate] = useState<string>(initialSpreadsheetTemplate || '');
 
   const dismissAlert = useCallback(() => {
     setState({ submitState: SubmitState.IDLE });
@@ -617,12 +613,9 @@ const GoogleIntegrationSection = () => {
   );
 };
 
-interface EmailConfigFormProps {
+const EmailConfigForm = ({ initialConfig }: {
   initialConfig?: SettingType & { name: 'email.branding' };
-}
-
-const EmailConfigForm = (props: EmailConfigFormProps) => {
-  const initialConfig = props.initialConfig;
+}) => {
   const [from, setFrom] = useState<string>(initialConfig?.value.from || '');
   const [enrollAccountSubject, setEnrollAccountSubject] =
     useState<string>(initialConfig?.value.enrollAccountMessageSubjectTemplate || '');
@@ -967,15 +960,13 @@ const EmailConfigSection = () => {
   );
 };
 
-interface DiscordOAuthFormProps {
+const DiscordOAuthForm = ({ oauthSettings }: {
   oauthSettings: any;
-}
-
-const DiscordOAuthForm = (props: DiscordOAuthFormProps) => {
+}) => {
   const [clientId, setClientId] =
-    useState<string>((props.oauthSettings && props.oauthSettings.appId) || '');
+    useState<string>((oauthSettings && oauthSettings.appId) || '');
   const [clientSecret, setClientSecret] =
-    useState<string>((props.oauthSettings && props.oauthSettings.secret) || '');
+    useState<string>((oauthSettings && oauthSettings.secret) || '');
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -1019,7 +1010,7 @@ const DiscordOAuthForm = (props: DiscordOAuthFormProps) => {
   }, [clientId, clientSecret]);
 
   const shouldDisableForm = submitState === 'submitting';
-  const configured = !!props.oauthSettings;
+  const configured = !!oauthSettings;
   const secretPlaceholder = configured ? '<configured secret not revealed>' : '';
   return (
     <div>
@@ -1067,12 +1058,8 @@ const DiscordOAuthForm = (props: DiscordOAuthFormProps) => {
   );
 };
 
-interface DiscordBotFormProps {
-  botToken?: string
-}
-
-const DiscordBotForm = (props: DiscordBotFormProps) => {
-  const [botToken, setBotToken] = useState<string>(props.botToken || '');
+const DiscordBotForm = ({ botToken: initialBotToken }: { botToken?: string }) => {
+  const [botToken, setBotToken] = useState<string>(initialBotToken || '');
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -1132,18 +1119,16 @@ const DiscordBotForm = (props: DiscordBotFormProps) => {
   );
 };
 
-interface DiscordGuildFormProps {
+const DiscordGuildForm = ({ guild: initialGuild }: {
   // initial value from settings
-  guild?: DiscordGuildType;
-}
-
-const DiscordGuildForm = (props: DiscordGuildFormProps) => {
+  guild?: DiscordGuildType,
+}) => {
   useSubscribe('discord.guilds');
   const guilds = useTracker(() => {
     return DiscordCache.find({ type: 'guild' }, { fields: { 'object.id': 1, 'object.name': 1 } })
       .map((c) => c.object as SavedDiscordObjectType);
   }, []);
-  const [guildId, setGuildId] = useState<string>((props.guild && props.guild.id) || '');
+  const [guildId, setGuildId] = useState<string>((initialGuild && initialGuild.id) || '');
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -1426,12 +1411,6 @@ const BrandingTeamName = () => {
   );
 };
 
-interface BrandingAssetRowProps {
-  asset: string;
-  backgroundSize?: string;
-  children?: ReactChild;
-}
-
 const BrandingRow = styled.div`
   &:not(:last-child) {
     margin-bottom: 8px;
@@ -1454,7 +1433,13 @@ const BrandingRowImage = styled.div<{ backgroundImage: string, backgroundSize: s
   background-size: ${(props) => props.backgroundSize};
 `;
 
-const BrandingAssetRow = (props: BrandingAssetRowProps) => {
+const BrandingAssetRow = ({
+  asset, backgroundSize, children,
+}: {
+  asset: string;
+  backgroundSize?: string;
+  children?: ReactChild;
+}) => {
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -1472,7 +1457,7 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
         return;
       }
       setSubmitState(SubmitState.SUBMITTING);
-      Meteor.call('setupGetUploadToken', props.asset, file.type, (err?: Error, uploadToken?: string) => {
+      Meteor.call('setupGetUploadToken', asset, file.type, (err?: Error, uploadToken?: string) => {
         if (err) {
           setSubmitError(err.message);
           setSubmitState(SubmitState.ERROR);
@@ -1499,10 +1484,10 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
         }
       });
     }
-  }, [props.asset]);
+  }, [asset]);
 
   // If no BlobMapping is present for this asset, fall back to the default one from the public/images folder
-  const blobUrl = useTracker(() => lookupUrl(props.asset), [props.asset]);
+  const blobUrl = useTracker(() => lookupUrl(asset), [asset]);
   return (
     <BrandingRow>
       {submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
@@ -1517,12 +1502,12 @@ const BrandingAssetRow = (props: BrandingAssetRowProps) => {
       <BrandingRowContent>
         <BrandingRowImage
           backgroundImage={blobUrl}
-          backgroundSize={props.backgroundSize || 'auto'}
+          backgroundSize={backgroundSize || 'auto'}
         />
-        <label htmlFor={`asset-input-${props.asset}`}>
-          <div>{props.asset}</div>
-          <div>{props.children}</div>
-          <input id={`asset-input-${props.asset}`} type="file" onChange={onFileSelected} />
+        <label htmlFor={`asset-input-${asset}`}>
+          <div>{asset}</div>
+          <div>{children}</div>
+          <input id={`asset-input-${asset}`} type="file" onChange={onFileSelected} />
         </label>
       </BrandingRowContent>
     </BrandingRow>
@@ -1602,17 +1587,6 @@ const BrandingSection = () => {
   );
 };
 
-interface CircuitBreakerControlProps {
-  // What do you call this circuit breaker?
-  title: string;
-
-  // What is the database name for this flag
-  flagName: string;
-
-  // some explanation of what this feature flag controls and why you might want to toggle it.
-  children: React.ReactNode;
-}
-
 const CircuitBreaker = styled.div`
   margin-bottom: 16px;
 `;
@@ -1638,11 +1612,18 @@ const CircuitBreakerButtons = styled.div`
   }
 `;
 
-const CircuitBreakerControl = (props: CircuitBreakerControlProps) => {
-  const {
-    title, flagName, children,
-  } = props;
+const CircuitBreakerControl = ({
+  title, flagName, children,
+}: {
+  // What do you call this circuit breaker?
+  title: string;
 
+  // What is the database name for this flag
+  flagName: string;
+
+  // some explanation of what this feature flag controls and why you might want to toggle it.
+  children: React.ReactNode;
+}) => {
   // disabled should be false if the circuit breaker is not intentionally disabling the feature,
   // and true if the feature is currently disabled.
   // most features will have false here most of the time.

@@ -21,7 +21,9 @@ import PuzzleDeleteModal from './PuzzleDeleteModal';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import TagList from './TagList';
 
-interface PuzzleProps {
+const Puzzle = React.memo(({
+  puzzle, allTags, layout, canUpdate, suppressTags, segmentAnswers,
+}: {
   puzzle: PuzzleType;
   // All tags associated with the hunt.
   allTags: TagType[];
@@ -29,9 +31,7 @@ interface PuzzleProps {
   canUpdate: boolean;
   suppressTags?: string[];
   segmentAnswers?: boolean;
-}
-
-const Puzzle = React.memo((props: PuzzleProps) => {
+}) => {
   // Generating the edit modals for all puzzles is expensive, so we do it
   // lazily. The first time the modal button is clicked, we change this state
   // variable, which causes us to mount a new modal, which is set to open on
@@ -45,9 +45,9 @@ const Puzzle = React.memo((props: PuzzleProps) => {
     state: PuzzleModalFormSubmitPayload,
     callback: (error?: Error) => void
   ) => {
-    Ansible.log('Updating puzzle properties', { puzzle: props.puzzle._id, user: Meteor.userId(), state });
-    Meteor.call('updatePuzzle', props.puzzle._id, state, callback);
-  }, [props.puzzle._id]);
+    Ansible.log('Updating puzzle properties', { puzzle: puzzle._id, user: Meteor.userId(), state });
+    Meteor.call('updatePuzzle', puzzle._id, state, callback);
+  }, [puzzle._id]);
 
   const onShowEditModal = useCallback(() => {
     if (showEditModal && editModalRef.current) {
@@ -65,13 +65,13 @@ const Puzzle = React.memo((props: PuzzleProps) => {
   }, [renderDeleteModal]);
 
   const editButtons = useMemo(() => {
-    if (props.canUpdate) {
+    if (canUpdate) {
       return (
         <ButtonGroup size="sm">
           <Button onClick={onShowEditModal} variant="light" title="Edit puzzle...">
             <FontAwesomeIcon icon={faEdit} />
           </Button>
-          {!props.puzzle.deleted && (
+          {!puzzle.deleted && (
             <Button onClick={onShowDeleteModal} variant="light" title="Delete puzzle...">
               <FontAwesomeIcon icon={faMinus} />
             </Button>
@@ -80,37 +80,37 @@ const Puzzle = React.memo((props: PuzzleProps) => {
       );
     }
     return null;
-  }, [props.canUpdate, props.puzzle.deleted, onShowEditModal, onShowDeleteModal]);
+  }, [canUpdate, puzzle.deleted, onShowEditModal, onShowDeleteModal]);
 
   // id, title, answer, tags
-  const linkTarget = `/hunts/${props.puzzle.hunt}/puzzles/${props.puzzle._id}`;
-  const tagIndex = _.indexBy(props.allTags, '_id');
-  const shownTags = _.difference(props.puzzle.tags, props.suppressTags || []);
+  const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
+  const tagIndex = _.indexBy(allTags, '_id');
+  const shownTags = _.difference(puzzle.tags, suppressTags || []);
   const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; }).filter(Boolean);
 
   const puzzleClasses = classnames(
     'puzzle',
-    props.puzzle.expectedAnswerCount === 0 ? 'administrivia' : null,
-    props.puzzle.expectedAnswerCount > 0 && props.puzzle.answers.length >= props.puzzle.expectedAnswerCount ? 'solved' : null,
-    props.puzzle.expectedAnswerCount > 0 && props.puzzle.answers.length < props.puzzle.expectedAnswerCount ? 'unsolved' : null,
-    props.layout === 'grid' ? 'puzzle-grid' : null,
-    props.layout === 'table' ? 'puzzle-table-row' : null
+    puzzle.expectedAnswerCount === 0 ? 'administrivia' : null,
+    puzzle.expectedAnswerCount > 0 && puzzle.answers.length >= puzzle.expectedAnswerCount ? 'solved' : null,
+    puzzle.expectedAnswerCount > 0 && puzzle.answers.length < puzzle.expectedAnswerCount ? 'unsolved' : null,
+    layout === 'grid' ? 'puzzle-grid' : null,
+    layout === 'table' ? 'puzzle-table-row' : null
   );
 
-  const answers = props.puzzle.answers.map((answer, i) => {
+  const answers = puzzle.answers.map((answer, i) => {
     return (
       // eslint-disable-next-line react/no-array-index-key
-      <PuzzleAnswer key={`${i}-${answer}`} answer={answer} respace={props.segmentAnswers} />
+      <PuzzleAnswer key={`${i}-${answer}`} answer={answer} respace={segmentAnswers} />
     );
   });
 
-  if (props.layout === 'table') {
+  if (layout === 'table') {
     return (
       <tr className={puzzleClasses}>
         <td className="puzzle-title">
           {editButtons}
           {' '}
-          <Link to={linkTarget}>{props.puzzle.title}</Link>
+          <Link to={linkTarget}>{puzzle.title}</Link>
         </td>
         <td className="puzzle-answer">
           {answers}
@@ -123,11 +123,11 @@ const Puzzle = React.memo((props: PuzzleProps) => {
     <div className={puzzleClasses}>
       {showEditModal ? (
         <PuzzleModalForm
-          key={props.puzzle._id}
+          key={puzzle._id}
           ref={editModalRef}
-          puzzle={props.puzzle}
-          huntId={props.puzzle.hunt}
-          tags={props.allTags}
+          puzzle={puzzle}
+          huntId={puzzle.hunt}
+          tags={allTags}
           onSubmit={onEdit}
           showOnMount
         />
@@ -135,24 +135,24 @@ const Puzzle = React.memo((props: PuzzleProps) => {
       {renderDeleteModal && (
         <PuzzleDeleteModal
           ref={deleteModalRef}
-          puzzle={props.puzzle}
+          puzzle={puzzle}
         />
       )}
-      {props.canUpdate && (
+      {canUpdate && (
         <div className="puzzle-column puzzle-edit-button">
           {editButtons}
         </div>
       )}
       <div className="puzzle-column puzzle-title">
-        <Link to={linkTarget}>{props.puzzle.title}</Link>
+        <Link to={linkTarget}>{puzzle.title}</Link>
       </div>
       <div className="puzzle-column puzzle-activity">
-        {!(props.puzzle.answers.length >= props.puzzle.expectedAnswerCount) && <PuzzleActivity huntId={props.puzzle.hunt} puzzleId={props.puzzle._id} unlockTime={props.puzzle.createdAt} />}
+        {!(puzzle.answers.length >= puzzle.expectedAnswerCount) && <PuzzleActivity huntId={puzzle.hunt} puzzleId={puzzle._id} unlockTime={puzzle.createdAt} />}
       </div>
       <div className="puzzle-column puzzle-link">
-        {props.puzzle.url ? (
+        {puzzle.url ? (
           <span>
-            <a href={props.puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
+            <a href={puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
               <FontAwesomeIcon icon={faPuzzlePiece} />
             </a>
           </span>
@@ -161,7 +161,7 @@ const Puzzle = React.memo((props: PuzzleProps) => {
       <div className="puzzle-column puzzle-answer">
         {answers}
       </div>
-      <TagList className="puzzle-column" puzzle={props.puzzle} tags={ownTags} linkToSearch={props.layout === 'grid'} popoverRelated={false} />
+      <TagList className="puzzle-column" puzzle={puzzle} tags={ownTags} linkToSearch={layout === 'grid'} popoverRelated={false} />
     </div>
   );
 });

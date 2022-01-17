@@ -35,12 +35,6 @@ import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 import { filteredPuzzleGroups, puzzleGroupsByRelevance } from './puzzle-sort-and-group';
 import { mediaBreakpointDown } from './styling/responsive';
 
-interface PuzzleListViewProps {
-  huntId: string
-  canAdd: boolean;
-  canUpdate: boolean;
-}
-
 const ViewControls = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -86,20 +80,26 @@ function showSolvedStorageKey(huntId: string): string {
   return `showsolved-${huntId}`;
 }
 
-const PuzzleListView = (props: PuzzleListViewProps) => {
-  const allPuzzles = useTracker(() => Puzzles.find({ hunt: props.huntId }).fetch(), [props.huntId]);
-  const allTags = useTracker(() => Tags.find({ hunt: props.huntId }).fetch(), [props.huntId]);
+const PuzzleListView = ({
+  huntId, canAdd, canUpdate,
+}: {
+  huntId: string
+  canAdd: boolean;
+  canUpdate: boolean;
+}) => {
+  const allPuzzles = useTracker(() => Puzzles.find({ hunt: huntId }).fetch(), [huntId]);
+  const allTags = useTracker(() => Tags.find({ hunt: huntId }).fetch(), [huntId]);
 
   const deletedPuzzlesLoading = useSubscribe(
-    props.canUpdate ? 'mongo.puzzles.deleted' : undefined,
-    { hunt: props.huntId }
+    canUpdate ? 'mongo.puzzles.deleted' : undefined,
+    { hunt: huntId }
   );
   const deletedLoading = deletedPuzzlesLoading();
   const deletedPuzzles = useTracker(() => (
-    !props.canUpdate || deletedLoading ?
+    !canUpdate || deletedLoading ?
       undefined :
-      Puzzles.findDeleted({ hunt: props.huntId }).fetch()
-  ), [props.canUpdate, props.huntId, deletedLoading]);
+      Puzzles.findDeleted({ hunt: huntId }).fetch()
+  ), [canUpdate, huntId, deletedLoading]);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchString = searchParams.get('q') || '';
@@ -107,7 +107,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
   const searchBarRef = useRef<HTMLInputElement>(null);
   const [displayMode, setDisplayMode] = useState<string>('group');
   const [showSolved, setShowSolved] = useState<boolean>(() => {
-    const showSolvedKey = showSolvedStorageKey(props.huntId);
+    const showSolvedKey = showSolvedStorageKey(huntId);
     const localStorageShowSolved = localStorage.getItem(showSolvedKey);
     return !(localStorageShowSolved === 'false');
   });
@@ -227,14 +227,14 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
       // last-set value again the next time we load up this view.
       try {
         // Note: localStorage serialization converts booleans to strings anyway
-        localStorage.setItem(showSolvedStorageKey(props.huntId), `${newState}`);
+        localStorage.setItem(showSolvedStorageKey(huntId), `${newState}`);
       } catch (e) {
         // Ignore failure to set value in storage; this is best-effort and if
         // localStorage isn't available then whatever
       }
       return newState;
     });
-  }, [props.huntId]);
+  }, [huntId]);
 
   const showAddModal = useCallback(() => {
     if (addModalRef.current) {
@@ -271,7 +271,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
               allTags={allTags}
               includeCount={false}
               layout="grid"
-              canUpdate={props.canUpdate}
+              canUpdate={canUpdate}
               suppressedTagIds={suppressedTagIds}
             />
           );
@@ -287,7 +287,7 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
             puzzles={retainedPuzzlesByUnlock}
             allTags={allTags}
             layout="grid"
-            canUpdate={props.canUpdate}
+            canUpdate={canUpdate}
           />
         );
         break;
@@ -305,19 +305,19 @@ const PuzzleListView = (props: PuzzleListViewProps) => {
             allTags={allTags}
             includeCount={false}
             layout="grid"
-            canUpdate={props.canUpdate}
+            canUpdate={canUpdate}
             suppressedTagIds={[]}
           />
         )}
       </div>
     );
-  }, [displayMode, allPuzzles, deletedPuzzles, allTags, props.canUpdate]);
+  }, [displayMode, allPuzzles, deletedPuzzles, allTags, canUpdate]);
 
-  const addPuzzleContent = props.canAdd && (
+  const addPuzzleContent = canAdd && (
     <>
       <Button variant="primary" onClick={showAddModal}>Add a puzzle</Button>
       <PuzzleModalForm
-        huntId={props.huntId}
+        huntId={huntId}
         tags={allTags}
         ref={addModalRef}
         onSubmit={onAdd}

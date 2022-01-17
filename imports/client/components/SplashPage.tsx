@@ -17,11 +17,7 @@ const Image = styled(BSImage)`
   max-width: 50%;
 `;
 
-interface SplashPageProps {
-  children: React.ReactNode;
-}
-
-const SplashPage = (props: SplashPageProps) => {
+const SplashPage = ({ children }: { children: React.ReactNode }) => {
   const { heroSrc, heroSrc2x } = useTracker(() => {
     return {
       heroSrc: lookupUrl('hero.png'),
@@ -36,7 +32,7 @@ const SplashPage = (props: SplashPageProps) => {
           <Image src={heroSrc} className="d-block mx-auto" srcSet={`${heroSrc} 1x, ${heroSrc2x} 2x`} />
           <Row>
             <Col md={{ span: 6, offset: 3 }}>
-              {props.children}
+              {children}
             </Col>
           </Row>
         </Container>

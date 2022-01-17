@@ -1,3 +1,4 @@
+/* eslint-disable react/destructuring-assignment */
 import { _ } from 'meteor/underscore';
 import { faAlignJustify } from '@fortawesome/free-solid-svg-icons/faAlignJustify';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';

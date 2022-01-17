@@ -19,14 +19,16 @@ type DeepLinkState = {
   startNativeLoad: Date;
 };
 
-const DeepLinkHook = (props: DeepLinkProps) => {
+const DeepLinkHook = ({
+  children, nativeUrl, browserUrl, ...rest
+}: DeepLinkProps) => {
   const [state, setState] = useState<DeepLinkState>({
     state: DeepLinkLoadState.IDLE,
   });
 
   const browserOpen = useCallback(() => {
-    window.open(props.browserUrl, '_blank');
-  }, [props.browserUrl]);
+    window.open(browserUrl, '_blank');
+  }, [browserUrl]);
 
   const onAttemptingNativeTimeout = useCallback(() => {
     if (state.state === DeepLinkLoadState.IDLE) {
@@ -52,13 +54,10 @@ const DeepLinkHook = (props: DeepLinkProps) => {
 
   const nativeIframe = () => {
     return (
-      <iframe title="Open document" width="1px" height="1px" src={props.nativeUrl} />
+      <iframe title="Open document" width="1px" height="1px" src={nativeUrl} />
     );
   };
 
-  const {
-    children, nativeUrl, browserUrl, ...rest
-  } = props;
   return (
     <div onClick={onClick} {...rest}>
       {state.state === 'attemptingNative' && nativeIframe()}

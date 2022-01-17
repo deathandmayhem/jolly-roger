@@ -24,11 +24,7 @@ import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import Breakable from './styling/Breakable';
 
-interface AutoSelectInputProps {
-  value: string;
-}
-
-const AutoSelectInput = (props: AutoSelectInputProps) => {
+const AutoSelectInput = ({ value }: { value: string }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const onFocus = useCallback(() => {
     // Use the selection API to select the contents of this, for easier clipboarding.
@@ -41,21 +37,13 @@ const AutoSelectInput = (props: AutoSelectInputProps) => {
     <input
       ref={inputRef}
       readOnly
-      value={props.value}
+      value={value}
       onFocus={onFocus}
     />
   );
 };
 
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-interface GuessBlockProps {
-  canEdit: boolean;
-  hunt: HuntType;
-  guess: GuessType;
-  createdByDisplayName: string;
-  puzzle: PuzzleType;
-}
 
 const StyledGuessBlock = styled.div<{ $state: GuessType['state'] }>`
   margin-bottom: 8px;
@@ -134,24 +122,31 @@ const formatDate = (date: Date) => {
   return `${date.toLocaleTimeString()} on ${day}`;
 };
 
-const GuessBlock = React.memo((props: GuessBlockProps) => {
+const GuessBlock = React.memo(({
+  canEdit, hunt, guess, createdByDisplayName, puzzle,
+}: {
+  canEdit: boolean;
+  hunt: HuntType;
+  guess: GuessType;
+  createdByDisplayName: string;
+  puzzle: PuzzleType;
+}) => {
   const markPending = useCallback(() => {
-    Meteor.call('markGuessPending', props.guess._id);
-  }, [props.guess._id]);
+    Meteor.call('markGuessPending', guess._id);
+  }, [guess._id]);
 
   const markCorrect = useCallback(() => {
-    Meteor.call('markGuessCorrect', props.guess._id);
-  }, [props.guess._id]);
+    Meteor.call('markGuessCorrect', guess._id);
+  }, [guess._id]);
 
   const markIncorrect = useCallback(() => {
-    Meteor.call('markGuessIncorrect', props.guess._id);
-  }, [props.guess._id]);
+    Meteor.call('markGuessIncorrect', guess._id);
+  }, [guess._id]);
 
   const markRejected = useCallback(() => {
-    Meteor.call('markGuessRejected', props.guess._id);
-  }, [props.guess._id]);
+    Meteor.call('markGuessRejected', guess._id);
+  }, [guess._id]);
 
-  const guess = props.guess;
   const timestamp = formatDate(guess.createdAt);
   const guessButtons = (
     <StyledGuessButtonGroup>
@@ -168,13 +163,13 @@ const GuessBlock = React.memo((props: GuessBlockProps) => {
         <div>
           {timestamp}
           {' from '}
-          <Breakable>{props.createdByDisplayName || '<no name given>'}</Breakable>
+          <Breakable>{createdByDisplayName || '<no name given>'}</Breakable>
         </div>
         <div>
           {'Puzzle: '}
-          <a href={guessURL(props.hunt, props.puzzle)} target="_blank" rel="noopener noreferrer">{props.puzzle.title}</a>
+          <a href={guessURL(hunt, puzzle)} target="_blank" rel="noopener noreferrer">{puzzle.title}</a>
           {' ('}
-          <Link to={`/hunts/${props.puzzle.hunt}/puzzles/${props.puzzle._id}`}>discussion</Link>
+          <Link to={`/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`}>discussion</Link>
           )
         </div>
         <div>
@@ -187,7 +182,7 @@ const GuessBlock = React.memo((props: GuessBlockProps) => {
         </div>
         <div><AutoSelectInput value={guess.guess} /></div>
       </StyledGuessInfo>
-      {props.canEdit ? guessButtons : <StyledGuessButtonGroup>{guess.state}</StyledGuessButtonGroup>}
+      {canEdit ? guessButtons : <StyledGuessButtonGroup>{guess.state}</StyledGuessButtonGroup>}
     </StyledGuessBlock>
   );
 });

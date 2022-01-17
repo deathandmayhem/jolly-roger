@@ -2,14 +2,6 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
-interface CelebrationProps {
-  url: string;
-  title: string;
-  answer: string;
-  playAudio: boolean;
-  onClose: () => void;
-}
-
 const CelebrationOverlay = styled.div`
   position: fixed;
   left: 0;
@@ -36,10 +28,16 @@ const CelebrationCloseButton = styled.button`
   right: 0;
 `;
 
-const Celebration = (props: CelebrationProps) => {
+const Celebration = ({
+  url, title, answer, playAudio, onClose,
+}: {
+  url: string;
+  title: string;
+  answer: string;
+  playAudio: boolean;
+  onClose: () => void;
+}) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-
-  const { onClose } = props;
 
   const onCloseCb = useCallback(() => {
     if (onClose) {
@@ -91,17 +89,17 @@ const Celebration = (props: CelebrationProps) => {
         <CelebrationCloseButton type="button" onClick={onCloseCb} aria-label="Close" ref={closeButtonRef}>
           <span aria-hidden="true">×</span>
         </CelebrationCloseButton>
-        {props.playAudio ? <audio src="/audio/applause.mp3" autoPlay /> : null}
+        {playAudio ? <audio src="/audio/applause.mp3" autoPlay /> : null}
         <h1>
           We solved
           {' '}
-          <Link to={props.url}>{props.title}</Link>
+          <Link to={url}>{title}</Link>
           !
         </h1>
         <h2>
           Answer:
           {' '}
-          <span className="answer">{props.answer}</span>
+          <span className="answer">{answer}</span>
         </h2>
       </CelebrationContainer>
     </CelebrationOverlay>

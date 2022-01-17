@@ -73,13 +73,6 @@ const PeopleListHeader = styled.header`
   text-indent: -1rem;
 `;
 
-interface ChatPeopleProps {
-  huntId: string;
-  puzzleId: string;
-  puzzleDeleted: boolean;
-  onHeightChange: () => void;
-}
-
 enum CallState {
   CHAT_ONLY = 'chatonly',
   REQUESTING_STREAM = 'requestingstream',
@@ -131,7 +124,14 @@ function participantState(explicitlyMuted: boolean, deafened: boolean) {
 
 // ChatPeople is the component that deals with all user presence and
 // WebRTC call subscriptions, state, and visualization.
-const ChatPeople = (props: ChatPeopleProps) => {
+const ChatPeople = ({
+  huntId, puzzleId, puzzleDeleted, onHeightChange,
+}: {
+  huntId: string;
+  puzzleId: string;
+  puzzleDeleted: boolean;
+  onHeightChange: () => void;
+}) => {
   const [callState, setCallState] = useState<CallState>(CallState.CHAT_ONLY);
   const [error, setError] = useState<string>('');
 
@@ -149,8 +149,6 @@ const ChatPeople = (props: ChatPeopleProps) => {
     gainNode: undefined,
     leveledStreamSource: undefined,
   });
-
-  const { huntId, puzzleId, onHeightChange } = props;
 
   const subscriberTopic = `puzzle:${puzzleId}`;
   const subscribersLoading = useSubscribe('subscribers.fetch', subscriberTopic);
@@ -463,7 +461,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
     viewersExpanded,
     callState,
     voiceActivityRelative,
-    props.puzzleDeleted,
+    puzzleDeleted,
   ]);
 
   trace('ChatPeople render', { loading });
@@ -537,7 +535,7 @@ const ChatPeople = (props: ChatPeopleProps) => {
   const viewersHeaderIcon = viewersExpanded ? faCaretDown : faCaretRight;
   return (
     <section className="chatter-section">
-      {!rtcDisabled && !props.puzzleDeleted && callersSubsection}
+      {!rtcDisabled && !puzzleDeleted && callersSubsection}
       <div className="chatter-subsection non-av-viewers">
         <PeopleListHeader onClick={toggleViewersExpanded}>
           <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />

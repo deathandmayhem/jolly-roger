@@ -44,14 +44,14 @@ const ImageBlock = styled.div`
   justify-content: center;
 `;
 
-interface ProfileListProps {
+const ProfileList = ({
+  huntId, canInvite, canSyncDiscord, profiles,
+}: {
   huntId?: string;
   canInvite?: boolean;
   canSyncDiscord?: boolean;
   profiles: ProfileType[];
-}
-
-const ProfileList = (props: ProfileListProps) => {
+}) => {
   const [searchString, setSearchString] = useState<string>('');
 
   const searchBarRef = useRef<HTMLInputElement>(null); // Wrong type but I should fix it
@@ -104,11 +104,11 @@ const ProfileList = (props: ProfileListProps) => {
   }, []);
 
   const syncDiscord = useCallback(() => {
-    Meteor.call('syncDiscordRole', props.huntId);
-  }, [props.huntId]);
+    Meteor.call('syncDiscordRole', huntId);
+  }, [huntId]);
 
   const syncDiscordButton = useMemo(() => {
-    if (!props.huntId || !props.canSyncDiscord) {
+    if (!huntId || !canSyncDiscord) {
       return null;
     }
 
@@ -122,15 +122,15 @@ const ProfileList = (props: ProfileListProps) => {
         </FormText>
       </FormGroup>
     );
-  }, [props.huntId, props.canSyncDiscord, syncDiscord]);
+  }, [huntId, canSyncDiscord, syncDiscord]);
 
   const inviteToHuntItem = useMemo(() => {
-    if (!props.huntId || !props.canInvite) {
+    if (!huntId || !canInvite) {
       return null;
     }
 
     return (
-      <RRBS.LinkContainer to={`/hunts/${props.huntId}/hunters/invite`}>
+      <RRBS.LinkContainer to={`/hunts/${huntId}/hunters/invite`}>
         <StyledListGroupItem action>
           <ImageBlock>
             <FontAwesomeIcon icon={faPlus} />
@@ -139,10 +139,10 @@ const ProfileList = (props: ProfileListProps) => {
         </StyledListGroupItem>
       </RRBS.LinkContainer>
     );
-  }, [props.huntId, props.canInvite]);
+  }, [huntId, canInvite]);
 
   const globalInfo = useMemo(() => {
-    if (props.huntId) {
+    if (huntId) {
       return null;
     }
 
@@ -152,16 +152,16 @@ const ProfileList = (props: ProfileListProps) => {
         Mystery Hunt. For that, go to the hunt page and click on &quot;Hunters&quot;.
       </Alert>
     );
-  }, [props.huntId]);
+  }, [huntId]);
 
-  const profiles = props.profiles.filter(matcher);
+  const matching = profiles.filter(matcher);
   return (
     <div>
       <h1>List of hunters</h1>
       <ProfilesSummary>
         Total hunters:
         {' '}
-        {props.profiles.length}
+        {profiles.length}
       </ProfilesSummary>
 
       {syncDiscordButton}
@@ -191,7 +191,7 @@ const ProfileList = (props: ProfileListProps) => {
 
       <ListGroup>
         {inviteToHuntItem}
-        {profiles.map((profile) => {
+        {matching.map((profile) => {
           const name = profile.displayName || '<no name provided>';
           const discordAvatarUrl = getAvatarCdnUrl(profile.discordAccount);
           return (

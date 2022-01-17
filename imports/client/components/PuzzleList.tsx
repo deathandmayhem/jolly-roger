@@ -4,7 +4,9 @@ import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
 import Puzzle from './Puzzle';
 
-interface PuzzleListProps {
+const PuzzleList = React.memo(({
+  puzzles, allTags, layout, canUpdate, suppressTags, segmentAnswers,
+}: {
   // The puzzles to show in this list
   puzzles: PuzzleType[];
   // All tags for this hunt, including those not used by any puzzles
@@ -13,38 +15,36 @@ interface PuzzleListProps {
   canUpdate: boolean;
   suppressTags?: string[];
   segmentAnswers?: boolean;
-}
-
-const PuzzleList = React.memo((props: PuzzleListProps) => {
+}) => {
   // This component just renders the puzzles provided, in order.
   // Adjusting order based on tags, tag groups, etc. is to be done at
   // a higher layer.
-  const puzzles = [];
-  for (let i = 0; i < props.puzzles.length; i++) {
-    const puz = props.puzzles[i];
-    puzzles.push(<Puzzle
+  const renderedPuzzles = [];
+  for (let i = 0; i < puzzles.length; i++) {
+    const puz = puzzles[i];
+    renderedPuzzles.push(<Puzzle
       key={puz._id}
       puzzle={puz}
-      allTags={props.allTags}
-      layout={props.layout}
-      canUpdate={props.canUpdate}
-      suppressTags={props.suppressTags}
-      segmentAnswers={props.segmentAnswers}
+      allTags={allTags}
+      layout={layout}
+      canUpdate={canUpdate}
+      suppressTags={suppressTags}
+      segmentAnswers={segmentAnswers}
     />);
   }
 
-  if (props.layout === 'table') {
+  if (layout === 'table') {
     return (
       <table className="puzzle-list">
         <tbody>
-          {puzzles}
+          {renderedPuzzles}
         </tbody>
       </table>
     );
   }
   return (
     <div className="puzzle-list">
-      {puzzles}
+      {renderedPuzzles}
     </div>
   );
 });
