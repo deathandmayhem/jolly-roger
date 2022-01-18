@@ -1,13 +1,13 @@
 import { check } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
 import Ansible from '../ansible';
+import { GLOBAL_SCOPE } from '../lib/is-admin';
 import Guesses from '../lib/models/guesses';
 import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
-import { userMayUpdateGuessesForHunt, deprecatedIsOperator } from '../lib/permission_stubs';
+import { userMayUpdateGuessesForHunt } from '../lib/permission_stubs';
 import { GuessType } from '../lib/schemas/guess';
 import { HuntType } from '../lib/schemas/hunt';
 import { PuzzleType } from '../lib/schemas/puzzle';
@@ -61,10 +61,8 @@ function checkMayUpdateGuess(userId: string | null | undefined, huntId: string) 
   }
 }
 
-class PendingGuessWatcher {
+class HuntPendingGuessWatcher {
   sub: Subscription;
-
-  guessCursor: Mongo.Cursor<GuessType>;
 
   guessWatch: Meteor.LiveQueryHandle;
 
@@ -74,17 +72,15 @@ class PendingGuessWatcher {
 
   puzzleRefCounter: RefCountedObserverMap<PuzzleType>;
 
-  constructor(sub: Subscription) {
+  constructor(sub: Subscription, huntId: string) {
     this.sub = sub;
 
-    const user = MeteorUsers.findOne(sub.userId!)!;
-
-    this.guessCursor = Guesses.find({ state: 'pending', hunt: { $in: user.hunts } });
+    const guessCursor = Guesses.find({ state: 'pending', hunt: huntId });
     this.guesses = {};
     this.huntRefCounter = new RefCountedObserverMap(sub, Hunts);
     this.puzzleRefCounter = new RefCountedObserverMap(sub, Puzzles);
 
-    this.guessWatch = this.guessCursor.observeChanges({
+    this.guessWatch = guessCursor.observeChanges({
       added: (id, fields) => {
         this.guesses[id] = { _id: id, ...fields } as GuessType;
         this.huntRefCounter.incref(fields.hunt!);
@@ -131,16 +127,67 @@ class PendingGuessWatcher {
   }
 }
 
+class PendingGuessWatcher {
+  sub: Subscription;
+
+  userWatch: Meteor.LiveQueryHandle;
+
+  huntGuessWatchers: Record<string, HuntPendingGuessWatcher>;
+
+  constructor(sub: Subscription) {
+    this.sub = sub;
+    this.huntGuessWatchers = {};
+
+    this.userWatch = MeteorUsers.find(sub.userId!).observeChanges({
+      added: (_id, fields) => {
+        const { roles = {} } = fields;
+
+        Object.entries(roles).forEach(([huntId, huntRoles]) => {
+          if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
+          this.huntGuessWatchers[huntId] ||= new HuntPendingGuessWatcher(sub, huntId);
+        });
+      },
+      changed: (_id, fields) => {
+        const { roles = {} } = fields;
+
+        Object.entries(roles).forEach(([huntId, huntRoles]) => {
+          if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
+          this.huntGuessWatchers[huntId] ||= new HuntPendingGuessWatcher(sub, huntId);
+        });
+
+        Object.keys(this.huntGuessWatchers).forEach((huntId) => {
+          if (!roles[huntId] || !roles[huntId].includes('operator')) {
+            this.huntGuessWatchers[huntId].shutdown();
+            delete this.huntGuessWatchers[huntId];
+          }
+        });
+      },
+      // assume the user won't be removed
+    });
+
+    this.sub.ready();
+  }
+
+  shutdown() {
+    this.userWatch.stop();
+    Object.values(this.huntGuessWatchers).forEach((watcher) => watcher.shutdown());
+  }
+}
+
 // Publish pending guesses enriched with puzzle and hunt. This is a dedicated
 // publish because every operator needs this information for the notification
 // center, and without assistance they need an overly broad subscription to the
 // related collections
+//
+// Note that there's no restriction on this sub, beyond being logged in. This is
+// safe because we won't publish guesses for hunts for which you're not an
+// operator. However, most clients aren't expected to subscribe to it, because
+// we check on the client if they're an operator for any hunt before making the
+// subscription. Doing this on the client means we can make it a reactive
+// computation, whereas if we used a permissions check on the server to
+// short-circuit the sub, we could not.
 Meteor.publish('pendingGuesses', function () {
   check(this.userId, String);
-
-  if (!deprecatedIsOperator(this.userId)) {
-    throw new Meteor.Error(401, 'Must be active operator to subscribe to pendingGuesses');
-  }
 
   const watcher = new PendingGuessWatcher(this);
   this.onStop(() => watcher.shutdown());

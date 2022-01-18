@@ -12,7 +12,7 @@ const UserCodec = t.type({
   createdAt: date,
   lastLogin: t.union([date, t.undefined]),
   services: t.union([t.object, t.undefined]),
-  roles: t.union([t.array(t.string), t.undefined]),
+  roles: t.union([t.object, t.undefined]),
   hunts: t.union([t.array(t.string), t.undefined]),
   profile: t.type({
     operating: t.boolean,

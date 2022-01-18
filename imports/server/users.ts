@@ -1,8 +1,8 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import isAdmin from '../lib/is-admin';
+import { userIdIsAdmin } from '../lib/is-admin';
 import MeteorUsers from '../lib/models/meteor_users';
-import { deprecatedUserMayMakeOperator } from '../lib/permission_stubs';
+import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
 
 Meteor.publish('selfHuntMembership', function () {
   if (!this.userId) {
@@ -29,12 +29,27 @@ Meteor.publish('huntMembers', function (huntId: string) {
   return MeteorUsers.find({ hunts: huntId }, { fields: { hunts: 1 } });
 });
 
+Meteor.publish('huntUserInfo', function (huntId: string) {
+  check(huntId, String);
+
+  // Only publish other users' roles to admins and other operators.
+  if (!userMaySeeUserInfoForHunt(this.userId, huntId)) {
+    return [];
+  }
+
+  return MeteorUsers.find({ hunts: huntId }, { fields: { roles: 1, hunts: 1 } });
+});
+
 Meteor.publish('userInfo', function (targetUserId: string) {
   check(targetUserId, String);
 
-  // Only publish other users' roles to admins and other (potentially-inactive) operators.
-  // TODO: rethink operator status to allow it to be contextualized by hunt.
-  if (!isAdmin(this.userId) && !deprecatedUserMayMakeOperator(this.userId)) {
+  // Allow single-user info to be published if there is any hunt the target is a
+  // member of for which the caller is an operator. Note that this is a
+  // non-reactive computation
+  const targetUser = MeteorUsers.findOne(targetUserId);
+  const callerAllowed = userIdIsAdmin(this.userId) ||
+    targetUser?.hunts?.some((huntId) => userMaySeeUserInfoForHunt(this.userId, huntId));
+  if (!callerAllowed) {
     return [];
   }
 

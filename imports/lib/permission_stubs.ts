@@ -1,12 +1,67 @@
 import { Meteor } from 'meteor/meteor';
-import isAdmin from './is-admin';
+import { GLOBAL_SCOPE, userIdIsAdmin, userIsAdmin } from './is-admin';
 import Hunts from './models/hunts';
 import MeteorUsers from './models/meteor_users';
 
-// admins are always allowed to join someone to a hunt
-// non-admins (including operators) can if they are a member of that hunt
+function isOperatorForHunt(user: Meteor.User, huntId: string): boolean {
+  return user.roles?.[huntId]?.includes('operator') ?? false;
+}
+
+export function listAllRolesForHunt(userId: string | null | undefined, huntId: string): string[] {
+  if (!userId) {
+    return [];
+  }
+
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return [];
+  }
+
+  if (!user.roles) {
+    return [];
+  }
+
+  return [
+    ...(user.roles[GLOBAL_SCOPE] ?? []),
+    ...(user.roles[huntId] ?? []),
+  ];
+}
+
+export function userIsOperatorForHunt(userId: string | null | undefined, huntId: string): boolean {
+  if (!userId) {
+    return false;
+  }
+
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+
+  return isOperatorForHunt(user, huntId);
+}
+
+export function userIsOperatorForAnyHunt(userId: string | null | undefined): boolean {
+  if (!userId) {
+    return false;
+  }
+
+  const user = MeteorUsers.findOne(userId);
+  if (!user) {
+    return false;
+  }
+
+  if (userIsAdmin(user)) {
+    return true;
+  }
+
+  return Object.entries(user.roles ?? {}).some(([huntId, roles]) => (
+    huntId !== GLOBAL_SCOPE && roles.includes('operator')
+  ));
+}
+
+// admins and operators are always allowed to join someone to a hunt
+// non-admins can if they are a member of that hunt
 // already and if the hunt allows open signups.
-// It's possible we should always allow operators to add someone to a hunt?
 export function userMayAddUsersToHunt(userId: string | null | undefined, huntId: string): boolean {
   if (!userId) {
     return false;
@@ -18,7 +73,11 @@ export function userMayAddUsersToHunt(userId: string | null | undefined, huntId:
   }
 
   // Admins can always do everything
-  if (user.roles && user.roles.includes('admin')) {
+  if (userIsAdmin(user)) {
+    return true;
+  }
+
+  if (isOperatorForHunt(user, huntId)) {
     return true;
   }
 
@@ -41,15 +100,6 @@ export function userMayAddUsersToHunt(userId: string | null | undefined, huntId:
   return hunt.openSignups;
 }
 
-function isOperatorForHunt(user: Meteor.User, _huntId: string): boolean {
-  // Today, this function doesn't consider the huntId scope, but some day, we'd like it to.
-  if (user.roles && user.roles.includes('operator')) {
-    return true;
-  }
-
-  return false;
-}
-
 // Admins and operators may add announcements to a hunt.
 export function userMayAddAnnouncementToHunt(
   userId: string | null | undefined,
@@ -64,7 +114,7 @@ export function userMayAddAnnouncementToHunt(
     return false;
   }
 
-  if (user.roles && user.roles.includes('admin')) {
+  if (userIsAdmin(user)) {
     return true;
   }
 
@@ -80,9 +130,8 @@ export function userMayAddAnnouncementToHunt(
   return false;
 }
 
-export function userMayMakeOtherUserOperatorForHunt(
+export function userMayMakeOperatorForHunt(
   userId: string | null | undefined,
-  otherUserId: string,
   huntId: string,
 ): boolean {
   if (!userId) {
@@ -94,13 +143,8 @@ export function userMayMakeOtherUserOperatorForHunt(
     return false;
   }
 
-  if (user.roles && user.roles.includes('admin')) {
+  if (userIsAdmin(user)) {
     return true;
-  }
-
-  const otherUser = MeteorUsers.findOne(otherUserId);
-  if (!otherUser) {
-    return false;
   }
 
   const hunt = Hunts.findOne(huntId);
@@ -115,8 +159,10 @@ export function userMayMakeOtherUserOperatorForHunt(
   return false;
 }
 
-export function deprecatedIsOperator(userId: string | null | undefined): boolean {
-  // TODO: move away from this in favor of hunt-scoped operator status
+export function userMaySeeUserInfoForHunt(
+  userId: string | null | undefined,
+  huntId: string
+): boolean {
   if (!userId) {
     return false;
   }
@@ -126,33 +172,16 @@ export function deprecatedIsOperator(userId: string | null | undefined): boolean
     return false;
   }
 
-  if (user.roles && user.roles.includes('admin')) {
+  if (userIsAdmin(user)) {
     return true;
   }
 
-  if (user.roles && user.roles.includes('operator')) {
-    return true;
-  }
-
-  return false;
-}
-
-export function deprecatedUserMayMakeOperator(userId: string | null | undefined): boolean {
-  // TODO: move away from this in favor of hunt-scoped operator status
-  if (!userId) {
+  const hunt = Hunts.findOne(huntId);
+  if (!hunt) {
     return false;
   }
 
-  const user = MeteorUsers.findOne(userId);
-  if (!user) {
-    return false;
-  }
-
-  if (user.roles && user.roles.includes('admin')) {
-    return true;
-  }
-
-  if (user.roles && user.roles.includes('operator')) {
+  if (isOperatorForHunt(user, huntId)) {
     return true;
   }
 
@@ -169,7 +198,7 @@ export function userMayBulkAddToHunt(userId: string | null | undefined, huntId: 
     return false;
   }
 
-  if (user.roles && user.roles.includes('admin')) {
+  if (userIsAdmin(user)) {
     return true;
   }
 
@@ -181,60 +210,41 @@ export function userMayBulkAddToHunt(userId: string | null | undefined, huntId: 
 }
 
 export function userMayUseDiscordBotAPIs(userId: string | null | undefined): boolean {
-  if (!userId) {
-    return false;
-  }
-
-  const user = MeteorUsers.findOne(userId);
-  if (!user) {
-    return false;
-  }
-
-  if (user.roles && user.roles.includes('admin')) {
-    return true;
-  }
-
-  // TODO: we should figure out more sensible policy here if we want to support
-  // general hunt creation
-  if (user.roles && user.roles.includes('operator')) {
-    return true;
-  }
-
-  return false;
+  return userIdIsAdmin(userId);
 }
 
 export function checkAdmin(userId: string | null | undefined) {
-  if (!isAdmin(userId)) {
+  if (!userIdIsAdmin(userId)) {
     throw new Meteor.Error(401, 'Must be admin');
   }
 }
 
 export function userMayConfigureGdrive(userId: string | null | undefined): boolean {
-  return isAdmin(userId);
+  return userIdIsAdmin(userId);
 }
 
 export function userMayConfigureGoogleOAuth(userId: string | null | undefined): boolean {
-  return isAdmin(userId);
+  return userIdIsAdmin(userId);
 }
 
 export function userMayConfigureDiscordOAuth(userId: string | null | undefined): boolean {
-  return isAdmin(userId);
+  return userIdIsAdmin(userId);
 }
 
 export function userMayConfigureDiscordBot(userId: string | null | undefined): boolean {
-  return isAdmin(userId);
+  return userIdIsAdmin(userId);
 }
 
 export function userMayConfigureEmailBranding(userId: string | null | undefined): boolean {
-  return isAdmin(userId);
+  return userIdIsAdmin(userId);
 }
 
 export function userMayConfigureTeamName(userId: string | null | undefined): boolean {
-  return isAdmin(userId);
+  return userIdIsAdmin(userId);
 }
 
 export function userMayConfigureAssets(userId: string | null | undefined): boolean {
-  return isAdmin(userId);
+  return userIdIsAdmin(userId);
 }
 
 export function userMayUpdateGuessesForHunt(
@@ -248,7 +258,7 @@ export function userMayUpdateGuessesForHunt(
   if (!user) {
     return false;
   }
-  if (user.roles && user.roles.includes('admin')) {
+  if (userIsAdmin(user)) {
     return true;
   }
   if (isOperatorForHunt(user, huntId)) {
@@ -268,7 +278,7 @@ export function userMayWritePuzzlesForHunt(
   if (!user) {
     return false;
   }
-  if (user.roles && user.roles.includes('admin')) {
+  if (userIsAdmin(user)) {
     return true;
   }
   if (isOperatorForHunt(user, huntId)) {
@@ -278,12 +288,12 @@ export function userMayWritePuzzlesForHunt(
 }
 
 export function userMayCreateHunt(userId: string | null | undefined): boolean {
-  return isAdmin(userId);
+  return userIdIsAdmin(userId);
 }
 
 export function userMayUpdateHunt(userId: string | null | undefined, _huntId: string): boolean {
   // TODO: make this driven by if you're an operator of the hunt in question
-  return isAdmin(userId);
+  return userIdIsAdmin(userId);
 }
 
 export function userMayJoinCallsForHunt(
@@ -297,7 +307,7 @@ export function userMayJoinCallsForHunt(
   if (!user) {
     return false;
   }
-  if (user.roles && user.roles.includes('admin')) {
+  if (userIsAdmin(user)) {
     return true;
   }
   if (user.hunts && user.hunts.includes(huntId)) {
@@ -306,46 +316,46 @@ export function userMayJoinCallsForHunt(
   return false;
 }
 
-export function addUserToRole(userId: string, role: string) {
+export function addUserToRole(userId: string, scope: string, role: string) {
   return MeteorUsers.update({
     _id: userId,
   }, {
     $addToSet: {
-      roles: {
+      [`roles.${scope}`]: {
         $each: [role],
       },
     },
   });
 }
 
-export function addUserToRoles(userId: string, roles: string[]) {
+export function addUserToRoles(userId: string, scope: string, roles: string[]) {
   return MeteorUsers.update({
     _id: userId,
   }, {
     $addToSet: {
-      roles: {
+      [`roles.${scope}`]: {
         $each: roles,
       },
     },
   });
 }
 
-export function removeUserFromRole(userId: string, role: string) {
+export function removeUserFromRole(userId: string, scope: string, role: string) {
   return MeteorUsers.update({
     _id: userId,
   }, {
     $pullAll: {
-      roles: [role],
+      [`roles.${scope}`]: [role],
     },
   });
 }
 
-export function removeUserFromRoles(userId: string, roles: string[]) {
+export function removeUserFromRoles(userId: string, scope: string, roles: string[]) {
   return MeteorUsers.update({
     _id: userId,
   }, {
     $pullAll: {
-      roles,
+      [`roles.${scope}`]: roles,
     },
   });
 }

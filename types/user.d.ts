@@ -3,7 +3,7 @@ declare module 'meteor/meteor' {
     interface User {
       lastLogin?: Date;
       hunts?: string[];
-      roles?: string[];
+      roles?: Record<string, string[]>; // scope -> roles
     }
   }
 }

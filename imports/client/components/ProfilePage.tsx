@@ -3,9 +3,6 @@ import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import Profiles from '../../lib/models/profiles';
-import {
-  deprecatedUserMayMakeOperator,
-} from '../../lib/permission_stubs';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import OthersProfilePage from './OthersProfilePage';
 import OwnProfilePage from './OwnProfilePage';
@@ -37,12 +34,6 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
     };
   }, [userId]);
   const hunts = useTracker(() => Meteor.users.findOne(userId)?.hunts, [userId]);
-  const { viewerCanMakeOperator, targetIsOperator } = useTracker(() => {
-    return {
-      viewerCanMakeOperator: deprecatedUserMayMakeOperator(Meteor.userId()),
-      targetIsOperator: deprecatedUserMayMakeOperator(userId),
-    };
-  }, [userId]);
 
   useBreadcrumb({
     title: loading ? 'loading...' : profile.displayName,
@@ -58,8 +49,6 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
   return (
     <OthersProfilePage
       profile={profile}
-      viewerCanMakeOperator={viewerCanMakeOperator}
-      targetIsOperator={targetIsOperator}
       huntMembership={hunts}
     />
   );

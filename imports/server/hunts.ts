@@ -10,6 +10,7 @@ import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
 import {
+  addUserToRole,
   checkAdmin,
   userMayAddUsersToHunt,
   userMayBulkAddToHunt,
@@ -112,6 +113,7 @@ Meteor.methods({
     check(value, HuntShape);
 
     const huntId = Hunts.insert(value);
+    addUserToRole(this.userId, huntId, 'operator');
 
     Meteor.defer(() => {
       // Sync discord roles

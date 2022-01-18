@@ -23,7 +23,7 @@ import Hunts from '../../lib/models/hunts';
 import PendingAnnouncements from '../../lib/models/pending_announcements';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
-import { deprecatedIsOperator } from '../../lib/permission_stubs';
+import { userIsOperatorForAnyHunt } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/announcement';
 import { ChatNotificationType } from '../../lib/schemas/chat_notification';
 import { GuessType } from '../../lib/schemas/guess';
@@ -439,8 +439,8 @@ const StyledNotificationCenter = styled.ul`
 `;
 
 const NotificationCenter = () => {
-  const canUpdateGuesses = useTracker(() => deprecatedIsOperator(Meteor.userId()));
-  const pendingGuessesLoading = useSubscribe(canUpdateGuesses ? 'pendingGuesses' : undefined);
+  const fetchPendingGuesses = useTracker(() => userIsOperatorForAnyHunt(Meteor.userId()), []);
+  const pendingGuessesLoading = useSubscribe(fetchPendingGuesses ? 'pendingGuesses' : undefined);
 
   const [operatorActionsHidden = {}] = useOperatorActionsHidden();
 
@@ -481,10 +481,10 @@ const NotificationCenter = () => {
   const announcements = useTracker(() => (loading ? {} : _.indexBy(Announcements.find().fetch(), '_id')), [loading]);
 
   const guesses = useTracker(() => (
-    loading || !canUpdateGuesses ?
+    loading || !fetchPendingGuesses ?
       [] :
       Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).fetch()
-  ), [loading, canUpdateGuesses]);
+  ), [loading, fetchPendingGuesses]);
   const pendingAnnouncements = useTracker(() => (
     loading ?
       [] :
