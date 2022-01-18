@@ -5,13 +5,13 @@ import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import classnames from 'classnames';
 import React, {
   useCallback, useMemo, useRef, useState,
 } from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/esm/ButtonGroup';
 import { Link } from 'react-router-dom';
+import styled, { css } from 'styled-components';
 import Ansible from '../../ansible';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
@@ -21,14 +21,109 @@ import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleDeleteModal from './PuzzleDeleteModal';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import TagList from './TagList';
+import {
+  SolvedPuzzleBackgroundColor, UnsolvedPuzzleBackgroundColor,
+  ExpectsNoAnswersPuzzleBackgroundColor,
+} from './styling/constants';
+import { mediaBreakpointDown } from './styling/responsive';
+
+const PuzzleDiv = styled.div<{
+  expectsNoAnswers: boolean;
+  isUnsolved: boolean;
+  isSolved: boolean;
+}>`
+  ${({ expectsNoAnswers }) => expectsNoAnswers && css`
+    background-color: ${ExpectsNoAnswersPuzzleBackgroundColor};
+  `}
+  ${({ isUnsolved }) => isUnsolved && css`
+    background-color: ${UnsolvedPuzzleBackgroundColor};
+  `}
+  ${({ isSolved }) => isSolved && css`
+    background-color: ${SolvedPuzzleBackgroundColor};
+  `}
+
+  display: flex;
+  flex-direction: row;
+  align-items: first baseline;
+  justify-content: flex-start;
+  line-height: 24px;
+  padding: 4px 2px;
+  margin-bottom: 4px;
+
+  ${mediaBreakpointDown('xs')`
+    flex-wrap: wrap;
+  `}
+`;
+
+const PuzzleColumn = styled.div`
+  padding: 0 2px;
+  display: inline-block;
+  flex: none;
+`;
+
+const PuzzleEditButtonsColumn = styled(PuzzleColumn)`
+  align-self: flex-start;
+`;
+
+const StyledButton = styled(Button)`
+  // Precedence boost needed to override bootstrap default button padding
+  && {
+    // Resize button to fit in one line-height
+    display: block;
+    height: 24px;
+    width: 24px;
+    padding: 0;
+  }
+`;
+
+const PuzzleTitleColumn = styled(PuzzleColumn)`
+  flex: 4;
+`;
+
+const PuzzleActivityColumn = styled(PuzzleColumn)`
+  width: 120px;
+  text-align: right;
+`;
+
+const PuzzleLinkColumn = styled(PuzzleColumn)`
+  width: 26px;
+  text-align: center;
+`;
+
+const PuzzleAnswerColumn = styled(PuzzleColumn)`
+  flex: 3;
+  overflow-wrap: break-word;
+  overflow: hidden;
+
+  // Push to take whole row in narrow views
+  ${mediaBreakpointDown('xs')`
+    flex: 0 0 100%;
+  `}
+`;
+
+const StyledPuzzleAnswer = styled(PuzzleAnswer)`
+  display: block;
+  text-indent: -1.2em;
+  padding-left: 1.2em;
+`;
+
+const TagListColumn = styled(TagList)`
+  padding: 0 2px;
+  display: inline-block;
+  flex: 3;
+  margin: -2px -4px -2px 0;
+
+  ${mediaBreakpointDown('xs')`
+    flex: 0 0 100%;
+  `}
+`;
 
 const Puzzle = React.memo(({
-  puzzle, allTags, layout, canUpdate, suppressTags, segmentAnswers,
+  puzzle, allTags, canUpdate, suppressTags, segmentAnswers,
 }: {
   puzzle: PuzzleType;
   // All tags associated with the hunt.
   allTags: TagType[];
-  layout: 'grid' | 'table';
   canUpdate: boolean;
   suppressTags?: string[];
   segmentAnswers?: boolean;
@@ -72,13 +167,13 @@ const Puzzle = React.memo(({
     if (showEdit) {
       return (
         <ButtonGroup size="sm">
-          <Button onClick={onShowEditModal} variant="light" title="Edit puzzle...">
+          <StyledButton onClick={onShowEditModal} variant="light" title="Edit puzzle...">
             <FontAwesomeIcon icon={faEdit} />
-          </Button>
+          </StyledButton>
           {!puzzle.deleted && (
-            <Button onClick={onShowDeleteModal} variant="light" title="Delete puzzle...">
+            <StyledButton onClick={onShowDeleteModal} variant="light" title="Delete puzzle...">
               <FontAwesomeIcon icon={faMinus} />
-            </Button>
+            </StyledButton>
           )}
         </ButtonGroup>
       );
@@ -92,39 +187,27 @@ const Puzzle = React.memo(({
   const shownTags = _.difference(puzzle.tags, suppressTags || []);
   const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; }).filter(Boolean);
 
-  const puzzleClasses = classnames(
-    'puzzle',
-    puzzle.expectedAnswerCount === 0 ? 'administrivia' : null,
-    puzzle.expectedAnswerCount > 0 && puzzle.answers.length >= puzzle.expectedAnswerCount ? 'solved' : null,
-    puzzle.expectedAnswerCount > 0 && puzzle.answers.length < puzzle.expectedAnswerCount ? 'unsolved' : null,
-    layout === 'grid' ? 'puzzle-grid' : null,
-    layout === 'table' ? 'puzzle-table-row' : null
-  );
+  const expectsNoAnswers = puzzle.expectedAnswerCount === 0;
+  const isSolved = puzzle.expectedAnswerCount > 0 &&
+    puzzle.answers.length >= puzzle.expectedAnswerCount;
+  const isUnsolved = puzzle.expectedAnswerCount > 0 &&
+    puzzle.answers.length < puzzle.expectedAnswerCount;
 
   const answers = puzzle.answers.map((answer, i) => {
     return (
       // eslint-disable-next-line react/no-array-index-key
-      <PuzzleAnswer key={`${i}-${answer}`} answer={answer} respace={segmentAnswers} />
+      <StyledPuzzleAnswer key={`${i}-${answer}`} answer={answer} respace={segmentAnswers} />
     );
   });
 
-  if (layout === 'table') {
-    return (
-      <tr className={puzzleClasses}>
-        <td className="puzzle-title">
-          {editButtons}
-          {' '}
-          <Link to={linkTarget}>{puzzle.title}</Link>
-        </td>
-        <td className="puzzle-answer">
-          {answers}
-        </td>
-      </tr>
-    );
-  }
-
+  // We can remove the className from PuzzleDiv once all children styles are made explicit
   return (
-    <div className={puzzleClasses}>
+    <PuzzleDiv
+      className="puzzle puzzle-grid"
+      expectsNoAnswers={expectsNoAnswers}
+      isSolved={isSolved}
+      isUnsolved={isUnsolved}
+    >
       {showEditModal ? (
         <PuzzleModalForm
           key={puzzle._id}
@@ -143,17 +226,17 @@ const Puzzle = React.memo(({
         />
       )}
       {showEdit && (
-        <div className="puzzle-column puzzle-edit-button">
+        <PuzzleEditButtonsColumn>
           {editButtons}
-        </div>
+        </PuzzleEditButtonsColumn>
       )}
-      <div className="puzzle-column puzzle-title">
+      <PuzzleTitleColumn>
         <Link to={linkTarget}>{puzzle.title}</Link>
-      </div>
-      <div className="puzzle-column puzzle-activity">
+      </PuzzleTitleColumn>
+      <PuzzleActivityColumn>
         {!(puzzle.answers.length >= puzzle.expectedAnswerCount) && <PuzzleActivity huntId={puzzle.hunt} puzzleId={puzzle._id} unlockTime={puzzle.createdAt} />}
-      </div>
-      <div className="puzzle-column puzzle-link">
+      </PuzzleActivityColumn>
+      <PuzzleLinkColumn>
         {puzzle.url ? (
           <span>
             <a href={puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
@@ -161,12 +244,12 @@ const Puzzle = React.memo(({
             </a>
           </span>
         ) : null}
-      </div>
-      <div className="puzzle-column puzzle-answer">
+      </PuzzleLinkColumn>
+      <PuzzleAnswerColumn>
         {answers}
-      </div>
-      <TagList className="puzzle-column" puzzle={puzzle} tags={ownTags} linkToSearch={layout === 'grid'} popoverRelated={false} />
-    </div>
+      </PuzzleAnswerColumn>
+      <TagListColumn puzzle={puzzle} tags={ownTags} linkToSearch popoverRelated={false} />
+    </PuzzleDiv>
   );
 });
 

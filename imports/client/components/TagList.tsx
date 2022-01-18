@@ -4,11 +4,27 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import styled from 'styled-components';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
 import Tag from './Tag';
 import TagEditor from './TagEditor';
 
+const TagListDiv = styled.div`
+  display: inline;
+`;
+
+const TagListEmptyLabel = styled.span`
+  color: #808080;
+  margin-right: 4px;
+`;
+
+const TagModifyButton = styled(Button)`
+  line-height: 22px;
+  padding: 0 6px;
+  margin: 2px 0;
+  position: relative;
+`;
 interface BaseTagListProps {
   className?: string;
   puzzle: PuzzleType;
@@ -129,7 +145,7 @@ const TagList = React.memo((props: TagListProps) => {
 
   if (tags.length === 0 && emptyMessage) {
     components.push(
-      <span className="tag-list-empty-label" key="noTagLabel">{emptyMessage}</span>
+      <TagListEmptyLabel key="noTagLabel">{emptyMessage}</TagListEmptyLabel>
     );
   }
 
@@ -144,47 +160,44 @@ const TagList = React.memo((props: TagListProps) => {
     );
   } else if (removing) {
     components.push(
-      <Button
+      <TagModifyButton
         key="stopRemoving"
-        className="tag-modify-button"
         onClick={stopRemoving}
       >
         Done removing
-      </Button>
+      </TagModifyButton>
     );
   } else if (showControls && (onCreateTag || onRemoveTag)) {
     components.push(
       <ButtonGroup key="editRemoveGroup">
         {onCreateTag && (
-          <Button
+          <TagModifyButton
             variant="secondary"
             title="Add tag..."
             key="startEditing"
-            className="tag-modify-button"
             onClick={startEditing}
           >
             <FontAwesomeIcon fixedWidth icon={faPlus} />
-          </Button>
+          </TagModifyButton>
         )}
         {onRemoveTag && tags.length > 0 && (
-          <Button
+          <TagModifyButton
             variant="secondary"
             title="Remove tag..."
             key="startRemoving"
-            className="tag-modify-button"
             onClick={startRemoving}
           >
             <FontAwesomeIcon fixedWidth icon={faMinus} />
-          </Button>
+          </TagModifyButton>
         )}
       </ButtonGroup>
     );
   }
 
   return (
-    <div className={`tag-list ${props.className}`}>
+    <TagListDiv className={`tag-list ${props.className}`}>
       {components}
-    </div>
+    </TagListDiv>
   );
 });
 

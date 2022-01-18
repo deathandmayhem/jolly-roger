@@ -280,7 +280,6 @@ const PuzzleListView = ({
               noSharedTagLabel="(no group specified)"
               allTags={allTags}
               includeCount={false}
-              layout="grid"
               canUpdate={canUpdate}
               suppressedTagIds={suppressedTagIds}
             />
@@ -296,7 +295,6 @@ const PuzzleListView = ({
           <PuzzleList
             puzzles={retainedPuzzlesByUnlock}
             allTags={allTags}
-            layout="grid"
             canUpdate={canUpdate}
           />
         );
@@ -314,7 +312,6 @@ const PuzzleListView = ({
             noSharedTagLabel="Deleted puzzles (operator only)"
             allTags={allTags}
             includeCount={false}
-            layout="grid"
             canUpdate={canUpdate}
             suppressedTagIds={[]}
           />

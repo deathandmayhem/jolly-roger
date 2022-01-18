@@ -29,11 +29,10 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(
 }
 
 const RelatedPuzzleList = React.memo(({
-  relatedPuzzles, allTags, layout, canUpdate, sharedTag, suppressedTagIds, segmentAnswers,
+  relatedPuzzles, allTags, canUpdate, sharedTag, suppressedTagIds, segmentAnswers,
 }: {
   relatedPuzzles: PuzzleType[];
   allTags: TagType[];
-  layout: 'grid' | 'table';
   canUpdate: boolean;
   sharedTag: TagType | undefined;
   suppressedTagIds: string[];
@@ -52,7 +51,6 @@ const RelatedPuzzleList = React.memo(({
     <PuzzleList
       puzzles={sortedPuzzles}
       allTags={allTags}
-      layout={layout}
       canUpdate={canUpdate}
       suppressTags={suppressedTagIds}
       segmentAnswers={segmentAnswers}

@@ -6,15 +6,115 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { detectOverflow } from '@popperjs/core';
 import type { ModifierArguments, Modifier, Padding } from '@popperjs/core';
-import classnames from 'classnames';
 import React, { useCallback, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Popover from 'react-bootstrap/Popover';
 import { Link } from 'react-router-dom';
+import styled, { css } from 'styled-components';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
-import { RelatedPuzzleList, sortPuzzlesByRelevanceWithinPuzzleGroup } from './RelatedPuzzleList';
+import { sortPuzzlesByRelevanceWithinPuzzleGroup } from './RelatedPuzzleList';
+import RelatedPuzzleTable from './RelatedPuzzleTable';
+
+const RemoveTagButton = styled(Button)`
+  height: 16px;
+  width: 16px;
+  line-height: 10px;
+  font-size: 10px;
+  padding: 0;
+  margin: 0 0 0 6px;
+`;
+
+// Applying display:flex directly to popover-header leads to incorrect vertical sizing when the
+// popover's height is constrained by the viewport. Use an inner div to avoid this.
+const RelatedPuzzlePopoverHeaderInner = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const RelatedPuzzlePopoverControls = styled.div`
+  align-self: start;
+  margin-left: 8px;
+  flex: 0 0 auto;
+
+  > * {
+    margin-left: 8px;
+  }
+`;
+
+const StyledPopover = styled(Popover)`
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+
+  .popover-body {
+    overflow: auto;
+  }
+`;
+
+const TagDiv = styled.div<{
+  popoverCapable: boolean;
+  popoverOpen: boolean;
+  isAdministrivia: boolean;
+  isMeta: boolean;
+  isGroup: boolean;
+  isMetaFor: boolean;
+  isNeeds: boolean;
+  isPriority: boolean;
+}>`
+  display: inline-flex;
+  align-items: center;
+  line-height: 24px;
+  margin: 2px 4px 2px 0;
+  padding: 0 6px;
+  border-radius: 4px;
+  background-color: #ddd;
+  color: #000;
+
+  ${({ popoverCapable }) => popoverCapable && css`
+    cursor: default;
+    position: relative;
+  `}
+  ${({ popoverCapable, popoverOpen }) => popoverCapable && popoverOpen && css`
+    &:after {
+      content: '';
+      display: block;
+      position: absolute;
+      top: 100%;
+      left: 0%;
+      width: 100%;
+      height: 0.5rem; // This was $popover-arrow-height which I'm hardcoding here
+      z-index: 2;
+    }
+  `}
+  ${({ isAdministrivia }) => isAdministrivia && css`
+    background-color: #ffff77;
+  `}
+  ${({ isMeta }) => isMeta && css`
+    background-color: #ffd57f;
+  `}
+  ${({ isGroup }) => isGroup && css`
+    background-color: #7fffff;
+  `}
+  ${({ isMetaFor }) => isMetaFor && css`
+    background-color: #ffb0b0;
+  `}
+  ${({ isNeeds }) => isNeeds && css`
+    background-color: #ff4040;
+  `}
+  ${({ isPriority }) => isPriority && css`
+    background-color: #aaaaff;
+  `}
+`;
+
+const TagLink = styled(Link)`
+  &, &:active, &:focus, &:hover {
+    color: #000;
+    text-decoration: none;
+  }
+`;
 
 const PopoverPadding = {
   top: 10,
@@ -175,17 +275,6 @@ const Tag = (props: TagProps) => {
   const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
   const isNeeds = name.lastIndexOf('needs:', 0) === 0;
   const isPriority = name.lastIndexOf('priority:', 0) === 0;
-  const classNames = classnames(
-    'tag',
-    props.popoverRelated ? 'tag-popover' : null,
-    showPopover ? 'tag-popover-open' : null,
-    isAdministrivia ? 'tag-administrivia' : null,
-    isMeta ? 'tag-meta' : null,
-    isGroup ? 'tag-group' : null,
-    isMetaFor ? 'tag-meta-for' : null,
-    isNeeds ? 'tag-needs' : null,
-    isPriority ? 'tag-priority' : null
-  );
 
   // Browsers won't word-break on hyphens, so suggest
   // Use wbr instead of zero-width space to make copy-paste reasonable
@@ -201,29 +290,37 @@ const Tag = (props: TagProps) => {
   let title;
   if (props.linkToSearch) {
     title = (
-      <Link
+      <TagLink
         to={{
           pathname: `/hunts/${props.tag.hunt}/puzzles`,
           search: `q=${props.tag.name}`,
         }}
-        className="tag-link"
       >
         {nameWithBreaks}
-      </Link>
+      </TagLink>
     );
   } else {
     title = nameWithBreaks;
   }
 
   const tagElement = (
-    <div className={classNames}>
+    <TagDiv
+      popoverCapable={props.popoverRelated}
+      popoverOpen={showPopover}
+      isAdministrivia={isAdministrivia}
+      isMeta={isMeta}
+      isGroup={isGroup}
+      isMetaFor={isMetaFor}
+      isNeeds={isNeeds}
+      isPriority={isPriority}
+    >
       {title}
       {props.onRemove && (
-        <Button className="tag-remove-button" variant="danger" onClick={onRemoveCb}>
+        <RemoveTagButton variant="danger" onClick={onRemoveCb}>
           <FontAwesomeIcon icon={faTimes} />
-        </Button>
+        </RemoveTagButton>
       )}
-    </div>
+    </TagDiv>
   );
 
   if (props.popoverRelated) {
@@ -231,18 +328,16 @@ const Tag = (props: TagProps) => {
     const relatedPuzzles = getRelatedPuzzles();
     const respaceButtonVariant = segmentAnswers ? 'secondary' : 'outline-secondary';
     const popover = (
-      <Popover
+      <StyledPopover
         id={`tag-${props.tag._id}`}
-        className="related-puzzle-popover"
         onMouseEnter={doShowPopover}
         onMouseLeave={doHidePopover}
       >
         <Popover.Title>
-          <div className="related-puzzle-popover-header-inner">
+          <RelatedPuzzlePopoverHeaderInner>
             {sharedTagName}
-            <div className="related-puzzle-popover-controls">
+            <RelatedPuzzlePopoverControls>
               <Button
-                className="tag-respace-button"
                 variant={respaceButtonVariant}
                 size="sm"
                 onClick={toggleSegmentAnswers}
@@ -252,7 +347,6 @@ const Tag = (props: TagProps) => {
                 Respace
               </Button>
               <Button
-                className="tag-copy-button"
                 variant="secondary"
                 size="sm"
                 onClick={copyRelatedPuzzlesToClipboard}
@@ -261,21 +355,18 @@ const Tag = (props: TagProps) => {
                 {'    '}
                 Copy
               </Button>
-            </div>
-          </div>
+            </RelatedPuzzlePopoverControls>
+          </RelatedPuzzlePopoverHeaderInner>
         </Popover.Title>
         <Popover.Content>
-          <RelatedPuzzleList
+          <RelatedPuzzleTable
             relatedPuzzles={relatedPuzzles}
             allTags={props.allTags}
-            layout="table"
-            canUpdate={false}
             sharedTag={props.tag}
-            suppressedTagIds={[]}
             segmentAnswers={segmentAnswers}
           />
         </Popover.Content>
-      </Popover>
+      </StyledPopover>
     );
     return (
       <OverlayTrigger
