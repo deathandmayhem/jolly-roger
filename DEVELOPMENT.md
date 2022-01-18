@@ -28,24 +28,12 @@ meteor
 This will start up a server on [http://localhost:3000](http://localhost:3000),
 which you can navigate to with your web browser of choice.
 
-However, you can't do much until you create an account.
-
 ## Create admin account
 
-While `meteor` is running in the first terminal, open a second terminal,
-navigate to your jolly-roger clone, spawn a Meteor interactive shell, create a
-user, and make it an admin:
-
-```js
-meteor shell
-> Accounts.createUser({email: 'broder@mit.edu', password: 'password'})
-'WaoEku3wBrWLLc7pK'
-> Roles.addUserToRoles('WaoEku3wBrWLLc7pK', 'admin')
-```
-
-Now, you should be able to log in at
-[http://localhost:3000](http://localhost:3000) with the email and password you
-created from the shell.
+Loading jolly-roger for the first time at
+[http://localhost:3000](http://localhost:3000) will prompt you to create a user
+with the `admin` role and log you in as that user. Once that's done, you can
+begin using jolly-roger.
 
 ## Additional server setup
 
