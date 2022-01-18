@@ -283,13 +283,7 @@ enum OwnProfilePageSubmitState {
   ERROR = 'error',
 }
 
-const OwnProfilePage = ({
-  initialProfile, operating, canMakeOperator,
-}: {
-  initialProfile: ProfileType;
-  operating: boolean;
-  canMakeOperator: boolean;
-}) => {
+const OwnProfilePage = ({ initialProfile }: { initialProfile: ProfileType }) => {
   const [displayName, setDisplayName] = useState<string>(initialProfile.displayName || '');
   const [phoneNumber, setPhoneNumber] = useState<string>(initialProfile.phoneNumber || '');
   const [muteApplause, setMuteApplause] =
@@ -315,15 +309,6 @@ const OwnProfilePage = ({
   const handleDingwordsChange: FormControlProps['onChange'] = useCallback((e) => {
     setDingwordsFlat(e.currentTarget.value);
   }, []);
-
-  const toggleOperating = useCallback(() => {
-    const newState = !operating;
-    if (newState) {
-      Meteor.call('makeOperator', Meteor.userId());
-    } else {
-      Meteor.call('stopOperating');
-    }
-  }, [operating]);
 
   const handleSaveForm = useCallback(() => {
     setSubmitState(OwnProfilePageSubmitState.SUBMITTING);
@@ -354,7 +339,6 @@ const OwnProfilePage = ({
   return (
     <div>
       <h1>Account information</h1>
-      {canMakeOperator ? <FormCheck type="checkbox" checked={operating} onChange={toggleOperating} label="Operating" /> : null}
       <FormGroup>
         <FormLabel htmlFor="jr-profile-edit-email">
           Email address

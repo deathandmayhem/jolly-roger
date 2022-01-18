@@ -7,7 +7,7 @@ import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
-import { userMayUpdateGuessesForHunt, deprecatedIsActiveOperator } from '../lib/permission_stubs';
+import { userMayUpdateGuessesForHunt, deprecatedIsOperator } from '../lib/permission_stubs';
 import { GuessType } from '../lib/schemas/guess';
 import { HuntType } from '../lib/schemas/hunt';
 import { PuzzleType } from '../lib/schemas/puzzle';
@@ -138,7 +138,7 @@ class PendingGuessWatcher {
 Meteor.publish('pendingGuesses', function () {
   check(this.userId, String);
 
-  if (!deprecatedIsActiveOperator(this.userId)) {
+  if (!deprecatedIsOperator(this.userId)) {
     throw new Meteor.Error(401, 'Must be active operator to subscribe to pendingGuesses');
   }
 

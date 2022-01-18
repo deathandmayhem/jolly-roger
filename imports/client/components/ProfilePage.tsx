@@ -5,7 +5,6 @@ import { Navigate, useParams } from 'react-router-dom';
 import Profiles from '../../lib/models/profiles';
 import {
   deprecatedUserMayMakeOperator,
-  deprecatedIsActiveOperator,
 } from '../../lib/permission_stubs';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import OthersProfilePage from './OthersProfilePage';
@@ -38,10 +37,9 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
     };
   }, [userId]);
   const hunts = useTracker(() => Meteor.users.findOne(userId)?.hunts, [userId]);
-  const { viewerCanMakeOperator, viewerIsOperator, targetIsOperator } = useTracker(() => {
+  const { viewerCanMakeOperator, targetIsOperator } = useTracker(() => {
     return {
       viewerCanMakeOperator: deprecatedUserMayMakeOperator(Meteor.userId()),
-      viewerIsOperator: deprecatedIsActiveOperator(Meteor.userId()),
       targetIsOperator: deprecatedUserMayMakeOperator(userId),
     };
   }, [userId]);
@@ -54,13 +52,7 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
   if (loading) {
     return <div>loading...</div>;
   } else if (isSelf) {
-    return (
-      <OwnProfilePage
-        initialProfile={profile}
-        canMakeOperator={viewerCanMakeOperator}
-        operating={viewerIsOperator}
-      />
-    );
+    return <OwnProfilePage initialProfile={profile} />;
   }
 
   return (

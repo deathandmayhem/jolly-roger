@@ -41,7 +41,7 @@ export function userMayAddUsersToHunt(userId: string | null | undefined, huntId:
   return hunt.openSignups;
 }
 
-function isActiveOperatorForHunt(user: Meteor.User, _huntId: string): boolean {
+function isOperatorForHunt(user: Meteor.User, _huntId: string): boolean {
   // Today, this function doesn't consider the huntId scope, but some day, we'd like it to.
   if (user.roles && user.roles.includes('operator')) {
     return true;
@@ -50,16 +50,7 @@ function isActiveOperatorForHunt(user: Meteor.User, _huntId: string): boolean {
   return false;
 }
 
-function isInactiveOperatorForHunt(user: Meteor.User, _huntId: string): boolean {
-  // Today, this function doesn't consider the huntId scope, but some day, we'd like it to.
-  if (user.roles && user.roles.includes('inactiveOperator')) {
-    return true;
-  }
-
-  return false;
-}
-
-// Admins and active operators may add announcements to a hunt.
+// Admins and operators may add announcements to a hunt.
 export function userMayAddAnnouncementToHunt(
   userId: string | null | undefined,
   huntId: string,
@@ -82,7 +73,7 @@ export function userMayAddAnnouncementToHunt(
     return false;
   }
 
-  if (isActiveOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, huntId)) {
     return true;
   }
 
@@ -117,14 +108,14 @@ export function userMayMakeOtherUserOperatorForHunt(
     return false;
   }
 
-  if (isActiveOperatorForHunt(user, huntId) || isInactiveOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, huntId)) {
     return true;
   }
 
   return false;
 }
 
-export function deprecatedIsActiveOperator(userId: string | null | undefined): boolean {
+export function deprecatedIsOperator(userId: string | null | undefined): boolean {
   // TODO: move away from this in favor of hunt-scoped operator status
   if (!userId) {
     return false;
@@ -161,7 +152,7 @@ export function deprecatedUserMayMakeOperator(userId: string | null | undefined)
     return true;
   }
 
-  if (user.roles && (user.roles.includes('inactiveOperator') || user.roles.includes('operator'))) {
+  if (user.roles && user.roles.includes('operator')) {
     return true;
   }
 
@@ -182,7 +173,7 @@ export function userMayBulkAddToHunt(userId: string | null | undefined, huntId: 
     return true;
   }
 
-  if (isActiveOperatorForHunt(user, huntId) || isInactiveOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, huntId)) {
     return true;
   }
 
@@ -260,7 +251,7 @@ export function userMayUpdateGuessesForHunt(
   if (user.roles && user.roles.includes('admin')) {
     return true;
   }
-  if (isActiveOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, huntId)) {
     return true;
   }
   return false;
@@ -280,7 +271,7 @@ export function userMayWritePuzzlesForHunt(
   if (user.roles && user.roles.includes('admin')) {
     return true;
   }
-  if (isActiveOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, huntId)) {
     return true;
   }
   return false;

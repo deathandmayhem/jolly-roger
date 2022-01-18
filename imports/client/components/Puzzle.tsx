@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
+import { useOperatorActionsHidden } from '../hooks/persisted-state';
 import PuzzleActivity from './PuzzleActivity';
 import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleDeleteModal from './PuzzleDeleteModal';
@@ -32,6 +33,9 @@ const Puzzle = React.memo(({
   suppressTags?: string[];
   segmentAnswers?: boolean;
 }) => {
+  const [operatorActionsHidden] = useOperatorActionsHidden();
+  const showEdit = canUpdate && !operatorActionsHidden;
+
   // Generating the edit modals for all puzzles is expensive, so we do it
   // lazily. The first time the modal button is clicked, we change this state
   // variable, which causes us to mount a new modal, which is set to open on
@@ -65,7 +69,7 @@ const Puzzle = React.memo(({
   }, [renderDeleteModal]);
 
   const editButtons = useMemo(() => {
-    if (canUpdate) {
+    if (showEdit) {
       return (
         <ButtonGroup size="sm">
           <Button onClick={onShowEditModal} variant="light" title="Edit puzzle...">
@@ -80,7 +84,7 @@ const Puzzle = React.memo(({
       );
     }
     return null;
-  }, [canUpdate, puzzle.deleted, onShowEditModal, onShowDeleteModal]);
+  }, [showEdit, puzzle.deleted, onShowEditModal, onShowDeleteModal]);
 
   // id, title, answer, tags
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
@@ -138,7 +142,7 @@ const Puzzle = React.memo(({
           puzzle={puzzle}
         />
       )}
-      {canUpdate && (
+      {showEdit && (
         <div className="puzzle-column puzzle-edit-button">
           {editButtons}
         </div>
