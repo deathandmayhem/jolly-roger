@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom';
 import Ansible from '../../ansible';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
-import { useOperatorActionsHidden } from '../hooks/persisted-state';
+import { useOperatorActionsHiddenForHunt } from '../hooks/persisted-state';
 import PuzzleActivity from './PuzzleActivity';
 import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleDeleteModal from './PuzzleDeleteModal';
@@ -33,7 +33,7 @@ const Puzzle = React.memo(({
   suppressTags?: string[];
   segmentAnswers?: boolean;
 }) => {
-  const [operatorActionsHidden] = useOperatorActionsHidden();
+  const [operatorActionsHidden] = useOperatorActionsHiddenForHunt(puzzle.hunt);
   const showEdit = canUpdate && !operatorActionsHidden;
 
   // Generating the edit modals for all puzzles is expensive, so we do it
