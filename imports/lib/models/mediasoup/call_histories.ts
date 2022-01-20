@@ -24,7 +24,14 @@ if (Meteor.isServer) {
       return [];
     }
 
-    return CallHistories.find(huntsMatchingCurrentUser(this.userId, q), opts);
+    const query = {
+      $and: [
+        q,
+        huntsMatchingCurrentUser(this.userId),
+      ],
+    };
+
+    return CallHistories.find(query, opts);
   });
 }
 

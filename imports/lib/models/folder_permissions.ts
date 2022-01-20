@@ -3,8 +3,8 @@ import Base from './base';
 
 const FolderPermissions = new Base<FolderPermissionType>('folder_perms');
 FolderPermissions.attachSchema(FolderPermissionSchema);
-FolderPermissions.publish((userId, q) => {
-  return { ...q, user: userId };
+FolderPermissions.publish((userId) => {
+  return { user: userId };
 });
 
 export default FolderPermissions;
