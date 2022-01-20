@@ -1,7 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import isAdmin from '../is-admin';
+import { userIdIsAdmin } from '../is-admin';
 import SettingSchema, { SettingType } from '../schemas/setting';
 import Base, { FindOptions } from './base';
 
@@ -23,7 +23,7 @@ if (Meteor.isServer) {
       });
 
       // Only allow admins to pull down Settings.
-      if (!this.userId || !isAdmin(this.userId)) {
+      if (!this.userId || !userIdIsAdmin(this.userId)) {
         return [];
       }
 

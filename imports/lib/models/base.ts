@@ -1,7 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import isAdmin from '../is-admin';
+import { userIdIsAdmin } from '../is-admin';
 import { BaseType } from '../schemas/base';
 
 const formatQuery = Symbol('formatQuery');
@@ -42,13 +42,13 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     // relied upon by any client-side code that is part of the application.
     this.allow({
       insert(userId, _doc) {
-        return isAdmin(userId);
+        return userIdIsAdmin(userId);
       },
       update(userId, _doc, _fieldNames, _modifier) {
-        return isAdmin(userId);
+        return userIdIsAdmin(userId);
       },
       remove(userId, _doc) {
-        return isAdmin(userId);
+        return userIdIsAdmin(userId);
       },
     });
   }

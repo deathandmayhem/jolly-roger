@@ -35,3 +35,4 @@ import './33-index-profile-dingwords';
 import './34-mediasoup-indexes';
 import './35-folder-permissions-indexes';
 import './36-call-history-indexes';
+import './37-role-reorganization';

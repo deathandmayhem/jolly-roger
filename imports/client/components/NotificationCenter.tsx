@@ -23,7 +23,7 @@ import Hunts from '../../lib/models/hunts';
 import PendingAnnouncements from '../../lib/models/pending_announcements';
 import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
-import { deprecatedIsActiveOperator } from '../../lib/permission_stubs';
+import { userIsOperatorForAnyHunt } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/announcement';
 import { ChatNotificationType } from '../../lib/schemas/chat_notification';
 import { GuessType } from '../../lib/schemas/guess';
@@ -31,6 +31,7 @@ import { HuntType } from '../../lib/schemas/hunt';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
+import { useOperatorActionsHidden } from '../hooks/persisted-state';
 import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import markdown from '../markdown';
 import Breakable from './styling/Breakable';
@@ -438,8 +439,10 @@ const StyledNotificationCenter = styled.ul`
 `;
 
 const NotificationCenter = () => {
-  const canUpdateGuesses = useTracker(() => deprecatedIsActiveOperator(Meteor.userId()));
-  const pendingGuessesLoading = useSubscribe(canUpdateGuesses ? 'pendingGuesses' : undefined);
+  const fetchPendingGuesses = useTracker(() => userIsOperatorForAnyHunt(Meteor.userId()), []);
+  const pendingGuessesLoading = useSubscribe(fetchPendingGuesses ? 'pendingGuesses' : undefined);
+
+  const [operatorActionsHidden = {}] = useOperatorActionsHidden();
 
   // This is overly broad, but we likely already have the data cached locally
   const userId = useTracker(() => Meteor.userId()!);
@@ -478,10 +481,10 @@ const NotificationCenter = () => {
   const announcements = useTracker(() => (loading ? {} : _.indexBy(Announcements.find().fetch(), '_id')), [loading]);
 
   const guesses = useTracker(() => (
-    loading || !canUpdateGuesses ?
+    loading || !fetchPendingGuesses ?
       [] :
       Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).fetch()
-  ), [loading, canUpdateGuesses]);
+  ), [loading, fetchPendingGuesses]);
   const pendingAnnouncements = useTracker(() => (
     loading ?
       [] :
@@ -540,6 +543,7 @@ const NotificationCenter = () => {
 
   guesses.forEach((g) => {
     if (dismissedGuesses[g._id]) return;
+    if (operatorActionsHidden[g.hunt]) return;
     messages.push(<GuessMessage
       key={g._id}
       guess={g}

@@ -9,13 +9,14 @@ import { ServiceConfiguration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
 import Ansible from '../ansible';
 import { API_BASE } from '../lib/discord';
+import { GLOBAL_SCOPE } from '../lib/is-admin';
 import Documents from '../lib/models/documents';
 import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
 import Puzzles from '../lib/models/puzzles';
 import Settings from '../lib/models/settings';
 import {
-  addUserToRoles,
+  addUserToRole,
   userMayConfigureGdrive,
   userMayConfigureGoogleOAuth,
   userMayConfigureDiscordOAuth,
@@ -57,7 +58,7 @@ Meteor.methods({
     }
 
     const firstUserId = Accounts.createUser({ email, password });
-    addUserToRoles(firstUserId, ['admin', 'operator']);
+    addUserToRole(firstUserId, GLOBAL_SCOPE, 'admin');
   },
 
   setupGoogleOAuthClient(clientId: unknown, secret: unknown) {

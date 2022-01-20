@@ -6,6 +6,7 @@ import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { faFaucet } from '@fortawesome/free-solid-svg-icons/faFaucet';
 import { faMap } from '@fortawesome/free-solid-svg-icons/faMap';
 import { faReceipt } from '@fortawesome/free-solid-svg-icons/faReceipt';
+import { faUserCog } from '@fortawesome/free-solid-svg-icons/faUserCog';
 import { faUsers } from '@fortawesome/free-solid-svg-icons/faUsers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
@@ -13,13 +14,16 @@ import React, {
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import InputGroup from 'react-bootstrap/InputGroup';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
+import Tooltip from 'react-bootstrap/Tooltip';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Hunts from '../../lib/models/hunts';
@@ -27,6 +31,7 @@ import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { PuzzleType } from '../../lib/schemas/puzzle';
+import { useOperatorActionsHiddenForHunt } from '../hooks/persisted-state';
 import PuzzleList from './PuzzleList';
 import PuzzleModalForm, {
   PuzzleModalFormHandle, PuzzleModalFormSubmitPayload,
@@ -111,6 +116,11 @@ const PuzzleListView = ({
     const localStorageShowSolved = localStorage.getItem(showSolvedKey);
     return !(localStorageShowSolved === 'false');
   });
+
+  const [operatorActionsHidden, setOperatorActionsHidden] = useOperatorActionsHiddenForHunt(huntId);
+  const toggleOperatorActionsHidden = useCallback(() => {
+    setOperatorActionsHidden((h) => !h);
+  }, [setOperatorActionsHidden]);
 
   const maybeStealCtrlF = useCallback((e: KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'f') {
@@ -315,13 +325,33 @@ const PuzzleListView = ({
 
   const addPuzzleContent = canAdd && (
     <>
-      <Button variant="primary" onClick={showAddModal}>Add a puzzle</Button>
       <PuzzleModalForm
         huntId={huntId}
         tags={allTags}
         ref={addModalRef}
         onSubmit={onAdd}
       />
+      <ButtonGroup>
+        <Button variant="primary" onClick={showAddModal}>Add a puzzle</Button>
+        <OverlayTrigger
+          placement="top"
+          overlay={(
+            <Tooltip id="operator-mode-tooltip">
+              Show/hide operator actions (currently
+              {' '}
+              {operatorActionsHidden ? 'hidden' : 'visible'}
+              )
+            </Tooltip>
+          )}
+        >
+          <Button
+            variant={operatorActionsHidden ? 'outline-primary' : 'primary'}
+            onClick={toggleOperatorActionsHidden}
+          >
+            <FontAwesomeIcon icon={faUserCog} />
+          </Button>
+        </OverlayTrigger>
+      </ButtonGroup>
     </>
   );
 

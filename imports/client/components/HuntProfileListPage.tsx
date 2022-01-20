@@ -6,7 +6,9 @@ import {
 } from 'react-router-dom';
 import MeteorUsers from '../../lib/models/meteor_users';
 import Profiles from '../../lib/models/profiles';
-import { userMayAddUsersToHunt, userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
+import {
+  listAllRolesForHunt, userMayAddUsersToHunt, userMayMakeOperatorForHunt, userMayUseDiscordBotAPIs,
+} from '../../lib/permission_stubs';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 import UserInvitePage from './UserInvitePage';
@@ -16,8 +18,9 @@ const HuntProfileListPage = () => {
   useBreadcrumb({ title: 'Hunters', path: `/hunts/${huntId}/hunters` });
 
   const usersLoading = useSubscribe('huntMembers', huntId);
+  const userRolesLoading = useSubscribe('huntUserInfo', huntId);
   const profilesLoading = useSubscribe('mongo.profiles');
-  const loading = usersLoading() || profilesLoading();
+  const loading = usersLoading() || userRolesLoading() || profilesLoading();
 
   const profiles = useTracker(() => (
     loading ?
@@ -28,12 +31,19 @@ const HuntProfileListPage = () => {
       ).fetch()
   ), [huntId, loading]);
 
-  const { canInvite, canSyncDiscord } = useTracker(() => {
+  const { canInvite, canSyncDiscord, canMakeOperator } = useTracker(() => {
     return {
       canInvite: userMayAddUsersToHunt(Meteor.userId(), huntId),
       canSyncDiscord: userMayUseDiscordBotAPIs(Meteor.userId()),
+      canMakeOperator: userMayMakeOperatorForHunt(Meteor.userId(), huntId),
     };
   }, [huntId]);
+  const roles = useTracker(() => (
+    loading || !canMakeOperator ?
+      {} :
+      Object.fromEntries(MeteorUsers.find({ hunts: huntId })
+        .map((u) => [u._id, listAllRolesForHunt(u._id, huntId)]))
+  ), [huntId, loading, canMakeOperator]);
 
   if (loading) {
     return <div>loading...</div>;
@@ -47,9 +57,11 @@ const HuntProfileListPage = () => {
         element={(
           <ProfileList
             profiles={profiles}
+            roles={roles}
             huntId={huntId}
             canInvite={canInvite}
             canSyncDiscord={canSyncDiscord}
+            canMakeOperator={canMakeOperator}
           />
         )}
       />

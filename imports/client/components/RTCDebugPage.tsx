@@ -42,7 +42,7 @@ import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
 import { getAvatarCdnUrl } from '../../lib/discord';
-import isAdmin from '../../lib/is-admin';
+import { userIdIsAdmin } from '../../lib/is-admin';
 import CallHistories from '../../lib/models/mediasoup/call_histories';
 import ConnectAcks from '../../lib/models/mediasoup/connect_acks';
 import ConnectRequests from '../../lib/models/mediasoup/connect_requests';
@@ -893,7 +893,7 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
 };
 
 const RTCDebugPage = () => {
-  const viewerIsAdmin = useTracker(() => isAdmin(Meteor.userId()));
+  const viewerIsAdmin = useTracker(() => userIdIsAdmin(Meteor.userId()));
   const debugInfoLoading = useSubscribe('mediasoup:debug');
   const puzzlesLoading = useSubscribe('mongo.puzzles');
   const displayNamesLoading = useSubscribeDisplayNames();

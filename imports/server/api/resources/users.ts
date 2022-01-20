@@ -4,7 +4,6 @@ import { Meteor } from 'meteor/meteor';
 import express from 'express';
 import MeteorUsers from '../../../lib/models/meteor_users';
 import Profiles from '../../../lib/models/profiles';
-import { deprecatedUserMayMakeOperator } from '../../../lib/permission_stubs';
 import { ProfileType } from '../../../lib/schemas/profile';
 
 // eslint-disable-next-line new-cap
@@ -37,14 +36,12 @@ const ACTIVE_THRESHOLD = 365 * 24 * 60 * 60 * 1000;
 const renderUser = function renderUser(user: Meteor.User, profile: ProfileType) {
   const active = user.lastLogin &&
           Date.now() - user.lastLogin.getTime() < ACTIVE_THRESHOLD;
-  const operator = deprecatedUserMayMakeOperator(user._id);
 
   return {
     _id: user._id,
     primaryEmail: user.emails && user.emails[0].address,
     googleAccount: profile.googleAccount,
     active,
-    operator,
   };
 };
 
