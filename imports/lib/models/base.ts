@@ -145,15 +145,15 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     return super.findOne(selector, options);
   }
 
-  publish(modifier?: (userId: string, q: Mongo.Selector<T>) => Mongo.Selector<T> | undefined) {
+  publish(makeConstraint?: (userId: string) => Mongo.Query<T> | undefined) {
     if (!Meteor.isServer) {
       return;
     }
 
     const publishFunc = function publishFunc(
-      findFunc: (query: Mongo.Selector<T>, opts: FindOptions) => void
+      findFunc: (query: Mongo.Query<T>, opts: FindOptions) => Mongo.Cursor<T>
     ) {
-      return function (this: Subscription, q: Mongo.Selector<T> = {}, opts: FindOptions = {}) {
+      return function (this: Subscription, q: unknown = {}, opts: unknown = {}) {
         check(q, Object);
         check(opts, {
           fields: Match.Maybe(Object),
@@ -166,15 +166,17 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
           return [];
         }
 
-        let query: Mongo.Selector<T> | undefined = q;
-        if (modifier) {
-          query = modifier(this.userId, q);
-        }
-        if (!query) {
-          return [];
+        let query: Mongo.Query<T> | undefined = q;
+        const constraint = makeConstraint?.(this.userId);
+        if (constraint) {
+          // Typescript seems unable to tell that "$and" can not be a key in T,
+          // so it tries to interpret it as a field expression, rather than an
+          // $and literal. I couldn't figure out how to avoid needing a cast
+          // here
+          query = { $and: [query, constraint] } as Mongo.Query<T>;
         }
 
-        return findFunc(query, opts);
+        return findFunc(query, opts as FindOptions);
       };
     };
     Meteor.publish(`mongo.${this.name}`, publishFunc(this.find.bind(this)));
