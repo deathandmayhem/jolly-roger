@@ -5,13 +5,12 @@ import { TagType } from '../../lib/schemas/tag';
 import Puzzle from './Puzzle';
 
 const PuzzleList = React.memo(({
-  puzzles, allTags, layout, canUpdate, suppressTags, segmentAnswers,
+  puzzles, allTags, canUpdate, suppressTags, segmentAnswers,
 }: {
   // The puzzles to show in this list
   puzzles: PuzzleType[];
   // All tags for this hunt, including those not used by any puzzles
   allTags: TagType[];
-  layout: 'grid' | 'table';
   canUpdate: boolean;
   suppressTags?: string[];
   segmentAnswers?: boolean;
@@ -26,22 +25,12 @@ const PuzzleList = React.memo(({
       key={puz._id}
       puzzle={puz}
       allTags={allTags}
-      layout={layout}
       canUpdate={canUpdate}
       suppressTags={suppressTags}
       segmentAnswers={segmentAnswers}
     />);
   }
 
-  if (layout === 'table') {
-    return (
-      <table className="puzzle-list">
-        <tbody>
-          {renderedPuzzles}
-        </tbody>
-      </table>
-    );
-  }
   return (
     <div className="puzzle-list">
       {renderedPuzzles}

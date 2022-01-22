@@ -6,8 +6,8 @@ import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
+import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import classnames from 'classnames';
 import React, {
   useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState,
 } from 'react';
@@ -19,6 +19,7 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
+import InputGroup from 'react-bootstrap/InputGroup';
 import Modal from 'react-bootstrap/Modal';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
@@ -26,6 +27,7 @@ import Table from 'react-bootstrap/Table';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { Link, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
+import styled, { css } from 'styled-components';
 import Ansible from '../../ansible';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import ChatMessages from '../../lib/models/chats';
@@ -46,12 +48,13 @@ import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
 import markdown from '../markdown';
 import { trace } from '../tracing';
 import ChatPeople from './ChatPeople';
-import DocumentDisplay from './Documents';
+import DocumentDisplay, { DocumentMessage } from './Documents';
 import ModalForm, { ModalFormHandle } from './ModalForm';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
 import FixedLayout from './styling/FixedLayout';
+import { MonospaceFontFamily, SolvedPuzzleBackgroundColor } from './styling/constants';
 
 const FilteredChatFields: ('_id' | 'puzzle' | 'text' | 'sender' | 'timestamp')[] = ['_id', 'puzzle', 'text', 'sender', 'timestamp'];
 type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[0]>
@@ -106,6 +109,139 @@ const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
 //   |           |
 //   |___________|
 
+const ChatHistoryDiv = styled.div`
+  flex: 1 1 auto;
+  overflow-y: auto;
+`;
+
+const PUZZLE_PAGE_PADDING = 8;
+
+const ChatMessageDiv = styled.div<{ isSystemMessage: boolean; }>`
+   padding: 0px ${PUZZLE_PAGE_PADDING}px 2px;
+   word-wrap: break-word;
+   font-size: 14px;
+   ${({ isSystemMessage }) => isSystemMessage && css`
+     background-color: #e0e0e0;
+  `}
+`;
+
+const ChatInputRow = styled.div`
+  padding: ${PUZZLE_PAGE_PADDING}px;
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), ${PUZZLE_PAGE_PADDING}px);
+`;
+
+const ChatMessageTimestamp = styled.span`
+  float: right;
+  font-style: italic;
+  font-size: 12px;
+  color: #666666;
+`;
+
+const ChatSectionDiv = styled.div`
+  flex: 1 1 auto;
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+
+  p, ul, blockquote, pre {
+    margin-bottom: 0;
+  }
+  blockquote {
+    font-size: 14px;
+    margin-left: 10px;
+    border-left-color: #aaa;
+  }
+`;
+
+const PuzzleContent = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const PuzzleMetadata = styled.div`
+  flex: none;
+  padding: ${PUZZLE_PAGE_PADDING - 2}px 8px;
+  border-bottom: 1px solid #dadce0;
+`;
+
+const PuzzleMetadataAnswer = styled.span`
+  text-transform: uppercase;
+  font-family: ${MonospaceFontFamily};
+  font-weight: 300;
+  background-color: ${SolvedPuzzleBackgroundColor};
+  color: #000000;
+
+  // Tag-like
+  display: inline-flex;
+  align-items: center;
+  line-height: 24px;
+  margin: 2px 4px 2px 0;
+  padding: 0 6px;
+  border-radius: 4px;
+`;
+
+const AnswerRemoveButton = styled(Button)`
+  // Specifier boost needed to override Bootstrap button style
+  && {
+    margin: 0 -6px 0 6px;
+    padding: 0 0 0 0;
+  }
+`;
+
+const PuzzleMetadataRow = styled.div`
+  display: flex;
+  width: 100%;
+  font-size: 14px;
+  align-items: flex-start;
+  align-content: flex-start;
+  justify-content: space-between;
+`;
+
+const PuzzleMetadataActionRow = styled(PuzzleMetadataRow)`
+  align-items: center;
+  flex-wrap: nowrap;
+
+  a {
+    margin-right: 8px;
+  }
+  button {
+    margin: 2px 0 2px 8px;
+    &:first-of-type {
+      margin-left: auto;
+    }
+  }
+`;
+
+const PuzzleMetadataAnswers = styled.span`
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+  flex-wrap: wrap;
+`;
+
+const PuzzleMetadataExternalLink = styled.a`
+  display: inline-block;
+  font-weight: bold;
+  white-space: nowrap;
+`;
+
+const StyledTagList = styled(TagList)`
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+  flex-wrap: wrap;
+`;
+
+const AnswerFormControl = styled(FormControl)`
+  text-transform: uppercase;
+  font-family: ${MonospaceFontFamily};
+  font-weight: 300;
+`;
+
 const ChatMessage = React.memo(({
   message, senderDisplayName, isSystemMessage, suppressSender,
 }: {
@@ -115,17 +251,16 @@ const ChatMessage = React.memo(({
   suppressSender: boolean;
 }) => {
   const ts = shortCalendarTimeFormat(message.timestamp);
-  const classes = classnames('chat-message', isSystemMessage && 'system-message');
 
   return (
-    <div className={classes}>
-      {!suppressSender && <span className="chat-timestamp">{ts}</span>}
+    <ChatMessageDiv isSystemMessage={isSystemMessage}>
+      {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
       {!suppressSender && <strong>{senderDisplayName}</strong>}
       <span
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: markdown(message.text) }}
       />
-    </div>
+    </ChatMessageDiv>
   );
 });
 
@@ -259,11 +394,11 @@ const ChatHistory = React.forwardRef(({
 
   trace('ChatHistory render', { messageCount: chatMessages.length });
   return (
-    <div ref={ref} className="chat-history" onScroll={onScrollObserved}>
+    <ChatHistoryDiv ref={ref} onScroll={onScrollObserved}>
       {chatMessages.length === 0 ? (
-        <div className="chat-placeholder" key="no-message">
+        <ChatMessageDiv key="no-message" isSystemMessage={false}>
           <span>No chatter yet. Say something?</span>
-        </div>
+        </ChatMessageDiv>
       ) : undefined}
       {chatMessages.map((msg, index, messages) => {
         const displayName = (msg.sender !== undefined) ? displayNames[msg.sender] : 'jolly-roger';
@@ -282,7 +417,7 @@ const ChatHistory = React.forwardRef(({
           />
         );
       })}
-    </div>
+    </ChatHistoryDiv>
   );
 });
 
@@ -351,8 +486,8 @@ const ChatInput = React.memo(({
   }, []);
 
   return (
-    <div className="chat-input-row">
-      <div className="input-group">
+    <ChatInputRow>
+      <InputGroup>
         <TextareaAutosize
           ref={textAreaRef}
           className="form-control"
@@ -377,8 +512,8 @@ const ChatInput = React.memo(({
             <FontAwesomeIcon icon={faPaperPlane} />
           </Button>
         </span>
-      </div>
-    </div>
+      </InputGroup>
+    </ChatInputRow>
   );
 });
 
@@ -440,11 +575,11 @@ const ChatSection = React.forwardRef(({
   trace('ChatSection render', { chatDataLoading });
 
   if (chatDataLoading) {
-    return <div className="chat-section">loading...</div>;
+    return <ChatSectionDiv>loading...</ChatSectionDiv>;
   }
 
   return (
-    <div className="chat-section">
+    <ChatSectionDiv>
       <ChatPeople
         huntId={huntId}
         puzzleId={puzzleId}
@@ -458,7 +593,7 @@ const ChatSection = React.forwardRef(({
         onHeightChange={scrollHistoryToTarget}
         onMessageSent={onMessageSent}
       />
-    </div>
+    </ChatSectionDiv>
   );
 });
 const ChatSectionMemo = React.memo(ChatSection);
@@ -545,37 +680,36 @@ const PuzzlePageMetadata = ({
   const numGuesses = guesses.length;
 
   const answersElement = correctGuesses.length > 0 ? (
-    <span className="puzzle-metadata-answers">
+    <PuzzleMetadataAnswers>
       {
         correctGuesses.map((guess) => (
-          <span key={`answer-${guess._id}`} className="answer tag-like">
+          <PuzzleMetadataAnswer key={`answer-${guess._id}`}>
             <span>{guess.guess}</span>
             {!hasGuessQueue && (
-              <Button className="answer-remove-button" variant="success" onClick={() => onRemoveAnswer(guess._id)}>&#10006;</Button>
+              <AnswerRemoveButton variant="success" onClick={() => onRemoveAnswer(guess._id)}>
+                <FontAwesomeIcon fixedWidth icon={faTimes} />
+              </AnswerRemoveButton>
             )}
-          </span>
+          </PuzzleMetadataAnswer>
         ))
       }
-    </span>
+    </PuzzleMetadataAnswers>
   ) : null;
 
   const puzzleLink = puzzle.url ? (
-    <a
-      className="puzzle-metadata-external-link-button"
+    <PuzzleMetadataExternalLink
       href={puzzle.url}
       target="_blank"
       rel="noreferrer noopener"
     >
       <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />
       {' '}
-      <span className="link-label">Puzzle</span>
-    </a>
+      <span>Puzzle</span>
+    </PuzzleMetadataExternalLink>
   ) : null;
 
-  const documentLink = document ? (
-    <span className={classnames(isDesktop && 'tablet-only')}>
-      <DocumentDisplay document={document} displayMode="link" />
-    </span>
+  const documentLink = (document && !isDesktop) ? (
+    <DocumentDisplay document={document} displayMode="link" />
   ) : null;
 
   const editButton = canUpdate ? (
@@ -619,7 +753,7 @@ const PuzzlePageMetadata = ({
   }
 
   return (
-    <div className="puzzle-metadata">
+    <PuzzleMetadata>
       <PuzzleModalForm
         key={puzzleId}
         ref={editModalRef}
@@ -628,17 +762,17 @@ const PuzzlePageMetadata = ({
         tags={allTags}
         onSubmit={onEdit}
       />
-      <div className="puzzle-metadata-row puzzle-metadata-action-row">
+      <PuzzleMetadataActionRow>
         {puzzleLink}
         {documentLink}
         {editButton}
         {guessButton}
-      </div>
-      <div className="puzzle-metadata-row">
+      </PuzzleMetadataActionRow>
+      <PuzzleMetadataRow>
         {answersElement}
-      </div>
-      <div className="puzzle-metadata-row">
-        <TagList
+      </PuzzleMetadataRow>
+      <PuzzleMetadataRow>
+        <StyledTagList
           puzzle={puzzle}
           tags={tags}
           onCreateTag={onCreateTag}
@@ -650,10 +784,17 @@ const PuzzlePageMetadata = ({
           allTags={allTags}
           emptyMessage="No tags yet"
         />
-      </div>
-    </div>
+      </PuzzleMetadataRow>
+    </PuzzleMetadata>
   );
 };
+
+const AnswerTableCell = styled.td`
+  text-transform: uppercase;
+  font-family: ${MonospaceFontFamily};
+  font-weight: 300;
+  word-break: break-all;
+`;
 
 enum PuzzleGuessSubmitState {
   IDLE = 'idle',
@@ -767,7 +908,7 @@ const PuzzleGuessModal = React.forwardRef(({
           Guess
         </FormLabel>
         <Col xs={9}>
-          <FormControl
+          <AnswerFormControl
             type="text"
             id="jr-puzzle-guess"
             autoFocus
@@ -843,7 +984,7 @@ const PuzzleGuessModal = React.forwardRef(({
             {_.sortBy(guesses, 'createdAt').reverse().map((guess) => {
               return (
                 <tr key={guess._id} className={`guess-${guess.state}`}>
-                  <td className="answer">{guess.guess}</td>
+                  <AnswerTableCell>{guess.guess}</AnswerTableCell>
                   <td>{calendarTimeFormat(guess.createdAt)}</td>
                   <td>{displayNames[guess.createdBy]}</td>
                   <td style={{ textTransform: 'capitalize' }}>{guess.state}</td>
@@ -937,7 +1078,7 @@ const PuzzleAnswerModal = React.forwardRef(({ puzzle }: {
           Answer
         </FormLabel>
         <Col xs={9}>
-          <FormControl
+          <AnswerFormControl
             type="text"
             id="jr-puzzle-answer"
             autoFocus
@@ -957,21 +1098,28 @@ const PuzzleAnswerModal = React.forwardRef(({ puzzle }: {
   );
 });
 
+const PuzzleDocumentDiv = styled.div`
+  width: 100%;
+  height: 100%;
+  flex: auto;
+  position: relative;
+
+`;
+
 const PuzzlePageMultiplayerDocument = React.memo(({ document }: {
   document?: DocumentType;
 }) => {
-  if (!document) {
-    return (
-      <div className="puzzle-document puzzle-document-message">
-        Attempting to load collaborative document...
-      </div>
-    );
+  let inner = (
+    <DocumentMessage>Attempting to load collaborative document...</DocumentMessage>
+  );
+  if (document) {
+    inner = <DocumentDisplay document={document} displayMode="embed" />;
   }
 
   return (
-    <div className="puzzle-document">
-      <DocumentDisplay document={document} displayMode="embed" />
-    </div>
+    <PuzzleDocumentDiv>
+      {inner}
+    </PuzzleDocumentDiv>
   );
 });
 
@@ -1221,10 +1369,10 @@ const PuzzlePage = React.memo(() => {
             onPaneChanged={onCommitSideBarSize}
           >
             {chat}
-            <div className="puzzle-content">
+            <PuzzleContent>
               {metadata}
               <PuzzlePageMultiplayerDocument document={document} />
-            </div>
+            </PuzzleContent>
           </SplitPanePlus>
         </FixedLayout>
       </>

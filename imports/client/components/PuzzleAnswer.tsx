@@ -1,9 +1,24 @@
 import React from 'react';
+import styled from 'styled-components';
+import { MonospaceFontFamily } from './styling/constants';
+
+const PuzzleAnswerSpan = styled.span`
+  text-transform: uppercase;
+  font-family: ${MonospaceFontFamily};
+  font-weight: 300;
+`;
+
+const PuzzleAnswerSegment = styled.span`
+  & + & {
+    margin-left: .4em;
+  }
+`;
 
 const PuzzleAnswer = React.memo(({
-  answer, respace = false, segmentSize = 5,
+  answer, className, respace = false, segmentSize = 5,
 }: {
   answer: string;
+  className?: string;
   // If respace is set, answers are formatted without spaces and grouped into segments of length
   // segmentSize. If segmentSize is zero or negative, the effect is simply to strip spaces.
   respace?: boolean;
@@ -26,15 +41,15 @@ const PuzzleAnswer = React.memo(({
     });
     formattedAnswer = segments.map((segment, i) => (
       // eslint-disable-next-line react/no-array-index-key
-      <span key={`segment-${i}`} className="answer-segment">
+      <PuzzleAnswerSegment key={`segment-${i}`}>
         {segment}
-      </span>
+      </PuzzleAnswerSegment>
     ));
   }
   return (
-    <span className="answer">
+    <PuzzleAnswerSpan className={className}>
       {formattedAnswer}
-    </span>
+    </PuzzleAnswerSpan>
   );
 });
 

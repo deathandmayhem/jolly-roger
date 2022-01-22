@@ -3,6 +3,7 @@ import { faFileAlt } from '@fortawesome/free-solid-svg-icons/faFileAlt';
 import { faTable } from '@fortawesome/free-solid-svg-icons/faTable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
+import styled from 'styled-components';
 import { DocumentType } from '../../lib/schemas/document';
 import DeepLink from './DeepLink';
 
@@ -10,6 +11,38 @@ interface DocumentDisplayProps {
   document: DocumentType;
   displayMode: 'link' | 'embed';
 }
+
+const StyledDeepLink = styled(DeepLink)`
+  display: inline-block;
+  font-weight: bold;
+  white-space: nowrap;
+`;
+
+const StyledIframe = styled.iframe`
+  /* Workaround for unusual sizing behavior of iframes in iOS Safari */
+  /* Width and height need to be specified in px then adjusted by min and max */
+  width: 0px;
+  height: 0px;
+  min-width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  max-height: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background-color: #f1f3f4;
+`;
+
+export const DocumentMessage = styled.span`
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: #ddddff;
+`;
 
 const GoogleDocumentDisplay = ({ document, displayMode }: DocumentDisplayProps) => {
   let url: string;
@@ -31,37 +64,37 @@ const GoogleDocumentDisplay = ({ document, displayMode }: DocumentDisplayProps) 
       break;
     default:
       return (
-        <span className="puzzle-document-message">
+        <DocumentMessage>
           Don&apos;t know how to link to a document of type
           {' '}
           {document.value.type}
-        </span>
+        </DocumentMessage>
       );
   }
 
   switch (displayMode) {
     case 'link':
       return (
-        <DeepLink className="gdrive-button" nativeUrl={deepUrl} browserUrl={url}>
+        <StyledDeepLink nativeUrl={deepUrl} browserUrl={url}>
           <a href={url} target="new">
             <FontAwesomeIcon fixedWidth icon={icon} />
             {' '}
             <span className="link-label">{title}</span>
           </a>
-        </DeepLink>
+        </StyledDeepLink>
       );
     case 'embed':
       /* To workaround iOS Safari iframe behavior, scrolling should be "no" */
       return (
-        <iframe title="document" className="gdrive-embed" scrolling="no" src={url} />
+        <StyledIframe title="document" scrolling="no" src={url} />
       );
     default:
       return (
-        <span className="puzzle-document-message">
+        <DocumentMessage>
           Unknown displayMode
           {' '}
           {displayMode}
-        </span>
+        </DocumentMessage>
       );
   }
 };
@@ -77,11 +110,11 @@ const DocumentDisplay = ({ document, displayMode }: DocumentDisplayProps) => {
       );
     default:
       return (
-        <span className="puzzle-document-message">
+        <DocumentMessage>
           Unable to display document from provider
           {' '}
           {document.provider}
-        </span>
+        </DocumentMessage>
       );
   }
 };

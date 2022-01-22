@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import PuzzleAnswer from './PuzzleAnswer';
 
 const CelebrationOverlay = styled.div`
   position: fixed;
@@ -99,7 +100,7 @@ const Celebration = ({
         <h2>
           Answer:
           {' '}
-          <span className="answer">{answer}</span>
+          <PuzzleAnswer answer={answer} />
         </h2>
       </CelebrationContainer>
     </CelebrationOverlay>
