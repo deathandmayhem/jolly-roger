@@ -79,7 +79,7 @@ const GoogleDocumentDisplay = ({ document, displayMode }: DocumentDisplayProps) 
           <a href={url} target="new">
             <FontAwesomeIcon fixedWidth icon={icon} />
             {' '}
-            <span className="link-label">{title}</span>
+            <span>{title}</span>
           </a>
         </StyledDeepLink>
       );

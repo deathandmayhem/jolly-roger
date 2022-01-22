@@ -3,8 +3,6 @@
 ////////////
 // Puzzle page styles
 
-$puzzle-page-padding: 8px;
-
 .puzzle-page {
   .Pane > * {
     position: absolute;
@@ -17,122 +15,6 @@ $puzzle-page-padding: 8px;
   &.narrow {
     display: flex;
     flex-direction: column;
-  }
-}
-
-.chatter-section {
-  flex: 0;
-  background-color: #ebd0e3;
-  font-size: 12px;
-  line-height: 12px;
-  padding: $puzzle-page-padding;
-
-  .av-actions {
-    display: flex;
-    flex-direction: row;
-    margin-bottom: $puzzle-page-padding;
-
-    .btn {
-      flex: 1;
-      padding-right: 2px;
-      padding-left: 2px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      + .btn {
-        margin-left: $puzzle-page-padding;
-      }
-    }
-  }
-}
-
-.chatter-subsection {
-  margin-top: 4px;
-
-  header {
-    margin: 4px 0;
-    cursor: pointer;
-  }
-
-  .people-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-
-    &:not(:empty) {
-      margin: -4px -4px 0 0;
-    }
-
-    &.collapsed {
-      display: none;
-    }
-  }
-
-  .people-item {
-    flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
-    background: white;
-    cursor: default;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    margin: 4px 4px 0 0;
-
-    .icon {
-      font-size: 12px;
-      width: 16px;
-      height: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: $danger;
-      position: absolute;
-      right: 0px;
-
-      &.muted-icon {
-        top: 0px;
-      }
-
-      &.deafened-icon {
-        bottom: 0px;
-      }
-    }
-
-    .discord-avatar {
-      width: 100%;
-      height: 100%;
-    }
-
-    .initial {
-      z-index: 10;
-      text-transform: uppercase;
-      font-weight: bold;
-      font-size: 24px;
-      color: black;
-      line-height: 24px;
-    }
-
-    &.live .initial {
-      // white border around initial
-      // aids readability if the spectrum graph is high
-      text-shadow: -1px  1px 0 white,
-                    1px  1px 0 white,
-                    1px -1px 0 white,
-                   -1px -1px 0 white;
-    }
-  }
-}
-
-.chatter-tooltip {
-  // Force chatter tooltip overlay to get larger than the default
-  // react-bootstrap stylesheet permits.  We can only apply classes to the root
-  // tooltip <div>; the .tooltip-inner className is controlled by
-  // react-bootstrap/popper.
-  .tooltip-inner {
-    max-width: 300px;
   }
 }
 

@@ -724,7 +724,7 @@ const PuzzlePageMetadata = ({
   if (puzzle.expectedAnswerCount > 0) {
     guessButton = hasGuessQueue ? (
       <>
-        <Button variant="primary" size="sm" className="puzzle-metadata-guess-button" onClick={showGuessModal}>
+        <Button variant="primary" size="sm" onClick={showGuessModal}>
           <FontAwesomeIcon icon={faKey} />
           {' Guess '}
           <Badge variant="light">{numGuesses}</Badge>
@@ -739,7 +739,7 @@ const PuzzlePageMetadata = ({
       </>
     ) : (
       <>
-        <Button variant="primary" size="sm" className="puzzle-metadata-answer-button" onClick={showAnswerModal}>
+        <Button variant="primary" size="sm" onClick={showAnswerModal}>
           <FontAwesomeIcon icon={faKey} />
           {' Answer'}
         </Button>
@@ -971,7 +971,7 @@ const PuzzleGuessModal = React.forwardRef(({
 
       {guesses.length === 0 ? <div>No previous submissions.</div> : [
         <div key="label">Previous submissions:</div>,
-        <Table className="guess-history-table" key="table" bordered size="sm">
+        <Table key="table" bordered size="sm">
           <thead>
             <tr>
               <th>Guess</th>
@@ -983,7 +983,7 @@ const PuzzleGuessModal = React.forwardRef(({
           <tbody>
             {_.sortBy(guesses, 'createdAt').reverse().map((guess) => {
               return (
-                <tr key={guess._id} className={`guess-${guess.state}`}>
+                <tr key={guess._id}>
                   <AnswerTableCell>{guess.guess}</AnswerTableCell>
                   <td>{calendarTimeFormat(guess.createdAt)}</td>
                   <td>{displayNames[guess.createdBy]}</td>
