@@ -15,31 +15,21 @@ import styled, { css } from 'styled-components';
 import Ansible from '../../ansible';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import { TagType } from '../../lib/schemas/tag';
+import { computeSolvedness, Solvedness } from '../../lib/solvedness';
 import { useOperatorActionsHiddenForHunt } from '../hooks/persisted-state';
 import PuzzleActivity from './PuzzleActivity';
 import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleDeleteModal from './PuzzleDeleteModal';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import TagList from './TagList';
-import {
-  SolvedPuzzleBackgroundColor, UnsolvedPuzzleBackgroundColor,
-  ExpectsNoAnswersPuzzleBackgroundColor,
-} from './styling/constants';
+import { backgroundColorLookupTable } from './styling/constants';
 import { mediaBreakpointDown } from './styling/responsive';
 
 const PuzzleDiv = styled.div<{
-  expectsNoAnswers: boolean;
-  isUnsolved: boolean;
-  isSolved: boolean;
+  solvedness: Solvedness,
 }>`
-  ${({ expectsNoAnswers }) => expectsNoAnswers && css`
-    background-color: ${ExpectsNoAnswersPuzzleBackgroundColor};
-  `}
-  ${({ isUnsolved }) => isUnsolved && css`
-    background-color: ${UnsolvedPuzzleBackgroundColor};
-  `}
-  ${({ isSolved }) => isSolved && css`
-    background-color: ${SolvedPuzzleBackgroundColor};
+  ${({ solvedness }) => css`
+    background-color: ${backgroundColorLookupTable[solvedness]};
   `}
 
   display: flex;
@@ -187,12 +177,7 @@ const Puzzle = React.memo(({
   const shownTags = _.difference(puzzle.tags, suppressTags || []);
   const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; }).filter(Boolean);
 
-  const expectsNoAnswers = puzzle.expectedAnswerCount === 0;
-  const isSolved = puzzle.expectedAnswerCount > 0 &&
-    puzzle.answers.length >= puzzle.expectedAnswerCount;
-  const isUnsolved = puzzle.expectedAnswerCount > 0 &&
-    puzzle.answers.length < puzzle.expectedAnswerCount;
-
+  const solvedness = computeSolvedness(puzzle);
   const answers = puzzle.answers.map((answer, i) => {
     return (
       // eslint-disable-next-line react/no-array-index-key
@@ -200,14 +185,8 @@ const Puzzle = React.memo(({
     );
   });
 
-  // We can remove the className from PuzzleDiv once all children styles are made explicit
   return (
-    <PuzzleDiv
-      className="puzzle puzzle-grid"
-      expectsNoAnswers={expectsNoAnswers}
-      isSolved={isSolved}
-      isUnsolved={isUnsolved}
-    >
+    <PuzzleDiv solvedness={solvedness}>
       {showEditModal ? (
         <PuzzleModalForm
           key={puzzle._id}

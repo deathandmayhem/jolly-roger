@@ -136,15 +136,7 @@ $puzzle-page-padding: 8px;
   }
 }
 
-// Puzzle metadata
-
-.puzzle-metadata-row .tag-list {
-  .tag-editor {
-    flex-basis: 100%;
-    margin: 2px 0;
-  }
-}
-
+// Everything from here below is SplitPane/SplitPanePlus
 .SplitPane > .Pane.collapsing:before {
   content: "";
   display: block;
@@ -286,7 +278,7 @@ $puzzle-page-padding: 8px;
   }
 }
 
-Resizer.disabled {
+.Resizer.disabled {
   cursor: not-allowed;
   &:hover {
     border-color: transparent;

@@ -2,12 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { PuzzleType } from '../../lib/schemas/puzzle';
+import { Solvedness, computeSolvedness } from '../../lib/solvedness';
 import PuzzleAnswer from './PuzzleAnswer';
-import {
-  ExpectsNoAnswersPuzzleBackgroundColor,
-  SolvedPuzzleBackgroundColor,
-  UnsolvedPuzzleBackgroundColor,
-} from './styling/constants';
+import { backgroundColorLookupTable } from './styling/constants';
 
 const PuzzleTableEl = styled.table`
   width: 100%;
@@ -17,18 +14,10 @@ const PuzzleTableEl = styled.table`
 `;
 
 const PuzzleTableTr = styled.tr<{
-  expectsNoAnswers: boolean;
-  isSolved: boolean;
-  isUnsolved: boolean;
+  solvedness: Solvedness;
 }>`
-  ${({ expectsNoAnswers }) => expectsNoAnswers && css`
-    background-color: ${ExpectsNoAnswersPuzzleBackgroundColor};
-  `}
-  ${({ isSolved }) => isSolved && css`
-    background-color: ${SolvedPuzzleBackgroundColor};
-  `}
-  ${({ isUnsolved }) => isUnsolved && css`
-    background-color: ${UnsolvedPuzzleBackgroundColor};
+  ${({ solvedness }) => css`
+    background-color: ${backgroundColorLookupTable[solvedness]};
   `}
 `;
 
@@ -49,14 +38,10 @@ const PuzzleTableRow = ({ puzzle, segmentAnswers }: {
     );
   });
 
-  const expectsNoAnswers = puzzle.expectedAnswerCount === 0;
-  const isSolved = puzzle.expectedAnswerCount > 0 &&
-    puzzle.answers.length >= puzzle.expectedAnswerCount;
-  const isUnsolved = puzzle.expectedAnswerCount > 0 &&
-    puzzle.answers.length < puzzle.expectedAnswerCount;
+  const solvedness = computeSolvedness(puzzle);
 
   return (
-    <PuzzleTableTr expectsNoAnswers={expectsNoAnswers} isSolved={isSolved} isUnsolved={isUnsolved}>
+    <PuzzleTableTr solvedness={solvedness}>
       <PuzzleTableCell>
         <Link to={linkTarget}>{puzzle.title}</Link>
       </PuzzleTableCell>
