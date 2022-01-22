@@ -8,7 +8,7 @@ const RadioHeader = styled.span`
 
 const RadioLabel = styled.label`
   display: block;
-  fontWeight: normal;
+  font-weight: normal;
 `;
 
 const Radio = styled.input`

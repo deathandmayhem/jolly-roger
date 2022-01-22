@@ -257,7 +257,6 @@ const AudioConfig = () => {
       </AudioSelfTest>
       <audio
         ref={audioRef}
-        className="audio-sink"
         autoPlay
         playsInline
         muted={!loopback}

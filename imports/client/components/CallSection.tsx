@@ -7,7 +7,6 @@ import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons/faMicrophoneSlash';
 import { faVolumeMute } from '@fortawesome/free-solid-svg-icons/faVolumeMute';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import classnames from 'classnames';
 import { Device, types } from 'mediasoup-client';
 import React, {
   useCallback,
@@ -18,9 +17,9 @@ import React, {
   useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import styled from 'styled-components';
 import Flags from '../../flags';
 import { getAvatarCdnUrl } from '../../lib/discord';
 import ConnectAcks from '../../lib/models/mediasoup/connect_acks';
@@ -37,6 +36,32 @@ import { TransportType } from '../../lib/schemas/mediasoup/transport';
 import { trace } from '../tracing';
 import Loading from './Loading';
 import Spectrum from './Spectrum';
+import DiscordAvatarImg from './styling/DiscordAvatarImg';
+import {
+  AVActions,
+  AVButton,
+  ChatterSubsection, ChatterSubsectionHeader, InitialSpan, PeopleItemDiv, PeopleListDiv,
+} from './styling/PeopleComponents';
+
+const CallStateIcon = styled.span`
+  font-size: 12px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: red; // TODO: lift $danger from react-bootstrap somehow?
+  position: absolute;
+  right: 0px;
+`;
+
+const MutedIcon = styled(CallStateIcon)`
+  top: 0px;
+`;
+
+const DeafenedIcon = styled(CallStateIcon)`
+  bottom: 0px;
+`;
 
 // If we're waiting for a particular piece of server state for more than 1s,
 // something might be wrong so throw up a warning
@@ -208,25 +233,18 @@ const ProducerBox = ({
         </Tooltip>
       )}
     >
-      <div
-        className={classnames('people-item', {
-          muted,
-          deafened,
-          live: !muted && !deafened,
-        })}
-      >
+      <PeopleItemDiv>
         {discordAvatarUrl ? (
-          <img
+          <DiscordAvatarImg
             alt="Your own Discord avatar"
-            className="discord-avatar"
             src={discordAvatarUrl}
           />
         ) : (
-          <span className="initial">{initial}</span>
+          <InitialSpan live={!muted && !deafened}>{initial}</InitialSpan>
         )}
-        <div className="webrtc">
-          {muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
-          {deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
+        <div>
+          {muted && <MutedIcon><FontAwesomeIcon icon={faMicrophoneSlash} /></MutedIcon>}
+          {deafened && <DeafenedIcon><FontAwesomeIcon icon={faVolumeMute} /></DeafenedIcon>}
           {!spectraDisabled && !muted && !deafened ? (
             <Spectrum
               width={40}
@@ -244,7 +262,7 @@ const ProducerBox = ({
             transport={transport}
           />
         ))}
-      </div>
+      </PeopleItemDiv>
     </OverlayTrigger>
   );
 };
@@ -307,6 +325,16 @@ const ConsumerManager = ({
   return null;
 };
 
+const ChatterTooltip = styled(Tooltip)`
+  // Force chatter tooltip overlay to get larger than the default
+  // react-bootstrap stylesheet permits.  We can only apply classes to the root
+  // tooltip <div>; the .tooltip-inner className is controlled by
+  // react-bootstrap/popper.
+  .tooltip-inner {
+    max-width: 300px;
+  }
+`;
+
 const PeerBox = ({
   audioContext,
   selfDeafened,
@@ -363,37 +391,27 @@ const PeerBox = ({
     <OverlayTrigger
       placement="right"
       overlay={(
-        <Tooltip
-          id={`caller-${peer._id}`}
-          className="chatter-tooltip"
-        >
+        <ChatterTooltip id={`caller-${peer._id}`}>
           <div>{name}</div>
           {muted &&
             <div>Muted (no one can hear them)</div>}
           {deafened &&
             <div>Deafened (they can&apos;t hear anyone)</div>}
-        </Tooltip>
+        </ChatterTooltip>
       )}
     >
-      <div
-        className={classnames('people-item', {
-          muted,
-          deafened,
-          live: !muted && !deafened,
-        })}
-      >
+      <PeopleItemDiv>
         {discordAvatarUrl ? (
-          <img
+          <DiscordAvatarImg
             alt={`${name}'s Discord avatar`}
-            className="discord-avatar"
             src={discordAvatarUrl}
           />
         ) : (
-          <span className="initial">{name.slice(0, 1)}</span>
+          <InitialSpan live={!muted && !deafened}>{name.slice(0, 1)}</InitialSpan>
         )}
-        <div className="webrtc">
-          {muted && <span className="icon muted-icon"><FontAwesomeIcon icon={faMicrophoneSlash} /></span>}
-          {deafened && <span className="icon deafened-icon"><FontAwesomeIcon icon={faVolumeMute} /></span>}
+        <div>
+          {muted && <MutedIcon><FontAwesomeIcon icon={faMicrophoneSlash} /></MutedIcon>}
+          {deafened && <DeafenedIcon><FontAwesomeIcon icon={faVolumeMute} /></DeafenedIcon>}
           {!spectraDisabled && !muted && (tracks.size > 0) ? (
             <Spectrum
               width={40}
@@ -403,7 +421,7 @@ const PeerBox = ({
             />
           ) : null}
         </div>
-        <audio ref={audioRef} className="audio-sink" autoPlay playsInline muted={selfDeafened} />
+        <audio ref={audioRef} autoPlay playsInline muted={selfDeafened} />
         {consumers.map((consumer) => (
           <ConsumerManager
             key={consumer._id}
@@ -412,7 +430,7 @@ const PeerBox = ({
             serverConsumer={consumer}
           />
         ))}
-      </div>
+      </PeopleItemDiv>
     </OverlayTrigger>
   );
 };
@@ -464,12 +482,12 @@ const Callers = ({
   });
 
   return (
-    <div className="chatter-subsection av-chatters">
-      <header onClick={onToggleCallersExpanded}>
+    <ChatterSubsection>
+      <ChatterSubsectionHeader onClick={onToggleCallersExpanded}>
         <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
         {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
-      </header>
-      <div className={classnames('people-list', { collapsed: !callersExpanded })}>
+      </ChatterSubsectionHeader>
+      <PeopleListDiv collapsed={!callersExpanded}>
         <ProducerBox
           muted={muted}
           deafened={deafened}
@@ -478,8 +496,8 @@ const Callers = ({
           transport={sendTransport}
         />
         {peerBoxes}
-      </div>
-    </div>
+      </PeopleListDiv>
+    </ChatterSubsection>
   );
 };
 
@@ -806,23 +824,23 @@ const CallSection = ({
 }) => {
   return (
     <>
-      <div className="av-actions">
-        <Button
+      <AVActions>
+        <AVButton
           variant={muted ? 'secondary' : 'light'}
           size="sm"
           onClick={onToggleMute}
         >
           {muted ? 'Un\u00ADmute' : 'Mute self'}
-        </Button>
-        <Button
+        </AVButton>
+        <AVButton
           variant={deafened ? 'secondary' : 'light'}
           size="sm"
           onClick={onToggleDeafen}
         >
           {deafened ? 'Un\u00ADdeafen' : 'Deafen self'}
-        </Button>
-        <Button variant="danger" size="sm" onClick={onLeaveCall}>Leave call</Button>
-      </div>
+        </AVButton>
+        <AVButton variant="danger" size="sm" onClick={onLeaveCall}>Leave call</AVButton>
+      </AVActions>
       <CallJoiner
         huntId={huntId}
         puzzleId={puzzleId}

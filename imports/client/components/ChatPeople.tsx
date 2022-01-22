@@ -4,11 +4,9 @@ import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import classnames from 'classnames';
 import React, {
   ReactChild, useCallback, useEffect, useLayoutEffect, useState,
 } from 'react';
-import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import styled from 'styled-components';
@@ -25,6 +23,12 @@ import { Subscribers } from '../subscribers';
 import { trace } from '../tracing';
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from './AudioConfig';
 import CallSection from './CallSection';
+import DiscordAvatarImg from './styling/DiscordAvatarImg';
+import {
+  AVActions, AVButton, ChatterSubsection, ChatterSubsectionHeader, InitialSpan, PeopleItemDiv,
+  PeopleListDiv,
+} from './styling/PeopleComponents';
+import { PuzzlePagePadding } from './styling/constants';
 
 const tabId = Random.id();
 
@@ -52,23 +56,22 @@ const ViewerPersonBox = ({
         </Tooltip>
       )}
     >
-      <div key={`viewer-${user}-${tab}`} className="people-item">
+      <PeopleItemDiv key={`viewer-${user}-${tab}`}>
         {discordAvatarUrl ? (
-          <img
+          <DiscordAvatarImg
             alt={`${name}'s Discord avatar`}
             src={discordAvatarUrl}
-            className="discord-avatar"
           />
         ) : (
-          <span className="initial">{name.slice(0, 1)}</span>
+          <InitialSpan live={false}>{name.slice(0, 1)}</InitialSpan>
         )}
         { children }
-      </div>
+      </PeopleItemDiv>
     </OverlayTrigger>
   );
 };
 
-const PeopleListHeader = styled.header`
+const PeopleListHeader = styled(ChatterSubsectionHeader)`
   padding-left: 1rem;
   text-indent: -1rem;
 `;
@@ -111,6 +114,14 @@ function stopTracks(stream: MediaStream | null | undefined) {
     });
   }
 }
+
+const ChatterSection = styled.section`
+  flex: 0;
+  background-color: #ebd0e3;
+  font-size: 12px;
+  line-height: 12px;
+  padding: ${PuzzlePagePadding};
+`;
 
 function participantState(explicitlyMuted: boolean, deafened: boolean) {
   if (deafened) {
@@ -479,10 +490,10 @@ const ChatPeople = ({
         const joinLabel = rtcViewers.length > 0 ? 'Join audio call' : 'Start audio call';
         return (
           <>
-            <div className="av-actions">
-              <Button variant="primary" size="sm" block onClick={joinCall}>{joinLabel}</Button>
-            </div>
-            <div className="chatter-subsection av-chatters">
+            <AVActions>
+              <AVButton variant="primary" size="sm" block onClick={joinCall}>{joinLabel}</AVButton>
+            </AVActions>
+            <ChatterSubsection>
               <PeopleListHeader onClick={toggleCallersExpanded}>
                 <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
                 {`${rtcViewers.length} caller${rtcViewers.length !== 1 ? 's' : ''}`}
@@ -494,10 +505,10 @@ const ChatPeople = ({
                   </>
                 )}
               </PeopleListHeader>
-              <div className={classnames('people-list', { collapsed: !callersExpanded })}>
+              <PeopleListDiv collapsed={!callersExpanded}>
                 {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} {...viewer} />)}
-              </div>
-            </div>
+              </PeopleListDiv>
+            </ChatterSubsection>
           </>
         );
       }
@@ -534,18 +545,18 @@ const ChatPeople = ({
   const totalViewers = viewers.length + unknown;
   const viewersHeaderIcon = viewersExpanded ? faCaretDown : faCaretRight;
   return (
-    <section className="chatter-section">
+    <ChatterSection>
       {!rtcDisabled && !puzzleDeleted && callersSubsection}
-      <div className="chatter-subsection non-av-viewers">
+      <ChatterSubsection>
         <PeopleListHeader onClick={toggleViewersExpanded}>
           <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
           {`${totalViewers} viewer${totalViewers !== 1 ? 's' : ''}`}
         </PeopleListHeader>
-        <div className={classnames('people-list', { collapsed: !viewersExpanded })}>
+        <PeopleListDiv collapsed={!viewersExpanded}>
           {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
-        </div>
-      </div>
-    </section>
+        </PeopleListDiv>
+      </ChatterSubsection>
+    </ChatterSection>
   );
 };
 
