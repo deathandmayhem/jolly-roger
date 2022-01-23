@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons/faExclamationTriangle';
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -23,7 +23,6 @@ import * as RRBS from 'react-router-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import StackTrace, { StackFrame } from 'stacktrace-js';
 import styled from 'styled-components';
-import Profiles from '../../lib/models/profiles';
 import { useBreadcrumbItems } from '../hooks/breadcrumb';
 import lookupUrl from '../lookupUrl';
 import ConnectionStatus from './ConnectionStatus';
@@ -156,16 +155,8 @@ const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
 
 const AppNavbar = () => {
   const userId = useTracker(() => Meteor.userId()!, []);
-  const profileLoading = useSubscribe('mongo.profiles', { _id: userId });
-  const loading = profileLoading();
 
-  const displayName = useTracker(() => {
-    const profile = Profiles.findOne(Meteor.userId()!);
-
-    return loading ?
-      'loading...' :
-      ((profile && profile.displayName) || '<no name given>');
-  }, [loading]);
+  const displayName = useTracker(() => Meteor.user()?.profile?.displayName ?? '<no name given>', []);
   const { brandSrc, brandSrc2x } = useTracker(() => {
     return {
       brandSrc: lookupUrl('brand.png'),

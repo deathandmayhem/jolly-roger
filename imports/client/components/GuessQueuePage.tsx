@@ -13,7 +13,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import Guesses from '../../lib/models/guesses';
 import Hunts from '../../lib/models/hunts';
-import Profiles from '../../lib/models/profiles';
+import { indexedDisplayNames } from '../../lib/models/meteor_users';
 import Puzzles from '../../lib/models/puzzles';
 import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
 import { GuessType } from '../../lib/schemas/guess';
@@ -207,7 +207,7 @@ const GuessQueuePage = () => {
   const hunt = useTracker(() => Hunts.findOne({ _id: huntId }), [huntId]);
   const guesses = useTracker(() => (loading ? [] : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch()), [huntId, loading]);
   const puzzles = useTracker(() => (loading ? {} : _.indexBy(Puzzles.find({ hunt: huntId }).fetch(), '_id')), [huntId, loading]);
-  const displayNames = useTracker(() => (loading ? {} : Profiles.displayNames()), [loading]);
+  const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
   const canEdit = useTracker(() => userMayUpdateGuessesForHunt(Meteor.userId(), huntId), [huntId]);
 
   const searchBarRef = useRef<HTMLInputElement>(null);

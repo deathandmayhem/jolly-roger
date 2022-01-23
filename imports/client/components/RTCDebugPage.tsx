@@ -56,7 +56,7 @@ import Routers from '../../lib/models/mediasoup/routers';
 import TransportRequests from '../../lib/models/mediasoup/transport_requests';
 import TransportStates from '../../lib/models/mediasoup/transport_states';
 import Transports from '../../lib/models/mediasoup/transports';
-import Profiles from '../../lib/models/profiles';
+import MeteorUsers from '../../lib/models/meteor_users';
 import Puzzles from '../../lib/models/puzzles';
 import Servers from '../../lib/models/servers';
 import { ConsumerType } from '../../lib/schemas/mediasoup/consumer';
@@ -109,10 +109,10 @@ const CallDisplay = ({ call }: { call: string }) => {
 };
 
 const UserDisplay = ({ userId }: { userId: string }) => {
-  const profile = useTracker(() => Profiles.findOne(userId), [userId]);
+  const user = useTracker(() => MeteorUsers.findOne(userId), [userId]);
   const discordAvatarUrl = useMemo(() => (
-    getAvatarCdnUrl(profile?.discordAccount)
-  ), [profile?.discordAccount]);
+    getAvatarCdnUrl(user?.profile?.discordAccount)
+  ), [user?.profile?.discordAccount]);
 
   return (
     <Link to={`/users/${userId}`} target="_blank">
@@ -125,7 +125,7 @@ const UserDisplay = ({ userId }: { userId: string }) => {
         />
       )}
       {' '}
-      {profile?.displayName || 'Unknown'}
+      {user?.profile?.displayName || 'Unknown'}
     </Link>
   );
 };

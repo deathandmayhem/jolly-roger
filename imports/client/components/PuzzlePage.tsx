@@ -34,7 +34,7 @@ import ChatMessages from '../../lib/models/chats';
 import Documents from '../../lib/models/documents';
 import Guesses from '../../lib/models/guesses';
 import Hunts from '../../lib/models/hunts';
-import Profiles from '../../lib/models/profiles';
+import { indexedDisplayNames } from '../../lib/models/meteor_users';
 import Puzzles from '../../lib/models/puzzles';
 import Tags from '../../lib/models/tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
@@ -1259,7 +1259,7 @@ const PuzzlePage = React.memo(() => {
   const displayNames = useTracker(() => (
     puzzleDataLoading && chatDataLoading ?
       {} :
-      Profiles.displayNames()
+      indexedDisplayNames()
   ), [puzzleDataLoading, chatDataLoading]);
   // Sort by created at so that the "first" document always has consistent meaning
   const document = useTracker(() => (

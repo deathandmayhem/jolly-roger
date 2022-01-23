@@ -3,7 +3,6 @@ import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { Tracker } from 'meteor/tracker';
 import React, { useCallback, useEffect, useState } from 'react';
 import Flags from '../../flags';
-import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import Celebration from './Celebration';
@@ -22,7 +21,7 @@ const CelebrationCenter = ({ huntId }: { huntId: string }) => {
   useSubscribe('mongo.puzzles', { hunt: huntId });
 
   const disabled = useTracker(() => Flags.active('disable.applause'), []);
-  const muted = useTracker(() => !!(Profiles.findOne({ _id: Meteor.userId()! })?.muteApplause), []);
+  const muted = useTracker(() => !!(Meteor.user()?.profile?.muteApplause), []);
 
   const onPuzzleSolved = useCallback((puzzle: PuzzleType, newAnswer: string) => {
     // Only celebrate if:

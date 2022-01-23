@@ -5,7 +5,6 @@ import { GLOBAL_SCOPE } from '../lib/is-admin';
 import Guesses from '../lib/models/guesses';
 import Hunts from '../lib/models/hunts';
 import MeteorUsers from '../lib/models/meteor_users';
-import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 import { userMayUpdateGuessesForHunt } from '../lib/permission_stubs';
 import { GuessType } from '../lib/schemas/guess';
@@ -234,8 +233,8 @@ Meteor.methods({
       state: 'pending',
     });
 
-    const profile = Profiles.findOne(this.userId);
-    const guesserDisplayName = (profile && profile.displayName) || '(no display name given)';
+    const user = MeteorUsers.findOne(this.userId)!;
+    const guesserDisplayName = user.profile?.displayName || '(no display name given)';
     const message = `${guesserDisplayName} submitted guess "${guess}"`;
     sendChatMessage(puzzleId, message, undefined);
   },

@@ -13,7 +13,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import ChatMessages from '../../lib/models/chats';
-import Profiles from '../../lib/models/profiles';
+import { indexedDisplayNames } from '../../lib/models/meteor_users';
 import Puzzles from '../../lib/models/puzzles';
 import { ChatMessageType } from '../../lib/schemas/chat';
 import { PuzzleType } from '../../lib/schemas/puzzle';
@@ -86,7 +86,7 @@ const FirehosePage = () => {
   const chatMessagesLoading = useSubscribe('mongo.chatmessages', { hunt: huntId });
   const loading = profilesLoading() || puzzlesLoading() || chatMessagesLoading();
 
-  const displayNames = useTracker(() => (loading ? {} : Profiles.displayNames()), [loading]);
+  const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
   const puzzles = useTracker(() => (
     loading ?
       {} :

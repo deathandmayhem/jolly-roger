@@ -13,7 +13,6 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import Flags from '../../flags';
 import { getAvatarCdnUrl } from '../../lib/discord';
-import { ProfileType } from '../../lib/schemas/profile';
 import { requestDiscordCredential } from '../discord';
 import TeamName from '../team_name';
 import AudioConfig from './AudioConfig';
@@ -31,7 +30,7 @@ type GoogleLinkBlockState = {
   error: Error;
 }
 
-const GoogleLinkBlock = ({ profile }: { profile: ProfileType }) => {
+const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
   const [state, setState] =
     useState<GoogleLinkBlockState>({ state: GoogleLinkBlockLinkState.IDLE });
 
@@ -76,7 +75,7 @@ const GoogleLinkBlock = ({ profile }: { profile: ProfileType }) => {
       return <Button variant="primary" disabled>Google integration currently disabled</Button>;
     }
 
-    const text = (profile.googleAccount) ?
+    const text = (user.profile?.googleAccount) ?
       'Link a different Google account' :
       'Link your Google account';
 
@@ -104,16 +103,16 @@ const GoogleLinkBlock = ({ profile }: { profile: ProfileType }) => {
         </Alert>
       ) : undefined}
       <div>
-        {profile.googleAccount ? (
+        {user.profile?.googleAccount ? (
           <div>
             Currently linked to
             {' '}
-            {profile.googleAccount}
+            {user.profile.googleAccount}
           </div>
         ) : undefined}
         {linkButton()}
         {' '}
-        {profile.googleAccount ? (
+        {user.profile?.googleAccount ? (
           <Button variant="danger" onClick={onUnlink}>
             Unlink
           </Button>
@@ -152,7 +151,7 @@ type DiscordLinkBlockState = {
   error: Error;
 }
 
-const DiscordLinkBlock = ({ profile }: { profile: ProfileType }) => {
+const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
   const [state, setState] =
     useState<DiscordLinkBlockState>({ state: DiscordLinkBlockLinkState.IDLE });
 
@@ -200,7 +199,7 @@ const DiscordLinkBlock = ({ profile }: { profile: ProfileType }) => {
       return <Button variant="primary" disabled>Discord integration currently disabled</Button>;
     }
 
-    const text = (profile.discordAccount) ?
+    const text = (user.profile?.discordAccount) ?
       'Link a different Discord account' :
       'Link your Discord account';
 
@@ -209,10 +208,10 @@ const DiscordLinkBlock = ({ profile }: { profile: ProfileType }) => {
         {text}
       </Button>
     );
-  }, [state.state, discordDisabled, profile.discordAccount, onLink]);
+  }, [state.state, discordDisabled, user.profile?.discordAccount, onLink]);
 
   const unlinkButton = useMemo(() => {
-    if (profile.discordAccount) {
+    if (user.profile?.discordAccount) {
       return (
         <Button variant="danger" onClick={onUnlink}>
           Unlink
@@ -221,11 +220,11 @@ const DiscordLinkBlock = ({ profile }: { profile: ProfileType }) => {
     }
 
     return null;
-  }, [profile.discordAccount, onUnlink]);
+  }, [user.profile?.discordAccount, onUnlink]);
 
   const currentAccount = useMemo(() => {
-    if (profile.discordAccount) {
-      const acct = profile.discordAccount;
+    if (user.profile?.discordAccount) {
+      const acct = user.profile?.discordAccount;
       return (
         <div>
           Currently linked to
@@ -240,7 +239,7 @@ const DiscordLinkBlock = ({ profile }: { profile: ProfileType }) => {
     }
 
     return null;
-  }, [profile.discordAccount]);
+  }, [user.profile?.discordAccount]);
 
   if (!config) {
     return <div />;
@@ -283,13 +282,13 @@ enum OwnProfilePageSubmitState {
   ERROR = 'error',
 }
 
-const OwnProfilePage = ({ initialProfile }: { initialProfile: ProfileType }) => {
-  const [displayName, setDisplayName] = useState<string>(initialProfile.displayName || '');
-  const [phoneNumber, setPhoneNumber] = useState<string>(initialProfile.phoneNumber || '');
+const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
+  const [displayName, setDisplayName] = useState<string>(initialUser.profile?.displayName || '');
+  const [phoneNumber, setPhoneNumber] = useState<string>(initialUser.profile?.phoneNumber || '');
   const [muteApplause, setMuteApplause] =
-    useState<boolean>(initialProfile.muteApplause || false);
-  const [dingwordsFlat, setDingwordsFlat] = useState<string>(initialProfile.dingwords ?
-    initialProfile.dingwords.join(',') : '');
+    useState<boolean>(initialUser.profile?.muteApplause || false);
+  const [dingwordsFlat, setDingwordsFlat] = useState<string>(initialUser.profile?.dingwords ?
+    initialUser.profile?.dingwords.join(',') : '');
   const [submitState, setSubmitState] =
     useState<OwnProfilePageSubmitState>(OwnProfilePageSubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
@@ -346,7 +345,7 @@ const OwnProfilePage = ({ initialProfile }: { initialProfile: ProfileType }) => 
         <FormControl
           id="jr-profile-edit-email"
           type="text"
-          value={initialProfile.primaryEmail}
+          value={initialUser.emails![0].address}
           disabled
         />
       </FormGroup>
@@ -360,9 +359,9 @@ const OwnProfilePage = ({ initialProfile }: { initialProfile: ProfileType }) => 
         </Alert>
       ) : null}
 
-      <GoogleLinkBlock profile={initialProfile} />
+      <GoogleLinkBlock user={initialUser} />
 
-      <DiscordLinkBlock profile={initialProfile} />
+      <DiscordLinkBlock user={initialUser} />
 
       <FormGroup>
         <FormLabel htmlFor="jr-profile-edit-display-name">

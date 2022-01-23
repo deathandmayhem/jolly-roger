@@ -1,3 +1,4 @@
+import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import React from 'react';
@@ -6,7 +7,6 @@ import Tooltip from 'react-bootstrap/esm/Tooltip';
 import styled from 'styled-components';
 import { getAvatarCdnUrl } from '../../lib/discord';
 import Hunts from '../../lib/models/hunts';
-import { ProfileType } from '../../lib/schemas/profile';
 
 const AvatarTooltip = styled(Tooltip)`
   opacity: 1 !important;
@@ -22,9 +22,9 @@ const ProfileTable = styled.table`
 `;
 
 const OthersProfilePage = ({
-  profile, huntMembership,
+  user, huntMembership,
 }: {
-  profile: ProfileType;
+  user: Meteor.User;
   huntMembership?: string[];
 }) => {
   const showHuntList = (huntMembership?.length ?? 0) > 0;
@@ -33,8 +33,8 @@ const OthersProfilePage = ({
   const loading = huntsLoading();
   const hunts = useTracker(() => (loading ? {} : _.indexBy(Hunts.find().fetch(), '_id')), [loading]);
 
-  const discordAvatarUrl = getAvatarCdnUrl(profile.discordAccount);
-  const discordAvatarUrlLarge = getAvatarCdnUrl(profile.discordAccount, 256);
+  const discordAvatarUrl = getAvatarCdnUrl(user.profile?.discordAccount);
+  const discordAvatarUrlLarge = getAvatarCdnUrl(user.profile?.discordAccount, 256);
   return (
     <div>
       <h1>
@@ -54,7 +54,7 @@ const OthersProfilePage = ({
               )}
             >
               <img
-                alt={`${profile.displayName}'s Discord avatar`}
+                alt={`${user.profile?.displayName}'s Discord avatar`}
                 src={discordAvatarUrl}
                 width={40}
                 height={40}
@@ -64,7 +64,7 @@ const OthersProfilePage = ({
             {' '}
           </>
         )}
-        {profile.displayName}
+        {user.profile?.displayName ?? 'No display name'}
       </h1>
 
       <ProfileTable>
@@ -72,16 +72,20 @@ const OthersProfilePage = ({
           <tr>
             <th>Email</th>
             <td>
-              <a href={`mailto:${profile.primaryEmail}`} target="_blank" rel="noreferrer">
-                {profile.primaryEmail}
-              </a>
+              {user.emails?.[0].address ? (
+                <a href={`mailto:${user.emails[0].address}`} target="_blank" rel="noreferrer">
+                  {user.emails[0].address}
+                </a>
+              ) : (
+                '(none)'
+              )}
             </td>
           </tr>
           <tr>
             <th>Phone</th>
             <td>
-              {profile.phoneNumber ? (
-                <a href={`tel:${profile.phoneNumber}`}>{profile.phoneNumber}</a>
+              {user.profile?.phoneNumber ? (
+                <a href={`tel:${user.profile.phoneNumber}`}>{user.profile.phoneNumber}</a>
               ) : (
                 '(none)'
               )}
@@ -90,11 +94,11 @@ const OthersProfilePage = ({
           <tr>
             <th>Discord handle</th>
             <td>
-              {profile.discordAccount ? (
-                <a href={`https://discord.com/users/${profile.discordAccount.id}`} target="_blank" rel="noreferrer">
-                  {profile.discordAccount.username}
+              {user.profile?.discordAccount ? (
+                <a href={`https://discord.com/users/${user.profile.discordAccount.id}`} target="_blank" rel="noreferrer">
+                  {user.profile.discordAccount.username}
                   #
-                  {profile.discordAccount.discriminator}
+                  {user.profile.discordAccount.discriminator}
                 </a>
               ) : (
                 '(none)'

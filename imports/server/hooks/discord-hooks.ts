@@ -3,7 +3,7 @@ import { Promise as MeteorPromise } from 'meteor/promise';
 import Flags from '../../flags';
 import ChatMessages from '../../lib/models/chats';
 import Hunts from '../../lib/models/hunts';
-import Profiles from '../../lib/models/profiles';
+import MeteorUsers from '../../lib/models/meteor_users';
 import Puzzles from '../../lib/models/puzzles';
 import Settings from '../../lib/models/settings';
 import Tags from '../../lib/models/tags';
@@ -104,11 +104,11 @@ const DiscordHooks: Hookset = {
         name = 'Jolly Roger';
       } else {
         name = chatMessage.sender;
-        const profile = Profiles.findOne(chatMessage.sender);
-        if (profile && profile.discordAccount) {
-          name = profile.discordAccount.username;
-        } else if (profile && profile.displayName) {
-          name = profile.displayName;
+        const user = MeteorUsers.findOne(chatMessage.sender);
+        if (user?.profile?.discordAccount) {
+          name = user.profile.discordAccount.username;
+        } else if (user?.profile?.displayName) {
+          name = user.profile.displayName;
         }
       }
 

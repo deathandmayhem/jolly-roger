@@ -28,7 +28,7 @@ import Peers from '../../lib/models/mediasoup/peers';
 import ProducerServers from '../../lib/models/mediasoup/producer_servers';
 import Routers from '../../lib/models/mediasoup/routers';
 import Transports from '../../lib/models/mediasoup/transports';
-import Profiles from '../../lib/models/profiles';
+import MeteorUsers from '../../lib/models/meteor_users';
 import { ConsumerType } from '../../lib/schemas/mediasoup/consumer';
 import { PeerType } from '../../lib/schemas/mediasoup/peer';
 import { RouterType } from '../../lib/schemas/mediasoup/router';
@@ -200,10 +200,10 @@ const ProducerBox = ({
 }) => {
   const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
   const { initial, discordAvatarUrl } = useTracker(() => {
-    const profile = Profiles.findOne(Meteor.userId()!);
+    const user = Meteor.user()!;
     return {
-      initial: profile ? profile.displayName.slice(0, 1) : 'U', // get it?  it's you
-      discordAvatarUrl: getAvatarCdnUrl(profile?.discordAccount),
+      initial: user.profile?.displayName.slice(0, 1) ?? 'U', // get it?  it's you
+      discordAvatarUrl: getAvatarCdnUrl(user.profile?.discordAccount),
     };
   });
 
@@ -350,10 +350,10 @@ const PeerBox = ({
 }) => {
   const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
   const { name, discordAvatarUrl } = useTracker(() => {
-    const profile = Profiles.findOne(peer.createdBy);
+    const user = MeteorUsers.findOne(peer.createdBy);
     return {
-      name: profile?.displayName ?? 'no profile wat',
-      discordAvatarUrl: getAvatarCdnUrl(profile?.discordAccount),
+      name: user?.profile?.displayName ?? 'no profile wat',
+      discordAvatarUrl: getAvatarCdnUrl(user?.profile?.discordAccount),
     };
   }, [peer.createdBy]);
 

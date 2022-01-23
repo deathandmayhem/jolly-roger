@@ -5,7 +5,6 @@ import {
   Route, Routes, useParams,
 } from 'react-router-dom';
 import MeteorUsers from '../../lib/models/meteor_users';
-import Profiles from '../../lib/models/profiles';
 import {
   listAllRolesForHunt, userMayAddUsersToHunt, userMayMakeOperatorForHunt, userMayUseDiscordBotAPIs,
 } from '../../lib/permission_stubs';
@@ -19,14 +18,14 @@ const HuntProfileListPage = () => {
 
   const usersLoading = useSubscribe('huntMembers', huntId);
   const userRolesLoading = useSubscribe('huntUserInfo', huntId);
-  const profilesLoading = useSubscribe('mongo.profiles');
+  const profilesLoading = useSubscribe('profiles');
   const loading = usersLoading() || userRolesLoading() || profilesLoading();
 
-  const profiles = useTracker(() => (
+  const users = useTracker(() => (
     loading ?
       [] :
-      Profiles.find(
-        { _id: { $in: MeteorUsers.find({ hunts: huntId }).map((u) => u._id) } },
+      MeteorUsers.find(
+        { hunts: huntId },
         { sort: { displayName: 1 } },
       ).fetch()
   ), [huntId, loading]);
@@ -56,7 +55,7 @@ const HuntProfileListPage = () => {
         path=""
         element={(
           <ProfileList
-            profiles={profiles}
+            users={users}
             roles={roles}
             huntId={huntId}
             canInvite={canInvite}

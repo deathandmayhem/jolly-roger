@@ -29,6 +29,31 @@ Meteor.publish('huntMembers', function (huntId: string) {
   return MeteorUsers.find({ hunts: huntId }, { fields: { hunts: 1 } });
 });
 
+Meteor.publish('displayNames', function () {
+  if (!this.userId) {
+    return [];
+  }
+
+  return MeteorUsers.find({}, { fields: { 'profile.displayName': 1 } });
+});
+
+Meteor.publish('avatars', function () {
+  if (!this.userId) {
+    return [];
+  }
+
+  return MeteorUsers.find({}, { fields: { 'profile.discordAccount': 1 } });
+});
+
+Meteor.publish('profiles', function () {
+  if (!this.userId) {
+    return [];
+  }
+
+  // For now, all user profiles are public, including email address
+  return MeteorUsers.find({}, { fields: { 'emails.address': 1, profile: 1 } });
+});
+
 Meteor.publish('huntUserInfo', function (huntId: string) {
   check(huntId, String);
 

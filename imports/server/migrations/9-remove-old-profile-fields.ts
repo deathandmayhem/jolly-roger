@@ -1,14 +1,10 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import Profiles from '../../lib/models/profiles';
 
 Migrations.add({
   version: 9,
   name: 'Remove deprecated profile fields',
   up() {
-    Profiles.update(
-      {},
-      { $unset: { locationDuringHunt: 1, remote: 1, affiliation: 1 } },
-      <any>{ multi: true, validate: false },
-    );
+    // This migration was used for the Profiles model, which has since been
+    // removed.
   },
 });

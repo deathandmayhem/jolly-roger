@@ -6,7 +6,7 @@ import React, {
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/esm/Modal';
 import Peers from '../../lib/models/mediasoup/peers';
-import Profiles from '../../lib/models/profiles';
+import { indexedDisplayNames } from '../../lib/models/meteor_users';
 import Puzzles from '../../lib/models/puzzles';
 import { PuzzleType } from '../../lib/schemas/puzzle';
 import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
@@ -56,7 +56,7 @@ const PuzzleDeleteModal = React.forwardRef((
       [] :
       Peers.find({ hunt: puzzle.hunt, puzzle: puzzle._id }).fetch()
   ), [loading, puzzle.hunt, puzzle._id]);
-  const displayNames = Profiles.displayNames();
+  const displayNames = indexedDisplayNames();
   const uniqueViewers = [...new Set([
     ...viewers.map(({ user }) => user),
     ...callers.map(({ createdBy }) => createdBy),
