@@ -67,7 +67,7 @@
     "@types/logfmt": "^1.2.2",
     "@types/marked": "^0.6.5",
     "@types/md5": "^2.3.1",
-    "@types/meteor": "^2.0.3",
+    "@types/meteor": "^2.0.4",
     "@types/mime-types": "^2.1.1",
     "@types/mocha": "^9.1.0",
     "@types/mustache": "^4.1.2",
