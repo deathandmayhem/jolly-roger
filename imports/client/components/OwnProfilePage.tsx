@@ -11,10 +11,10 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
-import Flags from '../../flags';
+import Flags from '../../Flags';
 import { getAvatarCdnUrl } from '../../lib/discord';
+import TeamName from '../TeamName';
 import { requestDiscordCredential } from '../discord';
-import TeamName from '../team_name';
 import AudioConfig from './AudioConfig';
 
 enum GoogleLinkBlockLinkState {

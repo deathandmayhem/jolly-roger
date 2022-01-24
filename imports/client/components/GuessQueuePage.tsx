@@ -11,17 +11,17 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled, { css } from 'styled-components';
-import Guesses from '../../lib/models/guesses';
-import Hunts from '../../lib/models/hunts';
-import { indexedDisplayNames } from '../../lib/models/meteor_users';
-import Puzzles from '../../lib/models/puzzles';
+import Guesses from '../../lib/models/Guesses';
+import Hunts from '../../lib/models/Hunts';
+import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
+import Puzzles from '../../lib/models/Puzzles';
 import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
-import { GuessType } from '../../lib/schemas/guess';
-import { HuntType } from '../../lib/schemas/hunt';
-import { PuzzleType } from '../../lib/schemas/puzzle';
+import { GuessType } from '../../lib/schemas/Guess';
+import { HuntType } from '../../lib/schemas/Hunt';
+import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
-import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
+import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import Breakable from './styling/Breakable';
 
 const AutoSelectInput = ({ value }: { value: string }) => {

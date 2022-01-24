@@ -1,7 +1,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../ansible';
-import MeteorUsers from '../lib/models/meteor_users';
+import Ansible from '../Ansible';
+import MeteorUsers from '../lib/models/MeteorUsers';
 import {
   addUserToRole,
   removeUserFromRole,

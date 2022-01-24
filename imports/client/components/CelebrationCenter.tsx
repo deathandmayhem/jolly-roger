@@ -2,9 +2,9 @@ import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { Tracker } from 'meteor/tracker';
 import React, { useCallback, useEffect, useState } from 'react';
-import Flags from '../../flags';
-import Puzzles from '../../lib/models/puzzles';
-import { PuzzleType } from '../../lib/schemas/puzzle';
+import Flags from '../../Flags';
+import Puzzles from '../../lib/models/Puzzles';
+import { PuzzleType } from '../../lib/schemas/Puzzle';
 import Celebration from './Celebration';
 
 interface CelebrationCenterQueueItem {

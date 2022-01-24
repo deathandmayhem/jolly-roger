@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import HasUsers from '../has_users';
+import HasUsers from '../HasUsers';
 
 const RootRedirector = () => {
   const hasUsersLoading = useSubscribe('hasUsers');

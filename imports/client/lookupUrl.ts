@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import BlobMappings from '../lib/models/blob_mappings';
+import BlobMappings from '../lib/models/BlobMappings';
 
 const blobMappingsSub = Meteor.subscribe('mongo.blob_mappings');
 

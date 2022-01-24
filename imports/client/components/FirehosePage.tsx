@@ -12,13 +12,13 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
-import ChatMessages from '../../lib/models/chats';
-import { indexedDisplayNames } from '../../lib/models/meteor_users';
-import Puzzles from '../../lib/models/puzzles';
-import { ChatMessageType } from '../../lib/schemas/chat';
-import { PuzzleType } from '../../lib/schemas/puzzle';
+import ChatMessages from '../../lib/models/ChatMessages';
+import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
+import Puzzles from '../../lib/models/Puzzles';
+import { ChatMessageType } from '../../lib/schemas/ChatMessage';
+import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { useBreadcrumb } from '../hooks/breadcrumb';
-import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
+import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import FixedLayout from './styling/FixedLayout';
 
 const FirehosePageLayout = styled.div`

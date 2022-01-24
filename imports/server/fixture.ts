@@ -1,9 +1,9 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import huntFixtures from '../fixtures';
-import Hunts from '../lib/models/hunts';
-import Puzzles from '../lib/models/puzzles';
-import Tags from '../lib/models/tags';
+import fixtures from '../fixtures';
+import Hunts from '../lib/models/Hunts';
+import Puzzles from '../lib/models/Puzzles';
+import Tags from '../lib/models/Tags';
 import { userMayCreateHunt } from '../lib/permission_stubs';
 
 Meteor.methods({
@@ -15,7 +15,7 @@ Meteor.methods({
     }
 
     const huntId = 'cSB2bWf3BToQ9NBju'; // fixture hunt id
-    const data = huntFixtures[huntId];
+    const data = fixtures[huntId];
 
     // Create hunt if it doesn't exist.
     const hunt = Hunts.findOne(huntId);

@@ -5,8 +5,8 @@ import React, { useCallback, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import styled from 'styled-components';
-import { PuzzleType } from '../../lib/schemas/puzzle';
-import { TagType } from '../../lib/schemas/tag';
+import { PuzzleType } from '../../lib/schemas/Puzzle';
+import { TagType } from '../../lib/schemas/Tag';
 import Tag from './Tag';
 import TagEditor from './TagEditor';
 

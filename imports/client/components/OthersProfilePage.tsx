@@ -6,7 +6,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/esm/Tooltip';
 import styled from 'styled-components';
 import { getAvatarCdnUrl } from '../../lib/discord';
-import Hunts from '../../lib/models/hunts';
+import Hunts from '../../lib/models/Hunts';
 
 const AvatarTooltip = styled(Tooltip)`
   opacity: 1 !important;

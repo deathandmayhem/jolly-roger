@@ -1,18 +1,18 @@
 import { check } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
-import Ansible from '../ansible';
+import Ansible from '../Ansible';
 import { GLOBAL_SCOPE } from '../lib/is-admin';
-import Guesses from '../lib/models/guesses';
-import Hunts from '../lib/models/hunts';
-import MeteorUsers from '../lib/models/meteor_users';
-import Puzzles from '../lib/models/puzzles';
+import Guesses from '../lib/models/Guesses';
+import Hunts from '../lib/models/Hunts';
+import MeteorUsers from '../lib/models/MeteorUsers';
+import Puzzles from '../lib/models/Puzzles';
 import { userMayUpdateGuessesForHunt } from '../lib/permission_stubs';
-import { GuessType } from '../lib/schemas/guess';
-import { HuntType } from '../lib/schemas/hunt';
-import { PuzzleType } from '../lib/schemas/puzzle';
+import { GuessType } from '../lib/schemas/Guess';
+import { HuntType } from '../lib/schemas/Hunt';
+import { PuzzleType } from '../lib/schemas/Puzzle';
+import GlobalHooks from './GlobalHooks';
+import RefCountedObserverMap from './RefCountedObserverMap';
 import { sendChatMessage } from './chat';
-import GlobalHooks from './global-hooks';
-import RefCountedObserverMap from './refcounted-observer-map';
 
 function addChatMessage(guess: GuessType, newState: GuessType['state']): void {
   const message = `Guess ${guess.guess} was marked ${newState}`;

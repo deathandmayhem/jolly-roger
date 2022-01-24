@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { WebApp } from 'meteor/webapp';
-import app from './api';
+import api from './api';
 
-WebApp.connectHandlers.use('/api', Meteor.bindEnvironment(app));
+WebApp.connectHandlers.use('/api', Meteor.bindEnvironment(api));

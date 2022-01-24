@@ -1,5 +1,5 @@
 import express from 'express';
-import APIKeys from '../models/api_keys';
+import APIKeys from '../models/APIKeys';
 
 const authenticator: express.Handler = (req, res, next) => {
   const auth = req.get('Authorization');

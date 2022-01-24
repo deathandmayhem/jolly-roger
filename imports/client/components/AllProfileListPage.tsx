@@ -1,6 +1,6 @@
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import MeteorUsers from '../../lib/models/meteor_users';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 

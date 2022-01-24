@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { Route, Routes as ReactRouterRoutes } from 'react-router-dom';
 import { BreadcrumbsProvider } from '../hooks/breadcrumb';
-import useDocumentTitle from '../hooks/use-document-title';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 import AllProfileListPage from './AllProfileListPage';
 import EnrollForm from './EnrollForm';
 import FirstUserForm from './FirstUserForm';

@@ -8,11 +8,11 @@ import { Promise as MeteorPromise } from 'meteor/promise';
 import { WebApp } from 'meteor/webapp';
 import express from 'express';
 import mime from 'mime-types';
-import BlobMappings from '../lib/models/blob_mappings';
-import Blobs from './models/blobs';
-import UploadTokens from './models/upload_tokens';
+import BlobMappings from '../lib/models/BlobMappings';
+import Blobs from './models/Blobs';
+import UploadTokens from './models/UploadTokens';
 import onExit from './onExit';
-import { BlobType } from './schemas/blob';
+import { BlobType } from './schemas/Blob';
 
 // Meteor has no way to import Assets under ES6 modules; it's just always a
 // global that all server code can access.

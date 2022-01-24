@@ -8,7 +8,7 @@ import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import styled from 'styled-components';
-import TeamName from '../team_name';
+import TeamName from '../TeamName';
 
 export enum AccountFormFormat {
   LOGIN = 'login',

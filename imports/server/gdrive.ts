@@ -1,18 +1,18 @@
 import { Meteor } from 'meteor/meteor';
 import { Promise as MeteorPromise } from 'meteor/promise';
 import { drive_v3 as drive } from 'googleapis';
-import Ansible from '../ansible';
-import Flags from '../flags';
-import Documents from '../lib/models/documents';
-import FolderPermissions from '../lib/models/folder_permissions';
-import Hunts from '../lib/models/hunts';
-import Settings from '../lib/models/settings';
-import { SettingType } from '../lib/schemas/setting';
-import DriveClient from './gdrive-client-refresher';
+import Ansible from '../Ansible';
+import Flags from '../Flags';
+import Documents from '../lib/models/Documents';
+import FolderPermissions from '../lib/models/FolderPermissions';
+import Hunts from '../lib/models/Hunts';
+import Settings from '../lib/models/Settings';
+import { SettingType } from '../lib/schemas/Setting';
+import DriveClient from './gdriveClientRefresher';
+import getTeamName from './getTeamName';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
-import HuntFolders from './models/hunt_folders';
-import Locks from './models/lock';
-import getTeamName from './team_name';
+import HuntFolders from './models/HuntFolders';
+import Locks from './models/Locks';
 
 export const MimeTypes = {
   spreadsheet: 'application/vnd.google-apps.spreadsheet',

@@ -1,5 +1,5 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import ChatNotifications from '../../lib/models/chat_notifications';
+import ChatNotifications from '../../lib/models/ChatNotifications';
 
 Migrations.add({
   version: 32,

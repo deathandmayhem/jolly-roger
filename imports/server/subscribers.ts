@@ -9,7 +9,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { serverId, registerPeriodicCleanupHook } from './garbage-collection';
-import Subscribers from './models/subscribers';
+import Subscribers from './models/Subscribers';
 
 // Clean up leaked subscribers from dead servers periodically.
 function cleanupHook(deadServers: string[]) {

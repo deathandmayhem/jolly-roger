@@ -1,8 +1,8 @@
 import { useTracker } from 'meteor/react-meteor-data';
 import React, { Suspense, useCallback } from 'react';
 import styled from 'styled-components';
-import Tags from '../../lib/models/tags';
-import { PuzzleType } from '../../lib/schemas/puzzle';
+import Tags from '../../lib/models/Tags';
+import { PuzzleType } from '../../lib/schemas/Puzzle';
 import Loading from './Loading';
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter

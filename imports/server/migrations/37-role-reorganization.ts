@@ -1,6 +1,6 @@
 import { Migrations } from 'meteor/percolate:migrations';
 import { GLOBAL_SCOPE } from '../../lib/is-admin';
-import MeteorUsers from '../../lib/models/meteor_users';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 
 Migrations.add({
   version: 37,

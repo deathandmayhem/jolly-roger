@@ -1,16 +1,16 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import ConnectAcks from '../../lib/models/mediasoup/connect_acks';
-import ConnectRequests from '../../lib/models/mediasoup/connect_requests';
-import ConsumerAcks from '../../lib/models/mediasoup/consumer_acks';
-import Consumers from '../../lib/models/mediasoup/consumers';
-import Peers from '../../lib/models/mediasoup/peers';
-import ProducerClients from '../../lib/models/mediasoup/producer_clients';
-import ProducerServers from '../../lib/models/mediasoup/producer_servers';
-import Rooms from '../../lib/models/mediasoup/rooms';
-import Routers from '../../lib/models/mediasoup/routers';
-import TransportRequests from '../../lib/models/mediasoup/transport_requests';
-import TransportStates from '../../lib/models/mediasoup/transport_states';
-import Transports from '../../lib/models/mediasoup/transports';
+import ConnectAcks from '../../lib/models/mediasoup/ConnectAcks';
+import ConnectRequests from '../../lib/models/mediasoup/ConnectRequests';
+import ConsumerAcks from '../../lib/models/mediasoup/ConsumerAcks';
+import Consumers from '../../lib/models/mediasoup/Consumers';
+import Peers from '../../lib/models/mediasoup/Peers';
+import ProducerClients from '../../lib/models/mediasoup/ProducerClients';
+import ProducerServers from '../../lib/models/mediasoup/ProducerServers';
+import Rooms from '../../lib/models/mediasoup/Rooms';
+import Routers from '../../lib/models/mediasoup/Routers';
+import TransportRequests from '../../lib/models/mediasoup/TransportRequests';
+import TransportStates from '../../lib/models/mediasoup/TransportStates';
+import Transports from '../../lib/models/mediasoup/Transports';
 
 Migrations.add({
   version: 34,

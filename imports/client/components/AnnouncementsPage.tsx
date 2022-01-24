@@ -7,12 +7,12 @@ import Button from 'react-bootstrap/Button';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
-import Announcements from '../../lib/models/announcements';
-import { indexedDisplayNames } from '../../lib/models/meteor_users';
+import Announcements from '../../lib/models/Announcements';
+import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
-import { AnnouncementType } from '../../lib/schemas/announcement';
+import { AnnouncementType } from '../../lib/schemas/Announcement';
 import { useBreadcrumb } from '../hooks/breadcrumb';
-import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
+import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import markdown from '../markdown';
 
 enum AnnouncementFormSubmitState {

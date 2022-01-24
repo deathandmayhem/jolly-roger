@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
-import { PuzzleType } from '../../lib/schemas/puzzle';
+import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { Solvedness, computeSolvedness } from '../../lib/solvedness';
 import PuzzleAnswer from './PuzzleAnswer';
 import { backgroundColorLookupTable } from './styling/constants';

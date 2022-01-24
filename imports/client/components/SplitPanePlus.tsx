@@ -120,7 +120,7 @@ interface SplitPanePlusState {
   dragInProgress: boolean;
 }
 
-const SplitPanePlusHook = ({
+const SplitPanePlus = ({
   children,
   size,
   collapsed = 0,
@@ -373,4 +373,4 @@ const SplitPanePlusHook = ({
   );
 };
 
-export default SplitPanePlusHook;
+export default SplitPanePlus;

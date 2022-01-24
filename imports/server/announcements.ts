@@ -1,9 +1,9 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../ansible';
-import Announcements from '../lib/models/announcements';
-import MeteorUsers from '../lib/models/meteor_users';
-import PendingAnnouncements from '../lib/models/pending_announcements';
+import Ansible from '../Ansible';
+import Announcements from '../lib/models/Announcements';
+import MeteorUsers from '../lib/models/MeteorUsers';
+import PendingAnnouncements from '../lib/models/PendingAnnouncements';
 import { userMayAddAnnouncementToHunt } from '../lib/permission_stubs';
 
 Meteor.methods({

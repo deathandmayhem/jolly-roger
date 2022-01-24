@@ -1,7 +1,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { userIdIsAdmin } from '../lib/is-admin';
-import MeteorUsers from '../lib/models/meteor_users';
+import MeteorUsers from '../lib/models/MeteorUsers';
 import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
 
 Meteor.publish('selfHuntMembership', function () {
