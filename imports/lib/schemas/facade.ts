@@ -22,7 +22,6 @@ import Transport from './mediasoup/transport';
 import TransportRequest from './mediasoup/transport_request';
 import TransportState from './mediasoup/transport_state';
 import PendingAnnouncement from './pending_announcement';
-import Profile from './profile';
 import Puzzle from './puzzle';
 import Server from './server';
 import Setting from './setting';
@@ -56,7 +55,6 @@ const Schemas = {
     TransportState,
   },
   PendingAnnouncement,
-  Profile,
   Puzzle,
   Server,
   Setting,

@@ -20,8 +20,8 @@ import Announcements from '../../lib/models/announcements';
 import ChatNotifications from '../../lib/models/chat_notifications';
 import Guesses from '../../lib/models/guesses';
 import Hunts from '../../lib/models/hunts';
+import { indexedDisplayNames } from '../../lib/models/meteor_users';
 import PendingAnnouncements from '../../lib/models/pending_announcements';
-import Profiles from '../../lib/models/profiles';
 import Puzzles from '../../lib/models/puzzles';
 import { userIsOperatorForAnyHunt } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/announcement';
@@ -445,8 +445,6 @@ const NotificationCenter = () => {
   const [operatorActionsHidden = {}] = useOperatorActionsHidden();
 
   // This is overly broad, but we likely already have the data cached locally
-  const userId = useTracker(() => Meteor.userId()!);
-  const selfProfileLoading = useSubscribe('mongo.profiles', { _id: userId });
   const displayNamesLoading = useSubscribeDisplayNames();
   const announcementsLoading = useSubscribe('mongo.announcements');
   // pending_announcements implicitly limits to the current user
@@ -457,7 +455,6 @@ const NotificationCenter = () => {
 
   const loading =
     pendingGuessesLoading() ||
-    selfProfileLoading() ||
     displayNamesLoading() ||
     announcementsLoading() ||
     pendingAnnouncementsLoading() ||
@@ -467,17 +464,17 @@ const NotificationCenter = () => {
     !!ServiceConfiguration.configurations.findOne({ service: 'discord' }) && !Flags.active('disable.discord')
   ), []);
   const { hasOwnProfile, discordConfiguredByUser } = useTracker(() => {
-    const ownProfile = Profiles.findOne(Meteor.userId()!);
+    const user = Meteor.user()!;
     return {
-      hasOwnProfile: !!(ownProfile),
-      discordConfiguredByUser: !!(ownProfile && ownProfile.discordAccount),
+      hasOwnProfile: !!(user.profile?.displayName),
+      discordConfiguredByUser: !!(user.profile?.discordAccount),
     };
   }, []);
 
   // Lookup tables to support guesses/pendingAnnouncements/chatNotifications
   const hunts = useTracker(() => (loading ? {} : _.indexBy(Hunts.find().fetch(), '_id')), [loading]);
   const puzzles = useTracker(() => (loading ? {} : _.indexBy(Puzzles.find().fetch(), '_id')), [loading]);
-  const displayNames = useTracker(() => (loading ? {} : Profiles.displayNames()), [loading]);
+  const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
   const announcements = useTracker(() => (loading ? {} : _.indexBy(Announcements.find().fetch(), '_id')), [loading]);
 
   const guesses = useTracker(() => (

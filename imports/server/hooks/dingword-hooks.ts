@@ -2,7 +2,6 @@ import Flags from '../../flags';
 import ChatNotifications from '../../lib/models/chat_notifications';
 import ChatMessages from '../../lib/models/chats';
 import MeteorUsers from '../../lib/models/meteor_users';
-import Profiles from '../../lib/models/profiles';
 import Hookset from './hookset';
 
 const DingwordHooks: Hookset = {
@@ -20,33 +19,24 @@ const DingwordHooks: Hookset = {
       return;
     }
 
-    // Find all users who are in this hunt.
+    // Find all users who are in this hunt with dingwords set.
     const huntMembers = MeteorUsers.find({
       hunts: chatMessage.hunt,
+      'profile.dingwords.0': { $exists: true },
     }, {
-      fields: { _id: 1 },
-    }).fetch().map((u) => {
-      return u._id;
-    });
-
-    // Fetch the profiles of all those users.
-    const memberProfiles = Profiles.find({
-      _id: {
-        $in: huntMembers,
-      },
-      'dingwords.0': { $exists: true },
-    }, { fields: { dingwords: 1 } });
+      fields: { _id: 1, 'profile.dingwords': 1 },
+    }).fetch();
 
     // For each user with dingwords, check if this message (normalized to
     // lower-case) triggers any of their dingwords.
     const normalizedText = chatMessage.text.trim().toLowerCase();
-    memberProfiles.forEach((p) => {
+    huntMembers.forEach((u) => {
       // Avoid making users ding themselves.
-      if (p._id === chatMessage.sender) {
+      if (u._id === chatMessage.sender) {
         return;
       }
 
-      const dingwords = p.dingwords;
+      const dingwords = u?.profile?.dingwords;
       if (dingwords) {
         for (let i = 0; i < dingwords.length; i++) {
           const dingword = dingwords[i];
@@ -55,7 +45,7 @@ const DingwordHooks: Hookset = {
 
             // console.log(`u ${p._id} dingword ${dingword} matched message ${chatMessage.text}`);
             ChatNotifications.insert({
-              user: p._id,
+              user: u._id,
               sender: chatMessage.sender,
               puzzle: chatMessage.puzzle,
               hunt: chatMessage.hunt,

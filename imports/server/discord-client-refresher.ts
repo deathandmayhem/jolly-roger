@@ -4,7 +4,7 @@ import Discord from 'discord.js';
 import Flags from '../flags';
 import DiscordCache from '../lib/models/discord_cache';
 import FeatureFlags from '../lib/models/feature_flags';
-import Profiles from '../lib/models/profiles';
+import MeteorUsers from '../lib/models/meteor_users';
 import Settings from '../lib/models/settings';
 import { SettingType } from '../lib/schemas/setting';
 import Locks, { PREEMPT_TIMEOUT } from './models/lock';
@@ -130,13 +130,13 @@ class DiscordClientRefresher {
             this.cacheResource(client, 'role', allRoles, 'roleCreate', 'roleUpdate', 'roleDelete');
 
             const updateUser = (u: Discord.User) => {
-              Profiles.update({
-                'discordAccount.id': u.id,
+              MeteorUsers.update({
+                'profile.discordAccount.id': u.id,
               }, {
                 $set: {
-                  'discordAccount.username': u.username,
-                  'discordAccount.discriminator': u.discriminator,
-                  'discordAccount.avatar': u.avatar,
+                  'profile.discordAccount.username': u.username,
+                  'profile.discordAccount.discriminator': u.discriminator,
+                  'profile.discordAccount.avatar': u.avatar,
                 },
               }, {
                 multi: true,

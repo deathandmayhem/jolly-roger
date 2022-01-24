@@ -15,7 +15,7 @@ import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
 import { getAvatarCdnUrl } from '../../lib/discord';
 import CallHistories from '../../lib/models/mediasoup/call_histories';
 import Peers from '../../lib/models/mediasoup/peers';
-import Profiles from '../../lib/models/profiles';
+import MeteorUsers from '../../lib/models/meteor_users';
 import relativeTimeFormat from '../../lib/relativeTimeFormat';
 import { PeerType } from '../../lib/schemas/mediasoup/peer';
 import useSubscribeAvatars from '../hooks/use-subscribe-avatars';
@@ -228,24 +228,23 @@ const ChatPeople = ({
         self = p;
       }
 
-      const user = p.createdBy;
-      const profile = Profiles.findOne(user);
-      if (!profile || !profile.displayName) {
+      const user = MeteorUsers.findOne(p.createdBy);
+      if (!user?.profile || !user.profile.displayName) {
         unknownCount += 1;
         return;
       }
 
-      const discordAvatarUrl = getAvatarCdnUrl(profile?.discordAccount);
+      const discordAvatarUrl = getAvatarCdnUrl(user.profile.discordAccount);
 
       // If the same user is joined twice (from two different tabs), dedupe in
       // the viewer listing. (We include both in rtcParticipants still.)
       rtcViewersAcc.push({
-        user,
-        name: profile.displayName,
+        user: user._id,
+        name: user.profile.displayName,
         discordAvatarUrl,
         tab: p.tab,
       });
-      rtcViewerIndex[user] = true;
+      rtcViewerIndex[user._id] = true;
     });
 
     Subscribers.find({ name: subscriberTopic }).forEach((s) => {
@@ -254,17 +253,17 @@ const ChatPeople = ({
         return;
       }
 
-      const profile = Profiles.findOne(s.user);
-      if (!profile || !profile.displayName) {
+      const user = MeteorUsers.findOne(s.user);
+      if (!user?.profile || !user.profile.displayName) {
         unknownCount += 1;
         return;
       }
 
-      const discordAvatarUrl = getAvatarCdnUrl(profile?.discordAccount);
+      const discordAvatarUrl = getAvatarCdnUrl(user.profile.discordAccount);
 
       viewersAcc.push({
         user: s.user,
-        name: profile.displayName,
+        name: user.profile.displayName,
         discordAvatarUrl,
         tab: undefined,
       });

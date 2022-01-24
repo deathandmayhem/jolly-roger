@@ -1,6 +1,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Ansible from '../ansible';
+import MeteorUsers from '../lib/models/meteor_users';
 import {
   addUserToRole,
   removeUserFromRole,
@@ -17,7 +18,7 @@ Meteor.methods({
       throw new Meteor.Error(401, 'Must be operator or inactive operator to make operator');
     }
 
-    const targetUser = Meteor.users.findOne(targetUserId);
+    const targetUser = MeteorUsers.findOne(targetUserId);
     if (!targetUser) {
       throw new Meteor.Error(404, 'User not found');
     }
@@ -38,7 +39,7 @@ Meteor.methods({
       throw new Meteor.Error(401, 'Must be operator or inactive operator to demote operator');
     }
 
-    const targetUser = Meteor.users.findOne(targetUserId);
+    const targetUser = MeteorUsers.findOne(targetUserId);
     if (!targetUser) {
       throw new Meteor.Error(404, 'User not found');
     }

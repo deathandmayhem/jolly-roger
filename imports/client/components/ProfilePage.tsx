@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { Navigate, useParams } from 'react-router-dom';
-import Profiles from '../../lib/models/profiles';
+import MeteorUsers from '../../lib/models/meteor_users';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import OthersProfilePage from './OthersProfilePage';
 import OwnProfilePage from './OwnProfilePage';
@@ -10,45 +10,26 @@ import OwnProfilePage from './OwnProfilePage';
 const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) => {
   useBreadcrumb({ title: 'Users', path: '/users' });
 
-  const profileLoading = useSubscribe('mongo.profiles', { _id: userId });
   const userInfoLoading = useSubscribe('userInfo', userId);
-  const loading = profileLoading() || userInfoLoading();
+  const loading = userInfoLoading();
 
-  const profile = useTracker(() => {
-    const user = Meteor.user()!;
-    const defaultEmail = user.emails![0].address!;
-    return Profiles.findOne(userId) || {
-      _id: userId,
-      displayName: '',
-      primaryEmail: defaultEmail,
-      phoneNumber: '',
-      dingwords: [],
-      deleted: false,
-      createdAt: new Date(),
-      createdBy: user._id,
-      updatedAt: undefined,
-      updatedBy: undefined,
-      googleAccount: undefined,
-      discordAccount: undefined,
-      muteApplause: undefined,
-    };
-  }, [userId]);
-  const hunts = useTracker(() => Meteor.users.findOne(userId)?.hunts, [userId]);
+  const user = useTracker(() => Meteor.user()!, []);
+  const hunts = useTracker(() => MeteorUsers.findOne(userId)?.hunts, [userId]);
 
   useBreadcrumb({
-    title: loading ? 'loading...' : profile.displayName,
+    title: loading ? 'loading...' : (user.profile?.displayName ?? 'Profile settings'),
     path: `/users/${userId}`,
   });
 
   if (loading) {
     return <div>loading...</div>;
   } else if (isSelf) {
-    return <OwnProfilePage initialProfile={profile} />;
+    return <OwnProfilePage initialUser={user} />;
   }
 
   return (
     <OthersProfilePage
-      profile={profile}
+      user={user}
       huntMembership={hunts}
     />
   );

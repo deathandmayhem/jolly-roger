@@ -2,7 +2,7 @@ import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../ansible';
 import Flags from '../flags';
 import Hunts from '../lib/models/hunts';
-import Profiles from '../lib/models/profiles';
+import MeteorUsers from '../lib/models/meteor_users';
 import Settings from '../lib/models/settings';
 import { DiscordBot } from './discord';
 
@@ -22,13 +22,8 @@ export default (userId: string, huntId: string) => {
     return;
   }
 
-  const profile = Profiles.findOne(userId);
-  if (!profile) {
-    Ansible.log('Can not add user to Discord role because user has no profile', { userId, huntId });
-    return;
-  }
-
-  if (!profile.discordAccount) {
+  const user = MeteorUsers.findOne(userId)!;
+  if (!user.profile?.discordAccount) {
     Ansible.log('Can not add user to Discord role because user has not linked their Discord account', { userId, huntId });
     return;
   }
@@ -47,7 +42,7 @@ export default (userId: string, huntId: string) => {
 
   const discord = new DiscordBot(botToken);
   try {
-    MeteorPromise.await(discord.addUserToRole(profile.discordAccount.id, guild.id, roleId));
+    MeteorPromise.await(discord.addUserToRole(user.profile.discordAccount.id, guild.id, roleId));
     Ansible.log('Successfully added user to Discord role', { userId, huntId, roleId });
   } catch (e) {
     Ansible.log('Error while adding user to Discord role', { err: (e instanceof Error ? e.message : e) });

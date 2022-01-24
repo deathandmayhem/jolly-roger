@@ -22,7 +22,6 @@ import styled from 'styled-components';
 import { getAvatarCdnUrl } from '../../lib/discord';
 import { userIdIsAdmin } from '../../lib/is-admin';
 import { userIsOperatorForHunt } from '../../lib/permission_stubs';
-import { ProfileType } from '../../lib/schemas/profile';
 
 const ProfilesSummary = styled.div`
   text-align: right;
@@ -61,7 +60,7 @@ type OperatorModalHandle = {
 };
 
 const PromoteOperatorModal = React.forwardRef((
-  { profile, huntId }: { profile: ProfileType, huntId: string },
+  { user, huntId }: { user: Meteor.User, huntId: string },
   forwardedRef: React.Ref<OperatorModalHandle>,
 ) => {
   const [visible, setVisible] = useState(true);
@@ -74,7 +73,7 @@ const PromoteOperatorModal = React.forwardRef((
   const clearError = useCallback(() => setError(undefined), []);
 
   const promote = useCallback(() => {
-    Meteor.call('makeOperatorForHunt', profile._id, huntId, (e: Meteor.Error) => {
+    Meteor.call('makeOperatorForHunt', user._id, huntId, (e: Meteor.Error) => {
       setDisabled(false);
       if (e) {
         setError(e);
@@ -83,7 +82,7 @@ const PromoteOperatorModal = React.forwardRef((
       }
     });
     setDisabled(true);
-  }, [huntId, hide, profile._id]);
+  }, [huntId, hide, user._id]);
 
   return (
     <Modal show={visible} onHide={hide}>
@@ -94,7 +93,7 @@ const PromoteOperatorModal = React.forwardRef((
         <p>
           Are you sure you want to make
           {' '}
-          <strong>{profile.displayName}</strong>
+          <strong>{user.profile!.displayName}</strong>
           {' '}
           an operator?
         </p>
@@ -117,7 +116,7 @@ const PromoteOperatorModal = React.forwardRef((
 });
 
 const DemoteOperatorModal = React.forwardRef((
-  { profile, huntId }: { profile: ProfileType, huntId: string },
+  { user, huntId }: { user: Meteor.User, huntId: string },
   forwardedRef: React.Ref<OperatorModalHandle>,
 ) => {
   const [visible, setVisible] = useState(true);
@@ -130,7 +129,7 @@ const DemoteOperatorModal = React.forwardRef((
   const clearError = useCallback(() => setError(undefined), []);
 
   const demote = useCallback(() => {
-    Meteor.call('demoteOperatorForHunt', profile._id, huntId, (e: Error) => {
+    Meteor.call('demoteOperatorForHunt', user._id, huntId, (e: Error) => {
       setDisabled(false);
       if (e) {
         setError(e);
@@ -139,7 +138,7 @@ const DemoteOperatorModal = React.forwardRef((
       }
     });
     setDisabled(true);
-  }, [huntId, hide, profile._id]);
+  }, [huntId, hide, user._id]);
 
   return (
     <Modal show={visible} onHide={hide}>
@@ -150,7 +149,7 @@ const DemoteOperatorModal = React.forwardRef((
         <p>
           Are you sure you want to demote
           {' '}
-          <strong>{profile.displayName}</strong>
+          <strong>{user.profile!.displayName}</strong>
           ?
         </p>
         {error && (
@@ -171,14 +170,14 @@ const DemoteOperatorModal = React.forwardRef((
   );
 });
 
-const OperatorControls = ({ profile, huntId }: { profile: ProfileType, huntId: string }) => {
-  const self = useTracker(() => profile._id === Meteor.userId(), [profile._id]);
+const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string }) => {
+  const self = useTracker(() => user._id === Meteor.userId(), [user._id]);
   const { userIsOperator, userIsAdmin } = useTracker(() => {
     return {
-      userIsOperator: userIsOperatorForHunt(profile._id, huntId),
-      userIsAdmin: userIdIsAdmin(profile._id),
+      userIsOperator: userIsOperatorForHunt(user._id, huntId),
+      userIsAdmin: userIdIsAdmin(user._id),
     };
-  }, [profile._id, huntId]);
+  }, [user._id, huntId]);
 
   const [renderPromoteModal, setRenderPromoteModal] = useState(false);
   const promoteModalRef = useRef<OperatorModalHandle>(null);
@@ -209,10 +208,10 @@ const OperatorControls = ({ profile, huntId }: { profile: ProfileType, huntId: s
   return (
     <OperatorBox onClick={preventPropagation}>
       {renderPromoteModal && (
-        <PromoteOperatorModal ref={promoteModalRef} profile={profile} huntId={huntId} />
+        <PromoteOperatorModal ref={promoteModalRef} user={user} huntId={huntId} />
       )}
       {renderDemoteModal && (
-        <DemoteOperatorModal ref={demoteModalRef} profile={profile} huntId={huntId} />
+        <DemoteOperatorModal ref={demoteModalRef} user={user} huntId={huntId} />
       )}
       {userIsAdmin && (
         <Badge variant="success">Admin</Badge>
@@ -236,13 +235,13 @@ const OperatorControls = ({ profile, huntId }: { profile: ProfileType, huntId: s
 };
 
 const ProfileList = ({
-  huntId, canInvite, canSyncDiscord, canMakeOperator, profiles, roles,
+  huntId, canInvite, canSyncDiscord, canMakeOperator, users, roles,
 }: {
   huntId?: string;
   canInvite?: boolean;
   canSyncDiscord?: boolean;
   canMakeOperator?: boolean;
-  profiles: ProfileType[];
+  users: Meteor.User[];
   roles?: Record<string, string[]>;
 }) => {
   const [searchString, setSearchString] = useState<string>('');
@@ -275,14 +274,16 @@ const ProfileList = ({
   const matcher = useMemo(() => {
     const searchKeys = searchString.split(' ');
     const toMatch = searchKeys.filter(Boolean).map((s) => s.toLowerCase());
-    const isInteresting = (profile: ProfileType) => {
+    const isInteresting = (user: Meteor.User) => {
       for (let i = 0; i < toMatch.length; i++) {
         const searchKey = toMatch[i];
-        if (profile.displayName.toLowerCase().indexOf(searchKey) === -1 &&
-          profile.primaryEmail.toLowerCase().indexOf(searchKey) === -1 &&
-          (!profile.phoneNumber || profile.phoneNumber.toLowerCase().indexOf(searchKey) === -1) &&
-          (!profile.discordAccount || `${profile.discordAccount.username.toLowerCase()}#${profile.discordAccount.discriminator}`.indexOf(searchKey) === -1) &&
-          (!roles?.[profile._id]?.some((role) => role.toLowerCase().indexOf(searchKey) !== -1))) {
+        if (user.profile?.displayName?.toLowerCase().indexOf(searchKey) === -1 &&
+          user.emails?.every((e) => (
+            !e.verified || e.address.toLowerCase().indexOf(searchKey) === -1
+          )) &&
+          (user.profile?.phoneNumber?.toLowerCase().indexOf(searchKey) === -1) &&
+          (!user.profile?.discordAccount || `${user.profile.discordAccount.username.toLowerCase()}#${user.profile.discordAccount.discriminator}`.indexOf(searchKey) === -1) &&
+          (!roles?.[user._id]?.some((role) => role.toLowerCase().indexOf(searchKey) !== -1))) {
           return false;
         }
       }
@@ -348,14 +349,14 @@ const ProfileList = ({
     );
   }, [huntId]);
 
-  const matching = profiles.filter(matcher);
+  const matching = users.filter(matcher);
   return (
     <div>
       <h1>List of hunters</h1>
       <ProfilesSummary>
         Total hunters:
         {' '}
-        {profiles.length}
+        {users.length}
       </ProfilesSummary>
 
       {syncDiscordButton}
@@ -385,11 +386,11 @@ const ProfileList = ({
 
       <ListGroup>
         {inviteToHuntItem}
-        {matching.map((profile) => {
-          const name = profile.displayName || '<no name provided>';
-          const discordAvatarUrl = getAvatarCdnUrl(profile.discordAccount);
+        {matching.map((user) => {
+          const name = user.profile?.displayName ?? '<no name provided>';
+          const discordAvatarUrl = getAvatarCdnUrl(user.profile?.discordAccount);
           return (
-            <ListGroupItem key={profile._id} action as={Link} to={`/users/${profile._id}`} className="p-1">
+            <ListGroupItem key={user._id} action as={Link} to={`/users/${user._id}`} className="p-1">
               <ListItemContainer>
                 <ImageBlock>
                   {discordAvatarUrl && (
@@ -404,7 +405,7 @@ const ProfileList = ({
                 </ImageBlock>
                 {name}
                 {huntId && canMakeOperator && (
-                  <OperatorControls huntId={huntId} profile={profile} />
+                  <OperatorControls huntId={huntId} user={user} />
                 )}
               </ListItemContainer>
             </ListGroupItem>

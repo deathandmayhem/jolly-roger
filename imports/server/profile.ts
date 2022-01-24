@@ -6,7 +6,6 @@ import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../ansible';
 import Flags from '../flags';
 import MeteorUsers from '../lib/models/meteor_users';
-import Profiles from '../lib/models/profiles';
 import Settings from '../lib/models/settings';
 import addUserToDiscordRole from './addUserToDiscordRole';
 import { DiscordAPIClient, DiscordBot } from './discord';
@@ -22,23 +21,16 @@ Meteor.methods({
       muteApplause: Boolean,
       dingwords: [String],
     });
-    const user = MeteorUsers.findOne(this.userId)!;
-    const primaryEmail = user.emails && user.emails[0].address;
-
     Ansible.log('Updating profile for user', { user: this.userId });
-    Profiles.update({
+    MeteorUsers.update({
       _id: this.userId,
     }, {
       $set: {
-        displayName: newProfile.displayName,
-        primaryEmail,
-        phoneNumber: newProfile.phoneNumber,
-        muteApplause: newProfile.muteApplause,
-        dingwords: newProfile.dingwords,
-        deleted: false,
+        'profile.displayName': newProfile.displayName,
+        'profile.phoneNumber': newProfile.phoneNumber,
+        'profile.muteApplause': newProfile.muteApplause,
+        'profile.dingwords': newProfile.dingwords,
       },
-    }, {
-      upsert: true,
     });
   },
 
@@ -58,7 +50,7 @@ Meteor.methods({
       email,
     });
 
-    Profiles.update(this.userId, { $set: { googleAccount: email } });
+    MeteorUsers.update(this.userId, { $set: { 'profile.googleAccount': email } });
 
     if (!Flags.active('disable.google') && !Flags.active('disable.gdrive_permissions')) {
       const hunts = Meteor.user()!.hunts;
@@ -70,7 +62,7 @@ Meteor.methods({
 
   unlinkUserGoogleAccount() {
     check(this.userId, String);
-    Profiles.update(this.userId, { $unset: { googleAccount: 1 } });
+    MeteorUsers.update(this.userId, { $unset: { 'profile.googleAccount': 1 } });
   },
 
   linkUserDiscordAccount(key: unknown, secret: unknown) {
@@ -97,11 +89,7 @@ Meteor.methods({
     const userInfo = MeteorPromise.await(apiClient.retrieveUserInfo());
 
     // Save user's id, identifier, and avatar to their profile.
-    Profiles.update(this.userId, {
-      $set: {
-        discordAccount: userInfo,
-      },
-    });
+    MeteorUsers.update(this.userId, { $set: { 'profile.discordAccount': userInfo } });
 
     // Invite the user to the guild, if one is configured.
     const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
@@ -147,6 +135,6 @@ Meteor.methods({
     });
 
     // Remove display name from user's profile object.
-    Profiles.update(this.userId, { $unset: { discordAccount: 1 } });
+    MeteorUsers.update(this.userId, { $unset: { 'profile.discordAccount': 1 } });
   },
 });

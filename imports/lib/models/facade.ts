@@ -22,7 +22,6 @@ import TransportRequests from './mediasoup/transport_requests';
 import TransportStates from './mediasoup/transport_states';
 import Transports from './mediasoup/transports';
 import PendingAnnouncements from './pending_announcements';
-import Profiles from './profiles';
 import Puzzles from './puzzles';
 import Servers from './servers';
 import Settings from './settings';
@@ -55,7 +54,6 @@ const Models = {
     TransportStates,
   },
   PendingAnnouncements,
-  Profiles,
   Puzzles,
   Servers,
   Settings,

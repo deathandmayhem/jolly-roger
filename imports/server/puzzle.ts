@@ -5,7 +5,6 @@ import Ansible from '../ansible';
 import Flags from '../flags';
 import Documents from '../lib/models/documents';
 import MeteorUsers from '../lib/models/meteor_users';
-import Profiles from '../lib/models/profiles';
 import Puzzles from '../lib/models/puzzles';
 import Tags from '../lib/models/tags';
 import { userMayWritePuzzlesForHunt } from '../lib/permission_stubs';
@@ -315,11 +314,8 @@ Meteor.methods({
       return;
     }
 
-    const profile = Profiles.findOne(this.userId);
-    if (!profile || !profile.googleAccount) {
-      return;
+    if (user.profile?.googleAccount) {
+      ensureHuntFolderPermission(puzzle.hunt, this.userId, user.profile.googleAccount);
     }
-
-    ensureHuntFolderPermission(puzzle.hunt, this.userId, profile.googleAccount);
   },
 });
