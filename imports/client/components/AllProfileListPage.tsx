@@ -10,7 +10,10 @@ const AllProfileListPage = () => {
   const loading = profilesLoading();
 
   const users = useTracker(() => {
-    return loading ? [] : MeteorUsers.find({}, { sort: { 'profile.displayName': 1 } }).fetch();
+    return (loading ?
+      [] :
+      MeteorUsers.find({ profile: { $ne: undefined } }, { sort: { 'profile.displayName': 1 } }).fetch()
+    );
   }, [loading]);
 
   if (loading) {

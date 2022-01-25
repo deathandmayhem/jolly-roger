@@ -22,12 +22,11 @@ const ProfileTable = styled.table`
 `;
 
 const OthersProfilePage = ({
-  user, huntMembership,
+  user,
 }: {
   user: Meteor.User;
-  huntMembership?: string[];
 }) => {
-  const showHuntList = (huntMembership?.length ?? 0) > 0;
+  const showHuntList = (user.hunts?.length ?? 0) > 0;
 
   const huntsLoading = useSubscribe(showHuntList ? 'mongo.hunts' : undefined, {});
   const loading = huntsLoading();
@@ -112,7 +111,7 @@ const OthersProfilePage = ({
                 {(
                   loading ?
                     'loading...' :
-                    huntMembership?.map((huntId) => (
+                    user.hunts?.map((huntId) => (
                       hunts[huntId]?.name ?? `Unknown hunt ${huntId}`
                     ))
                       .join(', ')

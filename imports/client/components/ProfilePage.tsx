@@ -13,8 +13,7 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
   const userInfoLoading = useSubscribe('userInfo', userId);
   const loading = userInfoLoading();
 
-  const user = useTracker(() => Meteor.user()!, []);
-  const hunts = useTracker(() => MeteorUsers.findOne(userId)?.hunts, [userId]);
+  const user = useTracker(() => MeteorUsers.findOne(userId)!, [userId]);
 
   useBreadcrumb({
     title: loading ? 'loading...' : (user.profile?.displayName ?? 'Profile settings'),
@@ -30,7 +29,6 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
   return (
     <OthersProfilePage
       user={user}
-      huntMembership={hunts}
     />
   );
 };
