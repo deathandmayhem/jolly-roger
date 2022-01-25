@@ -102,11 +102,11 @@ const JoiningCall = ({ details }: { details?: string }) => {
 type ProducerCallback = ({ id }: { id: string }) => void;
 
 const ProducerManager = ({
-  muted,
+  paused,
   track,
   transport,
 }: {
-  muted: boolean;
+  paused: boolean;
   track: MediaStreamTrack;
   transport: types.Transport;
 }) => {
@@ -126,14 +126,18 @@ const ProducerManager = ({
   const producerServerCallback = useRef<ProducerCallback>();
 
   useEffect(() => {
-    if (producer && muted !== producer.paused) {
-      producer[muted ? 'pause' : 'resume']();
+    if (producer && paused !== producer.paused) {
+      if (paused) {
+        producer.pause();
+      } else {
+        producer.resume();
+      }
       mediasoupSetProducerPaused.call({
         mediasoupProducerId: producer.id,
-        paused: muted,
+        paused,
       });
     }
-  }, [muted, producer]);
+  }, [paused, producer]);
 
   const onProduce = useCallback((
     { kind, rtpParameters, appData }: {
@@ -270,7 +274,7 @@ const ProducerBox = ({
         {tracks.map((track) => (
           <ProducerManager
             key={track.id}
-            muted={muted}
+            paused={muted || deafened}
             track={track}
             transport={transport}
           />

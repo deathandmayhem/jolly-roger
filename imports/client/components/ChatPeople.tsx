@@ -107,9 +107,7 @@ interface AudioControls {
 
 interface ChatAudioState {
   audioContext: AudioContext | undefined;
-  rawMediaSource: MediaStream | undefined;
-  gainNode: GainNode | undefined;
-  leveledStreamSource: MediaStream | undefined;
+  mediaSource: MediaStream | undefined;
 }
 
 // Helper to tear down tracks of streams
@@ -164,9 +162,7 @@ const ChatPeople = ({
 
   const [audioState, setAudioState] = useState<ChatAudioState>({
     audioContext: undefined,
-    rawMediaSource: undefined,
-    gainNode: undefined,
-    leveledStreamSource: undefined,
+    mediaSource: undefined,
   });
 
   const subscriberTopic = `puzzle:${puzzleId}`;
@@ -281,13 +277,6 @@ const ChatPeople = ({
     };
   }, [loading, subscriberTopic, huntId, puzzleId]);
 
-  const updateGain = useCallback((muted: boolean) => {
-    const newGain = muted ? 0.0 : 1.0;
-    if (audioState.gainNode && audioState.audioContext) {
-      audioState.gainNode.gain.setValueAtTime(newGain, audioState.audioContext.currentTime);
-    }
-  }, [audioState]);
-
   const updatePeerState = useCallback((muted: boolean, deafened: boolean) => {
     const effectiveState = participantState(muted, deafened);
     if (selfPeer) {
@@ -302,20 +291,20 @@ const ChatPeople = ({
         deafened: false,
       };
 
-      const prevEffectiveMuteState = prevState.muted || prevState.deafened;
-      const nextEffectiveMuteState = nextState.muted;
-
-      // Update gain if needed
-      if (prevEffectiveMuteState !== nextEffectiveMuteState) {
-        updateGain(nextEffectiveMuteState);
-      }
+      // Pausing or unpausing the consumer in mediasoup should be sufficient to
+      // stop transmitting audio, but just to be sure, we disable the capture
+      // stream here as well.
+      audioState.mediaSource?.getTracks().forEach((t) => {
+        // eslint-disable-next-line no-param-reassign
+        t.enabled = !nextState.muted;
+      });
 
       // Tell the server about our new state
       updatePeerState(nextState.muted, nextState.deafened);
 
       return nextState;
     });
-  }, [updateGain, updatePeerState]);
+  }, [updatePeerState, audioState.mediaSource]);
 
   const toggleDeafened = useCallback(() => {
     setLocalAudioControls((prevState) => {
@@ -324,19 +313,20 @@ const ChatPeople = ({
         deafened: !prevState.deafened,
       };
 
-      const prevEffectiveMuteState = prevState.muted || prevState.deafened;
-      const nextEffectiveMuteState = prevState.muted || nextState.deafened;
-      // Update gain if needed
-      if (prevEffectiveMuteState !== nextEffectiveMuteState) {
-        updateGain(nextEffectiveMuteState);
-      }
+      // Pausing or unpausing the consumer in mediasoup should be sufficient to
+      // stop transmitting audio, but just to be sure, we disable the capture
+      // stream here as well.
+      audioState.mediaSource?.getTracks().forEach((t) => {
+        // eslint-disable-next-line no-param-reassign
+        t.enabled = !nextState.muted;
+      });
 
       // Tell the server about our new state
       updatePeerState(nextState.muted, nextState.deafened);
 
       return nextState;
     });
-  }, [updateGain, updatePeerState]);
+  }, [updatePeerState, audioState.mediaSource]);
 
   const toggleCallersExpanded = useCallback(() => {
     setCallersExpanded((prevState) => {
@@ -369,9 +359,9 @@ const ChatPeople = ({
         // TODO: conditionally allow video if enabled by feature flag?
       };
 
-      let mediaStream: MediaStream;
+      let mediaSource: MediaStream;
       try {
-        mediaStream = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
+        mediaSource = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
       } catch (e) {
         setError(`Couldn't get local microphone: ${(e as Error).message}`);
         setCallState(CallState.STREAM_ERROR);
@@ -381,54 +371,21 @@ const ChatPeople = ({
       const AudioContext = window.AudioContext ||
         (window as {webkitAudioContext?: AudioContext}).webkitAudioContext;
       const audioContext = new AudioContext();
-      const wrapperStreamDestination = audioContext.createMediaStreamDestination();
-      const gainNode = audioContext.createGain();
-      const gainValue = muted ? 0.0 : 1.0;
-      gainNode.gain.setValueAtTime(gainValue, audioContext.currentTime);
-
-      const leveledStreamSource = new MediaStream();
-      const rawTracks = mediaStream.getTracks();
-      for (let i = 0; i < rawTracks.length; i++) {
-        const rawTrack = rawTracks[i];
-        if (rawTrack.kind === 'audio') {
-          // Chrome doesn't support createMediaStreamTrackSource, so stuff the
-          // track in another stream.
-          const stubStream = new MediaStream();
-          stubStream.addTrack(rawTrack);
-          const wrapperStreamSource = audioContext.createMediaStreamSource(stubStream);
-
-          // Wire up the audio track to the gain node.
-          wrapperStreamSource.connect(gainNode);
-
-          // Then wire up the output of that gain node to our levels-adjusted track.
-          gainNode.connect(wrapperStreamDestination);
-          const innerTracks = wrapperStreamDestination.stream.getTracks();
-          const leveledAudioTrack = innerTracks[0];
-
-          // Add that track to our post-level-adjustment stream.
-          leveledStreamSource.addTrack(leveledAudioTrack);
-        }
-        if (rawTrack.kind === 'video') {
-          leveledStreamSource.addTrack(rawTrack);
-        }
-      }
 
       setAudioState({
         audioContext,
-        rawMediaSource: mediaStream,
-        gainNode,
-        leveledStreamSource,
+        mediaSource,
       });
       setCallState(CallState.IN_CALL);
     } else {
       setError('Couldn\'t get local microphone: browser denies access on non-HTTPS origins');
       setCallState(CallState.STREAM_ERROR);
     }
-  }, [muted]);
+  }, []);
 
   const leaveCall = useCallback(() => {
     trace('ChatPeople leaveCall');
-    stopTracks(audioState.rawMediaSource);
+    stopTracks(audioState.mediaSource);
     setCallState(CallState.CHAT_ONLY);
     setLocalAudioControls({
       muted: false,
@@ -436,9 +393,7 @@ const ChatPeople = ({
     });
     setAudioState({
       audioContext: undefined,
-      rawMediaSource: undefined,
-      gainNode: undefined,
-      leveledStreamSource: undefined,
+      mediaSource: undefined,
     });
   }, [audioState]);
 
@@ -447,9 +402,9 @@ const ChatPeople = ({
     return () => {
       trace('ChatPeople stop tracks on unmount');
       // Stop any tracks that might be running.
-      stopTracks(audioState.rawMediaSource);
+      stopTracks(audioState.mediaSource);
     };
-  }, [audioState.rawMediaSource]);
+  }, [audioState.mediaSource]);
 
   useLayoutEffect(() => {
     trace('ChatPeople useLayoutEffect', {
@@ -527,7 +482,7 @@ const ChatPeople = ({
             muted={muted || deafened}
             deafened={deafened}
             audioContext={audioState.audioContext!}
-            localStream={audioState.leveledStreamSource!}
+            localStream={audioState.mediaSource!}
             callersExpanded={callersExpanded}
             onToggleCallersExpanded={toggleCallersExpanded}
             onHeightChange={onHeightChange}
