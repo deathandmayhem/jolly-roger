@@ -12,7 +12,7 @@ const AllProfileListPage = () => {
   const users = useTracker(() => {
     return (loading ?
       [] :
-      MeteorUsers.find({ profile: { $ne: undefined } }, { sort: { 'profile.displayName': 1 } }).fetch()
+      MeteorUsers.find({ displayName: { $ne: undefined } }, { sort: { displayName: 1 } }).fetch()
     );
   }, [loading]);
 

@@ -156,7 +156,7 @@ const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
 const AppNavbar = () => {
   const userId = useTracker(() => Meteor.userId()!, []);
 
-  const displayName = useTracker(() => Meteor.user()?.profile?.displayName ?? '<no name given>', []);
+  const displayName = useTracker(() => Meteor.user()?.displayName ?? '<no name given>', []);
   const { brandSrc, brandSrc2x } = useTracker(() => {
     return {
       brandSrc: lookupUrl('brand.png'),

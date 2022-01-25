@@ -21,7 +21,7 @@ const CelebrationCenter = ({ huntId }: { huntId: string }) => {
   useSubscribe('mongo.puzzles', { hunt: huntId });
 
   const disabled = useTracker(() => Flags.active('disable.applause'), []);
-  const muted = useTracker(() => !!(Meteor.user()?.profile?.muteApplause), []);
+  const muted = useTracker(() => !!(Meteor.user()?.muteApplause), []);
 
   const onPuzzleSolved = useCallback((puzzle: PuzzleType, newAnswer: string) => {
     // Only celebrate if:

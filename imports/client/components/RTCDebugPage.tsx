@@ -111,8 +111,8 @@ const CallDisplay = ({ call }: { call: string }) => {
 const UserDisplay = ({ userId }: { userId: string }) => {
   const user = useTracker(() => MeteorUsers.findOne(userId), [userId]);
   const discordAvatarUrl = useMemo(() => (
-    getAvatarCdnUrl(user?.profile?.discordAccount)
-  ), [user?.profile?.discordAccount]);
+    getAvatarCdnUrl(user?.discordAccount)
+  ), [user?.discordAccount]);
 
   return (
     <Link to={`/users/${userId}`} target="_blank">
@@ -125,7 +125,7 @@ const UserDisplay = ({ userId }: { userId: string }) => {
         />
       )}
       {' '}
-      {user?.profile?.displayName || 'Unknown'}
+      {user?.displayName || 'Unknown'}
     </Link>
   );
 };

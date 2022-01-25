@@ -131,12 +131,12 @@ class DiscordClientRefresher {
 
             const updateUser = (u: Discord.User) => {
               MeteorUsers.update({
-                'profile.discordAccount.id': u.id,
+                'discordAccount.id': u.id,
               }, {
                 $set: {
-                  'profile.discordAccount.username': u.username,
-                  'profile.discordAccount.discriminator': u.discriminator,
-                  'profile.discordAccount.avatar': u.avatar,
+                  'discordAccount.username': u.username,
+                  'discordAccount.discriminator': u.discriminator,
+                  'discordAccount.avatar': u.avatar,
                 },
               }, {
                 multi: true,

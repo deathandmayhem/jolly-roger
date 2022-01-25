@@ -6,19 +6,16 @@ import { Overrides, buildSchema } from './typedSchemas';
 
 declare module 'meteor/meteor' {
   module Meteor {
-    interface UserProfile {
-      displayName: string;
+    interface User {
+      lastLogin?: Date;
+      hunts?: string[];
+      roles?: Record<string, string[]>; // scope -> roles
+      displayName?: string;
       googleAccount?: string;
       discordAccount?: t.TypeOf<typeof DiscordAccount>;
       phoneNumber?: string;
       muteApplause?: boolean;
       dingwords?: string[];
-    }
-
-    interface User {
-      lastLogin?: Date;
-      hunts?: string[];
-      roles?: Record<string, string[]>; // scope -> roles
     }
   }
 }
@@ -34,15 +31,15 @@ export const UserCodec = t.type({
   services: t.union([t.object, t.undefined]),
   roles: t.union([t.object, t.undefined]),
   hunts: t.union([t.array(t.string), t.undefined]),
-  profile: t.union([t.undefined, t.type({
-    displayName: t.string,
-    googleAccount: t.union([t.string, t.undefined]),
-    discordAccount: t.union([DiscordAccount, t.undefined]),
-    phoneNumber: t.union([t.string, t.undefined]),
-    muteApplause: t.union([t.boolean, t.undefined]),
-    dingwords: t.union([t.array(t.string), t.undefined]),
-  })]),
+  displayName: t.union([t.undefined, t.string]),
+  googleAccount: t.union([t.string, t.undefined]),
+  discordAccount: t.union([DiscordAccount, t.undefined]),
+  phoneNumber: t.union([t.string, t.undefined]),
+  muteApplause: t.union([t.boolean, t.undefined]),
+  dingwords: t.union([t.array(t.string), t.undefined]),
 });
+
+export type ProfileFields = 'displayName' | 'googleAccount' | 'discordAccount' | 'phoneNumber' | 'muteApplause' | 'dingwords';
 
 const UserOverrides: Overrides<t.TypeOf<typeof UserCodec>> = {
   username: {

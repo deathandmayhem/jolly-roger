@@ -466,8 +466,8 @@ const NotificationCenter = () => {
   const { hasOwnProfile, discordConfiguredByUser } = useTracker(() => {
     const user = Meteor.user()!;
     return {
-      hasOwnProfile: !!(user.profile?.displayName),
-      discordConfiguredByUser: !!(user.profile?.discordAccount),
+      hasOwnProfile: !!(user.displayName),
+      discordConfiguredByUser: !!(user.discordAccount),
     };
   }, []);
 

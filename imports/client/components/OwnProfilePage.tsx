@@ -75,7 +75,7 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
       return <Button variant="primary" disabled>Google integration currently disabled</Button>;
     }
 
-    const text = (user.profile?.googleAccount) ?
+    const text = (user.googleAccount) ?
       'Link a different Google account' :
       'Link your Google account';
 
@@ -103,16 +103,16 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
         </Alert>
       ) : undefined}
       <div>
-        {user.profile?.googleAccount ? (
+        {user.googleAccount ? (
           <div>
             Currently linked to
             {' '}
-            {user.profile.googleAccount}
+            {user.googleAccount}
           </div>
         ) : undefined}
         {linkButton()}
         {' '}
-        {user.profile?.googleAccount ? (
+        {user.googleAccount ? (
           <Button variant="danger" onClick={onUnlink}>
             Unlink
           </Button>
@@ -199,7 +199,7 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
       return <Button variant="primary" disabled>Discord integration currently disabled</Button>;
     }
 
-    const text = (user.profile?.discordAccount) ?
+    const text = (user.discordAccount) ?
       'Link a different Discord account' :
       'Link your Discord account';
 
@@ -208,10 +208,10 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
         {text}
       </Button>
     );
-  }, [state.state, discordDisabled, user.profile?.discordAccount, onLink]);
+  }, [state.state, discordDisabled, user.discordAccount, onLink]);
 
   const unlinkButton = useMemo(() => {
-    if (user.profile?.discordAccount) {
+    if (user.discordAccount) {
       return (
         <Button variant="danger" onClick={onUnlink}>
           Unlink
@@ -220,11 +220,11 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
     }
 
     return null;
-  }, [user.profile?.discordAccount, onUnlink]);
+  }, [user.discordAccount, onUnlink]);
 
   const currentAccount = useMemo(() => {
-    if (user.profile?.discordAccount) {
-      const acct = user.profile?.discordAccount;
+    if (user.discordAccount) {
+      const acct = user.discordAccount;
       return (
         <div>
           Currently linked to
@@ -239,7 +239,7 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
     }
 
     return null;
-  }, [user.profile?.discordAccount]);
+  }, [user.discordAccount]);
 
   if (!config) {
     return <div />;
@@ -283,12 +283,12 @@ enum OwnProfilePageSubmitState {
 }
 
 const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
-  const [displayName, setDisplayName] = useState<string>(initialUser.profile?.displayName || '');
-  const [phoneNumber, setPhoneNumber] = useState<string>(initialUser.profile?.phoneNumber || '');
+  const [displayName, setDisplayName] = useState<string>(initialUser.displayName || '');
+  const [phoneNumber, setPhoneNumber] = useState<string>(initialUser.phoneNumber || '');
   const [muteApplause, setMuteApplause] =
-    useState<boolean>(initialUser.profile?.muteApplause || false);
-  const [dingwordsFlat, setDingwordsFlat] = useState<string>(initialUser.profile?.dingwords ?
-    initialUser.profile?.dingwords.join(',') : '');
+    useState<boolean>(initialUser.muteApplause || false);
+  const [dingwordsFlat, setDingwordsFlat] = useState<string>(initialUser.dingwords ?
+    initialUser.dingwords.join(',') : '');
   const [submitState, setSubmitState] =
     useState<OwnProfilePageSubmitState>(OwnProfilePageSubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');

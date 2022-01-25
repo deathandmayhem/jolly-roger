@@ -13,11 +13,11 @@ Meteor.users.deny({ update: () => true });
 
 export function indexedDisplayNames(): Record<string, string> {
   return Object.fromEntries(Meteor.users.find({
-    'profile.displayName': { $ne: null },
+    displayName: { $ne: undefined },
   }, {
-    fields: { 'profile.displayName': 1 },
+    fields: { displayName: 1 },
   })
-    .map((u) => [u._id, u.profile!.displayName]));
+    .map((u) => [u._id, u.displayName!]));
 }
 
 // Re-export Meteor.users. We should require this instead of using Meteor.users

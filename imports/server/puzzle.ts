@@ -314,8 +314,8 @@ Meteor.methods({
       return;
     }
 
-    if (user.profile?.googleAccount) {
-      ensureHuntFolderPermission(puzzle.hunt, this.userId, user.profile.googleAccount);
+    if (user.googleAccount) {
+      ensureHuntFolderPermission(puzzle.hunt, this.userId, user.googleAccount);
     }
   },
 });

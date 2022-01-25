@@ -234,7 +234,7 @@ Meteor.methods({
     } else {
       if (joineeUser._id !== this.userId) {
         const joinerUser = MeteorUsers.findOne(this.userId);
-        const joinerName = joinerUser?.profile?.displayName;
+        const joinerName = joinerUser!.displayName;
         const settingsDoc = Settings.findOne({ name: 'email.branding' });
         const subject = renderExistingJoinEmailSubject(settingsDoc, hunt);
         const text = renderExistingJoinEmail(settingsDoc, joineeUser, hunt, joinerName);
@@ -248,8 +248,8 @@ Meteor.methods({
 
       if (!Flags.active('disable.google') &&
         !Flags.active('disable.gdrive_permissions') &&
-        joineeUser.profile?.googleAccount) {
-        ensureHuntFolderPermission(huntId, joineeUser._id, joineeUser.profile.googleAccount);
+        joineeUser.googleAccount) {
+        ensureHuntFolderPermission(huntId, joineeUser._id, joineeUser.googleAccount);
       }
     }
   },

@@ -105,10 +105,10 @@ const DiscordHooks: Hookset = {
       } else {
         name = chatMessage.sender;
         const user = MeteorUsers.findOne(chatMessage.sender);
-        if (user?.profile?.discordAccount) {
-          name = user.profile.discordAccount.username;
-        } else if (user?.profile?.displayName) {
-          name = user.profile.displayName;
+        if (user?.discordAccount) {
+          name = user.discordAccount.username;
+        } else if (user?.displayName) {
+          name = user.displayName;
         }
       }
 

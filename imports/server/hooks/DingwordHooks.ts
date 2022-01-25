@@ -22,9 +22,9 @@ const DingwordHooks: Hookset = {
     // Find all users who are in this hunt with dingwords set.
     const huntMembers = MeteorUsers.find({
       hunts: chatMessage.hunt,
-      'profile.dingwords.0': { $exists: true },
+      'dingwords.0': { $exists: true },
     }, {
-      fields: { _id: 1, 'profile.dingwords': 1 },
+      fields: { _id: 1, dingwords: 1 },
     }).fetch();
 
     // For each user with dingwords, check if this message (normalized to
@@ -36,7 +36,7 @@ const DingwordHooks: Hookset = {
         return;
       }
 
-      const dingwords = u?.profile?.dingwords;
+      const dingwords = u.dingwords;
       if (dingwords) {
         for (let i = 0; i < dingwords.length; i++) {
           const dingword = dingwords[i];

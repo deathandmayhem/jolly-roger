@@ -6,7 +6,17 @@ import { UserCodec } from '../../lib/schemas/User';
 
 // Since the profiles model has been removed, we need to make our own collection
 // for this migration.
-const Profiles = new Mongo.Collection<{ _id: string } & t.TypeOf<typeof UserCodec>['profile']>('jr_profiles');
+const Profiles = new Mongo.Collection<
+  { _id: string } &
+  Pick<t.TypeOf<typeof UserCodec>,
+    'displayName' |
+    'googleAccount' |
+    'discordAccount' |
+    'phoneNumber' |
+    'muteApplause' |
+    'dingwords'
+  >
+>('jr_profiles');
 
 Migrations.add({
   version: 38,
