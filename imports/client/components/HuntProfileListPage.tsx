@@ -25,7 +25,7 @@ const HuntProfileListPage = () => {
     loading ?
       [] :
       MeteorUsers.find(
-        { hunts: huntId },
+        { hunts: huntId, profile: { $ne: undefined } },
         { sort: { 'profile.displayName': 1 } },
       ).fetch()
   ), [huntId, loading]);
