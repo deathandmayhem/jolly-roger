@@ -4,7 +4,7 @@ import React from 'react';
 import {
   Route, Routes, useParams,
 } from 'react-router-dom';
-import MeteorUsers from '../../lib/models/meteor_users';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import {
   listAllRolesForHunt, userMayAddUsersToHunt, userMayMakeOperatorForHunt, userMayUseDiscordBotAPIs,
 } from '../../lib/permission_stubs';

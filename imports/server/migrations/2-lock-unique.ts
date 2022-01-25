@@ -1,5 +1,5 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import Locks from '../models/lock';
+import Locks from '../models/Locks';
 
 Migrations.add({
   version: 2,

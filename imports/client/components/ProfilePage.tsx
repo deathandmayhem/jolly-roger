@@ -2,12 +2,12 @@ import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { Navigate, useParams } from 'react-router-dom';
-import MeteorUsers from '../../lib/models/meteor_users';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import OthersProfilePage from './OthersProfilePage';
 import OwnProfilePage from './OwnProfilePage';
 
-const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) => {
+const ResolvedProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) => {
   useBreadcrumb({ title: 'Users', path: '/users' });
 
   const userInfoLoading = useSubscribe('userInfo', userId);
@@ -33,7 +33,7 @@ const ProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) =>
   );
 };
 
-const ProfileRedirect = () => {
+const ProfilePage = () => {
   const userId = useParams<'userId'>().userId!;
   const self = useTracker(() => Meteor.userId()!, []);
 
@@ -41,7 +41,7 @@ const ProfileRedirect = () => {
     return <Navigate to={`/users/${self}`} replace />;
   }
 
-  return <ProfilePage userId={userId} isSelf={userId === self} />;
+  return <ResolvedProfilePage userId={userId} isSelf={userId === self} />;
 };
 
-export default ProfileRedirect;
+export default ProfilePage;

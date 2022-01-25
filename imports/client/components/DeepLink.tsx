@@ -19,7 +19,7 @@ type DeepLinkState = {
   startNativeLoad: Date;
 };
 
-const DeepLinkHook = ({
+const DeepLink = ({
   children, nativeUrl, browserUrl, ...rest
 }: DeepLinkProps) => {
   const [state, setState] = useState<DeepLinkState>({
@@ -66,4 +66,4 @@ const DeepLinkHook = ({
   );
 };
 
-export default DeepLinkHook;
+export default DeepLink;

@@ -1,5 +1,5 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import CallHistories from '../../lib/models/mediasoup/call_histories';
+import CallHistories from '../../lib/models/mediasoup/CallHistories';
 
 Migrations.add({
   version: 36,

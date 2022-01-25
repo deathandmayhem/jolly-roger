@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import styled from 'styled-components';
-import Ansible from '../../ansible';
+import Ansible from '../../Ansible';
 
 const WaitingAlert = ({ retryTime = Date.now() }: { retryTime: DDP.DDPStatus['retryTime'] }) => {
   const [lastUpdated, setLastUpdated] = useState<number>(Date.now());

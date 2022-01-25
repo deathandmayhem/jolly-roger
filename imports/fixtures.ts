@@ -1,6 +1,6 @@
 /* eslint-disable object-curly-newline */
-import { PuzzleType } from './lib/schemas/puzzle';
-import { TagType } from './lib/schemas/tag';
+import { PuzzleType } from './lib/schemas/Puzzle';
+import { TagType } from './lib/schemas/Tag';
 
 type Fixture = {
   _id: string;
@@ -10,7 +10,7 @@ type Fixture = {
 }
 type Fixtures = Record<string, Fixture>
 
-const huntFixtures: Fixtures = {
+const fixtures: Fixtures = {
   cSB2bWf3BToQ9NBju: {
     _id: 'cSB2bWf3BToQ9NBju',
     title: '2015',
@@ -230,4 +230,4 @@ const huntFixtures: Fixtures = {
   },
 };
 
-export default huntFixtures;
+export default fixtures;

@@ -1,9 +1,9 @@
 import { Promise as MeteorPromise } from 'meteor/promise';
-import Ansible from '../ansible';
-import Flags from '../flags';
-import Hunts from '../lib/models/hunts';
-import MeteorUsers from '../lib/models/meteor_users';
-import Settings from '../lib/models/settings';
+import Ansible from '../Ansible';
+import Flags from '../Flags';
+import Hunts from '../lib/models/Hunts';
+import MeteorUsers from '../lib/models/MeteorUsers';
+import Settings from '../lib/models/Settings';
 import { DiscordBot } from './discord';
 
 export default (userId: string, huntId: string) => {

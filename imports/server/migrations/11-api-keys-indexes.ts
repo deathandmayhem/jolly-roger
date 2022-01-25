@@ -1,5 +1,5 @@
 import { Migrations } from 'meteor/percolate:migrations';
-import APIKeys from '../models/api_keys';
+import APIKeys from '../models/APIKeys';
 
 Migrations.add({
   version: 11,

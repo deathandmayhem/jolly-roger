@@ -26,11 +26,11 @@ import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
-import Hunts from '../../lib/models/hunts';
-import Puzzles from '../../lib/models/puzzles';
-import Tags from '../../lib/models/tags';
+import Hunts from '../../lib/models/Hunts';
+import Puzzles from '../../lib/models/Puzzles';
+import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
-import { PuzzleType } from '../../lib/schemas/puzzle';
+import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { useOperatorActionsHiddenForHunt } from '../hooks/persisted-state';
 import PuzzleList from './PuzzleList';
 import PuzzleModalForm, {

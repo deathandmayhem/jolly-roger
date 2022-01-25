@@ -5,11 +5,11 @@ import React, {
 } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/esm/Modal';
-import Peers from '../../lib/models/mediasoup/peers';
-import { indexedDisplayNames } from '../../lib/models/meteor_users';
-import Puzzles from '../../lib/models/puzzles';
-import { PuzzleType } from '../../lib/schemas/puzzle';
-import useSubscribeDisplayNames from '../hooks/use-subscribe-display-names';
+import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
+import Puzzles from '../../lib/models/Puzzles';
+import Peers from '../../lib/models/mediasoup/Peers';
+import { PuzzleType } from '../../lib/schemas/Puzzle';
+import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import { Subscribers } from '../subscribers';
 import Loading from './Loading';
 

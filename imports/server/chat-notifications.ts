@@ -1,14 +1,14 @@
 import { check } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import Flags from '../flags';
-import ChatNotifications from '../lib/models/chat_notifications';
-import Hunts from '../lib/models/hunts';
-import Puzzles from '../lib/models/puzzles';
-import { ChatNotificationType } from '../lib/schemas/chat_notification';
-import { HuntType } from '../lib/schemas/hunt';
-import { PuzzleType } from '../lib/schemas/puzzle';
-import RefCountedObserverMap from './refcounted-observer-map';
+import Flags from '../Flags';
+import ChatNotifications from '../lib/models/ChatNotifications';
+import Hunts from '../lib/models/Hunts';
+import Puzzles from '../lib/models/Puzzles';
+import { ChatNotificationType } from '../lib/schemas/ChatNotification';
+import { HuntType } from '../lib/schemas/Hunt';
+import { PuzzleType } from '../lib/schemas/Puzzle';
+import RefCountedObserverMap from './RefCountedObserverMap';
 
 class ChatNotificationWatcher {
   sub: Subscription;

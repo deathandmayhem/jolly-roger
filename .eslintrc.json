@@ -5,6 +5,7 @@
     "allowImportExportEverywhere": false
   },
   "plugins": [
+    "filenames",
     "meteor",
     "@typescript-eslint"
   ],
@@ -77,6 +78,9 @@
       "pathGroupsExcludedImportTypes": ["builtin"],
       "newlines-between": "never"
     }],
+
+    // Files with default exports should be named to match them
+    "filenames/match-exported": ["error"],
 
     // This is complaining a lot and I don't really want to write dozens of lines of
     // default prop values of `undefined`

@@ -11,7 +11,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import styled from 'styled-components';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
-import CallHistories from '../../lib/models/mediasoup/call_histories';
+import CallHistories from '../../lib/models/mediasoup/CallHistories';
 import relativeTimeFormat, { terseRelativeTimeFormat } from '../../lib/relativeTimeFormat';
 import { SubscriberCounters } from '../subscribers';
 

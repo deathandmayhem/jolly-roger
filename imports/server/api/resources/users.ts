@@ -2,10 +2,10 @@ import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import express from 'express';
-import MeteorUsers from '../../../lib/models/meteor_users';
+import MeteorUsers from '../../../lib/models/MeteorUsers';
 
 // eslint-disable-next-line new-cap
-const router = express.Router();
+const users = express.Router();
 
 function findUserByEmail(email: string): Meteor.User | undefined {
   // We have two ways of finding a user: either by the email address
@@ -31,7 +31,7 @@ const renderUser = function renderUser(user: Meteor.User) {
   };
 };
 
-router.get('/:email', (req, res) => {
+users.get('/:email', (req, res) => {
   check(req.params.email, String);
 
   const user = findUserByEmail(req.params.email);
@@ -43,4 +43,4 @@ router.get('/:email', (req, res) => {
   res.json(renderUser(user));
 });
 
-export default router;
+export default users;

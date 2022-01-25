@@ -3,11 +3,11 @@ import { check, Match } from 'meteor/check';
 import { Email } from 'meteor/email';
 import { Meteor } from 'meteor/meteor';
 import Mustache from 'mustache';
-import Ansible from '../ansible';
-import Flags from '../flags';
-import Hunts from '../lib/models/hunts';
-import MeteorUsers from '../lib/models/meteor_users';
-import Settings from '../lib/models/settings';
+import Ansible from '../Ansible';
+import Flags from '../Flags';
+import Hunts from '../lib/models/Hunts';
+import MeteorUsers from '../lib/models/MeteorUsers';
+import Settings from '../lib/models/Settings';
 import {
   addUserToRole,
   checkAdmin,
@@ -15,10 +15,10 @@ import {
   userMayBulkAddToHunt,
   userMayUseDiscordBotAPIs,
 } from '../lib/permission_stubs';
-import { HuntType } from '../lib/schemas/hunt';
-import { SettingType } from '../lib/schemas/setting';
+import { HuntType } from '../lib/schemas/Hunt';
+import { SettingType } from '../lib/schemas/Setting';
+import List from './List';
 import addUserToDiscordRole from './addUserToDiscordRole';
-import List from './blanche';
 import {
   ensureHuntFolder, ensureHuntFolderPermission, huntFolderName, renameDocument,
 } from './gdrive';

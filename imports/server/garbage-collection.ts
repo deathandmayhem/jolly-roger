@@ -5,7 +5,7 @@
 import os from 'os';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import Servers from '../lib/models/servers';
+import Servers from '../lib/models/Servers';
 
 const serverId = Random.id();
 

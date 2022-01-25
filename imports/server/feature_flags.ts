@@ -1,6 +1,6 @@
 import { Match, check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import FeatureFlags from '../lib/models/feature_flags';
+import FeatureFlags from '../lib/models/FeatureFlags';
 import { checkAdmin } from '../lib/permission_stubs';
 
 Meteor.methods({

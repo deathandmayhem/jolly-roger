@@ -2,9 +2,9 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { _ } from 'meteor/underscore';
 import Mustache from 'mustache';
-import MeteorUsers from './lib/models/meteor_users';
-import { HuntType } from './lib/schemas/hunt';
-import { PuzzleType } from './lib/schemas/puzzle';
+import MeteorUsers from './lib/models/MeteorUsers';
+import { HuntType } from './lib/schemas/Hunt';
+import { PuzzleType } from './lib/schemas/Puzzle';
 
 const answerify = function (answer: string): string {
   return answer.toUpperCase();

@@ -1,8 +1,8 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import ChatMessages from '../lib/models/chats';
-import Puzzles from '../lib/models/puzzles';
-import GlobalHooks from './global-hooks';
+import ChatMessages from '../lib/models/ChatMessages';
+import Puzzles from '../lib/models/Puzzles';
+import GlobalHooks from './GlobalHooks';
 
 // eslint-disable-next-line import/prefer-default-export
 export const sendChatMessage = (puzzleId: string, message: string, sender: string | undefined) => {

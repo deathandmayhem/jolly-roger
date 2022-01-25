@@ -1,10 +1,10 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import Ansible from '../ansible';
+import Ansible from '../Ansible';
 import { userIdIsAdmin } from '../lib/is-admin';
-import APIKeys from './models/api_keys';
-import Locks from './models/lock';
+import APIKeys from './models/APIKeys';
+import Locks from './models/Locks';
 
 const userForKeyOperation = function userForKeyOperation(currentUser: string, forUser?: string) {
   const canOverrideUser = userIdIsAdmin(currentUser);

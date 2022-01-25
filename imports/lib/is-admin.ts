@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import MeteorUsers from './models/meteor_users';
+import MeteorUsers from './models/MeteorUsers';
 
 export const GLOBAL_SCOPE = '__GLOBAL__';
 

@@ -3,7 +3,7 @@ import { Random } from 'meteor/random';
 import React, {
   useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
-import useImmediateEffect from './use-immediate-effect';
+import useImmediateEffect from './useImmediateEffect';
 
 type Crumb = {
   path: string;

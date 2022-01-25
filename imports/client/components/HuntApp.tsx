@@ -7,11 +7,11 @@ import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import {
   Navigate, Route, Routes, useNavigate, useParams,
 } from 'react-router-dom';
-import Hunts from '../../lib/models/hunts';
+import Hunts from '../../lib/models/Hunts';
 import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
-import { HuntType } from '../../lib/schemas/hunt';
+import { HuntType } from '../../lib/schemas/Hunt';
 import { useBreadcrumb } from '../hooks/breadcrumb';
-import useDocumentTitle from '../hooks/use-document-title';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 import markdown from '../markdown';
 import AnnouncementsPage from './AnnouncementsPage';
 import CelebrationCenter from './CelebrationCenter';

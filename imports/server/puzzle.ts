@@ -1,13 +1,14 @@
 import { Match, check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import Ansible from '../ansible';
-import Flags from '../flags';
-import Documents from '../lib/models/documents';
-import MeteorUsers from '../lib/models/meteor_users';
-import Puzzles from '../lib/models/puzzles';
-import Tags from '../lib/models/tags';
+import Ansible from '../Ansible';
+import Flags from '../Flags';
+import Documents from '../lib/models/Documents';
+import MeteorUsers from '../lib/models/MeteorUsers';
+import Puzzles from '../lib/models/Puzzles';
+import Tags from '../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../lib/permission_stubs';
+import GlobalHooks from './GlobalHooks';
 import {
   ensureDocument,
   renameDocument,
@@ -16,9 +17,8 @@ import {
   makeReadOnly,
   makeReadWrite,
 } from './gdrive';
-import DriveClient from './gdrive-client-refresher';
-import GlobalHooks from './global-hooks';
-import getTeamName from './team_name';
+import DriveClient from './gdriveClientRefresher';
+import getTeamName from './getTeamName';
 
 function getOrCreateTagByName(huntId: string, name: string): {
   _id: string,

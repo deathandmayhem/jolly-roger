@@ -3,7 +3,7 @@ import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
-import { TagType } from '../../lib/schemas/tag';
+import { TagType } from '../../lib/schemas/Tag';
 import RelatedPuzzleList from './RelatedPuzzleList';
 import Tag from './Tag';
 import { PuzzleGroup } from './puzzle-sort-and-group';

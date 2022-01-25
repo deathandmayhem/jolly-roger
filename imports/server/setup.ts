@@ -7,14 +7,14 @@ import { Promise as MeteorPromise } from 'meteor/promise';
 import { Random } from 'meteor/random';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import { _ } from 'meteor/underscore';
-import Ansible from '../ansible';
+import Ansible from '../Ansible';
 import { API_BASE } from '../lib/discord';
 import { GLOBAL_SCOPE } from '../lib/is-admin';
-import Documents from '../lib/models/documents';
-import Hunts from '../lib/models/hunts';
-import MeteorUsers from '../lib/models/meteor_users';
-import Puzzles from '../lib/models/puzzles';
-import Settings from '../lib/models/settings';
+import Documents from '../lib/models/Documents';
+import Hunts from '../lib/models/Hunts';
+import MeteorUsers from '../lib/models/MeteorUsers';
+import Puzzles from '../lib/models/Puzzles';
+import Settings from '../lib/models/Settings';
 import {
   addUserToRole,
   userMayConfigureGdrive,
@@ -25,10 +25,10 @@ import {
   userMayConfigureEmailBranding,
   userMayConfigureAssets,
 } from '../lib/permission_stubs';
-import { SettingType } from '../lib/schemas/setting';
+import { SettingType } from '../lib/schemas/Setting';
 import { ensureDocument, ensureHuntFolder, moveDocument } from './gdrive';
-import HuntFolders from './models/hunt_folders';
-import UploadTokens from './models/upload_tokens';
+import HuntFolders from './models/HuntFolders';
+import UploadTokens from './models/UploadTokens';
 
 // Clean up upload tokens that didn't get used within a minute
 function cleanupUploadTokens() {

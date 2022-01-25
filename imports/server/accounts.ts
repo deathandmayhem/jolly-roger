@@ -2,11 +2,11 @@ import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import logfmt from 'logfmt';
 import Mustache from 'mustache';
-import Ansible from '../ansible';
-import Hunts from '../lib/models/hunts';
-import MeteorUsers from '../lib/models/meteor_users';
-import Settings from '../lib/models/settings';
-import { SettingType } from '../lib/schemas/setting';
+import Ansible from '../Ansible';
+import Hunts from '../lib/models/Hunts';
+import MeteorUsers from '../lib/models/MeteorUsers';
+import Settings from '../lib/models/Settings';
+import { SettingType } from '../lib/schemas/Setting';
 
 type LoginInfo = {
   type: string,
