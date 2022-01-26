@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Navigate, Route, Routes as ReactRouterRoutes } from 'react-router-dom';
+import { Navigate, RouteObject, useRoutes } from 'react-router-dom';
 import { BreadcrumbsProvider } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import AllProfileListPage from './AllProfileListPage';
@@ -24,39 +24,66 @@ import { AuthenticatedPage, UnauthenticatedPage } from './authentication';
 const SetupPage = React.lazy(() => import('./SetupPage'));
 const RTCDebugPage = React.lazy(() => import('./RTCDebugPage'));
 
+/* Authenticated routes - if user not logged in, get redirected to /login */
+export const AuthenticatedRouteList: RouteObject[] = [
+  {
+    path: '/hunts/:huntId',
+    element: <HuntApp />,
+    children: [
+      { path: 'announcements', element: <AnnouncementsPage /> },
+      { path: 'firehose', element: <FirehosePage /> },
+      { path: 'guesses', element: <GuessQueuePage /> },
+      { path: 'hunters', element: <HuntProfileListPage /> },
+      { path: 'hunters/invite', element: <UserInvitePage /> },
+      { path: 'puzzles/:puzzleId', element: <PuzzlePage /> },
+      { path: 'puzzles', element: <PuzzleListPage /> },
+      { path: '', element: <Navigate to="puzzles" replace /> },
+    ],
+  },
+  { path: '/hunts', element: <HuntListPage /> },
+  { path: '/users/:userId', element: <ProfilePage /> },
+  { path: '/users', element: <AllProfileListPage /> },
+  { path: '/setup', element: <SetupPage /> },
+  { path: '/rtcdebug', element: <RTCDebugPage /> },
+].map((r) => {
+  return {
+    ...r,
+    element: <AuthenticatedPage>{r.element}</AuthenticatedPage>,
+  };
+});
+
+/* Unauthenticated routes - if user already logged in, get redirected to /hunts */
+export const UnauthenticatedRouteList: RouteObject[] = [
+  { path: '/login', element: <LoginForm /> },
+  { path: '/reset-password/:token', element: <PasswordResetForm /> },
+  { path: '/enroll/:token', element: <EnrollForm /> },
+  { path: '/create-first-user', element: <FirstUserForm /> },
+].map((r) => {
+  return {
+    ...r,
+    element: <UnauthenticatedPage>{r.element}</UnauthenticatedPage>,
+  };
+});
+
+export const RouteList: RouteObject[] = [
+  /* Index redirect */
+  {
+    path: '/',
+    element: <RootRedirector />,
+  },
+  ...AuthenticatedRouteList,
+  ...UnauthenticatedRouteList,
+];
+
 const Routes = React.memo(() => {
   useDocumentTitle('Jolly Roger');
+
+  const routes = useRoutes(RouteList);
 
   return (
     <BreadcrumbsProvider>
       <Suspense fallback={<Loading />}>
-        <ReactRouterRoutes>
-          {/* Index redirect */}
-          <Route path="/" element={<RootRedirector />} />
-
-          {/* Authenticated routes - if user not logged in, get redirected to /login */}
-          <Route path="/hunts/:huntId" element={<AuthenticatedPage><HuntApp /></AuthenticatedPage>}>
-            <Route path="announcements" element={<AnnouncementsPage />} />
-            <Route path="firehose" element={<FirehosePage />} />
-            <Route path="guesses" element={<GuessQueuePage />} />
-            <Route path="hunters" element={<HuntProfileListPage />} />
-            <Route path="hunters/invite" element={<UserInvitePage />} />
-            <Route path="puzzles/:puzzleId" element={<PuzzlePage />} />
-            <Route path="puzzles" element={<PuzzleListPage />} />
-            <Route path="" element={<Navigate to="puzzles" replace />} />
-          </Route>
-          <Route path="/hunts" element={<AuthenticatedPage><HuntListPage /></AuthenticatedPage>} />
-          <Route path="/users/:userId" element={<AuthenticatedPage><ProfilePage /></AuthenticatedPage>} />
-          <Route path="/users" element={<AuthenticatedPage><AllProfileListPage /></AuthenticatedPage>} />
-          <Route path="/setup" element={<AuthenticatedPage><SetupPage /></AuthenticatedPage>} />
-          <Route path="/rtcdebug" element={<AuthenticatedPage><RTCDebugPage /></AuthenticatedPage>} />
-
-          {/* Unauthenticated routes - if user already logged in, get redirected to /hunts */}
-          <Route path="/login" element={<UnauthenticatedPage><LoginForm /></UnauthenticatedPage>} />
-          <Route path="/reset-password/:token" element={<UnauthenticatedPage><PasswordResetForm /></UnauthenticatedPage>} />
-          <Route path="/enroll/:token" element={<UnauthenticatedPage><EnrollForm /></UnauthenticatedPage>} />
-          <Route path="/create-first-user" element={<UnauthenticatedPage><FirstUserForm /></UnauthenticatedPage>} />
-        </ReactRouterRoutes>
+        {routes}
       </Suspense>
     </BreadcrumbsProvider>
   );
