@@ -93,7 +93,7 @@ const PromoteOperatorModal = React.forwardRef((
         <p>
           Are you sure you want to make
           {' '}
-          <strong>{user.profile!.displayName}</strong>
+          <strong>{user!.displayName}</strong>
           {' '}
           an operator?
         </p>
@@ -149,7 +149,7 @@ const DemoteOperatorModal = React.forwardRef((
         <p>
           Are you sure you want to demote
           {' '}
-          <strong>{user.profile!.displayName}</strong>
+          <strong>{user.displayName}</strong>
           ?
         </p>
         {error && (
@@ -277,12 +277,10 @@ const ProfileList = ({
     const isInteresting = (user: Meteor.User) => {
       for (let i = 0; i < toMatch.length; i++) {
         const searchKey = toMatch[i];
-        if (user.profile?.displayName?.toLowerCase().indexOf(searchKey) === -1 &&
-          user.emails?.every((e) => (
-            !e.verified || e.address.toLowerCase().indexOf(searchKey) === -1
-          )) &&
-          (user.profile?.phoneNumber?.toLowerCase().indexOf(searchKey) === -1) &&
-          (!user.profile?.discordAccount || `${user.profile.discordAccount.username.toLowerCase()}#${user.profile.discordAccount.discriminator}`.indexOf(searchKey) === -1) &&
+        if ((!user.displayName || user.displayName.toLowerCase().indexOf(searchKey) === -1) &&
+          user.emails?.every((e) => e.address.toLowerCase().indexOf(searchKey) === -1) &&
+          (!user.phoneNumber || user.phoneNumber?.toLowerCase().indexOf(searchKey) === -1) &&
+          (!user.discordAccount || `${user.discordAccount.username.toLowerCase()}#${user.discordAccount.discriminator}`.indexOf(searchKey) === -1) &&
           (!roles?.[user._id]?.some((role) => role.toLowerCase().indexOf(searchKey) !== -1))) {
           return false;
         }
@@ -387,8 +385,8 @@ const ProfileList = ({
       <ListGroup>
         {inviteToHuntItem}
         {matching.map((user) => {
-          const name = user.profile?.displayName ?? '<no name provided>';
-          const discordAvatarUrl = getAvatarCdnUrl(user.profile?.discordAccount);
+          const name = user.displayName ?? '<no name provided>';
+          const discordAvatarUrl = getAvatarCdnUrl(user.discordAccount);
           return (
             <ListGroupItem key={user._id} action as={Link} to={`/users/${user._id}`} className="p-1">
               <ListItemContainer>

@@ -1,8 +1,27 @@
+import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { userIdIsAdmin } from '../lib/is-admin';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
+import { ProfileFields } from '../lib/schemas/User';
+
+const profileFields: Record<ProfileFields, 1> = {
+  displayName: 1,
+  googleAccount: 1,
+  discordAccount: 1,
+  phoneNumber: 1,
+  muteApplause: 1,
+  dingwords: 1,
+};
+
+// This overrides the default set of fields that are published to the
+// `Meteor.user()` object for the logged-in user.
+Accounts.setDefaultPublishFields({
+  username: 1,
+  emails: 1,
+  ...profileFields,
+});
 
 Meteor.publish('selfHuntMembership', function () {
   if (!this.userId) {
@@ -34,7 +53,7 @@ Meteor.publish('displayNames', function () {
     return [];
   }
 
-  return MeteorUsers.find({}, { fields: { 'profile.displayName': 1 } });
+  return MeteorUsers.find({}, { fields: { displayName: 1 } });
 });
 
 Meteor.publish('avatars', function () {
@@ -42,7 +61,7 @@ Meteor.publish('avatars', function () {
     return [];
   }
 
-  return MeteorUsers.find({}, { fields: { 'profile.discordAccount': 1 } });
+  return MeteorUsers.find({}, { fields: { discordAccount: 1 } });
 });
 
 Meteor.publish('profiles', function () {
@@ -50,8 +69,28 @@ Meteor.publish('profiles', function () {
     return [];
   }
 
+  return MeteorUsers.find({}, {
+    fields: {
+      'emails.address': 1,
+      ...profileFields,
+    },
+  });
+});
+
+Meteor.publish('profile', function (userId: string) {
+  check(userId, String);
+
+  if (!this.userId) {
+    return [];
+  }
+
   // For now, all user profiles are public, including email address
-  return MeteorUsers.find({}, { fields: { 'emails.address': 1, profile: 1 } });
+  return MeteorUsers.find(userId, {
+    fields: {
+      'emails.address': 1,
+      ...profileFields,
+    },
+  });
 });
 
 Meteor.publish('huntUserInfo', function (huntId: string) {

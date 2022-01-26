@@ -229,18 +229,18 @@ const ChatPeople = ({
       }
 
       const user = MeteorUsers.findOne(p.createdBy);
-      if (!user?.profile || !user.profile.displayName) {
+      if (!user || !user.displayName) {
         unknownCount += 1;
         return;
       }
 
-      const discordAvatarUrl = getAvatarCdnUrl(user.profile.discordAccount);
+      const discordAvatarUrl = getAvatarCdnUrl(user.discordAccount);
 
       // If the same user is joined twice (from two different tabs), dedupe in
       // the viewer listing. (We include both in rtcParticipants still.)
       rtcViewersAcc.push({
         user: user._id,
-        name: user.profile.displayName,
+        name: user.displayName,
         discordAvatarUrl,
         tab: p.tab,
       });
@@ -254,16 +254,16 @@ const ChatPeople = ({
       }
 
       const user = MeteorUsers.findOne(s.user);
-      if (!user?.profile || !user.profile.displayName) {
+      if (!user || !user.displayName) {
         unknownCount += 1;
         return;
       }
 
-      const discordAvatarUrl = getAvatarCdnUrl(user.profile.discordAccount);
+      const discordAvatarUrl = getAvatarCdnUrl(user.discordAccount);
 
       viewersAcc.push({
         user: s.user,
-        name: user.profile.displayName,
+        name: user.displayName,
         discordAvatarUrl,
         tab: undefined,
       });

@@ -10,13 +10,14 @@ import OwnProfilePage from './OwnProfilePage';
 const ResolvedProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boolean }) => {
   useBreadcrumb({ title: 'Users', path: '/users' });
 
+  const profileLoading = useSubscribe('profile', userId);
   const userInfoLoading = useSubscribe('userInfo', userId);
-  const loading = userInfoLoading();
+  const loading = profileLoading() || userInfoLoading();
 
   const user = useTracker(() => MeteorUsers.findOne(userId)!, [userId]);
 
   useBreadcrumb({
-    title: loading ? 'loading...' : (user.profile?.displayName ?? 'Profile settings'),
+    title: loading ? 'loading...' : (user.displayName ?? 'Profile settings'),
     path: `/users/${userId}`,
   });
 

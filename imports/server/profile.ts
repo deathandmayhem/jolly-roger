@@ -26,10 +26,10 @@ Meteor.methods({
       _id: this.userId,
     }, {
       $set: {
-        'profile.displayName': newProfile.displayName,
-        'profile.phoneNumber': newProfile.phoneNumber,
-        'profile.muteApplause': newProfile.muteApplause,
-        'profile.dingwords': newProfile.dingwords,
+        displayName: newProfile.displayName,
+        phoneNumber: newProfile.phoneNumber,
+        muteApplause: newProfile.muteApplause,
+        dingwords: newProfile.dingwords,
       },
     });
   },
@@ -50,7 +50,7 @@ Meteor.methods({
       email,
     });
 
-    MeteorUsers.update(this.userId, { $set: { 'profile.googleAccount': email } });
+    MeteorUsers.update(this.userId, { $set: { googleAccount: email } });
 
     if (!Flags.active('disable.google') && !Flags.active('disable.gdrive_permissions')) {
       const hunts = Meteor.user()!.hunts;
@@ -62,7 +62,7 @@ Meteor.methods({
 
   unlinkUserGoogleAccount() {
     check(this.userId, String);
-    MeteorUsers.update(this.userId, { $unset: { 'profile.googleAccount': 1 } });
+    MeteorUsers.update(this.userId, { $unset: { googleAccount: 1 } });
   },
 
   linkUserDiscordAccount(key: unknown, secret: unknown) {
@@ -89,7 +89,7 @@ Meteor.methods({
     const userInfo = MeteorPromise.await(apiClient.retrieveUserInfo());
 
     // Save user's id, identifier, and avatar to their profile.
-    MeteorUsers.update(this.userId, { $set: { 'profile.discordAccount': userInfo } });
+    MeteorUsers.update(this.userId, { $set: { discordAccount: userInfo } });
 
     // Invite the user to the guild, if one is configured.
     const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
@@ -135,6 +135,6 @@ Meteor.methods({
     });
 
     // Remove display name from user's profile object.
-    MeteorUsers.update(this.userId, { $unset: { 'profile.discordAccount': 1 } });
+    MeteorUsers.update(this.userId, { $unset: { discordAccount: 1 } });
   },
 });

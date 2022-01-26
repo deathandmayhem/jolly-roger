@@ -234,7 +234,7 @@ Meteor.methods({
     });
 
     const user = MeteorUsers.findOne(this.userId)!;
-    const guesserDisplayName = user.profile?.displayName || '(no display name given)';
+    const guesserDisplayName = user.displayName || '(no display name given)';
     const message = `${guesserDisplayName} submitted guess "${guess}"`;
     sendChatMessage(puzzleId, message, undefined);
   },

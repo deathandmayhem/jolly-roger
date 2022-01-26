@@ -32,8 +32,8 @@ const OthersProfilePage = ({
   const loading = huntsLoading();
   const hunts = useTracker(() => (loading ? {} : _.indexBy(Hunts.find().fetch(), '_id')), [loading]);
 
-  const discordAvatarUrl = getAvatarCdnUrl(user.profile?.discordAccount);
-  const discordAvatarUrlLarge = getAvatarCdnUrl(user.profile?.discordAccount, 256);
+  const discordAvatarUrl = getAvatarCdnUrl(user.discordAccount);
+  const discordAvatarUrlLarge = getAvatarCdnUrl(user.discordAccount, 256);
   return (
     <div>
       <h1>
@@ -53,7 +53,7 @@ const OthersProfilePage = ({
               )}
             >
               <img
-                alt={`${user.profile?.displayName}'s Discord avatar`}
+                alt={`${user.displayName}'s Discord avatar`}
                 src={discordAvatarUrl}
                 width={40}
                 height={40}
@@ -63,7 +63,7 @@ const OthersProfilePage = ({
             {' '}
           </>
         )}
-        {user.profile?.displayName ?? 'No display name'}
+        {user.displayName ?? 'No display name'}
       </h1>
 
       <ProfileTable>
@@ -83,8 +83,8 @@ const OthersProfilePage = ({
           <tr>
             <th>Phone</th>
             <td>
-              {user.profile?.phoneNumber ? (
-                <a href={`tel:${user.profile.phoneNumber}`}>{user.profile.phoneNumber}</a>
+              {user.phoneNumber ? (
+                <a href={`tel:${user.phoneNumber}`}>{user.phoneNumber}</a>
               ) : (
                 '(none)'
               )}
@@ -93,11 +93,11 @@ const OthersProfilePage = ({
           <tr>
             <th>Discord handle</th>
             <td>
-              {user.profile?.discordAccount ? (
-                <a href={`https://discord.com/users/${user.profile.discordAccount.id}`} target="_blank" rel="noreferrer">
-                  {user.profile.discordAccount.username}
+              {user.discordAccount ? (
+                <a href={`https://discord.com/users/${user.discordAccount.id}`} target="_blank" rel="noreferrer">
+                  {user.discordAccount.username}
                   #
-                  {user.profile.discordAccount.discriminator}
+                  {user.discordAccount.discriminator}
                 </a>
               ) : (
                 '(none)'

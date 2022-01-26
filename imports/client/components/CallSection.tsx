@@ -202,8 +202,8 @@ const ProducerBox = ({
   const { initial, discordAvatarUrl } = useTracker(() => {
     const user = Meteor.user()!;
     return {
-      initial: user.profile?.displayName.slice(0, 1) ?? 'U', // get it?  it's you
-      discordAvatarUrl: getAvatarCdnUrl(user.profile?.discordAccount),
+      initial: user.displayName?.slice(0, 1) ?? 'U', // get it?  it's you
+      discordAvatarUrl: getAvatarCdnUrl(user.discordAccount),
     };
   });
 
@@ -352,8 +352,8 @@ const PeerBox = ({
   const { name, discordAvatarUrl } = useTracker(() => {
     const user = MeteorUsers.findOne(peer.createdBy);
     return {
-      name: user?.profile?.displayName ?? 'no profile wat',
-      discordAvatarUrl: getAvatarCdnUrl(user?.profile?.discordAccount),
+      name: user?.displayName ?? 'no profile wat',
+      discordAvatarUrl: getAvatarCdnUrl(user?.discordAccount),
     };
   }, [peer.createdBy]);
 

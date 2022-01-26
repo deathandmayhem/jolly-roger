@@ -23,7 +23,7 @@ export default (userId: string, huntId: string) => {
   }
 
   const user = MeteorUsers.findOne(userId)!;
-  if (!user.profile?.discordAccount) {
+  if (!user.discordAccount) {
     Ansible.log('Can not add user to Discord role because user has not linked their Discord account', { userId, huntId });
     return;
   }
@@ -42,7 +42,7 @@ export default (userId: string, huntId: string) => {
 
   const discord = new DiscordBot(botToken);
   try {
-    MeteorPromise.await(discord.addUserToRole(user.profile.discordAccount.id, guild.id, roleId));
+    MeteorPromise.await(discord.addUserToRole(user.discordAccount.id, guild.id, roleId));
     Ansible.log('Successfully added user to Discord role', { userId, huntId, roleId });
   } catch (e) {
     Ansible.log('Error while adding user to Discord role', { err: (e instanceof Error ? e.message : e) });

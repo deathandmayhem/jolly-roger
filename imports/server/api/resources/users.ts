@@ -26,7 +26,7 @@ const renderUser = function renderUser(user: Meteor.User) {
   return {
     _id: user._id,
     primaryEmail: user.emails && user.emails[0].address,
-    googleAccount: user.profile?.googleAccount,
+    googleAccount: user.googleAccount,
     active,
   };
 };
