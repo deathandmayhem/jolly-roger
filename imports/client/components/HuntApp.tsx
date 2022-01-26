@@ -5,7 +5,7 @@ import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import {
-  Navigate, Route, Routes, useNavigate, useParams,
+  Outlet, useNavigate, useParams,
 } from 'react-router-dom';
 import Hunts from '../../lib/models/Hunts';
 import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
@@ -13,13 +13,7 @@ import { HuntType } from '../../lib/schemas/Hunt';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import markdown from '../markdown';
-import AnnouncementsPage from './AnnouncementsPage';
 import CelebrationCenter from './CelebrationCenter';
-import FirehosePage from './FirehosePage';
-import GuessQueuePage from './GuessQueuePage';
-import HuntProfileListPage from './HuntProfileListPage';
-import PuzzleListPage from './PuzzleListPage';
-import PuzzlePage from './PuzzlePage';
 
 const HuntDeletedError = React.memo(({ hunt, canUndestroy }: {
   hunt: HuntType;
@@ -164,15 +158,7 @@ const HuntApp = React.memo(() => {
     }
 
     return (
-      <Routes>
-        <Route path="announcements" element={<AnnouncementsPage />} />
-        <Route path="firehose" element={<FirehosePage />} />
-        <Route path="guesses" element={<GuessQueuePage />} />
-        <Route path="hunters/*" element={<HuntProfileListPage />} />
-        <Route path="puzzles/:puzzleId" element={<PuzzlePage />} />
-        <Route path="puzzles" element={<PuzzleListPage />} />
-        <Route path="" element={<Navigate to="puzzles" replace />} />
-      </Routes>
+      <Outlet />
     );
   }, [
     loading, member, hunt, canUndestroy, canJoin,
