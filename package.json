@@ -22,7 +22,7 @@
     "bootstrap": "^4.6.1",
     "classnames": "^2.3.1",
     "discord.js": "^12.5.3",
-    "dompurify": "^2.3.4",
+    "dompurify": "^2.3.5",
     "element-resize-detector": "^1.2.4",
     "express": "^4.17.2",
     "fp-ts": "^2.11.8",
