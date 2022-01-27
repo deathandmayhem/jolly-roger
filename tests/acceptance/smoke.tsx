@@ -13,7 +13,6 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import fixtures from '../../imports/fixtures';
-import { GLOBAL_SCOPE } from '../../imports/lib/is-admin';
 import { stabilize, USER_EMAIL, USER_PASSWORD } from './lib';
 
 function enumeratePaths(routes: RouteObject[], prefix: string = '', acc: string[] = []): string[] {
@@ -58,12 +57,11 @@ if (Meteor.isClient) {
   describe('routes', function () {
     before(async function () {
       await Meteor.callPromise('test.resetDatabase');
-      await Meteor.callPromise('test.authentication.createUser');
+      await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
       await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
-      await Meteor.callPromise('test.authentication.addRole', GLOBAL_SCOPE, 'admin');
       await Meteor.callPromise('createFixtureHunt');
       await Meteor.callPromise('addToHunt', fixtureHunt, USER_EMAIL);
-      await Meteor.callPromise('test.authentication.addRole', fixtureHunt, 'operator');
+      await Meteor.callPromise('makeOperatorForHunt', Meteor.userId(), fixtureHunt);
     });
 
     afterEach(function () {
