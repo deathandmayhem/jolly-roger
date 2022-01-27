@@ -24,6 +24,9 @@ EOF
 
 WORKDIR /app
 
+ARG CI=true
+ARG GITHUB_ACTIONS=
+
 # Install Meteor
 COPY .meteor/release /app/.meteor/release
 RUN <<EOF bash

@@ -51,3 +51,5 @@ jobs:
         cache-to: type=gha,mode=max # mode=max means cache intermediate images
         build-args: |
           GIT_REVISION=${{ github.sha }}
+          CI=true
+          GITHUB_ACTIONS=true
