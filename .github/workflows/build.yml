@@ -54,7 +54,7 @@ jobs:
           GITHUB_ACTIONS=true
     - name: Run tests
       run: |
-        docker run -e CI=true -e GITHUB_ACTIONS=true --rm ${{ env.TEST_TAG }}
+        docker run -e PATH_PREFIX=${{ github.workspace }} -e CI=true -e GITHUB_ACTIONS=true --rm ${{ env.TEST_TAG }}
     - name: Build production Docker image
       uses: docker/build-push-action@v2
       with:
@@ -66,3 +66,5 @@ jobs:
         cache-to: type=gha,mode=max # mode=max means cache intermediate images
         build-args: |
           GIT_REVISION=${{ github.sha }}
+          CI=true
+          GITHUB_ACTIONS=true
