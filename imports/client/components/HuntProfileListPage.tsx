@@ -1,16 +1,13 @@
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
-import {
-  Route, Routes, useParams,
-} from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import {
   listAllRolesForHunt, userMayAddUsersToHunt, userMayMakeOperatorForHunt, userMayUseDiscordBotAPIs,
 } from '../../lib/permission_stubs';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
-import UserInvitePage from './UserInvitePage';
 
 const HuntProfileListPage = () => {
   const huntId = useParams<'huntId'>().huntId!;
@@ -49,22 +46,14 @@ const HuntProfileListPage = () => {
   }
 
   return (
-    <Routes>
-      <Route path="invite" element={<UserInvitePage />} />
-      <Route
-        path=""
-        element={(
-          <ProfileList
-            users={users}
-            roles={roles}
-            huntId={huntId}
-            canInvite={canInvite}
-            canSyncDiscord={canSyncDiscord}
-            canMakeOperator={canMakeOperator}
-          />
-        )}
-      />
-    </Routes>
+    <ProfileList
+      users={users}
+      roles={roles}
+      huntId={huntId}
+      canInvite={canInvite}
+      canSyncDiscord={canSyncDiscord}
+      canMakeOperator={canMakeOperator}
+    />
   );
 };
 

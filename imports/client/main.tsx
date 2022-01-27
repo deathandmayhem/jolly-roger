@@ -30,9 +30,11 @@ Meteor.startup(() => {
   ReactDOM.render(
     <>
       <Reset />
-      <BrowserRouter>
-        <Routes />
-      </BrowserRouter>
+      {!Meteor.isAppTest && (
+        <BrowserRouter>
+          <Routes />
+        </BrowserRouter>
+      )}
     </>,
     container
   );

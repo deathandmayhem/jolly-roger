@@ -1,13 +1,7 @@
-/* eslint-disable no-console */
-import { Accounts } from 'meteor/accounts-base';
-import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
-import { Tracker } from 'meteor/tracker';
+import { render, act, cleanup } from '@testing-library/react';
 import { assert } from 'chai';
 import React from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
-import { act } from 'react-dom/test-utils';
-import './lib';
 import {
   MemoryRouter,
   Route,
@@ -17,47 +11,12 @@ import {
   NavigateFunction,
   useNavigate,
 } from 'react-router-dom';
-
-const USER_EMAIL = 'jolly-roger@deathandmayhem.com';
-const USER_PASSWORD = 'password';
-
-Meteor.methods({
-  'test.authentication.createUser': function () {
-    Accounts.createUser({
-      email: USER_EMAIL,
-      password: USER_PASSWORD,
-    });
-    console.log('Created test user', { email: USER_EMAIL });
-  },
-});
-
-// waitForSubscriptions and afterFlush both taken from
-// https://guide.meteor.com/testing.html#full-app-integration-test
-
-const waitForSubscriptions = () => new Promise<void>((resolve) => {
-  const poll = Meteor.setInterval(() => {
-    // eslint-disable-next-line no-underscore-dangle
-    if (DDP._allSubscriptionsReady()) {
-      Meteor.clearInterval(poll);
-      resolve();
-    }
-  }, 200);
-});
-
-const afterFlush = () => new Promise<void>((resolve) => {
-  Tracker.afterFlush(resolve);
-});
-
-const stabilize = async () => {
-  await waitForSubscriptions();
-  await afterFlush();
-};
+import { stabilize, USER_EMAIL, USER_PASSWORD } from './lib';
 
 if (Meteor.isClient) {
   const Routes: typeof import('../../imports/client/components/Routes').default =
     require('../../imports/client/components/Routes').default;
 
-  let container: HTMLDivElement | null = null;
   const location: React.MutableRefObject<Location | null> = { current: null };
   const navigate: React.MutableRefObject<NavigateFunction | null> = { current: null };
 
@@ -79,17 +38,8 @@ if (Meteor.isClient) {
   };
 
   describe('authentication', function () {
-    beforeEach(function () {
-      container = document.createElement('div');
-      document.body.appendChild(container);
-    });
-
     afterEach(function () {
-      if (container) {
-        unmountComponentAtNode(container);
-        container.remove();
-        container = null;
-      }
+      cleanup();
       location.current = null;
       navigate.current = null;
     });
@@ -101,7 +51,7 @@ if (Meteor.isClient) {
 
       it('redirects to the create-first-user page', async function () {
         await act(async () => {
-          render(<TestApp />, container);
+          render(<TestApp />);
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/create-first-user');
@@ -116,7 +66,7 @@ if (Meteor.isClient) {
 
       it('redirects to the login page', async function () {
         await act(async () => {
-          render(<TestApp />, container);
+          render(<TestApp />);
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/login', 'redirects to login from root');
@@ -139,7 +89,7 @@ if (Meteor.isClient) {
 
       it('redirects away from the login page', async function () {
         await act(async () => {
-          render(<TestApp />, container);
+          render(<TestApp />);
           await stabilize();
           (navigate.current!)('/login');
           await stabilize();
@@ -149,7 +99,7 @@ if (Meteor.isClient) {
 
       it('does not redirect away from an authenticated page', async function () {
         await act(async () => {
-          render(<TestApp />, container);
+          render(<TestApp />);
           await stabilize();
           (navigate.current!)('/hunts');
           await stabilize();
