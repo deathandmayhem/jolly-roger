@@ -61,7 +61,7 @@ if (Meteor.isClient) {
     describe('has users but not logged in', function () {
       before(async function () {
         await Meteor.callPromise('test.resetDatabase');
-        await Meteor.callPromise('test.authentication.createUser');
+        await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
       });
 
       it('redirects to the login page', async function () {
@@ -83,7 +83,7 @@ if (Meteor.isClient) {
     describe('authenticated users', function () {
       before(async function () {
         await Meteor.callPromise('test.resetDatabase');
-        await Meteor.callPromise('test.authentication.createUser');
+        await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
         await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
       });
 
