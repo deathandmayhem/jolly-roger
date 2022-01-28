@@ -14,18 +14,48 @@ import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
 import CallHistories from '../../lib/models/mediasoup/CallHistories';
 import relativeTimeFormat, { terseRelativeTimeFormat } from '../../lib/relativeTimeFormat';
 import { SubscriberCounters } from '../subscribers';
+import { mediaBreakpointDown } from './styling/responsive';
 
-const PuzzleActivitySpan = styled.span`
+const PuzzleActivityItems = styled.span`
   font-size: 14px;
   color: #666666;
+  display: flex;
+  justify-content: flex-end;
+
+  ${mediaBreakpointDown('xs')`
+    justify-content: flex-start;
+  `}
 `;
 
-const LastActiveSpan = styled.span`
-  display: inline-block;
-  text-align: left;
-  width: 1em;
-  margin-left: 2px;
-  margin-right: 2px;
+const PuzzleActivityItem = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: right;
+  margin: 0 0 0 0.5rem;
+
+  span {
+    margin-right: 0.25rem;
+  }
+
+  ${mediaBreakpointDown('xs')`
+    justify-content: flex-start;
+    margin-left: 0.125rem;
+  `}
+`;
+
+const PuzzleOpenTime = styled(PuzzleActivityItem)`
+  min-width: 4.66rem;
+`;
+
+const PuzzleViewerActivity = styled(PuzzleActivityItem)`
+  min-width: 2.66rem;
+`;
+
+const LastActiveCall = styled(PuzzleActivityItem)`
+  width: 1rem;
+  margin: 0 0.25rem 0 0.66rem;
+  justify-content: flex-start;
 `;
 
 interface PuzzleActivityProps {
@@ -111,27 +141,27 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
   );
 
   return (
-    <PuzzleActivitySpan>
+    <PuzzleActivityItems>
       <OverlayTrigger placement="top" overlay={unlockTooltip}>
-        <span>
+        <PuzzleOpenTime>
+          <span>{unlockTimeRelative}</span>
           <FontAwesomeIcon icon={faDoorOpen} />
-          {' '}
-          {unlockTimeRelative}
-        </span>
-      </OverlayTrigger>
-      <OverlayTrigger placement="top" overlay={audioTooltip}>
-        <LastActiveSpan>
-          <FontAwesomeIcon icon={icon} />
-        </LastActiveSpan>
+        </PuzzleOpenTime>
       </OverlayTrigger>
       <OverlayTrigger placement="top" overlay={countTooltip}>
-        <span>
+        <PuzzleViewerActivity>
+          <span>{viewCount}</span>
           <FontAwesomeIcon icon={faEye} />
-          {' '}
-          {viewCount}
-        </span>
+        </PuzzleViewerActivity>
       </OverlayTrigger>
-    </PuzzleActivitySpan>
+      <OverlayTrigger placement="top" overlay={audioTooltip}>
+        <LastActiveCall>
+          {callLastActive && (
+            <FontAwesomeIcon icon={icon} />
+          )}
+        </LastActiveCall>
+      </OverlayTrigger>
+    </PuzzleActivityItems>
   );
 };
 

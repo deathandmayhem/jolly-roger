@@ -71,8 +71,12 @@ const PuzzleTitleColumn = styled(PuzzleColumn)`
 `;
 
 const PuzzleActivityColumn = styled(PuzzleColumn)`
-  width: 120px;
+  width: 11rem;
   text-align: right;
+  // Push to take whole row in narrow views
+  ${mediaBreakpointDown('xs')`
+    flex: 0 0 100%;
+  `}
 `;
 
 const PuzzleLinkColumn = styled(PuzzleColumn)`
