@@ -13,7 +13,7 @@ function findUserByEmail(email: string): Meteor.User | undefined {
   // linked. Try both.
 
   return Accounts.findUserByEmail(email) ||
-    MeteorUsers.findOne({ 'profile.googleAccount': email });
+    MeteorUsers.findOne({ googleAccount: email });
 }
 
 // You are active if you've logged in in the last year
