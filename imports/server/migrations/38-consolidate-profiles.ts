@@ -49,6 +49,7 @@ Migrations.add({
       }, {
         validate: false,
         clean: false,
+        filter: false,
       } as any);
     });
 
