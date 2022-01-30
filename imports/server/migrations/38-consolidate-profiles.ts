@@ -46,7 +46,10 @@ Migrations.add({
             dingwords,
           },
         },
-      });
+      }, {
+        validate: false,
+        clean: false,
+      } as any);
     });
 
     // Add indexes to match the old profiles model
