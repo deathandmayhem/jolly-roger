@@ -100,6 +100,11 @@ if (Meteor.isClient) {
 
       enumeratePaths(AuthenticatedRouteList).forEach((p) => {
         it(`works for path ${p}`, async function () {
+          // Bump the timeout to 5 seconds.  It probably shouldn't take this long,
+          // but we've seen flakes in CI when routes (especially
+          // `/hunts/:huntId/puzzles`) take over 2000 ms (the default timeout).
+          this.timeout(5000);
+
           const url = substituteUrl(p);
           if (!url) {
             this.skip();
