@@ -191,12 +191,14 @@ const ProducerBox = ({
   audioContext,
   stream,
   transport,
+  popperBoundaryRef,
 }: {
   muted: boolean,
   deafened: boolean,
   audioContext: AudioContext,
   stream: MediaStream,
   transport: types.Transport,
+  popperBoundaryRef: React.RefObject<HTMLElement>,
 }) => {
   const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
   const { initial, discordAvatarUrl } = useTracker(() => {
@@ -224,7 +226,19 @@ const ProducerBox = ({
 
   return (
     <OverlayTrigger
-      placement="right"
+      placement="bottom"
+      popperConfig={{
+        modifiers: [
+          {
+            name: 'preventOverflow',
+            enabled: true,
+            options: {
+              boundary: popperBoundaryRef.current,
+              padding: 0,
+            },
+          },
+        ],
+      }}
       overlay={(
         <Tooltip id="caller-self">
           <div>You are in the call.</div>
@@ -341,12 +355,14 @@ const PeerBox = ({
   recvTransport,
   peer,
   consumers,
+  popperBoundaryRef,
 }: {
   audioContext: AudioContext,
   selfDeafened: boolean,
   recvTransport: types.Transport,
   peer: PeerType,
   consumers: ConsumerType[],
+  popperBoundaryRef: React.RefObject<HTMLElement>,
 }) => {
   const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
   const { name, discordAvatarUrl } = useTracker(() => {
@@ -389,7 +405,19 @@ const PeerBox = ({
 
   return (
     <OverlayTrigger
-      placement="right"
+      placement="bottom"
+      popperConfig={{
+        modifiers: [
+          {
+            name: 'preventOverflow',
+            enabled: true,
+            options: {
+              boundary: popperBoundaryRef.current,
+              padding: 0,
+            },
+          },
+        ],
+      }}
       overlay={(
         <ChatterTooltip id={`caller-${peer._id}`}>
           <div>{name}</div>
@@ -460,6 +488,7 @@ const Callers = ({
 }) => {
   const callersHeaderIcon = callersExpanded ? faCaretDown : faCaretRight;
   const callerCount = otherPeers.length + 1; // +1 for self
+  const chatterRef = useRef<HTMLDivElement>(null);
 
   const consumers = useFind(
     () => Consumers.find({ call: puzzleId }, { sort: { _id: 1 } }),
@@ -477,12 +506,13 @@ const Callers = ({
         recvTransport={recvTransport}
         peer={peer}
         consumers={groupedConsumers[peer._id] ?? []}
+        popperBoundaryRef={chatterRef}
       />
     );
   });
 
   return (
-    <ChatterSubsection>
+    <ChatterSubsection ref={chatterRef}>
       <ChatterSubsectionHeader onClick={onToggleCallersExpanded}>
         <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
         {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
@@ -494,6 +524,7 @@ const Callers = ({
           audioContext={audioContext}
           stream={localStream}
           transport={sendTransport}
+          popperBoundaryRef={chatterRef}
         />
         {peerBoxes}
       </PeopleListDiv>

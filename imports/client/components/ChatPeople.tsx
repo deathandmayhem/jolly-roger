@@ -5,7 +5,7 @@ import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
-  ReactChild, useCallback, useEffect, useLayoutEffect, useState,
+  ReactChild, useCallback, useEffect, useLayoutEffect, useRef, useState,
 } from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -41,15 +41,28 @@ interface ViewerSubscriber {
 
 interface PersonBoxProps extends ViewerSubscriber {
   children?: ReactChild;
+  popperBoundaryRef: React.RefObject<HTMLElement>;
 }
 
 const ViewerPersonBox = ({
-  user, name, discordAvatarUrl, tab, children,
+  user, name, discordAvatarUrl, tab, children, popperBoundaryRef,
 }: PersonBoxProps) => {
   return (
     <OverlayTrigger
       key={`viewer-${user}-${tab}`}
-      placement="right"
+      placement="bottom"
+      popperConfig={{
+        modifiers: [
+          {
+            name: 'preventOverflow',
+            enabled: true,
+            options: {
+              boundary: popperBoundaryRef.current,
+              padding: 0,
+            },
+          },
+        ],
+      }}
       overlay={(
         <Tooltip id={`viewer-${user}-${tab}`}>
           {name}
@@ -145,6 +158,7 @@ const ChatPeople = ({
 }) => {
   const [callState, setCallState] = useState<CallState>(CallState.CHAT_ONLY);
   const [error, setError] = useState<string>('');
+  const chatterRef = useRef<HTMLDivElement>(null);
 
   const [localAudioControls, setLocalAudioControls] = useState<AudioControls>({
     muted: false,
@@ -505,7 +519,7 @@ const ChatPeople = ({
                 )}
               </PeopleListHeader>
               <PeopleListDiv collapsed={!callersExpanded}>
-                {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} {...viewer} />)}
+                {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} popperBoundaryRef={chatterRef} {...viewer} />)}
               </PeopleListDiv>
             </ChatterSubsection>
           </>
@@ -546,13 +560,13 @@ const ChatPeople = ({
   return (
     <ChatterSection>
       {!rtcDisabled && !puzzleDeleted && callersSubsection}
-      <ChatterSubsection>
+      <ChatterSubsection ref={chatterRef}>
         <PeopleListHeader onClick={toggleViewersExpanded}>
           <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
           {`${totalViewers} viewer${totalViewers !== 1 ? 's' : ''}`}
         </PeopleListHeader>
         <PeopleListDiv collapsed={!viewersExpanded}>
-          {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} {...viewer} />)}
+          {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} popperBoundaryRef={chatterRef} {...viewer} />)}
         </PeopleListDiv>
       </ChatterSubsection>
     </ChatterSection>
