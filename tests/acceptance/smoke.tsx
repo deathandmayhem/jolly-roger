@@ -56,6 +56,10 @@ if (Meteor.isClient) {
 
   describe('routes', function () {
     before(async function () {
+      // Bump timeout for setup hook. It shouldn't take this long, but we see
+      // timeouts in CI.
+      this.timeout(5000);
+
       await Meteor.callPromise('test.resetDatabase');
       await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
       await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
