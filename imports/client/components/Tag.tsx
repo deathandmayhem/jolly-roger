@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { TagType } from '../../lib/schemas/Tag';
+import { removePunctuation } from './PuzzleAnswer';
 import { sortPuzzlesByRelevanceWithinPuzzleGroup } from './RelatedPuzzleList';
 import RelatedPuzzleTable from './RelatedPuzzleTable';
 
@@ -254,8 +255,7 @@ const Tag = (props: TagProps) => {
       const missingCnt = minRowCnt > puzzle.answers.length ? minRowCnt - puzzle.answers.length : 0;
       const answers = puzzle.answers.concat(Array(missingCnt).fill(''));
       return answers.map((answer) => {
-        let formattedAnswer = answer.toUpperCase();
-        formattedAnswer = segmentAnswers ? formattedAnswer.replace(/\s+/g, '') : formattedAnswer;
+        const formattedAnswer = segmentAnswers ? removePunctuation(answer) : answer;
         return `${puzzle.title}\t${formattedAnswer}`;
       }).join('\n');
     }).join('\n');
