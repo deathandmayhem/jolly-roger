@@ -1,17 +1,11 @@
-import { Dispatch, SetStateAction } from 'react';
+import { SetStateAction } from 'react';
 import createPersistedState from 'use-persisted-state';
 
 export type OperatorActionsHiddenState = Record<string /* huntId */, boolean>;
-export const useOperatorActionsHidden: () => [
-  OperatorActionsHiddenState | undefined,
-  Dispatch<SetStateAction<OperatorActionsHiddenState | undefined>>
-] =
-  createPersistedState('operatorActionsHidden');
+export const useOperatorActionsHidden =
+  createPersistedState<OperatorActionsHiddenState>('operatorActionsHidden');
 
-export const useOperatorActionsHiddenForHunt = (huntId: string): readonly [
-  boolean,
-  Dispatch<SetStateAction<boolean>>,
-] => {
+export const useOperatorActionsHiddenForHunt = (huntId: string) => {
   const [operatorActionsHidden, setOperatorActionsHidden] = useOperatorActionsHidden();
   return [
     operatorActionsHidden?.[huntId] ?? false,
