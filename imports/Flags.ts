@@ -1,11 +1,6 @@
 import { Match, check } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
 import { SHA256 } from 'meteor/sha';
 import FeatureFlags from './lib/models/FeatureFlags';
-
-if (Meteor.isClient) {
-  Meteor.subscribe('mongo.featureflags');
-}
 
 const Flags = {
   active(name: unknown, shard?: unknown) {

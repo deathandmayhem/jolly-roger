@@ -108,12 +108,11 @@ const HuntApp = React.memo(() => {
 
   const huntId = useParams<'huntId'>().huntId!;
 
-  const userLoading = useSubscribe('selfHuntMembership');
   // Subscribe to deleted and non-deleted hunts separately so that we can reuse
   // the non-deleted subscription
   const huntLoading = useSubscribe('mongo.hunts', { _id: huntId });
   const deletedHuntLoading = useSubscribe('mongo.hunts.deleted', { _id: huntId });
-  const loading = userLoading() || huntLoading() || deletedHuntLoading();
+  const loading = huntLoading() || deletedHuntLoading();
 
   const hunt = useTracker(() => Hunts.findOneAllowingDeleted(huntId), [huntId]);
   const {

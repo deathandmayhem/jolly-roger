@@ -602,8 +602,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
 const HuntListPage = () => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
   const huntsLoading = useSubscribe('mongo.hunts');
-  const myHuntsLoading = useSubscribe('selfHuntMembership');
-  const loading = huntsLoading() || myHuntsLoading();
+  const loading = huntsLoading();
 
   const hunts = useTracker(() => Hunts.find({}, { sort: { createdAt: -1 } }).fetch());
   const { canAdd, myHunts } = useTracker(() => {

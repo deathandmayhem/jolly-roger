@@ -20,15 +20,9 @@ const profileFields: Record<ProfileFields, 1> = {
 Accounts.setDefaultPublishFields({
   username: 1,
   emails: 1,
+  roles: 1,
+  hunts: 1,
   ...profileFields,
-});
-
-Meteor.publish('selfHuntMembership', function () {
-  if (!this.userId) {
-    return [];
-  }
-
-  return MeteorUsers.find(this.userId, { fields: { hunts: 1 } });
 });
 
 Meteor.publish('huntMembers', function (huntId: string) {

@@ -359,23 +359,3 @@ export function removeUserFromRoles(userId: string, scope: string, roles: string
     },
   });
 }
-
-if (Meteor.isServer) {
-  Meteor.publish('roles', function () {
-    if (!this.userId) {
-      return [];
-    }
-
-    return MeteorUsers.find({
-      _id: this.userId,
-    }, {
-      fields: {
-        roles: 1,
-      },
-    });
-  });
-}
-
-if (Meteor.isClient) {
-  Meteor.subscribe('roles');
-}
