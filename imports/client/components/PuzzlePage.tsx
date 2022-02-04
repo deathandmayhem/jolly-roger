@@ -1213,7 +1213,7 @@ const PuzzlePage = React.memo(() => {
   const subscribersLoading = useSubscribe('subscribers.fetch', subscribersTopic);
   useSubscribe('subscribers.counts', { hunt: huntId });
 
-  const displayNamesLoading = useSubscribeDisplayNames();
+  const displayNamesLoading = useSubscribeDisplayNames(huntId);
 
   const deletedPuzzleLoading = useSubscribe('mongo.puzzles.deleted', { _id: puzzleId });
   const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });

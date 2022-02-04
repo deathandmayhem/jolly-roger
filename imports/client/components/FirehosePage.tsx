@@ -78,7 +78,7 @@ const FirehosePage = () => {
 
   useBreadcrumb({ title: 'Firehose', path: `/hunts/${huntId}/firehose` });
 
-  const profilesLoading = useSubscribeDisplayNames();
+  const profilesLoading = useSubscribeDisplayNames(huntId);
   // We have some hunts where we've soft-deleted puzzles for various reasons
   // after chat messages were sent.  To handle these situations more gracefully,
   // we subscribe and fetch puzzles including those soft-deleted.

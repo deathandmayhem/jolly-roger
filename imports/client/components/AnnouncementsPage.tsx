@@ -132,7 +132,7 @@ const AnnouncementsPage = () => {
   // to show them on any page.  So we don't *need* to make the subscription here...
   // ...except that we might want to wait to render until we've received all of them?  IDK.
   const announcementsLoading = useSubscribe('mongo.announcements', { hunt: huntId });
-  const displayNamesLoading = useSubscribeDisplayNames();
+  const displayNamesLoading = useSubscribeDisplayNames(huntId);
   const loading = announcementsLoading() || displayNamesLoading();
 
   const announcements = useTracker(() => (

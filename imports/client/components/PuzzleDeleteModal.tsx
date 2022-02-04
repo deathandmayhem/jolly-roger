@@ -38,7 +38,7 @@ const PuzzleDeleteModal = React.forwardRef((
   const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: puzzle.hunt });
   const viewersLoading = useSubscribe('subscribers.fetch', subscriberTopic);
   const callersLoading = useSubscribe('mediasoup:metadata', puzzle.hunt, puzzle._id);
-  const displayNamesLoading = useSubscribeDisplayNames();
+  const displayNamesLoading = useSubscribeDisplayNames(puzzle.hunt);
   const loading = puzzlesLoading() || viewersLoading() || callersLoading() || displayNamesLoading();
 
   const puzzles = useTracker(() => (

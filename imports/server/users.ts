@@ -34,7 +34,7 @@ Meteor.publish('huntMembers', function (huntId: string) {
 
   const u = MeteorUsers.findOne(this.userId)!;
   // Note: this is not reactive, so if hunt membership changes, this
-  // behavior will change
+  // will not recompute
   if (!u.hunts?.includes(huntId)) {
     return [];
   }
@@ -42,16 +42,34 @@ Meteor.publish('huntMembers', function (huntId: string) {
   return MeteorUsers.find({ hunts: huntId }, { fields: { hunts: 1 } });
 });
 
-Meteor.publish('displayNames', function () {
+Meteor.publish('displayNames', function (huntId: unknown) {
+  check(huntId, String);
+
   if (!this.userId) {
     return [];
   }
 
-  return MeteorUsers.find({}, { fields: { displayName: 1 } });
+  const u = MeteorUsers.findOne(this.userId)!;
+  // Note: this is not reactive, so if hunt membership changes, this
+  // will not recompute
+  if (!u.hunts?.includes(huntId)) {
+    return [];
+  }
+
+  return MeteorUsers.find({ hunts: huntId }, { fields: { displayName: 1 } });
 });
 
-Meteor.publish('avatars', function () {
+Meteor.publish('avatars', function (huntId: unknown) {
+  check(huntId, String);
+
   if (!this.userId) {
+    return [];
+  }
+
+  const u = MeteorUsers.findOne(this.userId)!;
+  // Note: this is not reactive, so if hunt membership changes, this
+  // will not recompute
+  if (!u.hunts?.includes(huntId)) {
     return [];
   }
 
