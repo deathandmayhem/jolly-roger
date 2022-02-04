@@ -8,10 +8,8 @@ import MeteorUsers from '../lib/models/MeteorUsers';
 import Puzzles from '../lib/models/Puzzles';
 import { userMayUpdateGuessesForHunt } from '../lib/permission_stubs';
 import { GuessType } from '../lib/schemas/Guess';
-import { HuntType } from '../lib/schemas/Hunt';
-import { PuzzleType } from '../lib/schemas/Puzzle';
 import GlobalHooks from './GlobalHooks';
-import RefCountedObserverMap from './RefCountedObserverMap';
+import JoinPublisher, { PublishSpec } from './JoinPublisher';
 import { sendChatMessage } from './chat';
 
 function addChatMessage(guess: GuessType, newState: GuessType['state']): void {
@@ -60,98 +58,47 @@ function checkMayUpdateGuess(userId: string | null | undefined, huntId: string) 
   }
 }
 
-class HuntPendingGuessWatcher {
-  sub: Subscription;
-
-  guessWatch: Meteor.LiveQueryHandle;
-
-  guesses: Record<string, GuessType>;
-
-  huntRefCounter: RefCountedObserverMap<HuntType>;
-
-  puzzleRefCounter: RefCountedObserverMap<PuzzleType>;
-
-  constructor(sub: Subscription, huntId: string) {
-    this.sub = sub;
-
-    const guessCursor = Guesses.find({ state: 'pending', hunt: huntId });
-    this.guesses = {};
-    this.huntRefCounter = new RefCountedObserverMap(sub, Hunts);
-    this.puzzleRefCounter = new RefCountedObserverMap(sub, Puzzles);
-
-    this.guessWatch = guessCursor.observeChanges({
-      added: (id, fields) => {
-        this.guesses[id] = { _id: id, ...fields } as GuessType;
-        this.huntRefCounter.incref(fields.hunt!);
-        this.puzzleRefCounter.incref(fields.puzzle!);
-        this.sub.added(Guesses.tableName, id, fields);
-      },
-
-      changed: (id, fields) => {
-        const huntUpdated = Object.prototype.hasOwnProperty.call(fields, 'hunt');
-        const puzzleUpdated = Object.prototype.hasOwnProperty.call(fields, 'puzzle');
-
-        // The order of operations here is important to avoid transient
-        // inconsistencies
-        if (huntUpdated) {
-          this.huntRefCounter.incref(fields.hunt!);
-        }
-        if (puzzleUpdated) {
-          this.puzzleRefCounter.incref(fields.puzzle!);
-        }
-        this.sub.changed(Guesses.tableName, id, fields);
-        if (puzzleUpdated) {
-          this.puzzleRefCounter.decref(this.guesses[id].puzzle);
-        }
-        if (huntUpdated) {
-          this.huntRefCounter.decref(this.guesses[id].hunt);
-        }
-
-        this.guesses[id] = { ...this.guesses[id], ...fields };
-      },
-
-      removed: (id) => {
-        this.sub.removed(Guesses.tableName, id);
-        this.huntRefCounter.decref(this.guesses[id].hunt);
-        this.puzzleRefCounter.decref(this.guesses[id].puzzle);
-        delete this.guesses[id];
-      },
-    });
-
-    this.sub.ready();
-  }
-
-  shutdown() {
-    this.guessWatch.stop();
-  }
-}
-
 class PendingGuessWatcher {
   sub: Subscription;
 
   userWatch: Meteor.LiveQueryHandle;
 
-  huntGuessWatchers: Record<string, HuntPendingGuessWatcher>;
+  huntGuessWatchers: Record<string, JoinPublisher<GuessType>>;
 
   constructor(sub: Subscription) {
     this.sub = sub;
     this.huntGuessWatchers = {};
 
-    this.userWatch = MeteorUsers.find(sub.userId!).observeChanges({
+    const huntGuessSpec: PublishSpec<GuessType> = {
+      model: Guesses,
+      foreignKeys: [{
+        field: 'hunt',
+        join: { model: Hunts },
+      }, {
+        field: 'puzzle',
+        join: { model: Puzzles },
+      }],
+    };
+
+    this.userWatch = MeteorUsers.find(sub.userId!, { fields: { roles: 1 } }).observeChanges({
       added: (_id, fields) => {
         const { roles = {} } = fields;
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          this.huntGuessWatchers[huntId] ||= new HuntPendingGuessWatcher(sub, huntId);
+          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId });
         });
       },
       changed: (_id, fields) => {
-        const { roles = {} } = fields;
+        if (!fields.roles) {
+          return;
+        }
+
+        const { roles } = fields;
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          this.huntGuessWatchers[huntId] ||= new HuntPendingGuessWatcher(sub, huntId);
+          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId });
         });
 
         Object.keys(this.huntGuessWatchers).forEach((huntId) => {
