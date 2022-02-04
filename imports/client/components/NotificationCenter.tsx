@@ -446,9 +446,7 @@ const NotificationCenter = () => {
 
   // This is overly broad, but we likely already have the data cached locally
   const displayNamesLoading = useSubscribeDisplayNames();
-  const announcementsLoading = useSubscribe('mongo.announcements');
-  // pending_announcements implicitly limits to the current user
-  const pendingAnnouncementsLoading = useSubscribe('mongo.pending_announcements');
+  const pendingAnnouncementsLoading = useSubscribe('pendingAnnouncements');
 
   const disableDingwords = useTracker(() => Flags.active('disable.dingwords'));
   const chatNotificationsLoading = useSubscribe(disableDingwords ? undefined : 'chatNotifications');
@@ -456,7 +454,6 @@ const NotificationCenter = () => {
   const loading =
     pendingGuessesLoading() ||
     displayNamesLoading() ||
-    announcementsLoading() ||
     pendingAnnouncementsLoading() ||
     chatNotificationsLoading();
 

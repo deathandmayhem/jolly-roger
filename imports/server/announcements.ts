@@ -5,6 +5,7 @@ import Announcements from '../lib/models/Announcements';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import PendingAnnouncements from '../lib/models/PendingAnnouncements';
 import { userMayAddAnnouncementToHunt } from '../lib/permission_stubs';
+import JoinPublisher from './JoinPublisher';
 
 Meteor.methods({
   postAnnouncement(huntId: unknown, message: unknown) {
@@ -40,4 +41,19 @@ Meteor.methods({
       user: this.userId,
     });
   },
+});
+
+Meteor.publish('pendingAnnouncements', function () {
+  check(this.userId, String);
+
+  const watcher = new JoinPublisher(this, {
+    model: PendingAnnouncements,
+    foreignKeys: [{
+      field: 'announcement',
+      join: {
+        model: Announcements,
+      },
+    }],
+  }, { user: this.userId });
+  this.onStop(() => watcher.shutdown());
 });
