@@ -77,6 +77,12 @@ class PendingGuessWatcher {
       }, {
         field: 'puzzle',
         join: { model: Puzzles },
+      }, {
+        field: 'createdBy',
+        join: {
+          model: MeteorUsers,
+          projection: { displayName: 1 },
+        },
       }],
     };
 

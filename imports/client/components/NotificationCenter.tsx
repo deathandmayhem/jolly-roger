@@ -32,7 +32,6 @@ import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
-import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import markdown from '../markdown';
 import Breakable from './styling/Breakable';
 
@@ -444,8 +443,6 @@ const NotificationCenter = () => {
 
   const [operatorActionsHidden = {}] = useOperatorActionsHidden();
 
-  // This is overly broad, but we likely already have the data cached locally
-  const displayNamesLoading = useSubscribeDisplayNames();
   const pendingAnnouncementsLoading = useSubscribe('pendingAnnouncements');
 
   const disableDingwords = useTracker(() => Flags.active('disable.dingwords'));
@@ -453,7 +450,6 @@ const NotificationCenter = () => {
 
   const loading =
     pendingGuessesLoading() ||
-    displayNamesLoading() ||
     pendingAnnouncementsLoading() ||
     chatNotificationsLoading();
 

@@ -52,6 +52,13 @@ Meteor.publish('pendingAnnouncements', function () {
       field: 'announcement',
       join: {
         model: Announcements,
+        foreignKeys: [{
+          field: 'createdBy',
+          join: {
+            model: MeteorUsers,
+            projection: { displayName: 1 },
+          },
+        }],
       },
     }],
   }, { user: this.userId });
