@@ -19,9 +19,9 @@ import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Modal from 'react-bootstrap/Modal';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { getAvatarCdnUrl } from '../../lib/discord';
 import { userIdIsAdmin } from '../../lib/is-admin';
 import { userIsOperatorForHunt } from '../../lib/permission_stubs';
+import Avatar from './Avatar';
 
 const ProfilesSummary = styled.div`
   text-align: right;
@@ -386,20 +386,11 @@ const ProfileList = ({
         {inviteToHuntItem}
         {matching.map((user) => {
           const name = user.displayName ?? '<no name provided>';
-          const discordAvatarUrl = getAvatarCdnUrl(user.discordAccount);
           return (
             <ListGroupItem key={user._id} action as={Link} to={`/users/${user._id}`} className="p-1">
               <ListItemContainer>
                 <ImageBlock>
-                  {discordAvatarUrl && (
-                    <img
-                      alt={`${name}'s Discord avatar`}
-                      src={discordAvatarUrl}
-                      width={40}
-                      height={40}
-                      className="discord-avatar"
-                    />
-                  )}
+                  <Avatar {...user} size={40} />
                 </ImageBlock>
                 {name}
                 {huntId && canMakeOperator && (

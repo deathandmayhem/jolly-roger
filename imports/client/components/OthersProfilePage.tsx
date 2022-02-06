@@ -5,8 +5,8 @@ import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/esm/Tooltip';
 import styled from 'styled-components';
-import { getAvatarCdnUrl } from '../../lib/discord';
 import Hunts from '../../lib/models/Hunts';
+import Avatar from './Avatar';
 
 const AvatarTooltip = styled(Tooltip)`
   opacity: 1 !important;
@@ -32,37 +32,20 @@ const OthersProfilePage = ({
   const loading = huntsLoading();
   const hunts = useTracker(() => (loading ? {} : _.indexBy(Hunts.find().fetch(), '_id')), [loading]);
 
-  const discordAvatarUrl = getAvatarCdnUrl(user.discordAccount);
-  const discordAvatarUrlLarge = getAvatarCdnUrl(user.discordAccount, 256);
   return (
     <div>
       <h1>
-        {discordAvatarUrl && (
-          <>
-            <OverlayTrigger
-              placement="bottom-start"
-              overlay={(
-                <AvatarTooltip id="tooltip-avatar">
-                  <img
-                    alt="Discord avatar"
-                    src={discordAvatarUrlLarge}
-                    width={128}
-                    height={128}
-                  />
-                </AvatarTooltip>
-              )}
-            >
-              <img
-                alt={`${user.displayName}'s Discord avatar`}
-                src={discordAvatarUrl}
-                width={40}
-                height={40}
-                className="discord-avatar"
-              />
-            </OverlayTrigger>
-            {' '}
-          </>
-        )}
+        <OverlayTrigger
+          placement="bottom-start"
+          overlay={(
+            <AvatarTooltip id="tooltip-avatar">
+              <Avatar {...user} size={128} />
+            </AvatarTooltip>
+          )}
+        >
+          <Avatar {...user} size={64} />
+        </OverlayTrigger>
+        {' '}
         {user.displayName ?? 'No display name'}
       </h1>
 

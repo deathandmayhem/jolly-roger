@@ -21,7 +21,6 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import styled from 'styled-components';
 import Flags from '../../Flags';
-import { getAvatarCdnUrl } from '../../lib/discord';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import ConnectAcks from '../../lib/models/mediasoup/ConnectAcks';
 import Consumers from '../../lib/models/mediasoup/Consumers';
@@ -34,13 +33,13 @@ import { PeerType } from '../../lib/schemas/mediasoup/Peer';
 import { RouterType } from '../../lib/schemas/mediasoup/Router';
 import { TransportType } from '../../lib/schemas/mediasoup/Transport';
 import { trace } from '../tracing';
+import Avatar from './Avatar';
 import Loading from './Loading';
 import Spectrum from './Spectrum';
-import DiscordAvatarImg from './styling/DiscordAvatarImg';
 import {
   AVActions,
   AVButton,
-  ChatterSubsection, ChatterSubsectionHeader, InitialSpan, PeopleItemDiv, PeopleListDiv,
+  ChatterSubsection, ChatterSubsectionHeader, PeopleItemDiv, PeopleListDiv,
 } from './styling/PeopleComponents';
 
 const CallStateIcon = styled.span`
@@ -201,11 +200,12 @@ const ProducerBox = ({
   popperBoundaryRef: React.RefObject<HTMLElement>,
 }) => {
   const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
-  const { initial, discordAvatarUrl } = useTracker(() => {
+  const { userId, name, discordAccount } = useTracker(() => {
     const user = Meteor.user()!;
     return {
-      initial: user.displayName?.slice(0, 1) ?? 'U', // get it?  it's you
-      discordAvatarUrl: getAvatarCdnUrl(user.discordAccount),
+      userId: user._id,
+      name: user.displayName,
+      discordAccount: user.discordAccount,
     };
   });
 
@@ -248,14 +248,7 @@ const ProducerBox = ({
       )}
     >
       <PeopleItemDiv>
-        {discordAvatarUrl ? (
-          <DiscordAvatarImg
-            alt="Your own Discord avatar"
-            src={discordAvatarUrl}
-          />
-        ) : (
-          <InitialSpan live={!muted && !deafened}>{initial}</InitialSpan>
-        )}
+        <Avatar _id={userId} displayName={name} discordAccount={discordAccount} size={40} />
         <div>
           {muted && <MutedIcon><FontAwesomeIcon icon={faMicrophoneSlash} /></MutedIcon>}
           {deafened && <DeafenedIcon><FontAwesomeIcon icon={faVolumeMute} /></DeafenedIcon>}
@@ -365,11 +358,12 @@ const PeerBox = ({
   popperBoundaryRef: React.RefObject<HTMLElement>,
 }) => {
   const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
-  const { name, discordAvatarUrl } = useTracker(() => {
+  const { userId, name, discordAccount } = useTracker(() => {
     const user = MeteorUsers.findOne(peer.createdBy);
     return {
-      name: user?.displayName ?? 'no profile wat',
-      discordAvatarUrl: getAvatarCdnUrl(user?.discordAccount),
+      userId: user?._id,
+      name: user?.displayName,
+      discordAccount: user?.discordAccount,
     };
   }, [peer.createdBy]);
 
@@ -429,14 +423,7 @@ const PeerBox = ({
       )}
     >
       <PeopleItemDiv>
-        {discordAvatarUrl ? (
-          <DiscordAvatarImg
-            alt={`${name}'s Discord avatar`}
-            src={discordAvatarUrl}
-          />
-        ) : (
-          <InitialSpan live={!muted && !deafened}>{name.slice(0, 1)}</InitialSpan>
-        )}
+        <Avatar _id={userId} displayName={name} discordAccount={discordAccount} size={40} />
         <div>
           {muted && <MutedIcon><FontAwesomeIcon icon={faMicrophoneSlash} /></MutedIcon>}
           {deafened && <DeafenedIcon><FontAwesomeIcon icon={faVolumeMute} /></DeafenedIcon>}

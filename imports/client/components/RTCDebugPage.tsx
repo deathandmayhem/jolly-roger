@@ -41,7 +41,6 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
-import { getAvatarCdnUrl } from '../../lib/discord';
 import { userIdIsAdmin } from '../../lib/is-admin';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
@@ -68,6 +67,7 @@ import { RouterType } from '../../lib/schemas/mediasoup/Router';
 import { TransportType } from '../../lib/schemas/mediasoup/Transport';
 import useSubscribeAvatars from '../hooks/useSubscribeAvatars';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
+import Avatar from './Avatar';
 import Loading from './Loading';
 
 const ClipButton = ({ text }: { text: string }) => (
@@ -110,20 +110,9 @@ const CallDisplay = ({ call }: { call: string }) => {
 
 const UserDisplay = ({ userId }: { userId: string }) => {
   const user = useTracker(() => MeteorUsers.findOne(userId), [userId]);
-  const discordAvatarUrl = useMemo(() => (
-    getAvatarCdnUrl(user?.discordAccount)
-  ), [user?.discordAccount]);
-
   return (
     <Link to={`/users/${userId}`} target="_blank">
-      {discordAvatarUrl && (
-        <img
-          alt={`${name}'s Discord avatar`}
-          src={discordAvatarUrl}
-          width={40}
-          height={40}
-        />
-      )}
+      <Avatar {...user} size={40} inline />
       {' '}
       {user?.displayName || 'Unknown'}
     </Link>

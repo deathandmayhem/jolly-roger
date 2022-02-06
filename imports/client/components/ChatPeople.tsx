@@ -12,20 +12,20 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import styled from 'styled-components';
 import Flags from '../../Flags';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
-import { getAvatarCdnUrl } from '../../lib/discord';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import CallHistories from '../../lib/models/mediasoup/CallHistories';
 import Peers from '../../lib/models/mediasoup/Peers';
 import relativeTimeFormat from '../../lib/relativeTimeFormat';
+import { DiscordAccountType } from '../../lib/schemas/DiscordAccount';
 import { PeerType } from '../../lib/schemas/mediasoup/Peer';
 import useSubscribeAvatars from '../hooks/useSubscribeAvatars';
 import { Subscribers } from '../subscribers';
 import { trace } from '../tracing';
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from './AudioConfig';
+import Avatar from './Avatar';
 import CallSection from './CallSection';
-import DiscordAvatarImg from './styling/DiscordAvatarImg';
 import {
-  AVActions, AVButton, ChatterSubsection, ChatterSubsectionHeader, InitialSpan, PeopleItemDiv,
+  AVActions, AVButton, ChatterSubsection, ChatterSubsectionHeader, PeopleItemDiv,
   PeopleListDiv,
 } from './styling/PeopleComponents';
 import { PuzzlePagePadding } from './styling/constants';
@@ -34,8 +34,8 @@ const tabId = Random.id();
 
 interface ViewerSubscriber {
   user: string;
-  name: string;
-  discordAvatarUrl: string | undefined;
+  name: string | undefined;
+  discordAccount: DiscordAccountType | undefined;
   tab: string | undefined;
 }
 
@@ -45,7 +45,7 @@ interface PersonBoxProps extends ViewerSubscriber {
 }
 
 const ViewerPersonBox = ({
-  user, name, discordAvatarUrl, tab, children, popperBoundaryRef,
+  user, name, discordAccount, tab, children, popperBoundaryRef,
 }: PersonBoxProps) => {
   return (
     <OverlayTrigger
@@ -70,14 +70,7 @@ const ViewerPersonBox = ({
       )}
     >
       <PeopleItemDiv key={`viewer-${user}-${tab}`}>
-        {discordAvatarUrl ? (
-          <DiscordAvatarImg
-            alt={`${name}'s Discord avatar`}
-            src={discordAvatarUrl}
-          />
-        ) : (
-          <InitialSpan live={false}>{name.slice(0, 1)}</InitialSpan>
-        )}
+        <Avatar _id={user} displayName={name} discordAccount={discordAccount} size={40} />
         { children }
       </PeopleItemDiv>
     </OverlayTrigger>
@@ -248,14 +241,12 @@ const ChatPeople = ({
         return;
       }
 
-      const discordAvatarUrl = getAvatarCdnUrl(user.discordAccount);
-
       // If the same user is joined twice (from two different tabs), dedupe in
       // the viewer listing. (We include both in rtcParticipants still.)
       rtcViewersAcc.push({
         user: user._id,
         name: user.displayName,
-        discordAvatarUrl,
+        discordAccount: user.discordAccount,
         tab: p.tab,
       });
       rtcViewerIndex[user._id] = true;
@@ -273,12 +264,10 @@ const ChatPeople = ({
         return;
       }
 
-      const discordAvatarUrl = getAvatarCdnUrl(user.discordAccount);
-
       viewersAcc.push({
         user: s.user,
         name: user.displayName,
-        discordAvatarUrl,
+        discordAccount: user.discordAccount,
         tab: undefined,
       });
     });
