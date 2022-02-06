@@ -1,10 +1,12 @@
 import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
-import { userIdIsAdmin } from '../lib/is-admin';
+import { Meteor, Subscription } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
+import { GLOBAL_SCOPE } from '../lib/is-admin';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
 import { ProfileFields } from '../lib/schemas/User';
+import SwappableCursorPublisher from './SwappableCursorPublisher';
 
 const profileFields: Record<ProfileFields, 1> = {
   displayName: 1,
@@ -25,22 +27,39 @@ Accounts.setDefaultPublishFields({
   ...profileFields,
 });
 
-Meteor.publish('huntMembers', function (huntId: string) {
-  check(huntId, String);
+const republishOnUserChange = (
+  sub: Subscription,
+  projection: Mongo.FieldSpecifier,
+  makeCursor: (user: Meteor.User) => Mongo.Cursor<Meteor.User> | undefined,
+  makeTransform?: undefined |
+    ((user: Meteor.User) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>)),
+) => {
+  const u = MeteorUsers.findOne(sub.userId!)!;
+  const publish = new SwappableCursorPublisher(sub, MeteorUsers);
+  publish.swap(makeCursor(u), makeTransform?.(u));
+  const watch = MeteorUsers.find(sub.userId!, { fields: projection }).observe({
+    changed: (doc) => {
+      publish.swap(makeCursor(doc), makeTransform?.(doc));
+    },
+  });
 
-  if (!this.userId) {
-    return [];
-  }
+  sub.onStop(() => {
+    watch.stop();
+    publish.stop();
+  });
+  sub.ready();
+};
 
-  const u = MeteorUsers.findOne(this.userId)!;
-  // Note: this is not reactive, so if hunt membership changes, this
-  // will not recompute
-  if (!u.hunts?.includes(huntId)) {
-    return [];
-  }
-
-  return MeteorUsers.find({ hunts: huntId }, { fields: { hunts: 1 } });
-});
+const makeHuntFilterTransform = (hunts: string[] = []):
+  (user: Partial<Meteor.User>) => Partial<Meteor.User> => {
+  const huntSet = new Set(hunts);
+  return (u) => {
+    return {
+      ...u,
+      hunts: u.hunts?.filter((h) => huntSet.has(h)),
+    };
+  };
+};
 
 Meteor.publish('displayNames', function (huntId: unknown) {
   check(huntId, String);
@@ -49,14 +68,15 @@ Meteor.publish('displayNames', function (huntId: unknown) {
     return [];
   }
 
-  const u = MeteorUsers.findOne(this.userId)!;
-  // Note: this is not reactive, so if hunt membership changes, this
-  // will not recompute
-  if (!u.hunts?.includes(huntId)) {
-    return [];
-  }
+  republishOnUserChange(this, { hunts: 1 }, (u) => {
+    if (!u.hunts?.includes(huntId)) {
+      return undefined;
+    }
 
-  return MeteorUsers.find({ hunts: huntId }, { fields: { displayName: 1 } });
+    return MeteorUsers.find({ hunts: huntId }, { fields: { displayName: 1 } });
+  });
+
+  return undefined;
 });
 
 Meteor.publish('avatars', function (huntId: unknown) {
@@ -66,68 +86,98 @@ Meteor.publish('avatars', function (huntId: unknown) {
     return [];
   }
 
-  const u = MeteorUsers.findOne(this.userId)!;
-  // Note: this is not reactive, so if hunt membership changes, this
-  // will not recompute
-  if (!u.hunts?.includes(huntId)) {
-    return [];
-  }
+  republishOnUserChange(this, { hunts: 1 }, (u) => {
+    if (!u.hunts?.includes(huntId)) {
+      return undefined;
+    }
 
-  return MeteorUsers.find({}, { fields: { discordAccount: 1 } });
+    return MeteorUsers.find({ hunts: huntId }, { fields: { discordAccount: 1 } });
+  });
+
+  return undefined;
 });
 
-Meteor.publish('profiles', function () {
+Meteor.publish('allProfiles', function () {
   if (!this.userId) {
     return [];
   }
 
-  return MeteorUsers.find({}, {
-    fields: {
-      'emails.address': 1,
-      ...profileFields,
-    },
-  });
+  republishOnUserChange(this, { hunts: 1 }, (u) => {
+    return MeteorUsers.find({ hunts: { $in: u.hunts ?? [] } }, {
+      fields: {
+        'emails.address': 1,
+        hunts: 1,
+        ...profileFields,
+      },
+    });
+  }, (u) => makeHuntFilterTransform(u.hunts));
+
+  return undefined;
 });
 
-Meteor.publish('profile', function (userId: string) {
+Meteor.publish('huntProfiles', function (huntId: unknown) {
+  check(huntId, String);
+
+  if (!this.userId) {
+    return [];
+  }
+
+  republishOnUserChange(this, { hunts: 1 }, (u) => {
+    if (!u.hunts?.includes(huntId)) {
+      return undefined;
+    }
+
+    return MeteorUsers.find({ hunts: huntId }, {
+      fields: {
+        'emails.address': 1,
+        hunts: 1,
+        ...profileFields,
+      },
+    });
+  }, (u) => makeHuntFilterTransform(u.hunts));
+
+  return undefined;
+});
+
+Meteor.publish('profile', function (userId: unknown) {
   check(userId, String);
 
   if (!this.userId) {
     return [];
   }
 
-  // For now, all user profiles are public, including email address
-  return MeteorUsers.find(userId, {
-    fields: {
-      'emails.address': 1,
-      ...profileFields,
-    },
-  });
+  republishOnUserChange(this, { hunts: 1 }, (u) => {
+    // Profiles are public if you have any hunts in common
+    return MeteorUsers.find({ _id: userId, hunts: { $in: u.hunts ?? [] } }, {
+      fields: {
+        'emails.address': 1,
+        hunts: 1,
+        ...profileFields,
+      },
+    });
+  }, (u) => makeHuntFilterTransform(u.hunts));
+
+  return undefined;
 });
 
-Meteor.publish('huntUserInfo', function (huntId: string) {
+Meteor.publish('huntRoles', function (huntId: unknown) {
   check(huntId, String);
 
-  // Only publish other users' roles to admins and other operators.
-  if (!userMaySeeUserInfoForHunt(this.userId, huntId)) {
-    return [];
-  }
+  republishOnUserChange(this, { hunts: 1, roles: 1 }, () => {
+    // Only publish other users' roles to admins and other operators.
+    if (!userMaySeeUserInfoForHunt(this.userId, huntId)) {
+      return undefined;
+    }
 
-  return MeteorUsers.find({ hunts: huntId }, { fields: { roles: 1, hunts: 1 } });
-});
-
-Meteor.publish('userInfo', function (targetUserId: string) {
-  check(targetUserId, String);
-
-  // Allow single-user info to be published if there is any hunt the target is a
-  // member of for which the caller is an operator. Note that this is a
-  // non-reactive computation
-  const targetUser = MeteorUsers.findOne(targetUserId);
-  const callerAllowed = userIdIsAdmin(this.userId) ||
-    targetUser?.hunts?.some((huntId) => userMaySeeUserInfoForHunt(this.userId, huntId));
-  if (!callerAllowed) {
-    return [];
-  }
-
-  return MeteorUsers.find(targetUserId, { fields: { roles: 1, hunts: 1 } });
+    return MeteorUsers.find({ hunts: huntId }, {
+      fields: {
+        // Specifying sub-fields here is allowed, but will conflict with any other
+        // concurrent publications for the same top-level field (roles). This
+        // should be fine so long as we don't try to subscribe to huntRoles for
+        // multiple hunts simultaneously.
+        [`roles.${GLOBAL_SCOPE}`]: 1,
+        [`roles.${huntId}`]: 1,
+      },
+    });
+  });
 });

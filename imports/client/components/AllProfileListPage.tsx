@@ -6,7 +6,7 @@ import ProfileList from './ProfileList';
 
 const AllProfileListPage = () => {
   useBreadcrumb({ title: 'Users', path: '/users' });
-  const profilesLoading = useSubscribe('profiles');
+  const profilesLoading = useSubscribe('allProfiles');
   const loading = profilesLoading();
 
   const users = useTracker(() => {
