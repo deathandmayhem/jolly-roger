@@ -26,7 +26,7 @@
     "element-resize-detector": "^1.2.4",
     "express": "^4.17.2",
     "fp-ts": "^2.11.8",
-    "googleapis": "^94.0.0",
+    "googleapis": "^95.0.0",
     "io-ts": "^2.2.16",
     "io-ts-types": "^0.5.16",
     "ip-address": "^8.1.0",
