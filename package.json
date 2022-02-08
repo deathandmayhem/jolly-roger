@@ -13,7 +13,7 @@
     "test": "TEST_BROWSER_DRIVER=puppeteer meteor test --full-app --once --driver-package meteortesting:mocha"
   },
   "dependencies": {
-    "@babel/runtime": "^7.17.0",
+    "@babel/runtime": "^7.17.2",
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/react-fontawesome": "^0.1.17",
@@ -82,7 +82,7 @@
     "@types/use-persisted-state": "^0.3.1",
     "@types/ws": "^8.2.2",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
-    "@typescript-eslint/parser": "^5.10.2",
+    "@typescript-eslint/parser": "^5.11.0",
     "assert": "^2.0.0",
     "babel-plugin-add-react-displayname": "0.0.5",
     "babel-plugin-styled-components": "^2.0.2",
