@@ -7,7 +7,7 @@ import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
-  useCallback, useImperativeHandle, useRef, useState,
+  MouseEvent, useCallback, useImperativeHandle, useRef, useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -18,6 +18,7 @@ import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
+import Modal from 'react-bootstrap/Modal';
 import Row from 'react-bootstrap/Row';
 import { Link } from 'react-router-dom';
 import Ansible from '../../Ansible';
@@ -599,6 +600,62 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
   );
 });
 
+const CreateFixtureModal = React.forwardRef((_props: {}, forwardedRef: React.Ref<HuntModalFormHandle>) => {
+  const [visible, setVisible] = useState(true);
+  const show = useCallback(() => setVisible(true), []);
+  const hide = useCallback(() => setVisible(false), []);
+  useImperativeHandle(forwardedRef, () => ({ show }), [show]);
+
+  const [disabled, setDisabled] = useState(false);
+  const [error, setError] = useState<Error>();
+  const clearError = useCallback(() => setError(undefined), []);
+
+  const createFixture = useCallback(() => {
+    Meteor.call('createFixtureHunt', (e: Meteor.Error) => {
+      setDisabled(false);
+      if (e) {
+        setError(e);
+      } else {
+        hide();
+      }
+    });
+    setDisabled(true);
+  }, [hide]);
+
+  return (
+    <Modal show={visible} onHide={hide}>
+      <Modal.Header closeButton>
+        <Modal.Title>Create sample hunt</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p>
+          If you just want to see what Jolly Roger looks like in action, this will create a sample
+          hunt, using data from the 2018 MIT Mystery Hunt (&quot;Operation: Head Hunters&quot;).
+        </p>
+        <p>
+          It shows the hunt partially solved (and therefore includes spoilers). However, this
+          provides an opportunity to demonstrate how Jolly Roger can handle complex structures and
+          various puzzle states.
+        </p>
+
+        {error && (
+          <Alert variant="danger" dismissible onClose={clearError}>
+            {error.message}
+          </Alert>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={hide} disabled={disabled}>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={createFixture} disabled={disabled}>
+          Create sample hunt
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+});
+
 const HuntListPage = () => {
   useBreadcrumb({ title: 'Hunts', path: '/hunts' });
   const huntsLoading = useSubscribe('mongo.hunts');
@@ -625,6 +682,17 @@ const HuntListPage = () => {
       addModalRef.current.show();
     }
   }, []);
+
+  const [renderCreateFixtureModal, setRenderCreateFixtureModal] = useState(false);
+  const createFixtureModalRef = useRef<HuntModalFormHandle>(null);
+  const showCreateFixtureModal = useCallback((e: MouseEvent) => {
+    e.preventDefault();
+    if (renderCreateFixtureModal && createFixtureModalRef.current) {
+      createFixtureModalRef.current.show();
+    } else {
+      setRenderCreateFixtureModal(true);
+    }
+  }, [renderCreateFixtureModal, createFixtureModalRef]);
 
   const body = [];
   if (loading) {
@@ -670,11 +738,22 @@ const HuntListPage = () => {
         ref={addModalRef}
         onSubmit={onAdd}
       />
-      {canAdd ? (
-        <Button onClick={showAddModal} variant="success" size="sm" title="Add new hunt...">
-          <FontAwesomeIcon icon={faPlus} />
-        </Button>
-      ) : undefined}
+      {canAdd && (
+        <>
+          <Button onClick={showAddModal} variant="success" size="sm" title="Add new hunt...">
+            <FontAwesomeIcon icon={faPlus} />
+          </Button>
+          {hunts.length === 0 && (
+            <>
+              {' '}
+              {renderCreateFixtureModal && <CreateFixtureModal ref={createFixtureModalRef} />}
+              <Button onClick={showCreateFixtureModal} variant="info" size="sm">
+                Create sample hunt
+              </Button>
+            </>
+          )}
+        </>
+      )}
       {body}
     </div>
   );

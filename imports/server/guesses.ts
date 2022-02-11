@@ -224,7 +224,7 @@ Meteor.methods({
       direction,
       confidence,
     });
-    Guesses.insert({
+    const guessId = Guesses.insert({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       guess,
@@ -237,6 +237,8 @@ Meteor.methods({
     const guesserDisplayName = user.displayName || '(no display name given)';
     const message = `${guesserDisplayName} submitted guess "${guess}"`;
     sendChatMessage(puzzleId, message, undefined);
+
+    return guessId;
   },
 
   addCorrectGuessForPuzzle(puzzleId: unknown, answer: unknown) {

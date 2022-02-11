@@ -44,16 +44,18 @@ where you'd go to configure various Google integration configuration options.
 
 ## Example hunt data
 
-Jolly Roger ships with a fixture representing data from the 2015 MIT Mystery
+Jolly Roger ships with a fixture representing data from the 2018 MIT Mystery
 Hunt, to get a sense of what a fully-populated UI might look like.
 
-To create the fixture hunt on your instance, log in as an admin in a browser
-window, then open the **browser** javascript console (not the Meteor shell we
-were using above) and run the following:
+If you haven't yet created any hunts in your Jolly Roger instance, then you can
+load the homepage at [http://localhost:3000/hunts](http://localhost:3000/hunts)
+and click the "Create sample hunt" button. Otherwise, you can open the
+**browser** javascript console (not the Meteor shell we were using above) and
+run the following:
 
 ```js
 Meteor.call("createFixtureHunt")
 ```
 
-Upon success, you should see a hunt named 2015 in the list at
-[http://localhost:3000/hunts/](http://localhost:3000/hunts/).
+Either way, upon success, you should see a hunt named "Mystery Hunt 2018" in the
+list at [http://localhost:3000/hunts/](http://localhost:3000/hunts/).
