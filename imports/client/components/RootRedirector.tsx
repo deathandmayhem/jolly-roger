@@ -22,7 +22,7 @@ const RootRedirector = () => {
 
   if (userId) {
     // Logged in.
-    return <Navigate to="/hunts" />;
+    return <Navigate to="/hunts" replace />;
   }
 
   // Definitely not logged in.  Wait for the hasUsers sub to be ready,
@@ -31,9 +31,9 @@ const RootRedirector = () => {
   if (loading) {
     return <div>loading redirector...</div>;
   } else if (hasUser) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   } else {
-    return <Navigate to="/create-first-user" />;
+    return <Navigate to="/create-first-user" replace />;
   }
 };
 
