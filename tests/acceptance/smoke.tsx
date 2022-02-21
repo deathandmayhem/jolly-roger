@@ -12,7 +12,7 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
-import fixtures from '../../imports/fixtures';
+import FixtureHunt from '../../imports/FixtureHunt';
 import { stabilize, USER_EMAIL, USER_PASSWORD } from './lib';
 
 function enumeratePaths(routes: RouteObject[], prefix: string = '', acc: string[] = []): string[] {
@@ -51,8 +51,8 @@ if (Meteor.isClient) {
     );
   };
 
-  const fixtureHunt = Object.keys(fixtures)[0];
-  const fixturePuzzle = fixtures[fixtureHunt].puzzles[0]._id;
+  const fixtureHunt = FixtureHunt._id;
+  const fixturePuzzle = FixtureHunt.puzzles[0]._id;
 
   describe('routes', function () {
     before(async function () {

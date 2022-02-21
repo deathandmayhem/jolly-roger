@@ -1,10 +1,12 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import fixtures from '../fixtures';
+import FixtureHunt from '../FixtureHunt';
+import Guesses from '../lib/models/Guesses';
 import Hunts from '../lib/models/Hunts';
+import MeteorUsers from '../lib/models/MeteorUsers';
 import Puzzles from '../lib/models/Puzzles';
 import Tags from '../lib/models/Tags';
-import { userMayCreateHunt } from '../lib/permission_stubs';
+import { addUserToRole, userMayCreateHunt } from '../lib/permission_stubs';
 
 Meteor.methods({
   createFixtureHunt() {
@@ -14,34 +16,33 @@ Meteor.methods({
       throw new Meteor.Error(401, 'Must be allowed to create hunt');
     }
 
-    const huntId = 'cSB2bWf3BToQ9NBju'; // fixture hunt id
-    const data = fixtures[huntId];
+    const huntId = FixtureHunt._id; // fixture hunt id
 
     // Create hunt if it doesn't exist.
     const hunt = Hunts.findOne(huntId);
     if (!hunt) {
       Hunts.insert({
         _id: huntId,
-        name: data.title,
+        name: FixtureHunt.name,
         openSignups: true,
         hasGuessQueue: true,
       });
     }
 
-    // Create tags associated with the hunt.
-    data.tags.forEach((tag) => {
-      Tags.upsert({
-        _id: tag._id,
-      }, {
-        $set: {
-          hunt: huntId,
-          name: tag.name,
-        },
-      });
-    });
+    // Make the user an operator
+    MeteorUsers.update(this.userId, { $addToSet: { hunts: huntId } });
+    addUserToRole(this.userId, huntId, 'operator');
+
+    // Create tags
+    FixtureHunt.tags.forEach(({ _id, name }) => Tags.upsert({ _id }, {
+      $set: {
+        hunt: huntId,
+        name,
+      },
+    }));
 
     // Create puzzles associated with the hunt.  Don't bother running the puzzle hooks.
-    data.puzzles.forEach((puzzle) => {
+    FixtureHunt.puzzles.forEach((puzzle) => {
       Puzzles.upsert({
         _id: puzzle._id,
       }, {
@@ -49,12 +50,23 @@ Meteor.methods({
           hunt: huntId,
           title: puzzle.title,
           url: puzzle.url,
-          answers: puzzle.answers,
           expectedAnswerCount: puzzle.expectedAnswerCount,
+          tags: puzzle.tags,
+          answers: puzzle.guesses.filter((g) => g.state === 'correct').map((g) => g.guess),
         },
-        $addToSet: {
-          tags: { $each: puzzle.tags },
-        },
+      });
+
+      puzzle.guesses.forEach((g) => {
+        Guesses.upsert({ _id: g._id }, {
+          $set: {
+            hunt: huntId,
+            puzzle: puzzle._id,
+            guess: g.guess,
+            state: g.state,
+            direction: 10,
+            confidence: 100,
+          },
+        });
       });
     });
   },

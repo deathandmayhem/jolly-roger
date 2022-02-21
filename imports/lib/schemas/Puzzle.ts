@@ -19,6 +19,7 @@ const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
     regEx: SimpleSchema.RegEx.Id,
   },
   tags: {
+    defaultValue: [],
     array: {
       regEx: SimpleSchema.RegEx.Id,
     },
@@ -35,7 +36,7 @@ const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
         return this.value.map((x) => answerify(x));
       }
 
-      return undefined;
+      return [];
     },
   },
   replacedBy: {
