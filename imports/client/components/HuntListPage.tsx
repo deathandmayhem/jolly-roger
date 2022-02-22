@@ -742,7 +742,7 @@ const HuntListPage = () => {
           <Button onClick={showAddModal} variant="success" size="sm" title="Add new hunt...">
             <FontAwesomeIcon icon={faPlus} />
           </Button>
-          {hunts.length === 0 && (
+          {!loading && hunts.length === 0 && (
             <>
               {' '}
               {renderCreateFixtureModal && <CreateFixtureModal ref={createFixtureModalRef} />}
