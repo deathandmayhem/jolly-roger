@@ -1,9 +1,12 @@
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useCallback, useState } from 'react';
+import React, {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 import styled from 'styled-components';
 import { TagType } from '../../lib/schemas/Tag';
+import { useHuntPuzzleListCollapseGroup } from '../hooks/persisted-state';
 import RelatedPuzzleList from './RelatedPuzzleList';
 import Tag from './Tag';
 import { PuzzleGroup } from './puzzle-sort-and-group';
@@ -38,22 +41,38 @@ const NoSharedTagLabel = styled.div`
 `;
 
 const RelatedPuzzleGroup = ({
-  group, noSharedTagLabel = '(no tag)', allTags, includeCount, canUpdate, suppressedTagIds,
+  huntId, group, noSharedTagLabel = '(no tag)', allTags, includeCount, canUpdate, suppressedTagIds, trackPersistentExpand,
 }: {
+  huntId: string;
   group: PuzzleGroup;
   // noSharedTagLabel is used to label the group only if sharedTag is undefined.
-  noSharedTagLabel?: String;
+  noSharedTagLabel?: string;
   allTags: TagType[];
   includeCount?: boolean;
   canUpdate: boolean;
   suppressedTagIds: string[];
+  trackPersistentExpand: boolean;
 }) => {
-  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [persistentCollapsed, setPersistentCollapsed] = useHuntPuzzleListCollapseGroup(
+    huntId,
+    group.sharedTag?._id ?? noSharedTagLabel
+  );
+  const [nonPersistentCollapsed, setNonPersistentCollapsed] = useState(false);
+  const lastTrackPersistentExpand = useRef(trackPersistentExpand);
+  useEffect(() => {
+    if (trackPersistentExpand !== lastTrackPersistentExpand.current) {
+      lastTrackPersistentExpand.current = trackPersistentExpand;
+      setNonPersistentCollapsed(false);
+    }
+  }, [trackPersistentExpand]);
   const toggleCollapse = useCallback(() => {
-    setCollapsed((prevCollapsed) => {
-      return !prevCollapsed;
-    });
-  }, []);
+    if (trackPersistentExpand) {
+      setPersistentCollapsed((prevCollapsed) => !prevCollapsed);
+    } else {
+      setNonPersistentCollapsed((prevCollapsed) => !prevCollapsed);
+    }
+  }, [setPersistentCollapsed, setNonPersistentCollapsed, trackPersistentExpand]);
+  const collapsed = trackPersistentExpand ? persistentCollapsed : nonPersistentCollapsed;
 
   const { puzzles: relatedPuzzles, sharedTag } = group;
 
@@ -91,12 +110,14 @@ const RelatedPuzzleGroup = ({
             return (
               <RelatedPuzzleGroup
                 key={subgroup.sharedTag ? subgroup.sharedTag._id : 'ungrouped'}
+                huntId={huntId}
                 group={subgroup}
                 noSharedTagLabel={noSharedTagLabel}
                 allTags={allTags}
                 includeCount={includeCount}
                 canUpdate={canUpdate}
                 suppressedTagIds={subgroupSuppressedTagIds}
+                trackPersistentExpand={trackPersistentExpand}
               />
             );
           })}
