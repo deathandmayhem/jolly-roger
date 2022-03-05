@@ -533,6 +533,14 @@ Resources:
                     #!/bin/sh
                     docker volume ls -qf dangling=true | chronic xargs -r docker volume rm
                   permissions: "0755"
+                - path: /etc/docker/daemon.json
+                  content: |
+                    {
+                      "log-driver": "json-file",
+                      "log-opts": {
+                        "max-size": "100m"
+                      }
+                    }
                 - path: /etc/nginx/conf.d/default.conf
                   content: |
                     # If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
