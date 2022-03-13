@@ -12,10 +12,10 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import Flags from '../../Flags';
-import { getAvatarCdnUrl } from '../../lib/discord';
 import TeamName from '../TeamName';
 import { requestDiscordCredential } from '../discord';
 import AudioConfig from './AudioConfig';
+import Avatar from './Avatar';
 
 enum GoogleLinkBlockLinkState {
   IDLE = 'idle',
@@ -229,8 +229,6 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
         <div>
           Currently linked to
           {' '}
-          <img src={getAvatarCdnUrl(acct)} width={40} height={40} alt="Discord Avatar" />
-          {' '}
           {acct.username}
           #
           {acct.discriminator}
@@ -338,6 +336,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
   return (
     <div>
       <h1>Account information</h1>
+      <Avatar {...initialUser} size={64} />
       <FormGroup>
         <FormLabel htmlFor="jr-profile-edit-email">
           Email address

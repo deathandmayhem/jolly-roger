@@ -56,20 +56,3 @@ export const PeopleItemDiv = styled.div`
   position: relative;
   margin: 4px 4px 0 0;
 `;
-
-export const InitialSpan = styled.span<{ live: boolean }>`
-  z-index: 10;
-  text-transform: uppercase;
-  font-weight: bold;
-  font-size: 24px;
-  color: black;
-  line-height: 24px;
-  ${({ live }) => live && css`
-    // white border around initial
-    // aids readability if the spectrum graph is high
-    text-shadow: -1px  1px 0 white,
-                  1px  1px 0 white,
-                  1px -1px 0 white,
-                 -1px -1px 0 white;
-  `}
-`;
