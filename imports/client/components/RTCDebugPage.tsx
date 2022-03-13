@@ -65,8 +65,6 @@ import { ProducerClientType } from '../../lib/schemas/mediasoup/ProducerClient';
 import { RoomType } from '../../lib/schemas/mediasoup/Room';
 import { RouterType } from '../../lib/schemas/mediasoup/Router';
 import { TransportType } from '../../lib/schemas/mediasoup/Transport';
-import useSubscribeAvatars from '../hooks/useSubscribeAvatars';
-import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import Avatar from './Avatar';
 import Loading from './Loading';
 
