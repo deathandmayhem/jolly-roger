@@ -89,7 +89,7 @@ const OthersProfilePage = ({
           </tr>
           {showHuntList && (
             <tr>
-              <th>All hunts participated</th>
+              <th>Hunts in common</th>
               <td>
                 {(
                   loading ?

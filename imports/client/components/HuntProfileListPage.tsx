@@ -13,10 +13,9 @@ const HuntProfileListPage = () => {
   const huntId = useParams<'huntId'>().huntId!;
   useBreadcrumb({ title: 'Hunters', path: `/hunts/${huntId}/hunters` });
 
-  const usersLoading = useSubscribe('huntMembers', huntId);
-  const userRolesLoading = useSubscribe('huntUserInfo', huntId);
-  const profilesLoading = useSubscribe('profiles');
-  const loading = usersLoading() || userRolesLoading() || profilesLoading();
+  const profilesLoading = useSubscribe('huntProfiles', huntId);
+  const userRolesLoading = useSubscribe('huntRoles', huntId);
+  const loading = profilesLoading() || userRolesLoading();
 
   const users = useTracker(() => (
     loading ?

@@ -171,7 +171,7 @@ const ChatPeople = ({
   const subscriberTopic = `puzzle:${puzzleId}`;
   const subscribersLoading = useSubscribe('subscribers.fetch', subscriberTopic);
   const callMembersLoading = useSubscribe('mediasoup:metadata', huntId, puzzleId);
-  const avatarsLoading = useSubscribeAvatars();
+  const avatarsLoading = useSubscribeAvatars(huntId);
 
   const loading = subscribersLoading() || callMembersLoading() || avatarsLoading();
 

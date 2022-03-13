@@ -1,5 +1,5 @@
 import { useSubscribe } from 'meteor/react-meteor-data';
 
-export default function useSubscribeDisplayNames() {
-  return useSubscribe('displayNames');
+export default function useSubscribeDisplayNames(huntId: string) {
+  return useSubscribe('displayNames', huntId);
 }

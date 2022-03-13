@@ -885,13 +885,9 @@ const RTCDebugPage = () => {
   const viewerIsAdmin = useTracker(() => userIdIsAdmin(Meteor.userId()));
   const debugInfoLoading = useSubscribe('mediasoup:debug');
   const puzzlesLoading = useSubscribe('mongo.puzzles');
-  const displayNamesLoading = useSubscribeDisplayNames();
-  const avatarsLoading = useSubscribeAvatars();
   const loading =
     debugInfoLoading() ||
-    puzzlesLoading() ||
-    displayNamesLoading() ||
-    avatarsLoading();
+    puzzlesLoading();
 
   const servers = useFind(() => Servers.find({}, { sort: { hostname: 1, pid: 1 } }), []);
   const rooms = useFind(() => Rooms.find({}, { sort: { createdAt: 1 } }));

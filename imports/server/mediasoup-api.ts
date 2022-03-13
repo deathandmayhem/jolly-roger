@@ -2,6 +2,7 @@ import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Ansible from '../Ansible';
 import Flags from '../Flags';
+import MeteorUsers from '../lib/models/MeteorUsers';
 import Servers from '../lib/models/Servers';
 import CallHistories from '../lib/models/mediasoup/CallHistories';
 import ConnectAcks from '../lib/models/mediasoup/ConnectAcks';
@@ -57,6 +58,7 @@ Meteor.publish('mediasoup:debug', function () {
   checkAdmin(this.userId);
 
   return [
+    MeteorUsers.find({}, { fields: { displayName: 1, discordAccount: 1 } }),
     Servers.find(),
     CallHistories.find(),
     Peers.find(),

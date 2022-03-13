@@ -10,7 +10,7 @@ import { faUserCog } from '@fortawesome/free-solid-svg-icons/faUserCog';
 import { faUsers } from '@fortawesome/free-solid-svg-icons/faUsers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
-  useCallback, useEffect, useRef, useState,
+  useCallback, useEffect, useRef,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -31,7 +31,12 @@ import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
-import { useOperatorActionsHiddenForHunt } from '../hooks/persisted-state';
+import {
+  useHuntPuzzleListCollapseGroups,
+  useHuntPuzzleListDisplayMode,
+  useHuntPuzzleListShowSolved,
+  useOperatorActionsHiddenForHunt,
+} from '../hooks/persisted-state';
 import PuzzleList from './PuzzleList';
 import PuzzleModalForm, {
   PuzzleModalFormHandle, PuzzleModalFormSubmitPayload,
@@ -81,10 +86,6 @@ const FilterToolbarInputGroup = styled(InputGroup)`
   }
 `;
 
-function showSolvedStorageKey(huntId: string): string {
-  return `showsolved-${huntId}`;
-}
-
 const PuzzleListView = ({
   huntId, canAdd, canUpdate,
 }: {
@@ -110,12 +111,15 @@ const PuzzleListView = ({
   const searchString = searchParams.get('q') || '';
   const addModalRef = useRef<PuzzleModalFormHandle>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
-  const [displayMode, setDisplayMode] = useState<string>('group');
-  const [showSolved, setShowSolved] = useState<boolean>(() => {
-    const showSolvedKey = showSolvedStorageKey(huntId);
-    const localStorageShowSolved = localStorage.getItem(showSolvedKey);
-    return !(localStorageShowSolved === 'false');
-  });
+  const [displayMode, setDisplayMode] = useHuntPuzzleListDisplayMode(huntId);
+  const [showSolved, setShowSolved] = useHuntPuzzleListShowSolved(huntId);
+  const [huntPuzzleListCollapseGroups, setHuntPuzzleListCollapseGroups] =
+    useHuntPuzzleListCollapseGroups(huntId);
+  const expandAllGroups = useCallback(() => {
+    setHuntPuzzleListCollapseGroups({});
+  }, [setHuntPuzzleListCollapseGroups]);
+  const canExpandAllGroups = displayMode === 'group' &&
+    Object.values(huntPuzzleListCollapseGroups).some((collapsed) => collapsed);
 
   const [operatorActionsHidden, setOperatorActionsHidden] = useOperatorActionsHiddenForHunt(huntId);
   const toggleOperatorActionsHidden = useCallback(() => {
@@ -226,25 +230,9 @@ const PuzzleListView = ({
     setSearchString('');
   }, [setSearchString]);
 
-  const switchView = useCallback((newMode: 'group' | 'unlock') => {
-    setDisplayMode(newMode);
-  }, []);
-
   const changeShowSolved = useCallback(() => {
-    setShowSolved((oldState) => {
-      const newState = !oldState;
-      // Try to save the new state in localStorage, so that we'll use the
-      // last-set value again the next time we load up this view.
-      try {
-        // Note: localStorage serialization converts booleans to strings anyway
-        localStorage.setItem(showSolvedStorageKey(huntId), `${newState}`);
-      } catch (e) {
-        // Ignore failure to set value in storage; this is best-effort and if
-        // localStorage isn't available then whatever
-      }
-      return newState;
-    });
-  }, [huntId]);
+    setShowSolved((oldState) => !oldState);
+  }, [setShowSolved]);
 
   const showAddModal = useCallback(() => {
     if (addModalRef.current) {
@@ -276,16 +264,31 @@ const PuzzleListView = ({
           return (
             <RelatedPuzzleGroup
               key={g.sharedTag ? g.sharedTag._id : 'ungrouped'}
+              huntId={huntId}
               group={g}
               noSharedTagLabel="(no group specified)"
               allTags={allTags}
               includeCount={false}
               canUpdate={canUpdate}
               suppressedTagIds={suppressedTagIds}
+              trackPersistentExpand={searchString === ''}
             />
           );
         });
-        listComponent = groupComponents;
+        listComponent = (
+          <>
+            <Button
+              variant={canExpandAllGroups ? 'secondary' : 'outline-secondary'}
+              size="sm"
+              className="mb-2"
+              disabled={!canExpandAllGroups}
+              onClick={expandAllGroups}
+            >
+              Expand all
+            </Button>
+            {groupComponents}
+          </>
+        );
         break;
       }
       case 'unlock': {
@@ -308,17 +311,29 @@ const PuzzleListView = ({
         {deletedPuzzles && deletedPuzzles.length > 0 && (
           <RelatedPuzzleGroup
             key="deleted"
+            huntId={huntId}
             group={{ puzzles: deletedPuzzles, subgroups: [] }}
             noSharedTagLabel="Deleted puzzles (operator only)"
             allTags={allTags}
             includeCount={false}
             canUpdate={canUpdate}
             suppressedTagIds={[]}
+            trackPersistentExpand={searchString !== ''}
           />
         )}
       </div>
     );
-  }, [displayMode, allPuzzles, deletedPuzzles, allTags, canUpdate]);
+  }, [
+    huntId,
+    displayMode,
+    allPuzzles,
+    deletedPuzzles,
+    allTags,
+    canUpdate,
+    searchString,
+    canExpandAllGroups,
+    expandAllGroups,
+  ]);
 
   const addPuzzleContent = canAdd && (
     <>
@@ -368,7 +383,7 @@ const PuzzleListView = ({
           <ViewControlsSection>
             <FormLabel>View puzzles by:</FormLabel>
             <ButtonToolbar className="puzzle-view-buttons">
-              <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={displayMode} onChange={switchView}>
+              <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={displayMode} onChange={setDisplayMode}>
                 <ToggleButton variant="outline-info" value="group">Group</ToggleButton>
                 <ToggleButton variant="outline-info" value="unlock">Unlock</ToggleButton>
               </ToggleButtonGroup>

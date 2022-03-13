@@ -197,7 +197,7 @@ const GuessQueuePage = () => {
   const huntLoading = useSubscribe('mongo.hunts', { _id: huntId });
   const guessesLoading = useSubscribe('mongo.guesses', { hunt: huntId });
   const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
-  const displayNamesLoading = useSubscribeDisplayNames();
+  const displayNamesLoading = useSubscribeDisplayNames(huntId);
   const loading =
     huntLoading() ||
     guessesLoading() ||
