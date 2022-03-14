@@ -34,7 +34,7 @@
     "marked": "^0.7.0",
     "mediasoup": "^3.9.9",
     "mediasoup-client": "^3.6.50",
-    "meteor-node-stubs": "^1.1.0",
+    "meteor-node-stubs": "^1.2.0",
     "mime-types": "^2.1.35",
     "monocle-ts": "^2.3.12",
     "mustache": "^4.2.0",
