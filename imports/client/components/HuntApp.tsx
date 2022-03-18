@@ -104,8 +104,6 @@ const HuntMemberError = React.memo(({ hunt, canJoin }: {
 });
 
 const HuntApp = React.memo(() => {
-  useBreadcrumb({ title: 'Hunts', path: '/hunts' });
-
   const huntId = useParams<'huntId'>().huntId!;
 
   // Subscribe to deleted and non-deleted hunts separately so that we can reuse

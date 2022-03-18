@@ -1,0 +1,560 @@
+import { Meteor } from 'meteor/meteor';
+import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { faInfo } from '@fortawesome/free-solid-svg-icons/faInfo';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { useCallback, useRef, useState } from 'react';
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import Col from 'react-bootstrap/Col';
+import Container from 'react-bootstrap/Container';
+import Form, { FormProps } from 'react-bootstrap/Form';
+import FormCheck from 'react-bootstrap/FormCheck';
+import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormLabel from 'react-bootstrap/FormLabel';
+import FormText from 'react-bootstrap/FormText';
+import Row from 'react-bootstrap/Row';
+import { useNavigate, useParams } from 'react-router-dom';
+import Ansible from '../../Ansible';
+import DiscordCache from '../../lib/models/DiscordCache';
+import Hunts from '../../lib/models/Hunts';
+import Settings from '../../lib/models/Settings';
+import { BaseType } from '../../lib/schemas/Base';
+import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/Hunt';
+import { SettingType } from '../../lib/schemas/Setting';
+import { useBreadcrumb } from '../hooks/breadcrumb';
+import ActionButtonRow from './ActionButtonRow';
+
+enum SubmitState {
+  IDLE = 'idle',
+  SUBMITTING = 'submitting',
+  SUCCESS = 'success',
+  FAILED = 'failed',
+}
+
+type HuntSubmit = Omit<HuntType, keyof BaseType>;
+
+const splitLists = function (lists: string): string[] {
+  const strippedLists = lists.trim();
+  if (strippedLists === '') {
+    return [];
+  }
+
+  return strippedLists.split(/[, ]+/);
+};
+
+interface DiscordSelectorParams {
+  disable: boolean;
+  id: string;
+  value: SavedDiscordObjectType | undefined;
+  onChange: (next: SavedDiscordObjectType | undefined) => void;
+}
+
+interface DiscordSelectorProps extends DiscordSelectorParams {
+  loading: boolean;
+  options: SavedDiscordObjectType[];
+}
+
+const DiscordSelector = ({
+  disable, id: formId, value, onChange, loading, options,
+}: DiscordSelectorProps) => {
+  const onValueChanged: FormControlProps['onChange'] = useCallback((e) => {
+    if (e.currentTarget.value === 'empty') {
+      onChange(undefined);
+    } else {
+      const match = options.find((obj) => { return obj.id === e.currentTarget.value; });
+      if (match) {
+        onChange(match);
+      }
+    }
+  }, [onChange, options]);
+
+  const formOptions = useCallback((): SavedDiscordObjectType[] => {
+    // List of the options.  Be sure to include the saved option if it's (for
+    // some reason) not present in the channel list.
+    const noneOption = {
+      id: 'empty',
+      name: 'disabled',
+    } as SavedDiscordObjectType;
+
+    if (value) {
+      if (!options.find((opt) => {
+        return opt.id === value!.id;
+      })) {
+        return [noneOption, value, ...options];
+      }
+    }
+    return [noneOption, ...options];
+  }, [value, options]);
+
+  if (loading) {
+    return <div>Loading discord resources...</div>;
+  } else {
+    return (
+      <FormControl
+        id={formId}
+        as="select"
+        type="text"
+        placeholder=""
+        value={value && value.id}
+        disabled={disable}
+        onChange={onValueChanged}
+      >
+        {formOptions().map(({ id, name }) => {
+          return (
+            <option key={id} value={id}>{name}</option>
+          );
+        })}
+      </FormControl>
+    );
+  }
+};
+
+const DiscordChannelSelector = (
+  { guildId, ...rest }: DiscordSelectorParams & { guildId: string }
+) => {
+  const cacheLoading = useSubscribe('discord.cache', { type: 'channel' });
+  const loading = cacheLoading();
+
+  const { options } = useTracker(() => {
+    const discordChannels: SavedDiscordObjectType[] = DiscordCache.find({
+      type: 'channel',
+      'object.guild': guildId,
+      // We want only text channels, since those are the only ones we can bridge chat messages to.
+      'object.type': 'text',
+    }, {
+      // We want to sort them in the same order they're provided in the Discord UI.
+      sort: { 'object.rawPosition': 1 },
+      fields: { 'object.id': 1, 'object.name': 1 },
+    })
+      .map((c) => c.object as SavedDiscordObjectType);
+
+    return {
+      options: discordChannels,
+    };
+  }, [guildId]);
+  return (
+    <DiscordSelector
+      loading={loading}
+      options={options}
+      {...rest}
+    />
+  );
+};
+
+const DiscordRoleSelector = ({ guildId, ...rest }: DiscordSelectorParams & { guildId: string }) => {
+  const cacheLoading = useSubscribe('discord.cache', { type: 'role' });
+  const loading = cacheLoading();
+  const { options } = useTracker(() => {
+    const discordRoles: SavedDiscordObjectType[] = DiscordCache.find({
+      type: 'role',
+      'object.guild': guildId,
+      // The role whose id is the same as the guild is the @everyone role, don't want that
+      'object.id': { $ne: guildId },
+      // Managed roles are owned by an integration
+      'object.managed': false,
+    }, {
+      // We want to sort them in the same order they're provided in the Discord UI.
+      sort: { 'object.rawPosition': 1 },
+      fields: { 'object.id': 1, 'object.name': 1 },
+    })
+      .map((c) => c.object as SavedDiscordObjectType);
+
+    return {
+      options: discordRoles,
+    };
+  }, [guildId]);
+  return (
+    <DiscordSelector
+      loading={loading}
+      options={options}
+      {...rest}
+    />
+  );
+};
+
+const HuntEditPage = () => {
+  const huntId = useParams<{ huntId: string }>().huntId;
+  const hunt = useTracker(() => (huntId ? Hunts.findOne(huntId) : null), [huntId]);
+
+  useBreadcrumb({ title: huntId ? 'Edit Hunt' : 'Create Hunt', path: `/hunts/${huntId ? `${huntId}/edit` : 'new'}` });
+
+  useSubscribe('mongo.settings', { name: 'discord.guild' });
+  const guildId = useTracker(() => {
+    const setting = Settings.findOne({ name: 'discord.guild' }) as SettingType & { name: 'discord.guild' } | undefined;
+    return setting?.value.guild.id;
+  }, []);
+
+  const navigate = useNavigate();
+
+  const footer = useRef<HTMLDivElement>(null);
+
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const [name, setName] = useState<string>(hunt?.name ?? '');
+  const [mailingLists, setMailingLists] = useState<string>(hunt?.mailingLists.join(', ') ?? '');
+  const [signupMessage, setSignupMessage] = useState<string>(hunt?.signupMessage ?? '');
+  const [openSignups, setOpenSignups] = useState<boolean>(hunt?.openSignups ?? false);
+  const [hasGuessQueue, setHasGuessQueue] = useState<boolean>(hunt?.hasGuessQueue ?? true);
+  const [homepageUrl, setHomepageUrl] = useState<string>(hunt?.homepageUrl ?? '');
+  const [submitTemplate, setSubmitTemplate] = useState<string>(hunt?.submitTemplate ?? '');
+  const [puzzleHooksDiscordChannel, setPuzzleHooksDiscordChannel] =
+    useState<SavedDiscordObjectType | undefined>(hunt?.puzzleHooksDiscordChannel);
+  const [firehoseDiscordChannel, setFirehoseDiscordChannel] =
+    useState<SavedDiscordObjectType | undefined>(hunt?.firehoseDiscordChannel);
+  const [memberDiscordRole, setMemberDiscordRole] =
+    useState<SavedDiscordObjectType | undefined>(hunt?.memberDiscordRole);
+
+  const onNameChanged = useCallback<NonNullable<FormControlProps['onChange']>>((e) => {
+    setName(e.currentTarget.value);
+  }, []);
+
+  const onMailingListsChanged = useCallback<NonNullable<FormControlProps['onChange']>>((e) => {
+    setMailingLists(e.currentTarget.value);
+  }, []);
+
+  const onSignupMessageChanged = useCallback<NonNullable<FormControlProps['onChange']>>((e) => {
+    setSignupMessage(e.currentTarget.value);
+  }, []);
+
+  const onOpenSignupsChanged = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setOpenSignups(e.currentTarget.checked);
+  }, []);
+
+  const onHasGuessQueueChanged = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setHasGuessQueue(e.currentTarget.checked);
+  }, []);
+
+  const onHomepageUrlChanged = useCallback<NonNullable<FormControlProps['onChange']>>((e) => {
+    setHomepageUrl(e.currentTarget.value);
+  }, []);
+
+  const onSubmitTemplateChanged = useCallback<NonNullable<FormControlProps['onChange']>>((e) => {
+    setSubmitTemplate(e.currentTarget.value);
+  }, []);
+
+  const onPuzzleHooksDiscordChannelChanged =
+    useCallback((next: SavedDiscordObjectType | undefined) => {
+      setPuzzleHooksDiscordChannel(next);
+    }, []);
+
+  const onFirehoseDiscordChannelChanged =
+    useCallback((next: SavedDiscordObjectType | undefined) => {
+      setFirehoseDiscordChannel(next);
+    }, []);
+
+  const onMemberDiscordRoleChanged =
+    useCallback((next: SavedDiscordObjectType | undefined) => {
+      setMemberDiscordRole(next);
+    }, []);
+
+  const onFormCallback = useCallback((error?: Error, newHuntId?: string) => {
+    if (error) {
+      setErrorMessage(error.message);
+      setSubmitState(SubmitState.FAILED);
+    } else {
+      setSubmitState(SubmitState.SUCCESS);
+      setErrorMessage('');
+
+      // If there's a result, that means we created a new hunt - redirect to it.
+      // Otherwise stay on this page and let people navigate themselves
+      if (newHuntId) {
+        navigate(`/hunts/${newHuntId}`);
+      }
+    }
+
+    setTimeout(() => {
+      // Scroll to bottom of the page so people can see whatever banners we show
+      footer.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 0);
+  }, [navigate]);
+
+  const onFormSubmit = useCallback<NonNullable<FormProps['onSubmit']>>((e) => {
+    e.preventDefault();
+    setSubmitState(SubmitState.SUBMITTING);
+    const state: HuntSubmit = {
+      name,
+      mailingLists: splitLists(mailingLists),
+      signupMessage,
+      openSignups,
+      hasGuessQueue,
+      homepageUrl,
+      submitTemplate,
+      puzzleHooksDiscordChannel,
+      firehoseDiscordChannel,
+      memberDiscordRole,
+    };
+
+    if (huntId) {
+      Ansible.log('Updating hunt settings', { hunt: huntId, user: Meteor.userId(), state });
+      Meteor.call('updateHunt', huntId, state, onFormCallback);
+    } else {
+      Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
+      Meteor.call('createHunt', state, onFormCallback);
+    }
+  }, [
+    huntId,
+    name,
+    mailingLists,
+    signupMessage,
+    openSignups,
+    hasGuessQueue,
+    homepageUrl,
+    submitTemplate,
+    puzzleHooksDiscordChannel,
+    firehoseDiscordChannel,
+    memberDiscordRole,
+    onFormCallback,
+  ]);
+
+  const onSuccessDismiss = useCallback(() => setSubmitState(SubmitState.IDLE), []);
+
+  const disableForm = submitState === SubmitState.SUBMITTING;
+
+  return (
+    <Container>
+      <h1>{huntId ? 'Edit Hunt' : 'New Hunt'}</h1>
+
+      <Form onSubmit={onFormSubmit}>
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="hunt-form-name">
+            Name
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="hunt-form-name"
+              type="text"
+              value={name}
+              onChange={onNameChanged}
+              disabled={disableForm}
+            />
+          </Col>
+        </FormGroup>
+
+        <h3>Users and permissions</h3>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="hunt-form-signup-message">
+            Signup message
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="hunt-form-signup-message"
+              as="textarea"
+              value={signupMessage}
+              onChange={onSignupMessageChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              This message (rendered as markdown) will be shown to users who aren&apos;t part of
+              the hunt. This is a good place to put directions for how to sign up.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="hunt-form-open-signups">
+            Open invites
+          </FormLabel>
+          <Col xs={9}>
+            <FormCheck
+              id="hunt-form-open-signups"
+              checked={openSignups}
+              onChange={onOpenSignupsChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If open invites are enabled, then any current member of the hunt can add a new member
+              to the hunt. Otherwise, only operators can add new members.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="hunt-form-has-guess-queue">
+            Guess queue
+          </FormLabel>
+          <Col xs={9}>
+            <FormCheck
+              id="hunt-form-has-guess-queue"
+              checked={hasGuessQueue}
+              onChange={onHasGuessQueueChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If enabled, users can submit guesses for puzzles but operators must mark them as
+              correct. If disabled, any user can enter the puzzle answer.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <h3>Hunt website</h3>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="hunt-form-homepage-url">
+            Homepage URL
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="hunt-form-homepage-url"
+              type="text"
+              value={homepageUrl}
+              onChange={onHomepageUrlChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If provided, a link to the hunt homepage will be placed on the landing page.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="hunt-form-submit-template">
+            Submit URL template
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="hunt-form-submit-template"
+              type="text"
+              value={submitTemplate}
+              onChange={onSubmitTemplateChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If provided, this
+              {' '}
+              <a href="https://mustache.github.io/mustache.5.html">Mustache template</a>
+              {' '}
+              is used to generate the link to the guess submission page. It gets as context a
+              {' '}
+              <a href="https://developer.mozilla.org/en-US/docs/Web/API/URL">parsed URL</a>
+              {', '}
+              providing variables like
+              {' '}
+              <code>hostname</code>
+              {' '}
+              or
+              {' '}
+              <code>pathname</code>
+              {'. '}
+              Because this will be used as a link directly, make sure to use
+              &quot;triple-mustaches&quot; so that the URL components aren&apos;t escaped. As an
+              example, setting this to
+              {' '}
+              <code>{'{{{origin}}}/submit{{{pathname}}}'}</code>
+              {' '}
+              would work for the 2018 Mystery Hunt. If not specified, the puzzle URL is used as
+              the link to the guess submission page.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <h3>External integrations</h3>
+
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="hunt-form-mailing-lists">
+            Mailing lists
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="hunt-form-mailing-lists"
+              type="text"
+              value={mailingLists}
+              onChange={onMailingListsChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              Users joining this hunt will be automatically added to all of these (comma-separated)
+              lists
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        {guildId ? (
+          <>
+            <FormGroup as={Row}>
+              <FormLabel column xs={3} htmlFor="hunt-form-puzzle-hooks-discord-channel">
+                Puzzle notifications Discord channel
+              </FormLabel>
+              <Col xs={9}>
+                <DiscordChannelSelector
+                  id="hunt-form-puzzle-hooks-discord-channel"
+                  guildId={guildId}
+                  disable={disableForm}
+                  value={puzzleHooksDiscordChannel}
+                  onChange={onPuzzleHooksDiscordChannelChanged}
+                />
+                <FormText>
+                  If this field is specified, when a puzzle in this hunt is added or solved, a
+                  message will be sent to the specified channel.
+                </FormText>
+              </Col>
+            </FormGroup>
+
+            <FormGroup as={Row}>
+              <FormLabel column xs={3} htmlFor="hunt-form-firehose-discord-channel">
+                Firehose Discord channel
+              </FormLabel>
+              <Col xs={9}>
+                <DiscordChannelSelector
+                  id="hunt-form-firehose-discord-channel"
+                  guildId={guildId}
+                  disable={disableForm}
+                  value={firehoseDiscordChannel}
+                  onChange={onFirehoseDiscordChannelChanged}
+                />
+                <FormText>
+                  If this field is specified, all chat messages written in puzzles associated with
+                  this hunt will be mirrored to the specified Discord channel.
+                </FormText>
+              </Col>
+            </FormGroup>
+
+            <FormGroup as={Row}>
+              <FormLabel column xs={3} htmlFor="hunt-form-member-discord-role">
+                Discord role for members
+              </FormLabel>
+              <Col xs={9}>
+                <DiscordRoleSelector
+                  id="hunt-form-member-discord-role"
+                  guildId={guildId}
+                  disable={disableForm}
+                  value={memberDiscordRole}
+                  onChange={onMemberDiscordRoleChanged}
+                />
+                <FormText>
+                  If set, then members of the hunt that have linked their Discord profile are added
+                  to the specified Discord role. Note that for continuity, if this setting is
+                  changed, Jolly Roger will not touch the old role (e.g. to remove members)
+                </FormText>
+              </Col>
+            </FormGroup>
+          </>
+        ) : (
+          <Alert variant="info">
+            <FontAwesomeIcon icon={faInfo} fixedWidth />
+            Discord has not been configured, so Discord settings are disabled.
+          </Alert>
+        )}
+
+        <div ref={footer}>
+          {submitState === SubmitState.FAILED && <Alert variant="danger">{errorMessage}</Alert>}
+          {submitState === SubmitState.SUCCESS && (
+            <Alert variant="success" dismissible onClose={onSuccessDismiss}>
+              Hunt information successfully updated
+            </Alert>
+          )}
+
+          <ActionButtonRow>
+            <FormGroup>
+              <Button variant="primary" type="submit" disabled={disableForm}>{huntId ? 'Save' : 'Create'}</Button>
+            </FormGroup>
+          </ActionButtonRow>
+        </div>
+      </Form>
+    </Container>
+  );
+};
+
+export default HuntEditPage;
