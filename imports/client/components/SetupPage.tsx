@@ -23,6 +23,11 @@ import { SettingType } from '../../lib/schemas/Setting';
 import { DiscordGuildType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import lookupUrl from '../lookupUrl';
+import ActionButtonRow from './ActionButtonRow';
+
+const PageContainer = styled.div`
+  max-width: 800px;
+`;
 
 const Section = styled.section`
   margin-bottom: 24px;
@@ -38,6 +43,11 @@ const SectionHeader = styled.h1`
   align-items: center;
   justify-content: space-between;
   min-height: 48px;
+  // Note: keep in sync with App's margin computation
+  margin-left: calc(-1 * max(env(safe-area-inset-left, 0px), 15px));
+  margin-right: calc(-1 * max(env(safe-area-inset-right, 0px), 15px));
+  padding-left: max(env(safe-area-inset-left, 0px), 15px);
+  padding-right: 4px;
 `;
 
 const SectionHeaderLabel = styled.span`
@@ -48,14 +58,13 @@ const SectionHeaderButtons = styled.span`
   flex: 0 0 auto;
   button {
     margin-left: 8px;
-    margin-bottom: 8px;
   }
 `;
 
 const Subsection = styled.div`
-  &:not(:last-child) {
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 16px;
+  &:not(:first-child) {
+    border-top: 1px solid #ccc;
+    padding-top: 16px;
     margin-bottom: 16px;
   }
 `;
@@ -179,9 +188,11 @@ const GoogleOAuthForm = ({ isConfigured, initialClientId }: {
           placeholder={secretPlaceholder}
         />
       </FormGroup>
-      <Button variant="primary" type="submit" disabled={shouldDisableForm} onSubmit={onSubmitOauthConfiguration}>
-        Save
-      </Button>
+      <ActionButtonRow>
+        <Button variant="primary" type="submit" disabled={shouldDisableForm} onSubmit={onSubmitOauthConfiguration}>
+          Save
+        </Button>
+      </ActionButtonRow>
     </form>
   );
 };
@@ -311,7 +322,9 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
           onChange={onRootIdChange}
         />
       </FormGroup>
-      <Button variant="primary" onClick={saveRootId} disabled={shouldDisableForm}>Save</Button>
+      <ActionButtonRow>
+        <Button variant="primary" onClick={saveRootId} disabled={shouldDisableForm}>Save</Button>
+      </ActionButtonRow>
       <FormGroup>
         <FormLabel htmlFor="jr-setup-edit-google-drive-reorganize">
           Changing this setting does not automatically reorganize any existing
@@ -416,8 +429,30 @@ const GoogleDriveTemplateForm = ({ initialDocTemplate, initialSpreadsheetTemplat
           onChange={onDocTemplateChange}
         />
       </FormGroup>
-      <Button variant="primary" onClick={saveTemplates} disabled={shouldDisableForm}>Save</Button>
+      <ActionButtonRow>
+        <Button variant="primary" onClick={saveTemplates} disabled={shouldDisableForm}>Save</Button>
+      </ActionButtonRow>
     </div>
+  );
+};
+
+const FeatureToggle = ({ enabled, onToggleEnabled }: {
+  enabled: boolean;
+  onToggleEnabled: React.MouseEventHandler<HTMLElement>;
+}) => {
+  const firstButtonLabel = enabled ? 'Enabled' : 'Enable';
+  const secondButtonLabel = enabled ? 'Disable' : 'Disabled';
+  const firstButtonVariant = enabled ? 'secondary-outline' : 'secondary';
+  const secondButtonVariant = enabled ? 'secondary' : 'secondary-outline';
+  return (
+    <>
+      <Button variant={firstButtonVariant} disabled={enabled} onClick={onToggleEnabled}>
+        {firstButtonLabel}
+      </Button>
+      <Button variant={secondButtonVariant} disabled={!enabled} onClick={onToggleEnabled}>
+        {secondButtonLabel}
+      </Button>
+    </>
   );
 };
 
@@ -449,8 +484,6 @@ const GoogleIntegrationSection = () => {
     Meteor.call('clearGdriveCreds');
   }, []);
 
-  const firstButtonLabel = enabled ? 'Enabled' : 'Enable';
-  const secondButtonLabel = enabled ? 'Disable' : 'Disabled';
   const clientId = (oauthSettings && oauthSettings.clientId) || '';
 
   let stepsDone = 0;
@@ -486,12 +519,7 @@ const GoogleIntegrationSection = () => {
           {comp}
         </Badge>
         <SectionHeaderButtons>
-          <Button variant="light" disabled={enabled} onClick={onToggleEnabled}>
-            {firstButtonLabel}
-          </Button>
-          <Button variant="light" disabled={!enabled} onClick={onToggleEnabled}>
-            {secondButtonLabel}
-          </Button>
+          <FeatureToggle enabled={enabled} onToggleEnabled={onToggleEnabled} />
         </SectionHeaderButtons>
       </SectionHeader>
       <p>
@@ -911,7 +939,9 @@ const EmailConfigForm = ({ initialConfig }: {
           </ul>
         </FormText>
       </FormGroup>
-      <Button variant="primary" onClick={saveConfig} disabled={shouldDisableForm}>Save</Button>
+      <ActionButtonRow>
+        <Button variant="primary" onClick={saveConfig} disabled={shouldDisableForm}>Save</Button>
+      </ActionButtonRow>
     </div>
   );
 };
@@ -1052,7 +1082,9 @@ const DiscordOAuthForm = ({ oauthSettings }: {
             onChange={onClientSecretChange}
           />
         </FormGroup>
-        <Button variant="primary" type="submit" onClick={onSubmitOauthConfiguration} disabled={shouldDisableForm}>Save</Button>
+        <ActionButtonRow>
+          <Button variant="primary" type="submit" onClick={onSubmitOauthConfiguration} disabled={shouldDisableForm}>Save</Button>
+        </ActionButtonRow>
       </form>
     </div>
   );
@@ -1113,7 +1145,9 @@ const DiscordBotForm = ({ botToken: initialBotToken }: { botToken?: string }) =>
             onChange={onBotTokenChange}
           />
         </FormGroup>
-        <Button variant="primary" type="submit" onClick={onSubmitBotToken} disabled={shouldDisableForm}>Save</Button>
+        <ActionButtonRow>
+          <Button variant="primary" type="submit" onClick={onSubmitBotToken} disabled={shouldDisableForm}>Save</Button>
+        </ActionButtonRow>
       </form>
     </div>
   );
@@ -1195,7 +1229,9 @@ const DiscordGuildForm = ({ guild: initialGuild }: {
             })}
           </FormControl>
         </FormGroup>
-        <Button variant="primary" type="submit" onClick={onSaveGuild} disabled={shouldDisableForm}>Save</Button>
+        <ActionButtonRow>
+          <Button variant="primary" type="submit" onClick={onSaveGuild} disabled={shouldDisableForm}>Save</Button>
+        </ActionButtonRow>
       </form>
     </div>
   );
@@ -1219,9 +1255,6 @@ const DiscordIntegrationSection = () => {
     Meteor.call('setFeatureFlag', 'disable.discord', ffValue);
   }, [enabled]);
 
-  const firstButtonLabel = enabled ? 'Enabled' : 'Enable';
-  const secondButtonLabel = enabled ? 'Disable' : 'Disabled';
-
   const configured = !!oauthSettings;
   const headerBadgeVariant = configured ? 'success' : 'warning';
   const clientId = oauthSettings && oauthSettings.appId;
@@ -1243,12 +1276,7 @@ const DiscordIntegrationSection = () => {
         </Badge>
         {configured && (
         <SectionHeaderButtons>
-          <Button variant="light" disabled={enabled} onClick={onToggleEnabled}>
-            {firstButtonLabel}
-          </Button>
-          <Button variant="light" disabled={!enabled} onClick={onToggleEnabled}>
-            {secondButtonLabel}
-          </Button>
+          <FeatureToggle enabled={enabled} onToggleEnabled={onToggleEnabled} />
         </SectionHeaderButtons>
         )}
       </SectionHeader>
@@ -1405,7 +1433,9 @@ const BrandingTeamName = () => {
             onChange={onTeamNameChange}
           />
         </FormGroup>
-        <Button variant="primary" type="submit" onClick={onSubmit} disabled={shouldDisableForm}>Save</Button>
+        <ActionButtonRow>
+          <Button variant="primary" type="submit" onClick={onSubmit} disabled={shouldDisableForm}>Save</Button>
+        </ActionButtonRow>
       </form>
     </div>
   );
@@ -1597,7 +1627,10 @@ const CircuitBreakerRow = styled.div`
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 8px;
-  background: #eee;
+  background: #eef;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-right: 4px;
 `;
 
 const CircuitBreakerLabel = styled.div`
@@ -1636,8 +1669,6 @@ const CircuitBreakerControl = ({
 
   // Is the feature that this circuit breaker disables currently available?
   const featureIsEnabled = !featureDisabled;
-  const firstButtonLabel = featureIsEnabled ? 'Enabled' : 'Enable';
-  const secondButtonLabel = featureIsEnabled ? 'Disable' : 'Disabled';
 
   return (
     <CircuitBreaker>
@@ -1646,12 +1677,7 @@ const CircuitBreakerControl = ({
           {title}
         </CircuitBreakerLabel>
         <CircuitBreakerButtons>
-          <Button variant="light" disabled={featureIsEnabled} onClick={onChangeCb}>
-            {firstButtonLabel}
-          </Button>
-          <Button variant="light" disabled={!featureIsEnabled} onClick={onChangeCb}>
-            {secondButtonLabel}
-          </Button>
+          <FeatureToggle enabled={featureIsEnabled} onToggleEnabled={onChangeCb} />
         </CircuitBreakerButtons>
       </CircuitBreakerRow>
       <div className="circuit-breaker-description">
@@ -1807,13 +1833,13 @@ const SetupPage = () => {
   }
 
   return (
-    <div>
+    <PageContainer>
       <GoogleIntegrationSection />
       <EmailConfigSection />
       <DiscordIntegrationSection />
       <BrandingSection />
       <CircuitBreakerSection />
-    </div>
+    </PageContainer>
   );
 };
 
