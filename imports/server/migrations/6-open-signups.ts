@@ -1,5 +1,5 @@
-import { Migrations } from 'meteor/percolate:migrations';
 import Hunts from '../../lib/models/Hunts';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 6,

@@ -1,6 +1,5 @@
-import { Migrations } from 'meteor/percolate:migrations';
-import { _ } from 'meteor/underscore';
 import FolderPermissions from '../../lib/models/FolderPermissions';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 35,

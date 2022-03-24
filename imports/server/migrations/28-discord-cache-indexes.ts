@@ -1,5 +1,5 @@
-import { Migrations } from 'meteor/percolate:migrations';
 import DiscordCache from '../../lib/models/DiscordCache';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 28,

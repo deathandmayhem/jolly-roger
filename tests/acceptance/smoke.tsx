@@ -13,7 +13,12 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import FixtureHunt from '../../imports/FixtureHunt';
-import { stabilize, USER_EMAIL, USER_PASSWORD } from './lib';
+import {
+  resetDatabase,
+  stabilize,
+  USER_EMAIL,
+  USER_PASSWORD,
+} from './lib';
 
 function enumeratePaths(routes: RouteObject[], prefix: string = '', acc: string[] = []): string[] {
   routes.forEach((route) => {
@@ -60,7 +65,7 @@ if (Meteor.isClient) {
       // timeouts in CI.
       this.timeout(5000);
 
-      await Meteor.callPromise('test.resetDatabase');
+      await resetDatabase('route');
       await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
       await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
       await Meteor.callPromise('createFixtureHunt');

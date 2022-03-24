@@ -1,9 +1,9 @@
-import { Migrations } from 'meteor/percolate:migrations';
 import Announcements from '../../lib/models/Announcements';
 import ChatMessages from '../../lib/models/ChatMessages';
 import Guesses from '../../lib/models/Guesses';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 1,

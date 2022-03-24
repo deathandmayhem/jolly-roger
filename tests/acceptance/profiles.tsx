@@ -5,7 +5,7 @@ import { assert } from 'chai';
 import Hunts from '../../imports/lib/models/Hunts';
 import MeteorUsers from '../../imports/lib/models/MeteorUsers';
 import { addUserToRole, userIsOperatorForAnyHunt } from '../../imports/lib/permission_stubs';
-import { stabilize } from './lib';
+import { resetDatabase, stabilize } from './lib';
 
 if (Meteor.isServer) {
   // To make these tests easier to setup, use these methods to punch through
@@ -71,7 +71,7 @@ if (Meteor.isClient) {
   describe('user profile publishes', function () {
     describe('displayNames', function () {
       it('behaves correctly', async function () {
-        await Meteor.callPromise('test.resetDatabase');
+        await resetDatabase('user profile publishes displayNames');
 
         const userId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger@deathandmayhem.com', 'password', 'U1');
         const sameHuntUserId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger+same-hunt@deathandmayhem.com', 'password', 'U2');
@@ -118,7 +118,7 @@ if (Meteor.isClient) {
 
     describe('allProfiles', function () {
       it('behaves correctly', async function () {
-        await Meteor.callPromise('test.resetDatabase');
+        await resetDatabase('user profile publishes allProfiles');
 
         const userId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger@deathandmayhem.com', 'password', 'U1');
         const sameHuntUserId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger+same-hunt@deathandmayhem.com', 'password', 'U2');
@@ -154,7 +154,7 @@ if (Meteor.isClient) {
 
     describe('huntRoles', function () {
       it('behaves correctly', async function () {
-        await Meteor.callPromise('test.resetDatabase');
+        await resetDatabase('user profile publishes huntRoles');
 
         const userId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger@deathandmayhem.com', 'password', 'U1');
         const sameHuntUserId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger+same-hunt@deathandmayhem.com', 'password', 'U2');

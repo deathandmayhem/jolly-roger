@@ -44,7 +44,9 @@ Meteor.methods({
 });
 
 Meteor.publish('pendingAnnouncements', function () {
-  check(this.userId, String);
+  if (!this.userId) {
+    throw new Meteor.Error(401, 'Not logged in');
+  }
 
   const watcher = new JoinPublisher(this, {
     model: PendingAnnouncements,

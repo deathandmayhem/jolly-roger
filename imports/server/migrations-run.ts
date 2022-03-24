@@ -1,4 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Migrations } from 'meteor/percolate:migrations';
+import Migrations from './migrations/Migrations';
 
-Meteor.startup(() => Migrations.migrateTo('latest'));
+Meteor.startup(() => Migrations.migrateToLatest());

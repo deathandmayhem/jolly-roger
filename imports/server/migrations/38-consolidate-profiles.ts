@@ -1,8 +1,8 @@
 import { Mongo } from 'meteor/mongo';
-import { Migrations } from 'meteor/percolate:migrations';
 import * as t from 'io-ts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { UserCodec } from '../../lib/schemas/User';
+import Migrations from './Migrations';
 
 // Since the profiles model has been removed, we need to make our own collection
 // for this migration.

@@ -11,7 +11,12 @@ import {
   NavigateFunction,
   useNavigate,
 } from 'react-router-dom';
-import { stabilize, USER_EMAIL, USER_PASSWORD } from './lib';
+import {
+  resetDatabase,
+  stabilize,
+  USER_EMAIL,
+  USER_PASSWORD,
+} from './lib';
 
 if (Meteor.isClient) {
   const Routes: typeof import('../../imports/client/components/Routes').default =
@@ -46,7 +51,7 @@ if (Meteor.isClient) {
 
     describe('no users', function () {
       before(async function () {
-        await Meteor.callPromise('test.resetDatabase');
+        await resetDatabase('authentication no users');
       });
 
       it('redirects to the create-first-user page', async function () {
@@ -60,7 +65,7 @@ if (Meteor.isClient) {
 
     describe('has users but not logged in', function () {
       before(async function () {
-        await Meteor.callPromise('test.resetDatabase');
+        await resetDatabase('authentication has users but not logged in');
         await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
       });
 
@@ -82,7 +87,7 @@ if (Meteor.isClient) {
 
     describe('authenticated users', function () {
       before(async function () {
-        await Meteor.callPromise('test.resetDatabase');
+        await resetDatabase('authenticated users');
         await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
         await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
       });
