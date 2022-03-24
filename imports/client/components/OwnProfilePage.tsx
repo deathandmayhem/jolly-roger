@@ -6,6 +6,7 @@ import { ServiceConfiguration } from 'meteor/service-configuration';
 import React, { useCallback, useMemo, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
+import Container from 'react-bootstrap/Container';
 import FormCheck from 'react-bootstrap/FormCheck';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
@@ -14,6 +15,7 @@ import FormText from 'react-bootstrap/FormText';
 import Flags from '../../Flags';
 import TeamName from '../TeamName';
 import { requestDiscordCredential } from '../discord';
+import ActionButtonRow from './ActionButtonRow';
 import AudioConfig from './AudioConfig';
 import Avatar from './Avatar';
 
@@ -334,7 +336,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
 
   const shouldDisableForm = (submitState === 'submitting');
   return (
-    <div>
+    <Container>
       <h1>Account information</h1>
       <Avatar {...initialUser} size={64} />
       <FormGroup>
@@ -426,19 +428,21 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
         </FormText>
       </FormGroup>
 
-      <FormGroup>
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={shouldDisableForm}
-          onClick={handleSaveForm}
-        >
-          Save
-        </Button>
-      </FormGroup>
+      <ActionButtonRow>
+        <FormGroup>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={shouldDisableForm}
+            onClick={handleSaveForm}
+          >
+            Save
+          </Button>
+        </FormGroup>
+      </ActionButtonRow>
 
       <AudioConfig />
-    </div>
+    </Container>
   );
 };
 
