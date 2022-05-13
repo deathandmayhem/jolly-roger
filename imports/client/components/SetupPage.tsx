@@ -229,6 +229,7 @@ const GoogleAuthorizeDriveClientForm = () => {
     Google.requestCredential({
       requestPermissions: ['email', 'https://www.googleapis.com/auth/drive'],
       requestOfflineToken: true,
+      forceApprovalPrompt: true,
     }, requestComplete);
     return false;
   }, [requestComplete]);
