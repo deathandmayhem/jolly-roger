@@ -29,7 +29,7 @@ export type PuzzleListState = {
 export const usePuzzleListState = createPersistedState<Record<string /* huntId */, PuzzleListState>>('puzzleListView');
 
 const defaultPuzzleListState = () => {
-  return { displayMode: 'group', showSolved: true, collapseGroups: {} } as const;
+  return { displayMode: 'group', showSolved: true, collapseGroups: {} } as PuzzleListState;
 };
 export const useHuntPuzzleListState = (huntId: string) => {
   const [puzzleListView, setPuzzleListView] = usePuzzleListState();
