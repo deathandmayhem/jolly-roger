@@ -39,6 +39,43 @@ const mediaCodecs: types.RtpCodecCapability[] = [
   },
 ];
 
+type ConsumerAppData = {
+  call: string;
+  peer: string;
+  transportRequest: string;
+  transportId: string;
+  producerPeer: string;
+  createdBy: string;
+};
+
+type ProducerAppData = {
+  call: string;
+  peer: string;
+  transport: string;
+  trackId: string;
+  producerClient: string;
+  createdBy: string;
+};
+
+type TransportAppData = {
+  transportRequest: string;
+  call: string;
+  peer: string;
+  createdBy: string;
+  direction: 'send' | 'recv';
+};
+
+type AudioLevelObserverAppData = {
+  hunt: string;
+  call: string;
+};
+
+type RouterAppData = {
+  hunt: string;
+  call: string;
+  createdBy: string;
+};
+
 class SFU {
   public ips: types.TransportListenIp[];
 
@@ -170,53 +207,57 @@ class SFU {
       return;
     }
 
-    if (consumerTransport.appData.peer === producer.appData.peer) {
+    const consumerTransportAppData = consumerTransport.appData as TransportAppData;
+    const producerAppData = producer.appData as ProducerAppData;
+
+    if (consumerTransportAppData.peer === producerAppData.peer) {
       return;
     }
 
-    if (consumerTransport.appData.call !== producer.appData.call) {
+    if (consumerTransportAppData.call !== producerAppData.call) {
       return;
     }
 
-    const router = this.routers.get(producer.appData.call);
+    const router = this.routers.get(producerAppData.call);
     if (!router) {
       return;
     }
 
-    const capabilities = this.peerToRtpCapabilities.get(consumerTransport.appData.peer);
+    const capabilities = this.peerToRtpCapabilities.get(consumerTransportAppData.peer);
     if (!capabilities) {
       return;
     }
 
     if (!router.canConsume({ producerId: producer.id, rtpCapabilities: capabilities })) {
       Ansible.warn('Consumer can not consume from peer (this should not happen)', {
-        producerPeer: producer.appData.peer,
-        consumerPeer: consumerTransport.appData.peer,
+        producerPeer: producerAppData.peer,
+        consumerPeer: consumerTransportAppData.peer,
         capabilities: JSON.stringify(capabilities),
       });
       return;
     }
 
     try {
+      const appData: ConsumerAppData = {
+        call: consumerTransportAppData.call,
+        peer: consumerTransportAppData.peer,
+        transportRequest: consumerTransportAppData.transportRequest,
+        transportId: consumerTransport.id,
+        producerPeer: producerAppData.peer,
+        createdBy: consumerTransportAppData.createdBy,
+      };
       await consumerTransport.consume({
         producerId: producer.id,
         rtpCapabilities: capabilities,
         // Mediasoup docs recommend starting all consumers paused until the
         // client acknowledges that its setup
         paused: true,
-        appData: {
-          call: consumerTransport.appData.call,
-          peer: consumerTransport.appData.peer,
-          transportRequest: consumerTransport.appData.transportRequest,
-          transportId: consumerTransport.id,
-          producerPeer: producer.appData.peer,
-          createdBy: consumerTransport.appData.createdBy,
-        },
+        appData,
       });
     } catch (e) {
       Ansible.error('Error creating consumer', {
-        call: producer.appData.call,
-        peer: producer.appData.peer,
+        call: producerAppData.call,
+        peer: producerAppData.peer,
         transport: consumerTransport.id,
         producer: producer.id,
         error: (e instanceof Error ? e.message : e),
@@ -246,29 +287,32 @@ class SFU {
   onRouterCreated(router: types.Router) {
     router.observer.on('newtransport', Meteor.bindEnvironment(this.onTransportCreated.bind(this)));
 
+    const routerAppData = router.appData as RouterAppData;
+
     router.observer.on('close', Meteor.bindEnvironment(() => {
-      Ansible.info('Router was shut down', { call: router.appData.call, router: router.id });
-      this.routers.delete(router.appData.call);
+      Ansible.info('Router was shut down', { call: routerAppData.call, router: router.id });
+      this.routers.delete(routerAppData.call);
       Routers.remove({ routerId: router.id });
     }));
     router.observer.on('newrtpobserver', Meteor.bindEnvironment(this.onRtpObserverCreated.bind(this)));
 
-    this.routers.set(router.appData.call, router);
+    this.routers.set(routerAppData.call, router);
+    const appData: AudioLevelObserverAppData = {
+      hunt: routerAppData.hunt,
+      call: routerAppData.call,
+    };
     router.createAudioLevelObserver({
       threshold: -50,
       interval: 100,
-      appData: {
-        hunt: router.appData.hunt,
-        call: router.appData.call,
-      },
+      appData,
     });
     Routers.insert({
-      hunt: router.appData.hunt,
-      call: router.appData.call,
+      hunt: routerAppData.hunt,
+      call: routerAppData.call,
       createdServer: serverId,
       routerId: router.id,
       rtpCapabilities: JSON.stringify(router.rtpCapabilities),
-      createdBy: router.appData.createdBy,
+      createdBy: routerAppData.createdBy,
     });
   }
 
@@ -277,36 +321,40 @@ class SFU {
       return;
     }
 
+    const observerAppData = observer.appData as AudioLevelObserverAppData;
+
     const updateLastActivity = _.throttle(Meteor.bindEnvironment(() => {
       CallHistories.upsert({
-        hunt: observer.appData.hunt,
-        call: observer.appData.call,
+        hunt: observerAppData.hunt,
+        call: observerAppData.call,
       }, { $set: { lastActivity: new Date() } });
     }), RECENT_ACTIVITY_TIME_WINDOW_MS);
 
     observer.observer.on('close', () => {
       updateLastActivity.cancel();
-      this.observers.delete(observer.appData.call);
+      this.observers.delete(observerAppData.call);
     });
     // No need to inspect volumes, as any volume is indicative of activity
     // (absence of activity would translate to a "silence" event)
     observer.observer.on('volumes', updateLastActivity);
 
-    this.observers.set(observer.appData.call, observer);
+    this.observers.set(observerAppData.call, observer);
   }
 
   onTransportCreated(transport: types.Transport) {
     transport.observer.on('newproducer', Meteor.bindEnvironment(this.onProducerCreated.bind(this)));
     transport.observer.on('newconsumer', Meteor.bindEnvironment(this.onConsumerCreated.bind(this)));
 
+    const transportAppData = transport.appData as TransportAppData;
+
     transport.observer.on('close', Meteor.bindEnvironment(() => {
-      this.transports.delete(`${transport.appData.transportRequest}:${transport.appData.direction}`);
+      this.transports.delete(`${transportAppData.transportRequest}:${transportAppData.direction}`);
       Transports.remove({ transportId: transport.id });
       TransportStates.remove({ transportId: transport.id });
     }));
 
     if (!(transport instanceof types.WebRtcTransport)) {
-      Ansible.warn('Ignoring unexpected non-WebRTC transport', { call: transport.appData.call, peer: transport.appData.peer, transport: transport.id });
+      Ansible.warn('Ignoring unexpected non-WebRTC transport', { call: transportAppData.call, peer: transportAppData.peer, transport: transport.id });
       return;
     }
 
@@ -317,7 +365,7 @@ class SFU {
       }, {
         $set: {
           iceState,
-          createdBy: transport.appData.createdBy,
+          createdBy: transportAppData.createdBy,
         },
       });
     }));
@@ -328,7 +376,7 @@ class SFU {
       }, {
         $set: {
           iceSelectedTuple: iceSelectedTuple ? JSON.stringify(iceSelectedTuple) : undefined,
-          createdBy: transport.appData.createdBy,
+          createdBy: transportAppData.createdBy,
         },
       });
     }));
@@ -339,34 +387,35 @@ class SFU {
       }, {
         $set: {
           dtlsState,
-          createdBy: transport.appData.createdBy,
+          createdBy: transportAppData.createdBy,
         },
       });
     }));
 
     // This casts a wide net, but `createConsumer` will filter it down
     this.producers.forEach((producer) => {
-      this.createConsumer(transport.appData.direction, transport, producer);
+      this.createConsumer(transportAppData.direction, transport, producer);
     });
 
-    this.transports.set(`${transport.appData.transportRequest}:${transport.appData.direction}`, transport);
+    this.transports.set(`${transportAppData.transportRequest}:${transportAppData.direction}`, transport);
     Transports.insert({
-      call: transport.appData.call,
+      call: transportAppData.call,
       createdServer: serverId,
-      peer: transport.appData.peer,
-      transportRequest: transport.appData.transportRequest,
-      direction: transport.appData.direction,
+      peer: transportAppData.peer,
+      transportRequest: transportAppData.transportRequest,
+      direction: transportAppData.direction,
       transportId: transport.id,
       iceParameters: JSON.stringify(transport.iceParameters),
       iceCandidates: JSON.stringify(transport.iceCandidates),
       dtlsParameters: JSON.stringify(transport.dtlsParameters),
-      createdBy: transport.appData.createdBy,
+      createdBy: transportAppData.createdBy,
     });
   }
 
   onProducerCreated(producer: types.Producer) {
+    const producerAppData = producer.appData as ProducerAppData;
     producer.observer.on('close', Meteor.bindEnvironment(() => {
-      this.producers.delete(producer.appData.producerClient);
+      this.producers.delete(producerAppData.producerClient);
       ProducerServers.remove({ producerId: producer.id });
     }));
 
@@ -377,27 +426,28 @@ class SFU {
       this.createConsumer(key.split(':')[1], transport, producer);
     });
 
-    const observer = this.observers.get(producer.appData.call);
+    const observer = this.observers.get(producerAppData.call);
     if (observer) {
       observer.addProducer({ producerId: producer.id });
     }
 
-    this.producers.set(producer.appData.producerClient, producer);
+    this.producers.set(producerAppData.producerClient, producer);
     ProducerServers.insert({
       createdServer: serverId,
-      call: producer.appData.call,
-      peer: producer.appData.peer,
-      transport: producer.appData.transport,
-      producerClient: producer.appData.producerClient,
-      trackId: producer.appData.trackId,
+      call: producerAppData.call,
+      peer: producerAppData.peer,
+      transport: producerAppData.transport,
+      producerClient: producerAppData.producerClient,
+      trackId: producerAppData.trackId,
       producerId: producer.id,
-      createdBy: producer.appData.createdBy,
+      createdBy: producerAppData.createdBy,
     });
   }
 
   onConsumerCreated(consumer: types.Consumer) {
+    const consumerAppData = consumer.appData as ConsumerAppData;
     consumer.observer.on('close', Meteor.bindEnvironment(() => {
-      this.consumers.delete(`${consumer.appData.transportRequest}:${consumer.producerId}`);
+      this.consumers.delete(`${consumerAppData.transportRequest}:${consumer.producerId}`);
       Consumers.remove({ consumerId: consumer.id });
     }));
 
@@ -408,20 +458,20 @@ class SFU {
       Consumers.update({ consumerId: consumer.id }, { $set: { paused: false } });
     }));
 
-    this.consumers.set(`${consumer.appData.transportRequest}:${consumer.producerId}`, consumer);
+    this.consumers.set(`${consumerAppData.transportRequest}:${consumer.producerId}`, consumer);
     Consumers.insert({
       createdServer: serverId,
-      call: consumer.appData.call,
-      peer: consumer.appData.peer,
-      transportRequest: consumer.appData.transportRequest,
-      transportId: consumer.appData.transportId,
-      producerPeer: consumer.appData.producerPeer,
+      call: consumerAppData.call,
+      peer: consumerAppData.peer,
+      transportRequest: consumerAppData.transportRequest,
+      transportId: consumerAppData.transportId,
+      producerPeer: consumerAppData.producerPeer,
       consumerId: consumer.id,
       producerId: consumer.producerId,
       kind: consumer.kind,
       rtpParameters: JSON.stringify(consumer.rtpParameters),
       paused: consumer.paused,
-      createdBy: consumer.appData.createdBy,
+      createdBy: consumerAppData.createdBy,
     });
   }
 
@@ -433,13 +483,14 @@ class SFU {
 
   async roomCreated(room: RoomType) {
     Ansible.info('Creating router', { call: room.call });
+    const appData: RouterAppData = {
+      hunt: room.hunt,
+      call: room.call,
+      createdBy: room.createdBy,
+    };
     const router = this.worker.createRouter({
       mediaCodecs,
-      appData: {
-        hunt: room.hunt,
-        call: room.call,
-        createdBy: room.createdBy,
-      },
+      appData,
     });
     this.roomToRouter.set(room._id, router);
 
@@ -467,19 +518,21 @@ class SFU {
       return;
     }
 
-    const transports = Promise.all(['send', 'recv'].map((direction) => {
+    const directions: ('send' | 'recv')[] = ['send', 'recv'];
+    const transports = Promise.all(directions.map((direction) => {
+      const appData: TransportAppData = {
+        transportRequest: transportRequest._id,
+        call: transportRequest.call,
+        peer: transportRequest.peer,
+        createdBy: transportRequest.createdBy,
+        direction,
+      };
       return router.createWebRtcTransport({
         listenIps: this.ips,
         enableUdp: true,
         enableTcp: true,
         preferUdp: true,
-        appData: {
-          transportRequest: transportRequest._id,
-          call: transportRequest.call,
-          peer: transportRequest.peer,
-          createdBy: transportRequest.createdBy,
-          direction,
-        },
+        appData,
       });
     }));
     this.transportRequestToTransports.set(transportRequest._id, transports);
@@ -535,18 +588,19 @@ class SFU {
       return;
     }
 
+    const appData: ProducerAppData = {
+      call: producer.call,
+      peer: producer.peer,
+      transport: producer.transport,
+      trackId: producer.trackId,
+      producerClient: producer._id,
+      createdBy: producer.createdBy,
+    };
     const mediasoupProducer = transport.produce({
       kind: producer.kind,
       rtpParameters: JSON.parse(producer.rtpParameters),
       paused: producer.paused,
-      appData: {
-        call: producer.call,
-        peer: producer.peer,
-        transport: producer.transport,
-        trackId: producer.trackId,
-        producerClient: producer._id,
-        createdBy: producer.createdBy,
-      },
+      appData,
     });
     this.producerClientToProducer.set(producer._id, mediasoupProducer);
 
