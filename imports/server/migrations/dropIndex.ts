@@ -3,7 +3,7 @@ import { Mongo } from 'meteor/mongo';
 
 function dropIndex<T>(
   model: Mongo.Collection<T>,
-  index: {[key: string]: number | string} | string
+  index: string
 ): void {
   // _dropIndex is not idempotent, so we need to figure out if the
   // index already exists
