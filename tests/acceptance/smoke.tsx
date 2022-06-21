@@ -21,7 +21,7 @@ import {
   USER_PASSWORD,
 } from './lib';
 
-function enumeratePaths(routes: RouteObject[], prefix: string = '', acc: string[] = []): string[] {
+function enumeratePaths(routes: RouteObject[], prefix = '', acc: string[] = []): string[] {
   routes.forEach((route) => {
     if (route.children) {
       enumeratePaths(route.children, `${prefix}${route.path}/`, acc);
@@ -145,7 +145,7 @@ if (Meteor.isClient) {
 
     describe('which are unauthenticated', function () {
       before(async function () {
-        await Meteor.wrapPromise(Meteor.logout);
+        await Meteor.wrapPromise(Meteor.logout)();
       });
 
       enumeratePaths(UnauthenticatedRouteList).forEach((p) => {

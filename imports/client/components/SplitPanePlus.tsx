@@ -279,9 +279,9 @@ const SplitPanePlus = ({
       dragInProgress: false,
     });
     // May be called with a number or a string representing a percentage
-    let newSize: number = Number(rawSize);
+    let newSize = Number(rawSize);
     if (typeof rawSize === 'string') {
-      const rawSizeAsPercent: number = Number(rawSize.slice(0, -1));
+      const rawSizeAsPercent = Number(rawSize.slice(0, -1));
       if (rawSize.slice(-1) === '%' && !Number.isNaN(rawSizeAsPercent)) {
         newSize = (rawSizeAsPercent * measure(splitPaneNode())) / 100.0;
       }

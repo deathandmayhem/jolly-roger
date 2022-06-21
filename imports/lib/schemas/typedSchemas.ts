@@ -9,20 +9,20 @@ type NumberOverrides<T> = T extends number ? {
   max?: number | (() => number);
   exclusiveMin?: boolean;
   exclusiveMax?: boolean;
-} : {};
+} : Record<string, never>;
 
 type DateOverrides<T> = T extends Date ? {
   min?: Date | (() => Date);
   max?: number | (() => Date);
   exclusiveMin?: boolean;
   exclusiveMax?: boolean;
-} : {};
+} : Record<string, never>;
 
 type ArrayOverrides<T> = T extends any[] ? {
   minCount?: number | (() => number);
   maxCount?: number | (() => number);
   array?: FieldOverrides<T[0]>;
-} : {};
+} : Record<string, never>;
 
 type StringOverrides<T> = T extends string ? {
   min?: number | (() => number);
@@ -31,11 +31,11 @@ type StringOverrides<T> = T extends string ? {
   exclusiveMax?: boolean;
   regEx?: RegExp | RegExp[];
   trim?: boolean,
-} : {};
+} : Record<string, never>;
 
 type ObjectOverrides<T> = T extends Record<string, any> ? {
   nested?: {[K in keyof T]?: FieldOverrides<T[K]>};
-} : {};
+} : Record<string, never>;
 
 interface FieldInfo {
   isSet: boolean;
@@ -107,7 +107,7 @@ const buildLiteralUnionField = function <T, U> (
   const values = literals
     .map((lit) => lit instanceof t.LiteralType && lit.value)
     .filter(Boolean);
-  let type: Function;
+  let type: StringConstructor | NumberConstructor | BooleanConstructor;
   switch (typeof values[0]) {
     case 'string':
       type = String;
@@ -132,7 +132,7 @@ const buildField = function <T> (
   fieldName: string,
   fieldCodec: t.Type<T>,
   overrides: FieldOverrides<T> | undefined,
-  optional: boolean = false,
+  optional = false,
 ): [string, FieldDefinition<T>][] {
   // Go through each type that SimpleSchema supports, and see if we have one of
   // those
@@ -249,12 +249,12 @@ export const inheritSchema = function <
   childSchemaCodec: t.InterfaceType<CP, CT>,
   parentOverrides: Overrides<PT>,
   childOverrides: Overrides<CT>
-): [t.TypeC<PP & CP>, Overrides<PT & CP>] {
+): [t.TypeC<PP & CP>, Overrides<PT & CT>] {
   const inheritedCodec = t.type({
     ...parentSchemaCodec.props,
     ...childSchemaCodec.props,
   });
-  const inheritedOverrides: Overrides<PT & CP> = {};
+  const inheritedOverrides: Overrides<PT & CT> = {};
   Object.keys(parentOverrides).forEach((k) => {
     (inheritedOverrides as any)[k] = parentOverrides[k];
   });

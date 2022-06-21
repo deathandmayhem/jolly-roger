@@ -4,7 +4,6 @@ import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
-import { _ } from 'meteor/underscore';
 import React, { ReactChild, useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Badge from 'react-bootstrap/Badge';
@@ -459,7 +458,9 @@ const FeatureToggle = ({ enabled, onToggleEnabled }: {
 
 const GoogleIntegrationSection = () => {
   const enabled = useTracker(() => !Flags.active('disable.google'), []);
-  const oauthSettings = useTracker(() => ServiceConfiguration.configurations.findOne({ service: 'google' }) as any, []);
+  const oauthSettings = useTracker(() => {
+    return ServiceConfiguration.configurations.findOne({ service: 'google' }) as unknown as undefined | { clientId: string };
+  }, []);
   const {
     gdriveCredential, root, docTemplate, spreadsheetTemplate,
   } = useTracker(() => {

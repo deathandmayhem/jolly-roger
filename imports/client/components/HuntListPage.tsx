@@ -85,7 +85,10 @@ type CreateFixtureModalFormHandle = {
   show: () => void;
 };
 
-const CreateFixtureModal = React.forwardRef((_props: {}, forwardedRef: React.Ref<CreateFixtureModalFormHandle>) => {
+const CreateFixtureModal = React.forwardRef((
+  _props: { ref: React.Ref<CreateFixtureModalFormHandle> },
+  forwardedRef: React.Ref<CreateFixtureModalFormHandle>,
+) => {
   const [visible, setVisible] = useState(true);
   const show = useCallback(() => setVisible(true), []);
   const hide = useCallback(() => setVisible(false), []);

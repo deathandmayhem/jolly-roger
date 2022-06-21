@@ -2,7 +2,9 @@
   "root": true,
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "allowImportExportEverywhere": false
+    "allowImportExportEverywhere": false,
+    "tsconfigRootDir": ".",
+    "project": "./tsconfig.json"
   },
   "plugins": [
     "filenames",
@@ -15,7 +17,9 @@
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:react-hooks/recommended",
-    "plugin:eslint-comments/recommended"
+    "plugin:eslint-comments/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
   ],
   "settings": {
     "import/resolver": {
@@ -106,6 +110,22 @@
     // Allow disabling eslint rules on more than a single line, but only across a whole file
     "eslint-comments/disable-enable-pair": ["error", { "allowWholeFile": true }],
 
+    // Allow void statements to explicitly tag when we're throwing away a promise
+    "no-void": ["error", { "allowAsStatement": true }],
+
+    // Relax typescript checks to accommodate existing code
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/restrict-template-expressions": "off",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/prefer-namespace-keyword": ["off"],
+
     // Match existing style
     "operator-linebreak": ["error", "after"],
     "prefer-destructuring": ["off"],
@@ -160,7 +180,8 @@
 
         // since tests run in both client and server context, sometimes we need
         // conditional imports, which can only be easily done with require
-        "global-require": "off"
+        "global-require": "off",
+        "@typescript-eslint/no-var-requires": "off"
       }
     }
   ]

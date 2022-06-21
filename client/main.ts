@@ -8,7 +8,7 @@ import '../imports/client/close';
 
 declare global {
   interface Window {
-    loadFacades: () => void;
+    loadFacades: () => Promise<void>;
   }
 }
 

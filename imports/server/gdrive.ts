@@ -246,7 +246,7 @@ export function ensureDocument(puzzle: {
         const newDoc = {
           hunt: puzzle.hunt,
           puzzle: puzzle._id,
-          provider: 'google' as 'google',
+          provider: 'google' as const,
           value: { type, id: googleDocId, folder: folderId },
         };
         const docId = Documents.insert(newDoc);

@@ -1,6 +1,7 @@
 import http from 'http';
 import { Meteor } from 'meteor/meteor';
 import { WebApp } from 'meteor/webapp';
+import { NextFunction } from 'express';
 import lookupUrl from './lookupUrl';
 
 // Server-side dynamic rendering of /site.webmanifest to ensure we use custom
@@ -9,7 +10,7 @@ import lookupUrl from './lookupUrl';
 const serveSiteManifest = (
   _req: http.IncomingMessage,
   res: http.ServerResponse,
-  _next: Function
+  _next: NextFunction
 ) => {
   const android192Src = lookupUrl('android-chrome-192x192.png');
   const android512Src = lookupUrl('android-chrome-512x512.png');

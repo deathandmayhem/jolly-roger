@@ -26,7 +26,7 @@ class GDriveClientRefresher {
     this.oauthRefreshToken = undefined;
 
     // Watch for config changes, and refresh the gdrive instance if anything changes
-    this.oauthConfigCursor = <Mongo.Cursor<Configuration>>ServiceConfiguration.configurations.find({ service: 'google' });
+    this.oauthConfigCursor = ServiceConfiguration.configurations.find({ service: 'google' });
     this.oauthCredentialCursor = Settings.find({ name: 'gdrive.credential' });
     this.oauthConfigCursor.observe({
       added: (doc) => this.updateOauthConfig(doc),

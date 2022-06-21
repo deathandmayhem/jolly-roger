@@ -166,7 +166,7 @@ const ProducerManager = ({
     if (!dupedTrack) {
       return;
     }
-    (async () => {
+    void (async () => {
       console.log('Creating Mediasoup producer', { track: dupedTrack.id });
       // transport.produce will emit a 'produce' event before it resolves,
       // triggering onProduce above
@@ -311,7 +311,7 @@ const ConsumerManager = ({
   }, [consumer, paused]);
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       console.log('Creating new Mediasoup consumer', { mediasoupConsumerId, producerId });
       const newConsumer = await recvTransport.consume({
         id: mediasoupConsumerId,
@@ -679,7 +679,7 @@ const CallTransportCreator = ({
 }) => {
   const [device, setDevice] = useState<types.Device>();
   useEffect(() => {
-    (async () => {
+    void (async () => {
       console.log('Creating new Mediasoup device');
       const newDevice = new Device();
       await newDevice.load({

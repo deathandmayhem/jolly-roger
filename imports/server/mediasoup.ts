@@ -131,39 +131,47 @@ class SFU {
     });
 
     this.localRoomsHandle = Rooms.find({ routedServer: serverId }).observeChanges({
-      added: (id, fields) => this.roomCreated({ _id: id, ...fields } as RoomType),
-      removed: (id) => this.roomRemoved(id),
+      added: (id, fields) => {
+        void this.roomCreated({ _id: id, ...fields } as RoomType);
+      },
+      removed: (id) => {
+        void this.roomRemoved(id);
+      },
     });
 
     this.transportRequestsHandle = TransportRequests
       .find({ routedServer: serverId })
       .observeChanges({
         added: (id, fields) => {
-          this.transportRequestCreated({ _id: id, ...fields } as TransportRequestType);
+          void this.transportRequestCreated({ _id: id, ...fields } as TransportRequestType);
         },
-        removed: (id) => this.transportRequestRemoved(id),
+        removed: (id) => {
+          void this.transportRequestRemoved(id);
+        },
       });
 
     this.connectRequestsHandle = ConnectRequests.find({ routedServer: serverId }).observeChanges({
       added: (id, fields) => {
-        this.connectRequestCreated({ _id: id, ...fields } as ConnectRequestType);
-      // nothing to do when this is removed
+        void this.connectRequestCreated({ _id: id, ...fields } as ConnectRequestType);
       },
+      // nothing to do when this is removed
     });
 
     this.producerClientsHandle = ProducerClients.find({ routedServer: serverId }).observeChanges({
       added: (id, fields) => {
-        this.producerClientCreated({ _id: id, ...fields } as ProducerClientType);
+        void this.producerClientCreated({ _id: id, ...fields } as ProducerClientType);
       },
       changed: (id, fields) => {
-        this.producerClientChanged(id, fields);
+        void this.producerClientChanged(id, fields);
       },
-      removed: (id) => this.producerClientRemoved(id),
+      removed: (id) => {
+        void this.producerClientRemoved(id);
+      },
     });
 
     this.consumerAcksHandle = ConsumerAcks.find({ routedServer: serverId }).observeChanges({
       added: (id, fields) => {
-        this.consumerAckCreated({ _id: id, ...fields } as ConsumerAckType);
+        void this.consumerAckCreated({ _id: id, ...fields } as ConsumerAckType);
       },
       // nothing to do when removed
     });
@@ -301,7 +309,7 @@ class SFU {
       hunt: routerAppData.hunt,
       call: routerAppData.call,
     };
-    router.createAudioLevelObserver({
+    void router.createAudioLevelObserver({
       threshold: -50,
       interval: 100,
       appData,
@@ -394,7 +402,7 @@ class SFU {
 
     // This casts a wide net, but `createConsumer` will filter it down
     this.producers.forEach((producer) => {
-      this.createConsumer(transportAppData.direction, transport, producer);
+      void this.createConsumer(transportAppData.direction, transport, producer);
     });
 
     this.transports.set(`${transportAppData.transportRequest}:${transportAppData.direction}`, transport);
@@ -423,12 +431,12 @@ class SFU {
     // transports than we actually want to use, but `createConsumer` will filter
     // it down)
     this.transports.forEach((transport, key) => {
-      this.createConsumer(key.split(':')[1], transport, producer);
+      void this.createConsumer(key.split(':')[1], transport, producer);
     });
 
     const observer = this.observers.get(producerAppData.call);
     if (observer) {
-      observer.addProducer({ producerId: producer.id });
+      void observer.addProducer({ producerId: producer.id });
     }
 
     this.producers.set(producerAppData.producerClient, producer);

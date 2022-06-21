@@ -10,10 +10,10 @@ declare module 'meteor/meteor' {
         ...Args,
         (err: Error, val: Return) => void
       ]) => void): (...args: Args) => Promise<Return>;
-      function wrapPromise<Args extends any[], Error, Return>(
-        fn: (...args: [
-          ...Args,
-          (err: Error) => void
-        ]) => void): (...args: Args) => Promise<void>;
+    function wrapPromise<Args extends any[], Error>(
+      fn: (...args: [
+        ...Args,
+        (err: Error) => void
+      ]) => void): (...args: Args) => Promise<void>;
   }
 }

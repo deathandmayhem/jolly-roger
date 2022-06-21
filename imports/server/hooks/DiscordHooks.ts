@@ -133,10 +133,7 @@ const DiscordHooks: Hookset = {
         },
       };
 
-      Meteor.defer(() => {
-        // send actual message
-        bot.postMessageToChannel(channel, msg);
-      });
+      void bot.postMessageToChannel(channel, msg);
     }
   },
 };

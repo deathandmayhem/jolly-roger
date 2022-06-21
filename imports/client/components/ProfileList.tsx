@@ -93,7 +93,7 @@ const PromoteOperatorModal = React.forwardRef((
         <p>
           Are you sure you want to make
           {' '}
-          <strong>{user!.displayName}</strong>
+          <strong>{user.displayName}</strong>
           {' '}
           an operator?
         </p>
