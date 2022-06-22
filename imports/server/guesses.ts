@@ -139,7 +139,9 @@ class PendingGuessWatcher {
 // computation, whereas if we used a permissions check on the server to
 // short-circuit the sub, we could not.
 Meteor.publish('pendingGuesses', function () {
-  check(this.userId, String);
+  if (!this.userId) {
+    throw new Meteor.Error(401, 'Not logged in');
+  }
 
   const watcher = new PendingGuessWatcher(this);
   this.onStop(() => watcher.shutdown());

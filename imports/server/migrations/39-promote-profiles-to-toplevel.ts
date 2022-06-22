@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
-import { Migrations } from 'meteor/percolate:migrations';
 import MeteorUsers from '../../lib/models/MeteorUsers';
+import Migrations from './Migrations';
 import dropIndex from './dropIndex';
 
 type LegacyProfile = Pick<Meteor.User, 'displayName' | 'googleAccount' | 'discordAccount' | 'phoneNumber' | 'muteApplause' | 'dingwords'>;

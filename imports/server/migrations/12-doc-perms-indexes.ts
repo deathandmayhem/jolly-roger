@@ -1,4 +1,4 @@
-import { Migrations } from 'meteor/percolate:migrations';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 12,

@@ -1,5 +1,5 @@
-import { Migrations } from 'meteor/percolate:migrations';
 import FeatureFlags from '../../lib/models/FeatureFlags';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 26,

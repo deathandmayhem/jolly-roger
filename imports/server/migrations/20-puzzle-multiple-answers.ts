@@ -1,5 +1,5 @@
-import { Migrations } from 'meteor/percolate:migrations';
 import Puzzles from '../../lib/models/Puzzles';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 20,

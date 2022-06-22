@@ -1,5 +1,5 @@
-import { Migrations } from 'meteor/percolate:migrations';
 import Subscribers from '../models/Subscribers';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 19,

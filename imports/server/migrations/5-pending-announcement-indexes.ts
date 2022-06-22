@@ -1,5 +1,5 @@
-import { Migrations } from 'meteor/percolate:migrations';
 import PendingAnnouncements from '../../lib/models/PendingAnnouncements';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 5,

@@ -1,28 +1,76 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-console */
+import { check } from 'meteor/check';
 import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
-import { Migrations } from 'meteor/percolate:migrations';
 import { Tracker } from 'meteor/tracker';
-import { resetDatabase } from 'meteor/xolvio:cleaner';
+import { resetDatabase as xolvioResetDatabase } from 'meteor/xolvio:cleaner';
 
 export const USER_EMAIL = 'jolly-roger@deathandmayhem.com';
 export const USER_PASSWORD = 'password';
 
 if (Meteor.isServer) {
+  const Migrations: typeof import('../../imports/server/migrations/Migrations').default =
+    require('../../imports/server/migrations/Migrations').default;
+
+  // We track a few bits of information here to make it easier to tell what's
+  // going on in the event that the server receives concurrent `resetDatabase`
+  // calls (which are forbidden, because wiping a DB while attempting to run
+  // migrations is not going to result in correct behavior).
+
+  // Number of times we have started a `test.resetDatabase` call
+  let entries = 0;
+  // Number of times we have completed a `test.resetDatabase` call
+  let exits = 0;
+  // The name of the test for which we are currently running
+  // `test.resetDatabase`.  Helps debug which tests are incorrectly interleaving.
+  let currentTest: string | undefined;
+  // The connection handle of the connection for which we are servicing the current
+  // `test.resetDatabase` invocation.
+  let currentConn: Meteor.Connection | null | undefined;
+
   Meteor.methods({
-    'test.resetDatabase': function () {
+    'test.resetDatabase': async function (testName: string) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, 'This code must not run in production');
       }
 
-      resetDatabase();
-      Migrations.config({ log: false, logger: () => {} });
-      Migrations.migrateTo('latest');
-      console.log('Reset database');
+      check(testName, String);
+
+      if (entries !== exits) {
+        throw new Meteor.Error(500, `concurrent calls to test.resetDatabase: running: "${currentTest}" for conn ${currentConn!.id} from ${(currentConn!.httpHeaders as any)['user-agent']}, requested: "${testName}" on conn ${this.connection!.id} from ${(this.connection!.httpHeaders as any)['user-agent']}`);
+      }
+
+      entries += 1;
+      currentTest = testName;
+      currentConn = this.connection;
+
+      xolvioResetDatabase();
+      Migrations.config({ log: false });
+      await Migrations.migrateToLatest();
+
+      currentConn = undefined;
+      currentTest = undefined;
+      exits += 1;
     },
   });
 }
+
+export const resetDatabase = async (testName: string) => {
+  // If we're logged in when we issue the call to test.resetDatabase, then
+  // we will be logged out when our userId's doc is deleted from the users
+  // database.  This causes us to be logged out mid-method call, which
+  // causes Meteor to retry the method call, which results in concurrent
+  // test.resetDatabase calls, which is undesirable behavior.
+  // Since resetting the database force-logs us out anyway, we might as well
+  // just get deterministic behavior by logging out first and then making
+  // exactly one call to reset the database.
+  if (Meteor.userId()) {
+    await Meteor.wrapPromise(Meteor.logout)();
+  }
+
+  await Meteor.callPromise('test.resetDatabase', testName);
+};
 
 // waitForSubscriptions and afterFlush both taken from
 // https://guide.meteor.com/testing.html#full-app-integration-test

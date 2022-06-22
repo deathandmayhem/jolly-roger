@@ -1,5 +1,5 @@
-import { Migrations } from 'meteor/percolate:migrations';
 import { ServiceConfiguration } from 'meteor/service-configuration';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 23,

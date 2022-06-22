@@ -1,4 +1,3 @@
-import { Migrations } from 'meteor/percolate:migrations';
 import ConnectAcks from '../../lib/models/mediasoup/ConnectAcks';
 import ConnectRequests from '../../lib/models/mediasoup/ConnectRequests';
 import ConsumerAcks from '../../lib/models/mediasoup/ConsumerAcks';
@@ -11,6 +10,7 @@ import Routers from '../../lib/models/mediasoup/Routers';
 import TransportRequests from '../../lib/models/mediasoup/TransportRequests';
 import TransportStates from '../../lib/models/mediasoup/TransportStates';
 import Transports from '../../lib/models/mediasoup/Transports';
+import Migrations from './Migrations';
 
 Migrations.add({
   version: 34,
