@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import { act, render } from '@testing-library/react';
 import React from 'react';
@@ -28,6 +29,18 @@ function enumeratePaths(routes: RouteObject[], prefix: string = '', acc: string[
     acc.push(`${prefix}${route.path}`);
   });
   return acc;
+}
+
+if (Meteor.isServer) {
+  Meteor.methods({
+    'test.smoke.disableRateLimits': function () {
+      if (!Meteor.isAppTest) {
+        throw new Meteor.Error(500, 'This code must not run in production');
+      }
+
+      Accounts.removeDefaultRateLimit();
+    },
+  });
 }
 
 if (Meteor.isClient) {
@@ -65,6 +78,7 @@ if (Meteor.isClient) {
       // timeouts in CI.
       this.timeout(5000);
 
+      await Meteor.callPromise('test.smoke.disableRateLimits');
       await resetDatabase('route');
       await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
       await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
