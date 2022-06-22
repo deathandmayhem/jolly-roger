@@ -113,7 +113,7 @@ class DiscordClientRefresher {
             // If we get the lock, we're responsible for opening the websocket
             // gateway connection
             const ready = new Promise<void>((r) => client.on('ready', r));
-            client.login(this.token);
+            Promise.await(client.login(this.token));
             Promise.await(ready);
 
             this.cacheResource(client, 'guild', client.guilds.cache, 'guildCreate', 'guildUpdate', 'guildDelete');

@@ -53,11 +53,10 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     });
   }
 
-  // @ts-ignore Because the Mongo.Collection doesn't know about SimpleSchema
-  //   autovalues, it doesn't know which fields are actually required. This is a
-  //   coarse workaround, but it's hard to pick the autoValue out from just the
-  //   types.
-  insert<U>(doc: ValidateShape<U, Partial<T>>, callback?: Function): string {
+  insert<U>(
+    doc: ValidateShape<U, Partial<T>>,
+    callback?: (err?: Error, id?: string) => void,
+  ): string {
     return super.insert(<any>doc, callback);
   }
 

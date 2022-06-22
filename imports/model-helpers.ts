@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { _ } from 'meteor/underscore';
 import Mustache from 'mustache';
 import MeteorUsers from './lib/models/MeteorUsers';
 import { HuntType } from './lib/schemas/Hunt';

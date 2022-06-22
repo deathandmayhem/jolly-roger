@@ -79,7 +79,7 @@ const DiscordSelector = ({
 
     if (value) {
       if (!options.find((opt) => {
-        return opt.id === value!.id;
+        return opt.id === value.id;
       })) {
         return [noneOption, value, ...options];
       }

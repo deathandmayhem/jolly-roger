@@ -259,7 +259,7 @@ const Tag = (props: TagProps) => {
         return `${puzzle.title}\t${formattedAnswer}`;
       }).join('\n');
     }).join('\n');
-    navigator.clipboard.writeText(clipboardData);
+    void navigator.clipboard.writeText(clipboardData);
   }, [
     props.popoverRelated,
     props.tag.name,
@@ -278,7 +278,7 @@ const Tag = (props: TagProps) => {
 
   // Browsers won't word-break on hyphens, so suggest
   // Use wbr instead of zero-width space to make copy-paste reasonable
-  const nameWithBreaks:(String|JSX.Element)[] = [];
+  const nameWithBreaks: (string|JSX.Element)[] = [];
   name.split(':').forEach((part, i, arr) => {
     const withColon = i < arr.length - 1;
     nameWithBreaks.push(`${part}${withColon ? ':' : ''}`);

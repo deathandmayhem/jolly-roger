@@ -435,7 +435,7 @@ const chatInputStyles = {
     // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
     lineHeight: '20px',
     padding: '9px 4px',
-    resize: 'none' as 'none',
+    resize: 'none' as const,
   },
 };
 

@@ -7,6 +7,7 @@ import { Mongo } from 'meteor/mongo';
 declare module 'meteor/mongo' {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   namespace Mongo {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Collection<T> {
       // We can get this property from tableName on our models, but we need this
       // for models that don't descend from Base, like Meteor.users
@@ -91,7 +92,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
 
   watcher: Meteor.LiveQueryHandle;
 
-  exists: boolean = false;
+  exists = false;
 
   observers: Map<string, RefCountedJoinedObjectObserverMap<any>>;
 
@@ -199,7 +200,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
 const validateSpec = (spec: PublishSpec<any>) => {
   const { model, projection, foreignKeys } = spec;
   if (projection && foreignKeys?.some(({ field }) => !projection[field])) {
-    throw new Error(`JoinPublisher: projection for model ${model} must include all foreign keys`);
+    throw new Error(`JoinPublisher: projection for model ${model._name} must include all foreign keys`);
   }
 
   foreignKeys?.forEach(({ join }) => {
@@ -216,7 +217,7 @@ const addObservers = (
   const { model, projection, foreignKeys } = spec;
   if (projections.has(model._name) &&
       !isDeepStrictEqual(projections.get(model._name), projection)) {
-    throw new Error(`JoinPublisher: different projections specified for same model ${model}`);
+    throw new Error(`JoinPublisher: different projections specified for same model ${model._name}`);
   }
   projections.set(model._name, projection);
 

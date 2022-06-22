@@ -32,12 +32,13 @@ type BreadcrumbContextType = {
 
 const defaultCallbacks: BreadcrumbContextType = {
   addCrumb: (_crumb: Crumb) => { return Random.id(); },
-  removeCrumb: (_crumbId: CrumbId) => { },
-  updateCrumb: (_crumbId: CrumbId, _crumb: Crumb) => { },
-  flushUpdates: () => { },
+  removeCrumb: (_crumbId: CrumbId) => { /* noop */ },
+  updateCrumb: (_crumbId: CrumbId, _crumb: Crumb) => { /* noop */ },
+  flushUpdates: () => { /* noop */ },
   subscribe: (_listener: BreadcrumbSubscribeCallback) => {
     return {
       unsubscribe() {
+        // noop
       },
     };
   },

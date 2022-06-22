@@ -21,7 +21,7 @@ Meteor.methods({
     check(this.userId, String);
     check(forUser, Match.Optional(String));
 
-    const user = userForKeyOperation(<string> this.userId, forUser);
+    const user = userForKeyOperation(this.userId, forUser);
 
     let key = APIKeys.findOne({ user });
     if (!key) {
@@ -51,7 +51,7 @@ Meteor.methods({
     check(this.userId, String);
     check(forUser, Match.Optional(String));
 
-    const user = userForKeyOperation(<string> this.userId, forUser);
+    const user = userForKeyOperation(this.userId, forUser);
     APIKeys.find({ user }).forEach((k) => {
       Ansible.log('Expiring API key', { id: k._id, user: k.user, requestedBy: this.userId });
       APIKeys.destroy(k._id);

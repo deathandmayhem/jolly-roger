@@ -124,8 +124,7 @@ describe('MigrationRegistry', function () {
     reg.add({
       name: 'okay migration',
       version: 1,
-      up() {
-      },
+      up() { /* noop */ },
     });
     reg.add({
       name: 'broken migration',

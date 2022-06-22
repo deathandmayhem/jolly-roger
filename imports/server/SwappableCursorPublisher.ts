@@ -5,6 +5,7 @@ import { Mongo } from 'meteor/mongo';
 declare module 'meteor/mongo' {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   namespace Mongo {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Collection<T> {
       // We can get this property from tableName on our models, but we need this
       // for models that don't descend from Base, like Meteor.users

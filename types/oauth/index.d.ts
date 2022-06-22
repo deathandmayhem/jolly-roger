@@ -7,7 +7,7 @@ declare module 'meteor/oauth' {
     function launchLogin(options: any): void;
     function openSecret(serviceData: string, userId?: string): string;
     function registerService(name: string, version: number, urls: string[] | null,
-                             handleOauthRequest: Function): void;
+                             handleOauthRequest: (query: any) => any): void;
     function retrieveCredential(key: string, secret: string): any;
   }
 }

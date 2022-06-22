@@ -89,7 +89,7 @@ const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
   const [frames, setFrames] = useState<StackFrame[] | undefined>(undefined);
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       setFrames(await StackTrace.fromError(error));
     })();
   }, [error]);
