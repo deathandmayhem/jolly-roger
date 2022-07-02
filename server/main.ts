@@ -5,6 +5,9 @@ import '../imports/lib/config/accounts';
 // Register migrations
 import '../imports/server/migrations/all';
 
+// Import methods
+import '../imports/server/methods/postAnnouncement';
+
 // Other stuff in the server folder
 import '../imports/server/accounts';
 import '../imports/server/announcements';

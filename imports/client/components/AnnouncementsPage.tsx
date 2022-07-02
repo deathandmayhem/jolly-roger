@@ -11,6 +11,7 @@ import Announcements from '../../lib/models/Announcements';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/Announcement';
+import postAnnouncement from '../../methods/postAnnouncement';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import markdown from '../markdown';
@@ -50,10 +51,10 @@ const AnnouncementForm = ({ huntId }: { huntId: string }) => {
     setMessage(event.target.value);
   }, []);
 
-  const postAnnouncement = useCallback(() => {
+  const postAnnouncementCb = useCallback(() => {
     if (message) {
       setSubmitState(AnnouncementFormSubmitState.SUBMITTING);
-      Meteor.call('postAnnouncement', huntId, message, (error?: Error) => {
+      postAnnouncement.call({ huntId, message }, (error) => {
         if (error) {
           setErrorMessage(error.message);
           setSubmitState(AnnouncementFormSubmitState.FAILED);
@@ -78,7 +79,7 @@ const AnnouncementForm = ({ huntId }: { huntId: string }) => {
       <div className="button-row">
         <Button
           variant="primary"
-          onClick={postAnnouncement}
+          onClick={postAnnouncementCb}
           disabled={submitState === 'submitting'}
         >
           Send
