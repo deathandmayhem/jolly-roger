@@ -26,7 +26,7 @@
     "element-resize-detector": "^1.2.4",
     "express": "^4.18.1",
     "fp-ts": "^2.12.1",
-    "googleapis": "^104.0.0",
+    "googleapis": "^105.0.0",
     "io-ts": "^2.2.16",
     "io-ts-types": "^0.5.16",
     "ip-address": "^8.1.0",
@@ -77,7 +77,7 @@
     "@types/use-persisted-state": "^0.3.1",
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.30.0",
-    "@typescript-eslint/parser": "^5.30.0",
+    "@typescript-eslint/parser": "^5.30.5",
     "babel-plugin-add-react-displayname": "0.0.5",
     "babel-plugin-styled-components": "^2.0.7",
     "chai": "^4.3.6",
@@ -94,7 +94,7 @@
     "eslint-plugin-react": "^7.30.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "mocha": "^10.0.0",
-    "puppeteer": "^15.2.0",
+    "puppeteer": "^15.3.0",
     "typescript": "^4.7.4"
   },
   "meteor": {
