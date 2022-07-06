@@ -94,7 +94,7 @@
     "eslint-plugin-react": "^7.30.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "mocha": "^10.0.0",
-    "puppeteer": "^15.3.0",
+    "puppeteer": "^15.3.1",
     "typescript": "^4.7.4"
   },
   "meteor": {
