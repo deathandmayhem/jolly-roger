@@ -36,7 +36,7 @@ const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
         return this.value.map((x) => answerify(x));
       }
 
-      return [];
+      return undefined;
     },
   },
   replacedBy: {
