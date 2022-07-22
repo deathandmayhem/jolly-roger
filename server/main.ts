@@ -20,7 +20,6 @@ import '../imports/server/discord';
 import '../imports/server/discordClientRefresher';
 import '../imports/server/feature_flags';
 import '../imports/server/fixture';
-import '../imports/server/git_revision';
 import '../imports/server/guesses';
 import '../imports/server/hunts';
 import '../imports/server/assets';
