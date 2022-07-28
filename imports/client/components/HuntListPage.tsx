@@ -16,6 +16,8 @@ import Ansible from '../../Ansible';
 import Hunts from '../../lib/models/Hunts';
 import { userMayCreateHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import { HuntType } from '../../lib/schemas/Hunt';
+import createFixtureHunt from '../../methods/createFixtureHunt';
+import destroyHunt from '../../methods/destroyHunt';
 import ModalForm, { ModalFormHandle } from './ModalForm';
 
 const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
@@ -34,7 +36,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
   const deleteModalRef = useRef<ModalFormHandle>(null);
 
   const onDelete = useCallback((callback: () => void) => {
-    Meteor.call('destroyHunt', huntId, (err?: Error) => {
+    destroyHunt.call({ huntId }, (err) => {
       if (err) {
         Ansible.log('Failed to destroy hunt', { hunt: huntId, user: Meteor.userId() });
       }
@@ -99,7 +101,7 @@ const CreateFixtureModal = React.forwardRef((
   const clearError = useCallback(() => setError(undefined), []);
 
   const createFixture = useCallback(() => {
-    Meteor.call('createFixtureHunt', (e: Meteor.Error) => {
+    createFixtureHunt.call((e) => {
       setDisabled(false);
       if (e) {
         setError(e);

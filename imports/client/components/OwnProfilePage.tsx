@@ -13,6 +13,11 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import Flags from '../../Flags';
+import linkUserDiscordAccount from '../../methods/linkUserDiscordAccount';
+import linkUserGoogleAccount from '../../methods/linkUserGoogleAccount';
+import unlinkUserDiscordAccount from '../../methods/unlinkUserDiscordAccount';
+import unlinkUserGoogleAccount from '../../methods/unlinkUserGoogleAccount';
+import updateProfile from '../../methods/updateProfile';
 import TeamName from '../TeamName';
 import { requestDiscordCredential } from '../discord';
 import ActionButtonRow from './ActionButtonRow';
@@ -46,7 +51,7 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
       return;
     }
 
-    Meteor.call('linkUserGoogleAccount', token, secret, (error?: Error) => {
+    linkUserGoogleAccount.call({ key: token, secret }, (error) => {
       if (error) {
         setState({ state: GoogleLinkBlockLinkState.ERROR, error });
       } else {
@@ -61,7 +66,7 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
   }, [requestComplete]);
 
   const onUnlink = useCallback(() => {
-    Meteor.call('unlinkUserGoogleAccount');
+    unlinkUserGoogleAccount.call();
   }, []);
 
   const dismissAlert = useCallback(() => {
@@ -170,7 +175,7 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
       return;
     }
 
-    Meteor.call('linkUserDiscordAccount', token, secret, (error?: Error) => {
+    linkUserDiscordAccount.call({ key: token, secret }, (error) => {
       if (error) {
         setState({ state: DiscordLinkBlockLinkState.ERROR, error });
       } else {
@@ -185,7 +190,7 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
   }, [requestComplete]);
 
   const onUnlink = useCallback(() => {
-    Meteor.call('unlinkUserDiscordAccount');
+    unlinkUserDiscordAccount.call();
   }, []);
 
   const dismissAlert = useCallback(() => {
@@ -320,7 +325,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
       muteApplause,
       dingwords,
     };
-    Meteor.call('saveProfile', newProfile, (error?: Error) => {
+    updateProfile.call(newProfile, (error) => {
       if (error) {
         setSubmitError(error.message);
         setSubmitState(OwnProfilePageSubmitState.ERROR);

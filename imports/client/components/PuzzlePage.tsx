@@ -42,6 +42,15 @@ import { ChatMessageType } from '../../lib/schemas/ChatMessage';
 import { DocumentType } from '../../lib/schemas/Document';
 import { GuessType } from '../../lib/schemas/Guess';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
+import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
+import addPuzzleTag from '../../methods/addPuzzleTag';
+import createGuess from '../../methods/createGuess';
+import ensurePuzzleDocument from '../../methods/ensurePuzzleDocument';
+import removePuzzleAnswer from '../../methods/removePuzzleAnswer';
+import removePuzzleTag from '../../methods/removePuzzleTag';
+import sendChatMessage from '../../methods/sendChatMessage';
+import undestroyPuzzle from '../../methods/undestroyPuzzle';
+import updatePuzzle from '../../methods/updatePuzzle';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
@@ -459,7 +468,7 @@ const ChatInput = React.memo(({
       textAreaRef.current.focus();
     }
     if (text) {
-      Meteor.call('sendChatMessage', puzzleId, text);
+      sendChatMessage.call({ puzzleId, message: text });
       setText('');
       if (onMessageSent) {
         onMessageSent();
@@ -619,8 +628,8 @@ const PuzzlePageMetadata = ({
   const editModalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
   const guessModalRef = useRef<React.ElementRef<typeof PuzzleGuessModal>>(null);
   const answerModalRef = useRef<React.ElementRef<typeof PuzzleAnswerModal>>(null);
-  const onCreateTag = useCallback((newTagName: string) => {
-    Meteor.call('addTagToPuzzle', puzzleId, newTagName, (error?: Error) => {
+  const onCreateTag = useCallback((tagName: string) => {
+    addPuzzleTag.call({ puzzleId, tagName }, (error) => {
       // Not really much we can do in the case of a failure, but let's log it anyway
       if (error) {
         console.log('failed to create tag:');
@@ -629,8 +638,8 @@ const PuzzlePageMetadata = ({
     });
   }, [puzzleId]);
 
-  const onRemoveTag = useCallback((tagIdToRemove: string) => {
-    Meteor.call('removeTagFromPuzzle', puzzleId, tagIdToRemove, (error?: Error) => {
+  const onRemoveTag = useCallback((tagId: string) => {
+    removePuzzleTag.call({ puzzleId, tagId }, (error) => {
       // Not really much we can do in the case of a failure, but again, let's log it anyway
       if (error) {
         console.log('failed to remove tag:');
@@ -639,11 +648,11 @@ const PuzzlePageMetadata = ({
     });
   }, [puzzleId]);
 
-  const onRemoveAnswer = useCallback((answer: string) => {
-    Meteor.call('removeAnswerFromPuzzle', puzzleId, answer, (error?: Error) => {
+  const onRemoveAnswer = useCallback((guessId: string) => {
+    removePuzzleAnswer.call({ puzzleId, guessId }, (error) => {
       // Not really much we can do in the case of a failure, but again, let's log it anyway
       if (error) {
-        console.log(`failed remove answer ${answer}:`, error);
+        console.log(`failed remove answer ${guessId}:`, error);
       }
     });
   }, [puzzleId]);
@@ -653,7 +662,7 @@ const PuzzlePageMetadata = ({
     callback: (err?: Error) => void
   ) => {
     Ansible.log('Updating puzzle properties', { puzzle: puzzleId, user: Meteor.userId(), state });
-    Meteor.call('updatePuzzle', puzzleId, state, callback);
+    updatePuzzle.call({ puzzleId, ...state }, callback);
   }, [puzzleId]);
 
   const showGuessModal = useCallback(() => {
@@ -853,24 +862,22 @@ const PuzzleGuessModal = React.forwardRef(({
       setConfirmationMessage(msg);
       setConfirmingSubmit(true);
     } else {
-      Meteor.call(
-        'addGuessForPuzzle',
-        puzzle._id,
-        guessInput,
-        directionInput,
-        confidenceInput,
-        (error?: Error) => {
-          if (error) {
-            setSubmitError(error.message);
-            setSubmitState(PuzzleGuessSubmitState.FAILED);
-            console.log(error);
-          } else {
-            // Clear the input box.  Don't dismiss the dialog.
-            setGuessInput('');
-          }
-          setConfirmingSubmit(false);
-        },
-      );
+      createGuess.call({
+        puzzleId: puzzle._id,
+        guess: guessInput,
+        direction: directionInput,
+        confidence: confidenceInput,
+      }, (error) => {
+        if (error) {
+          setSubmitError(error.message);
+          setSubmitState(PuzzleGuessSubmitState.FAILED);
+          console.log(error);
+        } else {
+          // Clear the input box.  Don't dismiss the dialog.
+          setGuessInput('');
+        }
+        setConfirmingSubmit(false);
+      });
     }
   }, [
     guesses, puzzle._id, puzzle.answers, puzzle.expectedAnswerCount,
@@ -1049,21 +1056,19 @@ const PuzzleAnswerModal = React.forwardRef(({ puzzle }: {
   const onSubmit = useCallback(() => {
     setSubmitState(PuzzleAnswerSubmitState.SUBMITTING);
     setSubmitError('');
-    Meteor.call(
-      'addCorrectGuessForPuzzle',
-      puzzle._id,
+    addPuzzleAnswer.call({
+      puzzleId: puzzle._id,
       answer,
-      (error?: Error) => {
-        if (error) {
-          setSubmitError(error.message);
-          setSubmitState(PuzzleAnswerSubmitState.FAILED);
-        } else {
-          setAnswer('');
-          setSubmitState(PuzzleAnswerSubmitState.IDLE);
-          hide();
-        }
-      },
-    );
+    }, (error) => {
+      if (error) {
+        setSubmitError(error.message);
+        setSubmitState(PuzzleAnswerSubmitState.FAILED);
+      } else {
+        setAnswer('');
+        setSubmitState(PuzzleAnswerSubmitState.IDLE);
+        hide();
+      }
+    });
   }, [puzzle._id, answer, hide]);
 
   return (
@@ -1137,7 +1142,7 @@ const PuzzleDeletedModal = ({
   const hide = useCallback(() => setShow(false), []);
 
   const undelete = useCallback(() => {
-    Meteor.call('undeletePuzzle', puzzleId);
+    undestroyPuzzle.call({ puzzleId });
     hide();
   }, [puzzleId, hide]);
 
@@ -1322,7 +1327,7 @@ const PuzzlePage = React.memo(() => {
   }, [onResize]);
 
   useEffect(() => {
-    Meteor.call('ensureDocumentAndPermissions', puzzleId);
+    ensurePuzzleDocument.call({ puzzleId });
   }, [puzzleId]);
 
   trace('PuzzlePage render', { puzzleDataLoading, chatDataLoading });

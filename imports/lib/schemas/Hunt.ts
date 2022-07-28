@@ -1,3 +1,4 @@
+import { Match } from 'meteor/check';
 import * as t from 'io-ts';
 import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './Base';
@@ -43,6 +44,24 @@ const HuntFields = t.type({
   // profile will be added to this role.
   memberDiscordRole: t.union([SavedDiscordObjectFields, t.undefined]),
 });
+
+const SavedDiscordObjectPattern = {
+  id: String,
+  name: String,
+};
+
+export const HuntPattern = {
+  name: String,
+  mailingLists: [String] as [StringConstructor],
+  signupMessage: Match.Optional(String),
+  openSignups: Boolean,
+  hasGuessQueue: Boolean,
+  submitTemplate: Match.Optional(String),
+  homepageUrl: Match.Optional(String),
+  puzzleHooksDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
+  firehoseDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
+  memberDiscordRole: Match.Optional(SavedDiscordObjectPattern),
+};
 
 const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {
   mailingLists: {

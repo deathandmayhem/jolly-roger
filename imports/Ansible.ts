@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
+import logAnsibleMessage, { LogLevel } from './methods/logAnsibleMessage';
 
-function performLog(level: 'log' | 'info' | 'error' | 'warn', line: string, obj?: object) {
+function performLog(level: LogLevel, line: string, obj?: object) {
   const args: any[] = [line];
   if (obj) {
     args.push(obj);
@@ -10,7 +11,7 @@ function performLog(level: 'log' | 'info' | 'error' | 'warn', line: string, obj?
     console[level](...args); // eslint-disable-line no-console
   }
 
-  Meteor.call('ansible', level, ...args);
+  logAnsibleMessage.call({ level, line, obj });
 }
 
 export default {

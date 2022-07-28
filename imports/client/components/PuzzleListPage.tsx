@@ -31,6 +31,7 @@ import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
+import createPuzzle from '../../methods/createPuzzle';
 import {
   useHuntPuzzleListCollapseGroups,
   useHuntPuzzleListDisplayMode,
@@ -147,8 +148,13 @@ const PuzzleListView = ({
     state: PuzzleModalFormSubmitPayload,
     callback: (error?: Error) => void
   ) => {
-    const { docType, ...puzzle } = state;
-    Meteor.call('createPuzzle', puzzle, docType, callback);
+    const { docType, ...rest } = state;
+    if (!docType) {
+      callback(new Error('No docType provided'));
+      return;
+    }
+
+    createPuzzle.call({ docType, ...rest }, callback);
   }, []);
 
   const setSearchString = useCallback((val: string) => {

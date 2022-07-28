@@ -5,9 +5,12 @@ import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
 import { Tracker } from 'meteor/tracker';
 import { resetDatabase as xolvioResetDatabase } from 'meteor/xolvio:cleaner';
+import TypedMethod from '../../imports/methods/TypedMethod';
 
 export const USER_EMAIL = 'jolly-roger@deathandmayhem.com';
 export const USER_PASSWORD = 'password';
+
+const resetDatabaseMethod = new TypedMethod<{ testName: string }, void>('test.methods.resetDatabase');
 
 if (Meteor.isServer) {
   const Migrations: typeof import('../../imports/server/migrations/Migrations').default =
@@ -29,13 +32,17 @@ if (Meteor.isServer) {
   // `test.resetDatabase` invocation.
   let currentConn: Meteor.Connection | null | undefined;
 
-  Meteor.methods({
-    'test.resetDatabase': async function (testName: string) {
+  resetDatabaseMethod.define({
+    validate(arg: unknown) {
+      check(arg, { testName: String });
+
+      return arg;
+    },
+
+    async run({ testName }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, 'This code must not run in production');
       }
-
-      check(testName, String);
 
       if (entries !== exits) {
         throw new Meteor.Error(500, `concurrent calls to test.resetDatabase: running: "${currentTest}" for conn ${currentConn!.id} from ${(currentConn!.httpHeaders as any)['user-agent']}, requested: "${testName}" on conn ${this.connection!.id} from ${(this.connection!.httpHeaders as any)['user-agent']}`);
@@ -69,7 +76,7 @@ export const resetDatabase = async (testName: string) => {
     await Meteor.wrapPromise(Meteor.logout)();
   }
 
-  await Meteor.callPromise('test.resetDatabase', testName);
+  await resetDatabaseMethod.callPromise({ testName });
 };
 
 // waitForSubscriptions and afterFlush both taken from

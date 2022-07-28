@@ -1,4 +1,3 @@
-import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Flags from '../Flags';
 import ChatNotifications from '../lib/models/ChatNotifications';
@@ -33,13 +32,4 @@ Meteor.publish('chatNotifications', function () {
     }],
   }, { user: this.userId });
   this.onStop(() => watcher.shutdown());
-});
-
-Meteor.methods({
-  dismissChatNotification(chatNotifId: unknown) {
-    check(this.userId, String);
-    check(chatNotifId, String);
-
-    ChatNotifications.remove(chatNotifId);
-  },
 });

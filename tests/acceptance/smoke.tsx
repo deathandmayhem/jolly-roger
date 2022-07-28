@@ -14,6 +14,11 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import FixtureHunt from '../../imports/FixtureHunt';
+import TypedMethod from '../../imports/methods/TypedMethod';
+import addHuntUser from '../../imports/methods/addHuntUser';
+import createFixtureHunt from '../../imports/methods/createFixtureHunt';
+import promoteOperator from '../../imports/methods/promoteOperator';
+import provisionFirstUser from '../../imports/methods/provisionFirstUser';
 import {
   resetDatabase,
   stabilize,
@@ -31,9 +36,11 @@ function enumeratePaths(routes: RouteObject[], prefix = '', acc: string[] = []):
   return acc;
 }
 
+const disableRateLimits = new TypedMethod<void, void>('test.methods.smoke.disableRateLimits');
+
 if (Meteor.isServer) {
-  Meteor.methods({
-    'test.smoke.disableRateLimits': function () {
+  disableRateLimits.define({
+    run() {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, 'This code must not run in production');
       }
@@ -78,13 +85,13 @@ if (Meteor.isClient) {
       // timeouts in CI.
       this.timeout(5000);
 
-      await Meteor.callPromise('test.smoke.disableRateLimits');
+      await disableRateLimits.callPromise();
       await resetDatabase('route');
-      await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
+      await provisionFirstUser.callPromise({ email: USER_EMAIL, password: USER_PASSWORD });
       await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
-      await Meteor.callPromise('createFixtureHunt');
-      await Meteor.callPromise('addToHunt', fixtureHunt, USER_EMAIL);
-      await Meteor.callPromise('makeOperatorForHunt', Meteor.userId(), fixtureHunt);
+      await createFixtureHunt.callPromise();
+      await addHuntUser.callPromise({ huntId: fixtureHunt, email: USER_EMAIL });
+      await promoteOperator.callPromise({ targetUserId: Meteor.userId()!, huntId: fixtureHunt });
     });
 
     afterEach(function () {

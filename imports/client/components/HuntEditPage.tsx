@@ -22,6 +22,8 @@ import Settings from '../../lib/models/Settings';
 import { BaseType } from '../../lib/schemas/Base';
 import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/Hunt';
 import { SettingType } from '../../lib/schemas/Setting';
+import createHunt from '../../methods/createHunt';
+import updateHunt from '../../methods/updateHunt';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import ActionButtonRow from './ActionButtonRow';
 
@@ -288,10 +290,10 @@ const HuntEditPage = () => {
 
     if (huntId) {
       Ansible.log('Updating hunt settings', { hunt: huntId, user: Meteor.userId(), state });
-      Meteor.call('updateHunt', huntId, state, onFormCallback);
+      updateHunt.call({ huntId, value: state }, onFormCallback);
     } else {
       Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
-      Meteor.call('createHunt', state, onFormCallback);
+      createHunt.call(state, onFormCallback);
     }
   }, [
     huntId,

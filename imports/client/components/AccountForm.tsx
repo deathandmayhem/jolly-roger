@@ -8,6 +8,7 @@ import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import styled from 'styled-components';
+import updateProfile from '../../methods/updateProfile';
 import TeamName from '../TeamName';
 
 export enum AccountFormFormat {
@@ -149,7 +150,7 @@ const AccountForm = (props: AccountFormProps) => {
         setSubmitState(AccountFormSubmitState.FAILED);
         setErrorMessage((error instanceof Meteor.Error) ? error.reason : error.message);
       } else {
-        Meteor.call('saveProfile', newProfile, (innerError?: Error) => {
+        updateProfile.call(newProfile, (innerError?: Error) => {
           if (innerError) {
             // This user will have to set their profile manually later.  Oh well.
             setSubmitState(AccountFormSubmitState.FAILED);

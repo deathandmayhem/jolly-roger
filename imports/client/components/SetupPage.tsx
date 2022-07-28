@@ -19,6 +19,19 @@ import DiscordCache from '../../lib/models/DiscordCache';
 import Settings from '../../lib/models/Settings';
 import { SavedDiscordObjectType } from '../../lib/schemas/Hunt';
 import { SettingType } from '../../lib/schemas/Setting';
+import configureClearGdriveCreds from '../../methods/configureClearGdriveCreds';
+import configureDiscordBot from '../../methods/configureDiscordBot';
+import configureDiscordBotGuild from '../../methods/configureDiscordBotGuild';
+import configureDiscordOAuthClient from '../../methods/configureDiscordOAuthClient';
+import configureEmailBranding from '../../methods/configureEmailBranding';
+import configureGdriveCreds from '../../methods/configureGdriveCreds';
+import configureGdriveRoot from '../../methods/configureGdriveRoot';
+import configureGdriveTemplates from '../../methods/configureGdriveTemplates';
+import configureGoogleOAuthClient from '../../methods/configureGoogleOAuthClient';
+import configureOrganizeGoogleDrive from '../../methods/configureOrganizeGoogleDrive';
+import configureTeamName from '../../methods/configureTeamName';
+import generateUploadToken from '../../methods/generateUploadToken';
+import setFeatureFlag from '../../methods/setFeatureFlag';
 import { DiscordGuildType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import lookupUrl from '../lookupUrl';
@@ -126,7 +139,7 @@ const GoogleOAuthForm = ({ isConfigured, initialClientId }: {
       setState({
         submitState: SubmitState.SUBMITTING,
       });
-      Meteor.call('setupGoogleOAuthClient', trimmedClientId, trimmedClientSecret, (err?: Error) => {
+      configureGoogleOAuthClient.call({ clientId: trimmedClientId, secret: trimmedClientSecret }, (err) => {
         if (err) {
           setState({
             submitState: SubmitState.ERROR,
@@ -215,7 +228,7 @@ const GoogleAuthorizeDriveClientForm = () => {
   const requestComplete = useCallback((token: string) => {
     const secret = OAuth._retrieveCredentialSecret(token);
     setState({ submitState: SubmitState.SUBMITTING });
-    Meteor.call('setupGdriveCreds', token, secret, (error?: Error) => {
+    configureGdriveCreds.call({ key: token, secret }, (error) => {
       if (error) {
         setState({ submitState: SubmitState.ERROR, error });
       } else {
@@ -276,7 +289,7 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
     const rootString = rootId.trim();
     const root = rootString.length > 0 ? rootString : undefined;
     setState({ submitState: SubmitState.SUBMITTING });
-    Meteor.call('setupGdriveRoot', root, (error?: Error) => {
+    configureGdriveRoot.call({ root }, (error) => {
       if (error) {
         setState({ submitState: SubmitState.ERROR, error });
       } else {
@@ -288,7 +301,7 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
   const reorganizeGoogleDrive = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setState({ submitState: SubmitState.SUBMITTING });
-    Meteor.call('reorganizeGoogleDrive', (error?: Error) => {
+    configureOrganizeGoogleDrive.call((error) => {
       if (error) {
         setState({ submitState: SubmitState.ERROR, error });
       } else {
@@ -384,7 +397,10 @@ const GoogleDriveTemplateForm = ({ initialDocTemplate, initialSpreadsheetTemplat
     setState({
       submitState: SubmitState.SUBMITTING,
     });
-    Meteor.call('setupGdriveTemplates', ssId, docId, (error?: Error) => {
+    configureGdriveTemplates.call({
+      spreadsheetTemplate: ssId,
+      documentTemplate: docId,
+    }, (error) => {
       if (error) {
         setState({ submitState: SubmitState.ERROR, error });
       } else {
@@ -478,12 +494,12 @@ const GoogleIntegrationSection = () => {
 
   const onToggleEnabled = useCallback(() => {
     const newValue = !enabled;
-    const ffValue = newValue ? 'off' : 'on';
-    Meteor.call('setFeatureFlag', 'disable.google', ffValue);
+    const ffValue = newValue ? 'off' : 'on' as const;
+    setFeatureFlag.call({ name: 'disable.google', type: ffValue });
   }, [enabled]);
 
   const disconnectGdrive = useCallback(() => {
-    Meteor.call('clearGdriveCreds');
+    configureClearGdriveCreds.call();
   }, []);
 
   const clientId = (oauthSettings && oauthSettings.clientId) || '';
@@ -690,22 +706,20 @@ const EmailConfigForm = ({ initialConfig }: {
     const trimmedExistingJoinMessageSubject = existingJoinSubject.trim();
     const trimmedExistingJoinMessage = existingJoinMessage.trim();
     setSubmitState(SubmitState.SUBMITTING);
-    Meteor.call(
-      'setupEmailBranding',
-      trimmedFrom,
-      trimmedEnrollAccountMessageSubject,
-      trimmedEnrollAccountMessage,
-      trimmedExistingJoinMessageSubject,
-      trimmedExistingJoinMessage,
-      (error?: Error) => {
-        if (error) {
-          setSubmitError(error.message);
-          setSubmitState(SubmitState.ERROR);
-        } else {
-          setSubmitState(SubmitState.SUCCESS);
-        }
+    configureEmailBranding.call({
+      from: trimmedFrom,
+      enrollSubject: trimmedEnrollAccountMessageSubject,
+      enrollMessage: trimmedEnrollAccountMessage,
+      joinSubject: trimmedExistingJoinMessageSubject,
+      joinMessage: trimmedExistingJoinMessage,
+    }, (error) => {
+      if (error) {
+        setSubmitError(error.message);
+        setSubmitState(SubmitState.ERROR);
+      } else {
+        setSubmitState(SubmitState.SUCCESS);
       }
-    );
+    });
   }, [from, enrollAccountSubject, enrollAccountMessage, existingJoinSubject, existingJoinMessage]);
 
   const shouldDisableForm = submitState === 'submitting';
@@ -1025,19 +1039,17 @@ const DiscordOAuthForm = ({ oauthSettings }: {
       setSubmitState(SubmitState.ERROR);
     } else {
       setSubmitState(SubmitState.SUBMITTING);
-      Meteor.call(
-        'setupDiscordOAuthClient',
-        trimmedClientId,
-        trimmedClientSecret,
-        (err?: Error) => {
-          if (err) {
-            setSubmitError(err.message);
-            setSubmitState(SubmitState.ERROR);
-          } else {
-            setSubmitState(SubmitState.SUCCESS);
-          }
+      configureDiscordOAuthClient.call({
+        clientId: trimmedClientId,
+        clientSecret: trimmedClientSecret,
+      }, (err) => {
+        if (err) {
+          setSubmitError(err.message);
+          setSubmitState(SubmitState.ERROR);
+        } else {
+          setSubmitState(SubmitState.SUCCESS);
         }
-      );
+      });
     }
   }, [clientId, clientSecret]);
 
@@ -1110,7 +1122,7 @@ const DiscordBotForm = ({ botToken: initialBotToken }: { botToken?: string }) =>
     const trimmedBotToken = botToken.trim();
 
     setSubmitState(SubmitState.SUBMITTING);
-    Meteor.call('setupDiscordBotToken', trimmedBotToken, (err?: Error) => {
+    configureDiscordBot.call({ token: trimmedBotToken }, (err) => {
       if (err) {
         setSubmitError(err.message);
         setSubmitState(SubmitState.ERROR);
@@ -1182,7 +1194,7 @@ const DiscordGuildForm = ({ guild: initialGuild }: {
 
     const guild = guilds.find((g) => g.id === guildId);
     setSubmitState(SubmitState.SUBMITTING);
-    Meteor.call('setupDiscordBotGuild', guild, (err?: Error) => {
+    configureDiscordBotGuild.call({ guild }, (err) => {
       if (err) {
         setSubmitError(err.message);
         setSubmitState(SubmitState.ERROR);
@@ -1253,8 +1265,8 @@ const DiscordIntegrationSection = () => {
 
   const onToggleEnabled = useCallback(() => {
     const newValue = !enabled;
-    const ffValue = newValue ? 'off' : 'on';
-    Meteor.call('setFeatureFlag', 'disable.discord', ffValue);
+    const ffValue = newValue ? 'off' : 'on' as const;
+    setFeatureFlag.call({ name: 'disable.discord', type: ffValue });
   }, [enabled]);
 
   const configured = !!oauthSettings;
@@ -1398,7 +1410,7 @@ const BrandingTeamName = () => {
   const onSubmit = useCallback((e: React.FormEvent<any>) => {
     e.preventDefault();
     setSubmitState(SubmitState.SUBMITTING);
-    Meteor.call('setupSetTeamName', teamName, (err?: Error) => {
+    configureTeamName.call({ teamName }, (err) => {
       if (err) {
         setSubmitError(err.message);
         setSubmitState(SubmitState.ERROR);
@@ -1489,7 +1501,7 @@ const BrandingAssetRow = ({
         return;
       }
       setSubmitState(SubmitState.SUBMITTING);
-      Meteor.call('setupGetUploadToken', asset, file.type, (err?: Error, uploadToken?: string) => {
+      generateUploadToken.call({ assetName: asset, assetMimeType: file.type }, (err, uploadToken) => {
         if (err) {
           setSubmitError(err.message);
           setSubmitState(SubmitState.ERROR);
@@ -1666,7 +1678,7 @@ const CircuitBreakerControl = ({
 
   const onChangeCb = useCallback(() => {
     const desiredState = !featureDisabled;
-    Meteor.call('setFeatureFlag', flagName, desiredState ? 'on' : 'off');
+    setFeatureFlag.call({ name: flagName, type: desiredState ? 'on' : 'off' });
   }, [flagName, featureDisabled]);
 
   // Is the feature that this circuit breaker disables currently available?

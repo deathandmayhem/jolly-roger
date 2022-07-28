@@ -5,6 +5,7 @@ import Button from 'react-bootstrap/Button';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
+import provisionFirstUser from '../../methods/provisionFirstUser';
 
 enum SubmitState {
   IDLE = 'idle',
@@ -38,13 +39,13 @@ const FirstUserForm = () => {
       setSubmitState(SubmitState.ERROR);
     } else {
       setSubmitState(SubmitState.SUBMITTING);
-      Meteor.call('provisionFirstUser', trimmedEmail, password, (err?: Error) => {
+      provisionFirstUser.call({ email: trimmedEmail, password }, (err) => {
         if (err) {
           setSubmitError(err.message);
           setSubmitState(SubmitState.ERROR);
         } else {
           // Success!  Do login.
-          Meteor.loginWithPassword(trimmedEmail, password, (error?: Error) => {
+          Meteor.loginWithPassword(trimmedEmail, password, (error) => {
             if (error) {
               setSubmitError(error.message);
               setSubmitState(SubmitState.ERROR);

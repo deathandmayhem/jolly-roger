@@ -18,6 +18,7 @@ import Peers from '../../lib/models/mediasoup/Peers';
 import relativeTimeFormat from '../../lib/relativeTimeFormat';
 import { DiscordAccountType } from '../../lib/schemas/DiscordAccount';
 import { PeerType } from '../../lib/schemas/mediasoup/Peer';
+import mediasoupSetPeerState from '../../methods/mediasoupSetPeerState';
 import useSubscribeAvatars from '../hooks/useSubscribeAvatars';
 import { Subscribers } from '../subscribers';
 import { trace } from '../tracing';
@@ -290,7 +291,7 @@ const ChatPeople = ({
   const updatePeerState = useCallback((muted: boolean, deafened: boolean) => {
     const effectiveState = participantState(muted, deafened);
     if (selfPeer) {
-      Meteor.call('mediasoup:peer_set_state', selfPeer._id, effectiveState);
+      mediasoupSetPeerState.call({ peerId: selfPeer._id, state: effectiveState });
     }
   }, [selfPeer]);
 

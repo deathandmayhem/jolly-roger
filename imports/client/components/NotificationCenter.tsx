@@ -29,6 +29,10 @@ import { ChatNotificationType } from '../../lib/schemas/ChatNotification';
 import { GuessType } from '../../lib/schemas/Guess';
 import { HuntType } from '../../lib/schemas/Hunt';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
+import dismissChatNotification from '../../methods/dismissChatNotification';
+import dismissPendingAnnouncement from '../../methods/dismissPendingAnnouncement';
+import linkUserDiscordAccount from '../../methods/linkUserDiscordAccount';
+import setGuessState from '../../methods/setGuessState';
 import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
@@ -157,15 +161,15 @@ const GuessMessage = React.memo(({
   onDismiss: (guessId: string) => void;
 }) => {
   const markCorrect = useCallback(() => {
-    Meteor.call('markGuessCorrect', guess._id);
+    setGuessState.call({ guessId: guess._id, state: 'correct' });
   }, [guess._id]);
 
   const markIncorrect = useCallback(() => {
-    Meteor.call('markGuessIncorrect', guess._id);
+    setGuessState.call({ guessId: guess._id, state: 'incorrect' });
   }, [guess._id]);
 
   const markRejected = useCallback(() => {
-    Meteor.call('markGuessRejected', guess._id);
+    setGuessState.call({ guessId: guess._id, state: 'rejected' });
   }, [guess._id]);
 
   const dismissGuess = useCallback(() => {
@@ -293,7 +297,7 @@ const DiscordMessage = React.memo(({ onDismiss }: {
       return;
     }
 
-    Meteor.call('linkUserDiscordAccount', token, secret, (error?: Error) => {
+    linkUserDiscordAccount.call({ key: token, secret }, (error) => {
       if (error) {
         setState({ status: DiscordMessageStatus.ERROR, error: error.message });
       } else {
@@ -345,7 +349,7 @@ const AnnouncementMessage = React.memo(({
   const [dismissed, setDismissed] = useState<boolean>(false);
   const onDismiss = useCallback(() => {
     setDismissed(true);
-    Meteor.call('dismissPendingAnnouncement', id);
+    dismissPendingAnnouncement.call({ pendingAnnouncementId: id });
   }, [id]);
 
   if (dismissed) {
@@ -394,16 +398,15 @@ const ProfileMissingMessage = ({ onDismiss }: {
 };
 
 const ChatNotificationMessage = ({
-  cn, hunt, puzzle, senderDisplayName, onDismiss,
+  cn, hunt, puzzle, senderDisplayName,
 }: {
   cn: ChatNotificationType;
   hunt: HuntType;
   puzzle: PuzzleType;
   senderDisplayName: string;
-  onDismiss: (chatNotificationId: string) => void;
 }) => {
   const id = cn._id;
-  const dismiss = useCallback(() => onDismiss(id), [id, onDismiss]);
+  const dismiss = useCallback(() => dismissChatNotification.call({ chatNotificationId: id }), [id]);
   return (
     <StyledNotificationMessage>
       <MessengerSpinner />
@@ -507,10 +510,6 @@ const NotificationCenter = () => {
     });
   }, []);
 
-  const dismissChatNotification = useCallback((chatNotificationId: string) => {
-    Meteor.call('dismissChatNotification', chatNotificationId);
-  }, []);
-
   if (loading) {
     return <div />;
   }
@@ -563,7 +562,6 @@ const NotificationCenter = () => {
         hunt={hunts[cn.hunt]!}
         puzzle={puzzles[cn.puzzle]!}
         senderDisplayName={displayNames[cn.sender]!}
-        onDismiss={dismissChatNotification}
       />
     );
   });

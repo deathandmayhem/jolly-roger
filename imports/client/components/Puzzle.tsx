@@ -16,6 +16,7 @@ import Ansible from '../../Ansible';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { TagType } from '../../lib/schemas/Tag';
 import { computeSolvedness, Solvedness } from '../../lib/solvedness';
+import updatePuzzle from '../../methods/updatePuzzle';
 import { useOperatorActionsHiddenForHunt } from '../hooks/persisted-state';
 import PuzzleActivity from './PuzzleActivity';
 import PuzzleAnswer from './PuzzleAnswer';
@@ -139,7 +140,7 @@ const Puzzle = React.memo(({
     callback: (error?: Error) => void
   ) => {
     Ansible.log('Updating puzzle properties', { puzzle: puzzle._id, user: Meteor.userId(), state });
-    Meteor.call('updatePuzzle', puzzle._id, state, callback);
+    updatePuzzle.call({ puzzleId: puzzle._id, ...state }, callback);
   }, [puzzle._id]);
 
   const onShowEditModal = useCallback(() => {
