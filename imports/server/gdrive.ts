@@ -151,7 +151,7 @@ export function makeReadOnly(fileId: string): void {
   // Leave everyone with read-only access
   MeteorPromise.await(client.permissions.create({
     fileId,
-    requestBody: { role: 'viewer', type: 'anyone' },
+    requestBody: { role: 'reader', type: 'anyone' },
   }));
 
   // Delete any editor permissions
