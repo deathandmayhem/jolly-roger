@@ -10,6 +10,7 @@ import {
 import Hunts from '../../lib/models/Hunts';
 import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import { HuntType } from '../../lib/schemas/Hunt';
+import addHuntUser from '../../methods/addHuntUser';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import markdown from '../markdown';
@@ -62,7 +63,7 @@ const HuntMemberError = React.memo(({ hunt, canJoin }: {
     if (!user || !user.emails) {
       return;
     }
-    Meteor.call('addToHunt', hunt._id, user.emails[0].address);
+    addHuntUser.call({ huntId: hunt._id, email: user.emails[0].address });
   }, [hunt._id]);
 
   const joinButton = useMemo(() => {

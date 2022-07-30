@@ -4,46 +4,73 @@ import { Meteor } from 'meteor/meteor';
 import { assert } from 'chai';
 import Hunts from '../../imports/lib/models/Hunts';
 import MeteorUsers from '../../imports/lib/models/MeteorUsers';
-import { addUserToRole, userIsOperatorForAnyHunt } from '../../imports/lib/permission_stubs';
+import { addUserToRole as serverAddUserToRole, userIsOperatorForAnyHunt } from '../../imports/lib/permission_stubs';
+import TypedMethod from '../../imports/methods/TypedMethod';
 import { resetDatabase, stabilize } from './lib';
 
+// To make these tests easier to setup, use these methods to punch through most
+// of our normal permissions. They don't even require that you be logged in.
+const createUser = new TypedMethod<{ email: string, password: string, displayName: string }, string>('test.methods.profiles.createUser');
+const addUserToRole = new TypedMethod<{ userId: string, scope: string, role: string }, void>('test.methods.profiles.addUserToRole');
+const createHunt = new TypedMethod<{ name: string }, string>('test.methods.profiles.createHunt');
+const joinHunt = new TypedMethod<{ huntId: string, userId: string }, void>('test.methods.profiles.joinHunt');
+
 if (Meteor.isServer) {
-  // To make these tests easier to setup, use these methods to punch through
-  // most of our normal permissions. They don't even require that you be logged
-  // in.
-  Meteor.methods({
-    'test.profiles.createUser': function (email: unknown, password: unknown, displayName: unknown) {
+  createUser.define({
+    validate(arg: unknown) {
+      check(arg, {
+        email: String,
+        password: String,
+        displayName: String,
+      });
+
+      return arg;
+    },
+
+    run({ email, password, displayName }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, 'This code must not run in production');
       }
-
-      check(email, String);
-      check(password, String);
-      check(displayName, String);
 
       const userId = Accounts.createUser({ email, password });
       MeteorUsers.update(userId, { $set: { displayName } });
       return userId;
     },
+  });
 
-    'test.profiles.addUserToRole': function (userId: unknown, scope: unknown, role: unknown) {
-      if (!Meteor.isAppTest) {
-        throw new Meteor.Error(500, 'This code must not run in production');
-      }
+  addUserToRole.define({
+    validate(arg: unknown) {
+      check(arg, {
+        userId: String,
+        scope: String,
+        role: String,
+      });
 
-      check(userId, String);
-      check(scope, String);
-      check(role, String);
-
-      addUserToRole(userId, scope, role);
+      return arg;
     },
 
-    'test.profiles.createHunt': function (name: unknown) {
+    run({ userId, scope, role }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, 'This code must not run in production');
       }
 
-      check(name, String);
+      serverAddUserToRole(userId, scope, role);
+    },
+  });
+
+  createHunt.define({
+    validate(arg: unknown) {
+      check(arg, {
+        name: String,
+      });
+
+      return arg;
+    },
+
+    run({ name }) {
+      if (!Meteor.isAppTest) {
+        throw new Meteor.Error(500, 'This code must not run in production');
+      }
 
       // Just pick a random creator
       const u = Meteor.users.findOne();
@@ -53,15 +80,19 @@ if (Meteor.isServer) {
 
       return Hunts.insert({ name, hasGuessQueue: true, createdBy: u._id });
     },
+  });
 
-    'test.profiles.joinHunt': function (huntId: unknown, userId: unknown) {
-      if (!Meteor.isAppTest) {
-        throw new Meteor.Error(500, 'This code must not run in production');
-      }
+  joinHunt.define({
+    validate(arg: unknown) {
+      check(arg, {
+        huntId: String,
+        userId: String,
+      });
 
-      check(huntId, String);
-      check(userId, String);
+      return arg;
+    },
 
+    run({ huntId, userId }) {
       MeteorUsers.update(userId, { $addToSet: { hunts: { $each: [huntId] } } });
     },
   });
@@ -73,16 +104,16 @@ if (Meteor.isClient) {
       it('behaves correctly', async function () {
         await resetDatabase('user profile publishes displayNames');
 
-        const userId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger@deathandmayhem.com', 'password', 'U1');
-        const sameHuntUserId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger+same-hunt@deathandmayhem.com', 'password', 'U2');
-        const differentHuntUserId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger+different-hunt@deathandmayhem.com', 'password', 'U3');
+        const userId: string = await createUser.callPromise({ email: 'jolly-roger@deathandmayhem.com', password: 'password', displayName: 'U1' });
+        const sameHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+same-hunt@deathandmayhem.com', password: 'password', displayName: 'U2' });
+        const differentHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+different-hunt@deathandmayhem.com', password: 'password', displayName: 'U3' });
 
-        const huntId: string = await Meteor.callPromise('test.profiles.createHunt', 'Test Hunt');
-        const otherHuntId: string = await Meteor.callPromise('test.profiles.createHunt', 'Other Hunt');
+        const huntId: string = await createHunt.callPromise({ name: 'Test Hunt' });
+        const otherHuntId: string = await createHunt.callPromise({ name: 'Other Hunt' });
 
-        await Meteor.callPromise('test.profiles.joinHunt', huntId, userId);
-        await Meteor.callPromise('test.profiles.joinHunt', huntId, sameHuntUserId);
-        await Meteor.callPromise('test.profiles.joinHunt', otherHuntId, differentHuntUserId);
+        await joinHunt.callPromise({ huntId, userId });
+        await joinHunt.callPromise({ huntId, userId: sameHuntUserId });
+        await joinHunt.callPromise({ huntId: otherHuntId, userId: differentHuntUserId });
 
         await Meteor.wrapPromise(Meteor.loginWithPassword)('jolly-roger@deathandmayhem.com', 'password');
 
@@ -106,7 +137,7 @@ if (Meteor.isClient) {
           'Should not show users in the other hunt when not a member'
         );
 
-        await Meteor.callPromise('test.profiles.joinHunt', otherHuntId, userId);
+        await joinHunt.callPromise({ huntId: otherHuntId, userId });
 
         assert.sameMembers(
           MeteorUsers.find({}, { fields: { displayName: 1 } }).map((u) => u.displayName),
@@ -120,17 +151,17 @@ if (Meteor.isClient) {
       it('behaves correctly', async function () {
         await resetDatabase('user profile publishes allProfiles');
 
-        const userId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger@deathandmayhem.com', 'password', 'U1');
-        const sameHuntUserId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger+same-hunt@deathandmayhem.com', 'password', 'U2');
-        const differentHuntUserId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger+different-hunt@deathandmayhem.com', 'password', 'U3');
+        const userId: string = await createUser.callPromise({ email: 'jolly-roger@deathandmayhem.com', password: 'password', displayName: 'U1' });
+        const sameHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+same-hunt@deathandmayhem.com', password: 'password', displayName: 'U2' });
+        const differentHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+different-hunt@deathandmayhem.com', password: 'password', displayName: 'U3' });
 
-        const huntId: string = await Meteor.callPromise('test.profiles.createHunt', 'Test Hunt');
-        const otherHuntId: string = await Meteor.callPromise('test.profiles.createHunt', 'Other Hunt');
+        const huntId: string = await createHunt.callPromise({ name: 'Test Hunt' });
+        const otherHuntId: string = await createHunt.callPromise({ name: 'Other Hunt' });
 
-        await Meteor.callPromise('test.profiles.joinHunt', huntId, userId);
-        await Meteor.callPromise('test.profiles.joinHunt', huntId, sameHuntUserId);
-        await Meteor.callPromise('test.profiles.joinHunt', otherHuntId, sameHuntUserId);
-        await Meteor.callPromise('test.profiles.joinHunt', otherHuntId, differentHuntUserId);
+        await joinHunt.callPromise({ huntId, userId });
+        await joinHunt.callPromise({ huntId, userId: sameHuntUserId });
+        await joinHunt.callPromise({ huntId: otherHuntId, userId: sameHuntUserId });
+        await joinHunt.callPromise({ huntId: otherHuntId, userId: differentHuntUserId });
 
         await Meteor.wrapPromise(Meteor.loginWithPassword)('jolly-roger@deathandmayhem.com', 'password');
 
@@ -143,7 +174,7 @@ if (Meteor.isClient) {
         assert.isDefined(u2, 'Should show users in the same hunt');
         assert.sameMembers(u2!.hunts!, [huntId], 'Should not show membership in other hunts even if user is visible');
 
-        await Meteor.callPromise('test.profiles.joinHunt', otherHuntId, userId);
+        await joinHunt.callPromise({ huntId: otherHuntId, userId });
 
         u2 = MeteorUsers.findOne(sameHuntUserId);
         assert.sameMembers(u2!.hunts!, [huntId, otherHuntId], 'Should update when hunt membership changes');
@@ -156,21 +187,21 @@ if (Meteor.isClient) {
       it('behaves correctly', async function () {
         await resetDatabase('user profile publishes huntRoles');
 
-        const userId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger@deathandmayhem.com', 'password', 'U1');
-        const sameHuntUserId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger+same-hunt@deathandmayhem.com', 'password', 'U2');
-        const differentHuntUserId: string = await Meteor.callPromise('test.profiles.createUser', 'jolly-roger+different-hunt@deathandmayhem.com', 'password', 'U3');
+        const userId: string = await createUser.callPromise({ email: 'jolly-roger@deathandmayhem.com', password: 'password', displayName: 'U1' });
+        const sameHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+same-hunt@deathandmayhem.com', password: 'password', displayName: 'U2' });
+        const differentHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+different-hunt@deathandmayhem.com', password: 'password', displayName: 'U3' });
 
-        const huntId: string = await Meteor.callPromise('test.profiles.createHunt', 'Test Hunt');
-        const otherHuntId: string = await Meteor.callPromise('test.profiles.createHunt', 'Other Hunt');
+        const huntId: string = await createHunt.callPromise({ name: 'Test Hunt' });
+        const otherHuntId: string = await createHunt.callPromise({ name: 'Other Hunt' });
 
-        await Meteor.callPromise('test.profiles.joinHunt', huntId, userId);
-        await Meteor.callPromise('test.profiles.joinHunt', otherHuntId, userId);
-        await Meteor.callPromise('test.profiles.joinHunt', huntId, sameHuntUserId);
-        await Meteor.callPromise('test.profiles.joinHunt', otherHuntId, differentHuntUserId);
+        await joinHunt.callPromise({ huntId, userId });
+        await joinHunt.callPromise({ huntId: otherHuntId, userId });
+        await joinHunt.callPromise({ huntId, userId: sameHuntUserId });
+        await joinHunt.callPromise({ huntId: otherHuntId, userId: differentHuntUserId });
 
-        await Meteor.callPromise('test.profiles.addUserToRole', userId, huntId, 'operator');
-        await Meteor.callPromise('test.profiles.addUserToRole', sameHuntUserId, huntId, 'operator');
-        await Meteor.callPromise('test.profiles.addUserToRole', differentHuntUserId, otherHuntId, 'operator');
+        await addUserToRole.callPromise({ userId, scope: huntId, role: 'operator' });
+        await addUserToRole.callPromise({ userId: sameHuntUserId, scope: huntId, role: 'operator' });
+        await addUserToRole.callPromise({ userId: differentHuntUserId, scope: otherHuntId, role: 'operator' });
 
         await Meteor.wrapPromise(Meteor.loginWithPassword)('jolly-roger@deathandmayhem.com', 'password');
         await Meteor.subscribe('huntRoles', huntId).readyPromise();
@@ -179,7 +210,7 @@ if (Meteor.isClient) {
         let operators = MeteorUsers.find().map((u) => u._id).filter(userIsOperatorForAnyHunt);
         assert.sameMembers(operators, [userId, sameHuntUserId], 'Should only show operators in hunt where you are an operator');
 
-        await Meteor.callPromise('test.profiles.addUserToRole', userId, otherHuntId, 'operator');
+        await addUserToRole.callPromise({ userId, scope: otherHuntId, role: 'operator' });
         operators = MeteorUsers.find().map((u) => u._id).filter(userIsOperatorForAnyHunt);
         assert.sameMembers(operators, [userId, sameHuntUserId, differentHuntUserId], 'Should update when hunt roles changes');
       });

@@ -1,4 +1,3 @@
-import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React, {
   Suspense, useCallback, useImperativeHandle, useState,
@@ -9,6 +8,7 @@ import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Peers from '../../lib/models/mediasoup/Peers';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
+import destroyPuzzle from '../../methods/destroyPuzzle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import { Subscribers } from '../subscribers';
 import Loading from './Loading';
@@ -74,7 +74,7 @@ const PuzzleDeleteModal = React.forwardRef((
   ];
 
   const deletePuzzle = useCallback(() => {
-    Meteor.call('deletePuzzle', puzzle._id, replacementId?.value);
+    destroyPuzzle.call({ puzzleId: puzzle._id, replacedBy: replacementId?.value });
     // Hide immediately before the component gets unmounted
     hide();
   }, [puzzle._id, replacementId?.value, hide]);

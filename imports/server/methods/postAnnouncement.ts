@@ -8,8 +8,7 @@ import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
 import postAnnouncement from '../../methods/postAnnouncement';
 
 postAnnouncement.define({
-  validate(arg: unknown) {
-    check(this.userId, String);
+  validate(arg) {
     check(arg, {
       huntId: String,
       message: String,
@@ -19,6 +18,8 @@ postAnnouncement.define({
   },
 
   run({ huntId, message }) {
+    check(this.userId, String);
+
     if (!userMayAddAnnouncementToHunt(this.userId, huntId)) {
       throw new Meteor.Error(401, `User ${this.userId} may not create announcements for hunt ${huntId}`);
     }

@@ -1,0 +1,45 @@
+import { check, Match } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
+import Settings from '../../lib/models/Settings';
+import { userMayConfigureGdrive } from '../../lib/permission_stubs';
+import configureGdriveTemplates from '../../methods/configureGdriveTemplates';
+
+configureGdriveTemplates.define({
+  validate(arg) {
+    check(arg, {
+      spreadsheetTemplate: Match.Optional(String),
+      documentTemplate: Match.Optional(String),
+    });
+    return arg;
+  },
+
+  run({ spreadsheetTemplate, documentTemplate }) {
+    check(this.userId, String);
+
+    // Only let the same people that can credential gdrive configure templates,
+    // which today is just admins
+    if (!userMayConfigureGdrive(this.userId)) {
+      throw new Meteor.Error(401, 'Must be admin to configure gdrive');
+    }
+
+    // In an ideal world, maybe we'd verify that the document IDs we were given
+    // are actually like valid documents that we can reach or something.
+    if (spreadsheetTemplate) {
+      Settings.upsert(
+        { name: 'gdrive.template.spreadsheet' },
+        { $set: { value: { id: spreadsheetTemplate } } }
+      );
+    } else {
+      Settings.remove({ name: 'gdrive.template.spreadsheet' });
+    }
+
+    if (documentTemplate) {
+      Settings.upsert(
+        { name: 'gdrive.template.document' },
+        { $set: { value: { id: documentTemplate } } }
+      );
+    } else {
+      Settings.remove({ name: 'gdrive.template.document' });
+    }
+  },
+});

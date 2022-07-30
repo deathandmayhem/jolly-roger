@@ -11,6 +11,7 @@ import {
   NavigateFunction,
   useNavigate,
 } from 'react-router-dom';
+import provisionFirstUser from '../../imports/methods/provisionFirstUser';
 import {
   resetDatabase,
   stabilize,
@@ -66,7 +67,7 @@ if (Meteor.isClient) {
     describe('has users but not logged in', function () {
       before(async function () {
         await resetDatabase('authentication has users but not logged in');
-        await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
+        await provisionFirstUser.callPromise({ email: USER_EMAIL, password: USER_PASSWORD });
       });
 
       it('redirects to the login page', async function () {
@@ -88,7 +89,7 @@ if (Meteor.isClient) {
     describe('authenticated users', function () {
       before(async function () {
         await resetDatabase('authenticated users');
-        await Meteor.callPromise('provisionFirstUser', USER_EMAIL, USER_PASSWORD);
+        await provisionFirstUser.callPromise({ email: USER_EMAIL, password: USER_PASSWORD });
         await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
       });
 

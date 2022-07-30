@@ -10,6 +10,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
 import type { ActionMeta } from 'react-select';
+import { GdriveMimeTypesType } from '../../lib/GdriveMimeTypes';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { TagType } from '../../lib/schemas/Tag';
 import LabelledRadioGroup from './LabelledRadioGroup';
@@ -22,11 +23,11 @@ const Creatable = React.lazy(() => import('react-select/creatable')) as typeof i
 type TagSelectOption = { value: string, label: string };
 
 export interface PuzzleModalFormSubmitPayload {
-  hunt: string;
+  huntId: string;
   title: string;
   url: string | undefined;
   tags: string[];
-  docType?: string;
+  docType?: GdriveMimeTypesType;
   expectedAnswerCount: number;
 }
 
@@ -61,7 +62,7 @@ const PuzzleModalForm = React.forwardRef(({
   const [url, setUrl] = useState<string | undefined>(puzzle ? puzzle.url : undefined);
   const [tags, setTags] = useState<string[]>(puzzle ? tagNamesForIds(puzzle.tags) : []);
   const [docType, setDocType] =
-    useState<string | undefined>(puzzle ? undefined : 'spreadsheet');
+    useState<GdriveMimeTypesType | undefined>(puzzle ? undefined : 'spreadsheet');
   const [expectedAnswerCount, setExpectedAnswerCount] =
     useState<number>(puzzle ? puzzle.expectedAnswerCount : 1);
   const [submitState, setSubmitState] =
@@ -104,7 +105,7 @@ const PuzzleModalForm = React.forwardRef(({
   }, []);
 
   const onDocTypeChange = useCallback((newValue: string) => {
-    setDocType(newValue);
+    setDocType(newValue as GdriveMimeTypesType);
   }, []);
 
   const onExpectedAnswerCountChange: FormControlProps['onChange'] = useCallback((event) => {
@@ -117,7 +118,7 @@ const PuzzleModalForm = React.forwardRef(({
   const onFormSubmit = useCallback((callback: () => void) => {
     setSubmitState(PuzzleModalFormSubmitState.SUBMITTING);
     const payload: PuzzleModalFormSubmitPayload = {
-      hunt: huntId,
+      huntId,
       title,
       url: url || undefined, // Make sure we send undefined if url is falsy
       tags,

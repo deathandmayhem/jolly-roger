@@ -11,6 +11,8 @@ import Row from 'react-bootstrap/Row';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
+import addHuntUser from '../../methods/addHuntUser';
+import bulkAddHuntUsers from '../../methods/bulkAddHuntUsers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 
 const BulkError = styled.p`
@@ -42,7 +44,7 @@ const UserInvitePage = () => {
   const onSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
-    Meteor.call('addToHunt', huntId, email, (inviteError?: Meteor.Error) => {
+    addHuntUser.call({ huntId, email }, (inviteError?) => {
       setSubmitting(false);
       if (inviteError) {
         setError(inviteError);
@@ -57,7 +59,7 @@ const UserInvitePage = () => {
     setSubmitting(true);
     setBulkError(undefined);
     const emails = bulkEmails.split('\n');
-    Meteor.call('bulkAddToHunt', huntId, emails, (bulkInviteError?: Meteor.Error) => {
+    bulkAddHuntUsers.call({ huntId, emails }, (bulkInviteError) => {
       setSubmitting(false);
       if (bulkInviteError) {
         setBulkError(bulkInviteError);

@@ -19,6 +19,7 @@ import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
 import { GuessType } from '../../lib/schemas/Guess';
 import { HuntType } from '../../lib/schemas/Hunt';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
+import setGuessState from '../../methods/setGuessState';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
@@ -132,19 +133,19 @@ const GuessBlock = React.memo(({
   puzzle: PuzzleType;
 }) => {
   const markPending = useCallback(() => {
-    Meteor.call('markGuessPending', guess._id);
+    setGuessState.call({ guessId: guess._id, state: 'pending' });
   }, [guess._id]);
 
   const markCorrect = useCallback(() => {
-    Meteor.call('markGuessCorrect', guess._id);
+    setGuessState.call({ guessId: guess._id, state: 'correct' });
   }, [guess._id]);
 
   const markIncorrect = useCallback(() => {
-    Meteor.call('markGuessIncorrect', guess._id);
+    setGuessState.call({ guessId: guess._id, state: 'incorrect' });
   }, [guess._id]);
 
   const markRejected = useCallback(() => {
-    Meteor.call('markGuessRejected', guess._id);
+    setGuessState.call({ guessId: guess._id, state: 'rejected' });
   }, [guess._id]);
 
   const timestamp = formatDate(guess.createdAt);

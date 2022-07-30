@@ -6,32 +6,24 @@ import '../imports/lib/config/accounts';
 import '../imports/server/migrations/all';
 
 // Import methods
-import '../imports/server/methods/postAnnouncement';
+import '../imports/server/methods/index';
 
 // Other stuff in the server folder
 import '../imports/server/accounts';
 import '../imports/server/announcements';
-import '../imports/server/ansible';
 import '../imports/server/api-init';
-import '../imports/server/api_keys';
-import '../imports/server/chat';
+import '../imports/server/sendChatMessageInternal';
 import '../imports/server/chat-notifications';
 import '../imports/server/discord';
 import '../imports/server/discordClientRefresher';
-import '../imports/server/feature_flags';
-import '../imports/server/fixture';
 import '../imports/server/guesses';
-import '../imports/server/hunts';
 import '../imports/server/assets';
 import '../imports/server/browserconfig';
 import '../imports/server/site-manifest';
 import '../imports/server/migrations-run'; // runs migrations
-import '../imports/server/profile';
-import '../imports/server/puzzle';
 import '../imports/server/server-render';
 import '../imports/server/setup';
 import '../imports/server/subscribers';
-import '../imports/server/operator';
 import '../imports/server/users';
 import '../imports/server/mediasoup';
 import '../imports/server/mediasoup-api';

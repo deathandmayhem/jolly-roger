@@ -32,6 +32,9 @@ import { ConsumerType } from '../../lib/schemas/mediasoup/Consumer';
 import { PeerType } from '../../lib/schemas/mediasoup/Peer';
 import { RouterType } from '../../lib/schemas/mediasoup/Router';
 import { TransportType } from '../../lib/schemas/mediasoup/Transport';
+import mediasoupAckConsumer from '../../methods/mediasoupAckConsumer';
+import mediasoupConnectTransport from '../../methods/mediasoupConnectTransport';
+import mediasoupSetProducerPaused from '../../methods/mediasoupSetProducerPaused';
 import { trace } from '../tracing';
 import Avatar from './Avatar';
 import Loading from './Loading';
@@ -125,7 +128,10 @@ const ProducerManager = ({
   useEffect(() => {
     if (producer && muted !== producer.paused) {
       producer[muted ? 'pause' : 'resume']();
-      Meteor.call('mediasoup:producer_set_paused', producer.id, muted);
+      mediasoupSetProducerPaused.call({
+        mediasoupProducerId: producer.id,
+        paused: muted,
+      });
     }
   }, [muted, producer]);
 
@@ -320,7 +326,7 @@ const ConsumerManager = ({
         rtpParameters: JSON.parse(rtpParameters),
       });
       setConsumer(newConsumer);
-      Meteor.call('mediasoup:consumer_ack', meteorConsumerId);
+      mediasoupAckConsumer.call({ consumerId: meteorConsumerId });
     })();
   }, [meteorConsumerId, mediasoupConsumerId, producerId, kind, rtpParameters, recvTransport]);
 
@@ -551,7 +557,10 @@ const useTransport = (
       connectRef.current = callback;
       // No need to set a callback here, since the ConnectAck record acts as a
       // callback
-      Meteor.call('mediasoup:transport_connect', _id, JSON.stringify(clientDtlsParameters));
+      mediasoupConnectTransport.call({
+        transportId: _id,
+        dtlsParameters: JSON.stringify(clientDtlsParameters),
+      });
     });
     setTransport(newTransport);
     return () => {

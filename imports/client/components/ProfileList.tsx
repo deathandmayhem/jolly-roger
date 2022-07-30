@@ -21,6 +21,9 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { userIdIsAdmin } from '../../lib/is-admin';
 import { userIsOperatorForHunt } from '../../lib/permission_stubs';
+import demoteOperator from '../../methods/demoteOperator';
+import promoteOperator from '../../methods/promoteOperator';
+import syncHuntDiscordRole from '../../methods/syncHuntDiscordRole';
 import Avatar from './Avatar';
 
 const ProfilesSummary = styled.div`
@@ -73,7 +76,7 @@ const PromoteOperatorModal = React.forwardRef((
   const clearError = useCallback(() => setError(undefined), []);
 
   const promote = useCallback(() => {
-    Meteor.call('makeOperatorForHunt', user._id, huntId, (e: Meteor.Error) => {
+    promoteOperator.call({ targetUserId: user._id, huntId }, (e) => {
       setDisabled(false);
       if (e) {
         setError(e);
@@ -129,7 +132,7 @@ const DemoteOperatorModal = React.forwardRef((
   const clearError = useCallback(() => setError(undefined), []);
 
   const demote = useCallback(() => {
-    Meteor.call('demoteOperatorForHunt', user._id, huntId, (e: Error) => {
+    demoteOperator.call({ targetUserId: user._id, huntId }, (e) => {
       setDisabled(false);
       if (e) {
         setError(e);
@@ -297,7 +300,11 @@ const ProfileList = ({
   }, []);
 
   const syncDiscord = useCallback(() => {
-    Meteor.call('syncDiscordRole', huntId);
+    if (!huntId) {
+      return;
+    }
+
+    syncHuntDiscordRole.call({ huntId });
   }, [huntId]);
 
   const syncDiscordButton = useMemo(() => {

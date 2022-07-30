@@ -1,15 +1,16 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import FixtureHunt from '../FixtureHunt';
-import Guesses from '../lib/models/Guesses';
-import Hunts from '../lib/models/Hunts';
-import MeteorUsers from '../lib/models/MeteorUsers';
-import Puzzles from '../lib/models/Puzzles';
-import Tags from '../lib/models/Tags';
-import { addUserToRole, userMayCreateHunt } from '../lib/permission_stubs';
+import FixtureHunt from '../../FixtureHunt';
+import Guesses from '../../lib/models/Guesses';
+import Hunts from '../../lib/models/Hunts';
+import MeteorUsers from '../../lib/models/MeteorUsers';
+import Puzzles from '../../lib/models/Puzzles';
+import Tags from '../../lib/models/Tags';
+import { addUserToRole, userMayCreateHunt } from '../../lib/permission_stubs';
+import createFixtureHunt from '../../methods/createFixtureHunt';
 
-Meteor.methods({
-  createFixtureHunt() {
+createFixtureHunt.define({
+  run() {
     check(this.userId, String);
 
     if (!userMayCreateHunt(this.userId)) {

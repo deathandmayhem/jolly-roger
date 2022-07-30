@@ -54,7 +54,7 @@ and click the "Create sample hunt" button. Otherwise, you can open the
 run the following:
 
 ```js
-Meteor.call("createFixtureHunt")
+Meteor.call("Hunts.methods.createFixture")
 ```
 
 Either way, upon success, you should see a hunt named "Mystery Hunt 2018" in the

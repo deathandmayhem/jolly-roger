@@ -3,6 +3,7 @@ import { Promise as MeteorPromise } from 'meteor/promise';
 import { drive_v3 as drive } from 'googleapis';
 import Ansible from '../Ansible';
 import Flags from '../Flags';
+import GdriveMimeTypes, { GdriveMimeTypesType } from '../lib/GdriveMimeTypes';
 import Documents from '../lib/models/Documents';
 import FolderPermissions from '../lib/models/FolderPermissions';
 import Hunts from '../lib/models/Hunts';
@@ -13,11 +14,6 @@ import getTeamName from './getTeamName';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import HuntFolders from './models/HuntFolders';
 import Locks from './models/Locks';
-
-export const MimeTypes = {
-  spreadsheet: 'application/vnd.google-apps.spreadsheet',
-  document: 'application/vnd.google-apps.document',
-};
 
 function checkClientOk() {
   if (!DriveClient.ready()) {
@@ -47,8 +43,12 @@ function createFolder(name: string, parentId?: string): string {
   return folder.data.id!;
 }
 
-function createDocument(name: string, type: keyof typeof MimeTypes, parentId?: string): string {
-  if (!Object.prototype.hasOwnProperty.call(MimeTypes, type)) {
+function createDocument(
+  name: string,
+  type: GdriveMimeTypesType,
+  parentId?: string,
+): string {
+  if (!Object.prototype.hasOwnProperty.call(GdriveMimeTypes, type)) {
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
   checkClientOk();
@@ -57,7 +57,7 @@ function createDocument(name: string, type: keyof typeof MimeTypes, parentId?: s
   const template = Settings.findOne({ name: `gdrive.template.${type}` as any }) as undefined | SettingType & (
     { name: 'gdrive.template.document' } | { name: 'gdrive.template.spreadsheet' }
   );
-  const mimeType = MimeTypes[type];
+  const mimeType = GdriveMimeTypes[type];
   const parents = parentId ? [parentId] : undefined;
 
   const file = MeteorPromise.await(template ?
@@ -227,7 +227,7 @@ export function ensureDocument(puzzle: {
   _id: string,
   title: string,
   hunt: string,
-}, type: keyof typeof MimeTypes = 'spreadsheet') {
+}, type: GdriveMimeTypesType = 'spreadsheet') {
   const hunt = Hunts.findOneAllowingDeleted(puzzle.hunt);
   const folderId = hunt ? ensureHuntFolder(hunt) : undefined;
 
