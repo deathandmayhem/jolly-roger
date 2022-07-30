@@ -96,6 +96,7 @@ const PuzzleDeleteModal = React.forwardRef((
           </p>
           <p>
             <Select
+              isClearable
               options={replacementOptions}
               value={replacementId}
               onChange={setReplacementIdCallback}
