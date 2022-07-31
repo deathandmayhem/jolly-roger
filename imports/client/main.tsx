@@ -18,8 +18,9 @@ const Reset = createGlobalStyle`
   }
 
   // Prevent mobile safari zoom
-  input[type="text"], textarea {
-    font-size: 16px!important;
+  input[type="text"],
+  textarea {
+    font-size: 16px !important;
   }
 `;
 

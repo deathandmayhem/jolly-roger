@@ -27,7 +27,7 @@ const AnnouncementFormContainer = styled.div`
   padding: 16px;
 
   h3 {
-    margin-top: 0px;
+    margin-top: 0;
   }
 
   textarea {

@@ -10,7 +10,7 @@ const PuzzleAnswerSpan = styled.span`
 
 const PuzzleAnswerSegment = styled.span`
   & + & {
-    margin-left: .4em;
+    margin-left: 0.4em;
   }
 `;
 

@@ -18,7 +18,7 @@ import { mediaBreakpointDown } from './styling/responsive';
 
 const PuzzleActivityItems = styled.span`
   font-size: 14px;
-  color: #666666;
+  color: #666;
   display: flex;
   justify-content: flex-end;
   ${mediaBreakpointDown('xs', css`

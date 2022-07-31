@@ -73,9 +73,8 @@ const PuzzleTitleColumn = styled(PuzzleColumn)`
 const PuzzleActivityColumn = styled(PuzzleColumn)`
   width: 11rem;
   text-align: right;
-
-  // Push to take whole row in narrow views
   ${mediaBreakpointDown('xs', css`
+    // Push to take whole row in narrow views
     flex: 0 0 100%;
   `)}
 `;
@@ -89,9 +88,8 @@ const PuzzleAnswerColumn = styled(PuzzleColumn)`
   flex: 3;
   overflow-wrap: break-word;
   overflow: hidden;
-
-  // Push to take whole row in narrow views
   ${mediaBreakpointDown('xs', css`
+    // Push to take whole row in narrow views
     flex: 0 0 100%;
   `)}
 `;

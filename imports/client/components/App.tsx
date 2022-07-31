@@ -61,17 +61,18 @@ const BreadcrumbItem = styled.li`
 
   + li {
     padding-left: 0.5rem;
-    &:before {
-      content: '/';
+
+    &::before {
+      content: "/";
       padding-right: 0.5rem;
     }
   }
 `;
 
 const NavbarInset = styled(Navbar)`
-  margin-top: env(safe-area-inset-top, 0px);
-  padding-left: env(safe-area-inset-right, 0px);
-  padding-right: calc(env(safe-area-inset-right, 0px) + 4px);
+  margin-top: env(safe-area-inset-top, 0);
+  padding-left: env(safe-area-inset-right, 0);
+  padding-right: calc(env(safe-area-inset-right, 0) + 4px);
 `;
 
 const NavUsername = styled.span`

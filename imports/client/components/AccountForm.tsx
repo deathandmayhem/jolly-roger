@@ -31,7 +31,7 @@ const StyledForm = styled.div`
 `;
 
 const StyledTitle = styled.h3`
-  margin-top: 0px;
+  margin-top: 0;
   margin-bottom: 10px;
   font-size: 18px;
   font-weight: 800;
@@ -45,7 +45,7 @@ const StyledModeSwitchLink = styled.div`
 `;
 
 const NoPaddingLinkButton = styled(Button)`
-  padding: 0px;
+  padding: 0;
   vertical-align: baseline;
 `;
 

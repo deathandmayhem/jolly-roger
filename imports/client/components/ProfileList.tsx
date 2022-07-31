@@ -32,7 +32,6 @@ const ProfilesSummary = styled.div`
 
 const ListItemContainer = styled.div`
   width: 100%;
-
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -43,7 +42,7 @@ const ImageBlock = styled.div`
   width: 40px;
   height: 40px;
   flex: none;
-  margin-right: .5rem;
+  margin-right: 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -53,6 +52,7 @@ const ImageBlock = styled.div`
 const OperatorBox = styled.div`
   margin-left: auto;
   padding-right: 0.5rem;
+
   * {
     margin: 0 0.25rem;
   }

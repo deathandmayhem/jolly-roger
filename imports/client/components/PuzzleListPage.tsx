@@ -57,6 +57,7 @@ const ViewControlsSection = styled.div`
   &:not(:last-child) {
     margin-right: 0.5em;
   }
+
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -442,7 +443,7 @@ const StyledPuzzleListLinkList = styled.ul`
   align-items: stretch;
   flex-wrap: wrap;
   width: 100%;
-  margin: 0 0 8px 0;
+  margin: 0 0 8px;
   padding: 0;
   border-color: #cfcfcf;
   border-style: solid;
@@ -466,6 +467,7 @@ const StyledPuzzleListLinkAnchor = styled(Link)`
   padding: 8px 0;
   font-size: 14px;
   font-weight: bold;
+
   &:hover {
     background-color: #f8f8f8;
   }

@@ -50,7 +50,8 @@ const StyledGuessBlock = styled.div<{ $state: GuessType['state'] }>`
   margin-bottom: 8px;
   display: flex;
   flex-direction: row;
-  background-color: ${(props) => {
+  background-color:
+    ${(props) => {
     switch (props.$state) {
       case 'correct':
         return '#f0fff0';
@@ -74,44 +75,43 @@ const StyledGuessInfo = styled.div`
 const StyledGuessButtonGroup = styled.div`
   flex: 0 1 330px;
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
   align-items: stretch;
   justify-content: space-between;
-  padding: 0px;
+  padding: 0;
 `;
 
 const StyledGuessButton = styled.button`
   flex: 1 1 72px;
   border-radius: 5px;
   margin: 4px;
-  border: 0px;
+  border: 0;
   background-color: transparent;
 `;
 
 const StyledGuessButtonCorrect = styled(StyledGuessButton)`
-${(props) => !props.disabled && css`
+  ${(props) => !props.disabled && css`
     border: 1px solid #00ff00;
     background-color: #f0fff0;
   `}
 `;
 
 const StyledGuessButtonIncorrect = styled(StyledGuessButton)`
-${(props) => !props.disabled && css`
+  ${(props) => !props.disabled && css`
     border: 1px solid #ff0000;
     background-color: #fff0f0;
   `}
 `;
 
 const StyledGuessButtonRejected = styled(StyledGuessButton)`
-${(props) => !props.disabled && css`
+  ${(props) => !props.disabled && css`
     border: 1px solid #000000;
     background-color: #f0f0f0;
   `}
 `;
 
 const StyledGuessButtonPending = styled(StyledGuessButton)`
-${(props) => !props.disabled && css`
+  ${(props) => !props.disabled && css`
     border: 1px solid #0000ff;
     background-color: #f0f0ff;
   `}

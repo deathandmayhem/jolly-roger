@@ -73,7 +73,6 @@ const TagDiv = styled.div<{
   border-radius: 4px;
   background-color: #ddd;
   color: #000;
-
   ${({ popoverCapable }) => popoverCapable && css`
     cursor: default;
     position: relative;
@@ -111,7 +110,10 @@ const TagDiv = styled.div<{
 `;
 
 const TagLink = styled(Link)`
-  &, &:active, &:focus, &:hover {
+  &,
+  &:active,
+  &:focus,
+  &:hover {
     color: #000;
     text-decoration: none;
   }

@@ -126,11 +126,11 @@ const ChatHistoryDiv = styled.div`
 const PUZZLE_PAGE_PADDING = 8;
 
 const ChatMessageDiv = styled.div<{ isSystemMessage: boolean; }>`
-   padding: 0px ${PUZZLE_PAGE_PADDING}px 2px;
-   word-wrap: break-word;
-   font-size: 14px;
-   ${({ isSystemMessage }) => isSystemMessage && css`
-     background-color: #e0e0e0;
+  padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
+  word-wrap: break-word;
+  font-size: 14px;
+  ${({ isSystemMessage }) => isSystemMessage && css`
+    background-color: #e0e0e0;
   `}
 `;
 
@@ -143,7 +143,7 @@ const ChatMessageTimestamp = styled.span`
   float: right;
   font-style: italic;
   font-size: 12px;
-  color: #666666;
+  color: #666;
 `;
 
 const ChatSectionDiv = styled.div`
@@ -152,9 +152,13 @@ const ChatSectionDiv = styled.div`
   flex-flow: column;
   overflow: hidden;
 
-  p, ul, blockquote, pre {
+  p,
+  ul,
+  blockquote,
+  pre {
     margin-bottom: 0;
   }
+
   blockquote {
     font-size: 14px;
     margin-left: 10px;
@@ -178,7 +182,7 @@ const PuzzleMetadataAnswer = styled.span`
   font-family: ${MonospaceFontFamily};
   font-weight: 300;
   background-color: ${SolvedPuzzleBackgroundColor};
-  color: #000000;
+  color: #000;
 
   // Tag-like
   display: inline-flex;
@@ -193,7 +197,7 @@ const AnswerRemoveButton = styled(Button)`
   // Specifier boost needed to override Bootstrap button style
   && {
     margin: 0 -6px 0 6px;
-    padding: 0 0 0 0;
+    padding: 0;
   }
 `;
 
@@ -213,8 +217,10 @@ const PuzzleMetadataActionRow = styled(PuzzleMetadataRow)`
   a {
     margin-right: 8px;
   }
+
   button {
     margin: 2px 0 2px 8px;
+
     &:first-of-type {
       margin-left: auto;
     }
@@ -1108,7 +1114,6 @@ const PuzzleDocumentDiv = styled.div`
   height: 100%;
   flex: auto;
   position: relative;
-
 `;
 
 const PuzzlePageMultiplayerDocument = React.memo(({ document }: {

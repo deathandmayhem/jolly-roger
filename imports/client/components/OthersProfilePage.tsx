@@ -10,13 +10,15 @@ import Avatar from './Avatar';
 
 const AvatarTooltip = styled(Tooltip)`
   opacity: 1 !important;
+
   .tooltip-inner {
     max-width: 300px;
   }
 `;
 
 const ProfileTable = styled.table`
-  td, th {
+  td,
+  th {
     padding: 0.25rem 0.5rem;
   }
 `;
