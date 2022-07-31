@@ -16,13 +16,15 @@ function getBreakpoint(b: Breakpoint) {
   return window.getComputedStyle(document.body).getPropertyValue(`--breakpoint-${b}`);
 }
 
-export function mediaBreakpointDown(size: keyof typeof largerBreakpoints) {
-  return function (strings: TemplateStringsArray, ...interpolations: any[]) {
-    // Use `calc` to work around max-width and min-width both being closed
-    // intervals
-    return css`
-      @media (max-width: calc(${getBreakpoint(largerBreakpoints[size])} - 0.02px)) {
-        ${css(strings, ...interpolations)}
-      }`;
-  };
+export function mediaBreakpointDown(
+  size: keyof typeof largerBreakpoints,
+  body: ReturnType<typeof css>
+) {
+  // Use `calc` to work around max-width and min-width both being closed
+  // intervals
+  return css`
+    @media (max-width: calc(${getBreakpoint(largerBreakpoints[size])} - 0.02px)) {
+      ${body}
+    }
+  `;
 }
