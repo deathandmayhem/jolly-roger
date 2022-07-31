@@ -9,7 +9,10 @@
     "url": "https://github.com/deathandmayhem/jolly-roger"
   },
   "scripts": {
-    "lint": "tsc --noEmit && eslint --format gha --ext js,jsx,ts,tsx .",
+    "lint:types": "tsc --noEmit",
+    "lint:js": "eslint --format gha --ext js,jsx,ts,tsx .",
+    "lint:css": "stylelint '**/*.tsx'",
+    "lint": "npm-run-all --parallel lint:*",
     "test": "TEST_BROWSER_DRIVER=puppeteer meteor test --full-app --once --driver-package meteortesting:mocha"
   },
   "dependencies": {
@@ -94,7 +97,13 @@
     "eslint-plugin-react": "^7.30.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "mocha": "^10.0.0",
+    "npm-run-all": "^4.1.5",
     "puppeteer": "^15.5.0",
+    "stylelint": "^14.2.0",
+    "stylelint-config-standard-scss": "^3.0.0",
+    "stylelint-config-styled-components": "^0.1.1",
+    "stylelint-processor-styled-components": "^1.10.0",
+    "stylelint-scss": "^4.1.0",
     "typescript": "^4.7.4"
   },
   "meteor": {
