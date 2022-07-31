@@ -194,7 +194,7 @@ class DiscordClientRefresher {
         $set: {
           type,
           snowflake: k,
-          object: v.toJSON(),
+          object: v.toJSON() as any,
         },
       });
     });
@@ -207,7 +207,7 @@ class DiscordClientRefresher {
         $set: {
           type,
           snowflake: r.id,
-          object: r.toJSON(),
+          object: r.toJSON() as any,
         },
       });
     })) as any);
@@ -219,7 +219,7 @@ class DiscordClientRefresher {
         $set: {
           type,
           snowflake: r.id,
-          object: r.toJSON(),
+          object: r.toJSON() as any,
         },
       });
     })) as any);

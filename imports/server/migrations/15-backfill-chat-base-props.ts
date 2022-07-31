@@ -38,6 +38,6 @@ Migrations.add({
     });
 
     dropIndex(ChatMessages, 'puzzleId_1_timestamp_-1');
-    ChatMessages._ensureIndex({ deleted: 1, puzzle: 1 });
+    ChatMessages.createIndex({ deleted: 1, puzzle: 1 });
   },
 });

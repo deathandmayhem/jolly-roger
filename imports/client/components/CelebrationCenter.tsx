@@ -30,7 +30,7 @@ const CelebrationCenter = ({ huntId }: { huntId: string }) => {
     // 3) TODO: the user has not disabled it in their profile settings
     // Hack: disabled celebrations because I don't want to think about it right now
     // eslint-disable-next-line no-constant-condition
-    if ((window.orientation === undefined) && !disabled && false) {
+    if ((window.screen?.orientation === undefined) && !disabled && false) {
       setPlaybackQueue((prevPlaybackQueue) => {
         const newQueue = prevPlaybackQueue.concat([{
           puzzleId: puzzle._id,

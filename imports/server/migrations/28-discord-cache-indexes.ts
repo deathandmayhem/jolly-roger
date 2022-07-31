@@ -5,6 +5,6 @@ Migrations.add({
   version: 28,
   name: 'Create index for discord cache',
   up() {
-    DiscordCache._ensureIndex({ type: 1, snowflake: 1 }, { unique: true });
+    DiscordCache.createIndex({ type: 1, snowflake: 1 }, { unique: true });
   },
 });

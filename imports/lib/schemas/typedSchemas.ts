@@ -137,15 +137,7 @@ const buildField = function <T> (
   // Go through each type that SimpleSchema supports, and see if we have one of
   // those
 
-  if (fieldCodec instanceof t.TaggedUnionType) {
-    // Tagged unions don't seem representable in SimpleSchema (it has
-    // SimpleSchema.oneOf, but can't seem to use the tag value to figure out
-    // which branch to follow, so just trust that we'll validate this at
-    // runtime)
-    return [[fieldName, {
-      ...overrides, type: Object, optional, blackbox: true,
-    }]];
-  } else if (fieldCodec instanceof t.UnionType &&
+  if (fieldCodec instanceof t.UnionType &&
     fieldCodec.types &&
     fieldCodec.types instanceof Array) {
     const isOptional = fieldCodec.types.some((subtype) => subtype instanceof t.UndefinedType);
@@ -175,7 +167,7 @@ const buildField = function <T> (
     // RefinementType extends Type, but the compiler seems unhappy with the
     // comparison otherwise.
     fieldCodec instanceof t.RefinementType &&
-    fieldCodec === t.Integer
+    fieldCodec === t.Int
   ) {
     return [[fieldName, { ...overrides, type: SimpleSchema.Integer, optional }]];
   } else if (fieldCodec instanceof t.NumberType) {
@@ -198,7 +190,9 @@ const buildField = function <T> (
       type: buildSchema(fieldCodec, nestedOverrides || {}),
       optional,
     }]];
-  } else if (fieldCodec instanceof t.ObjectType) {
+  } else if (
+    fieldCodec instanceof t.AnyDictionaryType &&
+    fieldCodec === t.UnknownRecord) {
     return [[fieldName, {
       ...overrides,
       type: Object,
@@ -214,7 +208,7 @@ export const buildSchema = function <
   T extends Record<string, any>,
   P extends Record<keyof T, t.Mixed>
 > (
-  schemaCodec: t.InterfaceType<P, T>,
+  schemaCodec: t.TypeC<P>,
   overrides: Overrides<T>
 ): SimpleSchema {
   const schema: SimpleSchemaDefinition = {};
@@ -245,8 +239,8 @@ export const inheritSchema = function <
   CT extends Record<string, any>,
   CP extends Record<keyof CT, t.Mixed>
 > (
-  parentSchemaCodec: t.InterfaceType<PP, PT>,
-  childSchemaCodec: t.InterfaceType<CP, CT>,
+  parentSchemaCodec: t.TypeC<PP>,
+  childSchemaCodec: t.TypeC<CP>,
   parentOverrides: Overrides<PT>,
   childOverrides: Overrides<CT>
 ): [t.TypeC<PP & CP>, Overrides<PT & CT>] {

@@ -5,6 +5,6 @@ Migrations.add({
   version: 11,
   name: 'Add indexes for API keys',
   up() {
-    APIKeys._ensureIndex({ key: 1 });
+    APIKeys.createIndex({ key: 1 });
   },
 });

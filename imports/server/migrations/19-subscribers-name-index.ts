@@ -5,6 +5,6 @@ Migrations.add({
   version: 19,
   name: 'Create new index for subscribers.fetch subscription',
   up() {
-    Subscribers._ensureIndex({ name: 1 });
+    Subscribers.createIndex({ name: 1 });
   },
 });

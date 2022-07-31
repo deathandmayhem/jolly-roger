@@ -6,6 +6,6 @@ Migrations.add({
   name: 'Add indexes on ChatNotifications',
   up() {
     // Ensure that the query pattern in chat-notifications.ts is indexed.
-    ChatNotifications._ensureIndex({ deleted: 1, user: 1 });
+    ChatNotifications.createIndex({ deleted: 1, user: 1 });
   },
 });

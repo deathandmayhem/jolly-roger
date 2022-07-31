@@ -10,7 +10,7 @@ export const DiscordCacheCodec = t.type({
   updatedAt: t.union([date, t.undefined]),
   snowflake: t.string,
   type: t.string,
-  object: t.object,
+  object: t.UnknownRecord,
 });
 
 const DiscordCacheOverrides: Overrides<t.TypeOf<typeof DiscordCacheCodec>> = {
