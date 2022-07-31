@@ -14,7 +14,6 @@ import addHuntUser from '../../methods/addHuntUser';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import markdown from '../markdown';
-import CelebrationCenter from './CelebrationCenter';
 
 const HuntDeletedError = React.memo(({ hunt, canUndestroy }: {
   hunt: HuntType;
@@ -133,40 +132,29 @@ const HuntApp = React.memo(() => {
 
   useDocumentTitle(title);
 
-  const body = useMemo(() => {
-    if (loading) {
-      return <span>loading...</span>;
-    }
+  if (loading) {
+    return <span>loading...</span>;
+  }
 
-    if (!hunt) {
-      return <span>This hunt does not exist</span>;
-    }
+  if (!hunt) {
+    return <span>This hunt does not exist</span>;
+  }
 
-    if (hunt.deleted) {
-      return (
-        <HuntDeletedError
-          hunt={hunt}
-          canUndestroy={canUndestroy}
-        />
-      );
-    }
-
-    if (!member) {
-      return <HuntMemberError hunt={hunt} canJoin={canJoin} />;
-    }
-
+  if (hunt.deleted) {
     return (
-      <Outlet />
+      <HuntDeletedError
+        hunt={hunt}
+        canUndestroy={canUndestroy}
+      />
     );
-  }, [
-    loading, member, hunt, canUndestroy, canJoin,
-  ]);
+  }
+
+  if (!member) {
+    return <HuntMemberError hunt={hunt} canJoin={canJoin} />;
+  }
 
   return (
-    <div>
-      <CelebrationCenter huntId={huntId} />
-      {body}
-    </div>
+    <Outlet />
   );
 });
 

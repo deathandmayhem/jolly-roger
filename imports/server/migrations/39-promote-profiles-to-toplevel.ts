@@ -3,7 +3,7 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Migrations from './Migrations';
 import dropIndex from './dropIndex';
 
-type LegacyProfile = Pick<Meteor.User, 'displayName' | 'googleAccount' | 'discordAccount' | 'phoneNumber' | 'muteApplause' | 'dingwords'>;
+type LegacyProfile = Pick<Meteor.User, 'displayName' | 'googleAccount' | 'discordAccount' | 'phoneNumber' | 'dingwords'>;
 
 Migrations.add({
   version: 39,
@@ -11,7 +11,7 @@ Migrations.add({
   up() {
     MeteorUsers.find({ profile: { $ne: null as any } }).forEach((u) => {
       const {
-        displayName, googleAccount, discordAccount, phoneNumber, muteApplause, dingwords,
+        displayName, googleAccount, discordAccount, phoneNumber, dingwords,
       } = u.profile as LegacyProfile;
       MeteorUsers.update(u._id, {
         $set: {
@@ -19,7 +19,6 @@ Migrations.add({
           googleAccount,
           discordAccount,
           phoneNumber,
-          muteApplause,
           dingwords,
         },
       });

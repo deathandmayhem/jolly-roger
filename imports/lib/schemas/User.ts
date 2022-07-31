@@ -14,7 +14,6 @@ declare module 'meteor/meteor' {
       googleAccount?: string;
       discordAccount?: t.TypeOf<typeof DiscordAccount>;
       phoneNumber?: string;
-      muteApplause?: boolean;
       dingwords?: string[];
     }
   }
@@ -35,11 +34,10 @@ export const UserCodec = t.type({
   googleAccount: t.union([t.string, t.undefined]),
   discordAccount: t.union([DiscordAccount, t.undefined]),
   phoneNumber: t.union([t.string, t.undefined]),
-  muteApplause: t.union([t.boolean, t.undefined]),
   dingwords: t.union([t.array(t.string), t.undefined]),
 });
 
-export type ProfileFields = 'displayName' | 'googleAccount' | 'discordAccount' | 'phoneNumber' | 'muteApplause' | 'dingwords';
+export type ProfileFields = 'displayName' | 'googleAccount' | 'discordAccount' | 'phoneNumber' | 'dingwords';
 
 const UserOverrides: Overrides<t.TypeOf<typeof UserCodec>> = {
   username: {

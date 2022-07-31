@@ -1745,25 +1745,6 @@ const CircuitBreakerSection = () => {
         </p>
       </CircuitBreakerControl>
       <CircuitBreakerControl
-        title="Celebrations"
-        flagName="disable.applause"
-      >
-        <p>
-          Some teams like broadcasting when a puzzle is solved, to make
-          people aware of the shape of correct answers and to celebrate progress.
-          Others do not, prefering to avoid distracting people or creating
-          sound, especially since some puzzles involve audio cues.
-          While individual users can squelch applause in their
-          profile/settings, we also provide this global toggle if your team
-          prefers to forgo this celebratory opportunity.
-        </p>
-        <p>
-          Disabling this feature means that Jolly Roger will not show a modal
-          and play an applause sound to all open tabs of all members of a
-          particular hunt when a puzzle in that hunt is solved.
-        </p>
-      </CircuitBreakerControl>
-      <CircuitBreakerControl
         title="WebRTC calls"
         flagName="disable.webrtc"
       >
