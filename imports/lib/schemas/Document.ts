@@ -34,7 +34,7 @@ const DocumentFields = t.type({
   //
   // For provider=google, this consists of a "type" ("spreadsheet" or
   // "document") and an id
-  value: t.object,
+  value: t.UnknownRecord,
 });
 
 const DocumentFieldsOverrides: Overrides<t.TypeOf<typeof DocumentFields>> = {

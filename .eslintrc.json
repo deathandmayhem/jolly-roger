@@ -9,7 +9,8 @@
   "plugins": [
     "filenames",
     "meteor",
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "deprecation"
   ],
   "extends": [
     "airbnb",
@@ -49,7 +50,7 @@
     "no-underscore-dangle": ["error",
       {
         "allow": [
-          "_id", "_this", "_ensureIndex", "_dropIndex", "_redirectUri", "_postRequest",
+          "_id", "_this", "_dropIndex", "_redirectUri", "_postRequest",
           "_anyMethodsAreOutstanding", "_schemaKeys", "_schema", "_retrieveCredentialSecret"
         ]
       }
@@ -125,6 +126,9 @@
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/prefer-namespace-keyword": ["off"],
+
+    // Show errors for deprecated code
+    "deprecation/deprecation": "error",
 
     // Match existing style
     "operator-linebreak": ["error", "after"],

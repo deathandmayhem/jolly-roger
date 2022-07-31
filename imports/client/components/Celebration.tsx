@@ -48,7 +48,7 @@ const Celebration = ({
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     // Dismiss the celebration on esc
-    if (e.keyCode === 27) {
+    if (e.key === 'Escape') {
       onCloseCb();
     }
   }, [onCloseCb]);

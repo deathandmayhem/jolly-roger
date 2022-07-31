@@ -8,7 +8,7 @@ export const SubscriberCodec = t.type({
   connection: t.string,
   user: t.string,
   name: t.string,
-  context: t.object,
+  context: t.UnknownRecord,
   createdAt: date,
   updatedAt: t.union([date, t.undefined]),
 });

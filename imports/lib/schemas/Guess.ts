@@ -13,10 +13,10 @@ const GuessFields = t.type({
   guess: t.string,
   // Whether this was forward solved (10), backwards solved (-10), or somewhere
   // in between (only optional in that older hunts won't have it)
-  direction: t.union([t.Integer, t.undefined]),
+  direction: t.union([t.Int, t.undefined]),
   // Submitted-evaluated probability that the answer is right (also only
   // optional on older hunts)
-  confidence: t.union([t.Integer, t.undefined]),
+  confidence: t.union([t.Int, t.undefined]),
   // The state of this guess, as handled by the operators:
   // * 'pending' means "shows up in the operator queue"
   // * 'correct', "incorrect", and "rejected" all mean "no longer in the operator queue"
@@ -59,7 +59,15 @@ const [GuessCodec, GuessOverrides] = inheritSchema(
   GuessFieldsOverrides
 );
 export { GuessCodec };
-export type GuessType = t.TypeOf<typeof GuessCodec>;
+// Note that we use t.OutputOf here instead of t.TypeOf because of Guess's use
+// of t.Int. io-ts really wants us to "encode" and "decode" values through it as
+// a form of runtime type validation (where it would add the "brand" for
+// validated integers), but we use SimpleSchema for that and don't really want
+// to deal with branded types.
+//
+// It's possible that t.OutputOf is the more correct choice for us to use in
+// general, but that's not a conversion to be done now.
+export type GuessType = t.OutputOf<typeof GuessCodec>;
 
 const Guess = buildSchema(GuessCodec, GuessOverrides);
 

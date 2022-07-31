@@ -54,8 +54,8 @@ Migrations.add({
     });
 
     // Add indexes to match the old profiles model
-    MeteorUsers._ensureIndex({ 'profile.displayName': 1 });
-    MeteorUsers._ensureIndex({ _id: 1, 'profile.displayName': 1 });
-    MeteorUsers._ensureIndex({ _id: 1, 'profile.dingwords': 1 });
+    MeteorUsers.createIndex({ 'profile.displayName': 1 });
+    MeteorUsers.createIndex({ _id: 1, 'profile.displayName': 1 });
+    MeteorUsers.createIndex({ _id: 1, 'profile.dingwords': 1 });
   },
 });

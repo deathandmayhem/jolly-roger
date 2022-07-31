@@ -44,7 +44,7 @@ const DeepLink = ({
   const onClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     // window.orientation is a good proxy for mobile device
-    if (window.orientation) {
+    if (window.screen?.orientation) {
       setState({ state: DeepLinkLoadState.ATTEMPTING_NATIVE, startNativeLoad: new Date() });
       Meteor.setTimeout(onAttemptingNativeTimeout, 25);
     } else {

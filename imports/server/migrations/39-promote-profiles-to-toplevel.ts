@@ -31,9 +31,9 @@ Migrations.add({
     });
 
     // Fix indexes
-    MeteorUsers._ensureIndex({ displayName: 1 });
-    MeteorUsers._ensureIndex({ _id: 1, displayName: 1 });
-    MeteorUsers._ensureIndex({ _id: 1, dingwords: 1 });
+    MeteorUsers.createIndex({ displayName: 1 });
+    MeteorUsers.createIndex({ _id: 1, displayName: 1 });
+    MeteorUsers.createIndex({ _id: 1, dingwords: 1 });
     dropIndex(MeteorUsers, 'profile.displayName_1');
     dropIndex(MeteorUsers, '_id_1_profile.displayName_1');
     dropIndex(MeteorUsers, '_id_1_profile.dingwords_1');

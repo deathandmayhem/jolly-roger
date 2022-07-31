@@ -5,7 +5,7 @@ Migrations.add({
   version: 35,
   name: 'Indexes for new FolderPermissions model',
   up() {
-    FolderPermissions._ensureIndex(
+    FolderPermissions.createIndex(
       { folder: 1, user: 1, googleAccount: 1 },
       { unique: true },
     );

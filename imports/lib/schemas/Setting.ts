@@ -10,7 +10,7 @@ const GuildType = t.type({
 });
 export const SettingCodec = t.intersection([
   BaseCodec,
-  t.taggedUnion('name', [
+  t.union([
     t.type({
       name: t.literal('gdrive.credential'),
       value: t.type({
@@ -64,7 +64,7 @@ export type SettingType = t.TypeOf<typeof SettingCodec>;
 
 const SettingFields = t.type({
   name: t.string,
-  value: t.object,
+  value: t.UnknownRecord,
 });
 
 const [SettingSchemaCodec, SettingOverrides] = inheritSchema(

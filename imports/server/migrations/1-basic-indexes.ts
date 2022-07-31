@@ -9,10 +9,10 @@ Migrations.add({
   version: 1,
   name: 'Add basic indexes to collections',
   up() {
-    Announcements._ensureIndex({ deleted: 1, hunt: 1, createdAt: -1 });
-    ChatMessages._ensureIndex({ puzzleId: 1, timestamp: -1 });
-    Guesses._ensureIndex({ deleted: 1, hunt: 1, puzzle: 1 });
-    Puzzles._ensureIndex({ deleted: 1, hunt: 1 });
-    Tags._ensureIndex({ deleted: 1, hunt: 1 });
+    Announcements.createIndex({ deleted: 1, hunt: 1, createdAt: -1 });
+    ChatMessages.createIndex({ puzzleId: 1, timestamp: -1 });
+    Guesses.createIndex({ deleted: 1, hunt: 1, puzzle: 1 });
+    Puzzles.createIndex({ deleted: 1, hunt: 1 });
+    Tags.createIndex({ deleted: 1, hunt: 1 });
   },
 });

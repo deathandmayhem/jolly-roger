@@ -6,6 +6,6 @@ Migrations.add({
   name: 'Fix indexes for subscriber tracking',
   up() {
     Subscribers._dropIndex('name_1');
-    Subscribers._ensureIndex({ 'context.hunt': 1 });
+    Subscribers.createIndex({ 'context.hunt': 1 });
   },
 });
