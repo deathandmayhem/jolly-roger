@@ -19,9 +19,11 @@ const PuzzleGroupDiv = styled.div`
 
 const PuzzleGroupHeader = styled.div`
   display: block;
+
   &:hover {
     cursor: pointer;
   }
+
   min-height: 32px;
 `;
 

@@ -22,7 +22,7 @@ import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import * as RRBS from 'react-router-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import StackTrace, { StackFrame } from 'stacktrace-js';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { useBreadcrumbItems } from '../hooks/breadcrumb';
 import lookupUrl from '../lookupUrl';
 import ConnectionStatus from './ConnectionStatus';
@@ -61,23 +61,24 @@ const BreadcrumbItem = styled.li`
 
   + li {
     padding-left: 0.5rem;
-    &:before {
-      content: '/';
+
+    &::before {
+      content: "/";
       padding-right: 0.5rem;
     }
   }
 `;
 
 const NavbarInset = styled(Navbar)`
-  margin-top: env(safe-area-inset-top, 0px);
-  padding-left: env(safe-area-inset-right, 0px);
-  padding-right: calc(env(safe-area-inset-right, 0px) + 4px);
+  margin-top: env(safe-area-inset-top, 0);
+  padding-left: env(safe-area-inset-right, 0);
+  padding-right: calc(env(safe-area-inset-right, 0) + 4px);
 `;
 
 const NavUsername = styled.span`
-  ${mediaBreakpointDown('sm')`
+  ${mediaBreakpointDown('sm', css`
     display: none;
-  `}
+  `)}
 `;
 
 const Brand = styled.img`

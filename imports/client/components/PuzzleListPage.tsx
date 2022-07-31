@@ -25,7 +25,7 @@ import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
@@ -57,18 +57,18 @@ const ViewControlsSection = styled.div`
   &:not(:last-child) {
     margin-right: 0.5em;
   }
+
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-end;
-
-  ${mediaBreakpointDown('xs')`
+  ${mediaBreakpointDown('xs', css`
     &:not(:last-child) {
       margin-right: 0;
       margin-bottom: 0.5em;
     }
     flex-basis: 100%;
-  `}
+  `)}
 `;
 
 const ViewControlsSectionExpand = styled(ViewControlsSection)`
@@ -443,7 +443,7 @@ const StyledPuzzleListLinkList = styled.ul`
   align-items: stretch;
   flex-wrap: wrap;
   width: 100%;
-  margin: 0 0 8px 0;
+  margin: 0 0 8px;
   padding: 0;
   border-color: #cfcfcf;
   border-style: solid;
@@ -467,6 +467,7 @@ const StyledPuzzleListLinkAnchor = styled(Link)`
   padding: 8px 0;
   font-size: 14px;
   font-weight: bold;
+
   &:hover {
     background-color: #f8f8f8;
   }
@@ -478,9 +479,9 @@ const StyledPuzzleListExternalLink = styled(StyledPuzzleListLink)`
 
 const StyledPuzzleListLinkLabel = styled.span`
   margin-left: 4px;
-  ${mediaBreakpointDown('sm')`
+  ${mediaBreakpointDown('sm', css`
     display: none;
-  `}
+  `)}
 `;
 
 const PuzzleListPage = () => {

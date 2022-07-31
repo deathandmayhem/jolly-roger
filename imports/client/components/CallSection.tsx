@@ -54,15 +54,15 @@ const CallStateIcon = styled.span`
   justify-content: center;
   color: red; // TODO: lift $danger from react-bootstrap somehow?
   position: absolute;
-  right: 0px;
+  right: 0;
 `;
 
 const MutedIcon = styled(CallStateIcon)`
-  top: 0px;
+  top: 0;
 `;
 
 const DeafenedIcon = styled(CallStateIcon)`
-  bottom: 0px;
+  bottom: 0;
 `;
 
 // If we're waiting for a particular piece of server state for more than 1s,

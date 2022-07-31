@@ -13,8 +13,7 @@ const CelebrationOverlay = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  background-color: rgba(0, 0, 0, .20);
+  background-color: rgb(0 0 0 / 20%);
   z-index: 1050;
 `;
 

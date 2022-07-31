@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
 import CallHistories from '../../lib/models/mediasoup/CallHistories';
 import relativeTimeFormat, { terseRelativeTimeFormat } from '../../lib/relativeTimeFormat';
@@ -18,13 +18,12 @@ import { mediaBreakpointDown } from './styling/responsive';
 
 const PuzzleActivityItems = styled.span`
   font-size: 14px;
-  color: #666666;
+  color: #666;
   display: flex;
   justify-content: flex-end;
-
-  ${mediaBreakpointDown('xs')`
+  ${mediaBreakpointDown('xs', css`
     justify-content: flex-start;
-  `}
+  `)}
 `;
 
 const PuzzleActivityItem = styled.span`
@@ -38,10 +37,10 @@ const PuzzleActivityItem = styled.span`
     margin-right: 0.25rem;
   }
 
-  ${mediaBreakpointDown('xs')`
+  ${mediaBreakpointDown('xs', css`
     justify-content: flex-start;
     margin-left: 0.125rem;
-  `}
+  `)}
 `;
 
 const PuzzleOpenTime = styled(PuzzleActivityItem)`

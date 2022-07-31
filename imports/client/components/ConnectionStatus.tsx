@@ -36,8 +36,9 @@ const WaitingAlert = ({ retryTime = Date.now() }: { retryTime: DDP.DDPStatus['re
 const ConnectionStatusContainer = styled.div`
   position: fixed;
   top: 50px;
-  left: 0px;
-  right: 0px;
+  left: 0;
+  right: 0;
+
   // This z-index is chosen to be higher than any z-index used by Bootstrap
   // (which are all in the 1000-1100 range)
   z-index: 10000;

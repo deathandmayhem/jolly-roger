@@ -19,10 +19,10 @@ const StyledDeepLink = styled(DeepLink)`
 `;
 
 const StyledIframe = styled.iframe`
-  /* Workaround for unusual sizing behavior of iframes in iOS Safari */
-  /* Width and height need to be specified in px then adjusted by min and max */
-  width: 0px;
-  height: 0px;
+  /* Workaround for unusual sizing behavior of iframes in iOS Safari:
+   * Width and height need to be specified in absolute values then adjusted by min and max */
+  width: 0;
+  height: 0;
   min-width: 100%;
   max-width: 100%;
   min-height: 100%;
@@ -33,7 +33,7 @@ const StyledIframe = styled.iframe`
   bottom: 0;
   left: 0;
   border: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0);
   background-color: #f1f3f4;
 `;
 
@@ -41,7 +41,7 @@ export const DocumentMessage = styled.span`
   display: block;
   width: 100%;
   height: 100%;
-  background-color: #ddddff;
+  background-color: #ddf;
 `;
 
 const GoogleDocumentDisplay = ({ document, displayMode }: DocumentDisplayProps) => {

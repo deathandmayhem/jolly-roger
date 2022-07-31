@@ -12,7 +12,7 @@ const Fullsize = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgb(255 255 255 / 50%);
 `;
 
 const Inline = styled.span`

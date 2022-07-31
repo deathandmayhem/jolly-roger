@@ -46,9 +46,10 @@ const StyledDismissButton = styled.button`
   height: 32px;
   font-size: 20px;
   font-weight: bold;
-  right: 0px;
-  top: 0px;
+  right: 0;
+  top: 0;
   color: #888;
+
   &:hover {
     color: #f0f0f0;
   }
@@ -81,28 +82,26 @@ const StyledNotificationMessage = styled.li`
 `;
 
 const StyledNotificationActionBar = styled.ul`
-  display: block;
-  list-style-type: none;
-  margin: 0px;
-  padding: 0px;
   display: flex;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
   flex-direction: row;
 `;
 
 const StyledNotificationActionItem = styled.li`
-  margin-left: 0px;
-  margin-top: 8px;
-  margin-right: 8px;
-  margin-bottom: 4px;
+  margin: 8px 8px 4px 0;
   display: inline-block;
 
-  a, button {
+  a,
+  button {
     display: inline-block;
     border: none;
     padding: 4px 10px;
     border-radius: 4px;
     background-color: #2e2e2e;
-    color: #aaaaaa;
+    color: #aaa;
+
     &:hover {
       color: #f0f0f0;
       cursor: pointer;
@@ -119,10 +118,7 @@ const MessengerDismissButton = React.memo(({ onDismiss }: {
 
 const MessengerContent = styled.div`
   overflow-x: hidden; // overflow-wrap on children just overflows the box without this
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding: 10px;
 `;
 
 const StyledSpinnerBox = styled.div`

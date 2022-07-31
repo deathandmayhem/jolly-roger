@@ -22,7 +22,7 @@ const PuzzleTableTr = styled.tr<{
 `;
 
 const PuzzleTableCell = styled.td`
-  padding: 0px 4px;
+  padding: 0 4px;
   vertical-align: baseline;
 `;
 

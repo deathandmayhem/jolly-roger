@@ -40,10 +40,9 @@ const PuzzleDiv = styled.div<{
   line-height: 24px;
   padding: 4px 2px;
   margin-bottom: 4px;
-
-  ${mediaBreakpointDown('xs')`
+  ${mediaBreakpointDown('xs', css`
     flex-wrap: wrap;
-  `}
+  `)}
 `;
 
 const PuzzleColumn = styled.div`
@@ -74,10 +73,10 @@ const PuzzleTitleColumn = styled(PuzzleColumn)`
 const PuzzleActivityColumn = styled(PuzzleColumn)`
   width: 11rem;
   text-align: right;
-  // Push to take whole row in narrow views
-  ${mediaBreakpointDown('xs')`
+  ${mediaBreakpointDown('xs', css`
+    // Push to take whole row in narrow views
     flex: 0 0 100%;
-  `}
+  `)}
 `;
 
 const PuzzleLinkColumn = styled(PuzzleColumn)`
@@ -89,11 +88,10 @@ const PuzzleAnswerColumn = styled(PuzzleColumn)`
   flex: 3;
   overflow-wrap: break-word;
   overflow: hidden;
-
-  // Push to take whole row in narrow views
-  ${mediaBreakpointDown('xs')`
+  ${mediaBreakpointDown('xs', css`
+    // Push to take whole row in narrow views
     flex: 0 0 100%;
-  `}
+  `)}
 `;
 
 const StyledPuzzleAnswer = styled(PuzzleAnswer)`
@@ -107,10 +105,9 @@ const TagListColumn = styled(TagList)`
   display: inline-block;
   flex: 3;
   margin: -2px -4px -2px 0;
-
-  ${mediaBreakpointDown('xs')`
+  ${mediaBreakpointDown('xs', css`
     flex: 0 0 100%;
-  `}
+  `)}
 `;
 
 const Puzzle = React.memo(({
