@@ -13,7 +13,6 @@ const Profiles = new Mongo.Collection<
     'googleAccount' |
     'discordAccount' |
     'phoneNumber' |
-    'muteApplause' |
     'dingwords'
   >
 >('jr_profiles');
@@ -32,7 +31,6 @@ Migrations.add({
         googleAccount,
         discordAccount,
         phoneNumber,
-        muteApplause,
         dingwords,
       } = profile;
       MeteorUsers.update(profile._id, {
@@ -42,7 +40,6 @@ Migrations.add({
             googleAccount,
             discordAccount,
             phoneNumber,
-            muteApplause,
             dingwords,
           },
         },

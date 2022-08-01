@@ -13,7 +13,6 @@ const profileFields: Record<ProfileFields, 1> = {
   googleAccount: 1,
   discordAccount: 1,
   phoneNumber: 1,
-  muteApplause: 1,
   dingwords: 1,
 };
 

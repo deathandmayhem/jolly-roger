@@ -8,7 +8,6 @@ updateProfile.define({
     check(arg, {
       displayName: String,
       phoneNumber: String,
-      muteApplause: Boolean,
       dingwords: [String],
     });
 
@@ -18,7 +17,6 @@ updateProfile.define({
   run({
     displayName,
     phoneNumber,
-    muteApplause,
     dingwords,
   }) {
     // Allow users to update/upsert profile data.
@@ -31,7 +29,6 @@ updateProfile.define({
       $set: {
         displayName,
         phoneNumber,
-        muteApplause,
         dingwords,
       },
     });

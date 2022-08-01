@@ -140,7 +140,6 @@ const AccountForm = (props: AccountFormProps) => {
     const newProfile = {
       displayName,
       phoneNumber,
-      muteApplause: false,
       dingwords: [],
     };
 

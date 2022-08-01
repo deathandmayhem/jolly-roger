@@ -7,7 +7,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
-import FormCheck from 'react-bootstrap/FormCheck';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
@@ -290,17 +289,11 @@ enum OwnProfilePageSubmitState {
 const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
   const [displayName, setDisplayName] = useState<string>(initialUser.displayName || '');
   const [phoneNumber, setPhoneNumber] = useState<string>(initialUser.phoneNumber || '');
-  const [muteApplause, setMuteApplause] =
-    useState<boolean>(initialUser.muteApplause || false);
   const [dingwordsFlat, setDingwordsFlat] = useState<string>(initialUser.dingwords ?
     initialUser.dingwords.join(',') : '');
   const [submitState, setSubmitState] =
     useState<OwnProfilePageSubmitState>(OwnProfilePageSubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
-
-  const onDisableApplauseChange = useCallback((e: React.FormEvent<HTMLInputElement>) => {
-    setMuteApplause(e.currentTarget.checked);
-  }, []);
 
   const handleDisplayNameFieldChange: FormControlProps['onChange'] = useCallback((e) => {
     setDisplayName(e.currentTarget.value);
@@ -322,7 +315,6 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
     const newProfile = {
       displayName,
       phoneNumber,
-      muteApplause,
       dingwords,
     };
     updateProfile.call(newProfile, (error) => {
@@ -333,7 +325,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
         setSubmitState(OwnProfilePageSubmitState.SUCCESS);
       }
     });
-  }, [dingwordsFlat, displayName, muteApplause, phoneNumber]);
+  }, [dingwordsFlat, displayName, phoneNumber]);
 
   const dismissAlert = useCallback(() => {
     setSubmitState(OwnProfilePageSubmitState.IDLE);
@@ -418,18 +410,6 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
           containing one of your comma-separated, case-insensitive dingwords
           as a substring.  This feature is experimental and may be disabled
           without notice.
-        </FormText>
-      </FormGroup>
-
-      <FormGroup>
-        <FormCheck
-          type="checkbox"
-          checked={muteApplause}
-          onChange={onDisableApplauseChange}
-          label="Mute applause"
-        />
-        <FormText>
-          Enable this option if you find the applause sound when we solve a puzzle annoying.
         </FormText>
       </FormGroup>
 

@@ -38,3 +38,4 @@ import './36-call-history-indexes';
 import './37-role-reorganization';
 import './38-consolidate-profiles';
 import './39-promote-profiles-to-toplevel';
+import './40-cleanup-celebrations';
