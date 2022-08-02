@@ -8,12 +8,14 @@ const timeUnits = [
 ].reverse();
 /* eslint-enable object-curly-newline */
 
-export default function relativeTimeFormat(d: Date, opts: {
+export type RelativeTimeFormatOpts = {
   minimumUnit?: typeof timeUnits[number]['singular'],
   maxElements?: number,
   terse?: boolean,
   now?: Date,
-} = {}) {
+};
+
+export function complete(d: Date, opts: RelativeTimeFormatOpts = {}) {
   const {
     minimumUnit = 'seconds',
     terse = false,
@@ -26,12 +28,17 @@ export default function relativeTimeFormat(d: Date, opts: {
   let remainder = Math.abs(diff);
   const terms = [] as string[];
   let stop = false;
+  let lastUnit: typeof timeUnits[number] | undefined;
   timeUnits.forEach(({
     millis, singular, plural, terse: terseSuffix,
   }) => {
     if (stop) {
       return;
     }
+
+    lastUnit = {
+      millis, singular, plural, terse: terseSuffix,
+    };
 
     const count = Math.floor(remainder / millis);
     if (count > 0) {
@@ -48,13 +55,21 @@ export default function relativeTimeFormat(d: Date, opts: {
     }
   });
 
+  const millisUntilChange = (lastUnit?.millis || 0) - remainder;
+
+  let formatted: string;
   if (terms.length === 0) {
-    return terse ? 'now' : 'just now';
+    formatted = terse ? 'now' : 'just now';
+  } else if (terse) {
+    formatted = terms.join('');
+  } else {
+    formatted = `${terms.join(', ')}${relative}`;
   }
 
-  if (terse) {
-    return terms.join('');
-  } else {
-    return `${terms.join(', ')}${relative}`;
-  }
+  return { formatted, millisUntilChange };
+}
+
+export default function relativeTimeFormat(d: Date, opts: RelativeTimeFormatOpts = {}) {
+  const { formatted } = complete(d, opts);
+  return formatted;
 }
