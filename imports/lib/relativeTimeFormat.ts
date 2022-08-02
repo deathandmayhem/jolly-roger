@@ -50,13 +50,13 @@ export function terseRelativeTimeFormat(d: Date, opts: {
 }
 
 export default function relativeTimeFormat(d: Date, opts: {
-  complete?: boolean,
   minimumUnit?: 'second' | 'minute' | 'hour' | 'day' | 'year',
+  maxElements?: number,
   now?: Date,
 } = {}) {
   const {
-    complete = false,
     minimumUnit = 'seconds',
+    maxElements = 1,
     now = new Date(),
   } = opts;
   const diff = now.getTime() - d.getTime();
@@ -79,15 +79,14 @@ export default function relativeTimeFormat(d: Date, opts: {
     if (minimumUnit === singular) {
       stop = true;
     }
+    if (maxElements > 0 && terms.length >= maxElements) {
+      stop = true;
+    }
   });
 
   if (terms.length === 0) {
     return 'just now';
   }
 
-  if (complete) {
-    return `${terms.join(', ')}${relative}`;
-  }
-
-  return `${terms[0]}${relative}`;
+  return `${terms.join(', ')}${relative}`;
 }
