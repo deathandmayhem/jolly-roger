@@ -10,10 +10,9 @@ import React, { useEffect, useState } from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import styled, { css } from 'styled-components';
-import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
 import CallHistories from '../../lib/models/mediasoup/CallHistories';
-import relativeTimeFormat from '../../lib/relativeTimeFormat';
 import { SubscriberCounters } from '../subscribers';
+import RelativeTime from './RelativeTime';
 import { mediaBreakpointDown } from './styling/responsive';
 
 const PuzzleActivityItems = styled.span`
@@ -75,39 +74,33 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
     return SubscriberCounters.findOne(`puzzle:${puzzleId}`)?.value ?? 0;
   }, [puzzleId]);
 
-  const [lastActiveRelative, setLastActiveRelative] = useState<string>();
   const [lastActiveRecent, setLastActiveRecent] = useState<boolean>();
 
-  const [unlockTimeRelative, setUnlockTimeRelative] = useState<string>('');
-
   useEffect(() => {
-    const lastActiveFormatter = () => {
-      if (callLastActive) {
-        return relativeTimeFormat(callLastActive, { minimumUnit: 'minute' });
-      }
-      return undefined;
-    };
-    const unlockTimeFormatter = () => relativeTimeFormat(unlockTime, { terse: true, minimumUnit: 'minute', maxElements: 2 });
-    setUnlockTimeRelative(unlockTimeFormatter());
-    if (callLastActive) {
-      setLastActiveRecent(Date.now() - callLastActive.getTime() < RECENTLY_ACTIVE_INTERVAL);
-      setLastActiveRelative(lastActiveFormatter());
+    if (!callLastActive) {
+      return () => { /* no unwind */ };
     }
 
-    const interval = Meteor.setInterval(() => {
-      setUnlockTimeRelative(unlockTimeFormatter());
-      if (callLastActive) {
-        setLastActiveRecent(Date.now() - callLastActive.getTime() < RECENTLY_ACTIVE_INTERVAL);
-        setLastActiveRelative(lastActiveFormatter());
-      }
-    }, RECENT_ACTIVITY_TIME_WINDOW_MS);
+    const timeSinceActive = Date.now() - callLastActive.getTime();
+    const recentlyActive = timeSinceActive < RECENTLY_ACTIVE_INTERVAL;
+    setLastActiveRecent(recentlyActive);
+
+    let timeout: number | undefined;
+    if (recentlyActive) {
+      // If callLastActive doesn't change by the time this timeout fires, then
+      // it's no longer active. If it does change, then we'll trigger the unwind
+      // below.
+      timeout = Meteor.setTimeout(() => {
+        setLastActiveRecent(false);
+      }, RECENTLY_ACTIVE_INTERVAL - timeSinceActive);
+    }
 
     return () => {
-      if (interval) {
-        Meteor.clearInterval(interval);
+      if (timeout) {
+        Meteor.clearTimeout(timeout);
       }
     };
-  }, [unlockTime, callLastActive]);
+  }, [callLastActive]);
 
   const unlockTooltip = (
     <Tooltip id={`puzzle-activity-unlock-${puzzleId}`}>
@@ -117,10 +110,15 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
     </Tooltip>
   );
 
-  const audioTooltipText = callLastActive ? `Call last active ${lastActiveRelative}` : 'Call never used';
   const audioTooltip = (
     <Tooltip id={`puzzle-activity-audio-${puzzleId}`}>
-      {audioTooltipText}
+      {callLastActive ? (
+        <>
+          Call last active
+          {' '}
+          <RelativeTime date={callLastActive} minimumUnit="minute" />
+        </>
+      ) : 'Call never used'}
     </Tooltip>
   );
 
@@ -143,7 +141,7 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
     <PuzzleActivityItems>
       <OverlayTrigger placement="top" overlay={unlockTooltip}>
         <PuzzleOpenTime>
-          <span>{unlockTimeRelative}</span>
+          <RelativeTime date={unlockTime} terse minimumUnit="minute" maxElements={2} />
           <FontAwesomeIcon icon={faDoorOpen} />
         </PuzzleOpenTime>
       </OverlayTrigger>

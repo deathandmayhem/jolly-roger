@@ -21,7 +21,18 @@ const RelativeTime = ({
     return () => {
       Meteor.clearTimeout(timeout);
     };
-  }, [date, formatted.millisUntilChange, maxElements, minimumUnit, now, terse]);
+  }, [
+    date,
+    formatted.millisUntilChange,
+    maxElements,
+    minimumUnit,
+    now,
+    terse,
+    // Note that we explicitly include formatted.formatted here so that we set a
+    // new timeout if the formatted string changes but (by change) the
+    // millisUntilChange does not.
+    formatted.formatted,
+  ]);
 
   return <span>{formatted.formatted}</span>;
 };
