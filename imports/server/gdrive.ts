@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Promise as MeteorPromise } from 'meteor/promise';
-import { drive_v3 as drive } from 'googleapis';
+import { drive_v3 as drive } from '@googleapis/drive';
 import Ansible from '../Ansible';
 import Flags from '../Flags';
 import GdriveMimeTypes, { GdriveMimeTypesType } from '../lib/GdriveMimeTypes';
