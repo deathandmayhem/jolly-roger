@@ -2,14 +2,15 @@
 import { Mongo } from 'meteor/mongo';
 import { OAuth } from 'meteor/oauth';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
-import { google, drive_v3 } from 'googleapis';
+import { drive_v3, drive } from '@googleapis/drive';
+import { OAuth2Client } from 'google-auth-library';
 import Settings from '../lib/models/Settings';
 import { SettingType } from '../lib/schemas/Setting';
 
 class GDriveClientRefresher {
   public gdrive?: drive_v3.Drive;
 
-  private oauthClient?: InstanceType<typeof google.auth.OAuth2>;
+  private oauthClient?: OAuth2Client;
 
   private oauthConfig?: Configuration;
 
@@ -70,7 +71,7 @@ class GDriveClientRefresher {
     }
 
     // Construct a new OAuth2 client with the app id and secret and redirect uri
-    this.oauthClient = new google.auth.OAuth2(
+    this.oauthClient = new OAuth2Client(
       (<any> this.oauthConfig).clientId,
       this.oauthConfig.secret,
       OAuth._redirectUri('google', this.oauthConfig)
@@ -82,7 +83,7 @@ class GDriveClientRefresher {
     });
 
     // Construct the drive client, using that OAuth2 client.
-    this.gdrive = google.drive({ version: 'v3', auth: this.oauthClient });
+    this.gdrive = drive({ version: 'v3', auth: this.oauthClient });
   }
 }
 
