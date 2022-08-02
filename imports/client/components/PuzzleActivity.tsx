@@ -12,7 +12,7 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import styled, { css } from 'styled-components';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
 import CallHistories from '../../lib/models/mediasoup/CallHistories';
-import relativeTimeFormat, { terseRelativeTimeFormat } from '../../lib/relativeTimeFormat';
+import relativeTimeFormat from '../../lib/relativeTimeFormat';
 import { SubscriberCounters } from '../subscribers';
 import { mediaBreakpointDown } from './styling/responsive';
 
@@ -87,7 +87,7 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
       }
       return undefined;
     };
-    const unlockTimeFormatter = () => terseRelativeTimeFormat(unlockTime, { minimumUnit: 'minute', maxElements: 2 });
+    const unlockTimeFormatter = () => relativeTimeFormat(unlockTime, { terse: true, minimumUnit: 'minute', maxElements: 2 });
     setUnlockTimeRelative(unlockTimeFormatter());
     if (callLastActive) {
       setLastActiveRecent(Date.now() - callLastActive.getTime() < RECENTLY_ACTIVE_INTERVAL);
