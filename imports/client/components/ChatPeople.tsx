@@ -186,7 +186,6 @@ const ChatPeople = ({
     let interval: number | undefined;
     if (recentVoiceActivity) {
       const formatter = () => relativeTimeFormat(recentVoiceActivity, {
-        complete: false,
         minimumUnit: Meteor.isDevelopment ? 'second' : 'minute',
       });
       setVoiceActivityRelative(formatter());
