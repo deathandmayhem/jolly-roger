@@ -5,11 +5,11 @@ import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import styled from 'styled-components';
+import { PuzzleGroup } from '../../lib/puzzle-sort-and-group';
 import { TagType } from '../../lib/schemas/Tag';
 import { useHuntPuzzleListCollapseGroup } from '../hooks/persisted-state';
 import RelatedPuzzleList from './RelatedPuzzleList';
 import Tag from './Tag';
-import { PuzzleGroup } from './puzzle-sort-and-group';
 
 const PuzzleGroupDiv = styled.div`
   &:not(:last-child) {
