@@ -3,14 +3,15 @@ import React from 'react';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import BSImage from 'react-bootstrap/Image';
-import BSJumbotron from 'react-bootstrap/Jumbotron';
 import Row from 'react-bootstrap/Row';
 import styled from 'styled-components';
 import lookupUrl from '../lookupUrl';
 
-const Jumbotron = styled(BSJumbotron)`
+const Jumbotron = styled.div`
   padding-top: 2rem;
   padding-bottom: 2rem;
+  background-color: #e9ecef;
+  border-radius: 0.3rem;
 `;
 
 const Image = styled(BSImage)`
