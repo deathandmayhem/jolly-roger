@@ -198,7 +198,7 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
 
   return (
     <Card>
-      <Accordion.Toggle as={Card.Header} eventKey={producer._id}>
+      <Accordion.Button as={Card.Header} eventKey={producer._id}>
         <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
@@ -224,7 +224,7 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
         <ClipButton text={producer._id} />
         <code>{producer._id}</code>
         )
-      </Accordion.Toggle>
+      </Accordion.Button>
 
       <Accordion.Collapse eventKey={producer._id}>
         <Card.Body>
@@ -295,7 +295,7 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
 
   return (
     <Card>
-      <Accordion.Toggle as={Card.Header} eventKey={consumer._id}>
+      <Accordion.Button as={Card.Header} eventKey={consumer._id}>
         <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
@@ -327,7 +327,7 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
         <ClipButton text={consumer.producerPeer} />
         <code>{consumer.producerPeer}</code>
         )
-      </Accordion.Toggle>
+      </Accordion.Button>
 
       <Accordion.Collapse eventKey={consumer._id}>
         <Card.Body>
@@ -409,7 +409,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
 
   return (
     <Card>
-      <Accordion.Toggle as={Card.Header} eventKey={transport._id}>
+      <Accordion.Button as={Card.Header} eventKey={transport._id}>
         <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
@@ -435,7 +435,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
         <ClipButton text={transport._id} />
         <code>{transport._id}</code>
         )
-      </Accordion.Toggle>
+      </Accordion.Button>
       <Accordion.Collapse eventKey={transport._id}>
         <Card.Body>
           {connectionStarted && !connectionCompleted && (
@@ -550,7 +550,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
 
   return (
     <Card>
-      <Accordion.Toggle as={Card.Header} eventKey={peer._id}>
+      <Accordion.Button as={Card.Header} eventKey={peer._id}>
         <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
@@ -577,7 +577,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
         <ClipButton text={peer._id} />
         <code>{peer._id}</code>
         )
-      </Accordion.Toggle>
+      </Accordion.Button>
       <Accordion.Collapse eventKey={peer._id}>
         <Card.Body>
           {transportRequests.length === 0 && (
@@ -707,7 +707,7 @@ const Room = ({ room }: { room: RoomType }) => {
   ), [room.call]);
   return (
     <Card>
-      <Accordion.Toggle as={Card.Header} eventKey={room._id}>
+      <Accordion.Button as={Card.Header} eventKey={room._id}>
         <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
@@ -720,7 +720,7 @@ const Room = ({ room }: { room: RoomType }) => {
           <FontAwesomeIcon icon={recentActivity ? faVolumeUp : faVolumeOff} fixedWidth />
         </OverlayTrigger>
         <CallDisplay call={room.call} />
-      </Accordion.Toggle>
+      </Accordion.Button>
 
       <Accordion.Collapse eventKey={room._id}>
         <Card.Body>
