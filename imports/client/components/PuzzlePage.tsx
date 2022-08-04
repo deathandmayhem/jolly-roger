@@ -743,7 +743,7 @@ const PuzzlePageMetadata = ({
         <Button variant="primary" size="sm" onClick={showGuessModal}>
           <FontAwesomeIcon icon={faKey} />
           {' Guess '}
-          <Badge variant="light">{numGuesses}</Badge>
+          <Badge bg="light" text="dark">{numGuesses}</Badge>
         </Button>
         {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleGuessModal

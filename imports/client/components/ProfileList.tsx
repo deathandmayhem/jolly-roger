@@ -217,7 +217,7 @@ const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string 
         <DemoteOperatorModal ref={demoteModalRef} user={user} huntId={huntId} />
       )}
       {userIsAdmin && (
-        <Badge variant="success">Admin</Badge>
+        <Badge bg="success">Admin</Badge>
       )}
       {userIsOperator ? (
         <>
@@ -226,7 +226,7 @@ const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string 
               Demote
             </Button>
           )}
-          <Badge variant="info">Operator</Badge>
+          <Badge bg="info">Operator</Badge>
         </>
       ) : (
         <Button size="sm" variant="warning" onClick={showPromoteModal}>

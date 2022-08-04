@@ -534,7 +534,7 @@ const GoogleIntegrationSection = () => {
         <SectionHeaderLabel>
           Google integration
         </SectionHeaderLabel>
-        <Badge variant={compBadgeVariant}>
+        <Badge bg={compBadgeVariant}>
           {comp}
         </Badge>
         <SectionHeaderButtons>
@@ -566,7 +566,7 @@ const GoogleIntegrationSection = () => {
         <SubsectionHeader>
           <span>OAuth client</span>
           {' '}
-          <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
+          <Badge bg={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Integrating with Google requires registering an app ID which
@@ -591,7 +591,7 @@ const GoogleIntegrationSection = () => {
         <SubsectionHeader>
           <span>Drive user</span>
           {' '}
-          <Badge variant={driveBadgeVariant}>{driveBadgeLabel}</Badge>
+          <Badge bg={driveBadgeVariant}>{driveBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Jolly Roger automates the creation of Google spreadsheets and
@@ -615,7 +615,7 @@ const GoogleIntegrationSection = () => {
         <SubsectionHeader>
           <span>(Optional) Root folder</span>
           {' '}
-          <Badge variant={rootBadgeVariant}>{rootBadgeLabel}</Badge>
+          <Badge bg={rootBadgeVariant}>{rootBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Jolly Roger creates a new folder in Google Drive for every hunt. By
@@ -637,7 +637,7 @@ const GoogleIntegrationSection = () => {
         <SubsectionHeader>
           <span>Document templates</span>
           {' '}
-          <Badge variant={templateBadgeVariant}>{templateBadgeLabel}</Badge>
+          <Badge bg={templateBadgeVariant}>{templateBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Jolly Roger can create new documents for each puzzle it&apos; made aware of,
@@ -975,7 +975,7 @@ const EmailConfigSection = () => {
         <SectionHeaderLabel>
           Email configuration
         </SectionHeaderLabel>
-        <Badge variant={badgeVariant}>
+        <Badge bg={badgeVariant}>
           {configured ? 'Configured' : 'Unconfigured'}
         </Badge>
       </SectionHeader>
@@ -1286,7 +1286,7 @@ const DiscordIntegrationSection = () => {
         <SectionHeaderLabel>
           Discord integration
         </SectionHeaderLabel>
-        <Badge variant={headerBadgeVariant}>
+        <Badge bg={headerBadgeVariant}>
           {configured ? 'Configured' : 'Unconfigured'}
         </Badge>
         {configured && (
@@ -1329,7 +1329,7 @@ const DiscordIntegrationSection = () => {
         <SubsectionHeader>
           <span>OAuth client</span>
           {' '}
-          <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
+          <Badge bg={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Jolly Roger can allow Discord users to grant limited access to
@@ -1355,7 +1355,7 @@ const DiscordIntegrationSection = () => {
         <SubsectionHeader>
           <span>Bot account</span>
           {' '}
-          <Badge variant={botBadgeVariant}>{botBadgeLabel}</Badge>
+          <Badge bg={botBadgeVariant}>{botBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Since Discord only allows guild invitations to be managed by bot
@@ -1372,7 +1372,7 @@ const DiscordIntegrationSection = () => {
         <SubsectionHeader>
           <span>Guild</span>
           {' '}
-          <Badge variant={guildBadgeVariant}>{guildBadgeLabel}</Badge>
+          <Badge bg={guildBadgeVariant}>{guildBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Since bots can be part of multiple guilds, you&apos;ll need to specify
