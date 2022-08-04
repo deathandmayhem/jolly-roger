@@ -223,7 +223,7 @@ const AppNavbar = () => {
             {' '}
             <NavUsername>{displayName}</NavUsername>
           </DropdownToggle>
-          <DropdownMenu alignRight>
+          <DropdownMenu align="end">
             <RRBS.LinkContainer to={`/users/${userId}`}>
               <DropdownItem eventKey="1">My Profile</DropdownItem>
             </RRBS.LinkContainer>
