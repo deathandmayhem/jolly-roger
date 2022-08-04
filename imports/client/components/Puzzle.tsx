@@ -137,7 +137,7 @@ const Puzzle = React.memo(({
     callback: (error?: Error) => void
   ) => {
     Ansible.log('Updating puzzle properties', { puzzle: puzzle._id, user: Meteor.userId(), state });
-    const { huntId: _huntId, ...rest } = state;
+    const { huntId: _huntId, docType: _docType, ...rest } = state;
     updatePuzzle.call({ puzzleId: puzzle._id, ...rest }, callback);
   }, [puzzle._id]);
 

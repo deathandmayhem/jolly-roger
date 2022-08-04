@@ -1,6 +1,7 @@
 import { check } from 'meteor/check';
 import { EJSONable, EJSONableProperty } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
+import ValidateShape from '../lib/ValidateShape';
 
 type TypedMethodParam = EJSONable | EJSONableProperty;
 type TypedMethodArgs = Record<string, TypedMethodParam> | void;
@@ -18,14 +19,14 @@ type TypedMethodCallback<Return extends TypedMethodParam | void> =
       error: Error extends true ? Meteor.Error : undefined,
       result: Error extends false ? Return : undefined,
     ) => void;
-type TypedMethodCallArgs<Arg extends TypedMethodArgs, Return extends TypedMethodParam | void> =
+type TypedMethodCallArgs<T, Arg extends TypedMethodArgs, Return extends TypedMethodParam | void> =
   Arg extends void ?
     ([TypedMethodCallback<Return>] | []) :
-    ([Arg, TypedMethodCallback<Return>] | [Arg]);
-type TypedMethodCallPromiseArgs<Arg extends TypedMethodArgs> =
+    ([ValidateShape<T, Arg>, TypedMethodCallback<Return>] | [Arg]);
+type TypedMethodCallPromiseArgs<T, Arg extends TypedMethodArgs> =
   Arg extends void ?
     [] :
-    [Arg];
+    [ValidateShape<T, Arg>];
 
 const voidValidator = () => { /* noop */ };
 
@@ -101,11 +102,11 @@ export default class TypedMethod<
     return result;
   }
 
-  call(...args: TypedMethodCallArgs<Args, Return>): void {
+  call<T>(...args: TypedMethodCallArgs<T, Args, Return>): void {
     return Meteor.call(this.name, ...args);
   }
 
-  callPromise(...args: TypedMethodCallPromiseArgs<Args>): Promise<Return> {
+  callPromise<T>(...args: TypedMethodCallPromiseArgs<T, Args>): Promise<Return> {
     return Meteor.callPromise(this.name, ...args);
   }
 }

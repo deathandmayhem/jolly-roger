@@ -1,6 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
+import ValidateShape from '../ValidateShape';
 import { userIdIsAdmin } from '../is-admin';
 import { BaseType } from '../schemas/Base';
 
@@ -17,11 +18,6 @@ export type FindOneOptions = {
 export type FindOptions = FindOneOptions & {
   limit?: number;
 }
-
-type ValidateShape<T, Shape> =
-    T extends Partial<Shape> ?
-    Exclude<keyof T, keyof Shape> extends never ?
-    T : never : never;
 
 class Base<T extends BaseType> extends Mongo.Collection<T> {
   public name: string;
@@ -53,6 +49,14 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     });
   }
 
+  // @ts-expect-error TS is correct that Partial<T> is not equivalent to
+  //   OptionalId<T>, but that's because OptionalId<T> isn't exactly correct.
+  //   Our SimpleSchemas will fill in some of the missing fields using
+  //   autoValues, but it's not possible to have a collection type that
+  //   distinguishes between fields that are present/required on read vs. on
+  //   write. The resulting declaration is looser than it should be, but it only
+  //   pushes validation from type checking to runtime (as SimpleSchema will
+  //   verify that required fields are actually present).
   insert<U>(
     doc: ValidateShape<U, Partial<T>>,
     callback?: (err?: Error, id?: string) => void,
