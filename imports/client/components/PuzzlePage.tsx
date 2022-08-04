@@ -668,7 +668,8 @@ const PuzzlePageMetadata = ({
     callback: (err?: Error) => void
   ) => {
     Ansible.log('Updating puzzle properties', { puzzle: puzzleId, user: Meteor.userId(), state });
-    updatePuzzle.call({ puzzleId, ...state }, callback);
+    const { huntId: _huntId, ...rest } = state;
+    updatePuzzle.call({ puzzleId, ...rest }, callback);
   }, [puzzleId]);
 
   const showGuessModal = useCallback(() => {
