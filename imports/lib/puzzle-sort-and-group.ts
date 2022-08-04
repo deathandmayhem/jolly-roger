@@ -1,6 +1,6 @@
 import { _ } from 'meteor/underscore';
-import { PuzzleType } from '../../lib/schemas/Puzzle';
-import { TagType } from '../../lib/schemas/Tag';
+import { PuzzleType } from './schemas/Puzzle';
+import { TagType } from './schemas/Tag';
 
 interface PuzzleGroup {
   sharedTag?: TagType;
@@ -21,7 +21,7 @@ interface InternalPuzzleGroup {
 function puzzleInterestingness(
   puzzle: PuzzleType,
   indexedTags: Record<string, TagType>,
-  group: string
+  group: string | undefined
 ): number {
   // If the shared tag for this group is group:<something>, then group will equal '<something>', and
   // we wish to sort a puzzle named 'meta-for:<something>' at the top.
@@ -56,7 +56,7 @@ function puzzleInterestingness(
       } else if (tag.name === 'is:metameta') {
         // Metameta sorts above meta.
         minScore = Math.min(-2, minScore);
-      } else if (tag.name === 'is:meta') {
+      } else if (tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) {
         // Meta sorts above non-meta.
         minScore = Math.min(-1, minScore);
       }
@@ -78,10 +78,12 @@ function interestingnessOfGroup(
   // Rough idea: sort, from top to bottom:
   // -3 administrivia always floats to the top
   // -2 Group with unsolved puzzle with matching meta-for:<this group>
-  // -1 Group with some other unsolved is:meta puzzle
-  //  0 Groups with no metas yet
+  // -1 Group with some other unsolved is:meta or meta-for:*  puzzle
+  //  0 Groups with no metas yet and at least one unsolved puzzle
   //  1 Ungrouped puzzles
-  //  2 Groups with a solved puzzle with matching meta-for:<this group>
+  //  2 Groups with at least one matching meta-for:<this group> with all
+  //    matching meta-for:<this group> puzzles solved
+  //  3 Groups with no unsolved puzzles
 
   // ungrouped puzzles go after groups, esp. after groups with a known unsolved meta.
   // Guarantees that if ia === ib, then sharedTag exists.
@@ -97,9 +99,16 @@ function interestingnessOfGroup(
     metaForTag = `meta-for:${sharedTag.name.slice('group:'.length)}`;
   }
 
-  let hasUnsolvedMeta = false;
+  let hasSolvedMetaForSharedGroup = false;
+  let hasUnsolvedMetaForSharedGroup = false;
+  let hasUnsolvedOtherMeta = false;
+  let hasUnsolvedPuzzles = false;
   for (let i = 0; i < puzzles.length; i++) {
     const puzzle = puzzles[i];
+    const isSolved = puzzle.answers.length >= puzzle.expectedAnswerCount;
+    if (!isSolved) {
+      hasUnsolvedPuzzles = true;
+    }
     for (let j = 0; j < puzzle.tags.length; j++) {
       const tag = indexedTags[puzzle.tags[j]];
 
@@ -109,19 +118,22 @@ function interestingnessOfGroup(
 
         if (metaForTag && tag.name === metaForTag) {
           // This puzzle is meta-for: the group.
-          if (puzzle.answers.length >= puzzle.expectedAnswerCount) {
-            return 2;
+          if (isSolved) {
+            hasSolvedMetaForSharedGroup = true;
           } else {
-            return -2;
+            hasUnsolvedMetaForSharedGroup = true;
           }
-        } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !(puzzle.answers.length >= puzzle.expectedAnswerCount)) {
-          hasUnsolvedMeta = true;
+        } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !isSolved) {
+          hasUnsolvedOtherMeta = true;
         }
       }
     }
   }
 
-  if (hasUnsolvedMeta) return -1;
+  if (!hasUnsolvedPuzzles) return 3;
+  if (hasUnsolvedMetaForSharedGroup) return -2;
+  if (hasUnsolvedOtherMeta) return -1;
+  if (hasSolvedMetaForSharedGroup) return 2;
   return 0;
 }
 

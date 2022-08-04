@@ -30,6 +30,7 @@ import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
+import { filteredPuzzleGroups, puzzleGroupsByRelevance } from '../../lib/puzzle-sort-and-group';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import createPuzzle from '../../methods/createPuzzle';
 import {
@@ -43,7 +44,6 @@ import PuzzleModalForm, {
   PuzzleModalFormHandle, PuzzleModalFormSubmitPayload,
 } from './PuzzleModalForm';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
-import { filteredPuzzleGroups, puzzleGroupsByRelevance } from './puzzle-sort-and-group';
 import { mediaBreakpointDown } from './styling/responsive';
 
 const ViewControls = styled.div`

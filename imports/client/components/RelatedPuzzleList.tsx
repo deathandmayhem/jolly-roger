@@ -1,9 +1,9 @@
 import { _ } from 'meteor/underscore';
 import React from 'react';
+import { puzzleInterestingness } from '../../lib/puzzle-sort-and-group';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { TagType } from '../../lib/schemas/Tag';
 import PuzzleList from './PuzzleList';
-import { puzzleInterestingness } from './puzzle-sort-and-group';
 
 function sortPuzzlesByRelevanceWithinPuzzleGroup(
   puzzles: PuzzleType[],
