@@ -360,14 +360,14 @@ const Tag = (props: TagProps) => {
             </RelatedPuzzlePopoverControls>
           </RelatedPuzzlePopoverHeaderInner>
         </Popover.Header>
-        <Popover.Content>
+        <Popover.Body>
           <RelatedPuzzleTable
             relatedPuzzles={relatedPuzzles}
             allTags={props.allTags}
             sharedTag={props.tag}
             segmentAnswers={segmentAnswers}
           />
-        </Popover.Content>
+        </Popover.Body>
       </StyledPopover>
     );
     return (
