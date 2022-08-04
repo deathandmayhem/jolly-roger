@@ -137,7 +137,8 @@ const Puzzle = React.memo(({
     callback: (error?: Error) => void
   ) => {
     Ansible.log('Updating puzzle properties', { puzzle: puzzle._id, user: Meteor.userId(), state });
-    updatePuzzle.call({ puzzleId: puzzle._id, ...state }, callback);
+    const { huntId: _huntId, ...rest } = state;
+    updatePuzzle.call({ puzzleId: puzzle._id, ...rest }, callback);
   }, [puzzle._id]);
 
   const onShowEditModal = useCallback(() => {
