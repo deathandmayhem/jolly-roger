@@ -517,16 +517,14 @@ const ChatInput = React.memo(({
           onHeightChange={onHeightChangeCb}
           placeholder="Chat"
         />
-        <span className="input-group-append">
-          <Button
-            variant="secondary"
-            onClick={sendMessageIfHasText}
-            onMouseDown={preventDefaultCallback}
-            disabled={puzzleDeleted || text.length === 0}
-          >
-            <FontAwesomeIcon icon={faPaperPlane} />
-          </Button>
-        </span>
+        <Button
+          variant="secondary"
+          onClick={sendMessageIfHasText}
+          onMouseDown={preventDefaultCallback}
+          disabled={puzzleDeleted || text.length === 0}
+        >
+          <FontAwesomeIcon icon={faPaperPlane} />
+        </Button>
       </InputGroup>
     </ChatInputRow>
   );

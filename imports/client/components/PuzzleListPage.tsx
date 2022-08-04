@@ -417,11 +417,9 @@ const PuzzleListView = ({
                   value={searchString}
                   onChange={onSearchStringChange}
                 />
-                <InputGroup.Append>
-                  <Button variant="secondary" onClick={clearSearch}>
-                    <FontAwesomeIcon icon={faEraser} />
-                  </Button>
-                </InputGroup.Append>
+                <Button variant="secondary" onClick={clearSearch}>
+                  <FontAwesomeIcon icon={faEraser} />
+                </Button>
               </FilterToolbarInputGroup>
             </FilterToolbar>
           </ViewControlsSectionExpand>

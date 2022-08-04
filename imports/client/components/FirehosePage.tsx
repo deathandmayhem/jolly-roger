@@ -231,11 +231,9 @@ const FirehosePage = () => {
               value={searchString}
               onChange={onSearchStringChange}
             />
-            <InputGroup.Append>
-              <Button variant="secondary" onClick={clearSearch}>
-                <FontAwesomeIcon icon={faEraser} />
-              </Button>
-            </InputGroup.Append>
+            <Button variant="secondary" onClick={clearSearch}>
+              <FontAwesomeIcon icon={faEraser} />
+            </Button>
           </InputGroup>
         </FormGroup>
         <MessagesPane ref={messagesPaneRef} onScroll={saveShouldScroll} className={shouldScrollBottom ? 'live' : ''}>
