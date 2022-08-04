@@ -668,7 +668,7 @@ const PuzzlePageMetadata = ({
     callback: (err?: Error) => void
   ) => {
     Ansible.log('Updating puzzle properties', { puzzle: puzzleId, user: Meteor.userId(), state });
-    const { huntId: _huntId, ...rest } = state;
+    const { huntId: _huntId, docType: _docType, ...rest } = state;
     updatePuzzle.call({ puzzleId, ...rest }, callback);
   }, [puzzleId]);
 
