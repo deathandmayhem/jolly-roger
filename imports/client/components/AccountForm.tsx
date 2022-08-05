@@ -289,9 +289,11 @@ const AccountForm = (props: AccountFormProps) => {
             {props.format === AccountFormFormat.LOGIN || props.format === AccountFormFormat.ENROLL || props.format === AccountFormFormat.RESET_PWD ? pwInput : null}
             {pwResetOptionComponent}
             {props.format === AccountFormFormat.ENROLL ? enrollmentFields : null}
-            <Button size="lg" variant="outline-secondary" block type="submit" disabled={submitting}>
-              {buttonText}
-            </Button>
+            <div className="d-grid gap-2">
+              <Button size="lg" variant="outline-secondary" type="submit" disabled={submitting}>
+                {buttonText}
+              </Button>
+            </div>
             {backToMainForm}
           </fieldset>
         </form>
