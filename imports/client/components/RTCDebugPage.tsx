@@ -199,7 +199,7 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
   return (
     <Card>
       <Accordion.Button as={Card.Header} eventKey={producer._id}>
-        <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
+        <StyledToggleButton id={`producer-${producer._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -296,7 +296,7 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
   return (
     <Card>
       <Accordion.Button as={Card.Header} eventKey={consumer._id}>
-        <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
+        <StyledToggleButton id={`consumer-${consumer._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -410,7 +410,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
   return (
     <Card>
       <Accordion.Button as={Card.Header} eventKey={transport._id}>
-        <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
+        <StyledToggleButton id={`transport-${transport._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -551,7 +551,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
   return (
     <Card>
       <Accordion.Button as={Card.Header} eventKey={peer._id}>
-        <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
+        <StyledToggleButton id={`peer-${peer._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
