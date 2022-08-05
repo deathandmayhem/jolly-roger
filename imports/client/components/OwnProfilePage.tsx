@@ -97,7 +97,7 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
   }
 
   return (
-    <FormGroup>
+    <FormGroup className="mb-3">
       <FormLabel>
         Google Account
       </FormLabel>
@@ -250,7 +250,7 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
   }
 
   return (
-    <FormGroup>
+    <FormGroup className="mb-3">
       <FormLabel>
         Discord account
       </FormLabel>
@@ -336,7 +336,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
     <Container>
       <h1>Account information</h1>
       <Avatar {...initialUser} size={64} />
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-profile-edit-email">
           Email address
         </FormLabel>
@@ -361,7 +361,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
 
       <DiscordLinkBlock user={initialUser} />
 
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-profile-edit-display-name">
           Display name
         </FormLabel>
@@ -377,7 +377,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
         </FormText>
       </FormGroup>
 
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-profile-edit-phone">
           Phone number (optional)
         </FormLabel>
@@ -393,7 +393,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
         </FormText>
       </FormGroup>
 
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-profile-edit-dingwords">
           Dingwords (experimental)
         </FormLabel>
@@ -414,7 +414,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
       </FormGroup>
 
       <ActionButtonRow>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <Button
             type="submit"
             variant="primary"

@@ -915,7 +915,7 @@ const PuzzleGuessModal = React.forwardRef(({
       onSubmit={onSubmitGuess}
       submitLabel={confirmingSubmit ? 'Confirm Submit' : 'Submit'}
     >
-      <FormGroup as={Row}>
+      <FormGroup as={Row} className="mb-3">
         <FormLabel column xs={3} htmlFor="jr-puzzle-guess">
           Guess
         </FormLabel>
@@ -932,7 +932,7 @@ const PuzzleGuessModal = React.forwardRef(({
         </Col>
       </FormGroup>
 
-      <FormGroup as={Row}>
+      <FormGroup as={Row} className="mb-3">
         <FormLabel column xs={3} htmlFor="jr-puzzle-guess-direction">
           Solve direction
         </FormLabel>
@@ -957,7 +957,7 @@ const PuzzleGuessModal = React.forwardRef(({
         </Col>
       </FormGroup>
 
-      <FormGroup as={Row}>
+      <FormGroup as={Row} className="mb-3">
         <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
           Confidence
         </FormLabel>
@@ -1083,7 +1083,7 @@ const PuzzleAnswerModal = React.forwardRef(({ puzzle }: {
       onSubmit={onSubmit}
       submitLabel={submitState === PuzzleAnswerSubmitState.SUBMITTING ? 'Confirm Submit' : 'Submit'}
     >
-      <FormGroup as={Row}>
+      <FormGroup as={Row} className="mb-3">
         <FormLabel column xs={3} htmlFor="jr-puzzle-answer">
           Answer
         </FormLabel>

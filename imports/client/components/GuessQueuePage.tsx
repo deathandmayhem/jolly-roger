@@ -289,7 +289,7 @@ const GuessQueuePage = () => {
   return (
     <div>
       <h1>Guess queue</h1>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <InputGroup>
           <FormControl
             id="jr-guess-search"

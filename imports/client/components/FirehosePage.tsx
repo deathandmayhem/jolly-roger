@@ -220,7 +220,7 @@ const FirehosePage = () => {
       <FirehosePageLayout>
         <h1>Firehose</h1>
         <p>This log includes all chat messages hunt-wide. Expect some lag.</p>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <InputGroup>
             <FormControl
               id="jr-firehose-search"

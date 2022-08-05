@@ -176,7 +176,7 @@ const GoogleOAuthForm = ({ isConfigured, initialClientId }: {
           {state.submitError}
         </Alert>
       ) : null}
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-google-client-id">
           Client ID
         </FormLabel>
@@ -188,7 +188,7 @@ const GoogleOAuthForm = ({ isConfigured, initialClientId }: {
           onChange={onClientIdChange}
         />
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-google-client-secret">
           Client secret
         </FormLabel>
@@ -324,7 +324,7 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
           {state.error.message}
         </Alert>
       ) : null}
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-google-drive-root">
           Google Drive root folder ID
         </FormLabel>
@@ -339,7 +339,7 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
       <ActionButtonRow>
         <Button variant="primary" onClick={saveRootId} disabled={shouldDisableForm}>Save</Button>
       </ActionButtonRow>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-google-drive-reorganize">
           Changing this setting does not automatically reorganize any existing
           files or folders under the new root folder, but if you want to do
@@ -422,7 +422,7 @@ const GoogleDriveTemplateForm = ({ initialDocTemplate, initialSpreadsheetTemplat
           {state.error.message}
         </Alert>
       ) : null}
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-gdrive-sheet-template">
           Spreadsheet template doc id
         </FormLabel>
@@ -434,7 +434,7 @@ const GoogleDriveTemplateForm = ({ initialDocTemplate, initialSpreadsheetTemplat
           onChange={onSpreadsheetTemplateChange}
         />
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-gdrive-doc-template">
           Document template doc id
         </FormLabel>
@@ -735,7 +735,7 @@ const EmailConfigForm = ({ initialConfig }: {
           {submitError}
         </Alert>
       ) : null}
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-email-from">
           Email &quot;From&quot; address
         </FormLabel>
@@ -752,7 +752,7 @@ const EmailConfigForm = ({ initialConfig }: {
           able to send email as this address.
         </FormText>
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-email-enroll-subject">
           New user invite email subject
         </FormLabel>
@@ -773,7 +773,7 @@ const EmailConfigForm = ({ initialConfig }: {
           {' (domain name).'}
         </FormText>
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-email-enroll-message">
           New user invite email contents
         </FormLabel>
@@ -855,7 +855,7 @@ const EmailConfigForm = ({ initialConfig }: {
           </ul>
         </FormText>
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-email-existing-join-subject">
           Existing user added-to-hunt email subject
         </FormLabel>
@@ -887,7 +887,7 @@ const EmailConfigForm = ({ initialConfig }: {
           </ul>
         </FormText>
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-email-existing-join-message">
           Existing user added-to-hunt email contents
         </FormLabel>
@@ -1071,7 +1071,7 @@ const DiscordOAuthForm = ({ oauthSettings }: {
 
       {/* TODO: UI for client ID and client secret */}
       <form onSubmit={onSubmitOauthConfiguration}>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <FormLabel htmlFor="jr-setup-edit-discord-client-id">
             Client ID
           </FormLabel>
@@ -1084,7 +1084,7 @@ const DiscordOAuthForm = ({ oauthSettings }: {
             onChange={onClientIdChange}
           />
         </FormGroup>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <FormLabel htmlFor="jr-setup-edit-discord-client-secret">
             Client Secret
           </FormLabel>
@@ -1147,7 +1147,7 @@ const DiscordBotForm = ({ botToken: initialBotToken }: { botToken?: string }) =>
       ) : null}
 
       <form onSubmit={onSubmitBotToken}>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <FormLabel htmlFor="jr-setup-edit-discord-bot-token">
             Bot token
           </FormLabel>
@@ -1224,7 +1224,7 @@ const DiscordGuildForm = ({ guild: initialGuild }: {
       ) : null}
 
       <form onSubmit={onSaveGuild}>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <FormLabel htmlFor="jr-setup-edit-discord-bot-guild">
             Guild
           </FormLabel>
@@ -1435,7 +1435,7 @@ const BrandingTeamName = () => {
       ) : null}
 
       <form onSubmit={onSubmit}>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <FormLabel htmlFor="jr-setup-edit-team-name">
             Team name
           </FormLabel>

@@ -384,7 +384,7 @@ const PuzzleListView = ({
 
   return (
     <div>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <ViewControls>
           <ViewControlsSection>
             <FormLabel>View puzzles by:</FormLabel>

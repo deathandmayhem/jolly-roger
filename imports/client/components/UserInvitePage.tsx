@@ -81,7 +81,7 @@ const UserInvitePage = () => {
         ) : undefined}
 
         <form onSubmit={onBulkSubmit} className="form-horizontal">
-          <FormGroup controlId="jr-invite-bulk">
+          <FormGroup className="mb-3" controlId="jr-invite-bulk">
             <FormLabel>
               Email addresses (one per line)
             </FormLabel>
@@ -93,7 +93,7 @@ const UserInvitePage = () => {
             />
           </FormGroup>
 
-          <FormGroup>
+          <FormGroup className="mb-3">
             <Button type="submit" variant="primary" disabled={submitting}>
               Send bulk invites
             </Button>
@@ -121,7 +121,7 @@ const UserInvitePage = () => {
           ) : undefined}
 
           <form onSubmit={onSubmit} className="form-horizontal">
-            <FormGroup as={Row}>
+            <FormGroup as={Row} className="mb-3">
               <FormLabel
                 htmlFor="jr-invite-email"
                 column
@@ -140,7 +140,7 @@ const UserInvitePage = () => {
               </Col>
             </FormGroup>
 
-            <FormGroup>
+            <FormGroup className="mb-3">
               <Col md={{ offset: 3, span: 9 }}>
                 <Button type="submit" variant="primary" disabled={submitting}>
                   Send invite

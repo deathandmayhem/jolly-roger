@@ -313,7 +313,7 @@ const ProfileList = ({
     }
 
     return (
-      <FormGroup>
+      <FormGroup className="mb-3">
         <Button variant="warning" onClick={syncDiscord}>
           Sync this hunt&apos;s Discord role
         </Button>
@@ -366,7 +366,7 @@ const ProfileList = ({
 
       {syncDiscordButton}
 
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-profile-list-search">
           Search
         </FormLabel>

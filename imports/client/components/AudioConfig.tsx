@@ -167,7 +167,7 @@ const AudioConfig = () => {
     <section className="audio-self-test-section">
       <h2>Audio</h2>
 
-      <FormGroup controlId="default-capture-device">
+      <FormGroup className="mb-3" controlId="default-capture-device">
         <FormLabel>Selected audio input device</FormLabel>
         <FormControl
           as="select"
@@ -224,7 +224,7 @@ const AudioConfig = () => {
         your speakers, but if you&apos;re not wearing headphones, you&apos;ll likely
         produce feedback.  You have been warned!
       </p>
-      <FormGroup controlId="audio-self-test-loopback">
+      <FormGroup className="mb-3" controlId="audio-self-test-loopback">
         <FormCheck
           type="checkbox"
           label="Play captured audio"

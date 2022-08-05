@@ -73,7 +73,7 @@ const FirstUserForm = () => {
           {submitError}
         </Alert>
       ) : null}
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-first-user-email">
           Email
         </FormLabel>
@@ -85,7 +85,7 @@ const FirstUserForm = () => {
           onChange={onEmailChange}
         />
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-first-user-password">
           Password
         </FormLabel>
