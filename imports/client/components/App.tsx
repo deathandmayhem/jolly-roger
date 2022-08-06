@@ -235,7 +235,7 @@ const AppNavbar = () => {
             >
               Report an issue
             </DropdownItem>
-            <DropdownItem eventKey="3" onSelect={logout}>Sign out</DropdownItem>
+            <DropdownItem eventKey="3" onClick={logout}>Sign out</DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </Nav>
