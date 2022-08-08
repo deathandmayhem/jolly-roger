@@ -29,7 +29,6 @@ import Accordion from 'react-bootstrap/Accordion';
 import AccordionContext from 'react-bootstrap/AccordionContext';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -197,9 +196,9 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
   }, [producer.paused, producerServer]);
 
   return (
-    <Card>
-      <Accordion.Toggle as={Card.Header} eventKey={producer._id}>
-        <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
+    <Accordion.Item eventKey={producer._id}>
+      <Accordion.Header>
+        <StyledToggleButton id={`producer-${producer._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -224,50 +223,48 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
         <ClipButton text={producer._id} />
         <code>{producer._id}</code>
         )
-      </Accordion.Toggle>
+      </Accordion.Header>
 
-      <Accordion.Collapse eventKey={producer._id}>
-        <Card.Body>
-          {!producerServer && (
-            <Alert variant="warning">
-              <p>
-                <FontAwesomeIcon icon={faExclamationTriangle} />
-                {' '}
-                Producer has not been acknowledged by the Mediasoup server. This can happen
-                transiently when the producer is being created, but if it persists, it indicates
-                a problem.
-              </p>
-            </Alert>
+      <Accordion.Body>
+        {!producerServer && (
+          <Alert variant="warning">
+            <p>
+              <FontAwesomeIcon icon={faExclamationTriangle} />
+              {' '}
+              Producer has not been acknowledged by the Mediasoup server. This can happen
+              transiently when the producer is being created, but if it persists, it indicates
+              a problem.
+            </p>
+          </Alert>
+        )}
+
+        <Row as="dl">
+          {producerServer && (
+            <>
+              <Col as="dt" xs={2}>Producer ID (Meteor server-side)</Col>
+              <Col as="dd" xs={10}>
+                <ClipButton text={producerServer._id} />
+                <code>{producerServer._id}</code>
+              </Col>
+              <Col as="dt" xs={2}>Producer ID (Mediasoup)</Col>
+              <Col as="dd" xs={10}>
+                <ClipButton text={producerServer.producerId} />
+                <code>{producerServer.producerId}</code>
+              </Col>
+            </>
           )}
-
-          <Row as="dl">
-            {producerServer && (
-              <>
-                <Col as="dt" xs={2}>Producer ID (Meteor server-side)</Col>
-                <Col as="dd" xs={10}>
-                  <ClipButton text={producerServer._id} />
-                  <code>{producerServer._id}</code>
-                </Col>
-                <Col as="dt" xs={2}>Producer ID (Mediasoup)</Col>
-                <Col as="dd" xs={10}>
-                  <ClipButton text={producerServer.producerId} />
-                  <code>{producerServer.producerId}</code>
-                </Col>
-              </>
-            )}
-            <Col as="dt" xs={2}>Track ID (client-side)</Col>
-            <Col as="dd" xs={10}>
-              <ClipButton text={producer.trackId} />
-              <code>{producer.trackId}</code>
-            </Col>
-            <Col as="dt" xs={2}>RTP parameters</Col>
-            <Col as="dd" xs={10}>
-              <JSONDisplay json={producer.rtpParameters} />
-            </Col>
-          </Row>
-        </Card.Body>
-      </Accordion.Collapse>
-    </Card>
+          <Col as="dt" xs={2}>Track ID (client-side)</Col>
+          <Col as="dd" xs={10}>
+            <ClipButton text={producer.trackId} />
+            <code>{producer.trackId}</code>
+          </Col>
+          <Col as="dt" xs={2}>RTP parameters</Col>
+          <Col as="dd" xs={10}>
+            <JSONDisplay json={producer.rtpParameters} />
+          </Col>
+        </Row>
+      </Accordion.Body>
+    </Accordion.Item>
   );
 };
 
@@ -294,9 +291,9 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
   ), [consumer.producerPeer]);
 
   return (
-    <Card>
-      <Accordion.Toggle as={Card.Header} eventKey={consumer._id}>
-        <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
+    <Accordion.Item eventKey={consumer._id}>
+      <Accordion.Header>
+        <StyledToggleButton id={`consumer-${consumer._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -327,36 +324,34 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
         <ClipButton text={consumer.producerPeer} />
         <code>{consumer.producerPeer}</code>
         )
-      </Accordion.Toggle>
+      </Accordion.Header>
 
-      <Accordion.Collapse eventKey={consumer._id}>
-        <Card.Body>
-          {!consumerAcked && (
-            <Alert variant="warning">
-              <p>
-                <FontAwesomeIcon icon={faExclamationTriangle} />
-                {' '}
-                Client has not acknowledged creation of the consumer. This can happen transiently
-                but if it persists, it indicates that the client is not creating the local copy of
-                the consumer.
-              </p>
-            </Alert>
-          )}
+      <Accordion.Body>
+        {!consumerAcked && (
+          <Alert variant="warning">
+            <p>
+              <FontAwesomeIcon icon={faExclamationTriangle} />
+              {' '}
+              Client has not acknowledged creation of the consumer. This can happen transiently
+              but if it persists, it indicates that the client is not creating the local copy of
+              the consumer.
+            </p>
+          </Alert>
+        )}
 
-          <Row as="dl">
-            <Col as="dt" xs={2}>Consumer ID (Mediasoup)</Col>
-            <Col as="dd" xs={10}>
-              <ClipButton text={consumer.consumerId} />
-              <code>{consumer.consumerId}</code>
-            </Col>
-            <Col as="dt" xs={2}>RTP parameters</Col>
-            <Col as="dd" xs={10}>
-              <JSONDisplay json={consumer.rtpParameters} />
-            </Col>
-          </Row>
-        </Card.Body>
-      </Accordion.Collapse>
-    </Card>
+        <Row as="dl">
+          <Col as="dt" xs={2}>Consumer ID (Mediasoup)</Col>
+          <Col as="dd" xs={10}>
+            <ClipButton text={consumer.consumerId} />
+            <code>{consumer.consumerId}</code>
+          </Col>
+          <Col as="dt" xs={2}>RTP parameters</Col>
+          <Col as="dd" xs={10}>
+            <JSONDisplay json={consumer.rtpParameters} />
+          </Col>
+        </Row>
+      </Accordion.Body>
+    </Accordion.Item>
   );
 };
 
@@ -408,9 +403,9 @@ const Transport = ({ transport }: { transport: TransportType }) => {
   }, [transport.direction]);
 
   return (
-    <Card>
-      <Accordion.Toggle as={Card.Header} eventKey={transport._id}>
-        <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
+    <Accordion.Item eventKey={transport._id}>
+      <Accordion.Header>
+        <StyledToggleButton id={`transport-${transport._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -435,99 +430,97 @@ const Transport = ({ transport }: { transport: TransportType }) => {
         <ClipButton text={transport._id} />
         <code>{transport._id}</code>
         )
-      </Accordion.Toggle>
-      <Accordion.Collapse eventKey={transport._id}>
-        <Card.Body>
-          {connectionStarted && !connectionCompleted && (
-            <Alert variant="warning">
-              <p>
-                <FontAwesomeIcon icon={faExclamationTriangle} />
-                {' '}
-                The client has initiated a connection but the server has not acknowledged it yet.
-                This will happen transiently, but if it sticks around, it indicates a problem with
-                the connection handshake.
-              </p>
-            </Alert>
-          )}
+      </Accordion.Header>
+      <Accordion.Body>
+        {connectionStarted && !connectionCompleted && (
+          <Alert variant="warning">
+            <p>
+              <FontAwesomeIcon icon={faExclamationTriangle} />
+              {' '}
+              The client has initiated a connection but the server has not acknowledged it yet.
+              This will happen transiently, but if it sticks around, it indicates a problem with
+              the connection handshake.
+            </p>
+          </Alert>
+        )}
 
-          <Row as="dl">
-            <Col as="dt" xs={2}>Transport ID (Mediasoup)</Col>
-            <Col as="dd" xs={10}>
-              <ClipButton text={transport.transportId} />
-              <code>{transport.transportId}</code>
-            </Col>
-            <Col as="dt" xs={2}>ICE Parameters</Col>
-            <Col as="dd" xs={10}>
-              <JSONDisplay json={transport.iceParameters} />
-            </Col>
-            <Col as="dt" xs={2}>ICE Candidates</Col>
-            <Col as="dd" xs={10}>
-              <JSONDisplay json={transport.iceCandidates} />
-            </Col>
-            <Col as="dt" xs={2}>Server DTLS Parameters</Col>
-            <Col as="dd" xs={10}>
-              <JSONDisplay json={transport.dtlsParameters} />
-            </Col>
-            {connectionParams && (
-              <>
-                <Col as="dt" xs={2}>Client DTLS Parameters</Col>
-                <Col as="dd" xs={10}>
-                  <JSONDisplay json={connectionParams.dtlsParameters} />
-                </Col>
-              </>
-            )}
-            {transportState && (
-              <>
-                <Col as="dt" xs={2}>ICE State</Col>
-                <Col as="dd" xs={10}>
-                  <code>{transportState.iceState || 'undefined'}</code>
-                </Col>
-                <Col as="dt" xs={2}>ICE Selected Tuple</Col>
-                <Col as="dd" xs={10}>
-                  {transportState.iceSelectedTuple ? (
-                    <JSONDisplay json={transportState.iceSelectedTuple} />
-                  ) : (
-                    <code>undefined</code>
-                  )}
-                </Col>
-                <Col as="dt" xs={2}>DTLS State</Col>
-                <Col as="dd" xs={10}>
-                  <code>{transportState.dtlsState || 'undefined'}</code>
-                </Col>
-              </>
-            )}
-          </Row>
-
-          {producers.length > 0 && (
+        <Row as="dl">
+          <Col as="dt" xs={2}>Transport ID (Mediasoup)</Col>
+          <Col as="dd" xs={10}>
+            <ClipButton text={transport.transportId} />
+            <code>{transport.transportId}</code>
+          </Col>
+          <Col as="dt" xs={2}>ICE Parameters</Col>
+          <Col as="dd" xs={10}>
+            <JSONDisplay json={transport.iceParameters} />
+          </Col>
+          <Col as="dt" xs={2}>ICE Candidates</Col>
+          <Col as="dd" xs={10}>
+            <JSONDisplay json={transport.iceCandidates} />
+          </Col>
+          <Col as="dt" xs={2}>Server DTLS Parameters</Col>
+          <Col as="dd" xs={10}>
+            <JSONDisplay json={transport.dtlsParameters} />
+          </Col>
+          {connectionParams && (
             <>
-              <h5>
-                Producers (
-                {producers.length}
-                )
-              </h5>
-
-              <Accordion>
-                {producers.map((p) => <Producer key={p._id} producer={p} />)}
-              </Accordion>
+              <Col as="dt" xs={2}>Client DTLS Parameters</Col>
+              <Col as="dd" xs={10}>
+                <JSONDisplay json={connectionParams.dtlsParameters} />
+              </Col>
             </>
           )}
-
-          {consumers.length > 0 && (
+          {transportState && (
             <>
-              <h5>
-                Consumers (
-                {consumers.length}
-                )
-              </h5>
-
-              <Accordion>
-                {consumers.map((c) => <Consumer key={c._id} consumer={c} />)}
-              </Accordion>
+              <Col as="dt" xs={2}>ICE State</Col>
+              <Col as="dd" xs={10}>
+                <code>{transportState.iceState || 'undefined'}</code>
+              </Col>
+              <Col as="dt" xs={2}>ICE Selected Tuple</Col>
+              <Col as="dd" xs={10}>
+                {transportState.iceSelectedTuple ? (
+                  <JSONDisplay json={transportState.iceSelectedTuple} />
+                ) : (
+                  <code>undefined</code>
+                )}
+              </Col>
+              <Col as="dt" xs={2}>DTLS State</Col>
+              <Col as="dd" xs={10}>
+                <code>{transportState.dtlsState || 'undefined'}</code>
+              </Col>
             </>
           )}
-        </Card.Body>
-      </Accordion.Collapse>
-    </Card>
+        </Row>
+
+        {producers.length > 0 && (
+          <>
+            <h5>
+              Producers (
+              {producers.length}
+              )
+            </h5>
+
+            <Accordion>
+              {producers.map((p) => <Producer key={p._id} producer={p} />)}
+            </Accordion>
+          </>
+        )}
+
+        {consumers.length > 0 && (
+          <>
+            <h5>
+              Consumers (
+              {consumers.length}
+              )
+            </h5>
+
+            <Accordion>
+              {consumers.map((c) => <Consumer key={c._id} consumer={c} />)}
+            </Accordion>
+          </>
+        )}
+      </Accordion.Body>
+    </Accordion.Item>
   );
 };
 
@@ -549,9 +542,9 @@ const Peer = ({ peer }: { peer: PeerType }) => {
   ), [peer._id]);
 
   return (
-    <Card>
-      <Accordion.Toggle as={Card.Header} eventKey={peer._id}>
-        <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
+    <Accordion.Item eventKey={peer._id}>
+      <Accordion.Header>
+        <StyledToggleButton id={`peer-${peer._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -577,85 +570,83 @@ const Peer = ({ peer }: { peer: PeerType }) => {
         <ClipButton text={peer._id} />
         <code>{peer._id}</code>
         )
-      </Accordion.Toggle>
-      <Accordion.Collapse eventKey={peer._id}>
-        <Card.Body>
-          {transportRequests.length === 0 && (
-            <Alert variant="warning">
-              <p>
-                <FontAwesomeIcon icon={faExclamationTriangle} />
-                {' '}
-                This peer has no transport requests. This will happen transiently when a peer first
-                connects, but if it sticks around, it indicates that the client got stuck in the
-                middle of the handshake.
-              </p>
-            </Alert>
-          )}
-          {transportRequests.length > 1 && (
-            <Alert variant="warning">
-              <p>
-                <FontAwesomeIcon icon={faExclamationTriangle} />
-                {' '}
-                This peer has multiple transport requests. It shouldn&apos;t be possible for one
-                peer to subscribe to
-                {' '}
-                <code>mediasoup:transports</code>
-                {' '}
-                more than once, so this is a likely bug or leak. We&apos;re only showing the RTP
-                capabilities for the first one.
-              </p>
-              <p>The complete list of IDs is:</p>
-              <ul>
-                {transportRequests.map(({ _id: id }) => (
-                  <li key={id}>
-                    <ClipButton text={id} />
-                    <code>{id}</code>
-                  </li>
-                ))}
-              </ul>
-            </Alert>
-          )}
-          <Row as="dl">
-            <Col as="dt" xs={2}>Meteor Server</Col>
-            <Col as="dd" xs={10}>
-              <ClipButton text={peer.createdServer} />
-              <code>{peer.createdServer}</code>
-            </Col>
-            <Col as="dt" xs={2}>Tab</Col>
-            <Col as="dd" xs={10}>
-              <ClipButton text={peer.tab} />
-              <code>{peer.tab}</code>
-            </Col>
-            {transportRequests.length > 0 && (
-              <>
-                <Col as="dt" xs={2}>RTP capabilities</Col>
-                <Col as="dd" xs={10}>
-                  <JSONDisplay json={transportRequests[0].rtpCapabilities} />
-                </Col>
-              </>
-            )}
-          </Row>
-
-          {transports.length > 0 && (
+      </Accordion.Header>
+      <Accordion.Body>
+        {transportRequests.length === 0 && (
+          <Alert variant="warning">
+            <p>
+              <FontAwesomeIcon icon={faExclamationTriangle} />
+              {' '}
+              This peer has no transport requests. This will happen transiently when a peer first
+              connects, but if it sticks around, it indicates that the client got stuck in the
+              middle of the handshake.
+            </p>
+          </Alert>
+        )}
+        {transportRequests.length > 1 && (
+          <Alert variant="warning">
+            <p>
+              <FontAwesomeIcon icon={faExclamationTriangle} />
+              {' '}
+              This peer has multiple transport requests. It shouldn&apos;t be possible for one
+              peer to subscribe to
+              {' '}
+              <code>mediasoup:transports</code>
+              {' '}
+              more than once, so this is a likely bug or leak. We&apos;re only showing the RTP
+              capabilities for the first one.
+            </p>
+            <p>The complete list of IDs is:</p>
+            <ul>
+              {transportRequests.map(({ _id: id }) => (
+                <li key={id}>
+                  <ClipButton text={id} />
+                  <code>{id}</code>
+                </li>
+              ))}
+            </ul>
+          </Alert>
+        )}
+        <Row as="dl">
+          <Col as="dt" xs={2}>Meteor Server</Col>
+          <Col as="dd" xs={10}>
+            <ClipButton text={peer.createdServer} />
+            <code>{peer.createdServer}</code>
+          </Col>
+          <Col as="dt" xs={2}>Tab</Col>
+          <Col as="dd" xs={10}>
+            <ClipButton text={peer.tab} />
+            <code>{peer.tab}</code>
+          </Col>
+          {transportRequests.length > 0 && (
             <>
-              <h4>
-                Transports (
-                {transports.length}
-                {', '}
-                {producerCount}
-                {' producers, '}
-                {consumerCount}
-                {' consumers)'}
-              </h4>
-
-              <Accordion>
-                {transports.map((t) => <Transport key={t._id} transport={t} />)}
-              </Accordion>
+              <Col as="dt" xs={2}>RTP capabilities</Col>
+              <Col as="dd" xs={10}>
+                <JSONDisplay json={transportRequests[0].rtpCapabilities} />
+              </Col>
             </>
           )}
-        </Card.Body>
-      </Accordion.Collapse>
-    </Card>
+        </Row>
+
+        {transports.length > 0 && (
+          <>
+            <h4>
+              Transports (
+              {transports.length}
+              {', '}
+              {producerCount}
+              {' producers, '}
+              {consumerCount}
+              {' consumers)'}
+            </h4>
+
+            <Accordion>
+              {transports.map((t) => <Transport key={t._id} transport={t} />)}
+            </Accordion>
+          </>
+        )}
+      </Accordion.Body>
+    </Accordion.Item>
   );
 };
 
@@ -706,8 +697,8 @@ const Room = ({ room }: { room: RoomType }) => {
     Peers.find({ call: room.call }, { sort: { createdAt: 1 } })
   ), [room.call]);
   return (
-    <Card>
-      <Accordion.Toggle as={Card.Header} eventKey={room._id}>
+    <Accordion.Item eventKey={room._id}>
+      <Accordion.Header>
         <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
@@ -720,53 +711,51 @@ const Room = ({ room }: { room: RoomType }) => {
           <FontAwesomeIcon icon={recentActivity ? faVolumeUp : faVolumeOff} fixedWidth />
         </OverlayTrigger>
         <CallDisplay call={room.call} />
-      </Accordion.Toggle>
+      </Accordion.Header>
 
-      <Accordion.Collapse eventKey={room._id}>
-        <Card.Body>
-          {!router && (
-            <Alert variant="warning">
-              <FontAwesomeIcon icon={faExclamationTriangle} />
-              {' '}
-              No router found for this room. This will happen transiently when the room record is
-              first created, but if it persists, it indicates that the observer on the server-side
-              failed to create the router that corresponds to this room.
-            </Alert>
-          )}
-          <Row as="dl">
-            <Col as="dt" xs={2}>Room ID</Col>
-            <Col as="dd" xs={10}>
-              <ClipButton text={room._id} />
-              <code>{room._id}</code>
-            </Col>
-            <Col as="dt" xs={2}>Created</Col>
-            <Col as="dd" xs={10}>
-              {room.createdAt.toISOString()}
-            </Col>
-            <Col as="dt" xs={2}>Server</Col>
-            <Col as="dd" xs={10}>
-              <ClipButton text={room.routedServer} />
-              <code>{room.routedServer}</code>
-            </Col>
-            <Col as="dt" xs={2}>Last activity</Col>
-            <Col as="dd" xs={10}>
-              {lastActivity?.toISOString() ?? 'Never'}
-            </Col>
-            {router && <RouterDetails router={router} />}
-          </Row>
+      <Accordion.Body>
+        {!router && (
+          <Alert variant="warning">
+            <FontAwesomeIcon icon={faExclamationTriangle} />
+            {' '}
+            No router found for this room. This will happen transiently when the room record is
+            first created, but if it persists, it indicates that the observer on the server-side
+            failed to create the router that corresponds to this room.
+          </Alert>
+        )}
+        <Row as="dl">
+          <Col as="dt" xs={2}>Room ID</Col>
+          <Col as="dd" xs={10}>
+            <ClipButton text={room._id} />
+            <code>{room._id}</code>
+          </Col>
+          <Col as="dt" xs={2}>Created</Col>
+          <Col as="dd" xs={10}>
+            {room.createdAt.toISOString()}
+          </Col>
+          <Col as="dt" xs={2}>Server</Col>
+          <Col as="dd" xs={10}>
+            <ClipButton text={room.routedServer} />
+            <code>{room.routedServer}</code>
+          </Col>
+          <Col as="dt" xs={2}>Last activity</Col>
+          <Col as="dd" xs={10}>
+            {lastActivity?.toISOString() ?? 'Never'}
+          </Col>
+          {router && <RouterDetails router={router} />}
+        </Row>
 
-          <h3>
-            Peers (
-            {peers.length}
-            )
-          </h3>
+        <h3>
+          Peers (
+          {peers.length}
+          )
+        </h3>
 
-          <Accordion>
-            {peers.map((peer) => <Peer key={peer._id} peer={peer} />)}
-          </Accordion>
-        </Card.Body>
-      </Accordion.Collapse>
-    </Card>
+        <Accordion>
+          {peers.map((peer) => <Peer key={peer._id} peer={peer} />)}
+        </Accordion>
+      </Accordion.Body>
+    </Accordion.Item>
   );
 };
 

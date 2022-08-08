@@ -335,7 +335,7 @@ const Tag = (props: TagProps) => {
         onMouseEnter={doShowPopover}
         onMouseLeave={doHidePopover}
       >
-        <Popover.Title>
+        <Popover.Header>
           <RelatedPuzzlePopoverHeaderInner>
             {sharedTagName}
             <RelatedPuzzlePopoverControls>
@@ -359,15 +359,15 @@ const Tag = (props: TagProps) => {
               </Button>
             </RelatedPuzzlePopoverControls>
           </RelatedPuzzlePopoverHeaderInner>
-        </Popover.Title>
-        <Popover.Content>
+        </Popover.Header>
+        <Popover.Body>
           <RelatedPuzzleTable
             relatedPuzzles={relatedPuzzles}
             allTags={props.allTags}
             sharedTag={props.tag}
             segmentAnswers={segmentAnswers}
           />
-        </Popover.Content>
+        </Popover.Body>
       </StyledPopover>
     );
     return (

@@ -384,21 +384,21 @@ const PuzzleListView = ({
 
   return (
     <div>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <ViewControls>
           <ViewControlsSection>
             <FormLabel>View puzzles by:</FormLabel>
             <ButtonToolbar className="puzzle-view-buttons">
               <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={displayMode} onChange={setDisplayMode}>
-                <ToggleButton variant="outline-info" value="group">Group</ToggleButton>
-                <ToggleButton variant="outline-info" value="unlock">Unlock</ToggleButton>
+                <ToggleButton id="view-group-button" variant="outline-info" value="group">Group</ToggleButton>
+                <ToggleButton id="view-unlock-button" variant="outline-info" value="unlock">Unlock</ToggleButton>
               </ToggleButtonGroup>
               <ToggleButtonGroup
                 type="checkbox"
                 value={showSolved ? ['true'] : []}
                 onChange={changeShowSolved}
               >
-                <ToggleButton variant="outline-info" value="true">Show solved</ToggleButton>
+                <ToggleButton id="view-show-solved-button" variant="outline-info" value="true">Show solved</ToggleButton>
               </ToggleButtonGroup>
             </ButtonToolbar>
           </ViewControlsSection>
@@ -417,11 +417,9 @@ const PuzzleListView = ({
                   value={searchString}
                   onChange={onSearchStringChange}
                 />
-                <InputGroup.Append>
-                  <Button variant="secondary" onClick={clearSearch}>
-                    <FontAwesomeIcon icon={faEraser} />
-                  </Button>
-                </InputGroup.Append>
+                <Button variant="secondary" onClick={clearSearch}>
+                  <FontAwesomeIcon icon={faEraser} />
+                </Button>
               </FilterToolbarInputGroup>
             </FilterToolbar>
           </ViewControlsSectionExpand>

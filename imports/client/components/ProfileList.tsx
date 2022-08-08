@@ -217,7 +217,7 @@ const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string 
         <DemoteOperatorModal ref={demoteModalRef} user={user} huntId={huntId} />
       )}
       {userIsAdmin && (
-        <Badge variant="success">Admin</Badge>
+        <Badge bg="success">Admin</Badge>
       )}
       {userIsOperator ? (
         <>
@@ -226,7 +226,7 @@ const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string 
               Demote
             </Button>
           )}
-          <Badge variant="info">Operator</Badge>
+          <Badge bg="info">Operator</Badge>
         </>
       ) : (
         <Button size="sm" variant="warning" onClick={showPromoteModal}>
@@ -313,7 +313,7 @@ const ProfileList = ({
     }
 
     return (
-      <FormGroup>
+      <FormGroup className="mb-3">
         <Button variant="warning" onClick={syncDiscord}>
           Sync this hunt&apos;s Discord role
         </Button>
@@ -366,7 +366,7 @@ const ProfileList = ({
 
       {syncDiscordButton}
 
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-profile-list-search">
           Search
         </FormLabel>
@@ -379,11 +379,9 @@ const ProfileList = ({
             value={searchString}
             onChange={onSearchStringChange}
           />
-          <InputGroup.Append>
-            <Button variant="secondary" onClick={clearSearch}>
-              <FontAwesomeIcon icon={faEraser} />
-            </Button>
-          </InputGroup.Append>
+          <Button variant="secondary" onClick={clearSearch}>
+            <FontAwesomeIcon icon={faEraser} />
+          </Button>
         </InputGroup>
       </FormGroup>
 

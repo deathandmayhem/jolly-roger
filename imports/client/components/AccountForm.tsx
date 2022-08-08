@@ -205,7 +205,7 @@ const AccountForm = (props: AccountFormProps) => {
   }[props.format];
 
   const emailInput = (
-    <Form.Group controlId="at-field-email">
+    <Form.Group className="mb-3" controlId="at-field-email">
       <Form.Label>Email</Form.Label>
       <Form.Control
         type="email"
@@ -218,7 +218,7 @@ const AccountForm = (props: AccountFormProps) => {
     </Form.Group>
   );
   const pwInput = (
-    <Form.Group controlId="at-field-password">
+    <Form.Group className="mb-3" controlId="at-field-password">
       <Form.Label>Password</Form.Label>
       <Form.Control
         type="password"
@@ -231,7 +231,7 @@ const AccountForm = (props: AccountFormProps) => {
     </Form.Group>
   );
   const enrollmentFields = [
-    <Form.Group controlId="at-field-displayname">
+    <Form.Group className="mb-3" controlId="at-field-displayname">
       <Form.Label>Full name</Form.Label>
       <Form.Control
         type="text"
@@ -243,7 +243,7 @@ const AccountForm = (props: AccountFormProps) => {
       />
       <Form.Text>For use in chat</Form.Text>
     </Form.Group>,
-    <Form.Group controlId="at-field-phonenumber">
+    <Form.Group className="mb-3" controlId="at-field-phonenumber">
       <Form.Label>Phone Number</Form.Label>
       <Form.Control
         type="tel"
@@ -289,9 +289,11 @@ const AccountForm = (props: AccountFormProps) => {
             {props.format === AccountFormFormat.LOGIN || props.format === AccountFormFormat.ENROLL || props.format === AccountFormFormat.RESET_PWD ? pwInput : null}
             {pwResetOptionComponent}
             {props.format === AccountFormFormat.ENROLL ? enrollmentFields : null}
-            <Button size="lg" variant="outline-secondary" block type="submit" disabled={submitting}>
-              {buttonText}
-            </Button>
+            <div className="d-grid gap-2">
+              <Button size="lg" variant="outline-secondary" type="submit" disabled={submitting}>
+                {buttonText}
+              </Button>
+            </div>
             {backToMainForm}
           </fieldset>
         </form>

@@ -319,7 +319,7 @@ const HuntEditPage = () => {
       <h1>{huntId ? 'Edit Hunt' : 'New Hunt'}</h1>
 
       <Form onSubmit={onFormSubmit}>
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="hunt-form-name">
             Name
           </FormLabel>
@@ -336,7 +336,7 @@ const HuntEditPage = () => {
 
         <h3>Users and permissions</h3>
 
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="hunt-form-signup-message">
             Signup message
           </FormLabel>
@@ -355,7 +355,7 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="hunt-form-open-signups">
             Open invites
           </FormLabel>
@@ -373,7 +373,7 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="hunt-form-has-guess-queue">
             Guess queue
           </FormLabel>
@@ -393,7 +393,7 @@ const HuntEditPage = () => {
 
         <h3>Hunt website</h3>
 
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="hunt-form-homepage-url">
             Homepage URL
           </FormLabel>
@@ -411,7 +411,7 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="hunt-form-submit-template">
             Submit URL template
           </FormLabel>
@@ -454,7 +454,7 @@ const HuntEditPage = () => {
 
         <h3>External integrations</h3>
 
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="hunt-form-mailing-lists">
             Mailing lists
           </FormLabel>
@@ -475,7 +475,7 @@ const HuntEditPage = () => {
 
         {guildId ? (
           <>
-            <FormGroup as={Row}>
+            <FormGroup as={Row} className="mb-3">
               <FormLabel column xs={3} htmlFor="hunt-form-puzzle-hooks-discord-channel">
                 Puzzle notifications Discord channel
               </FormLabel>
@@ -494,7 +494,7 @@ const HuntEditPage = () => {
               </Col>
             </FormGroup>
 
-            <FormGroup as={Row}>
+            <FormGroup as={Row} className="mb-3">
               <FormLabel column xs={3} htmlFor="hunt-form-firehose-discord-channel">
                 Firehose Discord channel
               </FormLabel>
@@ -513,7 +513,7 @@ const HuntEditPage = () => {
               </Col>
             </FormGroup>
 
-            <FormGroup as={Row}>
+            <FormGroup as={Row} className="mb-3">
               <FormLabel column xs={3} htmlFor="hunt-form-member-discord-role">
                 Discord role for members
               </FormLabel>
@@ -549,7 +549,7 @@ const HuntEditPage = () => {
           )}
 
           <ActionButtonRow>
-            <FormGroup>
+            <FormGroup className="mb-3">
               <Button variant="primary" type="submit" disabled={disableForm}>{huntId ? 'Save' : 'Create'}</Button>
             </FormGroup>
           </ActionButtonRow>

@@ -11,6 +11,7 @@ import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Modal from 'react-bootstrap/Modal';
+import { LinkContainer } from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
 import Ansible from '../../Ansible';
 import Hunts from '../../lib/models/Hunts';
@@ -65,9 +66,11 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
       </ModalForm>
       <ButtonGroup size="sm">
         {canUpdate ? (
-          <Button as={Link} to={`/hunts/${huntId}/edit`} variant="outline-secondary" title="Edit hunt...">
-            <FontAwesomeIcon fixedWidth icon={faEdit} />
-          </Button>
+          <LinkContainer to={`/hunts/${huntId}/edit`}>
+            <Button as="a" variant="outline-secondary" title="Edit hunt...">
+              <FontAwesomeIcon fixedWidth icon={faEdit} />
+            </Button>
+          </LinkContainer>
         ) : undefined}
         {canDestroy ? (
           <Button onClick={showDeleteModal} variant="danger" title="Delete hunt...">
@@ -211,9 +214,11 @@ const HuntListPage = () => {
       <h1>Hunts</h1>
       {canAdd && (
         <>
-          <Button as={Link} to="/hunts/new" variant="success" size="sm">
-            New hunt...
-          </Button>
+          <LinkContainer to="/hunts/new">
+            <Button as="a" variant="success" size="sm">
+              New hunt...
+            </Button>
+          </LinkContainer>
           {!loading && hunts.length === 0 && (
             <>
               {' '}

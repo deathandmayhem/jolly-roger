@@ -202,7 +202,7 @@ const PuzzleModalForm = React.forwardRef(({
     });
 
   const docTypeSelector = !puzzle && docType ? (
-    <FormGroup as={Row}>
+    <FormGroup as={Row} className="mb-3">
       <FormLabel column xs={3} htmlFor="jr-new-puzzle-doc-type">
         Document type
       </FormLabel>
@@ -236,7 +236,7 @@ const PuzzleModalForm = React.forwardRef(({
         onSubmit={onFormSubmit}
         submitDisabled={disableForm}
       >
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="jr-new-puzzle-title">
             Title
           </FormLabel>
@@ -252,7 +252,7 @@ const PuzzleModalForm = React.forwardRef(({
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="jr-new-puzzle-url">
             URL
           </FormLabel>
@@ -267,7 +267,7 @@ const PuzzleModalForm = React.forwardRef(({
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags">
             Tags
           </FormLabel>
@@ -285,7 +285,7 @@ const PuzzleModalForm = React.forwardRef(({
 
         {docTypeSelector}
 
-        <FormGroup as={Row}>
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="jr-new-puzzle-expected-answer-count">
             Expected # of answers
           </FormLabel>

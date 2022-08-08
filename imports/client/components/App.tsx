@@ -223,7 +223,7 @@ const AppNavbar = () => {
             {' '}
             <NavUsername>{displayName}</NavUsername>
           </DropdownToggle>
-          <DropdownMenu alignRight>
+          <DropdownMenu align="end">
             <RRBS.LinkContainer to={`/users/${userId}`}>
               <DropdownItem eventKey="1">My Profile</DropdownItem>
             </RRBS.LinkContainer>
@@ -235,7 +235,7 @@ const AppNavbar = () => {
             >
               Report an issue
             </DropdownItem>
-            <DropdownItem eventKey="3" onSelect={logout}>Sign out</DropdownItem>
+            <DropdownItem eventKey="3" onClick={logout}>Sign out</DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </Nav>

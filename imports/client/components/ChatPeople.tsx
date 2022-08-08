@@ -448,7 +448,7 @@ const ChatPeople = ({
         return (
           <>
             <AVActions>
-              <AVButton variant="primary" size="sm" block onClick={joinCall}>{joinLabel}</AVButton>
+              <AVButton variant="primary" size="sm" onClick={joinCall}>{joinLabel}</AVButton>
             </AVActions>
             <ChatterSubsection>
               <PeopleListHeader onClick={toggleCallersExpanded}>

@@ -176,7 +176,7 @@ const GoogleOAuthForm = ({ isConfigured, initialClientId }: {
           {state.submitError}
         </Alert>
       ) : null}
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-google-client-id">
           Client ID
         </FormLabel>
@@ -188,7 +188,7 @@ const GoogleOAuthForm = ({ isConfigured, initialClientId }: {
           onChange={onClientIdChange}
         />
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-google-client-secret">
           Client secret
         </FormLabel>
@@ -324,7 +324,7 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
           {state.error.message}
         </Alert>
       ) : null}
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-google-drive-root">
           Google Drive root folder ID
         </FormLabel>
@@ -339,7 +339,7 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
       <ActionButtonRow>
         <Button variant="primary" onClick={saveRootId} disabled={shouldDisableForm}>Save</Button>
       </ActionButtonRow>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-google-drive-reorganize">
           Changing this setting does not automatically reorganize any existing
           files or folders under the new root folder, but if you want to do
@@ -422,7 +422,7 @@ const GoogleDriveTemplateForm = ({ initialDocTemplate, initialSpreadsheetTemplat
           {state.error.message}
         </Alert>
       ) : null}
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-gdrive-sheet-template">
           Spreadsheet template doc id
         </FormLabel>
@@ -434,7 +434,7 @@ const GoogleDriveTemplateForm = ({ initialDocTemplate, initialSpreadsheetTemplat
           onChange={onSpreadsheetTemplateChange}
         />
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-gdrive-doc-template">
           Document template doc id
         </FormLabel>
@@ -534,7 +534,7 @@ const GoogleIntegrationSection = () => {
         <SectionHeaderLabel>
           Google integration
         </SectionHeaderLabel>
-        <Badge variant={compBadgeVariant}>
+        <Badge bg={compBadgeVariant}>
           {comp}
         </Badge>
         <SectionHeaderButtons>
@@ -566,7 +566,7 @@ const GoogleIntegrationSection = () => {
         <SubsectionHeader>
           <span>OAuth client</span>
           {' '}
-          <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
+          <Badge bg={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Integrating with Google requires registering an app ID which
@@ -591,7 +591,7 @@ const GoogleIntegrationSection = () => {
         <SubsectionHeader>
           <span>Drive user</span>
           {' '}
-          <Badge variant={driveBadgeVariant}>{driveBadgeLabel}</Badge>
+          <Badge bg={driveBadgeVariant}>{driveBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Jolly Roger automates the creation of Google spreadsheets and
@@ -615,7 +615,7 @@ const GoogleIntegrationSection = () => {
         <SubsectionHeader>
           <span>(Optional) Root folder</span>
           {' '}
-          <Badge variant={rootBadgeVariant}>{rootBadgeLabel}</Badge>
+          <Badge bg={rootBadgeVariant}>{rootBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Jolly Roger creates a new folder in Google Drive for every hunt. By
@@ -637,7 +637,7 @@ const GoogleIntegrationSection = () => {
         <SubsectionHeader>
           <span>Document templates</span>
           {' '}
-          <Badge variant={templateBadgeVariant}>{templateBadgeLabel}</Badge>
+          <Badge bg={templateBadgeVariant}>{templateBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Jolly Roger can create new documents for each puzzle it&apos; made aware of,
@@ -735,7 +735,7 @@ const EmailConfigForm = ({ initialConfig }: {
           {submitError}
         </Alert>
       ) : null}
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-email-from">
           Email &quot;From&quot; address
         </FormLabel>
@@ -752,7 +752,7 @@ const EmailConfigForm = ({ initialConfig }: {
           able to send email as this address.
         </FormText>
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-email-enroll-subject">
           New user invite email subject
         </FormLabel>
@@ -773,7 +773,7 @@ const EmailConfigForm = ({ initialConfig }: {
           {' (domain name).'}
         </FormText>
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-email-enroll-message">
           New user invite email contents
         </FormLabel>
@@ -855,7 +855,7 @@ const EmailConfigForm = ({ initialConfig }: {
           </ul>
         </FormText>
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-email-existing-join-subject">
           Existing user added-to-hunt email subject
         </FormLabel>
@@ -887,7 +887,7 @@ const EmailConfigForm = ({ initialConfig }: {
           </ul>
         </FormText>
       </FormGroup>
-      <FormGroup>
+      <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-setup-edit-email-existing-join-message">
           Existing user added-to-hunt email contents
         </FormLabel>
@@ -975,7 +975,7 @@ const EmailConfigSection = () => {
         <SectionHeaderLabel>
           Email configuration
         </SectionHeaderLabel>
-        <Badge variant={badgeVariant}>
+        <Badge bg={badgeVariant}>
           {configured ? 'Configured' : 'Unconfigured'}
         </Badge>
       </SectionHeader>
@@ -1071,7 +1071,7 @@ const DiscordOAuthForm = ({ oauthSettings }: {
 
       {/* TODO: UI for client ID and client secret */}
       <form onSubmit={onSubmitOauthConfiguration}>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <FormLabel htmlFor="jr-setup-edit-discord-client-id">
             Client ID
           </FormLabel>
@@ -1084,7 +1084,7 @@ const DiscordOAuthForm = ({ oauthSettings }: {
             onChange={onClientIdChange}
           />
         </FormGroup>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <FormLabel htmlFor="jr-setup-edit-discord-client-secret">
             Client Secret
           </FormLabel>
@@ -1147,7 +1147,7 @@ const DiscordBotForm = ({ botToken: initialBotToken }: { botToken?: string }) =>
       ) : null}
 
       <form onSubmit={onSubmitBotToken}>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <FormLabel htmlFor="jr-setup-edit-discord-bot-token">
             Bot token
           </FormLabel>
@@ -1224,7 +1224,7 @@ const DiscordGuildForm = ({ guild: initialGuild }: {
       ) : null}
 
       <form onSubmit={onSaveGuild}>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <FormLabel htmlFor="jr-setup-edit-discord-bot-guild">
             Guild
           </FormLabel>
@@ -1286,7 +1286,7 @@ const DiscordIntegrationSection = () => {
         <SectionHeaderLabel>
           Discord integration
         </SectionHeaderLabel>
-        <Badge variant={headerBadgeVariant}>
+        <Badge bg={headerBadgeVariant}>
           {configured ? 'Configured' : 'Unconfigured'}
         </Badge>
         {configured && (
@@ -1329,7 +1329,7 @@ const DiscordIntegrationSection = () => {
         <SubsectionHeader>
           <span>OAuth client</span>
           {' '}
-          <Badge variant={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
+          <Badge bg={oauthBadgeVariant}>{oauthBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Jolly Roger can allow Discord users to grant limited access to
@@ -1355,7 +1355,7 @@ const DiscordIntegrationSection = () => {
         <SubsectionHeader>
           <span>Bot account</span>
           {' '}
-          <Badge variant={botBadgeVariant}>{botBadgeLabel}</Badge>
+          <Badge bg={botBadgeVariant}>{botBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Since Discord only allows guild invitations to be managed by bot
@@ -1372,7 +1372,7 @@ const DiscordIntegrationSection = () => {
         <SubsectionHeader>
           <span>Guild</span>
           {' '}
-          <Badge variant={guildBadgeVariant}>{guildBadgeLabel}</Badge>
+          <Badge bg={guildBadgeVariant}>{guildBadgeLabel}</Badge>
         </SubsectionHeader>
         <p>
           Since bots can be part of multiple guilds, you&apos;ll need to specify
@@ -1435,7 +1435,7 @@ const BrandingTeamName = () => {
       ) : null}
 
       <form onSubmit={onSubmit}>
-        <FormGroup>
+        <FormGroup className="mb-3">
           <FormLabel htmlFor="jr-setup-edit-team-name">
             Team name
           </FormLabel>
