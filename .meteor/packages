@@ -38,3 +38,4 @@ deanius:promise
 hot-module-replacement@0.5.1
 zodern:standard-minifier-js
 fetch@0.1.1
+zodern:types

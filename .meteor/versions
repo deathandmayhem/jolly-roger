@@ -93,3 +93,4 @@ xolvio:cleaner@0.4.0
 zodern:caching-minifier@0.4.0
 zodern:minifier-js@4.1.0
 zodern:standard-minifier-js@4.1.1
+zodern:types@1.0.9
