@@ -1277,18 +1277,21 @@ const PuzzlePage = React.memo(() => {
       Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } })
   ), [puzzleDataLoading, puzzleId]);
 
-  const activePuzzle = useTracker(() => Puzzles.findOneAllowingDeleted(puzzleId), [puzzleId]);
-  const breadcrumbTitle =
+  const activePuzzle = useTracker(() => (
     puzzleDataLoading ?
-      'loading...' :
-      `${activePuzzle!.title}${activePuzzle!.deleted ? ' (deleted)' : ''}`;
+      undefined :
+      Puzzles.findOneAllowingDeleted(puzzleId)
+  ), [puzzleDataLoading, puzzleId]);
+
+  const puzzleTitle = activePuzzle ? `${activePuzzle.title}${activePuzzle.deleted ? ' (deleted)' : ''}` : '(no such puzzle)';
+  const title = puzzleDataLoading ? 'loading...' : puzzleTitle;
   useBreadcrumb({
-    title: breadcrumbTitle,
+    title,
     path: `/hunts/${huntId}/puzzles/${puzzleId}`,
   });
 
-  const title = `${activePuzzle ? activePuzzle.title : 'loading puzzle title...'} :: Jolly Roger`;
-  useDocumentTitle(title);
+  const documentTitle = `${title} :: Jolly Roger`;
+  useDocumentTitle(documentTitle);
 
   const onResize = useCallback(() => {
     setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
@@ -1339,9 +1342,12 @@ const PuzzlePage = React.memo(() => {
   if (puzzleDataLoading) {
     return <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}><span>loading...</span></FixedLayout>;
   }
+  if (!activePuzzle) {
+    return <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}><span>No puzzle found :( Did you get that URL right?</span></FixedLayout>;
+  }
   const metadata = (
     <PuzzlePageMetadata
-      puzzle={activePuzzle!}
+      puzzle={activePuzzle}
       document={document}
       displayNames={displayNames}
       isDesktop={isDesktop}
@@ -1351,13 +1357,13 @@ const PuzzlePage = React.memo(() => {
     <ChatSectionMemo
       ref={chatSectionRef}
       chatDataLoading={chatDataLoading}
-      puzzleDeleted={activePuzzle?.deleted ?? false}
+      puzzleDeleted={activePuzzle.deleted ?? false}
       displayNames={displayNames}
       huntId={huntId}
       puzzleId={puzzleId}
     />
   );
-  const deletedModal = activePuzzle?.deleted && (
+  const deletedModal = activePuzzle.deleted && (
     <PuzzleDeletedModal puzzleId={puzzleId} huntId={huntId} replacedBy={activePuzzle.replacedBy} />
   );
 
