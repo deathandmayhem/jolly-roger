@@ -1,5 +1,6 @@
 /* eslint-disable max-len, no-console */
 import { Meteor } from 'meteor/meteor';
+import { Random } from 'meteor/random';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
@@ -52,6 +53,7 @@ import sendChatMessage from '../../methods/sendChatMessage';
 import undestroyPuzzle from '../../methods/undestroyPuzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useCallState, { Action, CallState } from '../hooks/useCallState';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import markdown from '../markdown';
@@ -64,6 +66,11 @@ import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
 import FixedLayout from './styling/FixedLayout';
 import { MonospaceFontFamily, SolvedPuzzleBackgroundColor } from './styling/constants';
+
+// Shows a state dump as an in-page overlay when enabled.
+const DEBUG_SHOW_CALL_STATE = false;
+
+const tabId = Random.id();
 
 const FilteredChatFields: ('_id' | 'puzzle' | 'text' | 'sender' | 'timestamp')[] = ['_id', 'puzzle', 'text', 'sender', 'timestamp'];
 type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[0]>
@@ -536,12 +543,15 @@ interface ChatSectionHandle {
 
 const ChatSection = React.forwardRef(({
   chatDataLoading, puzzleDeleted, displayNames, puzzleId, huntId,
+  callState, callDispatch,
 }: {
   chatDataLoading: boolean;
   puzzleDeleted: boolean;
   displayNames: Record<string, string>;
   puzzleId: string;
   huntId: string;
+  callState: CallState;
+  callDispatch: React.Dispatch<Action>;
 }, forwardedRef: React.Ref<ChatSectionHandle>) => {
   const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
   const scrollToTargetRequestRef = useRef<boolean>(false);
@@ -598,6 +608,8 @@ const ChatSection = React.forwardRef(({
         puzzleId={puzzleId}
         puzzleDeleted={puzzleDeleted}
         onHeightChange={scrollHistoryToTarget}
+        callState={callState}
+        callDispatch={callDispatch}
       />
       <ChatHistoryMemo ref={historyRef} puzzleId={puzzleId} displayNames={displayNames} />
       <ChatInput
@@ -1293,6 +1305,8 @@ const PuzzlePage = React.memo(() => {
   const documentTitle = `${title} :: Jolly Roger`;
   useDocumentTitle(documentTitle);
 
+  const [callState, dispatch] = useCallState({ huntId, puzzleId, tabId });
+
   const onResize = useCallback(() => {
     setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
     trace('PuzzlePage onResize', { hasRef: !!chatSectionRef.current });
@@ -1361,11 +1375,49 @@ const PuzzlePage = React.memo(() => {
       displayNames={displayNames}
       huntId={huntId}
       puzzleId={puzzleId}
+      callState={callState}
+      callDispatch={dispatch}
     />
   );
   const deletedModal = activePuzzle.deleted && (
     <PuzzleDeletedModal puzzleId={puzzleId} huntId={huntId} replacedBy={activePuzzle.replacedBy} />
   );
+
+  let debugPane: React.ReactNode | undefined;
+  if (DEBUG_SHOW_CALL_STATE) {
+    (window as any).globalCallState = callState;
+    const peerStreamsForRendering = new Map();
+    callState.peerStreams.forEach((stream, peerId) => {
+      peerStreamsForRendering.set(peerId, `active: ${stream.active}, tracks: ${stream.getTracks().length}`);
+    });
+    const callStateForRendering = {
+      ...callState,
+      peerStreams: peerStreamsForRendering,
+      audioState: {
+        mediaSource: callState.audioState?.mediaSource ? 'present' : 'absent',
+        audioContext: callState.audioState?.audioContext ? 'present' : 'absent',
+      },
+      device: callState.device ? 'present' : 'absent',
+      transports: {
+        recv: callState.transports.recv ? 'present' : 'absent',
+        send: callState.transports.send ? 'present' : 'absent',
+      },
+      router: callState.router ? 'present' : 'absent',
+    };
+    debugPane = (
+      <pre
+        style={{
+          position: 'absolute',
+          right: '0',
+          bottom: '0',
+          fontSize: '12px',
+          backgroundColor: 'rgba(255,255,255,.7)',
+        }}
+      >
+        {JSON.stringify(callStateForRendering, undefined, 2)}
+      </pre>
+    );
+  }
 
   if (isDesktop) {
     return (
@@ -1387,6 +1439,7 @@ const PuzzlePage = React.memo(() => {
             <PuzzleContent>
               {metadata}
               <PuzzlePageMultiplayerDocument document={document} />
+              {debugPane}
             </PuzzleContent>
           </SplitPanePlus>
         </FixedLayout>

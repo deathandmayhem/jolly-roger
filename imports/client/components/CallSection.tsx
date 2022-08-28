@@ -1,20 +1,14 @@
 /* eslint-disable no-console */
 import { Meteor } from 'meteor/meteor';
-import { useTracker, useSubscribe, useFind } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { _ } from 'meteor/underscore';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons/faMicrophoneSlash';
 import { faVolumeMute } from '@fortawesome/free-solid-svg-icons/faVolumeMute';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Device, types } from 'mediasoup-client';
 import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
+  useCallback, useEffect, useRef, useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -22,20 +16,8 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import styled from 'styled-components';
 import Flags from '../../Flags';
 import MeteorUsers from '../../lib/models/MeteorUsers';
-import ConnectAcks from '../../lib/models/mediasoup/ConnectAcks';
-import Consumers from '../../lib/models/mediasoup/Consumers';
-import Peers from '../../lib/models/mediasoup/Peers';
-import ProducerServers from '../../lib/models/mediasoup/ProducerServers';
-import Routers from '../../lib/models/mediasoup/Routers';
-import Transports from '../../lib/models/mediasoup/Transports';
-import { ConsumerType } from '../../lib/schemas/mediasoup/Consumer';
 import { PeerType } from '../../lib/schemas/mediasoup/Peer';
-import { RouterType } from '../../lib/schemas/mediasoup/Router';
-import { TransportType } from '../../lib/schemas/mediasoup/Transport';
-import mediasoupAckConsumer from '../../methods/mediasoupAckConsumer';
-import mediasoupConnectTransport from '../../methods/mediasoupConnectTransport';
-import mediasoupSetProducerPaused from '../../methods/mediasoupSetProducerPaused';
-import { trace } from '../tracing';
+import { Action, CallState } from '../hooks/useCallState';
 import Avatar from './Avatar';
 import Loading from './Loading';
 import Spectrum from './Spectrum';
@@ -99,114 +81,17 @@ const JoiningCall = ({ details }: { details?: string }) => {
   );
 };
 
-type ProducerCallback = ({ id }: { id: string }) => void;
-
-const ProducerManager = ({
-  paused,
-  track,
-  transport,
-}: {
-  paused: boolean;
-  track: MediaStreamTrack;
-  transport: types.Transport;
-}) => {
-  const [dupedTrack, setDupedTrack] = useState<MediaStreamTrack>();
-  useEffect(() => {
-    setDupedTrack(track.clone());
-  }, [track]);
-
-  const [producer, setProducer] = useState<types.Producer>();
-  useEffect(() => {
-    return () => {
-      producer?.close();
-    };
-  }, [producer]);
-
-  const [producerParams, setProducerParams] = useState<[string, string]>();
-  const producerServerCallback = useRef<ProducerCallback>();
-
-  useEffect(() => {
-    if (producer && paused !== producer.paused) {
-      if (paused) {
-        producer.pause();
-      } else {
-        producer.resume();
-      }
-      mediasoupSetProducerPaused.call({
-        mediasoupProducerId: producer.id,
-        paused,
-      });
-    }
-  }, [paused, producer]);
-
-  const onProduce = useCallback((
-    { kind, rtpParameters, appData }: {
-      kind: string,
-      rtpParameters:
-      types.RtpParameters,
-      appData: any,
-    },
-    callback: ProducerCallback,
-  ) => {
-    if (dupedTrack?.id !== appData.trackId) {
-      return;
-    }
-
-    producerServerCallback.current = callback;
-    setProducerParams([kind, JSON.stringify(rtpParameters)]);
-  }, [dupedTrack?.id]);
-  useEffect(() => {
-    transport.on('produce', onProduce);
-    return () => {
-      transport.off('produce', onProduce);
-    };
-  }, [transport, onProduce]);
-
-  useEffect(() => {
-    const observer = ProducerServers.find({ trackId: dupedTrack?.id }).observeChanges({
-      added: (_id, fields) => {
-        producerServerCallback.current?.({ id: fields.producerId! });
-        producerServerCallback.current = undefined;
-      },
-    });
-    return () => observer.stop();
-  }, [dupedTrack?.id]);
-
-  useEffect(() => {
-    if (!dupedTrack) {
-      return;
-    }
-    void (async () => {
-      console.log('Creating Mediasoup producer', { track: dupedTrack.id });
-      // transport.produce will emit a 'produce' event before it resolves,
-      // triggering onProduce above
-      const newProducer = await transport.produce({
-        track: dupedTrack,
-        zeroRtpOnPause: true,
-        appData: { trackId: dupedTrack.id },
-      });
-      setProducer(newProducer);
-    })();
-  }, [transport, dupedTrack]);
-
-  useSubscribe(producerParams ? 'mediasoup:producer' : undefined, transport.appData._id, dupedTrack?.id, ...(producerParams ?? []));
-
-  return null;
-};
-
-const ProducerBox = ({
+const SelfBox = ({
   muted,
   deafened,
   audioContext,
   stream,
-  transport,
   popperBoundaryRef,
 }: {
   muted: boolean,
   deafened: boolean,
   audioContext: AudioContext,
   stream: MediaStream,
-  transport: types.Transport,
   popperBoundaryRef: React.RefObject<HTMLElement>,
 }) => {
   const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
@@ -218,21 +103,6 @@ const ProducerBox = ({
       discordAccount: user.discordAccount,
     };
   });
-
-  const [tracks, setTracks] = useState<MediaStreamTrack[]>([]);
-  useEffect(() => {
-    // Use Meteor.defer here because the addtrack/removetrack events seem to
-    // sometimes fire _before_ the track has actually been added to the stream's
-    // track set.
-    const captureTracks = () => Meteor.defer(() => setTracks(stream.getTracks()));
-    captureTracks();
-    stream.addEventListener('addtrack', captureTracks);
-    stream.addEventListener('removetrack', captureTracks);
-    return () => {
-      stream.removeEventListener('addtrack', captureTracks);
-      stream.removeEventListener('removetrack', captureTracks);
-    };
-  }, [stream]);
 
   return (
     <OverlayTrigger
@@ -271,75 +141,9 @@ const ProducerBox = ({
             />
           ) : null}
         </div>
-        {tracks.map((track) => (
-          <ProducerManager
-            key={track.id}
-            paused={muted || deafened}
-            track={track}
-            transport={transport}
-          />
-        ))}
       </PeopleItemDiv>
     </OverlayTrigger>
   );
-};
-
-const ConsumerManager = ({
-  setTrack,
-  recvTransport,
-  serverConsumer,
-}: {
-  setTrack: (consumer: string, track?: MediaStreamTrack) => void;
-  recvTransport: types.Transport,
-  serverConsumer: ConsumerType,
-}) => {
-  const [consumer, setConsumer] = useState<types.Consumer>();
-  useEffect(() => {
-    setTrack(serverConsumer._id, consumer?.track);
-    return () => setTrack(serverConsumer._id, undefined);
-  }, [serverConsumer._id, consumer?.track, setTrack]);
-
-  const {
-    _id: meteorConsumerId,
-    consumerId: mediasoupConsumerId,
-    producerId,
-    kind,
-    rtpParameters,
-    paused,
-  } = serverConsumer;
-
-  useEffect(() => {
-    if (!consumer) {
-      return;
-    }
-
-    if (paused) {
-      consumer.pause();
-    } else {
-      consumer.resume();
-    }
-  }, [consumer, paused]);
-
-  useEffect(() => {
-    void (async () => {
-      console.log('Creating new Mediasoup consumer', { mediasoupConsumerId, producerId });
-      const newConsumer = await recvTransport.consume({
-        id: mediasoupConsumerId,
-        producerId,
-        kind,
-        rtpParameters: JSON.parse(rtpParameters),
-      });
-      setConsumer(newConsumer);
-      mediasoupAckConsumer.call({ consumerId: meteorConsumerId });
-    })();
-  }, [meteorConsumerId, mediasoupConsumerId, producerId, kind, rtpParameters, recvTransport]);
-
-  // Use a separate useEffect here since the above will return before the promise resolves
-  useEffect(() => {
-    return () => consumer?.close();
-  }, [consumer]);
-
-  return null;
 };
 
 const ChatterTooltip = styled(Tooltip)`
@@ -355,19 +159,18 @@ const ChatterTooltip = styled(Tooltip)`
 const PeerBox = ({
   audioContext,
   selfDeafened,
-  recvTransport,
   peer,
-  consumers,
   popperBoundaryRef,
+  stream,
 }: {
   audioContext: AudioContext,
   selfDeafened: boolean,
-  recvTransport: types.Transport,
   peer: PeerType,
-  consumers: ConsumerType[],
   popperBoundaryRef: React.RefObject<HTMLElement>,
+  stream: MediaStream | undefined,
 }) => {
   const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
+  const audioRef = React.createRef<HTMLAudioElement>();
   const { userId, name, discordAccount } = useTracker(() => {
     const user = MeteorUsers.findOne(peer.createdBy);
     return {
@@ -376,34 +179,16 @@ const PeerBox = ({
       discordAccount: user?.discordAccount,
     };
   }, [peer.createdBy]);
-
-  const { current: stream } = useRef(new MediaStream());
-
-  const [tracks, setTracks] = useState<Map<string, MediaStreamTrack>>(new Map());
-  const setTrack = useCallback((consumer: string, track?: MediaStreamTrack) => {
-    setTracks((prevTracks) => {
-      const prevTrack = prevTracks.get(consumer);
-      const newTracks = new Map(prevTracks);
-
-      if (prevTrack) {
-        stream.removeTrack(prevTrack);
-        newTracks.delete(consumer);
-      }
-      if (track) {
-        stream.addTrack(track);
-        newTracks.set(consumer, track);
-      }
-
-      return newTracks;
-    });
-  }, [stream]);
-
-  const audioRef = useRef<HTMLAudioElement>(null);
   useEffect(() => {
-    if (audioRef.current && tracks.size > 0) {
-      audioRef.current.srcObject = stream;
+    if (audioRef.current) {
+      if (stream) {
+        // eslint-disable-next-line no-param-reassign
+        audioRef.current.srcObject = stream;
+      } else {
+        audioRef.current.srcObject = null;
+      }
     }
-  }, [tracks, stream]);
+  }, [stream, audioRef]);
 
   const { muted, deafened } = peer;
 
@@ -437,7 +222,7 @@ const PeerBox = ({
         <div>
           {muted && <MutedIcon><FontAwesomeIcon icon={faMicrophoneSlash} /></MutedIcon>}
           {deafened && <DeafenedIcon><FontAwesomeIcon icon={faVolumeMute} /></DeafenedIcon>}
-          {!spectraDisabled && !muted && (tracks.size > 0) ? (
+          {!spectraDisabled && !muted && stream && stream.getTracks().length > 0 ? (
             <Spectrum
               width={40}
               height={40}
@@ -446,22 +231,17 @@ const PeerBox = ({
             />
           ) : null}
         </div>
-        <audio ref={audioRef} autoPlay playsInline muted={selfDeafened} />
-        {consumers.map((consumer) => (
-          <ConsumerManager
-            key={consumer._id}
-            setTrack={setTrack}
-            recvTransport={recvTransport}
-            serverConsumer={consumer}
-          />
-        ))}
+        <audio
+          autoPlay
+          muted={selfDeafened}
+          ref={audioRef}
+        />
       </PeopleItemDiv>
     </OverlayTrigger>
   );
 };
 
 const Callers = ({
-  puzzleId,
   muted,
   deafened,
   audioContext,
@@ -469,10 +249,8 @@ const Callers = ({
   callersExpanded,
   onToggleCallersExpanded,
   otherPeers,
-  sendTransport,
-  recvTransport,
+  peerStreams,
 }: {
-  puzzleId: string,
   muted: boolean;
   deafened: boolean;
   audioContext: AudioContext;
@@ -480,30 +258,22 @@ const Callers = ({
   callersExpanded: boolean;
   onToggleCallersExpanded(): void;
   otherPeers: PeerType[];
-  sendTransport: types.Transport;
-  recvTransport: types.Transport;
+  peerStreams: Map<string, MediaStream>;
 }) => {
   const callersHeaderIcon = callersExpanded ? faCaretDown : faCaretRight;
   const callerCount = otherPeers.length + 1; // +1 for self
   const chatterRef = useRef<HTMLDivElement>(null);
 
-  const consumers = useFind(
-    () => Consumers.find({ call: puzzleId }, { sort: { _id: 1 } }),
-    [puzzleId]
-  );
-  const groupedConsumers = useMemo(() => {
-    return _.groupBy(consumers, (consumer) => consumer.producerPeer);
-  }, [consumers]);
   const peerBoxes = otherPeers.map((peer) => {
+    const stream = peerStreams.get(peer._id);
     return (
       <PeerBox
         key={peer._id}
         selfDeafened={deafened}
         audioContext={audioContext}
-        recvTransport={recvTransport}
         peer={peer}
-        consumers={groupedConsumers[peer._id] ?? []}
         popperBoundaryRef={chatterRef}
+        stream={stream}
       />
     );
   });
@@ -515,12 +285,11 @@ const Callers = ({
         {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
       </ChatterSubsectionHeader>
       <PeopleListDiv collapsed={!callersExpanded}>
-        <ProducerBox
+        <SelfBox
           muted={muted}
           deafened={deafened}
           audioContext={audioContext}
           stream={localStream}
-          transport={sendTransport}
           popperBoundaryRef={chatterRef}
         />
         {peerBoxes}
@@ -529,330 +298,47 @@ const Callers = ({
   );
 };
 
-const useTransport = (
-  device: types.Device,
-  transportParams: TransportType,
-) => {
-  const [transport, setTransport] = useState<types.Transport>();
-  const connectRef = useRef<() => void>();
-
-  const {
-    _id,
-    direction,
-    transportId,
-    iceParameters,
-    iceCandidates,
-    dtlsParameters: serverDtlsParameters,
-  } = transportParams;
-
-  useEffect(() => {
-    console.log('Creating new Mediasoup transport', { transportId, direction });
-    const method = direction === 'send' ? 'createSendTransport' : 'createRecvTransport';
-    const newTransport = device[method]({
-      id: transportId,
-      iceParameters: JSON.parse(iceParameters),
-      iceCandidates: JSON.parse(iceCandidates),
-      dtlsParameters: JSON.parse(serverDtlsParameters),
-      appData: {
-        _id,
-      },
-    });
-    newTransport.on('connect', ({ dtlsParameters: clientDtlsParameters }, callback) => {
-      connectRef.current = callback;
-      // No need to set a callback here, since the ConnectAck record acts as a
-      // callback
-      mediasoupConnectTransport.call({
-        transportId: _id,
-        dtlsParameters: JSON.stringify(clientDtlsParameters),
-      });
-    });
-    setTransport(newTransport);
-    return () => {
-      newTransport.close();
-    };
-  }, [device, _id, direction, transportId, iceParameters, iceCandidates, serverDtlsParameters]);
-
-  return [transport, connectRef] as const;
-};
-
-const CallTransportConnector = ({
-  puzzleId,
+const CallSection = ({
   muted,
   deafened,
   audioContext,
   localStream,
   callersExpanded,
   onToggleCallersExpanded,
-  selfPeer,
-  otherPeers,
-  device,
-  sendServerParams,
-  recvServerParams,
-  onHeightChange,
+  callState,
+  callDispatch,
 }: {
-  puzzleId: string,
   muted: boolean;
   deafened: boolean;
   audioContext: AudioContext;
   localStream: MediaStream;
   callersExpanded: boolean;
   onToggleCallersExpanded(): void;
-  selfPeer: PeerType;
-  otherPeers: PeerType[];
-  device: types.Device;
-  sendServerParams: TransportType;
-  recvServerParams: TransportType;
-  onHeightChange(): void;
+  callState: CallState;
+  callDispatch: React.Dispatch<Action>;
 }) => {
-  // Because our connection might be to a different server than the mediasoup
-  // router is hosted on, the Meteor transport_connect call will return before
-  // the connection parameters have been passed to the server-side transport.
-  // Therefore, stash the acknowledgement callback on a ref and call it once the
-  // corresponding ConnectAck db record is created.
-  const [sendTransport, sendTransportConnectCallback] = useTransport(device, sendServerParams);
-  const [recvTransport, recvTransportConnectCallback] = useTransport(device, recvServerParams);
-  useEffect(() => {
-    const observer = ConnectAcks.find({ peer: selfPeer._id }).observeChanges({
-      added: (_id, fields) => {
-        if (fields.direction === 'send') {
-          sendTransportConnectCallback.current?.();
-          sendTransportConnectCallback.current = undefined;
-        } else if (fields.direction === 'recv') {
-          recvTransportConnectCallback.current?.();
-          recvTransportConnectCallback.current = undefined;
-        }
-      },
-    });
-    return () => observer.stop();
-  }, [selfPeer._id, sendTransportConnectCallback, recvTransportConnectCallback]);
+  const onToggleMute = useCallback(() => {
+    callDispatch({ type: 'toggle-mute' });
+  }, [callDispatch]);
+  const onToggleDeafen = useCallback(() => {
+    callDispatch({ type: 'toggle-deafen' });
+  }, [callDispatch]);
+  const onLeaveCall = useCallback(() => {
+    callDispatch({ type: 'leave-call' });
+  }, [callDispatch]);
 
-  const notReadyYet = !sendTransport || !recvTransport;
-  useLayoutEffect(() => {
-    // Notify any time we might change the height of what we render
-    trace('CallTransportConnector useLayoutEffect', {
-      notReadyYet,
-      callersExpanded,
-      otherPeers: otherPeers.length,
-    });
-    onHeightChange();
-  }, [onHeightChange, notReadyYet, callersExpanded, otherPeers.length]);
-
-  trace('CallTransportConnector render', {
-    hasSend: !!sendTransport,
-    hasRecv: !!recvTransport,
-    otherPeers: otherPeers.length,
-  });
-
-  if (!sendTransport || !recvTransport) {
-    // No JoiningCall warning here - if we have params coming in we're
-    // guaranteed to create the local transports
-    return null;
+  if (!callState.device) {
+    return <JoiningCall details="Missing device" />;
   }
 
-  return (
-    <Callers
-      puzzleId={puzzleId}
-      muted={muted}
-      deafened={deafened}
-      audioContext={audioContext}
-      localStream={localStream}
-      callersExpanded={callersExpanded}
-      onToggleCallersExpanded={onToggleCallersExpanded}
-      otherPeers={otherPeers}
-      sendTransport={sendTransport}
-      recvTransport={recvTransport}
-    />
-  );
-};
-
-const CallTransportCreator = ({
-  puzzleId,
-  muted,
-  deafened,
-  audioContext,
-  localStream,
-  callersExpanded,
-  onToggleCallersExpanded,
-  selfPeer,
-  otherPeers,
-  router,
-  onHeightChange,
-}: {
-  puzzleId: string,
-  muted: boolean;
-  deafened: boolean;
-  audioContext: AudioContext;
-  localStream: MediaStream;
-  callersExpanded: boolean;
-  onToggleCallersExpanded(): void;
-  selfPeer: PeerType;
-  otherPeers: PeerType[];
-  router: RouterType;
-  onHeightChange(): void;
-}) => {
-  const [device, setDevice] = useState<types.Device>();
-  useEffect(() => {
-    void (async () => {
-      console.log('Creating new Mediasoup device');
-      const newDevice = new Device();
-      await newDevice.load({
-        routerRtpCapabilities: JSON.parse(router.rtpCapabilities),
-      });
-      setDevice(newDevice);
-    })();
-  }, [router.rtpCapabilities]);
-
-  useSubscribe(device ? 'mediasoup:transports' : undefined, selfPeer._id, JSON.stringify(device?.rtpCapabilities));
-  const { sendServerParams, recvServerParams } = useTracker(() => {
-    return {
-      // Note that these queries don't pin to the specific TransportRequest
-      // created by the subscription above, so for some reason we delete and
-      // recreate that subscription, we might transiently see the old Transports
-      // instead of the current ones. As the old subscription is torn down, the
-      // old Transports will be deleted as well, so this should converge on its
-      // own.
-      sendServerParams: Transports.findOne({ peer: selfPeer._id, direction: 'send' }),
-      recvServerParams: Transports.findOne({ peer: selfPeer._id, direction: 'recv' }),
-    };
-  }, [selfPeer._id]);
-
-  const hasDevice = !!device;
-  useLayoutEffect(() => {
-    trace('CallSection useLayoutEffect', {
-      hasDevice,
-      sendId: sendServerParams?._id,
-      recvId: recvServerParams?._id,
-    });
-    onHeightChange();
-  }, [onHeightChange, hasDevice, sendServerParams?._id, recvServerParams?._id]);
-
-  trace('CallSection render', {
-    hasDevice,
-    sendServerParams,
-    recvServerParams,
-  });
-
-  if (!device) {
-    return null;
-  }
-
-  if (!sendServerParams || !recvServerParams) {
-    return <JoiningCall details="Missing transport parameters" />;
-  }
-
-  return (
-    <CallTransportConnector
-      puzzleId={puzzleId}
-      muted={muted}
-      deafened={deafened}
-      audioContext={audioContext}
-      localStream={localStream}
-      callersExpanded={callersExpanded}
-      onToggleCallersExpanded={onToggleCallersExpanded}
-      selfPeer={selfPeer}
-      otherPeers={otherPeers}
-      device={device}
-      sendServerParams={sendServerParams}
-      recvServerParams={recvServerParams}
-      onHeightChange={onHeightChange}
-    />
-  );
-};
-
-const CallJoiner = ({
-  huntId,
-  puzzleId,
-  tabId,
-  muted,
-  deafened,
-  audioContext,
-  localStream,
-  callersExpanded,
-  onToggleCallersExpanded,
-  onHeightChange,
-}: {
-  huntId: string;
-  puzzleId: string;
-  tabId: string;
-  muted: boolean;
-  deafened: boolean;
-  audioContext: AudioContext;
-  localStream: MediaStream;
-  callersExpanded: boolean;
-  onToggleCallersExpanded(): void;
-  onHeightChange(): void;
-}) => {
-  useSubscribe('mediasoup:join', huntId, puzzleId, tabId);
-
-  const userId = useTracker(() => Meteor.userId(), []);
-  const peers = useFind(() => Peers.find({ call: puzzleId }));
-  const selfPeer = useMemo(() => {
-    return peers.find((peer) => peer.createdBy === userId && peer.tab === tabId);
-  }, [peers, tabId, userId]);
-  const otherPeers = useMemo(
-    () => peers.filter((p) => p._id !== selfPeer?._id),
-    [peers, selfPeer?._id]
-  );
-  const router = useTracker(() => Routers.findOne({ call: puzzleId }), [puzzleId]);
-
-  useLayoutEffect(() => {
-    // We might change height when showing the JoiningCall message
-    onHeightChange();
-  }, [onHeightChange, selfPeer, router]);
-
-  if (!selfPeer) {
+  if (!callState.selfPeer) {
     return <JoiningCall details="Missing peer record for self" />;
   }
-  if (!router) {
+
+  if (!callState.router) {
     return <JoiningCall details="Missing router" />;
   }
 
-  return (
-    <CallTransportCreator
-      puzzleId={puzzleId}
-      muted={muted}
-      deafened={deafened}
-      audioContext={audioContext}
-      localStream={localStream}
-      callersExpanded={callersExpanded}
-      onToggleCallersExpanded={onToggleCallersExpanded}
-      selfPeer={selfPeer}
-      otherPeers={otherPeers}
-      router={router}
-      onHeightChange={onHeightChange}
-    />
-  );
-};
-
-const CallSection = ({
-  huntId,
-  puzzleId,
-  tabId,
-  muted,
-  deafened,
-  onToggleMute,
-  onToggleDeafen,
-  onLeaveCall,
-  audioContext,
-  localStream,
-  callersExpanded,
-  onToggleCallersExpanded,
-  onHeightChange,
-}: {
-  huntId: string;
-  puzzleId: string;
-  tabId: string;
-  muted: boolean;
-  deafened: boolean;
-  onToggleMute(): void;
-  onToggleDeafen(): void;
-  onLeaveCall(): void;
-  audioContext: AudioContext;
-  localStream: MediaStream;
-  callersExpanded: boolean;
-  onToggleCallersExpanded(): void;
-  onHeightChange(): void;
-}) => {
   return (
     <>
       <AVActions>
@@ -872,17 +358,15 @@ const CallSection = ({
         </AVButton>
         <AVButton variant="danger" size="sm" onClick={onLeaveCall}>Leave call</AVButton>
       </AVActions>
-      <CallJoiner
-        huntId={huntId}
-        puzzleId={puzzleId}
-        tabId={tabId}
+      <Callers
         muted={muted}
         deafened={deafened}
         audioContext={audioContext}
         localStream={localStream}
         callersExpanded={callersExpanded}
         onToggleCallersExpanded={onToggleCallersExpanded}
-        onHeightChange={onHeightChange}
+        otherPeers={callState.otherPeers}
+        peerStreams={callState.peerStreams}
       />
     </>
   );
