@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Random } from 'meteor/random';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
@@ -17,8 +16,7 @@ import CallHistories from '../../lib/models/mediasoup/CallHistories';
 import Peers from '../../lib/models/mediasoup/Peers';
 import relativeTimeFormat from '../../lib/relativeTimeFormat';
 import { DiscordAccountType } from '../../lib/schemas/DiscordAccount';
-import { PeerType } from '../../lib/schemas/mediasoup/Peer';
-import mediasoupSetPeerState from '../../methods/mediasoupSetPeerState';
+import { Action, CallJoinState, CallState } from '../hooks/useCallState';
 import useSubscribeAvatars from '../hooks/useSubscribeAvatars';
 import { Subscribers } from '../subscribers';
 import { trace } from '../tracing';
@@ -30,8 +28,6 @@ import {
   PeopleListDiv,
 } from './styling/PeopleComponents';
 import { PuzzlePagePadding } from './styling/constants';
-
-const tabId = Random.id();
 
 interface ViewerSubscriber {
   user: string;
@@ -83,43 +79,6 @@ const PeopleListHeader = styled(ChatterSubsectionHeader)`
   text-indent: -1rem;
 `;
 
-enum CallState {
-  CHAT_ONLY = 'chatonly',
-  REQUESTING_STREAM = 'requestingstream',
-  STREAM_ERROR = 'streamerror',
-  IN_CALL = 'call',
-}
-
-interface AudioControls {
-  // A note on mute and deafen: being deafened implies you are also not
-  // broadcasting audio to other parties, because that would allow for
-  // situations where you are being disruptive to others but don't know it.
-  // This state value for muted is "explicitly muted" rather than "implicitly
-  // muted by deafen".  You are effectively muted (and will appear muted to
-  // other) if you are muted or deafened.  The `muted` boolean field here will
-  // only track if you are explicitly muted, but in all props for all children,
-  // the muted property represents "effectively muted".  (We track them
-  // separately because if you mute before deafening, then undeafen should
-  // leave you muted, and we'd lose that bit otherwise.)
-  muted: boolean;
-  deafened: boolean;
-}
-
-interface ChatAudioState {
-  audioContext: AudioContext | undefined;
-  mediaSource: MediaStream | undefined;
-}
-
-// Helper to tear down tracks of streams
-function stopTracks(stream: MediaStream | null | undefined) {
-  if (stream) {
-    const tracks = stream.getTracks();
-    tracks.forEach((track) => {
-      track.stop();
-    });
-  }
-}
-
 const ChatterSection = styled.section`
   flex: 0;
   background-color: #ebd0e3;
@@ -128,42 +87,28 @@ const ChatterSection = styled.section`
   padding: ${PuzzlePagePadding};
 `;
 
-function participantState(explicitlyMuted: boolean, deafened: boolean) {
-  if (deafened) {
-    return 'deafened';
-  } else if (explicitlyMuted) {
-    return 'muted';
-  } else {
-    return 'active';
-  }
-}
-
 // ChatPeople is the component that deals with all user presence and
 // WebRTC call subscriptions, state, and visualization.
 const ChatPeople = ({
-  huntId, puzzleId, puzzleDeleted, onHeightChange,
+  huntId, puzzleId, puzzleDeleted, onHeightChange, callState, callDispatch,
 }: {
   huntId: string;
   puzzleId: string;
   puzzleDeleted: boolean;
   onHeightChange: () => void;
+  callState: CallState;
+  callDispatch: React.Dispatch<Action>;
 }) => {
-  const [callState, setCallState] = useState<CallState>(CallState.CHAT_ONLY);
   const [error, setError] = useState<string>('');
   const chatterRef = useRef<HTMLDivElement>(null);
 
-  const [localAudioControls, setLocalAudioControls] = useState<AudioControls>({
-    muted: false,
-    deafened: false,
-  });
+  const {
+    audioControls,
+    audioState,
+  } = callState;
 
   const [callersExpanded, setCallersExpanded] = useState<boolean>(true);
   const [viewersExpanded, setViewersExpanded] = useState<boolean>(true);
-
-  const [audioState, setAudioState] = useState<ChatAudioState>({
-    audioContext: undefined,
-    mediaSource: undefined,
-  });
 
   const subscriberTopic = `puzzle:${puzzleId}`;
   const subscribersLoading = useSubscribe('subscribers.fetch', subscriberTopic);
@@ -204,7 +149,6 @@ const ChatPeople = ({
     unknown,
     viewers,
     rtcViewers,
-    selfPeer,
   } = useTracker(() => {
     if (loading) {
       return {
@@ -225,12 +169,7 @@ const ChatPeople = ({
       hunt: huntId,
       call: puzzleId,
     }).fetch();
-    let self: PeerType | undefined;
     rtcParticipants.forEach((p) => {
-      if (p.createdBy === Meteor.userId() && p.tab === tabId) {
-        self = p;
-      }
-
       const user = MeteorUsers.findOne(p.createdBy);
       if (!user || !user.displayName) {
         unknownCount += 1;
@@ -272,60 +211,8 @@ const ChatPeople = ({
       unknown: unknownCount,
       viewers: viewersAcc,
       rtcViewers: rtcViewersAcc,
-      selfPeer: self,
     };
   }, [loading, subscriberTopic, huntId, puzzleId]);
-
-  const updatePeerState = useCallback((muted: boolean, deafened: boolean) => {
-    const effectiveState = participantState(muted, deafened);
-    if (selfPeer) {
-      mediasoupSetPeerState.call({ peerId: selfPeer._id, state: effectiveState });
-    }
-  }, [selfPeer]);
-
-  const toggleMuted = useCallback(() => {
-    setLocalAudioControls((prevState) => {
-      const nextState = {
-        muted: !(prevState.deafened || prevState.muted),
-        deafened: false,
-      };
-
-      // Pausing or unpausing the consumer in mediasoup should be sufficient to
-      // stop transmitting audio, but just to be sure, we disable the capture
-      // stream here as well.
-      audioState.mediaSource?.getTracks().forEach((t) => {
-        // eslint-disable-next-line no-param-reassign
-        t.enabled = !nextState.muted;
-      });
-
-      // Tell the server about our new state
-      updatePeerState(nextState.muted, nextState.deafened);
-
-      return nextState;
-    });
-  }, [updatePeerState, audioState.mediaSource]);
-
-  const toggleDeafened = useCallback(() => {
-    setLocalAudioControls((prevState) => {
-      const nextState = {
-        muted: prevState.muted,
-        deafened: !prevState.deafened,
-      };
-
-      // Pausing or unpausing the consumer in mediasoup should be sufficient to
-      // stop transmitting audio, but just to be sure, we disable the capture
-      // stream here as well.
-      audioState.mediaSource?.getTracks().forEach((t) => {
-        // eslint-disable-next-line no-param-reassign
-        t.enabled = !nextState.muted;
-      });
-
-      // Tell the server about our new state
-      updatePeerState(nextState.muted, nextState.deafened);
-
-      return nextState;
-    });
-  }, [updatePeerState, audioState.mediaSource]);
 
   const toggleCallersExpanded = useCallback(() => {
     setCallersExpanded((prevState) => {
@@ -339,12 +226,12 @@ const ChatPeople = ({
     });
   }, []);
 
-  const { muted, deafened } = localAudioControls;
+  const { muted, deafened } = audioControls;
 
   const joinCall = useCallback(async () => {
     trace('ChatPeople joinCall');
     if (navigator.mediaDevices) {
-      setCallState(CallState.REQUESTING_STREAM);
+      callDispatch({ type: 'request-capture' });
       const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ||
         undefined;
       // Get the user media stream.
@@ -363,7 +250,7 @@ const ChatPeople = ({
         mediaSource = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
       } catch (e) {
         setError(`Couldn't get local microphone: ${(e as Error).message}`);
-        setCallState(CallState.STREAM_ERROR);
+        callDispatch({ type: 'capture-error', error: e as Error });
         return;
       }
 
@@ -371,39 +258,19 @@ const ChatPeople = ({
         (window as {webkitAudioContext?: AudioContext}).webkitAudioContext;
       const audioContext = new AudioContext();
 
-      setAudioState({
-        audioContext,
-        mediaSource,
+      callDispatch({
+        type: 'join-call',
+        audioState: {
+          mediaSource,
+          audioContext,
+        },
       });
-      setCallState(CallState.IN_CALL);
     } else {
-      setError('Couldn\'t get local microphone: browser denies access on non-HTTPS origins');
-      setCallState(CallState.STREAM_ERROR);
+      const msg = 'Couldn\'t get local microphone: browser denies access on non-HTTPS origins';
+      setError(msg);
+      callDispatch({ type: 'capture-error', error: new Error(msg) });
     }
-  }, []);
-
-  const leaveCall = useCallback(() => {
-    trace('ChatPeople leaveCall');
-    stopTracks(audioState.mediaSource);
-    setCallState(CallState.CHAT_ONLY);
-    setLocalAudioControls({
-      muted: false,
-      deafened: false,
-    });
-    setAudioState({
-      audioContext: undefined,
-      mediaSource: undefined,
-    });
-  }, [audioState]);
-
-  useEffect(() => {
-    // When unmounting, stop any tracks that might be running
-    return () => {
-      trace('ChatPeople stop tracks on unmount');
-      // Stop any tracks that might be running.
-      stopTracks(audioState.mediaSource);
-    };
-  }, [audioState.mediaSource]);
+  }, [callDispatch]);
 
   useLayoutEffect(() => {
     trace('ChatPeople useLayoutEffect', {
@@ -441,9 +308,9 @@ const ChatPeople = ({
   // TODO: find osme way to factor this out other than "immediately invoked fat-arrow function"
   const callersSubsection = (() => {
     const callersHeaderIcon = callersExpanded ? faCaretDown : faCaretRight;
-    switch (callState) {
-      case CallState.CHAT_ONLY:
-      case CallState.REQUESTING_STREAM: {
+    switch (callState.callState) {
+      case CallJoinState.CHAT_ONLY:
+      case CallJoinState.REQUESTING_STREAM: {
         const joinLabel = rtcViewers.length > 0 ? 'Join audio call' : 'Start audio call';
         return (
           <>
@@ -469,25 +336,20 @@ const ChatPeople = ({
           </>
         );
       }
-      case CallState.IN_CALL:
+      case CallJoinState.IN_CALL:
         return (
           <CallSection
-            huntId={huntId}
-            puzzleId={puzzleId}
-            tabId={tabId}
-            onLeaveCall={leaveCall}
-            onToggleMute={toggleMuted}
-            onToggleDeafen={toggleDeafened}
             muted={muted || deafened}
             deafened={deafened}
-            audioContext={audioState.audioContext!}
-            localStream={audioState.mediaSource!}
+            audioContext={audioState!.audioContext!}
+            localStream={audioState!.mediaSource!}
             callersExpanded={callersExpanded}
             onToggleCallersExpanded={toggleCallersExpanded}
-            onHeightChange={onHeightChange}
+            callState={callState}
+            callDispatch={callDispatch}
           />
         );
-      case CallState.STREAM_ERROR:
+      case CallJoinState.STREAM_ERROR:
         return (
           <div>
             {`ERROR GETTING MIC: ${error}`}

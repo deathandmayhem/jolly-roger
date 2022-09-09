@@ -262,7 +262,6 @@ const AudioConfig = () => {
       <audio
         ref={audioRef}
         autoPlay
-        playsInline
         muted={!loopback}
       />
     </section>
