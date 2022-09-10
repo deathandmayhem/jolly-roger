@@ -23,10 +23,9 @@ import { faVolumeUp } from '@fortawesome/free-solid-svg-icons/faVolumeUp';
 import { faWifi } from '@fortawesome/free-solid-svg-icons/faWifi';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
-  useContext, useEffect, useMemo, useState,
+  useCallback, useEffect, useMemo, useState,
 } from 'react';
 import Accordion from 'react-bootstrap/Accordion';
-import AccordionContext from 'react-bootstrap/AccordionContext';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
@@ -76,17 +75,39 @@ const ClipButton = ({ text }: { text: string }) => (
   </>
 );
 
+// button elements are not permitted as children of button elements, and the
+// whole AccordionHeader is a button, so we can't have the single-click copy
+// button inside the accordion header.  Instead, for the IDs we want to display
+// and make copyable inside the AccordionHeader, do the self-selecting-input
+// trick to make selection easier.
+const CopyableInput = ({ value }: { value: string }) => {
+  const ref = React.useRef<HTMLInputElement>(null);
+  const onClick = useCallback((e) => {
+    if (ref.current) {
+      ref.current.select();
+      e.preventDefault();
+      // We want to prevent the click from bubbling up to any of the
+      // AccordionHeader <button> elements above us, lest the accordion
+      // toggle as the user attempts to select this input.
+      e.stopPropagation();
+    }
+  }, []);
+
+  // Auto-sizing assuming a particular fixed-width typeface
+  const width = `${(value.length) * 8.4 + 8}px`;
+  return (
+    <code>
+      <input style={{ color: 'red', width }} ref={ref} readOnly value={value} onClick={onClick} />
+    </code>
+  );
+};
+
 const CallDisplay = ({ call }: { call: string }) => {
   const puzzle = useTracker(() => Puzzles.findOne(call), [call]);
 
   if (!puzzle) {
     return (
-      <>
-        <ClipButton text={call} />
-        <code>
-          {call}
-        </code>
-      </>
+      <CopyableInput value={call} />
     );
   }
 
@@ -98,8 +119,7 @@ const CallDisplay = ({ call }: { call: string }) => {
       {' '}
       {puzzle.title}
       {' ('}
-      <ClipButton text={call} />
-      <code>{call}</code>
+      <CopyableInput value={call} />
       )
     </>
   );
@@ -170,17 +190,7 @@ const JSONDisplay = ({ json }: { json: string }) => {
   );
 };
 
-const StyledToggleButton = styled(FontAwesomeIcon)`
-  && {
-    width: 1.25rem;
-    margin-right: 0.25rem;
-  }
-`;
-
 const Producer = ({ producer }: { producer: ProducerClientType }) => {
-  const currentProducer = useContext(AccordionContext);
-  const active = currentProducer === producer._id;
-
   const producerServer = useTracker(() => (
     ProducerServers.findOne({ producerClient: producer._id })
   ), [producer._id]);
@@ -198,7 +208,6 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
   return (
     <Accordion.Item eventKey={producer._id}>
       <Accordion.Header>
-        <StyledToggleButton id={`producer-${producer._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -220,8 +229,7 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
           {statusIcon}
         </OverlayTrigger>
         {' ('}
-        <ClipButton text={producer._id} />
-        <code>{producer._id}</code>
+        <CopyableInput value={producer._id} />
         )
       </Accordion.Header>
 
@@ -269,9 +277,6 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
 };
 
 const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
-  const currentConsumer = useContext(AccordionContext);
-  const active = currentConsumer === consumer._id;
-
   const consumerAcked = useTracker(() => (
     !!ConsumerAcks.findOne({ consumer: consumer._id })
   ), [consumer._id]);
@@ -293,7 +298,6 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
   return (
     <Accordion.Item eventKey={consumer._id}>
       <Accordion.Header>
-        <StyledToggleButton id={`consumer-${consumer._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -315,14 +319,12 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
           {statusIcon}
         </OverlayTrigger>
         {' ('}
-        <ClipButton text={consumer._id} />
-        <code>{consumer._id}</code>
+        <CopyableInput value={consumer._id} />
         {') '}
         <FontAwesomeIcon icon={faArrowCircleLeft} fixedWidth />
         {producerPeer && <UserDisplay userId={producerPeer?.createdBy} />}
         {' ('}
-        <ClipButton text={consumer.producerPeer} />
-        <code>{consumer.producerPeer}</code>
+        <CopyableInput value={consumer.producerPeer} />
         )
       </Accordion.Header>
 
@@ -356,9 +358,6 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
 };
 
 const Transport = ({ transport }: { transport: TransportType }) => {
-  const currentTransport = useContext(AccordionContext);
-  const active = currentTransport === transport._id;
-
   const connectionParams = useTracker(() => (
     ConnectRequests.findOne({ transport: transport._id })
   ), [transport._id]);
@@ -405,7 +404,6 @@ const Transport = ({ transport }: { transport: TransportType }) => {
   return (
     <Accordion.Item eventKey={transport._id}>
       <Accordion.Header>
-        <StyledToggleButton id={`transport-${transport._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -427,8 +425,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
           <FontAwesomeIcon icon={directionIcon} fixedWidth />
         </OverlayTrigger>
         {' ('}
-        <ClipButton text={transport._id} />
-        <code>{transport._id}</code>
+        <CopyableInput value={transport._id} />
         )
       </Accordion.Header>
       <Accordion.Body>
@@ -525,9 +522,6 @@ const Transport = ({ transport }: { transport: TransportType }) => {
 };
 
 const Peer = ({ peer }: { peer: PeerType }) => {
-  const currentPeer = useContext(AccordionContext);
-  const active = currentPeer === peer._id;
-
   const transportRequests = useFind(() => (
     TransportRequests.find({ peer: peer._id }, { sort: { createdAt: 1 } })
   ), [peer._id]);
@@ -544,7 +538,6 @@ const Peer = ({ peer }: { peer: PeerType }) => {
   return (
     <Accordion.Item eventKey={peer._id}>
       <Accordion.Header>
-        <StyledToggleButton id={`peer-${peer._id}-collapse`} icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
@@ -567,8 +560,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
         </OverlayTrigger>
         <UserDisplay userId={peer.createdBy} />
         {' ('}
-        <ClipButton text={peer._id} />
-        <code>{peer._id}</code>
+        <CopyableInput value={peer._id} />
         )
       </Accordion.Header>
       <Accordion.Body>
@@ -672,8 +664,6 @@ const RouterDetails = ({ router }: { router: RouterType }) => {
 };
 
 const Room = ({ room }: { room: RoomType }) => {
-  const currentRoom = useContext(AccordionContext);
-  const active = currentRoom === room._id;
   const router = useTracker(() => Routers.findOne({ call: room.call }), [room.call]);
   const lastActivity = useTracker(() => (
     CallHistories.findOne({ call: room.call })?.lastActivity
@@ -699,7 +689,6 @@ const Room = ({ room }: { room: RoomType }) => {
   return (
     <Accordion.Item eventKey={room._id}>
       <Accordion.Header>
-        <StyledToggleButton icon={active ? faCaretDown : faCaretRight} />
         <OverlayTrigger
           placement="top"
           overlay={(
