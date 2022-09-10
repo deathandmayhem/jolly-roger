@@ -238,9 +238,11 @@ const GuessMessage = React.memo(({
         <StyledNotificationActionBar>
           <StyledNotificationActionItem>
             <OverlayTrigger placement="top" overlay={copyTooltip}>
-              <CopyToClipboard text={guess.guess}>
-                <button type="button" aria-label="Copy"><FontAwesomeIcon icon={faCopy} /></button>
-              </CopyToClipboard>
+              {({ ref, ...triggerHandler }) => (
+                <CopyToClipboard text={guess.guess} {...triggerHandler}>
+                  <button ref={ref} type="button" aria-label="Copy"><FontAwesomeIcon icon={faCopy} /></button>
+                </CopyToClipboard>
+              )}
             </OverlayTrigger>
           </StyledNotificationActionItem>
           <StyledNotificationActionItem>
