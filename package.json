@@ -24,7 +24,7 @@
     "@popperjs/core": "^2.11.6",
     "bcrypt": "^5.0.1",
     "bootstrap": "^5.2.0",
-    "classnames": "^2.3.1",
+    "classnames": "^2.3.2",
     "discord.js": "^12.5.3",
     "dompurify": "^2.4.0",
     "element-resize-detector": "^1.2.4",
