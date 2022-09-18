@@ -4,14 +4,18 @@ set -e
 
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 
-# We only have one proxy
-export HTTP_FORWARDED_COUNT=1
+if [ -z "${HTTP_FORWARDED_COUNT+set}" ]; then
+    # We generally expect to have one proxy
+    export HTTP_FORWARDED_COUNT=1
+fi
 
-# If we have less than 500M of memory, we don't have enough to run more than 1
-# worker
-MEMORY_KB="$(awk '$1=="MemTotal:" {print $2}' /proc/meminfo)"
-if [ "$MEMORY_KB" -gt 512000 ]; then
-    export CLUSTER_WORKERS_COUNT=auto
+if [ -z "${CLUSTER_WORKERS_COUNT+set}" ]; then
+    # If we have less than 500M of memory, we don't have enough to run more
+    # than 1 worker
+    MEMORY_KB="$(awk '$1=="MemTotal:" {print $2}' /proc/meminfo)"
+    if [ "$MEMORY_KB" -gt 512000 ]; then
+        export CLUSTER_WORKERS_COUNT=auto
+    fi
 fi
 
 if [ -z "${MONGO_URL+set}" ]; then
