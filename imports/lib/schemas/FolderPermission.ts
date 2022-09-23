@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './Base';
+import { Email, Id } from './regexes';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 const FolderPermissionFields = t.type({
@@ -12,10 +12,10 @@ const FolderPermissionFields = t.type({
 
 const FolderPermissionFieldsOverrides: Overrides<t.TypeOf<typeof FolderPermissionFields>> = {
   user: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   googleAccount: {
-    regEx: SimpleSchema.RegEx.Email,
+    regEx: Email,
   },
 };
 

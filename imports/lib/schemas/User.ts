@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import SimpleSchema from 'simpl-schema';
 import DiscordAccount from './DiscordAccount';
+import { Email, Id } from './regexes';
 import { Overrides, buildSchema } from './typedSchemas';
 
 declare module 'meteor/meteor' {
@@ -47,7 +47,7 @@ const UserOverrides: Overrides<t.TypeOf<typeof UserCodec>> = {
     array: {
       nested: {
         address: {
-          regEx: SimpleSchema.RegEx.Email,
+          regEx: Email,
         },
       },
     },
@@ -55,7 +55,7 @@ const UserOverrides: Overrides<t.TypeOf<typeof UserCodec>> = {
   hunts: {
     defaultValue: [],
     array: {
-      regEx: SimpleSchema.RegEx.Id,
+      regEx: Id,
     },
   },
 };

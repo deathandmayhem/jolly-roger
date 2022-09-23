@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import SimpleSchema, { SimpleSchemaDefinition } from 'simpl-schema';
+import SimpleSchema, { SchemaDefinition, SimpleSchemaDefinition } from 'simpl-schema';
 import { uint8Array } from './types';
 
 type NumberOverrides<T> = T extends number ? {
@@ -70,6 +70,7 @@ type AutoValueReturn<T> = undefined | T | AutoValueFlatten<T> | (T extends any[]
 type SharedOverrides<T> = {
   defaultValue?: NonNullable<T>;
   autoValue?: (this: AutoValueThis<T>) => AutoValueReturn<T>;
+  custom?: SchemaDefinition['custom'];
 
   // These fields are from collection2
   index?: boolean | 1 | -1;

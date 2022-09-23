@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from '../Base';
+import { Id } from '../regexes';
 import { Overrides, inheritSchema, buildSchema } from '../typedSchemas';
 
 const ConsumerAckFields = t.type({
@@ -15,27 +15,27 @@ const ConsumerAckFields = t.type({
 
 const ConsumerAckFieldsOverrides: Overrides<t.TypeOf<typeof ConsumerAckFields>> = {
   createdServer: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   routedServer: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   call: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   peer: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   transportRequest: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   consumer: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   producerId: {

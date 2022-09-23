@@ -1,8 +1,8 @@
 import { Match } from 'meteor/check';
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './Base';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
+import { ValidUrl } from './validators';
 
 export const SavedDiscordObjectFields = t.type({
   id: t.string,
@@ -71,7 +71,7 @@ const HuntFieldsOverrides: Overrides<t.TypeOf<typeof HuntFields>> = {
     defaultValue: false,
   },
   homepageUrl: {
-    regEx: SimpleSchema.RegEx.Url,
+    custom: ValidUrl,
   },
 };
 

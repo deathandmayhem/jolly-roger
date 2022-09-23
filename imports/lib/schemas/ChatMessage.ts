@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './Base';
+import { Id } from './regexes';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 const ChatMessageFields = t.type({
@@ -18,13 +18,13 @@ const ChatMessageFields = t.type({
 
 const ChatMessageFieldsOverrides: Overrides<t.TypeOf<typeof ChatMessageFields>> = {
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   puzzle: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   sender: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
 };
 

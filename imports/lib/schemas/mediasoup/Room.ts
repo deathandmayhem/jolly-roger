@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from '../Base';
+import { Id } from '../regexes';
 import { Overrides, inheritSchema, buildSchema } from '../typedSchemas';
 
 // Room tracks the server assignment for a room. Its presence triggers the
@@ -14,15 +14,15 @@ const RoomFields = t.type({
 
 const RoomFieldsOverrides: Overrides<t.TypeOf<typeof RoomFields>> = {
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   call: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   routedServer: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
 };

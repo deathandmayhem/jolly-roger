@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from '../Base';
+import { Id } from '../regexes';
 import { Overrides, inheritSchema, buildSchema } from '../typedSchemas';
 
 const ConnectAckFields = t.type({
@@ -14,26 +14,26 @@ const ConnectAckFields = t.type({
 
 const ConnectAckFieldsOverrides: Overrides<t.TypeOf<typeof ConnectAckFields>> = {
   createdServer: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   call: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   peer: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   transportRequest: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   direction: {
     denyUpdate: true,
   },
   transport: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
 };

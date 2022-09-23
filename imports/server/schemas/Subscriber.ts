@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import SimpleSchema from 'simpl-schema';
+import { Id } from '../../lib/schemas/regexes';
 import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
 
 export const SubscriberCodec = t.type({
@@ -16,13 +16,13 @@ export type SubscriberType = t.TypeOf<typeof SubscriberCodec>;
 
 const SubscriberOverrides: Overrides<SubscriberType> = {
   server: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   connection: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   user: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   createdAt: {
     autoValue() {

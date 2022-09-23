@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { answerify } from '../../model-helpers';
 import { BaseCodec, BaseOverrides } from './Base';
+import { Id } from './regexes';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 const GuessFields = t.type({
@@ -28,10 +28,10 @@ const GuessFields = t.type({
 
 const GuessFieldsOverrides: Overrides<t.TypeOf<typeof GuessFields>> = {
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   puzzle: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   guess: {
     autoValue() {

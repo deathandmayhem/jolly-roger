@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from '../Base';
+import { Id } from '../regexes';
 import { Overrides, inheritSchema, buildSchema } from '../typedSchemas';
 
 // Peer tracks room membership. When the first peer for a call is created,
@@ -16,19 +16,19 @@ const PeerFields = t.type({
 
 const PeerFieldsOverrides: Overrides<t.TypeOf<typeof PeerFields>> = {
   createdServer: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   call: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   tab: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
 };
