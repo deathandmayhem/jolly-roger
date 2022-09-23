@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import SimpleSchema from 'simpl-schema';
+import { Id } from '../regexes';
 import { Overrides, buildSchema } from '../typedSchemas';
 
 // Don't use the BaseCodec here - unlike most database objects, this isn't
@@ -14,10 +14,10 @@ const CallHistoryCodec = t.type({
 
 const CallHistoryOverrides: Overrides<t.TypeOf<typeof CallHistoryCodec>> = {
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   call: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
 };
 

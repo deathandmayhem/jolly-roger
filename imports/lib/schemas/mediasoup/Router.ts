@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from '../Base';
+import { Id } from '../regexes';
 import { Overrides, buildSchema, inheritSchema } from '../typedSchemas';
 
 const RouterFields = t.type({
@@ -13,15 +13,15 @@ const RouterFields = t.type({
 
 const RouterFieldsOverrides: Overrides<t.TypeOf<typeof RouterFields>> = {
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   call: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   createdServer: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyUpdate: true,
   },
   routerId: {

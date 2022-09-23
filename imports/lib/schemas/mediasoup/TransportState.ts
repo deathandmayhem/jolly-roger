@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from '../Base';
+import { Id } from '../regexes';
 import { Overrides, inheritSchema, buildSchema } from '../typedSchemas';
 
 // TransportState tracks the server-side state of a Transport object. None of
@@ -22,7 +22,7 @@ const TransportStateFields = t.type({
 // to think that prevents using them as the query term in an upsert
 const TransportStateFieldsOverrides: Overrides<t.TypeOf<typeof TransportStateFields>> = {
   createdServer: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   transportId: {
     regEx: /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,

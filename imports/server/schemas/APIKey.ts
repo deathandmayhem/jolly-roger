@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from '../../lib/schemas/Base';
+import { Id } from '../../lib/schemas/regexes';
 import { Overrides, buildSchema, inheritSchema } from '../../lib/schemas/typedSchemas';
 
 const APIKeyFields = t.type({
@@ -10,7 +10,7 @@ const APIKeyFields = t.type({
 
 const APIKeyFieldsOverrides: Overrides<t.TypeOf<typeof APIKeyFields>> = {
   user: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   key: {
     regEx: /^[A-Za-z0-9]{32}$/,

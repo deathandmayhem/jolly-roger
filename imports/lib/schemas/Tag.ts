@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './Base';
+import { Id } from './regexes';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 const TagFields = t.type({
@@ -10,7 +10,7 @@ const TagFields = t.type({
 
 const TagFieldsOverrides: Overrides<t.TypeOf<typeof TagFields>> = {
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
 };
 

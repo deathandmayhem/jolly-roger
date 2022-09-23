@@ -1,7 +1,7 @@
 /* eslint-disable filenames/match-exported */
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './Base';
+import { Id } from './regexes';
 import { Overrides, inheritSchema, buildSchema } from './typedSchemas';
 
 // We can't represent tagged unions (or possible future tagged unions) in
@@ -39,10 +39,10 @@ const DocumentFields = t.type({
 
 const DocumentFieldsOverrides: Overrides<t.TypeOf<typeof DocumentFields>> = {
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   puzzle: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
 };
 

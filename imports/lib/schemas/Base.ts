@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import SimpleSchema from 'simpl-schema';
+import { Id } from './regexes';
 import { buildSchema, Overrides } from './typedSchemas';
 
 export const BaseCodec = t.type({
@@ -47,7 +47,7 @@ export const BaseOverrides: Overrides<BaseType> = {
     },
   },
   createdBy: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     autoValue() {
       if (this.isSet) {
         return undefined;
@@ -76,7 +76,7 @@ export const BaseOverrides: Overrides<BaseType> = {
     },
   },
   updatedBy: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
     denyInsert: true,
     autoValue() {
       if (this.isSet) {

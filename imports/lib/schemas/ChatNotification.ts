@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './Base';
+import { Id } from './regexes';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 // A notification triggered by a chat message sent by a user.
@@ -25,16 +25,16 @@ const ChatNotificationFields = t.type({
 
 const ChatNotificationFieldsOverrides: Overrides<t.TypeOf<typeof ChatNotificationFields>> = {
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   puzzle: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   user: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   sender: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
 };
 

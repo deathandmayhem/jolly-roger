@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { BaseCodec, BaseOverrides } from './Base';
+import { Id } from './regexes';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
 const PendingAnnouncementFields = t.type({
@@ -11,13 +11,13 @@ const PendingAnnouncementFields = t.type({
 
 const PendingAnnouncementFieldsOverrides: Overrides<t.TypeOf<typeof PendingAnnouncementFields>> = {
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   announcement: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   user: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
 };
 

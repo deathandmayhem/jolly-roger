@@ -1,8 +1,9 @@
 import * as t from 'io-ts';
-import SimpleSchema from 'simpl-schema';
 import { answerify } from '../../model-helpers';
 import { BaseCodec, BaseOverrides } from './Base';
+import { Id } from './regexes';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
+import { ValidUrl } from './validators';
 
 const PuzzleFields = t.type({
   hunt: t.string,
@@ -16,16 +17,16 @@ const PuzzleFields = t.type({
 
 const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
   hunt: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
   tags: {
     defaultValue: [],
     array: {
-      regEx: SimpleSchema.RegEx.Id,
+      regEx: Id,
     },
   },
   url: {
-    regEx: SimpleSchema.RegEx.Url,
+    custom: ValidUrl,
   },
   answers: {
     autoValue() {
@@ -40,7 +41,7 @@ const PuzzleFieldsOverrides: Overrides<t.TypeOf<typeof PuzzleFields>> = {
     },
   },
   replacedBy: {
-    regEx: SimpleSchema.RegEx.Id,
+    regEx: Id,
   },
 };
 
