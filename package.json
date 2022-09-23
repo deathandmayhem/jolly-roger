@@ -53,7 +53,7 @@
     "react-select": "^5.4.0",
     "react-split-pane": "^0.1.92",
     "react-textarea-autosize": "^8.3.4",
-    "simpl-schema": "^1.12.3",
+    "simpl-schema": "^3.0.0",
     "stacktrace-js": "^2.0.2",
     "styled-components": "^5.3.5",
     "use-persisted-state": "^0.3.3"
