@@ -55,7 +55,7 @@
     "react-textarea-autosize": "^8.3.4",
     "simpl-schema": "^1.12.3",
     "stacktrace-js": "^2.0.2",
-    "styled-components": "^5.3.5",
+    "styled-components": "^5.3.6",
     "use-persisted-state": "^0.3.3"
   },
   "devDependencies": {
