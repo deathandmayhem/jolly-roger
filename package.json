@@ -22,7 +22,7 @@
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@googleapis/drive": "^3.0.1",
     "@popperjs/core": "^2.11.6",
-    "bcrypt": "^5.0.1",
+    "bcrypt": "^5.1.0",
     "bootstrap": "^5.2.0",
     "classnames": "^2.3.2",
     "discord.js": "^12.5.3",
