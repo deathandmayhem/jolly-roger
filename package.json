@@ -28,7 +28,7 @@
     "discord.js": "^12.5.3",
     "dompurify": "^2.4.0",
     "element-resize-detector": "^1.2.4",
-    "express": "^4.18.1",
+    "express": "^4.18.2",
     "fp-ts": "^2.12.3",
     "google-auth-library": "^7.14.0",
     "io-ts": "^2.2.19",
