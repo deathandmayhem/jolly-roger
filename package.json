@@ -29,7 +29,7 @@
     "dompurify": "^2.4.0",
     "element-resize-detector": "^1.2.4",
     "express": "^4.18.2",
-    "fp-ts": "^2.12.3",
+    "fp-ts": "^2.13.1",
     "google-auth-library": "^7.14.0",
     "io-ts": "^2.2.19",
     "io-ts-types": "^0.5.19",
