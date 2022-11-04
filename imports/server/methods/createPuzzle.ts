@@ -25,7 +25,7 @@ createPuzzle.define({
     return arg;
   },
 
-  run({
+  async run({
     huntId, title, tags, expectedAnswerCount, docType,
   }) {
     check(this.userId, String);
@@ -62,7 +62,7 @@ createPuzzle.define({
     // requires us to have an _id for the puzzle, which is why we generate it
     // manually above instead of letting Meteor do it)
     if (DriveClient.ready() && !Flags.active('disable.google')) {
-      ensureDocument(fullPuzzle, docType);
+      await ensureDocument(fullPuzzle, docType);
     }
 
     Puzzles.insert(fullPuzzle);

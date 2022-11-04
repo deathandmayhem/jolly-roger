@@ -15,7 +15,7 @@ undestroyPuzzle.define({
     return arg;
   },
 
-  run({ puzzleId }) {
+  async run({ puzzleId }) {
     check(this.userId, String);
 
     const puzzle = Puzzles.findOneDeleted(puzzleId);
@@ -49,7 +49,7 @@ undestroyPuzzle.define({
     const document = Documents.findOne({ puzzle: puzzleId });
 
     if (document) {
-      makeReadWrite(document.value.id);
+      await makeReadWrite(document.value.id);
     }
   },
 });

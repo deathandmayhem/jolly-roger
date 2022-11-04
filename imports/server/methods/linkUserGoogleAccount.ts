@@ -16,7 +16,7 @@ linkUserGoogleAccount.define({
     return arg;
   },
 
-  run({ key, secret }) {
+  async run({ key, secret }) {
     check(this.userId, String);
 
     // We don't care about actually capturing the credential - we're
@@ -34,9 +34,10 @@ linkUserGoogleAccount.define({
 
     if (!Flags.active('disable.google') && !Flags.active('disable.gdrive_permissions')) {
       const hunts = Meteor.user()!.hunts;
-      hunts?.forEach((huntId) => {
-        ensureHuntFolderPermission(huntId, this.userId!, email);
-      });
+      await hunts?.reduce(async (promise, huntId) => {
+        await promise;
+        await ensureHuntFolderPermission(huntId, this.userId!, email);
+      }, Promise.resolve());
     }
   },
 });

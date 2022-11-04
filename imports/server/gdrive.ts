@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Promise as MeteorPromise } from 'meteor/promise';
 import { drive_v3 as drive } from '@googleapis/drive';
 import Ansible from '../Ansible';
 import Flags from '../Flags';
@@ -25,29 +24,29 @@ function checkClientOk() {
   }
 }
 
-function createFolder(name: string, parentId?: string): string {
+async function createFolder(name: string, parentId?: string) {
   checkClientOk();
   if (!DriveClient.gdrive) throw new Meteor.Error(500, 'Google integration is disabled');
 
   const mimeType = 'application/vnd.google-apps.folder';
   const parents = parentId ? [parentId] : undefined;
 
-  const folder = MeteorPromise.await(DriveClient.gdrive.files.create({
+  const folder = await DriveClient.gdrive.files.create({
     requestBody: {
       name,
       mimeType,
       parents,
     },
-  }));
+  });
 
   return folder.data.id!;
 }
 
-function createDocument(
+async function createDocument(
   name: string,
   type: GdriveMimeTypesType,
   parentId?: string,
-): string {
+) {
   if (!Object.prototype.hasOwnProperty.call(GdriveMimeTypes, type)) {
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
@@ -60,7 +59,7 @@ function createDocument(
   const mimeType = GdriveMimeTypes[type];
   const parents = parentId ? [parentId] : undefined;
 
-  const file = MeteorPromise.await(template ?
+  const file = await (template ?
     DriveClient.gdrive.files.copy({
       fileId: template.value.id,
       requestBody: { name, mimeType, parents },
@@ -71,27 +70,27 @@ function createDocument(
 
   const fileId = file.data.id!;
 
-  MeteorPromise.await(DriveClient.gdrive.permissions.create({
+  await DriveClient.gdrive.permissions.create({
     fileId,
     requestBody: { role: 'writer', type: 'anyone' },
-  }));
+  });
   return fileId;
 }
 
-export function moveDocument(id: string, newParentId: string): void {
+export async function moveDocument(id: string, newParentId: string) {
   checkClientOk();
   if (!DriveClient.gdrive) throw new Meteor.Error(500, 'Google integration is disabled');
 
-  const parents = MeteorPromise.await(DriveClient.gdrive.files.get({
+  const parents = (await DriveClient.gdrive.files.get({
     fileId: id,
     fields: 'parents',
   })).data.parents || [];
 
-  MeteorPromise.await(DriveClient.gdrive.files.update({
+  await DriveClient.gdrive.files.update({
     fileId: id,
     addParents: newParentId,
     removeParents: parents.join(','),
-  }));
+  });
 }
 
 export function huntFolderName(huntName: string) {
@@ -102,20 +101,20 @@ export function puzzleDocumentName(puzzleTitle: string) {
   return `${puzzleTitle}: ${getTeamName()}`;
 }
 
-export function renameDocument(id: string, name: string): void {
+export async function renameDocument(id: string, name: string) {
   checkClientOk();
   if (!DriveClient.gdrive) return;
   // It's unclear if this can ever return an error
-  MeteorPromise.await(DriveClient.gdrive.files.update({
+  await DriveClient.gdrive.files.update({
     fileId: id,
     requestBody: { name },
-  }));
+  });
 }
 
-export function grantPermission(id: string, email: string, permission: string): void {
+export async function grantPermission(id: string, email: string, permission: string) {
   checkClientOk();
   if (!DriveClient.gdrive) return;
-  MeteorPromise.await(DriveClient.gdrive.permissions.create({
+  await DriveClient.gdrive.permissions.create({
     fileId: id,
     sendNotificationEmail: false,
     requestBody: {
@@ -123,10 +122,10 @@ export function grantPermission(id: string, email: string, permission: string): 
       emailAddress: email,
       role: permission,
     },
-  }));
+  });
 }
 
-export function makeReadOnly(fileId: string): void {
+export async function makeReadOnly(fileId: string) {
   checkClientOk();
   const client = DriveClient.gdrive;
   if (!client) return;
@@ -135,10 +134,11 @@ export function makeReadOnly(fileId: string): void {
   const permissions = [] as NonNullable<drive.Schema$PermissionList['permissions']>;
   let token: string | undefined;
   for (;;) {
-    const response = MeteorPromise.await(client.permissions.list({
+    // eslint-disable-next-line no-await-in-loop
+    const response = await client.permissions.list({
       fileId,
       pageToken: token,
-    }));
+    });
     const page = response.data;
     if (page.permissions) {
       permissions.push(...page.permissions);
@@ -149,38 +149,39 @@ export function makeReadOnly(fileId: string): void {
   }
 
   // Leave everyone with read-only access
-  MeteorPromise.await(client.permissions.create({
+  await client.permissions.create({
     fileId,
     requestBody: { role: 'reader', type: 'anyone' },
-  }));
+  });
 
   // Delete any editor permissions
-  permissions.forEach((permission) => {
+  await permissions.reduce(async (promise, permission) => {
+    await promise;
     if (permission.id && permission.role === 'writer') {
-      MeteorPromise.await(client.permissions.delete({
+      await client.permissions.delete({
         fileId,
         permissionId: permission.id,
-      }));
+      });
     }
-  });
+  }, Promise.resolve());
 }
 
-export function makeReadWrite(fileId: string): void {
+export async function makeReadWrite(fileId: string) {
   checkClientOk();
   if (!DriveClient.gdrive) return;
 
-  MeteorPromise.await(DriveClient.gdrive.permissions.create({
+  await DriveClient.gdrive.permissions.create({
     fileId,
     requestBody: { role: 'writer', type: 'anyone' },
-  }));
+  });
 }
 
-export function ensureHuntFolder(hunt: { _id: string, name: string }) {
+export async function ensureHuntFolder(hunt: { _id: string, name: string }) {
   let folder = HuntFolders.findOne(hunt._id);
   if (!folder) {
     checkClientOk();
 
-    MeteorPromise.await(Locks.withLock(`hunt:${hunt._id}:folder`, async () => {
+    await Locks.withLock(`hunt:${hunt._id}:folder`, async () => {
       folder = await HuntFolders.findOneAsync(hunt._id);
       if (!folder) {
         Ansible.log('Creating missing folder for hunt', {
@@ -188,24 +189,28 @@ export function ensureHuntFolder(hunt: { _id: string, name: string }) {
         });
 
         const root = await Settings.findOneAsync({ name: 'gdrive.root' }) as undefined | SettingType & { name: 'gdrive.root' };
-        const folderId = createFolder(huntFolderName(hunt.name), root?.value.id);
+        const folderId = await createFolder(huntFolderName(hunt.name), root?.value.id);
         const huntFolderId = await HuntFolders.insertAsync({
           _id: hunt._id,
           folder: folderId,
         });
         folder = await HuntFolders.findOneAsync(huntFolderId)!;
       }
-    }));
+    });
   }
 
   return folder!.folder;
 }
 
-export function ensureHuntFolderPermission(huntId: string, userId: string, googleAccount: string) {
+export async function ensureHuntFolderPermission(
+  huntId: string,
+  userId: string,
+  googleAccount: string,
+) {
   const hunt = Hunts.findOneAllowingDeleted(huntId);
   if (!hunt) return;
 
-  const folder = ensureHuntFolder(hunt);
+  const folder = await ensureHuntFolder(hunt);
 
   const perm = {
     folder,
@@ -217,32 +222,32 @@ export function ensureHuntFolderPermission(huntId: string, userId: string, googl
   }
 
   Ansible.log('Granting permissions to folder', perm);
-  grantPermission(folder, googleAccount, 'reader');
-  MeteorPromise.await(ignoringDuplicateKeyErrors(async () => {
+  await grantPermission(folder, googleAccount, 'reader');
+  await ignoringDuplicateKeyErrors(async () => {
     await FolderPermissions.insertAsync(perm);
-  }));
+  });
 }
 
-export function ensureDocument(puzzle: {
+export async function ensureDocument(puzzle: {
   _id: string,
   title: string,
   hunt: string,
 }, type: GdriveMimeTypesType = 'spreadsheet') {
   const hunt = Hunts.findOneAllowingDeleted(puzzle.hunt);
-  const folderId = hunt ? ensureHuntFolder(hunt) : undefined;
+  const folderId = hunt ? await ensureHuntFolder(hunt) : undefined;
 
   let doc = Documents.findOne({ puzzle: puzzle._id });
   if (!doc) {
     checkClientOk();
 
-    MeteorPromise.await(Locks.withLock(`puzzle:${puzzle._id}:documents`, async () => {
+    await Locks.withLock(`puzzle:${puzzle._id}:documents`, async () => {
       doc = await Documents.findOneAsync({ puzzle: puzzle._id });
       if (!doc) {
         Ansible.log('Creating missing document for puzzle', {
           puzzle: puzzle._id,
         });
 
-        const googleDocId = createDocument(puzzleDocumentName(puzzle.title), type, folderId);
+        const googleDocId = await createDocument(puzzleDocumentName(puzzle.title), type, folderId);
         const newDoc = {
           hunt: puzzle.hunt,
           puzzle: puzzle._id,
@@ -252,11 +257,11 @@ export function ensureDocument(puzzle: {
         const docId = await Documents.insertAsync(newDoc);
         doc = await Documents.findOneAsync(docId)!;
       }
-    }));
+    });
   }
 
   if (doc && folderId && doc.value.folder !== folderId) {
-    moveDocument(doc.value.id, folderId);
+    await moveDocument(doc.value.id, folderId);
     Documents.update(doc._id, { $set: { 'value.folder': folderId } });
     doc = Documents.findOne(doc._id)!;
   }

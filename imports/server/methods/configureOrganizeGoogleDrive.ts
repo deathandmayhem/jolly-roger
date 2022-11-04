@@ -13,7 +13,7 @@ import { moveDocument, ensureHuntFolder, ensureDocument } from '../gdrive';
 import HuntFolders from '../models/HuntFolders';
 
 configureOrganizeGoogleDrive.define({
-  run() {
+  async run() {
     check(this.userId, String);
 
     // Only let the same people that can credential gdrive reorganize files,
@@ -27,21 +27,24 @@ configureOrganizeGoogleDrive.define({
     // First make sure any existing folders are under the root
     const root = Settings.findOne({ name: 'gdrive.root' }) as SettingType & { name: 'gdrive.root' } | undefined;
     if (root) {
-      HuntFolders.find().forEach((hf) => {
-        moveDocument(hf.folder, root.value.id);
-      });
+      await HuntFolders.find().fetch().reduce(async (promise, hf) => {
+        await promise;
+        await moveDocument(hf.folder, root.value.id);
+      }, Promise.resolve());
     }
 
     // Then create folders for any hunt that doesn't currently have one
-    Hunts.find().forEach((h) => {
-      ensureHuntFolder(h);
-    });
+    await Hunts.find().fetch().reduce(async (promise, h) => {
+      await promise;
+      await ensureHuntFolder(h);
+    }, Promise.resolve());
 
     // Finally move all existing documents into the right folder
     const puzzles = _.indexBy(Puzzles.find().fetch(), '_id');
-    Documents.find().forEach((d) => {
+    await Documents.find().fetch().reduce(async (promise, d) => {
+      await promise;
       const puzzle = puzzles[d.puzzle];
-      if (puzzle && !d.value.folder) ensureDocument(puzzle);
-    });
+      if (puzzle && !d.value.folder) await ensureDocument(puzzle);
+    }, Promise.resolve());
   },
 });

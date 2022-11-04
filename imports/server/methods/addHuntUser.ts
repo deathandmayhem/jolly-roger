@@ -158,7 +158,7 @@ addHuntUser.define({
       if (!Flags.active('disable.google') &&
         !Flags.active('disable.gdrive_permissions') &&
         joineeUser.googleAccount) {
-        ensureHuntFolderPermission(huntId, joineeUser._id, joineeUser.googleAccount);
+        await ensureHuntFolderPermission(huntId, joineeUser._id, joineeUser.googleAccount);
       }
     }
   },

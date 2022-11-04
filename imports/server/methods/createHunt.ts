@@ -25,7 +25,7 @@ createHunt.define({
       // Sync discord roles
       const userIds = MeteorUsers.find({ hunts: huntId }).fetch().map((u) => u._id);
       await addUsersToDiscordRole(userIds, huntId);
-      ensureHuntFolder({ _id: huntId, name: arg.name });
+      await ensureHuntFolder({ _id: huntId, name: arg.name });
     });
 
     return huntId;

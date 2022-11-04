@@ -51,8 +51,8 @@ updateHunt.define({
       await addUsersToDiscordRole(userIds, huntId);
 
       if (oldHunt?.name !== value.name) {
-        const folderId = ensureHuntFolder({ _id: huntId, name: value.name });
-        renameDocument(folderId, huntFolderName(value.name));
+        const folderId = await ensureHuntFolder({ _id: huntId, name: value.name });
+        await renameDocument(folderId, huntFolderName(value.name));
       }
     });
   },

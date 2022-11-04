@@ -16,7 +16,7 @@ destroyPuzzle.define({
     return arg;
   },
 
-  run({ puzzleId, replacedBy }) {
+  async run({ puzzleId, replacedBy }) {
     check(this.userId, String);
 
     const puzzle = Puzzles.findOne(puzzleId);
@@ -55,7 +55,7 @@ destroyPuzzle.define({
     const document = Documents.findOne({ puzzle: puzzleId });
 
     if (document) {
-      makeReadOnly(document.value.id);
+      await makeReadOnly(document.value.id);
     }
   },
 });
