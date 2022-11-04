@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { promisify } from 'util';
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import { act, render } from '@testing-library/react';
@@ -88,7 +89,7 @@ if (Meteor.isClient) {
       await disableRateLimits.callPromise();
       await resetDatabase('route');
       await provisionFirstUser.callPromise({ email: USER_EMAIL, password: USER_PASSWORD });
-      await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
+      await promisify(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
       await createFixtureHunt.callPromise();
       await addHuntUser.callPromise({ huntId: fixtureHunt, email: USER_EMAIL });
       await promoteOperator.callPromise({ targetUserId: Meteor.userId()!, huntId: fixtureHunt });
@@ -125,7 +126,7 @@ if (Meteor.isClient) {
 
     describe('which are authenticated', function () {
       before(async function () {
-        await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
+        await promisify(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
       });
 
       enumeratePaths(AuthenticatedRouteList).forEach((p) => {
@@ -152,7 +153,7 @@ if (Meteor.isClient) {
 
     describe('which are unauthenticated', function () {
       before(async function () {
-        await Meteor.wrapPromise(Meteor.logout)();
+        await promisify(Meteor.logout)();
       });
 
       enumeratePaths(UnauthenticatedRouteList).forEach((p) => {

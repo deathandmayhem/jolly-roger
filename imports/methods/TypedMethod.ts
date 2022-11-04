@@ -107,6 +107,6 @@ export default class TypedMethod<
   }
 
   callPromise<T>(...args: TypedMethodCallPromiseArgs<T, Args>): Promise<Return> {
-    return Meteor.callPromise(this.name, ...args);
+    return Meteor.callAsync(this.name, ...args);
   }
 }

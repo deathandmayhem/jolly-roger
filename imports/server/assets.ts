@@ -81,8 +81,13 @@ Meteor.publish('mongo.blob_mappings', () => {
   return BlobMappings.find({});
 });
 
+interface JollyRogerRuntimeConfig {
+  blobMappings: Record<string, string>;
+  defaultBlobMappings: Record<string, string>;
+}
+
 WebApp.addRuntimeConfigHook(({ encodedCurrentConfig }) => {
-  const config = WebApp.decodeRuntimeConfig(encodedCurrentConfig);
+  const config = WebApp.decodeRuntimeConfig(encodedCurrentConfig) as JollyRogerRuntimeConfig;
   config.blobMappings = Object.fromEntries(cachedDBMappings);
   config.defaultBlobMappings = Object.fromEntries(defaultMappings);
   return WebApp.encodeRuntimeConfig(config);
