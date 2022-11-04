@@ -13,7 +13,8 @@
     "lint:js": "eslint --format gha --ext js,jsx,ts,tsx .",
     "lint:css": "stylelint '**/*.tsx'",
     "lint": "meteor lint && npm-run-all --parallel lint:*",
-    "test": "TEST_BROWSER_DRIVER=puppeteer meteor test --full-app --once --driver-package meteortesting:mocha"
+    "test": "TEST_BROWSER_DRIVER=puppeteer meteor test --full-app --once --driver-package meteortesting:mocha",
+    "postshrinkwrap": "lockfix"
   },
   "dependencies": {
     "@babel/runtime": "^7.20.1",
@@ -98,6 +99,7 @@
     "eslint-plugin-meteor": "^7.3.0",
     "eslint-plugin-react": "^7.31.10",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "lockfix": "^2.2.1",
     "mocha": "^10.1.0",
     "npm-run-all": "^4.1.5",
     "puppeteer": "^19.2.2",
