@@ -180,22 +180,22 @@ export function ensureHuntFolder(hunt: { _id: string, name: string }) {
   if (!folder) {
     checkClientOk();
 
-    Locks.withLock(`hunt:${hunt._id}:folder`, () => {
-      folder = HuntFolders.findOne(hunt._id);
+    MeteorPromise.await(Locks.withLock(`hunt:${hunt._id}:folder`, async () => {
+      folder = await HuntFolders.findOneAsync(hunt._id);
       if (!folder) {
         Ansible.log('Creating missing folder for hunt', {
           huntId: hunt._id,
         });
 
-        const root = Settings.findOne({ name: 'gdrive.root' }) as undefined | SettingType & { name: 'gdrive.root' };
+        const root = await Settings.findOneAsync({ name: 'gdrive.root' }) as undefined | SettingType & { name: 'gdrive.root' };
         const folderId = createFolder(huntFolderName(hunt.name), root?.value.id);
-        const huntFolderId = HuntFolders.insert({
+        const huntFolderId = await HuntFolders.insertAsync({
           _id: hunt._id,
           folder: folderId,
         });
-        folder = HuntFolders.findOne(huntFolderId)!;
+        folder = await HuntFolders.findOneAsync(huntFolderId)!;
       }
-    });
+    }));
   }
 
   return folder!.folder;
@@ -235,8 +235,8 @@ export function ensureDocument(puzzle: {
   if (!doc) {
     checkClientOk();
 
-    Locks.withLock(`puzzle:${puzzle._id}:documents`, () => {
-      doc = Documents.findOne({ puzzle: puzzle._id });
+    MeteorPromise.await(Locks.withLock(`puzzle:${puzzle._id}:documents`, async () => {
+      doc = await Documents.findOneAsync({ puzzle: puzzle._id });
       if (!doc) {
         Ansible.log('Creating missing document for puzzle', {
           puzzle: puzzle._id,
@@ -249,10 +249,10 @@ export function ensureDocument(puzzle: {
           provider: 'google' as const,
           value: { type, id: googleDocId, folder: folderId },
         };
-        const docId = Documents.insert(newDoc);
-        doc = Documents.findOne(docId)!;
+        const docId = await Documents.insertAsync(newDoc);
+        doc = await Documents.findOneAsync(docId)!;
       }
-    });
+    }));
   }
 
   if (doc && folderId && doc.value.folder !== folderId) {

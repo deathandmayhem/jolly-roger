@@ -31,23 +31,24 @@ registerPeriodicCleanupHook((deadServers) => {
   // see a consistent view (and everyone else does too), then check if there
   // are still peers joined to this room
   Rooms.find({ routedServer: { $in: deadServers } }).forEach((room) => {
-    Locks.withLock(`mediasoup:room:${room.call}`, () => {
-      if (!Rooms.remove(room._id)) {
+    MeteorPromise.await(Locks.withLock(`mediasoup:room:${room.call}`, async () => {
+      const removed = !!await Rooms.removeAsync(room._id);
+      if (!removed) {
         return;
       }
 
-      const peer = Peers.findOne({ call: room.call });
+      const peer = await Peers.findOneAsync({ call: room.call });
       if (peer) {
-        MeteorPromise.await(ignoringDuplicateKeyErrors(async () => {
+        await ignoringDuplicateKeyErrors(async () => {
           await Rooms.insertAsync({
             hunt: room.hunt,
             call: room.call,
             routedServer: serverId,
             createdBy: peer.createdBy,
           });
-        }));
+        });
       }
-    });
+    }));
   });
 });
 
@@ -113,9 +114,9 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
   }
 
   let peerId: string;
-  Locks.withLock(`mediasoup:room:${call}`, () => {
-    if (!Rooms.findOne({ call })) {
-      Rooms.insert({
+  MeteorPromise.await(Locks.withLock(`mediasoup:room:${call}`, async () => {
+    if (!await Rooms.findOneAsync({ call })) {
+      await Rooms.insertAsync({
         hunt,
         call,
         routedServer: serverId,
@@ -135,9 +136,9 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
     // sure that the client no longer trusts that the previous `call.join` is
     // active, and we can just take this as a signal to hasten that cleanup.
     // If the room is not yet created, create it.
-    Peers.remove({ hunt, call, tab });
+    await Peers.removeAsync({ hunt, call, tab });
 
-    peerId = Peers.insert({
+    peerId = await Peers.insertAsync({
       createdServer: serverId,
       hunt,
       call,
@@ -147,17 +148,17 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
     });
 
     Ansible.log('Peer joined call', { peer: peerId, call, createdBy: this.userId });
-  });
+  }));
 
   this.onStop(() => {
-    Locks.withLock(`mediasoup:room:${call}`, () => {
-      Peers.remove(peerId);
+    MeteorPromise.await(Locks.withLock(`mediasoup:room:${call}`, async () => {
+      await Peers.removeAsync(peerId);
 
       // If the room is empty, remove it.
-      if (!Peers.findOne({ call })) {
-        Rooms.remove({ call });
+      if (!await Peers.findOneAsync({ call })) {
+        await Rooms.removeAsync({ call });
       }
-    });
+    }));
   });
 
   return [
