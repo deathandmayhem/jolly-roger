@@ -1,3 +1,4 @@
+import { promisify } from 'util';
 import { Meteor } from 'meteor/meteor';
 import { render, act, cleanup } from '@testing-library/react';
 import { assert } from 'chai';
@@ -90,7 +91,7 @@ if (Meteor.isClient) {
       before(async function () {
         await resetDatabase('authenticated users');
         await provisionFirstUser.callPromise({ email: USER_EMAIL, password: USER_PASSWORD });
-        await Meteor.wrapPromise(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
+        await promisify(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
       });
 
       it('redirects away from the login page', async function () {

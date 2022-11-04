@@ -1,3 +1,4 @@
+import { promisify } from 'util';
 import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
@@ -14,6 +15,21 @@ const createUser = new TypedMethod<{ email: string, password: string, displayNam
 const addUserToRole = new TypedMethod<{ userId: string, scope: string, role: string }, void>('test.methods.profiles.addUserToRole');
 const createHunt = new TypedMethod<{ name: string }, string>('test.methods.profiles.createHunt');
 const joinHunt = new TypedMethod<{ huntId: string, userId: string }, void>('test.methods.profiles.joinHunt');
+
+const subscribeAsync = (name: string, ...args: any[]) => new Promise<Meteor.SubscriptionHandle>(
+  (resolve, reject) => {
+    const handle = Meteor.subscribe(name, ...args, {
+      onStop: (reason?: Meteor.Error) => {
+        if (reason) {
+          reject(reason);
+        }
+      },
+      onReady: () => {
+        resolve(handle);
+      },
+    });
+  }
+);
 
 if (Meteor.isServer) {
   createUser.define({
@@ -115,10 +131,9 @@ if (Meteor.isClient) {
         await joinHunt.callPromise({ huntId, userId: sameHuntUserId });
         await joinHunt.callPromise({ huntId: otherHuntId, userId: differentHuntUserId });
 
-        await Meteor.wrapPromise(Meteor.loginWithPassword)('jolly-roger@deathandmayhem.com', 'password');
+        await promisify(Meteor.loginWithPassword)('jolly-roger@deathandmayhem.com', 'password');
 
-        let huntSub = Meteor.subscribe('displayNames', huntId);
-        await huntSub.readyPromise();
+        let huntSub = await subscribeAsync('displayNames', huntId);
 
         assert.sameMembers(
           MeteorUsers.find({}, { fields: { displayName: 1 } }).map((u) => u.displayName),
@@ -128,8 +143,7 @@ if (Meteor.isClient) {
 
         huntSub.stop();
         await stabilize();
-        huntSub = Meteor.subscribe('displayNames', otherHuntId);
-        await huntSub.readyPromise();
+        huntSub = await subscribeAsync('displayNames', otherHuntId);
 
         assert.sameMembers(
           MeteorUsers.find({}, { fields: { displayName: 1 } }).map((u) => u.displayName),
@@ -163,9 +177,9 @@ if (Meteor.isClient) {
         await joinHunt.callPromise({ huntId: otherHuntId, userId: sameHuntUserId });
         await joinHunt.callPromise({ huntId: otherHuntId, userId: differentHuntUserId });
 
-        await Meteor.wrapPromise(Meteor.loginWithPassword)('jolly-roger@deathandmayhem.com', 'password');
+        await promisify(Meteor.loginWithPassword)('jolly-roger@deathandmayhem.com', 'password');
 
-        await Meteor.subscribe('allProfiles').readyPromise();
+        await subscribeAsync('allProfiles');
 
         let u3 = MeteorUsers.findOne(differentHuntUserId);
         assert.isUndefined(u3, 'Should not show users in the other hunt when not a member');
@@ -203,9 +217,9 @@ if (Meteor.isClient) {
         await addUserToRole.callPromise({ userId: sameHuntUserId, scope: huntId, role: 'operator' });
         await addUserToRole.callPromise({ userId: differentHuntUserId, scope: otherHuntId, role: 'operator' });
 
-        await Meteor.wrapPromise(Meteor.loginWithPassword)('jolly-roger@deathandmayhem.com', 'password');
-        await Meteor.subscribe('huntRoles', huntId).readyPromise();
-        await Meteor.subscribe('huntRoles', otherHuntId).readyPromise();
+        await promisify(Meteor.loginWithPassword)('jolly-roger@deathandmayhem.com', 'password');
+        await subscribeAsync('huntRoles', huntId);
+        await subscribeAsync('huntRoles', otherHuntId);
 
         let operators = MeteorUsers.find().map((u) => u._id).filter(userIsOperatorForAnyHunt);
         assert.sameMembers(operators, [userId, sameHuntUserId], 'Should only show operators in hunt where you are an operator');

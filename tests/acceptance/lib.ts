@@ -1,5 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-console */
+import { promisify } from 'util';
 import { check } from 'meteor/check';
 import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
@@ -73,7 +74,7 @@ export const resetDatabase = async (testName: string) => {
   // just get deterministic behavior by logging out first and then making
   // exactly one call to reset the database.
   if (Meteor.userId()) {
-    await Meteor.wrapPromise(Meteor.logout)();
+    await promisify(Meteor.logout)();
   }
 
   await resetDatabaseMethod.callPromise({ testName });
