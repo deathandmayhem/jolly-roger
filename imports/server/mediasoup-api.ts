@@ -1,5 +1,6 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
+import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../Ansible';
 import Flags from '../Flags';
 import MeteorUsers from '../lib/models/MeteorUsers';
@@ -37,14 +38,14 @@ registerPeriodicCleanupHook((deadServers) => {
 
       const peer = Peers.findOne({ call: room.call });
       if (peer) {
-        ignoringDuplicateKeyErrors(() => {
-          Rooms.insert({
+        MeteorPromise.await(ignoringDuplicateKeyErrors(async () => {
+          await Rooms.insertAsync({
             hunt: room.hunt,
             call: room.call,
             routedServer: serverId,
             createdBy: peer.createdBy,
           });
-        });
+        }));
       }
     });
   });

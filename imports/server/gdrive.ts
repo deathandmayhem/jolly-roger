@@ -218,9 +218,9 @@ export function ensureHuntFolderPermission(huntId: string, userId: string, googl
 
   Ansible.log('Granting permissions to folder', perm);
   grantPermission(folder, googleAccount, 'reader');
-  ignoringDuplicateKeyErrors(() => {
-    FolderPermissions.insert(perm);
-  });
+  MeteorPromise.await(ignoringDuplicateKeyErrors(async () => {
+    await FolderPermissions.insertAsync(perm);
+  }));
 }
 
 export function ensureDocument(puzzle: {

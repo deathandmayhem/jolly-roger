@@ -15,12 +15,12 @@ const Locks = new class extends Mongo.Collection<LockType> {
   }
 
   _tryAcquire(name: string) {
-    return ignoringDuplicateKeyErrors(() => {
+    return MeteorPromise.await(ignoringDuplicateKeyErrors(async () => {
       // Because the Mongo.Collection doesn't know about SimpleSchema
       // autovalues, it doesn't know which fields are actually required. Cast to
       // any since this is known safe
-      return this.insert(<any>{ name });
-    });
+      return this.insertAsync(<any>{ name });
+    }));
   }
 
   _release(lock: string) {

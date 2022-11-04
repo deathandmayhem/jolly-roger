@@ -162,7 +162,7 @@ class MigrationRegistry {
     // number of migrations that have been run to completion successfully.
     const control = this.collection.findOne({ _id: 'control' });
     if (control === undefined) {
-      this.ensureControlCreated();
+      await this.ensureControlCreated();
       // Query again because we're not holding a lock.
       return this.getVersion();
     } else {
@@ -170,11 +170,11 @@ class MigrationRegistry {
     }
   }
 
-  private ensureControlCreated() {
+  private async ensureControlCreated() {
     this.log('creating control record at version 0');
     // We use insert rather than upsert here
-    ignoringDuplicateKeyErrors(() => {
-      this.collection.insert({
+    await ignoringDuplicateKeyErrors(async () => {
+      await this.collection.insertAsync({
         _id: 'control',
         version: 0,
         locked: false,
