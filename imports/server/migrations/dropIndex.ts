@@ -1,7 +1,11 @@
 import { Mongo } from 'meteor/mongo';
 import { Promise as MeteorPromise } from 'meteor/promise';
 
-function dropIndex<T>(
+interface Document {
+  [key: string]: any;
+}
+
+function dropIndex<T extends Document>(
   model: Mongo.Collection<T>,
   index: string
 ): void {
