@@ -13,7 +13,7 @@ import { HuntType } from '../../lib/schemas/Hunt';
 import { SettingType } from '../../lib/schemas/Setting';
 import addHuntUser from '../../methods/addHuntUser';
 import List from '../List';
-import addUserToDiscordRole from '../addUserToDiscordRole';
+import addUsersToDiscordRole from '../addUsersToDiscordRole';
 import { ensureHuntFolderPermission } from '../gdrive';
 
 const DEFAULT_EXISTING_JOIN_SUBJECT = '[jolly-roger] Added to {{huntName}} on {{siteName}}';
@@ -89,7 +89,7 @@ addHuntUser.define({
     return arg;
   },
 
-  run({ huntId, email }) {
+  async run({ huntId, email }) {
     check(this.userId, String);
 
     const hunt = Hunts.findOne(huntId);
@@ -135,7 +135,7 @@ addHuntUser.define({
       });
     });
 
-    addUserToDiscordRole(joineeUser._id, huntId);
+    await addUsersToDiscordRole([joineeUser._id], huntId);
 
     if (newUser) {
       Accounts.sendEnrollmentEmail(joineeUser._id);

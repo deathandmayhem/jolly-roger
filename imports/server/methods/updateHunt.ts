@@ -5,7 +5,7 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import { checkAdmin } from '../../lib/permission_stubs';
 import { HuntPattern, HuntType } from '../../lib/schemas/Hunt';
 import updateHunt from '../../methods/updateHunt';
-import addUserToDiscordRole from '../addUserToDiscordRole';
+import addUsersToDiscordRole from '../addUsersToDiscordRole';
 import { ensureHuntFolder, huntFolderName, renameDocument } from '../gdrive';
 
 updateHunt.define({
@@ -45,12 +45,10 @@ updateHunt.define({
       }
     );
 
-    Meteor.defer(() => {
+    Meteor.defer(async () => {
       // Sync discord roles
-      MeteorUsers.find({ hunts: huntId })
-        .forEach((u) => {
-          addUserToDiscordRole(u._id, huntId);
-        });
+      const userIds = MeteorUsers.find({ hunts: huntId }).fetch().map((u) => u._id);
+      await addUsersToDiscordRole(userIds, huntId);
 
       if (oldHunt?.name !== value.name) {
         const folderId = ensureHuntFolder({ _id: huntId, name: value.name });
