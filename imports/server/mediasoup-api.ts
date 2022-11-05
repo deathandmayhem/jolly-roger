@@ -23,15 +23,16 @@ import { registerPeriodicCleanupHook, serverId } from './garbage-collection';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import Locks from './models/Locks';
 
-registerPeriodicCleanupHook((deadServers) => {
+registerPeriodicCleanupHook(async (deadServers) => {
   Peers.remove({ createdServer: { $in: deadServers } });
 
   // Deleting a room creates a potential inconsistency, since we might still
   // have peers on other servers. Therefore, take out a lock to make sure we
   // see a consistent view (and everyone else does too), then check if there
   // are still peers joined to this room
-  Rooms.find({ routedServer: { $in: deadServers } }).forEach((room) => {
-    MeteorPromise.await(Locks.withLock(`mediasoup:room:${room.call}`, async () => {
+  await Rooms.find({ routedServer: { $in: deadServers } }).fetch().reduce(async (p, room) => {
+    await p;
+    await Locks.withLock(`mediasoup:room:${room.call}`, async () => {
       const removed = !!await Rooms.removeAsync(room._id);
       if (!removed) {
         return;
@@ -48,8 +49,8 @@ registerPeriodicCleanupHook((deadServers) => {
           });
         });
       }
-    }));
-  });
+    });
+  }, Promise.resolve());
 });
 
 Meteor.publish('mediasoup:debug', function () {
