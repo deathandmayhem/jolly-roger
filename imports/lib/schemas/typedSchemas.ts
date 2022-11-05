@@ -1,8 +1,20 @@
 import { Meteor } from 'meteor/meteor';
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import SimpleSchema, { SchemaDefinition, SimpleSchemaDefinition } from 'simpl-schema';
+import SimpleSchema from 'simpl-schema';
+import type { FieldInfo, SchemaDefinitionWithShorthand, TypeDefinitionProps } from 'simpl-schema/dist/esm/types';
 import { uint8Array } from './types';
+
+declare module 'simpl-schema/dist/esm/types' {
+  interface AutoValueContext {
+    // These fields are added by collection2
+    isInsert: boolean;
+    isUpdate: boolean;
+    userId: string;
+    isFromTrustedCode: boolean;
+    docId?: string;
+  }
+}
 
 type NumberOverrides<T> = T extends number ? {
   min?: number | (() => number);
@@ -19,8 +31,8 @@ type DateOverrides<T> = T extends Date ? {
 } : Record<string, never>;
 
 type ArrayOverrides<T> = T extends any[] ? {
-  minCount?: number | (() => number);
-  maxCount?: number | (() => number);
+  minCount?: number;
+  maxCount?: number;
   array?: FieldOverrides<T[0]>;
 } : Record<string, never>;
 
@@ -37,12 +49,6 @@ type ObjectOverrides<T> = T extends Record<string, any> ? {
   nested?: {[K in keyof T]?: FieldOverrides<T[K]>};
 } : Record<string, never>;
 
-interface FieldInfo {
-  isSet: boolean;
-  value?: any;
-  operator?: string | null;
-}
-
 type AutoValueFlatten<T> = T extends any[] ? T[0] : T;
 interface AutoValueThis<T> {
   key: string;
@@ -51,14 +57,14 @@ interface AutoValueThis<T> {
   isSet: boolean;
   unset: () => void;
   operator?: string | null;
-  field: (name: string) => FieldInfo;
-  siblingField: (name: string) => FieldInfo;
-  parentField: () => FieldInfo;
+  field: <U>(name: string) => FieldInfo<U>;
+  siblingField: <U>(name: string) => FieldInfo<U>;
+  parentField: <U>() => FieldInfo<U>;
+  isUpsert: boolean;
 
   // These fields are added by collection2
   isInsert: boolean;
   isUpdate: boolean;
-  isUpsert: boolean;
   userId: string;
   isFromTrustedCode: boolean;
   docId?: string;
@@ -70,7 +76,7 @@ type AutoValueReturn<T> = undefined | T | AutoValueFlatten<T> | (T extends any[]
 type SharedOverrides<T> = {
   defaultValue?: NonNullable<T>;
   autoValue?: (this: AutoValueThis<T>) => AutoValueReturn<T>;
-  custom?: SchemaDefinition['custom'];
+  custom?: TypeDefinitionProps['custom'];
 
   // These fields are from collection2
   index?: boolean | 1 | -1;
@@ -212,7 +218,7 @@ export const buildSchema = function <
   schemaCodec: t.TypeC<P>,
   overrides: Overrides<T>
 ): SimpleSchema {
-  const schema: SimpleSchemaDefinition = {};
+  const schema: SchemaDefinitionWithShorthand = {};
   Object.keys(schemaCodec.props).forEach((k) => {
     // Don't include the _id field in the schema, as it makes some operations
     // validate strangely (c.f. aldeed/meteor-collection2#124)
