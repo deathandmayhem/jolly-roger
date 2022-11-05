@@ -8,7 +8,7 @@ type LegacyProfile = Pick<Meteor.User, 'displayName' | 'googleAccount' | 'discor
 Migrations.add({
   version: 39,
   name: 'Promote profile fields to user top-level',
-  up() {
+  async up() {
     MeteorUsers.find({ profile: { $ne: null as any } }).forEach((u) => {
       const {
         displayName, googleAccount, discordAccount, phoneNumber, dingwords,
@@ -33,8 +33,8 @@ Migrations.add({
     MeteorUsers.createIndex({ displayName: 1 });
     MeteorUsers.createIndex({ _id: 1, displayName: 1 });
     MeteorUsers.createIndex({ _id: 1, dingwords: 1 });
-    dropIndex(MeteorUsers, 'profile.displayName_1');
-    dropIndex(MeteorUsers, '_id_1_profile.displayName_1');
-    dropIndex(MeteorUsers, '_id_1_profile.dingwords_1');
+    await dropIndex(MeteorUsers, 'profile.displayName_1');
+    await dropIndex(MeteorUsers, '_id_1_profile.displayName_1');
+    await dropIndex(MeteorUsers, '_id_1_profile.dingwords_1');
   },
 });
