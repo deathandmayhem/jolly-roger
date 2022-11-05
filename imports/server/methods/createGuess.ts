@@ -19,7 +19,7 @@ createGuess.define({
     return arg;
   },
 
-  run({
+  async run({
     puzzleId, guess, direction, confidence,
   }) {
     check(this.userId, String);
@@ -60,7 +60,7 @@ createGuess.define({
     const user = MeteorUsers.findOne(this.userId)!;
     const guesserDisplayName = user.displayName || '(no display name given)';
     const message = `${guesserDisplayName} submitted guess "${guess}"`;
-    sendChatMessageInternal({ puzzleId, message, sender: undefined });
+    await sendChatMessageInternal({ puzzleId, message, sender: undefined });
 
     return guessId;
   },

@@ -4,7 +4,7 @@ import { GuessType } from '../lib/schemas/Guess';
 import GlobalHooks from './GlobalHooks';
 import sendChatMessageInternal from './sendChatMessageInternal';
 
-export default function transitionGuess(guess: GuessType, newState: GuessType['state']) {
+export default async function transitionGuess(guess: GuessType, newState: GuessType['state']) {
   if (newState === guess.state) return;
 
   Guesses.update({
@@ -15,7 +15,7 @@ export default function transitionGuess(guess: GuessType, newState: GuessType['s
     },
   });
   const message = `Guess ${guess.guess} was marked ${newState}`;
-  sendChatMessageInternal({ puzzleId: guess.puzzle, message, sender: undefined });
+  await sendChatMessageInternal({ puzzleId: guess.puzzle, message, sender: undefined });
 
   if (newState === 'correct') {
     // Mark this puzzle as solved.
@@ -26,7 +26,7 @@ export default function transitionGuess(guess: GuessType, newState: GuessType['s
         answers: guess.guess,
       },
     });
-    GlobalHooks.runPuzzleSolvedHooks(guess.puzzle);
+    await GlobalHooks.runPuzzleSolvedHooks(guess.puzzle);
   } else if (guess.state === 'correct') {
     // Transitioning from correct -> something else: un-mark that puzzle as solved.
     Puzzles.update({
@@ -36,6 +36,6 @@ export default function transitionGuess(guess: GuessType, newState: GuessType['s
         answers: guess.guess,
       },
     });
-    GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle);
+    await GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle);
   }
 }

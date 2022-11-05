@@ -20,40 +20,40 @@ class HooksRegistry {
     }
   }
 
-  runPuzzleCreatedHooks(puzzleId: string) {
-    for (let i = 0; i < this.registeredHooks.length; i++) {
-      const hook = this.registeredHooks[i];
+  async runPuzzleCreatedHooks(puzzleId: string) {
+    await this.registeredHooks.reduce(async (p, hook) => {
+      await p;
       if (hook.onPuzzleCreated) {
-        hook.onPuzzleCreated(puzzleId);
+        await hook.onPuzzleCreated(puzzleId);
       }
-    }
+    }, Promise.resolve());
   }
 
-  runPuzzleSolvedHooks(puzzleId: string) {
-    for (let i = 0; i < this.registeredHooks.length; i++) {
-      const hook = this.registeredHooks[i];
+  async runPuzzleSolvedHooks(puzzleId: string) {
+    await this.registeredHooks.reduce(async (p, hook) => {
+      await p;
       if (hook.onPuzzleSolved) {
-        hook.onPuzzleSolved(puzzleId);
+        await hook.onPuzzleSolved(puzzleId);
       }
-    }
+    }, Promise.resolve());
   }
 
-  runPuzzleNoLongerSolvedHooks(puzzleId: string) {
-    for (let i = 0; i < this.registeredHooks.length; i++) {
-      const hook = this.registeredHooks[i];
+  async runPuzzleNoLongerSolvedHooks(puzzleId: string) {
+    await this.registeredHooks.reduce(async (p, hook) => {
+      await p;
       if (hook.onPuzzleNoLongerSolved) {
-        hook.onPuzzleNoLongerSolved(puzzleId);
+        await hook.onPuzzleNoLongerSolved(puzzleId);
       }
-    }
+    }, Promise.resolve());
   }
 
-  runChatMessageCreatedHooks(chatMessageId: string) {
-    for (let i = 0; i < this.registeredHooks.length; i++) {
-      const hook = this.registeredHooks[i];
+  async runChatMessageCreatedHooks(chatMessageId: string) {
+    await this.registeredHooks.reduce(async (p, hook) => {
+      await p;
       if (hook.onChatMessageCreated) {
-        hook.onChatMessageCreated(chatMessageId);
+        await hook.onChatMessageCreated(chatMessageId);
       }
-    }
+    }, Promise.resolve());
   }
 }
 

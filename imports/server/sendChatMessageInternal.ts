@@ -3,7 +3,7 @@ import ChatMessages from '../lib/models/ChatMessages';
 import Puzzles from '../lib/models/Puzzles';
 import GlobalHooks from './GlobalHooks';
 
-export default function sendChatMessageInternal({ puzzleId, message, sender }: {
+export default async function sendChatMessageInternal({ puzzleId, message, sender }: {
   puzzleId: string,
   message: string,
   sender: string | undefined,
@@ -21,5 +21,5 @@ export default function sendChatMessageInternal({ puzzleId, message, sender }: {
     timestamp: new Date(),
   });
 
-  GlobalHooks.runChatMessageCreatedHooks(msgId);
+  await GlobalHooks.runChatMessageCreatedHooks(msgId);
 }

@@ -12,9 +12,9 @@ sendChatMessage.define({
     return arg;
   },
 
-  run({ puzzleId, message }) {
+  async run({ puzzleId, message }) {
     check(this.userId, String);
 
-    sendChatMessageInternal({ puzzleId, message, sender: this.userId });
+    await sendChatMessageInternal({ puzzleId, message, sender: this.userId });
   },
 });
