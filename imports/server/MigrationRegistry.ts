@@ -32,7 +32,7 @@ import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 export type Migration = {
   version: number;
   name: string;
-  up: () => void;
+  up: () => void | Promise<void>;
 }
 
 export type MigrationControl = {
@@ -125,7 +125,8 @@ class MigrationRegistry {
         const nextMigration = this.migrations[applied];
         this.log(`running migration ${nextMigration.version} "${nextMigration.name}"`);
         // Run the next migration in sequence.
-        nextMigration.up();
+        // eslint-disable-next-line no-await-in-loop
+        await nextMigration.up();
         // Save the fact that we ran the migration durably.
         // eslint-disable-next-line no-await-in-loop
         const prev = await this.collection.rawCollection().findOneAndUpdate({
