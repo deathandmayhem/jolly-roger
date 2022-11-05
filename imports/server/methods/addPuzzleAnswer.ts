@@ -17,7 +17,7 @@ addPuzzleAnswer.define({
     return arg;
   },
 
-  run({ puzzleId, answer }) {
+  async run({ puzzleId, answer }) {
     check(this.userId, String);
 
     const puzzle = Puzzles.findOne(puzzleId);
@@ -53,7 +53,7 @@ addPuzzleAnswer.define({
     if (!savedAnswer) {
       throw new Meteor.Error(404, 'No such correct guess');
     }
-    sendChatMessageInternal({
+    await sendChatMessageInternal({
       puzzleId: savedAnswer.puzzle,
       message: `${savedAnswer.guess} was accepted as the correct answer`,
       sender: undefined,
@@ -65,6 +65,6 @@ addPuzzleAnswer.define({
         answers: savedAnswer.guess,
       },
     });
-    GlobalHooks.runPuzzleSolvedHooks(savedAnswer.puzzle);
+    await GlobalHooks.runPuzzleSolvedHooks(savedAnswer.puzzle);
   },
 });

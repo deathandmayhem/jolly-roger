@@ -67,10 +67,10 @@ updatePuzzle.define({
     Puzzles.update(puzzleId, update);
 
     if (oldPuzzle.title !== title) {
-      Meteor.defer(Meteor.bindEnvironment(() => {
-        const doc = ensureDocument({ _id: puzzleId, title, hunt: oldPuzzle.hunt });
+      Meteor.defer(Meteor.bindEnvironment(async () => {
+        const doc = await ensureDocument({ _id: puzzleId, title, hunt: oldPuzzle.hunt });
         const teamName = getTeamName();
-        renameDocument(doc.value.id, `${title}: ${teamName}`);
+        await renameDocument(doc.value.id, `${title}: ${teamName}`);
       }));
     }
   },

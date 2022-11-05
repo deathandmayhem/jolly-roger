@@ -4,7 +4,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Promise as MeteorPromise } from 'meteor/promise';
 import { WebApp } from 'meteor/webapp';
 import express from 'express';
 import mime from 'mime-types';
@@ -55,7 +54,7 @@ const hashes = [
   });
 });
 
-MeteorPromise.awaitAll(hashes);
+await Promise.all(hashes);
 
 // Include blob mappings in the runtime config, for faster loading, in addition
 // to publishing it (for live updates)

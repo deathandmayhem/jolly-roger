@@ -5,7 +5,7 @@ import Ansible from '../../Ansible';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import linkUserDiscordAccount from '../../methods/linkUserDiscordAccount';
-import addUserToDiscordRole from '../addUserToDiscordRole';
+import addUsersToDiscordRole from '../addUsersToDiscordRole';
 import { DiscordAPIClient, DiscordBot } from '../discord';
 
 linkUserDiscordAccount.define({
@@ -69,8 +69,9 @@ linkUserDiscordAccount.define({
       }
     }
 
-    Meteor.user()!.hunts?.forEach((h) => {
-      addUserToDiscordRole(this.userId!, h);
-    });
+    await Meteor.user()!.hunts?.reduce(async (p, h) => {
+      await p;
+      await addUsersToDiscordRole([this.userId!], h);
+    }, Promise.resolve());
   },
 });

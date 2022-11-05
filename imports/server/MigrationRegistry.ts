@@ -32,7 +32,7 @@ import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 export type Migration = {
   version: number;
   name: string;
-  up: () => void;
+  up: () => void | Promise<void>;
 }
 
 export type MigrationControl = {
@@ -125,7 +125,8 @@ class MigrationRegistry {
         const nextMigration = this.migrations[applied];
         this.log(`running migration ${nextMigration.version} "${nextMigration.name}"`);
         // Run the next migration in sequence.
-        nextMigration.up();
+        // eslint-disable-next-line no-await-in-loop
+        await nextMigration.up();
         // Save the fact that we ran the migration durably.
         // eslint-disable-next-line no-await-in-loop
         const prev = await this.collection.rawCollection().findOneAndUpdate({
@@ -162,7 +163,7 @@ class MigrationRegistry {
     // number of migrations that have been run to completion successfully.
     const control = this.collection.findOne({ _id: 'control' });
     if (control === undefined) {
-      this.ensureControlCreated();
+      await this.ensureControlCreated();
       // Query again because we're not holding a lock.
       return this.getVersion();
     } else {
@@ -170,11 +171,11 @@ class MigrationRegistry {
     }
   }
 
-  private ensureControlCreated() {
+  private async ensureControlCreated() {
     this.log('creating control record at version 0');
     // We use insert rather than upsert here
-    ignoringDuplicateKeyErrors(() => {
-      this.collection.insert({
+    await ignoringDuplicateKeyErrors(async () => {
+      await this.collection.insertAsync({
         _id: 'control',
         version: 0,
         locked: false,

@@ -1,7 +1,6 @@
 import { promises as dns } from 'dns';
 import { networkInterfaces } from 'os';
 import { Meteor } from 'meteor/meteor';
-import { Promise as MeteorPromise } from 'meteor/promise';
 import { _ } from 'meteor/underscore';
 import { Address6 } from 'ip-address';
 import { createWorker, types } from 'mediasoup';
@@ -116,11 +115,10 @@ class SFU {
 
   public consumerAcksHandle: Meteor.LiveQueryHandle;
 
-  constructor(ips: types.TransportListenIp[]) {
+  private constructor(ips: types.TransportListenIp[], worker: types.Worker) {
     this.ips = ips;
+    this.worker = worker;
 
-    process.env.DEBUG = 'mediasoup:WARN:* mediasoup:ERROR:*';
-    this.worker = MeteorPromise.await(createWorker());
     // Don't use mediasoup.observer because it's too hard to unwind.
     this.onWorkerCreated(this.worker);
 
@@ -175,6 +173,12 @@ class SFU {
       },
       // nothing to do when removed
     });
+  }
+
+  static async create(ips: types.TransportListenIp[]) {
+    process.env.DEBUG = 'mediasoup:WARN:* mediasoup:ERROR:*';
+    const worker = await createWorker();
+    return new SFU(ips, worker);
   }
 
   close() {
@@ -759,31 +763,39 @@ registerPeriodicCleanupHook((deadServers) => {
   Routers.remove({ createdServer: { $in: deadServers } });
 });
 
-Meteor.startup(() => {
+// A note: the current behavior of Meteor.startup is that it blocks the
+// application from serving requests until all startup functions have returned.
+// However, it is not async-aware, so it will start serving requests before the
+// mediasoup daemon is initialized. Because we only interface with mediasoup via
+// database records, this should be safe, as we will pick up any prematurely
+// created records when the daemon is eventually initialized. (And if the
+// behavior of Meteor.startup changes in the future, that should be OK too)
+Meteor.startup(async () => {
   const ips = Meteor.isDevelopment ?
     getLocalIPAddresses() :
-    MeteorPromise.await(getPublicIPAddresses());
+    await getPublicIPAddresses();
   Ansible.log('Discovered announceable IPs', { ips: ips.map((ip) => ip.announcedIp || ip.ip) });
 
   let sfu: SFU | undefined;
-  const updateSFU = (enable: boolean) => {
+  const updateSFU = async (enable: boolean) => {
     if (enable === !!sfu) {
       return;
     }
 
+    const newSfu = enable ? await SFU.create(ips) : undefined;
     sfu?.close();
-    sfu = enable ? new SFU(ips) : undefined;
+    sfu = newSfu;
   };
   // The logic here looks backwards because when a feature flag is on, calls are
   // disabled.
   const observer = FeatureFlags.find({ name: 'disable.webrtc' }).observe({
-    added: (f) => updateSFU(f.type !== 'on'),
-    changed: (f) => updateSFU(f.type !== 'on'),
-    removed: () => updateSFU(true),
+    added: (f) => { void updateSFU(f.type !== 'on'); },
+    changed: (f) => { void updateSFU(f.type !== 'on'); },
+    removed: () => { void updateSFU(true); },
   });
   // If there's no feature flag record, then calls are enabled
   if (!FeatureFlags.findOne({ name: 'disable.webrtc' })) {
-    updateSFU(true);
+    await updateSFU(true);
   }
 
   onExit(Meteor.bindEnvironment(() => {

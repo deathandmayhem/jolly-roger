@@ -10,13 +10,13 @@ import Servers from '../lib/models/Servers';
 const serverId = Random.id();
 
 // Global registry of callbacks to run when we determine that a backend is dead.
-const globalGCHooks: ((deadServers: string[]) => void)[] = [];
+const globalGCHooks: ((deadServers: string[]) => void | Promise<void>)[] = [];
 
-function registerPeriodicCleanupHook(f: (deadServers: string[]) => void): void {
+function registerPeriodicCleanupHook(f: (deadServers: string[]) => void | Promise<void>): void {
   globalGCHooks.push(f);
 }
 
-function cleanup() {
+async function cleanup() {
   Servers.upsert({ _id: serverId }, {
     $set: {
       pid: process.pid,
@@ -37,7 +37,10 @@ function cleanup() {
   }
 
   // Run all hooks.
-  globalGCHooks.forEach((f) => f(deadServers));
+  await globalGCHooks.reduce(async (p, f) => {
+    await p;
+    await f(deadServers);
+  }, Promise.resolve());
 
   // Delete the record of the server, now that we've cleaned up after it.
   Servers.remove({ _id: { $in: deadServers } });
@@ -45,7 +48,7 @@ function cleanup() {
 
 function periodic() {
   Meteor.setTimeout(periodic, 500 + (1000 * Random.fraction()));
-  cleanup();
+  void cleanup();
 }
 
 // Defer the first run to give other startup hooks a chance to run

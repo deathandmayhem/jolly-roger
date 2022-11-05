@@ -16,7 +16,7 @@ setGuessState.define({
     return arg;
   },
 
-  run({ guessId, state }) {
+  async run({ guessId, state }) {
     const guess = Guesses.findOne(guessId);
     if (!guess) {
       throw new Meteor.Error(404, 'No such guess');
@@ -30,6 +30,6 @@ setGuessState.define({
       'Transitioning guess to new state',
       { user: this.userId, guess: guess._id, state }
     );
-    transitionGuess(guess, state);
+    await transitionGuess(guess, state);
   },
 });

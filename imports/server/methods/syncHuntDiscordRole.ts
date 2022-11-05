@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
 import syncHuntDiscordRole from '../../methods/syncHuntDiscordRole';
-import addUserToDiscordRole from '../addUserToDiscordRole';
+import addUsersToDiscordRole from '../addUsersToDiscordRole';
 
 syncHuntDiscordRole.define({
   validate(arg) {
@@ -11,16 +11,14 @@ syncHuntDiscordRole.define({
     return arg;
   },
 
-  run({ huntId }) {
+  async run({ huntId }) {
     check(this.userId, String);
 
     if (!userMayUseDiscordBotAPIs(this.userId)) {
       throw new Meteor.Error(401, `User ${this.userId} not permitted to access Discord bot APIs`);
     }
 
-    MeteorUsers.find({ hunts: huntId })
-      .forEach((u) => {
-        addUserToDiscordRole(u._id, huntId);
-      });
+    const userIds = MeteorUsers.find({ hunts: huntId }).fetch().map((u) => u._id);
+    await addUsersToDiscordRole(userIds, huntId);
   },
 });

@@ -7,7 +7,7 @@ import dropIndex from './dropIndex';
 Migrations.add({
   version: 15,
   name: 'Backfill props from the base schema on chat messages',
-  up() {
+  async up() {
     const hunts: Record<string, string> = {};
     Puzzles.find().forEach((p: PuzzleType) => { hunts[p._id] = p.hunt; });
 
@@ -37,7 +37,7 @@ Migrations.add({
       });
     });
 
-    dropIndex(ChatMessages, 'puzzleId_1_timestamp_-1');
+    await dropIndex(ChatMessages, 'puzzleId_1_timestamp_-1');
     ChatMessages.createIndex({ deleted: 1, puzzle: 1 });
   },
 });

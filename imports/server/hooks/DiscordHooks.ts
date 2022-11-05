@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Promise as MeteorPromise } from 'meteor/promise';
 import Flags from '../../Flags';
 import ChatMessages from '../../lib/models/ChatMessages';
 import Hunts from '../../lib/models/Hunts';
@@ -30,7 +29,7 @@ function makeDiscordBotFromSettings(): DiscordBot | undefined {
 }
 
 const DiscordHooks: Hookset = {
-  onPuzzleCreated(puzzleId: string) {
+  async onPuzzleCreated(puzzleId: string) {
     const bot = makeDiscordBotFromSettings();
     if (!bot) {
       return;
@@ -54,11 +53,11 @@ const DiscordHooks: Hookset = {
           fields,
         },
       };
-      MeteorPromise.await(bot.postMessageToChannel(hunt.puzzleHooksDiscordChannel.id, messageObj));
+      await bot.postMessageToChannel(hunt.puzzleHooksDiscordChannel.id, messageObj);
     }
   },
 
-  onPuzzleSolved(puzzleId: string) {
+  async onPuzzleSolved(puzzleId: string) {
     const bot = makeDiscordBotFromSettings();
     if (!bot) {
       return;
@@ -83,7 +82,7 @@ const DiscordHooks: Hookset = {
           ],
         },
       };
-      MeteorPromise.await(bot.postMessageToChannel(hunt.puzzleHooksDiscordChannel.id, messageObj));
+      await bot.postMessageToChannel(hunt.puzzleHooksDiscordChannel.id, messageObj);
     }
   },
 

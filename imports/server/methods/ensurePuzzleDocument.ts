@@ -14,7 +14,7 @@ ensurePuzzleDocument.define({
     return arg;
   },
 
-  run({ puzzleId }) {
+  async run({ puzzleId }) {
     check(this.userId, String);
 
     const user = MeteorUsers.findOne(this.userId)!;
@@ -25,7 +25,7 @@ ensurePuzzleDocument.define({
 
     this.unblock();
 
-    ensureDocument(puzzle);
+    await ensureDocument(puzzle);
 
     if (Flags.active('disable.google')) {
       return;
@@ -36,7 +36,7 @@ ensurePuzzleDocument.define({
     }
 
     if (user.googleAccount) {
-      ensureHuntFolderPermission(puzzle.hunt, this.userId, user.googleAccount);
+      await ensureHuntFolderPermission(puzzle.hunt, this.userId, user.googleAccount);
     }
   },
 });

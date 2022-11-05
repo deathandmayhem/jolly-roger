@@ -14,7 +14,7 @@ removePuzzleAnswer.define({
     return arg;
   },
 
-  run({ puzzleId, guessId }) {
+  async run({ puzzleId, guessId }) {
     check(this.userId, String);
 
     const puzzle = Puzzles.findOne({
@@ -32,6 +32,6 @@ removePuzzleAnswer.define({
 
     const guess = Guesses.findOne({ puzzle: puzzleId, _id: guessId });
     if (!guess) return;
-    transitionGuess(guess, 'incorrect');
+    await transitionGuess(guess, 'incorrect');
   },
 });

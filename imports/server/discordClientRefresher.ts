@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { Promise } from 'meteor/promise';
 import Discord from 'discord.js';
 import Flags from '../Flags';
 import DiscordCache from '../lib/models/DiscordCache';
@@ -90,7 +89,7 @@ class DiscordClientRefresher {
       this.client = client;
 
       Meteor.defer(() => {
-        Locks.withLock('discord-bot', (lock) => {
+        void Locks.withLock('discord-bot', async (lock) => {
           // The token gets set to null when the gateway is destroyed. If it's
           // been destroyed, bail, since that means that the config changed and
           // another defer function will have been scheduled
@@ -99,10 +98,10 @@ class DiscordClientRefresher {
           }
 
           // Start renewing the lock now in the background (remember -
-          // "background" includes calls to Promise.await)
-          const renew = Meteor.setInterval(() => {
+          // "background" includes blocking on awaited promises)
+          const renew = Meteor.setInterval(async () => {
             try {
-              Locks.renew(lock);
+              await Locks.renew(lock);
             } catch {
               // we must have lost the lock
               this.refreshClient();
@@ -112,9 +111,9 @@ class DiscordClientRefresher {
           try {
             // If we get the lock, we're responsible for opening the websocket
             // gateway connection
-            const ready = new Promise<void>((r) => client.on('ready', r));
-            Promise.await(client.login(this.token));
-            Promise.await(ready);
+            const ready = new Promise<void>((r) => { client.on('ready', r); });
+            await client.login(this.token);
+            await ready;
 
             this.cacheResource(client, 'guild', client.guilds.cache, 'guildCreate', 'guildUpdate', 'guildDelete');
             this.cacheResource(client, 'channel', client.channels.cache, 'channelCreate', 'channelUpdate', 'channelDelete');
@@ -145,15 +144,15 @@ class DiscordClientRefresher {
             client.on('userUpdate', Meteor.bindEnvironment((_, u) => updateUser(u)));
             client.users.cache.forEach(Meteor.bindEnvironment(updateUser));
 
-            const invalidated = new Promise<void>((r) => client.on('invalidated', r));
+            const invalidated = new Promise<void>((r) => { client.on('invalidated', r); });
             const wakeup = new Promise<void>((r) => {
               this.wakeup = r;
             });
 
-            const wokenUp = Promise.await(Promise.race([
+            const wokenUp = await Promise.race([
               wakeup.then(() => true),
               invalidated.then(() => false),
-            ]));
+            ]);
             // if we were explicitly woken up, then another instance of
             // refreshClient fired off and we don't have to do anything;
             // otherwise we need to clean things up ourselves

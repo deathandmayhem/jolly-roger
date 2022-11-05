@@ -13,24 +13,24 @@ fetchAPIKey.define({
     return arg;
   },
 
-  run({ forUser }) {
+  async run({ forUser }) {
     check(this.userId, String);
 
     const user = userForKeyOperation(this.userId, forUser);
 
-    let key = APIKeys.findOne({ user });
+    let key = await APIKeys.findOneAsync({ user });
     if (!key) {
       // It would be cool to handle this with unique indexes, but we
       // need partial indexes to only match { deleted: false }, and I
       // don't want to assume a new enough version of MongoDB for
       // that.
-      Locks.withLock(`api_key:${user}`, () => {
-        key = APIKeys.findOne({ user });
+      await Locks.withLock(`api_key:${user}`, async () => {
+        key = await APIKeys.findOneAsync({ user });
 
         if (!key) {
           Ansible.log('Generating new API key for user', { user, requestedBy: this.userId });
-          key = APIKeys.findOne(
-            APIKeys.insert({
+          key = await APIKeys.findOneAsync(
+            await APIKeys.insertAsync({
               user,
               key: Random.id(32),
             })

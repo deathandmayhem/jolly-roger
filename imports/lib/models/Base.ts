@@ -64,6 +64,13 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     return super.insert(<any>doc, callback);
   }
 
+  // @ts-expect-error See above
+  insertAsync<U>(
+    doc: ValidateShape<U, Partial<T>>
+  ): Promise<string> {
+    return super.insertAsync(<any>doc);
+  }
+
   // All models have a destroy method which marks them as soft-deleted,
   // and allows specifying a callback to aid in performing any cascading
   // required.  At the time of writing, we do not actually do any cascading.
@@ -79,12 +86,28 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     );
   }
 
+  destroyAsync(selector: FindSelector<T>): Promise<number> {
+    return this.updateAsync(
+      this[formatQuery](selector),
+      <Mongo.Modifier<T>>{ $set: { deleted: true } },
+      { multi: true }
+    );
+  }
+
   undestroy(selector: FindSelector<T>, callback?: (error: Error | null, updated: number) => void) {
     this.update(
       this[formatQuery](selector),
       <Mongo.Modifier<T>>{ $set: { deleted: false } },
       { multi: true },
       callback
+    );
+  }
+
+  undestroyAsync(selector: FindSelector<T>): Promise<number> {
+    return this.updateAsync(
+      this[formatQuery](selector),
+      <Mongo.Modifier<T>>{ $set: { deleted: false } },
+      { multi: true }
     );
   }
 
@@ -126,6 +149,13 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     );
   }
 
+  findOneAsync(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
+    return super.findOneAsync(
+      { ...this[formatQuery](selector), deleted: false as any },
+      this[formatOptions](options)
+    );
+  }
+
   findDeleted(selector: FindSelector<T> = {}, options: FindOptions = {}) {
     return super.find(
       { ...this[formatQuery](selector), deleted: true as any },
@@ -140,12 +170,23 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     );
   }
 
+  findOneDeletedAsync(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
+    return super.findOneAsync(
+      { ...this[formatQuery](selector), deleted: true as any },
+      this[formatOptions](options)
+    );
+  }
+
   findAllowingDeleted(selector: FindSelector<T> = {}, options: FindOptions = {}) {
     return super.find(selector, options);
   }
 
   findOneAllowingDeleted(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
     return super.findOne(selector, options);
+  }
+
+  findOneAllowingDeletedAsync(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
+    return super.findOneAsync(selector, options);
   }
 
   publish(makeConstraint?: (userId: string) => Mongo.Query<T> | undefined) {

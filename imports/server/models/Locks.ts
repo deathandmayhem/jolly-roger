@@ -1,7 +1,7 @@
+/* eslint-disable no-await-in-loop */
 // Locks are a server-only class
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../../Ansible';
 import ignoringDuplicateKeyErrors from '../ignoringDuplicateKeyErrors';
 import LockSchema, { LockType } from '../schemas/Lock';
@@ -14,28 +14,28 @@ const Locks = new class extends Mongo.Collection<LockType> {
     super('jr_locks');
   }
 
-  _tryAcquire(name: string) {
-    return ignoringDuplicateKeyErrors(() => {
+  async _tryAcquire(name: string) {
+    return ignoringDuplicateKeyErrors(async () => {
       // Because the Mongo.Collection doesn't know about SimpleSchema
       // autovalues, it doesn't know which fields are actually required. Cast to
       // any since this is known safe
-      return this.insert(<any>{ name });
+      return this.insertAsync(<any>{ name });
     });
   }
 
-  _release(lock: string) {
-    this.remove(lock);
+  async _release(lock: string) {
+    await this.removeAsync(lock);
   }
 
-  renew(id: string) {
-    const updated = this.update(id, { $set: { renewedAt: new Date() } });
+  async renew(id: string) {
+    const updated = await this.updateAsync(id, { $set: { renewedAt: new Date() } });
     if (updated === 0) {
       // we've already been preempted
       throw new Error(`Lock was preempted: id=${id}`);
     }
   }
 
-  withLock<T>(name: string, critSection: (id: string) => T) {
+  async withLock<T>(name: string, critSection: (id: string) => Promise<T>) {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       let handle: Meteor.LiveQueryHandle | undefined;
@@ -66,15 +66,15 @@ const Locks = new class extends Mongo.Collection<LockType> {
         });
 
         // eslint-disable-next-line no-underscore-dangle
-        lock = this._tryAcquire(name);
+        lock = await this._tryAcquire(name);
         if (lock) {
           return critSection(lock);
         }
 
         // Lock is held, so wait until we can preempt
         const timedOut = new Promise<LockType | undefined>((resolve) => {
-          const waitForDeadline = () => {
-            const otherLock = cursor.fetch()[0];
+          const waitForDeadline = async () => {
+            const otherLock = (await cursor.fetchAsync())[0];
             if (!otherLock) {
               // Lock was deleted, so removed promise will resolve
               resolve(undefined);
@@ -95,22 +95,25 @@ const Locks = new class extends Mongo.Collection<LockType> {
             // Otherwise wait until expiration and then check again
             timeoutHandle = Meteor.setTimeout(waitForDeadline, timeout);
           };
-          waitForDeadline();
+          void waitForDeadline();
         });
 
         // If we time out, then preempt
-        const preemptableLock = MeteorPromise.await(Promise.race([removed, timedOut]));
+        const preemptableLock = await Promise.race([removed, timedOut]);
         cleanupWatches();
         if (preemptableLock) {
           Ansible.log('Preempting lock', { id: preemptableLock._id, name });
-          this.remove({ _id: preemptableLock._id, renewedAt: preemptableLock.renewedAt });
+          await this.removeAsync({
+            _id: preemptableLock._id,
+            renewedAt: preemptableLock.renewedAt,
+          });
         }
       } finally {
         cleanupWatches();
 
         if (lock) {
           // eslint-disable-next-line no-underscore-dangle
-          this._release(lock);
+          await this._release(lock);
         }
       }
     }

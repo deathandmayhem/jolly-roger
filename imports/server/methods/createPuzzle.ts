@@ -25,7 +25,7 @@ createPuzzle.define({
     return arg;
   },
 
-  run({
+  async run({
     huntId, title, tags, expectedAnswerCount, docType,
   }) {
     check(this.userId, String);
@@ -62,7 +62,7 @@ createPuzzle.define({
     // requires us to have an _id for the puzzle, which is why we generate it
     // manually above instead of letting Meteor do it)
     if (DriveClient.ready() && !Flags.active('disable.google')) {
-      ensureDocument(fullPuzzle, docType);
+      await ensureDocument(fullPuzzle, docType);
     }
 
     Puzzles.insert(fullPuzzle);
@@ -70,7 +70,7 @@ createPuzzle.define({
     // Run any puzzle-creation hooks, like creating a default document
     // attachment or announcing the puzzle to Slack.
     Meteor.defer(Meteor.bindEnvironment(() => {
-      GlobalHooks.runPuzzleCreatedHooks(fullPuzzle._id);
+      void GlobalHooks.runPuzzleCreatedHooks(fullPuzzle._id);
     }));
 
     return fullPuzzle._id;
