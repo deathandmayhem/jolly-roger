@@ -105,7 +105,7 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
   });
   initialized = true;
   this.ready();
-  return null;
+  return undefined;
 });
 
 // Unlike subscribers.counts, which takes a query string against the
@@ -147,5 +147,5 @@ Meteor.publish('subscribers.fetch', function (name) {
   });
   this.onStop(() => handle.stop());
   this.ready();
-  return null;
+  return undefined;
 });
