@@ -53,7 +53,7 @@
     "react-router-dom": "^6.2.1",
     "react-select": "^5.6.0",
     "react-split-pane": "^0.1.92",
-    "react-textarea-autosize": "^8.3.4",
+    "react-textarea-autosize": "^8.4.0",
     "simpl-schema": "^3.0.1",
     "stacktrace-js": "^2.0.2",
     "styled-components": "^5.3.6",
