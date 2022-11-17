@@ -68,7 +68,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
         // eslint-disable-next-line no-underscore-dangle
         lock = await this._tryAcquire(name);
         if (lock) {
-          return critSection(lock);
+          return await critSection(lock);
         }
 
         // Lock is held, so wait until we can preempt
