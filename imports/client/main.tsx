@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
 import Routes from './components/Routes';
@@ -28,15 +28,17 @@ Meteor.startup(() => {
   const container = document.createElement('div');
   container.className = 'jolly-roger';
   document.body.appendChild(container);
-  ReactDOM.render(
+  const root = createRoot(container);
+  root.render(
     <>
       <Reset />
       {!Meteor.isAppTest && (
-        <BrowserRouter>
-          <Routes />
-        </BrowserRouter>
+        <React.StrictMode>
+          <BrowserRouter>
+            <Routes />
+          </BrowserRouter>
+        </React.StrictMode>
       )}
-    </>,
-    container
+    </>
   );
 });
