@@ -141,8 +141,8 @@ if (Meteor.isClient) {
             this.skip();
           }
 
+          render(<TestApp />);
           await act(async () => {
-            render(<TestApp />);
             await stabilize();
             navigate.current!(url);
             await stabilize();
@@ -163,8 +163,8 @@ if (Meteor.isClient) {
             this.skip();
           }
 
+          render(<TestApp />);
           await act(async () => {
-            render(<TestApp />);
             await stabilize();
             navigate.current!(url);
             await stabilize();

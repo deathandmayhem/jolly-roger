@@ -57,8 +57,8 @@ if (Meteor.isClient) {
       });
 
       it('redirects to the create-first-user page', async function () {
+        render(<TestApp />);
         await act(async () => {
-          render(<TestApp />);
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/create-first-user');
@@ -72,8 +72,8 @@ if (Meteor.isClient) {
       });
 
       it('redirects to the login page', async function () {
+        render(<TestApp />);
         await act(async () => {
-          render(<TestApp />);
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/login', 'redirects to login from root');
@@ -95,8 +95,8 @@ if (Meteor.isClient) {
       });
 
       it('redirects away from the login page', async function () {
+        render(<TestApp />);
         await act(async () => {
-          render(<TestApp />);
           await stabilize();
           (navigate.current!)('/login');
           await stabilize();
@@ -105,8 +105,8 @@ if (Meteor.isClient) {
       });
 
       it('does not redirect away from an authenticated page', async function () {
+        render(<TestApp />);
         await act(async () => {
-          render(<TestApp />);
           await stabilize();
           (navigate.current!)('/hunts');
           await stabilize();
