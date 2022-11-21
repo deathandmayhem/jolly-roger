@@ -60,7 +60,7 @@
     "use-persisted-state": "^0.3.3"
   },
   "devDependencies": {
-    "@testing-library/react": "^13.3.0",
+    "@testing-library/react": "^13.4.0",
     "@types/chai": "^4.3.4",
     "@types/dompurify": "^2.4.0",
     "@types/element-resize-detector": "^1.1.3",
