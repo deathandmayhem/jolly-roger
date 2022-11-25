@@ -2,7 +2,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane';
@@ -31,6 +30,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import styled, { css } from 'styled-components';
 import Ansible from '../../Ansible';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
+import { indexedById, sortedBy } from '../../lib/listUtils';
 import ChatMessages from '../../lib/models/ChatMessages';
 import Documents from '../../lib/models/Documents';
 import Guesses from '../../lib/models/Guesses';
@@ -43,6 +43,7 @@ import { ChatMessageType } from '../../lib/schemas/ChatMessage';
 import { DocumentType } from '../../lib/schemas/Document';
 import { GuessType } from '../../lib/schemas/Guess';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
+import { TagType } from '../../lib/schemas/Tag';
 import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
 import addPuzzleTag from '../../methods/addPuzzleTag';
 import createGuess from '../../methods/createGuess';
@@ -700,8 +701,9 @@ const PuzzlePageMetadata = ({
     }
   }, []);
 
-  const tagsById = _.indexBy(allTags, '_id');
-  const tags = puzzle.tags.map((tagId) => { return tagsById[tagId]; }).filter(Boolean);
+  const tagsById = indexedById(allTags);
+  const maybeTags: (TagType | undefined)[] = puzzle.tags.map((tagId) => { return tagsById.get(tagId); });
+  const tags: TagType[] = maybeTags.filter<TagType>((t): t is TagType => t !== undefined);
   const correctGuesses = guesses.filter((guess) => guess.state === 'correct');
   const numGuesses = guesses.length;
 
@@ -1005,7 +1007,7 @@ const PuzzleGuessModal = React.forwardRef(({
             </tr>
           </thead>
           <tbody>
-            {_.sortBy(guesses, 'createdAt').reverse().map((guess) => {
+            {sortedBy(guesses, (g) => g.createdAt).reverse().map((guess) => {
               return (
                 <tr key={guess._id}>
                   <AnswerTableCell>{guess.guess}</AnswerTableCell>

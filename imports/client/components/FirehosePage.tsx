@@ -1,5 +1,4 @@
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
@@ -12,6 +11,7 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
+import { indexedById } from '../../lib/listUtils';
 import ChatMessages from '../../lib/models/ChatMessages';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
@@ -90,8 +90,8 @@ const FirehosePage = () => {
   const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
   const puzzles = useTracker(() => (
     loading ?
-      {} :
-      _.indexBy(Puzzles.findAllowingDeleted({ hunt: huntId }).fetch(), '_id')
+      new Map<string, PuzzleType>() :
+      indexedById(Puzzles.findAllowingDeleted({ hunt: huntId }).fetch())
   ), [loading, huntId]);
   const chatMessages = useTracker(() => (
     loading ?
@@ -242,7 +242,7 @@ const FirehosePage = () => {
               <Message
                 key={msg._id}
                 msg={msg}
-                puzzle={puzzles[msg.puzzle]}
+                puzzle={puzzles.get(msg.puzzle)}
                 displayName={msg.sender ? displayNames[msg.sender] : 'jolly-roger'}
               />
             );

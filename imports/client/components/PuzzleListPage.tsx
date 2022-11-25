@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons/faBullhorn';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { faFaucet } from '@fortawesome/free-solid-svg-icons/faFaucet';
@@ -26,6 +25,7 @@ import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled, { css } from 'styled-components';
+import { sortedBy } from '../../lib/listUtils';
 import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
@@ -298,7 +298,7 @@ const PuzzleListView = ({
         break;
       }
       case 'unlock': {
-        const puzzlesByUnlock = _.sortBy(allPuzzles, (p) => { return p.createdAt; });
+        const puzzlesByUnlock = sortedBy(allPuzzles, (p) => { return p.createdAt; });
         const retainedPuzzlesByUnlock = puzzlesByUnlock.filter((p) => retainedIds.has(p._id));
         listComponent = (
           <PuzzleList

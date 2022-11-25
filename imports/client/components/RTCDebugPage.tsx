@@ -1,6 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { useFind, useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import { faArrowCircleLeft } from '@fortawesome/free-solid-svg-icons/faArrowCircleLeft';
 import { faBroadcastTower } from '@fortawesome/free-solid-svg-icons/faBroadcastTower';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
@@ -40,6 +39,7 @@ import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
 import { userIdIsAdmin } from '../../lib/is-admin';
+import { groupedBy } from '../../lib/listUtils';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Servers from '../../lib/models/Servers';
@@ -811,8 +811,12 @@ const RoomlessPeers = ({ calls }: { calls: string[] }) => {
 };
 
 const ServerTable = ({ servers }: { servers: ServerType[] }) => {
-  const countByServer = useTracker(() => _.countBy(Rooms.find().fetch(), 'routedServer'), []);
-  const totalRooms = Object.values(countByServer).reduce((a, b) => a + b, 0);
+  const roomsByServer = useTracker(() => {
+    return groupedBy(Rooms.find().fetch(), (room) => room.routedServer);
+  }, []);
+  const totalRooms = [...roomsByServer.values()].reduce((acc, roomsOnServer) => {
+    return acc + roomsOnServer.length;
+  }, 0);
   return (
     <>
       <h2>Servers</h2>
@@ -829,7 +833,7 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
         </thead>
         <tbody>
           {servers.map((s) => {
-            const roomCount = countByServer[s._id] || 0;
+            const roomCount = roomsByServer.get(s._id)?.length || 0;
             const roomPercentage = totalRooms > 0 ? 100 * (roomCount / totalRooms) : 0;
             return (
               <tr key={s._id}>

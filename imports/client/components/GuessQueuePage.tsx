@@ -1,7 +1,6 @@
 /* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useEffect, useRef } from 'react';
@@ -11,6 +10,7 @@ import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled, { css } from 'styled-components';
+import { indexedById } from '../../lib/listUtils';
 import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
@@ -207,7 +207,7 @@ const GuessQueuePage = () => {
 
   const hunt = useTracker(() => Hunts.findOne({ _id: huntId }), [huntId]);
   const guesses = useTracker(() => (loading ? [] : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch()), [huntId, loading]);
-  const puzzles = useTracker(() => (loading ? {} : _.indexBy(Puzzles.find({ hunt: huntId }).fetch(), '_id')), [huntId, loading]);
+  const puzzles = useTracker(() => (loading ? new Map<string, PuzzleType>() : indexedById(Puzzles.find({ hunt: huntId }).fetch())), [huntId, loading]);
   const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
   const canEdit = useTracker(() => userMayUpdateGuessesForHunt(Meteor.userId(), huntId), [huntId]);
 
@@ -255,7 +255,7 @@ const GuessQueuePage = () => {
     // either the guess or the puzzle title.
     const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
     return (guess) => {
-      const puzzle = puzzles[guess.puzzle];
+      const puzzle = puzzles.get(guess.puzzle)!;
       const guessText = guess.guess.toLowerCase();
 
       const titleWords = puzzle.title.toLowerCase().split(' ');
@@ -312,7 +312,7 @@ const GuessQueuePage = () => {
             hunt={hunt}
             guess={guess}
             createdByDisplayName={displayNames[guess.createdBy]}
-            puzzle={puzzles[guess.puzzle]}
+            puzzle={puzzles.get(guess.puzzle)!}
             canEdit={canEdit}
           />
         );

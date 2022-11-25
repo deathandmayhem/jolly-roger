@@ -1,5 +1,4 @@
 /* eslint-disable react/destructuring-assignment */
-import { _ } from 'meteor/underscore';
 import { faAlignJustify } from '@fortawesome/free-solid-svg-icons/faAlignJustify';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
@@ -12,6 +11,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Popover from 'react-bootstrap/Popover';
 import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
+import { indexedById } from '../../lib/listUtils';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { TagType } from '../../lib/schemas/Tag';
 import { removePunctuation } from './PuzzleAnswer';
@@ -244,7 +244,7 @@ const Tag = (props: TagProps) => {
     if (!props.popoverRelated) {
       return;
     }
-    const tagIndex = _.indexBy(allTagsIfPresent!, '_id');
+    const tagIndex = indexedById(allTagsIfPresent!);
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
     const sharedTag = allTagsIfPresent!.find((t) => t.name === sharedTagName);
     const relatedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(

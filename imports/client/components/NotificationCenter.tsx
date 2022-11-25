@@ -3,7 +3,6 @@ import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
-import { _ } from 'meteor/underscore';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { faSkullCrossbones } from '@fortawesome/free-solid-svg-icons/faSkullCrossbones';
@@ -16,6 +15,7 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import Flags from '../../Flags';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
+import { indexedById } from '../../lib/listUtils';
 import Announcements from '../../lib/models/Announcements';
 import ChatNotifications from '../../lib/models/ChatNotifications';
 import Guesses from '../../lib/models/Guesses';
@@ -466,10 +466,10 @@ const NotificationCenter = () => {
   }, []);
 
   // Lookup tables to support guesses/pendingAnnouncements/chatNotifications
-  const hunts = useTracker(() => (loading ? {} : _.indexBy(Hunts.find().fetch(), '_id')), [loading]);
-  const puzzles = useTracker(() => (loading ? {} : _.indexBy(Puzzles.find().fetch(), '_id')), [loading]);
+  const hunts = useTracker(() => (loading ? new Map<string, HuntType>() : indexedById(Hunts.find().fetch())), [loading]);
+  const puzzles = useTracker(() => (loading ? new Map<string, PuzzleType>() : indexedById(Puzzles.find().fetch())), [loading]);
   const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
-  const announcements = useTracker(() => (loading ? {} : _.indexBy(Announcements.find().fetch(), '_id')), [loading]);
+  const announcements = useTracker(() => (loading ? new Map<string, AnnouncementType>() : indexedById(Announcements.find().fetch())), [loading]);
 
   const guesses = useTracker(() => (
     loading || !fetchPendingGuesses ?
@@ -534,8 +534,8 @@ const NotificationCenter = () => {
     messages.push(<GuessMessage
       key={g._id}
       guess={g}
-      puzzle={puzzles[g.puzzle]!}
-      hunt={hunts[g.hunt]!}
+      puzzle={puzzles.get(g.puzzle)!}
+      hunt={hunts.get(g.hunt)!}
       guesser={displayNames[g.createdBy]!}
       onDismiss={dismissGuess}
     />);
@@ -546,7 +546,7 @@ const NotificationCenter = () => {
       <AnnouncementMessage
         key={pa._id}
         id={pa._id}
-        announcement={announcements[pa.announcement]!}
+        announcement={announcements.get(pa.announcement)!}
         createdByDisplayName={displayNames[pa.createdBy]!}
       />
     );
@@ -557,8 +557,8 @@ const NotificationCenter = () => {
       <ChatNotificationMessage
         key={cn._id}
         cn={cn}
-        hunt={hunts[cn.hunt]!}
-        puzzle={puzzles[cn.puzzle]!}
+        hunt={hunts.get(cn.hunt)!}
+        puzzle={puzzles.get(cn.puzzle)!}
         senderDisplayName={displayNames[cn.sender]!}
       />
     );
