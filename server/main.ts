@@ -5,6 +5,9 @@ import '../imports/lib/config/accounts';
 // Register migrations
 import '../imports/server/migrations/all';
 
+// Set up multi-process load balancer
+import '../imports/server/loadBalance';
+
 // Import methods
 import '../imports/server/methods/index';
 
