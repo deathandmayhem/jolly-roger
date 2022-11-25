@@ -1,11 +1,12 @@
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/esm/Tooltip';
 import styled from 'styled-components';
+import { indexedById } from '../../lib/listUtils';
 import Hunts from '../../lib/models/Hunts';
+import { HuntType } from '../../lib/schemas/Hunt';
 import Avatar from './Avatar';
 
 const AvatarTooltip = styled(Tooltip)`
@@ -32,7 +33,10 @@ const OthersProfilePage = ({
 
   const huntsLoading = useSubscribe(showHuntList ? 'mongo.hunts' : undefined, {});
   const loading = huntsLoading();
-  const hunts = useTracker(() => (loading ? {} : _.indexBy(Hunts.find().fetch(), '_id')), [loading]);
+  const hunts = useTracker(() => (loading ?
+    new Map<string, HuntType>() :
+    indexedById(Hunts.find().fetch())
+  ), [loading]);
 
   return (
     <div>
@@ -97,7 +101,7 @@ const OthersProfilePage = ({
                   loading ?
                     'loading...' :
                     user.hunts?.map((huntId) => (
-                      hunts[huntId]?.name ?? `Unknown hunt ${huntId}`
+                      hunts.get(huntId)?.name ?? `Unknown hunt ${huntId}`
                     ))
                       .join(', ')
                 )}

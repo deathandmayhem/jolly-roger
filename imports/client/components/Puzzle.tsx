@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
@@ -13,6 +12,7 @@ import ButtonGroup from 'react-bootstrap/esm/ButtonGroup';
 import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import Ansible from '../../Ansible';
+import { difference, indexedById } from '../../lib/listUtils';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { TagType } from '../../lib/schemas/Tag';
 import { computeSolvedness, Solvedness } from '../../lib/solvedness';
@@ -176,9 +176,11 @@ const Puzzle = React.memo(({
 
   // id, title, answer, tags
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
-  const tagIndex = _.indexBy(allTags, '_id');
-  const shownTags = _.difference(puzzle.tags, suppressTags || []);
-  const ownTags = shownTags.map((tagId) => { return tagIndex[tagId]; }).filter(Boolean);
+  const tagIndex = indexedById(allTags);
+  const shownTags = difference(puzzle.tags, suppressTags || []);
+  const ownTags = shownTags
+    .map((tagId) => { return tagIndex.get(tagId); })
+    .filter<TagType>((t): t is TagType => t !== undefined);
 
   const solvedness = computeSolvedness(puzzle);
   const answers = puzzle.answers.map((answer, i) => {

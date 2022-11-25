@@ -1,7 +1,6 @@
 import { promises as dns } from 'dns';
 import { networkInterfaces } from 'os';
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import { Address6 } from 'ip-address';
 import { createWorker, types } from 'mediasoup';
 import { AudioLevelObserver } from 'mediasoup/node/lib/AudioLevelObserver';
@@ -26,6 +25,7 @@ import { ConsumerAckType } from '../lib/schemas/mediasoup/ConsumerAck';
 import { ProducerClientType } from '../lib/schemas/mediasoup/ProducerClient';
 import { RoomType } from '../lib/schemas/mediasoup/Room';
 import { TransportRequestType } from '../lib/schemas/mediasoup/TransportRequest';
+import throttle from '../lib/throttle';
 import { registerPeriodicCleanupHook, serverId } from './garbage-collection';
 import onExit from './onExit';
 
@@ -335,7 +335,7 @@ class SFU {
 
     const observerAppData = observer.appData as AudioLevelObserverAppData;
 
-    const updateLastActivity = _.throttle(Meteor.bindEnvironment(() => {
+    const updateLastActivity = throttle(Meteor.bindEnvironment(() => {
       CallHistories.upsert({
         hunt: observerAppData.hunt,
         call: observerAppData.call,
@@ -348,7 +348,7 @@ class SFU {
     });
     // No need to inspect volumes, as any volume is indicative of activity
     // (absence of activity would translate to a "silence" event)
-    observer.observer.on('volumes', updateLastActivity);
+    observer.observer.on('volumes', updateLastActivity.attempt);
 
     this.observers.set(observerAppData.call, observer);
   }

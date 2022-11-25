@@ -5,8 +5,8 @@ import { TagType } from '../../../../imports/lib/schemas/Tag';
 
 const hunt = 'hunt_id';
 const allTags: TagType[] = [];
-const allTagsById: Record<string, TagType> = {}; // index by _id -- wanted by implementation
-const allTagsByName: Record<string, TagType> = {}; // index by name, wanted for test readability
+const allTagsById: Map<string, TagType> = new Map(); // index by _id -- wanted by implementation
+const allTagsByName: Map<string, TagType> = new Map(); // index by name, wanted for test readability
 const stubUserId = 'user';
 
 function makeTag(name: string): TagType {
@@ -23,8 +23,8 @@ function makeTag(name: string): TagType {
     updatedAt: undefined,
   };
   allTags.push(tag);
-  allTagsById[_id] = tag;
-  allTagsByName[name] = tag;
+  allTagsById.set(_id, tag);
+  allTagsByName.set(name, tag);
   return tag;
 }
 
@@ -41,8 +41,8 @@ function makePuzzle(title: string, tags: string[], opts: MakePuzzleOpts = {}): P
     expectedAnswerCount = 1,
   } = opts;
   const tagIds = tags.map((tagName) => {
-    if (tagName in allTagsByName) {
-      return allTagsByName[tagName];
+    if (allTagsByName.has(tagName)) {
+      return allTagsByName.get(tagName)!;
     } else {
       return makeTag(tagName);
     }
@@ -97,12 +97,12 @@ describe('puzzleGroupsByRelevance', function () {
       const groups = puzzleGroupsByRelevance([puzA, puzB], allTags);
       assert.deepEqual(groups, [
         {
-          sharedTag: allTagsByName['group:a'],
+          sharedTag: allTagsByName.get('group:a'),
           puzzles: [puzA, puzB],
           subgroups: [],
         },
         {
-          sharedTag: allTagsByName['group:b'],
+          sharedTag: allTagsByName.get('group:b'),
           puzzles: [puzA, puzB],
           subgroups: [],
         },
@@ -119,19 +119,19 @@ describe('puzzleGroupsByRelevance', function () {
       const groups = puzzleGroupsByRelevance(allPuz, allTags);
       assert.deepEqual(groups, [
         {
-          sharedTag: allTagsByName['group:all'],
+          sharedTag: allTagsByName.get('group:all'),
           puzzles: [puzA],
           subgroups: [
             {
-              sharedTag: allTagsByName['group:a'],
+              sharedTag: allTagsByName.get('group:a'),
               puzzles: [puzB],
               subgroups: [
                 {
-                  sharedTag: allTagsByName['group:b'],
+                  sharedTag: allTagsByName.get('group:b'),
                   puzzles: [puzC],
                   subgroups: [
                     {
-                      sharedTag: allTagsByName['group:c'],
+                      sharedTag: allTagsByName.get('group:c'),
                       puzzles: [puzD],
                       subgroups: [],
                     },
@@ -153,22 +153,22 @@ describe('puzzleGroupsByRelevance', function () {
       const groups = puzzleGroupsByRelevance([puzA, puzB, puzInner], allTags);
       assert.deepEqual(groups, [
         {
-          sharedTag: allTagsByName['group:a'],
+          sharedTag: allTagsByName.get('group:a'),
           puzzles: [puzA],
           subgroups: [
             {
-              sharedTag: allTagsByName['group:inner'],
+              sharedTag: allTagsByName.get('group:inner'),
               puzzles: [puzInner],
               subgroups: [],
             },
           ],
         },
         {
-          sharedTag: allTagsByName['group:b'],
+          sharedTag: allTagsByName.get('group:b'),
           puzzles: [puzB],
           subgroups: [
             {
-              sharedTag: allTagsByName['group:inner'],
+              sharedTag: allTagsByName.get('group:inner'),
               puzzles: [puzInner],
               subgroups: [],
             },
@@ -249,7 +249,7 @@ describe('puzzleGroupsByRelevance', function () {
         {
           // Administrivia
           // eslint-disable-next-line dot-notation
-          sharedTag: allTagsByName['administrivia'],
+          sharedTag: allTagsByName.get('administrivia'),
           puzzles: [admPuzzle],
           subgroups: [],
         },
@@ -257,19 +257,19 @@ describe('puzzleGroupsByRelevance', function () {
           // Group with an unsolved puzzle with matching meta-for: that group, even
           // though there's another puzzle with matching meta-for: that group that
           // is solved (-2)
-          sharedTag: allTagsByName['group:partly-solved'],
+          sharedTag: allTagsByName.get('group:partly-solved'),
           puzzles: [unsolvedRelatedMeta, solvedRelatedMeta, solvedRelatedPuzzle],
           subgroups: [],
         },
         {
           // Group with some other unsolved meta puzzle, but not the one that the group is for
-          sharedTag: allTagsByName['group:other-unsolved-meta'],
+          sharedTag: allTagsByName.get('group:other-unsolved-meta'),
           puzzles: [otherUnsolvedUnsolvedMeta, otherUnsolvedSolvedMeta],
           subgroups: [],
         },
         {
           // Group with no metas yet and at least one unsolved puzzle
-          sharedTag: allTagsByName['group:no-metas'],
+          sharedTag: allTagsByName.get('group:no-metas'),
           puzzles: [flatPuzzle1, flatPuzzle2],
           subgroups: [],
         },
@@ -281,13 +281,13 @@ describe('puzzleGroupsByRelevance', function () {
         },
         {
           // Group with solved meta for the group, but at least one unsolved puzzle (2)
-          sharedTag: allTagsByName['group:metas-solved'],
+          sharedTag: allTagsByName.get('group:metas-solved'),
           puzzles: [metasSolvedMeta1, metasSolvedMeta2, metasSolvedRoundUnsolvedPuzzle],
           subgroups: [],
         },
         {
           // group with only solved puzzles
-          sharedTag: allTagsByName['group:fully-solved'],
+          sharedTag: allTagsByName.get('group:fully-solved'),
           // Note: we preserve the given puzzle order from `allPuzzles` here.
           // Puzzle ordering within a group is deferred until rendering time, where
           // it will sort by puzzleInterestingness.  As a result, this round puzzle
@@ -297,7 +297,7 @@ describe('puzzleGroupsByRelevance', function () {
         },
         {
           // group with only solved puzzles, despite having no metapuzzle (also 3)
-          sharedTag: allTagsByName['group:flat-fully-solved'],
+          sharedTag: allTagsByName.get('group:flat-fully-solved'),
           puzzles: [flatFullySolved],
           subgroups: [],
         },
@@ -314,7 +314,7 @@ describe('filteredPuzzleGroups', function () {
     const filtered = filteredPuzzleGroups(groups, new Set([puzA._id]));
     assert.deepEqual(filtered, [
       {
-        sharedTag: allTagsByName['group:a'],
+        sharedTag: allTagsByName.get('group:a'),
         puzzles: [puzA],
         subgroups: [],
       },
@@ -328,11 +328,11 @@ describe('filteredPuzzleGroups', function () {
     const filtered = filteredPuzzleGroups(groups, new Set([puzB._id]));
     assert.deepEqual(filtered, [
       {
-        sharedTag: allTagsByName['group:outer'],
+        sharedTag: allTagsByName.get('group:outer'),
         puzzles: [],
         subgroups: [
           {
-            sharedTag: allTagsByName['group:inner'],
+            sharedTag: allTagsByName.get('group:inner'),
             puzzles: [puzB],
             subgroups: [],
           },

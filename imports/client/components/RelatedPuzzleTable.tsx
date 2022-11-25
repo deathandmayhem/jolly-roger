@@ -1,5 +1,5 @@
-import { _ } from 'meteor/underscore';
 import React from 'react';
+import { indexedById } from '../../lib/listUtils';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { TagType } from '../../lib/schemas/Tag';
 import PuzzleTable from './PuzzleTable';
@@ -16,7 +16,7 @@ const RelatedPuzzleTable = React.memo(({
   // Sort the puzzles within each tag group by interestingness.  For instance, metas
   // should probably be at the top of the group, then of the round puzzles, unsolved should
   // maybe sort above solved, and then perhaps by unlock order.
-  const tagIndex = _.indexBy(allTags, '_id');
+  const tagIndex = indexedById(allTags);
   const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
     relatedPuzzles,
     sharedTag,

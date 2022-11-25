@@ -1,10 +1,10 @@
-import { _ } from 'meteor/underscore';
 import classnames from 'classnames';
 import elementResizeDetectorMaker from 'element-resize-detector';
 import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import SplitPane, { SplitPaneProps } from 'react-split-pane';
+import throttle from '../../lib/throttle';
 
 /*
   Provides two panes with a user draggable divider featuring snap-to-collapse. Fully controlled.
@@ -243,7 +243,7 @@ const SplitPanePlus = ({
     const erd = getErd();
     const node = splitPaneNode();
     if (node) {
-      erd.listenTo(node, _.throttle(onResize, 50));
+      erd.listenTo(node, throttle(onResize, 50).attempt);
     }
 
     const resizerEl = resizerNode();

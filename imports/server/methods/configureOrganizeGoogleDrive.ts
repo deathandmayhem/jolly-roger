@@ -1,7 +1,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { _ } from 'meteor/underscore';
 import Ansible from '../../Ansible';
+import { indexedById } from '../../lib/listUtils';
 import Documents from '../../lib/models/Documents';
 import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
@@ -40,10 +40,10 @@ configureOrganizeGoogleDrive.define({
     }, Promise.resolve());
 
     // Finally move all existing documents into the right folder
-    const puzzles = _.indexBy(Puzzles.find().fetch(), '_id');
+    const puzzles = indexedById(Puzzles.find().fetch());
     await Documents.find().fetch().reduce(async (promise, d) => {
       await promise;
-      const puzzle = puzzles[d.puzzle];
+      const puzzle = puzzles.get(d.puzzle);
       if (puzzle && !d.value.folder) await ensureDocument(puzzle);
     }, Promise.resolve());
   },

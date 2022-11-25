@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 import { Meteor } from 'meteor/meteor';
 import { useFind, useTracker } from 'meteor/react-meteor-data';
-import { _ } from 'meteor/underscore';
 import { Device, types } from 'mediasoup-client';
 import React, {
   useEffect, useMemo, useReducer, useRef, useState, useCallback,
 } from 'react';
+import { groupedBy } from '../../lib/listUtils';
 import ConnectAcks from '../../lib/models/mediasoup/ConnectAcks';
 import Consumers from '../../lib/models/mediasoup/Consumers';
 import Peers from '../../lib/models/mediasoup/Peers';
@@ -738,7 +738,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
     [puzzleId]
   );
   const groupedConsumers = useMemo(() => {
-    return _.groupBy(puzzleConsumers, (consumer) => consumer.producerPeer);
+    return groupedBy(puzzleConsumers, (consumer) => consumer.producerPeer);
   }, [puzzleConsumers]);
 
   // Map from consumer._id to our working state for that consumer.
@@ -763,7 +763,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
     if (state.callState === CallJoinState.IN_CALL) {
       otherPeers.forEach((peer) => {
         activePeerIds.add(peer._id);
-        const consumers = groupedConsumers[peer._id] ?? [];
+        const consumers = groupedConsumers.get(peer._id) ?? [];
         consumers.forEach((consumer) => {
           const {
             _id: meteorConsumerId,

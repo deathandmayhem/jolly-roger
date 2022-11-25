@@ -4,8 +4,8 @@ import { promisify } from 'util';
 import { check } from 'meteor/check';
 import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
+import { MongoInternals } from 'meteor/mongo';
 import { Tracker } from 'meteor/tracker';
-import { resetDatabase as xolvioResetDatabase } from 'meteor/xolvio:cleaner';
 import TypedMethod from '../../imports/methods/TypedMethod';
 
 export const USER_EMAIL = 'jolly-roger@deathandmayhem.com';
@@ -53,7 +53,19 @@ if (Meteor.isServer) {
       currentTest = testName;
       currentConn = this.connection;
 
-      xolvioResetDatabase();
+      // Remove all the contents of all not-mongo-internal collections
+      const db = MongoInternals.defaultRemoteCollectionDriver().mongo.db;
+      const collections = await db.collections();
+      const appCollections = collections.filter((col) => {
+        // Exclude system collections and velocity collections.
+        return !col.collectionName.startsWith('system.') && !col.collectionName.startsWith('velocity');
+      });
+      await appCollections.reduce(async (p, collection) => {
+        await p;
+        await collection.deleteMany({}, {});
+      }, Promise.resolve());
+      // Done removing collections.
+
       Migrations.config({ log: false });
       await Migrations.migrateToLatest();
 

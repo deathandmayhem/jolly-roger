@@ -1,4 +1,4 @@
-import { _ } from 'meteor/underscore';
+import { indexedById } from './listUtils';
 import { PuzzleType } from './schemas/Puzzle';
 import { TagType } from './schemas/Tag';
 
@@ -20,7 +20,7 @@ interface InternalPuzzleGroup {
 
 function puzzleInterestingness(
   puzzle: PuzzleType,
-  indexedTags: Record<string, TagType>,
+  indexedTags: Map<string, TagType>,
   group: string | undefined
 ): number {
   // If the shared tag for this group is group:<something>, then group will equal '<something>', and
@@ -34,7 +34,7 @@ function puzzleInterestingness(
   let minScore = 0;
 
   for (let i = 0; i < puzzle.tags.length; i++) {
-    const tag = indexedTags[puzzle.tags[i]];
+    const tag = indexedTags.get(puzzle.tags[i]);
 
     if (tag) {
       // Sometimes tag IDs load on puzzles before the Tag documents make it to the client.  In this
@@ -73,7 +73,7 @@ function puzzleInterestingness(
 function interestingnessOfGroup(
   puzzles: PuzzleType[],
   sharedTag: TagType | undefined,
-  indexedTags: Record<string, TagType>,
+  indexedTags: Map<string, TagType>,
 ) {
   // Rough idea: sort, from top to bottom:
   // -3 administrivia always floats to the top
@@ -110,7 +110,7 @@ function interestingnessOfGroup(
       hasUnsolvedPuzzles = true;
     }
     for (let j = 0; j < puzzle.tags.length; j++) {
-      const tag = indexedTags[puzzle.tags[j]];
+      const tag = indexedTags.get(puzzle.tags[j]);
 
       if (tag) {
         // tag may be undefined if we get tag IDs before the new Tag arrives from the server;
@@ -231,15 +231,15 @@ function filteredPuzzleGroups(
 
 function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): PuzzleGroup[] {
   // Maps tag id to list of puzzles holding that tag.
-  const groupsMap: Record<string, PuzzleType[]> = {};
+  const groupsMap: Map<string, PuzzleType[]> = new Map();
   // For collecting puzzles that are not included in any group.
   const ungroupedPuzzles = [];
-  const tagsByIndex = _.indexBy(allTags, '_id');
+  const tagsByIndex = indexedById(allTags);
   for (let i = 0; i < allPuzzles.length; i++) {
     const puzzle = allPuzzles[i];
     let grouped = false;
     for (let j = 0; j < puzzle.tags.length; j++) {
-      const tag = tagsByIndex[puzzle.tags[j]];
+      const tag = tagsByIndex.get(puzzle.tags[j]);
       // On new puzzle creation, if a tag is new as well, we can receive the
       // new Puzzle object (and rerender) before the new Tag object streams
       // in, so it's possible that we don't have a tag object for a given ID,
@@ -247,11 +247,11 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
       if (tag && tag.name && (tag.name === 'administrivia' ||
           tag.name.lastIndexOf('group:', 0) === 0)) {
         grouped = true;
-        if (!groupsMap[tag._id]) {
-          groupsMap[tag._id] = [];
+        if (!groupsMap.has(tag._id)) {
+          groupsMap.set(tag._id, []);
         }
 
-        groupsMap[tag._id].push(puzzle);
+        groupsMap.get(tag._id)!.push(puzzle);
       }
     }
 
@@ -261,9 +261,9 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
   }
 
   // Collect groups into a list.
-  const groups: InternalPuzzleGroup[] = Object.keys(groupsMap).map((key) => {
-    const puzzles = groupsMap[key];
-    const sharedTag = tagsByIndex[key];
+  const groups: InternalPuzzleGroup[] = [...groupsMap.keys()].map((key) => {
+    const puzzles = groupsMap.get(key)!;
+    const sharedTag = tagsByIndex.get(key);
     const puzzleIdCache = new Set(puzzles.map((p) => p._id));
     const interestingness = interestingnessOfGroup(puzzles, sharedTag, tagsByIndex);
     return {
