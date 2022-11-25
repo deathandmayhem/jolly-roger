@@ -32,7 +32,6 @@ google-oauth@1.4.2
 dynamic-import@0.7.2
 server-render@0.4.0
 typescript@4.5.4
-xolvio:cleaner
 hot-module-replacement@0.5.1
 zodern:standard-minifier-js
 fetch@0.1.1
