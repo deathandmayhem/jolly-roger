@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { Meteor } from 'meteor/meteor';
 import { useFind, useTracker } from 'meteor/react-meteor-data';
-import { Device, types } from 'mediasoup-client';
+import type { types } from 'mediasoup-client';
 import React, {
   useEffect, useMemo, useReducer, useRef, useState, useCallback,
 } from 'react';
@@ -418,6 +418,8 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   useEffect(() => {
     if (router?._id) {
       void (async () => {
+        console.log('Fetching mediasoup-client code');
+        const { Device } = await import('mediasoup-client');
         console.log('Creating new Mediasoup device');
         const newDevice = new Device();
         await newDevice.load({
