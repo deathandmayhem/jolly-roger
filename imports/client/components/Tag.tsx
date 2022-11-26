@@ -3,8 +3,8 @@ import { faAlignJustify } from '@fortawesome/free-solid-svg-icons/faAlignJustify
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { detectOverflow } from '@popperjs/core';
 import type { ModifierArguments, Modifier, Padding } from '@popperjs/core';
+import detectOverflow from '@popperjs/core/lib/utils/detectOverflow';
 import React, { useCallback, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
