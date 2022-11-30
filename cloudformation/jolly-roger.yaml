@@ -405,299 +405,301 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref AppAlbTargetHTTPS
 
-  AppLaunchConfig:
-    Type: AWS::AutoScaling::LaunchConfiguration
+  AppLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
     Properties:
-      IamInstanceProfile: !Ref AppInstanceProfile
-      ImageId: !GetAtt AMILookup.AMI
-      BlockDeviceMappings:
-        - DeviceName: /dev/sda1
-          Ebs:
-            VolumeType: gp3
-            VolumeSize: 12
-        - DeviceName: /dev/sdb
-          VirtualName: ephemeral0
-        - DeviceName: /dev/sdc
-          VirtualName: ephemeral1
-      InstanceType: !Ref AppInstanceType
-      SecurityGroups:
-        - !Ref AppSecurityGroup
-      # We're generating a YAML file inside a YAML file. Yes, this is
-      # gross, but it seems to be the best anyone has come up with
-      # (especially since we need variable interpolation)
-      UserData:
-        Fn::Base64:
-          !Sub
-            - |
-              #cloud-config
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt AppInstanceProfile.Arn
+        ImageId: !GetAtt AMILookup.AMI
+        BlockDeviceMappings:
+          - DeviceName: /dev/sda1
+            Ebs:
+              VolumeType: gp3
+              VolumeSize: 12
+          - DeviceName: /dev/sdb
+            VirtualName: ephemeral0
+          - DeviceName: /dev/sdc
+            VirtualName: ephemeral1
+        InstanceType: !Ref AppInstanceType
+        SecurityGroupIds:
+          - !Ref AppSecurityGroup
+        # We're generating a YAML file inside a YAML file. Yes, this is
+        # gross, but it seems to be the best anyone has come up with
+        # (especially since we need variable interpolation)
+        UserData:
+          Fn::Base64:
+            !Sub
+              - |
+                #cloud-config
 
-              package_upgrade: true
+                package_upgrade: true
 
-              apt:
-                sources:
-                  docker.list:
-                    source: "deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable"
-                    key: |
-                      -----BEGIN PGP PUBLIC KEY BLOCK-----
+                apt:
+                  sources:
+                    docker.list:
+                      source: "deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable"
+                      key: |
+                        -----BEGIN PGP PUBLIC KEY BLOCK-----
 
-                      mQINBFit2ioBEADhWpZ8/wvZ6hUTiXOwQHXMAlaFHcPH9hAtr4F1y2+OYdbtMuth
-                      lqqwp028AqyY+PRfVMtSYMbjuQuu5byyKR01BbqYhuS3jtqQmljZ/bJvXqnmiVXh
-                      38UuLa+z077PxyxQhu5BbqntTPQMfiyqEiU+BKbq2WmANUKQf+1AmZY/IruOXbnq
-                      L4C1+gJ8vfmXQt99npCaxEjaNRVYfOS8QcixNzHUYnb6emjlANyEVlZzeqo7XKl7
-                      UrwV5inawTSzWNvtjEjj4nJL8NsLwscpLPQUhTQ+7BbQXAwAmeHCUTQIvvWXqw0N
-                      cmhh4HgeQscQHYgOJjjDVfoY5MucvglbIgCqfzAHW9jxmRL4qbMZj+b1XoePEtht
-                      ku4bIQN1X5P07fNWzlgaRL5Z4POXDDZTlIQ/El58j9kp4bnWRCJW0lya+f8ocodo
-                      vZZ+Doi+fy4D5ZGrL4XEcIQP/Lv5uFyf+kQtl/94VFYVJOleAv8W92KdgDkhTcTD
-                      G7c0tIkVEKNUq48b3aQ64NOZQW7fVjfoKwEZdOqPE72Pa45jrZzvUFxSpdiNk2tZ
-                      XYukHjlxxEgBdC/J3cMMNRE1F4NCA3ApfV1Y7/hTeOnmDuDYwr9/obA8t016Yljj
-                      q5rdkywPf4JF8mXUW5eCN1vAFHxeg9ZWemhBtQmGxXnw9M+z6hWwc6ahmwARAQAB
-                      tCtEb2NrZXIgUmVsZWFzZSAoQ0UgZGViKSA8ZG9ja2VyQGRvY2tlci5jb20+iQI3
-                      BBMBCgAhBQJYrefAAhsvBQsJCAcDBRUKCQgLBRYCAwEAAh4BAheAAAoJEI2BgDwO
-                      v82IsskP/iQZo68flDQmNvn8X5XTd6RRaUH33kXYXquT6NkHJciS7E2gTJmqvMqd
-                      tI4mNYHCSEYxI5qrcYV5YqX9P6+Ko+vozo4nseUQLPH/ATQ4qL0Zok+1jkag3Lgk
-                      jonyUf9bwtWxFp05HC3GMHPhhcUSexCxQLQvnFWXD2sWLKivHp2fT8QbRGeZ+d3m
-                      6fqcd5Fu7pxsqm0EUDK5NL+nPIgYhN+auTrhgzhK1CShfGccM/wfRlei9Utz6p9P
-                      XRKIlWnXtT4qNGZNTN0tR+NLG/6Bqd8OYBaFAUcue/w1VW6JQ2VGYZHnZu9S8LMc
-                      FYBa5Ig9PxwGQOgq6RDKDbV+PqTQT5EFMeR1mrjckk4DQJjbxeMZbiNMG5kGECA8
-                      g383P3elhn03WGbEEa4MNc3Z4+7c236QI3xWJfNPdUbXRaAwhy/6rTSFbzwKB0Jm
-                      ebwzQfwjQY6f55MiI/RqDCyuPj3r3jyVRkK86pQKBAJwFHyqj9KaKXMZjfVnowLh
-                      9svIGfNbGHpucATqREvUHuQbNnqkCx8VVhtYkhDb9fEP2xBu5VvHbR+3nfVhMut5
-                      G34Ct5RS7Jt6LIfFdtcn8CaSas/l1HbiGeRgc70X/9aYx/V/CEJv0lIe8gP6uDoW
-                      FPIZ7d6vH+Vro6xuWEGiuMaiznap2KhZmpkgfupyFmplh0s6knymuQINBFit2ioB
-                      EADneL9S9m4vhU3blaRjVUUyJ7b/qTjcSylvCH5XUE6R2k+ckEZjfAMZPLpO+/tF
-                      M2JIJMD4SifKuS3xck9KtZGCufGmcwiLQRzeHF7vJUKrLD5RTkNi23ydvWZgPjtx
-                      Q+DTT1Zcn7BrQFY6FgnRoUVIxwtdw1bMY/89rsFgS5wwuMESd3Q2RYgb7EOFOpnu
-                      w6da7WakWf4IhnF5nsNYGDVaIHzpiqCl+uTbf1epCjrOlIzkZ3Z3Yk5CM/TiFzPk
-                      z2lLz89cpD8U+NtCsfagWWfjd2U3jDapgH+7nQnCEWpROtzaKHG6lA3pXdix5zG8
-                      eRc6/0IbUSWvfjKxLLPfNeCS2pCL3IeEI5nothEEYdQH6szpLog79xB9dVnJyKJb
-                      VfxXnseoYqVrRz2VVbUI5Blwm6B40E3eGVfUQWiux54DspyVMMk41Mx7QJ3iynIa
-                      1N4ZAqVMAEruyXTRTxc9XW0tYhDMA/1GYvz0EmFpm8LzTHA6sFVtPm/ZlNCX6P1X
-                      zJwrv7DSQKD6GGlBQUX+OeEJ8tTkkf8QTJSPUdh8P8YxDFS5EOGAvhhpMBYD42kQ
-                      pqXjEC+XcycTvGI7impgv9PDY1RCC1zkBjKPa120rNhv/hkVk/YhuGoajoHyy4h7
-                      ZQopdcMtpN2dgmhEegny9JCSwxfQmQ0zK0g7m6SHiKMwjwARAQABiQQ+BBgBCAAJ
-                      BQJYrdoqAhsCAikJEI2BgDwOv82IwV0gBBkBCAAGBQJYrdoqAAoJEH6gqcPyc/zY
-                      1WAP/2wJ+R0gE6qsce3rjaIz58PJmc8goKrir5hnElWhPgbq7cYIsW5qiFyLhkdp
-                      YcMmhD9mRiPpQn6Ya2w3e3B8zfIVKipbMBnke/ytZ9M7qHmDCcjoiSmwEXN3wKYI
-                      mD9VHONsl/CG1rU9Isw1jtB5g1YxuBA7M/m36XN6x2u+NtNMDB9P56yc4gfsZVES
-                      KA9v+yY2/l45L8d/WUkUi0YXomn6hyBGI7JrBLq0CX37GEYP6O9rrKipfz73XfO7
-                      JIGzOKZlljb/D9RX/g7nRbCn+3EtH7xnk+TK/50euEKw8SMUg147sJTcpQmv6UzZ
-                      cM4JgL0HbHVCojV4C/plELwMddALOFeYQzTif6sMRPf+3DSj8frbInjChC3yOLy0
-                      6br92KFom17EIj2CAcoeq7UPhi2oouYBwPxh5ytdehJkoo+sN7RIWua6P2WSmon5
-                      U888cSylXC0+ADFdgLX9K2zrDVYUG1vo8CX0vzxFBaHwN6Px26fhIT1/hYUHQR1z
-                      VfNDcyQmXqkOnZvvoMfz/Q0s9BhFJ/zU6AgQbIZE/hm1spsfgvtsD1frZfygXJ9f
-                      irP+MSAI80xHSf91qSRZOj4Pl3ZJNbq4yYxv0b1pkMqeGdjdCYhLU+LZ4wbQmpCk
-                      SVe2prlLureigXtmZfkqevRz7FrIZiu9ky8wnCAPwC7/zmS18rgP/17bOtL4/iIz
-                      QhxAAoAMWVrGyJivSkjhSGx1uCojsWfsTAm11P7jsruIL61ZzMUVE2aM3Pmj5G+W
-                      9AcZ58Em+1WsVnAXdUR//bMmhyr8wL/G1YO1V3JEJTRdxsSxdYa4deGBBY/Adpsw
-                      24jxhOJR+lsJpqIUeb999+R8euDhRHG9eFO7DRu6weatUJ6suupoDTRWtr/4yGqe
-                      dKxV3qQhNLSnaAzqW/1nA3iUB4k7kCaKZxhdhDbClf9P37qaRW467BLCVO/coL3y
-                      Vm50dwdrNtKpMBh3ZpbB1uJvgi9mXtyBOMJ3v8RZeDzFiG8HdCtg9RvIt/AIFoHR
-                      H3S+U79NT6i0KPzLImDfs8T7RlpyuMc4Ufs8ggyg9v3Ae6cN3eQyxcK3w0cbBwsh
-                      /nQNfsA6uu+9H7NhbehBMhYnpNZyrHzCmzyXkauwRAqoCbGCNykTRwsur9gS41TQ
-                      M8ssD1jFheOJf3hODnkKU+HKjvMROl1DK7zdmLdNzA1cvtZH/nCC9KPj1z8QC47S
-                      xx+dTZSx4ONAhwbS/LN3PoKtn8LPjY9NP9uDWI+TWYquS2U+KHDrBDlsgozDbs/O
-                      jCxcpDzNmXpWQHEtHU7649OXHP7UeNST1mCUCH5qdank0V1iejF6/CfTFU4MfcrG
-                      YT90qFF93M3v01BbxP+EIY2/9tiIPbrd
-                      =0YYh
-                      -----END PGP PUBLIC KEY BLOCK-----
+                        mQINBFit2ioBEADhWpZ8/wvZ6hUTiXOwQHXMAlaFHcPH9hAtr4F1y2+OYdbtMuth
+                        lqqwp028AqyY+PRfVMtSYMbjuQuu5byyKR01BbqYhuS3jtqQmljZ/bJvXqnmiVXh
+                        38UuLa+z077PxyxQhu5BbqntTPQMfiyqEiU+BKbq2WmANUKQf+1AmZY/IruOXbnq
+                        L4C1+gJ8vfmXQt99npCaxEjaNRVYfOS8QcixNzHUYnb6emjlANyEVlZzeqo7XKl7
+                        UrwV5inawTSzWNvtjEjj4nJL8NsLwscpLPQUhTQ+7BbQXAwAmeHCUTQIvvWXqw0N
+                        cmhh4HgeQscQHYgOJjjDVfoY5MucvglbIgCqfzAHW9jxmRL4qbMZj+b1XoePEtht
+                        ku4bIQN1X5P07fNWzlgaRL5Z4POXDDZTlIQ/El58j9kp4bnWRCJW0lya+f8ocodo
+                        vZZ+Doi+fy4D5ZGrL4XEcIQP/Lv5uFyf+kQtl/94VFYVJOleAv8W92KdgDkhTcTD
+                        G7c0tIkVEKNUq48b3aQ64NOZQW7fVjfoKwEZdOqPE72Pa45jrZzvUFxSpdiNk2tZ
+                        XYukHjlxxEgBdC/J3cMMNRE1F4NCA3ApfV1Y7/hTeOnmDuDYwr9/obA8t016Yljj
+                        q5rdkywPf4JF8mXUW5eCN1vAFHxeg9ZWemhBtQmGxXnw9M+z6hWwc6ahmwARAQAB
+                        tCtEb2NrZXIgUmVsZWFzZSAoQ0UgZGViKSA8ZG9ja2VyQGRvY2tlci5jb20+iQI3
+                        BBMBCgAhBQJYrefAAhsvBQsJCAcDBRUKCQgLBRYCAwEAAh4BAheAAAoJEI2BgDwO
+                        v82IsskP/iQZo68flDQmNvn8X5XTd6RRaUH33kXYXquT6NkHJciS7E2gTJmqvMqd
+                        tI4mNYHCSEYxI5qrcYV5YqX9P6+Ko+vozo4nseUQLPH/ATQ4qL0Zok+1jkag3Lgk
+                        jonyUf9bwtWxFp05HC3GMHPhhcUSexCxQLQvnFWXD2sWLKivHp2fT8QbRGeZ+d3m
+                        6fqcd5Fu7pxsqm0EUDK5NL+nPIgYhN+auTrhgzhK1CShfGccM/wfRlei9Utz6p9P
+                        XRKIlWnXtT4qNGZNTN0tR+NLG/6Bqd8OYBaFAUcue/w1VW6JQ2VGYZHnZu9S8LMc
+                        FYBa5Ig9PxwGQOgq6RDKDbV+PqTQT5EFMeR1mrjckk4DQJjbxeMZbiNMG5kGECA8
+                        g383P3elhn03WGbEEa4MNc3Z4+7c236QI3xWJfNPdUbXRaAwhy/6rTSFbzwKB0Jm
+                        ebwzQfwjQY6f55MiI/RqDCyuPj3r3jyVRkK86pQKBAJwFHyqj9KaKXMZjfVnowLh
+                        9svIGfNbGHpucATqREvUHuQbNnqkCx8VVhtYkhDb9fEP2xBu5VvHbR+3nfVhMut5
+                        G34Ct5RS7Jt6LIfFdtcn8CaSas/l1HbiGeRgc70X/9aYx/V/CEJv0lIe8gP6uDoW
+                        FPIZ7d6vH+Vro6xuWEGiuMaiznap2KhZmpkgfupyFmplh0s6knymuQINBFit2ioB
+                        EADneL9S9m4vhU3blaRjVUUyJ7b/qTjcSylvCH5XUE6R2k+ckEZjfAMZPLpO+/tF
+                        M2JIJMD4SifKuS3xck9KtZGCufGmcwiLQRzeHF7vJUKrLD5RTkNi23ydvWZgPjtx
+                        Q+DTT1Zcn7BrQFY6FgnRoUVIxwtdw1bMY/89rsFgS5wwuMESd3Q2RYgb7EOFOpnu
+                        w6da7WakWf4IhnF5nsNYGDVaIHzpiqCl+uTbf1epCjrOlIzkZ3Z3Yk5CM/TiFzPk
+                        z2lLz89cpD8U+NtCsfagWWfjd2U3jDapgH+7nQnCEWpROtzaKHG6lA3pXdix5zG8
+                        eRc6/0IbUSWvfjKxLLPfNeCS2pCL3IeEI5nothEEYdQH6szpLog79xB9dVnJyKJb
+                        VfxXnseoYqVrRz2VVbUI5Blwm6B40E3eGVfUQWiux54DspyVMMk41Mx7QJ3iynIa
+                        1N4ZAqVMAEruyXTRTxc9XW0tYhDMA/1GYvz0EmFpm8LzTHA6sFVtPm/ZlNCX6P1X
+                        zJwrv7DSQKD6GGlBQUX+OeEJ8tTkkf8QTJSPUdh8P8YxDFS5EOGAvhhpMBYD42kQ
+                        pqXjEC+XcycTvGI7impgv9PDY1RCC1zkBjKPa120rNhv/hkVk/YhuGoajoHyy4h7
+                        ZQopdcMtpN2dgmhEegny9JCSwxfQmQ0zK0g7m6SHiKMwjwARAQABiQQ+BBgBCAAJ
+                        BQJYrdoqAhsCAikJEI2BgDwOv82IwV0gBBkBCAAGBQJYrdoqAAoJEH6gqcPyc/zY
+                        1WAP/2wJ+R0gE6qsce3rjaIz58PJmc8goKrir5hnElWhPgbq7cYIsW5qiFyLhkdp
+                        YcMmhD9mRiPpQn6Ya2w3e3B8zfIVKipbMBnke/ytZ9M7qHmDCcjoiSmwEXN3wKYI
+                        mD9VHONsl/CG1rU9Isw1jtB5g1YxuBA7M/m36XN6x2u+NtNMDB9P56yc4gfsZVES
+                        KA9v+yY2/l45L8d/WUkUi0YXomn6hyBGI7JrBLq0CX37GEYP6O9rrKipfz73XfO7
+                        JIGzOKZlljb/D9RX/g7nRbCn+3EtH7xnk+TK/50euEKw8SMUg147sJTcpQmv6UzZ
+                        cM4JgL0HbHVCojV4C/plELwMddALOFeYQzTif6sMRPf+3DSj8frbInjChC3yOLy0
+                        6br92KFom17EIj2CAcoeq7UPhi2oouYBwPxh5ytdehJkoo+sN7RIWua6P2WSmon5
+                        U888cSylXC0+ADFdgLX9K2zrDVYUG1vo8CX0vzxFBaHwN6Px26fhIT1/hYUHQR1z
+                        VfNDcyQmXqkOnZvvoMfz/Q0s9BhFJ/zU6AgQbIZE/hm1spsfgvtsD1frZfygXJ9f
+                        irP+MSAI80xHSf91qSRZOj4Pl3ZJNbq4yYxv0b1pkMqeGdjdCYhLU+LZ4wbQmpCk
+                        SVe2prlLureigXtmZfkqevRz7FrIZiu9ky8wnCAPwC7/zmS18rgP/17bOtL4/iIz
+                        QhxAAoAMWVrGyJivSkjhSGx1uCojsWfsTAm11P7jsruIL61ZzMUVE2aM3Pmj5G+W
+                        9AcZ58Em+1WsVnAXdUR//bMmhyr8wL/G1YO1V3JEJTRdxsSxdYa4deGBBY/Adpsw
+                        24jxhOJR+lsJpqIUeb999+R8euDhRHG9eFO7DRu6weatUJ6suupoDTRWtr/4yGqe
+                        dKxV3qQhNLSnaAzqW/1nA3iUB4k7kCaKZxhdhDbClf9P37qaRW467BLCVO/coL3y
+                        Vm50dwdrNtKpMBh3ZpbB1uJvgi9mXtyBOMJ3v8RZeDzFiG8HdCtg9RvIt/AIFoHR
+                        H3S+U79NT6i0KPzLImDfs8T7RlpyuMc4Ufs8ggyg9v3Ae6cN3eQyxcK3w0cbBwsh
+                        /nQNfsA6uu+9H7NhbehBMhYnpNZyrHzCmzyXkauwRAqoCbGCNykTRwsur9gS41TQ
+                        M8ssD1jFheOJf3hODnkKU+HKjvMROl1DK7zdmLdNzA1cvtZH/nCC9KPj1z8QC47S
+                        xx+dTZSx4ONAhwbS/LN3PoKtn8LPjY9NP9uDWI+TWYquS2U+KHDrBDlsgozDbs/O
+                        jCxcpDzNmXpWQHEtHU7649OXHP7UeNST1mCUCH5qdank0V1iejF6/CfTFU4MfcrG
+                        YT90qFF93M3v01BbxP+EIY2/9tiIPbrd
+                        =0YYh
+                        -----END PGP PUBLIC KEY BLOCK-----
 
-              users:
-                - name: evan
-                  shell: /bin/bash
-                  ssh_import_id: gh:ebroder
-                  sudo: ALL=(ALL) NOPASSWD:ALL
-                - name: zarvox
-                  shell: /bin/bash
-                  ssh_import_id: gh:zarvox
-                  sudo: ALL=(ALL) NOPASSWD:ALL
+                users:
+                  - name: evan
+                    shell: /bin/bash
+                    ssh_import_id: gh:ebroder
+                    sudo: ALL=(ALL) NOPASSWD:ALL
+                  - name: zarvox
+                    shell: /bin/bash
+                    ssh_import_id: gh:zarvox
+                    sudo: ALL=(ALL) NOPASSWD:ALL
 
-              swap:
-                filename: "/swapfile"
-                size: 2147483648 # 2GB
+                swap:
+                  filename: "/swapfile"
+                  size: 2147483648 # 2GB
 
-              packages:
-                - awscli
-                - docker-ce
-                - docker-ce-cli
-                - containerd.io
-                - htop
-                - moreutils
-                - python3-dev
-                - python3-pip
+                packages:
+                  - awscli
+                  - docker-ce
+                  - docker-ce-cli
+                  - containerd.io
+                  - htop
+                  - moreutils
+                  - python3-dev
+                  - python3-pip
 
-              ${PapertrailRsyslogConfig}
+                ${PapertrailRsyslogConfig}
 
-              write_files:
-                - path: /etc/cron.hourly/docker-cleanup
-                  content: |
-                    #!/bin/sh
-                    docker volume ls -qf dangling=true | chronic xargs -r docker volume rm
-                  permissions: "0755"
-                - path: /etc/docker/daemon.json
-                  content: |
-                    {
-                      "log-driver": "json-file",
-                      "log-opts": {
-                        "max-size": "100m"
+                write_files:
+                  - path: /etc/cron.hourly/docker-cleanup
+                    content: |
+                      #!/bin/sh
+                      docker volume ls -qf dangling=true | chronic xargs -r docker volume rm
+                    permissions: "0755"
+                  - path: /etc/docker/daemon.json
+                    content: |
+                      {
+                        "log-driver": "json-file",
+                        "log-opts": {
+                          "max-size": "100m"
+                        }
                       }
-                    }
-                - path: /etc/nginx/conf.d/default.conf
-                  content: |
-                    # If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
-                    # scheme used to connect to this server
-                    map $http_x_forwarded_proto $proxy_x_forwarded_proto {
-                      default $http_x_forwarded_proto;
-                      ''      $scheme;
-                    }
-                    # If we receive X-Forwarded-Port, pass it through; otherwise, pass along the
-                    # server port the client connected to
-                    map $http_x_forwarded_port $proxy_x_forwarded_port {
-                      default $http_x_forwarded_port;
-                      ''      $server_port;
-                    }
-                    # Set appropriate X-Forwarded-Ssl header based on $proxy_x_forwarded_proto
-                    map $proxy_x_forwarded_proto $proxy_x_forwarded_ssl {
-                      default off;
-                      https on;
-                    }
-                    # If we receive Upgrade, set Connection to "upgrade"; otherwise, delete any
-                    # Connection header that may have been passed to this server
-                    map $http_upgrade $proxy_connection {
-                      default upgrade;
-                      '' close;
-                    }
-
-                    gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
-
-                    log_format access '[$time_iso8601] $remote_addr - "$request" $status $body_bytes_sent $request_time $upstream_cache_status "$http_referer" "$http_user_agent"';
-                    access_log /var/log/nginx/access.log access;
-
-                    # HTTP 1.1 support
-                    proxy_http_version 1.1;
-                    proxy_buffering on;
-                    proxy_set_header Host $http_host;
-                    proxy_set_header Upgrade $http_upgrade;
-                    proxy_set_header Connection $proxy_connection;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
-                    proxy_set_header X-Forwarded-Ssl $proxy_x_forwarded_ssl;
-                    proxy_set_header X-Forwarded-Port $proxy_x_forwarded_port;
-                    # Mitigate httpoxy attack
-                    proxy_set_header Proxy "";
-                    proxy_cache_path /var/cache/nginx/cache levels=1:2 keys_zone=assets:10m;
-                    proxy_cache assets;
-
-                    set_real_ip_from 10.0.0.0/8;
-                    real_ip_header X-Forwarded-For;
-
-                    upstream jolly-roger {
-                      server 127.0.0.1:3000;
-                    }
-
-                    server {
-                      server_name ${AppUrl};
-                      listen 8443 default_server;
-
-                      add_header Strict-Transport-Security "max-age=31536000";
-                      gzip on;
-                      gzip_comp_level 9;
-                      gzip_proxied any;
-
-                      location /healthcheck {
-                        return 200 "OK\n";
+                  - path: /etc/nginx/conf.d/default.conf
+                    content: |
+                      # If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
+                      # scheme used to connect to this server
+                      map $http_x_forwarded_proto $proxy_x_forwarded_proto {
+                        default $http_x_forwarded_proto;
+                        ''      $scheme;
+                      }
+                      # If we receive X-Forwarded-Port, pass it through; otherwise, pass along the
+                      # server port the client connected to
+                      map $http_x_forwarded_port $proxy_x_forwarded_port {
+                        default $http_x_forwarded_port;
+                        ''      $server_port;
+                      }
+                      # Set appropriate X-Forwarded-Ssl header based on $proxy_x_forwarded_proto
+                      map $proxy_x_forwarded_proto $proxy_x_forwarded_ssl {
+                        default off;
+                        https on;
+                      }
+                      # If we receive Upgrade, set Connection to "upgrade"; otherwise, delete any
+                      # Connection header that may have been passed to this server
+                      map $http_upgrade $proxy_connection {
+                        default upgrade;
+                        '' close;
                       }
 
-                      location / {
-                        proxy_pass http://jolly-roger;
+                      gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+                      log_format access '[$time_iso8601] $remote_addr - "$request" $status $body_bytes_sent $request_time $upstream_cache_status "$http_referer" "$http_user_agent"';
+                      access_log /var/log/nginx/access.log access;
+
+                      # HTTP 1.1 support
+                      proxy_http_version 1.1;
+                      proxy_buffering on;
+                      proxy_set_header Host $http_host;
+                      proxy_set_header Upgrade $http_upgrade;
+                      proxy_set_header Connection $proxy_connection;
+                      proxy_set_header X-Real-IP $remote_addr;
+                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+                      proxy_set_header X-Forwarded-Ssl $proxy_x_forwarded_ssl;
+                      proxy_set_header X-Forwarded-Port $proxy_x_forwarded_port;
+                      # Mitigate httpoxy attack
+                      proxy_set_header Proxy "";
+                      proxy_cache_path /var/cache/nginx/cache levels=1:2 keys_zone=assets:10m;
+                      proxy_cache assets;
+
+                      set_real_ip_from 10.0.0.0/8;
+                      real_ip_header X-Forwarded-For;
+
+                      upstream jolly-roger {
+                        server 127.0.0.1:3000;
                       }
-                    }
-                - path: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-                  content: |
-                    {
-                      "metrics": {
-                        "append_dimensions": {
-                          "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
-                          "ImageId": "${!aws:ImageId}",
-                          "InstanceId": "${!aws:InstanceId}",
-                          "InstanceType": "${!aws:InstanceType}"
-                        },
-                        "metrics_collected": {
-                          "cpu": {
-                            "measurement": [
-                              "cpu_usage_idle",
-                              "cpu_usage_iowait",
-                              "cpu_usage_user",
-                              "cpu_usage_system"
-                            ]
+
+                      server {
+                        server_name ${AppUrl};
+                        listen 8443 default_server;
+
+                        add_header Strict-Transport-Security "max-age=31536000";
+                        gzip on;
+                        gzip_comp_level 9;
+                        gzip_proxied any;
+
+                        location /healthcheck {
+                          return 200 "OK\n";
+                        }
+
+                        location / {
+                          proxy_pass http://jolly-roger;
+                        }
+                      }
+                  - path: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+                    content: |
+                      {
+                        "metrics": {
+                          "append_dimensions": {
+                            "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                            "ImageId": "${!aws:ImageId}",
+                            "InstanceId": "${!aws:InstanceId}",
+                            "InstanceType": "${!aws:InstanceType}"
                           },
-                          "mem": {
-                            "measurement": [
-                              "mem_used_percent"
-                            ]
-                          },
-                          "diskio": {
-                            "measurement": [
-                              "io_time",
-                              "write_bytes",
-                              "read_bytes",
-                              "writes",
-                              "reads"
-                            ]
-                          },
-                          "netstat": {
-                            "measurement": [
-                              "tcp_established",
-                              "tcp_time_wait"
-                            ]
-                          },
-                          "swap": {
-                            "measurement": [
-                              "swap_used_percent"
-                            ]
+                          "metrics_collected": {
+                            "cpu": {
+                              "measurement": [
+                                "cpu_usage_idle",
+                                "cpu_usage_iowait",
+                                "cpu_usage_user",
+                                "cpu_usage_system"
+                              ]
+                            },
+                            "mem": {
+                              "measurement": [
+                                "mem_used_percent"
+                              ]
+                            },
+                            "diskio": {
+                              "measurement": [
+                                "io_time",
+                                "write_bytes",
+                                "read_bytes",
+                                "writes",
+                                "reads"
+                              ]
+                            },
+                            "netstat": {
+                              "measurement": [
+                                "tcp_established",
+                                "tcp_time_wait"
+                              ]
+                            },
+                            "swap": {
+                              "measurement": [
+                                "swap_used_percent"
+                              ]
+                            }
                           }
                         }
                       }
-                    }
 
-              runcmd:
-                - set -eux
+                runcmd:
+                  - set -eux
 
-                # Whatever happens, let cloudformation know
-                - pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
-                - cleanup() { ret=$?; set +e; cfn-signal -e $ret -r "runcmds complete" --stack=${AWS::StackName} --region=${AWS::Region} --resource=AppAsg; exit $ret; }
-                - trap cleanup EXIT
+                  # Whatever happens, let cloudformation know
+                  - pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+                  - cleanup() { ret=$?; set +e; cfn-signal -e $ret -r "runcmds complete" --stack=${AWS::StackName} --region=${AWS::Region} --resource=AppAsg; exit $ret; }
+                  - trap cleanup EXIT
 
-                # Uninstall Amazon SSM manager and snapd - we don't use them, and they eat memory (and cause swap-thrashing)
-                - snap remove amazon-ssm-agent
-                - sudo apt-get remove -y snapd
+                  # Uninstall Amazon SSM manager and snapd - we don't use them, and they eat memory (and cause swap-thrashing)
+                  - snap remove amazon-ssm-agent
+                  - sudo apt-get remove -y snapd
 
-                - pip3 install 'credstash==1.12.0'
-                - export AWS_DEFAULT_REGION=${AWS::Region}
+                  - pip3 install 'credstash==1.12.0'
+                  - export AWS_DEFAULT_REGION=${AWS::Region}
 
-                # Observability
-                - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
-                - dpkg -i ./amazon-cloudwatch-agent.deb
-                - rm amazon-cloudwatch-agent.deb
-                - sudo systemctl start amazon-cloudwatch-agent
+                  # Observability
+                  - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+                  - dpkg -i ./amazon-cloudwatch-agent.deb
+                  - rm amazon-cloudwatch-agent.deb
+                  - sudo systemctl start amazon-cloudwatch-agent
 
-                ${PapertrailDockerConfig}
+                  ${PapertrailDockerConfig}
 
-                - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} ghcr.io/deathandmayhem/jolly-roger
-                - docker run --name nginx -d --network=host --restart=unless-stopped -v /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf nginx
-                - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --interval 30 --cleanup
-            -
-              PapertrailRsyslogConfig: !If
-                - HavePapertrail
-                - !Sub |
-                    rsyslog:
-                      remotes:
-                        papertrail: ${PapertrailHost}
-                - ''
-              PapertrailDockerConfig: !If
-                - HavePapertrail
-                - !Sub '- docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock -e "SYSLOG_HOSTNAME=$(hostname){{.Container.Name}}" gliderlabs/logspout:master syslog://${PapertrailHost}'
-                - ''
+                  - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} ghcr.io/deathandmayhem/jolly-roger
+                  - docker run --name nginx -d --network=host --restart=unless-stopped -v /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf nginx
+                  - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --interval 30 --cleanup
+              -
+                PapertrailRsyslogConfig: !If
+                  - HavePapertrail
+                  - !Sub |
+                      rsyslog:
+                        remotes:
+                          papertrail: ${PapertrailHost}
+                  - ''
+                PapertrailDockerConfig: !If
+                  - HavePapertrail
+                  - !Sub '- docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock -e "SYSLOG_HOSTNAME=$(hostname){{.Container.Name}}" gliderlabs/logspout:master syslog://${PapertrailHost}'
+                  - ''
     DependsOn:
       - InternetGatewayAttachment
 
@@ -706,7 +708,9 @@ Resources:
     Properties:
       HealthCheckType: ELB
       HealthCheckGracePeriod: 1800
-      LaunchConfigurationName: !Ref AppLaunchConfig
+      LaunchTemplate:
+        LaunchTemplateId: !Ref AppLaunchTemplate
+        Version: !GetAtt AppLaunchTemplate.LatestVersionNumber
       VPCZoneIdentifier:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
