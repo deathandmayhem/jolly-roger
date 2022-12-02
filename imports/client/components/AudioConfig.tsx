@@ -90,7 +90,7 @@ const AudioConfig = () => {
     };
   }, [updateDeviceList, onStorageEvent]);
 
-  const onDefaultDeviceChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onDefaultDeviceChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     const newPreferredDeviceId = e.target.value;
     // Save preferred input device id to local storage.
     localStorage.setItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY, newPreferredDeviceId);

@@ -746,7 +746,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   // Map from consumer._id to our working state for that consumer.
   const consumerMapRef = useRef<Map<string, ConsumerState>>(new Map());
 
-  const cleanupConsumer = useCallback((meteorId, consumerState) => {
+  const cleanupConsumer = useCallback((meteorId: string, consumerState: ConsumerState) => {
     // Drop it.
     if (consumerState.consumer) {
       log('Stopping consumer', meteorId);

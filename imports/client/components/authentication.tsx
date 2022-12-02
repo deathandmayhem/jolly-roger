@@ -57,7 +57,7 @@ export const UnauthenticatedPage = ({ children }: { children: React.ReactNode })
   }
 
   if (loggedIn) {
-    const { pathname = '/', search = undefined } = (location.state as any) || {};
+    const { pathname = '/', search = undefined } = location.state || {};
     return <Navigate to={{ pathname, search }} />;
   }
 

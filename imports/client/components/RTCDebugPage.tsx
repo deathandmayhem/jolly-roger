@@ -82,7 +82,7 @@ const ClipButton = ({ text }: { text: string }) => (
 // trick to make selection easier.
 const CopyableInput = ({ value }: { value: string }) => {
   const ref = React.useRef<HTMLInputElement>(null);
-  const onClick = useCallback((e) => {
+  const onClick: NonNullable<React.DOMAttributes<HTMLInputElement>['onClick']> = useCallback((e) => {
     if (ref.current) {
       ref.current.select();
       e.preventDefault();

@@ -60,7 +60,7 @@ interface DiscordSelectorProps extends DiscordSelectorParams {
 const DiscordSelector = ({
   disable, id: formId, value, onChange, loading, options,
 }: DiscordSelectorProps) => {
-  const onValueChanged: FormControlProps['onChange'] = useCallback((e) => {
+  const onValueChanged: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     if (e.currentTarget.value === 'empty') {
       onChange(undefined);
     } else {

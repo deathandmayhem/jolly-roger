@@ -270,7 +270,7 @@ const ProfileList = ({
 
   // The type annotation on FormControl is wrong here - the event is from the
   // input element, not the FormControl React component
-  const onSearchStringChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onSearchStringChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setSearchString(e.currentTarget.value);
   }, []);
 

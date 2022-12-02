@@ -75,12 +75,12 @@ const PuzzleModalForm = React.forwardRef(({
 
   const formRef = useRef<ModalFormHandle>(null);
 
-  const onTitleChange: FormControlProps['onChange'] = useCallback((event) => {
+  const onTitleChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
     setTitle(event.currentTarget.value);
     setTitleDirty(true);
   }, []);
 
-  const onUrlChange: FormControlProps['onChange'] = useCallback((event) => {
+  const onUrlChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
     setUrl(event.currentTarget.value);
     setUrlDirty(true);
   }, []);
@@ -108,7 +108,7 @@ const PuzzleModalForm = React.forwardRef(({
     setDocType(newValue as GdriveMimeTypesType);
   }, []);
 
-  const onExpectedAnswerCountChange: FormControlProps['onChange'] = useCallback((event) => {
+  const onExpectedAnswerCountChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
     const string = event.currentTarget.value;
     const value = Number(string);
     setExpectedAnswerCount(value);
