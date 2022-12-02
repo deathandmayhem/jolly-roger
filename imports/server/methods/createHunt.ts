@@ -7,6 +7,20 @@ import { HuntPattern } from '../../lib/schemas/Hunt';
 import createHunt from '../../methods/createHunt';
 import addUsersToDiscordRole from '../addUsersToDiscordRole';
 import { ensureHuntFolder } from '../gdrive';
+import getOrCreateTagByName from '../getOrCreateTagByName';
+
+const DEFAULT_TAGS = [
+  'is:meta',
+  'is:metameta',
+  'is:runaround',
+  'priority:high',
+  'priority:low',
+  'type:crossword',
+  'type:duck-konundrum',
+  'group:events',
+  'needs:extraction',
+  'needs:onsite  ',
+];
 
 createHunt.define({
   validate(arg) {
@@ -20,6 +34,10 @@ createHunt.define({
 
     const huntId = Hunts.insert(arg);
     addUserToRole(this.userId, huntId, 'operator');
+
+    DEFAULT_TAGS.forEach((tag) => {
+      getOrCreateTagByName(huntId, tag);
+    });
 
     Meteor.defer(async () => {
       // Sync discord roles
