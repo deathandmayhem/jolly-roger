@@ -29,20 +29,20 @@ class HooksRegistry {
     }, Promise.resolve());
   }
 
-  async runPuzzleSolvedHooks(puzzleId: string) {
+  async runPuzzleSolvedHooks(puzzleId: string, answer: string) {
     await this.registeredHooks.reduce(async (p, hook) => {
       await p;
       if (hook.onPuzzleSolved) {
-        await hook.onPuzzleSolved(puzzleId);
+        await hook.onPuzzleSolved(puzzleId, answer);
       }
     }, Promise.resolve());
   }
 
-  async runPuzzleNoLongerSolvedHooks(puzzleId: string) {
+  async runPuzzleNoLongerSolvedHooks(puzzleId: string, answer: string) {
     await this.registeredHooks.reduce(async (p, hook) => {
       await p;
       if (hook.onPuzzleNoLongerSolved) {
-        await hook.onPuzzleNoLongerSolved(puzzleId);
+        await hook.onPuzzleNoLongerSolved(puzzleId, answer);
       }
     }, Promise.resolve());
   }

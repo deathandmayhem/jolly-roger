@@ -65,6 +65,6 @@ addPuzzleAnswer.define({
         answers: savedAnswer.guess,
       },
     });
-    await GlobalHooks.runPuzzleSolvedHooks(savedAnswer.puzzle);
+    await GlobalHooks.runPuzzleSolvedHooks(savedAnswer.puzzle, savedAnswer.guess);
   },
 });
