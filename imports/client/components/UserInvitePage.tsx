@@ -33,11 +33,11 @@ const UserInvitePage = () => {
     return userMayBulkAddToHunt(Meteor.userId(), huntId);
   }, [huntId]);
 
-  const onEmailChanged: FormControlProps['onChange'] = useCallback((e) => {
+  const onEmailChanged: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setEmail(e.currentTarget.value);
   }, []);
 
-  const onBulkEmailsChanged: FormControlProps['onChange'] = useCallback((e) => {
+  const onBulkEmailsChanged: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setBulkEmails(e.currentTarget.value);
   }, []);
 

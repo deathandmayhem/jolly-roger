@@ -20,10 +20,10 @@ const FirstUserForm = () => {
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
-  const onEmailChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onEmailChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setEmail(e.currentTarget.value);
   }, []);
-  const onPasswordChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onPasswordChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setPassword(e.currentTarget.value);
   }, []);
   const dismissAlert = useCallback(() => {

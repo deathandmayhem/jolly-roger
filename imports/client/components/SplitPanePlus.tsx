@@ -235,7 +235,7 @@ const SplitPanePlus = ({
     size, collapsed, onPaneChanged,
   ]);
 
-  const preventDefault = useCallback((ev) => {
+  const preventDefault: EventListener = useCallback((ev) => {
     ev.preventDefault();
   }, []);
 

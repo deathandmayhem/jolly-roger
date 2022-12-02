@@ -295,15 +295,15 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
     useState<OwnProfilePageSubmitState>(OwnProfilePageSubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
-  const handleDisplayNameFieldChange: FormControlProps['onChange'] = useCallback((e) => {
+  const handleDisplayNameFieldChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setDisplayName(e.currentTarget.value);
   }, []);
 
-  const handlePhoneNumberFieldChange: FormControlProps['onChange'] = useCallback((e) => {
+  const handlePhoneNumberFieldChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setPhoneNumber(e.currentTarget.value);
   }, []);
 
-  const handleDingwordsChange: FormControlProps['onChange'] = useCallback((e) => {
+  const handleDingwordsChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setDingwordsFlat(e.currentTarget.value);
   }, []);
 

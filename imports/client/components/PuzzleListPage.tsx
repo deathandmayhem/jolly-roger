@@ -168,7 +168,7 @@ const PuzzleListView = ({
     setSearchParams(u);
   }, [searchParams, setSearchParams]);
 
-  const onSearchStringChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onSearchStringChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setSearchString(e.currentTarget.value);
   }, [setSearchString]);
 

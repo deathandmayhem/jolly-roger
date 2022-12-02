@@ -4,7 +4,7 @@ import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
-import React, { ReactChild, useCallback, useState } from 'react';
+import React, { ReactNode, useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
@@ -155,11 +155,11 @@ const GoogleOAuthForm = ({ isConfigured, initialClientId }: {
     }
   }, [clientId, clientSecret]);
 
-  const onClientIdChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onClientIdChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setClientId(e.currentTarget.value);
   }, []);
 
-  const onClientSecretChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onClientSecretChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setClientSecret(e.currentTarget.value);
   }, []);
 
@@ -281,7 +281,7 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
     setState({ submitState: SubmitState.IDLE });
   }, []);
 
-  const onRootIdChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onRootIdChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setRootId(e.currentTarget.value);
   }, []);
 
@@ -381,11 +381,11 @@ const GoogleDriveTemplateForm = ({ initialDocTemplate, initialSpreadsheetTemplat
     setState({ submitState: SubmitState.IDLE });
   }, []);
 
-  const onSpreadsheetTemplateChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onSpreadsheetTemplateChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setSpreadsheetTemplate(e.currentTarget.value);
   }, []);
 
-  const onDocTemplateChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onDocTemplateChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setDocTemplate(e.currentTarget.value);
   }, []);
 
@@ -679,23 +679,23 @@ const EmailConfigForm = ({ initialConfig }: {
     setSubmitState(SubmitState.IDLE);
   }, []);
 
-  const onFromChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onFromChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setFrom(e.currentTarget.value);
   }, []);
 
-  const onEnrollSubjectChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onEnrollSubjectChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setEnrollAccountSubject(e.currentTarget.value);
   }, []);
 
-  const onEnrollMessageChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onEnrollMessageChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setEnrollAccountMessage(e.currentTarget.value);
   }, []);
 
-  const onJoinSubjectChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onJoinSubjectChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setExistingJoinSubject(e.currentTarget.value);
   }, []);
 
-  const onJoinMessageChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onJoinMessageChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setExistingJoinMessage(e.currentTarget.value);
   }, []);
 
@@ -1021,11 +1021,11 @@ const DiscordOAuthForm = ({ oauthSettings }: {
     setSubmitState(SubmitState.IDLE);
   }, []);
 
-  const onClientIdChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onClientIdChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setClientId(e.currentTarget.value);
   }, []);
 
-  const onClientSecretChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onClientSecretChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setClientSecret(e.currentTarget.value);
   }, []);
 
@@ -1114,7 +1114,7 @@ const DiscordBotForm = ({ botToken: initialBotToken }: { botToken?: string }) =>
     setSubmitState(SubmitState.IDLE);
   }, []);
 
-  const onBotTokenChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onBotTokenChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setBotToken(e.currentTarget.value);
   }, []);
 
@@ -1185,7 +1185,7 @@ const DiscordGuildForm = ({ guild: initialGuild }: {
     setSubmitState(SubmitState.IDLE);
   }, []);
 
-  const onSelectedGuildChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onSelectedGuildChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     const newValue = e.currentTarget.value === 'empty' ? '' : e.currentTarget.value;
     setGuildId(newValue);
   }, []);
@@ -1400,7 +1400,7 @@ const BrandingTeamName = () => {
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
-  const onTeamNameChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onTeamNameChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setTeamName(e.currentTarget.value);
   }, []);
 
@@ -1483,7 +1483,7 @@ const BrandingAssetRow = ({
 }: {
   asset: string;
   backgroundSize?: string;
-  children?: ReactChild;
+  children?: ReactNode;
 }) => {
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');

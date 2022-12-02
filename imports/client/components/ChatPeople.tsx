@@ -4,7 +4,7 @@ import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
-  ReactChild, useCallback, useEffect, useLayoutEffect, useRef, useState,
+  ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState,
 } from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -37,7 +37,7 @@ interface ViewerSubscriber {
 }
 
 interface PersonBoxProps extends ViewerSubscriber {
-  children?: ReactChild;
+  children?: ReactNode;
   popperBoundaryRef: React.RefObject<HTMLElement>;
 }
 

@@ -858,16 +858,16 @@ const PuzzleGuessModal = React.forwardRef(({
     },
   }));
 
-  const onGuessInputChange: FormControlProps['onChange'] = useCallback((event) => {
+  const onGuessInputChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
     setGuessInput(event.currentTarget.value.toUpperCase());
     setConfirmingSubmit(false);
   }, []);
 
-  const onDirectionInputChange: FormControlProps['onChange'] = useCallback((event) => {
+  const onDirectionInputChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
     setDirectionInput(parseInt(event.currentTarget.value, 10));
   }, []);
 
-  const onConfidenceInputChange: FormControlProps['onChange'] = useCallback((event) => {
+  const onConfidenceInputChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
     setConfidenceInput(parseInt(event.currentTarget.value, 10));
   }, []);
 
@@ -1063,7 +1063,7 @@ const PuzzleAnswerModal = React.forwardRef(({ puzzle }: {
     }
   }, []);
 
-  const onAnswerChange: FormControlProps['onChange'] = useCallback((e) => {
+  const onAnswerChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
     setAnswer(e.currentTarget.value);
   }, []);
 
