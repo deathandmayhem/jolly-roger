@@ -178,12 +178,55 @@ function reducer(state: CallState, action: Action): CallState {
           deafened: !state.audioControls.deafened,
         },
       };
-    case 'set-peers':
+    case 'set-peers': {
+      let audioControls = state.audioControls;
+      if ((!state.selfPeer && action.selfPeer) ||
+          (state.selfPeer && action.selfPeer && state.selfPeer._id !== action.selfPeer._id)) {
+        log('server gives initial peer state', action.selfPeer.initialPeerState);
+        // When we are first joining the call (or rejoining the call with the
+        // same hunt/call/tab due to a server outage), the server will present us
+        // with the effective peer state (active, muted, or deafened) that it
+        // thinks we should have.  If we are rejoining the call from the same
+        // tab due to a server disconnect, the server will tell us to preserve
+        // our previous call state; otherwise the server may tell us to start out
+        // muted if the call is large or active otherwise.
+
+        switch (action.selfPeer.initialPeerState) {
+          case 'active':
+            audioControls = {
+              muted: false,
+              deafened: false,
+            };
+            break;
+          case 'muted':
+            audioControls = {
+              muted: true,
+              deafened: false,
+            };
+            break;
+          case 'deafened':
+            // In the case where we are reconnecting and were previously
+            // deafened, preserve the hidden "explicitly muted" state, since
+            // we'll be complying with the server's intent that our producer
+            // tracks start out paused, and we shouldn't add or remove
+            // explicit mute that is masked by being deafened.
+            audioControls = {
+              muted: state.audioControls.muted,
+              deafened: true,
+            };
+            break;
+          default:
+            break;
+        }
+      }
+
       return {
         ...state,
         selfPeer: action.selfPeer,
         otherPeers: action.otherPeers,
+        audioControls,
       };
+    }
     case 'add-peer-track': {
       const newStream = new MediaStream();
       state.peerStreams.get(action.peerId)?.getTracks().forEach((track) => {
@@ -621,6 +664,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
     return () => observer.stop();
   }, []);
 
+  const producerShouldBePaused = state.audioControls?.muted || state.audioControls?.deafened;
   useEffect(() => {
     log('producerTracks', producerTracks.map((t) => t.id));
     const activeTrackIds = new Set();
@@ -664,8 +708,9 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
         if (!producerState.subHandle && producerState.kind &&
           producerState.rtpParameters) {
           // Indicate intent to produce to the backend.
-          log(`subscribe mediasoup:producer tp=${sendTransport.appData._id} track=${track.id} kind=${producerState.kind}`);
-          producerState.subHandle = Meteor.subscribe('mediasoup:producer', sendTransport.appData._id, track.id, producerState.kind, producerState.rtpParameters);
+          const paused = producerShouldBePaused;
+          log(`subscribe mediasoup:producer tp=${sendTransport.appData._id} track=${track.id} kind=${producerState.kind} paused=${paused}`);
+          producerState.subHandle = Meteor.subscribe('mediasoup:producer', sendTransport.appData._id, track.id, producerState.kind, producerState.rtpParameters, paused);
         }
       }
     });
@@ -676,10 +721,9 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
         cleanupProducerMapEntry(producerMapRef.current, trackId);
       }
     });
-  }, [sendTransport, producerTracks, producerParamsGeneration]);
+  }, [sendTransport, producerTracks, producerParamsGeneration, producerShouldBePaused]);
 
   // Ensure mute state is respected by mediasoup.
-  const producerShouldBePaused = state.audioControls?.muted || state.audioControls?.deafened;
   useEffect(() => {
     if (producerShouldBePaused !== undefined) {
       // Update producer pause state
