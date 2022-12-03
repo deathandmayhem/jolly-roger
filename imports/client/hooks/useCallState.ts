@@ -16,6 +16,7 @@ import { PeerType } from '../../lib/schemas/mediasoup/Peer';
 import { RouterType } from '../../lib/schemas/mediasoup/Router';
 import { TransportType } from '../../lib/schemas/mediasoup/Transport';
 import mediasoupAckConsumer from '../../methods/mediasoupAckConsumer';
+import mediasoupAckPeerRemoteMute from '../../methods/mediasoupAckPeerRemoteMute';
 import mediasoupConnectTransport from '../../methods/mediasoupConnectTransport';
 import mediasoupSetPeerState from '../../methods/mediasoupSetPeerState';
 import mediasoupSetProducerPaused from '../../methods/mediasoupSetProducerPaused';
@@ -101,6 +102,7 @@ export type Action =
   | { type: 'toggle-mute' }
   | { type: 'toggle-deafen' }
   | { type: 'dismiss-peer-state-notification' }
+  | { type: 'set-remote-muted', remoteMutedBy: string }
   | { type: 'set-peers', selfPeer: PeerType | undefined, otherPeers: PeerType[] }
   | { type: 'add-peer-track', peerId: string, track: MediaStreamTrack }
   | { type: 'remove-peer-track', peerId: string, track: MediaStreamTrack }
@@ -192,6 +194,14 @@ function reducer(state: CallState, action: Action): CallState {
       return {
         ...state,
         allowInitialPeerStateNotification: false,
+      };
+    case 'set-remote-muted':
+      return {
+        ...state,
+        audioControls: {
+          muted: true,
+          deafened: state.audioControls.deafened,
+        },
       };
     case 'set-peers': {
       let audioControls = state.audioControls;
@@ -769,10 +779,21 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
     }
   }, [producerTracks, producerShouldBePaused, producerGeneration]);
 
-  // Ensure we update peer state so that mute/deafen are visible to others.
+  useEffect(() => {
+    // If we've been remote-muted, acknowledge to the server and translate into local mute.
+    if (selfPeer?.remoteMutedBy) {
+      dispatch({ type: 'set-remote-muted', remoteMutedBy: selfPeer.remoteMutedBy });
+      mediasoupAckPeerRemoteMute.call({ peerId: selfPeer._id }, (err) => {
+        if (err) {
+          console.error("Couldn't tell backend we've acknowledged remote mute", err);
+        }
+      });
+    }
+  }, [selfPeer?._id, selfPeer?.remoteMutedBy]);
+  // otherwise we update peer state so that mute/deafen are visible to others.
   useEffect(() => {
     const audioControls = state.audioControls;
-    if (selfPeer && audioControls) {
+    if (selfPeer && !selfPeer.remoteMutedBy && audioControls) {
       const serverEffectiveState = participantState(selfPeer.muted, selfPeer.deafened);
       const localEffectiveState = participantState(audioControls.muted, audioControls.deafened);
       if (serverEffectiveState !== localEffectiveState) {

@@ -1,6 +1,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Flags from '../../Flags';
+import Peers from '../../lib/models/mediasoup/Peers';
 import ProducerClients from '../../lib/models/mediasoup/ProducerClients';
 import ProducerServers from '../../lib/models/mediasoup/ProducerServers';
 import mediasoupSetProducerPaused from '../../methods/mediasoupSetProducerPaused';
@@ -36,6 +37,11 @@ mediasoupSetProducerPaused.define({
 
     if (producerClient.createdBy !== this.userId) {
       throw new Meteor.Error(403, 'Not allowed');
+    }
+
+    const peer = Peers.findOne(producerClient.peer);
+    if (peer?.remoteMutedBy) {
+      throw new Meteor.Error(403, 'Peer has been remotely muted and must first acknowledge that');
     }
 
     ProducerClients.update(producerClient, { $set: { paused } });

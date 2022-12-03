@@ -19,6 +19,7 @@ import ConnectAcks from './mediasoup/ConnectAcks';
 import ConnectRequests from './mediasoup/ConnectRequests';
 import ConsumerAcks from './mediasoup/ConsumerAcks';
 import Consumers from './mediasoup/Consumers';
+import PeerRemoteMutes from './mediasoup/PeerRemoteMutes';
 import Peers from './mediasoup/Peers';
 import ProducerClients from './mediasoup/ProducerClients';
 import ProducerServers from './mediasoup/ProducerServers';
@@ -46,6 +47,7 @@ const Models = {
     ConnectAcks,
     ConnectRequests,
     Peers,
+    PeerRemoteMutes,
     ProducerClients,
     ProducerServers,
     Rooms,

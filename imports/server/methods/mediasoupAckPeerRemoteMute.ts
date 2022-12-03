@@ -1,20 +1,18 @@
-import { check, Match } from 'meteor/check';
+import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Flags from '../../Flags';
 import Peers from '../../lib/models/mediasoup/Peers';
-import mediasoupSetPeerState, { ALLOWED_STATES } from '../../methods/mediasoupSetPeerState';
+import mediasoupAckPeerRemoteMute from '../../methods/mediasoupAckPeerRemoteMute';
 
-mediasoupSetPeerState.define({
+mediasoupAckPeerRemoteMute.define({
   validate(arg) {
     check(arg, {
       peerId: String,
-      state: Match.OneOf(...ALLOWED_STATES),
     });
-
     return arg;
   },
 
-  run({ peerId, state }) {
+  run({ peerId }) {
     if (!this.userId) {
       throw new Meteor.Error(401, 'Not logged in');
     }
@@ -23,7 +21,7 @@ mediasoupSetPeerState.define({
       throw new Meteor.Error(403, 'WebRTC disabled');
     }
 
-    const peer = Peers.findOne(peerId);
+    const peer = Peers.findOne({ _id: peerId });
     if (!peer) {
       throw new Meteor.Error(404, 'Peer not found');
     }
@@ -32,15 +30,12 @@ mediasoupSetPeerState.define({
       throw new Meteor.Error(403, 'Not allowed');
     }
 
-    Peers.update({
-      _id: peerId,
-      // If a user has been remote muted, they aren't allowed to change their
-      // state until they acknowledge the remote mute
-      remoteMutedBy: undefined,
-    }, {
+    Peers.update(peer._id, {
       $set: {
-        muted: state !== 'active',
-        deafened: state === 'deafened',
+        muted: true,
+      },
+      $unset: {
+        remoteMutedBy: 1,
       },
     });
   },

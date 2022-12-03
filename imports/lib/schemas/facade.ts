@@ -21,6 +21,7 @@ import ConnectRequest from './mediasoup/ConnectRequest';
 import Consumer from './mediasoup/Consumer';
 import ConsumerAck from './mediasoup/ConsumerAck';
 import Peer from './mediasoup/Peer';
+import PeerRemoteMute from './mediasoup/PeerRemoteMute';
 import ProducerClient from './mediasoup/ProducerClient';
 import ProducerServer from './mediasoup/ProducerServer';
 import Room from './mediasoup/Room';
@@ -47,6 +48,7 @@ const Schemas = {
     Consumer,
     ConsumerAck,
     Peer,
+    PeerRemoteMute,
     ProducerClient,
     ProducerServer,
     Room,

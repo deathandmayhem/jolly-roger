@@ -11,6 +11,7 @@ const PeerFields = t.type({
   call: t.string,
   tab: t.string,
   initialPeerState: t.union([t.literal('active'), t.literal('muted'), t.literal('deafened')]),
+  remoteMutedBy: t.union([t.string, t.undefined]),
   muted: t.boolean,
   deafened: t.boolean,
 });
@@ -34,6 +35,9 @@ const PeerFieldsOverrides: Overrides<t.TypeOf<typeof PeerFields>> = {
   },
   initialPeerState: {
     denyUpdate: true,
+  },
+  remoteMutedBy: {
+    regEx: Id,
   },
 };
 
