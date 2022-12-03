@@ -7,7 +7,7 @@ import Hunts from '../../imports/lib/models/Hunts';
 import MeteorUsers from '../../imports/lib/models/MeteorUsers';
 import { addUserToRole as serverAddUserToRole, userIsOperatorForAnyHunt } from '../../imports/lib/permission_stubs';
 import TypedMethod from '../../imports/methods/TypedMethod';
-import { resetDatabase, stabilize } from './lib';
+import { resetDatabase, stabilize, subscribeAsync } from './lib';
 
 // To make these tests easier to setup, use these methods to punch through most
 // of our normal permissions. They don't even require that you be logged in.
@@ -15,21 +15,6 @@ const createUser = new TypedMethod<{ email: string, password: string, displayNam
 const addUserToRole = new TypedMethod<{ userId: string, scope: string, role: string }, void>('test.methods.profiles.addUserToRole');
 const createHunt = new TypedMethod<{ name: string }, string>('test.methods.profiles.createHunt');
 const joinHunt = new TypedMethod<{ huntId: string, userId: string }, void>('test.methods.profiles.joinHunt');
-
-const subscribeAsync = (name: string, ...args: any[]) => new Promise<Meteor.SubscriptionHandle>(
-  (resolve, reject) => {
-    const handle = Meteor.subscribe(name, ...args, {
-      onStop: (reason?: Meteor.Error) => {
-        if (reason) {
-          reject(reason);
-        }
-      },
-      onReady: () => {
-        resolve(handle);
-      },
-    });
-  }
-);
 
 if (Meteor.isServer) {
   createUser.define({

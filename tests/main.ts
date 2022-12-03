@@ -11,5 +11,6 @@ if (Meteor.isServer) {
 }
 
 import './acceptance/authentication';
+import './acceptance/chatHooks';
 import './acceptance/profiles';
 import './acceptance/smoke';

@@ -92,6 +92,22 @@ export const resetDatabase = async (testName: string) => {
   await resetDatabaseMethod.callPromise({ testName });
 };
 
+export const subscribeAsync =
+  (name: string, ...args: any[]) => new Promise<Meteor.SubscriptionHandle>(
+    (resolve, reject) => {
+      const handle = Meteor.subscribe(name, ...args, {
+        onStop: (reason?: Meteor.Error) => {
+          if (reason) {
+            reject(reason);
+          }
+        },
+        onReady: () => {
+          resolve(handle);
+        },
+      });
+    }
+  );
+
 // waitForSubscriptions and afterFlush both taken from
 // https://guide.meteor.com/testing.html#full-app-integration-test
 

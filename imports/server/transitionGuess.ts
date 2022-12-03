@@ -26,7 +26,7 @@ export default async function transitionGuess(guess: GuessType, newState: GuessT
         answers: guess.guess,
       },
     });
-    await GlobalHooks.runPuzzleSolvedHooks(guess.puzzle);
+    await GlobalHooks.runPuzzleSolvedHooks(guess.puzzle, guess.guess);
   } else if (guess.state === 'correct') {
     // Transitioning from correct -> something else: un-mark that puzzle as solved.
     Puzzles.update({
@@ -36,6 +36,6 @@ export default async function transitionGuess(guess: GuessType, newState: GuessT
         answers: guess.guess,
       },
     });
-    await GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle);
+    await GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle, guess.guess);
   }
 }
