@@ -314,6 +314,7 @@ function cleanupProducerMapEntry(map: Map<string, ProducerState>, trackId: strin
 
 type ProducerCallback = ({ id }: { id: string }) => void;
 type ProducerState = {
+  transport: string;
   producer: types.Producer | undefined;
   subHandle: Meteor.SubscriptionHandle | undefined;
   producerServerCallback: ProducerCallback | undefined;
@@ -629,9 +630,10 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
 
       if (sendTransport) {
         let producerState = producerMapRef.current.get(track.id);
-        if (!producerState) {
+        if (!producerState || producerState.transport !== sendTransport.appData._id) {
           // Create empty entry, before we attempt to produce for the track
           producerState = {
+            transport: (sendTransport.appData as any)._id,
             producer: undefined,
             subHandle: undefined,
             producerServerCallback: undefined,
@@ -645,6 +647,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
             const newProducer = await sendTransport.produce({
               track,
               zeroRtpOnPause: true,
+              stopTracks: false,
               appData: { trackId: track.id },
             });
             log('got producer', newProducer);
