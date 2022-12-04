@@ -59,7 +59,7 @@ const PuzzleModalForm = React.forwardRef(({
   }, [propsTags]);
 
   const [title, setTitle] = useState<string>(puzzle ? puzzle.title : '');
-  const [url, setUrl] = useState<string | undefined>(puzzle ? puzzle.url : undefined);
+  const [url, setUrl] = useState<string | undefined>(puzzle ? puzzle.url : '');
   const [tags, setTags] = useState<string[]>(puzzle ? tagNamesForIds(puzzle.tags) : []);
   const [docType, setDocType] =
     useState<GdriveMimeTypesType | undefined>(puzzle ? undefined : 'spreadsheet');
@@ -161,7 +161,10 @@ const PuzzleModalForm = React.forwardRef(({
 
   const currentUrl = useMemo(() => {
     if (!urlDirty && puzzle) {
-      return puzzle.url;
+      // Always make this a string so that currentUrl is not undefined, which
+      // makes React confused about whether the input is controller or not.
+      // If the string is empty, we'll turn it back into undefined in onFormSubmit.
+      return puzzle.url || '';
     } else {
       return url;
     }
