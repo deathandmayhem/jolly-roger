@@ -132,6 +132,10 @@
     "@typescript-eslint/prefer-optional-chain": ["error"],
     "@typescript-eslint/prefer-nullish-coalescing": ["error"],
 
+    // Enforce safety around promises
+    "no-return-await": "off",
+    "@typescript-eslint/return-await": "error",
+
     // Show errors for deprecated code
     "deprecation/deprecation": "error",
 
