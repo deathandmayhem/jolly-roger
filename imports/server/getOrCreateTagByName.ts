@@ -13,6 +13,14 @@ export default function getOrCreateTagByName(huntId: string, name: string): {
 
   Ansible.log('Creating a new tag', { hunt: huntId, name });
   const newTagId = Tags.insert({ hunt: huntId, name });
+
+  // When creating a `group:*` tag, also ensure a matching `meta-for:` tag exists.
+  if (name.startsWith('group:')) {
+    const groupName = name.slice('group:'.length);
+    const metaTagName = `meta-for:${groupName}`;
+    getOrCreateTagByName(huntId, metaTagName);
+  }
+
   return {
     _id: newTagId,
     hunt: huntId,
