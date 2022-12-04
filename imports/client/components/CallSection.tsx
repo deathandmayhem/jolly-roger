@@ -449,8 +449,17 @@ const CallSection = ({
   const onDismissPeerStateNotification = useCallback(() => {
     callDispatch({ type: 'dismiss-peer-state-notification' });
   }, [callDispatch]);
+  const onDismissRemoteMuted = useCallback(() => {
+    callDispatch({ type: 'dismiss-remote-muted' });
+  }, [callDispatch]);
 
   const muteRef = useRef(null);
+
+  const mutedBy = useTracker(() => {
+    return callState.remoteMutedBy ?
+      Meteor.users.findOne(callState.remoteMutedBy)?.displayName :
+      undefined;
+  }, [callState.remoteMutedBy]);
 
   if (!callState.device) {
     return <JoiningCall details="Missing device" />;
@@ -491,6 +500,19 @@ const CallSection = ({
             call.  You can unmute yourself at any time.
           </div>
           <Button onClick={onDismissPeerStateNotification}>Got it</Button>
+        </Tooltip>
+      </Overlay>
+      <Overlay target={muteRef.current} show={!!callState.remoteMutedBy} placement="bottom">
+        <Tooltip id="remote-muted-notification">
+          <div>
+            You were muted by
+            {' '}
+            {mutedBy ?? 'someone'}
+            . This usually happens when it seemed like you had stepped away from your computer
+            without muting yourself, but your microphone was still on. You can unmute yourself
+            at any time.
+          </div>
+          <Button onClick={onDismissRemoteMuted}>Got it</Button>
         </Tooltip>
       </Overlay>
       <Callers

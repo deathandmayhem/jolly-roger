@@ -89,6 +89,7 @@ export type CallState = ({
   // after a server disconnection (rather than a user hang-up) since the state
   // there shouldn't be considered to have changed.
   allowInitialPeerStateNotification: boolean;
+  remoteMutedBy: string | undefined;
 };
 
 export type Action =
@@ -103,6 +104,7 @@ export type Action =
   | { type: 'toggle-deafen' }
   | { type: 'dismiss-peer-state-notification' }
   | { type: 'set-remote-muted', remoteMutedBy: string }
+  | { type: 'dismiss-remote-muted' }
   | { type: 'set-peers', selfPeer: PeerType | undefined, otherPeers: PeerType[] }
   | { type: 'add-peer-track', peerId: string, track: MediaStreamTrack }
   | { type: 'remove-peer-track', peerId: string, track: MediaStreamTrack }
@@ -124,6 +126,7 @@ const INITIAL_STATE: CallState = {
   otherPeers: [] as PeerType[],
   peerStreams: new Map<string, MediaStream>(),
   allowInitialPeerStateNotification: false,
+  remoteMutedBy: undefined,
 };
 
 function reducer(state: CallState, action: Action): CallState {
@@ -176,6 +179,7 @@ function reducer(state: CallState, action: Action): CallState {
           deafened: false,
         },
         allowInitialPeerStateNotification: false,
+        remoteMutedBy: undefined,
       };
     }
     case 'toggle-deafen':
@@ -189,6 +193,7 @@ function reducer(state: CallState, action: Action): CallState {
           deafened: !state.audioControls.deafened,
         },
         allowInitialPeerStateNotification: false,
+        remoteMutedBy: undefined,
       };
     case 'dismiss-peer-state-notification':
       return {
@@ -202,6 +207,13 @@ function reducer(state: CallState, action: Action): CallState {
           muted: true,
           deafened: state.audioControls.deafened,
         },
+        allowInitialPeerStateNotification: false,
+        remoteMutedBy: action.remoteMutedBy,
+      };
+    case 'dismiss-remote-muted':
+      return {
+        ...state,
+        remoteMutedBy: undefined,
       };
     case 'set-peers': {
       let audioControls = state.audioControls;
