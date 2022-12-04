@@ -83,6 +83,11 @@ export type CallState = ({
   selfPeer: PeerType | undefined;
   otherPeers: PeerType[];
   peerStreams: Map<string, MediaStream>; // map from Peer._id to stream
+  // Whether or not to show an modal about the initial peer state.  We want to
+  // show this on initial user-initiated call join, but not if we reconnect
+  // after a server disconnection (rather than a user hang-up) since the state
+  // there shouldn't be considered to have changed.
+  allowInitialPeerStateNotification: boolean;
 };
 
 export type Action =
@@ -95,6 +100,7 @@ export type Action =
   | { type: 'leave-call' }
   | { type: 'toggle-mute' }
   | { type: 'toggle-deafen' }
+  | { type: 'dismiss-peer-state-notification' }
   | { type: 'set-peers', selfPeer: PeerType | undefined, otherPeers: PeerType[] }
   | { type: 'add-peer-track', peerId: string, track: MediaStreamTrack }
   | { type: 'remove-peer-track', peerId: string, track: MediaStreamTrack }
@@ -115,6 +121,7 @@ const INITIAL_STATE: CallState = {
   selfPeer: undefined,
   otherPeers: [] as PeerType[],
   peerStreams: new Map<string, MediaStream>(),
+  allowInitialPeerStateNotification: false,
 };
 
 function reducer(state: CallState, action: Action): CallState {
@@ -133,6 +140,7 @@ function reducer(state: CallState, action: Action): CallState {
           muted: false,
           deafened: false,
         },
+        allowInitialPeerStateNotification: true,
       };
     case 'set-device':
       return {
@@ -165,6 +173,7 @@ function reducer(state: CallState, action: Action): CallState {
           muted: nextMuted,
           deafened: false,
         },
+        allowInitialPeerStateNotification: false,
       };
     }
     case 'toggle-deafen':
@@ -177,6 +186,12 @@ function reducer(state: CallState, action: Action): CallState {
           muted: state.audioControls.muted,
           deafened: !state.audioControls.deafened,
         },
+        allowInitialPeerStateNotification: false,
+      };
+    case 'dismiss-peer-state-notification':
+      return {
+        ...state,
+        allowInitialPeerStateNotification: false,
       };
     case 'set-peers': {
       let audioControls = state.audioControls;
