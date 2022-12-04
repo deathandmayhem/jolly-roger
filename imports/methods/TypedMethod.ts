@@ -70,7 +70,7 @@ export default class TypedMethod<
     }
 
     this.definition = {
-      validate: (validate || voidValidator) as TypedMethodValidator<Args>,
+      validate: (validate ?? voidValidator) as TypedMethodValidator<Args>,
       run,
     };
 

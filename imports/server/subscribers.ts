@@ -76,25 +76,25 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
       }
 
       if (!Object.prototype.hasOwnProperty.call(counters[name], user)) {
-        counters[name][user] = 0;
+        counters[name]![user] = 0;
       }
 
-      counters[name][user] += 1;
+      counters[name]![user] += 1;
       if (initialized) {
-        this.changed('subscribers.counts', name, { value: Object.keys(counters[name]).length });
+        this.changed('subscribers.counts', name, { value: Object.keys(counters[name]!).length });
       }
     },
 
     removed: (doc) => {
       const { name, user } = doc;
 
-      counters[name][user] -= 1;
-      if (counters[name][user] === 0) {
-        delete counters[name][user];
+      counters[name]![user] -= 1;
+      if (counters[name]![user] === 0) {
+        delete counters[name]![user];
       }
 
       if (initialized) {
-        this.changed('subscribers.counts', name, { value: Object.keys(counters[name]).length });
+        this.changed('subscribers.counts', name, { value: Object.keys(counters[name]!).length });
       }
     },
   });

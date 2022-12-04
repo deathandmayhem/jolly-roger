@@ -191,7 +191,7 @@ const GuessBlock = React.memo(({
 const GuessQueuePage = () => {
   const huntId = useParams<'huntId'>().huntId!;
   const [searchParams, setSearchParams] = useSearchParams();
-  const searchString = searchParams.get('q') || '';
+  const searchString = searchParams.get('q') ?? '';
 
   useBreadcrumb({ title: 'Guess queue', path: `/hunts/${huntId}/guesses` });
 
@@ -262,7 +262,7 @@ const GuessQueuePage = () => {
       // For each search key, if nothing from the text or the title match,
       // reject this guess.
       return lowerSearchKeys.every((key) => {
-        return guessText.indexOf(key) !== -1 || titleWords.some((word) => word.startsWith(key));
+        return guessText.includes(key) || titleWords.some((word) => word.startsWith(key));
       });
     };
   }, [puzzles]);
@@ -311,7 +311,7 @@ const GuessQueuePage = () => {
             key={guess._id}
             hunt={hunt}
             guess={guess}
-            createdByDisplayName={displayNames[guess.createdBy]}
+            createdByDisplayName={displayNames[guess.createdBy] ?? '???'}
             puzzle={puzzles.get(guess.puzzle)!}
             canEdit={canEdit}
           />

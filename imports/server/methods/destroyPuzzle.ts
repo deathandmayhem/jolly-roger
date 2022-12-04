@@ -39,7 +39,7 @@ destroyPuzzle.define({
 
     Puzzles.update(puzzleId, {
       $set: {
-        replacedBy: replacedBy || undefined,
+        replacedBy: replacedBy ?? undefined,
         deleted: true,
       },
     });

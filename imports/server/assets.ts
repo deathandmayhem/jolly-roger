@@ -116,7 +116,7 @@ const router = express.Router();
 router.get('/:asset', (req, res) => {
   check(req.params.asset, String);
 
-  const blob = dbAssets.get(req.params.asset) || defaultAssets.get(req.params.asset);
+  const blob = dbAssets.get(req.params.asset) ?? defaultAssets.get(req.params.asset);
   if (blob) {
     const buff = Buffer.from(blob.value);
     res.statusCode = 200;

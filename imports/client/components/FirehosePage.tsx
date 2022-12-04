@@ -75,7 +75,7 @@ const MessagesPane = styled.div`
 const FirehosePage = () => {
   const huntId = useParams<'huntId'>().huntId!;
   const [searchParams, setSearchParams] = useSearchParams();
-  const searchString = searchParams.get('q') || '';
+  const searchString = searchParams.get('q') ?? '';
 
   useBreadcrumb({ title: 'Firehose', path: `/hunts/${huntId}/firehose` });
 
@@ -144,7 +144,7 @@ const FirehosePage = () => {
     const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
     return (chatMessage) => {
       return lowerSearchKeys.every((key) => {
-        return chatMessage.text.toLowerCase().indexOf(key) !== -1;
+        return chatMessage.text.toLowerCase().includes(key);
       });
     };
   }, []);
@@ -243,7 +243,7 @@ const FirehosePage = () => {
                 key={msg._id}
                 msg={msg}
                 puzzle={puzzles.get(msg.puzzle)}
-                displayName={msg.sender ? displayNames[msg.sender] : 'jolly-roger'}
+                displayName={msg.sender ? (displayNames[msg.sender] ?? '???') : 'jolly-roger'}
               />
             );
           })}

@@ -18,7 +18,7 @@ const DiscordAvatarInner = ({
   const urls = Array.from(Array(3), (_, i) => getAvatarCdnUrl(discordAccount, (i + 1) * size));
   if (urls.some((url) => !url)) { return null; }
   const srcSet = urls.map((url, i) => `${url} ${i + 1}x`).join(', ');
-  const alt = `${displayName || 'Anonymous user'}'s Discord avatar`;
+  const alt = `${displayName ?? 'Anonymous user'}'s Discord avatar`;
   return <AvatarImg alt={alt} src={urls[0]} srcSet={srcSet} />;
 };
 
@@ -49,7 +49,7 @@ const DefaultAvatarInner = ({
   ];
   const initial = displayName ? displayName.trim().slice(0, 1).toUpperCase() : '?';
   const idSum = Array.from(_id ?? '').reduce((t, c) => t + c.codePointAt(0)!, 0);
-  const [circleColor, initialColor] = palette[idSum % palette.length];
+  const [circleColor, initialColor] = palette[Math.abs(idSum) % palette.length]!;
   const style = { backgroundColor: circleColor, color: initialColor };
   return <AvatarInitial style={style}>{initial}</AvatarInitial>;
 };

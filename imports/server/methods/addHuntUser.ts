@@ -61,7 +61,7 @@ function renderExistingJoinEmail(
   hunt: HuntType,
   joinerName: string | undefined
 ) {
-  const email = user && user.emails && user.emails[0] && user.emails[0].address;
+  const email = user?.emails?.[0]?.address;
   const view = {
     siteName: Accounts.emailTemplates.siteName,
     joinerName,
@@ -124,7 +124,7 @@ addHuntUser.define({
       hunt: huntId,
     });
     MeteorUsers.update(joineeUser._id, { $addToSet: { hunts: { $each: [huntId] } } });
-    const joineeEmails = (joineeUser.emails || []).map((e) => e.address);
+    const joineeEmails = (joineeUser.emails ?? []).map((e) => e.address);
 
     hunt.mailingLists.forEach((listName) => {
       const list = new List(listName);

@@ -312,7 +312,7 @@ const ChatHistory = React.forwardRef(({
 
   const saveScrollBottomTarget = useCallback(() => {
     if (ref.current) {
-      const rect = ref.current.getClientRects()[0];
+      const rect = ref.current.getClientRects()[0]!;
       const scrollHeight = ref.current.scrollHeight;
       const scrollTop = ref.current.scrollTop;
       const hiddenHeight = scrollHeight - rect.height;
@@ -344,7 +344,7 @@ const ChatHistory = React.forwardRef(({
 
   const scrollToTarget = useCallback(() => {
     if (ref.current) {
-      const rect = ref.current.getClientRects()[0];
+      const rect = ref.current.getClientRects()[0]!;
       const scrollHeight = ref.current.scrollHeight;
       const scrollTop = ref.current.scrollTop;
       const hiddenHeight = scrollHeight - rect.height;
@@ -429,12 +429,13 @@ const ChatHistory = React.forwardRef(({
         // * this is not the first message
         // * this message was sent by the same person as the previous message
         // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
-        const suppressSender = index > 0 && messages[index - 1].sender === msg.sender && messages[index - 1].timestamp.getTime() + 60000 > msg.timestamp.getTime();
+        const lastMessage = index > 0 ? messages[index - 1] : undefined;
+        const suppressSender = !!lastMessage && lastMessage.sender === msg.sender && lastMessage.timestamp.getTime() + 60000 > msg.timestamp.getTime();
         return (
           <ChatMessage
             key={msg._id}
             message={msg}
-            senderDisplayName={displayName}
+            senderDisplayName={displayName ?? '???'}
             isSystemMessage={msg.sender === undefined}
             suppressSender={suppressSender}
           />

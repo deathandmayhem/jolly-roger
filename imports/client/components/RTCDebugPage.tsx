@@ -131,7 +131,7 @@ const UserDisplay = ({ userId }: { userId: string }) => {
     <Link to={`/users/${userId}`} target="_blank">
       <Avatar {...user} size={40} inline />
       {' '}
-      {user?.displayName || 'Unknown'}
+      {user?.displayName ?? 'Unknown'}
     </Link>
   );
 };
@@ -471,7 +471,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
             <>
               <Col as="dt" xs={2}>ICE State</Col>
               <Col as="dd" xs={10}>
-                <code>{transportState.iceState || 'undefined'}</code>
+                <code>{transportState.iceState ?? 'undefined'}</code>
               </Col>
               <Col as="dt" xs={2}>ICE Selected Tuple</Col>
               <Col as="dd" xs={10}>
@@ -483,7 +483,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
               </Col>
               <Col as="dt" xs={2}>DTLS State</Col>
               <Col as="dd" xs={10}>
-                <code>{transportState.dtlsState || 'undefined'}</code>
+                <code>{transportState.dtlsState ?? 'undefined'}</code>
               </Col>
             </>
           )}
@@ -614,7 +614,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
             <>
               <Col as="dt" xs={2}>RTP capabilities</Col>
               <Col as="dd" xs={10}>
-                <JSONDisplay json={transportRequests[0].rtpCapabilities} />
+                <JSONDisplay json={transportRequests[0]!.rtpCapabilities} />
               </Col>
             </>
           )}
@@ -833,7 +833,7 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
         </thead>
         <tbody>
           {servers.map((s) => {
-            const roomCount = roomsByServer.get(s._id)?.length || 0;
+            const roomCount = roomsByServer.get(s._id)?.length ?? 0;
             const roomPercentage = totalRooms > 0 ? 100 * (roomCount / totalRooms) : 0;
             return (
               <tr key={s._id}>

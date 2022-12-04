@@ -171,7 +171,7 @@ const ChatPeople = ({
     }).fetch();
     rtcParticipants.forEach((p) => {
       const user = MeteorUsers.findOne(p.createdBy);
-      if (!user || !user.displayName) {
+      if (!user?.displayName) {
         unknownCount += 1;
         return;
       }
@@ -194,7 +194,7 @@ const ChatPeople = ({
       }
 
       const user = MeteorUsers.findOne(s.user);
-      if (!user || !user.displayName) {
+      if (!user?.displayName) {
         unknownCount += 1;
         return;
       }
@@ -232,7 +232,7 @@ const ChatPeople = ({
     trace('ChatPeople joinCall');
     if (navigator.mediaDevices) {
       callDispatch({ type: 'request-capture' });
-      const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ||
+      const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ??
         undefined;
       // Get the user media stream.
       const mediaStreamConstraints = {

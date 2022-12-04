@@ -20,7 +20,7 @@ const Flags = {
         const hash = SHA256(`${name}.${shard}`);
         // Use the first 48 bits (6 bytes) and convert to a float
         const float = parseInt(hash.slice(0, 6), 16) / 0xffffff;
-        return float < (flag.random || 0);
+        return float < (flag.random ?? 0);
       }
       case 'off':
         return false;

@@ -435,7 +435,7 @@ class SFU {
     // transports than we actually want to use, but `createConsumer` will filter
     // it down)
     this.transports.forEach((transport, key) => {
-      void this.createConsumer(key.split(':')[1], transport, producer);
+      void this.createConsumer(key.split(':')[1]!, transport, producer);
     });
 
     const observer = this.observers.get(producerAppData.call);
@@ -774,7 +774,7 @@ Meteor.startup(async () => {
   const ips = Meteor.isDevelopment ?
     getLocalIPAddresses() :
     await getPublicIPAddresses();
-  Ansible.log('Discovered announceable IPs', { ips: ips.map((ip) => ip.announcedIp || ip.ip) });
+  Ansible.log('Discovered announceable IPs', { ips: ips.map((ip) => ip.announcedIp ?? ip.ip) });
 
   let sfu: SFU | undefined;
   const updateSFU = async (enable: boolean) => {

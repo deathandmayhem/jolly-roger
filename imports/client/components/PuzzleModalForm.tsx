@@ -55,7 +55,7 @@ const PuzzleModalForm = React.forwardRef(({
   const tagNamesForIds = useCallback((tagIds: string[]) => {
     const tagNames: Record<string, string> = {};
     propsTags.forEach((t) => { tagNames[t._id] = t.name; });
-    return tagIds.map((t) => tagNames[t]);
+    return tagIds.map((t) => tagNames[t] ?? t);
   }, [propsTags]);
 
   const [title, setTitle] = useState<string>(puzzle ? puzzle.title : '');
@@ -120,7 +120,7 @@ const PuzzleModalForm = React.forwardRef(({
     const payload: PuzzleModalFormSubmitPayload = {
       huntId,
       title,
-      url: url || undefined, // Make sure we send undefined if url is falsy
+      url: url ?? undefined, // Make sure we send undefined if url is falsy
       tags,
       expectedAnswerCount,
     };
@@ -164,7 +164,7 @@ const PuzzleModalForm = React.forwardRef(({
       // Always make this a string so that currentUrl is not undefined, which
       // makes React confused about whether the input is controller or not.
       // If the string is empty, we'll turn it back into undefined in onFormSubmit.
-      return puzzle.url || '';
+      return puzzle.url ?? '';
     } else {
       return url;
     }

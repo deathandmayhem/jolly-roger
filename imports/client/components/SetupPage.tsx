@@ -116,7 +116,7 @@ const GoogleOAuthForm = ({ isConfigured, initialClientId }: {
   const [state, setState] = useState<GoogleOAuthFormSubmitState>({
     submitState: SubmitState.IDLE,
   });
-  const [clientId, setClientId] = useState<string>(initialClientId || '');
+  const [clientId, setClientId] = useState<string>(initialClientId ?? '');
   const [clientSecret, setClientSecret] = useState<string>('');
 
   const dismissAlert = useCallback(() => {
@@ -275,7 +275,7 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
   const [state, setState] = useState<GoogleDriveRootFormState>({
     submitState: SubmitState.IDLE,
   });
-  const [rootId, setRootId] = useState<string>(initialRootId || '');
+  const [rootId, setRootId] = useState<string>(initialRootId ?? '');
 
   const dismissAlert = useCallback(() => {
     setState({ submitState: SubmitState.IDLE });
@@ -374,8 +374,8 @@ const GoogleDriveTemplateForm = ({ initialDocTemplate, initialSpreadsheetTemplat
   const [state, setState] = useState<GoogleDriveTemplateFormState>({
     submitState: SubmitState.IDLE,
   });
-  const [docTemplate, setDocTemplate] = useState<string>(initialDocTemplate || '');
-  const [spreadsheetTemplate, setSpreadsheetTemplate] = useState<string>(initialSpreadsheetTemplate || '');
+  const [docTemplate, setDocTemplate] = useState<string>(initialDocTemplate ?? '');
+  const [spreadsheetTemplate, setSpreadsheetTemplate] = useState<string>(initialSpreadsheetTemplate ?? '');
 
   const dismissAlert = useCallback(() => {
     setState({ submitState: SubmitState.IDLE });
@@ -503,7 +503,7 @@ const GoogleIntegrationSection = () => {
     configureClearGdriveCreds.call();
   }, []);
 
-  const clientId = (oauthSettings && oauthSettings.clientId) || '';
+  const clientId = (oauthSettings?.clientId) ?? '';
 
   let stepsDone = 0;
   if (oauthSettings) {
@@ -522,7 +522,7 @@ const GoogleIntegrationSection = () => {
   const oauthBadgeVariant = oauthSettings ? 'success' : 'warning';
   const driveBadgeLabel = gdriveCredential ? 'configured' : 'unconfigured';
   const driveBadgeVariant = gdriveCredential ? 'success' : 'warning';
-  const maybeDriveUserEmail = gdriveCredential && gdriveCredential.value && gdriveCredential.value.email;
+  const maybeDriveUserEmail = gdriveCredential?.value?.email;
   const rootBadgeLabel = root ? 'configured' : 'unconfigured';
   const rootBadgeVariant = root ? 'success' : 'info';
   const templateBadgeLabel = spreadsheetTemplate ? 'configured' : 'unconfigured';
@@ -663,15 +663,15 @@ const GoogleIntegrationSection = () => {
 const EmailConfigForm = ({ initialConfig }: {
   initialConfig?: SettingType & { name: 'email.branding' };
 }) => {
-  const [from, setFrom] = useState<string>(initialConfig?.value.from || '');
+  const [from, setFrom] = useState<string>(initialConfig?.value.from ?? '');
   const [enrollAccountSubject, setEnrollAccountSubject] =
-    useState<string>(initialConfig?.value.enrollAccountMessageSubjectTemplate || '');
+    useState<string>(initialConfig?.value.enrollAccountMessageSubjectTemplate ?? '');
   const [enrollAccountMessage, setEnrollAccountMessage] =
-    useState<string>(initialConfig?.value.enrollAccountMessageTemplate || '');
+    useState<string>(initialConfig?.value.enrollAccountMessageTemplate ?? '');
   const [existingJoinSubject, setExistingJoinSubject] =
-    useState<string>(initialConfig?.value.existingJoinMessageSubjectTemplate || '');
+    useState<string>(initialConfig?.value.existingJoinMessageSubjectTemplate ?? '');
   const [existingJoinMessage, setExistingJoinMessage] =
-    useState<string>(initialConfig?.value.existingJoinMessageTemplate || '');
+    useState<string>(initialConfig?.value.existingJoinMessageTemplate ?? '');
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -1011,9 +1011,9 @@ const DiscordOAuthForm = ({ oauthSettings }: {
   oauthSettings: any;
 }) => {
   const [clientId, setClientId] =
-    useState<string>((oauthSettings && oauthSettings.appId) || '');
+    useState<string>(oauthSettings?.appId ?? '');
   const [clientSecret, setClientSecret] =
-    useState<string>((oauthSettings && oauthSettings.secret) || '');
+    useState<string>(oauthSettings?.secret ?? '');
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -1106,7 +1106,7 @@ const DiscordOAuthForm = ({ oauthSettings }: {
 };
 
 const DiscordBotForm = ({ botToken: initialBotToken }: { botToken?: string }) => {
-  const [botToken, setBotToken] = useState<string>(initialBotToken || '');
+  const [botToken, setBotToken] = useState<string>(initialBotToken ?? '');
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -1177,7 +1177,7 @@ const DiscordGuildForm = ({ guild: initialGuild }: {
     return DiscordCache.find({ type: 'guild' }, { fields: { 'object.id': 1, 'object.name': 1 } })
       .map((c) => c.object as SavedDiscordObjectType);
   }, []);
-  const [guildId, setGuildId] = useState<string>((initialGuild && initialGuild.id) || '');
+  const [guildId, setGuildId] = useState<string>(initialGuild?.id ?? '');
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -1272,7 +1272,7 @@ const DiscordIntegrationSection = () => {
 
   const configured = !!oauthSettings;
   const headerBadgeVariant = configured ? 'success' : 'warning';
-  const clientId = oauthSettings && oauthSettings.appId;
+  const clientId = oauthSettings?.appId;
   const addGuildLink = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&scope=bot&permissions=8`;
   const oauthBadgeLabel = oauthSettings ? 'configured' : 'unconfigured';
   const oauthBadgeVariant = oauthSettings ? 'success' : 'warning';
@@ -1396,7 +1396,7 @@ const BrandingTeamName = () => {
     return teamNameSetting?.value.teamName;
   }, []);
 
-  const [teamName, setTeamName] = useState<string>(initialTeamName || '');
+  const [teamName, setTeamName] = useState<string>(initialTeamName ?? '');
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -1494,7 +1494,7 @@ const BrandingAssetRow = ({
 
   const onFileSelected = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
+      const file = e.target.files[0]!;
       const UPLOAD_SIZE_LIMIT = 1024 * 1024; // 1 MiB
       if (file.size > UPLOAD_SIZE_LIMIT) {
         setSubmitError(`${file.name} is too large at ${file.size} bytes (limit is ${UPLOAD_SIZE_LIMIT})`);
@@ -1547,7 +1547,7 @@ const BrandingAssetRow = ({
       <BrandingRowContent>
         <BrandingRowImage
           backgroundImage={blobUrl}
-          backgroundSize={backgroundSize || 'auto'}
+          backgroundSize={backgroundSize ?? 'auto'}
         />
         <label htmlFor={`asset-input-${asset}`}>
           <div>{asset}</div>

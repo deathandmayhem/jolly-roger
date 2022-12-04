@@ -77,16 +77,17 @@ const Spectrum = ({
         const barWidth = (WIDTH / (bufferLength.current / 2));
         let x = 0;
         for (let i = 0; i < (bufferLength.current / 2); i++) {
+          const currentAmplitude = analyserBuffer.current![i]!;
           // minimum bar height reduces some flickering
-          const barHeight = (Math.max(analyserBuffer.current![i], barFloor) * HEIGHT) / 255;
+          const barHeight = (Math.max(currentAmplitude, barFloor) * HEIGHT) / 255;
 
           // bootstrap blue is rgb(0, 123, 255)
-          const redness = analyserBuffer.current![i] - 60 < 0 ?
+          const redness = currentAmplitude - 60 < 0 ?
             0 :
-            analyserBuffer.current![i] / 2;
-          const greenness = analyserBuffer.current![i] - 60 < 0 ?
+            currentAmplitude / 2;
+          const greenness = currentAmplitude - 60 < 0 ?
             123 :
-            123 + (analyserBuffer.current![i] - 123) / 2;
+            123 + (currentAmplitude - 123) / 2;
           canvasCtx.fillStyle = `rgb(${redness},${greenness},255)`;
           canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
           x += barWidth + 1;

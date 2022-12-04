@@ -20,7 +20,7 @@ function makeDiscordBotFromSettings(): DiscordBot | undefined {
     return undefined;
   }
 
-  const token = botSettings.value && botSettings.value.token;
+  const token = botSettings.value?.token;
   if (!token) {
     return undefined;
   }

@@ -12,7 +12,7 @@ function findUserByEmail(email: string): Meteor.User | undefined {
   // they registered with, or by the Google account they've
   // linked. Try both.
 
-  return Accounts.findUserByEmail(email) ||
+  return Accounts.findUserByEmail(email) ??
     MeteorUsers.findOne({ googleAccount: email });
 }
 
@@ -25,7 +25,7 @@ const renderUser = function renderUser(user: Meteor.User) {
 
   return {
     _id: user._id,
-    primaryEmail: user.emails && user.emails[0].address,
+    primaryEmail: user.emails?.[0]?.address,
     googleAccount: user.googleAccount,
     active,
   };

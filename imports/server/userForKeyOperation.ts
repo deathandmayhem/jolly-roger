@@ -8,5 +8,5 @@ export default function userForKeyOperation(currentUser: string, forUser?: strin
     throw new Meteor.Error(403, 'Only server admins can fetch other users\' keys');
   }
 
-  return forUser || currentUser;
+  return forUser ?? currentUser;
 }

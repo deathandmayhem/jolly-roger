@@ -278,18 +278,13 @@ const ProfileList = ({
     const searchKeys = searchString.split(' ');
     const toMatch = searchKeys.filter(Boolean).map((s) => s.toLowerCase());
     const isInteresting = (user: Meteor.User) => {
-      for (let i = 0; i < toMatch.length; i++) {
-        const searchKey = toMatch[i];
-        if ((!user.displayName || user.displayName.toLowerCase().indexOf(searchKey) === -1) &&
-          user.emails?.every((e) => e.address.toLowerCase().indexOf(searchKey) === -1) &&
-          (!user.phoneNumber || user.phoneNumber?.toLowerCase().indexOf(searchKey) === -1) &&
-          (!user.discordAccount || `${user.discordAccount.username.toLowerCase()}#${user.discordAccount.discriminator}`.indexOf(searchKey) === -1) &&
-          (!roles?.[user._id]?.some((role) => role.toLowerCase().indexOf(searchKey) !== -1))) {
-          return false;
-        }
-      }
-
-      return true;
+      return !toMatch.some((searchKey) => {
+        return (!user.displayName?.toLowerCase().includes(searchKey)) &&
+        user.emails?.every((e) => !e.address.toLowerCase().includes(searchKey)) &&
+        (!user.phoneNumber?.toLowerCase().includes(searchKey)) &&
+        (!user.discordAccount || !`${user.discordAccount.username.toLowerCase()}#${user.discordAccount.discriminator}`.includes(searchKey)) &&
+        (!roles?.[user._id]?.some((role) => role.toLowerCase().includes(searchKey)));
+      });
     };
 
     return isInteresting;

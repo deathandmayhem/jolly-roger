@@ -38,9 +38,8 @@ const DingwordHooks: Hookset = {
 
       const dingwords = u.dingwords;
       if (dingwords) {
-        for (let i = 0; i < dingwords.length; i++) {
-          const dingword = dingwords[i];
-          if (normalizedText.indexOf(dingword) !== -1) {
+        dingwords.every((dingword) => {
+          if (normalizedText.includes(dingword)) {
             // It matched!  We should notify the user of this message.
 
             // console.log(`u ${p._id} dingword ${dingword} matched message ${chatMessage.text}`);
@@ -54,9 +53,11 @@ const DingwordHooks: Hookset = {
             });
 
             // Once we match, we don't need to check any other dingwords.
-            break;
+            return false;
           }
-        }
+
+          return true;
+        });
       }
     });
 

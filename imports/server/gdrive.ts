@@ -84,7 +84,7 @@ export async function moveDocument(id: string, newParentId: string) {
   const parents = (await DriveClient.gdrive.files.get({
     fileId: id,
     fields: 'parents',
-  })).data.parents || [];
+  })).data.parents ?? [];
 
   await DriveClient.gdrive.files.update({
     fileId: id,

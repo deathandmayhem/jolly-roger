@@ -287,8 +287,8 @@ enum OwnProfilePageSubmitState {
 }
 
 const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
-  const [displayName, setDisplayName] = useState<string>(initialUser.displayName || '');
-  const [phoneNumber, setPhoneNumber] = useState<string>(initialUser.phoneNumber || '');
+  const [displayName, setDisplayName] = useState<string>(initialUser.displayName ?? '');
+  const [phoneNumber, setPhoneNumber] = useState<string>(initialUser.phoneNumber ?? '');
   const [dingwordsFlat, setDingwordsFlat] = useState<string>(initialUser.dingwords ?
     initialUser.dingwords.join(',') : '');
   const [submitState, setSubmitState] =
@@ -343,7 +343,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
         <FormControl
           id="jr-profile-edit-email"
           type="text"
-          value={initialUser.emails![0].address}
+          value={initialUser.emails![0]!.address}
           disabled
         />
       </FormGroup>

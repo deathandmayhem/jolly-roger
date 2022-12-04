@@ -25,7 +25,7 @@ addPuzzleTag.define({
         hunt: 1,
       },
     });
-    const huntId = hunt && hunt.hunt;
+    const huntId = hunt?.hunt;
     if (!huntId) throw new Error(`No puzzle known with id ${puzzleId}`);
     const tagId = getOrCreateTagByName(huntId, tagName)._id;
 

@@ -129,11 +129,11 @@ const TagList = React.memo((props: TagListProps) => {
 
   const tags = sortedTagsForSinglePuzzle(props.tags);
   const components = [];
-  for (let i = 0; i < tags.length; i++) {
+  tags.forEach((tag) => {
     components.push(
       <Tag
-        key={tags[i]._id}
-        tag={tags[i]}
+        key={tag._id}
+        tag={tag}
         onRemove={removing ? removeTag : undefined}
         linkToSearch={props.linkToSearch}
         popoverRelated={props.popoverRelated}
@@ -141,7 +141,7 @@ const TagList = React.memo((props: TagListProps) => {
         allTags={props.popoverRelated ? props.allTags : []}
       />
     );
-  }
+  });
 
   if (tags.length === 0 && emptyMessage) {
     components.push(

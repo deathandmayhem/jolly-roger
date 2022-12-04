@@ -18,22 +18,20 @@ const PuzzleList = React.memo(({
   // This component just renders the puzzles provided, in order.
   // Adjusting order based on tags, tag groups, etc. is to be done at
   // a higher layer.
-  const renderedPuzzles = [];
-  for (let i = 0; i < puzzles.length; i++) {
-    const puz = puzzles[i];
-    renderedPuzzles.push(<Puzzle
-      key={puz._id}
-      puzzle={puz}
-      allTags={allTags}
-      canUpdate={canUpdate}
-      suppressTags={suppressTags}
-      segmentAnswers={segmentAnswers}
-    />);
-  }
-
   return (
     <div className="puzzle-list">
-      {renderedPuzzles}
+      {puzzles.map((puzzle) => {
+        return (
+          <Puzzle
+            key={puzzle._id}
+            puzzle={puzzle}
+            allTags={allTags}
+            canUpdate={canUpdate}
+            suppressTags={suppressTags}
+            segmentAnswers={segmentAnswers}
+          />
+        );
+      })}
     </div>
   );
 });
