@@ -137,18 +137,50 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
     // sure that the client no longer trusts that the previous `call.join` is
     // active, and we can just take this as a signal to hasten that cleanup.
     // If the room is not yet created, create it.
-    await Peers.removeAsync({ hunt, call, tab });
+    const maybeOldPeer = await Peers.findOneAsync({ hunt, call, tab });
+    if (maybeOldPeer) {
+      Ansible.log('Removing peer with same hunt/call/tab', { peer: maybeOldPeer._id });
+      await Peers.removeAsync({
+        _id: maybeOldPeer._id, hunt, call, tab,
+      });
+    }
+
+    const peerCount = await Peers.find({ hunt, call }).countAsync();
+    // If we are a new joiner and would be the 8th (or more) peer, join the
+    // call starting out muted, because large calls can get noisy.
+    // In local development, make this just 3 because it's annoying to open that many browser tabs.
+    const crowdSize = Meteor.isDevelopment ? 3 : 8;
+    let initialPeerState: 'active' | 'muted' | 'deafened' = peerCount + 1 >= crowdSize ? 'muted' : 'active';
+    // But if we were previously in call, just restore whatever the previous
+    // mute state was.
+    if (maybeOldPeer) {
+      let oldPeerState;
+      if (maybeOldPeer.deafened) {
+        oldPeerState = 'deafened' as const;
+      } else if (maybeOldPeer.muted) {
+        oldPeerState = 'muted' as const;
+      } else {
+        oldPeerState = 'active' as const;
+      }
+      initialPeerState = oldPeerState;
+    }
 
     peerId = await Peers.insertAsync({
       createdServer: serverId,
       hunt,
       call,
       tab,
-      muted: false,
-      deafened: false,
+      initialPeerState,
+      muted: initialPeerState !== 'active',
+      deafened: initialPeerState === 'deafened',
     });
 
-    Ansible.log('Peer joined call', { peer: peerId, call, createdBy: this.userId });
+    Ansible.log('Peer joined call', {
+      peer: peerId,
+      call,
+      createdBy: this.userId,
+      state: initialPeerState,
+    });
   }));
 
   this.onStop(() => {
@@ -220,11 +252,12 @@ Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
   ];
 });
 
-Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpParameters) {
+Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpParameters, paused) {
   check(transportId, String);
   check(trackId, String);
   check(kind, Match.OneOf('audio', 'video'));
   check(rtpParameters, String);
+  check(paused, Boolean);
 
   if (!this.userId) {
     throw new Meteor.Error(401, 'Not logged in');
@@ -253,7 +286,7 @@ Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpPa
     trackId,
     kind,
     rtpParameters,
-    paused: false,
+    paused,
   });
 
   this.onStop(() => {

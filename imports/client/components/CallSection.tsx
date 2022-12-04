@@ -10,6 +10,8 @@ import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import Overlay from 'react-bootstrap/Overlay';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import styled from 'styled-components';
@@ -325,6 +327,11 @@ const CallSection = ({
   const onLeaveCall = useCallback(() => {
     callDispatch({ type: 'leave-call' });
   }, [callDispatch]);
+  const onDismissPeerStateNotification = useCallback(() => {
+    callDispatch({ type: 'dismiss-peer-state-notification' });
+  }, [callDispatch]);
+
+  const muteRef = useRef(null);
 
   if (!callState.device) {
     return <JoiningCall details="Missing device" />;
@@ -342,6 +349,7 @@ const CallSection = ({
     <>
       <AVActions>
         <AVButton
+          ref={muteRef}
           variant={muted ? 'secondary' : 'light'}
           size="sm"
           onClick={onToggleMute}
@@ -357,6 +365,15 @@ const CallSection = ({
         </AVButton>
         <AVButton variant="danger" size="sm" onClick={onLeaveCall}>Leave call</AVButton>
       </AVActions>
+      <Overlay target={muteRef.current} show={callState.allowInitialPeerStateNotification && muted} placement="bottom">
+        <Tooltip id="muted-on-join-notification">
+          <div>
+            We&apos;ve left your mic muted for now given the number of people on the
+            call.  You can unmute yourself at any time.
+          </div>
+          <Button onClick={onDismissPeerStateNotification}>Got it</Button>
+        </Tooltip>
+      </Overlay>
       <Callers
         muted={muted}
         deafened={deafened}

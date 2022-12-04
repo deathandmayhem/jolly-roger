@@ -83,6 +83,11 @@ export type CallState = ({
   selfPeer: PeerType | undefined;
   otherPeers: PeerType[];
   peerStreams: Map<string, MediaStream>; // map from Peer._id to stream
+  // Whether or not to show an modal about the initial peer state.  We want to
+  // show this on initial user-initiated call join, but not if we reconnect
+  // after a server disconnection (rather than a user hang-up) since the state
+  // there shouldn't be considered to have changed.
+  allowInitialPeerStateNotification: boolean;
 };
 
 export type Action =
@@ -95,6 +100,7 @@ export type Action =
   | { type: 'leave-call' }
   | { type: 'toggle-mute' }
   | { type: 'toggle-deafen' }
+  | { type: 'dismiss-peer-state-notification' }
   | { type: 'set-peers', selfPeer: PeerType | undefined, otherPeers: PeerType[] }
   | { type: 'add-peer-track', peerId: string, track: MediaStreamTrack }
   | { type: 'remove-peer-track', peerId: string, track: MediaStreamTrack }
@@ -115,6 +121,7 @@ const INITIAL_STATE: CallState = {
   selfPeer: undefined,
   otherPeers: [] as PeerType[],
   peerStreams: new Map<string, MediaStream>(),
+  allowInitialPeerStateNotification: false,
 };
 
 function reducer(state: CallState, action: Action): CallState {
@@ -133,6 +140,7 @@ function reducer(state: CallState, action: Action): CallState {
           muted: false,
           deafened: false,
         },
+        allowInitialPeerStateNotification: true,
       };
     case 'set-device':
       return {
@@ -165,6 +173,7 @@ function reducer(state: CallState, action: Action): CallState {
           muted: nextMuted,
           deafened: false,
         },
+        allowInitialPeerStateNotification: false,
       };
     }
     case 'toggle-deafen':
@@ -177,13 +186,62 @@ function reducer(state: CallState, action: Action): CallState {
           muted: state.audioControls.muted,
           deafened: !state.audioControls.deafened,
         },
+        allowInitialPeerStateNotification: false,
       };
-    case 'set-peers':
+    case 'dismiss-peer-state-notification':
+      return {
+        ...state,
+        allowInitialPeerStateNotification: false,
+      };
+    case 'set-peers': {
+      let audioControls = state.audioControls;
+      if ((!state.selfPeer && action.selfPeer) ||
+          (state.selfPeer && action.selfPeer && state.selfPeer._id !== action.selfPeer._id)) {
+        log('server gives initial peer state', action.selfPeer.initialPeerState);
+        // When we are first joining the call (or rejoining the call with the
+        // same hunt/call/tab due to a server outage), the server will present us
+        // with the effective peer state (active, muted, or deafened) that it
+        // thinks we should have.  If we are rejoining the call from the same
+        // tab due to a server disconnect, the server will tell us to preserve
+        // our previous call state; otherwise the server may tell us to start out
+        // muted if the call is large or active otherwise.
+
+        switch (action.selfPeer.initialPeerState) {
+          case 'active':
+            audioControls = {
+              muted: false,
+              deafened: false,
+            };
+            break;
+          case 'muted':
+            audioControls = {
+              muted: true,
+              deafened: false,
+            };
+            break;
+          case 'deafened':
+            // In the case where we are reconnecting and were previously
+            // deafened, preserve the hidden "explicitly muted" state, since
+            // we'll be complying with the server's intent that our producer
+            // tracks start out paused, and we shouldn't add or remove
+            // explicit mute that is masked by being deafened.
+            audioControls = {
+              muted: state.audioControls.muted,
+              deafened: true,
+            };
+            break;
+          default:
+            break;
+        }
+      }
+
       return {
         ...state,
         selfPeer: action.selfPeer,
         otherPeers: action.otherPeers,
+        audioControls,
       };
+    }
     case 'add-peer-track': {
       const newStream = new MediaStream();
       state.peerStreams.get(action.peerId)?.getTracks().forEach((track) => {
@@ -314,6 +372,7 @@ function cleanupProducerMapEntry(map: Map<string, ProducerState>, trackId: strin
 
 type ProducerCallback = ({ id }: { id: string }) => void;
 type ProducerState = {
+  transport: string;
   producer: types.Producer | undefined;
   subHandle: Meteor.SubscriptionHandle | undefined;
   producerServerCallback: ProducerCallback | undefined;
@@ -620,6 +679,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
     return () => observer.stop();
   }, []);
 
+  const producerShouldBePaused = state.audioControls?.muted || state.audioControls?.deafened;
   useEffect(() => {
     log('producerTracks', producerTracks.map((t) => t.id));
     const activeTrackIds = new Set();
@@ -629,9 +689,10 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
 
       if (sendTransport) {
         let producerState = producerMapRef.current.get(track.id);
-        if (!producerState) {
+        if (!producerState || producerState.transport !== sendTransport.appData._id) {
           // Create empty entry, before we attempt to produce for the track
           producerState = {
+            transport: (sendTransport.appData as any)._id,
             producer: undefined,
             subHandle: undefined,
             producerServerCallback: undefined,
@@ -645,6 +706,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
             const newProducer = await sendTransport.produce({
               track,
               zeroRtpOnPause: true,
+              stopTracks: false,
               appData: { trackId: track.id },
             });
             log('got producer', newProducer);
@@ -661,8 +723,9 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
         if (!producerState.subHandle && producerState.kind &&
           producerState.rtpParameters) {
           // Indicate intent to produce to the backend.
-          log(`subscribe mediasoup:producer tp=${sendTransport.appData._id} track=${track.id} kind=${producerState.kind}`);
-          producerState.subHandle = Meteor.subscribe('mediasoup:producer', sendTransport.appData._id, track.id, producerState.kind, producerState.rtpParameters);
+          const paused = producerShouldBePaused;
+          log(`subscribe mediasoup:producer tp=${sendTransport.appData._id} track=${track.id} kind=${producerState.kind} paused=${paused}`);
+          producerState.subHandle = Meteor.subscribe('mediasoup:producer', sendTransport.appData._id, track.id, producerState.kind, producerState.rtpParameters, paused);
         }
       }
     });
@@ -673,10 +736,9 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
         cleanupProducerMapEntry(producerMapRef.current, trackId);
       }
     });
-  }, [sendTransport, producerTracks, producerParamsGeneration]);
+  }, [sendTransport, producerTracks, producerParamsGeneration, producerShouldBePaused]);
 
   // Ensure mute state is respected by mediasoup.
-  const producerShouldBePaused = state.audioControls?.muted || state.audioControls?.deafened;
   useEffect(() => {
     if (producerShouldBePaused !== undefined) {
       // Update producer pause state
