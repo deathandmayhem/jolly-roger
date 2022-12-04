@@ -243,7 +243,7 @@ const FirehosePage = () => {
                 key={msg._id}
                 msg={msg}
                 puzzle={puzzles.get(msg.puzzle)}
-                displayName={msg.sender ? displayNames[msg.sender] : 'jolly-roger'}
+                displayName={msg.sender ? (displayNames[msg.sender] || '???') : 'jolly-roger'}
               />
             );
           })}

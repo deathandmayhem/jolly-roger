@@ -162,7 +162,7 @@ const buildField = function <T> (
         if (fields.length > 1) {
           throw new Error('array types as a member of a union are not allowed');
         }
-        return fields[0][1];
+        return fields[0]![1];
       })),
     ]];
   } else if (<any>fieldCodec === uint8Array) {
@@ -225,7 +225,7 @@ export const buildSchema = function <
     if (k === '_id') {
       return;
     }
-    const fields = buildField(k, schemaCodec.props[k], overrides[k]);
+    const fields = buildField(k, schemaCodec.props[k]!, overrides[k]);
     fields.forEach(([name, definition]) => {
       schema[name] = definition;
     });

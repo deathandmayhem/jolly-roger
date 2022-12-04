@@ -343,7 +343,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
         <FormControl
           id="jr-profile-edit-email"
           type="text"
-          value={initialUser.emails![0].address}
+          value={initialUser.emails![0]!.address}
           disabled
         />
       </FormGroup>

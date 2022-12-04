@@ -435,7 +435,7 @@ class SFU {
     // transports than we actually want to use, but `createConsumer` will filter
     // it down)
     this.transports.forEach((transport, key) => {
-      void this.createConsumer(key.split(':')[1], transport, producer);
+      void this.createConsumer(key.split(':')[1]!, transport, producer);
     });
 
     const observer = this.observers.get(producerAppData.call);

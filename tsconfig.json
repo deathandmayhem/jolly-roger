@@ -19,6 +19,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitThis": true,
+    "noUncheckedIndexedAccess": true,
 
     /* Module Resolution Options */
     "baseUrl": ".",

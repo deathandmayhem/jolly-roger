@@ -55,7 +55,7 @@ const PuzzleModalForm = React.forwardRef(({
   const tagNamesForIds = useCallback((tagIds: string[]) => {
     const tagNames: Record<string, string> = {};
     propsTags.forEach((t) => { tagNames[t._id] = t.name; });
-    return tagIds.map((t) => tagNames[t]);
+    return tagIds.map((t) => tagNames[t] || t);
   }, [propsTags]);
 
   const [title, setTitle] = useState<string>(puzzle ? puzzle.title : '');

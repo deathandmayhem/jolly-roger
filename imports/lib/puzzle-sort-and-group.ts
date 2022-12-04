@@ -25,7 +25,7 @@ function puzzleInterestingness(
 ): number {
   // If the shared tag for this group is group:<something>, then group will equal '<something>', and
   // we wish to sort a puzzle named 'meta-for:<something>' at the top.
-  let desiredTagName;
+  let desiredTagName: string | undefined;
   if (group) {
     desiredTagName = `meta-for:${group}`;
   }
@@ -33,8 +33,8 @@ function puzzleInterestingness(
   let isGroup = false;
   let minScore = 0;
 
-  for (let i = 0; i < puzzle.tags.length; i++) {
-    const tag = indexedTags.get(puzzle.tags[i]);
+  puzzle.tags.forEach((tagId) => {
+    const tag = indexedTags.get(tagId);
 
     if (tag) {
       // Sometimes tag IDs load on puzzles before the Tag documents make it to the client.  In this
@@ -61,7 +61,7 @@ function puzzleInterestingness(
         minScore = Math.min(-1, minScore);
       }
     }
-  }
+  });
   // Sort general administrivia above administrivia with a group
   if (isAdministrivia && !isGroup) {
     minScore = Math.min(-5, minScore);
@@ -94,7 +94,7 @@ function interestingnessOfGroup(
   }
 
   // Look for a puzzle with meta-for:(this group's shared tag)
-  let metaForTag;
+  let metaForTag: string | undefined;
   if (sharedTag && sharedTag.name.lastIndexOf('group:', 0) === 0) {
     metaForTag = `meta-for:${sharedTag.name.slice('group:'.length)}`;
   }
@@ -103,14 +103,13 @@ function interestingnessOfGroup(
   let hasUnsolvedMetaForSharedGroup = false;
   let hasUnsolvedOtherMeta = false;
   let hasUnsolvedPuzzles = false;
-  for (let i = 0; i < puzzles.length; i++) {
-    const puzzle = puzzles[i];
+  puzzles.forEach((puzzle) => {
     const isSolved = puzzle.answers.length >= puzzle.expectedAnswerCount;
     if (!isSolved) {
       hasUnsolvedPuzzles = true;
     }
-    for (let j = 0; j < puzzle.tags.length; j++) {
-      const tag = indexedTags.get(puzzle.tags[j]);
+    puzzle.tags.forEach((tagId) => {
+      const tag = indexedTags.get(tagId);
 
       if (tag) {
         // tag may be undefined if we get tag IDs before the new Tag arrives from the server;
@@ -127,8 +126,8 @@ function interestingnessOfGroup(
           hasUnsolvedOtherMeta = true;
         }
       }
-    }
-  }
+    });
+  });
 
   if (!hasUnsolvedPuzzles) return 3;
   if (hasUnsolvedMetaForSharedGroup) return -2;
@@ -233,13 +232,12 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
   // Maps tag id to list of puzzles holding that tag.
   const groupsMap: Map<string, PuzzleType[]> = new Map();
   // For collecting puzzles that are not included in any group.
-  const ungroupedPuzzles = [];
+  const ungroupedPuzzles: PuzzleType[] = [];
   const tagsByIndex = indexedById(allTags);
-  for (let i = 0; i < allPuzzles.length; i++) {
-    const puzzle = allPuzzles[i];
+  allPuzzles.forEach((puzzle) => {
     let grouped = false;
-    for (let j = 0; j < puzzle.tags.length; j++) {
-      const tag = tagsByIndex.get(puzzle.tags[j]);
+    puzzle.tags.forEach((tagId) => {
+      const tag = tagsByIndex.get(tagId);
       // On new puzzle creation, if a tag is new as well, we can receive the
       // new Puzzle object (and rerender) before the new Tag object streams
       // in, so it's possible that we don't have a tag object for a given ID,
@@ -253,12 +251,12 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
 
         groupsMap.get(tag._id)!.push(puzzle);
       }
-    }
+    });
 
     if (!grouped) {
       ungroupedPuzzles.push(puzzle);
     }
-  }
+  });
 
   // Collect groups into a list.
   const groups: InternalPuzzleGroup[] = [...groupsMap.keys()].map((key) => {
@@ -292,7 +290,7 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
 
   let i = 0;
   while (i < groups.length) {
-    const currentGroup = groups[i];
+    const currentGroup = groups[i]!;
     const parentCandidates: number[] = [];
 
     // Collect parent candidate indices.  We only need to consider groups for
@@ -300,7 +298,7 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
     // contain exactly the same set of puzzles, it's not clear which should
     // contain the other, so we'll present both at the same level.
     for (let j = i + 1; j < groups.length; j++) {
-      if (isStrictSubgroup(currentGroup, groups[j])) {
+      if (isStrictSubgroup(currentGroup, groups[j]!)) {
         parentCandidates.push(j);
       }
     }
@@ -314,13 +312,14 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
     if (parentCandidates.length > 0) {
       // For each new adopting parent:
       parentCandidates.forEach((k) => {
+        const parentGroup = groups[k]!;
         // Insert that group as a child of that parent.
-        groups[k].subgroups.push(currentGroup);
+        parentGroup.subgroups.push(currentGroup);
 
         // Remove any direct subgroups of currentGroup from being direct
         // children of that parent, if present.  Inductively, this prevents
         // us from having duplicate child groups for strictly-contained subgroups.
-        groups[k].subgroups = groups[k].subgroups.filter((parentSubgroup) => {
+        parentGroup.subgroups = parentGroup.subgroups.filter((parentSubgroup) => {
           return currentGroup.subgroups.every((childSubgroup) => {
             // sharedTag is guaranteed to be set in each group
             return parentSubgroup.sharedTag!._id !== childSubgroup.sharedTag!._id;

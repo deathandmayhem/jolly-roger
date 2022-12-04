@@ -38,8 +38,7 @@ const DingwordHooks: Hookset = {
 
       const dingwords = u.dingwords;
       if (dingwords) {
-        for (let i = 0; i < dingwords.length; i++) {
-          const dingword = dingwords[i];
+        dingwords.every((dingword) => {
           if (normalizedText.indexOf(dingword) !== -1) {
             // It matched!  We should notify the user of this message.
 
@@ -54,9 +53,11 @@ const DingwordHooks: Hookset = {
             });
 
             // Once we match, we don't need to check any other dingwords.
-            break;
+            return false;
           }
-        }
+
+          return true;
+        });
       }
     });
 

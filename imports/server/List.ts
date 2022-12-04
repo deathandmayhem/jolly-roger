@@ -33,7 +33,9 @@ class List {
         let type = 'USER';
         let member = line;
         if (line.indexOf(':') !== -1) {
-          [type, member] = line.split(':');
+          const [parsedType, parsedMember] = line.split(':');
+          type = parsedType!;
+          member = parsedMember!;
         }
 
         if (member.indexOf('@') === -1) {

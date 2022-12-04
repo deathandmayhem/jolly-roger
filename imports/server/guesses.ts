@@ -57,8 +57,8 @@ class PendingGuessWatcher {
         });
 
         Object.keys(this.huntGuessWatchers).forEach((huntId) => {
-          if (!roles[huntId] || !roles[huntId].includes('operator')) {
-            this.huntGuessWatchers[huntId].shutdown();
+          if (!roles[huntId] || !roles[huntId]!.includes('operator')) {
+            this.huntGuessWatchers[huntId]?.shutdown();
             delete this.huntGuessWatchers[huntId];
           }
         });

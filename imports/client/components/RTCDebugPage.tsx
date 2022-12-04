@@ -614,7 +614,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
             <>
               <Col as="dt" xs={2}>RTP capabilities</Col>
               <Col as="dd" xs={10}>
-                <JSONDisplay json={transportRequests[0].rtpCapabilities} />
+                <JSONDisplay json={transportRequests[0]!.rtpCapabilities} />
               </Col>
             </>
           )}

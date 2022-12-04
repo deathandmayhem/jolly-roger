@@ -78,7 +78,7 @@ if (Meteor.isClient) {
   };
 
   const fixtureHunt = FixtureHunt._id;
-  const fixturePuzzle = FixtureHunt.puzzles[0]._id;
+  const fixturePuzzle = FixtureHunt.puzzles[0]!._id;
 
   describe('routes', function () {
     before(async function () {

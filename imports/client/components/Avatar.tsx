@@ -49,7 +49,7 @@ const DefaultAvatarInner = ({
   ];
   const initial = displayName ? displayName.trim().slice(0, 1).toUpperCase() : '?';
   const idSum = Array.from(_id ?? '').reduce((t, c) => t + c.codePointAt(0)!, 0);
-  const [circleColor, initialColor] = palette[idSum % palette.length];
+  const [circleColor, initialColor] = palette[Math.abs(idSum) % palette.length]!;
   const style = { backgroundColor: circleColor, color: initialColor };
   return <AvatarInitial style={style}>{initial}</AvatarInitial>;
 };

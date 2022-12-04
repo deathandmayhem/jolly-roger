@@ -1494,7 +1494,7 @@ const BrandingAssetRow = ({
 
   const onFileSelected = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
+      const file = e.target.files[0]!;
       const UPLOAD_SIZE_LIMIT = 1024 * 1024; // 1 MiB
       if (file.size > UPLOAD_SIZE_LIMIT) {
         setSubmitError(`${file.name} is too large at ${file.size} bytes (limit is ${UPLOAD_SIZE_LIMIT})`);

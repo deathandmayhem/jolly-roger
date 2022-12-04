@@ -311,7 +311,7 @@ const GuessQueuePage = () => {
             key={guess._id}
             hunt={hunt}
             guess={guess}
-            createdByDisplayName={displayNames[guess.createdBy]}
+            createdByDisplayName={displayNames[guess.createdBy] || '???'}
             puzzle={puzzles.get(guess.puzzle)!}
             canEdit={canEdit}
           />

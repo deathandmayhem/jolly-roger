@@ -35,13 +35,13 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
          user object already reflects the changed state. Womp womp */
       return {
         msg: 'User reset password and logged in',
-        email: info.user && info.user.emails && info.user.emails[0].address,
+        email: info?.user?.emails?.[0]?.address,
       };
     default:
       Ansible.warn('Received login hook from unknown method', { method: info.methodName });
       return {
         msg: 'User logged in by unknown method',
-        email: info.user && info.user.emails && info.user.emails[0].address,
+        email: info?.user?.emails?.[0]?.address,
         method: info.methodName,
       };
   }

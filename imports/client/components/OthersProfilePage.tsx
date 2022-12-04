@@ -60,7 +60,7 @@ const OthersProfilePage = ({
           <tr>
             <th>Email</th>
             <td>
-              {user.emails?.[0].address ? (
+              {user.emails?.[0]?.address ? (
                 <a href={`mailto:${user.emails[0].address}`} target="_blank" rel="noreferrer">
                   {user.emails[0].address}
                 </a>

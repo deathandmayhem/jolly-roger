@@ -7,7 +7,7 @@ const titles: string[] = [];
 function updateDocumentTitle() {
   // console.log(`titles: ${titles.join(', ')}`);
   if (titles.length > 0) {
-    document.title = titles[titles.length - 1];
+    document.title = titles[titles.length - 1]!;
   }
 }
 

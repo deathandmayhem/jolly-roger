@@ -48,7 +48,7 @@ export default class WorkerPool {
   }
 
   constructor(size: number) {
-    this.exec = process.argv[1];
+    this.exec = process.argv[1]!;
     this.args = process.argv.slice(2);
     this.workers = [];
     this.workersMap = {};
@@ -159,7 +159,7 @@ export default class WorkerPool {
     const workerCount = this.workers.length;
     if (!workerCount) return undefined;
     const index = Math.floor(workerCount * Math.random());
-    const worker = this.workers[index];
+    const worker = this.workers[index]!;
     return {
       id: worker.id,
       port: worker.port,

@@ -11,7 +11,7 @@ const authenticator: express.Handler = (req, res, next) => {
   const [authScheme, ...authParamParts] = auth.split(' ');
   const authParam = authParamParts.join(' ');
 
-  if (authScheme.toLowerCase() !== 'bearer') {
+  if (authScheme?.toLowerCase() !== 'bearer') {
     res.sendStatus(403);
     return;
   }

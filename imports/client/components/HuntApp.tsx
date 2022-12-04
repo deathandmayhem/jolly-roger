@@ -62,7 +62,11 @@ const HuntMemberError = React.memo(({ hunt, canJoin }: {
     if (!user || !user.emails) {
       return;
     }
-    addHuntUser.call({ huntId: hunt._id, email: user.emails[0].address });
+    const email = user.emails[0];
+    if (!email) {
+      return;
+    }
+    addHuntUser.call({ huntId: hunt._id, email: email.address });
   }, [hunt._id]);
 
   const joinButton = useMemo(() => {

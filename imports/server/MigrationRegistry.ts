@@ -122,7 +122,7 @@ class MigrationRegistry {
         // Remember, this.migrations is 0-indexed, while the migration
         // versions are 1-indexed so the DB contains the number of migrations
         // completed
-        const nextMigration = this.migrations[applied];
+        const nextMigration = this.migrations[applied]!;
         this.log(`running migration ${nextMigration.version} "${nextMigration.name}"`);
         // Run the next migration in sequence.
         // eslint-disable-next-line no-await-in-loop
