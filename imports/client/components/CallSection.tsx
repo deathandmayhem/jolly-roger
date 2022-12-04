@@ -7,10 +7,11 @@ import { faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons/faMicrophon
 import { faVolumeMute } from '@fortawesome/free-solid-svg-icons/faVolumeMute';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
-  useCallback, useEffect, useRef, useState,
+  MouseEvent, useCallback, useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
 import Overlay from 'react-bootstrap/Overlay';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -18,6 +19,7 @@ import styled from 'styled-components';
 import Flags from '../../Flags';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { PeerType } from '../../lib/schemas/mediasoup/Peer';
+import mediasoupRemoteMutePeer from '../../methods/mediasoupRemoteMutePeer';
 import { Action, CallState } from '../hooks/useCallState';
 import Avatar from './Avatar';
 import Loading from './Loading';
@@ -46,6 +48,27 @@ const MutedIcon = styled(CallStateIcon)`
 
 const DeafenedIcon = styled(CallStateIcon)`
   bottom: 0;
+`;
+
+const RemoteMuteButton = styled.div`
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: transparent;
+
+  &:hover {
+    background-color: rgb(30 30 30 / 50%);
+    color: #ccc;
+  }
 `;
 
 // If we're waiting for a particular piece of server state for more than 1s,
@@ -157,6 +180,79 @@ const ChatterTooltip = styled(Tooltip)`
   }
 `;
 
+type RemoteMuteConfirmModalHandle = {
+  show: () => void,
+};
+
+const RemoteMuteConfirmModal = React.forwardRef((
+  { peerId, name } : { peerId: string, name: string },
+  forwardedRef: React.Ref<RemoteMuteConfirmModalHandle>,
+) => {
+  const [visible, setVisible] = useState(false);
+  const show = useCallback(() => setVisible(true), []);
+  const hide = useCallback(() => setVisible(false), []);
+  useImperativeHandle(forwardedRef, () => ({ show }), [show]);
+
+  const [disabled, setDisabled] = useState(false);
+  const [error, setError] = useState<Error>();
+  const clearError = useCallback(() => setError(undefined), []);
+
+  const mute = useCallback(() => {
+    mediasoupRemoteMutePeer.call({ peerId }, (err) => {
+      setDisabled(false);
+      if (err) {
+        setError(err);
+      } else {
+        hide();
+      }
+    });
+    setDisabled(true);
+  }, [peerId, hide]);
+
+  return (
+    <Modal show={visible} onHide={hide}>
+      <Modal.Header closeButton>
+        <Modal.Title>
+          Mute
+          {' '}
+          {name}
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p>
+          This will mute
+          {' '}
+          {name}
+          {' '}
+          for everyone on the call, not just you, and should only be used as a last resort if
+          (e.g.) they have forgotten to mute themselves but aren&apos;t listening to the call.
+        </p>
+
+        <p>
+          Are you sure you want to mute
+          {' '}
+          {name}
+          ?
+        </p>
+
+        {error && (
+          <Alert variant="danger" dismissible onClose={clearError}>
+            {error.message}
+          </Alert>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={hide} disabled={disabled}>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={mute} disabled={disabled}>
+          Mute
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+});
+
 const PeerBox = ({
   audioContext,
   selfDeafened,
@@ -190,6 +286,17 @@ const PeerBox = ({
       }
     }
   }, [stream, audioRef]);
+
+  const [renderMuteModal, setRenderMuteModal] = useState(false);
+  const muteModalRef = useRef<RemoteMuteConfirmModalHandle>(null);
+  const showMuteModal = useCallback((e: MouseEvent) => {
+    e.preventDefault();
+    if (renderMuteModal && muteModalRef.current) {
+      muteModalRef.current.show();
+    } else {
+      setRenderMuteModal(true);
+    }
+  }, [renderMuteModal, muteModalRef]);
 
   const { muted, deafened } = peer;
 
@@ -231,6 +338,18 @@ const PeerBox = ({
               stream={stream}
             />
           ) : null}
+          {!muted && (
+            <RemoteMuteButton onClick={showMuteModal}>
+              <FontAwesomeIcon icon={faMicrophoneSlash} />
+            </RemoteMuteButton>
+          )}
+          {renderMuteModal && (
+            <RemoteMuteConfirmModal
+              ref={muteModalRef}
+              peerId={peer._id}
+              name={name ?? 'this user'}
+            />
+          )}
         </div>
         <audio
           autoPlay
