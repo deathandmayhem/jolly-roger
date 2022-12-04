@@ -39,6 +39,7 @@ const ModalForm = React.forwardRef((
   }));
 
   useEffect(() => {
+    dontTryToHide.current = false;
     return () => {
       dontTryToHide.current = true;
     };
