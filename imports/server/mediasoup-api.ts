@@ -10,6 +10,7 @@ import ConnectAcks from '../lib/models/mediasoup/ConnectAcks';
 import ConnectRequests from '../lib/models/mediasoup/ConnectRequests';
 import ConsumerAcks from '../lib/models/mediasoup/ConsumerAcks';
 import Consumers from '../lib/models/mediasoup/Consumers';
+import PeerRemoteMutes from '../lib/models/mediasoup/PeerRemoteMutes';
 import Peers from '../lib/models/mediasoup/Peers';
 import ProducerClients from '../lib/models/mediasoup/ProducerClients';
 import ProducerServers from '../lib/models/mediasoup/ProducerServers';
@@ -76,6 +77,7 @@ Meteor.publish('mediasoup:debug', function () {
     ProducerServers.find(),
     Consumers.find(),
     ConsumerAcks.find(),
+    PeerRemoteMutes.find(),
   ];
 });
 
@@ -171,6 +173,7 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
       call,
       tab,
       initialPeerState,
+      remoteMutedBy: undefined,
       muted: initialPeerState !== 'active',
       deafened: initialPeerState === 'deafened',
     });
