@@ -18,7 +18,7 @@ const DiscordAvatarInner = ({
   const urls = Array.from(Array(3), (_, i) => getAvatarCdnUrl(discordAccount, (i + 1) * size));
   if (urls.some((url) => !url)) { return null; }
   const srcSet = urls.map((url, i) => `${url} ${i + 1}x`).join(', ');
-  const alt = `${displayName || 'Anonymous user'}'s Discord avatar`;
+  const alt = `${displayName ?? 'Anonymous user'}'s Discord avatar`;
   return <AvatarImg alt={alt} src={urls[0]} srcSet={srcSet} />;
 };
 

@@ -32,13 +32,13 @@ class List {
         // distinction isn't important here
         let type = 'USER';
         let member = line;
-        if (line.indexOf(':') !== -1) {
+        if (line.includes(':')) {
           const [parsedType, parsedMember] = line.split(':');
           type = parsedType!;
           member = parsedMember!;
         }
 
-        if (member.indexOf('@') === -1) {
+        if (!member.includes('@')) {
           member += '@mit.edu';
         }
 

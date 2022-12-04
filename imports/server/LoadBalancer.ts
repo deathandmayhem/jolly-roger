@@ -58,7 +58,7 @@ export default class LoadBalancer {
         // we aim to pick a consistent worker for a given sockjs connection string.
         const id = `${match[1]}${match[2]}`;
         if (!workerMapping[id]) {
-          const worker = workers && workers.pickWorker();
+          const worker = workers?.pickWorker();
           if (worker) {
             workerMapping[id] = { worker, lastUpdate: Date.now() };
           }

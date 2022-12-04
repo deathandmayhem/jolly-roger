@@ -57,8 +57,8 @@ const ModalForm = React.forwardRef((
     });
   }, [onSubmit, hide]);
 
-  const submitLabel = props.submitLabel || 'Save';
-  const submitStyle = props.submitStyle || 'primary';
+  const submitLabel = props.submitLabel ?? 'Save';
+  const submitStyle = props.submitStyle ?? 'primary';
 
   // Note: the animation=false is working around a regression in
   // react-bootstrap that otherwise breaks autofocus:

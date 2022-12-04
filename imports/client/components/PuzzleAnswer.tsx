@@ -38,7 +38,7 @@ const PuzzleAnswer = React.memo(({
     // Use Intl.Segmenter (stage 3 proposal) if available to properly segment grapheme clusters
     // Typescript is unaware of it, so there are a few any casts...
     let graphemes:string[];
-    if (Intl !== undefined && Intl.Segmenter !== undefined) {
+    if (Intl?.Segmenter !== undefined) {
       const graphemeSegmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
       graphemes = Array.from(graphemeSegmenter.segment(respacedAnswer), (s) => s.segment);
     } else {

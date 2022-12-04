@@ -242,7 +242,7 @@ function puzzleGroupsByRelevance(allPuzzles: PuzzleType[], allTags: TagType[]): 
       // new Puzzle object (and rerender) before the new Tag object streams
       // in, so it's possible that we don't have a tag object for a given ID,
       // and that tag here will be undefined.  Handle this case gracefully.
-      if (tag && tag.name && (tag.name === 'administrivia' ||
+      if (tag?.name && (tag.name === 'administrivia' ||
           tag.name.lastIndexOf('group:', 0) === 0)) {
         grouped = true;
         if (!groupsMap.has(tag._id)) {

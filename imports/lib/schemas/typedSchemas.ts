@@ -184,13 +184,13 @@ const buildField = function <T> (
   } else if (<any>fieldCodec === date) {
     return [[fieldName, { ...overrides, type: Date, optional }]];
   } else if (fieldCodec instanceof t.ArrayType) {
-    const { array: arrayOverrides = undefined, ...schemaOverrides } = (overrides || {}) as any;
+    const { array: arrayOverrides = undefined, ...schemaOverrides } = (overrides ?? {}) as any;
     return [
       [fieldName, { ...schemaOverrides, type: Array, optional }],
       ...buildField(`${fieldName}.$`, fieldCodec.type, arrayOverrides),
     ];
   } else if (fieldCodec instanceof t.InterfaceType) {
-    const { nested: nestedOverrides = undefined, ...schemaOverrides } = (overrides || {}) as any;
+    const { nested: nestedOverrides = undefined, ...schemaOverrides } = (overrides ?? {}) as any;
     return [[fieldName, {
       ...schemaOverrides,
       // eslint-disable-next-line @typescript-eslint/no-use-before-define

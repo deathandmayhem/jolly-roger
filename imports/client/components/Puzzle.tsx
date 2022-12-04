@@ -177,7 +177,7 @@ const Puzzle = React.memo(({
   // id, title, answer, tags
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
   const tagIndex = indexedById(allTags);
-  const shownTags = difference(puzzle.tags, suppressTags || []);
+  const shownTags = difference(puzzle.tags, suppressTags ?? []);
   const ownTags = shownTags
     .map((tagId) => { return tagIndex.get(tagId); })
     .filter<TagType>((t): t is TagType => t !== undefined);

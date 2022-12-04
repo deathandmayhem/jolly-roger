@@ -145,7 +145,7 @@ const PopperScreenFit : Modifier<'screenFit', PopperScreenFitOptions> = {
   fn({ state, options } : ModifierArguments<PopperScreenFitOptions>) {
     // Default to using preventOverflow's options to enforce consistent padding
     const preventOverflowMod = state.orderedModifiers.find((m) => m.name === 'preventOverflow');
-    const padding = options.padding || preventOverflowMod?.options?.padding || {};
+    const padding = options.padding ?? preventOverflowMod?.options?.padding ?? {};
     const overflow = detectOverflow(state, { padding });
     const { height, width } = state.rects.popper;
     const placementEdge = state.placement.split('-')[0];
@@ -231,7 +231,7 @@ const Tag = (props: TagProps) => {
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
     const sharedTag = allTagsIfPresent!.find((t) => t.name === sharedTagName);
     return sharedTag ?
-      allPuzzlesIfPresent!.filter((p) => p.tags.indexOf(sharedTag._id) !== -1) :
+      allPuzzlesIfPresent!.filter((p) => p.tags.includes(sharedTag._id)) :
       [];
   }, [
     props.popoverRelated,

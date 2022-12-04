@@ -873,7 +873,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
             }
 
             const consumerState = consumerMapRef.current.get(consumer._id);
-            if (consumerState && consumerState.consumer) {
+            if (consumerState?.consumer) {
               if (consumerState.consumer.paused !== paused) {
                 if (paused) {
                   consumerState.consumer.pause();

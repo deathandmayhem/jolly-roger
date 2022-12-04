@@ -774,7 +774,7 @@ Meteor.startup(async () => {
   const ips = Meteor.isDevelopment ?
     getLocalIPAddresses() :
     await getPublicIPAddresses();
-  Ansible.log('Discovered announceable IPs', { ips: ips.map((ip) => ip.announcedIp || ip.ip) });
+  Ansible.log('Discovered announceable IPs', { ips: ips.map((ip) => ip.announcedIp ?? ip.ip) });
 
   let sfu: SFU | undefined;
   const updateSFU = async (enable: boolean) => {

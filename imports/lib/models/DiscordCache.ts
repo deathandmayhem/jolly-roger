@@ -45,7 +45,7 @@ if (Meteor.isServer) {
       return [];
     }
 
-    const guildId = guildSetting.value && guildSetting.value.guild && guildSetting.value.guild.id;
+    const guildId = guildSetting.value?.guild?.id;
     if (!guildId) {
       Ansible.log('No discord guild configured; will not expose the cache');
       return [];

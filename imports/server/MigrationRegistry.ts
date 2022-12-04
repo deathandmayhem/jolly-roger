@@ -205,7 +205,7 @@ class MigrationRegistry {
         lockedAt: now,
       },
     });
-    if (result && result.value && result.value.locked) {
+    if (result?.value?.locked) {
       this.log(`preempting stale lock (lockedAt ${result.value.lockedAt})`);
     }
     return result.value;

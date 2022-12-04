@@ -158,7 +158,7 @@ const AnnouncementsPage = () => {
             <Announcement
               key={announcement._id}
               announcement={announcement}
-              displayName={displayNames[announcement.createdBy] || '???'}
+              displayName={displayNames[announcement.createdBy] ?? '???'}
             />
           );
         })}

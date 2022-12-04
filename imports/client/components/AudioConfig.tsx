@@ -44,7 +44,7 @@ const Spectrogram = styled.div`
 const AudioConfig = () => {
   const [status, setStatus] = useState<AudioConfigStatus>(AudioConfigStatus.IDLE);
   const [preferredDeviceId, setPreferredDeviceId] = useState<string | undefined>(() => {
-    return localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) || undefined;
+    return localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ?? undefined;
   });
   const [knownDevices, setKnownDevices] = useState<MediaDeviceInfo[]>([]);
   const [loopback, setLoopback] = useState<boolean>(false);
@@ -66,7 +66,7 @@ const AudioConfig = () => {
 
   const onStorageEvent = useCallback((e: StorageEvent) => {
     if (e.key === PREFERRED_AUDIO_DEVICE_STORAGE_KEY) {
-      setPreferredDeviceId(e.newValue || undefined);
+      setPreferredDeviceId(e.newValue ?? undefined);
     }
   }, []);
 
@@ -103,7 +103,7 @@ const AudioConfig = () => {
       if (navigator.mediaDevices) {
         setStatus(AudioConfigStatus.REQUESTING_STREAM);
         const freshPreferredAudioDeviceId =
-          localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) || undefined;
+          localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ?? undefined;
         const mediaStreamConstraints = {
           audio: {
             echoCancellation: { ideal: true },

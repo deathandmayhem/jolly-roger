@@ -109,7 +109,7 @@ const PuzzleListView = ({
   ), [canUpdate, huntId, deletedLoading]);
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const searchString = searchParams.get('q') || '';
+  const searchString = searchParams.get('q') ?? '';
   const addModalRef = useRef<PuzzleModalFormHandle>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
   const [displayMode, setDisplayMode] = useHuntPuzzleListDisplayMode(huntId);
@@ -189,13 +189,13 @@ const PuzzleListView = ({
           return true;
         }
 
-        if (puzzle.answers.some((answer) => { return answer.toLowerCase().indexOf(key) !== -1; })) {
+        if (puzzle.answers.some((answer) => { return answer.toLowerCase().includes(key); })) {
           return true;
         }
 
         const tagMatch = puzzle.tags.some((tagId) => {
           const tagName = tagNames[tagId];
-          return (tagName && tagName.indexOf(key) !== -1);
+          return (tagName?.includes(key));
         });
 
         if (tagMatch) {

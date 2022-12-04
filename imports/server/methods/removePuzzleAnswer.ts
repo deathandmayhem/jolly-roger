@@ -24,7 +24,7 @@ removePuzzleAnswer.define({
         hunt: 1,
       },
     });
-    const huntId = puzzle && puzzle.hunt;
+    const huntId = puzzle?.hunt;
     const hunt = Hunts.findOne({ _id: huntId });
     if (!huntId || !hunt || hunt.hasGuessQueue) {
       throw new Error(`Hunt ${huntId} does not support self-service answers`);

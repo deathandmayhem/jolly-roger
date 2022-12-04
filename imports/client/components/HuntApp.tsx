@@ -59,7 +59,7 @@ const HuntMemberError = React.memo(({ hunt, canJoin }: {
 }) => {
   const join = useCallback(() => {
     const user = Meteor.user();
-    if (!user || !user.emails) {
+    if (!user?.emails) {
       return;
     }
     const email = user.emails[0];
@@ -83,7 +83,7 @@ const HuntMemberError = React.memo(({ hunt, canJoin }: {
   const navigate = useNavigate();
   const goBack = useCallback(() => navigate(-1), [navigate]);
 
-  const msg = markdown(hunt.signupMessage || '');
+  const msg = markdown(hunt.signupMessage ?? '');
   return (
     <div>
       <Alert variant="warning">

@@ -310,7 +310,7 @@ export function userMayJoinCallsForHunt(
   if (userIsAdmin(user)) {
     return true;
   }
-  if (user.hunts && user.hunts.includes(huntId)) {
+  if (user.hunts?.includes(huntId)) {
     return true;
   }
   return false;

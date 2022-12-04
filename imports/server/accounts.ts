@@ -21,10 +21,7 @@ type LoginInfo = {
 const summaryFromLoginInfo = function (info: LoginInfo) {
   switch (info.methodName) {
     case 'login': {
-      const email = info.methodArguments &&
-        info.methodArguments[0] &&
-        info.methodArguments[0].user &&
-        info.methodArguments[0].user.email;
+      const email = info.methodArguments?.[0]?.user?.email;
       return {
         msg: 'User logged in',
         email,
@@ -48,7 +45,7 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
 };
 
 Accounts.onLogin((info: LoginInfo) => {
-  if (!info.user || !info.user._id) throw new Meteor.Error(500, 'Something has gone horribly wrong');
+  if (!info.user?._id) throw new Meteor.Error(500, 'Something has gone horribly wrong');
   // Capture login time
   MeteorUsers.update(info.user._id, { $set: { lastLogin: new Date() } });
 
@@ -67,15 +64,12 @@ Accounts.onLogin((info: LoginInfo) => {
 });
 
 Accounts.onLoginFailure((info: LoginInfo) => {
-  const email = info.methodArguments &&
-    info.methodArguments[0] &&
-    info.methodArguments[0].user &&
-    info.methodArguments[0].user.email;
+  const email = info.methodArguments?.[0]?.user?.email;
   const data = {
-    user: info.user && info.user._id,
+    user: info.user?._id,
     email,
     ip: info.connection.clientAddress,
-    error: info.error && info.error.reason,
+    error: info.error?.reason,
   };
   // eslint-disable-next-line no-console
   console.log(`Failed login attempt: ${logfmt.stringify(data)}`);
@@ -123,7 +117,7 @@ const DEFAULT_ENROLL_ACCOUNT_TEMPLATE = 'Hiya!\n' +
 
 function makeView(user: Meteor.User | null, url: string) {
   const hunts = Hunts.find({ _id: { $in: (<Meteor.User>user).hunts } }).fetch();
-  const email = user && user.emails && user.emails[0] && user.emails[0].address;
+  const email = user?.emails?.[0]?.address;
   const huntNames = hunts.map((h) => h.name);
   const huntNamesCount = huntNames.length;
   const huntNamesCommaSeparated = huntNames.join(', ');

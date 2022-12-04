@@ -435,7 +435,7 @@ const ChatHistory = React.forwardRef(({
           <ChatMessage
             key={msg._id}
             message={msg}
-            senderDisplayName={displayName || '???'}
+            senderDisplayName={displayName ?? '???'}
             isSystemMessage={msg.sender === undefined}
             suppressSender={suppressSender}
           />

@@ -55,7 +55,7 @@ export function complete(d: Date, opts: RelativeTimeFormatOpts = {}) {
     }
   });
 
-  const millisUntilChange = (lastUnit?.millis || 0) - remainder;
+  const millisUntilChange = (lastUnit?.millis ?? 0) - remainder;
 
   let formatted: string;
   if (terms.length === 0) {

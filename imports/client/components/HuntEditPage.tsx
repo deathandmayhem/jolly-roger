@@ -98,7 +98,7 @@ const DiscordSelector = ({
         as="select"
         type="text"
         placeholder=""
-        value={value && value.id}
+        value={value?.id}
         disabled={disable}
         onChange={onValueChanged}
       >
