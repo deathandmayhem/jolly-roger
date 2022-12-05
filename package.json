@@ -39,7 +39,7 @@
     "logfmt": "^1.3.2",
     "marked": "^4.2.3",
     "mediasoup": "^3.11.3",
-    "mediasoup-client": "^3.6.64",
+    "mediasoup-client": "^3.6.65",
     "meteor-node-stubs": "^1.2.5",
     "mime-types": "^2.1.35",
     "monocle-ts": "^2.3.13",
