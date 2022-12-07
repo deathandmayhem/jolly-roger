@@ -10,28 +10,30 @@ FROM ubuntu:18.04 AS buildenv
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install build deps
-RUN <<-'EOF' bash
-	set -eux
-	apt-get update
-	# We need:
-	# * git: for fetching moira and capturing git rev in Meteor artifact
-	# * curl: for the Meteor installer and fetching new apt keys
-	# * gnupg: for installing new apt keys
-	# * python3 et al: for building mediasoup
-	# * comerr-dev et al: for building moira
-	apt-get install --no-install-recommends -y \
-		build-essential \
-		git \
-		curl \
-		gnupg \
-		python3 python3-pip python3-dev python3-setuptools python3-wheel \
-		comerr-dev libkrb5-dev libreadline-dev libhesiod-dev libncurses5-dev autotools-dev
+RUN <<'EOF'
+#!/bin/bash
+set -eux
+set -o pipefail
+apt-get update
+# We need:
+# * git: for fetching moira and capturing git rev in Meteor artifact
+# * curl: for the Meteor installer and fetching new apt keys
+# * gnupg: for installing new apt keys
+# * python3 et al: for building mediasoup
+# * comerr-dev et al: for building moira
+apt-get install --no-install-recommends -y \
+	build-essential \
+	git \
+	curl \
+	gnupg \
+	python3 python3-pip python3-dev python3-setuptools python3-wheel \
+	comerr-dev libkrb5-dev libreadline-dev libhesiod-dev libncurses5-dev autotools-dev
 
-	# Install chromium-browser's dependencies, which should match puppeteer's
-	# dependencies. Note: this will need to be updated when we upgrade to 20.04,
-	# as chromium-browser on 20.04 is a wrapper around a snap package (although
-	# apt-get satisfy will make it easier)
-	apt-get install --no-install-recommends -y $(apt-cache depends chromium-browser | sed -ne 's/^ *Depends://p')
+# Install chromium-browser's dependencies, which should match puppeteer's
+# dependencies. Note: this will need to be updated when we upgrade to 20.04,
+# as chromium-browser on 20.04 is a wrapper around a snap package (although
+# apt-get satisfy will make it easier)
+apt-get install --no-install-recommends -y $(apt-cache depends chromium-browser | sed -ne 's/^ *Depends://p')
 EOF
 
 FROM buildenv as moiraenv
@@ -42,15 +44,16 @@ RUN git clone https://github.com/mit-athena/moira .
 
 # Build moira
 WORKDIR /moira/src/moira
-RUN <<-'EOF' bash
-	set -eux
-	set -o pipefail
-	# Update config.guess and config.sub to support aarch64 (note that in newer
-	# Ubuntu releases, this has moved to /usr/share/autoconf/build-aux)
-	cp /usr/share/misc/config.{guess,sub} .
-	./configure --with-krb5 --with-com_err --with-afs --with-hesiod --with-readline --without-zephyr --without-java --prefix=/usr
-	make -j
-	make install DESTDIR=/moira/build
+RUN <<'EOF'
+#!/bin/bash
+set -eux
+set -o pipefail
+# Update config.guess and config.sub to support aarch64 (note that in newer
+# Ubuntu releases, this has moved to /usr/share/autoconf/build-aux)
+cp /usr/share/misc/config.{guess,sub} .
+./configure --with-krb5 --with-com_err --with-afs --with-hesiod --with-readline --without-zephyr --without-java --prefix=/usr
+make -j
+make install DESTDIR=/moira/build
 EOF
 
 FROM buildenv as meteorenv
@@ -62,11 +65,12 @@ ARG GITHUB_ACTIONS=
 
 # Install Meteor
 COPY .meteor/release /app/.meteor/release
-RUN <<-'EOF' bash
-	set -eux
-	set -o pipefail
-	METEOR_RELEASE="$(sed -e 's/.*@//g' .meteor/release)"
-	curl -sL https://install.meteor.com?release=\$METEOR_RELEASE | sh
+RUN <<'EOF'
+#!/bin/bash
+set -eux
+set -o pipefail
+METEOR_RELEASE="$(sed -e 's/.*@//g' .meteor/release)"
+curl -sL https://install.meteor.com?release=\$METEOR_RELEASE | sh
 EOF
 
 # Install meteor deps (list is sufficient to do this)
@@ -81,13 +85,13 @@ COPY . /app
 FROM meteorenv AS test
 
 # Run lint
-COPY <<-'EOF' /test.sh
-	#!/bin/bash
-	set -eux
-	set -o pipefail
-	export METEOR_ALLOW_SUPERUSER=1
-	meteor npm run lint | sed -e "s,/app/,\${PATH_PREFIX:+\${PATH_PREFIX}/},g"
-	meteor npm run test
+COPY <<'EOF' /test.sh
+#!/bin/bash
+set -eux
+set -o pipefail
+export METEOR_ALLOW_SUPERUSER=1
+meteor npm run lint | sed -e "s,/app/,\${PATH_PREFIX:+\${PATH_PREFIX}/},g"
+meteor npm run test
 EOF
 CMD ["/bin/bash", "/test.sh"]
 
@@ -106,30 +110,32 @@ RUN --mount=type=cache,target=/root/.npm meteor npm install --production
 FROM ubuntu:18.04 AS production
 
 # Install runtime deps
-RUN <<-'EOF' bash
-	set -eux
-	. /etc/os-release
+RUN <<'EOF'
+#!/bin/bash
+set -eux
+set -o pipefail
+. /etc/os-release
 
-	# Install apt https support for node.  Install gnupg so that apt-key add works.
-	apt-get update
-	apt-get install --no-install-recommends -y apt-transport-https ca-certificates gnupg curl
+# Install apt https support for node.  Install gnupg so that apt-key add works.
+apt-get update
+apt-get install --no-install-recommends -y apt-transport-https ca-certificates gnupg curl
 
-	# Install moira dependencies (use the dev packages to avoid pinning to specific sonames)
-	apt-get install --no-install-recommends -y comerr-dev libkrb5-dev libreadline-dev libhesiod-dev libncurses5-dev
+# Install moira dependencies (use the dev packages to avoid pinning to specific sonames)
+apt-get install --no-install-recommends -y comerr-dev libkrb5-dev libreadline-dev libhesiod-dev libncurses5-dev
 
-	# Add node apt repo
-	curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
-	echo "deb https://deb.nodesource.com/node_14.x $VERSION_CODENAME main" > /etc/apt/sources.list.d/node.list
-	apt-get update
+# Add node apt repo
+curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
+echo "deb https://deb.nodesource.com/node_14.x $VERSION_CODENAME main" > /etc/apt/sources.list.d/node.list
+apt-get update
 
-	# Install cryptography and boto3 from apt so we don't have to build them
-	apt-get install --no-install-recommends -y python3-pip python3-cryptography python3-boto3 nodejs kstart
+# Install cryptography and boto3 from apt so we don't have to build them
+apt-get install --no-install-recommends -y python3-pip python3-cryptography python3-boto3 nodejs kstart
 
-	pip3 install credstash
+pip3 install credstash
 
-	# Cleanup
-	apt-get clean
-	rm -rf /var/lib/apt/lists/*
+# Cleanup
+apt-get clean
+rm -rf /var/lib/apt/lists/*
 EOF
 
 COPY --from=moiraenv --link /moira/build /
