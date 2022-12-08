@@ -188,7 +188,7 @@ Resources:
     Type: Custom::AMILookup
     Properties:
       ServiceToken: !GetAtt AMILookupFunction.Arn
-      Suite: focal
+      Suite: jammy
       Region: !Ref "AWS::Region"
       InstanceType: ebs-ssd
       Architecture: amd64
