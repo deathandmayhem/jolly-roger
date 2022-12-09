@@ -843,7 +843,9 @@ const PuzzleGuessModal = React.forwardRef(({
 }, forwardedRef: React.Ref<PuzzleGuessModalHandle>) => {
   const [guessInput, setGuessInput] = useState<string>('');
   const [directionInput, setDirectionInput] = useState<number>(0);
+  const [haveSetDirection, setHaveSetDirection] = useState<boolean>(false);
   const [confidenceInput, setConfidenceInput] = useState<number>(50);
+  const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(false);
   const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
   const [confirmationMessage, setConfirmationMessage] = useState<string>('');
   const [submitState, setSubmitState] =
@@ -865,10 +867,12 @@ const PuzzleGuessModal = React.forwardRef(({
   }, []);
 
   const onDirectionInputChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
+    setHaveSetDirection(true);
     setDirectionInput(parseInt(event.currentTarget.value, 10));
   }, []);
 
   const onConfidenceInputChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
+    setHaveSetConfidence(true);
     setConfidenceInput(parseInt(event.currentTarget.value, 10));
   }, []);
 
@@ -881,6 +885,9 @@ const PuzzleGuessModal = React.forwardRef(({
       const msg = `${alreadySolvedStr} ${repeatGuessStr} Are you sure you want to submit this guess?`;
       setConfirmationMessage(msg);
       setConfirmingSubmit(true);
+    } else if (!haveSetDirection || !haveSetConfidence) {
+      setSubmitError('Please set a direction and confidence for your guess.');
+      setSubmitState(PuzzleGuessSubmitState.FAILED);
     } else {
       createGuess.call({
         puzzleId: puzzle._id,
@@ -895,6 +902,12 @@ const PuzzleGuessModal = React.forwardRef(({
         } else {
           // Clear the input box.  Don't dismiss the dialog.
           setGuessInput('');
+          setHaveSetConfidence(false);
+          setConfidenceInput(50);
+          setHaveSetDirection(false);
+          setDirectionInput(0);
+          setSubmitError('');
+          setSubmitState(PuzzleGuessSubmitState.IDLE);
         }
         setConfirmingSubmit(false);
       });
@@ -902,6 +915,7 @@ const PuzzleGuessModal = React.forwardRef(({
   }, [
     guesses, puzzle._id, puzzle.answers, puzzle.expectedAnswerCount,
     guessInput, directionInput, confidenceInput, confirmingSubmit,
+    haveSetDirection, haveSetConfidence,
   ]);
 
   const clearError = useCallback(() => {
@@ -962,6 +976,7 @@ const PuzzleGuessModal = React.forwardRef(({
               onChange={onDirectionInputChange}
               value={directionInput}
               disabled={puzzle.deleted}
+              isValid={haveSetDirection}
             />
           </OverlayTrigger>
           <FormText>
@@ -987,6 +1002,7 @@ const PuzzleGuessModal = React.forwardRef(({
               onChange={onConfidenceInputChange}
               value={confidenceInput}
               disabled={puzzle.deleted}
+              isValid={haveSetConfidence}
             />
           </OverlayTrigger>
           <FormText>
