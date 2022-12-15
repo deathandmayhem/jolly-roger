@@ -71,6 +71,12 @@
     // We don't use imports with extensions
     "import/extensions": ["error", "never"],
 
+    // Allow optional imports
+    "import/no-extraneous-dependencies": ["error", {
+      "optionalDependencies": true,
+      "devDependencies": ["tests/**"]
+    }],
+
     // Imports should be grouped, and sorted within the group. Meteor imports
     // are their own group, after built-ins and before other external libraries
     "import/order": ["error", {

@@ -5,6 +5,7 @@ import ChatMessage from './ChatMessage';
 import ChatNotification from './ChatNotification';
 import DiscordCache from './DiscordCache';
 import DocumentSchema from './Document';
+import DocumentActivity from './DocumentActivity';
 import FeatureFlag from './FeatureFlag';
 import FolderPermission from './FolderPermission';
 import Guess from './Guess';
@@ -38,6 +39,7 @@ const Schemas = {
   DiscordCache,
   FolderPermission,
   Document: DocumentSchema,
+  DocumentActivity,
   FeatureFlag,
   Guess,
   Hunt,
