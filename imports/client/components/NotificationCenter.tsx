@@ -489,7 +489,7 @@ const NotificationCenter = () => {
 
   const [hideDiscordSetupMessage, setHideDiscordSetupMessage] = useState<boolean>(false);
   const [hideProfileSetupMessage, setHideProfileSetupMessage] = useState<boolean>(false);
-  const [dismissedGuesses, setDismissedGuesses] = useState<Record<string, boolean>>({});
+  const [dismissedGuesses, setDismissedGuesses] = useState<Record<string, Date>>({});
 
   const onHideDiscordSetupMessage = useCallback(() => {
     setHideDiscordSetupMessage(true);
@@ -501,8 +501,8 @@ const NotificationCenter = () => {
 
   const dismissGuess = useCallback((guessId: string) => {
     setDismissedGuesses((prevDismissedGuesses) => {
-      const newState: Record<string, boolean> = {};
-      newState[guessId] = true;
+      const newState: Record<string, Date> = {};
+      newState[guessId] = new Date();
       Object.assign(newState, prevDismissedGuesses);
       return newState;
     });
@@ -529,7 +529,8 @@ const NotificationCenter = () => {
   }
 
   guesses.forEach((g) => {
-    if (dismissedGuesses[g._id]) return;
+    const dismissedAt = dismissedGuesses[g._id];
+    if (dismissedAt && dismissedAt > (g.updatedAt ?? g.createdAt)) return;
     if (operatorActionsHidden[g.hunt]) return;
     messages.push(<GuessMessage
       key={g._id}
