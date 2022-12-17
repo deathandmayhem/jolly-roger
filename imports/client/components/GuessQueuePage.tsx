@@ -7,6 +7,7 @@ import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
+import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons/faExclamationCircle';
 import { faForward } from '@fortawesome/free-solid-svg-icons/faForward';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { faSkullCrossbones } from '@fortawesome/free-solid-svg-icons/faSkullCrossbones';
@@ -36,6 +37,7 @@ import setGuessState from '../../methods/setGuessState';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
+import markdown from '../markdown';
 import PuzzleAnswer from './PuzzleAnswer';
 import Breakable from './styling/Breakable';
 import { NavBarHeight } from './styling/constants';
@@ -83,6 +85,8 @@ const StyledRow = styled.div<{ $state: GuessType['state'] }>`
     switch (props.$state) {
       case 'correct':
         return '#f0fff0';
+      case 'intermediate':
+        return '#fffff0';
       case 'incorrect':
         return '#fff0f0';
       case 'rejected':
@@ -101,6 +105,8 @@ const StyledRow = styled.div<{ $state: GuessType['state'] }>`
     switch (props.$state) {
       case 'correct':
         return '#d0ffd0';
+      case 'intermediate':
+        return '#ffffd0';
       case 'incorrect':
         return '#ffd0d0';
       case 'rejected':
@@ -210,6 +216,11 @@ const StyledTooltipCompact = styled.span`
   `)}
 `;
 
+const StyledAdditionalNotes = styled(StyledCell)`
+  grid-column: 1 / -1;
+  overflow: hidden;
+`;
+
 const GuessBlock = React.memo(({
   canEdit, hunt, guess, createdByDisplayName, puzzle,
 }: {
@@ -265,6 +276,15 @@ const GuessBlock = React.memo(({
           <FontAwesomeIcon icon={faCheckCircle} color="#00ff00" fixedWidth />
           {' '}
           Correct
+        </>
+      );
+      break;
+    case 'intermediate':
+      displayState = (
+        <>
+          <FontAwesomeIcon icon={faExclamationCircle} color="#dddd00" fixedWidth />
+          {' '}
+          Intermediate answer
         </>
       );
       break;
@@ -383,6 +403,11 @@ const GuessBlock = React.memo(({
           <Button variant="outline-secondary" size="sm" onClick={markPending}>Return to queue</Button>
         )}
       </StyledCell>
+      {guess.additionalNotes && (
+        <StyledAdditionalNotes
+          dangerouslySetInnerHTML={{ __html: markdown(guess.additionalNotes) }}
+        />
+      )}
     </StyledRow>
   );
 });

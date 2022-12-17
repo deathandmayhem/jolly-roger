@@ -1026,12 +1026,23 @@ const PuzzleGuessModal = React.forwardRef(({
           <tbody>
             {sortedBy(guesses, (g) => g.createdAt).reverse().map((guess) => {
               return (
-                <tr key={guess._id}>
-                  <AnswerTableCell>{guess.guess}</AnswerTableCell>
-                  <td>{calendarTimeFormat(guess.createdAt)}</td>
-                  <td>{displayNames[guess.createdBy]}</td>
-                  <td style={{ textTransform: 'capitalize' }}>{guess.state}</td>
-                </tr>
+                <>
+                  <tr key={guess._id}>
+                    <AnswerTableCell>{guess.guess}</AnswerTableCell>
+                    <td>{calendarTimeFormat(guess.createdAt)}</td>
+                    <td>{displayNames[guess.createdBy]}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{guess.state}</td>
+                  </tr>
+                  {guess.additionalNotes && (
+                    <tr key={`${guess._id}-notes`}>
+                      <td
+                        colSpan={4}
+                        // eslint-disable-next-line react/no-danger
+                        dangerouslySetInnerHTML={{ __html: markdown(guess.additionalNotes) }}
+                      />
+                    </tr>
+                  )}
+                </>
               );
             })}
           </tbody>
