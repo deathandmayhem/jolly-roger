@@ -223,11 +223,13 @@ async function discoverWebhookRoot() {
     return url;
   }
 
-  const ngrok = await import('ngrok');
-  const api = new ngrok.NgrokClient(NGROK_API_URL);
-
   let tunnels;
+  let api;
   try {
+    // ngrok is an optional dependency, so we tolerate its absence
+    // eslint-disable-next-line import/no-unresolved
+    const ngrok = await import('ngrok');
+    api = new ngrok.NgrokClient(NGROK_API_URL);
     tunnels = await api.listTunnels();
   } catch (e) {
     if (!warnedAboutWebhooks) {
@@ -269,22 +271,24 @@ Meteor.startup(() => {
   }
 
   let watcher: GDriveDocumentWatcher | undefined;
-  let enabledByFeatureFlag = true;
   const updateWatcher = async () => {
-    const newEnabledByFeatureFlag = !Flags.active('disable.gdrive_watchers');
+    const disabled = Flags.active('disable.gdrive_watchers');
+    if (disabled) {
+      watcher?.stop();
+      watcher = undefined;
+      return;
+    }
+
     const newRootUrl = await discoverWebhookRoot();
-    const shouldRestart =
-      newRootUrl !== watcher?.rootUrl ||
-      newEnabledByFeatureFlag !== enabledByFeatureFlag;
-    enabledByFeatureFlag = newEnabledByFeatureFlag;
+    const shouldRestart = newRootUrl !== watcher?.rootUrl;
 
     if (shouldRestart) {
       watcher?.stop();
-    }
-
-    if (shouldRestart && newRootUrl && enabledByFeatureFlag) {
-      Ansible.log('Starting Google Drive webhooks with public URL', { url: newRootUrl });
-      watcher = new GDriveDocumentWatcher(newRootUrl);
+      watcher = undefined;
+      if (newRootUrl) {
+        Ansible.log('Starting Google Drive webhooks with public URL', { url: newRootUrl });
+        watcher = new GDriveDocumentWatcher(newRootUrl);
+      }
     }
   };
   Meteor.setInterval(updateWatcher, 5 * 1000);
