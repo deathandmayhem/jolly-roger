@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { WebApp } from 'meteor/webapp';
 import express from 'express';
+import pThrottle from 'p-throttle';
 import Ansible from '../Ansible';
 import Flags from '../Flags';
 import DocumentActivities from '../lib/models/DocumentActivities';
@@ -60,6 +61,14 @@ webhook.post('/', async (req, res) => {
 });
 WebApp.connectHandlers.use(WEBHOOK_PREFIX, Meteor.bindEnvironment(webhook));
 
+// Google Drive allows 20000 requests per 100 seconds. We'll claim 0.5% of that,
+// which is low enough that it shouldn't impact more important work, but with a
+// high enough window that we get some light bursting in.
+const throttled = pThrottle({
+  interval: 100 * 1000,
+  limit: 100,
+});
+
 // Setup and maintain watches on all Google Drive documents
 class GDriveDocumentWatcher {
   rootUrl: string;
@@ -98,6 +107,7 @@ class GDriveDocumentWatcher {
 
   stop() {
     this.documentObserver.stop();
+    this.documentWatchTimeouts.forEach((_, id) => this.clearWatchRefresh(id));
   }
 
   scheduleWatchRefresh(id: string, expiration: Date, document: string) {
@@ -133,67 +143,69 @@ class GDriveDocumentWatcher {
   }
 
   async refreshWatch(id: string) {
-    const preLockWatch = await DocumentWatches.findOneAsync({ document: id });
-    if (!this.watchExpired(preLockWatch)) {
-      return;
-    }
-
-    await Locks.withLock(`document-watch:${id}`, async () => {
-      if (!DriveClient.gdrive) {
+    await throttled(async () => {
+      const preLockWatch = await DocumentWatches.findOneAsync({ document: id });
+      if (!this.watchExpired(preLockWatch)) {
         return;
       }
 
-      const watch = await DocumentWatches.findOneAsync({ document: id });
-      if (!this.watchExpired(watch)) {
-        return;
-      }
+      await Locks.withLock(`document-watch:${id}`, async () => {
+        if (!DriveClient.gdrive) {
+          return;
+        }
 
-      const document = await Documents.findOneAsync({ _id: id });
-      if (!document) {
-        return;
-      }
+        const watch = await DocumentWatches.findOneAsync({ document: id });
+        if (!this.watchExpired(watch)) {
+          return;
+        }
 
-      const watchId = Random.id();
-      const watchExpiration = new Date(Date.now() + EXPIRE_WINDOW);
+        const document = await Documents.findOneAsync({ _id: id });
+        if (!document) {
+          return;
+        }
 
-      Ansible.log('Refreshing watch', { document: document.value.id, watchId, watchExpiration });
-      const resp = await DriveClient.gdrive.files.watch({
-        fileId: document.value.id,
-        requestBody: {
-          id: watchId,
-          token: document._id,
-          type: 'webhook',
-          address: this.watchUrl,
-          expiration: watchExpiration.getTime() as any,
-        },
-      });
+        const watchId = Random.id();
+        const watchExpiration = new Date(Date.now() + EXPIRE_WINDOW);
 
-      const update = {
-        watchId,
-        watchExpiration,
-        watchResourceId: resp.data.resourceId!,
-      };
-      if (watch) {
-        await DocumentWatches.updateAsync(watch._id, {
-          $set: update,
-        });
-      } else {
-        await DocumentWatches.insertAsync({
-          document: id,
-          ...update,
-        });
-      }
-
-      // Clean up the old watch if there was one
-      if (watch) {
-        await DriveClient.gdrive.channels.stop({
+        Ansible.log('Refreshing watch', { document: document.value.id, watchId, watchExpiration });
+        const resp = await DriveClient.gdrive.files.watch({
+          fileId: document.value.id,
           requestBody: {
-            id: watch.watchId,
-            resourceId: watch.watchResourceId,
+            id: watchId,
+            token: document._id,
+            type: 'webhook',
+            address: this.watchUrl,
+            expiration: watchExpiration.getTime() as any,
           },
         });
-      }
-    });
+
+        const update = {
+          watchId,
+          watchExpiration,
+          watchResourceId: resp.data.resourceId!,
+        };
+        if (watch) {
+          await DocumentWatches.updateAsync(watch._id, {
+            $set: update,
+          });
+        } else {
+          await DocumentWatches.insertAsync({
+            document: id,
+            ...update,
+          });
+        }
+
+        // Clean up the old watch if there was one
+        if (watch) {
+          await DriveClient.gdrive.channels.stop({
+            requestBody: {
+              id: watch.watchId,
+              resourceId: watch.watchResourceId,
+            },
+          });
+        }
+      });
+    })();
   }
 }
 

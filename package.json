@@ -45,6 +45,7 @@
     "monocle-ts": "^2.3.13",
     "mustache": "^4.2.0",
     "newtype-ts": "^0.3.5",
+    "p-throttle": "^5.0.0",
     "portscanner": "^2.2.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.6.0",
