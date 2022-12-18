@@ -78,6 +78,7 @@ class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
 
   shutdown() {
     this.subscribers.forEach((v) => v.subscriber.destroy());
+    this.subscribers = new Map();
   }
 }
 
@@ -230,12 +231,23 @@ const addObservers = (
   });
 };
 
+type JoinPublisherOptions = {
+  // If specified, defer removing a value from the publish for `lingerTime` msec
+  // after the query no longer includes the value.
+  lingerTime?: number;
+};
+
 export default class JoinPublisher<T extends { _id: string }> {
   watcher: Meteor.LiveQueryHandle;
 
   observers: Map<string, RefCountedJoinedObjectObserverMap<any>>;
 
-  constructor(sub: Subscription, spec: PublishSpec<T>, query: Mongo.Selector<T>) {
+  constructor(
+    sub: Subscription,
+    spec: PublishSpec<T>,
+    query: Mongo.Selector<T>,
+    opts: JoinPublisherOptions = {},
+  ) {
     validateSpec(spec);
 
     this.observers = new Map<string, RefCountedJoinedObjectObserverMap<any>>();
@@ -253,7 +265,11 @@ export default class JoinPublisher<T extends { _id: string }> {
         observer.incref(id);
       },
       removed: (id) => {
-        observer.decref(id);
+        if (opts.lingerTime !== undefined) {
+          Meteor.setTimeout(() => { observer.decref(id); }, opts.lingerTime);
+        } else {
+          observer.decref(id);
+        }
       },
     });
 

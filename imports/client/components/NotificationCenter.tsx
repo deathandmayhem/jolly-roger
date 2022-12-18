@@ -5,10 +5,12 @@ import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
-import { faSkullCrossbones } from '@fortawesome/free-solid-svg-icons/faSkullCrossbones';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Toast from 'react-bootstrap/Toast';
+import ToastContainer from 'react-bootstrap/ToastContainer';
 import Tooltip from 'react-bootstrap/Tooltip';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
@@ -39,48 +41,6 @@ import { useOperatorActionsHidden } from '../hooks/persisted-state';
 import markdown from '../markdown';
 import Breakable from './styling/Breakable';
 
-const StyledDismissButton = styled.button`
-  background: none;
-  border: none;
-  width: 32px;
-  height: 32px;
-  font-size: 20px;
-  font-weight: bold;
-  right: 0;
-  top: 0;
-  color: #888;
-
-  &:hover {
-    color: #f0f0f0;
-  }
-`;
-
-const StyledNotificationMessage = styled.li`
-  width: 100%;
-  position: relative;
-  background-color: #404040;
-  color: #f0f0f0;
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  justify-content: flex-start;
-  overflow: hidden;
-
-  &:first-child {
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-  }
-
-  &:not(:last-child) {
-    border-bottom: 1px solid #595959;
-  }
-
-  &:last-child {
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-  }
-`;
-
 const StyledNotificationActionBar = styled.ul`
   display: flex;
   list-style-type: none;
@@ -92,60 +52,7 @@ const StyledNotificationActionBar = styled.ul`
 const StyledNotificationActionItem = styled.li`
   margin: 8px 8px 4px 0;
   display: inline-block;
-
-  a,
-  button {
-    display: inline-block;
-    border: none;
-    padding: 4px 10px;
-    border-radius: 4px;
-    background-color: #2e2e2e;
-    color: #aaa;
-
-    &:hover {
-      color: #f0f0f0;
-      cursor: pointer;
-      text-decoration: none;
-    }
-  }
 `;
-
-const MessengerDismissButton = React.memo(({ onDismiss }: {
-  onDismiss: (event: React.MouseEvent<HTMLButtonElement>) => void;
-}) => {
-  return <StyledDismissButton type="button" onClick={onDismiss}>×</StyledDismissButton>;
-});
-
-const MessengerContent = styled.div`
-  overflow-x: hidden; // overflow-wrap on children just overflows the box without this
-  padding: 10px;
-`;
-
-const StyledSpinnerBox = styled.div`
-  background-color: #292929;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  width: 55px;
-  flex: 0 0 55px;
-`;
-
-const StyledSpinner = styled.div`
-  display: block;
-  width: 16px;
-  height: 16px;
-  border-radius: 8px;
-  background-color: #61c4b8;
-`;
-
-const MessengerSpinner = React.memo(() => {
-  return (
-    <StyledSpinnerBox>
-      <StyledSpinner />
-    </StyledSpinnerBox>
-  );
-});
 
 const GuessMessage = React.memo(({
   guess, puzzle, hunt, guesser, onDismiss,
@@ -173,51 +80,57 @@ const GuessMessage = React.memo(({
   }, [onDismiss, guess._id]);
 
   const directionTooltip = (
-    <Tooltip id="direction-tooltip">
+    <Tooltip id={`guess-${guess._id}-direction-tooltip`}>
       Direction this puzzle was solved, ranging from completely backsolved (-10) to completely forward solved (10)
     </Tooltip>
   );
   const confidenceTooltip = (
-    <Tooltip id="confidence-tooltip">
+    <Tooltip id={`guess-${guess._id}-confidence-tooltip`}>
       Submitter-estimated likelihood that this answer is correct
     </Tooltip>
   );
   const copyTooltip = (
-    <Tooltip id="copy-tooltip">
+    <Tooltip id={`guess-${guess._id}-copy-tooltip`}>
       Copy to clipboard
     </Tooltip>
   );
-  const jrLinkTooltip = (
-    <Tooltip id="jr-link-tooltip">
-      Open Jolly Roger page
-    </Tooltip>
-  );
   const extLinkTooltip = (
-    <Tooltip id="ext-link-tooltip">
+    <Tooltip id={`guess-${guess._id}-ext-link-tooltip`}>
       Open puzzle
     </Tooltip>
   );
 
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
 
+  const disableButtons = guess.state !== 'pending';
+
+  const correctButtonVariant = guess.state === 'correct' ? 'success' : 'outline-secondary';
+  const incorrectButtonVariant = guess.state === 'incorrect' ? 'danger' : 'outline-secondary';
+  const rejectButtonVariant = guess.state === 'rejected' ? 'secondary' : 'outline-secondary';
+
   return (
-    <StyledNotificationMessage>
-      <MessengerSpinner />
-      <MessengerContent>
-        <div>
+    <Toast onClose={dismissGuess}>
+      <Toast.Header>
+        <strong className="me-auto">
           Guess for
           {' '}
-          {puzzle.title}
+          <a href={linkTarget} target="_blank" rel="noopener noreferrer">
+            {puzzle.title}
+          </a>
           {' '}
           from
           {' '}
-          <Breakable>{guesser}</Breakable>
-          :
-          {' '}
+          <a href={`/users/${guess.createdBy}`} target="_blank" rel="noopener noreferrer">
+            <Breakable>{guesser}</Breakable>
+          </a>
+        </strong>
+      </Toast.Header>
+      <Toast.Body>
+        <div>
           <Breakable>{guess.guess}</Breakable>
         </div>
         <div>
-          <OverlayTrigger placement="bottom" overlay={directionTooltip}>
+          <OverlayTrigger placement="top" overlay={directionTooltip}>
             <span>
               Solve direction:
               {' '}
@@ -226,7 +139,7 @@ const GuessMessage = React.memo(({
           </OverlayTrigger>
         </div>
         <div>
-          <OverlayTrigger placement="bottom" overlay={confidenceTooltip}>
+          <OverlayTrigger placement="top" overlay={confidenceTooltip}>
             <span>
               Confidence:
               {' '}
@@ -240,34 +153,32 @@ const GuessMessage = React.memo(({
             <OverlayTrigger placement="top" overlay={copyTooltip}>
               {({ ref, ...triggerHandler }) => (
                 <CopyToClipboard text={guess.guess} {...triggerHandler}>
-                  <button ref={ref} type="button" aria-label="Copy"><FontAwesomeIcon icon={faCopy} /></button>
+                  <Button variant="outline-secondary" size="sm" ref={ref} aria-label="Copy"><FontAwesomeIcon icon={faCopy} /></Button>
                 </CopyToClipboard>
               )}
             </OverlayTrigger>
           </StyledNotificationActionItem>
           <StyledNotificationActionItem>
-            <OverlayTrigger placement="top" overlay={jrLinkTooltip}>
-              <a href={linkTarget} target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faSkullCrossbones} />
-              </a>
-            </OverlayTrigger>
-          </StyledNotificationActionItem>
-          <StyledNotificationActionItem>
             <OverlayTrigger placement="top" overlay={extLinkTooltip}>
-              <a href={guessURL(hunt, puzzle)} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline-secondary" size="sm" as="a" href={guessURL(hunt, puzzle)} target="_blank" rel="noopener noreferrer">
                 <FontAwesomeIcon icon={faPuzzlePiece} />
-              </a>
+              </Button>
             </OverlayTrigger>
           </StyledNotificationActionItem>
         </StyledNotificationActionBar>
         <StyledNotificationActionBar>
-          <StyledNotificationActionItem><button type="button" onClick={markCorrect}>Correct</button></StyledNotificationActionItem>
-          <StyledNotificationActionItem><button type="button" onClick={markIncorrect}>Incorrect</button></StyledNotificationActionItem>
-          <StyledNotificationActionItem><button type="button" onClick={markRejected}>Reject</button></StyledNotificationActionItem>
+          <StyledNotificationActionItem>
+            <Button variant={correctButtonVariant} size="sm" disabled={disableButtons} onClick={markCorrect}>Correct</Button>
+          </StyledNotificationActionItem>
+          <StyledNotificationActionItem>
+            <Button variant={incorrectButtonVariant} size="sm" disabled={disableButtons} onClick={markIncorrect}>Incorrect</Button>
+          </StyledNotificationActionItem>
+          <StyledNotificationActionItem>
+            <Button variant={rejectButtonVariant} size="sm" disabled={disableButtons} onClick={markRejected}>Reject</Button>
+          </StyledNotificationActionItem>
         </StyledNotificationActionBar>
-      </MessengerContent>
-      <MessengerDismissButton onDismiss={dismissGuess} />
-    </StyledNotificationMessage>
+      </Toast.Body>
+    </Toast>
   );
 });
 
@@ -312,28 +223,31 @@ const DiscordMessage = React.memo(({ onDismiss }: {
   const msg = 'It looks like you\'re not in our Discord server, which Jolly Roger manages access to.  Get added:';
   const actions = [
     <StyledNotificationActionItem key="invite">
-      <button
-        type="button"
+      <Button
+        variant="outline-secondary"
         disabled={!(state.status === DiscordMessageStatus.IDLE || state.status === DiscordMessageStatus.ERROR)}
         onClick={initiateOauthFlow}
       >
         Add me
-      </button>
+      </Button>
     </StyledNotificationActionItem>,
   ];
 
   return (
-    <StyledNotificationMessage>
-      <MessengerSpinner />
-      <MessengerContent>
+    <Toast onClose={onDismiss}>
+      <Toast.Header>
+        <strong className="me-auto">
+          Discord account not linked
+        </strong>
+      </Toast.Header>
+      <Toast.Body>
         {msg}
         <StyledNotificationActionBar>
           {actions}
         </StyledNotificationActionBar>
         {state.status === DiscordMessageStatus.ERROR ? state.error! : null}
-      </MessengerContent>
-      <MessengerDismissButton onDismiss={onDismiss} />
-    </StyledNotificationMessage>
+      </Toast.Body>
+    </Toast>
   );
 });
 
@@ -355,22 +269,26 @@ const AnnouncementMessage = React.memo(({
   }
 
   return (
-    <StyledNotificationMessage>
-      <MessengerSpinner />
-      <MessengerContent>
+    <Toast onClose={onDismiss}>
+      <Toast.Header>
+        <strong className="me-auto">
+          Announcement
+        </strong>
+        <small>
+          {calendarTimeFormat(announcement.createdAt)}
+        </small>
+      </Toast.Header>
+      <Toast.Body>
         <div
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: markdown(announcement.message) }}
         />
-        <footer>
+        <div>
           {'- '}
           {createdByDisplayName}
-          {', '}
-          {calendarTimeFormat(announcement.createdAt)}
-        </footer>
-      </MessengerContent>
-      <MessengerDismissButton onDismiss={onDismiss} />
-    </StyledNotificationMessage>
+        </div>
+      </Toast.Body>
+    </Toast>
   );
 });
 
@@ -378,9 +296,13 @@ const ProfileMissingMessage = ({ onDismiss }: {
   onDismiss: () => void;
 }) => {
   return (
-    <StyledNotificationMessage>
-      <MessengerSpinner />
-      <MessengerContent>
+    <Toast onClose={onDismiss}>
+      <Toast.Header>
+        <strong className="me-auto">
+          Profile missing
+        </strong>
+      </Toast.Header>
+      <Toast.Body>
         Somehow you don&apos;t seem to have a profile.  (This can happen if you wind
         up having to do a password reset before you successfully log in for the
         first time.)  Please set a display name for yourself via
@@ -389,9 +311,8 @@ const ProfileMissingMessage = ({ onDismiss }: {
           the profile page
         </Link>
         .
-      </MessengerContent>
-      <MessengerDismissButton onDismiss={onDismiss} />
-    </StyledNotificationMessage>
+      </Toast.Body>
+    </Toast>
   );
 };
 
@@ -405,13 +326,22 @@ const ChatNotificationMessage = ({
 }) => {
   const id = cn._id;
   const dismiss = useCallback(() => dismissChatNotification.call({ chatNotificationId: id }), [id]);
+
   return (
-    <StyledNotificationMessage>
-      <MessengerSpinner />
-      <MessengerContent>
-        <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
-          {puzzle.title}
-        </Link>
+    <Toast onClose={dismiss}>
+      <Toast.Header>
+        <strong className="me-auto">
+          Mention on
+          {' '}
+          <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
+            {puzzle.title}
+          </Link>
+        </strong>
+        <small>
+          {calendarTimeFormat(cn.createdAt)}
+        </small>
+      </Toast.Header>
+      <Toast.Body>
         <div>
           {senderDisplayName}
           {': '}
@@ -419,23 +349,18 @@ const ChatNotificationMessage = ({
             {cn.text}
           </div>
         </div>
-        <footer>
-          {calendarTimeFormat(cn.createdAt)}
-        </footer>
-      </MessengerContent>
-      <MessengerDismissButton onDismiss={dismiss} />
-    </StyledNotificationMessage>
+      </Toast.Body>
+    </Toast>
   );
 };
 
-const StyledNotificationCenter = styled.ul`
-  position: fixed;
-  width: 350px;
-  top: 20px;
-  right: 20px;
-  margin: 0;
-  padding: 0;
+const StyledToastContainer = styled(ToastContainer)`
   z-index: 1050;
+
+  >*:not(:last-child) {
+    // I like these toasts packed a little more efficiently
+    margin-bottom: 0.5rem;
+  }
 `;
 
 const NotificationCenter = () => {
@@ -465,17 +390,28 @@ const NotificationCenter = () => {
     };
   }, []);
 
+  // How long to keep showing guess notifications after actioning.
+  // Note that this cannot usefully exceed the linger period implemented by the
+  // subscription that fetches the data from imports/server/guesses.ts
+  const LINGER_PERIOD = 4000;
+
   // Lookup tables to support guesses/pendingAnnouncements/chatNotifications
   const hunts = useTracker(() => (loading ? new Map<string, HuntType>() : indexedById(Hunts.find().fetch())), [loading]);
   const puzzles = useTracker(() => (loading ? new Map<string, PuzzleType>() : indexedById(Puzzles.find().fetch())), [loading]);
   const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
   const announcements = useTracker(() => (loading ? new Map<string, AnnouncementType>() : indexedById(Announcements.find().fetch())), [loading]);
 
+  const [recentGuessEpoch, setRecentGuessEpoch] = useState<number>(Date.now() - LINGER_PERIOD);
   const guesses = useTracker(() => (
     loading || !fetchPendingGuesses ?
       [] :
-      Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).fetch()
-  ), [loading, fetchPendingGuesses]);
+      Guesses.find({
+        $or: [
+          { state: 'pending' },
+          { updatedAt: { $gt: new Date(recentGuessEpoch) } },
+        ],
+      }, { sort: { createdAt: 1 } }).fetch()
+  ), [loading, fetchPendingGuesses, recentGuessEpoch]);
   const pendingAnnouncements = useTracker(() => (
     loading ?
       [] :
@@ -507,6 +443,31 @@ const NotificationCenter = () => {
       return newState;
     });
   }, []);
+
+  useEffect(() => {
+    // Update after some seconds if one of the guesses was lingering
+    // after a state change.
+    const lingeringGuesses = guesses.filter((g) => g.state !== 'pending');
+    if (lingeringGuesses.length === 0) {
+      return () => { /* no unwind */ };
+    }
+
+    const earliestLingerUpdatedAt = Math.min(...lingeringGuesses.map((g) => g.updatedAt?.getTime() ?? 0));
+    // We want to schedule an update to recentGuessEpoch to run once the oldest
+    // lingering guess would fall out of retention.
+    const earliestLingerDisappearsAt = earliestLingerUpdatedAt + LINGER_PERIOD;
+    const timeUntilLingerDisappears = Date.now() - earliestLingerDisappearsAt;
+
+    const timeout = Meteor.setTimeout(() => {
+      setRecentGuessEpoch(Date.now() - LINGER_PERIOD);
+    }, timeUntilLingerDisappears);
+
+    return () => {
+      if (timeout) {
+        Meteor.clearTimeout(timeout);
+      }
+    };
+  }, [guesses]);
 
   if (loading) {
     return <div />;
@@ -566,9 +527,9 @@ const NotificationCenter = () => {
   });
 
   return (
-    <StyledNotificationCenter>
+    <StyledToastContainer position="bottom-end" className="p-3 position-fixed">
       {messages}
-    </StyledNotificationCenter>
+    </StyledToastContainer>
   );
 };
 
