@@ -66,6 +66,7 @@ createFixtureHunt.define({
             state: g.state,
             direction: 10,
             confidence: 100,
+            additionalNotes: g.additionalNotes,
           },
         });
       });

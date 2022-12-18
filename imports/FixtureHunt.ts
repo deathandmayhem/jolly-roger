@@ -6,7 +6,7 @@ import { TagType } from './lib/schemas/Tag';
 type FixtureHuntType = Pick<HuntType, '_id' | 'name'> & {
   tags: Pick<TagType, '_id' | 'name'>[];
   puzzles: (Pick< PuzzleType, '_id' | 'title' | 'url' | 'expectedAnswerCount' | 'tags'> & {
-    guesses: Pick<GuessType, '_id' | 'guess' | 'state'>[];
+    guesses: (Pick<GuessType, '_id' | 'guess' | 'state'> & { additionalNotes?: string })[];
   })[];
 };
 
@@ -103,6 +103,12 @@ const FixtureHunt: FixtureHuntType = {
       expectedAnswerCount: 1,
       tags: ['o5JdfTizW4tGwhRnP', 'QeJLufdCqv7rMSSbS'],
       guesses: [
+        {
+          _id: 'yHtJYeqdmGkgCCcCL',
+          guess: 'TAPE YOUR HEEL TURN',
+          state: 'intermediate',
+          additionalNotes: 'Please upload your file to https://upload.head-hunters.org/.',
+        },
         { _id: 'wBik5mReoQMAhS6aX', guess: 'ERIC ANGLE', state: 'correct' },
       ],
     },
@@ -542,6 +548,12 @@ const FixtureHunt: FixtureHuntType = {
       expectedAnswerCount: 1,
       tags: ['nPbTi6DPvjAkot94n'],
       guesses: [
+        {
+          _id: 'kfeD2uWtGfCns5uoB',
+          guess: "NOW SOLVE TODAY'S LISTENER",
+          state: 'intermediate',
+          additionalNotes: 'The Listener can be found at http://www.listenercrossword.com/Solutions/S2018/Notes_4485.html',
+        },
         { _id: 'ukBCpRvEYNtmADDgX', guess: 'WHOOPEE', state: 'correct' },
       ],
     },
@@ -660,6 +672,12 @@ const FixtureHunt: FixtureHuntType = {
       expectedAnswerCount: 1,
       tags: ['nPbTi6DPvjAkot94n'],
       guesses: [
+        {
+          _id: 'v8fxXBfvn3HdXpNrZ',
+          guess: 'WE WANT A MOCKTAIL',
+          state: 'intermediate',
+          additionalNotes: 'Please bring your beverage to 66-100, and be prepared to tell them your team and the instruction that brought you here.',
+        },
         { _id: 'fN4zRHuk2xJkq6Wcr', guess: 'DIRTY MARTINI', state: 'correct' },
       ],
     },
@@ -879,6 +897,18 @@ const FixtureHunt: FixtureHuntType = {
       tags: ['PWZZge8id26rPH8t9', '9RDaMHxkZSJFezo6r'],
       guesses: [
         {
+          _id: 'zQf7his5HcxmesfC6',
+          guess: "DON'T BRUSH US OFF",
+          state: 'intermediate',
+          additionalNotes: 'Please come to 66-110 to pick up your item. Make sure to knock, and don’t come in until we let you in. Be prepared to say what team you’re with and the request that you submitted.',
+        },
+        {
+          _id: 'eaWNnnySz8kqDwcXu',
+          guess: 'MAKE A TIFO AND HOIST FOR HQ',
+          state: 'intermediate',
+          additionalNotes: 'Please upload your file to https://upload.head-hunters.org/.',
+        },
+        {
           _id: 'jtTXcz8QXJfJYvzNx',
           guess: 'CONFINED AQUIFER',
           state: 'correct',
@@ -892,6 +922,12 @@ const FixtureHunt: FixtureHuntType = {
       expectedAnswerCount: 1,
       tags: ['PWZZge8id26rPH8t9', '9RDaMHxkZSJFezo6r'],
       guesses: [
+        {
+          _id: 'tcTAgnRefAKGtWBGC',
+          guess: 'SQUARE POINTS',
+          state: 'intermediate',
+          additionalNotes: 'Please come to 66-110 to pick up your item. Make sure to knock, and don’t come in until we let you in. Be prepared to say what team you’re with and the request that you submitted.',
+        },
         { _id: '9KtYfxo7dG2fNkEdy', guess: 'THREE POUNDER', state: 'correct' },
       ],
     },

@@ -19,11 +19,23 @@ const GuessFields = t.type({
   confidence: t.union([t.Int, t.undefined]),
   // The state of this guess, as handled by the operators:
   // * 'pending' means "shows up in the operator queue"
-  // * 'correct', "incorrect", and "rejected" all mean "no longer in the operator queue"
-  // * 'incorrect' answers should be listed or at least discoverable on the puzzle page
+  // * "intermediate", "correct", "incorrect", and "rejected" all mean "no longer in the operator
+  //   queue"
+  // * 'incorrect' and 'intermediate' answers should be listed or at least discoverable on the
+  //   puzzle page
   // * 'correct' answers should be accompanied by an update to the corresponding puzzle's answer
   //   field.
-  state: t.union([t.literal('pending'), t.literal('correct'), t.literal('incorrect'), t.literal('rejected')]),
+  state: t.union([
+    t.literal('pending'),
+    t.literal('intermediate'),
+    t.literal('correct'),
+    t.literal('incorrect'),
+    t.literal('rejected'),
+  ]),
+  // Additional notes can be used by the operator either for sharing (e.g.)
+  // additional information received from the puzzle (e.g. for an intermediate
+  // instruction) or why a guess was rejected.
+  additionalNotes: t.union([t.string, t.undefined]),
 });
 
 const GuessFieldsOverrides: Overrides<t.TypeOf<typeof GuessFields>> = {
