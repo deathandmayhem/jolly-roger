@@ -41,7 +41,7 @@ class PendingGuessWatcher {
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId });
+          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId }, { lingerTime: 5000 });
         });
       },
       changed: (_id, fields) => {
@@ -53,7 +53,7 @@ class PendingGuessWatcher {
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId });
+          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId }, { lingerTime: 5000 });
         });
 
         Object.keys(this.huntGuessWatchers).forEach((huntId) => {

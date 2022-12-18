@@ -6,7 +6,7 @@ import { ServiceConfiguration } from 'meteor/service-configuration';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Toast from 'react-bootstrap/Toast';
@@ -102,6 +102,12 @@ const GuessMessage = React.memo(({
 
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
 
+  const disableButtons = guess.state !== 'pending';
+
+  const correctButtonVariant = guess.state === 'correct' ? 'success' : 'outline-secondary';
+  const incorrectButtonVariant = guess.state === 'incorrect' ? 'danger' : 'outline-secondary';
+  const rejectButtonVariant = guess.state === 'rejected' ? 'secondary' : 'outline-secondary';
+
   return (
     <Toast onClose={dismissGuess}>
       <Toast.Header>
@@ -162,13 +168,13 @@ const GuessMessage = React.memo(({
         </StyledNotificationActionBar>
         <StyledNotificationActionBar>
           <StyledNotificationActionItem>
-            <Button variant="outline-secondary" size="sm" onClick={markCorrect}>Correct</Button>
+            <Button variant={correctButtonVariant} size="sm" disabled={disableButtons} onClick={markCorrect}>Correct</Button>
           </StyledNotificationActionItem>
           <StyledNotificationActionItem>
-            <Button variant="outline-secondary" size="sm" onClick={markIncorrect}>Incorrect</Button>
+            <Button variant={incorrectButtonVariant} size="sm" disabled={disableButtons} onClick={markIncorrect}>Incorrect</Button>
           </StyledNotificationActionItem>
           <StyledNotificationActionItem>
-            <Button variant="outline-secondary" size="sm" onClick={markRejected}>Reject</Button>
+            <Button variant={rejectButtonVariant} size="sm" disabled={disableButtons} onClick={markRejected}>Reject</Button>
           </StyledNotificationActionItem>
         </StyledNotificationActionBar>
       </Toast.Body>
@@ -384,17 +390,28 @@ const NotificationCenter = () => {
     };
   }, []);
 
+  // How long to keep showing guess notifications after actioning.
+  // Note that this cannot usefully exceed the linger period implemented by the
+  // subscription that fetches the data from imports/server/guesses.ts
+  const LINGER_PERIOD = 4000;
+
   // Lookup tables to support guesses/pendingAnnouncements/chatNotifications
   const hunts = useTracker(() => (loading ? new Map<string, HuntType>() : indexedById(Hunts.find().fetch())), [loading]);
   const puzzles = useTracker(() => (loading ? new Map<string, PuzzleType>() : indexedById(Puzzles.find().fetch())), [loading]);
   const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
   const announcements = useTracker(() => (loading ? new Map<string, AnnouncementType>() : indexedById(Announcements.find().fetch())), [loading]);
 
+  const [recentGuessEpoch, setRecentGuessEpoch] = useState<number>(Date.now() - LINGER_PERIOD);
   const guesses = useTracker(() => (
     loading || !fetchPendingGuesses ?
       [] :
-      Guesses.find({ state: 'pending' }, { sort: { createdAt: 1 } }).fetch()
-  ), [loading, fetchPendingGuesses]);
+      Guesses.find({
+        $or: [
+          { state: 'pending' },
+          { updatedAt: { $gt: new Date(recentGuessEpoch) } },
+        ],
+      }, { sort: { createdAt: 1 } }).fetch()
+  ), [loading, fetchPendingGuesses, recentGuessEpoch]);
   const pendingAnnouncements = useTracker(() => (
     loading ?
       [] :
@@ -426,6 +443,31 @@ const NotificationCenter = () => {
       return newState;
     });
   }, []);
+
+  useEffect(() => {
+    // Update after some seconds if one of the guesses was lingering
+    // after a state change.
+    const lingeringGuesses = guesses.filter((g) => g.state !== 'pending');
+    if (lingeringGuesses.length === 0) {
+      return () => { /* no unwind */ };
+    }
+
+    const earliestLingerUpdatedAt = Math.min(...lingeringGuesses.map((g) => g.updatedAt?.getTime() ?? 0));
+    // We want to schedule an update to recentGuessEpoch to run once the oldest
+    // lingering guess would fall out of retention.
+    const earliestLingerDisappearsAt = earliestLingerUpdatedAt + LINGER_PERIOD;
+    const timeUntilLingerDisappears = Date.now() - earliestLingerDisappearsAt;
+
+    const timeout = Meteor.setTimeout(() => {
+      setRecentGuessEpoch(Date.now() - LINGER_PERIOD);
+    }, timeUntilLingerDisappears);
+
+    return () => {
+      if (timeout) {
+        Meteor.clearTimeout(timeout);
+      }
+    };
+  }, [guesses]);
 
   if (loading) {
     return <div />;
