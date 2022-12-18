@@ -1745,6 +1745,23 @@ const CircuitBreakerSection = () => {
         </p>
       </CircuitBreakerControl>
       <CircuitBreakerControl
+        title="Drive activity watches"
+        flagName="disable.gdrive_watchers"
+      >
+        <p>
+          When Jolly Roger creates a spreadsheet or document, we set a watch on
+          the file and collect activity notifications from Google Drive. There is
+          some possibility that creating and maintaining these watches could
+          exhaust our rate limits with the Google Drive.
+        </p>
+        <p>
+          Disabling this feature means that Jolly Roger will continue to
+          create documents, but will not attempt to monitor them for updates. As
+          a result, we will not be able to display activity data about Google
+          Drive file edits.
+        </p>
+      </CircuitBreakerControl>
+      <CircuitBreakerControl
         title="WebRTC calls"
         flagName="disable.webrtc"
       >

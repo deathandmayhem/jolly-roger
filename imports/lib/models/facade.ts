@@ -4,6 +4,7 @@ import BlobMappings from './BlobMappings';
 import ChatMessages from './ChatMessages';
 import ChatNotifications from './ChatNotifications';
 import DiscordCache from './DiscordCache';
+import DocumentActivities from './DocumentActivities';
 import Documents from './Documents';
 import FeatureFlags from './FeatureFlags';
 import FolderPermissions from './FolderPermissions';
@@ -35,6 +36,7 @@ const Models = {
   ChatMessages,
   ChatNotifications,
   DiscordCache,
+  DocumentActivities,
   Documents,
   FeatureFlags,
   FolderPermissions,
