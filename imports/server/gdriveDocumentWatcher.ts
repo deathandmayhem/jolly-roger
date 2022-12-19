@@ -18,7 +18,7 @@ import { DocumentWatchType } from './schemas/DocumentWatch';
 const EXPIRE_WINDOW = Meteor.isDevelopment ?
   5 * 60 * 1000 :
   24 * 60 * 60 * 1000;
-const RENEW_WINDOW = 60 * 1000; // milliseconds
+const RENEW_WINDOW = EXPIRE_WINDOW * 0.2;
 const ACTIVITY_GRANULARITY = 5 * 60 * 1000; // milliseconds
 const WEBHOOK_PREFIX = '/_gdrive/watch';
 
