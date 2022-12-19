@@ -456,7 +456,7 @@ const NotificationCenter = () => {
     // We want to schedule an update to recentGuessEpoch to run once the oldest
     // lingering guess would fall out of retention.
     const earliestLingerDisappearsAt = earliestLingerUpdatedAt + LINGER_PERIOD;
-    const timeUntilLingerDisappears = Date.now() - earliestLingerDisappearsAt;
+    const timeUntilLingerDisappears = earliestLingerDisappearsAt - Date.now();
 
     const timeout = Meteor.setTimeout(() => {
       setRecentGuessEpoch(Date.now() - LINGER_PERIOD);
