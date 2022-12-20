@@ -35,6 +35,9 @@ class PendingGuessWatcher {
           projection: { displayName: 1 },
         },
       }],
+      // top-level Guess object and its referents should linger so we can
+      // display it in the guess queue briefly after processing for continuity
+      lingerTime: LINGER_TIME,
     };
 
     this.userWatch = MeteorUsers.find(sub.userId!, { fields: { roles: 1 } }).observeChanges({
@@ -43,7 +46,7 @@ class PendingGuessWatcher {
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId }, { lingerTime: LINGER_TIME });
+          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId });
         });
       },
       changed: (_id, fields) => {
@@ -56,7 +59,7 @@ class PendingGuessWatcher {
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId }, { lingerTime: LINGER_TIME });
+          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId });
         });
 
         Object.keys(this.huntGuessWatchers).forEach((huntId) => {

@@ -32,6 +32,7 @@ export type PublishSpec<T extends { _id: string }> = {
     field: keyof T & string;
     join: PublishSpec<any>,
   }[];
+  lingerTime?: number;
 }
 
 class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
@@ -155,7 +156,13 @@ class JoinedObjectObserver<T extends { _id: string }> {
               return;
             }
 
-            this.observers.get(join.model._name)!.decref(val);
+            if (join.lingerTime !== undefined) {
+              Meteor.setTimeout(() => {
+                this.observers.get(join.model._name)!.decref(val);
+              }, join.lingerTime);
+            } else {
+              this.observers.get(join.model._name)!.decref(val);
+            }
           }
         });
 
@@ -240,12 +247,6 @@ const addObservers = (
   });
 };
 
-type JoinPublisherOptions = {
-  // If specified, defer removing a value from the publish for `lingerTime` msec
-  // after the query no longer includes the value.
-  lingerTime?: number;
-};
-
 export default class JoinPublisher<T extends { _id: string }> {
   watcher: Meteor.LiveQueryHandle;
 
@@ -255,7 +256,6 @@ export default class JoinPublisher<T extends { _id: string }> {
     sub: Subscription,
     spec: PublishSpec<T>,
     query: Mongo.Selector<T>,
-    opts: JoinPublisherOptions = {},
   ) {
     validateSpec(spec);
 
@@ -274,8 +274,8 @@ export default class JoinPublisher<T extends { _id: string }> {
         observer.incref(id);
       },
       removed: (id) => {
-        if (opts.lingerTime !== undefined) {
-          Meteor.setTimeout(() => { observer.decref(id); }, opts.lingerTime);
+        if (spec.lingerTime !== undefined) {
+          Meteor.setTimeout(() => { observer.decref(id); }, spec.lingerTime);
         } else {
           observer.decref(id);
         }
