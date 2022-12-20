@@ -45,11 +45,12 @@ class PendingGuessWatcher {
         });
       },
       changed: (_id, fields) => {
-        if (!fields.roles) {
+        if (!Object.prototype.hasOwnProperty.call(fields, 'roles')) {
+          // roles were unchanged
           return;
         }
 
-        const { roles } = fields;
+        const { roles = {} } = fields;
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
