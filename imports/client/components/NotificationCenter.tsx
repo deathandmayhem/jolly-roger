@@ -39,7 +39,13 @@ import { guessURL } from '../../model-helpers';
 import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
 import markdown from '../markdown';
+import SpinnerTimer from './SpinnerTimer';
 import Breakable from './styling/Breakable';
+
+// How long to keep showing guess notifications after actioning.
+// Note that this cannot usefully exceed the linger period implemented by the
+// subscription that fetches the data from imports/server/guesses.ts
+const LINGER_PERIOD = 4000;
 
 const StyledNotificationActionBar = styled.ul`
   display: flex;
@@ -124,6 +130,18 @@ const GuessMessage = React.memo(({
             <Breakable>{guesser}</Breakable>
           </a>
         </strong>
+        <small>
+          {calendarTimeFormat(guess.createdAt)}
+        </small>
+        {guess.state !== 'pending' && (
+          <SpinnerTimer
+            className="ms-3"
+            width={16}
+            height={16}
+            startTime={guess.updatedAt!.getTime()}
+            endTime={guess.updatedAt!.getTime() + LINGER_PERIOD}
+          />
+        )}
       </Toast.Header>
       <Toast.Body>
         <div>
@@ -389,11 +407,6 @@ const NotificationCenter = () => {
       discordConfiguredByUser: !!(user.discordAccount),
     };
   }, []);
-
-  // How long to keep showing guess notifications after actioning.
-  // Note that this cannot usefully exceed the linger period implemented by the
-  // subscription that fetches the data from imports/server/guesses.ts
-  const LINGER_PERIOD = 4000;
 
   // Lookup tables to support guesses/pendingAnnouncements/chatNotifications
   const hunts = useTracker(() => (loading ? new Map<string, HuntType>() : indexedById(Hunts.find().fetch())), [loading]);
