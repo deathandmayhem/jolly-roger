@@ -32,6 +32,7 @@ export type PublishSpec<T extends { _id: string }> = {
     field: keyof T & string;
     join: PublishSpec<any>,
   }[];
+  lingerTime?: number;
 }
 
 class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
@@ -97,6 +98,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
 
   observers: Map<string, RefCountedJoinedObjectObserverMap<any>>;
 
+  // key: document ID.  value: map of foreign key field name to value
   values: Map<string, Map<string, string>> = new Map();
 
   constructor(
@@ -135,6 +137,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
         foreignKeys?.forEach(({ field, join }) => {
           const val = fields[field] as unknown as string;
           if (!val) {
+            // no change to foreign key for `field`
             return;
           }
 
@@ -145,21 +148,34 @@ class JoinedObjectObserver<T extends { _id: string }> {
         // then remove old foreign key values
         const fkValues = this.values.get(id)!;
         foreignKeys?.forEach(({ field, join }) => {
-          const val = fkValues.get(field);
-          if (!val) {
-            return;
-          }
+          // Only remove foreign key values that actually got updated to undefined
+          if (Object.prototype.hasOwnProperty.call(fields, field)) {
+            const val = fkValues.get(field);
+            if (!val) {
+              // Nothing to decref -- foreign key was absent previously.
+              return;
+            }
 
-          this.observers.get(join.model._name)!.decref(val);
+            if (join.lingerTime !== undefined) {
+              Meteor.setTimeout(() => {
+                this.observers.get(join.model._name)!.decref(val);
+              }, join.lingerTime);
+            } else {
+              this.observers.get(join.model._name)!.decref(val);
+            }
+          }
         });
 
-        // finally update this.values
+        // finally update this.values (through inner object fkValues)
         foreignKeys?.forEach(({ field }) => {
-          const val = fields[field] as unknown as string;
-          if (!val) {
-            return;
+          if (Object.prototype.hasOwnProperty.call(fields, field)) {
+            const val = fields[field] as unknown as string;
+            if (!val) {
+              fkValues.delete(field);
+            } else {
+              fkValues.set(field, val);
+            }
           }
-          fkValues.set(field, val);
         });
       },
       removed: (_) => {
@@ -231,12 +247,6 @@ const addObservers = (
   });
 };
 
-type JoinPublisherOptions = {
-  // If specified, defer removing a value from the publish for `lingerTime` msec
-  // after the query no longer includes the value.
-  lingerTime?: number;
-};
-
 export default class JoinPublisher<T extends { _id: string }> {
   watcher: Meteor.LiveQueryHandle;
 
@@ -246,7 +256,6 @@ export default class JoinPublisher<T extends { _id: string }> {
     sub: Subscription,
     spec: PublishSpec<T>,
     query: Mongo.Selector<T>,
-    opts: JoinPublisherOptions = {},
   ) {
     validateSpec(spec);
 
@@ -265,8 +274,8 @@ export default class JoinPublisher<T extends { _id: string }> {
         observer.incref(id);
       },
       removed: (id) => {
-        if (opts.lingerTime !== undefined) {
-          Meteor.setTimeout(() => { observer.decref(id); }, opts.lingerTime);
+        if (spec.lingerTime !== undefined) {
+          Meteor.setTimeout(() => { observer.decref(id); }, spec.lingerTime);
         } else {
           observer.decref(id);
         }

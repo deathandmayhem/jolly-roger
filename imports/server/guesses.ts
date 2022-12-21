@@ -7,6 +7,8 @@ import Puzzles from '../lib/models/Puzzles';
 import { GuessType } from '../lib/schemas/Guess';
 import JoinPublisher, { PublishSpec } from './JoinPublisher';
 
+const LINGER_TIME = 5000;
+
 class PendingGuessWatcher {
   sub: Subscription;
 
@@ -33,6 +35,9 @@ class PendingGuessWatcher {
           projection: { displayName: 1 },
         },
       }],
+      // top-level Guess object and its referents should linger so we can
+      // display it in the guess queue briefly after processing for continuity
+      lingerTime: LINGER_TIME,
     };
 
     this.userWatch = MeteorUsers.find(sub.userId!, { fields: { roles: 1 } }).observeChanges({
@@ -41,19 +46,20 @@ class PendingGuessWatcher {
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId }, { lingerTime: 5000 });
+          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId });
         });
       },
       changed: (_id, fields) => {
-        if (!fields.roles) {
+        if (!Object.prototype.hasOwnProperty.call(fields, 'roles')) {
+          // roles were unchanged
           return;
         }
 
-        const { roles } = fields;
+        const { roles = {} } = fields;
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId }, { lingerTime: 5000 });
+          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId });
         });
 
         Object.keys(this.huntGuessWatchers).forEach((huntId) => {
