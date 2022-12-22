@@ -5,6 +5,8 @@ $font-family-base: $font-family-sans-serif;
 $link-decoration: none;
 $link-hover-decoration: underline;
 
+$toast-max-width: 380px;
+
 @import "../../node_modules/bootstrap/scss/functions";
 @import "../../node_modules/bootstrap/scss/variables";
 @import "../../node_modules/bootstrap/scss/mixins";
