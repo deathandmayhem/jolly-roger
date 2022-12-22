@@ -2,8 +2,7 @@ import TypedMethod from './TypedMethod';
 
 type SetFeatureFlagArgs = {
   name: string,
-  type: 'on' | 'off' | 'random_by',
-  random?: number,
+  type: 'on' | 'off',
 };
 
 export default new TypedMethod<SetFeatureFlagArgs, void>(

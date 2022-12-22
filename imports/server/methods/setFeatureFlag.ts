@@ -7,21 +7,16 @@ setFeatureFlag.define({
   validate(arg) {
     check(arg, {
       name: String,
-      type: Match.OneOf('off', 'on', 'random_by'),
-      random: Match.Optional(Number),
+      type: Match.OneOf('off', 'on'),
     });
-
-    // This check won't be reflected in the type signature, but reflects that
-    // "random" is only valid if type is "random_by"
-    check(arg.random, arg.type === 'random_by' ? Number : undefined);
 
     return arg;
   },
 
-  run({ name, type, random }) {
+  run({ name, type }) {
     // Feature flags may only be updated by admins
     checkAdmin(this.userId);
 
-    FeatureFlags.upsert({ name }, { $set: { type, random } });
+    FeatureFlags.upsert({ name }, { $set: { type } });
   },
 });
