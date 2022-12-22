@@ -5,8 +5,8 @@ import { Address6 } from 'ip-address';
 import { createWorker, types } from 'mediasoup';
 import { AudioLevelObserver } from 'mediasoup/node/lib/AudioLevelObserver';
 import Ansible from '../Ansible';
+import Flags from '../Flags';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../lib/config/webrtc';
-import FeatureFlags from '../lib/models/FeatureFlags';
 import CallHistories from '../lib/models/mediasoup/CallHistories';
 import ConnectAcks from '../lib/models/mediasoup/ConnectAcks';
 import ConnectRequests from '../lib/models/mediasoup/ConnectRequests';
@@ -778,25 +778,15 @@ Meteor.startup(async () => {
 
   let sfu: SFU | undefined;
   const updateSFU = async (enable: boolean) => {
-    if (enable === !!sfu) {
-      return;
-    }
-
     const newSfu = enable ? await SFU.create(ips) : undefined;
     sfu?.close();
     sfu = newSfu;
   };
   // The logic here looks backwards because when a feature flag is on, calls are
   // disabled.
-  const observer = FeatureFlags.find({ name: 'disable.webrtc' }).observe({
-    added: (f) => { void updateSFU(f.type !== 'on'); },
-    changed: (f) => { void updateSFU(f.type !== 'on'); },
-    removed: () => { void updateSFU(true); },
+  const observer = Flags.observeChanges('disable.webrtc', (active) => {
+    void updateSFU(!active);
   });
-  // If there's no feature flag record, then calls are enabled
-  if (!FeatureFlags.findOne({ name: 'disable.webrtc' })) {
-    await updateSFU(true);
-  }
 
   onExit(Meteor.bindEnvironment(() => {
     observer.stop();

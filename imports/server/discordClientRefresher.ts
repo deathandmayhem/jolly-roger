@@ -2,7 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import Discord from 'discord.js';
 import Flags from '../Flags';
 import DiscordCache from '../lib/models/DiscordCache';
-import FeatureFlags from '../lib/models/FeatureFlags';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import Settings from '../lib/models/Settings';
 import { SettingType } from '../lib/schemas/Setting';
@@ -35,11 +34,7 @@ class DiscordClientRefresher {
       removed: () => this.clearBotConfig(),
     });
 
-    this.featureFlagObserveHandle = FeatureFlags.find({ name: 'disable.discord' }).observe({
-      added: () => this.refreshClient(),
-      changed: () => this.refreshClient(),
-      removed: () => this.refreshClient(),
-    });
+    this.featureFlagObserveHandle = Flags.observeChanges('disable.discord', () => this.refreshClient());
   }
 
   ready() {
