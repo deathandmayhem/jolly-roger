@@ -12,11 +12,12 @@ setGuessState.define({
     check(arg, {
       guessId: String,
       state: Match.OneOf(...GuessCodec.props.state.types.map((t) => t.value)),
+      additionalNotes: Match.Optional(String),
     });
     return arg;
   },
 
-  async run({ guessId, state }) {
+  async run({ guessId, state, additionalNotes }) {
     const guess = Guesses.findOne(guessId);
     if (!guess) {
       throw new Meteor.Error(404, 'No such guess');
@@ -26,10 +27,9 @@ setGuessState.define({
       throw new Meteor.Error(401, 'Must be permitted to update guesses');
     }
 
-    Ansible.log(
-      'Transitioning guess to new state',
-      { user: this.userId, guess: guess._id, state }
-    );
-    await transitionGuess(guess, state);
+    Ansible.log('Transitioning guess to new state', {
+      user: this.userId, guess: guess._id, state, additionalNotes,
+    });
+    await transitionGuess(guess, state, additionalNotes);
   },
 });
