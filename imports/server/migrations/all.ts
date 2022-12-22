@@ -40,3 +40,4 @@ import './38-consolidate-profiles';
 import './39-promote-profiles-to-toplevel';
 import './40-cleanup-celebrations';
 import './41-document-activities';
+import './42-document-by-external-id';

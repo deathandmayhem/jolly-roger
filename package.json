@@ -62,9 +62,6 @@
     "styled-components": "^5.3.6",
     "use-persisted-state": "^0.3.3"
   },
-  "optionalDependencies": {
-    "ngrok": "^4.3.3"
-  },
   "devDependencies": {
     "@testing-library/react": "^13.4.0",
     "@types/chai": "^4.3.4",
