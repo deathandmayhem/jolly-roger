@@ -1,11 +1,9 @@
-import { Match, check } from 'meteor/check';
-import { SHA256 } from 'meteor/sha';
+import { check } from 'meteor/check';
 import FeatureFlags from './lib/models/FeatureFlags';
 
 const Flags = {
-  active(name: unknown, shard?: unknown) {
+  active(name: unknown) {
     check(name, String);
-    check(shard, Match.Maybe(String));
 
     const flag = FeatureFlags.findOne({ name });
     if (!flag) {
@@ -15,18 +13,38 @@ const Flags = {
     switch (flag.type) {
       case 'on':
         return true;
-      case 'random_by': {
-        // eslint-disable-next-line new-cap
-        const hash = SHA256(`${name}.${shard}`);
-        // Use the first 48 bits (6 bytes) and convert to a float
-        const float = parseInt(hash.slice(0, 6), 16) / 0xffffff;
-        return float < (flag.random ?? 0);
-      }
       case 'off':
         return false;
       default:
         return false;
     }
+  },
+
+  observeChanges(name: unknown, cb: (active: boolean) => void) {
+    check(name, String);
+    check(cb, Function);
+
+    let state: boolean | undefined;
+    const checkUpdate = () => {
+      const active = Flags.active(name);
+      if (state !== active) {
+        state = active;
+        cb(active);
+      }
+    };
+    const handle = FeatureFlags.find({ name }).observeChanges({
+      added: checkUpdate,
+      changed: checkUpdate,
+      removed: checkUpdate,
+    });
+
+    // If state is still undefined, then the record does not exist yet and we
+    // should explicitly initialize it to false.
+    if (state === undefined) {
+      checkUpdate();
+    }
+
+    return handle;
   },
 };
 
