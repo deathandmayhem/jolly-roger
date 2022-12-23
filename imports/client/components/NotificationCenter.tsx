@@ -8,12 +8,14 @@ import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
 import Tooltip from 'react-bootstrap/Tooltip';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
+import ReactTextareaAutosize from 'react-textarea-autosize';
 import styled from 'styled-components';
 import Flags from '../../Flags';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
@@ -52,7 +54,7 @@ const StyledNotificationActionBar = styled.ul`
   list-style-type: none;
   margin: 0;
   padding: 0;
-  flex-direction: row;
+  flex-flow: wrap row;
 `;
 
 const StyledNotificationActionItem = styled.li`
@@ -69,6 +71,12 @@ const GuessMessage = React.memo(({
   guesser: string;
   onDismiss: (guessId: string) => void;
 }) => {
+  const [nextState, setNextState] = useState<GuessType['state']>();
+  const [additionalNotes, setAdditionalNotes] = useState('');
+  const onAdditionalNotesChange: React.ChangeEventHandler<HTMLTextAreaElement> = useCallback((e) => {
+    setAdditionalNotes(e.target.value);
+  }, []);
+
   const markCorrect = useCallback(() => {
     setGuessState.call({ guessId: guess._id, state: 'correct' });
   }, [guess._id]);
@@ -77,9 +85,30 @@ const GuessMessage = React.memo(({
     setGuessState.call({ guessId: guess._id, state: 'incorrect' });
   }, [guess._id]);
 
-  const markRejected = useCallback(() => {
-    setGuessState.call({ guessId: guess._id, state: 'rejected' });
-  }, [guess._id]);
+  const toggleStateIntermediate = useCallback(() => {
+    setNextState((state) => (state === 'intermediate' ? undefined : 'intermediate'));
+  }, []);
+
+  const toggleStateRejected = useCallback(() => {
+    setNextState((state) => (state === 'rejected' ? undefined : 'rejected'));
+  }, []);
+
+  const submitStageTwo = useCallback(() => {
+    if (!nextState) return;
+
+    setGuessState.call({
+      guessId: guess._id,
+      state: nextState,
+      additionalNotes: additionalNotes === '' ? undefined : additionalNotes,
+    });
+  }, [guess._id, nextState, additionalNotes]);
+  const onAdditionalNotesKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = useCallback((e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      submitStageTwo();
+    }
+  }, [submitStageTwo]);
 
   const dismissGuess = useCallback(() => {
     onDismiss(guess._id);
@@ -108,11 +137,65 @@ const GuessMessage = React.memo(({
 
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
 
-  const disableButtons = guess.state !== 'pending';
+  const disableForms = guess.state !== 'pending';
 
   const correctButtonVariant = guess.state === 'correct' ? 'success' : 'outline-secondary';
+  const intermediateButtonVariant = guess.state === 'intermediate' ? 'warning' : 'outline-secondary';
   const incorrectButtonVariant = guess.state === 'incorrect' ? 'danger' : 'outline-secondary';
   const rejectButtonVariant = guess.state === 'rejected' ? 'secondary' : 'outline-secondary';
+
+  let stageTwoSection;
+  switch (nextState) {
+    case 'intermediate':
+      stageTwoSection = (
+        <>
+          <div>
+            Paste or write any additional instructions to pass on to the solver:
+          </div>
+          <ReactTextareaAutosize
+            minRows={1}
+            className="form-control"
+            autoFocus
+            disabled={disableForms}
+            value={additionalNotes}
+            onChange={onAdditionalNotesChange}
+            onKeyDown={onAdditionalNotesKeyDown}
+          />
+          <StyledNotificationActionBar>
+            <StyledNotificationActionItem>
+              <Button variant="outline-secondary" size="sm" disabled={disableForms} onClick={submitStageTwo}>Save (or press Enter)</Button>
+            </StyledNotificationActionItem>
+          </StyledNotificationActionBar>
+        </>
+      );
+      break;
+    case 'rejected':
+      stageTwoSection = (
+        <Form>
+          <div>
+            Include any additional information on why this guess was rejected:
+          </div>
+          <ReactTextareaAutosize
+            minRows={1}
+            className="form-control"
+            autoFocus
+            disabled={disableForms}
+            value={additionalNotes}
+            onChange={onAdditionalNotesChange}
+            onKeyDown={onAdditionalNotesKeyDown}
+          />
+          <StyledNotificationActionBar>
+            <StyledNotificationActionItem>
+              <Button type="submit" variant="outline-secondary" size="sm" disabled={disableForms} onClick={submitStageTwo}>Save (or press Enter)</Button>
+            </StyledNotificationActionItem>
+          </StyledNotificationActionBar>
+        </Form>
+      );
+      break;
+    default:
+      stageTwoSection = undefined;
+      break;
+  }
 
   return (
     <Toast onClose={dismissGuess}>
@@ -186,15 +269,30 @@ const GuessMessage = React.memo(({
         </StyledNotificationActionBar>
         <StyledNotificationActionBar>
           <StyledNotificationActionItem>
-            <Button variant={correctButtonVariant} size="sm" disabled={disableButtons} onClick={markCorrect}>Correct</Button>
+            <Button variant={correctButtonVariant} size="sm" disabled={disableForms} onClick={markCorrect}>Correct</Button>
           </StyledNotificationActionItem>
           <StyledNotificationActionItem>
-            <Button variant={incorrectButtonVariant} size="sm" disabled={disableButtons} onClick={markIncorrect}>Incorrect</Button>
+            <Button variant={intermediateButtonVariant} size="sm" disabled={disableForms} active={nextState === 'intermediate'} onClick={toggleStateIntermediate}>Intermediate…</Button>
           </StyledNotificationActionItem>
           <StyledNotificationActionItem>
-            <Button variant={rejectButtonVariant} size="sm" disabled={disableButtons} onClick={markRejected}>Reject</Button>
+            <Button variant={incorrectButtonVariant} size="sm" disabled={disableForms} onClick={markIncorrect}>Incorrect</Button>
+          </StyledNotificationActionItem>
+          <StyledNotificationActionItem>
+            <Button variant={rejectButtonVariant} size="sm" disabled={disableForms} active={nextState === 'rejected'} onClick={toggleStateRejected}>Reject…</Button>
           </StyledNotificationActionItem>
         </StyledNotificationActionBar>
+        {guess.state !== 'pending' && guess.additionalNotes && (
+          <>
+            <div>
+              Additional notes:
+            </div>
+            <div
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: markdown(guess.additionalNotes) }}
+            />
+          </>
+        )}
+        {guess.state === 'pending' && stageTwoSection}
       </Toast.Body>
     </Toast>
   );

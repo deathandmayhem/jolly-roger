@@ -1,20 +1,40 @@
+import { Mongo } from 'meteor/mongo';
 import Guesses from '../lib/models/Guesses';
 import Puzzles from '../lib/models/Puzzles';
 import { GuessType } from '../lib/schemas/Guess';
 import GlobalHooks from './GlobalHooks';
 import sendChatMessageInternal from './sendChatMessageInternal';
 
-export default async function transitionGuess(guess: GuessType, newState: GuessType['state']) {
+export default async function transitionGuess(
+  guess: GuessType,
+  newState: GuessType['state'],
+  additionalNotes?: string,
+) {
   if (newState === guess.state) return;
 
-  Guesses.update({
-    _id: guess._id,
-  }, {
+  const update: Mongo.Modifier<GuessType> = {
     $set: {
       state: newState,
+      additionalNotes,
     },
-  });
-  const message = `Guess ${guess.guess} was marked ${newState}`;
+  };
+  if (!additionalNotes) {
+    update.$unset = {
+      additionalNotes: 1,
+    };
+  }
+  Guesses.update(guess._id, update);
+
+  let stateDescription;
+  switch (newState) {
+    case 'intermediate':
+      stateDescription = 'as a correct intermediate answer';
+      break;
+    default:
+      stateDescription = `as ${newState}`;
+      break;
+  }
+  const message = `Guess ${guess.guess} was marked ${stateDescription}${additionalNotes ? `: ${additionalNotes}` : ''}`;
   await sendChatMessageInternal({ puzzleId: guess.puzzle, message, sender: undefined });
 
   if (newState === 'correct') {
