@@ -13,6 +13,7 @@ import '../imports/server/methods/index';
 
 // Other stuff in the server folder
 import '../imports/server/accounts';
+import '../imports/server/activityTracking';
 import '../imports/server/announcements';
 import '../imports/server/api-init';
 import '../imports/server/sendChatMessageInternal';
