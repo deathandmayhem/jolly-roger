@@ -186,7 +186,7 @@ const GuessMessage = React.memo(({
           />
           <StyledNotificationActionBar>
             <StyledNotificationActionItem>
-              <Button type="submit" variant="outline-secondary" size="sm" disabled={disableForms} onClick={submitStageTwo}>Save (or press Enter)</Button>
+              <Button variant="outline-secondary" size="sm" disabled={disableForms} onClick={submitStageTwo}>Save (or press Enter)</Button>
             </StyledNotificationActionItem>
           </StyledNotificationActionBar>
         </Form>
