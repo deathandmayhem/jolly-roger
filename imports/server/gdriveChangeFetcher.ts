@@ -2,14 +2,14 @@
 import { Meteor } from 'meteor/meteor';
 import type { drive_v3 } from '@googleapis/drive';
 import Flags from '../Flags';
+import { ACTIVITY_GRANULARITY } from '../lib/config/activityTracking';
 import DocumentActivities from '../lib/models/DocumentActivities';
 import Documents from '../lib/models/Documents';
+import roundedTime from '../lib/roundedTime';
 import DriveClient from './gdriveClientRefresher';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import DriveChangesPageTokens from './models/DriveChangesPageTokens';
 import Locks, { PREEMPT_TIMEOUT } from './models/Locks';
-
-const ACTIVITY_GRANULARITY = 5 * 60 * 1000; // milliseconds
 
 async function recordDriveChange(file: Pick<drive_v3.Schema$File, 'id' | 'modifiedTime'>) {
   if (!file.id || !file.modifiedTime) {
@@ -21,14 +21,12 @@ async function recordDriveChange(file: Pick<drive_v3.Schema$File, 'id' | 'modifi
     return;
   }
 
-  // Round the mod time to the nearest 5 seconds
-  const roundedTime = new Date(
-    Math.round(new Date(file.modifiedTime).getTime() / ACTIVITY_GRANULARITY) * ACTIVITY_GRANULARITY
-  );
+  const { modifiedTime } = file;
+
   await ignoringDuplicateKeyErrors(async () => {
     await DocumentActivities.insertAsync({
       document: document._id,
-      ts: roundedTime,
+      ts: roundedTime(ACTIVITY_GRANULARITY, new Date(modifiedTime)),
       hunt: document.hunt,
       puzzle: document.puzzle,
     });
