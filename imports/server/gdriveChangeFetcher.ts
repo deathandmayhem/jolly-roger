@@ -105,7 +105,6 @@ async function featureFlagChanged() {
 }
 
 async function fetchDriveLoop() {
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     /* eslint-disable no-await-in-loop */
     // Only try to grab the lock if feature flags would allow it
