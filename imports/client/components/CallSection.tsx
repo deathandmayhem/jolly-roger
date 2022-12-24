@@ -449,9 +449,6 @@ const CallSection = ({
   const onDismissPeerStateNotification = useCallback(() => {
     callDispatch({ type: 'dismiss-peer-state-notification' });
   }, [callDispatch]);
-  const onDismissRemoteMuted = useCallback(() => {
-    callDispatch({ type: 'dismiss-remote-muted' });
-  }, [callDispatch]);
 
   const muteRef = useRef(null);
 
@@ -460,6 +457,23 @@ const CallSection = ({
       Meteor.users.findOne(callState.remoteMutedBy)?.displayName :
       undefined;
   }, [callState.remoteMutedBy]);
+
+  const [showMutedBy, setShowMutedBy] = useState<'hidden' | 'show' | 'dismissing'>('hidden');
+
+  useEffect(() => {
+    if (mutedBy !== undefined && showMutedBy === 'hidden') {
+      setShowMutedBy('show');
+    }
+  }, [mutedBy, showMutedBy]);
+
+  const onDismissRemoteMuted = useCallback(() => {
+    setShowMutedBy('dismissing');
+  }, []);
+
+  const onShowMutedByDismissed = useCallback(() => {
+    callDispatch({ type: 'dismiss-remote-muted' });
+    setShowMutedBy('hidden');
+  }, [callDispatch]);
 
   if (!callState.device) {
     return <JoiningCall details="Missing device" />;
@@ -502,7 +516,12 @@ const CallSection = ({
           <Button onClick={onDismissPeerStateNotification}>Got it</Button>
         </Tooltip>
       </Overlay>
-      <Overlay target={muteRef.current} show={!!callState.remoteMutedBy} placement="bottom">
+      <Overlay
+        target={muteRef.current}
+        show={showMutedBy === 'show'}
+        placement="bottom"
+        onExited={onShowMutedByDismissed}
+      >
         <Tooltip id="remote-muted-notification">
           <div>
             You were muted by
