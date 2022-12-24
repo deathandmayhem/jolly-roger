@@ -115,22 +115,22 @@ const GuessMessage = React.memo(({
   }, [onDismiss, guess._id]);
 
   const directionTooltip = (
-    <Tooltip id={`guess-${guess._id}-direction-tooltip`}>
+    <Tooltip id={`notification-guess-${guess._id}-direction-tooltip`}>
       Direction this puzzle was solved, ranging from completely backsolved (-10) to completely forward solved (10)
     </Tooltip>
   );
   const confidenceTooltip = (
-    <Tooltip id={`guess-${guess._id}-confidence-tooltip`}>
+    <Tooltip id={`notification-guess-${guess._id}-confidence-tooltip`}>
       Submitter-estimated likelihood that this answer is correct
     </Tooltip>
   );
   const copyTooltip = (
-    <Tooltip id={`guess-${guess._id}-copy-tooltip`}>
+    <Tooltip id={`notification-guess-${guess._id}-copy-tooltip`}>
       Copy to clipboard
     </Tooltip>
   );
   const extLinkTooltip = (
-    <Tooltip id={`guess-${guess._id}-ext-link-tooltip`}>
+    <Tooltip id={`notification-guess-${guess._id}-ext-link-tooltip`}>
       Open puzzle
     </Tooltip>
   );
