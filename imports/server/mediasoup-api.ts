@@ -187,6 +187,11 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
   }));
 
   this.onStop(() => {
+    Ansible.log('Peer left call', {
+      peer: peerId,
+      call,
+    });
+
     MeteorPromise.await(Locks.withLock(`mediasoup:room:${call}`, async () => {
       await Peers.removeAsync(peerId);
 
