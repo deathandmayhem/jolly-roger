@@ -3,7 +3,7 @@ import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
 
 const DriveChangesPageTokenCodec = t.type({
   _id: t.string,
-  token: t.string,
+  token: t.union([t.undefined, t.string]),
 });
 
 export type DriveChangesPageTokenType = t.TypeOf<typeof DriveChangesPageTokenCodec>;
