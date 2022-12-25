@@ -1,123 +1,226 @@
-import { Meteor } from 'meteor/meteor';
-import { MongoInternals } from 'meteor/mongo';
-import { Random } from 'meteor/random';
-import Ansible from '../Ansible';
-import { ACTIVITY_GRANULARITY } from '../lib/config/activityTracking';
-import ConsolidatedActivities from './models/ConsolidatedActivities';
-import RecentActivities from './models/RecentActivities';
-import { RecentActivityType } from './schemas/RecentActivity';
+import { check } from 'meteor/check';
+import { Meteor, Subscription } from 'meteor/meteor';
+import {
+  ACTIVITY_COLLECTION, ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS, PublishedBucket,
+} from '../lib/config/activityTracking';
+import ChatMessages from '../lib/models/ChatMessages';
+import DocumentActivities from '../lib/models/DocumentActivities';
+import roundedTime from '../lib/roundedTime';
+import CallActivities from './models/CallActivities';
 
-interface ActivityKey {
-  ts: Date;
+class ActivityBucket {
+  callUsers: Set<string> = new Set();
+
+  chatUsers: Set<string> = new Set();
+
+  allUsers: Set<string> = new Set();
+
+  documentActivity = false;
+}
+
+type ActivityBuckets = Map<number, ActivityBucket>;
+
+class HuntActivityAggregator {
+  static aggregators = new Map<string, HuntActivityAggregator>();
+
   hunt: string;
-  puzzle: string;
-}
 
-function serializeActivityKey({ ts, hunt, puzzle }: ActivityKey) {
-  return `${ts.getTime()}-${hunt}-${puzzle}`;
-}
+  activitiesByPuzzle: Map<string, ActivityBuckets> = new Map();
 
-function deserializeActivityKey(key: string) {
-  const [ts, hunt, puzzle] = key.split('-');
-  if (!ts || !hunt || !puzzle) {
-    throw new Error(`Invalid activity key: ${key}`);
+  documentActivityHandle: Meteor.LiveQueryHandle;
+
+  callActivityHandle: Meteor.LiveQueryHandle;
+
+  chatMessageHandle: Meteor.LiveQueryHandle;
+
+  timeouts: Map<string, number> = new Map();
+
+  subscriptions: Set<Subscription> = new Set();
+
+  private constructor(hunt: string) {
+    this.hunt = hunt;
+
+    // Note that this won't update reactively, but sets a bound for the initial
+    // data fetch
+    const cutoff = new Date(Date.now() - (ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS));
+    // All of these are sufficiently immutable that we don't need to observe
+    // changes or removes
+    let initializing = true;
+    this.documentActivityHandle = DocumentActivities.find({
+      hunt, ts: { $gte: cutoff },
+    }).observeChanges({
+      added: (_, fields) => {
+        const { puzzle, ts } = fields;
+        if (!puzzle || !ts) return;
+
+        const [bucket, newBucket] = this.lookupBucket(puzzle, ts);
+        if (!bucket) return;
+
+        bucket.documentActivity = true;
+        bucket.allUsers.add('__document__');
+        if (!initializing) {
+          this.publishBucket(puzzle, ts, bucket, newBucket);
+        }
+      },
+    });
+    this.callActivityHandle = CallActivities.find({
+      hunt, ts: { $gte: cutoff },
+    }).observeChanges({
+      added: (_, fields) => {
+        const { call: puzzle, ts, user } = fields;
+        if (!puzzle || !ts || !user) return;
+
+        const [bucket, newBucket] = this.lookupBucket(puzzle, ts);
+        if (!bucket) return;
+
+        bucket.callUsers.add(user);
+        bucket.allUsers.add(user);
+        if (!initializing) {
+          this.publishBucket(puzzle, ts, bucket, newBucket);
+        }
+      },
+    });
+    this.chatMessageHandle = ChatMessages.find({
+      hunt, createdAt: { $gte: cutoff },
+    }).observeChanges({
+      added: (_, fields) => {
+        const { puzzle, createdAt, sender } = fields;
+        if (!puzzle || !createdAt || !sender) return;
+
+        const ts = roundedTime(ACTIVITY_GRANULARITY, createdAt);
+
+        const [bucket, newBucket] = this.lookupBucket(puzzle, ts);
+        if (!bucket) return;
+
+        bucket.chatUsers.add(sender);
+        bucket.allUsers.add(sender);
+        if (!initializing) {
+          this.publishBucket(puzzle, ts, bucket, newBucket);
+        }
+      },
+    });
+    initializing = false;
   }
-  return { ts: new Date(parseInt(ts, 10)), hunt, puzzle };
-}
 
-async function fetchAndDeleteRecentActivity(
-  cutoff: Date,
-  session: InstanceType<typeof MongoInternals.NpmModules.mongodb.module.ClientSession>,
-) {
-  if (!session) {
-    throw new Error('Must be called with a session');
+  bucketId(puzzle: string, ts: Date) {
+    return `${this.hunt}/${puzzle}/${ts.getTime()}`;
   }
 
-  const usersByKeyAndType = new Map<string, Map<RecentActivityType['type'], Set<string>>>();
-  while (true) {
-    /* eslint-disable no-await-in-loop */
-    const recent = await RecentActivities.rawCollection().findOneAndDelete(
-      { ts: { $lt: cutoff } } as any,
-      { session }
-    );
-    if (!recent.value) {
-      break;
+  buildBucket(puzzle: string, ts: Date, bucket: ActivityBucket): PublishedBucket {
+    return {
+      _id: this.bucketId(puzzle, ts),
+      hunt: this.hunt,
+      puzzle,
+      ts,
+      totalUsers: bucket.allUsers.size,
+      chatUsers: bucket.chatUsers.size,
+      callUsers: bucket.callUsers.size,
+      documentActivity: bucket.documentActivity,
+    };
+  }
+
+  publishBucket(puzzle: string, ts: Date, bucket: ActivityBucket, newBucket: boolean) {
+    const publishedBucket = this.buildBucket(puzzle, ts, bucket);
+    if (newBucket) {
+      this.added(publishedBucket._id, publishedBucket);
+    } else {
+      this.changed(publishedBucket._id, publishedBucket);
+    }
+  }
+
+  close() {
+    this.documentActivityHandle.stop();
+    this.callActivityHandle.stop();
+    this.chatMessageHandle.stop();
+    this.timeouts.forEach((timeout) => Meteor.clearTimeout(timeout));
+    this.timeouts.clear();
+  }
+
+  added(id: string, fields: PublishedBucket) {
+    this.subscriptions.forEach((sub) => sub.added(ACTIVITY_COLLECTION, id, fields));
+  }
+
+  changed(id: string, fields: PublishedBucket) {
+    this.subscriptions.forEach((sub) => sub.changed(ACTIVITY_COLLECTION, id, fields));
+  }
+
+  removed(id: string) {
+    this.subscriptions.forEach((sub) => sub.removed(ACTIVITY_COLLECTION, id));
+  }
+
+  lookupPuzzle(puzzle: string) {
+    let buckets = this.activitiesByPuzzle.get(puzzle);
+    if (!buckets) {
+      buckets = new Map();
+      this.activitiesByPuzzle.set(puzzle, buckets);
+    }
+    return buckets;
+  }
+
+  lookupBucket(puzzle: string, time: Date):
+    [activity: ActivityBucket | undefined, newBucket: boolean] {
+    // If the bucket has already expired, short-circuit.
+    const expiration = time.getTime() + (ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS);
+    if (expiration < Date.now()) {
+      return [undefined, false];
     }
 
-    const key = serializeActivityKey(recent.value);
-    const usersByType = usersByKeyAndType.get(key) ?? new Map();
-    const users = usersByType.get(recent.value.type) ?? new Set();
-    users.add(recent.value.user);
-    usersByType.set(recent.value.type, users);
-    usersByKeyAndType.set(key, usersByType);
-    /* eslint-enable no-await-in-loop */
+    const buckets = this.lookupPuzzle(puzzle);
+
+    let bucket = buckets.get(time.getTime());
+    if (bucket) {
+      return [bucket, false];
+    }
+
+    bucket = new ActivityBucket();
+    buckets.set(time.getTime(), bucket);
+    const timeout = Meteor.setTimeout(() => {
+      this.garbageCollect(puzzle, time);
+    }, expiration - Date.now());
+    this.timeouts.set(this.bucketId(puzzle, time), timeout);
+    return [bucket, true];
   }
 
-  return usersByKeyAndType;
-}
+  garbageCollect(puzzle: string, time: Date) {
+    const buckets = this.lookupPuzzle(puzzle);
+    buckets.delete(time.getTime());
+    this.removed(this.bucketId(puzzle, time));
+    this.timeouts.delete(this.bucketId(puzzle, time));
+  }
 
-async function consolidateRecentActivity() {
-  const ageForConsolidation = ACTIVITY_GRANULARITY * 2;
-  const cutoff = new Date(Date.now() - ageForConsolidation);
+  static get(hunt: string) {
+    let aggregator = HuntActivityAggregator.aggregators.get(hunt);
+    if (!aggregator) {
+      aggregator = new HuntActivityAggregator(hunt);
+      HuntActivityAggregator.aggregators.set(hunt, aggregator);
+    }
+    return aggregator;
+  }
 
-  // By using a transaction, we avoid races with other servers, since we only
-  // count records that we delete (and if we fail to update the consolidated
-  // counters, the deletions will be rolled back).
-  //
-  // However: note that using the raw collection bypasses our schema
-  // enforcement, so we need to make sure of compliance
-  const { client } = MongoInternals.defaultRemoteCollectionDriver().mongo;
-  const session = client.startSession();
-  await session.withTransaction(async () => {
-    const usersByKeyAndType = await fetchAndDeleteRecentActivity(
-      cutoff,
-      session,
-    );
+  addSubscription(sub: Subscription) {
+    this.subscriptions.add(sub);
 
-    await [...usersByKeyAndType.entries()].reduce(async (p, [key, usersByType]) => {
-      await p;
-
-      const matcher = deserializeActivityKey(key);
-      const increments = new Map<'total' | `components.${RecentActivityType['type']}`, number>();
-      const allUsers = new Set<string>();
-      [...usersByType.entries()].forEach(([type, users]) => {
-        const incrementKey = `components.${type}` as const;
-        increments.set(incrementKey, (increments.get(incrementKey) ?? 0) + users.size);
-        users.forEach((user) => allUsers.add(user));
+    this.activitiesByPuzzle.forEach((buckets, puzzle) => {
+      buckets.forEach((bucket, ts) => {
+        const publishedBucket = this.buildBucket(puzzle, new Date(ts), bucket);
+        sub.added(ACTIVITY_COLLECTION, publishedBucket._id, publishedBucket);
       });
-      increments.set('total', allUsers.size);
+    });
+    sub.ready();
 
-      await ConsolidatedActivities.rawCollection().updateOne(
-        { ...matcher },
-        {
-          $setOnInsert: {
-            _id: Random.id(),
-          },
-          $inc: Object.fromEntries(increments),
-        },
-        { upsert: true, session },
-      );
-    }, Promise.resolve());
-  });
-}
-
-function scheduleConsolidate() {
-  // Consolidate recent activity every ACTIVITY_GRANULARITY / 2 milliseconds
-  // plus or minus some jitter
-  const jitter = Math.random() * ACTIVITY_GRANULARITY;
-  setTimeout(() => {
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    void periodicConsolidate();
-  }, ACTIVITY_GRANULARITY / 2 + jitter);
-}
-
-async function periodicConsolidate() {
-  try {
-    await consolidateRecentActivity();
-  } catch (e) {
-    Ansible.error('Error consolidating recent activity', { e });
+    sub.onStop(() => {
+      this.subscriptions.delete(sub);
+      if (this.subscriptions.size === 0) {
+        this.close();
+        HuntActivityAggregator.aggregators.delete(this.hunt);
+      }
+    });
   }
-  scheduleConsolidate();
 }
 
-Meteor.startup(() => scheduleConsolidate());
+Meteor.publish('huntActivity', function (hunt: unknown) {
+  check(hunt, String);
+
+  const aggregator = HuntActivityAggregator.get(hunt);
+  aggregator.addSubscription(this);
+});
