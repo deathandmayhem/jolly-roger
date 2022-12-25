@@ -88,7 +88,7 @@ const DEFAULT_ENROLL_ACCOUNT_TEMPLATE = 'Hiya!\n' +
     'To create your account, simply click the link below, fill out a few details for us, and ' +
     'click "Register".\n' +
     '\n' +
-    '{{url}}\n' +
+    '{{&url}}\n' +
     '\n' +
     '{{#huntNamesCount}}' +
     'Once you register your account, you\'ll also be signed up ' +
