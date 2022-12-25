@@ -60,6 +60,8 @@
       "allow": ["__meteor_runtime_config__"]
     }],
 
+    "no-constant-condition": ["error", { "checkLoops": false }],
+
     // We have files with multiple React components.  Maybe we should split them out
     // later, but right now I don't want to deal with this
     "react/no-multi-comp": ["off"],

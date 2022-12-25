@@ -36,7 +36,6 @@ const Locks = new class extends Mongo.Collection<LockType> {
   }
 
   async withLock<T>(name: string, critSection: (id: string) => Promise<T>) {
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       let handle: Meteor.LiveQueryHandle | undefined;
       let lock: string | undefined;

@@ -6,6 +6,7 @@ import { createWorker, types } from 'mediasoup';
 import { AudioLevelObserver } from 'mediasoup/node/lib/AudioLevelObserver';
 import Ansible from '../Ansible';
 import Flags from '../Flags';
+import { ACTIVITY_GRANULARITY } from '../lib/config/activityTracking';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../lib/config/webrtc';
 import CallHistories from '../lib/models/mediasoup/CallHistories';
 import ConnectAcks from '../lib/models/mediasoup/ConnectAcks';
@@ -20,6 +21,7 @@ import Routers from '../lib/models/mediasoup/Routers';
 import TransportRequests from '../lib/models/mediasoup/TransportRequests';
 import TransportStates from '../lib/models/mediasoup/TransportStates';
 import Transports from '../lib/models/mediasoup/Transports';
+import roundedTime from '../lib/roundedTime';
 import { ConnectRequestType } from '../lib/schemas/mediasoup/ConnectRequest';
 import { ConsumerAckType } from '../lib/schemas/mediasoup/ConsumerAck';
 import { ProducerClientType } from '../lib/schemas/mediasoup/ProducerClient';
@@ -27,6 +29,8 @@ import { RoomType } from '../lib/schemas/mediasoup/Room';
 import { TransportRequestType } from '../lib/schemas/mediasoup/TransportRequest';
 import throttle from '../lib/throttle';
 import { registerPeriodicCleanupHook, serverId } from './garbage-collection';
+import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
+import RecentActivities from './models/RecentActivities';
 import onExit from './onExit';
 
 const mediaCodecs: types.RtpCodecCapability[] = [
@@ -335,7 +339,36 @@ class SFU {
 
     const observerAppData = observer.appData as AudioLevelObserverAppData;
 
-    const updateLastActivity = throttle(Meteor.bindEnvironment(() => {
+    const lastWriteByUser = new Map<string, number>();
+    const updateRecentActivity = Meteor.bindEnvironment(
+      (volumes: types.AudioLevelObserverVolume[]) => {
+        const users = new Set(volumes.map((v) => {
+          const { producer } = v;
+          const producerAppData = producer.appData as ProducerAppData;
+          return producerAppData.createdBy;
+        }));
+        void [...users].reduce(async (p, user) => {
+          await p;
+
+          // Update the database at max once per second per user
+          const lastWrite = lastWriteByUser.get(user) ?? 0;
+          if (lastWrite < Date.now() - 1000) {
+            lastWriteByUser.set(user, Date.now());
+            await ignoringDuplicateKeyErrors(async () => {
+              await RecentActivities.insertAsync({
+                hunt: observerAppData.hunt,
+                puzzle: observerAppData.call,
+                user,
+                ts: roundedTime(ACTIVITY_GRANULARITY),
+                type: 'call',
+              });
+            });
+          }
+        }, Promise.resolve());
+      }
+    );
+
+    const updateCallHistory = throttle(Meteor.bindEnvironment(() => {
       CallHistories.upsert({
         hunt: observerAppData.hunt,
         call: observerAppData.call,
@@ -343,12 +376,14 @@ class SFU {
     }), RECENT_ACTIVITY_TIME_WINDOW_MS);
 
     observer.observer.on('close', () => {
-      updateLastActivity.cancel();
+      updateCallHistory.cancel();
       this.observers.delete(observerAppData.call);
     });
-    // No need to inspect volumes, as any volume is indicative of activity
-    // (absence of activity would translate to a "silence" event)
-    observer.observer.on('volumes', updateLastActivity.attempt);
+
+    observer.observer.on('volumes', (volumes) => {
+      updateRecentActivity(volumes);
+      updateCallHistory.attempt();
+    });
 
     this.observers.set(observerAppData.call, observer);
   }
