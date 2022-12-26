@@ -11,6 +11,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { Sparklines, SparklinesLine, SparklinesSpots } from 'react-sparklines';
 import styled, { css } from 'styled-components';
+import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS } from '../../lib/config/activityTracking';
 import relativeTimeFormat from '../../lib/relativeTimeFormat';
 import roundedTime from '../../lib/roundedTime';
@@ -141,7 +142,7 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
     <Tooltip id={`puzzle-activity-unlock-${puzzleId}`}>
       Puzzle unlocked at
       {' '}
-      {unlockTime.toISOString()}
+      {calendarTimeFormat(unlockTime)}
     </Tooltip>
   );
 
