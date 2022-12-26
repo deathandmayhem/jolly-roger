@@ -30,7 +30,7 @@ import { TransportRequestType } from '../lib/schemas/mediasoup/TransportRequest'
 import throttle from '../lib/throttle';
 import { registerPeriodicCleanupHook, serverId } from './garbage-collection';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
-import RecentActivities from './models/RecentActivities';
+import CallActivities from './models/CallActivities';
 import onExit from './onExit';
 
 const mediaCodecs: types.RtpCodecCapability[] = [
@@ -340,7 +340,7 @@ class SFU {
     const observerAppData = observer.appData as AudioLevelObserverAppData;
 
     const lastWriteByUser = new Map<string, number>();
-    const updateRecentActivity = Meteor.bindEnvironment(
+    const updateCallActivity = Meteor.bindEnvironment(
       (volumes: types.AudioLevelObserverVolume[]) => {
         const users = new Set(volumes.map((v) => {
           const { producer } = v;
@@ -355,12 +355,11 @@ class SFU {
           if (lastWrite < Date.now() - 1000) {
             lastWriteByUser.set(user, Date.now());
             await ignoringDuplicateKeyErrors(async () => {
-              await RecentActivities.insertAsync({
+              await CallActivities.insertAsync({
                 hunt: observerAppData.hunt,
-                puzzle: observerAppData.call,
+                call: observerAppData.call,
                 user,
                 ts: roundedTime(ACTIVITY_GRANULARITY),
-                type: 'call',
               });
             });
           }
@@ -381,7 +380,7 @@ class SFU {
     });
 
     observer.observer.on('volumes', (volumes) => {
-      updateRecentActivity(volumes);
+      updateCallActivity(volumes);
       updateCallHistory.attempt();
     });
 

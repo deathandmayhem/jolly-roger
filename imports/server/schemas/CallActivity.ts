@@ -4,18 +4,17 @@ import { Id } from '../../lib/schemas/regexes';
 import { buildSchema, Overrides } from '../../lib/schemas/typedSchemas';
 
 // Not descended from Base as this is managed by the server
-const RecentActivityCodec = t.type({
+const CallActivityCodec = t.type({
   _id: t.string,
   ts: date,
-  type: t.union([t.literal('chat'), t.literal('call')]),
   hunt: t.string,
-  puzzle: t.string,
+  call: t.string,
   user: t.string,
 });
 
-export type RecentActivityType = t.TypeOf<typeof RecentActivityCodec>;
+export type CallActivityType = t.TypeOf<typeof CallActivityCodec>;
 
-const RecentActivityOverrides: Overrides<RecentActivityType> = {
+const CallActivityOverrides: Overrides<CallActivityType> = {
   _id: {
     regEx: Id,
     denyUpdate: true,
@@ -24,7 +23,7 @@ const RecentActivityOverrides: Overrides<RecentActivityType> = {
     regEx: Id,
     denyUpdate: true,
   },
-  puzzle: {
+  call: {
     regEx: Id,
     denyUpdate: true,
   },
@@ -34,4 +33,4 @@ const RecentActivityOverrides: Overrides<RecentActivityType> = {
   },
 };
 
-export default buildSchema(RecentActivityCodec, RecentActivityOverrides);
+export default buildSchema(CallActivityCodec, CallActivityOverrides);
