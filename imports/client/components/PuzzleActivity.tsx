@@ -1,17 +1,21 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
+import { faCommentDots } from '@fortawesome/free-solid-svg-icons/faCommentDots';
 import { faDoorOpen } from '@fortawesome/free-solid-svg-icons/faDoorOpen';
-import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
-import { faVolumeDown } from '@fortawesome/free-solid-svg-icons/faVolumeDown';
-import { faVolumeOff } from '@fortawesome/free-solid-svg-icons/faVolumeOff';
-import { faVolumeUp } from '@fortawesome/free-solid-svg-icons/faVolumeUp';
+import { faFilePen } from '@fortawesome/free-solid-svg-icons/faFilePen';
+import { faPeopleGroup } from '@fortawesome/free-solid-svg-icons/faPeopleGroup';
+import { faPhoneVolume } from '@fortawesome/free-solid-svg-icons/faPhoneVolume';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import { Sparklines, SparklinesLine, SparklinesSpots } from 'react-sparklines';
 import styled, { css } from 'styled-components';
-import CallHistories from '../../lib/models/mediasoup/CallHistories';
-import { SubscriberCounters } from '../subscribers';
+import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
+import { ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS } from '../../lib/config/activityTracking';
+import relativeTimeFormat from '../../lib/relativeTimeFormat';
+import roundedTime from '../../lib/roundedTime';
+import ActivityBuckets from '../ActivityBuckets';
 import RelativeTime from './RelativeTime';
 import { mediaBreakpointDown } from './styling/responsive';
 
@@ -46,14 +50,19 @@ const PuzzleOpenTime = styled(PuzzleActivityItem)`
   min-width: 4.66rem;
 `;
 
-const PuzzleViewerActivity = styled(PuzzleActivityItem)`
-  min-width: 2.66rem;
+const PuzzleActivitySparkline = styled(PuzzleActivityItem)`
+  min-width: 6rem;
 `;
 
-const LastActiveCall = styled(PuzzleActivityItem)`
-  width: 1rem;
-  margin: 0 0.25rem 0 0.66rem;
-  justify-content: flex-start;
+const PuzzleActivityDetail = styled.div`
+  display: grid;
+  grid-template-columns: auto auto 1fr 2em;
+  align-items: center;
+`;
+
+const PuzzleActivityDetailTimeRange = styled.div`
+  display: flex;
+  justify-content: space-between;
 `;
 
 interface PuzzleActivityProps {
@@ -62,78 +71,145 @@ interface PuzzleActivityProps {
   unlockTime: Date;
 }
 
-// For how long after the last audio detected should we indicate "recent audio presence"?
-// Currently set to 10 minutes.
-const RECENTLY_ACTIVE_INTERVAL = 10 * 60 * 1000;
-
 const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) => {
-  const callLastActive = useTracker(() => {
-    return CallHistories.findOne({ hunt: huntId, call: puzzleId })?.lastActivity;
-  }, [huntId, puzzleId]);
-  const viewCount = useTracker(() => {
-    return SubscriberCounters.findOne(`puzzle:${puzzleId}`)?.value ?? 0;
-  }, [puzzleId]);
-
-  const [lastActiveRecent, setLastActiveRecent] = useState<boolean>();
-
+  const [finalBucket, setFinalBucket] = useState(roundedTime(ACTIVITY_GRANULARITY));
   useEffect(() => {
-    if (!callLastActive) {
-      return () => { /* no unwind */ };
-    }
+    const nextBucket = roundedTime(ACTIVITY_GRANULARITY).getTime() + ACTIVITY_GRANULARITY;
+    const timeout = nextBucket - Date.now();
+    const timer = Meteor.setTimeout(() => {
+      setFinalBucket(new Date(nextBucket));
+    }, timeout);
+    return () => Meteor.clearTimeout(timer);
+  }, [finalBucket]);
 
-    const timeSinceActive = Date.now() - callLastActive.getTime();
-    const recentlyActive = timeSinceActive < RECENTLY_ACTIVE_INTERVAL;
-    setLastActiveRecent(recentlyActive);
-
-    let timeout: number | undefined;
-    if (recentlyActive) {
-      // If callLastActive doesn't change by the time this timeout fires, then
-      // it's no longer active. If it does change, then we'll trigger the unwind
-      // below.
-      timeout = Meteor.setTimeout(() => {
-        setLastActiveRecent(false);
-      }, RECENTLY_ACTIVE_INTERVAL - timeSinceActive);
-    }
-
-    return () => {
-      if (timeout) {
-        Meteor.clearTimeout(timeout);
-      }
+  const {
+    totals, chats, calls, documents, maxTotalCount,
+  } = useTracker(() => {
+    // Build an array starting from now - ACTIVITY_GRANULARITY * ACTIVITY_BUCKETS to now
+    // with ACTIVITY_GRANULARITY intervals.
+    const counts = {
+      totals: [] as number[],
+      chats: [] as number[],
+      calls: [] as number[],
+      documents: [] as number[],
+      maxTotalCount: 0,
     };
-  }, [callLastActive]);
+
+    counts.maxTotalCount = Math.max(1, ActivityBuckets.findOne({
+      hunt: huntId,
+    }, {
+      sort: { totalUsers: -1 },
+    })?.totalUsers ?? 0);
+
+    for (let i = 0; i < ACTIVITY_SEGMENTS; i++) {
+      const bucket = ActivityBuckets.findOne({
+        hunt: huntId,
+        puzzle: puzzleId,
+        ts: new Date(finalBucket.getTime() - i * ACTIVITY_GRANULARITY),
+      });
+
+      counts.totals.unshift(bucket?.totalUsers ?? 0);
+      counts.chats.unshift(bucket?.chatUsers ?? 0);
+      counts.calls.unshift(bucket?.callUsers ?? 0);
+      counts.documents.unshift(bucket?.documentActivity ? 1 : 0);
+    }
+
+    // For the displayed value in the last bucket, use the larger of the last or
+    // 2nd-to-last bucket. This prevents the number from dropping to 0
+    // immediately at the start of a new bucket, without having to wait for the
+    // next bucket to fill in.
+    counts.totals[counts.totals.length - 1] = Math.max(
+      counts.totals[counts.totals.length - 1] ?? 0,
+      counts.totals[counts.totals.length - 2] ?? 0,
+    );
+    counts.chats[counts.chats.length - 1] = Math.max(
+      counts.chats[counts.chats.length - 1] ?? 0,
+      counts.chats[counts.chats.length - 2] ?? 0,
+    );
+    counts.calls[counts.calls.length - 1] = Math.max(
+      counts.calls[counts.calls.length - 1] ?? 0,
+      counts.calls[counts.calls.length - 2] ?? 0,
+    );
+    counts.documents[counts.documents.length - 1] = Math.max(
+      counts.documents[counts.documents.length - 1] ?? 0,
+      counts.documents[counts.documents.length - 2] ?? 0,
+    );
+
+    return counts;
+  }, [finalBucket, huntId, puzzleId]);
 
   const unlockTooltip = (
     <Tooltip id={`puzzle-activity-unlock-${puzzleId}`}>
       Puzzle unlocked at
       {' '}
-      {unlockTime.toISOString()}
+      {calendarTimeFormat(unlockTime)}
     </Tooltip>
   );
 
-  const audioTooltip = (
-    <Tooltip id={`puzzle-activity-audio-${puzzleId}`}>
-      {callLastActive ? (
-        <>
-          Call last active
-          {' '}
-          <RelativeTime date={callLastActive} minimumUnit="minute" />
-        </>
-      ) : 'Call never used'}
-    </Tooltip>
-  );
+  const displayNumber = (buckets: number[]) => {
+    return buckets[buckets.length - 1] ?? 0;
+  };
 
-  let icon = faVolumeOff;
-  if (callLastActive) {
-    if (lastActiveRecent) {
-      icon = faVolumeUp;
-    } else {
-      icon = faVolumeDown;
-    }
-  }
-
-  const countTooltip = (
-    <Tooltip id={`puzzle-activity-viewers-${puzzleId}`}>
-      Users currently viewing this puzzle
+  const sparklineTooltip = (
+    <Tooltip id={`puzzle-activity-sparkline-${puzzleId}`}>
+      <div>
+        How many are working on this puzzle based on:
+      </div>
+      <PuzzleActivityDetailTimeRange>
+        <div>
+          {/* Don't need to use RelativeTime here because this duration doesn't change, even as now
+            does */}
+          {relativeTimeFormat(new Date(Date.now() - ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS))}
+        </div>
+        <div>now</div>
+      </PuzzleActivityDetailTimeRange>
+      <PuzzleActivityDetail>
+        <div>
+          <FontAwesomeIcon icon={faCommentDots} fixedWidth />
+        </div>
+        <div>
+          Chat
+        </div>
+        <div>
+          <Sparklines data={chats} min={0} max={Math.max(1, ...chats)}>
+            <SparklinesLine color="white" />
+            <SparklinesSpots spotColors={{ '-1': 'white', 0: 'white', 1: 'white' }} />
+          </Sparklines>
+        </div>
+        <div>
+          {displayNumber(chats)}
+        </div>
+        <div>
+          <FontAwesomeIcon icon={faPhoneVolume} fixedWidth />
+        </div>
+        <div>
+          Call
+        </div>
+        <div>
+          <Sparklines data={calls} min={0} max={Math.max(1, ...calls)}>
+            <SparklinesLine color="white" />
+            <SparklinesSpots spotColors={{ '-1': 'white', 0: 'white', 1: 'white' }} />
+          </Sparklines>
+        </div>
+        <div>
+          {displayNumber(calls)}
+        </div>
+        <div>
+          <FontAwesomeIcon icon={faFilePen} fixedWidth />
+        </div>
+        <div>
+          Doc
+        </div>
+        <div>
+          <Sparklines data={documents} min={0} max={1}>
+            <SparklinesLine color="white" />
+            <SparklinesSpots spotColors={{ '-1': 'white', 0: 'white', 1: 'white' }} />
+          </Sparklines>
+        </div>
+        <div>
+          {displayNumber(documents) > 0 ? '>0' : '0'}
+        </div>
+      </PuzzleActivityDetail>
     </Tooltip>
   );
 
@@ -141,22 +217,19 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
     <PuzzleActivityItems>
       <OverlayTrigger placement="top" overlay={unlockTooltip}>
         <PuzzleOpenTime>
-          <RelativeTime date={unlockTime} terse minimumUnit="minute" maxElements={2} />
           <FontAwesomeIcon icon={faDoorOpen} />
+          <RelativeTime date={unlockTime} terse minimumUnit="minute" maxElements={2} />
         </PuzzleOpenTime>
       </OverlayTrigger>
-      <OverlayTrigger placement="top" overlay={countTooltip}>
-        <PuzzleViewerActivity>
-          <span>{viewCount}</span>
-          <FontAwesomeIcon icon={faEye} />
-        </PuzzleViewerActivity>
-      </OverlayTrigger>
-      <OverlayTrigger placement="top" overlay={audioTooltip}>
-        <LastActiveCall>
-          {callLastActive && (
-            <FontAwesomeIcon icon={icon} />
-          )}
-        </LastActiveCall>
+      <OverlayTrigger placement="top" overlay={sparklineTooltip}>
+        <PuzzleActivitySparkline>
+          <FontAwesomeIcon icon={faPeopleGroup} fixedWidth />
+          <Sparklines data={totals} min={0} max={maxTotalCount}>
+            <SparklinesLine />
+            <SparklinesSpots spotColors={{ '-1': 'black', 0: 'black', 1: 'black' }} />
+          </Sparklines>
+          {displayNumber(totals)}
+        </PuzzleActivitySparkline>
       </OverlayTrigger>
     </PuzzleActivityItems>
   );
