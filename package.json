@@ -58,7 +58,7 @@
     "react-sparklines": "^1.7.0",
     "react-split-pane": "^0.1.92",
     "react-textarea-autosize": "^8.4.0",
-    "simpl-schema": "^3.2.0",
+    "simpl-schema": "^3.4.0",
     "stacktrace-js": "^2.0.2",
     "styled-components": "^5.3.6",
     "use-persisted-state": "^0.3.3"
