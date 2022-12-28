@@ -116,7 +116,8 @@ const DEFAULT_ENROLL_ACCOUNT_TEMPLATE = 'Hiya!\n' +
     'This message was sent to {{email}}';
 
 function makeView(user: Meteor.User | null, url: string) {
-  const hunts = await Hunts.find({ _id: { $in: (<Meteor.User>user).hunts } }).fetchAsync();
+  // eslint-disable-next-line jolly-roger/no-sync-mongo-methods
+  const hunts = Hunts.find({ _id: { $in: (<Meteor.User>user).hunts } }).fetch();
   const email = user?.emails?.[0]?.address;
   const huntNames = hunts.map((h) => h.name);
   const huntNamesCount = huntNames.length;
