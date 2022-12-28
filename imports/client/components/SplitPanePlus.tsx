@@ -282,7 +282,7 @@ const SplitPanePlus = ({
     let newSize = Number(rawSize);
     if (typeof rawSize === 'string') {
       const rawSizeAsPercent = Number(rawSize.slice(0, -1));
-      if (rawSize.slice(-1) === '%' && !Number.isNaN(rawSizeAsPercent)) {
+      if (rawSize.endsWith('%') && !Number.isNaN(rawSizeAsPercent)) {
         newSize = (rawSizeAsPercent * measure(splitPaneNode())) / 100.0;
       }
     }
