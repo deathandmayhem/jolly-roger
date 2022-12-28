@@ -36,16 +36,16 @@
   "rules": {
     // explicit returns can sometimes be more readable and avoid the issue of "I want to return an
     // object literal but ES6 interprets it as a function body with a void expression"
-    "arrow-body-style": ["off"],
+    "arrow-body-style": "off",
 
     // Publish functions don't really need to be named.
-    "func-names": ["off"],
+    "func-names": "off",
 
     // For Match expressions
     "new-cap": ["error", { "capIsNewExceptions": ["Optional", "OneOf", "Maybe", "ObjectIncluding"] }],
 
     // sometimes else after a return reads more clearly
-    "no-else-return": ["off"],
+    "no-else-return": "off",
 
      // We sometimes use these in various forms
     "no-underscore-dangle": ["error",
@@ -65,11 +65,11 @@
 
     // We have files with multiple React components.  Maybe we should split them out
     // later, but right now I don't want to deal with this
-    "react/no-multi-comp": ["off"],
-    "max-classes-per-file": ["off"],
+    "react/no-multi-comp": "off",
+    "max-classes-per-file": "off",
 
     // Absolute imports work with Meteor, but aren't well-understood by IDEs, like VS Code
-    "import/no-absolute-path": ["error"],
+    "import/no-absolute-path": "error",
 
     // We don't use imports with extensions
     "import/extensions": ["error", "never"],
@@ -94,25 +94,25 @@
     }],
 
     // Files with default exports should be named to match them
-    "filenames/match-exported": ["error"],
+    "filenames/match-exported": "error",
 
     // This is complaining a lot and I don't really want to write dozens of lines of
     // default prop values of `undefined`
-    "react/require-default-props": ["off"],
+    "react/require-default-props": "off",
 
     // We use spread props a lot for HOCs or other wrapper-type components
-    "react/jsx-props-no-spreading": ["off"],
+    "react/jsx-props-no-spreading": "off",
 
     // The eslint guide seems to claim that adding "static" to method
     // definitions is a noop, but that doesn't seem to be true in practice, and I
     // don't understand the prototype model well enough to understand why.
-    "class-methods-use-this": ["off"],
+    "class-methods-use-this": "off",
 
     // Allow tsx files
     "react/jsx-filename-extension": [1, { "extensions": [".jsx", ".tsx"] }],
 
     // "name" is a useful variable
-    "no-restricted-globals": ["off"],
+    "no-restricted-globals": "off",
 
     // Detect missing deps for non-standard hooks
     "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useTracker|useFind" }],
@@ -134,7 +134,7 @@
     "@typescript-eslint/restrict-template-expressions": "off",
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
     "@typescript-eslint/no-namespace": "off",
-    "@typescript-eslint/prefer-namespace-keyword": ["off"],
+    "@typescript-eslint/prefer-namespace-keyword": "off",
 
     // This is especially useful in combination with the autofixer from
     // jolly-roger/no-sync-mongo-methods, which intentionally introduces
@@ -148,10 +148,15 @@
     }],
 
     // Enable a subset of strict rules that are useful
-    "@typescript-eslint/prefer-includes": ["error"],
-    "@typescript-eslint/prefer-optional-chain": ["error"],
-    "@typescript-eslint/prefer-nullish-coalescing": ["error"],
-    "@typescript-eslint/no-base-to-string": ["error"],
+    "@typescript-eslint/prefer-includes": "error",
+    "@typescript-eslint/prefer-optional-chain": "error",
+    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    "@typescript-eslint/no-base-to-string": "error",
+    "@typescript-eslint/no-non-null-asserted-nullish-coalescing": "error",
+    "@typescript-eslint/non-nullable-type-assertion-style": "error",
+    "@typescript-eslint/prefer-for-of": "error",
+    "@typescript-eslint/prefer-return-this-type": "error",
+    "@typescript-eslint/prefer-string-starts-ends-with": "error",
 
     // Enforce safety around promises
     "no-return-await": "off",
@@ -181,7 +186,7 @@
 
     // Match existing style
     "operator-linebreak": ["error", "after"],
-    "prefer-destructuring": ["off"],
+    "prefer-destructuring": "off",
     "comma-dangle": ["error", {
       "arrays": "always-multiline",
       "objects": "always-multiline",
@@ -193,10 +198,10 @@
     "react/function-component-definition": ["error", {
       "namedComponents": "arrow-function"
     }],
-    "jsx-a11y/accessible-emoji": ["off"],
-    "jsx-a11y/click-events-have-key-events": ["off"],
-    "jsx-a11y/no-static-element-interactions": ["off"],
-    "jsx-a11y/media-has-caption": ["off"]
+    "jsx-a11y/accessible-emoji": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-static-element-interactions": "off",
+    "jsx-a11y/media-has-caption": "off"
   },
   "overrides": [
     {
@@ -217,11 +222,20 @@
       }
     },
     {
+      "files": "**/client/**",
+      "env": {
+        "browser": true
+      }
+    },
+    {
       "files": "eslint/**",
       "parserOptions": { "project": "eslint/tsconfig.json" }
     },
     {
       "files": "**/server/**",
+      "env": {
+        "node": true
+      },
       "rules": {
         "jolly-roger/no-sync-mongo-methods": "error"
       }
@@ -231,7 +245,10 @@
       "rules": {
         // type declarations for other libraries don't get to choose their
         // export structure
-        "import/prefer-default-export": ["off"]
+        "import/prefer-default-export": "off",
+        // we often need to declare unused variables when extending generic
+        // types
+        "@typescript-eslint/no-unused-vars": "off"
       }
     },
     {
