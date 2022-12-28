@@ -81,7 +81,7 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
       return <Button variant="primary" disabled>Google integration currently disabled</Button>;
     }
 
-    const text = (user.googleAccount) ?
+    const text = user.googleAccount ?
       'Link a different Google account' :
       'Link your Google account';
 
@@ -205,7 +205,7 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
       return <Button variant="primary" disabled>Discord integration currently disabled</Button>;
     }
 
-    const text = (user.discordAccount) ?
+    const text = user.discordAccount ?
       'Link a different Discord account' :
       'Link your Discord account';
 
@@ -331,7 +331,7 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
     setSubmitState(OwnProfilePageSubmitState.IDLE);
   }, []);
 
-  const shouldDisableForm = (submitState === 'submitting');
+  const shouldDisableForm = submitState === 'submitting';
   return (
     <Container>
       <h1>Account information</h1>

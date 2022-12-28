@@ -195,7 +195,7 @@ const PuzzleListView = ({
 
         const tagMatch = puzzle.tags.some((tagId) => {
           const tagName = tagNames[tagId];
-          return (tagName?.includes(key));
+          return tagName?.includes(key);
         });
 
         if (tagMatch) {
@@ -226,8 +226,8 @@ const PuzzleListView = ({
       return puzzles.filter((puzzle) => {
         // Items with no expected answer are always shown, since they're
         // generally pinned administrivia.
-        return (puzzle.expectedAnswerCount === 0 ||
-          puzzle.answers.length < puzzle.expectedAnswerCount);
+        return puzzle.expectedAnswerCount === 0 ||
+          puzzle.answers.length < puzzle.expectedAnswerCount;
       });
     }
   }, [showSolved]);

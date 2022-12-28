@@ -22,8 +22,8 @@ export function listAllRolesForHunt(userId: string | null | undefined, huntId: s
   }
 
   return [
-    ...(user.roles[GLOBAL_SCOPE] ?? []),
-    ...(user.roles[huntId] ?? []),
+    ...user.roles[GLOBAL_SCOPE] ?? [],
+    ...user.roles[huntId] ?? [],
   ];
 }
 
@@ -54,9 +54,7 @@ export function userIsOperatorForAnyHunt(userId: string | null | undefined): boo
     return true;
   }
 
-  return Object.entries(user.roles ?? {}).some(([huntId, roles]) => (
-    huntId !== GLOBAL_SCOPE && roles.includes('operator')
-  ));
+  return Object.entries(user.roles ?? {}).some(([huntId, roles]) => huntId !== GLOBAL_SCOPE && roles.includes('operator'));
 }
 
 // admins and operators are always allowed to join someone to a hunt

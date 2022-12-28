@@ -34,8 +34,8 @@ const Spectrum = ({
   if (analyserNode.current === undefined) {
     analyserNode.current = audioContext.createAnalyser();
     analyserNode.current.fftSize = barCount !== undefined ? barCount * 2 : 32;
-    analyserNode.current.smoothingTimeConstant = (smoothingTimeConstant !== undefined ?
-      smoothingTimeConstant : 0.4);
+    analyserNode.current.smoothingTimeConstant = smoothingTimeConstant !== undefined ?
+      smoothingTimeConstant : 0.4;
     bufferLength.current = analyserNode.current.frequencyBinCount;
     analyserBuffer.current = new Uint8Array(bufferLength.current);
   }
@@ -74,7 +74,7 @@ const Spectrum = ({
         const WIDTH = width;
         const HEIGHT = height;
         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-        const barWidth = (WIDTH / (bufferLength.current / 2));
+        const barWidth = WIDTH / (bufferLength.current / 2);
         let x = 0;
         for (let i = 0; i < (bufferLength.current / 2); i++) {
           const currentAmplitude = analyserBuffer.current![i]!;

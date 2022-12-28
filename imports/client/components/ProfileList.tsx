@@ -285,7 +285,7 @@ const ProfileList = ({
         return user.displayName?.toLowerCase().includes(searchKey) ||
           user.emails?.some((e) => e.address.toLowerCase().includes(searchKey)) ||
           user.phoneNumber?.toLowerCase().includes(searchKey) ||
-          (user.discordAccount && (`${user.discordAccount.username.toLowerCase()}#${user.discordAccount.discriminator}`.includes(searchKey))) ||
+          (user.discordAccount && `${user.discordAccount.username.toLowerCase()}#${user.discordAccount.discriminator}`.includes(searchKey)) ||
           roles?.[user._id]?.some((role) => role.toLowerCase().includes(searchKey));
       });
     };

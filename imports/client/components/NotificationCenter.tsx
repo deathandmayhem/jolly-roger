@@ -495,14 +495,15 @@ const NotificationCenter = () => {
     pendingAnnouncementsLoading() ||
     chatNotificationsLoading();
 
-  const discordEnabledOnServer = useTracker(() => (
-    !!ServiceConfiguration.configurations.findOne({ service: 'discord' }) && !Flags.active('disable.discord')
-  ), []);
+  const discordEnabledOnServer = useTracker(
+    () => !!ServiceConfiguration.configurations.findOne({ service: 'discord' }) && !Flags.active('disable.discord'),
+    []
+  );
   const { hasOwnProfile, discordConfiguredByUser } = useTracker(() => {
     const user = Meteor.user()!;
     return {
-      hasOwnProfile: !!(user.displayName),
-      discordConfiguredByUser: !!(user.discordAccount),
+      hasOwnProfile: !!user.displayName,
+      discordConfiguredByUser: !!user.discordAccount,
     };
   }, []);
 

@@ -64,9 +64,8 @@ const OthersProfilePage = ({
                 <a href={`mailto:${user.emails[0].address}`} target="_blank" rel="noreferrer">
                   {user.emails[0].address}
                 </a>
-              ) : (
-                '(none)'
-              )}
+              ) :
+                '(none)'}
             </td>
           </tr>
           <tr>
@@ -74,9 +73,8 @@ const OthersProfilePage = ({
             <td>
               {user.phoneNumber ? (
                 <a href={`tel:${user.phoneNumber}`}>{user.phoneNumber}</a>
-              ) : (
-                '(none)'
-              )}
+              ) :
+                '(none)'}
             </td>
           </tr>
           <tr>
@@ -88,9 +86,8 @@ const OthersProfilePage = ({
                   #
                   {user.discordAccount.discriminator}
                 </a>
-              ) : (
-                '(none)'
-              )}
+              ) :
+                '(none)'}
             </td>
           </tr>
           {showHuntList && (
@@ -100,9 +97,7 @@ const OthersProfilePage = ({
                 {(
                   loading ?
                     'loading...' :
-                    user.hunts?.map((huntId) => (
-                      hunts.get(huntId)?.name ?? `Unknown hunt ${huntId}`
-                    ))
+                    user.hunts?.map((huntId) => hunts.get(huntId)?.name ?? `Unknown hunt ${huntId}`)
                       .join(', ')
                 )}
               </td>

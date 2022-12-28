@@ -94,7 +94,7 @@ const CopyableInput = ({ value }: { value: string }) => {
   }, []);
 
   // Auto-sizing assuming a particular fixed-width typeface
-  const width = `${(value.length) * 8.4 + 8}px`;
+  const width = `${value.length * 8.4 + 8}px`;
   return (
     <code>
       <input style={{ color: 'red', width }} ref={ref} readOnly value={value} onClick={onClick} />
@@ -191,9 +191,10 @@ const JSONDisplay = ({ json }: { json: string }) => {
 };
 
 const Producer = ({ producer }: { producer: ProducerClientType }) => {
-  const producerServer = useTracker(() => (
-    ProducerServers.findOne({ producerClient: producer._id })
-  ), [producer._id]);
+  const producerServer = useTracker(
+    () => ProducerServers.findOne({ producerClient: producer._id }),
+    [producer._id]
+  );
 
   const [statusTooltip, statusIcon] = useMemo(() => {
     if (!producerServer) {
@@ -277,9 +278,10 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
 };
 
 const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
-  const consumerAcked = useTracker(() => (
-    !!ConsumerAcks.findOne({ consumer: consumer._id })
-  ), [consumer._id]);
+  const consumerAcked = useTracker(
+    () => !!ConsumerAcks.findOne({ consumer: consumer._id }),
+    [consumer._id]
+  );
 
   const [statusTooltip, statusIcon] = useMemo(() => {
     if (!consumerAcked) {
@@ -291,9 +293,10 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
     }
   }, [consumer.paused, consumerAcked]);
 
-  const producerPeer = useTracker(() => (
-    Peers.findOne(consumer.producerPeer)
-  ), [consumer.producerPeer]);
+  const producerPeer = useTracker(
+    () => Peers.findOne(consumer.producerPeer),
+    [consumer.producerPeer]
+  );
 
   return (
     <Accordion.Item eventKey={consumer._id}>
@@ -358,25 +361,30 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
 };
 
 const Transport = ({ transport }: { transport: TransportType }) => {
-  const connectionParams = useTracker(() => (
-    ConnectRequests.findOne({ transport: transport._id })
-  ), [transport._id]);
+  const connectionParams = useTracker(
+    () => ConnectRequests.findOne({ transport: transport._id }),
+    [transport._id]
+  );
   const connectionStarted = !!connectionParams;
-  const connectionCompleted = useTracker(() => (
-    !!ConnectAcks.findOne({ transport: transport._id })
-  ), [transport._id]);
+  const connectionCompleted = useTracker(
+    () => !!ConnectAcks.findOne({ transport: transport._id }),
+    [transport._id]
+  );
 
-  const transportState = useTracker(() => (
-    TransportStates.findOne({ transportId: transport.transportId })
-  ), [transport.transportId]);
+  const transportState = useTracker(
+    () => TransportStates.findOne({ transportId: transport.transportId }),
+    [transport.transportId]
+  );
 
-  const producers = useFind(() => (
-    ProducerClients.find({ transport: transport._id }, { sort: { createdAt: 1 } })
-  ), [transport._id]);
+  const producers = useFind(
+    () => ProducerClients.find({ transport: transport._id }, { sort: { createdAt: 1 } }),
+    [transport._id]
+  );
 
-  const consumers = useFind(() => (
-    Consumers.find({ transportId: transport.transportId }, { sort: { createdAt: 1 } })
-  ), [transport.transportId]);
+  const consumers = useFind(
+    () => Consumers.find({ transportId: transport.transportId }, { sort: { createdAt: 1 } }),
+    [transport.transportId]
+  );
 
   const [statusTooltip, statusIcon] = useMemo(() => {
     if (connectionCompleted) {
@@ -522,18 +530,22 @@ const Transport = ({ transport }: { transport: TransportType }) => {
 };
 
 const Peer = ({ peer }: { peer: PeerType }) => {
-  const transportRequests = useFind(() => (
-    TransportRequests.find({ peer: peer._id }, { sort: { createdAt: 1 } })
-  ), [peer._id]);
-  const transports = useFind(() => (
-    Transports.find({ peer: peer._id }, { sort: { createdAt: 1 } })
-  ), [peer._id]);
-  const producerCount = useTracker(() => (
-    ProducerClients.find({ peer: peer._id }).count()
-  ), [peer._id]);
-  const consumerCount = useTracker(() => (
-    Consumers.find({ peer: peer._id }).count()
-  ), [peer._id]);
+  const transportRequests = useFind(
+    () => TransportRequests.find({ peer: peer._id }, { sort: { createdAt: 1 } }),
+    [peer._id]
+  );
+  const transports = useFind(
+    () => Transports.find({ peer: peer._id }, { sort: { createdAt: 1 } }),
+    [peer._id]
+  );
+  const producerCount = useTracker(
+    () => ProducerClients.find({ peer: peer._id }).count(),
+    [peer._id]
+  );
+  const consumerCount = useTracker(
+    () => Consumers.find({ peer: peer._id }).count(),
+    [peer._id]
+  );
 
   return (
     <Accordion.Item eventKey={peer._id}>
@@ -665,9 +677,10 @@ const RouterDetails = ({ router }: { router: RouterType }) => {
 
 const Room = ({ room }: { room: RoomType }) => {
   const router = useTracker(() => Routers.findOne({ call: room.call }), [room.call]);
-  const lastActivity = useTracker(() => (
-    CallHistories.findOne({ call: room.call })?.lastActivity
-  ), [room.call]);
+  const lastActivity = useTracker(
+    () => CallHistories.findOne({ call: room.call })?.lastActivity,
+    [room.call]
+  );
   const [recentActivity, setRecentActivity] = useState<boolean>(false);
   useEffect(() => {
     let timeout: number | undefined;
@@ -683,9 +696,10 @@ const Room = ({ room }: { room: RoomType }) => {
       }
     };
   }, [lastActivity]);
-  const peers = useFind(() => (
-    Peers.find({ call: room.call }, { sort: { createdAt: 1 } })
-  ), [room.call]);
+  const peers = useFind(
+    () => Peers.find({ call: room.call }, { sort: { createdAt: 1 } }),
+    [room.call]
+  );
   return (
     <Accordion.Item eventKey={room._id}>
       <Accordion.Header>

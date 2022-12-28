@@ -128,7 +128,7 @@ const HuntApp = React.memo(() => {
   }, [huntId]);
 
   useBreadcrumb({
-    title: (loading || !hunt) ? 'loading...' : hunt.name,
+    title: loading || !hunt ? 'loading...' : hunt.name,
     path: `/hunts/${huntId}`,
   });
 

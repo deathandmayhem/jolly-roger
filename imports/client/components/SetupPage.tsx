@@ -503,7 +503,7 @@ const GoogleIntegrationSection = () => {
     configureClearGdriveCreds.call();
   }, []);
 
-  const clientId = (oauthSettings?.clientId) ?? '';
+  const clientId = oauthSettings?.clientId ?? '';
 
   let stepsDone = 0;
   if (oauthSettings) {
@@ -967,7 +967,7 @@ const EmailConfigSection = () => {
   const config = useTracker(() => {
     return Settings.findOne({ name: 'email.branding' }) as SettingType & { name: 'email.branding' } | undefined;
   }, []);
-  const configured = !!(config?.value.from);
+  const configured = !!config?.value.from;
   const badgeVariant = configured ? 'success' : 'warning';
   return (
     <Section id="email">
