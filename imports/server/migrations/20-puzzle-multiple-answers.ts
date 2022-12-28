@@ -4,8 +4,8 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 20,
   name: 'Backfill multiple answer support onto puzzles',
-  up() {
-    Puzzles.find().forEach((p: any) => {
+  async up() {
+    for await (const p of Puzzles.find() as any) {
       if (p.answers) return; // already migrated
 
       const answers = [];
@@ -22,6 +22,6 @@ Migrations.add({
         validate: false,
         getAutoValues: false,
       });
-    });
+    }
   },
 });

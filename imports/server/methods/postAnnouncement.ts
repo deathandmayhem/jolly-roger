@@ -30,12 +30,12 @@ postAnnouncement.define({
       message,
     });
 
-    MeteorUsers.find({ hunts: huntId }).forEach((user) => {
+    for await (const user of MeteorUsers.find({ hunts: huntId })) {
       await PendingAnnouncements.insertAsync({
         hunt: huntId,
         announcement: id,
         user: user._id,
       });
-    });
+    }
   },
 });

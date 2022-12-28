@@ -7,5 +7,10 @@ declare module 'meteor/mongo' {
       [Symbol.iterator](): Iterator<T>;
       [Symbol.asyncIterator](): AsyncIterator<T>;
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    interface Collection<T> {
+      dropIndexAsync(indexName: string): Promise<void>;
+    }
   }
 }

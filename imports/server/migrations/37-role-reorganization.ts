@@ -5,10 +5,10 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 37,
   name: 'Reorganize roles and eliminate inactiveOperator',
-  up() {
+  async up() {
     // Casts necessary to account for schema changes
 
-    MeteorUsers.find({ roles: 'inactiveOperator' } as any).forEach((user) => {
+    for await (const user of MeteorUsers.find({ roles: 'inactiveOperator' } as any)) {
       await MeteorUsers.updateAsync(user._id, {
         $push: { roles: 'operator' },
       } as any, {
@@ -21,9 +21,9 @@ Migrations.add({
         validate: false,
         filter: false,
       } as any);
-    });
+    }
 
-    MeteorUsers.find({ roles: { $type: 'array' } }).forEach((user) => {
+    for await (const user of MeteorUsers.find({ roles: { $type: 'array' } })) {
       const newRoles: Record<string, string[]> = {};
       (user.roles as unknown as string[]).forEach((role) => {
         if (role === 'operator') {
@@ -40,6 +40,6 @@ Migrations.add({
       await MeteorUsers.updateAsync(user._id, {
         $set: { roles: newRoles },
       }, { validate: false } as any);
-    });
+    }
   },
 });

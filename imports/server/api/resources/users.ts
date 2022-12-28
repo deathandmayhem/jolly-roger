@@ -3,6 +3,7 @@ import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import express from 'express';
 import MeteorUsers from '../../../lib/models/MeteorUsers';
+import expressAsyncWrapper from '../../expressAsyncWrapper';
 
 // eslint-disable-next-line new-cap
 const users = express.Router();
@@ -31,7 +32,7 @@ const renderUser = function renderUser(user: Meteor.User) {
   };
 };
 
-users.get('/:email', async (req, res) => {
+users.get('/:email', expressAsyncWrapper(async (req, res) => {
   check(req.params.email, String);
 
   const user = await findUserByEmail(req.params.email);
@@ -41,6 +42,6 @@ users.get('/:email', async (req, res) => {
   }
 
   res.json(renderUser(user));
-});
+}));
 
 export default users;

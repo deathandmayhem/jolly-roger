@@ -19,47 +19,36 @@ const DingwordHooks: Hookset = {
       return;
     }
 
+    const normalizedText = chatMessage.text.trim().toLowerCase();
+
     // Find all users who are in this hunt with dingwords set.
-    const huntMembers = await MeteorUsers.find({
+    for await (const u of MeteorUsers.find({
       hunts: chatMessage.hunt,
       'dingwords.0': { $exists: true },
     }, {
       fields: { _id: 1, dingwords: 1 },
-    }).fetchAsync();
-
-    // For each user with dingwords, check if this message (normalized to
-    // lower-case) triggers any of their dingwords.
-    const normalizedText = chatMessage.text.trim().toLowerCase();
-    huntMembers.forEach((u) => {
+    })) {
       // Avoid making users ding themselves.
       if (u._id === chatMessage.sender) {
-        return;
+        // eslint-disable-next-line no-continue
+        continue;
       }
 
       const dingwords = u.dingwords;
       if (dingwords) {
-        dingwords.every((dingword) => {
-          if (normalizedText.includes(dingword)) {
-            // It matched!  We should notify the user of this message.
-
-            // console.log(`u ${p._id} dingword ${dingword} matched message ${chatMessage.text}`);
-            await ChatNotifications.insertAsync({
-              user: u._id,
-              sender: chatMessage.sender,
-              puzzle: chatMessage.puzzle,
-              hunt: chatMessage.hunt,
-              text: chatMessage.text,
-              timestamp: chatMessage.timestamp,
-            });
-
-            // Once we match, we don't need to check any other dingwords.
-            return false;
-          }
-
-          return true;
-        });
+        const matches = dingwords.some((dingword) => normalizedText.includes(dingword));
+        if (matches) {
+          await ChatNotifications.insertAsync({
+            user: u._id,
+            sender: chatMessage.sender,
+            puzzle: chatMessage.puzzle,
+            hunt: chatMessage.hunt,
+            text: chatMessage.text,
+            timestamp: chatMessage.timestamp,
+          });
+        }
       }
-    });
+    }
 
     // const end = Date.now();
     // const elapsed = end - start;

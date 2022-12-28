@@ -9,7 +9,7 @@ Migrations.add({
   version: 39,
   name: 'Promote profile fields to user top-level',
   async up() {
-    MeteorUsers.find({ profile: { $ne: null as any } }).forEach((u) => {
+    for await (const u of MeteorUsers.find({ profile: { $ne: null as any } })) {
       const {
         displayName, googleAccount, discordAccount, phoneNumber, dingwords,
       } = u.profile as LegacyProfile;
@@ -27,7 +27,7 @@ Migrations.add({
       }, {
         validate: false, clean: false,
       } as any);
-    });
+    }
 
     // Fix indexes
     await MeteorUsers.createIndexAsync({ displayName: 1 });

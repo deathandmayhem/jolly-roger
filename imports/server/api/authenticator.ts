@@ -1,7 +1,8 @@
 import express from 'express';
+import expressAsyncWrapper from '../expressAsyncWrapper';
 import APIKeys from '../models/APIKeys';
 
-const authenticator: express.Handler = async (req, res, next) => {
+const authenticator: express.Handler = expressAsyncWrapper(async (req, res, next) => {
   const auth = req.get('Authorization');
   if (!auth) {
     res.sendStatus(401);
@@ -23,5 +24,5 @@ const authenticator: express.Handler = async (req, res, next) => {
   }
 
   next();
-};
+});
 export default authenticator;

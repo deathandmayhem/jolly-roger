@@ -31,8 +31,7 @@ registerPeriodicCleanupHook(async (deadServers) => {
   // have peers on other servers. Therefore, take out a lock to make sure we
   // see a consistent view (and everyone else does too), then check if there
   // are still peers joined to this room
-  await (await Rooms.find({ routedServer: { $in: deadServers } }).fetchAsync()).reduce(async (p, room) => {
-    await p;
+  for await (const room of Rooms.find({ routedServer: { $in: deadServers } })) {
     await Locks.withLock(`mediasoup:room:${room.call}`, async () => {
       const removed = !!await Rooms.removeAsync(room._id);
       if (!removed) {
@@ -51,7 +50,7 @@ registerPeriodicCleanupHook(async (deadServers) => {
         });
       }
     });
-  }, Promise.resolve());
+  }
 });
 
 Meteor.publish('mediasoup:debug', function () {

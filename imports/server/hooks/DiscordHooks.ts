@@ -40,10 +40,7 @@ const DiscordHooks: Hookset = {
     if (hunt.puzzleHooksDiscordChannel) {
       const title = `${puzzle.title} unlocked`;
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
-      const tagNameList = puzzle.tags.map((tId) => {
-        const t = await Tags.findOneAsync(tId);
-        return t ? t.name : '';
-      }).filter((t) => t.length > 0);
+      const tagNameList = await Tags.find({ _id: { $in: puzzle.tags } }).mapAsync((t) => t.name);
       const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(', ');
       const fields = tags.length > 0 ? [{ name: 'Tags', value: tags, inline: true }] : undefined;
       const messageObj = {

@@ -180,7 +180,8 @@ class DiscordClientRefresher {
     const toDelete = oldIds.filter((x) => !newIds.has(x));
     await DiscordCache.removeAsync({ type, snowflake: { $in: toDelete } });
 
-    cache.forEach((v, k) => {
+    await [...cache.entries()].reduce(async (p, [k, v]) => {
+      await p;
       await DiscordCache.upsertAsync({
         type,
         snowflake: k,
@@ -191,7 +192,7 @@ class DiscordClientRefresher {
           object: v.toJSON() as any,
         },
       });
-    });
+    }, Promise.resolve());
 
     client.on(createEvent, (Meteor.bindEnvironment((r: ResourceType) => {
       void DiscordCache.upsertAsync({
