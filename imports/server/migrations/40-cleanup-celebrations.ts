@@ -5,14 +5,14 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 40,
   name: 'Remove old configuration from celebrations',
-  up() {
-    FeatureFlags.remove({ name: 'disable.applause' });
-    MeteorUsers.find({ muteApplause: { $exists: true } }).forEach((u) => {
-      MeteorUsers.update(u._id, {
+  async up() {
+    await FeatureFlags.removeAsync({ name: 'disable.applause' });
+    for await (const u of MeteorUsers.find({ muteApplause: { $exists: true } })) {
+      await MeteorUsers.updateAsync(u._id, {
         $unset: { muteApplause: 1 },
       }, {
         validate: false, clean: false,
       } as any);
-    });
+    }
   },
 });

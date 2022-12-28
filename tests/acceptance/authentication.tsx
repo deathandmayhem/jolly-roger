@@ -80,7 +80,7 @@ if (Meteor.isClient) {
 
         // Attempt to go to a specific authenticated page
         await act(async () => {
-          (navigate.current!)('/hunts');
+          navigate.current!('/hunts');
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/login', 'redirects to login from authenticated page');
@@ -98,7 +98,7 @@ if (Meteor.isClient) {
         render(<TestApp />);
         await act(async () => {
           await stabilize();
-          (navigate.current!)('/login');
+          navigate.current!('/login');
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/hunts');
@@ -108,7 +108,7 @@ if (Meteor.isClient) {
         render(<TestApp />);
         await act(async () => {
           await stabilize();
-          (navigate.current!)('/hunts');
+          navigate.current!('/hunts');
           await stabilize();
         });
         assert.equal(location.current?.pathname, '/hunts');

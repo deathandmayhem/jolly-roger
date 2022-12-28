@@ -1,7 +1,8 @@
 import express from 'express';
+import expressAsyncWrapper from '../expressAsyncWrapper';
 import APIKeys from '../models/APIKeys';
 
-const authenticator: express.Handler = (req, res, next) => {
+const authenticator: express.Handler = expressAsyncWrapper(async (req, res, next) => {
   const auth = req.get('Authorization');
   if (!auth) {
     res.sendStatus(401);
@@ -16,12 +17,12 @@ const authenticator: express.Handler = (req, res, next) => {
     return;
   }
 
-  const key = APIKeys.findOne({ key: authParam });
+  const key = await APIKeys.findOneAsync({ key: authParam });
   if (!key) {
     res.sendStatus(403);
     return;
   }
 
   next();
-};
+});
 export default authenticator;

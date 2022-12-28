@@ -30,7 +30,7 @@ linkUserGoogleAccount.define({
       email,
     });
 
-    MeteorUsers.update(this.userId, { $set: { googleAccount: email } });
+    await MeteorUsers.updateAsync(this.userId, { $set: { googleAccount: email } });
 
     if (!Flags.active('disable.google') && !Flags.active('disable.gdrive_permissions')) {
       const hunts = Meteor.user()!.hunts;

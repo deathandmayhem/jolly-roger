@@ -14,11 +14,11 @@ updateHunt.define({
     return arg;
   },
 
-  run({ huntId, value }) {
+  async run({ huntId, value }) {
     check(this.userId, String);
     checkAdmin(this.userId);
 
-    const oldHunt = Hunts.findOne(huntId);
+    const oldHunt = await Hunts.findOneAsync(huntId);
     if (!oldHunt) {
       throw new Meteor.Error(404, 'Unknown hunt');
     }
@@ -37,7 +37,7 @@ updateHunt.define({
       }
     });
 
-    Hunts.update(
+    await Hunts.updateAsync(
       { _id: huntId },
       {
         $set: toSet,
@@ -47,12 +47,12 @@ updateHunt.define({
 
     Meteor.defer(async () => {
       // Sync discord roles
-      const userIds = MeteorUsers.find({ hunts: huntId }).fetch().map((u) => u._id);
+      const userIds = (await MeteorUsers.find({ hunts: huntId }).fetchAsync()).map((u) => u._id);
       await addUsersToDiscordRole(userIds, huntId);
 
       if (oldHunt?.name !== value.name) {
         const folderId = await ensureHuntFolder({ _id: huntId, name: value.name });
-        await renameDocument(folderId, huntFolderName(value.name));
+        await renameDocument(folderId, await huntFolderName(value.name));
       }
     });
   },

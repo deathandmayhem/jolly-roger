@@ -5,17 +5,17 @@ import Hookset from './Hookset';
 
 const ChatHooks: Hookset = {
   async onPuzzleSolved(puzzleId: string, answer: string) {
-    const puzzle = Puzzles.findOne(puzzleId);
+    const puzzle = await Puzzles.findOneAsync(puzzleId);
     if (!puzzle) return;
 
     // If this puzzle has any associated metas, announce that it's solved.
-    const tags = Tags.find({ _id: { $in: puzzle.tags } }).fetch();
+    const tags = await Tags.find({ _id: { $in: puzzle.tags } }).fetchAsync();
     const groups = tags.filter((tag) => tag.name.startsWith('group:'));
     const groupNames = groups.map((group) => group.name.substring('group:'.length));
-    const metaTags = Tags.find({ name: { $in: groupNames.map((name) => `meta-for:${name}`) } }).fetch();
-    const puzzlesWithMetaTags = Puzzles.find({
+    const metaTags = await Tags.find({ name: { $in: groupNames.map((name) => `meta-for:${name}`) } }).fetchAsync();
+    const puzzlesWithMetaTags = await Puzzles.find({
       tags: { $in: metaTags.map((tag) => tag._id) },
-    }).fetch();
+    }).fetchAsync();
 
     const message = `${puzzle.title} (feeding into this meta) has been solved: ${answer}`;
     await puzzlesWithMetaTags.reduce(async (p, metaPuzzle) => {

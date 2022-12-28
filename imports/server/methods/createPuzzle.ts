@@ -38,9 +38,9 @@ createPuzzle.define({
     }
 
     // Look up each tag by name and map them to tag IDs.
-    const tagIds = tags.map((tagName) => {
-      return getOrCreateTagByName(huntId, tagName)._id;
-    });
+    const tagIds = await Promise.all(tags.map(async (tagName) => {
+      return (await getOrCreateTagByName(huntId, tagName))._id;
+    }));
 
     Ansible.log('Creating a new puzzle', {
       hunt: huntId,
@@ -65,7 +65,7 @@ createPuzzle.define({
       await ensureDocument(fullPuzzle, docType);
     }
 
-    Puzzles.insert(fullPuzzle);
+    await Puzzles.insertAsync(fullPuzzle);
 
     // Run any puzzle-creation hooks, like creating a default document
     // attachment or announcing the puzzle to Slack.

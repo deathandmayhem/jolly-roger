@@ -12,7 +12,7 @@ mediasoupAckPeerRemoteMute.define({
     return arg;
   },
 
-  run({ peerId }) {
+  async run({ peerId }) {
     if (!this.userId) {
       throw new Meteor.Error(401, 'Not logged in');
     }
@@ -21,7 +21,7 @@ mediasoupAckPeerRemoteMute.define({
       throw new Meteor.Error(403, 'WebRTC disabled');
     }
 
-    const peer = Peers.findOne({ _id: peerId });
+    const peer = await Peers.findOneAsync({ _id: peerId });
     if (!peer) {
       throw new Meteor.Error(404, 'Peer not found');
     }
@@ -30,7 +30,7 @@ mediasoupAckPeerRemoteMute.define({
       throw new Meteor.Error(403, 'Not allowed');
     }
 
-    Peers.update(peer._id, {
+    await Peers.updateAsync(peer._id, {
       $set: {
         muted: true,
       },

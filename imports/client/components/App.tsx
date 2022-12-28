@@ -177,7 +177,7 @@ const AppNavbar = () => {
       <Breadcrumb aria-label="breadcrumb">
         <BreadcrumbList>
           {crumbs.map((crumb, index) => {
-            const last = (index === crumbs.length - 1);
+            const last = index === crumbs.length - 1;
             if (last) {
               return (
                 <BreadcrumbItem key={crumb.path} aria-current="page">

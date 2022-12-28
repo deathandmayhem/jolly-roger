@@ -17,7 +17,7 @@ postAnnouncement.define({
     return arg;
   },
 
-  run({ huntId, message }) {
+  async run({ huntId, message }) {
     check(this.userId, String);
 
     if (!userMayAddAnnouncementToHunt(this.userId, huntId)) {
@@ -25,17 +25,17 @@ postAnnouncement.define({
     }
 
     Ansible.log('Creating an announcement', { user: this.userId, hunt: huntId, message });
-    const id = Announcements.insert({
+    const id = await Announcements.insertAsync({
       hunt: huntId,
       message,
     });
 
-    MeteorUsers.find({ hunts: huntId }).forEach((user) => {
-      PendingAnnouncements.insert({
+    for await (const user of MeteorUsers.find({ hunts: huntId })) {
+      await PendingAnnouncements.insertAsync({
         hunt: huntId,
         announcement: id,
         user: user._id,
       });
-    });
+    }
   },
 });

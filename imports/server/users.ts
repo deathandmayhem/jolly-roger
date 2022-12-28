@@ -26,14 +26,14 @@ Accounts.setDefaultPublishFields({
   ...profileFields,
 });
 
-const republishOnUserChange = (
+const republishOnUserChange = async (
   sub: Subscription,
   projection: Mongo.FieldSpecifier,
   makeCursor: (user: Meteor.User) => Mongo.Cursor<Meteor.User> | undefined,
   makeTransform?: undefined |
     ((user: Meteor.User) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>)),
 ) => {
-  const u = MeteorUsers.findOne(sub.userId!)!;
+  const u = (await MeteorUsers.findOneAsync(sub.userId!))!;
   const publish = new SwappableCursorPublisher(sub, MeteorUsers);
   publish.swap(makeCursor(u), makeTransform?.(u));
   const watch = MeteorUsers.find(sub.userId!, { fields: projection }).observe({
@@ -60,14 +60,14 @@ const makeHuntFilterTransform = (hunts: string[] = []):
   };
 };
 
-Meteor.publish('displayNames', function (huntId: unknown) {
+Meteor.publish('displayNames', async function (huntId: unknown) {
   check(huntId, String);
 
   if (!this.userId) {
     return [];
   }
 
-  republishOnUserChange(this, { hunts: 1 }, (u) => {
+  await republishOnUserChange(this, { hunts: 1 }, (u) => {
     if (!u.hunts?.includes(huntId)) {
       return undefined;
     }
@@ -78,14 +78,14 @@ Meteor.publish('displayNames', function (huntId: unknown) {
   return undefined;
 });
 
-Meteor.publish('avatars', function (huntId: unknown) {
+Meteor.publish('avatars', async function (huntId: unknown) {
   check(huntId, String);
 
   if (!this.userId) {
     return [];
   }
 
-  republishOnUserChange(this, { hunts: 1 }, (u) => {
+  await republishOnUserChange(this, { hunts: 1 }, (u) => {
     if (!u.hunts?.includes(huntId)) {
       return undefined;
     }
@@ -96,12 +96,12 @@ Meteor.publish('avatars', function (huntId: unknown) {
   return undefined;
 });
 
-Meteor.publish('allProfiles', function () {
+Meteor.publish('allProfiles', async function () {
   if (!this.userId) {
     return [];
   }
 
-  republishOnUserChange(this, { hunts: 1 }, (u) => {
+  await republishOnUserChange(this, { hunts: 1 }, (u) => {
     return MeteorUsers.find({ hunts: { $in: u.hunts ?? [] } }, {
       fields: {
         'emails.address': 1,
@@ -114,14 +114,14 @@ Meteor.publish('allProfiles', function () {
   return undefined;
 });
 
-Meteor.publish('huntProfiles', function (huntId: unknown) {
+Meteor.publish('huntProfiles', async function (huntId: unknown) {
   check(huntId, String);
 
   if (!this.userId) {
     return [];
   }
 
-  republishOnUserChange(this, { hunts: 1 }, (u) => {
+  await republishOnUserChange(this, { hunts: 1 }, (u) => {
     if (!u.hunts?.includes(huntId)) {
       return undefined;
     }
@@ -138,14 +138,14 @@ Meteor.publish('huntProfiles', function (huntId: unknown) {
   return undefined;
 });
 
-Meteor.publish('profile', function (userId: unknown) {
+Meteor.publish('profile', async function (userId: unknown) {
   check(userId, String);
 
   if (!this.userId) {
     return [];
   }
 
-  republishOnUserChange(this, { hunts: 1 }, (u) => {
+  await republishOnUserChange(this, { hunts: 1 }, (u) => {
     // Profiles are public if you have any hunts in common
     return MeteorUsers.find({ _id: userId, hunts: { $in: u.hunts ?? [] } }, {
       fields: {
@@ -159,10 +159,10 @@ Meteor.publish('profile', function (userId: unknown) {
   return undefined;
 });
 
-Meteor.publish('huntRoles', function (huntId: unknown) {
+Meteor.publish('huntRoles', async function (huntId: unknown) {
   check(huntId, String);
 
-  republishOnUserChange(this, { hunts: 1, roles: 1 }, () => {
+  await republishOnUserChange(this, { hunts: 1, roles: 1 }, () => {
     // Only publish other users' roles to admins and other operators.
     if (!userMaySeeUserInfoForHunt(this.userId, huntId)) {
       return undefined;

@@ -28,20 +28,21 @@ createHunt.define({
     return arg;
   },
 
-  run(arg) {
+  async run(arg) {
     check(this.userId, String);
     checkAdmin(this.userId);
 
-    const huntId = Hunts.insert(arg);
+    const huntId = await Hunts.insertAsync(arg);
     addUserToRole(this.userId, huntId, 'operator');
 
-    DEFAULT_TAGS.forEach((tag) => {
-      getOrCreateTagByName(huntId, tag);
-    });
+    await DEFAULT_TAGS.reduce(async (p, tag) => {
+      await p;
+      await getOrCreateTagByName(huntId, tag);
+    }, Promise.resolve());
 
     Meteor.defer(async () => {
       // Sync discord roles
-      const userIds = MeteorUsers.find({ hunts: huntId }).fetch().map((u) => u._id);
+      const userIds = (await MeteorUsers.find({ hunts: huntId }).fetchAsync()).map((u) => u._id);
       await addUsersToDiscordRole(userIds, huntId);
       await ensureHuntFolder({ _id: huntId, name: arg.name });
     });

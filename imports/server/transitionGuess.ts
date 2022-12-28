@@ -23,7 +23,7 @@ export default async function transitionGuess(
       additionalNotes: 1,
     };
   }
-  Guesses.update(guess._id, update);
+  await Guesses.updateAsync(guess._id, update);
 
   let stateDescription;
   switch (newState) {
@@ -39,7 +39,7 @@ export default async function transitionGuess(
 
   if (newState === 'correct') {
     // Mark this puzzle as solved.
-    Puzzles.update({
+    await Puzzles.updateAsync({
       _id: guess.puzzle,
     }, {
       $addToSet: {
@@ -49,7 +49,7 @@ export default async function transitionGuess(
     await GlobalHooks.runPuzzleSolvedHooks(guess.puzzle, guess.guess);
   } else if (guess.state === 'correct') {
     // Transitioning from correct -> something else: un-mark that puzzle as solved.
-    Puzzles.update({
+    await Puzzles.updateAsync({
       _id: guess.puzzle,
     }, {
       $pull: {

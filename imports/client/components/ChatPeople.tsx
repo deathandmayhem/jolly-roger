@@ -123,9 +123,10 @@ const ChatPeople = ({
   // or doing signalling).
   const rtcDisabled = useTracker(() => Flags.active('disable.webrtc'), []);
 
-  const recentVoiceActivity = useTracker(() => (
-    CallHistories.findOne({ call: puzzleId })?.lastActivity
-  ), [puzzleId]);
+  const recentVoiceActivity = useTracker(
+    () => CallHistories.findOne({ call: puzzleId })?.lastActivity,
+    [puzzleId]
+  );
   const [voiceActivityRelative, setVoiceActivityRelative] = useState<string>();
   useEffect(() => {
     let interval: number | undefined;

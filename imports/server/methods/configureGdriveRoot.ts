@@ -12,7 +12,7 @@ configureGdriveRoot.define({
     return arg;
   },
 
-  run({ root }) {
+  async run({ root }) {
     check(this.userId, String);
 
     // Only let the same people that can credential gdrive configure root folder,
@@ -22,12 +22,12 @@ configureGdriveRoot.define({
     }
 
     if (root) {
-      Settings.upsert(
+      await Settings.upsertAsync(
         { name: 'gdrive.root' },
         { $set: { value: { id: root } } }
       );
     } else {
-      Settings.remove({ name: 'gdrive.root' });
+      await Settings.removeAsync({ name: 'gdrive.root' });
     }
   },
 });

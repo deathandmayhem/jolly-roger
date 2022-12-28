@@ -9,10 +9,10 @@ destroyHunt.define({
     return arg;
   },
 
-  run({ huntId }) {
+  async run({ huntId }) {
     check(this.userId, String);
     checkAdmin(this.userId);
 
-    Hunts.destroy(huntId);
+    await Hunts.destroyAsync(huntId);
   },
 });

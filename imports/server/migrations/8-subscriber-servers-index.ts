@@ -4,7 +4,7 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 8,
   name: 'Add index for subscriptions server tracker',
-  up() {
-    Servers.createIndex({ updatedAt: 1 });
+  async up() {
+    await Servers.createIndexAsync({ updatedAt: 1 });
   },
 });

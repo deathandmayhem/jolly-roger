@@ -38,6 +38,7 @@
   "exclude": [
     "./.meteor/local/build/**",
     "./.meteor/local/bundler-cache/**",
-    "./packages/**"
+    "./packages/**",
+    "./eslint/**"
   ]
 }

@@ -4,10 +4,10 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 17,
   name: 'Backfill provider for documents',
-  up() {
-    Documents.update(<any>{ provider: null }, { $set: { provider: 'google' } }, { multi: true });
+  async up() {
+    await Documents.updateAsync(<any>{ provider: null }, { $set: { provider: 'google' } }, { multi: true });
 
-    Documents.update(
+    await Documents.updateAsync(
       { type: 'google-spreadsheet', 'value.type': null },
       { $set: { 'value.type': 'spreadsheet' }, $unset: { type: 1 } },
       <any>{ multi: true, validate: false }

@@ -92,7 +92,7 @@ addHuntUser.define({
   async run({ huntId, email }) {
     check(this.userId, String);
 
-    const hunt = Hunts.findOne(huntId);
+    const hunt = await Hunts.findOneAsync(huntId);
     if (!hunt) {
       throw new Meteor.Error(404, 'Unknown hunt');
     }
@@ -105,7 +105,7 @@ addHuntUser.define({
     const newUser = joineeUser === undefined;
     if (!joineeUser) {
       const joineeUserId = Accounts.createUser({ email });
-      joineeUser = MeteorUsers.findOne(joineeUserId);
+      joineeUser = await MeteorUsers.findOneAsync(joineeUserId);
     }
     if (!joineeUser?._id) throw new Meteor.Error(500, 'Something has gone terribly wrong');
 
@@ -123,7 +123,7 @@ addHuntUser.define({
       joinee: joineeUser._id,
       hunt: huntId,
     });
-    MeteorUsers.update(joineeUser._id, { $addToSet: { hunts: { $each: [huntId] } } });
+    await MeteorUsers.updateAsync(joineeUser._id, { $addToSet: { hunts: { $each: [huntId] } } });
     const joineeEmails = (joineeUser.emails ?? []).map((e) => e.address);
 
     hunt.mailingLists.forEach((listName) => {
@@ -142,9 +142,9 @@ addHuntUser.define({
       Ansible.info('Sent invitation email to new user', { invitedBy: this.userId, email });
     } else {
       if (joineeUser._id !== this.userId) {
-        const joinerUser = MeteorUsers.findOne(this.userId);
+        const joinerUser = await MeteorUsers.findOneAsync(this.userId);
         const joinerName = joinerUser!.displayName;
-        const settingsDoc = Settings.findOne({ name: 'email.branding' });
+        const settingsDoc = await Settings.findOneAsync({ name: 'email.branding' });
         const subject = renderExistingJoinEmailSubject(settingsDoc, hunt);
         const text = renderExistingJoinEmail(settingsDoc, joineeUser, hunt, joinerName);
         Email.send({

@@ -16,7 +16,7 @@ async function recordDriveChange(file: Pick<drive_v3.Schema$File, 'id' | 'modifi
     return;
   }
 
-  const document = Documents.findOne({ 'value.id': file.id });
+  const document = await Documents.findOneAsync({ 'value.id': file.id });
   if (!document) {
     return;
   }
@@ -36,7 +36,7 @@ async function recordDriveChange(file: Pick<drive_v3.Schema$File, 'id' | 'modifi
 async function fetchDriveChangesIteration(gdrive: drive_v3.Drive, lock: string): Promise<boolean> {
   await Locks.renew(lock);
 
-  let pageToken = DriveChangesPageTokens.findOne({ _id: 'default' })?.token;
+  let pageToken = (await DriveChangesPageTokens.findOneAsync({ _id: 'default' }))?.token;
 
   if (!pageToken) {
     const resp = await gdrive.changes.getStartPageToken();
@@ -51,7 +51,7 @@ async function fetchDriveChangesIteration(gdrive: drive_v3.Drive, lock: string):
     });
   } catch (e) {
     // Assume that page token is no longer valid
-    DriveChangesPageTokens.update({ _id: 'default', token: pageToken }, {
+    await DriveChangesPageTokens.updateAsync({ _id: 'default', token: pageToken }, {
       $unset: {
         token: 1,
       },
@@ -68,7 +68,7 @@ async function fetchDriveChangesIteration(gdrive: drive_v3.Drive, lock: string):
     await recordDriveChange(change.file);
   }, Promise.resolve());
 
-  DriveChangesPageTokens.upsert({ _id: 'default', token: pageToken }, {
+  await DriveChangesPageTokens.upsertAsync({ _id: 'default', token: pageToken }, {
     $set: {
       token: resp.data.nextPageToken ?? resp.data.newStartPageToken ?? undefined,
     },

@@ -25,14 +25,13 @@ import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import Locks from './models/Locks';
 
 registerPeriodicCleanupHook(async (deadServers) => {
-  Peers.remove({ createdServer: { $in: deadServers } });
+  await Peers.removeAsync({ createdServer: { $in: deadServers } });
 
   // Deleting a room creates a potential inconsistency, since we might still
   // have peers on other servers. Therefore, take out a lock to make sure we
   // see a consistent view (and everyone else does too), then check if there
   // are still peers joined to this room
-  await Rooms.find({ routedServer: { $in: deadServers } }).fetch().reduce(async (p, room) => {
-    await p;
+  for await (const room of Rooms.find({ routedServer: { $in: deadServers } })) {
     await Locks.withLock(`mediasoup:room:${room.call}`, async () => {
       const removed = !!await Rooms.removeAsync(room._id);
       if (!removed) {
@@ -51,7 +50,7 @@ registerPeriodicCleanupHook(async (deadServers) => {
         });
       }
     });
-  }, Promise.resolve());
+  }
 });
 
 Meteor.publish('mediasoup:debug', function () {
@@ -209,7 +208,7 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
   ];
 });
 
-Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
+Meteor.publish('mediasoup:transports', async function (peerId, rtpCapabilities) {
   check(peerId, String);
   check(rtpCapabilities, String);
 
@@ -221,12 +220,12 @@ Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
     throw new Meteor.Error(403, 'WebRTC disabled');
   }
 
-  const peer = Peers.findOne(peerId);
+  const peer = await Peers.findOneAsync(peerId);
   if (!peer) {
     throw new Meteor.Error(404, 'Peer not found');
   }
 
-  const router = Routers.findOne({ call: peer.call });
+  const router = await Routers.findOneAsync({ call: peer.call });
   if (!router) {
     throw new Meteor.Error(404, 'Router not found');
   }
@@ -235,7 +234,7 @@ Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
     throw new Meteor.Error(403, 'Not allowed');
   }
 
-  const transportRequest = TransportRequests.insert({
+  const transportRequest = await TransportRequests.insertAsync({
     createdServer: serverId,
     routedServer: router.createdServer,
     call: peer.call,
@@ -243,11 +242,11 @@ Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
     rtpCapabilities,
   });
 
-  this.onStop(() => {
-    TransportRequests.remove(transportRequest);
-    ConnectRequests.remove({ transportRequest });
-    ConnectAcks.remove({ transportRequest });
-    ConsumerAcks.remove({ transportRequest });
+  this.onStop(async () => {
+    await TransportRequests.removeAsync(transportRequest);
+    await ConnectRequests.removeAsync({ transportRequest });
+    await ConnectAcks.removeAsync({ transportRequest });
+    await ConsumerAcks.removeAsync({ transportRequest });
   });
 
   return [
@@ -260,7 +259,7 @@ Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
   ];
 });
 
-Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpParameters, paused) {
+Meteor.publish('mediasoup:producer', async function (transportId, trackId, kind, rtpParameters, paused) {
   check(transportId, String);
   check(trackId, String);
   check(kind, Match.OneOf('audio', 'video'));
@@ -275,7 +274,7 @@ Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpPa
     throw new Meteor.Error(403, 'WebRTC disabled');
   }
 
-  const transport = Transports.findOne(transportId);
+  const transport = await Transports.findOneAsync(transportId);
   if (!transport) {
     throw new Meteor.Error(404, 'Transport not found');
   }
@@ -284,7 +283,7 @@ Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpPa
     throw new Meteor.Error(403, 'Not allowed');
   }
 
-  const producerClientId = ProducerClients.insert({
+  const producerClientId = await ProducerClients.insertAsync({
     createdServer: serverId,
     routedServer: transport.createdServer,
     call: transport.call,
@@ -297,8 +296,8 @@ Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpPa
     paused,
   });
 
-  this.onStop(() => {
-    ProducerClients.remove(producerClientId);
+  this.onStop(async () => {
+    await ProducerClients.removeAsync(producerClientId);
   });
 
   return [

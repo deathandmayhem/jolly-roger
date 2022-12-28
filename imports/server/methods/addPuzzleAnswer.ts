@@ -20,13 +20,13 @@ addPuzzleAnswer.define({
   async run({ puzzleId, answer }) {
     check(this.userId, String);
 
-    const puzzle = Puzzles.findOne(puzzleId);
+    const puzzle = await Puzzles.findOneAsync(puzzleId);
 
     if (!puzzle) {
       throw new Meteor.Error(404, 'No such puzzle');
     }
 
-    const hunt = Hunts.findOne(puzzle.hunt);
+    const hunt = await Hunts.findOneAsync(puzzle.hunt);
 
     if (!hunt) {
       throw new Meteor.Error(404, 'No such hunt');
@@ -42,14 +42,14 @@ addPuzzleAnswer.define({
       user: this.userId,
       guess: answer,
     });
-    const answerId = Guesses.insert({
+    const answerId = await Guesses.insertAsync({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       guess: answer,
       state: 'correct',
     });
 
-    const savedAnswer = Guesses.findOne(answerId);
+    const savedAnswer = await Guesses.findOneAsync(answerId);
     if (!savedAnswer) {
       throw new Meteor.Error(404, 'No such correct guess');
     }
@@ -58,7 +58,7 @@ addPuzzleAnswer.define({
       message: `${savedAnswer.guess} was accepted as the correct answer`,
       sender: undefined,
     });
-    Puzzles.update({
+    await Puzzles.updateAsync({
       _id: savedAnswer.puzzle,
     }, {
       $addToSet: {

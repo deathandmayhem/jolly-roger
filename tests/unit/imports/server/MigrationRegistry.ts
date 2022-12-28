@@ -15,19 +15,19 @@ function unlockedAt(version: number) {
 describe('MigrationRegistry', function () {
   this.timeout(2000);
 
-  beforeEach(function () {
-    testCollection.remove({});
+  beforeEach(async function () {
+    await testCollection.removeAsync({});
   });
 
   it('bootstraps', async function () {
     const reg = new MigrationRegistry({ collection: testCollection });
-    assert.equal(testCollection.findOne('control'), undefined);
+    assert.equal(await testCollection.findOneAsync('control'), undefined);
     // Just calling getVersion bootstraps the record
     assert.equal(await reg.getVersion(), 0);
-    assert.deepEqual(testCollection.findOne('control'), unlockedAt(0));
+    assert.deepEqual(await testCollection.findOneAsync('control'), unlockedAt(0));
     // Migrating to latest should be a noop, which we perform successfully.
     assert.equal(await reg.migrateToLatest(), true);
-    assert.deepEqual(testCollection.findOne('control'), unlockedAt(0));
+    assert.deepEqual(await testCollection.findOneAsync('control'), unlockedAt(0));
   });
 
   it('runs a migration successfully', async function () {
@@ -44,7 +44,7 @@ describe('MigrationRegistry', function () {
     assert.equal(ran, true);
     const version = await reg.getVersion();
     assert.equal(version, 1);
-    assert.deepEqual(testCollection.findOne('control'), unlockedAt(1));
+    assert.deepEqual(await testCollection.findOneAsync('control'), unlockedAt(1));
   });
 
   it('runs migrations exactly once', async function () {
@@ -94,7 +94,7 @@ describe('MigrationRegistry', function () {
       // ignore failure
     }
     // Expect that the database is still locked.
-    const control = testCollection.findOne('control');
+    const control = await testCollection.findOneAsync('control');
     assert.isDefined(control);
     const { locked, lockedAt } = control!;
     assert.equal(locked, true);
@@ -111,7 +111,7 @@ describe('MigrationRegistry', function () {
 
     // Manually unlock the control record.
     await reg.unlock();
-    assert.deepEqual(testCollection.findOne('control'), unlockedAt(1));
+    assert.deepEqual(await testCollection.findOneAsync('control'), unlockedAt(1));
 
     // Run the migrations again.  Expect the second migration to run and succeed.
     assert.equal(await reg.migrateToLatest(), true);
@@ -145,7 +145,7 @@ describe('MigrationRegistry', function () {
       // ignore failure
     }
     // Expect that the database is still locked.
-    const control = testCollection.findOne('control');
+    const control = await testCollection.findOneAsync('control');
     assert.isDefined(control);
     const { locked, lockedAt } = control!;
     assert.equal(locked, true);

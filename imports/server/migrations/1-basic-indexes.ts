@@ -8,11 +8,11 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 1,
   name: 'Add basic indexes to collections',
-  up() {
-    Announcements.createIndex({ deleted: 1, hunt: 1, createdAt: -1 });
-    ChatMessages.createIndex({ puzzleId: 1, timestamp: -1 });
-    Guesses.createIndex({ deleted: 1, hunt: 1, puzzle: 1 });
-    Puzzles.createIndex({ deleted: 1, hunt: 1 });
-    Tags.createIndex({ deleted: 1, hunt: 1 });
+  async up() {
+    await Announcements.createIndexAsync({ deleted: 1, hunt: 1, createdAt: -1 });
+    await ChatMessages.createIndexAsync({ puzzleId: 1, timestamp: -1 });
+    await Guesses.createIndexAsync({ deleted: 1, hunt: 1, puzzle: 1 });
+    await Puzzles.createIndexAsync({ deleted: 1, hunt: 1 });
+    await Tags.createIndexAsync({ deleted: 1, hunt: 1 });
   },
 });

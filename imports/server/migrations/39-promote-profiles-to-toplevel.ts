@@ -9,11 +9,11 @@ Migrations.add({
   version: 39,
   name: 'Promote profile fields to user top-level',
   async up() {
-    MeteorUsers.find({ profile: { $ne: null as any } }).forEach((u) => {
+    for await (const u of MeteorUsers.find({ profile: { $ne: null as any } })) {
       const {
         displayName, googleAccount, discordAccount, phoneNumber, dingwords,
       } = u.profile as LegacyProfile;
-      MeteorUsers.update(u._id, {
+      await MeteorUsers.updateAsync(u._id, {
         $set: {
           displayName,
           googleAccount,
@@ -22,17 +22,17 @@ Migrations.add({
           dingwords,
         },
       });
-      MeteorUsers.update(u._id, {
+      await MeteorUsers.updateAsync(u._id, {
         $unset: { profile: 1 },
       }, {
         validate: false, clean: false,
       } as any);
-    });
+    }
 
     // Fix indexes
-    MeteorUsers.createIndex({ displayName: 1 });
-    MeteorUsers.createIndex({ _id: 1, displayName: 1 });
-    MeteorUsers.createIndex({ _id: 1, dingwords: 1 });
+    await MeteorUsers.createIndexAsync({ displayName: 1 });
+    await MeteorUsers.createIndexAsync({ _id: 1, displayName: 1 });
+    await MeteorUsers.createIndexAsync({ _id: 1, dingwords: 1 });
     await dropIndex(MeteorUsers, 'profile.displayName_1');
     await dropIndex(MeteorUsers, '_id_1_profile.displayName_1');
     await dropIndex(MeteorUsers, '_id_1_profile.dingwords_1');

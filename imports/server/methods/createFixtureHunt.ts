@@ -10,7 +10,7 @@ import { addUserToRole, userMayCreateHunt } from '../../lib/permission_stubs';
 import createFixtureHunt from '../../methods/createFixtureHunt';
 
 createFixtureHunt.define({
-  run() {
+  async run() {
     check(this.userId, String);
 
     if (!userMayCreateHunt(this.userId)) {
@@ -20,9 +20,9 @@ createFixtureHunt.define({
     const huntId = FixtureHunt._id; // fixture hunt id
 
     // Create hunt if it doesn't exist.
-    const hunt = Hunts.findOne(huntId);
+    const hunt = await Hunts.findOneAsync(huntId);
     if (!hunt) {
-      Hunts.insert({
+      await Hunts.insertAsync({
         _id: huntId,
         name: FixtureHunt.name,
         openSignups: true,
@@ -31,20 +31,24 @@ createFixtureHunt.define({
     }
 
     // Make the user an operator
-    MeteorUsers.update(this.userId, { $addToSet: { hunts: huntId } });
+    await MeteorUsers.updateAsync(this.userId, { $addToSet: { hunts: huntId } });
     addUserToRole(this.userId, huntId, 'operator');
 
     // Create tags
-    FixtureHunt.tags.forEach(({ _id, name }) => Tags.upsert({ _id }, {
-      $set: {
-        hunt: huntId,
-        name,
-      },
-    }));
+    await FixtureHunt.tags.reduce(async (p, { _id, name }) => {
+      await p;
+      await Tags.upsertAsync({ _id }, {
+        $set: {
+          hunt: huntId,
+          name,
+        },
+      });
+    }, Promise.resolve());
 
     // Create puzzles associated with the hunt.  Don't bother running the puzzle hooks.
-    FixtureHunt.puzzles.forEach((puzzle) => {
-      Puzzles.upsert({
+    await FixtureHunt.puzzles.reduce(async (p, puzzle) => {
+      await p;
+      await Puzzles.upsertAsync({
         _id: puzzle._id,
       }, {
         $set: {
@@ -57,8 +61,9 @@ createFixtureHunt.define({
         },
       });
 
-      puzzle.guesses.forEach((g) => {
-        Guesses.upsert({ _id: g._id }, {
+      await puzzle.guesses.reduce(async (gp, g) => {
+        await gp;
+        await Guesses.upsertAsync({ _id: g._id }, {
           $set: {
             hunt: huntId,
             puzzle: puzzle._id,
@@ -69,7 +74,7 @@ createFixtureHunt.define({
             additionalNotes: g.additionalNotes,
           },
         });
-      });
-    });
+      }, Promise.resolve());
+    }, Promise.resolve());
   },
 });

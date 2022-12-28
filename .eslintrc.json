@@ -10,7 +10,8 @@
     "filenames",
     "meteor",
     "@typescript-eslint",
-    "deprecation"
+    "deprecation",
+    "jolly-roger"
   ],
   "extends": [
     "airbnb",
@@ -135,10 +136,22 @@
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/prefer-namespace-keyword": ["off"],
 
+    // This is especially useful in combination with the autofixer from
+    // jolly-roger/no-sync-mongo-methods, which intentionally introduces
+    // potentially spurious dependencies, but it seems useful to be
+    // stylistically consistent across the codebase.
+    "@typescript-eslint/no-extra-parens": ["error", "all", {
+      "conditionalAssign": false,
+      "nestedBinaryExpressions": false,
+      "enforceForArrowConditionals": false,
+      "ignoreJSX": "all"
+    }],
+
     // Enable a subset of strict rules that are useful
     "@typescript-eslint/prefer-includes": ["error"],
     "@typescript-eslint/prefer-optional-chain": ["error"],
     "@typescript-eslint/prefer-nullish-coalescing": ["error"],
+    "@typescript-eslint/no-base-to-string": ["error"],
 
     // Enforce safety around promises
     "no-return-await": "off",
@@ -146,6 +159,25 @@
 
     // Show errors for deprecated code
     "deprecation/deprecation": "error",
+
+    // Override Airbnb's style guide to allow "for-of" iteration, which is
+    // already supported by Meteor
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "ForInStatement",
+        "message": "for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array."
+      },
+      {
+        "selector": "LabeledStatement",
+        "message": "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand."
+      },
+      {
+        "selector": "WithStatement",
+        "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize."
+      }
+    ],
+
 
     // Match existing style
     "operator-linebreak": ["error", "after"],
@@ -182,6 +214,16 @@
 
         "no-shadow": "off",
         "@typescript-eslint/no-shadow": "error"
+      }
+    },
+    {
+      "files": "eslint/**",
+      "parserOptions": { "project": "eslint/tsconfig.json" }
+    },
+    {
+      "files": "**/server/**",
+      "rules": {
+        "jolly-roger/no-sync-mongo-methods": "error"
       }
     },
     {

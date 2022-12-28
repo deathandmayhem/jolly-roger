@@ -184,6 +184,7 @@ class DiscordBot {
 }
 
 const handleOauthRequest = (query: any) => {
+  // eslint-disable-next-line jolly-roger/no-sync-mongo-methods
   const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });
   if (!config) {
     throw new Meteor.Error('Missing service configuration for discord');

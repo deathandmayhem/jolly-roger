@@ -299,12 +299,13 @@ const ChatHistory = React.forwardRef(({
   puzzleId: string;
   displayNames: Record<string, string>;
 }, forwardedRef: React.Ref<ChatHistoryHandle>) => {
-  const chatMessages: FilteredChatMessageType[] = useTracker(() => (
-    ChatMessages.find(
+  const chatMessages: FilteredChatMessageType[] = useTracker(
+    () => ChatMessages.find(
       { puzzle: puzzleId },
       { sort: { timestamp: 1 } },
-    ).fetch()
-  ), [puzzleId]);
+    ).fetch(),
+    [puzzleId]
+  );
 
   const ref = useRef<HTMLDivElement>(null);
   const scrollBottomTarget = useRef<number>(0);
@@ -405,7 +406,7 @@ const ChatHistory = React.forwardRef(({
     // distance instead.
     trace('ChatHistory useLayoutEffect', {
       scrollBottomTarget: scrollBottomTarget.current,
-      action: (scrollBottomTarget.current > 10 ? 'save' : 'snap'),
+      action: scrollBottomTarget.current > 10 ? 'save' : 'snap',
       messageCount: chatMessages.length,
     });
     if (scrollBottomTarget.current > 10) {
@@ -424,7 +425,7 @@ const ChatHistory = React.forwardRef(({
         </ChatMessageDiv>
       ) : undefined}
       {chatMessages.map((msg, index, messages) => {
-        const displayName = (msg.sender !== undefined) ? displayNames[msg.sender] : 'jolly-roger';
+        const displayName = msg.sender !== undefined ? displayNames[msg.sender] : 'jolly-roger';
         // Only suppress sender and timestamp if:
         // * this is not the first message
         // * this message was sent by the same person as the previous message
@@ -737,7 +738,7 @@ const PuzzlePageMetadata = ({
     </PuzzleMetadataExternalLink>
   ) : null;
 
-  const documentLink = (document && !isDesktop) ? (
+  const documentLink = document && !isDesktop ? (
     <DocumentDisplay document={document} displayMode="link" />
   ) : null;
 

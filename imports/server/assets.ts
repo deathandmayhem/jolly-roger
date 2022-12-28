@@ -8,6 +8,7 @@ import { WebApp } from 'meteor/webapp';
 import express from 'express';
 import mime from 'mime-types';
 import BlobMappings from '../lib/models/BlobMappings';
+import expressAsyncWrapper from './expressAsyncWrapper';
 import Blobs from './models/Blobs';
 import UploadTokens from './models/UploadTokens';
 import onExit from './onExit';
@@ -135,13 +136,13 @@ router.get('/:asset', (req, res) => {
 
 const UPLOAD_TOKEN_VALIDITY_MSEC = 60000; // 60 seconds
 const UPLOAD_MAX_FILE_SIZE = 1048576; // 1 MiB
-router.post('/:uploadToken', (req, res) => {
+router.post('/:uploadToken', expressAsyncWrapper(async (req, res, next) => {
   check(req.params.uploadToken, String);
   // Look up upload token.  If missing, or too old (>1m), reject with a 403.
-  const uploadToken = UploadTokens.findOne(req.params.uploadToken);
+  const uploadToken = await UploadTokens.findOneAsync(req.params.uploadToken);
 
   // Regardless of age, once a token is presented, we should remove it.
-  UploadTokens.remove(req.params.uploadToken);
+  await UploadTokens.removeAsync(req.params.uploadToken);
 
   const now = new Date().getTime();
   if (!uploadToken || uploadToken.createdAt.getTime() + UPLOAD_TOKEN_VALIDITY_MSEC < now) {
@@ -168,33 +169,39 @@ router.post('/:uploadToken', (req, res) => {
   // Meteor.bindEnvironment) since we access Mongo stuff (Blobs) through
   // Meteor's collections.
   req.on('end', Meteor.bindEnvironment(() => {
-    // Concatenate chunks into a single buffer representing the entire file contents
-    const contents = Buffer.concat(chunks);
-    console.log(`[assets] 200 POST ${req.params.uploadToken} ${uploadToken.asset} ${contents.length} bytes`);
+    void (async () => {
+      try {
+        // Concatenate chunks into a single buffer representing the entire file contents
+        const contents = Buffer.concat(chunks);
+        console.log(`[assets] 200 POST ${req.params.uploadToken} ${uploadToken.asset} ${contents.length} bytes`);
 
-    // Compute md5 for eTag.
-    const md5 = crypto.createHash('md5').update(contents).digest('hex');
-    // Compute sha256, which is the _id of the Blob
-    const sha256 = crypto.createHash('sha256').update(contents).digest('hex');
-    // Insert the Blob
-    Blobs.upsert({ _id: sha256 }, {
-      $set: {
-        value: contents,
-        mimeType: uploadToken.mimeType,
-        md5,
-        size: contents.length,
-      },
-    });
-    // Save the mapping from asset name to the Blob we just inserted.
-    BlobMappings.upsert({ _id: uploadToken.asset }, {
-      $set: {
-        blob: sha256,
-      },
-    });
-    res.status(200).send('Upload completed.');
-    res.end();
+        // Compute md5 for eTag.
+        const md5 = crypto.createHash('md5').update(contents).digest('hex');
+        // Compute sha256, which is the _id of the Blob
+        const sha256 = crypto.createHash('sha256').update(contents).digest('hex');
+        // Insert the Blob
+        await Blobs.upsertAsync({ _id: sha256 }, {
+          $set: {
+            value: contents,
+            mimeType: uploadToken.mimeType,
+            md5,
+            size: contents.length,
+          },
+        });
+        // Save the mapping from asset name to the Blob we just inserted.
+        await BlobMappings.upsertAsync({ _id: uploadToken.asset }, {
+          $set: {
+            blob: sha256,
+          },
+        });
+        res.status(200).send('Upload completed.');
+        res.end();
+      } catch (err) {
+        next(err);
+      }
+    })();
   }));
-});
+}));
 
 app.use('/', router);
 

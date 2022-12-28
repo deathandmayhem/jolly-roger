@@ -7,7 +7,7 @@ const LoginForm = () => {
   const [format, setFormat] = useState<LoginFormFormat>(AccountFormFormat.LOGIN);
   const toggleFormat = useCallback(() => {
     setFormat((prevFormat) => {
-      const newFormat = (prevFormat === AccountFormFormat.LOGIN) ?
+      const newFormat = prevFormat === AccountFormFormat.LOGIN ?
         AccountFormFormat.REQUEST_PW_RESET :
         AccountFormFormat.LOGIN;
       return newFormat;

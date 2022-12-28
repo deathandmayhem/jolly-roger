@@ -77,8 +77,15 @@ EOF
 COPY .meteor /app/.meteor
 RUN METEOR_ALLOW_SUPERUSER=1 meteor list
 # Install app deps
-COPY package.json package-lock.json /app
-RUN --mount=type=cache,target=/root/.npm meteor npm ci
+COPY package.json package-lock.json tsconfig.json /app
+COPY eslint /app/eslint
+RUN --mount=type=cache,target=/root/.npm <<'EOF'
+#!/bin/bash
+set -eux
+set -o pipefail
+meteor npm ci
+meteor npm run prepare
+EOF
 
 COPY . /app
 

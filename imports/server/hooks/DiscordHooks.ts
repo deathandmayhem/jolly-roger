@@ -9,13 +9,13 @@ import Tags from '../../lib/models/Tags';
 import { DiscordBot } from '../discord';
 import Hookset from './Hookset';
 
-function makeDiscordBotFromSettings(): DiscordBot | undefined {
+async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   // Above all else, obey the circuit breaker
   if (Flags.active('disable.discord')) {
     return undefined;
   }
 
-  const botSettings = Settings.findOne({ name: 'discord.bot' });
+  const botSettings = await Settings.findOneAsync({ name: 'discord.bot' });
   if (!botSettings || botSettings.name !== 'discord.bot') {
     return undefined;
   }
@@ -30,20 +30,17 @@ function makeDiscordBotFromSettings(): DiscordBot | undefined {
 
 const DiscordHooks: Hookset = {
   async onPuzzleCreated(puzzleId: string) {
-    const bot = makeDiscordBotFromSettings();
+    const bot = await makeDiscordBotFromSettings();
     if (!bot) {
       return;
     }
 
-    const puzzle = Puzzles.findOne(puzzleId)!;
-    const hunt = Hunts.findOne(puzzle.hunt)!;
+    const puzzle = (await Puzzles.findOneAsync(puzzleId))!;
+    const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
       const title = `${puzzle.title} unlocked`;
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
-      const tagNameList = puzzle.tags.map((tId) => {
-        const t = Tags.findOne(tId);
-        return t ? t.name : '';
-      }).filter((t) => t.length > 0);
+      const tagNameList = await Tags.find({ _id: { $in: puzzle.tags } }).mapAsync((t) => t.name);
       const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(', ');
       const fields = tags.length > 0 ? [{ name: 'Tags', value: tags, inline: true }] : undefined;
       const messageObj = {
@@ -58,13 +55,13 @@ const DiscordHooks: Hookset = {
   },
 
   async onPuzzleSolved(puzzleId: string) {
-    const bot = makeDiscordBotFromSettings();
+    const bot = await makeDiscordBotFromSettings();
     if (!bot) {
       return;
     }
 
-    const puzzle = Puzzles.findOne(puzzleId)!;
-    const hunt = Hunts.findOne(puzzle.hunt)!;
+    const puzzle = (await Puzzles.findOneAsync(puzzleId))!;
+    const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
       const answers = puzzle.answers.map((answer) => `\`${answer}\``).join(', ');
@@ -86,15 +83,15 @@ const DiscordHooks: Hookset = {
     }
   },
 
-  onChatMessageCreated(chatMessageId: string) {
-    const bot = makeDiscordBotFromSettings();
+  async onChatMessageCreated(chatMessageId: string) {
+    const bot = await makeDiscordBotFromSettings();
     if (!bot) {
       return;
     }
 
-    const chatMessage = ChatMessages.findOne(chatMessageId)!;
-    const puzzle = Puzzles.findOne(chatMessage.puzzle)!;
-    const hunt = Hunts.findOne(chatMessage.hunt)!;
+    const chatMessage = (await ChatMessages.findOneAsync(chatMessageId))!;
+    const puzzle = (await Puzzles.findOneAsync(chatMessage.puzzle))!;
+    const hunt = (await Hunts.findOneAsync(chatMessage.hunt))!;
     if (hunt.firehoseDiscordChannel) {
       const channel = hunt.firehoseDiscordChannel.id;
 
@@ -103,7 +100,7 @@ const DiscordHooks: Hookset = {
         name = 'Jolly Roger';
       } else {
         name = chatMessage.sender;
-        const user = MeteorUsers.findOne(chatMessage.sender);
+        const user = await MeteorUsers.findOneAsync(chatMessage.sender);
         if (user?.discordAccount) {
           name = user.discordAccount.username;
         } else if (user?.displayName) {

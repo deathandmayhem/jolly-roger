@@ -18,7 +18,7 @@ syncHuntDiscordRole.define({
       throw new Meteor.Error(401, `User ${this.userId} not permitted to access Discord bot APIs`);
     }
 
-    const userIds = MeteorUsers.find({ hunts: huntId }).fetch().map((u) => u._id);
+    const userIds = (await MeteorUsers.find({ hunts: huntId }).fetchAsync()).map((u) => u._id);
     await addUsersToDiscordRole(userIds, huntId);
   },
 });

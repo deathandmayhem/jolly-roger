@@ -12,7 +12,7 @@ async function dropIndex<T extends Document>(
   // index already exists
   const collection = model.rawCollection();
   if (await collection.indexExists(index)) {
-    model._dropIndex(index);
+    await model.dropIndexAsync(index);
   }
 }
 

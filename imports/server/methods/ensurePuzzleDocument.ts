@@ -17,8 +17,8 @@ ensurePuzzleDocument.define({
   async run({ puzzleId }) {
     check(this.userId, String);
 
-    const user = MeteorUsers.findOne(this.userId)!;
-    const puzzle = Puzzles.findOne(puzzleId);
+    const user = (await MeteorUsers.findOneAsync(this.userId))!;
+    const puzzle = await Puzzles.findOneAsync(puzzleId);
     if (!puzzle || !user.hunts?.includes(puzzle.hunt)) {
       throw new Meteor.Error(404, 'Unknown puzzle');
     }

@@ -12,14 +12,14 @@ configureTeamName.define({
     return arg;
   },
 
-  run({ teamName }) {
+  async run({ teamName }) {
     check(this.userId, String);
     if (!userMayConfigureTeamName(this.userId)) {
       throw new Meteor.Error(401, 'Must be admin to configure team name');
     }
 
     if (teamName) {
-      Settings.upsert({ name: 'teamname' }, {
+      await Settings.upsertAsync({ name: 'teamname' }, {
         $set: {
           value: {
             teamName,
@@ -27,7 +27,7 @@ configureTeamName.define({
         },
       });
     } else {
-      Settings.remove({ name: 'teamname' });
+      await Settings.removeAsync({ name: 'teamname' });
     }
   },
 });

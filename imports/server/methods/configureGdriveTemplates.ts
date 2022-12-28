@@ -13,7 +13,7 @@ configureGdriveTemplates.define({
     return arg;
   },
 
-  run({ spreadsheetTemplate, documentTemplate }) {
+  async run({ spreadsheetTemplate, documentTemplate }) {
     check(this.userId, String);
 
     // Only let the same people that can credential gdrive configure templates,
@@ -25,21 +25,21 @@ configureGdriveTemplates.define({
     // In an ideal world, maybe we'd verify that the document IDs we were given
     // are actually like valid documents that we can reach or something.
     if (spreadsheetTemplate) {
-      Settings.upsert(
+      await Settings.upsertAsync(
         { name: 'gdrive.template.spreadsheet' },
         { $set: { value: { id: spreadsheetTemplate } } }
       );
     } else {
-      Settings.remove({ name: 'gdrive.template.spreadsheet' });
+      await Settings.removeAsync({ name: 'gdrive.template.spreadsheet' });
     }
 
     if (documentTemplate) {
-      Settings.upsert(
+      await Settings.upsertAsync(
         { name: 'gdrive.template.document' },
         { $set: { value: { id: documentTemplate } } }
       );
     } else {
-      Settings.remove({ name: 'gdrive.template.document' });
+      await Settings.removeAsync({ name: 'gdrive.template.document' });
     }
   },
 });

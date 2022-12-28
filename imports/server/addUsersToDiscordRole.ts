@@ -10,10 +10,10 @@ export default async (userIds: string[], huntId: string) => {
     Ansible.log('Can not add users to Discord role because Discord is disabled by feature flag', { userIds, huntId });
   }
 
-  const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
+  const discordGuildDoc = await Settings.findOneAsync({ name: 'discord.guild' });
   const guild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' && discordGuildDoc.value.guild;
 
-  const discordBotTokenDoc = Settings.findOne({ name: 'discord.bot' });
+  const discordBotTokenDoc = await Settings.findOneAsync({ name: 'discord.bot' });
   const botToken = discordBotTokenDoc && discordBotTokenDoc.name === 'discord.bot' && discordBotTokenDoc.value.token;
 
   if (!guild || !botToken) {
@@ -21,7 +21,7 @@ export default async (userIds: string[], huntId: string) => {
     return;
   }
 
-  const hunt = Hunts.findOne(huntId);
+  const hunt = await Hunts.findOneAsync(huntId);
   if (!hunt) {
     Ansible.log('Hunt does not exist', { huntId });
     return;
@@ -47,7 +47,7 @@ export default async (userIds: string[], huntId: string) => {
       await discord.addUserToRole(user.discordAccount.id, guild.id, roleId);
       Ansible.log('Successfully added user to Discord role', { userId, huntId, roleId });
     } catch (e) {
-      Ansible.log('Error while adding user to Discord role', { err: (e instanceof Error ? e.message : e) });
+      Ansible.log('Error while adding user to Discord role', { err: e instanceof Error ? e.message : e });
     }
   }, Promise.resolve());
 };

@@ -17,7 +17,7 @@ removePuzzleAnswer.define({
   async run({ puzzleId, guessId }) {
     check(this.userId, String);
 
-    const puzzle = Puzzles.findOne({
+    const puzzle = await Puzzles.findOneAsync({
       _id: puzzleId,
     }, {
       fields: {
@@ -25,12 +25,12 @@ removePuzzleAnswer.define({
       },
     });
     const huntId = puzzle?.hunt;
-    const hunt = Hunts.findOne({ _id: huntId });
+    const hunt = await Hunts.findOneAsync({ _id: huntId });
     if (!huntId || !hunt || hunt.hasGuessQueue) {
       throw new Error(`Hunt ${huntId} does not support self-service answers`);
     }
 
-    const guess = Guesses.findOne({ puzzle: puzzleId, _id: guessId });
+    const guess = await Guesses.findOneAsync({ puzzle: puzzleId, _id: guessId });
     if (!guess) return;
     await transitionGuess(guess, 'incorrect');
   },

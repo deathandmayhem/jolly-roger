@@ -15,7 +15,7 @@ mediasoupConnectTransport.define({
     return arg;
   },
 
-  run({ transportId, dtlsParameters }) {
+  async run({ transportId, dtlsParameters }) {
     if (!this.userId) {
       throw new Meteor.Error(401, 'Not logged in');
     }
@@ -24,7 +24,7 @@ mediasoupConnectTransport.define({
       throw new Meteor.Error(403, 'WebRTC disabled');
     }
 
-    const transport = Transports.findOne(transportId);
+    const transport = await Transports.findOneAsync(transportId);
     if (!transport) {
       throw new Meteor.Error(404, 'Transport not found');
     }
@@ -33,7 +33,7 @@ mediasoupConnectTransport.define({
       throw new Meteor.Error(403, 'Not allowed');
     }
 
-    ConnectRequests.insert({
+    await ConnectRequests.insertAsync({
       createdServer: serverId,
       routedServer: transport.createdServer,
       call: transport.call,

@@ -23,12 +23,12 @@ updatePuzzle.define({
     return arg;
   },
 
-  run({
+  async run({
     puzzleId, title, url, tags, expectedAnswerCount,
   }) {
     check(this.userId, String);
 
-    const oldPuzzle = Puzzles.findOneAllowingDeleted(puzzleId);
+    const oldPuzzle = await Puzzles.findOneAllowingDeletedAsync(puzzleId);
     if (!oldPuzzle) {
       throw new Meteor.Error(404, 'Unknown puzzle id');
     }
@@ -40,9 +40,9 @@ updatePuzzle.define({
     }
 
     // Look up each tag by name and map them to tag IDs.
-    const tagIds = tags.map((tagName) => {
-      return getOrCreateTagByName(oldPuzzle.hunt, tagName)._id;
-    });
+    const tagIds = await Promise.all(tags.map(async (tagName) => {
+      return (await getOrCreateTagByName(oldPuzzle.hunt, tagName))._id;
+    }));
 
     Ansible.log('Updating a puzzle', {
       hunt: oldPuzzle.hunt,
@@ -64,12 +64,12 @@ updatePuzzle.define({
     } else {
       update.$unset = { url: '' };
     }
-    Puzzles.update(puzzleId, update);
+    await Puzzles.updateAsync(puzzleId, update);
 
     if (oldPuzzle.title !== title) {
       Meteor.defer(Meteor.bindEnvironment(async () => {
         const doc = await ensureDocument({ _id: puzzleId, title, hunt: oldPuzzle.hunt });
-        const teamName = getTeamName();
+        const teamName = await getTeamName();
         await renameDocument(doc.value.id, `${title}: ${teamName}`);
       }));
     }

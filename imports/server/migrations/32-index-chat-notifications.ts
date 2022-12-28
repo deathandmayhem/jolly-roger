@@ -4,8 +4,8 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 32,
   name: 'Add indexes on ChatNotifications',
-  up() {
+  async up() {
     // Ensure that the query pattern in chat-notifications.ts is indexed.
-    ChatNotifications.createIndex({ deleted: 1, user: 1 });
+    await ChatNotifications.createIndexAsync({ deleted: 1, user: 1 });
   },
 });

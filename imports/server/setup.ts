@@ -5,22 +5,22 @@ import Settings from '../lib/models/Settings';
 import UploadTokens from './models/UploadTokens';
 
 // Clean up upload tokens that didn't get used within a minute
-function cleanupUploadTokens() {
+async function cleanupUploadTokens() {
   const oldestValidTime = new Date(Date.now() - 60 * 1000);
-  UploadTokens.remove({ createdAt: { $lt: oldestValidTime } });
+  await UploadTokens.removeAsync({ createdAt: { $lt: oldestValidTime } });
 }
-function periodic() {
+async function periodic() {
   Meteor.setTimeout(periodic, 15000 + (15000 * Random.fraction()));
-  cleanupUploadTokens();
+  await cleanupUploadTokens();
 }
 Meteor.startup(() => periodic());
 
-Meteor.publish('hasUsers', function () {
+Meteor.publish('hasUsers', async function () {
   // Publish a pseudo-collection which just communicates if there are any users
   // at all, so we can either guide users through the server setup flow or just
   // point them at the login page.
   const cursor = MeteorUsers.find();
-  if (cursor.count() > 0) {
+  if (await cursor.countAsync() > 0) {
     this.added('hasUsers', 'hasUsers', { hasUsers: true });
   } else {
     let handle: Meteor.LiveQueryHandle | undefined = cursor.observeChanges({

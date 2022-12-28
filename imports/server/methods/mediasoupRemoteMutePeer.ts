@@ -14,7 +14,7 @@ mediasoupRemoteMutePeer.define({
     return arg;
   },
 
-  run({ peerId }) {
+  async run({ peerId }) {
     if (!this.userId) {
       throw new Meteor.Error(401, 'Not logged in');
     }
@@ -23,12 +23,12 @@ mediasoupRemoteMutePeer.define({
       throw new Meteor.Error(403, 'WebRTC disabled');
     }
 
-    const peer = Peers.findOne({ _id: peerId });
+    const peer = await Peers.findOneAsync({ _id: peerId });
     if (!peer) {
       throw new Meteor.Error(404, 'Peer ID for remote peer not found');
     }
 
-    const selfPeer = Peers.findOne({ call: peer.call, createdBy: this.userId });
+    const selfPeer = await Peers.findOneAsync({ call: peer.call, createdBy: this.userId });
     if (!selfPeer) {
       throw new Meteor.Error(404, "You can't mute a peer when you're not in the call");
     }
@@ -37,19 +37,19 @@ mediasoupRemoteMutePeer.define({
       throw new Meteor.Error(403, 'Remote peer is already muted');
     }
 
-    PeerRemoteMutes.insert({
+    await PeerRemoteMutes.insertAsync({
       call: peer.call,
       peer: peer._id,
     });
 
-    ProducerClients.update({
+    await ProducerClients.updateAsync({
       peer: peer._id,
     }, {
       $set: {
         paused: true,
       },
     }, { multi: true });
-    Peers.update(peer._id, {
+    await Peers.updateAsync(peer._id, {
       $set: {
         remoteMutedBy: this.userId,
         muted: true,

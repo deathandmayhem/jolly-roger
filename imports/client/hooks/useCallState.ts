@@ -666,7 +666,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
       producerState.kind = kind;
       producerState.rtpParameters = JSON.stringify(rtpParameters);
       producerState.producerServerCallback = callback;
-      setProducerParamsGeneration((prevValue) => (prevValue + 1));
+      setProducerParamsGeneration((prevValue) => prevValue + 1);
     }
   }, []);
   // eslint-disable-next-line consistent-return

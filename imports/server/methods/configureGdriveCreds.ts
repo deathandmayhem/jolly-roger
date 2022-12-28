@@ -15,7 +15,7 @@ configureGdriveCreds.define({
     return arg;
   },
 
-  run({ key, secret }) {
+  async run({ key, secret }) {
     check(this.userId, String);
 
     if (!userMayConfigureGdrive(this.userId)) {
@@ -28,7 +28,7 @@ configureGdriveCreds.define({
       email,
       user: this.userId,
     });
-    Settings.upsert(
+    await Settings.upsertAsync(
       { name: 'gdrive.credential' },
       { $set: { value: { refreshToken, email } } }
     );

@@ -16,7 +16,7 @@ configureEmailBranding.define({
     return arg;
   },
 
-  run({
+  async run({
     from, enrollSubject, enrollMessage, joinSubject, joinMessage,
   }) {
     check(this.userId, String);
@@ -32,7 +32,7 @@ configureEmailBranding.define({
       existingJoinMessageTemplate: joinMessage,
     };
 
-    Settings.upsert({ name: 'email.branding' }, {
+    await Settings.upsertAsync({ name: 'email.branding' }, {
       $set: {
         name: 'email.branding',
         value,

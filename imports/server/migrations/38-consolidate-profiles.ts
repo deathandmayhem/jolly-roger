@@ -20,12 +20,12 @@ const Profiles = new Mongo.Collection<
 Migrations.add({
   version: 38,
   name: 'Consolidate profiles onto MeteorUsers',
-  up() {
-    MeteorUsers.find({ profile: { $ne: null as any } }).forEach((u) => {
-      MeteorUsers.update(u._id, { $unset: { profile: 1 } }, { validate: false } as any);
-    });
+  async up() {
+    for await (const u of MeteorUsers.find({ profile: { $ne: null as any } })) {
+      await MeteorUsers.updateAsync(u._id, { $unset: { profile: 1 } }, { validate: false } as any);
+    }
 
-    Profiles.find({}).forEach((profile) => {
+    for await (const profile of Profiles.find({})) {
       const {
         displayName,
         googleAccount,
@@ -33,7 +33,7 @@ Migrations.add({
         phoneNumber,
         dingwords,
       } = profile;
-      MeteorUsers.update(profile._id, {
+      await MeteorUsers.updateAsync(profile._id, {
         $set: {
           profile: {
             displayName,
@@ -48,11 +48,11 @@ Migrations.add({
         clean: false,
         filter: false,
       } as any);
-    });
+    }
 
     // Add indexes to match the old profiles model
-    MeteorUsers.createIndex({ 'profile.displayName': 1 });
-    MeteorUsers.createIndex({ _id: 1, 'profile.displayName': 1 });
-    MeteorUsers.createIndex({ _id: 1, 'profile.dingwords': 1 });
+    await MeteorUsers.createIndexAsync({ 'profile.displayName': 1 });
+    await MeteorUsers.createIndexAsync({ _id: 1, 'profile.displayName': 1 });
+    await MeteorUsers.createIndexAsync({ _id: 1, 'profile.dingwords': 1 });
   },
 });

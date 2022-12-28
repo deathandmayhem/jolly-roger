@@ -102,7 +102,7 @@ const AccountForm = (props: AccountFormProps) => {
     Meteor.loginWithPassword(email, password, (error?: Error) => {
       if (error) {
         setSubmitState(AccountFormSubmitState.FAILED);
-        setErrorMessage((error instanceof Meteor.Error) ? error.reason : error.message);
+        setErrorMessage(error instanceof Meteor.Error ? error.reason : error.message);
       } else {
         setSubmitState(AccountFormSubmitState.SUCCESS);
         setSuccessMessage('Logged in successfully.');
@@ -115,7 +115,7 @@ const AccountForm = (props: AccountFormProps) => {
     Accounts.forgotPassword({ email }, (error?: Error) => {
       if (error) {
         setSubmitState(AccountFormSubmitState.FAILED);
-        setErrorMessage((error instanceof Meteor.Error) ? error.reason : error.message);
+        setErrorMessage(error instanceof Meteor.Error ? error.reason : error.message);
       } else {
         setSubmitState(AccountFormSubmitState.SUCCESS);
         setSuccessMessage('Password reset email sent.');
@@ -128,7 +128,7 @@ const AccountForm = (props: AccountFormProps) => {
     Accounts.resetPassword(token, password, (error?: Error) => {
       if (error) {
         setSubmitState(AccountFormSubmitState.FAILED);
-        setErrorMessage((error instanceof Meteor.Error) ? error.reason : error.message);
+        setErrorMessage(error instanceof Meteor.Error ? error.reason : error.message);
       } else {
         setSubmitState(AccountFormSubmitState.SUCCESS);
         setSuccessMessage('Password reset successfully');
@@ -147,13 +147,13 @@ const AccountForm = (props: AccountFormProps) => {
     Accounts.resetPassword(token, password, (error?: Error) => {
       if (error) {
         setSubmitState(AccountFormSubmitState.FAILED);
-        setErrorMessage((error instanceof Meteor.Error) ? error.reason : error.message);
+        setErrorMessage(error instanceof Meteor.Error ? error.reason : error.message);
       } else {
         updateProfile.call(newProfile, (innerError?: Error) => {
           if (innerError) {
             // This user will have to set their profile manually later.  Oh well.
             setSubmitState(AccountFormSubmitState.FAILED);
-            setErrorMessage((innerError instanceof Meteor.Error) ? innerError.reason : innerError.message);
+            setErrorMessage(innerError instanceof Meteor.Error ? innerError.reason : innerError.message);
           } else {
             setSubmitState(AccountFormSubmitState.SUCCESS);
             setSuccessMessage('Created account successfully');

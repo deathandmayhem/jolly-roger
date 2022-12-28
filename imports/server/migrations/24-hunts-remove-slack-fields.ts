@@ -4,14 +4,14 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 24,
   name: 'Remove Slack-related fields from Hunts',
-  up() {
-    Hunts.find({
+  async up() {
+    for await (const h of Hunts.find({
       $or: [
         { firehoseSlackChannel: { $exists: true } },
         { puzzleHooksSlackChannel: { $exists: true } },
       ],
-    }).forEach((h: any) => {
-      Hunts.update(h._id, {
+    }) as any) {
+      await Hunts.updateAsync(h._id, {
         $unset: {
           firehoseSlackChannel: '',
           puzzleHooksSlackChannel: '',
@@ -20,6 +20,6 @@ Migrations.add({
         validate: false,
         getAutoValues: false,
       });
-    });
+    }
   },
 });

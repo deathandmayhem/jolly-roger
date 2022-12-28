@@ -16,7 +16,7 @@ const ResolvedProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boole
   const user = useTracker(() => MeteorUsers.findOne(userId)!, [userId]);
 
   useBreadcrumb({
-    title: loading ? 'loading...' : (user.displayName ?? 'Profile settings'),
+    title: loading ? 'loading...' : user.displayName ?? 'Profile settings',
     path: `/users/${userId}`,
   });
 

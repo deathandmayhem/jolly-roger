@@ -26,7 +26,7 @@ import WorkerPool from './WorkerPool';
 // from the main process as usual.
 const getWorkersCount = () => {
   const maybeWorkerCountString = process.env.CLUSTER_WORKERS_COUNT;
-  if ((`${maybeWorkerCountString}`).toLowerCase() === 'auto') {
+  if (`${maybeWorkerCountString}`.toLowerCase() === 'auto') {
     const cpuCount = os.cpus().length;
     if (cpuCount === 1) {
       // No need to start a separate worker if we're only running 1

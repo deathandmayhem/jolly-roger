@@ -14,7 +14,7 @@ configureGoogleOAuthClient.define({
     return arg;
   },
 
-  run({ clientId, secret }) {
+  async run({ clientId, secret }) {
     check(this.userId, String);
 
     if (!userMayConfigureGoogleOAuth(this.userId)) {
@@ -25,7 +25,7 @@ configureGoogleOAuthClient.define({
       clientId,
       user: this.userId,
     });
-    ServiceConfiguration.configurations.upsert({ service: 'google' }, {
+    await ServiceConfiguration.configurations.upsertAsync({ service: 'google' }, {
       $set: {
         clientId,
         secret,
