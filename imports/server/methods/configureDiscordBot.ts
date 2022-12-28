@@ -24,7 +24,7 @@ configureDiscordBot.define({
       Ansible.log('Configuring discord bot token (token redacted)', {
         user: this.userId,
       });
-      Settings.upsert(
+      await Settings.upsertAsync(
         { name: 'discord.bot' },
         { $set: { 'value.token': token } }
       );
@@ -32,7 +32,7 @@ configureDiscordBot.define({
       Ansible.log('Discarding discord bot token', {
         user: this.userId,
       });
-      Settings.remove({ name: 'discord.bot' });
+      await Settings.removeAsync({ name: 'discord.bot' });
     }
   },
 });

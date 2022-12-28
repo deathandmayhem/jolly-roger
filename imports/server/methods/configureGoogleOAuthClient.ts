@@ -25,7 +25,7 @@ configureGoogleOAuthClient.define({
       clientId,
       user: this.userId,
     });
-    ServiceConfiguration.configurations.upsert({ service: 'google' }, {
+    await ServiceConfiguration.configurations.upsertAsync({ service: 'google' }, {
       $set: {
         clientId,
         secret,

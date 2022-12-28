@@ -25,13 +25,13 @@ import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import Locks from './models/Locks';
 
 registerPeriodicCleanupHook(async (deadServers) => {
-  Peers.remove({ createdServer: { $in: deadServers } });
+  await Peers.removeAsync({ createdServer: { $in: deadServers } });
 
   // Deleting a room creates a potential inconsistency, since we might still
   // have peers on other servers. Therefore, take out a lock to make sure we
   // see a consistent view (and everyone else does too), then check if there
   // are still peers joined to this room
-  await Rooms.find({ routedServer: { $in: deadServers } }).fetch().reduce(async (p, room) => {
+  await (await Rooms.find({ routedServer: { $in: deadServers } }).fetchAsync()).reduce(async (p, room) => {
     await p;
     await Locks.withLock(`mediasoup:room:${room.call}`, async () => {
       const removed = !!await Rooms.removeAsync(room._id);
@@ -221,12 +221,12 @@ Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
     throw new Meteor.Error(403, 'WebRTC disabled');
   }
 
-  const peer = Peers.findOne(peerId);
+  const peer = await Peers.findOneAsync(peerId);
   if (!peer) {
     throw new Meteor.Error(404, 'Peer not found');
   }
 
-  const router = Routers.findOne({ call: peer.call });
+  const router = await Routers.findOneAsync({ call: peer.call });
   if (!router) {
     throw new Meteor.Error(404, 'Router not found');
   }
@@ -235,7 +235,7 @@ Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
     throw new Meteor.Error(403, 'Not allowed');
   }
 
-  const transportRequest = TransportRequests.insert({
+  const transportRequest = await TransportRequests.insertAsync({
     createdServer: serverId,
     routedServer: router.createdServer,
     call: peer.call,
@@ -244,10 +244,10 @@ Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
   });
 
   this.onStop(() => {
-    TransportRequests.remove(transportRequest);
-    ConnectRequests.remove({ transportRequest });
-    ConnectAcks.remove({ transportRequest });
-    ConsumerAcks.remove({ transportRequest });
+    await TransportRequests.removeAsync(transportRequest);
+    await ConnectRequests.removeAsync({ transportRequest });
+    await ConnectAcks.removeAsync({ transportRequest });
+    await ConsumerAcks.removeAsync({ transportRequest });
   });
 
   return [
@@ -275,7 +275,7 @@ Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpPa
     throw new Meteor.Error(403, 'WebRTC disabled');
   }
 
-  const transport = Transports.findOne(transportId);
+  const transport = await Transports.findOneAsync(transportId);
   if (!transport) {
     throw new Meteor.Error(404, 'Transport not found');
   }
@@ -284,7 +284,7 @@ Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpPa
     throw new Meteor.Error(403, 'Not allowed');
   }
 
-  const producerClientId = ProducerClients.insert({
+  const producerClientId = await ProducerClients.insertAsync({
     createdServer: serverId,
     routedServer: transport.createdServer,
     call: transport.call,
@@ -298,7 +298,7 @@ Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpPa
   });
 
   this.onStop(() => {
-    ProducerClients.remove(producerClientId);
+    await ProducerClients.removeAsync(producerClientId);
   });
 
   return [

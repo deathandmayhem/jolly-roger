@@ -17,7 +17,7 @@ function registerPeriodicCleanupHook(f: (deadServers: string[]) => void | Promis
 }
 
 async function cleanup() {
-  Servers.upsert({ _id: serverId }, {
+  await Servers.upsertAsync({ _id: serverId }, {
     $set: {
       pid: process.pid,
       hostname: os.hostname(),
@@ -30,8 +30,8 @@ async function cleanup() {
   // should be quick enough to recover without users noticing too much
   // interruption, but long enough to account for transient blocking.
   const timeout = new Date(Date.now() - 5 * 1000);
-  const deadServers = Servers.find({ updatedAt: { $lt: timeout } })
-    .map((server) => server._id);
+  const deadServers = await Servers.find({ updatedAt: { $lt: timeout } })
+    .mapAsync((server) => server._id);
   if (deadServers.length === 0) {
     return;
   }
@@ -43,7 +43,7 @@ async function cleanup() {
   }, Promise.resolve());
 
   // Delete the record of the server, now that we've cleaned up after it.
-  Servers.remove({ _id: { $in: deadServers } });
+  await Servers.removeAsync({ _id: { $in: deadServers } });
 }
 
 function periodic() {

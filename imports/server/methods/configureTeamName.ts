@@ -19,7 +19,7 @@ configureTeamName.define({
     }
 
     if (teamName) {
-      Settings.upsert({ name: 'teamname' }, {
+      await Settings.upsertAsync({ name: 'teamname' }, {
         $set: {
           value: {
             teamName,
@@ -27,7 +27,7 @@ configureTeamName.define({
         },
       });
     } else {
-      Settings.remove({ name: 'teamname' });
+      await Settings.removeAsync({ name: 'teamname' });
     }
   },
 });

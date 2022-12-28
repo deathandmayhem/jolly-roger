@@ -161,7 +161,7 @@ class MigrationRegistry {
     //
     // If there is a record in the database, then its version indicates the
     // number of migrations that have been run to completion successfully.
-    const control = this.collection.findOne({ _id: 'control' });
+    const control = await this.collection.findOneAsync({ _id: 'control' });
     if (control === undefined) {
       await this.ensureControlCreated();
       // Query again because we're not holding a lock.

@@ -6,7 +6,7 @@ Migrations.add({
   name: 'Add hasGuessQueue to Hunt model for whether to have a guess queue or direct answers',
   up() {
     Hunts.find({}).forEach((hunt) => {
-      Hunts.update(hunt._id, {
+      await Hunts.updateAsync(hunt._id, {
         $set: { hasGuessQueue: true },
       }, <any>{
         validate: false,

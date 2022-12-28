@@ -18,7 +18,7 @@ undestroyPuzzle.define({
   async run({ puzzleId }) {
     check(this.userId, String);
 
-    const puzzle = Puzzles.findOneDeleted(puzzleId);
+    const puzzle = await Puzzles.findOneDeletedAsync(puzzleId);
     if (!puzzle) {
       throw new Meteor.Error(404, 'Unknown puzzle id');
     }
@@ -29,7 +29,7 @@ undestroyPuzzle.define({
       );
     }
 
-    Puzzles.update(puzzleId, {
+    await Puzzles.updateAsync(puzzleId, {
       $set: {
         deleted: false,
       },
@@ -46,7 +46,7 @@ undestroyPuzzle.define({
       return;
     }
 
-    const document = Documents.findOne({ puzzle: puzzleId });
+    const document = await Documents.findOneAsync({ puzzle: puzzleId });
 
     if (document) {
       await makeReadWrite(document.value.id);

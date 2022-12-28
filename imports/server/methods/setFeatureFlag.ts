@@ -17,6 +17,6 @@ setFeatureFlag.define({
     // Feature flags may only be updated by admins
     checkAdmin(this.userId);
 
-    FeatureFlags.upsert({ name }, { $set: { type } });
+    await FeatureFlags.upsertAsync({ name }, { $set: { type } });
   },
 });

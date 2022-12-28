@@ -16,51 +16,51 @@ Migrations.add({
   version: 34,
   name: 'Add indexes to mediasoup collections',
   up() {
-    Rooms.createIndex({ call: 1 }, { unique: true });
-    Rooms.createIndex({ routedServer: 1 });
+    await Rooms.createIndexAsync({ call: 1 }, { unique: true });
+    await Rooms.createIndexAsync({ routedServer: 1 });
 
-    Routers.createIndex({ call: 1 }, { unique: true });
-    Routers.createIndex({ routerId: 1 });
-    Routers.createIndex({ createdServer: 1 });
+    await Routers.createIndexAsync({ call: 1 }, { unique: true });
+    await Routers.createIndexAsync({ routerId: 1 });
+    await Routers.createIndexAsync({ createdServer: 1 });
 
-    Peers.createIndex({ hunt: 1, call: 1, tab: 1 }, { unique: true });
-    Peers.createIndex({ call: 1, createdAt: 1 });
-    Peers.createIndex({ createdServer: 1 });
+    await Peers.createIndexAsync({ hunt: 1, call: 1, tab: 1 }, { unique: true });
+    await Peers.createIndexAsync({ call: 1, createdAt: 1 });
+    await Peers.createIndexAsync({ createdServer: 1 });
 
-    TransportRequests.createIndex({ createdServer: 1 });
-    TransportRequests.createIndex({ routedServer: 1 });
+    await TransportRequests.createIndexAsync({ createdServer: 1 });
+    await TransportRequests.createIndexAsync({ routedServer: 1 });
 
-    Transports.createIndex({ transportRequest: 1, direction: 1 }, { unique: true });
-    Transports.createIndex({ transportId: 1 });
-    Transports.createIndex({ createdServer: 1 });
+    await Transports.createIndexAsync({ transportRequest: 1, direction: 1 }, { unique: true });
+    await Transports.createIndexAsync({ transportId: 1 });
+    await Transports.createIndexAsync({ createdServer: 1 });
 
-    TransportStates.createIndex({ transportId: 1, createdServer: 1 }, { unique: true });
-    TransportStates.createIndex({ transportId: 1 });
+    await TransportStates.createIndexAsync({ transportId: 1, createdServer: 1 }, { unique: true });
+    await TransportStates.createIndexAsync({ transportId: 1 });
 
-    ConnectRequests.createIndex({ transport: 1 }, { unique: true });
-    ConnectRequests.createIndex({ createdServer: 1 });
-    ConnectRequests.createIndex({ routedServer: 1 });
-    ConnectRequests.createIndex({ peer: 1 });
+    await ConnectRequests.createIndexAsync({ transport: 1 }, { unique: true });
+    await ConnectRequests.createIndexAsync({ createdServer: 1 });
+    await ConnectRequests.createIndexAsync({ routedServer: 1 });
+    await ConnectRequests.createIndexAsync({ peer: 1 });
 
-    ConnectAcks.createIndex({ transport: 1 }, { unique: true });
-    ConnectAcks.createIndex({ peer: 1 });
-    ConnectAcks.createIndex({ createdServer: 1 });
+    await ConnectAcks.createIndexAsync({ transport: 1 }, { unique: true });
+    await ConnectAcks.createIndexAsync({ peer: 1 });
+    await ConnectAcks.createIndexAsync({ createdServer: 1 });
 
-    ProducerClients.createIndex({ transport: 1 });
-    ProducerClients.createIndex({ createdServer: 1 });
-    ProducerClients.createIndex({ routedServer: 1 });
+    await ProducerClients.createIndexAsync({ transport: 1 });
+    await ProducerClients.createIndexAsync({ createdServer: 1 });
+    await ProducerClients.createIndexAsync({ routedServer: 1 });
 
-    ProducerServers.createIndex({ producerClient: 1 }, { unique: true });
-    ProducerServers.createIndex({ transport: 1 });
-    ProducerServers.createIndex({ createdServer: 1 });
-    ProducerServers.createIndex({ producerId: 1 });
+    await ProducerServers.createIndexAsync({ producerClient: 1 }, { unique: true });
+    await ProducerServers.createIndexAsync({ transport: 1 });
+    await ProducerServers.createIndexAsync({ createdServer: 1 });
+    await ProducerServers.createIndexAsync({ producerId: 1 });
 
-    Consumers.createIndex({ peer: 1 });
-    Consumers.createIndex({ consumerId: 1 });
-    Consumers.createIndex({ createdServer: 1 });
+    await Consumers.createIndexAsync({ peer: 1 });
+    await Consumers.createIndexAsync({ consumerId: 1 });
+    await Consumers.createIndexAsync({ createdServer: 1 });
 
-    ConsumerAcks.createIndex({ consumer: 1 }, { unique: true });
-    ConsumerAcks.createIndex({ peer: 1 });
-    ConsumerAcks.createIndex({ createdServer: 1 });
+    await ConsumerAcks.createIndexAsync({ consumer: 1 }, { unique: true });
+    await ConsumerAcks.createIndexAsync({ peer: 1 });
+    await ConsumerAcks.createIndexAsync({ createdServer: 1 });
   },
 });

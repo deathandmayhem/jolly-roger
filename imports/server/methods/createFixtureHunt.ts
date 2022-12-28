@@ -20,9 +20,9 @@ createFixtureHunt.define({
     const huntId = FixtureHunt._id; // fixture hunt id
 
     // Create hunt if it doesn't exist.
-    const hunt = Hunts.findOne(huntId);
+    const hunt = await Hunts.findOneAsync(huntId);
     if (!hunt) {
-      Hunts.insert({
+      await Hunts.insertAsync({
         _id: huntId,
         name: FixtureHunt.name,
         openSignups: true,
@@ -31,11 +31,11 @@ createFixtureHunt.define({
     }
 
     // Make the user an operator
-    MeteorUsers.update(this.userId, { $addToSet: { hunts: huntId } });
+    await MeteorUsers.updateAsync(this.userId, { $addToSet: { hunts: huntId } });
     addUserToRole(this.userId, huntId, 'operator');
 
     // Create tags
-    FixtureHunt.tags.forEach(({ _id, name }) => Tags.upsert({ _id }, {
+    FixtureHunt.tags.forEach(({ _id, name }) => await Tags.upsertAsync({ _id }, {
       $set: {
         hunt: huntId,
         name,
@@ -44,7 +44,7 @@ createFixtureHunt.define({
 
     // Create puzzles associated with the hunt.  Don't bother running the puzzle hooks.
     FixtureHunt.puzzles.forEach((puzzle) => {
-      Puzzles.upsert({
+      await Puzzles.upsertAsync({
         _id: puzzle._id,
       }, {
         $set: {
@@ -58,7 +58,7 @@ createFixtureHunt.define({
       });
 
       puzzle.guesses.forEach((g) => {
-        Guesses.upsert({ _id: g._id }, {
+        await Guesses.upsertAsync({ _id: g._id }, {
           $set: {
             hunt: huntId,
             puzzle: puzzle._id,

@@ -221,6 +221,12 @@
       "parserOptions": { "project": "eslint/tsconfig.json" }
     },
     {
+      "files": "**/server/**",
+      "rules": {
+        "jolly-roger/no-sync-mongo-methods": "error"
+      }
+    },
+    {
       "files": "types/**",
       "rules": {
         // type declarations for other libraries don't get to choose their

@@ -12,7 +12,7 @@ const DingwordHooks: Hookset = {
     }
 
     // const start = Date.now();
-    const chatMessage = ChatMessages.findOne(chatMessageId)!;
+    const chatMessage = (await ChatMessages.findOneAsync(chatMessageId))!;
 
     if (!chatMessage.sender) {
       // Don't notify for system messages.
@@ -20,12 +20,12 @@ const DingwordHooks: Hookset = {
     }
 
     // Find all users who are in this hunt with dingwords set.
-    const huntMembers = MeteorUsers.find({
+    const huntMembers = await MeteorUsers.find({
       hunts: chatMessage.hunt,
       'dingwords.0': { $exists: true },
     }, {
       fields: { _id: 1, dingwords: 1 },
-    }).fetch();
+    }).fetchAsync();
 
     // For each user with dingwords, check if this message (normalized to
     // lower-case) triggers any of their dingwords.
@@ -43,7 +43,7 @@ const DingwordHooks: Hookset = {
             // It matched!  We should notify the user of this message.
 
             // console.log(`u ${p._id} dingword ${dingword} matched message ${chatMessage.text}`);
-            ChatNotifications.insert({
+            await ChatNotifications.insertAsync({
               user: u._id,
               sender: chatMessage.sender,
               puzzle: chatMessage.puzzle,

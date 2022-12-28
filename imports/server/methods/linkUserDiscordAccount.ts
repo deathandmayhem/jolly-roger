@@ -27,7 +27,7 @@ linkUserDiscordAccount.define({
     });
 
     // Save the user's credentials to their User object, under services.discord.
-    MeteorUsers.update(this.userId, {
+    await MeteorUsers.updateAsync(this.userId, {
       $set: {
         'services.discord': credential.serviceData,
       },
@@ -39,13 +39,13 @@ linkUserDiscordAccount.define({
     const userInfo = await apiClient.retrieveUserInfo();
 
     // Save user's id, identifier, and avatar to their profile.
-    MeteorUsers.update(this.userId, { $set: { discordAccount: userInfo } });
+    await MeteorUsers.updateAsync(this.userId, { $set: { discordAccount: userInfo } });
 
     // Invite the user to the guild, if one is configured.
-    const discordGuildDoc = Settings.findOne({ name: 'discord.guild' });
+    const discordGuildDoc = await Settings.findOneAsync({ name: 'discord.guild' });
     const guild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' && discordGuildDoc.value.guild;
 
-    const discordBotTokenDoc = Settings.findOne({ name: 'discord.bot' });
+    const discordBotTokenDoc = await Settings.findOneAsync({ name: 'discord.bot' });
     const botToken = discordBotTokenDoc && discordBotTokenDoc.name === 'discord.bot' && discordBotTokenDoc.value.token;
 
     if (guild && botToken) {

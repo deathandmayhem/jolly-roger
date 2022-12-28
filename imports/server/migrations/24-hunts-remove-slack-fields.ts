@@ -11,7 +11,7 @@ Migrations.add({
         { puzzleHooksSlackChannel: { $exists: true } },
       ],
     }).forEach((h: any) => {
-      Hunts.update(h._id, {
+      await Hunts.updateAsync(h._id, {
         $unset: {
           firehoseSlackChannel: '',
           puzzleHooksSlackChannel: '',

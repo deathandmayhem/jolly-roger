@@ -28,7 +28,7 @@ updatePuzzle.define({
   }) {
     check(this.userId, String);
 
-    const oldPuzzle = Puzzles.findOneAllowingDeleted(puzzleId);
+    const oldPuzzle = await Puzzles.findOneAllowingDeletedAsync(puzzleId);
     if (!oldPuzzle) {
       throw new Meteor.Error(404, 'Unknown puzzle id');
     }
@@ -64,7 +64,7 @@ updatePuzzle.define({
     } else {
       update.$unset = { url: '' };
     }
-    Puzzles.update(puzzleId, update);
+    await Puzzles.updateAsync(puzzleId, update);
 
     if (oldPuzzle.title !== title) {
       Meteor.defer(Meteor.bindEnvironment(async () => {

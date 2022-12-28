@@ -23,7 +23,7 @@ mediasoupAckConsumer.define({
       throw new Meteor.Error(403, 'WebRTC disabled');
     }
 
-    const consumer = Consumers.findOne(consumerId);
+    const consumer = await Consumers.findOneAsync(consumerId);
     if (!consumer) {
       throw new Meteor.Error(404, 'Consumer not found');
     }
@@ -32,7 +32,7 @@ mediasoupAckConsumer.define({
       throw new Meteor.Error(403, 'Not allowed');
     }
 
-    ConsumerAcks.insert({
+    await ConsumerAcks.insertAsync({
       createdServer: serverId,
       routedServer: consumer.createdServer,
       call: consumer.call,

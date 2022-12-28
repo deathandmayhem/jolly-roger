@@ -5,6 +5,6 @@ Migrations.add({
   version: 11,
   name: 'Add indexes for API keys',
   up() {
-    APIKeys.createIndex({ key: 1 });
+    await APIKeys.createIndexAsync({ key: 1 });
   },
 });

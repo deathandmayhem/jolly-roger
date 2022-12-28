@@ -24,13 +24,13 @@ createGuess.define({
   }) {
     check(this.userId, String);
 
-    const puzzle = Puzzles.findOne(puzzleId);
+    const puzzle = await Puzzles.findOneAsync(puzzleId);
 
     if (!puzzle) {
       throw new Meteor.Error(404, 'No such puzzle');
     }
 
-    const hunt = Hunts.findOne(puzzle.hunt);
+    const hunt = await Hunts.findOneAsync(puzzle.hunt);
 
     if (!hunt) {
       throw new Meteor.Error(404, 'No such hunt');
@@ -48,7 +48,7 @@ createGuess.define({
       direction,
       confidence,
     });
-    const guessId = Guesses.insert({
+    const guessId = await Guesses.insertAsync({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       guess,
@@ -57,7 +57,7 @@ createGuess.define({
       state: 'pending',
     });
 
-    const user = MeteorUsers.findOne(this.userId)!;
+    const user = (await MeteorUsers.findOneAsync(this.userId))!;
     const guesserDisplayName = user.displayName ?? '(no display name given)';
     const message = `${guesserDisplayName} submitted guess "${guess}"`;
     await sendChatMessageInternal({ puzzleId, message, sender: undefined });

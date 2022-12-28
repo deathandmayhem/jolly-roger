@@ -47,7 +47,7 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
 Accounts.onLogin((info: LoginInfo) => {
   if (!info.user?._id) throw new Meteor.Error(500, 'Something has gone horribly wrong');
   // Capture login time
-  MeteorUsers.update(info.user._id, { $set: { lastLogin: new Date() } });
+  await MeteorUsers.updateAsync(info.user._id, { $set: { lastLogin: new Date() } });
 
   if (info.type === 'resume') {
     return;
@@ -116,7 +116,7 @@ const DEFAULT_ENROLL_ACCOUNT_TEMPLATE = 'Hiya!\n' +
     'This message was sent to {{email}}';
 
 function makeView(user: Meteor.User | null, url: string) {
-  const hunts = Hunts.find({ _id: { $in: (<Meteor.User>user).hunts } }).fetch();
+  const hunts = await Hunts.find({ _id: { $in: (<Meteor.User>user).hunts } }).fetchAsync();
   const email = user?.emails?.[0]?.address;
   const huntNames = hunts.map((h) => h.name);
   const huntNamesCount = huntNames.length;

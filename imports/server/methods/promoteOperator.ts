@@ -21,7 +21,7 @@ promoteOperator.define({
       throw new Meteor.Error(401, 'Must be operator or inactive operator to make operator');
     }
 
-    const targetUser = MeteorUsers.findOne(targetUserId);
+    const targetUser = await MeteorUsers.findOneAsync(targetUserId);
     if (!targetUser) {
       throw new Meteor.Error(404, 'User not found');
     }

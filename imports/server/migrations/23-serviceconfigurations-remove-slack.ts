@@ -5,6 +5,6 @@ Migrations.add({
   version: 23,
   name: 'Remove Slack from ServiceConfigurations',
   up() {
-    ServiceConfiguration.configurations.remove({ service: 'slack' });
+    await ServiceConfiguration.configurations.removeAsync({ service: 'slack' });
   },
 });

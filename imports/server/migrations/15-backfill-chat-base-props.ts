@@ -20,7 +20,7 @@ Migrations.add({
         { hunt: null },
       ],
     }).forEach((m) => {
-      ChatMessages.update(m._id, {
+      await ChatMessages.updateAsync(m._id, {
         $set: {
           deleted: m.deleted === undefined ? false : m.deleted,
           puzzle: m.puzzle === undefined ? (<any>m).puzzleId : m.puzzle,
@@ -38,6 +38,6 @@ Migrations.add({
     });
 
     await dropIndex(ChatMessages, 'puzzleId_1_timestamp_-1');
-    ChatMessages.createIndex({ deleted: 1, puzzle: 1 });
+    await ChatMessages.createIndexAsync({ deleted: 1, puzzle: 1 });
   },
 });

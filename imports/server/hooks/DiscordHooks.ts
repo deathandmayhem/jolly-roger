@@ -15,7 +15,7 @@ function makeDiscordBotFromSettings(): DiscordBot | undefined {
     return undefined;
   }
 
-  const botSettings = Settings.findOne({ name: 'discord.bot' });
+  const botSettings = await Settings.findOneAsync({ name: 'discord.bot' });
   if (!botSettings || botSettings.name !== 'discord.bot') {
     return undefined;
   }
@@ -35,13 +35,13 @@ const DiscordHooks: Hookset = {
       return;
     }
 
-    const puzzle = Puzzles.findOne(puzzleId)!;
-    const hunt = Hunts.findOne(puzzle.hunt)!;
+    const puzzle = (await Puzzles.findOneAsync(puzzleId))!;
+    const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
       const title = `${puzzle.title} unlocked`;
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
       const tagNameList = puzzle.tags.map((tId) => {
-        const t = Tags.findOne(tId);
+        const t = await Tags.findOneAsync(tId);
         return t ? t.name : '';
       }).filter((t) => t.length > 0);
       const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(', ');
@@ -63,8 +63,8 @@ const DiscordHooks: Hookset = {
       return;
     }
 
-    const puzzle = Puzzles.findOne(puzzleId)!;
-    const hunt = Hunts.findOne(puzzle.hunt)!;
+    const puzzle = (await Puzzles.findOneAsync(puzzleId))!;
+    const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
       const answers = puzzle.answers.map((answer) => `\`${answer}\``).join(', ');
@@ -92,9 +92,9 @@ const DiscordHooks: Hookset = {
       return;
     }
 
-    const chatMessage = ChatMessages.findOne(chatMessageId)!;
-    const puzzle = Puzzles.findOne(chatMessage.puzzle)!;
-    const hunt = Hunts.findOne(chatMessage.hunt)!;
+    const chatMessage = (await ChatMessages.findOneAsync(chatMessageId))!;
+    const puzzle = (await Puzzles.findOneAsync(chatMessage.puzzle))!;
+    const hunt = (await Hunts.findOneAsync(chatMessage.hunt))!;
     if (hunt.firehoseDiscordChannel) {
       const channel = hunt.firehoseDiscordChannel.id;
 
@@ -103,7 +103,7 @@ const DiscordHooks: Hookset = {
         name = 'Jolly Roger';
       } else {
         name = chatMessage.sender;
-        const user = MeteorUsers.findOne(chatMessage.sender);
+        const user = await MeteorUsers.findOneAsync(chatMessage.sender);
         if (user?.discordAccount) {
           name = user.discordAccount.username;
         } else if (user?.displayName) {

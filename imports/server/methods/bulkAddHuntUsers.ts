@@ -23,7 +23,7 @@ bulkAddHuntUsers.define({
 
     // We'll re-do this check but if we check it now the error reporting will be
     // better
-    const hunt = Hunts.findOne(huntId);
+    const hunt = await Hunts.findOneAsync(huntId);
     if (!hunt) {
       throw new Meteor.Error(404, 'Unknown hunt');
     }

@@ -5,6 +5,6 @@ Migrations.add({
   version: 16,
   name: 'Create index for feature flags',
   up() {
-    FeatureFlags.createIndex({ name: 1 }, { unique: true });
+    await FeatureFlags.createIndexAsync({ name: 1 }, { unique: true });
   },
 });

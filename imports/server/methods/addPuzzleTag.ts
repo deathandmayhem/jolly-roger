@@ -18,7 +18,7 @@ addPuzzleTag.define({
     check(this.userId, String);
 
     // Look up which hunt the specified puzzle is from.
-    const hunt = Puzzles.findOne({
+    const hunt = await Puzzles.findOneAsync({
       _id: puzzleId,
     }, {
       fields: {
@@ -30,7 +30,7 @@ addPuzzleTag.define({
     const tagId = getOrCreateTagByName(huntId, tagName)._id;
 
     Ansible.log('Tagging puzzle', { puzzle: puzzleId, tag: tagName });
-    Puzzles.update({
+    await Puzzles.updateAsync({
       _id: puzzleId,
     }, {
       $addToSet: {

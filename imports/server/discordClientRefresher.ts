@@ -124,7 +124,7 @@ class DiscordClientRefresher {
             this.cacheResource(client, 'role', allRoles, 'roleCreate', 'roleUpdate', 'roleDelete');
 
             const updateUser = (u: Discord.User) => {
-              MeteorUsers.update({
+              await MeteorUsers.updateAsync({
                 'discordAccount.id': u.id,
               }, {
                 $set: {
@@ -175,13 +175,13 @@ class DiscordClientRefresher {
     updateEvent: UpdateEvent,
     deleteEvent: DeleteEvent,
   ) {
-    const oldIds = DiscordCache.find({ type }).map((c) => c.snowflake);
+    const oldIds = await DiscordCache.find({ type }).mapAsync((c) => c.snowflake);
     const newIds = new Set(...cache.keys());
     const toDelete = oldIds.filter((x) => !newIds.has(x));
-    DiscordCache.remove({ type, snowflake: { $in: toDelete } });
+    await DiscordCache.removeAsync({ type, snowflake: { $in: toDelete } });
 
     cache.forEach((v, k) => {
-      DiscordCache.upsert({
+      await DiscordCache.upsertAsync({
         type,
         snowflake: k,
       }, {
@@ -194,7 +194,7 @@ class DiscordClientRefresher {
     });
 
     client.on(createEvent, (Meteor.bindEnvironment((r: ResourceType) => {
-      DiscordCache.upsert({
+      await DiscordCache.upsertAsync({
         type,
         snowflake: r.id,
       }, {
@@ -206,7 +206,7 @@ class DiscordClientRefresher {
       });
     })) as any);
     client.on(updateEvent, (Meteor.bindEnvironment((_oldR: ResourceType, r: ResourceType) => {
-      DiscordCache.upsert({
+      await DiscordCache.upsertAsync({
         type,
         snowflake: r.id,
       }, {
@@ -218,7 +218,7 @@ class DiscordClientRefresher {
       });
     })) as any);
     client.on(deleteEvent, (Meteor.bindEnvironment((r: ResourceType) => {
-      DiscordCache.remove({ type, snowflake: r.id });
+      await DiscordCache.removeAsync({ type, snowflake: r.id });
     })) as any);
   }
 }

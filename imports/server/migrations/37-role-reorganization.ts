@@ -9,13 +9,13 @@ Migrations.add({
     // Casts necessary to account for schema changes
 
     MeteorUsers.find({ roles: 'inactiveOperator' } as any).forEach((user) => {
-      MeteorUsers.update(user._id, {
+      await MeteorUsers.updateAsync(user._id, {
         $push: { roles: 'operator' },
       } as any, {
         validate: false,
         filter: false,
       } as any);
-      MeteorUsers.update(user._id, {
+      await MeteorUsers.updateAsync(user._id, {
         $pull: { roles: 'inactiveOperator' },
       } as any, {
         validate: false,
@@ -37,7 +37,7 @@ Migrations.add({
         }
       });
 
-      MeteorUsers.update(user._id, {
+      await MeteorUsers.updateAsync(user._id, {
         $set: { roles: newRoles },
       }, { validate: false } as any);
     });

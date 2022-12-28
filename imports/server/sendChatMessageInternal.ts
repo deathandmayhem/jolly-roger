@@ -8,12 +8,12 @@ export default async function sendChatMessageInternal({ puzzleId, message, sende
   message: string,
   sender: string | undefined,
 }) {
-  const puzzle = Puzzles.findOne(puzzleId);
+  const puzzle = await Puzzles.findOneAsync(puzzleId);
   if (!puzzle) {
     throw new Meteor.Error(404, 'Unknown puzzle');
   }
 
-  const msgId = ChatMessages.insert({
+  const msgId = await ChatMessages.insertAsync({
     puzzle: puzzleId,
     hunt: puzzle.hunt,
     text: message,

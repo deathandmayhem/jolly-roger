@@ -26,7 +26,7 @@ configureDiscordOAuthClient.define({
       Ansible.log('Disabling discord oauth client', {
         user: this.userId,
       });
-      ServiceConfiguration.configurations.remove({ service: 'discord' });
+      await ServiceConfiguration.configurations.removeAsync({ service: 'discord' });
       return;
     }
 
@@ -48,7 +48,7 @@ configureDiscordOAuthClient.define({
     });
 
     if (resp.ok) {
-      ServiceConfiguration.configurations.upsert({ service: 'discord' }, {
+      await ServiceConfiguration.configurations.upsertAsync({ service: 'discord' }, {
         $set: {
           appId: clientId,
           secret: clientSecret,

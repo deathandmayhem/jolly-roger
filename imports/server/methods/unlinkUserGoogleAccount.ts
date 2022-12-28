@@ -5,6 +5,6 @@ import unlinkUserGoogleAccount from '../../methods/unlinkUserGoogleAccount';
 unlinkUserGoogleAccount.define({
   run() {
     check(this.userId, String);
-    MeteorUsers.update(this.userId, { $unset: { googleAccount: 1 } });
+    await MeteorUsers.updateAsync(this.userId, { $unset: { googleAccount: 1 } });
   },
 });

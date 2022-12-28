@@ -24,12 +24,12 @@ mediasoupSetProducerPaused.define({
       throw new Meteor.Error(403, 'WebRTC disabled');
     }
 
-    const producerServer = ProducerServers.findOne({ producerId: mediasoupProducerId });
+    const producerServer = await ProducerServers.findOneAsync({ producerId: mediasoupProducerId });
     if (!producerServer) {
       throw new Meteor.Error(404, 'Producer not found');
     }
 
-    const producerClient = ProducerClients.findOne(producerServer.producerClient);
+    const producerClient = await ProducerClients.findOneAsync(producerServer.producerClient);
     if (!producerClient) {
       // This really shouldn't happen
       throw new Meteor.Error(500, 'Producer not found');
@@ -39,11 +39,11 @@ mediasoupSetProducerPaused.define({
       throw new Meteor.Error(403, 'Not allowed');
     }
 
-    const peer = Peers.findOne(producerClient.peer);
+    const peer = await Peers.findOneAsync(producerClient.peer);
     if (peer?.remoteMutedBy) {
       throw new Meteor.Error(403, 'Peer has been remotely muted and must first acknowledge that');
     }
 
-    ProducerClients.update(producerClient, { $set: { paused } });
+    await ProducerClients.updateAsync(producerClient, { $set: { paused } });
   },
 });

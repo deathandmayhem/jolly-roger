@@ -5,7 +5,7 @@ Migrations.add({
   version: 21,
   name: 'Remove older answer field from puzzles',
   up() {
-    Puzzles.update({}, {
+    await Puzzles.updateAsync({}, {
       $unset: {
         answer: 1,
       },

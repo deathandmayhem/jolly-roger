@@ -28,7 +28,7 @@ configureGdriveCreds.define({
       email,
       user: this.userId,
     });
-    Settings.upsert(
+    await Settings.upsertAsync(
       { name: 'gdrive.credential' },
       { $set: { value: { refreshToken, email } } }
     );

@@ -28,11 +28,11 @@ configureDiscordBotGuild.define({
         user: this.userId,
         ...guild,
       });
-      Settings.upsert({ name: 'discord.guild' }, {
+      await Settings.upsertAsync({ name: 'discord.guild' }, {
         $set: { 'value.guild': guild },
       });
     } else {
-      Settings.remove({ name: 'discord.guild' });
+      await Settings.removeAsync({ name: 'discord.guild' });
     }
   },
 });

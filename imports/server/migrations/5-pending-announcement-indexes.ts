@@ -5,6 +5,6 @@ Migrations.add({
   version: 5,
   name: 'Create indexes for pending announcements',
   up() {
-    PendingAnnouncements.createIndex({ user: 1 });
+    await PendingAnnouncements.createIndexAsync({ user: 1 });
   },
 });

@@ -5,7 +5,7 @@ Migrations.add({
   version: 6,
   name: 'Backfill new open signups property on hunts',
   up() {
-    Hunts.update(
+    await Hunts.updateAsync(
       <any>{ openSignups: null },
       { $set: { openSignups: false } },
       { multi: true },

@@ -25,13 +25,13 @@ postAnnouncement.define({
     }
 
     Ansible.log('Creating an announcement', { user: this.userId, hunt: huntId, message });
-    const id = Announcements.insert({
+    const id = await Announcements.insertAsync({
       hunt: huntId,
       message,
     });
 
     MeteorUsers.find({ hunts: huntId }).forEach((user) => {
-      PendingAnnouncements.insert({
+      await PendingAnnouncements.insertAsync({
         hunt: huntId,
         announcement: id,
         user: user._id,

@@ -198,20 +198,20 @@ class SFU {
     this.worker.close();
 
     // Make a best effort to clean up after ourselves
-    ConsumerAcks.remove({ createdServer: serverId });
-    Consumers.remove({ createdServer: serverId });
+    await ConsumerAcks.removeAsync({ createdServer: serverId });
+    await Consumers.removeAsync({ createdServer: serverId });
 
-    ProducerServers.remove({ createdServer: serverId });
-    ProducerClients.remove({ createdServer: serverId });
+    await ProducerServers.removeAsync({ createdServer: serverId });
+    await ProducerClients.removeAsync({ createdServer: serverId });
 
-    ConnectAcks.remove({ createdServer: serverId });
-    ConnectRequests.remove({ createdServer: serverId });
+    await ConnectAcks.removeAsync({ createdServer: serverId });
+    await ConnectRequests.removeAsync({ createdServer: serverId });
 
-    TransportStates.remove({ createdServer: serverId });
-    Transports.remove({ createdServer: serverId });
-    TransportRequests.remove({ createdServer: serverId });
+    await TransportStates.removeAsync({ createdServer: serverId });
+    await Transports.removeAsync({ createdServer: serverId });
+    await TransportRequests.removeAsync({ createdServer: serverId });
 
-    Routers.remove({ createdServer: serverId });
+    await Routers.removeAsync({ createdServer: serverId });
   }
 
   async createConsumer(
@@ -308,7 +308,7 @@ class SFU {
     router.observer.on('close', Meteor.bindEnvironment(() => {
       Ansible.info('Router was shut down', { call: routerAppData.call, router: router.id });
       this.routers.delete(routerAppData.call);
-      Routers.remove({ routerId: router.id });
+      await Routers.removeAsync({ routerId: router.id });
     }));
     router.observer.on('newrtpobserver', Meteor.bindEnvironment(this.onRtpObserverCreated.bind(this)));
 
@@ -322,7 +322,7 @@ class SFU {
       interval: 100,
       appData,
     });
-    Routers.insert({
+    await Routers.insertAsync({
       hunt: routerAppData.hunt,
       call: routerAppData.call,
       createdServer: serverId,
@@ -368,7 +368,7 @@ class SFU {
     );
 
     const updateCallHistory = throttle(Meteor.bindEnvironment(() => {
-      CallHistories.upsert({
+      await CallHistories.upsertAsync({
         hunt: observerAppData.hunt,
         call: observerAppData.call,
       }, { $set: { lastActivity: new Date() } });
@@ -395,8 +395,8 @@ class SFU {
 
     transport.observer.on('close', Meteor.bindEnvironment(() => {
       this.transports.delete(`${transportAppData.transportRequest}:${transportAppData.direction}`);
-      Transports.remove({ transportId: transport.id });
-      TransportStates.remove({ transportId: transport.id });
+      await Transports.removeAsync({ transportId: transport.id });
+      await TransportStates.removeAsync({ transportId: transport.id });
     }));
 
     if (!(transport instanceof types.WebRtcTransport)) {
@@ -405,7 +405,7 @@ class SFU {
     }
 
     transport.observer.on('icestatechange', Meteor.bindEnvironment((iceState: types.IceState) => {
-      TransportStates.upsert({
+      await TransportStates.upsertAsync({
         createdServer: serverId,
         transportId: transport.id,
       }, {
@@ -416,7 +416,7 @@ class SFU {
       });
     }));
     transport.observer.on('iceselectedtuplechange', Meteor.bindEnvironment((iceSelectedTuple?: types.TransportTuple) => {
-      TransportStates.upsert({
+      await TransportStates.upsertAsync({
         createdServer: serverId,
         transportId: transport.id,
       }, {
@@ -427,7 +427,7 @@ class SFU {
       });
     }));
     transport.observer.on('dtlsstatechange', Meteor.bindEnvironment((dtlsState: types.DtlsState) => {
-      TransportStates.upsert({
+      await TransportStates.upsertAsync({
         createdServer: serverId,
         transportId: transport.id,
       }, {
@@ -444,7 +444,7 @@ class SFU {
     });
 
     this.transports.set(`${transportAppData.transportRequest}:${transportAppData.direction}`, transport);
-    Transports.insert({
+    await Transports.insertAsync({
       call: transportAppData.call,
       createdServer: serverId,
       peer: transportAppData.peer,
@@ -462,7 +462,7 @@ class SFU {
     const producerAppData = producer.appData as ProducerAppData;
     producer.observer.on('close', Meteor.bindEnvironment(() => {
       this.producers.delete(producerAppData.producerClient);
-      ProducerServers.remove({ producerId: producer.id });
+      await ProducerServers.removeAsync({ producerId: producer.id });
     }));
 
     // Create consumers for other existing transports (this is way more
@@ -478,7 +478,7 @@ class SFU {
     }
 
     this.producers.set(producerAppData.producerClient, producer);
-    ProducerServers.insert({
+    await ProducerServers.insertAsync({
       createdServer: serverId,
       call: producerAppData.call,
       peer: producerAppData.peer,
@@ -494,18 +494,18 @@ class SFU {
     const consumerAppData = consumer.appData as ConsumerAppData;
     consumer.observer.on('close', Meteor.bindEnvironment(() => {
       this.consumers.delete(`${consumerAppData.transportRequest}:${consumer.producerId}`);
-      Consumers.remove({ consumerId: consumer.id });
+      await Consumers.removeAsync({ consumerId: consumer.id });
     }));
 
     consumer.observer.on('pause', Meteor.bindEnvironment(() => {
-      Consumers.update({ consumerId: consumer.id }, { $set: { paused: true } });
+      await Consumers.updateAsync({ consumerId: consumer.id }, { $set: { paused: true } });
     }));
     consumer.observer.on('resume', Meteor.bindEnvironment(() => {
-      Consumers.update({ consumerId: consumer.id }, { $set: { paused: false } });
+      await Consumers.updateAsync({ consumerId: consumer.id }, { $set: { paused: false } });
     }));
 
     this.consumers.set(`${consumerAppData.transportRequest}:${consumer.producerId}`, consumer);
-    Consumers.insert({
+    await Consumers.insertAsync({
       createdServer: serverId,
       call: consumerAppData.call,
       peer: consumerAppData.peer,
@@ -613,7 +613,7 @@ class SFU {
 
     try {
       await transport.connect({ dtlsParameters: JSON.parse(connectRequest.dtlsParameters) });
-      ConnectAcks.insert({
+      await ConnectAcks.insertAsync({
         call: connectRequest.call,
         createdServer: serverId,
         peer: connectRequest.peer,
@@ -781,20 +781,20 @@ const getLocalIPAddresses = (): types.TransportListenIp[] => {
 };
 
 registerPeriodicCleanupHook((deadServers) => {
-  ConsumerAcks.remove({ createdServer: { $in: deadServers } });
-  Consumers.remove({ createdServer: { $in: deadServers } });
+  await ConsumerAcks.removeAsync({ createdServer: { $in: deadServers } });
+  await Consumers.removeAsync({ createdServer: { $in: deadServers } });
 
-  ProducerServers.remove({ createdServer: { $in: deadServers } });
-  ProducerClients.remove({ createdServer: { $in: deadServers } });
+  await ProducerServers.removeAsync({ createdServer: { $in: deadServers } });
+  await ProducerClients.removeAsync({ createdServer: { $in: deadServers } });
 
-  ConnectAcks.remove({ createdServer: { $in: deadServers } });
-  ConnectRequests.remove({ createdServer: { $in: deadServers } });
+  await ConnectAcks.removeAsync({ createdServer: { $in: deadServers } });
+  await ConnectRequests.removeAsync({ createdServer: { $in: deadServers } });
 
-  TransportStates.remove({ createdServer: { $in: deadServers } });
-  Transports.remove({ createdServer: { $in: deadServers } });
-  TransportRequests.remove({ createdServer: { $in: deadServers } });
+  await TransportStates.removeAsync({ createdServer: { $in: deadServers } });
+  await Transports.removeAsync({ createdServer: { $in: deadServers } });
+  await TransportRequests.removeAsync({ createdServer: { $in: deadServers } });
 
-  Routers.remove({ createdServer: { $in: deadServers } });
+  await Routers.removeAsync({ createdServer: { $in: deadServers } });
 });
 
 // A note: the current behavior of Meteor.startup is that it blocks the

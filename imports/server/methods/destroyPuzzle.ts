@@ -19,7 +19,7 @@ destroyPuzzle.define({
   async run({ puzzleId, replacedBy }) {
     check(this.userId, String);
 
-    const puzzle = Puzzles.findOne(puzzleId);
+    const puzzle = await Puzzles.findOneAsync(puzzleId);
     if (!puzzle) {
       throw new Meteor.Error(404, 'Unknown puzzle id');
     }
@@ -31,13 +31,13 @@ destroyPuzzle.define({
     }
 
     if (replacedBy) {
-      const replacedByPuzzle = Puzzles.findOne(replacedBy);
+      const replacedByPuzzle = await Puzzles.findOneAsync(replacedBy);
       if (!replacedByPuzzle || replacedByPuzzle.hunt !== puzzle.hunt) {
         throw new Meteor.Error(400, 'Invalid replacement puzzle');
       }
     }
 
-    Puzzles.update(puzzleId, {
+    await Puzzles.updateAsync(puzzleId, {
       $set: {
         replacedBy: replacedBy ?? undefined,
         deleted: true,
@@ -52,7 +52,7 @@ destroyPuzzle.define({
       return;
     }
 
-    const document = Documents.findOne({ puzzle: puzzleId });
+    const document = await Documents.findOneAsync({ puzzle: puzzleId });
 
     if (document) {
       await makeReadOnly(document.value.id);

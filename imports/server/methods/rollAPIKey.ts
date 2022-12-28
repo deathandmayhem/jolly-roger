@@ -19,7 +19,7 @@ rollAPIKey.define({
 
     APIKeys.find({ user }).forEach((k) => {
       Ansible.log('Expiring API key', { id: k._id, user: k.user, requestedBy: this.userId });
-      APIKeys.destroy(k._id);
+      await APIKeys.destroyAsync(k._id);
     });
 
     return fetchAPIKey.execute(this, { forUser });

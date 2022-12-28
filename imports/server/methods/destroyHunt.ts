@@ -13,6 +13,6 @@ destroyHunt.define({
     check(this.userId, String);
     checkAdmin(this.userId);
 
-    Hunts.destroy(huntId);
+    await Hunts.destroyAsync(huntId);
   },
 });

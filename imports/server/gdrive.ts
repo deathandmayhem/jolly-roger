@@ -53,7 +53,7 @@ async function createDocument(
   checkClientOk();
   if (!DriveClient.gdrive) throw new Meteor.Error(500, 'Google integration is disabled');
 
-  const template = Settings.findOne({ name: `gdrive.template.${type}` as any }) as undefined | SettingType & (
+  const template = (await Settings.findOneAsync({ name: `gdrive.template.${type}` as any })) as undefined | SettingType & (
     { name: 'gdrive.template.document' } | { name: 'gdrive.template.spreadsheet' }
   );
   const mimeType = GdriveMimeTypes[type];
@@ -177,7 +177,7 @@ export async function makeReadWrite(fileId: string) {
 }
 
 export async function ensureHuntFolder(hunt: { _id: string, name: string }) {
-  let folder = HuntFolders.findOne(hunt._id);
+  let folder = await HuntFolders.findOneAsync(hunt._id);
   if (!folder) {
     checkClientOk();
 
@@ -207,7 +207,7 @@ export async function ensureHuntFolderPermission(
   userId: string,
   googleAccount: string,
 ) {
-  const hunt = Hunts.findOneAllowingDeleted(huntId);
+  const hunt = await Hunts.findOneAllowingDeletedAsync(huntId);
   if (!hunt) return;
 
   const folder = await ensureHuntFolder(hunt);
@@ -217,7 +217,7 @@ export async function ensureHuntFolderPermission(
     user: userId,
     googleAccount,
   };
-  if (FolderPermissions.findOne(perm)) {
+  if (await FolderPermissions.findOneAsync(perm)) {
     return;
   }
 
@@ -233,10 +233,10 @@ export async function ensureDocument(puzzle: {
   title: string,
   hunt: string,
 }, type: GdriveMimeTypesType = 'spreadsheet') {
-  const hunt = Hunts.findOneAllowingDeleted(puzzle.hunt);
+  const hunt = await Hunts.findOneAllowingDeletedAsync(puzzle.hunt);
   const folderId = hunt ? await ensureHuntFolder(hunt) : undefined;
 
-  let doc = Documents.findOne({ puzzle: puzzle._id });
+  let doc = await Documents.findOneAsync({ puzzle: puzzle._id });
   if (!doc) {
     checkClientOk();
 
@@ -262,8 +262,8 @@ export async function ensureDocument(puzzle: {
 
   if (doc && folderId && doc.value.folder !== folderId) {
     await moveDocument(doc.value.id, folderId);
-    Documents.update(doc._id, { $set: { 'value.folder': folderId } });
-    doc = Documents.findOne(doc._id)!;
+    await Documents.updateAsync(doc._id, { $set: { 'value.folder': folderId } });
+    doc = (await Documents.findOneAsync(doc._id))!;
   }
 
   return doc!;

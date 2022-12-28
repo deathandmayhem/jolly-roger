@@ -184,7 +184,7 @@ class DiscordBot {
 }
 
 const handleOauthRequest = (query: any) => {
-  const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });
+  const config = await ServiceConfiguration.configurations.findOneAsync({ service: 'discord' });
   if (!config) {
     throw new Meteor.Error('Missing service configuration for discord');
   }

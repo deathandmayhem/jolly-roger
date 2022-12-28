@@ -22,7 +22,7 @@ Migrations.add({
   name: 'Consolidate profiles onto MeteorUsers',
   up() {
     MeteorUsers.find({ profile: { $ne: null as any } }).forEach((u) => {
-      MeteorUsers.update(u._id, { $unset: { profile: 1 } }, { validate: false } as any);
+      await MeteorUsers.updateAsync(u._id, { $unset: { profile: 1 } }, { validate: false } as any);
     });
 
     Profiles.find({}).forEach((profile) => {
@@ -33,7 +33,7 @@ Migrations.add({
         phoneNumber,
         dingwords,
       } = profile;
-      MeteorUsers.update(profile._id, {
+      await MeteorUsers.updateAsync(profile._id, {
         $set: {
           profile: {
             displayName,
@@ -51,8 +51,8 @@ Migrations.add({
     });
 
     // Add indexes to match the old profiles model
-    MeteorUsers.createIndex({ 'profile.displayName': 1 });
-    MeteorUsers.createIndex({ _id: 1, 'profile.displayName': 1 });
-    MeteorUsers.createIndex({ _id: 1, 'profile.dingwords': 1 });
+    await MeteorUsers.createIndexAsync({ 'profile.displayName': 1 });
+    await MeteorUsers.createIndexAsync({ _id: 1, 'profile.displayName': 1 });
+    await MeteorUsers.createIndexAsync({ _id: 1, 'profile.dingwords': 1 });
   },
 });

@@ -9,7 +9,7 @@ Migrations.add({
       firehoseSlackChannel: null,
       slackChannel: { $ne: null },
     }).forEach((hunt) => {
-      Hunts.update(hunt._id, {
+      await Hunts.updateAsync(hunt._id, {
         $set: { firehoseSlackChannel: (<any>hunt).slackChannel },
         $unset: { slackChannel: 1 },
       }, <any>{

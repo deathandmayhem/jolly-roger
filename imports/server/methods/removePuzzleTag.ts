@@ -17,7 +17,7 @@ removePuzzleTag.define({
     check(this.userId, String);
 
     Ansible.log('Untagging puzzle', { puzzle: puzzleId, tag: tagId });
-    Puzzles.update({
+    await Puzzles.updateAsync({
       _id: puzzleId,
     }, {
       $pull: {

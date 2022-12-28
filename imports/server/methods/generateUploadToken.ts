@@ -18,7 +18,7 @@ generateUploadToken.define({
     if (!userMayConfigureAssets(this.userId)) {
       throw new Meteor.Error(401, 'Must be admin to configure branding assets');
     }
-    const token = UploadTokens.insert({ asset: assetName, mimeType: assetMimeType });
+    const token = await UploadTokens.insertAsync({ asset: assetName, mimeType: assetMimeType });
     return token;
   },
 });

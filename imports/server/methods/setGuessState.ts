@@ -18,7 +18,7 @@ setGuessState.define({
   },
 
   async run({ guessId, state, additionalNotes }) {
-    const guess = Guesses.findOne(guessId);
+    const guess = await Guesses.findOneAsync(guessId);
     if (!guess) {
       throw new Meteor.Error(404, 'No such guess');
     }

@@ -23,7 +23,7 @@ updateProfile.define({
     check(this.userId, String);
 
     Ansible.log('Updating profile for user', { user: this.userId });
-    MeteorUsers.update({
+    await MeteorUsers.updateAsync({
       _id: this.userId,
     }, {
       $set: {

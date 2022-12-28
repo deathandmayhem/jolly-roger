@@ -138,10 +138,10 @@ const UPLOAD_MAX_FILE_SIZE = 1048576; // 1 MiB
 router.post('/:uploadToken', (req, res) => {
   check(req.params.uploadToken, String);
   // Look up upload token.  If missing, or too old (>1m), reject with a 403.
-  const uploadToken = UploadTokens.findOne(req.params.uploadToken);
+  const uploadToken = await UploadTokens.findOneAsync(req.params.uploadToken);
 
   // Regardless of age, once a token is presented, we should remove it.
-  UploadTokens.remove(req.params.uploadToken);
+  await UploadTokens.removeAsync(req.params.uploadToken);
 
   const now = new Date().getTime();
   if (!uploadToken || uploadToken.createdAt.getTime() + UPLOAD_TOKEN_VALIDITY_MSEC < now) {
@@ -177,7 +177,7 @@ router.post('/:uploadToken', (req, res) => {
     // Compute sha256, which is the _id of the Blob
     const sha256 = crypto.createHash('sha256').update(contents).digest('hex');
     // Insert the Blob
-    Blobs.upsert({ _id: sha256 }, {
+    await Blobs.upsertAsync({ _id: sha256 }, {
       $set: {
         value: contents,
         mimeType: uploadToken.mimeType,
@@ -186,7 +186,7 @@ router.post('/:uploadToken', (req, res) => {
       },
     });
     // Save the mapping from asset name to the Blob we just inserted.
-    BlobMappings.upsert({ _id: uploadToken.asset }, {
+    await BlobMappings.upsertAsync({ _id: uploadToken.asset }, {
       $set: {
         blob: sha256,
       },

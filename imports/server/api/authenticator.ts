@@ -16,7 +16,7 @@ const authenticator: express.Handler = (req, res, next) => {
     return;
   }
 
-  const key = APIKeys.findOne({ key: authParam });
+  const key = await APIKeys.findOneAsync({ key: authParam });
   if (!key) {
     res.sendStatus(403);
     return;

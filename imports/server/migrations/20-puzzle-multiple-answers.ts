@@ -13,7 +13,7 @@ Migrations.add({
         answers.push(p.answer);
       }
 
-      Puzzles.update(p._id, {
+      await Puzzles.updateAsync(p._id, {
         $set: {
           expectedAnswerCount: 1,
           answers,

@@ -33,7 +33,7 @@ const republishOnUserChange = (
   makeTransform?: undefined |
     ((user: Meteor.User) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>)),
 ) => {
-  const u = MeteorUsers.findOne(sub.userId!)!;
+  const u = (await MeteorUsers.findOneAsync(sub.userId!))!;
   const publish = new SwappableCursorPublisher(sub, MeteorUsers);
   publish.swap(makeCursor(u), makeTransform?.(u));
   const watch = MeteorUsers.find(sub.userId!, { fields: projection }).observe({

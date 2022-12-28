@@ -22,12 +22,12 @@ configureGdriveRoot.define({
     }
 
     if (root) {
-      Settings.upsert(
+      await Settings.upsertAsync(
         { name: 'gdrive.root' },
         { $set: { value: { id: root } } }
       );
     } else {
-      Settings.remove({ name: 'gdrive.root' });
+      await Settings.removeAsync({ name: 'gdrive.root' });
     }
   },
 });

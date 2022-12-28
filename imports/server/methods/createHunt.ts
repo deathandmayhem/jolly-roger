@@ -32,7 +32,7 @@ createHunt.define({
     check(this.userId, String);
     checkAdmin(this.userId);
 
-    const huntId = Hunts.insert(arg);
+    const huntId = await Hunts.insertAsync(arg);
     addUserToRole(this.userId, huntId, 'operator');
 
     DEFAULT_TAGS.forEach((tag) => {
@@ -41,7 +41,7 @@ createHunt.define({
 
     Meteor.defer(async () => {
       // Sync discord roles
-      const userIds = MeteorUsers.find({ hunts: huntId }).fetch().map((u) => u._id);
+      const userIds = (await MeteorUsers.find({ hunts: huntId }).fetchAsync()).map((u) => u._id);
       await addUsersToDiscordRole(userIds, huntId);
       await ensureHuntFolder({ _id: huntId, name: arg.name });
     });

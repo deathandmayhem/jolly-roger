@@ -9,11 +9,11 @@ unlinkUserDiscordAccount.define({
     // TODO: tell Discord to revoke the token?
 
     // Remove token (secret) from the user object in the database.
-    MeteorUsers.update(this.userId, {
+    await MeteorUsers.updateAsync(this.userId, {
       $unset: { 'services.discord': '' },
     });
 
     // Remove display name from user's profile object.
-    MeteorUsers.update(this.userId, { $unset: { discordAccount: 1 } });
+    await MeteorUsers.updateAsync(this.userId, { $unset: { discordAccount: 1 } });
   },
 });

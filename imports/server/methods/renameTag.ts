@@ -16,10 +16,10 @@ renameTag.define({
   run({ tagId, name }) {
     check(this.userId, String);
 
-    const tag = Tags.findOne(tagId);
+    const tag = await Tags.findOneAsync(tagId);
     if (tag) {
       Ansible.log('Renaming tag', { tag: tagId, name });
-      Tags.update({ _id: tagId }, { $set: { name } });
+      await Tags.updateAsync({ _id: tagId }, { $set: { name } });
     }
   },
 });

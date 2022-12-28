@@ -14,6 +14,6 @@ configureClearGdriveCreds.define({
     Ansible.log('Clearing Gdrive creds', {
       user: this.userId,
     });
-    Settings.remove({ name: 'gdrive.credential' });
+    await Settings.removeAsync({ name: 'gdrive.credential' });
   },
 });

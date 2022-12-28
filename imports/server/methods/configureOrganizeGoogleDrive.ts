@@ -25,23 +25,23 @@ configureOrganizeGoogleDrive.define({
     Ansible.log('Reorganizing Google Drive files');
 
     // First make sure any existing folders are under the root
-    const root = Settings.findOne({ name: 'gdrive.root' }) as SettingType & { name: 'gdrive.root' } | undefined;
+    const root = (await Settings.findOneAsync({ name: 'gdrive.root' })) as SettingType & { name: 'gdrive.root' } | undefined;
     if (root) {
-      await HuntFolders.find().fetch().reduce(async (promise, hf) => {
+      await (await HuntFolders.find().fetchAsync()).reduce(async (promise, hf) => {
         await promise;
         await moveDocument(hf.folder, root.value.id);
       }, Promise.resolve());
     }
 
     // Then create folders for any hunt that doesn't currently have one
-    await Hunts.find().fetch().reduce(async (promise, h) => {
+    await (await Hunts.find().fetchAsync()).reduce(async (promise, h) => {
       await promise;
       await ensureHuntFolder(h);
     }, Promise.resolve());
 
     // Finally move all existing documents into the right folder
-    const puzzles = indexedById(Puzzles.find().fetch());
-    await Documents.find().fetch().reduce(async (promise, d) => {
+    const puzzles = indexedById(await Puzzles.find().fetchAsync());
+    await (await Documents.find().fetchAsync()).reduce(async (promise, d) => {
       await promise;
       const puzzle = puzzles.get(d.puzzle);
       if (puzzle && !d.value.folder) await ensureDocument(puzzle);

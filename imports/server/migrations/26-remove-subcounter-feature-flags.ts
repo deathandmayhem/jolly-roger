@@ -5,7 +5,7 @@ Migrations.add({
   version: 26,
   name: 'Remove subscription counter/watchers circuit breaker',
   up() {
-    FeatureFlags.remove({ name: 'disable.subcounters' });
-    FeatureFlags.remove({ name: 'disable.subfetches' });
+    await FeatureFlags.removeAsync({ name: 'disable.subcounters' });
+    await FeatureFlags.removeAsync({ name: 'disable.subfetches' });
   },
 });
