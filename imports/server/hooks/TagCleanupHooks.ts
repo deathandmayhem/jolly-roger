@@ -3,7 +3,7 @@ import Tags from '../../lib/models/Tags';
 import Hookset from './Hookset';
 
 const TagCleanupHooks: Hookset = {
-  onPuzzleSolved(puzzleId: string) {
+  async onPuzzleSolved(puzzleId: string) {
     const puzzle = await Puzzles.findOneAsync(puzzleId);
     if (!puzzle) return;
 

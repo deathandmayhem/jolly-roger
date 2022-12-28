@@ -20,7 +20,7 @@ const Profiles = new Mongo.Collection<
 Migrations.add({
   version: 38,
   name: 'Consolidate profiles onto MeteorUsers',
-  up() {
+  async up() {
     MeteorUsers.find({ profile: { $ne: null as any } }).forEach((u) => {
       await MeteorUsers.updateAsync(u._id, { $unset: { profile: 1 } }, { validate: false } as any);
     });

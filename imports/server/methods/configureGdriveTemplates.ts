@@ -13,7 +13,7 @@ configureGdriveTemplates.define({
     return arg;
   },
 
-  run({ spreadsheetTemplate, documentTemplate }) {
+  async run({ spreadsheetTemplate, documentTemplate }) {
     check(this.userId, String);
 
     // Only let the same people that can credential gdrive configure templates,

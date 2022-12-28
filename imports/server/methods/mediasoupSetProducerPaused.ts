@@ -15,7 +15,7 @@ mediasoupSetProducerPaused.define({
     return arg;
   },
 
-  run({ mediasoupProducerId, paused }) {
+  async run({ mediasoupProducerId, paused }) {
     if (!this.userId) {
       throw new Meteor.Error(401, 'Not logged in');
     }

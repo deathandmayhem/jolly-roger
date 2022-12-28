@@ -6,7 +6,7 @@ import { userMayConfigureGdrive } from '../../lib/permission_stubs';
 import configureClearGdriveCreds from '../../methods/configureClearGdriveCreds';
 
 configureClearGdriveCreds.define({
-  run() {
+  async run() {
     check(this.userId, String);
     if (!userMayConfigureGdrive(this.userId)) {
       throw new Meteor.Error(401, 'Must be admin to configure gdrive');

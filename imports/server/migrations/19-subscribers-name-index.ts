@@ -4,7 +4,7 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 19,
   name: 'Create new index for subscribers.fetch subscription',
-  up() {
+  async up() {
     await Subscribers.createIndexAsync({ name: 1 });
   },
 });

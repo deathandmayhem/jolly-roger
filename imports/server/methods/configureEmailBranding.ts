@@ -16,7 +16,7 @@ configureEmailBranding.define({
     return arg;
   },
 
-  run({
+  async run({
     from, enrollSubject, enrollMessage, joinSubject, joinMessage,
   }) {
     check(this.userId, String);

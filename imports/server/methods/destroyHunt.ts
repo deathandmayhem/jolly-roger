@@ -9,7 +9,7 @@ destroyHunt.define({
     return arg;
   },
 
-  run({ huntId }) {
+  async run({ huntId }) {
     check(this.userId, String);
     checkAdmin(this.userId);
 

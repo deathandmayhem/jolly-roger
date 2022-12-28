@@ -8,7 +8,7 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 1,
   name: 'Add basic indexes to collections',
-  up() {
+  async up() {
     await Announcements.createIndexAsync({ deleted: 1, hunt: 1, createdAt: -1 });
     await ChatMessages.createIndexAsync({ puzzleId: 1, timestamp: -1 });
     await Guesses.createIndexAsync({ deleted: 1, hunt: 1, puzzle: 1 });

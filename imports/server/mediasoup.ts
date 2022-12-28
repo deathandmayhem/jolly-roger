@@ -185,7 +185,7 @@ class SFU {
     return new SFU(ips, worker);
   }
 
-  close() {
+  async close() {
     // Since these are all initiated in the constructor, optional chaining here
     // shouldn't be required, but because this can be called in a signal
     // handler, it can be called in the middle of the constructor
@@ -308,7 +308,7 @@ class SFU {
     router.observer.on('close', Meteor.bindEnvironment(() => {
       Ansible.info('Router was shut down', { call: routerAppData.call, router: router.id });
       this.routers.delete(routerAppData.call);
-      await Routers.removeAsync({ routerId: router.id });
+      void Routers.removeAsync({ routerId: router.id });
     }));
     router.observer.on('newrtpobserver', Meteor.bindEnvironment(this.onRtpObserverCreated.bind(this)));
 
@@ -322,7 +322,7 @@ class SFU {
       interval: 100,
       appData,
     });
-    await Routers.insertAsync({
+    void Routers.insertAsync({
       hunt: routerAppData.hunt,
       call: routerAppData.call,
       createdServer: serverId,
@@ -368,7 +368,7 @@ class SFU {
     );
 
     const updateCallHistory = throttle(Meteor.bindEnvironment(() => {
-      await CallHistories.upsertAsync({
+      void CallHistories.upsertAsync({
         hunt: observerAppData.hunt,
         call: observerAppData.call,
       }, { $set: { lastActivity: new Date() } });
@@ -395,8 +395,8 @@ class SFU {
 
     transport.observer.on('close', Meteor.bindEnvironment(() => {
       this.transports.delete(`${transportAppData.transportRequest}:${transportAppData.direction}`);
-      await Transports.removeAsync({ transportId: transport.id });
-      await TransportStates.removeAsync({ transportId: transport.id });
+      void Transports.removeAsync({ transportId: transport.id });
+      void TransportStates.removeAsync({ transportId: transport.id });
     }));
 
     if (!(transport instanceof types.WebRtcTransport)) {
@@ -405,7 +405,7 @@ class SFU {
     }
 
     transport.observer.on('icestatechange', Meteor.bindEnvironment((iceState: types.IceState) => {
-      await TransportStates.upsertAsync({
+      void TransportStates.upsertAsync({
         createdServer: serverId,
         transportId: transport.id,
       }, {
@@ -416,7 +416,7 @@ class SFU {
       });
     }));
     transport.observer.on('iceselectedtuplechange', Meteor.bindEnvironment((iceSelectedTuple?: types.TransportTuple) => {
-      await TransportStates.upsertAsync({
+      void TransportStates.upsertAsync({
         createdServer: serverId,
         transportId: transport.id,
       }, {
@@ -427,7 +427,7 @@ class SFU {
       });
     }));
     transport.observer.on('dtlsstatechange', Meteor.bindEnvironment((dtlsState: types.DtlsState) => {
-      await TransportStates.upsertAsync({
+      void TransportStates.upsertAsync({
         createdServer: serverId,
         transportId: transport.id,
       }, {
@@ -444,7 +444,7 @@ class SFU {
     });
 
     this.transports.set(`${transportAppData.transportRequest}:${transportAppData.direction}`, transport);
-    await Transports.insertAsync({
+    void Transports.insertAsync({
       call: transportAppData.call,
       createdServer: serverId,
       peer: transportAppData.peer,
@@ -462,7 +462,7 @@ class SFU {
     const producerAppData = producer.appData as ProducerAppData;
     producer.observer.on('close', Meteor.bindEnvironment(() => {
       this.producers.delete(producerAppData.producerClient);
-      await ProducerServers.removeAsync({ producerId: producer.id });
+      void ProducerServers.removeAsync({ producerId: producer.id });
     }));
 
     // Create consumers for other existing transports (this is way more
@@ -478,7 +478,7 @@ class SFU {
     }
 
     this.producers.set(producerAppData.producerClient, producer);
-    await ProducerServers.insertAsync({
+    void ProducerServers.insertAsync({
       createdServer: serverId,
       call: producerAppData.call,
       peer: producerAppData.peer,
@@ -494,18 +494,18 @@ class SFU {
     const consumerAppData = consumer.appData as ConsumerAppData;
     consumer.observer.on('close', Meteor.bindEnvironment(() => {
       this.consumers.delete(`${consumerAppData.transportRequest}:${consumer.producerId}`);
-      await Consumers.removeAsync({ consumerId: consumer.id });
+      void Consumers.removeAsync({ consumerId: consumer.id });
     }));
 
     consumer.observer.on('pause', Meteor.bindEnvironment(() => {
-      await Consumers.updateAsync({ consumerId: consumer.id }, { $set: { paused: true } });
+      void Consumers.updateAsync({ consumerId: consumer.id }, { $set: { paused: true } });
     }));
     consumer.observer.on('resume', Meteor.bindEnvironment(() => {
-      await Consumers.updateAsync({ consumerId: consumer.id }, { $set: { paused: false } });
+      void Consumers.updateAsync({ consumerId: consumer.id }, { $set: { paused: false } });
     }));
 
     this.consumers.set(`${consumerAppData.transportRequest}:${consumer.producerId}`, consumer);
-    await Consumers.insertAsync({
+    void Consumers.insertAsync({
       createdServer: serverId,
       call: consumerAppData.call,
       peer: consumerAppData.peer,
@@ -780,7 +780,7 @@ const getLocalIPAddresses = (): types.TransportListenIp[] => {
     .map((ip) => { return { ip }; });
 };
 
-registerPeriodicCleanupHook((deadServers) => {
+registerPeriodicCleanupHook(async (deadServers) => {
   await ConsumerAcks.removeAsync({ createdServer: { $in: deadServers } });
   await Consumers.removeAsync({ createdServer: { $in: deadServers } });
 
@@ -813,7 +813,7 @@ Meteor.startup(async () => {
   let sfu: SFU | undefined;
   const updateSFU = async (enable: boolean) => {
     const newSfu = enable ? await SFU.create(ips) : undefined;
-    sfu?.close();
+    await sfu?.close();
     sfu = newSfu;
   };
   // The logic here looks backwards because when a feature flag is on, calls are
@@ -822,8 +822,8 @@ Meteor.startup(async () => {
     void updateSFU(!active);
   });
 
-  onExit(Meteor.bindEnvironment(() => {
+  onExit(Meteor.bindEnvironment(async () => {
     observer.stop();
-    sfu?.close();
+    await sfu?.close();
   }));
 });

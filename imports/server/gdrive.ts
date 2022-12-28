@@ -93,12 +93,12 @@ export async function moveDocument(id: string, newParentId: string) {
   });
 }
 
-export function huntFolderName(huntName: string) {
-  return `${huntName}: ${getTeamName()}`;
+export async function huntFolderName(huntName: string) {
+  return `${huntName}: ${await getTeamName()}`;
 }
 
-export function puzzleDocumentName(puzzleTitle: string) {
-  return `${puzzleTitle}: ${getTeamName()}`;
+export async function puzzleDocumentName(puzzleTitle: string) {
+  return `${puzzleTitle}: ${await getTeamName()}`;
 }
 
 export async function renameDocument(id: string, name: string) {
@@ -189,7 +189,7 @@ export async function ensureHuntFolder(hunt: { _id: string, name: string }) {
         });
 
         const root = await Settings.findOneAsync({ name: 'gdrive.root' }) as undefined | SettingType & { name: 'gdrive.root' };
-        const folderId = await createFolder(huntFolderName(hunt.name), root?.value.id);
+        const folderId = await createFolder(await huntFolderName(hunt.name), root?.value.id);
         const huntFolderId = await HuntFolders.insertAsync({
           _id: hunt._id,
           folder: folderId,
@@ -247,7 +247,11 @@ export async function ensureDocument(puzzle: {
           puzzle: puzzle._id,
         });
 
-        const googleDocId = await createDocument(puzzleDocumentName(puzzle.title), type, folderId);
+        const googleDocId = await createDocument(
+          await puzzleDocumentName(puzzle.title),
+          type,
+          folderId
+        );
         const newDoc = {
           hunt: puzzle.hunt,
           puzzle: puzzle._id,

@@ -13,7 +13,7 @@ renameTag.define({
     return arg;
   },
 
-  run({ tagId, name }) {
+  async run({ tagId, name }) {
     check(this.userId, String);
 
     const tag = await Tags.findOneAsync(tagId);

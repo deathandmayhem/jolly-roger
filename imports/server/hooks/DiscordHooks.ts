@@ -9,7 +9,7 @@ import Tags from '../../lib/models/Tags';
 import { DiscordBot } from '../discord';
 import Hookset from './Hookset';
 
-function makeDiscordBotFromSettings(): DiscordBot | undefined {
+async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   // Above all else, obey the circuit breaker
   if (Flags.active('disable.discord')) {
     return undefined;
@@ -30,7 +30,7 @@ function makeDiscordBotFromSettings(): DiscordBot | undefined {
 
 const DiscordHooks: Hookset = {
   async onPuzzleCreated(puzzleId: string) {
-    const bot = makeDiscordBotFromSettings();
+    const bot = await makeDiscordBotFromSettings();
     if (!bot) {
       return;
     }
@@ -58,7 +58,7 @@ const DiscordHooks: Hookset = {
   },
 
   async onPuzzleSolved(puzzleId: string) {
-    const bot = makeDiscordBotFromSettings();
+    const bot = await makeDiscordBotFromSettings();
     if (!bot) {
       return;
     }
@@ -86,8 +86,8 @@ const DiscordHooks: Hookset = {
     }
   },
 
-  onChatMessageCreated(chatMessageId: string) {
-    const bot = makeDiscordBotFromSettings();
+  async onChatMessageCreated(chatMessageId: string) {
+    const bot = await makeDiscordBotFromSettings();
     if (!bot) {
       return;
     }

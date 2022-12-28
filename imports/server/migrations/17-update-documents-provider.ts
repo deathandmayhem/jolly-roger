@@ -4,7 +4,7 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 17,
   name: 'Backfill provider for documents',
-  up() {
+  async up() {
     await Documents.updateAsync(<any>{ provider: null }, { $set: { provider: 'google' } }, { multi: true });
 
     await Documents.updateAsync(

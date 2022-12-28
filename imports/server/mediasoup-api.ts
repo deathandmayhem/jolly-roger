@@ -209,7 +209,7 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
   ];
 });
 
-Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
+Meteor.publish('mediasoup:transports', async function (peerId, rtpCapabilities) {
   check(peerId, String);
   check(rtpCapabilities, String);
 
@@ -243,7 +243,7 @@ Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
     rtpCapabilities,
   });
 
-  this.onStop(() => {
+  this.onStop(async () => {
     await TransportRequests.removeAsync(transportRequest);
     await ConnectRequests.removeAsync({ transportRequest });
     await ConnectAcks.removeAsync({ transportRequest });
@@ -260,7 +260,7 @@ Meteor.publish('mediasoup:transports', function (peerId, rtpCapabilities) {
   ];
 });
 
-Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpParameters, paused) {
+Meteor.publish('mediasoup:producer', async function (transportId, trackId, kind, rtpParameters, paused) {
   check(transportId, String);
   check(trackId, String);
   check(kind, Match.OneOf('audio', 'video'));
@@ -297,7 +297,7 @@ Meteor.publish('mediasoup:producer', function (transportId, trackId, kind, rtpPa
     paused,
   });
 
-  this.onStop(() => {
+  this.onStop(async () => {
     await ProducerClients.removeAsync(producerClientId);
   });
 

@@ -17,7 +17,7 @@ postAnnouncement.define({
     return arg;
   },
 
-  run({ huntId, message }) {
+  async run({ huntId, message }) {
     check(this.userId, String);
 
     if (!userMayAddAnnouncementToHunt(this.userId, huntId)) {

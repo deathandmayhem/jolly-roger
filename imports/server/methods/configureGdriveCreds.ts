@@ -15,7 +15,7 @@ configureGdriveCreds.define({
     return arg;
   },
 
-  run({ key, secret }) {
+  async run({ key, secret }) {
     check(this.userId, String);
 
     if (!userMayConfigureGdrive(this.userId)) {

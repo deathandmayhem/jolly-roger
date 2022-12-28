@@ -14,7 +14,7 @@ mediasoupAckConsumer.define({
     return arg;
   },
 
-  run({ consumerId }) {
+  async run({ consumerId }) {
     if (!this.userId) {
       throw new Meteor.Error(401, 'Not logged in');
     }

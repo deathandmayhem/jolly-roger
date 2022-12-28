@@ -14,7 +14,7 @@ promoteOperator.define({
     return arg;
   },
 
-  run({ targetUserId, huntId }) {
+  async run({ targetUserId, huntId }) {
     check(this.userId, String);
 
     if (!userMayMakeOperatorForHunt(this.userId, huntId)) {

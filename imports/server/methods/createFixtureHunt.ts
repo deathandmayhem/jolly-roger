@@ -10,7 +10,7 @@ import { addUserToRole, userMayCreateHunt } from '../../lib/permission_stubs';
 import createFixtureHunt from '../../methods/createFixtureHunt';
 
 createFixtureHunt.define({
-  run() {
+  async run() {
     check(this.userId, String);
 
     if (!userMayCreateHunt(this.userId)) {

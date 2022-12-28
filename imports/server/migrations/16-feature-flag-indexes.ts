@@ -4,7 +4,7 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 16,
   name: 'Create index for feature flags',
-  up() {
+  async up() {
     await FeatureFlags.createIndexAsync({ name: 1 }, { unique: true });
   },
 });

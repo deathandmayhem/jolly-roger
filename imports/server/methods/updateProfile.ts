@@ -14,7 +14,7 @@ updateProfile.define({
     return arg;
   },
 
-  run({
+  async run({
     displayName,
     phoneNumber,
     dingwords,

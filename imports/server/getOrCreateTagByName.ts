@@ -1,11 +1,11 @@
 import Ansible from '../Ansible';
 import Tags from '../lib/models/Tags';
 
-export default function getOrCreateTagByName(huntId: string, name: string): {
+export default async function getOrCreateTagByName(huntId: string, name: string): Promise<{
   _id: string,
   hunt: string,
   name: string,
-} {
+}> {
   const existingTag = await Tags.findOneAsync({ hunt: huntId, name });
   if (existingTag) {
     return existingTag;
@@ -18,7 +18,7 @@ export default function getOrCreateTagByName(huntId: string, name: string): {
   if (name.startsWith('group:')) {
     const groupName = name.slice('group:'.length);
     const metaTagName = `meta-for:${groupName}`;
-    getOrCreateTagByName(huntId, metaTagName);
+    await getOrCreateTagByName(huntId, metaTagName);
   }
 
   return {

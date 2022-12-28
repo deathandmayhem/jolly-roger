@@ -135,7 +135,7 @@ router.get('/:asset', (req, res) => {
 
 const UPLOAD_TOKEN_VALIDITY_MSEC = 60000; // 60 seconds
 const UPLOAD_MAX_FILE_SIZE = 1048576; // 1 MiB
-router.post('/:uploadToken', (req, res) => {
+router.post('/:uploadToken', async (req, res) => {
   check(req.params.uploadToken, String);
   // Look up upload token.  If missing, or too old (>1m), reject with a 403.
   const uploadToken = await UploadTokens.findOneAsync(req.params.uploadToken);
@@ -167,7 +167,7 @@ router.post('/:uploadToken', (req, res) => {
   // We need to call the final end callback in a fiber (via
   // Meteor.bindEnvironment) since we access Mongo stuff (Blobs) through
   // Meteor's collections.
-  req.on('end', Meteor.bindEnvironment(() => {
+  req.on('end', Meteor.bindEnvironment(async () => {
     // Concatenate chunks into a single buffer representing the entire file contents
     const contents = Buffer.concat(chunks);
     console.log(`[assets] 200 POST ${req.params.uploadToken} ${uploadToken.asset} ${contents.length} bytes`);

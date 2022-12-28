@@ -12,7 +12,7 @@ configureGdriveRoot.define({
     return arg;
   },
 
-  run({ root }) {
+  async run({ root }) {
     check(this.userId, String);
 
     // Only let the same people that can credential gdrive configure root folder,

@@ -13,7 +13,7 @@ generateUploadToken.define({
     return arg;
   },
 
-  run({ assetName, assetMimeType }) {
+  async run({ assetName, assetMimeType }) {
     check(this.userId, String);
     if (!userMayConfigureAssets(this.userId)) {
       throw new Meteor.Error(401, 'Must be admin to configure branding assets');

@@ -14,7 +14,7 @@ configureGoogleOAuthClient.define({
     return arg;
   },
 
-  run({ clientId, secret }) {
+  async run({ clientId, secret }) {
     check(this.userId, String);
 
     if (!userMayConfigureGoogleOAuth(this.userId)) {

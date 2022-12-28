@@ -1,7 +1,7 @@
 import express from 'express';
 import APIKeys from '../models/APIKeys';
 
-const authenticator: express.Handler = (req, res, next) => {
+const authenticator: express.Handler = async (req, res, next) => {
   const auth = req.get('Authorization');
   if (!auth) {
     res.sendStatus(401);

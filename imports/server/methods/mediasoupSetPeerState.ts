@@ -14,7 +14,7 @@ mediasoupSetPeerState.define({
     return arg;
   },
 
-  run({ peerId, state }) {
+  async run({ peerId, state }) {
     if (!this.userId) {
       throw new Meteor.Error(401, 'Not logged in');
     }

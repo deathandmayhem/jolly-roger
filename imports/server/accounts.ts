@@ -44,7 +44,7 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
   }
 };
 
-Accounts.onLogin((info: LoginInfo) => {
+Accounts.onLogin(async (info: LoginInfo) => {
   if (!info.user?._id) throw new Meteor.Error(500, 'Something has gone horribly wrong');
   // Capture login time
   await MeteorUsers.updateAsync(info.user._id, { $set: { lastLogin: new Date() } });

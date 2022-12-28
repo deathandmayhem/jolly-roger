@@ -13,7 +13,7 @@ configureDiscordBot.define({
     return arg;
   },
 
-  run({ token }) {
+  async run({ token }) {
     check(this.userId, String);
 
     if (!userMayConfigureDiscordBot(this.userId)) {

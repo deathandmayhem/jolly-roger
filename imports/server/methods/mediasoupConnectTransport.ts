@@ -15,7 +15,7 @@ mediasoupConnectTransport.define({
     return arg;
   },
 
-  run({ transportId, dtlsParameters }) {
+  async run({ transportId, dtlsParameters }) {
     if (!this.userId) {
       throw new Meteor.Error(401, 'Not logged in');
     }

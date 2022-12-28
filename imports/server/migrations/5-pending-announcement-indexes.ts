@@ -4,7 +4,7 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 5,
   name: 'Create indexes for pending announcements',
-  up() {
+  async up() {
     await PendingAnnouncements.createIndexAsync({ user: 1 });
   },
 });

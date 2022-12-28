@@ -15,7 +15,7 @@ provisionFirstUser.define({
     return args;
   },
 
-  run({ email, password }) {
+  async run({ email, password }) {
     // Refuse to create the user if any users already exist
     // This is theoretically racy but is probably fine in practice
     const existingUser = await MeteorUsers.findOneAsync({});

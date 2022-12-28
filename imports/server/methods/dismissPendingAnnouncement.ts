@@ -9,7 +9,7 @@ dismissPendingAnnouncement.define({
     return arg;
   },
 
-  run({ pendingAnnouncementId }) {
+  async run({ pendingAnnouncementId }) {
     check(this.userId, String);
 
     await PendingAnnouncements.removeAsync({

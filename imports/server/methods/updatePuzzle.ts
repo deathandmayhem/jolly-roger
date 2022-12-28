@@ -23,7 +23,7 @@ updatePuzzle.define({
     return arg;
   },
 
-  run({
+  async run({
     puzzleId, title, url, tags, expectedAnswerCount,
   }) {
     check(this.userId, String);
@@ -69,7 +69,7 @@ updatePuzzle.define({
     if (oldPuzzle.title !== title) {
       Meteor.defer(Meteor.bindEnvironment(async () => {
         const doc = await ensureDocument({ _id: puzzleId, title, hunt: oldPuzzle.hunt });
-        const teamName = getTeamName();
+        const teamName = await getTeamName();
         await renameDocument(doc.value.id, `${title}: ${teamName}`);
       }));
     }

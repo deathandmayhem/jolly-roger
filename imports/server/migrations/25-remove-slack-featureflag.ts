@@ -4,7 +4,7 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 25,
   name: 'Remove Slack feature flag',
-  up() {
+  async up() {
     await FeatureFlags.removeAsync({ name: 'disable.slack' });
   },
 });

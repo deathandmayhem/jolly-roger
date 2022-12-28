@@ -13,7 +13,7 @@ removePuzzleTag.define({
     return arg;
   },
 
-  run({ puzzleId, tagId }) {
+  async run({ puzzleId, tagId }) {
     check(this.userId, String);
 
     Ansible.log('Untagging puzzle', { puzzle: puzzleId, tag: tagId });

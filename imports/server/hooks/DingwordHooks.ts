@@ -5,7 +5,7 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Hookset from './Hookset';
 
 const DingwordHooks: Hookset = {
-  onChatMessageCreated(chatMessageId: string) {
+  async onChatMessageCreated(chatMessageId: string) {
     // Respect feature flag.
     if (Flags.active('disable.dingwords')) {
       return;

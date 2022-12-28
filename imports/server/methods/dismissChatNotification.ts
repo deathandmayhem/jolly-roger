@@ -9,7 +9,7 @@ dismissChatNotification.define({
     return arg;
   },
 
-  run({ chatNotificationId }) {
+  async run({ chatNotificationId }) {
     check(this.userId, String);
 
     await ChatNotifications.removeAsync({

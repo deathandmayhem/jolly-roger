@@ -4,7 +4,7 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 18,
   name: 'Update the Google Spreadsheet template setting name',
-  up() {
+  async up() {
     await Settings.createIndexAsync({ name: 1 }, { unique: true });
 
     await Settings.updateAsync(

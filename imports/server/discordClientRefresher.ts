@@ -110,8 +110,8 @@ class DiscordClientRefresher {
             await client.login(this.token);
             await ready;
 
-            this.cacheResource(client, 'guild', client.guilds.cache, 'guildCreate', 'guildUpdate', 'guildDelete');
-            this.cacheResource(client, 'channel', client.channels.cache, 'channelCreate', 'channelUpdate', 'channelDelete');
+            await this.cacheResource(client, 'guild', client.guilds.cache, 'guildCreate', 'guildUpdate', 'guildDelete');
+            await this.cacheResource(client, 'channel', client.channels.cache, 'channelCreate', 'channelUpdate', 'channelDelete');
 
             // Role update events are global, but the cache of roles is not
             const allRoles = client.guilds.cache.reduce((
@@ -121,10 +121,10 @@ class DiscordClientRefresher {
               guild.roles.cache.forEach((r) => roles.set(r.id, r));
               return roles;
             }, new Map());
-            this.cacheResource(client, 'role', allRoles, 'roleCreate', 'roleUpdate', 'roleDelete');
+            await this.cacheResource(client, 'role', allRoles, 'roleCreate', 'roleUpdate', 'roleDelete');
 
             const updateUser = (u: Discord.User) => {
-              await MeteorUsers.updateAsync({
+              void MeteorUsers.updateAsync({
                 'discordAccount.id': u.id,
               }, {
                 $set: {
@@ -162,7 +162,7 @@ class DiscordClientRefresher {
     }
   }
 
-  cacheResource<
+  async cacheResource<
     ResourceType extends Discord.Base & { id: Discord.Snowflake },
     CreateEvent extends DiscordEventsWithArguments<[ResourceType]>,
     UpdateEvent extends DiscordEventsWithArguments<[ResourceType, ResourceType]>,
@@ -194,7 +194,7 @@ class DiscordClientRefresher {
     });
 
     client.on(createEvent, (Meteor.bindEnvironment((r: ResourceType) => {
-      await DiscordCache.upsertAsync({
+      void DiscordCache.upsertAsync({
         type,
         snowflake: r.id,
       }, {
@@ -206,7 +206,7 @@ class DiscordClientRefresher {
       });
     })) as any);
     client.on(updateEvent, (Meteor.bindEnvironment((_oldR: ResourceType, r: ResourceType) => {
-      await DiscordCache.upsertAsync({
+      void DiscordCache.upsertAsync({
         type,
         snowflake: r.id,
       }, {
@@ -218,7 +218,7 @@ class DiscordClientRefresher {
       });
     })) as any);
     client.on(deleteEvent, (Meteor.bindEnvironment((r: ResourceType) => {
-      await DiscordCache.removeAsync({ type, snowflake: r.id });
+      void DiscordCache.removeAsync({ type, snowflake: r.id });
     })) as any);
   }
 }

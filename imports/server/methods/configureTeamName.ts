@@ -12,7 +12,7 @@ configureTeamName.define({
     return arg;
   },
 
-  run({ teamName }) {
+  async run({ teamName }) {
     check(this.userId, String);
     if (!userMayConfigureTeamName(this.userId)) {
       throw new Meteor.Error(401, 'Must be admin to configure team name');

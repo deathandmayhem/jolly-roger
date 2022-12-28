@@ -14,7 +14,7 @@ updateHunt.define({
     return arg;
   },
 
-  run({ huntId, value }) {
+  async run({ huntId, value }) {
     check(this.userId, String);
     checkAdmin(this.userId);
 
@@ -52,7 +52,7 @@ updateHunt.define({
 
       if (oldHunt?.name !== value.name) {
         const folderId = await ensureHuntFolder({ _id: huntId, name: value.name });
-        await renameDocument(folderId, huntFolderName(value.name));
+        await renameDocument(folderId, await huntFolderName(value.name));
       }
     });
   },

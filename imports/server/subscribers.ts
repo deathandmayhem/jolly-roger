@@ -12,12 +12,12 @@ import { serverId, registerPeriodicCleanupHook } from './garbage-collection';
 import Subscribers from './models/Subscribers';
 
 // Clean up leaked subscribers from dead servers periodically.
-function cleanupHook(deadServers: string[]) {
+async function cleanupHook(deadServers: string[]) {
   await Subscribers.removeAsync({ server: { $in: deadServers } });
 }
 registerPeriodicCleanupHook(cleanupHook);
 
-Meteor.publish('subscribers.inc', function (name, context) {
+Meteor.publish('subscribers.inc', async function (name, context) {
   check(name, String);
   check(context, Object);
 
@@ -32,7 +32,7 @@ Meteor.publish('subscribers.inc', function (name, context) {
     name,
     context,
   });
-  this.onStop(() => await Subscribers.removeAsync(doc));
+  this.onStop(async () => Subscribers.removeAsync(doc));
 
   return [];
 });

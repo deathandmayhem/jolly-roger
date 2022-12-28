@@ -12,7 +12,7 @@ mediasoupAckPeerRemoteMute.define({
     return arg;
   },
 
-  run({ peerId }) {
+  async run({ peerId }) {
     if (!this.userId) {
       throw new Meteor.Error(401, 'Not logged in');
     }

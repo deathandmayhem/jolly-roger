@@ -28,7 +28,7 @@ createHunt.define({
     return arg;
   },
 
-  run(arg) {
+  async run(arg) {
     check(this.userId, String);
     checkAdmin(this.userId);
 

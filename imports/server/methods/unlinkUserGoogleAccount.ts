@@ -3,7 +3,7 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import unlinkUserGoogleAccount from '../../methods/unlinkUserGoogleAccount';
 
 unlinkUserGoogleAccount.define({
-  run() {
+  async run() {
     check(this.userId, String);
     await MeteorUsers.updateAsync(this.userId, { $unset: { googleAccount: 1 } });
   },

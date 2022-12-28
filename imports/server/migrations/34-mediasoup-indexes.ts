@@ -15,7 +15,7 @@ import Migrations from './Migrations';
 Migrations.add({
   version: 34,
   name: 'Add indexes to mediasoup collections',
-  up() {
+  async up() {
     await Rooms.createIndexAsync({ call: 1 }, { unique: true });
     await Rooms.createIndexAsync({ routedServer: 1 });
 

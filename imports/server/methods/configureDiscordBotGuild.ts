@@ -16,7 +16,7 @@ configureDiscordBotGuild.define({
     return arg;
   },
 
-  run({ guild }) {
+  async run({ guild }) {
     check(this.userId, String);
 
     if (!userMayConfigureDiscordBot(this.userId)) {

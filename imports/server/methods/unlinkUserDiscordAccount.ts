@@ -3,7 +3,7 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import unlinkUserDiscordAccount from '../../methods/unlinkUserDiscordAccount';
 
 unlinkUserDiscordAccount.define({
-  run() {
+  async run() {
     check(this.userId, String);
 
     // TODO: tell Discord to revoke the token?

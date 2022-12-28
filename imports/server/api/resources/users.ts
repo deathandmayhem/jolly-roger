@@ -7,7 +7,7 @@ import MeteorUsers from '../../../lib/models/MeteorUsers';
 // eslint-disable-next-line new-cap
 const users = express.Router();
 
-function findUserByEmail(email: string): Meteor.User | undefined {
+async function findUserByEmail(email: string): Promise<Meteor.User | undefined> {
   // We have two ways of finding a user: either by the email address
   // they registered with, or by the Google account they've
   // linked. Try both.
@@ -31,10 +31,10 @@ const renderUser = function renderUser(user: Meteor.User) {
   };
 };
 
-users.get('/:email', (req, res) => {
+users.get('/:email', async (req, res) => {
   check(req.params.email, String);
 
-  const user = findUserByEmail(req.params.email);
+  const user = await findUserByEmail(req.params.email);
   if (!user) {
     res.sendStatus(404);
     return;

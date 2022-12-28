@@ -15,7 +15,7 @@ function unlockedAt(version: number) {
 describe('MigrationRegistry', function () {
   this.timeout(2000);
 
-  beforeEach(function () {
+  beforeEach(async function () {
     await testCollection.removeAsync({});
   });
 

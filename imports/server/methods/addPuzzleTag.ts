@@ -14,7 +14,7 @@ addPuzzleTag.define({
     return arg;
   },
 
-  run({ puzzleId, tagName }) {
+  async run({ puzzleId, tagName }) {
     check(this.userId, String);
 
     // Look up which hunt the specified puzzle is from.
@@ -27,7 +27,7 @@ addPuzzleTag.define({
     });
     const huntId = hunt?.hunt;
     if (!huntId) throw new Error(`No puzzle known with id ${puzzleId}`);
-    const tagId = getOrCreateTagByName(huntId, tagName)._id;
+    const tagId = (await getOrCreateTagByName(huntId, tagName))._id;
 
     Ansible.log('Tagging puzzle', { puzzle: puzzleId, tag: tagName });
     await Puzzles.updateAsync({
