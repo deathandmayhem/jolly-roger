@@ -8,14 +8,14 @@ import FolderPermissions from '../lib/models/FolderPermissions';
 import Hunts from '../lib/models/Hunts';
 import Settings from '../lib/models/Settings';
 import { SettingType } from '../lib/schemas/Setting';
-import DriveClient from './gdriveClientRefresher';
 import getTeamName from './getTeamName';
+import GoogleClient from './googleClientRefresher';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import HuntFolders from './models/HuntFolders';
 import Locks from './models/Locks';
 
 function checkClientOk() {
-  if (!DriveClient.ready()) {
+  if (!GoogleClient.ready()) {
     throw new Meteor.Error(500, 'Google OAuth is not configured.');
   }
 
@@ -26,12 +26,12 @@ function checkClientOk() {
 
 async function createFolder(name: string, parentId?: string) {
   checkClientOk();
-  if (!DriveClient.gdrive) throw new Meteor.Error(500, 'Google integration is disabled');
+  if (!GoogleClient.drive) throw new Meteor.Error(500, 'Google integration is disabled');
 
   const mimeType = 'application/vnd.google-apps.folder';
   const parents = parentId ? [parentId] : undefined;
 
-  const folder = await DriveClient.gdrive.files.create({
+  const folder = await GoogleClient.drive.files.create({
     requestBody: {
       name,
       mimeType,
@@ -51,7 +51,7 @@ async function createDocument(
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
   checkClientOk();
-  if (!DriveClient.gdrive) throw new Meteor.Error(500, 'Google integration is disabled');
+  if (!GoogleClient.drive) throw new Meteor.Error(500, 'Google integration is disabled');
 
   const template = (await Settings.findOneAsync({ name: `gdrive.template.${type}` as any })) as undefined | SettingType & (
     { name: 'gdrive.template.document' } | { name: 'gdrive.template.spreadsheet' }
@@ -60,17 +60,17 @@ async function createDocument(
   const parents = parentId ? [parentId] : undefined;
 
   const file = await (template ?
-    DriveClient.gdrive.files.copy({
+    GoogleClient.drive.files.copy({
       fileId: template.value.id,
       requestBody: { name, mimeType, parents },
     }) :
-    DriveClient.gdrive.files.create({
+    GoogleClient.drive.files.create({
       requestBody: { name, mimeType, parents },
     }));
 
   const fileId = file.data.id!;
 
-  await DriveClient.gdrive.permissions.create({
+  await GoogleClient.drive.permissions.create({
     fileId,
     requestBody: { role: 'writer', type: 'anyone' },
   });
@@ -79,14 +79,14 @@ async function createDocument(
 
 export async function moveDocument(id: string, newParentId: string) {
   checkClientOk();
-  if (!DriveClient.gdrive) throw new Meteor.Error(500, 'Google integration is disabled');
+  if (!GoogleClient.drive) throw new Meteor.Error(500, 'Google integration is disabled');
 
-  const parents = (await DriveClient.gdrive.files.get({
+  const parents = (await GoogleClient.drive.files.get({
     fileId: id,
     fields: 'parents',
   })).data.parents ?? [];
 
-  await DriveClient.gdrive.files.update({
+  await GoogleClient.drive.files.update({
     fileId: id,
     addParents: newParentId,
     removeParents: parents.join(','),
@@ -103,9 +103,9 @@ export async function puzzleDocumentName(puzzleTitle: string) {
 
 export async function renameDocument(id: string, name: string) {
   checkClientOk();
-  if (!DriveClient.gdrive) return;
+  if (!GoogleClient.drive) return;
   // It's unclear if this can ever return an error
-  await DriveClient.gdrive.files.update({
+  await GoogleClient.drive.files.update({
     fileId: id,
     requestBody: { name },
   });
@@ -113,8 +113,8 @@ export async function renameDocument(id: string, name: string) {
 
 export async function grantPermission(id: string, email: string, permission: string) {
   checkClientOk();
-  if (!DriveClient.gdrive) return;
-  await DriveClient.gdrive.permissions.create({
+  if (!GoogleClient.drive) return;
+  await GoogleClient.drive.permissions.create({
     fileId: id,
     sendNotificationEmail: false,
     requestBody: {
@@ -127,7 +127,7 @@ export async function grantPermission(id: string, email: string, permission: str
 
 export async function makeReadOnly(fileId: string) {
   checkClientOk();
-  const client = DriveClient.gdrive;
+  const client = GoogleClient.drive;
   if (!client) return;
 
   // Fetch all permissions so we can delete them
@@ -168,9 +168,9 @@ export async function makeReadOnly(fileId: string) {
 
 export async function makeReadWrite(fileId: string) {
   checkClientOk();
-  if (!DriveClient.gdrive) return;
+  if (!GoogleClient.drive) return;
 
-  await DriveClient.gdrive.permissions.create({
+  await GoogleClient.drive.permissions.create({
     fileId,
     requestBody: { role: 'writer', type: 'anyone' },
   });

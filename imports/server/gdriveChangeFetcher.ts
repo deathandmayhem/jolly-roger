@@ -6,7 +6,7 @@ import { ACTIVITY_GRANULARITY } from '../lib/config/activityTracking';
 import DocumentActivities from '../lib/models/DocumentActivities';
 import Documents from '../lib/models/Documents';
 import roundedTime from '../lib/roundedTime';
-import DriveClient from './gdriveClientRefresher';
+import GoogleClient from './googleClientRefresher';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import DriveChangesPageTokens from './models/DriveChangesPageTokens';
 import Locks, { PREEMPT_TIMEOUT } from './models/Locks';
@@ -85,7 +85,7 @@ async function fetchDriveChangesIteration(gdrive: drive_v3.Drive, lock: string):
 }
 
 async function fetchDriveChanges(lock: string) {
-  const gdrive = DriveClient.gdrive;
+  const gdrive = GoogleClient.drive;
   if (!gdrive) {
     return;
   }
