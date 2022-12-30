@@ -8,13 +8,14 @@ import {
 } from '../permission_stubs';
 import DiscordCacheSchema, { DiscordCacheType } from '../schemas/DiscordCache';
 import { FindOptions } from './Base';
+import MeteorUsers from './MeteorUsers';
 import Settings from './Settings';
 
 const DiscordCache = new Mongo.Collection<DiscordCacheType>('discord_cache');
 DiscordCache.attachSchema(DiscordCacheSchema);
 if (Meteor.isServer) {
-  Meteor.publish('discord.guilds', function () {
-    if (!this.userId || !userMayConfigureDiscordBot(this.userId)) {
+  Meteor.publish('discord.guilds', async function () {
+    if (!this.userId || !userMayConfigureDiscordBot(await MeteorUsers.findOneAsync(this.userId))) {
       Ansible.log('Sub to discord.guilds not logged in as admin');
       return [];
     }
@@ -22,7 +23,7 @@ if (Meteor.isServer) {
     return DiscordCache.find({ type: 'guild' });
   });
 
-  Meteor.publish('discord.cache', function (
+  Meteor.publish('discord.cache', async function (
     q: Mongo.Selector<DiscordCacheType> = {},
     opts: FindOptions = {},
   ) {
@@ -34,7 +35,7 @@ if (Meteor.isServer) {
       limit: Match.Maybe(Number),
     });
 
-    if (!this.userId || !userMayUseDiscordBotAPIs(this.userId)) {
+    if (!this.userId || !userMayUseDiscordBotAPIs(await MeteorUsers.findOneAsync(this.userId))) {
       Ansible.log('Sub to discord.cache not logged in as operator');
       return [];
     }

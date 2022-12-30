@@ -1,5 +1,6 @@
 import { check, Match } from 'meteor/check';
 import FeatureFlags from '../../lib/models/FeatureFlags';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import { checkAdmin } from '../../lib/permission_stubs';
 import setFeatureFlag from '../../methods/setFeatureFlag';
 
@@ -15,7 +16,8 @@ setFeatureFlag.define({
 
   async run({ name, type }) {
     // Feature flags may only be updated by admins
-    checkAdmin(this.userId);
+    check(this.userId, String);
+    checkAdmin(await MeteorUsers.findOneAsync(this.userId));
 
     await FeatureFlags.upsertAsync({ name }, { $set: { type } });
   },

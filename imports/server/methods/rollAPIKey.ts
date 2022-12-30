@@ -15,7 +15,7 @@ rollAPIKey.define({
   async run({ forUser }) {
     check(this.userId, String);
 
-    const user = userForKeyOperation(this.userId, forUser);
+    const user = await userForKeyOperation(this.userId, forUser);
 
     for await (const k of APIKeys.find({ user })) {
       Ansible.log('Expiring API key', { id: k._id, user: k.user, requestedBy: this.userId });

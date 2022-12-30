@@ -26,11 +26,11 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
 
   const { canUpdate, canDestroy } = useTracker(() => {
     return {
-      canUpdate: userMayUpdateHunt(Meteor.userId(), huntId),
+      canUpdate: userMayUpdateHunt(Meteor.user(), huntId),
 
       // Because we delete by setting the deleted flag, you only need
       // update to "remove" something
-      canDestroy: userMayUpdateHunt(Meteor.userId(), huntId),
+      canDestroy: userMayUpdateHunt(Meteor.user(), huntId),
     };
   }, [huntId]);
 
@@ -156,7 +156,7 @@ const HuntListPage = () => {
   const hunts = useTracker(() => Hunts.find({}, { sort: { createdAt: -1 } }).fetch());
   const { canAdd, myHunts } = useTracker(() => {
     return {
-      canAdd: userMayCreateHunt(Meteor.userId()),
+      canAdd: userMayCreateHunt(Meteor.user()),
       myHunts: new Set(Meteor.user()?.hunts ?? []),
     };
   }, []);

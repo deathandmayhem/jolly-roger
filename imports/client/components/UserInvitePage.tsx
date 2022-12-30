@@ -30,7 +30,7 @@ const UserInvitePage = () => {
   const [bulkError, setBulkError] = useState<Meteor.Error | undefined>(undefined);
 
   const canBulkInvite = useTracker(() => {
-    return userMayBulkAddToHunt(Meteor.userId(), huntId);
+    return userMayBulkAddToHunt(Meteor.user(), huntId);
   }, [huntId]);
 
   const onEmailChanged: NonNullable<FormControlProps['onChange']> = useCallback((e) => {

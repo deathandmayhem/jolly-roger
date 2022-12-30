@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { GLOBAL_SCOPE, userIdIsAdmin, userIsAdmin } from './is-admin';
+import isAdmin, { GLOBAL_SCOPE } from './isAdmin';
 import Hunts from './models/Hunts';
 import MeteorUsers from './models/MeteorUsers';
 
@@ -7,12 +7,10 @@ function isOperatorForHunt(user: Meteor.User, huntId: string): boolean {
   return user.roles?.[huntId]?.includes('operator') ?? false;
 }
 
-export function listAllRolesForHunt(userId: string | null | undefined, huntId: string): string[] {
-  if (!userId) {
-    return [];
-  }
-
-  const user = MeteorUsers.findOne(userId);
+export function listAllRolesForHunt(
+  user: Meteor.User | null | undefined,
+  huntId: string
+): string[] {
   if (!user) {
     return [];
   }
@@ -27,12 +25,10 @@ export function listAllRolesForHunt(userId: string | null | undefined, huntId: s
   ];
 }
 
-export function userIsOperatorForHunt(userId: string | null | undefined, huntId: string): boolean {
-  if (!userId) {
-    return false;
-  }
-
-  const user = MeteorUsers.findOne(userId);
+export function userIsOperatorForHunt(
+  user: Meteor.User | null | undefined,
+  huntId: string
+): boolean {
   if (!user) {
     return false;
   }
@@ -40,17 +36,12 @@ export function userIsOperatorForHunt(userId: string | null | undefined, huntId:
   return isOperatorForHunt(user, huntId);
 }
 
-export function userIsOperatorForAnyHunt(userId: string | null | undefined): boolean {
-  if (!userId) {
-    return false;
-  }
-
-  const user = MeteorUsers.findOne(userId);
+export function userIsOperatorForAnyHunt(user: Meteor.User | null | undefined): boolean {
   if (!user) {
     return false;
   }
 
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -60,18 +51,16 @@ export function userIsOperatorForAnyHunt(userId: string | null | undefined): boo
 // admins and operators are always allowed to join someone to a hunt
 // non-admins can if they are a member of that hunt
 // already and if the hunt allows open signups.
-export function userMayAddUsersToHunt(userId: string | null | undefined, huntId: string): boolean {
-  if (!userId) {
-    return false;
-  }
-
-  const user = MeteorUsers.findOne(userId);
+export function userMayAddUsersToHunt(
+  user: Meteor.User | null | undefined,
+  huntId: string
+): boolean {
   if (!user) {
     return false;
   }
 
   // Admins can always do everything
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -100,19 +89,14 @@ export function userMayAddUsersToHunt(userId: string | null | undefined, huntId:
 
 // Admins and operators may add announcements to a hunt.
 export function userMayAddAnnouncementToHunt(
-  userId: string | null | undefined,
+  user: Meteor.User | null | undefined,
   huntId: string,
 ): boolean {
-  if (!userId) {
-    return false;
-  }
-
-  const user = MeteorUsers.findOne(userId);
   if (!user) {
     return false;
   }
 
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -129,19 +113,14 @@ export function userMayAddAnnouncementToHunt(
 }
 
 export function userMayMakeOperatorForHunt(
-  userId: string | null | undefined,
+  user: Meteor.User | null | undefined,
   huntId: string,
 ): boolean {
-  if (!userId) {
-    return false;
-  }
-
-  const user = MeteorUsers.findOne(userId);
   if (!user) {
     return false;
   }
 
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -158,19 +137,14 @@ export function userMayMakeOperatorForHunt(
 }
 
 export function userMaySeeUserInfoForHunt(
-  userId: string | null | undefined,
+  user: Meteor.User | null | undefined,
   huntId: string
 ): boolean {
-  if (!userId) {
-    return false;
-  }
-
-  const user = MeteorUsers.findOne(userId);
   if (!user) {
     return false;
   }
 
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -186,17 +160,15 @@ export function userMaySeeUserInfoForHunt(
   return false;
 }
 
-export function userMayBulkAddToHunt(userId: string | null | undefined, huntId: string): boolean {
-  if (!userId) {
-    return false;
-  }
-
-  const user = MeteorUsers.findOne(userId);
+export function userMayBulkAddToHunt(
+  user: Meteor.User | null | undefined,
+  huntId: string
+): boolean {
   if (!user) {
     return false;
   }
 
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -207,56 +179,52 @@ export function userMayBulkAddToHunt(userId: string | null | undefined, huntId: 
   return false;
 }
 
-export function userMayUseDiscordBotAPIs(userId: string | null | undefined): boolean {
-  return userIdIsAdmin(userId);
+export function userMayUseDiscordBotAPIs(user: Meteor.User | null | undefined): boolean {
+  return isAdmin(user);
 }
 
-export function checkAdmin(userId: string | null | undefined) {
-  if (!userIdIsAdmin(userId)) {
+export function checkAdmin(user: Meteor.User | null | undefined) {
+  if (!isAdmin(user)) {
     throw new Meteor.Error(401, 'Must be admin');
   }
 }
 
-export function userMayConfigureGdrive(userId: string | null | undefined): boolean {
-  return userIdIsAdmin(userId);
+export function userMayConfigureGdrive(user: Meteor.User | null | undefined): boolean {
+  return isAdmin(user);
 }
 
-export function userMayConfigureGoogleOAuth(userId: string | null | undefined): boolean {
-  return userIdIsAdmin(userId);
+export function userMayConfigureGoogleOAuth(user: Meteor.User | null | undefined): boolean {
+  return isAdmin(user);
 }
 
-export function userMayConfigureDiscordOAuth(userId: string | null | undefined): boolean {
-  return userIdIsAdmin(userId);
+export function userMayConfigureDiscordOAuth(user: Meteor.User | null | undefined): boolean {
+  return isAdmin(user);
 }
 
-export function userMayConfigureDiscordBot(userId: string | null | undefined): boolean {
-  return userIdIsAdmin(userId);
+export function userMayConfigureDiscordBot(user: Meteor.User | null | undefined): boolean {
+  return isAdmin(user);
 }
 
-export function userMayConfigureEmailBranding(userId: string | null | undefined): boolean {
-  return userIdIsAdmin(userId);
+export function userMayConfigureEmailBranding(user: Meteor.User | null | undefined): boolean {
+  return isAdmin(user);
 }
 
-export function userMayConfigureTeamName(userId: string | null | undefined): boolean {
-  return userIdIsAdmin(userId);
+export function userMayConfigureTeamName(user: Meteor.User | null | undefined): boolean {
+  return isAdmin(user);
 }
 
-export function userMayConfigureAssets(userId: string | null | undefined): boolean {
-  return userIdIsAdmin(userId);
+export function userMayConfigureAssets(user: Meteor.User | null | undefined): boolean {
+  return isAdmin(user);
 }
 
 export function userMayUpdateGuessesForHunt(
-  userId: string | null | undefined,
+  user: Meteor.User | null | undefined,
   huntId: string,
 ): boolean {
-  if (!userId) {
-    return false;
-  }
-  const user = MeteorUsers.findOne(userId);
   if (!user) {
     return false;
   }
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
   if (isOperatorForHunt(user, huntId)) {
@@ -266,17 +234,13 @@ export function userMayUpdateGuessesForHunt(
 }
 
 export function userMayWritePuzzlesForHunt(
-  userId: string | null | undefined,
+  user: Meteor.User | null | undefined,
   huntId: string,
 ): boolean {
-  if (!userId) {
-    return false;
-  }
-  const user = MeteorUsers.findOne(userId);
   if (!user) {
     return false;
   }
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
   if (isOperatorForHunt(user, huntId)) {
@@ -285,27 +249,23 @@ export function userMayWritePuzzlesForHunt(
   return false;
 }
 
-export function userMayCreateHunt(userId: string | null | undefined): boolean {
-  return userIdIsAdmin(userId);
+export function userMayCreateHunt(user: Meteor.User | null | undefined): boolean {
+  return isAdmin(user);
 }
 
-export function userMayUpdateHunt(userId: string | null | undefined, _huntId: string): boolean {
+export function userMayUpdateHunt(user: Meteor.User | null | undefined, _huntId: string): boolean {
   // TODO: make this driven by if you're an operator of the hunt in question
-  return userIdIsAdmin(userId);
+  return isAdmin(user);
 }
 
 export function userMayJoinCallsForHunt(
-  userId: string | null | undefined,
+  user: Meteor.User | null | undefined,
   huntId: string,
 ): boolean {
-  if (!userId) {
-    return false;
-  }
-  const user = MeteorUsers.findOne(userId);
   if (!user) {
     return false;
   }
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
   if (user.hunts?.includes(huntId)) {
@@ -314,8 +274,8 @@ export function userMayJoinCallsForHunt(
   return false;
 }
 
-export function addUserToRole(userId: string, scope: string, role: string) {
-  return MeteorUsers.update({
+export async function addUserToRole(userId: string, scope: string, role: string) {
+  await MeteorUsers.updateAsync({
     _id: userId,
   }, {
     $addToSet: {
@@ -326,8 +286,8 @@ export function addUserToRole(userId: string, scope: string, role: string) {
   });
 }
 
-export function addUserToRoles(userId: string, scope: string, roles: string[]) {
-  return MeteorUsers.update({
+export async function addUserToRoles(userId: string, scope: string, roles: string[]) {
+  await MeteorUsers.updateAsync({
     _id: userId,
   }, {
     $addToSet: {
@@ -338,8 +298,8 @@ export function addUserToRoles(userId: string, scope: string, roles: string[]) {
   });
 }
 
-export function removeUserFromRole(userId: string, scope: string, role: string) {
-  return MeteorUsers.update({
+export async function removeUserFromRole(userId: string, scope: string, role: string) {
+  await MeteorUsers.updateAsync({
     _id: userId,
   }, {
     $pullAll: {
@@ -348,8 +308,8 @@ export function removeUserFromRole(userId: string, scope: string, role: string) 
   });
 }
 
-export function removeUserFromRoles(userId: string, scope: string, roles: string[]) {
-  return MeteorUsers.update({
+export async function removeUserFromRoles(userId: string, scope: string, roles: string[]) {
+  await MeteorUsers.updateAsync({
     _id: userId,
   }, {
     $pullAll: {

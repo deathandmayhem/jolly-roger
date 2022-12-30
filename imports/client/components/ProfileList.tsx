@@ -19,7 +19,7 @@ import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Modal from 'react-bootstrap/Modal';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { userIdIsAdmin } from '../../lib/is-admin';
+import isAdmin from '../../lib/isAdmin';
 import { userIsOperatorForHunt } from '../../lib/permission_stubs';
 import demoteOperator from '../../methods/demoteOperator';
 import promoteOperator from '../../methods/promoteOperator';
@@ -177,10 +177,10 @@ const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string 
   const self = useTracker(() => user._id === Meteor.userId(), [user._id]);
   const { userIsOperator, userIsAdmin } = useTracker(() => {
     return {
-      userIsOperator: userIsOperatorForHunt(user._id, huntId),
-      userIsAdmin: userIdIsAdmin(user._id),
+      userIsOperator: userIsOperatorForHunt(user, huntId),
+      userIsAdmin: isAdmin(user),
     };
-  }, [user._id, huntId]);
+  }, [user, huntId]);
 
   const [renderPromoteModal, setRenderPromoteModal] = useState(false);
   const promoteModalRef = useRef<OperatorModalHandle>(null);

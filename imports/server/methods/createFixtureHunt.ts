@@ -13,7 +13,7 @@ createFixtureHunt.define({
   async run() {
     check(this.userId, String);
 
-    if (!userMayCreateHunt(this.userId)) {
+    if (!userMayCreateHunt(await MeteorUsers.findOneAsync(this.userId))) {
       throw new Meteor.Error(401, 'Must be allowed to create hunt');
     }
 
@@ -32,7 +32,7 @@ createFixtureHunt.define({
 
     // Make the user an operator
     await MeteorUsers.updateAsync(this.userId, { $addToSet: { hunts: huntId } });
-    addUserToRole(this.userId, huntId, 'operator');
+    await addUserToRole(this.userId, huntId, 'operator');
 
     // Create tags
     await FixtureHunt.tags.reduce(async (p, { _id, name }) => {

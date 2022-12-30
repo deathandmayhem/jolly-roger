@@ -53,12 +53,12 @@ registerPeriodicCleanupHook(async (deadServers) => {
   }
 });
 
-Meteor.publish('mediasoup:debug', function () {
+Meteor.publish('mediasoup:debug', async function () {
   if (!this.userId) {
     throw new Meteor.Error(401, 'Not logged in');
   }
 
-  checkAdmin(this.userId);
+  checkAdmin(await MeteorUsers.findOneAsync(this.userId));
 
   return [
     MeteorUsers.find({}, { fields: { displayName: 1, discordAccount: 1 } }),
@@ -80,7 +80,7 @@ Meteor.publish('mediasoup:debug', function () {
   ];
 });
 
-Meteor.publish('mediasoup:metadata', function (hunt, call) {
+Meteor.publish('mediasoup:metadata', async function (hunt, call) {
   check(hunt, String);
   check(call, String);
 
@@ -88,7 +88,7 @@ Meteor.publish('mediasoup:metadata', function (hunt, call) {
     throw new Meteor.Error(401, 'Not logged in');
   }
 
-  if (!userMayJoinCallsForHunt(this.userId, hunt)) {
+  if (!userMayJoinCallsForHunt(await MeteorUsers.findOneAsync(this.userId), hunt)) {
     throw new Meteor.Error(403, 'Not a member of this hunt');
   }
 
@@ -98,7 +98,7 @@ Meteor.publish('mediasoup:metadata', function (hunt, call) {
   ];
 });
 
-Meteor.publish('mediasoup:join', function (hunt, call, tab) {
+Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
   check(hunt, String);
   check(call, String);
   check(tab, String);
@@ -107,7 +107,7 @@ Meteor.publish('mediasoup:join', function (hunt, call, tab) {
     throw new Meteor.Error(401, 'Not logged in');
   }
 
-  if (!userMayJoinCallsForHunt(this.userId, hunt)) {
+  if (!userMayJoinCallsForHunt(await MeteorUsers.findOneAsync(this.userId), hunt)) {
     throw new Meteor.Error(403, 'Not a member of this hunt');
   }
 

@@ -122,8 +122,8 @@ const HuntApp = React.memo(() => {
   } = useTracker(() => {
     return {
       member: Meteor.user()?.hunts?.includes(huntId) ?? false,
-      canUndestroy: userMayUpdateHunt(Meteor.userId(), huntId),
-      canJoin: userMayAddUsersToHunt(Meteor.userId(), huntId),
+      canUndestroy: userMayUpdateHunt(Meteor.user(), huntId),
+      canJoin: userMayAddUsersToHunt(Meteor.user(), huntId),
     };
   }, [huntId]);
 

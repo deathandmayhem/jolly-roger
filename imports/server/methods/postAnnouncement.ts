@@ -20,7 +20,7 @@ postAnnouncement.define({
   async run({ huntId, message }) {
     check(this.userId, String);
 
-    if (!userMayAddAnnouncementToHunt(this.userId, huntId)) {
+    if (!userMayAddAnnouncementToHunt(await MeteorUsers.findOneAsync(this.userId), huntId)) {
       throw new Meteor.Error(401, `User ${this.userId} may not create announcements for hunt ${huntId}`);
     }
 

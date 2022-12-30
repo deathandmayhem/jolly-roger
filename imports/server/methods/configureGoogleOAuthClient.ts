@@ -2,6 +2,7 @@ import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../../Ansible';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayConfigureGoogleOAuth } from '../../lib/permission_stubs';
 import configureGoogleOAuthClient from '../../methods/configureGoogleOAuthClient';
 
@@ -17,7 +18,7 @@ configureGoogleOAuthClient.define({
   async run({ clientId, secret }) {
     check(this.userId, String);
 
-    if (!userMayConfigureGoogleOAuth(this.userId)) {
+    if (!userMayConfigureGoogleOAuth(await MeteorUsers.findOneAsync(this.userId))) {
       throw new Meteor.Error(401, 'Must be admin to configure Google OAuth');
     }
 

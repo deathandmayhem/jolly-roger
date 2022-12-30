@@ -2,6 +2,7 @@ import { check } from 'meteor/check';
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import Ansible from '../../Ansible';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureGdrive } from '../../lib/permission_stubs';
 import configureGdriveCreds from '../../methods/configureGdriveCreds';
@@ -18,7 +19,7 @@ configureGdriveCreds.define({
   async run({ key, secret }) {
     check(this.userId, String);
 
-    if (!userMayConfigureGdrive(this.userId)) {
+    if (!userMayConfigureGdrive(await MeteorUsers.findOneAsync(this.userId))) {
       throw new Meteor.Error(401, 'Must be admin to configure gdrive');
     }
 

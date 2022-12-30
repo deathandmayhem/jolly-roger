@@ -1,6 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Ansible from '../../Ansible';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureDiscordBot } from '../../lib/permission_stubs';
 import configureDiscordBotGuild from '../../methods/configureDiscordBotGuild';
@@ -19,7 +20,7 @@ configureDiscordBotGuild.define({
   async run({ guild }) {
     check(this.userId, String);
 
-    if (!userMayConfigureDiscordBot(this.userId)) {
+    if (!userMayConfigureDiscordBot(await MeteorUsers.findOneAsync(this.userId))) {
       throw new Meteor.Error(401, 'Must be admin to configure Discord Bot');
     }
 

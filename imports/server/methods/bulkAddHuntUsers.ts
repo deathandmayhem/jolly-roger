@@ -1,6 +1,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Hunts from '../../lib/models/Hunts';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
 import addHuntUser from '../../methods/addHuntUser';
 import bulkAddHuntUsers from '../../methods/bulkAddHuntUsers';
@@ -17,7 +18,7 @@ bulkAddHuntUsers.define({
   async run({ huntId, emails }) {
     check(this.userId, String);
 
-    if (!userMayBulkAddToHunt(this.userId, huntId)) {
+    if (!userMayBulkAddToHunt(await MeteorUsers.findOneAsync(this.userId), huntId)) {
       throw new Meteor.Error(401, `User ${this.userId} may not bulk-invite to hunt ${huntId}`);
     }
 

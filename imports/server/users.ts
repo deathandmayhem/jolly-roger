@@ -2,7 +2,7 @@ import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { GLOBAL_SCOPE } from '../lib/is-admin';
+import { GLOBAL_SCOPE } from '../lib/isAdmin';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
 import { ProfileFields } from '../lib/schemas/User';
@@ -162,9 +162,9 @@ Meteor.publish('profile', async function (userId: unknown) {
 Meteor.publish('huntRoles', async function (huntId: unknown) {
   check(huntId, String);
 
-  await republishOnUserChange(this, { hunts: 1, roles: 1 }, () => {
+  await republishOnUserChange(this, { hunts: 1, roles: 1 }, (u) => {
     // Only publish other users' roles to admins and other operators.
-    if (!userMaySeeUserInfoForHunt(this.userId, huntId)) {
+    if (!userMaySeeUserInfoForHunt(u, huntId)) {
       return undefined;
     }
 

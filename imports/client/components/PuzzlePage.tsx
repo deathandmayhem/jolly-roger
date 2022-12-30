@@ -638,7 +638,7 @@ const PuzzlePageMetadata = ({
   const puzzleId = puzzle._id;
 
   const hasGuessQueue = useTracker(() => Hunts.findOne(huntId)?.hasGuessQueue ?? false, [huntId]);
-  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.userId(), huntId), [huntId]);
+  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.user(), huntId), [huntId]);
 
   const allPuzzles = useTracker(() => Puzzles.find({ hunt: huntId }).fetch(), [huntId]);
   const allTags = useTracker(() => Tags.find({ hunt: huntId }).fetch(), [huntId]);
@@ -1178,7 +1178,7 @@ const PuzzlePageMultiplayerDocument = React.memo(({ document }: {
 const PuzzleDeletedModal = ({
   puzzleId, huntId, replacedBy,
 }: { puzzleId: string, huntId: string, replacedBy?: string }) => {
-  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.userId(), huntId), [huntId]);
+  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.user(), huntId), [huntId]);
 
   const replacementLoading = useSubscribe('mongo.puzzles.allowingDeleted', { _id: replacedBy });
   const loading = replacementLoading();

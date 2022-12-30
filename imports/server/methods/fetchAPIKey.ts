@@ -16,7 +16,7 @@ fetchAPIKey.define({
   async run({ forUser }) {
     check(this.userId, String);
 
-    const user = userForKeyOperation(this.userId, forUser);
+    const user = await userForKeyOperation(this.userId, forUser);
 
     let key = await APIKeys.findOneAsync({ user });
     if (!key) {

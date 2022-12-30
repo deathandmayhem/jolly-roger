@@ -50,12 +50,12 @@ if (Meteor.isServer) {
       return arg;
     },
 
-    run({ userId, scope, role }) {
+    async run({ userId, scope, role }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, 'This code must not run in production');
       }
 
-      serverAddUserToRole(userId, scope, role);
+      await serverAddUserToRole(userId, scope, role);
     },
   });
 
@@ -206,12 +206,12 @@ if (Meteor.isClient) {
         await subscribeAsync('huntRoles', huntId);
         await subscribeAsync('huntRoles', otherHuntId);
 
-        let operators = MeteorUsers.find().map((u) => u._id).filter(userIsOperatorForAnyHunt);
-        assert.sameMembers(operators, [userId, sameHuntUserId], 'Should only show operators in hunt where you are an operator');
+        let operators = MeteorUsers.find().fetch().filter(userIsOperatorForAnyHunt);
+        assert.sameMembers(operators.map((u) => u._id), [userId, sameHuntUserId], 'Should only show operators in hunt where you are an operator');
 
         await addUserToRole.callPromise({ userId, scope: otherHuntId, role: 'operator' });
-        operators = MeteorUsers.find().map((u) => u._id).filter(userIsOperatorForAnyHunt);
-        assert.sameMembers(operators, [userId, sameHuntUserId, differentHuntUserId], 'Should update when hunt roles changes');
+        operators = MeteorUsers.find().fetch().filter(userIsOperatorForAnyHunt);
+        assert.sameMembers(operators.map((u) => u._id), [userId, sameHuntUserId, differentHuntUserId], 'Should update when hunt roles changes');
       });
     });
   });

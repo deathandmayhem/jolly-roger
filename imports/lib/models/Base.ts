@@ -2,8 +2,9 @@ import { check, Match } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import ValidateShape from '../ValidateShape';
-import { userIdIsAdmin } from '../is-admin';
+import isAdmin from '../isAdmin';
 import { BaseType } from '../schemas/Base';
+import MeteorUsers from './MeteorUsers';
 
 const formatQuery = Symbol('formatQuery');
 const formatOptions = Symbol('formatOptions');
@@ -38,13 +39,13 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     // relied upon by any client-side code that is part of the application.
     this.allow({
       insert(userId, _doc) {
-        return userIdIsAdmin(userId);
+        return isAdmin(MeteorUsers.findOne(userId));
       },
       update(userId, _doc, _fieldNames, _modifier) {
-        return userIdIsAdmin(userId);
+        return isAdmin(MeteorUsers.findOne(userId));
       },
       remove(userId, _doc) {
-        return userIdIsAdmin(userId);
+        return isAdmin(MeteorUsers.findOne(userId));
       },
     });
   }
@@ -189,7 +190,8 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     return super.findOneAsync(selector, options);
   }
 
-  publish(makeConstraint?: (userId: string) => Mongo.Query<T> | undefined) {
+  publish(makeConstraint?: (userId: string) =>
+    Mongo.Query<T> | undefined | Promise<Mongo.Query<T> | undefined>) {
     if (!Meteor.isServer) {
       return;
     }
@@ -197,7 +199,7 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     const publishFunc = function publishFunc(
       findFunc: (query: Mongo.Query<T>, opts: FindOptions) => Mongo.Cursor<T>
     ) {
-      return function (this: Subscription, q: unknown = {}, opts: unknown = {}) {
+      return async function (this: Subscription, q: unknown = {}, opts: unknown = {}) {
         check(q, Object);
         check(opts, {
           fields: Match.Maybe(Object),
@@ -211,7 +213,7 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
         }
 
         let query: Mongo.Query<T> | undefined = q;
-        const constraint = makeConstraint?.(this.userId);
+        const constraint = await makeConstraint?.(this.userId);
         if (constraint) {
           // Typescript seems unable to tell that "$and" can not be a key in T,
           // so it tries to interpret it as a field expression, rather than an

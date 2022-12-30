@@ -2,6 +2,7 @@ import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import Ansible from '../../Ansible';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
@@ -32,7 +33,7 @@ updatePuzzle.define({
     if (!oldPuzzle) {
       throw new Meteor.Error(404, 'Unknown puzzle id');
     }
-    if (!userMayWritePuzzlesForHunt(this.userId, oldPuzzle.hunt)) {
+    if (!userMayWritePuzzlesForHunt(await MeteorUsers.findOneAsync(this.userId), oldPuzzle.hunt)) {
       throw new Meteor.Error(
         401,
         `User ${this.userId} may not modify puzzles from hunt ${oldPuzzle.hunt}`
