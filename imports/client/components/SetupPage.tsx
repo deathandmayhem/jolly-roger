@@ -14,7 +14,7 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import styled from 'styled-components';
 import Flags from '../../Flags';
-import { userIdIsAdmin } from '../../lib/is-admin';
+import isAdmin from '../../lib/isAdmin';
 import DiscordCache from '../../lib/models/DiscordCache';
 import Settings from '../../lib/models/Settings';
 import { SavedDiscordObjectType } from '../../lib/schemas/Hunt';
@@ -1825,7 +1825,7 @@ const SetupPage = () => {
   useBreadcrumb({ title: 'Server setup', path: '/setup' });
 
   const loading = useSubscribe('mongo.settings');
-  const canConfigure = useTracker(() => userIdIsAdmin(Meteor.userId()), []);
+  const canConfigure = useTracker(() => isAdmin(Meteor.user()), []);
 
   if (loading()) {
     return (

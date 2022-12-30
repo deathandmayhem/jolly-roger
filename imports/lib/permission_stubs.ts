@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { GLOBAL_SCOPE, userIsAdmin } from './is-admin';
+import isAdmin, { GLOBAL_SCOPE } from './isAdmin';
 import Hunts from './models/Hunts';
 import MeteorUsers from './models/MeteorUsers';
 
@@ -41,7 +41,7 @@ export function userIsOperatorForAnyHunt(user: Meteor.User | null | undefined): 
     return false;
   }
 
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -60,7 +60,7 @@ export function userMayAddUsersToHunt(
   }
 
   // Admins can always do everything
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -96,7 +96,7 @@ export function userMayAddAnnouncementToHunt(
     return false;
   }
 
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -120,7 +120,7 @@ export function userMayMakeOperatorForHunt(
     return false;
   }
 
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -144,7 +144,7 @@ export function userMaySeeUserInfoForHunt(
     return false;
   }
 
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -168,7 +168,7 @@ export function userMayBulkAddToHunt(
     return false;
   }
 
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
 
@@ -180,41 +180,41 @@ export function userMayBulkAddToHunt(
 }
 
 export function userMayUseDiscordBotAPIs(user: Meteor.User | null | undefined): boolean {
-  return userIsAdmin(user);
+  return isAdmin(user);
 }
 
 export function checkAdmin(user: Meteor.User | null | undefined) {
-  if (!userIsAdmin(user)) {
+  if (!isAdmin(user)) {
     throw new Meteor.Error(401, 'Must be admin');
   }
 }
 
 export function userMayConfigureGdrive(user: Meteor.User | null | undefined): boolean {
-  return userIsAdmin(user);
+  return isAdmin(user);
 }
 
 export function userMayConfigureGoogleOAuth(user: Meteor.User | null | undefined): boolean {
-  return userIsAdmin(user);
+  return isAdmin(user);
 }
 
 export function userMayConfigureDiscordOAuth(user: Meteor.User | null | undefined): boolean {
-  return userIsAdmin(user);
+  return isAdmin(user);
 }
 
 export function userMayConfigureDiscordBot(user: Meteor.User | null | undefined): boolean {
-  return userIsAdmin(user);
+  return isAdmin(user);
 }
 
 export function userMayConfigureEmailBranding(user: Meteor.User | null | undefined): boolean {
-  return userIsAdmin(user);
+  return isAdmin(user);
 }
 
 export function userMayConfigureTeamName(user: Meteor.User | null | undefined): boolean {
-  return userIsAdmin(user);
+  return isAdmin(user);
 }
 
 export function userMayConfigureAssets(user: Meteor.User | null | undefined): boolean {
-  return userIsAdmin(user);
+  return isAdmin(user);
 }
 
 export function userMayUpdateGuessesForHunt(
@@ -224,7 +224,7 @@ export function userMayUpdateGuessesForHunt(
   if (!user) {
     return false;
   }
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
   if (isOperatorForHunt(user, huntId)) {
@@ -240,7 +240,7 @@ export function userMayWritePuzzlesForHunt(
   if (!user) {
     return false;
   }
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
   if (isOperatorForHunt(user, huntId)) {
@@ -250,12 +250,12 @@ export function userMayWritePuzzlesForHunt(
 }
 
 export function userMayCreateHunt(user: Meteor.User | null | undefined): boolean {
-  return userIsAdmin(user);
+  return isAdmin(user);
 }
 
 export function userMayUpdateHunt(user: Meteor.User | null | undefined, _huntId: string): boolean {
   // TODO: make this driven by if you're an operator of the hunt in question
-  return userIsAdmin(user);
+  return isAdmin(user);
 }
 
 export function userMayJoinCallsForHunt(
@@ -265,7 +265,7 @@ export function userMayJoinCallsForHunt(
   if (!user) {
     return false;
   }
-  if (userIsAdmin(user)) {
+  if (isAdmin(user)) {
     return true;
   }
   if (user.hunts?.includes(huntId)) {

@@ -1,4 +1,4 @@
-import { GLOBAL_SCOPE } from '../../lib/is-admin';
+import { GLOBAL_SCOPE } from '../../lib/isAdmin';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Migrations from './Migrations';
 

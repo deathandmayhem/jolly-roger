@@ -2,7 +2,7 @@ import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { GLOBAL_SCOPE } from '../lib/is-admin';
+import { GLOBAL_SCOPE } from '../lib/isAdmin';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
 import { ProfileFields } from '../lib/schemas/User';

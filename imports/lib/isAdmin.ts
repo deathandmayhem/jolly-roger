@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import MeteorUsers from './models/MeteorUsers';
 
 export const GLOBAL_SCOPE = '__GLOBAL__';
 
@@ -7,18 +6,6 @@ export const GLOBAL_SCOPE = '__GLOBAL__';
 // imports/lib/models/base.ts wants to use it for the global admin allow rules,
 // but permission_stubs accesses some other Base-derived collections.
 
-export function userIsAdmin(user: Meteor.User | null | undefined): boolean {
+export default function isAdmin(user: Meteor.User | null | undefined): boolean {
   return user?.roles?.[GLOBAL_SCOPE]?.includes('admin') ?? false;
-}
-
-export function userIdIsAdmin(userId: string | null | undefined): boolean {
-  if (!userId) {
-    return false;
-  }
-  const user = MeteorUsers.findOne(userId);
-  if (!user) {
-    return false;
-  }
-
-  return userIsAdmin(user);
 }

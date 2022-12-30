@@ -1,5 +1,5 @@
 import { Meteor, Subscription } from 'meteor/meteor';
-import { GLOBAL_SCOPE } from '../lib/is-admin';
+import { GLOBAL_SCOPE } from '../lib/isAdmin';
 import Guesses from '../lib/models/Guesses';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';

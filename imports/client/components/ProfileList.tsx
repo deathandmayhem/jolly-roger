@@ -19,7 +19,7 @@ import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Modal from 'react-bootstrap/Modal';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { userIdIsAdmin } from '../../lib/is-admin';
+import isAdmin from '../../lib/isAdmin';
 import { userIsOperatorForHunt } from '../../lib/permission_stubs';
 import demoteOperator from '../../methods/demoteOperator';
 import promoteOperator from '../../methods/promoteOperator';
@@ -178,7 +178,7 @@ const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string 
   const { userIsOperator, userIsAdmin } = useTracker(() => {
     return {
       userIsOperator: userIsOperatorForHunt(user, huntId),
-      userIsAdmin: userIdIsAdmin(user._id),
+      userIsAdmin: isAdmin(user),
     };
   }, [user, huntId]);
 

@@ -38,7 +38,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
-import { userIdIsAdmin } from '../../lib/is-admin';
+import isAdmin from '../../lib/isAdmin';
 import { groupedBy } from '../../lib/listUtils';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
@@ -876,7 +876,7 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
 };
 
 const RTCDebugPage = () => {
-  const viewerIsAdmin = useTracker(() => userIdIsAdmin(Meteor.userId()));
+  const viewerIsAdmin = useTracker(() => isAdmin(Meteor.user()));
   const debugInfoLoading = useSubscribe('mediasoup:debug');
   const puzzlesLoading = useSubscribe('mongo.puzzles');
   const loading =
