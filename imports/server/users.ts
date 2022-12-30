@@ -162,9 +162,9 @@ Meteor.publish('profile', async function (userId: unknown) {
 Meteor.publish('huntRoles', async function (huntId: unknown) {
   check(huntId, String);
 
-  await republishOnUserChange(this, { hunts: 1, roles: 1 }, () => {
+  await republishOnUserChange(this, { hunts: 1, roles: 1 }, (u) => {
     // Only publish other users' roles to admins and other operators.
-    if (!userMaySeeUserInfoForHunt(this.userId, huntId)) {
+    if (!userMaySeeUserInfoForHunt(u, huntId)) {
       return undefined;
     }
 

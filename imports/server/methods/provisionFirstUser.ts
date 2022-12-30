@@ -24,6 +24,6 @@ provisionFirstUser.define({
     }
 
     const firstUserId = Accounts.createUser({ email, password });
-    addUserToRole(firstUserId, GLOBAL_SCOPE, 'admin');
+    await addUserToRole(firstUserId, GLOBAL_SCOPE, 'admin');
   },
 });

@@ -14,7 +14,7 @@ syncHuntDiscordRole.define({
   async run({ huntId }) {
     check(this.userId, String);
 
-    if (!userMayUseDiscordBotAPIs(this.userId)) {
+    if (!userMayUseDiscordBotAPIs(await MeteorUsers.findOneAsync(this.userId))) {
       throw new Meteor.Error(401, `User ${this.userId} not permitted to access Discord bot APIs`);
     }
 

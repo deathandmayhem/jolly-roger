@@ -177,10 +177,10 @@ const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string 
   const self = useTracker(() => user._id === Meteor.userId(), [user._id]);
   const { userIsOperator, userIsAdmin } = useTracker(() => {
     return {
-      userIsOperator: userIsOperatorForHunt(user._id, huntId),
+      userIsOperator: userIsOperatorForHunt(user, huntId),
       userIsAdmin: userIdIsAdmin(user._id),
     };
-  }, [user._id, huntId]);
+  }, [user, huntId]);
 
   const [renderPromoteModal, setRenderPromoteModal] = useState(false);
   const promoteModalRef = useRef<OperatorModalHandle>(null);

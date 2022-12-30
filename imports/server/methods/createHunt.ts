@@ -30,10 +30,10 @@ createHunt.define({
 
   async run(arg) {
     check(this.userId, String);
-    checkAdmin(this.userId);
+    checkAdmin(await MeteorUsers.findOneAsync(this.userId));
 
     const huntId = await Hunts.insertAsync(arg);
-    addUserToRole(this.userId, huntId, 'operator');
+    await addUserToRole(this.userId, huntId, 'operator');
 
     await DEFAULT_TAGS.reduce(async (p, tag) => {
       await p;

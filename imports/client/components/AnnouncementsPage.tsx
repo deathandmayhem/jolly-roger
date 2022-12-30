@@ -140,7 +140,7 @@ const AnnouncementsPage = () => {
     loading ? [] : Announcements.find({ hunt: huntId }, { sort: { createdAt: 1 } }).fetch()
   ), [loading, huntId]);
   const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
-  const canCreateAnnouncements = useTracker(() => userMayAddAnnouncementToHunt(Meteor.userId(), huntId), [huntId]);
+  const canCreateAnnouncements = useTracker(() => userMayAddAnnouncementToHunt(Meteor.user(), huntId), [huntId]);
 
   if (loading) {
     return <div>loading...</div>;

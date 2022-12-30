@@ -28,16 +28,16 @@ const HuntProfileListPage = () => {
 
   const { canInvite, canSyncDiscord, canMakeOperator } = useTracker(() => {
     return {
-      canInvite: userMayAddUsersToHunt(Meteor.userId(), huntId),
-      canSyncDiscord: userMayUseDiscordBotAPIs(Meteor.userId()),
-      canMakeOperator: userMayMakeOperatorForHunt(Meteor.userId(), huntId),
+      canInvite: userMayAddUsersToHunt(Meteor.user(), huntId),
+      canSyncDiscord: userMayUseDiscordBotAPIs(Meteor.user()),
+      canMakeOperator: userMayMakeOperatorForHunt(Meteor.user(), huntId),
     };
   }, [huntId]);
   const roles = useTracker(() => (
     loading || !canMakeOperator ?
       {} :
       Object.fromEntries(MeteorUsers.find({ hunts: huntId })
-        .map((u) => [u._id, listAllRolesForHunt(u._id, huntId)]))
+        .map((u) => [u._id, listAllRolesForHunt(u, huntId)]))
   ), [huntId, loading, canMakeOperator]);
 
   if (loading) {

@@ -97,7 +97,7 @@ addHuntUser.define({
       throw new Meteor.Error(404, 'Unknown hunt');
     }
 
-    if (!userMayAddUsersToHunt(this.userId, huntId)) {
+    if (!userMayAddUsersToHunt(await MeteorUsers.findOneAsync(this.userId), huntId)) {
       throw new Meteor.Error(401, `User ${this.userId} may not add members to ${huntId}`);
     }
 

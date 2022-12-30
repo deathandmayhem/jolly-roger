@@ -496,8 +496,8 @@ const PuzzleListPage = () => {
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
   const { canAdd, canUpdate } = useTracker(() => {
     return {
-      canAdd: userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
-      canUpdate: userMayWritePuzzlesForHunt(Meteor.userId(), huntId),
+      canAdd: userMayWritePuzzlesForHunt(Meteor.user(), huntId),
+      canUpdate: userMayWritePuzzlesForHunt(Meteor.user(), huntId),
     };
   }, [huntId]);
 

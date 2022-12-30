@@ -3,6 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../../Ansible';
 import { API_BASE } from '../../lib/discord';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayConfigureDiscordOAuth } from '../../lib/permission_stubs';
 import configureDiscordOAuthClient from '../../methods/configureDiscordOAuthClient';
 
@@ -18,7 +19,7 @@ configureDiscordOAuthClient.define({
   async run({ clientId, clientSecret }) {
     check(this.userId, String);
 
-    if (!userMayConfigureDiscordOAuth(this.userId)) {
+    if (!userMayConfigureDiscordOAuth(await MeteorUsers.findOneAsync(this.userId))) {
       throw new Meteor.Error(401, 'Must be admin to configure Discord OAuth');
     }
 

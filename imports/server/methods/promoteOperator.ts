@@ -17,7 +17,7 @@ promoteOperator.define({
   async run({ targetUserId, huntId }) {
     check(this.userId, String);
 
-    if (!userMayMakeOperatorForHunt(this.userId, huntId)) {
+    if (!userMayMakeOperatorForHunt(await MeteorUsers.findOneAsync(this.userId), huntId)) {
       throw new Meteor.Error(401, 'Must be operator or inactive operator to make operator');
     }
 
@@ -30,6 +30,6 @@ promoteOperator.define({
       Ansible.log('Promoting user to operator', { user: targetUserId, promoter: this.userId });
     }
 
-    addUserToRole(targetUserId, huntId, 'operator');
+    await addUserToRole(targetUserId, huntId, 'operator');
   },
 });

@@ -1,6 +1,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Ansible from '../../Ansible';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureGdrive } from '../../lib/permission_stubs';
 import configureClearGdriveCreds from '../../methods/configureClearGdriveCreds';
@@ -8,7 +9,7 @@ import configureClearGdriveCreds from '../../methods/configureClearGdriveCreds';
 configureClearGdriveCreds.define({
   async run() {
     check(this.userId, String);
-    if (!userMayConfigureGdrive(this.userId)) {
+    if (!userMayConfigureGdrive(await MeteorUsers.findOneAsync(this.userId))) {
       throw new Meteor.Error(401, 'Must be admin to configure gdrive');
     }
     Ansible.log('Clearing Gdrive creds', {

@@ -16,7 +16,7 @@ updateHunt.define({
 
   async run({ huntId, value }) {
     check(this.userId, String);
-    checkAdmin(this.userId);
+    checkAdmin(await MeteorUsers.findOneAsync(this.userId));
 
     const oldHunt = await Hunts.findOneAsync(huntId);
     if (!oldHunt) {

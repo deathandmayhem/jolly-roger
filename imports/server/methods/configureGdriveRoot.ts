@@ -1,5 +1,6 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
+import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureGdrive } from '../../lib/permission_stubs';
 import configureGdriveRoot from '../../methods/configureGdriveRoot';
@@ -17,7 +18,7 @@ configureGdriveRoot.define({
 
     // Only let the same people that can credential gdrive configure root folder,
     // which today is just admins
-    if (!userMayConfigureGdrive(this.userId)) {
+    if (!userMayConfigureGdrive(await MeteorUsers.findOneAsync(this.userId))) {
       throw new Meteor.Error(401, 'Must be admin to configure gdrive');
     }
 

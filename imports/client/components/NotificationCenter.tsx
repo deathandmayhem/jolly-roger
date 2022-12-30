@@ -480,7 +480,7 @@ const StyledToastContainer = styled(ToastContainer)`
 `;
 
 const NotificationCenter = () => {
-  const fetchPendingGuesses = useTracker(() => userIsOperatorForAnyHunt(Meteor.userId()), []);
+  const fetchPendingGuesses = useTracker(() => userIsOperatorForAnyHunt(Meteor.user()), []);
   const pendingGuessesLoading = useSubscribe(fetchPendingGuesses ? 'pendingGuesses' : undefined);
 
   const [operatorActionsHidden = {}] = useOperatorActionsHidden();
