@@ -20,6 +20,11 @@ export type FindOptions = FindOneOptions & {
   limit?: number;
 }
 
+type SelectorToResultType<T, Selector extends FindSelector<T>> =
+  Selector extends string ? T & { _id: Selector } :
+  Selector extends Mongo.ObjectID ? T & { _id: Selector } :
+  T & { [K in keyof Selector & keyof T]: Selector[K] extends T[K] ? Selector[K] : never };
+
 class Base<T extends BaseType> extends Mongo.Collection<T> {
   public name: string;
 
@@ -136,58 +141,77 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     return opts;
   }
 
-  find(selector: FindSelector<T> = {}, options: FindOptions = {}) {
+  find<Selector extends FindSelector<T>>(selector?: Selector, options: FindOptions = {}) {
     return super.find(
-      { ...this[formatQuery](selector), deleted: false as any },
+      { ...this[formatQuery](selector ?? {}), deleted: false as any },
       this[formatOptions](options)
-    );
+    ) as Mongo.Cursor<SelectorToResultType<T, Selector>>;
   }
 
-  findOne(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
+  findOne<Selector extends FindSelector<T>>(selector?: Selector, options: FindOneOptions = {}) {
     return super.findOne(
-      { ...this[formatQuery](selector), deleted: false as any },
+      { ...this[formatQuery](selector ?? {}), deleted: false as any },
       this[formatOptions](options)
-    );
+    ) as SelectorToResultType<T, Selector> | undefined;
   }
 
-  findOneAsync(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
+  findOneAsync<Selector extends FindSelector<T>>(
+    selector?: Selector,
+    options: FindOneOptions = {},
+  ) {
     return super.findOneAsync(
-      { ...this[formatQuery](selector), deleted: false as any },
+      { ...this[formatQuery](selector ?? {}), deleted: false as any },
       this[formatOptions](options)
-    );
+    ) as Promise<SelectorToResultType<T, Selector> | undefined>;
   }
 
-  findDeleted(selector: FindSelector<T> = {}, options: FindOptions = {}) {
+  findDeleted<Selector extends FindSelector<T>>(selector?: Selector, options: FindOptions = {}) {
     return super.find(
-      { ...this[formatQuery](selector), deleted: true as any },
+      { ...this[formatQuery](selector ?? {}), deleted: true as any },
       this[formatOptions](options)
-    );
+    ) as Mongo.Cursor<SelectorToResultType<T, Selector>>;
   }
 
-  findOneDeleted(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
+  findOneDeleted<Selector extends FindSelector<T>>(
+    selector?: Selector,
+    options: FindOneOptions = {},
+  ) {
     return super.findOne(
-      { ...this[formatQuery](selector), deleted: true as any },
+      { ...this[formatQuery](selector ?? {}), deleted: true as any },
       this[formatOptions](options)
-    );
+    ) as SelectorToResultType<T, Selector> | undefined;
   }
 
-  findOneDeletedAsync(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
+  findOneDeletedAsync<Selector extends FindSelector<T>>(
+    selector?: Selector,
+    options: FindOneOptions = {},
+  ) {
     return super.findOneAsync(
-      { ...this[formatQuery](selector), deleted: true as any },
+      { ...this[formatQuery](selector ?? {}), deleted: true as any },
       this[formatOptions](options)
-    );
+    ) as Promise<SelectorToResultType<T, Selector> | undefined>;
   }
 
-  findAllowingDeleted(selector: FindSelector<T> = {}, options: FindOptions = {}) {
-    return super.find(selector, options);
+  findAllowingDeleted<Selector extends FindSelector<T>>(
+    selector?: Selector,
+    options: FindOptions = {}
+  ) {
+    return super.find(selector, options) as Mongo.Cursor<SelectorToResultType<T, Selector>>;
   }
 
-  findOneAllowingDeleted(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
+  findOneAllowingDeleted<Selector extends FindSelector<T>>(
+    selector?: Selector,
+    options: FindOneOptions = {},
+  ) {
     return super.findOne(selector, options);
   }
 
-  findOneAllowingDeletedAsync(selector: FindSelector<T> = {}, options: FindOneOptions = {}) {
-    return super.findOneAsync(selector, options);
+  findOneAllowingDeletedAsync<Selector extends FindSelector<T>>(
+    selector?: Selector,
+    options: FindOneOptions = {},
+  ) {
+    return super.findOneAsync(selector, options) as
+      Promise<SelectorToResultType<T, Selector> | undefined>;
   }
 
   publish(makeConstraint?: (userId: string) =>

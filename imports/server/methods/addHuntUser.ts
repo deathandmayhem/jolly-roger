@@ -10,7 +10,6 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayAddUsersToHunt } from '../../lib/permission_stubs';
 import { HuntType } from '../../lib/schemas/Hunt';
-import { SettingType } from '../../lib/schemas/Setting';
 import addHuntUser from '../../methods/addHuntUser';
 import List from '../List';
 import addUsersToDiscordRole from '../addUsersToDiscordRole';
@@ -18,16 +17,14 @@ import { ensureHuntFolderPermission } from '../gdrive';
 
 const DEFAULT_EXISTING_JOIN_SUBJECT = '[jolly-roger] Added to {{huntName}} on {{siteName}}';
 
-function renderExistingJoinEmailSubject(setting: SettingType | undefined, hunt: HuntType) {
+function renderExistingJoinEmailSubject(template: string | undefined, hunt: HuntType) {
   const view = {
     siteName: Accounts.emailTemplates.siteName,
     huntName: hunt.name,
   };
 
-  if (setting && setting.name === 'email.branding') {
-    if (setting.value.existingJoinMessageSubjectTemplate) {
-      return Mustache.render(setting.value.existingJoinMessageSubjectTemplate, view);
-    }
+  if (template) {
+    return Mustache.render(template, view);
   }
 
   return Mustache.render(DEFAULT_EXISTING_JOIN_SUBJECT, view);
@@ -56,7 +53,7 @@ const DEFAULT_EXISTING_JOIN_TEMPLATE = 'Hiya!\n' +
     'This message was sent to {{email}}';
 
 function renderExistingJoinEmail(
-  setting: SettingType | undefined,
+  template: string | undefined,
   user: Meteor.User | null,
   hunt: HuntType,
   joinerName: string | undefined
@@ -71,10 +68,8 @@ function renderExistingJoinEmail(
     email,
   };
 
-  if (setting && setting.name === 'email.branding') {
-    if (setting.value.existingJoinMessageTemplate) {
-      return Mustache.render(setting.value.existingJoinMessageTemplate, view);
-    }
+  if (template) {
+    return Mustache.render(template, view);
   }
 
   return Mustache.render(DEFAULT_EXISTING_JOIN_TEMPLATE, view);
@@ -145,8 +140,16 @@ addHuntUser.define({
         const joinerUser = await MeteorUsers.findOneAsync(this.userId);
         const joinerName = joinerUser!.displayName;
         const settingsDoc = await Settings.findOneAsync({ name: 'email.branding' });
-        const subject = renderExistingJoinEmailSubject(settingsDoc, hunt);
-        const text = renderExistingJoinEmail(settingsDoc, joineeUser, hunt, joinerName);
+        const subject = renderExistingJoinEmailSubject(
+          settingsDoc?.value.existingJoinMessageSubjectTemplate,
+          hunt
+        );
+        const text = renderExistingJoinEmail(
+          settingsDoc?.value.existingJoinMessageTemplate,
+          joineeUser,
+          hunt,
+          joinerName
+        );
         Email.send({
           from: Accounts.emailTemplates.from,
           to: email,

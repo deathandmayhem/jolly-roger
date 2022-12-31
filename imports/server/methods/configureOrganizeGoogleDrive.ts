@@ -8,7 +8,6 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureGdrive } from '../../lib/permission_stubs';
-import { SettingType } from '../../lib/schemas/Setting';
 import configureOrganizeGoogleDrive from '../../methods/configureOrganizeGoogleDrive';
 import { moveDocument, ensureHuntFolder, ensureDocument } from '../gdrive';
 import HuntFolders from '../models/HuntFolders';
@@ -26,7 +25,7 @@ configureOrganizeGoogleDrive.define({
     Ansible.log('Reorganizing Google Drive files');
 
     // First make sure any existing folders are under the root
-    const root = (await Settings.findOneAsync({ name: 'gdrive.root' })) as SettingType & { name: 'gdrive.root' } | undefined;
+    const root = await Settings.findOneAsync({ name: 'gdrive.root' });
     if (root) {
       await (await HuntFolders.find().fetchAsync()).reduce(async (promise, hf) => {
         await promise;

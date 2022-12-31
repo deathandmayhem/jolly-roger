@@ -43,10 +43,10 @@ linkUserDiscordAccount.define({
 
     // Invite the user to the guild, if one is configured.
     const discordGuildDoc = await Settings.findOneAsync({ name: 'discord.guild' });
-    const guild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' && discordGuildDoc.value.guild;
+    const guild = discordGuildDoc?.value.guild;
 
     const discordBotTokenDoc = await Settings.findOneAsync({ name: 'discord.bot' });
-    const botToken = discordBotTokenDoc && discordBotTokenDoc.name === 'discord.bot' && discordBotTokenDoc.value.token;
+    const botToken = discordBotTokenDoc?.value.token;
 
     if (guild && botToken) {
       // Invitations to the guild must be performed by the bot user.

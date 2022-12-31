@@ -21,7 +21,6 @@ import Hunts from '../../lib/models/Hunts';
 import Settings from '../../lib/models/Settings';
 import { BaseType } from '../../lib/schemas/Base';
 import { HuntType, SavedDiscordObjectType } from '../../lib/schemas/Hunt';
-import { SettingType } from '../../lib/schemas/Setting';
 import createHunt from '../../methods/createHunt';
 import updateHunt from '../../methods/updateHunt';
 import { useBreadcrumb } from '../hooks/breadcrumb';
@@ -183,7 +182,7 @@ const HuntEditPage = () => {
 
   useSubscribe('mongo.settings', { name: 'discord.guild' });
   const guildId = useTracker(() => {
-    const setting = Settings.findOne({ name: 'discord.guild' }) as SettingType & { name: 'discord.guild' } | undefined;
+    const setting = Settings.findOne({ name: 'discord.guild' });
     return setting?.value.guild.id;
   }, []);
 
