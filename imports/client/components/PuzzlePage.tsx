@@ -878,7 +878,10 @@ const PuzzleGuessModal = React.forwardRef(({
   }, []);
 
   const onSubmitGuess = useCallback(() => {
-    const repeatGuess = guesses.find((g) => { return g.guess === guessInput; });
+    const strippedGuess = guessInput.replaceAll(/\s/, '');
+    const repeatGuess = guesses.find((g) => {
+      return g.guess.replaceAll(/\s/, '') === strippedGuess;
+    });
     const alreadySolved = puzzle.answers.length >= puzzle.expectedAnswerCount;
     if ((repeatGuess || alreadySolved) && !confirmingSubmit) {
       const repeatGuessStr = repeatGuess ? 'This answer has already been submitted. ' : '';
