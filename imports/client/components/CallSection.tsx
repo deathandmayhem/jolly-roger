@@ -188,7 +188,7 @@ const RemoteMuteConfirmModal = React.forwardRef((
   { peerId, name } : { peerId: string, name: string },
   forwardedRef: React.Ref<RemoteMuteConfirmModalHandle>,
 ) => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const show = useCallback(() => setVisible(true), []);
   const hide = useCallback(() => setVisible(false), []);
   useImperativeHandle(forwardedRef, () => ({ show }), [show]);
