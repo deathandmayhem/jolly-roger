@@ -5,7 +5,7 @@ import { Email, Id } from './regexes';
 import { Overrides, buildSchema } from './typedSchemas';
 
 declare module 'meteor/meteor' {
-  module Meteor {
+  namespace Meteor {
     interface User {
       lastLogin?: Date;
       hunts?: string[];
