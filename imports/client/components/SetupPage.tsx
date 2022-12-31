@@ -481,10 +481,10 @@ const GoogleIntegrationSection = () => {
   const {
     gdriveCredential, root, docTemplate, spreadsheetTemplate,
   } = useTracker(() => {
-    const rootSetting = Settings.findOne({ name: 'gdrive.root' }) as SettingType & { name: 'gdrive.root' } | undefined;
-    const docTemplateSetting = Settings.findOne({ name: 'gdrive.template.document' }) as SettingType & { name: 'gdrive.template.document' } | undefined;
-    const spreadsheetTemplateSetting = Settings.findOne({ name: 'gdrive.template.spreadsheet' }) as SettingType & { name: 'gdrive.template.spreadsheet' } | undefined;
-    const gdriveSetting = Settings.findOne({ name: 'gdrive.credential' }) as SettingType & { name: 'gdrive.credential' } | undefined;
+    const rootSetting = Settings.findOne({ name: 'gdrive.root' });
+    const docTemplateSetting = Settings.findOne({ name: 'gdrive.template.document' });
+    const spreadsheetTemplateSetting = Settings.findOne({ name: 'gdrive.template.spreadsheet' });
+    const gdriveSetting = Settings.findOne({ name: 'gdrive.credential' });
     return {
       gdriveCredential: gdriveSetting,
       root: rootSetting?.value.id,
@@ -965,7 +965,7 @@ const EmailConfigForm = ({ initialConfig }: {
 
 const EmailConfigSection = () => {
   const config = useTracker(() => {
-    return Settings.findOne({ name: 'email.branding' }) as SettingType & { name: 'email.branding' } | undefined;
+    return Settings.findOne({ name: 'email.branding' });
   }, []);
   const configured = !!config?.value.from;
   const badgeVariant = configured ? 'success' : 'warning';
@@ -1256,8 +1256,8 @@ const DiscordIntegrationSection = () => {
   const enabled = useTracker(() => !Flags.active('disable.discord'), []);
   const oauthSettings = useTracker(() => ServiceConfiguration.configurations.findOne({ service: 'discord' }), []);
   const { botToken, guild } = useTracker(() => {
-    const botSetting = Settings.findOne({ name: 'discord.bot' }) as SettingType & { name: 'discord.bot' } | undefined;
-    const guildSetting = Settings.findOne({ name: 'discord.guild' }) as SettingType & { name: 'discord.guild' } | undefined;
+    const botSetting = Settings.findOne({ name: 'discord.bot' });
+    const guildSetting = Settings.findOne({ name: 'discord.guild' });
     return {
       botToken: botSetting?.value.token,
       guild: guildSetting?.value.guild,
@@ -1392,7 +1392,7 @@ const DiscordIntegrationSection = () => {
 
 const BrandingTeamName = () => {
   const initialTeamName = useTracker(() => {
-    const teamNameSetting = Settings.findOne({ name: 'teamname' }) as SettingType & { name: 'teamname' } | undefined;
+    const teamNameSetting = Settings.findOne({ name: 'teamname' });
     return teamNameSetting?.value.teamName;
   }, []);
 

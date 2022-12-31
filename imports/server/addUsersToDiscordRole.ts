@@ -11,10 +11,10 @@ export default async (userIds: string[], huntId: string) => {
   }
 
   const discordGuildDoc = await Settings.findOneAsync({ name: 'discord.guild' });
-  const guild = discordGuildDoc && discordGuildDoc.name === 'discord.guild' && discordGuildDoc.value.guild;
+  const guild = discordGuildDoc?.value.guild;
 
   const discordBotTokenDoc = await Settings.findOneAsync({ name: 'discord.bot' });
-  const botToken = discordBotTokenDoc && discordBotTokenDoc.name === 'discord.bot' && discordBotTokenDoc.value.token;
+  const botToken = discordBotTokenDoc?.value.token;
 
   if (!guild || !botToken) {
     Ansible.log('Can not add users to Discord role because Discord is not configured', { userIds, huntId });

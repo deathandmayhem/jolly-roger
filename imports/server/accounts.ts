@@ -138,11 +138,7 @@ function makeView(user: Meteor.User, url: string) {
   };
 }
 
-function updateEmailTemplatesHooks(doc: SettingType) {
-  if (doc.name !== 'email.branding') {
-    return; // this should be impossible
-  }
-
+function updateEmailTemplatesHooks(doc: SettingType & { name: 'email.branding' }) {
   Accounts.emailTemplates.from = doc.value.from ? doc.value.from : 'no-reply@example.com';
   Accounts.emailTemplates.enrollAccount.subject = (user: Meteor.User) => {
     const view = {

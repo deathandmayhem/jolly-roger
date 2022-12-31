@@ -47,15 +47,11 @@ Meteor.publish('teamName', function () {
   let tracked = false;
   const handle: Meteor.LiveQueryHandle = cursor.observe({
     added: (doc) => {
-      if (doc.name === 'teamname' && doc.value && doc.value.teamName) {
-        tracked = true;
-        this.added('teamName', 'teamName', { name: doc.value.teamName });
-      }
+      tracked = true;
+      this.added('teamName', 'teamName', { name: doc.value.teamName });
     },
     changed: (newDoc) => {
-      if (newDoc.name === 'teamname' && newDoc.value.teamName) {
-        this.changed('teamName', 'teamName', { name: newDoc.value.teamName });
-      }
+      this.changed('teamName', 'teamName', { name: newDoc.value.teamName });
     },
     removed: () => {
       if (tracked) {
