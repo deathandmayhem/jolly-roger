@@ -8,6 +8,7 @@ import { DiscordBot } from './discord';
 export default async (userIds: string[], huntId: string) => {
   if (Flags.active('disable.discord')) {
     Ansible.log('Can not add users to Discord role because Discord is disabled by feature flag', { userIds, huntId });
+    return;
   }
 
   const discordGuildDoc = await Settings.findOneAsync({ name: 'discord.guild' });
