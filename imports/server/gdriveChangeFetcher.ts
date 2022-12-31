@@ -36,8 +36,9 @@ async function recordDriveChange(file: Pick<drive_v3.Schema$File, 'id' | 'modifi
 async function fetchDriveChangesIteration(gdrive: drive_v3.Drive, lock: string): Promise<boolean> {
   await Locks.renew(lock);
 
-  let pageToken = (await DriveChangesPageTokens.findOneAsync({ _id: 'default' }))?.token;
+  const startingToken = (await DriveChangesPageTokens.findOneAsync({ _id: 'default' }))?.token;
 
+  let pageToken = startingToken;
   if (!pageToken) {
     const resp = await gdrive.changes.getStartPageToken();
     pageToken = resp.data.startPageToken ?? undefined;
@@ -68,10 +69,14 @@ async function fetchDriveChangesIteration(gdrive: drive_v3.Drive, lock: string):
     await recordDriveChange(change.file);
   }, Promise.resolve());
 
-  await DriveChangesPageTokens.upsertAsync({ _id: 'default', token: pageToken }, {
-    $set: {
-      token: resp.data.nextPageToken ?? resp.data.newStartPageToken ?? undefined,
-    },
+  const newToken = resp.data.nextPageToken ?? resp.data.newStartPageToken ?? undefined;
+
+  await ignoringDuplicateKeyErrors(async () => {
+    await DriveChangesPageTokens.upsertAsync({ _id: 'default', token: startingToken }, {
+      $set: {
+        token: newToken,
+      },
+    });
   });
 
   // nextPageToken means that we're at the end of the change list, and we
