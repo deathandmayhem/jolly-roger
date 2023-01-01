@@ -58,7 +58,7 @@
     ],
     "camelcase": ["error", {
       "properties": "never",
-      "allow": ["__meteor_runtime_config__"]
+      "allow": ["__meteor_runtime_config__", "script_v1", "drive_v3"]
     }],
 
     "no-constant-condition": ["error", { "checkLoops": false }],

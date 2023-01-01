@@ -1,14 +1,16 @@
-/* eslint-disable camelcase */
 import { Mongo } from 'meteor/mongo';
 import { OAuth } from 'meteor/oauth';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { drive_v3, drive } from '@googleapis/drive';
+import { script_v1, script } from '@googleapis/script';
 import { OAuth2Client } from 'google-auth-library';
 import Settings from '../lib/models/Settings';
 import { SettingType } from '../lib/schemas/Setting';
 
 class GoogleClientRefresher {
   public drive?: drive_v3.Drive;
+
+  public script?: script_v1.Script;
 
   private oauthClient?: OAuth2Client;
 
@@ -82,8 +84,9 @@ class GoogleClientRefresher {
       refresh_token: this.oauthRefreshToken,
     });
 
-    // Construct the drive client, using that OAuth2 client.
+    // Construct the clients, using that OAuth2 client.
     this.drive = drive({ version: 'v3', auth: this.oauthClient });
+    this.script = script({ version: 'v1', auth: this.oauthClient });
   }
 }
 
