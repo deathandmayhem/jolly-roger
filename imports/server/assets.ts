@@ -14,14 +14,6 @@ import UploadTokens from './models/UploadTokens';
 import onExit from './onExit';
 import { BlobType } from './schemas/Blob';
 
-// Meteor has no way to import Assets under ES6 modules; it's just always a
-// global that all server code can access.
-declare global {
-  const Assets: {
-    absoluteFilePath(assetPath: string): string | undefined;
-  };
-}
-
 // eslint-disable-next-line import/prefer-default-export
 export const defaultAssets: Map<string, BlobType> = new Map();
 export const defaultMappings: Map<string, string> = new Map();
