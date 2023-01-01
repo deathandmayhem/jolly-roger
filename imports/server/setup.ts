@@ -1,7 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
+import isAdmin from '../lib/isAdmin';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import Settings from '../lib/models/Settings';
+import { SettingType } from '../lib/schemas/Setting';
+import googleScriptContent from './googleScriptContent';
 import UploadTokens from './models/UploadTokens';
 
 // Clean up upload tokens that didn't get used within a minute
@@ -64,4 +67,50 @@ Meteor.publish('teamName', function () {
   });
 
   this.ready();
+});
+
+Meteor.publish('googleScriptInfo', async function () {
+  if (!this.userId) {
+    return [];
+  }
+
+  const admin = isAdmin(await MeteorUsers.findOneAsync(this.userId));
+
+  const cursor = Settings.find({ name: 'google.script' });
+  let tracked = false;
+  const formatDoc = async (doc: SettingType & { name: 'google.script' }) => {
+    const configured = !!doc.value.scriptId && !!doc.value.endpointUrl;
+    if (admin) {
+      const { contentHash } = await googleScriptContent(doc.value.sharedSecret);
+      return {
+        configured,
+        outOfDate: doc.value.contentHash !== contentHash,
+      };
+    }
+    return { configured };
+  };
+  const handle: Meteor.LiveQueryHandle = cursor.observe({
+    added: (doc) => {
+      void (async () => {
+        tracked = true;
+        this.added('googleScriptInfo', 'googleScriptInfo', await formatDoc(doc));
+      })();
+    },
+    changed: (newDoc) => {
+      void (async () => {
+        this.changed('googleScriptInfo', 'googleScriptInfo', await formatDoc(newDoc));
+      })();
+    },
+    removed: () => {
+      if (tracked) {
+        this.removed('googleScriptInfo', 'googleScriptInfo');
+      }
+    },
+  });
+  this.onStop(() => {
+    handle.stop();
+  });
+
+  this.ready();
+  return undefined;
 });
