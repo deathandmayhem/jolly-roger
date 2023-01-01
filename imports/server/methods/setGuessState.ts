@@ -5,6 +5,7 @@ import Guesses from '../../lib/models/Guesses';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
 import { GuessCodec } from '../../lib/schemas/Guess';
+import { optional } from '../../methods/TypedMethod';
 import setGuessState from '../../methods/setGuessState';
 import transitionGuess from '../transitionGuess';
 
@@ -13,7 +14,7 @@ setGuessState.define({
     check(arg, {
       guessId: String,
       state: Match.OneOf(...GuessCodec.props.state.types.map((t) => t.value)),
-      additionalNotes: Match.Optional(String),
+      additionalNotes: optional(String),
     });
     return arg;
   },

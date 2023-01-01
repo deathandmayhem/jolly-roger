@@ -1,4 +1,4 @@
-import { check } from 'meteor/check';
+import { check, Match } from 'meteor/check';
 import { EJSONable, EJSONableProperty } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
 import ValidateShape from '../lib/ValidateShape';
@@ -27,6 +27,10 @@ type TypedMethodCallPromiseArgs<T, Arg extends TypedMethodArgs> =
   Arg extends void ?
     [] :
     [ValidateShape<T, Arg>];
+
+export const optional = <T extends Match.Pattern>(pattern: T) => {
+  return Match.OneOf(Match.Optional(pattern), undefined);
+};
 
 const voidValidator = () => { /* noop */ };
 

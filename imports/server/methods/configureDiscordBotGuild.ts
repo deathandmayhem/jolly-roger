@@ -1,15 +1,16 @@
-import { check, Match } from 'meteor/check';
+import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Ansible from '../../Ansible';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureDiscordBot } from '../../lib/permission_stubs';
+import { optional } from '../../methods/TypedMethod';
 import configureDiscordBotGuild from '../../methods/configureDiscordBotGuild';
 
 configureDiscordBotGuild.define({
   validate(arg) {
     check(arg, {
-      guild: Match.Optional({
+      guild: optional({
         id: String,
         name: String,
       }),

@@ -1,18 +1,19 @@
-import { check, Match } from 'meteor/check';
+import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureEmailBranding } from '../../lib/permission_stubs';
+import { optional } from '../../methods/TypedMethod';
 import configureEmailBranding from '../../methods/configureEmailBranding';
 
 configureEmailBranding.define({
   validate(arg) {
     check(arg, {
-      from: Match.Optional(String),
-      enrollSubject: Match.Optional(String),
-      enrollMessage: Match.Optional(String),
-      joinSubject: Match.Optional(String),
-      joinMessage: Match.Optional(String),
+      from: optional(String),
+      enrollSubject: optional(String),
+      enrollMessage: optional(String),
+      joinSubject: optional(String),
+      joinMessage: optional(String),
     });
     return arg;
   },

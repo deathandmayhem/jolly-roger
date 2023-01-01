@@ -1,15 +1,16 @@
-import { check, Match } from 'meteor/check';
+import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureGdrive } from '../../lib/permission_stubs';
+import { optional } from '../../methods/TypedMethod';
 import configureGdriveTemplates from '../../methods/configureGdriveTemplates';
 
 configureGdriveTemplates.define({
   validate(arg) {
     check(arg, {
-      spreadsheetTemplate: Match.Optional(String),
-      documentTemplate: Match.Optional(String),
+      spreadsheetTemplate: optional(String),
+      documentTemplate: optional(String),
     });
     return arg;
   },

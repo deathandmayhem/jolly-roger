@@ -1,4 +1,4 @@
-import { check, Match } from 'meteor/check';
+import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import Ansible from '../../Ansible';
@@ -6,6 +6,7 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
+import { optional } from '../../methods/TypedMethod';
 import updatePuzzle from '../../methods/updatePuzzle';
 import { ensureDocument, renameDocument } from '../gdrive';
 import getOrCreateTagByName from '../getOrCreateTagByName';
@@ -16,7 +17,7 @@ updatePuzzle.define({
     check(arg, {
       puzzleId: String,
       title: String,
-      url: Match.Optional(String),
+      url: optional(String),
       tags: [String],
       expectedAnswerCount: Number,
     });

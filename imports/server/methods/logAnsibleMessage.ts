@@ -1,6 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import logfmt from 'logfmt';
+import { optional } from '../../methods/TypedMethod';
 import logAnsibleMessage, { logLevels } from '../../methods/logAnsibleMessage';
 
 logAnsibleMessage.define({
@@ -8,7 +9,7 @@ logAnsibleMessage.define({
     check(arg, {
       level: Match.OneOf(...logLevels),
       line: String,
-      obj: Match.Optional(Object),
+      obj: optional(Object),
     });
     return arg;
   },

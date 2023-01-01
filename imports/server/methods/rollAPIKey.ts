@@ -1,5 +1,6 @@
-import { check, Match } from 'meteor/check';
+import { check } from 'meteor/check';
 import Ansible from '../../Ansible';
+import { optional } from '../../methods/TypedMethod';
 import fetchAPIKey from '../../methods/fetchAPIKey';
 import rollAPIKey from '../../methods/rollAPIKey';
 import APIKeys from '../models/APIKeys';
@@ -7,7 +8,7 @@ import userForKeyOperation from '../userForKeyOperation';
 
 rollAPIKey.define({
   validate(arg) {
-    check(arg, { forUser: Match.Optional(String) });
+    check(arg, { forUser: optional(String) });
 
     return arg;
   },

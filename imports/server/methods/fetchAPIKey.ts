@@ -1,6 +1,7 @@
-import { check, Match } from 'meteor/check';
+import { check } from 'meteor/check';
 import { Random } from 'meteor/random';
 import Ansible from '../../Ansible';
+import { optional } from '../../methods/TypedMethod';
 import fetchAPIKey from '../../methods/fetchAPIKey';
 import APIKeys from '../models/APIKeys';
 import Locks from '../models/Locks';
@@ -8,7 +9,7 @@ import userForKeyOperation from '../userForKeyOperation';
 
 fetchAPIKey.define({
   validate(arg) {
-    check(arg, { forUser: Match.Optional(String) });
+    check(arg, { forUser: optional(String) });
 
     return arg;
   },

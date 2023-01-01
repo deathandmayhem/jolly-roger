@@ -1,14 +1,15 @@
-import { check, Match } from 'meteor/check';
+import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureGdrive } from '../../lib/permission_stubs';
+import { optional } from '../../methods/TypedMethod';
 import configureGdriveRoot from '../../methods/configureGdriveRoot';
 
 configureGdriveRoot.define({
   validate(arg) {
     check(arg, {
-      root: Match.Optional(String),
+      root: optional(String),
     });
     return arg;
   },

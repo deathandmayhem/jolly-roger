@@ -1,10 +1,11 @@
-import { check, Match } from 'meteor/check';
+import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Flags from '../../Flags';
 import Documents from '../../lib/models/Documents';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
+import { optional } from '../../methods/TypedMethod';
 import destroyPuzzle from '../../methods/destroyPuzzle';
 import { makeReadOnly } from '../gdrive';
 
@@ -12,7 +13,7 @@ destroyPuzzle.define({
   validate(arg) {
     check(arg, {
       puzzleId: String,
-      replacedBy: Match.Optional(String),
+      replacedBy: optional(String),
     });
     return arg;
   },

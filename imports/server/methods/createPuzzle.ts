@@ -7,6 +7,7 @@ import GdriveMimeTypes, { GdriveMimeTypesType } from '../../lib/GdriveMimeTypes'
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
+import { optional } from '../../methods/TypedMethod';
 import createPuzzle from '../../methods/createPuzzle';
 import GlobalHooks from '../GlobalHooks';
 import { ensureDocument } from '../gdrive';
@@ -18,7 +19,7 @@ createPuzzle.define({
     check(arg, {
       huntId: String,
       title: String,
-      url: Match.Optional(String),
+      url: optional(String),
       tags: [String],
       expectedAnswerCount: Number,
       docType: Match.OneOf(...Object.keys(GdriveMimeTypes) as GdriveMimeTypesType[]),
