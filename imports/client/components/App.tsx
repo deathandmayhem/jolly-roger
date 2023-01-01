@@ -23,6 +23,7 @@ import * as RRBS from 'react-router-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import StackTrace, { StackFrame } from 'stacktrace-js';
 import styled, { css } from 'styled-components';
+import isAdmin from '../../lib/isAdmin';
 import { useBreadcrumbItems } from '../hooks/breadcrumb';
 import lookupUrl from '../lookupUrl';
 import ConnectionStatus from './ConnectionStatus';
@@ -164,6 +165,7 @@ const AppNavbar = () => {
       brandSrc2x: lookupUrl('brand@2x.png'),
     };
   }, []);
+  const userIsAdmin = useTracker(() => isAdmin(Meteor.user()), []);
 
   const navigate = useNavigate();
   const logout = useCallback(() => {
@@ -235,6 +237,11 @@ const AppNavbar = () => {
             >
               Report an issue
             </DropdownItem>
+            {userIsAdmin ? (
+              <RRBS.LinkContainer to="/setup">
+                <DropdownItem eventKey="4">Server setup</DropdownItem>
+              </RRBS.LinkContainer>
+            ) : undefined}
             <DropdownItem eventKey="3" onClick={logout}>Sign out</DropdownItem>
           </DropdownMenu>
         </Dropdown>
