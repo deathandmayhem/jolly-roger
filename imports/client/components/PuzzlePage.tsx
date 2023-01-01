@@ -878,9 +878,9 @@ const PuzzleGuessModal = React.forwardRef(({
   }, []);
 
   const onSubmitGuess = useCallback(() => {
-    const strippedGuess = guessInput.replaceAll(/\s/, '');
+    const strippedGuess = guessInput.replaceAll(/\s/g, '');
     const repeatGuess = guesses.find((g) => {
-      return g.guess.replaceAll(/\s/, '') === strippedGuess;
+      return g.guess.replaceAll(/\s/g, '') === strippedGuess;
     });
     const alreadySolved = puzzle.answers.length >= puzzle.expectedAnswerCount;
     if ((repeatGuess || alreadySolved) && !confirmingSubmit) {
