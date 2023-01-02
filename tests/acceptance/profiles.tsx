@@ -137,6 +137,7 @@ if (Meteor.isClient) {
         );
 
         await joinHunt.callPromise({ huntId: otherHuntId, userId });
+        await stabilize();
 
         assert.sameMembers(
           MeteorUsers.find({}, { fields: { displayName: 1 } }).map((u) => u.displayName),
@@ -174,6 +175,7 @@ if (Meteor.isClient) {
         assert.sameMembers(u2!.hunts!, [huntId], 'Should not show membership in other hunts even if user is visible');
 
         await joinHunt.callPromise({ huntId: otherHuntId, userId });
+        await stabilize();
 
         u2 = MeteorUsers.findOne(sameHuntUserId);
         assert.sameMembers(u2!.hunts!, [huntId, otherHuntId], 'Should update when hunt membership changes');
@@ -210,6 +212,8 @@ if (Meteor.isClient) {
         assert.sameMembers(operators.map((u) => u._id), [userId, sameHuntUserId], 'Should only show operators in hunt where you are an operator');
 
         await addUserToRole.callPromise({ userId, scope: otherHuntId, role: 'operator' });
+        await stabilize();
+
         operators = MeteorUsers.find().fetch().filter(userIsOperatorForAnyHunt);
         assert.sameMembers(operators.map((u) => u._id), [userId, sameHuntUserId, differentHuntUserId], 'Should update when hunt roles changes');
       });

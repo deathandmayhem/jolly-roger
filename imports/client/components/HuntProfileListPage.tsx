@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import {
   listAllRolesForHunt, userMayAddUsersToHunt, userMayMakeOperatorForHunt, userMayUseDiscordBotAPIs,
@@ -26,19 +27,20 @@ const HuntProfileListPage = () => {
       ).fetch()
   ), [huntId, loading]);
 
+  const hunt = useTracker(() => Hunts.findOne(huntId), [huntId]);
   const { canInvite, canSyncDiscord, canMakeOperator } = useTracker(() => {
     return {
-      canInvite: userMayAddUsersToHunt(Meteor.user(), huntId),
+      canInvite: userMayAddUsersToHunt(Meteor.user(), hunt),
       canSyncDiscord: userMayUseDiscordBotAPIs(Meteor.user()),
-      canMakeOperator: userMayMakeOperatorForHunt(Meteor.user(), huntId),
+      canMakeOperator: userMayMakeOperatorForHunt(Meteor.user(), hunt),
     };
-  }, [huntId]);
+  }, [hunt]);
   const roles = useTracker(() => (
     loading || !canMakeOperator ?
       {} :
       Object.fromEntries(MeteorUsers.find({ hunts: huntId })
-        .map((u) => [u._id, listAllRolesForHunt(u, huntId)]))
-  ), [huntId, loading, canMakeOperator]);
+        .map((u) => [u._id, listAllRolesForHunt(u, hunt)]))
+  ), [huntId, hunt, loading, canMakeOperator]);
 
   if (loading) {
     return <div>loading...</div>;
@@ -48,7 +50,7 @@ const HuntProfileListPage = () => {
     <ProfileList
       users={users}
       roles={roles}
-      huntId={huntId}
+      hunt={hunt}
       canInvite={canInvite}
       canSyncDiscord={canSyncDiscord}
       canMakeOperator={canMakeOperator}

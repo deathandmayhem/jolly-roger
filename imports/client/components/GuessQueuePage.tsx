@@ -433,7 +433,7 @@ const GuessQueuePage = () => {
   const guesses = useTracker(() => (loading ? [] : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch()), [huntId, loading]);
   const puzzles = useTracker(() => (loading ? new Map<string, PuzzleType>() : indexedById(Puzzles.find({ hunt: huntId }).fetch())), [huntId, loading]);
   const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
-  const canEdit = useTracker(() => userMayUpdateGuessesForHunt(Meteor.user(), huntId), [huntId]);
+  const canEdit = useTracker(() => userMayUpdateGuessesForHunt(Meteor.user(), hunt), [hunt]);
 
   const searchBarRef = useRef<HTMLInputElement>(null);
 

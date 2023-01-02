@@ -18,15 +18,15 @@ bulkAddHuntUsers.define({
   async run({ huntId, emails }) {
     check(this.userId, String);
 
-    if (!userMayBulkAddToHunt(await MeteorUsers.findOneAsync(this.userId), huntId)) {
-      throw new Meteor.Error(401, `User ${this.userId} may not bulk-invite to hunt ${huntId}`);
-    }
-
     // We'll re-do this check but if we check it now the error reporting will be
     // better
     const hunt = await Hunts.findOneAsync(huntId);
     if (!hunt) {
       throw new Meteor.Error(404, 'Unknown hunt');
+    }
+
+    if (!userMayBulkAddToHunt(await MeteorUsers.findOneAsync(this.userId), hunt)) {
+      throw new Meteor.Error(401, `User ${this.userId} may not bulk-invite to hunt ${huntId}`);
     }
 
     const errors: { email: string, error: any }[] = [];

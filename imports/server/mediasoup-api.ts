@@ -3,6 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Promise as MeteorPromise } from 'meteor/promise';
 import Ansible from '../Ansible';
 import Flags from '../Flags';
+import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import Servers from '../lib/models/Servers';
 import CallHistories from '../lib/models/mediasoup/CallHistories';
@@ -88,7 +89,10 @@ Meteor.publish('mediasoup:metadata', async function (hunt, call) {
     throw new Meteor.Error(401, 'Not logged in');
   }
 
-  if (!userMayJoinCallsForHunt(await MeteorUsers.findOneAsync(this.userId), hunt)) {
+  if (!userMayJoinCallsForHunt(
+    await MeteorUsers.findOneAsync(this.userId),
+    await Hunts.findOneAsync(hunt)
+  )) {
     throw new Meteor.Error(403, 'Not a member of this hunt');
   }
 
@@ -107,7 +111,10 @@ Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
     throw new Meteor.Error(401, 'Not logged in');
   }
 
-  if (!userMayJoinCallsForHunt(await MeteorUsers.findOneAsync(this.userId), hunt)) {
+  if (!userMayJoinCallsForHunt(
+    await MeteorUsers.findOneAsync(this.userId),
+    await Hunts.findOneAsync(hunt),
+  )) {
     throw new Meteor.Error(403, 'Not a member of this hunt');
   }
 

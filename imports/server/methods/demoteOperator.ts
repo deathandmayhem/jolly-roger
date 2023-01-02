@@ -1,6 +1,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Ansible from '../../Ansible';
+import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { removeUserFromRole, userMayMakeOperatorForHunt } from '../../lib/permission_stubs';
 import demoteOperator from '../../methods/demoteOperator';
@@ -17,7 +18,10 @@ demoteOperator.define({
   async run({ targetUserId, huntId }) {
     check(this.userId, String);
 
-    if (!userMayMakeOperatorForHunt(await MeteorUsers.findOneAsync(this.userId), huntId)) {
+    if (!userMayMakeOperatorForHunt(
+      await MeteorUsers.findOneAsync(this.userId),
+      await Hunts.findOneAsync(huntId),
+    )) {
       throw new Meteor.Error(401, 'Must be operator or inactive operator to demote operator');
     }
 

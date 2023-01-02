@@ -26,13 +26,13 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
 
   const { canUpdate, canDestroy } = useTracker(() => {
     return {
-      canUpdate: userMayUpdateHunt(Meteor.user(), huntId),
+      canUpdate: userMayUpdateHunt(Meteor.user(), hunt),
 
       // Because we delete by setting the deleted flag, you only need
       // update to "remove" something
-      canDestroy: userMayUpdateHunt(Meteor.user(), huntId),
+      canDestroy: userMayUpdateHunt(Meteor.user(), hunt),
     };
-  }, [huntId]);
+  }, [hunt]);
 
   const deleteModalRef = useRef<ModalFormHandle>(null);
 

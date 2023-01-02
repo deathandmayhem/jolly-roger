@@ -122,10 +122,10 @@ const HuntApp = React.memo(() => {
   } = useTracker(() => {
     return {
       member: Meteor.user()?.hunts?.includes(huntId) ?? false,
-      canUndestroy: userMayUpdateHunt(Meteor.user(), huntId),
-      canJoin: userMayAddUsersToHunt(Meteor.user(), huntId),
+      canUndestroy: userMayUpdateHunt(Meteor.user(), hunt),
+      canJoin: userMayAddUsersToHunt(Meteor.user(), hunt),
     };
-  }, [huntId]);
+  }, [huntId, hunt]);
 
   useBreadcrumb({
     title: loading || !hunt ? 'loading...' : hunt.name,

@@ -496,10 +496,10 @@ const PuzzleListPage = () => {
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
   const { canAdd, canUpdate } = useTracker(() => {
     return {
-      canAdd: userMayWritePuzzlesForHunt(Meteor.user(), huntId),
-      canUpdate: userMayWritePuzzlesForHunt(Meteor.user(), huntId),
+      canAdd: userMayWritePuzzlesForHunt(Meteor.user(), hunt),
+      canUpdate: userMayWritePuzzlesForHunt(Meteor.user(), hunt),
     };
-  }, [huntId]);
+  }, [hunt]);
 
   const huntLink = hunt.homepageUrl && (
     <StyledPuzzleListExternalLink>

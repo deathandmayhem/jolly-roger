@@ -1,39 +1,35 @@
 import { Meteor } from 'meteor/meteor';
 import isAdmin, { GLOBAL_SCOPE } from './isAdmin';
-import Hunts from './models/Hunts';
 import MeteorUsers from './models/MeteorUsers';
+import { HuntType } from './schemas/Hunt';
 
-function isOperatorForHunt(user: Meteor.User, huntId: string): boolean {
-  return user.roles?.[huntId]?.includes('operator') ?? false;
+function isOperatorForHunt(user: Meteor.User, hunt: HuntType): boolean {
+  return user.roles?.[hunt._id]?.includes('operator') ?? false;
 }
 
 export function listAllRolesForHunt(
   user: Meteor.User | null | undefined,
-  huntId: string
+  hunt: HuntType | null | undefined,
 ): string[] {
-  if (!user) {
-    return [];
-  }
-
-  if (!user.roles) {
+  if (!user?.roles || !hunt) {
     return [];
   }
 
   return [
     ...user.roles[GLOBAL_SCOPE] ?? [],
-    ...user.roles[huntId] ?? [],
+    ...user.roles[hunt._id] ?? [],
   ];
 }
 
 export function userIsOperatorForHunt(
   user: Meteor.User | null | undefined,
-  huntId: string
+  hunt: HuntType | null | undefined,
 ): boolean {
-  if (!user) {
+  if (!user || !hunt) {
     return false;
   }
 
-  return isOperatorForHunt(user, huntId);
+  return isOperatorForHunt(user, hunt);
 }
 
 export function userIsOperatorForAnyHunt(user: Meteor.User | null | undefined): boolean {
@@ -53,9 +49,9 @@ export function userIsOperatorForAnyHunt(user: Meteor.User | null | undefined): 
 // already and if the hunt allows open signups.
 export function userMayAddUsersToHunt(
   user: Meteor.User | null | undefined,
-  huntId: string
+  hunt: HuntType | null | undefined,
 ): boolean {
-  if (!user) {
+  if (!user || !hunt) {
     return false;
   }
 
@@ -64,7 +60,7 @@ export function userMayAddUsersToHunt(
     return true;
   }
 
-  if (isOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, hunt)) {
     return true;
   }
 
@@ -74,13 +70,7 @@ export function userMayAddUsersToHunt(
     return false;
   }
 
-  if (!joinedHunts.includes(huntId)) {
-    return false;
-  }
-
-  // You can only add users to a hunt that actually exists.
-  const hunt = Hunts.findOne(huntId);
-  if (!hunt) {
+  if (!joinedHunts.includes(hunt._id)) {
     return false;
   }
 
@@ -90,9 +80,9 @@ export function userMayAddUsersToHunt(
 // Admins and operators may add announcements to a hunt.
 export function userMayAddAnnouncementToHunt(
   user: Meteor.User | null | undefined,
-  huntId: string,
+  hunt: HuntType | null | undefined,
 ): boolean {
-  if (!user) {
+  if (!user || !hunt) {
     return false;
   }
 
@@ -100,12 +90,7 @@ export function userMayAddAnnouncementToHunt(
     return true;
   }
 
-  const hunt = Hunts.findOne(huntId);
-  if (!hunt) {
-    return false;
-  }
-
-  if (isOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, hunt)) {
     return true;
   }
 
@@ -114,9 +99,9 @@ export function userMayAddAnnouncementToHunt(
 
 export function userMayMakeOperatorForHunt(
   user: Meteor.User | null | undefined,
-  huntId: string,
+  hunt: HuntType | null | undefined,
 ): boolean {
-  if (!user) {
+  if (!user || !hunt) {
     return false;
   }
 
@@ -124,12 +109,7 @@ export function userMayMakeOperatorForHunt(
     return true;
   }
 
-  const hunt = Hunts.findOne(huntId);
-  if (!hunt) {
-    return false;
-  }
-
-  if (isOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, hunt)) {
     return true;
   }
 
@@ -138,9 +118,9 @@ export function userMayMakeOperatorForHunt(
 
 export function userMaySeeUserInfoForHunt(
   user: Meteor.User | null | undefined,
-  huntId: string
+  hunt: HuntType | null | undefined,
 ): boolean {
-  if (!user) {
+  if (!user || !hunt) {
     return false;
   }
 
@@ -148,12 +128,7 @@ export function userMaySeeUserInfoForHunt(
     return true;
   }
 
-  const hunt = Hunts.findOne(huntId);
-  if (!hunt) {
-    return false;
-  }
-
-  if (isOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, hunt)) {
     return true;
   }
 
@@ -162,9 +137,9 @@ export function userMaySeeUserInfoForHunt(
 
 export function userMayBulkAddToHunt(
   user: Meteor.User | null | undefined,
-  huntId: string
+  hunt: HuntType | null | undefined,
 ): boolean {
-  if (!user) {
+  if (!user || !hunt) {
     return false;
   }
 
@@ -172,7 +147,7 @@ export function userMayBulkAddToHunt(
     return true;
   }
 
-  if (isOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, hunt)) {
     return true;
   }
 
@@ -219,15 +194,15 @@ export function userMayConfigureAssets(user: Meteor.User | null | undefined): bo
 
 export function userMayUpdateGuessesForHunt(
   user: Meteor.User | null | undefined,
-  huntId: string,
+  hunt: HuntType | null | undefined,
 ): boolean {
-  if (!user) {
+  if (!user || !hunt) {
     return false;
   }
   if (isAdmin(user)) {
     return true;
   }
-  if (isOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, hunt)) {
     return true;
   }
   return false;
@@ -235,15 +210,15 @@ export function userMayUpdateGuessesForHunt(
 
 export function userMayWritePuzzlesForHunt(
   user: Meteor.User | null | undefined,
-  huntId: string,
+  hunt: HuntType | null | undefined,
 ): boolean {
-  if (!user) {
+  if (!user || !hunt) {
     return false;
   }
   if (isAdmin(user)) {
     return true;
   }
-  if (isOperatorForHunt(user, huntId)) {
+  if (isOperatorForHunt(user, hunt)) {
     return true;
   }
   return false;
@@ -253,22 +228,25 @@ export function userMayCreateHunt(user: Meteor.User | null | undefined): boolean
   return isAdmin(user);
 }
 
-export function userMayUpdateHunt(user: Meteor.User | null | undefined, _huntId: string): boolean {
+export function userMayUpdateHunt(
+  user: Meteor.User | null | undefined,
+  _hunt: HuntType | null | undefined,
+): boolean {
   // TODO: make this driven by if you're an operator of the hunt in question
   return isAdmin(user);
 }
 
 export function userMayJoinCallsForHunt(
   user: Meteor.User | null | undefined,
-  huntId: string,
+  hunt: HuntType | null | undefined,
 ): boolean {
-  if (!user) {
+  if (!user || !hunt) {
     return false;
   }
   if (isAdmin(user)) {
     return true;
   }
-  if (user.hunts?.includes(huntId)) {
+  if (user.hunts?.includes(hunt._id)) {
     return true;
   }
   return false;
