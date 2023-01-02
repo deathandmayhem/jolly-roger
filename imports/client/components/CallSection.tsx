@@ -301,63 +301,65 @@ const PeerBox = ({
   const { muted, deafened } = peer;
 
   return (
-    <OverlayTrigger
-      placement="bottom"
-      popperConfig={{
-        modifiers: [
-          {
-            name: 'preventOverflow',
-            enabled: true,
-            options: {
-              boundary: popperBoundaryRef.current,
-              padding: 0,
-            },
-          },
-        ],
-      }}
-      overlay={(
-        <ChatterTooltip id={`caller-${peer._id}`}>
-          <div>{name}</div>
-          {muted &&
-            <div>Muted (no one can hear them)</div>}
-          {deafened &&
-            <div>Deafened (they can&apos;t hear anyone)</div>}
-        </ChatterTooltip>
-      )}
-    >
-      <PeopleItemDiv>
-        <Avatar _id={userId} displayName={name} discordAccount={discordAccount} size={40} />
-        <div>
-          {muted && <MutedIcon><FontAwesomeIcon icon={faMicrophoneSlash} /></MutedIcon>}
-          {deafened && <DeafenedIcon><FontAwesomeIcon icon={faVolumeMute} /></DeafenedIcon>}
-          {!spectraDisabled && !muted && stream && stream.getTracks().length > 0 ? (
-            <Spectrum
-              width={40}
-              height={40}
-              audioContext={audioContext}
-              stream={stream}
-            />
-          ) : null}
-          {!muted && (
-            <RemoteMuteButton onClick={showMuteModal}>
-              <FontAwesomeIcon icon={faMicrophoneSlash} />
-            </RemoteMuteButton>
-          )}
-          {renderMuteModal && (
-            <RemoteMuteConfirmModal
-              ref={muteModalRef}
-              peerId={peer._id}
-              name={name ?? 'this user'}
-            />
-          )}
-        </div>
-        <audio
-          autoPlay
-          muted={selfDeafened}
-          ref={audioRef}
+    <>
+      {renderMuteModal && (
+        <RemoteMuteConfirmModal
+          ref={muteModalRef}
+          peerId={peer._id}
+          name={name ?? 'this user'}
         />
-      </PeopleItemDiv>
-    </OverlayTrigger>
+      )}
+      <OverlayTrigger
+        placement="bottom"
+        popperConfig={{
+          modifiers: [
+            {
+              name: 'preventOverflow',
+              enabled: true,
+              options: {
+                boundary: popperBoundaryRef.current,
+                padding: 0,
+              },
+            },
+          ],
+        }}
+        overlay={(
+          <ChatterTooltip id={`caller-${peer._id}`}>
+            <div>{name}</div>
+            {muted &&
+              <div>Muted (no one can hear them)</div>}
+            {deafened &&
+              <div>Deafened (they can&apos;t hear anyone)</div>}
+          </ChatterTooltip>
+        )}
+      >
+        <PeopleItemDiv>
+          <Avatar _id={userId} displayName={name} discordAccount={discordAccount} size={40} />
+          <div>
+            {muted && <MutedIcon><FontAwesomeIcon icon={faMicrophoneSlash} /></MutedIcon>}
+            {deafened && <DeafenedIcon><FontAwesomeIcon icon={faVolumeMute} /></DeafenedIcon>}
+            {!spectraDisabled && !muted && stream && stream.getTracks().length > 0 ? (
+              <Spectrum
+                width={40}
+                height={40}
+                audioContext={audioContext}
+                stream={stream}
+              />
+            ) : null}
+            {!muted && (
+              <RemoteMuteButton onClick={showMuteModal}>
+                <FontAwesomeIcon icon={faMicrophoneSlash} />
+              </RemoteMuteButton>
+            )}
+          </div>
+          <audio
+            autoPlay
+            muted={selfDeafened}
+            ref={audioRef}
+          />
+        </PeopleItemDiv>
+      </OverlayTrigger>
+    </>
   );
 };
 
