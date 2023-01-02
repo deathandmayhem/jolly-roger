@@ -24,10 +24,12 @@ import configureDiscordBot from '../../methods/configureDiscordBot';
 import configureDiscordBotGuild from '../../methods/configureDiscordBotGuild';
 import configureDiscordOAuthClient from '../../methods/configureDiscordOAuthClient';
 import configureEmailBranding from '../../methods/configureEmailBranding';
+import configureEnsureGoogleScript from '../../methods/configureEnsureGoogleScript';
 import configureGdriveCreds from '../../methods/configureGdriveCreds';
 import configureGdriveRoot from '../../methods/configureGdriveRoot';
 import configureGdriveTemplates from '../../methods/configureGdriveTemplates';
 import configureGoogleOAuthClient from '../../methods/configureGoogleOAuthClient';
+import configureGoogleScriptUrl from '../../methods/configureGoogleScriptUrl';
 import configureOrganizeGoogleDrive from '../../methods/configureOrganizeGoogleDrive';
 import configureTeamName from '../../methods/configureTeamName';
 import generateUploadToken from '../../methods/generateUploadToken';
@@ -97,8 +99,9 @@ enum SubmitState {
 
 const googleCompletenessStrings = [
   'Unconfigured',
-  '1/3 complete',
-  '2/3 complete',
+  '1/4 complete',
+  '2/4 complete',
+  '3/4 complete',
   'Configured',
 ];
 
@@ -240,7 +243,12 @@ const GoogleAuthorizeDriveClientForm = () => {
 
   const showPopup = useCallback(() => {
     Google.requestCredential({
-      requestPermissions: ['email', 'https://www.googleapis.com/auth/drive'],
+      requestPermissions: [
+        'email',
+        'https://www.googleapis.com/auth/drive',
+        'https://www.googleapis.com/auth/script.projects',
+        'https://www.googleapis.com/auth/script.deployments',
+      ],
       requestOfflineToken: true,
       forceApprovalPrompt: true,
     }, requestComplete);
@@ -453,6 +461,130 @@ const GoogleDriveTemplateForm = ({ initialDocTemplate, initialSpreadsheetTemplat
   );
 };
 
+type GoogleScriptFormState = ({
+  submitState: SubmitState.IDLE | SubmitState.SUBMITTING | SubmitState.SUCCESS;
+} | {
+  submitState: SubmitState.ERROR;
+  error: Error;
+});
+
+const GoogleScriptForm = ({ app }: {
+  app: (SettingType & { name: 'google.script' })['value'] | undefined
+}) => {
+  const [state, setState] = useState<GoogleScriptFormState>({
+    submitState: SubmitState.IDLE,
+  });
+
+  const dismissAlert = useCallback(() => {
+    setState({ submitState: SubmitState.IDLE });
+  }, []);
+
+  const ensureScript = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setState({ submitState: SubmitState.SUBMITTING });
+    configureEnsureGoogleScript.call((error) => {
+      if (error) {
+        setState({ submitState: SubmitState.ERROR, error });
+      } else {
+        setState({ submitState: SubmitState.SUCCESS });
+      }
+    });
+  }, []);
+
+  const [endpointUrl, setEndpointUrl] = useState(app?.endpointUrl ?? '');
+  const onEndpointUrlChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setEndpointUrl(e.currentTarget.value);
+  }, []);
+
+  const saveEndpointUrl = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (!endpointUrl) return;
+
+    setState({ submitState: SubmitState.SUBMITTING });
+    configureGoogleScriptUrl.call({ url: endpointUrl }, (error) => {
+      if (error) {
+        setState({ submitState: SubmitState.ERROR, error });
+      } else {
+        setState({ submitState: SubmitState.SUCCESS });
+      }
+    });
+  }, [endpointUrl]);
+
+  const shouldDisable = state.submitState === 'submitting';
+  return (
+    <>
+      {state.submitState === 'submitting' ? <Alert variant="info">Saving...</Alert> : null}
+      {state.submitState === 'success' ? <Alert variant="success" dismissible onClose={dismissAlert}>Saved changes.</Alert> : null}
+      {state.submitState === 'error' ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed:
+          {' '}
+          {state.error.message}
+        </Alert>
+      ) : null}
+      <p>
+        Jolly Roger uses Google Apps Script to access APIs which are
+        otherwise not accessible through Google&apos;s public APIs, such as
+        inserting images into a Google Spreadsheet.
+      </p>
+      <p>
+        We need to offer users a way to insert images, because the insert
+        image dialog within Google Spreadsheets prevents itself from working
+        within an iframe.
+      </p>
+      <p>
+        We&apos;ve automated this process as much as we can, but there are some
+        operations which aren&apos;t exposed via Google&apos;s APIs, so
+        we&apos;ll need your help.
+      </p>
+      <p>
+        First, you need to enable API access to Google Apps Script:
+      </p>
+      <ol>
+        <li>Open the <a href="https://console.developers.google.com/apis/api/script.googleapis.com/overview" target="_blank" rel="noopener noreferrer">Google Cloud console</a> and click &quot;ENABLE API&quot; near the top of the page.</li>
+        <li>Go to the <a href="https://script.google.com/home/usersettings" target="_blank" rel="noopener noreferrer">Google Apps Script settings</a> and turn on the Google Apps Script API.</li>
+      </ol>
+      <p>
+        Once both of those are done, we can create the project in Google Apps
+        Script (or update the source code, if it is out of date):
+      </p>
+      <p>
+        <Button variant="primary" onClick={ensureScript} disabled={shouldDisable}>{app?.scriptId ? 'Update' : 'Create'} Google Apps Script project</Button>
+      </p>
+      {app?.scriptId && (
+        <>
+          <p>
+            Finally, you need to create a deployment of the project:
+          </p>
+          <ol>
+            <li>Open the <a href={`https://script.google.com/home/projects/${app.scriptId}`} target="_blank" rel="noopener noreferrer">project</a></li>
+            <li>Click on the &quot;Deploy&quot; button in the top-right. Choose &quot;New deployment&quot;</li>
+            <li>Next to &quot;Select type&quot;, click the gear icon and choose &quot;Web app&quot;</li>
+            <li>Make sure &quot;Execute as&quot; is set to &quot;me&quot; and &quot;Who has access&quot; is set to &quot;Anyone&quot; (this should be the default). The Description can be left blank.</li>
+            <li>Click the &quot;Deploy&quot; button. You&apos;ll be prompted to authorize the app to access your Google Spreadsheets.</li>
+            <li>Once the deployment is finished, copy the URL under &quot;Web app&quot;, paste it below, and click the Save button:</li>
+          </ol>
+          <FormGroup className="mb-3">
+            <FormLabel htmlFor="jr-setup-google-script-url">
+              Google Apps Script Web app URL
+            </FormLabel>
+            <FormControl
+              id="jr-setup-google-script-url"
+              type="text"
+              value={endpointUrl}
+              onChange={onEndpointUrlChange}
+              disabled={shouldDisable}
+            />
+          </FormGroup>
+          <ActionButtonRow>
+            <Button variant="primary" onClick={saveEndpointUrl} disabled={shouldDisable}>Save</Button>
+          </ActionButtonRow>
+        </>
+      )}
+    </>
+  );
+};
+
 const FeatureToggle = ({ enabled, onToggleEnabled }: {
   enabled: boolean;
   onToggleEnabled: React.MouseEventHandler<HTMLElement>;
@@ -479,17 +611,19 @@ const GoogleIntegrationSection = () => {
     return ServiceConfiguration.configurations.findOne({ service: 'google' }) as unknown as undefined | { clientId: string };
   }, []);
   const {
-    gdriveCredential, root, docTemplate, spreadsheetTemplate,
+    gdriveCredential, root, docTemplate, spreadsheetTemplate, googleScriptApp,
   } = useTracker(() => {
     const rootSetting = Settings.findOne({ name: 'gdrive.root' });
     const docTemplateSetting = Settings.findOne({ name: 'gdrive.template.document' });
     const spreadsheetTemplateSetting = Settings.findOne({ name: 'gdrive.template.spreadsheet' });
     const gdriveSetting = Settings.findOne({ name: 'gdrive.credential' });
+    const googleScriptAppSetting = Settings.findOne({ name: 'google.script' });
     return {
       gdriveCredential: gdriveSetting,
       root: rootSetting?.value.id,
       docTemplate: docTemplateSetting?.value.id,
       spreadsheetTemplate: spreadsheetTemplateSetting?.value.id,
+      googleScriptApp: googleScriptAppSetting?.value,
     };
   }, []);
 
@@ -515,9 +649,12 @@ const GoogleIntegrationSection = () => {
   if (spreadsheetTemplate) {
     stepsDone += 1;
   }
+  if (googleScriptApp?.endpointUrl) {
+    stepsDone += 1;
+  }
 
   const comp = googleCompletenessStrings[stepsDone];
-  const compBadgeVariant = stepsDone === 3 ? 'success' : 'warning';
+  const compBadgeVariant = stepsDone === 4 ? 'success' : 'warning';
   const oauthBadgeLabel = oauthSettings ? 'configured' : 'unconfigured';
   const oauthBadgeVariant = oauthSettings ? 'success' : 'warning';
   const driveBadgeLabel = gdriveCredential ? 'configured' : 'unconfigured';
@@ -527,6 +664,8 @@ const GoogleIntegrationSection = () => {
   const rootBadgeVariant = root ? 'success' : 'info';
   const templateBadgeLabel = spreadsheetTemplate ? 'configured' : 'unconfigured';
   const templateBadgeVariant = spreadsheetTemplate ? 'success' : 'warning';
+  const googleScriptBadgeLabel = googleScriptApp?.endpointUrl ? 'configured' : 'unconfigured';
+  const googleScriptBadgeVariant = googleScriptApp?.endpointUrl ? 'success' : 'warning';
 
   return (
     <Section id="google">
@@ -542,7 +681,7 @@ const GoogleIntegrationSection = () => {
         </SectionHeaderButtons>
       </SectionHeader>
       <p>
-        There are three pieces to Jolly Roger&apos;s Google integration capabilities:
+        There are four pieces to Jolly Roger&apos;s Google integration capabilities:
       </p>
       <ol>
         <li>
@@ -559,6 +698,11 @@ const GoogleIntegrationSection = () => {
           doc to be used as a template when new puzzles are created.  This is
           particularly useful for making all cells use a monospace font by
           default.
+        </li>
+        <li>
+          A Google Apps Script, which allows Jolly Roger to access
+          functionality that&apos;s not exposed in the public APIs, such as
+          uploading images into a Google Spreadsheet.
         </li>
       </ol>
 
@@ -655,6 +799,15 @@ const GoogleIntegrationSection = () => {
           initialSpreadsheetTemplate={spreadsheetTemplate}
           initialDocTemplate={docTemplate}
         />
+      </Subsection>
+
+      <Subsection>
+        <SubsectionHeader>
+          <span>Google Apps Script</span>
+          {' '}
+          <Badge bg={googleScriptBadgeVariant}>{googleScriptBadgeLabel}</Badge>
+        </SubsectionHeader>
+        <GoogleScriptForm app={googleScriptApp} />
       </Subsection>
     </Section>
   );

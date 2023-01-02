@@ -5,6 +5,7 @@ import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
@@ -19,6 +20,7 @@ import ReactTextareaAutosize from 'react-textarea-autosize';
 import styled from 'styled-components';
 import Flags from '../../Flags';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
+import isAdmin from '../../lib/isAdmin';
 import { indexedById } from '../../lib/listUtils';
 import Announcements from '../../lib/models/Announcements';
 import ChatNotifications from '../../lib/models/ChatNotifications';
@@ -33,11 +35,13 @@ import { ChatNotificationType } from '../../lib/schemas/ChatNotification';
 import { GuessType } from '../../lib/schemas/Guess';
 import { HuntType } from '../../lib/schemas/Hunt';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
+import configureEnsureGoogleScript from '../../methods/configureEnsureGoogleScript';
 import dismissChatNotification from '../../methods/dismissChatNotification';
 import dismissPendingAnnouncement from '../../methods/dismissPendingAnnouncement';
 import linkUserDiscordAccount from '../../methods/linkUserDiscordAccount';
 import setGuessState from '../../methods/setGuessState';
 import { guessURL } from '../../model-helpers';
+import GoogleScriptInfo from '../GoogleScriptInfo';
 import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
 import markdown from '../markdown';
@@ -408,6 +412,70 @@ const AnnouncementMessage = React.memo(({
   );
 });
 
+enum UpdateGoogleScriptStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  ERROR = 'error',
+}
+
+type UpdateGoogleScriptState = {
+  status: Exclude<UpdateGoogleScriptStatus, UpdateGoogleScriptStatus.ERROR>;
+} | {
+  status: UpdateGoogleScriptStatus.ERROR;
+  error: string;
+};
+
+const UpdateGoogleScriptMessage = ({ onDismiss }: {
+  onDismiss: () => void;
+}) => {
+  const [state, setState] = useState<UpdateGoogleScriptState>({ status: UpdateGoogleScriptStatus.IDLE });
+
+  const updateGoogleScript = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setState({ status: UpdateGoogleScriptStatus.PENDING });
+    configureEnsureGoogleScript.call((error) => {
+      if (error) {
+        setState({ status: UpdateGoogleScriptStatus.ERROR, error: error.message });
+      } else {
+        setState({ status: UpdateGoogleScriptStatus.IDLE });
+      }
+    });
+  }, []);
+
+  return (
+    <Toast onClose={onDismiss}>
+      <Toast.Header>
+        <strong className="me-auto">
+          Update Google Script
+        </strong>
+      </Toast.Header>
+      <Toast.Body>
+        The currently deployed version of Jolly Roger&apos;s Google Apps Script
+        is out of date. This can cause issues with features that depend on it,
+        such as inserting images into spreadsheets.
+        <StyledNotificationActionBar>
+          <StyledNotificationActionItem>
+            <Button
+              variant="outline-secondary"
+              disabled={state.status === UpdateGoogleScriptStatus.PENDING}
+              onClick={updateGoogleScript}
+            >
+              Update
+              {state.status === UpdateGoogleScriptStatus.PENDING && (
+                <>
+                  {' '}
+                  <FontAwesomeIcon icon={faSpinner} spin />
+                </>
+              )}
+            </Button>
+          </StyledNotificationActionItem>
+        </StyledNotificationActionBar>
+        {state.status === UpdateGoogleScriptStatus.ERROR ? state.error : null}
+      </Toast.Body>
+    </Toast>
+  );
+};
+
 const ProfileMissingMessage = ({ onDismiss }: {
   onDismiss: () => void;
 }) => {
@@ -480,6 +548,16 @@ const StyledToastContainer = styled(ToastContainer)`
 `;
 
 const NotificationCenter = () => {
+  const showGoogleScriptInfo = useTracker(() => {
+    return isAdmin(Meteor.user()) &&
+      !Flags.active('disable.google') &&
+      ServiceConfiguration.configurations.findOne({ service: 'google' });
+  }, []);
+  useSubscribe(showGoogleScriptInfo ? 'googleScriptInfo' : undefined);
+  const showUpdateGoogleScript = useTracker(() => {
+    return showGoogleScriptInfo ? GoogleScriptInfo.findOne()?.outOfDate : false;
+  }, [showGoogleScriptInfo]);
+
   const fetchPendingGuesses = useTracker(() => userIsOperatorForAnyHunt(Meteor.user()), []);
   const pendingGuessesLoading = useSubscribe(fetchPendingGuesses ? 'pendingGuesses' : undefined);
 
@@ -535,9 +613,14 @@ const NotificationCenter = () => {
       ChatNotifications.find({}, { sort: { timestamp: 1 } }).fetch()
   ), [loading, disableDingwords]);
 
+  const [hideUpdateGoogleScriptMessage, setHideUpdateGoogleScriptMessage] = useState<boolean>(false);
   const [hideDiscordSetupMessage, setHideDiscordSetupMessage] = useState<boolean>(false);
   const [hideProfileSetupMessage, setHideProfileSetupMessage] = useState<boolean>(false);
   const [dismissedGuesses, setDismissedGuesses] = useState<Record<string, Date>>({});
+
+  const onHideUpdateGoogleScriptMessage = useCallback(() => {
+    setHideUpdateGoogleScriptMessage(true);
+  }, []);
 
   const onHideDiscordSetupMessage = useCallback(() => {
     setHideDiscordSetupMessage(true);
@@ -587,6 +670,13 @@ const NotificationCenter = () => {
 
   // Build a list of uninstantiated messages with their props, then create them
   const messages = [] as JSX.Element[];
+
+  if (showUpdateGoogleScript && !hideUpdateGoogleScriptMessage) {
+    messages.push(<UpdateGoogleScriptMessage
+      onDismiss={onHideUpdateGoogleScriptMessage}
+      key="updateGoogleScript"
+    />);
+  }
 
   if (!hasOwnProfile && !hideProfileSetupMessage) {
     messages.push(<ProfileMissingMessage

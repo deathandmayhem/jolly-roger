@@ -11,8 +11,8 @@ import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import createPuzzle from '../../methods/createPuzzle';
 import GlobalHooks from '../GlobalHooks';
 import { ensureDocument } from '../gdrive';
-import DriveClient from '../gdriveClientRefresher';
 import getOrCreateTagByName from '../getOrCreateTagByName';
+import GoogleClient from '../googleClientRefresher';
 
 createPuzzle.define({
   validate(arg) {
@@ -68,7 +68,7 @@ createPuzzle.define({
     // else has a chance to create a document with the wrong config. (This
     // requires us to have an _id for the puzzle, which is why we generate it
     // manually above instead of letting Meteor do it)
-    if (DriveClient.ready() && !Flags.active('disable.google')) {
+    if (GoogleClient.ready() && !Flags.active('disable.google')) {
       await ensureDocument(fullPuzzle, docType);
     }
 

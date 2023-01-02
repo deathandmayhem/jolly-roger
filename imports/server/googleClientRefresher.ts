@@ -1,14 +1,16 @@
-/* eslint-disable camelcase */
 import { Mongo } from 'meteor/mongo';
 import { OAuth } from 'meteor/oauth';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { drive_v3, drive } from '@googleapis/drive';
+import { script_v1, script } from '@googleapis/script';
 import { OAuth2Client } from 'google-auth-library';
 import Settings from '../lib/models/Settings';
 import { SettingType } from '../lib/schemas/Setting';
 
-class GDriveClientRefresher {
-  public gdrive?: drive_v3.Drive;
+class GoogleClientRefresher {
+  public drive?: drive_v3.Drive;
+
+  public script?: script_v1.Script;
 
   private oauthClient?: OAuth2Client;
 
@@ -21,7 +23,7 @@ class GDriveClientRefresher {
   private oauthCredentialCursor: Mongo.Cursor<SettingType>;
 
   constructor() {
-    this.gdrive = undefined;
+    this.drive = undefined;
     this.oauthClient = undefined;
     this.oauthConfig = undefined;
     this.oauthRefreshToken = undefined;
@@ -43,7 +45,7 @@ class GDriveClientRefresher {
 
   updateOauthConfig(doc: Configuration | undefined) {
     this.oauthConfig = doc;
-    this.recreateGdriveClient();
+    this.recreateGoogleClient();
   }
 
   updateOauthCredentials(doc: SettingType) {
@@ -51,22 +53,22 @@ class GDriveClientRefresher {
       return; // this should be impossible
     }
     this.oauthRefreshToken = doc.value.refreshToken;
-    this.recreateGdriveClient();
+    this.recreateGoogleClient();
   }
 
   clearOauthCredentials() {
     this.oauthRefreshToken = undefined;
-    this.recreateGdriveClient();
+    this.recreateGoogleClient();
   }
 
   ready(): boolean {
-    return !!this.gdrive;
+    return !!this.drive;
   }
 
-  recreateGdriveClient() {
+  recreateGoogleClient() {
     if (!this.oauthConfig || !this.oauthRefreshToken) {
       // Can't init if no config or long-lived refresh token
-      this.gdrive = undefined;
+      this.drive = undefined;
       return;
     }
 
@@ -82,11 +84,12 @@ class GDriveClientRefresher {
       refresh_token: this.oauthRefreshToken,
     });
 
-    // Construct the drive client, using that OAuth2 client.
-    this.gdrive = drive({ version: 'v3', auth: this.oauthClient });
+    // Construct the clients, using that OAuth2 client.
+    this.drive = drive({ version: 'v3', auth: this.oauthClient });
+    this.script = script({ version: 'v1', auth: this.oauthClient });
   }
 }
 
-const gdriveClientRefresher = new GDriveClientRefresher();
+const googleClientRefresher = new GoogleClientRefresher();
 
-export default gdriveClientRefresher;
+export default googleClientRefresher;

@@ -58,6 +58,15 @@ export const SettingCodec = t.intersection([
         teamName: t.string,
       }),
     }),
+    t.type({
+      name: t.literal('google.script'),
+      value: t.type({
+        sharedSecret: t.string,
+        scriptId: t.string,
+        contentHash: t.string,
+        endpointUrl: t.union([t.undefined, t.string]),
+      }),
+    }),
   ]),
 ]);
 export type SettingType = t.TypeOf<typeof SettingCodec>;

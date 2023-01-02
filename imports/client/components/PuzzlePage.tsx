@@ -3,27 +3,41 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
+import { faImage } from '@fortawesome/free-solid-svg-icons/faImage';
 import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
-  useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState,
+  ChangeEvent,
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
+import FormSelect from 'react-bootstrap/FormSelect';
 import FormText from 'react-bootstrap/FormText';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Modal from 'react-bootstrap/Modal';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
+import Tab from 'react-bootstrap/Tab';
 import Table from 'react-bootstrap/Table';
+import Tabs from 'react-bootstrap/Tabs';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { Link, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
@@ -48,11 +62,14 @@ import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
 import addPuzzleTag from '../../methods/addPuzzleTag';
 import createGuess from '../../methods/createGuess';
 import ensurePuzzleDocument from '../../methods/ensurePuzzleDocument';
+import insertDocumentImage, { ImageSource } from '../../methods/insertDocumentImage';
+import listDocumentSheets, { Sheet } from '../../methods/listDocumentSheets';
 import removePuzzleAnswer from '../../methods/removePuzzleAnswer';
 import removePuzzleTag from '../../methods/removePuzzleTag';
 import sendChatMessage from '../../methods/sendChatMessage';
 import undestroyPuzzle from '../../methods/undestroyPuzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
+import GoogleScriptInfo from '../GoogleScriptInfo';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useCallState, { Action, CallState } from '../hooks/useCallState';
 import useDocumentTitle from '../hooks/useDocumentTitle';
@@ -213,9 +230,10 @@ const PuzzleMetadataRow = styled.div`
   display: flex;
   width: 100%;
   font-size: 14px;
-  align-items: flex-start;
+  align-items: center;
   align-content: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
+  flex-wrap: wrap;
 `;
 
 const PuzzleMetadataActionRow = styled(PuzzleMetadataRow)`
@@ -251,12 +269,7 @@ const PuzzleMetadataExternalLink = styled.a`
 `;
 
 const StyledTagList = styled(TagList)`
-  display: flex;
-  flex-grow: 1;
-  justify-content: flex-start;
-  align-items: flex-start;
-  align-content: flex-start;
-  flex-wrap: wrap;
+  display: contents;
 `;
 
 const AnswerFormControl = styled(FormControl)`
@@ -626,6 +639,286 @@ const ChatSection = React.forwardRef(({
 });
 const ChatSectionMemo = React.memo(ChatSection);
 
+type ImageInsertModalHandle = {
+  show: () => void,
+};
+
+enum InsertImageSubmitState {
+  IDLE,
+  SUBMITTING,
+  ERROR,
+}
+
+enum InsertImageProcessImageState {
+  IDLE,
+  PROCESSING,
+}
+
+const InsertImageModal = React.forwardRef((
+  { documentId, sheets }: { documentId: string, sheets: Sheet[] },
+  forwardedRef: React.Ref<ImageInsertModalHandle>,
+) => {
+  // Pop up by default when first rendered.
+  const [visible, setVisible] = useState(true);
+  const show = useCallback(() => setVisible(true), []);
+  const hide = useCallback(() => setVisible(false), []);
+  useImperativeHandle(forwardedRef, () => ({ show }), [show]);
+
+  const [submitState, setSubmitState] =
+    useState<InsertImageSubmitState>(InsertImageSubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>('');
+  const clearError = useCallback(() => setSubmitState(InsertImageSubmitState.IDLE), []);
+
+  const [sheet, setSheet] = useState<number>(sheets[0]?.id ?? 0);
+  const onChangeSheet = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
+    setSheet(parseInt(e.target.value, 10));
+  }, []);
+
+  const sheetOptions = useMemo(() => {
+    return sheets.map((s) => {
+      return <option key={s.id} value={s.id}>{s.name}</option>;
+    });
+  }, [sheets]);
+
+  const [imageSource, setImageSource] = useState<string>('upload');
+  const onSelectTab = useCallback((k: string | null) => {
+    if (k) {
+      setImageSource(k);
+    }
+  }, []);
+
+  const [imageProcessState, setImageProcessState] = useState<InsertImageProcessImageState>(InsertImageProcessImageState.IDLE);
+  const [filename, setFilename] = useState<string>('');
+  const [fileContents, setFileContents] = useState<string>('');
+  const [fileInvalid, setFileInvalid] = useState<boolean>(false);
+  const onChangeFile = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setImageProcessState(InsertImageProcessImageState.PROCESSING);
+
+    void (async () => {
+      try {
+        const file = e.target.files?.[0];
+        if (!file) {
+          setFileInvalid(false);
+          e.target.setCustomValidity('');
+          return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+          e.target.setCustomValidity('Uploaded files must be less than 2 MB.');
+          setFileInvalid(true);
+          return;
+        }
+
+        const newFileContents = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.addEventListener('load', () => {
+            resolve(reader.result as string);
+          });
+          reader.addEventListener('error', reject);
+          reader.readAsDataURL(file);
+        });
+        const newImagePixels = await new Promise<number>((resolve) => {
+          const image = new Image();
+          image.addEventListener('load', () => {
+            resolve(image.width * image.height);
+          });
+          image.src = newFileContents;
+        });
+
+        if (newImagePixels > 1000000) {
+          e.target.setCustomValidity('Uploaded images must be less than 1 million pixels in area.');
+          setFileInvalid(true);
+          return;
+        }
+
+        setFilename(file.name);
+        setFileContents(newFileContents);
+
+        setFileInvalid(false);
+        e.target.setCustomValidity('');
+      } finally {
+        setImageProcessState(InsertImageProcessImageState.IDLE);
+      }
+    })();
+  }, []);
+
+  const [url, setUrl] = useState<string>('');
+  const onChangeUrl = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value);
+  }, []);
+
+  const onSubmit = useCallback((e: MouseEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    let image: ImageSource;
+    if (imageSource === 'upload') {
+      image = {
+        source: 'upload',
+        filename,
+        contents: fileContents,
+      };
+    } else {
+      image = {
+        source: 'link',
+        url,
+      };
+    }
+
+    setSubmitState(InsertImageSubmitState.SUBMITTING);
+    insertDocumentImage.call({
+      documentId,
+      sheetId: sheet,
+      image,
+    }, (err) => {
+      if (err) {
+        setSubmitState(InsertImageSubmitState.ERROR);
+        setSubmitError(err.message);
+      } else {
+        setSubmitState(InsertImageSubmitState.IDLE);
+        hide();
+      }
+    });
+  }, [documentId, fileContents, filename, imageSource, sheet, url, hide]);
+
+  const submitDisabled =
+    imageProcessState === InsertImageProcessImageState.PROCESSING ||
+    submitState === InsertImageSubmitState.SUBMITTING;
+
+  return (
+    <Modal show={visible} onHide={hide}>
+      <Modal.Header closeButton>
+        Insert image
+      </Modal.Header>
+      <Form onSubmit={onSubmit}>
+        <Modal.Body>
+          <FormGroup className="mb-3">
+            <FormLabel htmlFor="jr-puzzle-insert-image-sheet">
+              Choose a sheet
+            </FormLabel>
+            <FormSelect
+              id="jr-puzzle-insert-image-sheet"
+              onChange={onChangeSheet}
+              value={sheet}
+            >
+              {sheetOptions}
+            </FormSelect>
+          </FormGroup>
+          <Tabs
+            activeKey={imageSource}
+            onSelect={onSelectTab}
+            className="mb-3"
+          >
+            <Tab eventKey="upload" title="Upload">
+              <FormControl
+                type="file"
+                onChange={onChangeFile}
+                isInvalid={fileInvalid}
+                required={imageSource === 'upload'}
+                disabled={imageProcessState === InsertImageProcessImageState.PROCESSING}
+              />
+            </Tab>
+            <Tab eventKey="link" title="Link">
+              <FormGroup className="mb-3">
+                <FormLabel htmlFor="jr-puzzle-insert-image-link">
+                  Image URL
+                </FormLabel>
+                <FormControl
+                  id="jr-puzzle-insert-image-link"
+                  type="url"
+                  required={imageSource === 'link'}
+                  onChange={onChangeUrl}
+                  value={url}
+                />
+              </FormGroup>
+            </Tab>
+          </Tabs>
+        </Modal.Body>
+        <Modal.Footer>
+          <div className="mb-3">
+            <Button variant="primary" type="submit" disabled={submitDisabled}>
+              Insert
+            </Button>
+          </div>
+          {submitState === InsertImageSubmitState.ERROR ? <Alert variant="danger" dismissible onClose={clearError}>{submitError}</Alert> : null}
+        </Modal.Footer>
+      </Form>
+    </Modal>
+  );
+});
+
+const InsertImage = ({ documentId }: { documentId: string }) => {
+  useSubscribe('googleScriptInfo');
+  const insertEnabled = useTracker(() => !!GoogleScriptInfo.findOne('googleScriptInfo')?.configured, []);
+  const [loading, setLoading] = useState(false);
+  const [documentSheets, setDocumentSheets] = useState<Sheet[]>([]);
+  const [renderInsertModal, setRenderInsertModal] = useState(false);
+  const insertModalRef = useRef<ImageInsertModalHandle>(null);
+  const [listSheetsError, setListSheetsError] = useState<string>();
+  const clearListSheetsError = useCallback(() => setListSheetsError(undefined), []);
+
+  const onStartInsert = useCallback((e: MouseEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    listDocumentSheets.call({ documentId }, (err, sheets) => {
+      setLoading(false);
+      if (err) {
+        setListSheetsError(err.message);
+      } else if (sheets) {
+        setDocumentSheets(sheets);
+        if (renderInsertModal && insertModalRef.current) {
+          insertModalRef.current.show();
+        } else {
+          setRenderInsertModal(true);
+        }
+      }
+    });
+  }, [documentId, renderInsertModal]);
+
+  if (!insertEnabled) {
+    return null;
+  }
+
+  return (
+    <>
+      {renderInsertModal && (
+        <InsertImageModal ref={insertModalRef} documentId={documentId} sheets={documentSheets} />
+      )}
+      {listSheetsError && (
+        <Modal show onHide={clearListSheetsError}>
+          <Modal.Header closeButton>
+            Error fetching sheets in spreadsheet
+          </Modal.Header>
+          <Modal.Body>
+            <p>
+              Something went wrong while fetching the list of sheets in this spreadsheet (which we
+              need to be able to insert an image). Please try again, or let us know if this keeps
+              happening.
+            </p>
+            <p>
+              Error message:
+              {' '}
+              {listSheetsError}
+            </p>
+          </Modal.Body>
+        </Modal>
+      )}
+      <Button variant="secondary" size="sm" onClick={onStartInsert} disabled={loading}>
+        <FontAwesomeIcon icon={faImage} />
+        {' '}
+        Insert image
+        {loading && (
+          <>
+            {' '}
+            <FontAwesomeIcon icon={faSpinner} spin />
+          </>
+        )}
+      </Button>
+    </>
+  );
+};
+
 const PuzzlePageMetadata = ({
   puzzle, displayNames, document, isDesktop,
 }: {
@@ -739,6 +1032,10 @@ const PuzzlePageMetadata = ({
     </PuzzleMetadataExternalLink>
   ) : null;
 
+  const imageInsert = isDesktop && document && document.provider === 'google' && document.value.type === 'spreadsheet' && (
+    <InsertImage documentId={document._id} />
+  );
+
   const documentLink = document && !isDesktop ? (
     <DocumentDisplay document={document} displayMode="link" />
   ) : null;
@@ -797,6 +1094,7 @@ const PuzzlePageMetadata = ({
         {puzzleLink}
         {documentLink}
         {editButton}
+        {imageInsert}
         {guessButton}
       </PuzzleMetadataActionRow>
       <PuzzleMetadataRow>
