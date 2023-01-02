@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/Announcements';
+import Hunts from '../../lib/models/Hunts';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/Announcement';
@@ -140,7 +141,7 @@ const AnnouncementsPage = () => {
     loading ? [] : Announcements.find({ hunt: huntId }, { sort: { createdAt: 1 } }).fetch()
   ), [loading, huntId]);
   const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
-  const canCreateAnnouncements = useTracker(() => userMayAddAnnouncementToHunt(Meteor.user(), huntId), [huntId]);
+  const canCreateAnnouncements = useTracker(() => userMayAddAnnouncementToHunt(Meteor.user(), Hunts.findOne(huntId)), [huntId]);
 
   if (loading) {
     return <div>loading...</div>;

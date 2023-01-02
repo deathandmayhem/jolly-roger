@@ -3,6 +3,7 @@ import { check } from 'meteor/check';
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { GLOBAL_SCOPE } from '../lib/isAdmin';
+import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
 import { ProfileFields } from '../lib/schemas/User';
@@ -29,16 +30,19 @@ Accounts.setDefaultPublishFields({
 const republishOnUserChange = async (
   sub: Subscription,
   projection: Mongo.FieldSpecifier,
-  makeCursor: (user: Meteor.User) => Mongo.Cursor<Meteor.User> | undefined,
+  makeCursor: (user: Meteor.User) =>
+    Mongo.Cursor<Meteor.User> | undefined | Promise<Mongo.Cursor<Meteor.User> | undefined>,
   makeTransform?: undefined |
     ((user: Meteor.User) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>)),
 ) => {
   const u = (await MeteorUsers.findOneAsync(sub.userId!))!;
   const publish = new SwappableCursorPublisher(sub, MeteorUsers);
-  publish.swap(makeCursor(u), makeTransform?.(u));
+  publish.swap(await makeCursor(u), makeTransform?.(u));
   const watch = MeteorUsers.find(sub.userId!, { fields: projection }).observe({
     changed: (doc) => {
-      publish.swap(makeCursor(doc), makeTransform?.(doc));
+      void (async () => {
+        publish.swap(await makeCursor(doc), makeTransform?.(doc));
+      })();
     },
   });
 
@@ -162,9 +166,9 @@ Meteor.publish('profile', async function (userId: unknown) {
 Meteor.publish('huntRoles', async function (huntId: unknown) {
   check(huntId, String);
 
-  await republishOnUserChange(this, { hunts: 1, roles: 1 }, (u) => {
+  await republishOnUserChange(this, { hunts: 1, roles: 1 }, async (u) => {
     // Only publish other users' roles to admins and other operators.
-    if (!userMaySeeUserInfoForHunt(u, huntId)) {
+    if (!userMaySeeUserInfoForHunt(u, await Hunts.findOneAsync(huntId))) {
       return undefined;
     }
 

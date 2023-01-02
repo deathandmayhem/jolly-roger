@@ -10,6 +10,7 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import Hunts from '../../lib/models/Hunts';
 import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
 import addHuntUser from '../../methods/addHuntUser';
 import bulkAddHuntUsers from '../../methods/bulkAddHuntUsers';
@@ -30,7 +31,7 @@ const UserInvitePage = () => {
   const [bulkError, setBulkError] = useState<Meteor.Error | undefined>(undefined);
 
   const canBulkInvite = useTracker(() => {
-    return userMayBulkAddToHunt(Meteor.user(), huntId);
+    return userMayBulkAddToHunt(Meteor.user(), Hunts.findOne(huntId));
   }, [huntId]);
 
   const onEmailChanged: NonNullable<FormControlProps['onChange']> = useCallback((e) => {

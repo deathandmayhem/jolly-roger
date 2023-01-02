@@ -4,6 +4,7 @@ import { Random } from 'meteor/random';
 import Ansible from '../../Ansible';
 import Flags from '../../Flags';
 import GdriveMimeTypes, { GdriveMimeTypesType } from '../../lib/GdriveMimeTypes';
+import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
@@ -31,7 +32,12 @@ createPuzzle.define({
   }) {
     check(this.userId, String);
 
-    if (!userMayWritePuzzlesForHunt(await MeteorUsers.findOneAsync(this.userId), huntId)) {
+    const hunt = await Hunts.findOneAsync(huntId);
+    if (!hunt) {
+      throw new Meteor.Error(404, 'Unknown hunt id');
+    }
+
+    if (!userMayWritePuzzlesForHunt(await MeteorUsers.findOneAsync(this.userId), hunt)) {
       throw new Meteor.Error(
         401,
         `User ${this.userId} may not create new puzzles for hunt ${huntId}`

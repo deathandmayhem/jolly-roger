@@ -21,6 +21,7 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import isAdmin from '../../lib/isAdmin';
 import { userIsOperatorForHunt } from '../../lib/permission_stubs';
+import { HuntType } from '../../lib/schemas/Hunt';
 import demoteOperator from '../../methods/demoteOperator';
 import promoteOperator from '../../methods/promoteOperator';
 import syncHuntDiscordRole from '../../methods/syncHuntDiscordRole';
@@ -173,14 +174,14 @@ const DemoteOperatorModal = React.forwardRef((
   );
 });
 
-const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string }) => {
+const OperatorControls = ({ user, hunt }: { user: Meteor.User, hunt: HuntType }) => {
   const self = useTracker(() => user._id === Meteor.userId(), [user._id]);
   const { userIsOperator, userIsAdmin } = useTracker(() => {
     return {
-      userIsOperator: userIsOperatorForHunt(user, huntId),
+      userIsOperator: userIsOperatorForHunt(user, hunt),
       userIsAdmin: isAdmin(user),
     };
-  }, [user, huntId]);
+  }, [user, hunt]);
 
   const [renderPromoteModal, setRenderPromoteModal] = useState(false);
   const promoteModalRef = useRef<OperatorModalHandle>(null);
@@ -211,10 +212,10 @@ const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string 
   return (
     <OperatorBox onClick={preventPropagation}>
       {renderPromoteModal && (
-        <PromoteOperatorModal ref={promoteModalRef} user={user} huntId={huntId} />
+        <PromoteOperatorModal ref={promoteModalRef} user={user} huntId={hunt._id} />
       )}
       {renderDemoteModal && (
-        <DemoteOperatorModal ref={demoteModalRef} user={user} huntId={huntId} />
+        <DemoteOperatorModal ref={demoteModalRef} user={user} huntId={hunt._id} />
       )}
       {userIsAdmin && (
         <Badge bg="success">Admin</Badge>
@@ -238,9 +239,9 @@ const OperatorControls = ({ user, huntId }: { user: Meteor.User, huntId: string 
 };
 
 const ProfileList = ({
-  huntId, canInvite, canSyncDiscord, canMakeOperator, users, roles,
+  hunt, canInvite, canSyncDiscord, canMakeOperator, users, roles,
 }: {
-  huntId?: string;
+  hunt?: HuntType;
   canInvite?: boolean;
   canSyncDiscord?: boolean;
   canMakeOperator?: boolean;
@@ -298,15 +299,15 @@ const ProfileList = ({
   }, []);
 
   const syncDiscord = useCallback(() => {
-    if (!huntId) {
+    if (!hunt) {
       return;
     }
 
-    syncHuntDiscordRole.call({ huntId });
-  }, [huntId]);
+    syncHuntDiscordRole.call({ huntId: hunt._id });
+  }, [hunt]);
 
   const syncDiscordButton = useMemo(() => {
-    if (!huntId || !canSyncDiscord) {
+    if (!hunt || !canSyncDiscord) {
       return null;
     }
 
@@ -320,15 +321,15 @@ const ProfileList = ({
         </FormText>
       </FormGroup>
     );
-  }, [huntId, canSyncDiscord, syncDiscord]);
+  }, [hunt, canSyncDiscord, syncDiscord]);
 
   const inviteToHuntItem = useMemo(() => {
-    if (!huntId || !canInvite) {
+    if (!hunt || !canInvite) {
       return null;
     }
 
     return (
-      <ListGroupItem action as={Link} to={`/hunts/${huntId}/hunters/invite`} className="p-1">
+      <ListGroupItem action as={Link} to={`/hunts/${hunt._id}/hunters/invite`} className="p-1">
         <ListItemContainer>
           <ImageBlock>
             <FontAwesomeIcon icon={faPlus} />
@@ -337,10 +338,10 @@ const ProfileList = ({
         </ListItemContainer>
       </ListGroupItem>
     );
-  }, [huntId, canInvite]);
+  }, [hunt, canInvite]);
 
   const globalInfo = useMemo(() => {
-    if (huntId) {
+    if (hunt) {
       return null;
     }
 
@@ -350,7 +351,7 @@ const ProfileList = ({
         Mystery Hunt. For that, go to the hunt page and click on &quot;Hunters&quot;.
       </Alert>
     );
-  }, [huntId]);
+  }, [hunt]);
 
   const matching = users.filter(matcher);
   return (
@@ -396,8 +397,8 @@ const ProfileList = ({
                   <Avatar {...user} size={40} />
                 </ImageBlock>
                 {name}
-                {huntId && canMakeOperator && (
-                  <OperatorControls huntId={huntId} user={user} />
+                {hunt && canMakeOperator && (
+                  <OperatorControls hunt={hunt} user={user} />
                 )}
               </ListItemContainer>
             </ListGroupItem>
