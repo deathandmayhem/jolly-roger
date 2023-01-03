@@ -2,16 +2,11 @@
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faBackward } from '@fortawesome/free-solid-svg-icons/faBackward';
-import { faBan } from '@fortawesome/free-solid-svg-icons/faBan';
-import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
-import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons/faExclamationCircle';
 import { faForward } from '@fortawesome/free-solid-svg-icons/faForward';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { faSkullCrossbones } from '@fortawesome/free-solid-svg-icons/faSkullCrossbones';
-import { faTimesCircle } from '@fortawesome/free-solid-svg-icons/faTimesCircle';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useEffect, useRef } from 'react';
 import Button from 'react-bootstrap/Button';
@@ -38,9 +33,10 @@ import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import markdown from '../markdown';
+import GuessState from './GuessState';
 import PuzzleAnswer from './PuzzleAnswer';
 import Breakable from './styling/Breakable';
-import { NavBarHeight } from './styling/constants';
+import { guessColorLookupTable, NavBarHeight } from './styling/constants';
 import { Breakpoint, mediaBreakpointDown } from './styling/responsive';
 
 const compactViewBreakpoint: Breakpoint = 'lg';
@@ -80,43 +76,11 @@ const StyledRow = styled.div<{ $state: GuessType['state'] }>`
   margin-bottom: 8px;
 
   * {
-    background-color:
-      ${(props) => {
-    switch (props.$state) {
-      case 'correct':
-        return '#f0fff0';
-      case 'intermediate':
-        return '#fffff0';
-      case 'incorrect':
-        return '#fff0f0';
-      case 'rejected':
-        return '#f0f0f0';
-      case 'pending':
-        return '#f0f0ff';
-      default:
-        return '#fff';
-    }
-  }};
+    background-color: ${(props) => guessColorLookupTable[props.$state].background};
   }
 
   :hover * {
-    background-color:
-      ${(props) => {
-    switch (props.$state) {
-      case 'correct':
-        return '#d0ffd0';
-      case 'intermediate':
-        return '#ffffd0';
-      case 'incorrect':
-        return '#ffd0d0';
-      case 'rejected':
-        return '#d0d0d0';
-      case 'pending':
-        return '#d0d0ff';
-      default:
-        return '#fff';
-    }
-  }};
+    background-color: ${(props) => guessColorLookupTable[props.$state].hoverBackground};
   }
 `;
 
@@ -268,57 +232,6 @@ const GuessBlock = React.memo(({
     </Tooltip>
   );
 
-  let displayState;
-  switch (guess.state) {
-    case 'correct':
-      displayState = (
-        <>
-          <FontAwesomeIcon icon={faCheckCircle} color="#00ff00" fixedWidth />
-          {' '}
-          Correct
-        </>
-      );
-      break;
-    case 'intermediate':
-      displayState = (
-        <>
-          <FontAwesomeIcon icon={faExclamationCircle} color="#dddd00" fixedWidth />
-          {' '}
-          Intermediate answer
-        </>
-      );
-      break;
-    case 'incorrect':
-      displayState = (
-        <>
-          <FontAwesomeIcon icon={faTimesCircle} color="#ff0000" fixedWidth />
-          {' '}
-          Incorrect
-        </>
-      );
-      break;
-    case 'rejected':
-      displayState = (
-        <>
-          <FontAwesomeIcon icon={faBan} color="#000000" fixedWidth />
-          {' '}
-          Rejected
-        </>
-      );
-      break;
-    case 'pending':
-      displayState = (
-        <>
-          <FontAwesomeIcon icon={faClock} color="#0000ff" fixedWidth />
-          {' '}
-          Pending
-        </>
-      );
-      break;
-    default:
-      displayState = 'unknown';
-  }
-
   return (
     <StyledRow $state={guess.state}>
       <StyledPuzzleTimestampAndSubmitter>
@@ -396,7 +309,7 @@ const GuessBlock = React.memo(({
         </StyledGuessSliderWithLabel>
       </StyledGuessSliders>
       <StyledCell>
-        {displayState}
+        <GuessState id={`guess-${guess._id}-state`} state={guess.state} />
       </StyledCell>
       <StyledCell>
         {canEdit && guess.state !== 'pending' && (
