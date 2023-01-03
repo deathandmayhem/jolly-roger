@@ -89,6 +89,7 @@ import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
 import { GuessConfidence, GuessDirection } from './guessDetails';
+import Breakable from './styling/Breakable';
 import FixedLayout from './styling/FixedLayout';
 import { guessColorLookupTable, MonospaceFontFamily, SolvedPuzzleBackgroundColor } from './styling/constants';
 import { mediaBreakpointDown } from './styling/responsive';
@@ -211,11 +212,9 @@ const PuzzleMetadata = styled.div`
 `;
 
 const PuzzleMetadataAnswer = styled.span`
-  text-transform: uppercase;
-  font-family: ${MonospaceFontFamily};
-  font-weight: 400;
   background-color: ${SolvedPuzzleBackgroundColor};
   color: #000;
+  overflow: hidden;
 
   // Tag-like
   display: inline-flex;
@@ -268,6 +267,7 @@ const PuzzleMetadataAnswers = styled.span`
   align-items: flex-start;
   align-content: flex-start;
   flex-wrap: wrap;
+  overflow: hidden;
 `;
 
 const PuzzleMetadataExternalLink = styled.a`
@@ -1016,7 +1016,7 @@ const PuzzlePageMetadata = ({
       {
         correctGuesses.map((guess) => (
           <PuzzleMetadataAnswer key={`answer-${guess._id}`}>
-            <span>{guess.guess}</span>
+            <PuzzleAnswer answer={guess.guess} breakable />
             {!hasGuessQueue && (
               <AnswerRemoveButton variant="success" onClick={() => onRemoveAnswer(guess._id)}>
                 <FontAwesomeIcon fixedWidth icon={faTimes} />
@@ -1183,6 +1183,7 @@ const GuessSlider = styled.input`
 
 const GuessCell = styled.div`
   display: flex;
+  overflow: hidden;
   background-color: inherit;
   align-items: center;
   padding: 0.25rem;
@@ -1224,7 +1225,6 @@ const GuessConfidenceCell = styled(GuessCell)`
 
 const AdditionalNotesCell = styled(GuessCell)`
   grid-column: 1 / -1;
-  overflow: hidden;
   overflow-wrap: break-word;
   ${mediaBreakpointDown('sm', css`
     order: 1;
@@ -1484,11 +1484,11 @@ const PuzzleGuessModal = React.forwardRef(({
                       )}
                     </OverlayTrigger>
                     {' '}
-                    <PuzzleAnswer answer={guess.guess} />
+                    <PuzzleAnswer answer={guess.guess} breakable indented />
                   </GuessAnswerCell>
                 </GuessTableSmallRow>
                 <GuessTimestampCell>{calendarTimeFormat(guess.createdAt)}</GuessTimestampCell>
-                <GuessSubmitterCell>{displayNames[guess.createdBy]}</GuessSubmitterCell>
+                <GuessSubmitterCell><Breakable>{displayNames[guess.createdBy]}</Breakable></GuessSubmitterCell>
                 <GuessDirectionCell>
                   <GuessDirection value={guess.direction} />
                 </GuessDirectionCell>

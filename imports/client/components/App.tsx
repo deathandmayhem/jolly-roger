@@ -37,6 +37,7 @@ const Breadcrumb = styled.nav`
   align-items: center;
   height: ${NavBarHeight};
   flex: 1;
+  min-width: 0;
 `;
 
 const ContentContainer = styled.div`
@@ -46,14 +47,21 @@ const ContentContainer = styled.div`
   padding-right: max(env(safe-area-inset-right, 0px), 15px);
 `;
 
+/* Using some prefixed styles with widespread support and graceful failure */
+/* stylelint-disable value-no-vendor-prefix */
 const BreadcrumbList = styled.ol`
   list-style: none;
   display: block;
+  display: -webkit-box;
   max-height: 100%;
   overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   margin: 0;
   padding: 0;
 `;
+/* stylelint-enable value-no-vendor-prefix */
 
 const BreadcrumbItem = styled.li`
   display: inline;

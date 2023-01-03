@@ -3,6 +3,13 @@ import React, {
 } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal, { ModalProps } from 'react-bootstrap/Modal';
+import styled from 'styled-components';
+
+const StyledModalTitle = styled(Modal.Title)`
+  overflow: hidden;
+  overflow-wrap: break-word;
+  hyphens: auto;
+`;
 
 interface ModalFormProps {
   title: string;
@@ -65,9 +72,9 @@ const ModalForm = React.forwardRef((
     <Modal show={isShown} onHide={hide} size={props.size}>
       <form className="form-horizontal" onSubmit={submit}>
         <Modal.Header closeButton>
-          <Modal.Title>
+          <StyledModalTitle>
             {props.title}
-          </Modal.Title>
+          </StyledModalTitle>
         </Modal.Header>
         <Modal.Body>
           {props.children}

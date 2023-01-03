@@ -1,16 +1,29 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { MonospaceFontFamily } from './styling/constants';
 
-const PuzzleAnswerSpan = styled.span`
+const PuzzleAnswerSpan = styled.span<{ breakable: boolean, indented: boolean }>`
   text-transform: uppercase;
   font-family: ${MonospaceFontFamily};
   font-weight: 400;
+  ${({ breakable }) => breakable && css`
+    overflow-wrap: break-word;
+    overflow: hidden;
+  `}
+  ${({ indented }) => indented && css`
+    display: block;
+    min-width: 0;
+    text-indent: -1.2em;
+    padding-left: 1.2em;
+  `}
 `;
 
 const PuzzleAnswerSegment = styled.span`
-  & + & {
-    margin-left: 0.4em;
+  overflow-wrap: normal;
+  margin-right: 0.4em;
+
+  :last-child {
+    margin-right: 0;
   }
 `;
 
@@ -22,7 +35,7 @@ function removePunctuation(answer: string) {
 }
 
 const PuzzleAnswer = React.memo(({
-  answer, className, respace = false, segmentSize = 5,
+  answer, className, respace = false, segmentSize = 5, indented = false, breakable = false,
 }: {
   answer: string;
   className?: string;
@@ -31,6 +44,8 @@ const PuzzleAnswer = React.memo(({
   // strip spaces and punctuation.
   respace?: boolean;
   segmentSize?: number;
+  breakable?: boolean;
+  indented?: boolean;
 }) => {
   let formattedAnswer: React.ReactNode = answer;
   if (respace && segmentSize > 0) {
@@ -51,11 +66,12 @@ const PuzzleAnswer = React.memo(({
       // eslint-disable-next-line react/no-array-index-key
       <PuzzleAnswerSegment key={`segment-${i}`}>
         {segment}
+        <wbr />
       </PuzzleAnswerSegment>
     ));
   }
   return (
-    <PuzzleAnswerSpan className={className}>
+    <PuzzleAnswerSpan breakable={breakable} indented={indented} className={className}>
       {formattedAnswer}
     </PuzzleAnswerSpan>
   );
