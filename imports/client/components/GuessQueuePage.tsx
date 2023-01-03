@@ -73,26 +73,26 @@ const StyledHeader = styled.div`
 const StyledRow = styled.div<{ $state: GuessType['state'] }>`
   display: contents;
   margin-bottom: 8px;
+  background-color: ${(props) => guessColorLookupTable[props.$state].background};
 
-  * {
-    background-color: ${(props) => guessColorLookupTable[props.$state].background};
-  }
-
-  :hover * {
+  :hover {
     background-color: ${(props) => guessColorLookupTable[props.$state].hoverBackground};
   }
 `;
 
 const StyledCell = styled.div`
   padding: 4px;
+  background-color: inherit;
 `;
 
 const StyledGuessDirection = styled(GuessDirection)`
   padding: 4px;
+  background-color: inherit;
 `;
 
 const StyledGuessConfidence = styled(GuessConfidence)`
   padding: 4px;
+  background-color: inherit;
 `;
 
 const StyledLinkButton = styled(Button)`
@@ -102,6 +102,7 @@ const StyledLinkButton = styled(Button)`
 
 const StyledPuzzleTimestampAndSubmitter = styled.div`
   display: contents;
+  background-color: inherit;
   ${mediaBreakpointDown(compactViewBreakpoint, css`
     padding: 4px;
     display: flex;
@@ -144,6 +145,7 @@ const StyledGuessCell = styled(StyledCell)`
 
 const StyledGuessDetails = styled.div`
   display: contents;
+  background-color: inherit;
   ${mediaBreakpointDown(compactViewBreakpoint, css`
     display: flex;
   `)}
