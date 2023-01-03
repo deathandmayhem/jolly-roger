@@ -1170,6 +1170,14 @@ const GuessSliderContainer = styled.div`
   align-items: center;
   flex-grow: 1;
 `;
+const GuessSliderLeftLabel = styled.div`
+  width: 1.5em;
+  text-align: right;
+`;
+const GuessSliderRightLabel = styled.div`
+  width: 2.5em;
+  text-align: left;
+`;
 const GuessSlider = styled.input`
   width: 1px;
   flex-grow: 1;
@@ -1383,8 +1391,9 @@ const PuzzleGuessModal = React.forwardRef(({
           <ValidatedSliderContainer>
             <OverlayTrigger placement="top" overlay={directionTooltip}>
               <GuessSliderContainer>
-                <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
-                {' '}
+                <GuessSliderLeftLabel>
+                  <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
+                </GuessSliderLeftLabel>
                 <GuessSlider
                   id="jr-puzzle-guess-direction"
                   type="range"
@@ -1400,8 +1409,9 @@ const PuzzleGuessModal = React.forwardRef(({
                   <option value="0">0</option>
                   <option value="10">10</option>
                 </datalist>
-                {' '}
-                <FontAwesomeIcon icon={faArrowRight} fixedWidth />
+                <GuessSliderRightLabel>
+                  <FontAwesomeIcon icon={faArrowRight} fixedWidth />
+                </GuessSliderRightLabel>
               </GuessSliderContainer>
             </OverlayTrigger>
             <FontAwesomeIcon icon={faCheck} color={haveSetDirection ? 'green' : 'transparent'} fixedWidth />
@@ -1422,8 +1432,9 @@ const PuzzleGuessModal = React.forwardRef(({
           <ValidatedSliderContainer>
             <OverlayTrigger placement="top" overlay={confidenceTooltip}>
               <GuessSliderContainer>
-                0%
-                {' '}
+                <GuessSliderLeftLabel>
+                  0%
+                </GuessSliderLeftLabel>
                 <GuessSlider
                   id="jr-puzzle-guess-confidence"
                   type="range"
@@ -1441,8 +1452,9 @@ const PuzzleGuessModal = React.forwardRef(({
                   <option value="75">75%</option>
                   <option value="100">100%</option>
                 </datalist>
-                {' '}
-                100%
+                <GuessSliderRightLabel>
+                  100%
+                </GuessSliderRightLabel>
               </GuessSliderContainer>
             </OverlayTrigger>
             <FontAwesomeIcon icon={faCheck} color={haveSetConfidence ? 'green' : 'transparent'} fixedWidth />
