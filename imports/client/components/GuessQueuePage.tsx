@@ -1,17 +1,10 @@
 /* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { faBackward } from '@fortawesome/free-solid-svg-icons/faBackward';
-import { faBan } from '@fortawesome/free-solid-svg-icons/faBan';
-import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
-import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons/faExclamationCircle';
-import { faForward } from '@fortawesome/free-solid-svg-icons/faForward';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { faSkullCrossbones } from '@fortawesome/free-solid-svg-icons/faSkullCrossbones';
-import { faTimesCircle } from '@fortawesome/free-solid-svg-icons/faTimesCircle';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useEffect, useRef } from 'react';
 import Button from 'react-bootstrap/Button';
@@ -38,12 +31,14 @@ import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import markdown from '../markdown';
+import GuessState from './GuessState';
 import PuzzleAnswer from './PuzzleAnswer';
+import { GuessConfidence, GuessDirection } from './guessDetails';
 import Breakable from './styling/Breakable';
-import { NavBarHeight } from './styling/constants';
+import { guessColorLookupTable, NavBarHeight } from './styling/constants';
 import { Breakpoint, mediaBreakpointDown } from './styling/responsive';
 
-const compactViewBreakpoint: Breakpoint = 'lg';
+const compactViewBreakpoint: Breakpoint = 'md';
 
 const StyledTable = styled.div`
   display: grid;
@@ -52,8 +47,8 @@ const StyledTable = styled.div`
     [submitter] auto
     [puzzle] auto
     [answer] auto
-    [direction] minmax(200px, auto)
-    [confidence] minmax(200px, auto)
+    [direction] minmax(5em, auto)
+    [confidence] minmax(7em, auto)
     [status] auto
     [actions] auto;
   ${mediaBreakpointDown(compactViewBreakpoint, css`
@@ -80,47 +75,23 @@ const StyledRow = styled.div<{ $state: GuessType['state'] }>`
   margin-bottom: 8px;
 
   * {
-    background-color:
-      ${(props) => {
-    switch (props.$state) {
-      case 'correct':
-        return '#f0fff0';
-      case 'intermediate':
-        return '#fffff0';
-      case 'incorrect':
-        return '#fff0f0';
-      case 'rejected':
-        return '#f0f0f0';
-      case 'pending':
-        return '#f0f0ff';
-      default:
-        return '#fff';
-    }
-  }};
+    background-color: ${(props) => guessColorLookupTable[props.$state].background};
   }
 
   :hover * {
-    background-color:
-      ${(props) => {
-    switch (props.$state) {
-      case 'correct':
-        return '#d0ffd0';
-      case 'intermediate':
-        return '#ffffd0';
-      case 'incorrect':
-        return '#ffd0d0';
-      case 'rejected':
-        return '#d0d0d0';
-      case 'pending':
-        return '#d0d0ff';
-      default:
-        return '#fff';
-    }
-  }};
+    background-color: ${(props) => guessColorLookupTable[props.$state].hoverBackground};
   }
 `;
 
 const StyledCell = styled.div`
+  padding: 4px;
+`;
+
+const StyledGuessDirection = styled(GuessDirection)`
+  padding: 4px;
+`;
+
+const StyledGuessConfidence = styled(GuessConfidence)`
   padding: 4px;
 `;
 
@@ -171,20 +142,14 @@ const StyledGuessCell = styled(StyledCell)`
   `)}
 `;
 
-const StyledGuessSliders = styled.div`
+const StyledGuessDetails = styled.div`
   display: contents;
   ${mediaBreakpointDown(compactViewBreakpoint, css`
     display: flex;
   `)}
 `;
 
-const StyledGuessSliderCell = styled(StyledCell)`
-  display: flex;
-  align-items: center;
-  flex-grow: 1;
-`;
-
-const StyledGuessSliderWithLabel = styled(StyledCell)`
+const StyledGuessDetailWithLabel = styled(StyledCell)`
   display: contents;
   ${mediaBreakpointDown(compactViewBreakpoint, css`
     display: flex;
@@ -194,23 +159,8 @@ const StyledGuessSliderWithLabel = styled(StyledCell)`
   `)}
 `;
 
-const StyledGuessSliderLabel = styled.span`
+const StyledGuessDetailLabel = styled.span`
   display: none;
-  ${mediaBreakpointDown(compactViewBreakpoint, css`
-    display: inline;
-  `)}
-`;
-
-const StyledSlider = styled.input`
-  ${mediaBreakpointDown(compactViewBreakpoint, css`
-    width: 1px;
-    flex-grow: 1;
-  `)}
-`;
-
-const StyledTooltipCompact = styled.span`
-  display: none;
-  white-space: pre;
   ${mediaBreakpointDown(compactViewBreakpoint, css`
     display: inline;
   `)}
@@ -249,75 +199,6 @@ const GuessBlock = React.memo(({
       Copy to clipboard
     </Tooltip>
   );
-  const directionTooltip = (
-    <Tooltip id={`guess-${guess._id}-direction-tooltip`}>
-      <StyledTooltipCompact>
-        Solve direction:
-        {' '}
-      </StyledTooltipCompact>
-      {guess.direction}
-    </Tooltip>
-  );
-  const confidenceTooltip = (
-    <Tooltip id={`guess-${guess._id}-confidence-tooltip`}>
-      <StyledTooltipCompact>
-        Confidence:
-        {' '}
-      </StyledTooltipCompact>
-      {guess.confidence}
-    </Tooltip>
-  );
-
-  let displayState;
-  switch (guess.state) {
-    case 'correct':
-      displayState = (
-        <>
-          <FontAwesomeIcon icon={faCheckCircle} color="#00ff00" fixedWidth />
-          {' '}
-          Correct
-        </>
-      );
-      break;
-    case 'intermediate':
-      displayState = (
-        <>
-          <FontAwesomeIcon icon={faExclamationCircle} color="#dddd00" fixedWidth />
-          {' '}
-          Intermediate answer
-        </>
-      );
-      break;
-    case 'incorrect':
-      displayState = (
-        <>
-          <FontAwesomeIcon icon={faTimesCircle} color="#ff0000" fixedWidth />
-          {' '}
-          Incorrect
-        </>
-      );
-      break;
-    case 'rejected':
-      displayState = (
-        <>
-          <FontAwesomeIcon icon={faBan} color="#000000" fixedWidth />
-          {' '}
-          Rejected
-        </>
-      );
-      break;
-    case 'pending':
-      displayState = (
-        <>
-          <FontAwesomeIcon icon={faClock} color="#0000ff" fixedWidth />
-          {' '}
-          Pending
-        </>
-      );
-      break;
-    default:
-      displayState = 'unknown';
-  }
 
   return (
     <StyledRow $state={guess.state}>
@@ -353,50 +234,22 @@ const GuessBlock = React.memo(({
         {' '}
         <PuzzleAnswer answer={guess.guess} />
       </StyledGuessCell>
-      <StyledGuessSliders>
-        <StyledGuessSliderWithLabel>
-          <StyledGuessSliderLabel>
+      <StyledGuessDetails>
+        <StyledGuessDetailWithLabel>
+          <StyledGuessDetailLabel>
             Solve direction
-          </StyledGuessSliderLabel>
-          <OverlayTrigger placement="top" overlay={directionTooltip}>
-            <StyledGuessSliderCell>
-              <FontAwesomeIcon icon={faBackward} fixedWidth />
-              {' '}
-              <StyledSlider type="range" min="-10" max="10" value={guess.direction} disabled list={`guess-${guess._id}-direction-data`} />
-              <datalist id={`guess-${guess._id}-direction-data`}>
-                <option value="-10">-10</option>
-                <option value="0">0</option>
-                <option value="10">10</option>
-              </datalist>
-              {' '}
-              <FontAwesomeIcon icon={faForward} fixedWidth />
-            </StyledGuessSliderCell>
-          </OverlayTrigger>
-        </StyledGuessSliderWithLabel>
-        <StyledGuessSliderWithLabel>
-          <StyledGuessSliderLabel>
+          </StyledGuessDetailLabel>
+          <StyledGuessDirection value={guess.direction} />
+        </StyledGuessDetailWithLabel>
+        <StyledGuessDetailWithLabel>
+          <StyledGuessDetailLabel>
             Confidence
-          </StyledGuessSliderLabel>
-          <OverlayTrigger placement="top" overlay={confidenceTooltip}>
-            <StyledGuessSliderCell>
-              0%
-              {' '}
-              <StyledSlider type="range" min="0" max="100" value={guess.confidence} disabled list={`guess-${guess._id}-confidence-data`} />
-              <datalist id={`guess-${guess._id}-confidence-data`}>
-                <option value="0">0%</option>
-                <option value="25">25%</option>
-                <option value="50">50%</option>
-                <option value="75">75%</option>
-                <option value="100">100%</option>
-              </datalist>
-              {' '}
-              100%
-            </StyledGuessSliderCell>
-          </OverlayTrigger>
-        </StyledGuessSliderWithLabel>
-      </StyledGuessSliders>
+          </StyledGuessDetailLabel>
+          <StyledGuessConfidence id={`guess-${guess._id}-confidence`} value={guess.confidence} />
+        </StyledGuessDetailWithLabel>
+      </StyledGuessDetails>
       <StyledCell>
-        {displayState}
+        <GuessState id={`guess-${guess._id}-state`} state={guess.state} />
       </StyledCell>
       <StyledCell>
         {canEdit && guess.state !== 'pending' && (
