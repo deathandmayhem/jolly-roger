@@ -8,6 +8,7 @@ const FolderPermissionFields = t.type({
   user: t.string,
   // This can change, so capture which one we gave permissions to
   googleAccount: t.string,
+  permissionLevel: t.union([t.undefined, t.literal('reader'), t.literal('commenter')]),
 });
 
 const FolderPermissionFieldsOverrides: Overrides<t.TypeOf<typeof FolderPermissionFields>> = {

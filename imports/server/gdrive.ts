@@ -216,13 +216,14 @@ export async function ensureHuntFolderPermission(
     folder,
     user: userId,
     googleAccount,
+    permissionLevel: 'commenter' as const,
   };
   if (await FolderPermissions.findOneAsync(perm)) {
     return;
   }
 
   Ansible.log('Granting permissions to folder', perm);
-  await grantPermission(folder, googleAccount, 'reader');
+  await grantPermission(folder, googleAccount, 'commenter');
   await ignoringDuplicateKeyErrors(async () => {
     await FolderPermissions.insertAsync(perm);
   });
