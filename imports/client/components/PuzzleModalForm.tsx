@@ -58,8 +58,8 @@ const PuzzleModalForm = React.forwardRef(({
     return tagIds.map((t) => tagNames[t] ?? t);
   }, [propsTags]);
 
-  const [title, setTitle] = useState<string>(puzzle ? puzzle.title : '');
-  const [url, setUrl] = useState<string | undefined>(puzzle ? puzzle.url : '');
+  const [title, setTitle] = useState<string>(puzzle?.title ?? '');
+  const [url, setUrl] = useState<string>(puzzle?.url ?? '');
   const [tags, setTags] = useState<string[]>(puzzle ? tagNamesForIds(puzzle.tags) : []);
   const [docType, setDocType] =
     useState<GdriveMimeTypesType | undefined>(puzzle ? undefined : 'spreadsheet');
@@ -120,7 +120,7 @@ const PuzzleModalForm = React.forwardRef(({
     const payload: PuzzleModalFormSubmitPayload = {
       huntId,
       title,
-      url: url ?? undefined, // Make sure we send undefined if url is falsy
+      url: url !== '' ? url : undefined, // Make sure we send undefined if url is falsy
       tags,
       expectedAnswerCount,
     };

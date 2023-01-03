@@ -44,7 +44,7 @@ destroyPuzzle.define({
 
     await Puzzles.updateAsync(puzzleId, {
       $set: {
-        replacedBy: replacedBy ?? undefined,
+        replacedBy,
         deleted: true,
       },
     });

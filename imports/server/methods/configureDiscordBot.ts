@@ -1,4 +1,4 @@
-import { check } from 'meteor/check';
+import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Ansible from '../../Ansible';
 import MeteorUsers from '../../lib/models/MeteorUsers';
@@ -9,7 +9,7 @@ import configureDiscordBot from '../../methods/configureDiscordBot';
 configureDiscordBot.define({
   validate(arg) {
     check(arg, {
-      token: String,
+      token: Match.Optional(String),
     });
     return arg;
   },

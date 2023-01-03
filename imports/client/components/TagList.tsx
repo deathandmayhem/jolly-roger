@@ -125,7 +125,6 @@ const TagList = React.memo((props: TagListProps) => {
   }, [onRemoveTag]);
 
   const showControls = props.showControls ?? true;
-  const emptyMessage = props.emptyMessage ?? '';
 
   const tags = sortedTagsForSinglePuzzle(props.tags);
   const components = [];
@@ -143,9 +142,9 @@ const TagList = React.memo((props: TagListProps) => {
     );
   });
 
-  if (tags.length === 0 && emptyMessage) {
+  if (tags.length === 0 && props.emptyMessage) {
     components.push(
-      <TagListEmptyLabel key="noTagLabel">{emptyMessage}</TagListEmptyLabel>
+      <TagListEmptyLabel key="noTagLabel">{props.emptyMessage}</TagListEmptyLabel>
     );
   }
 

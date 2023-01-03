@@ -1,5 +1,6 @@
-import { check } from 'meteor/check';
+import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
+import Ansible from '../../Ansible';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { checkAdmin } from '../../lib/permission_stubs';
@@ -8,7 +9,7 @@ import configureGoogleScriptUrl from '../../methods/configureGoogleScriptUrl';
 configureGoogleScriptUrl.define({
   validate(arg) {
     check(arg, {
-      url: String,
+      url: Match.Optional(String),
     });
     return arg;
   },
@@ -20,6 +21,16 @@ configureGoogleScriptUrl.define({
     const app = await Settings.findOneAsync({ name: 'google.script' });
     if (!app) {
       throw new Meteor.Error(404, 'No image app configured');
+    }
+
+    if (!url) {
+      Ansible.log('Clearing Google Script URL', { user: this.userId });
+      await Settings.updateAsync({ name: 'google.script' }, {
+        $unset: {
+          'value.endpointUrl': 1,
+        },
+      });
+      return;
     }
 
     const params = {
