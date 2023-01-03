@@ -2,6 +2,10 @@
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
+import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight';
+import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
+import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faImage } from '@fortawesome/free-solid-svg-icons/faImage';
 import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
@@ -33,12 +37,12 @@ import FormSelect from 'react-bootstrap/FormSelect';
 import FormText from 'react-bootstrap/FormText';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Modal from 'react-bootstrap/Modal';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
 import Tab from 'react-bootstrap/Tab';
-import Table from 'react-bootstrap/Table';
 import Tabs from 'react-bootstrap/Tabs';
-import Tooltip from 'react-bootstrap/Tooltip';
+import OverlayTrigger from 'react-bootstrap/esm/OverlayTrigger';
+import Tooltip from 'react-bootstrap/esm/Tooltip';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Link, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
 import styled, { css } from 'styled-components';
@@ -78,12 +82,16 @@ import markdown from '../markdown';
 import { trace } from '../tracing';
 import ChatPeople from './ChatPeople';
 import DocumentDisplay, { DocumentMessage } from './DocumentDisplay';
+import GuessState from './GuessState';
 import ModalForm, { ModalFormHandle } from './ModalForm';
+import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
+import { GuessConfidence, GuessDirection } from './guessDetails';
 import FixedLayout from './styling/FixedLayout';
-import { MonospaceFontFamily, SolvedPuzzleBackgroundColor } from './styling/constants';
+import { guessColorLookupTable, MonospaceFontFamily, SolvedPuzzleBackgroundColor } from './styling/constants';
+import { mediaBreakpointDown } from './styling/responsive';
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -1118,11 +1126,105 @@ const PuzzlePageMetadata = ({
   );
 };
 
-const AnswerTableCell = styled.td`
-  text-transform: uppercase;
-  font-family: ${MonospaceFontFamily};
-  font-weight: 400;
-  word-break: break-all;
+const ValidatedSliderContainer = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const GuessTable = styled.div`
+  display: grid;
+  grid-template-columns:
+    [status] 2em
+    [answer] auto
+    [timestamp] auto
+    [submitter] auto
+    [direction] 3.5em
+    [confidence] 3.5em;
+  ${mediaBreakpointDown('sm', css`
+    grid-template-columns: minmax(0, auto) minmax(0, auto);
+  `)}
+`;
+
+const GuessTableSmallRow = styled.div`
+  display: contents;
+  ${mediaBreakpointDown('sm', css`
+    grid-column: 1 / -1;
+    display: flex;
+  `)}
+`;
+
+const GuessRow = styled.div<{ $state: GuessType['state'] }>`
+  display: contents;
+
+  * {
+    background-color: ${(props) => guessColorLookupTable[props.$state].background};
+  }
+
+  :hover * {
+    background-color: ${(props) => guessColorLookupTable[props.$state].hoverBackground};
+  }
+`;
+
+const GuessSliderContainer = styled.div`
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+`;
+const GuessSlider = styled.input`
+  width: 1px;
+  flex-grow: 1;
+`;
+
+const GuessCell = styled.div`
+  padding: 0.25rem;
+  outline: 1px solid #ddd;
+  ${mediaBreakpointDown('sm', css`
+    outline: 0;
+  `)}
+`;
+
+const GuessAnswerCell = styled(GuessCell)`
+  ${mediaBreakpointDown('sm', css`
+    flex-grow: 1;
+  `)}
+`;
+
+const GuessTimestampCell = styled(GuessCell)`
+  ${mediaBreakpointDown('sm', css`
+    flex-grow: 1;
+  `)}
+`;
+
+const GuessSubmitterCell = styled(GuessCell)`
+  ${mediaBreakpointDown('sm', css`
+    flex-grow: 1;
+  `)}
+`;
+
+const GuessDirectionCell = styled(GuessCell)`
+  ${mediaBreakpointDown('sm', css`
+    display: none;
+  `)}
+`;
+
+const GuessConfidenceCell = styled(GuessCell)`
+  ${mediaBreakpointDown('sm', css`
+    display: none;
+  `)}
+`;
+
+const AdditionalNotesCell = styled(GuessCell)`
+  grid-column: 1 / -1;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  ${mediaBreakpointDown('sm', css`
+    order: 1;
+  `)}
+`;
+
+const LinkButton = styled(Button)`
+  padding: 0;
+  vertical-align: baseline;
 `;
 
 enum PuzzleGuessSubmitState {
@@ -1221,24 +1323,30 @@ const PuzzleGuessModal = React.forwardRef(({
     haveSetDirection, haveSetConfidence,
   ]);
 
-  const clearError = useCallback(() => {
-    setSubmitState(PuzzleGuessSubmitState.IDLE);
-  }, []);
-
   const directionTooltip = (
-    <Tooltip id="guess-direction-tooltip">
-      Current value:
+    <Tooltip id="jr-puzzle-guess-direction-tooltip">
+      <strong>Solve direction:</strong>
       {' '}
       {directionInput}
     </Tooltip>
   );
   const confidenceTooltip = (
-    <Tooltip id="guess-confidence-tooltip">
-      Current value:
+    <Tooltip id="jr-puzzle-guess-confidence-tooltip">
+      <strong>Confidence:</strong>
       {' '}
       {confidenceInput}
+      %
     </Tooltip>
   );
+  const copyTooltip = (
+    <Tooltip id="jr-puzzle-guess-copy-tooltip">
+      Copy to clipboard
+    </Tooltip>
+  );
+
+  const clearError = useCallback(() => {
+    setSubmitState(PuzzleGuessSubmitState.IDLE);
+  }, []);
 
   return (
     <ModalForm
@@ -1270,19 +1378,32 @@ const PuzzleGuessModal = React.forwardRef(({
           Solve direction
         </FormLabel>
         <Col xs={9}>
-          <OverlayTrigger placement="right" overlay={directionTooltip}>
-            <FormControl
-              type="range"
-              id="jr-puzzle-guess-direction"
-              min={-10}
-              max={10}
-              step={1}
-              onChange={onDirectionInputChange}
-              value={directionInput}
-              disabled={puzzle.deleted}
-              isValid={haveSetDirection}
-            />
-          </OverlayTrigger>
+          <ValidatedSliderContainer>
+            <OverlayTrigger placement="top" overlay={directionTooltip}>
+              <GuessSliderContainer>
+                <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
+                {' '}
+                <GuessSlider
+                  id="jr-puzzle-guess-direction"
+                  type="range"
+                  min="-10"
+                  max="10"
+                  list="jr-puzzle-guess-direction-list"
+                  onChange={onDirectionInputChange}
+                  value={directionInput}
+                  disabled={puzzle.deleted}
+                />
+                <datalist id="jr-puzzle-guess-direction-list">
+                  <option value="-10">-10</option>
+                  <option value="0">0</option>
+                  <option value="10">10</option>
+                </datalist>
+                {' '}
+                <FontAwesomeIcon icon={faArrowRight} fixedWidth />
+              </GuessSliderContainer>
+            </OverlayTrigger>
+            <FontAwesomeIcon icon={faCheck} color={haveSetDirection ? 'green' : 'transparent'} fixedWidth />
+          </ValidatedSliderContainer>
           <FormText>
             Pick a number between -10 (backsolved without opening
             the puzzle) to 10 (forward-solved without seeing the
@@ -1296,19 +1417,34 @@ const PuzzleGuessModal = React.forwardRef(({
           Confidence
         </FormLabel>
         <Col xs={9}>
-          <OverlayTrigger placement="right" overlay={confidenceTooltip}>
-            <FormControl
-              type="range"
-              id="jr-puzzle-guess-confidence"
-              min={0}
-              max={100}
-              step={1}
-              onChange={onConfidenceInputChange}
-              value={confidenceInput}
-              disabled={puzzle.deleted}
-              isValid={haveSetConfidence}
-            />
-          </OverlayTrigger>
+          <ValidatedSliderContainer>
+            <OverlayTrigger placement="top" overlay={confidenceTooltip}>
+              <GuessSliderContainer>
+                0%
+                {' '}
+                <GuessSlider
+                  id="jr-puzzle-guess-confidence"
+                  type="range"
+                  min="0"
+                  max="100"
+                  list="jr-puzzle-guess-confidence-list"
+                  onChange={onConfidenceInputChange}
+                  value={confidenceInput}
+                  disabled={puzzle.deleted}
+                />
+                <datalist id="jr-puzzle-guess-confidence-list">
+                  <option value="0">0%</option>
+                  <option value="25">25%</option>
+                  <option value="50">50%</option>
+                  <option value="75">75%</option>
+                  <option value="100">100%</option>
+                </datalist>
+                {' '}
+                100%
+              </GuessSliderContainer>
+            </OverlayTrigger>
+            <FontAwesomeIcon icon={faCheck} color={haveSetConfidence ? 'green' : 'transparent'} fixedWidth />
+          </ValidatedSliderContainer>
           <FormText>
             Pick a number between 0 and 100 for the probability that
             you think this answer is right.
@@ -1318,39 +1454,46 @@ const PuzzleGuessModal = React.forwardRef(({
 
       {guesses.length === 0 ? <div>No previous submissions.</div> : [
         <div key="label">Previous submissions:</div>,
-        <Table key="table" bordered size="sm">
-          <thead>
-            <tr>
-              <th>Guess</th>
-              <th>Time</th>
-              <th>Submitter</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedBy(guesses, (g) => g.createdAt).reverse().map((guess) => {
-              return (
-                <>
-                  <tr key={guess._id}>
-                    <AnswerTableCell>{guess.guess}</AnswerTableCell>
-                    <td>{calendarTimeFormat(guess.createdAt)}</td>
-                    <td>{displayNames[guess.createdBy]}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{guess.state}</td>
-                  </tr>
+        <GuessTable key="table">
+          {sortedBy(guesses, (g) => g.createdAt).reverse().map((guess) => {
+            return (
+              <GuessRow $state={guess.state} key={guess._id}>
+                <GuessTableSmallRow>
+                  <GuessCell><GuessState id={`guess-${guess._id}-state`} state={guess.state} short /></GuessCell>
+                  <GuessAnswerCell>
+                    <OverlayTrigger placement="top" overlay={copyTooltip}>
+                      {({ ref, ...triggerHandler }) => (
+                        <CopyToClipboard text={guess.guess} {...triggerHandler}>
+                          <LinkButton ref={ref} variant="link" aria-label="Copy">
+                            <FontAwesomeIcon icon={faCopy} fixedWidth />
+                          </LinkButton>
+                        </CopyToClipboard>
+                      )}
+                    </OverlayTrigger>
+                    {' '}
+                    <PuzzleAnswer answer={guess.guess} />
+                  </GuessAnswerCell>
+                </GuessTableSmallRow>
+                <GuessTimestampCell>{calendarTimeFormat(guess.createdAt)}</GuessTimestampCell>
+                <GuessSubmitterCell>{displayNames[guess.createdBy]}</GuessSubmitterCell>
+                <GuessDirectionCell>
+                  <GuessDirection value={guess.direction} />
+                </GuessDirectionCell>
+                <GuessConfidenceCell>
+                  <GuessConfidence id={`guess-${guess._id}-confidence`} value={guess.confidence} />
+                </GuessConfidenceCell>
+                <GuessTableSmallRow>
                   {guess.additionalNotes && (
-                    <tr key={`${guess._id}-notes`}>
-                      <td
-                        colSpan={4}
-                        // eslint-disable-next-line react/no-danger
-                        dangerouslySetInnerHTML={{ __html: markdown(guess.additionalNotes) }}
-                      />
-                    </tr>
+                    <AdditionalNotesCell
+                      // eslint-disable-next-line react/no-danger
+                      dangerouslySetInnerHTML={{ __html: markdown(guess.additionalNotes) }}
+                    />
                   )}
-                </>
-              );
-            })}
-          </tbody>
-        </Table>,
+                </GuessTableSmallRow>
+              </GuessRow>
+            );
+          })}
+        </GuessTable>,
       ]}
       {confirmingSubmit ? <Alert variant="warning">{confirmationMessage}</Alert> : null}
       {submitState === PuzzleGuessSubmitState.FAILED ? <Alert variant="danger" dismissible onClose={clearError}>{submitError}</Alert> : null}
