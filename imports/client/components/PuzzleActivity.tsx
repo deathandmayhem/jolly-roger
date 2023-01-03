@@ -38,6 +38,7 @@ const PuzzleActivityItem = styled.span`
 
   span {
     margin-right: 0.25rem;
+    margin-left: 0.125rem;
   }
 
   ${mediaBreakpointDown('xs', css`
@@ -52,17 +53,25 @@ const PuzzleOpenTime = styled(PuzzleActivityItem)`
 
 const PuzzleActivitySparkline = styled(PuzzleActivityItem)`
   min-width: 6rem;
+
+  span {
+    margin-right: 0;
+  }
 `;
 
 const PuzzleActivityDetail = styled.div`
   display: grid;
   grid-template-columns: auto auto 1fr 2em;
   align-items: center;
+  margin-bottom: 0.5rem;
+  column-gap: 0.25rem;
+  row-gap: 0.125rem;
 `;
 
 const PuzzleActivityDetailTimeRange = styled.div`
   display: flex;
   justify-content: space-between;
+  font-size: 12px;
 `;
 
 interface PuzzleActivityProps {
@@ -140,7 +149,7 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
 
   const unlockTooltip = (
     <Tooltip id={`puzzle-activity-unlock-${puzzleId}`}>
-      Puzzle unlocked at
+      Puzzle unlocked:
       {' '}
       {calendarTimeFormat(unlockTime)}
     </Tooltip>
@@ -153,7 +162,7 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
   const sparklineTooltip = (
     <Tooltip id={`puzzle-activity-sparkline-${puzzleId}`}>
       <div>
-        How many are working on this puzzle based on:
+        People working on this puzzle:
       </div>
       <PuzzleActivityDetailTimeRange>
         <div>
@@ -228,7 +237,7 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
             <SparklinesLine />
             <SparklinesSpots spotColors={{ '-1': 'black', 0: 'black', 1: 'black' }} />
           </Sparklines>
-          {displayNumber(totals)}
+          <span>{displayNumber(totals)}</span>
         </PuzzleActivitySparkline>
       </OverlayTrigger>
     </PuzzleActivityItems>
