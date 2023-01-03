@@ -24,13 +24,19 @@ linkUserGoogleAccount.define({
     // scopes, I don't think you can do anything with it), but we do
     // want to validate it.
     const credential = Google.retrieveCredential(key, secret);
-    const email = credential.serviceData.email;
+    const { email, id } = credential.serviceData;
     Ansible.log('Linking user to Google account', {
       user: this.userId,
       email,
+      id,
     });
 
-    await MeteorUsers.updateAsync(this.userId, { $set: { googleAccount: email } });
+    await MeteorUsers.updateAsync(this.userId, {
+      $set: {
+        googleAccount: email,
+        googleAccountId: id,
+      },
+    });
 
     if (!Flags.active('disable.google') && !Flags.active('disable.gdrive_permissions')) {
       const hunts = Meteor.user()!.hunts;

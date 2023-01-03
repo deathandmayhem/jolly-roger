@@ -12,6 +12,7 @@ declare module 'meteor/meteor' {
       roles?: Record<string, string[]>; // scope -> roles
       displayName?: string;
       googleAccount?: string;
+      googleAccountId?: string;
       discordAccount?: t.TypeOf<typeof DiscordAccount>;
       phoneNumber?: string;
       dingwords?: string[];
@@ -32,6 +33,7 @@ export const UserCodec = t.type({
   hunts: t.union([t.array(t.string), t.undefined]),
   displayName: t.union([t.undefined, t.string]),
   googleAccount: t.union([t.string, t.undefined]),
+  googleAccountId: t.union([t.string, t.undefined]),
   discordAccount: t.union([DiscordAccount, t.undefined]),
   phoneNumber: t.union([t.string, t.undefined]),
   dingwords: t.union([t.array(t.string), t.undefined]),

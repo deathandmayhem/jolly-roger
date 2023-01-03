@@ -3,6 +3,7 @@ import './addPuzzleAnswer';
 import './addPuzzleTag';
 import './bulkAddHuntUsers';
 import './configureClearGdriveCreds';
+import './configureCollectGoogleAccountIds';
 import './configureDiscordBot';
 import './configureDiscordBotGuild';
 import './configureDiscordOAuthClient';
