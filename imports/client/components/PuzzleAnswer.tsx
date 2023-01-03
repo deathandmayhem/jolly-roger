@@ -5,7 +5,7 @@ import { MonospaceFontFamily } from './styling/constants';
 const PuzzleAnswerSpan = styled.span`
   text-transform: uppercase;
   font-family: ${MonospaceFontFamily};
-  font-weight: 300;
+  font-weight: 400;
 `;
 
 const PuzzleAnswerSegment = styled.span`

@@ -205,7 +205,7 @@ const PuzzleMetadata = styled.div`
 const PuzzleMetadataAnswer = styled.span`
   text-transform: uppercase;
   font-family: ${MonospaceFontFamily};
-  font-weight: 300;
+  font-weight: 400;
   background-color: ${SolvedPuzzleBackgroundColor};
   color: #000;
 
@@ -275,7 +275,7 @@ const StyledTagList = styled(TagList)`
 const AnswerFormControl = styled(FormControl)`
   text-transform: uppercase;
   font-family: ${MonospaceFontFamily};
-  font-weight: 300;
+  font-weight: 400;
 `;
 
 const ChatMessage = React.memo(({
@@ -1121,7 +1121,7 @@ const PuzzlePageMetadata = ({
 const AnswerTableCell = styled.td`
   text-transform: uppercase;
   font-family: ${MonospaceFontFamily};
-  font-weight: 300;
+  font-weight: 400;
   word-break: break-all;
 `;
 
