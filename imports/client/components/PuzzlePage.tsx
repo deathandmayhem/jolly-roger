@@ -1176,6 +1176,8 @@ const GuessSlider = styled.input`
 `;
 
 const GuessCell = styled.div`
+  display: flex;
+  align-items: center;
   padding: 0.25rem;
   outline: 1px solid #ddd;
   ${mediaBreakpointDown('sm', css`
