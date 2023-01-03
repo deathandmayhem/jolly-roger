@@ -1246,6 +1246,7 @@ const PuzzleGuessModal = React.forwardRef(({
       title={`${puzzle.answers.length >= puzzle.expectedAnswerCount ? 'Guess history for' : 'Submit answer to'} ${puzzle.title}`}
       onSubmit={onSubmitGuess}
       submitLabel={confirmingSubmit ? 'Confirm Submit' : 'Submit'}
+      size="lg"
     >
       <FormGroup as={Row} className="mb-3">
         <FormLabel column xs={3} htmlFor="jr-puzzle-guess">

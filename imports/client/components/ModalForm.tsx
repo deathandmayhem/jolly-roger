@@ -2,10 +2,11 @@ import React, {
   useCallback, useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
 import Button from 'react-bootstrap/Button';
-import Modal from 'react-bootstrap/Modal';
+import Modal, { ModalProps } from 'react-bootstrap/Modal';
 
 interface ModalFormProps {
   title: string;
+  size?: ModalProps['size'];
   submitLabel?: string;
   submitStyle?: string;
   submitDisabled?: boolean;
@@ -61,7 +62,7 @@ const ModalForm = React.forwardRef((
   const submitStyle = props.submitStyle ?? 'primary';
 
   return (
-    <Modal show={isShown} onHide={hide}>
+    <Modal show={isShown} onHide={hide} size={props.size}>
       <form className="form-horizontal" onSubmit={submit}>
         <Modal.Header closeButton>
           <Modal.Title>
