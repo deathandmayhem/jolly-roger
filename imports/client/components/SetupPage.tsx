@@ -248,6 +248,8 @@ const GoogleAuthorizeDriveClientForm = () => {
         'https://www.googleapis.com/auth/drive',
         'https://www.googleapis.com/auth/script.projects',
         'https://www.googleapis.com/auth/script.deployments',
+        'https://www.googleapis.com/auth/user.emails.read',
+        'https://www.googleapis.com/auth/contacts.other.readonly',
       ],
       requestOfflineToken: true,
       forceApprovalPrompt: true,
