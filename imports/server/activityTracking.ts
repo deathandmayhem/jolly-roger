@@ -15,7 +15,7 @@ class ActivityBucket {
 
   allUsers: Set<string> = new Set();
 
-  documentActivity = false;
+  documentUsers: Set<string> = new Set();
 }
 
 type ActivityBuckets = Map<number, ActivityBucket>;
@@ -56,8 +56,9 @@ class HuntActivityAggregator {
         const [bucket, newBucket] = this.lookupBucket(puzzle, ts);
         if (!bucket) return;
 
-        bucket.documentActivity = true;
-        bucket.allUsers.add('__document__');
+        const user = fields.user ?? '__document__';
+        bucket.documentUsers.add(user);
+        bucket.allUsers.add(user);
         if (!initializing) {
           this.publishBucket(puzzle, ts, bucket, newBucket);
         }
@@ -115,7 +116,7 @@ class HuntActivityAggregator {
       totalUsers: bucket.allUsers.size,
       chatUsers: bucket.chatUsers.size,
       callUsers: bucket.callUsers.size,
-      documentActivity: bucket.documentActivity,
+      documentUsers: bucket.documentUsers.size,
     };
   }
 

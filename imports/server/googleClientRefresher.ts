@@ -2,6 +2,7 @@ import { Mongo } from 'meteor/mongo';
 import { OAuth } from 'meteor/oauth';
 import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
 import { drive_v3, drive } from '@googleapis/drive';
+import { driveactivity, driveactivity_v2 } from '@googleapis/driveactivity';
 import { people, people_v1 } from '@googleapis/people';
 import { script_v1, script } from '@googleapis/script';
 import { OAuth2Client } from 'google-auth-library';
@@ -10,6 +11,8 @@ import { SettingType } from '../lib/schemas/Setting';
 
 class GoogleClientRefresher {
   public drive?: drive_v3.Drive;
+
+  public driveactivity?: driveactivity_v2.Driveactivity;
 
   public script?: script_v1.Script;
 
@@ -89,6 +92,7 @@ class GoogleClientRefresher {
 
     // Construct the clients, using that OAuth2 client.
     this.drive = drive({ version: 'v3', auth: this.oauthClient });
+    this.driveactivity = driveactivity({ version: 'v2', auth: this.oauthClient });
     this.script = script({ version: 'v1', auth: this.oauthClient });
     this.people = people({ version: 'v1', auth: this.oauthClient });
   }

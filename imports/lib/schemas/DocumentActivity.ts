@@ -7,10 +7,13 @@ import { Overrides, buildSchema } from './typedSchemas';
    server, not by users */
 export const DocumentActivityCodec = t.type({
   _id: t.string,
-  ts: date, /* 5 minute granularity */
+  ts: date, /* rounded to ACTIVITY_GRANULARITY */
   hunt: t.string,
   puzzle: t.string,
   document: t.string,
+  // user can be undefined if we aren't able to match an activity record back to
+  // a Jolly Roger user (e.g. because they haven't linked their Google Account)
+  user: t.union([t.undefined, t.string]),
 });
 export type DocumentActivityType = t.TypeOf<typeof DocumentActivityCodec>;
 
@@ -31,6 +34,10 @@ const DocumentActivityOverrides: Overrides<t.TypeOf<typeof DocumentActivityCodec
     denyUpdate: true,
   },
   document: {
+    regEx: Id,
+    denyUpdate: true,
+  },
+  user: {
     regEx: Id,
     denyUpdate: true,
   },

@@ -44,3 +44,4 @@ import './42-document-by-external-id';
 import './43-puzzle-activity';
 import './44-better-puzzle-activity';
 import './45-folder-permission-level';
+import './46-per-user-document-activity';

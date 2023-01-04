@@ -120,7 +120,7 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
       counts.totals.unshift(bucket?.totalUsers ?? 0);
       counts.chats.unshift(bucket?.chatUsers ?? 0);
       counts.calls.unshift(bucket?.callUsers ?? 0);
-      counts.documents.unshift(bucket?.documentActivity ? 1 : 0);
+      counts.documents.unshift(bucket?.documentUsers ?? 0);
     }
 
     // For the displayed value in the last bucket, use the larger of the last or
@@ -210,13 +210,13 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
           Doc
         </div>
         <div>
-          <Sparklines data={documents} min={0} max={1}>
+          <Sparklines data={documents} min={0} max={Math.max(1, ...documents)}>
             <SparklinesLine color="white" />
             <SparklinesSpots spotColors={{ '-1': 'white', 0: 'white', 1: 'white' }} />
           </Sparklines>
         </div>
         <div>
-          {displayNumber(documents) > 0 ? '>0' : '0'}
+          {displayNumber(documents)}
         </div>
       </PuzzleActivityDetail>
     </Tooltip>

@@ -249,6 +249,7 @@ const GoogleAuthorizeDriveClientForm = () => {
       requestPermissions: [
         'email',
         'https://www.googleapis.com/auth/drive',
+        'https://www.googleapis.com/auth/drive.activity.readonly',
         'https://www.googleapis.com/auth/script.projects',
         'https://www.googleapis.com/auth/script.deployments',
         'https://www.googleapis.com/auth/user.emails.read',
