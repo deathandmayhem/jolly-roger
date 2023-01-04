@@ -59,7 +59,7 @@ const UserInvitePage = () => {
     e.preventDefault();
     setSubmitting(true);
     setBulkError(undefined);
-    const emails = bulkEmails.split('\n');
+    const emails = bulkEmails.trim().split('\n').map((addr) => addr.trim());
     bulkAddHuntUsers.call({ huntId, emails }, (bulkInviteError) => {
       setSubmitting(false);
       if (bulkInviteError) {
