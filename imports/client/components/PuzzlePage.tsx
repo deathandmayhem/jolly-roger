@@ -1147,6 +1147,7 @@ const GuessTable = styled.div`
 
 const GuessTableSmallRow = styled.div`
   display: contents;
+  background-color: inherit;
   ${mediaBreakpointDown('sm', css`
     grid-column: 1 / -1;
     display: flex;
@@ -1155,12 +1156,9 @@ const GuessTableSmallRow = styled.div`
 
 const GuessRow = styled.div<{ $state: GuessType['state'] }>`
   display: contents;
+  background-color: ${(props) => guessColorLookupTable[props.$state].background};
 
-  * {
-    background-color: ${(props) => guessColorLookupTable[props.$state].background};
-  }
-
-  :hover * {
+  :hover {
     background-color: ${(props) => guessColorLookupTable[props.$state].hoverBackground};
   }
 `;
@@ -1185,6 +1183,7 @@ const GuessSlider = styled.input`
 
 const GuessCell = styled.div`
   display: flex;
+  background-color: inherit;
   align-items: center;
   padding: 0.25rem;
   outline: 1px solid #ddd;
