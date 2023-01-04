@@ -27,7 +27,7 @@ updateProfile.define({
       throw new Meteor.Error(400, 'Display name is required and cannot begin with whitespace');
     }
 
-    const unset = { phoneNumber: phoneNumber ? 1 : undefined } as const;
+    const unset = { phoneNumber: phoneNumber ? undefined : 1 } as const;
 
     Ansible.log('Updating profile for user', { user: this.userId });
     await MeteorUsers.updateAsync({
