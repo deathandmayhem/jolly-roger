@@ -45,7 +45,9 @@ import GoogleScriptInfo from '../GoogleScriptInfo';
 import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
 import markdown from '../markdown';
+import PuzzleAnswer from './PuzzleAnswer';
 import SpinnerTimer from './SpinnerTimer';
+import { GuessConfidence, GuessDirection } from './guessDetails';
 import Breakable from './styling/Breakable';
 
 // How long to keep showing guess notifications after actioning.
@@ -57,13 +59,41 @@ const StyledNotificationActionBar = styled.ul`
   display: flex;
   list-style-type: none;
   margin: 0;
+
+  &:not(:last-child) {
+    margin-bottom: 8px;
+  }
+
   padding: 0;
   flex-flow: wrap row;
 `;
 
 const StyledNotificationActionItem = styled.li`
-  margin: 8px 8px 4px 0;
+  margin-right: 8px;
   display: inline-block;
+`;
+
+const StyledNotificationRow = styled.div`
+  margin: 0;
+
+  &:not(:last-child) {
+    margin-bottom: 8px;
+  }
+
+  padding: 0;
+`;
+
+const StyledGuessDetails = styled.div`
+  display: flex;
+  flex-grow: 1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: end;
+`;
+
+const StyledNotificationTimestamp = styled.small`
+  text-align: end;
 `;
 
 const GuessMessage = React.memo(({
@@ -118,16 +148,6 @@ const GuessMessage = React.memo(({
     onDismiss(guess._id);
   }, [onDismiss, guess._id]);
 
-  const directionTooltip = (
-    <Tooltip id={`notification-guess-${guess._id}-direction-tooltip`}>
-      Direction this puzzle was solved, ranging from completely backsolved (-10) to completely forward solved (10)
-    </Tooltip>
-  );
-  const confidenceTooltip = (
-    <Tooltip id={`notification-guess-${guess._id}-confidence-tooltip`}>
-      Submitter-estimated likelihood that this answer is correct
-    </Tooltip>
-  );
   const copyTooltip = (
     <Tooltip id={`notification-guess-${guess._id}-copy-tooltip`}>
       Copy to clipboard
@@ -153,18 +173,20 @@ const GuessMessage = React.memo(({
     case 'intermediate':
       stageTwoSection = (
         <>
-          <div>
+          <StyledNotificationRow>
             Paste or write any additional instructions to pass on to the solver:
-          </div>
-          <ReactTextareaAutosize
-            minRows={1}
-            className="form-control"
-            autoFocus
-            disabled={disableForms}
-            value={additionalNotes}
-            onChange={onAdditionalNotesChange}
-            onKeyDown={onAdditionalNotesKeyDown}
-          />
+          </StyledNotificationRow>
+          <StyledNotificationRow>
+            <ReactTextareaAutosize
+              minRows={1}
+              className="form-control"
+              autoFocus
+              disabled={disableForms}
+              value={additionalNotes}
+              onChange={onAdditionalNotesChange}
+              onKeyDown={onAdditionalNotesKeyDown}
+            />
+          </StyledNotificationRow>
           <StyledNotificationActionBar>
             <StyledNotificationActionItem>
               <Button variant="outline-secondary" size="sm" disabled={disableForms} onClick={submitStageTwo}>Save (or press Enter)</Button>
@@ -179,15 +201,17 @@ const GuessMessage = React.memo(({
           <div>
             Include any additional information on why this guess was rejected:
           </div>
-          <ReactTextareaAutosize
-            minRows={1}
-            className="form-control"
-            autoFocus
-            disabled={disableForms}
-            value={additionalNotes}
-            onChange={onAdditionalNotesChange}
-            onKeyDown={onAdditionalNotesKeyDown}
-          />
+          <StyledNotificationRow>
+            <ReactTextareaAutosize
+              minRows={1}
+              className="form-control"
+              autoFocus
+              disabled={disableForms}
+              value={additionalNotes}
+              onChange={onAdditionalNotesChange}
+              onKeyDown={onAdditionalNotesKeyDown}
+            />
+          </StyledNotificationRow>
           <StyledNotificationActionBar>
             <StyledNotificationActionItem>
               <Button variant="outline-secondary" size="sm" disabled={disableForms} onClick={submitStageTwo}>Save (or press Enter)</Button>
@@ -217,9 +241,9 @@ const GuessMessage = React.memo(({
             <Breakable>{guesser}</Breakable>
           </a>
         </strong>
-        <small>
+        <StyledNotificationTimestamp>
           {calendarTimeFormat(guess.createdAt)}
-        </small>
+        </StyledNotificationTimestamp>
         {guess.state !== 'pending' && (
           <SpinnerTimer
             className="ms-3"
@@ -231,28 +255,9 @@ const GuessMessage = React.memo(({
         )}
       </Toast.Header>
       <Toast.Body>
-        <div>
-          <Breakable>{guess.guess}</Breakable>
-        </div>
-        <div>
-          <OverlayTrigger placement="top" overlay={directionTooltip}>
-            <span>
-              Solve direction:
-              {' '}
-              {guess.direction}
-            </span>
-          </OverlayTrigger>
-        </div>
-        <div>
-          <OverlayTrigger placement="top" overlay={confidenceTooltip}>
-            <span>
-              Confidence:
-              {' '}
-              {guess.confidence}
-              %
-            </span>
-          </OverlayTrigger>
-        </div>
+        <StyledNotificationRow>
+          <PuzzleAnswer answer={guess.guess} />
+        </StyledNotificationRow>
         <StyledNotificationActionBar>
           <StyledNotificationActionItem>
             <OverlayTrigger placement="top" overlay={copyTooltip}>
@@ -270,6 +275,10 @@ const GuessMessage = React.memo(({
               </Button>
             </OverlayTrigger>
           </StyledNotificationActionItem>
+          <StyledGuessDetails>
+            <GuessDirection value={guess.direction} />
+            <GuessConfidence id={`notification-guess-${guess._id}-confidence`} value={guess.confidence} />
+          </StyledGuessDetails>
         </StyledNotificationActionBar>
         <StyledNotificationActionBar>
           <StyledNotificationActionItem>
@@ -361,7 +370,9 @@ const DiscordMessage = React.memo(({ onDismiss }: {
         </strong>
       </Toast.Header>
       <Toast.Body>
-        {msg}
+        <StyledNotificationRow>
+          {msg}
+        </StyledNotificationRow>
         <StyledNotificationActionBar>
           {actions}
         </StyledNotificationActionBar>
@@ -394,9 +405,9 @@ const AnnouncementMessage = React.memo(({
         <strong className="me-auto">
           Announcement
         </strong>
-        <small>
+        <StyledNotificationTimestamp>
           {calendarTimeFormat(announcement.createdAt)}
-        </small>
+        </StyledNotificationTimestamp>
       </Toast.Header>
       <Toast.Body>
         <div
@@ -521,9 +532,9 @@ const ChatNotificationMessage = ({
             {puzzle.title}
           </Link>
         </strong>
-        <small>
+        <StyledNotificationTimestamp>
           {calendarTimeFormat(cn.createdAt)}
-        </small>
+        </StyledNotificationTimestamp>
       </Toast.Header>
       <Toast.Body>
         <div>
