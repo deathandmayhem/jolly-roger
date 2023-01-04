@@ -137,9 +137,16 @@ const AccountForm = (props: AccountFormProps) => {
   }, [password]);
 
   const tryEnroll = useCallback((token: string) => {
+    const trimmedDisplayName = displayName.trim();
+    if (trimmedDisplayName === '') {
+      setSubmitState(AccountFormSubmitState.FAILED);
+      setErrorMessage('Display name cannot be blank.');
+      return;
+    }
+
     const newProfile = {
-      displayName,
-      phoneNumber,
+      displayName: trimmedDisplayName,
+      phoneNumber: phoneNumber !== '' ? phoneNumber : undefined,
       dingwords: [],
     };
 

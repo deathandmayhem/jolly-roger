@@ -277,7 +277,7 @@ const HuntEditPage = () => {
     const state: HuntSubmit = {
       name,
       mailingLists: splitLists(mailingLists),
-      signupMessage,
+      signupMessage: signupMessage === '' ? undefined : signupMessage,
       openSignups,
       hasGuessQueue,
       homepageUrl: homepageUrl === '' ? undefined : homepageUrl,

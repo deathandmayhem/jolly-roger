@@ -308,13 +308,20 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
   }, []);
 
   const handleSaveForm = useCallback(() => {
+    const trimmedDisplayName = displayName.trim();
+    if (trimmedDisplayName === '') {
+      setSubmitError('Display name must not be empty');
+      setSubmitState(OwnProfilePageSubmitState.ERROR);
+      return;
+    }
+
     setSubmitState(OwnProfilePageSubmitState.SUBMITTING);
     const dingwords = dingwordsFlat.split(',').map((x) => {
       return x.trim().toLowerCase();
     }).filter((x) => x.length > 0);
     const newProfile = {
-      displayName,
-      phoneNumber,
+      displayName: trimmedDisplayName,
+      phoneNumber: phoneNumber !== '' ? phoneNumber : undefined,
       dingwords,
     };
     updateProfile.call(newProfile, (error) => {

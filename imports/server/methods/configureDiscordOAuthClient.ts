@@ -1,4 +1,4 @@
-import { check } from 'meteor/check';
+import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../../Ansible';
@@ -10,8 +10,8 @@ import configureDiscordOAuthClient from '../../methods/configureDiscordOAuthClie
 configureDiscordOAuthClient.define({
   validate(arg) {
     check(arg, {
-      clientId: String,
-      clientSecret: String,
+      clientId: Match.Optional(String),
+      clientSecret: Match.Optional(String),
     });
     return arg;
   },

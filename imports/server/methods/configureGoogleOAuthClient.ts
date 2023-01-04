@@ -1,4 +1,4 @@
-import { check } from 'meteor/check';
+import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import Ansible from '../../Ansible';
@@ -9,14 +9,18 @@ import configureGoogleOAuthClient from '../../methods/configureGoogleOAuthClient
 configureGoogleOAuthClient.define({
   validate(arg) {
     check(arg, {
-      clientId: String,
-      secret: String,
+      clientId: Match.Optional(String),
+      secret: Match.Optional(String),
     });
     return arg;
   },
 
   async run({ clientId, secret }) {
     check(this.userId, String);
+
+    if (!!clientId !== !!secret) {
+      throw new Meteor.Error(400, 'Must provide either both client ID and secret or neither');
+    }
 
     if (!userMayConfigureGoogleOAuth(await MeteorUsers.findOneAsync(this.userId))) {
       throw new Meteor.Error(401, 'Must be admin to configure Google OAuth');
@@ -26,12 +30,17 @@ configureGoogleOAuthClient.define({
       clientId,
       user: this.userId,
     });
-    await ServiceConfiguration.configurations.upsertAsync({ service: 'google' }, {
-      $set: {
-        clientId,
-        secret,
-        loginStyle: 'popup',
-      },
-    });
+
+    if (clientId) {
+      await ServiceConfiguration.configurations.upsertAsync({ service: 'google' }, {
+        $set: {
+          clientId,
+          secret,
+          loginStyle: 'popup',
+        },
+      });
+    } else {
+      await ServiceConfiguration.configurations.removeAsync({ service: 'google' });
+    }
   },
 });

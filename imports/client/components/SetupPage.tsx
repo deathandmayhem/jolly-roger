@@ -143,7 +143,10 @@ const GoogleOAuthForm = ({ isConfigured, initialClientId }: {
       setState({
         submitState: SubmitState.SUBMITTING,
       });
-      configureGoogleOAuthClient.call({ clientId: trimmedClientId, secret: trimmedClientSecret }, (err) => {
+      configureGoogleOAuthClient.call({
+        clientId: trimmedClientId !== '' ? trimmedClientId : undefined,
+        secret: trimmedClientSecret !== '' ? trimmedClientSecret : undefined,
+      }, (err) => {
         if (err) {
           setState({
             submitState: SubmitState.ERROR,
@@ -500,10 +503,9 @@ const GoogleScriptForm = ({ app }: {
 
   const saveEndpointUrl = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (!endpointUrl) return;
 
     setState({ submitState: SubmitState.SUBMITTING });
-    configureGoogleScriptUrl.call({ url: endpointUrl }, (error) => {
+    configureGoogleScriptUrl.call({ url: endpointUrl !== '' ? endpointUrl : undefined }, (error) => {
       if (error) {
         setState({ submitState: SubmitState.ERROR, error });
       } else {
@@ -863,11 +865,11 @@ const EmailConfigForm = ({ initialConfig }: {
     const trimmedExistingJoinMessage = existingJoinMessage.trim();
     setSubmitState(SubmitState.SUBMITTING);
     configureEmailBranding.call({
-      from: trimmedFrom,
-      enrollSubject: trimmedEnrollAccountMessageSubject,
-      enrollMessage: trimmedEnrollAccountMessage,
-      joinSubject: trimmedExistingJoinMessageSubject,
-      joinMessage: trimmedExistingJoinMessage,
+      from: trimmedFrom !== '' ? trimmedFrom : undefined,
+      enrollSubject: trimmedEnrollAccountMessageSubject !== '' ? trimmedEnrollAccountMessageSubject : undefined,
+      enrollMessage: trimmedEnrollAccountMessage !== '' ? trimmedEnrollAccountMessage : undefined,
+      joinSubject: trimmedExistingJoinMessageSubject !== '' ? trimmedExistingJoinMessageSubject : undefined,
+      joinMessage: trimmedExistingJoinMessage !== '' ? trimmedExistingJoinMessage : undefined,
     }, (error) => {
       if (error) {
         setSubmitError(error.message);
@@ -1196,8 +1198,8 @@ const DiscordOAuthForm = ({ oauthSettings }: {
     } else {
       setSubmitState(SubmitState.SUBMITTING);
       configureDiscordOAuthClient.call({
-        clientId: trimmedClientId,
-        clientSecret: trimmedClientSecret,
+        clientId: trimmedClientId !== '' ? trimmedClientId : undefined,
+        clientSecret: trimmedClientSecret !== '' ? trimmedClientSecret : undefined,
       }, (err) => {
         if (err) {
           setSubmitError(err.message);
@@ -1278,7 +1280,9 @@ const DiscordBotForm = ({ botToken: initialBotToken }: { botToken?: string }) =>
     const trimmedBotToken = botToken.trim();
 
     setSubmitState(SubmitState.SUBMITTING);
-    configureDiscordBot.call({ token: trimmedBotToken }, (err) => {
+    configureDiscordBot.call({
+      token: trimmedBotToken !== '' ? trimmedBotToken : undefined,
+    }, (err) => {
       if (err) {
         setSubmitError(err.message);
         setSubmitState(SubmitState.ERROR);
@@ -1566,7 +1570,9 @@ const BrandingTeamName = () => {
   const onSubmit = useCallback((e: React.FormEvent<any>) => {
     e.preventDefault();
     setSubmitState(SubmitState.SUBMITTING);
-    configureTeamName.call({ teamName }, (err) => {
+    configureTeamName.call({
+      teamName: teamName !== '' ? teamName : undefined,
+    }, (err) => {
       if (err) {
         setSubmitError(err.message);
         setSubmitState(SubmitState.ERROR);
