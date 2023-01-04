@@ -19,7 +19,7 @@ export type PublishedBucket = {
   totalUsers: number;
   chatUsers: number;
   callUsers: number;
-  documentActivity: boolean;
+  documentUsers: number;
 };
 
 export const ACTIVITY_COLLECTION = 'puzzle_activities';

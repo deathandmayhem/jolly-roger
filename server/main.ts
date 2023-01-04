@@ -20,7 +20,7 @@ import '../imports/server/sendChatMessageInternal';
 import '../imports/server/chat-notifications';
 import '../imports/server/discord';
 import '../imports/server/discordClientRefresher';
-import '../imports/server/gdriveChangeFetcher';
+import '../imports/server/gdriveActivityFetcher';
 import '../imports/server/guesses';
 import '../imports/server/assets';
 import '../imports/server/browserconfig';
