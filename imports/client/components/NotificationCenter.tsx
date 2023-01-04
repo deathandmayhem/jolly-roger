@@ -61,7 +61,7 @@ const StyledNotificationActionBar = styled.ul`
   margin: 0;
 
   &:not(:last-child) {
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
   }
 
   padding: 0;
@@ -69,7 +69,7 @@ const StyledNotificationActionBar = styled.ul`
 `;
 
 const StyledNotificationActionItem = styled.li`
-  margin-right: 8px;
+  margin-right: 0.5rem;
   display: inline-block;
 `;
 
@@ -77,7 +77,7 @@ const StyledNotificationRow = styled.div`
   margin: 0;
 
   &:not(:last-child) {
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
   }
 
   padding: 0;
@@ -168,49 +168,35 @@ const GuessMessage = React.memo(({
   const incorrectButtonVariant = guess.state === 'incorrect' ? 'danger' : 'outline-secondary';
   const rejectButtonVariant = guess.state === 'rejected' ? 'secondary' : 'outline-secondary';
 
+  const stageTwoLabels = {
+    intermediate: 'Paste or write any additional instructions to pass on to the solver:',
+    rejected: 'Include any additional information on why this guess was rejected:',
+  };
+
   let stageTwoSection;
   switch (nextState) {
     case 'intermediate':
-      stageTwoSection = (
-        <>
-          <StyledNotificationRow>
-            Paste or write any additional instructions to pass on to the solver:
-          </StyledNotificationRow>
-          <StyledNotificationRow>
-            <ReactTextareaAutosize
-              minRows={1}
-              className="form-control"
-              autoFocus
-              disabled={disableForms}
-              value={additionalNotes}
-              onChange={onAdditionalNotesChange}
-              onKeyDown={onAdditionalNotesKeyDown}
-            />
-          </StyledNotificationRow>
-          <StyledNotificationActionBar>
-            <StyledNotificationActionItem>
-              <Button variant="outline-secondary" size="sm" disabled={disableForms} onClick={submitStageTwo}>Save (or press Enter)</Button>
-            </StyledNotificationActionItem>
-          </StyledNotificationActionBar>
-        </>
-      );
-      break;
     case 'rejected':
       stageTwoSection = (
         <Form>
-          <div>
-            Include any additional information on why this guess was rejected:
-          </div>
           <StyledNotificationRow>
-            <ReactTextareaAutosize
-              minRows={1}
-              className="form-control"
-              autoFocus
-              disabled={disableForms}
-              value={additionalNotes}
-              onChange={onAdditionalNotesChange}
-              onKeyDown={onAdditionalNotesKeyDown}
-            />
+            <Form.Group controlId={`guess-${guess._id}-additional-notes`}>
+              <Form.Label>
+                {stageTwoLabels[nextState]}
+              </Form.Label>
+              <StyledNotificationRow>
+                <ReactTextareaAutosize
+                  id={`guess-${guess._id}-additional-notes`}
+                  minRows={1}
+                  className="form-control"
+                  autoFocus
+                  disabled={disableForms}
+                  value={additionalNotes}
+                  onChange={onAdditionalNotesChange}
+                  onKeyDown={onAdditionalNotesKeyDown}
+                />
+              </StyledNotificationRow>
+            </Form.Group>
           </StyledNotificationRow>
           <StyledNotificationActionBar>
             <StyledNotificationActionItem>
