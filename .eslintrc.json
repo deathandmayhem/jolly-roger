@@ -93,6 +93,9 @@
       "newlines-between": "never"
     }],
 
+    // Some modules are included with Meteor
+    "import/no-unresolved": ["error", { "ignore": ["fibers"] }],
+
     // Files with default exports should be named to match them
     "filenames/match-exported": "error",
 
