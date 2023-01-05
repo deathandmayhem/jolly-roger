@@ -1,3 +1,6 @@
+// First thing's first: setup error reporting
+import '../imports/client/bugsnag';
+
 // explicitly import all the stuff from lib/ since mainModule skips autoloading
 // things
 import '../imports/lib/config/accounts';
