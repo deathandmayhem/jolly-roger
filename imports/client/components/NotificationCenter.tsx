@@ -30,6 +30,8 @@ import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import PendingAnnouncements from '../../lib/models/PendingAnnouncements';
 import Puzzles from '../../lib/models/Puzzles';
 import { huntsUserIsOperatorFor } from '../../lib/permission_stubs';
+import pendingAnnouncementsForSelf from '../../lib/publications/pendingAnnouncementsForSelf';
+import pendingGuessesForSelf from '../../lib/publications/pendingGuessesForSelf';
 import type { AnnouncementType } from '../../lib/schemas/Announcement';
 import type { ChatNotificationType } from '../../lib/schemas/ChatNotification';
 import type { GuessType } from '../../lib/schemas/Guess';
@@ -45,6 +47,7 @@ import GoogleScriptInfo from '../GoogleScriptInfo';
 import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
 import { useBlockReasons } from '../hooks/useBlockUpdate';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import ChatMessageV2 from './ChatMessageV2';
 import Markdown from './Markdown';
 import PuzzleAnswer from './PuzzleAnswer';
@@ -606,11 +609,11 @@ const NotificationCenter = () => {
 
   const operatorHunts = useTracker(() => huntsUserIsOperatorFor(Meteor.user()), []);
   const fetchPendingGuesses = operatorHunts.length > 0;
-  const pendingGuessesLoading = useSubscribe(fetchPendingGuesses ? 'pendingGuesses' : undefined);
+  const pendingGuessesLoading = useTypedSubscribe(fetchPendingGuesses ? pendingGuessesForSelf : undefined);
 
   const [operatorActionsHidden = {}] = useOperatorActionsHidden();
 
-  const pendingAnnouncementsLoading = useSubscribe('pendingAnnouncements');
+  const pendingAnnouncementsLoading = useTypedSubscribe(pendingAnnouncementsForSelf);
 
   const disableDingwords = useTracker(() => Flags.active('disable.dingwords'));
   const chatNotificationsLoading = useSubscribe(disableDingwords ? undefined : 'chatNotifications');

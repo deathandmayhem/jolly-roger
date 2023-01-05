@@ -71,10 +71,6 @@ Meteor.startup(() => {
   onExit(() => observer.stop());
 });
 
-Meteor.publish('mongo.blob_mappings', () => {
-  return BlobMappings.find({});
-});
-
 addRuntimeConfig(() => {
   return {
     blobMappings: Object.fromEntries(cachedDBMappings),

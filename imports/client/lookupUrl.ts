@@ -1,7 +1,8 @@
-import { Meteor } from 'meteor/meteor';
 import BlobMappings from '../lib/models/BlobMappings';
+import blobMappingsAll from '../lib/publications/blobMappingsAll';
+import typedSubscribe from './typedSubscribe';
 
-const blobMappingsSub = Meteor.subscribe('mongo.blob_mappings');
+const blobMappingsSub = typedSubscribe(blobMappingsAll);
 
 // A convenience function for the most common usage pattern of looking up the
 // url for a particular image asset. This always checks the Mongo record first

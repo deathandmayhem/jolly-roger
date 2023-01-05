@@ -8,68 +8,72 @@ const GuildType = t.type({
   id: t.string,
   name: t.string,
 });
+const SettingCodecTaggedUnion = t.union([
+  t.type({
+    name: t.literal('gdrive.credential'),
+    value: t.type({
+      refreshToken: t.string,
+      email: t.string,
+    }),
+  }),
+  t.type({
+    name: t.literal('gdrive.root'),
+    value: t.type({ id: t.string }),
+  }),
+  t.type({
+    name: t.literal('gdrive.template.document'),
+    value: t.type({ id: t.string }),
+  }),
+  t.type({
+    name: t.literal('gdrive.template.spreadsheet'),
+    value: t.type({ id: t.string }),
+  }),
+  t.type({
+    name: t.literal('discord.bot'),
+    value: t.type({
+      token: t.string,
+    }),
+  }),
+  t.type({
+    name: t.literal('discord.guild'),
+    value: t.type({
+      guild: GuildType,
+    }),
+  }),
+  t.type({
+    name: t.literal('email.branding'),
+    value: t.type({
+      from: t.union([t.string, t.undefined]),
+      enrollAccountMessageSubjectTemplate: t.union([t.string, t.undefined]),
+      enrollAccountMessageTemplate: t.union([t.string, t.undefined]),
+      existingJoinMessageSubjectTemplate: t.union([t.string, t.undefined]),
+      existingJoinMessageTemplate: t.union([t.string, t.undefined]),
+    }),
+  }),
+  t.type({
+    name: t.literal('teamname'),
+    value: t.type({
+      teamName: t.string,
+    }),
+  }),
+  t.type({
+    name: t.literal('google.script'),
+    value: t.type({
+      sharedSecret: t.string,
+      scriptId: t.string,
+      contentHash: t.string,
+      endpointUrl: t.union([t.undefined, t.string]),
+    }),
+  }),
+]);
 export const SettingCodec = t.intersection([
   BaseCodec,
-  t.union([
-    t.type({
-      name: t.literal('gdrive.credential'),
-      value: t.type({
-        refreshToken: t.string,
-        email: t.string,
-      }),
-    }),
-    t.type({
-      name: t.literal('gdrive.root'),
-      value: t.type({ id: t.string }),
-    }),
-    t.type({
-      name: t.literal('gdrive.template.document'),
-      value: t.type({ id: t.string }),
-    }),
-    t.type({
-      name: t.literal('gdrive.template.spreadsheet'),
-      value: t.type({ id: t.string }),
-    }),
-    t.type({
-      name: t.literal('discord.bot'),
-      value: t.type({
-        token: t.string,
-      }),
-    }),
-    t.type({
-      name: t.literal('discord.guild'),
-      value: t.type({
-        guild: GuildType,
-      }),
-    }),
-    t.type({
-      name: t.literal('email.branding'),
-      value: t.type({
-        from: t.union([t.string, t.undefined]),
-        enrollAccountMessageSubjectTemplate: t.union([t.string, t.undefined]),
-        enrollAccountMessageTemplate: t.union([t.string, t.undefined]),
-        existingJoinMessageSubjectTemplate: t.union([t.string, t.undefined]),
-        existingJoinMessageTemplate: t.union([t.string, t.undefined]),
-      }),
-    }),
-    t.type({
-      name: t.literal('teamname'),
-      value: t.type({
-        teamName: t.string,
-      }),
-    }),
-    t.type({
-      name: t.literal('google.script'),
-      value: t.type({
-        sharedSecret: t.string,
-        scriptId: t.string,
-        contentHash: t.string,
-        endpointUrl: t.union([t.undefined, t.string]),
-      }),
-    }),
-  ]),
+  SettingCodecTaggedUnion,
 ]);
 export type SettingType = t.TypeOf<typeof SettingCodec>;
+
+export const SettingNames = SettingCodecTaggedUnion.types.map((type) => type.props.name.value);
+export type SettingNameType = typeof SettingNames[number];
 
 const SettingFields = t.type({
   name: t.string,

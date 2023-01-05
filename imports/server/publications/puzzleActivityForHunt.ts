@@ -1,14 +1,16 @@
 import { check } from 'meteor/check';
 import type { Subscription } from 'meteor/meteor';
 import { Meteor } from 'meteor/meteor';
-import type { PublishedBucket } from '../lib/config/activityTracking';
+import type { PublishedBucket } from '../../lib/config/activityTracking';
 import {
   ACTIVITY_COLLECTION, ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS,
-} from '../lib/config/activityTracking';
-import ChatMessages from '../lib/models/ChatMessages';
-import DocumentActivities from '../lib/models/DocumentActivities';
-import roundedTime from '../lib/roundedTime';
-import CallActivities from './models/CallActivities';
+} from '../../lib/config/activityTracking';
+import ChatMessages from '../../lib/models/ChatMessages';
+import DocumentActivities from '../../lib/models/DocumentActivities';
+import puzzleActivityForHunt from '../../lib/publications/puzzleActivityForHunt';
+import roundedTime from '../../lib/roundedTime';
+import CallActivities from '../models/CallActivities';
+import definePublication from './definePublication';
 
 class ActivityBucket {
   callUsers: Set<string> = new Set();
@@ -221,9 +223,15 @@ class HuntActivityAggregator {
   }
 }
 
-Meteor.publish('huntActivity', function (hunt: unknown) {
-  check(hunt, String);
+definePublication(puzzleActivityForHunt, {
+  validate(arg) {
+    check(arg, { huntId: String });
+    return arg;
+  },
 
-  const aggregator = HuntActivityAggregator.get(hunt);
-  aggregator.addSubscription(this);
+  run({ huntId }) {
+    const aggregator = HuntActivityAggregator.get(huntId);
+    aggregator.addSubscription(this);
+    return undefined;
+  },
 });

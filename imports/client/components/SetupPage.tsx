@@ -2,7 +2,7 @@
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import type { ReactNode } from 'react';
 import React, { useCallback, useState } from 'react';
@@ -19,6 +19,8 @@ import Flags from '../../Flags';
 import isAdmin from '../../lib/isAdmin';
 import DiscordCache from '../../lib/models/DiscordCache';
 import Settings from '../../lib/models/Settings';
+import discordGuildsAll from '../../lib/publications/discordGuildsAll';
+import settingsAll from '../../lib/publications/settingsAll';
 import type { SavedDiscordObjectType } from '../../lib/schemas/Hunt';
 import type { SettingType } from '../../lib/schemas/Setting';
 import configureClearGdriveCreds from '../../methods/configureClearGdriveCreds';
@@ -38,6 +40,7 @@ import generateUploadToken from '../../methods/generateUploadToken';
 import setFeatureFlag from '../../methods/setFeatureFlag';
 import type { DiscordGuildType } from '../discord';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import lookupUrl from '../lookupUrl';
 import ActionButtonRow from './ActionButtonRow';
 
@@ -1334,7 +1337,7 @@ const DiscordGuildForm = ({ guild: initialGuild }: {
   // initial value from settings
   guild?: DiscordGuildType,
 }) => {
-  useSubscribe('discord.guilds');
+  useTypedSubscribe(discordGuildsAll);
   const guilds = useTracker(() => {
     return DiscordCache.find({ type: 'guild' }, { fields: { 'object.id': 1, 'object.name': 1 } })
       .map((c) => c.object as SavedDiscordObjectType);
@@ -2005,7 +2008,7 @@ const CircuitBreakerSection = () => {
 const SetupPage = () => {
   useBreadcrumb({ title: 'Server setup', path: '/setup' });
 
-  const loading = useSubscribe('mongo.settings');
+  const loading = useTypedSubscribe(settingsAll);
   const canConfigure = useTracker(() => isAdmin(Meteor.user()), []);
 
   if (loading()) {
