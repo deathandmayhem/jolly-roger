@@ -1,3 +1,4 @@
+import Bugsnag from '@bugsnag/js';
 import Ansible from '../Ansible';
 import Flags from '../Flags';
 import Hunts from '../lib/models/Hunts';
@@ -49,6 +50,9 @@ export default async (userIds: string[], huntId: string) => {
       Ansible.log('Successfully added user to Discord role', { userId, huntId, roleId });
     } catch (e) {
       Ansible.log('Error while adding user to Discord role', { err: e instanceof Error ? e.message : e });
+      if (e instanceof Error && Bugsnag.isStarted()) {
+        Bugsnag.notify(e);
+      }
     }
   }, Promise.resolve());
 };

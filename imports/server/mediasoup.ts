@@ -1,6 +1,7 @@
 import { promises as dns } from 'dns';
 import { networkInterfaces } from 'os';
 import { Meteor } from 'meteor/meteor';
+import Bugsnag from '@bugsnag/js';
 import { Address6 } from 'ip-address';
 import { createWorker, types } from 'mediasoup';
 import { AudioLevelObserver } from 'mediasoup/node/lib/AudioLevelObserver';
@@ -278,6 +279,16 @@ class SFU {
         producer: producer.id,
         error: e instanceof Error ? e.message : e,
       });
+      if (e instanceof Error && Bugsnag.isStarted()) {
+        Bugsnag.notify(e, (event) => {
+          event.addMetadata('call', {
+            call: producerAppData.call,
+            peer: producerAppData.peer,
+            transport: consumerTransport.id,
+            producer: producer.id,
+          });
+        });
+      }
     }
   }
 
@@ -544,6 +555,13 @@ class SFU {
       await router;
     } catch (e) {
       Ansible.error('Error creating router', { call: room.call, error: e instanceof Error ? e.message : e });
+      if (e instanceof Error && Bugsnag.isStarted()) {
+        Bugsnag.notify(e, (event) => {
+          event.addMetadata('call', {
+            call: room.call,
+          });
+        });
+      }
     }
   }
 
@@ -591,6 +609,15 @@ class SFU {
       await transports;
     } catch (e) {
       Ansible.error('Error creating transport', { transport_request: transportRequest._id, error: e instanceof Error ? e.message : e });
+      if (e instanceof Error && Bugsnag.isStarted()) {
+        Bugsnag.notify(e, (event) => {
+          event.addMetadata('call', {
+            id: transportRequest.call,
+            peer: transportRequest.peer,
+            transportRequest: transportRequest._id,
+          });
+        });
+      }
     }
   }
 
@@ -624,6 +651,16 @@ class SFU {
       });
     } catch (e) {
       Ansible.error('Error connecting transport', { transport: transport.id, error: e instanceof Error ? e.message : e });
+      if (e instanceof Error && Bugsnag.isStarted()) {
+        Bugsnag.notify(e, (event) => {
+          event.addMetadata('call', {
+            id: connectRequest.call,
+            peer: connectRequest.peer,
+            transportRequest: connectRequest.transportRequest,
+            transport: connectRequest.transport,
+          });
+        });
+      }
     }
   }
 
@@ -654,6 +691,15 @@ class SFU {
       await mediasoupProducer;
     } catch (e) {
       Ansible.error('Error creating producer', { producer: producer._id, error: e instanceof Error ? e.message : e });
+      if (e instanceof Error && Bugsnag.isStarted()) {
+        Bugsnag.notify(e, (event) => {
+          event.addMetadata('call', {
+            id: producer.call,
+            peer: producer.peer,
+            producer: producer._id,
+          });
+        });
+      }
     }
   }
 
