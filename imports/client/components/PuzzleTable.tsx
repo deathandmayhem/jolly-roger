@@ -4,6 +4,7 @@ import styled, { css } from 'styled-components';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { Solvedness, computeSolvedness } from '../../lib/solvedness';
 import PuzzleAnswer from './PuzzleAnswer';
+import Breakable from './styling/Breakable';
 import { backgroundColorLookupTable } from './styling/constants';
 
 const PuzzleTableEl = styled.table`
@@ -21,9 +22,13 @@ const PuzzleTableTr = styled.tr<{
   `}
 `;
 
+// It's difficult to make table cells overflow. Setting a max-width in vw works pretty well, with
+// few compromises. 43vw was chosen to work on the narrowest mobile devices.
 const PuzzleTableCell = styled.td`
   padding: 0 4px;
   vertical-align: baseline;
+  overflow: hidden;
+  max-width: 43vw;
 `;
 
 const PuzzleTableRow = ({ puzzle, segmentAnswers }: {
@@ -34,7 +39,7 @@ const PuzzleTableRow = ({ puzzle, segmentAnswers }: {
   const answers = puzzle.answers.map((answer, i) => {
     return (
       // eslint-disable-next-line react/no-array-index-key
-      <PuzzleAnswer key={`${i}-${answer}`} answer={answer} respace={segmentAnswers} />
+      <PuzzleAnswer key={`${i}-${answer}`} answer={answer} respace={segmentAnswers} breakable={!segmentAnswers} indented={!segmentAnswers} />
     );
   });
 
@@ -43,7 +48,7 @@ const PuzzleTableRow = ({ puzzle, segmentAnswers }: {
   return (
     <PuzzleTableTr solvedness={solvedness}>
       <PuzzleTableCell>
-        <Link to={linkTarget}>{puzzle.title}</Link>
+        <Breakable><Link to={linkTarget}>{puzzle.title}</Link></Breakable>
       </PuzzleTableCell>
       <PuzzleTableCell>
         {answers}

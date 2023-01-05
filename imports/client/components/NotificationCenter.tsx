@@ -48,7 +48,6 @@ import markdown from '../markdown';
 import PuzzleAnswer from './PuzzleAnswer';
 import SpinnerTimer from './SpinnerTimer';
 import { GuessConfidence, GuessDirection } from './guessDetails';
-import Breakable from './styling/Breakable';
 
 // How long to keep showing guess notifications after actioning.
 // Note that this cannot usefully exceed the linger period implemented by the
@@ -90,6 +89,13 @@ const StyledGuessDetails = styled.div`
   align-items: center;
   justify-content: flex-end;
   text-align: end;
+`;
+
+const StyledGuessHeader = styled.strong`
+  overflow-wrap: break-word;
+  overflow: hidden;
+  hyphens: auto;
+  margin-right: auto;
 `;
 
 const StyledNotificationTimestamp = styled.small`
@@ -214,7 +220,7 @@ const GuessMessage = React.memo(({
   return (
     <Toast onClose={dismissGuess}>
       <Toast.Header>
-        <strong className="me-auto">
+        <StyledGuessHeader>
           Guess for
           {' '}
           <a href={linkTarget} target="_blank" rel="noopener noreferrer">
@@ -224,9 +230,9 @@ const GuessMessage = React.memo(({
           from
           {' '}
           <a href={`/users/${guess.createdBy}`} target="_blank" rel="noopener noreferrer">
-            <Breakable>{guesser}</Breakable>
+            {guesser}
           </a>
-        </strong>
+        </StyledGuessHeader>
         <StyledNotificationTimestamp>
           {calendarTimeFormat(guess.createdAt)}
         </StyledNotificationTimestamp>
@@ -242,7 +248,7 @@ const GuessMessage = React.memo(({
       </Toast.Header>
       <Toast.Body>
         <StyledNotificationRow>
-          <PuzzleAnswer answer={guess.guess} />
+          <PuzzleAnswer answer={guess.guess} breakable />
         </StyledNotificationRow>
         <StyledNotificationActionBar>
           <StyledNotificationActionItem>

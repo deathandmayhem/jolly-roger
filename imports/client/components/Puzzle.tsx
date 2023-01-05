@@ -23,6 +23,7 @@ import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleDeleteModal from './PuzzleDeleteModal';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import TagList from './TagList';
+import Breakable from './styling/Breakable';
 import { backgroundColorLookupTable } from './styling/constants';
 import { mediaBreakpointDown } from './styling/responsive';
 
@@ -49,6 +50,7 @@ const PuzzleColumn = styled.div`
   padding: 0 2px;
   display: inline-block;
   flex: none;
+  overflow: hidden;
 `;
 
 const PuzzleEditButtonsColumn = styled(PuzzleColumn)`
@@ -66,7 +68,7 @@ const StyledButton = styled(Button)`
   }
 `;
 
-const PuzzleTitleColumn = styled(PuzzleColumn)`
+const PuzzleTitleColumn = styled(Breakable)`
   flex: 4;
 `;
 
@@ -86,18 +88,10 @@ const PuzzleLinkColumn = styled(PuzzleColumn)`
 
 const PuzzleAnswerColumn = styled(PuzzleColumn)`
   flex: 3;
-  overflow-wrap: break-word;
-  overflow: hidden;
   ${mediaBreakpointDown('xs', css`
     // Push to take whole row in narrow views
     flex: 0 0 100%;
   `)}
-`;
-
-const StyledPuzzleAnswer = styled(PuzzleAnswer)`
-  display: block;
-  text-indent: -1.2em;
-  padding-left: 1.2em;
 `;
 
 const TagListColumn = styled(TagList)`
@@ -186,7 +180,7 @@ const Puzzle = React.memo(({
   const answers = puzzle.answers.map((answer, i) => {
     return (
       // eslint-disable-next-line react/no-array-index-key
-      <StyledPuzzleAnswer key={`${i}-${answer}`} answer={answer} respace={segmentAnswers} />
+      <PuzzleAnswer key={`${i}-${answer}`} answer={answer} respace={segmentAnswers} breakable={!segmentAnswers} indented={!segmentAnswers} />
     );
   });
 

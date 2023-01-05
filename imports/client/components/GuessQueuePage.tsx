@@ -44,15 +44,15 @@ const StyledTable = styled.div`
   display: grid;
   grid-template-columns:
     [timestamp] auto
-    [submitter] auto
-    [puzzle] auto
-    [answer] auto
+    [submitter] minmax(auto, 8em)
+    [puzzle] minmax(10em, auto)
+    [answer] minmax(10em, auto)
     [direction] minmax(5em, auto)
     [confidence] minmax(7em, auto)
     [status] auto
     [actions] auto;
   ${mediaBreakpointDown(compactViewBreakpoint, css`
-    grid-template-columns: auto;
+    grid-template-columns: 100%;
   `)}
 `;
 
@@ -81,6 +81,7 @@ const StyledRow = styled.div<{ $state: GuessType['state'] }>`
 `;
 
 const StyledCell = styled.div`
+  overflow: hidden;
   padding: 4px;
   background-color: inherit;
 `;
@@ -135,6 +136,7 @@ const StyledPuzzleCell = styled(StyledCell)`
 const StyledGuessCell = styled(StyledCell)`
   display: flex;
   align-items: start;
+  overflow: hidden;
   ${mediaBreakpointDown(compactViewBreakpoint, css`
     &::before {
       content: "Guess: ";
@@ -221,7 +223,7 @@ const GuessBlock = React.memo(({
           </Link>
         </OverlayTrigger>
         {' '}
-        {puzzle.title}
+        <Breakable>{puzzle.title}</Breakable>
       </StyledPuzzleCell>
       <StyledGuessCell>
         <OverlayTrigger placement="top" overlay={copyTooltip}>
@@ -234,7 +236,7 @@ const GuessBlock = React.memo(({
           )}
         </OverlayTrigger>
         {' '}
-        <PuzzleAnswer answer={guess.guess} />
+        <PuzzleAnswer answer={guess.guess} breakable indented />
       </StyledGuessCell>
       <StyledGuessDetails>
         <StyledGuessDetailWithLabel>
