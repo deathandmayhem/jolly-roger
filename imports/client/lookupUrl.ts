@@ -3,14 +3,6 @@ import BlobMappings from '../lib/models/BlobMappings';
 
 const blobMappingsSub = Meteor.subscribe('mongo.blob_mappings');
 
-declare global {
-  // eslint-disable-next-line camelcase,no-underscore-dangle
-  const __meteor_runtime_config__: {
-    blobMappings?: { [assetName: string]: string };
-    defaultBlobMappings: { [assetName: string]: string };
-  };
-}
-
 // A convenience function for the most common usage pattern of looking up the
 // url for a particular image asset. This always checks the Mongo record first
 // (to create a reactive dependency), but if we haven't fully loaded the

@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
+import Bugsnag from '@bugsnag/js';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons/faExclamationTriangle';
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -18,7 +19,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavbarBrand from 'react-bootstrap/NavbarBrand';
 import Button from 'react-bootstrap/esm/Button';
 import Container from 'react-bootstrap/esm/Container';
-import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
+import { ErrorBoundary as ReactErrorBoundary, FallbackProps } from 'react-error-boundary';
 import * as RRBS from 'react-router-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import StackTrace, { StackFrame } from 'stacktrace-js';
@@ -95,7 +96,7 @@ const Brand = styled.img`
   height: ${NavBarHeight};
 `;
 
-const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
+const ErrorFallback = ({ error, clearError }: { error: Error, clearError: () => void }) => {
   const [frames, setFrames] = useState<StackFrame[] | undefined>(undefined);
 
   useEffect(() => {
@@ -144,7 +145,7 @@ const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
         </p>
 
         <p>
-          <Button type="button" onClick={resetErrorBoundary}>
+          <Button type="button" onClick={clearError}>
             Reset
           </Button>
           {' '}
@@ -161,6 +162,10 @@ const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
       </Alert>
     </Container>
   );
+};
+
+const ReactErrorBoundaryFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
+  return <ErrorFallback error={error} clearError={resetErrorBoundary} />;
 };
 
 const AppNavbar = () => {
@@ -258,16 +263,35 @@ const AppNavbar = () => {
   );
 };
 
+const BugsnagErrorBoundary = Bugsnag.isStarted() ?
+  Bugsnag.getPlugin('react')?.createErrorBoundary(React) :
+  undefined;
+
 const App = ({ children }: { children: React.ReactNode }) => {
+  // If Bugsnag is configured, use its error boundary. But if it's not
+  // configured, Bugsnag.getPlugin will return undefined, so we need to fallback
+  // on react-error-boundary, whose UI behavior is more or less the same.
+  let errorBoundary;
+  if (BugsnagErrorBoundary) {
+    errorBoundary = (
+      <BugsnagErrorBoundary FallbackComponent={ErrorFallback}>
+        {children}
+      </BugsnagErrorBoundary>
+    );
+  } else {
+    errorBoundary = (
+      <ReactErrorBoundary FallbackComponent={ReactErrorBoundaryFallback}>
+        {children}
+      </ReactErrorBoundary>
+    );
+  }
   return (
     <div>
       <NotificationCenter />
       <AppNavbar />
       <ConnectionStatus />
       <ContentContainer className="container-fluid pt-2">
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
-          {children}
-        </ErrorBoundary>
+        {errorBoundary}
       </ContentContainer>
     </div>
   );

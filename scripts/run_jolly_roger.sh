@@ -27,6 +27,9 @@ fi
 if [ -z "${MAIL_URL+set}" ]; then
     export MAIL_URL="$(credstash get mailgun)"
 fi
+if [ -z "${BUGSNAG_API_KEY+set}" ]; then
+    export BUGSNAG_API_KEY="$(credstash get bugsnag)"
+fi
 
 credstash get krb5.keytab | openssl base64 -d > /krb5.keytab
 

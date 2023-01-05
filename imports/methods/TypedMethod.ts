@@ -1,6 +1,7 @@
 import { check } from 'meteor/check';
 import { EJSONable, EJSONableProperty } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
+import Bugsnag from '@bugsnag/js';
 import ValidateShape from '../lib/ValidateShape';
 
 type TypedMethodParam = EJSONable | EJSONableProperty;
@@ -89,16 +90,28 @@ export default class TypedMethod<
     });
   }
 
-  execute(context: Meteor.MethodThisType, arg0: Args): Return | Promise<Return> {
+  async execute(context: Meteor.MethodThisType, arg0: Args): Promise<Return> {
     if (!this.definition) {
       throw new Error(`TypedMethod ${this.name} has not been defined`);
     }
 
-    // In the case of no arguments, the type system will track the return value
-    // from `validate` as `void`, but because it's a function that doesn't
-    // return anything, it will in practice be `undefined`.
-    const validatedArgs = this.definition.validate.bind(context)(arg0);
-    const result = this.definition.run.bind(context)(validatedArgs as any);
+    let result;
+    try {
+      // In the case of no arguments, the type system will track the return
+      // value from `validate` as `void`, but because it's a function that
+      // doesn't return anything, it will in practice be `undefined`.
+      const validatedArgs = this.definition.validate.bind(context)(arg0);
+      result = await this.definition.run.bind(context)(validatedArgs as any);
+    } catch (error) {
+      if (error instanceof Error && Bugsnag.isStarted()) {
+        Bugsnag.notify(error, (event) => {
+          // eslint-disable-next-line no-param-reassign
+          event.context = this.name;
+        });
+      }
+      throw error;
+    }
+
     return result;
   }
 

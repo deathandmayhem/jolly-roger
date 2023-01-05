@@ -8,6 +8,7 @@ import { WebApp } from 'meteor/webapp';
 import express from 'express';
 import mime from 'mime-types';
 import BlobMappings from '../lib/models/BlobMappings';
+import addRuntimeConfig from './addRuntimeConfig';
 import expressAsyncWrapper from './expressAsyncWrapper';
 import Blobs from './models/Blobs';
 import UploadTokens from './models/UploadTokens';
@@ -73,16 +74,11 @@ Meteor.publish('mongo.blob_mappings', () => {
   return BlobMappings.find({});
 });
 
-interface JollyRogerRuntimeConfig {
-  blobMappings: Record<string, string>;
-  defaultBlobMappings: Record<string, string>;
-}
-
-WebApp.addRuntimeConfigHook(({ encodedCurrentConfig }) => {
-  const config = WebApp.decodeRuntimeConfig(encodedCurrentConfig) as JollyRogerRuntimeConfig;
-  config.blobMappings = Object.fromEntries(cachedDBMappings);
-  config.defaultBlobMappings = Object.fromEntries(defaultMappings);
-  return WebApp.encodeRuntimeConfig(config);
+addRuntimeConfig(() => {
+  return {
+    blobMappings: Object.fromEntries(cachedDBMappings),
+    defaultBlobMappings: Object.fromEntries(defaultMappings),
+  };
 });
 
 // Keep the current set of assets in memory for faster access.
