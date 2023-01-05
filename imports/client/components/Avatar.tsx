@@ -4,6 +4,7 @@ import { getAvatarCdnUrl } from '../../lib/discord';
 import { DiscordAccountType } from '../../lib/schemas/DiscordAccount';
 
 const AvatarImg = styled.img`
+  display: block;
   width: 100%;
   height: 100%;
 `;
