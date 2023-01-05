@@ -21,6 +21,12 @@ if (process.env.CLUSTER_WORKER_ID) {
       });
     }
   });
+
+  process.on('message', (message, socket) => {
+    if (message.type === 'proxy-ws') {
+      WebApp.httpServer.emit('upgrade', message.req, socket, Buffer.from(message.head, 'utf8'));
+    }
+  });
 }
 
 export default class WorkerPool {
