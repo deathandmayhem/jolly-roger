@@ -134,10 +134,29 @@ export default class TypedMethod<
   }
 
   call<T>(...args: TypedMethodCallArgs<T, Args, Return>): void {
-    return Meteor.call(this.name, ...args);
+    // If we invoke a function on the client, the arguments get encoded to EJSON
+    // before being sent over DDP. This has the effect (among other things) of
+    // stripping out any key-value pairs where the value is undefined. This
+    // doesn't happen on the server, which can cause bad interactions with
+    // Match.Optional, which permits keys to be absent but does _not_ permit the
+    // value to be undefined
+    //
+    // Round-tripping through EJSON on the server ensures that we get the same
+    // behavior
+    const cleaned = args.map((a) => {
+      return Meteor.isServer &&
+        typeof a === 'object' ? EJSON.parse(EJSON.stringify(a)) :
+        a;
+    });
+    return Meteor.call(this.name, ...cleaned);
   }
 
   callPromise<T>(...args: TypedMethodCallPromiseArgs<T, Args>): Promise<Return> {
-    return Meteor.callAsync(this.name, ...args);
+    const cleaned = args.map((a) => {
+      return Meteor.isServer &&
+        typeof a === 'object' ? EJSON.parse(EJSON.stringify(a)) :
+        a;
+    });
+    return Meteor.callAsync(this.name, ...cleaned);
   }
 }
