@@ -125,11 +125,15 @@ const CallDisplay = ({ call }: { call: string }) => {
   );
 };
 
+const StyledAvatar = styled(Avatar)`
+  vertical-align: middle;
+`;
+
 const UserDisplay = ({ userId }: { userId: string }) => {
   const user = useTracker(() => MeteorUsers.findOne(userId), [userId]);
   return (
     <Link to={`/users/${userId}`} target="_blank">
-      <Avatar {...user} size={40} inline />
+      <StyledAvatar {...user} size={40} inline />
       {' '}
       {user?.displayName ?? 'Unknown'}
     </Link>
