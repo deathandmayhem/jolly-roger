@@ -64,18 +64,23 @@ const AvatarContainer = styled.div<{ size: number, inline: boolean }>`
 `;
 
 const Avatar = React.memo(({
-  size, inline, _id, displayName, discordAccount,
+  size, inline, _id, displayName, discordAccount, className,
 }: {
   size: number;
   inline?: boolean;
   _id?: string; // hashed to produce a globally consistant background color for the fallback avatar
   displayName?: string;
   discordAccount?: DiscordAccountType;
+  className?: string;
 }) => {
   const content = discordAccount && getAvatarCdnUrl(discordAccount) ?
     <DiscordAvatarInner size={size} displayName={displayName} discordAccount={discordAccount} /> :
     <DefaultAvatarInner _id={_id} displayName={displayName} />;
-  return <AvatarContainer size={size} inline={inline ?? false}>{content}</AvatarContainer>;
+  return (
+    <AvatarContainer className={className} size={size} inline={inline ?? false}>
+      {content}
+    </AvatarContainer>
+  );
 });
 
 export default Avatar;
