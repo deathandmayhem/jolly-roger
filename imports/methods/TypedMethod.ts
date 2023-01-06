@@ -1,5 +1,5 @@
 import { check } from 'meteor/check';
-import { EJSONable, EJSONableProperty } from 'meteor/ejson';
+import { EJSON, EJSONable, EJSONableProperty } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
 import Bugsnag from '@bugsnag/js';
 import ValidateShape from '../lib/ValidateShape';
@@ -104,9 +104,27 @@ export default class TypedMethod<
       result = await this.definition.run.bind(context)(validatedArgs as any);
     } catch (error) {
       if (error instanceof Error && Bugsnag.isStarted()) {
+        // Attempt to classify severity based on the following rules:
+        // - If the error has a `sanitizedError` property, look at that instead of the error itself
+        // - If the error is a Meteor.Error and error.error is a number between 400 and 499, it's
+        //   info severity
+        // - Otherwise, it's error severity
+        const sanitizedError = (error as any).sanitizedError ?? error;
+        const severity =
+          sanitizedError instanceof Meteor.Error &&
+            sanitizedError.error >= 400 &&
+            sanitizedError.error < 500 ?
+            'info' :
+            'error';
+
         Bugsnag.notify(error, (event) => {
           // eslint-disable-next-line no-param-reassign
           event.context = this.name;
+          // eslint-disable-next-line no-param-reassign
+          event.severity = severity;
+          event.addMetadata('method', {
+            arguments: EJSON.stringify(arg0 ?? {}),
+          });
         });
       }
       throw error;

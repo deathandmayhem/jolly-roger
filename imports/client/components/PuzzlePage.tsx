@@ -1838,8 +1838,10 @@ const PuzzlePage = React.memo(() => {
   }, [onResize]);
 
   useEffect(() => {
-    ensurePuzzleDocument.call({ puzzleId });
-  }, [puzzleId]);
+    if (activePuzzle && !activePuzzle.deleted) {
+      ensurePuzzleDocument.call({ puzzleId: activePuzzle._id });
+    }
+  }, [activePuzzle]);
 
   trace('PuzzlePage render', { puzzleDataLoading, chatDataLoading });
 
