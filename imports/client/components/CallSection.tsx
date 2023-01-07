@@ -500,13 +500,15 @@ const CallSection = ({
         >
           {muted ? 'Un\u00ADmute' : 'Mute self'}
         </AVButton>
-        <AVButton
-          variant={deafened ? 'secondary' : 'light'}
-          size="sm"
-          onClick={onToggleDeafen}
-        >
-          {deafened ? 'Un\u00ADdeafen' : 'Deafen self'}
-        </AVButton>
+        {Meteor.isDevelopment && (
+          <AVButton
+            variant={deafened ? 'secondary' : 'light'}
+            size="sm"
+            onClick={onToggleDeafen}
+          >
+            {deafened ? 'Un\u00ADdeafen' : 'Deafen self'}
+          </AVButton>
+        )}
         <AVButton variant="danger" size="sm" onClick={onLeaveCall}>Leave call</AVButton>
       </AVActions>
       <Overlay target={muteRef.current} show={callState.allowInitialPeerStateNotification && muted} placement="bottom">
