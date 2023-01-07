@@ -8,6 +8,7 @@ if (__meteor_runtime_config__.bugsnagApiKey) {
   Bugsnag.start({
     apiKey: __meteor_runtime_config__.bugsnagApiKey,
     appVersion: Meteor.gitCommitHash,
+    releaseStage: Meteor.isDevelopment ? 'development' : 'production',
     plugins: [new BugsnagPluginReact()],
     onError: (event) => {
       const user = Meteor.user();
