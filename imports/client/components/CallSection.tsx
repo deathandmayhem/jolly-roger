@@ -530,7 +530,7 @@ const CallSection = ({
           <div>
             You were muted by
             {' '}
-            {mutedBy ?? 'someone'}
+            {mutedBy ?? 'someone else'}
             . This usually happens when it seemed like you had stepped away from your computer
             without muting yourself, but your microphone was still on. You can unmute yourself
             at any time.
