@@ -31,23 +31,28 @@ import {
 } from './styling/PeopleComponents';
 
 const CallStateIcon = styled.span`
-  font-size: 12px;
-  width: 16px;
-  height: 16px;
+  font-size: 10px;
+  width: 12px;
+  height: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: red; // TODO: lift $danger from react-bootstrap somehow?
   position: absolute;
   right: 0;
+  background: white;
 `;
 
 const MutedIcon = styled(CallStateIcon)`
   top: 0;
+  border-bottom-left-radius: 6px;
 `;
 
 const DeafenedIcon = styled(CallStateIcon)`
   bottom: 0;
+  border-top-left-radius: 6px;
+  font-size: 8px;
+  text-align: right;
 `;
 
 const RemoteMuteButton = styled.div`
