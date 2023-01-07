@@ -87,6 +87,7 @@ const SpinnerTimer = ({
       ref={canvasRef}
       width={width}
       height={height}
+      style={{ alignSelf: "center"}}
     />
   );
 };

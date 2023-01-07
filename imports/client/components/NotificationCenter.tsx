@@ -91,15 +91,37 @@ const StyledGuessDetails = styled.div`
   text-align: end;
 `;
 
+const StyledGuessNotificationHeader = styled.div`
+  display: flex;
+  align-items: baseline;
+  flex: 1;
+
+  > * + * {
+    margin-left: 0.25rem;
+  }
+`;
+
 const StyledGuessHeader = styled.strong`
   overflow-wrap: break-word;
   overflow: hidden;
   hyphens: auto;
   margin-right: auto;
+  flex: 1;
 `;
 
 const StyledNotificationTimestamp = styled.small`
   text-align: end;
+  flex: 0 1 auto;
+`;
+
+const GuessDirectionWrapper = styled.span`
+  margin-right: 0.5rem;
+`;
+
+const GuessConfidenceWrapper = styled.span`
+  flex: 1;
+  display: flex;
+  max-width: 200px;
 `;
 
 const GuessMessage = React.memo(({
@@ -220,6 +242,7 @@ const GuessMessage = React.memo(({
   return (
     <Toast onClose={dismissGuess}>
       <Toast.Header>
+        <StyledGuessNotificationHeader>
         <StyledGuessHeader>
           Guess for
           {' '}
@@ -245,6 +268,7 @@ const GuessMessage = React.memo(({
             endTime={guess.updatedAt!.getTime() + LINGER_PERIOD}
           />
         )}
+        </StyledGuessNotificationHeader>
       </Toast.Header>
       <Toast.Body>
         <StyledNotificationRow>
@@ -268,8 +292,12 @@ const GuessMessage = React.memo(({
             </OverlayTrigger>
           </StyledNotificationActionItem>
           <StyledGuessDetails>
-            <GuessDirection value={guess.direction} />
-            <GuessConfidence id={`notification-guess-${guess._id}-confidence`} value={guess.confidence} />
+            <GuessDirectionWrapper>
+              <GuessDirection value={guess.direction} />
+            </GuessDirectionWrapper>
+            <GuessConfidenceWrapper>
+              <GuessConfidence id={`notification-guess-${guess._id}-confidence`} value={guess.confidence} />
+            </GuessConfidenceWrapper>
           </StyledGuessDetails>
         </StyledNotificationActionBar>
         <StyledNotificationActionBar>
