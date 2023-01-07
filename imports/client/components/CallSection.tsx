@@ -31,23 +31,28 @@ import {
 } from './styling/PeopleComponents';
 
 const CallStateIcon = styled.span`
-  font-size: 12px;
-  width: 16px;
-  height: 16px;
+  font-size: 10px;
+  width: 12px;
+  height: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: red; // TODO: lift $danger from react-bootstrap somehow?
   position: absolute;
   right: 0;
+  background: white;
 `;
 
 const MutedIcon = styled(CallStateIcon)`
   top: 0;
+  border-bottom-left-radius: 6px;
 `;
 
 const DeafenedIcon = styled(CallStateIcon)`
   bottom: 0;
+  border-top-left-radius: 6px;
+  font-size: 8px;
+  text-align: right;
 `;
 
 const RemoteMuteButton = styled.div`
@@ -500,13 +505,15 @@ const CallSection = ({
         >
           {muted ? 'Un\u00ADmute' : 'Mute self'}
         </AVButton>
-        <AVButton
-          variant={deafened ? 'secondary' : 'light'}
-          size="sm"
-          onClick={onToggleDeafen}
-        >
-          {deafened ? 'Un\u00ADdeafen' : 'Deafen self'}
-        </AVButton>
+        {Meteor.isDevelopment && (
+          <AVButton
+            variant={deafened ? 'secondary' : 'light'}
+            size="sm"
+            onClick={onToggleDeafen}
+          >
+            {deafened ? 'Un\u00ADdeafen' : 'Deafen self'}
+          </AVButton>
+        )}
         <AVButton variant="danger" size="sm" onClick={onLeaveCall}>Leave call</AVButton>
       </AVActions>
       <Overlay target={muteRef.current} show={callState.allowInitialPeerStateNotification && muted} placement="bottom">
@@ -528,7 +535,7 @@ const CallSection = ({
           <div>
             You were muted by
             {' '}
-            {mutedBy ?? 'someone'}
+            {mutedBy ?? 'someone else'}
             . This usually happens when it seemed like you had stepped away from your computer
             without muting yourself, but your microphone was still on. You can unmute yourself
             at any time.
