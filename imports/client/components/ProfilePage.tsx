@@ -13,15 +13,19 @@ const ResolvedProfilePage = ({ userId, isSelf }: { userId: string, isSelf: boole
   const profileLoading = useSubscribe('profile', userId);
   const loading = profileLoading();
 
-  const user = useTracker(() => MeteorUsers.findOne(userId)!, [userId]);
+  const user = useTracker(() => {
+    return loading ? undefined : MeteorUsers.findOne(userId);
+  }, [userId, loading]);
 
   useBreadcrumb({
-    title: loading ? 'loading...' : user.displayName ?? 'Profile settings',
+    title: loading ? 'loading...' : user?.displayName ?? 'Profile settings',
     path: `/users/${userId}`,
   });
 
   if (loading) {
     return <div>loading...</div>;
+  } else if (!user) {
+    return <div>{`No user ${userId} found.`}</div>;
   } else if (isSelf) {
     return <OwnProfilePage initialUser={user} />;
   }
