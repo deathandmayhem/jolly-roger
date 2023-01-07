@@ -23,7 +23,6 @@ import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleDeleteModal from './PuzzleDeleteModal';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import TagList from './TagList';
-import Breakable from './styling/Breakable';
 import { backgroundColorLookupTable } from './styling/constants';
 import { mediaBreakpointDown } from './styling/responsive';
 
@@ -68,8 +67,9 @@ const StyledButton = styled(Button)`
   }
 `;
 
-const PuzzleTitleColumn = styled(Breakable)`
+const PuzzleTitleColumn = styled(PuzzleColumn)`
   flex: 4;
+  overflow-wrap: break-word;
 `;
 
 const PuzzleActivityColumn = styled(PuzzleColumn)`
