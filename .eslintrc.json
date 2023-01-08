@@ -46,6 +46,8 @@
 
     // sometimes else after a return reads more clearly
     "no-else-return": "off",
+    // same for continue
+    "no-continue": "off",
 
      // We sometimes use these in various forms
     "no-underscore-dangle": ["error",

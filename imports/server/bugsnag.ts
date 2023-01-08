@@ -4,7 +4,9 @@ import path from 'path';
 import { promisify } from 'util';
 import { fetch } from 'meteor/fetch';
 import { Meteor } from 'meteor/meteor';
+import { WebApp } from 'meteor/webapp';
 import Bugsnag from '@bugsnag/js';
+import FormData from 'form-data';
 import glob from 'glob';
 import Ansible from '../Ansible';
 import isAdmin from '../lib/isAdmin';
@@ -16,6 +18,13 @@ import onExit from './onExit';
 interface SourceMap {
   sources: string[];
   sourcesContent: string[];
+}
+
+interface ProgramManifestFile {
+  path: string;
+  type: 'js' | 'dynamic js' | 'json' | 'css' | 'asset';
+  url: string;
+  sourceMap?: string;
 }
 
 const apiKey = process.env.BUGSNAG_API_KEY;
@@ -96,6 +105,62 @@ if (apiKey) {
     // eslint-disable-next-line no-console
     console.error('Unable to create source tree for Bugsnag', error);
   }
+
+  // Upload client-side source maps to Bugsnag in the background. We can't use
+  // Bugsnag's standard uploader because files are not served with the same name
+  // they have on disk, so we need to translate through program.json.
+  Meteor.defer(async () => {
+    for (const [arch, spec] of Object.entries(WebApp.clientPrograms)) {
+      /* eslint-disable no-await-in-loop */
+      const manifest = spec.manifest as ProgramManifestFile[];
+      for (const file of manifest) {
+        if (file.type !== 'js' && file.type !== 'dynamic js') {
+          continue;
+        }
+        if (!file.sourceMap) {
+          continue;
+        }
+
+        // Strip any query parameters from the URL, because Bugsnag does on
+        // incoming errors
+        const minifiedUrl = new URL(Meteor.absoluteUrl(file.url));
+        minifiedUrl.search = '';
+
+        // For consistency, strip the meteor://💻app/ prefix from the source
+        // names
+        const sourceMapContents = await fs.readFile(path.join(process.cwd(), '..', arch, file.sourceMap), 'utf-8');
+        // Strip the anti-XSSI prefix
+        const sourceMap = JSON.parse(sourceMapContents.replace(/^\)\]\}'/, '')) as SourceMap;
+        sourceMap.sources = sourceMap.sources.map((source) => source.replace('meteor://💻app/', ''));
+
+        const formData = new FormData();
+        formData.append('apiKey', apiKey);
+        formData.append('appVersion', Meteor.gitCommitHash);
+        formData.append('minifiedUrl', minifiedUrl.toString());
+        formData.append(
+          'minifiedFile',
+          await fs.readFile(path.join(process.cwd(), '..', arch, file.path)),
+          { filename: file.path }
+        );
+        formData.append('sourceMap', JSON.stringify(sourceMap), { filename: file.sourceMap });
+        formData.append('overwrite', 'true');
+        try {
+          const resp = await fetch('https://upload.bugsnag.com/', {
+            method: 'POST',
+            headers: formData.getHeaders(),
+            body: formData.getBuffer(),
+          });
+          if (!resp.ok) {
+            throw new Error(`Error from Bugsnag upload API: ${await resp.text()}`);
+          }
+        } catch (error) {
+          Ansible.error('Unable to upload source map to Bugsnag', { e: error });
+          return;
+        }
+        /* eslint-enable no-await-in-loop */
+      }
+    }
+  });
 
   Bugsnag.start({
     apiKey,
