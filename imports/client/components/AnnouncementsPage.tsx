@@ -140,7 +140,7 @@ const AnnouncementsPage = () => {
   const announcements = useTracker(() => (
     loading ? [] : Announcements.find({ hunt: huntId }, { sort: { createdAt: 1 } }).fetch()
   ), [loading, huntId]);
-  const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
+  const displayNames = useTracker(() => (loading ? new Map<string, string>() : indexedDisplayNames()), [loading]);
   const canCreateAnnouncements = useTracker(() => userMayAddAnnouncementToHunt(Meteor.user(), Hunts.findOne(huntId)), [huntId]);
 
   if (loading) {
@@ -159,7 +159,7 @@ const AnnouncementsPage = () => {
             <Announcement
               key={announcement._id}
               announcement={announcement}
-              displayName={displayNames[announcement.createdBy] ?? '???'}
+              displayName={displayNames.get(announcement.createdBy) ?? '???'}
             />
           );
         })}

@@ -591,7 +591,7 @@ const NotificationCenter = () => {
   // Lookup tables to support guesses/pendingAnnouncements/chatNotifications
   const hunts = useTracker(() => (loading ? new Map<string, HuntType>() : indexedById(Hunts.find().fetch())), [loading]);
   const puzzles = useTracker(() => (loading ? new Map<string, PuzzleType>() : indexedById(Puzzles.find().fetch())), [loading]);
-  const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
+  const displayNames = useTracker(() => (loading ? new Map<string, string>() : indexedDisplayNames()), [loading]);
   const announcements = useTracker(() => (loading ? new Map<string, AnnouncementType>() : indexedById(Announcements.find().fetch())), [loading]);
 
   const [recentGuessEpoch, setRecentGuessEpoch] = useState<number>(Date.now() - LINGER_PERIOD);
@@ -703,7 +703,7 @@ const NotificationCenter = () => {
       guess={g}
       puzzle={puzzles.get(g.puzzle)!}
       hunt={hunts.get(g.hunt)!}
-      guesser={displayNames[g.createdBy]!}
+      guesser={displayNames.get(g.createdBy) ?? '???'}
       onDismiss={dismissGuess}
     />);
   });
@@ -714,7 +714,7 @@ const NotificationCenter = () => {
         key={pa._id}
         id={pa._id}
         announcement={announcements.get(pa.announcement)!}
-        createdByDisplayName={displayNames[pa.createdBy]!}
+        createdByDisplayName={displayNames.get(pa.createdBy) ?? '???'}
       />
     );
   });
@@ -726,7 +726,7 @@ const NotificationCenter = () => {
         cn={cn}
         hunt={hunts.get(cn.hunt)!}
         puzzle={puzzles.get(cn.puzzle)!}
-        senderDisplayName={displayNames[cn.sender]!}
+        senderDisplayName={displayNames.get(cn.sender) ?? '???'}
       />
     );
   });

@@ -87,7 +87,9 @@ const FirehosePage = () => {
   const chatMessagesLoading = useSubscribe('mongo.chatmessages', { hunt: huntId });
   const loading = profilesLoading() || puzzlesLoading() || chatMessagesLoading();
 
-  const displayNames = useTracker(() => (loading ? {} : indexedDisplayNames()), [loading]);
+  const displayNames = useTracker(() => {
+    return loading ? new Map<string, string>() : indexedDisplayNames();
+  }, [loading]);
   const puzzles = useTracker(() => (
     loading ?
       new Map<string, PuzzleType>() :
@@ -243,7 +245,7 @@ const FirehosePage = () => {
                 key={msg._id}
                 msg={msg}
                 puzzle={puzzles.get(msg.puzzle)}
-                displayName={msg.sender ? displayNames[msg.sender] ?? '???' : 'jolly-roger'}
+                displayName={msg.sender ? displayNames.get(msg.sender) ?? '???' : 'jolly-roger'}
               />
             );
           })}
