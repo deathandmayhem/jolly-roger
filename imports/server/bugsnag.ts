@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import Bugsnag from '@bugsnag/js';
-import Fiber from 'fibers';
 import isAdmin from '../lib/isAdmin';
+import MeteorUsers from '../lib/models/MeteorUsers';
 import { userIsOperatorForAnyHunt } from '../lib/permission_stubs';
 import addRuntimeConfig from './addRuntimeConfig';
 
@@ -20,16 +20,22 @@ if (apiKey) {
       'secret',
       'dtlsParameters',
     ],
-    onError: (event) => {
-      if (Fiber.current) {
-        const user = Meteor.user();
-        if (user) {
-          event.setUser(user._id, user.emails?.[0]?.address, user.displayName);
-          event.addMetadata('user', {
-            admin: isAdmin(user),
-            operator: userIsOperatorForAnyHunt(user),
-          });
+    onError: async (event) => {
+      let user;
+      try {
+        const userId = Meteor.userId();
+        if (userId) {
+          user = await MeteorUsers.findOneAsync(userId);
         }
+      } catch {
+        // must not be in a method/publish call
+      }
+      if (user) {
+        event.setUser(user._id, user.emails?.[0]?.address, user.displayName);
+        event.addMetadata('user', {
+          admin: isAdmin(user),
+          operator: userIsOperatorForAnyHunt(user),
+        });
       }
     },
   });
