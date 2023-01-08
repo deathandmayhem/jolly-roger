@@ -18,7 +18,8 @@ const DingwordHooks: Hookset = {
       return;
     }
 
-    const normalizedText = chatMessage.text.trim().toLowerCase();
+    // TODO: support chatMessage.content
+    const normalizedText = chatMessage.text?.trim().toLowerCase() ?? '';
 
     // Find all users who are in this hunt with dingwords set.
     for await (const u of MeteorUsers.find({

@@ -146,7 +146,8 @@ const FirehosePage = () => {
     const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
     return (chatMessage) => {
       return lowerSearchKeys.every((key) => {
-        return chatMessage.text.toLowerCase().includes(key);
+        // TODO: support `.content` field too
+        return chatMessage.text?.toLowerCase().includes(key);
       });
     };
   }, []);
