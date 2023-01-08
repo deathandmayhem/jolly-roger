@@ -62,7 +62,7 @@ const PuzzleDeleteModal = React.forwardRef((
     ...callers.map(({ createdBy }) => createdBy),
   ])]
     .map((u) => {
-      return { id: u, name: displayNames[u] ?? 'Unknown viewer' };
+      return { id: u, name: displayNames.get(u) ?? 'Unknown viewer' };
     });
 
   const [replacementId, setReplacementId] = useState<PuzzleSelectOption | null>(null);

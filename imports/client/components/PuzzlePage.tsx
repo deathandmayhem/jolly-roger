@@ -318,7 +318,7 @@ const ChatHistory = React.forwardRef(({
   puzzleId, displayNames,
 }: {
   puzzleId: string;
-  displayNames: Record<string, string>;
+  displayNames: Map<string, string>;
 }, forwardedRef: React.Ref<ChatHistoryHandle>) => {
   const chatMessages: FilteredChatMessageType[] = useTracker(
     () => ChatMessages.find(
@@ -446,7 +446,7 @@ const ChatHistory = React.forwardRef(({
         </ChatMessageDiv>
       ) : undefined}
       {chatMessages.map((msg, index, messages) => {
-        const displayName = msg.sender !== undefined ? displayNames[msg.sender] : 'jolly-roger';
+        const displayName = msg.sender !== undefined ? displayNames.get(msg.sender) ?? '???' : 'jolly-roger';
         // Only suppress sender and timestamp if:
         // * this is not the first message
         // * this message was sent by the same person as the previous message
@@ -571,7 +571,7 @@ const ChatSection = React.forwardRef(({
 }: {
   chatDataLoading: boolean;
   puzzleDeleted: boolean;
-  displayNames: Record<string, string>;
+  displayNames: Map<string, string>;
   puzzleId: string;
   huntId: string;
   callState: CallState;
@@ -931,7 +931,7 @@ const PuzzlePageMetadata = ({
   puzzle, displayNames, document, isDesktop,
 }: {
   puzzle: PuzzleType;
-  displayNames: Record<string, string>;
+  displayNames: Map<string, string>;
   document?: DocumentType;
   isDesktop: boolean;
 }) => {
@@ -1250,7 +1250,7 @@ const PuzzleGuessModal = React.forwardRef(({
 }: {
   puzzle: PuzzleType;
   guesses: GuessType[];
-  displayNames: Record<string, string>;
+  displayNames: Map<string, string>;
 }, forwardedRef: React.Ref<PuzzleGuessModalHandle>) => {
   const [guessInput, setGuessInput] = useState<string>('');
   const [directionInput, setDirectionInput] = useState<number>(0);
@@ -1488,7 +1488,7 @@ const PuzzleGuessModal = React.forwardRef(({
                   </GuessAnswerCell>
                 </GuessTableSmallRow>
                 <GuessTimestampCell>{calendarTimeFormat(guess.createdAt)}</GuessTimestampCell>
-                <GuessSubmitterCell><Breakable>{displayNames[guess.createdBy]}</Breakable></GuessSubmitterCell>
+                <GuessSubmitterCell><Breakable>{displayNames.get(guess.createdBy) ?? '???'}</Breakable></GuessSubmitterCell>
                 <GuessDirectionCell>
                   <GuessDirection value={guess.direction} />
                 </GuessDirectionCell>
@@ -1769,7 +1769,7 @@ const PuzzlePage = React.memo(() => {
 
   const displayNames = useTracker(() => (
     puzzleDataLoading && chatDataLoading ?
-      {} :
+      new Map<string, string>() :
       indexedDisplayNames()
   ), [puzzleDataLoading, chatDataLoading]);
   // Sort by created at so that the "first" document always has consistent meaning
