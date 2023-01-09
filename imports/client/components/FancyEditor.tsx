@@ -594,6 +594,7 @@ const FancyEditor = React.forwardRef(({
     Transforms.select(editor, target!);
     insertMention(editor, u._id);
     setTarget(undefined);
+    ReactEditor.focus(editor);
   }, [editor, target]);
 
   const debugPane = DEBUG_EDITOR ? (
