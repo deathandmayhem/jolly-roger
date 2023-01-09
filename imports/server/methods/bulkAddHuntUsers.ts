@@ -3,8 +3,8 @@ import { Meteor } from 'meteor/meteor';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
-import addHuntUser from '../../methods/addHuntUser';
 import bulkAddHuntUsers from '../../methods/bulkAddHuntUsers';
+import addUserToHunt from '../addUserToHunt';
 
 bulkAddHuntUsers.define({
   validate(arg) {
@@ -16,23 +16,22 @@ bulkAddHuntUsers.define({
   },
 
   async run({ huntId, emails }) {
-    check(this.userId, String);
+    const { userId } = this;
+    check(userId, String);
 
-    // We'll re-do this check but if we check it now the error reporting will be
-    // better
     const hunt = await Hunts.findOneAsync(huntId);
     if (!hunt) {
       throw new Meteor.Error(404, 'Unknown hunt');
     }
 
-    if (!userMayBulkAddToHunt(await MeteorUsers.findOneAsync(this.userId), hunt)) {
-      throw new Meteor.Error(401, `User ${this.userId} may not bulk-invite to hunt ${huntId}`);
+    if (!userMayBulkAddToHunt(await MeteorUsers.findOneAsync(userId), hunt)) {
+      throw new Meteor.Error(401, `User ${userId} may not bulk-invite to hunt ${huntId}`);
     }
 
     const errors: { email: string, error: any }[] = [];
     await Promise.all(emails.map(async (email) => {
       try {
-        await addHuntUser.execute(this, { huntId, email });
+        await addUserToHunt({ hunt, email, invitedBy: userId });
       } catch (error) {
         errors.push({ email, error });
       }
