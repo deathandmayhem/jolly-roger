@@ -14,6 +14,7 @@ import {
 } from 'slate-react';
 import styled, { css } from 'styled-components';
 import { indexedById, sortedBy } from '../../lib/listUtils';
+import Avatar from './Avatar';
 
 // This implements a markdown-inspired input editor with live formatting preview
 // and autocompleting @-mentions.
@@ -159,6 +160,24 @@ const insertMention = (editor: Editor, userId: string) => {
   Transforms.move(editor);
 };
 
+const MatchCandidateRow = styled.div<{ selected: boolean }>`
+  padding: 2px 3px;
+  border-radius: 3px;
+  height: 28px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  ${({ selected }) => css`
+    background: ${selected ? '#e0ecfc' : 'transparent'};
+  `}
+`;
+
+const MatchCandidateDisplayName = styled.div`
+  margin-left: 0.25rem;
+`;
+
 const MatchCandidate = ({
   user, selected, onSelected,
 }: {
@@ -170,17 +189,14 @@ const MatchCandidate = ({
     onSelected(user);
   }, [onSelected, user]);
   return (
-    <div
+    <MatchCandidateRow
       key={user._id}
-      style={{
-        padding: '1px 3px',
-        borderRadius: '3px',
-        background: selected ? '#e0ecfc' : 'transparent',
-      }}
+      selected={selected}
       onClick={onClick}
     >
-      {user.displayName}
-    </div>
+      <Avatar size={24} {...user} />
+      <MatchCandidateDisplayName>{user.displayName}</MatchCandidateDisplayName>
+    </MatchCandidateRow>
   );
 };
 
