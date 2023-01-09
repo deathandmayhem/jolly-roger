@@ -31,6 +31,7 @@ import PendingAnnouncements from '../../lib/models/PendingAnnouncements';
 import Puzzles from '../../lib/models/Puzzles';
 import { userIsOperatorForAnyHunt } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/Announcement';
+import { ChatMessageContentType } from '../../lib/schemas/ChatMessage';
 import { ChatNotificationType } from '../../lib/schemas/ChatNotification';
 import { GuessType } from '../../lib/schemas/Guess';
 import { HuntType } from '../../lib/schemas/Hunt';
@@ -44,6 +45,7 @@ import { guessURL } from '../../model-helpers';
 import GoogleScriptInfo from '../GoogleScriptInfo';
 import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
+import ChatMessageV2 from './ChatMessageV2';
 import Markdown from './Markdown';
 import PuzzleAnswer from './PuzzleAnswer';
 import SpinnerTimer from './SpinnerTimer';
@@ -498,22 +500,43 @@ const ProfileMissingMessage = ({ onDismiss }: {
 };
 
 const ChatNotificationMessage = ({
-  cn, hunt, puzzle, senderDisplayName,
+  cn, hunt, puzzle, displayNames, selfUserId,
 }: {
   cn: ChatNotificationType;
   hunt: HuntType;
   puzzle: PuzzleType;
-  senderDisplayName: string;
+  displayNames: Map<string, string>;
+  selfUserId: string;
 }) => {
   const id = cn._id;
   const dismiss = useCallback(() => dismissChatNotification.call({ chatNotificationId: id }), [id]);
+
+  const senderDisplayName = displayNames.get(cn.sender) ?? '???';
+  let contentElement;
+  if (cn.content) {
+    contentElement = (
+      <div>
+        <ChatMessageV2
+          message={cn.content as ChatMessageContentType}
+          displayNames={displayNames}
+          selfUserId={selfUserId}
+        />
+      </div>
+    );
+  } else if (cn.text) {
+    contentElement = (
+      <div>
+        <Markdown as="span" text={cn.text} />
+      </div>
+    );
+  }
 
   return (
     <Toast onClose={dismiss}>
       <Toast.Header>
         <strong className="me-auto">
-          Mention on
-          {' '}
+          {senderDisplayName}
+          {' on '}
           <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
             {puzzle.title}
           </Link>
@@ -523,13 +546,7 @@ const ChatNotificationMessage = ({
         </StyledNotificationTimestamp>
       </Toast.Header>
       <Toast.Body>
-        <div>
-          {senderDisplayName}
-          {': '}
-          <div>
-            {cn.text}
-          </div>
-        </div>
+        {contentElement}
       </Toast.Body>
     </Toast>
   );
@@ -582,6 +599,7 @@ const NotificationCenter = () => {
     };
   }, []);
 
+  const selfUserId = useTracker(() => Meteor.userId()!, []);
   // Lookup tables to support guesses/pendingAnnouncements/chatNotifications
   const hunts = useTracker(() => (loading ? new Map<string, HuntType>() : indexedById(Hunts.find().fetch())), [loading]);
   const puzzles = useTracker(() => (loading ? new Map<string, PuzzleType>() : indexedById(Puzzles.find().fetch())), [loading]);
@@ -720,7 +738,8 @@ const NotificationCenter = () => {
         cn={cn}
         hunt={hunts.get(cn.hunt)!}
         puzzle={puzzles.get(cn.puzzle)!}
-        senderDisplayName={displayNames.get(cn.sender) ?? '???'}
+        displayNames={displayNames}
+        selfUserId={selfUserId}
       />
     );
   });
