@@ -570,9 +570,21 @@ const FancyEditor = React.forwardRef(({
       const domRange = ReactEditor.toDOMRange(editor, target);
       const rect = domRange.getBoundingClientRect();
       if (el) {
+        const elRect = el.getBoundingClientRect();
         // We wish to place the list of completions immediately above the area
         // from which the completion was initiated.
-        el.style.bottom = `${window.innerHeight - rect.top - window.scrollY}px`;
+        //                  _______________________
+        //                 | completion candidate 1| \
+        //                 | completion candidate 2|  |-- elRect.height
+        // +---------------|_______________________| /
+        // | input box here @search        |
+        // +-------------------------------+
+        // rect.top and rect.left are the top-left of the @
+        // We're using absolute positioning, so we need to add in the viewport
+        // offset (window.scrollX and window.scrollY).  Then, we need to subtract
+        // out the height of the completion box, so that we're not on top of the
+        // @-mention, but just above it.
+        el.style.top = `${rect.top + window.scrollY - elRect.height}px`;
         el.style.left = `${rect.left + window.scrollX}px`;
       }
     }
@@ -607,7 +619,7 @@ const FancyEditor = React.forwardRef(({
           <AutocompleteContainer
             ref={ref}
             style={{
-              bottom: '9999px',
+              top: '-9999px',
               left: '-9999px',
             }}
           >
