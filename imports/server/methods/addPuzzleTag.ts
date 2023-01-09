@@ -3,8 +3,9 @@ import Logger from '../../Logger';
 import Puzzles from '../../lib/models/Puzzles';
 import addPuzzleTag from '../../methods/addPuzzleTag';
 import getOrCreateTagByName from '../getOrCreateTagByName';
+import defineMethod from './defineMethod';
 
-addPuzzleTag.define({
+defineMethod(addPuzzleTag, {
   validate(arg) {
     check(arg, {
       puzzleId: String,

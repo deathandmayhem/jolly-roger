@@ -8,8 +8,9 @@ import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { addUserToRole, userMayCreateHunt } from '../../lib/permission_stubs';
 import createFixtureHunt from '../../methods/createFixtureHunt';
+import defineMethod from './defineMethod';
 
-createFixtureHunt.define({
+defineMethod(createFixtureHunt, {
   async run() {
     check(this.userId, String);
 

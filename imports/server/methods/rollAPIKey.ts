@@ -4,8 +4,9 @@ import rollAPIKey from '../../methods/rollAPIKey';
 import ensureAPIKey from '../ensureAPIKey';
 import APIKeys from '../models/APIKeys';
 import userForKeyOperation from '../userForKeyOperation';
+import defineMethod from './defineMethod';
 
-rollAPIKey.define({
+defineMethod(rollAPIKey, {
   validate(arg) {
     check(arg, { forUser: Match.Optional(String) });
 

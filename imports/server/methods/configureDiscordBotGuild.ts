@@ -5,8 +5,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureDiscordBot } from '../../lib/permission_stubs';
 import configureDiscordBotGuild from '../../methods/configureDiscordBotGuild';
+import defineMethod from './defineMethod';
 
-configureDiscordBotGuild.define({
+defineMethod(configureDiscordBotGuild, {
   validate(arg) {
     check(arg, {
       guild: Match.Optional({

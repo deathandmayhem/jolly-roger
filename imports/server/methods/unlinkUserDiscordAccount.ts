@@ -1,8 +1,9 @@
 import { check } from 'meteor/check';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import unlinkUserDiscordAccount from '../../methods/unlinkUserDiscordAccount';
+import defineMethod from './defineMethod';
 
-unlinkUserDiscordAccount.define({
+defineMethod(unlinkUserDiscordAccount, {
   async run() {
     check(this.userId, String);
 

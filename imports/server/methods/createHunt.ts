@@ -9,6 +9,7 @@ import createHunt from '../../methods/createHunt';
 import addUsersToDiscordRole from '../addUsersToDiscordRole';
 import { ensureHuntFolder } from '../gdrive';
 import getOrCreateTagByName from '../getOrCreateTagByName';
+import defineMethod from './defineMethod';
 
 const DEFAULT_TAGS = [
   'is:meta',
@@ -23,7 +24,7 @@ const DEFAULT_TAGS = [
   'needs:onsite  ',
 ];
 
-createHunt.define({
+defineMethod(createHunt, {
   validate(arg) {
     check(arg, HuntPattern);
     return arg;

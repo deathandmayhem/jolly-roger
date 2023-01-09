@@ -8,8 +8,9 @@ import Puzzles from '../../lib/models/Puzzles';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import destroyPuzzle from '../../methods/destroyPuzzle';
 import { makeReadOnly } from '../gdrive';
+import defineMethod from './defineMethod';
 
-destroyPuzzle.define({
+defineMethod(destroyPuzzle, {
   validate(arg) {
     check(arg, {
       puzzleId: String,

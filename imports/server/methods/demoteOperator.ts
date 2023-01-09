@@ -5,8 +5,9 @@ import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { removeUserFromRole, userMayMakeOperatorForHunt } from '../../lib/permission_stubs';
 import demoteOperator from '../../methods/demoteOperator';
+import defineMethod from './defineMethod';
 
-demoteOperator.define({
+defineMethod(demoteOperator, {
   validate(arg) {
     check(arg, {
       targetUserId: String,

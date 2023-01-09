@@ -1,8 +1,9 @@
 import { check, Match } from 'meteor/check';
 import fetchAPIKey from '../../methods/fetchAPIKey';
 import ensureAPIKey from '../ensureAPIKey';
+import defineMethod from './defineMethod';
 
-fetchAPIKey.define({
+defineMethod(fetchAPIKey, {
   validate(arg) {
     check(arg, { forUser: Match.Optional(String) });
 

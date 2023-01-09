@@ -9,8 +9,9 @@ import type { SettingType } from '../../lib/schemas/Setting';
 import configureEnsureGoogleScript from '../../methods/configureEnsureGoogleScript';
 import GoogleClient from '../googleClientRefresher';
 import googleScriptContent from '../googleScriptContent';
+import defineMethod from './defineMethod';
 
-configureEnsureGoogleScript.define({
+defineMethod(configureEnsureGoogleScript, {
   async run() {
     check(this.userId, String);
     checkAdmin(await MeteorUsers.findOneAsync(this.userId));

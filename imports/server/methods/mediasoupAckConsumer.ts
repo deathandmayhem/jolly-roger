@@ -5,8 +5,9 @@ import ConsumerAcks from '../../lib/models/mediasoup/ConsumerAcks';
 import Consumers from '../../lib/models/mediasoup/Consumers';
 import mediasoupAckConsumer from '../../methods/mediasoupAckConsumer';
 import { serverId } from '../garbage-collection';
+import defineMethod from './defineMethod';
 
-mediasoupAckConsumer.define({
+defineMethod(mediasoupAckConsumer, {
   validate(arg) {
     check(arg, {
       consumerId: String,

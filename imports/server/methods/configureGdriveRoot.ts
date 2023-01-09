@@ -4,8 +4,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureGdrive } from '../../lib/permission_stubs';
 import configureGdriveRoot from '../../methods/configureGdriveRoot';
+import defineMethod from './defineMethod';
 
-configureGdriveRoot.define({
+defineMethod(configureGdriveRoot, {
   validate(arg) {
     check(arg, {
       root: Match.Optional(String),

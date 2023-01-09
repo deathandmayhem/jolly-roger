@@ -5,8 +5,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
 import bulkAddHuntUsers from '../../methods/bulkAddHuntUsers';
 import addUserToHunt from '../addUserToHunt';
+import defineMethod from './defineMethod';
 
-bulkAddHuntUsers.define({
+defineMethod(bulkAddHuntUsers, {
   validate(arg) {
     check(arg, {
       huntId: String,

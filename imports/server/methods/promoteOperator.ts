@@ -5,8 +5,9 @@ import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { addUserToRole, userMayMakeOperatorForHunt } from '../../lib/permission_stubs';
 import promoteOperator from '../../methods/promoteOperator';
+import defineMethod from './defineMethod';
 
-promoteOperator.define({
+defineMethod(promoteOperator, {
   validate(arg) {
     check(arg, {
       targetUserId: String,

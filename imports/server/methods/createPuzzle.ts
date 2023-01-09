@@ -14,8 +14,9 @@ import GlobalHooks from '../GlobalHooks';
 import { ensureDocument } from '../gdrive';
 import getOrCreateTagByName from '../getOrCreateTagByName';
 import GoogleClient from '../googleClientRefresher';
+import defineMethod from './defineMethod';
 
-createPuzzle.define({
+defineMethod(createPuzzle, {
   validate(arg) {
     check(arg, {
       huntId: String,

@@ -5,8 +5,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import ensurePuzzleDocument from '../../methods/ensurePuzzleDocument';
 import { ensureDocument, ensureHuntFolderPermission } from '../gdrive';
+import defineMethod from './defineMethod';
 
-ensurePuzzleDocument.define({
+defineMethod(ensurePuzzleDocument, {
   validate(arg) {
     check(arg, {
       puzzleId: String,

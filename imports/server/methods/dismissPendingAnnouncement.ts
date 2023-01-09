@@ -1,8 +1,9 @@
 import { check } from 'meteor/check';
 import PendingAnnouncements from '../../lib/models/PendingAnnouncements';
 import dismissPendingAnnouncement from '../../methods/dismissPendingAnnouncement';
+import defineMethod from './defineMethod';
 
-dismissPendingAnnouncement.define({
+defineMethod(dismissPendingAnnouncement, {
   validate(arg) {
     check(arg, { pendingAnnouncementId: String });
 

@@ -11,8 +11,9 @@ import updatePuzzle from '../../methods/updatePuzzle';
 import { ensureDocument, renameDocument } from '../gdrive';
 import getOrCreateTagByName from '../getOrCreateTagByName';
 import getTeamName from '../getTeamName';
+import defineMethod from './defineMethod';
 
-updatePuzzle.define({
+defineMethod(updatePuzzle, {
   validate(arg) {
     check(arg, {
       puzzleId: String,

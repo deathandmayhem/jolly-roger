@@ -4,8 +4,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureTeamName } from '../../lib/permission_stubs';
 import configureTeamName from '../../methods/configureTeamName';
+import defineMethod from './defineMethod';
 
-configureTeamName.define({
+defineMethod(configureTeamName, {
   validate(arg) {
     check(arg, {
       teamName: Match.Optional(String),

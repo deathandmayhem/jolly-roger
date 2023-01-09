@@ -4,8 +4,9 @@ import { Meteor } from 'meteor/meteor';
 import Documents from '../../lib/models/Documents';
 import Settings from '../../lib/models/Settings';
 import listDocumentSheets from '../../methods/listDocumentSheets';
+import defineMethod from './defineMethod';
 
-listDocumentSheets.define({
+defineMethod(listDocumentSheets, {
   validate(arg) {
     check(arg, {
       documentId: String,

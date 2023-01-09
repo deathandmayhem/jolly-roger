@@ -7,8 +7,9 @@ import Settings from '../../lib/models/Settings';
 import linkUserDiscordAccount from '../../methods/linkUserDiscordAccount';
 import addUsersToDiscordRole from '../addUsersToDiscordRole';
 import { DiscordAPIClient, DiscordBot } from '../discord';
+import defineMethod from './defineMethod';
 
-linkUserDiscordAccount.define({
+defineMethod(linkUserDiscordAccount, {
   validate(arg) {
     check(arg, {
       key: String,

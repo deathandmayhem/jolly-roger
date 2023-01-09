@@ -3,8 +3,9 @@ import { Meteor } from 'meteor/meteor';
 import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import updateProfile from '../../methods/updateProfile';
+import defineMethod from './defineMethod';
 
-updateProfile.define({
+defineMethod(updateProfile, {
   validate(arg) {
     check(arg, {
       displayName: String,

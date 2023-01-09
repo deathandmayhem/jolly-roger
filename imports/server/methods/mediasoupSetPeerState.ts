@@ -3,8 +3,9 @@ import { Meteor } from 'meteor/meteor';
 import Flags from '../../Flags';
 import Peers from '../../lib/models/mediasoup/Peers';
 import mediasoupSetPeerState, { ALLOWED_STATES } from '../../methods/mediasoupSetPeerState';
+import defineMethod from './defineMethod';
 
-mediasoupSetPeerState.define({
+defineMethod(mediasoupSetPeerState, {
   validate(arg) {
     check(arg, {
       peerId: String,

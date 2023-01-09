@@ -5,8 +5,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { checkAdmin } from '../../lib/permission_stubs';
 import configureGoogleScriptUrl from '../../methods/configureGoogleScriptUrl';
+import defineMethod from './defineMethod';
 
-configureGoogleScriptUrl.define({
+defineMethod(configureGoogleScriptUrl, {
   validate(arg) {
     check(arg, {
       url: Match.Optional(String),

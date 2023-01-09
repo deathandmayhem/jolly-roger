@@ -5,8 +5,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureDiscordBot } from '../../lib/permission_stubs';
 import configureDiscordBot from '../../methods/configureDiscordBot';
+import defineMethod from './defineMethod';
 
-configureDiscordBot.define({
+defineMethod(configureDiscordBot, {
   validate(arg) {
     check(arg, {
       token: Match.Optional(String),

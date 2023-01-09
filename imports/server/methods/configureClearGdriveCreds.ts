@@ -5,8 +5,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureGdrive } from '../../lib/permission_stubs';
 import configureClearGdriveCreds from '../../methods/configureClearGdriveCreds';
+import defineMethod from './defineMethod';
 
-configureClearGdriveCreds.define({
+defineMethod(configureClearGdriveCreds, {
   async run() {
     check(this.userId, String);
     if (!userMayConfigureGdrive(await MeteorUsers.findOneAsync(this.userId))) {

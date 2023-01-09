@@ -11,8 +11,9 @@ import { userMayConfigureGdrive } from '../../lib/permission_stubs';
 import configureOrganizeGoogleDrive from '../../methods/configureOrganizeGoogleDrive';
 import { moveDocument, ensureHuntFolder, ensureDocument } from '../gdrive';
 import HuntFolders from '../models/HuntFolders';
+import defineMethod from './defineMethod';
 
-configureOrganizeGoogleDrive.define({
+defineMethod(configureOrganizeGoogleDrive, {
   async run() {
     check(this.userId, String);
 
