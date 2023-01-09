@@ -1,11 +1,11 @@
 import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
-import Bugsnag from '@bugsnag/js';
 import React, { useEffect, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import styled from 'styled-components';
+import Logger from '../../Logger';
 
 const WaitingAlert = ({ retryTime = Date.now() }: { retryTime: DDP.DDPStatus['retryTime'] }) => {
   const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
@@ -91,15 +91,11 @@ const ConnectionStatus = () => {
     case 'connected':
       return null;
     default:
-      console.warn('Unknown connection status', meteorStatus.status);
-      if (Bugsnag.isStarted()) {
-        Bugsnag.notify(new Error(`Unknown connection status: ${meteorStatus.status}`), (event) => {
-          event.addMetadata('meteorStatus', {
-            status: meteorStatus.status,
-            reason: meteorStatus.reason,
-          });
-        });
-      }
+      Logger.warn('Unknown connection status', {
+        error: new Error('Unknown connection status'),
+        status: meteorStatus.status,
+        reason: meteorStatus.reason,
+      });
       return null;
   }
 };

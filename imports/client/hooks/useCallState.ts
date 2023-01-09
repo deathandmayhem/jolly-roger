@@ -1,10 +1,10 @@
-/* eslint-disable no-console */
 import { Meteor } from 'meteor/meteor';
 import { useFind, useTracker } from 'meteor/react-meteor-data';
 import type { types } from 'mediasoup-client';
 import React, {
   useEffect, useMemo, useReducer, useRef, useState, useCallback,
 } from 'react';
+import { logger as defaultLogger } from '../../Logger';
 import { groupedBy } from '../../lib/listUtils';
 import ConnectAcks from '../../lib/models/mediasoup/ConnectAcks';
 import Consumers from '../../lib/models/mediasoup/Consumers';
@@ -21,13 +21,7 @@ import mediasoupConnectTransport from '../../methods/mediasoupConnectTransport';
 import mediasoupSetPeerState from '../../methods/mediasoupSetPeerState';
 import mediasoupSetProducerPaused from '../../methods/mediasoupSetProducerPaused';
 
-const DEBUG_LOGGING = false;
-
-function log(...args: any[]) {
-  if (DEBUG_LOGGING) {
-    console.log(...args);
-  }
-}
+const logger = defaultLogger.child({ label: 'useCallState' });
 
 export enum CallJoinState {
   CHAT_ONLY = 'chatonly',
@@ -130,7 +124,7 @@ const INITIAL_STATE: CallState = {
 };
 
 function reducer(state: CallState, action: Action): CallState {
-  log('dispatch', action);
+  logger.debug('dispatch', action);
   switch (action.type) {
     case 'request-capture':
       return { ...state, callState: CallJoinState.REQUESTING_STREAM };
@@ -219,7 +213,7 @@ function reducer(state: CallState, action: Action): CallState {
       let audioControls = state.audioControls;
       if ((!state.selfPeer && action.selfPeer) ||
           (state.selfPeer && action.selfPeer && state.selfPeer._id !== action.selfPeer._id)) {
-        log('server gives initial peer state', action.selfPeer.initialPeerState);
+        logger.debug('server set initial peer state', { initialPeerState: action.selfPeer.initialPeerState });
         // When we are first joining the call (or rejoining the call with the
         // same hunt/call/tab due to a server outage), the server will present us
         // with the effective peer state (active, muted, or deafened) that it
@@ -320,7 +314,7 @@ const useTransport = (
       const iceParameters = transportParams.iceParameters;
       const iceCandidates = transportParams.iceCandidates;
       const serverDtlsParameters = transportParams.dtlsParameters;
-      console.log('Creating new Mediasoup transport', { transportId, direction });
+      logger.info('Creating new Mediasoup transport', { transportId, direction });
       const method = direction === 'send' ? 'createSendTransport' : 'createRecvTransport';
       const newTransport = device[method]({
         id: transportId,
@@ -338,13 +332,13 @@ const useTransport = (
         mediasoupConnectTransport.call({
           transportId: _id,
           dtlsParameters: JSON.stringify(clientDtlsParameters),
-        }, (err) => {
-          if (err) {
-            console.error(`Failed to connect transport ${direction}`, err);
+        }, (error) => {
+          if (error) {
+            logger.error('Failed to connect transport', { direction, error });
           }
         });
       });
-      log(`setting ${direction} transport`, newTransport);
+      logger.debug('setting transport', { direction, newTransport });
       dispatch({
         type: 'set-transport',
         direction,
@@ -354,7 +348,7 @@ const useTransport = (
         if (!newTransport.closed) newTransport.close();
       };
     } else {
-      log(`clearing ${direction} transport`);
+      logger.debug('clearing transport', { direction });
       dispatch({
         type: 'set-transport',
         direction,
@@ -376,18 +370,18 @@ function cleanupProducerMapEntry(map: Map<string, ProducerState>, trackId: strin
   if (producerState) {
     // Stop the producer if present
     if (producerState.producer) {
-      log('stopping producer for track', trackId);
+      logger.debug('stopping producer for track', { trackId });
       producerState.producer.close();
     }
 
     // Stop the producer sub if present.
     if (producerState.subHandle) {
-      log('stopping producer sub for track', trackId);
+      logger.debug('stopping producer sub for track', { trackId });
       producerState.subHandle.stop();
     }
 
     // Drop the removed track from the producerMapRef.
-    log('producerMapRef.delete', trackId);
+    logger.debug('producerMapRef.delete', { trackId });
     map.delete(trackId);
   }
 }
@@ -418,7 +412,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
     // If huntId, puzzleId, or tabId change (but mostly puzzleId), reset
     // call state.
     return () => {
-      log('huntId/puzzleId/tabId changed, resetting call state');
+      logger.debug('huntId/puzzleId/tabId changed, resetting call state');
       dispatch({ type: 'reset' });
     };
   }, [huntId, puzzleId, tabId]);
@@ -499,9 +493,9 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   useEffect(() => {
     if (router?._id) {
       void (async () => {
-        console.log('Fetching mediasoup-client code');
+        logger.info('Fetching mediasoup-client code');
         const { Device } = await import('mediasoup-client');
-        console.log('Creating new Mediasoup device');
+        logger.info('Creating new Mediasoup device');
         const newDevice = new Device();
         await newDevice.load({
           routerRtpCapabilities: JSON.parse(router.rtpCapabilities),
@@ -509,7 +503,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
         dispatch({ type: 'set-device', device: newDevice });
       })();
     } else {
-      console.log('Clearing Mediasoup device');
+      logger.info('Clearing Mediasoup device');
       dispatch({ type: 'set-device', device: undefined });
     }
   }, [router?._id, router?.rtpCapabilities]);
@@ -518,7 +512,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   const transportSubHandle = useRef<Meteor.SubscriptionHandle | undefined>(undefined);
   useEffect(() => {
     if (!transportSubHandle.current && device && selfPeer?._id) {
-      log(`subscribe mediasoup:transports ${selfPeer._id}`, rtpCaps);
+      logger.debug('subscribe mediasoup:transports', { peerId: selfPeer._id, rtpCaps });
       transportSubHandle.current = Meteor.subscribe('mediasoup:transports', selfPeer._id, rtpCaps);
     }
 
@@ -657,11 +651,11 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
     },
     callback: ProducerCallback,
   ) => {
-    log(`onProduce(kind=${kind}, track id=${appData.trackId})`);
+    logger.debug('onProduce', { kind, trackId: appData.trackId });
     // extract track Id from app data
     const producerState = producerMapRef.current.get(appData.trackId);
     if (!producerState) {
-      console.error(`got onProduce callback for ${appData.trackId} but found no producer state`);
+      logger.error('Got onProduce callback but found no producer state', { trackId: appData.trackId });
     } else {
       producerState.kind = kind;
       producerState.rtpParameters = JSON.stringify(rtpParameters);
@@ -683,18 +677,18 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   useEffect(() => {
     const observer = ProducerServers.find().observeChanges({
       added: (_id, fields) => {
-        log(`ProducerServers added ${_id}`, fields);
+        logger.debug('ProducerServers added', { _id, ...fields });
         const trackId = fields.trackId;
         if (!trackId) {
-          console.error('Expected trackId in', _id, fields);
+          logger.error('No trackId in new ProducerServers record', { _id, ...fields });
           return;
         }
         const producerState = producerMapRef.current.get(trackId);
         if (producerState?.producerServerCallback) {
-          log(`Calling producerServerCallback(id: ${fields.producerId})`);
+          logger.debug('Calling producerServerCallback', { id: fields.producerId });
           producerState.producerServerCallback({ id: fields.producerId! });
           producerState.producerServerCallback = undefined;
-          log('%cOutbound track live', 'color: green; background: yellow;');
+          logger.debug('Outbound track live');
         }
       },
     });
@@ -703,7 +697,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
 
   const producerShouldBePaused = state.audioControls?.muted || state.audioControls?.deafened;
   useEffect(() => {
-    log('producerTracks', producerTracks.map((t) => t.id));
+    logger.debug('producerTracks', { tracks: producerTracks.map((t) => t.id) });
     const activeTrackIds = new Set();
     producerTracks.forEach((track) => {
       activeTrackIds.add(track.id);
@@ -722,7 +716,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
             rtpParameters: undefined,
           };
           producerMapRef.current.set(track.id, producerState);
-          console.log('Creating Mediasoup producer', { track: track.id });
+          logger.info('Creating Mediasoup producer', { track: track.id });
           // Tell the mediasoup library to produce a stream from this track.
           void (async () => {
             const newProducer = await sendTransport.produce({
@@ -731,12 +725,12 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
               stopTracks: false,
               appData: { trackId: track.id },
             });
-            log('got producer', newProducer);
+            logger.debug('got producer', newProducer);
             const entry = producerMapRef.current.get(track.id);
             if (entry) {
               entry.producer = newProducer;
             } else {
-              console.error(`no entry in producerMapRef for ${track.id}`);
+              logger.error('No entry in producerMapRef for track', { trackId: track.id });
             }
             setProducerGeneration((prevValue) => prevValue + 1);
           })();
@@ -746,7 +740,9 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
           producerState.rtpParameters) {
           // Indicate intent to produce to the backend.
           const paused = producerShouldBePaused;
-          log(`subscribe mediasoup:producer tp=${sendTransport.appData._id} track=${track.id} kind=${producerState.kind} paused=${paused}`);
+          logger.debug('subscribe mediasoup:producer', {
+            tp: sendTransport.appData._id, track: track.id, kind: producerState.kind, paused,
+          });
           producerState.subHandle = Meteor.subscribe('mediasoup:producer', sendTransport.appData._id, track.id, producerState.kind, producerState.rtpParameters, paused);
         }
       }
@@ -770,20 +766,20 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
           if (producerShouldBePaused) {
             // eslint-disable-next-line no-param-reassign
             track.enabled = false;
-            log('pausing producer for track', track.id);
+            logger.debug('pausing producer for track', { track: track.id });
             producer.pause();
           } else {
             // eslint-disable-next-line no-param-reassign
             track.enabled = true;
-            log('resuming producer for track', track.id);
+            logger.debug('resuming producer for track', { track: track.id });
             producer.resume();
           }
           mediasoupSetProducerPaused.call({
             mediasoupProducerId: producer.id,
             paused: producerShouldBePaused,
-          }, (err) => {
-            if (err) {
-              console.error("Couldn't tell backend we've paused producer", track.id, err);
+          }, (error) => {
+            if (error) {
+              logger.error('Error calling mediasoupSetProducerPaused method', { error, trackId: track.id });
             }
           });
         }
@@ -795,9 +791,9 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
     // If we've been remote-muted, acknowledge to the server and translate into local mute.
     if (selfPeer?.remoteMutedBy) {
       dispatch({ type: 'set-remote-muted', remoteMutedBy: selfPeer.remoteMutedBy });
-      mediasoupAckPeerRemoteMute.call({ peerId: selfPeer._id }, (err) => {
-        if (err) {
-          console.error("Couldn't tell backend we've acknowledged remote mute", err);
+      mediasoupAckPeerRemoteMute.call({ peerId: selfPeer._id }, (error) => {
+        if (error) {
+          logger.error('Error calling mediasoupAckPeerRemoteMute method', { error });
         }
       });
     }
@@ -809,9 +805,12 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
       const serverEffectiveState = participantState(selfPeer.muted, selfPeer.deafened);
       const localEffectiveState = participantState(audioControls.muted, audioControls.deafened);
       if (serverEffectiveState !== localEffectiveState) {
-        mediasoupSetPeerState.call({ peerId: selfPeer._id, state: localEffectiveState }, (err) => {
-          if (err) {
-            console.error(`Couldn't set peer state for ${selfPeer._id} to ${localEffectiveState}`, err);
+        mediasoupSetPeerState.call({
+          peerId: selfPeer._id,
+          state: localEffectiveState,
+        }, (error) => {
+          if (error) {
+            logger.error('Error calling mediasoupSetPeerState method', { error, peerId: selfPeer._id, state: localEffectiveState });
           }
         });
       }
@@ -844,13 +843,13 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   const cleanupConsumer = useCallback((meteorId: string, consumerState: ConsumerState) => {
     // Drop it.
     if (consumerState.consumer) {
-      log('Stopping consumer', meteorId);
+      logger.debug('Stopping consumer', { meteorId });
       consumerState.consumer.close();
       dispatch({ type: 'remove-peer-track', peerId: consumerState.peerId, track: consumerState.consumer.track });
     }
 
     // Delete it.
-    log('consumerMapRef delete', meteorId);
+    logger.debug('consumerMapRef delete', { meteorId });
     consumerMapRef.current.delete(meteorId);
   }, []);
 
@@ -877,30 +876,30 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
                 consumer: undefined,
                 peerId: peer._id,
               });
-              log('consumers', consumerMapRef.current);
+              logger.debug('consumers', { consumerMapRef: consumerMapRef.current });
               // Create a new Mediasoup consumer
               void (async () => {
-                console.log('Creating new Mediasoup consumer', { mediasoupConsumerId, producerId });
+                logger.info('Creating new Mediasoup consumer', { mediasoupConsumerId, producerId });
                 const newConsumer = await recvTransport.consume({
                   id: mediasoupConsumerId,
                   producerId,
                   kind,
                   rtpParameters: JSON.parse(rtpParameters),
                 });
-                log('new consumer:', newConsumer);
+                logger.debug('new consumer', { newConsumer });
                 const entry = consumerMapRef.current.get(consumer._id);
                 if (entry) {
                   // Save on the ref so we can clean it up later if needed.
                   entry.consumer = newConsumer;
                   // Push the track into state.
                   dispatch({ type: 'add-peer-track', peerId: peer._id, track: newConsumer.track });
-                  mediasoupAckConsumer.call({ consumerId: meteorConsumerId }, (err) => {
-                    if (err) {
-                      console.error(`Couldn't ack consumer: _id: ${meteorConsumerId} consumerId: ${mediasoupConsumerId}`, err);
+                  mediasoupAckConsumer.call({ consumerId: meteorConsumerId }, (error) => {
+                    if (error) {
+                      logger.error('Error calling mediasoupAckConsumer', { error, consumerId: meteorConsumerId });
                     }
                   });
                 } else {
-                  console.error(`Created Mediasoup consumer for ${consumer._id} but id not in consumer map`);
+                  logger.error('Created Mediasoup consumer for consumer not in consumerMapRef', { consumer: consumer._id });
                 }
               })();
             }

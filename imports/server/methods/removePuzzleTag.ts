@@ -1,5 +1,5 @@
 import { check } from 'meteor/check';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Puzzles from '../../lib/models/Puzzles';
 import removePuzzleTag from '../../methods/removePuzzleTag';
 
@@ -16,7 +16,7 @@ removePuzzleTag.define({
   async run({ puzzleId, tagId }) {
     check(this.userId, String);
 
-    Ansible.log('Untagging puzzle', { puzzle: puzzleId, tag: tagId });
+    Logger.info('Untagging puzzle', { puzzle: puzzleId, tag: tagId });
     await Puzzles.updateAsync({
       _id: puzzleId,
     }, {

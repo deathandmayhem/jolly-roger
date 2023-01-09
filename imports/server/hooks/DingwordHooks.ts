@@ -11,7 +11,6 @@ const DingwordHooks: Hookset = {
       return;
     }
 
-    // const start = Date.now();
     const chatMessage = (await ChatMessages.findOneAsync(chatMessageId))!;
 
     if (!chatMessage.sender) {
@@ -49,10 +48,6 @@ const DingwordHooks: Hookset = {
         }
       }
     }
-
-    // const end = Date.now();
-    // const elapsed = end - start;
-    // console.log(`Dingword hooks ran in ${elapsed} msec`);
   },
 };
 

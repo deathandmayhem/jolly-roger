@@ -1,6 +1,6 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
@@ -34,8 +34,8 @@ setGuessState.define({
       throw new Meteor.Error(401, 'Must be permitted to update guesses');
     }
 
-    Ansible.log('Transitioning guess to new state', {
-      user: this.userId, guess: guess._id, state, additionalNotes,
+    Logger.info('Transitioning guess to new state', {
+      guess: guess._id, state, additionalNotes,
     });
     await transitionGuess(guess, state, additionalNotes);
   },

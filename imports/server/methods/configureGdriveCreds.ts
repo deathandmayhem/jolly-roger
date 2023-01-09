@@ -1,7 +1,7 @@
 import { check } from 'meteor/check';
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureGdrive } from '../../lib/permission_stubs';
@@ -25,10 +25,7 @@ configureGdriveCreds.define({
 
     const credential = Google.retrieveCredential(key, secret);
     const { refreshToken, email } = credential.serviceData;
-    Ansible.log('Updating Gdrive creds', {
-      email,
-      user: this.userId,
-    });
+    Logger.info('Updating Gdrive creds', { email });
     await Settings.upsertAsync(
       { name: 'gdrive.credential' },
       { $set: { value: { refreshToken, email } } }

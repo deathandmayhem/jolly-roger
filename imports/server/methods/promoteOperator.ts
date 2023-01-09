@@ -1,6 +1,6 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { addUserToRole, userMayMakeOperatorForHunt } from '../../lib/permission_stubs';
@@ -31,7 +31,7 @@ promoteOperator.define({
     }
 
     if (this.userId !== targetUserId) {
-      Ansible.log('Promoting user to operator', { user: targetUserId, promoter: this.userId });
+      Logger.info('Promoting user to operator', { user: targetUserId, promoter: this.userId });
     }
 
     await addUserToRole(targetUserId, huntId, 'operator');

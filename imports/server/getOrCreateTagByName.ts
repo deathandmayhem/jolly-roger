@@ -1,4 +1,4 @@
-import Ansible from '../Ansible';
+import Logger from '../Logger';
 import Tags from '../lib/models/Tags';
 
 export default async function getOrCreateTagByName(huntId: string, name: string): Promise<{
@@ -11,7 +11,7 @@ export default async function getOrCreateTagByName(huntId: string, name: string)
     return existingTag;
   }
 
-  Ansible.log('Creating a new tag', { hunt: huntId, name });
+  Logger.info('Creating a new tag', { hunt: huntId, name });
   const newTagId = await Tags.insertAsync({ hunt: huntId, name });
 
   // When creating a `group:*` tag, also ensure a matching `meta-for:` tag exists.

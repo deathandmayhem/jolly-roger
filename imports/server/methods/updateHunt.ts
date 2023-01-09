@@ -1,6 +1,6 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { checkAdmin } from '../../lib/permission_stubs';
@@ -24,7 +24,7 @@ updateHunt.define({
       throw new Meteor.Error(404, 'Unknown hunt');
     }
 
-    Ansible.log('Updating hunt settings', { hunt: huntId, user: Meteor.userId(), value });
+    Logger.info('Updating hunt settings', { hunt: huntId, ...value });
 
     // $set will not remove keys from a document.  For that, we must specify
     // $unset on the appropriate key(s).  Split out which keys we must set and

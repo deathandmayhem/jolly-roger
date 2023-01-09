@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { promisify } from 'util';
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
@@ -15,6 +14,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import FixtureHunt from '../../imports/FixtureHunt';
+import Logger from '../../imports/Logger';
 import TypedMethod from '../../imports/methods/TypedMethod';
 import addHuntUser from '../../imports/methods/addHuntUser';
 import createFixtureHunt from '../../imports/methods/createFixtureHunt';
@@ -111,11 +111,11 @@ if (Meteor.isClient) {
       const unreplaced = new Set([...url.matchAll(/:(\w+)/g)].map((m) => m[1]));
       if (unreplaced.size > 0) {
         if (unreplaced.has('token')) {
-          console.log('Ignoring route with :token parameter');
+          Logger.info('Ignoring route with :token parameter');
           unreplaced.delete('token');
         }
         if (unreplaced.size === 0) {
-          console.log('Skipping route', path);
+          Logger.info('Skipping route', { path });
           return undefined;
         }
         throw new Error(`Unknown parameters: ${[...unreplaced].join(', ')}`);

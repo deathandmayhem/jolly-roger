@@ -1,7 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
@@ -47,12 +47,11 @@ updatePuzzle.define({
       return (await getOrCreateTagByName(oldPuzzle.hunt, tagName))._id;
     }));
 
-    Ansible.log('Updating a puzzle', {
+    Logger.info('Updating a puzzle', {
       hunt: oldPuzzle.hunt,
       puzzle: puzzleId,
       title,
       expectedAnswerCount,
-      user: this.userId,
     });
 
     const update: Mongo.Modifier<PuzzleType> = {

@@ -1,5 +1,5 @@
 import { check } from 'meteor/check';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Tags from '../../lib/models/Tags';
 import renameTag from '../../methods/renameTag';
 
@@ -18,7 +18,7 @@ renameTag.define({
 
     const tag = await Tags.findOneAsync(tagId);
     if (tag) {
-      Ansible.log('Renaming tag', { tag: tagId, name });
+      Logger.info('Renaming tag', { tag: tagId, name });
       await Tags.updateAsync({ _id: tagId }, { $set: { name } });
     }
   },

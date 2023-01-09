@@ -1,6 +1,6 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { checkAdmin } from '../../lib/permission_stubs';
@@ -24,7 +24,7 @@ configureGoogleScriptUrl.define({
     }
 
     if (!url) {
-      Ansible.log('Clearing Google Script URL', { user: this.userId });
+      Logger.info('Clearing Google Script URL');
       await Settings.updateAsync({ name: 'google.script' }, {
         $unset: {
           'value.endpointUrl': 1,

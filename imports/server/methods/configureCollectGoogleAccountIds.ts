@@ -1,6 +1,6 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { checkAdmin } from '../../lib/permission_stubs';
 import configureCollectGoogleAccountIds from '../../methods/configureCollectGoogleAccountIds';
@@ -41,7 +41,7 @@ configureCollectGoogleAccountIds.define({
           return a;
         }, []);
 
-        Ansible.log('Storing Google account IDs on users', { id, addresses });
+        Logger.info('Storing Google account IDs on users', { id, addresses });
         await MeteorUsers.updateAsync({
           googleAccountId: undefined,
           googleAccount: { $in: addresses },

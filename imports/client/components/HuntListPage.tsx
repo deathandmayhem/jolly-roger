@@ -1,7 +1,6 @@
 /* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import Bugsnag from '@bugsnag/js';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,6 +13,7 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Modal from 'react-bootstrap/Modal';
 import { LinkContainer } from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
+import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import { userMayCreateHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import { HuntType } from '../../lib/schemas/Hunt';
@@ -37,15 +37,9 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
   const deleteModalRef = useRef<ModalFormHandle>(null);
 
   const onDelete = useCallback((callback: () => void) => {
-    destroyHunt.call({ huntId }, (err) => {
-      if (err) {
-        console.error('Failed to destroy hunt', { hunt: huntId, err });
-        if (Bugsnag.isStarted()) {
-          Bugsnag.notify(err, (event) => {
-            // eslint-disable-next-line no-param-reassign
-            event.context = 'Failed to destroy hunt';
-          });
-        }
+    destroyHunt.call({ huntId }, (error) => {
+      if (error) {
+        Logger.error('Failed to destroy hunt', { error, hunt: huntId });
       }
       callback();
     });

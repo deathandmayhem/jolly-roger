@@ -1,8 +1,8 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import Ansible from '../../Ansible';
 import Flags from '../../Flags';
+import Logger from '../../Logger';
 import GdriveMimeTypes, { GdriveMimeTypesType } from '../../lib/GdriveMimeTypes';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
@@ -49,10 +49,9 @@ createPuzzle.define({
       return (await getOrCreateTagByName(huntId, tagName))._id;
     }));
 
-    Ansible.log('Creating a new puzzle', {
+    Logger.info('Creating a new puzzle', {
       hunt: huntId,
       title,
-      user: this.userId,
     });
 
     const fullPuzzle = {

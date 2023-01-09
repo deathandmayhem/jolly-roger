@@ -1,8 +1,7 @@
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
-import logfmt from 'logfmt';
 import Mustache from 'mustache';
-import Ansible from '../Ansible';
+import Logger from '../Logger';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import Settings from '../lib/models/Settings';
@@ -35,7 +34,7 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
         email: info?.user?.emails?.[0]?.address,
       };
     default:
-      Ansible.warn('Received login hook from unknown method', { method: info.methodName });
+      Logger.info('Received login hook from unknown method', { method: info.methodName });
       return {
         msg: 'User logged in by unknown method',
         email: info?.user?.emails?.[0]?.address,
@@ -60,7 +59,7 @@ Accounts.onLogin(async (info: LoginInfo) => {
   };
   const { msg, ...logContext } = summary;
 
-  Ansible.log(msg, logContext);
+  Logger.info(msg, logContext);
 });
 
 Accounts.onLoginFailure((info: LoginInfo) => {
@@ -69,10 +68,9 @@ Accounts.onLoginFailure((info: LoginInfo) => {
     user: info.user?._id,
     email,
     ip: info.connection.clientAddress,
-    error: info.error?.reason,
+    error: info.error,
   };
-  // eslint-disable-next-line no-console
-  console.log(`Failed login attempt: ${logfmt.stringify(data)}`);
+  Logger.info('Failed login attempt', data);
 });
 
 Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl(`enroll/${token}`);

@@ -2,6 +2,7 @@
 import child_process from 'child_process';
 import { WebApp } from 'meteor/webapp';
 import portscanner from 'portscanner';
+import Logger from '../Logger';
 
 type HandledSignal = 'SIGINT' | 'SIGHUP' | 'SIGTERM';
 
@@ -73,9 +74,7 @@ export default class WorkerPool {
 
   createWorker() {
     this.fork((worker) => {
-      const logMessage = `Multiprocess: worker ${worker.id} starting on port ${worker.port}`;
-      // eslint-disable-next-line no-console
-      console.info(logMessage);
+      Logger.info('Multiprocess: worker starting on port', { workerId: worker.id, port: worker.port });
 
       const registerWorker = (message: any) => {
         if (message && message.type === 'ready') {
@@ -88,9 +87,7 @@ export default class WorkerPool {
 
       worker.process.on('message', registerWorker);
       worker.process.once('exit', (exitCode, signalCode) => {
-        const exitMessage = `Multiprocess: worker ${worker.id} exiting with exitCode=${exitCode} signalCode=${signalCode}`;
-        // eslint-disable-next-line no-console
-        console.info(exitMessage);
+        Logger.info('Multiprocess: worker exiting', { worker: worker.id, exitCode, signalCode });
 
         const index = this.workers.indexOf(worker);
         if (index >= 0) {

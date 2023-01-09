@@ -17,14 +17,11 @@ class BrowserConsole extends Transport {
       level === 'warn' as const ||
       level === 'info' as const ||
       level === 'debug' as const) {
-      // eslint-disable-next-line no-console
       selectedLevel = level;
     } else if (level === 'verbose') {
-      // eslint-disable-next-line no-console
       selectedLevel = 'debug' as const;
     } else {
       // unexpected log level so just use console.log
-      // eslint-disable-next-line no-console
       selectedLevel = 'log' as const;
     }
 

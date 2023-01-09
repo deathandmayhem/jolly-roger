@@ -1,7 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import {
   userMayUseDiscordBotAPIs,
   userMayConfigureDiscordBot,
@@ -16,7 +16,7 @@ DiscordCache.attachSchema(DiscordCacheSchema);
 if (Meteor.isServer) {
   Meteor.publish('discord.guilds', async function () {
     if (!this.userId || !userMayConfigureDiscordBot(await MeteorUsers.findOneAsync(this.userId))) {
-      Ansible.log('Sub to discord.guilds not logged in as admin');
+      Logger.info('Sub to discord.guilds not logged in as admin');
       return [];
     }
 
@@ -36,19 +36,19 @@ if (Meteor.isServer) {
     });
 
     if (!this.userId || !userMayUseDiscordBotAPIs(await MeteorUsers.findOneAsync(this.userId))) {
-      Ansible.log('Sub to discord.cache not logged in as operator');
+      Logger.info('Sub to discord.cache not logged in as operator');
       return [];
     }
 
     const guildSetting = Settings.findOne({ name: 'discord.guild' });
     if (!guildSetting || guildSetting.name !== 'discord.guild') {
-      Ansible.log('No discord guild configured; will not expose the cache');
+      Logger.info('No discord guild configured; will not expose the cache');
       return [];
     }
 
     const guildId = guildSetting.value?.guild?.id;
     if (!guildId) {
-      Ansible.log('No discord guild configured; will not expose the cache');
+      Logger.info('No discord guild configured; will not expose the cache');
       return [];
     }
 

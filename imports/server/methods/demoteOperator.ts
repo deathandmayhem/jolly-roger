@@ -1,6 +1,6 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { removeUserFromRole, userMayMakeOperatorForHunt } from '../../lib/permission_stubs';
@@ -34,7 +34,7 @@ demoteOperator.define({
       throw new Meteor.Error(400, 'Cannot demote yourself');
     }
 
-    Ansible.log('Demoting user from operator', { user: targetUserId, demoter: this.userId });
+    Logger.info('Demoting user from operator', { user: targetUserId, demoter: this.userId });
     await removeUserFromRole(targetUserId, huntId, 'operator');
   },
 });

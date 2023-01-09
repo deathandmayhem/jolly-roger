@@ -1,8 +1,8 @@
 import { check } from 'meteor/check';
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
 import Flags from '../../Flags';
+import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import linkUserGoogleAccount from '../../methods/linkUserGoogleAccount';
 import { ensureHuntFolderPermission } from '../gdrive';
@@ -25,8 +25,7 @@ linkUserGoogleAccount.define({
     // want to validate it.
     const credential = Google.retrieveCredential(key, secret);
     const { email, id } = credential.serviceData;
-    Ansible.log('Linking user to Google account', {
-      user: this.userId,
+    Logger.info('Linking user to Google account', {
       email,
       id,
     });

@@ -1,6 +1,6 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import { indexedById } from '../../lib/listUtils';
 import Documents from '../../lib/models/Documents';
 import Hunts from '../../lib/models/Hunts';
@@ -22,7 +22,7 @@ configureOrganizeGoogleDrive.define({
       throw new Meteor.Error(401, 'Must be admin to configure gdrive');
     }
 
-    Ansible.log('Reorganizing Google Drive files');
+    Logger.info('Reorganizing Google Drive files');
 
     // First make sure any existing folders are under the root
     const root = await Settings.findOneAsync({ name: 'gdrive.root' });

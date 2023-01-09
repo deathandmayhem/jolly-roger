@@ -1,4 +1,4 @@
-/* eslint-disable max-len, no-console */
+/* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
@@ -46,6 +46,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Link, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
 import styled, { css } from 'styled-components';
+import Logger from '../../Logger';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { indexedById, sortedBy } from '../../lib/listUtils';
 import ChatMessages from '../../lib/models/ChatMessages';
@@ -950,29 +951,27 @@ const PuzzlePageMetadata = ({
   const answerModalRef = useRef<React.ElementRef<typeof PuzzleAnswerModal>>(null);
   const onCreateTag = useCallback((tagName: string) => {
     addPuzzleTag.call({ puzzleId, tagName }, (error) => {
-      // Not really much we can do in the case of a failure, but let's log it anyway
+      // Not really much we can do in the case of a failure other than log it
       if (error) {
-        console.log('failed to create tag:');
-        console.log(error);
+        Logger.error('Failed to create tag', { error, puzzleId, tagName });
       }
     });
   }, [puzzleId]);
 
   const onRemoveTag = useCallback((tagId: string) => {
     removePuzzleTag.call({ puzzleId, tagId }, (error) => {
-      // Not really much we can do in the case of a failure, but again, let's log it anyway
+      // Not really much we can do in the case of a failure, other than (again) logging it
       if (error) {
-        console.log('failed to remove tag:');
-        console.log(error);
+        Logger.error('Failed to remove tag', { error, puzzleId, tagId });
       }
     });
   }, [puzzleId]);
 
   const onRemoveAnswer = useCallback((guessId: string) => {
     removePuzzleAnswer.call({ puzzleId, guessId }, (error) => {
-      // Not really much we can do in the case of a failure, but again, let's log it anyway
+      // Not really much we can do in the case of a failure, other than (again) logging it
       if (error) {
-        console.log(`failed remove answer ${guessId}:`, error);
+        Logger.error('Failed to remove answer', { error, puzzleId, guessId });
       }
     });
   }, [puzzleId]);
@@ -1310,7 +1309,13 @@ const PuzzleGuessModal = React.forwardRef(({
         if (error) {
           setSubmitError(error.message);
           setSubmitState(PuzzleGuessSubmitState.FAILED);
-          console.log(error);
+          Logger.error('Error submitting guess', {
+            error,
+            puzzleId: puzzle._id,
+            guess: guessInput,
+            direction: directionInput,
+            confidence: confidenceInput,
+          });
         } else {
           // Clear the input box.  Don't dismiss the dialog.
           setGuessInput('');
