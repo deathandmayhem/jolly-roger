@@ -1,17 +1,17 @@
 import { Meteor } from 'meteor/meteor';
-import logAnsibleMessage, { LogLevel } from './methods/logAnsibleMessage';
 
-function performLog(level: LogLevel, line: string, obj?: object) {
-  const args: any[] = [line];
-  if (obj) {
-    args.push(obj);
+function performLog(level: 'log' | 'info' | 'error' | 'warn', line: string, obj?: object) {
+  let msg = '';
+
+  try {
+    msg += `[${Meteor.userId()}] `;
+  } catch {
+    // ignore, probably not in a method/publication
   }
 
-  if (Meteor.isClient) {
-    console[level](...args); // eslint-disable-line no-console
-  }
+  msg += line;
 
-  logAnsibleMessage.call({ level, line, obj });
+  console[level](msg, ...obj ? [obj] : []); // eslint-disable-line no-console
 }
 
 export default {

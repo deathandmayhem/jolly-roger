@@ -234,6 +234,11 @@
       "files": "**/client/**",
       "env": {
         "browser": true
+      },
+      "rules": {
+        // Allow console warnings and errors in client-side code, since those
+        // are indicative of problems
+        "no-console": ["error", { "allow": ["warn", "error"] }]
       }
     },
     {

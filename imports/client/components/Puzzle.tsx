@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-import { Meteor } from 'meteor/meteor';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
@@ -11,7 +10,6 @@ import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/esm/ButtonGroup';
 import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
-import Ansible from '../../Ansible';
 import { difference, indexedById } from '../../lib/listUtils';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { TagType } from '../../lib/schemas/Tag';
@@ -130,7 +128,6 @@ const Puzzle = React.memo(({
     state: PuzzleModalFormSubmitPayload,
     callback: (error?: Error) => void
   ) => {
-    Ansible.log('Updating puzzle properties', { puzzle: puzzle._id, user: Meteor.userId(), state });
     const { huntId: _huntId, docType: _docType, ...rest } = state;
     updatePuzzle.call({ puzzleId: puzzle._id, ...rest }, callback);
   }, [puzzle._id]);

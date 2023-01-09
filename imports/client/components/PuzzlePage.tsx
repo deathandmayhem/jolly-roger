@@ -46,7 +46,6 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Link, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
 import styled, { css } from 'styled-components';
-import Ansible from '../../Ansible';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { indexedById, sortedBy } from '../../lib/listUtils';
 import ChatMessages from '../../lib/models/ChatMessages';
@@ -982,7 +981,6 @@ const PuzzlePageMetadata = ({
     state: PuzzleModalFormSubmitPayload,
     callback: (err?: Error) => void
   ) => {
-    Ansible.log('Updating puzzle properties', { puzzle: puzzleId, user: Meteor.userId(), state });
     const { huntId: _huntId, docType: _docType, ...rest } = state;
     updatePuzzle.call({ puzzleId, ...rest }, callback);
   }, [puzzleId]);

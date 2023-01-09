@@ -1,4 +1,3 @@
-import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faInfo } from '@fortawesome/free-solid-svg-icons/faInfo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,7 +14,6 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
 import Row from 'react-bootstrap/Row';
 import { useNavigate, useParams } from 'react-router-dom';
-import Ansible from '../../Ansible';
 import DiscordCache from '../../lib/models/DiscordCache';
 import Hunts from '../../lib/models/Hunts';
 import Settings from '../../lib/models/Settings';
@@ -288,10 +286,8 @@ const HuntEditPage = () => {
     };
 
     if (huntId) {
-      Ansible.log('Updating hunt settings', { hunt: huntId, user: Meteor.userId(), state });
       updateHunt.call({ huntId, value: state }, onFormCallback);
     } else {
-      Ansible.log('Creating a new hunt', { user: Meteor.userId(), state });
       createHunt.call(state, onFormCallback);
     }
   }, [
