@@ -211,13 +211,13 @@ type AugmentedUser = Meteor.User & {
   startsDiscord: boolean;
 };
 
-function matchUsers(users: Meteor.User[], search: string): AugmentedUser[] {
+function matchUsers(users: Meteor.User[], searchString: string): AugmentedUser[] {
   // No point doing all this matching work if there's no search string to match against.
-  if (!search) return [];
+  if (!searchString) return [];
 
   // We approximate case-insensitive search by converting both needles and
   // haystacks to lowercase.
-  const needle = search.toLowerCase();
+  const needle = searchString.toLowerCase();
 
   // Augment users with whether assorted fields match the search string or not, and where.
   const augmentedUsers: AugmentedUser[] = users.map((u) => {
@@ -437,12 +437,12 @@ const FancyEditor = React.forwardRef(({
 
   // The floating autocomplete box for @-mentions
   const ref = useRef<HTMLDivElement>(null);
-  // selection target?
-  const [target, setTarget] = useState<Range | undefined>(undefined);
+  // The range in the document which an autocompletion overlay should be positioned relative to
+  const [completionAnchorRange, setCompletionAnchorRange] = useState<Range | undefined>(undefined);
   // Offset into the list of potentially-matching usernames
-  const [index, setIndex] = useState<number>(0);
-  // current needle for search in display names
-  const [search, setSearch] = useState('');
+  const [completionCursorIndex, setCompletionCursorIndex] = useState<number>(0);
+  // The current needle to search for in user display names, emails, etc.
+  const [completionSearchString, setCompletionSearchString] = useState('');
 
   const usersById = useMemo(() => indexedById(users), [users]);
 
@@ -517,11 +517,11 @@ const FancyEditor = React.forwardRef(({
         // The user's search string to attempt to match on is the string that
         // follows between the @ and the cursor.
         // Start by highlighting the top entry in the autocomplete list.
-        setTarget(beforeRange);
-        setSearch(beforeMatch[1]!);
-        setIndex(0);
+        setCompletionAnchorRange(beforeRange);
+        setCompletionSearchString(beforeMatch[1]!);
+        setCompletionCursorIndex(0);
       } else {
-        setTarget(undefined);
+        setCompletionAnchorRange(undefined);
       }
     }
 
@@ -531,35 +531,40 @@ const FancyEditor = React.forwardRef(({
     }
   }, [editor, onContentChange]);
 
-  const matchingUsers: AugmentedUser[] = useMemo(() => matchUsers(users, search), [users, search]);
+  const matchingUsers: AugmentedUser[] = useMemo(
+    () => matchUsers(users, completionSearchString),
+    [users, completionSearchString]
+  );
 
   const onKeyDown: React.KeyboardEventHandler<HTMLDivElement> = useCallback((event) => {
-    if (target && matchingUsers.length > 0) {
+    if (completionAnchorRange && matchingUsers.length > 0) {
       switch (event.key) {
         case 'ArrowDown': {
           event.preventDefault();
-          const nextIndex = index >= matchingUsers.length - 1 ? 0 : index + 1;
-          setIndex(nextIndex);
+          const nextIndex = completionCursorIndex >= matchingUsers.length - 1 ? 0 :
+            completionCursorIndex + 1;
+          setCompletionCursorIndex(nextIndex);
           return;
         }
         case 'ArrowUp': {
           event.preventDefault();
-          const prevIndex = index === 0 ? matchingUsers.length - 1 : index - 1;
-          setIndex(prevIndex);
+          const prevIndex = completionCursorIndex === 0 ? matchingUsers.length - 1 :
+            completionCursorIndex - 1;
+          setCompletionCursorIndex(prevIndex);
           return;
         }
         case 'Tab':
         case 'Enter': {
           event.preventDefault();
-          Transforms.select(editor, target);
-          const user = matchingUsers[index]!;
+          Transforms.select(editor, completionAnchorRange);
+          const user = matchingUsers[completionCursorIndex]!;
           insertMention(editor, user._id);
-          setTarget(undefined);
+          setCompletionAnchorRange(undefined);
           return;
         }
         case 'Escape': {
           event.preventDefault();
-          setTarget(undefined);
+          setCompletionAnchorRange(undefined);
           return;
         }
         default: break;
@@ -578,12 +583,12 @@ const FancyEditor = React.forwardRef(({
         clearInput();
       }
     }
-  }, [target, matchingUsers, index, editor, onSubmit, clearInput]);
+  }, [completionAnchorRange, matchingUsers, completionCursorIndex, editor, onSubmit, clearInput]);
 
   useEffect(() => {
-    if (target && matchingUsers.length > 0) {
+    if (completionAnchorRange && matchingUsers.length > 0) {
       const el = ref.current;
-      const domRange = ReactEditor.toDOMRange(editor, target);
+      const domRange = ReactEditor.toDOMRange(editor, completionAnchorRange);
       const rect = domRange.getBoundingClientRect();
       if (el) {
         const elRect = el.getBoundingClientRect();
@@ -604,23 +609,26 @@ const FancyEditor = React.forwardRef(({
         el.style.left = `${rect.left + window.scrollX}px`;
       }
     }
-  }, [matchingUsers.length, editor, index, search, target]);
+  }, [
+    matchingUsers.length, editor, completionCursorIndex, completionSearchString,
+    completionAnchorRange,
+  ]);
 
   const onUserSelected = useCallback((u: Meteor.User) => {
-    Transforms.select(editor, target!);
+    Transforms.select(editor, completionAnchorRange!);
     insertMention(editor, u._id);
-    setTarget(undefined);
+    setCompletionAnchorRange(undefined);
     ReactEditor.focus(editor);
-  }, [editor, target]);
+  }, [editor, completionAnchorRange]);
 
   const debugPane = DEBUG_EDITOR ? (
     <div style={{ position: 'fixed', bottom: '0', right: '0' }}>
       <div style={{ width: '800px', overflowX: 'auto', overflowY: 'auto' }}>
         <pre>{JSON.stringify(editor.children, null, 2)}</pre>
       </div>
-      <div>{`target: ${JSON.stringify(target)}`}</div>
-      <div>{`search: ${search}`}</div>
-      <div>{`index: ${index}`}</div>
+      <div>{`completionAnchorRange: ${JSON.stringify(completionAnchorRange)}`}</div>
+      <div>{`completionSearchString: ${completionSearchString}`}</div>
+      <div>{`completionCursorIndex: ${completionCursorIndex}`}</div>
     </div>
   ) : undefined;
 
@@ -631,7 +639,7 @@ const FancyEditor = React.forwardRef(({
       onChange={onChange}
     >
       {debugPane}
-      {target && matchingUsers.length > 0 && (
+      {completionAnchorRange && matchingUsers.length > 0 && (
         <Portal>
           <AutocompleteContainer
             ref={ref}
@@ -645,7 +653,7 @@ const FancyEditor = React.forwardRef(({
                 <MatchCandidate
                   key={user._id}
                   user={user}
-                  selected={i === index}
+                  selected={i === completionCursorIndex}
                   onSelected={onUserSelected}
                 />
               );
