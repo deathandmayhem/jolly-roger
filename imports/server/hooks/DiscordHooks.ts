@@ -6,6 +6,7 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Settings from '../../lib/models/Settings';
 import Tags from '../../lib/models/Tags';
+import { ChatMessageContentType, nodeIsText } from '../../lib/schemas/ChatMessage';
 import { DiscordBot } from '../discord';
 import Hookset from './Hookset';
 
@@ -26,6 +27,18 @@ async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   }
 
   return new DiscordBot(token);
+}
+
+async function renderChatMessageV2Content(content: ChatMessageContentType): Promise<string> {
+  const chunks = await Promise.all(content.children.map(async (child) => {
+    if (nodeIsText(child)) {
+      return child.text;
+    } else {
+      const user = await MeteorUsers.findOneAsync(child.userId);
+      return `@${user?.displayName ?? child.userId}`;
+    }
+  }));
+  return chunks.join('');
 }
 
 const DiscordHooks: Hookset = {
@@ -114,6 +127,15 @@ const DiscordHooks: Hookset = {
         title = `${title.substring(0, 24)}…`;
       }
 
+      let description: string;
+      if (chatMessage.content) {
+        description = await renderChatMessageV2Content(
+          chatMessage.content as ChatMessageContentType
+        );
+      } else {
+        description = chatMessage.text!;
+      }
+
       const msg = {
         embed: {
           author: {
@@ -121,7 +143,7 @@ const DiscordHooks: Hookset = {
           },
           url,
           title,
-          description: chatMessage.text,
+          description,
         },
         nonce: chatMessageId,
         allowed_mentions: {
