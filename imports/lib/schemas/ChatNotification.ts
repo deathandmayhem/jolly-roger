@@ -17,8 +17,10 @@ const ChatNotificationFields = t.type({
   puzzle: t.string,
   // The hunt in which the puzzle resides.
   hunt: t.string,
-  // The message body. Plain text.
-  text: t.string,
+  // The message body, if chat message v1. Plain text.
+  text: t.union([t.string, t.undefined]),
+  // The message content, if chat message v2.  Actually contains ChatMessageContentType
+  content: t.union([t.UnknownRecord, t.undefined]),
   // The date this message was sent.  Used for ordering chats in the log.
   timestamp: date,
 });
