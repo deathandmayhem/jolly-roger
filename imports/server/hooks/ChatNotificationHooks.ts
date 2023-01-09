@@ -5,9 +5,7 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import { ChatMessageContentType, nodeIsMention, nodeIsText } from '../../lib/schemas/ChatMessage';
 import Hookset from './Hookset';
 
-// TODO: rename this to "ChatNotificationHooks" because we probably want to dedupe notifs
-// for dingwords and @-mentions
-const DingwordHooks: Hookset = {
+const ChatNotificationHooks: Hookset = {
   async onChatMessageCreated(chatMessageId: string) {
     // This method implements notifications for both Dingwords and @-mentions together,
     // so that we do not generate duplicate notifications if a user is both @-mentioned
@@ -101,4 +99,4 @@ const DingwordHooks: Hookset = {
   },
 };
 
-export default DingwordHooks;
+export default ChatNotificationHooks;
