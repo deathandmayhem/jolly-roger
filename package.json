@@ -36,6 +36,7 @@
     "dompurify": "^2.4.3",
     "element-resize-detector": "^1.2.4",
     "express": "^4.18.2",
+    "form-data": "^4.0.0",
     "fp-ts": "^2.13.1",
     "glob": "^8.0.3",
     "google-auth-library": "^8.6.0",
