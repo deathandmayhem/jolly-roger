@@ -304,8 +304,8 @@ const walkTokenList = (
 };
 
 const walkToken = (token: marked.Token, callback: TraverseCallback, offset: number) => {
-  if ((token as any).tokens) {
-    walkTokenList((token as any).tokens, callback, offset);
+  if ('tokens' in token && token.tokens) {
+    walkTokenList(token.tokens, callback, offset);
   }
   callback(token, offset);
 };

@@ -2,7 +2,7 @@
 import { marked } from 'marked';
 import React from 'react';
 import styled from 'styled-components';
-import { ChatMessageContentNodeType, ChatMessageContentType, ChatMessageMentionNodeType } from '../../lib/schemas/ChatMessage';
+import { ChatMessageContentType, nodeIsMention } from '../../lib/schemas/ChatMessage';
 import { MentionSpan } from './FancyEditor';
 
 // This file implements standalone rendering for the MessageElement format
@@ -33,10 +33,6 @@ const StyledCodeBlock = styled.code`
   color: black;
   margin-bottom: 0;
 `;
-
-function isMention(thing: ChatMessageContentNodeType): thing is ChatMessageMentionNodeType {
-  return (thing as any).type === 'mention';
-}
 
 // Renders a markdown token to React components.
 const MarkdownToken = ({ token }: { token: marked.Token }) => {
@@ -102,7 +98,7 @@ const ChatMessageV2 = ({ message, displayNames, selfUserId }: {
   selfUserId: string,
 }) => {
   const children = message.children.map((child, i) => {
-    if (isMention(child)) {
+    if (nodeIsMention(child)) {
       const displayName = displayNames.get(child.userId);
       return (
         <MentionSpan key={i} isSelf={child.userId === selfUserId}>
