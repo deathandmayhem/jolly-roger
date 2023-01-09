@@ -46,6 +46,7 @@ import './removePuzzleTag';
 import './renameTag';
 import './rollAPIKey';
 import './sendChatMessage';
+import './sendChatMessageV2';
 import './setFeatureFlag';
 import './setGuessState';
 import './syncHuntDiscordRole';
