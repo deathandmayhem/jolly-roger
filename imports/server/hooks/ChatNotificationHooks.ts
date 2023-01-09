@@ -2,7 +2,7 @@ import Flags from '../../Flags';
 import ChatMessages from '../../lib/models/ChatMessages';
 import ChatNotifications from '../../lib/models/ChatNotifications';
 import MeteorUsers from '../../lib/models/MeteorUsers';
-import { ChatMessageContentType, nodeIsMention, nodeIsText } from '../../lib/schemas/ChatMessage';
+import { nodeIsMention, nodeIsText } from '../../lib/schemas/ChatMessage';
 import Hookset from './Hookset';
 
 const ChatNotificationHooks: Hookset = {
@@ -25,8 +25,7 @@ const ChatNotificationHooks: Hookset = {
 
     // Notify for @-mentions in message.
     if (chatMessage.content) {
-      const content = chatMessage.content as ChatMessageContentType;
-      content.children.forEach((child) => {
+      chatMessage.content.children.forEach((child) => {
         if (nodeIsMention(child)) {
           const user = child.userId;
           if (user !== chatMessage.sender) {
@@ -40,7 +39,7 @@ const ChatNotificationHooks: Hookset = {
     // Respect feature flag.
     if (!Flags.active('disable.dingwords')) {
       const normalizedText = chatMessage.text?.trim().toLowerCase() ??
-        (chatMessage.content as ChatMessageContentType | undefined)?.children.map((child) => {
+        chatMessage.content?.children.map((child) => {
           if (nodeIsText(child)) {
             return child.text;
           } else {

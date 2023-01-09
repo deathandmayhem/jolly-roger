@@ -31,7 +31,6 @@ import PendingAnnouncements from '../../lib/models/PendingAnnouncements';
 import Puzzles from '../../lib/models/Puzzles';
 import { userIsOperatorForAnyHunt } from '../../lib/permission_stubs';
 import { AnnouncementType } from '../../lib/schemas/Announcement';
-import { ChatMessageContentType } from '../../lib/schemas/ChatMessage';
 import { ChatNotificationType } from '../../lib/schemas/ChatNotification';
 import { GuessType } from '../../lib/schemas/Guess';
 import { HuntType } from '../../lib/schemas/Hunt';
@@ -517,7 +516,7 @@ const ChatNotificationMessage = ({
     contentElement = (
       <div>
         <ChatMessageV2
-          message={cn.content as ChatMessageContentType}
+          message={cn.content}
           displayNames={displayNames}
           selfUserId={selfUserId}
         />

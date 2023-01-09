@@ -1,11 +1,11 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
 import { BaseCodec, BaseOverrides } from './Base';
+import { ChatMessageContent } from './ChatMessage';
 import { Id } from './regexes';
 import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
 
-// A notification triggered by a chat message sent by a user.
-const ChatNotificationFields = t.type({
+const SharedFields = {
   // The userId of the user for whom this notification targets.
   user: t.string,
 
@@ -19,10 +19,28 @@ const ChatNotificationFields = t.type({
   hunt: t.string,
   // The message body, if chat message v1. Plain text.
   text: t.union([t.string, t.undefined]),
-  // The message content, if chat message v2.  Actually contains ChatMessageContentType
-  content: t.union([t.UnknownRecord, t.undefined]),
   // The date this message was sent.  Used for ordering chats in the log.
   timestamp: date,
+};
+
+// A notification triggered by a chat message sent by a user.
+const ChatNotificationCodec = t.intersection([
+  BaseCodec,
+  t.type({
+    ...SharedFields,
+    // The message content, if chat message v2.
+    content: t.union([ChatMessageContent, t.undefined]),
+  }),
+]);
+export { ChatNotificationCodec };
+export type ChatNotificationType = t.TypeOf<typeof ChatNotificationCodec>;
+
+// A notification triggered by a chat message sent by a user, as we represent it to
+// simpl-schema, since it can't handle tagged unions well
+const ChatNotificationFields = t.type({
+  ...SharedFields,
+  // The message content, if chat message v2.  Actually contains ChatMessageContentType
+  content: t.union([t.UnknownRecord, t.undefined]),
 });
 
 const ChatNotificationFieldsOverrides: Overrides<t.TypeOf<typeof ChatNotificationFields>> = {
@@ -40,16 +58,14 @@ const ChatNotificationFieldsOverrides: Overrides<t.TypeOf<typeof ChatNotificatio
   },
 };
 
-const [ChatNotificationCodec, ChatNotificationOverrides] = inheritSchema(
+const [ChatNotificationSchemaCodec, ChatNotificationOverrides] = inheritSchema(
   BaseCodec,
   ChatNotificationFields,
   BaseOverrides,
   ChatNotificationFieldsOverrides,
 );
-export { ChatNotificationCodec };
-export type ChatNotificationType = t.TypeOf<typeof ChatNotificationCodec>;
 
 // A single chat message
-const ChatNotification = buildSchema(ChatNotificationCodec, ChatNotificationOverrides);
+const ChatNotification = buildSchema(ChatNotificationSchemaCodec, ChatNotificationOverrides);
 
 export default ChatNotification;

@@ -58,7 +58,7 @@ import MeteorUsers, { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
-import { ChatMessageContentType, ChatMessageType, nodeIsMention } from '../../lib/schemas/ChatMessage';
+import { ChatMessageType, nodeIsMention } from '../../lib/schemas/ChatMessage';
 import { DocumentType } from '../../lib/schemas/Document';
 import { GuessType } from '../../lib/schemas/Guess';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
@@ -309,7 +309,7 @@ const ChatMessage = React.memo(({
       {message.text && <Markdown as="span" text={message.text} />}
       {message.content && (
         <ChatMessageV2
-          message={message.content as ChatMessageContentType}
+          message={message.content}
           displayNames={displayNames}
           selfUserId={selfUserId}
         />
