@@ -25,15 +25,19 @@ const ChatNotificationHooks: Hookset = {
 
     // Notify for @-mentions in message.
     if (chatMessage.content) {
-      chatMessage.content.children.forEach((child) => {
+      await Promise.all(chatMessage.content.children.map(async (child) => {
         if (nodeIsMention(child)) {
-          const user = child.userId;
-          if (user !== chatMessage.sender) {
+          const mentionedUserId = child.userId;
+          if (mentionedUserId !== chatMessage.sender) {
             // Don't have messages notify yourself.
-            usersToNotify.add(user);
+            const mentionedUser = await MeteorUsers.findOneAsync(mentionedUserId);
+            if (mentionedUser?.hunts?.includes(chatMessage.hunt)) {
+              // Only allow mentions of users that are in the current hunt.
+              usersToNotify.add(mentionedUserId);
+            }
           }
         }
-      });
+      }));
     }
 
     // Respect feature flag.

@@ -520,16 +520,24 @@ const initialValue: Descendant[] = [
 ];
 
 const ChatInput = React.memo(({
-  users, onHeightChange, onMessageSent, puzzleId, puzzleDeleted,
+  onHeightChange, onMessageSent, huntId, puzzleId, puzzleDeleted,
 }: {
-  users: Meteor.User[];
   onHeightChange: () => void;
   onMessageSent: () => void;
+  huntId: string;
   puzzleId: string;
   puzzleDeleted: boolean;
 }) => {
   // Drive this with a circuit breaker.
   const useNewInput = useTracker(() => !Flags.active('disable.chatv2'), []);
+
+  // We want to have hunt profile data around so we can autocomplete from multiple fields.
+  const profilesLoadingFunc = useSubscribe(useNewInput ? 'huntProfiles' : undefined, huntId);
+  const profilesLoading = profilesLoadingFunc();
+  const users = useTracker(() => {
+    return profilesLoading ? [] : MeteorUsers.find({ hunts: huntId }).fetch();
+  }, [huntId, profilesLoading]);
+
   // Shared.
   const onHeightChangeCb = useCallback((newHeight: number) => {
     if (onHeightChange) {
@@ -669,7 +677,7 @@ interface ChatSectionHandle {
 
 const ChatSection = React.forwardRef(({
   chatDataLoading, puzzleDeleted, displayNames, puzzleId, huntId,
-  callState, callDispatch, selfUserId, users,
+  callState, callDispatch, selfUserId,
 }: {
   chatDataLoading: boolean;
   puzzleDeleted: boolean;
@@ -679,7 +687,6 @@ const ChatSection = React.forwardRef(({
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
   selfUserId: string;
-  users: Meteor.User[],
 }, forwardedRef: React.Ref<ChatSectionHandle>) => {
   const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
   const scrollToTargetRequestRef = useRef<boolean>(false);
@@ -741,7 +748,7 @@ const ChatSection = React.forwardRef(({
       />
       <ChatHistoryMemo ref={historyRef} puzzleId={puzzleId} displayNames={displayNames} selfUserId={selfUserId} />
       <ChatInput
-        users={users}
+        huntId={huntId}
         puzzleId={puzzleId}
         puzzleDeleted={puzzleDeleted}
         onHeightChange={scrollHistoryToTarget}
@@ -1891,9 +1898,6 @@ const PuzzlePage = React.memo(() => {
   ), [puzzleDataLoading, puzzleId]);
 
   const selfUserId = useTracker(() => Meteor.userId()!, []);
-  const users = useTracker(() => {
-    return MeteorUsers.find({}).fetch();
-  }, []);
 
   const puzzleTitle = activePuzzle ? `${activePuzzle.title}${activePuzzle.deleted ? ' (deleted)' : ''}` : '(no such puzzle)';
   const title = puzzleDataLoading ? 'loading...' : puzzleTitle;
@@ -1980,7 +1984,6 @@ const PuzzlePage = React.memo(() => {
       callState={callState}
       callDispatch={dispatch}
       selfUserId={selfUserId}
-      users={users}
     />
   );
   const deletedModal = activePuzzle.deleted && (
