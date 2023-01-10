@@ -62,7 +62,6 @@ class MigrationRegistry {
     this.migrations = [];
     this.logger = logger.child({
       label: 'migrations',
-      // eslint-disable-next-line no-underscore-dangle
       collection: this.collection._name,
     });
   }

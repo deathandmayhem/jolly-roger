@@ -1,4 +1,3 @@
-/* eslint no-underscore-dangle: ["error", {allow: ["_name"]}] */
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { isDeepStrictEqual } from 'util';
 import { Meteor, Subscription } from 'meteor/meteor';

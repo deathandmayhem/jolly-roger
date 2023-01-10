@@ -1,4 +1,3 @@
-/* eslint no-underscore-dangle: ["error", {allow: ["_name"]}] */
 import { Meteor, Subscription } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 

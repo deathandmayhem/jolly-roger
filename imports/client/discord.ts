@@ -37,14 +37,12 @@ function requestDiscordCredential(credentialRequestCompleteCallback: any) {
   }
 
   const credentialToken = Random.secret();
-  // eslint-disable-next-line no-underscore-dangle
   const loginStyle = OAuth._loginStyle('discord', config, options || {});
   const loginUrlParameters = {
     response_type: 'code',
     client_id: config.appId,
     scope: DiscordOAuthScopes.join(' '),
     redirect_uri: OAuth._redirectUri('discord', config),
-    // eslint-disable-next-line no-underscore-dangle
     state: OAuth._stateParam(loginStyle, credentialToken, undefined),
   };
   const loginUrlParamString = Object.keys(loginUrlParameters).map((param) => {

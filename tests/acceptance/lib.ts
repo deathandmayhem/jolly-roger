@@ -111,7 +111,6 @@ export const subscribeAsync =
 
 const waitForSubscriptions = () => new Promise<void>((resolve) => {
   const poll = Meteor.setInterval(() => {
-    // eslint-disable-next-line no-underscore-dangle
     if (DDP._allSubscriptionsReady()) {
       Meteor.clearInterval(poll);
       resolve();

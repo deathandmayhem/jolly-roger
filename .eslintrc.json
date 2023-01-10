@@ -55,7 +55,8 @@
       {
         "allow": [
           "_id", "_this", "_dropIndex", "_redirectUri", "_postRequest",
-          "_anyMethodsAreOutstanding", "_schemaKeys", "_schema", "_retrieveCredentialSecret"
+          "_anyMethodsAreOutstanding", "_schemaKeys", "_schema", "_retrieveCredentialSecret",
+          "_loginStyle", "_stateParam", "_name", "_allSubscriptionsReady"
         ]
       }
     ],
