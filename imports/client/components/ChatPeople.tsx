@@ -229,49 +229,57 @@ const ChatPeople = ({
 
   const { muted, deafened } = audioControls;
 
-  const joinCall = useCallback(async () => {
+  const joinCall = useCallback(() => {
     trace('ChatPeople joinCall');
-    if (navigator.mediaDevices) {
-      callDispatch({ type: 'request-capture' });
-      const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ??
-        undefined;
-      // Get the user media stream.
-      const mediaStreamConstraints = {
-        audio: {
-          echoCancellation: { ideal: true },
-          autoGainControl: { ideal: true },
-          noiseSuppression: { ideal: true },
-          deviceId: preferredAudioDeviceId,
-        },
-        // TODO: conditionally allow video if enabled by feature flag?
-      };
-
-      let mediaSource: MediaStream;
-      try {
-        mediaSource = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
-      } catch (e) {
-        setError(`Couldn't get local microphone: ${(e as Error).message}`);
-        callDispatch({ type: 'capture-error', error: e as Error });
-        return;
-      }
-
-      const AudioContext = window.AudioContext ||
-        (window as {webkitAudioContext?: AudioContext}).webkitAudioContext;
-      const audioContext = new AudioContext();
-
-      callDispatch({
-        type: 'join-call',
-        audioState: {
-          mediaSource,
-          audioContext,
-        },
-      });
-    } else {
-      const msg = 'Couldn\'t get local microphone: browser denies access on non-HTTPS origins';
-      setError(msg);
-      callDispatch({ type: 'capture-error', error: new Error(msg) });
-    }
+    callDispatch({ type: 'trigger-join-call' });
   }, [callDispatch]);
+
+  useEffect(() => {
+    void (async () => {
+      if (callState.callState === CallJoinState.TRIGGER_JOIN_CALL) {
+        if (navigator.mediaDevices) {
+          callDispatch({ type: 'request-capture' });
+          const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ??
+            undefined;
+          // Get the user media stream.
+          const mediaStreamConstraints = {
+            audio: {
+              echoCancellation: { ideal: true },
+              autoGainControl: { ideal: true },
+              noiseSuppression: { ideal: true },
+              deviceId: preferredAudioDeviceId,
+            },
+            // TODO: conditionally allow video if enabled by feature flag?
+          };
+
+          let mediaSource: MediaStream;
+          try {
+            mediaSource = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
+          } catch (e) {
+            setError(`Couldn't get local microphone: ${(e as Error).message}`);
+            callDispatch({ type: 'capture-error', error: e as Error });
+            return;
+          }
+
+          const AudioContext = window.AudioContext ||
+            (window as {webkitAudioContext?: AudioContext}).webkitAudioContext;
+          const audioContext = new AudioContext();
+
+          callDispatch({
+            type: 'join-call',
+            audioState: {
+              mediaSource,
+              audioContext,
+            },
+          });
+        } else {
+          const msg = 'Couldn\'t get local microphone: browser denies access on non-HTTPS origins';
+          setError(msg);
+          callDispatch({ type: 'capture-error', error: new Error(msg) });
+        }
+      }
+    })();
+  }, [callState.callState, callDispatch]);
 
   useLayoutEffect(() => {
     trace('ChatPeople useLayoutEffect', {

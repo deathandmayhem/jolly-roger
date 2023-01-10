@@ -1,3 +1,4 @@
+import { Reload } from 'meteor/reload';
 import { SetStateAction, useCallback } from 'react';
 import createPersistedState from 'use-persisted-state';
 
@@ -111,3 +112,47 @@ export const useHuntPuzzleListCollapseGroup = (huntId: string, tagId: string) =>
     }, [setHuntPuzzleListCollapseGroups, tagId]),
   ] as const;
 };
+
+// Allow tab ID to be persistent cor the duration of a single window/tab's session
+export const useTabId = createPersistedState<string>('tabId', sessionStorage);
+
+// Tie together Meteor's reload hooks and direct use of sessionStorage to create
+// a state storage that persists across Meteor-triggered reloads, but not other
+// reloads. This ensures that (e.g.) call state is persisted when Meteor code
+// pushes happen, but not when the user manually reloads the page.
+//
+// To ensure that data doesn't stick around, we cache writes in memory until we
+// get a reload trigger from Meteor, at which point we flush to sessionStorage.
+// We read and delete that sessionStorage at startup, so it's not still around
+// for subsequent reloads.
+const sessionStorageKey = 'reloadOnlyPersistedState';
+const meteorReloadOnlyCache = new Map<string, string>(
+  Object.entries(
+    JSON.parse(
+      sessionStorage.getItem(sessionStorageKey) ?? '[]'
+    )
+  )
+);
+sessionStorage.removeItem(sessionStorageKey);
+Reload._onMigrate(() => {
+  sessionStorage.setItem(sessionStorageKey, JSON.stringify(
+    Object.fromEntries(
+      meteorReloadOnlyCache.entries()
+    )
+  ));
+  return [true];
+});
+const meteorReloadOnlySessionStorage: Pick<Storage, 'getItem' | 'setItem'> = {
+  getItem(key) {
+    return meteorReloadOnlyCache.get(key) ?? null;
+  },
+
+  setItem(key, value) {
+    meteorReloadOnlyCache.set(key, value);
+  },
+};
+
+export const useSavedCallState = createPersistedState<'idle' | 'active' | 'muted' | 'deafened'>(
+  'savedCallState',
+  meteorReloadOnlySessionStorage,
+);

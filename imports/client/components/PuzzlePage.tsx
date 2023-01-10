@@ -78,6 +78,7 @@ import undestroyPuzzle from '../../methods/undestroyPuzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
 import GoogleScriptInfo from '../GoogleScriptInfo';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import { useTabId } from '../hooks/persisted-state';
 import useCallState, { Action, CallState } from '../hooks/useCallState';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
@@ -101,8 +102,6 @@ import { mediaBreakpointDown } from './styling/responsive';
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
-
-const tabId = Random.id();
 
 const FilteredChatFields = ['_id', 'puzzle', 'text', 'content', 'sender', 'timestamp'] as const;
 type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[number]>
@@ -1824,6 +1823,12 @@ const PuzzleDeletedModal = ({
 };
 
 const PuzzlePage = React.memo(() => {
+  const [tabId, setTabId] = useTabId(() => Random.id());
+  // Ensure that tabId is persisted when initially populated
+  useEffect(() => {
+    setTabId(tabId);
+  }, [tabId, setTabId]);
+
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);

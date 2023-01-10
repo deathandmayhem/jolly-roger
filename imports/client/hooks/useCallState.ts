@@ -20,11 +20,13 @@ import mediasoupAckPeerRemoteMute from '../../methods/mediasoupAckPeerRemoteMute
 import mediasoupConnectTransport from '../../methods/mediasoupConnectTransport';
 import mediasoupSetPeerState from '../../methods/mediasoupSetPeerState';
 import mediasoupSetProducerPaused from '../../methods/mediasoupSetProducerPaused';
+import { useSavedCallState } from './persisted-state';
 
 const logger = defaultLogger.child({ label: 'useCallState' });
 
 export enum CallJoinState {
   CHAT_ONLY = 'chatonly',
+  TRIGGER_JOIN_CALL = 'triggerjoin',
   REQUESTING_STREAM = 'requestingstream',
   STREAM_ERROR = 'streamerror',
   IN_CALL = 'call',
@@ -65,7 +67,10 @@ export type Transports = {
 };
 
 export type CallState = ({
-  callState: CallJoinState.CHAT_ONLY | CallJoinState.REQUESTING_STREAM | CallJoinState.STREAM_ERROR;
+  callState: CallJoinState.CHAT_ONLY |
+    CallJoinState.TRIGGER_JOIN_CALL |
+    CallJoinState.REQUESTING_STREAM |
+    CallJoinState.STREAM_ERROR;
   audioState?: AudioState;
 } | {
   callState: CallJoinState.IN_CALL;
@@ -87,6 +92,7 @@ export type CallState = ({
 };
 
 export type Action =
+  | { type: 'trigger-join-call' }
   | { type: 'request-capture' }
   | { type: 'capture-error', error: Error }
   | { type: 'join-call', audioState: AudioState }
@@ -126,6 +132,8 @@ const INITIAL_STATE: CallState = {
 function reducer(state: CallState, action: Action): CallState {
   logger.debug('dispatch', action);
   switch (action.type) {
+    case 'trigger-join-call':
+      return { ...state, callState: CallJoinState.TRIGGER_JOIN_CALL };
     case 'request-capture':
       return { ...state, callState: CallJoinState.REQUESTING_STREAM };
     case 'capture-error':
@@ -298,6 +306,8 @@ function reducer(state: CallState, action: Action): CallState {
   }
 }
 
+const INITIAL_STATE_JOIN_CALL = reducer(INITIAL_STATE, { type: 'trigger-join-call' });
+
 const useTransport = (
   device: types.Device | undefined,
   direction: 'send' | 'recv',
@@ -406,14 +416,44 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   puzzleId: string,
   tabId: string,
 }): [CallState, React.Dispatch<Action>] => {
-  const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+  const [savedState, setSavedState] = useSavedCallState('idle');
+  const initialSavedState = useRef<typeof savedState>();
+  if (!initialSavedState.current) {
+    initialSavedState.current = savedState;
+  }
+  const [state, dispatch] = useReducer(reducer, savedState === 'idle' ? INITIAL_STATE : INITIAL_STATE_JOIN_CALL);
 
+  // Update saved state as internal state changes
+  useEffect(() => {
+    if (state.callState === CallJoinState.IN_CALL) {
+      if (state.audioControls.deafened) {
+        setSavedState('deafened');
+      } else if (state.audioControls.muted) {
+        setSavedState('muted');
+      } else {
+        setSavedState('active');
+      }
+    } else {
+      setSavedState('idle');
+    }
+  }, [setSavedState, state.audioControls.deafened, state.audioControls.muted, state.callState]);
+
+  const tuple = useRef<{ huntId: string, puzzleId: string, tabId: string }>();
+  if (!tuple.current) {
+    tuple.current = { huntId, puzzleId, tabId };
+  }
   useEffect(() => {
     // If huntId, puzzleId, or tabId change (but mostly puzzleId), reset
     // call state.
     return () => {
-      logger.debug('huntId/puzzleId/tabId changed, resetting call state');
-      dispatch({ type: 'reset' });
+      if (!tuple.current ||
+        tuple.current.huntId !== huntId ||
+        tuple.current.puzzleId !== puzzleId ||
+        tuple.current.tabId !== tabId) {
+        logger.debug('huntId/puzzleId/tabId changed, resetting call state');
+        dispatch({ type: 'reset' });
+        tuple.current = { huntId, puzzleId, tabId };
+      }
     };
   }, [huntId, puzzleId, tabId]);
 
@@ -457,16 +497,17 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   useEffect(() => {
     if (state.callState === CallJoinState.IN_CALL && !joinSubRef.current) {
       // Subscribe to 'mediasoup:join' for huntId, puzzleId, tabId
-      joinSubRef.current = Meteor.subscribe('mediasoup:join', huntId, puzzleId, tabId);
+      const init = initialSavedState.current !== 'idle' ? initialSavedState.current : undefined;
+      joinSubRef.current = Meteor.subscribe('mediasoup:join', huntId, puzzleId, tabId, init);
     }
 
     return () => {
-      if (joinSubRef.current) {
+      if (joinSubRef.current && state.callState !== CallJoinState.IN_CALL) {
         joinSubRef.current.stop();
         joinSubRef.current = undefined;
       }
     };
-  }, [state.callState, huntId, puzzleId, tabId]);
+  }, [state.callState, savedState, huntId, puzzleId, tabId]);
 
   const userId = useTracker(() => Meteor.userId(), []);
   const peers = useFind(() => Peers.find({ hunt: huntId, call: puzzleId }), [huntId, puzzleId]);

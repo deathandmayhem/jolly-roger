@@ -102,10 +102,11 @@ Meteor.publish('mediasoup:metadata', async function (hunt, call) {
   ];
 });
 
-Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
+Meteor.publish('mediasoup:join', async function (hunt, call, tab, initialClientState) {
   check(hunt, String);
   check(call, String);
   check(tab, String);
+  check(initialClientState, Match.Maybe(Match.OneOf('active', 'muted', 'deafened')));
 
   if (!this.userId) {
     throw new Meteor.Error(401, 'Not logged in');
@@ -153,25 +154,33 @@ Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
       });
     }
 
+    // The server ultimately determines the initial state of a peer, but takes
+    // input. The algorithm is:
+    // - If either the client or the server believes that this peer was
+    //   previously on the call, restore their previous state. (Client expresses
+    //   this belief by populating the initialState parameter; server looks for
+    //   an old Peer record. Client wins ties)
+    // - Otherwise, if this peer would be the 8th (or higher) member of the
+    //   room, start muted, because large calls can get noisy. (Drop this to 3
+    //   in local development so we don't have to open as many tabs)
+    // - Otherwise, start active.
     const peerCount = await Peers.find({ hunt, call }).countAsync();
-    // If we are a new joiner and would be the 8th (or more) peer, join the
-    // call starting out muted, because large calls can get noisy.
-    // In local development, make this just 3 because it's annoying to open that many browser tabs.
     const crowdSize = Meteor.isDevelopment ? 3 : 8;
-    let initialPeerState: 'active' | 'muted' | 'deafened' = peerCount + 1 >= crowdSize ? 'muted' : 'active';
-    // But if we were previously in call, just restore whatever the previous
-    // mute state was.
+
+    let initialServerState;
     if (maybeOldPeer) {
-      let oldPeerState;
       if (maybeOldPeer.deafened) {
-        oldPeerState = 'deafened' as const;
+        initialServerState = 'deafened' as const;
       } else if (maybeOldPeer.muted) {
-        oldPeerState = 'muted' as const;
+        initialServerState = 'muted' as const;
       } else {
-        oldPeerState = 'active' as const;
+        initialServerState = 'active' as const;
       }
-      initialPeerState = oldPeerState;
     }
+
+    const initialPeerState: 'active' | 'muted' | 'deafened' =
+      initialClientState ?? initialServerState ??
+      (peerCount + 1 >= crowdSize ? 'muted' : 'active');
 
     peerId = await Peers.insertAsync({
       createdServer: serverId,
