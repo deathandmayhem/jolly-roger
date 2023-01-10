@@ -35,19 +35,17 @@ createFixtureHunt.define({
     await addUserToRole(this.userId, huntId, 'operator');
 
     // Create tags
-    await FixtureHunt.tags.reduce(async (p, { _id, name }) => {
-      await p;
+    for (const { _id, name } of FixtureHunt.tags) {
       await Tags.upsertAsync({ _id }, {
         $set: {
           hunt: huntId,
           name,
         },
       });
-    }, Promise.resolve());
+    }
 
     // Create puzzles associated with the hunt.  Don't bother running the puzzle hooks.
-    await FixtureHunt.puzzles.reduce(async (p, puzzle) => {
-      await p;
+    for (const puzzle of FixtureHunt.puzzles) {
       await Puzzles.upsertAsync({
         _id: puzzle._id,
       }, {
@@ -61,8 +59,7 @@ createFixtureHunt.define({
         },
       });
 
-      await puzzle.guesses.reduce(async (gp, g) => {
-        await gp;
+      for (const g of puzzle.guesses) {
         await Guesses.upsertAsync({ _id: g._id }, {
           $set: {
             hunt: huntId,
@@ -74,7 +71,7 @@ createFixtureHunt.define({
             additionalNotes: g.additionalNotes,
           },
         });
-      }, Promise.resolve());
-    }, Promise.resolve());
+      }
+    }
   },
 });

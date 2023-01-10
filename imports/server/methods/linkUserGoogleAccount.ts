@@ -39,10 +39,9 @@ linkUserGoogleAccount.define({
 
     if (!Flags.active('disable.google') && !Flags.active('disable.gdrive_permissions')) {
       const hunts = Meteor.user()!.hunts;
-      await hunts?.reduce(async (promise, huntId) => {
-        await promise;
-        await ensureHuntFolderPermission(huntId, this.userId!, email);
-      }, Promise.resolve());
+      for (const huntId of hunts ?? []) {
+        await ensureHuntFolderPermission(huntId, this.userId, email);
+      }
     }
   },
 });

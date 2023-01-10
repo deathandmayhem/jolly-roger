@@ -58,10 +58,9 @@ if (Meteor.isServer) {
         // Exclude system collections and velocity collections.
         return !col.collectionName.startsWith('system.') && !col.collectionName.startsWith('velocity');
       });
-      await appCollections.reduce(async (p, collection) => {
-        await p;
+      for (const collection of appCollections) {
         await collection.deleteMany({}, {});
-      }, Promise.resolve());
+      }
       // Done removing collections.
 
       Migrations.config({ log: false });

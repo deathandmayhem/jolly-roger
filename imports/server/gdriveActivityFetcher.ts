@@ -77,16 +77,14 @@ async function fetchDriveActivity() {
 
     if (resp.data.activities) {
       // Accumulate a promise that resolves to the latest timestamp we've seen
-      latestTimestamp = await resp.data.activities.reduce(async (p, activity) => {
-        const previousLatestTimestamp = await p;
-
+      for (const activity of resp.data.activities) {
         // See if this is a document edit action
         if (!activity.actions?.some((action) => action.detail?.edit)) {
-          return previousLatestTimestamp;
+          continue;
         }
 
         if (!activity.timestamp || !activity.targets || !activity.actors) {
-          return previousLatestTimestamp;
+          continue;
         }
 
         const ts = new Date(activity.timestamp);
@@ -112,8 +110,8 @@ async function fetchDriveActivity() {
 
         await recordDriveChanges(ts, documentIds, actorIds);
 
-        return Math.max(previousLatestTimestamp, ts.getTime());
-      }, Promise.resolve(latestTimestamp));
+        latestTimestamp = Math.max(latestTimestamp, ts.getTime());
+      }
     }
 
     pageToken = resp.data.nextPageToken ?? undefined;

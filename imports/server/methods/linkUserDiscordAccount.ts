@@ -65,9 +65,8 @@ linkUserDiscordAccount.define({
       }
     }
 
-    await Meteor.user()!.hunts?.reduce(async (p, h) => {
-      await p;
-      await addUsersToDiscordRole([this.userId!], h);
-    }, Promise.resolve());
+    for (const h of Meteor.user()!.hunts ?? []) {
+      await addUsersToDiscordRole([this.userId], h);
+    }
   },
 });
