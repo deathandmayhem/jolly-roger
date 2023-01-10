@@ -154,15 +154,14 @@ export async function makeReadOnly(fileId: string) {
   });
 
   // Delete any editor permissions
-  await permissions.reduce(async (promise, permission) => {
-    await promise;
+  for (const permission of permissions) {
     if (permission.id && permission.role === 'writer') {
       await client.permissions.delete({
         fileId,
         permissionId: permission.id,
       });
     }
-  }, Promise.resolve());
+  }
 }
 
 export async function makeReadWrite(fileId: string) {

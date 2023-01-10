@@ -21,39 +21,35 @@ class HooksRegistry {
   }
 
   async runPuzzleCreatedHooks(puzzleId: string) {
-    await this.registeredHooks.reduce(async (p, hook) => {
-      await p;
+    for (const hook of this.registeredHooks) {
       if (hook.onPuzzleCreated) {
         await hook.onPuzzleCreated(puzzleId);
       }
-    }, Promise.resolve());
+    }
   }
 
   async runPuzzleSolvedHooks(puzzleId: string, answer: string) {
-    await this.registeredHooks.reduce(async (p, hook) => {
-      await p;
+    for (const hook of this.registeredHooks) {
       if (hook.onPuzzleSolved) {
         await hook.onPuzzleSolved(puzzleId, answer);
       }
-    }, Promise.resolve());
+    }
   }
 
   async runPuzzleNoLongerSolvedHooks(puzzleId: string, answer: string) {
-    await this.registeredHooks.reduce(async (p, hook) => {
-      await p;
+    for (const hook of this.registeredHooks) {
       if (hook.onPuzzleNoLongerSolved) {
         await hook.onPuzzleNoLongerSolved(puzzleId, answer);
       }
-    }, Promise.resolve());
+    }
   }
 
   async runChatMessageCreatedHooks(chatMessageId: string) {
-    await this.registeredHooks.reduce(async (p, hook) => {
-      await p;
+    for (const hook of this.registeredHooks) {
       if (hook.onChatMessageCreated) {
         await hook.onChatMessageCreated(chatMessageId);
       }
-    }, Promise.resolve());
+    }
   }
 }
 

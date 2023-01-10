@@ -38,10 +38,9 @@ createHunt.define({
     const huntId = await Hunts.insertAsync(arg);
     await addUserToRole(this.userId, huntId, 'operator');
 
-    await DEFAULT_TAGS.reduce(async (p, tag) => {
-      await p;
+    for (const tag of DEFAULT_TAGS) {
       await getOrCreateTagByName(huntId, tag);
-    }, Promise.resolve());
+    }
 
     Meteor.defer(async () => {
       // Sync discord roles

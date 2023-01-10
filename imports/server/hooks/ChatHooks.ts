@@ -18,14 +18,13 @@ const ChatHooks: Hookset = {
     }).fetchAsync();
 
     const message = `${puzzle.title} (feeding into this meta) has been solved: ${answer}`;
-    await puzzlesWithMetaTags.reduce(async (p, metaPuzzle) => {
-      await p;
+    for (const metaPuzzle of puzzlesWithMetaTags) {
       await sendChatMessageInternal({
         puzzleId: metaPuzzle._id,
         message,
         sender: undefined,
       });
-    }, Promise.resolve());
+    }
   },
 };
 

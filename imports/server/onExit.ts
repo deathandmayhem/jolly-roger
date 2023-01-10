@@ -3,10 +3,9 @@ const exitHandlers: (() => void | Promise<void>)[] = [];
 ['SIGINT' as const, 'SIGTERM' as const, 'SIGHUP' as const].forEach((signal) => {
   process.once(signal, () => {
     void (async () => {
-      await exitHandlers.splice(0).reduce(async (p, handler) => {
-        await p;
+      for (const handler of exitHandlers.splice(0)) {
         await handler();
-      }, Promise.resolve());
+      }
       process.kill(process.pid, signal);
     })();
   });

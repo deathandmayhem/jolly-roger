@@ -76,8 +76,7 @@ configureEnsureGoogleScript.define({
         pageToken = deploymentsResponse.data.nextPageToken ?? undefined;
       } while (pageToken);
 
-      await deployments.reduce(async (p, d) => {
-        await p;
+      for (const d of deployments) {
         if (!d.deploymentConfig?.versionNumber) {
           // No version number means this is a HEAD deployment
           return;
@@ -92,7 +91,7 @@ configureEnsureGoogleScript.define({
             },
           },
         });
-      }, Promise.resolve());
+      }
 
       await Settings.updateAsync({ name: 'google.script' }, {
         $set: {

@@ -25,9 +25,7 @@ configureCollectGoogleAccountIds.define({
       });
       pageToken = resp.data.nextPageToken ?? undefined;
 
-      await resp.data.otherContacts?.reduce(async (p, contact) => {
-        await p;
-
+      for (const contact of resp.data.otherContacts ?? []) {
         const id = contact.metadata?.sources?.find((s) => s.type === 'PROFILE')?.id ?? undefined;
         if (!id) {
           return;
@@ -49,7 +47,7 @@ configureCollectGoogleAccountIds.define({
             googleAccountId: id,
           },
         }, { multi: true });
-      }, Promise.resolve());
+      }
     } while (pageToken);
   },
 });

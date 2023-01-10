@@ -27,24 +27,21 @@ configureOrganizeGoogleDrive.define({
     // First make sure any existing folders are under the root
     const root = await Settings.findOneAsync({ name: 'gdrive.root' });
     if (root) {
-      await (await HuntFolders.find().fetchAsync()).reduce(async (promise, hf) => {
-        await promise;
+      for (const hf of HuntFolders.find()) {
         await moveDocument(hf.folder, root.value.id);
-      }, Promise.resolve());
+      }
     }
 
     // Then create folders for any hunt that doesn't currently have one
-    await (await Hunts.find().fetchAsync()).reduce(async (promise, h) => {
-      await promise;
+    for (const h of Hunts.find()) {
       await ensureHuntFolder(h);
-    }, Promise.resolve());
+    }
 
     // Finally move all existing documents into the right folder
     const puzzles = indexedById(await Puzzles.find().fetchAsync());
-    await (await Documents.find().fetchAsync()).reduce(async (promise, d) => {
-      await promise;
+    for (const d of Documents.find()) {
       const puzzle = puzzles.get(d.puzzle);
       if (puzzle && !d.value.folder) await ensureDocument(puzzle);
-    }, Promise.resolve());
+    }
   },
 });

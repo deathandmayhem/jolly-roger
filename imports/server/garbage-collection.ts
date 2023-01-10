@@ -37,10 +37,9 @@ async function cleanup() {
   }
 
   // Run all hooks.
-  await globalGCHooks.reduce(async (p, f) => {
-    await p;
+  for (const f of globalGCHooks) {
     await f(deadServers);
-  }, Promise.resolve());
+  }
 
   // Delete the record of the server, now that we've cleaned up after it.
   await Servers.removeAsync({ _id: { $in: deadServers } });

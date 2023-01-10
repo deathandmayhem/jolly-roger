@@ -341,15 +341,13 @@ class SFU {
 
     const lastWriteByUser = new Map<string, number>();
     const updateCallActivity = Meteor.bindEnvironment(
-      (volumes: types.AudioLevelObserverVolume[]) => {
+      async (volumes: types.AudioLevelObserverVolume[]) => {
         const users = new Set(volumes.map((v) => {
           const { producer } = v;
           const producerAppData = producer.appData as ProducerAppData;
           return producerAppData.createdBy;
         }));
-        void [...users].reduce(async (p, user) => {
-          await p;
-
+        for (const user of users) {
           // Update the database at max once per second per user
           const lastWrite = lastWriteByUser.get(user) ?? 0;
           if (lastWrite < Date.now() - 1000) {
@@ -363,7 +361,7 @@ class SFU {
               });
             });
           }
-        }, Promise.resolve());
+        }
       }
     );
 
@@ -380,7 +378,7 @@ class SFU {
     });
 
     observer.observer.on('volumes', (volumes) => {
-      updateCallActivity(volumes);
+      void updateCallActivity(volumes);
       updateCallHistory.attempt();
     });
 
