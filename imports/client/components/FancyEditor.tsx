@@ -115,7 +115,6 @@ const EditableMentionRenderer = ({
 };
 
 // Composed, layered reassignment is how Slate plugins are designed to work.
-/* eslint-disable no-param-reassign */
 const withMentions = (editor: Editor) => {
   const { isInline, isVoid, markableVoid } = editor;
   editor.isInline = (element) => {
@@ -148,7 +147,6 @@ const withSingleMessage = (editor: Editor) => {
   };
   return editor;
 };
-/* eslint-enable no-param-reassign */
 
 const insertMention = (editor: Editor, userId: string) => {
   const mention: MentionElement = {

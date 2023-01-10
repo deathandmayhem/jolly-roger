@@ -61,7 +61,6 @@ const ChatNotificationHooks: Hookset = {
       })) {
         // Avoid making users ding themselves.
         if (u._id === chatMessage.sender) {
-          // eslint-disable-next-line no-continue
           continue;
         }
 
