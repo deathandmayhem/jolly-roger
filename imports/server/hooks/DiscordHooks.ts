@@ -35,7 +35,7 @@ async function renderChatMessageV2Content(content: ChatMessageContentType): Prom
       return child.text;
     } else {
       const user = await MeteorUsers.findOneAsync(child.userId);
-      return `@${user?.displayName ?? child.userId}`;
+      return ` @${user?.displayName ?? child.userId} `;
     }
   }));
   return chunks.join('');
