@@ -4,9 +4,10 @@ import Logger from '../../Logger';
 import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
+import { contentFromMessage } from '../../lib/schemas/ChatMessage';
 import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
 import GlobalHooks from '../GlobalHooks';
-import sendChatMessageInternal from '../sendChatMessageInternal';
+import sendChatMessageInternalV2 from '../sendChatMessageInternalV2';
 
 addPuzzleAnswer.define({
   validate(arg) {
@@ -53,9 +54,11 @@ addPuzzleAnswer.define({
     if (!savedAnswer) {
       throw new Meteor.Error(404, 'No such correct guess');
     }
-    await sendChatMessageInternal({
+    const message = `\`${savedAnswer.guess}\` was accepted as the correct answer`;
+    const content = contentFromMessage(message);
+    await sendChatMessageInternalV2({
       puzzleId: savedAnswer.puzzle,
-      message: `${savedAnswer.guess} was accepted as the correct answer`,
+      content,
       sender: undefined,
     });
     await Puzzles.updateAsync({

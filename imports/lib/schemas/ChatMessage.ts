@@ -34,6 +34,15 @@ export const ChatMessageContent = t.type({
 });
 export type ChatMessageContentType = t.TypeOf<typeof ChatMessageContent>;
 
+export function contentFromMessage(msg: string): ChatMessageContentType {
+  return {
+    type: 'message' as const,
+    children: [
+      { text: msg },
+    ],
+  };
+}
+
 const SharedFields = {
   hunt: t.string,
   // The puzzle to which this chat was sent.

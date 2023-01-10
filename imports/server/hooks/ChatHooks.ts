@@ -1,6 +1,7 @@
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
-import sendChatMessageInternal from '../sendChatMessageInternal';
+import { contentFromMessage } from '../../lib/schemas/ChatMessage';
+import sendChatMessageInternalV2 from '../sendChatMessageInternalV2';
 import Hookset from './Hookset';
 
 const ChatHooks: Hookset = {
@@ -17,11 +18,12 @@ const ChatHooks: Hookset = {
       tags: { $in: metaTags.map((tag) => tag._id) },
     }).fetchAsync();
 
-    const message = `${puzzle.title} (feeding into this meta) has been solved: ${answer}`;
+    const message = `${puzzle.title} (feeding into this meta) has been solved: \`${answer}\``;
+    const content = contentFromMessage(message);
     for (const metaPuzzle of puzzlesWithMetaTags) {
-      await sendChatMessageInternal({
+      await sendChatMessageInternalV2({
         puzzleId: metaPuzzle._id,
-        message,
+        content,
         sender: undefined,
       });
     }

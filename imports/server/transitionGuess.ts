@@ -1,9 +1,10 @@
 import { Mongo } from 'meteor/mongo';
 import Guesses from '../lib/models/Guesses';
 import Puzzles from '../lib/models/Puzzles';
+import { contentFromMessage } from '../lib/schemas/ChatMessage';
 import { GuessType } from '../lib/schemas/Guess';
 import GlobalHooks from './GlobalHooks';
-import sendChatMessageInternal from './sendChatMessageInternal';
+import sendChatMessageInternalV2 from './sendChatMessageInternalV2';
 
 export default async function transitionGuess(
   guess: GuessType,
@@ -34,8 +35,9 @@ export default async function transitionGuess(
       stateDescription = `as ${newState}`;
       break;
   }
-  const message = `Guess ${guess.guess} was marked ${stateDescription}${additionalNotes ? `: ${additionalNotes}` : ''}`;
-  await sendChatMessageInternal({ puzzleId: guess.puzzle, message, sender: undefined });
+  const message = `Guess \`${guess.guess}\` was marked ${stateDescription}${additionalNotes ? `: ${additionalNotes}` : ''}`;
+  const content = contentFromMessage(message);
+  await sendChatMessageInternalV2({ puzzleId: guess.puzzle, content, sender: undefined });
 
   if (newState === 'correct') {
     // Mark this puzzle as solved.
