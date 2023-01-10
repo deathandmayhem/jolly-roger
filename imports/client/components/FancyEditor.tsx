@@ -76,10 +76,10 @@ export const MentionSpan = styled.span<{
   isSelf: boolean;
 }>`
   padding: 2px 3px 3px;
-  height: 20px;
   margin: 0 1px;
   vertical-align: baseline;
   display: inline-block;
+  overflow-wrap: break-word;
   border-radius: 4px;
   color: #4649ef;
   background-color: #ced0ed;
