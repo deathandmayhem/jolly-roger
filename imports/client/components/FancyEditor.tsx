@@ -175,7 +175,15 @@ const MatchCandidateRow = styled.div<{ selected: boolean }>`
 `;
 
 const MatchCandidateDisplayName = styled.div`
+  // We want to keep display names to a single row, and if they overflow, clip
+  white-space: nowrap;
+  overflow-x: hidden;
   margin-left: 0.25rem;
+`;
+
+const StyledAvatar = styled(Avatar)`
+  // Avatar width should not be flexed up nor down
+  flex: none;
 `;
 
 const MatchCandidate = ({
@@ -194,7 +202,7 @@ const MatchCandidate = ({
       selected={selected}
       onClick={onClick}
     >
-      <Avatar size={24} {...user} />
+      <StyledAvatar size={24} {...user} />
       <MatchCandidateDisplayName>{user.displayName}</MatchCandidateDisplayName>
     </MatchCandidateRow>
   );
@@ -281,6 +289,8 @@ const AutocompleteContainer = styled.div`
   padding: 3px;
   background: white;
   border-radius: 4px;
+  max-width: 100%;
+  overflow-x: hidden;
   box-shadow: 0 1px 5px rgb(0 0 0 / 20%);
 `;
 
@@ -605,8 +615,22 @@ const FancyEditor = React.forwardRef(({
         // offset (window.scrollX and window.scrollY).  Then, we need to subtract
         // out the height of the completion box, so that we're not on top of the
         // @-mention, but just above it.
-        el.style.top = `${rect.top + window.scrollY - elRect.height}px`;
-        el.style.left = `${rect.left + window.scrollX}px`;
+
+        // On mobile, our completion candidates may get stuffed against the
+        // right border of the viewport.  Allow it to start farther left if
+        // we're up against the edge of the viewport.
+        const idealLeft = rect.left + window.scrollX;
+        let left = idealLeft;
+        if (idealLeft + elRect.width > window.innerWidth) {
+          left = window.innerWidth - elRect.width;
+        }
+        // But if the completion is too wide, make sure we keep it at least on screen.
+        if (left < 0) left = 0;
+
+        const top = rect.top + window.scrollY - elRect.height;
+
+        el.style.top = `${top}px`;
+        el.style.left = `${left}px`;
       }
     }
   }, [
