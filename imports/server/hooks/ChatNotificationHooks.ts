@@ -28,11 +28,11 @@ const ChatNotificationHooks: Hookset = {
       await Promise.all(chatMessage.content.children.map(async (child) => {
         if (nodeIsMention(child)) {
           const mentionedUserId = child.userId;
+          // Don't have messages notify yourself.
           if (mentionedUserId !== chatMessage.sender) {
-            // Don't have messages notify yourself.
+            // Only create mentions for users that are in the current hunt.
             const mentionedUser = await MeteorUsers.findOneAsync(mentionedUserId);
             if (mentionedUser?.hunts?.includes(chatMessage.hunt)) {
-              // Only allow mentions of users that are in the current hunt.
               usersToNotify.add(mentionedUserId);
             }
           }
@@ -69,15 +69,7 @@ const ChatNotificationHooks: Hookset = {
         if (dingwords) {
           const matches = dingwords.some((dingword) => normalizedText.includes(dingword));
           if (matches) {
-            await ChatNotifications.insertAsync({
-              user: u._id,
-              sender: chatMessage.sender,
-              puzzle: chatMessage.puzzle,
-              hunt: chatMessage.hunt,
-              text: chatMessage.text,
-              content: chatMessage.content,
-              timestamp: chatMessage.timestamp,
-            });
+            usersToNotify.add(u._id);
           }
         }
       }
