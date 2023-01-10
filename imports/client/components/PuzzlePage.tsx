@@ -78,11 +78,11 @@ import { useBreadcrumb } from '../hooks/breadcrumb';
 import useCallState, { Action, CallState } from '../hooks/useCallState';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
-import markdown from '../markdown';
 import { trace } from '../tracing';
 import ChatPeople from './ChatPeople';
 import DocumentDisplay, { DocumentMessage } from './DocumentDisplay';
 import GuessState from './GuessState';
+import Markdown from './Markdown';
 import ModalForm, { ModalFormHandle } from './ModalForm';
 import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
@@ -300,10 +300,7 @@ const ChatMessage = React.memo(({
     <ChatMessageDiv isSystemMessage={isSystemMessage}>
       {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
       {!suppressSender && <strong>{senderDisplayName}</strong>}
-      <span
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: markdown(message.text) }}
-      />
+      <Markdown as="span" text={message.text} />
     </ChatMessageDiv>
   );
 });
@@ -1500,9 +1497,7 @@ const PuzzleGuessModal = React.forwardRef(({
                 </GuessConfidenceCell>
                 <GuessTableSmallRow>
                   {guess.additionalNotes && (
-                    <AdditionalNotesCell
-                      dangerouslySetInnerHTML={{ __html: markdown(guess.additionalNotes) }}
-                    />
+                    <Markdown as={AdditionalNotesCell} text={guess.additionalNotes} />
                   )}
                 </GuessTableSmallRow>
               </GuessRow>

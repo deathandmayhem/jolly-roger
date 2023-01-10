@@ -44,7 +44,7 @@ import { guessURL } from '../../model-helpers';
 import GoogleScriptInfo from '../GoogleScriptInfo';
 import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
-import markdown from '../markdown';
+import Markdown from './Markdown';
 import PuzzleAnswer from './PuzzleAnswer';
 import SpinnerTimer from './SpinnerTimer';
 import { GuessConfidence, GuessDirection } from './guessDetails';
@@ -291,10 +291,7 @@ const GuessMessage = React.memo(({
             <div>
               Additional notes:
             </div>
-            <div
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: markdown(guess.additionalNotes) }}
-            />
+            <Markdown text={guess.additionalNotes} />
           </>
         )}
         {guess.state === 'pending' && stageTwoSection}
@@ -402,10 +399,7 @@ const AnnouncementMessage = React.memo(({
         </StyledNotificationTimestamp>
       </Toast.Header>
       <Toast.Body>
-        <div
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: markdown(announcement.message) }}
-        />
+        <Markdown text={announcement.message} />
         <div>
           {'- '}
           {createdByDisplayName}
