@@ -8,12 +8,14 @@ import { MentionSpan } from './FancyEditor';
 // This file implements standalone rendering for the MessageElement format
 // defined by FancyEditor, for use in the chat pane.
 
-const StyledMessage = styled.p`
-  margin-bottom: 0;
-`;
-
 const PreWrapSpan = styled.span`
   white-space: pre-wrap;
+`;
+
+const PreWrapParagraph = styled.p`
+  display: inline-block;
+  white-space: pre-wrap;
+  margin-bottom: 0;
 `;
 
 const StyledBlockquote = styled.blockquote`
@@ -22,7 +24,6 @@ const StyledBlockquote = styled.blockquote`
   margin-bottom: 0;
 `;
 
-// For the readonly renderer
 const StyledCodeBlock = styled.code`
   white-space: pre-wrap;
   display: block;
@@ -54,7 +55,7 @@ const MarkdownToken = ({ token }: { token: marked.Token }) => {
         children.push(<MarkdownToken key={children.length} token={syntheticSpace} />);
       }
     }
-    return <PreWrapSpan>{children}</PreWrapSpan>;
+    return <PreWrapParagraph>{children}</PreWrapParagraph>;
   } else if (token.type === 'link') {
     const children = token.tokens.map((t, i) => <MarkdownToken key={i} token={t} />);
     return <a target="_blank" rel="noopener noreferrer" href={token.href}>{children}</a>;
@@ -113,9 +114,7 @@ const ChatMessageV2 = ({ message, displayNames, selfUserId }: {
 
   return (
     <div>
-      <StyledMessage>
-        {children}
-      </StyledMessage>
+      {children}
     </div>
   );
 };
