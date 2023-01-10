@@ -90,6 +90,7 @@ const StyledGuessDetails = styled.div`
   align-items: center;
   justify-content: flex-end;
   text-align: end;
+  gap: 8px;
 `;
 
 const StyledGuessHeader = styled.strong`
