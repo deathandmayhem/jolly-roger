@@ -45,7 +45,9 @@ import Tooltip from 'react-bootstrap/esm/Tooltip';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Link, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
+import { Descendant } from 'slate';
 import styled, { css } from 'styled-components';
+import Flags from '../../Flags';
 import Logger from '../../Logger';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { indexedById, sortedBy } from '../../lib/listUtils';
@@ -53,11 +55,11 @@ import ChatMessages from '../../lib/models/ChatMessages';
 import Documents from '../../lib/models/Documents';
 import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
-import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
+import MeteorUsers, { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
-import { ChatMessageType } from '../../lib/schemas/ChatMessage';
+import { ChatMessageType, nodeIsMention } from '../../lib/schemas/ChatMessage';
 import { DocumentType } from '../../lib/schemas/Document';
 import { GuessType } from '../../lib/schemas/Guess';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
@@ -71,6 +73,7 @@ import listDocumentSheets, { Sheet } from '../../methods/listDocumentSheets';
 import removePuzzleAnswer from '../../methods/removePuzzleAnswer';
 import removePuzzleTag from '../../methods/removePuzzleTag';
 import sendChatMessage from '../../methods/sendChatMessage';
+import sendChatMessageV2 from '../../methods/sendChatMessageV2';
 import undestroyPuzzle from '../../methods/undestroyPuzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
 import GoogleScriptInfo from '../GoogleScriptInfo';
@@ -79,8 +82,10 @@ import useCallState, { Action, CallState } from '../hooks/useCallState';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import { trace } from '../tracing';
+import ChatMessageV2 from './ChatMessageV2';
 import ChatPeople from './ChatPeople';
 import DocumentDisplay, { DocumentMessage } from './DocumentDisplay';
+import FancyEditor, { FancyEditorHandle, MessageElement } from './FancyEditor';
 import GuessState from './GuessState';
 import Markdown from './Markdown';
 import ModalForm, { ModalFormHandle } from './ModalForm';
@@ -99,8 +104,8 @@ const DEBUG_SHOW_CALL_STATE = false;
 
 const tabId = Random.id();
 
-const FilteredChatFields: ('_id' | 'puzzle' | 'text' | 'sender' | 'timestamp')[] = ['_id', 'puzzle', 'text', 'sender', 'timestamp'];
-type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[0]>
+const FilteredChatFields = ['_id', 'puzzle', 'text', 'content', 'sender', 'timestamp'] as const;
+type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[number]>
 
 // It doesn't need to be, but this is consistent with the 576px transition used in other pages' css
 const MinimumSidebarWidth = 176;
@@ -155,6 +160,11 @@ const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
 const ChatHistoryDiv = styled.div`
   flex: 1 1 auto;
   overflow-y: auto;
+
+  // Nothing should overflow the box, but if you nest blockquotes super deep you
+  // can do horrible things.  We should still avoid horizontal scroll bars, since
+  // the make the log harder to read at the bottom.
+  overflow-x: hidden;
 `;
 
 const PUZZLE_PAGE_PADDING = 8;
@@ -287,20 +297,29 @@ const AnswerFormControl = styled(FormControl)`
 `;
 
 const ChatMessage = React.memo(({
-  message, senderDisplayName, isSystemMessage, suppressSender,
+  message, displayNames, isSystemMessage, suppressSender, selfUserId,
 }: {
   message: FilteredChatMessageType;
-  senderDisplayName: string;
+  displayNames: Map<string, string>;
   isSystemMessage: boolean;
   suppressSender: boolean;
+  selfUserId: string;
 }) => {
   const ts = shortCalendarTimeFormat(message.timestamp);
 
+  const senderDisplayName = message.sender !== undefined ? displayNames.get(message.sender) ?? '???' : 'jolly-roger';
   return (
     <ChatMessageDiv isSystemMessage={isSystemMessage}>
       {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
       {!suppressSender && <strong>{senderDisplayName}</strong>}
-      <Markdown as="span" text={message.text} />
+      {message.text && <Markdown as="span" text={message.text} />}
+      {message.content && (
+        <ChatMessageV2
+          message={message.content}
+          displayNames={displayNames}
+          selfUserId={selfUserId}
+        />
+      )}
     </ChatMessageDiv>
   );
 });
@@ -312,10 +331,11 @@ type ChatHistoryHandle = {
 }
 
 const ChatHistory = React.forwardRef(({
-  puzzleId, displayNames,
+  puzzleId, displayNames, selfUserId,
 }: {
   puzzleId: string;
   displayNames: Map<string, string>;
+  selfUserId: string;
 }, forwardedRef: React.Ref<ChatHistoryHandle>) => {
   const chatMessages: FilteredChatMessageType[] = useTracker(
     () => ChatMessages.find(
@@ -443,7 +463,6 @@ const ChatHistory = React.forwardRef(({
         </ChatMessageDiv>
       ) : undefined}
       {chatMessages.map((msg, index, messages) => {
-        const displayName = msg.sender !== undefined ? displayNames.get(msg.sender) ?? '???' : 'jolly-roger';
         // Only suppress sender and timestamp if:
         // * this is not the first message
         // * this message was sent by the same person as the previous message
@@ -454,9 +473,10 @@ const ChatHistory = React.forwardRef(({
           <ChatMessage
             key={msg._id}
             message={msg}
-            senderDisplayName={displayName ?? '???'}
+            displayNames={displayNames}
             isSystemMessage={msg.sender === undefined}
             suppressSender={suppressSender}
+            selfUserId={selfUserId}
           />
         );
       })}
@@ -482,21 +502,64 @@ const chatInputStyles = {
   },
 };
 
+const StyledFancyEditor = styled(FancyEditor)`
+  flex: 1;
+  display: block;
+  background-color: #fff;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  line-height: 20px;
+  padding: 9px 4px;
+  resize: none;
+`;
+
+const initialValue: Descendant[] = [
+  {
+    type: 'message',
+    children: [{
+      text: '',
+    }],
+  },
+];
+
 const ChatInput = React.memo(({
-  onHeightChange, onMessageSent, puzzleId, puzzleDeleted,
+  onHeightChange, onMessageSent, huntId, puzzleId, puzzleDeleted,
 }: {
-  onHeightChange: (newHeight: number) => void;
+  onHeightChange: () => void;
   onMessageSent: () => void;
+  huntId: string;
   puzzleId: string;
   puzzleDeleted: boolean;
 }) => {
+  // Drive this with a circuit breaker.
+  const useNewInput = useTracker(() => !Flags.active('disable.chatv2'), []);
+
+  // We want to have hunt profile data around so we can autocomplete from multiple fields.
+  const profilesLoadingFunc = useSubscribe(useNewInput ? 'huntProfiles' : undefined, huntId);
+  const profilesLoading = profilesLoadingFunc();
+  const users = useTracker(() => {
+    return profilesLoading ? [] : MeteorUsers.find({
+      hunts: huntId,
+      displayName: { $ne: undefined }, // no point completing a user with an unset displayName
+    }).fetch();
+  }, [huntId, profilesLoading]);
+
+  // Shared.
+  const onHeightChangeCb = useCallback((newHeight: number) => {
+    if (onHeightChange) {
+      trace('ChatInput onHeightChange', { newHeight });
+      onHeightChange();
+    }
+  }, [onHeightChange]);
+
+  // V1 input
   const [text, setText] = useState<string>('');
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
   const onInputChanged = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
   }, []);
-
   const sendMessageIfHasText = useCallback(() => {
     if (textAreaRef.current) {
       textAreaRef.current.focus();
@@ -509,7 +572,6 @@ const ChatInput = React.memo(({
       }
     }
   }, [text, puzzleId, onMessageSent]);
-
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -517,39 +579,98 @@ const ChatInput = React.memo(({
     }
   }, [sendMessageIfHasText]);
 
-  const onHeightChangeCb = useCallback((newHeight: number) => {
-    if (onHeightChange) {
-      trace('ChatInput onHeightChange', { newHeight });
-      onHeightChange(newHeight);
-    }
-  }, [onHeightChange]);
-
   const preventDefaultCallback = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
   }, []);
 
+  // V2 input.
+  const [content, setContent] = useState<Descendant[]>(initialValue);
+  const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
+  const onContentChange = useCallback((newContent: Descendant[]) => {
+    setContent(newContent);
+    onHeightChangeCb(0);
+  }, [onHeightChangeCb]);
+  const sendContentMessage = useCallback(() => {
+    if (content !== initialValue && content.length > 0) {
+      // Prepare to send message to server.
+
+      // Take only the first Descendant; we normalize the input to a single
+      // block with type "message".
+      const message = content[0]! as MessageElement;
+      // Strip out children from mention elements.  We only need the type and
+      // userId for display purposes.
+      const { type, children } = message;
+      const cleanedMessage = {
+        type,
+        children: children.map((child) => {
+          if (nodeIsMention(child)) {
+            return {
+              type: child.type,
+              userId: child.userId,
+            };
+          } else {
+            return child;
+          }
+        }),
+      };
+
+      // Send chat message.
+      sendChatMessageV2.call({ puzzleId, content: JSON.stringify(cleanedMessage) });
+      setContent(initialValue);
+      fancyEditorRef.current?.clearInput();
+      if (onMessageSent) {
+        onMessageSent();
+      }
+    }
+  }, [puzzleId, content, onMessageSent]);
+
+  // V1/V2 interop.
+  const sendMessageIfReady = useCallback(() => {
+    if (useNewInput) {
+      sendContentMessage();
+    } else {
+      sendMessageIfHasText();
+    }
+  }, [useNewInput, sendContentMessage, sendMessageIfHasText]);
+  const inputElement = useNewInput ? (
+    <StyledFancyEditor
+      ref={fancyEditorRef}
+      className="form-control"
+      initialContent={content}
+      placeholder="Chat"
+      users={users}
+      onContentChange={onContentChange}
+      onSubmit={sendContentMessage}
+    />
+  ) : (
+    <TextareaAutosize
+      ref={textAreaRef}
+      className="form-control"
+      style={chatInputStyles.textarea}
+      maxLength={4000}
+      minRows={1}
+      maxRows={12}
+      value={text}
+      disabled={puzzleDeleted}
+      onChange={onInputChanged}
+      onKeyDown={onKeyDown}
+      onHeightChange={onHeightChangeCb}
+      placeholder="Chat"
+    />
+  );
+  const hasNonTrivialContent = useNewInput ?
+    content !== initialValue :
+    text.length > 0;
+
   return (
     <ChatInputRow>
       <InputGroup>
-        <TextareaAutosize
-          ref={textAreaRef}
-          className="form-control"
-          style={chatInputStyles.textarea}
-          maxLength={4000}
-          minRows={1}
-          maxRows={12}
-          value={text}
-          disabled={puzzleDeleted}
-          onChange={onInputChanged}
-          onKeyDown={onKeyDown}
-          onHeightChange={onHeightChangeCb}
-          placeholder="Chat"
-        />
+        {inputElement}
         <Button
           variant="secondary"
-          onClick={sendMessageIfHasText}
+          onClick={sendMessageIfReady}
           onMouseDown={preventDefaultCallback}
-          disabled={puzzleDeleted || text.length === 0}
+          disabled={puzzleDeleted || !hasNonTrivialContent}
         >
           <FontAwesomeIcon icon={faPaperPlane} />
         </Button>
@@ -564,7 +685,7 @@ interface ChatSectionHandle {
 
 const ChatSection = React.forwardRef(({
   chatDataLoading, puzzleDeleted, displayNames, puzzleId, huntId,
-  callState, callDispatch,
+  callState, callDispatch, selfUserId,
 }: {
   chatDataLoading: boolean;
   puzzleDeleted: boolean;
@@ -573,6 +694,7 @@ const ChatSection = React.forwardRef(({
   huntId: string;
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
+  selfUserId: string;
 }, forwardedRef: React.Ref<ChatSectionHandle>) => {
   const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
   const scrollToTargetRequestRef = useRef<boolean>(false);
@@ -632,8 +754,9 @@ const ChatSection = React.forwardRef(({
         callState={callState}
         callDispatch={callDispatch}
       />
-      <ChatHistoryMemo ref={historyRef} puzzleId={puzzleId} displayNames={displayNames} />
+      <ChatHistoryMemo ref={historyRef} puzzleId={puzzleId} displayNames={displayNames} selfUserId={selfUserId} />
       <ChatInput
+        huntId={huntId}
         puzzleId={puzzleId}
         puzzleDeleted={puzzleDeleted}
         onHeightChange={scrollHistoryToTarget}
@@ -1782,6 +1905,8 @@ const PuzzlePage = React.memo(() => {
       Puzzles.findOneAllowingDeleted(puzzleId)
   ), [puzzleDataLoading, puzzleId]);
 
+  const selfUserId = useTracker(() => Meteor.userId()!, []);
+
   const puzzleTitle = activePuzzle ? `${activePuzzle.title}${activePuzzle.deleted ? ' (deleted)' : ''}` : '(no such puzzle)';
   const title = puzzleDataLoading ? 'loading...' : puzzleTitle;
   useBreadcrumb({
@@ -1866,6 +1991,7 @@ const PuzzlePage = React.memo(() => {
       puzzleId={puzzleId}
       callState={callState}
       callDispatch={dispatch}
+      selfUserId={selfUserId}
     />
   );
   const deletedModal = activePuzzle.deleted && (

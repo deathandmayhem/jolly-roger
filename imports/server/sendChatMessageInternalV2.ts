@@ -1,0 +1,26 @@
+import { Meteor } from 'meteor/meteor';
+import ChatMessages from '../lib/models/ChatMessages';
+import Puzzles from '../lib/models/Puzzles';
+import { ChatMessageContentType } from '../lib/schemas/ChatMessage';
+import GlobalHooks from './GlobalHooks';
+
+export default async function sendChatMessageInternalV2({ puzzleId, content, sender }: {
+  puzzleId: string,
+  content: ChatMessageContentType,
+  sender: string | undefined,
+}) {
+  const puzzle = await Puzzles.findOneAsync(puzzleId);
+  if (!puzzle) {
+    throw new Meteor.Error(404, 'Unknown puzzle');
+  }
+
+  const msgId = await ChatMessages.insertAsync({
+    puzzle: puzzleId,
+    hunt: puzzle.hunt,
+    content,
+    sender,
+    timestamp: new Date(),
+  });
+
+  await GlobalHooks.runChatMessageCreatedHooks(msgId);
+}

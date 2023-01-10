@@ -1,5 +1,5 @@
 import ChatHooks from './hooks/ChatHooks';
-import DingwordHooks from './hooks/DingwordHooks';
+import ChatNotificationHooks from './hooks/ChatNotificationHooks';
 import DiscordHooks from './hooks/DiscordHooks';
 import HooksRegistry from './hooks/HooksRegistry';
 import TagCleanupHooks from './hooks/TagCleanupHooks';
@@ -8,7 +8,7 @@ import TagCleanupHooks from './hooks/TagCleanupHooks';
 const GlobalHooks = new HooksRegistry();
 // Add all hooksets.
 GlobalHooks.addHookSet(DiscordHooks);
-GlobalHooks.addHookSet(DingwordHooks);
+GlobalHooks.addHookSet(ChatNotificationHooks);
 GlobalHooks.addHookSet(TagCleanupHooks);
 GlobalHooks.addHookSet(ChatHooks);
 
