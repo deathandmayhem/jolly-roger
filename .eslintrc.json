@@ -170,6 +170,12 @@
     "no-return-await": "off",
     "@typescript-eslint/return-await": "error",
 
+    // There's some risk that this causes us to write parallelizable code that
+    // runs in serial, but so far most of the cases where we hit this, we need
+    // to run serially, either so we avoid overwhelming a rate limit or because
+    // we're paginating over results
+    "no-await-in-loop": "off",
+
     // Show errors for deprecated code
     "deprecation/deprecation": "error",
 

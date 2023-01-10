@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { Meteor } from 'meteor/meteor';
 import Flags from '../Flags';
 import { ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS } from '../lib/config/activityTracking';

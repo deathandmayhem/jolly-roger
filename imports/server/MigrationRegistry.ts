@@ -123,10 +123,8 @@ class MigrationRegistry {
         const nextMigration = this.migrations[applied]!;
         this.logger.info('Running migration', { version: nextMigration.version, name: nextMigration.name });
         // Run the next migration in sequence.
-        // eslint-disable-next-line no-await-in-loop
         await nextMigration.up();
         // Save the fact that we ran the migration durably.
-        // eslint-disable-next-line no-await-in-loop
         const prev = await this.collection.rawCollection().findOneAndUpdate({
           _id: 'control',
           locked: true,

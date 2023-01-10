@@ -18,7 +18,6 @@ configureCollectGoogleAccountIds.define({
 
     let pageToken: string | undefined;
     do {
-      /* eslint-disable no-await-in-loop */
       const resp = await people.otherContacts.list({
         pageToken,
         sources: ['READ_SOURCE_TYPE_CONTACT', 'READ_SOURCE_TYPE_PROFILE'],
@@ -51,7 +50,6 @@ configureCollectGoogleAccountIds.define({
           },
         }, { multi: true });
       }, Promise.resolve());
-      /* eslint-enable no-await-in-loop */
     } while (pageToken);
   },
 });

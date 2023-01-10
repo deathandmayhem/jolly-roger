@@ -134,7 +134,6 @@ export async function makeReadOnly(fileId: string) {
   const permissions = [] as NonNullable<drive.Schema$PermissionList['permissions']>;
   let token: string | undefined;
   for (;;) {
-    // eslint-disable-next-line no-await-in-loop
     const response = await client.permissions.list({
       fileId,
       pageToken: token,

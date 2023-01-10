@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 // Locks are a server-only class
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
