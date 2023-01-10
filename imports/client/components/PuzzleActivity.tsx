@@ -53,6 +53,7 @@ const PuzzleOpenTime = styled(PuzzleActivityItem)`
 
 const PuzzleActivitySparkline = styled(PuzzleActivityItem)`
   min-width: 6rem;
+  max-width: 8rem;
 
   span {
     margin-right: 0;
@@ -233,7 +234,8 @@ const PuzzleActivity = ({ huntId, puzzleId, unlockTime }: PuzzleActivityProps) =
       <OverlayTrigger placement="top" overlay={sparklineTooltip}>
         <PuzzleActivitySparkline>
           <FontAwesomeIcon icon={faPeopleGroup} fixedWidth />
-          <Sparklines data={totals} min={0} max={maxTotalCount}>
+          {/* Sparklines doesn't accept a className argument, so we can't use styled-components */}
+          <Sparklines data={totals} min={0} max={maxTotalCount} style={{ width: '100%' }}>
             <SparklinesLine />
             <SparklinesSpots spotColors={{ '-1': 'black', 0: 'black', 1: 'black' }} />
           </Sparklines>
