@@ -43,7 +43,7 @@
     "func-names": "off",
 
     // For Match expressions
-    "new-cap": ["error", { "capIsNewExceptions": ["Optional", "OneOf", "Maybe", "ObjectIncluding"] }],
+    "new-cap": ["error", { "capIsNewExceptions": ["Optional", "OneOf", "Maybe", "ObjectIncluding", "Router"] }],
 
     // sometimes else after a return reads more clearly
     "no-else-return": "off",

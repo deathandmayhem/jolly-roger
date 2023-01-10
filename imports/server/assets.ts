@@ -101,7 +101,6 @@ Meteor.startup(() => {
 
 const app = express();
 
-// eslint-disable-next-line new-cap
 const router = express.Router();
 router.get('/:asset', (req, res) => {
   check(req.params.asset, String);
