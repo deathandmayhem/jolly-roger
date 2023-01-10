@@ -535,7 +535,10 @@ const ChatInput = React.memo(({
   const profilesLoadingFunc = useSubscribe(useNewInput ? 'huntProfiles' : undefined, huntId);
   const profilesLoading = profilesLoadingFunc();
   const users = useTracker(() => {
-    return profilesLoading ? [] : MeteorUsers.find({ hunts: huntId }).fetch();
+    return profilesLoading ? [] : MeteorUsers.find({
+      hunts: huntId,
+      displayName: { $ne: undefined }, // no point completing a user with an unset displayName
+    }).fetch();
   }, [huntId, profilesLoading]);
 
   // Shared.
