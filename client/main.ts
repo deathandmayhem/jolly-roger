@@ -1,5 +1,6 @@
-// First thing's first: setup error reporting
+// First thing's first: setup error reporting and logging
 import '../imports/client/bugsnag';
+import '../imports/client/configureLogger';
 
 // explicitly import all the stuff from lib/ since mainModule skips autoloading
 // things

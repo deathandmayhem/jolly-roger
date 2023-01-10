@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { drive_v3 as drive } from '@googleapis/drive';
-import Ansible from '../Ansible';
 import Flags from '../Flags';
+import Logger from '../Logger';
 import GdriveMimeTypes, { GdriveMimeTypesType } from '../lib/GdriveMimeTypes';
 import Documents from '../lib/models/Documents';
 import FolderPermissions from '../lib/models/FolderPermissions';
@@ -184,7 +184,7 @@ export async function ensureHuntFolder(hunt: { _id: string, name: string }) {
     await Locks.withLock(`hunt:${hunt._id}:folder`, async () => {
       folder = await HuntFolders.findOneAsync(hunt._id);
       if (!folder) {
-        Ansible.log('Creating missing folder for hunt', {
+        Logger.info('Creating missing folder for hunt', {
           huntId: hunt._id,
         });
 
@@ -222,7 +222,7 @@ export async function ensureHuntFolderPermission(
     return;
   }
 
-  Ansible.log('Granting permissions to folder', perm);
+  Logger.info('Granting permissions to folder', perm);
   await grantPermission(folder, googleAccount, 'commenter');
   await ignoringDuplicateKeyErrors(async () => {
     await FolderPermissions.insertAsync(perm);
@@ -244,7 +244,7 @@ export async function ensureDocument(puzzle: {
     await Locks.withLock(`puzzle:${puzzle._id}:documents`, async () => {
       doc = await Documents.findOneAsync({ puzzle: puzzle._id });
       if (!doc) {
-        Ansible.log('Creating missing document for puzzle', {
+        Logger.info('Creating missing document for puzzle', {
           puzzle: puzzle._id,
         });
 

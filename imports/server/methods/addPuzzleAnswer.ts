@@ -1,6 +1,6 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
@@ -36,7 +36,7 @@ addPuzzleAnswer.define({
       throw new Meteor.Error(404, 'Hunt does not allow you to enter answers directly');
     }
 
-    Ansible.log('New correct guess', {
+    Logger.info('New correct guess', {
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       user: this.userId,

@@ -1,7 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { ServiceConfiguration } from 'meteor/service-configuration';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayConfigureGoogleOAuth } from '../../lib/permission_stubs';
 import configureGoogleOAuthClient from '../../methods/configureGoogleOAuthClient';
@@ -26,10 +26,7 @@ configureGoogleOAuthClient.define({
       throw new Meteor.Error(401, 'Must be admin to configure Google OAuth');
     }
 
-    Ansible.log('Configuring google oauth client', {
-      clientId,
-      user: this.userId,
-    });
+    Logger.info('Configuring google oauth client', { clientId });
 
     if (clientId) {
       await ServiceConfiguration.configurations.upsertAsync({ service: 'google' }, {

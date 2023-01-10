@@ -1,7 +1,7 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { ServiceConfiguration } from 'meteor/service-configuration';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import { API_BASE } from '../../lib/discord';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayConfigureDiscordOAuth } from '../../lib/permission_stubs';
@@ -24,17 +24,12 @@ configureDiscordOAuthClient.define({
     }
 
     if (!clientId && !clientSecret) {
-      Ansible.log('Disabling discord oauth client', {
-        user: this.userId,
-      });
+      Logger.info('Disabling discord oauth client');
       await ServiceConfiguration.configurations.removeAsync({ service: 'discord' });
       return;
     }
 
-    Ansible.log('Configuring discord oauth client', {
-      clientId,
-      user: this.userId,
-    });
+    Logger.info('Configuring discord oauth client', { clientId });
 
     // Test the client id/secret.
     const resp = await fetch(`${API_BASE}/oauth2/token`, {

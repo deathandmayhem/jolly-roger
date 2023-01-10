@@ -13,7 +13,7 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Modal from 'react-bootstrap/Modal';
 import { LinkContainer } from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import { userMayCreateHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import { HuntType } from '../../lib/schemas/Hunt';
@@ -37,9 +37,9 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
   const deleteModalRef = useRef<ModalFormHandle>(null);
 
   const onDelete = useCallback((callback: () => void) => {
-    destroyHunt.call({ huntId }, (err) => {
-      if (err) {
-        Ansible.log('Failed to destroy hunt', { hunt: huntId, user: Meteor.userId() });
+    destroyHunt.call({ huntId }, (error) => {
+      if (error) {
+        Logger.error('Failed to destroy hunt', { error, hunt: huntId });
       }
       callback();
     });

@@ -27,6 +27,8 @@
 //     is manually unlocked it'll get run again.
 
 import { Mongo } from 'meteor/mongo';
+import winston from 'winston';
+import { logger } from '../Logger';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 
 export type Migration = {
@@ -51,28 +53,24 @@ class MigrationRegistry {
 
   private migrations: Migration[];
 
-  private shouldLog: boolean;
+  private logger: winston.Logger;
 
   constructor({ collection }: {
     collection?: Mongo.Collection<MigrationControl>;
   }) {
     this.collection = collection ?? new Mongo.Collection<MigrationControl>('migrations');
     this.migrations = [];
-    this.shouldLog = true;
+    this.logger = logger.child({
+      label: 'migrations',
+      // eslint-disable-next-line no-underscore-dangle
+      collection: this.collection._name,
+    });
   }
 
   config({ log }: {
     log: boolean;
   }) {
-    this.shouldLog = log;
-  }
-
-  log(...args: any[]): void {
-    if (this.shouldLog) {
-      const [first, ...rest] = args;
-      // eslint-disable-next-line no-console, no-underscore-dangle
-      console.log(`Migrations(coll: ${this.collection._name}): ${first}`, ...rest);
-    }
+    this.logger.silent = !log;
   }
 
   add(migration: Migration): void {
@@ -98,32 +96,32 @@ class MigrationRegistry {
     // exceeded our target version.
     const observedVersion = await this.getVersion();
     if (observedVersion === target) {
-      this.log(`Not migrating, already at version ${observedVersion}`);
+      this.logger.info('Not migrating, already at version', { observedVersion });
       return true;
     } else if (observedVersion > target) {
-      this.log(`Not migrating, observed version ${observedVersion} exceeds target ${target}`);
+      this.logger.warn('Not migrating, observed version exceeds target', { observedVersion, target });
       return false;
     }
-    this.log(`Migrating: observed version ${observedVersion}, want ${target}`);
+    this.logger.info('Migrating', { observedVersion, want: target });
     // by elimination, observedVersion < target.  We have migrations to run.
     // Acquire the lock.  We might race with another backend that is also
     // trying to apply this same migration, so this.lock() uses findOneAndUpdate to
     // do an atomic swap.
     const control = await this.lock();
     if (!control) {
-      this.log('Not migrating, control is locked');
+      this.logger.info('Not migrating, control is locked');
       return false;
     } else {
       // We hold the lock.  Let's do some work.
       let applied = control.version;
-      this.log(`Migrating: lock acquired at ${applied}: ${JSON.stringify(control)}`);
+      this.logger.info('Migrating: lock acquired at applied', { applied, ...control });
 
       while (applied < target) {
         // Remember, this.migrations is 0-indexed, while the migration
         // versions are 1-indexed so the DB contains the number of migrations
         // completed
         const nextMigration = this.migrations[applied]!;
-        this.log(`running migration ${nextMigration.version} "${nextMigration.name}"`);
+        this.logger.info('Running migration', { version: nextMigration.version, name: nextMigration.name });
         // Run the next migration in sequence.
         // eslint-disable-next-line no-await-in-loop
         await nextMigration.up();
@@ -172,7 +170,7 @@ class MigrationRegistry {
   }
 
   private async ensureControlCreated() {
-    this.log('creating control record at version 0');
+    this.logger.info('Creating control record at version 0');
     // We use insert rather than upsert here
     await ignoringDuplicateKeyErrors(async () => {
       await this.collection.insertAsync({
@@ -206,7 +204,7 @@ class MigrationRegistry {
       },
     });
     if (result?.value?.locked) {
-      this.log(`preempting stale lock (lockedAt ${result.value.lockedAt})`);
+      this.logger.warn('Preempting stale lock', { lockedAt: result.value.lockedAt });
     }
     return result.value;
   }

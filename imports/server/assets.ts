@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -7,6 +6,7 @@ import { Meteor } from 'meteor/meteor';
 import { WebApp } from 'meteor/webapp';
 import express from 'express';
 import mime from 'mime-types';
+import { logger as defaultLogger } from '../Logger';
 import BlobMappings from '../lib/models/BlobMappings';
 import addRuntimeConfig from './addRuntimeConfig';
 import expressAsyncWrapper from './expressAsyncWrapper';
@@ -14,6 +14,8 @@ import Blobs from './models/Blobs';
 import UploadTokens from './models/UploadTokens';
 import onExit from './onExit';
 import { BlobType } from './schemas/Blob';
+
+const logger = defaultLogger.child({ label: 'assets' });
 
 // eslint-disable-next-line import/prefer-default-export
 export const defaultAssets: Map<string, BlobType> = new Map();
@@ -118,7 +120,7 @@ router.get('/:asset', (req, res) => {
   }
 
   // No match.
-  console.log(`[assets] 404 GET ${req.params.asset}`);
+  logger.verbose('404 GET', req.params);
   res.status(404).send('Sorry, not found');
 });
 
@@ -134,7 +136,7 @@ router.post('/:uploadToken', expressAsyncWrapper(async (req, res, next) => {
 
   const now = new Date().getTime();
   if (!uploadToken || uploadToken.createdAt.getTime() + UPLOAD_TOKEN_VALIDITY_MSEC < now) {
-    console.log(`[assets] 403 POST ${req.params.uploadToken}`);
+    logger.info('403 POST', req.params);
     res.status(403).send('Missing, invalid, or expired upload token');
     return;
   }
@@ -161,7 +163,7 @@ router.post('/:uploadToken', expressAsyncWrapper(async (req, res, next) => {
       try {
         // Concatenate chunks into a single buffer representing the entire file contents
         const contents = Buffer.concat(chunks);
-        console.log(`[assets] 200 POST ${req.params.uploadToken} ${uploadToken.asset} ${contents.length} bytes`);
+        logger.info('200 POST', { uploadToken: req.params.uploadToken, asset: uploadToken.asset, size: contents.length });
 
         // Compute md5 for eTag.
         const md5 = crypto.createHash('md5').update(contents).digest('hex');

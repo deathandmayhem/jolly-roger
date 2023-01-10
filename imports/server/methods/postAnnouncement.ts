@@ -1,6 +1,6 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Announcements from '../../lib/models/Announcements';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
@@ -28,7 +28,7 @@ postAnnouncement.define({
       throw new Meteor.Error(401, `User ${this.userId} may not create announcements for hunt ${huntId}`);
     }
 
-    Ansible.log('Creating an announcement', { user: this.userId, hunt: huntId, message });
+    Logger.info('Creating an announcement', { hunt: huntId, message });
     const id = await Announcements.insertAsync({
       hunt: huntId,
       message,

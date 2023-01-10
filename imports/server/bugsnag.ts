@@ -8,7 +8,7 @@ import { WebApp } from 'meteor/webapp';
 import Bugsnag from '@bugsnag/js';
 import FormData from 'form-data';
 import glob from 'glob';
-import Ansible from '../Ansible';
+import Logger from '../Logger';
 import isAdmin from '../lib/isAdmin';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import { userIsOperatorForAnyHunt } from '../lib/permission_stubs';
@@ -56,13 +56,7 @@ if (apiKey) {
         throw new Error(`Error from Bugsnag build API: ${await resp.text()}`);
       }
     } catch (error) {
-      Ansible.error('Unable to report release to Bugsnag', { e: error });
-      if (error instanceof Error && Bugsnag.isStarted()) {
-        Bugsnag.notify(error, (event) => {
-          // eslint-disable-next-line no-param-reassign
-          event.severity = 'warning';
-        });
-      }
+      Logger.warn('Unable to report release to Bugsnag', { error });
     }
   });
 
@@ -102,8 +96,7 @@ if (apiKey) {
       }));
     }));
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Unable to create source tree for Bugsnag', error);
+    Logger.error('Unable to create source tree for Bugsnag', { error });
   }
 
   // Upload client-side source maps to Bugsnag in the background. We can't use
@@ -154,7 +147,7 @@ if (apiKey) {
             throw new Error(`Error from Bugsnag upload API: ${await resp.text()}`);
           }
         } catch (error) {
-          Ansible.error('Unable to upload source map to Bugsnag', { e: error });
+          Logger.warn('Unable to upload source map to Bugsnag', { error });
           return;
         }
         /* eslint-enable no-await-in-loop */

@@ -1,8 +1,8 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Promise as MeteorPromise } from 'meteor/promise';
-import Ansible from '../Ansible';
 import Flags from '../Flags';
+import Logger from '../Logger';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import Servers from '../lib/models/Servers';
@@ -147,7 +147,7 @@ Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
     // If the room is not yet created, create it.
     const maybeOldPeer = await Peers.findOneAsync({ hunt, call, tab });
     if (maybeOldPeer) {
-      Ansible.log('Removing peer with same hunt/call/tab', { peer: maybeOldPeer._id });
+      Logger.verbose('Removing peer with same hunt/call/tab', { peer: maybeOldPeer._id });
       await Peers.removeAsync({
         _id: maybeOldPeer._id, hunt, call, tab,
       });
@@ -184,7 +184,7 @@ Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
       deafened: initialPeerState === 'deafened',
     });
 
-    Ansible.log('Peer joined call', {
+    Logger.info('Peer joined call', {
       peer: peerId,
       call,
       createdBy: this.userId,
@@ -193,7 +193,7 @@ Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
   }));
 
   this.onStop(() => {
-    Ansible.log('Peer left call', {
+    Logger.info('Peer left call', {
       peer: peerId,
       call,
     });

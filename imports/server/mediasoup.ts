@@ -1,12 +1,11 @@
 import { promises as dns } from 'dns';
 import { networkInterfaces } from 'os';
 import { Meteor } from 'meteor/meteor';
-import Bugsnag from '@bugsnag/js';
 import { Address6 } from 'ip-address';
 import { createWorker, types } from 'mediasoup';
 import { AudioLevelObserver } from 'mediasoup/node/lib/AudioLevelObserver';
-import Ansible from '../Ansible';
 import Flags from '../Flags';
+import Logger from '../Logger';
 import { ACTIVITY_GRANULARITY } from '../lib/config/activityTracking';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../lib/config/webrtc';
 import CallHistories from '../lib/models/mediasoup/CallHistories';
@@ -246,7 +245,7 @@ class SFU {
     }
 
     if (!router.canConsume({ producerId: producer.id, rtpCapabilities: capabilities })) {
-      Ansible.warn('Consumer can not consume from peer (this should not happen)', {
+      Logger.warn('Consumer can not consume from peer (this should not happen)', {
         producerPeer: producerAppData.peer,
         consumerPeer: consumerTransportAppData.peer,
         capabilities: JSON.stringify(capabilities),
@@ -271,24 +270,14 @@ class SFU {
         paused: true,
         appData,
       });
-    } catch (e) {
-      Ansible.error('Error creating consumer', {
+    } catch (error) {
+      Logger.error('Error creating consumer', {
+        error,
         call: producerAppData.call,
         peer: producerAppData.peer,
         transport: consumerTransport.id,
         producer: producer.id,
-        error: e instanceof Error ? e.message : e,
       });
-      if (e instanceof Error && Bugsnag.isStarted()) {
-        Bugsnag.notify(e, (event) => {
-          event.addMetadata('call', {
-            call: producerAppData.call,
-            peer: producerAppData.peer,
-            transport: consumerTransport.id,
-            producer: producer.id,
-          });
-        });
-      }
     }
   }
 
@@ -317,7 +306,7 @@ class SFU {
     const routerAppData = router.appData as RouterAppData;
 
     router.observer.on('close', Meteor.bindEnvironment(() => {
-      Ansible.info('Router was shut down', { call: routerAppData.call, router: router.id });
+      Logger.info('Router was shut down', { call: routerAppData.call, router: router.id });
       this.routers.delete(routerAppData.call);
       void Routers.removeAsync({ routerId: router.id });
     }));
@@ -411,7 +400,7 @@ class SFU {
     }));
 
     if (!(transport instanceof types.WebRtcTransport)) {
-      Ansible.warn('Ignoring unexpected non-WebRTC transport', { call: transportAppData.call, peer: transportAppData.peer, transport: transport.id });
+      Logger.warn('Ignoring unexpected non-WebRTC transport', { call: transportAppData.call, peer: transportAppData.peer, transport: transport.id });
       return;
     }
 
@@ -539,7 +528,7 @@ class SFU {
   }
 
   async roomCreated(room: RoomType) {
-    Ansible.info('Creating router', { call: room.call });
+    Logger.info('Creating router', { call: room.call });
     const appData: RouterAppData = {
       hunt: room.hunt,
       call: room.call,
@@ -553,15 +542,8 @@ class SFU {
 
     try {
       await router;
-    } catch (e) {
-      Ansible.error('Error creating router', { call: room.call, error: e instanceof Error ? e.message : e });
-      if (e instanceof Error && Bugsnag.isStarted()) {
-        Bugsnag.notify(e, (event) => {
-          event.addMetadata('call', {
-            call: room.call,
-          });
-        });
-      }
+    } catch (error) {
+      Logger.error('Error creating router', { call: room.call, error });
     }
   }
 
@@ -578,7 +560,7 @@ class SFU {
   async transportRequestCreated(transportRequest: TransportRequestType) {
     const router = this.routers.get(transportRequest.call);
     if (!router) {
-      Ansible.warn('No router for transport request', { call: transportRequest.call });
+      Logger.warn('No router for transport request', { call: transportRequest.call });
       return;
     }
 
@@ -607,17 +589,8 @@ class SFU {
 
     try {
       await transports;
-    } catch (e) {
-      Ansible.error('Error creating transport', { transport_request: transportRequest._id, error: e instanceof Error ? e.message : e });
-      if (e instanceof Error && Bugsnag.isStarted()) {
-        Bugsnag.notify(e, (event) => {
-          event.addMetadata('call', {
-            id: transportRequest.call,
-            peer: transportRequest.peer,
-            transportRequest: transportRequest._id,
-          });
-        });
-      }
+    } catch (error) {
+      Logger.error('Error creating transport', { transport_request: transportRequest._id, error });
     }
   }
 
@@ -634,7 +607,7 @@ class SFU {
   async connectRequestCreated(connectRequest: ConnectRequestType) {
     const transport = this.transports.get(`${connectRequest.transportRequest}:${connectRequest.direction}`);
     if (!transport) {
-      Ansible.warn('No transport for connect request', { call: connectRequest.call, peer: connectRequest.peer, direction: connectRequest.direction });
+      Logger.warn('No transport for connect request', { call: connectRequest.call, peer: connectRequest.peer, direction: connectRequest.direction });
       return;
     }
 
@@ -649,25 +622,15 @@ class SFU {
         transport: connectRequest.transport,
         createdBy: connectRequest.createdBy,
       });
-    } catch (e) {
-      Ansible.error('Error connecting transport', { transport: transport.id, error: e instanceof Error ? e.message : e });
-      if (e instanceof Error && Bugsnag.isStarted()) {
-        Bugsnag.notify(e, (event) => {
-          event.addMetadata('call', {
-            id: connectRequest.call,
-            peer: connectRequest.peer,
-            transportRequest: connectRequest.transportRequest,
-            transport: connectRequest.transport,
-          });
-        });
-      }
+    } catch (error) {
+      Logger.error('Error connecting transport', { transport: transport.id, error });
     }
   }
 
   async producerClientCreated(producer: ProducerClientType) {
     const transport = this.transports.get(`${producer.transportRequest}:send`);
     if (!transport) {
-      Ansible.warn('No transport for producer client', { call: producer.call, peer: producer.peer, producer: producer._id });
+      Logger.warn('No transport for producer client', { call: producer.call, peer: producer.peer, producer: producer._id });
       return;
     }
 
@@ -689,17 +652,8 @@ class SFU {
 
     try {
       await mediasoupProducer;
-    } catch (e) {
-      Ansible.error('Error creating producer', { producer: producer._id, error: e instanceof Error ? e.message : e });
-      if (e instanceof Error && Bugsnag.isStarted()) {
-        Bugsnag.notify(e, (event) => {
-          event.addMetadata('call', {
-            id: producer.call,
-            peer: producer.peer,
-            producer: producer._id,
-          });
-        });
-      }
+    } catch (error) {
+      Logger.error('Error creating producer', { producer: producer._id, error });
     }
   }
 
@@ -734,7 +688,7 @@ class SFU {
   async consumerAckCreated(consumerAck: ConsumerAckType) {
     const consumer = this.consumers.get(`${consumerAck.transportRequest}:${consumerAck.producerId}`);
     if (!consumer) {
-      Ansible.warn('No consumer for consumer ack', { peer: consumerAck.peer, producer: consumerAck.producerId });
+      Logger.warn('No consumer for consumer ack', { peer: consumerAck.peer, producer: consumerAck.producerId });
       return;
     }
 
@@ -854,7 +808,7 @@ Meteor.startup(async () => {
   const ips = Meteor.isDevelopment ?
     getLocalIPAddresses() :
     await getPublicIPAddresses();
-  Ansible.log('Discovered announceable IPs', { ips: ips.map((ip) => ip.announcedIp ?? ip.ip) });
+  Logger.verbose('Discovered announceable IPs', { ips: ips.map((ip) => ip.announcedIp ?? ip.ip) });
 
   let sfu: SFU | undefined;
   const updateSFU = async (enable: boolean) => {

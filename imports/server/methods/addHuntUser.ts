@@ -3,8 +3,8 @@ import { check } from 'meteor/check';
 import { Email } from 'meteor/email';
 import { Meteor } from 'meteor/meteor';
 import Mustache from 'mustache';
-import Ansible from '../../Ansible';
 import Flags from '../../Flags';
+import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
@@ -105,7 +105,7 @@ addHuntUser.define({
     if (!joineeUser?._id) throw new Meteor.Error(500, 'Something has gone terribly wrong');
 
     if (joineeUser.hunts?.includes(huntId)) {
-      Ansible.log('Tried to add user to hunt but they were already a member', {
+      Logger.info('Tried to add user to hunt but they were already a member', {
         joiner: this.userId,
         joinee: joineeUser._id,
         hunt: huntId,
@@ -113,7 +113,7 @@ addHuntUser.define({
       return;
     }
 
-    Ansible.log('Adding user to hunt', {
+    Logger.info('Adding user to hunt', {
       joiner: this.userId,
       joinee: joineeUser._id,
       hunt: huntId,
@@ -125,7 +125,7 @@ addHuntUser.define({
       const list = new List(listName);
       joineeEmails.forEach((joineeEmail) => {
         if (!list.add(joineeEmail)) {
-          Ansible.log('Unable to add user to list', { joineeEmail, list: listName });
+          Logger.info('Unable to add user to list', { joineeEmail, list: listName });
         }
       });
     });
@@ -134,7 +134,7 @@ addHuntUser.define({
 
     if (newUser) {
       Accounts.sendEnrollmentEmail(joineeUser._id);
-      Ansible.info('Sent invitation email to new user', { invitedBy: this.userId, email });
+      Logger.info('Sent invitation email to new user', { invitedBy: this.userId, email });
     } else {
       if (joineeUser._id !== this.userId) {
         const joinerUser = await MeteorUsers.findOneAsync(this.userId);

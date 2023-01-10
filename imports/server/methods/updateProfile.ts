@@ -1,6 +1,6 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import updateProfile from '../../methods/updateProfile';
 
@@ -29,7 +29,7 @@ updateProfile.define({
 
     const unset = { phoneNumber: phoneNumber ? undefined : 1 } as const;
 
-    Ansible.log('Updating profile for user', { user: this.userId });
+    Logger.info('Updating profile for user', { displayName });
     await MeteorUsers.updateAsync({
       _id: this.userId,
     }, {

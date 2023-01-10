@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import styled from 'styled-components';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 
 const WaitingAlert = ({ retryTime = Date.now() }: { retryTime: DDP.DDPStatus['retryTime'] }) => {
   const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
@@ -91,7 +91,11 @@ const ConnectionStatus = () => {
     case 'connected':
       return null;
     default:
-      Ansible.warn('Unknown connection status', { state: meteorStatus.status });
+      Logger.warn('Unknown connection status', {
+        error: new Error('Unknown connection status'),
+        status: meteorStatus.status,
+        reason: meteorStatus.reason,
+      });
       return null;
   }
 };

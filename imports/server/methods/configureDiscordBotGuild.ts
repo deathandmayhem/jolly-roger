@@ -1,6 +1,6 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureDiscordBot } from '../../lib/permission_stubs';
@@ -25,10 +25,7 @@ configureDiscordBotGuild.define({
     }
 
     if (guild) {
-      Ansible.log('Configuring discord bot guild', {
-        user: this.userId,
-        ...guild,
-      });
+      Logger.info('Configuring discord bot guild', guild);
       await Settings.upsertAsync({ name: 'discord.guild' }, {
         $set: { 'value.guild': guild },
       });

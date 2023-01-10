@@ -1,8 +1,8 @@
-/* eslint-disable no-console */
 import { Random } from 'meteor/random';
 import React, {
   useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
+import Logger from '../../Logger';
 
 type Crumb = {
   path: string;
@@ -59,7 +59,7 @@ const BreadcrumbsProvider = ({ children }: { children: React.ReactNode }) => {
       path,
       title,
     };
-    // console.log(`added crumb ${crumbId} title: ${title} path: ${path}`);
+    Logger.debug('Added crumb', { crumbId, title, path });
     crumbsRef.current = [...crumbsRef.current, crumbWithId];
     crumbsRef.current.sort(byPathLength);
     listenersRef.current.forEach((listener) => listener(crumbsRef.current));
@@ -67,10 +67,14 @@ const BreadcrumbsProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const removeCrumb = useCallback((crumbId: CrumbId) => {
-    // console.log(`removing crumb ${crumbId}`);
+    Logger.debug('Removing crumb', { crumbId });
     const crumbIndex = crumbsRef.current.findIndex((c) => c.id === crumbId);
     if (crumbIndex === undefined) {
-      console.error(`requested to remove crumb ID ${crumbId} but didn't find it among crumbs?`);
+      Logger.error('Attempted to remove breadcrumb but was not among crumbs', {
+        error: new Error('Unable to find breadcrumb'),
+        crumbId,
+        crumbs: crumbsRef.current,
+      });
       return;
     }
 
@@ -83,7 +87,7 @@ const BreadcrumbsProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const updateCrumb = useCallback((crumbId: CrumbId, path: string, title: string) => {
-    // console.log(`updating crumb ${crumbId} to title: ${title} path: ${path}`);
+    Logger.debug('Updating crumb', { crumbId, title, path });
     const prevCrumbs = crumbsRef.current;
     const crumbIndex = prevCrumbs.findIndex((c) => c.id === crumbId);
     const newCrumbWithId = {
@@ -97,7 +101,7 @@ const BreadcrumbsProvider = ({ children }: { children: React.ReactNode }) => {
     crumbsRef.current = beforeUpdated.concat([newCrumbWithId]).concat(afterUpdated);
     crumbsRef.current.sort(byPathLength);
 
-    // console.log(`updating ${listenersRef.current.length} subscribers`);
+    Logger.debug('Updating subscribers', { count: listenersRef.current.length });
     listenersRef.current.forEach((listener) => listener(crumbsRef.current));
   }, []);
 
@@ -128,7 +132,7 @@ const BreadcrumbsProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 function useBreadcrumb(crumb: Crumb): void {
-  // console.log("useBreadcrumb(", crumb, ")");
+  Logger.debug('useBreadcrumb', crumb);
   const ctx = useContext<BreadcrumbContextType>(BreadcrumbContext);
   const crumbId = useRef<string | null>(null);
 

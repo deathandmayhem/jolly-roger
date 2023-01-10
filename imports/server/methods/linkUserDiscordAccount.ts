@@ -1,7 +1,7 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import linkUserDiscordAccount from '../../methods/linkUserDiscordAccount';
@@ -22,9 +22,7 @@ linkUserDiscordAccount.define({
 
     // Retrieve the OAuth token from the OAuth subsystem.
     const credential = OAuth.retrieveCredential(key, secret);
-    Ansible.log('Linking user to Discord account', {
-      user: this.userId,
-    });
+    Logger.info('Linking user to Discord account');
 
     // Save the user's credentials to their User object, under services.discord.
     await MeteorUsers.updateAsync(this.userId, {
@@ -54,15 +52,13 @@ linkUserDiscordAccount.define({
       // If the user is already in the guild, no need to add them again.
       const guildMember = await bot.getUserInGuild(userInfo.id, guild.id);
       if (!guildMember) {
-        Ansible.log('Adding user to guild', {
-          user: this.userId,
+        Logger.info('Adding user to guild', {
           discordUser: userInfo.id,
           guild: guild.id,
         });
         await bot.addUserToGuild(userInfo.id, accessToken, guild.id);
       } else {
-        Ansible.log('User is already a member of guild', {
-          user: this.userId,
+        Logger.info('User is already a member of guild', {
           discordUser: userInfo.id,
           guild: guild.id,
         });

@@ -1,5 +1,6 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
+import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { addUserToRole, checkAdmin } from '../../lib/permission_stubs';
@@ -31,6 +32,8 @@ createHunt.define({
   async run(arg) {
     check(this.userId, String);
     checkAdmin(await MeteorUsers.findOneAsync(this.userId));
+
+    Logger.info('Creating a new hunt', arg);
 
     const huntId = await Hunts.insertAsync(arg);
     await addUserToRole(this.userId, huntId, 'operator');

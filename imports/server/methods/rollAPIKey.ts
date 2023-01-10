@@ -1,5 +1,5 @@
 import { check, Match } from 'meteor/check';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import fetchAPIKey from '../../methods/fetchAPIKey';
 import rollAPIKey from '../../methods/rollAPIKey';
 import APIKeys from '../models/APIKeys';
@@ -18,7 +18,7 @@ rollAPIKey.define({
     const user = await userForKeyOperation(this.userId, forUser);
 
     for await (const k of APIKeys.find({ user })) {
-      Ansible.log('Expiring API key', { id: k._id, user: k.user, requestedBy: this.userId });
+      Logger.info('Expiring API key', { id: k._id, user: k.user, requestedBy: this.userId });
       await APIKeys.destroyAsync(k._id);
     }
 

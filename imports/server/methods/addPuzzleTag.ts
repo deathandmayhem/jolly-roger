@@ -1,5 +1,5 @@
 import { check } from 'meteor/check';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Puzzles from '../../lib/models/Puzzles';
 import addPuzzleTag from '../../methods/addPuzzleTag';
 import getOrCreateTagByName from '../getOrCreateTagByName';
@@ -29,7 +29,7 @@ addPuzzleTag.define({
     if (!huntId) throw new Error(`No puzzle known with id ${puzzleId}`);
     const tagId = (await getOrCreateTagByName(huntId, tagName))._id;
 
-    Ansible.log('Tagging puzzle', { puzzle: puzzleId, tag: tagName });
+    Logger.info('Tagging puzzle', { puzzle: puzzleId, tag: tagName });
     await Puzzles.updateAsync({
       _id: puzzleId,
     }, {

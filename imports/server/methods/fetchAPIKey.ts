@@ -1,6 +1,6 @@
 import { check, Match } from 'meteor/check';
 import { Random } from 'meteor/random';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import fetchAPIKey from '../../methods/fetchAPIKey';
 import APIKeys from '../models/APIKeys';
 import Locks from '../models/Locks';
@@ -28,7 +28,7 @@ fetchAPIKey.define({
         key = await APIKeys.findOneAsync({ user });
 
         if (!key) {
-          Ansible.log('Generating new API key for user', { user, requestedBy: this.userId });
+          Logger.info('Generating new API key for user', { user, requestedBy: this.userId });
           key = await APIKeys.findOneAsync(
             await APIKeys.insertAsync({
               user,

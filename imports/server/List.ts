@@ -1,6 +1,6 @@
 import child from 'child_process';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../Ansible';
+import Logger from '../Logger';
 
 const execFile = Meteor.wrapAsync(child.execFile);
 
@@ -9,7 +9,7 @@ const blanche = (args: string[]): string => {
     return execFile('blanche', args, { stdio: ['ignore', 'pipe', process.stderr] });
   } catch (e) {
     if (e instanceof Error && (e as any).code === 'ENOENT') {
-      Ansible.warn('Would run blanche, but it\'s not available', { args });
+      Logger.warn('Would run blanche, but it\'s not available', { args });
       return '';
     }
 

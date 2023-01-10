@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-/* eslint-disable no-console */
 import { promisify } from 'util';
 import { check } from 'meteor/check';
 import { DDP } from 'meteor/ddp';

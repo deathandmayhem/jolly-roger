@@ -1,6 +1,6 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
@@ -40,10 +40,9 @@ createGuess.define({
       throw new Meteor.Error(404, 'Hunt does not allow you to submit guesses, only answers');
     }
 
-    Ansible.log('New guess', {
+    Logger.info('New guess', {
       hunt: puzzle.hunt,
       puzzle: puzzleId,
-      user: this.userId,
       guess,
       direction,
       confidence,

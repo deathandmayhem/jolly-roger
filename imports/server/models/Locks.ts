@@ -2,7 +2,7 @@
 // Locks are a server-only class
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import ignoringDuplicateKeyErrors from '../ignoringDuplicateKeyErrors';
 import LockSchema, { LockType } from '../schemas/Lock';
 
@@ -101,7 +101,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
         const preemptableLock = await Promise.race([removed, timedOut]);
         cleanupWatches();
         if (preemptableLock) {
-          Ansible.log('Preempting lock', { id: preemptableLock._id, name });
+          Logger.warn('Preempting lock', { id: preemptableLock._id, name });
           await this.removeAsync({
             _id: preemptableLock._id,
             renewedAt: preemptableLock.renewedAt,

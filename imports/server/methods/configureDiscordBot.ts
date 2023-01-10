@@ -1,6 +1,6 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import Ansible from '../../Ansible';
+import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureDiscordBot } from '../../lib/permission_stubs';
@@ -22,17 +22,13 @@ configureDiscordBot.define({
     }
 
     if (token) {
-      Ansible.log('Configuring discord bot token (token redacted)', {
-        user: this.userId,
-      });
+      Logger.info('Configuring discord bot token (token redacted)');
       await Settings.upsertAsync(
         { name: 'discord.bot' },
         { $set: { 'value.token': token } }
       );
     } else {
-      Ansible.log('Discarding discord bot token', {
-        user: this.userId,
-      });
+      Logger.info('Discarding discord bot token');
       await Settings.removeAsync({ name: 'discord.bot' });
     }
   },
