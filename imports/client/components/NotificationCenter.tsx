@@ -269,7 +269,7 @@ const GuessMessage = React.memo(({
             </OverlayTrigger>
           </StyledNotificationActionItem>
           <StyledGuessDetails>
-            <GuessDirection value={guess.direction} />
+            <GuessDirection id={`notification-guess-${guess._id}-direction`} value={guess.direction} />
             <GuessConfidence id={`notification-guess-${guess._id}-confidence`} value={guess.confidence} />
           </StyledGuessDetails>
         </StyledNotificationActionBar>
