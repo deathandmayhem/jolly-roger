@@ -22,7 +22,6 @@ class BugsnagTransport extends Transport {
     if (!error || !(error instanceof Error)) return;
 
     Bugsnag.notify(error, (event) => {
-      /* eslint-disable no-param-reassign */
       event.context = message;
 
       if (this.levels[level]! <= this.levels.error!) {
@@ -34,7 +33,6 @@ class BugsnagTransport extends Transport {
       }
 
       event.addMetadata('extra', rest);
-      /* eslint-enable no-param-reassign */
     }, next);
   }
 }

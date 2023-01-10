@@ -17,7 +17,6 @@ import { BlobType } from './schemas/Blob';
 
 const logger = defaultLogger.child({ label: 'assets' });
 
-// eslint-disable-next-line import/prefer-default-export
 export const defaultAssets: Map<string, BlobType> = new Map();
 export const defaultMappings: Map<string, string> = new Map();
 // Changing this list? Make sure to update imports/client/components/SetupPage.tsx as well
@@ -102,7 +101,6 @@ Meteor.startup(() => {
 
 const app = express();
 
-// eslint-disable-next-line new-cap
 const router = express.Router();
 router.get('/:asset', (req, res) => {
   check(req.params.asset, String);

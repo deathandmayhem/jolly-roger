@@ -248,7 +248,6 @@ describe('puzzleGroupsByRelevance', function () {
       assert.deepEqual(groups, [
         {
           // Administrivia
-          // eslint-disable-next-line dot-notation
           sharedTag: allTagsByName.get('administrivia'),
           puzzles: [admPuzzle],
           subgroups: [],

@@ -68,7 +68,6 @@ configureEnsureGoogleScript.define({
       let pageToken: string | undefined;
       const deployments: script_v1.Schema$Deployment[] = [];
       do {
-        // eslint-disable-next-line no-await-in-loop
         const deploymentsResponse = await script.projects.deployments.list({
           scriptId,
           pageToken,

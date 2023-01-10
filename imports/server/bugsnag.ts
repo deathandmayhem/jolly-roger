@@ -104,7 +104,6 @@ if (apiKey) {
   // they have on disk, so we need to translate through program.json.
   Meteor.defer(async () => {
     for (const [arch, spec] of Object.entries(WebApp.clientPrograms)) {
-      /* eslint-disable no-await-in-loop */
       const manifest = spec.manifest as ProgramManifestFile[];
       for (const file of manifest) {
         if (file.type !== 'js' && file.type !== 'dynamic js') {
@@ -150,7 +149,6 @@ if (apiKey) {
           Logger.warn('Unable to upload source map to Bugsnag', { error });
           return;
         }
-        /* eslint-enable no-await-in-loop */
       }
     }
   });

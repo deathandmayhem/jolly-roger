@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { Meteor } from 'meteor/meteor';
 import Flags from '../Flags';
 import { ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS } from '../lib/config/activityTracking';
@@ -19,7 +18,6 @@ async function recordDriveChanges(ts: Date, fileIds: string[], googleAccountIds:
   for await (const fileId of fileIds) {
     const document = await Documents.findOneAsync({ 'value.id': fileId });
     if (!document) {
-      // eslint-disable-next-line no-continue
       continue;
     }
 

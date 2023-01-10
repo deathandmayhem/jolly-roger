@@ -13,6 +13,7 @@
     "deprecation",
     "jolly-roger"
   ],
+  "reportUnusedDisableDirectives": true,
   "extends": [
     "airbnb",
     "plugin:meteor/recommended",
@@ -42,7 +43,7 @@
     "func-names": "off",
 
     // For Match expressions
-    "new-cap": ["error", { "capIsNewExceptions": ["Optional", "OneOf", "Maybe", "ObjectIncluding"] }],
+    "new-cap": ["error", { "capIsNewExceptions": ["Optional", "OneOf", "Maybe", "ObjectIncluding", "Router"] }],
 
     // sometimes else after a return reads more clearly
     "no-else-return": "off",
@@ -54,7 +55,8 @@
       {
         "allow": [
           "_id", "_this", "_dropIndex", "_redirectUri", "_postRequest",
-          "_anyMethodsAreOutstanding", "_schemaKeys", "_schema", "_retrieveCredentialSecret"
+          "_anyMethodsAreOutstanding", "_schemaKeys", "_schema", "_retrieveCredentialSecret",
+          "_loginStyle", "_stateParam", "_name", "_allSubscriptionsReady"
         ]
       }
     ],
@@ -112,16 +114,14 @@
     // We use spread props a lot for HOCs or other wrapper-type components
     "react/jsx-props-no-spreading": "off",
 
-    // The eslint guide seems to claim that adding "static" to method
-    // definitions is a noop, but that doesn't seem to be true in practice, and I
-    // don't understand the prototype model well enough to understand why.
+    // We have methods on classes that don't use this, but still need to be an
+    // instance method instead of a class method (e.g. because they're
+    // implementing a subset of some larger interface). There's no way to
+    // satisfy this linter without breaking those interfaces.
     "class-methods-use-this": "off",
 
     // Allow tsx files
     "react/jsx-filename-extension": [1, { "extensions": [".jsx", ".tsx"] }],
-
-    // "name" is a useful variable
-    "no-restricted-globals": "off",
 
     // Detect missing deps for non-standard hooks
     "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useTracker|useFind" }],
@@ -171,6 +171,12 @@
     "no-return-await": "off",
     "@typescript-eslint/return-await": "error",
 
+    // There's some risk that this causes us to write parallelizable code that
+    // runs in serial, but so far most of the cases where we hit this, we need
+    // to run serially, either so we avoid overwhelming a rate limit or because
+    // we're paginating over results
+    "no-await-in-loop": "off",
+
     // Show errors for deprecated code
     "deprecation/deprecation": "error",
 
@@ -192,6 +198,9 @@
       }
     ],
 
+    // Some external libraries (e.g. Bugsnag) require modifying parameter props
+    // as part of their interface
+    "no-param-reassign": ["error", { "props": false }],
 
     // Match existing style
     "operator-linebreak": ["error", "after"],
@@ -207,7 +216,6 @@
     "react/function-component-definition": ["error", {
       "namedComponents": "arrow-function"
     }],
-    "jsx-a11y/accessible-emoji": "off",
     "jsx-a11y/click-events-have-key-events": "off",
     "jsx-a11y/no-static-element-interactions": "off",
     "jsx-a11y/media-has-caption": "off"
@@ -216,11 +224,6 @@
     {
       "files": ["*.ts", "*.tsx"],
       "rules": {
-        // this seems to catch interface definitions
-        "no-undef": "off",
-        // seems to not work for imports that are only used for typing
-        "no-unused-vars": "off",
-
         // The Javascript versions of these rules don't handle TypeScript
         // scoping correctly, so use the TypeScript-specific ones instead
         "no-use-before-define": "off",
@@ -255,6 +258,8 @@
         // type declarations for other libraries don't get to choose their
         // export structure
         "import/prefer-default-export": "off",
+        // or their variable names
+        "no-underscore-dangle": "off",
         // we often need to declare unused variables when extending generic
         // types
         "@typescript-eslint/no-unused-vars": "off"

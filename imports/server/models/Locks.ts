@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 // Locks are a server-only class
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
@@ -14,7 +13,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
     super('jr_locks');
   }
 
-  async _tryAcquire(name: string) {
+  private async tryAcquire(name: string) {
     return ignoringDuplicateKeyErrors(async () => {
       // Because the Mongo.Collection doesn't know about SimpleSchema
       // autovalues, it doesn't know which fields are actually required. Cast to
@@ -23,7 +22,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
     });
   }
 
-  async _release(lock: string) {
+  private async release(lock: string) {
     await this.removeAsync(lock);
   }
 
@@ -64,8 +63,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
           });
         });
 
-        // eslint-disable-next-line no-underscore-dangle
-        lock = await this._tryAcquire(name);
+        lock = await this.tryAcquire(name);
         if (lock) {
           return await critSection(lock);
         }
@@ -111,8 +109,7 @@ const Locks = new class extends Mongo.Collection<LockType> {
         cleanupWatches();
 
         if (lock) {
-          // eslint-disable-next-line no-underscore-dangle
-          await this._release(lock);
+          await this.release(lock);
         }
       }
     }

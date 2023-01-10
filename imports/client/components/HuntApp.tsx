@@ -13,7 +13,7 @@ import { HuntType } from '../../lib/schemas/Hunt';
 import addHuntUser from '../../methods/addHuntUser';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/useDocumentTitle';
-import markdown from '../markdown';
+import Markdown from './Markdown';
 
 const HuntDeletedError = React.memo(({ hunt, canUndestroy }: {
   hunt: HuntType;
@@ -83,7 +83,6 @@ const HuntMemberError = React.memo(({ hunt, canJoin }: {
   const navigate = useNavigate();
   const goBack = useCallback(() => navigate(-1), [navigate]);
 
-  const msg = markdown(hunt.signupMessage ?? '');
   return (
     <div>
       <Alert variant="warning">
@@ -92,10 +91,7 @@ const HuntMemberError = React.memo(({ hunt, canJoin }: {
         ) yet.
       </Alert>
 
-      <div
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: msg }}
-      />
+      <Markdown text={hunt.signupMessage ?? ''} />
 
       <ButtonToolbar>
         <Button variant="light" onClick={goBack}>

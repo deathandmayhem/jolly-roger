@@ -118,9 +118,7 @@ export default class TypedMethod<
             'error';
 
         Bugsnag.notify(error, (event) => {
-          // eslint-disable-next-line no-param-reassign
           event.context = this.name;
-          // eslint-disable-next-line no-param-reassign
           event.severity = severity;
           event.addMetadata('method', {
             arguments: EJSON.stringify(arg0 ?? {}),

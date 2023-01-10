@@ -15,7 +15,7 @@ import { AnnouncementType } from '../../lib/schemas/Announcement';
 import postAnnouncement from '../../methods/postAnnouncement';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
-import markdown from '../markdown';
+import Markdown from './Markdown';
 
 enum AnnouncementFormSubmitState {
   IDLE = 'idle',
@@ -118,10 +118,7 @@ const Announcement = ({ announcement, displayName }: {
         <AnnouncementTimestamp>{calendarTimeFormat(ann.createdAt)}</AnnouncementTimestamp>
         <div>{displayName}</div>
       </AnnouncementOrigin>
-      <div
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: markdown(ann.message) }}
-      />
+      <Markdown text={ann.message} />
     </AnnouncementContainer>
   );
 };

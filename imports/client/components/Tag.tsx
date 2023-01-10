@@ -162,8 +162,8 @@ const PopperScreenFit : Modifier<'screenFit', PopperScreenFitOptions> = {
     } else {
       return;
     }
-    state.styles.popper!.maxHeight = `${maxHeight}px`; // eslint-disable-line no-param-reassign
-    state.styles.popper!.maxWidth = `${maxWidth}px`; // eslint-disable-line no-param-reassign
+    state.styles.popper!.maxHeight = `${maxHeight}px`;
+    state.styles.popper!.maxWidth = `${maxWidth}px`;
   },
 };
 

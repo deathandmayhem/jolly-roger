@@ -30,8 +30,8 @@ import setGuessState from '../../methods/setGuessState';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
-import markdown from '../markdown';
 import GuessState from './GuessState';
+import Markdown from './Markdown';
 import PuzzleAnswer from './PuzzleAnswer';
 import { GuessConfidence, GuessDirection } from './guessDetails';
 import Breakable from './styling/Breakable';
@@ -261,9 +261,7 @@ const GuessBlock = React.memo(({
         )}
       </StyledCell>
       {guess.additionalNotes && (
-        <StyledAdditionalNotes
-          dangerouslySetInnerHTML={{ __html: markdown(guess.additionalNotes) }}
-        />
+        <Markdown as={StyledAdditionalNotes} text={guess.additionalNotes} />
       )}
     </StyledRow>
   );

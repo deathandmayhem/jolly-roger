@@ -5,7 +5,6 @@ import express from 'express';
 import MeteorUsers from '../../../lib/models/MeteorUsers';
 import expressAsyncWrapper from '../../expressAsyncWrapper';
 
-// eslint-disable-next-line new-cap
 const users = express.Router();
 
 async function findUserByEmail(email: string): Promise<Meteor.User | undefined> {

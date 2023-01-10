@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
