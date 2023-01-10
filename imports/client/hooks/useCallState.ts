@@ -761,12 +761,10 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
         const producer = producerMapRef.current.get(track.id)?.producer;
         if (producer && (producerShouldBePaused !== producer.paused)) {
           if (producerShouldBePaused) {
-            // eslint-disable-next-line no-param-reassign
             track.enabled = false;
             logger.debug('pausing producer for track', { track: track.id });
             producer.pause();
           } else {
-            // eslint-disable-next-line no-param-reassign
             track.enabled = true;
             logger.debug('resuming producer for track', { track: track.id });
             producer.resume();

@@ -191,6 +191,10 @@
       }
     ],
 
+    // Some external libraries (e.g. Bugsnag) require modifying parameter props
+    // as part of their interface
+    "no-param-reassign": ["error", { "props": false }],
+
     // Match existing style
     "operator-linebreak": ["error", "after"],
     "prefer-destructuring": "off",
@@ -247,6 +251,8 @@
         // type declarations for other libraries don't get to choose their
         // export structure
         "import/prefer-default-export": "off",
+        // or their variable names
+        "no-underscore-dangle": "off",
         // we often need to declare unused variables when extending generic
         // types
         "@typescript-eslint/no-unused-vars": "off"
