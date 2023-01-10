@@ -28,7 +28,7 @@ configureCollectGoogleAccountIds.define({
       for (const contact of resp.data.otherContacts ?? []) {
         const id = contact.metadata?.sources?.find((s) => s.type === 'PROFILE')?.id ?? undefined;
         if (!id) {
-          return;
+          continue;
         }
 
         const addresses = contact.emailAddresses?.reduce<string[]>((a, e) => {

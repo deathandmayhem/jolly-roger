@@ -79,7 +79,7 @@ configureEnsureGoogleScript.define({
       for (const d of deployments) {
         if (!d.deploymentConfig?.versionNumber) {
           // No version number means this is a HEAD deployment
-          return;
+          continue;
         }
 
         await script.projects.deployments.update({
