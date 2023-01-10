@@ -292,7 +292,9 @@ const AutocompleteContainer = styled.div`
   box-shadow: 0 1px 5px rgb(0 0 0 / 20%);
 `;
 
-type TraverseCallback = (token: marked.Token, offset: number) => void;
+// TraverseCallback should return the offset into its raw text at which its
+// children's text starts
+type TraverseCallback = (token: marked.Token, offset: number) => number;
 
 // Walks the tokens provided, calling callback, and keeping track of the raw offset
 // into the input string along the way.
@@ -312,10 +314,12 @@ const walkTokenList = (
 };
 
 const walkToken = (token: marked.Token, callback: TraverseCallback, offset: number) => {
+  const innerOffset = callback(token, offset);
   if ('tokens' in token && token.tokens) {
-    walkTokenList(token.tokens, callback, offset);
+    // compute relative offset of any leading formatting option so that nested
+    // marks will have the right offsets
+    walkTokenList(token.tokens, callback, offset + innerOffset);
   }
-  callback(token, offset);
 };
 
 const renderLeaf = (props: RenderLeafProps) => {
@@ -369,6 +373,7 @@ const decorate = ([node, path]: [Node, Path]) => {
           anchor: { path, offset },
           focus: { path, offset: offset + token.raw.length },
         });
+        return 0; // links consume no formatting characters
       } else if (token.type === 'blockquote') {
         let distance = token.raw.length;
         if (token.raw.endsWith('\n\n')) {
@@ -379,6 +384,11 @@ const decorate = ([node, path]: [Node, Path]) => {
           anchor: { path, offset },
           focus: { path, offset: offset + distance },
         });
+        // Attempt to find the first line of the quoted substring to determine offset
+        const firstLineText = token.text.split('\n')[0]!.trimEnd();
+        const firstLineOffset = token.raw.indexOf(firstLineText);
+        // If we can't find the substring, just return 0
+        return Math.max(0, firstLineOffset);
       } else if (token.type === 'strong') {
         let type = 'strong';
         if (token.raw.startsWith('__')) {
@@ -391,6 +401,7 @@ const decorate = ([node, path]: [Node, Path]) => {
           anchor: { path, offset },
           focus: { path, offset: offset + token.raw.length },
         });
+        return 2; // Both __ and ** take two characters
       } else if (token.type === 'code') {
         let distance = token.raw.length;
         if (token.raw.endsWith('\n')) {
@@ -403,14 +414,24 @@ const decorate = ([node, path]: [Node, Path]) => {
           anchor: { path, offset },
           focus: { path, offset: offset + distance },
         });
-      } else if (token.type === 'em' || token.type === 'codespan' || token.type === 'del') {
+        return 0; // code blocks should have no children, so this value doesn't matter
+      } else if (token.type === 'em' || token.type === 'codespan') {
         ranges.push({
           [token.type]: true,
           anchor: { path, offset },
           focus: { path, offset: offset + token.raw.length },
         });
+        return 1; // both em and codespan have one leading formatting character
+      } else if (token.type === 'del') {
+        ranges.push({
+          del: true,
+          anchor: { path, offset },
+          focus: { path, offset: offset + token.raw.length },
+        });
+        return 2; // two leading ~~
       }
     }
+    return 0;
   }, 0);
 
   if (DEBUG_EDITOR) {
