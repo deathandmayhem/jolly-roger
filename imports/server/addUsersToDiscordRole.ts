@@ -40,7 +40,7 @@ export default async (userIds: string[], huntId: string) => {
     const user = await MeteorUsers.findOneAsync(userId);
     if (!user?.discordAccount) {
       Logger.info('Can not add users to Discord role because user has not linked their Discord account', { userIds, huntId });
-      return;
+      continue;
     }
     try {
       await discord.addUserToRole(user.discordAccount.id, guild.id, roleId);
