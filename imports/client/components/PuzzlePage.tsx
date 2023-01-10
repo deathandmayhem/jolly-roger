@@ -47,6 +47,7 @@ import { Link, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Descendant } from 'slate';
 import styled, { css } from 'styled-components';
+import Flags from '../../Flags';
 import Logger from '../../Logger';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { indexedById, sortedBy } from '../../lib/listUtils';
@@ -527,6 +528,8 @@ const ChatInput = React.memo(({
   puzzleId: string;
   puzzleDeleted: boolean;
 }) => {
+  // Drive this with a circuit breaker.
+  const useNewInput = useTracker(() => !Flags.active('disable.chatv2'), []);
   // Shared.
   const onHeightChangeCb = useCallback((newHeight: number) => {
     if (onHeightChange) {
@@ -606,16 +609,14 @@ const ChatInput = React.memo(({
   }, [puzzleId, content, onMessageSent]);
 
   // V1/V2 interop.
-  // This could be a circuit breaker
-  const USE_NEW_INPUT = true;
   const sendMessageIfReady = useCallback(() => {
-    if (USE_NEW_INPUT) {
+    if (useNewInput) {
       sendContentMessage();
     } else {
       sendMessageIfHasText();
     }
-  }, [USE_NEW_INPUT, sendContentMessage, sendMessageIfHasText]);
-  const inputElement = USE_NEW_INPUT ? (
+  }, [useNewInput, sendContentMessage, sendMessageIfHasText]);
+  const inputElement = useNewInput ? (
     <StyledFancyEditor
       ref={fancyEditorRef}
       className="form-control"
@@ -641,7 +642,7 @@ const ChatInput = React.memo(({
       placeholder="Chat"
     />
   );
-  const hasNonTrivialContent = USE_NEW_INPUT ?
+  const hasNonTrivialContent = useNewInput ?
     content !== initialValue :
     text.length > 0;
 
