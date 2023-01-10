@@ -13,6 +13,7 @@
     "deprecation",
     "jolly-roger"
   ],
+  "reportUnusedDisableDirectives": true,
   "extends": [
     "airbnb",
     "plugin:meteor/recommended",

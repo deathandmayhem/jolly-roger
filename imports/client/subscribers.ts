@@ -8,7 +8,6 @@ export type SubscriberCounterType = {
 
 export type SubscriberType = {
   _id: string;
-  // eslint-disable-next-line no-restricted-globals
   name: string;
   user: string;
 }

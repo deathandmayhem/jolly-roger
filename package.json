@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint:types": "tsc --noEmit",
-    "lint:js": "eslint --format gha --ext js,jsx,ts,tsx .",
+    "lint:js": "eslint --format gha --max-warnings 0 --ext js,jsx,ts,tsx .",
     "lint:css": "stylelint '**/*.tsx'",
     "lint": "meteor lint && npm-run-all --parallel lint:*",
     "test": "TEST_BROWSER_DRIVER=puppeteer meteor test --full-app --once --driver-package meteortesting:mocha",

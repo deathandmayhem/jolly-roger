@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
 
@@ -22,7 +21,6 @@ const LabelledRadio = ({
   id, name, value, label, defaultChecked, onChange,
 }: {
   id: string;
-  // eslint-disable-next-line no-restricted-globals
   // The name of the exclusive group for the radio buttons
   name: string;
   value: string;
@@ -49,7 +47,6 @@ const LabelledRadioGroup = ({
   header, name, options, onChange, initialValue, help,
 }: {
   header: string;
-  // eslint-disable-next-line no-restricted-globals
   name: string; // The name of the exclusive group for the radio buttons
   options: {label: string, value: string}[];
   onChange: (value: string) => void;

@@ -42,8 +42,6 @@ Meteor.publish('subscribers.inc', async function (name, context) {
 // (logged in) subscribe to any counter because Hunt is tomorrow and I
 // don't think counts are thaaat sensitive, especially if you can't
 // even look up the puzzle ids
-//
-// eslint-disable-next-line consistent-return
 Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
   check(q, Object);
 
@@ -111,8 +109,6 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
 // Unlike subscribers.counts, which takes a query string against the
 // context, we require you to specify the name of a subscription here
 // to avoid fanout.
-//
-// eslint-disable-next-line consistent-return
 Meteor.publish('subscribers.fetch', function (name) {
   check(name, String);
 

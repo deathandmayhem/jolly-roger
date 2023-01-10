@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';

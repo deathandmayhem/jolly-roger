@@ -283,7 +283,6 @@ const PeerBox = ({
   useEffect(() => {
     if (audioRef.current) {
       if (stream) {
-        // eslint-disable-next-line no-param-reassign
         audioRef.current.srcObject = stream;
       } else {
         audioRef.current.srcObject = null;

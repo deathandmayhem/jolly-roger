@@ -549,7 +549,6 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   const recvTransportConnectCallback = useTransport(device, 'recv', recvServerParams, dispatch);
   const sendTransport = state.transports.send;
   const recvTransport = state.transports.recv;
-  // eslint-disable-next-line consistent-return
   useEffect(() => {
     if (hasSelfPeer) {
       const observer = ConnectAcks.find({ peer: selfPeer._id }).observeChanges({
@@ -572,7 +571,6 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   // Producer (audio from local microphone, sending to server) logic
   // Extract the tracks from the current media source stream
   const [producerTracks, setProducerTracks] = useState<MediaStreamTrack[]>([]);
-  // eslint-disable-next-line consistent-return
   useEffect(() => {
     // Use Meteor.defer here because the addtrack/removetrack events seem to
     // sometimes fire _before_ the track has actually been added to the stream's
@@ -663,7 +661,6 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
       setProducerParamsGeneration((prevValue) => prevValue + 1);
     }
   }, []);
-  // eslint-disable-next-line consistent-return
   useEffect(() => {
     if (sendTransport) {
       sendTransport?.on('produce', onProduce);

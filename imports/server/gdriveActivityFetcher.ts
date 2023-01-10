@@ -19,7 +19,6 @@ async function recordDriveChanges(ts: Date, fileIds: string[], googleAccountIds:
   for await (const fileId of fileIds) {
     const document = await Documents.findOneAsync({ 'value.id': fileId });
     if (!document) {
-      // eslint-disable-next-line no-continue
       continue;
     }
 

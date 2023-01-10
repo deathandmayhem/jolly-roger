@@ -1501,7 +1501,6 @@ const PuzzleGuessModal = React.forwardRef(({
                 <GuessTableSmallRow>
                   {guess.additionalNotes && (
                     <AdditionalNotesCell
-                      // eslint-disable-next-line react/no-danger
                       dangerouslySetInnerHTML={{ __html: markdown(guess.additionalNotes) }}
                     />
                   )}
