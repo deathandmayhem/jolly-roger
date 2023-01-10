@@ -59,7 +59,7 @@ const METHODS = {
     }
 
     const sheetId = parseInt(params.sheet, 10);
-    if (isNaN(sheetId)) {
+    if (Number.isNaN(sheetId)) {
       return ContentService
         .createTextOutput(JSON.stringify({ ok: false, error: 'Invalid sheet ID' }))
         .setMimeType(ContentService.MimeType.JSON);
