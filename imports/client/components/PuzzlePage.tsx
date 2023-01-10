@@ -160,6 +160,11 @@ const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
 const ChatHistoryDiv = styled.div`
   flex: 1 1 auto;
   overflow-y: auto;
+
+  // Nothing should overflow the box, but if you nest blockquotes super deep you
+  // can do horrible things.  We should still avoid horizontal scroll bars, since
+  // the make the log harder to read at the bottom.
+  overflow-x: hidden;
 `;
 
 const PUZZLE_PAGE_PADDING = 8;
