@@ -60,38 +60,28 @@ const StyledNotificationActionBar = styled.ul`
   display: flex;
   list-style-type: none;
   margin: 0;
+  padding: 0;
+  flex-flow: wrap row;
+  gap: 0.5rem;
 
   &:not(:last-child) {
     margin-bottom: 0.5rem;
   }
-
-  padding: 0;
-  flex-flow: wrap row;
 `;
 
-const StyledNotificationActionItem = styled.li`
-  margin-right: 0.5rem;
-  display: inline-block;
+const StyledNotificationActionItem = styled.li<{grow?: boolean}>`
+  display: flex;
+  flex-grow: ${(props) => (props.grow ? 1 : 0)};
 `;
 
 const StyledNotificationRow = styled.div`
-  margin: 0;
-
   &:not(:last-child) {
     margin-bottom: 0.5rem;
   }
-
-  padding: 0;
 `;
 
-const StyledGuessDetails = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-end;
-  text-align: end;
-  gap: 8px;
+const StyledGuessDetails = styled.li`
+  display: contents;
 `;
 
 const StyledGuessHeader = styled.strong`
@@ -276,17 +266,17 @@ const GuessMessage = React.memo(({
           </StyledGuessDetails>
         </StyledNotificationActionBar>
         <StyledNotificationActionBar>
-          <StyledNotificationActionItem>
-            <Button variant={correctButtonVariant} size="sm" disabled={disableForms} onClick={markCorrect}>Correct</Button>
+          <StyledNotificationActionItem grow>
+            <Button variant={correctButtonVariant} size="sm" className="flex-grow-1" disabled={disableForms} onClick={markCorrect}>Correct</Button>
           </StyledNotificationActionItem>
-          <StyledNotificationActionItem>
-            <Button variant={intermediateButtonVariant} size="sm" disabled={disableForms} active={nextState === 'intermediate'} onClick={toggleStateIntermediate}>Intermediate…</Button>
+          <StyledNotificationActionItem grow>
+            <Button variant={intermediateButtonVariant} size="sm" className="flex-grow-1" disabled={disableForms} active={nextState === 'intermediate'} onClick={toggleStateIntermediate}>Intermediate…</Button>
           </StyledNotificationActionItem>
-          <StyledNotificationActionItem>
-            <Button variant={incorrectButtonVariant} size="sm" disabled={disableForms} onClick={markIncorrect}>Incorrect</Button>
+          <StyledNotificationActionItem grow>
+            <Button variant={incorrectButtonVariant} size="sm" className="flex-grow-1" disabled={disableForms} onClick={markIncorrect}>Incorrect</Button>
           </StyledNotificationActionItem>
-          <StyledNotificationActionItem>
-            <Button variant={rejectButtonVariant} size="sm" disabled={disableForms} active={nextState === 'rejected'} onClick={toggleStateRejected}>Reject…</Button>
+          <StyledNotificationActionItem grow>
+            <Button variant={rejectButtonVariant} size="sm" className="flex-grow-1" disabled={disableForms} active={nextState === 'rejected'} onClick={toggleStateRejected}>Reject…</Button>
           </StyledNotificationActionItem>
         </StyledNotificationActionBar>
         {guess.state !== 'pending' && guess.additionalNotes && (
