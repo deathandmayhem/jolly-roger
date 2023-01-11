@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useFind, useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight';
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
@@ -342,11 +342,11 @@ const ChatHistory = React.forwardRef(({
   displayNames: Map<string, string>;
   selfUserId: string;
 }, forwardedRef: React.Ref<ChatHistoryHandle>) => {
-  const chatMessages: FilteredChatMessageType[] = useTracker(
+  const chatMessages: FilteredChatMessageType[] = useFind(
     () => ChatMessages.find(
       { puzzle: puzzleId },
       { sort: { timestamp: 1 } },
-    ).fetch(),
+    ),
     [puzzleId]
   );
 
