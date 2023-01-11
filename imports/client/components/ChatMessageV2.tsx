@@ -13,7 +13,7 @@ const PreWrapSpan = styled.span`
 `;
 
 const PreWrapParagraph = styled.p`
-  display: inline-block;
+  display: inline;
   white-space: pre-wrap;
   margin-bottom: 0;
 `;
@@ -80,17 +80,13 @@ const MarkdownToken = ({ token }: { token: marked.Token }) => {
   } else if (token.type === 'code') {
     return <StyledCodeBlock>{token.text}</StyledCodeBlock>;
   } else {
-    // Unhandled token types: just return the raw string
-    return <span>{token.raw}</span>;
+    // Unhandled token types: just return the raw string with pre-wrap.
+    // This covers things like bulleted or numbered lists, which we explicitly
+    // do not want to render semantically because markdown does terribly
+    // surprising things with the numbers in ordered lists and only supporting
+    // unordered lists would be confusing.
+    return <PreWrapSpan>{token.raw}</PreWrapSpan>;
   }
-};
-
-const ReadonlyMarkdownRenderer = ({ text }: { text: string }) => {
-  const tokensList = marked.lexer(text);
-  const children = tokensList.map((token, i) => {
-    return <MarkdownToken key={i} token={token} />;
-  });
-  return <PreWrapSpan>{children}</PreWrapSpan>;
 };
 
 const ChatMessageV2 = ({ message, displayNames, selfUserId }: {
@@ -108,7 +104,10 @@ const ChatMessageV2 = ({ message, displayNames, selfUserId }: {
         </MentionSpan>
       );
     } else {
-      return <ReadonlyMarkdownRenderer key={i} text={child.text} />;
+      const tokensList = marked.lexer(child.text);
+      return tokensList.map((token, j) => {
+        return <MarkdownToken key={j} token={token} />;
+      });
     }
   });
 
