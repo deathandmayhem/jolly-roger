@@ -15,7 +15,7 @@ import { indexedById } from '../../lib/listUtils';
 import ChatMessages from '../../lib/models/ChatMessages';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
-import { ChatMessageType } from '../../lib/schemas/ChatMessage';
+import { ChatMessageType, nodeIsMention } from '../../lib/schemas/ChatMessage';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
@@ -36,29 +36,61 @@ const FirehosePageLayout = styled.div`
 
 interface MessageProps {
   msg: ChatMessageType;
-  displayName: string;
+  displayNames: Map<string, string>;
   puzzle: PuzzleType | undefined;
 }
 
-const Message = React.memo(({ msg, displayName, puzzle }: MessageProps) => {
+const PreWrapSpan = styled.span`
+  display: block;
+  white-space: pre-wrap;
+  padding-left: 1em;
+`;
+
+function asFlatString(chatMessage: ChatMessageType, displayNames: Map<string, string>): string {
+  if (chatMessage.text) {
+    return chatMessage.text;
+  } else if (chatMessage.content) {
+    return chatMessage.content.children.map((child) => {
+      if (nodeIsMention(child)) {
+        return ` @${displayNames.get(child.userId) ?? '???'} `;
+      } else {
+        return child.text;
+      }
+    }).join(' ');
+  } else {
+    // shouldn't occur
+    return '';
+  }
+}
+
+const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
   const ts = shortCalendarTimeFormat(msg.timestamp);
+  const displayName = msg.sender ? displayNames.get(msg.sender) ?? '???' : 'jolly-roger';
+  const messageText = asFlatString(msg, displayNames);
+  const hasNewline = messageText.includes('\n');
   return (
     <div>
-      [
-      {ts}
-      ] [
-      {puzzle !== undefined ? (
-        <>
-          <span>{`${puzzle.deleted ? 'deleted: ' : ''}`}</span>
-          <Link to={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}>{puzzle.title}</Link>
-        </>
-      ) : (
-        <span>deleted: no data</span>
-      )}
-      {'] '}
-      {displayName}
-      {': '}
-      {msg.text}
+      <span>
+        [
+        {ts}
+        ] [
+        {puzzle !== undefined ? (
+          <>
+            <span>{`${puzzle.deleted ? 'deleted: ' : ''}`}</span>
+            <Link to={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}>{puzzle.title}</Link>
+          </>
+        ) : (
+          <span>deleted: no data</span>
+        )}
+        {'] '}
+        {displayName}
+        {': '}
+      </span>
+      {hasNewline ? (
+        <PreWrapSpan>
+          {messageText}
+        </PreWrapSpan>
+      ) : <span>{messageText}</span>}
     </div>
   );
 });
@@ -151,12 +183,15 @@ const FirehosePage = () => {
     // some way, and false if any of the search keys cannot be found.
     const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
     return (chatMessage) => {
+      const haystackString = asFlatString(chatMessage, displayNames).toLowerCase();
+      const senderDisplayName = (chatMessage.sender ? displayNames.get(chatMessage.sender) ?? '' : 'jolly-roger').toLowerCase();
+      const puzzleName = puzzles.get(chatMessage.puzzle)?.title.toLowerCase() ?? '';
       return lowerSearchKeys.every((key) => {
-        // TODO: support `.content` field too
-        return chatMessage.text?.toLowerCase().includes(key);
+        return haystackString.includes(key) || senderDisplayName.includes(key) ||
+         puzzleName.includes(key);
       });
     };
-  }, []);
+  }, [displayNames, puzzles]);
 
   const filteredChats = useCallback((allChatMessages: ChatMessageType[]) => {
     const searchKeys = searchString.split(' ');
@@ -221,7 +256,7 @@ const FirehosePage = () => {
   }, [loading, onLayoutMaybeChanged, chats.length]);
 
   if (loading) {
-    return <div>loading...</div>;
+    return <div>Loading all chat messages.  Expect this to take a while.</div>;
   }
 
   return (
@@ -245,6 +280,9 @@ const FirehosePage = () => {
             </Button>
           </InputGroup>
         </FormGroup>
+        <div>
+          {`Showing ${chats.length}/${(chatMessages ?? []).length} messages`}
+        </div>
         <MessagesPane ref={messagesPaneRef} onScroll={saveShouldScroll} className={shouldScrollBottom ? 'live' : ''}>
           {chats.map((msg) => {
             return (
@@ -252,7 +290,7 @@ const FirehosePage = () => {
                 key={msg._id}
                 msg={msg}
                 puzzle={puzzles.get(msg.puzzle)}
-                displayName={msg.sender ? displayNames.get(msg.sender) ?? '???' : 'jolly-roger'}
+                displayNames={displayNames}
               />
             );
           })}
