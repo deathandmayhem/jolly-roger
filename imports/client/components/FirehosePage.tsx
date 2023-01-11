@@ -1,4 +1,4 @@
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useFind, useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
@@ -40,7 +40,7 @@ interface MessageProps {
   puzzle: PuzzleType | undefined;
 }
 
-const Message = ({ msg, displayName, puzzle }: MessageProps) => {
+const Message = React.memo(({ msg, displayName, puzzle }: MessageProps) => {
   const ts = shortCalendarTimeFormat(msg.timestamp);
   return (
     <div>
@@ -61,7 +61,7 @@ const Message = ({ msg, displayName, puzzle }: MessageProps) => {
       {msg.text}
     </div>
   );
-};
+});
 
 const MessagesPane = styled.div`
   overflow-y: scroll;
@@ -90,15 +90,21 @@ const FirehosePage = () => {
   const displayNames = useTracker(() => {
     return loading ? new Map<string, string>() : indexedDisplayNames();
   }, [loading]);
-  const puzzles = useTracker(() => (
+  const allPuzzles = useFind(() => (
     loading ?
-      new Map<string, PuzzleType>() :
-      indexedById(Puzzles.findAllowingDeleted({ hunt: huntId }).fetch())
+      undefined :
+      Puzzles.findAllowingDeleted({ hunt: huntId })
   ), [loading, huntId]);
-  const chatMessages = useTracker(() => (
+  const puzzles = useMemo(() => {
+    if (!allPuzzles) {
+      return new Map<string, PuzzleType>();
+    }
+    return indexedById(allPuzzles);
+  }, [allPuzzles]);
+  const chatMessages = useFind(() => (
     loading ?
-      [] :
-      ChatMessages.find({ hunt: huntId }, { sort: { timestamp: 1 } }).fetch()
+      undefined :
+      ChatMessages.find({ hunt: huntId }, { sort: { timestamp: 1 } })
   ), [loading, huntId]);
 
   const messagesPaneRef = useRef<HTMLDivElement>(null);
@@ -190,7 +196,7 @@ const FirehosePage = () => {
   }, [shouldScrollBottom, forceScrollBottom]);
 
   const chats = useMemo(() => {
-    return filteredChats(chatMessages);
+    return filteredChats(chatMessages ?? []);
   }, [filteredChats, chatMessages]);
 
   const onLayoutMaybeChanged = useCallback(() => {
