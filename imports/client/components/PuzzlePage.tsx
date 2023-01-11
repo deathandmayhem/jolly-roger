@@ -59,7 +59,7 @@ import MeteorUsers, { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
-import { ChatMessageType, nodeIsMention } from '../../lib/schemas/ChatMessage';
+import { ChatMessageType, nodeIsMention, nodeIsText } from '../../lib/schemas/ChatMessage';
 import { DocumentType } from '../../lib/schemas/Document';
 import { GuessType } from '../../lib/schemas/Guess';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
@@ -590,8 +590,14 @@ const ChatInput = React.memo(({
     setContent(newContent);
     onHeightChangeCb(0);
   }, [onHeightChangeCb]);
+  const hasNonTrivialV2Content = useMemo(() => {
+    return content.length > 0 && (content[0]! as MessageElement).children.some((child) => {
+      return nodeIsMention(child) || (nodeIsText(child) && child.text.trim().length > 0);
+    });
+  }, [content]);
+
   const sendContentMessage = useCallback(() => {
-    if (content !== initialValue && content.length > 0) {
+    if (hasNonTrivialV2Content) {
       // Prepare to send message to server.
 
       // Take only the first Descendant; we normalize the input to a single
@@ -622,7 +628,7 @@ const ChatInput = React.memo(({
         onMessageSent();
       }
     }
-  }, [puzzleId, content, onMessageSent]);
+  }, [hasNonTrivialV2Content, content, puzzleId, onMessageSent]);
 
   // V1/V2 interop.
   const sendMessageIfReady = useCallback(() => {
@@ -659,7 +665,7 @@ const ChatInput = React.memo(({
     />
   );
   const hasNonTrivialContent = useNewInput ?
-    content !== initialValue :
+    hasNonTrivialV2Content :
     text.length > 0;
 
   return (
