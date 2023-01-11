@@ -33,7 +33,7 @@ import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import GuessState from './GuessState';
 import Markdown from './Markdown';
 import PuzzleAnswer from './PuzzleAnswer';
-import { GuessConfidence, GuessDirection } from './guessDetails';
+import { GuessConfidence, GuessDirection, formatGuessDirection } from './guessDetails';
 import Breakable from './styling/Breakable';
 import { guessColorLookupTable, NavBarHeight } from './styling/constants';
 import { Breakpoint, mediaBreakpointDown } from './styling/responsive';
@@ -47,8 +47,8 @@ const StyledTable = styled.div`
     [submitter] minmax(auto, 8em)
     [puzzle] minmax(10em, auto)
     [answer] minmax(10em, auto)
-    [direction] minmax(5em, auto)
-    [confidence] minmax(7em, auto)
+    [direction] minmax(6em, auto)
+    [confidence] minmax(6em, auto)
     [status] auto
     [actions] auto;
   ${mediaBreakpointDown(compactViewBreakpoint, css`
@@ -89,11 +89,19 @@ const StyledCell = styled.div`
 const StyledGuessDirection = styled(GuessDirection)`
   padding: 4px;
   background-color: inherit;
+  ${mediaBreakpointDown(compactViewBreakpoint, css`
+    padding: 0;
+    max-width: 200px;
+  `)}
 `;
 
 const StyledGuessConfidence = styled(GuessConfidence)`
   padding: 4px;
   background-color: inherit;
+  ${mediaBreakpointDown(compactViewBreakpoint, css`
+    padding: 0;
+    max-width: 200px;
+  `)}
 `;
 
 const StyledLinkButton = styled(Button)`
@@ -243,7 +251,7 @@ const GuessBlock = React.memo(({
           <StyledGuessDetailLabel>
             Solve direction
           </StyledGuessDetailLabel>
-          <StyledGuessDirection value={guess.direction} />
+          <StyledGuessDirection id={`guess-${guess._id}-direction`} value={guess.direction} />
         </StyledGuessDetailWithLabel>
         <StyledGuessDetailWithLabel>
           <StyledGuessDetailLabel>
@@ -367,7 +375,11 @@ const GuessQueuePage = () => {
 
   const directionTooltip = (
     <Tooltip id="direction-tooltip">
-      Direction this puzzle was solved, ranging from completely backsolved (-10) to completely forward solved (10)
+      Direction this puzzle was solved, ranging from completely backsolved (
+      {formatGuessDirection(-10)}
+      ) to completely forward solved (
+      {formatGuessDirection(10)}
+      )
     </Tooltip>
   );
   const confidenceTooltip = (

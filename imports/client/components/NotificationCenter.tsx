@@ -90,6 +90,7 @@ const StyledGuessDetails = styled.div`
   align-items: center;
   justify-content: flex-end;
   text-align: end;
+  gap: 8px;
 `;
 
 const StyledGuessHeader = styled.strong`
@@ -269,7 +270,7 @@ const GuessMessage = React.memo(({
             </OverlayTrigger>
           </StyledNotificationActionItem>
           <StyledGuessDetails>
-            <GuessDirection value={guess.direction} />
+            <GuessDirection id={`notification-guess-${guess._id}-direction`} value={guess.direction} />
             <GuessConfidence id={`notification-guess-${guess._id}-confidence`} value={guess.confidence} />
           </StyledGuessDetails>
         </StyledNotificationActionBar>

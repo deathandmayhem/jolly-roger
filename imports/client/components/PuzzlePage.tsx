@@ -93,7 +93,12 @@ import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
-import { GuessConfidence, GuessDirection } from './guessDetails';
+import {
+  GuessConfidence,
+  GuessDirection,
+  formatGuessDirection,
+  formatConfidence,
+} from './guessDetails';
 import Breakable from './styling/Breakable';
 import FixedLayout from './styling/FixedLayout';
 import { guessColorLookupTable, MonospaceFontFamily, SolvedPuzzleBackgroundColor } from './styling/constants';
@@ -1261,8 +1266,8 @@ const GuessTable = styled.div`
     [answer] auto
     [timestamp] auto
     [submitter] auto
-    [direction] 3.5em
-    [confidence] 3.5em;
+    [direction] 4em
+    [confidence] 4em;
   ${mediaBreakpointDown('sm', css`
     grid-template-columns: minmax(0, auto) minmax(0, auto);
   `)}
@@ -1465,15 +1470,14 @@ const PuzzleGuessModal = React.forwardRef(({
     <Tooltip id="jr-puzzle-guess-direction-tooltip">
       <strong>Solve direction:</strong>
       {' '}
-      {directionInput}
+      {formatGuessDirection(directionInput)}
     </Tooltip>
   );
   const confidenceTooltip = (
     <Tooltip id="jr-puzzle-guess-confidence-tooltip">
       <strong>Confidence:</strong>
       {' '}
-      {confidenceInput}
-      %
+      {formatConfidence(confidenceInput)}
     </Tooltip>
   );
   const copyTooltip = (
@@ -1619,7 +1623,7 @@ const PuzzleGuessModal = React.forwardRef(({
                 <GuessTimestampCell>{calendarTimeFormat(guess.createdAt)}</GuessTimestampCell>
                 <GuessSubmitterCell><Breakable>{displayNames.get(guess.createdBy) ?? '???'}</Breakable></GuessSubmitterCell>
                 <GuessDirectionCell>
-                  <GuessDirection value={guess.direction} />
+                  <GuessDirection id={`guess-${guess._id}-direction`} value={guess.direction} />
                 </GuessDirectionCell>
                 <GuessConfidenceCell>
                   <GuessConfidence id={`guess-${guess._id}-confidence`} value={guess.confidence} />
