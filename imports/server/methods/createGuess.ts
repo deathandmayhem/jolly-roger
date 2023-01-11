@@ -3,10 +3,9 @@ import { Meteor } from 'meteor/meteor';
 import Logger from '../../Logger';
 import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
-import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import createGuess from '../../methods/createGuess';
-import sendChatMessageInternal from '../sendChatMessageInternal';
+import sendChatMessageInternalV2 from '../sendChatMessageInternalV2';
 
 createGuess.define({
   validate(arg) {
@@ -56,10 +55,18 @@ createGuess.define({
       state: 'pending',
     });
 
-    const user = (await MeteorUsers.findOneAsync(this.userId))!;
-    const guesserDisplayName = user.displayName ?? '(no display name given)';
-    const message = `${guesserDisplayName} submitted guess "${guess}"`;
-    await sendChatMessageInternal({ puzzleId, message, sender: undefined });
+    const content = {
+      type: 'message' as const,
+      children: [
+        { text: '' },
+        {
+          type: 'mention' as const,
+          userId: this.userId,
+        },
+        { text: ` submitted guess \`${guess}\`` },
+      ],
+    };
+    await sendChatMessageInternalV2({ puzzleId, content, sender: undefined });
 
     return guessId;
   },
