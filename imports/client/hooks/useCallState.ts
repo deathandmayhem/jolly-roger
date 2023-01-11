@@ -20,6 +20,7 @@ import mediasoupAckPeerRemoteMute from '../../methods/mediasoupAckPeerRemoteMute
 import mediasoupConnectTransport from '../../methods/mediasoupConnectTransport';
 import mediasoupSetPeerState from '../../methods/mediasoupSetPeerState';
 import mediasoupSetProducerPaused from '../../methods/mediasoupSetProducerPaused';
+import useBlockUpdate from './useBlockUpdate';
 
 const logger = defaultLogger.child({ label: 'useCallState' });
 
@@ -407,6 +408,11 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   tabId: string,
 }): [CallState, React.Dispatch<Action>] => {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+
+  // If we're currently in a call, block code pushes
+  useBlockUpdate(state.callState !== CallJoinState.CHAT_ONLY ?
+    "You're currently in an audio call" :
+    undefined);
 
   useEffect(() => {
     // If huntId, puzzleId, or tabId change (but mostly puzzleId), reset

@@ -78,6 +78,7 @@ import undestroyPuzzle from '../../methods/undestroyPuzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
 import GoogleScriptInfo from '../GoogleScriptInfo';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useBlockUpdate from '../hooks/useBlockUpdate';
 import useCallState, { Action, CallState } from '../hooks/useCallState';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
@@ -672,6 +673,7 @@ const ChatInput = React.memo(({
   const hasNonTrivialContent = useNewInput ?
     hasNonTrivialV2Content :
     text.length > 0;
+  useBlockUpdate(hasNonTrivialContent ? "You're in the middle of typing a message." : undefined);
 
   return (
     <ChatInputRow>

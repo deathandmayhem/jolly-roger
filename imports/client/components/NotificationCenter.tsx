@@ -44,6 +44,7 @@ import { guessURL } from '../../model-helpers';
 import GoogleScriptInfo from '../GoogleScriptInfo';
 import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
+import { useBlockReasons } from '../hooks/useBlockUpdate';
 import ChatMessageV2 from './ChatMessageV2';
 import Markdown from './Markdown';
 import PuzzleAnswer from './PuzzleAnswer';
@@ -552,6 +553,45 @@ const ChatNotificationMessage = ({
   );
 };
 
+const ReloadRequiredNotification = ({ reasons }: { reasons: string[] }) => {
+  const reload = useCallback(() => window.location.reload(), []);
+
+  return (
+    <Toast>
+      <Toast.Header closeButton={false}>
+        <strong className="me-auto">
+          Jolly Roger update pending
+        </strong>
+      </Toast.Header>
+      <Toast.Body>
+        <StyledNotificationRow>
+          There is a new version of Jolly Roger available, but we&apos;re delaying the update
+          because:
+          <ul>
+            {reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+          We don&apos;t want to interrupt your work, but it is important that you update as soon as
+          is reasonable, so when you&apos;re at a breaking point, please reload the page. (Or if
+          these blockers all go away, we will do so automatically.)
+        </StyledNotificationRow>
+        <StyledNotificationActionBar>
+          <StyledNotificationActionItem>
+            <Button
+              variant="outline-danger"
+              onClick={reload}
+              size="sm"
+            >
+              Reload
+            </Button>
+          </StyledNotificationActionItem>
+        </StyledNotificationActionBar>
+      </Toast.Body>
+    </Toast>
+  );
+};
+
 const StyledToastContainer = styled(ToastContainer)`
   z-index: 1050;
 
@@ -571,6 +611,8 @@ const NotificationCenter = () => {
   const showUpdateGoogleScript = useTracker(() => {
     return showGoogleScriptInfo ? GoogleScriptInfo.findOne()?.outOfDate : false;
   }, [showGoogleScriptInfo]);
+
+  const [pendingUpdate, blockReasons] = useBlockReasons();
 
   const fetchPendingGuesses = useTracker(() => userIsOperatorForAnyHunt(Meteor.user()), []);
   const pendingGuessesLoading = useSubscribe(fetchPendingGuesses ? 'pendingGuesses' : undefined);
@@ -685,6 +727,10 @@ const NotificationCenter = () => {
 
   // Build a list of uninstantiated messages with their props, then create them
   const messages = [] as JSX.Element[];
+
+  if (pendingUpdate && blockReasons.length > 0) {
+    messages.push(<ReloadRequiredNotification reasons={blockReasons} />);
+  }
 
   if (showUpdateGoogleScript && !hideUpdateGoogleScriptMessage) {
     messages.push(<UpdateGoogleScriptMessage
