@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
@@ -209,7 +208,7 @@ const Puzzle = React.memo(({
         <Link to={linkTarget}>{puzzle.title}</Link>
       </PuzzleTitleColumn>
       <PuzzleActivityColumn>
-        {!(puzzle.answers.length >= puzzle.expectedAnswerCount) && <PuzzleActivity huntId={puzzle.hunt} puzzleId={puzzle._id} unlockTime={puzzle.createdAt} />}
+        {(solvedness === 'unsolved') && <PuzzleActivity huntId={puzzle.hunt} puzzleId={puzzle._id} unlockTime={puzzle.createdAt} />}
       </PuzzleActivityColumn>
       <PuzzleLinkColumn>
         {puzzle.url ? (

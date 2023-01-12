@@ -1,6 +1,7 @@
 import { indexedById } from './listUtils';
 import { PuzzleType } from './schemas/Puzzle';
 import { TagType } from './schemas/Tag';
+import { computeSolvedness } from './solvedness';
 
 interface PuzzleGroup {
   sharedTag?: TagType;
@@ -104,8 +105,8 @@ function interestingnessOfGroup(
   let hasUnsolvedOtherMeta = false;
   let hasUnsolvedPuzzles = false;
   puzzles.forEach((puzzle) => {
-    const isSolved = puzzle.answers.length >= puzzle.expectedAnswerCount;
-    if (!isSolved) {
+    const solvedness = computeSolvedness(puzzle);
+    if (solvedness === 'unsolved') {
       hasUnsolvedPuzzles = true;
     }
     puzzle.tags.forEach((tagId) => {
@@ -117,12 +118,12 @@ function interestingnessOfGroup(
 
         if (metaForTag && tag.name === metaForTag) {
           // This puzzle is meta-for: the group.
-          if (isSolved) {
+          if (solvedness === 'solved') {
             hasSolvedMetaForSharedGroup = true;
           } else {
             hasUnsolvedMetaForSharedGroup = true;
           }
-        } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && !isSolved) {
+        } else if ((tag.name === 'is:meta' || tag.name.lastIndexOf('meta-for:', 0) === 0) && solvedness === 'unsolved') {
           hasUnsolvedOtherMeta = true;
         }
       }

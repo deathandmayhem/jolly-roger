@@ -32,6 +32,7 @@ import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { filteredPuzzleGroups, puzzleGroupsByRelevance } from '../../lib/puzzle-sort-and-group';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
+import { computeSolvedness } from '../../lib/solvedness';
 import createPuzzle from '../../methods/createPuzzle';
 import {
   useHuntPuzzleListCollapseGroups,
@@ -226,8 +227,8 @@ const PuzzleListView = ({
       return puzzles.filter((puzzle) => {
         // Items with no expected answer are always shown, since they're
         // generally pinned administrivia.
-        return puzzle.expectedAnswerCount === 0 ||
-          puzzle.answers.length < puzzle.expectedAnswerCount;
+        const solvedness = computeSolvedness(puzzle);
+        return solvedness !== 'solved';
       });
     }
   }, [showSolved]);

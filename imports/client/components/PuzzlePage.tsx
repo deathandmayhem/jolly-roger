@@ -64,6 +64,7 @@ import { DocumentType } from '../../lib/schemas/Document';
 import { GuessType } from '../../lib/schemas/Guess';
 import { PuzzleType } from '../../lib/schemas/Puzzle';
 import { TagType } from '../../lib/schemas/Tag';
+import { computeSolvedness } from '../../lib/solvedness';
 import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
 import addPuzzleTag from '../../methods/addPuzzleTag';
 import createGuess from '../../methods/createGuess';
@@ -1417,16 +1418,23 @@ const PuzzleGuessModal = React.forwardRef(({
     setConfidenceInput(parseInt(event.currentTarget.value, 10));
   }, []);
 
+  const solvedness = useMemo(() => {
+    return computeSolvedness(puzzle);
+  }, [puzzle]);
+
   const onSubmitGuess = useCallback(() => {
     const strippedGuess = guessInput.replaceAll(/\s/g, '');
     const repeatGuess = guesses.find((g) => {
       return g.guess.replaceAll(/\s/g, '') === strippedGuess;
     });
-    const alreadySolved = puzzle.answers.length >= puzzle.expectedAnswerCount;
-    if ((repeatGuess || alreadySolved) && !confirmingSubmit) {
+    if ((repeatGuess || solvedness !== 'unsolved') && !confirmingSubmit) {
       const repeatGuessStr = repeatGuess ? 'This answer has already been submitted. ' : '';
-      const alreadySolvedStr = alreadySolved ? 'This puzzle has already been solved. ' : '';
-      const msg = `${alreadySolvedStr} ${repeatGuessStr} Are you sure you want to submit this guess?`;
+      const solvednessStr = {
+        solved: 'This puzzle has already been solved. ',
+        noAnswers: 'This puzzle does not expect any answers to be submitted. ',
+        unsolved: '',
+      }[solvedness];
+      const msg = `${solvednessStr} ${repeatGuessStr} Are you sure you want to submit this guess?`;
       setConfirmationMessage(msg);
       setConfirmingSubmit(true);
     } else if (!haveSetDirection || !haveSetConfidence) {
@@ -1463,7 +1471,7 @@ const PuzzleGuessModal = React.forwardRef(({
       });
     }
   }, [
-    guesses, puzzle._id, puzzle.answers, puzzle.expectedAnswerCount,
+    guesses, puzzle._id, solvedness,
     guessInput, directionInput, confidenceInput, confirmingSubmit,
     haveSetDirection, haveSetConfidence,
   ]);
@@ -1492,10 +1500,16 @@ const PuzzleGuessModal = React.forwardRef(({
     setSubmitState(PuzzleGuessSubmitState.IDLE);
   }, []);
 
+  const title = {
+    unsolved: `Submit answer to ${puzzle.title}`,
+    solved: `Guess history for ${puzzle.title}`,
+    noAnswers: `Guess history for ${puzzle.title}`,
+  }[solvedness];
+
   return (
     <ModalForm
       ref={formRef}
-      title={`${puzzle.answers.length >= puzzle.expectedAnswerCount ? 'Guess history for' : 'Submit answer to'} ${puzzle.title}`}
+      title={title}
       onSubmit={onSubmitGuess}
       submitLabel={confirmingSubmit ? 'Confirm Submit' : 'Submit'}
       size="lg"
