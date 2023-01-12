@@ -1,4 +1,5 @@
 import { promises as dns } from 'dns';
+import EventEmitter from 'events';
 import { networkInterfaces } from 'os';
 import { Meteor } from 'meteor/meteor';
 import { Address6 } from 'ip-address';
@@ -8,11 +9,14 @@ import Flags from '../Flags';
 import Logger from '../Logger';
 import { ACTIVITY_GRANULARITY } from '../lib/config/activityTracking';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../lib/config/webrtc';
+import Servers from '../lib/models/Servers';
 import CallHistories from '../lib/models/mediasoup/CallHistories';
 import ConnectAcks from '../lib/models/mediasoup/ConnectAcks';
 import ConnectRequests from '../lib/models/mediasoup/ConnectRequests';
 import ConsumerAcks from '../lib/models/mediasoup/ConsumerAcks';
 import Consumers from '../lib/models/mediasoup/Consumers';
+import MonitorConnectAcks from '../lib/models/mediasoup/MonitorConnectAcks';
+import MonitorConnectRequests from '../lib/models/mediasoup/MonitorConnectRequests';
 import Peers from '../lib/models/mediasoup/Peers';
 import ProducerClients from '../lib/models/mediasoup/ProducerClients';
 import ProducerServers from '../lib/models/mediasoup/ProducerServers';
@@ -22,13 +26,16 @@ import TransportRequests from '../lib/models/mediasoup/TransportRequests';
 import TransportStates from '../lib/models/mediasoup/TransportStates';
 import Transports from '../lib/models/mediasoup/Transports';
 import roundedTime from '../lib/roundedTime';
+import type { ServerType } from '../lib/schemas/Server';
 import type { ConnectRequestType } from '../lib/schemas/mediasoup/ConnectRequest';
 import type { ConsumerAckType } from '../lib/schemas/mediasoup/ConsumerAck';
+import type { MonitorConnectAckType } from '../lib/schemas/mediasoup/MonitorConnectAck';
+import type { MonitorConnectRequestType } from '../lib/schemas/mediasoup/MonitorConnectRequest';
 import type { ProducerClientType } from '../lib/schemas/mediasoup/ProducerClient';
 import type { RoomType } from '../lib/schemas/mediasoup/Room';
 import type { TransportRequestType } from '../lib/schemas/mediasoup/TransportRequest';
 import throttle from '../lib/throttle';
-import { registerPeriodicCleanupHook, serverId } from './garbage-collection';
+import { cleanupDeadServer, registerPeriodicCleanupHook, serverId } from './garbage-collection';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import CallActivities from './models/CallActivities';
 import onExit from './onExit';
@@ -41,6 +48,10 @@ const mediaCodecs: types.RtpCodecCapability[] = [
     channels: 2,
   },
 ];
+
+const heartbeatFrequency = 100;
+const heartbeatTimeout = heartbeatFrequency * 50;
+const heartbeatInitialTimeout = heartbeatTimeout * 2;
 
 type ConsumerAppData = {
   call: string;
@@ -61,11 +72,25 @@ type ProducerAppData = {
 };
 
 type TransportAppData = {
+  type: 'webrtc';
   transportRequest: string;
   call: string;
   peer: string;
   createdBy: string;
   direction: 'send' | 'recv';
+} | {
+  type: 'monitor-initiated';
+  server: string;
+} | {
+  type: 'monitor-received';
+  server: string;
+  ip: string;
+  port: number;
+  srtpParameters?: types.SrtpParameters;
+  producerId: string;
+  producerSctpStreamParameters?: types.SctpStreamParameters;
+  producerLabel: string;
+  producerProtocol: string;
 };
 
 type AudioLevelObserverAppData = {
@@ -79,10 +104,50 @@ type RouterAppData = {
   createdBy: string;
 };
 
+class Watchdog extends EventEmitter {
+  public timeout: number;
+
+  public lastActivity: Date;
+
+  public timeoutHandle!: number;
+
+  constructor(timeout: number, initialTimeout: number = timeout) {
+    super();
+    this.timeout = timeout;
+    this.lastActivity = new Date();
+    this.timeoutHandle = Meteor.setTimeout(() => {
+      this.emit('timeout');
+    }, initialTimeout);
+  }
+
+  resetTimeout() {
+    this.lastActivity = new Date();
+    if (this.timeoutHandle) {
+      clearTimeout(this.timeoutHandle);
+    }
+    this.timeoutHandle = Meteor.setTimeout(() => {
+      this.emit('timeout');
+    }, this.timeout);
+  }
+
+  stop() {
+    Meteor.clearTimeout(this.timeoutHandle);
+  }
+}
+
 class SFU {
-  public ips: types.TransportListenIp[];
+  public ips: [types.TransportListenIp, ...types.TransportListenIp[]];
 
   public worker: types.Worker;
+
+  public monitorRouter: types.Router;
+
+  public heartbeatDirectTransport: types.DirectTransport;
+
+  public heartbeatDataProducer: types.DataProducer;
+
+  // Keyed to server id
+  public heartbeatWatchdogs: Map<string, Watchdog> = new Map();
 
   // Keyed to call id
   public routers: Map<string, types.Router> = new Map();
@@ -107,6 +172,10 @@ class SFU {
 
   public peerToRtpCapabilities: Map<string, types.RtpCapabilities> = new Map();
 
+  public serverToMonitorTransport: Map<string, Promise<types.PipeTransport>> = new Map();
+
+  public monitorConnectRequestToTransport: Map<string, Promise<types.PipeTransport>> = new Map();
+
   public peersHandle: Meteor.LiveQueryHandle;
 
   public localRoomsHandle: Meteor.LiveQueryHandle;
@@ -119,12 +188,28 @@ class SFU {
 
   public consumerAcksHandle: Meteor.LiveQueryHandle;
 
-  private constructor(ips: types.TransportListenIp[], worker: types.Worker) {
+  public serversHandle: Meteor.LiveQueryHandle;
+
+  public monitorConnectRequestsHandle: Meteor.LiveQueryHandle;
+
+  public monitorConnectAcksHandle: Meteor.LiveQueryHandle;
+
+  private constructor(
+    ips: [types.TransportListenIp, ...types.TransportListenIp[]],
+    worker: types.Worker,
+    monitorRouter: types.Router,
+    heartbeatDirectTransport: types.DirectTransport,
+    heartbeatDataProducer: types.DataProducer,
+  ) {
     this.ips = ips;
     this.worker = worker;
+    this.monitorRouter = monitorRouter;
+    this.heartbeatDirectTransport = heartbeatDirectTransport;
+    this.heartbeatDataProducer = heartbeatDataProducer;
 
     // Don't use mediasoup.observer because it's too hard to unwind.
     this.onWorkerCreated(this.worker);
+    this.onMonitorRouterCreated(this.monitorRouter);
 
     this.peersHandle = Peers.find({}).observeChanges({
       // Use this as an opportunity to cleanup data created as part of the
@@ -177,18 +262,74 @@ class SFU {
       },
       // nothing to do when removed
     });
+
+    this.serversHandle = Servers.find({ _id: { $ne: serverId } }).observeChanges({
+      added: (id, fields) => {
+        void this.serverCreated({ _id: id, ...fields } as ServerType);
+      },
+      // don't care about changes
+      removed: (id) => {
+        void this.serverRemoved(id);
+      },
+    });
+
+    this.monitorConnectRequestsHandle = MonitorConnectRequests.find({ receivingServer: serverId })
+      .observeChanges({
+        added: (id, fields) => {
+          void this.monitorConnectRequestCreated(
+            { _id: id, ...fields } as MonitorConnectRequestType
+          );
+        },
+        removed: (id) => {
+          void this.monitorConnectRequestRemoved(id);
+        },
+      });
+
+    this.monitorConnectAcksHandle = MonitorConnectAcks.find({ initiatingServer: serverId })
+      .observeChanges({
+        added: (id, fields) => {
+          void this.monitorConnectAckCreated({ _id: id, ...fields } as MonitorConnectAckType);
+        },
+      });
   }
 
-  static async create(ips: types.TransportListenIp[]) {
+  static async create(ips: [types.TransportListenIp, ...types.TransportListenIp[]]) {
     process.env.DEBUG = 'mediasoup:WARN:* mediasoup:ERROR:*';
     const worker = await createWorker();
-    return new SFU(ips, worker);
+    const monitorRouter = await worker.createRouter({
+      mediaCodecs,
+      appData: {
+        monitor: true,
+      },
+    });
+
+    const heartbeatDirectTransport = await monitorRouter.createDirectTransport();
+    const heartbeatDataProducer = await heartbeatDirectTransport.produceData({ label: 'heartbeat' });
+    let heartbeatTimeoutHandle: number;
+    const heartbeat = () => {
+      heartbeatDataProducer.send(JSON.stringify({
+        type: 'heartbeat',
+        serverId,
+        time: Date.now(),
+      }));
+      heartbeatTimeoutHandle = Meteor.setTimeout(
+        heartbeat,
+        heartbeatFrequency + (Math.random() - 0.5) * heartbeatFrequency * 0.1
+      );
+    };
+    heartbeat();
+    heartbeatDataProducer.observer.on('close', () => Meteor.clearTimeout(heartbeatTimeoutHandle));
+
+    return new SFU(ips, worker, monitorRouter, heartbeatDirectTransport, heartbeatDataProducer);
   }
 
   async close() {
     // Since these are all initiated in the constructor, optional chaining here
     // shouldn't be required, but because this can be called in a signal
     // handler, it can be called in the middle of the constructor
+    this.monitorConnectAcksHandle?.stop();
+    this.monitorConnectRequestsHandle?.stop();
+    this.serversHandle?.stop();
     this.consumerAcksHandle?.stop();
     this.producerClientsHandle?.stop();
     this.connectRequestsHandle?.stop();
@@ -198,6 +339,9 @@ class SFU {
     this.worker.close();
 
     // Make a best effort to clean up after ourselves
+    await MonitorConnectAcks.removeAsync({ receivingServer: serverId });
+    await MonitorConnectRequests.removeAsync({ initiatingServer: serverId });
+
     await ConsumerAcks.removeAsync({ createdServer: serverId });
     await Consumers.removeAsync({ createdServer: serverId });
 
@@ -224,6 +368,10 @@ class SFU {
     }
 
     const consumerTransportAppData = consumerTransport.appData as TransportAppData;
+    if (consumerTransportAppData.type !== 'webrtc') {
+      return;
+    }
+
     const producerAppData = producer.appData as ProducerAppData;
 
     if (consumerTransportAppData.peer === producerAppData.peer) {
@@ -298,6 +446,10 @@ class SFU {
 
   onWorkerCreated(worker: types.Worker) {
     worker.observer.on('newrouter', Meteor.bindEnvironment(this.onRouterCreated.bind(this)));
+  }
+
+  onMonitorRouterCreated(router: types.Router) {
+    router.observer.on('newtransport', Meteor.bindEnvironment(this.onMonitorTransportCreated.bind(this)));
   }
 
   onRouterCreated(router: types.Router) {
@@ -386,10 +538,22 @@ class SFU {
   }
 
   onTransportCreated(transport: types.Transport) {
+    const transportAppData = transport.appData as TransportAppData;
+
+    // We're not wiring onTransportCreated up to the monitor router, so this
+    // shouldn't happen
+    if (transportAppData.type !== 'webrtc') {
+      Logger.warn('Ignoring unexpected non-WebRTC transport', {
+        error: new Error('Unexpected transport type'),
+        type: transportAppData.type,
+        server: transportAppData.server,
+        transport: transport.id,
+      });
+      return;
+    }
+
     transport.observer.on('newproducer', Meteor.bindEnvironment(this.onProducerCreated.bind(this)));
     transport.observer.on('newconsumer', Meteor.bindEnvironment(this.onConsumerCreated.bind(this)));
-
-    const transportAppData = transport.appData as TransportAppData;
 
     transport.observer.on('close', Meteor.bindEnvironment(() => {
       this.transports.delete(`${transportAppData.transportRequest}:${transportAppData.direction}`);
@@ -519,6 +683,105 @@ class SFU {
     });
   }
 
+  onMonitorTransportCreated(transport: types.Transport) {
+    const transportAppData = transport.appData as TransportAppData;
+
+    // We're not wiring onTransportCreated up to non-monitor routers, so this
+    // shouldn't happen
+    if (transportAppData.type === 'webrtc') {
+      Logger.warn('Ignoring unexpected WebRTC transport', {
+        error: new Error('Unexpected transport type'),
+        call: transportAppData.call,
+        peer: transportAppData.peer,
+        transport: transport.id,
+      });
+      return;
+    }
+
+    if (!(transport instanceof types.PipeTransport)) {
+      Logger.warn('Ignoring unexpected non-pipe monitor transport', { transport: transport.id });
+      return;
+    }
+
+    if (transportAppData.type === 'monitor-initiated') {
+      transport.observer.on('close', Meteor.bindEnvironment(() => {
+        void MonitorConnectRequests.removeAsync({ transportId: transport.id });
+      }));
+
+      void (async () => {
+        const consumer = await transport.consumeData({
+          dataProducerId: this.heartbeatDataProducer.id,
+        });
+
+        await MonitorConnectRequests.insertAsync({
+          initiatingServer: serverId,
+          receivingServer: transportAppData.server,
+          transportId: transport.id,
+          ip: transport.tuple.localIp,
+          port: transport.tuple.localPort,
+          srtpParameters: transport.srtpParameters ?
+            JSON.stringify(transport.srtpParameters) :
+            undefined,
+          producerId: this.heartbeatDataProducer.id,
+          producerSctpStreamParameters: consumer.sctpStreamParameters ?
+            JSON.stringify(consumer.sctpStreamParameters) :
+            undefined,
+          producerLabel: consumer.label,
+          producerProtocol: consumer.protocol,
+        });
+      })();
+    } else if (transportAppData.type === 'monitor-received') {
+      transport.observer.on('close', Meteor.bindEnvironment(() => {
+        void MonitorConnectAcks.removeAsync({ transportId: transport.id });
+      }));
+
+      void (async () => {
+        try {
+          await transport.connect({
+            ip: transportAppData.ip,
+            port: transportAppData.port,
+            srtpParameters: transportAppData.srtpParameters,
+          });
+
+          const producer = await transport.produceData({
+            id: transportAppData.producerId,
+            sctpStreamParameters: transportAppData.producerSctpStreamParameters,
+            label: transportAppData.producerLabel,
+            protocol: transportAppData.producerProtocol,
+          });
+          const consumer = await this.heartbeatDirectTransport.consumeData({
+            dataProducerId: producer.id,
+          });
+          consumer.on('message', Meteor.bindEnvironment(() => {
+            const watchdog = this.heartbeatWatchdogs.get(transportAppData.server);
+            watchdog?.resetTimeout();
+          }));
+
+          await MonitorConnectAcks.insertAsync({
+            initiatingServer: transportAppData.server,
+            receivingServer: serverId,
+            transportId: transport.id,
+            ip: transport.tuple.localIp,
+            port: transport.tuple.localPort,
+            srtpParameters: transport.srtpParameters ?
+              JSON.stringify(transport.srtpParameters) :
+              undefined,
+          });
+        } catch (error) {
+          Logger.error('Error connecting monitor transport', {
+            direction: 'receiving',
+            transport: transport.id,
+            initiatingServer: transportAppData.server,
+            receivingServer: serverId,
+            error,
+          });
+        }
+      })();
+    } else {
+      Logger.error('Unexpected monitor transport type', { transport: transport.id, type: (transportAppData as any).type });
+    }
+  }
+
   // Mongo callbacks
 
   peerRemoved(id: string) {
@@ -565,6 +828,7 @@ class SFU {
     const directions: ('send' | 'recv')[] = ['send', 'recv'];
     const transports = Promise.all(directions.map((direction) => {
       const appData: TransportAppData = {
+        type: 'webrtc',
         transportRequest: transportRequest._id,
         call: transportRequest.call,
         peer: transportRequest.peer,
@@ -692,6 +956,121 @@ class SFU {
 
     await consumer.resume();
   }
+
+  async serverCreated(server: ServerType) {
+    Logger.info('New server detected, creating monitor transport', {
+      server: server._id,
+      hostname: server.hostname,
+      pid: server.pid,
+    });
+
+    // As a note, we setup the watchdog when we create the outbound pipe
+    // transport, but we actually only receive heartbeats when the _inbound_
+    // pipe transport is initiated by the other server.
+    const watchdog = new Watchdog(heartbeatTimeout, heartbeatInitialTimeout);
+    watchdog.on('timeout', Meteor.bindEnvironment(() => {
+      Logger.warn('Have not received heartbeat from server, marking as offline', {
+        since: watchdog.lastActivity,
+        server: server._id,
+      });
+      void cleanupDeadServer(server._id);
+    }));
+    this.heartbeatWatchdogs.set(server._id, watchdog);
+
+    const appData: TransportAppData = {
+      type: 'monitor-initiated',
+      server: server._id,
+    };
+
+    const transport = this.monitorRouter.createPipeTransport({
+      listenIp: this.ips[0],
+      enableRtx: true,
+      enableSrtp: true,
+      enableSctp: true, /* Enable SCTP so we can use DataChannels. */
+      appData,
+    });
+    this.serverToMonitorTransport.set(server._id, transport);
+
+    try {
+      await transport;
+    } catch (error) {
+      Logger.error('Error creating monitor transport', { server: server._id, error });
+    }
+  }
+
+  async serverRemoved(id: string) {
+    const watchdog = this.heartbeatWatchdogs.get(id);
+    if (watchdog) {
+      this.heartbeatWatchdogs.delete(id);
+      watchdog.stop();
+    }
+
+    const transport = this.serverToMonitorTransport.get(id);
+    if (transport) {
+      this.serverToMonitorTransport.delete(id);
+      (await transport).close();
+    }
+  }
+
+  async monitorConnectRequestCreated(request: MonitorConnectRequestType) {
+    const appData: TransportAppData = {
+      type: 'monitor-received',
+      server: request.initiatingServer,
+      ip: request.ip,
+      port: request.port,
+      srtpParameters: request.srtpParameters ? JSON.parse(request.srtpParameters) : undefined,
+      producerId: request.producerId,
+      producerSctpStreamParameters: request.producerSctpStreamParameters ?
+        JSON.parse(request.producerSctpStreamParameters) :
+        undefined,
+      producerLabel: request.producerLabel ?? '',
+      producerProtocol: request.producerProtocol ?? '',
+    };
+
+    const transport = this.monitorRouter.createPipeTransport({
+      listenIp: this.ips[0],
+      enableRtx: true,
+      enableSrtp: true,
+      enableSctp: true, /* Enable SCTP so we can use DataChannels. */
+      appData,
+    });
+    this.monitorConnectRequestToTransport.set(request._id, transport);
+
+    try {
+      await transport;
+    } catch (error) {
+      Logger.error('Error creating receiving monitor transport', { initiatingServer: request.initiatingServer, error });
+    }
+  }
+
+  async monitorConnectRequestRemoved(id: string) {
+    const transport = this.monitorConnectRequestToTransport.get(id);
+    if (!transport) {
+      return;
+    }
+
+    this.monitorConnectRequestToTransport.delete(id);
+    (await transport).close();
+  }
+
+  async monitorConnectAckCreated(ack: MonitorConnectAckType) {
+    const transportPromise = this.serverToMonitorTransport.get(ack.receivingServer);
+    if (!transportPromise) {
+      Logger.warn('No monitor transport for connect ack', { receivingServer: ack.receivingServer });
+      return;
+    }
+
+    try {
+      const transport = await transportPromise;
+      await transport.connect({
+        ip: ack.ip,
+        port: ack.port,
+        srtpParameters: ack.srtpParameters ? JSON.parse(ack.srtpParameters) : undefined,
+      });
+    } catch (error) {
+      Logger.error('Error connecting initiating monitor transport', { receivingServer: ack.receivingServer, error });
+    }
+  }
 }
 
 type IPSource = [
@@ -779,6 +1158,9 @@ const getLocalIPAddresses = (): types.TransportListenIp[] => {
 };
 
 registerPeriodicCleanupHook(async (deadServers) => {
+  await MonitorConnectAcks.removeAsync({ receivingServer: { $in: deadServers } });
+  await MonitorConnectRequests.removeAsync({ initiatingServer: { $in: deadServers } });
+
   await ConsumerAcks.removeAsync({ createdServer: { $in: deadServers } });
   await Consumers.removeAsync({ createdServer: { $in: deadServers } });
 
@@ -807,10 +1189,14 @@ Meteor.startup(async () => {
     getLocalIPAddresses() :
     await getPublicIPAddresses();
   Logger.verbose('Discovered announceable IPs', { ips: ips.map((ip) => ip.announcedIp ?? ip.ip) });
+  const [primaryIp, ...otherIps] = ips;
+  if (!primaryIp) {
+    throw new Meteor.Error('Unable to discover any IP addresses');
+  }
 
   let sfu: SFU | undefined;
   const updateSFU = async (enable: boolean) => {
-    const newSfu = enable ? await SFU.create(ips) : undefined;
+    const newSfu = enable ? await SFU.create([primaryIp, ...otherIps]) : undefined;
     await sfu?.close();
     sfu = newSfu;
   };

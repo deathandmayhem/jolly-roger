@@ -24,12 +24,11 @@ async function cleanup() {
     },
   });
 
-  // Servers disappearing should be a fairly rare occurrence, but a disappearing
-  // server that's hosting an audio call blocks that call from proceeding until
-  // it's garbage collected, so set the timeouts on the tighter side. 5 seconds
-  // should be quick enough to recover without users noticing too much
-  // interruption, but long enough to account for transient blocking.
-  const timeout = new Date(Date.now() - 5 * 1000);
+  // Servers disappearing should be a fairly rare occurrence, so it's
+  // OK for the timeouts here to be generous. Servers get 120 seconds
+  // to update before their records are GC'd. Should be long enough to
+  // account for transients
+  const timeout = new Date(Date.now() - 120 * 1000);
   const deadServers = await Servers.find({ updatedAt: { $lt: timeout } })
     .mapAsync((server) => server._id);
   if (deadServers.length === 0) {
@@ -45,8 +44,15 @@ async function cleanup() {
   await Servers.removeAsync({ _id: { $in: deadServers } });
 }
 
+export async function cleanupDeadServer(id: string) {
+  for (const f of globalGCHooks) {
+    await f([id]);
+  }
+  await Servers.removeAsync(id);
+}
+
 function periodic() {
-  Meteor.setTimeout(periodic, 500 + (1000 * Random.fraction()));
+  Meteor.setTimeout(periodic, 15000 + (15000 * Random.fraction()));
   void cleanup();
 }
 
