@@ -1,7 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { ChatMessageType, nodeIsMention, nodeIsText } from './schemas/ChatMessage';
 
-export function normalizedForDingwordSearch(chatMessage: ChatMessageType): string {
+const NeededChatFields = ['text', 'content', 'sender'] as const;
+type PartialChatMessageType = Pick<ChatMessageType, typeof NeededChatFields[number]>
+
+export function normalizedForDingwordSearch(chatMessage: PartialChatMessageType): string {
   return chatMessage.text?.trim().toLowerCase() ??
     chatMessage.content?.children.map((child) => {
       if (nodeIsText(child)) {
@@ -22,7 +25,7 @@ export function normalizedMessageDingsUserByDingword(
   });
 }
 
-export function messageDingsUser(chatMessage: ChatMessageType, user: Meteor.User): boolean {
+export function messageDingsUser(chatMessage: PartialChatMessageType, user: Meteor.User): boolean {
   const normalizedText = normalizedForDingwordSearch(chatMessage);
   const dingedByDingwords = normalizedMessageDingsUserByDingword(normalizedText, user);
   const isSystemMessage = !chatMessage.sender;
