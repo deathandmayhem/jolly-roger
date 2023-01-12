@@ -1,11 +1,12 @@
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons/faBullhorn';
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { faFaucet } from '@fortawesome/free-solid-svg-icons/faFaucet';
 import { faMap } from '@fortawesome/free-solid-svg-icons/faMap';
+import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faReceipt } from '@fortawesome/free-solid-svg-icons/faReceipt';
-import { faUserCog } from '@fortawesome/free-solid-svg-icons/faUserCog';
 import { faUsers } from '@fortawesome/free-solid-svg-icons/faUsers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
@@ -13,16 +14,13 @@ import React, {
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import InputGroup from 'react-bootstrap/InputGroup';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
-import Tooltip from 'react-bootstrap/Tooltip';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { sortedBy } from '../../lib/listUtils';
@@ -47,45 +45,75 @@ import PuzzleModalForm, {
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 import { mediaBreakpointDown } from './styling/responsive';
 
-const ViewControls = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-`;
-
-const ViewControlsSection = styled.div`
-  &:not(:last-child) {
-    margin-right: 0.5em;
+const ViewControls = styled.div<{ canAdd?: boolean }>`
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+  align-items: end;
+  gap: 1em;
+  margin-bottom: 1em;
+  ${(props) => props.canAdd && mediaBreakpointDown('xs', css`
+    grid-template-columns: 1fr 1fr;
+  `)}
+  @media (max-width: 359px) {
+    /* For very narrow viewports (like iPad Split View) */
+    grid-template-columns: 100%;
   }
 
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  ${mediaBreakpointDown('xs', css`
-    &:not(:last-child) {
-      margin-right: 0;
-      margin-bottom: 0.5em;
-    }
-    flex-basis: 100%;
+  .btn {
+    /* Inputs and Button Toolbars are not quite the same height */
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+`;
+
+const SearchFormGroup = styled(FormGroup)<{ canAdd?: boolean }>`
+  grid-column: ${(props) => (props.canAdd ? 1 : 3)} / -1;
+  ${mediaBreakpointDown('sm', css`
+    grid-column: 1 / -1;
   `)}
 `;
 
-const ViewControlsSectionExpand = styled(ViewControlsSection)`
-  flex: 1 1 auto;
+const SearchFormLabel = styled(FormLabel)<{ canAdd?: boolean }>`
+  display: ${(props) => (props.canAdd ? 'none' : 'inline-block')};
+  ${mediaBreakpointDown('sm', css`
+    display: none;
+  `)}
 `;
 
-const FilterToolbar = styled(ButtonToolbar)`
-  flex: 1 1 auto;
-  width: 100%;
+const OperatorActionsFormGroup = styled(FormGroup)`
+  ${mediaBreakpointDown('xs', css`
+    order: -1;
+  `)}
 `;
 
-const FilterToolbarInputGroup = styled(InputGroup)`
-  /* precedence boost needed because otherwise default input group styling is more specific */
-  && {
+const AddPuzzleFormGroup = styled(FormGroup)`
+  justify-self: end;
+  ${mediaBreakpointDown('xs', css`
+    justify-self: auto;
+    order: -1;
+  `)}
+  @media (max-width: 359px) {
+    order: -2;
+  }
+`;
+
+const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
+  @media (max-width: 359px) {
     width: 100%;
   }
+`;
+
+const StyledButton = styled(Button)`
+  @media (max-width: 359px) {
+    width: 100%;
+  }
+`;
+
+const PuzzleListToolbar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5em;
 `;
 
 const PuzzleListView = ({
@@ -124,8 +152,8 @@ const PuzzleListView = ({
     Object.values(huntPuzzleListCollapseGroups).some((collapsed) => collapsed);
 
   const [operatorActionsHidden, setOperatorActionsHidden] = useOperatorActionsHiddenForHunt(huntId);
-  const toggleOperatorActionsHidden = useCallback(() => {
-    setOperatorActionsHidden((h) => !h);
+  const setOperatorActionsHiddenString = useCallback((value: string) => {
+    setOperatorActionsHidden(value === 'hide');
   }, [setOperatorActionsHidden]);
 
   const maybeStealCtrlF = useCallback((e: KeyboardEvent) => {
@@ -237,8 +265,8 @@ const PuzzleListView = ({
     setSearchString('');
   }, [setSearchString]);
 
-  const changeShowSolved = useCallback(() => {
-    setShowSolved((oldState) => !oldState);
+  const setShowSolvedString = useCallback((value: string) => {
+    setShowSolved(value === 'show');
   }, [setShowSolved]);
 
   const showAddModal = useCallback(() => {
@@ -247,15 +275,21 @@ const PuzzleListView = ({
     }
   }, []);
 
-  const renderList = useCallback((retainedPuzzles: PuzzleType[], solvedOverConstrains: boolean) => {
+  const renderList = useCallback((
+    retainedPuzzles: PuzzleType[],
+    solvedOverConstrains: boolean,
+    allPuzzlesCount: number
+  ) => {
     const maybeMatchWarning = solvedOverConstrains && (
       <Alert variant="info">
         No matches found in unsolved puzzles; showing matches from solved puzzles
       </Alert>
     );
     const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
+    const filterMessage = `Showing ${retainedPuzzles.length} of ${allPuzzlesCount} items`;
 
     let listComponent;
+    let listControls;
     switch (displayMode) { // eslint-disable-line default-case
       case 'group': {
         // We group and sort first, and only filter afterward, to avoid losing the
@@ -263,7 +297,7 @@ const PuzzleListView = ({
         // consideration.
         const unfilteredGroups = puzzleGroupsByRelevance(allPuzzles, allTags);
         const puzzleGroups = filteredPuzzleGroups(unfilteredGroups, retainedIds);
-        const groupComponents = puzzleGroups.map((g) => {
+        listComponent = puzzleGroups.map((g) => {
           const suppressedTagIds = [];
           if (g.sharedTag) {
             suppressedTagIds.push(g.sharedTag._id);
@@ -282,19 +316,17 @@ const PuzzleListView = ({
             />
           );
         });
-        listComponent = (
-          <>
-            <Button
-              variant={canExpandAllGroups ? 'secondary' : 'outline-secondary'}
-              size="sm"
-              className="mb-2"
-              disabled={!canExpandAllGroups}
-              onClick={expandAllGroups}
-            >
-              Expand all
-            </Button>
-            {groupComponents}
-          </>
+        listControls = (
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!canExpandAllGroups}
+            onClick={expandAllGroups}
+          >
+            <FontAwesomeIcon icon={faCaretDown} />
+            {' '}
+            Expand all
+          </Button>
         );
         break;
       }
@@ -308,12 +340,17 @@ const PuzzleListView = ({
             canUpdate={canUpdate}
           />
         );
+        listControls = null;
         break;
       }
     }
     return (
       <div>
         {maybeMatchWarning}
+        <PuzzleListToolbar>
+          <div>{listControls}</div>
+          <div>{filterMessage}</div>
+        </PuzzleListToolbar>
         {listComponent}
         {deletedPuzzles && deletedPuzzles.length > 0 && (
           <RelatedPuzzleGroup
@@ -350,27 +387,22 @@ const PuzzleListView = ({
         ref={addModalRef}
         onSubmit={onAdd}
       />
-      <ButtonGroup>
-        <Button variant="primary" onClick={showAddModal}>Add a puzzle</Button>
-        <OverlayTrigger
-          placement="top"
-          overlay={(
-            <Tooltip id="operator-mode-tooltip">
-              Show/hide operator actions (currently
-              {' '}
-              {operatorActionsHidden ? 'hidden' : 'visible'}
-              )
-            </Tooltip>
-          )}
-        >
-          <Button
-            variant={operatorActionsHidden ? 'outline-primary' : 'primary'}
-            onClick={toggleOperatorActionsHidden}
-          >
-            <FontAwesomeIcon icon={faUserCog} />
-          </Button>
-        </OverlayTrigger>
-      </ButtonGroup>
+      <OperatorActionsFormGroup>
+        <FormLabel>Operator Interface</FormLabel>
+        <ButtonToolbar>
+          <StyledToggleButtonGroup type="radio" name="operator-actions" defaultValue="show" value={operatorActionsHidden ? 'hide' : 'show'} onChange={setOperatorActionsHiddenString}>
+            <ToggleButton id="operator-actions-hide-button" variant="outline-info" value="hide">Off</ToggleButton>
+            <ToggleButton id="operator-actions-show-button" variant="outline-info" value="show">On</ToggleButton>
+          </StyledToggleButtonGroup>
+        </ButtonToolbar>
+      </OperatorActionsFormGroup>
+      <AddPuzzleFormGroup>
+        <StyledButton variant="primary" onClick={showAddModal}>
+          <FontAwesomeIcon icon={faPlus} />
+          {' '}
+          Add a puzzle
+        </StyledButton>
+      </AddPuzzleFormGroup>
     </>
   );
 
@@ -385,53 +417,45 @@ const PuzzleListView = ({
 
   return (
     <div>
-      <FormGroup className="mb-3">
-        <ViewControls>
-          <ViewControlsSection>
-            <FormLabel>View puzzles by:</FormLabel>
-            <ButtonToolbar className="puzzle-view-buttons">
-              <ToggleButtonGroup type="radio" className="mr-2" name="puzzle-view" defaultValue="group" value={displayMode} onChange={setDisplayMode}>
-                <ToggleButton id="view-group-button" variant="outline-info" value="group">Group</ToggleButton>
-                <ToggleButton id="view-unlock-button" variant="outline-info" value="unlock">Unlock</ToggleButton>
-              </ToggleButtonGroup>
-              <ToggleButtonGroup
-                type="checkbox"
-                value={showSolved ? ['true'] : []}
-                onChange={changeShowSolved}
-              >
-                <ToggleButton id="view-show-solved-button" variant="outline-info" value="true">Show solved</ToggleButton>
-              </ToggleButtonGroup>
-            </ButtonToolbar>
-          </ViewControlsSection>
-          <ViewControlsSectionExpand>
-            <FormLabel htmlFor="jr-puzzle-search">
-              {`Showing ${retainedPuzzles.length}/${allPuzzles.length} items`}
-            </FormLabel>
-            <FilterToolbar>
-              <FilterToolbarInputGroup>
-                <FormControl
-                  id="jr-puzzle-search"
-                  as="input"
-                  type="text"
-                  ref={searchBarRef}
-                  placeholder="Filter by title, answer, or tag"
-                  value={searchString}
-                  onChange={onSearchStringChange}
-                />
-                <Button variant="secondary" onClick={clearSearch}>
-                  <FontAwesomeIcon icon={faEraser} />
-                </Button>
-              </FilterToolbarInputGroup>
-            </FilterToolbar>
-          </ViewControlsSectionExpand>
-          <ViewControlsSection>
-            <ButtonToolbar>
-              {addPuzzleContent}
-            </ButtonToolbar>
-          </ViewControlsSection>
-        </ViewControls>
-      </FormGroup>
-      {renderList(retainedPuzzles, solvedOverConstrains)}
+      <ViewControls canAdd={canAdd}>
+        <FormGroup>
+          <FormLabel>Organize by</FormLabel>
+          <ButtonToolbar>
+            <StyledToggleButtonGroup type="radio" name="puzzle-view" defaultValue="group" value={displayMode} onChange={setDisplayMode}>
+              <ToggleButton id="view-group-button" variant="outline-info" value="group">Group</ToggleButton>
+              <ToggleButton id="view-unlock-button" variant="outline-info" value="unlock">Unlock</ToggleButton>
+            </StyledToggleButtonGroup>
+          </ButtonToolbar>
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Solved puzzles</FormLabel>
+          <ButtonToolbar>
+            <StyledToggleButtonGroup type="radio" name="show-solved" defaultValue="show" value={showSolved ? 'show' : 'hide'} onChange={setShowSolvedString}>
+              <ToggleButton id="solved-hide-button" variant="outline-info" value="hide">Hidden</ToggleButton>
+              <ToggleButton id="solved-show-button" variant="outline-info" value="show">Shown</ToggleButton>
+            </StyledToggleButtonGroup>
+          </ButtonToolbar>
+        </FormGroup>
+        {addPuzzleContent}
+        <SearchFormGroup canAdd={canAdd}>
+          <SearchFormLabel canAdd={canAdd}>Search</SearchFormLabel>
+          <InputGroup>
+            <FormControl
+              id="jr-puzzle-search"
+              as="input"
+              type="text"
+              ref={searchBarRef}
+              placeholder="Filter by title, answer, or tag"
+              value={searchString}
+              onChange={onSearchStringChange}
+            />
+            <Button variant="secondary" onClick={clearSearch}>
+              <FontAwesomeIcon icon={faEraser} />
+            </Button>
+          </InputGroup>
+        </SearchFormGroup>
+      </ViewControls>
+      {renderList(retainedPuzzles, solvedOverConstrains, allPuzzles.length)}
     </div>
   );
 };
