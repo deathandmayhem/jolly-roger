@@ -7,6 +7,7 @@ import Puzzles from '../../lib/models/Puzzles';
 import Settings from '../../lib/models/Settings';
 import Tags from '../../lib/models/Tags';
 import { ChatMessageContentType, nodeIsText } from '../../lib/schemas/ChatMessage';
+import { computeSolvedness } from '../../lib/solvedness';
 import { DiscordBot } from '../discord';
 import Hookset from './Hookset';
 
@@ -79,9 +80,18 @@ const DiscordHooks: Hookset = {
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
       const answers = puzzle.answers.map((answer) => `\`${answer}\``).join(', ');
       const answerLabel = `Answer${puzzle.expectedAnswerCount > 1 ? 's' : ''}`;
-      const completed = puzzle.answers.length === puzzle.expectedAnswerCount;
-      const color = completed ? 0x00ff00 : 0xffff00;
-      const title = `${puzzle.title} ${completed ? '' : 'partially'} solved`;
+      const solvedness = computeSolvedness(puzzle);
+      const color = {
+        solved: 0x00ff00,
+        unsolved: 0xffff00,
+        noAnswers: 0,
+      }[solvedness];
+      const solvedStr = {
+        solved: 'solved',
+        unsolved: 'partially solved',
+        noAnswers: '',
+      }[solvedness];
+      const title = `${puzzle.title} ${solvedStr}`;
       const messageObj = {
         embed: {
           color,

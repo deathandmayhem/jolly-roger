@@ -1,5 +1,6 @@
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
+import { computeSolvedness } from '../../lib/solvedness';
 import Hookset from './Hookset';
 
 const TagCleanupHooks: Hookset = {
@@ -8,7 +9,8 @@ const TagCleanupHooks: Hookset = {
     if (!puzzle) return;
 
     // If a puzzle is now fully solved, remove any `needs:*` tags from it.
-    if (puzzle.answers.length >= puzzle.expectedAnswerCount) {
+    const solvedness = computeSolvedness(puzzle);
+    if (solvedness === 'solved') {
       const tags = await Tags.find({ _id: { $in: puzzle.tags } }).fetchAsync();
 
       const needsTags = tags.filter((tag) => tag.name.startsWith('needs:'));
