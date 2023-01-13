@@ -51,7 +51,7 @@ updateHunt.define({
     Meteor.defer(async () => {
       // Sync discord roles
       const userIds = (await MeteorUsers.find({ hunts: huntId }).fetchAsync()).map((u) => u._id);
-      await addUsersToDiscordRole(userIds, huntId);
+      await addUsersToDiscordRole(userIds, huntId, { force: false });
 
       if (oldHunt?.name !== value.name) {
         const folderId = await ensureHuntFolder({ _id: huntId, name: value.name });
