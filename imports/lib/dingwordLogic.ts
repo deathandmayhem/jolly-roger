@@ -20,8 +20,10 @@ export function normalizedMessageDingsUserByDingword(
   normalizedMessage: string,
   user: Meteor.User
 ): boolean {
+  const words = normalizedMessage.split(/\s+/);
   return (user.dingwords ?? []).some((dingword) => {
-    return normalizedMessage.includes(dingword);
+    const dingwordLower = dingword.toLowerCase();
+    return words.some((word) => word.startsWith(dingwordLower));
   });
 }
 
