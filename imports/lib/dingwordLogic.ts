@@ -28,16 +28,18 @@ export function normalizedMessageDingsUserByDingword(
 }
 
 export function messageDingsUser(chatMessage: PartialChatMessageType, user: Meteor.User): boolean {
+  if (chatMessage.sender === user._id || chatMessage.sender === undefined) {
+    // You can never be dinged by yourself, nor by system messages.
+    return false;
+  }
   const normalizedText = normalizedForDingwordSearch(chatMessage);
   const dingedByDingwords = normalizedMessageDingsUserByDingword(normalizedText, user);
-  const isSystemMessage = !chatMessage.sender;
-  const dingedByMentions = !isSystemMessage && chatMessage.sender !== user._id &&
-   (chatMessage.content?.children ?? []).some((child) => {
-     if (nodeIsMention(child)) {
-       return child.userId === user._id;
-     } else {
-       return false;
-     }
-   });
+  const dingedByMentions = (chatMessage.content?.children ?? []).some((child) => {
+    if (nodeIsMention(child)) {
+      return child.userId === user._id;
+    } else {
+      return false;
+    }
+  });
   return dingedByDingwords || dingedByMentions;
 }
