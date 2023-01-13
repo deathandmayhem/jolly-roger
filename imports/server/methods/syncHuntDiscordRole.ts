@@ -19,6 +19,6 @@ syncHuntDiscordRole.define({
     }
 
     const userIds = (await MeteorUsers.find({ hunts: huntId }).fetchAsync()).map((u) => u._id);
-    await addUsersToDiscordRole(userIds, huntId);
+    await addUsersToDiscordRole(userIds, huntId, { force: false });
   },
 });

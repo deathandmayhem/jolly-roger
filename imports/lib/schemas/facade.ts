@@ -4,6 +4,7 @@ import BlobMapping from './BlobMapping';
 import ChatMessage from './ChatMessage';
 import ChatNotification from './ChatNotification';
 import DiscordCache from './DiscordCache';
+import DiscordRoleGrant from './DiscordRoleGrant';
 import DocumentSchema from './Document';
 import DocumentActivity from './DocumentActivity';
 import FeatureFlag from './FeatureFlag';
@@ -37,6 +38,7 @@ const Schemas = {
   ChatMessage,
   ChatNotification,
   DiscordCache,
+  DiscordRoleGrant,
   FolderPermission,
   Document: DocumentSchema,
   DocumentActivity,
