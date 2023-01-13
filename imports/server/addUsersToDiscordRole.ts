@@ -69,9 +69,9 @@ export default async (
         discordAccountId: user.discordAccount.id,
       }, {});
 
-      // Discord has a rate limit of 50 requests per second; we'll consume at
-      // most half of that
-      await new Promise((r) => { setTimeout(r, 1000 / 25); });
+      // Discord seems to start rate limiting at around 20 requests per second;
+      // to be safe, we'll limit to 2 per second
+      await new Promise((r) => { setTimeout(r, 500); });
     } catch (error) {
       Logger.warn('Error while adding user to Discord role', {
         error, userId, huntId, roleId,
