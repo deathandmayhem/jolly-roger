@@ -28,7 +28,7 @@ createPuzzle.define({
   },
 
   async run({
-    huntId, title, tags, expectedAnswerCount, docType,
+    huntId, title, tags, expectedAnswerCount, docType, url,
   }) {
     check(this.userId, String);
 
@@ -61,6 +61,7 @@ createPuzzle.define({
       _id: Random.id(),
       tags: [...new Set(tagIds)],
       answers: [],
+      url,
     };
 
     // By creating the document before we save the puzzle, we make sure nobody
