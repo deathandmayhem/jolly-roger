@@ -4,18 +4,26 @@ import logfmt from 'logfmt';
 import { format, transports } from 'winston';
 import { logger } from '../Logger';
 
+const userIdSymbol = Symbol('userId');
+
+declare module 'logform' {
+  interface TransformableInfo {
+    [userIdSymbol]?: string | null;
+  }
+}
+
 logger.format = format.combine(
   format.colorize({ level: true }),
   format((info) => {
     try {
       const userId = Meteor.userId();
-      return { ...info, userId };
+      return { ...info, [userIdSymbol]: userId };
     } catch {
       return info;
     }
   })(),
   format.printf(({
-    level, label, message, userId, error,
+    level, label, message, [userIdSymbol]: userId, error,
     ...rest
   }) => {
     return `${level}: ${
