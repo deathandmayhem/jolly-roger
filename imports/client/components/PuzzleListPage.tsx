@@ -45,13 +45,13 @@ import PuzzleModalForm, {
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 import { mediaBreakpointDown } from './styling/responsive';
 
-const ViewControls = styled.div<{ canAdd?: boolean }>`
+const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
   grid-template-columns: auto auto auto 1fr;
   align-items: end;
   gap: 1em;
   margin-bottom: 1em;
-  ${(props) => props.canAdd && mediaBreakpointDown('xs', css`
+  ${(props) => props.$canAdd && mediaBreakpointDown('xs', css`
     grid-template-columns: 1fr 1fr;
   `)}
   @media (max-width: 359px) {
@@ -66,15 +66,15 @@ const ViewControls = styled.div<{ canAdd?: boolean }>`
   }
 `;
 
-const SearchFormGroup = styled(FormGroup)<{ canAdd?: boolean }>`
-  grid-column: ${(props) => (props.canAdd ? 1 : 3)} / -1;
+const SearchFormGroup = styled(FormGroup)<{ $canAdd?: boolean }>`
+  grid-column: ${(props) => (props.$canAdd ? 1 : 3)} / -1;
   ${mediaBreakpointDown('sm', css`
     grid-column: 1 / -1;
   `)}
 `;
 
-const SearchFormLabel = styled(FormLabel)<{ canAdd?: boolean }>`
-  display: ${(props) => (props.canAdd ? 'none' : 'inline-block')};
+const SearchFormLabel = styled(FormLabel)<{ $canAdd?: boolean }>`
+  display: ${(props) => (props.$canAdd ? 'none' : 'inline-block')};
   ${mediaBreakpointDown('sm', css`
     display: none;
   `)}
@@ -417,7 +417,7 @@ const PuzzleListView = ({
 
   return (
     <div>
-      <ViewControls canAdd={canAdd}>
+      <ViewControls $canAdd={canAdd}>
         <FormGroup>
           <FormLabel>Organize by</FormLabel>
           <ButtonToolbar>
@@ -437,8 +437,8 @@ const PuzzleListView = ({
           </ButtonToolbar>
         </FormGroup>
         {addPuzzleContent}
-        <SearchFormGroup canAdd={canAdd}>
-          <SearchFormLabel canAdd={canAdd}>Search</SearchFormLabel>
+        <SearchFormGroup $canAdd={canAdd}>
+          <SearchFormLabel $canAdd={canAdd}>Search</SearchFormLabel>
           <InputGroup>
             <FormControl
               id="jr-puzzle-search"
