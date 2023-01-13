@@ -1279,6 +1279,7 @@ const GuessTable = styled.div`
     [submitter] auto
     [direction] 4em
     [confidence] 4em;
+  border-bottom: 1px solid #ddd;
   ${mediaBreakpointDown('sm', css`
     grid-template-columns: minmax(0, auto) minmax(0, auto);
   `)}
@@ -1296,6 +1297,12 @@ const GuessTableSmallRow = styled.div`
 const GuessRow = styled.div<{ $state: GuessType['state'] }>`
   display: contents;
   background-color: ${(props) => guessColorLookupTable[props.$state].background};
+
+  &::before {
+    content: " ";
+    border-top: 1px solid #ddd;
+    grid-column: 1 / -1;
+  }
 
   :hover {
     background-color: ${(props) => guessColorLookupTable[props.$state].hoverBackground};
@@ -1326,7 +1333,6 @@ const GuessCell = styled.div`
   background-color: inherit;
   align-items: center;
   padding: 0.25rem;
-  outline: 1px solid #ddd;
   ${mediaBreakpointDown('sm', css`
     outline: 0;
   `)}

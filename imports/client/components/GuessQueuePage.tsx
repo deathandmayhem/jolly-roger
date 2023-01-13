@@ -51,6 +51,7 @@ const StyledTable = styled.div`
     [confidence] minmax(6em, auto)
     [status] auto
     [actions] auto;
+  border-bottom: 1px solid #ddd;
   ${mediaBreakpointDown(compactViewBreakpoint, css`
     grid-template-columns: 100%;
   `)}
@@ -74,6 +75,12 @@ const StyledRow = styled.div<{ $state: GuessType['state'] }>`
   display: contents;
   margin-bottom: 8px;
   background-color: ${(props) => guessColorLookupTable[props.$state].background};
+
+  &::before {
+    content: " ";
+    border-top: 1px solid #ddd;
+    grid-column: 1 / -1;
+  }
 
   :hover {
     background-color: ${(props) => guessColorLookupTable[props.$state].hoverBackground};
@@ -181,6 +188,10 @@ const StyledGuessDetailLabel = styled.span`
 const StyledAdditionalNotes = styled(StyledCell)`
   grid-column: 1 / -1;
   overflow: hidden;
+
+  p {
+    margin-bottom: 0;
+  }
 `;
 
 const GuessBlock = React.memo(({
