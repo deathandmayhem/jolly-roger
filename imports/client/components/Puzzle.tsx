@@ -51,6 +51,7 @@ const PuzzleColumn = styled.div`
 
 const PuzzleEditButtonsColumn = styled(PuzzleColumn)`
   align-self: flex-start;
+  order: -1;
 `;
 
 const StyledButton = styled(Button)`
@@ -67,6 +68,7 @@ const StyledButton = styled(Button)`
 const PuzzleTitleColumn = styled(PuzzleColumn)`
   flex: 4;
   overflow-wrap: break-word;
+  order: -1;
 `;
 
 const PuzzleActivityColumn = styled(PuzzleColumn)`
@@ -81,6 +83,9 @@ const PuzzleActivityColumn = styled(PuzzleColumn)`
 const PuzzleLinkColumn = styled(PuzzleColumn)`
   width: 26px;
   text-align: center;
+  ${mediaBreakpointDown('xs', css`
+    order: -1;
+  `)}
 `;
 
 const PuzzleAnswerColumn = styled(PuzzleColumn)`
