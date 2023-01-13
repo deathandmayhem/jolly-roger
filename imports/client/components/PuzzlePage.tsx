@@ -50,6 +50,7 @@ import styled, { css } from 'styled-components';
 import Flags from '../../Flags';
 import Logger from '../../Logger';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
+import { messageDingsUser } from '../../lib/dingwordLogic';
 import { indexedById, sortedBy } from '../../lib/listUtils';
 import ChatMessages from '../../lib/models/ChatMessages';
 import Documents from '../../lib/models/Documents';
@@ -176,10 +177,14 @@ const ChatHistoryDiv = styled.div`
 
 const PUZZLE_PAGE_PADDING = 8;
 
-const ChatMessageDiv = styled.div<{ isSystemMessage: boolean; }>`
+const ChatMessageDiv = styled.div<{ isSystemMessage: boolean; isHighlighted: boolean; }>`
   padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
   word-wrap: break-word;
   font-size: 14px;
+  ${({ isSystemMessage, isHighlighted }) => isHighlighted && !isSystemMessage && css`
+    background-color: #ffffd0;
+  `}
+
   ${({ isSystemMessage }) => isSystemMessage && css`
     background-color: #e0e0e0;
   `}
@@ -304,11 +309,12 @@ const AnswerFormControl = styled(FormControl)`
 `;
 
 const ChatMessage = React.memo(({
-  message, displayNames, isSystemMessage, suppressSender, selfUserId,
+  message, displayNames, isSystemMessage, isHighlighted, suppressSender, selfUserId,
 }: {
   message: FilteredChatMessageType;
   displayNames: Map<string, string>;
   isSystemMessage: boolean;
+  isHighlighted: boolean;
   suppressSender: boolean;
   selfUserId: string;
 }) => {
@@ -316,7 +322,7 @@ const ChatMessage = React.memo(({
 
   const senderDisplayName = message.sender !== undefined ? displayNames.get(message.sender) ?? '???' : 'jolly-roger';
   return (
-    <ChatMessageDiv isSystemMessage={isSystemMessage}>
+    <ChatMessageDiv isSystemMessage={isSystemMessage} isHighlighted={isHighlighted && !isSystemMessage}>
       {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
       {!suppressSender && <strong>{senderDisplayName}</strong>}
       {message.text && <Markdown as="span" text={message.text} />}
@@ -338,11 +344,11 @@ type ChatHistoryHandle = {
 }
 
 const ChatHistory = React.forwardRef(({
-  puzzleId, displayNames, selfUserId,
+  puzzleId, displayNames, selfUser,
 }: {
   puzzleId: string;
   displayNames: Map<string, string>;
-  selfUserId: string;
+  selfUser: Meteor.User;
 }, forwardedRef: React.Ref<ChatHistoryHandle>) => {
   const chatMessages: FilteredChatMessageType[] = useFind(
     () => ChatMessages.find(
@@ -465,7 +471,7 @@ const ChatHistory = React.forwardRef(({
   return (
     <ChatHistoryDiv ref={ref} onScroll={onScrollObserved}>
       {chatMessages.length === 0 ? (
-        <ChatMessageDiv key="no-message" isSystemMessage={false}>
+        <ChatMessageDiv key="no-message" isSystemMessage={false} isHighlighted={false}>
           <span>No chatter yet. Say something?</span>
         </ChatMessageDiv>
       ) : undefined}
@@ -476,14 +482,16 @@ const ChatHistory = React.forwardRef(({
         // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
         const lastMessage = index > 0 ? messages[index - 1] : undefined;
         const suppressSender = !!lastMessage && lastMessage.sender === msg.sender && lastMessage.timestamp.getTime() + 60000 > msg.timestamp.getTime();
+        const isHighlighted = messageDingsUser(msg, selfUser);
         return (
           <ChatMessage
             key={msg._id}
             message={msg}
             displayNames={displayNames}
             isSystemMessage={msg.sender === undefined}
+            isHighlighted={isHighlighted}
             suppressSender={suppressSender}
-            selfUserId={selfUserId}
+            selfUserId={selfUser._id}
           />
         );
       })}
@@ -699,7 +707,7 @@ interface ChatSectionHandle {
 
 const ChatSection = React.forwardRef(({
   chatDataLoading, puzzleDeleted, displayNames, puzzleId, huntId,
-  callState, callDispatch, selfUserId,
+  callState, callDispatch, selfUser,
 }: {
   chatDataLoading: boolean;
   puzzleDeleted: boolean;
@@ -708,7 +716,7 @@ const ChatSection = React.forwardRef(({
   huntId: string;
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
-  selfUserId: string;
+  selfUser: Meteor.User;
 }, forwardedRef: React.Ref<ChatSectionHandle>) => {
   const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
   const scrollToTargetRequestRef = useRef<boolean>(false);
@@ -768,7 +776,7 @@ const ChatSection = React.forwardRef(({
         callState={callState}
         callDispatch={callDispatch}
       />
-      <ChatHistoryMemo ref={historyRef} puzzleId={puzzleId} displayNames={displayNames} selfUserId={selfUserId} />
+      <ChatHistoryMemo ref={historyRef} puzzleId={puzzleId} displayNames={displayNames} selfUser={selfUser} />
       <ChatInput
         huntId={huntId}
         puzzleId={puzzleId}
@@ -1931,7 +1939,7 @@ const PuzzlePage = React.memo(() => {
       Puzzles.findOneAllowingDeleted(puzzleId)
   ), [puzzleDataLoading, puzzleId]);
 
-  const selfUserId = useTracker(() => Meteor.userId()!, []);
+  const selfUser = useTracker(() => Meteor.user()!, []);
 
   const puzzleTitle = activePuzzle ? `${activePuzzle.title}${activePuzzle.deleted ? ' (deleted)' : ''}` : '(no such puzzle)';
   const title = puzzleDataLoading ? 'loading...' : puzzleTitle;
@@ -2017,7 +2025,7 @@ const PuzzlePage = React.memo(() => {
       puzzleId={puzzleId}
       callState={callState}
       callDispatch={dispatch}
-      selfUserId={selfUserId}
+      selfUser={selfUser}
     />
   );
   const deletedModal = activePuzzle.deleted && (

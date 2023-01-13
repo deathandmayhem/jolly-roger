@@ -1,8 +1,9 @@
 import Flags from '../../Flags';
+import { normalizedForDingwordSearch, normalizedMessageDingsUserByDingword } from '../../lib/dingwordLogic';
 import ChatMessages from '../../lib/models/ChatMessages';
 import ChatNotifications from '../../lib/models/ChatNotifications';
 import MeteorUsers from '../../lib/models/MeteorUsers';
-import { nodeIsMention, nodeIsText } from '../../lib/schemas/ChatMessage';
+import { nodeIsMention } from '../../lib/schemas/ChatMessage';
 import Hookset from './Hookset';
 
 const ChatNotificationHooks: Hookset = {
@@ -42,15 +43,7 @@ const ChatNotificationHooks: Hookset = {
 
     // Respect feature flag.
     if (!Flags.active('disable.dingwords')) {
-      const normalizedText = chatMessage.text?.trim().toLowerCase() ??
-        chatMessage.content?.children.map((child) => {
-          if (nodeIsText(child)) {
-            return child.text;
-          } else {
-            // No need to look for dingwords in @-mentions, but let them split words
-            return ' ';
-          }
-        }).join('').trim().toLowerCase() ?? '';
+      const normalizedText = normalizedForDingwordSearch(chatMessage);
 
       // Find all users who are in this hunt with dingwords set.
       for await (const u of MeteorUsers.find({
@@ -64,12 +57,8 @@ const ChatNotificationHooks: Hookset = {
           continue;
         }
 
-        const dingwords = u.dingwords;
-        if (dingwords) {
-          const matches = dingwords.some((dingword) => normalizedText.includes(dingword));
-          if (matches) {
-            usersToNotify.add(u._id);
-          }
+        if (normalizedMessageDingsUserByDingword(normalizedText, u)) {
+          usersToNotify.add(u._id);
         }
       }
     }
