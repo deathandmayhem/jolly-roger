@@ -1,5 +1,7 @@
 import { Meteor } from 'meteor/meteor';
-import { ChatMessageType, nodeIsMention, nodeIsText } from './schemas/ChatMessage';
+import nodeIsMention from './nodeIsMention';
+import nodeIsText from './nodeIsText';
+import { ChatMessageType } from './schemas/ChatMessage';
 
 const NeededChatFields = ['text', 'content', 'sender'] as const;
 type PartialChatMessageType = Pick<ChatMessageType, typeof NeededChatFields[number]>

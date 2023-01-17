@@ -3,7 +3,7 @@ import { normalizedForDingwordSearch, normalizedMessageDingsUserByDingword } fro
 import ChatMessages from '../../lib/models/ChatMessages';
 import ChatNotifications from '../../lib/models/ChatNotifications';
 import MeteorUsers from '../../lib/models/MeteorUsers';
-import { nodeIsMention } from '../../lib/schemas/ChatMessage';
+import nodeIsMention from '../../lib/nodeIsMention';
 import Hookset from './Hookset';
 
 const ChatNotificationHooks: Hookset = {

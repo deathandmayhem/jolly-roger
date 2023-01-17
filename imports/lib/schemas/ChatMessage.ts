@@ -18,16 +18,6 @@ export type ChatMessageTextNodeType = t.TypeOf<typeof TextBlock>;
 const ContentNode = t.union([MentionBlock, TextBlock]);
 export type ChatMessageContentNodeType = t.TypeOf<typeof ContentNode>;
 
-export function nodeIsText(node: ChatMessageContentNodeType): node is ChatMessageTextNodeType {
-  return 'text' in node;
-}
-
-export function nodeIsMention(
-  node: ChatMessageContentNodeType
-): node is ChatMessageMentionNodeType {
-  return 'type' in node && node.type === 'mention';
-}
-
 export const ChatMessageContent = t.type({
   type: t.literal('message'),
   children: t.array(t.union([MentionBlock, TextBlock])),
