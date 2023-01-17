@@ -3,13 +3,15 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { MouseEvent } from 'react';
 import React, {
-  MouseEvent, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState,
+  useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
-import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import type { FormControlProps } from 'react-bootstrap/FormControl';
+import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormText from 'react-bootstrap/FormText';
@@ -21,7 +23,7 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import isAdmin from '../../lib/isAdmin';
 import { userIsOperatorForHunt } from '../../lib/permission_stubs';
-import { HuntType } from '../../lib/schemas/Hunt';
+import type { HuntType } from '../../lib/schemas/Hunt';
 import demoteOperator from '../../methods/demoteOperator';
 import promoteOperator from '../../methods/promoteOperator';
 import syncHuntDiscordRole from '../../methods/syncHuntDiscordRole';

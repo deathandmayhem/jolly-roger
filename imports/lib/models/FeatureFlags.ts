@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { FeatureFlagType } from '../schemas/FeatureFlag';
+import type { FeatureFlagType } from '../schemas/FeatureFlag';
 import Base from './Base';
 
 const FeatureFlags = new Base<FeatureFlagType>('featureflags');

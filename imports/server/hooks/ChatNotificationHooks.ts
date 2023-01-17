@@ -4,7 +4,7 @@ import ChatMessages from '../../lib/models/ChatMessages';
 import ChatNotifications from '../../lib/models/ChatNotifications';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import nodeIsMention from '../../lib/nodeIsMention';
-import Hookset from './Hookset';
+import type Hookset from './Hookset';
 
 const ChatNotificationHooks: Hookset = {
   async onChatMessageCreated(chatMessageId: string) {

@@ -5,7 +5,8 @@ import React, {
   useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
 import Button from 'react-bootstrap/Button';
-import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import type { FormControlProps } from 'react-bootstrap/FormControl';
+import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { useParams, useSearchParams } from 'react-router-dom';
@@ -16,8 +17,8 @@ import ChatMessages from '../../lib/models/ChatMessages';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import nodeIsMention from '../../lib/nodeIsMention';
-import { ChatMessageType } from '../../lib/schemas/ChatMessage';
-import { PuzzleType } from '../../lib/schemas/Puzzle';
+import type { ChatMessageType } from '../../lib/schemas/ChatMessage';
+import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import FixedLayout from './styling/FixedLayout';

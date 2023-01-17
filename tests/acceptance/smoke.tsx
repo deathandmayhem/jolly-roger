@@ -3,12 +3,14 @@ import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import { act, render } from '@testing-library/react';
 import React from 'react';
-import {
+import type {
   Location,
-  MemoryRouter,
   NavigateFunction,
-  Route,
   RouteObject,
+} from 'react-router-dom';
+import {
+  MemoryRouter,
+  Route,
   Routes as ReactRouterRoutes,
   useLocation,
   useNavigate,

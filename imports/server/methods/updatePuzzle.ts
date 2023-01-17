@@ -1,12 +1,12 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Mongo } from 'meteor/mongo';
 import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
-import { PuzzleType } from '../../lib/schemas/Puzzle';
+import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
 import { ensureDocument, renameDocument } from '../gdrive';
 import getOrCreateTagByName from '../getOrCreateTagByName';

@@ -1,16 +1,23 @@
-import { Meteor } from 'meteor/meteor';
+import type { Meteor } from 'meteor/meteor';
 import { marked } from 'marked';
 import React, {
   useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  createEditor, BaseEditor, Descendant, Editor, NodeEntry, Text, Transforms, Node, Path, Range,
+import type {
+  BaseEditor, Descendant, NodeEntry, Node, Path,
 } from 'slate';
-import { HistoryEditor, withHistory } from 'slate-history';
 import {
-  Slate, Editable, ReactEditor, withReact, useSelected, useFocused, RenderLeafProps,
+  createEditor, Editor, Text, Transforms, Range,
+} from 'slate';
+import type { HistoryEditor } from 'slate-history';
+import { withHistory } from 'slate-history';
+import type {
+  RenderLeafProps,
   RenderElementProps,
+} from 'slate-react';
+import {
+  Slate, Editable, ReactEditor, withReact, useSelected, useFocused,
 } from 'slate-react';
 import styled, { css } from 'styled-components';
 import { indexedById, sortedBy } from '../../lib/listUtils';

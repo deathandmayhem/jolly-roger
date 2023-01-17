@@ -2,7 +2,8 @@ import * as t from 'io-ts';
 import { date } from 'io-ts-types';
 import { BaseCodec, BaseOverrides } from './Base';
 import { Id } from './regexes';
-import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema, inheritSchema } from './typedSchemas';
 
 const MentionBlock = t.type({
   type: t.literal('mention'),

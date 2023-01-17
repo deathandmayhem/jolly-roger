@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import ChatMessages from '../lib/models/ChatMessages';
 import Puzzles from '../lib/models/Puzzles';
-import { ChatMessageContentType } from '../lib/schemas/ChatMessage';
+import type { ChatMessageContentType } from '../lib/schemas/ChatMessage';
 import GlobalHooks from './GlobalHooks';
 
 export default async function sendChatMessageInternalV2({ puzzleId, content, sender }: {

@@ -2,8 +2,8 @@ import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { huntsMatchingCurrentUser } from '../../../model-helpers';
-import { CallHistoryType } from '../../schemas/mediasoup/CallHistory';
-import { FindOptions } from '../Base';
+import type { CallHistoryType } from '../../schemas/mediasoup/CallHistory';
+import type { FindOptions } from '../Base';
 
 const CallHistories = new Mongo.Collection<CallHistoryType>('jr_mediasoup_call_histories');
 if (Meteor.isServer) {

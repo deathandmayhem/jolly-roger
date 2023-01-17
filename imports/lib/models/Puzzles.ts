@@ -1,5 +1,5 @@
 import { huntsMatchingCurrentUser } from '../../model-helpers';
-import { PuzzleType } from '../schemas/Puzzle';
+import type { PuzzleType } from '../schemas/Puzzle';
 import Base from './Base';
 
 const Puzzles = new Base<PuzzleType>('puzzles', {

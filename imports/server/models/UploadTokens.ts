@@ -1,5 +1,5 @@
 import Base from '../../lib/models/Base';
-import { UploadTokenType } from '../schemas/UploadToken';
+import type { UploadTokenType } from '../schemas/UploadToken';
 
 const UploadTokens = new Base<UploadTokenType>('upload_tokens');
 

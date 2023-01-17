@@ -1,4 +1,4 @@
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
+import type { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faBan } from '@fortawesome/free-solid-svg-icons/faBan';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import { GuessType } from '../../lib/schemas/Guess';
+import type { GuessType } from '../../lib/schemas/Guess';
 import { guessColorLookupTable } from './styling/constants';
 
 const iconLookupTable: Record<GuessType['state'], IconProp> = {

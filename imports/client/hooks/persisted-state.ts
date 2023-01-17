@@ -1,4 +1,5 @@
-import { SetStateAction, useCallback } from 'react';
+import type { SetStateAction } from 'react';
+import { useCallback } from 'react';
 import createPersistedState from 'use-persisted-state';
 
 export type OperatorActionsHiddenState = Record<string /* huntId */, boolean>;

@@ -1,4 +1,4 @@
-import { PendingAnnouncementType } from '../schemas/PendingAnnouncement';
+import type { PendingAnnouncementType } from '../schemas/PendingAnnouncement';
 import Base from './Base';
 
 const PendingAnnouncements = new Base<PendingAnnouncementType>('pending_announcements');

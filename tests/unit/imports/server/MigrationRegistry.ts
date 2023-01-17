@@ -1,6 +1,7 @@
 import { Mongo } from 'meteor/mongo';
 import { assert } from 'chai';
-import MigrationRegistry, { MigrationControl } from '../../../../imports/server/MigrationRegistry';
+import type { MigrationControl } from '../../../../imports/server/MigrationRegistry';
+import MigrationRegistry from '../../../../imports/server/MigrationRegistry';
 
 const testCollection = new Mongo.Collection<MigrationControl>('migrations_for_test');
 

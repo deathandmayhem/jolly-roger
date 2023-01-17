@@ -1,9 +1,10 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Mongo } from 'meteor/mongo';
 import isAdmin from '../isAdmin';
-import { SettingType } from '../schemas/Setting';
-import Base, { FindOptions } from './Base';
+import type { SettingType } from '../schemas/Setting';
+import type { FindOptions } from './Base';
+import Base from './Base';
 import MeteorUsers from './MeteorUsers';
 
 const Settings = new Base<SettingType>('settings');

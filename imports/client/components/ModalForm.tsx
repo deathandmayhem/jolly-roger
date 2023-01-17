@@ -2,7 +2,8 @@ import React, {
   useCallback, useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
 import Button from 'react-bootstrap/Button';
-import Modal, { ModalProps } from 'react-bootstrap/Modal';
+import type { ModalProps } from 'react-bootstrap/Modal';
+import Modal from 'react-bootstrap/Modal';
 import styled from 'styled-components';
 
 const StyledModalTitle = styled(Modal.Title)`

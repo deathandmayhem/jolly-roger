@@ -4,7 +4,8 @@ import React, {
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import FormCheck from 'react-bootstrap/FormCheck';
-import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import type { FormControlProps } from 'react-bootstrap/FormControl';
+import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import styled from 'styled-components';

@@ -1,4 +1,4 @@
-import { Meteor } from 'meteor/meteor';
+import type { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -6,7 +6,7 @@ import Tooltip from 'react-bootstrap/esm/Tooltip';
 import styled from 'styled-components';
 import { indexedById } from '../../lib/listUtils';
 import Hunts from '../../lib/models/Hunts';
-import { HuntType } from '../../lib/schemas/Hunt';
+import type { HuntType } from '../../lib/schemas/Hunt';
 import Avatar from './Avatar';
 
 const AvatarTooltip = styled(Tooltip)`

@@ -8,7 +8,8 @@ import { faSkullCrossbones } from '@fortawesome/free-solid-svg-icons/faSkullCros
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useEffect, useRef } from 'react';
 import Button from 'react-bootstrap/Button';
-import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import type { FormControlProps } from 'react-bootstrap/FormControl';
+import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -23,9 +24,9 @@ import Hunts from '../../lib/models/Hunts';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
-import { GuessType } from '../../lib/schemas/Guess';
-import { HuntType } from '../../lib/schemas/Hunt';
-import { PuzzleType } from '../../lib/schemas/Puzzle';
+import type { GuessType } from '../../lib/schemas/Guess';
+import type { HuntType } from '../../lib/schemas/Hunt';
+import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import setGuessState from '../../methods/setGuessState';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
@@ -36,7 +37,8 @@ import PuzzleAnswer from './PuzzleAnswer';
 import { GuessConfidence, GuessDirection, formatGuessDirection } from './guessDetails';
 import Breakable from './styling/Breakable';
 import { guessColorLookupTable, NavBarHeight } from './styling/constants';
-import { Breakpoint, mediaBreakpointDown } from './styling/responsive';
+import type { Breakpoint } from './styling/responsive';
+import { mediaBreakpointDown } from './styling/responsive';
 
 const compactViewBreakpoint: Breakpoint = 'md';
 

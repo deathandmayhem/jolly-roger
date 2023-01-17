@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
-import { Navigate, RouteObject, useRoutes } from 'react-router-dom';
+import type { RouteObject } from 'react-router-dom';
+import { Navigate, useRoutes } from 'react-router-dom';
 import { BreadcrumbsProvider } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import AllProfileListPage from './AllProfileListPage';

@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { isDeepStrictEqual } from 'util';
-import { Meteor, Subscription } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Subscription } from 'meteor/meteor';
+import { Meteor } from 'meteor/meteor';
+import type { Mongo } from 'meteor/mongo';
 
 declare module 'meteor/mongo' {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
+
   namespace Mongo {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Collection<T> {

@@ -1,12 +1,13 @@
 import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
-import { Meteor, Subscription } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Subscription } from 'meteor/meteor';
+import { Meteor } from 'meteor/meteor';
+import type { Mongo } from 'meteor/mongo';
 import { GLOBAL_SCOPE } from '../lib/isAdmin';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
-import { ProfileFields } from '../lib/schemas/User';
+import type { ProfileFields } from '../lib/schemas/User';
 import SwappableCursorPublisher from './SwappableCursorPublisher';
 
 const profileFields: Record<ProfileFields, 1> = {

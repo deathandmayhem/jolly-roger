@@ -4,7 +4,7 @@ import Flags from '../Flags';
 import DiscordCache from '../lib/models/DiscordCache';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import Settings from '../lib/models/Settings';
-import { SettingType } from '../lib/schemas/Setting';
+import type { SettingType } from '../lib/schemas/Setting';
 import Locks, { PREEMPT_TIMEOUT } from './models/Locks';
 import onExit from './onExit';
 

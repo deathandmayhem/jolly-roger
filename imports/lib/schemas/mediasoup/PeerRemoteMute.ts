@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { BaseCodec, BaseOverrides } from '../Base';
 import { Id } from '../regexes';
-import { Overrides, inheritSchema, buildSchema } from '../typedSchemas';
+import type { Overrides } from '../typedSchemas';
+import { inheritSchema, buildSchema } from '../typedSchemas';
 
 // PeerRemoteMute is an audit log of when one user mutes another user. When a
 // user is remote-muted, their Peer record is also updated, which tracks current

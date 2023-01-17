@@ -1,5 +1,5 @@
 import { huntsMatchingCurrentUser } from '../../model-helpers';
-import { GuessType } from '../schemas/Guess';
+import type { GuessType } from '../schemas/Guess';
 import Base from './Base';
 
 const Guesses = new Base<GuessType>('guesses');

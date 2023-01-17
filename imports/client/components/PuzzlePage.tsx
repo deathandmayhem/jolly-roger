@@ -14,9 +14,11 @@ import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, {
+import type {
   ChangeEvent,
   MouseEvent,
+} from 'react';
+import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -30,7 +32,8 @@ import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
-import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import type { FormControlProps } from 'react-bootstrap/FormControl';
+import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import FormSelect from 'react-bootstrap/FormSelect';
@@ -45,7 +48,7 @@ import Tooltip from 'react-bootstrap/esm/Tooltip';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Link, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
-import { Descendant } from 'slate';
+import type { Descendant } from 'slate';
 import styled, { css } from 'styled-components';
 import Flags from '../../Flags';
 import Logger from '../../Logger';
@@ -62,18 +65,20 @@ import Tags from '../../lib/models/Tags';
 import nodeIsMention from '../../lib/nodeIsMention';
 import nodeIsText from '../../lib/nodeIsText';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
-import { ChatMessageType } from '../../lib/schemas/ChatMessage';
-import { DocumentType } from '../../lib/schemas/Document';
-import { GuessType } from '../../lib/schemas/Guess';
-import { PuzzleType } from '../../lib/schemas/Puzzle';
-import { TagType } from '../../lib/schemas/Tag';
+import type { ChatMessageType } from '../../lib/schemas/ChatMessage';
+import type { DocumentType } from '../../lib/schemas/Document';
+import type { GuessType } from '../../lib/schemas/Guess';
+import type { PuzzleType } from '../../lib/schemas/Puzzle';
+import type { TagType } from '../../lib/schemas/Tag';
 import { computeSolvedness } from '../../lib/solvedness';
 import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
 import addPuzzleTag from '../../methods/addPuzzleTag';
 import createGuess from '../../methods/createGuess';
 import ensurePuzzleDocument from '../../methods/ensurePuzzleDocument';
-import insertDocumentImage, { ImageSource } from '../../methods/insertDocumentImage';
-import listDocumentSheets, { Sheet } from '../../methods/listDocumentSheets';
+import type { ImageSource } from '../../methods/insertDocumentImage';
+import insertDocumentImage from '../../methods/insertDocumentImage';
+import type { Sheet } from '../../methods/listDocumentSheets';
+import listDocumentSheets from '../../methods/listDocumentSheets';
 import removePuzzleAnswer from '../../methods/removePuzzleAnswer';
 import removePuzzleTag from '../../methods/removePuzzleTag';
 import sendChatMessage from '../../methods/sendChatMessage';
@@ -83,19 +88,23 @@ import updatePuzzle from '../../methods/updatePuzzle';
 import GoogleScriptInfo from '../GoogleScriptInfo';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useBlockUpdate from '../hooks/useBlockUpdate';
-import useCallState, { Action, CallState } from '../hooks/useCallState';
+import type { Action, CallState } from '../hooks/useCallState';
+import useCallState from '../hooks/useCallState';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import { trace } from '../tracing';
 import ChatMessageV2 from './ChatMessageV2';
 import ChatPeople from './ChatPeople';
 import DocumentDisplay, { DocumentMessage } from './DocumentDisplay';
-import FancyEditor, { FancyEditorHandle, MessageElement } from './FancyEditor';
+import type { FancyEditorHandle, MessageElement } from './FancyEditor';
+import FancyEditor from './FancyEditor';
 import GuessState from './GuessState';
 import Markdown from './Markdown';
-import ModalForm, { ModalFormHandle } from './ModalForm';
+import type { ModalFormHandle } from './ModalForm';
+import ModalForm from './ModalForm';
 import PuzzleAnswer from './PuzzleAnswer';
-import PuzzleModalForm, { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
+import type { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
+import PuzzleModalForm from './PuzzleModalForm';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
 import {

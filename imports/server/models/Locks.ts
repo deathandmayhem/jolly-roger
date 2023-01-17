@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import Logger from '../../Logger';
 import ignoringDuplicateKeyErrors from '../ignoringDuplicateKeyErrors';
-import { LockType } from '../schemas/Lock';
+import type { LockType } from '../schemas/Lock';
 
 // 10 seconds
 export const PREEMPT_TIMEOUT = 10000;

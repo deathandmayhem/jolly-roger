@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
 import { Id } from './regexes';
-import { Overrides, buildSchema } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema } from './typedSchemas';
 
 /* DocumentActivityFields doesn't inherit from Base because it's created by the
    server, not by users */

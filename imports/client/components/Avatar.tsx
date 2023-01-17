@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { getAvatarCdnUrl } from '../../lib/discord';
-import { DiscordAccountType } from '../../lib/schemas/DiscordAccount';
+import type { DiscordAccountType } from '../../lib/schemas/DiscordAccount';
 
 const AvatarImg = styled.img`
   display: block;

@@ -1,4 +1,4 @@
-import HookSet from './Hookset';
+import type HookSet from './Hookset';
 
 // No deps, just defines what a set of hooks looks like and a place
 // to hold them.

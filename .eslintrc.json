@@ -101,8 +101,11 @@
       "newlines-between": "never"
     }],
 
-    // Some modules are included with Meteor
-    "import/no-unresolved": ["error", { "ignore": ["fibers"] }],
+    // Require type-only imports as appropriate - this reduces the size of our
+    // runtime bundle
+    "@typescript-eslint/consistent-type-imports": ["error", {
+      "prefer": "type-imports"
+    }],
 
     // Files with default exports should be named to match them
     "filenames/match-exported": "error",
@@ -237,6 +240,15 @@
       "files": "**/client/**",
       "env": {
         "browser": true
+      },
+      "rules": {
+        "@typescript-eslint/no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": ["**/schemas/**"],
+            "message": "Non-type imports of schemas are restricted to limit bloat of the client bundle",
+            "allowTypeImports": true
+          }]
+        }]
       }
     },
     {
@@ -275,7 +287,8 @@
         // since tests run in both client and server context, sometimes we need
         // conditional imports, which can only be easily done with require
         "global-require": "off",
-        "@typescript-eslint/no-var-requires": "off"
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/consistent-type-imports": "off"
       }
     }
   ]

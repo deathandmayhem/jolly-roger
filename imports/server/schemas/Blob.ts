@@ -1,5 +1,6 @@
 import * as t from 'io-ts';
-import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
+import type { Overrides } from '../../lib/schemas/typedSchemas';
+import { buildSchema } from '../../lib/schemas/typedSchemas';
 import { uint8Array } from '../../lib/schemas/types';
 
 export const BlobCodec = t.type({

@@ -5,19 +5,22 @@ import React, {
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Col from 'react-bootstrap/Col';
-import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import type { FormControlProps } from 'react-bootstrap/FormControl';
+import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
 import type { ActionMeta } from 'react-select';
-import { GdriveMimeTypesType } from '../../lib/GdriveMimeTypes';
-import { PuzzleType } from '../../lib/schemas/Puzzle';
-import { TagType } from '../../lib/schemas/Tag';
+import type { GdriveMimeTypesType } from '../../lib/GdriveMimeTypes';
+import type { PuzzleType } from '../../lib/schemas/Puzzle';
+import type { TagType } from '../../lib/schemas/Tag';
 import LabelledRadioGroup from './LabelledRadioGroup';
 import Loading from './Loading';
-import ModalForm, { ModalFormHandle } from './ModalForm';
+import type { ModalFormHandle } from './ModalForm';
+import ModalForm from './ModalForm';
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 const Creatable = React.lazy(() => import('react-select/creatable')) as typeof import('react-select/creatable').default;
 
 type TagSelectOption = { value: string, label: string };

@@ -1,5 +1,5 @@
 import { Mongo } from 'meteor/mongo';
-import { ServerType } from '../schemas/Server';
+import type { ServerType } from '../schemas/Server';
 
 const Servers = new Mongo.Collection<ServerType>('jr_servers');
 

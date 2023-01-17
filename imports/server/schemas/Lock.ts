@@ -1,6 +1,7 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
+import type { Overrides } from '../../lib/schemas/typedSchemas';
+import { buildSchema } from '../../lib/schemas/typedSchemas';
 
 export const LockCodec = t.type({
   _id: t.string,

@@ -1,6 +1,7 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import { Overrides, buildSchema } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema } from './typedSchemas';
 
 export const ServerCodec = t.type({
   _id: t.string,

@@ -3,8 +3,9 @@ import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { MouseEvent } from 'react';
 import React, {
-  MouseEvent, useCallback, useImperativeHandle, useRef, useState,
+  useCallback, useImperativeHandle, useRef, useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -15,10 +16,11 @@ import { Link } from 'react-router-dom';
 import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import { userMayCreateHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
-import { HuntType } from '../../lib/schemas/Hunt';
+import type { HuntType } from '../../lib/schemas/Hunt';
 import createFixtureHunt from '../../methods/createFixtureHunt';
 import destroyHunt from '../../methods/destroyHunt';
-import ModalForm, { ModalFormHandle } from './ModalForm';
+import type { ModalFormHandle } from './ModalForm';
+import ModalForm from './ModalForm';
 
 const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
   const huntId = hunt._id;

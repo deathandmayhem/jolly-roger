@@ -1,6 +1,6 @@
 import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
+import type { Meteor } from 'meteor/meteor';
 import express from 'express';
 import MeteorUsers from '../../../lib/models/MeteorUsers';
 import expressAsyncWrapper from '../../expressAsyncWrapper';

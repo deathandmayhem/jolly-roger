@@ -1,5 +1,6 @@
 import { assert } from 'chai';
-import { complete, RelativeTimeFormatOpts } from '../../../../imports/lib/relativeTimeFormat';
+import type { RelativeTimeFormatOpts } from '../../../../imports/lib/relativeTimeFormat';
+import { complete } from '../../../../imports/lib/relativeTimeFormat';
 
 const verifyFormat = (date: Date, now: Date, opts: Omit<RelativeTimeFormatOpts, 'now'>, expected: string) => {
   const { formatted, millisUntilChange } = complete(date, { ...opts, now });

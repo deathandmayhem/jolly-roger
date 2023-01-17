@@ -1,13 +1,18 @@
-import { Mongo } from 'meteor/mongo';
+import type { Mongo } from 'meteor/mongo';
 import { OAuth } from 'meteor/oauth';
-import { ServiceConfiguration, Configuration } from 'meteor/service-configuration';
-import { drive_v3, drive } from '@googleapis/drive';
-import { driveactivity, driveactivity_v2 } from '@googleapis/driveactivity';
-import { people, people_v1 } from '@googleapis/people';
-import { script_v1, script } from '@googleapis/script';
+import type { Configuration } from 'meteor/service-configuration';
+import { ServiceConfiguration } from 'meteor/service-configuration';
+import type { drive_v3 } from '@googleapis/drive';
+import { drive } from '@googleapis/drive';
+import type { driveactivity_v2 } from '@googleapis/driveactivity';
+import { driveactivity } from '@googleapis/driveactivity';
+import type { people_v1 } from '@googleapis/people';
+import { people } from '@googleapis/people';
+import type { script_v1 } from '@googleapis/script';
+import { script } from '@googleapis/script';
 import { OAuth2Client } from 'google-auth-library';
 import Settings from '../lib/models/Settings';
-import { SettingType } from '../lib/schemas/Setting';
+import type { SettingType } from '../lib/schemas/Setting';
 
 class GoogleClientRefresher {
   public drive?: drive_v3.Drive;

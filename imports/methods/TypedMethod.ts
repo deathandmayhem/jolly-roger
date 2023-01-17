@@ -1,8 +1,9 @@
 import { check } from 'meteor/check';
-import { EJSON, EJSONable, EJSONableProperty } from 'meteor/ejson';
+import type { EJSONable, EJSONableProperty } from 'meteor/ejson';
+import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
 import Bugsnag from '@bugsnag/js';
-import ValidateShape from '../lib/ValidateShape';
+import type ValidateShape from '../lib/ValidateShape';
 
 type TypedMethodParam = EJSONable | EJSONableProperty;
 type TypedMethodArgs = Record<string, TypedMethodParam> | void;

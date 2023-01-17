@@ -9,7 +9,7 @@ import {
 } from 'react-router-dom';
 import Hunts from '../../lib/models/Hunts';
 import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
-import { HuntType } from '../../lib/schemas/Hunt';
+import type { HuntType } from '../../lib/schemas/Hunt';
 import addHuntUser from '../../methods/addHuntUser';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/useDocumentTitle';

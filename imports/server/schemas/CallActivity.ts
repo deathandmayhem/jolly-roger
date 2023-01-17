@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
 import { Id } from '../../lib/schemas/regexes';
-import { buildSchema, Overrides } from '../../lib/schemas/typedSchemas';
+import type { Overrides } from '../../lib/schemas/typedSchemas';
+import { buildSchema } from '../../lib/schemas/typedSchemas';
 
 // Not descended from Base as this is managed by the server
 const CallActivityCodec = t.type({

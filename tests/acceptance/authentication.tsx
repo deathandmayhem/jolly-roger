@@ -3,13 +3,15 @@ import { Meteor } from 'meteor/meteor';
 import { render, act, cleanup } from '@testing-library/react';
 import { assert } from 'chai';
 import React from 'react';
+import type {
+  Location,
+  NavigateFunction,
+} from 'react-router-dom';
 import {
   MemoryRouter,
   Route,
-  Location,
   useLocation,
   Routes as ReactRouterRoutes,
-  NavigateFunction,
   useNavigate,
 } from 'react-router-dom';
 import provisionFirstUser from '../../imports/methods/provisionFirstUser';

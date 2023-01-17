@@ -1,4 +1,4 @@
-import { Meteor } from 'meteor/meteor';
+import type { Meteor } from 'meteor/meteor';
 
 export const GLOBAL_SCOPE = '__GLOBAL__';
 

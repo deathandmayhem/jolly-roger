@@ -1,4 +1,4 @@
-import { ChatNotificationType } from '../schemas/ChatNotification';
+import type { ChatNotificationType } from '../schemas/ChatNotification';
 import Base from './Base';
 
 const ChatNotifications = new Base<ChatNotificationType>('chatnotifications');

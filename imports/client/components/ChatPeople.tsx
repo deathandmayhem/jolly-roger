@@ -3,8 +3,9 @@ import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { ReactNode } from 'react';
 import React, {
-  ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState,
+  useCallback, useEffect, useLayoutEffect, useRef, useState,
 } from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -15,8 +16,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import CallHistories from '../../lib/models/mediasoup/CallHistories';
 import Peers from '../../lib/models/mediasoup/Peers';
 import relativeTimeFormat from '../../lib/relativeTimeFormat';
-import { DiscordAccountType } from '../../lib/schemas/DiscordAccount';
-import { Action, CallJoinState, CallState } from '../hooks/useCallState';
+import type { DiscordAccountType } from '../../lib/schemas/DiscordAccount';
+import type { Action, CallState } from '../hooks/useCallState';
+import { CallJoinState } from '../hooks/useCallState';
 import useSubscribeAvatars from '../hooks/useSubscribeAvatars';
 import { Subscribers } from '../subscribers';
 import { trace } from '../tracing';

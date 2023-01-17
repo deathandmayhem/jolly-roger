@@ -2,7 +2,8 @@ import * as t from 'io-ts';
 import { date } from 'io-ts-types';
 import DiscordAccount from './DiscordAccount';
 import { Email, Id } from './regexes';
-import { Overrides, buildSchema } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema } from './typedSchemas';
 
 declare module 'meteor/meteor' {
   namespace Meteor {

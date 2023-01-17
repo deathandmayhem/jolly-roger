@@ -6,8 +6,8 @@ import {
   userMayUseDiscordBotAPIs,
   userMayConfigureDiscordBot,
 } from '../permission_stubs';
-import { DiscordCacheType } from '../schemas/DiscordCache';
-import { FindOptions } from './Base';
+import type { DiscordCacheType } from '../schemas/DiscordCache';
+import type { FindOptions } from './Base';
 import MeteorUsers from './MeteorUsers';
 import Settings from './Settings';
 

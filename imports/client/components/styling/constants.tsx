@@ -1,4 +1,4 @@
-import { GuessType } from '../../../lib/schemas/Guess';
+import type { GuessType } from '../../../lib/schemas/Guess';
 import type { Solvedness } from '../../../lib/solvedness';
 
 export const NavBarHeight = '50px';

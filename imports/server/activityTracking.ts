@@ -1,7 +1,9 @@
 import { check } from 'meteor/check';
-import { Meteor, Subscription } from 'meteor/meteor';
+import type { Subscription } from 'meteor/meteor';
+import { Meteor } from 'meteor/meteor';
+import type { PublishedBucket } from '../lib/config/activityTracking';
 import {
-  ACTIVITY_COLLECTION, ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS, PublishedBucket,
+  ACTIVITY_COLLECTION, ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS,
 } from '../lib/config/activityTracking';
 import ChatMessages from '../lib/models/ChatMessages';
 import DocumentActivities from '../lib/models/DocumentActivities';

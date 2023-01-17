@@ -3,7 +3,8 @@ import elementResizeDetectorMaker from 'element-resize-detector';
 import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
-import SplitPane, { SplitPaneProps } from 'react-split-pane';
+import type { SplitPaneProps } from 'react-split-pane';
+import SplitPane from 'react-split-pane';
 import throttle from '../../lib/throttle';
 
 /*

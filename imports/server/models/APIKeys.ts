@@ -1,7 +1,7 @@
 import Base from '../../lib/models/Base';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { checkAdmin } from '../../lib/permission_stubs';
-import { APIKeyType } from '../schemas/APIKey';
+import type { APIKeyType } from '../schemas/APIKey';
 
 const APIKeys = new Base<APIKeyType>('api_keys');
 APIKeys.publish(async (userId) => {
