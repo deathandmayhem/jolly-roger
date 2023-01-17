@@ -16,6 +16,7 @@ const ChatHooks: Hookset = {
     const metaTags = await Tags.find({ name: { $in: groupNames.map((name) => `meta-for:${name}`) } }).fetchAsync();
     const puzzlesWithMetaTags = await Puzzles.find({
       tags: { $in: metaTags.map((tag) => tag._id) },
+      _id: { $ne: puzzleId }, // Avoid sending a notification to the puzzle that was just solved.
     }).fetchAsync();
 
     const message = `${puzzle.title} (feeding into this meta) has been solved: \`${answer}\``;
