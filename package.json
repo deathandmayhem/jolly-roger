@@ -38,7 +38,7 @@
     "express": "^4.18.2",
     "form-data": "^4.0.0",
     "fp-ts": "^2.13.1",
-    "glob": "^8.0.3",
+    "glob": "^8.1.0",
     "google-auth-library": "^8.6.0",
     "http-proxy": "^1.18.1",
     "io-ts": "^2.2.20",
