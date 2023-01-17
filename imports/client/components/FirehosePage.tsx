@@ -8,7 +8,7 @@ import Button from 'react-bootstrap/Button';
 import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { indexedById } from '../../lib/listUtils';
@@ -77,7 +77,13 @@ const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
         {puzzle !== undefined ? (
           <>
             <span>{`${puzzle.deleted ? 'deleted: ' : ''}`}</span>
-            <Link to={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}>{puzzle.title}</Link>
+            <a
+              href={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {puzzle.title}
+            </a>
           </>
         ) : (
           <span>deleted: no data</span>
