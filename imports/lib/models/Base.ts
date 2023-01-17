@@ -186,10 +186,7 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     selector?: Selector,
     options: FindOneOptions = {},
   ) {
-    return super.findOneAsync(
-      { ...this[formatQuery](selector ?? {}), deleted: true as any },
-      this[formatOptions](options)
-    ) as Promise<SelectorToResultType<T, Selector> | undefined>;
+    return Promise.resolve(this.findOneDeleted(selector, options));
   }
 
   findAllowingDeleted<Selector extends FindSelector<T>>(
@@ -203,14 +200,14 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
     selector?: Selector,
     options: FindOneOptions = {},
   ) {
-    return super.findOne(selector, options);
+    return super.findOne(selector, options) as SelectorToResultType<T, Selector> | undefined;
   }
 
   findOneAllowingDeletedAsync<Selector extends FindSelector<T>>(
     selector?: Selector,
     options: FindOneOptions = {},
   ) {
-    return super.findOneAsync(selector, options) as
+    return Promise.resolve(this.findOneAllowingDeleted(selector, options)) as
       Promise<SelectorToResultType<T, Selector> | undefined>;
   }
 

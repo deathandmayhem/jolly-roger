@@ -8,6 +8,7 @@ import './unit/imports/lib/ValidateShape';
 
 if (Meteor.isServer) {
   require('./unit/imports/server/MigrationRegistry');
+  require('./unit/imports/server/Base');
 }
 
 import './acceptance/authentication';
