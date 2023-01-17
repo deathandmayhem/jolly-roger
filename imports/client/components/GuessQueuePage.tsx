@@ -355,15 +355,17 @@ const GuessQueuePage = () => {
     return (guess) => {
       const puzzle = puzzles.get(guess.puzzle)!;
       const guessText = guess.guess.toLowerCase();
+      const submitterDisplayName = (displayNames.get(guess.createdBy) ?? '').toLowerCase();
 
       const titleWords = puzzle.title.toLowerCase().split(' ');
       // For each search key, if nothing from the text or the title match,
       // reject this guess.
       return lowerSearchKeys.every((key) => {
-        return guessText.includes(key) || titleWords.some((word) => word.startsWith(key));
+        return guessText.includes(key) || titleWords.some((word) => word.startsWith(key)) ||
+          submitterDisplayName.includes(key);
       });
     };
-  }, [puzzles]);
+  }, [puzzles, displayNames]);
 
   const filteredGuesses = useCallback((allGuesses: GuessType[]) => {
     const searchKeys = searchString.split(' ');
