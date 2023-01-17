@@ -6,13 +6,12 @@ import {
   userMayUseDiscordBotAPIs,
   userMayConfigureDiscordBot,
 } from '../permission_stubs';
-import DiscordCacheSchema, { DiscordCacheType } from '../schemas/DiscordCache';
+import { DiscordCacheType } from '../schemas/DiscordCache';
 import { FindOptions } from './Base';
 import MeteorUsers from './MeteorUsers';
 import Settings from './Settings';
 
 const DiscordCache = new Mongo.Collection<DiscordCacheType>('discord_cache');
-DiscordCache.attachSchema(DiscordCacheSchema);
 if (Meteor.isServer) {
   Meteor.publish('discord.guilds', async function () {
     if (!this.userId || !userMayConfigureDiscordBot(await MeteorUsers.findOneAsync(this.userId))) {
