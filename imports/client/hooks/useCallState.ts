@@ -334,10 +334,6 @@ const useTransport = (
         mediasoupConnectTransport.call({
           transportId: _id,
           dtlsParameters: JSON.stringify(clientDtlsParameters),
-        }, (error) => {
-          if (error) {
-            logger.error('Failed to connect transport', { direction, error });
-          }
         });
       });
       logger.debug('setting transport', { direction, newTransport });
@@ -793,11 +789,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
     // If we've been remote-muted, acknowledge to the server and translate into local mute.
     if (selfPeer?.remoteMutedBy) {
       dispatch({ type: 'set-remote-muted', remoteMutedBy: selfPeer.remoteMutedBy });
-      mediasoupAckPeerRemoteMute.call({ peerId: selfPeer._id }, (error) => {
-        if (error) {
-          logger.error('Error calling mediasoupAckPeerRemoteMute method', { error });
-        }
-      });
+      mediasoupAckPeerRemoteMute.call({ peerId: selfPeer._id });
     }
   }, [selfPeer?._id, selfPeer?.remoteMutedBy]);
   // otherwise we update peer state so that mute/deafen are visible to others.
@@ -810,10 +802,6 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
         mediasoupSetPeerState.call({
           peerId: selfPeer._id,
           state: localEffectiveState,
-        }, (error) => {
-          if (error) {
-            logger.error('Error calling mediasoupSetPeerState method', { error, peerId: selfPeer._id, state: localEffectiveState });
-          }
         });
       }
     }
@@ -895,11 +883,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
                   entry.consumer = newConsumer;
                   // Push the track into state.
                   dispatch({ type: 'add-peer-track', peerId: peer._id, track: newConsumer.track });
-                  mediasoupAckConsumer.call({ consumerId: meteorConsumerId }, (error) => {
-                    if (error) {
-                      logger.error('Error calling mediasoupAckConsumer', { error, consumerId: meteorConsumerId });
-                    }
-                  });
+                  mediasoupAckConsumer.call({ consumerId: meteorConsumerId });
                 } else {
                   logger.error('Created Mediasoup consumer for consumer not in consumerMapRef', { consumer: consumer._id });
                 }

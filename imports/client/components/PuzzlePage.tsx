@@ -51,7 +51,6 @@ import TextareaAutosize from 'react-textarea-autosize';
 import type { Descendant } from 'slate';
 import styled, { css } from 'styled-components';
 import Flags from '../../Flags';
-import Logger from '../../Logger';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { messageDingsUser } from '../../lib/dingwordLogic';
 import { indexedById, sortedBy } from '../../lib/listUtils';
@@ -1103,30 +1102,15 @@ const PuzzlePageMetadata = ({
   const guessModalRef = useRef<React.ElementRef<typeof PuzzleGuessModal>>(null);
   const answerModalRef = useRef<React.ElementRef<typeof PuzzleAnswerModal>>(null);
   const onCreateTag = useCallback((tagName: string) => {
-    addPuzzleTag.call({ puzzleId, tagName }, (error) => {
-      // Not really much we can do in the case of a failure other than log it
-      if (error) {
-        Logger.error('Failed to create tag', { error, puzzleId, tagName });
-      }
-    });
+    addPuzzleTag.call({ puzzleId, tagName });
   }, [puzzleId]);
 
   const onRemoveTag = useCallback((tagId: string) => {
-    removePuzzleTag.call({ puzzleId, tagId }, (error) => {
-      // Not really much we can do in the case of a failure, other than (again) logging it
-      if (error) {
-        Logger.error('Failed to remove tag', { error, puzzleId, tagId });
-      }
-    });
+    removePuzzleTag.call({ puzzleId, tagId });
   }, [puzzleId]);
 
   const onRemoveAnswer = useCallback((guessId: string) => {
-    removePuzzleAnswer.call({ puzzleId, guessId }, (error) => {
-      // Not really much we can do in the case of a failure, other than (again) logging it
-      if (error) {
-        Logger.error('Failed to remove answer', { error, puzzleId, guessId });
-      }
-    });
+    removePuzzleAnswer.call({ puzzleId, guessId });
   }, [puzzleId]);
 
   const onEdit = useCallback((
@@ -1475,13 +1459,6 @@ const PuzzleGuessModal = React.forwardRef(({
         if (error) {
           setSubmitError(error.message);
           setSubmitState(PuzzleGuessSubmitState.FAILED);
-          Logger.error('Error submitting guess', {
-            error,
-            puzzleId: puzzle._id,
-            guess: guessInput,
-            direction: directionInput,
-            confidence: confidenceInput,
-          });
         } else {
           // Clear the input box.  Don't dismiss the dialog.
           setGuessInput('');
