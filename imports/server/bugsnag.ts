@@ -11,7 +11,7 @@ import glob from 'glob';
 import Logger from '../Logger';
 import isAdmin from '../lib/isAdmin';
 import MeteorUsers from '../lib/models/MeteorUsers';
-import { userIsOperatorForAnyHunt } from '../lib/permission_stubs';
+import { huntsUserIsOperatorFor } from '../lib/permission_stubs';
 import addRuntimeConfig from './addRuntimeConfig';
 import onExit from './onExit';
 
@@ -181,7 +181,7 @@ if (apiKey) {
         event.setUser(user._id, user.emails?.[0]?.address, user.displayName);
         event.addMetadata('user', {
           admin: isAdmin(user),
-          operator: userIsOperatorForAnyHunt(user),
+          operator: huntsUserIsOperatorFor(user),
         });
       }
     },

@@ -5,7 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import { assert } from 'chai';
 import Hunts from '../../imports/lib/models/Hunts';
 import MeteorUsers from '../../imports/lib/models/MeteorUsers';
-import { addUserToRole as serverAddUserToRole, userIsOperatorForAnyHunt } from '../../imports/lib/permission_stubs';
+import { addUserToRole as serverAddUserToRole, huntsUserIsOperatorFor } from '../../imports/lib/permission_stubs';
 import TypedMethod from '../../imports/methods/TypedMethod';
 import { resetDatabase, stabilize, subscribeAsync } from './lib';
 
@@ -211,6 +211,7 @@ if (Meteor.isClient) {
         await subscribeAsync('huntRoles', huntId);
         await subscribeAsync('huntRoles', otherHuntId);
 
+        const userIsOperatorForAnyHunt = (u: Meteor.User) => huntsUserIsOperatorFor(u).length > 0;
         let operators = MeteorUsers.find().fetch().filter(userIsOperatorForAnyHunt);
         assert.sameMembers(operators.map((u) => u._id), [userId, sameHuntUserId], 'Should only show operators in hunt where you are an operator');
 

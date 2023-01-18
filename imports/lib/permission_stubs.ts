@@ -32,16 +32,14 @@ export function userIsOperatorForHunt(
   return isOperatorForHunt(user, hunt);
 }
 
-export function userIsOperatorForAnyHunt(user: Meteor.User | null | undefined): boolean {
+export function huntsUserIsOperatorFor(user: Meteor.User | null | undefined): string[] {
   if (!user) {
-    return false;
+    return [];
   }
 
-  if (isAdmin(user)) {
-    return true;
-  }
-
-  return Object.entries(user.roles ?? {}).some(([huntId, roles]) => huntId !== GLOBAL_SCOPE && roles.includes('operator'));
+  return Object.entries(user.roles ?? {})
+    .filter(([huntId, roles]) => huntId !== GLOBAL_SCOPE && roles.includes('operator'))
+    .map(([huntId]) => huntId);
 }
 
 // admins and operators are always allowed to join someone to a hunt

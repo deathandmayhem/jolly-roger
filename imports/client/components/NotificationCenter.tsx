@@ -29,7 +29,7 @@ import Hunts from '../../lib/models/Hunts';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import PendingAnnouncements from '../../lib/models/PendingAnnouncements';
 import Puzzles from '../../lib/models/Puzzles';
-import { userIsOperatorForAnyHunt } from '../../lib/permission_stubs';
+import { huntsUserIsOperatorFor } from '../../lib/permission_stubs';
 import type { AnnouncementType } from '../../lib/schemas/Announcement';
 import type { ChatNotificationType } from '../../lib/schemas/ChatNotification';
 import type { GuessType } from '../../lib/schemas/Guess';
@@ -604,7 +604,8 @@ const NotificationCenter = () => {
 
   const [pendingUpdate, blockReasons] = useBlockReasons();
 
-  const fetchPendingGuesses = useTracker(() => userIsOperatorForAnyHunt(Meteor.user()), []);
+  const operatorHunts = useTracker(() => huntsUserIsOperatorFor(Meteor.user()), []);
+  const fetchPendingGuesses = operatorHunts.length > 0;
   const pendingGuessesLoading = useSubscribe(fetchPendingGuesses ? 'pendingGuesses' : undefined);
 
   const [operatorActionsHidden = {}] = useOperatorActionsHidden();
@@ -643,12 +644,24 @@ const NotificationCenter = () => {
     loading || !fetchPendingGuesses ?
       [] :
       Guesses.find({
-        $or: [
-          { state: 'pending' },
-          { updatedAt: { $gt: new Date(recentGuessEpoch) } },
+        $and: [
+          {
+            // Only display pending guesses for hunts in which we are an operator.
+            // It's possible that e.g. on a puzzle page, we'll be subscribed to
+            // all guesses for that puzzle, so we should avoid showing guess
+            // queue UI if we're an operator for a different hunt but not the
+            // one the guess is for.
+            hunt: { $in: operatorHunts },
+          },
+          {
+            $or: [
+              { state: 'pending' },
+              { updatedAt: { $gt: new Date(recentGuessEpoch) } },
+            ],
+          },
         ],
       }, { sort: { createdAt: 1 } }).fetch()
-  ), [loading, fetchPendingGuesses, recentGuessEpoch]);
+  ), [loading, fetchPendingGuesses, operatorHunts, recentGuessEpoch]);
   const pendingAnnouncements = useTracker(() => (
     loading ?
       [] :
