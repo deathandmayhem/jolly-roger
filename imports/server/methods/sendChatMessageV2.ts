@@ -1,8 +1,9 @@
 import { check, Match } from 'meteor/check';
 import sendChatMessageV2 from '../../methods/sendChatMessageV2';
 import sendChatMessageInternalV2 from '../sendChatMessageInternalV2';
+import defineMethod from './defineMethod';
 
-sendChatMessageV2.define({
+defineMethod(sendChatMessageV2, {
   validate(arg) {
     check(arg, {
       puzzleId: String,

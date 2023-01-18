@@ -4,8 +4,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureEmailBranding } from '../../lib/permission_stubs';
 import configureEmailBranding from '../../methods/configureEmailBranding';
+import defineMethod from './defineMethod';
 
-configureEmailBranding.define({
+defineMethod(configureEmailBranding, {
   validate(arg) {
     check(arg, {
       from: Match.Optional(String),

@@ -6,8 +6,9 @@ import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import linkUserGoogleAccount from '../../methods/linkUserGoogleAccount';
 import { ensureHuntFolderPermission } from '../gdrive';
+import defineMethod from './defineMethod';
 
-linkUserGoogleAccount.define({
+defineMethod(linkUserGoogleAccount, {
   validate(arg) {
     check(arg, {
       key: String,

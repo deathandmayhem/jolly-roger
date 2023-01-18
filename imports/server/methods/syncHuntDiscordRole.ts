@@ -4,8 +4,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
 import syncHuntDiscordRole from '../../methods/syncHuntDiscordRole';
 import addUsersToDiscordRole from '../addUsersToDiscordRole';
+import defineMethod from './defineMethod';
 
-syncHuntDiscordRole.define({
+defineMethod(syncHuntDiscordRole, {
   validate(arg) {
     check(arg, { huntId: String });
     return arg;

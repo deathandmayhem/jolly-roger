@@ -8,8 +8,9 @@ import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
 import { GuessCodec } from '../../lib/schemas/Guess';
 import setGuessState from '../../methods/setGuessState';
 import transitionGuess from '../transitionGuess';
+import defineMethod from './defineMethod';
 
-setGuessState.define({
+defineMethod(setGuessState, {
   validate(arg) {
     check(arg, {
       guessId: String,

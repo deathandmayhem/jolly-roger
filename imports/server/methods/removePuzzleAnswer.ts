@@ -4,8 +4,9 @@ import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
 import removePuzzleAnswer from '../../methods/removePuzzleAnswer';
 import transitionGuess from '../transitionGuess';
+import defineMethod from './defineMethod';
 
-removePuzzleAnswer.define({
+defineMethod(removePuzzleAnswer, {
   validate(arg) {
     check(arg, {
       puzzleId: String,

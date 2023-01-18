@@ -3,8 +3,9 @@ import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { checkAdmin } from '../../lib/permission_stubs';
 import destroyHunt from '../../methods/destroyHunt';
+import defineMethod from './defineMethod';
 
-destroyHunt.define({
+defineMethod(destroyHunt, {
   validate(arg) {
     check(arg, { huntId: String });
     return arg;

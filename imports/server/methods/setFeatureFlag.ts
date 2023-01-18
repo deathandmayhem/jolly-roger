@@ -3,8 +3,9 @@ import FeatureFlags from '../../lib/models/FeatureFlags';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { checkAdmin } from '../../lib/permission_stubs';
 import setFeatureFlag from '../../methods/setFeatureFlag';
+import defineMethod from './defineMethod';
 
-setFeatureFlag.define({
+defineMethod(setFeatureFlag, {
   validate(arg) {
     check(arg, {
       name: String,

@@ -4,8 +4,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayConfigureGdrive } from '../../lib/permission_stubs';
 import configureGdriveTemplates from '../../methods/configureGdriveTemplates';
+import defineMethod from './defineMethod';
 
-configureGdriveTemplates.define({
+defineMethod(configureGdriveTemplates, {
   validate(arg) {
     check(arg, {
       spreadsheetTemplate: Match.Optional(String),

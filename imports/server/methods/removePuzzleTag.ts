@@ -2,8 +2,9 @@ import { check } from 'meteor/check';
 import Logger from '../../Logger';
 import Puzzles from '../../lib/models/Puzzles';
 import removePuzzleTag from '../../methods/removePuzzleTag';
+import defineMethod from './defineMethod';
 
-removePuzzleTag.define({
+defineMethod(removePuzzleTag, {
   validate(arg) {
     check(arg, {
       puzzleId: String,

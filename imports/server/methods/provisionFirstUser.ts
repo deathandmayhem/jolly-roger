@@ -5,8 +5,9 @@ import { GLOBAL_SCOPE } from '../../lib/isAdmin';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { addUserToRole } from '../../lib/permission_stubs';
 import provisionFirstUser from '../../methods/provisionFirstUser';
+import defineMethod from './defineMethod';
 
-provisionFirstUser.define({
+defineMethod(provisionFirstUser, {
   validate(args) {
     check(args, {
       email: String,

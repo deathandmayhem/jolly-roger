@@ -1,11 +1,12 @@
 import { check, Match } from 'meteor/check';
 import Logger from '../../Logger';
-import fetchAPIKey from '../../methods/fetchAPIKey';
 import rollAPIKey from '../../methods/rollAPIKey';
+import ensureAPIKey from '../ensureAPIKey';
 import APIKeys from '../models/APIKeys';
 import userForKeyOperation from '../userForKeyOperation';
+import defineMethod from './defineMethod';
 
-rollAPIKey.define({
+defineMethod(rollAPIKey, {
   validate(arg) {
     check(arg, { forUser: Match.Optional(String) });
 
@@ -22,6 +23,6 @@ rollAPIKey.define({
       await APIKeys.destroyAsync(k._id);
     }
 
-    return fetchAPIKey.execute(this, { forUser });
+    return ensureAPIKey({ requestedBy: this.userId, forUser });
   },
 });

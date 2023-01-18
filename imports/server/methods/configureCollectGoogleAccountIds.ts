@@ -5,8 +5,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import { checkAdmin } from '../../lib/permission_stubs';
 import configureCollectGoogleAccountIds from '../../methods/configureCollectGoogleAccountIds';
 import GoogleClient from '../googleClientRefresher';
+import defineMethod from './defineMethod';
 
-configureCollectGoogleAccountIds.define({
+defineMethod(configureCollectGoogleAccountIds, {
   async run() {
     check(this.userId, String);
     checkAdmin(await MeteorUsers.findOneAsync(this.userId));

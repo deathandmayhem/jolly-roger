@@ -5,8 +5,9 @@ import Logger from '../../Logger';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayConfigureGoogleOAuth } from '../../lib/permission_stubs';
 import configureGoogleOAuthClient from '../../methods/configureGoogleOAuthClient';
+import defineMethod from './defineMethod';
 
-configureGoogleOAuthClient.define({
+defineMethod(configureGoogleOAuthClient, {
   validate(arg) {
     check(arg, {
       clientId: Match.Optional(String),

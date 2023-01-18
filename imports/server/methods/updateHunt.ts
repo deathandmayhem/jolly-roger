@@ -9,8 +9,9 @@ import { HuntPattern } from '../../lib/schemas/Hunt';
 import updateHunt from '../../methods/updateHunt';
 import addUsersToDiscordRole from '../addUsersToDiscordRole';
 import { ensureHuntFolder, huntFolderName, renameDocument } from '../gdrive';
+import defineMethod from './defineMethod';
 
-updateHunt.define({
+defineMethod(updateHunt, {
   validate(arg) {
     check(arg, { huntId: String, value: HuntPattern });
     return arg;

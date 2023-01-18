@@ -5,8 +5,9 @@ import Peers from '../../lib/models/mediasoup/Peers';
 import ProducerClients from '../../lib/models/mediasoup/ProducerClients';
 import ProducerServers from '../../lib/models/mediasoup/ProducerServers';
 import mediasoupSetProducerPaused from '../../methods/mediasoupSetProducerPaused';
+import defineMethod from './defineMethod';
 
-mediasoupSetProducerPaused.define({
+defineMethod(mediasoupSetProducerPaused, {
   validate(arg) {
     check(arg, {
       mediasoupProducerId: String,

@@ -12,6 +12,8 @@ export const USER_PASSWORD = 'password';
 const resetDatabaseMethod = new TypedMethod<{ testName: string }, void>('test.methods.resetDatabase');
 
 if (Meteor.isServer) {
+  const defineMethod: typeof import('../../imports/server/methods/defineMethod').default =
+    require('../../imports/server/methods/defineMethod').default;
   const Migrations: typeof import('../../imports/server/migrations/Migrations').default =
     require('../../imports/server/migrations/Migrations').default;
 
@@ -31,7 +33,7 @@ if (Meteor.isServer) {
   // `test.resetDatabase` invocation.
   let currentConn: Meteor.Connection | null | undefined;
 
-  resetDatabaseMethod.define({
+  defineMethod(resetDatabaseMethod, {
     validate(arg: unknown) {
       check(arg, { testName: String });
 

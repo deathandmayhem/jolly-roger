@@ -5,8 +5,9 @@ import ConnectRequests from '../../lib/models/mediasoup/ConnectRequests';
 import Transports from '../../lib/models/mediasoup/Transports';
 import mediasoupConnectTransport from '../../methods/mediasoupConnectTransport';
 import { serverId } from '../garbage-collection';
+import defineMethod from './defineMethod';
 
-mediasoupConnectTransport.define({
+defineMethod(mediasoupConnectTransport, {
   validate(arg) {
     check(arg, {
       transportId: String,

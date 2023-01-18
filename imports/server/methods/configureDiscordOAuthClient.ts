@@ -6,8 +6,9 @@ import { API_BASE } from '../../lib/discord';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayConfigureDiscordOAuth } from '../../lib/permission_stubs';
 import configureDiscordOAuthClient from '../../methods/configureDiscordOAuthClient';
+import defineMethod from './defineMethod';
 
-configureDiscordOAuthClient.define({
+defineMethod(configureDiscordOAuthClient, {
   validate(arg) {
     check(arg, {
       clientId: Match.Optional(String),

@@ -42,7 +42,10 @@ function enumeratePaths(routes: RouteObject[], prefix = '', acc: string[] = []):
 const disableRateLimits = new TypedMethod<void, void>('test.methods.smoke.disableRateLimits');
 
 if (Meteor.isServer) {
-  disableRateLimits.define({
+  const defineMethod: typeof import('../../imports/server/methods/defineMethod').default =
+    require('../../imports/server/methods/defineMethod').default;
+
+  defineMethod(disableRateLimits, {
     run() {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, 'This code must not run in production');

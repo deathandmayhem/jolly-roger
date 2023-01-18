@@ -4,8 +4,9 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import { userMayConfigureAssets } from '../../lib/permission_stubs';
 import generateUploadToken from '../../methods/generateUploadToken';
 import UploadTokens from '../models/UploadTokens';
+import defineMethod from './defineMethod';
 
-generateUploadToken.define({
+defineMethod(generateUploadToken, {
   validate(arg) {
     check(arg, {
       assetName: String,

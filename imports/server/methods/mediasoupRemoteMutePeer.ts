@@ -5,8 +5,9 @@ import PeerRemoteMutes from '../../lib/models/mediasoup/PeerRemoteMutes';
 import Peers from '../../lib/models/mediasoup/Peers';
 import ProducerClients from '../../lib/models/mediasoup/ProducerClients';
 import mediasoupRemoteMutePeer from '../../methods/mediasoupRemoteMutePeer';
+import defineMethod from './defineMethod';
 
-mediasoupRemoteMutePeer.define({
+defineMethod(mediasoupRemoteMutePeer, {
   validate(arg) {
     check(arg, {
       peerId: String,

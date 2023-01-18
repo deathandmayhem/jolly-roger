@@ -8,8 +8,9 @@ import { contentFromMessage } from '../../lib/schemas/ChatMessage';
 import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
 import GlobalHooks from '../GlobalHooks';
 import sendChatMessageInternalV2 from '../sendChatMessageInternalV2';
+import defineMethod from './defineMethod';
 
-addPuzzleAnswer.define({
+defineMethod(addPuzzleAnswer, {
   validate(arg) {
     check(arg, {
       puzzleId: String,

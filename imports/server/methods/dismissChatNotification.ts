@@ -1,8 +1,9 @@
 import { check } from 'meteor/check';
 import ChatNotifications from '../../lib/models/ChatNotifications';
 import dismissChatNotification from '../../methods/dismissChatNotification';
+import defineMethod from './defineMethod';
 
-dismissChatNotification.define({
+defineMethod(dismissChatNotification, {
   validate(arg) {
     check(arg, { chatNotificationId: String });
 

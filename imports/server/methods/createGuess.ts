@@ -6,8 +6,9 @@ import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
 import createGuess from '../../methods/createGuess';
 import sendChatMessageInternalV2 from '../sendChatMessageInternalV2';
+import defineMethod from './defineMethod';
 
-createGuess.define({
+defineMethod(createGuess, {
   validate(arg) {
     check(arg, {
       puzzleId: String,

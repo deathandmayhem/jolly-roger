@@ -17,7 +17,10 @@ const createHunt = new TypedMethod<{ name: string }, string>('test.methods.profi
 const joinHunt = new TypedMethod<{ huntId: string, userId: string }, void>('test.methods.profiles.joinHunt');
 
 if (Meteor.isServer) {
-  createUser.define({
+  const defineMethod: typeof import('../../imports/server/methods/defineMethod').default =
+    require('../../imports/server/methods/defineMethod').default;
+
+  defineMethod(createUser, {
     validate(arg: unknown) {
       check(arg, {
         email: String,
@@ -39,7 +42,7 @@ if (Meteor.isServer) {
     },
   });
 
-  addUserToRole.define({
+  defineMethod(addUserToRole, {
     validate(arg: unknown) {
       check(arg, {
         userId: String,
@@ -59,7 +62,7 @@ if (Meteor.isServer) {
     },
   });
 
-  createHunt.define({
+  defineMethod(createHunt, {
     validate(arg: unknown) {
       check(arg, {
         name: String,
@@ -83,7 +86,7 @@ if (Meteor.isServer) {
     },
   });
 
-  joinHunt.define({
+  defineMethod(joinHunt, {
     validate(arg: unknown) {
       check(arg, {
         huntId: String,
