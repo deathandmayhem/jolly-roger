@@ -1,4 +1,4 @@
-import { Meteor } from 'meteor/meteor';
+import type { Meteor } from 'meteor/meteor';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Migrations from './Migrations';
 import dropIndex from './dropIndex';

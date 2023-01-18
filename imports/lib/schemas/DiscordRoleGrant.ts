@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { BaseCodec, BaseOverrides } from './Base';
 import { Id } from './regexes';
-import { buildSchema, inheritSchema, Overrides } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema, inheritSchema } from './typedSchemas';
 
 const DiscordRoleGrantFields = t.type({
   guild: t.string,

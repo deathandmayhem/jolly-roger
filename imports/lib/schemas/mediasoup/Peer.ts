@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { BaseCodec, BaseOverrides } from '../Base';
 import { Id } from '../regexes';
-import { Overrides, inheritSchema, buildSchema } from '../typedSchemas';
+import type { Overrides } from '../typedSchemas';
+import { inheritSchema, buildSchema } from '../typedSchemas';
 
 // Peer tracks room membership. When the first peer for a call is created,
 // create a corresponding Room on the same server.

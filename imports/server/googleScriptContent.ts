@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
-import { script_v1 } from '@googleapis/script';
+import type { script_v1 } from '@googleapis/script';
 
 async function loadFile(secret: string, name: string): Promise<script_v1.Schema$File> {
   const extension = path.extname(name);

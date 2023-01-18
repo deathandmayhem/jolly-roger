@@ -1,5 +1,6 @@
 import * as t from 'io-ts';
-import { Overrides, buildSchema } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema } from './typedSchemas';
 
 export const BlobMappingCodec = t.type({
   // _id is the asset name

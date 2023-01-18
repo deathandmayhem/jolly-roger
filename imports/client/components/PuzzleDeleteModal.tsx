@@ -7,13 +7,14 @@ import Modal from 'react-bootstrap/esm/Modal';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Peers from '../../lib/models/mediasoup/Peers';
-import { PuzzleType } from '../../lib/schemas/Puzzle';
+import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import destroyPuzzle from '../../methods/destroyPuzzle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import { Subscribers } from '../subscribers';
 import Loading from './Loading';
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 const Select = React.lazy(() => import('react-select')) as typeof import('react-select').default;
 
 export type PuzzleDeleteModalHandle = {

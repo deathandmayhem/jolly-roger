@@ -2,7 +2,8 @@
 import { marked } from 'marked';
 import React from 'react';
 import styled from 'styled-components';
-import { ChatMessageContentType, nodeIsMention } from '../../lib/schemas/ChatMessage';
+import nodeIsMention from '../../lib/nodeIsMention';
+import type { ChatMessageContentType } from '../../lib/schemas/ChatMessage';
 import { MentionSpan } from './FancyEditor';
 
 // This file implements standalone rendering for the MessageElement format

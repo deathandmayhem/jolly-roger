@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { BaseCodec, BaseOverrides } from '../Base';
 import { Id } from '../regexes';
-import { Overrides, inheritSchema, buildSchema } from '../typedSchemas';
+import type { Overrides } from '../typedSchemas';
+import { inheritSchema, buildSchema } from '../typedSchemas';
 
 // Room tracks the server assignment for a room. Its presence triggers the
 // mediasoup integration to create a router.

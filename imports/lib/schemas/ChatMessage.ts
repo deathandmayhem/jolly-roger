@@ -2,7 +2,8 @@ import * as t from 'io-ts';
 import { date } from 'io-ts-types';
 import { BaseCodec, BaseOverrides } from './Base';
 import { Id } from './regexes';
-import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema, inheritSchema } from './typedSchemas';
 
 const MentionBlock = t.type({
   type: t.literal('mention'),
@@ -17,16 +18,6 @@ export type ChatMessageTextNodeType = t.TypeOf<typeof TextBlock>;
 
 const ContentNode = t.union([MentionBlock, TextBlock]);
 export type ChatMessageContentNodeType = t.TypeOf<typeof ContentNode>;
-
-export function nodeIsText(node: ChatMessageContentNodeType): node is ChatMessageTextNodeType {
-  return 'text' in node;
-}
-
-export function nodeIsMention(
-  node: ChatMessageContentNodeType
-): node is ChatMessageMentionNodeType {
-  return 'type' in node && node.type === 'mention';
-}
 
 export const ChatMessageContent = t.type({
   type: t.literal('message'),

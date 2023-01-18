@@ -1,11 +1,13 @@
-import { Meteor, Subscription } from 'meteor/meteor';
+import type { Subscription } from 'meteor/meteor';
+import { Meteor } from 'meteor/meteor';
 import { GLOBAL_SCOPE } from '../lib/isAdmin';
 import Guesses from '../lib/models/Guesses';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import Puzzles from '../lib/models/Puzzles';
-import { GuessType } from '../lib/schemas/Guess';
-import JoinPublisher, { PublishSpec } from './JoinPublisher';
+import type { GuessType } from '../lib/schemas/Guess';
+import type { PublishSpec } from './JoinPublisher';
+import JoinPublisher from './JoinPublisher';
 
 const LINGER_TIME = 5000;
 

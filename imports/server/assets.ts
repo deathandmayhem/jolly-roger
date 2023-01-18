@@ -13,7 +13,7 @@ import expressAsyncWrapper from './expressAsyncWrapper';
 import Blobs from './models/Blobs';
 import UploadTokens from './models/UploadTokens';
 import onExit from './onExit';
-import { BlobType } from './schemas/Blob';
+import type { BlobType } from './schemas/Blob';
 
 const logger = defaultLogger.child({ label: 'assets' });
 

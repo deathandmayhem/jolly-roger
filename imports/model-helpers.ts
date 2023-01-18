@@ -1,9 +1,9 @@
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Mongo } from 'meteor/mongo';
 import Mustache from 'mustache';
 import MeteorUsers from './lib/models/MeteorUsers';
-import { HuntType } from './lib/schemas/Hunt';
-import { PuzzleType } from './lib/schemas/Puzzle';
+import type { HuntType } from './lib/schemas/Hunt';
+import type { PuzzleType } from './lib/schemas/Puzzle';
 
 const answerify = function (answer: string): string {
   return answer.toUpperCase();

@@ -1,8 +1,8 @@
-import { Meteor, Subscription } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Meteor, Subscription } from 'meteor/meteor';
+import type { Mongo } from 'meteor/mongo';
 
 declare module 'meteor/mongo' {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
+
   namespace Mongo {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Collection<T> {

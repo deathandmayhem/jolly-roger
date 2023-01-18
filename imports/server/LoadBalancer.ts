@@ -1,9 +1,10 @@
 /* eslint-disable no-underscore-dangle */
-import { IncomingMessage, ServerResponse } from 'http';
-import stream from 'stream';
+import type { IncomingMessage, ServerResponse } from 'http';
+import type stream from 'stream';
 import { WebApp } from 'meteor/webapp';
-import HttpProxy from 'http-proxy';
-import WorkerPool, { Worker } from './WorkerPool';
+import type HttpProxy from 'http-proxy';
+import type { Worker } from './WorkerPool';
+import type WorkerPool from './WorkerPool';
 
 // This implements a simple multi-process, single-machine load-balancer.
 //

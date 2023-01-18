@@ -1,7 +1,8 @@
 import { Match } from 'meteor/check';
 import * as t from 'io-ts';
 import { BaseCodec, BaseOverrides } from './Base';
-import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema, inheritSchema } from './typedSchemas';
 import { ValidUrl } from './validators';
 
 export const SavedDiscordObjectFields = t.type({

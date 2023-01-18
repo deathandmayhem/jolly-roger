@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { BaseCodec, BaseOverrides } from './Base';
 import { Email, Id } from './regexes';
-import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema, inheritSchema } from './typedSchemas';
 
 const FolderPermissionFields = t.type({
   folder: t.string,

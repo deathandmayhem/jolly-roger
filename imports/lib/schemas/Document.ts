@@ -2,7 +2,8 @@
 import * as t from 'io-ts';
 import { BaseCodec, BaseOverrides } from './Base';
 import { Id } from './regexes';
-import { Overrides, inheritSchema, buildSchema } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { inheritSchema, buildSchema } from './typedSchemas';
 
 // We can't represent tagged unions (or possible future tagged unions) in
 // SimpleSchema, so we use different types for the actual type vs. the type used

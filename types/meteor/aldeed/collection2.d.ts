@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import type SimpleSchema from 'simpl-schema';
 
 declare module 'meteor/mongo' {
   module Mongo {

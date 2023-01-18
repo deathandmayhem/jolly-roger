@@ -1,4 +1,4 @@
-import ValidateShape from '../../../../imports/lib/ValidateShape';
+import type ValidateShape from '../../../../imports/lib/ValidateShape';
 
 function validatedCall<T>(_arg: ValidateShape<T, {
   a: number;

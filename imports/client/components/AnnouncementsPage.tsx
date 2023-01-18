@@ -11,7 +11,7 @@ import Announcements from '../../lib/models/Announcements';
 import Hunts from '../../lib/models/Hunts';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
-import { AnnouncementType } from '../../lib/schemas/Announcement';
+import type { AnnouncementType } from '../../lib/schemas/Announcement';
 import postAnnouncement from '../../methods/postAnnouncement';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';

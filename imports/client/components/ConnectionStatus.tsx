@@ -1,4 +1,4 @@
-import { DDP } from 'meteor/ddp';
+import type { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import React, { useEffect, useState } from 'react';

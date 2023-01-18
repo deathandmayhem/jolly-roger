@@ -1,6 +1,7 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
+import type { Overrides } from '../../lib/schemas/typedSchemas';
+import { buildSchema } from '../../lib/schemas/typedSchemas';
 
 // DriveActivityLatest captures the most recent timestamp we've seen from the
 // Google Drive Activity API. It is a singleton collection, with _id "default"

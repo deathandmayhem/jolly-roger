@@ -27,7 +27,7 @@
 //     is manually unlocked it'll get run again.
 
 import { Mongo } from 'meteor/mongo';
-import winston from 'winston';
+import type winston from 'winston';
 import { logger } from '../Logger';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 

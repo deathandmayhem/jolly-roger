@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
 import { Id } from './regexes';
-import { buildSchema, Overrides } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema } from './typedSchemas';
 
 export const BaseCodec = t.type({
   // Note: _id is part of the type, but does not get copied into the schema

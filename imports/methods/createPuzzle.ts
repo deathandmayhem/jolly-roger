@@ -1,4 +1,4 @@
-import { GdriveMimeTypesType } from '../lib/GdriveMimeTypes';
+import type { GdriveMimeTypesType } from '../lib/GdriveMimeTypes';
 import TypedMethod from './TypedMethod';
 
 export default new TypedMethod<{

@@ -2,7 +2,8 @@ import * as t from 'io-ts';
 import { answerify } from '../../model-helpers';
 import { BaseCodec, BaseOverrides } from './Base';
 import { Id } from './regexes';
-import { Overrides, buildSchema, inheritSchema } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema, inheritSchema } from './typedSchemas';
 
 const GuessFields = t.type({
   // Denormalized in so subscriptions can filter on hunt without having to join on Puzzles

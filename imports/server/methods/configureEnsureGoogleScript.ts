@@ -1,11 +1,11 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import { script_v1 } from '@googleapis/script';
+import type { script_v1 } from '@googleapis/script';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { checkAdmin } from '../../lib/permission_stubs';
-import { SettingType } from '../../lib/schemas/Setting';
+import type { SettingType } from '../../lib/schemas/Setting';
 import configureEnsureGoogleScript from '../../methods/configureEnsureGoogleScript';
 import GoogleClient from '../googleClientRefresher';
 import googleScriptContent from '../googleScriptContent';

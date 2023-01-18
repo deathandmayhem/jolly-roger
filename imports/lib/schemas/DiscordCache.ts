@@ -1,6 +1,7 @@
 import * as t from 'io-ts';
 import { date } from 'io-ts-types';
-import { buildSchema, Overrides } from './typedSchemas';
+import type { Overrides } from './typedSchemas';
+import { buildSchema } from './typedSchemas';
 
 // Don't use the BaseCodec here - unlike most database objects, this isn't
 // manipulated by users, so many of the fields don't make sense

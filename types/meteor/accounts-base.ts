@@ -1,4 +1,4 @@
-import { Meteor } from 'meteor/meteor';
+import type { Meteor } from 'meteor/meteor';
 
 declare module 'meteor/accounts-base' {
   namespace Accounts {

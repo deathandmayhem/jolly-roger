@@ -1,7 +1,7 @@
 import React from 'react';
 import { indexedById } from '../../lib/listUtils';
-import { PuzzleType } from '../../lib/schemas/Puzzle';
-import { TagType } from '../../lib/schemas/Tag';
+import type { PuzzleType } from '../../lib/schemas/Puzzle';
+import type { TagType } from '../../lib/schemas/Tag';
 import PuzzleTable from './PuzzleTable';
 import { sortPuzzlesByRelevanceWithinPuzzleGroup } from './RelatedPuzzleList';
 

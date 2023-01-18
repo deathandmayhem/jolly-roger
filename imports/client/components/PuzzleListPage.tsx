@@ -15,7 +15,8 @@ import React, {
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
-import FormControl, { FormControlProps } from 'react-bootstrap/FormControl';
+import type { FormControlProps } from 'react-bootstrap/FormControl';
+import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import InputGroup from 'react-bootstrap/InputGroup';
@@ -29,7 +30,7 @@ import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import { filteredPuzzleGroups, puzzleGroupsByRelevance } from '../../lib/puzzle-sort-and-group';
-import { PuzzleType } from '../../lib/schemas/Puzzle';
+import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import { computeSolvedness } from '../../lib/solvedness';
 import createPuzzle from '../../methods/createPuzzle';
 import {
@@ -39,9 +40,10 @@ import {
   useOperatorActionsHiddenForHunt,
 } from '../hooks/persisted-state';
 import PuzzleList from './PuzzleList';
-import PuzzleModalForm, {
+import type {
   PuzzleModalFormHandle, PuzzleModalFormSubmitPayload,
 } from './PuzzleModalForm';
+import PuzzleModalForm from './PuzzleModalForm';
 import RelatedPuzzleGroup from './RelatedPuzzleGroup';
 import { mediaBreakpointDown } from './styling/responsive';
 

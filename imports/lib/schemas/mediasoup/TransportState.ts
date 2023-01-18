@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { BaseCodec, BaseOverrides } from '../Base';
 import { Id } from '../regexes';
-import { Overrides, inheritSchema, buildSchema } from '../typedSchemas';
+import type { Overrides } from '../typedSchemas';
+import { inheritSchema, buildSchema } from '../typedSchemas';
 
 // TransportState tracks the server-side state of a Transport object. None of
 // this data is needed for the actual WebRTC connection, but is collected purely

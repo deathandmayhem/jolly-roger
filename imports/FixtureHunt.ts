@@ -1,7 +1,7 @@
-import { GuessType } from './lib/schemas/Guess';
-import { HuntType } from './lib/schemas/Hunt';
-import { PuzzleType } from './lib/schemas/Puzzle';
-import { TagType } from './lib/schemas/Tag';
+import type { GuessType } from './lib/schemas/Guess';
+import type { HuntType } from './lib/schemas/Hunt';
+import type { PuzzleType } from './lib/schemas/Puzzle';
+import type { TagType } from './lib/schemas/Tag';
 
 type FixtureHuntType = Pick<HuntType, '_id' | 'name'> & {
   tags: Pick<TagType, '_id' | 'name'>[];

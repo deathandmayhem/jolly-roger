@@ -6,10 +6,11 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Settings from '../../lib/models/Settings';
 import Tags from '../../lib/models/Tags';
-import { ChatMessageContentType, nodeIsText } from '../../lib/schemas/ChatMessage';
+import nodeIsText from '../../lib/nodeIsText';
+import type { ChatMessageContentType } from '../../lib/schemas/ChatMessage';
 import { computeSolvedness } from '../../lib/solvedness';
 import { DiscordBot } from '../discord';
-import Hookset from './Hookset';
+import type Hookset from './Hookset';
 
 async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   // Above all else, obey the circuit breaker

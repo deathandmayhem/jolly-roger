@@ -1,13 +1,14 @@
 import { Meteor } from 'meteor/meteor';
-import { drive_v3 as drive } from '@googleapis/drive';
+import type { drive_v3 as drive } from '@googleapis/drive';
 import Flags from '../Flags';
 import Logger from '../Logger';
-import GdriveMimeTypes, { GdriveMimeTypesType } from '../lib/GdriveMimeTypes';
+import type { GdriveMimeTypesType } from '../lib/GdriveMimeTypes';
+import GdriveMimeTypes from '../lib/GdriveMimeTypes';
 import Documents from '../lib/models/Documents';
 import FolderPermissions from '../lib/models/FolderPermissions';
 import Hunts from '../lib/models/Hunts';
 import Settings from '../lib/models/Settings';
-import { SettingType } from '../lib/schemas/Setting';
+import type { SettingType } from '../lib/schemas/Setting';
 import getTeamName from './getTeamName';
 import GoogleClient from './googleClientRefresher';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';

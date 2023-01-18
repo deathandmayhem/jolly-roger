@@ -1,9 +1,10 @@
 import { check, Match } from 'meteor/check';
-import { Meteor, Subscription } from 'meteor/meteor';
+import type { Subscription } from 'meteor/meteor';
+import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import ValidateShape from '../ValidateShape';
+import type ValidateShape from '../ValidateShape';
 import isAdmin from '../isAdmin';
-import { BaseType } from '../schemas/Base';
+import type { BaseType } from '../schemas/Base';
 import MeteorUsers from './MeteorUsers';
 
 const formatQuery = Symbol('formatQuery');

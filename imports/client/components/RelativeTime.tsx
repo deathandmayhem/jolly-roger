@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import React, { useEffect, useState } from 'react';
-import { complete, RelativeTimeFormatOpts } from '../../lib/relativeTimeFormat';
+import type { RelativeTimeFormatOpts } from '../../lib/relativeTimeFormat';
+import { complete } from '../../lib/relativeTimeFormat';
 
 const RelativeTime = ({
   date, minimumUnit, maxElements, terse, now,

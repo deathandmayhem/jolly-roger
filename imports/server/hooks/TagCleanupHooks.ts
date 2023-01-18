@@ -1,7 +1,7 @@
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { computeSolvedness } from '../../lib/solvedness';
-import Hookset from './Hookset';
+import type Hookset from './Hookset';
 
 const TagCleanupHooks: Hookset = {
   async onPuzzleSolved(puzzleId: string) {

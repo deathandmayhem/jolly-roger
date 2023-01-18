@@ -1,4 +1,4 @@
-import express from 'express';
+import type express from 'express';
 import expressAsyncWrapper from '../expressAsyncWrapper';
 import APIKeys from '../models/APIKeys';
 

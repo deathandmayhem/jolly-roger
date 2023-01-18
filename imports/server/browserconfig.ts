@@ -1,7 +1,7 @@
-import http from 'http';
+import type http from 'http';
 import { Meteor } from 'meteor/meteor';
 import { WebApp } from 'meteor/webapp';
-import { NextFunction } from 'express';
+import type { NextFunction } from 'express';
 import lookupUrl from './lookupUrl';
 
 // Server-side dynamic rendering of /browserconfig.xml to ensure we use custom

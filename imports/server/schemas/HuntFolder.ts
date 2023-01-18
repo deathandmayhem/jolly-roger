@@ -1,5 +1,6 @@
 import * as t from 'io-ts';
-import { Overrides, buildSchema } from '../../lib/schemas/typedSchemas';
+import type { Overrides } from '../../lib/schemas/typedSchemas';
+import { buildSchema } from '../../lib/schemas/typedSchemas';
 
 export const HuntFolderCodec = t.type({
   // Hunt ID

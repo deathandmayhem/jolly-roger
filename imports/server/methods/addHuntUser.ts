@@ -9,7 +9,7 @@ import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Settings from '../../lib/models/Settings';
 import { userMayAddUsersToHunt } from '../../lib/permission_stubs';
-import { HuntType } from '../../lib/schemas/Hunt';
+import type { HuntType } from '../../lib/schemas/Hunt';
 import addHuntUser from '../../methods/addHuntUser';
 import List from '../List';
 import addUsersToDiscordRole from '../addUsersToDiscordRole';

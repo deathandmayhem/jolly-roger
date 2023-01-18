@@ -1,13 +1,13 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Mongo } from 'meteor/mongo';
 import isAdmin from '../isAdmin';
-import SettingSchema, { SettingType } from '../schemas/Setting';
-import Base, { FindOptions } from './Base';
+import type { SettingType } from '../schemas/Setting';
+import type { FindOptions } from './Base';
+import Base from './Base';
 import MeteorUsers from './MeteorUsers';
 
 const Settings = new Base<SettingType>('settings');
-Settings.attachSchema(SettingSchema);
 
 // Publish manually instead of through Base.publish because we need to block the
 // query for non-admins, and Base.publish doesn't support permission checks.

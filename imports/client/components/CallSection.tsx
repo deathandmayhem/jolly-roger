@@ -5,8 +5,9 @@ import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
 import { faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons/faMicrophoneSlash';
 import { faVolumeMute } from '@fortawesome/free-solid-svg-icons/faVolumeMute';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { MouseEvent } from 'react';
 import React, {
-  MouseEvent, useCallback, useEffect, useImperativeHandle, useRef, useState,
+  useCallback, useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -17,9 +18,9 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import styled from 'styled-components';
 import Flags from '../../Flags';
 import MeteorUsers from '../../lib/models/MeteorUsers';
-import { PeerType } from '../../lib/schemas/mediasoup/Peer';
+import type { PeerType } from '../../lib/schemas/mediasoup/Peer';
 import mediasoupRemoteMutePeer from '../../methods/mediasoupRemoteMutePeer';
-import { Action, CallState } from '../hooks/useCallState';
+import type { Action, CallState } from '../hooks/useCallState';
 import Avatar from './Avatar';
 import Loading from './Loading';
 import Spectrum from './Spectrum';

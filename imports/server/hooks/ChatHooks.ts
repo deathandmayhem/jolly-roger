@@ -2,7 +2,7 @@ import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { contentFromMessage } from '../../lib/schemas/ChatMessage';
 import sendChatMessageInternalV2 from '../sendChatMessageInternalV2';
-import Hookset from './Hookset';
+import type Hookset from './Hookset';
 
 const ChatHooks: Hookset = {
   async onPuzzleSolved(puzzleId: string, answer: string) {

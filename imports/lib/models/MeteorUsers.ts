@@ -1,9 +1,7 @@
 import { Meteor } from 'meteor/meteor';
-import UserSchema from '../schemas/User';
 
 // Block the default rule allowing modification of the user's profile.
 Meteor.users.deny({ update: () => true });
-Meteor.users.attachSchema(UserSchema);
 
 export function indexedDisplayNames(): Map<string, string> {
   const res = new Map<string, string>();

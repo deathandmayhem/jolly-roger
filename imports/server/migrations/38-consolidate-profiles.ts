@@ -1,7 +1,7 @@
 import { Mongo } from 'meteor/mongo';
-import * as t from 'io-ts';
+import type * as t from 'io-ts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
-import { UserCodec } from '../../lib/schemas/User';
+import type { UserCodec } from '../../lib/schemas/User';
 import Migrations from './Migrations';
 
 // Since the profiles model has been removed, we need to make our own collection

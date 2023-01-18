@@ -1,6 +1,6 @@
 import React from 'react';
-import { PuzzleType } from '../../lib/schemas/Puzzle';
-import { TagType } from '../../lib/schemas/Tag';
+import type { PuzzleType } from '../../lib/schemas/Puzzle';
+import type { TagType } from '../../lib/schemas/Tag';
 import Puzzle from './Puzzle';
 
 const PuzzleList = React.memo(({
