@@ -481,40 +481,42 @@ const CallSection = ({
     setShowMutedBy('hidden');
   }, [callDispatch]);
 
+  let joiningCallAlert;
   if (!callState.device) {
-    return <JoiningCall details="Missing device" />;
-  }
-
-  if (!callState.selfPeer) {
-    return <JoiningCall details="Missing peer record for self" />;
-  }
-
-  if (!callState.router) {
-    return <JoiningCall details="Missing router" />;
+    joiningCallAlert = <JoiningCall details="Missing device" />;
+  } else if (!callState.selfPeer) {
+    joiningCallAlert = <JoiningCall details="Missing peer record for self" />;
+  } else if (!callState.router) {
+    joiningCallAlert = <JoiningCall details="Missing router" />;
   }
 
   return (
     <>
       <AVActions>
-        <AVButton
-          ref={muteRef}
-          variant={muted ? 'secondary' : 'light'}
-          size="sm"
-          onClick={onToggleMute}
-        >
-          {muted ? 'Un\u00ADmute' : 'Mute self'}
-        </AVButton>
-        {Meteor.isDevelopment && (
-          <AVButton
-            variant={deafened ? 'secondary' : 'light'}
-            size="sm"
-            onClick={onToggleDeafen}
-          >
-            {deafened ? 'Un\u00ADdeafen' : 'Deafen self'}
-          </AVButton>
+        {!joiningCallAlert && (
+          <>
+            <AVButton
+              ref={muteRef}
+              variant={muted ? 'secondary' : 'light'}
+              size="sm"
+              onClick={onToggleMute}
+            >
+              {muted ? 'Un\u00ADmute' : 'Mute self'}
+            </AVButton>
+            {Meteor.isDevelopment && (
+              <AVButton
+                variant={deafened ? 'secondary' : 'light'}
+                size="sm"
+                onClick={onToggleDeafen}
+              >
+                {deafened ? 'Un\u00ADdeafen' : 'Deafen self'}
+              </AVButton>
+            )}
+          </>
         )}
         <AVButton variant="danger" size="sm" onClick={onLeaveCall}>Leave call</AVButton>
       </AVActions>
+      {joiningCallAlert}
       <Overlay target={muteRef.current} show={callState.allowInitialPeerStateNotification && muted} placement="bottom">
         <Tooltip id="muted-on-join-notification">
           <div>
@@ -542,16 +544,18 @@ const CallSection = ({
           <Button onClick={onDismissRemoteMuted}>Got it</Button>
         </Tooltip>
       </Overlay>
-      <Callers
-        muted={muted}
-        deafened={deafened}
-        audioContext={audioContext}
-        localStream={localStream}
-        callersExpanded={callersExpanded}
-        onToggleCallersExpanded={onToggleCallersExpanded}
-        otherPeers={callState.otherPeers}
-        peerStreams={callState.peerStreams}
-      />
+      {!joiningCallAlert && (
+        <Callers
+          muted={muted}
+          deafened={deafened}
+          audioContext={audioContext}
+          localStream={localStream}
+          callersExpanded={callersExpanded}
+          onToggleCallersExpanded={onToggleCallersExpanded}
+          otherPeers={callState.otherPeers}
+          peerStreams={callState.peerStreams}
+        />
+      )}
     </>
   );
 };
