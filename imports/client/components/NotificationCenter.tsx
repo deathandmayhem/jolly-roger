@@ -643,25 +643,28 @@ const NotificationCenter = () => {
   const guesses = useTracker(() => (
     loading || !fetchPendingGuesses ?
       [] :
-      Guesses.find({
-        $and: [
-          {
-            // Only display pending guesses for hunts in which we are an operator.
-            // It's possible that e.g. on a puzzle page, we'll be subscribed to
-            // all guesses for that puzzle, so we should avoid showing guess
-            // queue UI if we're an operator for a different hunt but not the
-            // one the guess is for.
-            hunt: { $in: operatorHunts },
-          },
-          {
-            $or: [
-              { state: 'pending' },
-              { updatedAt: { $gt: new Date(recentGuessEpoch) } },
-            ],
-          },
-        ],
-      }, { sort: { createdAt: 1 } }).fetch()
-  ), [loading, fetchPendingGuesses, operatorHunts, recentGuessEpoch]);
+      Guesses
+        .find({
+          $and: [
+            {
+              // Only display pending guesses for hunts in which we are an operator.
+              // It's possible that e.g. on a puzzle page, we'll be subscribed to
+              // all guesses for that puzzle, so we should avoid showing guess
+              // queue UI if we're an operator for a different hunt but not the
+              // one the guess is for.
+              hunt: { $in: operatorHunts },
+            },
+            {
+              $or: [
+                { state: 'pending' },
+                { updatedAt: { $gt: new Date(recentGuessEpoch) } },
+              ],
+            },
+          ],
+        }, { sort: { createdAt: 1 } })
+        .fetch()
+        .filter((g) => puzzles.has(g.puzzle))
+  ), [loading, fetchPendingGuesses, operatorHunts, recentGuessEpoch, puzzles]);
   const pendingAnnouncements = useTracker(() => (
     loading ?
       [] :

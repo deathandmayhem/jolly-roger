@@ -369,16 +369,17 @@ const GuessQueuePage = () => {
     };
   }, [puzzles, displayNames]);
 
-  const filteredGuesses = useCallback((allGuesses: GuessType[]) => {
+  const filteredGuesses = useCallback((allGuesses: GuessType[], puzzleMap: Map<string, PuzzleType>) => {
     const searchKeys = searchString.split(' ');
+    const guessesForKnownPuzzles = allGuesses.filter((guess) => puzzleMap.has(guess.puzzle));
     let interestingGuesses;
 
     if (searchKeys.length === 1 && searchKeys[0] === '') {
-      interestingGuesses = allGuesses;
+      interestingGuesses = guessesForKnownPuzzles;
     } else {
       const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => { return key.length > 0; });
       const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
-      interestingGuesses = allGuesses.filter(isInteresting);
+      interestingGuesses = guessesForKnownPuzzles.filter(isInteresting);
     }
 
     return interestingGuesses;
@@ -441,7 +442,7 @@ const GuessQueuePage = () => {
           <StyledHeader>Status</StyledHeader>
           <StyledHeader>&nbsp;</StyledHeader>
         </StyledHeaderRow>
-        {filteredGuesses(guesses).map((guess) => {
+        {filteredGuesses(guesses, puzzles).map((guess) => {
           return (
             <GuessBlock
               key={guess._id}

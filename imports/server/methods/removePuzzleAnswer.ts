@@ -1,4 +1,5 @@
 import { check } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
 import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
@@ -25,10 +26,15 @@ defineMethod(removePuzzleAnswer, {
         hunt: 1,
       },
     });
-    const huntId = puzzle?.hunt;
+
+    if (!puzzle) {
+      throw new Meteor.Error(404, `Puzzle ${puzzleId} not found`);
+    }
+
+    const huntId = puzzle.hunt;
     const hunt = await Hunts.findOneAsync({ _id: huntId });
-    if (!huntId || !hunt || hunt.hasGuessQueue) {
-      throw new Error(`Hunt ${huntId} does not support self-service answers`);
+    if (!hunt || hunt.hasGuessQueue) {
+      throw new Meteor.Error(400, `Hunt ${huntId} does not support self-service answers`);
     }
 
     const guess = await Guesses.findOneAsync({ puzzle: puzzleId, _id: guessId });

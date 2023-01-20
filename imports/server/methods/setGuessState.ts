@@ -4,6 +4,7 @@ import Logger from '../../Logger';
 import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
+import Puzzles from '../../lib/models/Puzzles';
 import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
 import { GuessCodec } from '../../lib/schemas/Guess';
 import setGuessState from '../../methods/setGuessState';
@@ -26,6 +27,11 @@ defineMethod(setGuessState, {
     const guess = await Guesses.findOneAsync(guessId);
     if (!guess) {
       throw new Meteor.Error(404, 'No such guess');
+    }
+
+    const puzzle = await Puzzles.findOneAsync(guess.puzzle);
+    if (!puzzle) {
+      throw new Meteor.Error(404, 'Puzzle is deleted');
     }
 
     if (!userMayUpdateGuessesForHunt(
