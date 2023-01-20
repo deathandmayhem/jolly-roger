@@ -29,6 +29,7 @@ import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
+import puzzleActivityForHunt from '../../lib/publications/puzzleActivityForHunt';
 import { filteredPuzzleGroups, puzzleGroupsByRelevance } from '../../lib/puzzle-sort-and-group';
 import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import { computeSolvedness } from '../../lib/solvedness';
@@ -39,6 +40,7 @@ import {
   useHuntPuzzleListShowSolved,
   useOperatorActionsHiddenForHunt,
 } from '../hooks/persisted-state';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import PuzzleList from './PuzzleList';
 import type {
   PuzzleModalFormHandle, PuzzleModalFormSubmitPayload,
@@ -517,7 +519,7 @@ const PuzzleListPage = () => {
   const loading = puzzlesLoading() || tagsLoading();
 
   // Don't bother including this in loading - it's ok if they trickle in
-  useSubscribe('huntActivity', huntId);
+  useTypedSubscribe(puzzleActivityForHunt, { huntId });
 
   // Assertion is safe because hunt is already subscribed and checked by HuntApp
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);

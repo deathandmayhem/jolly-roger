@@ -1,13 +1,14 @@
-import type { Subscription } from 'meteor/meteor';
-import { Meteor } from 'meteor/meteor';
-import { GLOBAL_SCOPE } from '../lib/isAdmin';
-import Guesses from '../lib/models/Guesses';
-import Hunts from '../lib/models/Hunts';
-import MeteorUsers from '../lib/models/MeteorUsers';
-import Puzzles from '../lib/models/Puzzles';
-import type { GuessType } from '../lib/schemas/Guess';
-import type { PublishSpec } from './JoinPublisher';
-import JoinPublisher from './JoinPublisher';
+import type { Meteor, Subscription } from 'meteor/meteor';
+import { GLOBAL_SCOPE } from '../../lib/isAdmin';
+import Guesses from '../../lib/models/Guesses';
+import Hunts from '../../lib/models/Hunts';
+import MeteorUsers from '../../lib/models/MeteorUsers';
+import Puzzles from '../../lib/models/Puzzles';
+import pendingGuessesForSelf from '../../lib/publications/pendingGuessesForSelf';
+import type { GuessType } from '../../lib/schemas/Guess';
+import type { PublishSpec } from '../JoinPublisher';
+import JoinPublisher from '../JoinPublisher';
+import definePublication from './definePublication';
 
 const LINGER_TIME = 5000;
 
@@ -83,23 +84,14 @@ class PendingGuessWatcher {
   }
 }
 
-// Publish pending guesses enriched with puzzle and hunt. This is a dedicated
-// publish because every operator needs this information for the notification
-// center, and without assistance they need an overly broad subscription to the
-// related collections
-//
-// Note that there's no restriction on this sub, beyond being logged in. This is
-// safe because we won't publish guesses for hunts for which you're not an
-// operator. However, most clients aren't expected to subscribe to it, because
-// we check on the client if they're an operator for any hunt before making the
-// subscription. Doing this on the client means we can make it a reactive
-// computation, whereas if we used a permissions check on the server to
-// short-circuit the sub, we could not.
-Meteor.publish('pendingGuesses', function () {
-  if (!this.userId) {
-    throw new Meteor.Error(401, 'Not logged in');
-  }
+definePublication(pendingGuessesForSelf, {
+  run() {
+    if (!this.userId) {
+      return [];
+    }
 
-  const watcher = new PendingGuessWatcher(this);
-  this.onStop(() => watcher.shutdown());
+    const watcher = new PendingGuessWatcher(this);
+    this.onStop(() => watcher.shutdown());
+    return undefined;
+  },
 });

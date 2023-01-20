@@ -1,4 +1,4 @@
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { faInfo } from '@fortawesome/free-solid-svg-icons/faInfo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useRef, useState } from 'react';
@@ -19,11 +19,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import DiscordCache from '../../lib/models/DiscordCache';
 import Hunts from '../../lib/models/Hunts';
 import Settings from '../../lib/models/Settings';
+import discordChannelsForConfiguredGuild from '../../lib/publications/discordChannelsForConfiguredGuild';
+import discordRolesForConfiguredGuild from '../../lib/publications/discordRolesForConfiguredGuild';
+import settingsByName from '../../lib/publications/settingsByName';
 import type { BaseType } from '../../lib/schemas/Base';
 import type { HuntType, SavedDiscordObjectType } from '../../lib/schemas/Hunt';
 import createHunt from '../../methods/createHunt';
 import updateHunt from '../../methods/updateHunt';
 import { useBreadcrumb } from '../hooks/breadcrumb';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import ActionButtonRow from './ActionButtonRow';
 
 enum SubmitState {
@@ -114,7 +118,7 @@ const DiscordSelector = ({
 const DiscordChannelSelector = (
   { guildId, ...rest }: DiscordSelectorParams & { guildId: string }
 ) => {
-  const cacheLoading = useSubscribe('discord.cache', { type: 'channel' });
+  const cacheLoading = useTypedSubscribe(discordChannelsForConfiguredGuild);
   const loading = cacheLoading();
 
   const { options } = useTracker(() => {
@@ -144,7 +148,7 @@ const DiscordChannelSelector = (
 };
 
 const DiscordRoleSelector = ({ guildId, ...rest }: DiscordSelectorParams & { guildId: string }) => {
-  const cacheLoading = useSubscribe('discord.cache', { type: 'role' });
+  const cacheLoading = useTypedSubscribe(discordRolesForConfiguredGuild);
   const loading = cacheLoading();
   const { options } = useTracker(() => {
     const discordRoles: SavedDiscordObjectType[] = DiscordCache.find({
@@ -180,7 +184,7 @@ const HuntEditPage = () => {
 
   useBreadcrumb({ title: huntId ? 'Edit Hunt' : 'Create Hunt', path: `/hunts/${huntId ? `${huntId}/edit` : 'new'}` });
 
-  useSubscribe('mongo.settings', { name: 'discord.guild' });
+  useTypedSubscribe(settingsByName, { name: 'discord.guild' });
   const guildId = useTracker(() => {
     const setting = Settings.findOne({ name: 'discord.guild' });
     return setting?.value.guild.id;
