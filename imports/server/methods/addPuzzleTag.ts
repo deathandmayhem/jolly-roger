@@ -1,4 +1,5 @@
 import { check } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
 import Logger from '../../Logger';
 import Puzzles from '../../lib/models/Puzzles';
 import addPuzzleTag from '../../methods/addPuzzleTag';
@@ -19,15 +20,18 @@ defineMethod(addPuzzleTag, {
     check(this.userId, String);
 
     // Look up which hunt the specified puzzle is from.
-    const hunt = await Puzzles.findOneAsync({
+    const puzzle = await Puzzles.findOneAsync({
       _id: puzzleId,
     }, {
       fields: {
         hunt: 1,
       },
     });
-    const huntId = hunt?.hunt;
-    if (!huntId) throw new Error(`No puzzle known with id ${puzzleId}`);
+    if (!puzzle) {
+      throw new Meteor.Error(404, `No puzzle known with id ${puzzleId}`);
+    }
+
+    const huntId = puzzle.hunt;
     const tagId = (await getOrCreateTagByName(huntId, tagName))._id;
 
     Logger.info('Tagging puzzle', { puzzle: puzzleId, tag: tagName });
