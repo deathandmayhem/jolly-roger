@@ -13,7 +13,6 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Modal from 'react-bootstrap/Modal';
 import { LinkContainer } from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
-import Logger from '../../Logger';
 import Hunts from '../../lib/models/Hunts';
 import { userMayCreateHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import type { HuntType } from '../../lib/schemas/Hunt';
@@ -38,12 +37,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
   const deleteModalRef = useRef<ModalFormHandle>(null);
 
   const onDelete = useCallback((callback: () => void) => {
-    destroyHunt.call({ huntId }, (error) => {
-      if (error) {
-        Logger.error('Failed to destroy hunt', { error, hunt: huntId });
-      }
-      callback();
-    });
+    destroyHunt.call({ huntId }, callback);
   }, [huntId]);
 
   const showDeleteModal = useCallback(() => {
