@@ -18,7 +18,7 @@
     "postshrinkwrap": "lockfix"
   },
   "dependencies": {
-    "@babel/runtime": "^7.20.7",
+    "@babel/runtime": "^7.20.13",
     "@bugsnag/js": "^7.18.0",
     "@bugsnag/plugin-react": "^7.18.0",
     "@fortawesome/fontawesome-svg-core": "^6.2.1",
