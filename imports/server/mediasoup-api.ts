@@ -1,6 +1,5 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
-import { Promise as MeteorPromise } from 'meteor/promise';
 import Flags from '../Flags';
 import Logger from '../Logger';
 import Hunts from '../lib/models/Hunts';
@@ -123,7 +122,7 @@ Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
   }
 
   let peerId: string;
-  MeteorPromise.await(Locks.withLock(`mediasoup:room:${call}`, async () => {
+  await Locks.withLock(`mediasoup:room:${call}`, async () => {
     if (!await Rooms.findOneAsync({ call })) {
       await Rooms.insertAsync({
         hunt,
@@ -190,22 +189,22 @@ Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
       createdBy: this.userId,
       state: initialPeerState,
     });
-  }));
+  });
 
-  this.onStop(() => {
+  this.onStop(async () => {
     Logger.info('Peer left call', {
       peer: peerId,
       call,
     });
 
-    MeteorPromise.await(Locks.withLock(`mediasoup:room:${call}`, async () => {
+    await Locks.withLock(`mediasoup:room:${call}`, async () => {
       await Peers.removeAsync(peerId);
 
       // If the room is empty, remove it.
       if (!await Peers.findOneAsync({ call })) {
         await Rooms.removeAsync({ call });
       }
-    }));
+    });
   });
 
   return [

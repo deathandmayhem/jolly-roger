@@ -1,7 +1,6 @@
 import { fetch } from 'meteor/fetch';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
-import { Promise as MeteorPromise } from 'meteor/promise';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import { API_BASE, DiscordOAuthScopes } from '../lib/discord';
 
@@ -183,16 +182,15 @@ class DiscordBot {
   };
 }
 
-const handleOauthRequest = (query: any) => {
-  // eslint-disable-next-line jolly-roger/no-sync-mongo-methods
-  const config = ServiceConfiguration.configurations.findOne({ service: 'discord' });
+const handleOauthRequest = async (query: any) => {
+  const config = await ServiceConfiguration.configurations.findOneAsync({ service: 'discord' });
   if (!config) {
     throw new Meteor.Error('Missing service configuration for discord');
   }
 
   let response: Response;
   try {
-    response = MeteorPromise.await(fetch(`${API_BASE}/oauth2/token`, {
+    response = await fetch(`${API_BASE}/oauth2/token`, {
       method: 'POST',
       body: new URLSearchParams({
         client_id: config.appId,
@@ -202,20 +200,20 @@ const handleOauthRequest = (query: any) => {
         redirect_uri: OAuth._redirectUri('discord', config),
         scope: DiscordOAuthScopes.join(' '),
       }),
-    }));
+    });
   } catch (e) {
     throw new Meteor.Error(`Failed to complete OAuth handshake with Discord. ${e instanceof Error ? e.message : e}`);
   }
 
   if (!response.ok) {
-    const text = MeteorPromise.await(response.text());
+    const text = await response.text();
     throw Object.assign(
       new Meteor.Error(`Failed to complete OAuth handshake with Discord. ${response.statusText}`),
       { response: text }
     );
   }
 
-  const data = MeteorPromise.await(response.json());
+  const data = await response.json();
 
   return {
     serviceData: {
