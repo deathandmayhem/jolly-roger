@@ -3,6 +3,7 @@ import { isDeepStrictEqual } from 'util';
 import type { Subscription } from 'meteor/meteor';
 import { Meteor } from 'meteor/meteor';
 import type { Mongo } from 'meteor/mongo';
+import type { Document } from 'mongodb';
 
 declare module 'meteor/mongo' {
 
@@ -27,6 +28,7 @@ type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 // sure how to actually do that.
 export type PublishSpec<T extends { _id: string }> = {
   model: Mongo.Collection<T>,
+  allowDeleted?: boolean,
   projection?: Projection<T>,
   foreignKeys?: {
     field: keyof T & string;
@@ -83,6 +85,14 @@ class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
   }
 }
 
+const finder = <T extends Document>(
+  model: Mongo.Collection<T>, allowDeleted: boolean | undefined
+) => {
+  return allowDeleted && 'findAllowingDeleted' in model && typeof model.findAllowingDeleted === 'function' ?
+    model.findAllowingDeleted.bind(model) as typeof model.find :
+    model.find.bind(model);
+};
+
 class JoinedObjectObserver<T extends { _id: string }> {
   sub: Subscription;
 
@@ -107,7 +117,9 @@ class JoinedObjectObserver<T extends { _id: string }> {
     id: string,
     observers: Map<string, RefCountedJoinedObjectObserverMap<any>>
   ) {
-    const { model, projection, foreignKeys } = spec;
+    const {
+      model, allowDeleted, projection, foreignKeys,
+    } = spec;
 
     this.sub = sub;
     this.id = id;
@@ -115,7 +127,9 @@ class JoinedObjectObserver<T extends { _id: string }> {
     this.foreignKeys = foreignKeys;
     this.observers = observers;
 
-    this.watcher = model.find(id, { fields: projection as Mongo.FieldSpecifier }).observeChanges({
+    this.watcher = finder(model, allowDeleted)(id, {
+      fields: projection as Mongo.FieldSpecifier,
+    }).observeChanges({
       added: (_, fields) => {
         const fkValues = new Map<string, string[]>();
         foreignKeys?.forEach(({ field, join }) => {
@@ -228,9 +242,15 @@ class JoinedObjectObserver<T extends { _id: string }> {
 }
 
 const validateSpec = (spec: PublishSpec<any>) => {
-  const { model, projection, foreignKeys } = spec;
+  const {
+    model, allowDeleted, projection, foreignKeys,
+  } = spec;
   if (projection && foreignKeys?.some(({ field }) => !projection[field])) {
     throw new Error(`JoinPublisher: projection for model ${model._name} must include all foreign keys`);
+  }
+
+  if (allowDeleted && !('findAllowingDeleted' in model)) {
+    throw new Error(`JoinPublisher: model ${model._name} does not support soft deletion`);
   }
 
   foreignKeys?.forEach(({ join }) => {
@@ -271,12 +291,12 @@ export default function publishJoinedQuery<T extends { _id: string }>(
   addObservers(sub, spec, observers);
   sub.onStop(() => observers.forEach((v) => v.shutdown()));
 
-  const { model } = spec;
+  const { model, allowDeleted } = spec;
   const { _name: name } = model;
 
   const observer = observers.get(name)!;
 
-  const watcher = model.find(query, {
+  const watcher = finder(model, allowDeleted)(query, {
     fields: { _id: 1 },
   }).observeChanges({
     added: (id) => {
