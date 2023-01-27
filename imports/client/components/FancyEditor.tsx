@@ -457,7 +457,7 @@ export interface FancyEditorHandle {
 }
 
 const FancyEditor = React.forwardRef(({
-  className, initialContent, placeholder, users, onContentChange, onSubmit,
+  className, initialContent, placeholder, users, onContentChange, onSubmit, disabled,
 }: {
   className?: string,
   initialContent: Descendant[],
@@ -465,6 +465,7 @@ const FancyEditor = React.forwardRef(({
   users: Meteor.User[],
   onContentChange: (content: Descendant[]) => void,
   onSubmit: () => void,
+  disabled?: boolean,
 }, forwardedRef: React.Ref<FancyEditorHandle>) => {
   const [editor] = useState(() => {
     const upstreamEditor = withReact(withHistory(createEditor()));
@@ -718,6 +719,7 @@ const FancyEditor = React.forwardRef(({
         renderElement={renderElement}
         renderLeaf={renderLeaf}
         onKeyDown={onKeyDown}
+        readOnly={disabled}
       />
     </Slate>
   );

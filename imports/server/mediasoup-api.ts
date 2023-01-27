@@ -4,6 +4,7 @@ import Flags from '../Flags';
 import Logger from '../Logger';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
+import Puzzles from '../lib/models/Puzzles';
 import Servers from '../lib/models/Servers';
 import CallHistories from '../lib/models/mediasoup/CallHistories';
 import ConnectAcks from '../lib/models/mediasoup/ConnectAcks';
@@ -62,6 +63,7 @@ Meteor.publish('mediasoup:debug', async function () {
 
   return [
     MeteorUsers.find({}, { fields: { displayName: 1, discordAccount: 1 } }),
+    Puzzles.find(),
     Servers.find(),
     CallHistories.find(),
     Peers.find(),

@@ -64,6 +64,8 @@ import Tags from '../../lib/models/Tags';
 import nodeIsMention from '../../lib/nodeIsMention';
 import nodeIsText from '../../lib/nodeIsText';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
+import chatMessagesForPuzzle from '../../lib/publications/chatMessagesForPuzzle';
+import puzzleForPuzzlePage from '../../lib/publications/puzzleForPuzzlePage';
 import type { ChatMessageType } from '../../lib/schemas/ChatMessage';
 import type { DocumentType } from '../../lib/schemas/Document';
 import type { GuessType } from '../../lib/schemas/Guess';
@@ -91,6 +93,7 @@ import type { Action, CallState } from '../hooks/useCallState';
 import useCallState from '../hooks/useCallState';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import { trace } from '../tracing';
 import ChatMessageV2 from './ChatMessageV2';
 import ChatPeople from './ChatPeople';
@@ -550,13 +553,13 @@ const initialValue: Descendant[] = [
 ];
 
 const ChatInput = React.memo(({
-  onHeightChange, onMessageSent, huntId, puzzleId, puzzleDeleted,
+  onHeightChange, onMessageSent, huntId, puzzleId, disabled,
 }: {
   onHeightChange: () => void;
   onMessageSent: () => void;
   huntId: string;
   puzzleId: string;
-  puzzleDeleted: boolean;
+  disabled: boolean;
 }) => {
   // Drive this with a circuit breaker.
   const useNewInput = useTracker(() => !Flags.active('disable.chatv2'), []);
@@ -672,6 +675,7 @@ const ChatInput = React.memo(({
       users={users}
       onContentChange={onContentChange}
       onSubmit={sendContentMessage}
+      disabled={disabled}
     />
   ) : (
     <TextareaAutosize
@@ -682,7 +686,7 @@ const ChatInput = React.memo(({
       minRows={1}
       maxRows={12}
       value={text}
-      disabled={puzzleDeleted}
+      disabled={disabled}
       onChange={onInputChanged}
       onKeyDown={onKeyDown}
       onHeightChange={onHeightChangeCb}
@@ -702,7 +706,7 @@ const ChatInput = React.memo(({
           variant="secondary"
           onClick={sendMessageIfReady}
           onMouseDown={preventDefaultCallback}
-          disabled={puzzleDeleted || !hasNonTrivialContent}
+          disabled={disabled || !hasNonTrivialContent}
         >
           <FontAwesomeIcon icon={faPaperPlane} />
         </Button>
@@ -716,11 +720,11 @@ interface ChatSectionHandle {
 }
 
 const ChatSection = React.forwardRef(({
-  chatDataLoading, puzzleDeleted, displayNames, puzzleId, huntId,
+  chatDataLoading, disabled, displayNames, puzzleId, huntId,
   callState, callDispatch, selfUser,
 }: {
   chatDataLoading: boolean;
-  puzzleDeleted: boolean;
+  disabled: boolean;
   displayNames: Map<string, string>;
   puzzleId: string;
   huntId: string;
@@ -781,7 +785,7 @@ const ChatSection = React.forwardRef(({
       <ChatPeople
         huntId={huntId}
         puzzleId={puzzleId}
-        puzzleDeleted={puzzleDeleted}
+        disabled={disabled}
         onHeightChange={scrollHistoryToTarget}
         callState={callState}
         callDispatch={callDispatch}
@@ -790,7 +794,7 @@ const ChatSection = React.forwardRef(({
       <ChatInput
         huntId={huntId}
         puzzleId={puzzleId}
-        puzzleDeleted={puzzleDeleted}
+        disabled={disabled}
         onHeightChange={scrollHistoryToTarget}
         onMessageSent={onMessageSent}
       />
@@ -1787,9 +1791,6 @@ const PuzzleDeletedModal = ({
 }: { puzzleId: string, huntId: string, replacedBy?: string }) => {
   const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.user(), Hunts.findOne(huntId)), [huntId]);
 
-  const replacementLoading = useSubscribe('mongo.puzzles.allowingDeleted', { _id: replacedBy });
-  const loading = replacementLoading();
-
   const replacement = useTracker(() => Puzzles.findOneAllowingDeleted(replacedBy), [replacedBy]);
 
   const [show, setShow] = useState(true);
@@ -1799,10 +1800,6 @@ const PuzzleDeletedModal = ({
     undestroyPuzzle.call({ puzzleId });
     hide();
   }, [puzzleId, hide]);
-
-  if (loading) {
-    return null;
-  }
 
   return (
     <Modal show={show} onHide={hide} backdrop="static">
@@ -1874,17 +1871,9 @@ const PuzzlePage = React.memo(() => {
 
   const displayNamesLoading = useSubscribeDisplayNames(huntId);
 
-  const deletedPuzzleLoading = useSubscribe('mongo.puzzles.deleted', { _id: puzzleId });
-  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
-  const tagsLoading = useSubscribe('mongo.tags', { hunt: huntId });
-  const guessesLoading = useSubscribe('mongo.guesses', { puzzle: puzzleId });
-  const documentsLoading = useSubscribe('mongo.documents', { puzzle: puzzleId });
+  const puzzleLoading = useTypedSubscribe(puzzleForPuzzlePage, { puzzleId, huntId });
 
-  const chatMessagesLoading = useSubscribe('mongo.chatmessages', {
-    puzzle: puzzleId,
-  }, {
-    fields: Object.fromEntries(FilteredChatFields.map((f) => [f, 1])),
-  });
+  const chatMessagesLoading = useTypedSubscribe(chatMessagesForPuzzle, { puzzleId, huntId });
 
   // There are some model dependencies that we have to be careful about:
   //
@@ -1898,20 +1887,16 @@ const PuzzlePage = React.memo(() => {
   //
   // We can render some things on incomplete data, but most of them really need
   // full data:
-  // * Chat can be rendered with chat messages, display names, and the deleted
-  //   puzzle
+  // * Chat can be rendered with chat messages and display names and whether we
+  //   should disable chat/voice because the puzzle is deleted (but we can
+  //   assume it's deleted until the puzzle loads)
   // * Puzzle metadata needs puzzles, tags, documents, guesses, and display
   //   names
   const puzzleDataLoading =
-    deletedPuzzleLoading() ||
-    puzzlesLoading() ||
-    tagsLoading() ||
-    guessesLoading() ||
-    documentsLoading() ||
+    puzzleLoading() ||
     subscribersLoading() ||
     displayNamesLoading();
   const chatDataLoading =
-    deletedPuzzleLoading() ||
     chatMessagesLoading() ||
     displayNamesLoading();
 
@@ -1927,11 +1912,7 @@ const PuzzlePage = React.memo(() => {
       Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } })
   ), [puzzleDataLoading, puzzleId]);
 
-  const activePuzzle = useTracker(() => (
-    puzzleDataLoading ?
-      undefined :
-      Puzzles.findOneAllowingDeleted(puzzleId)
-  ), [puzzleDataLoading, puzzleId]);
+  const activePuzzle = useTracker(() => Puzzles.findOneAllowingDeleted(puzzleId), [puzzleId]);
 
   const selfUser = useTracker(() => Meteor.user()!, []);
 
@@ -2013,7 +1994,7 @@ const PuzzlePage = React.memo(() => {
     <ChatSectionMemo
       ref={chatSectionRef}
       chatDataLoading={chatDataLoading}
-      puzzleDeleted={activePuzzle.deleted ?? false}
+      disabled={activePuzzle.deleted ?? true /* disable while still loading */}
       displayNames={displayNames}
       huntId={huntId}
       puzzleId={puzzleId}

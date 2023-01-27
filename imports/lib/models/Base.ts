@@ -1,6 +1,3 @@
-import { check, Match } from 'meteor/check';
-import type { Subscription } from 'meteor/meteor';
-import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import type ValidateShape from '../ValidateShape';
 import isAdmin from '../isAdmin';
@@ -210,49 +207,6 @@ class Base<T extends BaseType> extends Mongo.Collection<T> {
   ) {
     return Promise.resolve(this.findOneAllowingDeleted(selector, options)) as
       Promise<SelectorToResultType<T, Selector> | undefined>;
-  }
-
-  publish(makeConstraint?: (userId: string) =>
-    Mongo.Query<T> | undefined | Promise<Mongo.Query<T> | undefined>) {
-    if (!Meteor.isServer) {
-      return;
-    }
-
-    const publishFunc = function publishFunc(
-      findFunc: (query: Mongo.Query<T>, opts: FindOptions) => Mongo.Cursor<T>
-    ) {
-      return async function (this: Subscription, q: unknown = {}, opts: unknown = {}) {
-        check(q, Object);
-        check(opts, {
-          fields: Match.Maybe(Object),
-          sort: Match.Maybe(Object),
-          skip: Match.Maybe(Number),
-          limit: Match.Maybe(Number),
-        });
-
-        if (!this.userId) {
-          return [];
-        }
-
-        let query: Mongo.Query<T> | undefined = q;
-        const constraint = await makeConstraint?.(this.userId);
-        if (constraint) {
-          // Typescript seems unable to tell that "$and" can not be a key in T,
-          // so it tries to interpret it as a field expression, rather than an
-          // $and literal. I couldn't figure out how to avoid needing a cast
-          // here
-          query = { $and: [query, constraint] } as Mongo.Query<T>;
-        }
-
-        return findFunc(query, opts as FindOptions);
-      };
-    };
-    Meteor.publish(`mongo.${this.name}`, publishFunc(this.find.bind(this)));
-    Meteor.publish(`mongo.${this.name}.deleted`, publishFunc(this.findDeleted.bind(this)));
-    Meteor.publish(
-      `mongo.${this.name}.allowingDeleted`,
-      publishFunc(this.findAllowingDeleted.bind(this))
-    );
   }
 }
 

@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons/faBullhorn';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
@@ -30,6 +30,7 @@ import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import puzzleActivityForHunt from '../../lib/publications/puzzleActivityForHunt';
+import puzzlesForPuzzleList from '../../lib/publications/puzzlesForPuzzleList';
 import { filteredPuzzleGroups, puzzleGroupsByRelevance } from '../../lib/puzzle-sort-and-group';
 import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import { computeSolvedness } from '../../lib/solvedness';
@@ -121,25 +122,21 @@ const PuzzleListToolbar = styled.div`
 `;
 
 const PuzzleListView = ({
-  huntId, canAdd, canUpdate,
+  huntId, canAdd, canUpdate, loading,
 }: {
   huntId: string
   canAdd: boolean;
   canUpdate: boolean;
+  loading: boolean;
 }) => {
   const allPuzzles = useTracker(() => Puzzles.find({ hunt: huntId }).fetch(), [huntId]);
   const allTags = useTracker(() => Tags.find({ hunt: huntId }).fetch(), [huntId]);
 
-  const deletedPuzzlesLoading = useSubscribe(
-    canUpdate ? 'mongo.puzzles.deleted' : undefined,
-    { hunt: huntId }
-  );
-  const deletedLoading = deletedPuzzlesLoading();
   const deletedPuzzles = useTracker(() => (
-    !canUpdate || deletedLoading ?
+    !canUpdate || loading ?
       undefined :
       Puzzles.findDeleted({ hunt: huntId }).fetch()
-  ), [canUpdate, huntId, deletedLoading]);
+  ), [canUpdate, huntId, loading]);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchString = searchParams.get('q') ?? '';
@@ -514,13 +511,6 @@ const StyledPuzzleListLinkLabel = styled.span`
 const PuzzleListPage = () => {
   const huntId = useParams<'huntId'>().huntId!;
 
-  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
-  const tagsLoading = useSubscribe('mongo.tags', { hunt: huntId });
-  const loading = puzzlesLoading() || tagsLoading();
-
-  // Don't bother including this in loading - it's ok if they trickle in
-  useTypedSubscribe(puzzleActivityForHunt, { huntId });
-
   // Assertion is safe because hunt is already subscribed and checked by HuntApp
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
   const { canAdd, canUpdate } = useTracker(() => {
@@ -529,6 +519,15 @@ const PuzzleListPage = () => {
       canUpdate: userMayWritePuzzlesForHunt(Meteor.user(), hunt),
     };
   }, [hunt]);
+
+  const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
+    huntId,
+    includeDeleted: canUpdate,
+  });
+  const loading = puzzlesLoading();
+
+  // Don't bother including this in loading - it's ok if they trickle in
+  useTypedSubscribe(puzzleActivityForHunt, { huntId });
 
   const huntLink = hunt.homepageUrl && (
     <StyledPuzzleListExternalLink>
@@ -544,6 +543,7 @@ const PuzzleListPage = () => {
       huntId={huntId}
       canAdd={canAdd}
       canUpdate={canUpdate}
+      loading={loading}
     />
   );
   return (

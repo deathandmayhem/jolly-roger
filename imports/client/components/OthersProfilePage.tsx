@@ -1,12 +1,14 @@
 import type { Meteor } from 'meteor/meteor';
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/esm/Tooltip';
 import styled from 'styled-components';
 import { indexedById } from '../../lib/listUtils';
 import Hunts from '../../lib/models/Hunts';
+import huntsAll from '../../lib/publications/huntsAll';
 import type { HuntType } from '../../lib/schemas/Hunt';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import Avatar from './Avatar';
 
 const AvatarTooltip = styled(Tooltip)`
@@ -31,7 +33,11 @@ const OthersProfilePage = ({
 }) => {
   const showHuntList = (user.hunts?.length ?? 0) > 0;
 
-  const huntsLoading = useSubscribe(showHuntList ? 'mongo.hunts' : undefined, {});
+  // TODO: The current implementation of the "profile" publication that fetches
+  // the user will always include the list of hunts, so we don't need to
+  // conditionalize this. And we could maybe roll it all into a
+  // publishJoinedQuery.
+  const huntsLoading = useTypedSubscribe(showHuntList ? huntsAll : undefined);
   const loading = huntsLoading();
   const hunts = useTracker(() => (loading ?
     new Map<string, HuntType>() :

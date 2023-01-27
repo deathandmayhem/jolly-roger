@@ -92,11 +92,11 @@ const ChatterSection = styled.section`
 // ChatPeople is the component that deals with all user presence and
 // WebRTC call subscriptions, state, and visualization.
 const ChatPeople = ({
-  huntId, puzzleId, puzzleDeleted, onHeightChange, callState, callDispatch,
+  huntId, puzzleId, disabled, onHeightChange, callState, callDispatch,
 }: {
   huntId: string;
   puzzleId: string;
-  puzzleDeleted: boolean;
+  disabled: boolean;
   onHeightChange: () => void;
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
@@ -299,7 +299,7 @@ const ChatPeople = ({
     viewersExpanded,
     callState,
     voiceActivityRelative,
-    puzzleDeleted,
+    disabled,
   ]);
 
   trace('ChatPeople render', { loading });
@@ -368,7 +368,7 @@ const ChatPeople = ({
   const viewersHeaderIcon = viewersExpanded ? faCaretDown : faCaretRight;
   return (
     <ChatterSection>
-      {!rtcDisabled && !puzzleDeleted && callersSubsection}
+      {!rtcDisabled && !disabled && callersSubsection}
       <ChatterSubsection ref={chatterRef}>
         <PeopleListHeader onClick={toggleViewersExpanded}>
           <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />

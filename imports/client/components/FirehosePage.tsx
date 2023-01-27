@@ -1,4 +1,4 @@
-import { useFind, useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useFind, useTracker } from 'meteor/react-meteor-data';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
@@ -17,10 +17,12 @@ import ChatMessages from '../../lib/models/ChatMessages';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import nodeIsMention from '../../lib/nodeIsMention';
+import chatMessagesForFirehose from '../../lib/publications/chatMessagesForFirehose';
 import type { ChatMessageType } from '../../lib/schemas/ChatMessage';
 import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import FixedLayout from './styling/FixedLayout';
 
 const FirehosePageLayout = styled.div`
@@ -120,12 +122,8 @@ const FirehosePage = () => {
   useBreadcrumb({ title: 'Firehose', path: `/hunts/${huntId}/firehose` });
 
   const profilesLoading = useSubscribeDisplayNames(huntId);
-  // We have some hunts where we've soft-deleted puzzles for various reasons
-  // after chat messages were sent.  To handle these situations more gracefully,
-  // we subscribe and fetch puzzles including those soft-deleted.
-  const puzzlesLoading = useSubscribe('mongo.puzzles.allowingDeleted', { hunt: huntId });
-  const chatMessagesLoading = useSubscribe('mongo.chatmessages', { hunt: huntId });
-  const loading = profilesLoading() || puzzlesLoading() || chatMessagesLoading();
+  const chatMessagesLoading = useTypedSubscribe(chatMessagesForFirehose, { huntId });
+  const loading = profilesLoading() || chatMessagesLoading();
 
   const displayNames = useTracker(() => {
     return loading ? new Map<string, string>() : indexedDisplayNames();
