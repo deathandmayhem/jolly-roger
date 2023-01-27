@@ -98,8 +98,8 @@ class JoinedObjectObserver<T extends { _id: string }> {
 
   observers: Map<string, RefCountedJoinedObjectObserverMap<any>>;
 
-  // key: document ID.  value: map of foreign key field name to value
-  values: Map<string, Map<string, string>> = new Map();
+  // key: document ID.  value: map of foreign key field name to list of values
+  values: Map<string, Map<string, string[]>> = new Map();
 
   constructor(
     sub: Subscription,
@@ -117,14 +117,19 @@ class JoinedObjectObserver<T extends { _id: string }> {
 
     this.watcher = model.find(id, { fields: projection as Mongo.FieldSpecifier }).observeChanges({
       added: (_, fields) => {
-        const fkValues = new Map<string, string>();
+        const fkValues = new Map<string, string[]>();
         foreignKeys?.forEach(({ field, join }) => {
-          const val = fields[field] as unknown as string;
+          let val = fields[field] as unknown as undefined | string | string[];
           if (!val) {
             return;
           }
 
-          this.observers.get(join.model._name)!.incref(val);
+          if (!Array.isArray(val)) {
+            val = [val];
+          }
+
+          const observer = this.observers.get(join.model._name)!;
+          val.forEach((v) => observer.incref(v));
           fkValues.set(field, val);
         });
 
@@ -135,13 +140,18 @@ class JoinedObjectObserver<T extends { _id: string }> {
       changed: (_, fields) => {
         // add new foreign keys first
         foreignKeys?.forEach(({ field, join }) => {
-          const val = fields[field] as unknown as string;
+          let val = fields[field] as unknown as undefined | string | string[];
           if (!val) {
             // no change to foreign key for `field`
             return;
           }
 
-          this.observers.get(join.model._name)!.incref(val);
+          if (!Array.isArray(val)) {
+            val = [val];
+          }
+
+          const observer = this.observers.get(join.model._name)!;
+          val.forEach((v) => observer.incref(v));
         });
         this.sub.changed(this.modelName, id, fields);
 
@@ -156,12 +166,13 @@ class JoinedObjectObserver<T extends { _id: string }> {
               return;
             }
 
+            const observer = this.observers.get(join.model._name)!;
             if (join.lingerTime !== undefined) {
               Meteor.setTimeout(() => {
-                this.observers.get(join.model._name)!.decref(val);
+                val.forEach((v) => observer.decref(v));
               }, join.lingerTime);
             } else {
-              this.observers.get(join.model._name)!.decref(val);
+              val.forEach((v) => observer.decref(v));
             }
           }
         });
@@ -169,11 +180,11 @@ class JoinedObjectObserver<T extends { _id: string }> {
         // finally update this.values (through inner object fkValues)
         foreignKeys?.forEach(({ field }) => {
           if (Object.prototype.hasOwnProperty.call(fields, field)) {
-            const val = fields[field] as unknown as string;
+            const val = fields[field] as unknown as undefined | string | string[];
             if (!val) {
               fkValues.delete(field);
             } else {
-              fkValues.set(field, val);
+              fkValues.set(field, Array.isArray(val) ? val : [val]);
             }
           }
         });
@@ -190,7 +201,8 @@ class JoinedObjectObserver<T extends { _id: string }> {
             return;
           }
 
-          this.observers.get(join.model._name)!.decref(val);
+          const observer = this.observers.get(join.model._name)!;
+          val.forEach((v) => observer.decref(v));
         });
         this.values.delete(id);
       },
@@ -208,7 +220,8 @@ class JoinedObjectObserver<T extends { _id: string }> {
           return;
         }
 
-        this.observers.get(join.model._name)!.decref(val);
+        const observer = this.observers.get(join.model._name)!;
+        val.forEach((v) => observer.decref(v));
       });
     }
   }
