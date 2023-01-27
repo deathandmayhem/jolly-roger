@@ -247,46 +247,35 @@ const addObservers = (
   });
 };
 
-export default class JoinPublisher<T extends { _id: string }> {
-  watcher: Meteor.LiveQueryHandle;
+export default function publishJoinedQuery<T extends { _id: string }>(
+  sub: Subscription,
+  spec: PublishSpec<T>,
+  query: Mongo.Selector<T>,
+): void {
+  validateSpec(spec);
 
-  observers: Map<string, RefCountedJoinedObjectObserverMap<any>>;
+  const observers = new Map<string, RefCountedJoinedObjectObserverMap<any>>();
+  addObservers(sub, spec, observers);
+  sub.onStop(() => observers.forEach((v) => v.shutdown()));
 
-  constructor(
-    sub: Subscription,
-    spec: PublishSpec<T>,
-    query: Mongo.Selector<T>,
-  ) {
-    validateSpec(spec);
+  const { model } = spec;
+  const { _name: name } = model;
 
-    this.observers = new Map<string, RefCountedJoinedObjectObserverMap<any>>();
-    addObservers(sub, spec, this.observers);
+  const observer = observers.get(name)!;
 
-    const { model } = spec;
-    const { _name: name } = model;
-
-    const observer = this.observers.get(name)!;
-
-    this.watcher = model.find(query, {
-      fields: { _id: 1 },
-    }).observeChanges({
-      added: (id) => {
-        observer.incref(id);
-      },
-      removed: (id) => {
-        if (spec.lingerTime !== undefined) {
-          Meteor.setTimeout(() => { observer.decref(id); }, spec.lingerTime);
-        } else {
-          observer.decref(id);
-        }
-      },
-    });
-
-    sub.ready();
-  }
-
-  shutdown() {
-    this.watcher.stop();
-    this.observers.forEach((v) => v.shutdown());
-  }
+  const watcher = model.find(query, {
+    fields: { _id: 1 },
+  }).observeChanges({
+    added: (id) => {
+      observer.incref(id);
+    },
+    removed: (id) => {
+      if (spec.lingerTime !== undefined) {
+        Meteor.setTimeout(() => { observer.decref(id); }, spec.lingerTime);
+      } else {
+        observer.decref(id);
+      }
+    },
+  });
+  sub.onStop(() => watcher.stop());
 }

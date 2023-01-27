@@ -2,7 +2,7 @@ import Announcements from '../../lib/models/Announcements';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import PendingAnnouncements from '../../lib/models/PendingAnnouncements';
 import pendingAnnouncementsForSelf from '../../lib/publications/pendingAnnouncementsForSelf';
-import JoinPublisher from '../JoinPublisher';
+import publishJoinedQuery from '../publishJoinedQuery';
 import definePublication from './definePublication';
 
 definePublication(pendingAnnouncementsForSelf, {
@@ -11,7 +11,7 @@ definePublication(pendingAnnouncementsForSelf, {
       return [];
     }
 
-    const watcher = new JoinPublisher(this, {
+    publishJoinedQuery(this, {
       model: PendingAnnouncements,
       foreignKeys: [{
         field: 'announcement',
@@ -27,7 +27,7 @@ definePublication(pendingAnnouncementsForSelf, {
         },
       }],
     }, { user: this.userId });
-    this.onStop(() => watcher.shutdown());
+    this.ready();
 
     return undefined;
   },

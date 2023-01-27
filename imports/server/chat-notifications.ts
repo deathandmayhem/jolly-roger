@@ -4,7 +4,7 @@ import ChatNotifications from '../lib/models/ChatNotifications';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import Puzzles from '../lib/models/Puzzles';
-import JoinPublisher from './JoinPublisher';
+import publishJoinedQuery from './publishJoinedQuery';
 
 Meteor.publish('chatNotifications', function () {
   if (!this.userId) {
@@ -15,7 +15,7 @@ Meteor.publish('chatNotifications', function () {
     return;
   }
 
-  const watcher = new JoinPublisher(this, {
+  publishJoinedQuery(this, {
     model: ChatNotifications,
     foreignKeys: [{
       field: 'hunt',
@@ -31,5 +31,5 @@ Meteor.publish('chatNotifications', function () {
       },
     }],
   }, { user: this.userId });
-  this.onStop(() => watcher.shutdown());
+  this.ready();
 });

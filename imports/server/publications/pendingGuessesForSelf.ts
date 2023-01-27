@@ -1,4 +1,3 @@
-import type { Meteor, Subscription } from 'meteor/meteor';
 import { GLOBAL_SCOPE } from '../../lib/isAdmin';
 import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
@@ -6,22 +5,23 @@ import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import pendingGuessesForSelf from '../../lib/publications/pendingGuessesForSelf';
 import type { GuessType } from '../../lib/schemas/Guess';
-import type { PublishSpec } from '../JoinPublisher';
-import JoinPublisher from '../JoinPublisher';
+import type { SubSubscription } from '../PublicationMerger';
+import PublicationMerger from '../PublicationMerger';
+import type { PublishSpec } from '../publishJoinedQuery';
+import publishJoinedQuery from '../publishJoinedQuery';
 import definePublication from './definePublication';
 
 const LINGER_TIME = 5000;
 
-class PendingGuessWatcher {
-  sub: Subscription;
+definePublication(pendingGuessesForSelf, {
+  run() {
+    if (!this.userId) {
+      return [];
+    }
 
-  userWatch: Meteor.LiveQueryHandle;
+    const huntGuessWatchers: Record<string, SubSubscription> = {};
 
-  huntGuessWatchers: Record<string, JoinPublisher<GuessType>>;
-
-  constructor(sub: Subscription) {
-    this.sub = sub;
-    this.huntGuessWatchers = {};
+    const merger = new PublicationMerger(this);
 
     const huntGuessSpec: PublishSpec<GuessType> = {
       model: Guesses,
@@ -43,13 +43,17 @@ class PendingGuessWatcher {
       lingerTime: LINGER_TIME,
     };
 
-    this.userWatch = MeteorUsers.find(sub.userId!, { fields: { roles: 1 } }).observeChanges({
+    const userWatch = MeteorUsers.find(this.userId, { fields: { roles: 1 } }).observeChanges({
       added: (_id, fields) => {
         const { roles = {} } = fields;
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId });
+          if (!(huntId in huntGuessWatchers)) {
+            const subSubscription = merger.newSub();
+            publishJoinedQuery(subSubscription, huntGuessSpec, { state: 'pending', hunt: huntId });
+            huntGuessWatchers[huntId] = subSubscription;
+          }
         });
       },
       changed: (_id, fields) => {
@@ -62,36 +66,28 @@ class PendingGuessWatcher {
 
         Object.entries(roles).forEach(([huntId, huntRoles]) => {
           if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          this.huntGuessWatchers[huntId] ||= new JoinPublisher(this.sub, huntGuessSpec, { state: 'pending', hunt: huntId });
+          if (!(huntId in huntGuessWatchers)) {
+            const subSubscription = merger.newSub();
+            publishJoinedQuery(subSubscription, huntGuessSpec, { state: 'pending', hunt: huntId });
+            huntGuessWatchers[huntId] = subSubscription;
+          }
         });
 
-        Object.keys(this.huntGuessWatchers).forEach((huntId) => {
+        Object.keys(huntGuessWatchers).forEach((huntId) => {
           if (!roles[huntId] || !roles[huntId]!.includes('operator')) {
-            this.huntGuessWatchers[huntId]?.shutdown();
-            delete this.huntGuessWatchers[huntId];
+            const subSubscription = huntGuessWatchers[huntId];
+            if (subSubscription) {
+              merger.removeSub(subSubscription);
+            }
+            delete huntGuessWatchers[huntId];
           }
         });
       },
       // assume the user won't be removed
     });
+    this.onStop(() => userWatch.stop());
+    this.ready();
 
-    this.sub.ready();
-  }
-
-  shutdown() {
-    this.userWatch.stop();
-    Object.values(this.huntGuessWatchers).forEach((watcher) => watcher.shutdown());
-  }
-}
-
-definePublication(pendingGuessesForSelf, {
-  run() {
-    if (!this.userId) {
-      return [];
-    }
-
-    const watcher = new PendingGuessWatcher(this);
-    this.onStop(() => watcher.shutdown());
     return undefined;
   },
 });
