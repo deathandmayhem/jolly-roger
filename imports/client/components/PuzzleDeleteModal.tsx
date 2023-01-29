@@ -7,9 +7,11 @@ import Modal from 'react-bootstrap/esm/Modal';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Peers from '../../lib/models/mediasoup/Peers';
+import puzzlesForHunt from '../../lib/publications/puzzlesForHunt';
 import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import destroyPuzzle from '../../methods/destroyPuzzle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import { Subscribers } from '../subscribers';
 import Loading from './Loading';
 
@@ -36,7 +38,7 @@ const PuzzleDeleteModal = React.forwardRef((
   useImperativeHandle(forwardedRef, () => ({ show }), [show]);
 
   const subscriberTopic = `puzzle:${puzzle._id}`;
-  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: puzzle.hunt });
+  const puzzlesLoading = useTypedSubscribe(puzzlesForHunt, { huntId: puzzle.hunt });
   const viewersLoading = useSubscribe('subscribers.fetch', subscriberTopic);
   const callersLoading = useSubscribe('mediasoup:metadata', puzzle.hunt, puzzle._id);
   const displayNamesLoading = useSubscribeDisplayNames(puzzle.hunt);

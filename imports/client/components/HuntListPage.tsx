@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,9 +15,11 @@ import { LinkContainer } from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
 import Hunts from '../../lib/models/Hunts';
 import { userMayCreateHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
+import huntsAll from '../../lib/publications/huntsAll';
 import type { HuntType } from '../../lib/schemas/Hunt';
 import createFixtureHunt from '../../methods/createFixtureHunt';
 import destroyHunt from '../../methods/destroyHunt';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import type { ModalFormHandle } from './ModalForm';
 import ModalForm from './ModalForm';
 
@@ -145,7 +147,7 @@ const CreateFixtureModal = React.forwardRef((
 });
 
 const HuntListPage = () => {
-  const huntsLoading = useSubscribe('mongo.hunts');
+  const huntsLoading = useTypedSubscribe(huntsAll);
   const loading = huntsLoading();
 
   const hunts = useTracker(() => Hunts.find({}, { sort: { createdAt: -1 } }).fetch());

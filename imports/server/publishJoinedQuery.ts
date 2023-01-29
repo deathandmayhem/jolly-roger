@@ -3,6 +3,7 @@ import { isDeepStrictEqual } from 'util';
 import type { Subscription } from 'meteor/meteor';
 import { Meteor } from 'meteor/meteor';
 import type { Mongo } from 'meteor/mongo';
+import type { Document } from 'mongodb';
 
 declare module 'meteor/mongo' {
 
@@ -27,6 +28,7 @@ type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 // sure how to actually do that.
 export type PublishSpec<T extends { _id: string }> = {
   model: Mongo.Collection<T>,
+  allowDeleted?: boolean,
   projection?: Projection<T>,
   foreignKeys?: {
     field: keyof T & string;
@@ -83,6 +85,14 @@ class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
   }
 }
 
+const finder = <T extends Document>(
+  model: Mongo.Collection<T>, allowDeleted: boolean | undefined
+) => {
+  return allowDeleted && 'findAllowingDeleted' in model && typeof model.findAllowingDeleted === 'function' ?
+    model.findAllowingDeleted.bind(model) as typeof model.find :
+    model.find.bind(model);
+};
+
 class JoinedObjectObserver<T extends { _id: string }> {
   sub: Subscription;
 
@@ -98,8 +108,8 @@ class JoinedObjectObserver<T extends { _id: string }> {
 
   observers: Map<string, RefCountedJoinedObjectObserverMap<any>>;
 
-  // key: document ID.  value: map of foreign key field name to value
-  values: Map<string, Map<string, string>> = new Map();
+  // key: document ID.  value: map of foreign key field name to list of values
+  values: Map<string, Map<string, string[]>> = new Map();
 
   constructor(
     sub: Subscription,
@@ -107,7 +117,9 @@ class JoinedObjectObserver<T extends { _id: string }> {
     id: string,
     observers: Map<string, RefCountedJoinedObjectObserverMap<any>>
   ) {
-    const { model, projection, foreignKeys } = spec;
+    const {
+      model, allowDeleted, projection, foreignKeys,
+    } = spec;
 
     this.sub = sub;
     this.id = id;
@@ -115,16 +127,23 @@ class JoinedObjectObserver<T extends { _id: string }> {
     this.foreignKeys = foreignKeys;
     this.observers = observers;
 
-    this.watcher = model.find(id, { fields: projection as Mongo.FieldSpecifier }).observeChanges({
+    this.watcher = finder(model, allowDeleted)(id, {
+      fields: projection as Mongo.FieldSpecifier,
+    }).observeChanges({
       added: (_, fields) => {
-        const fkValues = new Map<string, string>();
+        const fkValues = new Map<string, string[]>();
         foreignKeys?.forEach(({ field, join }) => {
-          const val = fields[field] as unknown as string;
+          let val = fields[field] as unknown as undefined | string | string[];
           if (!val) {
             return;
           }
 
-          this.observers.get(join.model._name)!.incref(val);
+          if (!Array.isArray(val)) {
+            val = [val];
+          }
+
+          const observer = this.observers.get(join.model._name)!;
+          val.forEach((v) => observer.incref(v));
           fkValues.set(field, val);
         });
 
@@ -135,13 +154,18 @@ class JoinedObjectObserver<T extends { _id: string }> {
       changed: (_, fields) => {
         // add new foreign keys first
         foreignKeys?.forEach(({ field, join }) => {
-          const val = fields[field] as unknown as string;
+          let val = fields[field] as unknown as undefined | string | string[];
           if (!val) {
             // no change to foreign key for `field`
             return;
           }
 
-          this.observers.get(join.model._name)!.incref(val);
+          if (!Array.isArray(val)) {
+            val = [val];
+          }
+
+          const observer = this.observers.get(join.model._name)!;
+          val.forEach((v) => observer.incref(v));
         });
         this.sub.changed(this.modelName, id, fields);
 
@@ -156,12 +180,13 @@ class JoinedObjectObserver<T extends { _id: string }> {
               return;
             }
 
+            const observer = this.observers.get(join.model._name)!;
             if (join.lingerTime !== undefined) {
               Meteor.setTimeout(() => {
-                this.observers.get(join.model._name)!.decref(val);
+                val.forEach((v) => observer.decref(v));
               }, join.lingerTime);
             } else {
-              this.observers.get(join.model._name)!.decref(val);
+              val.forEach((v) => observer.decref(v));
             }
           }
         });
@@ -169,11 +194,11 @@ class JoinedObjectObserver<T extends { _id: string }> {
         // finally update this.values (through inner object fkValues)
         foreignKeys?.forEach(({ field }) => {
           if (Object.prototype.hasOwnProperty.call(fields, field)) {
-            const val = fields[field] as unknown as string;
+            const val = fields[field] as unknown as undefined | string | string[];
             if (!val) {
               fkValues.delete(field);
             } else {
-              fkValues.set(field, val);
+              fkValues.set(field, Array.isArray(val) ? val : [val]);
             }
           }
         });
@@ -190,7 +215,8 @@ class JoinedObjectObserver<T extends { _id: string }> {
             return;
           }
 
-          this.observers.get(join.model._name)!.decref(val);
+          const observer = this.observers.get(join.model._name)!;
+          val.forEach((v) => observer.decref(v));
         });
         this.values.delete(id);
       },
@@ -208,16 +234,23 @@ class JoinedObjectObserver<T extends { _id: string }> {
           return;
         }
 
-        this.observers.get(join.model._name)!.decref(val);
+        const observer = this.observers.get(join.model._name)!;
+        val.forEach((v) => observer.decref(v));
       });
     }
   }
 }
 
 const validateSpec = (spec: PublishSpec<any>) => {
-  const { model, projection, foreignKeys } = spec;
+  const {
+    model, allowDeleted, projection, foreignKeys,
+  } = spec;
   if (projection && foreignKeys?.some(({ field }) => !projection[field])) {
     throw new Error(`JoinPublisher: projection for model ${model._name} must include all foreign keys`);
+  }
+
+  if (allowDeleted && !('findAllowingDeleted' in model)) {
+    throw new Error(`JoinPublisher: model ${model._name} does not support soft deletion`);
   }
 
   foreignKeys?.forEach(({ join }) => {
@@ -247,46 +280,35 @@ const addObservers = (
   });
 };
 
-export default class JoinPublisher<T extends { _id: string }> {
-  watcher: Meteor.LiveQueryHandle;
+export default function publishJoinedQuery<T extends { _id: string }>(
+  sub: Subscription,
+  spec: PublishSpec<T>,
+  query: Mongo.Selector<T>,
+): void {
+  validateSpec(spec);
 
-  observers: Map<string, RefCountedJoinedObjectObserverMap<any>>;
+  const observers = new Map<string, RefCountedJoinedObjectObserverMap<any>>();
+  addObservers(sub, spec, observers);
+  sub.onStop(() => observers.forEach((v) => v.shutdown()));
 
-  constructor(
-    sub: Subscription,
-    spec: PublishSpec<T>,
-    query: Mongo.Selector<T>,
-  ) {
-    validateSpec(spec);
+  const { model, allowDeleted } = spec;
+  const { _name: name } = model;
 
-    this.observers = new Map<string, RefCountedJoinedObjectObserverMap<any>>();
-    addObservers(sub, spec, this.observers);
+  const observer = observers.get(name)!;
 
-    const { model } = spec;
-    const { _name: name } = model;
-
-    const observer = this.observers.get(name)!;
-
-    this.watcher = model.find(query, {
-      fields: { _id: 1 },
-    }).observeChanges({
-      added: (id) => {
-        observer.incref(id);
-      },
-      removed: (id) => {
-        if (spec.lingerTime !== undefined) {
-          Meteor.setTimeout(() => { observer.decref(id); }, spec.lingerTime);
-        } else {
-          observer.decref(id);
-        }
-      },
-    });
-
-    sub.ready();
-  }
-
-  shutdown() {
-    this.watcher.stop();
-    this.observers.forEach((v) => v.shutdown());
-  }
+  const watcher = finder(model, allowDeleted)(query, {
+    fields: { _id: 1 },
+  }).observeChanges({
+    added: (id) => {
+      observer.incref(id);
+    },
+    removed: (id) => {
+      if (spec.lingerTime !== undefined) {
+        Meteor.setTimeout(() => { observer.decref(id); }, spec.lingerTime);
+      } else {
+        observer.decref(id);
+      }
+    },
+  });
+  sub.onStop(() => watcher.stop());
 }

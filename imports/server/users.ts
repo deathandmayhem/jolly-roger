@@ -8,7 +8,9 @@ import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
 import type { ProfileFields } from '../lib/schemas/User';
-import SwappableCursorPublisher from './SwappableCursorPublisher';
+import type { SubSubscription } from './PublicationMerger';
+import PublicationMerger from './PublicationMerger';
+import publishCursor from './publications/publishCursor';
 
 const profileFields: Record<ProfileFields, 1> = {
   displayName: 1,
@@ -37,20 +39,31 @@ const republishOnUserChange = async (
     ((user: Meteor.User) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>)),
 ) => {
   const u = (await MeteorUsers.findOneAsync(sub.userId!))!;
-  const publish = new SwappableCursorPublisher(sub, MeteorUsers);
-  publish.swap(await makeCursor(u), makeTransform?.(u));
+  const merger = new PublicationMerger(sub);
+  const cursor = await makeCursor(u);
+  let currentSub: SubSubscription | undefined;
+  if (cursor) {
+    currentSub = merger.newSub();
+    publishCursor(currentSub, Meteor.users._name, cursor, makeTransform?.(u));
+  }
   const watch = MeteorUsers.find(sub.userId!, { fields: projection }).observe({
     changed: (doc) => {
       void (async () => {
-        publish.swap(await makeCursor(doc), makeTransform?.(doc));
+        const newCursor = await makeCursor(doc);
+        let newSub;
+        if (newCursor) {
+          newSub = merger.newSub();
+          publishCursor(newSub, Meteor.users._name, newCursor, makeTransform?.(doc));
+        }
+        if (currentSub) {
+          merger.removeSub(currentSub);
+        }
+        currentSub = newSub;
       })();
     },
   });
 
-  sub.onStop(() => {
-    watch.stop();
-    publish.stop();
-  });
+  sub.onStop(() => watch.stop());
   sub.ready();
 };
 

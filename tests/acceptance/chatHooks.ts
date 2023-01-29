@@ -2,14 +2,18 @@ import { promisify } from 'util';
 import { Meteor } from 'meteor/meteor';
 import { assert } from 'chai';
 import ChatMessages from '../../imports/lib/models/ChatMessages';
+import chatMessagesForFirehose from '../../imports/lib/publications/chatMessagesForFirehose';
 import createFixtureHunt from '../../imports/methods/createFixtureHunt';
 import provisionFirstUser from '../../imports/methods/provisionFirstUser';
 import setGuessState from '../../imports/methods/setGuessState';
 import {
-  resetDatabase, subscribeAsync, USER_EMAIL, USER_PASSWORD,
+  resetDatabase, USER_EMAIL, USER_PASSWORD,
 } from './lib';
 
 if (Meteor.isClient) {
+  const typedSubscribe = require('../../imports/client/typedSubscribe').default as
+    typeof import('../../imports/client/typedSubscribe').default;
+
   describe('chat hooks', function () {
     describe('puzzle answer is marked correct', function () {
       it('sends a message to all linked metas', async function () {
@@ -27,7 +31,7 @@ if (Meteor.isClient) {
         const before = new Date();
         await setGuessState.callPromise({ guessId, state: 'correct' });
 
-        await subscribeAsync('mongo.chatmessages', { hunt: huntId });
+        await typedSubscribe.async(chatMessagesForFirehose, { huntId });
         const newMessages = ChatMessages.find({
           createdAt: { $gt: before },
         }).fetch();

@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
@@ -24,13 +24,14 @@ import Hunts from '../../lib/models/Hunts';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
+import guessesForGuessQueue from '../../lib/publications/guessesForGuessQueue';
 import type { GuessType } from '../../lib/schemas/Guess';
 import type { HuntType } from '../../lib/schemas/Hunt';
 import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import setGuessState from '../../methods/setGuessState';
 import { guessURL } from '../../model-helpers';
 import { useBreadcrumb } from '../hooks/breadcrumb';
-import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import GuessState from './GuessState';
 import Markdown from './Markdown';
 import PuzzleAnswer from './PuzzleAnswer';
@@ -295,15 +296,8 @@ const GuessQueuePage = () => {
 
   useBreadcrumb({ title: 'Guess queue', path: `/hunts/${huntId}/guesses` });
 
-  const huntLoading = useSubscribe('mongo.hunts', { _id: huntId });
-  const guessesLoading = useSubscribe('mongo.guesses', { hunt: huntId });
-  const puzzlesLoading = useSubscribe('mongo.puzzles', { hunt: huntId });
-  const displayNamesLoading = useSubscribeDisplayNames(huntId);
-  const loading =
-    huntLoading() ||
-    guessesLoading() ||
-    puzzlesLoading() ||
-    displayNamesLoading();
+  const guessesLoading = useTypedSubscribe(guessesForGuessQueue, { huntId });
+  const loading = guessesLoading();
 
   const hunt = useTracker(() => Hunts.findOne({ _id: huntId }), [huntId]);
   const guesses = useTracker(() => (loading ? [] : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch()), [huntId, loading]);

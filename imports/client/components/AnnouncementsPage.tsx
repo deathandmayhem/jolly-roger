@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -11,10 +11,11 @@ import Announcements from '../../lib/models/Announcements';
 import Hunts from '../../lib/models/Hunts';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
+import announcementsForAnnouncementsPage from '../../lib/publications/announcementsForAnnouncementsPage';
 import type { AnnouncementType } from '../../lib/schemas/Announcement';
 import postAnnouncement from '../../methods/postAnnouncement';
 import { useBreadcrumb } from '../hooks/breadcrumb';
-import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import Markdown from './Markdown';
 
 enum AnnouncementFormSubmitState {
@@ -127,12 +128,8 @@ const AnnouncementsPage = () => {
   const huntId = useParams<'huntId'>().huntId!;
   useBreadcrumb({ title: 'Announcements', path: `/hunts/${huntId}/announcements` });
 
-  // We already have subscribed to mongo.announcements on the main page, since we want to be able
-  // to show them on any page.  So we don't *need* to make the subscription here...
-  // ...except that we might want to wait to render until we've received all of them?  IDK.
-  const announcementsLoading = useSubscribe('mongo.announcements', { hunt: huntId });
-  const displayNamesLoading = useSubscribeDisplayNames(huntId);
-  const loading = announcementsLoading() || displayNamesLoading();
+  const announcementsLoading = useTypedSubscribe(announcementsForAnnouncementsPage, { huntId });
+  const loading = announcementsLoading();
 
   const announcements = useTracker(() => (
     loading ? [] : Announcements.find({ hunt: huntId }, { sort: { createdAt: 1 } }).fetch()

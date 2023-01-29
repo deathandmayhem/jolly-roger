@@ -882,10 +882,7 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
 const RTCDebugPage = () => {
   const viewerIsAdmin = useTracker(() => isAdmin(Meteor.user()));
   const debugInfoLoading = useSubscribe('mediasoup:debug');
-  const puzzlesLoading = useSubscribe('mongo.puzzles');
-  const loading =
-    debugInfoLoading() ||
-    puzzlesLoading();
+  const loading = debugInfoLoading();
 
   const servers = useFind(() => Servers.find({}, { sort: { hostname: 1, pid: 1 } }), []);
   const rooms = useFind(() => Rooms.find({}, { sort: { createdAt: 1 } }));

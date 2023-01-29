@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
+import { useTracker } from 'meteor/react-meteor-data';
 import React, { useCallback, useMemo } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -9,10 +9,12 @@ import {
 } from 'react-router-dom';
 import Hunts from '../../lib/models/Hunts';
 import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
+import huntForHuntApp from '../../lib/publications/huntForHuntApp';
 import type { HuntType } from '../../lib/schemas/Hunt';
 import addHuntUser from '../../methods/addHuntUser';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import Markdown from './Markdown';
 
 const HuntDeletedError = React.memo(({ hunt, canUndestroy }: {
@@ -106,11 +108,8 @@ const HuntMemberError = React.memo(({ hunt, canJoin }: {
 const HuntApp = React.memo(() => {
   const huntId = useParams<'huntId'>().huntId!;
 
-  // Subscribe to deleted and non-deleted hunts separately so that we can reuse
-  // the non-deleted subscription
-  const huntLoading = useSubscribe('mongo.hunts', { _id: huntId });
-  const deletedHuntLoading = useSubscribe('mongo.hunts.deleted', { _id: huntId });
-  const loading = huntLoading() || deletedHuntLoading();
+  const huntLoading = useTypedSubscribe(huntForHuntApp, { huntId });
+  const loading = huntLoading();
 
   const hunt = useTracker(() => Hunts.findOneAllowingDeleted(huntId), [huntId]);
   const {
