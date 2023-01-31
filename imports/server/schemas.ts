@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import { Promise as MeteorPromise } from 'meteor/promise';
 import Announcements from '../lib/models/Announcements';
 import BlobMappings from '../lib/models/BlobMappings';
 import ChatMessages from '../lib/models/ChatMessages';
@@ -11,6 +12,7 @@ import FeatureFlags from '../lib/models/FeatureFlags';
 import FolderPermissions from '../lib/models/FolderPermissions';
 import Guesses from '../lib/models/Guesses';
 import Hunts from '../lib/models/Hunts';
+import { AllModels } from '../lib/models/Model';
 import PendingAnnouncements from '../lib/models/PendingAnnouncements';
 import Puzzles from '../lib/models/Puzzles';
 import Servers from '../lib/models/Servers';
@@ -62,6 +64,7 @@ import Router from '../lib/schemas/mediasoup/Router';
 import Transport from '../lib/schemas/mediasoup/Transport';
 import TransportRequest from '../lib/schemas/mediasoup/TransportRequest';
 import TransportState from '../lib/schemas/mediasoup/TransportState';
+import attachSchema from './attachSchema';
 import APIKeys from './models/APIKeys';
 import Blobs from './models/Blobs';
 import CallActivities from './models/CallActivities';
@@ -119,3 +122,15 @@ HuntFolders.attachSchema(HuntFolder);
 Locks.attachSchema(Lock);
 Subscribers.attachSchema(Subscriber);
 UploadTokens.attachSchema(UploadToken);
+
+Meteor.startup(() => {
+  // We want this to be synchronous, so that if it fails we crash the
+  // application (better than having no schema in place). We should be able to
+  // eliminate this if Meteor backports support for async startup functions (as
+  // requested in https://github.com/meteor/meteor/discussions/12468)
+  MeteorPromise.await((async () => {
+    for (const model of AllModels.values()) {
+      await attachSchema(model.schema, model.collection);
+    }
+  })());
+});
