@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { ModelType } from './Model';
 import SoftDeletedModel from './SoftDeletedModel';
-import { allowedEmptyString, foreignKey, nonEmptyString } from './customTypes';
+import { allowedEmptyString, foreignKey } from './customTypes';
 import withCommon from './withCommon';
 
 const MentionBlock = z.object({
@@ -37,10 +37,8 @@ const ChatMessage = withCommon(z.object({
   hunt: foreignKey,
   // The puzzle to which this chat was sent.
   puzzle: foreignKey,
-  // The message body. Plain text.
-  text: nonEmptyString.optional(),
   // The message contents.
-  content: ChatMessageContent.optional(),
+  content: ChatMessageContent,
   // If absent, this message is considered a "system" message
   sender: foreignKey.optional(),
   // The date this message was sent.  Used for ordering chats in the log.

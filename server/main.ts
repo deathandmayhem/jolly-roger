@@ -23,7 +23,6 @@ import '../imports/server/publications/index';
 // Other stuff in the server folder
 import '../imports/server/accounts';
 import '../imports/server/api-init';
-import '../imports/server/sendChatMessageInternal';
 import '../imports/server/chat-notifications';
 import '../imports/server/discord';
 import '../imports/server/discordClientRefresher';
