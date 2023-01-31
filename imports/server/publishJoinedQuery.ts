@@ -5,18 +5,6 @@ import { Meteor } from 'meteor/meteor';
 import type { Mongo } from 'meteor/mongo';
 import type { Document } from 'mongodb';
 
-declare module 'meteor/mongo' {
-
-  namespace Mongo {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface Collection<T> {
-      // We can get this property from tableName on our models, but we need this
-      // for models that don't descend from Base, like Meteor.users
-      _name: string;
-    }
-  }
-}
-
 type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 
 // Sadly, this type declaration doesn't do us much good beyond the first level.
