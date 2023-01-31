@@ -5,7 +5,8 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "noEmit": false,
-    "outDir": "dist"
+    "outDir": "dist",
+    "sourceMap": true,
   },
   "include": ["**/*.ts"],
   "exclude": [],

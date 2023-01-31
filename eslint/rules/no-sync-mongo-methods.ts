@@ -1,5 +1,5 @@
 import { ESLintUtils } from '@typescript-eslint/utils';
-import * as ts from 'typescript';
+import ts from 'typescript';
 
 const syncModelMethods = new Set([
   /* These methods are taken from upstream Meteor */
@@ -29,6 +29,16 @@ const syncCursorMethods = new Set([
 
 const syncMethods = new Set([...syncModelMethods, ...syncCursorMethods]);
 
+const isObjectType = (type: ts.Type): type is ts.ObjectType => {
+  // eslint-disable-next-line no-bitwise
+  return !!(type.flags & ts.TypeFlags.Object);
+};
+
+const isTypeReference = (type: ts.Type): type is ts.TypeReference => {
+  // eslint-disable-next-line no-bitwise
+  return isObjectType(type) && !!(type.objectFlags & ts.ObjectFlags.Reference);
+};
+
 const fetchAllBaseTypes = (checker: ts.TypeChecker, type: ts.Type) => {
   const types: ts.Type[] = [];
   const visit = (t: ts.Type) => {
@@ -36,11 +46,12 @@ const fetchAllBaseTypes = (checker: ts.TypeChecker, type: ts.Type) => {
     // happen with (at least) const arrays
     if (!t.symbol) return;
 
-    types.push(t);
+    const realType = isTypeReference(t) ? t.target : t;
 
-    // eslint-disable-next-line no-bitwise
-    if (t.flags & ts.TypeFlags.Object) {
-      checker.getBaseTypes(t as any).forEach(visit);
+    types.push(realType);
+
+    if (realType.isClassOrInterface()) {
+      checker.getBaseTypes(realType).forEach(visit);
     }
   };
   visit(type);
