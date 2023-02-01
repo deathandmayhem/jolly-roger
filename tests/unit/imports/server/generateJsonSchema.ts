@@ -195,6 +195,19 @@ describe('generateJsonSchema', function () {
       assert.doesNotThrow(() => collection.insert({ string: 'abc' }));
     });
 
+    it('is reasonably accepting of URLs', async function () {
+      const schema = z.object({
+        _id: z.string(),
+        url: z.string().url(),
+      });
+      const collection = await createTestCollection(schema);
+
+      assert.doesNotThrow(() => collection.insert({ url: 'https://puzzlefactory.place/factory-floor' }));
+      assert.doesNotThrow(() => collection.insert({ url: 'https://perpendicular.institute' }));
+      assert.doesNotThrow(() => collection.insert({ url: 'https://www.bookspace.world/' }));
+      assert.doesNotThrow(() => collection.insert({ url: 'https://www.pandamagazine.com/island9/' }));
+    });
+
     it('rejects unsupported checks', function () {
       const schema = z.object({
         _id: z.string(),

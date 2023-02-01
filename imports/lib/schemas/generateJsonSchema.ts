@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import type { Mongo } from 'meteor/mongo';
 import { z } from 'zod';
-import { Email, UUID } from './regexes';
+import { Email, URL, UUID } from './regexes';
 
 // This file is heavily inspired by zod-to-json-schema, but we use our own
 // version because (a) zod-to-json-schema supports a different version of
@@ -68,29 +68,33 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
         };
       case 'regex':
       case 'email':
-      case 'uuid': {
+      case 'uuid':
+      case 'url': {
         let pattern;
         // eslint-disable-next-line default-case
         switch (check.kind) {
           case 'regex':
-            if (check.regex.flags !== '') {
-              throw new Error('Regex flags are not supported');
-            }
-            pattern = check.regex.source;
+            pattern = check.regex;
             break;
           case 'email':
-            pattern = Email.source;
+            pattern = Email;
             break;
           case 'uuid':
-            pattern = UUID.source;
+            pattern = UUID;
             break;
+          case 'url':
+            pattern = URL;
+            break;
+        }
+        if (pattern.flags !== '') {
+          throw new Error('Regex flags are not supported');
         }
 
         return {
           ...acc,
           ...acc.pattern ? {
-            allOf: [...acc.allOf ?? [], { pattern }],
-          } : { pattern },
+            allOf: [...acc.allOf ?? [], { pattern: pattern.source }],
+          } : { pattern: pattern.source },
         };
       }
       default:
