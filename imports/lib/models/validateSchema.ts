@@ -49,6 +49,7 @@ export default function validateSchema<
     case z.ZodFirstPartyTypeKind.ZodBoolean:
     case z.ZodFirstPartyTypeKind.ZodNever:
     case z.ZodFirstPartyTypeKind.ZodAny:
+    case z.ZodFirstPartyTypeKind.ZodUnknown:
       // No validation needed
       break;
 

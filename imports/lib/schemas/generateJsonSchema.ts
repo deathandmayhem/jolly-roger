@@ -283,6 +283,7 @@ function potentialObjectKeys<
     case z.ZodFirstPartyTypeKind.ZodBoolean:
     case z.ZodFirstPartyTypeKind.ZodNull:
     case z.ZodFirstPartyTypeKind.ZodAny:
+    case z.ZodFirstPartyTypeKind.ZodUnknown:
     case z.ZodFirstPartyTypeKind.ZodArray:
     case z.ZodFirstPartyTypeKind.ZodTuple:
     case z.ZodFirstPartyTypeKind.ZodEnum:
@@ -479,6 +480,9 @@ function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
       return { bsonType: 'bool' };
     case z.ZodFirstPartyTypeKind.ZodNull:
       return { bsonType: 'null' };
+    // Treat "unknown" as any. They have different meanings at the type layer,
+    // but at the database layer, they're equivalent
+    case z.ZodFirstPartyTypeKind.ZodUnknown:
     case z.ZodFirstPartyTypeKind.ZodAny:
       return {};
 
