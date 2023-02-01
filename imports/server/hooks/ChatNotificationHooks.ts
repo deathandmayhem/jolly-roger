@@ -16,10 +16,11 @@ const ChatNotificationHooks: Hookset = {
     // but @-mentions cannot (they're cheap, doing big-O(message components) work).
 
     const chatMessage = (await ChatMessages.findOneAsync(chatMessageId))!;
+    const { sender } = chatMessage;
 
     // Collect users to notify into a set, and then create notifications at the end.
     const usersToNotify = new Set<string>();
-    if (!chatMessage.sender) {
+    if (!sender) {
       // Don't notify for system messages.
       return;
     }
@@ -30,7 +31,7 @@ const ChatNotificationHooks: Hookset = {
         if (nodeIsMention(child)) {
           const mentionedUserId = child.userId;
           // Don't have messages notify yourself.
-          if (mentionedUserId !== chatMessage.sender) {
+          if (mentionedUserId !== sender) {
             // Only create mentions for users that are in the current hunt.
             const mentionedUser = await MeteorUsers.findOneAsync(mentionedUserId);
             if (mentionedUser?.hunts?.includes(chatMessage.hunt)) {
@@ -53,7 +54,7 @@ const ChatNotificationHooks: Hookset = {
         fields: { _id: 1, dingwords: 1 },
       })) {
         // Avoid making users ding themselves.
-        if (u._id === chatMessage.sender) {
+        if (u._id === sender) {
           continue;
         }
 
@@ -71,7 +72,7 @@ const ChatNotificationHooks: Hookset = {
     await Promise.all(collected.map(async (userId: string) => {
       await ChatNotifications.insertAsync({
         user: userId,
-        sender: chatMessage.sender,
+        sender,
         puzzle: chatMessage.puzzle,
         hunt: chatMessage.hunt,
         text: chatMessage.text,

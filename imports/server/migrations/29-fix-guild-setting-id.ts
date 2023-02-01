@@ -8,7 +8,7 @@ Migrations.add({
     await Settings.updateAsync(
       { name: 'discord.guild' },
       { $rename: { 'value.guild._id': 'value.guild.id' } },
-      { multi: true },
+      { multi: true, bypassSchema: true },
     );
   },
 });

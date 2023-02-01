@@ -11,8 +11,8 @@ import { people } from '@googleapis/people';
 import type { script_v1 } from '@googleapis/script';
 import { script } from '@googleapis/script';
 import { OAuth2Client } from 'google-auth-library';
+import type { SettingType } from '../lib/models/Settings';
 import Settings from '../lib/models/Settings';
-import type { SettingType } from '../lib/schemas/Setting';
 
 class GoogleClientRefresher {
   public drive?: drive_v3.Drive;

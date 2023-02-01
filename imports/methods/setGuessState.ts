@@ -1,4 +1,4 @@
-import type { GuessType } from '../lib/schemas/Guess';
+import type { GuessType } from '../lib/models/Guesses';
 import TypedMethod from './TypedMethod';
 
 export default new TypedMethod<{

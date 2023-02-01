@@ -1,4 +1,4 @@
-import type { GuessType } from './lib/schemas/Guess';
+import type { GuessType } from './lib/models/Guesses';
 import type { HuntType } from './lib/schemas/Hunt';
 import type { PuzzleType } from './lib/schemas/Puzzle';
 import type { TagType } from './lib/schemas/Tag';

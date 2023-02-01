@@ -1,29 +1,26 @@
-import * as t from 'io-ts';
-import { date } from 'io-ts-types';
-import { BaseCodec, BaseOverrides } from './Base';
-import { Id } from './regexes';
-import type { Overrides } from './typedSchemas';
-import { buildSchema, inheritSchema } from './typedSchemas';
+import { z } from 'zod';
+import { allowedEmptyString, foreignKey, nonEmptyString } from './customTypes';
+import withCommon from './withCommon';
 
-const MentionBlock = t.type({
-  type: t.literal('mention'),
-  userId: t.string,
+const MentionBlock = z.object({
+  type: z.literal('mention'),
+  userId: foreignKey,
 });
-export type ChatMessageMentionNodeType = t.TypeOf<typeof MentionBlock>;
+export type ChatMessageMentionNodeType = z.infer<typeof MentionBlock>;
 
-const TextBlock = t.type({
-  text: t.string,
+const TextBlock = z.object({
+  text: allowedEmptyString,
 });
-export type ChatMessageTextNodeType = t.TypeOf<typeof TextBlock>;
+export type ChatMessageTextNodeType = z.infer<typeof TextBlock>;
 
-const ContentNode = t.union([MentionBlock, TextBlock]);
-export type ChatMessageContentNodeType = t.TypeOf<typeof ContentNode>;
+const ContentNode = z.union([MentionBlock, TextBlock]);
+export type ChatMessageContentNodeType = z.infer<typeof ContentNode>;
 
-export const ChatMessageContent = t.type({
-  type: t.literal('message'),
-  children: t.array(t.union([MentionBlock, TextBlock])),
+export const ChatMessageContent = z.object({
+  type: z.literal('message'),
+  children: ContentNode.array(),
 });
-export type ChatMessageContentType = t.TypeOf<typeof ChatMessageContent>;
+export type ChatMessageContentType = z.infer<typeof ChatMessageContent>;
 
 export function contentFromMessage(msg: string): ChatMessageContentType {
   return {
@@ -34,56 +31,18 @@ export function contentFromMessage(msg: string): ChatMessageContentType {
   };
 }
 
-const SharedFields = {
-  hunt: t.string,
+const ChatMessage = withCommon(z.object({
+  hunt: foreignKey,
   // The puzzle to which this chat was sent.
-  puzzle: t.string,
+  puzzle: foreignKey,
   // The message body. Plain text.
-  text: t.union([t.string, t.undefined]),
+  text: nonEmptyString.optional(),
+  // The message contents.
+  content: ChatMessageContent.optional(),
   // If absent, this message is considered a "system" message
-  sender: t.union([t.string, t.undefined]),
+  sender: foreignKey.optional(),
   // The date this message was sent.  Used for ordering chats in the log.
-  timestamp: date,
-};
-
-const ChatMessageCodec = t.intersection([
-  BaseCodec,
-  t.type({
-    ...SharedFields,
-    // The message contents
-    content: t.union([ChatMessageContent, t.undefined]),
-  }),
-]);
-export { ChatMessageCodec };
-export type ChatMessageType = t.TypeOf<typeof ChatMessageCodec>;
-
-const ChatMessageFields = t.type({
-  ...SharedFields,
-  // The message contents, as an opaque object which has the
-  // schema of Content above
-  content: t.union([t.UnknownRecord, t.undefined]),
-});
-
-const ChatMessageFieldsOverrides: Overrides<t.TypeOf<typeof ChatMessageFields>> = {
-  hunt: {
-    regEx: Id,
-  },
-  puzzle: {
-    regEx: Id,
-  },
-  sender: {
-    regEx: Id,
-  },
-};
-
-const [ChatMessageSchemaCodec, ChatMessageOverrides] = inheritSchema(
-  BaseCodec,
-  ChatMessageFields,
-  BaseOverrides,
-  ChatMessageFieldsOverrides,
-);
-
-// A single chat message
-const ChatMessage = buildSchema(ChatMessageSchemaCodec, ChatMessageOverrides);
+  timestamp: z.date(),
+}));
 
 export default ChatMessage;

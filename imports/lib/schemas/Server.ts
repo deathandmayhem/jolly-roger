@@ -1,26 +1,10 @@
-import * as t from 'io-ts';
-import { date } from 'io-ts-types';
-import type { Overrides } from './typedSchemas';
-import { buildSchema } from './typedSchemas';
+import { z } from 'zod';
+import { lastWriteTimestamp, nonEmptyString } from './customTypes';
 
-export const ServerCodec = t.type({
-  _id: t.string,
-  hostname: t.string,
-  pid: t.number,
-  // unlike most updatedAt values, this one also gets set on created
-  // for convenience
-  updatedAt: date,
+const Server = z.object({
+  hostname: nonEmptyString,
+  pid: z.number().int(),
+  updatedAt: lastWriteTimestamp,
 });
-export type ServerType = t.TypeOf<typeof ServerCodec>;
-
-const ServerOverrides: Overrides<ServerType> = {
-  updatedAt: {
-    autoValue() {
-      return new Date();
-    },
-  },
-};
-
-const Server = buildSchema(ServerCodec, ServerOverrides);
 
 export default Server;

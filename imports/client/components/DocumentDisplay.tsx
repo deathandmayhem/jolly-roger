@@ -4,7 +4,7 @@ import { faTable } from '@fortawesome/free-solid-svg-icons/faTable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import styled from 'styled-components';
-import type { DocumentType } from '../../lib/schemas/Document';
+import type { DocumentType } from '../../lib/models/Documents';
 import DeepLink from './DeepLink';
 
 interface DocumentDisplayProps {

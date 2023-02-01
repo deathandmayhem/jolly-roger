@@ -2,7 +2,7 @@ import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import styled from 'styled-components';
-import type { GuessType } from '../../lib/schemas/Guess';
+import type { GuessType } from '../../lib/models/Guesses';
 
 const GuessDetail = styled.div`
   display: flex;

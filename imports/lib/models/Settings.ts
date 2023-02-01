@@ -1,6 +1,9 @@
-import type { SettingType } from '../schemas/Setting';
-import Base from './Base';
+import Setting from '../schemas/Setting';
+import type { ModelType } from './Model';
+import SoftDeletedModel from './SoftDeletedModel';
 
-const Settings = new Base<SettingType>('settings');
+const Settings = new SoftDeletedModel('jr_settings', Setting);
+
+export type SettingType = ModelType<typeof Settings>;
 
 export default Settings;

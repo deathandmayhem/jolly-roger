@@ -1,6 +1,8 @@
-import type { DocumentType } from '../schemas/Document';
-import Base from './Base';
+import Document from '../schemas/Document';
+import type { ModelType } from './Model';
+import Model from './Model';
 
-const Documents = new Base<DocumentType>('documents');
+const Documents = new Model('jr_documents', Document);
+export type DocumentType = ModelType<typeof Documents>;
 
 export default Documents;

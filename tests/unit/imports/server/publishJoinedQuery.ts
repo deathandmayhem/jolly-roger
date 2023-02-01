@@ -86,7 +86,7 @@ describe('publishJoinedQuery', function () {
     await Promise.all([
       safeDrop(Hunts),
       safeDrop(Puzzles),
-      safeDrop(Guesses),
+      safeDrop(Guesses.collection),
       safeDrop(Tags),
     ]);
     await makeFixtureHunt(Random.id());
@@ -109,9 +109,9 @@ describe('publishJoinedQuery', function () {
       }],
     }, { _id: guessId });
 
-    assert.sameMembers([...sub.data.keys()], [Puzzles._name, Guesses._name]);
+    assert.sameMembers([...sub.data.keys()], [Puzzles._name, Guesses.name]);
 
-    const guessCollection = sub.data.get(Guesses._name)!;
+    const guessCollection = sub.data.get(Guesses.name)!;
     assert.sameMembers([...guessCollection.keys()], [guessId]);
 
     const puzzleCollection = sub.data.get(Puzzles._name)!;

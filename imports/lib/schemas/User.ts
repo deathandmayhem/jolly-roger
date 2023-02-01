@@ -1,9 +1,8 @@
-import * as t from 'io-ts';
-import { date } from 'io-ts-types';
+import { z } from 'zod';
+import validateSchema from '../models/validateSchema';
+import type { DiscordAccountType } from './DiscordAccount';
 import DiscordAccount from './DiscordAccount';
-import { Email, Id } from './regexes';
-import type { Overrides } from './typedSchemas';
-import { buildSchema } from './typedSchemas';
+import { foreignKey, nonEmptyString, stringId } from './customTypes';
 
 declare module 'meteor/meteor' {
   namespace Meteor {
@@ -14,56 +13,36 @@ declare module 'meteor/meteor' {
       displayName?: string;
       googleAccount?: string;
       googleAccountId?: string;
-      discordAccount?: t.TypeOf<typeof DiscordAccount>;
+      discordAccount?: DiscordAccountType;
       phoneNumber?: string;
       dingwords?: string[];
     }
   }
 }
 
-export const UserCodec = t.type({
-  username: t.union([t.string, t.undefined]),
-  emails: t.array(t.type({
-    address: t.string,
-    verified: t.boolean,
-  })),
-  createdAt: date,
-  lastLogin: t.union([date, t.undefined]),
-  services: t.union([t.UnknownRecord, t.undefined]),
-  roles: t.union([t.UnknownRecord, t.undefined]),
-  hunts: t.union([t.array(t.string), t.undefined]),
-  displayName: t.union([t.undefined, t.string]),
-  googleAccount: t.union([t.string, t.undefined]),
-  googleAccountId: t.union([t.string, t.undefined]),
-  discordAccount: t.union([DiscordAccount, t.undefined]),
-  phoneNumber: t.union([t.string, t.undefined]),
-  dingwords: t.union([t.array(t.string), t.undefined]),
+// Note: this needs to exactly match the type of Meteor.User, otherwise we will
+// fail typechecking when we use our attachSchema function. Also, because
+// Meteor.users isn't a Model, we can't rely on transforms or defaults in this
+// schema.
+export const User = z.object({
+  _id: stringId,
+  username: z.string().regex(/^[a-z0-9A-Z_]{3,15}$/).optional(),
+  emails: z.object({ address: z.string().email(), verified: z.boolean() }).array().optional(),
+  createdAt: z.date().optional(),
+  lastLogin: z.date().optional(),
+  services: z.any().optional(),
+  profile: z.object({}).optional(),
+  roles: z.record(z.string(), nonEmptyString.array()).optional(),
+  hunts: foreignKey.array().optional(),
+  displayName: nonEmptyString.optional(),
+  googleAccount: nonEmptyString.optional(),
+  googleAccountId: nonEmptyString.optional(),
+  discordAccount: DiscordAccount.optional(),
+  phoneNumber: nonEmptyString.optional(),
+  dingwords: nonEmptyString.array().optional(),
 });
+validateSchema(User);
 
 export type ProfileFields = 'displayName' | 'googleAccount' | 'discordAccount' | 'phoneNumber' | 'dingwords';
-
-const UserOverrides: Overrides<t.TypeOf<typeof UserCodec>> = {
-  username: {
-    regEx: /^[a-z0-9A-Z_]{3,15}$/,
-  },
-  emails: {
-    array: {
-      nested: {
-        address: {
-          regEx: Email,
-        },
-      },
-    },
-  },
-  hunts: {
-    defaultValue: [],
-    array: {
-      regEx: Id,
-    },
-  },
-};
-
-// Does not inherit from Base
-const User = buildSchema(UserCodec, UserOverrides);
 
 export default User;
