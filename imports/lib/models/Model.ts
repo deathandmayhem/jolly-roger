@@ -279,21 +279,21 @@ export function formatValidationError(error: unknown) {
 
 export const AllModels = new Set<Model<any>>();
 
-class Model<Schema extends MongoRecordZodType> {
+class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = typeof stringId> {
   name: string;
 
   schema: Schema extends z.ZodObject<infer Shape, infer UnknownKeys, infer Catchall> ?
-    z.ZodObject<z.extendShape<Shape, { _id: typeof stringId }>, UnknownKeys, Catchall> :
-    z.ZodIntersection<Schema, z.ZodObject<{ _id: typeof stringId }>>;
+    z.ZodObject<z.extendShape<Shape, { _id: IdSchema }>, UnknownKeys, Catchall> :
+    z.ZodIntersection<Schema, z.ZodObject<{ _id: IdSchema }>>;
 
   relaxedSchema: z.ZodTypeAny;
 
   collection: Mongo.Collection<z.output<this['schema']>>;
 
-  constructor(name: string, schema: Schema) {
+  constructor(name: string, schema: Schema, idSchema?: IdSchema) {
     this.schema = schema instanceof z.ZodObject ?
-      schema.extend({ _id: stringId }) :
-      schema.and(z.object({ _id: stringId })) as any;
+      schema.extend({ _id: idSchema ?? stringId }) :
+      schema.and(z.object({ _id: idSchema ?? stringId })) as any;
     validateSchema(this.schema);
     this.name = name;
     this.relaxedSchema = relaxSchema(this.schema);
@@ -302,7 +302,7 @@ class Model<Schema extends MongoRecordZodType> {
 
   async insertAsync(doc: z.input<this['schema']>, options: {
     bypassSchema?: boolean | undefined;
-  } = {}): Promise<z.output<typeof stringId>> {
+  } = {}): Promise<z.output<IdSchema>> {
     const { bypassSchema } = options;
     if (bypassSchema) {
       let raw: any = doc;
@@ -394,7 +394,7 @@ class Model<Schema extends MongoRecordZodType> {
     } = {},
   ): Promise<{
     numberAffected?: number | undefined;
-    insertedId?: z.output<typeof stringId> | undefined;
+    insertedId?: z.output<IdSchema> | undefined;
   }> {
     const parsed = await parseMongoModifierAsync(this.relaxedSchema, modifier, true);
     try {
@@ -460,6 +460,6 @@ class Model<Schema extends MongoRecordZodType> {
   }
 }
 
-export type ModelType<M extends Model<any>> = z.output<M['schema']>;
+export type ModelType<M extends Model<any, any>> = z.output<M['schema']>;
 
 export default Model;
