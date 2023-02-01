@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.20.13",
-    "@bugsnag/js": "^7.19.0",
+    "@bugsnag/js": "^7.20.0",
     "@bugsnag/plugin-react": "^7.19.0",
     "@fortawesome/fontawesome-svg-core": "^6.2.1",
     "@fortawesome/free-solid-svg-icons": "^6.2.1",
