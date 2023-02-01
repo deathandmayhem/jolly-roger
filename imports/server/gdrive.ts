@@ -13,7 +13,7 @@ import getTeamName from './getTeamName';
 import GoogleClient from './googleClientRefresher';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import HuntFolders from './models/HuntFolders';
-import Locks from './models/Locks';
+import withLock from './withLock';
 
 function checkClientOk() {
   if (!GoogleClient.ready()) {
@@ -180,9 +180,9 @@ export async function ensureHuntFolder(hunt: { _id: string, name: string }) {
   if (!folder) {
     checkClientOk();
 
-    await Locks.withLock(`hunt:${hunt._id}:folder`, async () => {
-      folder = await HuntFolders.findOneAsync(hunt._id);
-      if (!folder) {
+    folder = await withLock(`hunt:${hunt._id}:folder`, async () => {
+      let lockedFolder = await HuntFolders.findOneAsync(hunt._id);
+      if (!lockedFolder) {
         Logger.info('Creating missing folder for hunt', {
           huntId: hunt._id,
         });
@@ -193,12 +193,13 @@ export async function ensureHuntFolder(hunt: { _id: string, name: string }) {
           _id: hunt._id,
           folder: folderId,
         });
-        folder = await HuntFolders.findOneAsync(huntFolderId)!;
+        lockedFolder = (await HuntFolders.findOneAsync(huntFolderId))!;
       }
+      return lockedFolder;
     });
   }
 
-  return folder!.folder;
+  return folder.folder;
 }
 
 export async function ensureHuntFolderPermission(
@@ -240,7 +241,7 @@ export async function ensureDocument(puzzle: {
   if (!doc) {
     checkClientOk();
 
-    await Locks.withLock(`puzzle:${puzzle._id}:documents`, async () => {
+    await withLock(`puzzle:${puzzle._id}:documents`, async () => {
       doc = await Documents.findOneAsync({ puzzle: puzzle._id });
       if (!doc) {
         Logger.info('Creating missing document for puzzle', {

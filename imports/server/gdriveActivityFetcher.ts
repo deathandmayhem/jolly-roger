@@ -8,7 +8,7 @@ import roundedTime from '../lib/roundedTime';
 import GoogleClient from './googleClientRefresher';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import DriveActivityLatests from './models/DriveActivityLatests';
-import Locks, { PREEMPT_TIMEOUT } from './models/Locks';
+import withLock, { PREEMPT_TIMEOUT } from './withLock';
 
 async function recordDriveChanges(ts: Date, fileIds: string[], googleAccountIds: string[]) {
   const time = roundedTime(ACTIVITY_GRANULARITY, ts);
@@ -152,12 +152,12 @@ async function fetchActivityLoop() {
       await featureFlagChanged();
     }
 
-    await Locks.withLock('drive-activity', async (lock) => {
+    await withLock('drive-activity', async (renew) => {
       // Ensure that we continue to hold the lock as long as we're alive.
-      let renew;
+      let renewInterval;
       try {
-        renew = Meteor.setInterval(async () => {
-          await Locks.renew(lock);
+        renewInterval = Meteor.setInterval(async () => {
+          await renew();
         }, PREEMPT_TIMEOUT / 2);
 
         // As long as we are alive and the feature flag is not active, hold the
@@ -175,8 +175,8 @@ async function fetchActivityLoop() {
           });
         }
       } finally {
-        if (renew) {
-          Meteor.clearInterval(renew);
+        if (renewInterval) {
+          Meteor.clearInterval(renewInterval);
         }
       }
     });

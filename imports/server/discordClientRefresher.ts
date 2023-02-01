@@ -5,8 +5,8 @@ import DiscordCache from '../lib/models/DiscordCache';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import type { SettingType } from '../lib/models/Settings';
 import Settings from '../lib/models/Settings';
-import Locks, { PREEMPT_TIMEOUT } from './models/Locks';
 import onExit from './onExit';
+import withLock, { PREEMPT_TIMEOUT } from './withLock';
 
 type DiscordEventsWithArguments<Args> = {
   [K in keyof Discord.ClientEvents]-?: Discord.ClientEvents[K] extends Args ? K : never;
@@ -84,7 +84,7 @@ class DiscordClientRefresher {
       this.client = client;
 
       Meteor.defer(() => {
-        void Locks.withLock('discord-bot', async (lock) => {
+        void withLock('discord-bot', async (renew) => {
           // The token gets set to null when the gateway is destroyed. If it's
           // been destroyed, bail, since that means that the config changed and
           // another defer function will have been scheduled
@@ -94,9 +94,9 @@ class DiscordClientRefresher {
 
           // Start renewing the lock now in the background (remember -
           // "background" includes blocking on awaited promises)
-          const renew = Meteor.setInterval(async () => {
+          const renewInterval = Meteor.setInterval(async () => {
             try {
-              await Locks.renew(lock);
+              await renew();
             } catch {
               // we must have lost the lock
               this.refreshClient();
@@ -155,7 +155,7 @@ class DiscordClientRefresher {
               this.refreshClient();
             }
           } finally {
-            Meteor.clearInterval(renew);
+            Meteor.clearInterval(renewInterval);
           }
         });
       });

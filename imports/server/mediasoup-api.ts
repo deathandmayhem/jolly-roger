@@ -23,7 +23,7 @@ import Transports from '../lib/models/mediasoup/Transports';
 import { checkAdmin, userMayJoinCallsForHunt } from '../lib/permission_stubs';
 import { registerPeriodicCleanupHook, serverId } from './garbage-collection';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
-import Locks from './models/Locks';
+import withLock from './withLock';
 
 registerPeriodicCleanupHook(async (deadServers) => {
   await Peers.removeAsync({ createdServer: { $in: deadServers } });
@@ -33,7 +33,7 @@ registerPeriodicCleanupHook(async (deadServers) => {
   // see a consistent view (and everyone else does too), then check if there
   // are still peers joined to this room
   for await (const room of Rooms.find({ routedServer: { $in: deadServers } })) {
-    await Locks.withLock(`mediasoup:room:${room.call}`, async () => {
+    await withLock(`mediasoup:room:${room.call}`, async () => {
       const removed = !!await Rooms.removeAsync(room._id);
       if (!removed) {
         return;
@@ -124,7 +124,7 @@ Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
   }
 
   let peerId: string;
-  await Locks.withLock(`mediasoup:room:${call}`, async () => {
+  await withLock(`mediasoup:room:${call}`, async () => {
     if (!await Rooms.findOneAsync({ call })) {
       await Rooms.insertAsync({
         hunt,
@@ -199,7 +199,7 @@ Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
       call,
     });
 
-    await Locks.withLock(`mediasoup:room:${call}`, async () => {
+    await withLock(`mediasoup:room:${call}`, async () => {
       await Peers.removeAsync(peerId);
 
       // If the room is empty, remove it.
