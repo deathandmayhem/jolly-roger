@@ -10,19 +10,25 @@ const TagCleanupHooks: Hookset = {
 
     // If a puzzle is now fully solved, remove any `needs:*` tags from it.
     const solvedness = computeSolvedness(puzzle);
-    if (solvedness === 'solved') {
-      const tags = await Tags.find({ _id: { $in: puzzle.tags } }).fetchAsync();
-
-      const needsTags = tags.filter((tag) => tag.name.startsWith('needs:'));
-      const needsTagsIds = needsTags.map((tag) => tag._id);
-      await Puzzles.updateAsync({
-        _id: puzzleId,
-      }, {
-        $pullAll: {
-          tags: needsTagsIds,
-        },
-      });
+    if (solvedness !== 'solved') {
+      return;
     }
+
+    const tags = await Tags.find({ _id: { $in: puzzle.tags } }).fetchAsync();
+
+    const needsTags = tags.filter((tag) => tag.name.startsWith('needs:'));
+    if (needsTags.length === 0) {
+      return;
+    }
+
+    const needsTagsIds = needsTags.map((tag) => tag._id);
+    await Puzzles.updateAsync({
+      _id: puzzleId,
+    }, {
+      $pullAll: {
+        tags: needsTagsIds,
+      },
+    });
   },
 };
 
