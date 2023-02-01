@@ -1,14 +1,13 @@
+import type { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import type * as t from 'io-ts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
-import type { UserCodec } from '../../lib/schemas/User';
 import Migrations from './Migrations';
 
 // Since the profiles model has been removed, we need to make our own collection
 // for this migration.
 const Profiles = new Mongo.Collection<
   { _id: string } &
-  Pick<t.TypeOf<typeof UserCodec>,
+  Pick<Meteor.User,
     'displayName' |
     'googleAccount' |
     'discordAccount' |

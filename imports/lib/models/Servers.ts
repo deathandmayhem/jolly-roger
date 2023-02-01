@@ -1,6 +1,8 @@
-import { Mongo } from 'meteor/mongo';
-import type { ServerType } from '../schemas/Server';
+import Server from '../schemas/Server';
+import type { ModelType } from './Model';
+import Model from './Model';
 
-const Servers = new Mongo.Collection<ServerType>('jr_servers');
+const Servers = new Model('jr_servers', Server);
+export type ServerType = ModelType<typeof Servers>;
 
 export default Servers;

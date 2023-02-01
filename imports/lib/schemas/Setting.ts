@@ -1,92 +1,67 @@
-import * as t from 'io-ts';
-import { BaseCodec, BaseOverrides } from './Base';
-import { inheritSchema, buildSchema } from './typedSchemas';
+import { z } from 'zod';
+import { nonEmptyString } from './customTypes';
+import withCommon from './withCommon';
 
-// We can't represent tagged unions in SimpleSchema, so we use different types
-// for the actual type vs. the type used to derive the schema.
-const GuildType = t.type({
-  id: t.string,
-  name: t.string,
+const SettingDiscriminatedUnion = z.discriminatedUnion('name', [
+  z.object({
+    name: z.literal('gdrive.credential'),
+    value: z.object({
+      refreshToken: nonEmptyString,
+      email: nonEmptyString,
+    }),
+  }),
+  z.object({
+    name: z.literal('gdrive.root'),
+    value: z.object({ id: nonEmptyString }),
+  }),
+  z.object({
+    name: z.literal('gdrive.template.document'),
+    value: z.object({ id: nonEmptyString }),
+  }),
+  z.object({
+    name: z.literal('gdrive.template.spreadsheet'),
+    value: z.object({ id: nonEmptyString }),
+  }),
+  z.object({
+    name: z.literal('discord.bot'),
+    value: z.object({ token: nonEmptyString }),
+  }),
+  z.object({
+    name: z.literal('discord.guild'),
+    value: z.object({
+      guild: z.object({ id: nonEmptyString, name: nonEmptyString }),
+    }),
+  }),
+  z.object({
+    name: z.literal('email.branding'),
+    value: z.object({
+      from: nonEmptyString.optional(),
+      enrollAccountMessageSubjectTemplate: nonEmptyString.optional(),
+      enrollAccountMessageTemplate: nonEmptyString.optional(),
+      existingJoinMessageSubjectTemplate: nonEmptyString.optional(),
+      existingJoinMessageTemplate: nonEmptyString.optional(),
+    }),
+  }),
+  z.object({
+    name: z.literal('teamname'),
+    value: z.object({ teamName: nonEmptyString }),
+  }),
+  z.object({
+    name: z.literal('google.script'),
+    value: z.object({
+      sharedSecret: nonEmptyString,
+      scriptId: nonEmptyString,
+      contentHash: nonEmptyString,
+      endpointUrl: nonEmptyString.optional(),
+    }),
+  }),
+]);
+
+const Setting = withCommon(SettingDiscriminatedUnion);
+
+export const SettingNames = SettingDiscriminatedUnion.options.map((option) => {
+  return option.shape.name.value;
 });
-const SettingCodecTaggedUnion = t.union([
-  t.type({
-    name: t.literal('gdrive.credential'),
-    value: t.type({
-      refreshToken: t.string,
-      email: t.string,
-    }),
-  }),
-  t.type({
-    name: t.literal('gdrive.root'),
-    value: t.type({ id: t.string }),
-  }),
-  t.type({
-    name: t.literal('gdrive.template.document'),
-    value: t.type({ id: t.string }),
-  }),
-  t.type({
-    name: t.literal('gdrive.template.spreadsheet'),
-    value: t.type({ id: t.string }),
-  }),
-  t.type({
-    name: t.literal('discord.bot'),
-    value: t.type({
-      token: t.string,
-    }),
-  }),
-  t.type({
-    name: t.literal('discord.guild'),
-    value: t.type({
-      guild: GuildType,
-    }),
-  }),
-  t.type({
-    name: t.literal('email.branding'),
-    value: t.type({
-      from: t.union([t.string, t.undefined]),
-      enrollAccountMessageSubjectTemplate: t.union([t.string, t.undefined]),
-      enrollAccountMessageTemplate: t.union([t.string, t.undefined]),
-      existingJoinMessageSubjectTemplate: t.union([t.string, t.undefined]),
-      existingJoinMessageTemplate: t.union([t.string, t.undefined]),
-    }),
-  }),
-  t.type({
-    name: t.literal('teamname'),
-    value: t.type({
-      teamName: t.string,
-    }),
-  }),
-  t.type({
-    name: t.literal('google.script'),
-    value: t.type({
-      sharedSecret: t.string,
-      scriptId: t.string,
-      contentHash: t.string,
-      endpointUrl: t.union([t.undefined, t.string]),
-    }),
-  }),
-]);
-export const SettingCodec = t.intersection([
-  BaseCodec,
-  SettingCodecTaggedUnion,
-]);
-export type SettingType = t.TypeOf<typeof SettingCodec>;
-
-export const SettingNames = SettingCodecTaggedUnion.types.map((type) => type.props.name.value);
 export type SettingNameType = typeof SettingNames[number];
-
-const SettingFields = t.type({
-  name: t.string,
-  value: t.UnknownRecord,
-});
-
-const [SettingSchemaCodec, SettingOverrides] = inheritSchema(
-  BaseCodec,
-  SettingFields,
-  BaseOverrides,
-  {},
-);
-
-const Setting = buildSchema(SettingSchemaCodec, SettingOverrides);
 
 export default Setting;

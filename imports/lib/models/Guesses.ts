@@ -1,6 +1,8 @@
-import type { GuessType } from '../schemas/Guess';
-import Base from './Base';
+import Guess from '../schemas/Guess';
+import type { ModelType } from './Model';
+import SoftDeletedModel from './SoftDeletedModel';
 
-const Guesses = new Base<GuessType>('guesses');
+const Guesses = new SoftDeletedModel('jr_guesses', Guess);
+export type GuessType = ModelType<typeof Guesses>;
 
 export default Guesses;

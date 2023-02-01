@@ -1,10 +1,10 @@
 import { GLOBAL_SCOPE } from '../../lib/isAdmin';
 import Guesses from '../../lib/models/Guesses';
+import type { GuessType } from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import pendingGuessesForSelf from '../../lib/publications/pendingGuessesForSelf';
-import type { GuessType } from '../../lib/schemas/Guess';
 import type { SubSubscription } from '../PublicationMerger';
 import PublicationMerger from '../PublicationMerger';
 import type { PublishSpec } from '../publishJoinedQuery';

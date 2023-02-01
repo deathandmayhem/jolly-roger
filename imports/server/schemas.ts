@@ -1,20 +1,14 @@
 import { Meteor } from 'meteor/meteor';
+import { Promise as MeteorPromise } from 'meteor/promise';
 import Announcements from '../lib/models/Announcements';
 import BlobMappings from '../lib/models/BlobMappings';
-import ChatMessages from '../lib/models/ChatMessages';
-import ChatNotifications from '../lib/models/ChatNotifications';
 import DiscordCache from '../lib/models/DiscordCache';
 import DiscordRoleGrants from '../lib/models/DiscordRoleGrants';
-import DocumentActivities from '../lib/models/DocumentActivities';
-import Documents from '../lib/models/Documents';
-import FeatureFlags from '../lib/models/FeatureFlags';
 import FolderPermissions from '../lib/models/FolderPermissions';
-import Guesses from '../lib/models/Guesses';
 import Hunts from '../lib/models/Hunts';
+import { AllModels } from '../lib/models/Model';
 import PendingAnnouncements from '../lib/models/PendingAnnouncements';
 import Puzzles from '../lib/models/Puzzles';
-import Servers from '../lib/models/Servers';
-import Settings from '../lib/models/Settings';
 import Tags from '../lib/models/Tags';
 import CallHistories from '../lib/models/mediasoup/CallHistories';
 import ConnectAcks from '../lib/models/mediasoup/ConnectAcks';
@@ -32,20 +26,12 @@ import TransportStates from '../lib/models/mediasoup/TransportStates';
 import Transports from '../lib/models/mediasoup/Transports';
 import Announcement from '../lib/schemas/Announcement';
 import BlobMapping from '../lib/schemas/BlobMapping';
-import ChatMessage from '../lib/schemas/ChatMessage';
-import ChatNotification from '../lib/schemas/ChatNotification';
 import DiscordCacheSchema from '../lib/schemas/DiscordCache';
 import DiscordRoleGrant from '../lib/schemas/DiscordRoleGrant';
-import DocumentSchema from '../lib/schemas/Document';
-import DocumentActivity from '../lib/schemas/DocumentActivity';
-import FeatureFlag from '../lib/schemas/FeatureFlag';
 import FolderPermission from '../lib/schemas/FolderPermission';
-import Guess from '../lib/schemas/Guess';
 import Hunt from '../lib/schemas/Hunt';
 import PendingAnnouncement from '../lib/schemas/PendingAnnouncement';
 import Puzzle from '../lib/schemas/Puzzle';
-import Server from '../lib/schemas/Server';
-import Setting from '../lib/schemas/Setting';
 import Tag from '../lib/schemas/Tag';
 import User from '../lib/schemas/User';
 import CallHistory from '../lib/schemas/mediasoup/CallHistory';
@@ -62,6 +48,7 @@ import Router from '../lib/schemas/mediasoup/Router';
 import Transport from '../lib/schemas/mediasoup/Transport';
 import TransportRequest from '../lib/schemas/mediasoup/TransportRequest';
 import TransportState from '../lib/schemas/mediasoup/TransportState';
+import attachSchema from './attachSchema';
 import APIKeys from './models/APIKeys';
 import Blobs from './models/Blobs';
 import CallActivities from './models/CallActivities';
@@ -81,21 +68,12 @@ import UploadToken from './schemas/UploadToken';
 
 Announcements.attachSchema(Announcement);
 BlobMappings.attachSchema(BlobMapping);
-ChatMessages.attachSchema(ChatMessage);
-ChatNotifications.attachSchema(ChatNotification);
 DiscordCache.attachSchema(DiscordCacheSchema);
 DiscordRoleGrants.attachSchema(DiscordRoleGrant);
-DocumentActivities.attachSchema(DocumentActivity);
-Documents.attachSchema(DocumentSchema);
-FeatureFlags.attachSchema(FeatureFlag);
 FolderPermissions.attachSchema(FolderPermission);
-Guesses.attachSchema(Guess);
 Hunts.attachSchema(Hunt);
-Meteor.users.attachSchema(User);
 PendingAnnouncements.attachSchema(PendingAnnouncement);
 Puzzles.attachSchema(Puzzle);
-Servers.attachSchema(Server);
-Settings.attachSchema(Setting);
 Tags.attachSchema(Tag);
 CallHistories.attachSchema(CallHistory);
 ConnectAcks.attachSchema(ConnectAck);
@@ -119,3 +97,20 @@ HuntFolders.attachSchema(HuntFolder);
 Locks.attachSchema(Lock);
 Subscribers.attachSchema(Subscriber);
 UploadTokens.attachSchema(UploadToken);
+
+Meteor.startup(() => {
+  // We want this to be synchronous, so that if it fails we crash the
+  // application (better than having no schema in place). We should be able to
+  // eliminate this if Meteor backports support for async startup functions (as
+  // requested in https://github.com/meteor/meteor/discussions/12468)
+  MeteorPromise.await((async () => {
+    for (const model of AllModels.values()) {
+      await attachSchema(model.schema, model.collection);
+    }
+    // Note: this will fail type checking if our schema for User gets out of sync
+    // with the type declaration for Meteor.User. (This could happen if we change
+    // our extensions to Meteor.User in imports/lib/schemas/User.ts but is more
+    // likely to happen if Meteor upstream changes their type declaration.)
+    await attachSchema(User, Meteor.users);
+  })());
+});

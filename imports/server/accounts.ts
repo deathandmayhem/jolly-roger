@@ -4,8 +4,8 @@ import Mustache from 'mustache';
 import Logger from '../Logger';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
+import type { SettingType } from '../lib/models/Settings';
 import Settings from '../lib/models/Settings';
-import type { SettingType } from '../lib/schemas/Setting';
 
 type LoginInfo = {
   type: string,

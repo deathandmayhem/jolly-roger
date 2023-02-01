@@ -33,10 +33,10 @@ definePublication(puzzleForPuzzlePage, {
 
     publishCursor(
       merger.newSub(),
-      Documents._name,
+      Documents.name,
       Documents.find({ hunt: huntId, puzzle: puzzleId })
     );
-    publishCursor(merger.newSub(), Guesses._name, Guesses.find({ hunt: huntId, puzzle: puzzleId }));
+    publishCursor(merger.newSub(), Guesses.name, Guesses.find({ hunt: huntId, puzzle: puzzleId }));
     publishCursor(merger.newSub(), Tags._name, Tags.find({ hunt: huntId }));
     publishCursor(merger.newSub(), Puzzles._name, Puzzles.find({ hunt: huntId }));
 

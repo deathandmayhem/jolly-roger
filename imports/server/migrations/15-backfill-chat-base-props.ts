@@ -1,7 +1,6 @@
 import ChatMessages from '../../lib/models/ChatMessages';
 import Puzzles from '../../lib/models/Puzzles';
 import Migrations from './Migrations';
-import dropIndex from './dropIndex';
 
 Migrations.add({
   version: 15,
@@ -38,7 +37,7 @@ Migrations.add({
       });
     }
 
-    await dropIndex(ChatMessages, 'puzzleId_1_timestamp_-1');
+    await ChatMessages.dropIndexAsync('puzzleId_1_timestamp_-1');
     await ChatMessages.createIndexAsync({ deleted: 1, puzzle: 1 });
   },
 });

@@ -3,8 +3,8 @@ import Discord from 'discord.js';
 import Flags from '../Flags';
 import DiscordCache from '../lib/models/DiscordCache';
 import MeteorUsers from '../lib/models/MeteorUsers';
+import type { SettingType } from '../lib/models/Settings';
 import Settings from '../lib/models/Settings';
-import type { SettingType } from '../lib/schemas/Setting';
 import Locks, { PREEMPT_TIMEOUT } from './models/Locks';
 import onExit from './onExit';
 

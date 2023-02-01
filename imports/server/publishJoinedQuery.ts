@@ -2,20 +2,10 @@
 import { isDeepStrictEqual } from 'util';
 import type { Subscription } from 'meteor/meteor';
 import { Meteor } from 'meteor/meteor';
-import type { Mongo } from 'meteor/mongo';
-import type { Document } from 'mongodb';
-
-declare module 'meteor/mongo' {
-
-  namespace Mongo {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface Collection<T> {
-      // We can get this property from tableName on our models, but we need this
-      // for models that don't descend from Base, like Meteor.users
-      _name: string;
-    }
-  }
-}
+import { Mongo } from 'meteor/mongo';
+import type { z } from 'zod';
+import type Model from '../lib/models/Model';
+import type { MongoRecordZodType } from '../lib/schemas/generateJsonSchema';
 
 type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 
@@ -27,7 +17,7 @@ type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 // effectively building the tree in the generic parameters. I'm not entirely
 // sure how to actually do that.
 export type PublishSpec<T extends { _id: string }> = {
-  model: Mongo.Collection<T>,
+  model: Mongo.Collection<T> | Model<z.ZodType<T, any, any> & MongoRecordZodType>,
   allowDeleted?: boolean,
   projection?: Projection<T>,
   foreignKeys?: {
@@ -35,6 +25,10 @@ export type PublishSpec<T extends { _id: string }> = {
     join: PublishSpec<any>,
   }[];
   lingerTime?: number;
+}
+
+function modelName(model: Mongo.Collection<any> | Model<any>) {
+  return model instanceof Mongo.Collection ? model._name : model.name;
 }
 
 class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
@@ -85,9 +79,7 @@ class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
   }
 }
 
-const finder = <T extends Document>(
-  model: Mongo.Collection<T>, allowDeleted: boolean | undefined
-) => {
+const finder = (model: Mongo.Collection<any> | Model<any>, allowDeleted: boolean | undefined) => {
   return allowDeleted && 'findAllowingDeleted' in model && typeof model.findAllowingDeleted === 'function' ?
     model.findAllowingDeleted.bind(model) as typeof model.find :
     model.find.bind(model);
@@ -123,7 +115,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
 
     this.sub = sub;
     this.id = id;
-    this.modelName = model._name;
+    this.modelName = modelName(model);
     this.foreignKeys = foreignKeys;
     this.observers = observers;
 
@@ -142,7 +134,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             val = [val];
           }
 
-          const observer = this.observers.get(join.model._name)!;
+          const observer = this.observers.get(modelName(join.model))!;
           val.forEach((v) => observer.incref(v));
           fkValues.set(field, val);
         });
@@ -164,7 +156,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             val = [val];
           }
 
-          const observer = this.observers.get(join.model._name)!;
+          const observer = this.observers.get(modelName(join.model))!;
           val.forEach((v) => observer.incref(v));
         });
         this.sub.changed(this.modelName, id, fields);
@@ -180,7 +172,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
               return;
             }
 
-            const observer = this.observers.get(join.model._name)!;
+            const observer = this.observers.get(modelName(join.model))!;
             if (join.lingerTime !== undefined) {
               Meteor.setTimeout(() => {
                 val.forEach((v) => observer.decref(v));
@@ -215,7 +207,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             return;
           }
 
-          const observer = this.observers.get(join.model._name)!;
+          const observer = this.observers.get(modelName(join.model))!;
           val.forEach((v) => observer.decref(v));
         });
         this.values.delete(id);
@@ -234,7 +226,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
           return;
         }
 
-        const observer = this.observers.get(join.model._name)!;
+        const observer = this.observers.get(modelName(join.model))!;
         val.forEach((v) => observer.decref(v));
       });
     }
@@ -246,11 +238,11 @@ const validateSpec = (spec: PublishSpec<any>) => {
     model, allowDeleted, projection, foreignKeys,
   } = spec;
   if (projection && foreignKeys?.some(({ field }) => !projection[field])) {
-    throw new Error(`JoinPublisher: projection for model ${model._name} must include all foreign keys`);
+    throw new Error(`JoinPublisher: projection for model ${modelName(model)} must include all foreign keys`);
   }
 
   if (allowDeleted && !('findAllowingDeleted' in model)) {
-    throw new Error(`JoinPublisher: model ${model._name} does not support soft deletion`);
+    throw new Error(`JoinPublisher: model ${modelName(model)} does not support soft deletion`);
   }
 
   foreignKeys?.forEach(({ join }) => {
@@ -265,14 +257,14 @@ const addObservers = (
   projections: Map<string, Projection<any> | undefined> = new Map(),
 ) => {
   const { model, projection, foreignKeys } = spec;
-  if (projections.has(model._name) &&
-      !isDeepStrictEqual(projections.get(model._name), projection)) {
-    throw new Error(`JoinPublisher: different projections specified for same model ${model._name}`);
+  if (projections.has(modelName(model)) &&
+      !isDeepStrictEqual(projections.get(modelName(model)), projection)) {
+    throw new Error(`JoinPublisher: different projections specified for same model ${modelName(model)}`);
   }
-  projections.set(model._name, projection);
+  projections.set(modelName(model), projection);
 
-  if (!observers.has(model._name)) {
-    observers.set(model._name, new RefCountedJoinedObjectObserverMap(sub, spec, observers));
+  if (!observers.has(modelName(model))) {
+    observers.set(modelName(model), new RefCountedJoinedObjectObserverMap(sub, spec, observers));
   }
 
   foreignKeys?.forEach(({ join }) => {
@@ -292,7 +284,7 @@ export default function publishJoinedQuery<T extends { _id: string }>(
   sub.onStop(() => observers.forEach((v) => v.shutdown()));
 
   const { model, allowDeleted } = spec;
-  const { _name: name } = model;
+  const name = modelName(model);
 
   const observer = observers.get(name)!;
 

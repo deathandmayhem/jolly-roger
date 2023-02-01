@@ -1,12 +1,13 @@
-import * as t from 'io-ts';
+import { z } from 'zod';
+import { nonEmptyString } from './customTypes';
 
-const DiscordAccount = t.type({
-  id: t.string,
-  username: t.string,
-  discriminator: t.string,
-  avatar: t.union([t.string, t.undefined]),
+const DiscordAccount = z.object({
+  id: nonEmptyString,
+  username: nonEmptyString,
+  discriminator: nonEmptyString,
+  avatar: nonEmptyString.optional(),
 });
 
-export type DiscordAccountType = t.TypeOf<typeof DiscordAccount>;
+export type DiscordAccountType = z.output<typeof DiscordAccount>;
 
 export default DiscordAccount;
