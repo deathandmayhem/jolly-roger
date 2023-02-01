@@ -46,3 +46,4 @@ import './44-better-puzzle-activity';
 import './45-folder-permission-level';
 import './46-per-user-document-activity';
 import './47-discord-role-grant-indexes';
+import './48-make-puzzle-tags-unique';
