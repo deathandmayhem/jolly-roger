@@ -53,6 +53,8 @@ export const snowflake = z.string().regex(/^[0-9]+$/);
 export const uint8Array = z.instanceof(Uint8Array);
 attachCustomJsonSchema(uint8Array, { bsonType: 'binData' });
 
+export const portNumber = z.number().int().positive().lte(65535);
+
 export const deleted = z.boolean().default(false);
 
 export const createdTimestamp = z.date()

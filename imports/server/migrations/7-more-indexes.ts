@@ -3,7 +3,6 @@ import Guesses from '../../lib/models/Guesses';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Tags from '../../lib/models/Tags';
 import Migrations from './Migrations';
-import dropIndex from './dropIndex';
 
 Migrations.add({
   version: 7,
@@ -13,7 +12,7 @@ Migrations.add({
 
     await Tags.createIndexAsync({ deleted: 1, hunt: 1, name: 1 });
 
-    await dropIndex(Tags, 'deleted_1_hunt_1');
+    await Tags.dropIndexAsync('deleted_1_hunt_1');
 
     await Documents.createIndexAsync({ deleted: 1, puzzle: 1 });
 

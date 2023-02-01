@@ -1,6 +1,6 @@
 import { indexedById } from './listUtils';
-import type { PuzzleType } from './schemas/Puzzle';
-import type { TagType } from './schemas/Tag';
+import type { PuzzleType } from './models/Puzzles';
+import type { TagType } from './models/Tags';
 import { computeSolvedness } from './solvedness';
 
 interface PuzzleGroup {

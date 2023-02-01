@@ -8,8 +8,8 @@ Migrations.add({
     for await (const hunt of Hunts.find({})) {
       await Hunts.updateAsync(hunt._id, {
         $set: { hasGuessQueue: true },
-      }, <any>{
-        validate: false,
+      }, {
+        bypassSchema: true,
       });
     }
   },

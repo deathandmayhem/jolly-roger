@@ -27,12 +27,12 @@ import styled, { css } from 'styled-components';
 import { sortedBy } from '../../lib/listUtils';
 import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
+import type { PuzzleType } from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import puzzleActivityForHunt from '../../lib/publications/puzzleActivityForHunt';
 import puzzlesForPuzzleList from '../../lib/publications/puzzlesForPuzzleList';
 import { filteredPuzzleGroups, puzzleGroupsByRelevance } from '../../lib/puzzle-sort-and-group';
-import type { PuzzleType } from '../../lib/schemas/Puzzle';
 import { computeSolvedness } from '../../lib/solvedness';
 import createPuzzle from '../../methods/createPuzzle';
 import {

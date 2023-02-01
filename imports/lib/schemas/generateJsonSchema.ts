@@ -38,6 +38,7 @@ export interface JsonSchema {
   additionalItems?: boolean | JsonSchema;
   minItems?: number;
   maxItems?: number;
+  uniqueItems?: boolean;
 
   // object
   properties?: Record<string, JsonSchema>;
@@ -456,7 +457,7 @@ function defaultToSchema(
 //
 // To work around that, we need to detect if one side of an intersection is
 // object-like, and push the properties it allows into the other side.
-function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
+export function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
   schema: T,
   allowedKeys: Set<string> = new Set(),
   catchall = false,

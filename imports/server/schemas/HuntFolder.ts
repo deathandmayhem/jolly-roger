@@ -1,17 +1,9 @@
-import * as t from 'io-ts';
-import type { Overrides } from '../../lib/schemas/typedSchemas';
-import { buildSchema } from '../../lib/schemas/typedSchemas';
+import { z } from 'zod';
+import { nonEmptyString } from '../../lib/schemas/customTypes';
 
-export const HuntFolderCodec = t.type({
-  // Hunt ID
-  _id: t.string,
-  folder: t.string,
+// _id is Hunt ID
+export const HuntFolder = z.object({
+  folder: nonEmptyString,
 });
-
-export type HuntFolderType = t.TypeOf<typeof HuntFolderCodec>;
-
-const HuntFolderOverrides: Overrides<HuntFolderType> = {};
-
-const HuntFolder = buildSchema(HuntFolderCodec, HuntFolderOverrides);
 
 export default HuntFolder;

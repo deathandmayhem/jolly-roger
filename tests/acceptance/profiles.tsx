@@ -71,7 +71,7 @@ if (Meteor.isServer) {
       return arg;
     },
 
-    run({ name }) {
+    async run({ name }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, 'This code must not run in production');
       }
@@ -82,7 +82,7 @@ if (Meteor.isServer) {
         throw new Meteor.Error(500, 'No users found');
       }
 
-      return Hunts.insert({ name, hasGuessQueue: true, createdBy: u._id });
+      return Hunts.insertAsync({ name, hasGuessQueue: true, createdBy: u._id });
     },
   });
 

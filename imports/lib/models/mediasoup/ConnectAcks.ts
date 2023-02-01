@@ -1,6 +1,8 @@
-import type { ConnectAckType } from '../../schemas/mediasoup/ConnectAck';
-import Base from '../Base';
+import ConnectAck from '../../schemas/mediasoup/ConnectAck';
+import type { ModelType } from '../Model';
+import SoftDeletedModel from '../SoftDeletedModel';
 
-const ConnectAcks = new Base<ConnectAckType>('mediasoup_connect_acks');
+const ConnectAcks = new SoftDeletedModel('jr_mediasoup_connect_acks', ConnectAck);
+export type ConnectAckType = ModelType<typeof ConnectAcks>;
 
 export default ConnectAcks;

@@ -8,9 +8,9 @@ import {
   Outlet, useNavigate, useParams,
 } from 'react-router-dom';
 import Hunts from '../../lib/models/Hunts';
+import type { HuntType } from '../../lib/models/Hunts';
 import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import huntForHuntApp from '../../lib/publications/huntForHuntApp';
-import type { HuntType } from '../../lib/schemas/Hunt';
 import addHuntUser from '../../methods/addHuntUser';
 import undestroyHunt from '../../methods/undestroyHunt';
 import { useBreadcrumb } from '../hooks/breadcrumb';

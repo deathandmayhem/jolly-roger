@@ -1,26 +1,9 @@
-import * as t from 'io-ts';
-import { date } from 'io-ts-types';
-import type { Overrides } from '../../lib/schemas/typedSchemas';
-import { buildSchema } from '../../lib/schemas/typedSchemas';
+import { z } from 'zod';
 
 // DriveActivityLatest captures the most recent timestamp we've seen from the
 // Google Drive Activity API. It is a singleton collection, with _id "default"
-const DriveActivityLatestCodec = t.type({
-  _id: t.string,
-  ts: date,
+const DriveActivityLatest = z.object({
+  ts: z.date(),
 });
-
-export type DriveActivityLatestType = t.TypeOf<typeof DriveActivityLatestCodec>;
-
-const DriveActivityLatestOverrides: Overrides<DriveActivityLatestType> = {
-  _id: {
-    denyUpdate: true,
-  },
-};
-
-const DriveActivityLatest = buildSchema(
-  DriveActivityLatestCodec,
-  DriveActivityLatestOverrides,
-);
 
 export default DriveActivityLatest;

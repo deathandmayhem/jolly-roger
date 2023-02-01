@@ -1,4 +1,4 @@
-import type { PuzzleType } from './schemas/Puzzle';
+import type { PuzzleType } from './models/Puzzles';
 
 export type Solvedness = 'noAnswers' | 'solved' | 'unsolved';
 export const computeSolvedness = (puzzle: PuzzleType): Solvedness => {

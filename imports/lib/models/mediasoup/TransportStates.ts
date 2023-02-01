@@ -1,6 +1,8 @@
-import type { TransportStateType } from '../../schemas/mediasoup/TransportState';
-import Base from '../Base';
+import TransportState from '../../schemas/mediasoup/TransportState';
+import type { ModelType } from '../Model';
+import SoftDeletedModel from '../SoftDeletedModel';
 
-const TransportStates = new Base<TransportStateType>('mediasoup_transport_states');
+const TransportStates = new SoftDeletedModel('jr_mediasoup_transport_states', TransportState);
+export type TransportStateType = ModelType<typeof TransportStates>;
 
 export default TransportStates;

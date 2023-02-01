@@ -1,6 +1,8 @@
-import { Mongo } from 'meteor/mongo';
-import type { DiscordCacheType } from '../schemas/DiscordCache';
+import DiscordCacheSchema from '../schemas/DiscordCache';
+import type { ModelType } from './Model';
+import Model from './Model';
 
-const DiscordCache = new Mongo.Collection<DiscordCacheType>('discord_cache');
+const DiscordCache = new Model('discord_cache', DiscordCacheSchema);
+export type DiscordCacheType = ModelType<typeof DiscordCache>;
 
 export default DiscordCache;

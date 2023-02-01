@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import Logger from '../Logger';
 import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
+import type { LockType } from './models/Locks';
 import Locks from './models/Locks';
-import type { LockType } from './schemas/Lock';
 
 // 10 seconds
 export const PREEMPT_TIMEOUT = 10000;

@@ -16,9 +16,8 @@ Migrations.add({
           firehoseSlackChannel: '',
           puzzleHooksSlackChannel: '',
         },
-      }, <any>{
-        validate: false,
-        getAutoValues: false,
+      }, {
+        bypassSchema: true,
       });
     }
   },

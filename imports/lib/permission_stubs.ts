@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import isAdmin, { GLOBAL_SCOPE } from './isAdmin';
+import type { HuntType } from './models/Hunts';
 import MeteorUsers from './models/MeteorUsers';
-import type { HuntType } from './schemas/Hunt';
 
 function isOperatorForHunt(user: Meteor.User, hunt: HuntType): boolean {
   return user.roles?.[hunt._id]?.includes('operator') ?? false;

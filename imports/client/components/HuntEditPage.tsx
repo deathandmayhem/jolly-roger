@@ -22,8 +22,7 @@ import Settings from '../../lib/models/Settings';
 import discordChannelsForConfiguredGuild from '../../lib/publications/discordChannelsForConfiguredGuild';
 import discordRolesForConfiguredGuild from '../../lib/publications/discordRolesForConfiguredGuild';
 import settingsByName from '../../lib/publications/settingsByName';
-import type { BaseType } from '../../lib/schemas/Base';
-import type { HuntType, SavedDiscordObjectType } from '../../lib/schemas/Hunt';
+import type { EditableHuntType, SavedDiscordObjectType } from '../../lib/schemas/Hunt';
 import createHunt from '../../methods/createHunt';
 import updateHunt from '../../methods/updateHunt';
 import { useBreadcrumb } from '../hooks/breadcrumb';
@@ -36,8 +35,6 @@ enum SubmitState {
   SUCCESS = 'success',
   FAILED = 'failed',
 }
-
-type HuntSubmit = Omit<HuntType, keyof BaseType>;
 
 const splitLists = function (lists: string): string[] {
   const strippedLists = lists.trim();
@@ -278,7 +275,7 @@ const HuntEditPage = () => {
   const onFormSubmit = useCallback<NonNullable<FormProps['onSubmit']>>((e) => {
     e.preventDefault();
     setSubmitState(SubmitState.SUBMITTING);
-    const state: HuntSubmit = {
+    const state: EditableHuntType = {
       name,
       mailingLists: splitLists(mailingLists),
       signupMessage: signupMessage === '' ? undefined : signupMessage,

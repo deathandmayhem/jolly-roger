@@ -1,7 +1,7 @@
 import { assert } from 'chai';
+import type { PuzzleType } from '../../../../imports/lib/models/Puzzles';
+import type { TagType } from '../../../../imports/lib/models/Tags';
 import { puzzleInterestingness, puzzleGroupsByRelevance, filteredPuzzleGroups } from '../../../../imports/lib/puzzle-sort-and-group';
-import type { PuzzleType } from '../../../../imports/lib/schemas/Puzzle';
-import type { TagType } from '../../../../imports/lib/schemas/Tag';
 
 const hunt = 'hunt_id';
 const allTags: TagType[] = [];

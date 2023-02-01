@@ -1,7 +1,6 @@
-import type { BaseType } from '../lib/schemas/Base';
-import type { HuntType } from '../lib/schemas/Hunt';
+import type { EditableHuntType } from '../lib/schemas/Hunt';
 import TypedMethod from './TypedMethod';
 
-export default new TypedMethod<{ huntId: string, value: Omit<HuntType, keyof BaseType> }, void>(
+export default new TypedMethod<{ huntId: string, value: EditableHuntType }, void>(
   'Hunts.methods.update'
 );

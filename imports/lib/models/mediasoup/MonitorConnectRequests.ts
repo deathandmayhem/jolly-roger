@@ -1,7 +1,8 @@
-import { Mongo } from 'meteor/mongo';
-import type { MonitorConnectRequestType } from '../../schemas/mediasoup/MonitorConnectRequest';
-import MonitorConnectRequestSchema from '../../schemas/mediasoup/MonitorConnectRequest';
+import MonitorConnectRequest from '../../schemas/mediasoup/MonitorConnectRequest';
+import type { ModelType } from '../Model';
+import Model from '../Model';
 
-const MonitorConnectRequests = new Mongo.Collection<MonitorConnectRequestType>('jr_mediasoup_monitor_connect_requests');
-MonitorConnectRequests.attachSchema(MonitorConnectRequestSchema);
+const MonitorConnectRequests = new Model('jr_mediasoup_monitor_connect_requests', MonitorConnectRequest);
+export type MonitorConnectRequestType = ModelType<typeof MonitorConnectRequests>;
+
 export default MonitorConnectRequests;

@@ -1,6 +1,8 @@
-import type { HuntType } from '../schemas/Hunt';
-import Base from './Base';
+import Hunt from '../schemas/Hunt';
+import type { ModelType } from './Model';
+import SoftDeletedModel from './SoftDeletedModel';
 
-const Hunts = new Base<HuntType>('hunts');
+const Hunts = new SoftDeletedModel('jr_hunts', Hunt);
+export type HuntType = ModelType<typeof Hunts>;
 
 export default Hunts;

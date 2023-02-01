@@ -18,7 +18,7 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import styled from 'styled-components';
 import Flags from '../../Flags';
 import MeteorUsers from '../../lib/models/MeteorUsers';
-import type { PeerType } from '../../lib/schemas/mediasoup/Peer';
+import type { PeerType } from '../../lib/models/mediasoup/Peers';
 import mediasoupRemoteMutePeer from '../../methods/mediasoupRemoteMutePeer';
 import type { Action, CallState } from '../hooks/useCallState';
 import Avatar from './Avatar';

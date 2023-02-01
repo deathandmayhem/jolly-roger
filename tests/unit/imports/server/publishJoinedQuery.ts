@@ -1,9 +1,10 @@
 import { Meteor, Subscription } from 'meteor/meteor';
-import { Mongo, MongoInternals } from 'meteor/mongo';
+import { MongoInternals } from 'meteor/mongo';
 import { Random } from 'meteor/random';
 import { assert } from 'chai';
 import Guesses from '../../../../imports/lib/models/Guesses';
 import Hunts from '../../../../imports/lib/models/Hunts';
+import Model from '../../../../imports/lib/models/Model';
 import Puzzles from '../../../../imports/lib/models/Puzzles';
 import Tags from '../../../../imports/lib/models/Tags';
 import makeFixtureHunt from '../../../../imports/server/makeFixtureHunt';
@@ -71,9 +72,9 @@ class StubSubscription implements Subscription {
   }
 }
 
-const safeDrop = async (collection: Mongo.Collection<any>) => {
+const safeDrop = async (model: Model<any>) => {
   try {
-    await collection.dropCollectionAsync();
+    await model.collection.dropCollectionAsync();
   } catch (e) {
     if (!(e instanceof MongoError) || e.code !== 26) {
       throw e;
@@ -86,7 +87,7 @@ describe('publishJoinedQuery', function () {
     await Promise.all([
       safeDrop(Hunts),
       safeDrop(Puzzles),
-      safeDrop(Guesses.collection),
+      safeDrop(Guesses),
       safeDrop(Tags),
     ]);
     await makeFixtureHunt(Random.id());
@@ -109,12 +110,12 @@ describe('publishJoinedQuery', function () {
       }],
     }, { _id: guessId });
 
-    assert.sameMembers([...sub.data.keys()], [Puzzles._name, Guesses.name]);
+    assert.sameMembers([...sub.data.keys()], [Puzzles.name, Guesses.name]);
 
     const guessCollection = sub.data.get(Guesses.name)!;
     assert.sameMembers([...guessCollection.keys()], [guessId]);
 
-    const puzzleCollection = sub.data.get(Puzzles._name)!;
+    const puzzleCollection = sub.data.get(Puzzles.name)!;
     assert.sameMembers([...puzzleCollection.keys()], [puzzleId]);
   });
 
@@ -135,12 +136,12 @@ describe('publishJoinedQuery', function () {
       }],
     }, { _id: puzzleId });
 
-    assert.sameMembers([...sub.data.keys()], [Puzzles._name, Tags._name]);
+    assert.sameMembers([...sub.data.keys()], [Puzzles.name, Tags.name]);
 
-    const puzzleCollection = sub.data.get(Puzzles._name)!;
+    const puzzleCollection = sub.data.get(Puzzles.name)!;
     assert.sameMembers([...puzzleCollection.keys()], [puzzleId]);
 
-    const tagCollection = sub.data.get(Tags._name)!;
+    const tagCollection = sub.data.get(Tags.name)!;
     assert.sameMembers([...tagCollection.keys()], tagIds);
   });
 
@@ -181,12 +182,12 @@ describe('publishJoinedQuery', function () {
     await updatePropagated;
     await new Promise<void>((r) => { Meteor.defer(r); });
 
-    assert.sameMembers([...sub.data.keys()], [Puzzles._name, Tags._name]);
+    assert.sameMembers([...sub.data.keys()], [Puzzles.name, Tags.name]);
 
-    const puzzleCollection = sub.data.get(Puzzles._name)!;
+    const puzzleCollection = sub.data.get(Puzzles.name)!;
     assert.sameMembers([...puzzleCollection.keys()], [puzzleId]);
 
-    const tagCollection = sub.data.get(Tags._name)!;
+    const tagCollection = sub.data.get(Tags.name)!;
     assert.sameMembers([...tagCollection.keys()], newTagIds);
   });
 });

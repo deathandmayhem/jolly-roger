@@ -24,9 +24,7 @@ Migrations.add({
       });
       await MeteorUsers.updateAsync(u._id, {
         $unset: { profile: 1 },
-      }, {
-        validate: false, clean: false,
-      } as any);
+      });
     }
 
     // Fix indexes
