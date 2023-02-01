@@ -50,6 +50,7 @@ import './sendChatMessageV2';
 import './setFeatureFlag';
 import './setGuessState';
 import './syncHuntDiscordRole';
+import './undestroyHunt';
 import './undestroyPuzzle';
 import './unlinkUserDiscordAccount';
 import './unlinkUserGoogleAccount';
