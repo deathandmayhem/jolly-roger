@@ -30,3 +30,5 @@ import './acceptance/authentication';
 import './acceptance/chatHooks';
 import './acceptance/profiles';
 import './acceptance/smoke';
+import './acceptance/methods/provisionFirstUser';
+import './acceptance/methods/hunts';
