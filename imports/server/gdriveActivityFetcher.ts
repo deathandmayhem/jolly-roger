@@ -184,5 +184,10 @@ async function fetchActivityLoop() {
 }
 
 Meteor.startup(() => {
+  if (Meteor.isTest || Meteor.isAppTest) {
+    // We'll need to reevaluate this if we want to write tests for this code,
+    // but this will do for now
+    return;
+  }
   void fetchActivityLoop();
 });
