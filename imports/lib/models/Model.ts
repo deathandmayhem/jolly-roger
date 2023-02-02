@@ -228,10 +228,13 @@ export async function parseMongoModifierAsync<Schema extends MongoRecordZodType>
     }
   }
 
-  // de-conflict $set and $setOnInsert
-  if ('$set' in parsed && '$setOnInsert' in parsed) {
-    for (const key of Object.keys(parsed.$setOnInsert)) {
-      if (key in parsed.$set) {
+  // de-conflict $setOnInsert with other operators
+  for (const key of Object.keys(parsed.$setOnInsert)) {
+    for (const operator of Object.keys(parsed)) {
+      if (operator === '$setOnInsert') {
+        continue;
+      }
+      if (key in parsed[operator]) {
         delete parsed.$setOnInsert[key];
       }
     }
