@@ -1,6 +1,16 @@
-import TransportRequest from '../../schemas/mediasoup/TransportRequest';
+import { z } from 'zod';
 import type { ModelType } from '../Model';
 import SoftDeletedModel from '../SoftDeletedModel';
+import { foreignKey, nonEmptyString } from '../customTypes';
+import withCommon from '../withCommon';
+
+const TransportRequest = withCommon(z.object({
+  createdServer: foreignKey,
+  routedServer: foreignKey,
+  call: foreignKey,
+  peer: foreignKey,
+  rtpCapabilities: nonEmptyString, // JSON-encoded
+}));
 
 const TransportRequests = new SoftDeletedModel('jr_mediasoup_transport_requests', TransportRequest);
 export type TransportRequestType = ModelType<typeof TransportRequests>;

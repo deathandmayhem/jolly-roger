@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import validateSchema from '../models/validateSchema';
 import type { DiscordAccountType } from './DiscordAccount';
 import DiscordAccount from './DiscordAccount';
 import { foreignKey, nonEmptyString, stringId } from './customTypes';
+import validateSchema from './validateSchema';
 
 declare module 'meteor/meteor' {
   namespace Meteor {

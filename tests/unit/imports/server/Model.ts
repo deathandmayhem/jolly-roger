@@ -13,8 +13,8 @@ import {
   setClock,
   stringId,
   updatedTimestamp,
-} from '../../../../imports/lib/schemas/customTypes';
-import { MongoRecordZodType } from '../../../../imports/lib/schemas/generateJsonSchema';
+} from '../../../../imports/lib/models/customTypes';
+import { MongoRecordZodType } from '../../../../imports/lib/models/generateJsonSchema';
 import attachSchema from '../../../../imports/server/attachSchema';
 import AssertTypesEqual from '../../../lib/AssertTypesEqual';
 

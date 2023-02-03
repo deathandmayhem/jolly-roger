@@ -1,4 +1,4 @@
-import type { ChatMessageContentNodeType, ChatMessageMentionNodeType } from './schemas/ChatMessage';
+import type { ChatMessageContentNodeType, ChatMessageMentionNodeType } from './models/ChatMessages';
 
 export default function nodeIsMention(
   node: ChatMessageContentNodeType

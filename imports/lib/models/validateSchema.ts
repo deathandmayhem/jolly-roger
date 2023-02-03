@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { allowedEmptyString } from '../schemas/customTypes';
+import { allowedEmptyString } from './customTypes';
 
 export default function validateSchema<
   T extends z.ZodFirstPartySchemaTypes

@@ -1,9 +1,8 @@
 import { check, Match } from 'meteor/check';
 import isAdmin from '../../lib/isAdmin';
 import MeteorUsers from '../../lib/models/MeteorUsers';
-import Settings from '../../lib/models/Settings';
+import Settings, { SettingNames } from '../../lib/models/Settings';
 import settingsByName from '../../lib/publications/settingsByName';
-import { SettingNames } from '../../lib/schemas/Setting';
 import definePublication from './definePublication';
 
 definePublication(settingsByName, {

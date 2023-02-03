@@ -17,12 +17,10 @@ declare global {
 }
 
 window.loadFacades = async () => {
-  const [models, schemas, tracing] = await Promise.all([
+  const [models, tracing] = await Promise.all([
     import('../imports/lib/models/facade'),
-    import('../imports/lib/schemas/facade'),
     import('../imports/client/tracing'),
   ]);
   Object.defineProperty(window, 'Models', { value: models.default });
-  Object.defineProperty(window, 'Schemas', { value: schemas.default });
   Object.defineProperty(window, 'Tracing', { value: tracing });
 };

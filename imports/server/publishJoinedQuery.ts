@@ -5,7 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import type { z } from 'zod';
 import type Model from '../lib/models/Model';
-import type { MongoRecordZodType } from '../lib/schemas/generateJsonSchema';
+import type { MongoRecordZodType } from '../lib/models/generateJsonSchema';
 
 type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 
