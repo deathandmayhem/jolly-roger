@@ -130,8 +130,9 @@ class DiscordClientRefresher {
                 $set: {
                   'discordAccount.username': u.username,
                   'discordAccount.discriminator': u.discriminator,
-                  'discordAccount.avatar': u.avatar,
+                  ...u.avatar ? { 'discordAccount.avatar': u.avatar } : {},
                 },
+                ...u.avatar ? {} : { $unset: { 'discordAccount.avatar': 1 } },
               }, {
                 multi: true,
               });

@@ -37,7 +37,7 @@ class DiscordAPIClient {
       id: data.id,
       username: data.username,
       discriminator: data.discriminator,
-      avatar: data.avatar,
+      avatar: data.avatar ?? undefined,
     };
   };
 }
