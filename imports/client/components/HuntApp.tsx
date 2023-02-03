@@ -8,10 +8,11 @@ import {
   Outlet, useNavigate, useParams,
 } from 'react-router-dom';
 import Hunts from '../../lib/models/Hunts';
+import type { HuntType } from '../../lib/models/Hunts';
 import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import huntForHuntApp from '../../lib/publications/huntForHuntApp';
-import type { HuntType } from '../../lib/schemas/Hunt';
 import addHuntUser from '../../methods/addHuntUser';
+import undestroyHunt from '../../methods/undestroyHunt';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import useTypedSubscribe from '../hooks/useTypedSubscribe';
@@ -22,7 +23,7 @@ const HuntDeletedError = React.memo(({ hunt, canUndestroy }: {
   canUndestroy: boolean;
 }) => {
   const undestroy = useCallback(() => {
-    Hunts.undestroy(hunt._id);
+    undestroyHunt.call({ huntId: hunt._id });
   }, [hunt._id]);
 
   const undestroyButton = useMemo(() => {

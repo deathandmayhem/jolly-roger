@@ -1,5 +1,6 @@
 import { Mongo } from 'meteor/mongo';
 import { z } from 'zod';
+import type { stringId } from '../schemas/customTypes';
 import { deleted } from '../schemas/customTypes';
 import type { MongoRecordZodType } from '../schemas/generateJsonSchema';
 import type { ModelType, Selector, SelectorToResultType } from './Model';
@@ -54,18 +55,22 @@ const injectOptions = <Opts extends Mongo.Options<any>>(
   return options;
 };
 
-class SoftDeletedModel<Schema extends MongoRecordZodType>
-  extends Model<
+class SoftDeletedModel<
+  Schema extends MongoRecordZodType,
+  IdSchema extends z.ZodTypeAny = typeof stringId
+> extends Model<
     Schema extends z.ZodObject<infer Shape, infer UnknownKeys, infer Catchall> ?
       z.ZodObject<z.extendShape<Shape, { deleted: typeof deleted }>, UnknownKeys, Catchall> :
-      z.ZodIntersection<Schema, z.ZodObject<{ deleted: typeof deleted }>>
+      z.ZodIntersection<Schema, z.ZodObject<{ deleted: typeof deleted }>>,
+    IdSchema
   > {
-  constructor(name: string, schema: Schema) {
+  constructor(name: string, schema: Schema, idSchema?: IdSchema) {
     super(
       name,
       schema instanceof z.ZodObject ?
         schema.extend({ deleted }) :
         schema.and(z.object({ deleted })) as any,
+      idSchema,
     );
   }
 

@@ -18,9 +18,8 @@ Migrations.add({
           expectedAnswerCount: 1,
           answers,
         },
-      }, <any>{
-        validate: false,
-        getAutoValues: false,
+      }, {
+        bypassSchema: true,
       });
     }
   },

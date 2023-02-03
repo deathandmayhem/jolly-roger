@@ -9,9 +9,8 @@ Migrations.add({
       $unset: {
         answer: 1,
       },
-    }, <any>{
-      validate: false,
-      getAutoValues: false,
+    }, {
+      bypassSchema: true,
     });
   },
 });

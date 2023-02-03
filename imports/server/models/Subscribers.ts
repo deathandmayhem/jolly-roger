@@ -1,6 +1,8 @@
-import { Mongo } from 'meteor/mongo';
-import type { SubscriberType } from '../schemas/Subscriber';
+import type { ModelType } from '../../lib/models/Model';
+import Model from '../../lib/models/Model';
+import Subscriber from '../schemas/Subscriber';
 
-const Subscribers = new Mongo.Collection<SubscriberType>('jr_subscribers');
+const Subscribers = new Model('jr_subscribers', Subscriber);
+export type SubscriberType = ModelType<typeof Subscribers>;
 
 export default Subscribers;

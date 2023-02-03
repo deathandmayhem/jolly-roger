@@ -1,6 +1,8 @@
-import { Mongo } from 'meteor/mongo';
-import type { CallHistoryType } from '../../schemas/mediasoup/CallHistory';
+import CallHistory from '../../schemas/mediasoup/CallHistory';
+import type { ModelType } from '../Model';
+import Model from '../Model';
 
-const CallHistories = new Mongo.Collection<CallHistoryType>('jr_mediasoup_call_histories');
+const CallHistories = new Model('jr_mediasoup_call_histories', CallHistory);
+export type CallHistoryType = ModelType<typeof CallHistories>;
 
 export default CallHistories;

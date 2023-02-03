@@ -1,46 +1,15 @@
-import * as t from 'io-ts';
-import { Id } from '../regexes';
-import type { Overrides } from '../typedSchemas';
-import { buildSchema } from '../typedSchemas';
+import { z } from 'zod';
+import { foreignKey, nonEmptyString, portNumber } from '../customTypes';
 
-const MonitorConnectAckCodec = t.type({
-  _id: t.string,
-  initiatingServer: t.string,
-  receivingServer: t.string,
-  transportId: t.string,
-  ip: t.string,
-  port: t.number,
-  srtpParameters: t.union([t.undefined, t.string]), /* JSON-serialized if present */
+const MonitorConnectAck = z.object({
+  initiatingServer: foreignKey,
+  receivingServer: foreignKey,
+  transportId: z.string().uuid(),
+  // we could theoretically write a regex to validate IP addresses, but doing so
+  // and being v6-proof is a lot
+  ip: nonEmptyString,
+  port: portNumber,
+  srtpParameters: nonEmptyString.optional(), /* JSON-serialized if present */
 });
 
-export type MonitorConnectAckType = t.TypeOf<typeof MonitorConnectAckCodec>;
-
-const MonitorConnectAckOverrides: Overrides<MonitorConnectAckType> = {
-  _id: {
-    regEx: Id,
-    denyUpdate: true,
-  },
-  initiatingServer: {
-    regEx: Id,
-    denyUpdate: true,
-  },
-  receivingServer: {
-    regEx: Id,
-    denyUpdate: true,
-  },
-  transportId: {
-    regEx: /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
-    denyUpdate: true,
-  },
-  ip: {
-    denyUpdate: true,
-  },
-  port: {
-    denyUpdate: true,
-  },
-  srtpParameters: {
-    denyUpdate: true,
-  },
-};
-
-export default buildSchema(MonitorConnectAckCodec, MonitorConnectAckOverrides);
+export default MonitorConnectAck;

@@ -1,6 +1,8 @@
-import type { PendingAnnouncementType } from '../schemas/PendingAnnouncement';
-import Base from './Base';
+import PendingAnnouncement from '../schemas/PendingAnnouncement';
+import type { ModelType } from './Model';
+import SoftDeletedModel from './SoftDeletedModel';
 
-const PendingAnnouncements = new Base<PendingAnnouncementType>('pending_announcements');
+const PendingAnnouncements = new SoftDeletedModel('jr_pending_announcements', PendingAnnouncement);
+export type PendingAnnouncementType = ModelType<typeof PendingAnnouncements>;
 
 export default PendingAnnouncements;

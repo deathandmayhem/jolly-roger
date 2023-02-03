@@ -10,9 +10,7 @@ Migrations.add({
     for await (const u of MeteorUsers.find({ muteApplause: { $exists: true } })) {
       await MeteorUsers.updateAsync(u._id, {
         $unset: { muteApplause: 1 },
-      }, {
-        validate: false, clean: false,
-      } as any);
+      });
     }
   },
 });

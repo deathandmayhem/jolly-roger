@@ -1,6 +1,8 @@
-import type { DiscordRoleGrantType } from '../schemas/DiscordRoleGrant';
-import Base from './Base';
+import DiscordRoleGrant from '../schemas/DiscordRoleGrant';
+import type { ModelType } from './Model';
+import SoftDeletedModel from './SoftDeletedModel';
 
-const DiscordRoleGrants = new Base<DiscordRoleGrantType>('discord_role_grants');
+const DiscordRoleGrants = new SoftDeletedModel('jr_discord_role_grants', DiscordRoleGrant);
+export type DiscordRoleGrantType = ModelType<typeof DiscordRoleGrants>;
 
 export default DiscordRoleGrants;

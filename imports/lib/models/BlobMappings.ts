@@ -1,6 +1,9 @@
-import { Mongo } from 'meteor/mongo';
-import type { BlobMappingType } from '../schemas/BlobMapping';
+import BlobMapping from '../schemas/BlobMapping';
+import { nonEmptyString } from '../schemas/customTypes';
+import type { ModelType } from './Model';
+import Model from './Model';
 
-const BlobMappings = new Mongo.Collection<BlobMappingType>('jr_blob_mappings');
+const BlobMappings = new Model('jr_blob_mappings', BlobMapping, nonEmptyString);
+export type BlobMappingType = ModelType<typeof BlobMappings>;
 
 export default BlobMappings;

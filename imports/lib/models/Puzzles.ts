@@ -1,10 +1,8 @@
-import type { PuzzleType } from '../schemas/Puzzle';
-import Base from './Base';
+import Puzzle from '../schemas/Puzzle';
+import type { ModelType } from './Model';
+import SoftDeletedModel from './SoftDeletedModel';
 
-const Puzzles = new Base<PuzzleType>('puzzles', {
-  transform(doc: PuzzleType): PuzzleType {
-    return { ...doc, tags: [...new Set(doc.tags)] };
-  },
-});
+const Puzzles = new SoftDeletedModel('jr_puzzles', Puzzle);
+export type PuzzleType = ModelType<typeof Puzzles>;
 
 export default Puzzles;

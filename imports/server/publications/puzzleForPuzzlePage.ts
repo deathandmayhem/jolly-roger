@@ -37,8 +37,8 @@ definePublication(puzzleForPuzzlePage, {
       Documents.find({ hunt: huntId, puzzle: puzzleId })
     );
     publishCursor(merger.newSub(), Guesses.name, Guesses.find({ hunt: huntId, puzzle: puzzleId }));
-    publishCursor(merger.newSub(), Tags._name, Tags.find({ hunt: huntId }));
-    publishCursor(merger.newSub(), Puzzles._name, Puzzles.find({ hunt: huntId }));
+    publishCursor(merger.newSub(), Tags.name, Tags.find({ hunt: huntId }));
+    publishCursor(merger.newSub(), Puzzles.name, Puzzles.find({ hunt: huntId }));
 
     // Also publish this puzzle, even if it's deleted, and its replacement
     publishJoinedQuery(merger.newSub(), {

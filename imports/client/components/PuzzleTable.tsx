@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
-import type { PuzzleType } from '../../lib/schemas/Puzzle';
+import type { PuzzleType } from '../../lib/models/Puzzles';
 import type { Solvedness } from '../../lib/solvedness';
 import { computeSolvedness } from '../../lib/solvedness';
 import PuzzleAnswer from './PuzzleAnswer';

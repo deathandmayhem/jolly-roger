@@ -1,6 +1,6 @@
 import Mustache from 'mustache';
-import type { HuntType } from './lib/schemas/Hunt';
-import type { PuzzleType } from './lib/schemas/Puzzle';
+import type { HuntType } from './lib/models/Hunts';
+import type { PuzzleType } from './lib/models/Puzzles';
 
 const answerify = function (answer: string): string {
   return answer.toUpperCase();

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import type { Mongo } from 'meteor/mongo';
 import { z } from 'zod';
-import { Email, UUID } from './regexes';
+import { Email, URL, UUID } from './regexes';
 
 // This file is heavily inspired by zod-to-json-schema, but we use our own
 // version because (a) zod-to-json-schema supports a different version of
@@ -38,6 +38,7 @@ export interface JsonSchema {
   additionalItems?: boolean | JsonSchema;
   minItems?: number;
   maxItems?: number;
+  uniqueItems?: boolean;
 
   // object
   properties?: Record<string, JsonSchema>;
@@ -68,29 +69,33 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
         };
       case 'regex':
       case 'email':
-      case 'uuid': {
+      case 'uuid':
+      case 'url': {
         let pattern;
         // eslint-disable-next-line default-case
         switch (check.kind) {
           case 'regex':
-            if (check.regex.flags !== '') {
-              throw new Error('Regex flags are not supported');
-            }
-            pattern = check.regex.source;
+            pattern = check.regex;
             break;
           case 'email':
-            pattern = Email.source;
+            pattern = Email;
             break;
           case 'uuid':
-            pattern = UUID.source;
+            pattern = UUID;
             break;
+          case 'url':
+            pattern = URL;
+            break;
+        }
+        if (pattern.flags !== '') {
+          throw new Error('Regex flags are not supported');
         }
 
         return {
           ...acc,
           ...acc.pattern ? {
-            allOf: [...acc.allOf ?? [], { pattern }],
-          } : { pattern },
+            allOf: [...acc.allOf ?? [], { pattern: pattern.source }],
+          } : { pattern: pattern.source },
         };
       }
       default:
@@ -279,6 +284,7 @@ function potentialObjectKeys<
     case z.ZodFirstPartyTypeKind.ZodBoolean:
     case z.ZodFirstPartyTypeKind.ZodNull:
     case z.ZodFirstPartyTypeKind.ZodAny:
+    case z.ZodFirstPartyTypeKind.ZodUnknown:
     case z.ZodFirstPartyTypeKind.ZodArray:
     case z.ZodFirstPartyTypeKind.ZodTuple:
     case z.ZodFirstPartyTypeKind.ZodEnum:
@@ -451,7 +457,7 @@ function defaultToSchema(
 //
 // To work around that, we need to detect if one side of an intersection is
 // object-like, and push the properties it allows into the other side.
-function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
+export function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
   schema: T,
   allowedKeys: Set<string> = new Set(),
   catchall = false,
@@ -475,6 +481,9 @@ function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
       return { bsonType: 'bool' };
     case z.ZodFirstPartyTypeKind.ZodNull:
       return { bsonType: 'null' };
+    // Treat "unknown" as any. They have different meanings at the type layer,
+    // but at the database layer, they're equivalent
+    case z.ZodFirstPartyTypeKind.ZodUnknown:
     case z.ZodFirstPartyTypeKind.ZodAny:
       return {};
 

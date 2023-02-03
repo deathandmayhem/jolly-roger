@@ -21,7 +21,9 @@ Migrations.add({
   name: 'Consolidate profiles onto MeteorUsers',
   async up() {
     for await (const u of MeteorUsers.find({ profile: { $ne: null as any } })) {
-      await MeteorUsers.updateAsync(u._id, { $unset: { profile: 1 } }, { validate: false } as any);
+      // Note: If we ever make MeteorUsers a Model instead of a
+      // Mongo.Collection, we'll need to bypass the schema here
+      await MeteorUsers.updateAsync(u._id, { $unset: { profile: 1 } });
     }
 
     for await (const profile of Profiles.find({})) {
@@ -42,11 +44,7 @@ Migrations.add({
             dingwords,
           },
         },
-      }, {
-        validate: false,
-        clean: false,
-        filter: false,
-      } as any);
+      });
     }
 
     // Add indexes to match the old profiles model

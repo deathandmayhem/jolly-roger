@@ -1,6 +1,8 @@
-import type { RoomType } from '../../schemas/mediasoup/Room';
-import Base from '../Base';
+import Room from '../../schemas/mediasoup/Room';
+import type { ModelType } from '../Model';
+import SoftDeletedModel from '../SoftDeletedModel';
 
-const Rooms = new Base<RoomType>('mediasoup_rooms');
+const Rooms = new SoftDeletedModel('jr_mediasoup_rooms', Room);
+export type RoomType = ModelType<typeof Rooms>;
 
 export default Rooms;

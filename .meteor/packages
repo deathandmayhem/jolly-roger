@@ -8,9 +8,6 @@ ecmascript@0.16.5
 ecmascript-collections
 accounts-password@2.3.3
 audit-argument-checks@1.0.7
-aldeed:collection2@3.0.0
-aldeed:schema-deny
-aldeed:schema-index
 meteor-base@1.5.1
 mobile-experience@1.1.0
 mongo@1.16.4

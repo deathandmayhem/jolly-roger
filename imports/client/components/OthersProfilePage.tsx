@@ -6,8 +6,8 @@ import Tooltip from 'react-bootstrap/esm/Tooltip';
 import styled from 'styled-components';
 import { indexedById } from '../../lib/listUtils';
 import Hunts from '../../lib/models/Hunts';
+import type { HuntType } from '../../lib/models/Hunts';
 import huntsAll from '../../lib/publications/huntsAll';
-import type { HuntType } from '../../lib/schemas/Hunt';
 import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import Avatar from './Avatar';
 

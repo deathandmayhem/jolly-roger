@@ -1,8 +1,8 @@
 import { Random } from 'meteor/random';
 import Logger from '../Logger';
 import APIKeys from './models/APIKeys';
-import Locks from './models/Locks';
 import userForKeyOperation from './userForKeyOperation';
+import withLock from './withLock';
 
 export default async function ensureAPIKey({ requestedBy, forUser }: {
   requestedBy: string;
@@ -16,7 +16,7 @@ export default async function ensureAPIKey({ requestedBy, forUser }: {
     // need partial indexes to only match { deleted: false }, and I
     // don't want to assume a new enough version of MongoDB for
     // that.
-    await Locks.withLock(`api_key:${user}`, async () => {
+    await withLock(`api_key:${user}`, async () => {
       key = await APIKeys.findOneAsync({ user });
 
       if (!key) {

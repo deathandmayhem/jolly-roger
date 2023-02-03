@@ -10,7 +10,7 @@ Migrations.add({
     await Documents.updateAsync(
       { type: 'google-spreadsheet', 'value.type': null },
       { $set: { 'value.type': 'spreadsheet' }, $unset: { type: 1 } },
-      <any>{ multi: true, validate: false }
+      { multi: true, bypassSchema: true }
     );
   },
 });

@@ -12,8 +12,8 @@ Migrations.add({
       await Hunts.updateAsync(hunt._id, {
         $set: { firehoseSlackChannel: (<any>hunt).slackChannel },
         $unset: { slackChannel: 1 },
-      }, <any>{
-        validate: false,
+      }, {
+        bypassSchema: true,
       });
     }
   },

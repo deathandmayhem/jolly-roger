@@ -1,7 +1,8 @@
-import { Mongo } from 'meteor/mongo';
-import type { MonitorConnectAckType } from '../../schemas/mediasoup/MonitorConnectAck';
-import MonitorConnectAckSchema from '../../schemas/mediasoup/MonitorConnectAck';
+import MonitorConnectAck from '../../schemas/mediasoup/MonitorConnectAck';
+import type { ModelType } from '../Model';
+import Model from '../Model';
 
-const MonitorConnectAcks = new Mongo.Collection<MonitorConnectAckType>('jr_mediasoup_monitor_connect_acks');
-MonitorConnectAcks.attachSchema(MonitorConnectAckSchema);
+const MonitorConnectAcks = new Model('jr_mediasoup_monitor_connect_acks', MonitorConnectAck);
+export type MonitorConnectAckType = ModelType<typeof MonitorConnectAcks>;
+
 export default MonitorConnectAcks;

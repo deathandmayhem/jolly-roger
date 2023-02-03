@@ -31,9 +31,8 @@ Migrations.add({
         $unset: {
           puzzleId: 1,
         },
-      }, <any>{
-        validate: false,
-        getAutoValues: false,
+      }, {
+        bypassSchema: true,
       });
     }
 

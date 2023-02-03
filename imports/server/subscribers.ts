@@ -6,7 +6,7 @@
 // garbage collect subscriber records based on the updatedAt of the
 // server record.
 
-import { check } from 'meteor/check';
+import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { serverId, registerPeriodicCleanupHook } from './garbage-collection';
 import Subscribers from './models/Subscribers';
@@ -17,9 +17,18 @@ async function cleanupHook(deadServers: string[]) {
 }
 registerPeriodicCleanupHook(cleanupHook);
 
+// eslint-disable-next-line new-cap
+const contextMatcher = Match.Where((val: unknown): val is Record<string, string> => {
+  if (!Match.test(val, Object)) {
+    return false;
+  }
+
+  return Object.values(val).every((v) => Match.test(v, String));
+});
+
 Meteor.publish('subscribers.inc', async function (name, context) {
   check(name, String);
-  check(context, Object);
+  check(context, contextMatcher);
 
   if (!this.userId) {
     return [];

@@ -1,47 +1,13 @@
-import * as t from 'io-ts';
-import { BaseCodec, BaseOverrides } from '../Base';
-import { Id } from '../regexes';
-import type { Overrides } from '../typedSchemas';
-import { inheritSchema, buildSchema } from '../typedSchemas';
+import { z } from 'zod';
+import { foreignKey, nonEmptyString } from '../customTypes';
+import withCommon from '../withCommon';
 
-const TransportRequestFields = t.type({
-  createdServer: t.string,
-  routedServer: t.string,
-  call: t.string,
-  peer: t.string,
-  rtpCapabilities: t.string, // JSON-encoded
-});
+const TransportRequest = withCommon(z.object({
+  createdServer: foreignKey,
+  routedServer: foreignKey,
+  call: foreignKey,
+  peer: foreignKey,
+  rtpCapabilities: nonEmptyString, // JSON-encoded
+}));
 
-const TransportRequestFieldsOverrides: Overrides<t.TypeOf<typeof TransportRequestFields>> = {
-  createdServer: {
-    regEx: Id,
-    denyUpdate: true,
-  },
-  routedServer: {
-    regEx: Id,
-    denyUpdate: true,
-  },
-  call: {
-    regEx: Id,
-    denyUpdate: true,
-  },
-  peer: {
-    regEx: Id,
-    denyUpdate: true,
-  },
-  rtpCapabilities: {
-    denyUpdate: true,
-  },
-};
-
-const [TransportRequestCodec, TransportRequestOverrides] = inheritSchema(
-  BaseCodec,
-  TransportRequestFields,
-  BaseOverrides,
-  TransportRequestFieldsOverrides,
-);
-
-export { TransportRequestCodec };
-export type TransportRequestType = t.TypeOf<typeof TransportRequestCodec>;
-
-export default buildSchema(TransportRequestCodec, TransportRequestOverrides);
+export default TransportRequest;

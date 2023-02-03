@@ -9,17 +9,13 @@ Migrations.add({
     // Casts necessary to account for schema changes
 
     for await (const user of MeteorUsers.find({ roles: 'inactiveOperator' } as any)) {
+      // Note: If we ever make MeteorUsers a Model instead of a
+      // Mongo.Collection, we'll need to bypass the schema here
       await MeteorUsers.updateAsync(user._id, {
         $push: { roles: 'operator' },
-      } as any, {
-        validate: false,
-        filter: false,
       } as any);
       await MeteorUsers.updateAsync(user._id, {
         $pull: { roles: 'inactiveOperator' },
-      } as any, {
-        validate: false,
-        filter: false,
       } as any);
     }
 
@@ -39,7 +35,7 @@ Migrations.add({
 
       await MeteorUsers.updateAsync(user._id, {
         $set: { roles: newRoles },
-      }, { validate: false } as any);
+      });
     }
   },
 });

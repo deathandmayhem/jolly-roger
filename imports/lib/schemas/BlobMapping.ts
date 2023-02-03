@@ -1,19 +1,9 @@
-import * as t from 'io-ts';
-import type { Overrides } from './typedSchemas';
-import { buildSchema } from './typedSchemas';
+import { z } from 'zod';
 
-export const BlobMappingCodec = t.type({
-  // _id is the asset name
-  _id: t.string,
-
+// Note that the _id is the asset name
+const BlobMapping = z.object({
   // blob is the sha256 of the asset, which is the _id of the Blob
-  blob: t.string,
+  blob: z.string().regex(/^[a-fA-F0-9]{64}$/),
 });
-
-export type BlobMappingType = t.TypeOf<typeof BlobMappingCodec>;
-
-const BlobMappingOverrides: Overrides<BlobMappingType> = {};
-
-const BlobMapping = buildSchema(BlobMappingCodec, BlobMappingOverrides);
 
 export default BlobMapping;

@@ -1,38 +1,13 @@
-import * as t from 'io-ts';
-import { BaseCodec, BaseOverrides } from './Base';
-import { Id } from './regexes';
-import type { Overrides } from './typedSchemas';
-import { buildSchema, inheritSchema } from './typedSchemas';
-
-const PendingAnnouncementFields = t.type({
-  hunt: t.string,
-  announcement: t.string,
-  user: t.string,
-});
-
-const PendingAnnouncementFieldsOverrides: Overrides<t.TypeOf<typeof PendingAnnouncementFields>> = {
-  hunt: {
-    regEx: Id,
-  },
-  announcement: {
-    regEx: Id,
-  },
-  user: {
-    regEx: Id,
-  },
-};
-
-const [PendingAnnouncementCodec, PendingAnnouncementOverrides] = inheritSchema(
-  BaseCodec,
-  PendingAnnouncementFields,
-  BaseOverrides,
-  PendingAnnouncementFieldsOverrides,
-);
-export { PendingAnnouncementCodec };
-export type PendingAnnouncementType = t.TypeOf<typeof PendingAnnouncementCodec>;
+import { z } from 'zod';
+import { foreignKey } from './customTypes';
+import withCommon from './withCommon';
 
 // Broadcast announcements that have not yet been viewed by a given
 // user
-const PendingAnnouncement = buildSchema(PendingAnnouncementCodec, PendingAnnouncementOverrides);
+const PendingAnnouncement = withCommon(z.object({
+  hunt: foreignKey,
+  announcement: foreignKey,
+  user: foreignKey,
+}));
 
 export default PendingAnnouncement;

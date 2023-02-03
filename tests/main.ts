@@ -8,7 +8,6 @@ import './unit/imports/lib/ValidateShape';
 
 if (Meteor.isServer) {
   require('./unit/imports/server/MigrationRegistry');
-  require('./unit/imports/server/Base');
   require('./unit/imports/server/publishJoinedQuery');
   require('./unit/imports/server/generateJsonSchema');
   require('./unit/imports/server/Model');
