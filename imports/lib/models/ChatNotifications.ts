@@ -27,6 +27,7 @@ const ChatNotification = withCommon(z.object({
 }));
 
 const ChatNotifications = new SoftDeletedModel('jr_chatnotifications', ChatNotification);
+ChatNotifications.addIndex({ deleted: 1, user: 1 });
 export type ChatNotificationType = ModelType<typeof ChatNotifications>;
 
 export default ChatNotifications;

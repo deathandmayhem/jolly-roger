@@ -1,10 +1,10 @@
-import Locks from '../models/Locks';
 import Migrations from './Migrations';
 
 Migrations.add({
   version: 2,
   name: 'Add unique index to locks',
   async up() {
-    await Locks.createIndexAsync({ name: 1 }, { unique: true });
+    // This migration previously created indexes, which is now handled
+    // declaratively
   },
 });

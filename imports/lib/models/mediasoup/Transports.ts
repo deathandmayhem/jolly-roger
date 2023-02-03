@@ -20,6 +20,9 @@ const Transport = withCommon(z.object({
 }));
 
 const Transports = new SoftDeletedModel('jr_mediasoup_transports', Transport);
+Transports.addIndex({ transportRequest: 1, direction: 1 }, { unique: true });
+Transports.addIndex({ transportId: 1 });
+Transports.addIndex({ createdServer: 1 });
 export type TransportType = ModelType<typeof Transports>;
 
 export default Transports;

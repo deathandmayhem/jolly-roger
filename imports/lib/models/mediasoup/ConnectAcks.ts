@@ -14,6 +14,9 @@ const ConnectAck = withCommon(z.object({
 }));
 
 const ConnectAcks = new SoftDeletedModel('jr_mediasoup_connect_acks', ConnectAck);
+ConnectAcks.addIndex({ transport: 1 }, { unique: true });
+ConnectAcks.addIndex({ peer: 1 });
+ConnectAcks.addIndex({ createdServer: 1 });
 export type ConnectAckType = ModelType<typeof ConnectAcks>;
 
 export default ConnectAcks;

@@ -19,6 +19,9 @@ const Consumer = withCommon(z.object({
 }));
 
 const Consumers = new SoftDeletedModel('jr_mediasoup_consumers', Consumer);
+Consumers.addIndex({ peer: 1 });
+Consumers.addIndex({ consumerId: 1 });
+Consumers.addIndex({ createdServer: 1 });
 export type ConsumerType = ModelType<typeof Consumers>;
 
 export default Consumers;

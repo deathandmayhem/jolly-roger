@@ -67,7 +67,7 @@ export const SettingNames = SettingDiscriminatedUnion.options.map((option) => {
 export type SettingNameType = typeof SettingNames[number];
 
 const Settings = new SoftDeletedModel('jr_settings', Setting);
-
+Settings.addIndex({ name: 1 }, { unique: true });
 export type SettingType = ModelType<typeof Settings>;
 
 export default Settings;

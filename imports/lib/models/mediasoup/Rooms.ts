@@ -14,6 +14,8 @@ const Room = withCommon(z.object({
 }));
 
 const Rooms = new SoftDeletedModel('jr_mediasoup_rooms', Room);
+Rooms.addIndex({ call: 1 }, { unique: true });
+Rooms.addIndex({ routedServer: 1 });
 export type RoomType = ModelType<typeof Rooms>;
 
 export default Rooms;

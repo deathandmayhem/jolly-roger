@@ -12,6 +12,13 @@ const DiscordRoleGrant = withCommon(z.object({
 }));
 
 const DiscordRoleGrants = new SoftDeletedModel('jr_discord_role_grants', DiscordRoleGrant);
+DiscordRoleGrants.addIndex({
+  guild: 1,
+  role: 1,
+  user: 1,
+  discordAccountId: 1,
+}, { unique: true });
+
 export type DiscordRoleGrantType = ModelType<typeof DiscordRoleGrants>;
 
 export default DiscordRoleGrants;

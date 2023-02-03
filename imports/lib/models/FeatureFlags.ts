@@ -13,7 +13,7 @@ const FeatureFlag = withCommon(z.object({
 }));
 
 const FeatureFlags = new SoftDeletedModel('jr_featureflags', FeatureFlag);
-
+FeatureFlags.addIndex({ name: 1 }, { unique: true });
 export type FeatureFlagType = ModelType<typeof FeatureFlags>;
 
 export default FeatureFlags;

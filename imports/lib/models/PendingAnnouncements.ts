@@ -13,6 +13,7 @@ const PendingAnnouncement = withCommon(z.object({
 }));
 
 const PendingAnnouncements = new SoftDeletedModel('jr_pending_announcements', PendingAnnouncement);
+PendingAnnouncements.addIndex({ user: 1 });
 export type PendingAnnouncementType = ModelType<typeof PendingAnnouncements>;
 
 export default PendingAnnouncements;

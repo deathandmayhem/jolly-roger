@@ -16,6 +16,10 @@ const ConnectRequest = withCommon(z.object({
 }));
 
 const ConnectRequests = new SoftDeletedModel('jr_mediasoup_connect_requests', ConnectRequest);
+ConnectRequests.addIndex({ transport: 1 }, { unique: true });
+ConnectRequests.addIndex({ createdServer: 1 });
+ConnectRequests.addIndex({ routedServer: 1 });
+ConnectRequests.addIndex({ peer: 1 });
 export type ConnectRequestType = ModelType<typeof ConnectRequests>;
 
 export default ConnectRequests;

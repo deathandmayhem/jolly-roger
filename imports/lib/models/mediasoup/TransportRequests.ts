@@ -13,6 +13,8 @@ const TransportRequest = withCommon(z.object({
 }));
 
 const TransportRequests = new SoftDeletedModel('jr_mediasoup_transport_requests', TransportRequest);
+TransportRequests.addIndex({ createdServer: 1 });
+TransportRequests.addIndex({ routedServer: 1 });
 export type TransportRequestType = ModelType<typeof TransportRequests>;
 
 export default TransportRequests;
