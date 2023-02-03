@@ -16,6 +16,9 @@ export const Subscriber = withTimestamps(z.object({
 }));
 
 const Subscribers = new Model('jr_subscribers', Subscriber);
+Subscribers.addIndex({ server: 1 });
+Subscribers.addIndex({ 'context.hunt': 1 });
+Subscribers.addIndex({ name: 1 });
 export type SubscriberType = ModelType<typeof Subscribers>;
 
 export default Subscribers;

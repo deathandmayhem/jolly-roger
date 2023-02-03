@@ -12,6 +12,7 @@ const Announcement = withCommon(z.object({
 }));
 
 const Announcements = new SoftDeletedModel('jr_announcements', Announcement);
+Announcements.addIndex({ deleted: 1, hunt: 1, createdAt: -1 });
 export type AnnouncementType = ModelType<typeof Announcements>;
 
 export default Announcements;

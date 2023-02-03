@@ -11,6 +11,15 @@ const CallActivity = z.object({
 });
 
 const CallActivities = new Model('jr_call_activities', CallActivity);
+CallActivities.addIndex({
+  ts: 1,
+  call: 1,
+  user: 1,
+}, { unique: true });
+CallActivities.addIndex({
+  hunt: 1,
+  ts: 1,
+});
 export type CallActivityType = ModelType<typeof CallActivities>;
 
 export default CallActivities;

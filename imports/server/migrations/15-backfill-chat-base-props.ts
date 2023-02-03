@@ -35,8 +35,5 @@ Migrations.add({
         bypassSchema: true,
       });
     }
-
-    await ChatMessages.dropIndexAsync('puzzleId_1_timestamp_-1');
-    await ChatMessages.createIndexAsync({ deleted: 1, puzzle: 1 });
   },
 });

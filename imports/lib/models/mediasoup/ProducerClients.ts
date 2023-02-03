@@ -19,6 +19,9 @@ const ProducerClient = withCommon(z.object({
 }));
 
 const ProducerClients = new SoftDeletedModel('jr_mediasoup_producer_clients', ProducerClient);
+ProducerClients.addIndex({ transport: 1 });
+ProducerClients.addIndex({ createdServer: 1 });
+ProducerClients.addIndex({ routedServer: 1 });
 export type ProducerClientType = ModelType<typeof ProducerClients>;
 
 export default ProducerClients;

@@ -10,6 +10,7 @@ const APIKey = withCommon(z.object({
 }));
 
 const APIKeys = new SoftDeletedModel('jr_api_keys', APIKey);
+APIKeys.addIndex({ key: 1 });
 export type APIKeyType = ModelType<typeof APIKeys>;
 
 export default APIKeys;

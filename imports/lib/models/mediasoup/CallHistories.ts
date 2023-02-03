@@ -12,6 +12,8 @@ const CallHistory = z.object({
 });
 
 const CallHistories = new Model('jr_mediasoup_call_histories', CallHistory);
+CallHistories.addIndex({ call: 1 }, { unique: true });
+CallHistories.addIndex({ hunt: 1 });
 export type CallHistoryType = ModelType<typeof CallHistories>;
 
 export default CallHistories;

@@ -15,6 +15,9 @@ const ConsumerAck = withCommon(z.object({
 }));
 
 const ConsumerAcks = new SoftDeletedModel('jr_mediasoup_consumer_acks', ConsumerAck);
+ConsumerAcks.addIndex({ consumer: 1 }, { unique: true });
+ConsumerAcks.addIndex({ peer: 1 });
+ConsumerAcks.addIndex({ createdServer: 1 });
 export type ConsumerAckType = ModelType<typeof ConsumerAcks>;
 
 export default ConsumerAcks;

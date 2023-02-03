@@ -1,5 +1,7 @@
 import { Mongo, MongoInternals } from 'meteor/mongo';
-import type { Document, IndexSpecification, CreateIndexesOptions } from 'mongodb';
+import type {
+  Document, IndexDirection, IndexSpecification, CreateIndexesOptions,
+} from 'mongodb';
 import { z } from 'zod';
 import {
   IsInsert, IsUpdate, IsUpsert, stringId,
@@ -280,6 +282,70 @@ export function formatValidationError(error: unknown) {
   error.stack = error.stack?.replace(/^.*$/m, error.message);
 }
 
+export type NormalizedIndexSpecification = readonly [string, IndexDirection][];
+
+const AllowedIndexOptions = ['unique', 'sparse', 'partialFilterExpression', 'expireAfterSeconds'] as const;
+type AllowedIndexOptionsType = typeof AllowedIndexOptions[number];
+export type IndexOptions = Pick<CreateIndexesOptions, AllowedIndexOptionsType>;
+type NormalizedIndexOptions = [AllowedIndexOptionsType, any][];
+
+export interface ModelIndexSpecification {
+  index: NormalizedIndexSpecification;
+  options: NormalizedIndexOptions;
+  // JSON-serialize [index, options] to make it easier to compare against
+  // existing indexes
+  stringified: string;
+}
+
+function indexIsField(index: any): index is string {
+  return typeof index === 'string';
+}
+
+function indexIsFieldDirectionPair(index: any): index is readonly [string, IndexDirection] {
+  return Array.isArray(index) && index.length === 2 && typeof index[0] === 'string';
+}
+
+function indexIsObject(index: any): index is Record<string, IndexDirection> {
+  return typeof index === 'object' && index !== null && !Array.isArray(index);
+}
+
+function indexIsMap(index: any): index is Map<string, IndexDirection> {
+  return index instanceof Map;
+}
+
+export function normalizeIndexSpecification(
+  index: IndexSpecification
+): NormalizedIndexSpecification {
+  // An index specification can be a:
+  // - string
+  // - array with the first element as field name and the second element as
+  //   direction
+  // - object with keys as field names and values as direction (note that ES2015
+  //   and later preserves object insertion order for string keys)
+  // - Map with keys as field names and values as direction
+  // - An array mix-and-matching any of the above So we need to detect each of
+  //   them and normalize to a single format (array of arrays)
+  if (indexIsField(index)) {
+    return [[index, 1]];
+  } else if (indexIsFieldDirectionPair(index)) {
+    return [index];
+  } else if (indexIsObject(index)) {
+    return Object.entries(index);
+  } else if (indexIsMap(index)) {
+    return [...index];
+  } else {
+    return index.map(normalizeIndexSpecification).reduce((acc, val) => acc.concat(val), []);
+  }
+}
+
+export function normalizeIndexOptions(options: CreateIndexesOptions): NormalizedIndexOptions {
+  return Object.entries(options)
+    .filter((v): v is [AllowedIndexOptionsType, any] => {
+      return AllowedIndexOptions.includes(v[0] as any);
+    })
+    .sort();
+}
+
 export const AllModels = new Set<Model<any, any>>();
 
 class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = typeof stringId> {
@@ -292,6 +358,8 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
   relaxedSchema: z.ZodTypeAny;
 
   collection: Mongo.Collection<z.output<this['schema']>>;
+
+  indexes: ModelIndexSpecification[] = [];
 
   constructor(name: string, schema: Schema, idSchema?: IdSchema) {
     this.schema = schema instanceof z.ZodObject ?
@@ -445,22 +513,15 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
       Promise<SelectorToResultType<z.output<this['schema']>, S> | undefined>;
   }
 
-  createIndexAsync(
-    keys: IndexSpecification,
-    options?: CreateIndexesOptions,
-  ): Promise<void> {
-    return this.collection.createIndexAsync(keys, options);
-  }
-
-  async dropIndexAsync(
-    name: string,
-  ): Promise<void> {
-    // _dropIndex is not idempotent, so we need to figure out if the
-    // index already exists
-    const collection = this.collection.rawCollection();
-    if (await collection.indexExists(name)) {
-      await collection.dropIndex(name);
-    }
+  addIndex(specification: IndexSpecification, options: IndexOptions = {}) {
+    const normalizedIndex = normalizeIndexSpecification(specification);
+    const normalizedOptions = normalizeIndexOptions(options);
+    const stringified = JSON.stringify([normalizedIndex, normalizedOptions]);
+    this.indexes.push({
+      index: normalizedIndex,
+      options: normalizedOptions,
+      stringified,
+    });
   }
 }
 

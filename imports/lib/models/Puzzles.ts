@@ -23,6 +23,7 @@ const Puzzle = withCommon(z.object({
 }));
 
 const Puzzles = new SoftDeletedModel('jr_puzzles', Puzzle);
+Puzzles.addIndex({ deleted: 1, hunt: 1 });
 export type PuzzleType = ModelType<typeof Puzzles>;
 
 export default Puzzles;

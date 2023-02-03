@@ -11,6 +11,7 @@ export const DiscordCacheSchema = withTimestamps(z.object({
 }));
 
 const DiscordCache = new Model('discord_cache', DiscordCacheSchema);
+DiscordCache.addIndex({ type: 1, snowflake: 1 }, { unique: true });
 export type DiscordCacheType = ModelType<typeof DiscordCache>;
 
 export default DiscordCache;

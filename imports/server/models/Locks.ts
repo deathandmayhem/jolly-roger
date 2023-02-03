@@ -13,6 +13,7 @@ export const Lock = z.object({
 });
 
 const Locks = new Model('jr_locks', Lock);
+Locks.addIndex({ name: 1 }, { unique: true });
 export type LockType = ModelType<typeof Locks>;
 
 export default Locks;

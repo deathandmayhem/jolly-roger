@@ -2,8 +2,9 @@
 import '../imports/server/bugsnag';
 import '../imports/server/configureLogger';
 
-// setup schemas on models
+// setup schemas and indexes on models
 import '../imports/server/schemas';
+import '../imports/server/indexes';
 
 // explicitly import all the stuff from lib/ since mainModule skips autoloading
 // things

@@ -20,6 +20,9 @@ const Peer = withCommon(z.object({
 }));
 
 const Peers = new SoftDeletedModel('jr_mediasoup_peers', Peer);
+Peers.addIndex({ hunt: 1, call: 1, tab: 1 }, { unique: true });
+Peers.addIndex({ call: 1, createdAt: 1 });
+Peers.addIndex({ createdServer: 1 });
 export type PeerType = ModelType<typeof Peers>;
 
 export default Peers;

@@ -16,6 +16,12 @@ export const DocumentActivity = z.object({
 });
 
 const DocumentActivities = new Model('jr_document_activities', DocumentActivity);
+DocumentActivities.addIndex({ hunt: 1 });
+DocumentActivities.addIndex({
+  document: 1,
+  ts: 1,
+  user: 1,
+}, { unique: true });
 export type DocumentActivityType = ModelType<typeof DocumentActivities>;
 
 export default DocumentActivities;

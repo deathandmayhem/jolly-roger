@@ -13,6 +13,12 @@ const FolderPermission = withCommon(z.object({
 }));
 
 const FolderPermissions = new SoftDeletedModel('jr_folder_perms', FolderPermission);
+FolderPermissions.addIndex({
+  folder: 1,
+  user: 1,
+  googleAccount: 1,
+  permissionLevel: 1,
+}, { unique: true });
 export type FolderPermissionType = ModelType<typeof FolderPermissions>;
 
 export default FolderPermissions;

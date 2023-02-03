@@ -10,6 +10,7 @@ const Server = z.object({
 });
 
 const Servers = new Model('jr_servers', Server);
+Servers.addIndex({ updatedAt: 1 });
 export type ServerType = ModelType<typeof Servers>;
 
 export default Servers;
