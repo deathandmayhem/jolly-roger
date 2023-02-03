@@ -62,7 +62,7 @@ export function relaxSchema(schema: z.ZodFirstPartySchemaTypes): z.ZodTypeAny {
       return z.record(def.keyType, relaxSchema(def.valueType)).optional();
     case z.ZodFirstPartyTypeKind.ZodDefault: {
       const { defaultValue, innerType } = def;
-      return innerType.optional().transform((v: z.output<typeof innerType>) => {
+      return relaxSchema(innerType).transform((v: z.output<typeof innerType>) => {
         if (v !== undefined) return v;
         if (IsInsert.getOrNullIfOutsideFiber() || IsUpsert.getOrNullIfOutsideFiber()) {
           return defaultValue();

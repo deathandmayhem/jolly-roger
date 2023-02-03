@@ -267,6 +267,33 @@ describe('Model', function () {
       assert.isTrue(valid.success);
     });
 
+    it('accepts valid modifiers for arrays with defaults', async function () {
+      const schema = z.object({
+        array: z.array(nonEmptyString).default([]),
+      });
+      const relaxed = relaxSchema(schema);
+
+      // A $set operation (with and without a value)
+      let valid = await relaxed.safeParseAsync({
+        array: ['foo'],
+      });
+      assert.isTrue(valid.success);
+      valid = await relaxed.safeParseAsync({});
+      assert.isTrue(valid.success);
+
+      // A $push operation
+      valid = await relaxed.safeParseAsync({
+        array: 'foo',
+      });
+      assert.isTrue(valid.success);
+
+      // A $addToSet operation
+      valid = await relaxed.safeParseAsync({
+        array: { $each: ['foo'] },
+      });
+      assert.isTrue(valid.success);
+    });
+
     it('does not enforce length limits for arrays', async function () {
       const schema = z.object({
         array: z.array(nonEmptyString).max(1),
