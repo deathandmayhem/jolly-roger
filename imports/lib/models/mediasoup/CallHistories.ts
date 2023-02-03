@@ -1,6 +1,15 @@
-import CallHistory from '../../schemas/mediasoup/CallHistory';
+import { z } from 'zod';
 import type { ModelType } from '../Model';
 import Model from '../Model';
+import { foreignKey } from '../customTypes';
+
+// Don't use the BaseCodec here - unlike most database objects, this isn't
+// manipulated by users, so many of the fields don't make sense
+const CallHistory = z.object({
+  hunt: foreignKey,
+  call: foreignKey,
+  lastActivity: z.date(),
+});
 
 const CallHistories = new Model('jr_mediasoup_call_histories', CallHistory);
 export type CallHistoryType = ModelType<typeof CallHistories>;

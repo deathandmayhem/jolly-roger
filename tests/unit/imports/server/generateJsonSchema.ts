@@ -5,7 +5,7 @@ import { Mongo } from 'meteor/mongo';
 import { Random } from 'meteor/random';
 import { assert } from 'chai';
 import { z } from 'zod';
-import generateJsonSchema, { MongoRecordZodType } from '../../../../imports/lib/schemas/generateJsonSchema';
+import generateJsonSchema, { MongoRecordZodType } from '../../../../imports/lib/models/generateJsonSchema';
 
 const testCollections: Set<Mongo.Collection<any>> = new Set();
 

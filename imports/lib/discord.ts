@@ -1,4 +1,4 @@
-import type { DiscordAccountType } from './schemas/DiscordAccount';
+import type { DiscordAccountType } from './models/DiscordAccount';
 
 const DiscordOAuthScopes = ['identify', 'guilds.join'];
 const API_BASE = 'https://discord.com/api/v8';

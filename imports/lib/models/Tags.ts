@@ -1,6 +1,13 @@
-import Tag from '../schemas/Tag';
+import { z } from 'zod';
 import type { ModelType } from './Model';
 import SoftDeletedModel from './SoftDeletedModel';
+import { foreignKey, nonEmptyString } from './customTypes';
+import withCommon from './withCommon';
+
+const Tag = withCommon(z.object({
+  name: nonEmptyString,
+  hunt: foreignKey,
+}));
 
 const Tags = new SoftDeletedModel('jr_tags', Tag);
 export type TagType = ModelType<typeof Tags>;

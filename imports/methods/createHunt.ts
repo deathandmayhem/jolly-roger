@@ -1,4 +1,4 @@
-import type { EditableHuntType } from '../lib/schemas/Hunt';
+import type { EditableHuntType } from '../lib/models/Hunts';
 import TypedMethod from './TypedMethod';
 
 export default new TypedMethod<EditableHuntType, string>(

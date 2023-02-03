@@ -1,13 +1,13 @@
 import { Meteor } from 'meteor/meteor';
 import Flags from '../../Flags';
 import ChatMessages from '../../lib/models/ChatMessages';
+import type { ChatMessageContentType } from '../../lib/models/ChatMessages';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Settings from '../../lib/models/Settings';
 import Tags from '../../lib/models/Tags';
 import nodeIsText from '../../lib/nodeIsText';
-import type { ChatMessageContentType } from '../../lib/schemas/ChatMessage';
 import { computeSolvedness } from '../../lib/solvedness';
 import { DiscordBot } from '../discord';
 import type Hookset from './Hookset';

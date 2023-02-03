@@ -40,7 +40,5 @@ import '../imports/server/mediasoup-api';
 
 // Imports are necessary to make sure the modules are in the bundle
 import ModelsFacade from '../imports/lib/models/facade';
-import SchemasFacade from '../imports/lib/schemas/facade';
 
 (global as any).Models = ModelsFacade;
-(global as any).Schemas = SchemasFacade;

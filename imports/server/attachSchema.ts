@@ -1,8 +1,8 @@
 import type { Mongo } from 'meteor/mongo';
 import { MongoInternals } from 'meteor/mongo';
 import type { z } from 'zod';
-import type { MongoRecordZodType } from '../lib/schemas/generateJsonSchema';
-import generateJsonSchema from '../lib/schemas/generateJsonSchema';
+import type { MongoRecordZodType } from '../lib/models/generateJsonSchema';
+import generateJsonSchema from '../lib/models/generateJsonSchema';
 
 const { MongoError } = MongoInternals.NpmModules.mongodb.module;
 

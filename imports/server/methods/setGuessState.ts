@@ -1,12 +1,11 @@
 import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Logger from '../../Logger';
-import Guesses from '../../lib/models/Guesses';
+import Guesses, { GuessStates } from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import { userMayUpdateGuessesForHunt } from '../../lib/permission_stubs';
-import { GuessStates } from '../../lib/schemas/Guess';
 import setGuessState from '../../methods/setGuessState';
 import transitionGuess from '../transitionGuess';
 import defineMethod from './defineMethod';

@@ -3,8 +3,8 @@ import type { Document, IndexSpecification, CreateIndexesOptions } from 'mongodb
 import { z } from 'zod';
 import {
   IsInsert, IsUpdate, IsUpsert, stringId,
-} from '../schemas/customTypes';
-import type { MongoRecordZodType } from '../schemas/generateJsonSchema';
+} from './customTypes';
+import type { MongoRecordZodType } from './generateJsonSchema';
 import validateSchema from './validateSchema';
 
 export type Selector<T extends Document> = Mongo.Selector<T> | string | Mongo.ObjectID;

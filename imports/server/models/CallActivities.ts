@@ -1,6 +1,14 @@
+import { z } from 'zod';
 import type { ModelType } from '../../lib/models/Model';
 import Model from '../../lib/models/Model';
-import CallActivity from '../schemas/CallActivity';
+import { foreignKey } from '../../lib/models/customTypes';
+
+const CallActivity = z.object({
+  ts: z.date(),
+  hunt: foreignKey,
+  call: foreignKey,
+  user: foreignKey,
+});
 
 const CallActivities = new Model('jr_call_activities', CallActivity);
 export type CallActivityType = ModelType<typeof CallActivities>;
