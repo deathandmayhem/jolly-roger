@@ -280,7 +280,7 @@ export function formatValidationError(error: unknown) {
   error.stack = error.stack?.replace(/^.*$/m, error.message);
 }
 
-export const AllModels = new Set<Model<any>>();
+export const AllModels = new Set<Model<any, any>>();
 
 class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = typeof stringId> {
   name: string;
@@ -301,6 +301,7 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
     this.name = name;
     this.relaxedSchema = relaxSchema(this.schema);
     this.collection = new Mongo.Collection(name);
+    AllModels.add(this);
   }
 
   async insertAsync(doc: z.input<this['schema']>, options: {

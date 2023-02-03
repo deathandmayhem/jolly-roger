@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { ModelType } from './Model';
-import Model from './Model';
+import SoftDeletedModel from './SoftDeletedModel';
 import { foreignKey, nonEmptyString } from './customTypes';
 import withCommon from './withCommon';
 
@@ -18,7 +18,7 @@ const DocumentSchema = withCommon(z.object({
   }),
 ])));
 
-const Documents = new Model('jr_documents', DocumentSchema);
+const Documents = new SoftDeletedModel('jr_documents', DocumentSchema);
 export type DocumentType = ModelType<typeof Documents>;
 
 export default Documents;
