@@ -1,9 +1,9 @@
-import { GLOBAL_SCOPE } from '../../lib/isAdmin';
 import Guesses from '../../lib/models/Guesses';
 import type { GuessType } from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
+import { huntsUserIsOperatorFor } from '../../lib/permission_stubs';
 import pendingGuessesForSelf from '../../lib/publications/pendingGuessesForSelf';
 import type { SubSubscription } from '../PublicationMerger';
 import PublicationMerger from '../PublicationMerger';
@@ -19,7 +19,7 @@ definePublication(pendingGuessesForSelf, {
       return [];
     }
 
-    const huntGuessWatchers: Record<string, SubSubscription> = {};
+    const huntGuessWatchers: Map<string, SubSubscription> = new Map();
 
     const merger = new PublicationMerger(this);
 
@@ -45,43 +45,42 @@ definePublication(pendingGuessesForSelf, {
 
     const userWatch = MeteorUsers.find(this.userId, { fields: { roles: 1 } }).observeChanges({
       added: (_id, fields) => {
-        const { roles = {} } = fields;
+        const { roles } = fields;
+        if (!roles) {
+          return;
+        }
 
-        Object.entries(roles).forEach(([huntId, huntRoles]) => {
-          if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          if (!(huntId in huntGuessWatchers)) {
+        for (const huntId of huntsUserIsOperatorFor({ roles })) {
+          if (!huntGuessWatchers.has(huntId)) {
             const subSubscription = merger.newSub();
             publishJoinedQuery(subSubscription, huntGuessSpec, { state: 'pending', hunt: huntId });
-            huntGuessWatchers[huntId] = subSubscription;
+            huntGuessWatchers.set(huntId, subSubscription);
           }
-        });
+        }
       },
       changed: (_id, fields) => {
-        if (!Object.prototype.hasOwnProperty.call(fields, 'roles')) {
+        if (!('roles' in fields)) {
           // roles were unchanged
           return;
         }
 
-        const { roles = {} } = fields;
+        const roles = fields.roles;
+        const operatorHunts = huntsUserIsOperatorFor({ roles });
 
-        Object.entries(roles).forEach(([huntId, huntRoles]) => {
-          if (huntId === GLOBAL_SCOPE || !huntRoles.includes('operator')) return;
-          if (!(huntId in huntGuessWatchers)) {
+        for (const huntId of operatorHunts) {
+          if (!huntGuessWatchers.has(huntId)) {
             const subSubscription = merger.newSub();
             publishJoinedQuery(subSubscription, huntGuessSpec, { state: 'pending', hunt: huntId });
-            huntGuessWatchers[huntId] = subSubscription;
+            huntGuessWatchers.set(huntId, subSubscription);
           }
-        });
+        }
 
-        Object.keys(huntGuessWatchers).forEach((huntId) => {
-          if (!roles[huntId] || !roles[huntId]!.includes('operator')) {
-            const subSubscription = huntGuessWatchers[huntId];
-            if (subSubscription) {
-              merger.removeSub(subSubscription);
-            }
-            delete huntGuessWatchers[huntId];
+        for (const [huntId, subSubscription] of huntGuessWatchers.entries()) {
+          if (!operatorHunts.has) {
+            merger.removeSub(subSubscription);
+            huntGuessWatchers.delete(huntId);
           }
-        });
+        }
       },
       // assume the user won't be removed
     });

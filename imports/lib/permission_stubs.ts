@@ -3,13 +3,13 @@ import isAdmin, { GLOBAL_SCOPE } from './isAdmin';
 import type { HuntType } from './models/Hunts';
 import MeteorUsers from './models/MeteorUsers';
 
-function isOperatorForHunt(user: Meteor.User, hunt: HuntType): boolean {
+function isOperatorForHunt(user: Pick<Meteor.User, 'roles'>, hunt: Pick<HuntType, '_id'>): boolean {
   return user.roles?.[hunt._id]?.includes('operator') ?? false;
 }
 
 export function listAllRolesForHunt(
-  user: Meteor.User | null | undefined,
-  hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles'> | null | undefined,
+  hunt: Pick<HuntType, '_id'> | null | undefined,
 ): string[] {
   if (!user?.roles || !hunt) {
     return [];
@@ -22,8 +22,8 @@ export function listAllRolesForHunt(
 }
 
 export function userIsOperatorForHunt(
-  user: Meteor.User | null | undefined,
-  hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles'> | null | undefined,
+  hunt: Pick<HuntType, '_id'> | null | undefined,
 ): boolean {
   if (!user || !hunt) {
     return false;
@@ -32,22 +32,27 @@ export function userIsOperatorForHunt(
   return isOperatorForHunt(user, hunt);
 }
 
-export function huntsUserIsOperatorFor(user: Meteor.User | null | undefined): string[] {
-  if (!user) {
-    return [];
+export function huntsUserIsOperatorFor(
+  user: Pick<Meteor.User, 'roles'> | null | undefined
+): Set<string> {
+  if (!user?.roles) {
+    return new Set();
   }
 
-  return Object.entries(user.roles ?? {})
-    .filter(([huntId, roles]) => huntId !== GLOBAL_SCOPE && roles.includes('operator'))
-    .map(([huntId]) => huntId);
+  return Object.entries(user.roles)
+    .filter(([huntId, roles]) => huntId !== GLOBAL_SCOPE && roles?.includes('operator'))
+    .reduce((acc, [huntId]) => {
+      acc.add(huntId);
+      return acc;
+    }, new Set<string>());
 }
 
 // admins and operators are always allowed to join someone to a hunt
 // non-admins can if they are a member of that hunt
 // already and if the hunt allows open signups.
 export function userMayAddUsersToHunt(
-  user: Meteor.User | null | undefined,
-  hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles' | 'hunts'> | null | undefined,
+  hunt: Pick<HuntType, '_id' | 'openSignups'> | null | undefined,
 ): boolean {
   if (!user || !hunt) {
     return false;
@@ -77,8 +82,8 @@ export function userMayAddUsersToHunt(
 
 // Admins and operators may add announcements to a hunt.
 export function userMayAddAnnouncementToHunt(
-  user: Meteor.User | null | undefined,
-  hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles'> | null | undefined,
+  hunt: Pick<HuntType, '_id'> | null | undefined,
 ): boolean {
   if (!user || !hunt) {
     return false;
@@ -96,8 +101,8 @@ export function userMayAddAnnouncementToHunt(
 }
 
 export function userMayMakeOperatorForHunt(
-  user: Meteor.User | null | undefined,
-  hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles'> | null | undefined,
+  hunt: Pick<HuntType, '_id'> | null | undefined,
 ): boolean {
   if (!user || !hunt) {
     return false;
@@ -115,8 +120,8 @@ export function userMayMakeOperatorForHunt(
 }
 
 export function userMaySeeUserInfoForHunt(
-  user: Meteor.User | null | undefined,
-  hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles'> | null | undefined,
+  hunt: Pick<HuntType, '_id'> | null | undefined,
 ): boolean {
   if (!user || !hunt) {
     return false;
@@ -134,8 +139,8 @@ export function userMaySeeUserInfoForHunt(
 }
 
 export function userMayBulkAddToHunt(
-  user: Meteor.User | null | undefined,
-  hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles'> | null | undefined,
+  hunt: Pick<HuntType, '_id'> | null | undefined,
 ): boolean {
   if (!user || !hunt) {
     return false;
@@ -152,47 +157,47 @@ export function userMayBulkAddToHunt(
   return false;
 }
 
-export function userMayUseDiscordBotAPIs(user: Meteor.User | null | undefined): boolean {
+export function userMayUseDiscordBotAPIs(user: Pick<Meteor.User, 'roles'> | null | undefined): boolean {
   return isAdmin(user);
 }
 
-export function checkAdmin(user: Meteor.User | null | undefined) {
+export function checkAdmin(user: Pick<Meteor.User, 'roles'> | null | undefined) {
   if (!isAdmin(user)) {
     throw new Meteor.Error(401, 'Must be admin');
   }
 }
 
-export function userMayConfigureGdrive(user: Meteor.User | null | undefined): boolean {
+export function userMayConfigureGdrive(user: Pick<Meteor.User, 'roles'> | null | undefined): boolean {
   return isAdmin(user);
 }
 
-export function userMayConfigureGoogleOAuth(user: Meteor.User | null | undefined): boolean {
+export function userMayConfigureGoogleOAuth(user: Pick<Meteor.User, 'roles'> | null | undefined): boolean {
   return isAdmin(user);
 }
 
-export function userMayConfigureDiscordOAuth(user: Meteor.User | null | undefined): boolean {
+export function userMayConfigureDiscordOAuth(user: Pick<Meteor.User, 'roles'> | null | undefined): boolean {
   return isAdmin(user);
 }
 
-export function userMayConfigureDiscordBot(user: Meteor.User | null | undefined): boolean {
+export function userMayConfigureDiscordBot(user: Pick<Meteor.User, 'roles'> | null | undefined): boolean {
   return isAdmin(user);
 }
 
-export function userMayConfigureEmailBranding(user: Meteor.User | null | undefined): boolean {
+export function userMayConfigureEmailBranding(user: Pick<Meteor.User, 'roles'> | null | undefined): boolean {
   return isAdmin(user);
 }
 
-export function userMayConfigureTeamName(user: Meteor.User | null | undefined): boolean {
+export function userMayConfigureTeamName(user: Pick<Meteor.User, 'roles'> | null | undefined): boolean {
   return isAdmin(user);
 }
 
-export function userMayConfigureAssets(user: Meteor.User | null | undefined): boolean {
+export function userMayConfigureAssets(user: Pick<Meteor.User, 'roles'> | null | undefined): boolean {
   return isAdmin(user);
 }
 
 export function userMayUpdateGuessesForHunt(
-  user: Meteor.User | null | undefined,
-  hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles'> | null | undefined,
+  hunt: Pick<HuntType, '_id'> | null | undefined,
 ): boolean {
   if (!user || !hunt) {
     return false;
@@ -207,8 +212,8 @@ export function userMayUpdateGuessesForHunt(
 }
 
 export function userMayWritePuzzlesForHunt(
-  user: Meteor.User | null | undefined,
-  hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles'> | null | undefined,
+  hunt: Pick<HuntType, '_id'> | null | undefined,
 ): boolean {
   if (!user || !hunt) {
     return false;
@@ -222,21 +227,21 @@ export function userMayWritePuzzlesForHunt(
   return false;
 }
 
-export function userMayCreateHunt(user: Meteor.User | null | undefined): boolean {
+export function userMayCreateHunt(user: Pick<Meteor.User, 'roles'> | null | undefined): boolean {
   return isAdmin(user);
 }
 
 export function userMayUpdateHunt(
-  user: Meteor.User | null | undefined,
-  _hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles'> | null | undefined,
+  _hunt: Pick<HuntType, '_id'> | null | undefined,
 ): boolean {
   // TODO: make this driven by if you're an operator of the hunt in question
   return isAdmin(user);
 }
 
 export function userMayJoinCallsForHunt(
-  user: Meteor.User | null | undefined,
-  hunt: HuntType | null | undefined,
+  user: Pick<Meteor.User, 'roles' | 'hunts'> | null | undefined,
+  hunt: Pick<HuntType, '_id'> | null | undefined,
 ): boolean {
   if (!user || !hunt) {
     return false;
