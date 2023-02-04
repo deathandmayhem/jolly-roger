@@ -4,7 +4,7 @@ import Guesses from '../lib/models/Guesses';
 import type { GuessType } from '../lib/models/Guesses';
 import Puzzles from '../lib/models/Puzzles';
 import GlobalHooks from './GlobalHooks';
-import sendChatMessageInternalV2 from './sendChatMessageInternalV2';
+import sendChatMessageInternal from './sendChatMessageInternal';
 
 export default async function transitionGuess(
   guess: GuessType,
@@ -37,7 +37,7 @@ export default async function transitionGuess(
   }
   const message = `Guess \`${guess.guess}\` was marked ${stateDescription}${additionalNotes ? `: ${additionalNotes}` : ''}`;
   const content = contentFromMessage(message);
-  await sendChatMessageInternalV2({ puzzleId: guess.puzzle, content, sender: undefined });
+  await sendChatMessageInternal({ puzzleId: guess.puzzle, content, sender: undefined });
 
   if (newState === 'correct') {
     // Mark this puzzle as solved.

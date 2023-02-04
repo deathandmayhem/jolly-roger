@@ -5,7 +5,7 @@ import Guesses from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
 import createGuess from '../../methods/createGuess';
-import sendChatMessageInternalV2 from '../sendChatMessageInternalV2';
+import sendChatMessageInternal from '../sendChatMessageInternal';
 import defineMethod from './defineMethod';
 
 defineMethod(createGuess, {
@@ -67,7 +67,7 @@ defineMethod(createGuess, {
         { text: ` submitted guess \`${guess}\`` },
       ],
     };
-    await sendChatMessageInternalV2({ puzzleId, content, sender: undefined });
+    await sendChatMessageInternal({ puzzleId, content, sender: undefined });
 
     return guessId;
   },

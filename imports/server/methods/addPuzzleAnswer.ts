@@ -7,7 +7,7 @@ import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
 import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
 import GlobalHooks from '../GlobalHooks';
-import sendChatMessageInternalV2 from '../sendChatMessageInternalV2';
+import sendChatMessageInternal from '../sendChatMessageInternal';
 import defineMethod from './defineMethod';
 
 defineMethod(addPuzzleAnswer, {
@@ -57,7 +57,7 @@ defineMethod(addPuzzleAnswer, {
     }
     const message = `\`${savedAnswer.guess}\` was accepted as the correct answer`;
     const content = contentFromMessage(message);
-    await sendChatMessageInternalV2({
+    await sendChatMessageInternal({
       puzzleId: savedAnswer.puzzle,
       content,
       sender: undefined,

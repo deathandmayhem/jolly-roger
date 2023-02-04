@@ -4,7 +4,7 @@ import type { ChatMessageContentType } from '../lib/models/ChatMessages';
 import Puzzles from '../lib/models/Puzzles';
 import GlobalHooks from './GlobalHooks';
 
-export default async function sendChatMessageInternalV2({ puzzleId, content, sender }: {
+export default async function sendChatMessageInternal({ puzzleId, content, sender }: {
   puzzleId: string,
   content: ChatMessageContentType,
   sender: string | undefined,

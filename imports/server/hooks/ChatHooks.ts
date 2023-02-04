@@ -1,7 +1,7 @@
 import { contentFromMessage } from '../../lib/models/ChatMessages';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
-import sendChatMessageInternalV2 from '../sendChatMessageInternalV2';
+import sendChatMessageInternal from '../sendChatMessageInternal';
 import type Hookset from './Hookset';
 
 const ChatHooks: Hookset = {
@@ -22,7 +22,7 @@ const ChatHooks: Hookset = {
     const message = `${puzzle.title} (feeding into this meta) has been solved: \`${answer}\``;
     const content = contentFromMessage(message);
     for (const metaPuzzle of puzzlesWithMetaTags) {
-      await sendChatMessageInternalV2({
+      await sendChatMessageInternal({
         puzzleId: metaPuzzle._id,
         content,
         sender: undefined,

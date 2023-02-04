@@ -80,7 +80,7 @@ import type { Sheet } from '../../methods/listDocumentSheets';
 import listDocumentSheets from '../../methods/listDocumentSheets';
 import removePuzzleAnswer from '../../methods/removePuzzleAnswer';
 import removePuzzleTag from '../../methods/removePuzzleTag';
-import sendChatMessageV2 from '../../methods/sendChatMessageV2';
+import sendChatMessage from '../../methods/sendChatMessage';
 import undestroyPuzzle from '../../methods/undestroyPuzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
 import GoogleScriptInfo from '../GoogleScriptInfo';
@@ -92,7 +92,7 @@ import useDocumentTitle from '../hooks/useDocumentTitle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import { trace } from '../tracing';
-import ChatMessageV2 from './ChatMessageV2';
+import ChatMessage from './ChatMessage';
 import ChatPeople from './ChatPeople';
 import DocumentDisplay, { DocumentMessage } from './DocumentDisplay';
 import type { FancyEditorHandle, MessageElement } from './FancyEditor';
@@ -318,7 +318,7 @@ const AnswerFormControl = styled(FormControl)`
   font-weight: 400;
 `;
 
-const ChatMessage = React.memo(({
+const ChatHistoryMessage = React.memo(({
   message, displayNames, isSystemMessage, isHighlighted, suppressSender, selfUserId,
 }: {
   message: FilteredChatMessageType;
@@ -335,7 +335,7 @@ const ChatMessage = React.memo(({
     <ChatMessageDiv isSystemMessage={isSystemMessage} isHighlighted={isHighlighted && !isSystemMessage}>
       {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
       {!suppressSender && <strong>{senderDisplayName}</strong>}
-      <ChatMessageV2
+      <ChatMessage
         message={message.content}
         displayNames={displayNames}
         selfUserId={selfUserId}
@@ -491,7 +491,7 @@ const ChatHistory = React.forwardRef(({
         const suppressSender = !!lastMessage && lastMessage.sender === msg.sender && lastMessage.timestamp.getTime() + 60000 > msg.timestamp.getTime();
         const isHighlighted = messageDingsUser(msg, selfUser);
         return (
-          <ChatMessage
+          <ChatHistoryMessage
             key={msg._id}
             message={msg}
             displayNames={displayNames}
@@ -599,7 +599,7 @@ const ChatInput = React.memo(({
       };
 
       // Send chat message.
-      sendChatMessageV2.call({ puzzleId, content: JSON.stringify(cleanedMessage) });
+      sendChatMessage.call({ puzzleId, content: JSON.stringify(cleanedMessage) });
       setContent(initialValue);
       fancyEditorRef.current?.clearInput();
       if (onMessageSent) {

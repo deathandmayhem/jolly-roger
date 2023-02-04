@@ -48,7 +48,7 @@ import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
 import { useBlockReasons } from '../hooks/useBlockUpdate';
 import useTypedSubscribe from '../hooks/useTypedSubscribe';
-import ChatMessageV2 from './ChatMessageV2';
+import ChatMessage from './ChatMessage';
 import Markdown from './Markdown';
 import PuzzleAnswer from './PuzzleAnswer';
 import SpinnerTimer from './SpinnerTimer';
@@ -523,7 +523,7 @@ const ChatNotificationMessage = ({
       </Toast.Header>
       <Toast.Body>
         <div>
-          <ChatMessageV2
+          <ChatMessage
             message={cn.content}
             displayNames={displayNames}
             selfUserId={selfUserId}
