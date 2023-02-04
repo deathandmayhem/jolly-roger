@@ -237,8 +237,8 @@ const GuessMessage = React.memo(({
             className="ms-3"
             width={16}
             height={16}
-            startTime={guess.updatedAt!.getTime()}
-            endTime={guess.updatedAt!.getTime() + LINGER_PERIOD}
+            startTime={guess.updatedAt.getTime()}
+            endTime={guess.updatedAt.getTime() + LINGER_PERIOD}
           />
         )}
       </Toast.Header>

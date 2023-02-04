@@ -20,7 +20,7 @@ function makeTag(name: string): TagType {
     // guarantee consistent + unique tag creation timestamps in the order of creation
     createdAt: new Date(1000 + allTags.length),
     updatedBy: undefined,
-    updatedAt: undefined,
+    updatedAt: new Date(1000 + allTags.length),
   };
   allTags.push(tag);
   allTagsById.set(_id, tag);
@@ -61,7 +61,7 @@ function makePuzzle(title: string, tags: string[], opts: MakePuzzleOpts = {}): P
     createdBy: stubUserId,
     createdAt: new Date(2000 + puzCounter),
     updatedBy: undefined,
-    updatedAt: undefined,
+    updatedAt: new Date(2000 + puzCounter),
     replacedBy: undefined,
   };
   puzCounter += 1;
