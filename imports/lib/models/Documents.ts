@@ -5,7 +5,7 @@ import { foreignKey, nonEmptyString } from './customTypes';
 import withCommon from './withCommon';
 
 const DocumentSchema = withCommon(z.object({
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   puzzle: foreignKey,
 }).and(z.discriminatedUnion('provider', [
   z.object({

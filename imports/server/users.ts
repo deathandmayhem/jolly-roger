@@ -6,6 +6,7 @@ import type { Mongo } from 'meteor/mongo';
 import { GLOBAL_SCOPE } from '../lib/isAdmin';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
+import { makeForeignKeyMatcher } from '../lib/models/Model';
 import type { ProfileFields } from '../lib/models/User';
 import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
 import type { SubSubscription } from './PublicationMerger';
@@ -79,7 +80,7 @@ const makeHuntFilterTransform = (hunts: string[] = []):
 };
 
 Meteor.publish('displayNames', async function (huntId: unknown) {
-  check(huntId, String);
+  check(huntId, makeForeignKeyMatcher<typeof Hunts>());
 
   if (!this.userId) {
     return [];
@@ -97,7 +98,7 @@ Meteor.publish('displayNames', async function (huntId: unknown) {
 });
 
 Meteor.publish('avatars', async function (huntId: unknown) {
-  check(huntId, String);
+  check(huntId, makeForeignKeyMatcher<typeof Hunts>());
 
   if (!this.userId) {
     return [];
@@ -133,7 +134,7 @@ Meteor.publish('allProfiles', async function () {
 });
 
 Meteor.publish('huntProfiles', async function (huntId: unknown) {
-  check(huntId, String);
+  check(huntId, makeForeignKeyMatcher<typeof Hunts>());
 
   if (!this.userId) {
     return [];
@@ -178,7 +179,7 @@ Meteor.publish('profile', async function (userId: unknown) {
 });
 
 Meteor.publish('huntRoles', async function (huntId: unknown) {
-  check(huntId, String);
+  check(huntId, makeForeignKeyMatcher<typeof Hunts>());
 
   await republishOnUserChange(this, { hunts: 1, roles: 1 }, async (u) => {
     // Only publish other users' roles to admins and other operators.

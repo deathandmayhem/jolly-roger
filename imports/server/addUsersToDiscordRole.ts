@@ -1,6 +1,7 @@
 import Flags from '../Flags';
 import Logger from '../Logger';
 import DiscordRoleGrants from '../lib/models/DiscordRoleGrants';
+import type { HuntId } from '../lib/models/Hunts';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
 import Settings from '../lib/models/Settings';
@@ -8,7 +9,7 @@ import { DiscordBot } from './discord';
 
 export default async (
   userIds: string[],
-  huntId: string,
+  huntId: HuntId,
   { force = true }: { force?: boolean } = {}
 ) => {
   if (Flags.active('disable.discord')) {

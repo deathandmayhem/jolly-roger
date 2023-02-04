@@ -13,7 +13,7 @@ attachCustomJsonSchema(tagList, {
 });
 
 const Puzzle = withCommon(z.object({
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   tags: tagList,
   title: nonEmptyString,
   url: z.string().url().optional(),

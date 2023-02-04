@@ -1,5 +1,6 @@
+import type { HuntId } from '../lib/models/Hunts';
 import TypedMethod from './TypedMethod';
 
-export default new TypedMethod<{ huntId: string, email: string }, void>(
+export default new TypedMethod<{ huntId: HuntId, email: string }, void>(
   'Hunts.methods.addUser'
 );

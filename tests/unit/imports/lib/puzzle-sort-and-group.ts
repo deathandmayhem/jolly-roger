@@ -1,9 +1,11 @@
 import { assert } from 'chai';
+import type Hunts from '../../../../imports/lib/models/Hunts';
+import { makeForeignKey } from '../../../../imports/lib/models/Model';
 import type { PuzzleType } from '../../../../imports/lib/models/Puzzles';
 import type { TagType } from '../../../../imports/lib/models/Tags';
 import { puzzleInterestingness, puzzleGroupsByRelevance, filteredPuzzleGroups } from '../../../../imports/lib/puzzle-sort-and-group';
 
-const hunt = 'hunt_id';
+const hunt = makeForeignKey<typeof Hunts>('hunt_id');
 const allTags: TagType[] = [];
 const allTagsById: Map<string, TagType> = new Map(); // index by _id -- wanted by implementation
 const allTagsByName: Map<string, TagType> = new Map(); // index by name, wanted for test readability

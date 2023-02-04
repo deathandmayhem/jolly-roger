@@ -11,6 +11,7 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import type { HuntId } from '../../lib/models/Hunts';
 import Hunts from '../../lib/models/Hunts';
 import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
 import addHuntUser from '../../methods/addHuntUser';
@@ -22,7 +23,7 @@ const BulkError = styled.p`
 `;
 
 const UserInvitePage = () => {
-  const huntId = useParams<'huntId'>().huntId!;
+  const huntId = (useParams<{ huntId: HuntId }>().huntId)!;
   const navigate = useNavigate();
   useBreadcrumb({ title: 'Invite', path: `/hunts/${huntId}/hunters/invite` });
   const [submitting, setSubmitting] = useState<boolean>(false);

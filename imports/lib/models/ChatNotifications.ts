@@ -17,7 +17,7 @@ const ChatNotification = withCommon(z.object({
   // The puzzle to which this chat was sent.
   puzzle: foreignKey,
   // The hunt in which the puzzle resides.
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   // The message content, if chat message v2.
   content: ChatMessageContent,
   // The date this message was sent.  Used for ordering chats in the log.

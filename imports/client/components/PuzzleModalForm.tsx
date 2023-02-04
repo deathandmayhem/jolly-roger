@@ -12,6 +12,7 @@ import FormLabel from 'react-bootstrap/FormLabel';
 import Row from 'react-bootstrap/Row';
 import type { ActionMeta } from 'react-select';
 import type { GdriveMimeTypesType } from '../../lib/GdriveMimeTypes';
+import type { HuntId } from '../../lib/models/Hunts';
 import type { PuzzleType } from '../../lib/models/Puzzles';
 import type { TagType } from '../../lib/models/Tags';
 import LabelledRadioGroup from './LabelledRadioGroup';
@@ -26,7 +27,7 @@ const Creatable = React.lazy(() => import('react-select/creatable')) as typeof i
 type TagSelectOption = { value: string, label: string };
 
 export interface PuzzleModalFormSubmitPayload {
-  huntId: string;
+  huntId: HuntId;
   title: string;
   url: string | undefined;
   tags: string[];
@@ -47,7 +48,7 @@ export type PuzzleModalFormHandle = {
 const PuzzleModalForm = React.forwardRef(({
   huntId, puzzle, tags: propsTags, onSubmit, showOnMount,
 }: {
-  huntId: string;
+  huntId: HuntId;
   puzzle?: PuzzleType;
   // All known tags for this hunt
   tags: TagType[];

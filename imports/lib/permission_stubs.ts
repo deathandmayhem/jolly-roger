@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import isAdmin, { GLOBAL_SCOPE } from './isAdmin';
-import type { HuntType } from './models/Hunts';
+import type { HuntId, HuntType } from './models/Hunts';
 import MeteorUsers from './models/MeteorUsers';
 
 function isOperatorForHunt(user: Pick<Meteor.User, 'roles'>, hunt: Pick<HuntType, '_id'>): boolean {
@@ -34,7 +34,7 @@ export function userIsOperatorForHunt(
 
 export function huntsUserIsOperatorFor(
   user: Pick<Meteor.User, 'roles'> | null | undefined
-): Set<string> {
+): Set<HuntId> {
   if (!user?.roles) {
     return new Set();
   }
@@ -42,9 +42,9 @@ export function huntsUserIsOperatorFor(
   return Object.entries(user.roles)
     .filter(([huntId, roles]) => huntId !== GLOBAL_SCOPE && roles?.includes('operator'))
     .reduce((acc, [huntId]) => {
-      acc.add(huntId);
+      acc.add(huntId as HuntId);
       return acc;
-    }, new Set<string>());
+    }, new Set<HuntId>());
 }
 
 // admins and operators are always allowed to join someone to a hunt

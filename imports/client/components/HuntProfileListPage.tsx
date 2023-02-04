@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import type { HuntId } from '../../lib/models/Hunts';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import {
@@ -11,7 +12,7 @@ import { useBreadcrumb } from '../hooks/breadcrumb';
 import ProfileList from './ProfileList';
 
 const HuntProfileListPage = () => {
-  const huntId = useParams<'huntId'>().huntId!;
+  const huntId = useParams<{ huntId: HuntId }>().huntId!;
   useBreadcrumb({ title: 'Hunters', path: `/hunts/${huntId}/hunters` });
 
   const profilesLoading = useSubscribe('huntProfiles', huntId);

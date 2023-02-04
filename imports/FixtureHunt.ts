@@ -1,5 +1,7 @@
 import type { GuessType } from './lib/models/Guesses';
 import type { HuntType } from './lib/models/Hunts';
+import type Hunts from './lib/models/Hunts';
+import { makeForeignKey } from './lib/models/Model';
 import type { PuzzleType } from './lib/models/Puzzles';
 import type { TagType } from './lib/models/Tags';
 
@@ -11,7 +13,7 @@ type FixtureHuntType = Pick<HuntType, '_id' | 'name'> & {
 };
 
 const FixtureHunt: FixtureHuntType = {
-  _id: 'S5BBzdFRnKSDktDwd',
+  _id: makeForeignKey<typeof Hunts>('S5BBzdFRnKSDktDwd'),
   name: 'Mystery Hunt 2018',
   tags: [
     { _id: 'QeJLufdCqv7rMSSbS', name: 'group:anger' },

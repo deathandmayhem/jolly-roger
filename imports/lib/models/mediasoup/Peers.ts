@@ -9,7 +9,7 @@ import withCommon from '../withCommon';
 // create a corresponding Room on the same server.
 const Peer = withCommon(z.object({
   createdServer: foreignKey,
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   call: foreignKey,
   // Tab ID doesn't refer to a database record, so it's technically not a foreign key
   tab: z.string().regex(Id),

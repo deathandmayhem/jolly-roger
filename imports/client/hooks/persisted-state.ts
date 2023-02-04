@@ -1,12 +1,13 @@
 import type { SetStateAction } from 'react';
 import { useCallback } from 'react';
 import createPersistedState from 'use-persisted-state';
+import type { HuntId } from '../../lib/models/Hunts';
 
 export type OperatorActionsHiddenState = Record<string /* huntId */, boolean>;
 export const useOperatorActionsHidden =
   createPersistedState<OperatorActionsHiddenState>('operatorActionsHidden');
 
-export const useOperatorActionsHiddenForHunt = (huntId: string) => {
+export const useOperatorActionsHiddenForHunt = (huntId: HuntId) => {
   const [operatorActionsHidden, setOperatorActionsHidden] = useOperatorActionsHidden();
   return [
     operatorActionsHidden?.[huntId] ?? false,
@@ -32,7 +33,7 @@ export const usePuzzleListState = createPersistedState<Record<string /* huntId *
 const defaultPuzzleListState = () => {
   return { displayMode: 'group', showSolved: true, collapseGroups: {} } as PuzzleListState;
 };
-export const useHuntPuzzleListState = (huntId: string) => {
+export const useHuntPuzzleListState = (huntId: HuntId) => {
   const [puzzleListView, setPuzzleListView] = usePuzzleListState();
   return [
     puzzleListView?.[huntId] ?? defaultPuzzleListState(),
@@ -48,7 +49,7 @@ export const useHuntPuzzleListState = (huntId: string) => {
   ] as const;
 };
 
-export const useHuntPuzzleListDisplayMode = (huntId: string) => {
+export const useHuntPuzzleListDisplayMode = (huntId: HuntId) => {
   const [huntPuzzleListView, setHuntPuzzleListView] = useHuntPuzzleListState(huntId);
   return [
     huntPuzzleListView.displayMode,
@@ -64,7 +65,7 @@ export const useHuntPuzzleListDisplayMode = (huntId: string) => {
   ] as const;
 };
 
-export const useHuntPuzzleListShowSolved = (huntId: string) => {
+export const useHuntPuzzleListShowSolved = (huntId: HuntId) => {
   const [huntPuzzleListView, setHuntPuzzleListView] = useHuntPuzzleListState(huntId);
   return [
     huntPuzzleListView.showSolved,
@@ -80,7 +81,7 @@ export const useHuntPuzzleListShowSolved = (huntId: string) => {
   ] as const;
 };
 
-export const useHuntPuzzleListCollapseGroups = (huntId: string) => {
+export const useHuntPuzzleListCollapseGroups = (huntId: HuntId) => {
   const [huntPuzzleListView, setHuntPuzzleListView] = useHuntPuzzleListState(huntId);
   return [
     huntPuzzleListView.collapseGroups,
@@ -96,7 +97,10 @@ export const useHuntPuzzleListCollapseGroups = (huntId: string) => {
   ] as const;
 };
 
-export const useHuntPuzzleListCollapseGroup = (huntId: string, tagId: string) => {
+export const useHuntPuzzleListCollapseGroup = (
+  huntId: HuntId,
+  tagId: string
+) => {
   const [huntPuzzleListCollapseGroups, setHuntPuzzleListCollapseGroups] =
     useHuntPuzzleListCollapseGroups(huntId);
   return [

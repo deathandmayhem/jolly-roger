@@ -1,5 +1,6 @@
-import Guesses from '../../lib/models/Guesses';
 import type { GuessType } from '../../lib/models/Guesses';
+import Guesses from '../../lib/models/Guesses';
+import type { HuntId } from '../../lib/models/Hunts';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
@@ -19,7 +20,7 @@ definePublication(pendingGuessesForSelf, {
       return [];
     }
 
-    const huntGuessWatchers: Map<string, SubSubscription> = new Map();
+    const huntGuessWatchers: Map<HuntId, SubSubscription> = new Map();
 
     const merger = new PublicationMerger(this);
 

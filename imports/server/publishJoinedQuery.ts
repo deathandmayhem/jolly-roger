@@ -17,7 +17,7 @@ type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 // effectively building the tree in the generic parameters. I'm not entirely
 // sure how to actually do that.
 export type PublishSpec<T extends { _id: string }> = {
-  model: Mongo.Collection<T> | Model<z.ZodType<T, any, any> & MongoRecordZodType>,
+  model: Mongo.Collection<T> | Model<z.ZodType<T, any, any> & MongoRecordZodType, any, any>,
   allowDeleted?: boolean,
   projection?: Projection<T>,
   foreignKeys?: {
@@ -27,7 +27,7 @@ export type PublishSpec<T extends { _id: string }> = {
   lingerTime?: number;
 }
 
-function modelName(model: Mongo.Collection<any> | Model<any>) {
+function modelName(model: Mongo.Collection<any> | Model<any, any, any>) {
   return model instanceof Mongo.Collection ? model._name : model.name;
 }
 
@@ -79,7 +79,10 @@ class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
   }
 }
 
-const finder = (model: Mongo.Collection<any> | Model<any>, allowDeleted: boolean | undefined) => {
+const finder = (
+  model: Mongo.Collection<any> | Model<any, any, any>,
+  allowDeleted: boolean | undefined
+) => {
   return allowDeleted && 'findAllowingDeleted' in model && typeof model.findAllowingDeleted === 'function' ?
     model.findAllowingDeleted.bind(model) as typeof model.find :
     model.find.bind(model);

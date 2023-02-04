@@ -8,7 +8,7 @@ import withCommon from '../withCommon';
 // mediasoup integration to create a router.
 
 const Room = withCommon(z.object({
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   call: foreignKey,
   routedServer: foreignKey,
 }));

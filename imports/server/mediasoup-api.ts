@@ -4,6 +4,7 @@ import Flags from '../Flags';
 import Logger from '../Logger';
 import Hunts from '../lib/models/Hunts';
 import MeteorUsers from '../lib/models/MeteorUsers';
+import { makeForeignKeyMatcher } from '../lib/models/Model';
 import Puzzles from '../lib/models/Puzzles';
 import Servers from '../lib/models/Servers';
 import CallHistories from '../lib/models/mediasoup/CallHistories';
@@ -83,7 +84,7 @@ Meteor.publish('mediasoup:debug', async function () {
 });
 
 Meteor.publish('mediasoup:metadata', async function (hunt, call) {
-  check(hunt, String);
+  check(hunt, makeForeignKeyMatcher<typeof Hunts>());
   check(call, String);
 
   if (!this.userId) {
@@ -104,7 +105,7 @@ Meteor.publish('mediasoup:metadata', async function (hunt, call) {
 });
 
 Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
-  check(hunt, String);
+  check(hunt, makeForeignKeyMatcher<typeof Hunts>());
   check(call, String);
   check(tab, String);
 

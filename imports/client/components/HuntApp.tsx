@@ -8,7 +8,7 @@ import {
   Outlet, useNavigate, useParams,
 } from 'react-router-dom';
 import Hunts from '../../lib/models/Hunts';
-import type { HuntType } from '../../lib/models/Hunts';
+import type { HuntType, HuntId } from '../../lib/models/Hunts';
 import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
 import huntForHuntApp from '../../lib/publications/huntForHuntApp';
 import addHuntUser from '../../methods/addHuntUser';
@@ -107,7 +107,7 @@ const HuntMemberError = React.memo(({ hunt, canJoin }: {
 });
 
 const HuntApp = React.memo(() => {
-  const huntId = useParams<'huntId'>().huntId!;
+  const huntId = useParams<{ huntId: HuntId }>().huntId!;
 
   const huntLoading = useTypedSubscribe(huntForHuntApp, { huntId });
   const loading = huntLoading();

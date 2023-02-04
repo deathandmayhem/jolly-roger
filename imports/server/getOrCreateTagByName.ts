@@ -1,9 +1,13 @@
 import Logger from '../Logger';
+import type { HuntId } from '../lib/models/Hunts';
 import Tags from '../lib/models/Tags';
 
-export default async function getOrCreateTagByName(huntId: string, name: string): Promise<{
+export default async function getOrCreateTagByName(
+  huntId: HuntId,
+  name: string
+): Promise<{
   _id: string,
-  hunt: string,
+  hunt: HuntId,
   name: string,
 }> {
   const existingTag = await Tags.findOneAsync({ hunt: huntId, name });

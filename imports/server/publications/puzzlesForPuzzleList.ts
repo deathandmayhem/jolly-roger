@@ -1,5 +1,7 @@
 import { check, Match } from 'meteor/check';
+import type Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
+import { makeForeignKeyMatcher } from '../../lib/models/Model';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import puzzlesForPuzzleList from '../../lib/publications/puzzlesForPuzzleList';
@@ -8,7 +10,7 @@ import definePublication from './definePublication';
 definePublication(puzzlesForPuzzleList, {
   validate(arg) {
     check(arg, {
-      huntId: String,
+      huntId: makeForeignKeyMatcher<typeof Hunts>(),
       includeDeleted: Match.Optional(Boolean),
     });
     return arg;

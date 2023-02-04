@@ -15,6 +15,7 @@ import { shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { indexedById } from '../../lib/listUtils';
 import type { ChatMessageType } from '../../lib/models/ChatMessages';
 import ChatMessages from '../../lib/models/ChatMessages';
+import type { HuntId } from '../../lib/models/Hunts';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
@@ -108,7 +109,7 @@ const MessagesPane = styled.div`
 `;
 
 const FirehosePage = () => {
-  const huntId = useParams<'huntId'>().huntId!;
+  const huntId = (useParams<{ huntId: HuntId }>().huntId)!;
   const [searchParams, setSearchParams] = useSearchParams();
   const searchString = searchParams.get('q') ?? '';
 

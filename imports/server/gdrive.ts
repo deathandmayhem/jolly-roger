@@ -6,6 +6,7 @@ import type { GdriveMimeTypesType } from '../lib/GdriveMimeTypes';
 import GdriveMimeTypes from '../lib/GdriveMimeTypes';
 import Documents from '../lib/models/Documents';
 import FolderPermissions from '../lib/models/FolderPermissions';
+import type { HuntId } from '../lib/models/Hunts';
 import Hunts from '../lib/models/Hunts';
 import type { SettingType } from '../lib/models/Settings';
 import Settings from '../lib/models/Settings';
@@ -203,7 +204,7 @@ export async function ensureHuntFolder(hunt: { _id: string, name: string }) {
 }
 
 export async function ensureHuntFolderPermission(
-  huntId: string,
+  huntId: HuntId,
   userId: string,
   googleAccount: string,
 ) {
@@ -232,7 +233,7 @@ export async function ensureHuntFolderPermission(
 export async function ensureDocument(puzzle: {
   _id: string,
   title: string,
-  hunt: string,
+  hunt: HuntId,
 }, type: GdriveMimeTypesType = 'spreadsheet') {
   const hunt = await Hunts.findOneAllowingDeletedAsync(puzzle.hunt);
   const folderId = hunt ? await ensureHuntFolder(hunt) : undefined;

@@ -6,7 +6,7 @@ import withCommon from './withCommon';
 
 const Tag = withCommon(z.object({
   name: nonEmptyString,
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
 }));
 
 const Tags = new SoftDeletedModel('jr_tags', Tag);

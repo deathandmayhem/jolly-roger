@@ -5,6 +5,7 @@ import React, {
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import styled from 'styled-components';
+import type { HuntId } from '../../lib/models/Hunts';
 import type { TagType } from '../../lib/models/Tags';
 import type { PuzzleGroup } from '../../lib/puzzle-sort-and-group';
 import { useHuntPuzzleListCollapseGroup } from '../hooks/persisted-state';
@@ -45,7 +46,7 @@ const NoSharedTagLabel = styled.div`
 const RelatedPuzzleGroup = ({
   huntId, group, noSharedTagLabel = '(no tag)', allTags, includeCount, canUpdate, suppressedTagIds, trackPersistentExpand,
 }: {
-  huntId: string;
+  huntId: HuntId;
   group: PuzzleGroup;
   // noSharedTagLabel is used to label the group only if sharedTag is undefined.
   noSharedTagLabel?: string;

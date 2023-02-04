@@ -57,14 +57,16 @@ const injectOptions = <Opts extends Mongo.Options<any>>(
 
 class SoftDeletedModel<
   Schema extends MongoRecordZodType,
+  Name extends string,
   IdSchema extends z.ZodTypeAny = typeof stringId
 > extends Model<
     Schema extends z.ZodObject<infer Shape, infer UnknownKeys, infer Catchall> ?
       z.ZodObject<z.extendShape<Shape, { deleted: typeof deleted }>, UnknownKeys, Catchall> :
       z.ZodIntersection<Schema, z.ZodObject<{ deleted: typeof deleted }>>,
+    Name,
     IdSchema
   > {
-  constructor(name: string, schema: Schema, idSchema?: IdSchema) {
+  constructor(name: Name, schema: Schema, idSchema?: IdSchema) {
     super(
       name,
       schema instanceof z.ZodObject ?
@@ -98,7 +100,7 @@ class SoftDeletedModel<
     options?: O,
   ): Mongo.Cursor<SelectorToResultType<ModelType<this>, S>> {
     return super.find(
-      injectQuery(selector, { deleted: false }) as any,
+      injectQuery(selector, { deleted: false } as S) as any,
       injectOptions(options)
     ) as any;
   }
@@ -108,7 +110,7 @@ class SoftDeletedModel<
     options?: O,
   ): SelectorToResultType<ModelType<this>, S> | undefined {
     return super.findOne(
-      injectQuery(selector, { deleted: false }) as any,
+      injectQuery(selector, { deleted: false } as S) as any,
       injectOptions(options)
     ) as any;
   }
@@ -118,7 +120,7 @@ class SoftDeletedModel<
     options?: O,
   ): Promise<SelectorToResultType<ModelType<this>, S> | undefined> {
     return super.findOneAsync(
-      injectQuery(selector, { deleted: false }) as any,
+      injectQuery(selector, { deleted: false } as S) as any,
       injectOptions(options)
     ) as any;
   }
@@ -170,7 +172,7 @@ class SoftDeletedModel<
     options?: O,
   ): Mongo.Cursor<SelectorToResultType<ModelType<this>, S>> {
     return super.find(
-      injectQuery(selector, { deleted: true }) as any,
+      injectQuery(selector, { deleted: true } as S) as any,
       injectOptions(options)
     ) as any;
   }
@@ -183,7 +185,7 @@ class SoftDeletedModel<
     options?: O,
   ): SelectorToResultType<ModelType<this>, S> | undefined {
     return super.findOne(
-      injectQuery(selector, { deleted: true }) as any,
+      injectQuery(selector, { deleted: true } as S) as any,
       injectOptions(options)
     ) as any;
   }
@@ -196,7 +198,7 @@ class SoftDeletedModel<
     options?: O,
   ): Promise<SelectorToResultType<ModelType<this>, S> | undefined> {
     return super.findOneAsync(
-      injectQuery(selector, { deleted: true }) as any,
+      injectQuery(selector, { deleted: true } as S) as any,
       injectOptions(options)
     ) as any;
   }

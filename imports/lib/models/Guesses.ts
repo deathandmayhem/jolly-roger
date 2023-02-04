@@ -16,7 +16,7 @@ export const GuessStates = z.enum(['pending', 'intermediate', 'correct', 'incorr
 
 const Guess = withCommon(z.object({
   // Denormalized in so subscriptions can filter on hunt without having to join on Puzzles
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   // The puzzle this guess is for.
   puzzle: foreignKey,
   // The text of this guess.

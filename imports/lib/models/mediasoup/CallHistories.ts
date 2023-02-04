@@ -6,7 +6,7 @@ import { foreignKey } from '../customTypes';
 // Don't use the BaseCodec here - unlike most database objects, this isn't
 // manipulated by users, so many of the fields don't make sense
 const CallHistory = z.object({
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   call: foreignKey,
   lastActivity: z.date(),
 });

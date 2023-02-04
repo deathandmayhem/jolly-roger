@@ -13,6 +13,7 @@ import { Sparklines, SparklinesLine, SparklinesSpots } from 'react-sparklines';
 import styled, { css } from 'styled-components';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS } from '../../lib/config/activityTracking';
+import type { HuntId } from '../../lib/models/Hunts';
 import relativeTimeFormat from '../../lib/relativeTimeFormat';
 import roundedTime from '../../lib/roundedTime';
 import ActivityBuckets from '../ActivityBuckets';
@@ -76,7 +77,7 @@ const PuzzleActivityDetailTimeRange = styled.div`
 `;
 
 interface PuzzleActivityProps {
-  huntId: string;
+  huntId: HuntId;
   puzzleId: string;
   unlockTime: Date;
 }

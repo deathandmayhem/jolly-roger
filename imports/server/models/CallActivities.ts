@@ -5,7 +5,7 @@ import { foreignKey } from '../../lib/models/customTypes';
 
 const CallActivity = z.object({
   ts: z.date(),
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   call: foreignKey,
   user: foreignKey,
 });

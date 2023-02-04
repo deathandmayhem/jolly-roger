@@ -2,6 +2,8 @@ import { promisify } from 'util';
 import { Meteor } from 'meteor/meteor';
 import { assert } from 'chai';
 import ChatMessages from '../../imports/lib/models/ChatMessages';
+import Hunts from '../../imports/lib/models/Hunts';
+import { makeForeignKey } from '../../imports/lib/models/Model';
 import chatMessagesForFirehose from '../../imports/lib/publications/chatMessagesForFirehose';
 import createFixtureHunt from '../../imports/methods/createFixtureHunt';
 import provisionFirstUser from '../../imports/methods/provisionFirstUser';
@@ -24,7 +26,7 @@ if (Meteor.isClient) {
         await promisify(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
         await createFixtureHunt.callPromise();
 
-        const huntId = 'S5BBzdFRnKSDktDwd';
+        const huntId = makeForeignKey<typeof Hunts>('S5BBzdFRnKSDktDwd');
         const guessId = '5bYkNpXBC2mAdZBDC';
         const puzzleId = 'hiMpJHfWjotCGb9NT';
         const metaPuzzleIds = ['NeMxJZKPGqN7CcmcN', '3zTi6pDY9mHJSbLoS'];

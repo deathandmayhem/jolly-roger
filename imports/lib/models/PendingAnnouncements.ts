@@ -7,7 +7,7 @@ import withCommon from './withCommon';
 // Broadcast announcements that have not yet been viewed by a given
 // user
 const PendingAnnouncement = withCommon(z.object({
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   announcement: foreignKey,
   user: foreignKey,
 }));

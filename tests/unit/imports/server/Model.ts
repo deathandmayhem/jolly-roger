@@ -16,13 +16,13 @@ import { MongoRecordZodType } from '../../../../imports/lib/models/generateJsonS
 import attachSchema from '../../../../imports/server/attachSchema';
 import AssertTypesEqual from '../../../lib/AssertTypesEqual';
 
-const testModels: Set<Model<any>> = new Set();
+const testModels: Set<Model<any, any, any>> = new Set();
 
 async function createTestModel<T extends MongoRecordZodType>(
   schema: T
-): Promise<Model<T>> {
+): Promise<Model<T, any>> {
   const collectionName = `test_schema_${Random.id()}`;
-  const model = new Model<T>(collectionName, schema);
+  const model = new Model<T, any>(collectionName, schema);
   await attachSchema(model.schema, model.collection);
   testModels.add(model);
   return model;
@@ -86,7 +86,7 @@ describe('Model', function () {
         // separate field
         string: stringId,
       });
-      let model: Model<typeof schema>;
+      let model: Model<typeof schema, any>;
       this.beforeAll(async function () {
         model = await createTestModel(schema);
       });
@@ -107,7 +107,7 @@ describe('Model', function () {
         createdAt: createdTimestamp,
         updatedAt: updatedTimestamp,
       });
-      let model: Model<typeof schema>;
+      let model: Model<typeof schema, any>;
       this.beforeAll(async function () {
         model = await createTestModel(schema);
       });
@@ -392,7 +392,7 @@ describe('Model', function () {
       string: nonEmptyString,
       number: z.number(),
     });
-    let model: Model<typeof schema>;
+    let model: Model<typeof schema, any>;
     this.beforeAll(async function () {
       model = await createTestModel(schema);
     });
@@ -401,7 +401,7 @@ describe('Model', function () {
       z.object({ name: z.literal('foo'), foo: nonEmptyString }),
       z.object({ name: z.literal('bar'), bar: z.number() }),
     ]);
-    let discriminatedUnionModel: Model<typeof discriminatedUnionSchema>;
+    let discriminatedUnionModel: Model<typeof discriminatedUnionSchema, any>;
     this.beforeAll(async function () {
       discriminatedUnionModel = await createTestModel(discriminatedUnionSchema);
     });

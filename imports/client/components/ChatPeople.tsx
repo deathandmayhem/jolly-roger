@@ -13,6 +13,7 @@ import styled from 'styled-components';
 import Flags from '../../Flags';
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
 import type { DiscordAccountType } from '../../lib/models/DiscordAccount';
+import type { HuntId } from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import CallHistories from '../../lib/models/mediasoup/CallHistories';
 import Peers from '../../lib/models/mediasoup/Peers';
@@ -94,7 +95,7 @@ const ChatterSection = styled.section`
 const ChatPeople = ({
   huntId, puzzleId, disabled, onHeightChange, callState, callDispatch,
 }: {
-  huntId: string;
+  huntId: HuntId;
   puzzleId: string;
   disabled: boolean;
   onHeightChange: () => void;

@@ -5,7 +5,7 @@ import { foreignKey, nonEmptyString } from '../customTypes';
 import withCommon from '../withCommon';
 
 const Router = withCommon(z.object({
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   call: foreignKey,
   createdServer: foreignKey,
   routerId: z.string().uuid(), // mediasoup identifier

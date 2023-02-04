@@ -4,6 +4,7 @@ import Logger from '../../Logger';
 import Announcements from '../../lib/models/Announcements';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
+import { makeForeignKeyMatcher } from '../../lib/models/Model';
 import PendingAnnouncements from '../../lib/models/PendingAnnouncements';
 import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
 import postAnnouncement from '../../methods/postAnnouncement';
@@ -12,7 +13,7 @@ import defineMethod from './defineMethod';
 defineMethod(postAnnouncement, {
   validate(arg) {
     check(arg, {
-      huntId: String,
+      huntId: makeForeignKeyMatcher<typeof Hunts>(),
       message: String,
     });
 

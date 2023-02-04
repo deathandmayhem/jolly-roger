@@ -1,6 +1,8 @@
 import { z } from 'zod';
+import { GLOBAL_SCOPE } from '../isAdmin';
 import type { DiscordAccountType } from './DiscordAccount';
 import DiscordAccount from './DiscordAccount';
+import type { HuntId } from './Hunts';
 import { foreignKey, nonEmptyString, stringId } from './customTypes';
 import validateSchema from './validateSchema';
 
@@ -8,8 +10,11 @@ declare module 'meteor/meteor' {
   namespace Meteor {
     interface User {
       lastLogin?: Date;
-      hunts?: string[];
-      roles?: Record<string, string[]>; // scope -> roles
+      hunts?: HuntId[];
+      roles?: Partial<Record<
+        HuntId | typeof GLOBAL_SCOPE,
+        string[]
+      >>; // scope -> roles
       displayName?: string;
       googleAccount?: string;
       googleAccountId?: string;
@@ -32,8 +37,14 @@ export const User = z.object({
   lastLogin: z.date().optional(),
   services: z.any().optional(),
   profile: z.object({}).optional(),
-  roles: z.record(z.string(), nonEmptyString.array()).optional(),
-  hunts: foreignKey.array().optional(),
+  roles: z.record(
+    z.union([
+      z.string().brand('jr_hunts'),
+      z.literal(GLOBAL_SCOPE),
+    ]),
+    nonEmptyString.array()
+  ).optional(),
+  hunts: foreignKey.brand('jr_hunts').array().optional(),
   displayName: nonEmptyString.optional(),
   googleAccount: nonEmptyString.optional(),
   googleAccountId: nonEmptyString.optional(),

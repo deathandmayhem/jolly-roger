@@ -1,8 +1,9 @@
 import type { GdriveMimeTypesType } from '../lib/GdriveMimeTypes';
+import type { HuntId } from '../lib/models/Hunts';
 import TypedMethod from './TypedMethod';
 
 export default new TypedMethod<{
-  huntId: string,
+  huntId: HuntId,
   title: string,
   url?: string,
   tags: string[],

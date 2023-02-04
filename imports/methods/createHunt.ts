@@ -1,6 +1,6 @@
-import type { EditableHuntType } from '../lib/models/Hunts';
+import type { EditableHuntType, HuntId } from '../lib/models/Hunts';
 import TypedMethod from './TypedMethod';
 
-export default new TypedMethod<EditableHuntType, string>(
+export default new TypedMethod<EditableHuntType, HuntId>(
   'Hunts.methods.create'
 );

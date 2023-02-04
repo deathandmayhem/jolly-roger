@@ -7,6 +7,9 @@ import {
 } from '../../lib/config/activityTracking';
 import ChatMessages from '../../lib/models/ChatMessages';
 import DocumentActivities from '../../lib/models/DocumentActivities';
+import type Hunts from '../../lib/models/Hunts';
+import type { HuntId } from '../../lib/models/Hunts';
+import { makeForeignKeyMatcher } from '../../lib/models/Model';
 import puzzleActivityForHunt from '../../lib/publications/puzzleActivityForHunt';
 import roundedTime from '../../lib/roundedTime';
 import CallActivities from '../models/CallActivities';
@@ -27,7 +30,7 @@ type ActivityBuckets = Map<number, ActivityBucket>;
 class HuntActivityAggregator {
   static aggregators = new Map<string, HuntActivityAggregator>();
 
-  hunt: string;
+  hunt: HuntId;
 
   activitiesByPuzzle: Map<string, ActivityBuckets> = new Map();
 
@@ -41,7 +44,7 @@ class HuntActivityAggregator {
 
   subscriptions: Set<Subscription> = new Set();
 
-  private constructor(hunt: string) {
+  private constructor(hunt: HuntId) {
     this.hunt = hunt;
 
     // Note that this won't update reactively, but sets a bound for the initial
@@ -193,7 +196,7 @@ class HuntActivityAggregator {
     this.timeouts.delete(this.bucketId(puzzle, time));
   }
 
-  static get(hunt: string) {
+  static get(hunt: HuntId) {
     let aggregator = HuntActivityAggregator.aggregators.get(hunt);
     if (!aggregator) {
       aggregator = new HuntActivityAggregator(hunt);
@@ -225,7 +228,7 @@ class HuntActivityAggregator {
 
 definePublication(puzzleActivityForHunt, {
   validate(arg) {
-    check(arg, { huntId: String });
+    check(arg, { huntId: makeForeignKeyMatcher<typeof Hunts>() });
     return arg;
   },
 

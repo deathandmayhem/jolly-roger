@@ -54,16 +54,17 @@ import { messageDingsUser } from '../../lib/dingwordLogic';
 import { indexedById, sortedBy } from '../../lib/listUtils';
 import type { ChatMessageType } from '../../lib/models/ChatMessages';
 import ChatMessages from '../../lib/models/ChatMessages';
-import Documents from '../../lib/models/Documents';
 import type { DocumentType } from '../../lib/models/Documents';
-import Guesses from '../../lib/models/Guesses';
+import Documents from '../../lib/models/Documents';
 import type { GuessType } from '../../lib/models/Guesses';
+import Guesses from '../../lib/models/Guesses';
+import type { HuntId } from '../../lib/models/Hunts';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers, { indexedDisplayNames } from '../../lib/models/MeteorUsers';
-import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
-import Tags from '../../lib/models/Tags';
+import Puzzles from '../../lib/models/Puzzles';
 import type { TagType } from '../../lib/models/Tags';
+import Tags from '../../lib/models/Tags';
 import nodeIsMention from '../../lib/nodeIsMention';
 import nodeIsText from '../../lib/nodeIsText';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
@@ -107,10 +108,8 @@ import PuzzleModalForm from './PuzzleModalForm';
 import SplitPanePlus from './SplitPanePlus';
 import TagList from './TagList';
 import {
-  GuessConfidence,
+  formatConfidence, formatGuessDirection, GuessConfidence,
   GuessDirection,
-  formatGuessDirection,
-  formatConfidence,
 } from './guessDetails';
 import Breakable from './styling/Breakable';
 import FixedLayout from './styling/FixedLayout';
@@ -537,7 +536,7 @@ const ChatInput = React.memo(({
 }: {
   onHeightChange: () => void;
   onMessageSent: () => void;
-  huntId: string;
+  huntId: HuntId;
   puzzleId: string;
   disabled: boolean;
 }) => {
@@ -648,7 +647,7 @@ const ChatSection = React.forwardRef(({
   disabled: boolean;
   displayNames: Map<string, string>;
   puzzleId: string;
-  huntId: string;
+  huntId: HuntId;
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
   selfUser: Meteor.User;
@@ -1709,7 +1708,11 @@ const PuzzlePageMultiplayerDocument = React.memo(({ document }: {
 
 const PuzzleDeletedModal = ({
   puzzleId, huntId, replacedBy,
-}: { puzzleId: string, huntId: string, replacedBy?: string }) => {
+}: {
+  puzzleId: string,
+  huntId: HuntId,
+  replacedBy?: string,
+}) => {
   const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.user(), Hunts.findOne(huntId)), [huntId]);
 
   const replacement = useTracker(() => Puzzles.findOneAllowingDeleted(replacedBy), [replacedBy]);
@@ -1775,7 +1778,7 @@ const PuzzlePage = React.memo(() => {
   const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
   const [isDesktop, setIsDesktop] = useState<boolean>(window.innerWidth >= MinimumDesktopWidth);
 
-  const huntId = useParams<'huntId'>().huntId!;
+  const huntId = (useParams<{ huntId: HuntId }>().huntId)!;
   const puzzleId = useParams<'puzzleId'>().puzzleId!;
 
   // Add the current user to the collection of people viewing this puzzle.

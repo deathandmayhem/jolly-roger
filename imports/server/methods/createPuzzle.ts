@@ -7,6 +7,7 @@ import type { GdriveMimeTypesType } from '../../lib/GdriveMimeTypes';
 import GdriveMimeTypes from '../../lib/GdriveMimeTypes';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
+import { makeForeignKeyMatcher } from '../../lib/models/Model';
 import Puzzles from '../../lib/models/Puzzles';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import createPuzzle from '../../methods/createPuzzle';
@@ -19,7 +20,7 @@ import defineMethod from './defineMethod';
 defineMethod(createPuzzle, {
   validate(arg) {
     check(arg, {
-      huntId: String,
+      huntId: makeForeignKeyMatcher<typeof Hunts>(),
       title: String,
       url: Match.Optional(String),
       tags: [String],

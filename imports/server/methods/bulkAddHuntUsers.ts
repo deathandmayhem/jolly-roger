@@ -2,6 +2,7 @@ import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
+import { makeForeignKeyMatcher } from '../../lib/models/Model';
 import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
 import bulkAddHuntUsers from '../../methods/bulkAddHuntUsers';
 import addUserToHunt from '../addUserToHunt';
@@ -10,7 +11,7 @@ import defineMethod from './defineMethod';
 defineMethod(bulkAddHuntUsers, {
   validate(arg) {
     check(arg, {
-      huntId: String,
+      huntId: makeForeignKeyMatcher<typeof Hunts>(),
       emails: [String],
     });
     return arg;

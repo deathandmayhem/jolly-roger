@@ -22,7 +22,7 @@ import Modal from 'react-bootstrap/Modal';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import isAdmin from '../../lib/isAdmin';
-import type { HuntType } from '../../lib/models/Hunts';
+import type { HuntId, HuntType } from '../../lib/models/Hunts';
 import { userIsOperatorForHunt } from '../../lib/permission_stubs';
 import demoteOperator from '../../methods/demoteOperator';
 import promoteOperator from '../../methods/promoteOperator';
@@ -66,7 +66,10 @@ type OperatorModalHandle = {
 };
 
 const PromoteOperatorModal = React.forwardRef((
-  { user, huntId }: { user: Meteor.User, huntId: string },
+  { user, huntId }: {
+    user: Meteor.User,
+    huntId: HuntId,
+  },
   forwardedRef: React.Ref<OperatorModalHandle>,
 ) => {
   const [visible, setVisible] = useState(true);
@@ -122,7 +125,10 @@ const PromoteOperatorModal = React.forwardRef((
 });
 
 const DemoteOperatorModal = React.forwardRef((
-  { user, huntId }: { user: Meteor.User, huntId: string },
+  { user, huntId }: {
+    user: Meteor.User,
+    huntId: HuntId,
+  },
   forwardedRef: React.Ref<OperatorModalHandle>,
 ) => {
   const [visible, setVisible] = useState(true);

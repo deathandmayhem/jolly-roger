@@ -1,3 +1,4 @@
+import { Match } from 'meteor/check';
 import { Mongo, MongoInternals } from 'meteor/mongo';
 import type {
   Document, IndexDirection, IndexSpecification, CreateIndexesOptions,
@@ -9,7 +10,7 @@ import {
 import type { MongoRecordZodType } from './generateJsonSchema';
 import validateSchema from './validateSchema';
 
-export type Selector<T extends Document> = Mongo.Selector<T> | string | Mongo.ObjectID;
+export type Selector<T extends Document> = Mongo.Selector<T> | T['_id'];
 export type SelectorToResultType<T extends Document, S extends Selector<T>> =
   S extends string ? T & { _id: S } :
   S extends Mongo.ObjectID ? T & { _id: S } :
@@ -346,10 +347,14 @@ export function normalizeIndexOptions(options: CreateIndexesOptions): Normalized
     .sort();
 }
 
-export const AllModels = new Set<Model<any, any>>();
+export const AllModels = new Set<Model<any, any, any>>();
 
-class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = typeof stringId> {
-  name: string;
+class Model<
+  Schema extends MongoRecordZodType,
+  Name extends string,
+  IdSchema extends z.ZodTypeAny = typeof stringId
+> {
+  name: Name;
 
   schema: Schema extends z.ZodObject<infer Shape, infer UnknownKeys, infer Catchall> ?
     z.ZodObject<z.extendShape<Shape, { _id: IdSchema }>, UnknownKeys, Catchall> :
@@ -361,7 +366,7 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
 
   indexes: ModelIndexSpecification[] = [];
 
-  constructor(name: string, schema: Schema, idSchema?: IdSchema) {
+  constructor(name: Name, schema: Schema, idSchema?: IdSchema) {
     this.schema = schema instanceof z.ZodObject ?
       schema.extend({ _id: idSchema ?? stringId }) :
       schema.and(z.object({ _id: idSchema ?? stringId })) as any;
@@ -525,6 +530,20 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
   }
 }
 
-export type ModelType<M extends Model<any, any>> = z.output<M['schema']>;
+export type ModelType<M extends Model<any, any, any>> = z.output<M['schema']>;
+
+export type ForeignKeyType<M extends Model<any, any, any>> = string & z.BRAND<M['name']>;
+export const makeForeignKey = <M extends Model<any, any, any>>(id: string): ForeignKeyType<M> => {
+  return id as ForeignKeyType<M>;
+};
+
+export const makeForeignKeyMatcher = <
+  M extends Model<any, any, any>
+>() => {
+  // eslint-disable-next-line new-cap
+  return Match.Where((id: unknown): id is ForeignKeyType<M> => {
+    return typeof id === 'string';
+  });
+};
 
 export default Model;

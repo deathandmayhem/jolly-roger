@@ -22,7 +22,7 @@ import { indexedById } from '../../lib/listUtils';
 import Guesses from '../../lib/models/Guesses';
 import type { GuessType } from '../../lib/models/Guesses';
 import Hunts from '../../lib/models/Hunts';
-import type { HuntType } from '../../lib/models/Hunts';
+import type { HuntType, HuntId } from '../../lib/models/Hunts';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
@@ -290,7 +290,7 @@ const GuessBlock = React.memo(({
 });
 
 const GuessQueuePage = () => {
-  const huntId = useParams<'huntId'>().huntId!;
+  const huntId = useParams<{ huntId: HuntId }>().huntId!;
   const [searchParams, setSearchParams] = useSearchParams();
   const searchString = searchParams.get('q') ?? '';
 

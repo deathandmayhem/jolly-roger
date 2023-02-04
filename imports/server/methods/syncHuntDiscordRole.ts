@@ -1,6 +1,8 @@
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
+import type Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
+import { makeForeignKeyMatcher } from '../../lib/models/Model';
 import { userMayUseDiscordBotAPIs } from '../../lib/permission_stubs';
 import syncHuntDiscordRole from '../../methods/syncHuntDiscordRole';
 import addUsersToDiscordRole from '../addUsersToDiscordRole';
@@ -8,7 +10,9 @@ import defineMethod from './defineMethod';
 
 defineMethod(syncHuntDiscordRole, {
   validate(arg) {
-    check(arg, { huntId: String });
+    check(arg, {
+      huntId: makeForeignKeyMatcher<typeof Hunts>(),
+    });
     return arg;
   },
 

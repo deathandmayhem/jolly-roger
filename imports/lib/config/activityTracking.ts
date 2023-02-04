@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import type { HuntId } from '../models/Hunts';
 
 export const ACTIVITY_GRANULARITY = Meteor.isDevelopment ?
   // Set granularity to be quite low in development. Note that this will not
@@ -12,7 +13,7 @@ export const ACTIVITY_SEGMENTS = 36;
 
 export type PublishedBucket = {
   _id: string;
-  hunt: string;
+  hunt: HuntId;
   puzzle: string;
   ts: Date;
 

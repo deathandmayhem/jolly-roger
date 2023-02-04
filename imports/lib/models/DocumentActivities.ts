@@ -7,7 +7,7 @@ import { foreignKey } from './customTypes';
    server, not by users */
 export const DocumentActivity = z.object({
   ts: z.date(), /* rounded to ACTIVITY_GRANULARITY */
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   puzzle: foreignKey,
   document: foreignKey,
   // user can be undefined if we aren't able to match an activity record back to

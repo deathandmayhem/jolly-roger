@@ -34,7 +34,7 @@ export function contentFromMessage(msg: string): ChatMessageContentType {
 }
 
 const ChatMessage = withCommon(z.object({
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   // The puzzle to which this chat was sent.
   puzzle: foreignKey,
   // The message contents.

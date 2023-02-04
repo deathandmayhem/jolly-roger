@@ -18,7 +18,7 @@ import Row from 'react-bootstrap/Row';
 import { useNavigate, useParams } from 'react-router-dom';
 import DiscordCache from '../../lib/models/DiscordCache';
 import Hunts from '../../lib/models/Hunts';
-import type { EditableHuntType, SavedDiscordObjectType } from '../../lib/models/Hunts';
+import type { EditableHuntType, SavedDiscordObjectType, HuntId } from '../../lib/models/Hunts';
 import Settings from '../../lib/models/Settings';
 import discordChannelsForConfiguredGuild from '../../lib/publications/discordChannelsForConfiguredGuild';
 import discordRolesForConfiguredGuild from '../../lib/publications/discordRolesForConfiguredGuild';
@@ -176,7 +176,7 @@ const DiscordRoleSelector = ({ guildId, ...rest }: DiscordSelectorParams & { gui
 };
 
 const HuntEditPage = () => {
-  const huntId = useParams<{ huntId: string }>().huntId;
+  const huntId = useParams<{ huntId: HuntId }>().huntId;
   const hunt = useTracker(() => (huntId ? Hunts.findOne(huntId) : null), [huntId]);
 
   useBreadcrumb({ title: huntId ? 'Edit Hunt' : 'Create Hunt', path: `/hunts/${huntId ? `${huntId}/edit` : 'new'}` });

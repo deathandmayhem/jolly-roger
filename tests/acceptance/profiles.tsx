@@ -3,8 +3,9 @@ import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { assert } from 'chai';
-import Hunts from '../../imports/lib/models/Hunts';
+import Hunts, { HuntId } from '../../imports/lib/models/Hunts';
 import MeteorUsers from '../../imports/lib/models/MeteorUsers';
+import { makeForeignKeyMatcher } from '../../imports/lib/models/Model';
 import { addUserToRole as serverAddUserToRole, huntsUserIsOperatorFor } from '../../imports/lib/permission_stubs';
 import TypedMethod from '../../imports/methods/TypedMethod';
 import resetDatabase from '../lib/resetDatabase';
@@ -14,8 +15,8 @@ import { stabilize, subscribeAsync } from './lib';
 // of our normal permissions. They don't even require that you be logged in.
 const createUser = new TypedMethod<{ email: string, password: string, displayName: string }, string>('test.methods.profiles.createUser');
 const addUserToRole = new TypedMethod<{ userId: string, scope: string, role: string }, void>('test.methods.profiles.addUserToRole');
-const createHunt = new TypedMethod<{ name: string }, string>('test.methods.profiles.createHunt');
-const joinHunt = new TypedMethod<{ huntId: string, userId: string }, void>('test.methods.profiles.joinHunt');
+const createHunt = new TypedMethod<{ name: string }, HuntId>('test.methods.profiles.createHunt');
+const joinHunt = new TypedMethod<{ huntId: HuntId, userId: string }, void>('test.methods.profiles.joinHunt');
 
 if (Meteor.isServer) {
   const defineMethod: typeof import('../../imports/server/methods/defineMethod').default =
@@ -90,7 +91,7 @@ if (Meteor.isServer) {
   defineMethod(joinHunt, {
     validate(arg: unknown) {
       check(arg, {
-        huntId: String,
+        huntId: makeForeignKeyMatcher<typeof Hunts>(),
         userId: String,
       });
 
@@ -113,8 +114,8 @@ if (Meteor.isClient) {
         const sameHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+same-hunt@deathandmayhem.com', password: 'password', displayName: 'U2' });
         const differentHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+different-hunt@deathandmayhem.com', password: 'password', displayName: 'U3' });
 
-        const huntId: string = await createHunt.callPromise({ name: 'Test Hunt' });
-        const otherHuntId: string = await createHunt.callPromise({ name: 'Other Hunt' });
+        const huntId = await createHunt.callPromise({ name: 'Test Hunt' });
+        const otherHuntId = await createHunt.callPromise({ name: 'Other Hunt' });
 
         await joinHunt.callPromise({ huntId, userId });
         await joinHunt.callPromise({ huntId, userId: sameHuntUserId });
@@ -159,8 +160,8 @@ if (Meteor.isClient) {
         const sameHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+same-hunt@deathandmayhem.com', password: 'password', displayName: 'U2' });
         const differentHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+different-hunt@deathandmayhem.com', password: 'password', displayName: 'U3' });
 
-        const huntId: string = await createHunt.callPromise({ name: 'Test Hunt' });
-        const otherHuntId: string = await createHunt.callPromise({ name: 'Other Hunt' });
+        const huntId = await createHunt.callPromise({ name: 'Test Hunt' });
+        const otherHuntId = await createHunt.callPromise({ name: 'Other Hunt' });
 
         await joinHunt.callPromise({ huntId, userId });
         await joinHunt.callPromise({ huntId, userId: sameHuntUserId });
@@ -196,8 +197,8 @@ if (Meteor.isClient) {
         const sameHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+same-hunt@deathandmayhem.com', password: 'password', displayName: 'U2' });
         const differentHuntUserId: string = await createUser.callPromise({ email: 'jolly-roger+different-hunt@deathandmayhem.com', password: 'password', displayName: 'U3' });
 
-        const huntId: string = await createHunt.callPromise({ name: 'Test Hunt' });
-        const otherHuntId: string = await createHunt.callPromise({ name: 'Other Hunt' });
+        const huntId = await createHunt.callPromise({ name: 'Test Hunt' });
+        const otherHuntId = await createHunt.callPromise({ name: 'Other Hunt' });
 
         await joinHunt.callPromise({ huntId, userId });
         await joinHunt.callPromise({ huntId: otherHuntId, userId });

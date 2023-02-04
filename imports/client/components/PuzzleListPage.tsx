@@ -25,9 +25,10 @@ import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { sortedBy } from '../../lib/listUtils';
+import type { HuntId } from '../../lib/models/Hunts';
 import Hunts from '../../lib/models/Hunts';
-import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
+import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import puzzleActivityForHunt from '../../lib/publications/puzzleActivityForHunt';
@@ -124,7 +125,7 @@ const PuzzleListToolbar = styled.div`
 const PuzzleListView = ({
   huntId, canAdd, canUpdate, loading,
 }: {
-  huntId: string
+  huntId: HuntId;
   canAdd: boolean;
   canUpdate: boolean;
   loading: boolean;
@@ -509,7 +510,7 @@ const StyledPuzzleListLinkLabel = styled.span`
 `;
 
 const PuzzleListPage = () => {
-  const huntId = useParams<'huntId'>().huntId!;
+  const huntId = useParams<{ huntId: HuntId }>().huntId!;
 
   // Assertion is safe because hunt is already subscribed and checked by HuntApp
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);

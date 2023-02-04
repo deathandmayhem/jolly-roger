@@ -9,6 +9,7 @@ import styled from 'styled-components';
 import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
 import Announcements from '../../lib/models/Announcements';
 import type { AnnouncementType } from '../../lib/models/Announcements';
+import type { HuntId } from '../../lib/models/Hunts';
 import Hunts from '../../lib/models/Hunts';
 import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
@@ -44,7 +45,7 @@ const AnnouncementFormContainer = styled.div`
   }
 `;
 
-const AnnouncementForm = ({ huntId }: { huntId: string }) => {
+const AnnouncementForm = ({ huntId }: { huntId: HuntId }) => {
   const [message, setMessage] = useState<string>('');
   const [submitState, setSubmitState] = useState<AnnouncementFormSubmitState>(AnnouncementFormSubmitState.IDLE);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -125,7 +126,7 @@ const Announcement = ({ announcement, displayName }: {
 };
 
 const AnnouncementsPage = () => {
-  const huntId = useParams<'huntId'>().huntId!;
+  const huntId = useParams<{ huntId: HuntId }>().huntId!;
   useBreadcrumb({ title: 'Announcements', path: `/hunts/${huntId}/announcements` });
 
   const announcementsLoading = useTypedSubscribe(announcementsForAnnouncementsPage, { huntId });

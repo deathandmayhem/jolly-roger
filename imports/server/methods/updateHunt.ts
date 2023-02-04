@@ -4,6 +4,7 @@ import Logger from '../../Logger';
 import type { HuntType } from '../../lib/models/Hunts';
 import Hunts, { HuntPattern } from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
+import { makeForeignKeyMatcher } from '../../lib/models/Model';
 import { checkAdmin } from '../../lib/permission_stubs';
 import updateHunt from '../../methods/updateHunt';
 import addUsersToDiscordRole from '../addUsersToDiscordRole';
@@ -12,7 +13,7 @@ import defineMethod from './defineMethod';
 
 defineMethod(updateHunt, {
   validate(arg) {
-    check(arg, { huntId: String, value: HuntPattern });
+    check(arg, { huntId: makeForeignKeyMatcher<typeof Hunts>(), value: HuntPattern });
     return arg;
   },
 

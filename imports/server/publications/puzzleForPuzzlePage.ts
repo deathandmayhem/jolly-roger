@@ -1,7 +1,9 @@
 import { check } from 'meteor/check';
 import Documents from '../../lib/models/Documents';
 import Guesses from '../../lib/models/Guesses';
+import type Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
+import { makeForeignKeyMatcher } from '../../lib/models/Model';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
 import puzzleForPuzzlePage from '../../lib/publications/puzzleForPuzzlePage';
@@ -14,7 +16,7 @@ definePublication(puzzleForPuzzlePage, {
   validate(arg) {
     check(arg, {
       puzzleId: String,
-      huntId: String,
+      huntId: makeForeignKeyMatcher<typeof Hunts>(),
     });
     return arg;
   },

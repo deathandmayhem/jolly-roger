@@ -7,7 +7,7 @@ import withCommon from './withCommon';
 // A broadcast message from a hunt operator to be displayed
 // to all participants in the specified hunt.
 const Announcement = withCommon(z.object({
-  hunt: foreignKey,
+  hunt: foreignKey.brand('jr_hunts'),
   message: nonEmptyString,
 }));
 

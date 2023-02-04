@@ -1,8 +1,8 @@
 import { Match } from 'meteor/check';
 import { z } from 'zod';
-import type { ModelType } from './Model';
+import type { ForeignKeyType, ModelType } from './Model';
 import SoftDeletedModel from './SoftDeletedModel';
-import { nonEmptyString, snowflake } from './customTypes';
+import { nonEmptyString, snowflake, stringId } from './customTypes';
 import withCommon from './withCommon';
 
 export const SavedDiscordObjectFields = z.object({
@@ -66,7 +66,8 @@ export const HuntPattern = {
   memberDiscordRole: Match.Optional(SavedDiscordObjectPattern),
 };
 
-const Hunts = new SoftDeletedModel('jr_hunts', Hunt);
+const Hunts = new SoftDeletedModel('jr_hunts', Hunt, stringId.brand('jr_hunts'));
 export type HuntType = ModelType<typeof Hunts>;
+export type HuntId = ForeignKeyType<typeof Hunts>;
 
 export default Hunts;
