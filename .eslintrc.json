@@ -241,15 +241,6 @@
       "files": "**/client/**",
       "env": {
         "browser": true
-      },
-      "rules": {
-        "@typescript-eslint/no-restricted-imports": ["error", {
-          "patterns": [{
-            "group": ["**/schemas/**"],
-            "message": "Non-type imports of schemas are restricted to limit bloat of the client bundle",
-            "allowTypeImports": true
-          }]
-        }]
       }
     },
     {
