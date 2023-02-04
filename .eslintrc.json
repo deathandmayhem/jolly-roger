@@ -150,7 +150,7 @@
     "@typescript-eslint/prefer-namespace-keyword": "off",
 
     // This is especially useful in combination with the autofixer from
-    // jolly-roger/no-sync-mongo-methods, which intentionally introduces
+    // jolly-roger/no-disallowed-sync-methods, which intentionally introduces
     // potentially spurious dependencies, but it seems useful to be
     // stylistically consistent across the codebase.
     "@typescript-eslint/no-extra-parens": ["error", "all", {
@@ -241,15 +241,6 @@
       "files": "**/client/**",
       "env": {
         "browser": true
-      },
-      "rules": {
-        "@typescript-eslint/no-restricted-imports": ["error", {
-          "patterns": [{
-            "group": ["**/schemas/**"],
-            "message": "Non-type imports of schemas are restricted to limit bloat of the client bundle",
-            "allowTypeImports": true
-          }]
-        }]
       }
     },
     {
@@ -262,7 +253,7 @@
         "node": true
       },
       "rules": {
-        "jolly-roger/no-sync-mongo-methods": "error"
+        "jolly-roger/no-disallowed-sync-methods": "error"
       }
     },
     {
