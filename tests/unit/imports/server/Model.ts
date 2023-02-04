@@ -1,6 +1,5 @@
 import { Random } from 'meteor/random';
-import chai, { assert } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import { assert } from 'chai';
 import { z } from 'zod';
 import Model, {
   ModelType, parseMongoModifierAsync, parseMongoOperationAsync, relaxSchema,
@@ -17,8 +16,6 @@ import {
 import { MongoRecordZodType } from '../../../../imports/lib/models/generateJsonSchema';
 import attachSchema from '../../../../imports/server/attachSchema';
 import AssertTypesEqual from '../../../lib/AssertTypesEqual';
-
-chai.use(chaiAsPromised);
 
 const testModels: Set<Model<any>> = new Set();
 

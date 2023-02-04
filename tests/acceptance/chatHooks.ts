@@ -6,8 +6,9 @@ import chatMessagesForFirehose from '../../imports/lib/publications/chatMessages
 import createFixtureHunt from '../../imports/methods/createFixtureHunt';
 import provisionFirstUser from '../../imports/methods/provisionFirstUser';
 import setGuessState from '../../imports/methods/setGuessState';
+import resetDatabase from '../lib/resetDatabase';
 import {
-  resetDatabase, USER_EMAIL, USER_PASSWORD,
+  USER_EMAIL, USER_PASSWORD,
 } from './lib';
 
 if (Meteor.isClient) {

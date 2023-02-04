@@ -1,16 +1,12 @@
 import { Meteor, Subscription } from 'meteor/meteor';
-import { MongoInternals } from 'meteor/mongo';
 import { Random } from 'meteor/random';
 import { assert } from 'chai';
 import Guesses from '../../../../imports/lib/models/Guesses';
-import Hunts from '../../../../imports/lib/models/Hunts';
-import Model from '../../../../imports/lib/models/Model';
 import Puzzles from '../../../../imports/lib/models/Puzzles';
 import Tags from '../../../../imports/lib/models/Tags';
 import makeFixtureHunt from '../../../../imports/server/makeFixtureHunt';
 import publishJoinedQuery from '../../../../imports/server/publishJoinedQuery';
-
-const { MongoError } = MongoInternals.NpmModules.mongodb.module;
+import resetDatabase from '../../../lib/resetDatabase';
 
 class StubSubscription implements Subscription {
   stopHooks: (() => void)[] = [];
@@ -72,24 +68,9 @@ class StubSubscription implements Subscription {
   }
 }
 
-const safeDrop = async (model: Model<any>) => {
-  try {
-    await model.collection.dropCollectionAsync();
-  } catch (e) {
-    if (!(e instanceof MongoError) || e.code !== 26) {
-      throw e;
-    }
-  }
-};
-
 describe('publishJoinedQuery', function () {
   beforeEach(async function () {
-    await Promise.all([
-      safeDrop(Hunts),
-      safeDrop(Puzzles),
-      safeDrop(Guesses),
-      safeDrop(Tags),
-    ]);
+    await resetDatabase('publishJoinedQuery');
     await makeFixtureHunt(Random.id());
   });
 

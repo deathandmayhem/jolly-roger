@@ -15,8 +15,8 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import provisionFirstUser from '../../imports/methods/provisionFirstUser';
+import resetDatabase from '../lib/resetDatabase';
 import {
-  resetDatabase,
   stabilize,
   USER_EMAIL,
   USER_PASSWORD,

@@ -1,5 +1,4 @@
 import { promisify } from 'util';
-import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import { act, render } from '@testing-library/react';
 import React from 'react';
@@ -17,13 +16,12 @@ import {
 } from 'react-router-dom';
 import FixtureHunt from '../../imports/FixtureHunt';
 import Logger from '../../imports/Logger';
-import TypedMethod from '../../imports/methods/TypedMethod';
 import addHuntUser from '../../imports/methods/addHuntUser';
 import createFixtureHunt from '../../imports/methods/createFixtureHunt';
 import promoteOperator from '../../imports/methods/promoteOperator';
 import provisionFirstUser from '../../imports/methods/provisionFirstUser';
+import resetDatabase from '../lib/resetDatabase';
 import {
-  resetDatabase,
   stabilize,
   USER_EMAIL,
   USER_PASSWORD,
@@ -37,23 +35,6 @@ function enumeratePaths(routes: RouteObject[], prefix = '', acc: string[] = []):
     acc.push(`${prefix}${route.path}`);
   });
   return acc;
-}
-
-const disableRateLimits = new TypedMethod<void, void>('test.methods.smoke.disableRateLimits');
-
-if (Meteor.isServer) {
-  const defineMethod: typeof import('../../imports/server/methods/defineMethod').default =
-    require('../../imports/server/methods/defineMethod').default;
-
-  defineMethod(disableRateLimits, {
-    run() {
-      if (!Meteor.isAppTest) {
-        throw new Meteor.Error(500, 'This code must not run in production');
-      }
-
-      Accounts.removeDefaultRateLimit();
-    },
-  });
 }
 
 if (Meteor.isClient) {
@@ -91,7 +72,6 @@ if (Meteor.isClient) {
       // timeouts in CI.
       this.timeout(5000);
 
-      await disableRateLimits.callPromise();
       await resetDatabase('route');
       await provisionFirstUser.callPromise({ email: USER_EMAIL, password: USER_PASSWORD });
       await promisify(Meteor.loginWithPassword)(USER_EMAIL, USER_PASSWORD);
