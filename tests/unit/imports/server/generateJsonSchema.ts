@@ -1,4 +1,4 @@
-/* eslint-disable jolly-roger/no-sync-mongo-methods -- We're doing a lot of
+/* eslint-disable jolly-roger/no-disallowed-sync-methods -- We're doing a lot of
    testing of failures, and Meteor's async methods currently throw instead of
    rejecting, so just using the sync methods for now makes everything easier */
 import { Mongo } from 'meteor/mongo';

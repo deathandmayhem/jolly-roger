@@ -1,7 +1,7 @@
-import noSyncMongoMethods from './rules/no-sync-mongo-methods';
+import noDisallowedSyncMethods from './rules/no-disallowed-sync-methods';
 
 export = {
   rules: {
-    'no-sync-mongo-methods': noSyncMongoMethods,
+    'no-disallowed-sync-methods': noDisallowedSyncMethods,
   },
 };

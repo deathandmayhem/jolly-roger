@@ -1,33 +1,46 @@
 import { ESLintUtils } from '@typescript-eslint/utils';
 import ts from 'typescript';
 
-const syncModelMethods = new Set([
-  /* These methods are taken from upstream Meteor */
-  '_createCappedCollection',
-  '_dropCollection',
-  '_dropIndex',
-  'createIndex',
-  'findOne',
-  'insert',
-  'remove',
-  'update',
-  'upsert',
+const bannedMethods: Map<
+  string /* fully qualified base type */,
+  Map<
+    string /* method name */,
+    string /* replacement method name */
+  >
+> = new Map([
+  ['"meteor/mongo".Mongo.Collection', new Map([
+    ['_createCappedCollection', 'createCappedCollectionAsync'],
+    ['_dropCollection', 'dropCollectionAsync'],
+    ['_dropIndex', 'dropIndexAsync'],
+    ['createIndex', 'createIndexAsync'],
+    ['findOne', 'findOneAsync'],
+    ['insert', 'insertAsync'],
+    ['remove', 'removeAsync'],
+    ['update', 'updateAsync'],
+    ['upsert', 'upsertAsync'],
+  ])],
+  ['"meteor/mongo".Mongo.Cursor', new Map([
+    ['count', 'countAsync'],
+    ['fetch', 'fetchAsync'],
+    ['forEach', 'forEachAsync'],
+    ['map', 'mapAsync'],
+  ])],
 
-  /* These are methods that we've introduced */
-  'destroy',
-  'undestroy',
-  'findOneDeleted',
-  'findOneAllowingDeleted',
+  ['Model', new Map([
+    ['findOne', 'findOneAsync'],
+  ])],
+  ['SoftDeletedModel', new Map([
+    ['findOneDeleted', 'findOneDeletedAsync'],
+    ['findOneAllowingDeleted', 'findOneAllowingDeletedAsync'],
+    ['destroy', 'destroyAsync'],
+    ['undestroy', 'undestroyAsync'],
+  ])],
 ]);
 
-const syncCursorMethods = new Set([
-  'count',
-  'fetch',
-  'forEach',
-  'map',
-]);
-
-const syncMethods = new Set([...syncModelMethods, ...syncCursorMethods]);
+const allSyncMethods = [...bannedMethods.values()].reduce((acc, map) => {
+  map.forEach((_, key) => acc.add(key));
+  return acc;
+}, new Set<string>());
 
 const isObjectType = (type: ts.Type): type is ts.ObjectType => {
   // eslint-disable-next-line no-bitwise
@@ -76,7 +89,7 @@ export default ESLintUtils.RuleCreator.withoutDocs({
 
         const { property } = node.callee;
         const methodName = node.callee.property.name;
-        if (!syncMethods.has(methodName)) return;
+        if (!allSyncMethods.has(methodName)) return;
 
         const parserServices = ESLintUtils.getParserServices(context, false);
         const checker = parserServices.program.getTypeChecker();
@@ -86,31 +99,22 @@ export default ESLintUtils.RuleCreator.withoutDocs({
         );
         const allTypes = fetchAllBaseTypes(checker, calleeType);
 
-        const isMeteorCollection = allTypes.some((type) => {
-          return type.symbol &&
-            checker.getFullyQualifiedName(type.symbol) === '"meteor/mongo".Mongo.Collection';
-        });
-        const isMeteorCursor = allTypes.some((type) => {
-          return type.symbol &&
-            checker.getFullyQualifiedName(type.symbol) === '"meteor/mongo".Mongo.Cursor';
-        });
+        for (const type of allTypes) {
+          if (!type.symbol) continue;
 
-        if (isMeteorCollection && syncModelMethods.has(methodName)) {
+          const bannedMethodsForType = bannedMethods.get(
+            checker.getFullyQualifiedName(type.symbol)
+          );
+          if (!bannedMethodsForType) continue;
+
+          const replacement = bannedMethodsForType.get(methodName);
+          if (!replacement) continue;
+
           context.report({
             node,
             messageId: 'preferAsync',
             * fix(fixer) {
-              yield fixer.replaceText(property, `${property.name.replace('_', '')}Async`);
-              yield fixer.insertTextBefore(node, '(await ');
-              yield fixer.insertTextAfter(node, ')');
-            },
-          });
-        } else if (isMeteorCursor && syncCursorMethods.has(methodName)) {
-          context.report({
-            node,
-            messageId: 'preferAsync',
-            fix: methodName === 'forEach' ? null : function* (fixer) {
-              yield fixer.replaceText(property, `${property.name}Async`);
+              yield fixer.replaceText(property, replacement);
               yield fixer.insertTextBefore(node, '(await ');
               yield fixer.insertTextAfter(node, ')');
             },

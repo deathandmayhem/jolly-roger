@@ -114,7 +114,7 @@ const DEFAULT_ENROLL_ACCOUNT_TEMPLATE = 'Hiya!\n' +
     'This message was sent to {{email}}';
 
 function makeView(user: Meteor.User, url: string) {
-  // eslint-disable-next-line jolly-roger/no-sync-mongo-methods
+  // eslint-disable-next-line jolly-roger/no-disallowed-sync-methods
   const hunts = Hunts.find({ _id: { $in: user.hunts } }).fetch();
   const email = user?.emails?.[0]?.address;
   const huntNames = hunts.map((h) => h.name);
