@@ -4,7 +4,7 @@ import type { IndexSpecification, CreateIndexesOptions, CommandOperationOptions 
 import Logger from '../Logger';
 import type { ModelIndexSpecification } from '../lib/models/Model';
 import { AllModels, normalizeIndexOptions, normalizeIndexSpecification } from '../lib/models/Model';
-import startupIfLatestBuild from './startupIfLatestBuild';
+import runIfLatestBuild from './runIfLatestBuild';
 
 const { MongoError } = MongoInternals.NpmModules.mongodb.module;
 
@@ -17,7 +17,7 @@ type ExistingIndexSpecification = ModelIndexSpecification & {
   name: string | undefined;
 }
 
-startupIfLatestBuild(async () => {
+runIfLatestBuild(async () => {
   for (const model of AllModels) {
     const { indexes: expectedIndexes } = model;
     const collection = model.collection.rawCollection();

@@ -2,9 +2,9 @@ import { Meteor } from 'meteor/meteor';
 import { AllModels } from '../lib/models/Model';
 import User from '../lib/models/User';
 import attachSchema from './attachSchema';
-import startupIfLatestBuild from './startupIfLatestBuild';
+import runIfLatestBuild from './runIfLatestBuild';
 
-startupIfLatestBuild(async () => {
+runIfLatestBuild(async () => {
   for (const model of AllModels.values()) {
     await attachSchema(model.schema, model.collection);
   }

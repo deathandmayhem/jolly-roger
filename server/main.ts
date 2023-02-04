@@ -42,3 +42,8 @@ import '../imports/server/mediasoup-api';
 import ModelsFacade from '../imports/lib/models/facade';
 
 (global as any).Models = ModelsFacade;
+
+// Very last thing: run latest build hooks to actually create indexes and
+// schemas
+// eslint-disable-next-line import/first
+import '../imports/server/runLatestBuildHooks';
