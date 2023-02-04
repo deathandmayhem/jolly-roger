@@ -22,8 +22,8 @@ import addHuntUser from '../../imports/methods/addHuntUser';
 import createFixtureHunt from '../../imports/methods/createFixtureHunt';
 import promoteOperator from '../../imports/methods/promoteOperator';
 import provisionFirstUser from '../../imports/methods/provisionFirstUser';
+import resetDatabase from '../lib/resetDatabase';
 import {
-  resetDatabase,
   stabilize,
   USER_EMAIL,
   USER_PASSWORD,

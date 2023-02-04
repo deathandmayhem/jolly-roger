@@ -7,7 +7,8 @@ import Hunts from '../../imports/lib/models/Hunts';
 import MeteorUsers from '../../imports/lib/models/MeteorUsers';
 import { addUserToRole as serverAddUserToRole, huntsUserIsOperatorFor } from '../../imports/lib/permission_stubs';
 import TypedMethod from '../../imports/methods/TypedMethod';
-import { resetDatabase, stabilize, subscribeAsync } from './lib';
+import resetDatabase from '../lib/resetDatabase';
+import { stabilize, subscribeAsync } from './lib';
 
 // To make these tests easier to setup, use these methods to punch through most
 // of our normal permissions. They don't even require that you be logged in.
