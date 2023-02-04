@@ -138,13 +138,7 @@ const DiscordHooks: Hookset = {
         title = `${title.substring(0, 24)}…`;
       }
 
-      let description: string;
-      if (chatMessage.content) {
-        description = await renderChatMessageV2Content(chatMessage.content);
-      } else {
-        description = chatMessage.text!;
-      }
-
+      const description = await renderChatMessageV2Content(chatMessage.content);
       const msg = {
         embed: {
           author: {

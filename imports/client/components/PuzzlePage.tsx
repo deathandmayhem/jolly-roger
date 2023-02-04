@@ -47,10 +47,8 @@ import OverlayTrigger from 'react-bootstrap/esm/OverlayTrigger';
 import Tooltip from 'react-bootstrap/esm/Tooltip';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Link, useParams } from 'react-router-dom';
-import TextareaAutosize from 'react-textarea-autosize';
 import type { Descendant } from 'slate';
 import styled, { css } from 'styled-components';
-import Flags from '../../Flags';
 import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { messageDingsUser } from '../../lib/dingwordLogic';
 import { indexedById, sortedBy } from '../../lib/listUtils';
@@ -82,7 +80,6 @@ import type { Sheet } from '../../methods/listDocumentSheets';
 import listDocumentSheets from '../../methods/listDocumentSheets';
 import removePuzzleAnswer from '../../methods/removePuzzleAnswer';
 import removePuzzleTag from '../../methods/removePuzzleTag';
-import sendChatMessage from '../../methods/sendChatMessage';
 import sendChatMessageV2 from '../../methods/sendChatMessageV2';
 import undestroyPuzzle from '../../methods/undestroyPuzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
@@ -125,7 +122,7 @@ const DEBUG_SHOW_CALL_STATE = false;
 
 const tabId = Random.id();
 
-const FilteredChatFields = ['_id', 'puzzle', 'text', 'content', 'sender', 'timestamp'] as const;
+const FilteredChatFields = ['_id', 'puzzle', 'content', 'sender', 'timestamp'] as const;
 type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[number]>
 
 // It doesn't need to be, but this is consistent with the 576px transition used in other pages' css
@@ -338,14 +335,11 @@ const ChatMessage = React.memo(({
     <ChatMessageDiv isSystemMessage={isSystemMessage} isHighlighted={isHighlighted && !isSystemMessage}>
       {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
       {!suppressSender && <strong>{senderDisplayName}</strong>}
-      {message.text && <Markdown as="span" text={message.text} />}
-      {message.content && (
-        <ChatMessageV2
-          message={message.content}
-          displayNames={displayNames}
-          selfUserId={selfUserId}
-        />
-      )}
+      <ChatMessageV2
+        message={message.content}
+        displayNames={displayNames}
+        selfUserId={selfUserId}
+      />
     </ChatMessageDiv>
   );
 });
@@ -516,20 +510,6 @@ const ChatHistory = React.forwardRef(({
 // if we put the memo() and forwardRef() on the same line above.
 const ChatHistoryMemo = React.memo(ChatHistory);
 
-const chatInputStyles = {
-  textarea: {
-    // Chrome has a bug where if the line-height is a plain number (e.g. 1.42857143) rather than
-    // an absolute size (e.g. 14px, 12pt) then when you zoom, scrollHeight is miscomputed.
-    // scrollHeight is used for computing the effective size of a textarea, so we can grow the
-    // input to accomodate its contents.
-    // The default Chrome stylesheet has line-height set to a plain number.
-    // We work around the Chrome bug by setting an explicit sized line-height for the textarea.
-    lineHeight: '20px',
-    padding: '9px 4px',
-    resize: 'none' as const,
-  },
-};
-
 const StyledFancyEditor = styled(FancyEditor)`
   flex: 1;
   display: block;
@@ -561,11 +541,8 @@ const ChatInput = React.memo(({
   puzzleId: string;
   disabled: boolean;
 }) => {
-  // Drive this with a circuit breaker.
-  const useNewInput = useTracker(() => !Flags.active('disable.chatv2'), []);
-
   // We want to have hunt profile data around so we can autocomplete from multiple fields.
-  const profilesLoadingFunc = useSubscribe(useNewInput ? 'huntProfiles' : undefined, huntId);
+  const profilesLoadingFunc = useSubscribe('huntProfiles', huntId);
   const profilesLoading = profilesLoadingFunc();
   const users = useTracker(() => {
     return profilesLoading ? [] : MeteorUsers.find({
@@ -574,7 +551,6 @@ const ChatInput = React.memo(({
     }).fetch();
   }, [huntId, profilesLoading]);
 
-  // Shared.
   const onHeightChangeCb = useCallback((newHeight: number) => {
     if (onHeightChange) {
       trace('ChatInput onHeightChange', { newHeight });
@@ -582,50 +558,24 @@ const ChatInput = React.memo(({
     }
   }, [onHeightChange]);
 
-  // V1 input
-  const [text, setText] = useState<string>('');
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const onInputChanged = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setText(e.target.value);
-  }, []);
-  const sendMessageIfHasText = useCallback(() => {
-    if (textAreaRef.current) {
-      textAreaRef.current.focus();
-    }
-    if (text) {
-      sendChatMessage.call({ puzzleId, message: text });
-      setText('');
-      if (onMessageSent) {
-        onMessageSent();
-      }
-    }
-  }, [text, puzzleId, onMessageSent]);
-  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessageIfHasText();
-    }
-  }, [sendMessageIfHasText]);
-
   const preventDefaultCallback = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
   }, []);
 
-  // V2 input.
   const [content, setContent] = useState<Descendant[]>(initialValue);
   const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
   const onContentChange = useCallback((newContent: Descendant[]) => {
     setContent(newContent);
     onHeightChangeCb(0);
   }, [onHeightChangeCb]);
-  const hasNonTrivialV2Content = useMemo(() => {
+  const hasNonTrivialContent = useMemo(() => {
     return content.length > 0 && (content[0]! as MessageElement).children.some((child) => {
       return nodeIsMention(child) || (nodeIsText(child) && child.text.trim().length > 0);
     });
   }, [content]);
 
   const sendContentMessage = useCallback(() => {
-    if (hasNonTrivialV2Content) {
+    if (hasNonTrivialContent) {
       // Prepare to send message to server.
 
       // Take only the first Descendant; we normalize the input to a single
@@ -656,55 +606,26 @@ const ChatInput = React.memo(({
         onMessageSent();
       }
     }
-  }, [hasNonTrivialV2Content, content, puzzleId, onMessageSent]);
+  }, [hasNonTrivialContent, content, puzzleId, onMessageSent]);
 
-  // V1/V2 interop.
-  const sendMessageIfReady = useCallback(() => {
-    if (useNewInput) {
-      sendContentMessage();
-    } else {
-      sendMessageIfHasText();
-    }
-  }, [useNewInput, sendContentMessage, sendMessageIfHasText]);
-  const inputElement = useNewInput ? (
-    <StyledFancyEditor
-      ref={fancyEditorRef}
-      className="form-control"
-      initialContent={content}
-      placeholder="Chat"
-      users={users}
-      onContentChange={onContentChange}
-      onSubmit={sendContentMessage}
-      disabled={disabled}
-    />
-  ) : (
-    <TextareaAutosize
-      ref={textAreaRef}
-      className="form-control"
-      style={chatInputStyles.textarea}
-      maxLength={4000}
-      minRows={1}
-      maxRows={12}
-      value={text}
-      disabled={disabled}
-      onChange={onInputChanged}
-      onKeyDown={onKeyDown}
-      onHeightChange={onHeightChangeCb}
-      placeholder="Chat"
-    />
-  );
-  const hasNonTrivialContent = useNewInput ?
-    hasNonTrivialV2Content :
-    text.length > 0;
   useBlockUpdate(hasNonTrivialContent ? "You're in the middle of typing a message." : undefined);
 
   return (
     <ChatInputRow>
       <InputGroup>
-        {inputElement}
+        <StyledFancyEditor
+          ref={fancyEditorRef}
+          className="form-control"
+          initialContent={content}
+          placeholder="Chat"
+          users={users}
+          onContentChange={onContentChange}
+          onSubmit={sendContentMessage}
+          disabled={disabled}
+        />
         <Button
           variant="secondary"
-          onClick={sendMessageIfReady}
+          onClick={sendContentMessage}
           onMouseDown={preventDefaultCallback}
           disabled={disabled || !hasNonTrivialContent}
         >

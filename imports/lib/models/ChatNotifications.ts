@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ChatMessageContent } from './ChatMessages';
 import type { ModelType } from './Model';
 import SoftDeletedModel from './SoftDeletedModel';
-import { foreignKey, nonEmptyString } from './customTypes';
+import { foreignKey } from './customTypes';
 import withCommon from './withCommon';
 
 // A notification triggered by a chat message sent by a user.
@@ -18,10 +18,8 @@ const ChatNotification = withCommon(z.object({
   puzzle: foreignKey,
   // The hunt in which the puzzle resides.
   hunt: foreignKey,
-  // The message body, if chat message v1. Plain text.
-  text: nonEmptyString.optional(),
   // The message content, if chat message v2.
-  content: ChatMessageContent.optional(),
+  content: ChatMessageContent,
   // The date this message was sent.  Used for ordering chats in the log.
   timestamp: z.date(),
 }));

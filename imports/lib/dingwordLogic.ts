@@ -3,19 +3,18 @@ import type { ChatMessageType } from './models/ChatMessages';
 import nodeIsMention from './nodeIsMention';
 import nodeIsText from './nodeIsText';
 
-const NeededChatFields = ['text', 'content', 'sender'] as const;
+const NeededChatFields = ['content', 'sender'] as const;
 type PartialChatMessageType = Pick<ChatMessageType, typeof NeededChatFields[number]>
 
 export function normalizedForDingwordSearch(chatMessage: PartialChatMessageType): string {
-  return chatMessage.text?.trim().toLowerCase() ??
-    chatMessage.content?.children.map((child) => {
-      if (nodeIsText(child)) {
-        return child.text;
-      } else {
-        // No need to look for dingwords in @-mentions, but let them split words
-        return ' ';
-      }
-    }).join('').trim().toLowerCase() ?? '';
+  return chatMessage.content?.children.map((child) => {
+    if (nodeIsText(child)) {
+      return child.text;
+    } else {
+      // No need to look for dingwords in @-mentions, but let them split words
+      return ' ';
+    }
+  }).join('').trim().toLowerCase() ?? '';
 }
 
 export function normalizedMessageDingsUserByDingword(

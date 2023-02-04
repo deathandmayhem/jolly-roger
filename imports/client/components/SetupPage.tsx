@@ -1984,23 +1984,6 @@ const CircuitBreakerSection = () => {
           generated or displayed.
         </p>
       </CircuitBreakerControl>
-      <CircuitBreakerControl
-        title="Chat V2"
-        flagName="disable.chatv2"
-      >
-        <p>
-          We are deploying a new chat editor, with support for @-mentions and
-          inline syntax previews, which we hope will improve the chat experience.
-          However, this is substantial new code and has not yet been tested at scale.
-        </p>
-        <p>
-          Disabling this feature means that Jolly Roger&apos;s chat input box
-          will switch back the v1 version, and as a result will no longer
-          support @-mentions or show live syntax previews for new messages.
-          Chat messages that have already been sent will continue to render and
-          function as they did previously.
-        </p>
-      </CircuitBreakerControl>
     </Section>
   );
 };

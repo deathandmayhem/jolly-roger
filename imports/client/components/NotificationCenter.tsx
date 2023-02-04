@@ -506,24 +506,6 @@ const ChatNotificationMessage = ({
   const dismiss = useCallback(() => dismissChatNotification.call({ chatNotificationId: id }), [id]);
 
   const senderDisplayName = displayNames.get(cn.sender) ?? '???';
-  let contentElement;
-  if (cn.content) {
-    contentElement = (
-      <div>
-        <ChatMessageV2
-          message={cn.content}
-          displayNames={displayNames}
-          selfUserId={selfUserId}
-        />
-      </div>
-    );
-  } else if (cn.text) {
-    contentElement = (
-      <div>
-        <Markdown as="span" text={cn.text} />
-      </div>
-    );
-  }
 
   return (
     <Toast onClose={dismiss}>
@@ -540,7 +522,13 @@ const ChatNotificationMessage = ({
         </StyledNotificationTimestamp>
       </Toast.Header>
       <Toast.Body>
-        {contentElement}
+        <div>
+          <ChatMessageV2
+            message={cn.content}
+            displayNames={displayNames}
+            selfUserId={selfUserId}
+          />
+        </div>
       </Toast.Body>
     </Toast>
   );

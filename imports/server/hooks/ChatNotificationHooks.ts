@@ -26,21 +26,19 @@ const ChatNotificationHooks: Hookset = {
     }
 
     // Notify for @-mentions in message.
-    if (chatMessage.content) {
-      await Promise.all(chatMessage.content.children.map(async (child) => {
-        if (nodeIsMention(child)) {
-          const mentionedUserId = child.userId;
-          // Don't have messages notify yourself.
-          if (mentionedUserId !== sender) {
-            // Only create mentions for users that are in the current hunt.
-            const mentionedUser = await MeteorUsers.findOneAsync(mentionedUserId);
-            if (mentionedUser?.hunts?.includes(chatMessage.hunt)) {
-              usersToNotify.add(mentionedUserId);
-            }
+    await Promise.all(chatMessage.content.children.map(async (child) => {
+      if (nodeIsMention(child)) {
+        const mentionedUserId = child.userId;
+        // Don't have messages notify yourself.
+        if (mentionedUserId !== sender) {
+          // Only create mentions for users that are in the current hunt.
+          const mentionedUser = await MeteorUsers.findOneAsync(mentionedUserId);
+          if (mentionedUser?.hunts?.includes(chatMessage.hunt)) {
+            usersToNotify.add(mentionedUserId);
           }
         }
-      }));
-    }
+      }
+    }));
 
     // Respect feature flag.
     if (!Flags.active('disable.dingwords')) {
@@ -75,7 +73,6 @@ const ChatNotificationHooks: Hookset = {
         sender,
         puzzle: chatMessage.puzzle,
         hunt: chatMessage.hunt,
-        text: chatMessage.text,
         content: chatMessage.content,
         timestamp: chatMessage.timestamp,
       });

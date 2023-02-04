@@ -51,20 +51,13 @@ const PreWrapSpan = styled.span`
 `;
 
 function asFlatString(chatMessage: ChatMessageType, displayNames: Map<string, string>): string {
-  if (chatMessage.text) {
-    return chatMessage.text;
-  } else if (chatMessage.content) {
-    return chatMessage.content.children.map((child) => {
-      if (nodeIsMention(child)) {
-        return ` @${displayNames.get(child.userId) ?? '???'} `;
-      } else {
-        return child.text;
-      }
-    }).join(' ');
-  } else {
-    // shouldn't occur
-    return '';
-  }
+  return chatMessage.content.children.map((child) => {
+    if (nodeIsMention(child)) {
+      return ` @${displayNames.get(child.userId) ?? '???'} `;
+    } else {
+      return child.text;
+    }
+  }).join(' ');
 }
 
 const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
