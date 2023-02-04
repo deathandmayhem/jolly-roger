@@ -48,6 +48,7 @@ import { requestDiscordCredential } from '../discord';
 import { useOperatorActionsHidden } from '../hooks/persisted-state';
 import { useBlockReasons } from '../hooks/useBlockUpdate';
 import useTypedSubscribe from '../hooks/useTypedSubscribe';
+import AnnouncementToast from './AnnouncementToast';
 import ChatMessage from './ChatMessage';
 import Markdown from './Markdown';
 import PuzzleAnswer from './PuzzleAnswer';
@@ -385,23 +386,12 @@ const AnnouncementMessage = React.memo(({
   }
 
   return (
-    <Toast onClose={onDismiss}>
-      <Toast.Header>
-        <strong className="me-auto">
-          Announcement
-        </strong>
-        <StyledNotificationTimestamp>
-          {calendarTimeFormat(announcement.createdAt)}
-        </StyledNotificationTimestamp>
-      </Toast.Header>
-      <Toast.Body>
-        <Markdown text={announcement.message} />
-        <div>
-          {'- '}
-          {createdByDisplayName}
-        </div>
-      </Toast.Body>
-    </Toast>
+    <AnnouncementToast
+      message={announcement.message}
+      createdAt={announcement.createdAt}
+      displayName={createdByDisplayName}
+      onClose={onDismiss}
+    />
   );
 });
 

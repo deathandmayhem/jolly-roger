@@ -15,4 +15,5 @@ $toast-max-width: 380px;
   @each $name, $value in $grid-breakpoints {
     --bs-breakpoint-#{$name}: #{$value};
   }
+  --bs-toast-max-width: #{$toast-max-width};
 }
