@@ -1,4 +1,6 @@
-import { Meteor } from 'meteor/meteor';
 import Migrations from './migrations/Migrations';
+import runIfLatestBuild from './runIfLatestBuild';
 
-Meteor.startup(() => Migrations.migrateToLatest());
+runIfLatestBuild(async () => {
+  await Migrations.migrateToLatest();
+});

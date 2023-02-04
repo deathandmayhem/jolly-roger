@@ -2,9 +2,10 @@
 import '../imports/server/bugsnag';
 import '../imports/server/configureLogger';
 
-// setup schemas and indexes on models
+// setup database management
 import '../imports/server/schemas';
 import '../imports/server/indexes';
+import '../imports/server/migrations-run';
 
 // explicitly import all the stuff from lib/ since mainModule skips autoloading
 // things
@@ -30,7 +31,6 @@ import '../imports/server/gdriveActivityFetcher';
 import '../imports/server/assets';
 import '../imports/server/browserconfig';
 import '../imports/server/site-manifest';
-import '../imports/server/migrations-run'; // runs migrations
 import '../imports/server/server-render';
 import '../imports/server/setup';
 import '../imports/server/subscribers';
