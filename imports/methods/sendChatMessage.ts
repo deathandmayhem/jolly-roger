@@ -4,5 +4,5 @@ export default new TypedMethod<{
   puzzleId: string,
   content: string,
 }, void>(
-  'ChatMessages.methods.sendV2'
+  'ChatMessages.methods.send'
 );

@@ -90,7 +90,7 @@ const MarkdownToken = ({ token }: { token: marked.Token }) => {
   }
 };
 
-const ChatMessageV2 = ({ message, displayNames, selfUserId }: {
+const ChatMessage = ({ message, displayNames, selfUserId }: {
   message: ChatMessageContentType,
   displayNames: Map<string, string>,
   selfUserId: string,
@@ -119,4 +119,4 @@ const ChatMessageV2 = ({ message, displayNames, selfUserId }: {
   );
 };
 
-export default ChatMessageV2;
+export default ChatMessage;

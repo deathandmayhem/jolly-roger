@@ -31,7 +31,7 @@ async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   return new DiscordBot(token);
 }
 
-async function renderChatMessageV2Content(content: ChatMessageContentType): Promise<string> {
+async function renderChatMessageContent(content: ChatMessageContentType): Promise<string> {
   const chunks = await Promise.all(content.children.map(async (child) => {
     if (nodeIsText(child)) {
       return child.text;
@@ -138,7 +138,7 @@ const DiscordHooks: Hookset = {
         title = `${title.substring(0, 24)}…`;
       }
 
-      const description = await renderChatMessageV2Content(chatMessage.content);
+      const description = await renderChatMessageContent(chatMessage.content);
       const msg = {
         embed: {
           author: {
