@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import type { ModelType } from './Model';
 import Model from './Model';
-import { lastWriteTimestamp, nonEmptyString } from './customTypes';
+import { nonEmptyString, updatedTimestamp } from './customTypes';
 
 const Server = z.object({
   hostname: nonEmptyString,
   pid: z.number().int(),
-  updatedAt: lastWriteTimestamp,
+  updatedAt: updatedTimestamp,
 });
 
 const Servers = new Model('jr_servers', Server);

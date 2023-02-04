@@ -64,14 +64,6 @@ attachCustomJsonSchema(createdTimestamp, { bsonType: 'date' }, true);
 export const updatedTimestamp = z.date().optional()
   .transform((v) => {
     if (v) return v;
-    if (IsUpdate.getOrNullIfOutsideFiber()) return clock();
-    return undefined;
-  });
-attachCustomJsonSchema(updatedTimestamp, { bsonType: 'date' });
-
-export const lastWriteTimestamp = z.date().optional()
-  .transform((v) => {
-    if (v) return v;
     if (IsInsert.getOrNullIfOutsideFiber() ||
       IsUpsert.getOrNullIfOutsideFiber() ||
       IsUpdate.getOrNullIfOutsideFiber()) {
@@ -79,7 +71,7 @@ export const lastWriteTimestamp = z.date().optional()
     }
     return undefined as unknown as Date;
   });
-attachCustomJsonSchema(lastWriteTimestamp, { bsonType: 'date' });
+attachCustomJsonSchema(updatedTimestamp, { bsonType: 'date' });
 
 export const createdUser = foreignKey.optional()
   .transform((v) => {

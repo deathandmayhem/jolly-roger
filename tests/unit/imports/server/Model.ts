@@ -6,7 +6,6 @@ import Model, {
 } from '../../../../imports/lib/models/Model';
 import {
   createdTimestamp,
-  lastWriteTimestamp,
   nonEmptyString,
   resetClock,
   setClock,
@@ -107,7 +106,6 @@ describe('Model', function () {
       const schema = z.object({
         createdAt: createdTimestamp,
         updatedAt: updatedTimestamp,
-        lastWrittenAt: lastWriteTimestamp,
       });
       let model: Model<typeof schema>;
       this.beforeAll(async function () {
@@ -124,25 +122,23 @@ describe('Model', function () {
           {
             _id: string;
             createdAt: Date;
-            updatedAt?: Date;
-            lastWrittenAt: Date;
+            updatedAt: Date;
           }
         > = true;
         assert.isTrue(recordTypeTest);
       });
 
-      it('populates only _id, createdAt, and lastWrittenAt on insert', async function () {
+      it('populates _id, createdAt, and updatedAt on insert', async function () {
         const id = await model.insertAsync({});
         const record = (await model.findOneAsync(id))!;
 
         assert.isOk(record);
         assert.isString(record._id);
         assert.instanceOf(record.createdAt, Date);
-        assert.instanceOf(record.lastWrittenAt, Date);
-        assert.isUndefined(record.updatedAt);
+        assert.instanceOf(record.updatedAt, Date);
       });
 
-      it('only updates updatedAt and lastWrittenAt on update', async function () {
+      it('only updates updatedAt on update', async function () {
         const initialDate = new Date();
         setClock(() => initialDate);
 
@@ -151,8 +147,7 @@ describe('Model', function () {
 
         assert.isOk(record);
         assert.deepEqual(record.createdAt, initialDate);
-        assert.deepEqual(record.lastWrittenAt, initialDate);
-        assert.isUndefined(record.updatedAt);
+        assert.deepEqual(record.updatedAt, initialDate);
 
         const laterDate = new Date(initialDate.getTime() + 1000);
         setClock(() => laterDate);
@@ -163,10 +158,9 @@ describe('Model', function () {
         assert.isOk(updatedRecord);
         assert.deepEqual(updatedRecord.createdAt, initialDate);
         assert.deepEqual(updatedRecord.updatedAt, laterDate);
-        assert.deepEqual(updatedRecord.lastWrittenAt, laterDate);
       });
 
-      it('populates createdAt on upsert, but not update', async function () {
+      it('populates createdAt and updatedAt on upsert', async function () {
         const initialDate = new Date();
         setClock(() => initialDate);
 
@@ -176,7 +170,7 @@ describe('Model', function () {
         assert.isOk(record);
 
         assert.deepEqual(record.createdAt, initialDate);
-        assert.deepEqual(record.lastWrittenAt, initialDate);
+        assert.deepEqual(record.updatedAt, initialDate);
 
         const laterDate = new Date(initialDate.getTime() + 1000);
         setClock(() => laterDate);
@@ -186,27 +180,6 @@ describe('Model', function () {
 
         assert.isOk(updatedRecord);
         assert.deepEqual(updatedRecord.createdAt, initialDate);
-      });
-
-      it('does not populate updatedAt on upsert', async function () {
-        const initialDate = new Date();
-        setClock(() => initialDate);
-
-        const id = Random.id();
-        await model.upsertAsync(id, {});
-        const record = (await model.findOneAsync(id))!;
-        assert.isOk(record);
-
-        assert.isUndefined(record.updatedAt);
-
-        // It's a bit odd that updatedAt doesn't get set on an upsert that updates
-        // an existing document (rather than inserting a new one), but there's no
-        // $setOnNotInsert operator and this matches our historical behavior
-        await model.upsertAsync(id, {});
-        const updatedRecord = (await model.findOneAsync(id))!;
-        assert.isOk(updatedRecord);
-
-        assert.isUndefined(updatedRecord.updatedAt);
       });
     });
   });
@@ -416,7 +389,6 @@ describe('Model', function () {
     const schema = z.object({
       createdAt: createdTimestamp,
       updatedAt: updatedTimestamp,
-      lastWrittenAt: lastWriteTimestamp,
       string: nonEmptyString,
       number: z.number(),
     });
