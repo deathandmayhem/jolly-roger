@@ -48,7 +48,7 @@ defineMethod(createPuzzle, {
 
     // Look up each tag by name and map them to tag IDs.
     const tagIds = await Promise.all(tags.map(async (tagName) => {
-      return (await getOrCreateTagByName(huntId, tagName))._id;
+      return getOrCreateTagByName(huntId, tagName);
     }));
 
     Logger.info('Creating a new puzzle', {
