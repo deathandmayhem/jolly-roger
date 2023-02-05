@@ -3,6 +3,8 @@ import { Meteor } from 'meteor/meteor';
 import logfmt from 'logfmt';
 import { format, transports } from 'winston';
 import { logger } from '../Logger';
+import { serverId } from './garbage-collection';
+import { workersCount } from './loadBalance';
 
 const userIdSymbol = Symbol('userId');
 
@@ -26,8 +28,15 @@ logger.format = format.combine(
     level, label, message, [userIdSymbol]: userId, error,
     ...rest
   }) => {
+    const ctx: string[] = [];
+    if (workersCount > 1) {
+      ctx.push(`s:${serverId}`);
+    }
+    if (userId) {
+      ctx.push(`u:${userId}`);
+    }
     return `${level}: ${
-      userId ? `[${userId}] ` : ''
+      ctx.length > 0 ? `[${ctx.join('|')}] ` : ''
     }${
       label ? `[${label}] ` : ''
     }${message}${
