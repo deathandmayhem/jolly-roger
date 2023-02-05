@@ -492,7 +492,7 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
     selector?: S,
     options?: O,
   ) {
-    return this.collection.find(selector, options) as
+    return this.collection.find(selector ?? {}, options) as
       Mongo.Cursor<SelectorToResultType<z.output<this['schema']>, S>>;
   }
 
@@ -500,7 +500,7 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
     selector?: S,
     options?: O,
   ) {
-    return this.collection.findOne(selector, options) as
+    return this.collection.findOne(selector ?? {}, options) as
       SelectorToResultType<z.output<this['schema']>, S> | undefined;
   }
 
@@ -508,7 +508,7 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
     selector?: S,
     options?: O,
   ) {
-    return this.collection.findOneAsync(selector, options) as
+    return this.collection.findOneAsync(selector ?? {}, options) as
       Promise<SelectorToResultType<z.output<this['schema']>, S> | undefined>;
   }
 
