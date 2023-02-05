@@ -39,8 +39,10 @@ const getWorkersCount = () => {
   return parseInt(maybeWorkerCountString, 10) || 0;
 };
 
+// eslint-disable-next-line import/prefer-default-export
+export const workersCount = getWorkersCount();
+
 WebApp.onListening(() => {
-  const workersCount = getWorkersCount();
   if (workersCount > 0) {
     http.globalAgent.maxSockets = 99999;
     const proxy = HttpProxy.createProxyServer({
