@@ -543,6 +543,113 @@ Resources:
                           "max-size": "100m"
                         }
                       }
+                  - path: /usr/share/nginx/html/502.html
+                    content: |
+                      <!DOCTYPE html>
+                      <html lang="en">
+                        <head>
+                          <meta charset="utf-8">
+                          <title>Jolly Roger :: Temporarily Down</title>
+                          <style type="text/css">
+                            /* Standard font */
+                            @import url("https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+
+                            body {
+                              font-family: "Platform Emoji", "Source Sans Pro", "Helvetica Neue", "Helvetica", "Arial", sans-serif, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji";
+                              font-size: 16px;
+                              line-height: 1.5;
+                              max-width: 800px;
+                              margin: 0 auto;
+                              padding: 1em;
+                            }
+                            h1 {
+                              font-size: 2.5em;
+                              font-weight: 500;
+                              margin: 0;
+                            }
+                            p {
+                              margin-top: 0;
+                            }
+                            .warning {
+                              color: #842029;
+                              background-color: #f8d7da;
+                              border: 1px solid #f5c2c7;
+                              margin: 1em 0;
+                              padding: 0.75em 1.25em;
+                              border-radius: 0.375rem;
+                            }
+                            .warning p {
+                              margin: 0;
+                            }
+                            .hidden {
+                              display: none;
+                            }
+                            @keyframes spinner {
+                              to {transform: rotate(360deg);}
+                            }
+                            .spinner:before {
+                              content: '';
+                              box-sizing: border-box;
+                              position: relative;
+                              display: inline-block;
+                              top: 50%;
+                              left: 50%;
+                              width: 20px;
+                              height: 20px;
+                              margin-top: -10px;
+                              margin-left: -10px;
+                              border-radius: 50%;
+                              border: 2px solid #ccc;
+                              border-top-color: #000;
+                              animation: spinner .6s linear infinite;
+                            }
+                          </style>
+                        </head>
+                        <body>
+                          <h1>Temporarily Down</h1>
+
+                          <div class="warning hidden">
+                            <p>
+                              <strong>Warning:</strong> The Jolly Roger server is taking longer than expected to come back up.
+                              Please contact the Jolly Roger team if this problem persists.
+                            </p>
+                          </div>
+
+                          <p>
+                            The Jolly Roger server is temporarily down. Usually this happens when a new
+                            version is being deployed. This page will automatically refresh once the site
+                            is back up.
+                          </p>
+
+                          <p>
+                            <span class="spinner"></span>
+                          </p>
+                          <script>
+                            // Attempt to refresh every 5 seconds. After 1 minute, display a warning that
+                            // it's taking longer than expected.
+                            const deadline = Date.now() + 60 * 1000;
+                            let timeout = null;
+                            const tick = async () => {
+                              if (Date.now() > deadline) {
+                                document.querySelector(".warning").classList.remove("hidden");
+                              }
+
+                              try {
+                                const response = await fetch(window.location.href, { method: "HEAD" })
+                                if (response.ok) {
+                                  clearTimeout(timeout);
+                                  window.location.reload();
+                                }
+                              } catch (e) {
+                                console.log(e);
+                              }
+
+                              timeout = setTimeout(tick, 4500 + Math.random() * 1000);
+                            };
+                            tick();
+                          </script>
+                        </body>
+                      </html>
                   - path: /etc/nginx/conf.d/default.conf
                     content: |
                       # If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
@@ -612,6 +719,12 @@ Resources:
 
                         location / {
                           proxy_pass http://jolly-roger;
+                        }
+
+                        error_page 502 /502.html;
+                        location = /502.html {
+                          root /usr/share/nginx/html;
+                          internal;
                         }
                       }
                   - path: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
@@ -686,7 +799,7 @@ Resources:
                   ${PapertrailDockerConfig}
 
                   - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} ghcr.io/deathandmayhem/jolly-roger
-                  - docker run --name nginx -d --network=host --restart=unless-stopped -v /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf nginx
+                  - docker run --name nginx -d --network=host --restart=unless-stopped -v /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf -v /usr/share/nginx/html/502.html:/usr/share/nginx/html/502.html nginx
                   - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --interval 30 --cleanup
               -
                 PapertrailRsyslogConfig: !If
