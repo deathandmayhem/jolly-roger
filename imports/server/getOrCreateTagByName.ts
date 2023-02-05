@@ -1,14 +1,10 @@
 import Logger from '../Logger';
 import Tags from '../lib/models/Tags';
 
-export default async function getOrCreateTagByName(huntId: string, name: string): Promise<{
-  _id: string,
-  hunt: string,
-  name: string,
-}> {
+export default async function getOrCreateTagByName(huntId: string, name: string): Promise<string> {
   const existingTag = await Tags.findOneAsync({ hunt: huntId, name });
   if (existingTag) {
-    return existingTag;
+    return existingTag._id;
   }
 
   Logger.info('Creating a new tag', { hunt: huntId, name });
@@ -21,9 +17,5 @@ export default async function getOrCreateTagByName(huntId: string, name: string)
     await getOrCreateTagByName(huntId, metaTagName);
   }
 
-  return {
-    _id: newTagId,
-    hunt: huntId,
-    name,
-  };
+  return newTagId;
 }

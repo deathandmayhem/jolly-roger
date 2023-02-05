@@ -45,7 +45,7 @@ defineMethod(updatePuzzle, {
 
     // Look up each tag by name and map them to tag IDs.
     const tagIds = await Promise.all(tags.map(async (tagName) => {
-      return (await getOrCreateTagByName(oldPuzzle.hunt, tagName))._id;
+      return getOrCreateTagByName(oldPuzzle.hunt, tagName);
     }));
 
     Logger.info('Updating a puzzle', {
