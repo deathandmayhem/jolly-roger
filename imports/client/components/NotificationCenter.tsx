@@ -595,7 +595,7 @@ const NotificationCenter = () => {
 
   const [pendingUpdate, blockReasons] = useBlockReasons();
 
-  const operatorHunts = useTracker(() => huntsUserIsOperatorFor(Meteor.user()), []);
+  const operatorHunts = useTracker(() => [...huntsUserIsOperatorFor(Meteor.user())], []);
   const fetchPendingGuesses = operatorHunts.length > 0;
   const pendingGuessesLoading = useTypedSubscribe(fetchPendingGuesses ? pendingGuessesForSelf : undefined);
 

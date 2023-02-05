@@ -212,7 +212,7 @@ if (Meteor.isClient) {
         await subscribeAsync('huntRoles', huntId);
         await subscribeAsync('huntRoles', otherHuntId);
 
-        const userIsOperatorForAnyHunt = (u: Meteor.User) => huntsUserIsOperatorFor(u).length > 0;
+        const userIsOperatorForAnyHunt = (u: Meteor.User) => huntsUserIsOperatorFor(u).size > 0;
         let operators = MeteorUsers.find().fetch().filter(userIsOperatorForAnyHunt);
         assert.sameMembers(operators.map((u) => u._id), [userId, sameHuntUserId], 'Should only show operators in hunt where you are an operator');
 
