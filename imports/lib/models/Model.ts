@@ -187,7 +187,6 @@ const modifierIsWholeDoc = <T extends Document>(modifier: Mongo.Modifier<T>): mo
 export async function parseMongoModifierAsync<Schema extends MongoRecordZodType>(
   relaxedSchema: Schema,
   modifier: Mongo.Modifier<z.input<Schema>>,
-  upsert: boolean,
 ): Promise<Mongo.Modifier<z.output<Schema>>> {
   // Types should prevent passing a full document as a modifier to
   // {update,upsert}Async, but verify at runtime to be sure
@@ -196,7 +195,7 @@ export async function parseMongoModifierAsync<Schema extends MongoRecordZodType>
   }
 
   const parsed: any = {
-    $set: await IsUpdate.withValue(!upsert, () => {
+    $set: await IsUpdate.withValue(true, () => {
       return parseMongoOperationAsync(relaxedSchema, modifier.$set ?? {});
     }),
     $setOnInsert: await IsUpsert.withValue(true, () => {
@@ -447,7 +446,7 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
       }
     }
 
-    const parsed = await parseMongoModifierAsync(this.relaxedSchema, modifier, !!options.upsert);
+    const parsed = await parseMongoModifierAsync(this.relaxedSchema, modifier);
     try {
       return await this.collection.updateAsync(selector, parsed, mongoOptions);
     } catch (e) {
@@ -468,7 +467,7 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
     numberAffected?: number | undefined;
     insertedId?: z.output<IdSchema> | undefined;
   }> {
-    const parsed = await parseMongoModifierAsync(this.relaxedSchema, modifier, true);
+    const parsed = await parseMongoModifierAsync(this.relaxedSchema, modifier);
     try {
       return await this.collection.upsertAsync(selector, parsed, options) as any;
     } catch (e) {

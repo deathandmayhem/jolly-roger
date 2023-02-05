@@ -17,13 +17,23 @@ function registerPeriodicCleanupHook(f: (deadServers: string[]) => void | Promis
   globalGCHooks.push(f);
 }
 
+let firstUpsert = true;
 async function cleanup() {
-  await Servers.upsertAsync({ _id: serverId }, {
+  const result = await Servers.upsertAsync({ _id: serverId }, {
     $set: {
       pid: process.pid,
       hostname: os.hostname(),
     },
   });
+  if (!firstUpsert && result.insertedId) {
+    Logger.warn('Server record unexpectedly deleted', {
+      serverId,
+      pid: process.pid,
+      hostname: os.hostname(),
+      error: new Error('Server record unexpectedly deleted'),
+    });
+  }
+  firstUpsert = false;
 
   // Servers disappearing should be a fairly rare occurrence, so it's
   // OK for the timeouts here to be generous. Servers get 120 seconds
@@ -35,6 +45,8 @@ async function cleanup() {
   if (deadServers.length === 0) {
     return;
   }
+
+  Logger.info('Cleaning up dead servers', { deadServers: deadServers.join(',') });
 
   // Run all hooks.
   for (const f of globalGCHooks) {

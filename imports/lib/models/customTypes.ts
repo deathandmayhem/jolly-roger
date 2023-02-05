@@ -7,10 +7,8 @@ import { Id } from './regexes';
 // Each of these is set to true based on the context in which the schema is
 // being evaluated. They are mutually exclusive (although they can all be false)
 //
-// As a note: IsUpdate is _not_ set on updates with upsert: true. This means
-// that there is no way to set a field only for a non-insert upsert operation.
-// This is a bit odd, but we're constrained by Mongo's lack of a $setOnNotInsert
-// operator, and this does match our historical behavior with SimplSchema.
+// As a note: IsUpdate is set to true when generating $set operations on any
+// update (upsert or not).
 export const IsInsert = new Meteor.EnvironmentVariable<boolean>();
 export const IsUpdate = new Meteor.EnvironmentVariable<boolean>();
 export const IsUpsert = new Meteor.EnvironmentVariable<boolean>();
