@@ -122,9 +122,7 @@ class Watchdog extends EventEmitter {
 
   resetTimeout() {
     this.lastActivity = new Date();
-    if (this.timeoutHandle) {
-      clearTimeout(this.timeoutHandle);
-    }
+    Meteor.clearTimeout(this.timeoutHandle);
     this.timeoutHandle = Meteor.setTimeout(() => {
       this.emit('timeout');
     }, this.timeout);
@@ -711,6 +709,19 @@ class SFU {
       void (async () => {
         const consumer = await transport.consumeData({
           dataProducerId: this.heartbeatDataProducer.id,
+          // These options determine the reliability of the packets that we send
+          // over the SCTP connection. (Remember that we're creating a consumer,
+          // but consumer/producer are sort of backwards on the server side.)
+          //
+          // SCTP by default is ordered and reliable (i.e. dropped packets are
+          // retransmitted), but we want neither of those behaviors. Allow the
+          // receiver to deliver packets to the application out of order, and
+          // allow the sender to aggressively give up on retransmission.
+          //
+          // Both of these are transmitted to the receiving end via
+          // sctpStreamParameters.
+          ordered: false,
+          maxRetransmits: 1,
         });
 
         await MonitorConnectRequests.insertAsync({

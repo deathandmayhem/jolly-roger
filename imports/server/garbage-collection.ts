@@ -5,6 +5,7 @@
 import os from 'os';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
+import Logger from '../Logger';
 import Servers from '../lib/models/Servers';
 
 const serverId = Random.id();
@@ -57,6 +58,9 @@ function periodic() {
 }
 
 // Defer the first run to give other startup hooks a chance to run
-Meteor.startup(() => Meteor.defer(() => periodic()));
+Meteor.startup(() => Meteor.defer(() => {
+  Logger.info('New server starting', { serverId });
+  periodic();
+}));
 
 export { serverId, registerPeriodicCleanupHook };
