@@ -180,6 +180,7 @@ describe('Model', function () {
 
         assert.isOk(updatedRecord);
         assert.deepEqual(updatedRecord.createdAt, initialDate);
+        assert.deepEqual(updatedRecord.updatedAt, laterDate);
       });
     });
   });
@@ -365,15 +366,7 @@ describe('Model', function () {
       });
       const relaxed = relaxSchema(schema);
 
-      let parsed = await parseMongoModifierAsync(relaxed, {}, true);
-      assert.deepEqual(parsed, {
-        $setOnInsert: {
-          string: 'foo',
-          array: ['foo'],
-        },
-      });
-
-      parsed = await parseMongoModifierAsync(relaxed, {}, false);
+      const parsed = await parseMongoModifierAsync(relaxed, {});
       assert.deepEqual(parsed, {
         $setOnInsert: {
           string: 'foo',
