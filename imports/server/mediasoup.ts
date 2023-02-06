@@ -293,7 +293,10 @@ class SFU {
 
   static async create(ips: [types.TransportListenIp, ...types.TransportListenIp[]]) {
     process.env.DEBUG = 'mediasoup:WARN:* mediasoup:ERROR:*';
-    const worker = await createWorker();
+    const worker = await createWorker({
+      rtcMinPort: 10000,
+      rtcMaxPort: 49999,
+    });
     const monitorRouter = await worker.createRouter({
       mediaCodecs,
       appData: {
