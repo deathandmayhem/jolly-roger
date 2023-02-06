@@ -337,6 +337,7 @@ const useTransport = (
         iceParameters: JSON.parse(iceParameters),
         iceCandidates: JSON.parse(iceCandidates),
         dtlsParameters: JSON.parse(serverDtlsParameters),
+        iceServers: transportParams.turnConfig ? [transportParams.turnConfig] : undefined,
         appData: {
           _id,
         },
@@ -379,9 +380,16 @@ const useTransport = (
       return undefined;
     }
   }, [
-    device, hasParams, transportParams?._id, direction,
-    transportParams?.transportId, transportParams?.iceParameters, transportParams?.iceCandidates,
-    transportParams?.dtlsParameters, dispatch,
+    device,
+    hasParams,
+    direction,
+    dispatch,
+    transportParams?._id,
+    transportParams?.transportId,
+    transportParams?.iceParameters,
+    transportParams?.iceCandidates,
+    transportParams?.dtlsParameters,
+    transportParams?.turnConfig,
   ]);
 
   return connectRef;

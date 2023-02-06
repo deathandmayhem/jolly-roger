@@ -17,6 +17,11 @@ const Transport = withCommon(z.object({
   iceParameters: nonEmptyString, // JSON-encoded
   iceCandidates: nonEmptyString, // JSON-encoded
   dtlsParameters: nonEmptyString, // JSON-encoded
+  turnConfig: z.object({
+    urls: nonEmptyString,
+    username: nonEmptyString,
+    credential: nonEmptyString,
+  }).optional(),
 }));
 
 const Transports = new SoftDeletedModel('jr_mediasoup_transports', Transport);
