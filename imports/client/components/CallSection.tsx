@@ -488,6 +488,14 @@ const CallSection = ({
     joiningCallAlert = <JoiningCall details="Missing peer record for self" />;
   } else if (!callState.router) {
     joiningCallAlert = <JoiningCall details="Missing router" />;
+  } else if (callState.transportStates.send !== 'connected') {
+    // We always negotiate the send transport immediately, even if nobody is
+    // listening yet, so the only acceptable state is 'connected'
+    joiningCallAlert = <JoiningCall details="Unable to connect to WebRTC server for sending" />;
+  } else if (callState.transportStates.recv === 'failed') {
+    // However, the recv transport is only negotiated when we have at least one
+    // peer, so it can end up in an unestablished state for a while
+    joiningCallAlert = <JoiningCall details="Unable to connect to WebRTC server for receiving" />;
   }
 
   return (

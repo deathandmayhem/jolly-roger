@@ -75,6 +75,10 @@ export type CallState = ({
 }) & {
   device: types.Device | undefined;
   transports: Transports;
+  transportStates: {
+    send?: types.ConnectionState;
+    recv?: types.ConnectionState;
+  },
   router: RouterType | undefined;
   audioControls: AudioControls;
   selfPeer: PeerType | undefined;
@@ -94,6 +98,7 @@ export type Action =
   | { type: 'join-call', audioState: AudioState }
   | { type: 'set-device', device: types.Device | undefined }
   | { type: 'set-transport', direction: 'send' | 'recv', transport: types.Transport | undefined }
+  | { type: 'set-transport-state', direction: 'send' | 'recv', state: types.ConnectionState }
   | { type: 'set-router', router: RouterType | undefined }
   | { type: 'leave-call' }
   | { type: 'toggle-mute' }
@@ -117,6 +122,7 @@ const INITIAL_STATE: CallState = {
     send: undefined,
     recv: undefined,
   },
+  transportStates: {},
   router: undefined,
   selfPeer: undefined,
   otherPeers: [] as PeerType[],
@@ -154,6 +160,14 @@ function reducer(state: CallState, action: Action): CallState {
         transports: {
           ...state.transports,
           [action.direction]: action.transport,
+        },
+      };
+    case 'set-transport-state':
+      return {
+        ...state,
+        transportStates: {
+          ...state.transportStates,
+          [action.direction]: action.state,
         },
       };
     case 'set-router':
@@ -323,6 +337,7 @@ const useTransport = (
         iceParameters: JSON.parse(iceParameters),
         iceCandidates: JSON.parse(iceCandidates),
         dtlsParameters: JSON.parse(serverDtlsParameters),
+        iceServers: transportParams.turnConfig ? [transportParams.turnConfig] : undefined,
         appData: {
           _id,
         },
@@ -334,6 +349,16 @@ const useTransport = (
         mediasoupConnectTransport.call({
           transportId: _id,
           dtlsParameters: JSON.stringify(clientDtlsParameters),
+        });
+      });
+      newTransport.on('connectionstatechange', (state) => {
+        if (state === 'failed') {
+          logger.warn('Transport connection failed', { transportId, direction, newTransport });
+        }
+        dispatch({
+          type: 'set-transport-state',
+          direction,
+          state,
         });
       });
       logger.debug('setting transport', { direction, newTransport });
@@ -355,9 +380,16 @@ const useTransport = (
       return undefined;
     }
   }, [
-    device, hasParams, transportParams?._id, direction,
-    transportParams?.transportId, transportParams?.iceParameters, transportParams?.iceCandidates,
-    transportParams?.dtlsParameters, dispatch,
+    device,
+    hasParams,
+    direction,
+    dispatch,
+    transportParams?._id,
+    transportParams?.transportId,
+    transportParams?.iceParameters,
+    transportParams?.iceCandidates,
+    transportParams?.dtlsParameters,
+    transportParams?.turnConfig,
   ]);
 
   return connectRef;

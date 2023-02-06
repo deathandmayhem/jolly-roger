@@ -1,7 +1,9 @@
+import crypto from 'crypto';
 import { promises as dns } from 'dns';
 import EventEmitter from 'events';
 import { networkInterfaces } from 'os';
 import { Meteor } from 'meteor/meteor';
+import { Random } from 'meteor/random';
 import { Address6 } from 'ip-address';
 import { createWorker, types } from 'mediasoup';
 import { AudioLevelObserver } from 'mediasoup/node/lib/AudioLevelObserver';
@@ -103,6 +105,34 @@ type RouterAppData = {
   call: string;
   createdBy: string;
 };
+
+function generateTurnConfig() {
+  const turnServer = process.env.TURN_SERVER;
+  const turnSecret = process.env.TURN_SECRET;
+  if (!turnServer || !turnSecret) {
+    return undefined;
+  }
+
+  // Generate a username/credential that the TURN server will accept.
+
+  // 3 days in seconds should be more than enough to get through hunt.
+  // I sincerely doubt that any browser tab will be on a single call for that
+  // long.
+  const validityWindow = 3 * 24 * 60 * 60;
+  const validUntil = Math.floor(Date.now() / 1000) + validityWindow;
+  const nonce = Random.id();
+  const username = `${validUntil}:${nonce}`;
+
+  const hmac = crypto.createHmac('sha1', turnSecret);
+  hmac.update(username);
+  const credential = hmac.digest('base64');
+
+  return {
+    urls: turnServer,
+    username,
+    credential,
+  };
+}
 
 class Watchdog extends EventEmitter {
   public timeout: number;
@@ -293,7 +323,10 @@ class SFU {
 
   static async create(ips: [types.TransportListenIp, ...types.TransportListenIp[]]) {
     process.env.DEBUG = 'mediasoup:WARN:* mediasoup:ERROR:*';
-    const worker = await createWorker();
+    const worker = await createWorker({
+      rtcMinPort: 10000,
+      rtcMaxPort: 49999,
+    });
     const monitorRouter = await worker.createRouter({
       mediaCodecs,
       appData: {
@@ -615,6 +648,7 @@ class SFU {
       iceCandidates: JSON.stringify(transport.iceCandidates),
       dtlsParameters: JSON.stringify(transport.dtlsParameters),
       createdBy: transportAppData.createdBy,
+      turnConfig: generateTurnConfig(),
     });
   }
 
