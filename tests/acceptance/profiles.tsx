@@ -32,13 +32,13 @@ if (Meteor.isServer) {
       return arg;
     },
 
-    run({ email, password, displayName }) {
+    async run({ email, password, displayName }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, 'This code must not run in production');
       }
 
       const userId = Accounts.createUser({ email, password });
-      MeteorUsers.update(userId, { $set: { displayName } });
+      await MeteorUsers.updateAsync(userId, { $set: { displayName } });
       return userId;
     },
   });
@@ -78,7 +78,7 @@ if (Meteor.isServer) {
       }
 
       // Just pick a random creator
-      const u = Meteor.users.findOne();
+      const u = await Meteor.users.findOneAsync();
       if (!u) {
         throw new Meteor.Error(500, 'No users found');
       }
@@ -97,8 +97,8 @@ if (Meteor.isServer) {
       return arg;
     },
 
-    run({ huntId, userId }) {
-      MeteorUsers.update(userId, { $addToSet: { hunts: { $each: [huntId] } } });
+    async run({ huntId, userId }) {
+      await MeteorUsers.updateAsync(userId, { $addToSet: { hunts: { $each: [huntId] } } });
     },
   });
 }
@@ -125,7 +125,7 @@ if (Meteor.isClient) {
         let huntSub = await subscribeAsync('displayNames', huntId);
 
         assert.sameMembers(
-          MeteorUsers.find({}, { fields: { displayName: 1 } }).map((u) => u.displayName),
+          await MeteorUsers.find({}, { fields: { displayName: 1 } }).mapAsync((u) => u.displayName),
           ['U1', 'U2'],
           'Should only show users in the same hunt'
         );
@@ -135,7 +135,7 @@ if (Meteor.isClient) {
         huntSub = await subscribeAsync('displayNames', otherHuntId);
 
         assert.sameMembers(
-          MeteorUsers.find({}, { fields: { displayName: 1 } }).map((u) => u.displayName),
+          await MeteorUsers.find({}, { fields: { displayName: 1 } }).mapAsync((u) => u.displayName),
           ['U1'],
           'Should not show users in the other hunt when not a member'
         );
@@ -144,7 +144,7 @@ if (Meteor.isClient) {
         await stabilize();
 
         assert.sameMembers(
-          MeteorUsers.find({}, { fields: { displayName: 1 } }).map((u) => u.displayName),
+          await MeteorUsers.find({}, { fields: { displayName: 1 } }).mapAsync((u) => u.displayName),
           ['U1', 'U3'],
           'Should update when hunt membership changes'
         );
@@ -171,19 +171,19 @@ if (Meteor.isClient) {
 
         await subscribeAsync('allProfiles');
 
-        let u3 = MeteorUsers.findOne(differentHuntUserId);
+        let u3 = await MeteorUsers.findOneAsync(differentHuntUserId);
         assert.isUndefined(u3, 'Should not show users in the other hunt when not a member');
 
-        let u2 = MeteorUsers.findOne(sameHuntUserId);
+        let u2 = await MeteorUsers.findOneAsync(sameHuntUserId);
         assert.isDefined(u2, 'Should show users in the same hunt');
         assert.sameMembers(u2!.hunts!, [huntId], 'Should not show membership in other hunts even if user is visible');
 
         await joinHunt.callPromise({ huntId: otherHuntId, userId });
         await stabilize();
 
-        u2 = MeteorUsers.findOne(sameHuntUserId);
+        u2 = await MeteorUsers.findOneAsync(sameHuntUserId);
         assert.sameMembers(u2!.hunts!, [huntId, otherHuntId], 'Should update when hunt membership changes');
-        u3 = MeteorUsers.findOne(differentHuntUserId);
+        u3 = await MeteorUsers.findOneAsync(differentHuntUserId);
         assert.isDefined(u3, 'Should show users in the other hunt when a member');
       });
     });
@@ -213,13 +213,13 @@ if (Meteor.isClient) {
         await subscribeAsync('huntRoles', otherHuntId);
 
         const userIsOperatorForAnyHunt = (u: Meteor.User) => huntsUserIsOperatorFor(u).size > 0;
-        let operators = MeteorUsers.find().fetch().filter(userIsOperatorForAnyHunt);
+        let operators = (await MeteorUsers.find().fetchAsync()).filter(userIsOperatorForAnyHunt);
         assert.sameMembers(operators.map((u) => u._id), [userId, sameHuntUserId], 'Should only show operators in hunt where you are an operator');
 
         await addUserToRole.callPromise({ userId, scope: otherHuntId, role: 'operator' });
         await stabilize();
 
-        operators = MeteorUsers.find().fetch().filter(userIsOperatorForAnyHunt);
+        operators = (await MeteorUsers.find().fetchAsync()).filter(userIsOperatorForAnyHunt);
         assert.sameMembers(operators.map((u) => u._id), [userId, sameHuntUserId, differentHuntUserId], 'Should update when hunt roles changes');
       });
     });
