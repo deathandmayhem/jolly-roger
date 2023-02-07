@@ -6,12 +6,12 @@ import MeteorUsers from '../lib/models/MeteorUsers';
 import Puzzles from '../lib/models/Puzzles';
 import publishJoinedQuery from './publishJoinedQuery';
 
-Meteor.publish('chatNotifications', function () {
+Meteor.publish('chatNotifications', async function () {
   if (!this.userId) {
     throw new Meteor.Error(401, 'Not logged in');
   }
 
-  if (Flags.active('disable.dingwords')) {
+  if (await Flags.activeAsync('disable.dingwords')) {
     return;
   }
 

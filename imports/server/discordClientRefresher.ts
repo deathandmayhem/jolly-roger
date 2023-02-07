@@ -34,7 +34,9 @@ class DiscordClientRefresher {
       removed: () => this.clearBotConfig(),
     });
 
-    this.featureFlagObserveHandle = Flags.observeChanges('disable.discord', () => this.refreshClient());
+    this.featureFlagObserveHandle = Flags.observeChanges('disable.discord', () => {
+      void this.refreshClient();
+    });
   }
 
   ready() {
@@ -53,15 +55,15 @@ class DiscordClientRefresher {
     }
 
     this.token = doc.value.token;
-    this.refreshClient();
+    void this.refreshClient();
   }
 
   clearBotConfig() {
     this.token = undefined;
-    this.refreshClient();
+    void this.refreshClient();
   }
 
-  refreshClient() {
+  async refreshClient() {
     if (this.client) {
       this.client.destroy();
       this.client = undefined;
@@ -72,7 +74,7 @@ class DiscordClientRefresher {
       this.wakeup = undefined;
     }
 
-    if (Flags.active('disable.discord')) {
+    if (await Flags.activeAsync('disable.discord')) {
       return;
     }
 
@@ -99,7 +101,7 @@ class DiscordClientRefresher {
               await renew();
             } catch {
               // we must have lost the lock
-              this.refreshClient();
+              await this.refreshClient();
             }
           }, PREEMPT_TIMEOUT / 2);
 
@@ -153,7 +155,7 @@ class DiscordClientRefresher {
             // refreshClient fired off and we don't have to do anything;
             // otherwise we need to clean things up ourselves
             if (!wokenUp) {
-              this.refreshClient();
+              await this.refreshClient();
             }
           } finally {
             Meteor.clearInterval(renewInterval);

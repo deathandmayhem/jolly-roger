@@ -11,7 +11,7 @@ export default async (
   huntId: string,
   { force = true }: { force?: boolean } = {}
 ) => {
-  if (Flags.active('disable.discord')) {
+  if (await Flags.activeAsync('disable.discord')) {
     Logger.info('Can not add users to Discord role because Discord is disabled by feature flag', { userIds, huntId });
     return;
   }

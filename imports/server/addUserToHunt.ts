@@ -138,8 +138,8 @@ export default async function addUserToHunt({ hunt, email, invitedBy }: {
       });
     }
 
-    if (!Flags.active('disable.google') &&
-      !Flags.active('disable.gdrive_permissions') &&
+    if (!await Flags.activeAsync('disable.google') &&
+      !await Flags.activeAsync('disable.gdrive_permissions') &&
       joineeUser.googleAccount) {
       await ensureHuntFolderPermission(hunt._id, joineeUser._id, joineeUser.googleAccount);
     }

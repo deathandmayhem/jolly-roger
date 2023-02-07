@@ -15,18 +15,18 @@ import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
 import HuntFolders from './models/HuntFolders';
 import withLock from './withLock';
 
-function checkClientOk() {
+async function checkClientOk() {
   if (!GoogleClient.ready()) {
     throw new Meteor.Error(500, 'Google OAuth is not configured.');
   }
 
-  if (Flags.active('disable.google')) {
+  if (await Flags.activeAsync('disable.google')) {
     throw new Meteor.Error(500, 'Google integration is disabled.');
   }
 }
 
 async function createFolder(name: string, parentId?: string) {
-  checkClientOk();
+  await checkClientOk();
   if (!GoogleClient.drive) throw new Meteor.Error(500, 'Google integration is disabled');
 
   const mimeType = 'application/vnd.google-apps.folder';
@@ -51,7 +51,7 @@ async function createDocument(
   if (!Object.prototype.hasOwnProperty.call(GdriveMimeTypes, type)) {
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
-  checkClientOk();
+  await checkClientOk();
   if (!GoogleClient.drive) throw new Meteor.Error(500, 'Google integration is disabled');
 
   const template = (await Settings.findOneAsync({ name: `gdrive.template.${type}` as any })) as undefined | SettingType & (
@@ -79,7 +79,7 @@ async function createDocument(
 }
 
 export async function moveDocument(id: string, newParentId: string) {
-  checkClientOk();
+  await checkClientOk();
   if (!GoogleClient.drive) throw new Meteor.Error(500, 'Google integration is disabled');
 
   const parents = (await GoogleClient.drive.files.get({
@@ -103,7 +103,7 @@ export async function puzzleDocumentName(puzzleTitle: string) {
 }
 
 export async function renameDocument(id: string, name: string) {
-  checkClientOk();
+  await checkClientOk();
   if (!GoogleClient.drive) return;
   // It's unclear if this can ever return an error
   await GoogleClient.drive.files.update({
@@ -113,7 +113,7 @@ export async function renameDocument(id: string, name: string) {
 }
 
 export async function grantPermission(id: string, email: string, permission: string) {
-  checkClientOk();
+  await checkClientOk();
   if (!GoogleClient.drive) return;
   await GoogleClient.drive.permissions.create({
     fileId: id,
@@ -127,7 +127,7 @@ export async function grantPermission(id: string, email: string, permission: str
 }
 
 export async function makeReadOnly(fileId: string) {
-  checkClientOk();
+  await checkClientOk();
   const client = GoogleClient.drive;
   if (!client) return;
 
@@ -166,7 +166,7 @@ export async function makeReadOnly(fileId: string) {
 }
 
 export async function makeReadWrite(fileId: string) {
-  checkClientOk();
+  await checkClientOk();
   if (!GoogleClient.drive) return;
 
   await GoogleClient.drive.permissions.create({
@@ -178,7 +178,7 @@ export async function makeReadWrite(fileId: string) {
 export async function ensureHuntFolder(hunt: { _id: string, name: string }) {
   let folder = await HuntFolders.findOneAsync(hunt._id);
   if (!folder) {
-    checkClientOk();
+    await checkClientOk();
 
     folder = await withLock(`hunt:${hunt._id}:folder`, async () => {
       let lockedFolder = await HuntFolders.findOneAsync(hunt._id);
@@ -239,7 +239,7 @@ export async function ensureDocument(puzzle: {
 
   let doc = await Documents.findOneAsync({ puzzle: puzzle._id });
   if (!doc) {
-    checkClientOk();
+    await checkClientOk();
 
     await withLock(`puzzle:${puzzle._id}:documents`, async () => {
       doc = await Documents.findOneAsync({ puzzle: puzzle._id });

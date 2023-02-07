@@ -146,7 +146,7 @@ async function fetchActivityLoop() {
     // Loop until the feature flag is disabled (i.e. the disabler is not
     // disabled)
     while (true) {
-      if (!Flags.active(FEATURE_FLAG_NAME)) {
+      if (!await Flags.activeAsync(FEATURE_FLAG_NAME)) {
         break;
       }
       await featureFlagChanged();
@@ -163,7 +163,7 @@ async function fetchActivityLoop() {
         // As long as we are alive and the feature flag is not active, hold the
         // lock and keep looping
         while (true) {
-          if (Flags.active(FEATURE_FLAG_NAME)) {
+          if (await Flags.activeAsync(FEATURE_FLAG_NAME)) {
             return;
           }
 

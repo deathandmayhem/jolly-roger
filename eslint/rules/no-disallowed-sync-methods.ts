@@ -36,6 +36,9 @@ const bannedMethods: Map<
     ['destroy', 'destroyAsync'],
     ['undestroy', 'undestroyAsync'],
   ])],
+  ['Flags', new Map([
+    ['active', 'activeAsync'],
+  ])],
 ]);
 
 const findParent = <T extends ts.Node>(node: ts.Node, predicate: (node: ts.Node) => node is T) => {
