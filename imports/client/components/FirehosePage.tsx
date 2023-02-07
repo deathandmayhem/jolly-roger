@@ -15,7 +15,6 @@ import { shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
 import { indexedById } from '../../lib/listUtils';
 import type { ChatMessageType } from '../../lib/models/ChatMessages';
 import ChatMessages from '../../lib/models/ChatMessages';
-import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
 import nodeIsMention from '../../lib/nodeIsMention';
@@ -23,6 +22,7 @@ import chatMessagesForFirehose from '../../lib/publications/chatMessagesForFireh
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import useTypedSubscribe from '../hooks/useTypedSubscribe';
+import indexedDisplayNames from '../indexedDisplayNames';
 import FixedLayout from './styling/FixedLayout';
 
 const FirehosePageLayout = styled.div`
