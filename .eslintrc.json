@@ -206,6 +206,8 @@
     // as part of their interface
     "no-param-reassign": ["error", { "props": false }],
 
+    "jolly-roger/no-disallowed-sync-methods": ["error"],
+
     // Match existing style
     "operator-linebreak": ["error", "after"],
     "prefer-destructuring": "off",
@@ -241,6 +243,9 @@
       "files": "**/client/**",
       "env": {
         "browser": true
+      },
+      "rules": {
+        "jolly-roger/no-disallowed-sync-methods": "off"
       }
     },
     {
@@ -251,9 +256,6 @@
       "files": "**/server/**",
       "env": {
         "node": true
-      },
-      "rules": {
-        "jolly-roger/no-disallowed-sync-methods": "error"
       }
     },
     {
