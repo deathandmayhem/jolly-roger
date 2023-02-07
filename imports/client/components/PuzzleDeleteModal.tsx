@@ -4,7 +4,6 @@ import React, {
 } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/esm/Modal';
-import { indexedDisplayNames } from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
 import Peers from '../../lib/models/mediasoup/Peers';
@@ -12,6 +11,7 @@ import puzzlesForHunt from '../../lib/publications/puzzlesForHunt';
 import destroyPuzzle from '../../methods/destroyPuzzle';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import useTypedSubscribe from '../hooks/useTypedSubscribe';
+import indexedDisplayNames from '../indexedDisplayNames';
 import { Subscribers } from '../subscribers';
 import Loading from './Loading';
 

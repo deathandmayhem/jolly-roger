@@ -20,7 +20,7 @@ defineMethod(mediasoupAckConsumer, {
       throw new Meteor.Error(401, 'Not logged in');
     }
 
-    if (Flags.active('disable.webrtc')) {
+    if (await Flags.activeAsync('disable.webrtc')) {
       throw new Meteor.Error(403, 'WebRTC disabled');
     }
 

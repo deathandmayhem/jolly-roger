@@ -33,9 +33,9 @@ if (Meteor.isClient) {
         await setGuessState.callPromise({ guessId, state: 'correct' });
 
         await typedSubscribe.async(chatMessagesForFirehose, { huntId });
-        const newMessages = ChatMessages.find({
+        const newMessages = await ChatMessages.find({
           createdAt: { $gt: before },
-        }).fetch();
+        }).fetchAsync();
 
         assert.sameMembers(newMessages.map((m) => m.puzzle), [...metaPuzzleIds, puzzleId], 'New chat message should be sent to puzzle and all linked metas');
       });

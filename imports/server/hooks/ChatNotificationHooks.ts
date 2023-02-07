@@ -41,7 +41,7 @@ const ChatNotificationHooks: Hookset = {
     }));
 
     // Respect feature flag.
-    if (!Flags.active('disable.dingwords')) {
+    if (!await Flags.activeAsync('disable.dingwords')) {
       const normalizedText = normalizedForDingwordSearch(chatMessage);
 
       // Find all users who are in this hunt with dingwords set.

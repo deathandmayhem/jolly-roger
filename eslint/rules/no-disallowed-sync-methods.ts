@@ -30,12 +30,25 @@ const bannedMethods: Map<
     ['findOne', 'findOneAsync'],
   ])],
   ['SoftDeletedModel', new Map([
+    ['findOne', 'findOneAsync'],
     ['findOneDeleted', 'findOneDeletedAsync'],
     ['findOneAllowingDeleted', 'findOneAllowingDeletedAsync'],
     ['destroy', 'destroyAsync'],
     ['undestroy', 'undestroyAsync'],
   ])],
+  ['Flags', new Map([
+    ['active', 'activeAsync'],
+  ])],
 ]);
+
+const findParent = <T extends ts.Node>(node: ts.Node, predicate: (node: ts.Node) => node is T) => {
+  let current: ts.Node | undefined = node;
+  while (current) {
+    if (predicate(current)) return current;
+    current = current.parent;
+  }
+  return undefined;
+};
 
 const allSyncMethods = [...bannedMethods.values()].reduce((acc, map) => {
   map.forEach((_, key) => acc.add(key));
@@ -93,6 +106,24 @@ export default ESLintUtils.RuleCreator.withoutDocs({
 
         const parserServices = ESLintUtils.getParserServices(context, false);
         const checker = parserServices.program.getTypeChecker();
+
+        // See if we're in the middle of defining a forbidden method - forbidden
+        // methods are allowed to call forbidden methods!
+        const currentDeclarationMethod = findParent(
+          parserServices.esTreeNodeToTSNodeMap.get(node),
+          (n): n is ts.MethodDeclaration => n.kind === ts.SyntaxKind.MethodDeclaration
+        );
+        const currentDeclarationType = currentDeclarationMethod?.parent ?
+          checker.getTypeAtLocation(currentDeclarationMethod.parent) :
+          undefined;
+        if (currentDeclarationMethod && currentDeclarationType?.symbol) {
+          const currentDeclarationTypeName =
+            checker.getFullyQualifiedName(currentDeclarationType.symbol);
+          const currentDeclarationMethodName = currentDeclarationMethod.name.getText();
+          if (bannedMethods.get(currentDeclarationTypeName)?.get(currentDeclarationMethodName)) {
+            return;
+          }
+        }
 
         const calleeType = checker.getTypeAtLocation(
           parserServices.esTreeNodeToTSNodeMap.get(node.callee.object)

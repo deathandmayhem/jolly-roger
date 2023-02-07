@@ -50,11 +50,11 @@ defineMethod(destroyPuzzle, {
       },
     });
 
-    if (Flags.active('disable.google')) {
+    if (await Flags.activeAsync('disable.google')) {
       return;
     }
 
-    if (Flags.active('disable.gdrive_permissions')) {
+    if (await Flags.activeAsync('disable.gdrive_permissions')) {
       return;
     }
 

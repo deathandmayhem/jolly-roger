@@ -14,7 +14,7 @@ import type Hookset from './Hookset';
 
 async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   // Above all else, obey the circuit breaker
-  if (Flags.active('disable.discord')) {
+  if (await Flags.activeAsync('disable.discord')) {
     return undefined;
   }
 

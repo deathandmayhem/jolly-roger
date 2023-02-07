@@ -119,7 +119,7 @@ Meteor.publish('mediasoup:join', async function (hunt, call, tab) {
     throw new Meteor.Error(403, 'Not a member of this hunt');
   }
 
-  if (Flags.active('disable.webrtc')) {
+  if (await Flags.activeAsync('disable.webrtc')) {
     throw new Meteor.Error(403, 'WebRTC disabled');
   }
 
@@ -224,7 +224,7 @@ Meteor.publish('mediasoup:transports', async function (peerId, rtpCapabilities) 
     throw new Meteor.Error(401, 'Not logged in');
   }
 
-  if (Flags.active('disable.webrtc')) {
+  if (await Flags.activeAsync('disable.webrtc')) {
     throw new Meteor.Error(403, 'WebRTC disabled');
   }
 
@@ -278,7 +278,7 @@ Meteor.publish('mediasoup:producer', async function (transportId, trackId, kind,
     throw new Meteor.Error(401, 'Not logged in');
   }
 
-  if (Flags.active('disable.webrtc')) {
+  if (await Flags.activeAsync('disable.webrtc')) {
     throw new Meteor.Error(403, 'WebRTC disabled');
   }
 
