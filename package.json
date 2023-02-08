@@ -82,7 +82,7 @@
     "@types/glob": "^8.0.1",
     "@types/http-proxy": "^1.17.9",
     "@types/jsbn": "^1.2.30",
-    "@types/logfmt": "^1.2.2",
+    "@types/logfmt": "^1.2.3",
     "@types/marked": "^4.0.7",
     "@types/meteor": "^2.8.2",
     "@types/mime-types": "^2.1.1",
