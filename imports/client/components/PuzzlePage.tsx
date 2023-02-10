@@ -309,6 +309,13 @@ const PuzzleMetadataExternalLink = styled.a`
   white-space: nowrap;
 `;
 
+const SecondaryMetadataContainer = styled.div`
+  // To ensure this div covers the google doc when shown, we set a white background
+  background-color: #fff;
+  padding-left: 8px;
+  padding-right: 8px;
+`;
+
 const StyledTagList = styled(TagList)`
   display: contents;
 `;
@@ -1005,6 +1012,23 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
   );
 };
 
+// A popper modifier that ensures that the width of the popover matches the
+// width of the reference element.
+const sameWidth = {
+  name: 'sameWidth',
+  enabled: true,
+  phase: 'beforeWrite' as const,
+  requires: ['computeStyles'],
+  fn: ({ state }: { state: any }) => {
+    state.styles.popper.width = `${state.rects.reference.width}px`;
+  },
+  effect: ({ state }: { state: any }) => {
+    state.elements.popper.style.width = `${
+      state.elements.reference.offsetWidth
+    }px`;
+  },
+};
+
 const PuzzlePageMetadata = ({
   puzzle, displayNames, document, isDesktop,
 }: {
@@ -1064,6 +1088,16 @@ const PuzzlePageMetadata = ({
       editModalRef.current.show();
     }
   }, []);
+
+  const mainMetadataRef = useRef(null);
+  const [showSecondaryMetadata, setShowSecondaryMetadata] = useState<boolean>(false);
+  const [mouseOverSecondaryMetadata, setMouseOverSecondaryMetadata] = useState<boolean>(false);
+  const secondaryMetadataMouseOver = useCallback(() => {
+    setMouseOverSecondaryMetadata(true);
+  }, [setMouseOverSecondaryMetadata]);
+  const secondaryMetadataMouseLeave = useCallback(() => {
+    setMouseOverSecondaryMetadata(false);
+  }, [setMouseOverSecondaryMetadata]);
 
   const tagsById = indexedById(allTags);
   const maybeTags: (TagType | undefined)[] = puzzle.tags.map((tagId) => { return tagsById.get(tagId); });
@@ -1148,26 +1182,12 @@ const PuzzlePageMetadata = ({
     );
   }
 
-  return (
-    <PuzzleMetadata>
-      <PuzzleModalForm
-        key={puzzleId}
-        ref={editModalRef}
-        puzzle={puzzle}
-        huntId={huntId}
-        tags={allTags}
-        onSubmit={onEdit}
-      />
-      <PuzzleMetadataActionRow>
-        {puzzleLink}
-        {documentLink}
-        {editButton}
-        {imageInsert}
-        {guessButton}
-      </PuzzleMetadataActionRow>
-      <PuzzleMetadataRow>
-        {answersElement}
-      </PuzzleMetadataRow>
+  const secondaryMetadata = (
+    <SecondaryMetadataContainer
+      onFocus={secondaryMetadataMouseOver}
+      onMouseOver={secondaryMetadataMouseOver}
+      onMouseLeave={secondaryMetadataMouseLeave}
+    >
       <PuzzleMetadataRow>
         <StyledTagList
           puzzle={puzzle}
@@ -1182,7 +1202,51 @@ const PuzzlePageMetadata = ({
           emptyMessage="No tags yet"
         />
       </PuzzleMetadataRow>
-    </PuzzleMetadata>
+    </SecondaryMetadataContainer>
+  );
+
+  const modifiers = [
+    {
+      name: 'preventOverflow',
+      enabled: true,
+      options: {
+        boundary: mainMetadataRef.current,
+        padding: 0,
+      },
+    },
+    sameWidth,
+  ];
+
+  return (
+    <OverlayTrigger
+      trigger={['hover', 'click', 'focus']}
+      show={showSecondaryMetadata || mouseOverSecondaryMetadata}
+      onToggle={setShowSecondaryMetadata}
+      placement="bottom-end"
+      popperConfig={{ modifiers }}
+      overlay={secondaryMetadata}
+    >
+      <PuzzleMetadata ref={mainMetadataRef}>
+        <PuzzleModalForm
+          key={puzzleId}
+          ref={editModalRef}
+          puzzle={puzzle}
+          huntId={huntId}
+          tags={allTags}
+          onSubmit={onEdit}
+        />
+        <PuzzleMetadataActionRow>
+          {puzzleLink}
+          {documentLink}
+          {editButton}
+          {imageInsert}
+          {guessButton}
+        </PuzzleMetadataActionRow>
+        <PuzzleMetadataRow>
+          {answersElement}
+        </PuzzleMetadataRow>
+      </PuzzleMetadata>
+    </OverlayTrigger>
   );
 };
 
