@@ -19,6 +19,7 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Modal from 'react-bootstrap/Modal';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import isAdmin from '../../lib/isAdmin';
@@ -90,7 +91,7 @@ const PromoteOperatorModal = React.forwardRef((
     setDisabled(true);
   }, [huntId, hide, user._id]);
 
-  return (
+  const modal = (
     <Modal show={visible} onHide={hide}>
       <Modal.Header closeButton>
         <Modal.Title>Promote Operator</Modal.Title>
@@ -119,6 +120,8 @@ const PromoteOperatorModal = React.forwardRef((
       </Modal.Footer>
     </Modal>
   );
+
+  return createPortal(modal, document.body);
 });
 
 const DemoteOperatorModal = React.forwardRef((
@@ -146,7 +149,7 @@ const DemoteOperatorModal = React.forwardRef((
     setDisabled(true);
   }, [huntId, hide, user._id]);
 
-  return (
+  const modal = (
     <Modal show={visible} onHide={hide}>
       <Modal.Header closeButton>
         <Modal.Title>Demote Operator</Modal.Title>
@@ -174,6 +177,8 @@ const DemoteOperatorModal = React.forwardRef((
       </Modal.Footer>
     </Modal>
   );
+
+  return createPortal(modal, document.body);
 });
 
 const OperatorControls = ({ user, hunt }: { user: Meteor.User, hunt: HuntType }) => {
