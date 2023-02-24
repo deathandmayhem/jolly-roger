@@ -19,10 +19,11 @@ if (Meteor.isServer) {
 
   Accounts.removeDefaultRateLimit();
 
-  require('./unit/imports/server/MigrationRegistry');
-  require('./unit/imports/server/publishJoinedQuery');
+  require('./unit/imports/server/Flags');
   require('./unit/imports/server/generateJsonSchema');
+  require('./unit/imports/server/MigrationRegistry');
   require('./unit/imports/server/Model');
+  require('./unit/imports/server/publishJoinedQuery');
   require('./unit/imports/server/validateSchema');
 }
 

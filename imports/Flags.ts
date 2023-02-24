@@ -37,7 +37,7 @@ const Flags = {
     check(cb, Function);
 
     let state: FeatureFlagType | undefined;
-    const checkUpdate = (_id?: string, flag?: Partial<FeatureFlagType>) => {
+    const checkUpdate = (_id: string, flag?: Partial<FeatureFlagType>) => {
       let newState;
       if (flag) {
         newState = { ...state ?? {}, ...flag } as FeatureFlagType;
@@ -59,7 +59,7 @@ const Flags = {
     // If state is still undefined, then the record does not exist yet and we
     // should explicitly initialize it to false.
     if (state === undefined) {
-      checkUpdate();
+      cb(false);
     }
 
     return handle;
