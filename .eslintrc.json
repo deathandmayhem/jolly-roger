@@ -115,6 +115,11 @@
     // default prop values of `undefined`
     "react/require-default-props": "off",
 
+    // This seems to interact poorly with HOCs like forwardRef. TypeScript means
+    // that we don't really have to worry about missing types on our component
+    // props
+    "react/prop-types": "off",
+
     // We use spread props a lot for HOCs or other wrapper-type components
     "react/jsx-props-no-spreading": "off",
 

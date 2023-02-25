@@ -4,6 +4,7 @@ import React, {
 import Button from 'react-bootstrap/Button';
 import type { ModalProps } from 'react-bootstrap/Modal';
 import Modal from 'react-bootstrap/Modal';
+import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 
 const StyledModalTitle = styled(Modal.Title)`
@@ -69,7 +70,7 @@ const ModalForm = React.forwardRef((
   const submitLabel = props.submitLabel ?? 'Save';
   const submitStyle = props.submitStyle ?? 'primary';
 
-  return (
+  const modal = (
     <Modal show={isShown} onHide={hide} size={props.size}>
       <form className="form-horizontal" onSubmit={submit}>
         <Modal.Header closeButton>
@@ -99,6 +100,8 @@ const ModalForm = React.forwardRef((
       </form>
     </Modal>
   );
+
+  return createPortal(modal, document.body);
 });
 
 export default ModalForm;

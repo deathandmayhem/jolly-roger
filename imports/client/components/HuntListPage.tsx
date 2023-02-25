@@ -11,6 +11,7 @@ import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Modal from 'react-bootstrap/Modal';
+import { createPortal } from 'react-dom';
 import { LinkContainer } from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
 import Hunts from '../../lib/models/Hunts';
@@ -112,7 +113,7 @@ const CreateFixtureModal = React.forwardRef((
     setDisabled(true);
   }, [hide]);
 
-  return (
+  const modal = (
     <Modal show={visible} onHide={hide}>
       <Modal.Header closeButton>
         <Modal.Title>Create sample hunt</Modal.Title>
@@ -144,6 +145,8 @@ const CreateFixtureModal = React.forwardRef((
       </Modal.Footer>
     </Modal>
   );
+
+  return createPortal(modal, document.body);
 });
 
 const HuntListPage = () => {

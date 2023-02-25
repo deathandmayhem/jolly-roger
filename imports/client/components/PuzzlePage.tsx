@@ -46,6 +46,7 @@ import Tabs from 'react-bootstrap/Tabs';
 import OverlayTrigger from 'react-bootstrap/esm/OverlayTrigger';
 import Tooltip from 'react-bootstrap/esm/Tooltip';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { createPortal } from 'react-dom';
 import { Link, useParams } from 'react-router-dom';
 import type { Descendant } from 'slate';
 import styled, { css } from 'styled-components';
@@ -871,7 +872,7 @@ const InsertImageModal = React.forwardRef((
     imageProcessState === InsertImageProcessImageState.PROCESSING ||
     submitState === InsertImageSubmitState.SUBMITTING;
 
-  return (
+  const modal = (
     <Modal show={visible} onHide={hide}>
       <Modal.Header closeButton>
         Insert image
@@ -931,6 +932,8 @@ const InsertImageModal = React.forwardRef((
       </Form>
     </Modal>
   );
+
+  return createPortal(modal, document.body);
 });
 
 const InsertImage = ({ documentId }: { documentId: string }) => {
@@ -966,30 +969,32 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
     return null;
   }
 
+  const errorModal = (
+    <Modal show onHide={clearListSheetsError}>
+      <Modal.Header closeButton>
+        Error fetching sheets in spreadsheet
+      </Modal.Header>
+      <Modal.Body>
+        <p>
+          Something went wrong while fetching the list of sheets in this spreadsheet (which we
+          need to be able to insert an image). Please try again, or let us know if this keeps
+          happening.
+        </p>
+        <p>
+          Error message:
+          {' '}
+          {listSheetsError}
+        </p>
+      </Modal.Body>
+    </Modal>
+  );
+
   return (
     <>
       {renderInsertModal && (
         <InsertImageModal ref={insertModalRef} documentId={documentId} sheets={documentSheets} />
       )}
-      {listSheetsError && (
-        <Modal show onHide={clearListSheetsError}>
-          <Modal.Header closeButton>
-            Error fetching sheets in spreadsheet
-          </Modal.Header>
-          <Modal.Body>
-            <p>
-              Something went wrong while fetching the list of sheets in this spreadsheet (which we
-              need to be able to insert an image). Please try again, or let us know if this keeps
-              happening.
-            </p>
-            <p>
-              Error message:
-              {' '}
-              {listSheetsError}
-            </p>
-          </Modal.Body>
-        </Modal>
-      )}
+      {listSheetsError && createPortal(errorModal, document.body)}
       <Button variant="secondary" size="sm" onClick={onStartInsert} disabled={loading}>
         <FontAwesomeIcon icon={faImage} />
         {' '}
@@ -1723,7 +1728,7 @@ const PuzzleDeletedModal = ({
     hide();
   }, [puzzleId, hide]);
 
-  return (
+  const modal = (
     <Modal show={show} onHide={hide} backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>
@@ -1768,6 +1773,8 @@ const PuzzleDeletedModal = ({
       </Modal.Footer>
     </Modal>
   );
+
+  return createPortal(modal, document.body);
 };
 
 const PuzzlePage = React.memo(() => {

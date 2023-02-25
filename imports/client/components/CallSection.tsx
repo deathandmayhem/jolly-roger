@@ -15,6 +15,7 @@ import Modal from 'react-bootstrap/Modal';
 import Overlay from 'react-bootstrap/Overlay';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import Flags from '../../Flags';
 import MeteorUsers from '../../lib/models/MeteorUsers';
@@ -214,7 +215,7 @@ const RemoteMuteConfirmModal = React.forwardRef((
     setDisabled(true);
   }, [peerId, hide]);
 
-  return (
+  const modal = (
     <Modal show={visible} onHide={hide}>
       <Modal.Header closeButton>
         <Modal.Title>
@@ -256,6 +257,8 @@ const RemoteMuteConfirmModal = React.forwardRef((
       </Modal.Footer>
     </Modal>
   );
+
+  return createPortal(modal, document.body);
 });
 
 const PeerBox = ({

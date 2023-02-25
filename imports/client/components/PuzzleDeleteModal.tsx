@@ -4,6 +4,7 @@ import React, {
 } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/esm/Modal';
+import { createPortal } from 'react-dom';
 import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
 import Peers from '../../lib/models/mediasoup/Peers';
@@ -82,7 +83,7 @@ const PuzzleDeleteModal = React.forwardRef((
     hide();
   }, [puzzle._id, replacementId?.value, hide]);
 
-  return (
+  const modal = (
     <Modal show={visible} onHide={hide}>
       <Modal.Header closeButton>
         <Modal.Title>Delete Puzzle</Modal.Title>
@@ -130,6 +131,8 @@ const PuzzleDeleteModal = React.forwardRef((
       </Modal.Footer>
     </Modal>
   );
+
+  return createPortal(modal, document.body);
 });
 
 export default PuzzleDeleteModal;
