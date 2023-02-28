@@ -37,7 +37,7 @@
     "element-resize-detector": "^1.2.4",
     "express": "^4.18.2",
     "form-data": "^4.0.0",
-    "glob": "^8.1.0",
+    "glob": "^9.0.1",
     "google-auth-library": "^8.6.0",
     "http-proxy": "^1.18.1",
     "ip-address": "^8.1.0",
