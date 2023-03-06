@@ -59,8 +59,14 @@ class SoftDeletedModel<
   Schema extends MongoRecordZodType,
   IdSchema extends z.ZodTypeAny = typeof stringId
 > extends Model<
-    Schema extends z.ZodObject<infer Shape, infer UnknownKeys, infer Catchall> ?
-      z.ZodObject<z.extendShape<Shape, { deleted: typeof deleted }>, UnknownKeys, Catchall> :
+    Schema extends z.ZodObject<
+      infer Shape extends z.ZodRawShape,
+      infer UnknownKeys,
+      infer Catchall
+    > ?
+      z.ZodObject<
+        z.objectUtil.extendShape<Shape, { deleted: typeof deleted }>, UnknownKeys, Catchall
+      > :
       z.ZodIntersection<Schema, z.ZodObject<{ deleted: typeof deleted }>>,
     IdSchema
   > {

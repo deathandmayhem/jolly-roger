@@ -15,7 +15,7 @@ const CombinedFields = {
 export default function withCommon<
   T extends MongoRecordZodType
 >(schema: T):
-T extends z.ZodObject<infer Shape, infer UnknownKeys, infer Catchall> ?
+T extends z.ZodObject<infer Shape extends z.ZodRawShape, infer UnknownKeys, infer Catchall> ?
   z.ZodObject<Shape & typeof TimestampFields & typeof UserFields, UnknownKeys, Catchall> :
   z.ZodIntersection<T, z.ZodObject<typeof TimestampFields & typeof UserFields>> {
   if (schema instanceof z.ZodObject) {
