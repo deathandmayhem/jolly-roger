@@ -1,13 +1,16 @@
 import { Mongo, MongoInternals } from 'meteor/mongo';
-import type {
-  Document, IndexDirection, IndexSpecification, CreateIndexesOptions,
-} from 'mongodb';
+import type { NpmModuleMongodb } from 'meteor/npm-mongo';
 import { z } from 'zod';
 import {
   IsInsert, IsUpdate, IsUpsert, stringId,
 } from './customTypes';
 import type { MongoRecordZodType } from './generateJsonSchema';
 import validateSchema from './validateSchema';
+
+type Document = NpmModuleMongodb.Document;
+type IndexDirection = NpmModuleMongodb.IndexDirection;
+type IndexSpecification = NpmModuleMongodb.IndexSpecification;
+type CreateIndexesOptions = NpmModuleMongodb.CreateIndexesOptions;
 
 export type Selector<T extends Document> = Mongo.Selector<T> | string | Mongo.ObjectID;
 export type SelectorToResultType<T extends Document, S extends Selector<T>> =

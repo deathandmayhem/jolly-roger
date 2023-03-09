@@ -273,7 +273,9 @@
         "no-underscore-dangle": "off",
         // we often need to declare unused variables when extending generic
         // types
-        "@typescript-eslint/no-unused-vars": "off"
+        "@typescript-eslint/no-unused-vars": "off",
+        // we sometimes need to import upstream types before extending them
+        "@typescript-eslint/no-shadow": "off"
       }
     },
     {

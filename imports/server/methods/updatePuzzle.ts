@@ -60,13 +60,10 @@ defineMethod(updatePuzzle, {
         title,
         expectedAnswerCount,
         tags: [...new Set(tagIds)],
+        ...url ? { url } : {},
       },
+      ...url ? {} : { $unset: { url: '' } },
     };
-    if (url) {
-      update.$set!.url = url;
-    } else {
-      update.$unset = { url: '' };
-    }
     await Puzzles.updateAsync(puzzleId, update);
 
     if (oldPuzzle.title !== title) {

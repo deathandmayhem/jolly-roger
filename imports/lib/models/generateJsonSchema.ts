@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import type { Mongo } from 'meteor/mongo';
+import type { NpmModuleMongodb } from 'meteor/npm-mongo';
 import { z } from 'zod';
 import { Email, URL, UUID } from './regexes';
 
@@ -15,7 +15,7 @@ export type MongoRecordZodType =
   | z.ZodRecord<any, any>
 
 export interface JsonSchema {
-  bsonType?: Mongo.BsonType & string;
+  bsonType?: NpmModuleMongodb.BSONTypeAlias | 'number';
   enum?: any[];
   allOf?: JsonSchema[];
   anyOf?: JsonSchema[];
