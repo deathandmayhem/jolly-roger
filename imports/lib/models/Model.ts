@@ -350,8 +350,10 @@ export const AllModels = new Set<Model<any, any>>();
 class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = typeof stringId> {
   name: string;
 
-  schema: Schema extends z.ZodObject<infer Shape, infer UnknownKeys, infer Catchall> ?
-    z.ZodObject<z.extendShape<Shape, { _id: IdSchema }>, UnknownKeys, Catchall> :
+  schema: Schema extends z.ZodObject<
+    infer Shape extends z.ZodRawShape, infer UnknownKeys, infer Catchall
+  > ?
+    z.ZodObject<z.objectUtil.extendShape<Shape, { _id: IdSchema }>, UnknownKeys, Catchall> :
     z.ZodIntersection<Schema, z.ZodObject<{ _id: IdSchema }>>;
 
   relaxedSchema: z.ZodTypeAny;

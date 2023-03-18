@@ -10,7 +10,7 @@ export const TimestampFields = {
 export default function withTimestamps<
   T extends MongoRecordZodType
 >(schema: T):
-  T extends z.ZodObject<infer Shape, infer UnknownKeys, infer Catchall> ?
+  T extends z.ZodObject<infer Shape extends z.ZodRawShape, infer UnknownKeys, infer Catchall> ?
     z.ZodObject<Shape & typeof TimestampFields, UnknownKeys, Catchall> :
     z.ZodIntersection<T, z.ZodObject<typeof TimestampFields>> {
   if (schema instanceof z.ZodObject) {
