@@ -53,6 +53,7 @@ export default class TypedMethod<
       if (error) {
         const severity =
           error instanceof Meteor.Error &&
+            typeof error.error === 'number' &&
             error.error >= 400 &&
             error.error < 500 ?
             'info' :
@@ -80,6 +81,7 @@ export default class TypedMethod<
       if (error) {
         const severity =
           error instanceof Meteor.Error &&
+            typeof error.error === 'number' &&
             error.error >= 400 &&
             error.error < 500 ?
             'info' :

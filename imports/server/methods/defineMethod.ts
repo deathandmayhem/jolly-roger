@@ -63,6 +63,7 @@ export default function defineMethod<
           const sanitizedError = (error as any).sanitizedError ?? error;
           const severity =
             sanitizedError instanceof Meteor.Error &&
+              typeof sanitizedError.error === 'number' &&
               sanitizedError.error >= 400 &&
               sanitizedError.error < 500 ?
               'info' :
