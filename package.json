@@ -64,7 +64,7 @@
     "simpl-schema": "^3.2.0",
     "slate": "^0.94.0",
     "slate-history": "^0.93.0",
-    "slate-react": "^0.93.0",
+    "slate-react": "^0.94.0",
     "stacktrace-js": "^2.0.2",
     "styled-components": "^5.3.9",
     "use-persisted-state": "^0.3.3",
