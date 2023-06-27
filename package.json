@@ -100,7 +100,7 @@
     "@types/ws": "^8.5.5",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
     "@typescript-eslint/parser": "^5.60.0",
-    "@typescript-eslint/utils": "^5.60.0",
+    "@typescript-eslint/utils": "^5.60.1",
     "babel-plugin-add-react-displayname": "0.0.5",
     "babel-plugin-styled-components": "^2.1.4",
     "chai": "^4.3.7",
