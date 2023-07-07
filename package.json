@@ -128,7 +128,7 @@
     "stylelint-config-styled-components": "^0.1.1",
     "stylelint-processor-styled-components": "^1.10.0",
     "stylelint-scss": "^5.0.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.1.6"
   },
   "meteor": {
     "mainModule": {
