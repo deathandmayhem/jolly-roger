@@ -60,7 +60,7 @@
     "react-select": "^5.7.3",
     "react-sparklines": "^1.7.0",
     "react-split-pane": "^0.1.92",
-    "react-textarea-autosize": "^8.5.0",
+    "react-textarea-autosize": "^8.5.2",
     "simpl-schema": "^3.2.0",
     "slate": "^0.94.1",
     "slate-history": "^0.93.0",
