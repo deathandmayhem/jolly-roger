@@ -68,7 +68,7 @@
     "stacktrace-js": "^2.0.2",
     "styled-components": "^5.3.11",
     "use-persisted-state": "^0.3.3",
-    "winston": "^3.9.0",
+    "winston": "^3.10.0",
     "winston-transport": "^4.5.0",
     "zod": "^3.21.4"
   },
