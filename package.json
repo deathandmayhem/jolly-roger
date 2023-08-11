@@ -26,7 +26,7 @@
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@googleapis/drive": "^8.1.0",
     "@googleapis/driveactivity": "^2.0.2",
-    "@googleapis/people": "^3.0.2",
+    "@googleapis/people": "^3.0.3",
     "@googleapis/script": "^3.0.0",
     "@popperjs/core": "^2.11.8",
     "bcrypt": "^5.1.0",
