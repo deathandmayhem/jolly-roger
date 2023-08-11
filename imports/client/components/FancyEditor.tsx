@@ -92,7 +92,7 @@ export const MentionSpan = styled.span<{
   background-color: #ced0ed;
   ${({ isSelf }) => isSelf && css`
     background-color: #4649ef;
-    color: #ffffff;
+    color: #fff;
   `}
   font-size: 0.8rem;
 `;
@@ -180,14 +180,14 @@ const MatchCandidateRow = styled.div<{ selected: boolean }>`
 `;
 
 const MatchCandidateDisplayName = styled.div`
-  // We want to keep display names to a single row, and if they overflow, clip
+  /* We want to keep display names to a single row, and if they overflow, clip */
   white-space: nowrap;
   overflow-x: hidden;
   margin-left: 0.25rem;
 `;
 
 const StyledAvatar = styled(Avatar)`
-  // Avatar width should not be flexed up nor down
+  /* Avatar width should not be flexed up nor down */
   flex: none;
 `;
 

@@ -63,7 +63,7 @@ const SectionHeader = styled.h1`
   justify-content: space-between;
   min-height: 48px;
 
-  // Note: keep in sync with App's margin computation
+  /* Note: keep in sync with App's margin computation */
   margin-left: calc(-1 * max(env(safe-area-inset-left, 0px), 15px));
   margin-right: calc(-1 * max(env(safe-area-inset-right, 0px), 15px));
   padding-left: max(env(safe-area-inset-left, 0px), 15px);

@@ -125,6 +125,7 @@ const StyledPuzzleTimestampAndSubmitter = styled.div`
   ${mediaBreakpointDown(compactViewBreakpoint, css`
     padding: 4px;
     display: flex;
+
     & > * {
       padding: 0;
     }

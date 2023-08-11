@@ -78,19 +78,19 @@ const TagDiv = styled.div<{
     position: relative;
   `}
   ${({ popoverCapable, popoverOpen }) => popoverCapable && popoverOpen && css`
-    &:after {
+    &::after {
       content: '';
       display: block;
       position: absolute;
       top: 100%;
       left: 0%;
       width: 100%;
-      height: 0.5rem; // This was $popover-arrow-height which I'm hardcoding here
+      height: 0.5rem; /* This was $popover-arrow-height which I'm hardcoding here */
       z-index: 2;
     }
   `}
   ${({ isAdministrivia }) => isAdministrivia && css`
-    background-color: #ffff77;
+    background-color: #ff7;
   `}
   ${({ isMeta }) => isMeta && css`
     background-color: #ffd57f;
@@ -105,7 +105,7 @@ const TagDiv = styled.div<{
     background-color: #ff4040;
   `}
   ${({ isPriority }) => isPriority && css`
-    background-color: #aaaaff;
+    background-color: #aaf;
   `}
 `;
 

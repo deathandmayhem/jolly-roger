@@ -5,10 +5,7 @@ import styled from 'styled-components';
 
 const SpectrumCanvas = styled.canvas`
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
+  inset: 0;
 `;
 
 const DEFAULT_THROTTLE_MAX_FPS = 30;

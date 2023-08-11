@@ -181,9 +181,9 @@ const ChatHistoryDiv = styled.div`
   flex: 1 1 auto;
   overflow-y: auto;
 
-  // Nothing should overflow the box, but if you nest blockquotes super deep you
-  // can do horrible things.  We should still avoid horizontal scroll bars, since
-  // the make the log harder to read at the bottom.
+  /* Nothing should overflow the box, but if you nest blockquotes super deep you
+     can do horrible things.  We should still avoid horizontal scroll bars,
+     since the make the log harder to read at the bottom. */
   overflow-x: hidden;
 `;
 
@@ -250,7 +250,7 @@ const PuzzleMetadataAnswer = styled.span`
   color: #000;
   overflow: hidden;
 
-  // Tag-like
+  /* Tag-like */
   display: inline-flex;
   align-items: center;
   line-height: 24px;
@@ -260,7 +260,7 @@ const PuzzleMetadataAnswer = styled.span`
 `;
 
 const AnswerRemoveButton = styled(Button)`
-  // Specifier boost needed to override Bootstrap button style
+  /* Specifier boost needed to override Bootstrap button style */
   && {
     margin: 0 -6px 0 6px;
     padding: 0;

@@ -38,7 +38,7 @@ const CallStateIcon = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: red; // TODO: lift $danger from react-bootstrap somehow?
+  color: red; /* TODO: lift $danger from react-bootstrap somehow? */
   position: absolute;
   right: 0;
   background: white;
@@ -58,10 +58,7 @@ const DeafenedIcon = styled(CallStateIcon)`
 
 const RemoteMuteButton = styled.div`
   position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  left: 0;
+  inset: 0;
   font-size: 24px;
   width: 40px;
   height: 40px;
@@ -177,10 +174,10 @@ const SelfBox = ({
 };
 
 const ChatterTooltip = styled(Tooltip)`
-  // Force chatter tooltip overlay to get larger than the default
-  // react-bootstrap stylesheet permits.  We can only apply classes to the root
-  // tooltip <div>; the .tooltip-inner className is controlled by
-  // react-bootstrap/popper.
+  /* Force chatter tooltip overlay to get larger than the default
+     react-bootstrap stylesheet permits.  We can only apply classes to the root
+     tooltip <div>; the .tooltip-inner className is controlled by
+     react-bootstrap/popper. */
   .tooltip-inner {
     max-width: 300px;
   }
