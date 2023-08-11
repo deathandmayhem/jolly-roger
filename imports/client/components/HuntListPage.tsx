@@ -176,8 +176,8 @@ const HuntListPage = () => {
   if (loading) {
     body.push(<div key="loading">Loading...</div>);
   } else {
-    const joinedHunts: JSX.Element[] = [];
-    const otherHunts: JSX.Element[] = [];
+    const joinedHunts: React.JSX.Element[] = [];
+    const otherHunts: React.JSX.Element[] = [];
     hunts.forEach((hunt) => {
       const huntTag = <Hunt key={hunt._id} hunt={hunt} />;
       if (myHunts.has(hunt._id)) {

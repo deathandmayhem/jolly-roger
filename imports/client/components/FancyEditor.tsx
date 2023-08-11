@@ -686,7 +686,7 @@ const FancyEditor = React.forwardRef(({
   return (
     <Slate
       editor={editor}
-      value={initialContent}
+      initialValue={initialContent}
       onChange={onChange}
     >
       {debugPane}
