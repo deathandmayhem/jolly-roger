@@ -713,7 +713,7 @@ const NotificationCenter = () => {
   }
 
   // Build a list of uninstantiated messages with their props, then create them
-  const messages = [] as JSX.Element[];
+  const messages = [] as React.JSX.Element[];
 
   if (pendingUpdate && blockReasons.length > 0) {
     messages.push(<ReloadRequiredNotification reasons={blockReasons} />);

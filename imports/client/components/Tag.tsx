@@ -280,7 +280,7 @@ const Tag = (props: TagProps) => {
 
   // Browsers won't word-break on hyphens, so suggest
   // Use wbr instead of zero-width space to make copy-paste reasonable
-  const nameWithBreaks: (string|JSX.Element)[] = [];
+  const nameWithBreaks: (string|React.JSX.Element)[] = [];
   name.split(':').forEach((part, i, arr) => {
     const withColon = i < arr.length - 1;
     nameWithBreaks.push(`${part}${withColon ? ':' : ''}`);
