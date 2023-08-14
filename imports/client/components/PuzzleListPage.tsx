@@ -59,7 +59,8 @@ const ViewControls = styled.div<{ $canAdd?: boolean }>`
   ${(props) => props.$canAdd && mediaBreakpointDown('xs', css`
     grid-template-columns: 1fr 1fr;
   `)}
-  @media (max-width: 359px) {
+
+  @media (width < 360px) {
     /* For very narrow viewports (like iPad Split View) */
     grid-template-columns: 100%;
   }
@@ -97,19 +98,20 @@ const AddPuzzleFormGroup = styled(FormGroup)`
     justify-self: auto;
     order: -1;
   `)}
-  @media (max-width: 359px) {
+
+  @media (width < 360px) {
     order: -2;
   }
 `;
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
-  @media (max-width: 359px) {
+  @media (width < 360px) {
     width: 100%;
   }
 `;
 
 const StyledButton = styled(Button)`
-  @media (max-width: 359px) {
+  @media (width < 360px) {
     width: 100%;
   }
 `;

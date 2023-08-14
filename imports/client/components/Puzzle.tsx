@@ -57,9 +57,9 @@ const PuzzleEditButtonsColumn = styled(PuzzleColumn)`
 `;
 
 const StyledButton = styled(Button)`
-  // Precedence boost needed to override bootstrap default button padding
+  /* Precedence boost needed to override bootstrap default button padding */
   && {
-    // Resize button to fit in one line-height
+    /* Resize button to fit in one line-height */
     display: block;
     height: 24px;
     width: 24px;
@@ -77,7 +77,7 @@ const PuzzleActivityColumn = styled(PuzzleColumn)`
   width: 11rem;
   text-align: right;
   ${mediaBreakpointDown('xs', css`
-    // Push to take whole row in narrow views
+    /* Push to take whole row in narrow views */
     flex: 0 0 100%;
   `)}
 `;
@@ -93,7 +93,7 @@ const PuzzleLinkColumn = styled(PuzzleColumn)`
 const PuzzleAnswerColumn = styled(PuzzleColumn)`
   flex: 3;
   ${mediaBreakpointDown('xs', css`
-    // Push to take whole row in narrow views
+    /* Push to take whole row in narrow views */
     flex: 0 0 100%;
   `)}
 `;

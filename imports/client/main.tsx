@@ -17,7 +17,7 @@ const Reset = createGlobalStyle`
     height: 100%;
   }
 
-  // Prevent mobile safari zoom
+  /* Prevent mobile safari zoom */
   input[type="text"],
   textarea {
     font-size: 16px !important;

@@ -20,10 +20,9 @@ export function mediaBreakpointDown(
   size: keyof typeof largerBreakpoints,
   body: ReturnType<typeof css>
 ) {
-  // Use `calc` to work around max-width and min-width both being closed
-  // intervals
   return css`
-    @media (max-width: calc(${getBreakpoint(largerBreakpoints[size])} - 0.02px)) {
+    /* stylelint-disable-next-line media-query-no-invalid */
+    @media (width < ${getBreakpoint(largerBreakpoints[size])}) {
       ${body}
     }
   `;

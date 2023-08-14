@@ -1,9 +1,8 @@
 {
-  "processors": ["stylelint-processor-styled-components"],
-  "extends": ["stylelint-config-standard-scss", "stylelint-config-styled-components"],
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "customSyntax": "postcss-styled-syntax",
   "reportNeedlessDisables": true,
-  "reportInvalidScopeDisables": true,
-  "rules": {
-    "value-keyword-case": ["lower", { "ignoreKeywords": ["dummyValue"] }]
-  }
+  "reportInvalidScopeDisables": true
 }

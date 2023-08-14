@@ -28,10 +28,7 @@ const StyledIframe = styled.iframe`
   min-height: 100%;
   max-height: 100%;
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   border: 0;
   padding-bottom: env(safe-area-inset-bottom, 0);
   background-color: #f1f3f4;

@@ -567,7 +567,7 @@ const StyledToastContainer = styled(ToastContainer)`
   z-index: 1050;
 
   >*:not(:last-child) {
-    // I like these toasts packed a little more efficiently
+    /* I like these toasts packed a little more efficiently */
     margin-bottom: 0.5rem;
   }
 `;
