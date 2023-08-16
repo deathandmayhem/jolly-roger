@@ -29,7 +29,7 @@
     "@googleapis/people": "^3.0.3",
     "@googleapis/script": "^3.0.1",
     "@popperjs/core": "^2.11.8",
-    "bcrypt": "^5.1.0",
+    "bcrypt": "^5.1.1",
     "bootstrap": "^5.3.1",
     "classnames": "^2.3.2",
     "discord.js": "^12.5.3",
