@@ -27,7 +27,7 @@
     "@googleapis/drive": "^8.1.0",
     "@googleapis/driveactivity": "^2.0.3",
     "@googleapis/people": "^3.0.3",
-    "@googleapis/script": "^3.0.1",
+    "@googleapis/script": "^3.0.2",
     "@popperjs/core": "^2.11.8",
     "bcrypt": "^5.1.1",
     "bootstrap": "^5.3.1",
