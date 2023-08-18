@@ -124,7 +124,7 @@
     "postcss-selector-parser": "^6.0.13",
     "postcss-styled-syntax": "^0.4.0",
     "puppeteer": "^20.4.0",
-    "stylelint": "^15.10.2",
+    "stylelint": "^15.10.3",
     "stylelint-config-standard": "^34.0.0",
     "stylelint-scss": "^5.1.0",
     "typescript": "^5.1.6"
