@@ -83,7 +83,7 @@
     "@types/jsbn": "^1.2.30",
     "@types/logfmt": "^1.2.3",
     "@types/marked": "^4.0.7",
-    "@types/meteor": "^2.9.2",
+    "@types/meteor": "^2.9.3",
     "@types/mime-types": "^2.1.1",
     "@types/mocha": "^10.0.1",
     "@types/mustache": "^4.2.2",
