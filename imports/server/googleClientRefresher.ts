@@ -3,14 +3,13 @@ import { OAuth } from 'meteor/oauth';
 import type { Configuration } from 'meteor/service-configuration';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import type { drive_v3 } from '@googleapis/drive';
-import { drive } from '@googleapis/drive';
+import { drive, auth } from '@googleapis/drive';
 import type { driveactivity_v2 } from '@googleapis/driveactivity';
 import { driveactivity } from '@googleapis/driveactivity';
 import type { people_v1 } from '@googleapis/people';
 import { people } from '@googleapis/people';
 import type { script_v1 } from '@googleapis/script';
 import { script } from '@googleapis/script';
-import { OAuth2Client } from 'google-auth-library';
 import type { SettingType } from '../lib/models/Settings';
 import Settings from '../lib/models/Settings';
 
@@ -23,7 +22,7 @@ class GoogleClientRefresher {
 
   public people?: people_v1.People;
 
-  private oauthClient?: OAuth2Client;
+  private oauthClient?: InstanceType<typeof auth.OAuth2>;
 
   private oauthConfig?: Configuration;
 
@@ -84,7 +83,7 @@ class GoogleClientRefresher {
     }
 
     // Construct a new OAuth2 client with the app id and secret and redirect uri
-    this.oauthClient = new OAuth2Client(
+    this.oauthClient = new auth.OAuth2(
       (<any> this.oauthConfig).clientId,
       this.oauthConfig.secret,
       OAuth._redirectUri('google', this.oauthConfig)
