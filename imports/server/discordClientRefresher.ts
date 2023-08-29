@@ -96,6 +96,7 @@ class DiscordClientRefresher {
 
           // Start renewing the lock now in the background (remember -
           // "background" includes blocking on awaited promises)
+          using cleanup = new DisposableStack();
           const renewInterval = Meteor.setInterval(async () => {
             try {
               await renew();
@@ -104,61 +105,58 @@ class DiscordClientRefresher {
               await this.refreshClient();
             }
           }, PREEMPT_TIMEOUT / 2);
+          cleanup.defer(() => Meteor.clearInterval(renewInterval));
 
-          try {
-            // If we get the lock, we're responsible for opening the websocket
-            // gateway connection
-            const ready = new Promise<void>((r) => { client.on('ready', r); });
-            await client.login(this.token);
-            await ready;
+          // If we get the lock, we're responsible for opening the websocket
+          // gateway connection
+          const ready = new Promise<void>((r) => { client.on('ready', r); });
+          await client.login(this.token);
+          await ready;
 
-            await this.cacheResource(client, 'guild', client.guilds.cache, 'guildCreate', 'guildUpdate', 'guildDelete');
-            await this.cacheResource(client, 'channel', client.channels.cache, 'channelCreate', 'channelUpdate', 'channelDelete');
+          await this.cacheResource(client, 'guild', client.guilds.cache, 'guildCreate', 'guildUpdate', 'guildDelete');
+          await this.cacheResource(client, 'channel', client.channels.cache, 'channelCreate', 'channelUpdate', 'channelDelete');
 
-            // Role update events are global, but the cache of roles is not
-            const allRoles = client.guilds.cache.reduce((
-              roles: Map<Discord.Snowflake, Discord.Role>,
-              guild,
-            ) => {
-              guild.roles.cache.forEach((r) => roles.set(r.id, r));
-              return roles;
-            }, new Map());
-            await this.cacheResource(client, 'role', allRoles, 'roleCreate', 'roleUpdate', 'roleDelete');
+          // Role update events are global, but the cache of roles is not
+          const allRoles = client.guilds.cache.reduce((
+            roles: Map<Discord.Snowflake, Discord.Role>,
+            guild,
+          ) => {
+            guild.roles.cache.forEach((r) => roles.set(r.id, r));
+            return roles;
+          }, new Map());
+          await this.cacheResource(client, 'role', allRoles, 'roleCreate', 'roleUpdate', 'roleDelete');
 
-            const updateUser = (u: Discord.User) => {
-              void MeteorUsers.updateAsync({
-                'discordAccount.id': u.id,
-              }, {
-                $set: {
-                  'discordAccount.username': u.username,
-                  'discordAccount.discriminator': u.discriminator,
-                  ...u.avatar ? { 'discordAccount.avatar': u.avatar } : {},
-                },
-                ...u.avatar ? {} : { $unset: { 'discordAccount.avatar': 1 } },
-              }, {
-                multi: true,
-              });
-            };
-            client.on('userUpdate', Meteor.bindEnvironment((_, u) => updateUser(u)));
-            client.users.cache.forEach(Meteor.bindEnvironment(updateUser));
-
-            const invalidated = new Promise<void>((r) => { client.on('invalidated', r); });
-            const wakeup = new Promise<void>((r) => {
-              this.wakeup = r;
+          const updateUser = (u: Discord.User) => {
+            void MeteorUsers.updateAsync({
+              'discordAccount.id': u.id,
+            }, {
+              $set: {
+                'discordAccount.username': u.username,
+                'discordAccount.discriminator': u.discriminator,
+                ...u.avatar ? { 'discordAccount.avatar': u.avatar } : {},
+              },
+              ...u.avatar ? {} : { $unset: { 'discordAccount.avatar': 1 } },
+            }, {
+              multi: true,
             });
+          };
+          client.on('userUpdate', Meteor.bindEnvironment((_, u) => updateUser(u)));
+          client.users.cache.forEach(Meteor.bindEnvironment(updateUser));
 
-            const wokenUp = await Promise.race([
-              wakeup.then(() => true),
-              invalidated.then(() => false),
-            ]);
-            // if we were explicitly woken up, then another instance of
-            // refreshClient fired off and we don't have to do anything;
-            // otherwise we need to clean things up ourselves
-            if (!wokenUp) {
-              await this.refreshClient();
-            }
-          } finally {
-            Meteor.clearInterval(renewInterval);
+          const invalidated = new Promise<void>((r) => { client.on('invalidated', r); });
+          const wakeup = new Promise<void>((r) => {
+            this.wakeup = r;
+          });
+
+          const wokenUp = await Promise.race([
+            wakeup.then(() => true),
+            invalidated.then(() => false),
+          ]);
+          // if we were explicitly woken up, then another instance of
+          // refreshClient fired off and we don't have to do anything;
+          // otherwise we need to clean things up ourselves
+          if (!wokenUp) {
+            await this.refreshClient();
           }
         });
       });
