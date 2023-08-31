@@ -10,6 +10,26 @@ updates:
       all:
         patterns:
           - "*"
+    ignore:
+      # All of these dependencies require Node v16 or greater
+      - dependency-name: "@types/node"
+        versions: [">=14"]
+      - dependency-name: "@typescript-eslint/eslint-plugin"
+        versions: [">=6"]
+      - dependency-name: "@typescript-eslint/parser"
+        versions: [">=6"]
+      - dependency-name: "@typescript-eslint/utils"
+        versions: [">=6"]
+      - dependency-name: "discord.js"
+        versions: [">=13"]
+      - dependency-name: "glob"
+        versions: [">=9"]
+      - dependency-name: "puppeteer"
+      # marked has had significant API revisions that we need to take manually
+      - dependency-name: "marked"
+        versions: [">=5"]
+      - dependency-name: "@types/marked"
+        versions: [">=5"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
