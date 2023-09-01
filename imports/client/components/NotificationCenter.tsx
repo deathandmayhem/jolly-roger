@@ -24,6 +24,8 @@ import isAdmin from '../../lib/isAdmin';
 import { indexedById } from '../../lib/listUtils';
 import Announcements from '../../lib/models/Announcements';
 import type { AnnouncementType } from '../../lib/models/Announcements';
+import type { BookmarkNotificationType } from '../../lib/models/BookmarkNotifications';
+import BookmarkNotifications from '../../lib/models/BookmarkNotifications';
 import type { ChatNotificationType } from '../../lib/models/ChatNotifications';
 import ChatNotifications from '../../lib/models/ChatNotifications';
 import Guesses from '../../lib/models/Guesses';
@@ -34,9 +36,11 @@ import PendingAnnouncements from '../../lib/models/PendingAnnouncements';
 import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
 import { huntsUserIsOperatorFor } from '../../lib/permission_stubs';
+import bookmarkNotificationsForSelf from '../../lib/publications/bookmarkNotificationsForSelf';
 import pendingAnnouncementsForSelf from '../../lib/publications/pendingAnnouncementsForSelf';
 import pendingGuessesForSelf from '../../lib/publications/pendingGuessesForSelf';
 import configureEnsureGoogleScript from '../../methods/configureEnsureGoogleScript';
+import dismissBookmarkNotification from '../../methods/dismissBookmarkNotification';
 import dismissChatNotification from '../../methods/dismissChatNotification';
 import dismissPendingAnnouncement from '../../methods/dismissPendingAnnouncement';
 import linkUserDiscordAccount from '../../methods/linkUserDiscordAccount';
@@ -524,6 +528,57 @@ const ChatNotificationMessage = ({
   );
 };
 
+const BookmarkNotificationMessage = ({
+  bn, hunt, puzzle,
+}: {
+  bn: BookmarkNotificationType;
+  hunt: HuntType;
+  puzzle: PuzzleType;
+}) => {
+  const id = bn._id;
+  const dismiss = useCallback(() => dismissBookmarkNotification.call({ bookmarkNotificationId: id }), [id]);
+
+  let describeState;
+  switch (bn.solvedness) {
+    case 'solved':
+      describeState = 'has been solved';
+      break;
+    case 'unsolved':
+      describeState = 'has been partially solved';
+      break;
+    default:
+      describeState = 'has changed state';
+      break;
+  }
+
+  return (
+    <Toast onClose={dismiss}>
+      <Toast.Header>
+        <strong className="me-auto">
+          <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
+            {puzzle.title}
+          </Link>
+          {' '}
+          {describeState}
+        </strong>
+      </Toast.Header>
+      <Toast.Body>
+        <div>
+          A puzzle you have bookmarked
+          {' '}
+          {describeState}
+          . The
+          {' '}
+          {puzzle.answers.length > 1 && 'new '}
+          answer is:
+          {' '}
+          <PuzzleAnswer answer={bn.answer} breakable />
+        </div>
+      </Toast.Body>
+    </Toast>
+  );
+};
+
 const ReloadRequiredNotification = ({ reasons }: { reasons: string[] }) => {
   const reload = useCallback(() => window.location.reload(), []);
 
@@ -592,6 +647,7 @@ const NotificationCenter = () => {
   const [operatorActionsHidden = {}] = useOperatorActionsHidden();
 
   const pendingAnnouncementsLoading = useTypedSubscribe(pendingAnnouncementsForSelf);
+  const bookmarkNotificationsLoading = useTypedSubscribe(bookmarkNotificationsForSelf);
 
   const disableDingwords = useTracker(() => Flags.active('disable.dingwords'));
   const chatNotificationsLoading = useSubscribe(disableDingwords ? undefined : 'chatNotifications');
@@ -599,6 +655,7 @@ const NotificationCenter = () => {
   const loading =
     pendingGuessesLoading() ||
     pendingAnnouncementsLoading() ||
+    bookmarkNotificationsLoading() ||
     chatNotificationsLoading();
 
   const discordEnabledOnServer = useTracker(
@@ -614,7 +671,7 @@ const NotificationCenter = () => {
   }, []);
 
   const selfUserId = useTracker(() => Meteor.userId()!, []);
-  // Lookup tables to support guesses/pendingAnnouncements/chatNotifications
+  // Lookup tables to support guesses/pendingAnnouncements/chatNotifications/bookmarkNotifications
   const hunts = useTracker(() => (loading ? new Map<string, HuntType>() : indexedById(Hunts.find().fetch())), [loading]);
   const puzzles = useTracker(() => (loading ? new Map<string, PuzzleType>() : indexedById(Puzzles.find().fetch())), [loading]);
   const displayNames = useTracker(() => (loading ? new Map<string, string>() : indexedDisplayNames()), [loading]);
@@ -656,6 +713,11 @@ const NotificationCenter = () => {
       [] :
       ChatNotifications.find({}, { sort: { timestamp: 1 } }).fetch()
   ), [loading, disableDingwords]);
+  const bookmarkNotifications = useTracker(() => (
+    loading ?
+      [] :
+      BookmarkNotifications.find({}, { sort: { createdAt: 1 } }).fetch()
+  ));
 
   const [hideUpdateGoogleScriptMessage, setHideUpdateGoogleScriptMessage] = useState<boolean>(false);
   const [hideDiscordSetupMessage, setHideDiscordSetupMessage] = useState<boolean>(false);
@@ -773,6 +835,17 @@ const NotificationCenter = () => {
         puzzle={puzzles.get(cn.puzzle)!}
         displayNames={displayNames}
         selfUserId={selfUserId}
+      />
+    );
+  });
+
+  bookmarkNotifications.forEach((bn) => {
+    messages.push(
+      <BookmarkNotificationMessage
+        key={bn._id}
+        bn={bn}
+        hunt={hunts.get(bn.hunt)!}
+        puzzle={puzzles.get(bn.puzzle)!}
       />
     );
   });
