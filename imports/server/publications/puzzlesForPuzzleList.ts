@@ -1,4 +1,5 @@
 import { check, Match } from 'meteor/check';
+import Bookmarks from '../../lib/models/Bookmarks';
 import MeteorUsers from '../../lib/models/MeteorUsers';
 import Puzzles from '../../lib/models/Puzzles';
 import Tags from '../../lib/models/Tags';
@@ -27,6 +28,7 @@ definePublication(puzzlesForPuzzleList, {
     return [
       Puzzles[includeDeleted ? 'findAllowingDeleted' : 'find']({ hunt: huntId }),
       Tags.find({ hunt: huntId }),
+      Bookmarks.find({ hunt: huntId, user: this.userId }),
     ];
   },
 });

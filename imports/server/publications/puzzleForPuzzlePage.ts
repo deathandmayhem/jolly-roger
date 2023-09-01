@@ -1,4 +1,5 @@
 import { check } from 'meteor/check';
+import Bookmarks from '../../lib/models/Bookmarks';
 import Documents from '../../lib/models/Documents';
 import Guesses from '../../lib/models/Guesses';
 import MeteorUsers from '../../lib/models/MeteorUsers';
@@ -39,6 +40,10 @@ definePublication(puzzleForPuzzlePage, {
     publishCursor(merger.newSub(), Guesses.name, Guesses.find({ hunt: huntId, puzzle: puzzleId }));
     publishCursor(merger.newSub(), Tags.name, Tags.find({ hunt: huntId }));
     publishCursor(merger.newSub(), Puzzles.name, Puzzles.find({ hunt: huntId }));
+    publishCursor(merger.newSub(), Bookmarks.name, Bookmarks.find({
+      hunt: huntId,
+      user: this.userId,
+    }));
 
     // Also publish this puzzle, even if it's deleted, and its replacement
     publishJoinedQuery(merger.newSub(), {

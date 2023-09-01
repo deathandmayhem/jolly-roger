@@ -1,6 +1,7 @@
 import './addHuntUser';
 import './addPuzzleAnswer';
 import './addPuzzleTag';
+import './bookmarkPuzzle';
 import './bulkAddHuntUsers';
 import './configureClearGdriveCreds';
 import './configureCollectGoogleAccountIds';

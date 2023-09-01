@@ -25,6 +25,7 @@ import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { sortedBy } from '../../lib/listUtils';
+import Bookmarks from '../../lib/models/Bookmarks';
 import Hunts from '../../lib/models/Hunts';
 import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
@@ -47,7 +48,8 @@ import type {
   PuzzleModalFormHandle, PuzzleModalFormSubmitPayload,
 } from './PuzzleModalForm';
 import PuzzleModalForm from './PuzzleModalForm';
-import RelatedPuzzleGroup from './RelatedPuzzleGroup';
+import RelatedPuzzleGroup, { PuzzleGroupDiv } from './RelatedPuzzleGroup';
+import RelatedPuzzleList from './RelatedPuzzleList';
 import { mediaBreakpointDown } from './styling/responsive';
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
@@ -133,6 +135,12 @@ const PuzzleListView = ({
 }) => {
   const allPuzzles = useTracker(() => Puzzles.find({ hunt: huntId }).fetch(), [huntId]);
   const allTags = useTracker(() => Tags.find({ hunt: huntId }).fetch(), [huntId]);
+  const bookmarked = useTracker(() => {
+    const bookmarks = Bookmarks.find({ hunt: huntId, user: Meteor.userId()! })
+      .fetch()
+      .map((b) => b.puzzle);
+    return new Set(bookmarks);
+  }, [huntId]);
 
   const deletedPuzzles = useTracker(() => (
     !canUpdate || loading ?
@@ -291,6 +299,8 @@ const PuzzleListView = ({
     const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
     const filterMessage = `Showing ${retainedPuzzles.length} of ${allPuzzlesCount} items`;
 
+    const bookmarkedPuzzles = retainedPuzzles.filter((puzzle) => bookmarked.has(puzzle._id));
+
     let listComponent;
     let listControls;
     switch (displayMode) { // eslint-disable-line default-case
@@ -311,6 +321,7 @@ const PuzzleListView = ({
               huntId={huntId}
               group={g}
               noSharedTagLabel="(no group specified)"
+              bookmarked={bookmarked}
               allTags={allTags}
               includeCount={false}
               canUpdate={canUpdate}
@@ -339,6 +350,7 @@ const PuzzleListView = ({
         listComponent = (
           <PuzzleList
             puzzles={retainedPuzzlesByUnlock}
+            bookmarked={bookmarked}
             allTags={allTags}
             canUpdate={canUpdate}
           />
@@ -354,6 +366,20 @@ const PuzzleListView = ({
           <div>{listControls}</div>
           <div>{filterMessage}</div>
         </PuzzleListToolbar>
+        {bookmarkedPuzzles.length > 0 && (
+          <PuzzleGroupDiv>
+            <div>Bookmarked</div>
+            <RelatedPuzzleList
+              key="bookmarked"
+              relatedPuzzles={bookmarkedPuzzles}
+              sharedTag={undefined}
+              bookmarked={bookmarked}
+              allTags={allTags}
+              canUpdate={canUpdate}
+              suppressedTagIds={[]}
+            />
+          </PuzzleGroupDiv>
+        )}
         {listComponent}
         {deletedPuzzles && deletedPuzzles.length > 0 && (
           <RelatedPuzzleGroup
@@ -361,6 +387,7 @@ const PuzzleListView = ({
             huntId={huntId}
             group={{ puzzles: deletedPuzzles, subgroups: [] }}
             noSharedTagLabel="Deleted puzzles (operator only)"
+            bookmarked={bookmarked}
             allTags={allTags}
             includeCount={false}
             canUpdate={canUpdate}
@@ -380,6 +407,7 @@ const PuzzleListView = ({
     searchString,
     canExpandAllGroups,
     expandAllGroups,
+    bookmarked,
   ]);
 
   const addPuzzleContent = canAdd && (

@@ -11,7 +11,7 @@ import { useHuntPuzzleListCollapseGroup } from '../hooks/persisted-state';
 import RelatedPuzzleList from './RelatedPuzzleList';
 import Tag from './Tag';
 
-const PuzzleGroupDiv = styled.div`
+export const PuzzleGroupDiv = styled.div`
   &:not(:last-child) {
     margin-bottom: 16px;
   }
@@ -43,12 +43,13 @@ const NoSharedTagLabel = styled.div`
 `;
 
 const RelatedPuzzleGroup = ({
-  huntId, group, noSharedTagLabel = '(no tag)', allTags, includeCount, canUpdate, suppressedTagIds, trackPersistentExpand,
+  huntId, group, noSharedTagLabel = '(no tag)', allTags, bookmarked, includeCount, canUpdate, suppressedTagIds, trackPersistentExpand,
 }: {
   huntId: string;
   group: PuzzleGroup;
   // noSharedTagLabel is used to label the group only if sharedTag is undefined.
   noSharedTagLabel?: string;
+  bookmarked: Set<string>;
   allTags: TagType[];
   includeCount?: boolean;
   canUpdate: boolean;
@@ -99,6 +100,7 @@ const RelatedPuzzleGroup = ({
         <PuzzleListWrapper>
           <RelatedPuzzleList
             relatedPuzzles={relatedPuzzles}
+            bookmarked={bookmarked}
             allTags={allTags}
             canUpdate={canUpdate}
             sharedTag={sharedTag}
@@ -115,6 +117,7 @@ const RelatedPuzzleGroup = ({
                 huntId={huntId}
                 group={subgroup}
                 noSharedTagLabel={noSharedTagLabel}
+                bookmarked={bookmarked}
                 allTags={allTags}
                 includeCount={includeCount}
                 canUpdate={canUpdate}

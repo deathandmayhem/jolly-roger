@@ -1,6 +1,7 @@
 /* eslint-disable filenames/match-exported */
 import Announcements from './Announcements';
 import BlobMappings from './BlobMappings';
+import Bookmarks from './Bookmarks';
 import ChatMessages from './ChatMessages';
 import ChatNotifications from './ChatNotifications';
 import DiscordCache from './DiscordCache';
@@ -34,6 +35,7 @@ import Transports from './mediasoup/Transports';
 const Models = {
   Announcements,
   BlobMappings,
+  Bookmarks,
   ChatMessages,
   ChatNotifications,
   DiscordCache,
