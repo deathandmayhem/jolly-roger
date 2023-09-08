@@ -8,7 +8,7 @@ const DriveActivityLatest = z.object({
   ts: z.date(),
 });
 
-const DriveActivityLatests = new Model('jr_drive_activity_latests', DriveActivityLatest, z.literal('default'));
+const DriveActivityLatests = new Model('jr_drive_activity_latests', DriveActivityLatest, {}, {}, z.literal('default'));
 export type DriveActivityLatestType = ModelType<typeof DriveActivityLatests>;
 
 export default DriveActivityLatests;

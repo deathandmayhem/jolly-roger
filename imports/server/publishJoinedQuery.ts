@@ -17,7 +17,7 @@ type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 // effectively building the tree in the generic parameters. I'm not entirely
 // sure how to actually do that.
 export type PublishSpec<T extends { _id: string }> = {
-  model: Mongo.Collection<T> | Model<z.ZodType<T, any, any> & MongoRecordZodType>,
+  model: Mongo.Collection<T> | Model<z.ZodType<T, any, any> & MongoRecordZodType, any, any>,
   allowDeleted?: boolean,
   projection?: Projection<T>,
   foreignKeys?: {

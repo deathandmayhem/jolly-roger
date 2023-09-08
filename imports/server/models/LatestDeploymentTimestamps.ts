@@ -12,6 +12,6 @@ const LatestDeploymentTimestamp = withTimestamps(z.object({
   gitRevision: nonEmptyString,
 }));
 
-const LatestDeploymentTimestamps = new Model('jr_latest_deployment_timestamps', LatestDeploymentTimestamp, z.literal('default'));
+const LatestDeploymentTimestamps = new Model('jr_latest_deployment_timestamps', LatestDeploymentTimestamp, {}, {}, z.literal('default'));
 export type LatestDeploymentTimestampType = ModelType<typeof LatestDeploymentTimestamps>;
 export default LatestDeploymentTimestamps;

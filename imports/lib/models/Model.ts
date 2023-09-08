@@ -3,6 +3,8 @@ import type {
   Document, IndexDirection, IndexSpecification, CreateIndexesOptions,
 } from 'mongodb';
 import { z } from 'zod';
+import type TypedMethod from '../../methods/TypedMethod';
+import type TypedPublication from '../publications/TypedPublication';
 import {
   IsInsert, IsUpdate, IsUpsert, stringId,
 } from './customTypes';
@@ -345,9 +347,14 @@ export function normalizeIndexOptions(options: CreateIndexesOptions): Normalized
     .sort();
 }
 
-export const AllModels = new Set<Model<any, any>>();
+export const AllModels = new Set<Model<any, any, any, any>>();
 
-class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = typeof stringId> {
+class Model<
+  Schema extends MongoRecordZodType,
+  Methods extends Readonly<Record<string, TypedMethod<any, any>>> = Record<string, never>,
+  Publications extends Readonly<Record<string, TypedPublication<any>>> = Record<string, never>,
+  IdSchema extends z.ZodTypeAny = typeof stringId,
+> {
   name: string;
 
   schema: Schema extends z.ZodObject<
@@ -362,7 +369,17 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
 
   indexes: ModelIndexSpecification[] = [];
 
-  constructor(name: string, schema: Schema, idSchema?: IdSchema) {
+  methods: Methods;
+
+  publications: Publications;
+
+  constructor(
+    name: string,
+    schema: Schema,
+    methods?: Methods,
+    publications?: Publications,
+    idSchema?: IdSchema,
+  ) {
     this.schema = schema instanceof z.ZodObject ?
       schema.extend({ _id: idSchema ?? stringId }) :
       schema.and(z.object({ _id: idSchema ?? stringId })) as any;
@@ -370,6 +387,8 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
     this.name = name;
     this.relaxedSchema = relaxSchema(this.schema);
     this.collection = new Mongo.Collection(name);
+    this.methods = methods ?? {} as Methods;
+    this.publications = publications ?? {} as Publications;
     AllModels.add(this);
   }
 
@@ -526,6 +545,6 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
   }
 }
 
-export type ModelType<M extends Model<any, any>> = z.output<M['schema']>;
+export type ModelType<M extends Model<any, any, any, any>> = z.output<M['schema']>;
 
 export default Model;
