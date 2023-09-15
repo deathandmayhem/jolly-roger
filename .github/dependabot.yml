@@ -20,6 +20,8 @@ updates:
         versions: [">=6"]
       - dependency-name: "@typescript-eslint/utils"
         versions: [">=6"]
+      - dependency-name: "eslint-plugin-deprecation"
+        versions: [">=2"]
       - dependency-name: "discord.js"
         versions: [">=13"]
       - dependency-name: "glob"
