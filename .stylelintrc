@@ -4,5 +4,10 @@
   ],
   "customSyntax": "postcss-styled-syntax",
   "reportNeedlessDisables": true,
-  "reportInvalidScopeDisables": true
+  "reportInvalidScopeDisables": true,
+  "rules": {
+    "declaration-block-no-redundant-longhand-properties": [true, {
+      "ignoreShorthands": ["overflow", "place-content", "gap"]
+    }]
+  }
 }
