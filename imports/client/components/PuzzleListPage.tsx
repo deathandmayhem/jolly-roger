@@ -10,7 +10,7 @@ import { faReceipt } from '@fortawesome/free-solid-svg-icons/faReceipt';
 import { faUsers } from '@fortawesome/free-solid-svg-icons/faUsers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
-  useCallback, useEffect, useRef,
+  type ComponentPropsWithRef, type FC, useCallback, useEffect, useRef,
 } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -110,7 +110,7 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
   }
 `;
 
-const StyledButton = styled(Button)`
+const StyledButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   @media (width < 360px) {
     width: 100%;
   }

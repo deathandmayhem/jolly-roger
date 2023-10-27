@@ -3,7 +3,9 @@
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import React, { useCallback, useState } from 'react';
+import React, {
+  type ComponentPropsWithRef, type FC, useCallback, useState,
+} from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -44,7 +46,7 @@ const StyledModeSwitchLink = styled.div`
   text-align: center;
 `;
 
-const NoPaddingLinkButton = styled(Button)`
+const NoPaddingLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   padding: 0;
   vertical-align: baseline;
 `;

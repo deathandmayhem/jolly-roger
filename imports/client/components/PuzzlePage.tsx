@@ -16,6 +16,8 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type {
   ChangeEvent,
+  ComponentPropsWithRef,
+  FC,
   MouseEvent,
 } from 'react';
 import React, {
@@ -259,7 +261,7 @@ const PuzzleMetadataAnswer = styled.span`
   border-radius: 4px;
 `;
 
-const AnswerRemoveButton = styled(Button)`
+const AnswerRemoveButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   /* Specifier boost needed to override Bootstrap button style */
   && {
     margin: 0 -6px 0 6px;
@@ -1302,7 +1304,7 @@ const AdditionalNotesCell = styled(GuessCell)`
   `)}
 `;
 
-const LinkButton = styled(Button)`
+const LinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   padding: 0;
   vertical-align: baseline;
 `;
