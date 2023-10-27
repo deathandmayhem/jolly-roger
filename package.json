@@ -61,7 +61,7 @@
     "react-split-pane": "^0.1.92",
     "react-textarea-autosize": "^8.5.3",
     "slate": "^0.94.1",
-    "slate-history": "^0.93.0",
+    "slate-history": "^0.100.0",
     "slate-react": "^0.99.0",
     "stacktrace-js": "^2.0.2",
     "styled-components": "^6.0.7",
