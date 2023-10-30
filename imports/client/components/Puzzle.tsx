@@ -3,7 +3,7 @@ import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
-  useCallback, useMemo, useRef, useState,
+  type ComponentPropsWithRef, type FC, useCallback, useMemo, useRef, useState,
 } from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/esm/ButtonGroup';
@@ -56,7 +56,7 @@ const PuzzleEditButtonsColumn = styled(PuzzleColumn)`
   order: -1;
 `;
 
-const StyledButton = styled(Button)`
+const StyledButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   /* Precedence boost needed to override bootstrap default button padding */
   && {
     /* Resize button to fit in one line-height */

@@ -1,7 +1,9 @@
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useCallback, useState } from 'react';
+import React, {
+  type ComponentPropsWithRef, type FC, useCallback, useState,
+} from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import styled from 'styled-components';
@@ -19,7 +21,7 @@ const TagListEmptyLabel = styled.span`
   margin-right: 4px;
 `;
 
-const TagModifyButton = styled(Button)`
+const TagModifyButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   line-height: 22px;
   padding: 0 6px;
   margin: 2px 0;

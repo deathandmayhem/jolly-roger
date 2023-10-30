@@ -6,7 +6,9 @@ import { faEraser } from '@fortawesome/free-solid-svg-icons/faEraser';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { faSkullCrossbones } from '@fortawesome/free-solid-svg-icons/faSkullCrossbones';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, {
+  type ComponentPropsWithRef, type FC, useCallback, useEffect, useRef,
+} from 'react';
 import Button from 'react-bootstrap/Button';
 import type { FormControlProps } from 'react-bootstrap/FormControl';
 import FormControl from 'react-bootstrap/FormControl';
@@ -114,7 +116,7 @@ const StyledGuessConfidence = styled(GuessConfidence)`
   `)}
 `;
 
-const StyledLinkButton = styled(Button)`
+const StyledLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   padding: 0;
   vertical-align: baseline;
 `;

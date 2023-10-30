@@ -5,7 +5,9 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { ModifierArguments, Modifier, Padding } from '@popperjs/core';
 import detectOverflow from '@popperjs/core/lib/utils/detectOverflow';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  type ComponentPropsWithRef, type FC, useCallback, useEffect, useState,
+} from 'react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Popover from 'react-bootstrap/Popover';
@@ -18,7 +20,7 @@ import { removePunctuation } from './PuzzleAnswer';
 import { sortPuzzlesByRelevanceWithinPuzzleGroup } from './RelatedPuzzleList';
 import RelatedPuzzleTable from './RelatedPuzzleTable';
 
-const RemoveTagButton = styled(Button)`
+const RemoveTagButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   height: 16px;
   width: 16px;
   line-height: 10px;

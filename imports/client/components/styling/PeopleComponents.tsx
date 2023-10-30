@@ -1,3 +1,4 @@
+import type { FC, ComponentPropsWithRef } from 'react';
 import Button from 'react-bootstrap/Button';
 import styled, { css } from 'styled-components';
 import { PuzzlePagePadding } from './constants';
@@ -17,7 +18,7 @@ export const AVActions = styled.div`
   margin-bottom: ${PuzzlePagePadding};
 `;
 
-export const AVButton = styled(Button)`
+export const AVButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   flex: 1;
   padding-right: 2px;
   padding-left: 2px;
