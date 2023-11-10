@@ -78,7 +78,7 @@
     "@types/element-resize-detector": "^1.1.5",
     "@types/express": "^4.17.20",
     "@types/glob": "^8.1.0",
-    "@types/http-proxy": "^1.17.13",
+    "@types/http-proxy": "^1.17.14",
     "@types/jsbn": "^1.2.32",
     "@types/logfmt": "^1.2.5",
     "@types/marked": "^4.0.7",
