@@ -6,10 +6,6 @@ updates:
       interval: "weekly"
       day: "friday"
     open-pull-requests-limit: 20
-    groups:
-      all:
-        patterns:
-          - "*"
     ignore:
       # All of these dependencies require Node v16 or greater
       - dependency-name: "@types/node"
