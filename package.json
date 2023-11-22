@@ -42,7 +42,7 @@
     "ip-address": "^9.0.5",
     "logfmt": "^1.3.2",
     "marked": "^4.3.0",
-    "mediasoup": "^3.12.16",
+    "mediasoup": "^3.13.5",
     "mediasoup-client": "^3.6.103",
     "meteor-node-stubs": "^1.2.5",
     "mime-types": "^2.1.35",
