@@ -102,7 +102,7 @@
     "babel-plugin-styled-components": "^2.1.4",
     "chai": "^4.3.10",
     "chai-as-promised": "^7.1.1",
-    "eslint": "^8.52.0",
+    "eslint": "^8.54.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-formatter-gha": "^1.4.3",
     "eslint-import-resolver-meteor": "^0.4.0",
