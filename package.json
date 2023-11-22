@@ -73,7 +73,7 @@
   "devDependencies": {
     "@testing-library/react": "^14.1.2",
     "@types/chai": "^4.3.11",
-    "@types/chai-as-promised": "^7.1.7",
+    "@types/chai-as-promised": "^7.1.8",
     "@types/dompurify": "^3.0.4",
     "@types/element-resize-detector": "^1.1.6",
     "@types/express": "^4.17.20",
