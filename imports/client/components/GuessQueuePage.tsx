@@ -237,7 +237,7 @@ const GuessBlock = React.memo(({
       </StyledPuzzleTimestampAndSubmitter>
       <StyledPuzzleCell>
         <OverlayTrigger placement="top" overlay={puzzleTooltip}>
-          <a href={guessURL(hunt, puzzle)} target="_blank" rel="noopener noreferrer">
+          <a href={guessURL(hunt, puzzle)} target="_blank" rel="noopener noreferrer" aria-labelledby={`guess-${guess._id}-puzzle-tooltip`}>
             <FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />
           </a>
         </OverlayTrigger>

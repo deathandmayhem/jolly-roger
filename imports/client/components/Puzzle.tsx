@@ -220,7 +220,7 @@ const Puzzle = React.memo(({
       <PuzzleLinkColumn>
         {puzzle.url ? (
           <span>
-            <a href={puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle">
+            <a href={puzzle.url} target="_blank" rel="noopener noreferrer" title="Open the puzzle" aria-label="Open the puzzle">
               <FontAwesomeIcon icon={faPuzzlePiece} />
             </a>
           </span>

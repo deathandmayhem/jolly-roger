@@ -9,7 +9,7 @@ updates:
     ignore:
       # All of these dependencies require Node v16 or greater
       - dependency-name: "@types/node"
-        versions: [">=14"]
+        versions: [">=15"]
       - dependency-name: "@typescript-eslint/eslint-plugin"
         versions: [">=6"]
       - dependency-name: "@typescript-eslint/parser"
@@ -23,6 +23,8 @@ updates:
       - dependency-name: "glob"
         versions: [">=9"]
       - dependency-name: "puppeteer"
+      - dependency-name: "mediasoup"
+        versions: [">=3.13.0"]
       # marked has had significant API revisions that we need to take manually
       - dependency-name: "marked"
         versions: [">=5"]
