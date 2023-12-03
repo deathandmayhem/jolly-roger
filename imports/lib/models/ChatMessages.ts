@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import TypedMethod from '../../methods/TypedMethod';
+import TypedPublication from '../publications/TypedPublication';
 import type { ModelType } from './Model';
 import SoftDeletedModel from './SoftDeletedModel';
 import { allowedEmptyString, foreignKey } from './customTypes';
@@ -44,7 +46,18 @@ const ChatMessage = withCommon(z.object({
   // The date this message was sent.  Used for ordering chats in the log.
   timestamp: z.date(),
 }));
-const ChatMessages = new SoftDeletedModel('jr_chatmessages', ChatMessage);
+const ChatMessages = new SoftDeletedModel('jr_chatmessages', ChatMessage, {
+  send: new TypedMethod<{ puzzleId: string, content: string }, void>(
+    'ChatMessages.methods.send'
+  ),
+}, {
+  forPuzzle: new TypedPublication<{ puzzleId: string, huntId: string }>(
+    'ChatMessages.publications.forPuzzle'
+  ),
+  forFirehose: new TypedPublication<{ huntId: string }>(
+    'ChatMessages.publications.forFirehose'
+  ),
+});
 ChatMessages.addIndex({ deleted: 1, puzzle: 1 });
 ChatMessages.addIndex({ hunt: 1, createdAt: 1 });
 export type ChatMessageType = ModelType<typeof ChatMessages>;

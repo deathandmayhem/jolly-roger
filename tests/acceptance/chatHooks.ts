@@ -2,7 +2,6 @@ import { promisify } from 'util';
 import { Meteor } from 'meteor/meteor';
 import { assert } from 'chai';
 import ChatMessages from '../../imports/lib/models/ChatMessages';
-import chatMessagesForFirehose from '../../imports/lib/publications/chatMessagesForFirehose';
 import createFixtureHunt from '../../imports/methods/createFixtureHunt';
 import provisionFirstUser from '../../imports/methods/provisionFirstUser';
 import setGuessState from '../../imports/methods/setGuessState';
@@ -32,7 +31,7 @@ if (Meteor.isClient) {
         const before = new Date();
         await setGuessState.callPromise({ guessId, state: 'correct' });
 
-        await typedSubscribe.async(chatMessagesForFirehose, { huntId });
+        await typedSubscribe.async(ChatMessages.publications.forFirehose, { huntId });
         const newMessages = await ChatMessages.find({
           createdAt: { $gt: before },
         }).fetchAsync();

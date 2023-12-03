@@ -9,7 +9,7 @@ const BlobMapping = z.object({
   blob: z.string().regex(/^[a-fA-F0-9]{64}$/),
 });
 
-const BlobMappings = new Model('jr_blob_mappings', BlobMapping, nonEmptyString);
+const BlobMappings = new Model('jr_blob_mappings', BlobMapping, {}, {}, nonEmptyString);
 export type BlobMappingType = ModelType<typeof BlobMappings>;
 
 export default BlobMappings;

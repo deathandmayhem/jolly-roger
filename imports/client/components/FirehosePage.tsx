@@ -18,7 +18,6 @@ import ChatMessages from '../../lib/models/ChatMessages';
 import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
 import nodeIsMention from '../../lib/nodeIsMention';
-import chatMessagesForFirehose from '../../lib/publications/chatMessagesForFirehose';
 import { useBreadcrumb } from '../hooks/breadcrumb';
 import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import useTypedSubscribe from '../hooks/useTypedSubscribe';
@@ -115,7 +114,7 @@ const FirehosePage = () => {
   useBreadcrumb({ title: 'Firehose', path: `/hunts/${huntId}/firehose` });
 
   const profilesLoading = useSubscribeDisplayNames(huntId);
-  const chatMessagesLoading = useTypedSubscribe(chatMessagesForFirehose, { huntId });
+  const chatMessagesLoading = useTypedSubscribe(ChatMessages.publications.forFirehose, { huntId });
   const loading = profilesLoading() || chatMessagesLoading();
 
   const displayNames = useTracker(() => {

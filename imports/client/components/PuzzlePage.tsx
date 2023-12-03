@@ -70,7 +70,6 @@ import type { TagType } from '../../lib/models/Tags';
 import nodeIsMention from '../../lib/nodeIsMention';
 import nodeIsText from '../../lib/nodeIsText';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
-import chatMessagesForPuzzle from '../../lib/publications/chatMessagesForPuzzle';
 import puzzleForPuzzlePage from '../../lib/publications/puzzleForPuzzlePage';
 import { computeSolvedness } from '../../lib/solvedness';
 import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
@@ -83,7 +82,6 @@ import type { Sheet } from '../../methods/listDocumentSheets';
 import listDocumentSheets from '../../methods/listDocumentSheets';
 import removePuzzleAnswer from '../../methods/removePuzzleAnswer';
 import removePuzzleTag from '../../methods/removePuzzleTag';
-import sendChatMessage from '../../methods/sendChatMessage';
 import undestroyPuzzle from '../../methods/undestroyPuzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
 import GoogleScriptInfo from '../GoogleScriptInfo';
@@ -603,7 +601,7 @@ const ChatInput = React.memo(({
       };
 
       // Send chat message.
-      sendChatMessage.call({ puzzleId, content: JSON.stringify(cleanedMessage) });
+      ChatMessages.methods.send.call({ puzzleId, content: JSON.stringify(cleanedMessage) });
       setContent(initialValue);
       fancyEditorRef.current?.clearInput();
       if (onMessageSent) {
@@ -1804,7 +1802,7 @@ const PuzzlePage = React.memo(() => {
 
   const puzzleLoading = useTypedSubscribe(puzzleForPuzzlePage, { puzzleId, huntId });
 
-  const chatMessagesLoading = useTypedSubscribe(chatMessagesForPuzzle, { puzzleId, huntId });
+  const chatMessagesLoading = useTypedSubscribe(ChatMessages.publications.forPuzzle, { puzzleId, huntId });
 
   // There are some model dependencies that we have to be careful about:
   //
