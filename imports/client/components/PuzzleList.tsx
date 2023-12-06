@@ -4,10 +4,11 @@ import type { TagType } from '../../lib/models/Tags';
 import Puzzle from './Puzzle';
 
 const PuzzleList = React.memo(({
-  puzzles, allTags, canUpdate, suppressTags, segmentAnswers,
+  puzzles, bookmarked, allTags, canUpdate, suppressTags, segmentAnswers,
 }: {
   // The puzzles to show in this list
   puzzles: PuzzleType[];
+  bookmarked: Set<string>;
   // All tags for this hunt, including those not used by any puzzles
   allTags: TagType[];
   canUpdate: boolean;
@@ -24,6 +25,7 @@ const PuzzleList = React.memo(({
           <Puzzle
             key={puzzle._id}
             puzzle={puzzle}
+            bookmarked={bookmarked.has(puzzle._id)}
             allTags={allTags}
             canUpdate={canUpdate}
             suppressTags={suppressTags}

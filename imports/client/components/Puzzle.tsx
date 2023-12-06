@@ -1,6 +1,8 @@
+import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons/faStar';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
+import { faStar as faStarSolid } from '@fortawesome/free-solid-svg-icons/faStar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
   type ComponentPropsWithRef, type FC, useCallback, useMemo, useRef, useState,
@@ -14,6 +16,7 @@ import type { PuzzleType } from '../../lib/models/Puzzles';
 import type { TagType } from '../../lib/models/Tags';
 import type { Solvedness } from '../../lib/solvedness';
 import { computeSolvedness } from '../../lib/solvedness';
+import bookmarkPuzzle from '../../methods/bookmarkPuzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
 import { useOperatorActionsHiddenForHunt } from '../hooks/persisted-state';
 import PuzzleActivity from './PuzzleActivity';
@@ -51,7 +54,7 @@ const PuzzleColumn = styled.div`
   overflow: hidden;
 `;
 
-const PuzzleEditButtonsColumn = styled(PuzzleColumn)`
+const PuzzleControlButtonsColumn = styled(PuzzleColumn)`
   align-self: flex-start;
   order: -1;
 `;
@@ -109,9 +112,10 @@ const TagListColumn = styled(TagList)`
 `;
 
 const Puzzle = React.memo(({
-  puzzle, allTags, canUpdate, suppressTags, segmentAnswers,
+  puzzle, bookmarked, allTags, canUpdate, suppressTags, segmentAnswers,
 }: {
   puzzle: PuzzleType;
+  bookmarked: boolean;
   // All tags associated with the hunt.
   allTags: TagType[];
   canUpdate: boolean;
@@ -156,7 +160,7 @@ const Puzzle = React.memo(({
   const editButtons = useMemo(() => {
     if (showEdit) {
       return (
-        <ButtonGroup size="sm">
+        <>
           <StyledButton onClick={onShowEditModal} variant="light" title="Edit puzzle...">
             <FontAwesomeIcon icon={faEdit} />
           </StyledButton>
@@ -165,11 +169,15 @@ const Puzzle = React.memo(({
               <FontAwesomeIcon icon={faMinus} />
             </StyledButton>
           )}
-        </ButtonGroup>
+        </>
       );
     }
     return null;
   }, [showEdit, puzzle.deleted, onShowEditModal, onShowDeleteModal]);
+
+  const toggleBookmark = useCallback(() => {
+    bookmarkPuzzle.call({ puzzleId: puzzle._id, bookmark: !bookmarked });
+  }, [puzzle._id, bookmarked]);
 
   // id, title, answer, tags
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
@@ -206,11 +214,14 @@ const Puzzle = React.memo(({
           puzzle={puzzle}
         />
       )}
-      {showEdit && (
-        <PuzzleEditButtonsColumn>
-          {editButtons}
-        </PuzzleEditButtonsColumn>
-      )}
+      <PuzzleControlButtonsColumn>
+        <ButtonGroup size="sm">
+          <StyledButton onClick={toggleBookmark} variant="light" title="Bookmark puzzle">
+            <FontAwesomeIcon icon={bookmarked ? faStarSolid : faStarRegular} />
+          </StyledButton>
+          {showEdit && editButtons}
+        </ButtonGroup>
+      </PuzzleControlButtonsColumn>
       <PuzzleTitleColumn>
         <Link to={linkTarget}>{puzzle.title}</Link>
       </PuzzleTitleColumn>

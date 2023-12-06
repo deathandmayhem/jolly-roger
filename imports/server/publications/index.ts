@@ -1,5 +1,6 @@
 import './announcementsForAnnouncementsPage';
 import './blobMappingsAll';
+import './bookmarkNotificationsForSelf';
 import './chatMessagesForFirehose';
 import './chatMessagesForPuzzle';
 import './discordChannelsForConfiguredGuild';

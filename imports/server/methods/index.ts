@@ -1,6 +1,7 @@
 import './addHuntUser';
 import './addPuzzleAnswer';
 import './addPuzzleTag';
+import './bookmarkPuzzle';
 import './bulkAddHuntUsers';
 import './configureClearGdriveCreds';
 import './configureCollectGoogleAccountIds';
@@ -23,6 +24,7 @@ import './createPuzzle';
 import './demoteOperator';
 import './destroyHunt';
 import './destroyPuzzle';
+import './dismissBookmarkNotification';
 import './dismissChatNotification';
 import './dismissPendingAnnouncement';
 import './ensurePuzzleDocument';
