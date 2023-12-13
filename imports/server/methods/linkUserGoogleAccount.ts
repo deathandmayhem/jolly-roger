@@ -39,7 +39,7 @@ defineMethod(linkUserGoogleAccount, {
     });
 
     if (!await Flags.activeAsync('disable.google') && !await Flags.activeAsync('disable.gdrive_permissions')) {
-      const hunts = Meteor.user()!.hunts;
+      const hunts = (await Meteor.userAsync())!.hunts;
       for (const huntId of hunts ?? []) {
         await ensureHuntFolderPermission(huntId, this.userId, email);
       }

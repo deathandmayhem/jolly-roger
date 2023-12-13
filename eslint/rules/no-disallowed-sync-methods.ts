@@ -27,8 +27,20 @@ const bannedMethods: Map<
   ])],
   ['"meteor/accounts-base".Accounts', new Map([
     ['createUser', 'createUserAsync'],
+    ['setPassword', 'setPasswordAsync'],
+  ])],
+  ['"meteor/meteor".Meteor', new Map([
+    ['user', 'userAsync'],
+    ['call', 'callAsync'],
+    ['apply', 'applyAsync'],
+  ])],
+  ['"meteor/email".Email', new Map([
+    ['send', 'sendAsync'],
   ])],
 
+  // This is a somewhat unfortunate footgun, but TypeScript resolves the fully
+  // qualified name differently depending on whether the object is exported as
+  // part of its declaration or as a separate statement.
   ['Model', new Map([
     ['findOne', 'findOneAsync'],
   ])],
@@ -41,6 +53,9 @@ const bannedMethods: Map<
   ])],
   ['Flags', new Map([
     ['active', 'activeAsync'],
+  ])],
+  ['TypedMethod', new Map([
+    ['call', 'callAsync'],
   ])],
 ]);
 

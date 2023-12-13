@@ -130,7 +130,7 @@ export default async function addUserToHunt({ hunt, email, invitedBy }: {
         hunt,
         joinerName
       );
-      Email.send({
+      await Email.sendAsync({
         from: Accounts.emailTemplates.from,
         to: email,
         subject,
