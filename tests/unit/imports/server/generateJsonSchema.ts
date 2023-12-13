@@ -1,6 +1,3 @@
-/* eslint-disable jolly-roger/no-disallowed-sync-methods -- We're doing a lot of
-   testing of failures, and Meteor's async methods currently throw instead of
-   rejecting, so just using the sync methods for now makes everything easier */
 import { Mongo } from 'meteor/mongo';
 import { Random } from 'meteor/random';
 import { assert } from 'chai';
@@ -44,8 +41,8 @@ describe('generateJsonSchema', function () {
     const schema = z.record(z.string(), z.string());
     const collection = await createTestCollection(schema);
 
-    assert.doesNotThrow(() => collection.insert({ foo: 'bar' }));
-    assert.throws(() => collection.insert({ foo: 1 } as any), /Document failed validation/);
+    await assert.isFulfilled(collection.insertAsync({ foo: 'bar' }));
+    await assert.isRejected(collection.insertAsync({ foo: 1 } as any), /Document failed validation/);
   });
 
   describe('simple objects', function () {
@@ -62,26 +59,26 @@ describe('generateJsonSchema', function () {
       collection = await createTestCollection(schema);
     });
 
-    it('accepts valid documents', function () {
-      assert.doesNotThrow(() => collection.insert({
+    it('accepts valid documents', async function () {
+      await assert.isFulfilled(collection.insertAsync({
         string: 'foo', number: 1, boolean: true, date: new Date(), null: null,
       }));
     });
 
-    it('rejects extra fields', function () {
-      assert.throws(() => collection.insert({
+    it('rejects extra fields', async function () {
+      await assert.isRejected(collection.insertAsync({
         string: 'foo', number: 1, boolean: true, date: new Date(), null: null, extra: 'bar',
       } as any), /Document failed validation/);
     });
 
-    it('rejects missing fields', function () {
+    it('rejects missing fields', async function () {
       const record = {
         string: 'foo', number: 1, boolean: true, date: new Date(), null: null,
       };
-      Object.keys(record).forEach((key) => {
+      for (const key of Object.keys(record)) {
         const { [key]: _discarded, ...partialRecord } = record as any;
-        assert.throws(() => collection.insert(partialRecord), /Document failed validation/);
-      });
+        await assert.isRejected(collection.insertAsync(partialRecord), /Document failed validation/);
+      }
     });
   });
 
@@ -97,10 +94,10 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.doesNotThrow(() => collection.insert({
+      await assert.isFulfilled(collection.insertAsync({
         string: 'foo', number: 1, boolean: true, date: new Date(), null: null,
       }));
-      assert.doesNotThrow(() => collection.insert({}));
+      await assert.isFulfilled(collection.insertAsync({}));
     });
   });
 
@@ -117,9 +114,9 @@ describe('generateJsonSchema', function () {
         .catchall(z.string().or(z.number()));
       const collection = await createTestCollection(schema);
 
-      assert.doesNotThrow(() => collection.insert({ foo: 'bar', baz: 1 }));
+      await assert.isFulfilled(collection.insertAsync({ foo: 'bar', baz: 1 }));
 
-      assert.throws(() => collection.insert({ foo: 'bar', baz: true } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ foo: 'bar', baz: true } as any), /Document failed validation/);
     });
   });
 
@@ -131,8 +128,8 @@ describe('generateJsonSchema', function () {
       }).passthrough();
       const collection = await createTestCollection(schema);
 
-      assert.doesNotThrow(() => collection.insert({ foo: 'bar', baz: 1 } as any));
-      assert.doesNotThrow(() => collection.insert({ foo: 'bar', baz: true } as any));
+      await assert.isFulfilled(collection.insertAsync({ foo: 'bar', baz: 1 } as any));
+      await assert.isFulfilled(collection.insertAsync({ foo: 'bar', baz: true } as any));
     });
   });
 
@@ -149,23 +146,23 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ minLength: 'a' }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ minLength: 'abcdef' }));
+      await assert.isRejected(collection.insertAsync({ minLength: 'a' }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ minLength: 'abcdef' }));
 
-      assert.throws(() => collection.insert({ maxLength: 'abcd' }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ maxLength: 'ab' }));
+      await assert.isRejected(collection.insertAsync({ maxLength: 'abcd' }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ maxLength: 'ab' }));
 
-      assert.throws(() => collection.insert({ fixedLength: 'ab' }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ fixedLength: 'abc' }));
+      await assert.isRejected(collection.insertAsync({ fixedLength: 'ab' }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ fixedLength: 'abc' }));
 
-      assert.throws(() => collection.insert({ pattern: '123' }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ pattern: 'abc' }));
+      await assert.isRejected(collection.insertAsync({ pattern: '123' }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ pattern: 'abc' }));
 
-      assert.throws(() => collection.insert({ email: 'foo' }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ email: 'jolly-roger@deathandmayhem.com' }));
+      await assert.isRejected(collection.insertAsync({ email: 'foo' }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ email: 'jolly-roger@deathandmayhem.com' }));
 
-      assert.throws(() => collection.insert({ uuid: 'foo' }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ uuid: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' }));
+      await assert.isRejected(collection.insertAsync({ uuid: 'foo' }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ uuid: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' }));
     });
 
     it('respects strings with multiple checks', async function () {
@@ -175,11 +172,11 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ string: 'a' }), /Document failed validation/);
-      assert.throws(() => collection.insert({ string: 'abcdef' }), /Document failed validation/);
-      assert.throws(() => collection.insert({ string: '123' }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ string: 'a' }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ string: 'abcdef' }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ string: '123' }), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ string: 'abcd' }));
+      await assert.isFulfilled(collection.insertAsync({ string: 'abcd' }));
     });
 
     it('allows strings with multiple regex checks', async function () {
@@ -189,10 +186,10 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ string: 'a' }), /Document failed validation/);
-      assert.throws(() => collection.insert({ string: 'abcd' }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ string: 'a' }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ string: 'abcd' }), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ string: 'abc' }));
+      await assert.isFulfilled(collection.insertAsync({ string: 'abc' }));
     });
 
     it('is reasonably accepting of URLs', async function () {
@@ -202,10 +199,10 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.doesNotThrow(() => collection.insert({ url: 'https://puzzlefactory.place/factory-floor' }));
-      assert.doesNotThrow(() => collection.insert({ url: 'https://perpendicular.institute' }));
-      assert.doesNotThrow(() => collection.insert({ url: 'https://www.bookspace.world/' }));
-      assert.doesNotThrow(() => collection.insert({ url: 'https://www.pandamagazine.com/island9/' }));
+      await assert.isFulfilled(collection.insertAsync({ url: 'https://puzzlefactory.place/factory-floor' }));
+      await assert.isFulfilled(collection.insertAsync({ url: 'https://perpendicular.institute' }));
+      await assert.isFulfilled(collection.insertAsync({ url: 'https://www.bookspace.world/' }));
+      await assert.isFulfilled(collection.insertAsync({ url: 'https://www.pandamagazine.com/island9/' }));
     });
 
     it('rejects unsupported checks', function () {
@@ -230,25 +227,25 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ exclusiveMin: 3 }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ exclusiveMin: 4 }));
-      assert.doesNotThrow(() => collection.insert({ exclusiveMin: 3.5 }));
+      await assert.isRejected(collection.insertAsync({ exclusiveMin: 3 }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ exclusiveMin: 4 }));
+      await assert.isFulfilled(collection.insertAsync({ exclusiveMin: 3.5 }));
 
-      assert.throws(() => collection.insert({ exclusiveMax: 3 }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ exclusiveMax: 2 }));
-      assert.doesNotThrow(() => collection.insert({ exclusiveMax: 2.5 }));
+      await assert.isRejected(collection.insertAsync({ exclusiveMax: 3 }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ exclusiveMax: 2 }));
+      await assert.isFulfilled(collection.insertAsync({ exclusiveMax: 2.5 }));
 
-      assert.throws(() => collection.insert({ inclusiveMin: 2 }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ inclusiveMin: 3 }));
+      await assert.isRejected(collection.insertAsync({ inclusiveMin: 2 }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ inclusiveMin: 3 }));
 
-      assert.throws(() => collection.insert({ inclusiveMax: 4 }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ inclusiveMax: 3 }));
+      await assert.isRejected(collection.insertAsync({ inclusiveMax: 4 }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ inclusiveMax: 3 }));
 
-      assert.throws(() => collection.insert({ integer: 3.5 }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ integer: 3 }));
+      await assert.isRejected(collection.insertAsync({ integer: 3.5 }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ integer: 3 }));
 
-      assert.throws(() => collection.insert({ multipleOf: 4 }), /Document failed validation/);
-      assert.doesNotThrow(() => collection.insert({ multipleOf: 6 }));
+      await assert.isRejected(collection.insertAsync({ multipleOf: 4 }), /Document failed validation/);
+      await assert.isFulfilled(collection.insertAsync({ multipleOf: 6 }));
     });
 
     it('respects numbers with multiple checks', async function () {
@@ -258,11 +255,11 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ number: 3 }), /Document failed validation/);
-      assert.throws(() => collection.insert({ number: 10 }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ number: 3 }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ number: 10 }), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ number: 4 }));
-      assert.doesNotThrow(() => collection.insert({ number: 6 }));
+      await assert.isFulfilled(collection.insertAsync({ number: 4 }));
+      await assert.isFulfilled(collection.insertAsync({ number: 6 }));
     });
 
     it('rejects unsupported checks', function () {
@@ -282,9 +279,9 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ enum: 'baz' } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ enum: 'baz' } as any), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ enum: 'foo' }));
+      await assert.isFulfilled(collection.insertAsync({ enum: 'foo' }));
     });
 
     it('supports TypeScript-native enums', async function () {
@@ -295,9 +292,9 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ enum: 'baz' } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ enum: 'baz' } as any), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ enum: Enum.foo }));
+      await assert.isFulfilled(collection.insertAsync({ enum: Enum.foo }));
     });
 
     it('supports a union of literals', async function () {
@@ -309,9 +306,9 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ enum: 'baz' } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ enum: 'baz' } as any), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ enum: 'foo' }));
+      await assert.isFulfilled(collection.insertAsync({ enum: 'foo' }));
     });
   });
 
@@ -323,10 +320,10 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ string: 1 } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ string: 1 } as any), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ string: 'bar' }));
-      assert.doesNotThrow(() => collection.insert({} as any));
+      await assert.isFulfilled(collection.insertAsync({ string: 'bar' }));
+      await assert.isFulfilled(collection.insertAsync({} as any));
     });
   });
 
@@ -338,10 +335,10 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ array: 'foo' } as any), /Document failed validation/);
-      assert.throws(() => collection.insert({ array: [1, 2, 3] } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ array: 'foo' } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ array: [1, 2, 3] } as any), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ array: ['foo', 'bar'] }));
+      await assert.isFulfilled(collection.insertAsync({ array: ['foo', 'bar'] }));
     });
 
     it('supports array of unions', async function () {
@@ -351,11 +348,11 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ array: [true, null] } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ array: [true, null] } as any), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ array: ['foo', 'bar'] }));
-      assert.doesNotThrow(() => collection.insert({ array: [1, 2, 3] }));
-      assert.doesNotThrow(() => collection.insert({ array: ['foo', 1, 'bar', 2, 3] }));
+      await assert.isFulfilled(collection.insertAsync({ array: ['foo', 'bar'] }));
+      await assert.isFulfilled(collection.insertAsync({ array: [1, 2, 3] }));
+      await assert.isFulfilled(collection.insertAsync({ array: ['foo', 1, 'bar', 2, 3] }));
     });
   });
 
@@ -370,10 +367,10 @@ describe('generateJsonSchema', function () {
       }));
       const collection = await createTestCollection(schema);
 
-      assert.doesNotThrow(() => collection.insert({ foo: 'foo' }));
-      assert.doesNotThrow(() => collection.insert({ bar: 1 }));
+      await assert.isFulfilled(collection.insertAsync({ foo: 'foo' }));
+      await assert.isFulfilled(collection.insertAsync({ bar: 1 }));
 
-      assert.throws(() => collection.insert({ foo: 'foo', bar: 1 }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ foo: 'foo', bar: 1 }), /Document failed validation/);
     });
   });
 
@@ -393,12 +390,12 @@ describe('generateJsonSchema', function () {
       ]);
       const collection = await createTestCollection(schema);
 
-      assert.doesNotThrow(() => collection.insert({ type: 'foo', foo: 'foo' }));
-      assert.doesNotThrow(() => collection.insert({ type: 'bar', bar: 1 }));
+      await assert.isFulfilled(collection.insertAsync({ type: 'foo', foo: 'foo' }));
+      await assert.isFulfilled(collection.insertAsync({ type: 'bar', bar: 1 }));
 
-      assert.throws(() => collection.insert({ type: 'foo', foo: 'foo', bar: 1 } as any), /Document failed validation/);
-      assert.throws(() => collection.insert({ type: 'foo', bar: 1 } as any), /Document failed validation/);
-      assert.throws(() => collection.insert({ type: 'bar', foo: 'foo' } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ type: 'foo', foo: 'foo', bar: 1 } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ type: 'foo', bar: 1 } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ type: 'bar', foo: 'foo' } as any), /Document failed validation/);
     });
   });
 
@@ -412,10 +409,10 @@ describe('generateJsonSchema', function () {
       }));
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ foo: 'foo' } as any), /Document failed validation/);
-      assert.throws(() => collection.insert({ bar: 1 } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ foo: 'foo' } as any), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ bar: 1 } as any), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ foo: 'foo', bar: 1 }));
+      await assert.isFulfilled(collection.insertAsync({ foo: 'foo', bar: 1 }));
     });
   });
 
@@ -427,11 +424,11 @@ describe('generateJsonSchema', function () {
       });
       const collection = await createTestCollection(schema);
 
-      assert.throws(() => collection.insert({ string: 'foo' }), /Document failed validation/);
-      assert.throws(() => collection.insert({ string: 'foo@bar' }), /Document failed validation/);
-      assert.throws(() => collection.insert({ string: 'a@b.co' }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ string: 'foo' }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ string: 'foo@bar' }), /Document failed validation/);
+      await assert.isRejected(collection.insertAsync({ string: 'a@b.co' }), /Document failed validation/);
 
-      assert.doesNotThrow(() => collection.insert({ string: 'jolly-roger@deathandmayhem.com' }));
+      await assert.isFulfilled(collection.insertAsync({ string: 'jolly-roger@deathandmayhem.com' }));
     });
   });
 });
