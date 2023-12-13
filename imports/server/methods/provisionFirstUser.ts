@@ -24,7 +24,7 @@ defineMethod(provisionFirstUser, {
       throw new Meteor.Error(403, 'The first user already exists.');
     }
 
-    const firstUserId = Accounts.createUser({ email, password });
+    const firstUserId = await Accounts.createUserAsync({ email, password });
     await addUserToRole(firstUserId, GLOBAL_SCOPE, 'admin');
   },
 });

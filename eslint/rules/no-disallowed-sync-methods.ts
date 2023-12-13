@@ -25,6 +25,9 @@ const bannedMethods: Map<
     ['forEach', 'forEachAsync'],
     ['map', 'mapAsync'],
   ])],
+  ['"meteor/accounts-base".Accounts', new Map([
+    ['createUser', 'createUserAsync'],
+  ])],
 
   ['Model', new Map([
     ['findOne', 'findOneAsync'],
