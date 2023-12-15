@@ -1397,7 +1397,6 @@ const DiscordGuildForm = ({ guild: initialGuild }: {
             id="jr-setup-edit-discord-bot-guild"
             as="select"
             type="text"
-            placeholder=""
             value={guildId}
             disabled={shouldDisableForm}
             onChange={onSelectedGuildChange}
