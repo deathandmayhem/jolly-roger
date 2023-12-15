@@ -124,7 +124,7 @@
     "puppeteer": "^20.4.0",
     "stylelint": "^15.11.0",
     "stylelint-config-standard": "^34.0.0",
-    "stylelint-scss": "^5.3.1",
+    "stylelint-scss": "^5.3.2",
     "typescript": "^5.3.3"
   },
   "meteor": {
