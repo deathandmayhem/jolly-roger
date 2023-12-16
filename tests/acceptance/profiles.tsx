@@ -37,7 +37,7 @@ if (Meteor.isServer) {
         throw new Meteor.Error(500, 'This code must not run in production');
       }
 
-      const userId = Accounts.createUser({ email, password });
+      const userId = await Accounts.createUserAsync({ email, password });
       await MeteorUsers.updateAsync(userId, { $set: { displayName } });
       return userId;
     },

@@ -24,7 +24,7 @@ type TypedMethodCallPromiseArgs<T, Arg extends TypedMethodArgs> =
     [] :
     [ValidateShape<T, Arg>];
 
-export default class TypedMethod<
+class TypedMethod<
   Args extends TypedMethodArgs,
   Return extends TypedMethodParam | void,
 > {
@@ -96,3 +96,5 @@ export default class TypedMethod<
     }
   }
 }
+
+export default TypedMethod;

@@ -66,7 +66,7 @@ defineMethod(linkUserDiscordAccount, {
       }
     }
 
-    for (const h of Meteor.user()!.hunts ?? []) {
+    for (const h of (await Meteor.userAsync())!.hunts ?? []) {
       await addUsersToDiscordRole([this.userId], h);
     }
   },

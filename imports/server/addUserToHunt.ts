@@ -79,7 +79,7 @@ export default async function addUserToHunt({ hunt, email, invitedBy }: {
   let joineeUser = Accounts.findUserByEmail(email);
   const newUser = joineeUser === undefined;
   if (!joineeUser) {
-    const joineeUserId = Accounts.createUser({ email });
+    const joineeUserId = await Accounts.createUserAsync({ email });
     joineeUser = await MeteorUsers.findOneAsync(joineeUserId);
   }
   if (!joineeUser?._id) throw new Meteor.Error(500, 'Something has gone terribly wrong');
@@ -130,7 +130,7 @@ export default async function addUserToHunt({ hunt, email, invitedBy }: {
         hunt,
         joinerName
       );
-      Email.send({
+      await Email.sendAsync({
         from: Accounts.emailTemplates.from,
         to: email,
         subject,
