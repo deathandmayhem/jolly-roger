@@ -1635,13 +1635,13 @@ const BrandingRowContent = styled.div`
   justify-content: flex-start;
 `;
 
-const BrandingRowImage = styled.div<{ backgroundImage: string, backgroundSize: string }>`
+const BrandingRowImage = styled.div<{ $backgroundImage: string, $backgroundSize: string }>`
   width: 200px;
   height: 200px;
   background-position: center;
   background-repeat: no-repeat;
-  background-image: url(${(props) => props.backgroundImage});
-  background-size: ${(props) => props.backgroundSize};
+  background-image: url(${(props) => props.$backgroundImage});
+  background-size: ${(props) => props.$backgroundSize};
 `;
 
 const BrandingAssetRow = ({
@@ -1712,8 +1712,8 @@ const BrandingAssetRow = ({
       ) : null}
       <BrandingRowContent>
         <BrandingRowImage
-          backgroundImage={blobUrl}
-          backgroundSize={backgroundSize ?? 'auto'}
+          $backgroundImage={blobUrl}
+          $backgroundSize={backgroundSize ?? 'auto'}
         />
         <label htmlFor={`asset-input-${asset}`}>
           <div>{asset}</div>

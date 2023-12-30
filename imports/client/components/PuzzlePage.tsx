@@ -195,15 +195,15 @@ const ChatHistoryDiv = styled.div`
 
 const PUZZLE_PAGE_PADDING = 8;
 
-const ChatMessageDiv = styled.div<{ isSystemMessage: boolean; isHighlighted: boolean; }>`
+const ChatMessageDiv = styled.div<{ $isSystemMessage: boolean; $isHighlighted: boolean; }>`
   padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
   word-wrap: break-word;
   font-size: 14px;
-  ${({ isSystemMessage, isHighlighted }) => isHighlighted && !isSystemMessage && css`
+  ${({ $isSystemMessage, $isHighlighted }) => $isHighlighted && !$isSystemMessage && css`
     background-color: #ffffd0;
   `}
 
-  ${({ isSystemMessage }) => isSystemMessage && css`
+  ${({ $isSystemMessage }) => $isSystemMessage && css`
     background-color: #e0e0e0;
   `}
 `;
@@ -340,7 +340,7 @@ const ChatHistoryMessage = React.memo(({
 
   const senderDisplayName = message.sender !== undefined ? displayNames.get(message.sender) ?? '???' : 'jolly-roger';
   return (
-    <ChatMessageDiv isSystemMessage={isSystemMessage} isHighlighted={isHighlighted && !isSystemMessage}>
+    <ChatMessageDiv $isSystemMessage={isSystemMessage} $isHighlighted={isHighlighted && !isSystemMessage}>
       {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
       {!suppressSender && <strong>{senderDisplayName}</strong>}
       <ChatMessage
@@ -486,7 +486,7 @@ const ChatHistory = React.forwardRef(({
   return (
     <ChatHistoryDiv ref={ref} onScroll={onScrollObserved}>
       {chatMessages.length === 0 ? (
-        <ChatMessageDiv key="no-message" isSystemMessage={false} isHighlighted={false}>
+        <ChatMessageDiv key="no-message" $isSystemMessage={false} $isHighlighted={false}>
           <span>No chatter yet. Say something?</span>
         </ChatMessageDiv>
       ) : undefined}

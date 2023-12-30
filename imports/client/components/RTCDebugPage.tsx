@@ -157,9 +157,9 @@ const StyledJSONDisplayTextCol = styled(Col)`
   justify-content: center;
 `;
 
-const StyledJSONDisplayPre = styled.pre<{ collapsed?: boolean }>`
+const StyledJSONDisplayPre = styled.pre<{ $collapsed?: boolean }>`
   margin-bottom: 0;
-  ${({ collapsed }) => collapsed && css`
+  ${({ $collapsed }) => $collapsed && css`
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -180,7 +180,7 @@ const JSONDisplay = ({ json }: { json: string }) => {
         </StyledJSONDisplayButtonCol>
         <StyledJSONDisplayTextCol xs={11}>
           {collapse ? (
-            <StyledJSONDisplayPre collapsed className="text-truncate">
+            <StyledJSONDisplayPre $collapsed className="text-truncate">
               {json}
             </StyledJSONDisplayPre>
           ) : (

@@ -29,10 +29,10 @@ import { backgroundColorLookupTable } from './styling/constants';
 import { mediaBreakpointDown } from './styling/responsive';
 
 const PuzzleDiv = styled.div<{
-  solvedness: Solvedness,
+  $solvedness: Solvedness,
 }>`
-  ${({ solvedness }) => css`
-    background-color: ${backgroundColorLookupTable[solvedness]};
+  ${({ $solvedness }) => css`
+    background-color: ${backgroundColorLookupTable[$solvedness]};
   `}
 
   display: flex;
@@ -196,7 +196,7 @@ const Puzzle = React.memo(({
   });
 
   return (
-    <PuzzleDiv solvedness={solvedness}>
+    <PuzzleDiv $solvedness={solvedness}>
       {showEditModal ? (
         <PuzzleModalForm
           key={puzzle._id}

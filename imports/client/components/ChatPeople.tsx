@@ -334,7 +334,7 @@ const ChatPeople = ({
                   </>
                 )}
               </PeopleListHeader>
-              <PeopleListDiv collapsed={!callersExpanded}>
+              <PeopleListDiv $collapsed={!callersExpanded}>
                 {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} popperBoundaryRef={chatterRef} {...viewer} />)}
               </PeopleListDiv>
             </ChatterSubsection>
@@ -376,7 +376,7 @@ const ChatPeople = ({
           <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
           {`${totalViewers} viewer${totalViewers !== 1 ? 's' : ''}`}
         </PeopleListHeader>
-        <PeopleListDiv collapsed={!viewersExpanded}>
+        <PeopleListDiv $collapsed={!viewersExpanded}>
           {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} popperBoundaryRef={chatterRef} {...viewer} />)}
         </PeopleListDiv>
       </ChatterSubsection>

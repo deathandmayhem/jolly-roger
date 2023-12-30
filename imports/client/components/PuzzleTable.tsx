@@ -16,10 +16,10 @@ const PuzzleTableEl = styled.table`
 `;
 
 const PuzzleTableTr = styled.tr<{
-  solvedness: Solvedness;
+  $solvedness: Solvedness;
 }>`
-  ${({ solvedness }) => css`
-    background-color: ${backgroundColorLookupTable[solvedness]};
+  ${({ $solvedness }) => css`
+    background-color: ${backgroundColorLookupTable[$solvedness]};
   `}
 `;
 
@@ -47,7 +47,7 @@ const PuzzleTableRow = ({ puzzle, segmentAnswers }: {
   const solvedness = computeSolvedness(puzzle);
 
   return (
-    <PuzzleTableTr solvedness={solvedness}>
+    <PuzzleTableTr $solvedness={solvedness}>
       <PuzzleTableCell>
         <Breakable><Link to={linkTarget}>{puzzle.title}</Link></Breakable>
       </PuzzleTableCell>
