@@ -2,15 +2,15 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import { MonospaceFontFamily } from './styling/constants';
 
-const PuzzleAnswerSpan = styled.span<{ breakable: boolean, indented: boolean }>`
+const PuzzleAnswerSpan = styled.span<{ $breakable: boolean, $indented: boolean }>`
   text-transform: uppercase;
   font-family: ${MonospaceFontFamily};
   font-weight: 400;
-  ${({ breakable }) => breakable && css`
+  ${({ $breakable }) => $breakable && css`
     overflow-wrap: break-word;
     overflow: hidden;
   `}
-  ${({ indented }) => indented && css`
+  ${({ $indented }) => $indented && css`
     display: block;
     min-width: 0;
     text-indent: -1.2em;
@@ -71,7 +71,7 @@ const PuzzleAnswer = React.memo(({
     ));
   }
   return (
-    <PuzzleAnswerSpan breakable={breakable} indented={indented} className={className}>
+    <PuzzleAnswerSpan $breakable={breakable} $indented={indented} className={className}>
       {formattedAnswer}
     </PuzzleAnswerSpan>
   );

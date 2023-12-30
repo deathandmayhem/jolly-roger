@@ -55,12 +55,12 @@ const DefaultAvatarInner = ({
   return <AvatarInitial style={style}>{initial}</AvatarInitial>;
 };
 
-const AvatarContainer = styled.div<{ size: number, inline: boolean }>`
-  width: ${({ size }) => size}px;
-  height: ${({ size }) => size}px;
-  font-size: ${({ size }) => 0.6 * size}px;
+const AvatarContainer = styled.div<{ $size: number, $inline: boolean }>`
+  width: ${({ $size }) => $size}px;
+  height: ${({ $size }) => $size}px;
+  font-size: ${({ $size }) => 0.6 * $size}px;
   background-color: white;
-  display: ${({ inline }) => (inline ? 'inline-block' : 'block')};
+  display: ${({ $inline }) => ($inline ? 'inline-block' : 'block')};
 `;
 
 const Avatar = React.memo(({
@@ -77,7 +77,7 @@ const Avatar = React.memo(({
     <DiscordAvatarInner size={size} displayName={displayName} discordAccount={discordAccount} /> :
     <DefaultAvatarInner _id={_id} displayName={displayName} />;
   return (
-    <AvatarContainer className={className} size={size} inline={inline ?? false}>
+    <AvatarContainer className={className} $size={size} $inline={inline ?? false}>
       {content}
     </AvatarContainer>
   );

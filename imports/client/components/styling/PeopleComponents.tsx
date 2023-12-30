@@ -31,7 +31,7 @@ export const AVButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)
   }
 `;
 
-export const PeopleListDiv = styled.div<{ collapsed?: boolean }>`
+export const PeopleListDiv = styled.div<{ $collapsed?: boolean }>`
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -40,7 +40,7 @@ export const PeopleListDiv = styled.div<{ collapsed?: boolean }>`
     margin: -4px -4px 0 0;
   }
 
-  ${({ collapsed }) => collapsed && css`
+  ${({ $collapsed }) => $collapsed && css`
     display: none;
   `}
 `;

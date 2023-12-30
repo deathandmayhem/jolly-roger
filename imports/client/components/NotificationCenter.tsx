@@ -77,9 +77,9 @@ const StyledNotificationActionBar = styled.ul`
   }
 `;
 
-const StyledNotificationActionItem = styled.li<{grow?: boolean}>`
+const StyledNotificationActionItem = styled.li<{ $grow?: boolean }>`
   display: flex;
-  flex-grow: ${(props) => (props.grow ? 1 : 0)};
+  flex-grow: ${(props) => (props.$grow ? 1 : 0)};
 `;
 
 const StyledNotificationRow = styled.div`
@@ -274,16 +274,16 @@ const GuessMessage = React.memo(({
           </StyledGuessDetails>
         </StyledNotificationActionBar>
         <StyledNotificationActionBar>
-          <StyledNotificationActionItem grow>
+          <StyledNotificationActionItem $grow>
             <Button variant={correctButtonVariant} size="sm" className="flex-grow-1" disabled={disableForms} onClick={markCorrect}>Correct</Button>
           </StyledNotificationActionItem>
-          <StyledNotificationActionItem grow>
+          <StyledNotificationActionItem $grow>
             <Button variant={intermediateButtonVariant} size="sm" className="flex-grow-1" disabled={disableForms} active={nextState === 'intermediate'} onClick={toggleStateIntermediate}>Intermediate…</Button>
           </StyledNotificationActionItem>
-          <StyledNotificationActionItem grow>
+          <StyledNotificationActionItem $grow>
             <Button variant={incorrectButtonVariant} size="sm" className="flex-grow-1" disabled={disableForms} onClick={markIncorrect}>Incorrect</Button>
           </StyledNotificationActionItem>
-          <StyledNotificationActionItem grow>
+          <StyledNotificationActionItem $grow>
             <Button variant={rejectButtonVariant} size="sm" className="flex-grow-1" disabled={disableForms} active={nextState === 'rejected'} onClick={toggleStateRejected}>Reject…</Button>
           </StyledNotificationActionItem>
         </StyledNotificationActionBar>

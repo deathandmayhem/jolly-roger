@@ -165,7 +165,7 @@ const insertMention = (editor: Editor, userId: string) => {
   Transforms.move(editor);
 };
 
-const MatchCandidateRow = styled.div<{ selected: boolean }>`
+const MatchCandidateRow = styled.div<{ $selected: boolean }>`
   padding: 2px 3px;
   border-radius: 3px;
   height: 28px;
@@ -174,8 +174,8 @@ const MatchCandidateRow = styled.div<{ selected: boolean }>`
   align-items: center;
   justify-content: flex-start;
   cursor: pointer;
-  ${({ selected }) => css`
-    background: ${selected ? '#e0ecfc' : 'transparent'};
+  ${({ $selected }) => css`
+    background: ${$selected ? '#e0ecfc' : 'transparent'};
   `}
 `;
 
@@ -204,7 +204,7 @@ const MatchCandidate = ({
   return (
     <MatchCandidateRow
       key={user._id}
-      selected={selected}
+      $selected={selected}
       onClick={onClick}
     >
       <StyledAvatar size={24} {...user} />

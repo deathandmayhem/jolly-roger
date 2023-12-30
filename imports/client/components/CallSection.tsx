@@ -410,7 +410,7 @@ const Callers = ({
         <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
         {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
       </ChatterSubsectionHeader>
-      <PeopleListDiv collapsed={!callersExpanded}>
+      <PeopleListDiv $collapsed={!callersExpanded}>
         <SelfBox
           muted={muted}
           deafened={deafened}

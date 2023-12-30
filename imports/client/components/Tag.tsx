@@ -58,14 +58,14 @@ const StyledPopover = styled(Popover)`
 `;
 
 const TagDiv = styled.div<{
-  popoverCapable: boolean;
-  popoverOpen: boolean;
-  isAdministrivia: boolean;
-  isMeta: boolean;
-  isGroup: boolean;
-  isMetaFor: boolean;
-  isNeeds: boolean;
-  isPriority: boolean;
+  $popoverCapable: boolean;
+  $popoverOpen: boolean;
+  $isAdministrivia: boolean;
+  $isMeta: boolean;
+  $isGroup: boolean;
+  $isMetaFor: boolean;
+  $isNeeds: boolean;
+  $isPriority: boolean;
 }>`
   display: inline-flex;
   align-items: center;
@@ -75,11 +75,11 @@ const TagDiv = styled.div<{
   border-radius: 4px;
   background-color: #ddd;
   color: #000;
-  ${({ popoverCapable }) => popoverCapable && css`
+  ${({ $popoverCapable }) => $popoverCapable && css`
     cursor: default;
     position: relative;
   `}
-  ${({ popoverCapable, popoverOpen }) => popoverCapable && popoverOpen && css`
+  ${({ $popoverCapable, $popoverOpen }) => $popoverCapable && $popoverOpen && css`
     &::after {
       content: '';
       display: block;
@@ -91,22 +91,22 @@ const TagDiv = styled.div<{
       z-index: 2;
     }
   `}
-  ${({ isAdministrivia }) => isAdministrivia && css`
+  ${({ $isAdministrivia }) => $isAdministrivia && css`
     background-color: #ff7;
   `}
-  ${({ isMeta }) => isMeta && css`
+  ${({ $isMeta }) => $isMeta && css`
     background-color: #ffd57f;
   `}
-  ${({ isGroup }) => isGroup && css`
+  ${({ $isGroup }) => $isGroup && css`
     background-color: #7fffff;
   `}
-  ${({ isMetaFor }) => isMetaFor && css`
+  ${({ $isMetaFor }) => $isMetaFor && css`
     background-color: #ffb0b0;
   `}
-  ${({ isNeeds }) => isNeeds && css`
+  ${({ $isNeeds }) => $isNeeds && css`
     background-color: #ff4040;
   `}
-  ${({ isPriority }) => isPriority && css`
+  ${({ $isPriority }) => $isPriority && css`
     background-color: #aaf;
   `}
 `;
@@ -309,14 +309,14 @@ const Tag = (props: TagProps) => {
 
   const tagElement = (
     <TagDiv
-      popoverCapable={props.popoverRelated}
-      popoverOpen={showPopover}
-      isAdministrivia={isAdministrivia}
-      isMeta={isMeta}
-      isGroup={isGroup}
-      isMetaFor={isMetaFor}
-      isNeeds={isNeeds}
-      isPriority={isPriority}
+      $popoverCapable={props.popoverRelated}
+      $popoverOpen={showPopover}
+      $isAdministrivia={isAdministrivia}
+      $isMeta={isMeta}
+      $isGroup={isGroup}
+      $isMetaFor={isMetaFor}
+      $isNeeds={isNeeds}
+      $isPriority={isPriority}
     >
       {title}
       {props.onRemove && (
