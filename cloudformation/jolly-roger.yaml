@@ -656,6 +656,7 @@ Resources:
                       log stdout local0
 
                       defaults
+                      mode tcp
                       log global
                       option tcplog
                       option logasap
@@ -687,6 +688,7 @@ Resources:
 
                       backend nginx
                       server nginx localhost:8443 send-proxy
+                      mode http
 
                       backend nginx-http2
                       server nginx-http2 localhost:8444 send-proxy
