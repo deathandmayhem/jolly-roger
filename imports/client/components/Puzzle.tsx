@@ -1,8 +1,6 @@
-import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons/faStar';
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
-import { faStar as faStarSolid } from '@fortawesome/free-solid-svg-icons/faStar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, {
   type ComponentPropsWithRef, type FC, useCallback, useMemo, useRef, useState,
@@ -16,9 +14,9 @@ import type { PuzzleType } from '../../lib/models/Puzzles';
 import type { TagType } from '../../lib/models/Tags';
 import type { Solvedness } from '../../lib/solvedness';
 import { computeSolvedness } from '../../lib/solvedness';
-import bookmarkPuzzle from '../../methods/bookmarkPuzzle';
 import updatePuzzle from '../../methods/updatePuzzle';
 import { useOperatorActionsHiddenForHunt } from '../hooks/persisted-state';
+import BookmarkButton from './BookmarkButton';
 import PuzzleActivity from './PuzzleActivity';
 import PuzzleAnswer from './PuzzleAnswer';
 import PuzzleDeleteModal from './PuzzleDeleteModal';
@@ -175,10 +173,6 @@ const Puzzle = React.memo(({
     return null;
   }, [showEdit, puzzle.deleted, onShowEditModal, onShowDeleteModal]);
 
-  const toggleBookmark = useCallback(() => {
-    bookmarkPuzzle.call({ puzzleId: puzzle._id, bookmark: !bookmarked });
-  }, [puzzle._id, bookmarked]);
-
   // id, title, answer, tags
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
   const tagIndex = indexedById(allTags);
@@ -216,9 +210,7 @@ const Puzzle = React.memo(({
       )}
       <PuzzleControlButtonsColumn>
         <ButtonGroup size="sm">
-          <StyledButton onClick={toggleBookmark} variant="light" title="Bookmark puzzle">
-            <FontAwesomeIcon icon={bookmarked ? faStarSolid : faStarRegular} />
-          </StyledButton>
+          <BookmarkButton puzzleId={puzzle._id} bookmarked={bookmarked} as={StyledButton} variant="light" />
           {showEdit && editButtons}
         </ButtonGroup>
       </PuzzleControlButtonsColumn>
