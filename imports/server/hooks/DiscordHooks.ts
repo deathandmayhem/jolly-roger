@@ -4,6 +4,7 @@ import ChatMessages from '../../lib/models/ChatMessages';
 import type { ChatMessageContentType } from '../../lib/models/ChatMessages';
 import Hunts from '../../lib/models/Hunts';
 import MeteorUsers from '../../lib/models/MeteorUsers';
+import type { PuzzleType } from '../../lib/models/Puzzles';
 import Puzzles from '../../lib/models/Puzzles';
 import Settings from '../../lib/models/Settings';
 import Tags from '../../lib/models/Tags';
@@ -54,6 +55,35 @@ const DiscordHooks: Hookset = {
     const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
       const title = `${puzzle.title} unlocked`;
+      const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
+      const tagNameList = await Tags.find({ _id: { $in: puzzle.tags } }).mapAsync((t) => t.name);
+      const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(', ');
+      const fields = tags.length > 0 ? [{ name: 'Tags', value: tags, inline: true }] : undefined;
+      const messageObj = {
+        embed: {
+          title,
+          url,
+          fields,
+        },
+      };
+      await bot.postMessageToChannel(hunt.puzzleHooksDiscordChannel.id, messageObj);
+    }
+  },
+
+  async onPuzzleUpdated(puzzleId: string, oldPuzzle: PuzzleType) {
+    const bot = await makeDiscordBotFromSettings();
+    if (!bot) {
+      return;
+    }
+
+    const puzzle = (await Puzzles.findOneAsync(puzzleId))!;
+    if (puzzle.title === oldPuzzle.title) {
+      return;
+    }
+
+    const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
+    if (hunt.puzzleHooksDiscordChannel) {
+      const title = `${oldPuzzle.title} renamed to ${puzzle.title}`;
       const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
       const tagNameList = await Tags.find({ _id: { $in: puzzle.tags } }).mapAsync((t) => t.name);
       const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(', ');

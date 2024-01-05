@@ -8,6 +8,7 @@ import Puzzles from '../../lib/models/Puzzles';
 import type { PuzzleType } from '../../lib/models/Puzzles';
 import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
 import updatePuzzle from '../../methods/updatePuzzle';
+import GlobalHooks from '../GlobalHooks';
 import { ensureDocument, renameDocument } from '../gdrive';
 import getOrCreateTagByName from '../getOrCreateTagByName';
 import getTeamName from '../getTeamName';
@@ -68,6 +69,11 @@ defineMethod(updatePuzzle, {
       update.$unset = { url: '' };
     }
     await Puzzles.updateAsync(puzzleId, update);
+
+    // Run any puzzle update hooks
+    Meteor.defer(Meteor.bindEnvironment(() => {
+      void GlobalHooks.runPuzzleUpdatedHooks(puzzleId, oldPuzzle);
+    }));
 
     if (oldPuzzle.title !== title) {
       Meteor.defer(Meteor.bindEnvironment(async () => {

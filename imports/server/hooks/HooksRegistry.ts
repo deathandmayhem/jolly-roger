@@ -1,3 +1,4 @@
+import type { PuzzleType } from '../../lib/models/Puzzles';
 import type HookSet from './Hookset';
 
 // No deps, just defines what a set of hooks looks like and a place
@@ -24,6 +25,14 @@ class HooksRegistry {
     for (const hook of this.registeredHooks) {
       if (hook.onPuzzleCreated) {
         await hook.onPuzzleCreated(puzzleId);
+      }
+    }
+  }
+
+  async runPuzzleUpdatedHooks(puzzleId: string, oldPuzzle: PuzzleType) {
+    for (const hook of this.registeredHooks) {
+      if (hook.onPuzzleUpdated) {
+        await hook.onPuzzleUpdated(puzzleId, oldPuzzle);
       }
     }
   }
