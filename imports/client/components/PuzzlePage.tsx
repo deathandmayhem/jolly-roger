@@ -2,7 +2,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { useFind, useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons/faStar';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight';
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
@@ -13,7 +12,6 @@ import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane';
 import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner';
-import { faStar as faStarSolid } from '@fortawesome/free-solid-svg-icons/faStar';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type {
@@ -78,7 +76,6 @@ import puzzleForPuzzlePage from '../../lib/publications/puzzleForPuzzlePage';
 import { computeSolvedness } from '../../lib/solvedness';
 import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
 import addPuzzleTag from '../../methods/addPuzzleTag';
-import bookmarkPuzzle from '../../methods/bookmarkPuzzle';
 import createGuess from '../../methods/createGuess';
 import ensurePuzzleDocument from '../../methods/ensurePuzzleDocument';
 import type { ImageSource } from '../../methods/insertDocumentImage';
@@ -100,6 +97,7 @@ import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
 import useTypedSubscribe from '../hooks/useTypedSubscribe';
 import indexedDisplayNames from '../indexedDisplayNames';
 import { trace } from '../tracing';
+import BookmarkButton from './BookmarkButton';
 import ChatMessage from './ChatMessage';
 import ChatPeople from './ChatPeople';
 import DocumentDisplay, { DocumentMessage } from './DocumentDisplay';
@@ -1077,10 +1075,6 @@ const PuzzlePageMetadata = ({
     }
   }, []);
 
-  const toggleBookmark = useCallback(() => {
-    bookmarkPuzzle.call({ puzzleId, bookmark: !bookmarked });
-  }, [puzzleId, bookmarked]);
-
   const tagsById = indexedById(allTags);
   const maybeTags: (TagType | undefined)[] = puzzle.tags.map((tagId) => { return tagsById.get(tagId); });
   const tags: TagType[] = maybeTags.filter<TagType>((t): t is TagType => t !== undefined);
@@ -1132,13 +1126,6 @@ const PuzzlePageMetadata = ({
     </Button>
   ) : null;
 
-  const bookmarkText = bookmarked ? 'Unbookmark puzzle' : 'Bookmark puzzle';
-  const bookmarkButton = (
-    <Button onClick={toggleBookmark} variant="link" size="sm" title={bookmarkText}>
-      <FontAwesomeIcon icon={bookmarked ? faStarSolid : faStarRegular} />
-    </Button>
-  );
-
   let guessButton = null;
   if (puzzle.expectedAnswerCount > 0) {
     guessButton = hasGuessQueue ? (
@@ -1182,7 +1169,7 @@ const PuzzlePageMetadata = ({
         onSubmit={onEdit}
       />
       <PuzzleMetadataActionRow>
-        {bookmarkButton}
+        <BookmarkButton puzzleId={puzzleId} bookmarked={bookmarked} variant="link" size="sm" />
         {puzzleLink}
         {documentLink}
         <PuzzleMetadataButtons>
