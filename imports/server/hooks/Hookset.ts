@@ -1,17 +1,21 @@
-interface Hookset {
-  // A class defining the interface that hook event subscribers can observe.
+import type { PuzzleType } from '../../lib/models/Puzzles';
 
-  // We have default noop implementations for each hook here.
+interface Hookset {
+  // A TypeScript interface that hook event subscribers must satisfy.
+
   // If you want to run code when one of these events occurs:
   //
-  // * subclass Hookset
-  // * override the onWhatever event for your subclass to do what you want
-  // * instantiate your Hookset subclass and add it to the registry in
-  //   imports/server/global-hooks.js
+  // * Define an object of type Hookset
+  // * Include the onWhatever properties for events you want to receive
+  // * Add your object to the registry in imports/server/hooks/GlobalHooks.ts
 
   // Triggered when a new puzzle is created.  Contains the ID of the puzzle.
   // The puzzle will already exist in the DB when this hook is called.
   onPuzzleCreated?: (puzzleId: string) => void | Promise<void>;
+
+  // Triggered when the puzzle is changed. Includes the old puzzle as fetched
+  // from the database prior to modification (which could be racy)
+  onPuzzleUpdated?: (puzzleId: string, oldPuzzle: PuzzleType) => void | Promise<void>;
 
   // Triggered when a puzzle is solved (e.g. a guess was marked correct and the
   // puzzle now contains an `answer`)
