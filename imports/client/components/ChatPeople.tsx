@@ -82,7 +82,7 @@ const ViewerPersonBox = ({
           _id={user}
           displayName={name}
           discordAccount={discordAccount}
-          size={40}
+          size={44}
         />
         {children}
       </PeopleItemDiv>
@@ -97,7 +97,7 @@ const PeopleListHeader = styled(ChatterSubsectionHeader)`
 
 const ChatterSection = styled.section`
   flex: 0;
-  background-color: #ebd0e3;
+  background-color: #f3e5e5;
   font-size: 12px;
   line-height: 12px;
   padding: ${PuzzlePagePadding};

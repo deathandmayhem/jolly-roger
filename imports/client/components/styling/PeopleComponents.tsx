@@ -36,10 +36,14 @@ export const AVButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
 export const PeopleListDiv = styled.div<{ $collapsed?: boolean }>`
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  padding-right: 12px;
+  max-height: 120px;
+  overflow-y: auto;
+  overflow-x: hidden;
 
   &:not(:empty) {
-    margin: -4px -4px 0 0;
+    margin: -4px -4px 0 16px;
   }
 
   ${({ $collapsed }) =>
@@ -51,8 +55,8 @@ export const PeopleListDiv = styled.div<{ $collapsed?: boolean }>`
 
 export const PeopleItemDiv = styled.div`
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background: white;
   cursor: default;
   display: flex;
