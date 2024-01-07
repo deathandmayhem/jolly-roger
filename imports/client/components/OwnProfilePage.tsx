@@ -13,6 +13,7 @@ import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
 import Flags from "../../Flags";
+import { formatDiscordName } from "../../lib/discord";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
 import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
 import unlinkUserDiscordAccount from "../../methods/unlinkUserDiscordAccount";
@@ -253,11 +254,7 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
   const currentAccount = useMemo(() => {
     if (user.discordAccount) {
       const acct = user.discordAccount;
-      return (
-        <div>
-          Currently linked to {acct.username}#{acct.discriminator}
-        </div>
-      );
+      return <div>Currently linked to {formatDiscordName(acct)}</div>;
     }
 
     return null;

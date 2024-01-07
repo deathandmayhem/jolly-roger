@@ -23,6 +23,7 @@ import {
   useFocused,
 } from "slate-react";
 import styled, { css } from "styled-components";
+import { formatDiscordName } from "../../lib/discord";
 import { indexedById, sortedBy } from "../../lib/listUtils";
 import Avatar from "./Avatar";
 
@@ -250,11 +251,7 @@ function matchUsers(
     const googEmail = u.googleAccount?.toLowerCase() ?? "";
     const foundGoogle = googEmail.includes(needle);
     const startsGoogle = googEmail.startsWith(needle);
-    const discordName = u.discordAccount
-      ? `${u.discordAccount.username.toLowerCase()}#${
-          u.discordAccount.discriminator
-        }`
-      : "";
+    const discordName = formatDiscordName(u.discordAccount) ?? "";
     const foundDiscord = discordName.includes(needle);
     const startsDiscord = discordName.startsWith(needle);
 
