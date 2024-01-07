@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';
 import { useSubscribe, useTracker } from 'meteor/react-meteor-data';

@@ -1,4 +1,3 @@
-/* eslint-disable max-len, react/jsx-one-expression-per-line */
 import { Google } from 'meteor/google-oauth';
 import { Meteor } from 'meteor/meteor';
 import { OAuth } from 'meteor/oauth';

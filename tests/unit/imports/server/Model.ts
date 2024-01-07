@@ -411,8 +411,10 @@ describe('Model', function () {
 
     describe('updateAsync', function () {
       it('does not accept full document updates', function () {
-        // @ts-expect-error - should not accept full document updates
-        const modifier: Parameters<typeof model.updateAsync>[1] = { string: 'foo' };
+        const modifier: Parameters<typeof model.updateAsync>[1] = {
+          // @ts-expect-error - should not accept full document updates
+          string: 'foo',
+        };
         assert.isOk(modifier);
       });
 

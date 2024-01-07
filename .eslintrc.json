@@ -22,7 +22,9 @@
     "plugin:react-hooks/recommended",
     "plugin:eslint-comments/recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    // Make sure to put this last so it can override any other rules
+    "prettier"
   ],
   "settings": {
     "import/resolver": {
@@ -154,17 +156,6 @@
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/prefer-namespace-keyword": "off",
 
-    // This is especially useful in combination with the autofixer from
-    // jolly-roger/no-disallowed-sync-methods, which intentionally introduces
-    // potentially spurious dependencies, but it seems useful to be
-    // stylistically consistent across the codebase.
-    "@typescript-eslint/no-extra-parens": ["error", "all", {
-      "conditionalAssign": false,
-      "nestedBinaryExpressions": false,
-      "enforceForArrowConditionals": false,
-      "ignoreJSX": "all"
-    }],
-
     // Enable a subset of strict rules that are useful
     "@typescript-eslint/prefer-includes": "error",
     "@typescript-eslint/prefer-optional-chain": "error",
@@ -214,15 +205,7 @@
     "jolly-roger/no-disallowed-sync-methods": ["error"],
 
     // Match existing style
-    "operator-linebreak": ["error", "after"],
     "prefer-destructuring": "off",
-    "comma-dangle": ["error", {
-      "arrays": "always-multiline",
-      "objects": "always-multiline",
-      "imports": "always-multiline",
-      "exports": "always-multiline",
-      "functions": "ignore"
-    }],
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "react/function-component-definition": ["error", {
       "namedComponents": "arrow-function"

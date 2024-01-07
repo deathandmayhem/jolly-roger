@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';

@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import React, {
   Suspense,
   useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState,

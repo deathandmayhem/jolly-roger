@@ -1,4 +1,3 @@
-/* eslint-disable object-curly-newline */
 const timeUnits = [
   { millis: 1000, singular: 'second' as const, plural: 'seconds', terse: 's' },
   { millis: 60 * 1000, singular: 'minute' as const, plural: 'minutes', terse: 'm' },
@@ -6,7 +5,6 @@ const timeUnits = [
   { millis: 24 * 60 * 60 * 1000, singular: 'day' as const, plural: 'days', terse: 'd' },
   { millis: 365 * 24 * 60 * 60 * 1000, singular: 'year' as const, plural: 'years', terse: 'y' },
 ].reverse();
-/* eslint-enable object-curly-newline */
 
 export type RelativeTimeFormatOpts = {
   minimumUnit?: typeof timeUnits[number]['singular'],

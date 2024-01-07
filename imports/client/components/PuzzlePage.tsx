@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { useFind, useSubscribe, useTracker } from 'meteor/react-meteor-data';
