@@ -27,6 +27,7 @@ import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { formatDiscordName } from "../../lib/discord";
 import isAdmin from "../../lib/isAdmin";
 import type { HuntType } from "../../lib/models/Hunts";
 import { userIsOperatorForHunt } from "../../lib/permission_stubs";
@@ -317,20 +318,19 @@ const ProfileList = ({
       // A user is interesting if for every search key, that search key matches
       // one of their fields.
       return toMatch.every((searchKey) => {
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
         return (
           user.displayName?.toLowerCase().includes(searchKey) ||
           user.emails?.some((e) =>
             e.address.toLowerCase().includes(searchKey),
           ) ||
           user.phoneNumber?.toLowerCase().includes(searchKey) ||
-          (user.discordAccount &&
-            `${user.discordAccount.username.toLowerCase()}#${
-              user.discordAccount.discriminator
-            }`.includes(searchKey)) ||
+          formatDiscordName(user.discordAccount)?.includes(searchKey) ||
           roles?.[user._id]?.some((role) =>
             role.toLowerCase().includes(searchKey),
           )
         );
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       });
     };
 

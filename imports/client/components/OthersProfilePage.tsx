@@ -4,6 +4,7 @@ import React from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/esm/Tooltip";
 import styled from "styled-components";
+import { formatDiscordName } from "../../lib/discord";
 import { indexedById } from "../../lib/listUtils";
 import Hunts from "../../lib/models/Hunts";
 import type { HuntType } from "../../lib/models/Hunts";
@@ -94,8 +95,7 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {user.discordAccount.username}#
-                  {user.discordAccount.discriminator}
+                  {formatDiscordName(user.discordAccount)}
                 </a>
               ) : (
                 "(none)"
