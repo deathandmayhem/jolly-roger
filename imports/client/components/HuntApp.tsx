@@ -1,121 +1,117 @@
-import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
-import React, { useCallback, useMemo } from 'react';
-import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
-import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
+import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import React, { useCallback, useMemo } from "react";
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
+import ButtonToolbar from "react-bootstrap/ButtonToolbar";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
+import Hunts from "../../lib/models/Hunts";
+import type { HuntType } from "../../lib/models/Hunts";
 import {
-  Outlet, useNavigate, useParams,
-} from 'react-router-dom';
-import Hunts from '../../lib/models/Hunts';
-import type { HuntType } from '../../lib/models/Hunts';
-import { userMayAddUsersToHunt, userMayUpdateHunt } from '../../lib/permission_stubs';
-import huntForHuntApp from '../../lib/publications/huntForHuntApp';
-import addHuntUser from '../../methods/addHuntUser';
-import undestroyHunt from '../../methods/undestroyHunt';
-import { useBreadcrumb } from '../hooks/breadcrumb';
-import useDocumentTitle from '../hooks/useDocumentTitle';
-import useTypedSubscribe from '../hooks/useTypedSubscribe';
-import Markdown from './Markdown';
+  userMayAddUsersToHunt,
+  userMayUpdateHunt,
+} from "../../lib/permission_stubs";
+import huntForHuntApp from "../../lib/publications/huntForHuntApp";
+import addHuntUser from "../../methods/addHuntUser";
+import undestroyHunt from "../../methods/undestroyHunt";
+import { useBreadcrumb } from "../hooks/breadcrumb";
+import useDocumentTitle from "../hooks/useDocumentTitle";
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import Markdown from "./Markdown";
 
-const HuntDeletedError = React.memo(({ hunt, canUndestroy }: {
-  hunt: HuntType;
-  canUndestroy: boolean;
-}) => {
-  const undestroy = useCallback(() => {
-    undestroyHunt.call({ huntId: hunt._id });
-  }, [hunt._id]);
+const HuntDeletedError = React.memo(
+  ({ hunt, canUndestroy }: { hunt: HuntType; canUndestroy: boolean }) => {
+    const undestroy = useCallback(() => {
+      undestroyHunt.call({ huntId: hunt._id });
+    }, [hunt._id]);
 
-  const undestroyButton = useMemo(() => {
-    if (canUndestroy) {
-      return (
-        <Button variant="primary" onClick={undestroy}>
-          Undelete this hunt
-        </Button>
-      );
-    }
-    return null;
-  }, [canUndestroy, undestroy]);
+    const undestroyButton = useMemo(() => {
+      if (canUndestroy) {
+        return (
+          <Button variant="primary" onClick={undestroy}>
+            Undelete this hunt
+          </Button>
+        );
+      }
+      return null;
+    }, [canUndestroy, undestroy]);
 
-  const navigate = useNavigate();
-  const goBack = useCallback(() => navigate(-1), [navigate]);
+    const navigate = useNavigate();
+    const goBack = useCallback(() => navigate(-1), [navigate]);
 
-  return (
-    <div>
-      <Alert variant="danger">
-        This hunt has been deleted, so there&apos;s nothing much to see here anymore.
-      </Alert>
+    return (
+      <div>
+        <Alert variant="danger">
+          This hunt has been deleted, so there&apos;s nothing much to see here
+          anymore.
+        </Alert>
 
-      <ButtonToolbar>
-        <Button variant="light" onClick={goBack}>
-          Whoops! Get me out of here
-        </Button>
-        {undestroyButton}
-      </ButtonToolbar>
-    </div>
-  );
-});
+        <ButtonToolbar>
+          <Button variant="light" onClick={goBack}>
+            Whoops! Get me out of here
+          </Button>
+          {undestroyButton}
+        </ButtonToolbar>
+      </div>
+    );
+  },
+);
 
-const HuntMemberError = React.memo(({ hunt, canJoin }: {
-  hunt: HuntType;
-  canJoin: boolean;
-}) => {
-  const join = useCallback(() => {
-    const user = Meteor.user();
-    if (!user?.emails) {
-      return;
-    }
-    const email = user.emails[0];
-    if (!email) {
-      return;
-    }
-    addHuntUser.call({ huntId: hunt._id, email: email.address });
-  }, [hunt._id]);
+const HuntMemberError = React.memo(
+  ({ hunt, canJoin }: { hunt: HuntType; canJoin: boolean }) => {
+    const join = useCallback(() => {
+      const user = Meteor.user();
+      if (!user?.emails) {
+        return;
+      }
+      const email = user.emails[0];
+      if (!email) {
+        return;
+      }
+      addHuntUser.call({ huntId: hunt._id, email: email.address });
+    }, [hunt._id]);
 
-  const joinButton = useMemo(() => {
-    if (canJoin) {
-      return (
-        <Button variant="primary" onClick={join}>
-          Use operator permissions to join
-        </Button>
-      );
-    }
-    return null;
-  }, [canJoin, join]);
+    const joinButton = useMemo(() => {
+      if (canJoin) {
+        return (
+          <Button variant="primary" onClick={join}>
+            Use operator permissions to join
+          </Button>
+        );
+      }
+      return null;
+    }, [canJoin, join]);
 
-  const navigate = useNavigate();
-  const goBack = useCallback(() => navigate(-1), [navigate]);
+    const navigate = useNavigate();
+    const goBack = useCallback(() => navigate(-1), [navigate]);
 
-  return (
-    <div>
-      <Alert variant="warning">
-        You&apos;re not signed up for this hunt (
-        {hunt.name}
-        ) yet.
-      </Alert>
+    return (
+      <div>
+        <Alert variant="warning">
+          You&apos;re not signed up for this hunt ({hunt.name}) yet.
+        </Alert>
 
-      <Markdown text={hunt.signupMessage ?? ''} />
+        <Markdown text={hunt.signupMessage ?? ""} />
 
-      <ButtonToolbar>
-        <Button variant="light" onClick={goBack}>
-          Whoops! Get me out of here
-        </Button>
-        {joinButton}
-      </ButtonToolbar>
-    </div>
-  );
-});
+        <ButtonToolbar>
+          <Button variant="light" onClick={goBack}>
+            Whoops! Get me out of here
+          </Button>
+          {joinButton}
+        </ButtonToolbar>
+      </div>
+    );
+  },
+);
 
 const HuntApp = React.memo(() => {
-  const huntId = useParams<'huntId'>().huntId!;
+  const huntId = useParams<"huntId">().huntId!;
 
   const huntLoading = useTypedSubscribe(huntForHuntApp, { huntId });
   const loading = huntLoading();
 
   const hunt = useTracker(() => Hunts.findOneAllowingDeleted(huntId), [huntId]);
-  const {
-    member, canUndestroy, canJoin,
-  } = useTracker(() => {
+  const { member, canUndestroy, canJoin } = useTracker(() => {
     return {
       member: Meteor.user()?.hunts?.includes(huntId) ?? false,
       canUndestroy: userMayUpdateHunt(Meteor.user(), hunt),
@@ -124,11 +120,11 @@ const HuntApp = React.memo(() => {
   }, [huntId, hunt]);
 
   useBreadcrumb({
-    title: loading || !hunt ? 'loading...' : hunt.name,
+    title: loading || !hunt ? "loading..." : hunt.name,
     path: `/hunts/${huntId}`,
   });
 
-  const title = hunt ? `${hunt.name} :: Jolly Roger` : '';
+  const title = hunt ? `${hunt.name} :: Jolly Roger` : "";
 
   useDocumentTitle(title);
 
@@ -141,21 +137,14 @@ const HuntApp = React.memo(() => {
   }
 
   if (hunt.deleted) {
-    return (
-      <HuntDeletedError
-        hunt={hunt}
-        canUndestroy={canUndestroy}
-      />
-    );
+    return <HuntDeletedError hunt={hunt} canUndestroy={canUndestroy} />;
   }
 
   if (!member) {
     return <HuntMemberError hunt={hunt} canJoin={canJoin} />;
   }
 
-  return (
-    <Outlet />
-  );
+  return <Outlet />;
 });
 
 export default HuntApp;

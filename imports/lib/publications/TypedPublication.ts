@@ -1,11 +1,11 @@
-import type { EJSONable, EJSONableProperty } from 'meteor/ejson';
+import type { EJSONable, EJSONableProperty } from "meteor/ejson";
 
 type TypedPublicationParam = EJSONable | EJSONableProperty;
 export type TypedPublicationArgs = Record<string, TypedPublicationParam> | void;
 
 export class BaseTypedPublication<
   Args extends TypedPublicationArgs,
-  Name extends string | (Args extends void ? null : never)
+  Name extends string | (Args extends void ? null : never),
 > {
   name: Name;
 
@@ -22,5 +22,4 @@ export class DefaultTypedPublication extends BaseTypedPublication<void, null> {
 
 export default class TypedPublication<
   Args extends TypedPublicationArgs,
-> extends BaseTypedPublication<Args, string> {
-}
+> extends BaseTypedPublication<Args, string> {}

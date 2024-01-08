@@ -1,15 +1,19 @@
-import React from 'react';
-import Toast from 'react-bootstrap/Toast';
-import styled from 'styled-components';
-import { calendarTimeFormat } from '../../lib/calendarTimeFormat';
-import Markdown from './Markdown';
+import React from "react";
+import Toast from "react-bootstrap/Toast";
+import styled from "styled-components";
+import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
+import Markdown from "./Markdown";
 
 const StyledNotificationTimestamp = styled.small`
   text-align: end;
 `;
 
 const AnnouncementToast = ({
-  displayName, message, createdAt, onClose, className,
+  displayName,
+  message,
+  createdAt,
+  onClose,
+  className,
 }: {
   displayName: string;
   message: string;
@@ -20,11 +24,7 @@ const AnnouncementToast = ({
   return (
     <Toast className={className} onClose={onClose}>
       <Toast.Header closeButton={!!onClose}>
-        <strong className="me-auto">
-          Announcement from
-          {' '}
-          {displayName}
-        </strong>
+        <strong className="me-auto">Announcement from {displayName}</strong>
         <StyledNotificationTimestamp>
           {calendarTimeFormat(createdAt)}
         </StyledNotificationTimestamp>

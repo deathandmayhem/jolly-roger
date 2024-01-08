@@ -1,11 +1,11 @@
-import { check } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
-import Logger from '../../Logger';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import { checkAdmin } from '../../lib/permission_stubs';
-import configureCollectGoogleAccountIds from '../../methods/configureCollectGoogleAccountIds';
-import GoogleClient from '../googleClientRefresher';
-import defineMethod from './defineMethod';
+import { check } from "meteor/check";
+import { Meteor } from "meteor/meteor";
+import Logger from "../../Logger";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import { checkAdmin } from "../../lib/permission_stubs";
+import configureCollectGoogleAccountIds from "../../methods/configureCollectGoogleAccountIds";
+import GoogleClient from "../googleClientRefresher";
+import defineMethod from "./defineMethod";
 
 defineMethod(configureCollectGoogleAccountIds, {
   async run() {
@@ -14,20 +14,22 @@ defineMethod(configureCollectGoogleAccountIds, {
 
     const { people } = GoogleClient;
     if (!people) {
-      throw new Meteor.Error(500, 'Google integration is disabled');
+      throw new Meteor.Error(500, "Google integration is disabled");
     }
 
     let pageToken: string | undefined;
     do {
       const resp = await people.otherContacts.list({
         pageToken,
-        sources: ['READ_SOURCE_TYPE_CONTACT', 'READ_SOURCE_TYPE_PROFILE'],
-        readMask: 'emailAddresses,metadata',
+        sources: ["READ_SOURCE_TYPE_CONTACT", "READ_SOURCE_TYPE_PROFILE"],
+        readMask: "emailAddresses,metadata",
       });
       pageToken = resp.data.nextPageToken ?? undefined;
 
       for (const contact of resp.data.otherContacts ?? []) {
-        const id = contact.metadata?.sources?.find((s) => s.type === 'PROFILE')?.id ?? undefined;
+        const id =
+          contact.metadata?.sources?.find((s) => s.type === "PROFILE")?.id ??
+          undefined;
         if (!id) {
           continue;
         }
@@ -39,15 +41,19 @@ defineMethod(configureCollectGoogleAccountIds, {
           return a;
         }, []);
 
-        Logger.info('Storing Google account IDs on users', { id, addresses });
-        await MeteorUsers.updateAsync({
-          googleAccountId: undefined,
-          googleAccount: { $in: addresses },
-        }, {
-          $set: {
-            googleAccountId: id,
+        Logger.info("Storing Google account IDs on users", { id, addresses });
+        await MeteorUsers.updateAsync(
+          {
+            googleAccountId: undefined,
+            googleAccount: { $in: addresses },
           },
-        }, { multi: true });
+          {
+            $set: {
+              googleAccountId: id,
+            },
+          },
+          { multi: true },
+        );
       }
     } while (pageToken);
   },

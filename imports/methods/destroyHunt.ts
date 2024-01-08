@@ -1,5 +1,5 @@
-import TypedMethod from './TypedMethod';
+import TypedMethod from "./TypedMethod";
 
 export default new TypedMethod<{ huntId: string }, void>(
-  'Hunts.methods.destroy'
+  "Hunts.methods.destroy",
 );

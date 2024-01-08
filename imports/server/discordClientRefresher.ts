@@ -1,16 +1,18 @@
-import { Meteor } from 'meteor/meteor';
-import Discord from 'discord.js';
-import Flags from '../Flags';
-import DiscordCache from '../lib/models/DiscordCache';
-import MeteorUsers from '../lib/models/MeteorUsers';
-import type { SettingType } from '../lib/models/Settings';
-import Settings from '../lib/models/Settings';
-import onExit from './onExit';
-import withLock, { PREEMPT_TIMEOUT } from './withLock';
+import { Meteor } from "meteor/meteor";
+import Discord from "discord.js";
+import Flags from "../Flags";
+import DiscordCache from "../lib/models/DiscordCache";
+import MeteorUsers from "../lib/models/MeteorUsers";
+import type { SettingType } from "../lib/models/Settings";
+import Settings from "../lib/models/Settings";
+import onExit from "./onExit";
+import withLock, { PREEMPT_TIMEOUT } from "./withLock";
 
 type DiscordEventsWithArguments<Args> = {
-  [K in keyof Discord.ClientEvents]-?: Discord.ClientEvents[K] extends Args ? K : never;
-}[keyof Discord.ClientEvents]
+  [K in keyof Discord.ClientEvents]-?: Discord.ClientEvents[K] extends Args
+    ? K
+    : never;
+}[keyof Discord.ClientEvents];
 
 class DiscordClientRefresher {
   public client?: Discord.Client;
@@ -27,16 +29,19 @@ class DiscordClientRefresher {
     this.client = undefined;
     this.token = undefined;
 
-    const configCursor = Settings.find({ name: 'discord.bot' });
+    const configCursor = Settings.find({ name: "discord.bot" });
     this.configObserveHandle = configCursor.observe({
       added: (doc) => this.updateBotConfig(doc),
       changed: (doc) => this.updateBotConfig(doc),
       removed: () => this.clearBotConfig(),
     });
 
-    this.featureFlagObserveHandle = Flags.observeChanges('disable.discord', () => {
-      void this.refreshClient();
-    });
+    this.featureFlagObserveHandle = Flags.observeChanges(
+      "disable.discord",
+      () => {
+        void this.refreshClient();
+      },
+    );
   }
 
   ready() {
@@ -50,7 +55,7 @@ class DiscordClientRefresher {
   }
 
   updateBotConfig(doc: SettingType) {
-    if (doc.name !== 'discord.bot') {
+    if (doc.name !== "discord.bot") {
       return; // this should be impossible
     }
 
@@ -74,7 +79,7 @@ class DiscordClientRefresher {
       this.wakeup = undefined;
     }
 
-    if (await Flags.activeAsync('disable.discord')) {
+    if (await Flags.activeAsync("disable.discord")) {
       return;
     }
 
@@ -86,7 +91,7 @@ class DiscordClientRefresher {
       this.client = client;
 
       Meteor.defer(() => {
-        void withLock('discord-bot', async (renew) => {
+        void withLock("discord-bot", async (renew) => {
           // The token gets set to null when the gateway is destroyed. If it's
           // been destroyed, bail, since that means that the config changed and
           // another defer function will have been scheduled
@@ -108,41 +113,75 @@ class DiscordClientRefresher {
           try {
             // If we get the lock, we're responsible for opening the websocket
             // gateway connection
-            const ready = new Promise<void>((r) => { client.on('ready', r); });
+            const ready = new Promise<void>((r) => {
+              client.on("ready", r);
+            });
             await client.login(this.token);
             await ready;
 
-            await this.cacheResource(client, 'guild', client.guilds.cache, 'guildCreate', 'guildUpdate', 'guildDelete');
-            await this.cacheResource(client, 'channel', client.channels.cache, 'channelCreate', 'channelUpdate', 'channelDelete');
+            await this.cacheResource(
+              client,
+              "guild",
+              client.guilds.cache,
+              "guildCreate",
+              "guildUpdate",
+              "guildDelete",
+            );
+            await this.cacheResource(
+              client,
+              "channel",
+              client.channels.cache,
+              "channelCreate",
+              "channelUpdate",
+              "channelDelete",
+            );
 
             // Role update events are global, but the cache of roles is not
-            const allRoles = client.guilds.cache.reduce((
-              roles: Map<Discord.Snowflake, Discord.Role>,
-              guild,
-            ) => {
-              guild.roles.cache.forEach((r) => roles.set(r.id, r));
-              return roles;
-            }, new Map());
-            await this.cacheResource(client, 'role', allRoles, 'roleCreate', 'roleUpdate', 'roleDelete');
+            const allRoles = client.guilds.cache.reduce(
+              (roles: Map<Discord.Snowflake, Discord.Role>, guild) => {
+                guild.roles.cache.forEach((r) => roles.set(r.id, r));
+                return roles;
+              },
+              new Map(),
+            );
+            await this.cacheResource(
+              client,
+              "role",
+              allRoles,
+              "roleCreate",
+              "roleUpdate",
+              "roleDelete",
+            );
 
             const updateUser = (u: Discord.User) => {
-              void MeteorUsers.updateAsync({
-                'discordAccount.id': u.id,
-              }, {
-                $set: {
-                  'discordAccount.username': u.username,
-                  'discordAccount.discriminator': u.discriminator,
-                  ...u.avatar ? { 'discordAccount.avatar': u.avatar } : {},
+              void MeteorUsers.updateAsync(
+                {
+                  "discordAccount.id": u.id,
                 },
-                ...u.avatar ? {} : { $unset: { 'discordAccount.avatar': 1 } },
-              }, {
-                multi: true,
-              });
+                {
+                  $set: {
+                    "discordAccount.username": u.username,
+                    "discordAccount.discriminator": u.discriminator,
+                    ...(u.avatar ? { "discordAccount.avatar": u.avatar } : {}),
+                  },
+                  ...(u.avatar
+                    ? {}
+                    : { $unset: { "discordAccount.avatar": 1 } }),
+                },
+                {
+                  multi: true,
+                },
+              );
             };
-            client.on('userUpdate', Meteor.bindEnvironment((_, u) => updateUser(u)));
+            client.on(
+              "userUpdate",
+              Meteor.bindEnvironment((_, u) => updateUser(u)),
+            );
             client.users.cache.forEach(Meteor.bindEnvironment(updateUser));
 
-            const invalidated = new Promise<void>((r) => { client.on('invalidated', r); });
+            const invalidated = new Promise<void>((r) => {
+              client.on("invalidated", r);
+            });
             const wakeup = new Promise<void>((r) => {
               this.wakeup = r;
             });
@@ -168,7 +207,9 @@ class DiscordClientRefresher {
   async cacheResource<
     ResourceType extends Discord.Base & { id: Discord.Snowflake },
     CreateEvent extends DiscordEventsWithArguments<[ResourceType]>,
-    UpdateEvent extends DiscordEventsWithArguments<[ResourceType, ResourceType]>,
+    UpdateEvent extends DiscordEventsWithArguments<
+      [ResourceType, ResourceType]
+    >,
     DeleteEvent extends DiscordEventsWithArguments<[ResourceType]>,
   >(
     client: Discord.Client,
@@ -178,51 +219,71 @@ class DiscordClientRefresher {
     updateEvent: UpdateEvent,
     deleteEvent: DeleteEvent,
   ) {
-    const oldIds = await DiscordCache.find({ type }).mapAsync((c) => c.snowflake);
+    const oldIds = await DiscordCache.find({ type }).mapAsync(
+      (c) => c.snowflake,
+    );
     const newIds = new Set(...cache.keys());
     const toDelete = oldIds.filter((x) => !newIds.has(x));
     await DiscordCache.removeAsync({ type, snowflake: { $in: toDelete } });
 
     for (const [k, v] of cache.entries()) {
-      await DiscordCache.upsertAsync({
-        type,
-        snowflake: k,
-      }, {
-        $set: {
+      await DiscordCache.upsertAsync(
+        {
           type,
           snowflake: k,
-          object: v.toJSON() as any,
         },
-      });
+        {
+          $set: {
+            type,
+            snowflake: k,
+            object: v.toJSON() as any,
+          },
+        },
+      );
     }
 
-    client.on(createEvent, (Meteor.bindEnvironment((r: ResourceType) => {
-      void DiscordCache.upsertAsync({
-        type,
-        snowflake: r.id,
-      }, {
-        $set: {
-          type,
-          snowflake: r.id,
-          object: r.toJSON() as any,
-        },
-      });
-    })) as any);
-    client.on(updateEvent, (Meteor.bindEnvironment((_oldR: ResourceType, r: ResourceType) => {
-      void DiscordCache.upsertAsync({
-        type,
-        snowflake: r.id,
-      }, {
-        $set: {
-          type,
-          snowflake: r.id,
-          object: r.toJSON() as any,
-        },
-      });
-    })) as any);
-    client.on(deleteEvent, (Meteor.bindEnvironment((r: ResourceType) => {
-      void DiscordCache.removeAsync({ type, snowflake: r.id });
-    })) as any);
+    client.on(
+      createEvent,
+      Meteor.bindEnvironment((r: ResourceType) => {
+        void DiscordCache.upsertAsync(
+          {
+            type,
+            snowflake: r.id,
+          },
+          {
+            $set: {
+              type,
+              snowflake: r.id,
+              object: r.toJSON() as any,
+            },
+          },
+        );
+      }) as any,
+    );
+    client.on(
+      updateEvent,
+      Meteor.bindEnvironment((_oldR: ResourceType, r: ResourceType) => {
+        void DiscordCache.upsertAsync(
+          {
+            type,
+            snowflake: r.id,
+          },
+          {
+            $set: {
+              type,
+              snowflake: r.id,
+              object: r.toJSON() as any,
+            },
+          },
+        );
+      }) as any,
+    );
+    client.on(
+      deleteEvent,
+      Meteor.bindEnvironment((r: ResourceType) => {
+        void DiscordCache.removeAsync({ type, snowflake: r.id });
+      }) as any,
+    );
   }
 }
 

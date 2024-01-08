@@ -1,28 +1,30 @@
-import type express from 'express';
-import expressAsyncWrapper from '../expressAsyncWrapper';
-import APIKeys from '../models/APIKeys';
+import type express from "express";
+import expressAsyncWrapper from "../expressAsyncWrapper";
+import APIKeys from "../models/APIKeys";
 
-const authenticator: express.Handler = expressAsyncWrapper(async (req, res, next) => {
-  const auth = req.get('Authorization');
-  if (!auth) {
-    res.sendStatus(401);
-    return;
-  }
+const authenticator: express.Handler = expressAsyncWrapper(
+  async (req, res, next) => {
+    const auth = req.get("Authorization");
+    if (!auth) {
+      res.sendStatus(401);
+      return;
+    }
 
-  const [authScheme, ...authParamParts] = auth.split(' ');
-  const authParam = authParamParts.join(' ');
+    const [authScheme, ...authParamParts] = auth.split(" ");
+    const authParam = authParamParts.join(" ");
 
-  if (authScheme?.toLowerCase() !== 'bearer') {
-    res.sendStatus(403);
-    return;
-  }
+    if (authScheme?.toLowerCase() !== "bearer") {
+      res.sendStatus(403);
+      return;
+    }
 
-  const key = await APIKeys.findOneAsync({ key: authParam });
-  if (!key) {
-    res.sendStatus(403);
-    return;
-  }
+    const key = await APIKeys.findOneAsync({ key: authParam });
+    if (!key) {
+      res.sendStatus(403);
+      return;
+    }
 
-  next();
-});
+    next();
+  },
+);
 export default authenticator;

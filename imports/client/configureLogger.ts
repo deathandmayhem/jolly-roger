@@ -1,33 +1,46 @@
-import { format } from 'winston';
-import Transport from 'winston-transport';
-import { logger } from '../Logger';
+import { format } from "winston";
+import Transport from "winston-transport";
+import { logger } from "../Logger";
 
 class BrowserConsole extends Transport {
-  public log({
-    level, message, label, error, ...rest
-  }: {
-    level: string,
-    message: string,
-    label?: string,
-    error?: unknown,
-    [key: string]: any,
-  }, next: () => void) {
+  public log(
+    {
+      level,
+      message,
+      label,
+      error,
+      ...rest
+    }: {
+      level: string;
+      message: string;
+      label?: string;
+      error?: unknown;
+      [key: string]: any;
+    },
+    next: () => void,
+  ) {
     let selectedLevel;
-    if (level === 'error' as const ||
-      level === 'warn' as const ||
-      level === 'info' as const ||
-      level === 'debug' as const) {
+    if (
+      level === ("error" as const) ||
+      level === ("warn" as const) ||
+      level === ("info" as const) ||
+      level === ("debug" as const)
+    ) {
       selectedLevel = level;
-    } else if (level === 'verbose') {
-      selectedLevel = 'debug' as const;
+    } else if (level === "verbose") {
+      selectedLevel = "debug" as const;
     } else {
       // unexpected log level so just use console.log
-      selectedLevel = 'log' as const;
+      selectedLevel = "log" as const;
     }
 
-    const args: [string, ...any[]] = [`${label ? `[${label}] ` : ''}${message}`];
+    const args: [string, ...any[]] = [
+      `${label ? `[${label}] ` : ""}${message}`,
+    ];
     // Skip winston's symbol only keys
-    const filteredMeta = Object.fromEntries(Object.entries(rest).filter(([key]) => typeof key === 'string'));
+    const filteredMeta = Object.fromEntries(
+      Object.entries(rest).filter(([key]) => typeof key === "string"),
+    );
     // If there are only winston's symbol keys, skip
     if (Object.keys(filteredMeta).length > 0) {
       args.push(filteredMeta);
@@ -42,10 +55,8 @@ class BrowserConsole extends Transport {
 }
 
 logger.format = format.combine(
-  format.printf(({
-    label, message,
-  }) => {
-    return `${label ? `[${label}] ` : ''}${message}`;
-  })
+  format.printf(({ label, message }) => {
+    return `${label ? `[${label}] ` : ""}${message}`;
+  }),
 );
 logger.add(new BrowserConsole());

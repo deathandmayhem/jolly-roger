@@ -1,5 +1,3 @@
-import TypedMethod from './TypedMethod';
+import TypedMethod from "./TypedMethod";
 
-export default new TypedMethod<void, void>(
-  'Users.methods.unlinkGoogleAccount'
-);
+export default new TypedMethod<void, void>("Users.methods.unlinkGoogleAccount");

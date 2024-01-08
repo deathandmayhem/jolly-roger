@@ -1,8 +1,8 @@
-import { Meteor } from 'meteor/meteor';
-import { AllModels } from '../lib/models/Model';
-import User from '../lib/models/User';
-import attachSchema from './attachSchema';
-import runIfLatestBuild from './runIfLatestBuild';
+import { Meteor } from "meteor/meteor";
+import { AllModels } from "../lib/models/Model";
+import User from "../lib/models/User";
+import attachSchema from "./attachSchema";
+import runIfLatestBuild from "./runIfLatestBuild";
 
 runIfLatestBuild(async () => {
   for (const model of AllModels.values()) {

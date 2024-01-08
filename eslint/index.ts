@@ -1,7 +1,7 @@
-import noDisallowedSyncMethods from './rules/no-disallowed-sync-methods';
+import noDisallowedSyncMethods from "./rules/no-disallowed-sync-methods";
 
 export = {
   rules: {
-    'no-disallowed-sync-methods': noDisallowedSyncMethods,
+    "no-disallowed-sync-methods": noDisallowedSyncMethods,
   },
 };

@@ -1,7 +1,7 @@
-import { check } from 'meteor/check';
-import BookmarkNotifications from '../../lib/models/BookmarkNotifications';
-import dismissBookmarkNotification from '../../methods/dismissBookmarkNotification';
-import defineMethod from './defineMethod';
+import { check } from "meteor/check";
+import BookmarkNotifications from "../../lib/models/BookmarkNotifications";
+import dismissBookmarkNotification from "../../methods/dismissBookmarkNotification";
+import defineMethod from "./defineMethod";
 
 defineMethod(dismissBookmarkNotification, {
   validate(arg) {

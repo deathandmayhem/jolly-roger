@@ -1,4 +1,4 @@
-import { cachedDBMappings, defaultMappings } from './assets';
+import { cachedDBMappings, defaultMappings } from "./assets";
 
 export default function lookupUrl(image: string) {
   const mapping = cachedDBMappings.get(image) ?? defaultMappings.get(image);

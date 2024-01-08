@@ -1,35 +1,43 @@
-import { Meteor } from 'meteor/meteor';
-import { useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
-import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import type { ReactNode } from 'react';
+import { Meteor } from "meteor/meteor";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
+import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { ReactNode } from "react";
 import React, {
-  useCallback, useEffect, useLayoutEffect, useRef, useState,
-} from 'react';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
-import styled from 'styled-components';
-import Flags from '../../Flags';
-import { RECENT_ACTIVITY_TIME_WINDOW_MS } from '../../lib/config/webrtc';
-import type { DiscordAccountType } from '../../lib/models/DiscordAccount';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import CallHistories from '../../lib/models/mediasoup/CallHistories';
-import Peers from '../../lib/models/mediasoup/Peers';
-import relativeTimeFormat from '../../lib/relativeTimeFormat';
-import type { Action, CallState } from '../hooks/useCallState';
-import { CallJoinState } from '../hooks/useCallState';
-import useSubscribeAvatars from '../hooks/useSubscribeAvatars';
-import { Subscribers } from '../subscribers';
-import { trace } from '../tracing';
-import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from './AudioConfig';
-import Avatar from './Avatar';
-import CallSection from './CallSection';
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
+import styled from "styled-components";
+import Flags from "../../Flags";
+import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../../lib/config/webrtc";
+import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import CallHistories from "../../lib/models/mediasoup/CallHistories";
+import Peers from "../../lib/models/mediasoup/Peers";
+import relativeTimeFormat from "../../lib/relativeTimeFormat";
+import type { Action, CallState } from "../hooks/useCallState";
+import { CallJoinState } from "../hooks/useCallState";
+import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
+import { Subscribers } from "../subscribers";
+import { trace } from "../tracing";
+import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "./AudioConfig";
+import Avatar from "./Avatar";
+import CallSection from "./CallSection";
 import {
-  AVActions, AVButton, ChatterSubsection, ChatterSubsectionHeader, PeopleItemDiv,
+  AVActions,
+  AVButton,
+  ChatterSubsection,
+  ChatterSubsectionHeader,
+  PeopleItemDiv,
   PeopleListDiv,
-} from './styling/PeopleComponents';
-import { PuzzlePagePadding } from './styling/constants';
+} from "./styling/PeopleComponents";
+import { PuzzlePagePadding } from "./styling/constants";
 
 interface ViewerSubscriber {
   user: string;
@@ -44,7 +52,12 @@ interface PersonBoxProps extends ViewerSubscriber {
 }
 
 const ViewerPersonBox = ({
-  user, name, discordAccount, tab, children, popperBoundaryRef,
+  user,
+  name,
+  discordAccount,
+  tab,
+  children,
+  popperBoundaryRef,
 }: PersonBoxProps) => {
   return (
     <OverlayTrigger
@@ -53,7 +66,7 @@ const ViewerPersonBox = ({
       popperConfig={{
         modifiers: [
           {
-            name: 'preventOverflow',
+            name: "preventOverflow",
             enabled: true,
             options: {
               boundary: popperBoundaryRef.current,
@@ -62,15 +75,16 @@ const ViewerPersonBox = ({
           },
         ],
       }}
-      overlay={(
-        <Tooltip id={`viewer-${user}-${tab}`}>
-          {name}
-        </Tooltip>
-      )}
+      overlay={<Tooltip id={`viewer-${user}-${tab}`}>{name}</Tooltip>}
     >
       <PeopleItemDiv key={`viewer-${user}-${tab}`}>
-        <Avatar _id={user} displayName={name} discordAccount={discordAccount} size={40} />
-        { children }
+        <Avatar
+          _id={user}
+          displayName={name}
+          discordAccount={discordAccount}
+          size={40}
+        />
+        {children}
       </PeopleItemDiv>
     </OverlayTrigger>
   );
@@ -92,7 +106,12 @@ const ChatterSection = styled.section`
 // ChatPeople is the component that deals with all user presence and
 // WebRTC call subscriptions, state, and visualization.
 const ChatPeople = ({
-  huntId, puzzleId, disabled, onHeightChange, callState, callDispatch,
+  huntId,
+  puzzleId,
+  disabled,
+  onHeightChange,
+  callState,
+  callDispatch,
 }: {
   huntId: string;
   puzzleId: string;
@@ -101,41 +120,44 @@ const ChatPeople = ({
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
 }) => {
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const chatterRef = useRef<HTMLDivElement>(null);
 
-  const {
-    audioControls,
-    audioState,
-  } = callState;
+  const { audioControls, audioState } = callState;
 
   const [callersExpanded, setCallersExpanded] = useState<boolean>(true);
   const [viewersExpanded, setViewersExpanded] = useState<boolean>(true);
 
   const subscriberTopic = `puzzle:${puzzleId}`;
-  const subscribersLoading = useSubscribe('subscribers.fetch', subscriberTopic);
-  const callMembersLoading = useSubscribe('mediasoup:metadata', huntId, puzzleId);
+  const subscribersLoading = useSubscribe("subscribers.fetch", subscriberTopic);
+  const callMembersLoading = useSubscribe(
+    "mediasoup:metadata",
+    huntId,
+    puzzleId,
+  );
   const avatarsLoading = useSubscribeAvatars(huntId);
 
-  const loading = subscribersLoading() || callMembersLoading() || avatarsLoading();
+  const loading =
+    subscribersLoading() || callMembersLoading() || avatarsLoading();
 
   // A note on this feature flag: we still do the subs for call *metadata* for
   // simplicity even when webrtc is flagged off; we simply avoid rendering
   // anything in the UI (which prevents clients from subbing to 'mediasoup:join'
   // or doing signalling).
-  const rtcDisabled = useTracker(() => Flags.active('disable.webrtc'), []);
+  const rtcDisabled = useTracker(() => Flags.active("disable.webrtc"), []);
 
   const recentVoiceActivity = useTracker(
     () => CallHistories.findOne({ call: puzzleId })?.lastActivity,
-    [puzzleId]
+    [puzzleId],
   );
   const [voiceActivityRelative, setVoiceActivityRelative] = useState<string>();
   useEffect(() => {
     let interval: number | undefined;
     if (recentVoiceActivity) {
-      const formatter = () => relativeTimeFormat(recentVoiceActivity, {
-        minimumUnit: Meteor.isDevelopment ? 'second' : 'minute',
-      });
+      const formatter = () =>
+        relativeTimeFormat(recentVoiceActivity, {
+          minimumUnit: Meteor.isDevelopment ? "second" : "minute",
+        });
       setVoiceActivityRelative(formatter());
       interval = Meteor.setInterval(() => {
         setVoiceActivityRelative(formatter());
@@ -148,11 +170,7 @@ const ChatPeople = ({
     };
   }, [recentVoiceActivity]);
 
-  const {
-    unknown,
-    viewers,
-    rtcViewers,
-  } = useTracker(() => {
+  const { unknown, viewers, rtcViewers } = useTracker(() => {
     if (loading) {
       return {
         unknown: 0,
@@ -233,11 +251,11 @@ const ChatPeople = ({
 
   const joinCall = useCallback(() => {
     void (async () => {
-      trace('ChatPeople joinCall');
+      trace("ChatPeople joinCall");
       if (navigator.mediaDevices) {
-        callDispatch({ type: 'request-capture' });
-        const preferredAudioDeviceId = localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ??
-          undefined;
+        callDispatch({ type: "request-capture" });
+        const preferredAudioDeviceId =
+          localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ?? undefined;
         // Get the user media stream.
         const mediaStreamConstraints = {
           audio: {
@@ -251,34 +269,38 @@ const ChatPeople = ({
 
         let mediaSource: MediaStream;
         try {
-          mediaSource = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
+          mediaSource = await navigator.mediaDevices.getUserMedia(
+            mediaStreamConstraints,
+          );
         } catch (e) {
           setError(`Couldn't get local microphone: ${(e as Error).message}`);
-          callDispatch({ type: 'capture-error', error: e as Error });
+          callDispatch({ type: "capture-error", error: e as Error });
           return;
         }
 
-        const AudioContext = window.AudioContext ||
-          (window as {webkitAudioContext?: AudioContext}).webkitAudioContext;
+        const AudioContext =
+          window.AudioContext ||
+          (window as { webkitAudioContext?: AudioContext }).webkitAudioContext;
         const audioContext = new AudioContext();
 
         callDispatch({
-          type: 'join-call',
+          type: "join-call",
           audioState: {
             mediaSource,
             audioContext,
           },
         });
       } else {
-        const msg = 'Couldn\'t get local microphone: browser denies access on non-HTTPS origins';
+        const msg =
+          "Couldn't get local microphone: browser denies access on non-HTTPS origins";
         setError(msg);
-        callDispatch({ type: 'capture-error', error: new Error(msg) });
+        callDispatch({ type: "capture-error", error: new Error(msg) });
       }
     })();
   }, [callDispatch]);
 
   useLayoutEffect(() => {
-    trace('ChatPeople useLayoutEffect', {
+    trace("ChatPeople useLayoutEffect", {
       loading,
       rtcViewers: rtcViewers.length,
       viewers: viewers.length,
@@ -304,7 +326,7 @@ const ChatPeople = ({
     disabled,
   ]);
 
-  trace('ChatPeople render', { loading });
+  trace("ChatPeople render", { loading });
 
   if (loading) {
     return null;
@@ -316,26 +338,36 @@ const ChatPeople = ({
     switch (callState.callState) {
       case CallJoinState.CHAT_ONLY:
       case CallJoinState.REQUESTING_STREAM: {
-        const joinLabel = rtcViewers.length > 0 ? 'Join audio call' : 'Start audio call';
+        const joinLabel =
+          rtcViewers.length > 0 ? "Join audio call" : "Start audio call";
         return (
           <>
             <AVActions>
-              <AVButton variant="primary" size="sm" onClick={joinCall}>{joinLabel}</AVButton>
+              <AVButton variant="primary" size="sm" onClick={joinCall}>
+                {joinLabel}
+              </AVButton>
             </AVActions>
             <ChatterSubsection>
               <PeopleListHeader onClick={toggleCallersExpanded}>
                 <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
-                {`${rtcViewers.length} caller${rtcViewers.length !== 1 ? 's' : ''}`}
+                {`${rtcViewers.length} caller${
+                  rtcViewers.length !== 1 ? "s" : ""
+                }`}
                 {voiceActivityRelative && (
                   <>
-                    {' (last voice activity: '}
-                    {voiceActivityRelative}
-                    )
+                    {" (last voice activity: "}
+                    {voiceActivityRelative})
                   </>
                 )}
               </PeopleListHeader>
               <PeopleListDiv $collapsed={!callersExpanded}>
-                {rtcViewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}-${viewer.tab}`} popperBoundaryRef={chatterRef} {...viewer} />)}
+                {rtcViewers.map((viewer) => (
+                  <ViewerPersonBox
+                    key={`person-${viewer.user}-${viewer.tab}`}
+                    popperBoundaryRef={chatterRef}
+                    {...viewer}
+                  />
+                ))}
               </PeopleListDiv>
             </ChatterSubsection>
           </>
@@ -355,11 +387,7 @@ const ChatPeople = ({
           />
         );
       case CallJoinState.STREAM_ERROR:
-        return (
-          <div>
-            {`ERROR GETTING MIC: ${error}`}
-          </div>
-        );
+        return <div>{`ERROR GETTING MIC: ${error}`}</div>;
       default:
         // Unreachable.  TypeScript knows this, but eslint doesn't.
         return <div />;
@@ -374,10 +402,16 @@ const ChatPeople = ({
       <ChatterSubsection ref={chatterRef}>
         <PeopleListHeader onClick={toggleViewersExpanded}>
           <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
-          {`${totalViewers} viewer${totalViewers !== 1 ? 's' : ''}`}
+          {`${totalViewers} viewer${totalViewers !== 1 ? "s" : ""}`}
         </PeopleListHeader>
         <PeopleListDiv $collapsed={!viewersExpanded}>
-          {viewers.map((viewer) => <ViewerPersonBox key={`person-${viewer.user}`} popperBoundaryRef={chatterRef} {...viewer} />)}
+          {viewers.map((viewer) => (
+            <ViewerPersonBox
+              key={`person-${viewer.user}`}
+              popperBoundaryRef={chatterRef}
+              {...viewer}
+            />
+          ))}
         </PeopleListDiv>
       </ChatterSubsection>
     </ChatterSection>

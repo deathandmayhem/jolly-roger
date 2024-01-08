@@ -1,11 +1,11 @@
-import { Meteor } from 'meteor/meteor';
-import { Random } from 'meteor/random';
-import isAdmin from '../lib/isAdmin';
-import MeteorUsers from '../lib/models/MeteorUsers';
-import type { SettingType } from '../lib/models/Settings';
-import Settings from '../lib/models/Settings';
-import googleScriptContent from './googleScriptContent';
-import UploadTokens from './models/UploadTokens';
+import { Meteor } from "meteor/meteor";
+import { Random } from "meteor/random";
+import isAdmin from "../lib/isAdmin";
+import MeteorUsers from "../lib/models/MeteorUsers";
+import type { SettingType } from "../lib/models/Settings";
+import Settings from "../lib/models/Settings";
+import googleScriptContent from "./googleScriptContent";
+import UploadTokens from "./models/UploadTokens";
 
 // Clean up upload tokens that didn't get used within a minute
 async function cleanupUploadTokens() {
@@ -13,22 +13,22 @@ async function cleanupUploadTokens() {
   await UploadTokens.removeAsync({ createdAt: { $lt: oldestValidTime } });
 }
 async function periodic() {
-  Meteor.setTimeout(periodic, 15000 + (15000 * Random.fraction()));
+  Meteor.setTimeout(periodic, 15000 + 15000 * Random.fraction());
   await cleanupUploadTokens();
 }
 Meteor.startup(() => periodic());
 
-Meteor.publish('hasUsers', async function () {
+Meteor.publish("hasUsers", async function () {
   // Publish a pseudo-collection which just communicates if there are any users
   // at all, so we can either guide users through the server setup flow or just
   // point them at the login page.
   const cursor = MeteorUsers.find();
-  if (await cursor.countAsync() > 0) {
-    this.added('hasUsers', 'hasUsers', { hasUsers: true });
+  if ((await cursor.countAsync()) > 0) {
+    this.added("hasUsers", "hasUsers", { hasUsers: true });
   } else {
     let handle: Meteor.LiveQueryHandle | undefined = cursor.observeChanges({
       added: (_id) => {
-        this.added('hasUsers', 'hasUsers', { hasUsers: true });
+        this.added("hasUsers", "hasUsers", { hasUsers: true });
         if (handle) {
           handle.stop();
         }
@@ -45,20 +45,20 @@ Meteor.publish('hasUsers', async function () {
   this.ready();
 });
 
-Meteor.publish('teamName', function () {
-  const cursor = Settings.find({ name: 'teamname' });
+Meteor.publish("teamName", function () {
+  const cursor = Settings.find({ name: "teamname" });
   let tracked = false;
   const handle: Meteor.LiveQueryHandle = cursor.observe({
     added: (doc) => {
       tracked = true;
-      this.added('teamName', 'teamName', { name: doc.value.teamName });
+      this.added("teamName", "teamName", { name: doc.value.teamName });
     },
     changed: (newDoc) => {
-      this.changed('teamName', 'teamName', { name: newDoc.value.teamName });
+      this.changed("teamName", "teamName", { name: newDoc.value.teamName });
     },
     removed: () => {
       if (tracked) {
-        this.removed('teamName', 'teamName');
+        this.removed("teamName", "teamName");
       }
     },
   });
@@ -69,16 +69,16 @@ Meteor.publish('teamName', function () {
   this.ready();
 });
 
-Meteor.publish('googleScriptInfo', async function () {
+Meteor.publish("googleScriptInfo", async function () {
   if (!this.userId) {
     return [];
   }
 
   const admin = isAdmin(await MeteorUsers.findOneAsync(this.userId));
 
-  const cursor = Settings.find({ name: 'google.script' });
+  const cursor = Settings.find({ name: "google.script" });
   let tracked = false;
-  const formatDoc = async (doc: SettingType & { name: 'google.script' }) => {
+  const formatDoc = async (doc: SettingType & { name: "google.script" }) => {
     const configured = !!doc.value.scriptId && !!doc.value.endpointUrl;
     if (admin) {
       const { contentHash } = await googleScriptContent(doc.value.sharedSecret);
@@ -93,17 +93,25 @@ Meteor.publish('googleScriptInfo', async function () {
     added: (doc) => {
       void (async () => {
         tracked = true;
-        this.added('googleScriptInfo', 'googleScriptInfo', await formatDoc(doc));
+        this.added(
+          "googleScriptInfo",
+          "googleScriptInfo",
+          await formatDoc(doc),
+        );
       })();
     },
     changed: (newDoc) => {
       void (async () => {
-        this.changed('googleScriptInfo', 'googleScriptInfo', await formatDoc(newDoc));
+        this.changed(
+          "googleScriptInfo",
+          "googleScriptInfo",
+          await formatDoc(newDoc),
+        );
       })();
     },
     removed: () => {
       if (tracked) {
-        this.removed('googleScriptInfo', 'googleScriptInfo');
+        this.removed("googleScriptInfo", "googleScriptInfo");
       }
     },
   });

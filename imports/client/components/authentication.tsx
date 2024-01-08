@@ -1,9 +1,9 @@
-import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
-import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import App from './App';
-import SplashPage from './SplashPage';
+import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import React, { useEffect, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import App from "./App";
+import SplashPage from "./SplashPage";
 
 const useAuthenticated = () => {
   const { loggingIn, loggedIn } = useTracker(() => {
@@ -27,7 +27,11 @@ const useAuthenticated = () => {
   return [loading, loggedIn];
 };
 
-export const AuthenticatedPage = ({ children }: { children: React.ReactNode }) => {
+export const AuthenticatedPage = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [loading, loggedIn] = useAuthenticated();
   const location = useLocation();
 
@@ -37,18 +41,17 @@ export const AuthenticatedPage = ({ children }: { children: React.ReactNode }) =
 
   if (!loggedIn) {
     const { pathname, search } = location;
-    return (
-      <Navigate
-        to="/login"
-        state={{ pathname, search }}
-      />
-    );
+    return <Navigate to="/login" state={{ pathname, search }} />;
   }
 
   return <App>{children}</App>;
 };
 
-export const UnauthenticatedPage = ({ children }: { children: React.ReactNode }) => {
+export const UnauthenticatedPage = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [loading, loggedIn] = useAuthenticated();
   const location = useLocation();
 
@@ -57,7 +60,7 @@ export const UnauthenticatedPage = ({ children }: { children: React.ReactNode })
   }
 
   if (loggedIn) {
-    const { pathname = '/', search = undefined } = location.state || {};
+    const { pathname = "/", search = undefined } = location.state || {};
     return <Navigate to={{ pathname, search }} />;
   }
 

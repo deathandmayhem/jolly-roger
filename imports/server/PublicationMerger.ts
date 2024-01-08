@@ -1,5 +1,5 @@
-import { EJSON } from 'meteor/ejson';
-import type { Meteor, Subscription } from 'meteor/meteor';
+import { EJSON } from "meteor/ejson";
+import type { Meteor, Subscription } from "meteor/meteor";
 
 // Allow having multiple processes independently publishing data over a single
 // subscription. This logic heavily borriws the behavior of Meteor in
@@ -10,7 +10,8 @@ import type { Meteor, Subscription } from 'meteor/meteor';
 class DocumentView {
   handles: Set<Subscription> = new Set();
 
-  data: Map<string /* key */, { handle: Subscription, value: any }[]> = new Map();
+  data: Map<string /* key */, { handle: Subscription; value: any }[]> =
+    new Map();
 
   render() {
     const rendered: Record<string, any> = {};
@@ -20,8 +21,12 @@ class DocumentView {
     return rendered;
   }
 
-  clearField(handle: Subscription, key: string, accumulator: Record<string, any>) {
-    if (key === '_id') return;
+  clearField(
+    handle: Subscription,
+    key: string,
+    accumulator: Record<string, any>,
+  ) {
+    if (key === "_id") return;
 
     const values = this.data.get(key);
     if (!values) return;
@@ -39,7 +44,10 @@ class DocumentView {
     if (values.length === 0) {
       this.data.delete(key);
       accumulator[key] = undefined;
-    } else if (removedValue !== undefined && !EJSON.equals(removedValue, values[0]!.value)) {
+    } else if (
+      removedValue !== undefined &&
+      !EJSON.equals(removedValue, values[0]!.value)
+    ) {
       accumulator[key] = values[0]!.value;
     }
   }
@@ -49,9 +57,9 @@ class DocumentView {
     key: string,
     providedValue: any,
     accumulator: Record<string, any>,
-    isAdd = false
+    isAdd = false,
   ) {
-    if (key === '_id') return;
+    if (key === "_id") return;
 
     const value = EJSON.clone(providedValue);
 
@@ -62,9 +70,9 @@ class DocumentView {
       return;
     }
 
-    const existing = isAdd ?
-      undefined :
-      values.find(({ handle: valueHandle }) => valueHandle === handle);
+    const existing = isAdd
+      ? undefined
+      : values.find(({ handle: valueHandle }) => valueHandle === handle);
     if (existing) {
       if (existing === values[0] && !EJSON.equals(existing.value, value)) {
         accumulator[key] = value;
@@ -79,11 +87,14 @@ class DocumentView {
 class CollectionView {
   name: string;
 
-  callbacks: Pick<Subscription, 'added' | 'changed' | 'removed'>;
+  callbacks: Pick<Subscription, "added" | "changed" | "removed">;
 
   documents: Map<string /* id */, DocumentView> = new Map();
 
-  constructor(name: string, callbacks: Pick<Subscription, 'added' | 'changed' | 'removed'>) {
+  constructor(
+    name: string,
+    callbacks: Pick<Subscription, "added" | "changed" | "removed">,
+  ) {
     this.name = name;
     this.callbacks = callbacks;
   }
@@ -122,7 +133,7 @@ class CollectionView {
     const changes: Record<string, any> = {};
     const document = this.documents.get(id);
     if (!document) {
-      throw new Error('changed called on unpublished document');
+      throw new Error("changed called on unpublished document");
     }
     for (const [key, value] of Object.entries(fields)) {
       if (value === undefined) {
@@ -137,7 +148,7 @@ class CollectionView {
   removed(handle: Subscription, id: string) {
     const document = this.documents.get(id);
     if (!document) {
-      throw new Error('removed called on unpublished document');
+      throw new Error("removed called on unpublished document");
     }
     document.handles.delete(handle);
     if (document.handles.size === 0) {
@@ -193,7 +204,7 @@ class SubSubscription implements Subscription {
   }
 
   ready(): void {
-    throw new Error('ready not supported on PublicationMerger subs');
+    throw new Error("ready not supported on PublicationMerger subs");
   }
 
   error(error: Error): void {
@@ -245,7 +256,12 @@ export default class PublicationMerger {
     handle.stopped = true;
   }
 
-  added(handle: Subscription, collection: string, id: string, fields: Record<string, any>) {
+  added(
+    handle: Subscription,
+    collection: string,
+    id: string,
+    fields: Record<string, any>,
+  ) {
     let collectionView = this.collectionViews.get(collection);
     if (!collectionView) {
       collectionView = new CollectionView(collection, this.mainSub);
@@ -254,10 +270,15 @@ export default class PublicationMerger {
     collectionView.added(handle, id, fields);
   }
 
-  changed(handle: Subscription, collection: string, id: string, fields: Record<string, any>) {
+  changed(
+    handle: Subscription,
+    collection: string,
+    id: string,
+    fields: Record<string, any>,
+  ) {
     const collectionView = this.collectionViews.get(collection);
     if (!collectionView) {
-      throw new Error('changed called on unpublished collection');
+      throw new Error("changed called on unpublished collection");
     }
     collectionView.changed(handle, id, fields);
   }
@@ -265,7 +286,7 @@ export default class PublicationMerger {
   removed(handle: Subscription, collection: string, id: string) {
     const collectionView = this.collectionViews.get(collection);
     if (!collectionView) {
-      throw new Error('removed called on unpublished collection');
+      throw new Error("removed called on unpublished collection");
     }
     collectionView.removed(handle, id);
     if (collectionView.documents.size === 0) {

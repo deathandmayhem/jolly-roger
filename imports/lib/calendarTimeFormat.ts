@@ -1,26 +1,28 @@
 const todayFormatter = new Intl.DateTimeFormat(undefined, {
-  hour: 'numeric',
-  minute: '2-digit',
+  hour: "numeric",
+  minute: "2-digit",
 });
 
 const thisWeekFormatter = new Intl.DateTimeFormat(undefined, {
-  weekday: 'short',
-  hour: 'numeric',
-  minute: '2-digit',
+  weekday: "short",
+  hour: "numeric",
+  minute: "2-digit",
 });
 
 const defaultFormatter = new Intl.DateTimeFormat(undefined, {
-  month: 'numeric',
-  day: 'numeric',
-  year: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
+  month: "numeric",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
 });
 
 function isSameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() &&
+  return (
+    a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate();
+    a.getDate() === b.getDate()
+  );
 }
 
 export function calendarTimeFormat(d: Date, now: Date = new Date()): string {
@@ -37,7 +39,10 @@ export function calendarTimeFormat(d: Date, now: Date = new Date()): string {
 }
 
 // Extra compact formatting used in the chat window on the puzzle page
-export function shortCalendarTimeFormat(d: Date, now: Date = new Date()): string {
+export function shortCalendarTimeFormat(
+  d: Date,
+  now: Date = new Date(),
+): string {
   if (isSameDay(d, now)) {
     return todayFormatter.format(d);
   }

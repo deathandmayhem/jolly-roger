@@ -1,14 +1,14 @@
-import type { Mongo } from 'meteor/mongo';
-import { contentFromMessage } from '../lib/models/ChatMessages';
-import Guesses from '../lib/models/Guesses';
-import type { GuessType } from '../lib/models/Guesses';
-import Puzzles from '../lib/models/Puzzles';
-import GlobalHooks from './GlobalHooks';
-import sendChatMessageInternal from './sendChatMessageInternal';
+import type { Mongo } from "meteor/mongo";
+import { contentFromMessage } from "../lib/models/ChatMessages";
+import Guesses from "../lib/models/Guesses";
+import type { GuessType } from "../lib/models/Guesses";
+import Puzzles from "../lib/models/Puzzles";
+import GlobalHooks from "./GlobalHooks";
+import sendChatMessageInternal from "./sendChatMessageInternal";
 
 export default async function transitionGuess(
   guess: GuessType,
-  newState: GuessType['state'],
+  newState: GuessType["state"],
   additionalNotes?: string,
 ) {
   if (newState === guess.state) return;
@@ -28,36 +28,48 @@ export default async function transitionGuess(
 
   let stateDescription;
   switch (newState) {
-    case 'intermediate':
-      stateDescription = 'as a correct intermediate answer';
+    case "intermediate":
+      stateDescription = "as a correct intermediate answer";
       break;
     default:
       stateDescription = `as ${newState}`;
       break;
   }
-  const message = `Guess \`${guess.guess}\` was marked ${stateDescription}${additionalNotes ? `: ${additionalNotes}` : ''}`;
+  const message = `Guess \`${guess.guess}\` was marked ${stateDescription}${
+    additionalNotes ? `: ${additionalNotes}` : ""
+  }`;
   const content = contentFromMessage(message);
-  await sendChatMessageInternal({ puzzleId: guess.puzzle, content, sender: undefined });
+  await sendChatMessageInternal({
+    puzzleId: guess.puzzle,
+    content,
+    sender: undefined,
+  });
 
-  if (newState === 'correct') {
+  if (newState === "correct") {
     // Mark this puzzle as solved.
-    await Puzzles.updateAsync({
-      _id: guess.puzzle,
-    }, {
-      $addToSet: {
-        answers: guess.guess,
+    await Puzzles.updateAsync(
+      {
+        _id: guess.puzzle,
       },
-    });
+      {
+        $addToSet: {
+          answers: guess.guess,
+        },
+      },
+    );
     await GlobalHooks.runPuzzleSolvedHooks(guess.puzzle, guess.guess);
-  } else if (guess.state === 'correct') {
+  } else if (guess.state === "correct") {
     // Transitioning from correct -> something else: un-mark that puzzle as solved.
-    await Puzzles.updateAsync({
-      _id: guess.puzzle,
-    }, {
-      $pull: {
-        answers: guess.guess,
+    await Puzzles.updateAsync(
+      {
+        _id: guess.puzzle,
       },
-    });
+      {
+        $pull: {
+          answers: guess.guess,
+        },
+      },
+    );
     await GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle, guess.guess);
   }
 }

@@ -1,11 +1,11 @@
-import { useTracker } from 'meteor/react-meteor-data';
-import React from 'react';
-import Col from 'react-bootstrap/Col';
-import Container from 'react-bootstrap/Container';
-import BSImage from 'react-bootstrap/Image';
-import Row from 'react-bootstrap/Row';
-import styled from 'styled-components';
-import lookupUrl from '../lookupUrl';
+import { useTracker } from "meteor/react-meteor-data";
+import React from "react";
+import Col from "react-bootstrap/Col";
+import Container from "react-bootstrap/Container";
+import BSImage from "react-bootstrap/Image";
+import Row from "react-bootstrap/Row";
+import styled from "styled-components";
+import lookupUrl from "../lookupUrl";
 
 const Jumbotron = styled.div`
   padding-top: 2rem;
@@ -21,8 +21,8 @@ const Image = styled(BSImage)`
 const SplashPage = ({ children }: { children: React.ReactNode }) => {
   const { heroSrc, heroSrc2x } = useTracker(() => {
     return {
-      heroSrc: lookupUrl('hero.png'),
-      heroSrc2x: lookupUrl('hero@2x.png'),
+      heroSrc: lookupUrl("hero.png"),
+      heroSrc2x: lookupUrl("hero@2x.png"),
     };
   }, []);
 
@@ -30,11 +30,13 @@ const SplashPage = ({ children }: { children: React.ReactNode }) => {
     <Container>
       <Jumbotron id="jr-login">
         <Container>
-          <Image src={heroSrc} className="d-block mx-auto" srcSet={`${heroSrc} 1x, ${heroSrc2x} 2x`} />
+          <Image
+            src={heroSrc}
+            className="d-block mx-auto"
+            srcSet={`${heroSrc} 1x, ${heroSrc2x} 2x`}
+          />
           <Row>
-            <Col md={{ span: 6, offset: 3 }}>
-              {children}
-            </Col>
+            <Col md={{ span: 6, offset: 3 }}>{children}</Col>
           </Row>
         </Container>
       </Jumbotron>

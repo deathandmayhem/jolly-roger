@@ -1,5 +1,5 @@
-import TypedMethod from './TypedMethod';
+import TypedMethod from "./TypedMethod";
 
 export default new TypedMethod<{ puzzleId: string }, void>(
-  'Puzzles.methods.undestroy'
+  "Puzzles.methods.undestroy",
 );

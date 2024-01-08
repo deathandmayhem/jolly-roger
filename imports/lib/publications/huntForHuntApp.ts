@@ -1,5 +1,5 @@
-import TypedPublication from './TypedPublication';
+import TypedPublication from "./TypedPublication";
 
 export default new TypedPublication<{ huntId: string }>(
-  'Hunts.publications.forHuntApp'
+  "Hunts.publications.forHuntApp",
 );

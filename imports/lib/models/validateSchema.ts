@@ -1,23 +1,27 @@
-import { z } from 'zod';
-import { allowedEmptyString } from './customTypes';
+import { z } from "zod";
+import { allowedEmptyString } from "./customTypes";
 
-export default function validateSchema<
-  T extends z.ZodFirstPartySchemaTypes
->(schema: T, path: string[] = []) {
+export default function validateSchema<T extends z.ZodFirstPartySchemaTypes>(
+  schema: T,
+  path: string[] = [],
+) {
   const { _def: def } = schema;
 
   switch (def.typeName) {
     case z.ZodFirstPartyTypeKind.ZodObject:
-      Object.entries(def.shape())
-        .forEach(([key, field]) => validateSchema(field as z.ZodTypeAny, [...path, key]));
+      Object.entries(def.shape()).forEach(([key, field]) =>
+        validateSchema(field as z.ZodTypeAny, [...path, key]),
+      );
       validateSchema(def.catchall, path);
       break;
     case z.ZodFirstPartyTypeKind.ZodArray:
-      validateSchema(def.type, [...path, '[]']);
+      validateSchema(def.type, [...path, "[]"]);
       break;
     case z.ZodFirstPartyTypeKind.ZodUnion:
     case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
-      def.options.forEach((option: z.ZodTypeAny) => validateSchema(option, path));
+      def.options.forEach((option: z.ZodTypeAny) =>
+        validateSchema(option, path),
+      );
       break;
     case z.ZodFirstPartyTypeKind.ZodIntersection:
       validateSchema(def.left, path);
@@ -29,7 +33,7 @@ export default function validateSchema<
       });
       break;
     case z.ZodFirstPartyTypeKind.ZodRecord:
-      validateSchema(def.valueType, [...path, '[]']);
+      validateSchema(def.valueType, [...path, "[]"]);
       break;
 
     case z.ZodFirstPartyTypeKind.ZodDefault:
@@ -58,9 +62,11 @@ export default function validateSchema<
       // specifically allowedEmptyString
       if (schema === allowedEmptyString) break;
 
-      const result = schema.safeParse('');
+      const result = schema.safeParse("");
       if (result.success) {
-        throw new Error(`String fields must not accept empty strings (${path.join('.')})`);
+        throw new Error(
+          `String fields must not accept empty strings (${path.join(".")})`,
+        );
       }
       break;
     }

@@ -1,4 +1,4 @@
-import TypedPublication from './TypedPublication';
+import TypedPublication from "./TypedPublication";
 
 // Publish pending guesses enriched with puzzle and hunt. This is a dedicated
 // publish because every operator needs this information for the notification
@@ -13,5 +13,5 @@ import TypedPublication from './TypedPublication';
 // computation, whereas if we used a permissions check on the server to
 // short-circuit the sub, we could not.
 export default new TypedPublication<void>(
-  'Guesses.publications.pendingForSelf'
+  "Guesses.publications.pendingForSelf",
 );

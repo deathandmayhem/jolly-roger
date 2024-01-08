@@ -1,14 +1,14 @@
-import util from 'util';
-import { Meteor } from 'meteor/meteor';
-import logfmt from 'logfmt';
-import { format, transports } from 'winston';
-import { logger } from '../Logger';
-import { serverId } from './garbage-collection';
-import { workersCount } from './loadBalance';
+import util from "util";
+import { Meteor } from "meteor/meteor";
+import logfmt from "logfmt";
+import { format, transports } from "winston";
+import { logger } from "../Logger";
+import { serverId } from "./garbage-collection";
+import { workersCount } from "./loadBalance";
 
-const userIdSymbol = Symbol('userId');
+const userIdSymbol = Symbol("userId");
 
-declare module 'logform' {
+declare module "logform" {
   interface TransformableInfo {
     [userIdSymbol]?: string | null;
   }
@@ -24,26 +24,21 @@ logger.format = format.combine(
       return info;
     }
   })(),
-  format.printf(({
-    level, label, message, [userIdSymbol]: userId, error,
-    ...rest
-  }) => {
-    const ctx: string[] = [];
-    if (workersCount > 1) {
-      ctx.push(`s:${serverId}`);
-    }
-    if (userId) {
-      ctx.push(`u:${userId}`);
-    }
-    return `${level}: ${
-      ctx.length > 0 ? `[${ctx.join('|')}] ` : ''
-    }${
-      label ? `[${label}] ` : ''
-    }${message}${
-      Object.keys(rest).length > 0 ? `: ${logfmt.stringify(rest)}` : ''
-    }${
-      error ? `: ${util.inspect(error)}` : ''
-    }`;
-  })
+  format.printf(
+    ({ level, label, message, [userIdSymbol]: userId, error, ...rest }) => {
+      const ctx: string[] = [];
+      if (workersCount > 1) {
+        ctx.push(`s:${serverId}`);
+      }
+      if (userId) {
+        ctx.push(`u:${userId}`);
+      }
+      return `${level}: ${ctx.length > 0 ? `[${ctx.join("|")}] ` : ""}${
+        label ? `[${label}] ` : ""
+      }${message}${
+        Object.keys(rest).length > 0 ? `: ${logfmt.stringify(rest)}` : ""
+      }${error ? `: ${util.inspect(error)}` : ""}`;
+    },
+  ),
 );
 logger.add(new transports.Console());

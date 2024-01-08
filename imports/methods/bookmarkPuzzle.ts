@@ -1,5 +1,5 @@
-import TypedMethod from './TypedMethod';
+import TypedMethod from "./TypedMethod";
 
-export default new TypedMethod<{ puzzleId: string, bookmark: boolean }, void>(
-  'Puzzles.methods.bookmark'
+export default new TypedMethod<{ puzzleId: string; bookmark: boolean }, void>(
+  "Puzzles.methods.bookmark",
 );

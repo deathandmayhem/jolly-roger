@@ -1,11 +1,11 @@
-import { check, Match } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
-import Logger from '../../Logger';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import Settings from '../../lib/models/Settings';
-import { userMayConfigureDiscordBot } from '../../lib/permission_stubs';
-import configureDiscordBot from '../../methods/configureDiscordBot';
-import defineMethod from './defineMethod';
+import { check, Match } from "meteor/check";
+import { Meteor } from "meteor/meteor";
+import Logger from "../../Logger";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import Settings from "../../lib/models/Settings";
+import { userMayConfigureDiscordBot } from "../../lib/permission_stubs";
+import configureDiscordBot from "../../methods/configureDiscordBot";
+import defineMethod from "./defineMethod";
 
 defineMethod(configureDiscordBot, {
   validate(arg) {
@@ -18,19 +18,21 @@ defineMethod(configureDiscordBot, {
   async run({ token }) {
     check(this.userId, String);
 
-    if (!userMayConfigureDiscordBot(await MeteorUsers.findOneAsync(this.userId))) {
-      throw new Meteor.Error(401, 'Must be admin to configure Discord Bot');
+    if (
+      !userMayConfigureDiscordBot(await MeteorUsers.findOneAsync(this.userId))
+    ) {
+      throw new Meteor.Error(401, "Must be admin to configure Discord Bot");
     }
 
     if (token) {
-      Logger.info('Configuring discord bot token (token redacted)');
+      Logger.info("Configuring discord bot token (token redacted)");
       await Settings.upsertAsync(
-        { name: 'discord.bot' },
-        { $set: { 'value.token': token } }
+        { name: "discord.bot" },
+        { $set: { "value.token": token } },
       );
     } else {
-      Logger.info('Discarding discord bot token');
-      await Settings.removeAsync({ name: 'discord.bot' });
+      Logger.info("Discarding discord bot token");
+      await Settings.removeAsync({ name: "discord.bot" });
     }
   },
 });

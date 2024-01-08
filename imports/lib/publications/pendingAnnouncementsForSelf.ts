@@ -1,5 +1,5 @@
-import TypedPublication from './TypedPublication';
+import TypedPublication from "./TypedPublication";
 
 export default new TypedPublication<void>(
-  'PendingAnnouncements.publications.forSelf'
+  "PendingAnnouncements.publications.forSelf",
 );

@@ -1,12 +1,12 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import styled, { css } from 'styled-components';
-import type { PuzzleType } from '../../lib/models/Puzzles';
-import type { Solvedness } from '../../lib/solvedness';
-import { computeSolvedness } from '../../lib/solvedness';
-import PuzzleAnswer from './PuzzleAnswer';
-import Breakable from './styling/Breakable';
-import { backgroundColorLookupTable } from './styling/constants';
+import React from "react";
+import { Link } from "react-router-dom";
+import styled, { css } from "styled-components";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import type { Solvedness } from "../../lib/solvedness";
+import { computeSolvedness } from "../../lib/solvedness";
+import PuzzleAnswer from "./PuzzleAnswer";
+import Breakable from "./styling/Breakable";
+import { backgroundColorLookupTable } from "./styling/constants";
 
 const PuzzleTableEl = styled.table`
   width: 100%;
@@ -32,15 +32,24 @@ const PuzzleTableCell = styled.td`
   max-width: 43vw;
 `;
 
-const PuzzleTableRow = ({ puzzle, segmentAnswers }: {
+const PuzzleTableRow = ({
+  puzzle,
+  segmentAnswers,
+}: {
   puzzle: PuzzleType;
   segmentAnswers?: boolean;
 }) => {
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
   const answers = puzzle.answers.map((answer, i) => {
     return (
-      // eslint-disable-next-line react/no-array-index-key
-      <PuzzleAnswer key={`${i}-${answer}`} answer={answer} respace={segmentAnswers} breakable={!segmentAnswers} indented={!segmentAnswers} />
+      <PuzzleAnswer
+        // eslint-disable-next-line react/no-array-index-key
+        key={`${i}-${answer}`}
+        answer={answer}
+        respace={segmentAnswers}
+        breakable={!segmentAnswers}
+        indented={!segmentAnswers}
+      />
     );
   });
 
@@ -49,34 +58,39 @@ const PuzzleTableRow = ({ puzzle, segmentAnswers }: {
   return (
     <PuzzleTableTr $solvedness={solvedness}>
       <PuzzleTableCell>
-        <Breakable><Link to={linkTarget}>{puzzle.title}</Link></Breakable>
+        <Breakable>
+          <Link to={linkTarget}>{puzzle.title}</Link>
+        </Breakable>
       </PuzzleTableCell>
-      <PuzzleTableCell>
-        {answers}
-      </PuzzleTableCell>
+      <PuzzleTableCell>{answers}</PuzzleTableCell>
     </PuzzleTableTr>
   );
 };
 
-const PuzzleTable = React.memo(({
-  puzzles, segmentAnswers,
-}: {
-  puzzles: PuzzleType[];
-  segmentAnswers?: boolean;
-}) => {
-  const tableRows = puzzles.map((puzzle) => {
-    return (
-      <PuzzleTableRow key={puzzle._id} puzzle={puzzle} segmentAnswers={segmentAnswers} />
-    );
-  });
+const PuzzleTable = React.memo(
+  ({
+    puzzles,
+    segmentAnswers,
+  }: {
+    puzzles: PuzzleType[];
+    segmentAnswers?: boolean;
+  }) => {
+    const tableRows = puzzles.map((puzzle) => {
+      return (
+        <PuzzleTableRow
+          key={puzzle._id}
+          puzzle={puzzle}
+          segmentAnswers={segmentAnswers}
+        />
+      );
+    });
 
-  return (
-    <PuzzleTableEl>
-      <tbody>
-        {tableRows}
-      </tbody>
-    </PuzzleTableEl>
-  );
-});
+    return (
+      <PuzzleTableEl>
+        <tbody>{tableRows}</tbody>
+      </PuzzleTableEl>
+    );
+  },
+);
 
 export default PuzzleTable;

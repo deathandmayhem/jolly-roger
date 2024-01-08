@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from "react";
 
 // A component which animates a grey spinner between startTime and endTime like
 //     _____         __            __            __            __            __
@@ -47,15 +47,15 @@ const SpinnerTimer = ({
     const outerRadius = Math.min(width, height) / 2;
     const innerRadius = outerRadius / 3;
 
-    const startRadians = (frac * (Math.PI * 2)) + ((3 * Math.PI) / 2);
+    const startRadians = frac * (Math.PI * 2) + (3 * Math.PI) / 2;
     const endRadians = (3 * Math.PI) / 2;
 
     const canvas = canvasRef.current;
     if (canvas) {
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = 'rgb(100, 100, 100)'; // this could easily become a prop
+        ctx.fillStyle = "rgb(100, 100, 100)"; // this could easily become a prop
         ctx.beginPath();
         // outer arc
         ctx.arc(centerX, centerY, outerRadius, startRadians, endRadians);

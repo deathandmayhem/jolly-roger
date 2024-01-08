@@ -1,5 +1,5 @@
-import TypedMethod from './TypedMethod';
+import TypedMethod from "./TypedMethod";
 
 export default new TypedMethod<{ consumerId: string }, void>(
-  'Mediasoup.Consumers.methods.ack'
+  "Mediasoup.Consumers.methods.ack",
 );

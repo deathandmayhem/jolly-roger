@@ -1,24 +1,22 @@
-import React, {
-  useCallback, useEffect, useRef, useState,
-} from 'react';
-import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
-import FormCheck from 'react-bootstrap/FormCheck';
-import type { FormControlProps } from 'react-bootstrap/FormControl';
-import FormControl from 'react-bootstrap/FormControl';
-import FormGroup from 'react-bootstrap/FormGroup';
-import FormLabel from 'react-bootstrap/FormLabel';
-import styled from 'styled-components';
-import Spectrum from './Spectrum';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
+import FormCheck from "react-bootstrap/FormCheck";
+import type { FormControlProps } from "react-bootstrap/FormControl";
+import FormControl from "react-bootstrap/FormControl";
+import FormGroup from "react-bootstrap/FormGroup";
+import FormLabel from "react-bootstrap/FormLabel";
+import styled from "styled-components";
+import Spectrum from "./Spectrum";
 
 enum AudioConfigStatus {
-  IDLE = 'idle',
-  REQUESTING_STREAM = 'requestingstream',
-  STREAM_ERROR = 'streamerror',
-  STREAMING = 'streaming',
+  IDLE = "idle",
+  REQUESTING_STREAM = "requestingstream",
+  STREAM_ERROR = "streamerror",
+  STREAMING = "streaming",
 }
 
-export const PREFERRED_AUDIO_DEVICE_STORAGE_KEY = 'preferredAudioDevice';
+export const PREFERRED_AUDIO_DEVICE_STORAGE_KEY = "preferredAudioDevice";
 
 const AudioSelfTest = styled.div`
   display: flex;
@@ -43,14 +41,22 @@ const Spectrogram = styled.div`
 `;
 
 const AudioConfig = () => {
-  const [status, setStatus] = useState<AudioConfigStatus>(AudioConfigStatus.IDLE);
-  const [preferredDeviceId, setPreferredDeviceId] = useState<string | undefined>(() => {
-    return localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ?? undefined;
+  const [status, setStatus] = useState<AudioConfigStatus>(
+    AudioConfigStatus.IDLE,
+  );
+  const [preferredDeviceId, setPreferredDeviceId] = useState<
+    string | undefined
+  >(() => {
+    return (
+      localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ?? undefined
+    );
   });
   const [knownDevices, setKnownDevices] = useState<MediaDeviceInfo[]>([]);
   const [loopback, setLoopback] = useState<boolean>(false);
   const [stream, setStream] = useState<MediaStream | undefined>(undefined);
-  const [audioContext, setAudioContext] = useState<AudioContext | undefined>(undefined);
+  const [audioContext, setAudioContext] = useState<AudioContext | undefined>(
+    undefined,
+  );
   const [error, setError] = useState<string | undefined>(undefined);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -59,7 +65,7 @@ const AudioConfig = () => {
     void (async () => {
       if (navigator.mediaDevices) {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const inputs = devices.filter((dev) => dev.kind === 'audioinput');
+        const inputs = devices.filter((dev) => dev.kind === "audioinput");
         setKnownDevices(inputs);
       }
     })();
@@ -76,89 +82,109 @@ const AudioConfig = () => {
     updateDeviceList();
     // Add device change watcher
     if (navigator.mediaDevices) {
-      navigator.mediaDevices.addEventListener('devicechange', updateDeviceList);
+      navigator.mediaDevices.addEventListener("devicechange", updateDeviceList);
     }
     // Add storage watcher
-    window.addEventListener('storage', onStorageEvent);
+    window.addEventListener("storage", onStorageEvent);
 
     return () => {
       // Remove device change watcher
       if (navigator.mediaDevices) {
-        navigator.mediaDevices.removeEventListener('devicechange', updateDeviceList);
+        navigator.mediaDevices.removeEventListener(
+          "devicechange",
+          updateDeviceList,
+        );
       }
       // Remove storage watcher
-      window.removeEventListener('storage', onStorageEvent);
+      window.removeEventListener("storage", onStorageEvent);
     };
   }, [updateDeviceList, onStorageEvent]);
 
-  const onDefaultDeviceChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
-    const newPreferredDeviceId = e.target.value;
-    // Save preferred input device id to local storage.
-    localStorage.setItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY, newPreferredDeviceId);
-    // Also update the UI.
-    setPreferredDeviceId(newPreferredDeviceId);
-  }, []);
+  const onDefaultDeviceChange: NonNullable<FormControlProps["onChange"]> =
+    useCallback((e) => {
+      const newPreferredDeviceId = e.target.value;
+      // Save preferred input device id to local storage.
+      localStorage.setItem(
+        PREFERRED_AUDIO_DEVICE_STORAGE_KEY,
+        newPreferredDeviceId,
+      );
+      // Also update the UI.
+      setPreferredDeviceId(newPreferredDeviceId);
+    }, []);
 
-  const onStartButtonClicked = useCallback((_e: React.FormEvent) => {
-    void (async () => {
-      if (navigator.mediaDevices) {
-        setStatus(AudioConfigStatus.REQUESTING_STREAM);
-        const freshPreferredAudioDeviceId =
-          localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ?? undefined;
-        const mediaStreamConstraints = {
-          audio: {
-            echoCancellation: { ideal: true },
-            autoGainControl: { ideal: true },
-            noiseSuppression: { ideal: true },
-            deviceId: freshPreferredAudioDeviceId,
-          },
-        };
+  const onStartButtonClicked = useCallback(
+    (_e: React.FormEvent) => {
+      void (async () => {
+        if (navigator.mediaDevices) {
+          setStatus(AudioConfigStatus.REQUESTING_STREAM);
+          const freshPreferredAudioDeviceId =
+            localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ??
+            undefined;
+          const mediaStreamConstraints = {
+            audio: {
+              echoCancellation: { ideal: true },
+              autoGainControl: { ideal: true },
+              noiseSuppression: { ideal: true },
+              deviceId: freshPreferredAudioDeviceId,
+            },
+          };
 
-        let mediaStream: MediaStream | undefined;
-        try {
-          mediaStream = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
-        } catch (e) {
+          let mediaStream: MediaStream | undefined;
+          try {
+            mediaStream = await navigator.mediaDevices.getUserMedia(
+              mediaStreamConstraints,
+            );
+          } catch (e) {
+            setStatus(AudioConfigStatus.STREAM_ERROR);
+            setError(`Couldn't get local microphone: ${(e as Error).message}`);
+            return;
+          }
+
+          const AudioContext =
+            window.AudioContext ||
+            (window as { webkitAudioContext?: AudioContext })
+              .webkitAudioContext;
+          const newAudioContext = new AudioContext();
+          // Be sure to set audioContext *before* setting status to STREAMING, lest we try
+          // to pass an undefined audioContext to a child component
+          setStream(mediaStream);
+          setAudioContext(newAudioContext);
+          setStatus(AudioConfigStatus.STREAMING);
+
+          // Hook up stream to loopback element.  Don't worry, it starts out muted.
+          const audio = audioRef.current;
+          if (audio) {
+            audio.srcObject = mediaStream;
+          }
+
+          // Now that we have been granted a stream from the user, re-request the device
+          // list, in case the first time we enumerated, the user agent had not yet
+          // given us nonempty labels describing the devices from which to capture.
+          // See https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo/label#value
+          // for additional background.
+          updateDeviceList();
+        } else {
           setStatus(AudioConfigStatus.STREAM_ERROR);
-          setError(`Couldn't get local microphone: ${(e as Error).message}`);
-          return;
+          setError(
+            "Couldn't get local microphone: browser denies access on non-HTTPS origins",
+          );
         }
+      })();
+    },
+    [updateDeviceList],
+  );
 
-        const AudioContext = window.AudioContext ||
-          (window as {webkitAudioContext?: AudioContext}).webkitAudioContext;
-        const newAudioContext = new AudioContext();
-        // Be sure to set audioContext *before* setting status to STREAMING, lest we try
-        // to pass an undefined audioContext to a child component
-        setStream(mediaStream);
-        setAudioContext(newAudioContext);
-        setStatus(AudioConfigStatus.STREAMING);
-
-        // Hook up stream to loopback element.  Don't worry, it starts out muted.
-        const audio = audioRef.current;
-        if (audio) {
-          audio.srcObject = mediaStream;
-        }
-
-        // Now that we have been granted a stream from the user, re-request the device
-        // list, in case the first time we enumerated, the user agent had not yet
-        // given us nonempty labels describing the devices from which to capture.
-        // See https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo/label#value
-        // for additional background.
-        updateDeviceList();
-      } else {
-        setStatus(AudioConfigStatus.STREAM_ERROR);
-        setError('Couldn\'t get local microphone: browser denies access on non-HTTPS origins');
+  const onStopButtonClicked = useCallback(
+    (_e: React.FormEvent) => {
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
       }
-    })();
-  }, [updateDeviceList]);
-
-  const onStopButtonClicked = useCallback((_e: React.FormEvent) => {
-    if (stream) {
-      stream.getTracks().forEach((t) => t.stop());
-    }
-    setStatus(AudioConfigStatus.IDLE);
-    setStream(undefined);
-    setLoopback(false);
-  }, [stream]);
+      setStatus(AudioConfigStatus.IDLE);
+      setStream(undefined);
+      setLoopback(false);
+    },
+    [stream],
+  );
 
   const toggleLoopback = useCallback(() => {
     setLoopback((prevLoopback) => !prevLoopback);
@@ -176,26 +202,26 @@ const AudioConfig = () => {
           value={preferredDeviceId}
         >
           {knownDevices.map((dev) => (
-            <option value={dev.deviceId} key={dev.deviceId}>{dev.label}</option>
+            <option value={dev.deviceId} key={dev.deviceId}>
+              {dev.label}
+            </option>
           ))}
         </FormControl>
       </FormGroup>
 
       {error ? <Alert variant="danger">{error}</Alert> : null}
-      <p>
-        You can test your microphone levels here.
-      </p>
+      <p>You can test your microphone levels here.</p>
 
       <p>
         Click Start, then try speaking a few phrases, and typing for a bit to
-        see how loud your environment is.  While we&apos;ve enabled automatic gain
-        control, some microphones are more sensitive than others.
-        Some rough guidance:
+        see how loud your environment is. While we&apos;ve enabled automatic
+        gain control, some microphones are more sensitive than others. Some
+        rough guidance:
       </p>
 
       <ul>
         <li>
-          When you aren&apos;t speaking, all bars should be below -70dBFS.  If
+          When you aren&apos;t speaking, all bars should be below -70dBFS. If
           they aren&apos;t, consider moving to a quieter location if available.
         </li>
         <li>
@@ -204,9 +230,9 @@ const AudioConfig = () => {
           speak up.
         </li>
         <li>
-          If you get louder than -35dBFS or so, you will probably come across
-          as quite loud, and it might be polite to either speak in a softer
-          tone or reduce your microphone volume.
+          If you get louder than -35dBFS or so, you will probably come across as
+          quite loud, and it might be polite to either speak in a softer tone or
+          reduce your microphone volume.
         </li>
       </ul>
 
@@ -221,9 +247,9 @@ const AudioConfig = () => {
       )}
 
       <p>
-        You can check this box to play your microphone output out through
-        your speakers, but if you&apos;re not wearing headphones, you&apos;ll likely
-        produce feedback.  You have been warned!
+        You can check this box to play your microphone output out through your
+        speakers, but if you&apos;re not wearing headphones, you&apos;ll likely
+        produce feedback. You have been warned!
       </p>
       <FormGroup className="mb-3" controlId="audio-self-test-loopback">
         <FormCheck
@@ -260,11 +286,7 @@ const AudioConfig = () => {
           )}
         </Spectrogram>
       </AudioSelfTest>
-      <audio
-        ref={audioRef}
-        autoPlay
-        muted={!loopback}
-      />
+      <audio ref={audioRef} autoPlay muted={!loopback} />
     </section>
   );
 };

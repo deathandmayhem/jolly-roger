@@ -1,11 +1,9 @@
-import classnames from 'classnames';
-import elementResizeDetectorMaker from 'element-resize-detector';
-import React, {
-  useCallback, useEffect, useRef, useState,
-} from 'react';
-import type { SplitPaneProps } from 'react-split-pane';
-import SplitPane from 'react-split-pane';
-import throttle from '../../lib/throttle';
+import classnames from "classnames";
+import elementResizeDetectorMaker from "element-resize-detector";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import type { SplitPaneProps } from "react-split-pane";
+import SplitPane from "react-split-pane";
+import throttle from "../../lib/throttle";
 
 /*
   Provides two panes with a user draggable divider featuring snap-to-collapse. Fully controlled.
@@ -83,37 +81,41 @@ import throttle from '../../lib/throttle';
 // declare types for all the props it accepts.  So we use this so we can
 // accurately type the full set of props we pass to SplitPane.
 interface FullSplitPaneProps extends SplitPaneProps {
-  children: React.ReactNode[],
-  paneClassName?: string,
-  pane1ClassName?: string,
-  pane2ClassName?: string,
+  children: React.ReactNode[];
+  paneClassName?: string;
+  pane1ClassName?: string;
+  pane2ClassName?: string;
 }
 
 interface SplitPanePlusProps {
-  children: React.ReactNode[],
-  size: number,
-  collapsed?: 0 | 1 | 2,
-  primary: 'first' | 'second',
-  split: 'vertical' | 'horizontal',
-  allowResize?: boolean,
-  minSize: number,
-  maxSize: number,
-  autoCollapse1: number,
-  autoCollapse2: number,
-  scaling?: 'absolute' | 'relative',
-  onChanged?: (size: number, collapsed: 0 | 1 | 2) => void,
-  onPaneChanged?: (size: number, collapsed: 0 | 1 | 2, cause: 'drag' | 'resize') => void,
-  step?: number,
-  className?: string,
-  style?: React.CSSProperties,
-  paneClassName?: string,
-  paneStyle?: React.CSSProperties,
-  pane1ClassName?: string,
-  pane1Style?: React.CSSProperties,
-  pane2ClassName?: string,
-  pane2Style?: React.CSSProperties,
-  resizerClassName?: string,
-  resizerStyle?: React.CSSProperties,
+  children: React.ReactNode[];
+  size: number;
+  collapsed?: 0 | 1 | 2;
+  primary: "first" | "second";
+  split: "vertical" | "horizontal";
+  allowResize?: boolean;
+  minSize: number;
+  maxSize: number;
+  autoCollapse1: number;
+  autoCollapse2: number;
+  scaling?: "absolute" | "relative";
+  onChanged?: (size: number, collapsed: 0 | 1 | 2) => void;
+  onPaneChanged?: (
+    size: number,
+    collapsed: 0 | 1 | 2,
+    cause: "drag" | "resize",
+  ) => void;
+  step?: number;
+  className?: string;
+  style?: React.CSSProperties;
+  paneClassName?: string;
+  paneStyle?: React.CSSProperties;
+  pane1ClassName?: string;
+  pane1Style?: React.CSSProperties;
+  pane2ClassName?: string;
+  pane2Style?: React.CSSProperties;
+  resizerClassName?: string;
+  resizerStyle?: React.CSSProperties;
 }
 
 interface SplitPanePlusState {
@@ -125,14 +127,14 @@ const SplitPanePlus = ({
   children,
   size,
   collapsed = 0,
-  primary = 'first',
-  split = 'vertical',
+  primary = "first",
+  split = "vertical",
   allowResize = true,
   minSize = 0,
   maxSize = 0,
   autoCollapse1 = 50,
   autoCollapse2 = 50,
-  scaling = 'absolute',
+  scaling = "absolute",
   onChanged,
   onPaneChanged,
   step,
@@ -157,7 +159,7 @@ const SplitPanePlus = ({
   const erdRef = useRef<elementResizeDetectorMaker.Erd | undefined>(undefined);
   const getErd = (): elementResizeDetectorMaker.Erd => {
     if (!erdRef.current) {
-      erdRef.current = elementResizeDetectorMaker({ strategy: 'scroll' });
+      erdRef.current = elementResizeDetectorMaker({ strategy: "scroll" });
     }
     return erdRef.current;
   };
@@ -169,15 +171,21 @@ const SplitPanePlus = ({
     return ref.current.firstChild;
   }, []);
 
-  const findChildByClass = useCallback((classNameSought: string): Element | undefined => {
-    const root = splitPaneNode();
-    return root && Array.from(root.children).find((n) => {
-      return n.classList.contains(classNameSought);
-    });
-  }, [splitPaneNode]);
+  const findChildByClass = useCallback(
+    (classNameSought: string): Element | undefined => {
+      const root = splitPaneNode();
+      return (
+        root &&
+        Array.from(root.children).find((n) => {
+          return n.classList.contains(classNameSought);
+        })
+      );
+    },
+    [splitPaneNode],
+  );
 
   const primaryPaneNode = useCallback((): Element | undefined => {
-    return findChildByClass(`Pane${primary === 'first' ? 1 : 2}`);
+    return findChildByClass(`Pane${primary === "first" ? 1 : 2}`);
   }, [findChildByClass, primary]);
 
   // Unused.
@@ -188,31 +196,40 @@ const SplitPanePlus = ({
   */
 
   const resizerNode = useCallback((): Element | undefined => {
-    return findChildByClass('Resizer');
+    return findChildByClass("Resizer");
   }, [findChildByClass]);
 
-  const measure = useCallback((elem: Element | undefined): number => {
-    if (!elem) {
-      return NaN;
-    }
-    return split === 'vertical' ? elem.clientWidth : elem.clientHeight;
-  }, [split]);
+  const measure = useCallback(
+    (elem: Element | undefined): number => {
+      if (!elem) {
+        return NaN;
+      }
+      return split === "vertical" ? elem.clientWidth : elem.clientHeight;
+    },
+    [split],
+  );
 
-  const calculateCollapse = useCallback((proposedSize: number) => {
-    const fullSize = measure(splitPaneNode());
-    let autoCollapsePrimary = autoCollapse1;
-    let autoCollapseSecondary = autoCollapse2;
-    if (primary !== 'first') {
-      autoCollapsePrimary = autoCollapse2;
-      autoCollapseSecondary = autoCollapse1;
-    }
-    if (autoCollapsePrimary >= 0 && proposedSize <= autoCollapsePrimary) {
-      return primary === 'first' ? 1 : 2;
-    } else if (autoCollapseSecondary >= 0 && proposedSize >= fullSize - autoCollapseSecondary) {
-      return primary === 'first' ? 2 : 1;
-    }
-    return 0;
-  }, [measure, splitPaneNode, autoCollapse1, autoCollapse2, primary]);
+  const calculateCollapse = useCallback(
+    (proposedSize: number) => {
+      const fullSize = measure(splitPaneNode());
+      let autoCollapsePrimary = autoCollapse1;
+      let autoCollapseSecondary = autoCollapse2;
+      if (primary !== "first") {
+        autoCollapsePrimary = autoCollapse2;
+        autoCollapseSecondary = autoCollapse1;
+      }
+      if (autoCollapsePrimary >= 0 && proposedSize <= autoCollapsePrimary) {
+        return primary === "first" ? 1 : 2;
+      } else if (
+        autoCollapseSecondary >= 0 &&
+        proposedSize >= fullSize - autoCollapseSecondary
+      ) {
+        return primary === "first" ? 2 : 1;
+      }
+      return 0;
+    },
+    [measure, splitPaneNode, autoCollapse1, autoCollapse2, primary],
+  );
 
   const onResize = useCallback(() => {
     if (!splitPaneNode()) {
@@ -225,15 +242,22 @@ const SplitPanePlus = ({
     const newCollapsed = calculateCollapse(newSize);
     if (newSize !== size || newCollapsed !== collapsed) {
       if (onPaneChanged) {
-        onPaneChanged(newSize, newCollapsed, 'resize');
+        onPaneChanged(newSize, newCollapsed, "resize");
       }
     }
 
     // TODO: figure out how to force this or what to setstate
     // this.forceUpdate();
   }, [
-    splitPaneNode, measure, primaryPaneNode, maxSize, minSize, calculateCollapse,
-    size, collapsed, onPaneChanged,
+    splitPaneNode,
+    measure,
+    primaryPaneNode,
+    maxSize,
+    minSize,
+    calculateCollapse,
+    size,
+    collapsed,
+    onPaneChanged,
   ]);
 
   const preventDefault: EventListener = useCallback((ev) => {
@@ -249,12 +273,12 @@ const SplitPanePlus = ({
 
     const resizerEl = resizerNode();
     if (resizerEl) {
-      resizerEl.addEventListener('mousedown', preventDefault);
+      resizerEl.addEventListener("mousedown", preventDefault);
     }
 
     return () => {
       if (resizerEl) {
-        resizerEl.removeEventListener('mousedown', preventDefault);
+        resizerEl.removeEventListener("mousedown", preventDefault);
       }
       if (node) {
         erd.uninstall(node);
@@ -262,35 +286,41 @@ const SplitPanePlus = ({
     };
   }, [onResize, preventDefault, resizerNode, splitPaneNode]);
 
-  const onChange = useCallback((newSize: number) => {
-    // Setting dragInProgress in onDragStarted creates a frame of strangeness
-    const nextCollapse = calculateCollapse(newSize);
-    setState({
-      dragInProgress: true,
-      collapseWarning: nextCollapse,
-    });
-    if (onChanged) {
-      onChanged(newSize, nextCollapse);
-    }
-  }, [calculateCollapse, onChanged]);
-
-  const onDragFinished = useCallback((rawSize: number | string) => {
-    setState({
-      collapseWarning: 0,
-      dragInProgress: false,
-    });
-    // May be called with a number or a string representing a percentage
-    let newSize = Number(rawSize);
-    if (typeof rawSize === 'string') {
-      const rawSizeAsPercent = Number(rawSize.slice(0, -1));
-      if (rawSize.endsWith('%') && !Number.isNaN(rawSizeAsPercent)) {
-        newSize = (rawSizeAsPercent * measure(splitPaneNode())) / 100.0;
+  const onChange = useCallback(
+    (newSize: number) => {
+      // Setting dragInProgress in onDragStarted creates a frame of strangeness
+      const nextCollapse = calculateCollapse(newSize);
+      setState({
+        dragInProgress: true,
+        collapseWarning: nextCollapse,
+      });
+      if (onChanged) {
+        onChanged(newSize, nextCollapse);
       }
-    }
-    if (!Number.isNaN(newSize) && onPaneChanged) {
-      onPaneChanged(newSize, calculateCollapse(newSize), 'drag');
-    }
-  }, [measure, splitPaneNode, onPaneChanged, calculateCollapse]);
+    },
+    [calculateCollapse, onChanged],
+  );
+
+  const onDragFinished = useCallback(
+    (rawSize: number | string) => {
+      setState({
+        collapseWarning: 0,
+        dragInProgress: false,
+      });
+      // May be called with a number or a string representing a percentage
+      let newSize = Number(rawSize);
+      if (typeof rawSize === "string") {
+        const rawSizeAsPercent = Number(rawSize.slice(0, -1));
+        if (rawSize.endsWith("%") && !Number.isNaN(rawSizeAsPercent)) {
+          newSize = (rawSizeAsPercent * measure(splitPaneNode())) / 100.0;
+        }
+      }
+      if (!Number.isNaN(newSize) && onPaneChanged) {
+        onPaneChanged(newSize, calculateCollapse(newSize), "drag");
+      }
+    },
+    [measure, splitPaneNode, onPaneChanged, calculateCollapse],
+  );
 
   const paneProps: FullSplitPaneProps = {
     children,
@@ -312,19 +342,24 @@ const SplitPanePlus = ({
     resizerStyle,
   };
 
-  const defaultPaneStyle: React.CSSProperties = { overflow: 'auto' };
+  const defaultPaneStyle: React.CSSProperties = { overflow: "auto" };
   paneProps.paneStyle = { ...defaultPaneStyle, ...paneStyle };
   // Prevents the flexbox from overfilling, accommodating large size passed as prop
   // Also allows use of 100% width in collapse (even though resizer takes up some space)
-  const defaultResizerStyle: React.CSSProperties = { flexGrow: 0, flexShrink: 0 };
+  const defaultResizerStyle: React.CSSProperties = {
+    flexGrow: 0,
+    flexShrink: 0,
+  };
   paneProps.resizerStyle = { ...defaultResizerStyle, ...resizerStyle };
   const defaultPrimaryPaneStyle: React.CSSProperties = { flexShrink: 1 };
-  if (primary === 'first') {
+  if (primary === "first") {
     paneProps.pane1Style = { ...defaultPrimaryPaneStyle, ...pane1Style };
   } else {
     paneProps.pane2Style = { ...defaultPrimaryPaneStyle, ...pane2Style };
   }
-  paneProps.className = classnames(paneProps.className, { dragging: state.dragInProgress });
+  paneProps.className = classnames(paneProps.className, {
+    dragging: state.dragInProgress,
+  });
   paneProps.pane1ClassName = classnames(paneProps.pane1ClassName, {
     collapsing: state.collapseWarning === 1,
     collapsed: collapsed === 1 && !state.dragInProgress,
@@ -341,7 +376,7 @@ const SplitPanePlus = ({
   // If no resizerClassName is provided to SplitPane, a default is used, but if '' is provided,
   // no class is assigned. Any other provided string is appended to the default.
   // Work around this by never passing '' as resizerClassName.
-  if (paneProps.resizerClassName === '') {
+  if (paneProps.resizerClassName === "") {
     delete paneProps.resizerClassName;
   }
   // The docs suggest that maxSize <= 0 should limit the primary pane to the the container
@@ -356,11 +391,11 @@ const SplitPanePlus = ({
   if (!state.dragInProgress) {
     if (collapsed > 0) {
       if (collapsed === 1) {
-        paneProps.size = primary === 'first' ? '0%' : '100%';
+        paneProps.size = primary === "first" ? "0%" : "100%";
       } else {
-        paneProps.size = primary === 'first' ? '100%' : '0%';
+        paneProps.size = primary === "first" ? "100%" : "0%";
       }
-    } else if (scaling === 'relative' && splitPaneNode()) {
+    } else if (scaling === "relative" && splitPaneNode()) {
       const relativeSize: number = size / measure(splitPaneNode());
       paneProps.size = `${relativeSize * 100.0}%`;
     } else {

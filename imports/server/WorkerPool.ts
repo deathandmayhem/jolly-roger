@@ -1,16 +1,16 @@
 /* eslint-disable camelcase */
-import child_process from 'child_process';
-import { WebApp } from 'meteor/webapp';
-import portscanner from 'portscanner';
-import Logger from '../Logger';
+import child_process from "child_process";
+import { WebApp } from "meteor/webapp";
+import portscanner from "portscanner";
+import Logger from "../Logger";
 
-type HandledSignal = 'SIGINT' | 'SIGHUP' | 'SIGTERM';
+type HandledSignal = "SIGINT" | "SIGHUP" | "SIGTERM";
 
 export type Worker = {
   process: child_process.ChildProcess;
   id: number;
   port: number;
-}
+};
 
 // worker processes should notify their parent once they're ready to accept
 // requests
@@ -18,14 +18,19 @@ if (process.env.CLUSTER_WORKER_ID) {
   WebApp.onListening(() => {
     if (process.send) {
       process.send({
-        type: 'ready',
+        type: "ready",
       });
     }
   });
 
-  process.on('message', (message, socket) => {
-    if (message.type === 'proxy-ws') {
-      WebApp.httpServer.emit('upgrade', message.req, socket, Buffer.from(message.head, 'utf8'));
+  process.on("message", (message, socket) => {
+    if (message.type === "proxy-ws") {
+      WebApp.httpServer.emit(
+        "upgrade",
+        message.req,
+        socket,
+        Buffer.from(message.head, "utf8"),
+      );
     }
   });
 }
@@ -67,27 +72,36 @@ export default class WorkerPool {
     this.recentReconnects = 0;
     this.lastReconnectAt = 0;
 
-    (['SIGINT', 'SIGHUP', 'SIGTERM'] as const).forEach((signal: HandledSignal) => {
-      process.once(signal, this.cleanup.bind(this));
-    });
+    (["SIGINT", "SIGHUP", "SIGTERM"] as const).forEach(
+      (signal: HandledSignal) => {
+        process.once(signal, this.cleanup.bind(this));
+      },
+    );
   }
 
   createWorker() {
     this.fork((worker) => {
-      Logger.info('Multiprocess: worker starting on port', { workerId: worker.id, port: worker.port });
+      Logger.info("Multiprocess: worker starting on port", {
+        workerId: worker.id,
+        port: worker.port,
+      });
 
       const registerWorker = (message: any) => {
-        if (message && message.type === 'ready') {
+        if (message && message.type === "ready") {
           this.workers.push(worker);
           this.workersMap[worker.id] = worker;
 
-          process.removeListener('message', registerWorker);
+          process.removeListener("message", registerWorker);
         }
       };
 
-      worker.process.on('message', registerWorker);
-      worker.process.once('exit', (exitCode, signalCode) => {
-        Logger.info('Multiprocess: worker exiting', { worker: worker.id, exitCode, signalCode });
+      worker.process.on("message", registerWorker);
+      worker.process.once("exit", (exitCode, signalCode) => {
+        Logger.info("Multiprocess: worker exiting", {
+          worker: worker.id,
+          exitCode,
+          signalCode,
+        });
 
         const index = this.workers.indexOf(worker);
         if (index >= 0) {
@@ -147,7 +161,7 @@ export default class WorkerPool {
       callback(worker);
     };
 
-    portscanner.findAPortNotInUse(firstPort, secondPort, '127.0.0.1', withPort);
+    portscanner.findAPortNotInUse(firstPort, secondPort, "127.0.0.1", withPort);
   }
 
   cleanup(signal: NodeJS.Signals) {

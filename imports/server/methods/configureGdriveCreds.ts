@@ -1,12 +1,12 @@
-import { check } from 'meteor/check';
-import { Google } from 'meteor/google-oauth';
-import { Meteor } from 'meteor/meteor';
-import Logger from '../../Logger';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import Settings from '../../lib/models/Settings';
-import { userMayConfigureGdrive } from '../../lib/permission_stubs';
-import configureGdriveCreds from '../../methods/configureGdriveCreds';
-import defineMethod from './defineMethod';
+import { check } from "meteor/check";
+import { Google } from "meteor/google-oauth";
+import { Meteor } from "meteor/meteor";
+import Logger from "../../Logger";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import Settings from "../../lib/models/Settings";
+import { userMayConfigureGdrive } from "../../lib/permission_stubs";
+import configureGdriveCreds from "../../methods/configureGdriveCreds";
+import defineMethod from "./defineMethod";
 
 defineMethod(configureGdriveCreds, {
   validate(arg) {
@@ -21,15 +21,15 @@ defineMethod(configureGdriveCreds, {
     check(this.userId, String);
 
     if (!userMayConfigureGdrive(await MeteorUsers.findOneAsync(this.userId))) {
-      throw new Meteor.Error(401, 'Must be admin to configure gdrive');
+      throw new Meteor.Error(401, "Must be admin to configure gdrive");
     }
 
     const credential = Google.retrieveCredential(key, secret);
     const { refreshToken, email } = credential.serviceData;
-    Logger.info('Updating Gdrive creds', { email });
+    Logger.info("Updating Gdrive creds", { email });
     await Settings.upsertAsync(
-      { name: 'gdrive.credential' },
-      { $set: { value: { refreshToken, email } } }
+      { name: "gdrive.credential" },
+      { $set: { value: { refreshToken, email } } },
     );
   },
 });

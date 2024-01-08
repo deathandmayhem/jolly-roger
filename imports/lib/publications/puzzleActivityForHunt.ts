@@ -1,5 +1,5 @@
-import TypedPublication from './TypedPublication';
+import TypedPublication from "./TypedPublication";
 
 export default new TypedPublication<{ huntId: string }>(
-  'PuzzleActivity.publications.forHunt'
+  "PuzzleActivity.publications.forHunt",
 );

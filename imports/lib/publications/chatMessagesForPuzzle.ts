@@ -1,5 +1,5 @@
-import TypedPublication from './TypedPublication';
+import TypedPublication from "./TypedPublication";
 
-export default new TypedPublication<{ puzzleId: string, huntId: string }>(
-  'ChatMessages.publications.forPuzzle'
+export default new TypedPublication<{ puzzleId: string; huntId: string }>(
+  "ChatMessages.publications.forPuzzle",
 );

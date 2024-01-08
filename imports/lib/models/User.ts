@@ -1,10 +1,10 @@
-import { z } from 'zod';
-import type { DiscordAccountType } from './DiscordAccount';
-import DiscordAccount from './DiscordAccount';
-import { foreignKey, nonEmptyString, stringId } from './customTypes';
-import validateSchema from './validateSchema';
+import { z } from "zod";
+import type { DiscordAccountType } from "./DiscordAccount";
+import DiscordAccount from "./DiscordAccount";
+import { foreignKey, nonEmptyString, stringId } from "./customTypes";
+import validateSchema from "./validateSchema";
 
-declare module 'meteor/meteor' {
+declare module "meteor/meteor" {
   namespace Meteor {
     interface User {
       lastLogin?: Date;
@@ -26,8 +26,14 @@ declare module 'meteor/meteor' {
 // schema.
 export const User = z.object({
   _id: stringId,
-  username: z.string().regex(/^[a-z0-9A-Z_]{3,15}$/).optional(),
-  emails: z.object({ address: z.string().email(), verified: z.boolean() }).array().optional(),
+  username: z
+    .string()
+    .regex(/^[a-z0-9A-Z_]{3,15}$/)
+    .optional(),
+  emails: z
+    .object({ address: z.string().email(), verified: z.boolean() })
+    .array()
+    .optional(),
   createdAt: z.date().optional(),
   lastLogin: z.date().optional(),
   services: z.any().optional(),
@@ -43,6 +49,11 @@ export const User = z.object({
 });
 validateSchema(User);
 
-export type ProfileFields = 'displayName' | 'googleAccount' | 'discordAccount' | 'phoneNumber' | 'dingwords';
+export type ProfileFields =
+  | "displayName"
+  | "googleAccount"
+  | "discordAccount"
+  | "phoneNumber"
+  | "dingwords";
 
 export default User;

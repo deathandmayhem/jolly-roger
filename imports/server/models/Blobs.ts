@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import type { ModelType } from '../../lib/models/Model';
-import Model from '../../lib/models/Model';
-import { nonEmptyString, uint8Array } from '../../lib/models/customTypes';
+import { z } from "zod";
+import type { ModelType } from "../../lib/models/Model";
+import Model from "../../lib/models/Model";
+import { nonEmptyString, uint8Array } from "../../lib/models/customTypes";
 
 // _id is the ASCII hex string of the sha256 hash of the blob contents
 export const Blob = z.object({
@@ -16,7 +16,11 @@ export const Blob = z.object({
   size: z.number().int().nonnegative(),
 });
 
-const Blobs = new Model('jr_blobs', Blob, z.string().regex(/^[a-fA-F0-9]{64}$/));
+const Blobs = new Model(
+  "jr_blobs",
+  Blob,
+  z.string().regex(/^[a-fA-F0-9]{64}$/),
+);
 export type BlobType = ModelType<typeof Blobs>;
 
 export default Blobs;

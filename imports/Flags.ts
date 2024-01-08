@@ -1,16 +1,16 @@
-import { check } from 'meteor/check';
-import type { FeatureFlagType } from './lib/models/FeatureFlags';
-import FeatureFlags from './lib/models/FeatureFlags';
+import { check } from "meteor/check";
+import type { FeatureFlagType } from "./lib/models/FeatureFlags";
+import FeatureFlags from "./lib/models/FeatureFlags";
 
-function flagIsActive(flag: Pick<FeatureFlagType, 'type'> | undefined) {
+function flagIsActive(flag: Pick<FeatureFlagType, "type"> | undefined) {
   if (!flag) {
     return false;
   }
 
   switch (flag.type) {
-    case 'on':
+    case "on":
       return true;
-    case 'off':
+    case "off":
       return false;
     default:
       return false;
@@ -40,7 +40,7 @@ const Flags = {
     const checkUpdate = (_id: string, flag?: Partial<FeatureFlagType>) => {
       let newState;
       if (flag) {
-        newState = { ...state ?? {}, ...flag } as FeatureFlagType;
+        newState = { ...(state ?? {}), ...flag } as FeatureFlagType;
       } else {
         newState = undefined;
       }

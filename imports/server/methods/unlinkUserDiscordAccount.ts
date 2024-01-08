@@ -1,7 +1,7 @@
-import { check } from 'meteor/check';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import unlinkUserDiscordAccount from '../../methods/unlinkUserDiscordAccount';
-import defineMethod from './defineMethod';
+import { check } from "meteor/check";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import unlinkUserDiscordAccount from "../../methods/unlinkUserDiscordAccount";
+import defineMethod from "./defineMethod";
 
 defineMethod(unlinkUserDiscordAccount, {
   async run() {
@@ -11,10 +11,12 @@ defineMethod(unlinkUserDiscordAccount, {
 
     // Remove token (secret) from the user object in the database.
     await MeteorUsers.updateAsync(this.userId, {
-      $unset: { 'services.discord': '' },
+      $unset: { "services.discord": "" },
     });
 
     // Remove display name from user's profile object.
-    await MeteorUsers.updateAsync(this.userId, { $unset: { discordAccount: 1 } });
+    await MeteorUsers.updateAsync(this.userId, {
+      $unset: { discordAccount: 1 },
+    });
   },
 });

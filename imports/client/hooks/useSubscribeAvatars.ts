@@ -1,5 +1,5 @@
-import { useSubscribe } from 'meteor/react-meteor-data';
+import { useSubscribe } from "meteor/react-meteor-data";
 
 export default function useSubscribeAvatars(huntId: string) {
-  return useSubscribe('avatars', huntId);
+  return useSubscribe("avatars", huntId);
 }

@@ -1,22 +1,29 @@
-import { Meteor } from 'meteor/meteor';
-import Flags from '../Flags';
-import { ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS } from '../lib/config/activityTracking';
-import DocumentActivities from '../lib/models/DocumentActivities';
-import Documents from '../lib/models/Documents';
-import MeteorUsers from '../lib/models/MeteorUsers';
-import roundedTime from '../lib/roundedTime';
-import GoogleClient from './googleClientRefresher';
-import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
-import DriveActivityLatests from './models/DriveActivityLatests';
-import withLock, { PREEMPT_TIMEOUT } from './withLock';
+import { Meteor } from "meteor/meteor";
+import Flags from "../Flags";
+import {
+  ACTIVITY_GRANULARITY,
+  ACTIVITY_SEGMENTS,
+} from "../lib/config/activityTracking";
+import DocumentActivities from "../lib/models/DocumentActivities";
+import Documents from "../lib/models/Documents";
+import MeteorUsers from "../lib/models/MeteorUsers";
+import roundedTime from "../lib/roundedTime";
+import GoogleClient from "./googleClientRefresher";
+import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
+import DriveActivityLatests from "./models/DriveActivityLatests";
+import withLock, { PREEMPT_TIMEOUT } from "./withLock";
 
-async function recordDriveChanges(ts: Date, fileIds: string[], googleAccountIds: string[]) {
+async function recordDriveChanges(
+  ts: Date,
+  fileIds: string[],
+  googleAccountIds: string[],
+) {
   const time = roundedTime(ACTIVITY_GRANULARITY, ts);
 
   // In all likelihood, we will only have one of each of these, but for
   // completeness we'll record the full cartesian product
   for await (const fileId of fileIds) {
-    const document = await Documents.findOneAsync({ 'value.id': fileId });
+    const document = await Documents.findOneAsync({ "value.id": fileId });
     if (!document) {
       continue;
     }
@@ -31,9 +38,13 @@ async function recordDriveChanges(ts: Date, fileIds: string[], googleAccountIds:
       //
       // If we can't look up the account ID, we'll record as user=undefined
       // which we'll count as a seprate user
-      const user = await MeteorUsers.findOneAsync({
-        googleAccountId, hunts: document.hunt,
-      }, { sort: { createdAt: 1 } });
+      const user = await MeteorUsers.findOneAsync(
+        {
+          googleAccountId,
+          hunts: document.hunt,
+        },
+        { sort: { createdAt: 1 } },
+      );
 
       await ignoringDuplicateKeyErrors(async () => {
         await DocumentActivities.insertAsync({
@@ -56,7 +67,7 @@ async function fetchDriveActivity() {
 
   // Don't fetch history that's older than what we'd display
   const previousTimestamp = Math.max(
-    (await DriveActivityLatests.findOneAsync('default'))?.ts.getTime() ?? 0,
+    (await DriveActivityLatests.findOneAsync("default"))?.ts.getTime() ?? 0,
     Date.now() - ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS,
   );
 
@@ -92,21 +103,27 @@ async function fetchDriveActivity() {
         // In testing, it seems like an activity generally only has one target
         // and one actor, but we handle receiving more than one of both just in
         // case.
-        const documentIds = [...activity.targets.reduce<Set<string>>((acc, target) => {
-          if (target.driveItem?.name?.startsWith('items/')) {
-            acc.add(target.driveItem.name.substring('items/'.length));
-          }
+        const documentIds = [
+          ...activity.targets.reduce<Set<string>>((acc, target) => {
+            if (target.driveItem?.name?.startsWith("items/")) {
+              acc.add(target.driveItem.name.substring("items/".length));
+            }
 
-          return acc;
-        }, new Set())];
+            return acc;
+          }, new Set()),
+        ];
 
-        const actorIds = [...activity.actors.reduce<Set<string>>((acc, actor) => {
-          if (actor.user?.knownUser?.personName?.startsWith('people/')) {
-            acc.add(actor.user.knownUser.personName.substring('people/'.length));
-          }
+        const actorIds = [
+          ...activity.actors.reduce<Set<string>>((acc, actor) => {
+            if (actor.user?.knownUser?.personName?.startsWith("people/")) {
+              acc.add(
+                actor.user.knownUser.personName.substring("people/".length),
+              );
+            }
 
-          return acc;
-        }, new Set())];
+            return acc;
+          }, new Set()),
+        ];
 
         await recordDriveChanges(ts, documentIds, actorIds);
 
@@ -117,14 +134,14 @@ async function fetchDriveActivity() {
     pageToken = resp.data.nextPageToken ?? undefined;
   } while (pageToken);
 
-  await DriveActivityLatests.upsertAsync('default', {
+  await DriveActivityLatests.upsertAsync("default", {
     $set: {
       ts: new Date(latestTimestamp),
     },
   });
 }
 
-const FEATURE_FLAG_NAME = 'disable.gdrive_document_activity';
+const FEATURE_FLAG_NAME = "disable.gdrive_document_activity";
 
 async function featureFlagChanged() {
   let initializing = true;
@@ -146,13 +163,13 @@ async function fetchActivityLoop() {
     // Loop until the feature flag is disabled (i.e. the disabler is not
     // disabled)
     while (true) {
-      if (!await Flags.activeAsync(FEATURE_FLAG_NAME)) {
+      if (!(await Flags.activeAsync(FEATURE_FLAG_NAME))) {
         break;
       }
       await featureFlagChanged();
     }
 
-    await withLock('drive-activity', async (renew) => {
+    await withLock("drive-activity", async (renew) => {
       // Ensure that we continue to hold the lock as long as we're alive.
       let renewInterval;
       try {
@@ -178,7 +195,10 @@ async function fetchActivityLoop() {
 
           // Wake up every 5 seconds (+/- 1 second of jitter)
           const sleep = new Promise<boolean>((r) => {
-            Meteor.setTimeout(() => r(false), 4 * 1000 + Math.random() * 2 * 1000);
+            Meteor.setTimeout(
+              () => r(false),
+              4 * 1000 + Math.random() * 2 * 1000,
+            );
           });
           const renewalFailed = await Promise.race([sleep, renewalFailure]);
           if (renewalFailed) {

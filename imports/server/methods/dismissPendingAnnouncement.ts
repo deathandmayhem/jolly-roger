@@ -1,7 +1,7 @@
-import { check } from 'meteor/check';
-import PendingAnnouncements from '../../lib/models/PendingAnnouncements';
-import dismissPendingAnnouncement from '../../methods/dismissPendingAnnouncement';
-import defineMethod from './defineMethod';
+import { check } from "meteor/check";
+import PendingAnnouncements from "../../lib/models/PendingAnnouncements";
+import dismissPendingAnnouncement from "../../methods/dismissPendingAnnouncement";
+import defineMethod from "./defineMethod";
 
 defineMethod(dismissPendingAnnouncement, {
   validate(arg) {

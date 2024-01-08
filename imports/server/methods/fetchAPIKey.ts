@@ -1,7 +1,7 @@
-import { check, Match } from 'meteor/check';
-import fetchAPIKey from '../../methods/fetchAPIKey';
-import ensureAPIKey from '../ensureAPIKey';
-import defineMethod from './defineMethod';
+import { check, Match } from "meteor/check";
+import fetchAPIKey from "../../methods/fetchAPIKey";
+import ensureAPIKey from "../ensureAPIKey";
+import defineMethod from "./defineMethod";
 
 defineMethod(fetchAPIKey, {
   validate(arg) {

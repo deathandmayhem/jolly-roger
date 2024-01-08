@@ -2,7 +2,7 @@ type AnyVoidFunc<T> = (this: T, ...args: any[]) => void;
 type ThrottledFunctionHandle<T> = {
   attempt: AnyVoidFunc<T>;
   cancel: () => void;
-}
+};
 
 export default function throttle<T>(
   func: AnyVoidFunc<T>,

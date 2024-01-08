@@ -1,12 +1,12 @@
-import { check } from 'meteor/check';
-import { Google } from 'meteor/google-oauth';
-import { Meteor } from 'meteor/meteor';
-import Flags from '../../Flags';
-import Logger from '../../Logger';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import linkUserGoogleAccount from '../../methods/linkUserGoogleAccount';
-import { ensureHuntFolderPermission } from '../gdrive';
-import defineMethod from './defineMethod';
+import { check } from "meteor/check";
+import { Google } from "meteor/google-oauth";
+import { Meteor } from "meteor/meteor";
+import Flags from "../../Flags";
+import Logger from "../../Logger";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
+import { ensureHuntFolderPermission } from "../gdrive";
+import defineMethod from "./defineMethod";
 
 defineMethod(linkUserGoogleAccount, {
   validate(arg) {
@@ -26,7 +26,7 @@ defineMethod(linkUserGoogleAccount, {
     // want to validate it.
     const credential = Google.retrieveCredential(key, secret);
     const { email, id } = credential.serviceData;
-    Logger.info('Linking user to Google account', {
+    Logger.info("Linking user to Google account", {
       email,
       id,
     });
@@ -38,7 +38,10 @@ defineMethod(linkUserGoogleAccount, {
       },
     });
 
-    if (!await Flags.activeAsync('disable.google') && !await Flags.activeAsync('disable.gdrive_permissions')) {
+    if (
+      !(await Flags.activeAsync("disable.google")) &&
+      !(await Flags.activeAsync("disable.gdrive_permissions"))
+    ) {
       const hunts = (await Meteor.userAsync())!.hunts;
       for (const huntId of hunts ?? []) {
         await ensureHuntFolderPermission(huntId, this.userId, email);

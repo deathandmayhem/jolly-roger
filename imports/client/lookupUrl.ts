@@ -1,6 +1,6 @@
-import BlobMappings from '../lib/models/BlobMappings';
-import blobMappingsAll from '../lib/publications/blobMappingsAll';
-import typedSubscribe from './typedSubscribe';
+import BlobMappings from "../lib/models/BlobMappings";
+import blobMappingsAll from "../lib/publications/blobMappingsAll";
+import typedSubscribe from "./typedSubscribe";
 
 const blobMappingsSub = typedSubscribe(blobMappingsAll);
 

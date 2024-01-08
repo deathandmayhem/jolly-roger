@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import type { ModelType } from './Model';
-import Model from './Model';
-import { nonEmptyString, updatedTimestamp } from './customTypes';
+import { z } from "zod";
+import type { ModelType } from "./Model";
+import Model from "./Model";
+import { nonEmptyString, updatedTimestamp } from "./customTypes";
 
 const Server = z.object({
   hostname: nonEmptyString,
@@ -9,7 +9,7 @@ const Server = z.object({
   updatedAt: updatedTimestamp,
 });
 
-const Servers = new Model('jr_servers', Server);
+const Servers = new Model("jr_servers", Server);
 Servers.addIndex({ updatedAt: 1 });
 export type ServerType = ModelType<typeof Servers>;
 

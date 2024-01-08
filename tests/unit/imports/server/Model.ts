@@ -1,9 +1,12 @@
-import { Random } from 'meteor/random';
-import { assert } from 'chai';
-import { z } from 'zod';
+import { Random } from "meteor/random";
+import { assert } from "chai";
+import { z } from "zod";
 import Model, {
-  ModelType, parseMongoModifierAsync, parseMongoOperationAsync, relaxSchema,
-} from '../../../../imports/lib/models/Model';
+  ModelType,
+  parseMongoModifierAsync,
+  parseMongoOperationAsync,
+  relaxSchema,
+} from "../../../../imports/lib/models/Model";
 import {
   createdTimestamp,
   nonEmptyString,
@@ -11,15 +14,15 @@ import {
   setClock,
   stringId,
   updatedTimestamp,
-} from '../../../../imports/lib/models/customTypes';
-import { MongoRecordZodType } from '../../../../imports/lib/models/generateJsonSchema';
-import attachSchema from '../../../../imports/server/attachSchema';
-import AssertTypesEqual from '../../../lib/AssertTypesEqual';
+} from "../../../../imports/lib/models/customTypes";
+import { MongoRecordZodType } from "../../../../imports/lib/models/generateJsonSchema";
+import attachSchema from "../../../../imports/server/attachSchema";
+import AssertTypesEqual from "../../../lib/AssertTypesEqual";
 
 const testModels: Set<Model<any>> = new Set();
 
 async function createTestModel<T extends MongoRecordZodType>(
-  schema: T
+  schema: T,
 ): Promise<Model<T>> {
   const collectionName = `test_schema_${Random.id()}`;
   const model = new Model<T>(collectionName, schema);
@@ -28,7 +31,7 @@ async function createTestModel<T extends MongoRecordZodType>(
   return model;
 }
 
-describe('Model', function () {
+describe("Model", function () {
   this.afterAll(async function () {
     for (const model of testModels) {
       await model.collection.dropCollectionAsync();
@@ -36,8 +39,8 @@ describe('Model', function () {
     testModels.clear();
   });
 
-  describe('bypassSchema', function () {
-    it('works on insert', async function () {
+  describe("bypassSchema", function () {
+    it("works on insert", async function () {
       const schema = z.object({
         string: nonEmptyString,
       });
@@ -46,7 +49,10 @@ describe('Model', function () {
       // Make sure the schema is validated by zod...
       await assert.isRejected(model.insertAsync({} as any), z.ZodError);
       // ...and mongo
-      await assert.isRejected(model.collection.rawCollection().insertOne({} as any), /Document failed validation/);
+      await assert.isRejected(
+        model.collection.rawCollection().insertOne({} as any),
+        /Document failed validation/,
+      );
 
       // But bypassing the schema should work
       const result = await model.insertAsync({} as any, { bypassSchema: true });
@@ -57,20 +63,27 @@ describe('Model', function () {
       assert.isUndefined(record!.string);
     });
 
-    it('works on update', async function () {
+    it("works on update", async function () {
       const schema = z.object({
         string: nonEmptyString,
       });
       const model = await createTestModel(schema);
 
-      const id = await model.insertAsync({ string: 'foo' });
+      const id = await model.insertAsync({ string: "foo" });
 
       // Partial updates that don't change "string" are fine. Unsetting it
       // should be a problem that Mongo catches
-      await assert.isRejected(model.updateAsync(id, { $unset: { string: 1 } }), /Document failed validation/);
+      await assert.isRejected(
+        model.updateAsync(id, { $unset: { string: 1 } }),
+        /Document failed validation/,
+      );
 
       // But bypassing the schema should work
-      const result = await model.updateAsync(id, { $unset: { string: 1 } }, { bypassSchema: true });
+      const result = await model.updateAsync(
+        id,
+        { $unset: { string: 1 } },
+        { bypassSchema: true },
+      );
       assert.equal(result, 1);
 
       const record = await model.findOneAsync(id);
@@ -79,8 +92,8 @@ describe('Model', function () {
     });
   });
 
-  describe('customTypes', function () {
-    describe('stringId', function () {
+  describe("customTypes", function () {
+    describe("stringId", function () {
       const schema = z.object({
         // Meteor will auto-populate the _id field, so to test this we need a
         // separate field
@@ -91,18 +104,27 @@ describe('Model', function () {
         model = await createTestModel(schema);
       });
 
-      it('it is required by the database schema enforcement', async function () {
-        await assert.isRejected(model.insertAsync({}), /Document failed validation/);
+      it("it is required by the database schema enforcement", async function () {
+        await assert.isRejected(
+          model.insertAsync({}),
+          /Document failed validation/,
+        );
 
         // Also ensure the TypeScript type requires the field on output but not input
-        const inputTypeTest: AssertTypesEqual<string | undefined, z.input<typeof schema>['string']> = true;
+        const inputTypeTest: AssertTypesEqual<
+          string | undefined,
+          z.input<typeof schema>["string"]
+        > = true;
         assert.isTrue(inputTypeTest);
-        const outputTypeTest: AssertTypesEqual<string, z.output<typeof schema>['string']> = true;
+        const outputTypeTest: AssertTypesEqual<
+          string,
+          z.output<typeof schema>["string"]
+        > = true;
         assert.isTrue(outputTypeTest);
       });
     });
 
-    describe('timestamp fields', function () {
+    describe("timestamp fields", function () {
       const schema = z.object({
         createdAt: createdTimestamp,
         updatedAt: updatedTimestamp,
@@ -116,7 +138,7 @@ describe('Model', function () {
         resetClock();
       });
 
-      it('have the correct types', function () {
+      it("have the correct types", function () {
         const recordTypeTest: AssertTypesEqual<
           ModelType<typeof model>,
           {
@@ -128,7 +150,7 @@ describe('Model', function () {
         assert.isTrue(recordTypeTest);
       });
 
-      it('populates _id, createdAt, and updatedAt on insert', async function () {
+      it("populates _id, createdAt, and updatedAt on insert", async function () {
         const id = await model.insertAsync({});
         const record = (await model.findOneAsync(id))!;
 
@@ -138,7 +160,7 @@ describe('Model', function () {
         assert.instanceOf(record.updatedAt, Date);
       });
 
-      it('only updates updatedAt on update', async function () {
+      it("only updates updatedAt on update", async function () {
         const initialDate = new Date();
         setClock(() => initialDate);
 
@@ -160,7 +182,7 @@ describe('Model', function () {
         assert.deepEqual(updatedRecord.updatedAt, laterDate);
       });
 
-      it('populates createdAt and updatedAt on upsert', async function () {
+      it("populates createdAt and updatedAt on upsert", async function () {
         const initialDate = new Date();
         setClock(() => initialDate);
 
@@ -185,49 +207,55 @@ describe('Model', function () {
     });
   });
 
-  describe('relaxSchema', function () {
-    it('accepts any valid modifier operation', async function () {
-      const schema = z.object({
-        string: nonEmptyString,
-        array: z.array(nonEmptyString),
-        object: z.object({
+  describe("relaxSchema", function () {
+    it("accepts any valid modifier operation", async function () {
+      const schema = z
+        .object({
           string: nonEmptyString,
-        }),
-        arrayOfObjects: z.array(z.object({
-          string: nonEmptyString,
-        })),
-        number: z.number(),
-      }).or(z.object({
-        unionedString: nonEmptyString,
-      }));
+          array: z.array(nonEmptyString),
+          object: z.object({
+            string: nonEmptyString,
+          }),
+          arrayOfObjects: z.array(
+            z.object({
+              string: nonEmptyString,
+            }),
+          ),
+          number: z.number(),
+        })
+        .or(
+          z.object({
+            unionedString: nonEmptyString,
+          }),
+        );
       const relaxed = relaxSchema(schema);
 
       // An example $set operation
       let valid = await relaxed.safeParseAsync({
-        string: 'foo',
-        array: ['foo'],
-        object: { string: 'foo' },
-        arrayOfObjects: [{ string: 'foo' }],
+        string: "foo",
+        array: ["foo"],
+        object: { string: "foo" },
+        arrayOfObjects: [{ string: "foo" }],
       });
       assert.isTrue(valid.success);
 
       // A $set on the other half of the union
       valid = await relaxed.safeParseAsync({
-        unionedString: 'foo',
+        unionedString: "foo",
       });
       assert.isTrue(valid.success);
 
       // An example $push operation
       valid = await relaxed.safeParseAsync({
-        array: 'foo',
-        arrayOfObjects: { string: 'foo' },
+        array: "foo",
+        arrayOfObjects: { string: "foo" },
       });
       assert.isTrue(valid.success);
 
       // An example $addToSet operation
       valid = await relaxed.safeParseAsync({
-        array: { $each: ['foo'] },
-        arrayOfObjects: { $each: [{ string: 'foo' }] },
+        array: { $each: ["foo"] },
+        arrayOfObjects: { $each: [{ string: "foo" }] },
       });
       assert.isTrue(valid.success);
 
@@ -238,7 +266,7 @@ describe('Model', function () {
       assert.isTrue(valid.success);
     });
 
-    it('accepts valid modifiers for arrays with defaults', async function () {
+    it("accepts valid modifiers for arrays with defaults", async function () {
       const schema = z.object({
         array: z.array(nonEmptyString).default([]),
       });
@@ -246,7 +274,7 @@ describe('Model', function () {
 
       // A $set operation (with and without a value)
       let valid = await relaxed.safeParseAsync({
-        array: ['foo'],
+        array: ["foo"],
       });
       assert.isTrue(valid.success);
       valid = await relaxed.safeParseAsync({});
@@ -254,92 +282,97 @@ describe('Model', function () {
 
       // A $push operation
       valid = await relaxed.safeParseAsync({
-        array: 'foo',
+        array: "foo",
       });
       assert.isTrue(valid.success);
 
       // A $addToSet operation
       valid = await relaxed.safeParseAsync({
-        array: { $each: ['foo'] },
+        array: { $each: ["foo"] },
       });
       assert.isTrue(valid.success);
     });
 
-    it('does not enforce length limits for arrays', async function () {
+    it("does not enforce length limits for arrays", async function () {
       const schema = z.object({
         array: z.array(nonEmptyString).max(1),
       });
       const relaxed = relaxSchema(schema);
 
       const valid = await relaxed.safeParseAsync({
-        array: { $each: ['foo', 'bar'] },
+        array: { $each: ["foo", "bar"] },
       });
       assert.isTrue(valid.success);
     });
   });
 
-  describe('parseMongoOperationAsync', function () {
-    it('handles transforms anywhere in the schema', async function () {
+  describe("parseMongoOperationAsync", function () {
+    it("handles transforms anywhere in the schema", async function () {
       const schema = z.object({
         string: nonEmptyString.transform((s) => s.toUpperCase()),
         array: z.array(nonEmptyString.transform((s) => s.toUpperCase())),
         object: z.object({
           string: nonEmptyString.transform((s) => s.toUpperCase()),
         }),
-        arrayOfObjects: z.array(z.object({
-          string: nonEmptyString.transform((s) => s.toUpperCase()),
-        })),
-        record: z.record(nonEmptyString, nonEmptyString.transform((s) => s.toUpperCase())),
+        arrayOfObjects: z.array(
+          z.object({
+            string: nonEmptyString.transform((s) => s.toUpperCase()),
+          }),
+        ),
+        record: z.record(
+          nonEmptyString,
+          nonEmptyString.transform((s) => s.toUpperCase()),
+        ),
       });
       const relaxed = relaxSchema(schema);
 
       let parsed = await parseMongoOperationAsync(relaxed, {
-        string: 'foo',
-        array: ['foo'],
-        object: { string: 'foo' },
-        arrayOfObjects: [{ string: 'foo' }],
-        record: { foo: 'foo' },
-        'array.0': 'foo',
-        'object.string': 'foo',
-        'arrayOfObjects.0': { string: 'foo' },
-        'arrayOfObjects.0.string': 'foo',
-        'record.foo': 'foo',
+        string: "foo",
+        array: ["foo"],
+        object: { string: "foo" },
+        arrayOfObjects: [{ string: "foo" }],
+        record: { foo: "foo" },
+        "array.0": "foo",
+        "object.string": "foo",
+        "arrayOfObjects.0": { string: "foo" },
+        "arrayOfObjects.0.string": "foo",
+        "record.foo": "foo",
       });
       assert.deepEqual(parsed, {
-        string: 'FOO',
-        array: ['FOO'],
-        object: { string: 'FOO' },
-        arrayOfObjects: [{ string: 'FOO' }],
-        record: { foo: 'FOO' },
-        'array.0': 'FOO',
-        'object.string': 'FOO',
-        'arrayOfObjects.0': { string: 'FOO' },
-        'arrayOfObjects.0.string': 'FOO',
-        'record.foo': 'FOO',
+        string: "FOO",
+        array: ["FOO"],
+        object: { string: "FOO" },
+        arrayOfObjects: [{ string: "FOO" }],
+        record: { foo: "FOO" },
+        "array.0": "FOO",
+        "object.string": "FOO",
+        "arrayOfObjects.0": { string: "FOO" },
+        "arrayOfObjects.0.string": "FOO",
+        "record.foo": "FOO",
       });
 
       // Try other operation formats
       parsed = await parseMongoOperationAsync(relaxed, {
-        array: { $each: ['foo'] },
-        arrayOfObjects: { $each: [{ string: 'foo' }] },
+        array: { $each: ["foo"] },
+        arrayOfObjects: { $each: [{ string: "foo" }] },
       });
       assert.deepEqual(parsed, {
-        array: { $each: ['FOO'] },
-        arrayOfObjects: { $each: [{ string: 'FOO' }] },
+        array: { $each: ["FOO"] },
+        arrayOfObjects: { $each: [{ string: "FOO" }] },
       });
 
       // $push like
       parsed = await parseMongoOperationAsync(relaxed, {
-        array: 'foo',
-        arrayOfObjects: { string: 'foo' },
+        array: "foo",
+        arrayOfObjects: { string: "foo" },
       });
       assert.deepEqual(parsed, {
-        array: 'FOO',
-        arrayOfObjects: { string: 'FOO' },
+        array: "FOO",
+        arrayOfObjects: { string: "FOO" },
       });
     });
 
-    it('handles multiple levels of dot-separation', async function () {
+    it("handles multiple levels of dot-separation", async function () {
       const schema = z.object({
         nested: z.object({
           moreNested: z.object({
@@ -350,27 +383,27 @@ describe('Model', function () {
       const relaxed = relaxSchema(schema);
 
       const parsed = await parseMongoOperationAsync(relaxed, {
-        'nested.moreNested.string': 'foo',
+        "nested.moreNested.string": "foo",
       });
       assert.deepEqual(parsed, {
-        'nested.moreNested.string': 'FOO',
+        "nested.moreNested.string": "FOO",
       });
     });
   });
 
-  describe('parseMongoModifierAsync', function () {
-    it('populates default values on upsert', async function () {
+  describe("parseMongoModifierAsync", function () {
+    it("populates default values on upsert", async function () {
       const schema = z.object({
-        string: nonEmptyString.default('foo'),
-        array: z.array(nonEmptyString).default(['foo']),
+        string: nonEmptyString.default("foo"),
+        array: z.array(nonEmptyString).default(["foo"]),
       });
       const relaxed = relaxSchema(schema);
 
       const parsed = await parseMongoModifierAsync(relaxed, {});
       assert.deepEqual(parsed, {
         $setOnInsert: {
-          string: 'foo',
-          array: ['foo'],
+          string: "foo",
+          array: ["foo"],
         },
       });
     });
@@ -378,7 +411,7 @@ describe('Model', function () {
 
   // Note: these tests are basically making assertions about TypeScript types,
   // not what occurs at runtime.
-  describe('type declarations', function () {
+  describe("type declarations", function () {
     const schema = z.object({
       createdAt: createdTimestamp,
       updatedAt: updatedTimestamp,
@@ -390,44 +423,50 @@ describe('Model', function () {
       model = await createTestModel(schema);
     });
 
-    const discriminatedUnionSchema = z.discriminatedUnion('name', [
-      z.object({ name: z.literal('foo'), foo: nonEmptyString }),
-      z.object({ name: z.literal('bar'), bar: z.number() }),
+    const discriminatedUnionSchema = z.discriminatedUnion("name", [
+      z.object({ name: z.literal("foo"), foo: nonEmptyString }),
+      z.object({ name: z.literal("bar"), bar: z.number() }),
     ]);
     let discriminatedUnionModel: Model<typeof discriminatedUnionSchema>;
     this.beforeAll(async function () {
       discriminatedUnionModel = await createTestModel(discriminatedUnionSchema);
     });
 
-    describe('insertAsync', function () {
-      it('returns a promise of the _id type', function () {
+    describe("insertAsync", function () {
+      it("returns a promise of the _id type", function () {
         const insertTypeTest: AssertTypesEqual<
-        ReturnType<typeof model.insertAsync>,
-        Promise<string>
-      > = true;
+          ReturnType<typeof model.insertAsync>,
+          Promise<string>
+        > = true;
         assert.isTrue(insertTypeTest);
       });
     });
 
-    describe('updateAsync', function () {
-      it('does not accept full document updates', function () {
-        // @ts-expect-error - should not accept full document updates
-        const modifier: Parameters<typeof model.updateAsync>[1] = { string: 'foo' };
+    describe("updateAsync", function () {
+      it("does not accept full document updates", function () {
+        const modifier: Parameters<typeof model.updateAsync>[1] = {
+          // @ts-expect-error - should not accept full document updates
+          string: "foo",
+        };
         assert.isOk(modifier);
       });
 
-      it('does accept mongo modifiers', function () {
-        const modifier: Parameters<typeof model.updateAsync>[1] = { $set: { string: 'foo' } };
+      it("does accept mongo modifiers", function () {
+        const modifier: Parameters<typeof model.updateAsync>[1] = {
+          $set: { string: "foo" },
+        };
         assert.isOk(modifier);
       });
     });
 
-    describe('findOne', function () {
-      it('can narrow a discriminated union', async function () {
-        const result = await discriminatedUnionModel.findOneAsync({ name: 'foo' });
+    describe("findOne", function () {
+      it("can narrow a discriminated union", async function () {
+        const result = await discriminatedUnionModel.findOneAsync({
+          name: "foo",
+        });
         const resultTypeTest: AssertTypesEqual<
           NonNullable<typeof result>,
-          { _id: string, name: 'foo', foo: string }
+          { _id: string; name: "foo"; foo: string }
         > = true;
         assert.isTrue(resultTypeTest);
       });

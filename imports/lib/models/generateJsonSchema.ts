@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import type { Mongo } from 'meteor/mongo';
-import { z } from 'zod';
-import { Email, URL, UUID } from './regexes';
+import type { Mongo } from "meteor/mongo";
+import { z } from "zod";
+import { Email, URL, UUID } from "./regexes";
 
 // This file is heavily inspired by zod-to-json-schema, but we use our own
 // version because (a) zod-to-json-schema supports a different version of
@@ -12,7 +12,7 @@ export type MongoRecordZodType =
   | z.ZodUnion<any>
   | z.ZodDiscriminatedUnion<any, any>
   | z.ZodIntersection<any, any>
-  | z.ZodRecord<any, any>
+  | z.ZodRecord<any, any>;
 
 export interface JsonSchema {
   bsonType?: Mongo.BsonType & string;
@@ -47,55 +47,65 @@ export interface JsonSchema {
 }
 
 function stringToSchema(def: z.ZodStringDef): JsonSchema {
-  const bsonType = 'string';
+  const bsonType = "string";
 
   const constraints = def.checks.reduce<Partial<JsonSchema>>((acc, check) => {
     switch (check.kind) {
-      case 'min':
+      case "min":
         return {
           ...acc,
-          minLength: acc.minLength ? Math.max(acc.minLength, check.value) : check.value,
+          minLength: acc.minLength
+            ? Math.max(acc.minLength, check.value)
+            : check.value,
         };
-      case 'max':
+      case "max":
         return {
           ...acc,
-          maxLength: acc.maxLength ? Math.min(acc.maxLength, check.value) : check.value,
+          maxLength: acc.maxLength
+            ? Math.min(acc.maxLength, check.value)
+            : check.value,
         };
-      case 'length':
+      case "length":
         return {
           ...acc,
-          minLength: acc.minLength ? Math.max(acc.minLength, check.value) : check.value,
-          maxLength: acc.maxLength ? Math.min(acc.maxLength, check.value) : check.value,
+          minLength: acc.minLength
+            ? Math.max(acc.minLength, check.value)
+            : check.value,
+          maxLength: acc.maxLength
+            ? Math.min(acc.maxLength, check.value)
+            : check.value,
         };
-      case 'regex':
-      case 'email':
-      case 'uuid':
-      case 'url': {
+      case "regex":
+      case "email":
+      case "uuid":
+      case "url": {
         let pattern;
         // eslint-disable-next-line default-case
         switch (check.kind) {
-          case 'regex':
+          case "regex":
             pattern = check.regex;
             break;
-          case 'email':
+          case "email":
             pattern = Email;
             break;
-          case 'uuid':
+          case "uuid":
             pattern = UUID;
             break;
-          case 'url':
+          case "url":
             pattern = URL;
             break;
         }
-        if (pattern.flags !== '') {
-          throw new Error('Regex flags are not supported');
+        if (pattern.flags !== "") {
+          throw new Error("Regex flags are not supported");
         }
 
         return {
           ...acc,
-          ...acc.pattern ? {
-            allOf: [...acc.allOf ?? [], { pattern: pattern.source }],
-          } : { pattern: pattern.source },
+          ...(acc.pattern
+            ? {
+                allOf: [...(acc.allOf ?? []), { pattern: pattern.source }],
+              }
+            : { pattern: pattern.source }),
         };
       }
       default:
@@ -112,12 +122,12 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
 function numberToSchema(def: z.ZodNumberDef): JsonSchema {
   const constraints = def.checks.reduce<Partial<JsonSchema>>((acc, check) => {
     switch (check.kind) {
-      case 'int':
+      case "int":
         return {
           ...acc,
-          bsonType: 'int',
+          bsonType: "int",
         };
-      case 'min': {
+      case "min": {
         let value;
         let exclusive;
         if (check.value > (acc.minimum ?? -Infinity)) {
@@ -136,7 +146,7 @@ function numberToSchema(def: z.ZodNumberDef): JsonSchema {
           exclusiveMinimum: exclusive,
         };
       }
-      case 'max': {
+      case "max": {
         let value;
         let exclusive;
         if (check.value < (acc.maximum ?? Infinity)) {
@@ -155,12 +165,14 @@ function numberToSchema(def: z.ZodNumberDef): JsonSchema {
           exclusiveMaximum: exclusive,
         };
       }
-      case 'multipleOf':
+      case "multipleOf":
         return {
           ...acc,
-          ...acc.multipleOf ? {
-            allOf: [...acc.allOf ?? [], { multipleOf: check.value }],
-          } : { multipleOf: check.value },
+          ...(acc.multipleOf
+            ? {
+                allOf: [...(acc.allOf ?? []), { multipleOf: check.value }],
+              }
+            : { multipleOf: check.value }),
         };
       default:
         throw new Error(`Unsupported number check: ${check.kind}`);
@@ -170,18 +182,18 @@ function numberToSchema(def: z.ZodNumberDef): JsonSchema {
   return {
     // Default to accepting any numeric type, but this will be overwritten by
     // constraints if an int was specifically requested
-    bsonType: 'number',
+    bsonType: "number",
     ...constraints,
   };
 }
 
 function dateToSchema(def: z.ZodDateDef): JsonSchema {
   if (def.checks.length > 0) {
-    throw new Error('Date schema checks are not supported');
+    throw new Error("Date schema checks are not supported");
   }
 
   return {
-    bsonType: 'date',
+    bsonType: "date",
   };
 }
 
@@ -192,17 +204,22 @@ function literalToSchema(def: z.ZodLiteralDef): JsonSchema {
 }
 
 function arrayToSchema(def: z.ZodArrayDef<any>): JsonSchema {
-  const minItems = def.minLength || def.exactLength ?
-    Math.max(def.minLength?.value ?? 0, def.exactLength?.value ?? 0) :
-    undefined;
-  const maxItems = def.maxLength || def.exactLength ?
-    Math.min(def.maxLength?.value ?? Infinity, def.exactLength?.value ?? Infinity) :
-    undefined;
+  const minItems =
+    def.minLength || def.exactLength
+      ? Math.max(def.minLength?.value ?? 0, def.exactLength?.value ?? 0)
+      : undefined;
+  const maxItems =
+    def.maxLength || def.exactLength
+      ? Math.min(
+          def.maxLength?.value ?? Infinity,
+          def.exactLength?.value ?? Infinity,
+        )
+      : undefined;
   return {
-    bsonType: 'array',
+    bsonType: "array",
     items: schemaToJsonSchema(def.type),
-    ...minItems ? { minItems } : {},
-    ...maxItems ? { maxItems } : {},
+    ...(minItems ? { minItems } : {}),
+    ...(maxItems ? { maxItems } : {}),
   };
 }
 
@@ -211,33 +228,37 @@ function objectToSchema(
   allowedKeys: Set<string>,
   catchall: boolean,
 ): JsonSchema {
-  let additionalProperties: JsonSchema['additionalProperties'];
+  let additionalProperties: JsonSchema["additionalProperties"];
   if (catchall) {
     additionalProperties = true;
   } else if (!(def.catchall instanceof z.ZodNever)) {
     additionalProperties = schemaToJsonSchema(def.catchall);
-  } else if (def.unknownKeys === 'passthrough') {
+  } else if (def.unknownKeys === "passthrough") {
     additionalProperties = true;
   } else {
     additionalProperties = false;
   }
 
-  const inheritedProperties: Record<string, JsonSchema> =
-    Object.fromEntries([...allowedKeys].map((key) => [key, {}]));
-  const properties = Object.entries(def.shape())
-    .reduce<Record<string, JsonSchema>>((acc, [key, value]) => {
-      acc[key] = schemaToJsonSchema(value);
-      return acc;
-    }, inheritedProperties);
+  const inheritedProperties: Record<string, JsonSchema> = Object.fromEntries(
+    [...allowedKeys].map((key) => [key, {}]),
+  );
+  const properties = Object.entries(def.shape()).reduce<
+    Record<string, JsonSchema>
+  >((acc, [key, value]) => {
+    acc[key] = schemaToJsonSchema(value);
+    return acc;
+  }, inheritedProperties);
   const required = Object.entries(def.shape())
     .filter(([_, value]) => {
-      return !value.isOptional() ||
-        ('customJsonSchemaRequired' in value && value.customJsonSchemaRequired);
+      return (
+        !value.isOptional() ||
+        ("customJsonSchemaRequired" in value && value.customJsonSchemaRequired)
+      );
     })
     .map(([key]) => key);
 
   const schema: JsonSchema = {
-    bsonType: 'object',
+    bsonType: "object",
     properties,
     required,
     additionalProperties,
@@ -256,7 +277,9 @@ function unionToSchema(
   catchall: boolean,
 ): JsonSchema {
   return {
-    anyOf: def.options.map((option) => schemaToJsonSchema(option, allowedKeys, catchall)),
+    anyOf: def.options.map((option) =>
+      schemaToJsonSchema(option, allowedKeys, catchall),
+    ),
   };
 }
 
@@ -267,15 +290,17 @@ function discriminatedUnionToSchema(
 ): JsonSchema {
   // Mongo can't do anything special with a discriminated union
   return {
-    anyOf: def.options.map((option) => schemaToJsonSchema(option, allowedKeys, catchall)),
+    anyOf: def.options.map((option) =>
+      schemaToJsonSchema(option, allowedKeys, catchall),
+    ),
   };
 }
 
 // Return anything that could potentially be a valid object on one half of an
 // intersection - we'll make sure it's allowed on the other half
-function potentialObjectKeys<
-  T extends z.ZodFirstPartySchemaTypes
->(schema: T): [keys: Set<string>, catchall: boolean] {
+function potentialObjectKeys<T extends z.ZodFirstPartySchemaTypes>(
+  schema: T,
+): [keys: Set<string>, catchall: boolean] {
   const { _def: def } = schema;
   switch (def.typeName) {
     case z.ZodFirstPartyTypeKind.ZodString:
@@ -291,33 +316,38 @@ function potentialObjectKeys<
     case z.ZodFirstPartyTypeKind.ZodNativeEnum:
       return [new Set(), false];
     case z.ZodFirstPartyTypeKind.ZodObject:
-      return [new Set(Object.keys(def.shape())), !(def.catchall instanceof z.ZodNever)];
+      return [
+        new Set(Object.keys(def.shape())),
+        !(def.catchall instanceof z.ZodNever),
+      ];
     case z.ZodFirstPartyTypeKind.ZodRecord:
       return [new Set(), true];
     case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
-      return (def.options as z.ZodDiscriminatedUnionOption<any>[])
-        .reduce<[keys: Set<string>, catchall: boolean]>(
-          ([keys, catchall], option) => {
-            const [optionKeys, optionCatchall] = potentialObjectKeys(option);
-            return [
-              new Set([...keys, ...optionKeys]),
-              catchall || optionCatchall,
-            ];
-          },
-          [new Set(), false]
-        );
+      return (def.options as z.ZodDiscriminatedUnionOption<any>[]).reduce<
+        [keys: Set<string>, catchall: boolean]
+      >(
+        ([keys, catchall], option) => {
+          const [optionKeys, optionCatchall] = potentialObjectKeys(option);
+          return [
+            new Set([...keys, ...optionKeys]),
+            catchall || optionCatchall,
+          ];
+        },
+        [new Set(), false],
+      );
     case z.ZodFirstPartyTypeKind.ZodUnion:
-      return (def.options as z.ZodTypeAny[])
-        .reduce<[keys: Set<string>, catchall: boolean]>(
-          ([keys, catchall], option) => {
-            const [optionKeys, optionCatchall] = potentialObjectKeys(option);
-            return [
-              new Set([...keys, ...optionKeys]),
-              catchall || optionCatchall,
-            ];
-          },
-          [new Set(), false]
-        );
+      return (def.options as z.ZodTypeAny[]).reduce<
+        [keys: Set<string>, catchall: boolean]
+      >(
+        ([keys, catchall], option) => {
+          const [optionKeys, optionCatchall] = potentialObjectKeys(option);
+          return [
+            new Set([...keys, ...optionKeys]),
+            catchall || optionCatchall,
+          ];
+        },
+        [new Set(), false],
+      );
     case z.ZodFirstPartyTypeKind.ZodIntersection: {
       const [leftKeys, leftCatchall] = potentialObjectKeys(def.left);
       const [rightKeys, rightCatchall] = potentialObjectKeys(def.right);
@@ -328,9 +358,9 @@ function potentialObjectKeys<
     }
     case z.ZodFirstPartyTypeKind.ZodLiteral:
       return [
-        typeof def.value === 'object' && !Array.isArray(def.value) ?
-          new Set(Object.keys(def.value)) :
-          new Set(),
+        typeof def.value === "object" && !Array.isArray(def.value)
+          ? new Set(Object.keys(def.value))
+          : new Set(),
         false,
       ];
     case z.ZodFirstPartyTypeKind.ZodEffects:
@@ -357,12 +387,12 @@ function intersectionToSchema(
       schemaToJsonSchema(
         def.left,
         new Set([...rightKeys, ...allowedKeys]),
-        rightCatchall || catchall
+        rightCatchall || catchall,
       ),
       schemaToJsonSchema(
         def.right,
         new Set([...leftKeys, ...allowedKeys]),
-        leftCatchall || catchall
+        leftCatchall || catchall,
       ),
     ],
   };
@@ -370,7 +400,7 @@ function intersectionToSchema(
 
 function tupleToSchema(def: z.ZodTupleDef<any>): JsonSchema {
   return {
-    bsonType: 'array',
+    bsonType: "array",
     items: def.items.map(schemaToJsonSchema),
     additionalItems: def.rest ? schemaToJsonSchema(def.rest) : false,
   };
@@ -378,15 +408,15 @@ function tupleToSchema(def: z.ZodTupleDef<any>): JsonSchema {
 
 function recordToSchema(def: z.ZodRecordDef<any>): JsonSchema {
   if (!(def.keyType instanceof z.ZodString)) {
-    throw new Error('Record key type must be string');
+    throw new Error("Record key type must be string");
   }
 
   if (def.keyType._def.checks.length > 0) {
-    throw new Error('Record key type checks are not supported');
+    throw new Error("Record key type checks are not supported");
   }
 
   return {
-    bsonType: 'object',
+    bsonType: "object",
     additionalProperties: schemaToJsonSchema(def.valueType),
   };
 }
@@ -427,7 +457,7 @@ function nullableToSchema(
 
   return {
     anyOf: [
-      { bsonType: 'null' },
+      { bsonType: "null" },
       schemaToJsonSchema(def.innerType, allowedKeys, catchall),
     ],
   };
@@ -442,7 +472,7 @@ function defaultToSchema(
 ): JsonSchema {
   return {
     allOf: [
-      { not: { bsonType: 'null' } },
+      { not: { bsonType: "null" } },
       schemaToJsonSchema(def.innerType, allowedKeys, catchall),
     ],
   };
@@ -462,7 +492,7 @@ export function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
   allowedKeys: Set<string> = new Set(),
   catchall = false,
 ): JsonSchema {
-  if ('customJsonSchema' in schema && schema.customJsonSchema) {
+  if ("customJsonSchema" in schema && schema.customJsonSchema) {
     return schema.customJsonSchema;
   }
 
@@ -478,9 +508,9 @@ export function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
     case z.ZodFirstPartyTypeKind.ZodLiteral:
       return literalToSchema(def);
     case z.ZodFirstPartyTypeKind.ZodBoolean:
-      return { bsonType: 'bool' };
+      return { bsonType: "bool" };
     case z.ZodFirstPartyTypeKind.ZodNull:
-      return { bsonType: 'null' };
+      return { bsonType: "null" };
     // Treat "unknown" as any. They have different meanings at the type layer,
     // but at the database layer, they're equivalent
     case z.ZodFirstPartyTypeKind.ZodUnknown:
@@ -513,7 +543,9 @@ export function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
     case z.ZodFirstPartyTypeKind.ZodDefault:
       return defaultToSchema(def, allowedKeys, catchall);
     default:
-      throw new Error(`Unsupported schema type: ${def.typeName}; use customJsonSchema instead`);
+      throw new Error(
+        `Unsupported schema type: ${def.typeName}; use customJsonSchema instead`,
+      );
   }
 }
 
@@ -526,6 +558,8 @@ export function attachCustomJsonSchema<T extends z.ZodTypeAny>(
   (schema as any).customJsonSchemaRequired = required;
 }
 
-export default function generateJsonSchema<T extends MongoRecordZodType>(schema: T): JsonSchema {
+export default function generateJsonSchema<T extends MongoRecordZodType>(
+  schema: T,
+): JsonSchema {
   return schemaToJsonSchema(schema);
 }

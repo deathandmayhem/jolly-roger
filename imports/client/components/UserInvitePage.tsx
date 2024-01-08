@@ -1,75 +1,90 @@
-import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
-import React, { useCallback, useMemo, useState } from 'react';
-import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
-import Col from 'react-bootstrap/Col';
-import type { FormControlProps } from 'react-bootstrap/FormControl';
-import FormControl from 'react-bootstrap/FormControl';
-import FormGroup from 'react-bootstrap/FormGroup';
-import FormLabel from 'react-bootstrap/FormLabel';
-import Row from 'react-bootstrap/Row';
-import { useNavigate, useParams } from 'react-router-dom';
-import styled from 'styled-components';
-import Hunts from '../../lib/models/Hunts';
-import { userMayBulkAddToHunt } from '../../lib/permission_stubs';
-import addHuntUser from '../../methods/addHuntUser';
-import bulkAddHuntUsers from '../../methods/bulkAddHuntUsers';
-import { useBreadcrumb } from '../hooks/breadcrumb';
+import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import React, { useCallback, useMemo, useState } from "react";
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
+import Col from "react-bootstrap/Col";
+import type { FormControlProps } from "react-bootstrap/FormControl";
+import FormControl from "react-bootstrap/FormControl";
+import FormGroup from "react-bootstrap/FormGroup";
+import FormLabel from "react-bootstrap/FormLabel";
+import Row from "react-bootstrap/Row";
+import { useNavigate, useParams } from "react-router-dom";
+import styled from "styled-components";
+import Hunts from "../../lib/models/Hunts";
+import { userMayBulkAddToHunt } from "../../lib/permission_stubs";
+import addHuntUser from "../../methods/addHuntUser";
+import bulkAddHuntUsers from "../../methods/bulkAddHuntUsers";
+import { useBreadcrumb } from "../hooks/breadcrumb";
 
 const BulkError = styled.p`
   white-space: pre-wrap;
 `;
 
 const UserInvitePage = () => {
-  const huntId = useParams<'huntId'>().huntId!;
+  const huntId = useParams<"huntId">().huntId!;
   const navigate = useNavigate();
-  useBreadcrumb({ title: 'Invite', path: `/hunts/${huntId}/hunters/invite` });
+  useBreadcrumb({ title: "Invite", path: `/hunts/${huntId}/hunters/invite` });
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<Meteor.Error | undefined>(undefined);
-  const [email, setEmail] = useState<string>('');
-  const [bulkEmails, setBulkEmails] = useState<string>('');
-  const [bulkError, setBulkError] = useState<Meteor.Error | undefined>(undefined);
+  const [email, setEmail] = useState<string>("");
+  const [bulkEmails, setBulkEmails] = useState<string>("");
+  const [bulkError, setBulkError] = useState<Meteor.Error | undefined>(
+    undefined,
+  );
 
   const canBulkInvite = useTracker(() => {
     return userMayBulkAddToHunt(Meteor.user(), Hunts.findOne(huntId));
   }, [huntId]);
 
-  const onEmailChanged: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
-    setEmail(e.currentTarget.value);
-  }, []);
+  const onEmailChanged: NonNullable<FormControlProps["onChange"]> = useCallback(
+    (e) => {
+      setEmail(e.currentTarget.value);
+    },
+    [],
+  );
 
-  const onBulkEmailsChanged: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
-    setBulkEmails(e.currentTarget.value);
-  }, []);
+  const onBulkEmailsChanged: NonNullable<FormControlProps["onChange"]> =
+    useCallback((e) => {
+      setBulkEmails(e.currentTarget.value);
+    }, []);
 
-  const onSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSubmitting(true);
-    addHuntUser.call({ huntId, email }, (inviteError?) => {
-      setSubmitting(false);
-      if (inviteError) {
-        setError(inviteError);
-      } else {
-        navigate(`/hunts/${huntId}`);
-      }
-    });
-  }, [huntId, email, navigate]);
+  const onSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setSubmitting(true);
+      addHuntUser.call({ huntId, email }, (inviteError?) => {
+        setSubmitting(false);
+        if (inviteError) {
+          setError(inviteError);
+        } else {
+          navigate(`/hunts/${huntId}`);
+        }
+      });
+    },
+    [huntId, email, navigate],
+  );
 
-  const onBulkSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setBulkError(undefined);
-    const emails = bulkEmails.trim().split('\n').map((addr) => addr.trim());
-    bulkAddHuntUsers.call({ huntId, emails }, (bulkInviteError) => {
-      setSubmitting(false);
-      if (bulkInviteError) {
-        setBulkError(bulkInviteError);
-      } else {
-        setBulkEmails('');
-      }
-    });
-  }, [huntId, bulkEmails]);
+  const onBulkSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setSubmitting(true);
+      setBulkError(undefined);
+      const emails = bulkEmails
+        .trim()
+        .split("\n")
+        .map((addr) => addr.trim());
+      bulkAddHuntUsers.call({ huntId, emails }, (bulkInviteError) => {
+        setSubmitting(false);
+        if (bulkInviteError) {
+          setBulkError(bulkInviteError);
+        } else {
+          setBulkEmails("");
+        }
+      });
+    },
+    [huntId, bulkEmails],
+  );
 
   const bulkInvite = useMemo(() => {
     return canBulkInvite ? (
@@ -84,9 +99,7 @@ const UserInvitePage = () => {
 
         <form onSubmit={onBulkSubmit} className="form-horizontal">
           <FormGroup className="mb-3" controlId="jr-invite-bulk">
-            <FormLabel>
-              Email addresses (one per line)
-            </FormLabel>
+            <FormLabel>Email addresses (one per line)</FormLabel>
             <FormControl
               as="textarea"
               rows={10}
@@ -103,15 +116,22 @@ const UserInvitePage = () => {
         </form>
       </div>
     ) : undefined;
-  }, [canBulkInvite, submitting, bulkEmails, bulkError, onBulkSubmit, onBulkEmailsChanged]);
+  }, [
+    canBulkInvite,
+    submitting,
+    bulkEmails,
+    bulkError,
+    onBulkSubmit,
+    onBulkEmailsChanged,
+  ]);
 
   return (
     <div>
       <h1>Send an invite</h1>
 
       <p>
-        Invite someone to join this hunt. They&apos;ll get an email with instructions (even if
-        they already have a Jolly Roger account)
+        Invite someone to join this hunt. They&apos;ll get an email with
+        instructions (even if they already have a Jolly Roger account)
       </p>
 
       <Row>
@@ -124,11 +144,7 @@ const UserInvitePage = () => {
 
           <form onSubmit={onSubmit} className="form-horizontal">
             <FormGroup as={Row} className="mb-3">
-              <FormLabel
-                htmlFor="jr-invite-email"
-                column
-                md={3}
-              >
+              <FormLabel htmlFor="jr-invite-email" column md={3}>
                 E-mail address
               </FormLabel>
               <Col md={9}>

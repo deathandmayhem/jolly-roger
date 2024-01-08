@@ -1,35 +1,42 @@
-import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
-import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
-import { faCaretRight } from '@fortawesome/free-solid-svg-icons/faCaretRight';
-import { faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons/faMicrophoneSlash';
-import { faVolumeMute } from '@fortawesome/free-solid-svg-icons/faVolumeMute';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import type { MouseEvent } from 'react';
+import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
+import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
+import { faMicrophoneSlash } from "@fortawesome/free-solid-svg-icons/faMicrophoneSlash";
+import { faVolumeMute } from "@fortawesome/free-solid-svg-icons/faVolumeMute";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { MouseEvent } from "react";
 import React, {
-  useCallback, useEffect, useImperativeHandle, useRef, useState,
-} from 'react';
-import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
-import Modal from 'react-bootstrap/Modal';
-import Overlay from 'react-bootstrap/Overlay';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
-import { createPortal } from 'react-dom';
-import styled from 'styled-components';
-import Flags from '../../Flags';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import type { PeerType } from '../../lib/models/mediasoup/Peers';
-import mediasoupRemoteMutePeer from '../../methods/mediasoupRemoteMutePeer';
-import type { Action, CallState } from '../hooks/useCallState';
-import Avatar from './Avatar';
-import Loading from './Loading';
-import Spectrum from './Spectrum';
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
+import Overlay from "react-bootstrap/Overlay";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
+import { createPortal } from "react-dom";
+import styled from "styled-components";
+import Flags from "../../Flags";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import type { PeerType } from "../../lib/models/mediasoup/Peers";
+import mediasoupRemoteMutePeer from "../../methods/mediasoupRemoteMutePeer";
+import type { Action, CallState } from "../hooks/useCallState";
+import Avatar from "./Avatar";
+import Loading from "./Loading";
+import Spectrum from "./Spectrum";
 import {
   AVActions,
   AVButton,
-  ChatterSubsection, ChatterSubsectionHeader, PeopleItemDiv, PeopleListDiv,
-} from './styling/PeopleComponents';
+  ChatterSubsection,
+  ChatterSubsectionHeader,
+  PeopleItemDiv,
+  PeopleListDiv,
+} from "./styling/PeopleComponents";
 
 const CallStateIcon = styled.span`
   font-size: 10px;
@@ -92,18 +99,13 @@ const JoiningCall = ({ details }: { details?: string }) => {
     <Alert variant="warning">
       <p>
         <Loading inline />
-        Waiting for server to confirm your connection. This can happen if a new version of Jolly
-        Roger was just deployed or if one of our servers failed. It should recover on its own
-        shortly, but if not try leaving and rejoining the call.
+        Waiting for server to confirm your connection. This can happen if a new
+        version of Jolly Roger was just deployed or if one of our servers
+        failed. It should recover on its own shortly, but if not try leaving and
+        rejoining the call.
       </p>
 
-      {details && (
-        <p>
-          Details:
-          {' '}
-          {details}
-        </p>
-      )}
+      {details && <p>Details: {details}</p>}
     </Alert>
   );
 };
@@ -115,13 +117,13 @@ const SelfBox = ({
   stream,
   popperBoundaryRef,
 }: {
-  muted: boolean,
-  deafened: boolean,
-  audioContext: AudioContext,
-  stream: MediaStream,
-  popperBoundaryRef: React.RefObject<HTMLElement>,
+  muted: boolean;
+  deafened: boolean;
+  audioContext: AudioContext;
+  stream: MediaStream;
+  popperBoundaryRef: React.RefObject<HTMLElement>;
 }) => {
-  const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
+  const spectraDisabled = useTracker(() => Flags.active("disable.spectra"));
   const { userId, name, discordAccount } = useTracker(() => {
     const user = Meteor.user()!;
     return {
@@ -137,7 +139,7 @@ const SelfBox = ({
       popperConfig={{
         modifiers: [
           {
-            name: 'preventOverflow',
+            name: "preventOverflow",
             enabled: true,
             options: {
               boundary: popperBoundaryRef.current,
@@ -146,19 +148,36 @@ const SelfBox = ({
           },
         ],
       }}
-      overlay={(
+      overlay={
         <Tooltip id="caller-self">
           <div>You are in the call.</div>
-          {muted && <div>You are currently muted and will transmit no audio.</div>}
-          {deafened && <div>You are currently deafened and will hear no audio.</div>}
+          {muted && (
+            <div>You are currently muted and will transmit no audio.</div>
+          )}
+          {deafened && (
+            <div>You are currently deafened and will hear no audio.</div>
+          )}
         </Tooltip>
-      )}
+      }
     >
       <PeopleItemDiv>
-        <Avatar _id={userId} displayName={name} discordAccount={discordAccount} size={40} />
+        <Avatar
+          _id={userId}
+          displayName={name}
+          discordAccount={discordAccount}
+          size={40}
+        />
         <div>
-          {muted && <MutedIcon><FontAwesomeIcon icon={faMicrophoneSlash} /></MutedIcon>}
-          {deafened && <DeafenedIcon><FontAwesomeIcon icon={faVolumeMute} /></DeafenedIcon>}
+          {muted && (
+            <MutedIcon>
+              <FontAwesomeIcon icon={faMicrophoneSlash} />
+            </MutedIcon>
+          )}
+          {deafened && (
+            <DeafenedIcon>
+              <FontAwesomeIcon icon={faVolumeMute} />
+            </DeafenedIcon>
+          )}
           {!spectraDisabled && !muted && !deafened ? (
             <Spectrum
               width={40}
@@ -184,79 +203,69 @@ const ChatterTooltip = styled(Tooltip)`
 `;
 
 type RemoteMuteConfirmModalHandle = {
-  show: () => void,
+  show: () => void;
 };
 
-const RemoteMuteConfirmModal = React.forwardRef((
-  { peerId, name } : { peerId: string, name: string },
-  forwardedRef: React.Ref<RemoteMuteConfirmModalHandle>,
-) => {
-  const [visible, setVisible] = useState(true);
-  const show = useCallback(() => setVisible(true), []);
-  const hide = useCallback(() => setVisible(false), []);
-  useImperativeHandle(forwardedRef, () => ({ show }), [show]);
+const RemoteMuteConfirmModal = React.forwardRef(
+  (
+    { peerId, name }: { peerId: string; name: string },
+    forwardedRef: React.Ref<RemoteMuteConfirmModalHandle>,
+  ) => {
+    const [visible, setVisible] = useState(true);
+    const show = useCallback(() => setVisible(true), []);
+    const hide = useCallback(() => setVisible(false), []);
+    useImperativeHandle(forwardedRef, () => ({ show }), [show]);
 
-  const [disabled, setDisabled] = useState(false);
-  const [error, setError] = useState<Error>();
-  const clearError = useCallback(() => setError(undefined), []);
+    const [disabled, setDisabled] = useState(false);
+    const [error, setError] = useState<Error>();
+    const clearError = useCallback(() => setError(undefined), []);
 
-  const mute = useCallback(() => {
-    mediasoupRemoteMutePeer.call({ peerId }, (err) => {
-      setDisabled(false);
-      if (err) {
-        setError(err);
-      } else {
-        hide();
-      }
-    });
-    setDisabled(true);
-  }, [peerId, hide]);
+    const mute = useCallback(() => {
+      mediasoupRemoteMutePeer.call({ peerId }, (err) => {
+        setDisabled(false);
+        if (err) {
+          setError(err);
+        } else {
+          hide();
+        }
+      });
+      setDisabled(true);
+    }, [peerId, hide]);
 
-  const modal = (
-    <Modal show={visible} onHide={hide}>
-      <Modal.Header closeButton>
-        <Modal.Title>
-          Mute
-          {' '}
-          {name}
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <p>
-          This will mute
-          {' '}
-          {name}
-          {' '}
-          for everyone on the call, not just you, and should only be used as a last resort if
-          (e.g.) they have forgotten to mute themselves but aren&apos;t listening to the call.
-        </p>
+    const modal = (
+      <Modal show={visible} onHide={hide}>
+        <Modal.Header closeButton>
+          <Modal.Title>Mute {name}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            This will mute {name} for everyone on the call, not just you, and
+            should only be used as a last resort if (e.g.) they have forgotten
+            to mute themselves but aren&apos;t listening to the call.
+          </p>
 
-        <p>
-          Are you sure you want to mute
-          {' '}
-          {name}
-          ?
-        </p>
+          <p>Are you sure you want to mute {name}?</p>
 
-        {error && (
-          <Alert variant="danger" dismissible onClose={clearError}>
-            {error.message}
-          </Alert>
-        )}
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={hide} disabled={disabled}>
-          Cancel
-        </Button>
-        <Button variant="danger" onClick={mute} disabled={disabled}>
-          Mute
-        </Button>
-      </Modal.Footer>
-    </Modal>
-  );
+          {error && (
+            <Alert variant="danger" dismissible onClose={clearError}>
+              {error.message}
+            </Alert>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={hide} disabled={disabled}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={mute} disabled={disabled}>
+            Mute
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
 
-  return createPortal(modal, document.body);
-});
+    return createPortal(modal, document.body);
+  },
+);
 
 const PeerBox = ({
   audioContext,
@@ -265,13 +274,13 @@ const PeerBox = ({
   popperBoundaryRef,
   stream,
 }: {
-  audioContext: AudioContext,
-  selfDeafened: boolean,
-  peer: PeerType,
-  popperBoundaryRef: React.RefObject<HTMLElement>,
-  stream: MediaStream | undefined,
+  audioContext: AudioContext;
+  selfDeafened: boolean;
+  peer: PeerType;
+  popperBoundaryRef: React.RefObject<HTMLElement>;
+  stream: MediaStream | undefined;
 }) => {
-  const spectraDisabled = useTracker(() => Flags.active('disable.spectra'));
+  const spectraDisabled = useTracker(() => Flags.active("disable.spectra"));
   const audioRef = React.createRef<HTMLAudioElement>();
   const { userId, name, discordAccount } = useTracker(() => {
     const user = MeteorUsers.findOne(peer.createdBy);
@@ -293,14 +302,17 @@ const PeerBox = ({
 
   const [renderMuteModal, setRenderMuteModal] = useState(false);
   const muteModalRef = useRef<RemoteMuteConfirmModalHandle>(null);
-  const showMuteModal = useCallback((e: MouseEvent) => {
-    e.preventDefault();
-    if (renderMuteModal && muteModalRef.current) {
-      muteModalRef.current.show();
-    } else {
-      setRenderMuteModal(true);
-    }
-  }, [renderMuteModal, muteModalRef]);
+  const showMuteModal = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      if (renderMuteModal && muteModalRef.current) {
+        muteModalRef.current.show();
+      } else {
+        setRenderMuteModal(true);
+      }
+    },
+    [renderMuteModal, muteModalRef],
+  );
 
   const { muted, deafened } = peer;
 
@@ -310,7 +322,7 @@ const PeerBox = ({
         <RemoteMuteConfirmModal
           ref={muteModalRef}
           peerId={peer._id}
-          name={name ?? 'this user'}
+          name={name ?? "this user"}
         />
       )}
       <OverlayTrigger
@@ -318,7 +330,7 @@ const PeerBox = ({
         popperConfig={{
           modifiers: [
             {
-              name: 'preventOverflow',
+              name: "preventOverflow",
               enabled: true,
               options: {
                 boundary: popperBoundaryRef.current,
@@ -327,22 +339,36 @@ const PeerBox = ({
             },
           ],
         }}
-        overlay={(
+        overlay={
           <ChatterTooltip id={`caller-${peer._id}`}>
             <div>{name}</div>
-            {muted &&
-              <div>Muted (no one can hear them)</div>}
-            {deafened &&
-              <div>Deafened (they can&apos;t hear anyone)</div>}
+            {muted && <div>Muted (no one can hear them)</div>}
+            {deafened && <div>Deafened (they can&apos;t hear anyone)</div>}
           </ChatterTooltip>
-        )}
+        }
       >
         <PeopleItemDiv>
-          <Avatar _id={userId} displayName={name} discordAccount={discordAccount} size={40} />
+          <Avatar
+            _id={userId}
+            displayName={name}
+            discordAccount={discordAccount}
+            size={40}
+          />
           <div>
-            {muted && <MutedIcon><FontAwesomeIcon icon={faMicrophoneSlash} /></MutedIcon>}
-            {deafened && <DeafenedIcon><FontAwesomeIcon icon={faVolumeMute} /></DeafenedIcon>}
-            {!spectraDisabled && !muted && stream && stream.getTracks().length > 0 ? (
+            {muted && (
+              <MutedIcon>
+                <FontAwesomeIcon icon={faMicrophoneSlash} />
+              </MutedIcon>
+            )}
+            {deafened && (
+              <DeafenedIcon>
+                <FontAwesomeIcon icon={faVolumeMute} />
+              </DeafenedIcon>
+            )}
+            {!spectraDisabled &&
+            !muted &&
+            stream &&
+            stream.getTracks().length > 0 ? (
               <Spectrum
                 width={40}
                 height={40}
@@ -356,11 +382,7 @@ const PeerBox = ({
               </RemoteMuteButton>
             )}
           </div>
-          <audio
-            autoPlay
-            muted={selfDeafened}
-            ref={audioRef}
-          />
+          <audio autoPlay muted={selfDeafened} ref={audioRef} />
         </PeopleItemDiv>
       </OverlayTrigger>
     </>
@@ -408,7 +430,7 @@ const Callers = ({
     <ChatterSubsection ref={chatterRef}>
       <ChatterSubsectionHeader onClick={onToggleCallersExpanded}>
         <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
-        {`${callerCount} caller${callerCount !== 1 ? 's' : ''}`}
+        {`${callerCount} caller${callerCount !== 1 ? "s" : ""}`}
       </ChatterSubsectionHeader>
       <PeopleListDiv $collapsed={!callersExpanded}>
         <SelfBox
@@ -444,41 +466,43 @@ const CallSection = ({
   callDispatch: React.Dispatch<Action>;
 }) => {
   const onToggleMute = useCallback(() => {
-    callDispatch({ type: 'toggle-mute' });
+    callDispatch({ type: "toggle-mute" });
   }, [callDispatch]);
   const onToggleDeafen = useCallback(() => {
-    callDispatch({ type: 'toggle-deafen' });
+    callDispatch({ type: "toggle-deafen" });
   }, [callDispatch]);
   const onLeaveCall = useCallback(() => {
-    callDispatch({ type: 'leave-call' });
+    callDispatch({ type: "leave-call" });
   }, [callDispatch]);
   const onDismissPeerStateNotification = useCallback(() => {
-    callDispatch({ type: 'dismiss-peer-state-notification' });
+    callDispatch({ type: "dismiss-peer-state-notification" });
   }, [callDispatch]);
 
   const muteRef = useRef(null);
 
   const mutedBy = useTracker(() => {
-    return callState.remoteMutedBy ?
-      Meteor.users.findOne(callState.remoteMutedBy)?.displayName :
-      undefined;
+    return callState.remoteMutedBy
+      ? Meteor.users.findOne(callState.remoteMutedBy)?.displayName
+      : undefined;
   }, [callState.remoteMutedBy]);
 
-  const [showMutedBy, setShowMutedBy] = useState<'hidden' | 'show' | 'dismissing'>('hidden');
+  const [showMutedBy, setShowMutedBy] = useState<
+    "hidden" | "show" | "dismissing"
+  >("hidden");
 
   useEffect(() => {
-    if (mutedBy !== undefined && showMutedBy === 'hidden') {
-      setShowMutedBy('show');
+    if (mutedBy !== undefined && showMutedBy === "hidden") {
+      setShowMutedBy("show");
     }
   }, [mutedBy, showMutedBy]);
 
   const onDismissRemoteMuted = useCallback(() => {
-    setShowMutedBy('dismissing');
+    setShowMutedBy("dismissing");
   }, []);
 
   const onShowMutedByDismissed = useCallback(() => {
-    callDispatch({ type: 'dismiss-remote-muted' });
-    setShowMutedBy('hidden');
+    callDispatch({ type: "dismiss-remote-muted" });
+    setShowMutedBy("hidden");
   }, [callDispatch]);
 
   let joiningCallAlert;
@@ -488,14 +512,18 @@ const CallSection = ({
     joiningCallAlert = <JoiningCall details="Missing peer record for self" />;
   } else if (!callState.router) {
     joiningCallAlert = <JoiningCall details="Missing router" />;
-  } else if (callState.transportStates.send !== 'connected') {
+  } else if (callState.transportStates.send !== "connected") {
     // We always negotiate the send transport immediately, even if nobody is
     // listening yet, so the only acceptable state is 'connected'
-    joiningCallAlert = <JoiningCall details="Unable to connect to WebRTC server for sending" />;
-  } else if (callState.transportStates.recv === 'failed') {
+    joiningCallAlert = (
+      <JoiningCall details="Unable to connect to WebRTC server for sending" />
+    );
+  } else if (callState.transportStates.recv === "failed") {
     // However, the recv transport is only negotiated when we have at least one
     // peer, so it can end up in an unestablished state for a while
-    joiningCallAlert = <JoiningCall details="Unable to connect to WebRTC server for receiving" />;
+    joiningCallAlert = (
+      <JoiningCall details="Unable to connect to WebRTC server for receiving" />
+    );
   }
 
   return (
@@ -505,49 +533,53 @@ const CallSection = ({
           <>
             <AVButton
               ref={muteRef}
-              variant={muted ? 'secondary' : 'light'}
+              variant={muted ? "secondary" : "light"}
               size="sm"
               onClick={onToggleMute}
             >
-              {muted ? 'Un\u00ADmute' : 'Mute self'}
+              {muted ? "Un\u00ADmute" : "Mute self"}
             </AVButton>
             {Meteor.isDevelopment && (
               <AVButton
-                variant={deafened ? 'secondary' : 'light'}
+                variant={deafened ? "secondary" : "light"}
                 size="sm"
                 onClick={onToggleDeafen}
               >
-                {deafened ? 'Un\u00ADdeafen' : 'Deafen self'}
+                {deafened ? "Un\u00ADdeafen" : "Deafen self"}
               </AVButton>
             )}
           </>
         )}
-        <AVButton variant="danger" size="sm" onClick={onLeaveCall}>Leave call</AVButton>
+        <AVButton variant="danger" size="sm" onClick={onLeaveCall}>
+          Leave call
+        </AVButton>
       </AVActions>
       {joiningCallAlert}
-      <Overlay target={muteRef.current} show={callState.allowInitialPeerStateNotification && muted} placement="bottom">
+      <Overlay
+        target={muteRef.current}
+        show={callState.allowInitialPeerStateNotification && muted}
+        placement="bottom"
+      >
         <Tooltip id="muted-on-join-notification">
           <div>
-            We&apos;ve left your mic muted for now given the number of people on the
-            call.  You can unmute yourself at any time.
+            We&apos;ve left your mic muted for now given the number of people on
+            the call. You can unmute yourself at any time.
           </div>
           <Button onClick={onDismissPeerStateNotification}>Got it</Button>
         </Tooltip>
       </Overlay>
       <Overlay
         target={muteRef.current}
-        show={showMutedBy === 'show'}
+        show={showMutedBy === "show"}
         placement="bottom"
         onExited={onShowMutedByDismissed}
       >
         <Tooltip id="remote-muted-notification">
           <div>
-            You were muted by
-            {' '}
-            {mutedBy ?? 'someone else'}
-            . This usually happens when it seemed like you had stepped away from your computer
-            without muting yourself, but your microphone was still on. You can unmute yourself
-            at any time.
+            You were muted by {mutedBy ?? "someone else"}. This usually happens
+            when it seemed like you had stepped away from your computer without
+            muting yourself, but your microphone was still on. You can unmute
+            yourself at any time.
           </div>
           <Button onClick={onDismissRemoteMuted}>Got it</Button>
         </Tooltip>

@@ -1,10 +1,10 @@
-import { check, Match } from 'meteor/check';
-import Logger from '../../Logger';
-import rollAPIKey from '../../methods/rollAPIKey';
-import ensureAPIKey from '../ensureAPIKey';
-import APIKeys from '../models/APIKeys';
-import userForKeyOperation from '../userForKeyOperation';
-import defineMethod from './defineMethod';
+import { check, Match } from "meteor/check";
+import Logger from "../../Logger";
+import rollAPIKey from "../../methods/rollAPIKey";
+import ensureAPIKey from "../ensureAPIKey";
+import APIKeys from "../models/APIKeys";
+import userForKeyOperation from "../userForKeyOperation";
+import defineMethod from "./defineMethod";
 
 defineMethod(rollAPIKey, {
   validate(arg) {
@@ -19,7 +19,11 @@ defineMethod(rollAPIKey, {
     const user = await userForKeyOperation(this.userId, forUser);
 
     for await (const k of APIKeys.find({ user })) {
-      Logger.info('Expiring API key', { id: k._id, user: k.user, requestedBy: this.userId });
+      Logger.info("Expiring API key", {
+        id: k._id,
+        user: k.user,
+        requestedBy: this.userId,
+      });
       await APIKeys.destroyAsync(k._id);
     }
 

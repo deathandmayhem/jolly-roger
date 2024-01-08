@@ -1,6 +1,6 @@
-import Hunts from '../../lib/models/Hunts';
-import huntsAll from '../../lib/publications/huntsAll';
-import definePublication from './definePublication';
+import Hunts from "../../lib/models/Hunts";
+import huntsAll from "../../lib/publications/huntsAll";
+import definePublication from "./definePublication";
 
 definePublication(huntsAll, {
   run() {

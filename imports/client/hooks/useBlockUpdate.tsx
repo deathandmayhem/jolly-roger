@@ -1,12 +1,10 @@
-import { Reload } from 'meteor/reload';
-import React, {
-  useContext, useEffect, useRef, useState,
-} from 'react';
+import { Reload } from "meteor/reload";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
 // BlockHandle is basically used as a sentinel object, generated for each
 // invocation of useBlockUpdate to ensure that we track it consistently as the
 // invoker re-renders
-type BlockHandle = Record<string, never>
+type BlockHandle = Record<string, never>;
 
 type BlockStatus = [blocked: boolean, reasons: string[]];
 type BlockSubscriber = (status: BlockStatus) => void;
@@ -52,7 +50,9 @@ class BlockManager {
 
   updateSubscribers() {
     const pendingUpdate = !!this.unblock;
-    const reasons = [...this.blockers.values()].filter<string>((b): b is string => !!b);
+    const reasons = [...this.blockers.values()].filter<string>(
+      (b): b is string => !!b,
+    );
     this.subscribers.forEach((s) => s([pendingUpdate, reasons]));
   }
 

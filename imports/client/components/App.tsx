@@ -1,39 +1,37 @@
-import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
-import Bugsnag from '@bugsnag/js';
-import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons/faExclamationTriangle';
-import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, {
-  useCallback, useEffect, useMemo, useState,
-} from 'react';
-import Alert from 'react-bootstrap/Alert';
-import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownItem from 'react-bootstrap/DropdownItem';
-import DropdownMenu from 'react-bootstrap/DropdownMenu';
-import DropdownToggle from 'react-bootstrap/DropdownToggle';
-import Nav from 'react-bootstrap/Nav';
-import NavItem from 'react-bootstrap/NavItem';
-import NavLink from 'react-bootstrap/NavLink';
-import Navbar from 'react-bootstrap/Navbar';
-import NavbarBrand from 'react-bootstrap/NavbarBrand';
-import Button from 'react-bootstrap/esm/Button';
-import Container from 'react-bootstrap/esm/Container';
-import type { FallbackProps } from 'react-error-boundary';
-import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
-import * as RRBS from 'react-router-bootstrap';
-import { useNavigate, Link } from 'react-router-dom';
-import type { StackFrame } from 'stacktrace-js';
-import StackTrace from 'stacktrace-js';
-import styled, { css } from 'styled-components';
-import isAdmin from '../../lib/isAdmin';
-import { useBreadcrumbItems } from '../hooks/breadcrumb';
-import lookupUrl from '../lookupUrl';
-import ConnectionStatus from './ConnectionStatus';
-import Loading from './Loading';
-import NotificationCenter from './NotificationCenter';
-import { NavBarHeight } from './styling/constants';
-import { mediaBreakpointDown } from './styling/responsive';
+import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import Bugsnag from "@bugsnag/js";
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle";
+import { faUser } from "@fortawesome/free-solid-svg-icons/faUser";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import Alert from "react-bootstrap/Alert";
+import Dropdown from "react-bootstrap/Dropdown";
+import DropdownItem from "react-bootstrap/DropdownItem";
+import DropdownMenu from "react-bootstrap/DropdownMenu";
+import DropdownToggle from "react-bootstrap/DropdownToggle";
+import Nav from "react-bootstrap/Nav";
+import NavItem from "react-bootstrap/NavItem";
+import NavLink from "react-bootstrap/NavLink";
+import Navbar from "react-bootstrap/Navbar";
+import NavbarBrand from "react-bootstrap/NavbarBrand";
+import Button from "react-bootstrap/esm/Button";
+import Container from "react-bootstrap/esm/Container";
+import type { FallbackProps } from "react-error-boundary";
+import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
+import * as RRBS from "react-router-bootstrap";
+import { useNavigate, Link } from "react-router-dom";
+import type { StackFrame } from "stacktrace-js";
+import StackTrace from "stacktrace-js";
+import styled, { css } from "styled-components";
+import isAdmin from "../../lib/isAdmin";
+import { useBreadcrumbItems } from "../hooks/breadcrumb";
+import lookupUrl from "../lookupUrl";
+import ConnectionStatus from "./ConnectionStatus";
+import Loading from "./Loading";
+import NotificationCenter from "./NotificationCenter";
+import { NavBarHeight } from "./styling/constants";
+import { mediaBreakpointDown } from "./styling/responsive";
 
 const Breadcrumb = styled.nav`
   display: flex;
@@ -88,9 +86,12 @@ const NavbarInset = styled(Navbar)`
 `;
 
 const NavUsername = styled.span`
-  ${mediaBreakpointDown('sm', css`
-    display: none;
-  `)}
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      display: none;
+    `,
+  )}
 `;
 
 const Brand = styled.img`
@@ -98,7 +99,13 @@ const Brand = styled.img`
   height: ${NavBarHeight};
 `;
 
-const ErrorFallback = ({ error, clearError }: { error: Error, clearError: () => void }) => {
+const ErrorFallback = ({
+  error,
+  clearError,
+}: {
+  error: Error;
+  clearError: () => void;
+}) => {
   const [frames, setFrames] = useState<StackFrame[] | undefined>(undefined);
 
   useEffect(() => {
@@ -113,9 +120,8 @@ const ErrorFallback = ({ error, clearError }: { error: Error, clearError: () => 
     <Container>
       <Alert variant="danger">
         <Alert.Heading>
-          <FontAwesomeIcon icon={faExclamationTriangle} fixedWidth />
-          {' '}
-          Something went wrong
+          <FontAwesomeIcon icon={faExclamationTriangle} fixedWidth /> Something
+          went wrong
         </Alert.Heading>
 
         <p>
@@ -132,8 +138,8 @@ const ErrorFallback = ({ error, clearError }: { error: Error, clearError: () => 
           {frames ? (
             <>
               {error.message}
-              {'\n'}
-              {frames.map((f) => `    ${f.toString()}`).join('\n')}
+              {"\n"}
+              {frames.map((f) => `    ${f.toString()}`).join("\n")}
             </>
           ) : (
             <Loading inline />
@@ -141,16 +147,15 @@ const ErrorFallback = ({ error, clearError }: { error: Error, clearError: () => 
         </pre>
 
         <p>
-          In the mean time, you can try resetting this part of the site or
-          going back to the last page (a particularly useful option if you just
+          In the mean time, you can try resetting this part of the site or going
+          back to the last page (a particularly useful option if you just
           clicked on a link)
         </p>
 
         <p>
           <Button type="button" onClick={clearError}>
             Reset
-          </Button>
-          {' '}
+          </Button>{" "}
           <Button type="button" onClick={goBack}>
             Go back
           </Button>
@@ -166,18 +171,24 @@ const ErrorFallback = ({ error, clearError }: { error: Error, clearError: () => 
   );
 };
 
-const ReactErrorBoundaryFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
+const ReactErrorBoundaryFallback = ({
+  error,
+  resetErrorBoundary,
+}: FallbackProps) => {
   return <ErrorFallback error={error} clearError={resetErrorBoundary} />;
 };
 
 const AppNavbar = () => {
   const userId = useTracker(() => Meteor.userId()!, []);
 
-  const displayName = useTracker(() => Meteor.user()?.displayName ?? '<no name given>', []);
+  const displayName = useTracker(
+    () => Meteor.user()?.displayName ?? "<no name given>",
+    [],
+  );
   const { brandSrc, brandSrc2x } = useTracker(() => {
     return {
-      brandSrc: lookupUrl('brand.png'),
-      brandSrc2x: lookupUrl('brand@2x.png'),
+      brandSrc: lookupUrl("brand.png"),
+      brandSrc2x: lookupUrl("brand@2x.png"),
     };
   }, []);
   const userIsAdmin = useTracker(() => isAdmin(Meteor.user()), []);
@@ -185,7 +196,7 @@ const AppNavbar = () => {
   const navigate = useNavigate();
   const logout = useCallback(() => {
     // Logout, then immediately redirect to the login page
-    Meteor.logout(() => navigate('/login', { replace: true }));
+    Meteor.logout(() => navigate("/login", { replace: true }));
   }, [navigate]);
 
   const crumbs = useBreadcrumbItems();
@@ -203,12 +214,8 @@ const AppNavbar = () => {
               );
             } else {
               return (
-                <BreadcrumbItem
-                  key={crumb.path}
-                >
-                  <Link to={crumb.path}>
-                    {crumb.title}
-                  </Link>
+                <BreadcrumbItem key={crumb.path}>
+                  <Link to={crumb.path}>{crumb.title}</Link>
                 </BreadcrumbItem>
               );
             }
@@ -236,8 +243,7 @@ const AppNavbar = () => {
       <Nav className="ml-auto">
         <Dropdown as={NavItem}>
           <DropdownToggle id="profileDropdown" as={NavLink}>
-            <FontAwesomeIcon icon={faUser} />
-            {' '}
+            <FontAwesomeIcon icon={faUser} />{" "}
             <NavUsername>{displayName}</NavUsername>
           </DropdownToggle>
           <DropdownMenu align="end">
@@ -257,7 +263,9 @@ const AppNavbar = () => {
                 <DropdownItem eventKey="4">Server setup</DropdownItem>
               </RRBS.LinkContainer>
             ) : undefined}
-            <DropdownItem eventKey="3" onClick={logout}>Sign out</DropdownItem>
+            <DropdownItem eventKey="3" onClick={logout}>
+              Sign out
+            </DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </Nav>
@@ -265,9 +273,9 @@ const AppNavbar = () => {
   );
 };
 
-const BugsnagErrorBoundary = Bugsnag.isStarted() ?
-  Bugsnag.getPlugin('react')?.createErrorBoundary(React) :
-  undefined;
+const BugsnagErrorBoundary = Bugsnag.isStarted()
+  ? Bugsnag.getPlugin("react")?.createErrorBoundary(React)
+  : undefined;
 
 const App = ({ children }: { children: React.ReactNode }) => {
   // If Bugsnag is configured, use its error boundary. But if it's not

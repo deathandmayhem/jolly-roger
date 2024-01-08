@@ -1,17 +1,17 @@
-import type { Mongo } from 'meteor/mongo';
-import { OAuth } from 'meteor/oauth';
-import type { Configuration } from 'meteor/service-configuration';
-import { ServiceConfiguration } from 'meteor/service-configuration';
-import type { drive_v3 } from '@googleapis/drive';
-import { drive, auth } from '@googleapis/drive';
-import type { driveactivity_v2 } from '@googleapis/driveactivity';
-import { driveactivity } from '@googleapis/driveactivity';
-import type { people_v1 } from '@googleapis/people';
-import { people } from '@googleapis/people';
-import type { script_v1 } from '@googleapis/script';
-import { script } from '@googleapis/script';
-import type { SettingType } from '../lib/models/Settings';
-import Settings from '../lib/models/Settings';
+import type { Mongo } from "meteor/mongo";
+import { OAuth } from "meteor/oauth";
+import type { Configuration } from "meteor/service-configuration";
+import { ServiceConfiguration } from "meteor/service-configuration";
+import type { drive_v3 } from "@googleapis/drive";
+import { drive, auth } from "@googleapis/drive";
+import type { driveactivity_v2 } from "@googleapis/driveactivity";
+import { driveactivity } from "@googleapis/driveactivity";
+import type { people_v1 } from "@googleapis/people";
+import { people } from "@googleapis/people";
+import type { script_v1 } from "@googleapis/script";
+import { script } from "@googleapis/script";
+import type { SettingType } from "../lib/models/Settings";
+import Settings from "../lib/models/Settings";
 
 class GoogleClientRefresher {
   public drive?: drive_v3.Drive;
@@ -39,8 +39,10 @@ class GoogleClientRefresher {
     this.oauthRefreshToken = undefined;
 
     // Watch for config changes, and refresh the gdrive instance if anything changes
-    this.oauthConfigCursor = ServiceConfiguration.configurations.find({ service: 'google' });
-    this.oauthCredentialCursor = Settings.find({ name: 'gdrive.credential' });
+    this.oauthConfigCursor = ServiceConfiguration.configurations.find({
+      service: "google",
+    });
+    this.oauthCredentialCursor = Settings.find({ name: "gdrive.credential" });
     this.oauthConfigCursor.observe({
       added: (doc) => this.updateOauthConfig(doc),
       changed: (doc) => this.updateOauthConfig(doc),
@@ -59,7 +61,7 @@ class GoogleClientRefresher {
   }
 
   updateOauthCredentials(doc: SettingType) {
-    if (doc.name !== 'gdrive.credential') {
+    if (doc.name !== "gdrive.credential") {
       return; // this should be impossible
     }
     this.oauthRefreshToken = doc.value.refreshToken;
@@ -84,9 +86,9 @@ class GoogleClientRefresher {
 
     // Construct a new OAuth2 client with the app id and secret and redirect uri
     this.oauthClient = new auth.OAuth2(
-      (<any> this.oauthConfig).clientId,
+      (<any>this.oauthConfig).clientId,
       this.oauthConfig.secret,
-      OAuth._redirectUri('google', this.oauthConfig)
+      OAuth._redirectUri("google", this.oauthConfig),
     );
 
     // Set the refresh token for that client
@@ -95,10 +97,13 @@ class GoogleClientRefresher {
     });
 
     // Construct the clients, using that OAuth2 client.
-    this.drive = drive({ version: 'v3', auth: this.oauthClient });
-    this.driveactivity = driveactivity({ version: 'v2', auth: this.oauthClient });
-    this.script = script({ version: 'v1', auth: this.oauthClient });
-    this.people = people({ version: 'v1', auth: this.oauthClient });
+    this.drive = drive({ version: "v3", auth: this.oauthClient });
+    this.driveactivity = driveactivity({
+      version: "v2",
+      auth: this.oauthClient,
+    });
+    this.script = script({ version: "v1", auth: this.oauthClient });
+    this.people = people({ version: "v1", auth: this.oauthClient });
   }
 }
 

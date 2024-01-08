@@ -1,8 +1,8 @@
-import { Meteor } from 'meteor/meteor';
-import Logger from '../Logger';
-import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
-import type { LockType } from './models/Locks';
-import Locks from './models/Locks';
+import { Meteor } from "meteor/meteor";
+import Logger from "../Logger";
+import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
+import type { LockType } from "./models/Locks";
+import Locks from "./models/Locks";
 
 // 10 seconds
 export const PREEMPT_TIMEOUT = 10000;
@@ -21,7 +21,9 @@ async function release(lock: string) {
 }
 
 async function renew(id: string) {
-  const updated = await Locks.updateAsync(id, { $set: { renewedAt: new Date() } });
+  const updated = await Locks.updateAsync(id, {
+    $set: { renewedAt: new Date() },
+  });
   if (updated === 0) {
     // we've already been preempted
     throw new Error(`Lock was preempted: id=${id}`);
@@ -30,7 +32,7 @@ async function renew(id: string) {
 
 export default async function withLock<T>(
   name: string,
-  critSection: (renew: () => Promise<void>) => Promise<T>
+  critSection: (renew: () => Promise<void>) => Promise<T>,
 ) {
   while (true) {
     let handle: Meteor.LiveQueryHandle | undefined;
@@ -97,7 +99,7 @@ export default async function withLock<T>(
       const preemptableLock = await Promise.race([removed, timedOut]);
       cleanupWatches();
       if (preemptableLock) {
-        Logger.warn('Preempting lock', { id: preemptableLock._id, name });
+        Logger.warn("Preempting lock", { id: preemptableLock._id, name });
         await Locks.removeAsync({
           _id: preemptableLock._id,
           renewedAt: preemptableLock.renewedAt,

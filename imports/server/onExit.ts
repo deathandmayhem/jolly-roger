@@ -1,6 +1,6 @@
 const exitHandlers: (() => void | Promise<void>)[] = [];
 
-['SIGINT' as const, 'SIGTERM' as const, 'SIGHUP' as const].forEach((signal) => {
+["SIGINT" as const, "SIGTERM" as const, "SIGHUP" as const].forEach((signal) => {
   process.once(signal, () => {
     void (async () => {
       for (const handler of exitHandlers.splice(0)) {

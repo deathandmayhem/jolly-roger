@@ -29,14 +29,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 0, 0, .2);
+  background-color: rgba(255, 0, 0, 0.2);
   z-index: 2;
 }
 
 /* Throw an overlay over iFrames during drag to capture mouse events */
 /* Works in Chrome and Safari but not Firefox for some reason*/
 .SplitPane.dragging:after {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -48,7 +48,7 @@
    Amazingly, the above part actually works for iFrames outside of the SplitPane,
    so we're covered everywhere. */
 .SplitPane.dragging:before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -63,7 +63,7 @@
   background-color: #666;
   position: relative;
   &:after {
-    content: '';
+    content: "";
     display: block;
     width: 0;
     height: 0;
@@ -89,7 +89,7 @@
   background-color: #666;
   position: relative;
   &:after {
-    content: '';
+    content: "";
     display: block;
     width: 0;
     height: 0;

@@ -1,10 +1,13 @@
-import { Random } from 'meteor/random';
-import Logger from '../Logger';
-import APIKeys from './models/APIKeys';
-import userForKeyOperation from './userForKeyOperation';
-import withLock from './withLock';
+import { Random } from "meteor/random";
+import Logger from "../Logger";
+import APIKeys from "./models/APIKeys";
+import userForKeyOperation from "./userForKeyOperation";
+import withLock from "./withLock";
 
-export default async function ensureAPIKey({ requestedBy, forUser }: {
+export default async function ensureAPIKey({
+  requestedBy,
+  forUser,
+}: {
   requestedBy: string;
   forUser?: string;
 }) {
@@ -20,12 +23,12 @@ export default async function ensureAPIKey({ requestedBy, forUser }: {
       key = await APIKeys.findOneAsync({ user });
 
       if (!key) {
-        Logger.info('Generating new API key for user', { user, requestedBy });
+        Logger.info("Generating new API key for user", { user, requestedBy });
         key = await APIKeys.findOneAsync(
           await APIKeys.insertAsync({
             user,
             key: Random.id(32),
-          })
+          }),
         );
       }
     });

@@ -1,8 +1,8 @@
-import { check } from 'meteor/check';
-import ChatMessages from '../../lib/models/ChatMessages';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import chatMessagesForPuzzle from '../../lib/publications/chatMessagesForPuzzle';
-import definePublication from './definePublication';
+import { check } from "meteor/check";
+import ChatMessages from "../../lib/models/ChatMessages";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
+import definePublication from "./definePublication";
 
 definePublication(chatMessagesForPuzzle, {
   validate(arg) {

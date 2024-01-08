@@ -1,15 +1,15 @@
-import type { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
-import React from 'react';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/esm/Tooltip';
-import styled from 'styled-components';
-import { indexedById } from '../../lib/listUtils';
-import Hunts from '../../lib/models/Hunts';
-import type { HuntType } from '../../lib/models/Hunts';
-import huntsAll from '../../lib/publications/huntsAll';
-import useTypedSubscribe from '../hooks/useTypedSubscribe';
-import Avatar from './Avatar';
+import type { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import React from "react";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/esm/Tooltip";
+import styled from "styled-components";
+import { indexedById } from "../../lib/listUtils";
+import Hunts from "../../lib/models/Hunts";
+import type { HuntType } from "../../lib/models/Hunts";
+import huntsAll from "../../lib/publications/huntsAll";
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import Avatar from "./Avatar";
 
 const AvatarTooltip = styled(Tooltip)`
   opacity: 1 !important;
@@ -26,11 +26,7 @@ const ProfileTable = styled.table`
   }
 `;
 
-const OthersProfilePage = ({
-  user,
-}: {
-  user: Meteor.User;
-}) => {
+const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
   const showHuntList = (user.hunts?.length ?? 0) > 0;
 
   // TODO: The current implementation of the "profile" publication that fetches
@@ -39,26 +35,26 @@ const OthersProfilePage = ({
   // publishJoinedQuery.
   const huntsLoading = useTypedSubscribe(showHuntList ? huntsAll : undefined);
   const loading = huntsLoading();
-  const hunts = useTracker(() => (loading ?
-    new Map<string, HuntType>() :
-    indexedById(Hunts.find().fetch())
-  ), [loading]);
+  const hunts = useTracker(
+    () =>
+      loading ? new Map<string, HuntType>() : indexedById(Hunts.find().fetch()),
+    [loading],
+  );
 
   return (
     <div>
       <h1>
         <OverlayTrigger
           placement="bottom-start"
-          overlay={(
+          overlay={
             <AvatarTooltip id="tooltip-avatar">
               <Avatar {...user} size={128} />
             </AvatarTooltip>
-          )}
+          }
         >
           <Avatar {...user} size={64} />
-        </OverlayTrigger>
-        {' '}
-        {user.displayName ?? 'No display name'}
+        </OverlayTrigger>{" "}
+        {user.displayName ?? "No display name"}
       </h1>
 
       <ProfileTable>
@@ -67,11 +63,16 @@ const OthersProfilePage = ({
             <th>Email</th>
             <td>
               {user.emails?.[0]?.address ? (
-                <a href={`mailto:${user.emails[0].address}`} target="_blank" rel="noreferrer">
+                <a
+                  href={`mailto:${user.emails[0].address}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   {user.emails[0].address}
                 </a>
-              ) :
-                '(none)'}
+              ) : (
+                "(none)"
+              )}
             </td>
           </tr>
           <tr>
@@ -79,33 +80,40 @@ const OthersProfilePage = ({
             <td>
               {user.phoneNumber ? (
                 <a href={`tel:${user.phoneNumber}`}>{user.phoneNumber}</a>
-              ) :
-                '(none)'}
+              ) : (
+                "(none)"
+              )}
             </td>
           </tr>
           <tr>
             <th>Discord handle</th>
             <td>
               {user.discordAccount ? (
-                <a href={`https://discord.com/users/${user.discordAccount.id}`} target="_blank" rel="noreferrer">
-                  {user.discordAccount.username}
-                  #
+                <a
+                  href={`https://discord.com/users/${user.discordAccount.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {user.discordAccount.username}#
                   {user.discordAccount.discriminator}
                 </a>
-              ) :
-                '(none)'}
+              ) : (
+                "(none)"
+              )}
             </td>
           </tr>
           {showHuntList && (
             <tr>
               <th>Hunts in common</th>
               <td>
-                {(
-                  loading ?
-                    'loading...' :
-                    user.hunts?.map((huntId) => hunts.get(huntId)?.name ?? `Unknown hunt ${huntId}`)
-                      .join(', ')
-                )}
+                {loading
+                  ? "loading..."
+                  : user.hunts
+                      ?.map(
+                        (huntId) =>
+                          hunts.get(huntId)?.name ?? `Unknown hunt ${huntId}`,
+                      )
+                      .join(", ")}
               </td>
             </tr>
           )}
