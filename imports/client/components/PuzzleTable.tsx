@@ -42,8 +42,8 @@ const PuzzleTableRow = ({
   const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
   const answers = puzzle.answers.map((answer, i) => {
     return (
-      // eslint-disable-next-line react/no-array-index-key
       <PuzzleAnswer
+        // eslint-disable-next-line react/no-array-index-key
         key={`${i}-${answer}`}
         answer={answer}
         respace={segmentAnswers}

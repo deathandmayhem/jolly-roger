@@ -226,8 +226,8 @@ const Puzzle = React.memo(
     const solvedness = computeSolvedness(puzzle);
     const answers = puzzle.answers.map((answer, i) => {
       return (
-        // eslint-disable-next-line react/no-array-index-key
         <PuzzleAnswer
+          // eslint-disable-next-line react/no-array-index-key
           key={`${i}-${answer}`}
           answer={answer}
           respace={segmentAnswers}

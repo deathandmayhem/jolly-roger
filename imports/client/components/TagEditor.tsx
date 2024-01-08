@@ -6,9 +6,9 @@ import Tags from "../../lib/models/Tags";
 import Loading from "./Loading";
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 const Creatable = React.lazy(
   () => import("react-select/creatable"),
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 ) as typeof import("react-select/creatable").default;
 
 const TagEditorSpan = styled.span`

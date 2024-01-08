@@ -376,9 +376,8 @@ const PuzzleListView = ({
 
       let listComponent;
       let listControls;
-      switch (
-        displayMode // eslint-disable-line default-case
-      ) {
+      // eslint-disable-next-line default-case
+      switch (displayMode) {
         case "group": {
           // We group and sort first, and only filter afterward, to avoid losing the
           // relative group structure as a result of removing some puzzles from
