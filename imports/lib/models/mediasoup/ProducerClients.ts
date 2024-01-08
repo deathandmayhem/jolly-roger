@@ -13,7 +13,7 @@ const ProducerClient = withCommon(
     transport: foreignKey,
     transportRequest: foreignKey,
     // client-generated GUID for client to pair ProducerClient/ProducerServer with local track
-    trackId: z.string().uuid(),
+    trackId: nonEmptyString,
     kind: z.enum(["audio", "video"]),
     rtpParameters: nonEmptyString, // JSON-encoded
     paused: z.boolean(),
