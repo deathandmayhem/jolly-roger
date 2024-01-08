@@ -27,6 +27,7 @@ Accounts.setDefaultPublishFields({
   emails: 1,
   roles: 1,
   hunts: 1,
+  huntTermsAcceptedAt: 1,
   ...profileFields,
 });
 

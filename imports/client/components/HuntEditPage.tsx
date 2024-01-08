@@ -2,6 +2,7 @@ import { useTracker } from "meteor/react-meteor-data";
 import { faInfo } from "@fortawesome/free-solid-svg-icons/faInfo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useRef, useState } from "react";
+import { Modal, ModalBody, ModalFooter } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
@@ -15,6 +16,7 @@ import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
 import Row from "react-bootstrap/Row";
+import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import DiscordCache from "../../lib/models/DiscordCache";
 import Hunts from "../../lib/models/Hunts";
@@ -31,6 +33,7 @@ import updateHunt from "../../methods/updateHunt";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import ActionButtonRow from "./ActionButtonRow";
+import Markdown from "./Markdown";
 
 enum SubmitState {
   IDLE = "idle",
@@ -225,6 +228,13 @@ const HuntEditPage = () => {
   const [hasGuessQueue, setHasGuessQueue] = useState<boolean>(
     hunt?.hasGuessQueue ?? true,
   );
+  const [termsOfUse, setTermsOfUse] = useState<string>(hunt?.termsOfUse ?? "");
+  const [showTermsOfUsePreview, setShowTermsOfUsePreview] =
+    useState<boolean>(false);
+  const toggleShowTermsOfUsePreview = useCallback(
+    () => setShowTermsOfUsePreview((prev) => !prev),
+    [],
+  );
   const [homepageUrl, setHomepageUrl] = useState<string>(
     hunt?.homepageUrl ?? "",
   );
@@ -273,6 +283,12 @@ const HuntEditPage = () => {
     },
     [],
   );
+
+  const onTermsOfUseChanged = useCallback<
+    NonNullable<FormControlProps["onChange"]>
+  >((e) => {
+    setTermsOfUse(e.currentTarget.value);
+  }, []);
 
   const onHomepageUrlChanged = useCallback<
     NonNullable<FormControlProps["onChange"]>
@@ -341,6 +357,7 @@ const HuntEditPage = () => {
         signupMessage: signupMessage === "" ? undefined : signupMessage,
         openSignups,
         hasGuessQueue,
+        termsOfUse: termsOfUse === "" ? undefined : termsOfUse,
         homepageUrl: homepageUrl === "" ? undefined : homepageUrl,
         submitTemplate: submitTemplate === "" ? undefined : submitTemplate,
         puzzleHooksDiscordChannel,
@@ -361,6 +378,7 @@ const HuntEditPage = () => {
       signupMessage,
       openSignups,
       hasGuessQueue,
+      termsOfUse,
       homepageUrl,
       submitTemplate,
       puzzleHooksDiscordChannel,
@@ -376,6 +394,24 @@ const HuntEditPage = () => {
   );
 
   const disableForm = submitState === SubmitState.SUBMITTING;
+
+  const termsOfUsePreview = createPortal(
+    <Modal
+      show={showTermsOfUsePreview}
+      size="lg"
+      onHide={toggleShowTermsOfUsePreview}
+    >
+      <ModalBody>
+        <Markdown text={termsOfUse} />
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="primary" onClick={toggleShowTermsOfUsePreview}>
+          Close
+        </Button>
+      </ModalFooter>
+    </Modal>,
+    document.body,
+  );
 
   return (
     <Container>
@@ -456,6 +492,36 @@ const HuntEditPage = () => {
             </FormText>
           </Col>
         </FormGroup>
+
+        <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="hunt-form-terms-of-use">
+            Terms of use
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="hunt-form-terms-of-use"
+              as="textarea"
+              value={termsOfUse}
+              onChange={onTermsOfUseChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If specified, this text (rendered as Markdown) will be shown to
+              users when the first visit the hunt website, and they will be
+              required to accept it before they can proceed.
+              <ActionButtonRow>
+                <Button
+                  variant="secondary"
+                  onClick={toggleShowTermsOfUsePreview}
+                >
+                  Preview
+                </Button>
+              </ActionButtonRow>
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        {termsOfUsePreview}
 
         <h3>Hunt website</h3>
 

@@ -9,6 +9,7 @@ declare module "meteor/meteor" {
     interface User {
       lastLogin?: Date;
       hunts?: string[];
+      huntTermsAcceptedAt?: Record<string, Date>;
       roles?: Record<string, string[]>; // scope -> roles
       displayName?: string;
       googleAccount?: string;
@@ -40,6 +41,7 @@ export const User = z.object({
   profile: z.object({}).optional(),
   roles: z.record(z.string(), nonEmptyString.array()).optional(),
   hunts: foreignKey.array().optional(),
+  huntTermsAcceptedAt: z.record(z.string(), z.date()).optional(),
   displayName: nonEmptyString.optional(),
   googleAccount: nonEmptyString.optional(),
   googleAccountId: nonEmptyString.optional(),
