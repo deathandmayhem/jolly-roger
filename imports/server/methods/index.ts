@@ -19,6 +19,7 @@ import "./configureOrganizeGoogleDrive";
 import "./configureS3ImageBucket";
 import "./configureTeamName";
 import "./configureGoogleScriptUrl";
+import "./createDocumentImageUpload";
 import "./createFixtureHunt";
 import "./createGuess";
 import "./createHunt";
