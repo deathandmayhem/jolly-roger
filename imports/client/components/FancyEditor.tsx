@@ -13,7 +13,11 @@ import type { BaseEditor, Descendant, NodeEntry, Node, Path } from "slate";
 import { createEditor, Editor, Text, Transforms, Range } from "slate";
 import type { HistoryEditor } from "slate-history";
 import { withHistory } from "slate-history";
-import type { RenderLeafProps, RenderElementProps } from "slate-react";
+import type {
+  RenderLeafProps,
+  RenderElementProps,
+  RenderPlaceholderProps,
+} from "slate-react";
 import {
   Slate,
   Editable,
@@ -463,6 +467,22 @@ const decorate = ([node, path]: [Node, Path]) => {
   return ranges;
 };
 
+const PlaceholderSpan = styled.span`
+  position: absolute;
+  opacity: 0.333;
+`;
+
+const renderPlaceholder = ({
+  attributes,
+  children,
+}: RenderPlaceholderProps) => {
+  // Drop the `style` from `attributes` -- the value provided by default by
+  // slate-react carries a top: 0 that causes the placeholder text to not sit
+  // on the baseline correctly.
+  const { style: _unused, ...rest } = attributes;
+  return <PlaceholderSpan {...rest}>{children}</PlaceholderSpan>;
+};
+
 const Portal = ({ children }: { children: React.ReactNode }) => {
   return createPortal(children, document.body);
 };
@@ -773,6 +793,7 @@ const FancyEditor = React.forwardRef(
           decorate={decorate}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
+          renderPlaceholder={renderPlaceholder}
           onKeyDown={onKeyDown}
           readOnly={disabled}
         />
