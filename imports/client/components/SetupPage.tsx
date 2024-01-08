@@ -4,7 +4,7 @@ import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
 import type { ReactNode } from "react";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
@@ -13,6 +13,7 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
+import Creatable from "react-select/creatable";
 import styled from "styled-components";
 import Flags from "../../Flags";
 import isAdmin from "../../lib/isAdmin";
@@ -33,7 +34,9 @@ import configureGdriveRoot from "../../methods/configureGdriveRoot";
 import configureGdriveTemplates from "../../methods/configureGdriveTemplates";
 import configureGoogleOAuthClient from "../../methods/configureGoogleOAuthClient";
 import configureGoogleScriptUrl from "../../methods/configureGoogleScriptUrl";
+import configureListS3Buckets from "../../methods/configureListS3Buckets";
 import configureOrganizeGoogleDrive from "../../methods/configureOrganizeGoogleDrive";
+import configureS3ImageBucket from "../../methods/configureS3ImageBucket";
 import configureTeamName from "../../methods/configureTeamName";
 import generateUploadToken from "../../methods/generateUploadToken";
 import setFeatureFlag from "../../methods/setFeatureFlag";
@@ -1050,6 +1053,151 @@ const GoogleIntegrationSection = () => {
         </SubsectionHeader>
         <GoogleScriptForm app={googleScriptApp} />
       </Subsection>
+    </Section>
+  );
+};
+
+const S3ImageBucketForm = ({
+  initialConfig,
+}: {
+  initialConfig?: SettingType & { name: "s3.image_bucket" };
+}) => {
+  const defaultValue = initialConfig?.value.bucketName;
+
+  const [loading, setLoading] = useState(true);
+  const [buckets, setBuckets] = useState<string[]>([]);
+
+  const loadBuckets = useCallback(async () => {
+    setLoading(true);
+    const response = await configureListS3Buckets.callPromise();
+    setBuckets(response);
+    setLoading(false);
+  }, []);
+  useEffect(() => {
+    void loadBuckets();
+  }, [loadBuckets]);
+
+  const options = useMemo(
+    () =>
+      buckets.map((b) => {
+        return { value: b, label: b };
+      }),
+    [buckets],
+  );
+
+  const formatCreateLabel = useCallback(
+    (value: string) => `Other: ${value}`,
+    [],
+  );
+
+  const [selectedBucket, setSelectedBucket] = useState<string | undefined>(
+    undefined,
+  );
+
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>("");
+
+  const dismissAlert = useCallback(() => {
+    setSubmitState(SubmitState.IDLE);
+  }, []);
+
+  const shouldDisableForm = submitState === "submitting";
+
+  const saveConfig = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setSubmitState(SubmitState.SUBMITTING);
+      configureS3ImageBucket.call({ bucketName: selectedBucket }, (err) => {
+        if (err) {
+          setSubmitState(SubmitState.ERROR);
+          setSubmitError(err.message);
+        } else {
+          setSubmitState(SubmitState.SUCCESS);
+        }
+      });
+    },
+    [selectedBucket],
+  );
+
+  return (
+    <form onSubmit={saveConfig}>
+      {submitState === "submitting" ? (
+        <Alert variant="info">Saving...</Alert>
+      ) : null}
+      {submitState === "success" ? (
+        <Alert variant="success" dismissible onClose={dismissAlert}>
+          Saved changes.
+        </Alert>
+      ) : null}
+      {submitState === "error" ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          Saving failed: {submitError}
+        </Alert>
+      ) : null}
+      <FormGroup className="mb-3">
+        <FormLabel htmlFor="jr-setup-edit-s3-image-bucket">S3 bucket</FormLabel>
+        <Creatable
+          isDisabled={shouldDisableForm}
+          isClearable
+          isLoading={loading}
+          options={options}
+          formatCreateLabel={formatCreateLabel}
+          defaultValue={
+            defaultValue ? { value: defaultValue, label: defaultValue } : null
+          }
+          onChange={(v) => setSelectedBucket(v?.value ?? undefined)}
+        />
+      </FormGroup>
+      <ActionButtonRow>
+        <Button type="submit" variant="primary" disabled={shouldDisableForm}>
+          Save
+        </Button>
+      </ActionButtonRow>
+    </form>
+  );
+};
+
+const AWSIntegrationSection = () => {
+  const imageBucketSettings = useTracker(
+    () => Settings.findOne({ name: "s3.image_bucket" }),
+    [],
+  );
+
+  const configured = !!imageBucketSettings?.value.bucketName;
+  const badgeVariant = configured ? "success" : "warning";
+
+  return (
+    <Section id="aws">
+      <SectionHeader>
+        <SectionHeaderLabel>AWS configuration</SectionHeaderLabel>
+        <Badge bg={badgeVariant}>
+          {configured ? "Configured" : "Unconfigured"}
+        </Badge>
+      </SectionHeader>
+      <p>
+        Jolly Roger can optionally use AWS S3 to store images that are inserted
+        by users into Google Spreadsheets. While it&apos;s possible for our
+        Google Apps Script integration to upload images directly into Google
+        Spreadsheets, these images are limited to 1 million pixels in size,
+        which just isn&apos;t that many pixels.
+      </p>
+      <p>
+        To use this feature, you&apos;ll need to create an S3 bucket and an IAM
+        user with permission to upload to that bucket. That bucket must have an
+        S3 bucket policy which allows public reads (i.e. reads from principal{" "}
+        <code>&quot;*&quot;</code>). We attempt to find usable buckets
+        automatically, but you can also provide the bucket name manually.
+      </p>
+      <p>
+        Note that AWS credentials must be provided in the environment, either
+        via{" "}
+        <a href="https://docs.aws.amazon.com/sdkref/latest/guide/environment-variables.html">
+          environment variables
+        </a>{" "}
+        or via the IAM role of the EC2 instance running Jolly Roger.
+      </p>
+
+      <S3ImageBucketForm initialConfig={imageBucketSettings} />
     </Section>
   );
 };
@@ -2358,6 +2506,7 @@ const SetupPage = () => {
   return (
     <PageContainer>
       <GoogleIntegrationSection />
+      <AWSIntegrationSection />
       <EmailConfigSection />
       <DiscordIntegrationSection />
       <BrandingSection />

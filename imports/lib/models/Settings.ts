@@ -57,6 +57,13 @@ const SettingDiscriminatedUnion = z.discriminatedUnion("name", [
       endpointUrl: nonEmptyString.optional(),
     }),
   }),
+  z.object({
+    name: z.literal("s3.image_bucket"),
+    value: z.object({
+      bucketName: nonEmptyString,
+      bucketRegion: nonEmptyString,
+    }),
+  }),
 ]);
 
 const Setting = withCommon(SettingDiscriminatedUnion);
