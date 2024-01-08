@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import Flags from "../Flags";
+import Logger from "../Logger";
 import {
   ACTIVITY_GRANULARITY,
   ACTIVITY_SEGMENTS,
@@ -160,57 +161,65 @@ async function featureFlagChanged() {
 
 async function fetchActivityLoop() {
   while (true) {
-    // Loop until the feature flag is disabled (i.e. the disabler is not
-    // disabled)
-    while (true) {
-      if (!(await Flags.activeAsync(FEATURE_FLAG_NAME))) {
-        break;
+    try {
+      // Loop until the feature flag is disabled (i.e. the disabler is not
+      // disabled)
+      while (true) {
+        if (!(await Flags.activeAsync(FEATURE_FLAG_NAME))) {
+          break;
+        }
+        await featureFlagChanged();
       }
-      await featureFlagChanged();
-    }
 
-    await withLock("drive-activity", async (renew) => {
-      // Ensure that we continue to hold the lock as long as we're alive.
-      let renewInterval;
-      try {
-        const renewalFailure = new Promise<boolean>((r) => {
-          renewInterval = Meteor.setInterval(async () => {
-            try {
-              await renew();
-            } catch (e) {
-              // We failed to renew the lock
-              r(true);
-            }
-          }, PREEMPT_TIMEOUT / 2);
-        });
-
-        // As long as we are alive and the feature flag is not active, hold the
-        // lock and keep looping
-        while (true) {
-          if (await Flags.activeAsync(FEATURE_FLAG_NAME)) {
-            return; // from withLock
-          }
-
-          await fetchDriveActivity();
-
-          // Wake up every 5 seconds (+/- 1 second of jitter)
-          const sleep = new Promise<boolean>((r) => {
-            Meteor.setTimeout(
-              () => r(false),
-              4 * 1000 + Math.random() * 2 * 1000,
-            );
+      await withLock("drive-activity", async (renew) => {
+        // Ensure that we continue to hold the lock as long as we're alive.
+        let renewInterval;
+        try {
+          const renewalFailure = new Promise<boolean>((r) => {
+            renewInterval = Meteor.setInterval(async () => {
+              try {
+                await renew();
+              } catch (e) {
+                // We failed to renew the lock
+                r(true);
+              }
+            }, PREEMPT_TIMEOUT / 2);
           });
-          const renewalFailed = await Promise.race([sleep, renewalFailure]);
-          if (renewalFailed) {
-            return; // from withLock
+
+          // As long as we are alive and the feature flag is not active, hold the
+          // lock and keep looping
+          while (true) {
+            if (await Flags.activeAsync(FEATURE_FLAG_NAME)) {
+              return; // from withLock
+            }
+
+            await fetchDriveActivity();
+
+            // Wake up every 5 seconds (+/- 1 second of jitter)
+            const sleep = new Promise<boolean>((r) => {
+              Meteor.setTimeout(
+                () => r(false),
+                4 * 1000 + Math.random() * 2 * 1000,
+              );
+            });
+            const renewalFailed = await Promise.race([sleep, renewalFailure]);
+            if (renewalFailed) {
+              return; // from withLock
+            }
+          }
+        } finally {
+          if (renewInterval) {
+            Meteor.clearInterval(renewInterval);
           }
         }
-      } finally {
-        if (renewInterval) {
-          Meteor.clearInterval(renewInterval);
-        }
-      }
-    });
+      });
+    } catch (error) {
+      Logger.error("Error fetching drive activity", { error });
+      // Sleep for 5 seconds before retrying
+      await new Promise((r) => {
+        Meteor.setTimeout(r, 5000);
+      });
+    }
   }
 }
 
