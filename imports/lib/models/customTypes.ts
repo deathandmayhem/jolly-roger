@@ -1,8 +1,8 @@
-import { Meteor } from 'meteor/meteor';
-import { z } from 'zod';
-import { answerify } from '../../model-helpers';
-import { attachCustomJsonSchema } from './generateJsonSchema';
-import { Id } from './regexes';
+import { Meteor } from "meteor/meteor";
+import { z } from "zod";
+import { answerify } from "../../model-helpers";
+import { attachCustomJsonSchema } from "./generateJsonSchema";
+import { Id } from "./regexes";
 
 // Each of these is set to true based on the context in which the schema is
 // being evaluated. They are mutually exclusive (although they can all be false)
@@ -36,9 +36,16 @@ export const allowedEmptyString = z.string();
 // always return values (e.g. createdTimestamp will always be a Date, it'll just
 // get set on insertion and not on subsequent updates).
 
-export const stringId = z.string().regex(Id).optional()
+export const stringId = z
+  .string()
+  .regex(Id)
+  .optional()
   .transform((v) => v as unknown as string);
-attachCustomJsonSchema(stringId, { bsonType: 'string', pattern: Id.source }, true);
+attachCustomJsonSchema(
+  stringId,
+  { bsonType: "string", pattern: Id.source },
+  true,
+);
 
 export const foreignKey = z.string().regex(Id);
 
@@ -49,51 +56,56 @@ export const snowflake = z.string().regex(/^[0-9]+$/);
 // rather than something we can easily introspect (like one of the
 // ZodFirstPartySchemaTypes).
 export const uint8Array = z.instanceof(Uint8Array);
-attachCustomJsonSchema(uint8Array, { bsonType: 'binData' });
+attachCustomJsonSchema(uint8Array, { bsonType: "binData" });
 
 export const portNumber = z.number().int().positive().lte(65535);
 
 export const deleted = z.boolean().default(false);
 
-export const createdTimestamp = z.date()
-  .default(() => clock());
-attachCustomJsonSchema(createdTimestamp, { bsonType: 'date' }, true);
+export const createdTimestamp = z.date().default(() => clock());
+attachCustomJsonSchema(createdTimestamp, { bsonType: "date" }, true);
 
-export const updatedTimestamp = z.date().optional()
+export const updatedTimestamp = z
+  .date()
+  .optional()
   .transform((v) => {
     if (v) return v;
-    if (IsInsert.getOrNullIfOutsideFiber() ||
+    if (
+      IsInsert.getOrNullIfOutsideFiber() ||
       IsUpsert.getOrNullIfOutsideFiber() ||
-      IsUpdate.getOrNullIfOutsideFiber()) {
+      IsUpdate.getOrNullIfOutsideFiber()
+    ) {
       return clock();
     }
     return undefined as unknown as Date;
   });
-attachCustomJsonSchema(updatedTimestamp, { bsonType: 'date' });
+attachCustomJsonSchema(updatedTimestamp, { bsonType: "date" });
 
-export const createdUser = foreignKey.optional()
-  .transform((v) => {
-    if (v) return v;
-    try {
-      if (IsInsert.get() || IsUpsert.get()) return Meteor.userId()!;
-    } catch (e) {
-      /* ignore */
-    }
-    return undefined as unknown as string;
-  });
-attachCustomJsonSchema(createdUser, { bsonType: 'string', pattern: Id.source }, true);
+export const createdUser = foreignKey.optional().transform((v) => {
+  if (v) return v;
+  try {
+    if (IsInsert.get() || IsUpsert.get()) return Meteor.userId()!;
+  } catch (e) {
+    /* ignore */
+  }
+  return undefined as unknown as string;
+});
+attachCustomJsonSchema(
+  createdUser,
+  { bsonType: "string", pattern: Id.source },
+  true,
+);
 
-export const updatedUser = foreignKey.optional()
-  .transform((v) => {
-    if (v) return v;
-    try {
-      if (IsUpdate.get()) return Meteor.userId() ?? undefined;
-    } catch (e) {
-      /* ignore */
-    }
-    return undefined;
-  });
-attachCustomJsonSchema(updatedUser, { bsonType: 'string', pattern: Id.source });
+export const updatedUser = foreignKey.optional().transform((v) => {
+  if (v) return v;
+  try {
+    if (IsUpdate.get()) return Meteor.userId() ?? undefined;
+  } catch (e) {
+    /* ignore */
+  }
+  return undefined;
+});
+attachCustomJsonSchema(updatedUser, { bsonType: "string", pattern: Id.source });
 
 export const answer = nonEmptyString.transform((v) => answerify(v));
-attachCustomJsonSchema(answer, { bsonType: 'string' });
+attachCustomJsonSchema(answer, { bsonType: "string" });

@@ -1,4 +1,4 @@
-import type { Mongo } from 'meteor/mongo';
+import type { Mongo } from "meteor/mongo";
 
 interface Document {
   [key: string]: any;
@@ -6,7 +6,7 @@ interface Document {
 
 async function dropIndex<T extends Document>(
   model: Mongo.Collection<T>,
-  index: string
+  index: string,
 ) {
   // _dropIndex is not idempotent, so we need to figure out if the
   // index already exists

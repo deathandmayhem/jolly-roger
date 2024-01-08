@@ -1,26 +1,26 @@
-import { Meteor } from 'meteor/meteor';
-import Flags from '../../Flags';
-import ChatMessages from '../../lib/models/ChatMessages';
-import type { ChatMessageContentType } from '../../lib/models/ChatMessages';
-import Hunts from '../../lib/models/Hunts';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import type { PuzzleType } from '../../lib/models/Puzzles';
-import Puzzles from '../../lib/models/Puzzles';
-import Settings from '../../lib/models/Settings';
-import Tags from '../../lib/models/Tags';
-import nodeIsText from '../../lib/nodeIsText';
-import { computeSolvedness } from '../../lib/solvedness';
-import { DiscordBot } from '../discord';
-import type Hookset from './Hookset';
+import { Meteor } from "meteor/meteor";
+import Flags from "../../Flags";
+import ChatMessages from "../../lib/models/ChatMessages";
+import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
+import Hunts from "../../lib/models/Hunts";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
+import Settings from "../../lib/models/Settings";
+import Tags from "../../lib/models/Tags";
+import nodeIsText from "../../lib/nodeIsText";
+import { computeSolvedness } from "../../lib/solvedness";
+import { DiscordBot } from "../discord";
+import type Hookset from "./Hookset";
 
 async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   // Above all else, obey the circuit breaker
-  if (await Flags.activeAsync('disable.discord')) {
+  if (await Flags.activeAsync("disable.discord")) {
     return undefined;
   }
 
-  const botSettings = await Settings.findOneAsync({ name: 'discord.bot' });
-  if (!botSettings || botSettings.name !== 'discord.bot') {
+  const botSettings = await Settings.findOneAsync({ name: "discord.bot" });
+  if (!botSettings || botSettings.name !== "discord.bot") {
     return undefined;
   }
 
@@ -32,16 +32,20 @@ async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   return new DiscordBot(token);
 }
 
-async function renderChatMessageContent(content: ChatMessageContentType): Promise<string> {
-  const chunks = await Promise.all(content.children.map(async (child) => {
-    if (nodeIsText(child)) {
-      return child.text;
-    } else {
-      const user = await MeteorUsers.findOneAsync(child.userId);
-      return ` @${user?.displayName ?? child.userId} `;
-    }
-  }));
-  return chunks.join('');
+async function renderChatMessageContent(
+  content: ChatMessageContentType,
+): Promise<string> {
+  const chunks = await Promise.all(
+    content.children.map(async (child) => {
+      if (nodeIsText(child)) {
+        return child.text;
+      } else {
+        const user = await MeteorUsers.findOneAsync(child.userId);
+        return ` @${user?.displayName ?? child.userId} `;
+      }
+    }),
+  );
+  return chunks.join("");
 }
 
 const DiscordHooks: Hookset = {
@@ -55,10 +59,17 @@ const DiscordHooks: Hookset = {
     const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
       const title = `${puzzle.title} unlocked`;
-      const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
-      const tagNameList = await Tags.find({ _id: { $in: puzzle.tags } }).mapAsync((t) => t.name);
-      const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(', ');
-      const fields = tags.length > 0 ? [{ name: 'Tags', value: tags, inline: true }] : undefined;
+      const url = Meteor.absoluteUrl(
+        `hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
+      );
+      const tagNameList = await Tags.find({
+        _id: { $in: puzzle.tags },
+      }).mapAsync((t) => t.name);
+      const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(", ");
+      const fields =
+        tags.length > 0
+          ? [{ name: "Tags", value: tags, inline: true }]
+          : undefined;
       const messageObj = {
         embed: {
           title,
@@ -66,7 +77,10 @@ const DiscordHooks: Hookset = {
           fields,
         },
       };
-      await bot.postMessageToChannel(hunt.puzzleHooksDiscordChannel.id, messageObj);
+      await bot.postMessageToChannel(
+        hunt.puzzleHooksDiscordChannel.id,
+        messageObj,
+      );
     }
   },
 
@@ -84,10 +98,17 @@ const DiscordHooks: Hookset = {
     const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
       const title = `${oldPuzzle.title} renamed to ${puzzle.title}`;
-      const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
-      const tagNameList = await Tags.find({ _id: { $in: puzzle.tags } }).mapAsync((t) => t.name);
-      const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(', ');
-      const fields = tags.length > 0 ? [{ name: 'Tags', value: tags, inline: true }] : undefined;
+      const url = Meteor.absoluteUrl(
+        `hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
+      );
+      const tagNameList = await Tags.find({
+        _id: { $in: puzzle.tags },
+      }).mapAsync((t) => t.name);
+      const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(", ");
+      const fields =
+        tags.length > 0
+          ? [{ name: "Tags", value: tags, inline: true }]
+          : undefined;
       const messageObj = {
         embed: {
           title,
@@ -95,7 +116,10 @@ const DiscordHooks: Hookset = {
           fields,
         },
       };
-      await bot.postMessageToChannel(hunt.puzzleHooksDiscordChannel.id, messageObj);
+      await bot.postMessageToChannel(
+        hunt.puzzleHooksDiscordChannel.id,
+        messageObj,
+      );
     }
   },
 
@@ -108,9 +132,13 @@ const DiscordHooks: Hookset = {
     const puzzle = (await Puzzles.findOneAsync(puzzleId))!;
     const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
-      const url = Meteor.absoluteUrl(`hunts/${puzzle.hunt}/puzzles/${puzzle._id}`);
-      const answers = puzzle.answers.map((answer) => `\`${answer}\``).join(', ');
-      const answerLabel = `Answer${puzzle.expectedAnswerCount > 1 ? 's' : ''}`;
+      const url = Meteor.absoluteUrl(
+        `hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
+      );
+      const answers = puzzle.answers
+        .map((answer) => `\`${answer}\``)
+        .join(", ");
+      const answerLabel = `Answer${puzzle.expectedAnswerCount > 1 ? "s" : ""}`;
       const solvedness = computeSolvedness(puzzle);
       const color = {
         solved: 0x00ff00,
@@ -118,9 +146,9 @@ const DiscordHooks: Hookset = {
         noAnswers: 0,
       }[solvedness];
       const solvedStr = {
-        solved: 'solved',
-        unsolved: 'partially solved',
-        noAnswers: '',
+        solved: "solved",
+        unsolved: "partially solved",
+        noAnswers: "",
       }[solvedness];
       const title = `${puzzle.title} ${solvedStr}`;
       const messageObj = {
@@ -128,12 +156,13 @@ const DiscordHooks: Hookset = {
           color,
           title,
           url,
-          fields: [
-            { name: answerLabel, value: answers, inline: true },
-          ],
+          fields: [{ name: answerLabel, value: answers, inline: true }],
         },
       };
-      await bot.postMessageToChannel(hunt.puzzleHooksDiscordChannel.id, messageObj);
+      await bot.postMessageToChannel(
+        hunt.puzzleHooksDiscordChannel.id,
+        messageObj,
+      );
     }
   },
 
@@ -151,7 +180,7 @@ const DiscordHooks: Hookset = {
 
       let name: string;
       if (!chatMessage.sender) {
-        name = 'Jolly Roger';
+        name = "Jolly Roger";
       } else {
         name = chatMessage.sender;
         const user = await MeteorUsers.findOneAsync(chatMessage.sender);
@@ -162,7 +191,9 @@ const DiscordHooks: Hookset = {
         }
       }
 
-      const url = Meteor.absoluteUrl(`hunts/${chatMessage.hunt}/puzzles/${chatMessage.puzzle}`);
+      const url = Meteor.absoluteUrl(
+        `hunts/${chatMessage.hunt}/puzzles/${chatMessage.puzzle}`,
+      );
       let title = puzzle.title;
       if (title.length > 25) {
         title = `${title.substring(0, 24)}…`;

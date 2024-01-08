@@ -1,6 +1,6 @@
-import Mustache from 'mustache';
-import type { HuntType } from './lib/models/Hunts';
-import type { PuzzleType } from './lib/models/Puzzles';
+import Mustache from "mustache";
+import type { HuntType } from "./lib/models/Hunts";
+import type { PuzzleType } from "./lib/models/Puzzles";
 
 const answerify = function (answer: string): string {
   return answer.toUpperCase();
@@ -8,7 +8,7 @@ const answerify = function (answer: string): string {
 
 const guessURL = function (hunt: HuntType, puzzle: PuzzleType): string {
   if (!puzzle.url) {
-    return '';
+    return "";
   }
 
   if (!hunt.submitTemplate) {

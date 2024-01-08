@@ -1,37 +1,53 @@
-import type { Subscription } from 'meteor/meteor';
-import { Meteor } from 'meteor/meteor';
-import type { Mongo } from 'meteor/mongo';
-import Bugsnag from '@bugsnag/js';
-import Logger from '../../Logger';
-import type { DefaultTypedPublication, TypedPublicationArgs } from '../../lib/publications/TypedPublication';
-import type TypedPublication from '../../lib/publications/TypedPublication';
+import type { Subscription } from "meteor/meteor";
+import { Meteor } from "meteor/meteor";
+import type { Mongo } from "meteor/mongo";
+import Bugsnag from "@bugsnag/js";
+import Logger from "../../Logger";
+import type {
+  DefaultTypedPublication,
+  TypedPublicationArgs,
+} from "../../lib/publications/TypedPublication";
+import type TypedPublication from "../../lib/publications/TypedPublication";
 
 type TypedPublicationReturn =
-  undefined | Mongo.Cursor<any> | Mongo.Cursor<any>[] |
-  Promise<undefined | Mongo.Cursor<any> | Mongo.Cursor<any>[]>;
-type TypedPublicationValidator<Arg extends TypedPublicationArgs> =
-  (arg0: unknown) => Arg;
-type TypedPublicationRun<Arg extends TypedPublicationArgs> = Arg extends void ?
-  (this: Subscription) => TypedPublicationReturn :
-  (this: Subscription, arg0: Arg) => TypedPublicationReturn;
+  | undefined
+  | Mongo.Cursor<any>
+  | Mongo.Cursor<any>[]
+  | Promise<undefined | Mongo.Cursor<any> | Mongo.Cursor<any>[]>;
+type TypedPublicationValidator<Arg extends TypedPublicationArgs> = (
+  arg0: unknown,
+) => Arg;
+type TypedPublicationRun<Arg extends TypedPublicationArgs> = Arg extends void
+  ? (this: Subscription) => TypedPublicationReturn
+  : (this: Subscription, arg0: Arg) => TypedPublicationReturn;
 
-const voidValidator = () => { /* noop */ };
+const voidValidator = () => {
+  /* noop */
+};
 
 // Supporting publications with void arguments is a bit messy, but as with
 // TypedMethods, worth doing. See TypedMethod for an explanation of the
 // shenanigans required, which are basically the same here
 export default function definePublication<
   Publication extends TypedPublication<any> | DefaultTypedPublication,
-  Args extends TypedPublicationArgs = Publication extends TypedPublication<infer A> ? A : void,
+  Args extends TypedPublicationArgs = Publication extends TypedPublication<
+    infer A
+  >
+    ? A
+    : void,
 >(
   publication: Publication,
-  { validate, run }: {
-    run: TypedPublicationRun<Args>,
-  } & (
-    Args extends void ? { validate?: undefined } : { validate: TypedPublicationValidator<Args> }
-  )
+  {
+    validate,
+    run,
+  }: {
+    run: TypedPublicationRun<Args>;
+  } & (Args extends void
+    ? { validate?: undefined }
+    : { validate: TypedPublicationValidator<Args> }),
 ) {
-  const validator = (validate ?? voidValidator) as TypedPublicationValidator<Args>;
+  const validator = (validate ??
+    voidValidator) as TypedPublicationValidator<Args>;
 
   /* eslint-disable-next-line meteor/audit-argument-checks -- because we're
     wrapping the method call, the eslint check can't tell what's going on, but
@@ -42,7 +58,7 @@ export default function definePublication<
       const validatedArg0 = validator.bind(this)(arg0) as any;
       return await run.bind(this)(validatedArg0);
     } catch (error) {
-      Logger.info('Error in publication', {
+      Logger.info("Error in publication", {
         name: publication.name,
         user: this.userId,
         arguments: arg0,
@@ -50,7 +66,7 @@ export default function definePublication<
       });
       if (error instanceof Error && Bugsnag.isStarted()) {
         Bugsnag.notify(error, (event) => {
-          event.context = publication.name ?? 'default publication';
+          event.context = publication.name ?? "default publication";
         });
       }
       throw error;

@@ -1,19 +1,21 @@
-import { promisify } from 'util';
-import { check } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
-import { MongoInternals } from 'meteor/mongo';
-import TypedMethod from '../../imports/methods/TypedMethod';
+import { promisify } from "util";
+import { check } from "meteor/check";
+import { Meteor } from "meteor/meteor";
+import { MongoInternals } from "meteor/mongo";
+import TypedMethod from "../../imports/methods/TypedMethod";
 
-const resetDatabaseMethod = new TypedMethod<{ testName: string }, void>('test.methods.resetDatabase');
+const resetDatabaseMethod = new TypedMethod<{ testName: string }, void>(
+  "test.methods.resetDatabase",
+);
 
 // eslint-disable-next-line import/no-mutable-exports
 let resetDatabase: (testName: string) => Promise<void>;
 
 if (Meteor.isServer) {
-  const defineMethod: typeof import('../../imports/server/methods/defineMethod').default =
-    require('../../imports/server/methods/defineMethod').default;
-  const Migrations: typeof import('../../imports/server/migrations/Migrations').default =
-    require('../../imports/server/migrations/Migrations').default;
+  const defineMethod: typeof import("../../imports/server/methods/defineMethod").default =
+    require("../../imports/server/methods/defineMethod").default;
+  const Migrations: typeof import("../../imports/server/migrations/Migrations").default =
+    require("../../imports/server/migrations/Migrations").default;
 
   // We track a few bits of information here to make it easier to tell what's
   // going on in the event that the server receives concurrent `resetDatabase`
@@ -30,11 +32,14 @@ if (Meteor.isServer) {
 
   resetDatabase = async (testName: string) => {
     if (!Meteor.isAppTest) {
-      throw new Meteor.Error(500, 'This code must not run in production');
+      throw new Meteor.Error(500, "This code must not run in production");
     }
 
     if (entries !== exits) {
-      throw new Meteor.Error(500, `concurrent calls to test.resetDatabase: running: "${currentTest}", requested: "${testName}"`);
+      throw new Meteor.Error(
+        500,
+        `concurrent calls to test.resetDatabase: running: "${currentTest}", requested: "${testName}"`,
+      );
     }
 
     entries += 1;
@@ -45,7 +50,10 @@ if (Meteor.isServer) {
     const collections = await db.collections();
     const appCollections = collections.filter((col) => {
       // Exclude system collections and velocity collections.
-      return !col.collectionName.startsWith('system.') && !col.collectionName.startsWith('velocity');
+      return (
+        !col.collectionName.startsWith("system.") &&
+        !col.collectionName.startsWith("velocity")
+      );
     });
     for (const collection of appCollections) {
       await collection.deleteMany({}, {});
@@ -69,7 +77,7 @@ if (Meteor.isServer) {
       return resetDatabase(testName);
     },
   });
-} else /* isClient */ {
+} /* isClient */ else {
   resetDatabase = async (testName: string) => {
     // If we're logged in when we issue the call to test.resetDatabase, then
     // we will be logged out when our userId's doc is deleted from the users

@@ -1,6 +1,6 @@
 # Jolly Roger development
 
-Jolly Roger is written in TypeScript using the Meteor web framework.  To run
+Jolly Roger is written in TypeScript using the Meteor web framework. To run
 Jolly Roger locally, you'll need to first
 [install Meteor](https://www.meteor.com/install).
 
@@ -38,9 +38,8 @@ begin using jolly-roger.
 ## Additional server setup
 
 Users with the `admin` role can configure other server options from the setup
-page at [http://localhost:3000/setup](http://localhost:3000/setup).  This is
+page at [http://localhost:3000/setup](http://localhost:3000/setup). This is
 where you'd go to configure various Google integration configuration options.
-
 
 ## Example hunt data
 
@@ -54,7 +53,7 @@ and click the "Create sample hunt" button. Otherwise, you can open the
 run the following:
 
 ```js
-Meteor.call("Hunts.methods.createFixture")
+Meteor.call("Hunts.methods.createFixture");
 ```
 
 Either way, upon success, you should see a hunt named "Mystery Hunt 2018" in the

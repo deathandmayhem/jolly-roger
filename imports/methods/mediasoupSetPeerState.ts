@@ -1,4 +1,4 @@
-import TypedMethod from './TypedMethod';
+import TypedMethod from "./TypedMethod";
 
 // The three participant states permitted by setMediasoupPeerState fan out to two
 // boolean properties on the document:
@@ -9,8 +9,9 @@ import TypedMethod from './TypedMethod';
 // --------+--------+-------+----------+
 // deafened|  false | false |   true   |
 // --------+--------+-------+----------+
-export const ALLOWED_STATES = ['active', 'muted', 'deafened'] as const;
+export const ALLOWED_STATES = ["active", "muted", "deafened"] as const;
 
-export default new TypedMethod<{ peerId: string, state: typeof ALLOWED_STATES[number] }, void>(
-  'Mediasoup.Peers.methods.setState'
-);
+export default new TypedMethod<
+  { peerId: string; state: (typeof ALLOWED_STATES)[number] },
+  void
+>("Mediasoup.Peers.methods.setState");

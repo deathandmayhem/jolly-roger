@@ -1,9 +1,9 @@
-import http from 'http';
-import os from 'os';
-import { WebApp } from 'meteor/webapp';
-import HttpProxy from 'http-proxy';
-import LoadBalancer from './LoadBalancer';
-import WorkerPool from './WorkerPool';
+import http from "http";
+import os from "os";
+import { WebApp } from "meteor/webapp";
+import HttpProxy from "http-proxy";
+import LoadBalancer from "./LoadBalancer";
+import WorkerPool from "./WorkerPool";
 
 // This implements a simple multi-process, single-machine load-balancer.
 //
@@ -26,7 +26,7 @@ import WorkerPool from './WorkerPool';
 // from the main process as usual.
 const getWorkersCount = () => {
   const maybeWorkerCountString = process.env.CLUSTER_WORKERS_COUNT;
-  if (`${maybeWorkerCountString}`.toLowerCase() === 'auto') {
+  if (`${maybeWorkerCountString}`.toLowerCase() === "auto") {
     const cpuCount = os.cpus().length;
     if (cpuCount === 1) {
       // No need to start a separate worker if we're only running 1

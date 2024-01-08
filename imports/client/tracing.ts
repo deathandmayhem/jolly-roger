@@ -7,12 +7,12 @@
 // Allow initial trace state to be set via localStorage, so we can
 // enable recording traces on initial page load before a human can
 // poke things in the console.
-let TRACING_ENABLED = localStorage.getItem('enableTracing') !== null;
+let TRACING_ENABLED = localStorage.getItem("enableTracing") !== null;
 
 type TraceItem = {
   stamp: number;
   args: any;
-}
+};
 
 const eventBuffer: TraceItem[] = [];
 const trace = (...args: any[]) => {
@@ -48,6 +48,4 @@ const dumpBuffer = () => {
   console.log(JSON.stringify(eventBuffer));
 };
 
-export {
-  dumpBuffer, eventBuffer, replayEvents, begin, end, clear, trace,
-};
+export { dumpBuffer, eventBuffer, replayEvents, begin, end, clear, trace };

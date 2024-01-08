@@ -1,16 +1,19 @@
-import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
-  type ComponentPropsWithRef, type FC, useCallback, useState,
-} from 'react';
-import Button from 'react-bootstrap/Button';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import styled from 'styled-components';
-import type { PuzzleType } from '../../lib/models/Puzzles';
-import type { TagType } from '../../lib/models/Tags';
-import Tag from './Tag';
-import TagEditor from './TagEditor';
+  type ComponentPropsWithRef,
+  type FC,
+  useCallback,
+  useState,
+} from "react";
+import Button from "react-bootstrap/Button";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
+import styled from "styled-components";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import type { TagType } from "../../lib/models/Tags";
+import Tag from "./Tag";
+import TagEditor from "./TagEditor";
 
 const TagListDiv = styled.div`
   display: inline;
@@ -21,7 +24,9 @@ const TagListEmptyLabel = styled.span`
   margin-right: 4px;
 `;
 
-const TagModifyButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
+const TagModifyButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
+  Button,
+)`
   line-height: 22px;
   padding: 0 6px;
   margin: 2px 0;
@@ -48,20 +53,21 @@ interface PopoverRelatedProps {
   allTags: TagType[];
 }
 
-type TagListProps = BaseTagListProps & (DoNotPopoverRelatedProps | PopoverRelatedProps);
+type TagListProps = BaseTagListProps &
+  (DoNotPopoverRelatedProps | PopoverRelatedProps);
 
 const soloTagInterestingness = (tag: TagType) => {
-  if (tag.name === 'is:metameta') {
+  if (tag.name === "is:metameta") {
     return -6;
-  } else if (tag.name === 'is:meta') {
+  } else if (tag.name === "is:meta") {
     return -5;
-  } else if (tag.name.lastIndexOf('meta-for:', 0) === 0) {
+  } else if (tag.name.lastIndexOf("meta-for:", 0) === 0) {
     return -4;
-  } else if (tag.name.lastIndexOf('group:', 0) === 0) {
+  } else if (tag.name.lastIndexOf("group:", 0) === 0) {
     return -3;
-  } else if (tag.name.lastIndexOf('needs:', 0) === 0) {
+  } else if (tag.name.lastIndexOf("needs:", 0) === 0) {
     return -2;
-  } else if (tag.name.lastIndexOf('priority:', 0) === 0) {
+  } else if (tag.name.lastIndexOf("priority:", 0) === 0) {
     return -1;
   } else {
     return 0;
@@ -95,14 +101,17 @@ const TagList = React.memo((props: TagListProps) => {
 
   const { onCreateTag, onRemoveTag } = props;
 
-  const submitTag = useCallback((newTagName: string) => {
-    // TODO: submitTag should use the value passed in from the child, which may have done some
-    // autocomplete matching that this component doesn't know about.
-    if (onCreateTag) {
-      onCreateTag(newTagName);
-    }
-    setEditing(false);
-  }, [onCreateTag]);
+  const submitTag = useCallback(
+    (newTagName: string) => {
+      // TODO: submitTag should use the value passed in from the child, which may have done some
+      // autocomplete matching that this component doesn't know about.
+      if (onCreateTag) {
+        onCreateTag(newTagName);
+      }
+      setEditing(false);
+    },
+    [onCreateTag],
+  );
 
   const startEditing = useCallback(() => {
     setEditing(true);
@@ -120,11 +129,14 @@ const TagList = React.memo((props: TagListProps) => {
     setRemoving(false);
   }, []);
 
-  const removeTag = useCallback((tagIdToRemove: string) => {
-    if (onRemoveTag) {
-      onRemoveTag(tagIdToRemove);
-    }
-  }, [onRemoveTag]);
+  const removeTag = useCallback(
+    (tagIdToRemove: string) => {
+      if (onRemoveTag) {
+        onRemoveTag(tagIdToRemove);
+      }
+    },
+    [onRemoveTag],
+  );
 
   const showControls = props.showControls ?? true;
 
@@ -140,13 +152,15 @@ const TagList = React.memo((props: TagListProps) => {
         popoverRelated={props.popoverRelated}
         allPuzzles={props.popoverRelated ? props.allPuzzles : []}
         allTags={props.popoverRelated ? props.allTags : []}
-      />
+      />,
     );
   });
 
   if (tags.length === 0 && props.emptyMessage) {
     components.push(
-      <TagListEmptyLabel key="noTagLabel">{props.emptyMessage}</TagListEmptyLabel>
+      <TagListEmptyLabel key="noTagLabel">
+        {props.emptyMessage}
+      </TagListEmptyLabel>,
     );
   }
 
@@ -157,16 +171,13 @@ const TagList = React.memo((props: TagListProps) => {
         puzzle={props.puzzle}
         onSubmit={submitTag}
         onCancel={stopEditing}
-      />
+      />,
     );
   } else if (removing) {
     components.push(
-      <TagModifyButton
-        key="stopRemoving"
-        onClick={stopRemoving}
-      >
+      <TagModifyButton key="stopRemoving" onClick={stopRemoving}>
         Done removing
-      </TagModifyButton>
+      </TagModifyButton>,
     );
   } else if (showControls && (onCreateTag || onRemoveTag)) {
     components.push(
@@ -191,7 +202,7 @@ const TagList = React.memo((props: TagListProps) => {
             <FontAwesomeIcon fixedWidth icon={faMinus} />
           </TagModifyButton>
         )}
-      </ButtonGroup>
+      </ButtonGroup>,
     );
   }
 

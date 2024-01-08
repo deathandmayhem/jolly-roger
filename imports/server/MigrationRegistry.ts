@@ -26,23 +26,23 @@
 //   * backend B comes along and migration 1 has fully applied, but if control
 //     is manually unlocked it'll get run again.
 
-import { Mongo } from 'meteor/mongo';
-import type winston from 'winston';
-import { logger } from '../Logger';
-import ignoringDuplicateKeyErrors from './ignoringDuplicateKeyErrors';
+import { Mongo } from "meteor/mongo";
+import type winston from "winston";
+import { logger } from "../Logger";
+import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 
 export type Migration = {
   version: number;
   name: string;
   up: () => void | Promise<void>;
-}
+};
 
 export type MigrationControl = {
   _id: string;
   version: number;
   locked: boolean;
   lockedAt?: Date;
-}
+};
 
 // If the migrations lock has been held for 10 minutes, allow preempting it.
 // This makes the assumption that all migrations can be run in <10 minutes.
@@ -55,20 +55,21 @@ class MigrationRegistry {
 
   private logger: winston.Logger;
 
-  constructor({ collection }: {
+  constructor({
+    collection,
+  }: {
     collection?: Mongo.Collection<MigrationControl>;
   }) {
-    this.collection = collection ?? new Mongo.Collection<MigrationControl>('migrations');
+    this.collection =
+      collection ?? new Mongo.Collection<MigrationControl>("migrations");
     this.migrations = [];
     this.logger = logger.child({
-      label: 'migrations',
+      label: "migrations",
       collection: this.collection._name,
     });
   }
 
-  config({ log }: {
-    log: boolean;
-  }) {
+  config({ log }: { log: boolean }) {
     this.logger.silent = !log;
   }
 
@@ -78,7 +79,7 @@ class MigrationRegistry {
     // sequential and dense.
 
     // Require migration versions to be ordered, linear, and dense.
-    if (migration.version !== (this.migrations.length + 1)) {
+    if (migration.version !== this.migrations.length + 1) {
       throw new Error(`Migrations must be registered in sequential order \
         (expected version ${this.migrations.length}, but "${migration.name}" had version ${migration.version}`);
     }
@@ -95,46 +96,62 @@ class MigrationRegistry {
     // exceeded our target version.
     const observedVersion = await this.getVersion();
     if (observedVersion === target) {
-      this.logger.info('Not migrating, already at version', { observedVersion });
+      this.logger.info("Not migrating, already at version", {
+        observedVersion,
+      });
       return true;
     } else if (observedVersion > target) {
-      this.logger.warn('Not migrating, observed version exceeds target', { observedVersion, target });
+      this.logger.warn("Not migrating, observed version exceeds target", {
+        observedVersion,
+        target,
+      });
       return false;
     }
-    this.logger.info('Migrating', { observedVersion, want: target });
+    this.logger.info("Migrating", { observedVersion, want: target });
     // by elimination, observedVersion < target.  We have migrations to run.
     // Acquire the lock.  We might race with another backend that is also
     // trying to apply this same migration, so this.lock() uses findOneAndUpdate to
     // do an atomic swap.
     const control = await this.lock();
     if (!control) {
-      this.logger.info('Not migrating, control is locked');
+      this.logger.info("Not migrating, control is locked");
       return false;
     } else {
       // We hold the lock.  Let's do some work.
       let applied = control.version;
-      this.logger.info('Migrating: lock acquired at applied', { applied, ...control });
+      this.logger.info("Migrating: lock acquired at applied", {
+        applied,
+        ...control,
+      });
 
       while (applied < target) {
         // Remember, this.migrations is 0-indexed, while the migration
         // versions are 1-indexed so the DB contains the number of migrations
         // completed
         const nextMigration = this.migrations[applied]!;
-        this.logger.info('Running migration', { version: nextMigration.version, name: nextMigration.name });
+        this.logger.info("Running migration", {
+          version: nextMigration.version,
+          name: nextMigration.name,
+        });
         // Run the next migration in sequence.
         await nextMigration.up();
         // Save the fact that we ran the migration durably.
-        const prev = await this.collection.rawCollection().findOneAndUpdate({
-          _id: 'control',
-          locked: true,
-          version: applied,
-        }, {
-          $set: {
-            version: nextMigration.version,
+        const prev = await this.collection.rawCollection().findOneAndUpdate(
+          {
+            _id: "control",
+            locked: true,
+            version: applied,
           },
-        });
+          {
+            $set: {
+              version: nextMigration.version,
+            },
+          },
+        );
         if (!prev) {
-          throw new Error(`Couldn't record completion of migration ${nextMigration.version}`);
+          throw new Error(
+            `Couldn't record completion of migration ${nextMigration.version}`,
+          );
         }
         applied += 1;
       }
@@ -156,7 +173,7 @@ class MigrationRegistry {
     //
     // If there is a record in the database, then its version indicates the
     // number of migrations that have been run to completion successfully.
-    const control = await this.collection.findOneAsync({ _id: 'control' });
+    const control = await this.collection.findOneAsync({ _id: "control" });
     if (control === undefined) {
       await this.ensureControlCreated();
       // Query again because we're not holding a lock.
@@ -167,11 +184,11 @@ class MigrationRegistry {
   }
 
   private async ensureControlCreated() {
-    this.logger.info('Creating control record at version 0');
+    this.logger.info("Creating control record at version 0");
     // We use insert rather than upsert here
     await ignoringDuplicateKeyErrors(async () => {
       await this.collection.insertAsync({
-        _id: 'control',
+        _id: "control",
         version: 0,
         locked: false,
       });
@@ -184,36 +201,49 @@ class MigrationRegistry {
     // If unsuccessful (because the control object was recently locked, and the preemption timeout
     // has not passed), returns null.
     const now = new Date();
-    const result = await this.collection.rawCollection().findOneAndUpdate({
-      $and: [
-        { _id: 'control' },
-        {
-          $or: [
-            { locked: false },
-            { locked: true, lockedAt: { $lt: new Date(now.getTime() - LOCK_PREEMPTION_TIMEOUT) } },
-          ],
-        },
-      ],
-    }, {
-      $set: {
-        locked: true,
-        lockedAt: now,
+    const result = await this.collection.rawCollection().findOneAndUpdate(
+      {
+        $and: [
+          { _id: "control" },
+          {
+            $or: [
+              { locked: false },
+              {
+                locked: true,
+                lockedAt: {
+                  $lt: new Date(now.getTime() - LOCK_PREEMPTION_TIMEOUT),
+                },
+              },
+            ],
+          },
+        ],
       },
-    });
+      {
+        $set: {
+          locked: true,
+          lockedAt: now,
+        },
+      },
+    );
     if (result?.value?.locked) {
-      this.logger.warn('Preempting stale lock', { lockedAt: result.value.lockedAt });
+      this.logger.warn("Preempting stale lock", {
+        lockedAt: result.value.lockedAt,
+      });
     }
     return result.value;
   }
 
   async unlock() {
-    await this.collection.rawCollection().findOneAndUpdate({
-      _id: 'control',
-      locked: true,
-    }, {
-      $set: { locked: false },
-      $unset: { lockedAt: 1 },
-    });
+    await this.collection.rawCollection().findOneAndUpdate(
+      {
+        _id: "control",
+        locked: true,
+      },
+      {
+        $set: { locked: false },
+        $unset: { lockedAt: 1 },
+      },
+    );
   }
 }
 

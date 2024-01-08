@@ -1,8 +1,8 @@
-import isAdmin from '../../lib/isAdmin';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import Settings from '../../lib/models/Settings';
-import settingsAll from '../../lib/publications/settingsAll';
-import definePublication from './definePublication';
+import isAdmin from "../../lib/isAdmin";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import Settings from "../../lib/models/Settings";
+import settingsAll from "../../lib/publications/settingsAll";
+import definePublication from "./definePublication";
 
 definePublication(settingsAll, {
   async run() {

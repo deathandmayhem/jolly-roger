@@ -1,8 +1,8 @@
-import React from 'react';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
-import styled from 'styled-components';
-import type { GuessType } from '../../lib/models/Guesses';
+import React from "react";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
+import styled from "styled-components";
+import type { GuessType } from "../../lib/models/Guesses";
 
 const GuessDetail = styled.div`
   display: flex;
@@ -40,20 +40,24 @@ const GuessDirectionSvg = styled.svg`
   }
 `;
 
-const formatGuessDirection = (value: GuessType['direction']) => {
+const formatGuessDirection = (value: GuessType["direction"]) => {
   if (value === undefined) {
-    return 'Unspecified';
+    return "Unspecified";
   }
   if (value === 0) {
-    return 'Neutral';
+    return "Neutral";
   }
-  const directionStr = value > 0 ? 'Forward' : 'Back';
+  const directionStr = value > 0 ? "Forward" : "Back";
   return `${directionStr} ${Math.abs(value)}`;
 };
 
-const GuessDirection = ({ id, value, className }: {
+const GuessDirection = ({
+  id,
+  value,
+  className,
+}: {
   id: string;
-  value: GuessType['direction'];
+  value: GuessType["direction"];
   className?: string;
 }) => {
   const arrowShaftWidth = 0.3;
@@ -63,14 +67,14 @@ const GuessDirection = ({ id, value, className }: {
 
   const tooltip = (
     <Tooltip id={`${id}-tooltip`}>
-      <strong>Solve directon:</strong>
-      {' '}
-      {formatGuessDirection(value)}
+      <strong>Solve directon:</strong> {formatGuessDirection(value)}
     </Tooltip>
   );
   const arrowHeadEnd = value ?? 0;
-  const arrowHeadBase = arrowHeadEnd - Math.sign(arrowHeadEnd) * arrowHeadBaseDepth;
-  const arrowHeadStart = arrowHeadEnd - Math.sign(arrowHeadEnd) * arrowHeadFullDepth;
+  const arrowHeadBase =
+    arrowHeadEnd - Math.sign(arrowHeadEnd) * arrowHeadBaseDepth;
+  const arrowHeadStart =
+    arrowHeadEnd - Math.sign(arrowHeadEnd) * arrowHeadFullDepth;
   return (
     <GuessDetail className={className}>
       <OverlayTrigger placement="top" overlay={tooltip}>
@@ -78,7 +82,8 @@ const GuessDirection = ({ id, value, className }: {
           <svg viewBox="-10 -1 20 2" preserveAspectRatio="none">
             <line x1="-10" y1="0" x2="10" y2="0" />
             {value && (
-              <polygon points={`
+              <polygon
+                points={`
                 0, ${arrowShaftWidth}
                 ${arrowHeadBase}, ${arrowShaftWidth}
                 ${arrowHeadStart}, ${arrowHeadWidth}
@@ -107,23 +112,25 @@ const GuessDirection = ({ id, value, className }: {
   );
 };
 
-const formatConfidence = (value: GuessType['confidence']) => {
+const formatConfidence = (value: GuessType["confidence"]) => {
   if (value === undefined) {
-    return 'Unspecified';
+    return "Unspecified";
   }
   return `${value}%`;
 };
 
-const GuessConfidence = ({ id, value, className }: {
+const GuessConfidence = ({
+  id,
+  value,
+  className,
+}: {
   id: string;
-  value: GuessType['confidence'];
+  value: GuessType["confidence"];
   className?: string;
 }) => {
   const tooltip = (
     <Tooltip id={`${id}-tooltip`}>
-      <strong>Confidence:</strong>
-      {' '}
-      {formatConfidence(value)}
+      <strong>Confidence:</strong> {formatConfidence(value)}
     </Tooltip>
   );
 

@@ -1,8 +1,8 @@
-import Migrations from './Migrations';
+import Migrations from "./Migrations";
 
 Migrations.add({
   version: 16,
-  name: 'Create index for feature flags',
+  name: "Create index for feature flags",
   async up() {
     // This migration previously created indexes, which is now handled
     // declaratively

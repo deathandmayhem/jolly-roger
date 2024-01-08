@@ -1,16 +1,18 @@
-import { check } from 'meteor/check';
-import type { Subscription } from 'meteor/meteor';
-import { Meteor } from 'meteor/meteor';
-import type { PublishedBucket } from '../../lib/config/activityTracking';
+import { check } from "meteor/check";
+import type { Subscription } from "meteor/meteor";
+import { Meteor } from "meteor/meteor";
+import type { PublishedBucket } from "../../lib/config/activityTracking";
 import {
-  ACTIVITY_COLLECTION, ACTIVITY_GRANULARITY, ACTIVITY_SEGMENTS,
-} from '../../lib/config/activityTracking';
-import ChatMessages from '../../lib/models/ChatMessages';
-import DocumentActivities from '../../lib/models/DocumentActivities';
-import puzzleActivityForHunt from '../../lib/publications/puzzleActivityForHunt';
-import roundedTime from '../../lib/roundedTime';
-import CallActivities from '../models/CallActivities';
-import definePublication from './definePublication';
+  ACTIVITY_COLLECTION,
+  ACTIVITY_GRANULARITY,
+  ACTIVITY_SEGMENTS,
+} from "../../lib/config/activityTracking";
+import ChatMessages from "../../lib/models/ChatMessages";
+import DocumentActivities from "../../lib/models/DocumentActivities";
+import puzzleActivityForHunt from "../../lib/publications/puzzleActivityForHunt";
+import roundedTime from "../../lib/roundedTime";
+import CallActivities from "../models/CallActivities";
+import definePublication from "./definePublication";
 
 class ActivityBucket {
   callUsers: Set<string> = new Set();
@@ -46,12 +48,15 @@ class HuntActivityAggregator {
 
     // Note that this won't update reactively, but sets a bound for the initial
     // data fetch
-    const cutoff = new Date(Date.now() - (ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS));
+    const cutoff = new Date(
+      Date.now() - ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS,
+    );
     // All of these are sufficiently immutable that we don't need to observe
     // changes or removes
     let initializing = true;
     this.documentActivityHandle = DocumentActivities.find({
-      hunt, ts: { $gte: cutoff },
+      hunt,
+      ts: { $gte: cutoff },
     }).observeChanges({
       added: (_, fields) => {
         const { puzzle, ts } = fields;
@@ -60,7 +65,7 @@ class HuntActivityAggregator {
         const [bucket, newBucket] = this.lookupBucket(puzzle, ts);
         if (!bucket) return;
 
-        const user = fields.user ?? '__document__';
+        const user = fields.user ?? "__document__";
         bucket.documentUsers.add(user);
         bucket.allUsers.add(user);
         if (!initializing) {
@@ -69,7 +74,8 @@ class HuntActivityAggregator {
       },
     });
     this.callActivityHandle = CallActivities.find({
-      hunt, ts: { $gte: cutoff },
+      hunt,
+      ts: { $gte: cutoff },
     }).observeChanges({
       added: (_, fields) => {
         const { call: puzzle, ts, user } = fields;
@@ -86,7 +92,8 @@ class HuntActivityAggregator {
       },
     });
     this.chatMessageHandle = ChatMessages.find({
-      hunt, createdAt: { $gte: cutoff },
+      hunt,
+      createdAt: { $gte: cutoff },
     }).observeChanges({
       added: (_, fields) => {
         const { puzzle, createdAt, sender } = fields;
@@ -111,7 +118,11 @@ class HuntActivityAggregator {
     return `${this.hunt}/${puzzle}/${ts.getTime()}`;
   }
 
-  buildBucket(puzzle: string, ts: Date, bucket: ActivityBucket): PublishedBucket {
+  buildBucket(
+    puzzle: string,
+    ts: Date,
+    bucket: ActivityBucket,
+  ): PublishedBucket {
     return {
       _id: this.bucketId(puzzle, ts),
       hunt: this.hunt,
@@ -124,7 +135,12 @@ class HuntActivityAggregator {
     };
   }
 
-  publishBucket(puzzle: string, ts: Date, bucket: ActivityBucket, newBucket: boolean) {
+  publishBucket(
+    puzzle: string,
+    ts: Date,
+    bucket: ActivityBucket,
+    newBucket: boolean,
+  ) {
     const publishedBucket = this.buildBucket(puzzle, ts, bucket);
     if (newBucket) {
       this.added(publishedBucket._id, publishedBucket);
@@ -142,11 +158,15 @@ class HuntActivityAggregator {
   }
 
   added(id: string, fields: PublishedBucket) {
-    this.subscriptions.forEach((sub) => sub.added(ACTIVITY_COLLECTION, id, fields));
+    this.subscriptions.forEach((sub) =>
+      sub.added(ACTIVITY_COLLECTION, id, fields),
+    );
   }
 
   changed(id: string, fields: PublishedBucket) {
-    this.subscriptions.forEach((sub) => sub.changed(ACTIVITY_COLLECTION, id, fields));
+    this.subscriptions.forEach((sub) =>
+      sub.changed(ACTIVITY_COLLECTION, id, fields),
+    );
   }
 
   removed(id: string) {
@@ -162,10 +182,13 @@ class HuntActivityAggregator {
     return buckets;
   }
 
-  lookupBucket(puzzle: string, time: Date):
-    [activity: ActivityBucket | undefined, newBucket: boolean] {
+  lookupBucket(
+    puzzle: string,
+    time: Date,
+  ): [activity: ActivityBucket | undefined, newBucket: boolean] {
     // If the bucket has already expired, short-circuit.
-    const expiration = time.getTime() + (ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS);
+    const expiration =
+      time.getTime() + ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS;
     if (expiration < Date.now()) {
       return [undefined, false];
     }

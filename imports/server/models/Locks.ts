@@ -1,8 +1,8 @@
 // Locks are a server-only class
-import { z } from 'zod';
-import type { ModelType } from '../../lib/models/Model';
-import Model from '../../lib/models/Model';
-import { createdTimestamp, nonEmptyString } from '../../lib/models/customTypes';
+import { z } from "zod";
+import type { ModelType } from "../../lib/models/Model";
+import Model from "../../lib/models/Model";
+import { createdTimestamp, nonEmptyString } from "../../lib/models/customTypes";
 
 export const Lock = z.object({
   name: nonEmptyString,
@@ -12,7 +12,7 @@ export const Lock = z.object({
   renewedAt: createdTimestamp,
 });
 
-const Locks = new Model('jr_locks', Lock);
+const Locks = new Model("jr_locks", Lock);
 Locks.addIndex({ name: 1 }, { unique: true });
 export type LockType = ModelType<typeof Locks>;
 

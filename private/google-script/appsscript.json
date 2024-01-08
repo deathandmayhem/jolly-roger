@@ -7,7 +7,5 @@
     "executeAs": "USER_DEPLOYING",
     "access": "ANYONE_ANONYMOUS"
   },
-  "oauthScopes": [
-    "https://www.googleapis.com/auth/spreadsheets"
-  ]
+  "oauthScopes": ["https://www.googleapis.com/auth/spreadsheets"]
 }

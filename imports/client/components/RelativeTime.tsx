@@ -1,22 +1,36 @@
-import { Meteor } from 'meteor/meteor';
-import React, { useEffect, useState } from 'react';
-import type { RelativeTimeFormatOpts } from '../../lib/relativeTimeFormat';
-import { complete } from '../../lib/relativeTimeFormat';
+import { Meteor } from "meteor/meteor";
+import React, { useEffect, useState } from "react";
+import type { RelativeTimeFormatOpts } from "../../lib/relativeTimeFormat";
+import { complete } from "../../lib/relativeTimeFormat";
 
 const RelativeTime = ({
-  date, minimumUnit, maxElements, terse, now,
+  date,
+  minimumUnit,
+  maxElements,
+  terse,
+  now,
 }: {
-  date: Date,
+  date: Date;
 } & RelativeTimeFormatOpts) => {
-  const [formatted, setFormatted] = useState(complete(date, {
-    minimumUnit, maxElements, terse, now,
-  }));
+  const [formatted, setFormatted] = useState(
+    complete(date, {
+      minimumUnit,
+      maxElements,
+      terse,
+      now,
+    }),
+  );
 
   useEffect(() => {
     const timeout = Meteor.setTimeout(() => {
-      setFormatted(complete(date, {
-        minimumUnit, maxElements, terse, now,
-      }));
+      setFormatted(
+        complete(date, {
+          minimumUnit,
+          maxElements,
+          terse,
+          now,
+        }),
+      );
     }, formatted.millisUntilChange);
 
     return () => {

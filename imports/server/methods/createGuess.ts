@@ -1,12 +1,12 @@
-import { check } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
-import Logger from '../../Logger';
-import Guesses from '../../lib/models/Guesses';
-import Hunts from '../../lib/models/Hunts';
-import Puzzles from '../../lib/models/Puzzles';
-import createGuess from '../../methods/createGuess';
-import sendChatMessageInternal from '../sendChatMessageInternal';
-import defineMethod from './defineMethod';
+import { check } from "meteor/check";
+import { Meteor } from "meteor/meteor";
+import Logger from "../../Logger";
+import Guesses from "../../lib/models/Guesses";
+import Hunts from "../../lib/models/Hunts";
+import Puzzles from "../../lib/models/Puzzles";
+import createGuess from "../../methods/createGuess";
+import sendChatMessageInternal from "../sendChatMessageInternal";
+import defineMethod from "./defineMethod";
 
 defineMethod(createGuess, {
   validate(arg) {
@@ -19,28 +19,29 @@ defineMethod(createGuess, {
     return arg;
   },
 
-  async run({
-    puzzleId, guess, direction, confidence,
-  }) {
+  async run({ puzzleId, guess, direction, confidence }) {
     check(this.userId, String);
 
     const puzzle = await Puzzles.findOneAsync(puzzleId);
 
     if (!puzzle) {
-      throw new Meteor.Error(404, 'No such puzzle');
+      throw new Meteor.Error(404, "No such puzzle");
     }
 
     const hunt = await Hunts.findOneAsync(puzzle.hunt);
 
     if (!hunt) {
-      throw new Meteor.Error(404, 'No such hunt');
+      throw new Meteor.Error(404, "No such hunt");
     }
 
     if (!hunt.hasGuessQueue) {
-      throw new Meteor.Error(404, 'Hunt does not allow you to submit guesses, only answers');
+      throw new Meteor.Error(
+        404,
+        "Hunt does not allow you to submit guesses, only answers",
+      );
     }
 
-    Logger.info('New guess', {
+    Logger.info("New guess", {
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       guess,
@@ -53,15 +54,15 @@ defineMethod(createGuess, {
       guess,
       direction,
       confidence,
-      state: 'pending',
+      state: "pending",
     });
 
     const content = {
-      type: 'message' as const,
+      type: "message" as const,
       children: [
-        { text: '' },
+        { text: "" },
         {
-          type: 'mention' as const,
+          type: "mention" as const,
           userId: this.userId,
         },
         { text: ` submitted guess \`${guess}\`` },

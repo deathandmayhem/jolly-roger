@@ -9,11 +9,5 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   // Make sure to run stylelint on Typescript and SCSS (embedded in Typescript)
   // files
-  "stylelint.validate": [
-    "css",
-    "less",
-    "postcss",
-    "typescriptreact",
-    "scss"
-  ],
+  "stylelint.validate": ["css", "less", "postcss", "typescriptreact", "scss"]
 }

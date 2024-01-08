@@ -1,7 +1,7 @@
 // Work around a bug in Meteor's runtime config hooks (which will only run a
 // single hook) by accumulating our own list
 
-import { WebApp } from 'meteor/webapp';
+import { WebApp } from "meteor/webapp";
 
 type Config = Record<string, any>;
 

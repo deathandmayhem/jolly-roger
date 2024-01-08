@@ -1,9 +1,10 @@
-import { MongoInternals } from 'meteor/mongo';
+import { MongoInternals } from "meteor/mongo";
 
 const { MongoError } = MongoInternals.NpmModules.mongodb.module;
 
-export default async function ignoringDuplicateKeyErrors<T>(fn: () => Promise<T>):
-  Promise<T | undefined> {
+export default async function ignoringDuplicateKeyErrors<T>(
+  fn: () => Promise<T>,
+): Promise<T | undefined> {
   try {
     return await fn();
   } catch (e) {

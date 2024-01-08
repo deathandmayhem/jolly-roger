@@ -1,7 +1,7 @@
-import { check } from 'meteor/check';
-import ChatNotifications from '../../lib/models/ChatNotifications';
-import dismissChatNotification from '../../methods/dismissChatNotification';
-import defineMethod from './defineMethod';
+import { check } from "meteor/check";
+import ChatNotifications from "../../lib/models/ChatNotifications";
+import dismissChatNotification from "../../methods/dismissChatNotification";
+import defineMethod from "./defineMethod";
 
 defineMethod(dismissChatNotification, {
   validate(arg) {

@@ -1,18 +1,26 @@
-import { EJSON } from 'meteor/ejson';
-import { Meteor } from 'meteor/meteor';
-import Bugsnag from '@bugsnag/js';
-import type { TypedMethodArgs, TypedMethodParam } from '../../methods/TypedMethod';
-import type TypedMethod from '../../methods/TypedMethod';
+import { EJSON } from "meteor/ejson";
+import { Meteor } from "meteor/meteor";
+import Bugsnag from "@bugsnag/js";
+import type {
+  TypedMethodArgs,
+  TypedMethodParam,
+} from "../../methods/TypedMethod";
+import type TypedMethod from "../../methods/TypedMethod";
 
-type TypedMethodValidator<Arg extends TypedMethodArgs> =
-  (this: Meteor.MethodThisType, arg0: unknown) =>
-    Arg;
-type TypedMethodRun<Arg extends TypedMethodArgs, Return extends TypedMethodParam | void> =
-  Arg extends void ?
-  (this: Meteor.MethodThisType) => Return | Promise<Return> :
-  (this: Meteor.MethodThisType, arg0: Arg) => Return | Promise<Return>;
+type TypedMethodValidator<Arg extends TypedMethodArgs> = (
+  this: Meteor.MethodThisType,
+  arg0: unknown,
+) => Arg;
+type TypedMethodRun<
+  Arg extends TypedMethodArgs,
+  Return extends TypedMethodParam | void,
+> = Arg extends void
+  ? (this: Meteor.MethodThisType) => Return | Promise<Return>
+  : (this: Meteor.MethodThisType, arg0: Arg) => Return | Promise<Return>;
 
-const voidValidator = () => { /* noop */ };
+const voidValidator = () => {
+  /* noop */
+};
 
 // Supporting methods with no (void) arguments is a bit messy, but comes up
 // often enough that it's worth doing properly. With no arguments, the type
@@ -32,11 +40,14 @@ export default function defineMethod<
   Return extends TypedMethodParam | void,
 >(
   method: TypedMethod<Args, Return>,
-  { validate, run }: {
-    run: TypedMethodRun<Args, Return>,
-  } & (
-    Args extends void ? { validate?: undefined } : { validate: TypedMethodValidator<Args> }
-  )
+  {
+    validate,
+    run,
+  }: {
+    run: TypedMethodRun<Args, Return>;
+  } & (Args extends void
+    ? { validate?: undefined }
+    : { validate: TypedMethodValidator<Args> }),
 ) {
   const validator = (validate ?? voidValidator) as TypedMethodValidator<Args>;
 
@@ -63,16 +74,16 @@ export default function defineMethod<
           const sanitizedError = (error as any).sanitizedError ?? error;
           const severity =
             sanitizedError instanceof Meteor.Error &&
-              typeof sanitizedError.error === 'number' &&
-              sanitizedError.error >= 400 &&
-              sanitizedError.error < 500 ?
-              'info' :
-              'error';
+            typeof sanitizedError.error === "number" &&
+            sanitizedError.error >= 400 &&
+            sanitizedError.error < 500
+              ? "info"
+              : "error";
 
           Bugsnag.notify(error, (event) => {
             event.context = method.name;
             event.severity = severity;
-            event.addMetadata('method', {
+            event.addMetadata("method", {
               arguments: EJSON.stringify(arg0 ?? {}),
             });
           });

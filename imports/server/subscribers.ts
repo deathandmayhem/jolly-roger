@@ -6,10 +6,10 @@
 // garbage collect subscriber records based on the updatedAt of the
 // server record.
 
-import { check, Match } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
-import { serverId, registerPeriodicCleanupHook } from './garbage-collection';
-import Subscribers from './models/Subscribers';
+import { check, Match } from "meteor/check";
+import { Meteor } from "meteor/meteor";
+import { serverId, registerPeriodicCleanupHook } from "./garbage-collection";
+import Subscribers from "./models/Subscribers";
 
 // Clean up leaked subscribers from dead servers periodically.
 async function cleanupHook(deadServers: string[]) {
@@ -18,15 +18,17 @@ async function cleanupHook(deadServers: string[]) {
 registerPeriodicCleanupHook(cleanupHook);
 
 // eslint-disable-next-line new-cap
-const contextMatcher = Match.Where((val: unknown): val is Record<string, string> => {
-  if (!Match.test(val, Object)) {
-    return false;
-  }
+const contextMatcher = Match.Where(
+  (val: unknown): val is Record<string, string> => {
+    if (!Match.test(val, Object)) {
+      return false;
+    }
 
-  return Object.values(val).every((v) => Match.test(v, String));
-});
+    return Object.values(val).every((v) => Match.test(v, String));
+  },
+);
 
-Meteor.publish('subscribers.inc', async function (name, context) {
+Meteor.publish("subscribers.inc", async function (name, context) {
   check(name, String);
   check(context, contextMatcher);
 
@@ -51,7 +53,7 @@ Meteor.publish('subscribers.inc', async function (name, context) {
 // (logged in) subscribe to any counter because Hunt is tomorrow and I
 // don't think counts are thaaat sensitive, especially if you can't
 // even look up the puzzle ids
-Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
+Meteor.publish("subscribers.counts", function (q: Record<string, any>) {
   check(q, Object);
 
   if (!this.userId) {
@@ -60,8 +62,8 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
 
   const query: Record<string, any> = {};
   Object.entries(q).forEach(([k, v]) => {
-    if (k.startsWith('$')) {
-      throw new Meteor.Error(400, 'Special query terms are not allowed');
+    if (k.startsWith("$")) {
+      throw new Meteor.Error(400, "Special query terms are not allowed");
     }
 
     query[`context.${k}`] = v;
@@ -78,7 +80,7 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
         counters[name] = {};
 
         if (initialized) {
-          this.added('subscribers.counts', name, { value: 0 });
+          this.added("subscribers.counts", name, { value: 0 });
         }
       }
 
@@ -88,7 +90,9 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
 
       counters[name]![user] += 1;
       if (initialized) {
-        this.changed('subscribers.counts', name, { value: Object.keys(counters[name]!).length });
+        this.changed("subscribers.counts", name, {
+          value: Object.keys(counters[name]!).length,
+        });
       }
     },
 
@@ -101,14 +105,16 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
       }
 
       if (initialized) {
-        this.changed('subscribers.counts', name, { value: Object.keys(counters[name]!).length });
+        this.changed("subscribers.counts", name, {
+          value: Object.keys(counters[name]!).length,
+        });
       }
     },
   });
   this.onStop(() => handle.stop());
 
   Object.entries(counters).forEach(([key, val]) => {
-    this.added('subscribers.counts', key, { value: Object.keys(val).length });
+    this.added("subscribers.counts", key, { value: Object.keys(val).length });
   });
   initialized = true;
   this.ready();
@@ -118,7 +124,7 @@ Meteor.publish('subscribers.counts', function (q: Record<string, any>) {
 // Unlike subscribers.counts, which takes a query string against the
 // context, we require you to specify the name of a subscription here
 // to avoid fanout.
-Meteor.publish('subscribers.fetch', function (name) {
+Meteor.publish("subscribers.fetch", function (name) {
   check(name, String);
 
   if (!this.userId) {
@@ -134,7 +140,7 @@ Meteor.publish('subscribers.fetch', function (name) {
 
       if (!Object.prototype.hasOwnProperty.call(users, user)) {
         users[user] = 0;
-        this.added('subscribers', `${name}:${user}`, { name, user });
+        this.added("subscribers", `${name}:${user}`, { name, user });
       }
 
       users[user] += 1;
@@ -146,7 +152,7 @@ Meteor.publish('subscribers.fetch', function (name) {
       users[user] -= 1;
       if (users[user] === 0) {
         delete users[user];
-        this.removed('subscribers', `${name}:${user}`);
+        this.removed("subscribers", `${name}:${user}`);
       }
     },
   });

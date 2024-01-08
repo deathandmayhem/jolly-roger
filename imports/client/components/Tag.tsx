@@ -1,26 +1,32 @@
 /* eslint-disable react/destructuring-assignment */
-import { faAlignJustify } from '@fortawesome/free-solid-svg-icons/faAlignJustify';
-import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
-import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import type { ModifierArguments, Modifier, Padding } from '@popperjs/core';
-import detectOverflow from '@popperjs/core/lib/utils/detectOverflow';
+import { faAlignJustify } from "@fortawesome/free-solid-svg-icons/faAlignJustify";
+import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { ModifierArguments, Modifier, Padding } from "@popperjs/core";
+import detectOverflow from "@popperjs/core/lib/utils/detectOverflow";
 import React, {
-  type ComponentPropsWithRef, type FC, useCallback, useEffect, useState,
-} from 'react';
-import Button from 'react-bootstrap/Button';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Popover from 'react-bootstrap/Popover';
-import { Link } from 'react-router-dom';
-import styled, { css } from 'styled-components';
-import { indexedById } from '../../lib/listUtils';
-import type { PuzzleType } from '../../lib/models/Puzzles';
-import type { TagType } from '../../lib/models/Tags';
-import { removePunctuation } from './PuzzleAnswer';
-import { sortPuzzlesByRelevanceWithinPuzzleGroup } from './RelatedPuzzleList';
-import RelatedPuzzleTable from './RelatedPuzzleTable';
+  type ComponentPropsWithRef,
+  type FC,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import Button from "react-bootstrap/Button";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Popover from "react-bootstrap/Popover";
+import { Link } from "react-router-dom";
+import styled, { css } from "styled-components";
+import { indexedById } from "../../lib/listUtils";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import type { TagType } from "../../lib/models/Tags";
+import { removePunctuation } from "./PuzzleAnswer";
+import { sortPuzzlesByRelevanceWithinPuzzleGroup } from "./RelatedPuzzleList";
+import RelatedPuzzleTable from "./RelatedPuzzleTable";
 
-const RemoveTagButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
+const RemoveTagButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
+  Button,
+)`
   height: 16px;
   width: 16px;
   line-height: 10px;
@@ -75,40 +81,57 @@ const TagDiv = styled.div<{
   border-radius: 4px;
   background-color: #ddd;
   color: #000;
-  ${({ $popoverCapable }) => $popoverCapable && css`
-    cursor: default;
-    position: relative;
-  `}
-  ${({ $popoverCapable, $popoverOpen }) => $popoverCapable && $popoverOpen && css`
-    &::after {
-      content: '';
-      display: block;
-      position: absolute;
-      top: 100%;
-      left: 0%;
-      width: 100%;
-      height: 0.5rem; /* This was $popover-arrow-height which I'm hardcoding here */
-      z-index: 2;
-    }
-  `}
-  ${({ $isAdministrivia }) => $isAdministrivia && css`
-    background-color: #ff7;
-  `}
-  ${({ $isMeta }) => $isMeta && css`
-    background-color: #ffd57f;
-  `}
-  ${({ $isGroup }) => $isGroup && css`
-    background-color: #7fffff;
-  `}
-  ${({ $isMetaFor }) => $isMetaFor && css`
-    background-color: #ffb0b0;
-  `}
-  ${({ $isNeeds }) => $isNeeds && css`
-    background-color: #ff4040;
-  `}
-  ${({ $isPriority }) => $isPriority && css`
-    background-color: #aaf;
-  `}
+  ${({ $popoverCapable }) =>
+    $popoverCapable &&
+    css`
+      cursor: default;
+      position: relative;
+    `}
+  ${({ $popoverCapable, $popoverOpen }) =>
+    $popoverCapable &&
+    $popoverOpen &&
+    css`
+      &::after {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 0%;
+        width: 100%;
+        height: 0.5rem; /* This was $popover-arrow-height which I'm hardcoding here */
+        z-index: 2;
+      }
+    `}
+  ${({ $isAdministrivia }) =>
+    $isAdministrivia &&
+    css`
+      background-color: #ff7;
+    `}
+  ${({ $isMeta }) =>
+    $isMeta &&
+    css`
+      background-color: #ffd57f;
+    `}
+  ${({ $isGroup }) =>
+    $isGroup &&
+    css`
+      background-color: #7fffff;
+    `}
+  ${({ $isMetaFor }) =>
+    $isMetaFor &&
+    css`
+      background-color: #ffb0b0;
+    `}
+  ${({ $isNeeds }) =>
+    $isNeeds &&
+    css`
+      background-color: #ff4040;
+    `}
+  ${({ $isPriority }) =>
+    $isPriority &&
+    css`
+      background-color: #aaf;
+    `}
 `;
 
 const TagLink = styled(Link)`
@@ -131,34 +154,37 @@ const PopoverPadding = {
 // Calculate the tag name to use when determining related puzzles
 // There may be more cases here in the future
 function getRelatedPuzzlesSharedTagName(name: string) {
-  if (name.lastIndexOf('meta-for:', 0) === 0) {
-    return `group:${name.slice('meta-for:'.length)}`;
+  if (name.lastIndexOf("meta-for:", 0) === 0) {
+    return `group:${name.slice("meta-for:".length)}`;
   }
   return name;
 }
 
-type PopperScreenFitOptions = {padding: Padding}
+type PopperScreenFitOptions = { padding: Padding };
 
-const PopperScreenFit : Modifier<'screenFit', PopperScreenFitOptions> = {
-  name: 'screenFit',
+const PopperScreenFit: Modifier<"screenFit", PopperScreenFitOptions> = {
+  name: "screenFit",
   enabled: true,
-  phase: 'beforeWrite',
-  requiresIfExists: ['offset', 'preventOverflow'],
-  fn({ state, options } : ModifierArguments<PopperScreenFitOptions>) {
+  phase: "beforeWrite",
+  requiresIfExists: ["offset", "preventOverflow"],
+  fn({ state, options }: ModifierArguments<PopperScreenFitOptions>) {
     // Default to using preventOverflow's options to enforce consistent padding
-    const preventOverflowMod = state.orderedModifiers.find((m) => m.name === 'preventOverflow');
-    const padding = options.padding ?? preventOverflowMod?.options?.padding ?? {};
+    const preventOverflowMod = state.orderedModifiers.find(
+      (m) => m.name === "preventOverflow",
+    );
+    const padding =
+      options.padding ?? preventOverflowMod?.options?.padding ?? {};
     const overflow = detectOverflow(state, { padding });
     const { height, width } = state.rects.popper;
-    const placementEdge = state.placement.split('-')[0];
+    const placementEdge = state.placement.split("-")[0];
     // detectOverflow isn't aware of preventOverflow's shift, so overflow can appear on either side
     // Have to work in terms of max because narrowing width might result in increasing height
     let maxWidth;
     let maxHeight;
-    if (placementEdge === 'top' || placementEdge === 'bottom') {
+    if (placementEdge === "top" || placementEdge === "bottom") {
       maxWidth = width - overflow.right - overflow.left;
       maxHeight = height - overflow[placementEdge];
-    } else if (placementEdge === 'left' || placementEdge === 'right') {
+    } else if (placementEdge === "left" || placementEdge === "right") {
       maxHeight = height - overflow.top - overflow.bottom;
       maxWidth = width - overflow[placementEdge];
     } else {
@@ -211,9 +237,9 @@ const Tag = (props: TagProps) => {
   useEffect(() => {
     // Necessary to ensure the popover closes when entering the iframe on
     // devices that don't support hover
-    window.addEventListener('blur', doHidePopover);
+    window.addEventListener("blur", doHidePopover);
     return () => {
-      window.removeEventListener('blur', doHidePopover);
+      window.removeEventListener("blur", doHidePopover);
     };
   }, [doHidePopover]);
 
@@ -225,16 +251,18 @@ const Tag = (props: TagProps) => {
   }, [onRemove, tag._id]);
 
   const allTagsIfPresent = props.popoverRelated ? props.allTags : undefined;
-  const allPuzzlesIfPresent = props.popoverRelated ? props.allPuzzles : undefined;
+  const allPuzzlesIfPresent = props.popoverRelated
+    ? props.allPuzzles
+    : undefined;
   const getRelatedPuzzles = useCallback(() => {
     if (!props.popoverRelated) {
       return [];
     }
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
     const sharedTag = allTagsIfPresent!.find((t) => t.name === sharedTagName);
-    return sharedTag ?
-      allPuzzlesIfPresent!.filter((p) => p.tags.includes(sharedTag._id)) :
-      [];
+    return sharedTag
+      ? allPuzzlesIfPresent!.filter((p) => p.tags.includes(sharedTag._id))
+      : [];
   }, [
     props.popoverRelated,
     props.tag.name,
@@ -252,17 +280,27 @@ const Tag = (props: TagProps) => {
     const relatedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
       getRelatedPuzzles(),
       sharedTag,
-      tagIndex
+      tagIndex,
     );
-    const clipboardData = relatedPuzzles.map((puzzle) => {
-      const minRowCnt = puzzle.expectedAnswerCount >= 1 ? puzzle.expectedAnswerCount : 1;
-      const missingCnt = minRowCnt > puzzle.answers.length ? minRowCnt - puzzle.answers.length : 0;
-      const answers = puzzle.answers.concat(Array(missingCnt).fill(''));
-      return answers.map((answer) => {
-        const formattedAnswer = segmentAnswers ? removePunctuation(answer) : answer;
-        return `${puzzle.title}\t${formattedAnswer}`;
-      }).join('\n');
-    }).join('\n');
+    const clipboardData = relatedPuzzles
+      .map((puzzle) => {
+        const minRowCnt =
+          puzzle.expectedAnswerCount >= 1 ? puzzle.expectedAnswerCount : 1;
+        const missingCnt =
+          minRowCnt > puzzle.answers.length
+            ? minRowCnt - puzzle.answers.length
+            : 0;
+        const answers = puzzle.answers.concat(Array(missingCnt).fill(""));
+        return answers
+          .map((answer) => {
+            const formattedAnswer = segmentAnswers
+              ? removePunctuation(answer)
+              : answer;
+            return `${puzzle.title}\t${formattedAnswer}`;
+          })
+          .join("\n");
+      })
+      .join("\n");
     void navigator.clipboard.writeText(clipboardData);
   }, [
     props.popoverRelated,
@@ -273,19 +311,19 @@ const Tag = (props: TagProps) => {
   ]);
 
   const name = props.tag.name;
-  const isAdministrivia = name === 'administrivia';
-  const isMeta = name === 'is:meta' || name === 'is:metameta';
-  const isGroup = name.lastIndexOf('group:', 0) === 0;
-  const isMetaFor = name.lastIndexOf('meta-for:', 0) === 0;
-  const isNeeds = name.lastIndexOf('needs:', 0) === 0;
-  const isPriority = name.lastIndexOf('priority:', 0) === 0;
+  const isAdministrivia = name === "administrivia";
+  const isMeta = name === "is:meta" || name === "is:metameta";
+  const isGroup = name.lastIndexOf("group:", 0) === 0;
+  const isMetaFor = name.lastIndexOf("meta-for:", 0) === 0;
+  const isNeeds = name.lastIndexOf("needs:", 0) === 0;
+  const isPriority = name.lastIndexOf("priority:", 0) === 0;
 
   // Browsers won't word-break on hyphens, so suggest
   // Use wbr instead of zero-width space to make copy-paste reasonable
-  const nameWithBreaks: (string|React.JSX.Element)[] = [];
-  name.split(':').forEach((part, i, arr) => {
+  const nameWithBreaks: (string | React.JSX.Element)[] = [];
+  name.split(":").forEach((part, i, arr) => {
     const withColon = i < arr.length - 1;
-    nameWithBreaks.push(`${part}${withColon ? ':' : ''}`);
+    nameWithBreaks.push(`${part}${withColon ? ":" : ""}`);
     if (withColon) {
       // eslint-disable-next-line react/no-array-index-key
       nameWithBreaks.push(<wbr key={`wbr-${i}-${part}`} />);
@@ -330,7 +368,9 @@ const Tag = (props: TagProps) => {
   if (props.popoverRelated) {
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
     const relatedPuzzles = getRelatedPuzzles();
-    const respaceButtonVariant = segmentAnswers ? 'secondary' : 'outline-secondary';
+    const respaceButtonVariant = segmentAnswers
+      ? "secondary"
+      : "outline-secondary";
     const popover = (
       <StyledPopover
         id={`tag-${props.tag._id}`}
@@ -347,7 +387,7 @@ const Tag = (props: TagProps) => {
                 onClick={toggleSegmentAnswers}
               >
                 <FontAwesomeIcon icon={faAlignJustify} />
-                {'    '}
+                {"    "}
                 Respace
               </Button>
               <Button
@@ -356,7 +396,7 @@ const Tag = (props: TagProps) => {
                 onClick={copyRelatedPuzzlesToClipboard}
               >
                 <FontAwesomeIcon icon={faCopy} />
-                {'    '}
+                {"    "}
                 Copy
               </Button>
             </RelatedPuzzlePopoverControls>
@@ -376,17 +416,15 @@ const Tag = (props: TagProps) => {
       <OverlayTrigger
         placement="bottom"
         overlay={popover}
-        trigger={['hover', 'click']}
+        trigger={["hover", "click"]}
         onToggle={onOverlayTriggerToggle}
         show={showPopover}
-        popperConfig={
-          {
-            modifiers: [
-              { name: 'preventOverflow', options: { padding: PopoverPadding } },
-              PopperScreenFit,
-            ],
-          }
-        }
+        popperConfig={{
+          modifiers: [
+            { name: "preventOverflow", options: { padding: PopoverPadding } },
+            PopperScreenFit,
+          ],
+        }}
       >
         {tagElement}
       </OverlayTrigger>

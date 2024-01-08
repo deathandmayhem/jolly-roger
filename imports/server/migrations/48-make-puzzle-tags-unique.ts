@@ -1,9 +1,9 @@
-import Puzzles from '../../lib/models/Puzzles';
-import Migrations from './Migrations';
+import Puzzles from "../../lib/models/Puzzles";
+import Migrations from "./Migrations";
 
 Migrations.add({
   version: 48,
-  name: 'Make puzzle tags unique',
+  name: "Make puzzle tags unique",
   async up() {
     for (const puzzle of Puzzles.find()) {
       const uniqueTags = [...new Set(puzzle.tags)];

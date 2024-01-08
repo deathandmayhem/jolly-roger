@@ -1,19 +1,29 @@
-import { Mongo, MongoInternals } from 'meteor/mongo';
+import { Mongo, MongoInternals } from "meteor/mongo";
 import type {
-  Document, IndexDirection, IndexSpecification, CreateIndexesOptions,
-} from 'mongodb';
-import { z } from 'zod';
-import {
-  IsInsert, IsUpdate, IsUpsert, stringId,
-} from './customTypes';
-import type { MongoRecordZodType } from './generateJsonSchema';
-import validateSchema from './validateSchema';
+  Document,
+  IndexDirection,
+  IndexSpecification,
+  CreateIndexesOptions,
+} from "mongodb";
+import { z } from "zod";
+import { IsInsert, IsUpdate, IsUpsert, stringId } from "./customTypes";
+import type { MongoRecordZodType } from "./generateJsonSchema";
+import validateSchema from "./validateSchema";
 
-export type Selector<T extends Document> = Mongo.Selector<T> | string | Mongo.ObjectID;
-export type SelectorToResultType<T extends Document, S extends Selector<T>> =
-  S extends string ? T & { _id: S } :
-  S extends Mongo.ObjectID ? T & { _id: S } :
-  z.objectUtil.flatten<T & { [K in keyof S & keyof T]: S[K] extends T[K] ? S[K] : never }>;
+export type Selector<T extends Document> =
+  | Mongo.Selector<T>
+  | string
+  | Mongo.ObjectID;
+export type SelectorToResultType<
+  T extends Document,
+  S extends Selector<T>,
+> = S extends string
+  ? T & { _id: S }
+  : S extends Mongo.ObjectID
+    ? T & { _id: S }
+    : z.objectUtil.flatten<
+        T & { [K in keyof S & keyof T]: S[K] extends T[K] ? S[K] : never }
+      >;
 
 // Walk the schema and adjust the schema to match an update operation (not the
 // top-level, but the individual objects on $set or similar). This means
@@ -46,39 +56,55 @@ export function relaxSchema(schema: z.ZodFirstPartySchemaTypes): z.ZodTypeAny {
       //
       // (Note that order here matters - zod will accept the first schema that
       // matches)
-      return z.union([
-        z.record(z.coerce.number(), relaxSchema(def.type)).optional(),
-        z.object({ $each: z.array(relaxSchema(def.type)) }).passthrough().optional(),
-        relaxSchema(def.type).optional(),
-        z.array(relaxSchema(def.type)).optional(),
-      ]).optional();
+      return z
+        .union([
+          z.record(z.coerce.number(), relaxSchema(def.type)).optional(),
+          z
+            .object({ $each: z.array(relaxSchema(def.type)) })
+            .passthrough()
+            .optional(),
+          relaxSchema(def.type).optional(),
+          z.array(relaxSchema(def.type)).optional(),
+        ])
+        .optional();
     case z.ZodFirstPartyTypeKind.ZodUnion:
       return z.union(def.options.map(relaxSchema)).optional();
     case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
       return z.union(def.options.map(relaxSchema)).optional();
     case z.ZodFirstPartyTypeKind.ZodIntersection:
-      return z.intersection(relaxSchema(def.left), relaxSchema(def.right)).optional();
+      return z
+        .intersection(relaxSchema(def.left), relaxSchema(def.right))
+        .optional();
     case z.ZodFirstPartyTypeKind.ZodTuple:
       return z.tuple(def.items.map(relaxSchema)).optional();
     case z.ZodFirstPartyTypeKind.ZodRecord:
       return z.record(def.keyType, relaxSchema(def.valueType)).optional();
     case z.ZodFirstPartyTypeKind.ZodDefault: {
       const { defaultValue, innerType } = def;
-      return relaxSchema(innerType).transform((v: z.output<typeof innerType>) => {
-        if (v !== undefined) return v;
-        if (IsInsert.getOrNullIfOutsideFiber() || IsUpsert.getOrNullIfOutsideFiber()) {
-          return defaultValue();
-        }
-        return undefined;
-      });
+      return relaxSchema(innerType).transform(
+        (v: z.output<typeof innerType>) => {
+          if (v !== undefined) return v;
+          if (
+            IsInsert.getOrNullIfOutsideFiber() ||
+            IsUpsert.getOrNullIfOutsideFiber()
+          ) {
+            return defaultValue();
+          }
+          return undefined;
+        },
+      );
     }
     default:
       return schema.isOptional() ? schema : schema.optional();
   }
 }
 
-export function flattenSchemas<Schemas extends z.ZodTypeAny[]>(schemas: Schemas): z.ZodTypeAny {
-  const [first, second, ...rest] = schemas.filter((s) => !(s instanceof z.ZodNever));
+export function flattenSchemas<Schemas extends z.ZodTypeAny[]>(
+  schemas: Schemas,
+): z.ZodTypeAny {
+  const [first, second, ...rest] = schemas.filter(
+    (s) => !(s instanceof z.ZodNever),
+  );
   if (!first) {
     return z.never();
   }
@@ -103,13 +129,17 @@ export function getSchemaForField<Schema extends z.ZodTypeAny>(
       return z.never();
     case z.ZodFirstPartyTypeKind.ZodUnion:
     case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
-      return flattenSchemas(def.options.flatMap(<T extends z.ZodTypeAny>(option: T) => {
-        return getSchemaForField(option, field);
-      }));
+      return flattenSchemas(
+        def.options.flatMap(<T extends z.ZodTypeAny>(option: T) => {
+          return getSchemaForField(option, field);
+        }),
+      );
     case z.ZodFirstPartyTypeKind.ZodIntersection:
-      return flattenSchemas([def.left, def.right].flatMap(<T extends z.ZodTypeAny>(option: T) => {
-        return getSchemaForField(option, field);
-      }));
+      return flattenSchemas(
+        [def.left, def.right].flatMap(<T extends z.ZodTypeAny>(option: T) => {
+          return getSchemaForField(option, field);
+        }),
+      );
     case z.ZodFirstPartyTypeKind.ZodTuple: {
       let index;
       try {
@@ -145,7 +175,7 @@ export async function parseMongoOperationAsync(
   relaxedSchema: z.ZodTypeAny,
   operation: Record<string, any>,
   parsed: Record<string, any> = {},
-  pathParts: string[] = []
+  pathParts: string[] = [],
 ): Promise<any> {
   // The basic strategy is to:
   // - Pull out keys from operation that are not dot-separated
@@ -157,41 +187,51 @@ export async function parseMongoOperationAsync(
   const dotSeparatedKeys: Record<string, any> = {};
   const nonDotSeparatedKeys: Record<string, Record<string, any>> = {};
   for (const [key, value] of Object.entries(operation)) {
-    const [prefix, next, ...rest] = key.split('.');
+    const [prefix, next, ...rest] = key.split(".");
     if (prefix && next) {
       dotSeparatedKeys[prefix] = dotSeparatedKeys[prefix] || {};
-      dotSeparatedKeys[prefix][[next, ...rest].join('.')] = value;
+      dotSeparatedKeys[prefix][[next, ...rest].join(".")] = value;
     } else {
       nonDotSeparatedKeys[key] = value;
     }
   }
 
-  const parsedNonDotSeparatedKeys = await relaxedSchema.parseAsync(nonDotSeparatedKeys);
+  const parsedNonDotSeparatedKeys =
+    await relaxedSchema.parseAsync(nonDotSeparatedKeys);
   for (const [key, value] of Object.entries(parsedNonDotSeparatedKeys)) {
-    parsed[pathParts.concat(key).join('.')] = value;
+    parsed[pathParts.concat(key).join(".")] = value;
   }
 
   for (const [prefix, suboperation] of Object.entries(dotSeparatedKeys)) {
     const subschema = getSchemaForField(relaxedSchema, prefix);
-    await parseMongoOperationAsync(subschema, suboperation, parsed, pathParts.concat(prefix));
+    await parseMongoOperationAsync(
+      subschema,
+      suboperation,
+      parsed,
+      pathParts.concat(prefix),
+    );
   }
 
   return parsed;
 }
 
-const modifierIsWholeDoc = <T extends Document>(modifier: Mongo.Modifier<T>): modifier is T => {
+const modifierIsWholeDoc = <T extends Document>(
+  modifier: Mongo.Modifier<T>,
+): modifier is T => {
   const keys = Object.keys(modifier);
-  return keys.length > 0 && !keys.some((k) => k.startsWith('$'));
+  return keys.length > 0 && !keys.some((k) => k.startsWith("$"));
 };
 
-export async function parseMongoModifierAsync<Schema extends MongoRecordZodType>(
+export async function parseMongoModifierAsync<
+  Schema extends MongoRecordZodType,
+>(
   relaxedSchema: Schema,
   modifier: Mongo.Modifier<z.input<Schema>>,
 ): Promise<Mongo.Modifier<z.output<Schema>>> {
   // Types should prevent passing a full document as a modifier to
   // {update,upsert}Async, but verify at runtime to be sure
   if (modifierIsWholeDoc(modifier)) {
-    throw new Error('Cannot pass a full document as a modifier');
+    throw new Error("Cannot pass a full document as a modifier");
   }
 
   const parsed: any = {
@@ -199,27 +239,30 @@ export async function parseMongoModifierAsync<Schema extends MongoRecordZodType>
       return parseMongoOperationAsync(relaxedSchema, modifier.$set ?? {});
     }),
     $setOnInsert: await IsUpsert.withValue(true, () => {
-      return parseMongoOperationAsync(relaxedSchema, modifier.$setOnInsert ?? {});
+      return parseMongoOperationAsync(
+        relaxedSchema,
+        modifier.$setOnInsert ?? {},
+      );
     }),
   };
 
   for (const [key, value] of Object.entries(modifier)) {
     switch (key) {
-      case '$set':
-      case '$setOnInsert':
+      case "$set":
+      case "$setOnInsert":
         // we already handled these
         break;
-      case '$push':
-      case '$addToSet':
-      case '$pull':
-      case '$pullAll':
-      case '$inc':
-      case '$min':
-      case '$max':
-      case '$mul':
+      case "$push":
+      case "$addToSet":
+      case "$pull":
+      case "$pullAll":
+      case "$inc":
+      case "$min":
+      case "$max":
+      case "$mul":
         parsed[key] = await parseMongoOperationAsync(relaxedSchema, value);
         break;
-      case '$unset':
+      case "$unset":
         // we can't do anything with these, so rely on the json-schema to
         // validate
         parsed[key] = value;
@@ -232,7 +275,7 @@ export async function parseMongoModifierAsync<Schema extends MongoRecordZodType>
   // de-conflict $setOnInsert with other operators
   for (const key of Object.keys(parsed.$setOnInsert)) {
     for (const operator of Object.keys(parsed)) {
-      if (operator === '$setOnInsert') {
+      if (operator === "$setOnInsert") {
         continue;
       }
       if (key in parsed[operator]) {
@@ -266,25 +309,34 @@ export function formatValidationError(error: unknown) {
     return;
   }
 
-  if (!('errInfo' in error) ||
+  if (
+    !("errInfo" in error) ||
     !error.errInfo ||
-    typeof error.errInfo !== 'object' ||
-    !('details' in error.errInfo) ||
+    typeof error.errInfo !== "object" ||
+    !("details" in error.errInfo) ||
     !error.errInfo.details ||
-    typeof error.errInfo.details !== 'object' ||
-    !('schemaRulesNotSatisfied' in error.errInfo.details) ||
-    !Array.isArray(error.errInfo.details.schemaRulesNotSatisfied)) {
+    typeof error.errInfo.details !== "object" ||
+    !("schemaRulesNotSatisfied" in error.errInfo.details) ||
+    !Array.isArray(error.errInfo.details.schemaRulesNotSatisfied)
+  ) {
     return;
   }
 
-  error.message += `: ${JSON.stringify(error.errInfo.details.schemaRulesNotSatisfied)}`;
+  error.message += `: ${JSON.stringify(
+    error.errInfo.details.schemaRulesNotSatisfied,
+  )}`;
   error.stack = error.stack?.replace(/^.*$/m, error.message);
 }
 
 export type NormalizedIndexSpecification = readonly [string, IndexDirection][];
 
-const AllowedIndexOptions = ['unique', 'sparse', 'partialFilterExpression', 'expireAfterSeconds'] as const;
-type AllowedIndexOptionsType = typeof AllowedIndexOptions[number];
+const AllowedIndexOptions = [
+  "unique",
+  "sparse",
+  "partialFilterExpression",
+  "expireAfterSeconds",
+] as const;
+type AllowedIndexOptionsType = (typeof AllowedIndexOptions)[number];
 export type IndexOptions = Pick<CreateIndexesOptions, AllowedIndexOptionsType>;
 type NormalizedIndexOptions = [AllowedIndexOptionsType, any][];
 
@@ -297,15 +349,19 @@ export interface ModelIndexSpecification {
 }
 
 function indexIsField(index: any): index is string {
-  return typeof index === 'string';
+  return typeof index === "string";
 }
 
-function indexIsFieldDirectionPair(index: any): index is readonly [string, IndexDirection] {
-  return Array.isArray(index) && index.length === 2 && typeof index[0] === 'string';
+function indexIsFieldDirectionPair(
+  index: any,
+): index is readonly [string, IndexDirection] {
+  return (
+    Array.isArray(index) && index.length === 2 && typeof index[0] === "string"
+  );
 }
 
 function indexIsObject(index: any): index is Record<string, IndexDirection> {
-  return typeof index === 'object' && index !== null && !Array.isArray(index);
+  return typeof index === "object" && index !== null && !Array.isArray(index);
 }
 
 function indexIsMap(index: any): index is Map<string, IndexDirection> {
@@ -313,7 +369,7 @@ function indexIsMap(index: any): index is Map<string, IndexDirection> {
 }
 
 export function normalizeIndexSpecification(
-  index: IndexSpecification
+  index: IndexSpecification,
 ): NormalizedIndexSpecification {
   // An index specification can be a:
   // - string
@@ -333,11 +389,15 @@ export function normalizeIndexSpecification(
   } else if (indexIsMap(index)) {
     return [...index];
   } else {
-    return index.map(normalizeIndexSpecification).reduce((acc, val) => acc.concat(val), []);
+    return index
+      .map(normalizeIndexSpecification)
+      .reduce((acc, val) => acc.concat(val), []);
   }
 }
 
-export function normalizeIndexOptions(options: CreateIndexesOptions): NormalizedIndexOptions {
+export function normalizeIndexOptions(
+  options: CreateIndexesOptions,
+): NormalizedIndexOptions {
   return Object.entries(options)
     .filter((v): v is [AllowedIndexOptionsType, any] => {
       return AllowedIndexOptions.includes(v[0] as any);
@@ -347,25 +407,35 @@ export function normalizeIndexOptions(options: CreateIndexesOptions): Normalized
 
 export const AllModels = new Set<Model<any, any>>();
 
-class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = typeof stringId> {
+class Model<
+  Schema extends MongoRecordZodType,
+  IdSchema extends z.ZodTypeAny = typeof stringId,
+> {
   name: string;
 
   schema: Schema extends z.ZodObject<
-    infer Shape extends z.ZodRawShape, infer UnknownKeys, infer Catchall
-  > ?
-    z.ZodObject<z.objectUtil.extendShape<Shape, { _id: IdSchema }>, UnknownKeys, Catchall> :
-    z.ZodIntersection<Schema, z.ZodObject<{ _id: IdSchema }>>;
+    infer Shape extends z.ZodRawShape,
+    infer UnknownKeys,
+    infer Catchall
+  >
+    ? z.ZodObject<
+        z.objectUtil.extendShape<Shape, { _id: IdSchema }>,
+        UnknownKeys,
+        Catchall
+      >
+    : z.ZodIntersection<Schema, z.ZodObject<{ _id: IdSchema }>>;
 
   relaxedSchema: z.ZodTypeAny;
 
-  collection: Mongo.Collection<z.output<this['schema']>>;
+  collection: Mongo.Collection<z.output<this["schema"]>>;
 
   indexes: ModelIndexSpecification[] = [];
 
   constructor(name: string, schema: Schema, idSchema?: IdSchema) {
-    this.schema = schema instanceof z.ZodObject ?
-      schema.extend({ _id: idSchema ?? stringId }) :
-      schema.and(z.object({ _id: idSchema ?? stringId })) as any;
+    this.schema =
+      schema instanceof z.ZodObject
+        ? schema.extend({ _id: idSchema ?? stringId })
+        : (schema.and(z.object({ _id: idSchema ?? stringId })) as any);
     validateSchema(this.schema);
     this.name = name;
     this.relaxedSchema = relaxSchema(this.schema);
@@ -373,17 +443,21 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
     AllModels.add(this);
   }
 
-  async insertAsync(doc: z.input<this['schema']>, options: {
-    bypassSchema?: boolean | undefined;
-  } = {}): Promise<z.output<IdSchema>> {
+  async insertAsync(
+    doc: z.input<this["schema"]>,
+    options: {
+      bypassSchema?: boolean | undefined;
+    } = {},
+  ): Promise<z.output<IdSchema>> {
     const { bypassSchema } = options;
     if (bypassSchema) {
       let raw: any = doc;
-      if (!('_id' in doc)) {
+      if (!("_id" in doc)) {
         raw = { ...doc, _id: this.collection._makeNewID() };
       }
       try {
-        await this.collection.rawCollection()
+        await this.collection
+          .rawCollection()
           .insertOne(raw, { bypassDocumentValidation: true });
         return raw._id;
       } catch (e) {
@@ -392,9 +466,12 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
       }
     }
 
-    const parsed: z.output<Schema> = await IsInsert.withValue(true, async () => {
-      return this.schema.parseAsync(doc);
-    });
+    const parsed: z.output<Schema> = await IsInsert.withValue(
+      true,
+      async () => {
+        return this.schema.parseAsync(doc);
+      },
+    );
     try {
       return await this.collection.insertAsync(parsed);
     } catch (e) {
@@ -407,8 +484,11 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
   // transform functions don't make sense (e.g. we won't accept a `createdAt`
   // timestamp, but we expect one to be there)
   async updateAsync(
-    selector: Selector<z.output<this['schema']>>,
-    modifier: Exclude<Mongo.Modifier<z.input<this['schema']>>, z.input<this['schema']>>,
+    selector: Selector<z.output<this["schema"]>>,
+    modifier: Exclude<
+      Mongo.Modifier<z.input<this["schema"]>>,
+      z.input<this["schema"]>
+    >,
     options: {
       multi?: boolean | undefined;
       upsert?: boolean | undefined;
@@ -429,18 +509,20 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
     // update if that fails.
     if (bypassSchema) {
       if (options.upsert) {
-        throw new Error('Cannot bypass schema validation when upserting');
+        throw new Error("Cannot bypass schema validation when upserting");
       }
 
       try {
-        const result = await this.collection.rawCollection().updateOne(
-          typeof selector === 'object' ? selector : { _id: selector },
-          modifier,
-          {
-            ...mongoOptions,
-            bypassDocumentValidation: true,
-          } as any
-        );
+        const result = await this.collection
+          .rawCollection()
+          .updateOne(
+            typeof selector === "object" ? selector : { _id: selector },
+            modifier,
+            {
+              ...mongoOptions,
+              bypassDocumentValidation: true,
+            } as any,
+          );
         return result.modifiedCount;
       } catch (e) {
         formatValidationError(e);
@@ -460,8 +542,11 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
   // See the comments around bypassSchema in updateAsync for why we don't
   // support bypassSchema here
   async upsertAsync(
-    selector: Selector<z.output<this['schema']>>,
-    modifier: Exclude<Mongo.Modifier<z.output<this['schema']>>, z.output<this['schema']>>,
+    selector: Selector<z.output<this["schema"]>>,
+    modifier: Exclude<
+      Mongo.Modifier<z.output<this["schema"]>>,
+      z.output<this["schema"]>
+    >,
     options: {
       multi?: boolean | undefined;
     } = {},
@@ -471,7 +556,11 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
   }> {
     const parsed = await parseMongoModifierAsync(this.relaxedSchema, modifier);
     try {
-      return await this.collection.upsertAsync(selector, parsed, options) as any;
+      return (await this.collection.upsertAsync(
+        selector,
+        parsed,
+        options,
+      )) as any;
     } catch (e) {
       formatValidationError(e);
       throw e;
@@ -479,7 +568,7 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
   }
 
   async removeAsync(
-    selector: Selector<z.output<this['schema']>>,
+    selector: Selector<z.output<this["schema"]>>,
   ): Promise<number> {
     return this.collection.removeAsync(selector);
   }
@@ -488,30 +577,36 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
   // reason not to, but I wasn't able to get the types to work
 
   find<
-    S extends Selector<z.output<this['schema']>>,
-    O extends Omit<Mongo.Options<z.output<this['schema']>>, 'transform'>,
-  >(
-    selector?: S,
-    options?: O,
-  ) {
-    return this.collection.find(selector ?? {}, options) as
-      Mongo.Cursor<SelectorToResultType<z.output<this['schema']>, S>>;
+    S extends Selector<z.output<this["schema"]>>,
+    O extends Omit<Mongo.Options<z.output<this["schema"]>>, "transform">,
+  >(selector?: S, options?: O) {
+    return this.collection.find(selector ?? {}, options) as Mongo.Cursor<
+      SelectorToResultType<z.output<this["schema"]>, S>
+    >;
   }
 
-  findOne<S extends Selector<z.output<this['schema']>>, O extends Omit<Mongo.Options<z.output<this['schema']>>, 'limit' | 'transform'>>(
-    selector?: S,
-    options?: O,
-  ) {
+  findOne<
+    S extends Selector<z.output<this["schema"]>>,
+    O extends Omit<
+      Mongo.Options<z.output<this["schema"]>>,
+      "limit" | "transform"
+    >,
+  >(selector?: S, options?: O) {
     return this.collection.findOne(selector ?? {}, options) as
-      SelectorToResultType<z.output<this['schema']>, S> | undefined;
+      | SelectorToResultType<z.output<this["schema"]>, S>
+      | undefined;
   }
 
-  findOneAsync<S extends Selector<z.output<this['schema']>>, O extends Omit<Mongo.Options<z.output<this['schema']>>, 'limit' | 'transform'>>(
-    selector?: S,
-    options?: O,
-  ) {
-    return this.collection.findOneAsync(selector ?? {}, options) as
-      Promise<SelectorToResultType<z.output<this['schema']>, S> | undefined>;
+  findOneAsync<
+    S extends Selector<z.output<this["schema"]>>,
+    O extends Omit<
+      Mongo.Options<z.output<this["schema"]>>,
+      "limit" | "transform"
+    >,
+  >(selector?: S, options?: O) {
+    return this.collection.findOneAsync(selector ?? {}, options) as Promise<
+      SelectorToResultType<z.output<this["schema"]>, S> | undefined
+    >;
   }
 
   addIndex(specification: IndexSpecification, options: IndexOptions = {}) {
@@ -526,6 +621,6 @@ class Model<Schema extends MongoRecordZodType, IdSchema extends z.ZodTypeAny = t
   }
 }
 
-export type ModelType<M extends Model<any, any>> = z.output<M['schema']>;
+export type ModelType<M extends Model<any, any>> = z.output<M["schema"]>;
 
 export default Model;

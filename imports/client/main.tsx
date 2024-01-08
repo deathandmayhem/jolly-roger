@@ -1,9 +1,9 @@
-import { Meteor } from 'meteor/meteor';
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { createGlobalStyle } from 'styled-components';
-import Routes from './components/Routes';
+import { Meteor } from "meteor/meteor";
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { createGlobalStyle } from "styled-components";
+import Routes from "./components/Routes";
 
 const Reset = createGlobalStyle`
   @font-face {
@@ -25,8 +25,8 @@ const Reset = createGlobalStyle`
 `;
 
 Meteor.startup(() => {
-  const container = document.createElement('div');
-  container.className = 'jolly-roger';
+  const container = document.createElement("div");
+  container.className = "jolly-roger";
   document.body.appendChild(container);
   const root = createRoot(container);
   root.render(
@@ -39,6 +39,6 @@ Meteor.startup(() => {
           </BrowserRouter>
         </React.StrictMode>
       )}
-    </>
+    </>,
   );
 });

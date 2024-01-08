@@ -1,5 +1,3 @@
-import TypedPublication from './TypedPublication';
+import TypedPublication from "./TypedPublication";
 
-export default new TypedPublication<void>(
-  'Settings.publications.all'
-);
+export default new TypedPublication<void>("Settings.publications.all");

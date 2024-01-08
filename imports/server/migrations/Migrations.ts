@@ -1,4 +1,4 @@
-import MigrationRegistry from '../MigrationRegistry';
+import MigrationRegistry from "../MigrationRegistry";
 
 const Migrations = new MigrationRegistry({});
 

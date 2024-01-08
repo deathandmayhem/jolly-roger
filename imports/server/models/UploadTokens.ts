@@ -1,8 +1,8 @@
-import { z } from 'zod';
-import type { ModelType } from '../../lib/models/Model';
-import Model from '../../lib/models/Model';
-import { nonEmptyString } from '../../lib/models/customTypes';
-import withCommon from '../../lib/models/withCommon';
+import { z } from "zod";
+import type { ModelType } from "../../lib/models/Model";
+import Model from "../../lib/models/Model";
+import { nonEmptyString } from "../../lib/models/customTypes";
+import withCommon from "../../lib/models/withCommon";
 
 // A way to authenticate uploads before accepting them.
 // The flow is:
@@ -12,12 +12,14 @@ import withCommon from '../../lib/models/withCommon';
 // * client does a post to /fileUpload/:_id , and since _id is unguessable, we
 //   can treat this as authenticated and complete whatever task was started before
 //   the upload was initiated.
-const UploadToken = withCommon(z.object({
-  asset: nonEmptyString,
-  mimeType: nonEmptyString,
-}));
+const UploadToken = withCommon(
+  z.object({
+    asset: nonEmptyString,
+    mimeType: nonEmptyString,
+  }),
+);
 
-const UploadTokens = new Model('jr_upload_tokens', UploadToken);
+const UploadTokens = new Model("jr_upload_tokens", UploadToken);
 export type UploadTokenType = ModelType<typeof UploadTokens>;
 
 export default UploadTokens;

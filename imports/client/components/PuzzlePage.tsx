@@ -1,24 +1,19 @@
-import { Meteor } from 'meteor/meteor';
-import { Random } from 'meteor/random';
-import { useFind, useSubscribe, useTracker } from 'meteor/react-meteor-data';
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
-import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight';
-import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
-import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
-import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
-import { faImage } from '@fortawesome/free-solid-svg-icons/faImage';
-import { faKey } from '@fortawesome/free-solid-svg-icons/faKey';
-import { faPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane';
-import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner';
-import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import type {
-  ChangeEvent,
-  ComponentPropsWithRef,
-  FC,
-  MouseEvent,
-} from 'react';
+import { Meteor } from "meteor/meteor";
+import { Random } from "meteor/random";
+import { useFind, useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons/faArrowLeft";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight";
+import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck";
+import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
+import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
+import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
+import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
+import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane";
+import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { ChangeEvent, ComponentPropsWithRef, FC, MouseEvent } from "react";
 import React, {
   useCallback,
   useEffect,
@@ -27,108 +22,124 @@ import React, {
   useMemo,
   useRef,
   useState,
-} from 'react';
-import Alert from 'react-bootstrap/Alert';
-import Badge from 'react-bootstrap/Badge';
-import Button from 'react-bootstrap/Button';
-import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
-import type { FormControlProps } from 'react-bootstrap/FormControl';
-import FormControl from 'react-bootstrap/FormControl';
-import FormGroup from 'react-bootstrap/FormGroup';
-import FormLabel from 'react-bootstrap/FormLabel';
-import FormSelect from 'react-bootstrap/FormSelect';
-import FormText from 'react-bootstrap/FormText';
-import InputGroup from 'react-bootstrap/InputGroup';
-import Modal from 'react-bootstrap/Modal';
-import Row from 'react-bootstrap/Row';
-import Tab from 'react-bootstrap/Tab';
-import Tabs from 'react-bootstrap/Tabs';
-import OverlayTrigger from 'react-bootstrap/esm/OverlayTrigger';
-import Tooltip from 'react-bootstrap/esm/Tooltip';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { createPortal } from 'react-dom';
-import { Link, useParams } from 'react-router-dom';
-import type { Descendant } from 'slate';
-import styled, { css } from 'styled-components';
-import { calendarTimeFormat, shortCalendarTimeFormat } from '../../lib/calendarTimeFormat';
-import { messageDingsUser } from '../../lib/dingwordLogic';
-import { indexedById, sortedBy } from '../../lib/listUtils';
-import Bookmarks from '../../lib/models/Bookmarks';
-import type { ChatMessageType } from '../../lib/models/ChatMessages';
-import ChatMessages from '../../lib/models/ChatMessages';
-import Documents from '../../lib/models/Documents';
-import type { DocumentType } from '../../lib/models/Documents';
-import Guesses from '../../lib/models/Guesses';
-import type { GuessType } from '../../lib/models/Guesses';
-import Hunts from '../../lib/models/Hunts';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import Puzzles from '../../lib/models/Puzzles';
-import type { PuzzleType } from '../../lib/models/Puzzles';
-import Tags from '../../lib/models/Tags';
-import type { TagType } from '../../lib/models/Tags';
-import nodeIsMention from '../../lib/nodeIsMention';
-import nodeIsText from '../../lib/nodeIsText';
-import { userMayWritePuzzlesForHunt } from '../../lib/permission_stubs';
-import chatMessagesForPuzzle from '../../lib/publications/chatMessagesForPuzzle';
-import puzzleForPuzzlePage from '../../lib/publications/puzzleForPuzzlePage';
-import { computeSolvedness } from '../../lib/solvedness';
-import addPuzzleAnswer from '../../methods/addPuzzleAnswer';
-import addPuzzleTag from '../../methods/addPuzzleTag';
-import createGuess from '../../methods/createGuess';
-import ensurePuzzleDocument from '../../methods/ensurePuzzleDocument';
-import type { ImageSource } from '../../methods/insertDocumentImage';
-import insertDocumentImage from '../../methods/insertDocumentImage';
-import type { Sheet } from '../../methods/listDocumentSheets';
-import listDocumentSheets from '../../methods/listDocumentSheets';
-import removePuzzleAnswer from '../../methods/removePuzzleAnswer';
-import removePuzzleTag from '../../methods/removePuzzleTag';
-import sendChatMessage from '../../methods/sendChatMessage';
-import undestroyPuzzle from '../../methods/undestroyPuzzle';
-import updatePuzzle from '../../methods/updatePuzzle';
-import GoogleScriptInfo from '../GoogleScriptInfo';
-import { useBreadcrumb } from '../hooks/breadcrumb';
-import useBlockUpdate from '../hooks/useBlockUpdate';
-import type { Action, CallState } from '../hooks/useCallState';
-import useCallState from '../hooks/useCallState';
-import useDocumentTitle from '../hooks/useDocumentTitle';
-import useSubscribeDisplayNames from '../hooks/useSubscribeDisplayNames';
-import useTypedSubscribe from '../hooks/useTypedSubscribe';
-import indexedDisplayNames from '../indexedDisplayNames';
-import { trace } from '../tracing';
-import BookmarkButton from './BookmarkButton';
-import ChatMessage from './ChatMessage';
-import ChatPeople from './ChatPeople';
-import DocumentDisplay, { DocumentMessage } from './DocumentDisplay';
-import type { FancyEditorHandle, MessageElement } from './FancyEditor';
-import FancyEditor from './FancyEditor';
-import GuessState from './GuessState';
-import Markdown from './Markdown';
-import type { ModalFormHandle } from './ModalForm';
-import ModalForm from './ModalForm';
-import PuzzleAnswer from './PuzzleAnswer';
-import type { PuzzleModalFormSubmitPayload } from './PuzzleModalForm';
-import PuzzleModalForm from './PuzzleModalForm';
-import SplitPanePlus from './SplitPanePlus';
-import TagList from './TagList';
+} from "react";
+import Alert from "react-bootstrap/Alert";
+import Badge from "react-bootstrap/Badge";
+import Button from "react-bootstrap/Button";
+import Col from "react-bootstrap/Col";
+import Form from "react-bootstrap/Form";
+import type { FormControlProps } from "react-bootstrap/FormControl";
+import FormControl from "react-bootstrap/FormControl";
+import FormGroup from "react-bootstrap/FormGroup";
+import FormLabel from "react-bootstrap/FormLabel";
+import FormSelect from "react-bootstrap/FormSelect";
+import FormText from "react-bootstrap/FormText";
+import InputGroup from "react-bootstrap/InputGroup";
+import Modal from "react-bootstrap/Modal";
+import Row from "react-bootstrap/Row";
+import Tab from "react-bootstrap/Tab";
+import Tabs from "react-bootstrap/Tabs";
+import OverlayTrigger from "react-bootstrap/esm/OverlayTrigger";
+import Tooltip from "react-bootstrap/esm/Tooltip";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+import { createPortal } from "react-dom";
+import { Link, useParams } from "react-router-dom";
+import type { Descendant } from "slate";
+import styled, { css } from "styled-components";
+import {
+  calendarTimeFormat,
+  shortCalendarTimeFormat,
+} from "../../lib/calendarTimeFormat";
+import { messageDingsUser } from "../../lib/dingwordLogic";
+import { indexedById, sortedBy } from "../../lib/listUtils";
+import Bookmarks from "../../lib/models/Bookmarks";
+import type { ChatMessageType } from "../../lib/models/ChatMessages";
+import ChatMessages from "../../lib/models/ChatMessages";
+import Documents from "../../lib/models/Documents";
+import type { DocumentType } from "../../lib/models/Documents";
+import Guesses from "../../lib/models/Guesses";
+import type { GuessType } from "../../lib/models/Guesses";
+import Hunts from "../../lib/models/Hunts";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import Puzzles from "../../lib/models/Puzzles";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import Tags from "../../lib/models/Tags";
+import type { TagType } from "../../lib/models/Tags";
+import nodeIsMention from "../../lib/nodeIsMention";
+import nodeIsText from "../../lib/nodeIsText";
+import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
+import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
+import puzzleForPuzzlePage from "../../lib/publications/puzzleForPuzzlePage";
+import { computeSolvedness } from "../../lib/solvedness";
+import addPuzzleAnswer from "../../methods/addPuzzleAnswer";
+import addPuzzleTag from "../../methods/addPuzzleTag";
+import createGuess from "../../methods/createGuess";
+import ensurePuzzleDocument from "../../methods/ensurePuzzleDocument";
+import type { ImageSource } from "../../methods/insertDocumentImage";
+import insertDocumentImage from "../../methods/insertDocumentImage";
+import type { Sheet } from "../../methods/listDocumentSheets";
+import listDocumentSheets from "../../methods/listDocumentSheets";
+import removePuzzleAnswer from "../../methods/removePuzzleAnswer";
+import removePuzzleTag from "../../methods/removePuzzleTag";
+import sendChatMessage from "../../methods/sendChatMessage";
+import undestroyPuzzle from "../../methods/undestroyPuzzle";
+import updatePuzzle from "../../methods/updatePuzzle";
+import GoogleScriptInfo from "../GoogleScriptInfo";
+import { useBreadcrumb } from "../hooks/breadcrumb";
+import useBlockUpdate from "../hooks/useBlockUpdate";
+import type { Action, CallState } from "../hooks/useCallState";
+import useCallState from "../hooks/useCallState";
+import useDocumentTitle from "../hooks/useDocumentTitle";
+import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import indexedDisplayNames from "../indexedDisplayNames";
+import { trace } from "../tracing";
+import BookmarkButton from "./BookmarkButton";
+import ChatMessage from "./ChatMessage";
+import ChatPeople from "./ChatPeople";
+import DocumentDisplay, { DocumentMessage } from "./DocumentDisplay";
+import type { FancyEditorHandle, MessageElement } from "./FancyEditor";
+import FancyEditor from "./FancyEditor";
+import GuessState from "./GuessState";
+import Markdown from "./Markdown";
+import type { ModalFormHandle } from "./ModalForm";
+import ModalForm from "./ModalForm";
+import PuzzleAnswer from "./PuzzleAnswer";
+import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
+import PuzzleModalForm from "./PuzzleModalForm";
+import SplitPanePlus from "./SplitPanePlus";
+import TagList from "./TagList";
 import {
   GuessConfidence,
   GuessDirection,
   formatGuessDirection,
   formatConfidence,
-} from './guessDetails';
-import Breakable from './styling/Breakable';
-import FixedLayout from './styling/FixedLayout';
-import { guessColorLookupTable, MonospaceFontFamily, SolvedPuzzleBackgroundColor } from './styling/constants';
-import { mediaBreakpointDown } from './styling/responsive';
+} from "./guessDetails";
+import Breakable from "./styling/Breakable";
+import FixedLayout from "./styling/FixedLayout";
+import {
+  guessColorLookupTable,
+  MonospaceFontFamily,
+  SolvedPuzzleBackgroundColor,
+} from "./styling/constants";
+import { mediaBreakpointDown } from "./styling/responsive";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
 
 const tabId = Random.id();
 
-const FilteredChatFields = ['_id', 'puzzle', 'content', 'sender', 'timestamp'] as const;
-type FilteredChatMessageType = Pick<ChatMessageType, typeof FilteredChatFields[number]>
+const FilteredChatFields = [
+  "_id",
+  "puzzle",
+  "content",
+  "sender",
+  "timestamp",
+] as const;
+type FilteredChatMessageType = Pick<
+  ChatMessageType,
+  (typeof FilteredChatFields)[number]
+>;
 
 // It doesn't need to be, but this is consistent with the 576px transition used in other pages' css
 const MinimumSidebarWidth = 176;
@@ -192,22 +203,33 @@ const ChatHistoryDiv = styled.div`
 
 const PUZZLE_PAGE_PADDING = 8;
 
-const ChatMessageDiv = styled.div<{ $isSystemMessage: boolean; $isHighlighted: boolean; }>`
+const ChatMessageDiv = styled.div<{
+  $isSystemMessage: boolean;
+  $isHighlighted: boolean;
+}>`
   padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
   word-wrap: break-word;
   font-size: 14px;
-  ${({ $isSystemMessage, $isHighlighted }) => $isHighlighted && !$isSystemMessage && css`
-    background-color: #ffffd0;
-  `}
+  ${({ $isSystemMessage, $isHighlighted }) =>
+    $isHighlighted &&
+    !$isSystemMessage &&
+    css`
+      background-color: #ffffd0;
+    `}
 
-  ${({ $isSystemMessage }) => $isSystemMessage && css`
-    background-color: #e0e0e0;
-  `}
+  ${({ $isSystemMessage }) =>
+    $isSystemMessage &&
+    css`
+      background-color: #e0e0e0;
+    `}
 `;
 
 const ChatInputRow = styled.div`
   padding: ${PUZZLE_PAGE_PADDING}px;
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), ${PUZZLE_PAGE_PADDING}px);
+  padding-bottom: max(
+    env(safe-area-inset-bottom, 0px),
+    ${PUZZLE_PAGE_PADDING}px
+  );
 `;
 
 const ChatMessageTimestamp = styled.span`
@@ -262,7 +284,9 @@ const PuzzleMetadataAnswer = styled.span`
   border-radius: 4px;
 `;
 
-const AnswerRemoveButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
+const AnswerRemoveButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
+  Button,
+)`
   /* Specifier boost needed to override Bootstrap button style */
   && {
     margin: 0 -6px 0 6px;
@@ -323,193 +347,222 @@ const AnswerFormControl = styled(FormControl)`
   font-weight: 400;
 `;
 
-const ChatHistoryMessage = React.memo(({
-  message, displayNames, isSystemMessage, isHighlighted, suppressSender, selfUserId,
-}: {
-  message: FilteredChatMessageType;
-  displayNames: Map<string, string>;
-  isSystemMessage: boolean;
-  isHighlighted: boolean;
-  suppressSender: boolean;
-  selfUserId: string;
-}) => {
-  const ts = shortCalendarTimeFormat(message.timestamp);
+const ChatHistoryMessage = React.memo(
+  ({
+    message,
+    displayNames,
+    isSystemMessage,
+    isHighlighted,
+    suppressSender,
+    selfUserId,
+  }: {
+    message: FilteredChatMessageType;
+    displayNames: Map<string, string>;
+    isSystemMessage: boolean;
+    isHighlighted: boolean;
+    suppressSender: boolean;
+    selfUserId: string;
+  }) => {
+    const ts = shortCalendarTimeFormat(message.timestamp);
 
-  const senderDisplayName = message.sender !== undefined ? displayNames.get(message.sender) ?? '???' : 'jolly-roger';
-  return (
-    <ChatMessageDiv $isSystemMessage={isSystemMessage} $isHighlighted={isHighlighted && !isSystemMessage}>
-      {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
-      {!suppressSender && <strong>{senderDisplayName}</strong>}
-      <ChatMessage
-        message={message.content}
-        displayNames={displayNames}
-        selfUserId={selfUserId}
-      />
-    </ChatMessageDiv>
-  );
-});
+    const senderDisplayName =
+      message.sender !== undefined
+        ? displayNames.get(message.sender) ?? "???"
+        : "jolly-roger";
+    return (
+      <ChatMessageDiv
+        $isSystemMessage={isSystemMessage}
+        $isHighlighted={isHighlighted && !isSystemMessage}
+      >
+        {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
+        {!suppressSender && <strong>{senderDisplayName}</strong>}
+        <ChatMessage
+          message={message.content}
+          displayNames={displayNames}
+          selfUserId={selfUserId}
+        />
+      </ChatMessageDiv>
+    );
+  },
+);
 
 type ChatHistoryHandle = {
-  saveScrollBottomTarget: () => void,
-  snapToBottom: () => void,
+  saveScrollBottomTarget: () => void;
+  snapToBottom: () => void;
   scrollToTarget: () => void;
-}
+};
 
-const ChatHistory = React.forwardRef(({
-  puzzleId, displayNames, selfUser,
-}: {
-  puzzleId: string;
-  displayNames: Map<string, string>;
-  selfUser: Meteor.User;
-}, forwardedRef: React.Ref<ChatHistoryHandle>) => {
-  const chatMessages: FilteredChatMessageType[] = useFind(
-    () => ChatMessages.find(
-      { puzzle: puzzleId },
-      { sort: { timestamp: 1 } },
-    ),
-    [puzzleId]
-  );
+const ChatHistory = React.forwardRef(
+  (
+    {
+      puzzleId,
+      displayNames,
+      selfUser,
+    }: {
+      puzzleId: string;
+      displayNames: Map<string, string>;
+      selfUser: Meteor.User;
+    },
+    forwardedRef: React.Ref<ChatHistoryHandle>,
+  ) => {
+    const chatMessages: FilteredChatMessageType[] = useFind(
+      () => ChatMessages.find({ puzzle: puzzleId }, { sort: { timestamp: 1 } }),
+      [puzzleId],
+    );
 
-  const ref = useRef<HTMLDivElement>(null);
-  const scrollBottomTarget = useRef<number>(0);
-  const shouldIgnoreNextScrollEvent = useRef<boolean>(false);
+    const ref = useRef<HTMLDivElement>(null);
+    const scrollBottomTarget = useRef<number>(0);
+    const shouldIgnoreNextScrollEvent = useRef<boolean>(false);
 
-  const saveScrollBottomTarget = useCallback(() => {
-    if (ref.current) {
-      const rect = ref.current.getClientRects()[0]!;
-      const scrollHeight = ref.current.scrollHeight;
-      const scrollTop = ref.current.scrollTop;
-      const hiddenHeight = scrollHeight - rect.height;
-      const distanceFromBottom = hiddenHeight - scrollTop;
-      trace('ChatHistory saveScrollBottomTarget', {
-        distanceFromBottom,
-        scrollHeight,
-        scrollTop,
-        rectHeight: rect.height,
-        hiddenHeight,
-      });
-      scrollBottomTarget.current = distanceFromBottom;
-    }
-  }, []);
-
-  const onScrollObserved = useCallback(() => {
-    // When we call scrollToTarget and it actually changes scrollTop, this triggers a scroll event.
-    // If the element's scrollHeight or clientHeight changed after scrollToTarget was called, we'd
-    // mistakenly save an incorrect scrollBottomTarget.  So skip one scroll event when we self-induce
-    // this callback, so we only update the target distance from bottom when the user is actually
-    // scrolling.
-    trace('ChatHistory onScrollObserved', { ignoring: shouldIgnoreNextScrollEvent.current });
-    if (shouldIgnoreNextScrollEvent.current) {
-      shouldIgnoreNextScrollEvent.current = false;
-    } else {
-      saveScrollBottomTarget();
-    }
-  }, [saveScrollBottomTarget]);
-
-  const scrollToTarget = useCallback(() => {
-    if (ref.current) {
-      const rect = ref.current.getClientRects()[0]!;
-      const scrollHeight = ref.current.scrollHeight;
-      const scrollTop = ref.current.scrollTop;
-      const hiddenHeight = scrollHeight - rect.height;
-      // if distanceFromBottom is hiddenHeight - scrollTop, then
-      // our desired scrollTop is hiddenHeight - distanceFromBottom
-      const scrollTopTarget = hiddenHeight - scrollBottomTarget.current;
-      trace('ChatHistory scrollToTarget', {
-        hasRef: true,
-        target: scrollBottomTarget.current,
-        scrollHeight,
-        scrollTop,
-        rectHeight: rect.height,
-        hiddenHeight,
-        alreadyIgnoringNextScrollEvent: shouldIgnoreNextScrollEvent.current,
-      });
-      if (scrollTop !== scrollTopTarget) {
-        shouldIgnoreNextScrollEvent.current = true;
-        ref.current.scrollTop = scrollTopTarget;
+    const saveScrollBottomTarget = useCallback(() => {
+      if (ref.current) {
+        const rect = ref.current.getClientRects()[0]!;
+        const scrollHeight = ref.current.scrollHeight;
+        const scrollTop = ref.current.scrollTop;
+        const hiddenHeight = scrollHeight - rect.height;
+        const distanceFromBottom = hiddenHeight - scrollTop;
+        trace("ChatHistory saveScrollBottomTarget", {
+          distanceFromBottom,
+          scrollHeight,
+          scrollTop,
+          rectHeight: rect.height,
+          hiddenHeight,
+        });
+        scrollBottomTarget.current = distanceFromBottom;
       }
-    } else {
-      trace('ChatHistory scrollToTarget', { hasRef: false, target: scrollBottomTarget.current });
-    }
-  }, []);
+    }, []);
 
-  const snapToBottom = useCallback(() => {
-    trace('ChatHistory snapToBottom');
-    scrollBottomTarget.current = 0;
-    scrollToTarget();
-  }, [scrollToTarget]);
+    const onScrollObserved = useCallback(() => {
+      // When we call scrollToTarget and it actually changes scrollTop, this triggers a scroll event.
+      // If the element's scrollHeight or clientHeight changed after scrollToTarget was called, we'd
+      // mistakenly save an incorrect scrollBottomTarget.  So skip one scroll event when we self-induce
+      // this callback, so we only update the target distance from bottom when the user is actually
+      // scrolling.
+      trace("ChatHistory onScrollObserved", {
+        ignoring: shouldIgnoreNextScrollEvent.current,
+      });
+      if (shouldIgnoreNextScrollEvent.current) {
+        shouldIgnoreNextScrollEvent.current = false;
+      } else {
+        saveScrollBottomTarget();
+      }
+    }, [saveScrollBottomTarget]);
 
-  useImperativeHandle(forwardedRef, () => ({
-    saveScrollBottomTarget,
-    snapToBottom,
-    scrollToTarget,
-  }));
+    const scrollToTarget = useCallback(() => {
+      if (ref.current) {
+        const rect = ref.current.getClientRects()[0]!;
+        const scrollHeight = ref.current.scrollHeight;
+        const scrollTop = ref.current.scrollTop;
+        const hiddenHeight = scrollHeight - rect.height;
+        // if distanceFromBottom is hiddenHeight - scrollTop, then
+        // our desired scrollTop is hiddenHeight - distanceFromBottom
+        const scrollTopTarget = hiddenHeight - scrollBottomTarget.current;
+        trace("ChatHistory scrollToTarget", {
+          hasRef: true,
+          target: scrollBottomTarget.current,
+          scrollHeight,
+          scrollTop,
+          rectHeight: rect.height,
+          hiddenHeight,
+          alreadyIgnoringNextScrollEvent: shouldIgnoreNextScrollEvent.current,
+        });
+        if (scrollTop !== scrollTopTarget) {
+          shouldIgnoreNextScrollEvent.current = true;
+          ref.current.scrollTop = scrollTopTarget;
+        }
+      } else {
+        trace("ChatHistory scrollToTarget", {
+          hasRef: false,
+          target: scrollBottomTarget.current,
+        });
+      }
+    }, []);
 
-  useLayoutEffect(() => {
-    // Scroll to end of chat on initial mount.
-    trace('ChatHistory snapToBottom on mount');
-    snapToBottom();
-  }, [snapToBottom]);
+    const snapToBottom = useCallback(() => {
+      trace("ChatHistory snapToBottom");
+      scrollBottomTarget.current = 0;
+      scrollToTarget();
+    }, [scrollToTarget]);
 
-  useEffect(() => {
-    // Add resize handler that scrolls to target
-    window.addEventListener('resize', scrollToTarget);
+    useImperativeHandle(forwardedRef, () => ({
+      saveScrollBottomTarget,
+      snapToBottom,
+      scrollToTarget,
+    }));
 
-    return () => {
-      window.removeEventListener('resize', scrollToTarget);
-    };
-  }, [scrollToTarget]);
-
-  useLayoutEffect(() => {
-    // Whenever we rerender due to new messages arriving, make our
-    // distance-from-bottom match the previous one, if it's larger than some
-    // small fudge factor.  But if the user has actually scrolled into the backlog,
-    // don't move the backlog while they're reading it -- instead, assume they want
-    // to see the same messages in the same position, and adapt the target bottom
-    // distance instead.
-    trace('ChatHistory useLayoutEffect', {
-      scrollBottomTarget: scrollBottomTarget.current,
-      action: scrollBottomTarget.current > 10 ? 'save' : 'snap',
-      messageCount: chatMessages.length,
-    });
-    if (scrollBottomTarget.current > 10) {
-      saveScrollBottomTarget();
-    } else {
+    useLayoutEffect(() => {
+      // Scroll to end of chat on initial mount.
+      trace("ChatHistory snapToBottom on mount");
       snapToBottom();
-    }
-  }, [chatMessages.length, saveScrollBottomTarget, snapToBottom]);
+    }, [snapToBottom]);
 
-  trace('ChatHistory render', { messageCount: chatMessages.length });
-  return (
-    <ChatHistoryDiv ref={ref} onScroll={onScrollObserved}>
-      {chatMessages.length === 0 ? (
-        <ChatMessageDiv key="no-message" $isSystemMessage={false} $isHighlighted={false}>
-          <span>No chatter yet. Say something?</span>
-        </ChatMessageDiv>
-      ) : undefined}
-      {chatMessages.map((msg, index, messages) => {
-        // Only suppress sender and timestamp if:
-        // * this is not the first message
-        // * this message was sent by the same person as the previous message
-        // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
-        const lastMessage = index > 0 ? messages[index - 1] : undefined;
-        const suppressSender = !!lastMessage && lastMessage.sender === msg.sender && lastMessage.timestamp.getTime() + 60000 > msg.timestamp.getTime();
-        const isHighlighted = messageDingsUser(msg, selfUser);
-        return (
-          <ChatHistoryMessage
-            key={msg._id}
-            message={msg}
-            displayNames={displayNames}
-            isSystemMessage={msg.sender === undefined}
-            isHighlighted={isHighlighted}
-            suppressSender={suppressSender}
-            selfUserId={selfUser._id}
-          />
-        );
-      })}
-    </ChatHistoryDiv>
-  );
-});
+    useEffect(() => {
+      // Add resize handler that scrolls to target
+      window.addEventListener("resize", scrollToTarget);
+
+      return () => {
+        window.removeEventListener("resize", scrollToTarget);
+      };
+    }, [scrollToTarget]);
+
+    useLayoutEffect(() => {
+      // Whenever we rerender due to new messages arriving, make our
+      // distance-from-bottom match the previous one, if it's larger than some
+      // small fudge factor.  But if the user has actually scrolled into the backlog,
+      // don't move the backlog while they're reading it -- instead, assume they want
+      // to see the same messages in the same position, and adapt the target bottom
+      // distance instead.
+      trace("ChatHistory useLayoutEffect", {
+        scrollBottomTarget: scrollBottomTarget.current,
+        action: scrollBottomTarget.current > 10 ? "save" : "snap",
+        messageCount: chatMessages.length,
+      });
+      if (scrollBottomTarget.current > 10) {
+        saveScrollBottomTarget();
+      } else {
+        snapToBottom();
+      }
+    }, [chatMessages.length, saveScrollBottomTarget, snapToBottom]);
+
+    trace("ChatHistory render", { messageCount: chatMessages.length });
+    return (
+      <ChatHistoryDiv ref={ref} onScroll={onScrollObserved}>
+        {chatMessages.length === 0 ? (
+          <ChatMessageDiv
+            key="no-message"
+            $isSystemMessage={false}
+            $isHighlighted={false}
+          >
+            <span>No chatter yet. Say something?</span>
+          </ChatMessageDiv>
+        ) : undefined}
+        {chatMessages.map((msg, index, messages) => {
+          // Only suppress sender and timestamp if:
+          // * this is not the first message
+          // * this message was sent by the same person as the previous message
+          // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
+          const lastMessage = index > 0 ? messages[index - 1] : undefined;
+          const suppressSender =
+            !!lastMessage &&
+            lastMessage.sender === msg.sender &&
+            lastMessage.timestamp.getTime() + 60000 > msg.timestamp.getTime();
+          const isHighlighted = messageDingsUser(msg, selfUser);
+          return (
+            <ChatHistoryMessage
+              key={msg._id}
+              message={msg}
+              displayNames={displayNames}
+              isSystemMessage={msg.sender === undefined}
+              isHighlighted={isHighlighted}
+              suppressSender={suppressSender}
+              selfUserId={selfUser._id}
+            />
+          );
+        })}
+      </ChatHistoryDiv>
+    );
+  },
+);
 
 // The ESlint prop-types check seems to stumble over prop type checks somehow
 // if we put the memo() and forwardRef() on the same line above.
@@ -530,207 +583,252 @@ const StyledFancyEditor = styled(FancyEditor)`
 
 const initialValue: Descendant[] = [
   {
-    type: 'message',
-    children: [{
-      text: '',
-    }],
+    type: "message",
+    children: [
+      {
+        text: "",
+      },
+    ],
   },
 ];
 
-const ChatInput = React.memo(({
-  onHeightChange, onMessageSent, huntId, puzzleId, disabled,
-}: {
-  onHeightChange: () => void;
-  onMessageSent: () => void;
-  huntId: string;
-  puzzleId: string;
-  disabled: boolean;
-}) => {
-  // We want to have hunt profile data around so we can autocomplete from multiple fields.
-  const profilesLoadingFunc = useSubscribe('huntProfiles', huntId);
-  const profilesLoading = profilesLoadingFunc();
-  const users = useTracker(() => {
-    return profilesLoading ? [] : MeteorUsers.find({
-      hunts: huntId,
-      displayName: { $ne: undefined }, // no point completing a user with an unset displayName
-    }).fetch();
-  }, [huntId, profilesLoading]);
+const ChatInput = React.memo(
+  ({
+    onHeightChange,
+    onMessageSent,
+    huntId,
+    puzzleId,
+    disabled,
+  }: {
+    onHeightChange: () => void;
+    onMessageSent: () => void;
+    huntId: string;
+    puzzleId: string;
+    disabled: boolean;
+  }) => {
+    // We want to have hunt profile data around so we can autocomplete from multiple fields.
+    const profilesLoadingFunc = useSubscribe("huntProfiles", huntId);
+    const profilesLoading = profilesLoadingFunc();
+    const users = useTracker(() => {
+      return profilesLoading
+        ? []
+        : MeteorUsers.find({
+            hunts: huntId,
+            displayName: { $ne: undefined }, // no point completing a user with an unset displayName
+          }).fetch();
+    }, [huntId, profilesLoading]);
 
-  const onHeightChangeCb = useCallback((newHeight: number) => {
-    if (onHeightChange) {
-      trace('ChatInput onHeightChange', { newHeight });
-      onHeightChange();
-    }
-  }, [onHeightChange]);
+    const onHeightChangeCb = useCallback(
+      (newHeight: number) => {
+        if (onHeightChange) {
+          trace("ChatInput onHeightChange", { newHeight });
+          onHeightChange();
+        }
+      },
+      [onHeightChange],
+    );
 
-  const preventDefaultCallback = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-  }, []);
+    const preventDefaultCallback = useCallback((e: React.MouseEvent) => {
+      e.preventDefault();
+    }, []);
 
-  const [content, setContent] = useState<Descendant[]>(initialValue);
-  const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
-  const onContentChange = useCallback((newContent: Descendant[]) => {
-    setContent(newContent);
-    onHeightChangeCb(0);
-  }, [onHeightChangeCb]);
-  const hasNonTrivialContent = useMemo(() => {
-    return content.length > 0 && (content[0]! as MessageElement).children.some((child) => {
-      return nodeIsMention(child) || (nodeIsText(child) && child.text.trim().length > 0);
-    });
-  }, [content]);
+    const [content, setContent] = useState<Descendant[]>(initialValue);
+    const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
+    const onContentChange = useCallback(
+      (newContent: Descendant[]) => {
+        setContent(newContent);
+        onHeightChangeCb(0);
+      },
+      [onHeightChangeCb],
+    );
+    const hasNonTrivialContent = useMemo(() => {
+      return (
+        content.length > 0 &&
+        (content[0]! as MessageElement).children.some((child) => {
+          return (
+            nodeIsMention(child) ||
+            (nodeIsText(child) && child.text.trim().length > 0)
+          );
+        })
+      );
+    }, [content]);
 
-  const sendContentMessage = useCallback(() => {
-    if (hasNonTrivialContent) {
-      // Prepare to send message to server.
+    const sendContentMessage = useCallback(() => {
+      if (hasNonTrivialContent) {
+        // Prepare to send message to server.
 
-      // Take only the first Descendant; we normalize the input to a single
-      // block with type "message".
-      const message = content[0]! as MessageElement;
-      // Strip out children from mention elements.  We only need the type and
-      // userId for display purposes.
-      const { type, children } = message;
-      const cleanedMessage = {
-        type,
-        children: children.map((child) => {
-          if (nodeIsMention(child)) {
-            return {
-              type: child.type,
-              userId: child.userId,
-            };
-          } else {
-            return child;
-          }
-        }),
-      };
+        // Take only the first Descendant; we normalize the input to a single
+        // block with type "message".
+        const message = content[0]! as MessageElement;
+        // Strip out children from mention elements.  We only need the type and
+        // userId for display purposes.
+        const { type, children } = message;
+        const cleanedMessage = {
+          type,
+          children: children.map((child) => {
+            if (nodeIsMention(child)) {
+              return {
+                type: child.type,
+                userId: child.userId,
+              };
+            } else {
+              return child;
+            }
+          }),
+        };
 
-      // Send chat message.
-      sendChatMessage.call({ puzzleId, content: JSON.stringify(cleanedMessage) });
-      setContent(initialValue);
-      fancyEditorRef.current?.clearInput();
-      if (onMessageSent) {
-        onMessageSent();
+        // Send chat message.
+        sendChatMessage.call({
+          puzzleId,
+          content: JSON.stringify(cleanedMessage),
+        });
+        setContent(initialValue);
+        fancyEditorRef.current?.clearInput();
+        if (onMessageSent) {
+          onMessageSent();
+        }
       }
-    }
-  }, [hasNonTrivialContent, content, puzzleId, onMessageSent]);
+    }, [hasNonTrivialContent, content, puzzleId, onMessageSent]);
 
-  useBlockUpdate(hasNonTrivialContent ? "You're in the middle of typing a message." : undefined);
+    useBlockUpdate(
+      hasNonTrivialContent
+        ? "You're in the middle of typing a message."
+        : undefined,
+    );
 
-  return (
-    <ChatInputRow>
-      <InputGroup>
-        <StyledFancyEditor
-          ref={fancyEditorRef}
-          className="form-control"
-          initialContent={content}
-          placeholder="Chat"
-          users={users}
-          onContentChange={onContentChange}
-          onSubmit={sendContentMessage}
-          disabled={disabled}
-        />
-        <Button
-          variant="secondary"
-          onClick={sendContentMessage}
-          onMouseDown={preventDefaultCallback}
-          disabled={disabled || !hasNonTrivialContent}
-        >
-          <FontAwesomeIcon icon={faPaperPlane} />
-        </Button>
-      </InputGroup>
-    </ChatInputRow>
-  );
-});
+    return (
+      <ChatInputRow>
+        <InputGroup>
+          <StyledFancyEditor
+            ref={fancyEditorRef}
+            className="form-control"
+            initialContent={content}
+            placeholder="Chat"
+            users={users}
+            onContentChange={onContentChange}
+            onSubmit={sendContentMessage}
+            disabled={disabled}
+          />
+          <Button
+            variant="secondary"
+            onClick={sendContentMessage}
+            onMouseDown={preventDefaultCallback}
+            disabled={disabled || !hasNonTrivialContent}
+          >
+            <FontAwesomeIcon icon={faPaperPlane} />
+          </Button>
+        </InputGroup>
+      </ChatInputRow>
+    );
+  },
+);
 
 interface ChatSectionHandle {
   scrollHistoryToTarget: () => void;
 }
 
-const ChatSection = React.forwardRef(({
-  chatDataLoading, disabled, displayNames, puzzleId, huntId,
-  callState, callDispatch, selfUser,
-}: {
-  chatDataLoading: boolean;
-  disabled: boolean;
-  displayNames: Map<string, string>;
-  puzzleId: string;
-  huntId: string;
-  callState: CallState;
-  callDispatch: React.Dispatch<Action>;
-  selfUser: Meteor.User;
-}, forwardedRef: React.Ref<ChatSectionHandle>) => {
-  const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
-  const scrollToTargetRequestRef = useRef<boolean>(false);
+const ChatSection = React.forwardRef(
+  (
+    {
+      chatDataLoading,
+      disabled,
+      displayNames,
+      puzzleId,
+      huntId,
+      callState,
+      callDispatch,
+      selfUser,
+    }: {
+      chatDataLoading: boolean;
+      disabled: boolean;
+      displayNames: Map<string, string>;
+      puzzleId: string;
+      huntId: string;
+      callState: CallState;
+      callDispatch: React.Dispatch<Action>;
+      selfUser: Meteor.User;
+    },
+    forwardedRef: React.Ref<ChatSectionHandle>,
+  ) => {
+    const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
+    const scrollToTargetRequestRef = useRef<boolean>(false);
 
-  const scrollHistoryToTarget = useCallback(() => {
-    trace('ChatSection scrollHistoryToTarget', {
-      hasRef: !!historyRef.current,
-      alreadyWantsDeferredScroll: scrollToTargetRequestRef.current,
+    const scrollHistoryToTarget = useCallback(() => {
+      trace("ChatSection scrollHistoryToTarget", {
+        hasRef: !!historyRef.current,
+        alreadyWantsDeferredScroll: scrollToTargetRequestRef.current,
+      });
+      if (historyRef.current) {
+        historyRef.current.scrollToTarget();
+      } else {
+        // useLayoutEffect runs effects depth-first, which means when this
+        // component is being rendered, the layout effects of our children
+        // will fire while historyRef is null.  So if we get a request to
+        // scroll to target during that time window, save it for later, and
+        // fire it off again in our own useLayoutEffect hook.
+        scrollToTargetRequestRef.current = true;
+      }
+    }, []);
+
+    const onMessageSent = useCallback(() => {
+      trace("ChatSection onMessageSent", { hasRef: !!historyRef.current });
+      if (historyRef.current) {
+        historyRef.current.snapToBottom();
+      }
+    }, []);
+
+    useImperativeHandle(forwardedRef, () => ({
+      scrollHistoryToTarget,
+    }));
+
+    useLayoutEffect(() => {
+      trace("ChatSection useLayoutEffect", {
+        wantDeferredScroll: scrollToTargetRequestRef.current,
+        hasRef: !!historyRef.current,
+      });
+      if (scrollToTargetRequestRef.current && historyRef.current) {
+        scrollToTargetRequestRef.current = false;
+        historyRef.current.scrollToTarget();
+      }
     });
-    if (historyRef.current) {
-      historyRef.current.scrollToTarget();
-    } else {
-      // useLayoutEffect runs effects depth-first, which means when this
-      // component is being rendered, the layout effects of our children
-      // will fire while historyRef is null.  So if we get a request to
-      // scroll to target during that time window, save it for later, and
-      // fire it off again in our own useLayoutEffect hook.
-      scrollToTargetRequestRef.current = true;
+
+    trace("ChatSection render", { chatDataLoading });
+
+    if (chatDataLoading) {
+      return <ChatSectionDiv>loading...</ChatSectionDiv>;
     }
-  }, []);
 
-  const onMessageSent = useCallback(() => {
-    trace('ChatSection onMessageSent', { hasRef: !!historyRef.current });
-    if (historyRef.current) {
-      historyRef.current.snapToBottom();
-    }
-  }, []);
-
-  useImperativeHandle(forwardedRef, () => ({
-    scrollHistoryToTarget,
-  }));
-
-  useLayoutEffect(() => {
-    trace('ChatSection useLayoutEffect', {
-      wantDeferredScroll: scrollToTargetRequestRef.current,
-      hasRef: !!historyRef.current,
-    });
-    if (scrollToTargetRequestRef.current && historyRef.current) {
-      scrollToTargetRequestRef.current = false;
-      historyRef.current.scrollToTarget();
-    }
-  });
-
-  trace('ChatSection render', { chatDataLoading });
-
-  if (chatDataLoading) {
-    return <ChatSectionDiv>loading...</ChatSectionDiv>;
-  }
-
-  return (
-    <ChatSectionDiv>
-      <ChatPeople
-        huntId={huntId}
-        puzzleId={puzzleId}
-        disabled={disabled}
-        onHeightChange={scrollHistoryToTarget}
-        callState={callState}
-        callDispatch={callDispatch}
-      />
-      <ChatHistoryMemo ref={historyRef} puzzleId={puzzleId} displayNames={displayNames} selfUser={selfUser} />
-      <ChatInput
-        huntId={huntId}
-        puzzleId={puzzleId}
-        disabled={disabled}
-        onHeightChange={scrollHistoryToTarget}
-        onMessageSent={onMessageSent}
-      />
-    </ChatSectionDiv>
-  );
-});
+    return (
+      <ChatSectionDiv>
+        <ChatPeople
+          huntId={huntId}
+          puzzleId={puzzleId}
+          disabled={disabled}
+          onHeightChange={scrollHistoryToTarget}
+          callState={callState}
+          callDispatch={callDispatch}
+        />
+        <ChatHistoryMemo
+          ref={historyRef}
+          puzzleId={puzzleId}
+          displayNames={displayNames}
+          selfUser={selfUser}
+        />
+        <ChatInput
+          huntId={huntId}
+          puzzleId={puzzleId}
+          disabled={disabled}
+          onHeightChange={scrollHistoryToTarget}
+          onMessageSent={onMessageSent}
+        />
+      </ChatSectionDiv>
+    );
+  },
+);
 const ChatSectionMemo = React.memo(ChatSection);
 
 type ImageInsertModalHandle = {
-  show: () => void,
+  show: () => void;
 };
 
 enum InsertImageSubmitState {
@@ -744,229 +842,266 @@ enum InsertImageProcessImageState {
   PROCESSING,
 }
 
-const InsertImageModal = React.forwardRef((
-  { documentId, sheets }: { documentId: string, sheets: Sheet[] },
-  forwardedRef: React.Ref<ImageInsertModalHandle>,
-) => {
-  // Pop up by default when first rendered.
-  const [visible, setVisible] = useState(true);
-  const show = useCallback(() => setVisible(true), []);
-  const hide = useCallback(() => setVisible(false), []);
-  useImperativeHandle(forwardedRef, () => ({ show }), [show]);
+const InsertImageModal = React.forwardRef(
+  (
+    { documentId, sheets }: { documentId: string; sheets: Sheet[] },
+    forwardedRef: React.Ref<ImageInsertModalHandle>,
+  ) => {
+    // Pop up by default when first rendered.
+    const [visible, setVisible] = useState(true);
+    const show = useCallback(() => setVisible(true), []);
+    const hide = useCallback(() => setVisible(false), []);
+    useImperativeHandle(forwardedRef, () => ({ show }), [show]);
 
-  const [submitState, setSubmitState] =
-    useState<InsertImageSubmitState>(InsertImageSubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>('');
-  const clearError = useCallback(() => setSubmitState(InsertImageSubmitState.IDLE), []);
+    const [submitState, setSubmitState] = useState<InsertImageSubmitState>(
+      InsertImageSubmitState.IDLE,
+    );
+    const [submitError, setSubmitError] = useState<string>("");
+    const clearError = useCallback(
+      () => setSubmitState(InsertImageSubmitState.IDLE),
+      [],
+    );
 
-  const [sheet, setSheet] = useState<number>(sheets[0]?.id ?? 0);
-  const onChangeSheet = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-    setSheet(parseInt(e.target.value, 10));
-  }, []);
+    const [sheet, setSheet] = useState<number>(sheets[0]?.id ?? 0);
+    const onChangeSheet = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
+      setSheet(parseInt(e.target.value, 10));
+    }, []);
 
-  const sheetOptions = useMemo(() => {
-    return sheets.map((s) => {
-      return <option key={s.id} value={s.id}>{s.name}</option>;
-    });
-  }, [sheets]);
+    const sheetOptions = useMemo(() => {
+      return sheets.map((s) => {
+        return (
+          <option key={s.id} value={s.id}>
+            {s.name}
+          </option>
+        );
+      });
+    }, [sheets]);
 
-  const [imageSource, setImageSource] = useState<string>('upload');
-  const onSelectTab = useCallback((k: string | null) => {
-    if (k) {
-      setImageSource(k);
-    }
-  }, []);
+    const [imageSource, setImageSource] = useState<string>("upload");
+    const onSelectTab = useCallback((k: string | null) => {
+      if (k) {
+        setImageSource(k);
+      }
+    }, []);
 
-  const [imageProcessState, setImageProcessState] = useState<InsertImageProcessImageState>(InsertImageProcessImageState.IDLE);
-  const [filename, setFilename] = useState<string>('');
-  const [fileContents, setFileContents] = useState<string>('');
-  const [fileInvalid, setFileInvalid] = useState<boolean>(false);
-  const onChangeFile = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setImageProcessState(InsertImageProcessImageState.PROCESSING);
+    const [imageProcessState, setImageProcessState] =
+      useState<InsertImageProcessImageState>(InsertImageProcessImageState.IDLE);
+    const [filename, setFilename] = useState<string>("");
+    const [fileContents, setFileContents] = useState<string>("");
+    const [fileInvalid, setFileInvalid] = useState<boolean>(false);
+    const onChangeFile = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+      setImageProcessState(InsertImageProcessImageState.PROCESSING);
 
-    void (async () => {
-      try {
-        const file = e.target.files?.[0];
-        if (!file) {
+      void (async () => {
+        try {
+          const file = e.target.files?.[0];
+          if (!file) {
+            setFileInvalid(false);
+            e.target.setCustomValidity("");
+            return;
+          }
+
+          if (file.size > 2 * 1024 * 1024) {
+            e.target.setCustomValidity(
+              "Uploaded files must be less than 2 MB.",
+            );
+            setFileInvalid(true);
+            return;
+          }
+
+          const newFileContents = await new Promise<string>(
+            (resolve, reject) => {
+              const reader = new FileReader();
+              reader.addEventListener("load", () => {
+                resolve(reader.result as string);
+              });
+              reader.addEventListener("error", reject);
+              reader.readAsDataURL(file);
+            },
+          );
+          const newImagePixels = await new Promise<number>((resolve) => {
+            const image = new Image();
+            image.addEventListener("load", () => {
+              resolve(image.width * image.height);
+            });
+            image.src = newFileContents;
+          });
+
+          if (newImagePixels > 1000000) {
+            e.target.setCustomValidity(
+              "Uploaded images must be less than 1 million pixels in area.",
+            );
+            setFileInvalid(true);
+            return;
+          }
+
+          setFilename(file.name);
+          setFileContents(newFileContents);
+
           setFileInvalid(false);
-          e.target.setCustomValidity('');
-          return;
+          e.target.setCustomValidity("");
+        } finally {
+          setImageProcessState(InsertImageProcessImageState.IDLE);
+        }
+      })();
+    }, []);
+
+    const [url, setUrl] = useState<string>("");
+    const onChangeUrl = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+      setUrl(e.target.value);
+    }, []);
+
+    const onSubmit = useCallback(
+      (e: MouseEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        let image: ImageSource;
+        if (imageSource === "upload") {
+          image = {
+            source: "upload",
+            filename,
+            contents: fileContents,
+          };
+        } else {
+          image = {
+            source: "link",
+            url,
+          };
         }
 
-        if (file.size > 2 * 1024 * 1024) {
-          e.target.setCustomValidity('Uploaded files must be less than 2 MB.');
-          setFileInvalid(true);
-          return;
-        }
+        setSubmitState(InsertImageSubmitState.SUBMITTING);
+        insertDocumentImage.call(
+          {
+            documentId,
+            sheetId: sheet,
+            image,
+          },
+          (err) => {
+            if (err) {
+              setSubmitState(InsertImageSubmitState.ERROR);
+              setSubmitError(err.message);
+            } else {
+              setSubmitState(InsertImageSubmitState.IDLE);
+              hide();
+            }
+          },
+        );
+      },
+      [documentId, fileContents, filename, imageSource, sheet, url, hide],
+    );
 
-        const newFileContents = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.addEventListener('load', () => {
-            resolve(reader.result as string);
-          });
-          reader.addEventListener('error', reject);
-          reader.readAsDataURL(file);
-        });
-        const newImagePixels = await new Promise<number>((resolve) => {
-          const image = new Image();
-          image.addEventListener('load', () => {
-            resolve(image.width * image.height);
-          });
-          image.src = newFileContents;
-        });
+    const submitDisabled =
+      imageProcessState === InsertImageProcessImageState.PROCESSING ||
+      submitState === InsertImageSubmitState.SUBMITTING;
 
-        if (newImagePixels > 1000000) {
-          e.target.setCustomValidity('Uploaded images must be less than 1 million pixels in area.');
-          setFileInvalid(true);
-          return;
-        }
-
-        setFilename(file.name);
-        setFileContents(newFileContents);
-
-        setFileInvalid(false);
-        e.target.setCustomValidity('');
-      } finally {
-        setImageProcessState(InsertImageProcessImageState.IDLE);
-      }
-    })();
-  }, []);
-
-  const [url, setUrl] = useState<string>('');
-  const onChangeUrl = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setUrl(e.target.value);
-  }, []);
-
-  const onSubmit = useCallback((e: MouseEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    let image: ImageSource;
-    if (imageSource === 'upload') {
-      image = {
-        source: 'upload',
-        filename,
-        contents: fileContents,
-      };
-    } else {
-      image = {
-        source: 'link',
-        url,
-      };
-    }
-
-    setSubmitState(InsertImageSubmitState.SUBMITTING);
-    insertDocumentImage.call({
-      documentId,
-      sheetId: sheet,
-      image,
-    }, (err) => {
-      if (err) {
-        setSubmitState(InsertImageSubmitState.ERROR);
-        setSubmitError(err.message);
-      } else {
-        setSubmitState(InsertImageSubmitState.IDLE);
-        hide();
-      }
-    });
-  }, [documentId, fileContents, filename, imageSource, sheet, url, hide]);
-
-  const submitDisabled =
-    imageProcessState === InsertImageProcessImageState.PROCESSING ||
-    submitState === InsertImageSubmitState.SUBMITTING;
-
-  const modal = (
-    <Modal show={visible} onHide={hide}>
-      <Modal.Header closeButton>
-        Insert image
-      </Modal.Header>
-      <Form onSubmit={onSubmit}>
-        <Modal.Body>
-          <FormGroup className="mb-3">
-            <FormLabel htmlFor="jr-puzzle-insert-image-sheet">
-              Choose a sheet
-            </FormLabel>
-            <FormSelect
-              id="jr-puzzle-insert-image-sheet"
-              onChange={onChangeSheet}
-              value={sheet}
+    const modal = (
+      <Modal show={visible} onHide={hide}>
+        <Modal.Header closeButton>Insert image</Modal.Header>
+        <Form onSubmit={onSubmit}>
+          <Modal.Body>
+            <FormGroup className="mb-3">
+              <FormLabel htmlFor="jr-puzzle-insert-image-sheet">
+                Choose a sheet
+              </FormLabel>
+              <FormSelect
+                id="jr-puzzle-insert-image-sheet"
+                onChange={onChangeSheet}
+                value={sheet}
+              >
+                {sheetOptions}
+              </FormSelect>
+            </FormGroup>
+            <Tabs
+              activeKey={imageSource}
+              onSelect={onSelectTab}
+              className="mb-3"
             >
-              {sheetOptions}
-            </FormSelect>
-          </FormGroup>
-          <Tabs
-            activeKey={imageSource}
-            onSelect={onSelectTab}
-            className="mb-3"
-          >
-            <Tab eventKey="upload" title="Upload">
-              <FormControl
-                type="file"
-                onChange={onChangeFile}
-                isInvalid={fileInvalid}
-                required={imageSource === 'upload'}
-                disabled={imageProcessState === InsertImageProcessImageState.PROCESSING}
-              />
-            </Tab>
-            <Tab eventKey="link" title="Link">
-              <FormGroup className="mb-3">
-                <FormLabel htmlFor="jr-puzzle-insert-image-link">
-                  Image URL
-                </FormLabel>
+              <Tab eventKey="upload" title="Upload">
                 <FormControl
-                  id="jr-puzzle-insert-image-link"
-                  type="url"
-                  required={imageSource === 'link'}
-                  onChange={onChangeUrl}
-                  value={url}
+                  type="file"
+                  onChange={onChangeFile}
+                  isInvalid={fileInvalid}
+                  required={imageSource === "upload"}
+                  disabled={
+                    imageProcessState ===
+                    InsertImageProcessImageState.PROCESSING
+                  }
                 />
-              </FormGroup>
-            </Tab>
-          </Tabs>
-        </Modal.Body>
-        <Modal.Footer>
-          <div className="mb-3">
-            <Button variant="primary" type="submit" disabled={submitDisabled}>
-              Insert
-            </Button>
-          </div>
-          {submitState === InsertImageSubmitState.ERROR ? <Alert variant="danger" dismissible onClose={clearError}>{submitError}</Alert> : null}
-        </Modal.Footer>
-      </Form>
-    </Modal>
-  );
+              </Tab>
+              <Tab eventKey="link" title="Link">
+                <FormGroup className="mb-3">
+                  <FormLabel htmlFor="jr-puzzle-insert-image-link">
+                    Image URL
+                  </FormLabel>
+                  <FormControl
+                    id="jr-puzzle-insert-image-link"
+                    type="url"
+                    required={imageSource === "link"}
+                    onChange={onChangeUrl}
+                    value={url}
+                  />
+                </FormGroup>
+              </Tab>
+            </Tabs>
+          </Modal.Body>
+          <Modal.Footer>
+            <div className="mb-3">
+              <Button variant="primary" type="submit" disabled={submitDisabled}>
+                Insert
+              </Button>
+            </div>
+            {submitState === InsertImageSubmitState.ERROR ? (
+              <Alert variant="danger" dismissible onClose={clearError}>
+                {submitError}
+              </Alert>
+            ) : null}
+          </Modal.Footer>
+        </Form>
+      </Modal>
+    );
 
-  return createPortal(modal, document.body);
-});
+    return createPortal(modal, document.body);
+  },
+);
 
 const InsertImage = ({ documentId }: { documentId: string }) => {
-  useSubscribe('googleScriptInfo');
-  const insertEnabled = useTracker(() => !!GoogleScriptInfo.findOne('googleScriptInfo')?.configured, []);
+  useSubscribe("googleScriptInfo");
+  const insertEnabled = useTracker(
+    () => !!GoogleScriptInfo.findOne("googleScriptInfo")?.configured,
+    [],
+  );
   const [loading, setLoading] = useState(false);
   const [documentSheets, setDocumentSheets] = useState<Sheet[]>([]);
   const [renderInsertModal, setRenderInsertModal] = useState(false);
   const insertModalRef = useRef<ImageInsertModalHandle>(null);
   const [listSheetsError, setListSheetsError] = useState<string>();
-  const clearListSheetsError = useCallback(() => setListSheetsError(undefined), []);
+  const clearListSheetsError = useCallback(
+    () => setListSheetsError(undefined),
+    [],
+  );
 
-  const onStartInsert = useCallback((e: MouseEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const onStartInsert = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      setLoading(true);
 
-    listDocumentSheets.call({ documentId }, (err, sheets) => {
-      setLoading(false);
-      if (err) {
-        setListSheetsError(err.message);
-      } else if (sheets) {
-        setDocumentSheets(sheets);
-        if (renderInsertModal && insertModalRef.current) {
-          insertModalRef.current.show();
-        } else {
-          setRenderInsertModal(true);
+      listDocumentSheets.call({ documentId }, (err, sheets) => {
+        setLoading(false);
+        if (err) {
+          setListSheetsError(err.message);
+        } else if (sheets) {
+          setDocumentSheets(sheets);
+          if (renderInsertModal && insertModalRef.current) {
+            insertModalRef.current.show();
+          } else {
+            setRenderInsertModal(true);
+          }
         }
-      }
-    });
-  }, [documentId, renderInsertModal]);
+      });
+    },
+    [documentId, renderInsertModal],
+  );
 
   if (!insertEnabled) {
     return null;
@@ -979,15 +1114,11 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
       </Modal.Header>
       <Modal.Body>
         <p>
-          Something went wrong while fetching the list of sheets in this spreadsheet (which we
-          need to be able to insert an image). Please try again, or let us know if this keeps
-          happening.
+          Something went wrong while fetching the list of sheets in this
+          spreadsheet (which we need to be able to insert an image). Please try
+          again, or let us know if this keeps happening.
         </p>
-        <p>
-          Error message:
-          {' '}
-          {listSheetsError}
-        </p>
+        <p>Error message: {listSheetsError}</p>
       </Modal.Body>
     </Modal>
   );
@@ -995,16 +1126,23 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
   return (
     <>
       {renderInsertModal && (
-        <InsertImageModal ref={insertModalRef} documentId={documentId} sheets={documentSheets} />
+        <InsertImageModal
+          ref={insertModalRef}
+          documentId={documentId}
+          sheets={documentSheets}
+        />
       )}
       {listSheetsError && createPortal(errorModal, document.body)}
-      <Button variant="secondary" size="sm" onClick={onStartInsert} disabled={loading}>
-        <FontAwesomeIcon icon={faImage} />
-        {' '}
-        Insert image
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={onStartInsert}
+        disabled={loading}
+      >
+        <FontAwesomeIcon icon={faImage} /> Insert image
         {loading && (
           <>
-            {' '}
+            {" "}
             <FontAwesomeIcon icon={faSpinner} spin />
           </>
         )}
@@ -1014,7 +1152,11 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
 };
 
 const PuzzlePageMetadata = ({
-  puzzle, bookmarked, displayNames, document, isDesktop,
+  puzzle,
+  bookmarked,
+  displayNames,
+  document,
+  isDesktop,
 }: {
   puzzle: PuzzleType;
   bookmarked: boolean;
@@ -1027,34 +1169,56 @@ const PuzzlePageMetadata = ({
 
   const hunt = useTracker(() => Hunts.findOne(huntId), [huntId]);
   const hasGuessQueue = hunt?.hasGuessQueue ?? false;
-  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.user(), hunt), [hunt]);
+  const canUpdate = useTracker(
+    () => userMayWritePuzzlesForHunt(Meteor.user(), hunt),
+    [hunt],
+  );
 
-  const allPuzzles = useTracker(() => Puzzles.find({ hunt: huntId }).fetch(), [huntId]);
-  const allTags = useTracker(() => Tags.find({ hunt: huntId }).fetch(), [huntId]);
-  const guesses = useTracker(() => Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch(), [huntId, puzzleId]);
+  const allPuzzles = useTracker(
+    () => Puzzles.find({ hunt: huntId }).fetch(),
+    [huntId],
+  );
+  const allTags = useTracker(
+    () => Tags.find({ hunt: huntId }).fetch(),
+    [huntId],
+  );
+  const guesses = useTracker(
+    () => Guesses.find({ hunt: huntId, puzzle: puzzleId }).fetch(),
+    [huntId, puzzleId],
+  );
 
   const editModalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
   const guessModalRef = useRef<React.ElementRef<typeof PuzzleGuessModal>>(null);
-  const answerModalRef = useRef<React.ElementRef<typeof PuzzleAnswerModal>>(null);
-  const onCreateTag = useCallback((tagName: string) => {
-    addPuzzleTag.call({ puzzleId, tagName });
-  }, [puzzleId]);
+  const answerModalRef =
+    useRef<React.ElementRef<typeof PuzzleAnswerModal>>(null);
+  const onCreateTag = useCallback(
+    (tagName: string) => {
+      addPuzzleTag.call({ puzzleId, tagName });
+    },
+    [puzzleId],
+  );
 
-  const onRemoveTag = useCallback((tagId: string) => {
-    removePuzzleTag.call({ puzzleId, tagId });
-  }, [puzzleId]);
+  const onRemoveTag = useCallback(
+    (tagId: string) => {
+      removePuzzleTag.call({ puzzleId, tagId });
+    },
+    [puzzleId],
+  );
 
-  const onRemoveAnswer = useCallback((guessId: string) => {
-    removePuzzleAnswer.call({ puzzleId, guessId });
-  }, [puzzleId]);
+  const onRemoveAnswer = useCallback(
+    (guessId: string) => {
+      removePuzzleAnswer.call({ puzzleId, guessId });
+    },
+    [puzzleId],
+  );
 
-  const onEdit = useCallback((
-    state: PuzzleModalFormSubmitPayload,
-    callback: (err?: Error) => void
-  ) => {
-    const { huntId: _huntId, docType: _docType, ...rest } = state;
-    updatePuzzle.call({ puzzleId, ...rest }, callback);
-  }, [puzzleId]);
+  const onEdit = useCallback(
+    (state: PuzzleModalFormSubmitPayload, callback: (err?: Error) => void) => {
+      const { huntId: _huntId, docType: _docType, ...rest } = state;
+      updatePuzzle.call({ puzzleId, ...rest }, callback);
+    },
+    [puzzleId],
+  );
 
   const showGuessModal = useCallback(() => {
     if (guessModalRef.current) {
@@ -1075,27 +1239,33 @@ const PuzzlePageMetadata = ({
   }, []);
 
   const tagsById = indexedById(allTags);
-  const maybeTags: (TagType | undefined)[] = puzzle.tags.map((tagId) => { return tagsById.get(tagId); });
-  const tags: TagType[] = maybeTags.filter<TagType>((t): t is TagType => t !== undefined);
-  const correctGuesses = guesses.filter((guess) => guess.state === 'correct');
+  const maybeTags: (TagType | undefined)[] = puzzle.tags.map((tagId) => {
+    return tagsById.get(tagId);
+  });
+  const tags: TagType[] = maybeTags.filter<TagType>(
+    (t): t is TagType => t !== undefined,
+  );
+  const correctGuesses = guesses.filter((guess) => guess.state === "correct");
   const numGuesses = guesses.length;
 
-  const answersElement = correctGuesses.length > 0 ? (
-    <PuzzleMetadataAnswers>
-      {
-        correctGuesses.map((guess) => (
+  const answersElement =
+    correctGuesses.length > 0 ? (
+      <PuzzleMetadataAnswers>
+        {correctGuesses.map((guess) => (
           <PuzzleMetadataAnswer key={`answer-${guess._id}`}>
             <PuzzleAnswer answer={guess.guess} breakable />
             {!hasGuessQueue && (
-              <AnswerRemoveButton variant="success" onClick={() => onRemoveAnswer(guess._id)}>
+              <AnswerRemoveButton
+                variant="success"
+                onClick={() => onRemoveAnswer(guess._id)}
+              >
                 <FontAwesomeIcon fixedWidth icon={faTimes} />
               </AnswerRemoveButton>
             )}
           </PuzzleMetadataAnswer>
-        ))
-      }
-    </PuzzleMetadataAnswers>
-  ) : null;
+        ))}
+      </PuzzleMetadataAnswers>
+    ) : null;
 
   const puzzleLink = puzzle.url ? (
     <PuzzleMetadataExternalLink
@@ -1103,25 +1273,30 @@ const PuzzlePageMetadata = ({
       target="_blank"
       rel="noreferrer noopener"
     >
-      <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />
-      {' '}
-      <span>Puzzle</span>
+      <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} /> <span>Puzzle</span>
     </PuzzleMetadataExternalLink>
   ) : null;
 
-  const imageInsert = isDesktop && document && document.provider === 'google' && document.value.type === 'spreadsheet' && (
-    <InsertImage documentId={document._id} />
-  );
+  const imageInsert = isDesktop &&
+    document &&
+    document.provider === "google" &&
+    document.value.type === "spreadsheet" && (
+      <InsertImage documentId={document._id} />
+    );
 
-  const documentLink = document && !isDesktop ? (
-    <DocumentDisplay document={document} displayMode="link" />
-  ) : null;
+  const documentLink =
+    document && !isDesktop ? (
+      <DocumentDisplay document={document} displayMode="link" />
+    ) : null;
 
   const editButton = canUpdate ? (
-    <Button onClick={showEditModal} variant="secondary" size="sm" title="Edit puzzle...">
-      <FontAwesomeIcon icon={faEdit} />
-      {' '}
-      Edit
+    <Button
+      onClick={showEditModal}
+      variant="secondary"
+      size="sm"
+      title="Edit puzzle..."
+    >
+      <FontAwesomeIcon icon={faEdit} /> Edit
     </Button>
   ) : null;
 
@@ -1131,8 +1306,10 @@ const PuzzlePageMetadata = ({
       <>
         <Button variant="primary" size="sm" onClick={showGuessModal}>
           <FontAwesomeIcon icon={faKey} />
-          {' Guess '}
-          <Badge bg="light" text="dark">{numGuesses}</Badge>
+          {" Guess "}
+          <Badge bg="light" text="dark">
+            {numGuesses}
+          </Badge>
         </Button>
         {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleGuessModal
@@ -1146,13 +1323,10 @@ const PuzzlePageMetadata = ({
       <>
         <Button variant="primary" size="sm" onClick={showAnswerModal}>
           <FontAwesomeIcon icon={faKey} />
-          {' Answer'}
+          {" Answer"}
         </Button>
         {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-        <PuzzleAnswerModal
-          ref={answerModalRef}
-          puzzle={puzzle}
-        />
+        <PuzzleAnswerModal ref={answerModalRef} puzzle={puzzle} />
       </>
     );
   }
@@ -1168,7 +1342,12 @@ const PuzzlePageMetadata = ({
         onSubmit={onEdit}
       />
       <PuzzleMetadataActionRow>
-        <BookmarkButton puzzleId={puzzleId} bookmarked={bookmarked} variant="link" size="sm" />
+        <BookmarkButton
+          puzzleId={puzzleId}
+          bookmarked={bookmarked}
+          variant="link"
+          size="sm"
+        />
         {puzzleLink}
         {documentLink}
         <PuzzleMetadataButtons>
@@ -1177,9 +1356,7 @@ const PuzzlePageMetadata = ({
           {guessButton}
         </PuzzleMetadataButtons>
       </PuzzleMetadataActionRow>
-      <PuzzleMetadataRow>
-        {answersElement}
-      </PuzzleMetadataRow>
+      <PuzzleMetadataRow>{answersElement}</PuzzleMetadataRow>
       <PuzzleMetadataRow>
         <StyledTagList
           puzzle={puzzle}
@@ -1213,23 +1390,30 @@ const GuessTable = styled.div`
     [direction] 4em
     [confidence] 4em;
   border-bottom: 1px solid #ddd;
-  ${mediaBreakpointDown('sm', css`
-    grid-template-columns: minmax(0, auto) minmax(0, auto);
-  `)}
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      grid-template-columns: minmax(0, auto) minmax(0, auto);
+    `,
+  )}
 `;
 
 const GuessTableSmallRow = styled.div`
   display: contents;
   background-color: inherit;
-  ${mediaBreakpointDown('sm', css`
-    grid-column: 1 / -1;
-    display: flex;
-  `)}
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      grid-column: 1 / -1;
+      display: flex;
+    `,
+  )}
 `;
 
-const GuessRow = styled.div<{ $state: GuessType['state'] }>`
+const GuessRow = styled.div<{ $state: GuessType["state"] }>`
   display: contents;
-  background-color: ${(props) => guessColorLookupTable[props.$state].background};
+  background-color: ${(props) =>
+    guessColorLookupTable[props.$state].background};
 
   &::before {
     content: " ";
@@ -1238,7 +1422,8 @@ const GuessRow = styled.div<{ $state: GuessType['state'] }>`
   }
 
   :hover {
-    background-color: ${(props) => guessColorLookupTable[props.$state].hoverBackground};
+    background-color: ${(props) =>
+      guessColorLookupTable[props.$state].hoverBackground};
   }
 `;
 
@@ -1266,47 +1451,68 @@ const GuessCell = styled.div`
   background-color: inherit;
   align-items: center;
   padding: 0.25rem;
-  ${mediaBreakpointDown('sm', css`
-    outline: 0;
-  `)}
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      outline: 0;
+    `,
+  )}
 `;
 
 const GuessAnswerCell = styled(GuessCell)`
-  ${mediaBreakpointDown('sm', css`
-    flex-grow: 1;
-  `)}
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      flex-grow: 1;
+    `,
+  )}
 `;
 
 const GuessTimestampCell = styled(GuessCell)`
-  ${mediaBreakpointDown('sm', css`
-    flex-grow: 1;
-  `)}
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      flex-grow: 1;
+    `,
+  )}
 `;
 
 const GuessSubmitterCell = styled(GuessCell)`
-  ${mediaBreakpointDown('sm', css`
-    flex-grow: 1;
-  `)}
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      flex-grow: 1;
+    `,
+  )}
 `;
 
 const GuessDirectionCell = styled(GuessCell)`
-  ${mediaBreakpointDown('sm', css`
-    display: none;
-  `)}
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      display: none;
+    `,
+  )}
 `;
 
 const GuessConfidenceCell = styled(GuessCell)`
-  ${mediaBreakpointDown('sm', css`
-    display: none;
-  `)}
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      display: none;
+    `,
+  )}
 `;
 
 const AdditionalNotesCell = styled(GuessCell)`
   grid-column: 1 / -1;
   overflow-wrap: break-word;
-  ${mediaBreakpointDown('sm', css`
-    order: 1;
-  `)}
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      order: 1;
+    `,
+  )}
 `;
 
 const LinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
@@ -1315,386 +1521,467 @@ const LinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
 `;
 
 enum PuzzleGuessSubmitState {
-  IDLE = 'idle',
-  FAILED = 'failed',
+  IDLE = "idle",
+  FAILED = "failed",
 }
 
 type PuzzleGuessModalHandle = {
   show: () => void;
 };
 
-const PuzzleGuessModal = React.forwardRef(({
-  puzzle, guesses, displayNames,
-}: {
-  puzzle: PuzzleType;
-  guesses: GuessType[];
-  displayNames: Map<string, string>;
-}, forwardedRef: React.Ref<PuzzleGuessModalHandle>) => {
-  const [guessInput, setGuessInput] = useState<string>('');
-  const [directionInput, setDirectionInput] = useState<number>(0);
-  const [haveSetDirection, setHaveSetDirection] = useState<boolean>(false);
-  const [confidenceInput, setConfidenceInput] = useState<number>(50);
-  const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(false);
-  const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
-  const [confirmationMessage, setConfirmationMessage] = useState<string>('');
-  const [submitState, setSubmitState] =
-    useState<PuzzleGuessSubmitState>(PuzzleGuessSubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>('');
-  const formRef = useRef<React.ElementRef<typeof ModalForm>>(null);
-
-  useImperativeHandle(forwardedRef, () => ({
-    show: () => {
-      if (formRef.current) {
-        formRef.current.show();
-      }
+const PuzzleGuessModal = React.forwardRef(
+  (
+    {
+      puzzle,
+      guesses,
+      displayNames,
+    }: {
+      puzzle: PuzzleType;
+      guesses: GuessType[];
+      displayNames: Map<string, string>;
     },
-  }));
+    forwardedRef: React.Ref<PuzzleGuessModalHandle>,
+  ) => {
+    const [guessInput, setGuessInput] = useState<string>("");
+    const [directionInput, setDirectionInput] = useState<number>(0);
+    const [haveSetDirection, setHaveSetDirection] = useState<boolean>(false);
+    const [confidenceInput, setConfidenceInput] = useState<number>(50);
+    const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(false);
+    const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
+    const [confirmationMessage, setConfirmationMessage] = useState<string>("");
+    const [submitState, setSubmitState] = useState<PuzzleGuessSubmitState>(
+      PuzzleGuessSubmitState.IDLE,
+    );
+    const [submitError, setSubmitError] = useState<string>("");
+    const formRef = useRef<React.ElementRef<typeof ModalForm>>(null);
 
-  const onGuessInputChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
-    setGuessInput(event.currentTarget.value.toUpperCase());
-    setConfirmingSubmit(false);
-  }, []);
-
-  const onDirectionInputChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
-    setHaveSetDirection(true);
-    setDirectionInput(parseInt(event.currentTarget.value, 10));
-  }, []);
-
-  const onConfidenceInputChange: NonNullable<FormControlProps['onChange']> = useCallback((event) => {
-    setHaveSetConfidence(true);
-    setConfidenceInput(parseInt(event.currentTarget.value, 10));
-  }, []);
-
-  const solvedness = useMemo(() => {
-    return computeSolvedness(puzzle);
-  }, [puzzle]);
-
-  const onSubmitGuess = useCallback(() => {
-    const strippedGuess = guessInput.replaceAll(/\s/g, '');
-    const repeatGuess = guesses.find((g) => {
-      return g.guess.replaceAll(/\s/g, '') === strippedGuess;
-    });
-    if ((repeatGuess || solvedness !== 'unsolved') && !confirmingSubmit) {
-      const repeatGuessStr = repeatGuess ? 'This answer has already been submitted. ' : '';
-      const solvednessStr = {
-        solved: 'This puzzle has already been solved. ',
-        noAnswers: 'This puzzle does not expect any answers to be submitted. ',
-        unsolved: '',
-      }[solvedness];
-      const msg = `${solvednessStr} ${repeatGuessStr} Are you sure you want to submit this guess?`;
-      setConfirmationMessage(msg);
-      setConfirmingSubmit(true);
-    } else if (!haveSetDirection || !haveSetConfidence) {
-      setSubmitError('Please set a direction and confidence for your guess.');
-      setSubmitState(PuzzleGuessSubmitState.FAILED);
-    } else {
-      createGuess.call({
-        puzzleId: puzzle._id,
-        guess: guessInput,
-        direction: directionInput,
-        confidence: confidenceInput,
-      }, (error) => {
-        if (error) {
-          setSubmitError(error.message);
-          setSubmitState(PuzzleGuessSubmitState.FAILED);
-        } else {
-          // Clear the input box.  Don't dismiss the dialog.
-          setGuessInput('');
-          setHaveSetConfidence(false);
-          setConfidenceInput(50);
-          setHaveSetDirection(false);
-          setDirectionInput(0);
-          setSubmitError('');
-          setSubmitState(PuzzleGuessSubmitState.IDLE);
+    useImperativeHandle(forwardedRef, () => ({
+      show: () => {
+        if (formRef.current) {
+          formRef.current.show();
         }
+      },
+    }));
+
+    const onGuessInputChange: NonNullable<FormControlProps["onChange"]> =
+      useCallback((event) => {
+        setGuessInput(event.currentTarget.value.toUpperCase());
         setConfirmingSubmit(false);
+      }, []);
+
+    const onDirectionInputChange: NonNullable<FormControlProps["onChange"]> =
+      useCallback((event) => {
+        setHaveSetDirection(true);
+        setDirectionInput(parseInt(event.currentTarget.value, 10));
+      }, []);
+
+    const onConfidenceInputChange: NonNullable<FormControlProps["onChange"]> =
+      useCallback((event) => {
+        setHaveSetConfidence(true);
+        setConfidenceInput(parseInt(event.currentTarget.value, 10));
+      }, []);
+
+    const solvedness = useMemo(() => {
+      return computeSolvedness(puzzle);
+    }, [puzzle]);
+
+    const onSubmitGuess = useCallback(() => {
+      const strippedGuess = guessInput.replaceAll(/\s/g, "");
+      const repeatGuess = guesses.find((g) => {
+        return g.guess.replaceAll(/\s/g, "") === strippedGuess;
       });
-    }
-  }, [
-    guesses, puzzle._id, solvedness,
-    guessInput, directionInput, confidenceInput, confirmingSubmit,
-    haveSetDirection, haveSetConfidence,
-  ]);
+      if ((repeatGuess || solvedness !== "unsolved") && !confirmingSubmit) {
+        const repeatGuessStr = repeatGuess
+          ? "This answer has already been submitted. "
+          : "";
+        const solvednessStr = {
+          solved: "This puzzle has already been solved. ",
+          noAnswers:
+            "This puzzle does not expect any answers to be submitted. ",
+          unsolved: "",
+        }[solvedness];
+        const msg = `${solvednessStr} ${repeatGuessStr} Are you sure you want to submit this guess?`;
+        setConfirmationMessage(msg);
+        setConfirmingSubmit(true);
+      } else if (!haveSetDirection || !haveSetConfidence) {
+        setSubmitError("Please set a direction and confidence for your guess.");
+        setSubmitState(PuzzleGuessSubmitState.FAILED);
+      } else {
+        createGuess.call(
+          {
+            puzzleId: puzzle._id,
+            guess: guessInput,
+            direction: directionInput,
+            confidence: confidenceInput,
+          },
+          (error) => {
+            if (error) {
+              setSubmitError(error.message);
+              setSubmitState(PuzzleGuessSubmitState.FAILED);
+            } else {
+              // Clear the input box.  Don't dismiss the dialog.
+              setGuessInput("");
+              setHaveSetConfidence(false);
+              setConfidenceInput(50);
+              setHaveSetDirection(false);
+              setDirectionInput(0);
+              setSubmitError("");
+              setSubmitState(PuzzleGuessSubmitState.IDLE);
+            }
+            setConfirmingSubmit(false);
+          },
+        );
+      }
+    }, [
+      guesses,
+      puzzle._id,
+      solvedness,
+      guessInput,
+      directionInput,
+      confidenceInput,
+      confirmingSubmit,
+      haveSetDirection,
+      haveSetConfidence,
+    ]);
 
-  const directionTooltip = (
-    <Tooltip id="jr-puzzle-guess-direction-tooltip">
-      <strong>Solve direction:</strong>
-      {' '}
-      {formatGuessDirection(directionInput)}
-    </Tooltip>
-  );
-  const confidenceTooltip = (
-    <Tooltip id="jr-puzzle-guess-confidence-tooltip">
-      <strong>Confidence:</strong>
-      {' '}
-      {formatConfidence(confidenceInput)}
-    </Tooltip>
-  );
-  const copyTooltip = (
-    <Tooltip id="jr-puzzle-guess-copy-tooltip">
-      Copy to clipboard
-    </Tooltip>
-  );
+    const directionTooltip = (
+      <Tooltip id="jr-puzzle-guess-direction-tooltip">
+        <strong>Solve direction:</strong> {formatGuessDirection(directionInput)}
+      </Tooltip>
+    );
+    const confidenceTooltip = (
+      <Tooltip id="jr-puzzle-guess-confidence-tooltip">
+        <strong>Confidence:</strong> {formatConfidence(confidenceInput)}
+      </Tooltip>
+    );
+    const copyTooltip = (
+      <Tooltip id="jr-puzzle-guess-copy-tooltip">Copy to clipboard</Tooltip>
+    );
 
-  const clearError = useCallback(() => {
-    setSubmitState(PuzzleGuessSubmitState.IDLE);
-  }, []);
+    const clearError = useCallback(() => {
+      setSubmitState(PuzzleGuessSubmitState.IDLE);
+    }, []);
 
-  const title = {
-    unsolved: `Submit answer to ${puzzle.title}`,
-    solved: `Guess history for ${puzzle.title}`,
-    noAnswers: `Guess history for ${puzzle.title}`,
-  }[solvedness];
+    const title = {
+      unsolved: `Submit answer to ${puzzle.title}`,
+      solved: `Guess history for ${puzzle.title}`,
+      noAnswers: `Guess history for ${puzzle.title}`,
+    }[solvedness];
 
-  return (
-    <ModalForm
-      ref={formRef}
-      title={title}
-      onSubmit={onSubmitGuess}
-      submitLabel={confirmingSubmit ? 'Confirm Submit' : 'Submit'}
-      size="lg"
-    >
-      <FormGroup as={Row} className="mb-3">
-        <FormLabel column xs={3} htmlFor="jr-puzzle-guess">
-          Guess
-        </FormLabel>
-        <Col xs={9}>
-          <AnswerFormControl
-            type="text"
-            id="jr-puzzle-guess"
-            autoFocus
-            autoComplete="off"
-            onChange={onGuessInputChange}
-            value={guessInput}
-            disabled={puzzle.deleted}
-          />
-        </Col>
-      </FormGroup>
+    return (
+      <ModalForm
+        ref={formRef}
+        title={title}
+        onSubmit={onSubmitGuess}
+        submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
+        size="lg"
+      >
+        <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="jr-puzzle-guess">
+            Guess
+          </FormLabel>
+          <Col xs={9}>
+            <AnswerFormControl
+              type="text"
+              id="jr-puzzle-guess"
+              autoFocus
+              autoComplete="off"
+              onChange={onGuessInputChange}
+              value={guessInput}
+              disabled={puzzle.deleted}
+            />
+          </Col>
+        </FormGroup>
 
-      <FormGroup as={Row} className="mb-3">
-        <FormLabel column xs={3} htmlFor="jr-puzzle-guess-direction">
-          Solve direction
-        </FormLabel>
-        <Col xs={9}>
-          <ValidatedSliderContainer>
-            <OverlayTrigger placement="top" overlay={directionTooltip}>
-              <GuessSliderContainer>
-                <GuessSliderLeftLabel>
-                  <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
-                </GuessSliderLeftLabel>
-                <GuessSlider
-                  id="jr-puzzle-guess-direction"
-                  type="range"
-                  min="-10"
-                  max="10"
-                  list="jr-puzzle-guess-direction-list"
-                  onChange={onDirectionInputChange}
-                  value={directionInput}
-                  disabled={puzzle.deleted}
-                />
-                <datalist id="jr-puzzle-guess-direction-list">
-                  <option value="-10">-10</option>
-                  <option value="0">0</option>
-                  <option value="10">10</option>
-                </datalist>
-                <GuessSliderRightLabel>
-                  <FontAwesomeIcon icon={faArrowRight} fixedWidth />
-                </GuessSliderRightLabel>
-              </GuessSliderContainer>
-            </OverlayTrigger>
-            <FontAwesomeIcon icon={faCheck} color={haveSetDirection ? 'green' : 'transparent'} fixedWidth />
-          </ValidatedSliderContainer>
-          <FormText>
-            Pick a number between -10 (backsolved without opening
-            the puzzle) to 10 (forward-solved without seeing the
-            round) to indicate if you forward- or back-solved.
-          </FormText>
-        </Col>
-      </FormGroup>
+        <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-direction">
+            Solve direction
+          </FormLabel>
+          <Col xs={9}>
+            <ValidatedSliderContainer>
+              <OverlayTrigger placement="top" overlay={directionTooltip}>
+                <GuessSliderContainer>
+                  <GuessSliderLeftLabel>
+                    <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
+                  </GuessSliderLeftLabel>
+                  <GuessSlider
+                    id="jr-puzzle-guess-direction"
+                    type="range"
+                    min="-10"
+                    max="10"
+                    list="jr-puzzle-guess-direction-list"
+                    onChange={onDirectionInputChange}
+                    value={directionInput}
+                    disabled={puzzle.deleted}
+                  />
+                  <datalist id="jr-puzzle-guess-direction-list">
+                    <option value="-10">-10</option>
+                    <option value="0">0</option>
+                    <option value="10">10</option>
+                  </datalist>
+                  <GuessSliderRightLabel>
+                    <FontAwesomeIcon icon={faArrowRight} fixedWidth />
+                  </GuessSliderRightLabel>
+                </GuessSliderContainer>
+              </OverlayTrigger>
+              <FontAwesomeIcon
+                icon={faCheck}
+                color={haveSetDirection ? "green" : "transparent"}
+                fixedWidth
+              />
+            </ValidatedSliderContainer>
+            <FormText>
+              Pick a number between -10 (backsolved without opening the puzzle)
+              to 10 (forward-solved without seeing the round) to indicate if you
+              forward- or back-solved.
+            </FormText>
+          </Col>
+        </FormGroup>
 
-      <FormGroup as={Row} className="mb-3">
-        <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
-          Confidence
-        </FormLabel>
-        <Col xs={9}>
-          <ValidatedSliderContainer>
-            <OverlayTrigger placement="top" overlay={confidenceTooltip}>
-              <GuessSliderContainer>
-                <GuessSliderLeftLabel>
-                  0%
-                </GuessSliderLeftLabel>
-                <GuessSlider
-                  id="jr-puzzle-guess-confidence"
-                  type="range"
-                  min="0"
-                  max="100"
-                  list="jr-puzzle-guess-confidence-list"
-                  onChange={onConfidenceInputChange}
-                  value={confidenceInput}
-                  disabled={puzzle.deleted}
-                />
-                <datalist id="jr-puzzle-guess-confidence-list">
-                  <option value="0">0%</option>
-                  <option value="25">25%</option>
-                  <option value="50">50%</option>
-                  <option value="75">75%</option>
-                  <option value="100">100%</option>
-                </datalist>
-                <GuessSliderRightLabel>
-                  100%
-                </GuessSliderRightLabel>
-              </GuessSliderContainer>
-            </OverlayTrigger>
-            <FontAwesomeIcon icon={faCheck} color={haveSetConfidence ? 'green' : 'transparent'} fixedWidth />
-          </ValidatedSliderContainer>
-          <FormText>
-            Pick a number between 0 and 100 for the probability that
-            you think this answer is right.
-          </FormText>
-        </Col>
-      </FormGroup>
+        <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
+            Confidence
+          </FormLabel>
+          <Col xs={9}>
+            <ValidatedSliderContainer>
+              <OverlayTrigger placement="top" overlay={confidenceTooltip}>
+                <GuessSliderContainer>
+                  <GuessSliderLeftLabel>0%</GuessSliderLeftLabel>
+                  <GuessSlider
+                    id="jr-puzzle-guess-confidence"
+                    type="range"
+                    min="0"
+                    max="100"
+                    list="jr-puzzle-guess-confidence-list"
+                    onChange={onConfidenceInputChange}
+                    value={confidenceInput}
+                    disabled={puzzle.deleted}
+                  />
+                  <datalist id="jr-puzzle-guess-confidence-list">
+                    <option value="0">0%</option>
+                    <option value="25">25%</option>
+                    <option value="50">50%</option>
+                    <option value="75">75%</option>
+                    <option value="100">100%</option>
+                  </datalist>
+                  <GuessSliderRightLabel>100%</GuessSliderRightLabel>
+                </GuessSliderContainer>
+              </OverlayTrigger>
+              <FontAwesomeIcon
+                icon={faCheck}
+                color={haveSetConfidence ? "green" : "transparent"}
+                fixedWidth
+              />
+            </ValidatedSliderContainer>
+            <FormText>
+              Pick a number between 0 and 100 for the probability that you think
+              this answer is right.
+            </FormText>
+          </Col>
+        </FormGroup>
 
-      {guesses.length === 0 ? <div>No previous submissions.</div> : [
-        <div key="label">Previous submissions:</div>,
-        <GuessTable key="table">
-          {sortedBy(guesses, (g) => g.createdAt).reverse().map((guess) => {
-            return (
-              <GuessRow $state={guess.state} key={guess._id}>
-                <GuessTableSmallRow>
-                  <GuessCell><GuessState id={`guess-${guess._id}-state`} state={guess.state} short /></GuessCell>
-                  <GuessAnswerCell>
-                    <OverlayTrigger placement="top" overlay={copyTooltip}>
-                      {({ ref, ...triggerHandler }) => (
-                        <CopyToClipboard text={guess.guess} {...triggerHandler}>
-                          <LinkButton ref={ref} variant="link" aria-label="Copy">
-                            <FontAwesomeIcon icon={faCopy} fixedWidth />
-                          </LinkButton>
-                        </CopyToClipboard>
-                      )}
-                    </OverlayTrigger>
-                    {' '}
-                    <PuzzleAnswer answer={guess.guess} breakable indented />
-                  </GuessAnswerCell>
-                </GuessTableSmallRow>
-                <GuessTimestampCell>{calendarTimeFormat(guess.createdAt)}</GuessTimestampCell>
-                <GuessSubmitterCell><Breakable>{displayNames.get(guess.createdBy) ?? '???'}</Breakable></GuessSubmitterCell>
-                <GuessDirectionCell>
-                  <GuessDirection id={`guess-${guess._id}-direction`} value={guess.direction} />
-                </GuessDirectionCell>
-                <GuessConfidenceCell>
-                  <GuessConfidence id={`guess-${guess._id}-confidence`} value={guess.confidence} />
-                </GuessConfidenceCell>
-                <GuessTableSmallRow>
-                  {guess.additionalNotes && (
-                    <Markdown as={AdditionalNotesCell} text={guess.additionalNotes} />
-                  )}
-                </GuessTableSmallRow>
-              </GuessRow>
-            );
-          })}
-        </GuessTable>,
-      ]}
-      {confirmingSubmit ? <Alert variant="warning">{confirmationMessage}</Alert> : null}
-      {submitState === PuzzleGuessSubmitState.FAILED ? <Alert variant="danger" dismissible onClose={clearError}>{submitError}</Alert> : null}
-    </ModalForm>
-  );
-});
+        {guesses.length === 0 ? (
+          <div>No previous submissions.</div>
+        ) : (
+          [
+            <div key="label">Previous submissions:</div>,
+            <GuessTable key="table">
+              {sortedBy(guesses, (g) => g.createdAt)
+                .reverse()
+                .map((guess) => {
+                  return (
+                    <GuessRow $state={guess.state} key={guess._id}>
+                      <GuessTableSmallRow>
+                        <GuessCell>
+                          <GuessState
+                            id={`guess-${guess._id}-state`}
+                            state={guess.state}
+                            short
+                          />
+                        </GuessCell>
+                        <GuessAnswerCell>
+                          <OverlayTrigger placement="top" overlay={copyTooltip}>
+                            {({ ref, ...triggerHandler }) => (
+                              <CopyToClipboard
+                                text={guess.guess}
+                                {...triggerHandler}
+                              >
+                                <LinkButton
+                                  ref={ref}
+                                  variant="link"
+                                  aria-label="Copy"
+                                >
+                                  <FontAwesomeIcon icon={faCopy} fixedWidth />
+                                </LinkButton>
+                              </CopyToClipboard>
+                            )}
+                          </OverlayTrigger>{" "}
+                          <PuzzleAnswer
+                            answer={guess.guess}
+                            breakable
+                            indented
+                          />
+                        </GuessAnswerCell>
+                      </GuessTableSmallRow>
+                      <GuessTimestampCell>
+                        {calendarTimeFormat(guess.createdAt)}
+                      </GuessTimestampCell>
+                      <GuessSubmitterCell>
+                        <Breakable>
+                          {displayNames.get(guess.createdBy) ?? "???"}
+                        </Breakable>
+                      </GuessSubmitterCell>
+                      <GuessDirectionCell>
+                        <GuessDirection
+                          id={`guess-${guess._id}-direction`}
+                          value={guess.direction}
+                        />
+                      </GuessDirectionCell>
+                      <GuessConfidenceCell>
+                        <GuessConfidence
+                          id={`guess-${guess._id}-confidence`}
+                          value={guess.confidence}
+                        />
+                      </GuessConfidenceCell>
+                      <GuessTableSmallRow>
+                        {guess.additionalNotes && (
+                          <Markdown
+                            as={AdditionalNotesCell}
+                            text={guess.additionalNotes}
+                          />
+                        )}
+                      </GuessTableSmallRow>
+                    </GuessRow>
+                  );
+                })}
+            </GuessTable>,
+          ]
+        )}
+        {confirmingSubmit ? (
+          <Alert variant="warning">{confirmationMessage}</Alert>
+        ) : null}
+        {submitState === PuzzleGuessSubmitState.FAILED ? (
+          <Alert variant="danger" dismissible onClose={clearError}>
+            {submitError}
+          </Alert>
+        ) : null}
+      </ModalForm>
+    );
+  },
+);
 
 enum PuzzleAnswerSubmitState {
-  IDLE = 'idle',
-  SUBMITTING = 'submitting',
-  SUCCESS = 'success',
-  FAILED = 'failed',
+  IDLE = "idle",
+  SUBMITTING = "submitting",
+  SUCCESS = "success",
+  FAILED = "failed",
 }
 
 type PuzzleAnswerModalHandle = {
   show: () => void;
-}
+};
 
-const PuzzleAnswerModal = React.forwardRef(({ puzzle }: {
-  puzzle: PuzzleType;
-}, forwardedRef: React.Ref<PuzzleAnswerModalHandle>) => {
-  const [answer, setAnswer] = useState<string>('');
-  const [submitState, setSubmitState] =
-    useState<PuzzleAnswerSubmitState>(PuzzleAnswerSubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>('');
+const PuzzleAnswerModal = React.forwardRef(
+  (
+    {
+      puzzle,
+    }: {
+      puzzle: PuzzleType;
+    },
+    forwardedRef: React.Ref<PuzzleAnswerModalHandle>,
+  ) => {
+    const [answer, setAnswer] = useState<string>("");
+    const [submitState, setSubmitState] = useState<PuzzleAnswerSubmitState>(
+      PuzzleAnswerSubmitState.IDLE,
+    );
+    const [submitError, setSubmitError] = useState<string>("");
 
-  const formRef = useRef<ModalFormHandle>(null);
+    const formRef = useRef<ModalFormHandle>(null);
 
-  const show = useCallback(() => {
-    if (formRef.current) {
-      formRef.current.show();
-    }
-  }, []);
-
-  useImperativeHandle(forwardedRef, () => ({
-    show,
-  }));
-
-  const hide = useCallback(() => {
-    if (formRef.current) {
-      formRef.current.hide();
-    }
-  }, []);
-
-  const onAnswerChange: NonNullable<FormControlProps['onChange']> = useCallback((e) => {
-    setAnswer(e.currentTarget.value);
-  }, []);
-
-  const onDismissError = useCallback(() => {
-    setSubmitState(PuzzleAnswerSubmitState.IDLE);
-    setSubmitError('');
-  }, []);
-
-  const onSubmit = useCallback(() => {
-    setSubmitState(PuzzleAnswerSubmitState.SUBMITTING);
-    setSubmitError('');
-    addPuzzleAnswer.call({
-      puzzleId: puzzle._id,
-      answer,
-    }, (error) => {
-      if (error) {
-        setSubmitError(error.message);
-        setSubmitState(PuzzleAnswerSubmitState.FAILED);
-      } else {
-        setAnswer('');
-        setSubmitState(PuzzleAnswerSubmitState.IDLE);
-        hide();
+    const show = useCallback(() => {
+      if (formRef.current) {
+        formRef.current.show();
       }
-    });
-  }, [puzzle._id, answer, hide]);
+    }, []);
 
-  return (
-    <ModalForm
-      ref={formRef}
-      title={`Submit answer to ${puzzle.title}`}
-      onSubmit={onSubmit}
-      submitLabel={submitState === PuzzleAnswerSubmitState.SUBMITTING ? 'Confirm Submit' : 'Submit'}
-    >
-      <FormGroup as={Row} className="mb-3">
-        <FormLabel column xs={3} htmlFor="jr-puzzle-answer">
-          Answer
-        </FormLabel>
-        <Col xs={9}>
-          <AnswerFormControl
-            type="text"
-            id="jr-puzzle-answer"
-            autoFocus
-            autoComplete="off"
-            onChange={onAnswerChange}
-            value={answer}
-          />
-        </Col>
-      </FormGroup>
+    useImperativeHandle(forwardedRef, () => ({
+      show,
+    }));
 
-      {submitState === PuzzleAnswerSubmitState.FAILED ? (
-        <Alert variant="danger" dismissible onClose={onDismissError}>
-          { submitError || 'Something went wrong. Try again, or contact an admin?' }
-        </Alert>
-      ) : undefined}
-    </ModalForm>
-  );
-});
+    const hide = useCallback(() => {
+      if (formRef.current) {
+        formRef.current.hide();
+      }
+    }, []);
+
+    const onAnswerChange: NonNullable<FormControlProps["onChange"]> =
+      useCallback((e) => {
+        setAnswer(e.currentTarget.value);
+      }, []);
+
+    const onDismissError = useCallback(() => {
+      setSubmitState(PuzzleAnswerSubmitState.IDLE);
+      setSubmitError("");
+    }, []);
+
+    const onSubmit = useCallback(() => {
+      setSubmitState(PuzzleAnswerSubmitState.SUBMITTING);
+      setSubmitError("");
+      addPuzzleAnswer.call(
+        {
+          puzzleId: puzzle._id,
+          answer,
+        },
+        (error) => {
+          if (error) {
+            setSubmitError(error.message);
+            setSubmitState(PuzzleAnswerSubmitState.FAILED);
+          } else {
+            setAnswer("");
+            setSubmitState(PuzzleAnswerSubmitState.IDLE);
+            hide();
+          }
+        },
+      );
+    }, [puzzle._id, answer, hide]);
+
+    return (
+      <ModalForm
+        ref={formRef}
+        title={`Submit answer to ${puzzle.title}`}
+        onSubmit={onSubmit}
+        submitLabel={
+          submitState === PuzzleAnswerSubmitState.SUBMITTING
+            ? "Confirm Submit"
+            : "Submit"
+        }
+      >
+        <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="jr-puzzle-answer">
+            Answer
+          </FormLabel>
+          <Col xs={9}>
+            <AnswerFormControl
+              type="text"
+              id="jr-puzzle-answer"
+              autoFocus
+              autoComplete="off"
+              onChange={onAnswerChange}
+              value={answer}
+            />
+          </Col>
+        </FormGroup>
+
+        {submitState === PuzzleAnswerSubmitState.FAILED ? (
+          <Alert variant="danger" dismissible onClose={onDismissError}>
+            {submitError ||
+              "Something went wrong. Try again, or contact an admin?"}
+          </Alert>
+        ) : undefined}
+      </ModalForm>
+    );
+  },
+);
 
 const PuzzleDocumentDiv = styled.div`
   width: 100%;
@@ -1703,29 +1990,39 @@ const PuzzleDocumentDiv = styled.div`
   position: relative;
 `;
 
-const PuzzlePageMultiplayerDocument = React.memo(({ document }: {
-  document?: DocumentType;
-}) => {
-  let inner = (
-    <DocumentMessage>Attempting to load collaborative document...</DocumentMessage>
-  );
-  if (document) {
-    inner = <DocumentDisplay document={document} displayMode="embed" />;
-  }
+const PuzzlePageMultiplayerDocument = React.memo(
+  ({ document }: { document?: DocumentType }) => {
+    let inner = (
+      <DocumentMessage>
+        Attempting to load collaborative document...
+      </DocumentMessage>
+    );
+    if (document) {
+      inner = <DocumentDisplay document={document} displayMode="embed" />;
+    }
 
-  return (
-    <PuzzleDocumentDiv>
-      {inner}
-    </PuzzleDocumentDiv>
-  );
-});
+    return <PuzzleDocumentDiv>{inner}</PuzzleDocumentDiv>;
+  },
+);
 
 const PuzzleDeletedModal = ({
-  puzzleId, huntId, replacedBy,
-}: { puzzleId: string, huntId: string, replacedBy?: string }) => {
-  const canUpdate = useTracker(() => userMayWritePuzzlesForHunt(Meteor.user(), Hunts.findOne(huntId)), [huntId]);
+  puzzleId,
+  huntId,
+  replacedBy,
+}: {
+  puzzleId: string;
+  huntId: string;
+  replacedBy?: string;
+}) => {
+  const canUpdate = useTracker(
+    () => userMayWritePuzzlesForHunt(Meteor.user(), Hunts.findOne(huntId)),
+    [huntId],
+  );
 
-  const replacement = useTracker(() => Puzzles.findOneAllowingDeleted(replacedBy), [replacedBy]);
+  const replacement = useTracker(
+    () => Puzzles.findOneAllowingDeleted(replacedBy),
+    [replacedBy],
+  );
 
   const [show, setShow] = useState(true);
   const hide = useCallback(() => setShow(false), []);
@@ -1738,35 +2035,32 @@ const PuzzleDeletedModal = ({
   const modal = (
     <Modal show={show} onHide={hide} backdrop="static">
       <Modal.Header closeButton>
-        <Modal.Title>
-          This Jolly Roger entry has been removed
-        </Modal.Title>
+        <Modal.Title>This Jolly Roger entry has been removed</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <p>
           An operator has deleted this puzzle from Jolly Roger. You can still
-          view it to extract information, but you won&apos;t be able to edit
-          the shared document or send new chat messages going forward.
+          view it to extract information, but you won&apos;t be able to edit the
+          shared document or send new chat messages going forward.
         </p>
         <p>
-          We want to make sure this page doesn&apos;t distract folks on the
-          team going forward, so there are no links back to this page. If you
-          need to save any information, make sure to hold onto the URL until
-          you&apos;re done.
+          We want to make sure this page doesn&apos;t distract folks on the team
+          going forward, so there are no links back to this page. If you need to
+          save any information, make sure to hold onto the URL until you&apos;re
+          done.
         </p>
         {replacedBy && (
           <p>
-            This puzzle has been replaced by
-            {' '}
-            <Link to={`/hunts/${huntId}/puzzles/${replacedBy}`}>{replacement?.title ?? 'Another puzzle'}</Link>
+            This puzzle has been replaced by{" "}
+            <Link to={`/hunts/${huntId}/puzzles/${replacedBy}`}>
+              {replacement?.title ?? "Another puzzle"}
+            </Link>
             .
           </p>
         )}
         {canUpdate && (
           <>
-            <p>
-              As an operator, you can un-delete this puzzle:
-            </p>
+            <p>As an operator, you can un-delete this puzzle:</p>
             <Button variant="primary" onClick={undelete}>
               Undelete
             </Button>
@@ -1788,28 +2082,39 @@ const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
-  const [isDesktop, setIsDesktop] = useState<boolean>(window.innerWidth >= MinimumDesktopWidth);
+  const [isDesktop, setIsDesktop] = useState<boolean>(
+    window.innerWidth >= MinimumDesktopWidth,
+  );
 
-  const huntId = useParams<'huntId'>().huntId!;
-  const puzzleId = useParams<'puzzleId'>().puzzleId!;
+  const huntId = useParams<"huntId">().huntId!;
+  const puzzleId = useParams<"puzzleId">().puzzleId!;
 
   // Add the current user to the collection of people viewing this puzzle.
   const subscribersTopic = `puzzle:${puzzleId}`;
-  useSubscribe('subscribers.inc', subscribersTopic, {
+  useSubscribe("subscribers.inc", subscribersTopic, {
     puzzle: puzzleId,
     hunt: huntId,
   });
 
   // Get the _list_ of subscribers to this puzzle and the _count_ of subscribers
   // for all puzzles (it's OK if the latter trickles in)
-  const subscribersLoading = useSubscribe('subscribers.fetch', subscribersTopic);
-  useSubscribe('subscribers.counts', { hunt: huntId });
+  const subscribersLoading = useSubscribe(
+    "subscribers.fetch",
+    subscribersTopic,
+  );
+  useSubscribe("subscribers.counts", { hunt: huntId });
 
   const displayNamesLoading = useSubscribeDisplayNames(huntId);
 
-  const puzzleLoading = useTypedSubscribe(puzzleForPuzzlePage, { puzzleId, huntId });
+  const puzzleLoading = useTypedSubscribe(puzzleForPuzzlePage, {
+    puzzleId,
+    huntId,
+  });
 
-  const chatMessagesLoading = useTypedSubscribe(chatMessagesForPuzzle, { puzzleId, huntId });
+  const chatMessagesLoading = useTypedSubscribe(chatMessagesForPuzzle, {
+    puzzleId,
+    huntId,
+  });
 
   // There are some model dependencies that we have to be careful about:
   //
@@ -1829,32 +2134,40 @@ const PuzzlePage = React.memo(() => {
   // * Puzzle metadata needs puzzles, tags, documents, guesses, and display
   //   names
   const puzzleDataLoading =
-    puzzleLoading() ||
-    subscribersLoading() ||
-    displayNamesLoading();
-  const chatDataLoading =
-    chatMessagesLoading() ||
-    displayNamesLoading();
+    puzzleLoading() || subscribersLoading() || displayNamesLoading();
+  const chatDataLoading = chatMessagesLoading() || displayNamesLoading();
 
-  const displayNames = useTracker(() => (
-    puzzleDataLoading && chatDataLoading ?
-      new Map<string, string>() :
-      indexedDisplayNames()
-  ), [puzzleDataLoading, chatDataLoading]);
+  const displayNames = useTracker(
+    () =>
+      puzzleDataLoading && chatDataLoading
+        ? new Map<string, string>()
+        : indexedDisplayNames(),
+    [puzzleDataLoading, chatDataLoading],
+  );
   // Sort by created at so that the "first" document always has consistent meaning
-  const document = useTracker(() => (
-    puzzleDataLoading ?
-      undefined :
-      Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } })
-  ), [puzzleDataLoading, puzzleId]);
+  const document = useTracker(
+    () =>
+      puzzleDataLoading
+        ? undefined
+        : Documents.findOne({ puzzle: puzzleId }, { sort: { createdAt: 1 } }),
+    [puzzleDataLoading, puzzleId],
+  );
 
-  const activePuzzle = useTracker(() => Puzzles.findOneAllowingDeleted(puzzleId), [puzzleId]);
-  const bookmarked = useTracker(() => !!Bookmarks.findOne({ puzzle: puzzleId, user: Meteor.userId()! }), [puzzleId]);
+  const activePuzzle = useTracker(
+    () => Puzzles.findOneAllowingDeleted(puzzleId),
+    [puzzleId],
+  );
+  const bookmarked = useTracker(
+    () => !!Bookmarks.findOne({ puzzle: puzzleId, user: Meteor.userId()! }),
+    [puzzleId],
+  );
 
   const selfUser = useTracker(() => Meteor.user()!, []);
 
-  const puzzleTitle = activePuzzle ? `${activePuzzle.title}${activePuzzle.deleted ? ' (deleted)' : ''}` : '(no such puzzle)';
-  const title = puzzleDataLoading ? 'loading...' : puzzleTitle;
+  const puzzleTitle = activePuzzle
+    ? `${activePuzzle.title}${activePuzzle.deleted ? " (deleted)" : ""}`
+    : "(no such puzzle)";
+  const title = puzzleDataLoading ? "loading..." : puzzleTitle;
   useBreadcrumb({
     title,
     path: `/hunts/${huntId}/puzzles/${puzzleId}`,
@@ -1867,7 +2180,7 @@ const PuzzlePage = React.memo(() => {
 
   const onResize = useCallback(() => {
     setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
-    trace('PuzzlePage onResize', { hasRef: !!chatSectionRef.current });
+    trace("PuzzlePage onResize", { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollHistoryToTarget();
     }
@@ -1878,7 +2191,9 @@ const PuzzlePage = React.memo(() => {
   }, []);
 
   const onChangeSideBarSize = useCallback(() => {
-    trace('PuzzlePage onChangeSideBarSize', { hasRef: !!chatSectionRef.current });
+    trace("PuzzlePage onChangeSideBarSize", {
+      hasRef: !!chatSectionRef.current,
+    });
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollHistoryToTarget();
     }
@@ -1886,7 +2201,7 @@ const PuzzlePage = React.memo(() => {
 
   useLayoutEffect(() => {
     // When sidebarWidth is updated, scroll history to the target
-    trace('PuzzlePage useLayoutEffect', { hasRef: !!chatSectionRef.current });
+    trace("PuzzlePage useLayoutEffect", { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollHistoryToTarget();
     }
@@ -1895,13 +2210,18 @@ const PuzzlePage = React.memo(() => {
   useEffect(() => {
     // Populate sidebar width on mount
     if (puzzlePageDivRef.current) {
-      setSidebarWidth(Math.min(DefaultSidebarWidth, puzzlePageDivRef.current.clientWidth - MinimumDocumentWidth));
+      setSidebarWidth(
+        Math.min(
+          DefaultSidebarWidth,
+          puzzlePageDivRef.current.clientWidth - MinimumDocumentWidth,
+        ),
+      );
     }
 
-    window.addEventListener('resize', onResize);
+    window.addEventListener("resize", onResize);
 
     return () => {
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener("resize", onResize);
     };
   }, [onResize]);
 
@@ -1911,13 +2231,21 @@ const PuzzlePage = React.memo(() => {
     }
   }, [activePuzzle]);
 
-  trace('PuzzlePage render', { puzzleDataLoading, chatDataLoading });
+  trace("PuzzlePage render", { puzzleDataLoading, chatDataLoading });
 
   if (puzzleDataLoading) {
-    return <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}><span>loading...</span></FixedLayout>;
+    return (
+      <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
+        <span>loading...</span>
+      </FixedLayout>
+    );
   }
   if (!activePuzzle) {
-    return <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}><span>No puzzle found :( Did you get that URL right?</span></FixedLayout>;
+    return (
+      <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
+        <span>No puzzle found :( Did you get that URL right?</span>
+      </FixedLayout>
+    );
   }
   const metadata = (
     <PuzzlePageMetadata
@@ -1942,7 +2270,11 @@ const PuzzlePage = React.memo(() => {
     />
   );
   const deletedModal = activePuzzle.deleted && (
-    <PuzzleDeletedModal puzzleId={puzzleId} huntId={huntId} replacedBy={activePuzzle.replacedBy} />
+    <PuzzleDeletedModal
+      puzzleId={puzzleId}
+      huntId={huntId}
+      replacedBy={activePuzzle.replacedBy}
+    />
   );
 
   let debugPane: React.ReactNode | undefined;
@@ -1950,30 +2282,33 @@ const PuzzlePage = React.memo(() => {
     (window as any).globalCallState = callState;
     const peerStreamsForRendering = new Map();
     callState.peerStreams.forEach((stream, peerId) => {
-      peerStreamsForRendering.set(peerId, `active: ${stream.active}, tracks: ${stream.getTracks().length}`);
+      peerStreamsForRendering.set(
+        peerId,
+        `active: ${stream.active}, tracks: ${stream.getTracks().length}`,
+      );
     });
     const callStateForRendering = {
       ...callState,
       peerStreams: peerStreamsForRendering,
       audioState: {
-        mediaSource: callState.audioState?.mediaSource ? 'present' : 'absent',
-        audioContext: callState.audioState?.audioContext ? 'present' : 'absent',
+        mediaSource: callState.audioState?.mediaSource ? "present" : "absent",
+        audioContext: callState.audioState?.audioContext ? "present" : "absent",
       },
-      device: callState.device ? 'present' : 'absent',
+      device: callState.device ? "present" : "absent",
       transports: {
-        recv: callState.transports.recv ? 'present' : 'absent',
-        send: callState.transports.send ? 'present' : 'absent',
+        recv: callState.transports.recv ? "present" : "absent",
+        send: callState.transports.send ? "present" : "absent",
       },
-      router: callState.router ? 'present' : 'absent',
+      router: callState.router ? "present" : "absent",
     };
     debugPane = (
       <pre
         style={{
-          position: 'absolute',
-          right: '0',
-          bottom: '0',
-          fontSize: '12px',
-          backgroundColor: 'rgba(255,255,255,.7)',
+          position: "absolute",
+          right: "0",
+          bottom: "0",
+          fontSize: "12px",
+          backgroundColor: "rgba(255,255,255,.7)",
         }}
       >
         {JSON.stringify(callStateForRendering, undefined, 2)}

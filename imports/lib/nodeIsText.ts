@@ -1,7 +1,10 @@
-import type { ChatMessageContentNodeType, ChatMessageTextNodeType } from './models/ChatMessages';
+import type {
+  ChatMessageContentNodeType,
+  ChatMessageTextNodeType,
+} from "./models/ChatMessages";
 
 export default function nodeIsText(
-  node: ChatMessageContentNodeType
+  node: ChatMessageContentNodeType,
 ): node is ChatMessageTextNodeType {
-  return 'text' in node;
+  return "text" in node;
 }

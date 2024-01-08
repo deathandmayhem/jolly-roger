@@ -1,47 +1,57 @@
-import { Meteor } from 'meteor/meteor';
-import { useTracker } from 'meteor/react-meteor-data';
-import React, { useCallback, useState } from 'react';
-import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import { useParams } from 'react-router-dom';
-import ReactTextareaAutosize from 'react-textarea-autosize';
-import styled from 'styled-components';
-import Announcements from '../../lib/models/Announcements';
-import Hunts from '../../lib/models/Hunts';
-import { userMayAddAnnouncementToHunt } from '../../lib/permission_stubs';
-import announcementsForAnnouncementsPage from '../../lib/publications/announcementsForAnnouncementsPage';
-import postAnnouncement from '../../methods/postAnnouncement';
-import { useBreadcrumb } from '../hooks/breadcrumb';
-import useTypedSubscribe from '../hooks/useTypedSubscribe';
-import indexedDisplayNames from '../indexedDisplayNames';
-import ActionButtonRow from './ActionButtonRow';
-import AnnouncementToast from './AnnouncementToast';
+import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import React, { useCallback, useState } from "react";
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+import { useParams } from "react-router-dom";
+import ReactTextareaAutosize from "react-textarea-autosize";
+import styled from "styled-components";
+import Announcements from "../../lib/models/Announcements";
+import Hunts from "../../lib/models/Hunts";
+import { userMayAddAnnouncementToHunt } from "../../lib/permission_stubs";
+import announcementsForAnnouncementsPage from "../../lib/publications/announcementsForAnnouncementsPage";
+import postAnnouncement from "../../methods/postAnnouncement";
+import { useBreadcrumb } from "../hooks/breadcrumb";
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import indexedDisplayNames from "../indexedDisplayNames";
+import ActionButtonRow from "./ActionButtonRow";
+import AnnouncementToast from "./AnnouncementToast";
 
 enum AnnouncementFormSubmitState {
-  IDLE = 'idle',
-  SUBMITTING = 'submitting',
-  FAILED = 'failed',
+  IDLE = "idle",
+  SUBMITTING = "submitting",
+  FAILED = "failed",
 }
 
 // Toasts are bounded in width, so the announcement log will only be about this wide.
 // Rather than have the input box be much wider than the rest of the page
 // content, set the input form width to match.
 const BoundedForm = styled(Form)`
-  width: ${window.getComputedStyle(document.body).getPropertyValue('--bs-toast-max-width')};
+  width: ${window
+    .getComputedStyle(document.body)
+    .getPropertyValue("--bs-toast-max-width")};
 `;
 
-const AnnouncementFormInput = ({ huntId, selfDisplayName }: {
-  huntId: string; selfDisplayName: string;
+const AnnouncementFormInput = ({
+  huntId,
+  selfDisplayName,
+}: {
+  huntId: string;
+  selfDisplayName: string;
 }) => {
-  const [message, setMessage] = useState<string>('');
-  const [submitState, setSubmitState] =
-    useState<AnnouncementFormSubmitState>(AnnouncementFormSubmitState.IDLE);
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [message, setMessage] = useState<string>("");
+  const [submitState, setSubmitState] = useState<AnnouncementFormSubmitState>(
+    AnnouncementFormSubmitState.IDLE,
+  );
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const onMessageChanged = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessage(event.target.value);
-  }, []);
+  const onMessageChanged = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setMessage(event.target.value);
+    },
+    [],
+  );
 
   const postAnnouncementCb = useCallback(() => {
     if (message) {
@@ -51,18 +61,20 @@ const AnnouncementFormInput = ({ huntId, selfDisplayName }: {
           setErrorMessage(error.message);
           setSubmitState(AnnouncementFormSubmitState.FAILED);
         } else {
-          setErrorMessage('');
-          setMessage('');
+          setErrorMessage("");
+          setMessage("");
           setSubmitState(AnnouncementFormSubmitState.IDLE);
         }
       });
     }
   }, [message, huntId]);
 
-  const disabled = submitState === 'submitting';
+  const disabled = submitState === "submitting";
   return (
     <BoundedForm>
-      {submitState === 'failed' ? <Alert variant="danger">{errorMessage}</Alert> : null}
+      {submitState === "failed" ? (
+        <Alert variant="danger">{errorMessage}</Alert>
+      ) : null}
       {message && (
         <AnnouncementToast
           className="mb-2"
@@ -86,29 +98,53 @@ const AnnouncementFormInput = ({ huntId, selfDisplayName }: {
         />
       </Form.Group>
       <ActionButtonRow>
-        <Button variant="primary" size="sm" disabled={disabled} onClick={postAnnouncementCb}>Send</Button>
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={disabled}
+          onClick={postAnnouncementCb}
+        >
+          Send
+        </Button>
       </ActionButtonRow>
     </BoundedForm>
   );
 };
 
 const AnnouncementsPage = () => {
-  const huntId = useParams<'huntId'>().huntId!;
-  useBreadcrumb({ title: 'Announcements', path: `/hunts/${huntId}/announcements` });
+  const huntId = useParams<"huntId">().huntId!;
+  useBreadcrumb({
+    title: "Announcements",
+    path: `/hunts/${huntId}/announcements`,
+  });
 
-  const announcementsLoading = useTypedSubscribe(announcementsForAnnouncementsPage, { huntId });
+  const announcementsLoading = useTypedSubscribe(
+    announcementsForAnnouncementsPage,
+    { huntId },
+  );
   const loading = announcementsLoading();
 
-  const announcements = useTracker(() => (
-    loading ? [] : Announcements.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch()
-  ), [loading, huntId]);
-  const displayNames = useTracker(() => (
-    loading ? new Map<string, string>() : indexedDisplayNames()
-  ), [loading]);
+  const announcements = useTracker(
+    () =>
+      loading
+        ? []
+        : Announcements.find(
+            { hunt: huntId },
+            { sort: { createdAt: -1 } },
+          ).fetch(),
+    [loading, huntId],
+  );
+  const displayNames = useTracker(
+    () => (loading ? new Map<string, string>() : indexedDisplayNames()),
+    [loading],
+  );
   const canCreateAnnouncements = useTracker(() => {
     return userMayAddAnnouncementToHunt(Meteor.user(), Hunts.findOne(huntId));
   }, [huntId]);
-  const selfDisplayName = useTracker(() => Meteor.user()?.displayName ?? '???', []);
+  const selfDisplayName = useTracker(
+    () => Meteor.user()?.displayName ?? "???",
+    [],
+  );
 
   if (loading) {
     return <div>loading...</div>;
@@ -118,7 +154,10 @@ const AnnouncementsPage = () => {
     <div>
       <h1>Announcements</h1>
       {canCreateAnnouncements && (
-        <AnnouncementFormInput huntId={huntId} selfDisplayName={selfDisplayName} />
+        <AnnouncementFormInput
+          huntId={huntId}
+          selfDisplayName={selfDisplayName}
+        />
       )}
       {/* ostensibly these should be ul and li, but then I have to deal with overriding
           block/inline and default margins and list style type and meh */}
@@ -129,7 +168,7 @@ const AnnouncementsPage = () => {
               className="mb-2"
               key={announcement._id}
               createdAt={announcement.createdAt}
-              displayName={displayNames.get(announcement.createdBy) ?? '???'}
+              displayName={displayNames.get(announcement.createdBy) ?? "???"}
               message={announcement.message}
             />
           );

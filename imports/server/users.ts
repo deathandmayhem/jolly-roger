@@ -1,16 +1,16 @@
-import { Accounts } from 'meteor/accounts-base';
-import { check } from 'meteor/check';
-import type { Subscription } from 'meteor/meteor';
-import { Meteor } from 'meteor/meteor';
-import type { Mongo } from 'meteor/mongo';
-import { GLOBAL_SCOPE } from '../lib/isAdmin';
-import Hunts from '../lib/models/Hunts';
-import MeteorUsers from '../lib/models/MeteorUsers';
-import type { ProfileFields } from '../lib/models/User';
-import { userMaySeeUserInfoForHunt } from '../lib/permission_stubs';
-import type { SubSubscription } from './PublicationMerger';
-import PublicationMerger from './PublicationMerger';
-import publishCursor from './publications/publishCursor';
+import { Accounts } from "meteor/accounts-base";
+import { check } from "meteor/check";
+import type { Subscription } from "meteor/meteor";
+import { Meteor } from "meteor/meteor";
+import type { Mongo } from "meteor/mongo";
+import { GLOBAL_SCOPE } from "../lib/isAdmin";
+import Hunts from "../lib/models/Hunts";
+import MeteorUsers from "../lib/models/MeteorUsers";
+import type { ProfileFields } from "../lib/models/User";
+import { userMaySeeUserInfoForHunt } from "../lib/permission_stubs";
+import type { SubSubscription } from "./PublicationMerger";
+import PublicationMerger from "./PublicationMerger";
+import publishCursor from "./publications/publishCursor";
 
 const profileFields: Record<ProfileFields, 1> = {
   displayName: 1,
@@ -33,10 +33,17 @@ Accounts.setDefaultPublishFields({
 const republishOnUserChange = async (
   sub: Subscription,
   projection: Mongo.FieldSpecifier,
-  makeCursor: (user: Meteor.User) =>
-    Mongo.Cursor<Meteor.User> | undefined | Promise<Mongo.Cursor<Meteor.User> | undefined>,
-  makeTransform?: undefined |
-    ((user: Meteor.User) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>)),
+  makeCursor: (
+    user: Meteor.User,
+  ) =>
+    | Mongo.Cursor<Meteor.User>
+    | undefined
+    | Promise<Mongo.Cursor<Meteor.User> | undefined>,
+  makeTransform?:
+    | undefined
+    | ((
+        user: Meteor.User,
+      ) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>)),
 ) => {
   const u = (await MeteorUsers.findOneAsync(sub.userId!))!;
   const merger = new PublicationMerger(sub);
@@ -53,7 +60,12 @@ const republishOnUserChange = async (
         let newSub;
         if (newCursor) {
           newSub = merger.newSub();
-          publishCursor(newSub, Meteor.users._name, newCursor, makeTransform?.(doc));
+          publishCursor(
+            newSub,
+            Meteor.users._name,
+            newCursor,
+            makeTransform?.(doc),
+          );
         }
         if (currentSub) {
           merger.removeSub(currentSub);
@@ -67,8 +79,9 @@ const republishOnUserChange = async (
   sub.ready();
 };
 
-const makeHuntFilterTransform = (hunts: string[] = []):
-  (user: Partial<Meteor.User>) => Partial<Meteor.User> => {
+const makeHuntFilterTransform = (
+  hunts: string[] = [],
+): ((user: Partial<Meteor.User>) => Partial<Meteor.User>) => {
   const huntSet = new Set(hunts);
   return (u) => {
     return {
@@ -78,7 +91,7 @@ const makeHuntFilterTransform = (hunts: string[] = []):
   };
 };
 
-Meteor.publish('displayNames', async function (huntId: unknown) {
+Meteor.publish("displayNames", async function (huntId: unknown) {
   check(huntId, String);
 
   if (!this.userId) {
@@ -96,7 +109,7 @@ Meteor.publish('displayNames', async function (huntId: unknown) {
   return undefined;
 });
 
-Meteor.publish('avatars', async function (huntId: unknown) {
+Meteor.publish("avatars", async function (huntId: unknown) {
   check(huntId, String);
 
   if (!this.userId) {
@@ -108,76 +121,103 @@ Meteor.publish('avatars', async function (huntId: unknown) {
       return undefined;
     }
 
-    return MeteorUsers.find({ hunts: huntId }, { fields: { discordAccount: 1 } });
+    return MeteorUsers.find(
+      { hunts: huntId },
+      { fields: { discordAccount: 1 } },
+    );
   });
 
   return undefined;
 });
 
-Meteor.publish('allProfiles', async function () {
+Meteor.publish("allProfiles", async function () {
   if (!this.userId) {
     return [];
   }
 
-  await republishOnUserChange(this, { hunts: 1 }, (u) => {
-    return MeteorUsers.find({ hunts: { $in: u.hunts ?? [] } }, {
-      fields: {
-        'emails.address': 1,
-        hunts: 1,
-        ...profileFields,
-      },
-    });
-  }, (u) => makeHuntFilterTransform(u.hunts));
+  await republishOnUserChange(
+    this,
+    { hunts: 1 },
+    (u) => {
+      return MeteorUsers.find(
+        { hunts: { $in: u.hunts ?? [] } },
+        {
+          fields: {
+            "emails.address": 1,
+            hunts: 1,
+            ...profileFields,
+          },
+        },
+      );
+    },
+    (u) => makeHuntFilterTransform(u.hunts),
+  );
 
   return undefined;
 });
 
-Meteor.publish('huntProfiles', async function (huntId: unknown) {
+Meteor.publish("huntProfiles", async function (huntId: unknown) {
   check(huntId, String);
 
   if (!this.userId) {
     return [];
   }
 
-  await republishOnUserChange(this, { hunts: 1 }, (u) => {
-    if (!u.hunts?.includes(huntId)) {
-      return undefined;
-    }
+  await republishOnUserChange(
+    this,
+    { hunts: 1 },
+    (u) => {
+      if (!u.hunts?.includes(huntId)) {
+        return undefined;
+      }
 
-    return MeteorUsers.find({ hunts: huntId }, {
-      fields: {
-        'emails.address': 1,
-        hunts: 1,
-        ...profileFields,
-      },
-    });
-  }, (u) => makeHuntFilterTransform(u.hunts));
+      return MeteorUsers.find(
+        { hunts: huntId },
+        {
+          fields: {
+            "emails.address": 1,
+            hunts: 1,
+            ...profileFields,
+          },
+        },
+      );
+    },
+    (u) => makeHuntFilterTransform(u.hunts),
+  );
 
   return undefined;
 });
 
-Meteor.publish('profile', async function (userId: unknown) {
+Meteor.publish("profile", async function (userId: unknown) {
   check(userId, String);
 
   if (!this.userId) {
     return [];
   }
 
-  await republishOnUserChange(this, { hunts: 1 }, (u) => {
-    // Profiles are public if you have any hunts in common
-    return MeteorUsers.find({ _id: userId, hunts: { $in: u.hunts ?? [] } }, {
-      fields: {
-        'emails.address': 1,
-        hunts: 1,
-        ...profileFields,
-      },
-    });
-  }, (u) => makeHuntFilterTransform(u.hunts));
+  await republishOnUserChange(
+    this,
+    { hunts: 1 },
+    (u) => {
+      // Profiles are public if you have any hunts in common
+      return MeteorUsers.find(
+        { _id: userId, hunts: { $in: u.hunts ?? [] } },
+        {
+          fields: {
+            "emails.address": 1,
+            hunts: 1,
+            ...profileFields,
+          },
+        },
+      );
+    },
+    (u) => makeHuntFilterTransform(u.hunts),
+  );
 
   return undefined;
 });
 
-Meteor.publish('huntRoles', async function (huntId: unknown) {
+Meteor.publish("huntRoles", async function (huntId: unknown) {
   check(huntId, String);
 
   await republishOnUserChange(this, { hunts: 1, roles: 1 }, async (u) => {
@@ -186,15 +226,18 @@ Meteor.publish('huntRoles', async function (huntId: unknown) {
       return undefined;
     }
 
-    return MeteorUsers.find({ hunts: huntId }, {
-      fields: {
-        // Specifying sub-fields here is allowed, but will conflict with any other
-        // concurrent publications for the same top-level field (roles). This
-        // should be fine so long as we don't try to subscribe to huntRoles for
-        // multiple hunts simultaneously.
-        [`roles.${GLOBAL_SCOPE}`]: 1,
-        [`roles.${huntId}`]: 1,
+    return MeteorUsers.find(
+      { hunts: huntId },
+      {
+        fields: {
+          // Specifying sub-fields here is allowed, but will conflict with any other
+          // concurrent publications for the same top-level field (roles). This
+          // should be fine so long as we don't try to subscribe to huntRoles for
+          // multiple hunts simultaneously.
+          [`roles.${GLOBAL_SCOPE}`]: 1,
+          [`roles.${huntId}`]: 1,
+        },
       },
-    });
+    );
   });
 });

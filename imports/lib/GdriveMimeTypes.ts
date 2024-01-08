@@ -1,6 +1,6 @@
 const GdriveMimeTypes = {
-  spreadsheet: 'application/vnd.google-apps.spreadsheet',
-  document: 'application/vnd.google-apps.document',
+  spreadsheet: "application/vnd.google-apps.spreadsheet",
+  document: "application/vnd.google-apps.document",
 };
 
 export default GdriveMimeTypes;

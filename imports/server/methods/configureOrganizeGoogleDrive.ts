@@ -1,17 +1,17 @@
-import { check } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
-import Logger from '../../Logger';
-import { indexedById } from '../../lib/listUtils';
-import Documents from '../../lib/models/Documents';
-import Hunts from '../../lib/models/Hunts';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import Puzzles from '../../lib/models/Puzzles';
-import Settings from '../../lib/models/Settings';
-import { userMayConfigureGdrive } from '../../lib/permission_stubs';
-import configureOrganizeGoogleDrive from '../../methods/configureOrganizeGoogleDrive';
-import { moveDocument, ensureHuntFolder, ensureDocument } from '../gdrive';
-import HuntFolders from '../models/HuntFolders';
-import defineMethod from './defineMethod';
+import { check } from "meteor/check";
+import { Meteor } from "meteor/meteor";
+import Logger from "../../Logger";
+import { indexedById } from "../../lib/listUtils";
+import Documents from "../../lib/models/Documents";
+import Hunts from "../../lib/models/Hunts";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import Puzzles from "../../lib/models/Puzzles";
+import Settings from "../../lib/models/Settings";
+import { userMayConfigureGdrive } from "../../lib/permission_stubs";
+import configureOrganizeGoogleDrive from "../../methods/configureOrganizeGoogleDrive";
+import { moveDocument, ensureHuntFolder, ensureDocument } from "../gdrive";
+import HuntFolders from "../models/HuntFolders";
+import defineMethod from "./defineMethod";
 
 defineMethod(configureOrganizeGoogleDrive, {
   async run() {
@@ -20,13 +20,13 @@ defineMethod(configureOrganizeGoogleDrive, {
     // Only let the same people that can credential gdrive reorganize files,
     // which today is just admins
     if (!userMayConfigureGdrive(await MeteorUsers.findOneAsync(this.userId))) {
-      throw new Meteor.Error(401, 'Must be admin to configure gdrive');
+      throw new Meteor.Error(401, "Must be admin to configure gdrive");
     }
 
-    Logger.info('Reorganizing Google Drive files');
+    Logger.info("Reorganizing Google Drive files");
 
     // First make sure any existing folders are under the root
-    const root = await Settings.findOneAsync({ name: 'gdrive.root' });
+    const root = await Settings.findOneAsync({ name: "gdrive.root" });
     if (root) {
       for (const hf of HuntFolders.find()) {
         await moveDocument(hf.folder, root.value.id);

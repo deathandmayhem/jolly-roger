@@ -1,10 +1,10 @@
-import { check } from 'meteor/check';
-import { Meteor } from 'meteor/meteor';
-import Bookmarks from '../../lib/models/Bookmarks';
-import Puzzles from '../../lib/models/Puzzles';
-import bookmarkPuzzle from '../../methods/bookmarkPuzzle';
-import ignoringDuplicateKeyErrors from '../ignoringDuplicateKeyErrors';
-import defineMethod from './defineMethod';
+import { check } from "meteor/check";
+import { Meteor } from "meteor/meteor";
+import Bookmarks from "../../lib/models/Bookmarks";
+import Puzzles from "../../lib/models/Puzzles";
+import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
+import ignoringDuplicateKeyErrors from "../ignoringDuplicateKeyErrors";
+import defineMethod from "./defineMethod";
 
 defineMethod(bookmarkPuzzle, {
   validate(arg) {
@@ -26,7 +26,10 @@ defineMethod(bookmarkPuzzle, {
     }
 
     if (!user.hunts?.includes(puzzle.hunt)) {
-      throw new Meteor.Error(403, `User ${this.userId} is not a member of hunt ${puzzle.hunt}`);
+      throw new Meteor.Error(
+        403,
+        `User ${this.userId} is not a member of hunt ${puzzle.hunt}`,
+      );
     }
 
     if (bookmark) {

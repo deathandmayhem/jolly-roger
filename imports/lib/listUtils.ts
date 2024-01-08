@@ -21,7 +21,10 @@ export function difference<T>(universe: T[], removed: T[]): T[] {
   return universe.filter((item) => !index.has(item));
 }
 
-export function sortedBy<T extends object, U>(list: T[], fn: (obj: T) => U): T[] {
+export function sortedBy<T extends object, U>(
+  list: T[],
+  fn: (obj: T) => U,
+): T[] {
   // Returns a copy of the provided `list` sorted (ascending) by the result
   // of applying `fn` to each element in the list.
   const sortKeys = new WeakMap();
@@ -43,7 +46,10 @@ export function sortedBy<T extends object, U>(list: T[], fn: (obj: T) => U): T[]
   return retval;
 }
 
-export function groupedBy<T>(list: T[], fn: (obj: T) => string): Map<string, T[]> {
+export function groupedBy<T>(
+  list: T[],
+  fn: (obj: T) => string,
+): Map<string, T[]> {
   const groupIndex = new Map();
   list.forEach((item) => {
     const groupKey = fn(item);

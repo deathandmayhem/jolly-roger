@@ -1,10 +1,10 @@
 /* eslint-disable no-underscore-dangle */
-import type { IncomingMessage, ServerResponse } from 'http';
-import type stream from 'stream';
-import { WebApp } from 'meteor/webapp';
-import type HttpProxy from 'http-proxy';
-import type { Worker } from './WorkerPool';
-import type WorkerPool from './WorkerPool';
+import type { IncomingMessage, ServerResponse } from "http";
+import type stream from "stream";
+import { WebApp } from "meteor/webapp";
+import type HttpProxy from "http-proxy";
+import type { Worker } from "./WorkerPool";
+import type WorkerPool from "./WorkerPool";
 
 // This implements a simple multi-process, single-machine load-balancer.
 //
@@ -31,7 +31,7 @@ export default class LoadBalancer {
 
   workers: WorkerPool;
 
-  workerMapping: Record<string, { worker: Worker; lastUpdate: number; }>;
+  workerMapping: Record<string, { worker: Worker; lastUpdate: number }>;
 
   constructor(proxy: HttpProxy, workers: WorkerPool) {
     this.proxy = proxy;
@@ -43,7 +43,10 @@ export default class LoadBalancer {
     const proxy = this.proxy;
     const workers = this.workers;
     const workerMapping = this.workerMapping;
-    const handleHttp = function (req: IncomingMessage, res: ServerResponse): boolean {
+    const handleHttp = function (
+      req: IncomingMessage,
+      res: ServerResponse,
+    ): boolean {
       // Only intercept if we're the coordinator process.  If we have a worker ID,
       // we're not the coordinator.
       if (process.env.CLUSTER_WORKER_ID) {
@@ -68,7 +71,7 @@ export default class LoadBalancer {
         if (workerMapping[id]) {
           workerMapping[id]!.lastUpdate = Date.now();
           const target = {
-            host: '127.0.0.1',
+            host: "127.0.0.1",
             port: workerMapping[id]!.worker.port,
           };
           // Set long timeout because clients long-poll
@@ -93,7 +96,11 @@ export default class LoadBalancer {
 
   wsHandler(): (req: IncomingMessage, socket: any, head: Buffer) => boolean {
     const workers = this.workers;
-    const handleWs = function (req: IncomingMessage, socket: any, head: Buffer): boolean {
+    const handleWs = function (
+      req: IncomingMessage,
+      socket: any,
+      head: Buffer,
+    ): boolean {
       // Only intercept if we're the coordinator process.  If we have a worker ID,
       // we're not the coordinator.
       if (process.env.CLUSTER_WORKER_ID) {
@@ -106,35 +113,38 @@ export default class LoadBalancer {
       if (!worker) return false;
 
       // Otherwise, dispatch the request to the worker
-      worker.process.send({
-        type: 'proxy-ws',
-        req: {
-          readable: req.readable,
-          domain: (req as any).domain,
-          httpVersion: req.httpVersion,
-          complete: req.complete,
-          headers: req.headers,
-          trailers: req.trailers,
-          _pendings: (req as any)._pendings,
-          _pendingIndex: (req as any)._pendingIndex,
-          url: req.url,
-          method: req.method,
-          statusCode: req.statusCode,
-          _consuming: (req as any)._consuming,
-          _dumped: (req as any)._dumped,
-          httpVersionMajor: req.httpVersionMajor,
-          httpVersionMinor: req.httpVersionMinor,
-          upgrade: (req as any).upgrade,
+      worker.process.send(
+        {
+          type: "proxy-ws",
+          req: {
+            readable: req.readable,
+            domain: (req as any).domain,
+            httpVersion: req.httpVersion,
+            complete: req.complete,
+            headers: req.headers,
+            trailers: req.trailers,
+            _pendings: (req as any)._pendings,
+            _pendingIndex: (req as any)._pendingIndex,
+            url: req.url,
+            method: req.method,
+            statusCode: req.statusCode,
+            _consuming: (req as any)._consuming,
+            _dumped: (req as any)._dumped,
+            httpVersionMajor: req.httpVersionMajor,
+            httpVersionMinor: req.httpVersionMinor,
+            upgrade: (req as any).upgrade,
+          },
+          head: head.toString("utf8"),
         },
-        head: head.toString('utf8'),
-      }, socket);
+        socket,
+      );
       return true;
     };
     return handleWs;
   }
 
   installHttp() {
-    const event = 'request';
+    const event = "request";
     const httpServer = WebApp.httpServer;
     const oldHttpServerListeners = httpServer.listeners(event).slice(0);
     httpServer.removeAllListeners(event);
@@ -151,13 +161,17 @@ export default class LoadBalancer {
   }
 
   installWs() {
-    const event = 'upgrade';
+    const event = "upgrade";
     const httpServer = WebApp.httpServer;
     const oldHttpServerListeners = httpServer.listeners(event).slice(0);
     httpServer.removeAllListeners(event);
 
     const wsHandler = this.wsHandler();
-    const newListener = function (req: IncomingMessage, socket: stream.Duplex, head: Buffer) {
+    const newListener = function (
+      req: IncomingMessage,
+      socket: stream.Duplex,
+      head: Buffer,
+    ) {
       if (wsHandler.apply(httpServer, [req, socket, head]) !== true) {
         oldHttpServerListeners.forEach((oldListener) => {
           oldListener.apply(httpServer, [req, socket, head]);

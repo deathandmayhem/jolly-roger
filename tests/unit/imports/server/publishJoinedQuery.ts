@@ -1,12 +1,12 @@
-import { Meteor, Subscription } from 'meteor/meteor';
-import { Random } from 'meteor/random';
-import { assert } from 'chai';
-import Guesses from '../../../../imports/lib/models/Guesses';
-import Puzzles from '../../../../imports/lib/models/Puzzles';
-import Tags from '../../../../imports/lib/models/Tags';
-import makeFixtureHunt from '../../../../imports/server/makeFixtureHunt';
-import publishJoinedQuery from '../../../../imports/server/publishJoinedQuery';
-import resetDatabase from '../../../lib/resetDatabase';
+import { Meteor, Subscription } from "meteor/meteor";
+import { Random } from "meteor/random";
+import { assert } from "chai";
+import Guesses from "../../../../imports/lib/models/Guesses";
+import Puzzles from "../../../../imports/lib/models/Puzzles";
+import Tags from "../../../../imports/lib/models/Tags";
+import makeFixtureHunt from "../../../../imports/server/makeFixtureHunt";
+import publishJoinedQuery from "../../../../imports/server/publishJoinedQuery";
+import resetDatabase from "../../../lib/resetDatabase";
 
 class StubSubscription implements Subscription {
   stopHooks: (() => void)[] = [];
@@ -51,45 +51,57 @@ class StubSubscription implements Subscription {
     }
   }
 
-  ready() { /* noop */ }
+  ready() {
+    /* noop */
+  }
 
   stop() {
     this.stopHooks.forEach((hook) => hook());
   }
 
-  error(_error: Error) { /* noop */ }
+  error(_error: Error) {
+    /* noop */
+  }
 
-  unblock() { /* noop */ }
+  unblock() {
+    /* noop */
+  }
 
   userId: string | null = null;
 
   get connection(): Meteor.Connection {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 }
 
-describe('publishJoinedQuery', function () {
+describe("publishJoinedQuery", function () {
   beforeEach(async function () {
-    await resetDatabase('publishJoinedQuery');
+    await resetDatabase("publishJoinedQuery");
     await makeFixtureHunt(Random.id());
   });
 
-  it('can follow a string foreign key', function () {
+  it("can follow a string foreign key", function () {
     const sub = new StubSubscription();
     after(() => sub.stop());
 
-    const guessId = 'obeeKs3ZEkBe3ykeg';
-    const puzzleId = 'fXchzrh8X9EoSZu6k';
+    const guessId = "obeeKs3ZEkBe3ykeg";
+    const puzzleId = "fXchzrh8X9EoSZu6k";
 
-    publishJoinedQuery(sub, {
-      model: Guesses,
-      foreignKeys: [{
-        field: 'puzzle',
-        join: {
-          model: Puzzles,
-        },
-      }],
-    }, { _id: guessId });
+    publishJoinedQuery(
+      sub,
+      {
+        model: Guesses,
+        foreignKeys: [
+          {
+            field: "puzzle",
+            join: {
+              model: Puzzles,
+            },
+          },
+        ],
+      },
+      { _id: guessId },
+    );
 
     assert.sameMembers([...sub.data.keys()], [Puzzles.name, Guesses.name]);
 
@@ -100,22 +112,28 @@ describe('publishJoinedQuery', function () {
     assert.sameMembers([...puzzleCollection.keys()], [puzzleId]);
   });
 
-  it('can follow an array foreign key', function () {
+  it("can follow an array foreign key", function () {
     const sub = new StubSubscription();
     after(() => sub.stop());
 
-    const puzzleId = 'fXchzrh8X9EoSZu6k';
-    const tagIds = ['o5JdfTizW4tGwhRnP', 'QeJLufdCqv7rMSSbS'];
+    const puzzleId = "fXchzrh8X9EoSZu6k";
+    const tagIds = ["o5JdfTizW4tGwhRnP", "QeJLufdCqv7rMSSbS"];
 
-    publishJoinedQuery(sub, {
-      model: Puzzles,
-      foreignKeys: [{
-        field: 'tags',
-        join: {
-          model: Tags,
-        },
-      }],
-    }, { _id: puzzleId });
+    publishJoinedQuery(
+      sub,
+      {
+        model: Puzzles,
+        foreignKeys: [
+          {
+            field: "tags",
+            join: {
+              model: Tags,
+            },
+          },
+        ],
+      },
+      { _id: puzzleId },
+    );
 
     assert.sameMembers([...sub.data.keys()], [Puzzles.name, Tags.name]);
 
@@ -126,22 +144,28 @@ describe('publishJoinedQuery', function () {
     assert.sameMembers([...tagCollection.keys()], tagIds);
   });
 
-  it('updates if foreign keys change', async function () {
+  it("updates if foreign keys change", async function () {
     const sub = new StubSubscription();
     after(() => sub.stop());
 
-    const puzzleId = 'fXchzrh8X9EoSZu6k';
-    const newTagIds = ['NwhNGo64jRs384HwN', '27YauwyRpL6yMsCef'];
+    const puzzleId = "fXchzrh8X9EoSZu6k";
+    const newTagIds = ["NwhNGo64jRs384HwN", "27YauwyRpL6yMsCef"];
 
-    publishJoinedQuery(sub, {
-      model: Puzzles,
-      foreignKeys: [{
-        field: 'tags',
-        join: {
-          model: Tags,
-        },
-      }],
-    }, { _id: puzzleId });
+    publishJoinedQuery(
+      sub,
+      {
+        model: Puzzles,
+        foreignKeys: [
+          {
+            field: "tags",
+            join: {
+              model: Tags,
+            },
+          },
+        ],
+      },
+      { _id: puzzleId },
+    );
 
     const updatePropagated = new Promise<void>((r) => {
       let initializing = true;
@@ -161,7 +185,9 @@ describe('publishJoinedQuery', function () {
     // make sure the update has propagated to oplog watchers, then give Meteor
     // an additional tick to process it
     await updatePropagated;
-    await new Promise<void>((r) => { Meteor.defer(r); });
+    await new Promise<void>((r) => {
+      Meteor.defer(r);
+    });
 
     assert.sameMembers([...sub.data.keys()], [Puzzles.name, Tags.name]);
 

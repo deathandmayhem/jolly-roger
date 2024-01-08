@@ -1,5 +1,5 @@
-import { Meteor } from 'meteor/meteor';
-import React, { useCallback, useState } from 'react';
+import { Meteor } from "meteor/meteor";
+import React, { useCallback, useState } from "react";
 
 interface DeepLinkProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -8,26 +8,31 @@ interface DeepLinkProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 enum DeepLinkLoadState {
-  IDLE = 'idle',
-  ATTEMPTING_NATIVE = 'attemptingNative',
+  IDLE = "idle",
+  ATTEMPTING_NATIVE = "attemptingNative",
 }
 
-type DeepLinkState = {
-  state: DeepLinkLoadState.IDLE;
-} | {
-  state: DeepLinkLoadState.ATTEMPTING_NATIVE;
-  startNativeLoad: Date;
-};
+type DeepLinkState =
+  | {
+      state: DeepLinkLoadState.IDLE;
+    }
+  | {
+      state: DeepLinkLoadState.ATTEMPTING_NATIVE;
+      startNativeLoad: Date;
+    };
 
 const DeepLink = ({
-  children, nativeUrl, browserUrl, ...rest
+  children,
+  nativeUrl,
+  browserUrl,
+  ...rest
 }: DeepLinkProps) => {
   const [state, setState] = useState<DeepLinkState>({
     state: DeepLinkLoadState.IDLE,
   });
 
   const browserOpen = useCallback(() => {
-    window.open(browserUrl, '_blank');
+    window.open(browserUrl, "_blank");
   }, [browserUrl]);
 
   const onAttemptingNativeTimeout = useCallback(() => {
@@ -41,16 +46,22 @@ const DeepLink = ({
     }
   }, [state, browserOpen]);
 
-  const onClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    // window.orientation is a good proxy for mobile device
-    if (window.screen?.orientation) {
-      setState({ state: DeepLinkLoadState.ATTEMPTING_NATIVE, startNativeLoad: new Date() });
-      Meteor.setTimeout(onAttemptingNativeTimeout, 25);
-    } else {
-      browserOpen();
-    }
-  }, [browserOpen, onAttemptingNativeTimeout]);
+  const onClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      // window.orientation is a good proxy for mobile device
+      if (window.screen?.orientation) {
+        setState({
+          state: DeepLinkLoadState.ATTEMPTING_NATIVE,
+          startNativeLoad: new Date(),
+        });
+        Meteor.setTimeout(onAttemptingNativeTimeout, 25);
+      } else {
+        browserOpen();
+      }
+    },
+    [browserOpen, onAttemptingNativeTimeout],
+  );
 
   const nativeIframe = () => {
     return (
@@ -60,7 +71,7 @@ const DeepLink = ({
 
   return (
     <div onClick={onClick} {...rest}>
-      {state.state === 'attemptingNative' && nativeIframe()}
+      {state.state === "attemptingNative" && nativeIframe()}
       {children}
     </div>
   );

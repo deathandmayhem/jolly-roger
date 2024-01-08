@@ -1,24 +1,27 @@
-import { check, Match } from 'meteor/check';
-import { fetch } from 'meteor/fetch';
-import { Meteor } from 'meteor/meteor';
-import Documents from '../../lib/models/Documents';
-import Settings from '../../lib/models/Settings';
-import insertDocumentImage from '../../methods/insertDocumentImage';
-import defineMethod from './defineMethod';
+import { check, Match } from "meteor/check";
+import { fetch } from "meteor/fetch";
+import { Meteor } from "meteor/meteor";
+import Documents from "../../lib/models/Documents";
+import Settings from "../../lib/models/Settings";
+import insertDocumentImage from "../../methods/insertDocumentImage";
+import defineMethod from "./defineMethod";
 
 defineMethod(insertDocumentImage, {
   validate(arg) {
     check(arg, {
       documentId: String,
       sheetId: Number,
-      image: Match.OneOf({
-        source: Match.OneOf('upload'),
-        filename: String,
-        contents: String,
-      }, {
-        source: Match.OneOf('link'),
-        url: String,
-      }),
+      image: Match.OneOf(
+        {
+          source: Match.OneOf("upload"),
+          filename: String,
+          contents: String,
+        },
+        {
+          source: Match.OneOf("link"),
+          url: String,
+        },
+      ),
     });
 
     return arg;
@@ -29,38 +32,41 @@ defineMethod(insertDocumentImage, {
 
     const document = await Documents.findOneAsync(documentId);
     if (!document) {
-      throw new Meteor.Error(404, 'Document not found');
+      throw new Meteor.Error(404, "Document not found");
     }
 
-    if (document.provider !== 'google' || document.value.type !== 'spreadsheet') {
-      throw new Meteor.Error(400, 'Document is not a Google spreadsheet');
+    if (
+      document.provider !== "google" ||
+      document.value.type !== "spreadsheet"
+    ) {
+      throw new Meteor.Error(400, "Document is not a Google spreadsheet");
     }
 
-    const app = await Settings.findOneAsync({ name: 'google.script' });
+    const app = await Settings.findOneAsync({ name: "google.script" });
     if (!app?.value.sharedSecret || !app?.value.endpointUrl) {
-      throw new Meteor.Error(400, 'Google Script is not configured');
+      throw new Meteor.Error(400, "Google Script is not configured");
     }
 
     let imageParams;
     switch (image.source) {
-      case 'upload':
+      case "upload":
         imageParams = {
-          'upload-filename': image.filename,
-          'upload-contents': image.contents,
+          "upload-filename": image.filename,
+          "upload-contents": image.contents,
         };
         break;
-      case 'link':
+      case "link":
         imageParams = {
           link: image.url,
         };
         break;
       default:
-        throw new Meteor.Error(400, 'Invalid image source');
+        throw new Meteor.Error(400, "Invalid image source");
     }
 
     const params = {
       secret: app.value.sharedSecret,
-      method: 'insertImage',
+      method: "insertImage",
       parameters: {
         spreadsheet: document.value.id,
         sheet: sheetId.toString(),
@@ -70,9 +76,9 @@ defineMethod(insertDocumentImage, {
     };
 
     const resp = await fetch(app.value.endpointUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(params),
     });

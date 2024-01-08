@@ -1,10 +1,10 @@
-import { check, Match } from 'meteor/check';
-import Bookmarks from '../../lib/models/Bookmarks';
-import MeteorUsers from '../../lib/models/MeteorUsers';
-import Puzzles from '../../lib/models/Puzzles';
-import Tags from '../../lib/models/Tags';
-import puzzlesForPuzzleList from '../../lib/publications/puzzlesForPuzzleList';
-import definePublication from './definePublication';
+import { check, Match } from "meteor/check";
+import Bookmarks from "../../lib/models/Bookmarks";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import Puzzles from "../../lib/models/Puzzles";
+import Tags from "../../lib/models/Tags";
+import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
+import definePublication from "./definePublication";
 
 definePublication(puzzlesForPuzzleList, {
   validate(arg) {
@@ -26,7 +26,9 @@ definePublication(puzzlesForPuzzleList, {
     }
 
     return [
-      Puzzles[includeDeleted ? 'findAllowingDeleted' : 'find']({ hunt: huntId }),
+      Puzzles[includeDeleted ? "findAllowingDeleted" : "find"]({
+        hunt: huntId,
+      }),
       Tags.find({ hunt: huntId }),
       Bookmarks.find({ hunt: huntId, user: this.userId }),
     ];

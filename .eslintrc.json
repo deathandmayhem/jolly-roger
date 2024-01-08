@@ -45,32 +45,59 @@
     "func-names": "off",
 
     // For Match expressions
-    "new-cap": ["error", { "capIsNewExceptions": ["Optional", "OneOf", "Maybe", "ObjectIncluding", "Router"] }],
+    "new-cap": [
+      "error",
+      {
+        "capIsNewExceptions": [
+          "Optional",
+          "OneOf",
+          "Maybe",
+          "ObjectIncluding",
+          "Router"
+        ]
+      }
+    ],
 
     // sometimes else after a return reads more clearly
     "no-else-return": "off",
     // same for continue
     "no-continue": "off",
 
-     // We sometimes use these in various forms
-    "no-underscore-dangle": ["error",
+    // We sometimes use these in various forms
+    "no-underscore-dangle": [
+      "error",
       {
         "allow": [
-          "_id", "_this", "_dropIndex", "_redirectUri", "_postRequest",
-          "_anyMethodsAreOutstanding", "_schemaKeys", "_schema", "_retrieveCredentialSecret",
-          "_loginStyle", "_stateParam", "_name", "_allSubscriptionsReady", "_onMigrate", "_def",
+          "_id",
+          "_this",
+          "_dropIndex",
+          "_redirectUri",
+          "_postRequest",
+          "_anyMethodsAreOutstanding",
+          "_schemaKeys",
+          "_schema",
+          "_retrieveCredentialSecret",
+          "_loginStyle",
+          "_stateParam",
+          "_name",
+          "_allSubscriptionsReady",
+          "_onMigrate",
+          "_def",
           "_makeNewID"
         ]
       }
     ],
-    "camelcase": ["error", {
-      "properties": "never",
-      "allow": [
-        "__meteor_runtime_config__",
-        // attempt to capture versioned Google APIs
-        "[a-z]+_v[0-9]+"
-      ]
-    }],
+    "camelcase": [
+      "error",
+      {
+        "properties": "never",
+        "allow": [
+          "__meteor_runtime_config__",
+          // attempt to capture versioned Google APIs
+          "[a-z]+_v[0-9]+"
+        ]
+      }
+    ],
 
     "no-constant-condition": ["error", { "checkLoops": false }],
 
@@ -86,29 +113,40 @@
     "import/extensions": ["error", "never"],
 
     // Allow optional imports
-    "import/no-extraneous-dependencies": ["error", {
-      "optionalDependencies": true,
-      "devDependencies": ["tests/**"]
-    }],
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "optionalDependencies": true,
+        "devDependencies": ["tests/**"]
+      }
+    ],
 
     // Imports should be grouped, and sorted within the group. Meteor imports
     // are their own group, after built-ins and before other external libraries
-    "import/order": ["error", {
-      "alphabetize": {"order": "asc"},
-      "pathGroups": [{
-        "pattern": "meteor/**",
-        "group": "external",
-        "position": "before"
-      }],
-      "pathGroupsExcludedImportTypes": ["builtin"],
-      "newlines-between": "never"
-    }],
+    "import/order": [
+      "error",
+      {
+        "alphabetize": { "order": "asc" },
+        "pathGroups": [
+          {
+            "pattern": "meteor/**",
+            "group": "external",
+            "position": "before"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["builtin"],
+        "newlines-between": "never"
+      }
+    ],
 
     // Require type-only imports as appropriate - this reduces the size of our
     // runtime bundle
-    "@typescript-eslint/consistent-type-imports": ["error", {
-      "prefer": "type-imports"
-    }],
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports"
+      }
+    ],
 
     // Files with default exports should be named to match them
     "filenames/match-exported": "error",
@@ -135,10 +173,16 @@
     "react/jsx-filename-extension": [1, { "extensions": [".jsx", ".tsx"] }],
 
     // Detect missing deps for non-standard hooks
-    "react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useTracker|useFind" }],
+    "react-hooks/exhaustive-deps": [
+      "warn",
+      { "additionalHooks": "useTracker|useFind" }
+    ],
 
     // Allow disabling eslint rules on more than a single line, but only across a whole file
-    "eslint-comments/disable-enable-pair": ["error", { "allowWholeFile": true }],
+    "eslint-comments/disable-enable-pair": [
+      "error",
+      { "allowWholeFile": true }
+    ],
 
     // Allow void statements to explicitly tag when we're throwing away a promise
     "no-void": ["error", { "allowAsStatement": true }],
@@ -152,7 +196,10 @@
     "@typescript-eslint/no-unsafe-return": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/restrict-template-expressions": "off",
-    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/prefer-namespace-keyword": "off",
 
@@ -207,9 +254,12 @@
     // Match existing style
     "prefer-destructuring": "off",
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
-    "react/function-component-definition": ["error", {
-      "namedComponents": "arrow-function"
-    }],
+    "react/function-component-definition": [
+      "error",
+      {
+        "namedComponents": "arrow-function"
+      }
+    ],
     "jsx-a11y/click-events-have-key-events": "off",
     "jsx-a11y/no-static-element-interactions": "off",
     "jsx-a11y/media-has-caption": "off"

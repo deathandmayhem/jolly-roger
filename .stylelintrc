@@ -1,13 +1,14 @@
 {
-  "extends": [
-    "stylelint-config-standard"
-  ],
+  "extends": ["stylelint-config-standard"],
   "customSyntax": "postcss-styled-syntax",
   "reportNeedlessDisables": true,
   "reportInvalidScopeDisables": true,
   "rules": {
-    "declaration-block-no-redundant-longhand-properties": [true, {
-      "ignoreShorthands": ["overflow", "place-content", "gap"]
-    }]
+    "declaration-block-no-redundant-longhand-properties": [
+      true,
+      {
+        "ignoreShorthands": ["overflow", "place-content", "gap"]
+      }
+    ]
   }
 }

@@ -1,13 +1,15 @@
-import { useTracker } from 'meteor/react-meteor-data';
-import React, { Suspense, useCallback } from 'react';
-import styled from 'styled-components';
-import type { PuzzleType } from '../../lib/models/Puzzles';
-import Tags from '../../lib/models/Tags';
-import Loading from './Loading';
+import { useTracker } from "meteor/react-meteor-data";
+import React, { Suspense, useCallback } from "react";
+import styled from "styled-components";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import Tags from "../../lib/models/Tags";
+import Loading from "./Loading";
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-const Creatable = React.lazy(() => import('react-select/creatable')) as typeof import('react-select/creatable').default;
+const Creatable = React.lazy(
+  () => import("react-select/creatable"),
+) as typeof import("react-select/creatable").default;
 
 const TagEditorSpan = styled.span`
   display: inline;
@@ -17,7 +19,9 @@ const TagEditorSpan = styled.span`
 `;
 
 const TagEditor = ({
-  puzzle, onSubmit, onCancel,
+  puzzle,
+  onSubmit,
+  onCancel,
 }: {
   puzzle: PuzzleType;
   onSubmit: (value: string) => void;

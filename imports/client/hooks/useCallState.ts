@@ -1,35 +1,40 @@
-import { Meteor } from 'meteor/meteor';
-import { useFind, useTracker } from 'meteor/react-meteor-data';
-import type { types } from 'mediasoup-client';
-import type React from 'react';
+import { Meteor } from "meteor/meteor";
+import { useFind, useTracker } from "meteor/react-meteor-data";
+import type { types } from "mediasoup-client";
+import type React from "react";
 import {
-  useEffect, useMemo, useReducer, useRef, useState, useCallback,
-} from 'react';
-import { logger as defaultLogger } from '../../Logger';
-import { groupedBy } from '../../lib/listUtils';
-import ConnectAcks from '../../lib/models/mediasoup/ConnectAcks';
-import Consumers from '../../lib/models/mediasoup/Consumers';
-import Peers from '../../lib/models/mediasoup/Peers';
-import type { PeerType } from '../../lib/models/mediasoup/Peers';
-import ProducerServers from '../../lib/models/mediasoup/ProducerServers';
-import Routers from '../../lib/models/mediasoup/Routers';
-import type { RouterType } from '../../lib/models/mediasoup/Routers';
-import Transports from '../../lib/models/mediasoup/Transports';
-import type { TransportType } from '../../lib/models/mediasoup/Transports';
-import mediasoupAckConsumer from '../../methods/mediasoupAckConsumer';
-import mediasoupAckPeerRemoteMute from '../../methods/mediasoupAckPeerRemoteMute';
-import mediasoupConnectTransport from '../../methods/mediasoupConnectTransport';
-import mediasoupSetPeerState from '../../methods/mediasoupSetPeerState';
-import mediasoupSetProducerPaused from '../../methods/mediasoupSetProducerPaused';
-import useBlockUpdate from './useBlockUpdate';
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
+import { logger as defaultLogger } from "../../Logger";
+import { groupedBy } from "../../lib/listUtils";
+import ConnectAcks from "../../lib/models/mediasoup/ConnectAcks";
+import Consumers from "../../lib/models/mediasoup/Consumers";
+import Peers from "../../lib/models/mediasoup/Peers";
+import type { PeerType } from "../../lib/models/mediasoup/Peers";
+import ProducerServers from "../../lib/models/mediasoup/ProducerServers";
+import Routers from "../../lib/models/mediasoup/Routers";
+import type { RouterType } from "../../lib/models/mediasoup/Routers";
+import Transports from "../../lib/models/mediasoup/Transports";
+import type { TransportType } from "../../lib/models/mediasoup/Transports";
+import mediasoupAckConsumer from "../../methods/mediasoupAckConsumer";
+import mediasoupAckPeerRemoteMute from "../../methods/mediasoupAckPeerRemoteMute";
+import mediasoupConnectTransport from "../../methods/mediasoupConnectTransport";
+import mediasoupSetPeerState from "../../methods/mediasoupSetPeerState";
+import mediasoupSetProducerPaused from "../../methods/mediasoupSetProducerPaused";
+import useBlockUpdate from "./useBlockUpdate";
 
-const logger = defaultLogger.child({ label: 'useCallState' });
+const logger = defaultLogger.child({ label: "useCallState" });
 
 export enum CallJoinState {
-  CHAT_ONLY = 'chatonly',
-  REQUESTING_STREAM = 'requestingstream',
-  STREAM_ERROR = 'streamerror',
-  IN_CALL = 'call',
+  CHAT_ONLY = "chatonly",
+  REQUESTING_STREAM = "requestingstream",
+  STREAM_ERROR = "streamerror",
+  IN_CALL = "call",
 }
 
 // A note on mute and deafen: being deafened implies you are also not
@@ -49,11 +54,11 @@ export type AudioControls = {
 
 function participantState(explicitlyMuted: boolean, deafened: boolean) {
   if (deafened) {
-    return 'deafened';
+    return "deafened";
   } else if (explicitlyMuted) {
-    return 'muted';
+    return "muted";
   } else {
-    return 'active';
+    return "active";
   }
 }
 
@@ -66,19 +71,25 @@ export type Transports = {
   recv: types.Transport | undefined;
 };
 
-export type CallState = ({
-  callState: CallJoinState.CHAT_ONLY | CallJoinState.REQUESTING_STREAM | CallJoinState.STREAM_ERROR;
-  audioState?: AudioState;
-} | {
-  callState: CallJoinState.IN_CALL;
-  audioState: AudioState;
-}) & {
+export type CallState = (
+  | {
+      callState:
+        | CallJoinState.CHAT_ONLY
+        | CallJoinState.REQUESTING_STREAM
+        | CallJoinState.STREAM_ERROR;
+      audioState?: AudioState;
+    }
+  | {
+      callState: CallJoinState.IN_CALL;
+      audioState: AudioState;
+    }
+) & {
   device: types.Device | undefined;
   transports: Transports;
   transportStates: {
     send?: types.ConnectionState;
     recv?: types.ConnectionState;
-  },
+  };
   router: RouterType | undefined;
   audioControls: AudioControls;
   selfPeer: PeerType | undefined;
@@ -93,23 +104,35 @@ export type CallState = ({
 };
 
 export type Action =
-  | { type: 'request-capture' }
-  | { type: 'capture-error', error: Error }
-  | { type: 'join-call', audioState: AudioState }
-  | { type: 'set-device', device: types.Device | undefined }
-  | { type: 'set-transport', direction: 'send' | 'recv', transport: types.Transport | undefined }
-  | { type: 'set-transport-state', direction: 'send' | 'recv', state: types.ConnectionState }
-  | { type: 'set-router', router: RouterType | undefined }
-  | { type: 'leave-call' }
-  | { type: 'toggle-mute' }
-  | { type: 'toggle-deafen' }
-  | { type: 'dismiss-peer-state-notification' }
-  | { type: 'set-remote-muted', remoteMutedBy: string }
-  | { type: 'dismiss-remote-muted' }
-  | { type: 'set-peers', selfPeer: PeerType | undefined, otherPeers: PeerType[] }
-  | { type: 'add-peer-track', peerId: string, track: MediaStreamTrack }
-  | { type: 'remove-peer-track', peerId: string, track: MediaStreamTrack }
-  | { type: 'reset' };
+  | { type: "request-capture" }
+  | { type: "capture-error"; error: Error }
+  | { type: "join-call"; audioState: AudioState }
+  | { type: "set-device"; device: types.Device | undefined }
+  | {
+      type: "set-transport";
+      direction: "send" | "recv";
+      transport: types.Transport | undefined;
+    }
+  | {
+      type: "set-transport-state";
+      direction: "send" | "recv";
+      state: types.ConnectionState;
+    }
+  | { type: "set-router"; router: RouterType | undefined }
+  | { type: "leave-call" }
+  | { type: "toggle-mute" }
+  | { type: "toggle-deafen" }
+  | { type: "dismiss-peer-state-notification" }
+  | { type: "set-remote-muted"; remoteMutedBy: string }
+  | { type: "dismiss-remote-muted" }
+  | {
+      type: "set-peers";
+      selfPeer: PeerType | undefined;
+      otherPeers: PeerType[];
+    }
+  | { type: "add-peer-track"; peerId: string; track: MediaStreamTrack }
+  | { type: "remove-peer-track"; peerId: string; track: MediaStreamTrack }
+  | { type: "reset" };
 
 const INITIAL_STATE: CallState = {
   callState: CallJoinState.CHAT_ONLY,
@@ -132,13 +155,13 @@ const INITIAL_STATE: CallState = {
 };
 
 function reducer(state: CallState, action: Action): CallState {
-  logger.debug('dispatch', action);
+  logger.debug("dispatch", action);
   switch (action.type) {
-    case 'request-capture':
+    case "request-capture":
       return { ...state, callState: CallJoinState.REQUESTING_STREAM };
-    case 'capture-error':
+    case "capture-error":
       return { ...state, callState: CallJoinState.STREAM_ERROR };
-    case 'join-call':
+    case "join-call":
       return {
         ...state,
         callState: CallJoinState.IN_CALL,
@@ -149,12 +172,12 @@ function reducer(state: CallState, action: Action): CallState {
         },
         allowInitialPeerStateNotification: true,
       };
-    case 'set-device':
+    case "set-device":
       return {
         ...state,
         device: action.device,
       };
-    case 'set-transport':
+    case "set-transport":
       return {
         ...state,
         transports: {
@@ -162,7 +185,7 @@ function reducer(state: CallState, action: Action): CallState {
           [action.direction]: action.transport,
         },
       };
-    case 'set-transport-state':
+    case "set-transport-state":
       return {
         ...state,
         transportStates: {
@@ -170,18 +193,20 @@ function reducer(state: CallState, action: Action): CallState {
           [action.direction]: action.state,
         },
       };
-    case 'set-router':
+    case "set-router":
       return {
         ...state,
         router: action.router,
       };
-    case 'leave-call':
+    case "leave-call":
       return INITIAL_STATE;
-    case 'toggle-mute': {
+    case "toggle-mute": {
       if (state.callState !== CallJoinState.IN_CALL || !state.audioControls) {
         throw new Error("Can't toggle mute if not in call");
       }
-      const nextMuted = !(state.audioControls.deafened || state.audioControls.muted);
+      const nextMuted = !(
+        state.audioControls.deafened || state.audioControls.muted
+      );
       return {
         ...state,
         audioControls: {
@@ -192,7 +217,7 @@ function reducer(state: CallState, action: Action): CallState {
         remoteMutedBy: undefined,
       };
     }
-    case 'toggle-deafen':
+    case "toggle-deafen":
       if (state.callState !== CallJoinState.IN_CALL || !state.audioControls) {
         throw new Error("Can't toggle mute if not in call");
       }
@@ -205,12 +230,12 @@ function reducer(state: CallState, action: Action): CallState {
         allowInitialPeerStateNotification: false,
         remoteMutedBy: undefined,
       };
-    case 'dismiss-peer-state-notification':
+    case "dismiss-peer-state-notification":
       return {
         ...state,
         allowInitialPeerStateNotification: false,
       };
-    case 'set-remote-muted':
+    case "set-remote-muted":
       return {
         ...state,
         audioControls: {
@@ -220,16 +245,22 @@ function reducer(state: CallState, action: Action): CallState {
         allowInitialPeerStateNotification: false,
         remoteMutedBy: action.remoteMutedBy,
       };
-    case 'dismiss-remote-muted':
+    case "dismiss-remote-muted":
       return {
         ...state,
         remoteMutedBy: undefined,
       };
-    case 'set-peers': {
+    case "set-peers": {
       let audioControls = state.audioControls;
-      if ((!state.selfPeer && action.selfPeer) ||
-          (state.selfPeer && action.selfPeer && state.selfPeer._id !== action.selfPeer._id)) {
-        logger.debug('server set initial peer state', { initialPeerState: action.selfPeer.initialPeerState });
+      if (
+        (!state.selfPeer && action.selfPeer) ||
+        (state.selfPeer &&
+          action.selfPeer &&
+          state.selfPeer._id !== action.selfPeer._id)
+      ) {
+        logger.debug("server set initial peer state", {
+          initialPeerState: action.selfPeer.initialPeerState,
+        });
         // When we are first joining the call (or rejoining the call with the
         // same hunt/call/tab due to a server outage), the server will present us
         // with the effective peer state (active, muted, or deafened) that it
@@ -239,19 +270,19 @@ function reducer(state: CallState, action: Action): CallState {
         // muted if the call is large or active otherwise.
 
         switch (action.selfPeer.initialPeerState) {
-          case 'active':
+          case "active":
             audioControls = {
               muted: false,
               deafened: false,
             };
             break;
-          case 'muted':
+          case "muted":
             audioControls = {
               muted: true,
               deafened: false,
             };
             break;
-          case 'deafened':
+          case "deafened":
             // In the case where we are reconnecting and were previously
             // deafened, preserve the hidden "explicitly muted" state, since
             // we'll be complying with the server's intent that our producer
@@ -274,11 +305,14 @@ function reducer(state: CallState, action: Action): CallState {
         audioControls,
       };
     }
-    case 'add-peer-track': {
+    case "add-peer-track": {
       const newStream = new MediaStream();
-      state.peerStreams.get(action.peerId)?.getTracks().forEach((track) => {
-        newStream.addTrack(track);
-      });
+      state.peerStreams
+        .get(action.peerId)
+        ?.getTracks()
+        .forEach((track) => {
+          newStream.addTrack(track);
+        });
       newStream.addTrack(action.track);
       const newPeerStreams = new Map(state.peerStreams);
       newPeerStreams.set(action.peerId, newStream);
@@ -287,15 +321,18 @@ function reducer(state: CallState, action: Action): CallState {
         peerStreams: newPeerStreams,
       };
     }
-    case 'remove-peer-track': {
+    case "remove-peer-track": {
       const newStream = new MediaStream();
       let trackCount = 0;
-      state.peerStreams.get(action.peerId)?.getTracks().forEach((track) => {
-        if (track !== action.track) {
-          trackCount += 1;
-          newStream.addTrack(track);
-        }
-      });
+      state.peerStreams
+        .get(action.peerId)
+        ?.getTracks()
+        .forEach((track) => {
+          if (track !== action.track) {
+            trackCount += 1;
+            newStream.addTrack(track);
+          }
+        });
       const newPeerStreams = new Map(state.peerStreams);
       if (trackCount > 0) {
         newPeerStreams.set(action.peerId, newStream);
@@ -307,7 +344,7 @@ function reducer(state: CallState, action: Action): CallState {
         peerStreams: newPeerStreams,
       };
     }
-    case 'reset':
+    case "reset":
       return INITIAL_STATE;
     default:
       throw new Error();
@@ -316,7 +353,7 @@ function reducer(state: CallState, action: Action): CallState {
 
 const useTransport = (
   device: types.Device | undefined,
-  direction: 'send' | 'recv',
+  direction: "send" | "recv",
   transportParams: TransportType | undefined,
   dispatch: React.Dispatch<Action>,
 ) => {
@@ -330,40 +367,53 @@ const useTransport = (
       const iceParameters = transportParams.iceParameters;
       const iceCandidates = transportParams.iceCandidates;
       const serverDtlsParameters = transportParams.dtlsParameters;
-      logger.info('Creating new Mediasoup transport', { transportId, direction });
-      const method = direction === 'send' ? 'createSendTransport' : 'createRecvTransport';
+      logger.info("Creating new Mediasoup transport", {
+        transportId,
+        direction,
+      });
+      const method =
+        direction === "send" ? "createSendTransport" : "createRecvTransport";
       const newTransport = device[method]({
         id: transportId,
         iceParameters: JSON.parse(iceParameters),
         iceCandidates: JSON.parse(iceCandidates),
         dtlsParameters: JSON.parse(serverDtlsParameters),
-        iceServers: transportParams.turnConfig ? [transportParams.turnConfig] : undefined,
+        iceServers: transportParams.turnConfig
+          ? [transportParams.turnConfig]
+          : undefined,
         appData: {
           _id,
         },
       });
-      newTransport.on('connect', ({ dtlsParameters: clientDtlsParameters }, callback) => {
-        connectRef.current = callback;
-        // No need to set a callback here, since the ConnectAck record acts as a
-        // callback
-        mediasoupConnectTransport.call({
-          transportId: _id,
-          dtlsParameters: JSON.stringify(clientDtlsParameters),
-        });
-      });
-      newTransport.on('connectionstatechange', (state) => {
-        if (state === 'failed') {
-          logger.warn('Transport connection failed', { transportId, direction, newTransport });
+      newTransport.on(
+        "connect",
+        ({ dtlsParameters: clientDtlsParameters }, callback) => {
+          connectRef.current = callback;
+          // No need to set a callback here, since the ConnectAck record acts as a
+          // callback
+          mediasoupConnectTransport.call({
+            transportId: _id,
+            dtlsParameters: JSON.stringify(clientDtlsParameters),
+          });
+        },
+      );
+      newTransport.on("connectionstatechange", (state) => {
+        if (state === "failed") {
+          logger.warn("Transport connection failed", {
+            transportId,
+            direction,
+            newTransport,
+          });
         }
         dispatch({
-          type: 'set-transport-state',
+          type: "set-transport-state",
           direction,
           state,
         });
       });
-      logger.debug('setting transport', { direction, newTransport });
+      logger.debug("setting transport", { direction, newTransport });
       dispatch({
-        type: 'set-transport',
+        type: "set-transport",
         direction,
         transport: newTransport,
       });
@@ -371,9 +421,9 @@ const useTransport = (
         if (!newTransport.closed) newTransport.close();
       };
     } else {
-      logger.debug('clearing transport', { direction });
+      logger.debug("clearing transport", { direction });
       dispatch({
-        type: 'set-transport',
+        type: "set-transport",
         direction,
         transport: undefined,
       });
@@ -395,23 +445,26 @@ const useTransport = (
   return connectRef;
 };
 
-function cleanupProducerMapEntry(map: Map<string, ProducerState>, trackId: string) {
+function cleanupProducerMapEntry(
+  map: Map<string, ProducerState>,
+  trackId: string,
+) {
   const producerState = map.get(trackId);
   if (producerState) {
     // Stop the producer if present
     if (producerState.producer) {
-      logger.debug('stopping producer for track', { trackId });
+      logger.debug("stopping producer for track", { trackId });
       producerState.producer.close();
     }
 
     // Stop the producer sub if present.
     if (producerState.subHandle) {
-      logger.debug('stopping producer sub for track', { trackId });
+      logger.debug("stopping producer sub for track", { trackId });
       producerState.subHandle.stop();
     }
 
     // Drop the removed track from the producerMapRef.
-    logger.debug('producerMapRef.delete', { trackId });
+    logger.debug("producerMapRef.delete", { trackId });
     map.delete(trackId);
   }
 }
@@ -424,31 +477,37 @@ type ProducerState = {
   producerServerCallback: ProducerCallback | undefined;
   kind: string | undefined;
   rtpParameters: string | undefined;
-}
+};
 
 type ConsumerState = {
   consumer: types.Consumer | undefined;
   peerId: string;
-}
+};
 
-const useCallState = ({ huntId, puzzleId, tabId }: {
-  huntId: string,
-  puzzleId: string,
-  tabId: string,
+const useCallState = ({
+  huntId,
+  puzzleId,
+  tabId,
+}: {
+  huntId: string;
+  puzzleId: string;
+  tabId: string;
 }): [CallState, React.Dispatch<Action>] => {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
 
   // If we're currently in a call, block code pushes
-  useBlockUpdate(state.callState !== CallJoinState.CHAT_ONLY ?
-    "You're currently in an audio call" :
-    undefined);
+  useBlockUpdate(
+    state.callState !== CallJoinState.CHAT_ONLY
+      ? "You're currently in an audio call"
+      : undefined,
+  );
 
   useEffect(() => {
     // If huntId, puzzleId, or tabId change (but mostly puzzleId), reset
     // call state.
     return () => {
-      logger.debug('huntId/puzzleId/tabId changed, resetting call state');
-      dispatch({ type: 'reset' });
+      logger.debug("huntId/puzzleId/tabId changed, resetting call state");
+      dispatch({ type: "reset" });
     };
   }, [huntId, puzzleId, tabId]);
 
@@ -492,7 +551,12 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   useEffect(() => {
     if (state.callState === CallJoinState.IN_CALL && !joinSubRef.current) {
       // Subscribe to 'mediasoup:join' for huntId, puzzleId, tabId
-      joinSubRef.current = Meteor.subscribe('mediasoup:join', huntId, puzzleId, tabId);
+      joinSubRef.current = Meteor.subscribe(
+        "mediasoup:join",
+        huntId,
+        puzzleId,
+        tabId,
+      );
     }
 
     return () => {
@@ -504,21 +568,29 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   }, [state.callState, huntId, puzzleId, tabId]);
 
   const userId = useTracker(() => Meteor.userId(), []);
-  const peers = useFind(() => Peers.find({ hunt: huntId, call: puzzleId }), [huntId, puzzleId]);
+  const peers = useFind(
+    () => Peers.find({ hunt: huntId, call: puzzleId }),
+    [huntId, puzzleId],
+  );
   const selfPeer = useMemo(() => {
-    return peers.find((peer) => peer.createdBy === userId && peer.tab === tabId);
+    return peers.find(
+      (peer) => peer.createdBy === userId && peer.tab === tabId,
+    );
   }, [peers, tabId, userId]);
   const otherPeers = useMemo(
     () => peers.filter((p) => p._id !== selfPeer?._id),
-    [peers, selfPeer?._id]
+    [peers, selfPeer?._id],
   );
   // Make sure to keep state.peers up-to-date.
   useEffect(() => {
-    dispatch({ type: 'set-peers', selfPeer, otherPeers });
+    dispatch({ type: "set-peers", selfPeer, otherPeers });
   }, [selfPeer, otherPeers]);
-  const router = useTracker(() => Routers.findOne({ call: puzzleId }), [puzzleId]);
+  const router = useTracker(
+    () => Routers.findOne({ call: puzzleId }),
+    [puzzleId],
+  );
   useEffect(() => {
-    dispatch({ type: 'set-router', router });
+    dispatch({ type: "set-router", router });
   }, [router]);
 
   // Once we have the Router for this room, we can create a mediasoup client device.
@@ -528,27 +600,36 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   useEffect(() => {
     if (router?._id) {
       void (async () => {
-        logger.info('Fetching mediasoup-client code');
-        const { Device } = await import('mediasoup-client');
-        logger.info('Creating new Mediasoup device');
+        logger.info("Fetching mediasoup-client code");
+        const { Device } = await import("mediasoup-client");
+        logger.info("Creating new Mediasoup device");
         const newDevice = new Device();
         await newDevice.load({
           routerRtpCapabilities: JSON.parse(router.rtpCapabilities),
         });
-        dispatch({ type: 'set-device', device: newDevice });
+        dispatch({ type: "set-device", device: newDevice });
       })();
     } else {
-      logger.info('Clearing Mediasoup device');
-      dispatch({ type: 'set-device', device: undefined });
+      logger.info("Clearing Mediasoup device");
+      dispatch({ type: "set-device", device: undefined });
     }
   }, [router?._id, router?.rtpCapabilities]);
 
   const rtpCaps = device ? JSON.stringify(device.rtpCapabilities) : undefined;
-  const transportSubHandle = useRef<Meteor.SubscriptionHandle | undefined>(undefined);
+  const transportSubHandle = useRef<Meteor.SubscriptionHandle | undefined>(
+    undefined,
+  );
   useEffect(() => {
     if (!transportSubHandle.current && device && selfPeer?._id) {
-      logger.debug('subscribe mediasoup:transports', { peerId: selfPeer._id, rtpCaps });
-      transportSubHandle.current = Meteor.subscribe('mediasoup:transports', selfPeer._id, rtpCaps);
+      logger.debug("subscribe mediasoup:transports", {
+        peerId: selfPeer._id,
+        rtpCaps,
+      });
+      transportSubHandle.current = Meteor.subscribe(
+        "mediasoup:transports",
+        selfPeer._id,
+        rtpCaps,
+      );
     }
 
     return () => {
@@ -568,8 +649,12 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
       // instead of the current ones. As the old subscription is torn down, the
       // old Transports will be deleted as well, so this should converge on its
       // own.
-      sendServerParams: hasSelfPeer ? Transports.findOne({ peer: selfPeer._id, direction: 'send' }) : undefined,
-      recvServerParams: hasSelfPeer ? Transports.findOne({ peer: selfPeer._id, direction: 'recv' }) : undefined,
+      sendServerParams: hasSelfPeer
+        ? Transports.findOne({ peer: selfPeer._id, direction: "send" })
+        : undefined,
+      recvServerParams: hasSelfPeer
+        ? Transports.findOne({ peer: selfPeer._id, direction: "recv" })
+        : undefined,
     };
   }, [hasSelfPeer, selfPeer?._id]);
 
@@ -580,18 +665,28 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   // the connection parameters have been passed to the server-side transport.
   // Therefore, stash the acknowledgement callback on a ref and call it once the
   // corresponding ConnectAck db record is created.
-  const sendTransportConnectCallback = useTransport(device, 'send', sendServerParams, dispatch);
-  const recvTransportConnectCallback = useTransport(device, 'recv', recvServerParams, dispatch);
+  const sendTransportConnectCallback = useTransport(
+    device,
+    "send",
+    sendServerParams,
+    dispatch,
+  );
+  const recvTransportConnectCallback = useTransport(
+    device,
+    "recv",
+    recvServerParams,
+    dispatch,
+  );
   const sendTransport = state.transports.send;
   const recvTransport = state.transports.recv;
   useEffect(() => {
     if (hasSelfPeer) {
       const observer = ConnectAcks.find({ peer: selfPeer._id }).observeChanges({
         added: (_id, fields) => {
-          if (fields.direction === 'send') {
+          if (fields.direction === "send") {
             sendTransportConnectCallback.current?.();
             sendTransportConnectCallback.current = undefined;
-          } else if (fields.direction === 'recv') {
+          } else if (fields.direction === "recv") {
             recvTransportConnectCallback.current?.();
             recvTransportConnectCallback.current = undefined;
           }
@@ -600,7 +695,12 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
       return () => observer.stop();
     }
     return undefined;
-  }, [hasSelfPeer, selfPeer?._id, sendTransportConnectCallback, recvTransportConnectCallback]);
+  }, [
+    hasSelfPeer,
+    selfPeer?._id,
+    sendTransportConnectCallback,
+    recvTransportConnectCallback,
+  ]);
 
   // ==========================================================================
   // Producer (audio from local microphone, sending to server) logic
@@ -612,13 +712,14 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
     // track set.
     const stream = state.audioState?.mediaSource;
     if (stream) {
-      const captureTracks = () => Meteor.defer(() => setProducerTracks(stream.getTracks()));
+      const captureTracks = () =>
+        Meteor.defer(() => setProducerTracks(stream.getTracks()));
       captureTracks();
-      stream.addEventListener('addtrack', captureTracks);
-      stream.addEventListener('removetrack', captureTracks);
+      stream.addEventListener("addtrack", captureTracks);
+      stream.addEventListener("removetrack", captureTracks);
       return () => {
-        stream.removeEventListener('addtrack', captureTracks);
-        stream.removeEventListener('removetrack', captureTracks);
+        stream.removeEventListener("addtrack", captureTracks);
+        stream.removeEventListener("removetrack", captureTracks);
       };
     } else {
       setProducerTracks([]);
@@ -667,7 +768,8 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   // in `producerMapRef` are written to a new value.
   // Used in the deps array of the effect which consumes those fields and
   // subscribes to 'mediasoup:producer'
-  const [producerParamsGeneration, setProducerParamsGeneration] = useState<number>(0);
+  const [producerParamsGeneration, setProducerParamsGeneration] =
+    useState<number>(0);
 
   // Once we have a ready producer (or producers), we want to be sure that their
   // pause states and server-side mute/deafen states are all appropriately set.
@@ -676,31 +778,40 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   // Used in the deps array of the effect which pauses or resumes the producer.
   const [producerGeneration, setProducerGeneration] = useState<number>(0);
 
-  const onProduce = useCallback((
-    { kind, rtpParameters, appData }: {
-      kind: string,
-      rtpParameters: types.RtpParameters,
-      appData: any,
+  const onProduce = useCallback(
+    (
+      {
+        kind,
+        rtpParameters,
+        appData,
+      }: {
+        kind: string;
+        rtpParameters: types.RtpParameters;
+        appData: any;
+      },
+      callback: ProducerCallback,
+    ) => {
+      logger.debug("onProduce", { kind, trackId: appData.trackId });
+      // extract track Id from app data
+      const producerState = producerMapRef.current.get(appData.trackId);
+      if (!producerState) {
+        logger.error("Got onProduce callback but found no producer state", {
+          trackId: appData.trackId,
+        });
+      } else {
+        producerState.kind = kind;
+        producerState.rtpParameters = JSON.stringify(rtpParameters);
+        producerState.producerServerCallback = callback;
+        setProducerParamsGeneration((prevValue) => prevValue + 1);
+      }
     },
-    callback: ProducerCallback,
-  ) => {
-    logger.debug('onProduce', { kind, trackId: appData.trackId });
-    // extract track Id from app data
-    const producerState = producerMapRef.current.get(appData.trackId);
-    if (!producerState) {
-      logger.error('Got onProduce callback but found no producer state', { trackId: appData.trackId });
-    } else {
-      producerState.kind = kind;
-      producerState.rtpParameters = JSON.stringify(rtpParameters);
-      producerState.producerServerCallback = callback;
-      setProducerParamsGeneration((prevValue) => prevValue + 1);
-    }
-  }, []);
+    [],
+  );
   useEffect(() => {
     if (sendTransport) {
-      sendTransport?.on('produce', onProduce);
+      sendTransport?.on("produce", onProduce);
       return () => {
-        sendTransport?.off('produce', onProduce);
+        sendTransport?.off("produce", onProduce);
       };
     }
     return undefined;
@@ -709,27 +820,33 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   useEffect(() => {
     const observer = ProducerServers.find().observeChanges({
       added: (_id, fields) => {
-        logger.debug('ProducerServers added', { _id, ...fields });
+        logger.debug("ProducerServers added", { _id, ...fields });
         const trackId = fields.trackId;
         if (!trackId) {
-          logger.error('No trackId in new ProducerServers record', { _id, ...fields });
+          logger.error("No trackId in new ProducerServers record", {
+            _id,
+            ...fields,
+          });
           return;
         }
         const producerState = producerMapRef.current.get(trackId);
         if (producerState?.producerServerCallback) {
-          logger.debug('Calling producerServerCallback', { id: fields.producerId });
+          logger.debug("Calling producerServerCallback", {
+            id: fields.producerId,
+          });
           producerState.producerServerCallback({ id: fields.producerId! });
           producerState.producerServerCallback = undefined;
-          logger.debug('Outbound track live');
+          logger.debug("Outbound track live");
         }
       },
     });
     return () => observer.stop();
   }, []);
 
-  const producerShouldBePaused = state.audioControls?.muted || state.audioControls?.deafened;
+  const producerShouldBePaused =
+    state.audioControls?.muted || state.audioControls?.deafened;
   useEffect(() => {
-    logger.debug('producerTracks', { tracks: producerTracks.map((t) => t.id) });
+    logger.debug("producerTracks", { tracks: producerTracks.map((t) => t.id) });
     const activeTrackIds = new Set();
     producerTracks.forEach((track) => {
       activeTrackIds.add(track.id);
@@ -737,7 +854,10 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
 
       if (sendTransport) {
         let producerState = producerMapRef.current.get(track.id);
-        if (!producerState || producerState.transport !== sendTransport.appData._id) {
+        if (
+          !producerState ||
+          producerState.transport !== sendTransport.appData._id
+        ) {
           // Create empty entry, before we attempt to produce for the track
           producerState = {
             transport: (sendTransport.appData as any)._id,
@@ -748,7 +868,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
             rtpParameters: undefined,
           };
           producerMapRef.current.set(track.id, producerState);
-          logger.info('Creating Mediasoup producer', { track: track.id });
+          logger.info("Creating Mediasoup producer", { track: track.id });
           // Tell the mediasoup library to produce a stream from this track.
           void (async () => {
             const newProducer = await sendTransport.produce({
@@ -757,25 +877,40 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
               stopTracks: false,
               appData: { trackId: track.id },
             });
-            logger.debug('got producer', newProducer);
+            logger.debug("got producer", newProducer);
             const entry = producerMapRef.current.get(track.id);
             if (entry) {
               entry.producer = newProducer;
             } else {
-              logger.error('No entry in producerMapRef for track', { trackId: track.id });
+              logger.error("No entry in producerMapRef for track", {
+                trackId: track.id,
+              });
             }
             setProducerGeneration((prevValue) => prevValue + 1);
           })();
         }
 
-        if (!producerState.subHandle && producerState.kind &&
-          producerState.rtpParameters) {
+        if (
+          !producerState.subHandle &&
+          producerState.kind &&
+          producerState.rtpParameters
+        ) {
           // Indicate intent to produce to the backend.
           const paused = producerShouldBePaused;
-          logger.debug('subscribe mediasoup:producer', {
-            tp: sendTransport.appData._id, track: track.id, kind: producerState.kind, paused,
+          logger.debug("subscribe mediasoup:producer", {
+            tp: sendTransport.appData._id,
+            track: track.id,
+            kind: producerState.kind,
+            paused,
           });
-          producerState.subHandle = Meteor.subscribe('mediasoup:producer', sendTransport.appData._id, track.id, producerState.kind, producerState.rtpParameters, paused);
+          producerState.subHandle = Meteor.subscribe(
+            "mediasoup:producer",
+            sendTransport.appData._id,
+            track.id,
+            producerState.kind,
+            producerState.rtpParameters,
+            paused,
+          );
         }
       }
     });
@@ -786,7 +921,12 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
         cleanupProducerMapEntry(producerMapRef.current, trackId);
       }
     });
-  }, [sendTransport, producerTracks, producerParamsGeneration, producerShouldBePaused]);
+  }, [
+    sendTransport,
+    producerTracks,
+    producerParamsGeneration,
+    producerShouldBePaused,
+  ]);
 
   // Ensure mute state is respected by mediasoup.
   useEffect(() => {
@@ -794,24 +934,30 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
       // Update producer pause state
       producerTracks.forEach((track) => {
         const producer = producerMapRef.current.get(track.id)?.producer;
-        if (producer && (producerShouldBePaused !== producer.paused)) {
+        if (producer && producerShouldBePaused !== producer.paused) {
           if (producerShouldBePaused) {
             track.enabled = false;
-            logger.debug('pausing producer for track', { track: track.id });
+            logger.debug("pausing producer for track", { track: track.id });
             producer.pause();
           } else {
             track.enabled = true;
-            logger.debug('resuming producer for track', { track: track.id });
+            logger.debug("resuming producer for track", { track: track.id });
             producer.resume();
           }
-          mediasoupSetProducerPaused.call({
-            mediasoupProducerId: producer.id,
-            paused: producerShouldBePaused,
-          }, (error) => {
-            if (error) {
-              logger.error('Error calling mediasoupSetProducerPaused method', { error, trackId: track.id });
-            }
-          });
+          mediasoupSetProducerPaused.call(
+            {
+              mediasoupProducerId: producer.id,
+              paused: producerShouldBePaused,
+            },
+            (error) => {
+              if (error) {
+                logger.error(
+                  "Error calling mediasoupSetProducerPaused method",
+                  { error, trackId: track.id },
+                );
+              }
+            },
+          );
         }
       });
     }
@@ -820,7 +966,10 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   useEffect(() => {
     // If we've been remote-muted, acknowledge to the server and translate into local mute.
     if (selfPeer?.remoteMutedBy) {
-      dispatch({ type: 'set-remote-muted', remoteMutedBy: selfPeer.remoteMutedBy });
+      dispatch({
+        type: "set-remote-muted",
+        remoteMutedBy: selfPeer.remoteMutedBy,
+      });
       mediasoupAckPeerRemoteMute.call({ peerId: selfPeer._id });
     }
   }, [selfPeer?._id, selfPeer?.remoteMutedBy]);
@@ -828,8 +977,14 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   useEffect(() => {
     const audioControls = state.audioControls;
     if (selfPeer && !selfPeer.remoteMutedBy && audioControls) {
-      const serverEffectiveState = participantState(selfPeer.muted, selfPeer.deafened);
-      const localEffectiveState = participantState(audioControls.muted, audioControls.deafened);
+      const serverEffectiveState = participantState(
+        selfPeer.muted,
+        selfPeer.deafened,
+      );
+      const localEffectiveState = participantState(
+        audioControls.muted,
+        audioControls.deafened,
+      );
       if (serverEffectiveState !== localEffectiveState) {
         mediasoupSetPeerState.call({
           peerId: selfPeer._id,
@@ -837,7 +992,12 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
         });
       }
     }
-  }, [selfPeer, state.audioControls?.muted, state.audioControls?.deafened, state.audioControls]);
+  }, [
+    selfPeer,
+    state.audioControls?.muted,
+    state.audioControls?.deafened,
+    state.audioControls,
+  ]);
 
   // Ensure we clean up producers when unmounting.
   useEffect(() => {
@@ -853,7 +1013,7 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   // Consumer (audio from other peers, fetching from server) logic
   const puzzleConsumers = useFind(
     () => Consumers.find({ call: puzzleId }, { sort: { _id: 1 } }),
-    [puzzleId]
+    [puzzleId],
   );
   const groupedConsumers = useMemo(() => {
     return groupedBy(puzzleConsumers, (consumer) => consumer.producerPeer);
@@ -862,18 +1022,25 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
   // Map from consumer._id to our working state for that consumer.
   const consumerMapRef = useRef<Map<string, ConsumerState>>(new Map());
 
-  const cleanupConsumer = useCallback((meteorId: string, consumerState: ConsumerState) => {
-    // Drop it.
-    if (consumerState.consumer) {
-      logger.debug('Stopping consumer', { meteorId });
-      consumerState.consumer.close();
-      dispatch({ type: 'remove-peer-track', peerId: consumerState.peerId, track: consumerState.consumer.track });
-    }
+  const cleanupConsumer = useCallback(
+    (meteorId: string, consumerState: ConsumerState) => {
+      // Drop it.
+      if (consumerState.consumer) {
+        logger.debug("Stopping consumer", { meteorId });
+        consumerState.consumer.close();
+        dispatch({
+          type: "remove-peer-track",
+          peerId: consumerState.peerId,
+          track: consumerState.consumer.track,
+        });
+      }
 
-    // Delete it.
-    logger.debug('consumerMapRef delete', { meteorId });
-    consumerMapRef.current.delete(meteorId);
-  }, []);
+      // Delete it.
+      logger.debug("consumerMapRef delete", { meteorId });
+      consumerMapRef.current.delete(meteorId);
+    },
+    [],
+  );
 
   useEffect(() => {
     const activeConsumerIds = new Set();
@@ -898,26 +1065,38 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
                 consumer: undefined,
                 peerId: peer._id,
               });
-              logger.debug('consumers', { consumerMapRef: consumerMapRef.current });
+              logger.debug("consumers", {
+                consumerMapRef: consumerMapRef.current,
+              });
               // Create a new Mediasoup consumer
               void (async () => {
-                logger.info('Creating new Mediasoup consumer', { mediasoupConsumerId, producerId });
+                logger.info("Creating new Mediasoup consumer", {
+                  mediasoupConsumerId,
+                  producerId,
+                });
                 const newConsumer = await recvTransport.consume({
                   id: mediasoupConsumerId,
                   producerId,
                   kind,
                   rtpParameters: JSON.parse(rtpParameters),
                 });
-                logger.debug('new consumer', { newConsumer });
+                logger.debug("new consumer", { newConsumer });
                 const entry = consumerMapRef.current.get(consumer._id);
                 if (entry) {
                   // Save on the ref so we can clean it up later if needed.
                   entry.consumer = newConsumer;
                   // Push the track into state.
-                  dispatch({ type: 'add-peer-track', peerId: peer._id, track: newConsumer.track });
+                  dispatch({
+                    type: "add-peer-track",
+                    peerId: peer._id,
+                    track: newConsumer.track,
+                  });
                   mediasoupAckConsumer.call({ consumerId: meteorConsumerId });
                 } else {
-                  logger.error('Created Mediasoup consumer for consumer not in consumerMapRef', { consumer: consumer._id });
+                  logger.error(
+                    "Created Mediasoup consumer for consumer not in consumerMapRef",
+                    { consumer: consumer._id },
+                  );
                 }
               })();
             }
@@ -944,7 +1123,12 @@ const useCallState = ({ huntId, puzzleId, tabId }: {
       }
     });
   }, [
-    state.callState, recvTransport, otherPeers, puzzleConsumers, groupedConsumers, cleanupConsumer,
+    state.callState,
+    recvTransport,
+    otherPeers,
+    puzzleConsumers,
+    groupedConsumers,
+    cleanupConsumer,
   ]);
 
   useEffect(() => {
