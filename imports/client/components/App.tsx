@@ -20,7 +20,7 @@ import Container from "react-bootstrap/esm/Container";
 import type { FallbackProps } from "react-error-boundary";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import * as RRBS from "react-router-bootstrap";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useParams } from "react-router-dom";
 import type { StackFrame } from "stacktrace-js";
 import StackTrace from "stacktrace-js";
 import styled, { css } from "styled-components";
@@ -32,12 +32,13 @@ import Loading from "./Loading";
 import NotificationCenter from "./NotificationCenter";
 import { NavBarHeight } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
+import HuntNav from "./HuntNav";
 
 const Breadcrumb = styled.nav`
   display: flex;
   align-items: center;
   height: ${NavBarHeight};
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
 `;
 
@@ -97,6 +98,15 @@ const NavUsername = styled.span`
 const Brand = styled.img`
   width: ${NavBarHeight};
   height: ${NavBarHeight};
+`;
+
+const HuntNavWrapper = styled.div`
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      display: none;
+    `,
+  )}
 `;
 
 const ErrorFallback = ({
@@ -180,6 +190,7 @@ const ReactErrorBoundaryFallback = ({
 
 const AppNavbar = () => {
   const userId = useTracker(() => Meteor.userId()!, []);
+  const huntId = useParams<"huntId">().huntId!;
 
   const displayName = useTracker(
     () => Meteor.user()?.displayName ?? "<no name given>",
@@ -229,7 +240,15 @@ const AppNavbar = () => {
   // correct amount of space in the top bar even if we haven't actually picked
   // a nonempty source for it yet.
   return (
-    <NavbarInset fixed="top" bg="light" variant="light" className="py-0">
+    <NavbarInset
+      fixed="top"
+      variant="light"
+      style={{
+        backgroundColor: "#f0f0f0",
+        borderBottom: "1px solid #6c757d",
+      }}
+      className="py-0"
+    >
       <NavbarBrand className="p-0">
         <Link to="/">
           <Brand
@@ -240,6 +259,11 @@ const AppNavbar = () => {
         </Link>
       </NavbarBrand>
       {breadcrumbsComponent}
+      {huntId && (
+        <HuntNavWrapper>
+          <HuntNav />
+        </HuntNavWrapper>
+      )}
       <Nav className="ml-auto">
         <Dropdown as={NavItem}>
           <DropdownToggle id="profileDropdown" as={NavLink}>

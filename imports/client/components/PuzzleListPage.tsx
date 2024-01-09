@@ -1,13 +1,8 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
-import { faBullhorn } from "@fortawesome/free-solid-svg-icons/faBullhorn";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
-import { faFaucet } from "@fortawesome/free-solid-svg-icons/faFaucet";
-import { faMap } from "@fortawesome/free-solid-svg-icons/faMap";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
-import { faReceipt } from "@fortawesome/free-solid-svg-icons/faReceipt";
-import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
   type ComponentPropsWithRef,
@@ -26,7 +21,7 @@ import FormLabel from "react-bootstrap/FormLabel";
 import InputGroup from "react-bootstrap/InputGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { sortedBy } from "../../lib/listUtils";
 import Bookmarks from "../../lib/models/Bookmarks";
@@ -59,6 +54,7 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import RelatedPuzzleGroup, { PuzzleGroupDiv } from "./RelatedPuzzleGroup";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import { mediaBreakpointDown } from "./styling/responsive";
+import HuntNav from "./HuntNav";
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
@@ -148,6 +144,18 @@ const PuzzleListToolbar = styled.div`
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 0.5em;
+`;
+
+const HuntNavWrapper = styled.div`
+  display: none;
+  ${mediaBreakpointDown(
+    "sm",
+    css`
+      display: flex;
+      width: 100%;
+      margin-bottom: 8px;
+    `,
+  )}
 `;
 
 const PuzzleListView = ({
@@ -627,56 +635,6 @@ const PuzzleListView = ({
   );
 };
 
-const StyledPuzzleListLinkList = styled.ul`
-  list-style: none;
-  display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
-  width: 100%;
-  margin: 0 0 8px;
-  padding: 0;
-  border-color: #cfcfcf;
-  border-style: solid;
-  border-width: 1px 0;
-`;
-
-const StyledPuzzleListLink = styled.li`
-  display: flex;
-  align-items: stretch;
-  flex: 1 1 0;
-`;
-
-const StyledPuzzleListLinkAnchor = styled(Link)`
-  flex: 1 1 0;
-  display: flex;
-  height: 38px;
-  align-items: center;
-  align-content: center;
-  justify-content: center;
-  text-align: center;
-  padding: 8px 0;
-  font-size: 14px;
-  font-weight: bold;
-
-  &:hover {
-    background-color: #f8f8f8;
-  }
-`;
-
-const StyledPuzzleListExternalLink = styled(StyledPuzzleListLink)`
-  flex: 0 0 40px;
-`;
-
-const StyledPuzzleListLinkLabel = styled.span`
-  margin-left: 4px;
-  ${mediaBreakpointDown(
-    "sm",
-    css`
-      display: none;
-    `,
-  )}
-`;
-
 const PuzzleListPage = () => {
   const huntId = useParams<"huntId">().huntId!;
 
@@ -698,63 +656,20 @@ const PuzzleListPage = () => {
   // Don't bother including this in loading - it's ok if they trickle in
   useTypedSubscribe(puzzleActivityForHunt, { huntId });
 
-  const huntLink = hunt.homepageUrl && (
-    <StyledPuzzleListExternalLink>
-      <Button
-        as="a"
-        href={hunt.homepageUrl}
-        className="rounded-0"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="Open the hunt homepage"
-      >
-        <FontAwesomeIcon icon={faMap} />
-      </Button>
-    </StyledPuzzleListExternalLink>
-  );
-  const puzzleList = loading ? (
+  return loading ? (
     <span>loading...</span>
   ) : (
-    <PuzzleListView
-      huntId={huntId}
-      canAdd={canAdd}
-      canUpdate={canUpdate}
-      loading={loading}
-    />
-  );
-  return (
     <div>
-      <StyledPuzzleListLinkList>
-        {huntLink}
-        <StyledPuzzleListLink>
-          <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/announcements`}>
-            <FontAwesomeIcon icon={faBullhorn} />
-            <StyledPuzzleListLinkLabel>Announcements</StyledPuzzleListLinkLabel>
-          </StyledPuzzleListLinkAnchor>
-        </StyledPuzzleListLink>
-        <StyledPuzzleListLink>
-          <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/guesses`}>
-            <FontAwesomeIcon icon={faReceipt} />
-            <StyledPuzzleListLinkLabel>Guess queue</StyledPuzzleListLinkLabel>
-          </StyledPuzzleListLinkAnchor>
-        </StyledPuzzleListLink>
-        <StyledPuzzleListLink>
-          <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/hunters`}>
-            <FontAwesomeIcon icon={faUsers} />
-            <StyledPuzzleListLinkLabel>Hunters</StyledPuzzleListLinkLabel>
-          </StyledPuzzleListLinkAnchor>
-        </StyledPuzzleListLink>
-        {/* Show firehose link only to operators */}
-        {canUpdate && (
-          <StyledPuzzleListLink>
-            <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/firehose`}>
-              <FontAwesomeIcon icon={faFaucet} />
-              <StyledPuzzleListLinkLabel>Firehose</StyledPuzzleListLinkLabel>
-            </StyledPuzzleListLinkAnchor>
-          </StyledPuzzleListLink>
-        )}
-      </StyledPuzzleListLinkList>
-      {puzzleList}
+      <HuntNavWrapper>
+        <HuntNav />
+      </HuntNavWrapper>
+
+      <PuzzleListView
+        huntId={huntId}
+        canAdd={canAdd}
+        canUpdate={canUpdate}
+        loading={loading}
+      />
     </div>
   );
 };
