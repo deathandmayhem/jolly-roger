@@ -30,10 +30,8 @@ const DiscordAvatarInner = ({
 };
 
 const AvatarInitial = styled.div`
-  width: 90%;
-  height: 90%;
-  margin: 5%;
-  border-radius: 50%;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -83,12 +81,20 @@ const DefaultAvatarInner = ({
   return <AvatarInitial style={style}>{initial}</AvatarInitial>;
 };
 
-const AvatarContainer = styled.div<{ $size: number; $inline: boolean }>`
+const AvatarContainer = styled.div<{
+  $size: number;
+  $inline: boolean;
+  $isSelf: boolean;
+}>`
   width: ${({ $size }) => $size}px;
   height: ${({ $size }) => $size}px;
   font-size: ${({ $size }) => 0.6 * $size}px;
   background-color: white;
+  font-weight: 700;
   display: ${({ $inline }) => ($inline ? "inline-block" : "block")};
+  box-shadow: ${({ $isSelf }) =>
+    $isSelf ? "0 0 4px rgba(13, 110, 253, 0.5)" : "none"};
+  border: ${({ $isSelf }) => ($isSelf ? "0.5px solid #0D6EFD" : "none")};
 `;
 
 const Avatar = React.memo(
@@ -99,6 +105,7 @@ const Avatar = React.memo(
     displayName,
     discordAccount,
     className,
+    isSelf = false,
   }: {
     size: number;
     inline?: boolean;
@@ -106,6 +113,7 @@ const Avatar = React.memo(
     displayName?: string;
     discordAccount?: DiscordAccountType;
     className?: string;
+    isSelf?: boolean;
   }) => {
     const content =
       discordAccount && getAvatarCdnUrl(discordAccount) ? (
@@ -122,6 +130,7 @@ const Avatar = React.memo(
         className={className}
         $size={size}
         $inline={inline ?? false}
+        $isSelf={isSelf}
       >
         {content}
       </AvatarContainer>

@@ -40,12 +40,12 @@ import {
 
 const CallStateIcon = styled.span`
   font-size: 10px;
-  width: 12px;
-  height: 14px;
+  width: 14px;
+  height: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: red; /* TODO: lift $danger from react-bootstrap somehow? */
+  color: #dc3545;
   position: absolute;
   right: 0;
   background: white;
@@ -54,21 +54,28 @@ const CallStateIcon = styled.span`
 const MutedIcon = styled(CallStateIcon)`
   top: 0;
   border-bottom-left-radius: 6px;
+  border: 0.5px solid #0d6efd;
+  border-left: 0.5px solid #bbb;
+  border-bottom: 1px solid #bbb;
 `;
 
 const DeafenedIcon = styled(CallStateIcon)`
   bottom: 0;
   border-top-left-radius: 6px;
-  font-size: 8px;
+  border: 0.5px solid #0d6efd;
+  border-left: 0.5px solid #bbb;
+  border-top: 1px solid #bbb;
   text-align: right;
+  color: black;
+  font-size: 9px;
 `;
 
 const RemoteMuteButton = styled.div`
   position: absolute;
   inset: 0;
   font-size: 24px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,7 +172,8 @@ const SelfBox = ({
           _id={userId}
           displayName={name}
           discordAccount={discordAccount}
-          size={40}
+          size={44}
+          isSelf
         />
         <div>
           {muted && (
@@ -180,8 +188,8 @@ const SelfBox = ({
           )}
           {!spectraDisabled && !muted && !deafened ? (
             <Spectrum
-              width={40}
-              height={40}
+              width={44}
+              height={44}
               audioContext={audioContext}
               stream={stream}
             />
@@ -352,7 +360,7 @@ const PeerBox = ({
             _id={userId}
             displayName={name}
             discordAccount={discordAccount}
-            size={40}
+            size={44}
           />
           <div>
             {muted && (
@@ -370,8 +378,8 @@ const PeerBox = ({
             stream &&
             stream.getTracks().length > 0 ? (
               <Spectrum
-                width={40}
-                height={40}
+                width={44}
+                height={44}
                 audioContext={audioContext}
                 stream={stream}
               />

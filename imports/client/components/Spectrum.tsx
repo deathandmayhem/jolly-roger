@@ -76,8 +76,8 @@ const Spectrum = ({
           const WIDTH = width;
           const HEIGHT = height;
           canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-          const barWidth = WIDTH / (bufferLength.current / 2);
-          let x = 0;
+          const barWidth = Math.floor((WIDTH - 4) / (bufferLength.current / 2));
+          let x = 2;
           for (let i = 0; i < bufferLength.current / 2; i++) {
             const currentAmplitude = analyserBuffer.current![i]!;
             // minimum bar height reduces some flickering
