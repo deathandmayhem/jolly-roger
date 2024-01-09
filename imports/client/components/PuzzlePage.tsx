@@ -13,7 +13,7 @@ import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { ChangeEvent, ComponentPropsWithRef, FC, MouseEvent } from "react";
+import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
 import React, {
   useCallback,
   useEffect,
@@ -27,18 +27,14 @@ import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
-import Form from "react-bootstrap/Form";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
-import FormSelect from "react-bootstrap/FormSelect";
 import FormText from "react-bootstrap/FormText";
 import InputGroup from "react-bootstrap/InputGroup";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
-import Tab from "react-bootstrap/Tab";
-import Tabs from "react-bootstrap/Tabs";
 import OverlayTrigger from "react-bootstrap/esm/OverlayTrigger";
 import Tooltip from "react-bootstrap/esm/Tooltip";
 import { CopyToClipboard } from "react-copy-to-clipboard";
@@ -75,8 +71,6 @@ import addPuzzleAnswer from "../../methods/addPuzzleAnswer";
 import addPuzzleTag from "../../methods/addPuzzleTag";
 import createGuess from "../../methods/createGuess";
 import ensurePuzzleDocument from "../../methods/ensurePuzzleDocument";
-import type { ImageSource } from "../../methods/insertDocumentImage";
-import insertDocumentImage from "../../methods/insertDocumentImage";
 import type { Sheet } from "../../methods/listDocumentSheets";
 import listDocumentSheets from "../../methods/listDocumentSheets";
 import removePuzzleAnswer from "../../methods/removePuzzleAnswer";
@@ -101,6 +95,8 @@ import DocumentDisplay, { DocumentMessage } from "./DocumentDisplay";
 import type { FancyEditorHandle, MessageElement } from "./FancyEditor";
 import FancyEditor from "./FancyEditor";
 import GuessState from "./GuessState";
+import type { ImageInsertModalHandle } from "./InsertImageModal";
+import InsertImageModal from "./InsertImageModal";
 import Markdown from "./Markdown";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
@@ -826,244 +822,6 @@ const ChatSection = React.forwardRef(
   },
 );
 const ChatSectionMemo = React.memo(ChatSection);
-
-type ImageInsertModalHandle = {
-  show: () => void;
-};
-
-enum InsertImageSubmitState {
-  IDLE,
-  SUBMITTING,
-  ERROR,
-}
-
-enum InsertImageProcessImageState {
-  IDLE,
-  PROCESSING,
-}
-
-const InsertImageModal = React.forwardRef(
-  (
-    { documentId, sheets }: { documentId: string; sheets: Sheet[] },
-    forwardedRef: React.Ref<ImageInsertModalHandle>,
-  ) => {
-    // Pop up by default when first rendered.
-    const [visible, setVisible] = useState(true);
-    const show = useCallback(() => setVisible(true), []);
-    const hide = useCallback(() => setVisible(false), []);
-    useImperativeHandle(forwardedRef, () => ({ show }), [show]);
-
-    const [submitState, setSubmitState] = useState<InsertImageSubmitState>(
-      InsertImageSubmitState.IDLE,
-    );
-    const [submitError, setSubmitError] = useState<string>("");
-    const clearError = useCallback(
-      () => setSubmitState(InsertImageSubmitState.IDLE),
-      [],
-    );
-
-    const [sheet, setSheet] = useState<number>(sheets[0]?.id ?? 0);
-    const onChangeSheet = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-      setSheet(parseInt(e.target.value, 10));
-    }, []);
-
-    const sheetOptions = useMemo(() => {
-      return sheets.map((s) => {
-        return (
-          <option key={s.id} value={s.id}>
-            {s.name}
-          </option>
-        );
-      });
-    }, [sheets]);
-
-    const [imageSource, setImageSource] = useState<string>("upload");
-    const onSelectTab = useCallback((k: string | null) => {
-      if (k) {
-        setImageSource(k);
-      }
-    }, []);
-
-    const [imageProcessState, setImageProcessState] =
-      useState<InsertImageProcessImageState>(InsertImageProcessImageState.IDLE);
-    const [filename, setFilename] = useState<string>("");
-    const [fileContents, setFileContents] = useState<string>("");
-    const [fileInvalid, setFileInvalid] = useState<boolean>(false);
-    const onChangeFile = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-      setImageProcessState(InsertImageProcessImageState.PROCESSING);
-
-      void (async () => {
-        try {
-          const file = e.target.files?.[0];
-          if (!file) {
-            setFileInvalid(false);
-            e.target.setCustomValidity("");
-            return;
-          }
-
-          if (file.size > 2 * 1024 * 1024) {
-            e.target.setCustomValidity(
-              "Uploaded files must be less than 2 MB.",
-            );
-            setFileInvalid(true);
-            return;
-          }
-
-          const newFileContents = await new Promise<string>(
-            (resolve, reject) => {
-              const reader = new FileReader();
-              reader.addEventListener("load", () => {
-                resolve(reader.result as string);
-              });
-              reader.addEventListener("error", reject);
-              reader.readAsDataURL(file);
-            },
-          );
-          const newImagePixels = await new Promise<number>((resolve) => {
-            const image = new Image();
-            image.addEventListener("load", () => {
-              resolve(image.width * image.height);
-            });
-            image.src = newFileContents;
-          });
-
-          if (newImagePixels > 1000000) {
-            e.target.setCustomValidity(
-              "Uploaded images must be less than 1 million pixels in area.",
-            );
-            setFileInvalid(true);
-            return;
-          }
-
-          setFilename(file.name);
-          setFileContents(newFileContents);
-
-          setFileInvalid(false);
-          e.target.setCustomValidity("");
-        } finally {
-          setImageProcessState(InsertImageProcessImageState.IDLE);
-        }
-      })();
-    }, []);
-
-    const [url, setUrl] = useState<string>("");
-    const onChangeUrl = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-      setUrl(e.target.value);
-    }, []);
-
-    const onSubmit = useCallback(
-      (e: MouseEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        let image: ImageSource;
-        if (imageSource === "upload") {
-          image = {
-            source: "upload",
-            filename,
-            contents: fileContents,
-          };
-        } else {
-          image = {
-            source: "link",
-            url,
-          };
-        }
-
-        setSubmitState(InsertImageSubmitState.SUBMITTING);
-        insertDocumentImage.call(
-          {
-            documentId,
-            sheetId: sheet,
-            image,
-          },
-          (err) => {
-            if (err) {
-              setSubmitState(InsertImageSubmitState.ERROR);
-              setSubmitError(err.message);
-            } else {
-              setSubmitState(InsertImageSubmitState.IDLE);
-              hide();
-            }
-          },
-        );
-      },
-      [documentId, fileContents, filename, imageSource, sheet, url, hide],
-    );
-
-    const submitDisabled =
-      imageProcessState === InsertImageProcessImageState.PROCESSING ||
-      submitState === InsertImageSubmitState.SUBMITTING;
-
-    const modal = (
-      <Modal show={visible} onHide={hide}>
-        <Modal.Header closeButton>Insert image</Modal.Header>
-        <Form onSubmit={onSubmit}>
-          <Modal.Body>
-            <FormGroup className="mb-3">
-              <FormLabel htmlFor="jr-puzzle-insert-image-sheet">
-                Choose a sheet
-              </FormLabel>
-              <FormSelect
-                id="jr-puzzle-insert-image-sheet"
-                onChange={onChangeSheet}
-                value={sheet}
-              >
-                {sheetOptions}
-              </FormSelect>
-            </FormGroup>
-            <Tabs
-              activeKey={imageSource}
-              onSelect={onSelectTab}
-              className="mb-3"
-            >
-              <Tab eventKey="upload" title="Upload">
-                <FormControl
-                  type="file"
-                  onChange={onChangeFile}
-                  isInvalid={fileInvalid}
-                  required={imageSource === "upload"}
-                  disabled={
-                    imageProcessState ===
-                    InsertImageProcessImageState.PROCESSING
-                  }
-                />
-              </Tab>
-              <Tab eventKey="link" title="Link">
-                <FormGroup className="mb-3">
-                  <FormLabel htmlFor="jr-puzzle-insert-image-link">
-                    Image URL
-                  </FormLabel>
-                  <FormControl
-                    id="jr-puzzle-insert-image-link"
-                    type="url"
-                    required={imageSource === "link"}
-                    onChange={onChangeUrl}
-                    value={url}
-                  />
-                </FormGroup>
-              </Tab>
-            </Tabs>
-          </Modal.Body>
-          <Modal.Footer>
-            <div className="mb-3">
-              <Button variant="primary" type="submit" disabled={submitDisabled}>
-                Insert
-              </Button>
-            </div>
-            {submitState === InsertImageSubmitState.ERROR ? (
-              <Alert variant="danger" dismissible onClose={clearError}>
-                {submitError}
-              </Alert>
-            ) : null}
-          </Modal.Footer>
-        </Form>
-      </Modal>
-    );
-
-    return createPortal(modal, document.body);
-  },
-);
 
 const InsertImage = ({ documentId }: { documentId: string }) => {
   useSubscribe("googleScriptInfo");

@@ -252,6 +252,26 @@ Resources:
       RouteTableId: !Ref PublicSubnetRouteTable
       SubnetId: !Ref PublicSubnet2
 
+  ImageUploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+  ImageUploadBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ImageUploadBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: ["s3:GetObject"]
+            Resource: !Sub "arn:aws:s3:::${ImageUploadBucket}/*"
+
   AppInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -279,6 +299,18 @@ Resources:
                 Action:
                   - kms:Decrypt
                 Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${CredstashKeyUuid}"
+        - PolicyName: s3-uploads
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListAllMyBuckets
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: !Sub "arn:aws:s3:::${ImageUploadBucket}/*"
 
   AppInstanceProfile:
     Type: AWS::IAM::InstanceProfile

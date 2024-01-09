@@ -186,6 +186,12 @@ export function userMayConfigureGoogleOAuth(
   return isAdmin(user);
 }
 
+export function userMayConfigureAWS(
+  user: Pick<Meteor.User, "roles"> | null | undefined,
+): boolean {
+  return isAdmin(user);
+}
+
 export function userMayConfigureDiscordOAuth(
   user: Pick<Meteor.User, "roles"> | null | undefined,
 ): boolean {
