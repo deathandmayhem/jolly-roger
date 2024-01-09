@@ -130,8 +130,5 @@ updates in realtime. It's delightful.
 
 ## Setting up a Jolly Roger instance
 
-Interested in developing or testing Jolly Roger locally? See
-[DEVELOPMENT.md](DEVELOPMENT.md).
-
-Interested in operating a production-grade instance of Jolly Roger? See
-[OPERATION.md](OPERATION.md).
+Interested in developing or testing Jolly Roger locally, or
+running your own production instance? See [DEVELOPMENT.md](DEVELOPMENT.md).
