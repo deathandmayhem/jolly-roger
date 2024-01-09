@@ -439,7 +439,11 @@ const ProfileList = ({
               key={user._id}
               action
               as={Link}
-              to={`/users/${user._id}`}
+              to={
+                hunt
+                  ? `/hunts/${hunt._id}/hunters/${user._id}`
+                  : `/users/${user._id}`
+              }
               className="p-1"
             >
               <ListItemContainer>
