@@ -56,9 +56,10 @@ As a "canned configuration" for all of that,
 [`cloudformation/jolly-roger.yaml`](cloudformation/jolly-roger.yaml) is
 a template for [AWS CloudFormation](https://aws.amazon.com/cloudformation/).
 You will need to edit it for your use (change the domain name, etc) but then
-it can spin up a full production system including Jolly Roger, MongoDB,
-a load balancer, a TURN server, SSL certificates, autoscaling and so on
-using Amazon Web Services with a modest footprint.
+it can spin up a production system including Jolly Roger, a load balancer,
+a TURN server, SSL certificates, autoscaling and so on using
+Amazon Web Services. This configuration expects a database hosted elsewhere,
+like [MongoDB Atlas](https://www.mongodb.com/atlas/database).
 
 ## Server environment variables
 
