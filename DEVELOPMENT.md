@@ -135,4 +135,4 @@ Meteor.call("Hunts.methods.createFixture");
 ```
 
 Either way, upon success, you should see a hunt named "Mystery Hunt 2018" in the
-list at [http://localhost:3000/hunts/](http://localhost:3000/hunts/).
+list on the homepage.
