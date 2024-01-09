@@ -1,3 +1,4 @@
+import "./acceptUserHuntTerms";
 import "./addHuntUser";
 import "./addPuzzleAnswer";
 import "./addPuzzleTag";

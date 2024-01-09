@@ -25,6 +25,9 @@ const EditableHunt = z.object({
   // If this is true, an operator must mark guesses as correct or not.
   // If this is false, users enter answers directly without the guess step.
   hasGuessQueue: z.boolean(),
+  // If provided, users will be presented with this text as a modal to agree to
+  // before accessing the hunt.
+  termsOfUse: nonEmptyString.optional(),
   // If this is provided, then this is used to generate links to puzzles' guess
   // submission pages. The format is interpreted as a Mustache template
   // (https://mustache.github.io/). It's passed as context a parsed URL
@@ -59,6 +62,7 @@ export const HuntPattern = {
   signupMessage: Match.Optional(String),
   openSignups: Boolean,
   hasGuessQueue: Boolean,
+  termsOfUse: Match.Optional(String),
   submitTemplate: Match.Optional(String),
   homepageUrl: Match.Optional(String),
   puzzleHooksDiscordChannel: Match.Optional(SavedDiscordObjectPattern),

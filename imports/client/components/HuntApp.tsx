@@ -1,9 +1,11 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import React, { useCallback, useMemo } from "react";
+import { Modal, ModalBody, ModalFooter } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import ButtonToolbar from "react-bootstrap/ButtonToolbar";
+import { createPortal } from "react-dom";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import Hunts from "../../lib/models/Hunts";
 import type { HuntType } from "../../lib/models/Hunts";
@@ -12,6 +14,7 @@ import {
   userMayUpdateHunt,
 } from "../../lib/permission_stubs";
 import huntForHuntApp from "../../lib/publications/huntForHuntApp";
+import acceptUserHuntTerms from "../../methods/acceptUserHuntTerms";
 import addHuntUser from "../../methods/addHuntUser";
 import undestroyHunt from "../../methods/undestroyHunt";
 import { useBreadcrumb } from "../hooks/breadcrumb";
@@ -111,13 +114,21 @@ const HuntApp = React.memo(() => {
   const loading = huntLoading();
 
   const hunt = useTracker(() => Hunts.findOneAllowingDeleted(huntId), [huntId]);
-  const { member, canUndestroy, canJoin } = useTracker(() => {
+  const { member, canUndestroy, canJoin, mustAcceptTerms } = useTracker(() => {
+    const user = Meteor.user();
+    const termsAccepted = user?.huntTermsAcceptedAt?.[huntId] ?? false;
     return {
-      member: Meteor.user()?.hunts?.includes(huntId) ?? false,
-      canUndestroy: userMayUpdateHunt(Meteor.user(), hunt),
-      canJoin: userMayAddUsersToHunt(Meteor.user(), hunt),
+      member: user?.hunts?.includes(huntId) ?? false,
+      canUndestroy: userMayUpdateHunt(user, hunt),
+      canJoin: userMayAddUsersToHunt(user, hunt),
+      mustAcceptTerms: hunt?.termsOfUse && !termsAccepted,
     };
   }, [huntId, hunt]);
+
+  const acceptTerms = useCallback(
+    () => acceptUserHuntTerms.call({ huntId }),
+    [huntId],
+  );
 
   useBreadcrumb({
     title: loading || !hunt ? "loading..." : hunt.name,
@@ -144,7 +155,29 @@ const HuntApp = React.memo(() => {
     return <HuntMemberError hunt={hunt} canJoin={canJoin} />;
   }
 
-  return <Outlet />;
+  let termsModal = null;
+  if (mustAcceptTerms) {
+    termsModal = createPortal(
+      <Modal show size="lg">
+        <ModalBody>
+          <Markdown text={hunt.termsOfUse!} />
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="primary" onClick={acceptTerms}>
+            Accept
+          </Button>
+        </ModalFooter>
+      </Modal>,
+      document.body,
+    );
+  }
+
+  return (
+    <>
+      {termsModal}
+      <Outlet />
+    </>
+  );
 });
 
 export default HuntApp;
