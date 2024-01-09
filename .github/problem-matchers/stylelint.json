@@ -1,0 +1,21 @@
+{
+  "problemMatcher": [
+    {
+      "owner": "stylelint",
+      "pattern": [
+        {
+          "regexp": "^([^\\s].*)$",
+          "file": 1
+        },
+        {
+          "regexp": "^\\s+(?:(?:\\u001b\\[\\d+m)*(\\d+):(\\d+)(?:\\u001b\\[\\d+m)*)?\\s+(?:\\u001b\\[\\d+m)*(?:✖|×)(?:\\u001b\\[\\d+m)*\\s+(.*)\\s{2,}(?:\\u001b\\[\\d+m)*([^\\u001b]*)(?:\\u001b\\[\\d+m)*$",
+          "line": 1,
+          "column": 2,
+          "message": 3,
+          "code": 4,
+          "loop": true
+        }
+      ]
+    }
+  ]
+}
