@@ -1,7 +1,7 @@
 {
   "editor.tabSize": 2,
-  "javascript.preferences.quoteStyle": "single",
-  "typescript.preferences.quoteStyle": "single",
+  "javascript.preferences.quoteStyle": "double",
+  "typescript.preferences.quoteStyle": "double",
   // Always use relative imports for project files
   "javascript.preferences.importModuleSpecifier": "relative",
   "typescript.preferences.importModuleSpecifier": "relative",
@@ -9,5 +9,7 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   // Make sure to run stylelint on Typescript and SCSS (embedded in Typescript)
   // files
-  "stylelint.validate": ["css", "less", "postcss", "typescriptreact", "scss"]
+  "stylelint.validate": ["css", "less", "postcss", "typescriptreact", "scss"],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
