@@ -4,6 +4,8 @@ import { computeSolvedness } from "../../lib/solvedness";
 import type Hookset from "./Hookset";
 
 const TagCleanupHooks: Hookset = {
+  name: "TagCleanupHooks",
+
   async onPuzzleSolved(puzzleId: string) {
     const puzzle = await Puzzles.findOneAsync(puzzleId);
     if (!puzzle) return;

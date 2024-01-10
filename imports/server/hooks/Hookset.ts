@@ -9,6 +9,8 @@ interface Hookset {
   // * Include the onWhatever properties for events you want to receive
   // * Add your object to the registry in imports/server/hooks/GlobalHooks.ts
 
+  name: string;
+
   // Triggered when a new announcement is posted.  Contains the ID of the
   // announcement
   onAnnouncement?: (announcementId: string) => void | Promise<void>;

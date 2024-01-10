@@ -10,6 +10,8 @@ import nodeIsMention from "../../lib/nodeIsMention";
 import type Hookset from "./Hookset";
 
 const ChatNotificationHooks: Hookset = {
+  name: "ChatNotificationHooks",
+
   async onChatMessageCreated(chatMessageId: string) {
     // This method implements notifications for both Dingwords and @-mentions together,
     // so that we do not generate duplicate notifications if a user is both @-mentioned
