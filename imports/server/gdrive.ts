@@ -172,7 +172,9 @@ export async function makeReadOnly(fileId: string) {
     requestBody: { role: "reader", type: "anyone" },
   });
 
-  // Delete any editor permissions
+  // Delete any editor permissions. Normally, this will just be the writer
+  // permission for "anyone", but in the distant past we would grant individual
+  // users write access to files; we want to make sure those get deleted, too.
   for (const permission of permissions) {
     if (permission.id && permission.role === "writer") {
       await client.permissions.delete({
