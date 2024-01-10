@@ -698,6 +698,9 @@ Resources:
                     timeout connect 5s
                     timeout client 50s
                     timeout server 50s
+                    timeout http-request 20s
+                    timeout client-fin 20s
+                    timeout tunnel 10m
 
                     frontend inbound
                     bind :443
@@ -866,7 +869,7 @@ Resources:
                 - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_REGION=$AWS_DEFAULT_REGION -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} -e TURN_SERVER=turns:${AppUrl}:443?transport=tcp -e TURN_SECRET=${TurnSecret} ghcr.io/deathandmayhem/jolly-roger
                 - docker run --name nginx -d --network=host --restart=unless-stopped -v /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf -v /usr/share/nginx/html/502.html:/usr/share/nginx/html/502.html nginx
                 - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --interval 30 --cleanup
-                - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy
+                - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy:2.9.0
             - PapertrailRsyslogConfig: !If
                 - HavePapertrail
                 - !Sub |
