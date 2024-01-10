@@ -14,7 +14,7 @@ const ResolvedProfilePage = ({
   userId: string;
   isSelf: boolean;
 }) => {
-  useBreadcrumb({ title: "Users", path: "/users" });
+  const huntId = useParams<"huntId">().huntId;
 
   const profileLoading = useSubscribe("profile", userId);
   const loading = profileLoading();
@@ -25,7 +25,7 @@ const ResolvedProfilePage = ({
 
   useBreadcrumb({
     title: loading ? "loading..." : user?.displayName ?? "Profile settings",
-    path: `/users/${userId}`,
+    path: huntId ? `/hunts/${huntId}/hunters/${userId}` : `/users/${userId}`,
   });
 
   if (loading) {

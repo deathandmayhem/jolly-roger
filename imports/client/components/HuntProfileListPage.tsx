@@ -10,12 +10,10 @@ import {
   userMayMakeOperatorForHunt,
   userMayUseDiscordBotAPIs,
 } from "../../lib/permission_stubs";
-import { useBreadcrumb } from "../hooks/breadcrumb";
 import ProfileList from "./ProfileList";
 
 const HuntProfileListPage = () => {
   const huntId = useParams<"huntId">().huntId!;
-  useBreadcrumb({ title: "Hunters", path: `/hunts/${huntId}/hunters` });
 
   const profilesLoading = useSubscribe("huntProfiles", huntId);
   const userRolesLoading = useSubscribe("huntRoles", huntId);

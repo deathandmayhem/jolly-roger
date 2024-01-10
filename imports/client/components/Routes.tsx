@@ -13,6 +13,7 @@ import HuntApp from "./HuntApp";
 import HuntListApp from "./HuntListApp";
 import HuntListPage from "./HuntListPage";
 import HuntProfileListPage from "./HuntProfileListPage";
+import HuntersApp from "./HuntersApp";
 import Loading from "./Loading";
 import LoginForm from "./LoginForm";
 import PasswordResetForm from "./PasswordResetForm";
@@ -21,6 +22,7 @@ import PuzzleListPage from "./PuzzleListPage";
 import PuzzlePage from "./PuzzlePage";
 import RootRedirector from "./RootRedirector";
 import UserInvitePage from "./UserInvitePage";
+import UsersApp from "./UsersApp";
 import { AuthenticatedPage, UnauthenticatedPage } from "./authentication";
 
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
@@ -40,8 +42,15 @@ export const AuthenticatedRouteList: RouteObject[] = [
           { path: "announcements", element: <AnnouncementsPage /> },
           { path: "firehose", element: <FirehosePage /> },
           { path: "guesses", element: <GuessQueuePage /> },
-          { path: "hunters", element: <HuntProfileListPage /> },
-          { path: "hunters/invite", element: <UserInvitePage /> },
+          {
+            path: "hunters",
+            element: <HuntersApp />,
+            children: [
+              { path: "", element: <HuntProfileListPage /> },
+              { path: "invite", element: <UserInvitePage /> },
+              { path: ":userId", element: <ProfilePage /> },
+            ],
+          },
           { path: "puzzles/:puzzleId", element: <PuzzlePage /> },
           { path: "puzzles", element: <PuzzleListPage /> },
           { path: "edit", element: <HuntEditPage /> },
@@ -52,8 +61,14 @@ export const AuthenticatedRouteList: RouteObject[] = [
       { path: "", element: <HuntListPage /> },
     ],
   },
-  { path: "/users/:userId", element: <ProfilePage /> },
-  { path: "/users", element: <AllProfileListPage /> },
+  {
+    path: "/users",
+    element: <UsersApp />,
+    children: [
+      { path: ":userId", element: <ProfilePage /> },
+      { path: "", element: <AllProfileListPage /> },
+    ],
+  },
   { path: "/setup", element: <SetupPage /> },
   { path: "/rtcdebug", element: <RTCDebugPage /> },
 ].map((r) => {

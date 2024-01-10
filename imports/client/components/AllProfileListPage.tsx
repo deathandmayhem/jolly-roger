@@ -1,11 +1,9 @@
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import React from "react";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import { useBreadcrumb } from "../hooks/breadcrumb";
 import ProfileList from "./ProfileList";
 
 const AllProfileListPage = () => {
-  useBreadcrumb({ title: "Users", path: "/users" });
   const profilesLoading = useSubscribe("allProfiles");
   const loading = profilesLoading();
 
