@@ -61,7 +61,6 @@ FROM buildenv as meteorenv
 WORKDIR /app
 
 ARG CI=true
-ARG GITHUB_ACTIONS=
 
 # Install Meteor
 COPY .meteor/release /app/.meteor/release
@@ -97,7 +96,7 @@ COPY <<'EOF' /test.sh
 set -eux
 set -o pipefail
 export METEOR_ALLOW_SUPERUSER=1
-meteor npm run lint | sed -e "s,/app/,\${PATH_PREFIX:+\${PATH_PREFIX}/},g"
+meteor npm run lint | sed -e "s,/app/,${PATH_PREFIX:+${PATH_PREFIX}/},g"
 meteor npm run test
 EOF
 CMD ["/bin/bash", "/test.sh"]

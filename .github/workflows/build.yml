@@ -50,10 +50,14 @@ jobs:
           cache-to: type=gha,mode=max # mode=max means cache intermediate images
           build-args: |
             CI=true
-            GITHUB_ACTIONS=true
+      - name: Enable problem matchers
+        run: |
+          echo "::add-matcher::${{ github.workspace }}/.github/problem-matchers/tsc.json"
+          echo "::add-matcher::${{ github.workspace }}/.github/problem-matchers/eslint.json"
+          echo "::add-matcher::${{ github.workspace }}/.github/problem-matchers/stylelint.json"
       - name: Run tests
         run: |
-          docker run -e PATH_PREFIX=${{ github.workspace }} -e CI=true -e GITHUB_ACTIONS=true --rm ${{ env.TEST_TAG }}
+          docker run -e PATH_PREFIX=${{ github.workspace }} -e CI=true --rm ${{ env.TEST_TAG }}
       - name: Build production Docker image
         uses: docker/build-push-action@v5
         with:
@@ -65,4 +69,3 @@ jobs:
           cache-to: type=gha,mode=max # mode=max means cache intermediate images
           build-args: |
             CI=true
-            GITHUB_ACTIONS=true
