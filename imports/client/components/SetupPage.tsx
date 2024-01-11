@@ -18,6 +18,7 @@ import styled from "styled-components";
 import Flags from "../../Flags";
 import isAdmin from "../../lib/isAdmin";
 import DiscordCache from "../../lib/models/DiscordCache";
+import type { FlagNames } from "../../lib/models/FeatureFlags";
 import type { SavedDiscordObjectType } from "../../lib/models/Hunts";
 import type { SettingType } from "../../lib/models/Settings";
 import Settings from "../../lib/models/Settings";
@@ -2335,7 +2336,7 @@ const CircuitBreakerControl = ({
   title: string;
 
   // What is the database name for this flag
-  flagName: string;
+  flagName: (typeof FlagNames)[number];
 
   // some explanation of what this feature flag controls and why you might want to toggle it.
   children: React.ReactNode;

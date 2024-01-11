@@ -42,6 +42,6 @@ Migrations.add({
     }
 
     // Remove the feature flag that caused fallback to chat v1
-    await FeatureFlags.removeAsync({ name: "disable.chatv2" });
+    await FeatureFlags.removeAsync({ name: "disable.chatv2" } as any);
   },
 });
