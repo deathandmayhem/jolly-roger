@@ -364,8 +364,8 @@ class SFU {
   ) {
     process.env.DEBUG = "mediasoup:WARN:* mediasoup:ERROR:*";
     const worker = await createWorker({
-      rtcMinPort: 10000,
-      rtcMaxPort: 49999,
+      rtcMinPort: 50000,
+      rtcMaxPort: 65535,
     });
     const monitorRouter = await worker.createRouter({
       mediaCodecs,
