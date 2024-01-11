@@ -1,7 +1,8 @@
+import type { FlagNames } from "../lib/models/FeatureFlags";
 import TypedMethod from "./TypedMethod";
 
 type SetFeatureFlagArgs = {
-  name: string;
+  name: (typeof FlagNames)[number];
   type: "on" | "off";
 };
 

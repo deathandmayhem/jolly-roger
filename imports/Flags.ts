@@ -1,6 +1,6 @@
-import { check } from "meteor/check";
+import { Match, check } from "meteor/check";
 import type { FeatureFlagType } from "./lib/models/FeatureFlags";
-import FeatureFlags from "./lib/models/FeatureFlags";
+import FeatureFlags, { FlagNames } from "./lib/models/FeatureFlags";
 
 function flagIsActive(flag: Pick<FeatureFlagType, "type"> | undefined) {
   if (!flag) {
@@ -18,22 +18,25 @@ function flagIsActive(flag: Pick<FeatureFlagType, "type"> | undefined) {
 }
 
 const Flags = {
-  active(name: unknown) {
-    check(name, String);
+  active(name: (typeof FlagNames)[number]) {
+    check(name, Match.OneOf(...FlagNames));
 
     const flag = FeatureFlags.findOne({ name });
     return flagIsActive(flag);
   },
 
-  async activeAsync(name: unknown) {
-    check(name, String);
+  async activeAsync(name: (typeof FlagNames)[number]) {
+    check(name, Match.OneOf(...FlagNames));
 
     const flag = await FeatureFlags.findOneAsync({ name });
     return flagIsActive(flag);
   },
 
-  observeChanges(name: unknown, cb: (active: boolean) => void) {
-    check(name, String);
+  observeChanges(
+    name: (typeof FlagNames)[number],
+    cb: (active: boolean) => void,
+  ) {
+    check(name, Match.OneOf(...FlagNames));
     check(cb, Function);
 
     let state: FeatureFlagType | undefined;
