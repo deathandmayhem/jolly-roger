@@ -45,6 +45,7 @@ import {
   useOperatorActionsHiddenForHunt,
 } from "../hooks/persisted-state";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import HuntNav from "./HuntNav";
 import PuzzleList from "./PuzzleList";
 import type {
   PuzzleModalFormHandle,
@@ -54,7 +55,6 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import RelatedPuzzleGroup, { PuzzleGroupDiv } from "./RelatedPuzzleGroup";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import { mediaBreakpointDown } from "./styling/responsive";
-import HuntNav from "./HuntNav";
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;

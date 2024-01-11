@@ -7,12 +7,12 @@ import { faReceipt } from "@fortawesome/free-solid-svg-icons/faReceipt";
 import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
+import { Nav } from "react-bootstrap";
 import { NavLink, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import Hunts from "../../lib/models/Hunts";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { Nav } from "react-bootstrap";
 
 const JRLinkList = styled(Nav)`
   margin-right: 8px;
@@ -194,8 +194,9 @@ const HuntNav = () => {
         {huntLink}
       </JRLinkList>
     );
+  } else {
+    return undefined;
   }
-  return;
 };
 
 export default HuntNav;

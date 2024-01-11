@@ -28,11 +28,11 @@ import isAdmin from "../../lib/isAdmin";
 import { useBreadcrumbItems } from "../hooks/breadcrumb";
 import lookupUrl from "../lookupUrl";
 import ConnectionStatus from "./ConnectionStatus";
+import HuntNav from "./HuntNav";
 import Loading from "./Loading";
 import NotificationCenter from "./NotificationCenter";
 import { NavBarHeight } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
-import HuntNav from "./HuntNav";
 
 const Breadcrumb = styled.nav`
   display: flex;
