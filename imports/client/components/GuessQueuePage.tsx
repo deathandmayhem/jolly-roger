@@ -46,7 +46,7 @@ import {
   formatGuessDirection,
 } from "./guessDetails";
 import Breakable from "./styling/Breakable";
-import { guessColorLookupTable, NavBarHeight } from "./styling/constants";
+import { guessColorLookupTable } from "./styling/constants";
 import type { Breakpoint } from "./styling/responsive";
 import { mediaBreakpointDown } from "./styling/responsive";
 
@@ -78,7 +78,7 @@ const StyledHeaderRow = styled.div`
 
 const StyledHeader = styled.div`
   position: sticky;
-  top: ${NavBarHeight};
+  top: 0;
   background-color: white;
   font-weight: bold;
   ${mediaBreakpointDown(

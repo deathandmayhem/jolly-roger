@@ -43,10 +43,10 @@ const Breadcrumb = styled.nav`
 `;
 
 const ContentContainer = styled.div`
-  margin-top: calc(env(safe-area-inset-top, 0px) + ${NavBarHeight});
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
-  padding-left: max(env(safe-area-inset-left, 0px), 15px);
-  padding-right: max(env(safe-area-inset-right, 0px), 15px);
+  padding: /* top right bottom left */ max(env(safe-area-inset-top, 0px), 15px)
+    max(env(safe-area-inset-right, 0px), 15px)
+    max(env(safe-area-inset-bottom, 0px), 20px)
+    max(env(safe-area-inset-left, 0px), 15px);
 `;
 
 /* Using some prefixed styles with widespread support and graceful failure */
@@ -241,7 +241,6 @@ const AppNavbar = () => {
   // a nonempty source for it yet.
   return (
     <NavbarInset
-      fixed="top"
       variant="light"
       style={{
         backgroundColor: "#f0f0f0",
@@ -319,12 +318,13 @@ const App = ({ children }: { children: React.ReactNode }) => {
       </ReactErrorBoundary>
     );
   }
+
   return (
     <div>
       <NotificationCenter />
       <AppNavbar />
       <ConnectionStatus />
-      <ContentContainer className="container-fluid pt-2">
+      <ContentContainer className="container-fluid">
         {errorBoundary}
       </ContentContainer>
     </div>
