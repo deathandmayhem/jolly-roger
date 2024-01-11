@@ -8,6 +8,7 @@ import {
 import DocumentActivities from "../lib/models/DocumentActivities";
 import Documents from "../lib/models/Documents";
 import MeteorUsers from "../lib/models/MeteorUsers";
+import Settings from "../lib/models/Settings";
 import roundedTime from "../lib/roundedTime";
 import GoogleClient from "./googleClientRefresher";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
@@ -66,6 +67,8 @@ async function fetchDriveActivity() {
     return;
   }
 
+  const root = await Settings.findOneAsync({ name: "gdrive.root" });
+
   // Don't fetch history that's older than what we'd display
   const previousTimestamp = Math.max(
     (await DriveActivityLatests.findOneAsync("default"))?.ts.getTime() ?? 0,
@@ -83,6 +86,7 @@ async function fetchDriveActivity() {
       requestBody: {
         pageToken,
         filter,
+        ancestorName: root?.value.id ? `items/${root.value.id}` : undefined,
       },
     });
     pageToken = resp.data.nextPageToken ?? undefined;
