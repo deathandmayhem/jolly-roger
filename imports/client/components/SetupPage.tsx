@@ -2392,22 +2392,24 @@ const CircuitBreakerSection = () => {
           information about anyone who opens a link viewers.
         </p>
         <p>
-          If, however, the document has already been explicitly shared with a
-          particular google account, then that user&apos;s identity will be
-          revealed in the document, which means you can see who it is editing or
-          highlighting what cell in the spreadsheet and whatnot.
+          If, however, either the document or a folder that is an ancestor of
+          the document has been explicitly shared with a particular google
+          account, then that user&apos;s identity will be revealed in the
+          document, which means you can see who it is editing or highlighting
+          what cell in the spreadsheet and whatnot.
         </p>
         <p>
-          Since sharing documents with N people in a hunt is N API calls, to
-          avoid getting rate-limited by Google, we opt to do this sharing lazily
-          when hunters open the puzzle page.
+          Our current approach to granting these permissions only requires
+          making a single grant per user per hunt, which should theoretically be
+          well within Google&apos;s rate limits, but in practice we&apos;ve
+          occasionally seen issues.
         </p>
         <p>
-          Disabling this feature means that Jolly Roger will continue to create
-          documents, but will not attempt to share them to users that have
-          linked their Google identity. As a result, new documents will show
-          entirely anonymous animal users, and users looking at documents for
-          the first time will also remain anonymous within the Google iframe.
+          Disabling this feature means that Jolly Roger will not attempt to
+          share folders to users that have linked their Google identity. As a
+          result, newly added users will show up as anonymous animals. If the
+          feature is subsequently enabled, we will attempt to add the missing
+          permissions whenever that user next loads a spreadsheet iframe.
         </p>
       </CircuitBreakerControl>
       <CircuitBreakerControl
@@ -2428,23 +2430,19 @@ const CircuitBreakerSection = () => {
       </CircuitBreakerControl>
       <CircuitBreakerControl title="WebRTC calls" flagName="disable.webrtc">
         <p>
-          Jolly Roger has experimental support for making WebRTC audio calls
-          built into each puzzle page. Jolly Roger provides the signaling server
-          and all members of the call establish a direct connection to all other
-          members of the same call (which is more complex at the edge, but
-          avoids needing to operate a separate high-capacity, latency-sensitive
-          reencoding server). Note that video calls are not currently supported
-          primarily due to the bandwidth constraints the mesh connectivity would
-          imply -- video consumes 60x the bitrate of audio, and we estimate most
-          residential network connections to only be able to reliably support
-          around 4 call participants at a time before significant degradation.
+          Jolly Roger has support for making WebRTC audio calls built into each
+          puzzle page. Jolly Roger provides both the signaling server and a
+          &quot;selective forwarding unit&quot;, through which all calls are
+          forwarded. While our experience has been that the resource usage of
+          this feature is quite low, it is likely the most resource intensive
+          feature of Jolly Roger.
         </p>
         <p>
           Disabling this feature means that Jolly Roger will not show an
           audiocall section in the UI on the puzzle page, nor will clients join
-          calls. The server will still service WebRTC-related subscriptions and
-          methods, but we expect clients to not generate such load once the flag
-          is flipped.
+          calls. The server will still service some WebRTC-related subscriptions
+          and methods, but most will fail, and once the flag is flipped we
+          expect clients to not even try.
         </p>
       </CircuitBreakerControl>
       <CircuitBreakerControl
@@ -2469,8 +2467,9 @@ const CircuitBreakerSection = () => {
           anyone mentions a word of particular significance to the user in any
           of the puzzle chats, so that they can potentially contribute. However,
           this involves doing substantial matching work for every chat message
-          sent, and the CPU/DB load involved have not been tested in production
-          yet.
+          sent. We&apos;ve found the resulting production CPU load to be
+          manageable, but it is possible to disable this feature if it is
+          causing issues.
         </p>
         <p>
           Disabling this feature means that Jolly Roger will no longer do
