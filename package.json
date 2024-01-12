@@ -20,7 +20,7 @@
     "postshrinkwrap": "lockfix"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.485.0",
+    "@aws-sdk/client-s3": "^3.490.0",
     "@aws-sdk/s3-presigned-post": "^3.485.0",
     "@babel/runtime": "^7.23.7",
     "@bugsnag/js": "^7.22.3",
