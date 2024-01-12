@@ -68,7 +68,7 @@
     "slate-history": "^0.100.0",
     "slate-react": "^0.101.5",
     "stacktrace-js": "^2.0.2",
-    "styled-components": "^6.1.6",
+    "styled-components": "^6.1.8",
     "use-persisted-state": "^0.3.3",
     "winston": "^3.11.0",
     "winston-transport": "^4.6.0",
