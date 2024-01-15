@@ -16,9 +16,13 @@ const ChatHooks: Hookset = {
       group.name.substring("group:".length),
     );
     const metaTags = await Tags.find({
-      name: { $in: groupNames.map((name) => `meta-for:${name}`) },
+      hunt: puzzle.hunt,
+      name: {
+        $in: groupNames.map((name) => `meta-for:${name}`),
+      },
     }).fetchAsync();
     const puzzlesWithMetaTags = await Puzzles.find({
+      hunt: puzzle.hunt,
       tags: { $in: metaTags.map((tag) => tag._id) },
       _id: { $ne: puzzleId }, // Avoid sending a notification to the puzzle that was just solved.
     }).fetchAsync();
