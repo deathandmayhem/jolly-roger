@@ -698,9 +698,6 @@ Resources:
                     timeout connect 5s
                     timeout client 50s
                     timeout server 50s
-                    timeout http-request 20s
-                    timeout client-fin 20s
-                    timeout tunnel 10m
 
                     frontend inbound
                     bind :443
