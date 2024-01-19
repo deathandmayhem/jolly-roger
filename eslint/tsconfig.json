@@ -7,8 +7,8 @@
     "noEmit": false,
     "outDir": "dist",
     "sourceMap": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
   },
   "include": ["**/*.ts"],
-  "exclude": []
+  "exclude": [],
 }
