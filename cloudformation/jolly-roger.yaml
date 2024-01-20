@@ -95,9 +95,15 @@ Parameters:
     Type: String
     AllowedPattern: "^[A-Za-z0-9]+$"
     NoEcho: true
+  EnableCloudWatch:
+    Description: Enable CloudWatch logging
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
 
 Conditions:
   HavePapertrail: !Not [!Equals [!Ref PapertrailHost, ""]]
+  HaveCloudWatch: !Equals [!Ref EnableCloudWatch, "true"]
 
 Resources:
   AMILookupRole:
@@ -854,12 +860,7 @@ Resources:
                 - pip3 install 'credstash==1.12.0'
                 - export AWS_DEFAULT_REGION=${AWS::Region}
 
-                # Observability
-                - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
-                - dpkg -i ./amazon-cloudwatch-agent.deb
-                - rm amazon-cloudwatch-agent.deb
-                - sudo systemctl start amazon-cloudwatch-agent
-
+                ${CloudWatchAgentConfig}
                 ${PapertrailDockerConfig}
 
                 - docker run --name coturn -d --restart=unless-stopped --network=host -e DETECT_EXTERNAL_IP=yes coturn/coturn -v --min-port=40000 --max-port=49999 --log-file=stdout --realm=${AppUrl} --use-auth-secret --static-auth-secret=${TurnSecret}
@@ -878,6 +879,17 @@ Resources:
                 - HavePapertrail
                 - !Sub '- docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock -e "SYSLOG_HOSTNAME=$(hostname){{.Container.Name}}" gliderlabs/logspout:master syslog://${PapertrailHost}'
                 - ""
+              CloudWatchAgentConfig: !If
+                - HaveCloudWatch
+                - |
+                  # Observability
+                  - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+                  - dpkg -i ./amazon-cloudwatch-agent.deb
+                  - rm amazon-cloudwatch-agent.deb
+                  - sudo systemctl start amazon-cloudwatch-agent
+                - ""
+
+
     DependsOn:
       - InternetGatewayAttachment
 
