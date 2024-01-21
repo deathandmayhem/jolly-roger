@@ -889,7 +889,6 @@ Resources:
                   - sudo systemctl start amazon-cloudwatch-agent
                 - ""
 
-
     DependsOn:
       - InternetGatewayAttachment
 
