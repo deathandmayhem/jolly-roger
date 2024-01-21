@@ -30,6 +30,16 @@ updates:
         versions: [">=5"]
       - dependency-name: "@types/marked"
         versions: [">=5"]
+    groups:
+      aws:
+        patterns:
+          - "@aws-sdk/*"
+      google:
+        patterns:
+          - "@googleapis/*"
+      fontawesome:
+        patterns:
+          - "@fortawesome/*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
