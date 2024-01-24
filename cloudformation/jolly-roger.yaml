@@ -39,10 +39,15 @@
 # To spin up an independent copy of jolly-roger, you'll _definitely_ need to do
 # the following (and probably more I've forgotten):
 #
-# - Setup credstash (following the directions in the repo)
+# - Setup credstash (following the directions at
+#   https://github.com/fugue/credstash). The UUID of the KMS key created during
+#   the setup process will be configured as the CredstashKeyUuid parameter.
+#
+# - Set up a certificate in AWS Certificate Manager for the domain. The ARN will
+#   be configured as the CertificateArn paramater.
 #
 # - Store the MongoDB URL using `credstash put mongo @<path>`. The free account
-#   from mongolab (for instance) should be sufficient.
+#   from mongodb.com (for instance) should be sufficient.
 #
 # - Signup for a Mailgun account (or any mail provider that supports SMTP
 #   submission), and add an SMTP URL with the SMTP credentials from your mailgun
@@ -62,6 +67,10 @@ Parameters:
   CertificateArn:
     Description: ARN of the certificate to use
     Type: String
+  AppName:
+    Description: The user-facing name of the app
+    Type: String
+    Default: Jolly Roger
   AppUrl:
     Description: The domain name of application
     Type: String
@@ -131,7 +140,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Description: Look up the latest Ubuntu AMI given specific parameters
-      Runtime: nodejs12.x
+      Runtime: nodejs18.x
       Handler: "index.main"
       Timeout: 10
       Role: !GetAtt AMILookupRole.Arn
@@ -589,7 +598,7 @@ Resources:
                     <html lang="en">
                       <head>
                         <meta charset="utf-8">
-                        <title>Jolly Roger :: Temporarily Down</title>
+                        <title>${AppName} :: Temporarily Down</title>
                         <style type="text/css">
                           /* Standard font */
                           @import url("https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap");
@@ -650,13 +659,13 @@ Resources:
 
                         <div class="warning hidden">
                           <p>
-                            <strong>Warning:</strong> The Jolly Roger server is taking longer than expected to come back up.
-                            Please contact the Jolly Roger team if this problem persists.
+                            <strong>Warning:</strong> The ${AppName} server is taking longer than expected to come back up.
+                            Please contact the ${AppName} team if this problem persists.
                           </p>
                         </div>
 
                         <p>
-                          The Jolly Roger server is temporarily down. Usually this happens when a new
+                          The ${AppName} server is temporarily down. Usually this happens when a new
                           version is being deployed. This page will automatically refresh once the site
                           is back up.
                         </p>
