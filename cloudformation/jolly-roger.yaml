@@ -94,6 +94,10 @@ Parameters:
     Description: Desired number of instances for app server ASG
     Type: Number
     Default: 1
+  DockerPackage:
+    Description: Docker package containing the app to deploy
+    Type: String
+    Default: "ghcr.io/deathandmayhem/jolly-roger"
   PapertrailHost:
     Description: Log host for Papertrail
     Type: String
@@ -873,7 +877,7 @@ Resources:
                 ${PapertrailDockerConfig}
 
                 - docker run --name coturn -d --restart=unless-stopped --network=host -e DETECT_EXTERNAL_IP=yes coturn/coturn -v --min-port=40000 --max-port=49999 --log-file=stdout --realm=${AppUrl} --use-auth-secret --static-auth-secret=${TurnSecret}
-                - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_REGION=$AWS_DEFAULT_REGION -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} -e TURN_SERVER=turns:${AppUrl}:443?transport=tcp -e TURN_SECRET=${TurnSecret} ghcr.io/deathandmayhem/jolly-roger
+                - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_REGION=$AWS_DEFAULT_REGION -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} -e TURN_SERVER=turns:${AppUrl}:443?transport=tcp -e TURN_SECRET=${TurnSecret} ${DockerPackage}
                 - docker run --name nginx -d --network=host --restart=unless-stopped -v /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf -v /usr/share/nginx/html/502.html:/usr/share/nginx/html/502.html nginx
                 - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --interval 30 --cleanup
                 - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy:2.9.0
