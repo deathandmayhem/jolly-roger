@@ -113,13 +113,17 @@ Parameters:
     Type: String
     Default: "true"
     AllowedValues: ["true", "false"]
+  SshUsers:
+    Description: Comma-separated list of SSH users, each of the form <username>=<ssh_import_id>
+    Type: String
+    Default: "evan=gh:ebroder,zarvox=gh:zarvox"
 
 Conditions:
   HavePapertrail: !Not [!Equals [!Ref PapertrailHost, ""]]
   HaveCloudWatch: !Equals [!Ref EnableCloudWatch, "true"]
 
 Resources:
-  AMILookupRole:
+  LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -140,6 +144,7 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: "arn:aws:logs:*:*:*"
+
   AMILookupFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -147,7 +152,7 @@ Resources:
       Runtime: nodejs18.x
       Handler: "index.main"
       Timeout: 10
-      Role: !GetAtt AMILookupRole.Arn
+      Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         ZipFile: |
           const assert = require('assert');
@@ -213,6 +218,43 @@ Resources:
     Type: Custom::AMILookup
     Properties:
       ServiceToken: !GetAtt AMILookupFunction.Arn
+      Suite: jammy
+      Region: !Ref "AWS::Region"
+      InstanceType: ebs-ssd
+      Architecture: amd64
+      VirtualizationType: hvm
+
+  SshUsersParsingFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Generate the SSH users docker config from the raw input parameter
+      Runtime: nodejs18.x
+      Handler: "index.main"
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          sshUsers:
+            Ref: SshUsers
+      Code:
+        ZipFile: |
+          const response = require('cfn-response');
+
+          exports.main = function (event, context) {
+            const sshUsers = process.env.sshUsers.split(',');
+            var output = 'users:\n'
+            sshUsers.forEach((sshUser) => {
+                const parts = sshUser.split('=');
+                output += `  - name: ${parts[0]}\n`
+                output += `    shell: /bin/bash\n`
+                output += `    ssh_import_id: ${parts[1]}\n`
+                output += `    sudo: ALL=(ALL) NOPASSWD:ALL\n`
+            });
+            response.send(event, context, response.SUCCESS, { Output: output });
+          };
+  SshUsersParsing:
+    Type: Custom::SshUsersParsing
+    Properties:
+      ServiceToken: !GetAtt SshUsersParsingFunction.Arn
       Suite: jammy
       Region: !Ref "AWS::Region"
       InstanceType: ebs-ssd
@@ -556,15 +598,7 @@ Resources:
                       =0YYh
                       -----END PGP PUBLIC KEY BLOCK-----
 
-              users:
-                - name: evan
-                  shell: /bin/bash
-                  ssh_import_id: gh:ebroder
-                  sudo: ALL=(ALL) NOPASSWD:ALL
-                - name: zarvox
-                  shell: /bin/bash
-                  ssh_import_id: gh:zarvox
-                  sudo: ALL=(ALL) NOPASSWD:ALL
+              ${SshUsersConfig}
 
               swap:
                 filename: "/swapfile"
@@ -901,6 +935,7 @@ Resources:
                   - rm amazon-cloudwatch-agent.deb
                   - sudo systemctl start amazon-cloudwatch-agent
                 - ""
+              SshUsersConfig: !GetAtt SshUsersParsing.Output
 
     DependsOn:
       - InternetGatewayAttachment
