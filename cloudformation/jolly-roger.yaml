@@ -47,7 +47,13 @@
 #   be configured as the CertificateArn paramater.
 #
 # - Store the MongoDB URL using `credstash put mongo @<path>`. The free account
-#   from mongodb.com (for instance) should be sufficient.
+#   from mongodb.com (for instance) should be sufficient. You can configure a
+#   user using the "AWS IAM" authentication method, the type "IAM Role", and the
+#   ARN "arn:aws:iam::<AWS Account ID>:role/JollyRogerAppInstanceRole"; then you
+#   can specify authMechanism=MONGODB-AWS in the URL and do not need to provide
+#   a username/password. You will need to configure the user with the "Atlas
+#   admin" built-in role, and to enable connections from 0.0.0.0/0 (all IPs)
+#   since the EC2 instance IPs aren't static.
 #
 # - Signup for a Mailgun account (or any mail provider that supports SMTP
 #   submission), and add an SMTP URL with the SMTP credentials from your mailgun
@@ -294,6 +300,7 @@ Resources:
   AppInstanceRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: "JollyRogerAppInstanceRole"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
