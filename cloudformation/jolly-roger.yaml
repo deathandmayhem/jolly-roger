@@ -117,10 +117,16 @@ Parameters:
     Description: Comma-separated list of SSH users, each of the form <username>=<ssh_import_id>
     Type: String
     Default: "evan=gh:ebroder,zarvox=gh:zarvox"
+  EnableServing:
+    Description: Whether to bring up the app; set to false to shut it down and save on costs
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
 
 Conditions:
   HavePapertrail: !Not [!Equals [!Ref PapertrailHost, ""]]
   HaveCloudWatch: !Equals [!Ref EnableCloudWatch, "true"]
+  HaveServing: !Equals [!Ref EnableServing, "true"]
 
 Resources:
   LambdaExecutionRole:
@@ -263,24 +269,29 @@ Resources:
 
   VPC:
     Type: AWS::EC2::VPC
+    Condition: HaveServing
     Properties:
       CidrBlock: 10.32.0.0/16
       EnableDnsHostnames: true
 
   PublicSubnetRouteTable:
     Type: AWS::EC2::RouteTable
+    Condition: HaveServing
     Properties:
       VpcId: !Ref VPC
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
+    Condition: HaveServing
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
+    Condition: HaveServing
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
   PublicRouteToInternet:
     Type: AWS::EC2::Route
+    Condition: HaveServing
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
@@ -289,6 +300,7 @@ Resources:
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
+    Condition: HaveServing
     Properties:
       AvailabilityZone: !Select [0, !GetAZs ""]
       CidrBlock: 10.32.0.0/24
@@ -296,12 +308,14 @@ Resources:
       VpcId: !Ref VPC
   PublicSubnet1RouteTableAssoc:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: HaveServing
     Properties:
       RouteTableId: !Ref PublicSubnetRouteTable
       SubnetId: !Ref PublicSubnet1
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
+    Condition: HaveServing
     Properties:
       AvailabilityZone: !Select [1, !GetAZs ""]
       CidrBlock: 10.32.1.0/24
@@ -309,6 +323,7 @@ Resources:
       VpcId: !Ref VPC
   PublicSubnet2RouteTableAssoc:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: HaveServing
     Properties:
       RouteTableId: !Ref PublicSubnetRouteTable
       SubnetId: !Ref PublicSubnet2
@@ -387,6 +402,7 @@ Resources:
 
   AppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    Condition: HaveServing
     Properties:
       GroupDescription: Security group for app server instances
       SecurityGroupEgress:
@@ -441,6 +457,7 @@ Resources:
 
   AppNlb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Condition: HaveServing
     Properties:
       Type: network
       Scheme: internet-facing
@@ -449,6 +466,7 @@ Resources:
         - !Ref PublicSubnet2
   AppNlbTargetHTTP:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Condition: HaveServing
     Properties:
       HealthCheckProtocol: HTTP
       HealthCheckPort: 443
@@ -465,6 +483,7 @@ Resources:
           Value: true
   AppNlbTargetHTTPS:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Condition: HaveServing
     Properties:
       HealthCheckProtocol: HTTP
       HealthCheckPort: 443
@@ -481,6 +500,7 @@ Resources:
           Value: true
   AppNlbListenerHTTP:
     Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: HaveServing
     Properties:
       LoadBalancerArn: !Ref AppNlb
       Protocol: TCP
@@ -490,6 +510,7 @@ Resources:
           TargetGroupArn: !Ref AppNlbTargetHTTP
   AppNlbListenerHTTPS:
     Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: HaveServing
     Properties:
       LoadBalancerArn: !Ref AppNlb
       Protocol: TLS
@@ -503,6 +524,7 @@ Resources:
 
   AppLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
+    Condition: HaveServing
     Properties:
       LaunchTemplateData:
         IamInstanceProfile:
@@ -942,6 +964,7 @@ Resources:
 
   AppAsg:
     Type: AWS::AutoScaling::AutoScalingGroup
+    Condition: HaveServing
     Properties:
       HealthCheckType: ELB
       HealthCheckGracePeriod: 1800
@@ -970,6 +993,7 @@ Resources:
 
   AppDns:
     Type: AWS::Route53::RecordSet
+    Condition: HaveServing
     Properties:
       HostedZoneId: !Ref AppDomain
       Name: !Ref AppUrl
