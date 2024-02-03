@@ -18,10 +18,10 @@ if [ -z "${CLUSTER_WORKERS_COUNT+set}" ]; then
     fi
 fi
 
-if [ -z "${MONGO_URL+set}" ]; then
+if [ -z "${MONGO_URL}" ]; then
     export MONGO_URL="$(credstash get mongo)"
 fi
-if [ -z "${MONGO_OPLOG_URL+set}" ]; then
+if [ -z "${MONGO_OPLOG_URL}" ]; then
     export MONGO_OPLOG_URL="$(credstash get mongo/oplog)"
 fi
 if [ -z "${MAIL_URL+set}" ]; then
