@@ -65,7 +65,7 @@
     "react-sparklines": "^1.7.0",
     "react-split-pane": "^0.1.92",
     "react-textarea-autosize": "^8.5.3",
-    "slate": "^0.101.5",
+    "slate": "^0.102.0",
     "slate-history": "^0.100.0",
     "slate-react": "^0.102.0",
     "stacktrace-js": "^2.0.2",
