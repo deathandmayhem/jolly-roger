@@ -30,7 +30,7 @@
     "preserveSymlinks": true,
     "paths": {
       "meteor/*": [
-        "node_modules/@types/meteor/*",
+        "node_modules/@types/meteor/*"
         /*
         Ideally, we'd use first-party types exported from Meteor upstream.
         Unfortunately, Meteor upstream has yet to ship a sufficiently-correct
@@ -40,13 +40,13 @@
         duplicate declarations.  So we leave this disabled for now.
         ".meteor/local/types/packages.d.ts"
         */
-      ],
-    },
+      ]
+    }
   },
   "exclude": [
     "./.meteor/local/build/**",
     "./.meteor/local/bundler-cache/**",
     "./packages/**",
-    "./eslint/**",
-  ],
+    "./eslint/**"
+  ]
 }
