@@ -83,6 +83,25 @@ export function userMayAddUsersToHunt(
   return hunt.openSignups;
 }
 
+export function userMayUpdateHuntInvitationCode(
+  user: Pick<Meteor.User, "roles"> | null | undefined,
+  hunt: Pick<HuntType, "_id"> | null | undefined,
+): boolean {
+  if (!user || !hunt) {
+    return false;
+  }
+
+  if (isAdmin(user)) {
+    return true;
+  }
+
+  if (isOperatorForHunt(user, hunt)) {
+    return true;
+  }
+
+  return false;
+}
+
 // Admins and operators may add announcements to a hunt.
 export function userMayAddAnnouncementToHunt(
   user: Pick<Meteor.User, "roles"> | null | undefined,

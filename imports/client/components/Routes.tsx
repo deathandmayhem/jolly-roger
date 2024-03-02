@@ -14,6 +14,7 @@ import HuntListApp from "./HuntListApp";
 import HuntListPage from "./HuntListPage";
 import HuntProfileListPage from "./HuntProfileListPage";
 import HuntersApp from "./HuntersApp";
+import JoinHunt from "./JoinHunt";
 import Loading from "./Loading";
 import LoginForm from "./LoginForm";
 import PasswordResetForm from "./PasswordResetForm";
@@ -71,6 +72,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
   },
   { path: "/setup", element: <SetupPage /> },
   { path: "/rtcdebug", element: <RTCDebugPage /> },
+  { path: "/join/:invitationCode", element: <JoinHunt /> },
 ].map((r) => {
   return {
     ...r,
