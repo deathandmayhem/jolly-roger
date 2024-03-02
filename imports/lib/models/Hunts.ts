@@ -47,6 +47,9 @@ const EditableHunt = z.object({
   // If provided, then members of the hunt who have also linked their Discord
   // profile will be added to this role.
   memberDiscordRole: SavedDiscordObjectFields.optional(),
+  // If provided, this is an invitation code that can be used to join this hunt.
+  // This takes the place of a direct (user-to-user) invitation.
+  invitationCode: nonEmptyString.optional(),
 });
 export type EditableHuntType = z.infer<typeof EditableHunt>;
 const Hunt = withCommon(EditableHunt);
@@ -68,6 +71,7 @@ export const HuntPattern = {
   puzzleHooksDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
   firehoseDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
   memberDiscordRole: Match.Optional(SavedDiscordObjectPattern),
+  invitationCode: Match.Optional(String),
 };
 
 const Hunts = new SoftDeletedModel("jr_hunts", Hunt);

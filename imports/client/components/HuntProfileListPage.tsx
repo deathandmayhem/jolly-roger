@@ -8,6 +8,7 @@ import {
   listAllRolesForHunt,
   userMayAddUsersToHunt,
   userMayMakeOperatorForHunt,
+  userMayUpdateHuntInvitationCode,
   userMayUseDiscordBotAPIs,
 } from "../../lib/permission_stubs";
 import ProfileList from "./ProfileList";
@@ -31,11 +32,20 @@ const HuntProfileListPage = () => {
   );
 
   const hunt = useTracker(() => Hunts.findOne(huntId), [huntId]);
-  const { canInvite, canSyncDiscord, canMakeOperator } = useTracker(() => {
+  const {
+    canInvite,
+    canSyncDiscord,
+    canMakeOperator,
+    canUpdateHuntInvitationCode,
+  } = useTracker(() => {
     return {
       canInvite: userMayAddUsersToHunt(Meteor.user(), hunt),
       canSyncDiscord: userMayUseDiscordBotAPIs(Meteor.user()),
       canMakeOperator: userMayMakeOperatorForHunt(Meteor.user(), hunt),
+      canUpdateHuntInvitationCode: userMayUpdateHuntInvitationCode(
+        Meteor.user(),
+        hunt,
+      ),
     };
   }, [hunt]);
   const roles = useTracker(
@@ -63,6 +73,7 @@ const HuntProfileListPage = () => {
       canInvite={canInvite}
       canSyncDiscord={canSyncDiscord}
       canMakeOperator={canMakeOperator}
+      canUpdateHuntInvitationCode={canUpdateHuntInvitationCode}
     />
   );
 };

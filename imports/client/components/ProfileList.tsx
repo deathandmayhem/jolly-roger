@@ -31,7 +31,9 @@ import { formatDiscordName } from "../../lib/discord";
 import isAdmin from "../../lib/isAdmin";
 import type { HuntType } from "../../lib/models/Hunts";
 import { userIsOperatorForHunt } from "../../lib/permission_stubs";
+import clearHuntInvitationCode from "../../methods/clearHuntInvitationCode";
 import demoteOperator from "../../methods/demoteOperator";
+import generateHuntInvitationCode from "../../methods/generateHuntInvitationCode";
 import promoteOperator from "../../methods/promoteOperator";
 import syncHuntDiscordRole from "../../methods/syncHuntDiscordRole";
 import Avatar from "./Avatar";
@@ -272,6 +274,7 @@ const ProfileList = ({
   canInvite,
   canSyncDiscord,
   canMakeOperator,
+  canUpdateHuntInvitationCode,
   users,
   roles,
 }: {
@@ -279,6 +282,7 @@ const ProfileList = ({
   canInvite?: boolean;
   canSyncDiscord?: boolean;
   canMakeOperator?: boolean;
+  canUpdateHuntInvitationCode?: boolean;
   users: Meteor.User[];
   roles?: Record<string, string[]>;
 }) => {
@@ -367,6 +371,67 @@ const ProfileList = ({
     );
   }, [hunt, canSyncDiscord, syncDiscord]);
 
+  const invitationLink = useMemo(() => {
+    if (!hunt || !canInvite || !hunt.invitationCode) {
+      return null;
+    }
+
+    return (
+      <p>
+        Invitation link:{" "}
+        <a href={`/join/${hunt.invitationCode}`}>
+          {`${window.location.origin}/join/${hunt.invitationCode}`}
+        </a>
+      </p>
+    );
+  }, [hunt, canInvite]);
+
+  const generateInvitationLink = useCallback(() => {
+    if (!hunt) {
+      return;
+    }
+
+    generateHuntInvitationCode.call({ huntId: hunt._id });
+  }, [hunt]);
+
+  const clearInvitationLink = useCallback(() => {
+    if (!hunt) {
+      return;
+    }
+
+    clearHuntInvitationCode.call({ huntId: hunt._id });
+  }, [hunt]);
+
+  const invitationLinkManagementButtons = useMemo(() => {
+    if (!hunt || !canUpdateHuntInvitationCode) {
+      return null;
+    }
+
+    return (
+      <FormGroup className="mb-3">
+        <Button variant="info" onClick={generateInvitationLink}>
+          {hunt.invitationCode
+            ? "Regenerate invitation link"
+            : "Generate invitation link"}
+        </Button>
+        {hunt.invitationCode && (
+          <Button variant="info" className="ms-1" onClick={clearInvitationLink}>
+            Disable invitation link
+          </Button>
+        )}
+        <FormText>
+          Manage the public invitation link that can be used by anyone to join
+          this hunt
+        </FormText>
+      </FormGroup>
+    );
+  }, [
+    hunt,
+    canUpdateHuntInvitationCode,
+    clearInvitationLink,
+    generateInvitationLink,
+  ]);
+
   const inviteToHuntItem = useMemo(() => {
     if (!hunt || !canInvite) {
       return null;
@@ -410,6 +475,9 @@ const ProfileList = ({
       <ProfilesSummary>Total hunters: {users.length}</ProfilesSummary>
 
       {syncDiscordButton}
+
+      {invitationLink}
+      {invitationLinkManagementButtons}
 
       <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-profile-list-search">Search</FormLabel>
