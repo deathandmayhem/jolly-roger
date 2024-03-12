@@ -7,7 +7,10 @@ defineMethod(unlinkUserGoogleAccount, {
   async run() {
     check(this.userId, String);
     await MeteorUsers.updateAsync(this.userId, {
-      $unset: { googleAccount: 1 },
+      $unset: {
+        googleAccount: 1,
+        googleAccountId: 1,
+      },
     });
   },
 });
