@@ -1,7 +1,10 @@
 /* eslint-disable react/destructuring-assignment */
 import { Accounts } from "meteor/accounts-base";
+import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
+import { OAuth } from "meteor/oauth";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { ServiceConfiguration } from "meteor/service-configuration";
 import React, {
   type ComponentPropsWithRef,
   type FC,
@@ -12,6 +15,7 @@ import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import styled from "styled-components";
+import Flags from "../../Flags";
 import updateProfile from "../../methods/updateProfile";
 import TeamName from "../TeamName";
 
@@ -54,6 +58,77 @@ const NoPaddingLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
   padding: 0;
   vertical-align: baseline;
 `;
+
+const GoogleSignInButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
+  Button,
+)`
+  background-image: url("./google-signin.svg");
+  width: 175px;
+  height: 40px;
+`;
+
+type SignInWithGoogleButtonProperties = {
+  submitting: boolean;
+  onStarted: () => void;
+  onSucceeded: () => void;
+  onCanceled: () => void;
+  onFailed: (error: Error) => void;
+};
+
+const SignInWithGoogleButton = (props: SignInWithGoogleButtonProperties) => {
+  const config = useTracker(
+    () => ServiceConfiguration.configurations.findOne({ service: "google" }),
+    [],
+  );
+  const googleDisabled = useTracker(() => Flags.active("disable.google"), []);
+
+  const requestComplete = useCallback(
+    (token: string) => {
+      const secret = OAuth._retrieveCredentialSecret(token);
+      if (!secret) {
+        props.onCanceled();
+        return;
+      }
+
+      const loginRequest = {
+        // Set this to true to trigger our custom Google signin hook.
+        isGoogleJrLogin: true,
+        key: token,
+        secret,
+      };
+
+      Accounts.callLoginMethod({
+        methodArguments: [loginRequest],
+        userCallback: (error?: Error) => {
+          if (error) {
+            props.onFailed(error);
+          } else {
+            props.onSucceeded();
+          }
+        },
+      });
+    },
+    [props],
+  );
+
+  const trySignInWithGoogle = useCallback(() => {
+    props.onStarted();
+    Google.requestCredential(requestComplete);
+  }, [props, requestComplete]);
+
+  if (!config || googleDisabled) {
+    return null;
+  }
+  return (
+    <div className="d-grid gap-2 mt-3 justify-content-center">
+      <GoogleSignInButton
+        variant="outline-secondary"
+        onClick={trySignInWithGoogle}
+        disabled={props.submitting}
+      />
+    </div>
+  );
+};
 
 type AccountFormProps =
   | {
@@ -290,6 +365,7 @@ const AccountForm = (props: AccountFormProps) => {
       />
     </Form.Group>
   );
+
   const enrollmentFields = [
     <Form.Group className="mb-3" controlId="at-field-displayname">
       <Form.Label>Full name</Form.Label>
@@ -374,6 +450,29 @@ const AccountForm = (props: AccountFormProps) => {
                 {buttonText}
               </Button>
             </div>
+            {props.format === AccountFormFormat.LOGIN ? (
+              <SignInWithGoogleButton
+                submitting={submitting}
+                onStarted={() => {
+                  setSubmitState(AccountFormSubmitState.SUBMITTING);
+                }}
+                onSucceeded={() => {
+                  setSubmitState(AccountFormSubmitState.SUCCESS);
+                  setSuccessMessage("Logged in successfully.");
+                }}
+                onCanceled={() => {
+                  setSubmitState(AccountFormSubmitState.IDLE);
+                }}
+                onFailed={(error) => {
+                  setSubmitState(AccountFormSubmitState.FAILED);
+                  setErrorMessage(
+                    error instanceof Meteor.Error
+                      ? error.reason
+                      : error.message,
+                  );
+                }}
+              />
+            ) : null}
             {backToMainForm}
           </fieldset>
         </form>

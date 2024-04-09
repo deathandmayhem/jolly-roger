@@ -1,4 +1,5 @@
 import { Accounts } from "meteor/accounts-base";
+import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
 import Mustache from "mustache";
 import Logger from "../Logger";
@@ -15,6 +16,12 @@ type LoginInfo = {
   connection: Meteor.Connection;
   methodName: string;
   methodArguments: any[];
+};
+
+type LoginOptions = {
+  isGoogleJrLogin?: boolean;
+  key?: string;
+  secret?: string;
 };
 
 const summaryFromLoginInfo = function (info: LoginInfo) {
@@ -44,6 +51,49 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
       };
   }
 };
+
+Accounts.registerLoginHandler((options: LoginOptions) => {
+  // Only handle requests that include our hook's custom flag.
+  if (!options.isGoogleJrLogin) {
+    return undefined;
+  }
+
+  if (!options.key || !options.secret) {
+    throw new Meteor.Error(
+      400,
+      "Google authentication request missing key or secret",
+    );
+  }
+
+  const credential = Google.retrieveCredential(options.key, options.secret);
+  const googleAccountId = credential.serviceData.id;
+
+  // Attempt to match existing Google users by their linked account ID.
+  // We can't use the async method since Meteor's API only takes a sync one.
+  // eslint-disable-next-line jolly-roger/no-disallowed-sync-methods
+  const users = MeteorUsers.find({ googleAccountId }, { limit: 2 }).fetch();
+  switch (users.length) {
+    case 0: {
+      throw new Meteor.Error(
+        403,
+        "Google account is not associated with any user",
+      );
+    }
+    case 1: {
+      const userId = users[0]?._id;
+      if (!userId) {
+        throw new Meteor.Error(500, "User missing ID");
+      }
+      return { userId };
+    }
+    default: {
+      throw new Meteor.Error(
+        400,
+        "Google account is associated with multiple users",
+      );
+    }
+  }
+});
 
 Accounts.onLogin(async (info: LoginInfo) => {
   if (!info.user?._id)
