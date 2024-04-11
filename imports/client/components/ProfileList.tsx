@@ -1,9 +1,10 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { MouseEvent } from "react";
+import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
 import React, {
   useCallback,
   useEffect,
@@ -12,6 +13,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { OverlayTrigger } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
@@ -24,6 +26,8 @@ import InputGroup from "react-bootstrap/InputGroup";
 import ListGroup from "react-bootstrap/ListGroup";
 import ListGroupItem from "react-bootstrap/ListGroupItem";
 import Modal from "react-bootstrap/Modal";
+import Tooltip from "react-bootstrap/Tooltip";
+import CopyToClipboard from "react-copy-to-clipboard";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -68,6 +72,13 @@ const OperatorBox = styled.div`
   * {
     margin: 0 0.25rem;
   }
+`;
+
+const StyledLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
+  Button,
+)`
+  padding: 0;
+  vertical-align: baseline;
 `;
 
 type OperatorModalHandle = {
@@ -277,6 +288,7 @@ const ProfileList = ({
   canUpdateHuntInvitationCode,
   users,
   roles,
+  invitationCode,
 }: {
   hunt?: HuntType;
   canInvite?: boolean;
@@ -285,6 +297,7 @@ const ProfileList = ({
   canUpdateHuntInvitationCode?: boolean;
   users: Meteor.User[];
   roles?: Record<string, string[]>;
+  invitationCode?: string;
 }) => {
   const [searchString, setSearchString] = useState<string>("");
 
@@ -372,19 +385,30 @@ const ProfileList = ({
   }, [hunt, canSyncDiscord, syncDiscord]);
 
   const invitationLink = useMemo(() => {
-    if (!hunt || !canInvite || !hunt.invitationCode) {
+    if (!hunt || !canInvite || !invitationCode) {
       return null;
     }
+
+    const copyTooltip = <Tooltip>Copy to clipboard</Tooltip>;
+
+    const invitationUrl = `${window.location.origin}/join/${invitationCode}`;
 
     return (
       <p>
         Invitation link:{" "}
-        <a href={`/join/${hunt.invitationCode}`}>
-          {`${window.location.origin}/join/${hunt.invitationCode}`}
-        </a>
+        <OverlayTrigger placement="top" overlay={copyTooltip}>
+          {({ ref, ...triggerHandler }) => (
+            <CopyToClipboard text={invitationUrl} {...triggerHandler}>
+              <StyledLinkButton ref={ref} variant="link" aria-label="Copy">
+                <FontAwesomeIcon icon={faCopy} fixedWidth />
+              </StyledLinkButton>
+            </CopyToClipboard>
+          )}
+        </OverlayTrigger>{" "}
+        {invitationUrl}
       </p>
     );
-  }, [hunt, canInvite]);
+  }, [hunt, canInvite, invitationCode]);
 
   const generateInvitationLink = useCallback(() => {
     if (!hunt) {
@@ -410,11 +434,11 @@ const ProfileList = ({
     return (
       <FormGroup className="mb-3">
         <Button variant="info" onClick={generateInvitationLink}>
-          {hunt.invitationCode
+          {invitationCode
             ? "Regenerate invitation link"
             : "Generate invitation link"}
         </Button>
-        {hunt.invitationCode && (
+        {invitationCode && (
           <Button variant="info" className="ms-1" onClick={clearInvitationLink}>
             Disable invitation link
           </Button>
@@ -430,6 +454,7 @@ const ProfileList = ({
     canUpdateHuntInvitationCode,
     clearInvitationLink,
     generateInvitationLink,
+    invitationCode,
   ]);
 
   const inviteToHuntItem = useMemo(() => {

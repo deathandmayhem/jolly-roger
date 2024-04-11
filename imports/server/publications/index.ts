@@ -10,6 +10,7 @@ import "./featureFlagsAll";
 import "./guessesForGuessQueue";
 import "./huntForHuntApp";
 import "./huntsAll";
+import "./invitationCodesForHunt";
 import "./pendingAnnouncementsForSelf";
 import "./pendingGuessesForSelf";
 import "./puzzleActivityForHunt";

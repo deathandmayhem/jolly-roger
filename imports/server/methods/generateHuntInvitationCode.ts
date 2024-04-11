@@ -2,9 +2,11 @@ import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import Hunts from "../../lib/models/Hunts";
+import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { userMayUpdateHuntInvitationCode } from "../../lib/permission_stubs";
 import generateHuntInvitationCode from "../../methods/generateHuntInvitationCode";
+import withLock from "../withLock";
 import defineMethod from "./defineMethod";
 
 // Generate (or regenerate) an invitation code for the given hunt.
@@ -35,14 +37,16 @@ defineMethod(generateHuntInvitationCode, {
 
     const newInvitationCode = Random.id();
 
-    await Hunts.updateAsync(
-      { _id: huntId },
-      {
-        $set: {
-          invitationCode: newInvitationCode,
-        },
-      },
-    );
+    await withLock(`invitation_code:${huntId}`, async () => {
+      for await (const code of InvitationCodes.find({ hunt: huntId })) {
+        await InvitationCodes.destroyAsync(code._id);
+      }
+
+      await InvitationCodes.insertAsync({
+        code: newInvitationCode,
+        hunt: huntId,
+      });
+    });
 
     return newInvitationCode;
   },

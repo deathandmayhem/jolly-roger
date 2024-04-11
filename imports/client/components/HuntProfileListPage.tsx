@@ -3,6 +3,7 @@ import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import React from "react";
 import { useParams } from "react-router-dom";
 import Hunts from "../../lib/models/Hunts";
+import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import {
   listAllRolesForHunt,
@@ -11,6 +12,8 @@ import {
   userMayUpdateHuntInvitationCode,
   userMayUseDiscordBotAPIs,
 } from "../../lib/permission_stubs";
+import invitationCodesForHunt from "../../lib/publications/invitationCodesForHunt";
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import ProfileList from "./ProfileList";
 
 const HuntProfileListPage = () => {
@@ -18,7 +21,11 @@ const HuntProfileListPage = () => {
 
   const profilesLoading = useSubscribe("huntProfiles", huntId);
   const userRolesLoading = useSubscribe("huntRoles", huntId);
-  const loading = profilesLoading() || userRolesLoading();
+  const invitationCodesLoading = useTypedSubscribe(invitationCodesForHunt, {
+    huntId,
+  });
+  const loading =
+    profilesLoading() || userRolesLoading() || invitationCodesLoading();
 
   const users = useTracker(
     () =>
@@ -60,6 +67,10 @@ const HuntProfileListPage = () => {
           ),
     [huntId, hunt, loading, canMakeOperator],
   );
+  const invitationCode = useTracker(
+    () => InvitationCodes.findOne({ hunt: huntId })?.code,
+    [huntId],
+  );
 
   if (loading) {
     return <div>loading...</div>;
@@ -74,6 +85,7 @@ const HuntProfileListPage = () => {
       canSyncDiscord={canSyncDiscord}
       canMakeOperator={canMakeOperator}
       canUpdateHuntInvitationCode={canUpdateHuntInvitationCode}
+      invitationCode={invitationCode}
     />
   );
 };

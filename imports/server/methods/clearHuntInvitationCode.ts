@@ -1,9 +1,11 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Hunts from "../../lib/models/Hunts";
+import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { userMayUpdateHuntInvitationCode } from "../../lib/permission_stubs";
 import clearHuntInvitationCode from "../../methods/clearHuntInvitationCode";
+import withLock from "../withLock";
 import defineMethod from "./defineMethod";
 
 // Clear the invitation code for the given hunt.
@@ -32,13 +34,10 @@ defineMethod(clearHuntInvitationCode, {
       );
     }
 
-    await Hunts.updateAsync(
-      { _id: huntId },
-      {
-        $unset: {
-          invitationCode: 1,
-        },
-      },
-    );
+    await withLock(`invitation_code:${huntId}`, async () => {
+      for await (const code of InvitationCodes.find({ hunt: huntId })) {
+        await InvitationCodes.destroyAsync(code._id);
+      }
+    });
   },
 });
