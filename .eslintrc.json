@@ -83,7 +83,8 @@
           "_allSubscriptionsReady",
           "_onMigrate",
           "_def",
-          "_makeNewID"
+          "_makeNewID",
+          "_hashPassword"
         ]
       }
     ],

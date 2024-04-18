@@ -5,6 +5,7 @@ import { Meteor } from "meteor/meteor";
 import Mustache from "mustache";
 import Logger from "../Logger";
 import Hunts from "../lib/models/Hunts";
+import InvitationCodes from "../lib/models/InvitationCodes";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { SettingType } from "../lib/models/Settings";
 import Settings from "../lib/models/Settings";
@@ -19,10 +20,27 @@ type LoginInfo = {
   methodArguments: any[];
 };
 
-type LoginOptions = {
-  isGoogleJrLogin?: boolean;
-  key?: string;
-  secret?: string;
+export type LoginOptions = {
+  // Indication that our custom handler should be used - must set to true.
+  isJrLogin?: boolean;
+  // Google credentials, used either for new users (with a hunt invitation code) or existing users
+  // (for standard log-in).
+  googleCredentials?: {
+    key: string;
+    secret: string;
+  };
+  // Request to create a new user and sign in as that user. The hunt invitation code must be valid.
+  newUserRequest?: {
+    huntInvitationCode?: string;
+    // Either password or Google credentials must be set in the request.
+    passwordCredentials?: {
+      email: string;
+      passwordHash: {
+        digest: string;
+        algorithm: string;
+      };
+    };
+  };
 };
 
 const summaryFromLoginInfo = function (info: LoginInfo) {
@@ -55,26 +73,87 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
 
 Accounts.registerLoginHandler(async (options: LoginOptions) => {
   // Only handle requests that include our hook's custom flag.
-  if (!options.isGoogleJrLogin) {
+  if (!options.isJrLogin) {
     return undefined;
   }
 
   check(options, {
-    isGoogleJrLogin: true,
-    key: Match.Optional(String),
-    secret: Match.Optional(String),
+    isJrLogin: true,
+    googleCredentials: Match.Optional({
+      key: String,
+      secret: String,
+    }),
+    newUserRequest: Match.Optional({
+      huntInvitationCode: Match.Optional(String),
+      passwordCredentials: Match.Optional({
+        email: String,
+        passwordHash: {
+          digest: String,
+          algorithm: String,
+        },
+      }),
+    }),
   });
 
-  if (!options.key || !options.secret) {
+  // If an invitation code is provided, create a new user if it's valid.
+  // We don't actually add the user to the hunt here - that should be handled once the user is
+  // signed in and redirected to the /join URL they originally tried to access.
+  if (options.newUserRequest) {
+    const invitation = await InvitationCodes.findOneAsync({
+      code: options.newUserRequest.huntInvitationCode,
+    });
+    if (!invitation) {
+      throw new Meteor.Error(404, "Invalid invitation code");
+    }
+
+    const hunt = await Hunts.findOneAsync({
+      _id: invitation.hunt,
+    });
+    if (!hunt) {
+      throw new Meteor.Error(404, "Hunt does not exist for invitation");
+    }
+
+    if (options.newUserRequest.passwordCredentials) {
+      // E-mail and password (hash) were directly provided.
+      const userId = await Accounts.createUserAsync({
+        email: options.newUserRequest.passwordCredentials.email,
+        password: options.newUserRequest.passwordCredentials.passwordHash,
+      });
+      return { userId };
+    } else if (options.googleCredentials) {
+      // Google credentials were provided - obtain the email from the associated account,
+      // create a passwordless account with that email, and link it to the Google account.
+      const credential = Google.retrieveCredential(
+        options.googleCredentials.key,
+        options.googleCredentials.secret,
+      );
+      const { email, id } = credential.serviceData;
+      const userId = await Accounts.createUserAsync({
+        email,
+      });
+      await MeteorUsers.updateAsync(userId, {
+        $set: {
+          googleAccount: email,
+          googleAccountId: id,
+        },
+      });
+      return { userId };
+    } else {
+      throw new Meteor.Error(400, "New user request is missing credentials");
+    }
+  }
+
+  // Otherwise, we only support Google sign-in; password sign-ins use the normal handler.
+  if (!options.googleCredentials) {
     throw new Meteor.Error(
       400,
-      "Google authentication request missing key or secret",
+      "Google authentication request missing credentials",
     );
   }
 
   const credential = await Google.retrieveCredential(
-    options.key,
-    options.secret,
+    options.googleCredentials.key,
+    options.googleCredentials.secret,
   );
   const googleAccountId = credential.serviceData.id;
 
