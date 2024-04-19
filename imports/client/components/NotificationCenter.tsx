@@ -956,12 +956,15 @@ const NotificationCenter = () => {
     const dismissedAt = dismissedGuesses[g._id];
     if (dismissedAt && dismissedAt > (g.updatedAt ?? g.createdAt)) return;
     if (operatorActionsHidden[g.hunt]) return;
+    const hunt = hunts.get(g.hunt);
+    const puzzle = puzzles.get(g.puzzle);
+    if (!hunt || !puzzle) return;
     messages.push(
       <GuessMessage
         key={g._id}
         guess={g}
-        puzzle={puzzles.get(g.puzzle)!}
-        hunt={hunts.get(g.hunt)!}
+        puzzle={puzzle}
+        hunt={hunt}
         guesser={displayNames.get(g.createdBy) ?? "???"}
         onDismiss={dismissGuess}
       />,
@@ -969,23 +972,28 @@ const NotificationCenter = () => {
   });
 
   pendingAnnouncements.forEach((pa) => {
+    const announcement = announcements.get(pa.announcement);
+    if (!announcement) return;
     messages.push(
       <AnnouncementMessage
         key={pa._id}
         id={pa._id}
-        announcement={announcements.get(pa.announcement)!}
+        announcement={announcement}
         createdByDisplayName={displayNames.get(pa.createdBy) ?? "???"}
       />,
     );
   });
 
   chatNotifications.forEach((cn) => {
+    const hunt = hunts.get(cn.hunt);
+    const puzzle = puzzles.get(cn.puzzle);
+    if (!hunt || !puzzle) return;
     messages.push(
       <ChatNotificationMessage
         key={cn._id}
         cn={cn}
-        hunt={hunts.get(cn.hunt)!}
-        puzzle={puzzles.get(cn.puzzle)!}
+        hunt={hunt}
+        puzzle={puzzle}
         displayNames={displayNames}
         selfUserId={selfUserId}
       />,
@@ -993,12 +1001,15 @@ const NotificationCenter = () => {
   });
 
   bookmarkNotifications.forEach((bn) => {
+    const hunt = hunts.get(bn.hunt);
+    const puzzle = puzzles.get(bn.puzzle);
+    if (!hunt || !puzzle) return;
     messages.push(
       <BookmarkNotificationMessage
         key={bn._id}
         bn={bn}
-        hunt={hunts.get(bn.hunt)!}
-        puzzle={puzzles.get(bn.puzzle)!}
+        hunt={hunt}
+        puzzle={puzzle}
       />,
     );
   });
