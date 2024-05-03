@@ -22,7 +22,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.568.0",
     "@aws-sdk/s3-presigned-post": "^3.568.0",
-    "@babel/runtime": "^7.24.4",
+    "@babel/runtime": "^7.24.5",
     "@bugsnag/js": "^7.22.7",
     "@bugsnag/plugin-react": "^7.22.7",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
