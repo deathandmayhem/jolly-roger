@@ -16,9 +16,9 @@ export type MongoRecordZodType =
 
 export interface JsonSchema {
   bsonType?: Mongo.BsonType & string;
-  enum?: any[];
-  allOf?: JsonSchema[];
-  anyOf?: JsonSchema[];
+  enum?: readonly any[];
+  allOf?: readonly JsonSchema[];
+  anyOf?: readonly JsonSchema[];
   not?: JsonSchema;
 
   // string
@@ -34,7 +34,7 @@ export interface JsonSchema {
   multipleOf?: number;
 
   // array/tuple
-  items?: JsonSchema | JsonSchema[];
+  items?: JsonSchema | readonly JsonSchema[];
   additionalItems?: boolean | JsonSchema;
   minItems?: number;
   maxItems?: number;
@@ -43,7 +43,7 @@ export interface JsonSchema {
   // object
   properties?: Record<string, JsonSchema>;
   additionalProperties?: boolean | JsonSchema;
-  required?: string[];
+  required?: readonly string[];
 }
 
 function stringToSchema(def: z.ZodStringDef): JsonSchema {
