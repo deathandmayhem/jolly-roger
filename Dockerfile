@@ -134,11 +134,7 @@ curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key > /etc/apt/trusted.
 echo "deb https://deb.nodesource.com/node_14.x $VERSION_CODENAME main" > /etc/apt/sources.list.d/node.list
 apt-get update
 
-# Install cryptography and boto3 from apt so we don't have to build them
-apt-get install --no-install-recommends -y python3-pip python3-cryptography python3-boto3 nodejs kstart
-
-# Install awscli to access AWS Systems Manager Parameter Store values
-apt-get install --no-install-recommends -y awscli
+apt-get install --no-install-recommends -y awscli nodejs kstart
 
 # Cleanup
 apt-get clean
