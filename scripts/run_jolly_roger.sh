@@ -18,20 +18,22 @@ if [ -z "${CLUSTER_WORKERS_COUNT+set}" ]; then
     fi
 fi
 
+get_ssm_parameter() { aws ssm get-parameter --name "$1" --query "Parameter.Value" --output text --with-decryption; }
+
 if [ -z "${MONGO_URL}" ]; then
-    export MONGO_URL="$(credstash get mongo)"
+    export MONGO_URL="$(get_ssm_parameter mongo)"
 fi
 if [ -z "${MONGO_OPLOG_URL}" ]; then
-    export MONGO_OPLOG_URL="$(credstash get mongo/oplog)"
+    export MONGO_OPLOG_URL="$(get_ssm_parameter mongo/oplog)"
 fi
 if [ -z "${MAIL_URL+set}" ]; then
-    export MAIL_URL="$(credstash get mailgun)"
+    export MAIL_URL="$(get_ssm_parameter mailgun)"
 fi
 if [ -z "${BUGSNAG_API_KEY+set}" ]; then
-    export BUGSNAG_API_KEY="$(credstash get bugsnag)"
+    export BUGSNAG_API_KEY="$(get_ssm_parameter bugsnag)"
 fi
 
-credstash get krb5.keytab | openssl base64 -d > /krb5.keytab
+get_ssm_parameter krb5.keytab | openssl base64 -d > /krb5.keytab
 
 if [ -s /krb5.keytab ]; then
     exec k5start -U -f /krb5.keytab -- node main.js

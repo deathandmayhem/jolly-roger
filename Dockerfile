@@ -137,7 +137,8 @@ apt-get update
 # Install cryptography and boto3 from apt so we don't have to build them
 apt-get install --no-install-recommends -y python3-pip python3-cryptography python3-boto3 nodejs kstart
 
-pip3 install credstash
+# Install awscli to access AWS Systems Manager Parameter Store values
+apt-get install --no-install-recommends -y awscli
 
 # Cleanup
 apt-get clean

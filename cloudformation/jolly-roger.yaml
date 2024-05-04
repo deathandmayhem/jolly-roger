@@ -6,8 +6,8 @@
 #
 # - A VPC with a public subnet
 #
-# - A system for fetching secrets using credstash which encrypts secrets using
-#   KMS and stores them in DynamoDB.
+# - A system for fetching secrets using AWS Systems Manager Parameter Store
+#   which encrypts secrets using KMS.
 #
 # - An auto-scaling group (ASG) with instances that automatically launch the
 #   jolly-roger application.
@@ -39,10 +39,6 @@
 # To spin up an independent copy of jolly-roger, you'll _definitely_ need to do
 # the following (and probably more I've forgotten):
 #
-# - Setup credstash (following the directions at
-#   https://github.com/fugue/credstash). The UUID of the KMS key created during
-#   the setup process will be configured as the CredstashKeyUuid parameter.
-#
 # - Set up a certificate in AWS Certificate Manager for the domain. The ARN will
 #   be configured as the CertificateArn paramater.
 #
@@ -56,8 +52,9 @@
 #   since the EC2 instance IPs aren't static.
 #
 #   You can either set the MongoUrl and MongoOplogUrl parameters here, or set
-#   them using `credstash put mongo @<path>` and
-#   `credstash put mongo/oplog @<path>` (e.g. if you're using regular username/
+#   them using `aws ssm put-parameter --type "SecureString" --name "mongo"
+#   --value "<path>"` and `aws ssm put-parameter --type "SecureString" --name
+#   "mongo/oplog" --value "<path>"` (e.g. if you're using regular username/
 #   password credentials as part of the URLs).
 #
 # - Signup for a Mailgun account (or any mail provider that supports SMTP
@@ -66,15 +63,13 @@
 #
 #     smtp://postmaster%40yourdomain.com:smtp-password@smtp.mailgun.org:587
 #
-#   Store that using `credstash put mailgun @<path>`.
+#   Store that using `aws ssm put-parameter --type "SecureString" --name
+#   "mailgun" --value "<path>"`.
 
 AWSTemplateFormatVersion: "2010-09-09"
 Description: jolly-roger
 
 Parameters:
-  CredstashKeyUuid:
-    Description: UUID of the credstash KMS key
-    Type: String
   CertificateArn:
     Description: ARN of the certificate to use
     Type: String
@@ -120,11 +115,11 @@ Parameters:
     AllowedPattern: "^[A-Za-z0-9]+$"
     NoEcho: true
   MongoUrl:
-    Description: MONGO_URL to use with Meteor. Can leave unset and use "mongo" key in credstash if using username/password authentication.
+    Description: MONGO_URL to use with Meteor. Can leave unset and use "mongo" key in SSM if using username/password authentication.
     Type: String
     Default: ""
   MongoOplogUrl:
-    Description: MONGO_OPLOG_URL to use with Meteor. Can leave unset and use "mongo/oplog" key in credstash if using username/password authentication.
+    Description: MONGO_OPLOG_URL to use with Meteor. Can leave unset and use "mongo/oplog" key in SSM if using username/password authentication.
     Type: String
     Default: ""
   EnableCloudWatch:
@@ -381,20 +376,16 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       Policies:
-        - PolicyName: credstash-download
+        - PolicyName: ssm-download
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - dynamodb:GetItem
-                  - dynamodb:Query
-                  - dynamodb:Scan
-                Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/credential-store"
-              - Effect: Allow
-                Action:
-                  - kms:Decrypt
-                Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${CredstashKeyUuid}"
+                  - ssm:DescribeParameters
+                  - ssm:GetParameters
+                  - ssm:GetParameter
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*"
         - PolicyName: s3-uploads
           PolicyDocument:
             Version: "2012-10-17"
@@ -946,7 +937,6 @@ Resources:
                 - snap remove amazon-ssm-agent
                 - sudo apt-get remove -y snapd
 
-                - pip3 install 'credstash==1.12.0'
                 - export AWS_DEFAULT_REGION=${AWS::Region}
 
                 ${CloudWatchAgentConfig}
