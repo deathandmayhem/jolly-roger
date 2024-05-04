@@ -24,7 +24,7 @@ if [ -z "${MONGO_URL}" ]; then
     export MONGO_URL="$(get_ssm_parameter mongo)"
 fi
 if [ -z "${MONGO_OPLOG_URL}" ]; then
-    export MONGO_OPLOG_URL="$(get_ssm_parameter mongo/oplog)"
+    export MONGO_OPLOG_URL="$(get_ssm_parameter mongo.oplog)"
 fi
 if [ -z "${MAIL_URL+set}" ]; then
     export MAIL_URL="$(get_ssm_parameter mailgun)"

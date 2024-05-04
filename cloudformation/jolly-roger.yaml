@@ -54,7 +54,7 @@
 #   You can either set the MongoUrl and MongoOplogUrl parameters here, or set
 #   them using `aws ssm put-parameter --type "SecureString" --name "mongo"
 #   --value "<path>"` and `aws ssm put-parameter --type "SecureString" --name
-#   "mongo/oplog" --value "<path>"` (e.g. if you're using regular username/
+#   "mongo.oplog" --value "<path>"` (e.g. if you're using regular username/
 #   password credentials as part of the URLs).
 #
 # - Signup for a Mailgun account (or any mail provider that supports SMTP
@@ -119,7 +119,7 @@ Parameters:
     Type: String
     Default: ""
   MongoOplogUrl:
-    Description: MONGO_OPLOG_URL to use with Meteor. Can leave unset and use "mongo/oplog" key in SSM if using username/password authentication.
+    Description: MONGO_OPLOG_URL to use with Meteor. Can leave unset and use "mongo.oplog" key in SSM if using username/password authentication.
     Type: String
     Default: ""
   EnableCloudWatch:
