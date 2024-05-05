@@ -165,85 +165,6 @@ Resources:
                   - logs:PutLogEvents
                 Resource: "arn:aws:logs:*:*:*"
 
-  AMILookupFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      Description: Look up the latest Ubuntu AMI given specific parameters
-      Runtime: nodejs18.x
-      Handler: "index.main"
-      Timeout: 10
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Code:
-        ZipFile: |
-          const assert = require('assert');
-          const https = require('https');
-          const response = require('cfn-response');
-
-          const getContent = function (url) {
-            return new Promise((resolve, reject) => {
-              const request = https.get(url, (httpResponse) => {
-                if (httpResponse.statusCode < 200 || httpResponse.statusCode > 299) {
-                  reject(new Error(`Error loading: ${httpResponse.statusCode}`));
-                }
-                const body = [];
-                httpResponse.on('data', (chunk) => body.push(chunk));
-                httpResponse.on('end', () => resolve(body.join('')));
-              });
-              request.on('error', (err) => reject(err));
-            });
-          };
-
-          // By promise-ifying this we can block the main function from resolving until this finishes
-          const sendResponse = function (event, context, status, data) {
-            return new Promise((resolve) => {
-              const fakeContext = { ...context, done: resolve };
-              response.send(event, fakeContext, status, data);
-            });
-          };
-
-          exports.main = async (event, context) => {
-            try {
-              const suite = event.ResourceProperties.Suite;
-              const instanceType = event.ResourceProperties.InstanceType;
-              const arch = event.ResourceProperties.Architecture;
-              const region = event.ResourceProperties.Region;
-              const virtType = event.ResourceProperties.VirtualizationType;
-              assert(suite && instanceType && arch && region && virtType);
-
-              const raw = await getContent(`https://cloud-images.ubuntu.com/query/${suite}/server/released.current.txt`);
-              const data = raw.split('\n').map((l) => l.split('\t'))
-                .map((l) => ({
-                  suite: l[0],
-                  stream: l[1],
-                  tag: l[2],
-                  serial: l[3],
-                  itype: l[4],
-                  arch: l[5],
-                  region: l[6],
-                  ami: l[7],
-                  aki: l[8],
-                  virttype: l[10],
-                }));
-              const match = data.find((l) => l.suite === suite &&
-                l.itype === instanceType &&
-                l.arch === arch &&
-                l.region === region &&
-                l.virttype === virtType);
-              await sendResponse(event, context, response.SUCCESS, { AMI: match.ami });
-            } catch (e) {
-              await sendResponse(event, context, response.FAILED, { Error: e.message });
-            }
-          };
-  AMILookup:
-    Type: Custom::AMILookup
-    Properties:
-      ServiceToken: !GetAtt AMILookupFunction.Arn
-      Suite: jammy
-      Region: !Ref "AWS::Region"
-      InstanceType: ebs-ssd
-      Architecture: amd64
-      VirtualizationType: hvm
-
   SshUsersParsingFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -540,7 +461,7 @@ Resources:
       LaunchTemplateData:
         IamInstanceProfile:
           Arn: !GetAtt AppInstanceProfile.Arn
-        ImageId: !GetAtt AMILookup.AMI
+        ImageId: resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id
         BlockDeviceMappings:
           - DeviceName: /dev/sda1
             Ebs:
