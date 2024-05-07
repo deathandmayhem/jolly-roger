@@ -1,4 +1,5 @@
 import { Accounts } from "meteor/accounts-base";
+import { Match, check } from "meteor/check";
 import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
 import Mustache from "mustache";
@@ -57,6 +58,12 @@ Accounts.registerLoginHandler((options: LoginOptions) => {
   if (!options.isGoogleJrLogin) {
     return undefined;
   }
+
+  check(options, {
+    isGoogleJrLogin: true,
+    key: Match.Optional(String),
+    secret: Match.Optional(String),
+  });
 
   if (!options.key || !options.secret) {
     throw new Meteor.Error(
