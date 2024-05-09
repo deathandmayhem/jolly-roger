@@ -1,9 +1,10 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { MouseEvent } from "react";
+import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
 import React, {
   useCallback,
   useEffect,
@@ -12,6 +13,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { OverlayTrigger } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
@@ -24,6 +26,8 @@ import InputGroup from "react-bootstrap/InputGroup";
 import ListGroup from "react-bootstrap/ListGroup";
 import ListGroupItem from "react-bootstrap/ListGroupItem";
 import Modal from "react-bootstrap/Modal";
+import Tooltip from "react-bootstrap/Tooltip";
+import CopyToClipboard from "react-copy-to-clipboard";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -31,7 +35,9 @@ import { formatDiscordName } from "../../lib/discord";
 import isAdmin from "../../lib/isAdmin";
 import type { HuntType } from "../../lib/models/Hunts";
 import { userIsOperatorForHunt } from "../../lib/permission_stubs";
+import clearHuntInvitationCode from "../../methods/clearHuntInvitationCode";
 import demoteOperator from "../../methods/demoteOperator";
+import generateHuntInvitationCode from "../../methods/generateHuntInvitationCode";
 import promoteOperator from "../../methods/promoteOperator";
 import syncHuntDiscordRole from "../../methods/syncHuntDiscordRole";
 import Avatar from "./Avatar";
@@ -68,26 +74,46 @@ const OperatorBox = styled.div`
   }
 `;
 
-type OperatorModalHandle = {
+const StyledLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
+  Button,
+)`
+  padding: 0;
+  vertical-align: baseline;
+`;
+
+type ModalHandle = {
   show(): void;
 };
 
-const PromoteOperatorModal = React.forwardRef(
+const ConfirmationModal = React.forwardRef(
   (
-    { user, huntId }: { user: Meteor.User; huntId: string },
-    forwardedRef: React.Ref<OperatorModalHandle>,
+    {
+      title,
+      body,
+      action,
+      performAction,
+    }: {
+      title: string;
+      body: string | React.JSX.Element;
+      action: string;
+      performAction: (callback: (e?: Error) => void) => void;
+    },
+    forwardedRef: React.Ref<ModalHandle>,
   ) => {
     const [visible, setVisible] = useState(true);
+    const [error, setError] = useState<Error>();
+    const clearError = useCallback(() => setError(undefined), []);
     const show = useCallback(() => setVisible(true), []);
-    const hide = useCallback(() => setVisible(false), []);
+    const hide = useCallback(() => {
+      clearError();
+      setVisible(false);
+    }, [clearError]);
     useImperativeHandle(forwardedRef, () => ({ show }), [show]);
 
     const [disabled, setDisabled] = useState(false);
-    const [error, setError] = useState<Error>();
-    const clearError = useCallback(() => setError(undefined), []);
 
-    const promote = useCallback(() => {
-      promoteOperator.call({ targetUserId: user._id, huntId }, (e) => {
+    const onActionClicked = useCallback(() => {
+      performAction((e) => {
         setDisabled(false);
         if (e) {
           setError(e);
@@ -96,18 +122,15 @@ const PromoteOperatorModal = React.forwardRef(
         }
       });
       setDisabled(true);
-    }, [huntId, hide, user._id]);
+    }, [performAction, hide]);
 
     const modal = (
       <Modal show={visible} onHide={hide}>
         <Modal.Header closeButton>
-          <Modal.Title>Promote Operator</Modal.Title>
+          <Modal.Title>{title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>
-            Are you sure you want to make <strong>{user.displayName}</strong> an
-            operator?
-          </p>
+          <p>{body}</p>
           {error && (
             <Alert variant="danger" dismissible onClose={clearError}>
               {error.message}
@@ -118,8 +141,12 @@ const PromoteOperatorModal = React.forwardRef(
           <Button variant="secondary" onClick={hide} disabled={disabled}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={promote} disabled={disabled}>
-            Promote
+          <Button
+            variant="danger"
+            onClick={onActionClicked}
+            disabled={disabled}
+          >
+            {action}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -129,61 +156,72 @@ const PromoteOperatorModal = React.forwardRef(
   },
 );
 
-const DemoteOperatorModal = React.forwardRef(
-  (
-    { user, huntId }: { user: Meteor.User; huntId: string },
-    forwardedRef: React.Ref<OperatorModalHandle>,
-  ) => {
-    const [visible, setVisible] = useState(true);
-    const show = useCallback(() => setVisible(true), []);
-    const hide = useCallback(() => setVisible(false), []);
-    useImperativeHandle(forwardedRef, () => ({ show }), [show]);
+const PromoteOperatorModal = ({
+  user,
+  huntId,
+  forwardedRef,
+}: {
+  user: Meteor.User;
+  huntId: string;
+  forwardedRef: React.Ref<ModalHandle>;
+}) => {
+  const performAction = useCallback(
+    (callback: (e?: Error) => void) => {
+      promoteOperator.call({ targetUserId: user._id, huntId }, callback);
+    },
+    [huntId, user._id],
+  );
 
-    const [disabled, setDisabled] = useState(false);
-    const [error, setError] = useState<Error>();
-    const clearError = useCallback(() => setError(undefined), []);
+  const body = (
+    <>
+      Are you sure you want to make <strong>{user.displayName}</strong> an
+      operator?
+    </>
+  );
 
-    const demote = useCallback(() => {
-      demoteOperator.call({ targetUserId: user._id, huntId }, (e) => {
-        setDisabled(false);
-        if (e) {
-          setError(e);
-        } else {
-          hide();
-        }
-      });
-      setDisabled(true);
-    }, [huntId, hide, user._id]);
+  return (
+    <ConfirmationModal
+      title="Promote Operator"
+      body={body}
+      action="Promote"
+      performAction={performAction}
+      ref={forwardedRef}
+    />
+  );
+};
 
-    const modal = (
-      <Modal show={visible} onHide={hide}>
-        <Modal.Header closeButton>
-          <Modal.Title>Demote Operator</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            Are you sure you want to demote <strong>{user.displayName}</strong>?
-          </p>
-          {error && (
-            <Alert variant="danger" dismissible onClose={clearError}>
-              {error.message}
-            </Alert>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={hide} disabled={disabled}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={demote} disabled={disabled}>
-            Demote
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    );
+const DemoteOperatorModal = ({
+  user,
+  huntId,
+  forwardedRef,
+}: {
+  user: Meteor.User;
+  huntId: string;
+  forwardedRef: React.Ref<ModalHandle>;
+}) => {
+  const performAction = useCallback(
+    (callback: (e?: Error) => void) => {
+      demoteOperator.call({ targetUserId: user._id, huntId }, callback);
+    },
+    [huntId, user._id],
+  );
 
-    return createPortal(modal, document.body);
-  },
-);
+  const body = (
+    <>
+      Are you sure you want to demote <strong>{user.displayName}</strong>?
+    </>
+  );
+
+  return (
+    <ConfirmationModal
+      title="Demote Operator"
+      body={body}
+      action="Demote"
+      performAction={performAction}
+      ref={forwardedRef}
+    />
+  );
+};
 
 const OperatorControls = ({
   user,
@@ -201,9 +239,9 @@ const OperatorControls = ({
   }, [user, hunt]);
 
   const [renderPromoteModal, setRenderPromoteModal] = useState(false);
-  const promoteModalRef = useRef<OperatorModalHandle>(null);
+  const promoteModalRef = useRef<ModalHandle>(null);
   const [renderDemoteModal, setRenderDemoteModal] = useState(false);
-  const demoteModalRef = useRef<OperatorModalHandle>(null);
+  const demoteModalRef = useRef<ModalHandle>(null);
 
   const showPromoteModal = useCallback(
     (e: MouseEvent) => {
@@ -236,14 +274,14 @@ const OperatorControls = ({
     <OperatorBox onClick={preventPropagation}>
       {renderPromoteModal && (
         <PromoteOperatorModal
-          ref={promoteModalRef}
+          forwardedRef={promoteModalRef}
           user={user}
           huntId={hunt._id}
         />
       )}
       {renderDemoteModal && (
         <DemoteOperatorModal
-          ref={demoteModalRef}
+          forwardedRef={demoteModalRef}
           user={user}
           huntId={hunt._id}
         />
@@ -267,20 +305,82 @@ const OperatorControls = ({
   );
 };
 
+const GenerateInvitationLinkModal = ({
+  huntId,
+  isRegenerate,
+  forwardedRef,
+}: {
+  huntId: string;
+  isRegenerate: boolean;
+  forwardedRef: React.Ref<ModalHandle>;
+}) => {
+  const performAction = useCallback(
+    (callback: (e?: Error) => void) => {
+      generateHuntInvitationCode.call({ huntId }, callback);
+    },
+    [huntId],
+  );
+
+  return (
+    <ConfirmationModal
+      title={
+        isRegenerate ? "Regenerate Invitation Link" : "Generate Invitation Link"
+      }
+      body={
+        isRegenerate
+          ? "Are you sure you want to regenerate the invitation link to this hunt? The current link will no longer be valid."
+          : "Generate an invitation link to this hunt? Anyone with access to invite users will see this link, and anyone with the link will be able to join."
+      }
+      action={isRegenerate ? "Regenerate link" : "Generate link"}
+      performAction={performAction}
+      ref={forwardedRef}
+    />
+  );
+};
+
+const DisableInvitationLinkModal = ({
+  huntId,
+  forwardedRef,
+}: {
+  huntId: string;
+  forwardedRef: React.Ref<ModalHandle>;
+}) => {
+  const performAction = useCallback(
+    (callback: (e?: Error) => void) => {
+      clearHuntInvitationCode.call({ huntId }, callback);
+    },
+    [huntId],
+  );
+
+  return (
+    <ConfirmationModal
+      title="Disable Invitation Link"
+      body="Are you sure you want to disable the invitation link to this hunt? The current link will no longer be valid."
+      action="Disable link"
+      performAction={performAction}
+      ref={forwardedRef}
+    />
+  );
+};
+
 const ProfileList = ({
   hunt,
   canInvite,
   canSyncDiscord,
   canMakeOperator,
+  canUpdateHuntInvitationCode,
   users,
   roles,
+  invitationCode,
 }: {
   hunt?: HuntType;
   canInvite?: boolean;
   canSyncDiscord?: boolean;
   canMakeOperator?: boolean;
+  canUpdateHuntInvitationCode?: boolean;
   users: Meteor.User[];
   roles?: Record<string, string[]>;
+  invitationCode?: string;
 }) => {
   const [searchString, setSearchString] = useState<string>("");
 
@@ -367,6 +467,124 @@ const ProfileList = ({
     );
   }, [hunt, canSyncDiscord, syncDiscord]);
 
+  const [
+    renderGenerateInvitationLinkModal,
+    setRenderGenerateInvitationLinkModal,
+  ] = useState(false);
+  const generateInvitationLinkModalRef = useRef<ModalHandle>(null);
+
+  const showGenerateInvitationLinkModal = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      if (
+        renderGenerateInvitationLinkModal &&
+        generateInvitationLinkModalRef.current
+      ) {
+        generateInvitationLinkModalRef.current.show();
+      } else {
+        setRenderGenerateInvitationLinkModal(true);
+      }
+    },
+    [renderGenerateInvitationLinkModal, generateInvitationLinkModalRef],
+  );
+
+  const [
+    renderDisableInvitationLinkModal,
+    setRenderDisableInvitationLinkModal,
+  ] = useState(false);
+  const disableInvitationLinkModalRef = useRef<ModalHandle>(null);
+
+  const showDisableInvitationLinkModal = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      if (
+        renderDisableInvitationLinkModal &&
+        disableInvitationLinkModalRef.current
+      ) {
+        disableInvitationLinkModalRef.current.show();
+      } else {
+        setRenderDisableInvitationLinkModal(true);
+      }
+    },
+    [renderDisableInvitationLinkModal, disableInvitationLinkModalRef],
+  );
+
+  const invitationLink = useMemo(() => {
+    if (!hunt || !canInvite || !invitationCode) {
+      return null;
+    }
+
+    const copyTooltip = <Tooltip>Copy to clipboard</Tooltip>;
+
+    const invitationUrl = Meteor.absoluteUrl(`/join/${invitationCode}`);
+
+    return (
+      <p>
+        Invitation link:{" "}
+        <OverlayTrigger placement="top" overlay={copyTooltip}>
+          {({ ref, ...triggerHandler }) => (
+            <CopyToClipboard text={invitationUrl} {...triggerHandler}>
+              <StyledLinkButton ref={ref} variant="link" aria-label="Copy">
+                <FontAwesomeIcon icon={faCopy} fixedWidth />
+              </StyledLinkButton>
+            </CopyToClipboard>
+          )}
+        </OverlayTrigger>{" "}
+        {invitationUrl}
+      </p>
+    );
+  }, [hunt, canInvite, invitationCode]);
+
+  const invitationLinkManagementButtons = useMemo(() => {
+    if (!hunt || !canUpdateHuntInvitationCode) {
+      return null;
+    }
+
+    return (
+      <FormGroup className="mb-3">
+        {renderGenerateInvitationLinkModal && (
+          <GenerateInvitationLinkModal
+            forwardedRef={generateInvitationLinkModalRef}
+            huntId={hunt._id}
+            isRegenerate={typeof invitationCode !== "undefined"}
+          />
+        )}
+        {renderDisableInvitationLinkModal && (
+          <DisableInvitationLinkModal
+            forwardedRef={disableInvitationLinkModalRef}
+            huntId={hunt._id}
+          />
+        )}
+        <Button variant="info" onClick={showGenerateInvitationLinkModal}>
+          {invitationCode
+            ? "Regenerate invitation link"
+            : "Generate invitation link"}
+        </Button>
+        {invitationCode && (
+          <Button
+            variant="info"
+            className="ms-1"
+            onClick={showDisableInvitationLinkModal}
+          >
+            Disable invitation link
+          </Button>
+        )}
+        <FormText>
+          Manage the public invitation link that can be used by anyone to join
+          this hunt
+        </FormText>
+      </FormGroup>
+    );
+  }, [
+    hunt,
+    canUpdateHuntInvitationCode,
+    invitationCode,
+    renderGenerateInvitationLinkModal,
+    showGenerateInvitationLinkModal,
+    renderDisableInvitationLinkModal,
+    showDisableInvitationLinkModal,
+  ]);
+
   const inviteToHuntItem = useMemo(() => {
     if (!hunt || !canInvite) {
       return null;
@@ -410,6 +628,9 @@ const ProfileList = ({
       <ProfilesSummary>Total hunters: {users.length}</ProfilesSummary>
 
       {syncDiscordButton}
+
+      {invitationLink}
+      {invitationLinkManagementButtons}
 
       <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-profile-list-search">Search</FormLabel>
