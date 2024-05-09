@@ -131,16 +131,29 @@ Parameters:
     Description: Comma-separated list of SSH users, each of the form <username>=<ssh_import_id>
     Type: String
     Default: "evan=gh:ebroder,zarvox=gh:zarvox"
-  EnableServing:
-    Description: Whether to bring up the app; set to false to shut it down and save on costs
+  ServingMode:
+    Description: |
+        In "NLB" mode, bring up a load balancer and point the domain to it, allowing scaling to
+        multiple EC2 jobs. TLS termination is handled by the NLB using the certificate referenced
+        in CertificateArn. In "SingleInstance" mode, the domain is pointed directly at a single
+        EC2 instance. The TLS certificate will be automatically managed via Let's Encrypt - be sure
+        to accept their terms of service. In "None" mode, all serving is disabled. Use this to shut
+        down the app and save on costs while keeping persistent resources like the S3 bucket alive
+        and making it simpler to enable serving in the future.
     Type: String
-    Default: "true"
-    AllowedValues: ["true", "false"]
+    Default: "NLB"
+    AllowedValues: ["NLB", "SingleInstance", "None"]
+  CertNotificationEmail:
+    Description: Email to use for certificate abuse and renewal notifications when using Let's Encrypt via the SingleInstance serving mode. Leave blank to disable notifications.
+    Type: String
+    Default: ""
 
 Conditions:
   HavePapertrail: !Not [!Equals [!Ref PapertrailHost, ""]]
   HaveCloudWatch: !Equals [!Ref EnableCloudWatch, "true"]
-  HaveServing: !Equals [!Ref EnableServing, "true"]
+  HaveServing: !Not [!Equals [!Ref ServingMode, "None"]]
+  HaveLoadBalancing: !Equals [!Ref ServingMode, "NLB"]
+  HaveSingleInstance: !Equals [!Ref ServingMode, "SingleInstance"]
 
 Resources:
   LambdaExecutionRole:
@@ -164,6 +177,11 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: "arn:aws:logs:*:*:*"
+              - Effect: Allow
+                Action:
+                  - ec2:AssociateAddress
+                  - ec2:ReleaseAddress
+                Resource: "arn:aws:ec2:*:*:*"
 
   SshUsersParsingFunction:
     Type: AWS::Lambda::Function
@@ -324,6 +342,19 @@ Resources:
                 Action:
                   - s3:PutObject
                 Resource: !Sub "arn:aws:s3:::${ImageUploadBucket}/*"
+        - PolicyName: dns-updates
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - route53:ListHostedZones
+                  - route53:GetChange
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - route53:ChangeResourceRecordSets
+                Resource: !Sub "arn:aws:route53:::hostedzone/${AppDomain}"
 
   AppInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -389,7 +420,7 @@ Resources:
 
   AppNlb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Condition: HaveServing
+    Condition: HaveLoadBalancing
     Properties:
       Type: network
       Scheme: internet-facing
@@ -398,7 +429,7 @@ Resources:
         - !Ref PublicSubnet2
   AppNlbTargetHTTP:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Condition: HaveServing
+    Condition: HaveLoadBalancing
     Properties:
       HealthCheckProtocol: HTTP
       HealthCheckPort: 443
@@ -415,7 +446,7 @@ Resources:
           Value: true
   AppNlbTargetHTTPS:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Condition: HaveServing
+    Condition: HaveLoadBalancing
     Properties:
       HealthCheckProtocol: HTTP
       HealthCheckPort: 443
@@ -432,7 +463,7 @@ Resources:
           Value: true
   AppNlbListenerHTTP:
     Type: AWS::ElasticLoadBalancingV2::Listener
-    Condition: HaveServing
+    Condition: HaveLoadBalancing
     Properties:
       LoadBalancerArn: !Ref AppNlb
       Protocol: TCP
@@ -442,7 +473,7 @@ Resources:
           TargetGroupArn: !Ref AppNlbTargetHTTP
   AppNlbListenerHTTPS:
     Type: AWS::ElasticLoadBalancingV2::Listener
-    Condition: HaveServing
+    Condition: HaveLoadBalancing
     Properties:
       LoadBalancerArn: !Ref AppNlb
       Protocol: TLS
@@ -505,6 +536,9 @@ Resources:
                 - moreutils
                 - python3-dev
                 - python3-pip
+                - certbot
+                - python3-certbot-dns-route53
+                - socat
 
               ${PapertrailRsyslogConfig}
 
@@ -522,6 +556,27 @@ Resources:
                         "max-size": "100m"
                       }
                     }
+                - path: /usr/local/bin/renew-certificate
+                  content: |
+                    #!/bin/bash
+                    set -e
+
+                    # Renew the certificate and update haproxy's offline copy.
+                    if [ -n "${CertNotificationEmail}" ]; then
+                      email_flag="-m ${CertNotificationEmail}"
+                    else
+                      email_flag="--register-unsafely-without-email"
+                    fi
+                    certbot -v certonly --dns-route53 -d ${AppUrl} --non-interactive --agree-tos $email_flag
+                    mkdir -p /etc/haproxy/certs/
+                    cat /etc/letsencrypt/live/${AppUrl}/fullchain.pem /etc/letsencrypt/live/${AppUrl}/privkey.pem | tee /etc/haproxy/certs/cert.pem > /dev/null
+
+                    # If haproxy is running, perform a live certificate update.
+                    if [ -f /var/run/haproxy/stats.sock ]; then
+                      echo -e "set ssl cert /usr/local/etc/haproxy/certs/cert.pem <<\n$(cat /etc/haproxy/certs/cert.pem)\n" | socat stdio /var/run/haproxy/stats.sock
+                      echo -e "commit ssl cert /usr/local/etc/haproxy/certs/cert.pem" | socat stdio /var/run/haproxy/stats.sock
+                    fi
+                  permissions: "0755"
                 - path: /usr/share/nginx/html/502.html
                   content: |
                     <!DOCTYPE html>
@@ -632,6 +687,8 @@ Resources:
                 - path: /etc/haproxy/haproxy.cfg
                   content: |
                     global
+                    # Enable runtime API for live certificate updates
+                    stats socket /var/run/haproxy/stats.sock mode 600 level admin
                     maxconn 50000
                     log stdout local0
 
@@ -645,7 +702,7 @@ Resources:
                     timeout server 50s
 
                     frontend inbound
-                    bind :443
+                    bind :443 ${SingleInstanceCertReference}
                     tcp-request inspect-delay 5s
                     # don't pick backend until we've seen enough to identify
                     # both STUN and HTTP/2 (STUN headers are only 20 bytes, so
@@ -796,16 +853,21 @@ Resources:
                 - snap remove amazon-ssm-agent
                 - sudo apt-get remove -y snapd
 
+                # Disable certbot's built-in scheduled task - we use our own so we can also refresh haproxy.
+                - sudo systemctl stop certbot.timer
+                - sudo systemctl disable certbot.timer
+
                 - export AWS_DEFAULT_REGION=${AWS::Region}
 
                 ${CloudWatchAgentConfig}
                 ${PapertrailDockerConfig}
+                ${SingleInstanceCertConfig}
 
                 - docker run --name coturn -d --restart=unless-stopped --network=host -e DETECT_EXTERNAL_IP=yes coturn/coturn -v --min-port=40000 --max-port=49999 --log-file=stdout --realm=${AppUrl} --use-auth-secret --static-auth-secret=${TurnSecret}
                 - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_REGION=$AWS_DEFAULT_REGION -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} -e TURN_SERVER=turns:${AppUrl}:443?transport=tcp -e TURN_SECRET=${TurnSecret} -e MONGO_URL="${MongoUrl}" -e MONGO_OPLOG_URL="${MongoOplogUrl}" ${DockerPackage}
                 - docker run --name nginx -d --network=host --restart=unless-stopped -v /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf -v /usr/share/nginx/html/502.html:/usr/share/nginx/html/502.html nginx
                 - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --interval 30 --cleanup
-                - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy:2.9.0
+                - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /var/run/haproxy:/var/run/haproxy -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy:2.9.0
             - PapertrailRsyslogConfig: !If
                 - HavePapertrail
                 - !Sub |
@@ -827,15 +889,100 @@ Resources:
                   - sudo systemctl start amazon-cloudwatch-agent
                 - ""
               SshUsersConfig: !GetAtt SshUsersParsing.Output
+              SingleInstanceCertConfig: !If
+                - HaveLoadBalancing
+                - ""
+                - "- sudo ln -s /usr/local/bin/renew-certificate /etc/cron.daily/ && /usr/local/bin/renew-certificate"
+              SingleInstanceCertReference: !If
+                - HaveLoadBalancing
+                - ""
+                - ssl crt /usr/local/etc/haproxy/certs/
 
+  AppInstancePublicIp:
+    Type: AWS::EC2::EIP
+    Condition: HaveSingleInstance
+    Properties:
+      Domain: "vpc"
     DependsOn:
       - InternetGatewayAttachment
+
+  AssociateSingleInstanceIpFunction:
+    Type: AWS::Lambda::Function
+    Condition: HaveServing
+    Properties:
+      Description: Associate the elastic IP with the single EC2 instance whenever it launches successfully
+      Runtime: nodejs18.x
+      Handler: "index.main"
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: !Sub
+          - |
+            const { EC2Client, AssociateAddressCommand } = require('@aws-sdk/client-ec2');
+
+            exports.main = async function (event) {
+              const client = new EC2Client({ region: event.region });
+              const params = {
+                AllocationId: '${AllocationId}',
+                InstanceId: event.detail['EC2InstanceId'],
+              };
+              const command = new AssociateAddressCommand(params);
+              try {
+                await client.send(command);
+                return {
+                  statusCode: 200,
+                  body: JSON.stringify('SUCCESS'),
+                };
+              } catch (err) {
+                console.log(err, err.stack);
+                return {
+                  statusCode: 500,
+                  body: JSON.stringify('ERROR'),
+                };
+              };
+            };
+          - AllocationId: !If
+            - HaveLoadBalancing
+            - ""
+            - !GetAtt AppInstancePublicIp.AllocationId
+
+  AssociateSingleInstanceIpRule:
+    Type: AWS::Events::Rule
+    Condition: HaveServing
+    Properties:
+      EventPattern:
+        source:
+          - aws.autoscaling
+        detail-type:
+          - EC2 Instance Launch Successful
+        detail:
+          AutoScalingGroupName:
+            - "JollyRogerAsg"
+      State: !If
+        - HaveLoadBalancing
+        - DISABLED
+        - ENABLED
+      Targets:
+        - Id: AssociateSingleInstanceIpHookTarget
+          Arn: !GetAtt AssociateSingleInstanceIpFunction.Arn
+
+  AssociateSingleInstanceIpFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Condition: HaveServing
+    Properties:
+      FunctionName: !GetAtt AssociateSingleInstanceIpFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt AssociateSingleInstanceIpRule.Arn
 
   AppAsg:
     Type: AWS::AutoScaling::AutoScalingGroup
     Condition: HaveServing
     Properties:
-      HealthCheckType: ELB
+      AutoScalingGroupName: "JollyRogerAsg"
+      HealthCheckType: !If
+        - HaveLoadBalancing
+        - ELB
+        - EC2
       HealthCheckGracePeriod: 1800
       LaunchTemplate:
         LaunchTemplateId: !Ref AppLaunchTemplate
@@ -846,9 +993,10 @@ Resources:
       MaxSize: !Ref AppMaxSize
       MinSize: !Ref AppMinSize
       DesiredCapacity: !Ref AppDesiredCapacity
-      TargetGroupARNs:
-        - !Ref AppNlbTargetHTTP
-        - !Ref AppNlbTargetHTTPS
+      TargetGroupARNs: !If
+        - HaveLoadBalancing
+        - [!Ref AppNlbTargetHTTP, !Ref AppNlbTargetHTTPS]
+        - !Ref "AWS::NoValue"
       Tags:
         - Key: DNSZone
           Value: !Ref AppDomain
@@ -859,6 +1007,14 @@ Resources:
         PauseTime: PT30M
         MinSuccessfulInstancesPercent: 100
         MinInstancesInService: 1
+    # Note that conditional dependencies aren't supported, but we need to ensure that these are
+    # added before the ASG so that the function triggers the first time an EC2 instance is
+    # launched. When load balancing is on, the event rule is DISABLED, so the function will not
+    # be invoked automatically.
+    DependsOn:
+      - AssociateSingleInstanceIpFunctionPermission
+      - AssociateSingleInstanceIpRule
+      - AssociateSingleInstanceIpFunction
 
   AppDns:
     Type: AWS::Route53::RecordSet
@@ -867,6 +1023,16 @@ Resources:
       HostedZoneId: !Ref AppDomain
       Name: !Ref AppUrl
       Type: A
-      AliasTarget:
-        HostedZoneId: !GetAtt AppNlb.CanonicalHostedZoneID
-        DNSName: !GetAtt AppNlb.DNSName
+      AliasTarget: !If
+        - HaveLoadBalancing
+        - HostedZoneId: !GetAtt AppNlb.CanonicalHostedZoneID
+          DNSName: !GetAtt AppNlb.DNSName
+        - !Ref "AWS::NoValue"
+      ResourceRecords: !If
+        - HaveLoadBalancing
+        - !Ref "AWS::NoValue"
+        - [!Ref AppInstancePublicIp]
+      TTL: !If
+        - HaveLoadBalancing
+        - !Ref "AWS::NoValue"
+        - 300
