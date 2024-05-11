@@ -62,7 +62,7 @@ const NoPaddingLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
 const GoogleSignInButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
   Button,
 )`
-  background-image: url("./google-signin.svg");
+  background-image: url("/google-signin.svg");
   width: 175px;
   height: 40px;
 `;
