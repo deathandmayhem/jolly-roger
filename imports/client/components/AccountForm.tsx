@@ -16,8 +16,8 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import styled from "styled-components";
 import Flags from "../../Flags";
+import type { LoginOptions } from "../../lib/loginOptions";
 import updateProfile from "../../methods/updateProfile";
-import { type LoginOptions } from "../../server/accounts";
 import TeamName from "../TeamName";
 
 export enum AccountFormFormat {
@@ -386,6 +386,54 @@ const AccountForm = (props: AccountFormProps) => {
     [tryLogin, tryPasswordReset, tryEnroll, tryCompletePasswordReset, props],
   );
 
+  const onGoogleSignInStarted = useCallback(() => {
+    setSubmitState(AccountFormSubmitState.SUBMITTING);
+  }, []);
+
+  const onGoogleSignInCanceled = useCallback(() => {
+    setSubmitState(AccountFormSubmitState.IDLE);
+  }, []);
+
+  const onEnrollGoogleSignInSucceeded = useCallback(
+    (token: string, secret: string) => {
+      setSubmitState(AccountFormSubmitState.IDLE);
+      setGoogleSignInCredentials({
+        token,
+        secret,
+      });
+    },
+    [],
+  );
+
+  const onLoginGoogleSignInSucceeded = useCallback(
+    (token: string, secret: string) => {
+      const loginRequest: LoginOptions = {
+        // Set this to true to trigger our custom Google signin hook.
+        isJrLogin: true,
+        googleCredentials: {
+          key: token,
+          secret,
+        },
+      };
+
+      Accounts.callLoginMethod({
+        methodArguments: [loginRequest],
+        userCallback: (error?: Error) => {
+          if (error) {
+            setSubmitState(AccountFormSubmitState.FAILED);
+            setErrorMessage(
+              error instanceof Meteor.Error ? error.reason : error.message,
+            );
+          } else {
+            setSubmitState(AccountFormSubmitState.SUCCESS);
+            setSuccessMessage("Logged in successfully.");
+          }
+        },
+      });
+    },
+    [],
+  );
+
   if (loading()) {
     return <div>loading...</div>;
   }
@@ -542,19 +590,9 @@ const AccountForm = (props: AccountFormProps) => {
                   or{" "}
                   <SignInWithGoogleButton
                     submitting={submitting}
-                    onStarted={() => {
-                      setSubmitState(AccountFormSubmitState.SUBMITTING);
-                    }}
-                    onSucceeded={(token: string, secret: string) => {
-                      setSubmitState(AccountFormSubmitState.IDLE);
-                      setGoogleSignInCredentials({
-                        token,
-                        secret,
-                      });
-                    }}
-                    onCanceled={() => {
-                      setSubmitState(AccountFormSubmitState.IDLE);
-                    }}
+                    onStarted={onGoogleSignInStarted}
+                    onSucceeded={onEnrollGoogleSignInSucceeded}
+                    onCanceled={onGoogleSignInCanceled}
                   />
                 </div>
               </div>
@@ -579,39 +617,9 @@ const AccountForm = (props: AccountFormProps) => {
               <div className="d-grid gap-2 mt-3 justify-content-center">
                 <SignInWithGoogleButton
                   submitting={submitting}
-                  onStarted={() => {
-                    setSubmitState(AccountFormSubmitState.SUBMITTING);
-                  }}
-                  onSucceeded={(token, secret) => {
-                    const loginRequest: LoginOptions = {
-                      // Set this to true to trigger our custom Google signin hook.
-                      isJrLogin: true,
-                      googleCredentials: {
-                        key: token,
-                        secret,
-                      },
-                    };
-
-                    Accounts.callLoginMethod({
-                      methodArguments: [loginRequest],
-                      userCallback: (error?: Error) => {
-                        if (error) {
-                          setSubmitState(AccountFormSubmitState.FAILED);
-                          setErrorMessage(
-                            error instanceof Meteor.Error
-                              ? error.reason
-                              : error.message,
-                          );
-                        } else {
-                          setSubmitState(AccountFormSubmitState.SUCCESS);
-                          setSuccessMessage("Logged in successfully.");
-                        }
-                      },
-                    });
-                  }}
-                  onCanceled={() => {
-                    setSubmitState(AccountFormSubmitState.IDLE);
-                  }}
+                  onStarted={onGoogleSignInStarted}
+                  onSucceeded={onLoginGoogleSignInSucceeded}
+                  onCanceled={onGoogleSignInCanceled}
                 />
               </div>
             ) : null}
