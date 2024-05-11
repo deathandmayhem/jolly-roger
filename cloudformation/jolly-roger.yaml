@@ -867,7 +867,7 @@ Resources:
                 - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_REGION=$AWS_DEFAULT_REGION -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} -e TURN_SERVER=turns:${AppUrl}:443?transport=tcp -e TURN_SECRET=${TurnSecret} -e MONGO_URL="${MongoUrl}" -e MONGO_OPLOG_URL="${MongoOplogUrl}" ${DockerPackage}
                 - docker run --name nginx -d --network=host --restart=unless-stopped -v /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf -v /usr/share/nginx/html/502.html:/usr/share/nginx/html/502.html nginx
                 - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --interval 30 --cleanup
-                - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /var/run/haproxy:/var/run/haproxy -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy:2.9.0
+                - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /var/run/haproxy:/var/run/haproxy -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy
             - PapertrailRsyslogConfig: !If
                 - HavePapertrail
                 - !Sub |
