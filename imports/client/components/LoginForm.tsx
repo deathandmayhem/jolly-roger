@@ -20,15 +20,12 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (!format) {
-      if (location.state?.pathname) {
-        const invitationPattern = /^\/join\/(.+)$/;
-        const matchResult = invitationPattern.exec(location.state.pathname);
-        if (matchResult?.[1]) {
-          setHuntInvitationCode(matchResult[1]);
-          if (format == null) {
-            setFormat(AccountFormFormat.INVITATION_WELCOME);
-            return;
-          }
+      // Set by JoinHunt when users open an invitation link and are unauthenticated.
+      if (location.state?.invitationCode) {
+        setHuntInvitationCode(location.state?.invitationCode);
+        if (format == null) {
+          setFormat(AccountFormFormat.INVITATION_WELCOME);
+          return;
         }
       }
       setFormat(AccountFormFormat.LOGIN);
