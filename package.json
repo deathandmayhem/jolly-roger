@@ -93,7 +93,7 @@
     "@types/mustache": "^4.2.5",
     "@types/node": "^14.18.63",
     "@types/portscanner": "^2.1.4",
-    "@types/react": "^18.3.1",
+    "@types/react": "^18.3.2",
     "@types/react-copy-to-clipboard": "^5.0.7",
     "@types/react-dom": "^18.3.0",
     "@types/react-router-bootstrap": "^0.26.6",
