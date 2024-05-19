@@ -88,7 +88,7 @@ definePublication(pendingGuessesForSelf, {
         }
 
         for (const [huntId, subSubscription] of huntGuessWatchers.entries()) {
-          if (!operatorHunts.has) {
+          if (!operatorHunts.has(huntId)) {
             merger.removeSub(subSubscription);
             huntGuessWatchers.delete(huntId);
           }
