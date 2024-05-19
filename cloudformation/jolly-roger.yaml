@@ -133,13 +133,13 @@ Parameters:
     Default: "evan=gh:ebroder,zarvox=gh:zarvox"
   ServingMode:
     Description: |
-        In "NLB" mode, bring up a load balancer and point the domain to it, allowing scaling to
-        multiple EC2 jobs. TLS termination is handled by the NLB using the certificate referenced
-        in CertificateArn. In "SingleInstance" mode, the domain is pointed directly at a single
-        EC2 instance. The TLS certificate will be automatically managed via Let's Encrypt - be sure
-        to accept their terms of service. In "None" mode, all serving is disabled. Use this to shut
-        down the app and save on costs while keeping persistent resources like the S3 bucket alive
-        and making it simpler to enable serving in the future.
+      In "NLB" mode, bring up a load balancer and point the domain to it, allowing scaling to
+      multiple EC2 jobs. TLS termination is handled by the NLB using the certificate referenced
+      in CertificateArn. In "SingleInstance" mode, the domain is pointed directly at a single
+      EC2 instance. The TLS certificate will be automatically managed via Let's Encrypt - be sure
+      to accept their terms of service. In "None" mode, all serving is disabled. Use this to shut
+      down the app and save on costs while keeping persistent resources like the S3 bucket alive
+      and making it simpler to enable serving in the future.
     Type: String
     Default: "NLB"
     AllowedValues: ["NLB", "SingleInstance", "None"]
@@ -941,9 +941,9 @@ Resources:
               };
             };
           - AllocationId: !If
-            - HaveLoadBalancing
-            - ""
-            - !GetAtt AppInstancePublicIp.AllocationId
+              - HaveLoadBalancing
+              - ""
+              - !GetAtt AppInstancePublicIp.AllocationId
 
   AssociateSingleInstanceIpRule:
     Type: AWS::Events::Rule
