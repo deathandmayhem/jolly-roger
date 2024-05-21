@@ -9,21 +9,29 @@ import { USER_EMAIL, USER_PASSWORD } from "../../../acceptance/lib";
 async function propagationPromise(
   query: Selector<ModelType<typeof FeatureFlags>>,
 ) {
-  return new Promise<void>((r) => {
-    let initializing = true;
-    let handle: Meteor.LiveQueryHandle | undefined;
+  return new Promise<void>((resolve, reject) => {
+    let handleThunk: Meteor.LiveQueryHandle | undefined;
     const cb = () => {
-      if (!initializing) {
-        handle?.stop();
-        r();
+      if (handleThunk) {
+        handleThunk?.stop();
+        handleThunk = undefined;
+        resolve();
       }
     };
-    handle = FeatureFlags.find(query).observeChanges({
-      added: cb,
-      changed: cb,
-      removed: cb,
-    });
-    initializing = false;
+    FeatureFlags.find(query)
+      .observeChangesAsync({
+        added: cb,
+        changed: cb,
+        removed: cb,
+      })
+      .then(
+        (handle) => {
+          handleThunk = handle;
+        },
+        (error) => {
+          reject(error);
+        },
+      );
   });
 }
 
@@ -38,12 +46,12 @@ describe("Flags", function () {
       });
     });
 
-    it("fires once if the flag does not exist", function () {
+    it("fires once if the flag does not exist", async function () {
       let callCount = 0;
       const cb = () => {
         callCount += 1;
       };
-      const observer = Flags.observeChanges("test", cb);
+      const observer = await Flags.observeChangesAsync("test", cb);
       observer.stop();
 
       assert.equal(callCount, 1);
@@ -54,7 +62,7 @@ describe("Flags", function () {
       const cb = () => {
         callCount += 1;
       };
-      const observer = Flags.observeChanges("test", cb);
+      const observer = await Flags.observeChangesAsync("test", cb);
       const updatePropagated = propagationPromise({ name: "test" });
 
       await FeatureFlags.upsertAsync(
@@ -77,7 +85,7 @@ describe("Flags", function () {
       const cb = () => {
         callCount += 1;
       };
-      const observer = Flags.observeChanges("test", cb);
+      const observer = await Flags.observeChangesAsync("test", cb);
       const updatePropagated = propagationPromise({ name: "test" });
 
       await FeatureFlags.upsertAsync(
@@ -110,7 +118,7 @@ describe("Flags", function () {
       const cb = () => {
         callCount += 1;
       };
-      const observer = Flags.observeChanges("test", cb);
+      const observer = await Flags.observeChangesAsync("test", cb);
       const updatePropagated = propagationPromise({ name: "test" });
 
       // reset call count

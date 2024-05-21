@@ -109,7 +109,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
 
   foreignKeys?: PublishSpec<T>["foreignKeys"];
 
-  watcher: Meteor.LiveQueryHandle;
+  watcherPromise: Promise<Meteor.LiveQueryHandle>;
 
   exists = false;
 
@@ -132,9 +132,9 @@ class JoinedObjectObserver<T extends { _id: string }> {
     this.foreignKeys = foreignKeys;
     this.observers = observers;
 
-    this.watcher = finder(model, allowDeleted)(id, {
+    this.watcherPromise = finder(model, allowDeleted)(id, {
       fields: projection as Mongo.FieldSpecifier,
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (_, fields) => {
         const fkValues = new Map<string, string[]>();
         foreignKeys?.forEach(({ field, join }) => {
@@ -232,7 +232,9 @@ class JoinedObjectObserver<T extends { _id: string }> {
   }
 
   destroy() {
-    this.watcher.stop();
+    void this.watcherPromise.then((watcher) => {
+      watcher.stop();
+    });
     if (this.exists) {
       this.sub.removed(this.modelName, this.id);
       const fkValues = this.values.get(this.id)!;
@@ -301,11 +303,11 @@ const addObservers = (
   });
 };
 
-export default function publishJoinedQuery<T extends { _id: string }>(
+export default async function publishJoinedQuery<T extends { _id: string }>(
   sub: Subscription,
   spec: PublishSpec<T>,
   query: Mongo.Selector<T>,
-): void {
+): Promise<void> {
   validateSpec(spec);
 
   const observers = new Map<string, RefCountedJoinedObjectObserverMap<any>>();
@@ -317,9 +319,9 @@ export default function publishJoinedQuery<T extends { _id: string }>(
 
   const observer = observers.get(name)!;
 
-  const watcher = finder(model, allowDeleted)(query, {
+  const watcher = await finder(model, allowDeleted)(query, {
     fields: { _id: 1 },
-  }).observeChanges({
+  }).observeChangesAsync({
     added: (id) => {
       observer.incref(id);
     },

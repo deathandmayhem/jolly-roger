@@ -54,12 +54,21 @@ export default async function withLock<T>(
 
       // Setup the watch now so we don't race between when we check
       // for the lock and when we wait for preemption
-      const removed = new Promise<undefined>((resolve) => {
-        handle = cursor.observeChanges({
-          removed() {
-            resolve(undefined);
-          },
-        });
+      const removed = new Promise<undefined>((resolve, reject) => {
+        cursor
+          .observeChangesAsync({
+            removed() {
+              resolve(undefined);
+            },
+          })
+          .then(
+            (handleThunk) => {
+              handle = handleThunk;
+            },
+            (error) => {
+              reject(error);
+            },
+          );
       });
 
       lock = await tryAcquire(name);

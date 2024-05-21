@@ -245,13 +245,13 @@ function clearEmailTemplatesHooks() {
 // Scope hoisted to keep the handle alive beyond the startup block.
 let configCursor;
 
-Meteor.startup(() => {
+Meteor.startup(async () => {
   // Initialize to default values
   clearEmailTemplatesHooks();
 
   // Set up observer
   configCursor = Settings.find({ name: "email.branding" });
-  configCursor.observe({
+  await configCursor.observeAsync({
     added: (doc) => updateEmailTemplatesHooks(doc),
     changed: (doc) => updateEmailTemplatesHooks(doc),
     removed: () => clearEmailTemplatesHooks(),

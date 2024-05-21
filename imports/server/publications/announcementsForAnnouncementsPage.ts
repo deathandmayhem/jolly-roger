@@ -23,7 +23,7 @@ definePublication(announcementsForAnnouncementsPage, {
       return [];
     }
 
-    publishJoinedQuery(
+    await publishJoinedQuery(
       this,
       {
         model: Announcements,

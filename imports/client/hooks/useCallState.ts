@@ -681,7 +681,9 @@ const useCallState = ({
   const recvTransport = state.transports.recv;
   useEffect(() => {
     if (hasSelfPeer) {
-      const observer = ConnectAcks.find({ peer: selfPeer._id }).observeChanges({
+      const observerPromise = ConnectAcks.find({
+        peer: selfPeer._id,
+      }).observeChangesAsync({
         added: (_id, fields) => {
           if (fields.direction === "send") {
             sendTransportConnectCallback.current?.();
@@ -692,7 +694,14 @@ const useCallState = ({
           }
         },
       });
-      return () => observer.stop();
+      return () => {
+        observerPromise.then(
+          (handle) => handle.stop(),
+          (error) => {
+            logger.error("ConnectAcks observeChangesAsync rejected:", error);
+          },
+        );
+      };
     }
     return undefined;
   }, [
@@ -818,7 +827,7 @@ const useCallState = ({
   }, [sendTransport, onProduce]);
 
   useEffect(() => {
-    const observer = ProducerServers.find().observeChanges({
+    const observerPromise = ProducerServers.find().observeChangesAsync({
       added: (_id, fields) => {
         logger.debug("ProducerServers added", { _id, ...fields });
         const trackId = fields.trackId;
@@ -840,7 +849,14 @@ const useCallState = ({
         }
       },
     });
-    return () => observer.stop();
+    return () => {
+      observerPromise.then(
+        (handle) => handle.stop(),
+        (error) => {
+          logger.error("ProducerServers observeChangesAsync rejected:", error);
+        },
+      );
+    };
   }, []);
 
   const producerShouldBePaused =

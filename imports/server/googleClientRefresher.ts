@@ -51,12 +51,12 @@ class GoogleClientRefresher {
       service: "google",
     });
     this.oauthCredentialCursor = Settings.find({ name: "gdrive.credential" });
-    this.oauthConfigCursor.observe({
+    void this.oauthConfigCursor.observeAsync({
       added: (doc) => this.updateOauthConfig(doc),
       changed: (doc) => this.updateOauthConfig(doc),
       removed: () => this.updateOauthConfig(undefined),
     });
-    this.oauthCredentialCursor.observe({
+    void this.oauthCredentialCursor.observeAsync({
       added: (doc) => this.updateOauthCredentials(doc),
       changed: (doc) => this.updateOauthCredentials(doc),
       removed: () => this.clearOauthCredentials(),

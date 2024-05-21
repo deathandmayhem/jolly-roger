@@ -15,7 +15,7 @@ Meteor.publish("chatNotifications", async function () {
     return;
   }
 
-  publishJoinedQuery(
+  await publishJoinedQuery(
     this,
     {
       model: ChatNotifications,

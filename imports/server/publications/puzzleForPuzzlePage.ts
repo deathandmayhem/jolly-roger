@@ -32,23 +32,27 @@ definePublication(puzzleForPuzzlePage, {
 
     const merger = new PublicationMerger(this);
 
-    publishCursor(
+    await publishCursor(
       merger.newSub(),
       Documents.name,
       Documents.find({ hunt: huntId, puzzle: puzzleId }),
     );
-    publishCursor(
+    await publishCursor(
       merger.newSub(),
       Guesses.name,
       Guesses.find({ hunt: huntId, puzzle: puzzleId }),
     );
-    publishCursor(merger.newSub(), Tags.name, Tags.find({ hunt: huntId }));
-    publishCursor(
+    await publishCursor(
+      merger.newSub(),
+      Tags.name,
+      Tags.find({ hunt: huntId }),
+    );
+    await publishCursor(
       merger.newSub(),
       Puzzles.name,
       Puzzles.find({ hunt: huntId }),
     );
-    publishCursor(
+    await publishCursor(
       merger.newSub(),
       Bookmarks.name,
       Bookmarks.find({
@@ -58,7 +62,7 @@ definePublication(puzzleForPuzzlePage, {
     );
 
     // Also publish this puzzle, even if it's deleted, and its replacement
-    publishJoinedQuery(
+    await publishJoinedQuery(
       merger.newSub(),
       {
         model: Puzzles,

@@ -52,16 +52,23 @@ const republishOnUserChange = async (
   let currentSub: SubSubscription | undefined;
   if (cursor) {
     currentSub = merger.newSub();
-    publishCursor(currentSub, Meteor.users._name, cursor, makeTransform?.(u));
+    await publishCursor(
+      currentSub,
+      Meteor.users._name,
+      cursor,
+      makeTransform?.(u),
+    );
   }
-  const watch = MeteorUsers.find(sub.userId!, { fields: projection }).observe({
+  const watch = await MeteorUsers.find(sub.userId!, {
+    fields: projection,
+  }).observeAsync({
     changed: (doc) => {
       void (async () => {
         const newCursor = await makeCursor(doc);
         let newSub;
         if (newCursor) {
           newSub = merger.newSub();
-          publishCursor(
+          await publishCursor(
             newSub,
             Meteor.users._name,
             newCursor,

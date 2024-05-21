@@ -19,24 +19,26 @@ class DiscordClientRefresher {
 
   private token?: string;
 
-  private configObserveHandle: Meteor.LiveQueryHandle;
+  private configObserveHandle?: Meteor.LiveQueryHandle;
 
-  private featureFlagObserveHandle: Meteor.LiveQueryHandle;
+  private featureFlagObserveHandle?: Meteor.LiveQueryHandle;
 
   private wakeup?: () => void;
 
   constructor() {
     this.client = undefined;
     this.token = undefined;
+  }
 
+  async init() {
     const configCursor = Settings.find({ name: "discord.bot" });
-    this.configObserveHandle = configCursor.observe({
+    this.configObserveHandle = await configCursor.observeAsync({
       added: (doc) => this.updateBotConfig(doc),
       changed: (doc) => this.updateBotConfig(doc),
       removed: () => this.clearBotConfig(),
     });
 
-    this.featureFlagObserveHandle = Flags.observeChanges(
+    this.featureFlagObserveHandle = await Flags.observeChangesAsync(
       "disable.discord",
       () => {
         void this.refreshClient();
@@ -49,8 +51,8 @@ class DiscordClientRefresher {
   }
 
   shutdown() {
-    this.configObserveHandle.stop();
-    this.featureFlagObserveHandle.stop();
+    this.configObserveHandle?.stop();
+    this.featureFlagObserveHandle?.stop();
     this.clearBotConfig();
   }
 
@@ -288,7 +290,8 @@ class DiscordClientRefresher {
 }
 
 const discordClientRefresher = new DiscordClientRefresher();
-Meteor.startup(() => {
+Meteor.startup(async () => {
+  await discordClientRefresher.init();
   onExit(Meteor.bindEnvironment(() => discordClientRefresher.shutdown()));
 });
 

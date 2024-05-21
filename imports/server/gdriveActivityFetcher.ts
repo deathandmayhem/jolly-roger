@@ -149,17 +149,23 @@ async function fetchDriveActivity() {
 const FEATURE_FLAG_NAME = "disable.gdrive_document_activity";
 
 async function featureFlagChanged() {
-  let initializing = true;
-  return new Promise<void>((r) => {
-    let handle: Meteor.LiveQueryHandle | undefined;
-    const cleanup = () => {
-      if (!initializing) {
-        handle?.stop();
-        r();
+  return new Promise<void>((resolve, reject) => {
+    let handleThunk: Meteor.LiveQueryHandle | undefined;
+    const callback = () => {
+      if (handleThunk) {
+        handleThunk?.stop();
+        handleThunk = undefined;
+        resolve();
       }
     };
-    handle = Flags.observeChanges(FEATURE_FLAG_NAME, cleanup);
-    initializing = false;
+    Flags.observeChangesAsync(FEATURE_FLAG_NAME, callback).then(
+      (handle) => {
+        handleThunk = handle;
+      },
+      (error) => {
+        reject(error);
+      },
+    );
   });
 }
 

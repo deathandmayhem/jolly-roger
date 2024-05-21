@@ -32,7 +32,7 @@ const Flags = {
     return flagIsActive(flag);
   },
 
-  observeChanges(
+  async observeChangesAsync(
     name: (typeof FlagNames)[number],
     cb: (active: boolean) => void,
   ) {
@@ -53,7 +53,7 @@ const Flags = {
         cb(newActive);
       }
     };
-    const handle = FeatureFlags.find({ name }).observeChanges({
+    const handle = await FeatureFlags.find({ name }).observeChangesAsync({
       added: checkUpdate,
       changed: checkUpdate,
       removed: checkUpdate,

@@ -80,14 +80,14 @@ describe("publishJoinedQuery", function () {
     await makeFixtureHunt(Random.id());
   });
 
-  it("can follow a string foreign key", function () {
+  it("can follow a string foreign key", async function () {
     const sub = new StubSubscription();
     after(() => sub.stop());
 
     const guessId = "obeeKs3ZEkBe3ykeg";
     const puzzleId = "fXchzrh8X9EoSZu6k";
 
-    publishJoinedQuery(
+    await publishJoinedQuery(
       sub,
       {
         model: Guesses,
@@ -112,14 +112,14 @@ describe("publishJoinedQuery", function () {
     assert.sameMembers([...puzzleCollection.keys()], [puzzleId]);
   });
 
-  it("can follow an array foreign key", function () {
+  it("can follow an array foreign key", async function () {
     const sub = new StubSubscription();
     after(() => sub.stop());
 
     const puzzleId = "fXchzrh8X9EoSZu6k";
     const tagIds = ["o5JdfTizW4tGwhRnP", "QeJLufdCqv7rMSSbS"];
 
-    publishJoinedQuery(
+    await publishJoinedQuery(
       sub,
       {
         model: Puzzles,
@@ -151,7 +151,7 @@ describe("publishJoinedQuery", function () {
     const puzzleId = "fXchzrh8X9EoSZu6k";
     const newTagIds = ["NwhNGo64jRs384HwN", "27YauwyRpL6yMsCef"];
 
-    publishJoinedQuery(
+    await publishJoinedQuery(
       sub,
       {
         model: Puzzles,
@@ -167,18 +167,27 @@ describe("publishJoinedQuery", function () {
       { _id: puzzleId },
     );
 
-    const updatePropagated = new Promise<void>((r) => {
-      let initializing = true;
-      const handle = Puzzles.find(puzzleId).observeChanges({
-        changed: () => {
-          if (!initializing) {
-            handle.stop();
-            r();
-          }
-        },
-      });
-      after(() => handle.stop());
-      initializing = false;
+    const updatePropagated = new Promise<void>((resolve, reject) => {
+      let handleThunk: Meteor.LiveQueryHandle | undefined;
+      Puzzles.find(puzzleId)
+        .observeChangesAsync({
+          changed: () => {
+            if (handleThunk) {
+              handleThunk.stop();
+              handleThunk = undefined;
+              resolve();
+            }
+          },
+        })
+        .then(
+          (handle) => {
+            handleThunk = handle;
+          },
+          (error) => {
+            reject(error);
+          },
+        );
+      after(() => handleThunk?.stop());
     });
 
     await Puzzles.updateAsync(puzzleId, { $set: { tags: newTagIds } });

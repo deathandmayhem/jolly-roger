@@ -26,15 +26,16 @@ Meteor.publish("hasUsers", async function () {
   if ((await cursor.countAsync()) > 0) {
     this.added("hasUsers", "hasUsers", { hasUsers: true });
   } else {
-    let handle: Meteor.LiveQueryHandle | undefined = cursor.observeChanges({
-      added: (_id) => {
-        this.added("hasUsers", "hasUsers", { hasUsers: true });
-        if (handle) {
-          handle.stop();
-        }
-        handle = undefined;
-      },
-    });
+    let handle: Meteor.LiveQueryHandle | undefined =
+      await cursor.observeChangesAsync({
+        added: (_id) => {
+          this.added("hasUsers", "hasUsers", { hasUsers: true });
+          if (handle) {
+            handle.stop();
+          }
+          handle = undefined;
+        },
+      });
     this.onStop(() => {
       if (handle) {
         handle.stop();
@@ -45,10 +46,10 @@ Meteor.publish("hasUsers", async function () {
   this.ready();
 });
 
-Meteor.publish("teamName", function () {
+Meteor.publish("teamName", async function () {
   const cursor = Settings.find({ name: "teamname" });
   let tracked = false;
-  const handle: Meteor.LiveQueryHandle = cursor.observe({
+  const handle: Meteor.LiveQueryHandle = await cursor.observeAsync({
     added: (doc) => {
       tracked = true;
       this.added("teamName", "teamName", { name: doc.value.teamName });
@@ -89,7 +90,7 @@ Meteor.publish("googleScriptInfo", async function () {
     }
     return { configured };
   };
-  const handle: Meteor.LiveQueryHandle = cursor.observe({
+  const handle: Meteor.LiveQueryHandle = await cursor.observeAsync({
     added: (doc) => {
       void (async () => {
         tracked = true;
