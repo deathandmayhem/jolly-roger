@@ -27,6 +27,8 @@ updates:
         versions: [">=3.13.0"]
       - dependency-name: "@testing-library/react"
         versions: [">=15"]
+      - dependency-name: "chai"
+        versions: [">=5"]
       # marked has had significant API revisions that we need to take manually
       - dependency-name: "marked"
         versions: [">=5"]
