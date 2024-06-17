@@ -40,7 +40,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build test environment Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           target: test
@@ -59,7 +59,7 @@ jobs:
         run: |
           docker run -e PATH_PREFIX=${{ github.workspace }} -e CI=true --rm ${{ env.TEST_TAG }}
       - name: Build production Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: ${{ github.ref == 'refs/heads/main' }} # only push on main builds
