@@ -51,7 +51,7 @@ const GoogleDocumentDisplay = ({
   let icon: IconDefinition;
   switch (document.value.type) {
     case "spreadsheet":
-      url = `https://docs.google.com/spreadsheets/d/${document.value.id}/edit?ui=2&rm=embedded#gid=0`;
+      url = `https://docs.google.com/spreadsheets/d/${document.value.id}/edit?ui=2&rm=embedded&gid=0#gid=0`;
       deepUrl = `googlesheets://${url}`;
       title = "Sheet";
       icon = faTable;
