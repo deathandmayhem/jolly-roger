@@ -959,6 +959,7 @@ const NotificationCenter = () => {
     const hunt = hunts.get(g.hunt);
     const puzzle = puzzles.get(g.puzzle);
     if (!hunt || !puzzle) return;
+    if (!hunt.hasGuessQueue) return;
     messages.push(
       <GuessMessage
         key={g._id}
