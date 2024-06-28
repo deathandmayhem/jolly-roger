@@ -43,6 +43,7 @@
     "element-resize-detector": "^1.2.4",
     "express": "^4.19.2",
     "form-data": "^4.0.0",
+    "gaxios": "^6.7.0",
     "glob": "^8.1.0",
     "http-proxy": "^1.18.1",
     "ip-address": "^9.0.5",
