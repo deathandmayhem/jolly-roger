@@ -122,11 +122,11 @@ Parameters:
     Description: MONGO_OPLOG_URL to use with Meteor. Can leave unset and use "mongo.oplog" key in SSM if using username/password authentication.
     Type: String
     Default: ""
-  EnableCloudWatch:
-    Description: Enable CloudWatch logging
+  CloudWatchMode:
+    Description: Mode to use with CloudWatch. "None" disables CloudWatch. "Minimal" only captures memory and swap metrics to keep costs down (note that total CPU is a built-in metric). "Detailed" also captures disk, network, and detailed CPU metrics.
     Type: String
-    Default: "true"
-    AllowedValues: ["true", "false"]
+    Default: "Detailed"
+    AllowedValues: ["Detailed", "Minimal", "None"]
   SshUsers:
     Description: Comma-separated list of SSH users, each of the form <username>=<ssh_import_id>
     Type: String
@@ -150,7 +150,8 @@ Parameters:
 
 Conditions:
   HavePapertrail: !Not [!Equals [!Ref PapertrailHost, ""]]
-  HaveCloudWatch: !Equals [!Ref EnableCloudWatch, "true"]
+  HaveCloudWatch: !Not [!Equals [!Ref CloudWatchMode, "None"]]
+  HaveCloudWatchDetailed: !Equals [!Ref CloudWatchMode, "Detailed"]
   HaveServing: !Not [!Equals [!Ref ServingMode, "None"]]
   HaveLoadBalancing: !Equals [!Ref ServingMode, "NLB"]
   HaveSingleInstance: !Equals [!Ref ServingMode, "SingleInstance"]
@@ -804,39 +805,7 @@ Resources:
                           "InstanceType": "${!aws:InstanceType}"
                         },
                         "metrics_collected": {
-                          "cpu": {
-                            "measurement": [
-                              "cpu_usage_idle",
-                              "cpu_usage_iowait",
-                              "cpu_usage_user",
-                              "cpu_usage_system"
-                            ]
-                          },
-                          "mem": {
-                            "measurement": [
-                              "mem_used_percent"
-                            ]
-                          },
-                          "diskio": {
-                            "measurement": [
-                              "io_time",
-                              "write_bytes",
-                              "read_bytes",
-                              "writes",
-                              "reads"
-                            ]
-                          },
-                          "netstat": {
-                            "measurement": [
-                              "tcp_established",
-                              "tcp_time_wait"
-                            ]
-                          },
-                          "swap": {
-                            "measurement": [
-                              "swap_used_percent"
-                            ]
-                          }
+                          ${CloudWatchMetrics}
                         }
                       }
                     }
@@ -881,13 +850,50 @@ Resources:
                 - ""
               CloudWatchAgentConfig: !If
                 - HaveCloudWatch
-                - |
+                - |2
                   # Observability
-                  - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
-                  - dpkg -i ./amazon-cloudwatch-agent.deb
-                  - rm amazon-cloudwatch-agent.deb
-                  - sudo systemctl start amazon-cloudwatch-agent
+                    - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+                    - dpkg -i ./amazon-cloudwatch-agent.deb
+                    - rm amazon-cloudwatch-agent.deb
+                    - sudo systemctl start amazon-cloudwatch-agent
                 - ""
+              CloudWatchMetrics: !If
+                - HaveCloudWatchDetailed
+                - '"mem": {
+                  "measurement": ["mem_used_percent"]
+                  },
+                  "swap": {
+                  "measurement": ["swap_used_percent"]
+                  },
+                  "cpu": {
+                  "measurement": [
+                  "cpu_usage_idle",
+                  "cpu_usage_iowait",
+                  "cpu_usage_user",
+                  "cpu_usage_system"
+                  ]
+                  },
+                  "diskio": {
+                  "measurement": [
+                  "io_time",
+                  "write_bytes",
+                  "read_bytes",
+                  "writes",
+                  "reads"
+                  ]
+                  },
+                  "netstat": {
+                  "measurement": [
+                  "tcp_established",
+                  "tcp_time_wait"
+                  ]
+                  }'
+                - '"mem": {
+                  "measurement": ["mem_used_percent"]
+                  },
+                  "swap": {
+                  "measurement": ["swap_used_percent"]
+                  }'
               SshUsersConfig: !GetAtt SshUsersParsing.Output
               SingleInstanceCertConfig: !If
                 - HaveLoadBalancing
