@@ -39,7 +39,7 @@
     "bootstrap": "^5.3.3",
     "classnames": "^2.5.1",
     "discord.js": "^12.5.3",
-    "dompurify": "^3.1.5",
+    "dompurify": "^3.1.6",
     "element-resize-detector": "^1.2.4",
     "express": "^4.19.2",
     "form-data": "^4.0.0",
