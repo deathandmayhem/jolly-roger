@@ -70,7 +70,7 @@
     "slate-history": "^0.100.0",
     "slate-react": "^0.107.0",
     "stacktrace-js": "^2.0.2",
-    "styled-components": "^6.1.11",
+    "styled-components": "^6.1.12",
     "use-persisted-state": "^0.3.3",
     "winston": "^3.13.1",
     "winston-transport": "^4.7.1",
