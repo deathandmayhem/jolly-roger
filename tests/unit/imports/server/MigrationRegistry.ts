@@ -108,10 +108,10 @@ describe("MigrationRegistry", function () {
     // Expect that the database is still locked.
     const control = await testCollection.findOneAsync("control");
     assert.isDefined(control);
-    const { locked, lockedAt } = control!;
+    const { locked, lockedAt } = control;
     assert.equal(locked, true);
     assert.isDefined(lockedAt);
-    assert.isAtLeast(lockedAt!.getTime(), start);
+    assert.isAtLeast(lockedAt.getTime(), start);
 
     // Expect that the first migration ran, once.
     assert.equal(runCount, 1);
@@ -164,10 +164,10 @@ describe("MigrationRegistry", function () {
     // Expect that the database is still locked.
     const control = await testCollection.findOneAsync("control");
     assert.isDefined(control);
-    const { locked, lockedAt } = control!;
+    const { locked, lockedAt } = control;
     assert.equal(locked, true);
     assert.isDefined(lockedAt);
-    assert.isAtLeast(lockedAt!.getTime(), start);
+    assert.isAtLeast(lockedAt.getTime(), start);
 
     // Expect that the first migration ran, once.
     assert.equal(runCount, 1);

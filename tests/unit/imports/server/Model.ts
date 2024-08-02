@@ -60,7 +60,7 @@ describe("Model", function () {
 
       const record = await model.findOneAsync(result);
       assert.isOk(record);
-      assert.isUndefined(record!.string);
+      assert.isUndefined(record.string);
     });
 
     it("works on update", async function () {
@@ -88,7 +88,7 @@ describe("Model", function () {
 
       const record = await model.findOneAsync(id);
       assert.isOk(record);
-      assert.isUndefined(record!.string);
+      assert.isUndefined(record.string);
     });
   });
 
