@@ -248,7 +248,7 @@ if (Meteor.isClient) {
         let u2 = await MeteorUsers.findOneAsync(sameHuntUserId);
         assert.isDefined(u2, "Should show users in the same hunt");
         assert.sameMembers(
-          u2!.hunts!,
+          u2.hunts!,
           [huntId],
           "Should not show membership in other hunts even if user is visible",
         );
