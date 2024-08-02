@@ -78,7 +78,7 @@
   },
   "devDependencies": {
     "@testing-library/react": "^14.3.1",
-    "@types/chai": "^4.3.11",
+    "@types/chai": "^4.3.17",
     "@types/chai-as-promised": "^7.1.8",
     "@types/dompurify": "^3.0.5",
     "@types/element-resize-detector": "^1.1.6",
@@ -107,7 +107,7 @@
     "@typescript-eslint/utils": "^5.62.0",
     "babel-plugin-add-react-displayname": "0.0.5",
     "babel-plugin-styled-components": "^2.1.4",
-    "chai": "^4.4.1",
+    "chai": "^4.5.0",
     "chai-as-promised": "^8.0.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb": "^19.0.4",
