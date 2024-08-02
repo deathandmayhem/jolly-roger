@@ -24,7 +24,7 @@ const ResolvedProfilePage = ({
   }, [userId, loading]);
 
   useBreadcrumb({
-    title: loading ? "loading..." : user?.displayName ?? "Profile settings",
+    title: loading ? "loading..." : (user?.displayName ?? "Profile settings"),
     path: huntId ? `/hunts/${huntId}/hunters/${userId}` : `/users/${userId}`,
   });
 

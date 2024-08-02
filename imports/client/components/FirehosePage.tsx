@@ -73,7 +73,7 @@ function asFlatString(
 const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
   const ts = shortCalendarTimeFormat(msg.timestamp);
   const displayName = msg.sender
-    ? displayNames.get(msg.sender) ?? "???"
+    ? (displayNames.get(msg.sender) ?? "???")
     : "jolly-roger";
   const messageText = asFlatString(msg, displayNames);
   const hasNewline = messageText.includes("\n");
@@ -209,7 +209,7 @@ const FirehosePage = () => {
         ).toLowerCase();
         const senderDisplayName = (
           chatMessage.sender
-            ? displayNames.get(chatMessage.sender) ?? ""
+            ? (displayNames.get(chatMessage.sender) ?? "")
             : "jolly-roger"
         ).toLowerCase();
         const puzzleName =

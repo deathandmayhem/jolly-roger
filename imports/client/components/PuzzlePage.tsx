@@ -363,7 +363,7 @@ const ChatHistoryMessage = React.memo(
 
     const senderDisplayName =
       message.sender !== undefined
-        ? displayNames.get(message.sender) ?? "???"
+        ? (displayNames.get(message.sender) ?? "???")
         : "jolly-roger";
     return (
       <ChatMessageDiv
