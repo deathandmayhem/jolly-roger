@@ -108,7 +108,7 @@ RUN --mount=type=cache,target=/app/.meteor/local/ meteor build --allow-superuser
 
 # Install server dependencies
 WORKDIR /built_app/bundle/programs/server
-RUN --mount=type=cache,target=/root/.npm meteor npm install --production --omit=optional
+RUN --mount=type=cache,target=/root/.npm meteor --allow-superuser npm install --production --omit=optional
 
 # Production image
 # (Be careful about creating as few layers as possible)
