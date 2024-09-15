@@ -167,10 +167,12 @@ const HuntNav = () => {
 
         <StyledPuzzleListLinkAnchor
           to={`/hunts/${huntId}/guesses`}
-          title="Guess queue"
+          title={hunt.hasGuessQueue ? "Guess queue" : "Answer log"}
         >
           <MenuIcon icon={faReceipt} />
-          <StyledPuzzleListLinkLabel>Guesses</StyledPuzzleListLinkLabel>
+          <StyledPuzzleListLinkLabel>
+            {hunt.hasGuessQueue ? "Guesses" : "Answers"}
+          </StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
 
         <StyledPuzzleListLinkAnchor
