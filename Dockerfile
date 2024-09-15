@@ -69,7 +69,7 @@ RUN <<'EOF'
 set -eux
 set -o pipefail
 METEOR_RELEASE="$(sed -e 's/.*@//g' .meteor/release)"
-curl -sL https://install.meteor.com?release=\$METEOR_RELEASE | sh
+curl -sL "https://install.meteor.com?release=$METEOR_RELEASE" | sh
 EOF
 
 # Install meteor deps (list is sufficient to do this)
