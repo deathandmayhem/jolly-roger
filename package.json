@@ -68,7 +68,7 @@
     "react-textarea-autosize": "^8.5.3",
     "slate": "^0.103.0",
     "slate-history": "^0.109.0",
-    "slate-react": "^0.107.1",
+    "slate-react": "^0.110.1",
     "stacktrace-js": "^2.0.2",
     "styled-components": "^6.1.13",
     "use-persisted-state": "^0.3.3",
