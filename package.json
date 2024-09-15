@@ -96,7 +96,7 @@
     "@types/node": "^14.18.63",
     "@types/npm-events-package": "npm:@types/events@^3.0.3",
     "@types/portscanner": "^2.1.4",
-    "@types/react": "^18.3.3",
+    "@types/react": "^18.3.5",
     "@types/react-copy-to-clipboard": "^5.0.7",
     "@types/react-dom": "^18.3.0",
     "@types/react-router-bootstrap": "^0.26.6",
