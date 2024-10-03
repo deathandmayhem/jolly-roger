@@ -244,9 +244,16 @@ const PuzzleListView = ({
         return;
       }
 
-      createPuzzle.call({ docType, ...rest }, callback);
+      function onAddComplete(error?: Error) {
+        if (!error && addModalRef.current) {
+          addModalRef.current.reset();
+        }
+        callback(error);
+      }
+
+      createPuzzle.call({ docType, ...rest }, onAddComplete);
     },
-    [],
+    [addModalRef],
   );
 
   const setSearchString = useCallback(
