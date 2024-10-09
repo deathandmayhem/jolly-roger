@@ -72,7 +72,6 @@ export const AuthenticatedRouteList: RouteObject[] = [
   },
   { path: "/setup", element: <SetupPage /> },
   { path: "/rtcdebug", element: <RTCDebugPage /> },
-  { path: "/join/:invitationCode", element: <JoinHunt /> },
 ].map((r) => {
   return {
     ...r,
@@ -101,6 +100,10 @@ export const RouteList: RouteObject[] = [
   },
   ...AuthenticatedRouteList,
   ...UnauthenticatedRouteList,
+  // Join is essentially an authenticated route, but needs custom handling for unauthenticated
+  // users so it can redirect them to /login with the parsed hunt invitation code in the location
+  // state.
+  { path: "/join/:invitationCode", element: <JoinHunt /> },
 ];
 
 const Routes = React.memo(() => {
