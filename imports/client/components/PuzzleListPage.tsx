@@ -479,7 +479,7 @@ const PuzzleListView = ({
               includeCount={false}
               canUpdate={canUpdate}
               suppressedTagIds={[]}
-              trackPersistentExpand={searchString !== ""}
+              trackPersistentExpand={searchString === ""}
             />
           )}
         </div>
