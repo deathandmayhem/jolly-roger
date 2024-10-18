@@ -46,7 +46,7 @@
     "gaxios": "^6.7.1",
     "glob": "^8.1.0",
     "http-proxy": "^1.18.1",
-    "ip-address": "^9.0.5",
+    "ip-address": "^10.0.1",
     "logfmt": "^1.4.0",
     "marked": "^4.3.0",
     "mediasoup": "^3.12.16",
