@@ -91,7 +91,7 @@
     "@types/marked": "^4.3.2",
     "@types/meteor": "^2.9.8",
     "@types/mime-types": "^2.1.4",
-    "@types/mocha": "^10.0.8",
+    "@types/mocha": "^10.0.9",
     "@types/mustache": "^4.2.5",
     "@types/node": "^14.18.63",
     "@types/npm-events-package": "npm:@types/events@^3.0.3",
