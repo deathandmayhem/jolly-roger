@@ -100,8 +100,11 @@ const PuzzleModalForm = React.forwardRef(
     const [expectedAnswerCount, setExpectedAnswerCount] = useState<number>(
       puzzle ? puzzle.expectedAnswerCount : 1,
     );
+<<<<<<< HEAD
     const [confirmingDuplicateUrl, setConfirmingDuplicateUrl] =
       useState<boolean>(false);
+=======
+>>>>>>> 4f3e4c0b (Deduplicate new puzzles by URL.)
     const [allowDuplicateUrls, setAllowDuplicateUrls] = useState<
       boolean | undefined
     >(puzzle ? undefined : false);
@@ -206,7 +209,10 @@ const PuzzleModalForm = React.forwardRef(
                   ' puzzle? To force creation anyway, check the "Allow puzzles with identical' +
                   ' URLs" box above and try again.',
               );
+<<<<<<< HEAD
               setConfirmingDuplicateUrl(true);
+=======
+>>>>>>> 4f3e4c0b (Deduplicate new puzzles by URL.)
             } else {
               setErrorMessage(error.message);
             }
@@ -218,9 +224,13 @@ const PuzzleModalForm = React.forwardRef(
             setUrlDirty(false);
             setTagsDirty(false);
             setExpectedAnswerCountDirty(false);
+<<<<<<< HEAD
             setConfirmingDuplicateUrl(false);
             setAllowDuplicateUrls(false);
             window.location.hash = "";
+=======
+            setAllowDuplicateUrls(false);
+>>>>>>> 4f3e4c0b (Deduplicate new puzzles by URL.)
             callback();
           }
         });
@@ -347,9 +357,14 @@ const PuzzleModalForm = React.forwardRef(
       ) : null;
 
     const allowDuplicateUrlsCheckbox =
+<<<<<<< HEAD
       !puzzle && allowDuplicateUrls !== undefined && confirmingDuplicateUrl ? (
         <FormCheck
           id="jr-new-puzzle-allow-duplicate-urls"
+=======
+      !puzzle && typeof allowDuplicateUrls === "boolean" ? (
+        <FormCheck
+>>>>>>> 4f3e4c0b (Deduplicate new puzzles by URL.)
           label="Allow puzzles with identical URLs"
           type="checkbox"
           disabled={disableForm}
@@ -357,6 +372,7 @@ const PuzzleModalForm = React.forwardRef(
           className="mt-1"
         />
       ) : null;
+<<<<<<< HEAD
       useEffect(() => {
         // This tries to guess the puzzle title based on the URL entered
         // To keep things simple, we only populate the title if the title
@@ -382,6 +398,8 @@ const PuzzleModalForm = React.forwardRef(
         }
       }, [url]);
 
+=======
+>>>>>>> 4f3e4c0b (Deduplicate new puzzles by URL.)
 
     return (
       <Suspense

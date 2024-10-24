@@ -1,5 +1,6 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+import { MongoInternals } from "meteor/mongo";
 import { Random } from "meteor/random";
 import Flags from "../../Flags";
 import Logger from "../../Logger";
@@ -11,7 +12,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
 import createPuzzle from "../../methods/createPuzzle";
 import GlobalHooks from "../GlobalHooks";
-import { ensureDocument } from "../gdrive";
+import { deleteUnusedDocument, ensureDocument } from "../gdrive";
 import getOrCreateTagByName from "../getOrCreateTagByName";
 import GoogleClient from "../googleClientRefresher";
 import withLock from "../withLock";
@@ -146,6 +147,40 @@ defineMethod(createPuzzle, {
           docType,
         );
       });
+    }
+
+    // In a transaction, look for a puzzle with the same URL. If present, we
+    // reject the insertion unless the client overrides it.
+    const client = MongoInternals.defaultRemoteCollectionDriver().mongo.client;
+    const session = client.startSession();
+    try {
+      await session.withTransaction(async () => {
+        if (url) {
+          const existingPuzzleWithUrl = await Puzzles.collection
+            .rawCollection()
+            .findOne({ hunt: huntId, url }, { session });
+          if (existingPuzzleWithUrl && !allowDuplicateUrls) {
+            throw new Meteor.Error(
+              409,
+              `Puzzle with URL ${url} already exists`,
+            );
+          }
+        }
+        await Puzzles.insertAsync(fullPuzzle, { session });
+      });
+    } catch (error) {
+      // In the case of any error, try to delete the document we created before the transaction.
+      // If that fails too, let the original error propagate.
+      try {
+        await deleteUnusedDocument(fullPuzzle);
+      } catch (deleteError) {
+        Logger.warn("Unable to clean up document on failed puzzle creation", {
+          error: deleteError,
+        });
+      }
+      throw error;
+    } finally {
+      await session.endSession();
     }
 
     // Run any puzzle-creation hooks, like creating a default document
