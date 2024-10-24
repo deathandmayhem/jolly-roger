@@ -1,3 +1,4 @@
+import { Meteor } from "meteor/meteor";
 import React, {
   Suspense,
   useCallback,
@@ -9,6 +10,7 @@ import React, {
 } from "react";
 import Alert from "react-bootstrap/Alert";
 import Col from "react-bootstrap/Col";
+import FormCheck from "react-bootstrap/FormCheck";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
@@ -38,6 +40,7 @@ export interface PuzzleModalFormSubmitPayload {
   tags: string[];
   docType?: GdriveMimeTypesType;
   expectedAnswerCount: number;
+  allowDuplicateUrls?: boolean;
 }
 
 enum PuzzleModalFormSubmitState {
@@ -93,6 +96,9 @@ const PuzzleModalForm = React.forwardRef(
     const [expectedAnswerCount, setExpectedAnswerCount] = useState<number>(
       puzzle ? puzzle.expectedAnswerCount : 1,
     );
+    const [allowDuplicateUrls, setAllowDuplicateUrls] = useState<
+      boolean | undefined
+    >(puzzle ? undefined : false);
     const [submitState, setSubmitState] = useState<PuzzleModalFormSubmitState>(
       PuzzleModalFormSubmitState.IDLE,
     );
@@ -157,6 +163,13 @@ const PuzzleModalForm = React.forwardRef(
       setExpectedAnswerCountDirty(true);
     }, []);
 
+    const onAllowDuplicateUrlsChange = useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setAllowDuplicateUrls(event.currentTarget.checked);
+      },
+      [],
+    );
+
     const onFormSubmit = useCallback(
       (callback: () => void) => {
         setSubmitState(PuzzleModalFormSubmitState.SUBMITTING);
@@ -170,9 +183,24 @@ const PuzzleModalForm = React.forwardRef(
         if (docType) {
           payload.docType = docType;
         }
+        if (allowDuplicateUrls) {
+          payload.allowDuplicateUrls = allowDuplicateUrls;
+        }
         onSubmit(payload, (error) => {
           if (error) {
-            setErrorMessage(error.message);
+            if (
+              error instanceof Meteor.Error &&
+              typeof error.error === "number" &&
+              error.error === 409
+            ) {
+              setErrorMessage(
+                "A puzzle already exists with this URL - did someone else already add this" +
+                  ' puzzle? To force creation anyway, check the "Allow puzzles with identical' +
+                  ' URLs" box above and try again.',
+              );
+            } else {
+              setErrorMessage(error.message);
+            }
             setSubmitState(PuzzleModalFormSubmitState.FAILED);
           } else {
             setSubmitState(PuzzleModalFormSubmitState.IDLE);
@@ -181,11 +209,21 @@ const PuzzleModalForm = React.forwardRef(
             setUrlDirty(false);
             setTagsDirty(false);
             setExpectedAnswerCountDirty(false);
+            setAllowDuplicateUrls(false);
             callback();
           }
         });
       },
-      [onSubmit, huntId, title, url, tags, expectedAnswerCount, docType],
+      [
+        onSubmit,
+        huntId,
+        title,
+        url,
+        tags,
+        expectedAnswerCount,
+        docType,
+        allowDuplicateUrls,
+      ],
     );
 
     const show = useCallback(() => {
@@ -278,6 +316,17 @@ const PuzzleModalForm = React.forwardRef(
         </FormGroup>
       ) : null;
 
+    const allowDuplicateUrlsCheckbox =
+      !puzzle && typeof allowDuplicateUrls === "boolean" ? (
+        <FormCheck
+          label="Allow puzzles with identical URLs"
+          type="checkbox"
+          disabled={disableForm}
+          onChange={onAllowDuplicateUrlsChange}
+          className="mt-1"
+        />
+      ) : null;
+
     return (
       <Suspense
         fallback={
@@ -320,6 +369,7 @@ const PuzzleModalForm = React.forwardRef(
                 onChange={onUrlChange}
                 value={currentUrl}
               />
+              {allowDuplicateUrlsCheckbox}
             </Col>
           </FormGroup>
 
