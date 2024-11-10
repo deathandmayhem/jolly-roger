@@ -8,10 +8,12 @@ export default async function sendChatMessageInternal({
   puzzleId,
   content,
   sender,
+  pinned,
 }: {
   puzzleId: string;
   content: ChatMessageContentType;
   sender: string | undefined;
+  pinned: boolean;
 }) {
   const puzzle = await Puzzles.findOneAsync(puzzleId);
   if (!puzzle) {
@@ -23,6 +25,7 @@ export default async function sendChatMessageInternal({
     hunt: puzzle.hunt,
     content,
     sender,
+    pinned,
     timestamp: new Date(),
   });
 

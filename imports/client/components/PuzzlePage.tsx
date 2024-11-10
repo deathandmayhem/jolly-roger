@@ -187,13 +187,24 @@ const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
 //   |           |
 //   |___________|
 
+const PinDiv = styled.div`
+min-height: 3em;
+height: auto;
+max-height: 12em;
+// flex: 1 0 auto;
+overflow-y: scroll;
+overflow-x: hidden;
+border-bottom: 4px double black;
+background-color: #fff2cc;
+`;
+
 const ChatHistoryDiv = styled.div`
   flex: 1 1 auto;
   overflow-y: auto;
 
   /* Nothing should overflow the box, but if you nest blockquotes super deep you
      can do horrible things.  We should still avoid horizontal scroll bars,
-     since the make the log harder to read at the bottom. */
+     since they make the log harder to read at the bottom. */
   overflow-x: hidden;
 `;
 
@@ -202,21 +213,29 @@ const PUZZLE_PAGE_PADDING = 8;
 const ChatMessageDiv = styled.div<{
   $isSystemMessage: boolean;
   $isHighlighted: boolean;
+  $isPinned: boolean;
 }>`
   padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
   overflow-wrap: break-word;
   font-size: 14px;
-  ${({ $isSystemMessage, $isHighlighted }) =>
+  ${({ $isSystemMessage, $isHighlighted, $isPinned }) =>
     $isHighlighted &&
     !$isSystemMessage &&
+    !$isPinned &&
     css`
-      background-color: #ffffd0;
+      background-color: #ffff70;
     `}
 
   ${({ $isSystemMessage }) =>
     $isSystemMessage &&
     css`
       background-color: #e0e0e0;
+    `}
+
+  ${({ $isPinned }) =>
+    $isPinned &&
+    css`
+      background-color: #fff2cc;
     `}
 `;
 
@@ -349,6 +368,7 @@ const ChatHistoryMessage = React.memo(
     displayNames,
     isSystemMessage,
     isHighlighted,
+    isPinned,
     suppressSender,
     selfUserId,
   }: {
@@ -356,19 +376,21 @@ const ChatHistoryMessage = React.memo(
     displayNames: Map<string, string>;
     isSystemMessage: boolean;
     isHighlighted: boolean;
+    isPinned: boolean;
     suppressSender: boolean;
     selfUserId: string;
   }) => {
-    const ts = shortCalendarTimeFormat(message.timestamp);
+    const ts = shortCalendarTimeFormat(message.timestamp) : null;
 
     const senderDisplayName =
       message.sender !== undefined
-        ? (displayNames.get(message.sender) ?? "???")
+        ? ((isPinned ? '📌 ' : '') + (displayNames.get(message.sender) ?? "???"))
         : "jolly-roger";
     return (
       <ChatMessageDiv
         $isSystemMessage={isSystemMessage}
-        $isHighlighted={isHighlighted && !isSystemMessage}
+        $isHighlighted={isHighlighted && !isSystemMessage && !isPinned}
+        $isPinned={isPinned}
       >
         {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
         {!suppressSender && <strong>{senderDisplayName}</strong>}
@@ -540,11 +562,13 @@ const ChatHistory = React.forwardRef(
           // * this is not the first message
           // * this message was sent by the same person as the previous message
           // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
+          // * the message is not pinned
           const lastMessage = index > 0 ? messages[index - 1] : undefined;
           const suppressSender =
             !!lastMessage &&
             lastMessage.sender === msg.sender &&
-            lastMessage.timestamp.getTime() + 60000 > msg.timestamp.getTime();
+            lastMessage.timestamp.getTime() + 60000 > msg.timestamp.getTime() &&
+            !msg.pinned;
           const isHighlighted = messageDingsUser(msg, selfUser);
           return (
             <ChatHistoryMessage
@@ -552,6 +576,7 @@ const ChatHistory = React.forwardRef(
               message={msg}
               displayNames={displayNames}
               isSystemMessage={msg.sender === undefined}
+              isPinned={msg.pinned === true}
               isHighlighted={isHighlighted}
               suppressSender={suppressSender}
               selfUserId={selfUser._id}
@@ -563,8 +588,155 @@ const ChatHistory = React.forwardRef(
   },
 );
 
+const PinnedMessage = React.forwardRef(
+  (
+    {
+      puzzleId,
+      displayNames,
+      selfUser,
+    }: {
+      puzzleId: string;
+      displayNames: Map<string, string>;
+      selfUser: Meteor.User;
+    },
+    forwardedRef: React.Ref<ChatHistoryHandle>,
+  ) => {
+    const pinnedMessage: FilteredChatMessageType[] = useFind(
+      () => ChatMessages.find({ puzzle: puzzleId , pinned:true}, { sort: { timestamp: -1 } , limit: 1}),
+      [puzzleId],
+    );
+
+    const ref = useRef<HTMLDivElement>(null);
+    const scrollBottomTarget = useRef<number>(0);
+    const shouldIgnoreNextScrollEvent = useRef<boolean>(false);
+
+    const saveScrollBottomTarget = useCallback(() => {
+      if (ref.current) {
+        const rect = ref.current.getClientRects()[0]!;
+        const scrollHeight = ref.current.scrollHeight;
+        const scrollTop = ref.current.scrollTop;
+        const hiddenHeight = scrollHeight - rect.height;
+        const distanceFromBottom = hiddenHeight - scrollTop;
+        trace("ChatHistory saveScrollBottomTarget", {
+          distanceFromBottom,
+          scrollHeight,
+          scrollTop,
+          rectHeight: rect.height,
+          hiddenHeight,
+        });
+        scrollBottomTarget.current = distanceFromBottom;
+      }
+    }, []);
+
+    const onScrollObserved = useCallback(() => {
+      // When we call scrollToTarget and it actually changes scrollTop, this triggers a scroll event.
+      // If the element's scrollHeight or clientHeight changed after scrollToTarget was called, we'd
+      // mistakenly save an incorrect scrollBottomTarget.  So skip one scroll event when we self-induce
+      // this callback, so we only update the target distance from bottom when the user is actually
+      // scrolling.
+      trace("ChatHistory onScrollObserved", {
+        ignoring: shouldIgnoreNextScrollEvent.current,
+      });
+      if (shouldIgnoreNextScrollEvent.current) {
+        shouldIgnoreNextScrollEvent.current = false;
+      } else {
+        saveScrollBottomTarget();
+      }
+    }, [saveScrollBottomTarget]);
+
+    const scrollToTarget = useCallback(() => {
+      if (ref.current) {
+        const rect = ref.current.getClientRects()[0]!;
+        const scrollHeight = ref.current.scrollHeight;
+        const scrollTop = ref.current.scrollTop;
+        const hiddenHeight = scrollHeight - rect.height;
+        // if distanceFromBottom is hiddenHeight - scrollTop, then
+        // our desired scrollTop is hiddenHeight - distanceFromBottom
+        const scrollTopTarget = hiddenHeight - scrollBottomTarget.current;
+        trace("ChatHistory scrollToTarget", {
+          hasRef: true,
+          target: scrollBottomTarget.current,
+          scrollHeight,
+          scrollTop,
+          rectHeight: rect.height,
+          hiddenHeight,
+          alreadyIgnoringNextScrollEvent: shouldIgnoreNextScrollEvent.current,
+        });
+        if (scrollTop !== scrollTopTarget) {
+          shouldIgnoreNextScrollEvent.current = true;
+          ref.current.scrollTop = scrollTopTarget;
+        }
+      } else {
+        trace("ChatHistory scrollToTarget", {
+          hasRef: false,
+          target: scrollBottomTarget.current,
+        });
+      }
+    }, []);
+
+    const snapToBottom = useCallback(() => {
+      trace("ChatHistory snapToBottom");
+      scrollBottomTarget.current = 0;
+      scrollToTarget();
+    }, [scrollToTarget]);
+
+    useImperativeHandle(forwardedRef, () => ({
+      saveScrollBottomTarget,
+      snapToBottom,
+      scrollToTarget,
+    }));
+
+    useLayoutEffect(() => {
+      // Scroll to end of chat on initial mount.
+      trace("ChatHistory snapToBottom on mount");
+      snapToBottom();
+    }, [snapToBottom]);
+
+    useEffect(() => {
+      // Add resize handler that scrolls to target
+      window.addEventListener("resize", scrollToTarget);
+
+      return () => {
+        window.removeEventListener("resize", scrollToTarget);
+      };
+    }, [scrollToTarget]);
+
+    trace("Pinned message render", { messageCount: pinnedMessage.length });
+    return (
+      <PinDiv ref={ref} onScroll={onScrollObserved}>
+        {pinnedMessage.length === 0 ? (
+          <ChatMessageDiv
+            key="no-message"
+            $isSystemMessage={false}
+            $isHighlighted={false}
+            $isPinned={false}
+          >
+            <span>No pinned message. To add one, send a message starting with /pin</span>
+          </ChatMessageDiv>
+        ) : undefined}
+        {pinnedMessage.map((msg, index, messages) => {
+          return (
+            <ChatHistoryMessage
+              key={msg._id}
+              message={msg}
+              displayNames={displayNames}
+              isSystemMessage={msg.sender === undefined}
+              isPinned={msg.pinned === true}
+              isHighlighted={false}
+              suppressSender={false}
+              selfUserId={selfUser._id}
+            />
+          );
+        })}
+      </PinDiv>
+    );
+  },
+);
+
 // The ESlint prop-types check seems to stumble over prop type checks somehow
 // if we put the memo() and forwardRef() on the same line above.
+
+const PinnedMessageMemo = React.memo(PinnedMessage);
 const ChatHistoryMemo = React.memo(ChatHistory);
 
 const StyledFancyEditor = styled(FancyEditor)`
@@ -640,6 +812,7 @@ const ChatInput = React.memo(
       },
       [onHeightChangeCb],
     );
+
     const hasNonTrivialContent = useMemo(() => {
       return (
         content.length > 0 &&
@@ -806,6 +979,11 @@ const ChatSection = React.forwardRef(
           onHeightChange={scrollHistoryToTarget}
           callState={callState}
           callDispatch={callDispatch}
+        />
+        <PinnedMessageMemo
+          puzzleId={puzzleId}
+          displayNames={displayNames}
+          selfUser={selfUser}
         />
         <ChatHistoryMemo
           ref={historyRef}

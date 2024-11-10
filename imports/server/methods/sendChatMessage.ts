@@ -15,7 +15,7 @@ defineMethod(sendChatMessage, {
 
   async run({ puzzleId, content }: { puzzleId: string; content: string }) {
     check(this.userId, String);
-    const contentObj = JSON.parse(content);
+    let contentObj = JSON.parse(content);
     check(contentObj, {
       type: "message" as const,
       children: [
@@ -31,10 +31,22 @@ defineMethod(sendChatMessage, {
       ],
     });
 
+    let isPinned = false;
+
+    if (('children' in contentObj) &&
+    (contentObj.children.length > 0) &&
+    ('text' in contentObj.children[0]) &&
+    (contentObj.children[0].text.match(/^\s*\/pin\s+/i))) {
+      isPinned = true;
+      contentObj.children[0].text = contentObj.children[0].text.replace(/^\s*\/pin\s+/, '');
+    }
+
+
     await sendChatMessageInternal({
       puzzleId,
       content: contentObj,
       sender: this.userId,
+      pinned: isPinned,
     });
   },
 });
