@@ -36,7 +36,7 @@ defineMethod(sendChatMessage, {
     if (('children' in contentObj) &&
     (contentObj.children.length > 0) &&
     ('text' in contentObj.children[0]) &&
-    (contentObj.children[0].text.match(/^\s*\/pin\s+/i))) {
+    (contentObj.children[0].text.match(/^\s*\/pin\s+\S+/i))) {
       isPinned = true;
       contentObj.children[0].text = contentObj.children[0].text.replace(/^\s*\/pin\s+/, '');
     }
