@@ -1,5 +1,5 @@
 import { Meteor } from "meteor/meteor";
-import { useTracker } from "meteor/react-meteor-data";
+import { useFind, useTracker } from "meteor/react-meteor-data";
 import { faCommentDots } from "@fortawesome/free-solid-svg-icons/faCommentDots";
 import { faDoorOpen } from "@fortawesome/free-solid-svg-icons/faDoorOpen";
 import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
@@ -55,6 +55,7 @@ const PuzzleActivityItem = styled.span`
     `,
   )}
 `;
+
 
 const PuzzleOpenTime = styled(PuzzleActivityItem)`
   min-width: 4.66rem;
