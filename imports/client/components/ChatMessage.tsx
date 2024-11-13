@@ -7,6 +7,7 @@ import styled from "styled-components";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
 import nodeIsMention from "../../lib/nodeIsMention";
 import { MentionSpan } from "./FancyEditor";
+import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
 
 // This file implements standalone rendering for the MessageElement format
 // defined by FancyEditor, for use in the chat pane.
@@ -68,14 +69,28 @@ const MarkdownToken = ({ token }: { token: Token }) => {
     }
     return <PreWrapParagraph>{children}</PreWrapParagraph>;
   } else if (token.type === "link") {
-    const children = (token as Tokens.Link).tokens.map((t, i) => (
-      <MarkdownToken key={i} token={t} />
-    ));
+    // const children = token.tokens.map((t, i) => (
+    //   <MarkdownToken key={i} token={t} />
+    // ));
+
+    // Truncate the link href
+    let displayedHref = token.href;
+    const pathStart = token.href.indexOf('/', token.href.indexOf('//') + 2); // Find the start of the path
+    if (pathStart !== -1 && token.href.length - pathStart > 50) {
+      displayedHref = token.href.slice(0, pathStart + 10) + '... [truncated]';
+    }
+
     return (
-      <a target="_blank" rel="noopener noreferrer" href={token.href}>
-        {children}
+      <a target="_blank" rel="noopener noreferrer" title={`{children}`}href={token.href}>
+        {displayedHref} {/* Display the truncated href */}
       </a>
     );
+
+    // return (
+    //   <a target="_blank" rel="noopener noreferrer" href={token.href}>
+    //     {children}
+    //   </a>
+    // );
   } else if (token.type === "blockquote") {
     const children = (token as Tokens.Blockquote).tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
@@ -120,10 +135,12 @@ const ChatMessage = ({
   message,
   displayNames,
   selfUserId,
+  timestamp
 }: {
   message: ChatMessageContentType;
   displayNames: Map<string, string>;
   selfUserId: string;
+  timestamp?: Date;
 }) => {
   const children = message.children.map((child, i) => {
     if (nodeIsMention(child)) {
@@ -141,7 +158,7 @@ const ChatMessage = ({
     }
   });
 
-  return <div>{children}</div>;
+  return <div>{timestamp ? (<span>{shortCalendarTimeFormat(timestamp)}:<br/></span>) : null}{children}</div>;
 };
 
 export default ChatMessage;
