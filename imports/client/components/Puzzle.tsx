@@ -1,3 +1,4 @@
+import { Meteor } from "meteor/meteor";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
@@ -31,6 +32,31 @@ import TagList from "./TagList";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
 
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
+import type { ChatMessageType } from "../../lib/models/ChatMessages";
+import ChatMessages from "../../lib/models/ChatMessages";
+import { faNoteSticky } from "@fortawesome/free-solid-svg-icons";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import RelativeTime from "./RelativeTime";
+import { useFind, useTracker } from "meteor/react-meteor-data";
+import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
+import ChatMessage from "./ChatMessage";
+import indexedDisplayNames from "../indexedDisplayNames";
+import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
+
+const FilteredChatFields = [
+  "_id",
+  "puzzle",
+  "content",
+  "sender",
+  "timestamp",
+] as const;
+type FilteredChatMessageType = Pick<
+  ChatMessageType,
+  (typeof FilteredChatFields)[number]
+>;
+
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;
 }>`
@@ -51,6 +77,19 @@ const PuzzleDiv = styled.div<{
       flex-wrap: wrap;
     `,
   )}
+`;
+
+const PuzzleNote = styled.span`
+  min-width: 4.66rem;
+  align-items: left;
+  justify-content: flex-end;
+  text-align: right;
+  margin: 0 0 0 0.5rem;
+
+  span {
+    margin-right: 0.25rem;
+    margin-left: 0.125rem;
+  }
 `;
 
 const PuzzleColumn = styled.div`
@@ -146,6 +185,13 @@ const Puzzle = React.memo(
     suppressTags?: string[];
     segmentAnswers?: boolean;
   }) => {
+
+    const puzzleId = puzzle._id;
+    const huntId = puzzle.hunt;
+
+    useSubscribeDisplayNames(huntId);
+
+    const displayNames = indexedDisplayNames();
     const [operatorActionsHidden] = useOperatorActionsHiddenForHunt(
       puzzle.hunt,
     );
@@ -167,9 +213,9 @@ const Puzzle = React.memo(
         callback: (error?: Error) => void,
       ) => {
         const { huntId: _huntId, docType: _docType, ...rest } = state;
-        updatePuzzle.call({ puzzleId: puzzle._id, ...rest }, callback);
+        updatePuzzle.call({ puzzleId: puzzleId, ...rest }, callback);
       },
-      [puzzle._id],
+      [puzzleId],
     );
 
     const onShowEditModal = useCallback(() => {
@@ -237,6 +283,40 @@ const Puzzle = React.memo(
       );
     });
 
+    useTypedSubscribe(chatMessagesForPuzzle, {
+      puzzleId,
+      huntId,
+    });
+
+    const puzzlePin: FilteredChatMessageType[] = useFind(
+      () => ChatMessages.find({puzzle:puzzleId, pinned:true}, { sort:{ timestamp: -1 }, limit: 1 }),
+      [puzzleId],
+    );
+
+    const pinnedMessage = puzzlePin[0];
+
+    let noteTooltip = {};
+
+    const senderDisplayName = pinnedMessage?.sender !== undefined ? (displayNames.get(pinnedMessage.sender) ?? "???") : "jolly-roger";
+    const selfUser = useTracker(() => Meteor.user()!, []);
+    const selfUserId = selfUser._id;
+
+    if (pinnedMessage) {
+      noteTooltip = (
+        <Tooltip
+          id={`puzzle-note-update-${puzzleId}`}
+          style={{maxHeight: "9.55rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "... (truncated)", borderRadius: "5px"}}
+        >
+          <ChatMessage
+            message={pinnedMessage.content}
+            displayNames={displayNames}
+            selfUserId={selfUserId}
+            timestamp={pinnedMessage.timestamp}
+          />
+        </Tooltip>
+      );
+    }
+
     return (
       <PuzzleDiv $solvedness={solvedness}>
         {showEditModal ? (
@@ -266,6 +346,21 @@ const Puzzle = React.memo(
         </PuzzleControlButtonsColumn>
         <PuzzleTitleColumn>
           <Link to={linkTarget}>{puzzle.title}</Link>
+          {
+            pinnedMessage ? (
+              <OverlayTrigger placement="top" overlay={noteTooltip}>
+              <PuzzleNote>
+                <FontAwesomeIcon icon={faNoteSticky} />
+                <RelativeTime
+                  date={pinnedMessage?.timestamp}
+                  terse
+                  minimumUnit="minute"
+                  maxElements={1}
+                />
+              </PuzzleNote>
+              </OverlayTrigger>
+            ): null
+          }
         </PuzzleTitleColumn>
         <PuzzleActivityColumn>
           {solvedness === "unsolved" && (
