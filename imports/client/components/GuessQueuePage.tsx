@@ -52,17 +52,17 @@ import { mediaBreakpointDown } from "./styling/responsive";
 
 const compactViewBreakpoint: Breakpoint = "md";
 
-const StyledTable = styled.div`
+const StyledTable = styled.div<{ $hasGuessQueue: boolean }>`
   display: grid;
   grid-template-columns:
     [timestamp] auto
     [submitter] minmax(auto, 8em)
     [puzzle] minmax(10em, auto)
     [answer] minmax(10em, auto)
-    [direction] minmax(6em, auto)
-    [confidence] minmax(6em, auto)
+    ${(props) => props.$hasGuessQueue && "[direction] minmax(6em, auto)"}
+    ${(props) => props.$hasGuessQueue && "[confidence] minmax(6em, auto)"}
     [status] auto
-    [actions] auto;
+    ${(props) => props.$hasGuessQueue && "[actions] auto"};
   border-bottom: 1px solid #ddd;
   ${mediaBreakpointDown(
     compactViewBreakpoint,
@@ -316,32 +316,40 @@ const GuessBlock = React.memo(
           </OverlayTrigger>{" "}
           <PuzzleAnswer answer={guess.guess} breakable indented />
         </StyledGuessCell>
-        <StyledGuessDetails>
-          <StyledGuessDetailWithLabel>
-            <StyledGuessDetailLabel>Solve direction</StyledGuessDetailLabel>
-            <StyledGuessDirection
-              id={`guess-${guess._id}-direction`}
-              value={guess.direction}
-            />
-          </StyledGuessDetailWithLabel>
-          <StyledGuessDetailWithLabel>
-            <StyledGuessDetailLabel>Confidence</StyledGuessDetailLabel>
-            <StyledGuessConfidence
-              id={`guess-${guess._id}-confidence`}
-              value={guess.confidence}
-            />
-          </StyledGuessDetailWithLabel>
-        </StyledGuessDetails>
+        {hunt.hasGuessQueue && (
+          <StyledGuessDetails>
+            <StyledGuessDetailWithLabel>
+              <StyledGuessDetailLabel>Solve direction</StyledGuessDetailLabel>
+              <StyledGuessDirection
+                id={`guess-${guess._id}-direction`}
+                value={guess.direction}
+              />
+            </StyledGuessDetailWithLabel>
+            <StyledGuessDetailWithLabel>
+              <StyledGuessDetailLabel>Confidence</StyledGuessDetailLabel>
+              <StyledGuessConfidence
+                id={`guess-${guess._id}-confidence`}
+                value={guess.confidence}
+              />
+            </StyledGuessDetailWithLabel>
+          </StyledGuessDetails>
+        )}
         <StyledCell>
           <GuessState id={`guess-${guess._id}-state`} state={guess.state} />
         </StyledCell>
-        <StyledCell>
-          {canEdit && guess.state !== "pending" && (
-            <Button variant="outline-secondary" size="sm" onClick={markPending}>
-              Return to queue
-            </Button>
-          )}
-        </StyledCell>
+        {hunt.hasGuessQueue && (
+          <StyledCell>
+            {canEdit && guess.state !== "pending" && (
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={markPending}
+              >
+                Return to queue
+              </Button>
+            )}
+          </StyledCell>
+        )}
         {guess.additionalNotes && (
           <Markdown as={StyledAdditionalNotes} text={guess.additionalNotes} />
         )}
@@ -355,12 +363,23 @@ const GuessQueuePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchString = searchParams.get("q") ?? "";
 
-  useBreadcrumb({ title: "Guess queue", path: `/hunts/${huntId}/guesses` });
-
   const guessesLoading = useTypedSubscribe(guessesForGuessQueue, { huntId });
   const loading = guessesLoading();
 
   const hunt = useTracker(() => Hunts.findOne({ _id: huntId }), [huntId]);
+
+  const pageTitle = useTracker(() => {
+    if (loading || !hunt) {
+      return "Loading...";
+    } else if (hunt.hasGuessQueue) {
+      return "Guess queue";
+    } else {
+      return "Answer log";
+    }
+  }, [hunt, loading]);
+
+  useBreadcrumb({ title: pageTitle, path: `/hunts/${huntId}/guesses` });
+
   const guesses = useTracker(
     () =>
       loading
@@ -499,7 +518,7 @@ const GuessQueuePage = () => {
 
   return (
     <div>
-      <h1>Guess queue</h1>
+      <h1>{pageTitle}</h1>
       <FormGroup className="mb-3">
         <InputGroup>
           <FormControl
@@ -516,20 +535,24 @@ const GuessQueuePage = () => {
           </Button>
         </InputGroup>
       </FormGroup>
-      <StyledTable>
+      <StyledTable $hasGuessQueue={hunt.hasGuessQueue}>
         <StyledHeaderRow>
           <StyledHeader>Time</StyledHeader>
           <StyledHeader>Submitter</StyledHeader>
           <StyledHeader>Puzzle</StyledHeader>
           <StyledHeader>Answer</StyledHeader>
-          <OverlayTrigger placement="top" overlay={directionTooltip}>
-            <StyledHeader>Direction</StyledHeader>
-          </OverlayTrigger>
-          <OverlayTrigger placement="top" overlay={confidenceTooltip}>
-            <StyledHeader>Confidence</StyledHeader>
-          </OverlayTrigger>
+          {hunt.hasGuessQueue && (
+            <>
+              <OverlayTrigger placement="top" overlay={directionTooltip}>
+                <StyledHeader>Direction</StyledHeader>
+              </OverlayTrigger>
+              <OverlayTrigger placement="top" overlay={confidenceTooltip}>
+                <StyledHeader>Confidence</StyledHeader>
+              </OverlayTrigger>
+            </>
+          )}
           <StyledHeader>Status</StyledHeader>
-          <StyledHeader>&nbsp;</StyledHeader>
+          {hunt.hasGuessQueue && <StyledHeader>&nbsp;</StyledHeader>}
         </StyledHeaderRow>
         {filteredGuesses(guesses, puzzles).map((guess) => {
           return (
