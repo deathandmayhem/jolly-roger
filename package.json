@@ -73,7 +73,7 @@
     "styled-components": "^6.1.13",
     "use-persisted-state": "^0.3.3",
     "winston": "^3.16.0",
-    "winston-transport": "^4.8.0",
+    "winston-transport": "^4.9.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
