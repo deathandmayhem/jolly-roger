@@ -455,7 +455,7 @@ const Puzzle = React.memo(
         <PuzzleTitleColumn>
           <Link to={linkTarget}>{puzzle.title}</Link>
           {
-            pinnedMessage ? (
+            pinnedMessage && solvedness === "unsolved" ? (
               <OverlayTrigger placement="top" overlay={noteTooltip}>
               <PuzzleNote>
                 <FontAwesomeIcon icon={faNoteSticky} />
