@@ -130,6 +130,7 @@ const FilteredChatFields = [
   "puzzle",
   "content",
   "sender",
+  "pinned",
   "timestamp",
 ] as const;
 type FilteredChatMessageType = Pick<

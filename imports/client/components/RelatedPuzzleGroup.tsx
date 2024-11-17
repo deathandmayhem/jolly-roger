@@ -50,6 +50,7 @@ const RelatedPuzzleGroup = ({
   canUpdate,
   suppressedTagIds,
   trackPersistentExpand,
+  showSolvers,
 }: {
   huntId: string;
   group: PuzzleGroup;
@@ -61,6 +62,7 @@ const RelatedPuzzleGroup = ({
   canUpdate: boolean;
   suppressedTagIds: string[];
   trackPersistentExpand: boolean;
+  showSolvers: boolean;
 }) => {
   const [persistentCollapsed, setPersistentCollapsed] =
     useHuntPuzzleListCollapseGroup(
@@ -121,6 +123,7 @@ const RelatedPuzzleGroup = ({
             canUpdate={canUpdate}
             sharedTag={sharedTag}
             suppressedTagIds={allSuppressedTagIds}
+            showSolvers={showSolvers}
           />
           {group.subgroups.map((subgroup) => {
             const subgroupSuppressedTagIds = [...allSuppressedTagIds];
@@ -139,6 +142,7 @@ const RelatedPuzzleGroup = ({
                 canUpdate={canUpdate}
                 suppressedTagIds={subgroupSuppressedTagIds}
                 trackPersistentExpand={trackPersistentExpand}
+                showSolvers={showSolvers}
               />
             );
           })}

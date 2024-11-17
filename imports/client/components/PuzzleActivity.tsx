@@ -103,11 +103,6 @@ interface ViewerSubscriber {
   tab: string | undefined;
 }
 
-interface PersonBoxProps extends ViewerSubscriber {
-  children?: ReactNode;
-  popperBoundaryRef: React.RefObject<HTMLElement>;
-}
-
 const PuzzleActivity = ({
   huntId,
   puzzleId,
@@ -277,23 +272,21 @@ const PuzzleActivity = ({
 
   const totalViewers = rtcViewers.length + viewers.length;
 
+  const viewerList = rtcViewers.concat(viewers).map((viewer) => (
+    viewer.name
+  ));
+
   const sparklineTooltip = (
     <Tooltip id={`puzzle-activity-sparkline-${puzzleId}`}>
-      <div>People working on this puzzle:</div>
-      {/* <PeopleListDiv>
-      <div>{rtcViewers.map((viewer) => {viewer.name}).join(', ')}</div>
-      <div>{viewers.map((viewer) => {viewer.name}).join(', ')}</div>
-      </PeopleListDiv> */}
+      <div>{totalViewers > 0 ? ("People working on this puzzle") : ("Recent activity on this puzzle")}:</div>
+      <div>
       <PeopleListDiv>
-        {rtcViewers.map((viewer) => (
-          viewer.name
-        )).join(', ')}
+        {viewerList.join(', ')}
       </PeopleListDiv>
-      <PeopleListDiv>
-        {viewers.map((viewer) => (
-          viewer.name
-        )).join(', ')}
-        </PeopleListDiv>
+      {/* <PeopleListDiv>
+        {.join(', ')}
+        </PeopleListDiv> */}
+      </div>
       <PuzzleActivityDetailTimeRange>
         <div>
           {/* Don't need to use RelativeTime here because this duration doesn't change, even as now
