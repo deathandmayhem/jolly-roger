@@ -42,6 +42,7 @@ import {
   useHuntPuzzleListCollapseGroups,
   useHuntPuzzleListDisplayMode,
   useHuntPuzzleListShowSolved,
+  useHuntPuzzleListShowSolvers,
   useOperatorActionsHiddenForHunt,
 } from "../hooks/persisted-state";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
@@ -198,6 +199,7 @@ const PuzzleListView = ({
   const searchBarRef = useRef<HTMLInputElement>(null);
   const [displayMode, setDisplayMode] = useHuntPuzzleListDisplayMode(huntId);
   const [showSolved, setShowSolved] = useHuntPuzzleListShowSolved(huntId);
+  const [showSolvers, setShowSolvers] = useHuntPuzzleListShowSolvers(huntId);
   const [huntPuzzleListCollapseGroups, setHuntPuzzleListCollapseGroups] =
     useHuntPuzzleListCollapseGroups(huntId);
   const expandAllGroups = useCallback(() => {
@@ -357,6 +359,13 @@ const PuzzleListView = ({
     [setShowSolved],
   );
 
+  const setShowSolversString = useCallback(
+    (value: string) => {
+      setShowSolvers(value === "show");
+    },
+    [setShowSolvers],
+  );
+
   const showAddModal = useCallback(() => {
     if (addModalRef.current) {
       addModalRef.current.show();
@@ -412,6 +421,7 @@ const PuzzleListView = ({
                 canUpdate={canUpdate}
                 suppressedTagIds={suppressedTagIds}
                 trackPersistentExpand={searchString === ""}
+                showSolvers={showSolvers}
               />
             );
           });
@@ -440,6 +450,7 @@ const PuzzleListView = ({
               bookmarked={bookmarked}
               allTags={allTags}
               canUpdate={canUpdate}
+              showSolvers={showSolvers}
             />
           );
           listControls = null;
@@ -603,6 +614,33 @@ const PuzzleListView = ({
               </ToggleButton>
               <ToggleButton
                 id="solved-show-button"
+                variant="outline-info"
+                value="show"
+              >
+                Shown
+              </ToggleButton>
+            </StyledToggleButtonGroup>
+          </ButtonToolbar>
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Show current viewers</FormLabel>
+          <ButtonToolbar>
+            <StyledToggleButtonGroup
+              type="radio"
+              name="show-solvers"
+              defaultValue="show"
+              value={showSolvers ? "show" : "hide"}
+              onChange={setShowSolversString}
+            >
+              <ToggleButton
+                id="solvers-hide-button"
+                variant="outline-info"
+                value="hide"
+              >
+                Hidden
+              </ToggleButton>
+              <ToggleButton
+                id="solvers-show-button"
                 variant="outline-info"
                 value="show"
               >

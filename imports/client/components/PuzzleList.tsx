@@ -9,6 +9,7 @@ const PuzzleList = React.memo(
     bookmarked,
     allTags,
     canUpdate,
+    showSolvers,
     suppressTags,
     segmentAnswers,
   }: {
@@ -18,6 +19,7 @@ const PuzzleList = React.memo(
     // All tags for this hunt, including those not used by any puzzles
     allTags: TagType[];
     canUpdate: boolean;
+    showSolvers: boolean;
     suppressTags?: string[];
     segmentAnswers?: boolean;
   }) => {
@@ -36,6 +38,7 @@ const PuzzleList = React.memo(
               canUpdate={canUpdate}
               suppressTags={suppressTags}
               segmentAnswers={segmentAnswers}
+              showSolvers={showSolvers}
             />
           );
         })}
