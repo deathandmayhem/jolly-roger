@@ -49,14 +49,15 @@ import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
-import { faNoteSticky } from "@fortawesome/free-solid-svg-icons";
+import { faNoteSticky, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import RelativeTime from "./RelativeTime";
-import { useFind, useTracker } from "meteor/react-meteor-data";
+import { useFind } from "meteor/react-meteor-data";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import ChatMessage from "./ChatMessage";
 import indexedDisplayNames from "../indexedDisplayNames";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
+import { faEye } from "@fortawesome/free-regular-svg-icons";
 
 const FilteredChatFields = [
   "_id",
@@ -223,8 +224,6 @@ const Puzzle = React.memo(
     const [operatorActionsHidden] = useOperatorActionsHiddenForHunt(
       puzzle.hunt,
     );
-    const puzzleId = puzzle._id;
-    const huntId = puzzle.hunt;
 
     // add a list of people viewing a puzzle to activity
     const subscriberTopic = `puzzle:${puzzleId}`;
@@ -407,7 +406,6 @@ const Puzzle = React.memo(
 
     let noteTooltip = {};
 
-    const senderDisplayName = pinnedMessage?.sender !== undefined ? (displayNames.get(pinnedMessage.sender) ?? "???") : "jolly-roger";
     const selfUser = useTracker(() => Meteor.user()!, []);
     const selfUserId = selfUser._id;
 
@@ -472,8 +470,12 @@ const Puzzle = React.memo(
             ): null
           }
         </PuzzleTitleColumn>
-        { showSolvers && solvedness === 'unsolved' ? (
+        { showSolvers && solvedness  === 'unsolved' ? (
           <SolversColumn>
+          {rtcViewers.length > 0 ? (<FontAwesomeIcon icon={faPhone}/> ) : null}
+          {rtcViewers.map((viewer)=>(viewer.name)).join(', ')}
+          {rtcViewers.length > 0 && viewers.length > 0 ? "<br/>" : null}
+          {viewers.length > 0 ? (<FontAwesomeIcon icon={faEye}/> ) : null}
           {viewers.map((viewer)=>(viewer.name)).join(', ')}
           </SolversColumn>
         ) : null }
