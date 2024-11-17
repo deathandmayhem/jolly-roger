@@ -61,6 +61,7 @@ const PuzzleActivityItem = styled.span`
   )}
 `;
 
+
 const PuzzleOpenTime = styled(PuzzleActivityItem)`
   min-width: 4.66rem;
 `;

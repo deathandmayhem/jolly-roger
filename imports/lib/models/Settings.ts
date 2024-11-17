@@ -10,6 +10,7 @@ const SettingDiscriminatedUnion = z.discriminatedUnion("name", [
     value: z.object({
       refreshToken: nonEmptyString,
       email: nonEmptyString,
+      id: nonEmptyString.optional(),
     }),
   }),
   z.object({
