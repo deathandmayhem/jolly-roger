@@ -474,7 +474,7 @@ const Puzzle = React.memo(
           <SolversColumn>
           {rtcViewers.length > 0 ? (<FontAwesomeIcon icon={faPhone}/> ) : null}
           {rtcViewers.map((viewer)=>(viewer.name)).join(', ')}
-          {rtcViewers.length > 0 && viewers.length > 0 ? "<br/>" : null}
+          {rtcViewers.length > 0 && viewers.length > 0 ? <br/> : null}
           {viewers.length > 0 ? (<FontAwesomeIcon icon={faEye}/> ) : null}
           {viewers.map((viewer)=>(viewer.name)).join(', ')}
           </SolversColumn>
