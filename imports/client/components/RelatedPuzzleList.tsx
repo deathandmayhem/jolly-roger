@@ -36,6 +36,7 @@ const RelatedPuzzleList = React.memo(
     canUpdate,
     sharedTag,
     suppressedTagIds,
+    showSolvers,
     segmentAnswers,
   }: {
     relatedPuzzles: PuzzleType[];
@@ -44,6 +45,7 @@ const RelatedPuzzleList = React.memo(
     canUpdate: boolean;
     sharedTag: TagType | undefined;
     suppressedTagIds: string[];
+    showSolvers: boolean;
     segmentAnswers?: boolean;
   }) => {
     // Sort the puzzles within each tag group by interestingness.  For instance, metas
@@ -63,6 +65,7 @@ const RelatedPuzzleList = React.memo(
         canUpdate={canUpdate}
         suppressTags={suppressedTagIds}
         segmentAnswers={segmentAnswers}
+        showSolvers={showSolvers}
       />
     );
   },
