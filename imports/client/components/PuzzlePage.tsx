@@ -603,7 +603,7 @@ const PinnedMessage = React.forwardRef(
     forwardedRef: React.Ref<ChatHistoryHandle>,
   ) => {
     const pinnedMessage: FilteredChatMessageType[] = useFind(
-      () => ChatMessages.find({ puzzle: puzzleId , pinned:true}, { sort: { timestamp: -1 } , limit: 1}),
+      () => ChatMessages.find({ puzzle: puzzleId , pinTs:{$ne:null}}, { sort: { pinTs: -1 } , limit: 1}),
       [puzzleId],
     );
 

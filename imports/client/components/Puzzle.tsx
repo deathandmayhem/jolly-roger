@@ -398,7 +398,7 @@ const Puzzle = React.memo(
     });
 
     const puzzlePin: FilteredChatMessageType[] = useFind(
-      () => ChatMessages.find({puzzle:puzzleId, pinned:true}, { sort:{ timestamp: -1 }, limit: 1 }),
+      () => ChatMessages.find({puzzle:puzzleId, pinTs:{$ne:null}}, { sort:{ pinTs: -1 }, limit: 1 }),
       [puzzleId],
     );
 
@@ -455,7 +455,7 @@ const Puzzle = React.memo(
         <PuzzleTitleColumn>
           <Link to={linkTarget}>{puzzle.title}</Link>
           {
-            pinnedMessage && solvedness === "unsolved" ? (
+            pinnedMessage ? (
               <OverlayTrigger placement="top" overlay={noteTooltip}>
               <PuzzleNote>
                 <FontAwesomeIcon icon={faNoteSticky} />
