@@ -132,6 +132,7 @@ const FilteredChatFields = [
   "sender",
   "pinned",
   "timestamp",
+  "pinTs",
 ] as const;
 type FilteredChatMessageType = Pick<
   ChatMessageType,
@@ -569,7 +570,7 @@ const ChatHistory = React.forwardRef(
             !!lastMessage &&
             lastMessage.sender === msg.sender &&
             lastMessage.timestamp.getTime() + 60000 > msg.timestamp.getTime() &&
-            !msg.pinned;
+            msg.pinTs !== null;
           const isHighlighted = messageDingsUser(msg, selfUser);
           return (
             <ChatHistoryMessage
@@ -577,7 +578,7 @@ const ChatHistory = React.forwardRef(
               message={msg}
               displayNames={displayNames}
               isSystemMessage={msg.sender === undefined}
-              isPinned={msg.pinned === true}
+              isPinned={msg.pinTs !== null}
               isHighlighted={isHighlighted}
               suppressSender={suppressSender}
               selfUserId={selfUser._id}
@@ -722,7 +723,7 @@ const PinnedMessage = React.forwardRef(
               message={msg}
               displayNames={displayNames}
               isSystemMessage={msg.sender === undefined}
-              isPinned={msg.pinned === true}
+              isPinned={msg.pinTs !== null}
               isHighlighted={false}
               suppressSender={false}
               selfUserId={selfUser._id}
