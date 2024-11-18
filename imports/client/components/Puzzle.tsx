@@ -470,15 +470,17 @@ const Puzzle = React.memo(
             ): null
           }
         </PuzzleTitleColumn>
+        <SolversColumn>
         { showSolvers && solvedness  === 'unsolved' ? (
-          <SolversColumn>
-          {rtcViewers.length > 0 ? (<FontAwesomeIcon icon={faPhone}/> ) : null}
+          <div>
+          {rtcViewers.length > 0 ? (<span><FontAwesomeIcon icon={faPhone}/> </span>) : null}
           {rtcViewers.map((viewer)=>(viewer.name)).join(', ')}
           {rtcViewers.length > 0 && viewers.length > 0 ? <br/> : null}
-          {viewers.length > 0 ? (<FontAwesomeIcon icon={faEye}/> ) : null}
+          {viewers.length > 0 ? (<span><FontAwesomeIcon icon={faEye}/> </span>) : null}
           {viewers.map((viewer)=>(viewer.name)).join(', ')}
-          </SolversColumn>
+          </div>
         ) : null }
+        </SolversColumn>
         <PuzzleActivityColumn>
           {solvedness === "unsolved" && (
             <PuzzleActivity

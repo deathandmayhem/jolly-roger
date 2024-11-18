@@ -623,7 +623,7 @@ const PuzzleListView = ({
           </ButtonToolbar>
         </FormGroup>
         <FormGroup>
-          <FormLabel>Show current viewers</FormLabel>
+          <FormLabel>Current viewers</FormLabel>
           <ButtonToolbar>
             <StyledToggleButtonGroup
               type="radio"
