@@ -31,19 +31,33 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import TagList from "./TagList";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
+import { DiscordAccountType } from "../../lib/models/DiscordAccount";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
+import Peers from "../../lib/models/mediasoup/Peers";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import { Subscribers } from "../subscribers";
+
+interface ViewerSubscriber {
+  user: string;
+  name: string | undefined;
+  discordAccount: DiscordAccountType | undefined;
+  tab: string | undefined;
+}
 
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
-import { faNoteSticky } from "@fortawesome/free-solid-svg-icons";
+import { faNoteSticky, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import RelativeTime from "./RelativeTime";
-import { useFind, useTracker } from "meteor/react-meteor-data";
+import { useFind } from "meteor/react-meteor-data";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import ChatMessage from "./ChatMessage";
 import indexedDisplayNames from "../indexedDisplayNames";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
+import { faEye } from "@fortawesome/free-regular-svg-icons";
 
 const FilteredChatFields = [
   "_id",
@@ -289,7 +303,7 @@ const Puzzle = React.memo(
     });
 
     const puzzlePin: FilteredChatMessageType[] = useFind(
-      () => ChatMessages.find({puzzle:puzzleId, pinned:true}, { sort:{ timestamp: -1 }, limit: 1 }),
+      () => ChatMessages.find({puzzle:puzzleId, pinTs:{$ne:null}}, { sort:{ pinTs: -1 }, limit: 1 }),
       [puzzleId],
     );
 
@@ -297,7 +311,6 @@ const Puzzle = React.memo(
 
     let noteTooltip = {};
 
-    const senderDisplayName = pinnedMessage?.sender !== undefined ? (displayNames.get(pinnedMessage.sender) ?? "???") : "jolly-roger";
     const selfUser = useTracker(() => Meteor.user()!, []);
     const selfUserId = selfUser._id;
 
@@ -347,7 +360,7 @@ const Puzzle = React.memo(
         <PuzzleTitleColumn>
           <Link to={linkTarget}>{puzzle.title}</Link>
           {
-            pinnedMessage && solvedness === "unsolved" ? (
+            pinnedMessage ? (
               <OverlayTrigger placement="top" overlay={noteTooltip}>
               <PuzzleNote>
                 <FontAwesomeIcon icon={faNoteSticky} />

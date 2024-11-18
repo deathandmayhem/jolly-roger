@@ -46,7 +46,7 @@ defineMethod(sendChatMessage, {
       puzzleId,
       content: contentObj,
       sender: this.userId,
-      pinned: isPinned,
+      pinTs: isPinned ? new Date() : null,
     });
   },
 });
