@@ -107,10 +107,12 @@ const PuzzleModalForm = React.forwardRef(
     );
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [titleDirty, setTitleDirty] = useState<boolean>(false);
+    const [lastAutoPopulatedTitle, setLastAutoPopulatedTitle] = useState<string>("");
     const [urlDirty, setUrlDirty] = useState<boolean>(false);
     const [tagsDirty, setTagsDirty] = useState<boolean>(false);
     const [expectedAnswerCountDirty, setExpectedAnswerCountDirty] =
       useState<boolean>(false);
+
 
     const formRef = useRef<ModalFormHandle>(null);
 
@@ -341,6 +343,31 @@ const PuzzleModalForm = React.forwardRef(
           className="mt-1"
         />
       ) : null;
+      useEffect(() => {
+        // This tries to guess the puzzle title based on the URL entered
+        // To keep things simple, we only populate the title if the title
+        // is currently blank,
+        try {
+          const urlObject = new URL(url);
+          const pathname = urlObject.pathname.replace(/^\/|\/$/g, '');
+          if (!pathname) return;
+          const pathParts = pathname.split("/");
+          const lastPart = pathParts[pathParts.length - 1];
+          const decodedLastPart = decodeURI(lastPart);
+          const formattedTitle = decodedLastPart
+            .replace(/-/g, " ")
+            .replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+
+            if (title === lastAutoPopulatedTitle || title === '') {
+              setTitle(formattedTitle);
+              setTitleDirty(false);
+          }
+          setLastAutoPopulatedTitle(formattedTitle);
+        } catch (error) {
+          console.error("Invalid URL:", error);
+        }
+      }, [url]);
+
 
     return (
       <Suspense
