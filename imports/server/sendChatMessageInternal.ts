@@ -8,12 +8,12 @@ export default async function sendChatMessageInternal({
   puzzleId,
   content,
   sender,
-  pinTs,
+  pinTs = null,
 }: {
   puzzleId: string;
   content: ChatMessageContentType;
   sender: string | undefined;
-  pinTs: Date | null;
+  pinTs?: Date | null;
 }) {
   const puzzle = await Puzzles.findOneAsync(puzzleId);
   if (!puzzle) {
