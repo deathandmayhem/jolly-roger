@@ -64,7 +64,6 @@ defineMethod(addPuzzleAnswer, {
       puzzleId: savedAnswer.puzzle,
       content,
       sender: undefined,
-      pinTs: null,
     });
     await Puzzles.updateAsync(
       {
