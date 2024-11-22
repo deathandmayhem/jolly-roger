@@ -16,6 +16,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import styled from "styled-components";
 import Flags from "../../Flags";
+import type { LoginOptions } from "../../lib/loginOptions";
 import updateProfile from "../../methods/updateProfile";
 import TeamName from "../TeamName";
 
@@ -24,6 +25,7 @@ export enum AccountFormFormat {
   REQUEST_PW_RESET = "requestPwReset",
   ENROLL = "enroll",
   RESET_PWD = "resetPwd",
+  INVITATION_WELCOME = "invitationWelcome",
 }
 
 // Styles originally taken from https://git.io/vupVU
@@ -70,9 +72,8 @@ const GoogleSignInButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
 type SignInWithGoogleButtonProperties = {
   submitting: boolean;
   onStarted: () => void;
-  onSucceeded: () => void;
+  onSucceeded: (token: string, secret: string) => void;
   onCanceled: () => void;
-  onFailed: (error: Error) => void;
 };
 
 const SignInWithGoogleButton = (props: SignInWithGoogleButtonProperties) => {
@@ -89,24 +90,7 @@ const SignInWithGoogleButton = (props: SignInWithGoogleButtonProperties) => {
         props.onCanceled();
         return;
       }
-
-      const loginRequest = {
-        // Set this to true to trigger our custom Google signin hook.
-        isGoogleJrLogin: true,
-        key: token,
-        secret,
-      };
-
-      Accounts.callLoginMethod({
-        methodArguments: [loginRequest],
-        userCallback: (error?: Error) => {
-          if (error) {
-            props.onFailed(error);
-          } else {
-            props.onSucceeded();
-          }
-        },
-      });
+      props.onSucceeded(token, secret);
     },
     [props],
   );
@@ -120,15 +104,18 @@ const SignInWithGoogleButton = (props: SignInWithGoogleButtonProperties) => {
     return null;
   }
   return (
-    <div className="d-grid gap-2 mt-3 justify-content-center">
-      <GoogleSignInButton
-        variant="outline-secondary"
-        onClick={trySignInWithGoogle}
-        disabled={props.submitting}
-      />
-    </div>
+    <GoogleSignInButton
+      variant="outline-secondary"
+      onClick={trySignInWithGoogle}
+      disabled={props.submitting}
+    />
   );
 };
+
+export enum InvitationEnrollmentMode {
+  NEW_USER = "newUser",
+  EXISTING_USER = "existingUser",
+}
 
 type AccountFormProps =
   | {
@@ -136,8 +123,19 @@ type AccountFormProps =
       onFormatChange: () => void;
     }
   | {
-      format: AccountFormFormat.ENROLL | AccountFormFormat.RESET_PWD;
+      format: AccountFormFormat.RESET_PWD;
       token: string;
+    }
+  | {
+      format: AccountFormFormat.ENROLL;
+      // One of token or huntInvitationCode must be present.
+      token?: string;
+      huntInvitationCode?: string;
+    }
+  | {
+      format: AccountFormFormat.INVITATION_WELCOME;
+      huntInvitationCode: string;
+      onModeSelected: (mode: InvitationEnrollmentMode) => void;
     };
 
 enum AccountFormSubmitState {
@@ -146,6 +144,11 @@ enum AccountFormSubmitState {
   FAILED = "failed",
   SUCCESS = "success",
 }
+
+type GoogleSignInCredentials = {
+  token: string;
+  secret: string;
+};
 
 const AccountForm = (props: AccountFormProps) => {
   const loading = useSubscribe("teamName");
@@ -166,6 +169,9 @@ const AccountForm = (props: AccountFormProps) => {
   const [password, setPassword] = useState<string>("");
   const [displayName, setDisplayName] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [googleSignInCredentials, setGoogleSignInCredentials] = useState<
+    GoogleSignInCredentials | undefined
+  >(undefined);
 
   const setEmailCallback = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -199,6 +205,24 @@ const AccountForm = (props: AccountFormProps) => {
         props.format === AccountFormFormat.REQUEST_PW_RESET
       ) {
         props.onFormatChange();
+      }
+    },
+    [props],
+  );
+  const onInvitationNewUserSelected = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (props.format === AccountFormFormat.INVITATION_WELCOME) {
+        props.onModeSelected(InvitationEnrollmentMode.NEW_USER);
+      }
+    },
+    [props],
+  );
+  const onInvitationExistingUserSelected = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (props.format === AccountFormFormat.INVITATION_WELCOME) {
+        props.onModeSelected(InvitationEnrollmentMode.EXISTING_USER);
       }
     },
     [props],
@@ -253,7 +277,20 @@ const AccountForm = (props: AccountFormProps) => {
   );
 
   const tryEnroll = useCallback(
-    (token: string) => {
+    (token?: string, huntInvitationCode?: string) => {
+      // E-mail is required for users joining via a hunt invitation URL who aren't using their
+      // Google sign-in credentials.
+      const trimmedEmail = email.trim();
+      if (
+        huntInvitationCode &&
+        googleSignInCredentials === undefined &&
+        trimmedEmail === ""
+      ) {
+        setSubmitState(AccountFormSubmitState.FAILED);
+        setErrorMessage("Email cannot be blank.");
+        return;
+      }
+
       const trimmedDisplayName = displayName.trim();
       if (trimmedDisplayName === "") {
         setSubmitState(AccountFormSubmitState.FAILED);
@@ -261,20 +298,18 @@ const AccountForm = (props: AccountFormProps) => {
         return;
       }
 
-      const newProfile = {
-        displayName: trimmedDisplayName,
-        phoneNumber: phoneNumber !== "" ? phoneNumber : undefined,
-        dingwords: [],
-      };
-
-      setSubmitState(AccountFormSubmitState.SUBMITTING);
-      Accounts.resetPassword(token, password, (error?: Error) => {
+      const onEnrollComplete = (error?: Error) => {
         if (error) {
           setSubmitState(AccountFormSubmitState.FAILED);
           setErrorMessage(
             error instanceof Meteor.Error ? error.reason : error.message,
           );
         } else {
+          const newProfile = {
+            displayName: trimmedDisplayName,
+            phoneNumber: phoneNumber !== "" ? phoneNumber : undefined,
+            dingwords: [],
+          };
           updateProfile.call(newProfile, (innerError?: Error) => {
             if (innerError) {
               // This user will have to set their profile manually later.  Oh well.
@@ -290,9 +325,43 @@ const AccountForm = (props: AccountFormProps) => {
             }
           });
         }
-      });
+      };
+
+      setSubmitState(AccountFormSubmitState.SUBMITTING);
+
+      if (token) {
+        // Direct e-mail invitation flow; the user already exists but has no password. Call the
+        // forgotten password flow to set one.
+        Accounts.resetPassword(token, password, onEnrollComplete);
+      } else if (huntInvitationCode) {
+        // Hunt invitation URL flow. Call our custom login flow (see Accounts.registerLoginHandler
+        // in imports/server/accounts.ts), which will validate the invitation code, create the new
+        // user, and sign in as that user.
+        const loginRequest: LoginOptions = {
+          isJrLogin: true,
+          ...(googleSignInCredentials && {
+            googleCredentials: {
+              key: googleSignInCredentials.token,
+              secret: googleSignInCredentials.secret,
+            },
+          }),
+          newUserRequest: {
+            huntInvitationCode,
+            ...(!googleSignInCredentials && {
+              passwordCredentials: {
+                email: trimmedEmail,
+                passwordHash: Accounts._hashPassword(password),
+              },
+            }),
+          },
+        };
+        Accounts.callLoginMethod({
+          methodArguments: [loginRequest],
+          userCallback: onEnrollComplete,
+        });
+      }
     },
-    [displayName, phoneNumber, password],
+    [email, displayName, phoneNumber, password, googleSignInCredentials],
   );
 
   const submitFormCallback = useCallback(
@@ -306,7 +375,7 @@ const AccountForm = (props: AccountFormProps) => {
           tryPasswordReset();
           break;
         case AccountFormFormat.ENROLL:
-          tryEnroll(props.token);
+          tryEnroll(props.token, props.huntInvitationCode);
           break;
         case AccountFormFormat.RESET_PWD:
           tryCompletePasswordReset(props.token);
@@ -315,6 +384,54 @@ const AccountForm = (props: AccountFormProps) => {
       }
     },
     [tryLogin, tryPasswordReset, tryEnroll, tryCompletePasswordReset, props],
+  );
+
+  const onGoogleSignInStarted = useCallback(() => {
+    setSubmitState(AccountFormSubmitState.SUBMITTING);
+  }, []);
+
+  const onGoogleSignInCanceled = useCallback(() => {
+    setSubmitState(AccountFormSubmitState.IDLE);
+  }, []);
+
+  const onEnrollGoogleSignInSucceeded = useCallback(
+    (token: string, secret: string) => {
+      setSubmitState(AccountFormSubmitState.IDLE);
+      setGoogleSignInCredentials({
+        token,
+        secret,
+      });
+    },
+    [],
+  );
+
+  const onLoginGoogleSignInSucceeded = useCallback(
+    (token: string, secret: string) => {
+      const loginRequest: LoginOptions = {
+        // Set this to true to trigger our custom Google signin hook.
+        isJrLogin: true,
+        googleCredentials: {
+          key: token,
+          secret,
+        },
+      };
+
+      Accounts.callLoginMethod({
+        methodArguments: [loginRequest],
+        userCallback: (error?: Error) => {
+          if (error) {
+            setSubmitState(AccountFormSubmitState.FAILED);
+            setErrorMessage(
+              error instanceof Meteor.Error ? error.reason : error.message,
+            );
+          } else {
+            setSubmitState(AccountFormSubmitState.SUCCESS);
+            setSuccessMessage("Logged in successfully.");
+          }
+        },
+      });
+    },
+    [],
   );
 
   if (loading()) {
@@ -330,6 +447,7 @@ const AccountForm = (props: AccountFormProps) => {
     [AccountFormFormat.ENROLL]: "Create an Account",
     [AccountFormFormat.REQUEST_PW_RESET]: "Reset your password",
     [AccountFormFormat.RESET_PWD]: "Reset your password",
+    [AccountFormFormat.INVITATION_WELCOME]: `You have been invited to a hunt with ${teamName}`,
   }[props.format];
 
   const buttonText = {
@@ -337,6 +455,7 @@ const AccountForm = (props: AccountFormProps) => {
     [AccountFormFormat.ENROLL]: "Register",
     [AccountFormFormat.REQUEST_PW_RESET]: "Email Reset Link",
     [AccountFormFormat.RESET_PWD]: "Set Password",
+    [AccountFormFormat.INVITATION_WELCOME]: undefined,
   }[props.format];
 
   const emailInput = (
@@ -427,51 +546,82 @@ const AccountForm = (props: AccountFormProps) => {
             successMessage ? (
               <Alert variant="success">{successMessage}</Alert>
             ) : null}
+            {props.format === AccountFormFormat.INVITATION_WELCOME ? (
+              <div>
+                <p>
+                  <b>New user?</b>{" "}
+                  <NoPaddingLinkButton
+                    variant="link"
+                    onClick={onInvitationNewUserSelected}
+                  >
+                    Create an account
+                  </NoPaddingLinkButton>
+                  .
+                </p>
+                <p>
+                  <b>Existing user?</b>{" "}
+                  <NoPaddingLinkButton
+                    variant="link"
+                    onClick={onInvitationExistingUserSelected}
+                  >
+                    Sign in
+                  </NoPaddingLinkButton>
+                  .
+                </p>
+              </div>
+            ) : null}
             {props.format === AccountFormFormat.LOGIN ||
-            props.format === AccountFormFormat.REQUEST_PW_RESET
+            props.format === AccountFormFormat.REQUEST_PW_RESET ||
+            (props.format === AccountFormFormat.ENROLL &&
+              props.huntInvitationCode &&
+              googleSignInCredentials === undefined)
               ? emailInput
               : null}
             {props.format === AccountFormFormat.LOGIN ||
-            props.format === AccountFormFormat.ENROLL ||
+            (props.format === AccountFormFormat.ENROLL &&
+              googleSignInCredentials === undefined) ||
             props.format === AccountFormFormat.RESET_PWD
               ? pwInput
               : null}
+            {props.format === AccountFormFormat.ENROLL &&
+            googleSignInCredentials === undefined ? (
+              <div className="d-grid gap-2 mt-3 justify-content-center">
+                <div>
+                  or{" "}
+                  <SignInWithGoogleButton
+                    submitting={submitting}
+                    onStarted={onGoogleSignInStarted}
+                    onSucceeded={onEnrollGoogleSignInSucceeded}
+                    onCanceled={onGoogleSignInCanceled}
+                  />
+                </div>
+              </div>
+            ) : null}
             {pwResetOptionComponent}
             {props.format === AccountFormFormat.ENROLL
               ? enrollmentFields
               : null}
-            <div className="d-grid gap-2">
-              <Button
-                size="lg"
-                variant="outline-secondary"
-                type="submit"
-                disabled={submitting}
-              >
-                {buttonText}
-              </Button>
-            </div>
+            {buttonText ? (
+              <div className="d-grid gap-2">
+                <Button
+                  size="lg"
+                  variant="outline-secondary"
+                  type="submit"
+                  disabled={submitting}
+                >
+                  {buttonText}
+                </Button>
+              </div>
+            ) : null}
             {props.format === AccountFormFormat.LOGIN ? (
-              <SignInWithGoogleButton
-                submitting={submitting}
-                onStarted={() => {
-                  setSubmitState(AccountFormSubmitState.SUBMITTING);
-                }}
-                onSucceeded={() => {
-                  setSubmitState(AccountFormSubmitState.SUCCESS);
-                  setSuccessMessage("Logged in successfully.");
-                }}
-                onCanceled={() => {
-                  setSubmitState(AccountFormSubmitState.IDLE);
-                }}
-                onFailed={(error) => {
-                  setSubmitState(AccountFormSubmitState.FAILED);
-                  setErrorMessage(
-                    error instanceof Meteor.Error
-                      ? error.reason
-                      : error.message,
-                  );
-                }}
-              />
+              <div className="d-grid gap-2 mt-3 justify-content-center">
+                <SignInWithGoogleButton
+                  submitting={submitting}
+                  onStarted={onGoogleSignInStarted}
+                  onSucceeded={onLoginGoogleSignInSucceeded}
+                  onCanceled={onGoogleSignInCanceled}
+                />
+              </div>
             ) : null}
             {backToMainForm}
           </fieldset>
