@@ -228,6 +228,9 @@ const HuntEditPage = () => {
   const [hasGuessQueue, setHasGuessQueue] = useState<boolean>(
     hunt?.hasGuessQueue ?? true,
   );
+  const [isArchived, setIsArchived] = useState<boolean>(
+    hunt?.isArchived ?? false,
+  );
   const [termsOfUse, setTermsOfUse] = useState<string>(hunt?.termsOfUse ?? "");
   const [showTermsOfUsePreview, setShowTermsOfUsePreview] =
     useState<boolean>(false);
@@ -280,6 +283,13 @@ const HuntEditPage = () => {
   const onHasGuessQueueChanged = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setHasGuessQueue(e.currentTarget.checked);
+    },
+    [],
+  );
+
+  const onIsArchivedChanged = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setIsArchived(e.currentTarget.checked);
     },
     [],
   );
@@ -363,6 +373,7 @@ const HuntEditPage = () => {
         puzzleHooksDiscordChannel,
         firehoseDiscordChannel,
         memberDiscordRole,
+        isArchived,
       };
 
       if (huntId) {
@@ -378,6 +389,7 @@ const HuntEditPage = () => {
       signupMessage,
       openSignups,
       hasGuessQueue,
+      isArchived,
       termsOfUse,
       homepageUrl,
       submitTemplate,
@@ -580,6 +592,22 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
+        <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="hunt-form-is-archived">
+            Archive hunt
+          </FormLabel>
+          <Col xs={9}>
+            <FormCheck
+              id="hunt-form-is-archived"
+              checked={isArchived}
+              onChange={onIsArchivedChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If archived, this hunt will be displayed below non-archived hunts.
+            </FormText>
+          </Col>
+        </FormGroup>
         <h3>External integrations</h3>
 
         <FormGroup as={Row} className="mb-3">
@@ -678,6 +706,7 @@ const HuntEditPage = () => {
             Discord has not been configured, so Discord settings are disabled.
           </Alert>
         )}
+
 
         <div ref={footer}>
           {submitState === SubmitState.FAILED && (
