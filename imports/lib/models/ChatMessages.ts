@@ -43,7 +43,7 @@ const ChatMessage = withCommon(
     // The date this message was sent.  Used for ordering chats in the log.
     timestamp: z.date(),
     pinned: z.boolean().default(false),
-    pinTs: z.date().nullable(),
+    pinTs: z.date().nullable().optional(),
   }),
 );
 const ChatMessages = new SoftDeletedModel("jr_chatmessages", ChatMessage);
