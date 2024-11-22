@@ -16,8 +16,6 @@ const DEFAULT_TAGS = [
   "is:runaround",
   "priority:high",
   "priority:low",
-  "type:crossword",
-  "type:duck-konundrum",
   "group:events",
   "needs:extraction",
   "needs:onsite",
