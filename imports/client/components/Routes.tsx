@@ -26,6 +26,7 @@ import RootRedirector from "./RootRedirector";
 import UserInvitePage from "./UserInvitePage";
 import UsersApp from "./UsersApp";
 import { AuthenticatedPage, UnauthenticatedPage } from "./authentication";
+import TagManagerApp from "./TagManagerApp";
 
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
@@ -54,6 +55,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
             ],
           },
           { path: "puzzles/:puzzleId", element: <PuzzlePage /> },
+          { path: "tags", element: <TagManagerApp /> },
           { path: "puzzles", element: <PuzzleListPage /> },
           { path: "edit", element: <HuntEditPage /> },
           { path: "", element: <Navigate to="puzzles" replace /> },
