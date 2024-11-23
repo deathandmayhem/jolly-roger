@@ -1,24 +1,29 @@
-import { Meteor } from "meteor/meteor";
-import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { useTracker } from "meteor/react-meteor-data";
 import React from "react";
 import { useParams } from "react-router-dom";
-import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Tags from "../../lib/models/Tags";
-import { userMayCreateHunt } from "../../lib/permission_stubs";
 
 const TagManagerPage = () => {
-  const hunts = useTracker(() =>
-    Tags.find({}, {sort: { name: 1 }}).fetch(),
+  const huntId = useParams<"huntId">().huntId!;
+
+  const tags = useTracker(
+    () => Tags.find({ hunt: huntId }).fetch(),
+    [huntId],
   );
 
-  const canAdd = useTracker(() => {
-    return userMayCreateHunt(Meteor.user());
-  }, []);
-
-
-
-
-
+  return (
+    <div id='tags'>
+      <h1>Tags</h1>
+      {(
+        <div>
+          <ul>
+          {/* {tags.map( (t) => {return <li>tag:{t.name}</li>} )} */}
+          {tags.length}1
+          </ul>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default TagManagerPage;
