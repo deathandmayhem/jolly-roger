@@ -30,6 +30,7 @@ import "./createPuzzle";
 import "./demoteOperator";
 import "./destroyHunt";
 import "./destroyPuzzle";
+import "./destroyTag";
 import "./dismissBookmarkNotification";
 import "./dismissChatNotification";
 import "./dismissPendingAnnouncement";
