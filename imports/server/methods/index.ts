@@ -32,6 +32,7 @@ import "./demoteOperator";
 import "./destroyAPIKey";
 import "./destroyHunt";
 import "./destroyPuzzle";
+import "./destroyTag";
 import "./dismissBookmarkNotification";
 import "./dismissChatNotification";
 import "./dismissPendingAnnouncement";
