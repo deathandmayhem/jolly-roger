@@ -4,6 +4,7 @@ import { faBullhorn } from "@fortawesome/free-solid-svg-icons/faBullhorn";
 import { faFaucet } from "@fortawesome/free-solid-svg-icons/faFaucet";
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap";
 import { faReceipt } from "@fortawesome/free-solid-svg-icons/faReceipt";
+import { faTags } from "@fortawesome/free-solid-svg-icons/faTags";
 import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
@@ -183,7 +184,7 @@ const HuntNav = () => {
           <StyledPuzzleListLinkLabel>Hunters</StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
 
-        {/* Show firehose link only to operators */}
+        {/* Show firehose and tag manager links only to operators */}
         {canUpdate && (
           <StyledPuzzleListLinkAnchor
             to={`/hunts/${huntId}/firehose`}
@@ -191,6 +192,15 @@ const HuntNav = () => {
           >
             <MenuIcon icon={faFaucet} />
             <StyledPuzzleListLinkLabel>Firehose</StyledPuzzleListLinkLabel>
+          </StyledPuzzleListLinkAnchor>
+        )}
+        {canUpdate && (
+          <StyledPuzzleListLinkAnchor
+            to={`/hunts/${huntId}/tags`}
+            title="Tags"
+          >
+            <MenuIcon icon={faTags} />
+            <StyledPuzzleListLinkLabel>Tags</StyledPuzzleListLinkLabel>
           </StyledPuzzleListLinkAnchor>
         )}
         {huntLink}
