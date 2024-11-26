@@ -1,101 +1,43 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import { MongoInternals } from "meteor/mongo";
-import { Random } from "meteor/random";
-import Flags from "../../Flags";
+import type { Mongo } from "meteor/mongo";
 import Logger from "../../Logger";
-import type { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
-import GdriveMimeTypes from "../../lib/GdriveMimeTypes";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
+import type { PuzzleType } from "../../lib/models/Puzzles";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
-import createPuzzle from "../../methods/createPuzzle";
+import updatePuzzle from "../../methods/updatePuzzle";
 import GlobalHooks from "../GlobalHooks";
-import { deleteUnusedDocument, ensureDocument } from "../gdrive";
+import { ensureDocument, renameDocument } from "../gdrive";
 import getOrCreateTagByName from "../getOrCreateTagByName";
-import GoogleClient from "../googleClientRefresher";
-import withLock from "../withLock";
+import getTeamName from "../getTeamName";
 import defineMethod from "./defineMethod";
 
-async function checkForDuplicatePuzzle(huntId: string, url: string) {
-  const existingPuzzleWithUrl = await Puzzles.findOneAsync({
-    hunt: huntId,
-    url,
-  });
-  if (existingPuzzleWithUrl) {
-    throw new Meteor.Error(409, `Puzzle with URL ${url} already exists`);
-  }
-}
-
-async function createDocumentAndInsertPuzzle(
-  huntId: string,
-  title: string,
-  expectedAnswerCount: number,
-  tags: string[],
-  url: string | undefined,
-  docType: GdriveMimeTypesType,
-): Promise<string> {
-  // Look up each tag by name and map them to tag IDs.
-  const tagIds = await Promise.all(
-    tags.map(async (tagName) => {
-      return getOrCreateTagByName(huntId, tagName);
-    }),
-  );
-
-  const fullPuzzle = {
-    hunt: huntId,
-    title,
-    expectedAnswerCount,
-    _id: Random.id(),
-    tags: [...new Set(tagIds)],
-    answers: [],
-    url,
-  };
-
-  // By creating the document before we save the puzzle, we make sure nobody
-  // else has a chance to create a document with the wrong config. (This
-  // requires us to have an _id for the puzzle, which is why we generate it
-  // manually above instead of letting Meteor do it)
-  if (GoogleClient.ready() && !(await Flags.activeAsync("disable.google"))) {
-    await ensureDocument(fullPuzzle, docType);
-  }
-  await Puzzles.insertAsync(fullPuzzle);
-  return fullPuzzle._id;
-}
-
-defineMethod(createPuzzle, {
+defineMethod(updatePuzzle, {
   validate(arg) {
     check(arg, {
-      huntId: String,
+      puzzleId: String,
       title: String,
       url: Match.Optional(String),
       tags: [String],
       expectedAnswerCount: Number,
-      docType: Match.OneOf(
-        ...(Object.keys(GdriveMimeTypes) as GdriveMimeTypesType[]),
-      ),
+      // We accept this argument since it's provided by the form, but it's not checked here - only
+      // during puzzle creation, to avoid duplicates when creating new puzzles.
       allowDuplicateUrls: Match.Optional(Boolean),
     });
+
     return arg;
   },
 
-  async run({
-    huntId,
-    title,
-    tags,
-    expectedAnswerCount,
-    docType,
-    url,
-    allowDuplicateUrls,
-  }) {
+  async run({ puzzleId, title, url, tags, expectedAnswerCount }) {
     check(this.userId, String);
 
-    const hunt = await Hunts.findOneAsync(huntId);
-    if (!hunt) {
-      throw new Meteor.Error(404, "Unknown hunt id");
+    const oldPuzzle = await Puzzles.findOneAllowingDeletedAsync(puzzleId);
+    if (!oldPuzzle) {
+      throw new Meteor.Error(404, "Unknown puzzle id");
     }
-
+    const hunt = await Hunts.findOneAsync(oldPuzzle.hunt);
     if (
       !userMayWritePuzzlesForHunt(
         await MeteorUsers.findOneAsync(this.userId),
@@ -104,93 +46,57 @@ defineMethod(createPuzzle, {
     ) {
       throw new Meteor.Error(
         401,
-        `User ${this.userId} may not create new puzzles for hunt ${huntId}`,
+        `User ${this.userId} may not modify puzzles from hunt ${oldPuzzle.hunt}`,
       );
     }
 
-    // Before we do any writes, try an opportunistic check for duplicates. If a
-    // puzzle with this URL already exists, we can short-circuit without
-    // creating tags or the Google Doc. We'll still need to repeat this check
-    // with the lock held.
-    if (url && !allowDuplicateUrls) {
-      await checkForDuplicatePuzzle(huntId, url);
-    }
-
-    Logger.info("Creating a new puzzle", {
-      hunt: huntId,
-      title,
-    });
-
-    let puzzleId = "";
-    if (!url) {
-      puzzleId = await createDocumentAndInsertPuzzle(
-        huntId,
-        title,
-        expectedAnswerCount,
-        tags,
-        url,
-        docType,
-      );
-    } else {
-      // With a lock, look for a puzzle with the same URL. If present, we reject the insertion
-      // unless the client overrides it.
-      await withLock(`hunts:${huntId}:puzzle-url:${url}`, async () => {
-        if (!allowDuplicateUrls) {
-          await checkForDuplicatePuzzle(huntId, url);
-        }
-        puzzleId = await createDocumentAndInsertPuzzle(
-          huntId,
-          title,
-          expectedAnswerCount,
-          tags,
-          url,
-          docType,
-        );
-      });
-    }
-
-    // In a transaction, look for a puzzle with the same URL. If present, we
-    // reject the insertion unless the client overrides it.
-    const client = MongoInternals.defaultRemoteCollectionDriver().mongo.client;
-    const session = client.startSession();
-    try {
-      await session.withTransaction(async () => {
-        if (url) {
-          const existingPuzzleWithUrl = await Puzzles.collection
-            .rawCollection()
-            .findOne({ hunt: huntId, url }, { session });
-          if (existingPuzzleWithUrl && !allowDuplicateUrls) {
-            throw new Meteor.Error(
-              409,
-              `Puzzle with URL ${url} already exists`,
-            );
-          }
-        }
-        await Puzzles.insertAsync(fullPuzzle, { session });
-      });
-    } catch (error) {
-      // In the case of any error, try to delete the document we created before the transaction.
-      // If that fails too, let the original error propagate.
-      try {
-        await deleteUnusedDocument(fullPuzzle);
-      } catch (deleteError) {
-        Logger.warn("Unable to clean up document on failed puzzle creation", {
-          error: deleteError,
-        });
-      }
-      throw error;
-    } finally {
-      await session.endSession();
-    }
-
-    // Run any puzzle-creation hooks, like creating a default document
-    // attachment or announcing the puzzle to Slack.
-    Meteor.defer(
-      Meteor.bindEnvironment(() => {
-        void GlobalHooks.runPuzzleCreatedHooks(puzzleId);
+    // Look up each tag by name and map them to tag IDs.
+    const tagIds = await Promise.all(
+      tags.map(async (tagName) => {
+        return getOrCreateTagByName(this.userId!, oldPuzzle.hunt, tagName);
       }),
     );
 
-    return puzzleId;
+    Logger.info("Updating a puzzle", {
+      hunt: oldPuzzle.hunt,
+      puzzle: puzzleId,
+      title,
+      expectedAnswerCount,
+    });
+
+    const update: Mongo.Modifier<PuzzleType> = {
+      $set: {
+        title,
+        expectedAnswerCount,
+        tags: [...new Set(tagIds)],
+      },
+    };
+    if (url) {
+      update.$set = { ...update.$set, url };
+    } else {
+      update.$unset = { url: "" };
+    }
+    await Puzzles.updateAsync(puzzleId, update);
+
+    // Run any puzzle update hooks
+    Meteor.defer(
+      Meteor.bindEnvironment(() => {
+        void GlobalHooks.runPuzzleUpdatedHooks(puzzleId, oldPuzzle);
+      }),
+    );
+
+    if (oldPuzzle.title !== title) {
+      Meteor.defer(
+        Meteor.bindEnvironment(async () => {
+          const doc = await ensureDocument(this.userId!, {
+            _id: puzzleId,
+            title,
+            hunt: oldPuzzle.hunt,
+          });
+          const teamName = await getTeamName();
+          await renameDocument(doc.value.id, `${title}: ${teamName}`);
+        }),
+      );
+    }
   },
 });

@@ -265,13 +265,12 @@ export async function ensureHuntFolderPermission(
 }
 
 export async function ensureDocument(
-  puzzle:
-    | {
-        _id: string;
-        title: string;
-        hunt: string;
-      }
-    | PuzzleType,
+  userId: string,
+  puzzle: {
+    _id: string;
+    title: string;
+    hunt: string;
+  },
   type: GdriveMimeTypesType = "spreadsheet",
   additionalDocument = false,
 ) {
@@ -295,6 +294,7 @@ export async function ensureDocument(
           folderId,
         );
         const newDoc = {
+          createdBy: userId,
           hunt: puzzle.hunt,
           puzzle: puzzle._id,
           provider: "google" as const,

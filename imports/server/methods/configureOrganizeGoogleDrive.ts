@@ -42,7 +42,7 @@ defineMethod(configureOrganizeGoogleDrive, {
     const puzzles = indexedById(await Puzzles.find().fetchAsync());
     for (const d of Documents.find()) {
       const puzzle = puzzles.get(d.puzzle);
-      if (puzzle && !d.value.folder) await ensureDocument(puzzle);
+      if (puzzle && !d.value.folder) await ensureDocument(this.userId, puzzle);
     }
   },
 });

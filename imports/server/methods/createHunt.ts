@@ -39,11 +39,8 @@ defineMethod(createHunt, {
     const huntId = await Hunts.insertAsync(huntData);
     await addUserToRole(this.userId, huntId, "operator");
 
-    if (initialTags) {
-      const initialTagList = initialTags.split(",");
-      for (const tag of initialTagList) {
-        await getOrCreateTagByName(huntId, tag.trim());
-      }
+    for (const tag of DEFAULT_TAGS) {
+      await getOrCreateTagByName(this.userId, huntId, tag);
     }
 
     Meteor.defer(async () => {
