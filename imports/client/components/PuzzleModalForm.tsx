@@ -185,6 +185,7 @@ const PuzzleModalForm = React.forwardRef(
             setUrlDirty(false);
             setTagsDirty(false);
             setExpectedAnswerCountDirty(false);
+            window.location.hash = "";
             callback();
           }
         });
