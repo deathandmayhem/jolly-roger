@@ -39,6 +39,8 @@ const authenticator: express.Handler = expressAsyncWrapper(
       void APIKeys.updateAsync({ _id: key._id }, { $set: { lastUsedAt: now } });
     }
 
+    res.locals.userId = key.user;
+
     next();
   },
 );
