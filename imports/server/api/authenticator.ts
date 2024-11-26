@@ -1,3 +1,4 @@
+import { DDP } from "meteor/ddp";
 import type express from "express";
 import APIKeys from "../../lib/models/APIKeys";
 import expressAsyncWrapper from "../expressAsyncWrapper";
@@ -39,7 +40,13 @@ const authenticator: express.Handler = expressAsyncWrapper(
       void APIKeys.updateAsync({ _id: key._id }, { $set: { lastUsedAt: now } });
     }
 
-    next();
+    // eslint-disable-next-line no-underscore-dangle
+    DDP._CurrentInvocation.withValue(
+      {
+        userId: key.user,
+      },
+      next,
+    );
   },
 );
 export default authenticator;

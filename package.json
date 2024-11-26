@@ -35,6 +35,7 @@
     "@googleapis/script": "^11.0.1",
     "@popperjs/core": "^2.11.8",
     "aws4": "^1.13.2",
+    "body-parser": "^2.2.1",
     "bootstrap": "^5.3.8",
     "classnames": "^2.5.1",
     "discord.js": "^14.25.1",
