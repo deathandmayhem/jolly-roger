@@ -18,6 +18,7 @@ import HuntersApp from "./HuntersApp";
 import JoinHunt from "./JoinHunt";
 import Loading from "./Loading";
 import LoginForm from "./LoginForm";
+import MoreAppPage from "./MoreAppPage";
 import PasswordResetForm from "./PasswordResetForm";
 import ProfilePage from "./ProfilePage";
 import PuzzleListPage from "./PuzzleListPage";
@@ -65,6 +66,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
            },
           { path: "puzzles", element: <PuzzleListPage /> },
           { path: "edit", element: <HuntEditPage /> },
+          { path: "more", element: <MoreAppPage /> },
           { path: "", element: <Navigate to="puzzles" replace /> },
         ],
       },
