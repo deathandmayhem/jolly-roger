@@ -1,33 +1,12 @@
-import { useFind, useTracker } from "meteor/react-meteor-data";
-import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
   useMemo,
-  useRef,
-  useState,
 } from "react";
-import Button from "react-bootstrap/Button";
-import type { FormControlProps } from "react-bootstrap/FormControl";
-import FormControl from "react-bootstrap/FormControl";
-import FormGroup from "react-bootstrap/FormGroup";
-import InputGroup from "react-bootstrap/InputGroup";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
-import { indexedById } from "../../lib/listUtils";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
-import ChatMessages from "../../lib/models/ChatMessages";
-import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import nodeIsMention from "../../lib/nodeIsMention";
-import chatMessagesForFirehose from "../../lib/publications/chatMessagesForFirehose";
-import { useBreadcrumb } from "../hooks/breadcrumb";
-import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
-import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import indexedDisplayNames from "../indexedDisplayNames";
 import FixedLayout from "./styling/FixedLayout";
 
 const FirehosePageLayout = styled.div`
@@ -119,12 +98,11 @@ const MessagesPane = styled.div`
 
 const MoreAppPage = () => {
   const huntId = useParams<"huntId">().huntId!;
+  const jr_hostname = window.location.hostname;
   const bookmarklet = useMemo(() => {
     const code = `
       (function() {
-        const title = encodeURIComponent(document.title);
-        const url = encodeURIComponent(window.location.href);
-        window.location.href = "${window.location.hostname}/hunts/${huntId}/puzzles#title=" + title + "&url=" + url;
+        window.location.href = "https://${jr_hostname}/hunts/${huntId}/puzzles#title=" + document.title + "&url=" + window.location.href;
       })();
     `;
     return `javascript:${encodeURIComponent(code)}`;
