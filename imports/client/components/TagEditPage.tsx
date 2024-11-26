@@ -291,27 +291,6 @@ const TagEditPage = () => {
   const deleteModalRef = useRef<ModalFormHandle>(null);
   const addModalRef = useRef<ModalFormHandle>(null);
 
-  const onRemoveFromAll = useCallback(
-    ( callback: () => void) => {
-      matchingSearch.forEach((puzzle) => {
-        const puzzleId = puzzle._id;
-        removePuzzleTag.call({puzzleId, tagId}, callback)
-      })
-    },
-    [huntId, tagId, allPuzzles]
-  );
-
-  const onAddToAll = useCallback(
-    ( callback: () => void) => {
-      matchingSearch.forEach((puzzle) => {
-        const puzzleId = puzzle._id;
-        const tagName = tag?.name;
-        addPuzzleTag.call({puzzleId, tagName}, callback)
-      })
-    },
-    [huntId, tag, allPuzzles]
-  );
-
   const onSuccessDismiss = useCallback(
     () => setSubmitState(SubmitState.IDLE),
     [],
@@ -443,6 +422,27 @@ const TagEditPage = () => {
   const matchingSearch = puzzlesMatchingSearchString(allPuzzles);
 
   const updateDisabled = matchingSearch.length === 0;
+
+  const onRemoveFromAll = useCallback(
+    ( callback: () => void) => {
+      matchingSearch.forEach((puzzle) => {
+        const puzzleId = puzzle._id;
+        removePuzzleTag.call({puzzleId, tagId}, callback)
+      })
+    },
+    [huntId, tagId, matchingSearch]
+  );
+
+  const onAddToAll = useCallback(
+    ( callback: () => void) => {
+      matchingSearch.forEach((puzzle) => {
+        const puzzleId = puzzle._id;
+        const tagName = tag?.name;
+        addPuzzleTag.call({puzzleId, tagName}, callback)
+      })
+    },
+    [huntId, tag, matchingSearch]
+  );
 
   return (
     <Container>
