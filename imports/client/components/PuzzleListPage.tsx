@@ -364,6 +364,20 @@ const PuzzleListView = ({
     }
   }, []);
 
+
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const urlParams = new URLSearchParams(url.hash.slice(1));
+    const hashTitle = urlParams.get("title");
+    const hashUrl = urlParams.get("url");
+
+    if ( hashTitle && hashUrl && addModalRef) {
+      addModalRef?.current?.show();
+      addModalRef?.current?.populateForm({title:hashTitle, url:hashUrl})
+    }
+  });
+
   const renderList = useCallback(
     (
       retainedPuzzles: PuzzleType[],
