@@ -6,6 +6,7 @@ import { faMap } from "@fortawesome/free-solid-svg-icons/faMap";
 import { faReceipt } from "@fortawesome/free-solid-svg-icons/faReceipt";
 import { faTags } from "@fortawesome/free-solid-svg-icons/faTags";
 import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
+import { faEllipsisH } from "@fortawesome/free-solid-svg-icons/faEllipsisH";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import { Nav } from "react-bootstrap";
@@ -204,6 +205,14 @@ const HuntNav = () => {
           </StyledPuzzleListLinkAnchor>
         )}
         {huntLink}
+
+        <StyledPuzzleListLinkAnchor
+          to={`/hunts/${huntId}/more`}
+          title="More"
+        >
+          <MenuIcon icon={faEllipsisH} />
+          <StyledPuzzleListLinkLabel>More</StyledPuzzleListLinkLabel>
+        </StyledPuzzleListLinkAnchor>
       </JRLinkList>
     );
   } else {

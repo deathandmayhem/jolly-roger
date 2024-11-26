@@ -219,6 +219,7 @@ const PuzzleModalForm = React.forwardRef(
             setExpectedAnswerCountDirty(false);
             setConfirmingDuplicateUrl(false);
             setAllowDuplicateUrls(false);
+            window.location.hash = "";
             callback();
           }
         });

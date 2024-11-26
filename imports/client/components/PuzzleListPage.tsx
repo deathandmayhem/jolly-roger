@@ -20,7 +20,7 @@ import FormLabel from "react-bootstrap/FormLabel";
 import InputGroup from "react-bootstrap/InputGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { sortedBy } from "../../lib/listUtils";
 import Bookmarks from "../../lib/models/Bookmarks";
@@ -364,7 +364,7 @@ const PuzzleListView = ({
     }
   }, []);
 
-
+  const navigate = useNavigate()
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -372,7 +372,11 @@ const PuzzleListView = ({
     const hashTitle = urlParams.get("title");
     const hashUrl = urlParams.get("url");
 
-    if ( hashTitle && hashUrl && addModalRef) {
+    const existingPuzzle = Puzzles.findOne({url: {$regex: `^${hashUrl}`}})
+
+    if (existingPuzzle) {
+      navigate(`./${existingPuzzle._id}`);
+    } else if ( hashTitle && hashUrl && addModalRef) {
       addModalRef?.current?.show();
       addModalRef?.current?.populateForm({title:hashTitle, url:hashUrl})
     }
