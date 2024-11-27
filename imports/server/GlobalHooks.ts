@@ -4,6 +4,7 @@ import ChatNotificationHooks from "./hooks/ChatNotificationHooks";
 import DiscordHooks from "./hooks/DiscordHooks";
 import HooksRegistry from "./hooks/HooksRegistry";
 import TagCleanupHooks from "./hooks/TagCleanupHooks";
+import TagDingwordHooks from "./hooks/TagHooks";
 
 // Instantiate the application-global hookset list.
 const GlobalHooks = new HooksRegistry();
@@ -13,5 +14,6 @@ GlobalHooks.addHookSet(ChatNotificationHooks);
 GlobalHooks.addHookSet(TagCleanupHooks);
 GlobalHooks.addHookSet(ChatHooks);
 GlobalHooks.addHookSet(BookmarkNotificationHooks);
+GlobalHooks.addHookSet(TagDingwordHooks);
 
 export default GlobalHooks;
