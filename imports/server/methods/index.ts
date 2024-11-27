@@ -36,6 +36,7 @@ import "./destroyTag";
 import "./dismissBookmarkNotification";
 import "./dismissChatNotification";
 import "./dismissPendingAnnouncement";
+import "./dismissPuzzleNotification"
 import "./ensurePuzzleDocument";
 import "./generateUploadToken";
 import "./generateHuntInvitationCode";

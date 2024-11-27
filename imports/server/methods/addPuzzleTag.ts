@@ -5,6 +5,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import addPuzzleTag from "../../methods/addPuzzleTag";
 import getOrCreateTagByName from "../getOrCreateTagByName";
 import defineMethod from "./defineMethod";
+import GlobalHooks from "../GlobalHooks";
 
 defineMethod(addPuzzleTag, {
   validate(arg) {
@@ -48,5 +49,7 @@ defineMethod(addPuzzleTag, {
         },
       },
     );
+
+    await GlobalHooks.runTagAddedHooks(puzzleId, tagId, this.userId);
   },
 });

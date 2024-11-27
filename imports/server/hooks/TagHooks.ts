@@ -1,0 +1,64 @@
+import { next } from "slate";
+import Flags from "../../Flags";
+import {
+  normalizedMessageDingsUserByDingword,
+} from "../../lib/dingwordLogic";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import PuzzleNotifications from "../../lib/models/PuzzleNotifications";
+import Puzzles from "../../lib/models/Puzzles";
+import Tags from "../../lib/models/Tags";
+import type Hookset from "./Hookset";
+
+const TagHooks: Hookset = {
+  async onAddPuzzleTag(puzzleId: string, tagId: string, addingUserId: string) {
+
+    const puzzle = Puzzles.findOne({_id: puzzleId})!;
+    const tag = Tags.findOne({_id: tagId})!;
+    const usersToNotify = new Set<string>();
+    const tagName = tag.name;
+
+    console.log(`test! ${tag.name}`);
+    // Respect feature flag.
+    if (!(await Flags.activeAsync("disable.dingwords"))) {
+      const normalizedText = tagName?.trim().toLowerCase().replace(':', ' ') ?? "";
+      console.log(normalizedText);
+      // Find all users who are in this hunt with dingwords set.
+      for await (const u of MeteorUsers.find(
+        {
+          hunts: puzzle?.hunt,
+          "dingwords.0": { $exists: true },
+        },
+        {
+          fields: { _id: 1, dingwords: 1 },
+        },
+      )) {
+        console.log(u);
+        if (normalizedMessageDingsUserByDingword(normalizedText, u)) {
+          console.log('match!')
+          usersToNotify.add(u._id);
+        }
+      }
+    }
+
+    const collected: string[] = [];
+    usersToNotify.forEach((userId) => {
+      if (userId === addingUserId) {
+        next;
+      }
+      collected.push(userId);
+    });
+    await Promise.all(
+      collected.map(async (userId: string) => {
+        await PuzzleNotifications.insertAsync({
+          user: userId,
+          puzzle: puzzleId,
+          hunt: puzzle.hunt,
+          content: `${puzzle.title} has been tagged with ${tagName}`,
+        });
+      }),
+    );
+
+  },
+};
+
+export default TagHooks;
