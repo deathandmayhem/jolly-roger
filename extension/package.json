@@ -1,0 +1,35 @@
+{
+  "name": "jolly-roger-browser-extension",
+  "version": "1.0.0",
+  "description": "Browser extension for use with Jolly Roger",
+  "scripts": {
+    "watch": "webpack --config webpack/webpack.dev.mjs --watch",
+    "build": "webpack --config webpack/webpack.prod.mjs",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.6",
+    "react-dom": "^18.3.1",
+    "react-select": "^5.9.0",
+    "styled-components": "^6.1.13"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.0.287",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.2.7",
+    "@types/react-dom": "^18.3.1",
+    "copy-webpack-plugin": "^12.0.2",
+    "css-loader": "^7.1.2",
+    "glob": "^11.0.0",
+    "prettier": "^3.4.1",
+    "rimraf": "^6.0.1",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.1.0",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-merge": "^6.0.1"
+  }
+}

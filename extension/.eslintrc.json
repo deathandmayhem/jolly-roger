@@ -1,0 +1,26 @@
+{
+  "overrides": [
+    {
+      "files": ["**"],
+      "parserOptions": {
+        "tsconfigRootDir": "extension",
+        "project": "./tsconfig.json"
+      },
+      "rules": {
+        "import/no-extraneous-dependencies": [
+          "error",
+          {
+            "devDependencies": [
+              // All webpack config dependencies are dev dependencies, even when imported.
+              "**/webpack.*.mjs"
+            ]
+          }
+        ],
+        // Disable rules which require "npm install" to be run.
+        // TODO: Enable these if possible once we align on project organization.
+        "@typescript-eslint/restrict-plus-operands": ["off", {}],
+        "import/no-unresolved": ["off"]
+      }
+    }
+  ]
+}

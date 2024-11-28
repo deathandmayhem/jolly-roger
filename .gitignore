@@ -2,3 +2,5 @@ node_modules
 npm-debug.log
 jsconfig.json
 .vscode/launch.json
+extension/dist
+extension/tmp
