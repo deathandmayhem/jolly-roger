@@ -47,6 +47,7 @@
     "./.meteor/local/build/**",
     "./.meteor/local/bundler-cache/**",
     "./packages/**",
-    "./eslint/**"
+    "./eslint/**",
+    "./extension/**"
   ]
 }
