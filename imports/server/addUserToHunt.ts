@@ -85,7 +85,10 @@ export default async function addUserToHunt({
   email: string;
   invitedBy: string;
 }) {
-  let joineeUser = await Accounts.findUserByEmail(email);
+  const huntId = hunt._id;
+  const huntRoles = hunt.defaultRoles ?? [];
+
+  let joineeUser = Accounts.findUserByEmail(email);
   const newUser = joineeUser === undefined;
   if (!joineeUser) {
     const joineeUserId = await Accounts.createUserAsync({ email });
@@ -112,6 +115,12 @@ export default async function addUserToHunt({
   await MeteorUsers.updateAsync(joineeUser._id, {
     $addToSet: { hunts: { $each: [hunt._id] } },
   });
+
+  if (huntRoles.length > 0) {
+    await MeteorUsers.updateAsync(joineeUser._id, {
+      $set:{[`roles.${huntId}`]: huntRoles},
+    });
+  }
   const joineeEmails = (joineeUser.emails ?? []).map((e) => e.address);
 
   hunt.mailingLists.forEach((listName) => {

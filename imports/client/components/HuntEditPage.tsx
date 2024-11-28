@@ -34,6 +34,7 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import ActionButtonRow from "./ActionButtonRow";
 import Markdown from "./Markdown";
+import Select, { ActionMeta } from "react-select";
 
 enum SubmitState {
   IDLE = "idle",
@@ -41,6 +42,12 @@ enum SubmitState {
   SUCCESS = "success",
   FAILED = "failed",
 }
+
+const huntRolesList = [
+  "operator",
+]
+
+type RoleSelectOption = {value: string, label: string};
 
 const splitLists = function (lists: string): string[] {
   const strippedLists = lists.trim();
@@ -219,6 +226,11 @@ const HuntEditPage = () => {
   const [mailingLists, setMailingLists] = useState<string>(
     hunt?.mailingLists.join(", ") ?? "",
   );
+
+  const [defaultRoles, setDefaultRoles] = useState<string[]>(
+    hunt?.defaultRoles ?? [],
+  );
+
   const [signupMessage, setSignupMessage] = useState<string>(
     hunt?.signupMessage ?? "",
   );
@@ -266,6 +278,30 @@ const HuntEditPage = () => {
   >((e) => {
     setMailingLists(e.currentTarget.value);
   }, []);
+
+  const onDefaultRolesChanged = useCallback(
+    (
+      value: readonly RoleSelectOption[],
+      action: ActionMeta<RoleSelectOption>,
+    ) => {
+      let newRoles = [];
+      switch (action.action) {
+        case "clear":
+        case "deselect-option":
+        case "remove-value":
+        case "create-option":
+        case "pop-value":
+        case "select-option":
+              newRoles = value.map((v) => v.value);
+              break;
+        default:
+          return;
+      }
+      console.log(newRoles);
+      setDefaultRoles(newRoles);
+    },
+    [],
+  );
 
   const onSignupMessageChanged = useCallback<
     NonNullable<FormControlProps["onChange"]>
@@ -374,6 +410,7 @@ const HuntEditPage = () => {
         firehoseDiscordChannel,
         memberDiscordRole,
         isArchived,
+        defaultRoles,
       };
 
       if (huntId) {
@@ -397,6 +434,7 @@ const HuntEditPage = () => {
       firehoseDiscordChannel,
       memberDiscordRole,
       onFormCallback,
+      defaultRoles,
     ],
   );
 
@@ -467,6 +505,24 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
+        <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="hunt-form-default-roles">
+            Default roles
+          </FormLabel>
+          <Col xs={9}>
+          <Select
+            id="hunt-form-default-roles"
+            isMulti
+            options={huntRolesList.map((r) => {return {label: r, value: r}})}
+            value={defaultRoles.map((r) => {return {label: r, value: r}})}
+            onChange={onDefaultRolesChanged}
+            disabled={disableForm}
+          />
+            <FormText>
+              Users joining this hunt will be automatically assigned these roles.
+            </FormText>
+          </Col>
+        </FormGroup>
         <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="hunt-form-open-signups">
             Open invites
