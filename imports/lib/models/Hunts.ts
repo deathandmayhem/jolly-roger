@@ -49,6 +49,8 @@ const EditableHunt = z.object({
   memberDiscordRole: SavedDiscordObjectFields.optional(),
   // If true, this hunt will be displayed below other hunts
   isArchived: z.boolean().default(false),
+  // If set, this is an array of "default roles" for the hunt
+  defaultRoles: nonEmptyString.array().default([]),
 });
 export type EditableHuntType = z.infer<typeof EditableHunt>;
 const Hunt = withCommon(EditableHunt);
@@ -71,6 +73,7 @@ export const HuntPattern = {
   firehoseDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
   memberDiscordRole: Match.Optional(SavedDiscordObjectPattern),
   isArchived: Match.Optional(Boolean),
+  defaultRoles: [String] as [StringConstructor],
 };
 
 const Hunts = new SoftDeletedModel("jr_hunts", Hunt);
