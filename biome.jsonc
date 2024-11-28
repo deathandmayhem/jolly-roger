@@ -12,7 +12,8 @@
       "!**/.git",
       "!**/.meteor",
       "!eslint",
-      "!eslint.config.mjs"
+      "!eslint.config.mjs",
+      "!extension/dist"
     ]
   },
   "formatter": {
