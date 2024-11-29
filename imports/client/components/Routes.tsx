@@ -30,6 +30,7 @@ import { AuthenticatedPage, UnauthenticatedPage } from "./authentication";
 import TagManagerApp from "./TagManagerApp";
 import TagManagerPage from "./TagManagerPage";
 import TagEditPage from "./TagEditPage";
+import TagBulkEditPage from "./TagBulkEditPage";
 
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
@@ -58,12 +59,8 @@ export const AuthenticatedRouteList: RouteObject[] = [
             ],
           },
           { path: "puzzles/:puzzleId", element: <PuzzlePage /> },
-          { path: "tags", element: <TagManagerApp />,
-            children: [
-              { path: "", element: <TagManagerPage /> },
-              { path: ":tagId", element: <TagEditPage /> },
-            ]
-           },
+          { path: "tags", element: <TagBulkEditPage />},
+          { path: "tags2", element: <TagManagerPage />},
           { path: "puzzles", element: <PuzzleListPage /> },
           { path: "edit", element: <HuntEditPage /> },
           { path: "more", element: <MoreAppPage /> },
