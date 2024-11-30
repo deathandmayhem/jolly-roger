@@ -301,7 +301,7 @@ const PuzzleModalForm = React.forwardRef(
           }
           setLastAutoPopulatedTitle(formattedTitle);
         } catch (error) {
-          console.error("Invalid URL:", error);
+          // console.debug("Invalid URL, probably there's no URL:", error);
         }
       }, [url]);
 
