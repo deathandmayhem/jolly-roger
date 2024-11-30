@@ -9,6 +9,7 @@ import type { PuzzleType } from "../../lib/models/Puzzles";
 import nodeIsMention from "../../lib/nodeIsMention";
 import FixedLayout from "./styling/FixedLayout";
 import { Alert } from "react-bootstrap";
+import { useBreadcrumb } from "../hooks/breadcrumb";
 
 const FirehosePageLayout = styled.div`
   padding: 8px 15px;
@@ -99,6 +100,9 @@ const MessagesPane = styled.div`
 
 const MoreAppPage = () => {
   const huntId = useParams<"huntId">().huntId!;
+
+  useBreadcrumb({ title: "More", path: `/hunts/${huntId}/more` });
+
   const jr_hostname = window.location.hostname;
   const bookmarklet = useMemo(() => {
     const code = `
