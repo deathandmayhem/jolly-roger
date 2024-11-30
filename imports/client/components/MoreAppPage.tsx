@@ -8,6 +8,7 @@ import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import nodeIsMention from "../../lib/nodeIsMention";
 import FixedLayout from "./styling/FixedLayout";
+import { Alert } from "react-bootstrap";
 
 const FirehosePageLayout = styled.div`
   padding: 8px 15px;
@@ -123,7 +124,9 @@ const MoreAppPage = () => {
 
         <p>Drag this bookmarklet to your bookmarks bar!</p>
 
-        <a href={bookmarklet}>Add to Jolly Roger</a> {/* Bookmarklet link */}
+        <p><a href={bookmarklet}>Add to Jolly Roger</a></p>
+
+        <Alert variant="warning">Note: You'll need a new/different version of this for each hunt.</Alert>
 
       </FirehosePageLayout>
     </FixedLayout>
