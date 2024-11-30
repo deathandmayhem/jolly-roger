@@ -324,7 +324,7 @@ const Tag = (props: TagProps) => {
   const isMetaFor = name.lastIndexOf("meta-for:", 0) === 0;
   const isNeeds = name.lastIndexOf("needs:", 0) === 0;
   const isPriority = name.lastIndexOf("priority:", 0) === 0;
-  const isLocation = name.lastIndexOf("location:", 0) === 0;
+  const isLocation = name.lastIndexOf("location:", 0) === 0 || name.lastIndexOf("loc:") === 0;
 
   // Browsers won't word-break on hyphens, so suggest
   // Use wbr instead of zero-width space to make copy-paste reasonable

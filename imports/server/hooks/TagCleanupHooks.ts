@@ -32,7 +32,6 @@ const TagCleanupHooks: Hookset = {
         },
       },
     );
-
   },
   async onNoPuzzleViewers(puzzleId: string){
     const puzzle = await Puzzles.findOneAsync(puzzleId)!;
@@ -41,7 +40,7 @@ const TagCleanupHooks: Hookset = {
 
     const tags = await Tags.find({_id: { $in: puzzle.tags } }).fetchAsync();
 
-    const locationTags = tags.filter((tag) => tag.name.startsWith("location:"));
+    const locationTags = tags.filter((tag) => tag.name.match(/^loc(ation)?:/));
 
     if( locationTags.length === 0) return;
 
