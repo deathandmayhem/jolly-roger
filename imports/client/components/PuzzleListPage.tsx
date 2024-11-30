@@ -59,7 +59,7 @@ import { mediaBreakpointDown } from "./styling/responsive";
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
-  grid-template-columns: auto auto auto 1fr;
+  grid-template-columns: auto auto auto auto 1fr;
   align-items: end;
   gap: 1em;
   margin-bottom: 1em;
