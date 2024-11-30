@@ -68,6 +68,14 @@ class HooksRegistry {
       }
     }
   }
+
+  async runNoPuzzleViewers(puzzleId: string) {
+    for (const hook of this.registeredHooks) {
+      if (hook.onNoPuzzleViewers) {
+        await hook.onNoPuzzleViewers(puzzleId);
+      }
+    }
+  }
 }
 
 export default HooksRegistry;
