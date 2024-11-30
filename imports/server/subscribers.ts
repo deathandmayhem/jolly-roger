@@ -10,6 +10,8 @@ import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { serverId, registerPeriodicCleanupHook } from "./garbage-collection";
 import Subscribers from "./models/Subscribers";
+import { trace } from "console";
+import GlobalHooks from "./GlobalHooks";
 
 // Clean up leaked subscribers from dead servers periodically.
 async function cleanupHook(deadServers: string[]) {
@@ -43,7 +45,15 @@ Meteor.publish("subscribers.inc", async function (name, context) {
     name,
     context,
   });
-  this.onStop(async () => Subscribers.removeAsync(doc));
+
+  this.onStop(async () => {
+    await Subscribers.removeAsync(doc);
+
+    const countOfSubs = Subscribers.find({name, context}).count();
+    if (countOfSubs === 0 && name.lastIndexOf("puzzle:") === 0) {
+        await GlobalHooks.runNoPuzzleViewers(name.split(":")[1]);
+    }
+  });
 
   return [];
 });
