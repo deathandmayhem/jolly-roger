@@ -1,3 +1,4 @@
+import type { Meteor } from "meteor/meteor";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt";
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
@@ -9,6 +10,7 @@ import type { DocumentType } from "../../lib/models/Documents";
 interface DocumentDisplayProps {
   document: DocumentType;
   displayMode: "link" | "embed";
+  user: Meteor.User;
 }
 
 const StyledDeepLink = styled.a`
@@ -43,18 +45,25 @@ export const DocumentMessage = styled.span`
 const GoogleDocumentDisplay = ({
   document,
   displayMode,
+  user,
 }: DocumentDisplayProps) => {
   let url: string;
   let title: string;
   let icon: IconDefinition;
+  // If the user has linked their Google account, try to force usage of that specific account.
+  // Otherwise, they may open the document anonymously. If the user isn't signed in, they will be
+  // redirected to the default account in their browser session anyway.
+  const authUserParam = user.googleAccount
+    ? `authuser=${user.googleAccount}&`
+    : "";
   switch (document.value.type) {
     case "spreadsheet":
-      url = `https://docs.google.com/spreadsheets/d/${document.value.id}/edit?ui=2&rm=embedded&gid=0#gid=0`;
+      url = `https://docs.google.com/spreadsheets/d/${document.value.id}/edit?${authUserParam}ui=2&rm=embedded&gid=0#gid=0`;
       title = "Sheet";
       icon = faTable;
       break;
     case "document":
-      url = `https://docs.google.com/document/d/${document.value.id}/edit?ui=2&rm=embedded#gid=0`;
+      url = `https://docs.google.com/document/d/${document.value.id}/edit?${authUserParam}ui=2&rm=embedded#gid=0`;
       title = "Doc";
       icon = faFileAlt;
       break;
@@ -84,11 +93,19 @@ const GoogleDocumentDisplay = ({
   }
 };
 
-const DocumentDisplay = ({ document, displayMode }: DocumentDisplayProps) => {
+const DocumentDisplay = ({
+  document,
+  displayMode,
+  user,
+}: DocumentDisplayProps) => {
   switch (document.provider) {
     case "google":
       return (
-        <GoogleDocumentDisplay document={document} displayMode={displayMode} />
+        <GoogleDocumentDisplay
+          document={document}
+          displayMode={displayMode}
+          user={user}
+        />
       );
     default:
       return (

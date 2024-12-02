@@ -918,12 +918,14 @@ const PuzzlePageMetadata = ({
   displayNames,
   document,
   isDesktop,
+  selfUser,
 }: {
   puzzle: PuzzleType;
   bookmarked: boolean;
   displayNames: Map<string, string>;
   document?: DocumentType;
   isDesktop: boolean;
+  selfUser: Meteor.User;
 }) => {
   const huntId = puzzle.hunt;
   const puzzleId = puzzle._id;
@@ -1047,7 +1049,7 @@ const PuzzlePageMetadata = ({
 
   const documentLink =
     document && !isDesktop ? (
-      <DocumentDisplay document={document} displayMode="link" />
+      <DocumentDisplay document={document} displayMode="link" user={selfUser} />
     ) : null;
 
   const editButton = canUpdate ? (
@@ -1787,14 +1789,26 @@ const PuzzleDocumentDiv = styled.div`
 `;
 
 const PuzzlePageMultiplayerDocument = React.memo(
-  ({ document }: { document?: DocumentType }) => {
+  ({
+    document,
+    selfUser,
+  }: {
+    document?: DocumentType;
+    selfUser: Meteor.User;
+  }) => {
     let inner = (
       <DocumentMessage>
         Attempting to load collaborative document...
       </DocumentMessage>
     );
     if (document) {
-      inner = <DocumentDisplay document={document} displayMode="embed" />;
+      inner = (
+        <DocumentDisplay
+          document={document}
+          displayMode="embed"
+          user={selfUser}
+        />
+      );
     }
 
     return <PuzzleDocumentDiv>{inner}</PuzzleDocumentDiv>;
@@ -2050,6 +2064,7 @@ const PuzzlePage = React.memo(() => {
       document={document}
       displayNames={displayNames}
       isDesktop={isDesktop}
+      selfUser={selfUser}
     />
   );
   const chat = (
@@ -2129,7 +2144,10 @@ const PuzzlePage = React.memo(() => {
             {chat}
             <PuzzleContent>
               {metadata}
-              <PuzzlePageMultiplayerDocument document={document} />
+              <PuzzlePageMultiplayerDocument
+                document={document}
+                selfUser={selfUser}
+              />
               {debugPane}
             </PuzzleContent>
           </SplitPaneMinus>
