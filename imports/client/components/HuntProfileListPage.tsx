@@ -15,17 +15,62 @@ import {
 import invitationCodesForHunt from "../../lib/publications/invitationCodesForHunt";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import ProfileList from "./ProfileList";
+import statusesForHuntUsers from "../../lib/publications/statusesForHuntUsers";
+import UserStatuses, { UserStatusType } from "../../lib/models/UserStatuses";
+
+const userStatusesToLastSeen = (statuses: UserStatusType[]) => {
+  return statuses.reduce( ( acc, uStatus) => {
+    const user = uStatus.user;
+    if (!acc[user]) {
+      acc[user] = {
+        status: {
+          status: "offline",
+          at: null,
+        },
+        puzzleStatus: {
+          status: "offline",
+          at: null,
+          puzzle: null,
+        }
+      }
+    }
+
+    if (acc[user][uStatus.type].status === 'offline' || uStatus.status === 'online') {
+      // upgrade the status if we've seen it
+      acc[user][uStatus.type].status = uStatus.status;
+    }
+    if (acc[user][uStatus.type].status === uStatus.status) {
+      // get the most recent timestamp for our status
+      acc[user][uStatus.type].at = uStatus.updatedAt > acc[user][uStatus.type].at ? uStatus.updatedAt : acc[user][uStatus.type].at;
+    }
+
+    if ( uStatus.type === 'puzzleStatus' && acc[user].puzzleStatus.at === uStatus.updatedAt ) {
+      // for a puzzleStatus, if this is the most recently seen puzzle, add the puzzleId
+      acc[user].puzzleStatus.puzzle = uStatus.puzzle;
+    }
+
+    return acc;
+    }, {})
+  };
 
 const HuntProfileListPage = () => {
   const huntId = useParams<"huntId">().huntId!;
 
+  const statusesLoading = useTypedSubscribe(statusesForHuntUsers, { huntId });
   const profilesLoading = useSubscribe("huntProfiles", huntId);
   const userRolesLoading = useSubscribe("huntRoles", huntId);
   const invitationCodesLoading = useTypedSubscribe(invitationCodesForHunt, {
     huntId,
   });
   const loading =
-    profilesLoading() || userRolesLoading() || invitationCodesLoading();
+    profilesLoading() || userRolesLoading() || invitationCodesLoading() || statusesLoading();
+
+  const userStatuses = useTracker(
+    () =>
+      loading ? []
+    : userStatusesToLastSeen(UserStatuses.find({hunt: huntId}).fetch()),
+    [huntId, loading],
+  );
 
   const users = useTracker(
     () =>
@@ -86,6 +131,7 @@ const HuntProfileListPage = () => {
       canMakeOperator={canMakeOperator}
       canUpdateHuntInvitationCode={canUpdateHuntInvitationCode}
       invitationCode={invitationCode}
+      userStatuses={userStatuses}
     />
   );
 };

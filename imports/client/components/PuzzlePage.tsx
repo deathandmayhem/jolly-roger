@@ -2068,6 +2068,17 @@ const PuzzlePage = React.memo(() => {
   const huntId = useParams<"huntId">().huntId!;
   const puzzleId = useParams<"puzzleId">().puzzleId!;
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const status = document.visibilityState === 'visible' ? 'online' : 'away';
+      Meteor.subscribe('userStatus.inc', huntId, 'puzzleStatus', status, puzzleId);
+    };
+    handleVisibilityChange();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [huntId]);
+
   // Add the current user to the collection of people viewing this puzzle.
   const subscribersTopic = `puzzle:${puzzleId}`;
   useSubscribe("subscribers.inc", subscribersTopic, {
@@ -2124,7 +2135,7 @@ const PuzzlePage = React.memo(() => {
     [puzzleDataLoading, chatDataLoading],
   );
   // Sort by created at so that the "first" document always has consistent meaning
-  const document = useTracker(
+  const doc = useTracker(
     () =>
       puzzleDataLoading
         ? undefined
@@ -2230,7 +2241,7 @@ const PuzzlePage = React.memo(() => {
     <PuzzlePageMetadata
       puzzle={activePuzzle}
       bookmarked={bookmarked}
-      document={document}
+      document={doc}
       displayNames={displayNames}
       isDesktop={isDesktop}
       selfUser={selfUser}

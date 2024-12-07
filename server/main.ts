@@ -35,6 +35,7 @@ import "../imports/server/server-render";
 import "../imports/server/setup";
 import "../imports/server/subscribers";
 import "../imports/server/users";
+import "../imports/server/userStatuses";
 import "../imports/server/mediasoup";
 import "../imports/server/mediasoup-api";
 

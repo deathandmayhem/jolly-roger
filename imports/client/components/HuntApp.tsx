@@ -1,6 +1,6 @@
 import { Meteor } from "meteor/meteor";
-import { useTracker } from "meteor/react-meteor-data";
-import React, { useCallback, useMemo } from "react";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { Modal, ModalBody, ModalFooter } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
@@ -109,9 +109,22 @@ const HuntMemberError = React.memo(
 
 const HuntApp = React.memo(() => {
   const huntId = useParams<"huntId">().huntId!;
+  const puzzleId = useParams<"puzzleId">().puzzleId;
+
 
   const huntLoading = useTypedSubscribe(huntForHuntApp, { huntId });
   const loading = huntLoading();
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const status = document.visibilityState === 'visible' ? 'online' : 'away';
+      Meteor.subscribe('userStatus.inc', huntId, 'status', status);
+    };
+    handleVisibilityChange();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [huntId]);
 
   const hunt = useTracker(() => Hunts.findOneAllowingDeleted(huntId), [huntId]);
   const { member, canUndestroy, canJoin, mustAcceptTerms } = useTracker(() => {
