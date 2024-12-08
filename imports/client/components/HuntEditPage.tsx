@@ -297,7 +297,6 @@ const HuntEditPage = () => {
         default:
           return;
       }
-      console.log(newRoles);
       setDefaultRoles(newRoles);
     },
     [],
