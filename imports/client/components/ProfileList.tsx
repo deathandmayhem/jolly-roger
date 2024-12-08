@@ -383,6 +383,11 @@ const UserStatusBadge = React.memo(({
   huntPuzzles: PuzzleType[];
 }) => {
 
+  if (!huntId) {
+    // we don't show statuses on the all list
+    return
+  }
+
   if (!statusObj) {
     return <StatusDiv>
       <OverlayTrigger placement="top" overlay={<Tooltip>Offline (never seen)</Tooltip>}>
