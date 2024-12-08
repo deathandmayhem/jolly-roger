@@ -412,7 +412,7 @@ const UserStatusBadge = React.memo(({
   const puzzleLabel =
     <span><strong><FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />&nbsp;
     {puzzleName}</strong>
-    { puzzleStatusString !== 'Online' ? (<span> <RelativeTime
+    { puzzleStatus !== 'online' ? (<span> <RelativeTime
     date={lastPuzzle}
     minimumUnit="second"
     maxElements={1}
@@ -428,7 +428,7 @@ const UserStatusBadge = React.memo(({
     ) : null
   }
   {
-    puzzleStatusString !== 'Online' && lastPuzzle ? (
+    puzzleStatus !== 'online' && lastPuzzle ? (
       ', last active on puzzle: ' + shortCalendarTimeFormat(lastPuzzle)
     ) : lastPuzzle ? ', currently active on puzzle' : null
   }
