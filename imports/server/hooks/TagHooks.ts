@@ -17,11 +17,9 @@ const TagHooks: Hookset = {
     const usersToNotify = new Set<string>();
     const tagName = tag.name;
 
-    console.log(`test! ${tag.name}`);
     // Respect feature flag.
     if (!(await Flags.activeAsync("disable.dingwords"))) {
       const normalizedText = tagName?.trim().toLowerCase().replace(':', ' ') ?? "";
-      console.log(normalizedText);
       // Find all users who are in this hunt with dingwords set.
       for await (const u of MeteorUsers.find(
         {
@@ -32,9 +30,7 @@ const TagHooks: Hookset = {
           fields: { _id: 1, dingwords: 1 },
         },
       )) {
-        console.log(u);
         if (normalizedMessageDingsUserByDingword(normalizedText, u)) {
-          console.log('match!')
           usersToNotify.add(u._id);
         }
       }
