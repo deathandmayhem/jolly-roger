@@ -376,11 +376,25 @@ const UserStatusBadge = React.memo(({
   huntId,
   huntPuzzles,
 }: {
-  statusObj: Record<string, any>;
+  statusObj: Record<string, any> | null;
   huntId: string | undefined;
   huntPuzzles: PuzzleType[];
 }) => {
-  const fiveMinutesAgo = new Date(Date.now() - 1 * 60 * 1000);
+
+  if (!statusObj) {
+    return <StatusDiv>
+      <OverlayTrigger placement="top" overlay={<Tooltip>Offline (never seen)</Tooltip>}>
+          <ButtonGroup size="sm">
+              <Button
+              variant='outline-secondary'
+              >
+                Offline
+              </Button>
+          </ButtonGroup>
+      </OverlayTrigger>
+    </StatusDiv>;
+  }
+  const fiveMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
   const lastSeen = statusObj.status.at;
   const lastPuzzle = statusObj.puzzleStatus.at;
   const lastStatusRecently = lastSeen >= fiveMinutesAgo;
@@ -400,24 +414,22 @@ const UserStatusBadge = React.memo(({
     {puzzleName}</strong>
     { puzzleStatusString !== 'Online' ? (<span> <RelativeTime
     date={lastPuzzle}
-    terse
     minimumUnit="second"
     maxElements={1}
-  /> ago</span>) : null } </span>;
+  /></span>) : null } </span>;
   const tooltip = <span> {statusString}
   {
-    statusString !== 'Online' ? (
+    userStatus !== 'online' ? (
       <span>, last seen: {shortCalendarTimeFormat(lastSeen)}&nbsp;(<RelativeTime
         date={lastSeen}
-        terse
         minimumUnit="second"
         maxElements={1}
-      />&nbsp;ago)</span>
+      />)</span>
     ) : null
   }
   {
     puzzleStatusString !== 'Online' && lastPuzzle ? (
-      ', last active on puzzle:' + shortCalendarTimeFormat(lastPuzzle)
+      ', last active on puzzle: ' + shortCalendarTimeFormat(lastPuzzle)
     ) : lastPuzzle ? ', currently active on puzzle' : null
   }
   </span>;
@@ -755,13 +767,11 @@ const ProfileList = ({
               }>
                 {name}
                 </Link>
-                {userStatus && (
-                  <UserStatusBadge
-                  statusObj={userStatus}
-                  huntId={huntId}
-                  huntPuzzles={huntPuzzles}
-                  />
-                )}
+                <UserStatusBadge
+                statusObj={userStatus}
+                huntId={huntId}
+                huntPuzzles={huntPuzzles}
+                />
                 {hunt && canMakeOperator && (
                   <OperatorControls hunt={hunt} user={user} />
                 )}
