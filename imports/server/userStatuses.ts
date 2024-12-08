@@ -67,35 +67,3 @@ Meteor.publish("userStatus.inc", async function (hunt, type, status, puzzle?) {
 
   return [];
 });
-
-Meteor.publish("userStatus.fetch", async function (huntId) {
-  check(huntId, String);
-  trace("huntId: " + huntId);
-
-  if (!this.userId) {
-    return [];
-  }
-
-  const user = await Meteor.users.findOneAsync(this.userId);
-  if (!user?.hunts?.includes(huntId)) {
-    return [];
-  }
-
-  // return UserStatuses.find({ hunt: huntId });
-
-  const cursor = UserStatuses.find({ hunt: huntId });
-  const handle = cursor.observeChanges({
-    added: (id, fields) => {
-        this.added("UserStatuses", id, { ...fields, hunt: huntId }); // Add hunt field!
-    },
-    changed: (id, fields) => {
-      this.changed("UserStatuses", id, fields);
-    },
-    removed: (id) => {
-      this.removed("UserStatuses", id);
-  },
-});
-  this.onStop(() => handle.stop());
-  this.ready();
-  return undefined;
-});
