@@ -381,6 +381,11 @@ const UserStatusBadge = React.memo(({
   huntPuzzles: PuzzleType[];
 }) => {
 
+  if (!huntId) {
+    // we don't show statuses on the all list
+    return
+  }
+
   if (!statusObj) {
     // we should display users as offline if we don't have data on them
     return <StatusDiv>
