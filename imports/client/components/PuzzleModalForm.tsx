@@ -177,10 +177,15 @@ const PuzzleModalForm = React.forwardRef(
           } else {
             setSubmitState(PuzzleModalFormSubmitState.IDLE);
             setErrorMessage("");
+            setTitle("");
             setTitleDirty(false);
+            setUrl("");
             setUrlDirty(false);
+            setTags([]);
             setTagsDirty(false);
+            setExpectedAnswerCount(1);
             setExpectedAnswerCountDirty(false);
+            setDocType("spreadsheet");
             callback();
           }
         });
