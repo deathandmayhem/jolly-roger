@@ -405,6 +405,7 @@ const UserStatusBadge = React.memo(({
   const [lastPuzzle, setLastPuzzle] = useState<Date | null>(statusObj?.puzzleStatus?.at || null);
   const [timeNow, setTimeNow] = useState<Date | null>(new Date() || null);
   const statusDebounceThreshold = new Date(Date.now() - 2 * 60 * 1000);
+  const relativeDebounceThreshold = new Date(Date.now() - 10 * 1000);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -418,6 +419,7 @@ const UserStatusBadge = React.memo(({
 
   const lastStatusRecently = lastSeen && lastSeen >= statusDebounceThreshold;
   const lastPuzzleRecently = lastPuzzle && lastPuzzle >= statusDebounceThreshold;
+  const puzzleCountdownDebounce = lastPuzzle && lastPuzzle >= relativeDebounceThreshold;
   const lastSeenRecently = lastStatusRecently || lastPuzzleRecently;
 
   const statusDisplay = useMemo(() => {
@@ -431,7 +433,7 @@ const UserStatusBadge = React.memo(({
     const puzzleLabel =
       <span><strong><FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />&nbsp;
       {puzzleName}</strong>
-      { puzzleStatus !== 'online' && lastPuzzle ? (<span> <RelativeTime
+      { puzzleStatus !== 'online' && lastPuzzle && !puzzleCountdownDebounce ? (<span> <RelativeTime
       date={lastPuzzle}
       minimumUnit="second"
       maxElements={1}
