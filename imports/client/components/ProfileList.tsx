@@ -389,7 +389,7 @@ const UserStatusBadge = React.memo(({
   if (!statusObj) {
     // we should display users as offline if we don't have data on them
     return <StatusDiv>
-      <OverlayTrigger placement="top" overlay={<Tooltip>Offline<br/>(not seen in last four days)</Tooltip>}>
+      <OverlayTrigger placement="top" overlay={<Tooltip>Offline</Tooltip>}>
           <ButtonGroup size="sm">
               <Button
               variant='outline-secondary'
