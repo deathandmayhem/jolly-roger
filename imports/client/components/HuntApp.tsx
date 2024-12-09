@@ -21,6 +21,7 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Markdown from "./Markdown";
+import setUserStatus from "../../methods/setUserStatus";
 
 const HuntDeletedError = React.memo(
   ({ hunt, canUndestroy }: { hunt: HuntType; canUndestroy: boolean }) => {
@@ -109,22 +110,24 @@ const HuntMemberError = React.memo(
 
 const HuntApp = React.memo(() => {
   const huntId = useParams<"huntId">().huntId!;
-  const puzzleId = useParams<"puzzleId">().puzzleId;
-
-
   const huntLoading = useTypedSubscribe(huntForHuntApp, { huntId });
   const loading = huntLoading();
 
   useEffect(() => {
     const handleVisibilityChange = () => {
       const status = document.visibilityState === 'visible' ? 'online' : 'away';
-      Meteor.subscribe('userStatus.inc', huntId, 'status', status);
+      setUserStatus.call({hunt:huntId, type:'status', status:status});
     };
     handleVisibilityChange();
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      setUserStatus.call({hunt:huntId, type:'status', status:'offline'});
+    };
   }, [huntId]);
+
+  useSubscribe('userStatus.inc', huntId, 'status', document.visibilityState === 'visible' ? 'online' : 'away');
 
   const hunt = useTracker(() => Hunts.findOneAllowingDeleted(huntId), [huntId]);
   const { member, canUndestroy, canJoin, mustAcceptTerms } = useTracker(() => {

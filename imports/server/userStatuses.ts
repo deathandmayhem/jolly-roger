@@ -9,8 +9,8 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { serverId, registerPeriodicCleanupHook } from "./garbage-collection";
-import { trace } from "console";
 import UserStatuses from "../lib/models/UserStatuses";
+import { trace } from "console";
 
 // Clean up leaked subscribers from dead servers periodically.
 async function cleanupHook(deadServers: string[]) {
