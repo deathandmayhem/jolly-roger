@@ -404,32 +404,33 @@ const UserStatusBadge = React.memo(({
   const [lastSeen, setLastSeen] = useState<Date | null>(statusObj?.status?.at || null);
   const [lastPuzzle, setLastPuzzle] = useState<Date | null>(statusObj?.puzzleStatus?.at || null);
   const [timeNow, setTimeNow] = useState<Date | null>(new Date() || null);
+  const [puzzleStatusString, setPuzzleStatusString] = useState<string | null>( null );
   const statusDebounceThreshold = new Date(Date.now() - 2 * 60 * 1000);
   const relativeDebounceThreshold = new Date(Date.now() - 10 * 1000);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setLastSeen(statusObj?.status?.at || null);  // Update state every second
+      setLastSeen(statusObj?.status?.at || null);
       setLastPuzzle(statusObj?.puzzleStatus?.at || null);
       setTimeNow(new Date());
-    }, 1000); // Update every 1000ms (1 second)
+    }, puzzleStatusString === 'Online' ? 1000 : 60 * 1000);
 
     return () => clearInterval(intervalId);
   }, [statusObj]);
 
-  const lastStatusRecently = lastSeen && lastSeen >= statusDebounceThreshold;
-  const lastPuzzleRecently = lastPuzzle && lastPuzzle >= statusDebounceThreshold;
-  const puzzleCountdownDebounce = lastPuzzle && lastPuzzle >= relativeDebounceThreshold;
-  const lastSeenRecently = lastStatusRecently || lastPuzzleRecently;
 
   const statusDisplay = useMemo(() => {
+    const lastStatusRecently = lastSeen && lastSeen >= statusDebounceThreshold;
+    const lastPuzzleRecently = lastPuzzle && lastPuzzle >= statusDebounceThreshold;
+    const puzzleCountdownDebounce = lastPuzzle && lastPuzzle >= relativeDebounceThreshold;
+    const lastSeenRecently = lastStatusRecently || lastPuzzleRecently;
     const userStatus = statusObj?.status?.status;
     const puzzleStatus = statusObj?.puzzleStatus?.status;
     const puzzleId = statusObj?.puzzleStatus?.puzzle;
     const puzzleName = puzzleId ? huntPuzzles[puzzleId] : null;
 
     const statusString = (userStatus === 'offline' && !lastSeenRecently) ? 'Offline' : (userStatus === 'away' && !lastSeenRecently) ? 'Away' : 'Online';
-    const puzzleStatusString = (puzzleStatus === 'offline' && !lastPuzzleRecently) ? 'Offline' : (puzzleStatus === 'away' && !lastPuzzleRecently) ? 'Away' : 'Online';
+    setPuzzleStatusString((puzzleStatus === 'offline' && !lastPuzzleRecently) ? 'Offline' : (puzzleStatus === 'away' && !lastPuzzleRecently) ? 'Away' : 'Online');
     const puzzleLabel =
       <span><strong><FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />&nbsp;
       {puzzleName}</strong>
@@ -481,7 +482,7 @@ const UserStatusBadge = React.memo(({
       </StatusDiv>
     );
   }, [
-    statusObj, lastSeenRecently, lastPuzzleRecently, lastSeen, lastPuzzle, huntPuzzles, timeNow,
+    statusObj, lastSeen, lastPuzzle, huntPuzzles, timeNow,
   ]);
 
   return statusDisplay;
