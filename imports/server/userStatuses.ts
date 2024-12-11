@@ -1,16 +1,7 @@
-// Used to track subscribers to the subscribers.counts record set
-//
-// So long as the server continues running, it can clean up after
-// itself (and does so). But if the server process is killed (or dies
-// of more natural causes), its server record will stick around, so we
-// garbage collect subscriber records based on the updatedAt of the
-// server record.
-
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { serverId, registerPeriodicCleanupHook } from "./garbage-collection";
 import UserStatuses from "../lib/models/UserStatuses";
-import { trace } from "console";
 
 // Clean up leaked subscribers from dead servers periodically.
 async function cleanupHook(deadServers: string[]) {
