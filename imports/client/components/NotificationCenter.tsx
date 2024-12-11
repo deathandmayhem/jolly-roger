@@ -1072,7 +1072,7 @@ const NotificationCenter = () => {
 
   return (
     <StyledToastContainer position="bottom-end" className="p-3 position-fixed">
-      {messages}
+      {messages.reverse()}
     </StyledToastContainer>
   );
 };
