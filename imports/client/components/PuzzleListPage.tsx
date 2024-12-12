@@ -85,7 +85,7 @@ const ViewControls = styled.div<{ $canAdd?: boolean }>`
 `;
 
 const SearchFormGroup = styled(FormGroup)<{ $canAdd?: boolean }>`
-  grid-column: ${(props) => (props.$canAdd ? 1 : 3)} / -1;
+  grid-column: ${(props) => (props.$canAdd ? 1 : 4)} / -1;
   ${mediaBreakpointDown(
     "sm",
     css`
