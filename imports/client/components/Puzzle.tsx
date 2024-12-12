@@ -50,7 +50,7 @@ import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle"
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
 import { faNoteSticky, faPhone } from "@fortawesome/free-solid-svg-icons";
-import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Badge, OverlayTrigger, Tooltip } from "react-bootstrap";
 import RelativeTime from "./RelativeTime";
 import { useFind } from "meteor/react-meteor-data";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
@@ -173,6 +173,32 @@ const TagListColumn = styled(TagList)`
   padding: 0 2px;
   display: inline-block;
   flex: 3;
+  margin: -2px -4px -2px 0;
+  ${mediaBreakpointDown(
+    "xs",
+    css`
+      flex: 0 0 100%;
+    `,
+  )}
+`;
+
+const PuzzleMetaColumn = styled(PuzzleColumn)`
+  padding: 0 2px;
+  display: inline-block;
+  flex: 1.5;
+  margin: -2px -4px -2px 0;
+  ${mediaBreakpointDown(
+    "xs",
+    css`
+      flex: 0 0 100%;
+    `,
+  )}
+`;
+
+const PuzzlePriorityColumn = styled(PuzzleColumn)`
+  padding: 0 2px;
+  display: inline-block;
+  flex: 0.5;
   margin: -2px -4px -2px 0;
   ${mediaBreakpointDown(
     "xs",
@@ -371,7 +397,26 @@ const Puzzle = React.memo(
     // id, title, answer, tags
     const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
     const tagIndex = indexedById(allTags);
-    const shownTags = difference(puzzle.tags, suppressTags ?? []);
+
+    const isMeta = puzzle.tags.some(tagId => tagIndex.get(tagId)?.name === 'is:meta');
+    const isMetameta = puzzle.tags.some(tagId => tagIndex.get(tagId)?.name === 'is:metameta');
+    const isHighPriority = puzzle.tags.some(tagId => tagIndex.get(tagId)?.name === 'priority:high');
+    const isLowPriority = puzzle.tags.some(tagId => tagIndex.get(tagId)?.name === 'priority:low');
+    const isStuck = puzzle.tags.some(tagId => tagIndex.get(tagId)?.name === 'stuck' || tagIndex.get(tagId)?.name === 'is:stuck');
+    const statusEmoji = isHighPriority ? "🚨" : isLowPriority ? "🔽" : isStuck ? "🤷" : null;
+    const statusTooltipText = isHighPriority ? 'High priority' : isLowPriority ? 'Low priority' : isStuck ? 'Stuck' : null;
+    const statusTooltip = statusEmoji ? (
+      <Tooltip
+      id={`puzzle-status-tooltip-${puzzleId}`}
+      >
+        <span>{statusTooltipText}</span>
+      </Tooltip>
+    ) : null;
+
+    // Now that we're putting those tags elsewhere, we're going to suppress them as welL
+    const extra_suppress = allTags.filter((t) => ['priority:low', 'priority:high', 'is:stuck', 'stuck', 'is:meta', 'is:metameta'].includes(t.name)).map((t) => t._id);
+
+    const shownTags = difference(puzzle.tags, suppressTags?.concat(extra_suppress) ?? []);
     const ownTags = shownTags
       .map((tagId) => {
         return tagIndex.get(tagId);
@@ -470,6 +515,20 @@ const Puzzle = React.memo(
             ): null
           }
         </PuzzleTitleColumn>
+        <PuzzlePriorityColumn>
+          {
+            statusEmoji ? (
+              <OverlayTrigger placement="top" overlay={statusTooltip}>
+                <span>{statusEmoji}</span>
+              </OverlayTrigger>
+            ) : null
+          }
+        </PuzzlePriorityColumn>
+        <PuzzleMetaColumn>
+          {
+            isMetameta ? (<Badge pill bg='secondary'>Metameta</Badge>) : isMeta ? <Badge pill bg='secondary'>Meta</Badge> : null
+          }
+        </PuzzleMetaColumn>
         <SolversColumn>
         { showSolvers && solvedness  === 'unsolved' ? (
           <div>

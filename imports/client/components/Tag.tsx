@@ -331,7 +331,11 @@ const Tag = (props: TagProps) => {
   const nameWithBreaks: (string | React.JSX.Element)[] = [];
   name.split(":").forEach((part, i, arr) => {
     const withColon = i < arr.length - 1;
-    nameWithBreaks.push(`${part}${withColon ? ":" : ""}`);
+    if (isMetaFor && i == 0 && !props.popoverRelated) {
+      nameWithBreaks.push(`👑 `);
+    } else {
+      nameWithBreaks.push(`${part}${withColon ? ":" : ""}`);
+    }
     if (withColon) {
       // eslint-disable-next-line react/no-array-index-key
       nameWithBreaks.push(<wbr key={`wbr-${i}-${part}`} />);
