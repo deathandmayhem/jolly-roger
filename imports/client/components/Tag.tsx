@@ -72,6 +72,7 @@ const TagDiv = styled.div<{
   $isMetaFor: boolean;
   $isNeeds: boolean;
   $isPriority: boolean;
+  $isLocation?: boolean;
 }>`
   display: inline-flex;
   align-items: center;
@@ -131,6 +132,11 @@ const TagDiv = styled.div<{
     $isPriority &&
     css`
       background-color: #aaf;
+    `}
+  ${({ $isLocation }) =>
+    $isLocation &&
+    css`
+      background-color: #aaffc3;
     `}
 `;
 
@@ -317,6 +323,7 @@ const Tag = (props: TagProps) => {
   const isMetaFor = name.lastIndexOf("meta-for:", 0) === 0;
   const isNeeds = name.lastIndexOf("needs:", 0) === 0;
   const isPriority = name.lastIndexOf("priority:", 0) === 0;
+  const isLocation = name.lastIndexOf("location:", 0) === 0 || name.lastIndexOf("loc:") === 0;
 
   // Browsers won't word-break on hyphens, so suggest
   // Use wbr instead of zero-width space to make copy-paste reasonable
@@ -355,6 +362,7 @@ const Tag = (props: TagProps) => {
       $isMetaFor={isMetaFor}
       $isNeeds={isNeeds}
       $isPriority={isPriority}
+      $isLocation={isLocation}
     >
       {title}
       {props.onRemove && (

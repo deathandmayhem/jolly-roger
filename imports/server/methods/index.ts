@@ -34,6 +34,7 @@ import "./destroyTag";
 import "./dismissBookmarkNotification";
 import "./dismissChatNotification";
 import "./dismissPendingAnnouncement";
+import "./dismissPuzzleNotification"
 import "./ensurePuzzleDocument";
 import "./fetchAPIKey";
 import "./generateUploadToken";
@@ -58,6 +59,7 @@ import "./rollAPIKey";
 import "./sendChatMessage";
 import "./setFeatureFlag";
 import "./setGuessState";
+import "./setUserStatus";
 import "./syncHuntDiscordRole";
 import "./undestroyHunt";
 import "./undestroyPuzzle";

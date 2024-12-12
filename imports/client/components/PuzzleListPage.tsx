@@ -21,7 +21,7 @@ import FormLabel from "react-bootstrap/FormLabel";
 import InputGroup from "react-bootstrap/InputGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { sortedBy } from "../../lib/listUtils";
 import Bookmarks from "../../lib/models/Bookmarks";
@@ -59,7 +59,7 @@ import { mediaBreakpointDown } from "./styling/responsive";
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
-  grid-template-columns: auto auto auto 1fr;
+  grid-template-columns: auto auto auto auto 1fr;
   align-items: end;
   gap: 1em;
   margin-bottom: 1em;
@@ -371,6 +371,24 @@ const PuzzleListView = ({
       addModalRef.current.show();
     }
   }, []);
+
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const urlParams = new URLSearchParams(url.hash.slice(1));
+    const hashTitle = urlParams.get("title");
+    const hashUrl = urlParams.get("url");
+
+    const existingPuzzle = Puzzles.findOne({url: {$regex: `^${hashUrl}`}})
+
+    if (existingPuzzle) {
+      navigate(`./${existingPuzzle._id}`);
+    } else if ( hashTitle && hashUrl && addModalRef) {
+      addModalRef?.current?.show();
+      addModalRef?.current?.populateForm({title:hashTitle, url:hashUrl})
+    }
+  });
 
   const renderList = useCallback(
     (

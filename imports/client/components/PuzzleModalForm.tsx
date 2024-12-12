@@ -48,6 +48,8 @@ enum PuzzleModalFormSubmitState {
 
 export type PuzzleModalFormHandle = {
   show: () => void;
+  populateForm: (data: { title: string; url: string }) => void; // Add this line
+  submitForm: () => void; // Add this line
 };
 
 const PuzzleModalForm = React.forwardRef(
@@ -183,6 +185,7 @@ const PuzzleModalForm = React.forwardRef(
             setUrlDirty(false);
             setTagsDirty(false);
             setExpectedAnswerCountDirty(false);
+            window.location.hash = "";
             callback();
           }
         });
@@ -233,6 +236,16 @@ const PuzzleModalForm = React.forwardRef(
 
     useImperativeHandle(forwardedRef, () => ({
       show,
+      // Add this populateForm method:
+      populateForm: (data: { title: string; url: string }) => {
+        setTitle(data.title);
+        setUrl(data.url);
+      },
+      submitForm: () => {
+        if (formRef.current) {
+          formRef.current.submit();
+        }
+      },
     }));
 
     useEffect(() => {
@@ -301,7 +314,7 @@ const PuzzleModalForm = React.forwardRef(
           }
           setLastAutoPopulatedTitle(formattedTitle);
         } catch (error) {
-          console.error("Invalid URL:", error);
+          // console.debug("Invalid URL, probably there's no URL:", error);
         }
       }, [url]);
 

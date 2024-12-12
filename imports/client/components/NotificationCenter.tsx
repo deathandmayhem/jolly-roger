@@ -57,6 +57,9 @@ import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
 import SpinnerTimer from "./SpinnerTimer";
 import { GuessConfidence, GuessDirection } from "./guessDetails";
+import PuzzleNotifications, { PuzzleNotificationType } from "../../lib/models/PuzzleNotifications";
+import dismissPuzzleNotification from "../../methods/dismissPuzzleNotification";
+import puzzleNotificationsForSelf from "../../lib/publications/puzzleNotificationsForSelf";
 
 // How long to keep showing guess notifications after actioning.
 // Note that this cannot usefully exceed the linger period implemented by the
@@ -574,6 +577,42 @@ const ProfileMissingMessage = ({ onDismiss }: { onDismiss: () => void }) => {
   );
 };
 
+const PuzzleNotificationMessage = ({
+  pn,
+  hunt,
+  puzzle,
+  content,
+}: {
+  pn: PuzzleNotificationType;
+  hunt: HuntType;
+  puzzle: PuzzleType;
+  content: string;
+}) => {
+  const id = pn._id;
+  const dismiss = useCallback(
+    () => dismissPuzzleNotification.call({ puzzleNotificationId: id }),
+    [id]
+  );
+
+  return (
+    <Toast onClose={dismiss}>
+      <Toast.Header>
+        <strong className="me-auto">
+          <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>{puzzle.title}</Link>
+        </strong>
+      <StyledNotificationTimestamp>
+        {calendarTimeFormat(pn.createdAt)}
+      </StyledNotificationTimestamp>
+      </Toast.Header>
+      <Toast.Body>
+        <div>
+          {content}
+        </div>
+      </Toast.Body>
+    </Toast>
+  )
+}
+
 const ChatNotificationMessage = ({
   cn,
   hunt,
@@ -746,6 +785,9 @@ const NotificationCenter = () => {
   const bookmarkNotificationsLoading = useTypedSubscribe(
     bookmarkNotificationsForSelf,
   );
+  const puzzleNotificationsLoading = useTypedSubscribe(
+    puzzleNotificationsForSelf,
+  );
 
   const disableDingwords = useTracker(() => Flags.active("disable.dingwords"));
   const chatNotificationsLoading = useSubscribe(
@@ -756,7 +798,8 @@ const NotificationCenter = () => {
     pendingGuessesLoading() ||
     pendingAnnouncementsLoading() ||
     bookmarkNotificationsLoading() ||
-    chatNotificationsLoading();
+    chatNotificationsLoading() ||
+    puzzleNotificationsLoading();
 
   const discordEnabledOnServer = useTracker(
     () =>
@@ -839,6 +882,13 @@ const NotificationCenter = () => {
             { sort: { createdAt: 1 } },
           ).fetch(),
     [loading],
+  );
+  const puzzleNotifications = useTracker(
+    () =>
+      loading || disableDingwords
+        ? []
+        : PuzzleNotifications.find({}, { sort: { timestamp: 1 } }).fetch(),
+    [loading, disableDingwords],
   );
   const chatNotifications = useTracker(
     () =>
@@ -1015,9 +1065,24 @@ const NotificationCenter = () => {
     );
   });
 
+  puzzleNotifications.forEach((pn) => {
+    const hunt = hunts.get(pn.hunt);
+    const puzzle = puzzles.get(pn.puzzle);
+    if (!hunt || !puzzle) return;
+    messages.push(
+      <PuzzleNotificationMessage
+        key={pn._id}
+        pn={pn}
+        hunt={hunt}
+        puzzle={puzzle}
+        content={pn.content}
+      />,
+    );
+  });
+
   return (
     <StyledToastContainer position="bottom-end" className="p-3 position-fixed">
-      {messages}
+      {messages.reverse()}
     </StyledToastContainer>
   );
 };

@@ -13,7 +13,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { OverlayTrigger } from "react-bootstrap";
+import { ButtonGroup, OverlayTrigger } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
@@ -41,6 +41,12 @@ import generateHuntInvitationCode from "../../methods/generateHuntInvitationCode
 import promoteOperator from "../../methods/promoteOperator";
 import syncHuntDiscordRole from "../../methods/syncHuntDiscordRole";
 import Avatar from "./Avatar";
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
+import Puzzles, { PuzzleType } from "../../lib/models/Puzzles";
+import RelativeTime from "./RelativeTime";
+import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons";
+import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
 
 const ProfilesSummary = styled.div`
   text-align: right;
@@ -72,6 +78,10 @@ const OperatorBox = styled.div`
   * {
     margin: 0 0.25rem;
   }
+`;
+
+const StatusDiv = styled.div`
+  margin-left: 0.5rem;
 `;
 
 const StyledLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
@@ -363,6 +373,123 @@ const DisableInvitationLinkModal = ({
   );
 };
 
+const UserStatusBadge = React.memo(({
+  statusObj,
+  huntId,
+  huntPuzzles,
+}: {
+  statusObj: Record<string, any> | null;
+  huntId: string | undefined;
+  huntPuzzles: PuzzleType[];
+}) => {
+
+  if (!huntId) {
+    // we don't show statuses on the all list
+    return
+  }
+
+  if (!statusObj) {
+    // we should display users as offline if we don't have data on them
+    return <StatusDiv>
+      <OverlayTrigger placement="top" overlay={<Tooltip>Offline</Tooltip>}>
+          <ButtonGroup size="sm">
+              <Button
+              variant='outline-secondary'
+              >
+                Offline
+              </Button>
+          </ButtonGroup>
+      </OverlayTrigger>
+    </StatusDiv>;
+  }
+
+  const [lastSeen, setLastSeen] = useState<Date | null>(statusObj?.status?.at || null);
+  const [lastPuzzle, setLastPuzzle] = useState<Date | null>(statusObj?.puzzleStatus?.at || null);
+  const [timeNow, setTimeNow] = useState<Date | null>(new Date() || null);
+  const [puzzleStatusString, setPuzzleStatusString] = useState<string | null>( null );
+  const statusDebounceThreshold = new Date(Date.now() - 2 * 60 * 1000);
+  const relativeDebounceThreshold = new Date(Date.now() - 10 * 1000);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setLastSeen(statusObj?.status?.at || null);
+      setLastPuzzle(statusObj?.puzzleStatus?.at || null);
+      setTimeNow(new Date());
+    }, puzzleStatusString === 'Online' ? 1000 : 60 * 1000);
+
+    return () => clearInterval(intervalId);
+  }, [statusObj]);
+
+
+  const statusDisplay = useMemo(() => {
+    const lastStatusRecently = lastSeen && lastSeen >= statusDebounceThreshold;
+    const lastPuzzleRecently = lastPuzzle && lastPuzzle >= statusDebounceThreshold;
+    const puzzleCountdownDebounce = lastPuzzle && lastPuzzle >= relativeDebounceThreshold;
+    const lastSeenRecently = lastStatusRecently || lastPuzzleRecently;
+    const userStatus = statusObj?.status?.status;
+    const puzzleStatus = statusObj?.puzzleStatus?.status;
+    const puzzleId = statusObj?.puzzleStatus?.puzzle;
+    const puzzleName = puzzleId ? huntPuzzles[puzzleId] : null;
+
+    const statusString = (userStatus === 'offline' && !lastSeenRecently) ? 'Offline' : (userStatus === 'away' && !lastSeenRecently) ? 'Away' : 'Online';
+    setPuzzleStatusString((puzzleStatus === 'offline' && !lastPuzzleRecently) ? 'Offline' : (puzzleStatus === 'away' && !lastPuzzleRecently) ? 'Away' : 'Online');
+    const puzzleLabel =
+      <span><strong><FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />&nbsp;
+      {puzzleName}</strong>
+      { puzzleStatus !== 'online' && lastPuzzle && !puzzleCountdownDebounce ? (<span> <RelativeTime
+      date={lastPuzzle}
+      minimumUnit="second"
+      maxElements={1}
+    /></span>) : null } </span>;
+    const tooltip = <span> {statusString}
+    {
+      userStatus !== 'online' ? (
+        <span>, last seen: {shortCalendarTimeFormat(lastSeen)}&nbsp;(<RelativeTime
+          date={lastSeen}
+          minimumUnit="second"
+          maxElements={1}
+        />)</span>
+      ) : null
+    }
+    {
+      puzzleStatus !== 'online' && lastPuzzle ? (
+        ', last active on puzzle: ' + shortCalendarTimeFormat(lastPuzzle)
+      ) : lastPuzzle ? ', currently active on puzzle' : null
+    }
+    </span>;
+
+    return (
+      <StatusDiv>
+        <OverlayTrigger placement="top" overlay={<Tooltip>{tooltip}</Tooltip>}>
+          <ButtonGroup size="sm">
+            <Button variant={statusString === 'Online' ? 'success' : statusString === 'Away' ? 'warning' : 'secondary'}> {/* Button JSX */}
+            {
+              statusString === 'Online' ? (
+                <strong>{statusString}</strong>
+               ): (<span>{statusString}</span>)
+            }
+            </Button>
+            {
+            puzzleId ? (
+              <Button
+                variant={puzzleStatusString === 'Online' ? 'success' : puzzleStatusString === 'Away' ? 'warning' : 'secondary'}
+                href={`/hunts/${huntId}/puzzles/${puzzleId}`}
+              >
+                {puzzleLabel}
+              </Button>
+            ) : null
+            }
+          </ButtonGroup>
+        </OverlayTrigger>
+      </StatusDiv>
+    );
+  }, [
+    statusObj, lastSeen, lastPuzzle, huntPuzzles, timeNow,
+  ]);
+
+  return statusDisplay;
+});
+
 const ProfileList = ({
   hunt,
   canInvite,
@@ -372,6 +499,7 @@ const ProfileList = ({
   users,
   roles,
   invitationCode,
+  userStatuses,
 }: {
   hunt?: HuntType;
   canInvite?: boolean;
@@ -381,7 +509,9 @@ const ProfileList = ({
   users: Meteor.User[];
   roles?: Record<string, string[]>;
   invitationCode?: string;
+  userStatuses?: Record<string, Record<string, Record<string, any>>>;
 }) => {
+
   const [searchString, setSearchString] = useState<string>("");
 
   const searchBarRef = useRef<HTMLInputElement>(null); // Wrong type but I should fix it
@@ -622,6 +752,18 @@ const ProfileList = ({
   }, [hunt]);
 
   const matching = users.filter(matcher);
+
+  const huntId = hunt?._id;
+
+  const huntPuzzlesStatus = useTypedSubscribe(puzzlesForHunt, {huntId});
+  const huntPuzzlesLoading = huntPuzzlesStatus();
+
+  const huntPuzzles: PuzzleType[] | [] = useTracker(
+    () => huntPuzzlesLoading ? [] : Puzzles.find({hunt: huntId}).fetch().reduce((arr, puz)=>{
+      arr[puz._id] = puz.title;
+      return arr;
+    }, {}));
+
   return (
     <div>
       <h1>List of hunters</h1>
@@ -655,23 +797,29 @@ const ProfileList = ({
         {inviteToHuntItem}
         {matching.map((user) => {
           const name = user.displayName ?? "<no name provided>";
+          const userStatus = userStatuses?.[user._id];
+
           return (
             <ListGroupItem
               key={user._id}
-              action
-              as={Link}
-              to={
-                hunt
-                  ? `/hunts/${hunt._id}/hunters/${user._id}`
-                  : `/users/${user._id}`
-              }
               className="p-1"
             >
               <ListItemContainer>
                 <ImageBlock>
                   <Avatar {...user} size={40} />
                 </ImageBlock>
+                <Link to={
+                hunt
+                  ? `/hunts/${hunt._id}/hunters/${user._id}`
+                  : `/users/${user._id}`
+              }>
                 {name}
+                </Link>
+                <UserStatusBadge
+                statusObj={userStatus}
+                huntId={huntId}
+                huntPuzzles={huntPuzzles}
+                />
                 {hunt && canMakeOperator && (
                   <OperatorControls hunt={hunt} user={user} />
                 )}

@@ -60,6 +60,22 @@ class HooksRegistry {
       }
     }
   }
+
+  async runTagAddedHooks(puzzleId: string, tagId: string, adderId: string) {
+    for (const hook of this.registeredHooks) {
+      if (hook.onAddPuzzleTag) {
+        await hook.onAddPuzzleTag(puzzleId, tagId, adderId);
+      }
+    }
+  }
+
+  async runNoPuzzleViewers(puzzleId: string) {
+    for (const hook of this.registeredHooks) {
+      if (hook.onNoPuzzleViewers) {
+        await hook.onNoPuzzleViewers(puzzleId);
+      }
+    }
+  }
 }
 
 export default HooksRegistry;

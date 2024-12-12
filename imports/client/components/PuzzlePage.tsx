@@ -119,6 +119,7 @@ import {
   SolvedPuzzleBackgroundColor,
 } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
+import setUserStatus from "../../methods/setUserStatus";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -2027,6 +2028,22 @@ const PuzzlePage = React.memo(() => {
   const huntId = useParams<"huntId">().huntId!;
   const puzzleId = useParams<"puzzleId">().puzzleId!;
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const status = document.visibilityState === 'visible' ? 'online' : 'away';
+      setUserStatus.call({hunt:huntId, type:'puzzleStatus', status:status, puzzle:puzzleId});
+    };
+    handleVisibilityChange();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      setUserStatus.call({hunt:huntId, type:'puzzleStatus', status:'offline', puzzle:puzzleId});
+    };
+  }, [huntId, puzzleId]);
+
+  useSubscribe('userStatus.inc', huntId, 'puzzleStatus', document.visibilityState === 'visible' ? 'online' : 'away', puzzleId);
+
   // Add the current user to the collection of people viewing this puzzle.
   const subscribersTopic = `puzzle:${puzzleId}`;
   useSubscribe("subscribers.inc", subscribersTopic, {
@@ -2083,7 +2100,7 @@ const PuzzlePage = React.memo(() => {
     [puzzleDataLoading, chatDataLoading],
   );
   // Sort by created at so that the "first" document always has consistent meaning
-  const document = useTracker(
+  const doc = useTracker(
     () =>
       puzzleDataLoading
         ? undefined
@@ -2189,7 +2206,7 @@ const PuzzlePage = React.memo(() => {
     <PuzzlePageMetadata
       puzzle={activePuzzle}
       bookmarked={bookmarked}
-      document={document}
+      document={doc}
       displayNames={displayNames}
       isDesktop={isDesktop}
     />
@@ -2273,7 +2290,7 @@ const PuzzlePage = React.memo(() => {
             {chat}
             <PuzzleContent>
               {metadata}
-              <PuzzlePageMultiplayerDocument document={document} />
+              <PuzzlePageMultiplayerDocument document={doc} />
               {debugPane}
             </PuzzleContent>
           </SplitPanePlus>
