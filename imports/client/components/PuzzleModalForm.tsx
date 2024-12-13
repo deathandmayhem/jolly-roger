@@ -24,6 +24,7 @@ import LabelledRadioGroup from "./LabelledRadioGroup";
 import Loading from "./Loading";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
+import { FormText } from "react-bootstrap";
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 const Creatable = React.lazy(
@@ -463,9 +464,13 @@ const PuzzleModalForm = React.forwardRef(
                 disabled={disableForm}
                 onChange={onExpectedAnswerCountChange}
                 value={currentExpectedAnswerCount}
-                min={0}
+                min={-1}
                 step={1}
               />
+              <FormText>
+                For non-puzzle items, set this to <kbd>0</kbd>.<br/>
+                For puzzles with an unknown number of answers, set this to <kbd>-1</kbd>.
+              </FormText>
             </Col>
           </FormGroup>
 
