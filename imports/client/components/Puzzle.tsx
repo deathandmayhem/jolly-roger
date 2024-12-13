@@ -413,8 +413,23 @@ const Puzzle = React.memo(
       </Tooltip>
     ) : null;
 
-    // Now that we're putting those tags elsewhere, we're going to suppress them as welL
-    const extra_suppress = allTags.filter((t) => ['priority:low', 'priority:high', 'is:stuck', 'stuck', 'is:meta', 'is:metameta'].includes(t.name)).map((t) => t._id);
+    // Now that we're putting those tags elsewhere, we're going to suppress them as well
+    // but only the ones that are displayed
+    const emojified_tags: String[] = [];
+    if (isMetameta) {
+      emojified_tags.push('is:metameta');
+    } else if (isMeta) {
+      emojified_tags.push('is:meta');
+    }
+
+    if (isHighPriority) {
+      emojified_tags.push('priority:high');
+    } else if (isLowPriority) {
+      emojified_tags.push('priority:low');
+    } else if (isStuck) {
+      emojified_tags.push('is:stuck', 'stuck');
+    }
+    const extra_suppress = allTags.filter((t) => emojified_tags.includes(t.name)).map((t) => t._id);
 
     const shownTags = difference(puzzle.tags, suppressTags?.concat(extra_suppress) ?? []);
     const ownTags = shownTags
