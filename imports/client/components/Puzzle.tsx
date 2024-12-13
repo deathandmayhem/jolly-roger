@@ -198,7 +198,7 @@ const PuzzleMetaColumn = styled(PuzzleColumn)`
 const PuzzlePriorityColumn = styled(PuzzleColumn)`
   padding: 0 2px;
   display: inline-block;
-  flex: 0.5;
+  flex: 1;
   margin: -2px -4px -2px 0;
   ${mediaBreakpointDown(
     "xs",
@@ -403,8 +403,10 @@ const Puzzle = React.memo(
     const isHighPriority = puzzle.tags.some(tagId => tagIndex.get(tagId)?.name === 'priority:high');
     const isLowPriority = puzzle.tags.some(tagId => tagIndex.get(tagId)?.name === 'priority:low');
     const isStuck = puzzle.tags.some(tagId => tagIndex.get(tagId)?.name === 'stuck' || tagIndex.get(tagId)?.name === 'is:stuck');
-    const statusEmoji = isHighPriority ? "🚨" : isLowPriority ? "🔽" : isStuck ? "🤷" : null;
-    const statusTooltipText = isHighPriority ? 'High priority' : isLowPriority ? 'Low priority' : isStuck ? 'Stuck' : null;
+    // const statusEmoji = isHighPriority ? "🚨" : isLowPriority ? "🔽" : isStuck ? "🤷" : null;
+    const statusEmoji = isHighPriority ? "🚨" : isLowPriority ? "🔽" : null;
+    // const statusTooltipText = isHighPriority ? 'High priority' : isLowPriority ? 'Low priority' : isStuck ? 'Stuck' : null;
+    const statusTooltipText = isHighPriority ? 'High priority' : isLowPriority ? 'Low priority' : null;
     const statusTooltip = statusEmoji ? (
       <Tooltip
       id={`puzzle-status-tooltip-${puzzleId}`}
@@ -426,7 +428,8 @@ const Puzzle = React.memo(
       emojified_tags.push('priority:high');
     } else if (isLowPriority) {
       emojified_tags.push('priority:low');
-    } else if (isStuck) {
+    }
+    if (isStuck) {
       emojified_tags.push('is:stuck', 'stuck');
     }
     const extra_suppress = allTags.filter((t) => emojified_tags.includes(t.name)).map((t) => t._id);
@@ -537,6 +540,12 @@ const Puzzle = React.memo(
                 <span>{statusEmoji}</span>
               </OverlayTrigger>
             ) : null
+          }
+          {
+            isStuck ? (<OverlayTrigger placement="top" overlay={<Tooltip id={`$stuck-tt-{puzzleId}`}>Stuck</Tooltip>}>
+              <span>🤷</span>
+            </OverlayTrigger>) : null
+
           }
         </PuzzlePriorityColumn>
         <PuzzleMetaColumn>
