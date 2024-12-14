@@ -119,7 +119,7 @@ import {
   SolvedPuzzleBackgroundColor,
 } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
-import setUserStatus from "../../methods/setUserStatus";
+import { ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -1493,7 +1493,7 @@ const PuzzleGuessModal = React.forwardRef(
     const [guessInput, setGuessInput] = useState<string>("");
     const [directionInput, setDirectionInput] = useState<number>(0);
     const [haveSetDirection, setHaveSetDirection] = useState<boolean>(false);
-    const [confidenceInput, setConfidenceInput] = useState<number>(50);
+    const [confidenceInput, setConfidenceInput] = useState<number | null>(null);
     const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(false);
     const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
     const [confirmationMessage, setConfirmationMessage] = useState<string>("");
@@ -1518,15 +1518,15 @@ const PuzzleGuessModal = React.forwardRef(
       }, []);
 
     const onDirectionInputChange: NonNullable<FormControlProps["onChange"]> =
-      useCallback((event) => {
+      useCallback((val) => {
         setHaveSetDirection(true);
-        setDirectionInput(parseInt(event.currentTarget.value, 10));
+        setDirectionInput(parseInt(val, 10));
       }, []);
 
     const onConfidenceInputChange: NonNullable<FormControlProps["onChange"]> =
-      useCallback((event) => {
+      useCallback((val) => {
         setHaveSetConfidence(true);
-        setConfidenceInput(parseInt(event.currentTarget.value, 10));
+        setConfidenceInput(parseInt(val, 10));
       }, []);
 
     const solvedness = useMemo(() => {
@@ -1643,32 +1643,25 @@ const PuzzleGuessModal = React.forwardRef(
             Solve direction
           </FormLabel>
           <Col xs={9}>
+
             <ValidatedSliderContainer>
-              <OverlayTrigger placement="top" overlay={directionTooltip}>
-                <GuessSliderContainer>
-                  <GuessSliderLeftLabel>
-                    <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
-                  </GuessSliderLeftLabel>
-                  <GuessSlider
-                    id="jr-puzzle-guess-direction"
-                    type="range"
-                    min="-10"
-                    max="10"
-                    list="jr-puzzle-guess-direction-list"
-                    onChange={onDirectionInputChange}
-                    value={directionInput}
-                    disabled={puzzle.deleted}
-                  />
-                  <datalist id="jr-puzzle-guess-direction-list">
-                    <option value="-10">-10</option>
-                    <option value="0">0</option>
-                    <option value="10">10</option>
-                  </datalist>
-                  <GuessSliderRightLabel>
-                    <FontAwesomeIcon icon={faArrowRight} fixedWidth />
-                  </GuessSliderRightLabel>
-                </GuessSliderContainer>
-              </OverlayTrigger>
+              <ToggleButtonGroup name='solve-dir' onChange={onDirectionInputChange}>
+                <ToggleButton variant="outline-primary" value={-10} id='guess-direction-back' checked={directionInput===-10}>
+                  Backsolve
+                </ToggleButton>
+                <ToggleButton variant="outline-dark" value={-5} id='guess-direction-mostly-back' checked={directionInput===-5}>
+                  Mostly back
+                </ToggleButton>
+                <ToggleButton variant="outline-secondary" value={0} id='guess-direction-mixed' checked={directionInput===0}>
+                  Mixed
+                </ToggleButton>
+                <ToggleButton variant="outline-dark" value={5} id='guess-direction-mostly-forward' checked={directionInput===5}>
+                  Mostly forward
+                </ToggleButton>
+                <ToggleButton variant="outline-primary" value={10} id='guess-direction-forward' checked={directionInput===10}>
+                  Forwardsolve
+                </ToggleButton>
+              </ToggleButtonGroup>
               <FontAwesomeIcon
                 icon={faCheck}
                 color={haveSetDirection ? "green" : "transparent"}
@@ -1676,9 +1669,7 @@ const PuzzleGuessModal = React.forwardRef(
               />
             </ValidatedSliderContainer>
             <FormText>
-              Pick a number between -10 (backsolved without opening the puzzle)
-              to 10 (forward-solved without seeing the round) to indicate if you
-              forward- or back-solved.
+              Select the direction of your solve.
             </FormText>
           </Col>
         </FormGroup>
@@ -1689,29 +1680,17 @@ const PuzzleGuessModal = React.forwardRef(
           </FormLabel>
           <Col xs={9}>
             <ValidatedSliderContainer>
-              <OverlayTrigger placement="top" overlay={confidenceTooltip}>
-                <GuessSliderContainer>
-                  <GuessSliderLeftLabel>0%</GuessSliderLeftLabel>
-                  <GuessSlider
-                    id="jr-puzzle-guess-confidence"
-                    type="range"
-                    min="0"
-                    max="100"
-                    list="jr-puzzle-guess-confidence-list"
-                    onChange={onConfidenceInputChange}
-                    value={confidenceInput}
-                    disabled={puzzle.deleted}
-                  />
-                  <datalist id="jr-puzzle-guess-confidence-list">
-                    <option value="0">0%</option>
-                    <option value="25">25%</option>
-                    <option value="50">50%</option>
-                    <option value="75">75%</option>
-                    <option value="100">100%</option>
-                  </datalist>
-                  <GuessSliderRightLabel>100%</GuessSliderRightLabel>
-                </GuessSliderContainer>
-              </OverlayTrigger>
+              <ToggleButtonGroup name='guess-confidence' onChange={onConfidenceInputChange}>
+                <ToggleButton variant="outline-danger" value={0} id='guess-confidence-low' checked={confidenceInput===0}>
+                  Low
+                </ToggleButton>
+                <ToggleButton variant="outline-warning" value={50} id='guess-confidence-medium' checked={confidenceInput===50}>
+                  Medium
+                </ToggleButton>
+                <ToggleButton variant="outline-success" value={100} id='guess-confidence-high' checked={confidenceInput===100}>
+                  High
+                </ToggleButton>
+              </ToggleButtonGroup>
               <FontAwesomeIcon
                 icon={faCheck}
                 color={haveSetConfidence ? "green" : "transparent"}
@@ -1719,8 +1698,7 @@ const PuzzleGuessModal = React.forwardRef(
               />
             </ValidatedSliderContainer>
             <FormText>
-              Pick a number between 0 and 100 for the probability that you think
-              this answer is right.
+              Tell us how confident you are about your guess.
             </FormText>
           </Col>
         </FormGroup>
@@ -1734,6 +1712,14 @@ const PuzzleGuessModal = React.forwardRef(
               {sortedBy(guesses, (g) => g.createdAt)
                 .reverse()
                 .map((guess) => {
+                  const guessDirectionLabel = guess.direction > 5 ? "Forward" :
+                   guess.direction > 0 ? "Forward*" :
+                   guess.direction < -5 ? "Back" :
+                   guess.direction < 0 ? "Back*" : "Mixed";
+                   const guessDirectionVariant = guess.direction > 5 ? "primary" :
+                    guess.direction > 0 ? "primary" :
+                    guess.direction < -5 ? "danger" :
+                    guess.direction < 0 ? "danger" : "secondary";
                   return (
                     <GuessRow $state={guess.state} key={guess._id}>
                       <GuessTableSmallRow>
@@ -1769,16 +1755,31 @@ const PuzzleGuessModal = React.forwardRef(
                         </Breakable>
                       </GuessSubmitterCell>
                       <GuessDirectionCell>
-                        <GuessDirection
+                        <Badge bg={guessDirectionVariant}>
+                            {guessDirectionLabel}
+                        </Badge>
+
+                        {/* <GuessDirection
                           id={`guess-${guess._id}-direction`}
                           value={guess.direction}
-                        />
+                        /> */}
                       </GuessDirectionCell>
                       <GuessConfidenceCell>
-                        <GuessConfidence
-                          id={`guess-${guess._id}-confidence`}
-                          value={guess.confidence}
-                        />
+                        {
+                          guess.confidence > 50 ? (
+                            <Badge pill bg='success'>
+                              High
+                            </Badge>
+                          ) : guess.confidence < 50 ? (
+                            <Badge pill bg='danger'>
+                              Low
+                            </Badge>
+                          ) : (
+                            <Badge pill bg='warning'>
+                              Medium
+                            </Badge>
+                          )
+                        }
                       </GuessConfidenceCell>
                       <GuessTableSmallRow>
                         {guess.additionalNotes && (
@@ -2068,22 +2069,6 @@ const PuzzlePage = React.memo(() => {
 
   const huntId = useParams<"huntId">().huntId!;
   const puzzleId = useParams<"puzzleId">().puzzleId!;
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      const status = document.visibilityState === 'visible' ? 'online' : 'away';
-      setUserStatus.call({hunt:huntId, type:'puzzleStatus', status:status, puzzle:puzzleId});
-    };
-    handleVisibilityChange();
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      setUserStatus.call({hunt:huntId, type:'puzzleStatus', status:'offline', puzzle:puzzleId});
-    };
-  }, [huntId, puzzleId]);
-
-  useSubscribe('userStatus.inc', huntId, 'puzzleStatus', document.visibilityState === 'visible' ? 'online' : 'away', puzzleId);
 
   // Add the current user to the collection of people viewing this puzzle.
   const subscribersTopic = `puzzle:${puzzleId}`;

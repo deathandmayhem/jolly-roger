@@ -7,10 +7,10 @@ import withTimestamps from "../../lib/models/withTimestamps";
 
 export const UserStatus = withTimestamps(
   z.object({
-    server: foreignKey,
+    server: foreignKey.optional(),
     // The connection ID is not technically a foreign key because it doesn't refer
     // to another database record
-    connection: z.string().regex(Id),
+    connection: z.string().regex(Id).optional(),
     user: foreignKey,
     type: nonEmptyString,
     status: nonEmptyString,
