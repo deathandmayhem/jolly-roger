@@ -90,7 +90,7 @@ const ChatNotificationHooks: Hookset = {
       }),
     );
 
-    await UserStatuses.updateAsync({
+    await UserStatuses.upsertAsync({
       hunt: chatMessage.hunt,
       user: sender,
       type: 'puzzleStatus',
