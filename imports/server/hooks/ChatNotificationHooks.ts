@@ -91,10 +91,12 @@ const ChatNotificationHooks: Hookset = {
     );
 
     await UserStatuses.updateAsync({
+      hunt: chatMessage.hunt,
       user: sender,
       type: 'puzzleStatus',
     },{
       $set: {
+        status: "chat",
         puzzle: chatMessage.puzzle,
       }
     }

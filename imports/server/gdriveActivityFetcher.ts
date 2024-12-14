@@ -60,8 +60,10 @@ async function recordDriveChanges(
         await UserStatuses.upsertAsync({
           user: user?._id,
           type: 'puzzleStatus',
+          hunt: document.hunt,
         }, {
           $set: {
+            status: "document",
             puzzle: document.puzzle,
           }
         });
