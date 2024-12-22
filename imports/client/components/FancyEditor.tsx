@@ -470,6 +470,7 @@ const decorate = ([node, path]: [Node, Path]) => {
 const PlaceholderSpan = styled.span`
   position: absolute;
   opacity: 0.333;
+  pointer-events: none;
 `;
 
 const renderPlaceholder = ({
