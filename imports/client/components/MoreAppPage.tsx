@@ -106,32 +106,12 @@ const MoreAppPage = () => {
 
   useBreadcrumb({ title: "More", path: `/hunts/${huntId}/more` });
 
-  const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
-    huntId,
-    includeDeleted: false,
-  });
-
-  const loading = puzzlesLoading();
-
-  const administriviaTag = useTracker(() => {
-    if (!huntId || loading) {
-      return null;
-    }
-    return Tags.findOne({ hunt: huntId, name: "administrivia" });
-  }, [huntId, loading]);
-
-  const administriviaPuzzles = useTracker(() => {
-    if (!huntId || !administriviaTag || loading) {
-      return null;
-    }
-    return Puzzles.find({ hunt: huntId, tags: administriviaTag._id }).fetch();
-  }, [huntId, loading, administriviaTag]);
-
-  const jr_hostname = window.location.hostname;
+  const jr_host = window.location.host;
+  const protocol = window.location.protocol;
   const bookmarklet = useMemo(() => {
     const code = `
       (function() {
-        window.location.href = "https://${jr_hostname}/hunts/${huntId}/puzzles#title=" + document.title + "&url=" + window.location.href;
+        window.location.href = "${protocol}//${jr_host}/hunts/${huntId}/puzzles#title=" + document.title + "&url=" + window.location.href;
       })();
     `;
     return `javascript:${encodeURIComponent(code)}`;
@@ -174,9 +154,15 @@ const MoreAppPage = () => {
 
         <p>Drag this bookmarklet to your bookmarks bar!</p>
 
+<<<<<<< HEAD
         <p>
           <a href={bookmarklet}>Add to Jolly Roger</a>
         </p>
+=======
+        <p><a href={bookmarklet}>➡ Jolly Roger</a></p>
+
+        <Alert variant="warning">Note: You'll need a new/different version of this for each hunt.</Alert>
+>>>>>>> 0b8478a4 (Fix big board bookmarklet link)
 
         <Alert variant="warning">
           Note: You'll need a new/different version of this for each hunt.
