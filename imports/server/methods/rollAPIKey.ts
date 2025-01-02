@@ -1,8 +1,8 @@
 import { check, Match } from "meteor/check";
 import Logger from "../../Logger";
+import APIKeys from "../../lib/models/APIKeys";
 import rollAPIKey from "../../methods/rollAPIKey";
 import ensureAPIKey from "../ensureAPIKey";
-import APIKeys from "../models/APIKeys";
 import userForKeyOperation from "../userForKeyOperation";
 import defineMethod from "./defineMethod";
 
