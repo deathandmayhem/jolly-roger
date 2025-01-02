@@ -103,11 +103,14 @@ const MoreAppPage = () => {
 
   useBreadcrumb({ title: "More", path: `/hunts/${huntId}/more` });
 
-  const jr_hostname = window.location.hostname;
+  const jr_host = window.location.host;
+  const protocol = window.location.protocol;
   const bookmarklet = useMemo(() => {
     const code = `
       (function() {
-        window.location.href = "https://${jr_hostname}/hunts/${huntId}/puzzles#title=" + document.title + "&url=" + window.location.href;
+        var title = encodeURIComponent(document.title)
+        var url = encodeURIComponent(window.location.href)
+        window.location.href = "${protocol}//${jr_host}/hunts/${huntId}/puzzles?title=" + title + "&url=" + url;
       })();
     `;
     return `javascript:${encodeURIComponent(code)}`;
@@ -128,7 +131,7 @@ const MoreAppPage = () => {
 
         <p>Drag this bookmarklet to your bookmarks bar!</p>
 
-        <p><a href={bookmarklet}>Add to Jolly Roger</a></p>
+        <p><a href={bookmarklet}>➡ Jolly Roger</a></p>
 
         <Alert variant="warning">Note: You'll need a new/different version of this for each hunt.</Alert>
 

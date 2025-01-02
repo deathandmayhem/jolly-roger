@@ -467,7 +467,7 @@ const Puzzle = React.memo(
 
     const pinnedMessage = puzzlePin[0];
 
-    let noteTooltip = {};
+    let noteTooltip = null;
 
     const selfUser = useTracker(() => Meteor.user()!, []);
     const selfUserId = selfUser._id;
@@ -518,7 +518,7 @@ const Puzzle = React.memo(
         <PuzzleTitleColumn>
           <Link to={linkTarget}>{puzzle.title}</Link>
           {
-            pinnedMessage ? (
+            pinnedMessage && noteTooltip ? (
               <OverlayTrigger placement="top" overlay={noteTooltip}>
               <PuzzleNote>
                 <FontAwesomeIcon icon={faNoteSticky} />
@@ -535,7 +535,7 @@ const Puzzle = React.memo(
         </PuzzleTitleColumn>
         <PuzzlePriorityColumn>
           {
-            statusEmoji ? (
+            statusEmoji && statusTooltip ? (
               <OverlayTrigger placement="top" overlay={statusTooltip}>
                 <span>{statusEmoji}</span>
               </OverlayTrigger>
