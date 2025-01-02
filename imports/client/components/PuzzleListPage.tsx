@@ -386,21 +386,25 @@ const PuzzleListView = ({
 
   const navigate = useNavigate()
 
+  const bookmarkTitle = searchParams.get("title") ?? ""
+  const bookmarkURL = searchParams.get("url") ?? ""
+
   useEffect(() => {
-    const url = new URL(window.location.href);
-    const urlParams = new URLSearchParams(url.hash.slice(1));
-    const hashTitle = urlParams.get("title");
-    const hashUrl = urlParams.get("url");
-
-    const existingPuzzle = Puzzles.findOne({url: {$regex: `^${hashUrl}`}})
-
-    if (existingPuzzle) {
-      navigate(`./${existingPuzzle._id}`);
-    } else if ( hashTitle && hashUrl && addModalRef) {
-      addModalRef?.current?.show();
-      addModalRef?.current?.populateForm({title:hashTitle, url:hashUrl})
+    if (bookmarkURL) {
+      const existingPuzzle = Puzzles.findOne({url: {$regex: `^${bookmarkURL}`}})
+      if (existingPuzzle) {
+        navigate(`./${existingPuzzle._id}`);
+      } else if (addModalRef) {
+        addModalRef.current?.show();
+        addModalRef.current?.populateForm({title:bookmarkTitle, url:bookmarkURL})
+        setSearchParams((prev:URLSearchParams) => {
+          prev.delete("url")
+          prev.delete("title")
+          return prev
+        })
+      }
     }
-  });
+  }, [bookmarkTitle, bookmarkURL]);
 
   const subscribersLoading = useSubscribe("subscribers.fetchAll", huntId);
   const callMembersLoading = useSubscribe("mediasoup:metadataAll", huntId);

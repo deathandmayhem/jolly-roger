@@ -111,7 +111,9 @@ const MoreAppPage = () => {
   const bookmarklet = useMemo(() => {
     const code = `
       (function() {
-        window.location.href = "${protocol}//${jr_host}/hunts/${huntId}/puzzles#title=" + document.title + "&url=" + window.location.href;
+        var title = encodeURIComponent(document.title)
+        var url = encodeURIComponent(window.location.href)
+        window.location.href = "${protocol}//${jr_host}/hunts/${huntId}/puzzles?title=" + title + "&url=" + url;
       })();
     `;
     return `javascript:${encodeURIComponent(code)}`;
