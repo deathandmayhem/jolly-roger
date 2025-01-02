@@ -12,10 +12,13 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
+import InputGroup from "react-bootstrap/InputGroup";
+import CopyToClipboard from "react-copy-to-clipboard";
 import Flags from "../../Flags";
 import { formatDiscordName } from "../../lib/discord";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
 import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
+import rollAPIKey from "../../methods/rollAPIKey";
 import unlinkUserDiscordAccount from "../../methods/unlinkUserDiscordAccount";
 import unlinkUserGoogleAccount from "../../methods/unlinkUserGoogleAccount";
 import updateProfile from "../../methods/updateProfile";
@@ -292,7 +295,13 @@ enum OwnProfilePageSubmitState {
   ERROR = "error",
 }
 
-const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
+const OwnProfilePage = ({
+  initialUser,
+  initialAPIKey,
+}: {
+  initialUser: Meteor.User;
+  initialAPIKey?: string;
+}) => {
   const [displayName, setDisplayName] = useState<string>(
     initialUser.displayName ?? "",
   );
@@ -306,6 +315,9 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
     OwnProfilePageSubmitState.IDLE,
   );
   const [submitError, setSubmitError] = useState<string>("");
+  const [showAPIKey, setShowAPIKey] = useState<boolean>(false);
+  const [regeneratingAPIKey, setRegeneratingAPIKey] = useState<boolean>(false);
+  const [APIKeyError, setAPIKeyError] = useState<string>();
 
   const handleDisplayNameFieldChange: NonNullable<
     FormControlProps["onChange"]
@@ -356,6 +368,27 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
 
   const dismissAlert = useCallback(() => {
     setSubmitState(OwnProfilePageSubmitState.IDLE);
+  }, []);
+
+  const toggleShowAPIKey = useCallback(() => {
+    setShowAPIKey(!showAPIKey);
+  }, [showAPIKey]);
+
+  const regenerateAPIKey = useCallback(() => {
+    setRegeneratingAPIKey(true);
+    setAPIKeyError("");
+    rollAPIKey.call({}, (error) => {
+      if (error) {
+        setAPIKeyError(error.message);
+      } else {
+        setAPIKeyError("");
+      }
+      setRegeneratingAPIKey(false);
+    });
+  }, []);
+
+  const dismissAPIKeyAlert = useCallback(() => {
+    setAPIKeyError("");
   }, []);
 
   const shouldDisableForm = submitState === "submitting";
@@ -452,6 +485,51 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
       </ActionButtonRow>
 
       <AudioConfig />
+
+      <section className="advanced-section mt-3">
+        <h2>Advanced</h2>
+        <FormGroup className="mb-3">
+          <FormLabel htmlFor="jr-profile-api-key">API key</FormLabel>
+          <InputGroup>
+            <FormControl
+              id="jr-profile-api-key"
+              type={showAPIKey ? "text" : "password"}
+              readOnly
+              disabled
+              value={initialAPIKey}
+            />
+            <CopyToClipboard text={initialAPIKey ?? ""}>
+              <Button variant="outline-secondary" disabled={regeneratingAPIKey}>
+                Copy
+              </Button>
+            </CopyToClipboard>
+            <Button
+              variant="outline-secondary"
+              onClick={toggleShowAPIKey}
+              disabled={regeneratingAPIKey}
+            >
+              {showAPIKey ? "Hide" : "Show"}
+            </Button>
+            <Button
+              variant="outline-secondary"
+              onClick={regenerateAPIKey}
+              disabled={regeneratingAPIKey}
+            >
+              {regeneratingAPIKey || (initialAPIKey?.length ?? 0) > 0
+                ? "Regenerate"
+                : "Generate"}
+            </Button>
+          </InputGroup>
+          <FormText>
+            Authorization credential used to make API calls. Keep this secret!
+          </FormText>
+          {APIKeyError ? (
+            <Alert variant="danger" dismissible onClose={dismissAPIKeyAlert}>
+              Key generation failed: {APIKeyError}
+            </Alert>
+          ) : null}
+        </FormGroup>
+      </section>
     </Container>
   );
 };
