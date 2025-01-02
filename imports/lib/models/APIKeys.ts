@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { ModelType } from "../../lib/models/Model";
-import SoftDeletedModel from "../../lib/models/SoftDeletedModel";
-import { foreignKey } from "../../lib/models/customTypes";
-import withCommon from "../../lib/models/withCommon";
+import type { ModelType } from "./Model";
+import SoftDeletedModel from "./SoftDeletedModel";
+import { foreignKey } from "./customTypes";
+import withCommon from "./withCommon";
 
 const APIKey = withCommon(
   z.object({
