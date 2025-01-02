@@ -28,25 +28,27 @@ const userStatusesToLastSeen = (statuses: UserStatusType[]) => {
           at: null,
         },
         puzzleStatus: {
-          status: "offline",
+          source: null,
           at: null,
           puzzle: null,
         }
       }
     }
 
-    if (acc[user][uStatus.type].status === 'offline' || uStatus.status === 'online') {
-      // upgrade the status if we've seen it
-      acc[user][uStatus.type].status = uStatus.status;
-    }
-    if (acc[user][uStatus.type].status === uStatus.status) {
-      // get the most recent timestamp for our status
-      acc[user][uStatus.type].at = uStatus.updatedAt > acc[user][uStatus.type].at ? uStatus.updatedAt : acc[user][uStatus.type].at;
-    }
-
-    if ( uStatus.type === 'puzzleStatus' && acc[user].puzzleStatus.at === uStatus.updatedAt ) {
-      // for a puzzleStatus, if this is the most recently seen puzzle, add the puzzleId
+    if (uStatus.type === 'puzzleStatus' && uStatus.updatedAt > acc[user].puzzleStatus.at) {
+      // do puzzle status things, we should have only one here
+      acc[user].puzzleStatus.at = uStatus.updatedAt;
+      acc[user].puzzleStatus.source = uStatus.type;
       acc[user].puzzleStatus.puzzle = uStatus.puzzle;
+    } else {
+      if (acc[user][uStatus.type].status === 'offline' || uStatus.status === 'online') {
+        // upgrade the status if we've seen it
+        acc[user][uStatus.type].status = uStatus.status;
+      }
+      if (acc[user][uStatus.type].status === uStatus.status) {
+        // get the most recent timestamp for our status
+        acc[user][uStatus.type].at = uStatus.updatedAt > acc[user][uStatus.type].at ? uStatus.updatedAt : acc[user][uStatus.type].at;
+      }
     }
 
     return acc;

@@ -6,6 +6,7 @@ import {
 import ChatMessages from "../../lib/models/ChatMessages";
 import ChatNotifications from "../../lib/models/ChatNotifications";
 import MeteorUsers from "../../lib/models/MeteorUsers";
+import UserStatuses from "../../lib/models/UserStatuses";
 import nodeIsMention from "../../lib/nodeIsMention";
 import type Hookset from "./Hookset";
 
@@ -88,6 +89,18 @@ const ChatNotificationHooks: Hookset = {
         });
       }),
     );
+
+    await UserStatuses.upsertAsync({
+      hunt: chatMessage.hunt,
+      user: sender,
+      type: 'puzzleStatus',
+    },{
+      $set: {
+        status: "chat",
+        puzzle: chatMessage.puzzle,
+      }
+    }
+  )
   },
 };
 

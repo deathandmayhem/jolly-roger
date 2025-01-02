@@ -406,16 +406,15 @@ const UserStatusBadge = React.memo(({
   const [lastSeen, setLastSeen] = useState<Date | null>(statusObj?.status?.at || null);
   const [lastPuzzle, setLastPuzzle] = useState<Date | null>(statusObj?.puzzleStatus?.at || null);
   const [timeNow, setTimeNow] = useState<Date | null>(new Date() || null);
-  const [puzzleStatusString, setPuzzleStatusString] = useState<string | null>( null );
   const statusDebounceThreshold = new Date(Date.now() - 2 * 60 * 1000);
-  const relativeDebounceThreshold = new Date(Date.now() - 10 * 1000);
+  const relativeDebounceThreshold = new Date(Date.now() - 60 * 1000);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       setLastSeen(statusObj?.status?.at || null);
       setLastPuzzle(statusObj?.puzzleStatus?.at || null);
       setTimeNow(new Date());
-    }, puzzleStatusString === 'Online' ? 1000 : 60 * 1000);
+    }, 60 * 1000);
 
     return () => clearInterval(intervalId);
   }, [statusObj]);
@@ -432,10 +431,9 @@ const UserStatusBadge = React.memo(({
     const puzzleName = puzzleId ? huntPuzzles[puzzleId] : null;
 
     const statusString = (userStatus === 'offline' && !lastSeenRecently) ? 'Offline' : (userStatus === 'away' && !lastSeenRecently) ? 'Away' : 'Online';
-    setPuzzleStatusString((puzzleStatus === 'offline' && !lastPuzzleRecently) ? 'Offline' : (puzzleStatus === 'away' && !lastPuzzleRecently) ? 'Away' : 'Online');
     const puzzleLabel =
       <span><strong><FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />&nbsp;
-      {puzzleName}</strong>
+      {puzzleName?.length > 25 ? puzzleName.slice(0, 25) + '...' : puzzleName}</strong>
       { puzzleStatus !== 'online' && lastPuzzle && !puzzleCountdownDebounce ? (<span> <RelativeTime
       date={lastPuzzle}
       minimumUnit="second"
@@ -472,7 +470,7 @@ const UserStatusBadge = React.memo(({
             {
             puzzleId ? (
               <Button
-                variant={puzzleStatusString === 'Online' ? 'success' : puzzleStatusString === 'Away' ? 'warning' : 'secondary'}
+                variant="dark"
                 href={`/hunts/${huntId}/puzzles/${puzzleId}`}
               >
                 {puzzleLabel}

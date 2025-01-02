@@ -45,6 +45,7 @@ import {
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import CallActivities from "./models/CallActivities";
 import onExit from "./onExit";
+import UserStatuses from "../lib/models/UserStatuses";
 
 const mediaCodecs: types.RtpCodecCapability[] = [
   {
@@ -626,6 +627,20 @@ class SFU {
                 user,
                 ts: roundedTime(ACTIVITY_GRANULARITY),
               });
+
+              // arguably this could/should go into a hook
+              // but that seems like a bit too much overhead
+              // for this feature?
+              await UserStatuses.upsertAsync({
+                hunt: observerAppData.hunt,
+                user: user,
+                type: "puzzleStatus",
+              }, {
+                $set : {
+                  status: "call",
+                  puzzle: observerAppData.call,
+                }
+              })
             });
           }
         }
