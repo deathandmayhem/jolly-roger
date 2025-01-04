@@ -1,5 +1,5 @@
 import { Meteor } from "meteor/meteor";
-import { useTracker } from "meteor/react-meteor-data";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
@@ -56,6 +56,11 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import RelatedPuzzleGroup, { PuzzleGroupDiv } from "./RelatedPuzzleGroup";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import { mediaBreakpointDown } from "./styling/responsive";
+import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
+import { Subscribers, SubscriberType } from "../subscribers";
+import Peers from "../../lib/models/mediasoup/Peers";
+import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
+import indexedDisplayNames from "../indexedDisplayNames";
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
@@ -382,12 +387,66 @@ const PuzzleListView = ({
     }
   });
 
+  const subscribersLoading = useSubscribe("subscribers.fetchAll");
+  const callMembersLoading = useSubscribe("mediasoup:metadataAll", huntId);
+  const displayNamesLoading = useSubscribeDisplayNames(huntId);
+
+  const displayNames = indexedDisplayNames();
+
+  const subscriptionsLoading =
+    subscribersLoading() || callMembersLoading() || displayNamesLoading();
+
+  const puzzleSubscribers = useTracker(() => {
+    if (subscriptionsLoading) {
+      return {"none":{"none":[]}};
+      }
+
+    let puzzleSubscribers = {};
+
+    Peers.find({}).fetch().forEach((s) => {
+      let puzzle = s.call;
+      let user = s.createdBy;
+      if (!Object.prototype.hasOwnProperty.call(puzzleSubscribers, puzzle)) {
+        puzzleSubscribers[puzzle] = {
+          viewers: [],
+          callers: [],
+        };
+      }
+      if (
+        !puzzleSubscribers[puzzle].callers.includes(user)
+      ) {
+        puzzleSubscribers[puzzle].callers.push(user);
+      }
+    });
+
+    Subscribers.find({}).fetch().forEach((s) => {
+      let puzzle = s.name.replace(/^puzzle:/, '');
+      let user = s.user;
+      if (!Object.prototype.hasOwnProperty.call(puzzleSubscribers, puzzle)) {
+        puzzleSubscribers[puzzle] = {
+          viewers: [],
+          callers: [],
+        };
+      }
+      if (
+        !puzzleSubscribers[puzzle].callers.includes(user) &&
+        !puzzleSubscribers[puzzle].viewers.includes(user)
+      ) {
+        puzzleSubscribers[puzzle].viewers.push(user);
+      }
+    });
+    return puzzleSubscribers;
+  });
+
+  console.log(puzzleSubscribers);
+
   const renderList = useCallback(
     (
       retainedPuzzles: PuzzleType[],
       retainedDeletedPuzzles: PuzzleType[] | undefined,
       solvedOverConstrains: boolean,
       allPuzzlesCount: number,
+      puzzleSubscribers: Record <string, Record <string, string[]>>,
     ) => {
       const maybeMatchWarning = solvedOverConstrains && (
         <Alert variant="info">
@@ -433,6 +492,7 @@ const PuzzleListView = ({
                 suppressedTagIds={suppressedTagIds}
                 trackPersistentExpand={searchString === ""}
                 showSolvers={showSolvers}
+                subscribers={puzzleSubscribers}
               />
             );
           });
@@ -462,6 +522,7 @@ const PuzzleListView = ({
               allTags={allTags}
               canUpdate={canUpdate}
               showSolvers={showSolvers}
+              subscribers={puzzleSubscribers}
             />
           );
           listControls = null;
@@ -680,12 +741,7 @@ const PuzzleListView = ({
           </InputGroup>
         </SearchFormGroup>
       </ViewControls>
-      {renderList(
-        retainedPuzzles,
-        retainedDeletedPuzzles,
-        solvedOverConstrains,
-        allPuzzles.length,
-      )}
+      {renderList(retainedPuzzles, retainedDeletedPuzzles, solvedOverConstrains, allPuzzles.length, puzzleSubscribers)}
     </div>
   );
 };

@@ -12,6 +12,7 @@ const PuzzleList = React.memo(
     showSolvers,
     suppressTags,
     segmentAnswers,
+    subscribers,
   }: {
     // The puzzles to show in this list
     puzzles: PuzzleType[];
@@ -22,6 +23,7 @@ const PuzzleList = React.memo(
     showSolvers: boolean;
     suppressTags?: string[];
     segmentAnswers?: boolean;
+    subscribers: Record <string, Record <string, string[]>>;
   }) => {
     // This component just renders the puzzles provided, in order.
     // Adjusting order based on tags, tag groups, etc. is to be done at
@@ -29,6 +31,7 @@ const PuzzleList = React.memo(
     return (
       <div className="puzzle-list">
         {puzzles.map((puzzle) => {
+          let puzzleId = puzzle._id;
           return (
             <Puzzle
               key={puzzle._id}
@@ -39,6 +42,7 @@ const PuzzleList = React.memo(
               suppressTags={suppressTags}
               segmentAnswers={segmentAnswers}
               showSolvers={showSolvers}
+              subscribers={subscribers && puzzleId in subscribers ? subscribers[puzzleId] : null}
             />
           );
         })}

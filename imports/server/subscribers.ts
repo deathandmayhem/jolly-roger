@@ -170,3 +170,40 @@ Meteor.publish("subscribers.fetch", async function (name) {
   this.ready();
   return undefined;
 });
+
+// this is the unsafe version of the above
+Meteor.publish("subscribers.fetchAll", function () {
+
+  if (!this.userId) {
+    return [];
+  }
+
+  const users: Record<string, number> = {};
+
+  const cursor = Subscribers.find({});
+  const handle = cursor.observe({
+    added: (doc) => {
+      const { user } = doc;
+
+      if (!Object.prototype.hasOwnProperty.call(users, user)) {
+        users[user] = 0;
+        this.added("subscribers", `${name}:${user}`, { name, user });
+      }
+
+      users[user] += 1;
+    },
+
+    removed: (doc) => {
+      const { user } = doc;
+
+      users[user] -= 1;
+      if (users[user] === 0) {
+        delete users[user];
+        this.removed("subscribers", `${name}:${user}`);
+      }
+    },
+  });
+  this.onStop(() => handle.stop());
+  this.ready();
+  return undefined;
+});

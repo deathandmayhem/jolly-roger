@@ -230,6 +230,7 @@ const Puzzle = React.memo(
     showSolvers,
     suppressTags,
     segmentAnswers,
+    subscribers,
   }: {
     puzzle: PuzzleType;
     bookmarked: boolean;
@@ -239,6 +240,7 @@ const Puzzle = React.memo(
     showSolvers: boolean;
     suppressTags?: string[];
     segmentAnswers?: boolean;
+    subscribers: Record <string, string[]> | null;
   }) => {
 
     const puzzleId = puzzle._id;
@@ -252,84 +254,17 @@ const Puzzle = React.memo(
     );
 
     // add a list of people viewing a puzzle to activity
-    const subscriberTopic = `puzzle:${puzzleId}`;
-    const subscribersLoading = useSubscribe("subscribers.fetch", subscriberTopic);
-    const callMembersLoading = useSubscribe(
-      "mediasoup:metadata",
-      huntId,
-      puzzleId,
-    );
-    const avatarsLoading = useSubscribeAvatars(huntId);
-
-    const loading =
-      subscribersLoading() || callMembersLoading() || avatarsLoading();
-
-
-    const { unknown, viewers, rtcViewers } = useTracker(() => {
-      if (loading) {
-        return {
-          unknown: 0,
-          viewers: [],
-          rtcViewers: [],
-          selfPeer: undefined,
-        };
-      }
-
-      let unknownCount = 0;
-      const viewersAcc: ViewerSubscriber[] = [];
-
-      const rtcViewersAcc: ViewerSubscriber[] = [];
-      const rtcViewerIndex: Record<string, boolean> = {};
-
-      const rtcParticipants = Peers.find({
-        hunt: huntId,
-        call: puzzleId,
-      }).fetch();
-      rtcParticipants.forEach((p) => {
-        const user = MeteorUsers.findOne(p.createdBy);
-        if (!user?.displayName) {
-          unknownCount += 1;
-          return;
-        }
-
-        // If the same user is joined twice (from two different tabs), dedupe in
-        // the viewer listing. (We include both in rtcParticipants still.)
-        rtcViewersAcc.push({
-          user: user._id,
-          name: user.displayName,
-          discordAccount: user.discordAccount,
-          tab: p.tab,
-        });
-        rtcViewerIndex[user._id] = true;
-      });
-
-      Subscribers.find({ name: subscriberTopic }).forEach((s) => {
-        if (rtcViewerIndex[s.user]) {
-          // already counted among rtcViewers, don't duplicate
-          return;
-        }
-
-        const user = MeteorUsers.findOne(s.user);
-        if (!user?.displayName) {
-          unknownCount += 1;
-          return;
-        }
-
-        viewersAcc.push({
-          user: s.user,
-          name: user.displayName,
-          discordAccount: user.discordAccount,
-          tab: undefined,
-        });
-      });
-
-      return {
-        unknown: unknownCount,
-        viewers: viewersAcc,
-        rtcViewers: rtcViewersAcc,
-      };
-    }, [loading, subscriberTopic, huntId, puzzleId]);
-
+    const viewers = (subscribers?.viewers ?? [])
+    .map(u => MeteorUsers.findOne(u)?.displayName ?? "")
+    .filter(Boolean);
+    const rtcViewers = (subscribers?.callers ?? [])
+    .map(u => MeteorUsers.findOne(u)?.displayName ?? "")
+    .filter(Boolean);
+    if(subscribers){
+      console.log(subscribers);
+      console.log(viewers);
+      console.log(rtcViewers);
+    }
     const showEdit = canUpdate && !operatorActionsHidden;
 
     // Generating the edit modals for all puzzles is expensive, so we do it
@@ -557,10 +492,10 @@ const Puzzle = React.memo(
         { showSolvers && solvedness  === 'unsolved' ? (
           <div>
           {rtcViewers.length > 0 ? (<span><FontAwesomeIcon icon={faPhone}/> </span>) : null}
-          {rtcViewers.map((viewer)=>(viewer.name)).join(', ')}
+          {rtcViewers.map((viewer)=>(viewer)).join(', ')}
           {rtcViewers.length > 0 && viewers.length > 0 ? <br/> : null}
           {viewers.length > 0 ? (<span><FontAwesomeIcon icon={faEye}/> </span>) : null}
-          {viewers.map((viewer)=>(viewer.name)).join(', ')}
+          {viewers.map((viewer)=>(viewer)).join(', ')}
           </div>
         ) : null }
         </SolversColumn>
