@@ -56,8 +56,7 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import RelatedPuzzleGroup, { PuzzleGroupDiv } from "./RelatedPuzzleGroup";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import { mediaBreakpointDown } from "./styling/responsive";
-import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
-import { Subscribers, SubscriberType } from "../subscribers";
+import { Subscribers } from "../subscribers";
 import Peers from "../../lib/models/mediasoup/Peers";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import indexedDisplayNames from "../indexedDisplayNames";
@@ -405,7 +404,7 @@ const PuzzleListView = ({
 
     Peers.find({}).fetch().forEach((s) => {
       let puzzle = s.call;
-      let user = s.createdBy;
+      let user = displayNames.get(s.createdBy);
       if (!Object.prototype.hasOwnProperty.call(puzzleSubscribers, puzzle)) {
         puzzleSubscribers[puzzle] = {
           viewers: [],
@@ -421,7 +420,7 @@ const PuzzleListView = ({
 
     Subscribers.find({}).fetch().forEach((s) => {
       let puzzle = s.name.replace(/^puzzle:/, '');
-      let user = s.user;
+      let user = displayNames.get(s.user);
       if (!Object.prototype.hasOwnProperty.call(puzzleSubscribers, puzzle)) {
         puzzleSubscribers[puzzle] = {
           viewers: [],
@@ -545,6 +544,8 @@ const PuzzleListView = ({
                 allTags={allTags}
                 canUpdate={canUpdate}
                 suppressedTagIds={[]}
+                showSolvers={showSolvers}
+                subscribers={puzzleSubscribers}
               />
             </PuzzleGroupDiv>
           )}
@@ -560,7 +561,9 @@ const PuzzleListView = ({
               includeCount={false}
               canUpdate={canUpdate}
               suppressedTagIds={[]}
-              trackPersistentExpand={searchString === ""}
+              trackPersistentExpand={searchString !== ""}
+              subscribers={puzzleSubscribers}
+              showSolvers={showSolvers}
             />
           )}
         </div>

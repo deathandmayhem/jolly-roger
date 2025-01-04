@@ -31,20 +31,7 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import TagList from "./TagList";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { DiscordAccountType } from "../../lib/models/DiscordAccount";
-import { useSubscribe, useTracker } from "meteor/react-meteor-data";
-import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
-import Peers from "../../lib/models/mediasoup/Peers";
-import MeteorUsers from "../../lib/models/MeteorUsers";
-import { Subscribers } from "../subscribers";
-
-interface ViewerSubscriber {
-  user: string;
-  name: string | undefined;
-  discordAccount: DiscordAccountType | undefined;
-  tab: string | undefined;
-}
-
+import { useTracker } from "meteor/react-meteor-data";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
@@ -53,7 +40,6 @@ import { faNoteSticky, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { Badge, OverlayTrigger, Tooltip } from "react-bootstrap";
 import RelativeTime from "./RelativeTime";
 import { useFind } from "meteor/react-meteor-data";
-import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import ChatMessage from "./ChatMessage";
 import indexedDisplayNames from "../indexedDisplayNames";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
@@ -255,10 +241,8 @@ const Puzzle = React.memo(
 
     // add a list of people viewing a puzzle to activity
     const viewers = (subscribers?.viewers ?? [])
-    .map(u => MeteorUsers.findOne(u)?.displayName ?? "")
     .filter(Boolean);
     const rtcViewers = (subscribers?.callers ?? [])
-    .map(u => MeteorUsers.findOne(u)?.displayName ?? "")
     .filter(Boolean);
     const showEdit = canUpdate && !operatorActionsHidden;
 
