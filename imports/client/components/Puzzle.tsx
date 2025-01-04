@@ -260,11 +260,6 @@ const Puzzle = React.memo(
     const rtcViewers = (subscribers?.callers ?? [])
     .map(u => MeteorUsers.findOne(u)?.displayName ?? "")
     .filter(Boolean);
-    if(subscribers){
-      console.log(subscribers);
-      console.log(viewers);
-      console.log(rtcViewers);
-    }
     const showEdit = canUpdate && !operatorActionsHidden;
 
     // Generating the edit modals for all puzzles is expensive, so we do it

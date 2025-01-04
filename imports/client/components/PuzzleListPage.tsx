@@ -438,8 +438,6 @@ const PuzzleListView = ({
     return puzzleSubscribers;
   });
 
-  console.log(puzzleSubscribers);
-
   const renderList = useCallback(
     (
       retainedPuzzles: PuzzleType[],
