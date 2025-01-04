@@ -8,6 +8,7 @@ import React, {
   type ComponentPropsWithRef,
   type FC,
   useCallback,
+  useEffect,
   useRef,
 } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -386,10 +387,10 @@ const PuzzleListView = ({
     }
   });
 
-  const subscribersLoading = useSubscribe("subscribers.fetchAll");
+  const subscribersLoading = useSubscribe("subscribers.fetchAll", huntId);
   const callMembersLoading = useSubscribe("mediasoup:metadataAll", huntId);
-  const displayNamesLoading = useSubscribeDisplayNames(huntId);
 
+  const displayNamesLoading = useSubscribeDisplayNames(huntId);
   const displayNames = indexedDisplayNames();
 
   const subscriptionsLoading =
@@ -419,7 +420,7 @@ const PuzzleListView = ({
     });
 
     Subscribers.find({}).fetch().forEach((s) => {
-      let puzzle = s.name.replace(/^puzzle:/, '');
+      let puzzle = s._id.replace(/^puzzle:/, '');
       let user = displayNames.get(s.user);
       if (!Object.prototype.hasOwnProperty.call(puzzleSubscribers, puzzle)) {
         puzzleSubscribers[puzzle] = {

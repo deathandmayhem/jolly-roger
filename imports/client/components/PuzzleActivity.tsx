@@ -94,6 +94,7 @@ interface PuzzleActivityProps {
   huntId: string;
   puzzleId: string;
   unlockTime: Date;
+  subscribers: Record <string, string[]> | null;
 }
 
 interface ViewerSubscriber {
@@ -107,6 +108,7 @@ const PuzzleActivity = ({
   huntId,
   puzzleId,
   unlockTime,
+  subscribers,
 }: PuzzleActivityProps) => {
   const [finalBucket, setFinalBucket] = useState(
     roundedTime(ACTIVITY_GRANULARITY),
@@ -191,89 +193,12 @@ const PuzzleActivity = ({
     return buckets[buckets.length - 1] ?? 0;
   };
 
-  // add a list of people viewing a puzzle to activity
-  const subscriberTopic = `puzzle:${puzzleId}`;
-  const subscribersLoading = useSubscribe("subscribers.fetch", subscriberTopic);
-  const callMembersLoading = useSubscribe(
-    "mediasoup:metadata",
-    huntId,
-    puzzleId,
-  );
-  const avatarsLoading = useSubscribeAvatars(huntId);
-
-  const loading =
-    subscribersLoading() || callMembersLoading() || avatarsLoading();
-
-
-  const { unknown, viewers, rtcViewers } = useTracker(() => {
-    if (loading) {
-      return {
-        unknown: 0,
-        viewers: [],
-        rtcViewers: [],
-        selfPeer: undefined,
-      };
-    }
-
-    let unknownCount = 0;
-    const viewersAcc: ViewerSubscriber[] = [];
-
-    const rtcViewersAcc: ViewerSubscriber[] = [];
-    const rtcViewerIndex: Record<string, boolean> = {};
-
-    const rtcParticipants = Peers.find({
-      hunt: huntId,
-      call: puzzleId,
-    }).fetch();
-    rtcParticipants.forEach((p) => {
-      const user = MeteorUsers.findOne(p.createdBy);
-      if (!user?.displayName) {
-        unknownCount += 1;
-        return;
-      }
-
-      // If the same user is joined twice (from two different tabs), dedupe in
-      // the viewer listing. (We include both in rtcParticipants still.)
-      rtcViewersAcc.push({
-        user: user._id,
-        name: user.displayName,
-        discordAccount: user.discordAccount,
-        tab: p.tab,
-      });
-      rtcViewerIndex[user._id] = true;
-    });
-
-    Subscribers.find({ name: subscriberTopic }).forEach((s) => {
-      if (rtcViewerIndex[s.user]) {
-        // already counted among rtcViewers, don't duplicate
-        return;
-      }
-
-      const user = MeteorUsers.findOne(s.user);
-      if (!user?.displayName) {
-        unknownCount += 1;
-        return;
-      }
-
-      viewersAcc.push({
-        user: s.user,
-        name: user.displayName,
-        discordAccount: user.discordAccount,
-        tab: undefined,
-      });
-    });
-
-    return {
-      unknown: unknownCount,
-      viewers: viewersAcc,
-      rtcViewers: rtcViewersAcc,
-    };
-  }, [loading, subscriberTopic, huntId, puzzleId]);
-
+  const rtcViewers = (subscribers?.callers ?? []);
+  const viewers = (subscribers?.viewers ?? []);
   const totalViewers = rtcViewers.length + viewers.length;
 
   const viewerList = rtcViewers.concat(viewers).map((viewer) => (
-    viewer.name
+    viewer
   ));
 
   const sparklineTooltip = (

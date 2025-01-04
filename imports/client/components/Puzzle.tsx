@@ -484,6 +484,7 @@ const Puzzle = React.memo(
               huntId={puzzle.hunt}
               puzzleId={puzzle._id}
               unlockTime={puzzle.createdAt}
+              subscribers={subscribers}
             />
           )}
         </PuzzleActivityColumn>

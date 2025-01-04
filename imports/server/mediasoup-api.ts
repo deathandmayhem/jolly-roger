@@ -118,7 +118,7 @@ Meteor.publish("mediasoup:metadataAll", async function (hunt) {
     throw new Meteor.Error(403, "Not a member of this hunt");
   }
 
-  return [Peers.find({ hunt }), CallHistories.find({ hunt })];
+  return Peers.find({ hunt });
 });
 
 Meteor.publish("mediasoup:join", async function (hunt, call, tab) {

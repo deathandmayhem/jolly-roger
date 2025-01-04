@@ -10,8 +10,12 @@ import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { serverId, registerPeriodicCleanupHook } from "./garbage-collection";
 import Subscribers from "./models/Subscribers";
+<<<<<<< HEAD
 import { trace } from "console";
 import GlobalHooks from "./GlobalHooks";
+=======
+import MeteorUsers from "../lib/models/MeteorUsers";
+>>>>>>> b8342559 (speculative fix to user viewing fanout)
 
 // Clean up leaked subscribers from dead servers periodically.
 async function cleanupHook(deadServers: string[]) {
@@ -172,35 +176,34 @@ Meteor.publish("subscribers.fetch", async function (name) {
 });
 
 // this is the unsafe version of the above
-Meteor.publish("subscribers.fetchAll", function () {
+Meteor.publish("subscribers.fetchAll", function (hunt) {
+  check(hunt, String);
 
   if (!this.userId) {
-    return [];
+    throw new Meteor.Error(401, "Not logged in");
+  }
+
+  if (!MeteorUsers.findOne(this.userId)?.hunts?.includes(hunt)) {
+    throw new Meteor.Error(403, "Not a member of this hunt");
   }
 
   const users: Record<string, number> = {};
 
-  const cursor = Subscribers.find({});
+  // const cursor = Subscribers.find({});
+  const cursor = Subscribers.find({'context.hunt': hunt});
   const handle = cursor.observe({
     added: (doc) => {
       const { user } = doc;
+      const { name } = doc;
 
-      if (!Object.prototype.hasOwnProperty.call(users, user)) {
-        users[user] = 0;
-        this.added("subscribers", `${name}:${user}`, { name, user });
-      }
-
-      users[user] += 1;
+      this.added("subscribers", `${name}`, { user });
     },
 
     removed: (doc) => {
       const { user } = doc;
+      const { name } = doc;
 
-      users[user] -= 1;
-      if (users[user] === 0) {
-        delete users[user];
-        this.removed("subscribers", `${name}:${user}`);
-      }
+      this.removed("subscribers", `${user}`);
     },
   });
   this.onStop(() => handle.stop());
