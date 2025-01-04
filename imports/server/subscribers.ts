@@ -189,21 +189,31 @@ Meteor.publish("subscribers.fetchAll", function (hunt) {
 
   const users: Record<string, number> = {};
 
-  // const cursor = Subscribers.find({});
-  const cursor = Subscribers.find({'context.hunt': hunt});
+  const cursor = Subscribers.find({});
+  // const cursor = Subscribers.find({'context.hunt': hunt});
   const handle = cursor.observe({
     added: (doc) => {
-      const { user } = doc;
-      const { name } = doc;
+      const user = doc.user;
+      const name = doc.name;
+      const key = `${name}:${user}`;
 
-      this.added("subscribers", `${name}`, { user });
+      if (!Object.prototype.hasOwnProperty.call(users, key)) {
+        users[key] = 0;
+        this.added("subscribers", key, { name, user });
+      }
+
+      users[key] += 1;
     },
 
     removed: (doc) => {
-      const { user } = doc;
-      const { name } = doc;
+      const user = doc.user;
+      const name = doc.name;
 
-      this.removed("subscribers", `${user}`);
+      users[key] -= 1;
+      if (users[key] === 0) {
+        delete users[key];
+        this.removed("subscribers", key);
+      }
     },
   });
   this.onStop(() => handle.stop());

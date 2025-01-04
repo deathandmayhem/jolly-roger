@@ -401,42 +401,42 @@ const PuzzleListView = ({
       return {"none":{"none":[]}};
       }
 
-    let puzzleSubscribers = {};
+    let puzzleSubs = {};
 
     Peers.find({}).fetch().forEach((s) => {
       let puzzle = s.call;
       let user = displayNames.get(s.createdBy);
-      if (!Object.prototype.hasOwnProperty.call(puzzleSubscribers, puzzle)) {
-        puzzleSubscribers[puzzle] = {
+      if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
+        puzzleSubs[puzzle] = {
           viewers: [],
           callers: [],
         };
       }
       if (
-        !puzzleSubscribers[puzzle].callers.includes(user)
+        !puzzleSubs[puzzle].callers.includes(user)
       ) {
-        puzzleSubscribers[puzzle].callers.push(user);
+        puzzleSubs[puzzle].callers.push(user);
       }
     });
 
-    Subscribers.find({}).fetch().forEach((s) => {
-      let puzzle = s._id.replace(/^puzzle:/, '');
+    Subscribers.find({}).forEach((s) => {
+      let puzzle = s.name.replace(/^puzzle:/, '');
       let user = displayNames.get(s.user);
-      if (!Object.prototype.hasOwnProperty.call(puzzleSubscribers, puzzle)) {
-        puzzleSubscribers[puzzle] = {
+      if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
+        puzzleSubs[puzzle] = {
           viewers: [],
           callers: [],
         };
       }
       if (
-        !puzzleSubscribers[puzzle].callers.includes(user) &&
-        !puzzleSubscribers[puzzle].viewers.includes(user)
+        !puzzleSubs[puzzle].callers.includes(user) &&
+        !puzzleSubs[puzzle].viewers.includes(user)
       ) {
-        puzzleSubscribers[puzzle].viewers.push(user);
+        puzzleSubs[puzzle].viewers.push(user);
       }
     });
-    return puzzleSubscribers;
-  });
+    return puzzleSubs;
+  }, [subscriptionsLoading]);
 
   const renderList = useCallback(
     (
@@ -580,6 +580,7 @@ const PuzzleListView = ({
       canExpandAllGroups,
       expandAllGroups,
       bookmarked,
+      puzzleSubscribers,
     ],
   );
 
