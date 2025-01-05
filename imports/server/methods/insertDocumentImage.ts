@@ -6,6 +6,37 @@ import Settings from "../../lib/models/Settings";
 import insertDocumentImage from "../../methods/insertDocumentImage";
 import defineMethod from "./defineMethod";
 
+async function validateImageLink(link: string) {
+  // Attempt to fetch the response headers for the image to determine the MIME type.
+  // If the request fails, we continue with the upload - invalid images will still fail, just with
+  // a more confusing error message. We do this here and not client-side to bypass any CORS
+  // restrictions. We do this here and not in the App Script to make a HEAD request and avoid
+  // fetching the image contents.
+  const resp = await fetch(link, {
+    method: "HEAD",
+  });
+  if (!resp.ok) {
+    // Couldn't fetch the image for validation. Let the request through.
+    return;
+  }
+  const contentType = resp.headers.get("Content-Type");
+  if (!contentType) {
+    // Response didn't include content-type header. Let the request through.
+    return;
+  }
+  if (
+    contentType !== "image/png" &&
+    contentType !== "image/jpeg" &&
+    contentType !== "image/gif"
+  ) {
+    throw new Meteor.Error(
+      400,
+      "Unsupported format. Only PNG/GIF/JPG are supported. Try copying the image and pasting " +
+        "into the sheet with the keyboard instead.",
+    );
+  }
+}
+
 defineMethod(insertDocumentImage, {
   validate(arg) {
     check(arg, {
@@ -56,6 +87,7 @@ defineMethod(insertDocumentImage, {
         };
         break;
       case "link":
+        await validateImageLink(image.url);
         imageParams = {
           link: image.url,
         };
