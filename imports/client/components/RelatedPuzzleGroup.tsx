@@ -8,6 +8,7 @@ import type { PuzzleGroup } from "../../lib/puzzle-sort-and-group";
 import { useHuntPuzzleListCollapseGroup } from "../hooks/persisted-state";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import Tag from "./Tag";
+import { ChatMessageType } from "../../lib/models/ChatMessages";
 
 export const PuzzleGroupDiv = styled.div`
   &:not(:last-child) {
@@ -52,6 +53,7 @@ const RelatedPuzzleGroup = ({
   trackPersistentExpand,
   showSolvers,
   subscribers,
+  pinnedMessages,
 }: {
   huntId: string;
   group: PuzzleGroup;
@@ -65,6 +67,7 @@ const RelatedPuzzleGroup = ({
   trackPersistentExpand: boolean;
   showSolvers: boolean;
   subscribers: Record <string, Record <string, string[]>>;
+  pinnedMessages: ChatMessageType[] | null;
 }) => {
   const [persistentCollapsed, setPersistentCollapsed] =
     useHuntPuzzleListCollapseGroup(
@@ -127,6 +130,7 @@ const RelatedPuzzleGroup = ({
             suppressedTagIds={allSuppressedTagIds}
             showSolvers={showSolvers}
             subscribers={subscribers}
+            pinnedMessages={pinnedMessages}
           />
           {group.subgroups.map((subgroup) => {
             const subgroupSuppressedTagIds = [...allSuppressedTagIds];
@@ -146,6 +150,7 @@ const RelatedPuzzleGroup = ({
                 suppressedTagIds={subgroupSuppressedTagIds}
                 trackPersistentExpand={trackPersistentExpand}
                 showSolvers={showSolvers}
+                pinnedMessages={pinnedMessages}
               />
             );
           })}

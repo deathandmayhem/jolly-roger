@@ -32,14 +32,10 @@ import TagList from "./TagList";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
 import { useTracker } from "meteor/react-meteor-data";
-import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
-import ChatMessages from "../../lib/models/ChatMessages";
 import { faNoteSticky, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { Badge, OverlayTrigger, Tooltip } from "react-bootstrap";
 import RelativeTime from "./RelativeTime";
-import { useFind } from "meteor/react-meteor-data";
 import ChatMessage from "./ChatMessage";
 import indexedDisplayNames from "../indexedDisplayNames";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
@@ -52,10 +48,6 @@ const FilteredChatFields = [
   "sender",
   "timestamp",
 ] as const;
-type FilteredChatMessageType = Pick<
-  ChatMessageType,
-  (typeof FilteredChatFields)[number]
->;
 
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;
@@ -109,7 +101,8 @@ const StyledButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   && {
     /* Resize button to fit in one line-height */
     display: block;
-    height: 24px;
+    height: 24px;  pinnedMessages: ChatMessageType[] | null;
+
     width: 24px;
     padding: 0;
   }
@@ -217,6 +210,7 @@ const Puzzle = React.memo(
     suppressTags,
     segmentAnswers,
     subscribers,
+    pinnedMessage
   }: {
     puzzle: PuzzleType;
     bookmarked: boolean;
@@ -227,6 +221,7 @@ const Puzzle = React.memo(
     suppressTags?: string[];
     segmentAnswers?: boolean;
     subscribers: Record <string, string[]> | null;
+    pinnedMessage: ChatMessageType | null;
   }) => {
 
     const puzzleId = puzzle._id;
@@ -369,25 +364,18 @@ const Puzzle = React.memo(
       );
     });
 
-    useTypedSubscribe(chatMessagesForPuzzle, {
-      puzzleId,
-      huntId,
-    });
-
-    const puzzlePin: FilteredChatMessageType[] = useFind(
-      () => ChatMessages.find({puzzle:puzzleId, pinTs:{$ne:null}}, { sort:{ pinTs: -1 }, limit: 1 }),
-      [puzzleId],
-    );
-
-    const pinnedMessage = puzzlePin[0];
-
-    let noteTooltip = {};
 
     const selfUser = useTracker(() => Meteor.user()!, []);
     const selfUserId = selfUser._id;
 
-    if (pinnedMessage) {
-      noteTooltip = (
+    const {noteTooltip, ttRelTime} = useTracker(() => {
+      if (!pinnedMessage) {
+        return {
+          noteTooltip: null,
+          ttRelTime: null,
+        };
+      }
+      const noteTT = (
         <Tooltip
           id={`puzzle-note-update-${puzzleId}`}
           style={{maxHeight: "9.55rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "... (truncated)", borderRadius: "5px"}}
@@ -396,11 +384,22 @@ const Puzzle = React.memo(
             message={pinnedMessage.content}
             displayNames={displayNames}
             selfUserId={selfUserId}
-            timestamp={pinnedMessage.timestamp}
+            timestamp={pinnedMessage.pinTs}
           />
         </Tooltip>
       );
-    }
+
+      const relTime = (<RelativeTime
+        date={pinnedMessage?.pinTs}
+        terse
+        minimumUnit="minute"
+        maxElements={1}
+      />);
+      return {
+        noteTooltip: noteTT,
+        ttRelTime: relTime,
+      };
+    }, [pinnedMessage?.content, pinnedMessage?.pinTs]);
 
     return (
       <PuzzleDiv $solvedness={solvedness}>
@@ -436,12 +435,7 @@ const Puzzle = React.memo(
               <OverlayTrigger placement="top" overlay={noteTooltip}>
               <PuzzleNote>
                 <FontAwesomeIcon icon={faNoteSticky} />
-                <RelativeTime
-                  date={pinnedMessage?.timestamp}
-                  terse
-                  minimumUnit="minute"
-                  maxElements={1}
-                />
+                {ttRelTime}
               </PuzzleNote>
               </OverlayTrigger>
             ): null
