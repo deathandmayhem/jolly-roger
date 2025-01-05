@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
@@ -7,6 +7,9 @@ import nodeIsMention from "../../lib/nodeIsMention";
 import FixedLayout from "./styling/FixedLayout";
 import { Alert } from "react-bootstrap";
 import { useBreadcrumb } from "../hooks/breadcrumb";
+import Markdown from "./Markdown";
+import { useTracker } from "meteor/react-meteor-data";
+import Hunts from "../../lib/models/Hunts";
 
 const FirehosePageLayout = styled.div`
   padding: 8px 15px;
@@ -66,28 +69,16 @@ const MoreAppPage = () => {
     return `javascript:${encodeURIComponent(code)}`;
   }, [huntId]);
 
+  const hunt = useTracker(
+    () => (huntId ? Hunts.findOne(huntId) : null),
+    [huntId],
+  );
+
   return (
     <FixedLayout>
       <FirehosePageLayout>
         <h1>More resources</h1>
-        {administriviaPuzzles?.length > 0 && (
-          <>
-            <h2>Administrivia</h2>
-            <ul>
-              {administriviaPuzzles
-                .sort((a, b) => (a.title > b.title ? 1 : -1))
-                .map((p) => {
-                  return (
-                    <li key={p._id}>
-                      <a href={`/hunts/${huntId}/puzzles/${p._id}`}>
-                        {p.title}
-                      </a>
-                    </li>
-                  );
-                })}
-            </ul>
-          </>
-        )}
+        {hunt && <Markdown text={hunt.moreInfo ?? ""} />}
         <h2>Bookmarklet</h2>
 
         <p>This bookmarklet will:</p>
