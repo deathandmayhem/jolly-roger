@@ -1,6 +1,4 @@
-import React, {
-  useMemo,
-} from "react";
+import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
@@ -10,6 +8,11 @@ import nodeIsMention from "../../lib/nodeIsMention";
 import FixedLayout from "./styling/FixedLayout";
 import { Alert } from "react-bootstrap";
 import { useBreadcrumb } from "../hooks/breadcrumb";
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
+import { useTracker } from "meteor/react-meteor-data";
+import Puzzles from "../../lib/models/Puzzles";
+import Tags from "../../lib/models/Tags";
 
 const FirehosePageLayout = styled.div`
   padding: 8px 15px;
@@ -103,6 +106,27 @@ const MoreAppPage = () => {
 
   useBreadcrumb({ title: "More", path: `/hunts/${huntId}/more` });
 
+  const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
+    huntId,
+    includeDeleted: false,
+  });
+
+  const loading = puzzlesLoading();
+
+  const administriviaTag = useTracker(() => {
+    if (!huntId || loading) {
+      return null;
+    }
+    return Tags.findOne({ hunt: huntId, name: "administrivia" });
+  }, [huntId, loading]);
+
+  const administriviaPuzzles = useTracker(() => {
+    if (!huntId || !administriviaTag || loading) {
+      return null;
+    }
+    return Puzzles.find({ hunt: huntId, tags: administriviaTag._id }).fetch();
+  }, [huntId, loading, administriviaTag]);
+
   const jr_hostname = window.location.hostname;
   const bookmarklet = useMemo(() => {
     const code = `
@@ -113,25 +137,50 @@ const MoreAppPage = () => {
     return `javascript:${encodeURIComponent(code)}`;
   }, [huntId]);
 
-
   return (
     <FixedLayout>
       <FirehosePageLayout>
         <h1>More resources</h1>
+        {administriviaPuzzles?.length > 0 && (
+          <>
+            <h2>Administrivia</h2>
+            <ul>
+              {administriviaPuzzles
+                .sort((a, b) => (a.title > b.title ? 1 : -1))
+                .map((p) => {
+                  return (
+                    <li key={p._id}>
+                      <a href={`/hunts/${huntId}/puzzles/${p._id}`}>
+                        {p.title}
+                      </a>
+                    </li>
+                  );
+                })}
+            </ul>
+          </>
+        )}
         <h2>Bookmarklet</h2>
 
         <p>This bookmarklet will:</p>
         <ul>
-          <li>If the puzzle exists in Jolly Roger, take you to the puzzle page, or</li>
-          <li>If the puzzle doesn't yet exist in Jolly Roger, take you to the list of puzzles with the title and URL prepopulated.</li>
+          <li>
+            If the puzzle exists in Jolly Roger, take you to the puzzle page, or
+          </li>
+          <li>
+            If the puzzle doesn't yet exist in Jolly Roger, take you to the list
+            of puzzles with the title and URL prepopulated.
+          </li>
         </ul>
 
         <p>Drag this bookmarklet to your bookmarks bar!</p>
 
-        <p><a href={bookmarklet}>Add to Jolly Roger</a></p>
+        <p>
+          <a href={bookmarklet}>Add to Jolly Roger</a>
+        </p>
 
-        <Alert variant="warning">Note: You'll need a new/different version of this for each hunt.</Alert>
-
+        <Alert variant="warning">
+          Note: You'll need a new/different version of this for each hunt.
+        </Alert>
       </FirehosePageLayout>
     </FixedLayout>
   );
