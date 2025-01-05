@@ -208,6 +208,7 @@ Meteor.publish("subscribers.fetchAll", function (hunt) {
     removed: (doc) => {
       const user = doc.user;
       const name = doc.name;
+      const key = `${name}:${user}`;
 
       users[key] -= 1;
       if (users[key] === 0) {
