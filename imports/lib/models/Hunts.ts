@@ -51,6 +51,8 @@ const EditableHunt = z.object({
   isArchived: z.boolean().default(false),
   // If set, this is an array of "default roles" for the hunt
   defaultRoles: nonEmptyString.array().default([]),
+  // If set, this is a string that will be parsed as Markdown and displayed on the More page
+  moreInfo: nonEmptyString.optional(),
 });
 export type EditableHuntType = z.infer<typeof EditableHunt>;
 const Hunt = withCommon(EditableHunt);
@@ -74,6 +76,7 @@ export const HuntPattern = {
   memberDiscordRole: Match.Optional(SavedDiscordObjectPattern),
   isArchived: Match.Optional(Boolean),
   defaultRoles: [String] as [StringConstructor],
+  moreInfo: Match.Optional(String),
 };
 
 const Hunts = new SoftDeletedModel("jr_hunts", Hunt);
