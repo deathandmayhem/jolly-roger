@@ -364,20 +364,6 @@ const Puzzle = React.memo(
       );
     });
 
-    useTypedSubscribe(chatMessagesForPuzzle, {
-      puzzleId,
-      huntId,
-    });
-
-    const puzzlePin: FilteredChatMessageType[] = useFind(
-      () => ChatMessages.find({puzzle:puzzleId, pinTs:{$ne:null}}, { sort:{ pinTs: -1 }, limit: 1 }),
-      [puzzleId],
-    );
-
-    const pinnedMessage = puzzlePin[0];
-
-    let noteTooltip = null;
-
     const selfUser = useTracker(() => Meteor.user()!, []);
     const selfUserId = selfUser._id;
 

@@ -10,12 +10,8 @@ import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { serverId, registerPeriodicCleanupHook } from "./garbage-collection";
 import Subscribers from "./models/Subscribers";
-<<<<<<< HEAD
-import { trace } from "console";
 import GlobalHooks from "./GlobalHooks";
-=======
 import MeteorUsers from "../lib/models/MeteorUsers";
->>>>>>> b8342559 (speculative fix to user viewing fanout)
 
 // Clean up leaked subscribers from dead servers periodically.
 async function cleanupHook(deadServers: string[]) {
