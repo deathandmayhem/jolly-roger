@@ -4,6 +4,7 @@ import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import { puzzleInterestingness } from "../../lib/puzzle-sort-and-group";
 import PuzzleList from "./PuzzleList";
+import { ChatMessageType } from "../../lib/models/ChatMessages";
 
 function sortPuzzlesByRelevanceWithinPuzzleGroup(
   puzzles: PuzzleType[],
@@ -38,6 +39,8 @@ const RelatedPuzzleList = React.memo(
     suppressedTagIds,
     showSolvers,
     segmentAnswers,
+    subscribers,
+    pinnedMessages,
   }: {
     relatedPuzzles: PuzzleType[];
     bookmarked: Set<string>;
@@ -47,6 +50,8 @@ const RelatedPuzzleList = React.memo(
     suppressedTagIds: string[];
     showSolvers: boolean;
     segmentAnswers?: boolean;
+    subscribers: Record <string, Record <string, string[]>>;
+    pinnedMessages: ChatMessageType[] | null;
   }) => {
     // Sort the puzzles within each tag group by interestingness.  For instance, metas
     // should probably be at the top of the group, then of the round puzzles, unsolved should
@@ -66,6 +71,8 @@ const RelatedPuzzleList = React.memo(
         suppressTags={suppressedTagIds}
         segmentAnswers={segmentAnswers}
         showSolvers={showSolvers}
+        subscribers={subscribers}
+        pinnedMessages={pinnedMessages}
       />
     );
   },

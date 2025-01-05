@@ -31,29 +31,11 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import TagList from "./TagList";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { DiscordAccountType } from "../../lib/models/DiscordAccount";
-import { useSubscribe, useTracker } from "meteor/react-meteor-data";
-import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
-import Peers from "../../lib/models/mediasoup/Peers";
-import MeteorUsers from "../../lib/models/MeteorUsers";
-import { Subscribers } from "../subscribers";
-
-interface ViewerSubscriber {
-  user: string;
-  name: string | undefined;
-  discordAccount: DiscordAccountType | undefined;
-  tab: string | undefined;
-}
-
-import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
+import { useTracker } from "meteor/react-meteor-data";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
-import ChatMessages from "../../lib/models/ChatMessages";
 import { faNoteSticky, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { Badge, OverlayTrigger, Tooltip } from "react-bootstrap";
 import RelativeTime from "./RelativeTime";
-import { useFind } from "meteor/react-meteor-data";
-import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import ChatMessage from "./ChatMessage";
 import indexedDisplayNames from "../indexedDisplayNames";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
@@ -66,10 +48,6 @@ const FilteredChatFields = [
   "sender",
   "timestamp",
 ] as const;
-type FilteredChatMessageType = Pick<
-  ChatMessageType,
-  (typeof FilteredChatFields)[number]
->;
 
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;
@@ -123,7 +101,8 @@ const StyledButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
   && {
     /* Resize button to fit in one line-height */
     display: block;
-    height: 24px;
+    height: 24px;  pinnedMessages: ChatMessageType[] | null;
+
     width: 24px;
     padding: 0;
   }
@@ -230,6 +209,8 @@ const Puzzle = React.memo(
     showSolvers,
     suppressTags,
     segmentAnswers,
+    subscribers,
+    pinnedMessage
   }: {
     puzzle: PuzzleType;
     bookmarked: boolean;
@@ -239,6 +220,8 @@ const Puzzle = React.memo(
     showSolvers: boolean;
     suppressTags?: string[];
     segmentAnswers?: boolean;
+    subscribers: Record <string, string[]> | null;
+    pinnedMessage: ChatMessageType | null;
   }) => {
 
     const puzzleId = puzzle._id;
@@ -252,84 +235,10 @@ const Puzzle = React.memo(
     );
 
     // add a list of people viewing a puzzle to activity
-    const subscriberTopic = `puzzle:${puzzleId}`;
-    const subscribersLoading = useSubscribe("subscribers.fetch", subscriberTopic);
-    const callMembersLoading = useSubscribe(
-      "mediasoup:metadata",
-      huntId,
-      puzzleId,
-    );
-    const avatarsLoading = useSubscribeAvatars(huntId);
-
-    const loading =
-      subscribersLoading() || callMembersLoading() || avatarsLoading();
-
-
-    const { unknown, viewers, rtcViewers } = useTracker(() => {
-      if (loading) {
-        return {
-          unknown: 0,
-          viewers: [],
-          rtcViewers: [],
-          selfPeer: undefined,
-        };
-      }
-
-      let unknownCount = 0;
-      const viewersAcc: ViewerSubscriber[] = [];
-
-      const rtcViewersAcc: ViewerSubscriber[] = [];
-      const rtcViewerIndex: Record<string, boolean> = {};
-
-      const rtcParticipants = Peers.find({
-        hunt: huntId,
-        call: puzzleId,
-      }).fetch();
-      rtcParticipants.forEach((p) => {
-        const user = MeteorUsers.findOne(p.createdBy);
-        if (!user?.displayName) {
-          unknownCount += 1;
-          return;
-        }
-
-        // If the same user is joined twice (from two different tabs), dedupe in
-        // the viewer listing. (We include both in rtcParticipants still.)
-        rtcViewersAcc.push({
-          user: user._id,
-          name: user.displayName,
-          discordAccount: user.discordAccount,
-          tab: p.tab,
-        });
-        rtcViewerIndex[user._id] = true;
-      });
-
-      Subscribers.find({ name: subscriberTopic }).forEach((s) => {
-        if (rtcViewerIndex[s.user]) {
-          // already counted among rtcViewers, don't duplicate
-          return;
-        }
-
-        const user = MeteorUsers.findOne(s.user);
-        if (!user?.displayName) {
-          unknownCount += 1;
-          return;
-        }
-
-        viewersAcc.push({
-          user: s.user,
-          name: user.displayName,
-          discordAccount: user.discordAccount,
-          tab: undefined,
-        });
-      });
-
-      return {
-        unknown: unknownCount,
-        viewers: viewersAcc,
-        rtcViewers: rtcViewersAcc,
-      };
-    }, [loading, subscriberTopic, huntId, puzzleId]);
-
+    const viewers = (subscribers?.viewers ?? [])
+    .filter(Boolean);
+    const rtcViewers = (subscribers?.callers ?? [])
+    .filter(Boolean);
     const showEdit = canUpdate && !operatorActionsHidden;
 
     // Generating the edit modals for all puzzles is expensive, so we do it
@@ -455,25 +364,17 @@ const Puzzle = React.memo(
       );
     });
 
-    useTypedSubscribe(chatMessagesForPuzzle, {
-      puzzleId,
-      huntId,
-    });
-
-    const puzzlePin: FilteredChatMessageType[] = useFind(
-      () => ChatMessages.find({puzzle:puzzleId, pinTs:{$ne:null}}, { sort:{ pinTs: -1 }, limit: 1 }),
-      [puzzleId],
-    );
-
-    const pinnedMessage = puzzlePin[0];
-
-    let noteTooltip = null;
-
     const selfUser = useTracker(() => Meteor.user()!, []);
     const selfUserId = selfUser._id;
 
-    if (pinnedMessage) {
-      noteTooltip = (
+    const {noteTooltip, ttRelTime} = useTracker(() => {
+      if (!pinnedMessage) {
+        return {
+          noteTooltip: null,
+          ttRelTime: null,
+        };
+      }
+      const noteTT = (
         <Tooltip
           id={`puzzle-note-update-${puzzleId}`}
           style={{maxHeight: "9.55rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "... (truncated)", borderRadius: "5px"}}
@@ -482,11 +383,22 @@ const Puzzle = React.memo(
             message={pinnedMessage.content}
             displayNames={displayNames}
             selfUserId={selfUserId}
-            timestamp={pinnedMessage.timestamp}
+            timestamp={pinnedMessage.pinTs}
           />
         </Tooltip>
       );
-    }
+
+      const relTime = (<RelativeTime
+        date={pinnedMessage?.pinTs}
+        terse
+        minimumUnit="minute"
+        maxElements={1}
+      />);
+      return {
+        noteTooltip: noteTT,
+        ttRelTime: relTime,
+      };
+    }, [pinnedMessage?.content, pinnedMessage?.pinTs]);
 
     return (
       <PuzzleDiv $solvedness={solvedness}>
@@ -522,12 +434,7 @@ const Puzzle = React.memo(
               <OverlayTrigger placement="top" overlay={noteTooltip}>
               <PuzzleNote>
                 <FontAwesomeIcon icon={faNoteSticky} />
-                <RelativeTime
-                  date={pinnedMessage?.timestamp}
-                  terse
-                  minimumUnit="minute"
-                  maxElements={1}
-                />
+                {ttRelTime}
               </PuzzleNote>
               </OverlayTrigger>
             ): null
@@ -557,10 +464,10 @@ const Puzzle = React.memo(
         { showSolvers && solvedness  === 'unsolved' ? (
           <div>
           {rtcViewers.length > 0 ? (<span><FontAwesomeIcon icon={faPhone}/> </span>) : null}
-          {rtcViewers.map((viewer)=>(viewer.name)).join(', ')}
+          {rtcViewers.map((viewer)=>(viewer)).join(', ')}
           {rtcViewers.length > 0 && viewers.length > 0 ? <br/> : null}
           {viewers.length > 0 ? (<span><FontAwesomeIcon icon={faEye}/> </span>) : null}
-          {viewers.map((viewer)=>(viewer.name)).join(', ')}
+          {viewers.map((viewer)=>(viewer)).join(', ')}
           </div>
         ) : null }
         </SolversColumn>
@@ -570,6 +477,7 @@ const Puzzle = React.memo(
               huntId={puzzle.hunt}
               puzzleId={puzzle._id}
               unlockTime={puzzle.createdAt}
+              subscribers={subscribers}
             />
           )}
         </PuzzleActivityColumn>

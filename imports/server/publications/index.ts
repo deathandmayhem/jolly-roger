@@ -13,6 +13,7 @@ import "./huntsAll";
 import "./invitationCodesForHunt";
 import "./pendingAnnouncementsForSelf";
 import "./pendingGuessesForSelf";
+import "./pinnedMessagesForPuzzleList";
 import "./puzzleActivityForHunt";
 import "./puzzleForPuzzlePage";
 import "./puzzleNotificationsForSelf";
