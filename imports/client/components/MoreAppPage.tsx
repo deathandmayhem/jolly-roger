@@ -1,18 +1,12 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import nodeIsMention from "../../lib/nodeIsMention";
 import FixedLayout from "./styling/FixedLayout";
 import { Alert } from "react-bootstrap";
 import { useBreadcrumb } from "../hooks/breadcrumb";
-import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
-import { useTracker } from "meteor/react-meteor-data";
-import Puzzles from "../../lib/models/Puzzles";
-import Tags from "../../lib/models/Tags";
 
 const FirehosePageLayout = styled.div`
   padding: 8px 15px;
@@ -53,53 +47,6 @@ function asFlatString(
     })
     .join(" ");
 }
-
-const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
-  const ts = shortCalendarTimeFormat(msg.timestamp);
-  const displayName = msg.sender
-    ? (displayNames.get(msg.sender) ?? "???")
-    : "jolly-roger";
-  const messageText = asFlatString(msg, displayNames);
-  const hasNewline = messageText.includes("\n");
-  return (
-    <div>
-      <span>
-        [{ts}] [
-        {puzzle !== undefined ? (
-          <>
-            <span>{`${puzzle.deleted ? "deleted: " : ""}`}</span>
-            <a
-              href={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {puzzle.title}
-            </a>
-          </>
-        ) : (
-          <span>deleted: no data</span>
-        )}
-        {"] "}
-        {displayName}
-        {": "}
-      </span>
-      {hasNewline ? (
-        <PreWrapSpan>{messageText}</PreWrapSpan>
-      ) : (
-        <span>{messageText}</span>
-      )}
-    </div>
-  );
-});
-
-const MessagesPane = styled.div`
-  overflow-y: scroll;
-  flex: 1;
-
-  &.live {
-    border-bottom: 1px solid black;
-  }
-`;
 
 const MoreAppPage = () => {
   const huntId = useParams<"huntId">().huntId!;
@@ -156,15 +103,9 @@ const MoreAppPage = () => {
 
         <p>Drag this bookmarklet to your bookmarks bar!</p>
 
-<<<<<<< HEAD
         <p>
-          <a href={bookmarklet}>Add to Jolly Roger</a>
+          <a href={bookmarklet}>➡ Jolly Roger</a>
         </p>
-=======
-        <p><a href={bookmarklet}>➡ Jolly Roger</a></p>
-
-        <Alert variant="warning">Note: You'll need a new/different version of this for each hunt.</Alert>
->>>>>>> 0b8478a4 (Fix big board bookmarklet link)
 
         <Alert variant="warning">
           Note: You'll need a new/different version of this for each hunt.

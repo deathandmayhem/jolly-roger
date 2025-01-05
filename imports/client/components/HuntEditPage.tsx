@@ -18,6 +18,7 @@ import FormText from "react-bootstrap/FormText";
 import Row from "react-bootstrap/Row";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
+import Select, { ActionMeta } from "react-select";
 import DiscordCache from "../../lib/models/DiscordCache";
 import Hunts from "../../lib/models/Hunts";
 import type {
@@ -34,7 +35,6 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import ActionButtonRow from "./ActionButtonRow";
 import Markdown from "./Markdown";
-import Select, { ActionMeta } from "react-select";
 
 enum SubmitState {
   IDLE = "idle",
@@ -43,11 +43,9 @@ enum SubmitState {
   FAILED = "failed",
 }
 
-const huntRolesList = [
-  "operator",
-]
+const huntRolesList = ["operator"];
 
-type RoleSelectOption = {value: string, label: string};
+type RoleSelectOption = { value: string; label: string };
 
 const splitLists = function (lists: string): string[] {
   const strippedLists = lists.trim();
@@ -226,6 +224,7 @@ const HuntEditPage = () => {
   const [mailingLists, setMailingLists] = useState<string>(
     hunt?.mailingLists.join(", ") ?? "",
   );
+  const [moreInfo, setMoreInfo] = useState<string>(hunt?.moreInfo ?? "");
 
   const [defaultRoles, setDefaultRoles] = useState<string[]>(
     hunt?.defaultRoles ?? [],
@@ -292,8 +291,8 @@ const HuntEditPage = () => {
         case "create-option":
         case "pop-value":
         case "select-option":
-              newRoles = value.map((v) => v.value);
-              break;
+          newRoles = value.map((v) => v.value);
+          break;
         default:
           return;
       }
@@ -306,6 +305,12 @@ const HuntEditPage = () => {
     NonNullable<FormControlProps["onChange"]>
   >((e) => {
     setSignupMessage(e.currentTarget.value);
+  }, []);
+
+  const onMoreInfoChanged = useCallback<
+    NonNullable<FormControlProps["onChange"]>
+  >((e) => {
+    setMoreInfo(e.currentTarget.value);
   }, []);
 
   const onOpenSignupsChanged = useCallback(
@@ -410,6 +415,7 @@ const HuntEditPage = () => {
         memberDiscordRole,
         isArchived,
         defaultRoles,
+        moreInfo,
       };
 
       if (huntId) {
@@ -434,6 +440,7 @@ const HuntEditPage = () => {
       memberDiscordRole,
       onFormCallback,
       defaultRoles,
+      moreInfo,
     ],
   );
 
@@ -505,20 +512,45 @@ const HuntEditPage = () => {
         </FormGroup>
 
         <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="hunt-form-more-info">
+            More Information
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="hunt-form-more-info"
+              as="textarea"
+              value={moreInfo}
+              onChange={onMoreInfoChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              This message (rendered as markdown) will be shown to users on the
+              More page of the hunt. This could include things like links to
+              resources, or other more or less static information.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="hunt-form-default-roles">
             Default roles
           </FormLabel>
           <Col xs={9}>
-          <Select
-            id="hunt-form-default-roles"
-            isMulti
-            options={huntRolesList.map((r) => {return {label: r, value: r}})}
-            value={defaultRoles.map((r) => {return {label: r, value: r}})}
-            onChange={onDefaultRolesChanged}
-            disabled={disableForm}
-          />
+            <Select
+              id="hunt-form-default-roles"
+              isMulti
+              options={huntRolesList.map((r) => {
+                return { label: r, value: r };
+              })}
+              value={defaultRoles.map((r) => {
+                return { label: r, value: r };
+              })}
+              onChange={onDefaultRolesChanged}
+              disabled={disableForm}
+            />
             <FormText>
-              Users joining this hunt will be automatically assigned these roles.
+              Users joining this hunt will be automatically assigned these
+              roles.
             </FormText>
           </Col>
         </FormGroup>
@@ -761,7 +793,6 @@ const HuntEditPage = () => {
             Discord has not been configured, so Discord settings are disabled.
           </Alert>
         )}
-
 
         <div ref={footer}>
           {submitState === SubmitState.FAILED && (
