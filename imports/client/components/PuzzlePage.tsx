@@ -1084,7 +1084,11 @@ const PuzzlePageMetadata = ({
           {" Answer"}
         </Button>
         {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-        <PuzzleAnswerModal ref={answerModalRef} puzzle={puzzle} />
+        <PuzzleAnswerModal
+          ref={answerModalRef}
+          puzzle={puzzle}
+          guesses={guesses}
+        />
       </>
     );
   }
@@ -1643,12 +1647,16 @@ const PuzzleAnswerModal = React.forwardRef(
   (
     {
       puzzle,
+      guesses,
     }: {
       puzzle: PuzzleType;
+      guesses: GuessType[];
     },
     forwardedRef: React.Ref<PuzzleAnswerModalHandle>,
   ) => {
     const [answer, setAnswer] = useState<string>("");
+    const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
+    const [confirmationMessage, setConfirmationMessage] = useState<string>("");
     const [submitState, setSubmitState] = useState<PuzzleAnswerSubmitState>(
       PuzzleAnswerSubmitState.IDLE,
     );
@@ -1674,7 +1682,8 @@ const PuzzleAnswerModal = React.forwardRef(
 
     const onAnswerChange: NonNullable<FormControlProps["onChange"]> =
       useCallback((e) => {
-        setAnswer(e.currentTarget.value);
+        setAnswer(e.currentTarget.value.toUpperCase());
+        setConfirmingSubmit(false);
       }, []);
 
     const onDismissError = useCallback(() => {
@@ -1682,7 +1691,33 @@ const PuzzleAnswerModal = React.forwardRef(
       setSubmitError("");
     }, []);
 
+    const solvedness = useMemo(() => {
+      return computeSolvedness(puzzle);
+    }, [puzzle]);
+
     const onSubmit = useCallback(() => {
+      const strippedAnswer = answer.replaceAll(/\s/g, "");
+      const repeatAnswer = guesses.find((g) => {
+        return (
+          g.state === "correct" &&
+          g.guess.replaceAll(/\s/g, "") === strippedAnswer
+        );
+      });
+      if ((repeatAnswer || solvedness !== "unsolved") && !confirmingSubmit) {
+        const repeatAnswerStr = repeatAnswer
+          ? "This answer has already been submitted. "
+          : "";
+        const solvednessStr = {
+          solved: "This puzzle has already been solved. ",
+          noAnswers:
+            "This puzzle does not expect any answers to be submitted. ",
+          unsolved: "",
+        }[solvedness];
+        const msg = `${solvednessStr} ${repeatAnswerStr} Are you sure you want to submit this answer?`;
+        setConfirmationMessage(msg);
+        setConfirmingSubmit(true);
+        return;
+      }
       setSubmitState(PuzzleAnswerSubmitState.SUBMITTING);
       setSubmitError("");
       addPuzzleAnswer.call(
@@ -1699,20 +1734,17 @@ const PuzzleAnswerModal = React.forwardRef(
             setSubmitState(PuzzleAnswerSubmitState.IDLE);
             hide();
           }
+          setConfirmingSubmit(false);
         },
       );
-    }, [puzzle._id, answer, hide]);
+    }, [puzzle._id, confirmingSubmit, guesses, solvedness, answer, hide]);
 
     return (
       <ModalForm
         ref={formRef}
         title={`Submit answer to ${puzzle.title}`}
         onSubmit={onSubmit}
-        submitLabel={
-          submitState === PuzzleAnswerSubmitState.SUBMITTING
-            ? "Confirm Submit"
-            : "Submit"
-        }
+        submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
       >
         <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="jr-puzzle-answer">
@@ -1730,6 +1762,9 @@ const PuzzleAnswerModal = React.forwardRef(
           </Col>
         </FormGroup>
 
+        {confirmingSubmit ? (
+          <Alert variant="warning">{confirmationMessage}</Alert>
+        ) : null}
         {submitState === PuzzleAnswerSubmitState.FAILED ? (
           <Alert variant="danger" dismissible onClose={onDismissError}>
             {submitError ||
