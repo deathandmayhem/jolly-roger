@@ -91,10 +91,6 @@ export function userMayUpdateHuntInvitationCode(
     return true;
   }
 
-  if (isOperatorForHunt(user, hunt)) {
-    return true;
-  }
-
   return false;
 }
 
