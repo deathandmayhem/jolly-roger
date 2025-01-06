@@ -66,10 +66,6 @@ export function userMayAddUsersToHunt(
     return true;
   }
 
-  if (isOperatorForHunt(user, hunt)) {
-    return true;
-  }
-
   // You can only add users to a hunt if you're already a member of said hunt.
   const joinedHunts = user.hunts;
   if (!joinedHunts) {
