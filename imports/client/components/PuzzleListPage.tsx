@@ -63,6 +63,7 @@ import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import indexedDisplayNames from "../indexedDisplayNames";
 import pinnedMessagesForPuzzleList from "../../lib/publications/pinnedMessagesForPuzzleList";
 import ChatMessages, { ChatMessageType } from "../../lib/models/ChatMessages";
+import isAdmin from "../../lib/isAdmin";
 
 const FilteredChatFields = [
   "_id",
@@ -207,7 +208,7 @@ const PuzzleListView = ({
 
   const deletedPuzzles = useTracker(
     () =>
-      !canUpdate || loading
+      !isAdmin || loading
         ? undefined
         : Puzzles.findDeleted({ hunt: huntId }).fetch(),
     [canUpdate, huntId, loading],
@@ -384,24 +385,29 @@ const PuzzleListView = ({
     }
   }, []);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const bookmarkTitle = searchParams.get("title") ?? ""
-  const bookmarkURL = searchParams.get("url") ?? ""
+  const bookmarkTitle = searchParams.get("title") ?? "";
+  const bookmarkURL = searchParams.get("url") ?? "";
 
   useEffect(() => {
     if (bookmarkURL) {
-      const existingPuzzle = Puzzles.findOne({url: {$regex: `^${bookmarkURL}`}})
+      const existingPuzzle = Puzzles.findOne({
+        url: { $regex: `^${bookmarkURL}` },
+      });
       if (existingPuzzle) {
         navigate(`./${existingPuzzle._id}`);
       } else if (addModalRef) {
         addModalRef.current?.show();
-        addModalRef.current?.populateForm({title:bookmarkTitle, url:bookmarkURL})
-        setSearchParams((prev:URLSearchParams) => {
-          prev.delete("url")
-          prev.delete("title")
-          return prev
-        })
+        addModalRef.current?.populateForm({
+          title: bookmarkTitle,
+          url: bookmarkURL,
+        });
+        setSearchParams((prev: URLSearchParams) => {
+          prev.delete("url");
+          prev.delete("title");
+          return prev;
+        });
       }
     }
   }, [bookmarkTitle, bookmarkURL]);
@@ -417,29 +423,29 @@ const PuzzleListView = ({
 
   const puzzleSubscribers = useTracker(() => {
     if (subscriptionsLoading) {
-      return {"none":{"none":[]}};
-      }
+      return { none: { none: [] } };
+    }
 
     let puzzleSubs = {};
 
-    Peers.find({}).fetch().forEach((s) => {
-      let puzzle = s.call;
-      let user = displayNames.get(s.createdBy);
-      if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
-        puzzleSubs[puzzle] = {
-          viewers: [],
-          callers: [],
-        };
-      }
-      if (
-        !puzzleSubs[puzzle].callers.includes(user)
-      ) {
-        puzzleSubs[puzzle].callers.push(user);
-      }
-    });
+    Peers.find({})
+      .fetch()
+      .forEach((s) => {
+        let puzzle = s.call;
+        let user = displayNames.get(s.createdBy);
+        if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
+          puzzleSubs[puzzle] = {
+            viewers: [],
+            callers: [],
+          };
+        }
+        if (!puzzleSubs[puzzle].callers.includes(user)) {
+          puzzleSubs[puzzle].callers.push(user);
+        }
+      });
 
     Subscribers.find({}).forEach((s) => {
-      let puzzle = s.name.replace(/^puzzle:/, '');
+      let puzzle = s.name.replace(/^puzzle:/, "");
       let user = displayNames.get(s.user);
       if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
         puzzleSubs[puzzle] = {
@@ -463,13 +469,15 @@ const PuzzleListView = ({
 
   const msgsLoading = subscribeMsgs();
 
-  const pinnedMessages = useTracker ( () => {
-    let pinMsgs: Record< string, ChatMessageType> = {};
-    ChatMessages.find({}, {sort:{ pinTs: -1 }}).fetch().forEach( (msg) => {
-      if (!Object.prototype.hasOwnProperty.call(pinMsgs, msg.puzzle)) {
-        pinMsgs[msg.puzzle] = msg;
-      }
-    });
+  const pinnedMessages = useTracker(() => {
+    let pinMsgs: Record<string, ChatMessageType> = {};
+    ChatMessages.find({}, { sort: { pinTs: -1 } })
+      .fetch()
+      .forEach((msg) => {
+        if (!Object.prototype.hasOwnProperty.call(pinMsgs, msg.puzzle)) {
+          pinMsgs[msg.puzzle] = msg;
+        }
+      });
     return pinMsgs;
   }, [msgsLoading]);
 
@@ -479,7 +487,7 @@ const PuzzleListView = ({
       retainedDeletedPuzzles: PuzzleType[] | undefined,
       solvedOverConstrains: boolean,
       allPuzzlesCount: number,
-      puzzleSubscribers: Record <string, Record <string, string[]>>,
+      puzzleSubscribers: Record<string, Record<string, string[]>>,
     ) => {
       const maybeMatchWarning = solvedOverConstrains && (
         <Alert variant="info">
@@ -802,7 +810,7 @@ const PuzzleListPage = () => {
 
   const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
     huntId,
-    includeDeleted: canUpdate,
+    includeDeleted: isAdmin,
   });
   const loading = puzzlesLoading();
 
