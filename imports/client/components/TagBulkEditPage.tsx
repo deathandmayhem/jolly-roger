@@ -1,4 +1,3 @@
-import { useTracker } from "meteor/react-meteor-data";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
@@ -10,14 +9,11 @@ import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
 import FormControl, { FormControlProps } from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
-import FormLabel from "react-bootstrap/FormLabel";
 import Row from "react-bootstrap/Row";
-import { FormProps, useParams, useSearchParams } from "react-router-dom";
-import { useBreadcrumb } from "../hooks/breadcrumb";
+import { FormProps, useParams } from "react-router-dom";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Tags, { TagType } from "../../lib/models/Tags";
 import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
-import ActionButtonRow from "./ActionButtonRow";
 import Puzzles, { PuzzleType } from "../../lib/models/Puzzles";
 import { indexedById } from "../../lib/listUtils";
 import styled, { css } from "styled-components";
@@ -27,13 +23,12 @@ import { mediaBreakpointDown } from "./styling/responsive";
 import TagList from "./TagList";
 import addPuzzleTag from "../../methods/addPuzzleTag";
 import removePuzzleTag from "../../methods/removePuzzleTag";
-import { faCross, faTags, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faTags } from "@fortawesome/free-solid-svg-icons";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import ModalForm, { ModalFormHandle } from "./ModalForm";
 import renameTag from "../../methods/renameTag";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import Select, { ActionMeta } from "react-select";
-import Hunts from "../../lib/models/Hunts";
 
 enum SubmitState {
   IDLE = "idle",
@@ -189,7 +184,6 @@ const TagBulkEditPage = () => {
     huntId,
     includeDeleted: true,
   });
-  const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
 
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [dirtyRename, setDirtyRename] = useState<Boolean>(false);
@@ -235,14 +229,11 @@ const TagBulkEditPage = () => {
     [allTags],
   );
 
-  const onRenameTagChanged = useCallback(
-    (value: TagSelectOption, action: ActionMeta<TagSelectOption>) => {
-      setSelectedTag(value.value);
-      setNewTagName(value.label);
-      setDirtyRename(false);
-    },
-    [],
-  );
+  const onRenameTagChanged = useCallback((value: TagSelectOption) => {
+    setSelectedTag(value.value);
+    setNewTagName(value.label);
+    setDirtyRename(false);
+  }, []);
 
   const onSelectedTagsChanged = useCallback(
     (
@@ -359,7 +350,6 @@ const TagBulkEditPage = () => {
         const tagNames = tagNamesForIds(bulkTags);
         tagNames.forEach((tagName) => {
           const puzzleId = puzzle._id;
-          // const tagName = tag?.name;
           addPuzzleTag.call({ puzzleId, tagName }, callback);
         });
       });
@@ -391,8 +381,6 @@ const TagBulkEditPage = () => {
       allTags: TagType[];
       bulkTags: string[];
     }) => {
-      const puzzleId = puzzle._id;
-      const huntId = puzzle.hunt;
       const solvedness = computeSolvedness(puzzle);
 
       const tagIndex = indexedById(allTags);
@@ -537,8 +525,8 @@ const TagBulkEditPage = () => {
       <h1>Tag Manager</h1>
       <h2>Rename tag</h2>
       <p>
-        Select a tag from the drop-down, then type it's new name, and choose
-        "Rename".
+        Select a tag from the drop-down, then type its new name, and choose
+        &quot;Rename&quot;.
       </p>
       <Form onSubmit={onFormSubmit}>
         <FormGroup as={Row} className="mb-3">
@@ -588,7 +576,7 @@ const TagBulkEditPage = () => {
               onClick={showRemoveAllModal}
               disabled={disableBulkTagActions}
             >
-              <FontAwesomeIcon fixedWidth icon={faTimes}></FontAwesomeIcon>
+              <FontAwesomeIcon fixedWidth icon={faTimes} />
               Remove from all
             </Button>
             <Button
@@ -596,7 +584,7 @@ const TagBulkEditPage = () => {
               onClick={showAddAllModal}
               disabled={disableBulkTagActions}
             >
-              <FontAwesomeIcon fixedWidth icon={faTags}></FontAwesomeIcon>
+              <FontAwesomeIcon fixedWidth icon={faTags} />
               Add to all
             </Button>
           </ButtonGroup>
