@@ -220,7 +220,7 @@ const AppNavbar = () => {
             if (last) {
               return (
                 <BreadcrumbItem key={crumb.path} aria-current="page">
-                  {crumb.title}
+                  <Link to={crumb.path}>{crumb.title}</Link>
                 </BreadcrumbItem>
               );
             } else {
