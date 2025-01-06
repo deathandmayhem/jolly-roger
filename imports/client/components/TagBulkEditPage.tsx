@@ -556,6 +556,10 @@ const TagBulkEditPage = () => {
     </ModalForm>
       <h1>Tag Manager</h1>
       <h2>Rename tag</h2>
+      <p>
+        Select a tag from the drop-down, then type it's new name, and choose
+        "Rename".
+      </p>
       <Form onSubmit={onFormSubmit}>
         <FormGroup as={Row} className="mb-3">
           <Col xs={5}>
@@ -587,6 +591,11 @@ const TagBulkEditPage = () => {
       </Form>
       <hr/>
       <h2>Bulk add/remove tags</h2>
+      <p>
+        Select a tag from the drop-down, then click "+" on the puzzles you want
+        to have that tag. If you'd like to add the tag to all puzzles, select
+        the tag and choose "Add to all".
+      </p>
       <FormGroup as={Row} className="mb-3">
         <Col xs={8}>
         <Select
