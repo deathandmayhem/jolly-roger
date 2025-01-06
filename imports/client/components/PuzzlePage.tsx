@@ -143,7 +143,7 @@ type FilteredChatMessageType = Pick<
 // It doesn't need to be, but this is consistent with the 576px transition used in other pages' css
 const MinimumSidebarWidth = 176;
 const MinimumDocumentWidth = 400;
-const DefaultSidebarWidth = 300;
+const DefaultSidebarWidth = 200;
 
 const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
 
