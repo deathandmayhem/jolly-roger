@@ -717,7 +717,7 @@ const PinnedMessage = React.forwardRef(
             <span>No pinned message. To add one, send a message starting with /pin</span>
           </ChatMessageDiv>
         ) : undefined}
-        {pinnedMessage.map((msg, index, messages) => {
+        {pinnedMessage.map((msg) => {
           return (
             <ChatHistoryMessage
               key={msg._id}
@@ -1375,23 +1375,6 @@ const GuessRow = styled.div<{ $state: GuessType["state"] }>`
   }
 `;
 
-const GuessSliderContainer = styled.div`
-  display: flex;
-  align-items: center;
-  flex-grow: 1;
-`;
-const GuessSliderLeftLabel = styled.div`
-  width: 1.5em;
-  text-align: right;
-`;
-const GuessSliderRightLabel = styled.div`
-  width: 2.5em;
-  text-align: left;
-`;
-const GuessSlider = styled.input`
-  width: 1px;
-  flex-grow: 1;
-`;
 
 const GuessCell = styled.div`
   display: flex;
@@ -1567,7 +1550,7 @@ const PuzzleGuessModal = React.forwardRef(
               setSubmitError(error.message);
               setSubmitState(PuzzleGuessSubmitState.FAILED);
             } else {
-              // Clear the input box.  Don't dismiss the dialog.
+              // Clear the input box.
               setGuessInput("");
               setHaveSetConfidence(false);
               setConfidenceInput(50);
@@ -1592,15 +1575,8 @@ const PuzzleGuessModal = React.forwardRef(
       haveSetConfidence,
     ]);
 
-    const directionTooltip = (
-      <Tooltip id="jr-puzzle-guess-direction-tooltip">
-        <strong>Solve direction:</strong> {formatGuessDirection(directionInput)}
-      </Tooltip>
-    );
-    const confidenceTooltip = (
-      <Tooltip id="jr-puzzle-guess-confidence-tooltip">
-        <strong>Confidence:</strong> {formatConfidence(confidenceInput)}
-      </Tooltip>
+    const copyTooltip = (
+      <Tooltip id="jr-puzzle-guess-copy-tooltip">Copy to clipboard</Tooltip>
     );
 
     const clearError = useCallback(() => {
