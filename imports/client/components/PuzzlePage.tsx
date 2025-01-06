@@ -1549,6 +1549,7 @@ const PuzzleGuessModal = React.forwardRef(
               setDirectionInput(0);
               setSubmitError("");
               setSubmitState(PuzzleGuessSubmitState.IDLE);
+              formRef.current.hide();
             }
             setConfirmingSubmit(false);
           },
