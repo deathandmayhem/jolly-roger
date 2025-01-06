@@ -57,9 +57,13 @@ import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
 import SpinnerTimer from "./SpinnerTimer";
 import { GuessConfidence, GuessDirection } from "./guessDetails";
-import PuzzleNotifications, { PuzzleNotificationType } from "../../lib/models/PuzzleNotifications";
+import PuzzleNotifications, {
+  PuzzleNotificationType,
+} from "../../lib/models/PuzzleNotifications";
 import dismissPuzzleNotification from "../../methods/dismissPuzzleNotification";
 import puzzleNotificationsForSelf from "../../lib/publications/puzzleNotificationsForSelf";
+import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
+import { Google } from "meteor/google-oauth";
 
 // How long to keep showing guess notifications after actioning.
 // Note that this cannot usefully exceed the linger period implemented by the
@@ -446,6 +450,81 @@ const DiscordMessage = React.memo(
   },
 );
 
+enum GoogleMessageStatus {
+  IDLE = "idle",
+  LINKING = "linking",
+  ERROR = "error",
+  SUCCESS = "success",
+}
+
+type GoogleMessageState = {
+  status: GoogleMessageStatus;
+  error?: string;
+};
+
+const GoogleMessage = React.memo(({ onDismiss }: { onDismiss: () => void }) => {
+  const [state, setState] = useState<GoogleMessageState>({
+    status: GoogleMessageStatus.IDLE,
+  });
+
+  const requestComplete = useCallback((token: string) => {
+    const secret = OAuth._retrieveCredentialSecret(token);
+    if (!secret) {
+      setState({ status: GoogleMessageStatus.IDLE });
+      return;
+    }
+
+    linkUserGoogleAccount.call({ key: token, secret }, (error) => {
+      if (error) {
+        setState({
+          status: GoogleMessageStatus.ERROR,
+          error: error.message,
+        });
+      } else {
+        setState({ status: GoogleMessageStatus.IDLE });
+      }
+    });
+  }, []);
+
+  const initiateOauthFlow = useCallback(() => {
+    setState({ status: GoogleMessageStatus.LINKING });
+
+    Google.requestCredential(requestComplete);
+  }, [requestComplete]);
+
+  const msg =
+    "Please link your Google account to Jolly Roger for full functionality.";
+  const actions = [
+    <StyledNotificationActionItem key="invite">
+      <Button
+        variant="outline-secondary"
+        disabled={
+          !(
+            state.status === GoogleMessageStatus.IDLE ||
+            state.status === GoogleMessageStatus.ERROR
+          )
+        }
+        onClick={initiateOauthFlow}
+      >
+        Link
+      </Button>
+    </StyledNotificationActionItem>,
+  ];
+
+  return (
+    <Toast onClose={onDismiss}>
+      <Toast.Header>
+        <strong className="me-auto">Google account not linked</strong>
+      </Toast.Header>
+      <Toast.Body>
+        <StyledNotificationRow>{msg}</StyledNotificationRow>
+        <StyledNotificationActionBar>{actions}</StyledNotificationActionBar>
+        {state.status === GoogleMessageStatus.ERROR ? state.error! : null}
+      </Toast.Body>
+    </Toast>
+  );
+});
+
 const AnnouncementMessage = React.memo(
   ({
     id,
@@ -581,27 +660,27 @@ const PuzzleNotificationMessage = ({
   const id = pn._id;
   const dismiss = useCallback(
     () => dismissPuzzleNotification.call({ puzzleNotificationId: id }),
-    [id]
+    [id],
   );
 
   return (
     <Toast onClose={dismiss}>
       <Toast.Header>
         <strong className="me-auto">
-          <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>{puzzle.title}</Link>
+          <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
+            {puzzle.title}
+          </Link>
         </strong>
-      <StyledNotificationTimestamp>
-        {calendarTimeFormat(pn.createdAt)}
-      </StyledNotificationTimestamp>
+        <StyledNotificationTimestamp>
+          {calendarTimeFormat(pn.createdAt)}
+        </StyledNotificationTimestamp>
       </Toast.Header>
       <Toast.Body>
-        <div>
-          {content}
-        </div>
+        <div>{content}</div>
       </Toast.Body>
     </Toast>
-  )
-}
+  );
+};
 
 const ChatNotificationMessage = ({
   cn,
@@ -791,17 +870,32 @@ const NotificationCenter = () => {
     chatNotificationsLoading() ||
     puzzleNotificationsLoading();
 
+  const googleEnabledOnServer = useTracker(
+    () =>
+      !!ServiceConfiguration.configurations.findOne({ service: "google" }) &&
+      !Flags.active("disable.google"),
+    [],
+  );
+
   const discordEnabledOnServer = useTracker(
     () =>
       !!ServiceConfiguration.configurations.findOne({ service: "discord" }) &&
       !Flags.active("disable.discord"),
     [],
   );
+
   const { hasOwnProfile, discordConfiguredByUser } = useTracker(() => {
     const user = Meteor.user()!;
     return {
       hasOwnProfile: !!user.displayName,
       discordConfiguredByUser: !!user.discordAccount,
+    };
+  }, []);
+
+  const { googleConfiguredByUser } = useTracker(() => {
+    const user = Meteor.user()!;
+    return {
+      googleConfiguredByUser: !!user.googleAccount,
     };
   }, []);
 
@@ -897,6 +991,8 @@ const NotificationCenter = () => {
     useState<boolean>(false);
   const [hideDiscordSetupMessage, setHideDiscordSetupMessage] =
     useState<boolean>(false);
+  const [hideGoogleSetupMessage, setHideGoogleSetupMessage] =
+    useState<boolean>(false);
   const [hideProfileSetupMessage, setHideProfileSetupMessage] =
     useState<boolean>(false);
   const [dismissedGuesses, setDismissedGuesses] = useState<
@@ -909,6 +1005,10 @@ const NotificationCenter = () => {
 
   const onHideDiscordSetupMessage = useCallback(() => {
     setHideDiscordSetupMessage(true);
+  }, []);
+
+  const onHideGoogleSetupMessage = useCallback(() => {
+    setHideGoogleSetupMessage(true);
   }, []);
 
   const onHideProfileSetupMessage = useCallback(() => {
@@ -989,6 +1089,16 @@ const NotificationCenter = () => {
   ) {
     messages.push(
       <DiscordMessage key="discord" onDismiss={onHideDiscordSetupMessage} />,
+    );
+  }
+
+  if (
+    googleEnabledOnServer &&
+    !googleConfiguredByUser &&
+    !hideGoogleSetupMessage
+  ) {
+    messages.push(
+      <GoogleMessage key="google" onDismiss={onHideGoogleSetupMessage} />,
     );
   }
 
