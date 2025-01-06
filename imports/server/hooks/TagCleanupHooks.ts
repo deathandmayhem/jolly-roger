@@ -1,4 +1,4 @@
-import Puzzles, { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
 import { computeSolvedness } from "../../lib/solvedness";
 import type Hookset from "./Hookset";
@@ -29,30 +29,6 @@ const TagCleanupHooks: Hookset = {
       {
         $pullAll: {
           tags: needsTagsIds,
-        },
-      },
-    );
-  },
-  async onNoPuzzleViewers(puzzleId: string){
-    const puzzle = await Puzzles.findOneAsync(puzzleId)!;
-
-    if (!puzzle) return;
-
-    const tags = await Tags.find({_id: { $in: puzzle.tags } }).fetchAsync();
-
-    const locationTags = tags.filter((tag) => tag.name.match(/^loc(ation)?:/));
-
-    if( locationTags.length === 0) return;
-
-    const locationTagsIds = locationTags.map((tag)=> tag._id);
-
-    await Puzzles.updateAsync(
-      {
-        _id: puzzleId,
-      },
-      {
-        $pullAll: {
-          tags: locationTagsIds,
         },
       },
     );
