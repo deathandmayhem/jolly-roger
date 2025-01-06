@@ -3,7 +3,7 @@ import { useTracker } from "meteor/react-meteor-data";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
-import { faSkullCrossbones } from "@fortawesome/free-solid-svg-icons/faSkullCrossbones";
+import { faPenNib } from "@fortawesome/free-solid-svg-icons/faPenNib";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
   type ComponentPropsWithRef,
@@ -263,11 +263,13 @@ const GuessBlock = React.memo(
     }, [guess._id]);
 
     const puzzleTooltip = (
-      <Tooltip id={`guess-${guess._id}-puzzle-tooltip`}>Open puzzle</Tooltip>
+      <Tooltip id={`guess-${guess._id}-puzzle-tooltip`}>
+        Open puzzle page
+      </Tooltip>
     );
     const discussionTooltip = (
       <Tooltip id={`guess-${guess._id}-discussion-tooltip`}>
-        Open Jolly Roger discussion
+        Open solving page
       </Tooltip>
     );
     const copyTooltip = (
@@ -299,7 +301,7 @@ const GuessBlock = React.memo(
           </OverlayTrigger>{" "}
           <OverlayTrigger placement="top" overlay={discussionTooltip}>
             <Link to={`/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`}>
-              <FontAwesomeIcon icon={faSkullCrossbones} fixedWidth />
+              <FontAwesomeIcon icon={faPenNib} fixedWidth />
             </Link>
           </OverlayTrigger>{" "}
           <Breakable>{puzzle.title}</Breakable>
