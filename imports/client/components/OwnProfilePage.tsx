@@ -479,7 +479,7 @@ const OwnProfilePage = ({
           value={dingwordsFlat}
           disabled={shouldDisableForm}
           onChange={handleDingwordsChange}
-          placeholder="cryptic,biology,chemistry"
+          placeholder="e.g. cryptic, akari, REO Speedwagon lyrics"
         />
         <FormText>
           Get an in-app notification if anyone sends a chat message containing
