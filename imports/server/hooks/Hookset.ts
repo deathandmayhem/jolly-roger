@@ -36,13 +36,17 @@ interface Hookset {
   onChatMessageCreated?: (chatMessageId: string) => void | Promise<void>;
 
   // Triggered when a tag is added to a puzzle
-  onAddPuzzleTag?: (puzzleId: string, tagId: string, adderId: string) => void | Promise<void>;
+  onAddPuzzleTag?: (
+    puzzleId: string,
+    tagId: string,
+    adderId: string,
+  ) => void | Promise<void>;
 
   // Triggered when a tag is removed from a puzzle
-  onRemovePuzzleTag?: (puzzleId: string, tagName: string) => void | Promise<void>;
-
-  // Triggered when no one is looking at a puzzle anymore
-  onNoPuzzleViewers?: (puzzleId: string) => void | Promise<void>;
+  onRemovePuzzleTag?: (
+    puzzleId: string,
+    tagName: string,
+  ) => void | Promise<void>;
 }
 
 export default Hookset;
