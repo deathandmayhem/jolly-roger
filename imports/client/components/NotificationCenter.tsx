@@ -1,3 +1,4 @@
+import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
@@ -31,17 +32,23 @@ import type { GuessType } from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import type { HuntType } from "../../lib/models/Hunts";
 import PendingAnnouncements from "../../lib/models/PendingAnnouncements";
+import PuzzleNotifications, {
+  PuzzleNotificationType,
+} from "../../lib/models/PuzzleNotifications";
 import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import { huntsUserIsOperatorFor } from "../../lib/permission_stubs";
 import bookmarkNotificationsForSelf from "../../lib/publications/bookmarkNotificationsForSelf";
 import pendingAnnouncementsForSelf from "../../lib/publications/pendingAnnouncementsForSelf";
 import pendingGuessesForSelf from "../../lib/publications/pendingGuessesForSelf";
+import puzzleNotificationsForSelf from "../../lib/publications/puzzleNotificationsForSelf";
 import configureEnsureGoogleScript from "../../methods/configureEnsureGoogleScript";
 import dismissBookmarkNotification from "../../methods/dismissBookmarkNotification";
 import dismissChatNotification from "../../methods/dismissChatNotification";
 import dismissPendingAnnouncement from "../../methods/dismissPendingAnnouncement";
+import dismissPuzzleNotification from "../../methods/dismissPuzzleNotification";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
+import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
 import setGuessState from "../../methods/setGuessState";
 import { guessURL } from "../../model-helpers";
 import GoogleScriptInfo from "../GoogleScriptInfo";
@@ -57,13 +64,6 @@ import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
 import SpinnerTimer from "./SpinnerTimer";
 import { GuessConfidence, GuessDirection } from "./guessDetails";
-import PuzzleNotifications, {
-  PuzzleNotificationType,
-} from "../../lib/models/PuzzleNotifications";
-import dismissPuzzleNotification from "../../methods/dismissPuzzleNotification";
-import puzzleNotificationsForSelf from "../../lib/publications/puzzleNotificationsForSelf";
-import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
-import { Google } from "meteor/google-oauth";
 
 // How long to keep showing guess notifications after actioning.
 // Note that this cannot usefully exceed the linger period implemented by the
@@ -462,68 +462,70 @@ type GoogleMessageState = {
   error?: string;
 };
 
-const GoogleMessage = React.memo(({ onDismiss }: { onDismiss: () => void }) => {
-  const [state, setState] = useState<GoogleMessageState>({
-    status: GoogleMessageStatus.IDLE,
-  });
-
-  const requestComplete = useCallback((token: string) => {
-    const secret = OAuth._retrieveCredentialSecret(token);
-    if (!secret) {
-      setState({ status: GoogleMessageStatus.IDLE });
-      return;
-    }
-
-    linkUserGoogleAccount.call({ key: token, secret }, (error) => {
-      if (error) {
-        setState({
-          status: GoogleMessageStatus.ERROR,
-          error: error.message,
-        });
-      } else {
-        setState({ status: GoogleMessageStatus.IDLE });
-      }
+const GoogleMessage = React.memo(
+  ({ onDismiss }: { onDismiss: () => false }) => {
+    const [state, setState] = useState<GoogleMessageState>({
+      status: GoogleMessageStatus.IDLE,
     });
-  }, []);
 
-  const initiateOauthFlow = useCallback(() => {
-    setState({ status: GoogleMessageStatus.LINKING });
+    const requestComplete = useCallback((token: string) => {
+      const secret = OAuth._retrieveCredentialSecret(token);
+      if (!secret) {
+        setState({ status: GoogleMessageStatus.IDLE });
+        return;
+      }
 
-    Google.requestCredential(requestComplete);
-  }, [requestComplete]);
-
-  const msg =
-    "Please link your Google account to Jolly Roger for full functionality.";
-  const actions = [
-    <StyledNotificationActionItem key="invite">
-      <Button
-        variant="outline-secondary"
-        disabled={
-          !(
-            state.status === GoogleMessageStatus.IDLE ||
-            state.status === GoogleMessageStatus.ERROR
-          )
+      linkUserGoogleAccount.call({ key: token, secret }, (error) => {
+        if (error) {
+          setState({
+            status: GoogleMessageStatus.ERROR,
+            error: error.message,
+          });
+        } else {
+          setState({ status: GoogleMessageStatus.IDLE });
         }
-        onClick={initiateOauthFlow}
-      >
-        Link
-      </Button>
-    </StyledNotificationActionItem>,
-  ];
+      });
+    }, []);
 
-  return (
-    <Toast onClose={onDismiss}>
-      <Toast.Header>
-        <strong className="me-auto">Google account not linked</strong>
-      </Toast.Header>
-      <Toast.Body>
-        <StyledNotificationRow>{msg}</StyledNotificationRow>
-        <StyledNotificationActionBar>{actions}</StyledNotificationActionBar>
-        {state.status === GoogleMessageStatus.ERROR ? state.error! : null}
-      </Toast.Body>
-    </Toast>
-  );
-});
+    const initiateOauthFlow = useCallback(() => {
+      setState({ status: GoogleMessageStatus.LINKING });
+
+      Google.requestCredential(requestComplete);
+    }, [requestComplete]);
+
+    const msg =
+      "Please link your Google account to Jolly Roger for full functionality.";
+    const actions = [
+      <StyledNotificationActionItem key="invite">
+        <Button
+          variant="outline-secondary"
+          disabled={
+            !(
+              state.status === GoogleMessageStatus.IDLE ||
+              state.status === GoogleMessageStatus.ERROR
+            )
+          }
+          onClick={initiateOauthFlow}
+        >
+          Link
+        </Button>
+      </StyledNotificationActionItem>,
+    ];
+
+    return (
+      <Toast onClose={onDismiss}>
+        <Toast.Header closeButton={false}>
+          <strong className="me-auto">Google account not linked</strong>
+        </Toast.Header>
+        <Toast.Body>
+          <StyledNotificationRow>{msg}</StyledNotificationRow>
+          <StyledNotificationActionBar>{actions}</StyledNotificationActionBar>
+          {state.status === GoogleMessageStatus.ERROR ? state.error! : null}
+        </Toast.Body>
+      </Toast>
+    );
+  },
+);
 
 const AnnouncementMessage = React.memo(
   ({
