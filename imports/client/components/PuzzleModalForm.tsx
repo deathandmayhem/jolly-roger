@@ -1,3 +1,4 @@
+import { Meteor } from "meteor/meteor";
 import React, {
   Suspense,
   useCallback,
@@ -9,6 +10,7 @@ import React, {
 } from "react";
 import Alert from "react-bootstrap/Alert";
 import Col from "react-bootstrap/Col";
+import FormCheck from "react-bootstrap/FormCheck";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
@@ -39,6 +41,7 @@ export interface PuzzleModalFormSubmitPayload {
   tags: string[];
   docType?: GdriveMimeTypesType;
   expectedAnswerCount: number;
+  allowDuplicateUrls?: boolean;
 }
 
 enum PuzzleModalFormSubmitState {
@@ -96,17 +99,20 @@ const PuzzleModalForm = React.forwardRef(
     const [expectedAnswerCount, setExpectedAnswerCount] = useState<number>(
       puzzle ? puzzle.expectedAnswerCount : 1,
     );
+    const [allowDuplicateUrls, setAllowDuplicateUrls] = useState<
+      boolean | undefined
+    >(puzzle ? undefined : false);
     const [submitState, setSubmitState] = useState<PuzzleModalFormSubmitState>(
       PuzzleModalFormSubmitState.IDLE,
     );
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [titleDirty, setTitleDirty] = useState<boolean>(false);
-    const [lastAutoPopulatedTitle, setLastAutoPopulatedTitle] = useState<string>("");
+    const [lastAutoPopulatedTitle, setLastAutoPopulatedTitle] =
+      useState<string>("");
     const [urlDirty, setUrlDirty] = useState<boolean>(false);
     const [tagsDirty, setTagsDirty] = useState<boolean>(false);
     const [expectedAnswerCountDirty, setExpectedAnswerCountDirty] =
       useState<boolean>(false);
-
 
     const formRef = useRef<ModalFormHandle>(null);
 
@@ -162,6 +168,13 @@ const PuzzleModalForm = React.forwardRef(
       setExpectedAnswerCountDirty(true);
     }, []);
 
+    const onAllowDuplicateUrlsChange = useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setAllowDuplicateUrls(event.currentTarget.checked);
+      },
+      [],
+    );
+
     const onFormSubmit = useCallback(
       (callback: () => void) => {
         setSubmitState(PuzzleModalFormSubmitState.SUBMITTING);
@@ -175,9 +188,24 @@ const PuzzleModalForm = React.forwardRef(
         if (docType) {
           payload.docType = docType;
         }
+        if (allowDuplicateUrls) {
+          payload.allowDuplicateUrls = allowDuplicateUrls;
+        }
         onSubmit(payload, (error) => {
           if (error) {
-            setErrorMessage(error.message);
+            if (
+              error instanceof Meteor.Error &&
+              typeof error.error === "number" &&
+              error.error === 409
+            ) {
+              setErrorMessage(
+                "A puzzle already exists with this URL - did someone else already add this" +
+                  ' puzzle? To force creation anyway, check the "Allow puzzles with identical' +
+                  ' URLs" box above and try again.',
+              );
+            } else {
+              setErrorMessage(error.message);
+            }
             setSubmitState(PuzzleModalFormSubmitState.FAILED);
           } else {
             setSubmitState(PuzzleModalFormSubmitState.IDLE);
@@ -187,11 +215,21 @@ const PuzzleModalForm = React.forwardRef(
             setTagsDirty(false);
             setExpectedAnswerCountDirty(false);
             window.location.hash = "";
+            setAllowDuplicateUrls(false);
             callback();
           }
         });
       },
-      [onSubmit, huntId, title, url, tags, expectedAnswerCount, docType],
+      [
+        onSubmit,
+        huntId,
+        title,
+        url,
+        tags,
+        expectedAnswerCount,
+        docType,
+        allowDuplicateUrls,
+      ],
     );
 
     const show = useCallback(() => {
@@ -294,31 +332,44 @@ const PuzzleModalForm = React.forwardRef(
         </FormGroup>
       ) : null;
 
-      useEffect(() => {
-        // This tries to guess the puzzle title based on the URL entered
-        // To keep things simple, we only populate the title if the title
-        // is currently blank,
-        try {
-          const urlObject = new URL(url);
-          const pathname = urlObject.pathname.replace(/^\/|\/$/g, '');
-          if (!pathname) return;
-          const pathParts = pathname.split("/");
-          const lastPart = pathParts[pathParts.length - 1];
-          const decodedLastPart = decodeURI(lastPart);
-          const formattedTitle = decodedLastPart
-            .replace(/-/g, " ")
-            .replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+    useEffect(() => {
+      // This tries to guess the puzzle title based on the URL entered
+      // To keep things simple, we only populate the title if the title
+      // is currently blank,
+      try {
+        const urlObject = new URL(url);
+        const pathname = urlObject.pathname.replace(/^\/|\/$/g, "");
+        if (!pathname) return;
+        const pathParts = pathname.split("/");
+        const lastPart = pathParts[pathParts.length - 1] ?? "";
+        const decodedLastPart = decodeURI(lastPart);
+        const formattedTitle = decodedLastPart
+          .replace(/-/g, " ")
+          .replace(
+            /\w\S*/g,
+            (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+          );
 
-            if (title === lastAutoPopulatedTitle || title === '') {
-              setTitle(formattedTitle);
-              setTitleDirty(false);
-          }
-          setLastAutoPopulatedTitle(formattedTitle);
-        } catch (error) {
-          // console.debug("Invalid URL, probably there's no URL:", error);
+        if (title === lastAutoPopulatedTitle || title === "") {
+          setTitle(formattedTitle);
+          setTitleDirty(false);
         }
-      }, [url]);
+        setLastAutoPopulatedTitle(formattedTitle);
+      } catch (error) {
+        // console.debug("Invalid URL, probably there's no URL:", error);
+      }
+    }, [url]);
 
+    const allowDuplicateUrlsCheckbox =
+      !puzzle && typeof allowDuplicateUrls === "boolean" ? (
+        <FormCheck
+          label="Allow puzzles with identical URLs"
+          type="checkbox"
+          disabled={disableForm}
+          onChange={onAllowDuplicateUrlsChange}
+          className="mt-1"
+        />
+      ) : null;
 
     return (
       <Suspense
@@ -362,6 +413,7 @@ const PuzzleModalForm = React.forwardRef(
                 onChange={onUrlChange}
                 value={currentUrl}
               />
+              {allowDuplicateUrlsCheckbox}
             </Col>
           </FormGroup>
 
@@ -404,8 +456,9 @@ const PuzzleModalForm = React.forwardRef(
                 step={1}
               />
               <FormText>
-                For non-puzzle items, set this to <kbd>0</kbd>.<br/>
-                For puzzles with an unknown number of answers, set this to <kbd>-1</kbd>.
+                For non-puzzle items, set this to <kbd>0</kbd>.<br />
+                For puzzles with an unknown number of answers, set this to{" "}
+                <kbd>-1</kbd>.
               </FormText>
             </Col>
           </FormGroup>
