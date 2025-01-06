@@ -1,5 +1,6 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+import { MongoInternals } from "meteor/mongo";
 import { Random } from "meteor/random";
 import Flags from "../../Flags";
 import Logger from "../../Logger";
@@ -11,7 +12,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
 import createPuzzle from "../../methods/createPuzzle";
 import GlobalHooks from "../GlobalHooks";
-import { ensureDocument } from "../gdrive";
+import { deleteUnusedDocument, ensureDocument } from "../gdrive";
 import getOrCreateTagByName from "../getOrCreateTagByName";
 import GoogleClient from "../googleClientRefresher";
 import defineMethod from "./defineMethod";
@@ -27,11 +28,20 @@ defineMethod(createPuzzle, {
       docType: Match.OneOf(
         ...(Object.keys(GdriveMimeTypes) as GdriveMimeTypesType[]),
       ),
+      allowDuplicateUrls: Match.Optional(Boolean),
     });
     return arg;
   },
 
-  async run({ huntId, title, tags, expectedAnswerCount, docType, url }) {
+  async run({
+    huntId,
+    title,
+    tags,
+    expectedAnswerCount,
+    docType,
+    url,
+    allowDuplicateUrls,
+  }) {
     check(this.userId, String);
 
     const hunt = await Hunts.findOneAsync(huntId);
@@ -81,7 +91,39 @@ defineMethod(createPuzzle, {
       await ensureDocument(fullPuzzle, docType);
     }
 
-    await Puzzles.insertAsync(fullPuzzle);
+    // In a transaction, look for a puzzle with the same URL. If present, we
+    // reject the insertion unless the client overrides it.
+    const client = MongoInternals.defaultRemoteCollectionDriver().mongo.client;
+    const session = client.startSession();
+    try {
+      await session.withTransaction(async () => {
+        if (url) {
+          const existingPuzzleWithUrl = await Puzzles.collection
+            .rawCollection()
+            .findOne({ hunt: huntId, url }, { session });
+          if (existingPuzzleWithUrl && !allowDuplicateUrls) {
+            throw new Meteor.Error(
+              409,
+              `Puzzle with URL ${url} already exists`,
+            );
+          }
+        }
+        await Puzzles.insertAsync(fullPuzzle, { session });
+      });
+    } catch (error) {
+      // In the case of any error, try to delete the document we created before the transaction.
+      // If that fails too, let the original error propagate.
+      try {
+        await deleteUnusedDocument(fullPuzzle);
+      } catch (deleteError) {
+        Logger.warn("Unable to clean up document on failed puzzle creation", {
+          error: deleteError,
+        });
+      }
+      throw error;
+    } finally {
+      await session.endSession();
+    }
 
     // Run any puzzle-creation hooks, like creating a default document
     // attachment or announcing the puzzle to Slack.
