@@ -50,7 +50,7 @@ const RelatedPuzzleList = React.memo(
     suppressedTagIds: string[];
     showSolvers: boolean;
     segmentAnswers?: boolean;
-    subscribers: Record <string, Record <string, string[]>>;
+    subscribers: Record<string, Record<string, string[]>>;
     pinnedMessages: ChatMessageType[] | null;
   }) => {
     // Sort the puzzles within each tag group by interestingness.  For instance, metas
