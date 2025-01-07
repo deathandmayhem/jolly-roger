@@ -110,11 +110,6 @@ const PuzzleModalForm = React.forwardRef(
     const [expectedAnswerCount, setExpectedAnswerCount] = useState<number>(
       puzzle ? puzzle.expectedAnswerCount : 1,
     );
-<<<<<<< HEAD
-    const [confirmingDuplicateUrl, setConfirmingDuplicateUrl] =
-      useState<boolean>(false);
-=======
->>>>>>> 4f3e4c0b (Deduplicate new puzzles by URL.)
     const [allowDuplicateUrls, setAllowDuplicateUrls] = useState<
       boolean | undefined
     >(puzzle ? undefined : false);
@@ -246,10 +241,6 @@ const PuzzleModalForm = React.forwardRef(
                   ' puzzle? To force creation anyway, check the "Allow puzzles with identical' +
                   ' URLs" box above and try again.',
               );
-<<<<<<< HEAD
-              setConfirmingDuplicateUrl(true);
-=======
->>>>>>> 4f3e4c0b (Deduplicate new puzzles by URL.)
             } else {
               setErrorMessage(error.message);
             }
@@ -261,13 +252,7 @@ const PuzzleModalForm = React.forwardRef(
             setUrlDirty(false);
             setTagsDirty(false);
             setExpectedAnswerCountDirty(false);
-<<<<<<< HEAD
-            setConfirmingDuplicateUrl(false);
             setAllowDuplicateUrls(false);
-            window.location.hash = "";
-=======
-            setAllowDuplicateUrls(false);
->>>>>>> 4f3e4c0b (Deduplicate new puzzles by URL.)
             callback();
           }
         });
@@ -430,22 +415,19 @@ const PuzzleModalForm = React.forwardRef(
                 },
               ]}
               initialValue={docType}
-              help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
+              help=""
               onChange={onDocTypeChange}
             />
+            <FormText>
+              Can't be changed. Almost always choose <code>spreadsheet</code>.
+            </FormText>
           </Col>
         </FormGroup>
       ) : null;
 
     const allowDuplicateUrlsCheckbox =
-<<<<<<< HEAD
-      !puzzle && allowDuplicateUrls !== undefined && confirmingDuplicateUrl ? (
-        <FormCheck
-          id="jr-new-puzzle-allow-duplicate-urls"
-=======
       !puzzle && typeof allowDuplicateUrls === "boolean" ? (
         <FormCheck
->>>>>>> 4f3e4c0b (Deduplicate new puzzles by URL.)
           label="Allow puzzles with identical URLs"
           type="checkbox"
           disabled={disableForm}
@@ -453,8 +435,8 @@ const PuzzleModalForm = React.forwardRef(
           className="mt-1"
         />
       ) : null;
-<<<<<<< HEAD
-      useEffect(() => {
+
+    useEffect(() => {
         // This tries to guess the puzzle title based on the URL entered
         // To keep things simple, we only populate the title if the title
         // is currently blank,
@@ -479,8 +461,6 @@ const PuzzleModalForm = React.forwardRef(
         }
       }, [url]);
 
-=======
->>>>>>> 4f3e4c0b (Deduplicate new puzzles by URL.)
 
     return (
       <Suspense
@@ -544,6 +524,11 @@ const PuzzleModalForm = React.forwardRef(
                   return { label: t, value: t };
                 })}
               />
+              <FormText>
+                Tags with a prefix, like <code>group:</code>, <code>is:</code>,
+                or <code>where:</code> (e.g. <code>is:meta</code>, or{" "}
+                <code>where:Sydney</code>)
+              </FormText>
             </Col>
           </FormGroup>
 
@@ -564,10 +549,8 @@ const PuzzleModalForm = React.forwardRef(
                 })}
               />
               <FormText>
-                Add functional tags to help organise the puzzle (e.g. starting
-                with a prefix like <code>group:</code>, <code>needs:</code>, or{" "}
-                <code>location:</code>) and content tags to help describe what
-                it's about
+                Tags that describe the mechanics and content (e.g.{" "}
+                <code>cryptic</code>, <code>Pokémon</code>)
               </FormText>
             </Col>
           </FormGroup>
@@ -594,8 +577,8 @@ const PuzzleModalForm = React.forwardRef(
                 step={1}
               />
               <FormText>
-                For non-puzzle items, set this to <kbd>0</kbd>.<br/>
-                For puzzles with an unknown number of answers, set this to <kbd>-1</kbd>.
+                For non-puzzle items, set to <code>0</code>. If answer count is
+                unknown, set to <code>-1</code>.
               </FormText>
             </Col>
           </FormGroup>
