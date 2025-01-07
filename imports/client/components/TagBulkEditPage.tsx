@@ -1,34 +1,42 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTags } from "@fortawesome/free-solid-svg-icons";
+import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useRef, useState } from "react";
 import { Alert, ButtonGroup, InputGroup } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
-import FormControl, { FormControlProps } from "react-bootstrap/FormControl";
+import type { FormControlProps } from "react-bootstrap/FormControl";
+import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import Row from "react-bootstrap/Row";
-import { FormProps, useParams } from "react-router-dom";
-import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import Tags, { TagType } from "../../lib/models/Tags";
-import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
-import Puzzles, { PuzzleType } from "../../lib/models/Puzzles";
-import { indexedById } from "../../lib/listUtils";
+import type { FormProps } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import type { ActionMeta } from "react-select";
+import Select from "react-select";
 import styled, { css } from "styled-components";
-import { computeSolvedness, Solvedness } from "../../lib/solvedness";
-import { backgroundColorLookupTable } from "./styling/constants";
-import { mediaBreakpointDown } from "./styling/responsive";
-import TagList from "./TagList";
+import { indexedById } from "../../lib/listUtils";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
+import type { TagType } from "../../lib/models/Tags";
+import Tags from "../../lib/models/Tags";
+import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
+import type { Solvedness } from "../../lib/solvedness";
+import { computeSolvedness } from "../../lib/solvedness";
 import addPuzzleTag from "../../methods/addPuzzleTag";
 import removePuzzleTag from "../../methods/removePuzzleTag";
-import { faTags } from "@fortawesome/free-solid-svg-icons";
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
-import ModalForm, { ModalFormHandle } from "./ModalForm";
 import renameTag from "../../methods/renameTag";
-import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
-import Select, { ActionMeta } from "react-select";
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import type { ModalFormHandle } from "./ModalForm";
+import ModalForm from "./ModalForm";
+import TagList from "./TagList";
+import { backgroundColorLookupTable } from "./styling/constants";
+import { mediaBreakpointDown } from "./styling/responsive";
+import { useTracker } from "meteor/react-meteor-data";
 
 enum SubmitState {
   IDLE = "idle",
@@ -52,7 +60,6 @@ const SearchFormGroup = styled(FormGroup)`
 const PuzzleListToolbar = styled.div`
   display: flex;
   justify-content: space-between;
-  // align-items: baseline;
   margin-bottom: 0.5em;
 `;
 
@@ -186,7 +193,7 @@ const TagBulkEditPage = () => {
   });
 
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [dirtyRename, setDirtyRename] = useState<Boolean>(false);
+  const [dirtyRename, setDirtyRename] = useState<boolean>(false);
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
 
   const allPuzzles = useTracker(
@@ -556,9 +563,9 @@ const TagBulkEditPage = () => {
       <hr />
       <h2>Bulk add/remove tags</h2>
       <p>
-        Select a tag from the drop-down, then click "+" on the puzzles you want
-        to have that tag. If you'd like to add the tag to all puzzles, select
-        the tag and choose "Add to all".
+        Select a tag from the drop-down, then click &quot;+&quot; on the puzzles
+        you want to have that tag. If you&apos;d like to add the tag to all
+        puzzles, select the tag and choose &quot;Add to all&quot;.
       </p>
       <FormGroup as={Row} className="mb-3">
         <Col xs={8}>
