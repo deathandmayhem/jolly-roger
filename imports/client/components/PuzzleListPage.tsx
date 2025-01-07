@@ -655,7 +655,7 @@ const PuzzleListView = ({
         onSubmit={onAdd}
       />
       <OperatorActionsFormGroup>
-        <FormLabel>Answer Chief view</FormLabel>
+        <FormLabel>View</FormLabel>
         <ButtonToolbar>
           <StyledToggleButtonGroup
             type="radio"
@@ -669,14 +669,14 @@ const PuzzleListView = ({
               variant="outline-info"
               value="hide"
             >
-              Off
+              ✏️ Solver
             </ToggleButton>
             <ToggleButton
               id="operator-actions-show-button"
               variant="outline-info"
               value="show"
             >
-              On
+              ☎️ Answer Chief
             </ToggleButton>
           </StyledToggleButtonGroup>
         </ButtonToolbar>
@@ -707,7 +707,7 @@ const PuzzleListView = ({
     <div>
       <ViewControls $canAdd={canAdd}>
         <FormGroup>
-          <FormLabel>Organize by</FormLabel>
+          <FormLabel>Sort by</FormLabel>
           <ButtonToolbar>
             <StyledToggleButtonGroup
               type="radio"
@@ -728,13 +728,13 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="unlock"
               >
-                Unlock
+                Time added
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
         </FormGroup>
         <FormGroup>
-          <FormLabel>Solved puzzles</FormLabel>
+          <FormLabel>Puzzles</FormLabel>
           <ButtonToolbar>
             <StyledToggleButtonGroup
               type="radio"
@@ -748,20 +748,20 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="hide"
               >
-                Hidden
+                ⚪️ Unsolved
               </ToggleButton>
               <ToggleButton
                 id="solved-show-button"
                 variant="outline-info"
                 value="show"
               >
-                Shown
+                🌏 All
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
         </FormGroup>
         <FormGroup>
-          <FormLabel>Current viewers</FormLabel>
+          <FormLabel>Hunters</FormLabel>
           <ButtonToolbar>
             <StyledToggleButtonGroup
               type="radio"
@@ -775,14 +775,14 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="hide"
               >
-                Hidden
+                🙈 Hide
               </ToggleButton>
               <ToggleButton
                 id="solvers-show-button"
                 variant="outline-info"
                 value="show"
               >
-                Shown
+                👀 Show
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
