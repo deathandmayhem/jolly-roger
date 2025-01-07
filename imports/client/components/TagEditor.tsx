@@ -42,6 +42,33 @@ const TagEditor = ({
     .filter(Boolean)
     .map((t) => {
       return { value: t, label: t };
+    })
+    .sort((a, b) => {
+      const aLower = a.label.toLowerCase();
+      const bLower = b.label.toLowerCase();
+
+      const groupPrefixes = ["group:", "meta-for:"];
+
+      const aPrefix = groupPrefixes.find((prefix) => aLower.startsWith(prefix));
+      const bPrefix = groupPrefixes.find((prefix) => bLower.startsWith(prefix));
+
+      if (aPrefix && bPrefix) {
+        const aValue = aLower.substring(aPrefix.length);
+        const bValue = bLower.substring(bPrefix.length);
+        return aValue.localeCompare(bValue);
+      } else if (aPrefix) {
+        return -1; // a comes before b
+      } else if (bPrefix) {
+        return 1; // b comes before a
+      } else if (aLower.includes(":") && bLower.includes(":")) {
+        return aLower.localeCompare(bLower);
+      } else if (aLower.includes(":")) {
+        return -1;
+      } else if (bLower.includes(":")) {
+        return 1;
+      } else {
+        return aLower.localeCompare(bLower);
+      }
     });
 
   return (
