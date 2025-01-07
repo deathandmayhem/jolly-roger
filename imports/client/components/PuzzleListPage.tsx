@@ -647,7 +647,7 @@ const PuzzleListView = ({
         onSubmit={onAdd}
       />
       <OperatorActionsFormGroup>
-        <FormLabel>Operator Interface</FormLabel>
+        <FormLabel>Answer Chief view</FormLabel>
         <ButtonToolbar>
           <StyledToggleButtonGroup
             type="radio"
