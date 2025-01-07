@@ -406,9 +406,12 @@ const PuzzleModalForm = React.forwardRef(
                 },
               ]}
               initialValue={docType}
-              help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
+              help=""
               onChange={onDocTypeChange}
             />
+            <FormText>
+              Can't be changed. Almost always choose <code>spreadsheet</code>.
+            </FormText>
           </Col>
         </FormGroup>
       ) : null;
@@ -514,6 +517,11 @@ const PuzzleModalForm = React.forwardRef(
                   return { label: t, value: t };
                 })}
               />
+              <FormText>
+                Tags with a prefix, like <code>group:</code>, <code>is:</code>,
+                or <code>where:</code> (e.g. <code>is:meta</code>, or{" "}
+                <code>where:Sydney</code>)
+              </FormText>
             </Col>
           </FormGroup>
 
@@ -534,10 +542,8 @@ const PuzzleModalForm = React.forwardRef(
                 })}
               />
               <FormText>
-                Add functional tags to help organise the puzzle (e.g. starting
-                with a prefix like <code>group:</code>, <code>needs:</code>, or{" "}
-                <code>location:</code>) and content tags to help describe what
-                it's about
+                Tags that describe the mechanics and content (e.g.{" "}
+                <code>cryptic</code>, <code>Pokémon</code>)
               </FormText>
             </Col>
           </FormGroup>
@@ -564,9 +570,8 @@ const PuzzleModalForm = React.forwardRef(
                 step={1}
               />
               <FormText>
-                For non-puzzle items, set this to <kbd>0</kbd>.<br />
-                For puzzles with an unknown number of answers, set this to{" "}
-                <kbd>-1</kbd>.
+                For non-puzzle items, set to <code>0</code>. If answer count is
+                unknown, set to <code>-1</code>.
               </FormText>
             </Col>
           </FormGroup>
