@@ -95,14 +95,14 @@ const PuzzleModalForm = React.forwardRef(
 
     const [title, setTitle] = useState<string>(puzzle?.title ?? "");
     const [url, setUrl] = useState<string>(puzzle?.url ?? "");
-    const [functionTags, setFunctionTags] = useState<string[]>(
-      puzzle ? tagNamesForIds(puzzle.tags).filter((x) => x.includes(":")) : [],
-    );
-    const [contentTags, setContentTags] = useState<string[]>(
-      puzzle ? tagNamesForIds(puzzle.tags).filter((x) => !x.includes(":")) : [],
-    );
     const [tags, setTags] = useState<string[]>(
       puzzle ? tagNamesForIds(puzzle.tags) : [],
+    );
+    const [functionTags, setFunctionTags] = useState<string[]>(
+      puzzle ? tags.filter((x) => x.includes(":")) : [],
+    );
+    const [contentTags, setContentTags] = useState<string[]>(
+      puzzle ? tags.filter((x) => !x.includes(":")) : [],
     );
     const [docType, setDocType] = useState<GdriveMimeTypesType | undefined>(
       puzzle ? undefined : "spreadsheet",
@@ -323,12 +323,15 @@ const PuzzleModalForm = React.forwardRef(
       populateForm: (data: {
         title: string;
         url: string;
-        tagIds: string[];
+        tagIds: string[] | null;
       }) => {
         setTitle(data.title);
         setUrl(data.url);
         if (data.tagIds) {
-          setTags(tagNamesForIds([...new Set(data.tagIds)]));
+          const preTags = tagNamesForIds([...new Set(data.tagIds)]);
+          setTags(preTags);
+          setContentTags(preTags.filter((x) => !x.includes(":")));
+          setFunctionTags(preTags.filter((x) => x.includes(":")));
         }
       },
       submitForm: () => {
