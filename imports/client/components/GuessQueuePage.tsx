@@ -44,6 +44,7 @@ import Breakable from "./styling/Breakable";
 import { guessColorLookupTable } from "./styling/constants";
 import type { Breakpoint } from "./styling/responsive";
 import { mediaBreakpointDown } from "./styling/responsive";
+import { Badge } from "react-bootstrap";
 
 const compactViewBreakpoint: Breakpoint = "md";
 
@@ -265,6 +266,45 @@ const GuessBlock = React.memo(
         Open solving page
       </Tooltip>
     );
+    const copyTooltip = (
+      <Tooltip id={`guess-${guess._id}-copy-tooltip`}>
+        Copy to clipboard
+      </Tooltip>
+    );
+
+    let directionLabel;
+    let directionVariant;
+    if (guess?.direction > 5) {
+      directionLabel = "Forward";
+      directionVariant = "primary";
+    } else if (guess?.direction > 0) {
+      directionLabel = "Forward*";
+      directionVariant = "primary";
+    } else if (guess?.direction < -5) {
+      directionLabel = "Back";
+      directionVariant = "danger";
+    } else if (guess?.direction < 0) {
+      directionLabel = "Back*";
+      directionVariant = "danger";
+    } else {
+      directionLabel = "Mixed";
+      directionVariant = "secondary";
+    }
+
+    let confidenceLabel;
+    let confidenceVariant;
+
+    if (guess?.confidence > 0) {
+      confidenceLabel = "High";
+      confidenceVariant = "success";
+    } else if (guess?.confidence < -5) {
+      confidenceLabel = "Low";
+      confidenceVariant = "danger";
+    } else {
+      confidenceLabel = "Medium";
+      confidenceVariant = "warning";
+    }
+
     return (
       <StyledRow $state={guess.state}>
         <StyledPuzzleTimestampAndSubmitter>
@@ -305,22 +345,14 @@ const GuessBlock = React.memo(
           <PuzzleAnswer answer={guess.guess} breakable indented />
         </StyledGuessCell>
         {hunt.hasGuessQueue && (
-          <StyledGuessDetails>
-            <StyledGuessDetailWithLabel>
-              <StyledGuessDetailLabel>Solve direction</StyledGuessDetailLabel>
-              <StyledGuessDirection
-                id={`guess-${guess._id}-direction`}
-                value={guess.direction}
-              />
-            </StyledGuessDetailWithLabel>
-            <StyledGuessDetailWithLabel>
-              <StyledGuessDetailLabel>Confidence</StyledGuessDetailLabel>
-              <StyledGuessConfidence
-                id={`guess-${guess._id}-confidence`}
-                value={guess.confidence}
-              />
-            </StyledGuessDetailWithLabel>
-          </StyledGuessDetails>
+          <>
+            <StyledCell>
+              <Badge bg={directionVariant}>{directionLabel}</Badge>
+            </StyledCell>
+            <StyledCell>
+              <Badge bg={confidenceVariant}>{confidenceLabel}</Badge>
+            </StyledCell>
+          </>
         )}
         <StyledCell>
           <GuessState id={`guess-${guess._id}-state`} state={guess.state} />

@@ -63,11 +63,16 @@ import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
 import SpinnerTimer from "./SpinnerTimer";
 import { GuessConfidence, GuessDirection } from "./guessDetails";
+import { Badge } from "react-bootstrap";
 
 // How long to keep showing guess notifications after actioning.
 // Note that this cannot usefully exceed the linger period implemented by the
 // subscription that fetches the data from imports/server/guesses.ts
 const LINGER_PERIOD = 4000;
+
+const GuessInfoDiv = styled.div`
+  font-size: 14px;
+`;
 
 const StyledNotificationActionBar = styled.ul`
   display: flex;
@@ -241,6 +246,38 @@ const GuessMessage = React.memo(
         break;
     }
 
+    let directionLabel;
+    let directionVariant;
+    if (guess?.direction > 5) {
+      directionLabel = "Forward";
+      directionVariant = "primary";
+    } else if (guess?.direction > 0) {
+      directionLabel = "Forward*";
+      directionVariant = "primary";
+    } else if (guess?.direction < -5) {
+      directionLabel = "Back";
+      directionVariant = "danger";
+    } else if (guess?.direction < 0) {
+      directionLabel = "Back*";
+      directionVariant = "danger";
+    } else {
+      directionLabel = "Mixed";
+      directionVariant = "secondary";
+    }
+    let confidenceLabel;
+    let confidenceVariant;
+
+    if (guess?.confidence > 0) {
+      confidenceLabel = "High";
+      confidenceVariant = "success";
+    } else if (guess?.confidence < -5) {
+      confidenceLabel = "Low";
+      confidenceVariant = "danger";
+    } else {
+      confidenceLabel = "Medium";
+      confidenceVariant = "warning";
+    }
+
     return (
       <Toast onClose={dismissGuess}>
         <Toast.Header>
@@ -301,16 +338,12 @@ const GuessMessage = React.memo(
                 </Button>
               </OverlayTrigger>
             </StyledNotificationActionItem>
-            <StyledGuessDetails>
-              <GuessDirection
-                id={`notification-guess-${guess._id}-direction`}
-                value={guess.direction}
-              />
-              <GuessConfidence
-                id={`notification-guess-${guess._id}-confidence`}
-                value={guess.confidence}
-              />
-            </StyledGuessDetails>
+            <Button size="sm" variant={directionVariant}>
+              {directionLabel}
+            </Button>
+            <Button size="sm" variant={confidenceVariant}>
+              {confidenceLabel}
+            </Button>
           </StyledNotificationActionBar>
           <StyledNotificationActionBar>
             <StyledNotificationActionItem $grow>
@@ -992,8 +1025,6 @@ const NotificationCenter = () => {
     useState<boolean>(false);
   const [hideDiscordSetupMessage, setHideDiscordSetupMessage] =
     useState<boolean>(false);
-  const [hideGoogleSetupMessage, setHideGoogleSetupMessage] =
-    useState<boolean>(false);
   const [hideProfileSetupMessage, setHideProfileSetupMessage] =
     useState<boolean>(false);
   const [dismissedGuesses, setDismissedGuesses] = useState<
@@ -1009,7 +1040,7 @@ const NotificationCenter = () => {
   }, []);
 
   const onHideGoogleSetupMessage = useCallback(() => {
-    setHideGoogleSetupMessage(true);
+    return false;
   }, []);
 
   const onHideProfileSetupMessage = useCallback(() => {
@@ -1093,11 +1124,7 @@ const NotificationCenter = () => {
     );
   }
 
-  if (
-    googleEnabledOnServer &&
-    !googleConfiguredByUser &&
-    !hideGoogleSetupMessage
-  ) {
+  if (googleEnabledOnServer && !googleConfiguredByUser) {
     messages.push(
       <GoogleMessage key="google" onDismiss={onHideGoogleSetupMessage} />,
     );
