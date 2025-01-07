@@ -1,4 +1,5 @@
 import { check, Match } from "meteor/check";
+import ChatMessages from "../../lib/models/ChatMessages";
 import sendChatMessage from "../../methods/sendChatMessage";
 import sendChatMessageInternal from "../sendChatMessageInternal";
 import defineMethod from "./defineMethod";
@@ -33,14 +34,33 @@ defineMethod(sendChatMessage, {
 
     let isPinned = false;
 
-    if (('children' in contentObj) &&
-    (contentObj.children.length > 0) &&
-    ('text' in contentObj.children[0]) &&
-    (contentObj.children[0].text.match(/^\s*\/pin\s+\S+/i))) {
-      isPinned = true;
-      contentObj.children[0].text = contentObj.children[0].text.replace(/^\s*\/pin\s+/i, '');
+    if (
+      "children" in contentObj &&
+      contentObj.children.length > 0 &&
+      "text" in contentObj.children[0]
+    ) {
+      if (contentObj.children[0].text.match(/^\s*\/pin\s*$/i)) {
+        const puzzle = puzzleId;
+        await ChatMessages.updateAsync(
+          {
+            puzzle,
+            pinTs: { $ne: null },
+          },
+          {
+            $set: {
+              pinTs: null,
+            },
+          },
+        );
+        return;
+      } else if (contentObj.children[0].text.match(/^\s*\/pin\s+\S+/i)) {
+        isPinned = true;
+        contentObj.children[0].text = contentObj.children[0].text.replace(
+          /^\s*\/pin\s+/i,
+          "",
+        );
+      }
     }
-
 
     await sendChatMessageInternal({
       puzzleId,
