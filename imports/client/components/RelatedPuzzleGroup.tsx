@@ -17,8 +17,9 @@ const AddButton = styled.div`
   margin: 2px 4px 2px 0;
   padding: 2px 6px;
   border-radius: 4px;
-  color: #fff;
-  background-color: #0d6efd;
+  color: #666;
+  background-color: #fff;
+  border: 1px solid #ccc;
 `;
 
 export const PuzzleGroupDiv = styled.div`
@@ -138,8 +139,7 @@ const RelatedPuzzleGroup = ({
           <>
             <Tag tag={sharedTag} linkToSearch={false} popoverRelated={false} />
             <AddButton onClick={openAddPuzzleModalWithTags}>
-              <FontAwesomeIcon icon={faPlus} /> add to{" "}
-              {suppressedTagIds.length > 1 ? "groups" : "group"}
+              <FontAwesomeIcon icon={faPlus} /> add puzzle here
             </AddButton>
           </>
         ) : (
