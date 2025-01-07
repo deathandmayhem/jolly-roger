@@ -392,6 +392,20 @@ const PuzzleListView = ({
     }
   }, []);
 
+  const showAddModalWithTags = useCallback(
+    (initialTags: string[]) => {
+      if (addModalRef.current) {
+        addModalRef.current.show();
+        addModalRef.current.populateForm({
+          title: "",
+          url: "",
+          tagIds: initialTags,
+        });
+      }
+    },
+    [addModalRef],
+  );
+
   const navigate = useNavigate();
 
   const bookmarkTitle = searchParams.get("title") ?? "";
@@ -541,6 +555,7 @@ const PuzzleListView = ({
                 showSolvers={showSolvers}
                 subscribers={puzzleSubscribers}
                 pinnedMessages={pinnedMessages}
+                addPuzzleCallback={showAddModalWithTags}
               />
             );
           });
