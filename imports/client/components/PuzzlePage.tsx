@@ -1475,9 +1475,9 @@ const PuzzleGuessModal = React.forwardRef(
   ) => {
     const [guessInput, setGuessInput] = useState<string>("");
     const [directionInput, setDirectionInput] = useState<number>(0);
-    const [haveSetDirection, setHaveSetDirection] = useState<boolean>(false);
+    const [haveSetDirection, setHaveSetDirection] = useState<boolean>(true);
     const [confidenceInput, setConfidenceInput] = useState<number | null>(null);
-    const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(false);
+    const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(true);
     const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
     const [confirmationMessage, setConfirmationMessage] = useState<string>("");
     const [submitState, setSubmitState] = useState<PuzzleGuessSubmitState>(
@@ -1622,7 +1622,7 @@ const PuzzleGuessModal = React.forwardRef(
           <Col xs={9}>
 
             <ValidatedSliderContainer>
-              <ToggleButtonGroup name='solve-dir' onChange={onDirectionInputChange}>
+              <ToggleButtonGroup name='solve-dir' onChange={onDirectionInputChange} defaultValue={10}>
                 <ToggleButton variant="outline-primary" value={-10} id='guess-direction-back' checked={directionInput===-10}>
                   Backsolve
                 </ToggleButton>
@@ -1657,7 +1657,7 @@ const PuzzleGuessModal = React.forwardRef(
           </FormLabel>
           <Col xs={9}>
             <ValidatedSliderContainer>
-              <ToggleButtonGroup name='guess-confidence' onChange={onConfidenceInputChange}>
+              <ToggleButtonGroup name='guess-confidence' onChange={onConfidenceInputChange} defaultValue={100}>
                 <ToggleButton variant="outline-danger" value={0} id='guess-confidence-low' checked={confidenceInput===0}>
                   Low
                 </ToggleButton>
