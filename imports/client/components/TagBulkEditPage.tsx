@@ -30,6 +30,7 @@ import { computeSolvedness } from "../../lib/solvedness";
 import addPuzzleTag from "../../methods/addPuzzleTag";
 import removePuzzleTag from "../../methods/removePuzzleTag";
 import renameTag from "../../methods/renameTag";
+import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
@@ -197,6 +198,8 @@ const TagBulkEditPage = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [dirtyRename, setDirtyRename] = useState<boolean>(false);
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+
+  useBreadcrumb({ title: "Tags", path: `/hunts/${huntId}/tags` });
 
   const allPuzzles = useTracker(
     () => Puzzles.find({ hunt: huntId }).fetch(),
