@@ -81,26 +81,30 @@ const MoreAppPage = () => {
         {hunt && <Markdown text={hunt.moreInfo ?? ""} />}
         <h2>Bookmarklet</h2>
 
-        <p>This bookmarklet will:</p>
-        <ul>
-          <li>
-            If the puzzle exists in Jolly Roger, take you to the puzzle page, or
-          </li>
-          <li>
-            If the puzzle doesn't yet exist in Jolly Roger, take you to the list
-            of puzzles with the title and URL prepopulated.
-          </li>
-        </ul>
-
-        <p>Drag this bookmarklet to your bookmarks bar!</p>
+        <p>
+          <strong>Drag this bookmarklet 👇 to your bookmarks bar!</strong>
+        </p>
 
         <p>
           <a href={bookmarklet}>➡ Jolly Roger</a>
         </p>
+        <p>What it does:</p>
+        <ul>
+          <li>
+            If the puzzle doesn't yet exist in Jolly Roger, you'll get sent to
+            Add Puzzle screen with the title and URL prepopulated, or
+          </li>
+          <li>
+            If the puzzle exists in Jolly Roger, you'll get sent to the puzzle's
+            page in JR.
+          </li>
+        </ul>
 
+        {/* 
         <Alert variant="warning">
           Note: You'll need a new/different version of this for each hunt.
-        </Alert>
+        </Alert> 
+        */}
       </FirehosePageLayout>
     </FixedLayout>
   );
