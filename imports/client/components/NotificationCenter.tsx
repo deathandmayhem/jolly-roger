@@ -32,9 +32,8 @@ import type { GuessType } from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import type { HuntType } from "../../lib/models/Hunts";
 import PendingAnnouncements from "../../lib/models/PendingAnnouncements";
-import PuzzleNotifications, {
-  PuzzleNotificationType,
-} from "../../lib/models/PuzzleNotifications";
+import type { PuzzleNotificationType } from "../../lib/models/PuzzleNotifications";
+import PuzzleNotifications from "../../lib/models/PuzzleNotifications";
 import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import { huntsUserIsOperatorFor } from "../../lib/permission_stubs";
@@ -417,7 +416,7 @@ const DiscordMessage = React.memo(
     }, [requestComplete]);
 
     const msg =
-      "It looks like you're not in our Discord server, which Jolly Roger manages access to.  Get added:";
+      "It looks like you haven't linked Discord. Please do so for full functionality.";
     const actions = [
       <StyledNotificationActionItem key="invite">
         <Button
@@ -430,7 +429,7 @@ const DiscordMessage = React.memo(
           }
           onClick={initiateOauthFlow}
         >
-          Add me
+          Link Discord
         </Button>
       </StyledNotificationActionItem>,
     ];
@@ -507,7 +506,7 @@ const GoogleMessage = React.memo(
           }
           onClick={initiateOauthFlow}
         >
-          Link
+          Link Google
         </Button>
       </StyledNotificationActionItem>,
     ];

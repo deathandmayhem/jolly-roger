@@ -217,7 +217,8 @@ const AppNavbar = () => {
         <BreadcrumbList>
           {crumbs.map((crumb, index) => {
             const last = index === crumbs.length - 1;
-            if (last) {
+            if (crumb.title === "Hunts") {
+            } else if (last) {
               return (
                 <BreadcrumbItem key={crumb.path} aria-current="page">
                   <Link to={crumb.path}>{crumb.title}</Link>
