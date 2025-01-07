@@ -714,7 +714,7 @@ const PinnedMessage = React.forwardRef(
             $isHighlighted={false}
             $isPinned={false}
           >
-            <span>No pinned message. To add one, send a message starting with /pin</span>
+            <span>Prefix with <code>/pin</code> to add a pinned message.</span>
           </ChatMessageDiv>
         ) : undefined}
         {pinnedMessage.map((msg) => {
