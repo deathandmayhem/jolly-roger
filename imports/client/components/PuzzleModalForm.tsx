@@ -53,8 +53,12 @@ enum PuzzleModalFormSubmitState {
 export type PuzzleModalFormHandle = {
   reset: () => void;
   show: () => void;
-  populateForm: (data: { title: string; url: string }) => void; // Add this line
-  submitForm: () => void; // Add this line
+  populateForm: (data: {
+    title: string;
+    url: string;
+    tagIds: string[] | null;
+  }) => void;
+  submitForm: () => void;
 };
 
 const PuzzleModalForm = React.forwardRef(
@@ -91,6 +95,12 @@ const PuzzleModalForm = React.forwardRef(
 
     const [title, setTitle] = useState<string>(puzzle?.title ?? "");
     const [url, setUrl] = useState<string>(puzzle?.url ?? "");
+    const [functionTags, setFunctionTags] = useState<string[]>(
+      puzzle ? tagNamesForIds(puzzle.tags).filter((x) => x.includes(":")) : [],
+    );
+    const [contentTags, setContentTags] = useState<string[]>(
+      puzzle ? tagNamesForIds(puzzle.tags).filter((x) => !x.includes(":")) : [],
+    );
     const [tags, setTags] = useState<string[]>(
       puzzle ? tagNamesForIds(puzzle.tags) : [],
     );
@@ -136,7 +146,33 @@ const PuzzleModalForm = React.forwardRef(
       [],
     );
 
-    const onTagsChange = useCallback(
+    const onFunctionTagsChange = useCallback(
+      (
+        value: readonly TagSelectOption[],
+        action: ActionMeta<TagSelectOption>,
+      ) => {
+        let newTags: string[] = [];
+        switch (action.action) {
+          case "clear":
+          case "deselect-option":
+          case "pop-value":
+          case "remove-value":
+          case "create-option":
+          case "select-option":
+            newTags = value.map((v) => v.value);
+            break;
+          default:
+            return;
+        }
+
+        setFunctionTags(newTags);
+        setTags([...functionTags, ...contentTags]);
+        setTagsDirty(true);
+      },
+      [],
+    );
+
+    const onContentTagsChange = useCallback(
       (
         value: readonly TagSelectOption[],
         action: ActionMeta<TagSelectOption>,
@@ -155,7 +191,8 @@ const PuzzleModalForm = React.forwardRef(
             return;
         }
 
-        setTags(newTags);
+        setContentTags(newTags);
+        setTags([...functionTags, ...contentTags]);
         setTagsDirty(true);
       },
       [],
@@ -298,10 +335,16 @@ const PuzzleModalForm = React.forwardRef(
 
     useImperativeHandle(forwardedRef, () => ({
       show,
-      // Add this populateForm method:
-      populateForm: (data: { title: string; url: string }) => {
+      populateForm: (data: {
+        title: string;
+        url: string;
+        tagIds: string[];
+      }) => {
         setTitle(data.title);
         setUrl(data.url);
+        if (data.tagIds) {
+          setTags(tagNamesForIds([...new Set(data.tagIds)]));
+        }
       },
       submitForm: () => {
         if (formRef.current) {
@@ -327,6 +370,13 @@ const PuzzleModalForm = React.forwardRef(
       .map((t) => {
         return { value: t, label: t };
       });
+
+    const functionSelectOptions: TagSelectOption[] = selectOptions.filter((x) =>
+      x.label.includes(":"),
+    );
+    const contentSelectOptions: TagSelectOption[] = selectOptions.filter(
+      (x) => !x.label.includes(":"),
+    );
 
     const docTypeSelector =
       !puzzle && docType ? (
@@ -446,24 +496,51 @@ const PuzzleModalForm = React.forwardRef(
               {allowDuplicateUrlsCheckbox}
             </Col>
           </FormGroup>
-
+          <hr />
           <FormGroup as={Row} className="mb-3">
-            <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags">
-              Tags
+            <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags-function">
+              Functional Tags
             </FormLabel>
             <Col xs={9}>
               <Creatable
                 id="jr-new-puzzle-tags"
-                options={selectOptions}
+                options={functionSelectOptions}
                 isMulti
+                placeholder="Type to search/create"
                 isDisabled={disableForm}
-                onChange={onTagsChange}
-                value={currentTags.map((t) => {
+                onChange={onFunctionTagsChange}
+                value={functionTags.map((t) => {
                   return { label: t, value: t };
                 })}
               />
             </Col>
           </FormGroup>
+
+          <FormGroup as={Row} className="mb-3">
+            <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags-content">
+              Content Tags
+            </FormLabel>
+            <Col xs={9}>
+              <Creatable
+                id="jr-new-puzzle-tags"
+                options={contentSelectOptions}
+                isMulti
+                placeholder="Type to search/create"
+                isDisabled={disableForm}
+                onChange={onContentTagsChange}
+                value={contentTags.map((t) => {
+                  return { label: t, value: t };
+                })}
+              />
+              <FormText>
+                Add functional tags to help organise the puzzle (e.g. starting
+                with a prefix like <code>group:</code>, <code>needs:</code>, or{" "}
+                <code>location:</code>) and content tags to help describe what
+                it's about
+              </FormText>
+            </Col>
+          </FormGroup>
+          <hr />
 
           {docTypeSelector}
 
