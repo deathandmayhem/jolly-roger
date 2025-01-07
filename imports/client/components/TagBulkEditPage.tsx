@@ -187,10 +187,12 @@ const TagToggleButtons = React.memo(
 
 const TagBulkEditPage = () => {
   const huntId = useParams<{ huntId: string }>().huntId!;
-  useTypedSubscribe(puzzlesForPuzzleList, {
+  const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
     huntId,
     includeDeleted: true,
   });
+
+  const loading = puzzlesLoading();
 
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [dirtyRename, setDirtyRename] = useState<boolean>(false);
@@ -618,7 +620,7 @@ const TagBulkEditPage = () => {
           Showing {matchingSearch.length} of {allPuzzles.length} items
         </span>
       </PuzzleListToolbar>
-      {renderList(matchingSearch, allTags, bulkTags)}
+      {!loading && renderList(matchingSearch, allTags, bulkTags)}
     </Container>
   );
 };
