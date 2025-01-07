@@ -215,23 +215,24 @@ const AppNavbar = () => {
     return (
       <Breadcrumb aria-label="breadcrumb">
         <BreadcrumbList>
-          {crumbs.map((crumb, index) => {
-            const last = index === crumbs.length - 1;
-            if (crumb.title === "Hunts") {
-            } else if (last) {
-              return (
-                <BreadcrumbItem key={crumb.path} aria-current="page">
-                  <Link to={crumb.path}>{crumb.title}</Link>
-                </BreadcrumbItem>
-              );
-            } else {
-              return (
-                <BreadcrumbItem key={crumb.path}>
-                  <Link to={crumb.path}>{crumb.title}</Link>
-                </BreadcrumbItem>
-              );
-            }
-          })}
+          {crumbs
+            .filter((crumb) => crumb.title !== "Hunts")
+            .map((crumb, index) => {
+              const last = index === crumbs.length - 1;
+              if (last) {
+                return (
+                  <BreadcrumbItem key={crumb.path} aria-current="page">
+                    <Link to={crumb.path}>{crumb.title}</Link>
+                  </BreadcrumbItem>
+                );
+              } else {
+                return (
+                  <BreadcrumbItem key={crumb.path}>
+                    <Link to={crumb.path}>{crumb.title}</Link>
+                  </BreadcrumbItem>
+                );
+              }
+            })}
         </BreadcrumbList>
       </Breadcrumb>
     );
