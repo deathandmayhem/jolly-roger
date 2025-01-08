@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "14.x"
+          node-version: "14.21.3"
 
       - name: Set up environment
         run: |
@@ -35,7 +35,7 @@ jobs:
           meteor --version
 
       - name: Install dependencies
-        run: meteor npm install
+        run: meteor npm install --production
 
       - name: Build app
         run: meteor build --directory ~/${{ github.sha }} --architecture os.linux.x86_64
