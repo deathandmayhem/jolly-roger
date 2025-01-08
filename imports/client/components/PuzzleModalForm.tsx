@@ -404,12 +404,14 @@ const PuzzleModalForm = React.forwardRef(
         const pathParts = pathname.split("/");
         const lastPart = pathParts[pathParts.length - 1] ?? "";
         const decodedLastPart = decodeURI(lastPart);
-        const formattedTitle = decodedLastPart
-          .replace(/-/g, " ")
-          .replace(
-            /\w\S*/g,
-            (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
-          );
+        const formattedTitle = (
+          decodedLastPart.includes("_")
+            ? decodedLastPart.replace(/_/g, " ")
+            : decodedLastPart.replace(/-/g, " ")
+        ).replace(
+          /\w\S*/g,
+          (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+        );
 
         if (title === lastAutoPopulatedTitle || title === "") {
           setTitle(formattedTitle);
