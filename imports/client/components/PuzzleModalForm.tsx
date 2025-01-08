@@ -402,6 +402,36 @@ const PuzzleModalForm = React.forwardRef(
         </FormGroup>
       ) : null;
 
+    useEffect(() => {
+      // This tries to guess the puzzle title based on the URL entered
+      // To keep things simple, we only populate the title if the title
+      // is currently blank,
+      try {
+        const urlObject = new URL(url);
+        const pathname = urlObject.pathname.replace(/^\/|\/$/g, "");
+        if (!pathname) return;
+        const pathParts = pathname.split("/");
+        const lastPart = pathParts[pathParts.length - 1] ?? "";
+        const decodedLastPart = decodeURI(lastPart);
+        const formattedTitle = (
+          decodedLastPart.includes("_")
+            ? decodedLastPart.replace(/_/g, " ")
+            : decodedLastPart.replace(/-/g, " ")
+        ).replace(
+          /\w\S*/g,
+          (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+        );
+
+        if (title === lastAutoPopulatedTitle || title === "") {
+          setTitle(formattedTitle);
+          setTitleDirty(false);
+        }
+        setLastAutoPopulatedTitle(formattedTitle);
+      } catch (error) {
+        // console.debug("Invalid URL, probably there's no URL:", error);
+      }
+    }, [url]);
+
     const allowDuplicateUrlsCheckbox =
       !puzzle && typeof allowDuplicateUrls === "boolean" ? (
         <FormCheck
