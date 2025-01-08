@@ -1,0 +1,63 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      MEDIASOUP_WORKER_PREBUILT_DOWNLOAD_BASE_URL: https://github.com/versatica/mediasoup/releases/download
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "14.x"
+
+      - name: Set up environment
+        run: |
+          mkdir ~/${{ github.sha }}
+
+      - name: Install Meteor
+        run: |
+          curl "https://install.meteor.com/?release=2.9.1" | sh
+          meteor --version
+
+      - name: Install dependencies
+        run: meteor npm install
+
+      - name: Build app
+        run: meteor build --directory ~/${{ github.sha }} --architecture os.linux.x86_64
+
+      - name: Setup SSH
+        uses: godaddy-wordpress/setup-secure-shell@v1
+        env:
+          PRIVATE_KEY: ${{ secrets.JR_VPS_KEY }}
+          VPS_HOST_KEY: ${{ secrets.JR_VPS_HOST_KEY }}
+        with:
+          ssh-private-key: $PRIVATE_KEY
+          ssh-known-hosts: $VPS_HOST_KEY
+
+      - name: Upload
+        run: |
+          cd ~/${{ github.sha }}
+          tar -czf ./jolly-roger.tar.gz ./*
+          scp -o StrictHostKeyChecking=no ~/${{ github.sha }}/jolly-roger.tar.gz ${{ secrets.JR_VPS_USERNAME }}@${{ secrets.JR_VPS_HOST }}:/home/jimsug/app
+
+      - name: Test SSH
+        uses: JimCronqvist/action-ssh@master
+        with:
+          hosts: "${{ secrets.JR_VPS_USERNAME }}@${{ secrets.JR_VPS_HOST }}"
+          privateKey: ${{ secrets.JR_VPS_KEY }}
+          command: |
+            cd /home/jimsug/app
+            tar -xzf jolly-roger.tar.gz
+            rm jolly-roger.tar.gz
+            sudo systemctl restart jolly-roger
