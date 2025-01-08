@@ -695,11 +695,13 @@ const PuzzleNotificationMessage = ({
   hunt,
   puzzle,
   content,
+  ephemeral,
 }: {
   pn: PuzzleNotificationType;
   hunt: HuntType;
   puzzle: PuzzleType;
   content: string;
+  ephemeral: boolean | undefined;
 }) => {
   const id = pn._id;
   const dismiss = useCallback(
@@ -708,7 +710,7 @@ const PuzzleNotificationMessage = ({
   );
 
   return (
-    <Toast onClose={dismiss}>
+    <Toast onClose={dismiss} delay={5000} autohide={ephemeral}>
       <Toast.Header>
         <strong className="me-auto">
           <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
@@ -1214,6 +1216,7 @@ const NotificationCenter = () => {
         hunt={hunt}
         puzzle={puzzle}
         content={pn.content}
+        ephemeral={pn.ephemeral ?? false}
       />,
     );
   });
