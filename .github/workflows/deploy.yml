@@ -64,4 +64,6 @@ jobs:
             cd /home/jimsug/app
             tar -xzf jolly-roger.tar.gz
             rm jolly-roger.tar.gz
+            cd bundle/programs/server
+            MEDIASOUP_WORKER_PREBUILT_DOWNLOAD_BASE_URL="https://github.com/versatica/mediasoup/releases/download" npm install
             sudo systemctl restart jolly-roger
