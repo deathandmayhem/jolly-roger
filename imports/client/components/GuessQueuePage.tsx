@@ -5,7 +5,11 @@ import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faPenNib } from "@fortawesome/free-solid-svg-icons/faPenNib";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useRef } from "react";
+import React, {
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 import Button from "react-bootstrap/Button";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
@@ -44,7 +48,19 @@ import Breakable from "./styling/Breakable";
 import { guessColorLookupTable } from "./styling/constants";
 import type { Breakpoint } from "./styling/responsive";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { Badge } from "react-bootstrap";
+import {
+  Badge,
+  ButtonToolbar,
+  FormLabel,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "react-bootstrap";
+
+const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
+  @media (width < 360px) {
+    width: 100%;
+  }
+`;
 
 const compactViewBreakpoint: Breakpoint = "md";
 
@@ -109,30 +125,6 @@ const StyledCell = styled.div`
   background-color: inherit;
 `;
 
-const StyledGuessDirection = styled(GuessDirection)`
-  padding: 4px;
-  background-color: inherit;
-  ${mediaBreakpointDown(
-    compactViewBreakpoint,
-    css`
-      padding: 0;
-      max-width: 200px;
-    `,
-  )}
-`;
-
-const StyledGuessConfidence = styled(GuessConfidence)`
-  padding: 4px;
-  background-color: inherit;
-  ${mediaBreakpointDown(
-    compactViewBreakpoint,
-    css`
-      padding: 0;
-      max-width: 200px;
-    `,
-  )}
-`;
-
 const StyledCopyToClipboardButton = styled(CopyToClipboardButton)`
   padding: 0;
   vertical-align: baseline;
@@ -195,39 +187,8 @@ const StyledGuessCell = styled(StyledCell)`
   )}
 `;
 
-const StyledGuessDetails = styled.div`
-  display: contents;
-  background-color: inherit;
-  ${mediaBreakpointDown(
-    compactViewBreakpoint,
-    css`
-      display: flex;
-    `,
-  )}
-`;
 
-const StyledGuessDetailWithLabel = styled(StyledCell)`
-  display: contents;
-  ${mediaBreakpointDown(
-    compactViewBreakpoint,
-    css`
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      flex-grow: 1;
-    `,
-  )}
-`;
 
-const StyledGuessDetailLabel = styled.span`
-  display: none;
-  ${mediaBreakpointDown(
-    compactViewBreakpoint,
-    css`
-      display: inline;
-    `,
-  )}
-`;
 
 const StyledAdditionalNotes = styled(StyledCell)`
   grid-column: 1 / -1;
@@ -264,11 +225,6 @@ const GuessBlock = React.memo(
     const discussionTooltip = (
       <Tooltip id={`guess-${guess._id}-discussion-tooltip`}>
         Open solving page
-      </Tooltip>
-    );
-    const copyTooltip = (
-      <Tooltip id={`guess-${guess._id}-copy-tooltip`}>
-        Copy to clipboard
       </Tooltip>
     );
 
@@ -379,6 +335,12 @@ const GuessBlock = React.memo(
 );
 
 const GuessQueuePage = () => {
+  const [displayMode, setDisplayMode] = useState<string[]>([
+    "correct",
+    "intermediate",
+    "incorrect",
+    "rejected",
+  ]); // pending guesses are always shown
   const huntId = useParams<"huntId">().huntId!;
   const [searchParams, setSearchParams] = useSearchParams();
   const searchString = searchParams.get("q") ?? "";
@@ -404,8 +366,8 @@ const GuessQueuePage = () => {
     () =>
       loading
         ? []
-        : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch(),
-    [huntId, loading],
+        : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch().filter((x)=>displayMode.includes(x.state)||x.state==="pending"),
+    [huntId, loading, displayMode],
   );
   const puzzles = useTracker(
     () =>
@@ -538,6 +500,50 @@ const GuessQueuePage = () => {
             <FontAwesomeIcon icon={faEraser} />
           </Button>
         </InputGroup>
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Guesses to show</FormLabel>
+        <ButtonToolbar>
+          <StyledToggleButtonGroup
+            type="checkbox"
+            name="guess-view"
+            value={displayMode}
+            onChange={onChangeDisplayMode}
+          >
+            <ToggleButton
+              id="view-group-button-correct"
+              variant="outline-success"
+              value="correct"
+              // checked={displayMode.includes("correct")}
+            >
+              Correct
+            </ToggleButton>
+            <ToggleButton
+              id="view-group-button-intermediate"
+              variant="outline-warning"
+              value="intermediate"
+              // checked={displayMode.includes("intermediate")}
+            >
+              Intermediate
+            </ToggleButton>
+            <ToggleButton
+              id="view-group-button-incorrect"
+              variant="outline-danger"
+              value="incorrect"
+              // checked={displayMode.includes("incorrect")}
+            >
+              Incorrect
+            </ToggleButton>
+            <ToggleButton
+              id="view-group-button-rejected"
+              variant="outline-secondary"
+              value="rejected"
+              // checked={displayMode.includes("rejected")}
+            >
+              Rejected
+            </ToggleButton>
+          </StyledToggleButtonGroup>
+        </ButtonToolbar>
       </FormGroup>
       <StyledTable $hasGuessQueue={hunt.hasGuessQueue}>
         <StyledHeaderRow>
