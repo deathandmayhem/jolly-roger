@@ -15,6 +15,8 @@ const PuzzleNotification = withCommon(
     puzzle: foreignKey,
     // The notification content.
     content: nonEmptyString,
+    // Whether this should be ephemeral
+    ephemeral: z.boolean().optional(),
   }),
 );
 
