@@ -389,6 +389,11 @@ const PuzzleListView = ({
   const showAddModal = useCallback(() => {
     if (addModalRef.current) {
       addModalRef.current.show();
+      addModalRef.current.populateForm({
+        title: "",
+        url: "",
+        tagIds: [],
+      });
     }
   }, []);
 
