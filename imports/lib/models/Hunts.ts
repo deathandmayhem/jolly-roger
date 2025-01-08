@@ -39,9 +39,13 @@ const EditableHunt = z.object({
   homepageUrl: nonEmptyString.url().optional(),
   // If provided, this is an object containing a Discord channel id and cached
   // channel name (for local presentation) to which we should post puzzle
-  // create/solve messages as the server-configured Discord bot.
-  puzzleHooksDiscordChannel: SavedDiscordObjectFields.optional(),
+  // create messages as the server-configured Discord bot.
+  puzzleCreationDiscordChannel: SavedDiscordObjectFields.optional(),
   // If provided, then any message sent in chat for a puzzle associated with
+  // If provided, this is an object containing a Discord channel id and cached
+  // channel name (for local presentation) to which we should post puzzle
+  // solve messages as the server-configured Discord bot.
+  puzzleHooksDiscordChannel: SavedDiscordObjectFields.optional(),
   // this hunt will be mirrored to the specified Discord channel.
   firehoseDiscordChannel: SavedDiscordObjectFields.optional(),
   // If provided, then members of the hunt who have also linked their Discord
@@ -71,6 +75,7 @@ export const HuntPattern = {
   termsOfUse: Match.Optional(String),
   submitTemplate: Match.Optional(String),
   homepageUrl: Match.Optional(String),
+  puzzleCreationDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
   puzzleHooksDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
   firehoseDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
   memberDiscordRole: Match.Optional(SavedDiscordObjectPattern),
