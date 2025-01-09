@@ -24,6 +24,19 @@ const Puzzle = withCommon(
     answers: answer.array(),
     expectedAnswerCount: z.number().int().min(-1),
     replacedBy: foreignKey.optional(),
+    noteContent: z
+      .object({
+        flavor: nonEmptyString.optional(),
+        flavorMeanings: z.array(z.array(nonEmptyString)).optional(),
+        summary: nonEmptyString.optional(),
+        keywords: z.array(nonEmptyString).optional(),
+        theories: nonEmptyString.optional(),
+        contactPerson: nonEmptyString.optional(),
+        externalLinkText: nonEmptyString.optional(),
+        externalLinkUrl: z.string().url().optional(),
+      })
+      .optional(),
+    noteUpdateTs: z.date().optional(),
   }),
 );
 
