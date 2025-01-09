@@ -206,16 +206,6 @@ const TagPuzzle = React.memo(
                   <td>{note.flavor ? note.flavor : null}</td>
                 </tr>
                 <tr>
-                  <td>Flavor text meaning</td>
-                  <td>
-                    {note.flavorMeanings
-                      ? note.flavorMeanings.map((k) => {
-                          return k.join(" => ");
-                        })
-                      : null}
-                  </td>
-                </tr>
-                <tr>
                   <td>Who should people contact?</td>
                   <td>{note.contactPerson ? note.contactPerson : null}</td>
                 </tr>
