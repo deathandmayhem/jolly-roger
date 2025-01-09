@@ -373,120 +373,163 @@ const DisableInvitationLinkModal = ({
   );
 };
 
-const UserStatusBadge = React.memo(({
-  statusObj,
-  huntId,
-  huntPuzzles,
-}: {
-  statusObj: Record<string, any> | null;
-  huntId: string | undefined;
-  huntPuzzles: PuzzleType[];
-}) => {
-
-  if (!huntId) {
-    // we don't show statuses on the all list
-    return
-  }
-
-  if (!statusObj) {
-    // we should display users as offline if we don't have data on them
-    return <StatusDiv>
-      <OverlayTrigger placement="top" overlay={<Tooltip>Offline</Tooltip>}>
-          <ButtonGroup size="sm">
-              <Button
-              variant='outline-secondary'
-              >
-                Offline
-              </Button>
-          </ButtonGroup>
-      </OverlayTrigger>
-    </StatusDiv>;
-  }
-
-  const [lastSeen, setLastSeen] = useState<Date | null>(statusObj?.status?.at || null);
-  const [lastPuzzle, setLastPuzzle] = useState<Date | null>(statusObj?.puzzleStatus?.at || null);
-  const [timeNow, setTimeNow] = useState<Date | null>(new Date() || null);
-  const statusDebounceThreshold = new Date(Date.now() - 2 * 60 * 1000);
-  const relativeDebounceThreshold = new Date(Date.now() - 60 * 1000);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setLastSeen(statusObj?.status?.at || null);
-      setLastPuzzle(statusObj?.puzzleStatus?.at || null);
-      setTimeNow(new Date());
-    }, 60 * 1000);
-
-    return () => clearInterval(intervalId);
-  }, [statusObj]);
-
-
-  const statusDisplay = useMemo(() => {
-    const lastStatusRecently = lastSeen && lastSeen >= statusDebounceThreshold;
-    const lastPuzzleRecently = lastPuzzle && lastPuzzle >= statusDebounceThreshold;
-    const puzzleCountdownDebounce = lastPuzzle && lastPuzzle >= relativeDebounceThreshold;
-    const lastSeenRecently = lastStatusRecently || lastPuzzleRecently;
-    const userStatus = statusObj?.status?.status;
-    const puzzleStatus = statusObj?.puzzleStatus?.status;
-    const puzzleId = statusObj?.puzzleStatus?.puzzle;
-    const puzzleName = puzzleId ? huntPuzzles[puzzleId] : null;
-
-    const statusString = (userStatus === 'offline' && !lastSeenRecently) ? 'Offline' : (userStatus === 'away' && !lastSeenRecently) ? 'Away' : 'Online';
-    const puzzleLabel =
-      <span><strong><FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />&nbsp;
-      {puzzleName?.length > 25 ? puzzleName.slice(0, 25) + '...' : puzzleName}</strong>
-      { puzzleStatus !== 'online' && lastPuzzle && !puzzleCountdownDebounce ? (<span> <RelativeTime
-      date={lastPuzzle}
-      minimumUnit="second"
-      maxElements={1}
-    /></span>) : null } </span>;
-    const tooltip = <span> {statusString}
-    {
-      userStatus !== 'online' ? (
-        <span>, last seen: {shortCalendarTimeFormat(lastSeen)}&nbsp;(<RelativeTime
-          date={lastSeen}
-          minimumUnit="second"
-          maxElements={1}
-        />)</span>
-      ) : null
+const UserStatusBadge = React.memo(
+  ({
+    statusObj,
+    huntId,
+    huntPuzzles,
+  }: {
+    statusObj: Record<string, any> | null;
+    huntId: string | undefined;
+    huntPuzzles: PuzzleType[];
+  }) => {
+    if (!huntId) {
+      // we don't show statuses on the all list
+      return;
     }
-    {
-      puzzleStatus !== 'online' && lastPuzzle ? (
-        ', last active on puzzle: ' + shortCalendarTimeFormat(lastPuzzle)
-      ) : lastPuzzle ? ', currently active on puzzle' : null
-    }
-    </span>;
 
-    return (
-      <StatusDiv>
-        <OverlayTrigger placement="top" overlay={<Tooltip>{tooltip}</Tooltip>}>
-          <ButtonGroup size="sm">
-            <Button variant={statusString === 'Online' ? 'success' : statusString === 'Away' ? 'warning' : 'secondary'}> {/* Button JSX */}
-            {
-              statusString === 'Online' ? (
-                <strong>{statusString}</strong>
-               ): (<span>{statusString}</span>)
-            }
-            </Button>
-            {
-            puzzleId ? (
-              <Button
-                variant="dark"
-                href={`/hunts/${huntId}/puzzles/${puzzleId}`}
-              >
-                {puzzleLabel}
-              </Button>
-            ) : null
-            }
-          </ButtonGroup>
-        </OverlayTrigger>
-      </StatusDiv>
+    if (!statusObj) {
+      // we should display users as offline if we don't have data on them
+      return (
+        <StatusDiv>
+          <OverlayTrigger placement="top" overlay={<Tooltip>Offline</Tooltip>}>
+            <ButtonGroup size="sm">
+              <Button variant="outline-secondary">Offline</Button>
+            </ButtonGroup>
+          </OverlayTrigger>
+        </StatusDiv>
+      );
+    }
+
+    const [lastSeen, setLastSeen] = useState<Date | null>(
+      statusObj?.status?.at || null,
     );
-  }, [
-    statusObj, lastSeen, lastPuzzle, huntPuzzles, timeNow,
-  ]);
+    const [lastPuzzle, setLastPuzzle] = useState<Date | null>(
+      statusObj?.puzzleStatus?.at || null,
+    );
+    const [timeNow, setTimeNow] = useState<Date | null>(new Date() || null);
+    const statusDebounceThreshold = new Date(Date.now() - 2 * 60 * 1000);
+    const relativeDebounceThreshold = new Date(Date.now() - 60 * 1000);
 
-  return statusDisplay;
-});
+    useEffect(() => {
+      const intervalId = setInterval(() => {
+        setLastSeen(statusObj?.status?.at || null);
+        setLastPuzzle(statusObj?.puzzleStatus?.at || null);
+        setTimeNow(new Date());
+      }, 60 * 1000);
+
+      return () => clearInterval(intervalId);
+    }, [statusObj]);
+
+    const statusDisplay = useMemo(() => {
+      if (!lastSeen) {
+        return null;
+      }
+      const lastStatusRecently =
+        lastSeen && lastSeen >= statusDebounceThreshold;
+      const lastPuzzleRecently =
+        lastPuzzle && lastPuzzle >= statusDebounceThreshold;
+      const puzzleCountdownDebounce =
+        lastPuzzle && lastPuzzle >= relativeDebounceThreshold;
+      const lastSeenRecently = lastStatusRecently || lastPuzzleRecently;
+      const userStatus = statusObj?.status?.status;
+      const puzzleStatus = statusObj?.puzzleStatus?.status;
+      const puzzleId = statusObj?.puzzleStatus?.puzzle;
+      const puzzleName = puzzleId ? huntPuzzles[puzzleId] : null;
+
+      const statusString =
+        userStatus === "offline" && !lastSeenRecently
+          ? "Offline"
+          : userStatus === "away" && !lastSeenRecently
+            ? "Away"
+            : "Online";
+      const puzzleLabel = (
+        <span>
+          <strong>
+            <FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />
+            &nbsp;
+            {puzzleName?.length > 25
+              ? puzzleName.slice(0, 25) + "..."
+              : puzzleName}
+          </strong>
+          {puzzleStatus !== "online" &&
+          lastPuzzle &&
+          !puzzleCountdownDebounce ? (
+            <span>
+              {" "}
+              <RelativeTime
+                date={lastPuzzle}
+                minimumUnit="second"
+                maxElements={1}
+              />
+            </span>
+          ) : null}{" "}
+        </span>
+      );
+      const tooltip = (
+        <span>
+          {" "}
+          {statusString}
+          {userStatus !== "online" ? (
+            <span>
+              , last seen: {shortCalendarTimeFormat(lastSeen)}&nbsp;(
+              <RelativeTime
+                date={lastSeen}
+                minimumUnit="second"
+                maxElements={1}
+              />
+              )
+            </span>
+          ) : null}
+          {puzzleStatus !== "online" && lastPuzzle
+            ? ", last active on puzzle: " + shortCalendarTimeFormat(lastPuzzle)
+            : lastPuzzle
+              ? ", currently active on puzzle"
+              : null}
+        </span>
+      );
+
+      return (
+        <StatusDiv>
+          <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip>{tooltip}</Tooltip>}
+          >
+            <ButtonGroup size="sm">
+              <Button
+                variant={
+                  statusString === "Online"
+                    ? "success"
+                    : statusString === "Away"
+                      ? "warning"
+                      : "secondary"
+                }
+              >
+                {" "}
+                {/* Button JSX */}
+                {statusString === "Online" ? (
+                  <strong>{statusString}</strong>
+                ) : (
+                  <span>{statusString}</span>
+                )}
+              </Button>
+              {puzzleId ? (
+                <Button
+                  variant="dark"
+                  href={`/hunts/${huntId}/puzzles/${puzzleId}`}
+                >
+                  {puzzleLabel}
+                </Button>
+              ) : null}
+            </ButtonGroup>
+          </OverlayTrigger>
+        </StatusDiv>
+      );
+    }, [statusObj, lastSeen, lastPuzzle, huntPuzzles, timeNow]);
+
+    return statusDisplay;
+  },
+);
 
 const ProfileList = ({
   hunt,
@@ -509,7 +552,6 @@ const ProfileList = ({
   invitationCode?: string;
   userStatuses?: Record<string, Record<string, Record<string, any>>>;
 }) => {
-
   const [searchString, setSearchString] = useState<string>("");
 
   const searchBarRef = useRef<HTMLInputElement>(null); // Wrong type but I should fix it
@@ -753,14 +795,19 @@ const ProfileList = ({
 
   const huntId = hunt?._id;
 
-  const huntPuzzlesStatus = useTypedSubscribe(puzzlesForHunt, {huntId});
+  const huntPuzzlesStatus = useTypedSubscribe(puzzlesForHunt, { huntId });
   const huntPuzzlesLoading = huntPuzzlesStatus();
 
-  const huntPuzzles: PuzzleType[] | [] = useTracker(
-    () => huntPuzzlesLoading ? [] : Puzzles.find({hunt: huntId}).fetch().reduce((arr, puz)=>{
-      arr[puz._id] = puz.title;
-      return arr;
-    }, {}));
+  const huntPuzzles: PuzzleType[] | [] = useTracker(() =>
+    huntPuzzlesLoading
+      ? []
+      : Puzzles.find({ hunt: huntId })
+          .fetch()
+          .reduce((arr, puz) => {
+            arr[puz._id] = puz.title;
+            return arr;
+          }, {}),
+  );
 
   return (
     <div>
@@ -798,25 +845,24 @@ const ProfileList = ({
           const userStatus = userStatuses?.[user._id];
 
           return (
-            <ListGroupItem
-              key={user._id}
-              className="p-1"
-            >
+            <ListGroupItem key={user._id} className="p-1">
               <ListItemContainer>
                 <ImageBlock>
                   <Avatar {...user} size={40} />
                 </ImageBlock>
-                <Link to={
-                hunt
-                  ? `/hunts/${hunt._id}/hunters/${user._id}`
-                  : `/users/${user._id}`
-              }>
-                {name}
+                <Link
+                  to={
+                    hunt
+                      ? `/hunts/${hunt._id}/hunters/${user._id}`
+                      : `/users/${user._id}`
+                  }
+                >
+                  {name}
                 </Link>
                 <UserStatusBadge
-                statusObj={userStatus}
-                huntId={huntId}
-                huntPuzzles={huntPuzzles}
+                  statusObj={userStatus}
+                  huntId={huntId}
+                  huntPuzzles={huntPuzzles}
                 />
                 {hunt && canMakeOperator && (
                   <OperatorControls hunt={hunt} user={user} />

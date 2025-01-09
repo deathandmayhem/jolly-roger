@@ -255,6 +255,10 @@ const HuntEditPage = () => {
   const [submitTemplate, setSubmitTemplate] = useState<string>(
     hunt?.submitTemplate ?? "",
   );
+  const [puzzleCreationDiscordChannel, setPuzzleCreationDiscordChannel] =
+    useState<SavedDiscordObjectType | undefined>(
+      hunt?.puzzleCreationDiscordChannel,
+    );
   const [puzzleHooksDiscordChannel, setPuzzleHooksDiscordChannel] = useState<
     SavedDiscordObjectType | undefined
   >(hunt?.puzzleHooksDiscordChannel);
@@ -352,6 +356,13 @@ const HuntEditPage = () => {
     setSubmitTemplate(e.currentTarget.value);
   }, []);
 
+  const onPuzzleCreationDiscordChannelChanged = useCallback(
+    (next: SavedDiscordObjectType | undefined) => {
+      setPuzzleCreationDiscordChannel(next);
+    },
+    [],
+  );
+
   const onPuzzleHooksDiscordChannelChanged = useCallback(
     (next: SavedDiscordObjectType | undefined) => {
       setPuzzleHooksDiscordChannel(next);
@@ -400,6 +411,7 @@ const HuntEditPage = () => {
   const onFormSubmit = useCallback<NonNullable<FormProps["onSubmit"]>>(
     (e) => {
       e.preventDefault();
+
       setSubmitState(SubmitState.SUBMITTING);
       const state: EditableHuntType = {
         name,
@@ -410,6 +422,7 @@ const HuntEditPage = () => {
         termsOfUse: termsOfUse === "" ? undefined : termsOfUse,
         homepageUrl: homepageUrl === "" ? undefined : homepageUrl,
         submitTemplate: submitTemplate === "" ? undefined : submitTemplate,
+        puzzleCreationDiscordChannel,
         puzzleHooksDiscordChannel,
         firehoseDiscordChannel,
         memberDiscordRole,
@@ -435,6 +448,7 @@ const HuntEditPage = () => {
       termsOfUse,
       homepageUrl,
       submitTemplate,
+      puzzleCreationDiscordChannel,
       puzzleHooksDiscordChannel,
       firehoseDiscordChannel,
       memberDiscordRole,
@@ -724,6 +738,30 @@ const HuntEditPage = () => {
                 xs={3}
                 htmlFor="hunt-form-puzzle-hooks-discord-channel"
               >
+                Puzzle creation Discord channel
+              </FormLabel>
+              <Col xs={9}>
+                <DiscordChannelSelector
+                  id="hunt-form-puzzle-hooks-discord-channel"
+                  guildId={guildId}
+                  disable={disableForm}
+                  value={puzzleCreationDiscordChannel}
+                  onChange={onPuzzleCreationDiscordChannelChanged}
+                />
+                <FormText>
+                  If this field is specified, when a puzzle in this hunt is{" "}
+                  <strong>added</strong>, a message will be sent to the
+                  specified channel.
+                </FormText>
+              </Col>
+            </FormGroup>
+
+            <FormGroup as={Row} className="mb-3">
+              <FormLabel
+                column
+                xs={3}
+                htmlFor="hunt-form-puzzle-hooks-discord-channel"
+              >
                 Puzzle notifications Discord channel
               </FormLabel>
               <Col xs={9}>
@@ -735,9 +773,9 @@ const HuntEditPage = () => {
                   onChange={onPuzzleHooksDiscordChannelChanged}
                 />
                 <FormText>
-                  If this field is specified, when a puzzle in this hunt is
-                  added or solved, a message will be sent to the specified
-                  channel.
+                  If this field is specified, when a puzzle in this hunt is{" "}
+                  <strong>solved</strong>, a message will be sent to the
+                  specified channel.
                 </FormText>
               </Col>
             </FormGroup>

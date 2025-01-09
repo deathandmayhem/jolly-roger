@@ -459,7 +459,7 @@ const DiscordMessage = React.memo(
     }, [requestComplete]);
 
     const msg =
-      "It looks like you haven't linked Discord. Please do so for full functionality.";
+      "Please link your Discord account to Jolly Roger for full functionality.";
     const actions = [
       <StyledNotificationActionItem key="invite">
         <Button

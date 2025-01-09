@@ -151,19 +151,21 @@ const PuzzleModalForm = React.forwardRef(
           case "deselect-option":
           case "pop-value":
           case "remove-value":
-          case "create-option":
           case "select-option":
             newTags = value.map((v) => v.value);
+            break;
+          case "create-option":
+            newTags = value.map((v) => v.label);
             break;
           default:
             return;
         }
 
         setFunctionTags(newTags);
-        setTags([...contentTags, ...newTags]);
+        setTags(contentTags.concat(newTags));
         setTagsDirty(true);
       },
-      [],
+      [contentTags],
     );
 
     const onContentTagsChange = useCallback(
@@ -174,22 +176,24 @@ const PuzzleModalForm = React.forwardRef(
         let newTags = [];
         switch (action.action) {
           case "clear":
-          case "create-option":
           case "deselect-option":
           case "pop-value":
           case "remove-value":
           case "select-option":
             newTags = value.map((v) => v.value);
             break;
+          case "create-option":
+            newTags = value.map((v) => v.label);
+            break;
           default:
             return;
         }
 
         setContentTags(newTags);
-        setTags([...functionTags, ...newTags]);
+        setTags(functionTags.concat(newTags));
         setTagsDirty(true);
       },
-      [],
+      [functionTags],
     );
 
     const onDocTypeChange = useCallback((newValue: string) => {
