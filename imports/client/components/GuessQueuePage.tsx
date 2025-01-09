@@ -219,12 +219,12 @@ const GuessBlock = React.memo(
 
     const puzzleTooltip = (
       <Tooltip id={`guess-${guess._id}-puzzle-tooltip`}>
-        Open puzzle page
+        Open original puzzle
       </Tooltip>
     );
     const discussionTooltip = (
       <Tooltip id={`guess-${guess._id}-discussion-tooltip`}>
-        Open solving page
+        Open on Jolly Roger
       </Tooltip>
     );
 
