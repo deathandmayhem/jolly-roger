@@ -164,7 +164,6 @@ const PuzzleModalForm = React.forwardRef(
         setFunctionTags(newTags);
         setTags(contentTags.concat(newTags));
         setTagsDirty(true);
-        console.log(tags);
       },
       [contentTags],
     );
@@ -193,7 +192,6 @@ const PuzzleModalForm = React.forwardRef(
         setContentTags(newTags);
         setTags(functionTags.concat(newTags));
         setTagsDirty(true);
-        console.log(tags);
       },
       [functionTags],
     );
