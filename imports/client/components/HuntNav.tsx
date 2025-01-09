@@ -15,6 +15,7 @@ import styled, { css } from "styled-components";
 import Hunts from "../../lib/models/Hunts";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
 import { mediaBreakpointDown } from "./styling/responsive";
+import { faStickyNote } from "@fortawesome/free-solid-svg-icons";
 
 const JRLinkList = styled(Nav)`
   margin-right: 8px;
@@ -196,20 +197,23 @@ const HuntNav = () => {
           </StyledPuzzleListLinkAnchor>
         )}
         {canUpdate && (
-          <StyledPuzzleListLinkAnchor
-            to={`/hunts/${huntId}/tags`}
-            title="Tags"
-          >
+          <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/tags`} title="Tags">
             <MenuIcon icon={faTags} />
             <StyledPuzzleListLinkLabel>Tags</StyledPuzzleListLinkLabel>
           </StyledPuzzleListLinkAnchor>
         )}
+        {canUpdate && (
+          <StyledPuzzleListLinkAnchor
+            to={`/hunts/${huntId}/notes`}
+            title="Notes"
+          >
+            <MenuIcon icon={faStickyNote} />
+            <StyledPuzzleListLinkLabel>Notes</StyledPuzzleListLinkLabel>
+          </StyledPuzzleListLinkAnchor>
+        )}
         {huntLink}
 
-        <StyledPuzzleListLinkAnchor
-          to={`/hunts/${huntId}/more`}
-          title="More"
-        >
+        <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/more`} title="More">
           <MenuIcon icon={faEllipsisH} />
           <StyledPuzzleListLinkLabel>More</StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>

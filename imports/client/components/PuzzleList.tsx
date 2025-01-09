@@ -25,8 +25,8 @@ const PuzzleList = React.memo(
     showSolvers: boolean;
     suppressTags?: string[];
     segmentAnswers?: boolean;
-    subscribers: Record <string, Record <string, string[]>>;
-    pinnedMessages: ChatMessageType[] | null;
+    subscribers?: Record<string, Record<string, string[]>>;
+    pinnedMessages?: ChatMessageType[] | null;
   }) => {
     // This component just renders the puzzles provided, in order.
     // Adjusting order based on tags, tag groups, etc. is to be done at
@@ -45,8 +45,16 @@ const PuzzleList = React.memo(
               suppressTags={suppressTags}
               segmentAnswers={segmentAnswers}
               showSolvers={showSolvers}
-              subscribers={subscribers && puzzleId in subscribers ? subscribers[puzzleId] : null}
-              pinnedMessage={pinnedMessages && puzzleId in pinnedMessages ? pinnedMessages[puzzleId] : null}
+              subscribers={
+                subscribers && puzzleId in subscribers
+                  ? subscribers[puzzleId]
+                  : null
+              }
+              pinnedMessage={
+                pinnedMessages && puzzleId in pinnedMessages
+                  ? pinnedMessages[puzzleId]
+                  : null
+              }
             />
           );
         })}
