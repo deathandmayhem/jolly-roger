@@ -170,7 +170,7 @@ const TagPuzzle = React.memo(
                 Solved
               </Badge>
             ) : null}
-            <Link to={puzzle._id}>{puzzle.title}</Link>
+            <Link to={`../${puzzle._id}`}>{puzzle.title}</Link>
             <span>
               {puzzle.noteUpdateTs ? (
                 <>: Last updated {noteRelativeTime}</>
