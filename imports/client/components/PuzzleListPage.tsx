@@ -3,6 +3,16 @@ import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
+import { faFolderOpen } from "@fortawesome/free-solid-svg-icons/faFolderOpen";
+import { faMapPin } from "@fortawesome/free-solid-svg-icons/faMapPin";
+import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
+import { faClock } from "@fortawesome/free-regular-svg-icons/faClock";
+import { faCircle } from "@fortawesome/free-regular-svg-icons/faCircle";
+import { faGlobe } from "@fortawesome/free-solid-svg-icons/faGlobe";
+import { faEyeSlash } from "@fortawesome/free-regular-svg-icons/faEyeSlash";
+import { faEye } from "@fortawesome/free-regular-svg-icons/faEye";
+import { faPhone } from "@fortawesome/free-solid-svg-icons/faPhone";
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
   type ComponentPropsWithRef,
@@ -481,7 +491,7 @@ const PuzzleListView = ({
         </Alert>
       );
       const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
-      const filterMessage = `Showing ${retainedPuzzles.length} of ${allPuzzlesCount} items`;
+      const filterMessage = `Showing ${retainedPuzzles.length} of ${allPuzzlesCount} rows`;
 
       const bookmarkedPuzzles = retainedPuzzles.filter((puzzle) =>
         bookmarked.has(puzzle._id),
@@ -562,6 +572,11 @@ const PuzzleListView = ({
           <PuzzleListToolbar>
             <div>{listControls}</div>
             <div>{filterMessage}</div>
+            <div>
+              <FontAwesomeIcon icon={faFolderOpen} /> = group;{" "}
+              <FontAwesomeIcon icon={faStar} /> = meta for;{" "}
+              <FontAwesomeIcon icon={faMapPin} /> = where
+            </div>
           </PuzzleListToolbar>
           {bookmarkedPuzzles.length > 0 && (
             <PuzzleGroupDiv>
@@ -640,14 +655,14 @@ const PuzzleListView = ({
               variant="outline-info"
               value="hide"
             >
-              ✏️ Solver
+              <FontAwesomeIcon icon={faPencilAlt} /> Solver
             </ToggleButton>
             <ToggleButton
               id="operator-actions-show-button"
               variant="outline-info"
               value="show"
             >
-              ☎️ Answer Chief
+              <FontAwesomeIcon icon={faPhone} color="red" /> Answer Chief
             </ToggleButton>
           </StyledToggleButtonGroup>
         </ButtonToolbar>
@@ -692,14 +707,14 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="group"
               >
-                Group
+                <FontAwesomeIcon icon={faFolderOpen} /> Group
               </ToggleButton>
               <ToggleButton
                 id="view-unlock-button"
                 variant="outline-info"
                 value="unlock"
               >
-                Time added
+                <FontAwesomeIcon icon={faClock} /> When added
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
@@ -719,14 +734,14 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="hide"
               >
-                ⚪️ Unsolved
+                <FontAwesomeIcon icon={faCircle} /> Unsolved
               </ToggleButton>
               <ToggleButton
                 id="solved-show-button"
                 variant="outline-info"
                 value="show"
               >
-                🌏 All
+                <FontAwesomeIcon icon={faGlobe} /> All
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
@@ -746,14 +761,14 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="hide"
               >
-                🙈 Hide
+                <FontAwesomeIcon icon={faEyeSlash} /> Hide
               </ToggleButton>
               <ToggleButton
                 id="solvers-show-button"
                 variant="outline-info"
                 value="show"
               >
-                👀 Show
+                <FontAwesomeIcon icon={faEye} /> Show
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>

@@ -109,8 +109,7 @@ const MoreAppPage = () => {
 
         <h2>Notes chief</h2>
         <p>
-          Visit the
-          <Link to={`/hunts/${huntId}/notes`}>🗒️ NOTES page </Link>
+          Visit the <Link to={`/hunts/${huntId}/notes`}>🗒️ NOTES page </Link>
           to view a list of all puzzles and their notes.
         </p>
       </FirehosePageLayout>

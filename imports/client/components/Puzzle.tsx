@@ -4,6 +4,8 @@ import { faPenNib, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
+import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
+import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
   type ComponentPropsWithRef,
@@ -312,9 +314,9 @@ const Puzzle = React.memo(
     );
     const statusEmoji = useTracker(() => {
       if (isHighPriority) {
-        return "🚨";
+        return <FontAwesomeIcon icon={faAngleDoubleUp} color="red" />;
       } else if (isLowPriority) {
-        return "🔽";
+        return <FontAwesomeIcon icon={faAngleDown} />;
       } else {
         return null;
       }
@@ -388,17 +390,17 @@ const Puzzle = React.memo(
       const note = puzzle.noteContent;
 
       const noteTT = [];
-      if (note.summary) {
-        noteTT.push(
-          <div>
-            <strong>Summary:</strong> {note.summary}
-          </div>,
-        );
-      }
       if (note.flavor) {
         noteTT.push(
           <div>
             <strong>Flavor: </strong> <em>{note.flavor}</em>
+          </div>,
+        );
+      }
+      if (note.summary) {
+        noteTT.push(
+          <div>
+            <strong>Summary:</strong> {note.summary}
           </div>,
         );
       }

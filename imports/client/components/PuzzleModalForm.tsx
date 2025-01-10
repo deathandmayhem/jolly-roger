@@ -537,8 +537,9 @@ const PuzzleModalForm = React.forwardRef(
               />
               <FormText>
                 Tags with a prefix, like <code>group:</code>,{" "}
-                <code>meta-for:</code>, or <code>where:</code> (e.g.{" "}
-                <code>meta-for:Pi Day</code>; <code>where:Sydney</code>)
+                <code>meta-for:</code>, <code>priority:</code>, or{" "}
+                <code>where:</code> (e.g. <code>priority:high</code>;{" "}
+                <code>where:Sydney</code>)
               </FormText>
             </Col>
           </FormGroup>

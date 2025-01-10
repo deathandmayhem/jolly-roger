@@ -2,6 +2,9 @@
 import { faAlignJustify } from "@fortawesome/free-solid-svg-icons/faAlignJustify";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
+import { faFolderOpen } from "@fortawesome/free-regular-svg-icons/faFolderOpen";
+import { faMapPin } from "@fortawesome/free-solid-svg-icons/faMapPin";
+import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ModifierArguments, Modifier, Padding } from "@popperjs/core";
 import detectOverflow from "@popperjs/core/lib/utils/detectOverflow";
@@ -122,7 +125,7 @@ const TagDiv = styled.div<{
   ${({ $isMetaFor }) =>
     $isMetaFor &&
     css`
-      background-color: #ffb0b0;
+      background-color: #ffff00;
     `}
   ${({ $isNeeds }) =>
     $isNeeds &&
@@ -324,18 +327,26 @@ const Tag = (props: TagProps) => {
   const isMetaFor = name.lastIndexOf("meta-for:", 0) === 0;
   const isNeeds = name.lastIndexOf("needs:", 0) === 0;
   const isPriority = name.lastIndexOf("priority:", 0) === 0;
-  const isLocation = name.lastIndexOf("location:", 0) === 0 || name.lastIndexOf("loc:") === 0;
+  const isLocation =
+    name.lastIndexOf("location:", 0) === 0 ||
+    name.lastIndexOf("loc:") === 0 ||
+    name.lastIndexOf("where:") === 0;
 
   // Browsers won't word-break on hyphens, so suggest
   // Use wbr instead of zero-width space to make copy-paste reasonable
   const nameWithBreaks: (string | React.JSX.Element)[] = [];
   name.split(":").forEach((part, i, arr) => {
     const withColon = i < arr.length - 1;
-    if (isMetaFor && i == 0 && !props.popoverRelated) {
-      nameWithBreaks.push(`👑 `);
+    if (isGroup && i == 0 && !props.popoverRelated) {
+      nameWithBreaks.push(<FontAwesomeIcon icon={faFolderOpen} />);
+    } else if (isMetaFor && i == 0 && !props.popoverRelated) {
+      nameWithBreaks.push(<FontAwesomeIcon icon={faStar} />);
+    } else if (isLocation && i == 0 && !props.popoverRelated) {
+      nameWithBreaks.push(<FontAwesomeIcon icon={faMapPin} />);
     } else {
       nameWithBreaks.push(`${part}${withColon ? ":" : ""}`);
     }
+    nameWithBreaks.push(` `);
     if (withColon) {
       // eslint-disable-next-line react/no-array-index-key
       nameWithBreaks.push(<wbr key={`wbr-${i}-${part}`} />);
