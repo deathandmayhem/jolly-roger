@@ -501,9 +501,9 @@ const PuzzleModalForm = React.forwardRef(
                 })}
               />
               <FormText>
-                Tags with a prefix, like <code>group:</code>, <code>is:</code>,
-                or <code>where:</code> (e.g. <code>is:meta</code>, or{" "}
-                <code>where:Sydney</code>)
+                Tags with a prefix, like <code>group:</code>,{" "}
+                <code>meta-for:</code>, or <code>where:</code> (e.g.{" "}
+                <code>meta-for:Pi Day</code>; <code>where:Sydney</code>)
               </FormText>
             </Col>
           </FormGroup>
@@ -525,8 +525,9 @@ const PuzzleModalForm = React.forwardRef(
                 })}
               />
               <FormText>
-                Tags that describe the mechanics and content (e.g.{" "}
-                <code>cryptic</code>, <code>Pokémon</code>)
+                Tags that describe the mechanics, content, or skills (e.g.{" "}
+                <code>cryptic</code>; <code>Pokémon</code>;{" "}
+                <code>writing stuff</code>)
               </FormText>
             </Col>
           </FormGroup>
