@@ -29,7 +29,6 @@ const Puzzle = withCommon(
         flavor: nonEmptyString.optional(),
         flavorMeanings: z.array(z.array(nonEmptyString)).optional(),
         summary: nonEmptyString.optional(),
-        keywords: z.array(nonEmptyString).optional(),
         theories: nonEmptyString.optional(),
         contactPerson: nonEmptyString.optional(),
         externalLinkText: nonEmptyString.optional(),

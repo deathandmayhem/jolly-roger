@@ -129,19 +129,6 @@ const TimestampColumn = styled(PuzzleColumn)`
   order: -1;
 `;
 
-const TagListColumn = styled(TagList)`
-  padding: 0 2px;
-  display: inline-block;
-  flex: 3;
-  margin: -2px -4px -2px 0;
-  ${mediaBreakpointDown(
-    "xs",
-    css`
-      flex: 0 0 100%;
-    `,
-  )}
-`;
-
 const TagPuzzle = React.memo(
   ({
     puzzle,
@@ -214,12 +201,6 @@ const TagPuzzle = React.memo(
                   <td>{note.summary ? note.summary : null}</td>
                 </tr>
                 <tr>
-                  <td>Keywords</td>
-                  <td>
-                    {note.keywords ? <em>{note.keywords.join(", ")}</em> : null}
-                  </td>
-                </tr>
-                <tr>
                   <td>Theories</td>
                   <td>{note.theories ? note.theories : null}</td>
                 </tr>
@@ -240,24 +221,6 @@ const TagPuzzle = React.memo(
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
-    );
-    return (
-      <TagPuzzleDiv $solvedness={solvedness}>
-        <>
-          <PuzzleControlButtonsColumn></PuzzleControlButtonsColumn>
-          <PuzzleTitleColumn>{puzzle.title}</PuzzleTitleColumn>
-          <TimestampColumn>
-            {puzzle.noteUpdateTs ? noteRelativeTime : "No note"}
-          </TimestampColumn>
-          <TagListColumn
-            puzzle={puzzle}
-            tags={puzzleTags}
-            linkToSearch
-            popoverRelated={false}
-          />
-        </>
-        <>{collapsed ? null : <div>Test</div>}</>
-      </TagPuzzleDiv>
     );
   },
 );
