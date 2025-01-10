@@ -1,6 +1,4 @@
-import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
-import { OAuth } from "meteor/oauth";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
@@ -47,12 +45,9 @@ import dismissBookmarkNotification from "../../methods/dismissBookmarkNotificati
 import dismissChatNotification from "../../methods/dismissChatNotification";
 import dismissPendingAnnouncement from "../../methods/dismissPendingAnnouncement";
 import dismissPuzzleNotification from "../../methods/dismissPuzzleNotification";
-import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
-import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
 import setGuessState from "../../methods/setGuessState";
 import { guessURL } from "../../model-helpers";
 import GoogleScriptInfo from "../GoogleScriptInfo";
-import { requestDiscordCredential } from "../discord";
 import { useOperatorActionsHidden } from "../hooks/persisted-state";
 import { useBlockReasons } from "../hooks/useBlockUpdate";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
@@ -62,8 +57,6 @@ import ChatMessage from "./ChatMessage";
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
 import SpinnerTimer from "./SpinnerTimer";
-import { GuessConfidence, GuessDirection } from "./guessDetails";
-import { Badge } from "react-bootstrap";
 
 // How long to keep showing guess notifications after actioning.
 // Note that this cannot usefully exceed the linger period implemented by the
@@ -410,159 +403,6 @@ const GuessMessage = React.memo(
             </>
           )}
           {guess.state === "pending" && stageTwoSection}
-        </Toast.Body>
-      </Toast>
-    );
-  },
-);
-
-enum DiscordMessageStatus {
-  IDLE = "idle",
-  LINKING = "linking",
-  ERROR = "error",
-  SUCCESS = "success",
-}
-
-type DiscordMessageState = {
-  status: DiscordMessageStatus;
-  error?: string;
-};
-
-const DiscordMessage = React.memo(
-  ({ onDismiss }: { onDismiss: () => void }) => {
-    const [state, setState] = useState<DiscordMessageState>({
-      status: DiscordMessageStatus.IDLE,
-    });
-
-    const requestComplete = useCallback((token: string) => {
-      const secret = OAuth._retrieveCredentialSecret(token);
-      if (!secret) {
-        setState({ status: DiscordMessageStatus.IDLE });
-        return;
-      }
-
-      linkUserDiscordAccount.call({ key: token, secret }, (error) => {
-        if (error) {
-          setState({
-            status: DiscordMessageStatus.ERROR,
-            error: error.message,
-          });
-        } else {
-          setState({ status: DiscordMessageStatus.IDLE });
-        }
-      });
-    }, []);
-
-    const initiateOauthFlow = useCallback(() => {
-      setState({ status: DiscordMessageStatus.LINKING });
-      requestDiscordCredential(requestComplete);
-    }, [requestComplete]);
-
-    const msg =
-      "Please link your Discord account to Jolly Roger for full functionality.";
-    const actions = [
-      <StyledNotificationActionItem key="invite">
-        <Button
-          variant="outline-secondary"
-          disabled={
-            !(
-              state.status === DiscordMessageStatus.IDLE ||
-              state.status === DiscordMessageStatus.ERROR
-            )
-          }
-          onClick={initiateOauthFlow}
-        >
-          Link Discord
-        </Button>
-      </StyledNotificationActionItem>,
-    ];
-
-    return (
-      <Toast onClose={onDismiss}>
-        <Toast.Header>
-          <strong className="me-auto">Discord account not linked</strong>
-        </Toast.Header>
-        <Toast.Body>
-          <StyledNotificationRow>{msg}</StyledNotificationRow>
-          <StyledNotificationActionBar>{actions}</StyledNotificationActionBar>
-          {state.status === DiscordMessageStatus.ERROR ? state.error! : null}
-        </Toast.Body>
-      </Toast>
-    );
-  },
-);
-
-enum GoogleMessageStatus {
-  IDLE = "idle",
-  LINKING = "linking",
-  ERROR = "error",
-  SUCCESS = "success",
-}
-
-type GoogleMessageState = {
-  status: GoogleMessageStatus;
-  error?: string;
-};
-
-const GoogleMessage = React.memo(
-  ({ onDismiss }: { onDismiss: () => false }) => {
-    const [state, setState] = useState<GoogleMessageState>({
-      status: GoogleMessageStatus.IDLE,
-    });
-
-    const requestComplete = useCallback((token: string) => {
-      const secret = OAuth._retrieveCredentialSecret(token);
-      if (!secret) {
-        setState({ status: GoogleMessageStatus.IDLE });
-        return;
-      }
-
-      linkUserGoogleAccount.call({ key: token, secret }, (error) => {
-        if (error) {
-          setState({
-            status: GoogleMessageStatus.ERROR,
-            error: error.message,
-          });
-        } else {
-          setState({ status: GoogleMessageStatus.IDLE });
-        }
-      });
-    }, []);
-
-    const initiateOauthFlow = useCallback(() => {
-      setState({ status: GoogleMessageStatus.LINKING });
-
-      Google.requestCredential(requestComplete);
-    }, [requestComplete]);
-
-    const msg =
-      "Please link your Google account to Jolly Roger for full functionality.";
-    const actions = [
-      <StyledNotificationActionItem key="invite">
-        <Button
-          variant="outline-secondary"
-          disabled={
-            !(
-              state.status === GoogleMessageStatus.IDLE ||
-              state.status === GoogleMessageStatus.ERROR
-            )
-          }
-          onClick={initiateOauthFlow}
-        >
-          Link Google
-        </Button>
-      </StyledNotificationActionItem>,
-    ];
-
-    return (
-      <Toast onClose={onDismiss}>
-        <Toast.Header closeButton={false}>
-          <strong className="me-auto">Google account not linked</strong>
-        </Toast.Header>
-        <Toast.Body>
-          <StyledNotificationRow>{msg}</StyledNotificationRow>
-          <StyledNotificationActionBar>{actions}</StyledNotificationActionBar>
-          {state.status === GoogleMessageStatus.ERROR ? state.error! : null}
         </Toast.Body>
       </Toast>
     );
@@ -916,32 +756,11 @@ const NotificationCenter = () => {
     chatNotificationsLoading() ||
     puzzleNotificationsLoading();
 
-  const googleEnabledOnServer = useTracker(
-    () =>
-      !!ServiceConfiguration.configurations.findOne({ service: "google" }) &&
-      !Flags.active("disable.google"),
-    [],
-  );
-
-  const discordEnabledOnServer = useTracker(
-    () =>
-      !!ServiceConfiguration.configurations.findOne({ service: "discord" }) &&
-      !Flags.active("disable.discord"),
-    [],
-  );
-
   const { hasOwnProfile, discordConfiguredByUser } = useTracker(() => {
     const user = Meteor.user()!;
     return {
       hasOwnProfile: !!user.displayName,
       discordConfiguredByUser: !!user.discordAccount,
-    };
-  }, []);
-
-  const { googleConfiguredByUser } = useTracker(() => {
-    const user = Meteor.user()!;
-    return {
-      googleConfiguredByUser: !!user.googleAccount,
     };
   }, []);
 
@@ -1035,8 +854,6 @@ const NotificationCenter = () => {
 
   const [hideUpdateGoogleScriptMessage, setHideUpdateGoogleScriptMessage] =
     useState<boolean>(false);
-  const [hideDiscordSetupMessage, setHideDiscordSetupMessage] =
-    useState<boolean>(false);
   const [hideProfileSetupMessage, setHideProfileSetupMessage] =
     useState<boolean>(false);
   const [dismissedGuesses, setDismissedGuesses] = useState<
@@ -1045,14 +862,6 @@ const NotificationCenter = () => {
 
   const onHideUpdateGoogleScriptMessage = useCallback(() => {
     setHideUpdateGoogleScriptMessage(true);
-  }, []);
-
-  const onHideDiscordSetupMessage = useCallback(() => {
-    setHideDiscordSetupMessage(true);
-  }, []);
-
-  const onHideGoogleSetupMessage = useCallback(() => {
-    return false;
   }, []);
 
   const onHideProfileSetupMessage = useCallback(() => {
@@ -1123,22 +932,6 @@ const NotificationCenter = () => {
         key="profile"
         onDismiss={onHideProfileSetupMessage}
       />,
-    );
-  }
-
-  if (
-    discordEnabledOnServer &&
-    !discordConfiguredByUser &&
-    !hideDiscordSetupMessage
-  ) {
-    messages.push(
-      <DiscordMessage key="discord" onDismiss={onHideDiscordSetupMessage} />,
-    );
-  }
-
-  if (googleEnabledOnServer && !googleConfiguredByUser) {
-    messages.push(
-      <GoogleMessage key="google" onDismiss={onHideGoogleSetupMessage} />,
     );
   }
 
