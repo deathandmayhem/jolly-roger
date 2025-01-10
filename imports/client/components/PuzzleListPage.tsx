@@ -1,5 +1,5 @@
 import { Meteor } from "meteor/meteor";
-import { useFind, useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
@@ -23,12 +23,14 @@ import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
+import isAdmin from "../../lib/isAdmin";
 import { sortedBy } from "../../lib/listUtils";
 import Bookmarks from "../../lib/models/Bookmarks";
 import Hunts from "../../lib/models/Hunts";
 import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
+import Peers from "../../lib/models/mediasoup/Peers";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
 import puzzleActivityForHunt from "../../lib/publications/puzzleActivityForHunt";
 import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
@@ -46,7 +48,10 @@ import {
   useOperatorActionsHiddenForHunt,
 } from "../hooks/persisted-state";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
+import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import indexedDisplayNames from "../indexedDisplayNames";
+import { Subscribers } from "../subscribers";
 import HuntNav from "./HuntNav";
 import PuzzleList from "./PuzzleList";
 import type {
@@ -57,26 +62,6 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import RelatedPuzzleGroup, { PuzzleGroupDiv } from "./RelatedPuzzleGroup";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { Subscribers } from "../subscribers";
-import Peers from "../../lib/models/mediasoup/Peers";
-import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
-import indexedDisplayNames from "../indexedDisplayNames";
-import pinnedMessagesForPuzzleList from "../../lib/publications/pinnedMessagesForPuzzleList";
-import ChatMessages, { ChatMessageType } from "../../lib/models/ChatMessages";
-import isAdmin from "../../lib/isAdmin";
-
-const FilteredChatFields = [
-  "_id",
-  "puzzle",
-  "content",
-  "sender",
-  "timestamp",
-  "pinTs",
-] as const;
-type FilteredChatMessageType = Pick<
-  ChatMessageType,
-  (typeof FilteredChatFields)[number]
->;
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
@@ -211,7 +196,7 @@ const PuzzleListView = ({
       !isAdmin || loading
         ? undefined
         : Puzzles.findDeleted({ hunt: huntId }).fetch(),
-    [canUpdate, huntId, loading],
+    [huntId, loading],
   );
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -429,7 +414,7 @@ const PuzzleListView = ({
         });
       }
     }
-  }, [bookmarkTitle, bookmarkURL]);
+  }, [bookmarkTitle, bookmarkURL, navigate, setSearchParams]);
 
   const subscribersLoading = useSubscribe("subscribers.fetchAll", huntId);
   const callMembersLoading = useSubscribe("mediasoup:metadataAll", huntId);
@@ -445,13 +430,13 @@ const PuzzleListView = ({
       return { none: { none: [] } };
     }
 
-    let puzzleSubs = {};
+    const puzzleSubs = {};
 
     Peers.find({})
       .fetch()
       .forEach((s) => {
-        let puzzle = s.call;
-        let user = displayNames.get(s.createdBy);
+        const puzzle = s.call;
+        const user = displayNames.get(s.createdBy);
         if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
           puzzleSubs[puzzle] = {
             viewers: [],
@@ -464,8 +449,8 @@ const PuzzleListView = ({
       });
 
     Subscribers.find({}).forEach((s) => {
-      let puzzle = s.name.replace(/^puzzle:/, "");
-      let user = displayNames.get(s.user);
+      const puzzle = s.name.replace(/^puzzle:/, "");
+      const user = displayNames.get(s.user);
       if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
         puzzleSubs[puzzle] = {
           viewers: [],
@@ -480,25 +465,7 @@ const PuzzleListView = ({
       }
     });
     return puzzleSubs;
-  }, [subscriptionsLoading]);
-
-  const subscribeMsgs = useTypedSubscribe(pinnedMessagesForPuzzleList, {
-    huntId,
-  });
-
-  const msgsLoading = subscribeMsgs();
-
-  const pinnedMessages = useTracker(() => {
-    let pinMsgs: Record<string, ChatMessageType> = {};
-    ChatMessages.find({}, { sort: { pinTs: -1 } })
-      .fetch()
-      .forEach((msg) => {
-        if (!Object.prototype.hasOwnProperty.call(pinMsgs, msg.puzzle)) {
-          pinMsgs[msg.puzzle] = msg;
-        }
-      });
-    return pinMsgs;
-  }, [msgsLoading]);
+  }, [displayNames, subscriptionsLoading]);
 
   const renderList = useCallback(
     (
@@ -506,7 +473,6 @@ const PuzzleListView = ({
       retainedDeletedPuzzles: PuzzleType[] | undefined,
       solvedOverConstrains: boolean,
       allPuzzlesCount: number,
-      puzzleSubscribers: Record<string, Record<string, string[]>>,
     ) => {
       const maybeMatchWarning = solvedOverConstrains && (
         <Alert variant="info">
@@ -553,7 +519,6 @@ const PuzzleListView = ({
                 trackPersistentExpand={searchString === ""}
                 showSolvers={showSolvers}
                 subscribers={puzzleSubscribers}
-                pinnedMessages={pinnedMessages}
                 addPuzzleCallback={showAddModalWithTags}
               />
             );
@@ -585,7 +550,6 @@ const PuzzleListView = ({
               canUpdate={canUpdate}
               showSolvers={showSolvers}
               subscribers={puzzleSubscribers}
-              pinnedMessages={pinnedMessages}
             />
           );
           listControls = null;
@@ -630,24 +594,26 @@ const PuzzleListView = ({
               trackPersistentExpand={searchString !== ""}
               subscribers={puzzleSubscribers}
               showSolvers={showSolvers}
-              pinnedMessages={pinnedMessages}
+              addPuzzleCallback={showAddModalWithTags}
             />
           )}
         </div>
       );
     },
     [
-      huntId,
       displayMode,
-      allPuzzles,
+      bookmarked,
       allTags,
       canUpdate,
+      showSolvers,
+      puzzleSubscribers,
+      deletedPuzzles,
+      huntId,
       searchString,
+      allPuzzles,
       canExpandAllGroups,
       expandAllGroups,
-      bookmarked,
-      puzzleSubscribers,
-      pinnedMessages,
+      showAddModalWithTags,
     ],
   );
 

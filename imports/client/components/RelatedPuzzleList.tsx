@@ -40,7 +40,6 @@ const RelatedPuzzleList = React.memo(
     showSolvers,
     segmentAnswers,
     subscribers,
-    pinnedMessages,
   }: {
     relatedPuzzles: PuzzleType[];
     bookmarked: Set<string>;
@@ -51,7 +50,6 @@ const RelatedPuzzleList = React.memo(
     showSolvers: boolean;
     segmentAnswers?: boolean;
     subscribers: Record<string, Record<string, string[]>>;
-    pinnedMessages: ChatMessageType[] | null;
   }) => {
     // Sort the puzzles within each tag group by interestingness.  For instance, metas
     // should probably be at the top of the group, then of the round puzzles, unsolved should
@@ -72,7 +70,6 @@ const RelatedPuzzleList = React.memo(
         segmentAnswers={segmentAnswers}
         showSolvers={showSolvers}
         subscribers={subscribers}
-        pinnedMessages={pinnedMessages}
       />
     );
   },
