@@ -1,6 +1,4 @@
-import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
-import { OAuth } from "meteor/oauth";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
@@ -46,12 +44,9 @@ import dismissBookmarkNotification from "../../methods/dismissBookmarkNotificati
 import dismissChatNotification from "../../methods/dismissChatNotification";
 import dismissPendingAnnouncement from "../../methods/dismissPendingAnnouncement";
 import dismissPuzzleNotification from "../../methods/dismissPuzzleNotification";
-import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
-import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
 import setGuessState from "../../methods/setGuessState";
 import { guessURL } from "../../model-helpers";
 import GoogleScriptInfo from "../GoogleScriptInfo";
-import { requestDiscordCredential } from "../discord";
 import { useOperatorActionsHidden } from "../hooks/persisted-state";
 import { useBlockReasons } from "../hooks/useBlockUpdate";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
@@ -62,8 +57,6 @@ import CopyToClipboardButton from "./CopyToClipboardButton";
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
 import SpinnerTimer from "./SpinnerTimer";
-import { GuessConfidence, GuessDirection } from "./guessDetails";
-import { Badge } from "react-bootstrap";
 
 // How long to keep showing guess notifications after actioning.
 // Note that this cannot usefully exceed the linger period implemented by the
@@ -753,32 +746,11 @@ const NotificationCenter = () => {
     chatNotificationsLoading() ||
     puzzleNotificationsLoading();
 
-  const googleEnabledOnServer = useTracker(
-    () =>
-      !!ServiceConfiguration.configurations.findOne({ service: "google" }) &&
-      !Flags.active("disable.google"),
-    [],
-  );
-
-  const discordEnabledOnServer = useTracker(
-    () =>
-      !!ServiceConfiguration.configurations.findOne({ service: "discord" }) &&
-      !Flags.active("disable.discord"),
-    [],
-  );
-
   const { hasOwnProfile, discordConfiguredByUser } = useTracker(() => {
     const user = Meteor.user()!;
     return {
       hasOwnProfile: !!user.displayName,
       discordConfiguredByUser: !!user.discordAccount,
-    };
-  }, []);
-
-  const { googleConfiguredByUser } = useTracker(() => {
-    const user = Meteor.user()!;
-    return {
-      googleConfiguredByUser: !!user.googleAccount,
     };
   }, []);
 
@@ -872,8 +844,6 @@ const NotificationCenter = () => {
 
   const [hideUpdateGoogleScriptMessage, setHideUpdateGoogleScriptMessage] =
     useState<boolean>(false);
-  const [hideDiscordSetupMessage, setHideDiscordSetupMessage] =
-    useState<boolean>(false);
   const [hideProfileSetupMessage, setHideProfileSetupMessage] =
     useState<boolean>(false);
   const [dismissedGuesses, setDismissedGuesses] = useState<
@@ -882,14 +852,6 @@ const NotificationCenter = () => {
 
   const onHideUpdateGoogleScriptMessage = useCallback(() => {
     setHideUpdateGoogleScriptMessage(true);
-  }, []);
-
-  const onHideDiscordSetupMessage = useCallback(() => {
-    setHideDiscordSetupMessage(true);
-  }, []);
-
-  const onHideGoogleSetupMessage = useCallback(() => {
-    return false;
   }, []);
 
   const onHideProfileSetupMessage = useCallback(() => {
@@ -960,22 +922,6 @@ const NotificationCenter = () => {
         key="profile"
         onDismiss={onHideProfileSetupMessage}
       />,
-    );
-  }
-
-  if (
-    discordEnabledOnServer &&
-    !discordConfiguredByUser &&
-    !hideDiscordSetupMessage
-  ) {
-    messages.push(
-      <DiscordMessage key="discord" onDismiss={onHideDiscordSetupMessage} />,
-    );
-  }
-
-  if (googleEnabledOnServer && !googleConfiguredByUser) {
-    messages.push(
-      <GoogleMessage key="google" onDismiss={onHideGoogleSetupMessage} />,
     );
   }
 
