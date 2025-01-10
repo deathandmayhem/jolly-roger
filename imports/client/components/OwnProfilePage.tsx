@@ -410,8 +410,30 @@ const OwnProfilePage = ({
   }, []);
 
   const shouldDisableForm = submitState === "submitting";
+
+  const linkGoogleAlert = !initialUser.googleAccount ? (
+    <Alert variant="danger">
+      Please link your Google account below for full functionality.
+    </Alert>
+  ) : null;
+
+  const discordConfig = useTracker(
+    () => ServiceConfiguration.configurations.findOne({ service: "discord" }),
+    [],
+  );
+  const discordDisabled = useTracker(() => Flags.active("disable.discord"), []);
+
+  const linkDiscordAlert =
+    discordConfig && !discordDisabled && !initialUser.discordAccount ? (
+      <Alert variant="danger">
+        Please link your Discord account below for full functionality.
+      </Alert>
+    ) : null;
+
   return (
     <Container>
+      {linkGoogleAlert}
+      {linkDiscordAlert}
       <h1>Account information</h1>
       <Avatar {...initialUser} size={64} />
       <FormGroup className="mb-3">
