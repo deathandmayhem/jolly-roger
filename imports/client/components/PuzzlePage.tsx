@@ -1474,9 +1474,9 @@ const PuzzleGuessModal = React.forwardRef(
     forwardedRef: React.Ref<PuzzleGuessModalHandle>,
   ) => {
     const [guessInput, setGuessInput] = useState<string>("");
-    const [directionInput, setDirectionInput] = useState<number>(0);
+    const [directionInput, setDirectionInput] = useState<number>(10);
     const [haveSetDirection, setHaveSetDirection] = useState<boolean>(true);
-    const [confidenceInput, setConfidenceInput] = useState<number | null>(null);
+    const [confidenceInput, setConfidenceInput] = useState<number>(100);
     const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(true);
     const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
     const [confirmationMessage, setConfirmationMessage] = useState<string>("");
@@ -1552,10 +1552,10 @@ const PuzzleGuessModal = React.forwardRef(
             } else {
               // Clear the input box.
               setGuessInput("");
-              setHaveSetConfidence(false);
+              setHaveSetConfidence(true);
               setConfidenceInput(50);
-              setHaveSetDirection(false);
-              setDirectionInput(0);
+              setHaveSetDirection(true);
+              setDirectionInput(100);
               setSubmitError("");
               setSubmitState(PuzzleGuessSubmitState.IDLE);
               formRef.current.hide();
@@ -1657,7 +1657,7 @@ const PuzzleGuessModal = React.forwardRef(
           </FormLabel>
           <Col xs={9}>
             <ValidatedSliderContainer>
-              <ToggleButtonGroup name='guess-confidence' onChange={onConfidenceInputChange}>
+              <ToggleButtonGroup name='guess-confidence' onChange={onConfidenceInputChange} defaultValue={100}>
                 <ToggleButton variant="outline-danger" value={0} id='guess-confidence-low' checked={confidenceInput===0}>
                   Low
                 </ToggleButton>
