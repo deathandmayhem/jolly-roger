@@ -1,4 +1,6 @@
-import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import { faEye } from "@fortawesome/free-regular-svg-icons";
+import { faPenNib, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
@@ -11,6 +13,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { Badge, OverlayTrigger, Tooltip } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/esm/ButtonGroup";
 import { Link } from "react-router-dom";
@@ -22,6 +25,8 @@ import type { Solvedness } from "../../lib/solvedness";
 import { computeSolvedness } from "../../lib/solvedness";
 import updatePuzzle from "../../methods/updatePuzzle";
 import { useOperatorActionsHiddenForHunt } from "../hooks/persisted-state";
+import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
+import indexedDisplayNames from "../indexedDisplayNames";
 import BookmarkButton from "./BookmarkButton";
 import PuzzleActivity from "./PuzzleActivity";
 import PuzzleAnswer from "./PuzzleAnswer";
@@ -31,53 +36,6 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import TagList from "./TagList";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { useTracker } from "meteor/react-meteor-data";
-import type { ChatMessageType } from "../../lib/models/ChatMessages";
-import {
-  faNoteSticky,
-  faPenNib,
-  faPhone,
-  faThumbTack,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  Badge,
-  Overlay,
-  OverlayTrigger,
-  Popover,
-  Table,
-  Tooltip,
-} from "react-bootstrap";
-import RelativeTime from "./RelativeTime";
-import ChatMessage from "./ChatMessage";
-import indexedDisplayNames from "../indexedDisplayNames";
-import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
-import { faEye } from "@fortawesome/free-regular-svg-icons";
-
-const StyledPopover = styled(Popover)`
-  max-width: none;
-  display: flex;
-
-  flex-direction: column;
-  background-color: black;
-  color: white;
-
-  .popover-body {
-    overflow: auto;
-  }
-`;
-
-const StyledPopoverHeader = styled(Popover.Header)`
-  background-color: black;
-  color: white;
-`;
-
-const FilteredChatFields = [
-  "_id",
-  "puzzle",
-  "content",
-  "sender",
-  "timestamp",
-] as const;
 
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;
@@ -132,8 +90,6 @@ const StyledButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
     /* Resize button to fit in one line-height */
     display: block;
     height: 24px;
-    pinnedmessages: ChatMessageType[] | null;
-
     width: 24px;
     padding: 0;
   }
@@ -241,7 +197,6 @@ const Puzzle = React.memo(
     suppressTags,
     segmentAnswers,
     subscribers,
-    pinnedMessage,
   }: {
     puzzle: PuzzleType;
     bookmarked: boolean;
@@ -252,15 +207,13 @@ const Puzzle = React.memo(
     suppressTags?: string[];
     segmentAnswers?: boolean;
     subscribers: Record<string, string[]> | null;
-    pinnedMessage: ChatMessageType | null;
   }) => {
-    const target = useRef(null);
     const puzzleId = puzzle._id;
     const huntId = puzzle.hunt;
 
     useSubscribeDisplayNames(huntId);
 
-    const displayNames = indexedDisplayNames();
+    indexedDisplayNames();
     const [operatorActionsHidden] = useOperatorActionsHiddenForHunt(
       puzzle.hunt,
     );
@@ -286,7 +239,7 @@ const Puzzle = React.memo(
         callback: (error?: Error) => void,
       ) => {
         const { huntId: _huntId, docType: _docType, ...rest } = state;
-        updatePuzzle.call({ puzzleId: puzzleId, ...rest }, callback);
+        updatePuzzle.call({ puzzleId, ...rest }, callback);
       },
       [puzzleId],
     );
@@ -353,14 +306,26 @@ const Puzzle = React.memo(
         tagIndex.get(tagId)?.name === "stuck" ||
         tagIndex.get(tagId)?.name === "is:stuck",
     );
-    // const statusEmoji = isHighPriority ? "🚨" : isLowPriority ? "🔽" : isStuck ? "🤷" : null;
-    const statusEmoji = isHighPriority ? "🚨" : isLowPriority ? "🔽" : null;
-    // const statusTooltipText = isHighPriority ? 'High priority' : isLowPriority ? 'Low priority' : isStuck ? 'Stuck' : null;
-    const statusTooltipText = isHighPriority
-      ? "High priority"
-      : isLowPriority
-        ? "Low priority"
-        : null;
+    const statusEmoji = useTracker(() => {
+      if (isHighPriority) {
+        return "🚨";
+      } else if (isLowPriority) {
+        return "🔽";
+      } else {
+        return null;
+      }
+    }, [isHighPriority, isLowPriority]);
+
+    const statusTooltipText = useTracker(() => {
+      if (isHighPriority) {
+        return "High priority";
+      } else if (isLowPriority) {
+        return "Low priority";
+      } else {
+        return null;
+      }
+    }, [isHighPriority, isLowPriority]);
+
     const statusTooltip = statusEmoji ? (
       <Tooltip id={`puzzle-status-tooltip-${puzzleId}`}>
         <span>{statusTooltipText}</span>
@@ -369,28 +334,28 @@ const Puzzle = React.memo(
 
     // Now that we're putting those tags elsewhere, we're going to suppress them as well
     // but only the ones that are displayed
-    const emojified_tags: String[] = [];
+    const emojifiedTags: string[] = [];
     if (isMetameta) {
-      emojified_tags.push("is:metameta");
+      emojifiedTags.push("is:metameta");
     } else if (isMeta) {
-      emojified_tags.push("is:meta");
+      emojifiedTags.push("is:meta");
     }
 
     if (isHighPriority) {
-      emojified_tags.push("priority:high");
+      emojifiedTags.push("priority:high");
     } else if (isLowPriority) {
-      emojified_tags.push("priority:low");
+      emojifiedTags.push("priority:low");
     }
     if (isStuck) {
-      emojified_tags.push("is:stuck", "stuck");
+      emojifiedTags.push("is:stuck", "stuck");
     }
-    const extra_suppress = allTags
-      .filter((t) => emojified_tags.includes(t.name))
+    const extraSuppress = allTags
+      .filter((t) => emojifiedTags.includes(t.name))
       .map((t) => t._id);
 
     const shownTags = difference(
       puzzle.tags,
-      suppressTags?.concat(extra_suppress) ?? [],
+      suppressTags?.concat(extraSuppress) ?? [],
     );
     const ownTags = shownTags
       .map((tagId) => {
@@ -412,56 +377,9 @@ const Puzzle = React.memo(
       );
     });
 
-    const selfUser = useTracker(() => Meteor.user()!, []);
-    const selfUserId = selfUser._id;
-
-    const { pinTooltip, ttRelTime } = useTracker(() => {
-      if (!pinnedMessage) {
-        return {
-          pinTooltip: null,
-          ttRelTime: null,
-        };
-      }
-      const noteTT = (
-        <Tooltip
-          id={`puzzle-pin-message-${puzzleId}`}
-          style={{
-            maxHeight: "9.55rem",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "... (truncated)",
-            borderRadius: "5px",
-          }}
-        >
-          <ChatMessage
-            message={pinnedMessage.content}
-            displayNames={displayNames}
-            selfUserId={selfUserId}
-            timestamp={pinnedMessage.pinTs}
-          />
-        </Tooltip>
-      );
-
-      const relTime = (
-        <RelativeTime
-          date={pinnedMessage?.pinTs}
-          terse
-          minimumUnit="minute"
-          maxElements={1}
-        />
-      );
-      return {
-        pinTooltip: noteTT,
-        ttRelTime: relTime,
-      };
-    }, [pinnedMessage?.content, pinnedMessage?.pinTs]);
-
-    const { noteTooltip, noteRelTime } = useTracker(() => {
+    const noteTooltip = useTracker(() => {
       if (!puzzle.noteContent) {
-        return {
-          noteTooltip: null,
-          noteRelTime: null,
-        };
+        return null;
       }
       const note = puzzle.noteContent;
 
@@ -488,31 +406,37 @@ const Puzzle = React.memo(
         );
       }
 
-      const noteRel = (
-        <RelativeTime
-          date={puzzle.noteUpdateTs}
-          terse
-          minimumUnit="minute"
-          maxElements={1}
-        />
+      return (
+        <Tooltip
+          id={`puzzle-pin-message-${puzzleId}`}
+          placement="top"
+          style={{
+            maxHeight: "9.55rem",
+            borderRadius: "5px",
+          }}
+        >
+          {noteTT}
+        </Tooltip>
       );
+    }, [puzzleId, puzzle.noteContent]);
 
-      return {
-        noteTooltip: (
-          <Tooltip
-            id={`puzzle-pin-message-${puzzleId}`}
-            placement="top"
-            style={{
-              maxHeight: "9.55rem",
-              borderRadius: "5px",
-            }}
-          >
-            {noteTT}
-          </Tooltip>
-        ),
-        noteRelTime: noteRel,
-      };
-    }, [puzzleId, puzzle.noteContent, puzzle.noteUpdateTs]);
+    const puzzleIsMeta = useTracker(() => {
+      if (isMetameta) {
+        return (
+          <Badge pill bg="secondary">
+            Metameta
+          </Badge>
+        );
+      } else if (isMeta) {
+        return (
+          <Badge pill bg="secondary">
+            Meta
+          </Badge>
+        );
+      } else {
+        return null;
+      }
+    }, [isMeta, isMetameta]);
 
     return (
       <PuzzleDiv $solvedness={solvedness}>
@@ -551,15 +475,6 @@ const Puzzle = React.memo(
             >
               <PuzzleNote>
                 <FontAwesomeIcon icon={faPenNib} />
-                {noteRelTime}
-              </PuzzleNote>
-            </OverlayTrigger>
-          ) : null}
-          {pinnedMessage && pinTooltip ? (
-            <OverlayTrigger placement="top" overlay={pinTooltip}>
-              <PuzzleNote>
-                <FontAwesomeIcon icon={faThumbTack} />
-                {ttRelTime}
               </PuzzleNote>
             </OverlayTrigger>
           ) : null}
@@ -573,23 +488,13 @@ const Puzzle = React.memo(
           {isStuck ? (
             <OverlayTrigger
               placement="top"
-              overlay={<Tooltip id={`$stuck-tt-{puzzleId}`}>Stuck</Tooltip>}
+              overlay={<Tooltip id="$stuck-tt-{puzzleId}">Stuck</Tooltip>}
             >
               <span>🤷</span>
             </OverlayTrigger>
           ) : null}
         </PuzzlePriorityColumn>
-        <PuzzleMetaColumn>
-          {isMetameta ? (
-            <Badge pill bg="secondary">
-              Metameta
-            </Badge>
-          ) : isMeta ? (
-            <Badge pill bg="secondary">
-              Meta
-            </Badge>
-          ) : null}
-        </PuzzleMetaColumn>
+        <PuzzleMetaColumn>{puzzleIsMeta}</PuzzleMetaColumn>
         <SolversColumn>
           {showSolvers && solvedness === "unsolved" ? (
             <div>

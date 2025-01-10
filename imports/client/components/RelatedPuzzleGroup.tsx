@@ -4,7 +4,6 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import type { TagType } from "../../lib/models/Tags";
 import type { PuzzleGroup } from "../../lib/puzzle-sort-and-group";
 import { useHuntPuzzleListCollapseGroup } from "../hooks/persisted-state";
@@ -65,7 +64,6 @@ const RelatedPuzzleGroup = ({
   trackPersistentExpand,
   showSolvers,
   subscribers,
-  pinnedMessages,
   addPuzzleCallback,
 }: {
   huntId: string;
@@ -80,7 +78,6 @@ const RelatedPuzzleGroup = ({
   trackPersistentExpand: boolean;
   showSolvers: boolean;
   subscribers: Record<string, Record<string, string[]>>;
-  pinnedMessages: ChatMessageType[] | null;
   addPuzzleCallback: (initialTags: string[]) => void;
 }) => {
   const openAddPuzzleModalWithTags = useCallback(
@@ -158,7 +155,6 @@ const RelatedPuzzleGroup = ({
             suppressedTagIds={allSuppressedTagIds}
             showSolvers={showSolvers}
             subscribers={subscribers}
-            pinnedMessages={pinnedMessages}
           />
           {group.subgroups.map((subgroup) => {
             const subgroupSuppressedTagIds = [...allSuppressedTagIds];
@@ -178,7 +174,6 @@ const RelatedPuzzleGroup = ({
                 suppressedTagIds={subgroupSuppressedTagIds}
                 trackPersistentExpand={trackPersistentExpand}
                 showSolvers={showSolvers}
-                pinnedMessages={pinnedMessages}
                 subscribers={subscribers}
                 addPuzzleCallback={addPuzzleCallback}
               />
