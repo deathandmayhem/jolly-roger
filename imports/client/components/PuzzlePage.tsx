@@ -1639,11 +1639,11 @@ const PuzzleGuessModal = React.forwardRef(
                   Forwardsolve
                 </ToggleButton>
               </ToggleButtonGroup>
-              <FontAwesomeIcon
+              {/* <FontAwesomeIcon
                 icon={faCheck}
                 color={haveSetDirection ? "green" : "transparent"}
                 fixedWidth
-              />
+              /> */}
             </ValidatedSliderContainer>
             <FormText>
               Select the direction of your solve.
@@ -1653,11 +1653,11 @@ const PuzzleGuessModal = React.forwardRef(
 
         <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
-            Confidence
+            Confidence {haveSetConfidence}
           </FormLabel>
           <Col xs={9}>
             <ValidatedSliderContainer>
-              <ToggleButtonGroup name='guess-confidence' onChange={onConfidenceInputChange} defaultValue={100}>
+              <ToggleButtonGroup name='guess-confidence' onChange={onConfidenceInputChange}>
                 <ToggleButton variant="outline-danger" value={0} id='guess-confidence-low' checked={confidenceInput===0}>
                   Low
                 </ToggleButton>
@@ -1668,11 +1668,11 @@ const PuzzleGuessModal = React.forwardRef(
                   High
                 </ToggleButton>
               </ToggleButtonGroup>
-              <FontAwesomeIcon
+              {/* <FontAwesomeIcon
                 icon={faCheck}
                 color={haveSetConfidence ? "green" : "transparent"}
                 fixedWidth
-              />
+              /> */}
             </ValidatedSliderContainer>
             <FormText>
               Tell us how confident you are about your guess.
