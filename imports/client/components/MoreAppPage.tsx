@@ -9,6 +9,7 @@ import { Alert } from "react-bootstrap";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import Markdown from "./Markdown";
 import { useTracker } from "meteor/react-meteor-data";
+import { Link } from "react-router-dom";
 import Hunts from "../../lib/models/Hunts";
 
 const FirehosePageLayout = styled.div`
@@ -105,6 +106,13 @@ const MoreAppPage = () => {
           Note: You'll need a new/different version of this for each hunt.
         </Alert> 
         */}
+
+        <h2>Notes chief</h2>
+        <p>
+          Visit the
+          <Link to={`/hunts/${huntId}/notes`}>🗒️ NOTES page </Link>
+          to view a list of all puzzles and their notes.
+        </p>
       </FirehosePageLayout>
     </FixedLayout>
   );
