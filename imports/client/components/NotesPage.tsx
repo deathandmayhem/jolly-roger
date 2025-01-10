@@ -1,15 +1,9 @@
-import { faCaretDown, faTags } from "@fortawesome/free-solid-svg-icons";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useRef, useState } from "react";
 import {
   Accordion,
-  Alert,
   Badge,
-  ButtonGroup,
   ButtonToolbar,
   FormLabel,
   InputGroup,
@@ -18,17 +12,11 @@ import {
   ToggleButtonGroup,
 } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
-import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
-import Form from "react-bootstrap/Form";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
-import Row from "react-bootstrap/Row";
-import type { FormProps } from "react-router-dom";
 import { Link, useParams } from "react-router-dom";
-import type { ActionMeta } from "react-select";
-import Select from "react-select";
 import styled, { css } from "styled-components";
 import { indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
@@ -36,20 +24,11 @@ import Puzzles from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import Tags from "../../lib/models/Tags";
 import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
-import type { Solvedness } from "../../lib/solvedness";
 import { computeSolvedness } from "../../lib/solvedness";
-import addPuzzleTag from "../../methods/addPuzzleTag";
-import removePuzzleTag from "../../methods/removePuzzleTag";
-import renameTag from "../../methods/renameTag";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import type { ModalFormHandle } from "./ModalForm";
-import ModalForm from "./ModalForm";
-import TagList from "./TagList";
-import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
 import { useTracker } from "meteor/react-meteor-data";
-import { updatedTimestamp } from "../../lib/models/customTypes";
 import RelativeTime from "./RelativeTime";
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
@@ -57,15 +36,6 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
     width: 100%;
   }
 `;
-
-enum SubmitState {
-  IDLE = "idle",
-  SUBMITTING = "submitting",
-  SUCCESS = "success",
-  FAILED = "failed",
-}
-
-type TagSelectOption = { value: string; label: string };
 
 const SearchFormGroup = styled(FormGroup)`
   grid-column: -3;
@@ -83,52 +53,6 @@ const PuzzleListToolbar = styled.div`
   margin-bottom: 0.5em;
 `;
 
-const TagPuzzleDiv = styled.div<{
-  $solvedness: Solvedness;
-}>`
-  ${({ $solvedness }) => css`
-    background-color: ${backgroundColorLookupTable[$solvedness]};
-  `}
-
-  display: flex;
-  flex-direction: row;
-  align-items: first baseline;
-  justify-content: flex-start;
-  line-height: 24px;
-  padding: 4px 2px;
-  margin-bottom: 4px;
-  ${mediaBreakpointDown(
-    "xs",
-    css`
-      flex-wrap: wrap;
-    `,
-  )}
-`;
-
-const PuzzleColumn = styled.div`
-  padding: 0 2px;
-  display: inline-block;
-  flex: none;
-  overflow: hidden;
-`;
-
-const PuzzleControlButtonsColumn = styled(PuzzleColumn)`
-  align-self: flex-start;
-  order: -1;
-`;
-
-const PuzzleTitleColumn = styled(PuzzleColumn)`
-  flex: 4;
-  overflow-wrap: break-word;
-  order: -1;
-`;
-
-const TimestampColumn = styled(PuzzleColumn)`
-  flex: 2;
-  overflow-wrap: break-word;
-  order: -1;
-`;
-
 const TagPuzzle = React.memo(
   ({ puzzle, allTags }: { puzzle: PuzzleType; allTags: TagType[] }) => {
     const solvedness = computeSolvedness(puzzle);
@@ -137,13 +61,11 @@ const TagPuzzle = React.memo(
       return tagIndex.get(tagId).name;
     });
 
-    console.log(puzzleTags);
-
     const noteRelativeTime = useTracker(() => {
       return (
         <RelativeTime
           date={puzzle.noteUpdateTs}
-          minimumUnit="second"
+          minimumUnit="minute"
           maxElements={2}
         />
       );
@@ -203,10 +125,7 @@ const TagPuzzle = React.memo(
                 </tr>
                 <tr>
                   <td>Tags</td>
-                  <td>{
-                    puzzleTags ? (
-                      puzzleTags.join(", ") : null
-                    }</td>
+                  <td>{puzzleTags ? puzzleTags.join(", ") : null}</td>
                 </tr>
               </Table>
             ) : (
@@ -262,8 +181,6 @@ const NotesPage = () => {
     },
     [setShowSolved],
   );
-
-  const [bulkTags, setBulkTags] = useState<string[]>([]);
 
   const allTags = useTracker(
     () => Tags.find({ hunt: huntId }).fetch(),
@@ -331,17 +248,6 @@ const NotesPage = () => {
 
   const matchingSearch = puzzlesMatchingSearchString(allPuzzles);
 
-  const tagNamesForIds = useCallback(
-    (tagIds: string[]) => {
-      const tagNames: Record<string, string> = {};
-      allTags.forEach((t) => {
-        tagNames[t._id] = t.name;
-      });
-      return tagIds.map((t) => tagNames[t] ?? t);
-    },
-    [allTags],
-  );
-
   const searchBarRef = useRef<HTMLInputElement>(null);
 
   const onSearchStringChange: NonNullable<FormControlProps["onChange"]> =
@@ -383,7 +289,9 @@ const NotesPage = () => {
 
   const filterMessage = `Showing ${matchingSearchAndSolved.length} of ${allPuzzles.length} items`;
 
-  return (
+  return loading ? (
+    <span>loading...</span>
+  ) : (
     <Container>
       <h1>Notes</h1>
       <FormGroup>
