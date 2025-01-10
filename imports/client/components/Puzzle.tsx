@@ -388,17 +388,17 @@ const Puzzle = React.memo(
       const note = puzzle.noteContent;
 
       const noteTT = [];
-      if (note.summary) {
-        noteTT.push(
-          <div>
-            <strong>Summary:</strong> {note.summary}
-          </div>,
-        );
-      }
       if (note.flavor) {
         noteTT.push(
           <div>
             <strong>Flavor: </strong> <em>{note.flavor}</em>
+          </div>,
+        );
+      }
+      if (note.summary) {
+        noteTT.push(
+          <div>
+            <strong>Summary:</strong> {note.summary}
           </div>,
         );
       }
