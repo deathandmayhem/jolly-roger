@@ -290,11 +290,13 @@ const Puzzle = React.memo(
     const tagIndex = indexedById(allTags);
 
     const isMeta = puzzle.tags.some(
-      (tagId) => tagIndex.get(tagId)?.name === "is:meta",
+      (tagId) =>
+        tagIndex.get(tagId)?.name === "is:meta" ||
+        tagIndex.get(tagId)?.name.startsWith("meta-for:"),
     );
-    const isMetameta = puzzle.tags.some(
-      (tagId) => tagIndex.get(tagId)?.name === "is:metameta",
-    );
+    const isMetameta =
+      !isMeta &&
+      puzzle.tags.some((tagId) => tagIndex.get(tagId)?.name === "is:metameta");
     const isHighPriority = puzzle.tags.some(
       (tagId) => tagIndex.get(tagId)?.name === "priority:high",
     );
