@@ -23,7 +23,7 @@ import * as RRBS from "react-router-bootstrap";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import type { StackFrame } from "stacktrace-js";
 import StackTrace from "stacktrace-js";
-import styled, { css } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import isAdmin from "../../lib/isAdmin";
 import { useBreadcrumbItems } from "../hooks/breadcrumb";
 import lookupUrl from "../lookupUrl";
@@ -33,6 +33,9 @@ import Loading from "./Loading";
 import NotificationCenter from "./NotificationCenter";
 import { NavBarHeight } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
+import { ServiceConfiguration } from "meteor/service-configuration";
+import Flags from "../../Flags";
+import { Badge } from "react-bootstrap";
 
 const Breadcrumb = styled.nav`
   display: flex;
@@ -78,6 +81,32 @@ const BreadcrumbItem = styled.li`
       padding-right: 0.5rem;
     }
   }
+`;
+
+const pulse = keyframes`
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.75);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
+const PulsingDot = styled.span`
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background-color: red;
+  vertical-align: middle; /* Align with text */
+  margin-left: 0.25em; /* Small space between text and dot */
+  animation: ${pulse} 1s infinite; /* Animation */
 `;
 
 const NavbarInset = styled(Navbar)`
@@ -238,6 +267,38 @@ const AppNavbar = () => {
     );
   }, [crumbs]);
 
+  const user = useTracker(() => {
+    return Meteor.user();
+  }, []);
+
+  const userProfileBadge = useTracker(() => {
+    if (!user) {
+      return null;
+    }
+
+    const missingServices = [];
+    const discordConfig = ServiceConfiguration.configurations.findOne({
+      service: "discord",
+    });
+    const discordDisabled = Flags.active("disable.discord");
+
+    if (!user.googleAccount) {
+      missingServices.push("google");
+    }
+
+    if (discordConfig && !discordDisabled && !user.discordAccount) {
+      missingServices.push("discord");
+    }
+
+    if (missingServices.length > 0) {
+      return (
+        <Badge pill bg="danger">
+          {missingServices.length}
+        </Badge>
+      );
+    }
+  }, [user]);
+
   // Note: the .brand class on the <img> ensures that the logo takes up the
   // correct amount of space in the top bar even if we haven't actually picked
   // a nonempty source for it yet.
@@ -269,11 +330,15 @@ const AppNavbar = () => {
         <Dropdown as={NavItem}>
           <DropdownToggle id="profileDropdown" as={NavLink}>
             <FontAwesomeIcon icon={faUser} />{" "}
-            <NavUsername>{displayName}</NavUsername>
+            <NavUsername>
+              {displayName} {userProfileBadge}
+            </NavUsername>
           </DropdownToggle>
           <DropdownMenu align="end">
             <RRBS.LinkContainer to={`/users/${userId}`}>
-              <DropdownItem eventKey="1">My Profile</DropdownItem>
+              <DropdownItem eventKey="1">
+                My Profile {userProfileBadge ? <PulsingDot /> : null}
+              </DropdownItem>
             </RRBS.LinkContainer>
             <DropdownItem
               eventKey="2"
