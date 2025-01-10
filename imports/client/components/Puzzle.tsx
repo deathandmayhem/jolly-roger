@@ -487,13 +487,6 @@ const Puzzle = React.memo(
           </div>,
         );
       }
-      if (note.keywords) {
-        noteTT.push(
-          <div>
-            <strong>Keywords: </strong> <em>{note.keywords.join(", ")}</em>
-          </div>,
-        );
-      }
 
       const noteRel = (
         <RelativeTime
