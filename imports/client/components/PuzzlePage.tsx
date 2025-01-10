@@ -1553,9 +1553,9 @@ const PuzzleGuessModal = React.forwardRef(
               // Clear the input box.
               setGuessInput("");
               setHaveSetConfidence(true);
-              setConfidenceInput(50);
+              setConfidenceInput(100);
               setHaveSetDirection(true);
-              setDirectionInput(100);
+              setDirectionInput(10);
               setSubmitError("");
               setSubmitState(PuzzleGuessSubmitState.IDLE);
               formRef.current.hide();
