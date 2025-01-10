@@ -342,7 +342,7 @@ const AppNavbar = () => {
             </RRBS.LinkContainer>
             <DropdownItem
               eventKey="2"
-              href="https://github.com/deathandmayhem/jolly-roger/issues"
+              href="https://github.com/palindrpome-puzzles/jolly-roger/issues"
               target="_blank"
               rel="noopener noreferrer"
             >
