@@ -130,21 +130,14 @@ const TimestampColumn = styled(PuzzleColumn)`
 `;
 
 const TagPuzzle = React.memo(
-  ({
-    puzzle,
-    allTags,
-    bulkTags,
-  }: {
-    puzzle: PuzzleType;
-    allTags: TagType[];
-    bulkTags: string[];
-  }) => {
+  ({ puzzle, allTags }: { puzzle: PuzzleType; allTags: TagType[] }) => {
     const solvedness = computeSolvedness(puzzle);
-    const collapsed = useState(false);
     const tagIndex = indexedById(allTags);
     const puzzleTags = puzzle.tags.map((tagId) => {
-      return tagIndex.get(tagId);
+      return tagIndex.get(tagId).name;
     });
+
+    console.log(puzzleTags);
 
     const noteRelativeTime = useTracker(() => {
       return (
@@ -170,7 +163,7 @@ const TagPuzzle = React.memo(
                 Solved
               </Badge>
             ) : null}
-            <Link to={`../${puzzle._id}`}>{puzzle.title}</Link>
+            <Link to={`../puzzles/${puzzle._id}`}>{puzzle.title}</Link>
             <span>
               {puzzle.noteUpdateTs ? (
                 <>: Last updated {noteRelativeTime}</>
@@ -181,13 +174,7 @@ const TagPuzzle = React.memo(
           </Accordion.Header>
           <Accordion.Body>
             {note ? (
-              <Table
-                striped={true}
-                variant="secondary"
-                responsive={true}
-                hover={true}
-                bordered={true}
-              >
+              <Table striped variant="secondary" responsive hover bordered>
                 <tr>
                   <td>Flavor text</td>
                   <td>{note.flavor ? note.flavor : null}</td>
@@ -197,7 +184,7 @@ const TagPuzzle = React.memo(
                   <td>{note.contactPerson ? note.contactPerson : null}</td>
                 </tr>
                 <tr>
-                  <td>What's going on?</td>
+                  <td>What&apos;s going on?</td>
                   <td>{note.summary ? note.summary : null}</td>
                 </tr>
                 <tr>
@@ -214,6 +201,13 @@ const TagPuzzle = React.memo(
                     ) : null}
                   </td>
                 </tr>
+                <tr>
+                  <td>Tags</td>
+                  <td>{
+                    puzzleTags ? (
+                      puzzleTags.join(", ") : null
+                    }</td>
+                </tr>
               </Table>
             ) : (
               "No notes"
@@ -226,25 +220,12 @@ const TagPuzzle = React.memo(
 );
 
 const PuzzlesForTagList = React.memo(
-  ({
-    puzzles,
-    allTags,
-    bulkTags,
-  }: {
-    puzzles: PuzzleType[];
-    allTags: TagType[];
-    bulkTags: string[];
-  }) => {
+  ({ puzzles, allTags }: { puzzles: PuzzleType[]; allTags: TagType[] }) => {
     return (
       <div>
         {puzzles.map((puzzle) => {
           return (
-            <TagPuzzle
-              key={puzzle._id}
-              puzzle={puzzle}
-              allTags={allTags}
-              bulkTags={bulkTags}
-            />
+            <TagPuzzle key={puzzle._id} puzzle={puzzle} allTags={allTags} />
           );
         })}
       </div>
@@ -350,20 +331,6 @@ const NotesPage = () => {
 
   const matchingSearch = puzzlesMatchingSearchString(allPuzzles);
 
-  const deleteModalRef = useRef<ModalFormHandle>(null);
-  const addModalRef = useRef<ModalFormHandle>(null);
-  const onRemoveFromAll = useCallback(
-    (callback: () => void) => {
-      matchingSearch.forEach((puzzle) => {
-        bulkTags.forEach((tagId) => {
-          const puzzleId = puzzle._id;
-          removePuzzleTag.call({ puzzleId, tagId }, callback);
-        });
-      });
-    },
-    [huntId, bulkTags, matchingSearch],
-  );
-
   const tagNamesForIds = useCallback(
     (tagIds: string[]) => {
       const tagNames: Record<string, string> = {};
@@ -373,19 +340,6 @@ const NotesPage = () => {
       return tagIds.map((t) => tagNames[t] ?? t);
     },
     [allTags],
-  );
-
-  const onAddToAll = useCallback(
-    (callback: () => void) => {
-      matchingSearch.forEach((puzzle) => {
-        const tagNames = tagNamesForIds(bulkTags);
-        tagNames.forEach((tagName) => {
-          const puzzleId = puzzle._id;
-          addPuzzleTag.call({ puzzleId, tagName }, callback);
-        });
-      });
-    },
-    [huntId, bulkTags, matchingSearch],
   );
 
   const searchBarRef = useRef<HTMLInputElement>(null);
@@ -403,16 +357,10 @@ const NotesPage = () => {
   }, [setSearchString]);
 
   const renderList = useCallback(
-    (allPuzzles: PuzzleType[], allTags: TagType[], bulkTags: string[]) => {
-      return (
-        <PuzzlesForTagList
-          puzzles={allPuzzles}
-          allTags={allTags}
-          bulkTags={bulkTags}
-        />
-      );
+    (showPuzzles: PuzzleType[]) => {
+      return <PuzzlesForTagList puzzles={showPuzzles} allTags={allTags} />;
     },
-    [allPuzzles, allTags, bulkTags],
+    [allTags],
   );
 
   const puzzlesMatchingSolvedFilter = useCallback(
@@ -437,39 +385,6 @@ const NotesPage = () => {
 
   return (
     <Container>
-      <ModalForm
-        ref={deleteModalRef}
-        title="Remove tag from all"
-        submitLabel="Remove"
-        submitStyle="danger"
-        onSubmit={onRemoveFromAll}
-      >
-        Are you sure you want to remove this tag from {matchingSearch.length}{" "}
-        puzzle{matchingSearch.length === 1 ? "" : "s"}?
-        {allPuzzles.length === matchingSearch.length ? (
-          <Alert variant="danger">
-            You are removing this tag from all puzzles!
-          </Alert>
-        ) : null}
-      </ModalForm>
-      <ModalForm
-        ref={addModalRef}
-        title="Add tag to all"
-        submitLabel="Add"
-        submitStyle="success"
-        onSubmit={onAddToAll}
-      >
-        Are you sure you want to add this tag to {matchingSearch.length} puzzle
-        {matchingSearch.length === 1 ? "" : "s"}?
-        {allPuzzles.length === matchingSearch.length ? (
-          <Alert
-            variant="danger"
-            title="You are about to add this tag to all items!"
-          >
-            You are adding this tag to all puzzles!
-          </Alert>
-        ) : null}
-      </ModalForm>
       <h1>Notes</h1>
       <FormGroup>
         <FormLabel>Puzzles</FormLabel>
@@ -518,7 +433,7 @@ const NotesPage = () => {
         <div />
         <div>{filterMessage}</div>
       </PuzzleListToolbar>
-      {!loading && renderList(matchingSearchAndSolved, allTags, bulkTags)}
+      {!loading && renderList(matchingSearchAndSolved)}
     </Container>
   );
 };
