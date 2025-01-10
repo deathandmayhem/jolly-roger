@@ -196,20 +196,14 @@ const HuntNav = () => {
           </StyledPuzzleListLinkAnchor>
         )}
         {canUpdate && (
-          <StyledPuzzleListLinkAnchor
-            to={`/hunts/${huntId}/tags`}
-            title="Tags"
-          >
+          <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/tags`} title="Tags">
             <MenuIcon icon={faTags} />
             <StyledPuzzleListLinkLabel>Tags</StyledPuzzleListLinkLabel>
           </StyledPuzzleListLinkAnchor>
         )}
         {huntLink}
 
-        <StyledPuzzleListLinkAnchor
-          to={`/hunts/${huntId}/more`}
-          title="More"
-        >
+        <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/more`} title="More">
           <MenuIcon icon={faEllipsisH} />
           <StyledPuzzleListLinkLabel>More</StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
