@@ -3,7 +3,7 @@ import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
-import { faFolderOpen } from "@fortawesome/free-solid-svg-icons/faFolderOpen";
+import { faFolderOpen } from "@fortawesome/free-regular-svg-icons/faFolderOpen";
 import { faMapPin } from "@fortawesome/free-solid-svg-icons/faMapPin";
 import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
 import { faClock } from "@fortawesome/free-regular-svg-icons/faClock";

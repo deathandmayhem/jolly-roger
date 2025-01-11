@@ -69,6 +69,8 @@ const soloTagInterestingness = (tag: TagType) => {
     return -2;
   } else if (tag.name.lastIndexOf("priority:", 0) === 0) {
     return -1;
+  } else if (tag.name.lastIndexOf("where:", 0) === 0) {
+    return -0.5;
   } else {
     return 0;
   }
