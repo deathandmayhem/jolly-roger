@@ -125,7 +125,7 @@ const TagDiv = styled.div<{
   ${({ $isMetaFor }) =>
     $isMetaFor &&
     css`
-      background-color: #ffff00;
+      background-color: #ff0;
     `}
   ${({ $isNeeds }) =>
     $isNeeds &&
@@ -337,16 +337,16 @@ const Tag = (props: TagProps) => {
   const nameWithBreaks: (string | React.JSX.Element)[] = [];
   name.split(":").forEach((part, i, arr) => {
     const withColon = i < arr.length - 1;
-    if (isGroup && i == 0 && !props.popoverRelated) {
+    if (isGroup && i === 0) {
       nameWithBreaks.push(<FontAwesomeIcon icon={faFolderOpen} />);
-    } else if (isMetaFor && i == 0 && !props.popoverRelated) {
+    } else if (isMetaFor && i === 0) {
       nameWithBreaks.push(<FontAwesomeIcon icon={faStar} />);
-    } else if (isLocation && i == 0 && !props.popoverRelated) {
+    } else if (isLocation && i === 0) {
       nameWithBreaks.push(<FontAwesomeIcon icon={faMapPin} />);
     } else {
       nameWithBreaks.push(`${part}${withColon ? ":" : ""}`);
     }
-    nameWithBreaks.push(` `);
+    nameWithBreaks.push("\u00A0");
     if (withColon) {
       // eslint-disable-next-line react/no-array-index-key
       nameWithBreaks.push(<wbr key={`wbr-${i}-${part}`} />);
