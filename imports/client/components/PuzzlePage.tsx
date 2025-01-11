@@ -1465,9 +1465,9 @@ const PuzzleGuessModal = React.forwardRef(
     forwardedRef: React.Ref<PuzzleGuessModalHandle>,
   ) => {
     const [guessInput, setGuessInput] = useState<string>("");
-    const [directionInput, setDirectionInput] = useState<number>(0);
+    const [directionInput, setDirectionInput] = useState<number>(10);
     const [haveSetDirection, setHaveSetDirection] = useState<boolean>(true);
-    const [confidenceInput, setConfidenceInput] = useState<number | null>(null);
+    const [confidenceInput, setConfidenceInput] = useState<number>(100);
     const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(true);
     const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
     const [confirmationMessage, setConfirmationMessage] = useState<string>("");
@@ -1543,10 +1543,10 @@ const PuzzleGuessModal = React.forwardRef(
             } else {
               // Clear the input box.
               setGuessInput("");
-              setHaveSetConfidence(false);
-              setConfidenceInput(50);
-              setHaveSetDirection(false);
-              setDirectionInput(0);
+              setHaveSetConfidence(true);
+              setConfidenceInput(100);
+              setHaveSetDirection(true);
+              setDirectionInput(10);
               setSubmitError("");
               setSubmitState(PuzzleGuessSubmitState.IDLE);
               formRef.current.hide();
@@ -1630,11 +1630,11 @@ const PuzzleGuessModal = React.forwardRef(
                   Forwardsolve
                 </ToggleButton>
               </ToggleButtonGroup>
-              <FontAwesomeIcon
+              {/* <FontAwesomeIcon
                 icon={faCheck}
                 color={haveSetDirection ? "green" : "transparent"}
                 fixedWidth
-              />
+              /> */}
             </ValidatedSliderContainer>
             <FormText>
               Select the direction of your solve.
@@ -1644,7 +1644,7 @@ const PuzzleGuessModal = React.forwardRef(
 
         <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
-            Confidence
+            Confidence {haveSetConfidence}
           </FormLabel>
           <Col xs={9}>
             <ValidatedSliderContainer>
@@ -1659,11 +1659,11 @@ const PuzzleGuessModal = React.forwardRef(
                   High
                 </ToggleButton>
               </ToggleButtonGroup>
-              <FontAwesomeIcon
+              {/* <FontAwesomeIcon
                 icon={faCheck}
                 color={haveSetConfidence ? "green" : "transparent"}
                 fixedWidth
-              />
+              /> */}
             </ValidatedSliderContainer>
             <FormText>
               Tell us how confident you are about your guess.
