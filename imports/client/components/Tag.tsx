@@ -130,7 +130,7 @@ const TagDiv = styled.div<{
   ${({ $isNeeds }) =>
     $isNeeds &&
     css`
-      background-color: #ff4040;
+      background-color: #ffc0cb;
     `}
   ${({ $isPriority }) =>
     $isPriority &&
