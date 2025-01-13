@@ -437,12 +437,13 @@ const PuzzleListView = ({
   const callMembersLoading = useSubscribe("mediasoup:metadataAll", huntId);
 
   const displayNamesLoading = useSubscribeDisplayNames(huntId);
-  const displayNames = indexedDisplayNames();
 
   const subscriptionsLoading =
     subscribersLoading() || callMembersLoading() || displayNamesLoading();
 
   const puzzleSubscribers = useTracker(() => {
+    const displayNames = indexedDisplayNames();
+
     if (subscriptionsLoading) {
       return { none: { none: [] } };
     }
@@ -482,7 +483,7 @@ const PuzzleListView = ({
       }
     });
     return puzzleSubs;
-  }, [displayNames, subscriptionsLoading]);
+  }, [subscriptionsLoading]);
 
   const renderList = useCallback(
     (
@@ -579,9 +580,10 @@ const PuzzleListView = ({
             <div>{listControls}</div>
             <div>{filterMessage}</div>
             <div>
-              <FontAwesomeIcon icon={faFolderOpen} /> = group;{" "}
-              <FontAwesomeIcon icon={faStar} /> = meta for;{" "}
-              <FontAwesomeIcon icon={faMapPin} /> = where
+              <FontAwesomeIcon icon={faFolderOpen} key="legend-group" /> =
+              group; <FontAwesomeIcon icon={faStar} key="legend-meta" /> = meta
+              for; <FontAwesomeIcon icon={faMapPin} key="legend-where" /> =
+              where
             </div>
           </PuzzleListToolbar>
           {bookmarkedPuzzles.length > 0 && (
@@ -661,21 +663,22 @@ const PuzzleListView = ({
               variant="outline-info"
               value="hide"
             >
-              <FontAwesomeIcon icon={faPencilAlt} /> Solver
+              <FontAwesomeIcon icon={faPencilAlt} key="view-solver" /> Solver
             </ToggleButton>
             <ToggleButton
               id="operator-actions-show-button"
               variant="outline-info"
               value="show"
             >
-              <FontAwesomeIcon icon={faPhone} color="red" /> Answer Chief
+              <FontAwesomeIcon icon={faPhone} color="red" key="view-operator" />{" "}
+              Answer Chief
             </ToggleButton>
           </StyledToggleButtonGroup>
         </ButtonToolbar>
       </OperatorActionsFormGroup>
       <AddPuzzleFormGroup>
         <StyledButton variant="primary" onClick={showAddModal}>
-          <FontAwesomeIcon icon={faPlus} /> Add a puzzle
+          <FontAwesomeIcon icon={faPlus} key="add-a-puzzle" /> Add a puzzle
         </StyledButton>
       </AddPuzzleFormGroup>
     </>
@@ -711,14 +714,15 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="group"
               >
-                <FontAwesomeIcon icon={faFolderOpen} /> Group
+                <FontAwesomeIcon icon={faFolderOpen} key="sort-group" /> Group
               </ToggleButton>
               <ToggleButton
                 id="view-unlock-button"
                 variant="outline-info"
                 value="unlock"
               >
-                <FontAwesomeIcon icon={faClock} /> When added
+                <FontAwesomeIcon icon={faClock} key="sort-when-added" /> When
+                added
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
@@ -738,14 +742,14 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="hide"
               >
-                <FontAwesomeIcon icon={faCircle} /> Unsolved
+                <FontAwesomeIcon icon={faCircle} key="puzzles-unsolved" />
               </ToggleButton>
               <ToggleButton
                 id="solved-show-button"
                 variant="outline-info"
                 value="show"
               >
-                <FontAwesomeIcon icon={faGlobe} /> All
+                <FontAwesomeIcon icon={faGlobe} key="puzzles-all" /> All
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
@@ -765,14 +769,14 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="hide"
               >
-                <FontAwesomeIcon icon={faEyeSlash} /> Hide
+                <FontAwesomeIcon icon={faEyeSlash} key="hunters-hide" /> Hide
               </ToggleButton>
               <ToggleButton
                 id="solvers-show-button"
                 variant="outline-info"
                 value="show"
               >
-                <FontAwesomeIcon icon={faEye} /> Show
+                <FontAwesomeIcon icon={faEye} key="hunters-show" /> Show
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
@@ -791,7 +795,7 @@ const PuzzleListView = ({
               onChange={onSearchStringChange}
             />
             <Button variant="secondary" onClick={clearSearch}>
-              <FontAwesomeIcon icon={faEraser} />
+              <FontAwesomeIcon icon={faEraser} content="erase-filter" />
             </Button>
           </InputGroup>
         </SearchFormGroup>
