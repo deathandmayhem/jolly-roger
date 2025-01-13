@@ -339,16 +339,22 @@ const Tag = (props: TagProps) => {
     const withColon = i < arr.length - 1;
     if (isGroup && i === 0) {
       nameWithBreaks.push(
-        <FontAwesomeIcon icon={faFolderOpen} key="group-{i}" />,
+        <FontAwesomeIcon icon={faFolderOpen} key="group-${i}" />,
+        "\u00A0",
       );
     } else if (isMetaFor && i === 0) {
-      nameWithBreaks.push(<FontAwesomeIcon icon={faStar} key="meta-for-{i}" />);
+      nameWithBreaks.push(
+        <FontAwesomeIcon icon={faStar} key="meta-for-${i}" />,
+        "\u00A0",
+      );
     } else if (isLocation && i === 0) {
-      nameWithBreaks.push(<FontAwesomeIcon icon={faMapPin} key="where-{i}" />);
+      nameWithBreaks.push(
+        <FontAwesomeIcon icon={faMapPin} key="where-${i}" />,
+        "\u00A0",
+      );
     } else {
       nameWithBreaks.push(`${part}${withColon ? ":" : ""}`);
     }
-    nameWithBreaks.push("\u00A0");
     if (withColon) {
       // eslint-disable-next-line react/no-array-index-key
       nameWithBreaks.push(<wbr key={`wbr-${i}-${part}`} />);
