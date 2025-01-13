@@ -338,11 +338,13 @@ const Tag = (props: TagProps) => {
   name.split(":").forEach((part, i, arr) => {
     const withColon = i < arr.length - 1;
     if (isGroup && i === 0) {
-      nameWithBreaks.push(<FontAwesomeIcon icon={faFolderOpen} />);
+      nameWithBreaks.push(
+        <FontAwesomeIcon icon={faFolderOpen} key="group-{i}" />,
+      );
     } else if (isMetaFor && i === 0) {
-      nameWithBreaks.push(<FontAwesomeIcon icon={faStar} />);
+      nameWithBreaks.push(<FontAwesomeIcon icon={faStar} key="meta-for-{i}" />);
     } else if (isLocation && i === 0) {
-      nameWithBreaks.push(<FontAwesomeIcon icon={faMapPin} />);
+      nameWithBreaks.push(<FontAwesomeIcon icon={faMapPin} key="where-{i}" />);
     } else {
       nameWithBreaks.push(`${part}${withColon ? ":" : ""}`);
     }
