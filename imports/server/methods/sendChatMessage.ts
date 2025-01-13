@@ -39,7 +39,7 @@ defineMethod(sendChatMessage, {
       contentObj.children.length > 0 &&
       "text" in contentObj.children[0]
     ) {
-      if (contentObj.children[0].text.match(/^\s*\/pin\s*$/i)) {
+      if (contentObj.children[0].text.match(/^\s*\/(un)?pin\s*$/i)) {
         const puzzle = puzzleId;
         await ChatMessages.updateAsync(
           {
