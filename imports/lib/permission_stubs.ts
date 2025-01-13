@@ -3,11 +3,21 @@ import isAdmin, { GLOBAL_SCOPE } from "./isAdmin";
 import type { HuntType } from "./models/Hunts";
 import MeteorUsers from "./models/MeteorUsers";
 
+function huntHasDefaultRole(
+  hunt: Pick<HuntType, "defaultRoles">,
+  role: string,
+): boolean {
+  return hunt.defaultRoles?.includes(role) ?? false;
+}
+
 function isOperatorForHunt(
   user: Pick<Meteor.User, "roles">,
-  hunt: Pick<HuntType, "_id">,
+  hunt: HuntType,
 ): boolean {
-  return user.roles?.[hunt._id]?.includes("operator") ?? false;
+  return (
+    huntHasDefaultRole(hunt, "operator") ||
+    (user.roles?.[hunt._id]?.includes("operator") ?? false)
+  );
 }
 
 export function listAllRolesForHunt(
