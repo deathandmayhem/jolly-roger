@@ -284,6 +284,7 @@ const GuessMessage = React.memo(
             <a href={linkTarget} target="_blank" rel="noopener noreferrer">
               {puzzle.title}
             </a>{" "}
+            {/* 
             from{" "}
             <a
               href={`/users/${guess.createdBy}`}
@@ -292,6 +293,7 @@ const GuessMessage = React.memo(
             >
               {guesser}
             </a>
+             */}
           </StyledGuessHeader>
           <StyledNotificationTimestamp>
             {calendarTimeFormat(guess.createdAt)}
