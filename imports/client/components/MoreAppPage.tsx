@@ -80,6 +80,7 @@ const MoreAppPage = () => {
       <FirehosePageLayout>
         <h1>More resources</h1>
         {hunt && <Markdown text={hunt.moreInfo ?? ""} />}
+        <hr />
         <h2>Bookmarklet</h2>
 
         <p>
@@ -87,26 +88,42 @@ const MoreAppPage = () => {
         </p>
 
         <p>
-          <a href={bookmarklet}>➡ Jolly Roger</a>
+          <a
+            style={{
+              border: "1px solid #ccc",
+              borderRadius: "6px",
+              padding: ".5rem .8rem",
+              fontSize: "1.2rem",
+              boxShadow: "1px",
+              background: "#eee",
+            }}
+            href={bookmarklet}
+          >
+            ➡ Jolly Roger
+          </a>
         </p>
-        <p>What it does:</p>
+        <p>
+          When a new puzzle gets unlocked, navigate to the puzzle page (on the
+          hunt site) and click this bookmarklet in your bookmarks bar. Then:{" "}
+        </p>
         <ul>
           <li>
-            If the puzzle doesn't yet exist in Jolly Roger, you'll get sent to
-            Add Puzzle screen with the title and URL prepopulated, or
+            If the puzzle doesn't exist in Jolly Roger, you'll get sent to Add
+            Puzzle screen with the title and URL prepopulated, or
           </li>
           <li>
-            If the puzzle exists in Jolly Roger, you'll get sent to the puzzle's
-            page in JR.
+            If the puzzle <em>does</em> exist in Jolly Roger, you'll get sent to
+            the puzzle's page in JR.
           </li>
         </ul>
 
         {/* 
         <Alert variant="warning">
-          Note: You'll need a new/different version of this for each hunt.
+        Note: You'll need a new/different version of this for each hunt.
         </Alert> 
         */}
 
+        <hr />
         <h2>Notes chief</h2>
         <p>
           Visit the <Link to={`/hunts/${huntId}/notes`}>🗒️ NOTES page </Link>
