@@ -80,7 +80,7 @@ const MoreAppPage = () => {
       <FirehosePageLayout>
         <h1>More resources</h1>
         {hunt && <Markdown text={hunt.moreInfo ?? ""} />}
-        <hr></hr>
+        <hr />
         <h2>Bookmarklet</h2>
 
         <p>
@@ -123,7 +123,7 @@ const MoreAppPage = () => {
         </Alert> 
         */}
 
-        <hr></hr>
+        <hr />
         <h2>Notes chief</h2>
         <p>
           Visit the <Link to={`/hunts/${huntId}/notes`}>🗒️ NOTES page </Link>
