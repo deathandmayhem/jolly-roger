@@ -428,7 +428,7 @@ const HuntEditPage = () => {
         memberDiscordRole,
         isArchived,
         defaultRoles,
-        moreInfo,
+        moreInfo: moreInfo === "" ? undefined : moreInfo,
       };
 
       if (huntId) {
