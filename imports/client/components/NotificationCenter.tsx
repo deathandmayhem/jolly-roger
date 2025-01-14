@@ -431,6 +431,7 @@ const AnnouncementMessage = React.memo(
         createdAt={announcement.createdAt}
         displayName={createdByDisplayName}
         onClose={onDismiss}
+        className="text-bg-warning"
       />
     );
   },
