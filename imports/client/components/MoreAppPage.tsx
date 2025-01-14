@@ -87,7 +87,19 @@ const MoreAppPage = () => {
         </p>
 
         <p>
-          <a href={bookmarklet}>➡ Jolly Roger</a>
+          <a
+            style={{
+              border: "1px solid #ccc",
+              borderRadius: "6px",
+              padding: ".5rem .8rem",
+              fontSize: "1.2rem",
+              boxShadow: "1px",
+              background: "#eee",
+            }}
+            href={bookmarklet}
+          >
+            ➡ Jolly Roger
+          </a>
         </p>
         <p>What it does:</p>
         <ul>
