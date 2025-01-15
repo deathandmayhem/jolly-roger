@@ -568,7 +568,12 @@ const PuzzleNotificationMessage = ({
   const endTime = startTime + 5000;
 
   return (
-    <Toast onClose={dismiss} delay={ephemeralLingerPeriod} autohide={ephemeral}>
+    <Toast
+      onClose={dismiss}
+      className={className}
+      delay={ephemeralLingerPeriod}
+      autohide={ephemeral}
+    >
       <Toast.Header>
         <FontAwesomeIcon icon={faPuzzlePiece} style={{ marginRight: ".4em" }} />
         <strong className="me-auto">
