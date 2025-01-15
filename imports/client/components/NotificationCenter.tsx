@@ -609,7 +609,7 @@ const ChatNotificationMessage = ({
   const senderDisplayName = displayNames.get(cn.sender) ?? "???";
 
   return (
-    <Toast onClose={dismiss}>
+    <Toast className="text-bg-secondary" onClose={dismiss}>
       <Toast.Header>
         <strong className="me-auto">
           {senderDisplayName}
