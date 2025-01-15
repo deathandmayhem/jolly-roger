@@ -555,8 +555,12 @@ const PuzzleNotificationMessage = ({
     [id],
   );
 
+  const ephemeralLingerPeriod = 5000;
+  const startTime = Date.now();
+  const endTime = startTime + 5000;
+
   return (
-    <Toast onClose={dismiss} delay={5000} autohide={ephemeral}>
+    <Toast onClose={dismiss} delay={ephemeralLingerPeriod} autohide={ephemeral}>
       <Toast.Header>
         <strong className="me-auto">
           <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
@@ -566,6 +570,15 @@ const PuzzleNotificationMessage = ({
         <StyledNotificationTimestamp>
           {calendarTimeFormat(pn.createdAt)}
         </StyledNotificationTimestamp>
+        {ephemeral && (
+          <SpinnerTimer
+            className="ms-3"
+            width={16}
+            height={16}
+            startTime={startTime}
+            endTime={endTime}
+          />
+        )}
       </Toast.Header>
       <Toast.Body>
         <div>{content}</div>
