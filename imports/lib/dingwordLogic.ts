@@ -34,8 +34,9 @@ export function normalizedMessageDingsUserByDingword(
 ): boolean {
   const words = normalizedMessage.split(/\s+/);
   return (user.dingwords ?? []).some((dingword) => {
-    const dingwordLower = dingword.toLowerCase();
-    return words.some((word) => word.startsWith(dingwordLower));
+    // const dingwordLower = dingword.toLowerCase();
+    // return words.some((word) => word.startsWith(dingwordLower));
+    return normalizedMessage.match(new RegExp(`\\b${dingword}\\b`, "i"));
   });
 }
 
