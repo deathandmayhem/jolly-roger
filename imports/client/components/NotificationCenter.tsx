@@ -282,7 +282,7 @@ const GuessMessage = React.memo(
             <a href={linkTarget} target="_blank" rel="noopener noreferrer">
               {puzzle.title}
             </a>{" "}
-            {/* 
+            {/*
             from{" "}
             <a
               href={`/users/${guess.createdBy}`}
@@ -600,7 +600,7 @@ const ChatNotificationMessage = ({
   const senderDisplayName = displayNames.get(cn.sender) ?? "???";
 
   return (
-    <Toast className="bg-info-subtle" onClose={dismiss}>
+    <Toast className="text-bg-secondary" onClose={dismiss}>
       <Toast.Header>
         <FontAwesomeIcon icon={faComment} style={{ marginRight: ".4em" }} />
         <strong className="me-auto">
