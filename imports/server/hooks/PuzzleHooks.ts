@@ -27,6 +27,7 @@ const PuzzleHooks: Hookset = {
           hunt: puzzle.hunt,
           content: `New puzzle added! `,
           ephemeral: true,
+          className: `text-bg-white`,
         });
       }),
     );

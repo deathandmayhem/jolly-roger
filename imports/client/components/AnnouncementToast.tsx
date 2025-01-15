@@ -1,6 +1,8 @@
 import React from "react";
 import Toast from "react-bootstrap/Toast";
 import styled from "styled-components";
+import { faMicrophoneAlt } from "@fortawesome/free-solid-svg-icons/faMicrophoneAlt";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import Markdown from "./Markdown";
 
@@ -24,6 +26,12 @@ const AnnouncementToast = ({
   return (
     <Toast className={className} onClose={onClose}>
       <Toast.Header closeButton={!!onClose}>
+        <FontAwesomeIcon
+          icon={faMicrophoneAlt}
+          style={{
+            marginRight: ".4em",
+          }}
+        />
         <strong className="me-auto">Announcement from {displayName}</strong>
         <StyledNotificationTimestamp>
           {calendarTimeFormat(createdAt)}
