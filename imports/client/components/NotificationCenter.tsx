@@ -559,9 +559,9 @@ const PuzzleNotificationMessage = ({
 
   return (
     <Toast
-      className={className}
       onClose={dismiss}
-      delay={5000}
+      className={className}
+      delay={ephemeralLingerPeriod}
       autohide={ephemeral}
     >
       <Toast.Header>
