@@ -520,7 +520,7 @@ const OwnProfilePage = ({
 
       <FormGroup className="mb-3">
         <FormLabel htmlFor="jr-profile-edit-dingwords">
-          Dingwords (experimental)
+          Dingwords (comma-separated)
         </FormLabel>
         <FormControl
           id="jr-profile-edit-dingwords"
@@ -531,10 +531,14 @@ const OwnProfilePage = ({
           placeholder="e.g. cryptic, akari, REO Speedwagon lyrics"
         />
         <FormText>
-          Get an in-app notification if anyone sends a chat message containing
-          one of your comma-separated, case-insensitive dingwords as a
-          substring. This feature is experimental and may be disabled without
-          notice.
+          If anyone sends a chat message, or adds a tag, that contains one of
+          your dingwords, you'll get a notification. Separate dingwords by
+          commas. Spaces are allowed.
+          <br />
+          Words and phrases must match exactly, so a dingword of{" "}
+          <code>cake baking</code> will not trigger an alert upon mentions of{" "}
+          <code>baking</code>, <code>bake</code>, or <code>cake</code>. Only if
+          someone enters <code>cake baking</code> exactly.
         </FormText>
       </FormGroup>
 
