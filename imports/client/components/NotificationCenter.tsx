@@ -4,6 +4,7 @@ import { ServiceConfiguration } from "meteor/service-configuration";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
+import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
@@ -275,6 +276,7 @@ const GuessMessage = React.memo(
       <Toast onClose={dismissGuess}>
         <Toast.Header>
           <StyledGuessHeader>
+            <FontAwesomeIcon icon={faKey} style={{ marginRight: ".4em" }} />
             Guess for{" "}
             <a href={linkTarget} target="_blank" rel="noopener noreferrer">
               {puzzle.title}
