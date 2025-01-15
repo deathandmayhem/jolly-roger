@@ -47,13 +47,8 @@ const TagHooks: Hookset = {
           user: userId,
           puzzle: puzzleId,
           hunt: puzzle.hunt,
-<<<<<<< HEAD
-          content: `Tagged '${tagName}'`,
-          className: "bg-info-subtle",
-=======
           content: `${puzzle.title} has been tagged with '${tagName}'`,
           className: "text-bg-secondary",
->>>>>>> a25bcfac (Color and style tweaks to toasts (#130))
         });
       }),
     );

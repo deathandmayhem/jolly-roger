@@ -553,6 +553,10 @@ const PuzzleNotificationMessage = ({
     [id],
   );
 
+  const ephemeralLingerPeriod = 5000;
+  const startTime = Date.now();
+  const endTime = startTime + 5000;
+
   return (
     <Toast
       className={className}
@@ -570,6 +574,15 @@ const PuzzleNotificationMessage = ({
         <StyledNotificationTimestamp>
           {calendarTimeFormat(pn.createdAt)}
         </StyledNotificationTimestamp>
+        {ephemeral && (
+          <SpinnerTimer
+            className="ms-3"
+            width={16}
+            height={16}
+            startTime={startTime}
+            endTime={endTime}
+          />
+        )}
       </Toast.Header>
       <Toast.Body>
         <div>{content}</div>
