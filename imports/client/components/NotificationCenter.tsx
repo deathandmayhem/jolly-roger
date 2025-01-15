@@ -553,6 +553,7 @@ const PuzzleNotificationMessage = ({
   return (
     <Toast onClose={dismiss} delay={5000} autohide={ephemeral}>
       <Toast.Header>
+        <FontAwesomeIcon icon={faPuzzlePiece} style={{ marginRight: ".4em" }} />
         <strong className="me-auto">
           <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
             {puzzle.title}
