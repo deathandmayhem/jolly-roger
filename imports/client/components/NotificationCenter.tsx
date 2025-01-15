@@ -5,6 +5,7 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
+import { faComment } from "@fortawesome/free-solid-svg-icons/faComment";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
@@ -601,9 +602,10 @@ const ChatNotificationMessage = ({
   return (
     <Toast className="text-bg-secondary" onClose={dismiss}>
       <Toast.Header>
+        <FontAwesomeIcon icon={faComment} style={{ marginRight: ".4em" }} />
         <strong className="me-auto">
-          {senderDisplayName}
-          {" on "}
+          {/* {senderDisplayName} */}
+          {/* {" on "} */}
           <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
             {puzzle.title}
           </Link>
