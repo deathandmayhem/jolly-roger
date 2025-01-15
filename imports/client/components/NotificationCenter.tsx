@@ -537,12 +537,14 @@ const PuzzleNotificationMessage = ({
   puzzle,
   content,
   ephemeral,
+  className,
 }: {
   pn: PuzzleNotificationType;
   hunt: HuntType;
   puzzle: PuzzleType;
   content: string;
   ephemeral: boolean | undefined;
+  className?: string;
 }) => {
   const id = pn._id;
   const dismiss = useCallback(
@@ -551,7 +553,12 @@ const PuzzleNotificationMessage = ({
   );
 
   return (
-    <Toast onClose={dismiss} delay={5000} autohide={ephemeral}>
+    <Toast
+      className={className}
+      onClose={dismiss}
+      delay={5000}
+      autohide={ephemeral}
+    >
       <Toast.Header>
         <FontAwesomeIcon icon={faPuzzlePiece} style={{ marginRight: ".4em" }} />
         <strong className="me-auto">
@@ -1012,6 +1019,7 @@ const NotificationCenter = () => {
         puzzle={puzzle}
         content={pn.content}
         ephemeral={pn.ephemeral ?? false}
+        className={pn.className}
       />,
     );
   });

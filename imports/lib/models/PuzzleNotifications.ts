@@ -17,6 +17,8 @@ const PuzzleNotification = withCommon(
     content: nonEmptyString,
     // Whether this should be ephemeral
     ephemeral: z.boolean().optional(),
+    // class to apply to the Toast
+    className: nonEmptyString,
   }),
 );
 
