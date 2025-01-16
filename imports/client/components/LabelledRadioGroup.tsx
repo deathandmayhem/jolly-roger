@@ -29,7 +29,7 @@ const LabelledRadio = ({
   // The name of the exclusive group for the radio buttons
   name: string;
   value: string;
-  label: string;
+  label: string | Element;
   defaultChecked: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
