@@ -30,6 +30,8 @@ import APIKeysTable from "./APIKeysTable";
 import ActionButtonRow from "./ActionButtonRow";
 import AudioConfig from "./AudioConfig";
 import Avatar from "./Avatar";
+import { Form } from "react-bootstrap";
+import LabelledRadioGroup from "./LabelledRadioGroup";
 
 enum GoogleLinkBlockLinkState {
   IDLE = "idle",
@@ -356,6 +358,9 @@ const OwnProfilePage = ({
   const [dingwordsFlat, setDingwordsFlat] = useState<string>(
     initialUser.dingwords ? initialUser.dingwords.join(",") : "",
   );
+  const [dingwordsOpenMatch, setDingwordsOpenMatch] = useState<boolean>(
+    initialUser.dingwordsOpenMatch ?? false,
+  );
   const [submitState, setSubmitState] = useState<OwnProfilePageSubmitState>(
     OwnProfilePageSubmitState.IDLE,
   );
@@ -381,6 +386,10 @@ const OwnProfilePage = ({
       setDingwordsFlat(e.currentTarget.value);
     }, []);
 
+  const handleDingwordsModeChange = useCallback((newMode: string) => {
+    setDingwordsOpenMatch(newMode === "open");
+  }, []);
+
   const handleSaveForm = useCallback(() => {
     const trimmedDisplayName = displayName.trim();
     if (trimmedDisplayName === "") {
@@ -400,6 +409,7 @@ const OwnProfilePage = ({
       displayName: trimmedDisplayName,
       phoneNumber: phoneNumber !== "" ? phoneNumber : undefined,
       dingwords,
+      dingwordsOpenMatch,
     };
     updateProfile.call(newProfile, (error) => {
       if (error) {
@@ -409,7 +419,7 @@ const OwnProfilePage = ({
         setSubmitState(OwnProfilePageSubmitState.SUCCESS);
       }
     });
-  }, [dingwordsFlat, displayName, phoneNumber]);
+  }, [dingwordsFlat, dingwordsOpenMatch, displayName, phoneNumber]);
 
   const dismissAlert = useCallback(() => {
     setSubmitState(OwnProfilePageSubmitState.IDLE);
@@ -532,14 +542,45 @@ const OwnProfilePage = ({
         />
         <FormText>
           If anyone sends a chat message, or adds a tag, that contains one of
-          your dingwords, you'll get a notification. Separate dingwords by
+          your dingwords, you&apos;ll get a notification. Separate dingwords by
           commas. Spaces are allowed.
-          <br />
-          Words and phrases must match exactly, so a dingword of{" "}
-          <code>cake baking</code> will not trigger an alert upon mentions of{" "}
-          <code>baking</code>, <code>bake</code>, or <code>cake</code>. Only if
-          someone enters <code>cake baking</code> exactly.
         </FormText>
+      </FormGroup>
+
+      <FormGroup className="mb-3">
+        <FormLabel htmlFor="jr-profile-dingwords-open">
+          Dingwords matching mode
+        </FormLabel>
+        <LabelledRadioGroup
+          header=""
+          name="jr-new-puzzle-doc-type"
+          options={[
+            {
+              value: "exact",
+              label: (
+                <>
+                  <strong>Match precisely:</strong> dingwords and -phrases must
+                  match the typed text <em>exactly</em> in order to trigger an
+                  alert.
+                </>
+              ),
+            },
+            {
+              value: "open",
+              label: (
+                <>
+                  <strong>Match start:</strong> dingwords and -phrases only need
+                  to match the <em>start</em> of a typed word or phrase. For
+                  example, the dingword <code>logic</code> would match "logic",
+                  "logician", and "logical", but not "illogical".
+                </>
+              ),
+            },
+          ]}
+          initialValue={dingwordsOpenMatch ? "open" : "exact"}
+          help=""
+          onChange={handleDingwordsModeChange}
+        />
       </FormGroup>
 
       <ActionButtonRow>

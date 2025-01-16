@@ -58,13 +58,15 @@ const ChatNotificationHooks: Hookset = {
           "dingwords.0": { $exists: true },
         },
         {
-          projection: { _id: 1, dingwords: 1 },
+          fields: { _id: 1, dingwords: 1, dingwordsOpenMatch: 1 },
         },
       )) {
         // Avoid making users ding themselves.
         if (u._id === sender) {
           continue;
         }
+
+        console.log(u);
 
         if (normalizedMessageDingsUserByDingword(normalizedText, u)) {
           usersToNotify.add(u._id);
@@ -90,17 +92,19 @@ const ChatNotificationHooks: Hookset = {
       }),
     );
 
-    await UserStatuses.upsertAsync({
-      hunt: chatMessage.hunt,
-      user: sender,
-      type: 'puzzleStatus',
-    },{
-      $set: {
-        status: "chat",
-        puzzle: chatMessage.puzzle,
-      }
-    }
-  )
+    await UserStatuses.upsertAsync(
+      {
+        hunt: chatMessage.hunt,
+        user: sender,
+        type: "puzzleStatus",
+      },
+      {
+        $set: {
+          status: "chat",
+          puzzle: chatMessage.puzzle,
+        },
+      },
+    );
   },
 };
 
