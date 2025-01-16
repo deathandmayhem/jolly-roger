@@ -35,6 +35,8 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import ActionButtonRow from "./ActionButtonRow";
 import Markdown from "./Markdown";
+import ModalForm, { ModalFormHandle } from "./ModalForm";
+import purgeHunt from "../../methods/purgeHunt";
 
 enum SubmitState {
   IDLE = "idle",
@@ -269,12 +271,20 @@ const HuntEditPage = () => {
     SavedDiscordObjectType | undefined
   >(hunt?.memberDiscordRole);
 
+  const purgeHuntRef = useRef<ModalFormHandle>(null);
+
   const onNameChanged = useCallback<NonNullable<FormControlProps["onChange"]>>(
     (e) => {
       setName(e.currentTarget.value);
     },
     [],
   );
+
+  const showPurgeHuntModal = useCallback(() => {
+    if (purgeHuntRef.current) {
+      purgeHuntRef.current.show();
+    }
+  }, []);
 
   const onMailingListsChanged = useCallback<
     NonNullable<FormControlProps["onChange"]>
@@ -483,8 +493,29 @@ const HuntEditPage = () => {
     document.body,
   );
 
+  const doPurgeHuntContent = useCallback(
+    (callback: () => void) => {
+      purgeHunt.call({ huntId }, callback);
+    },
+    [huntId],
+  );
+
   return (
     <Container>
+      <ModalForm
+        ref={purgeHuntRef}
+        title="Purge Hunt content?"
+        submitLabel="Purge"
+        submitStyle="danger"
+        onSubmit={doPurgeHuntContent}
+      >
+        <p>Are you sure you want to purge all content from this Hunt?</p>
+        <p>
+          This will permanently delete all content associated with this Hunt,
+          but keep the Hunt itself.
+        </p>
+      </ModalForm>
+
       <h1>{huntId ? "Edit Hunt" : "New Hunt"}</h1>
 
       <Form onSubmit={onFormSubmit}>
@@ -844,6 +875,11 @@ const HuntEditPage = () => {
 
           <ActionButtonRow>
             <FormGroup className="mb-3">
+              {huntId && (
+                <Button variant="danger" onClick={showPurgeHuntModal}>
+                  Reset Hunt
+                </Button>
+              )}
               <Button variant="primary" type="submit" disabled={disableForm}>
                 {huntId ? "Save" : "Create"}
               </Button>

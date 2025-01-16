@@ -34,7 +34,7 @@ import "./destroyTag";
 import "./dismissBookmarkNotification";
 import "./dismissChatNotification";
 import "./dismissPendingAnnouncement";
-import "./dismissPuzzleNotification"
+import "./dismissPuzzleNotification";
 import "./ensurePuzzleDocument";
 import "./fetchAPIKey";
 import "./generateUploadToken";
@@ -52,6 +52,7 @@ import "./mediasoupSetProducerPaused";
 import "./postAnnouncement";
 import "./promoteOperator";
 import "./provisionFirstUser";
+import "./purgeHunt";
 import "./removePuzzleAnswer";
 import "./removePuzzleTag";
 import "./renameTag";
