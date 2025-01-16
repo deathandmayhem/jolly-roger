@@ -1590,6 +1590,8 @@ const PuzzleGuessModal = React.forwardRef(
       noAnswers: `Guess history for ${puzzle.title}`,
     }[solvedness];
 
+    const huntId = useParams<"huntId">().huntId!;
+
     return (
       <ModalForm
         ref={formRef}
@@ -1684,7 +1686,7 @@ const PuzzleGuessModal = React.forwardRef(
           <div>No previous submissions.</div>
         ) : (
           [
-            <div key="label">Previous submissions:</div>,
+            <div key="label">Previous submissions</div>,
             <GuessTable key="table">
               {sortedBy(guesses, (g) => g.createdAt)
                 .reverse()
@@ -1770,7 +1772,10 @@ const PuzzleGuessModal = React.forwardRef(
                   );
                 })}
             </GuessTable>,
-          ]
+            <br />,
+            <Alert variant="info">
+              To mark answers correct or incorrect, you must have the <Link to={`/hunts/${huntId}`}>Deputy View</Link> toggled on. As Deputy, alerts will popup for all pending submissions. To view alerts you've dismissed, just reload the site.
+            </Alert>
         )}
         {confirmingSubmit ? (
           <Alert variant="warning">{confirmationMessage}</Alert>

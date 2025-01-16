@@ -11,7 +11,6 @@ import { faCircle } from "@fortawesome/free-regular-svg-icons/faCircle";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons/faGlobe";
 import { faEyeSlash } from "@fortawesome/free-regular-svg-icons/faEyeSlash";
 import { faEye } from "@fortawesome/free-regular-svg-icons/faEye";
-import { faPhone } from "@fortawesome/free-solid-svg-icons/faPhone";
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
@@ -664,8 +663,7 @@ const PuzzleListView = ({
               variant="outline-info"
               value="show"
             >
-              <FontAwesomeIcon icon={faPhone} color="red" key="view-operator" />{" "}
-              Answer Chief
+              <FontAwesomeIcon icon={faStar} key="view-operator" /> Deputy
             </ToggleButton>
           </StyledToggleButtonGroup>
         </ButtonToolbar>

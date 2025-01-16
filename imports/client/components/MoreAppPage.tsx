@@ -78,7 +78,7 @@ const MoreAppPage = () => {
   return (
     <FixedLayout>
       <FirehosePageLayout>
-        <h1>More resources</h1>
+        <h1>More Resources</h1>
         {hunt && <Markdown text={hunt.moreInfo ?? ""} />}
         <hr />
         <h2>Bookmarklet</h2>
@@ -124,10 +124,24 @@ const MoreAppPage = () => {
         */}
 
         <hr />
-        <h2>Notes chief</h2>
+        <h2>Notes</h2>
         <p>
-          Visit the <Link to={`/hunts/${huntId}/notes`}>🗒️ NOTES page </Link>
-          to view a list of all puzzles and their notes.
+          <a
+            style={{
+              border: "1px solid #ccc",
+              borderRadius: "6px",
+              padding: ".5rem .8rem",
+              fontSize: "1.2rem",
+              boxShadow: "1px",
+              background: "#eee",
+            }}
+            href={`/hunts/${huntId}/notes`}
+          >
+            🗒️ Notes page
+          </a>
+          <br />
+          <br />
+          Visit this page to view a list of all puzzles and their notes.
         </p>
       </FirehosePageLayout>
     </FixedLayout>
