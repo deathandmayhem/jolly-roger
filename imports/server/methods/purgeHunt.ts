@@ -17,6 +17,7 @@ import purgeHunt from "../../methods/purgeHunt";
 import CallActivities from "../models/CallActivities";
 import Subscribers from "../models/Subscribers";
 import defineMethod from "./defineMethod";
+import Tags from "../../lib/models/Tags";
 
 defineMethod(purgeHunt, {
   validate(arg) {
@@ -29,6 +30,16 @@ defineMethod(purgeHunt, {
     checkAdmin(await MeteorUsers.findOneAsync(this.userId));
 
     const hunt = huntId;
+    const DEFAULT_TAGS = [
+      "is:meta",
+      "is:metameta",
+      "is:runaround",
+      "priority:high",
+      "priority:low",
+      "group:events",
+      "needs:extraction",
+      "needs:onsite",
+    ];
 
     await Puzzles.removeAsync({ hunt });
     await Documents.removeAsync({ hunt });
@@ -44,5 +55,13 @@ defineMethod(purgeHunt, {
     await PendingAnnouncements.removeAsync({ hunt });
     await PuzzleNotifications.removeAsync({ hunt });
     await Subscribers.removeAsync({ hunt });
+    await Tags.removeAsync({ hunt }).then(() => {
+      for (const tag of DEFAULT_TAGS) {
+        void Tags.insertAsync({
+          name: tag,
+          hunt,
+        });
+      }
+    });
   },
 });
