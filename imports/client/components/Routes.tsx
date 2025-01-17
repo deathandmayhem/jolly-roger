@@ -38,6 +38,7 @@ import { Meteor } from "meteor/meteor";
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
 const RTCDebugPage = React.lazy(() => import("./RTCDebugPage"));
+const HuntPurgePage = React.lazy(() => import("./HuntPurgePage"));
 
 const ProfileRedirect = () => {
   const userId = useTracker(() => Meteor.userId(), []);
