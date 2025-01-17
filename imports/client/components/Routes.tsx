@@ -67,6 +67,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
           { path: "more", element: <MoreAppPage /> },
           { path: "notes", element: <NotesPage /> },
           { path: "", element: <Navigate to="puzzles" replace /> },
+          { path: "purge", element: <HuntPurgePage /> },
         ],
       },
       { path: "new", element: <HuntEditPage /> },
