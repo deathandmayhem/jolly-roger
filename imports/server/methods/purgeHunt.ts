@@ -31,9 +31,7 @@ defineMethod(purgeHunt, {
 
     const hunt = huntId;
     const DEFAULT_TAGS = [
-      "is:meta",
-      "is:metameta",
-      "is:runaround",
+      "runaround",
       "priority:high",
       "priority:low",
       "group:events",
