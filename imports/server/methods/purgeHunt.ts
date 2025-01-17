@@ -53,13 +53,7 @@ defineMethod(purgeHunt, {
     await PendingAnnouncements.removeAsync({ hunt });
     await PuzzleNotifications.removeAsync({ hunt });
     await Subscribers.removeAsync({ hunt });
-    await Tags.removeAsync({ hunt }).then(() => {
-      for (const tag of DEFAULT_TAGS) {
-        void Tags.insertAsync({
-          name: tag,
-          hunt,
-        });
-      }
+    await Tags.removeAsync({ hunt });
     });
   },
 });
