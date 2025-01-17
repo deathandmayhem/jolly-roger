@@ -37,6 +37,7 @@ import { Meteor } from "meteor/meteor";
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
 const RTCDebugPage = React.lazy(() => import("./RTCDebugPage"));
+const HuntPurgePage = React.lazy(() => import("./HuntPurgePage"));
 
 const ProfileRedirect = () => {
   const userId = useTracker(() => Meteor.userId(), []);
@@ -77,6 +78,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
           { path: "more", element: <MoreAppPage /> },
           { path: "notes", element: <NotesPage /> },
           { path: "", element: <Navigate to="puzzles" replace /> },
+          { path: "purge", element: <HuntPurgePage /> },
         ],
       },
       { path: "new", element: <HuntEditPage /> },
