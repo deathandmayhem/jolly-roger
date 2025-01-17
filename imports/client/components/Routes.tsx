@@ -32,10 +32,21 @@ import TagManagerApp from "./TagManagerApp";
 import TagManagerPage from "./TagManagerPage";
 import TagEditPage from "./TagEditPage";
 import TagBulkEditPage from "./TagBulkEditPage";
+import { useTracker } from "meteor/react-meteor-data";
+import { Meteor } from "meteor/meteor";
 
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
 const RTCDebugPage = React.lazy(() => import("./RTCDebugPage"));
+
+const ProfileRedirect = () => {
+  const userId = useTracker(() => Meteor.userId(), []);
+  if (userId) {
+    return <Navigate to={`/users/${userId}`} replace />;
+  } else {
+    return <Navigate to="/login" replace />;
+  }
+};
 
 /* Authenticated routes - if user not logged in, get redirected to /login */
 export const AuthenticatedRouteList: RouteObject[] = [
@@ -73,6 +84,14 @@ export const AuthenticatedRouteList: RouteObject[] = [
       { path: "new", element: <HuntEditPage /> },
       { path: "", element: <HuntListPage /> },
     ],
+  },
+  {
+    path: "/profile",
+    element: (
+      <AuthenticatedPage>
+        <ProfileRedirect />
+      </AuthenticatedPage>
+    ),
   },
   {
     path: "/users",
