@@ -235,9 +235,13 @@ const TagBulkEditPage = () => {
 
   const selectOptions: TagSelectOption[] = useTracker(
     () =>
-      allTags.map((t) => {
-        return { value: t._id, label: t.name };
-      }),
+      allTags
+        .map((t) => {
+          return { value: t._id, label: t.name };
+        })
+        .sort((a, b) =>
+          a.label.toLowerCase().localeCompare(b.label.toLowerCase()),
+        ),
     [allTags],
   );
 
