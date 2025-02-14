@@ -74,7 +74,7 @@
     "use-persisted-state": "^0.3.3",
     "winston": "^3.16.0",
     "winston-transport": "^4.9.0",
-    "zod": "^3.23.8"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@testing-library/react": "^14.3.1",
