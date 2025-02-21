@@ -146,9 +146,9 @@ const HuntNav = () => {
     };
   }, [hunt]);
   if (huntId && hunt) {
-    const huntLink = hunt.homepageUrl && (
+    const huntLink = (hunt.archivedHuntUrl ?? hunt.homepageUrl) && (
       <HuntLinkAnchor
-        to={hunt.homepageUrl}
+        to={hunt.archivedHuntUrl ?? hunt.homepageUrl}
         target="_blank"
         rel="noopener noreferrer"
         title="Open the hunt homepage"

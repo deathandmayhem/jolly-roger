@@ -57,6 +57,10 @@ const EditableHunt = z.object({
   defaultRoles: nonEmptyString.array().default([]),
   // If set, this is a string that will be parsed as Markdown and displayed on the More page
   moreInfo: nonEmptyString.optional(),
+  // If set, this is a string that specifies the base URL for the archived hunt
+  archivedHuntUrl: nonEmptyString.url().optional(),
+  // If set, this is a string that defines a regex pattern for the original hunt URL
+  originalHuntUrlRegex: nonEmptyString.optional(),
 });
 export type EditableHuntType = z.infer<typeof EditableHunt>;
 const Hunt = withCommon(EditableHunt);
@@ -82,6 +86,8 @@ export const HuntPattern = {
   isArchived: Match.Optional(Boolean),
   defaultRoles: [String] as [StringConstructor],
   moreInfo: Match.Optional(String),
+  archivedHuntUrl: Match.Optional(String),
+  originalHuntUrlRegex: Match.Optional(String),
 };
 
 const Hunts = new SoftDeletedModel("jr_hunts", Hunt);

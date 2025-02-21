@@ -1,3 +1,4 @@
+import { on } from "node:events";
 import { useTracker } from "meteor/react-meteor-data";
 import { faInfo } from "@fortawesome/free-solid-svg-icons/faInfo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -35,8 +36,7 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import ActionButtonRow from "./ActionButtonRow";
 import Markdown from "./Markdown";
-import ModalForm, { ModalFormHandle } from "./ModalForm";
-import purgeHunt from "../../methods/purgeHunt";
+import type { ModalFormHandle } from "./ModalForm";
 
 enum SubmitState {
   IDLE = "idle",
@@ -254,6 +254,12 @@ const HuntEditPage = () => {
   const [homepageUrl, setHomepageUrl] = useState<string>(
     hunt?.homepageUrl ?? "",
   );
+  const [archivedHuntUrl, setArchivedHuntUrl] = useState<string>(
+    hunt?.archivedHuntUrl ?? "",
+  );
+  const [originalHuntUrlRegex, setOriginalHuntUrlRegex] = useState<string>(
+    hunt?.originalHuntUrlRegex ?? "",
+  );
   const [submitTemplate, setSubmitTemplate] = useState<string>(
     hunt?.submitTemplate ?? "",
   );
@@ -354,6 +360,18 @@ const HuntEditPage = () => {
     setHomepageUrl(e.currentTarget.value);
   }, []);
 
+  const onArchivedHuntUrlChanged = useCallback<
+    NonNullable<FormControlProps["onChange"]>
+  >((e) => {
+    setArchivedHuntUrl(e.currentTarget.value);
+  }, []);
+
+  const onOriginalHuntUrlRegexChanged = useCallback<
+    NonNullable<FormControlProps["onChange"]>
+  >((e) => {
+    setOriginalHuntUrlRegex(e.currentTarget.value);
+  }, []);
+
   const onSubmitTemplateChanged = useCallback<
     NonNullable<FormControlProps["onChange"]>
   >((e) => {
@@ -433,6 +451,9 @@ const HuntEditPage = () => {
         isArchived,
         defaultRoles,
         moreInfo: moreInfo === "" ? undefined : moreInfo,
+        archivedHuntUrl: archivedHuntUrl === "" ? undefined : archivedHuntUrl,
+        originalHuntUrlRegex:
+          originalHuntUrlRegex === "" ? undefined : originalHuntUrlRegex,
       };
 
       if (huntId) {
@@ -442,13 +463,11 @@ const HuntEditPage = () => {
       }
     },
     [
-      huntId,
       name,
       mailingLists,
       signupMessage,
       openSignups,
       hasGuessQueue,
-      isArchived,
       termsOfUse,
       homepageUrl,
       submitTemplate,
@@ -456,9 +475,13 @@ const HuntEditPage = () => {
       puzzleHooksDiscordChannel,
       firehoseDiscordChannel,
       memberDiscordRole,
-      onFormCallback,
+      isArchived,
       defaultRoles,
       moreInfo,
+      archivedHuntUrl,
+      originalHuntUrlRegex,
+      huntId,
+      onFormCallback,
     ],
   );
 
@@ -713,6 +736,45 @@ const HuntEditPage = () => {
             </FormText>
           </Col>
         </FormGroup>
+
+        <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="hunt-form-archive-url">
+            Archive URL
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="hunt-form-archive-url"
+              type="text"
+              value={archivedHuntUrl}
+              onChange={onArchivedHuntUrlChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If provided, this will replace the Homepage URL in various places
+              in the site.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="hunt-form-original-pattern">
+            Original Hunt URL Regex
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="hunt-form-original-pattern"
+              type="text"
+              value={originalHuntUrlRegex}
+              onChange={onOriginalHuntUrlRegexChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If an archive URL (above), then it will replace this pattern
+              instead of the Homepage URL.
+            </FormText>
+          </Col>
+        </FormGroup>
+
         <h3>External integrations</h3>
 
         <FormGroup as={Row} className="mb-3">
