@@ -45,13 +45,13 @@ const CallStateIcon = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #dc3545;
   position: absolute;
   right: 0;
   background: white;
 `;
 
-const MutedIcon = styled(CallStateIcon)`
+const MutedIcon = styled(CallStateIcon)<{ $local?: boolean }>`
+  color: ${(props) => (props.$local ? "#6c757d" : "#dc3545")};
   top: 0;
   border-bottom-left-radius: 6px;
   border: 0.5px solid #0d6efd;
@@ -270,9 +270,9 @@ const RemoteMuteConfirmModal = React.forwardRef(
           <div>
             <h4>Mute for me</h4>
             <p>
-              Toggle hearing audio from {name} while you remain connected. This
-              will not affect what others hear and you can (un)mute them here
-              anytime.
+              Toggle hearing audio from {name}. This will not affect what others
+              hear and you can (un)mute them here anytime. You will need to set
+              this each time you connect to a call.
             </p>
             <Button
               variant={isLocallyMuted ? "primary" : "outline-primary"}
@@ -406,6 +406,9 @@ const PeerBox = ({
             <div>{name}</div>
             {muted && <div>Muted (no one can hear them)</div>}
             {deafened && <div>Deafened (they can&apos;t hear anyone)</div>}
+            {isLocalMuted && !muted && (
+              <div>Muted by you (others can hear them)</div>
+            )}
           </ChatterTooltip>
         }
       >
@@ -419,6 +422,11 @@ const PeerBox = ({
           <div>
             {muted && (
               <MutedIcon>
+                <FontAwesomeIcon icon={faMicrophoneSlash} />
+              </MutedIcon>
+            )}
+            {!muted && isLocalMuted && (
+              <MutedIcon $local>
                 <FontAwesomeIcon icon={faMicrophoneSlash} />
               </MutedIcon>
             )}
