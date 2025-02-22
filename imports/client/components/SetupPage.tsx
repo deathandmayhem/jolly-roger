@@ -46,6 +46,7 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import lookupUrl from "../lookupUrl";
 import ActionButtonRow from "./ActionButtonRow";
+import configureServerSettings from "../../methods/configureServerSettings";
 
 const PageContainer = styled.div`
   max-width: 800px;
@@ -767,6 +768,94 @@ const GoogleScriptForm = ({
         </>
       )}
     </>
+  );
+};
+
+const ServerSettings = () => {
+  const initialConfig = useTracker(
+    () => Settings.findOne({ name: "server.settings" }),
+    [],
+  );
+
+  const [defaultHuntTags, setDefaultHuntTags] = useState<string>(
+    initialConfig?.value.defaultHuntTags ??
+      "is:meta, is:metameta, is:runaround, priority:high, priority:low, group:events, needs:extraction, needs:onsite",
+  );
+
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>("");
+
+  const dismissAlert = useCallback(() => {
+    setSubmitState(SubmitState.IDLE);
+  }, []);
+
+  const shouldDisableForm = submitState === "submitting";
+
+  const saveConfig = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setSubmitState(SubmitState.SUBMITTING);
+      configureServerSettings.call({ defaultHuntTags }, (err) => {
+        if (err) {
+          setSubmitState(SubmitState.ERROR);
+          setSubmitError(err.message);
+        } else {
+          setSubmitState(SubmitState.SUCCESS);
+        }
+      });
+    },
+    [defaultHuntTags],
+  );
+
+  const onTagsChange: NonNullable<FormControlProps["onChange"]> = useCallback(
+    (e) => {
+      setDefaultHuntTags(e.currentTarget.value);
+    },
+    [],
+  );
+
+  return (
+    <Section id="instance">
+      <SectionHeader>Server settings</SectionHeader>
+
+      <form onSubmit={saveConfig}>
+        {submitState === "submitting" ? (
+          <Alert variant="info">Saving...</Alert>
+        ) : null}
+        {submitState === "success" ? (
+          <Alert variant="success" dismissible onClose={dismissAlert}>
+            Saved changes.
+          </Alert>
+        ) : null}
+        {submitState === "error" ? (
+          <Alert variant="danger" dismissible onClose={dismissAlert}>
+            Saving failed: {submitError}
+          </Alert>
+        ) : null}
+        <FormGroup className="mb-3">
+          <FormLabel htmlFor="jr-setup-default-new-hunt-tags">
+            Default new hunt tags
+          </FormLabel>
+          <FormControl
+            id="jr-setup-edit-email-from"
+            aria-describedby="jr-setup-default-new-hunt-tags-description"
+            type="text"
+            value={defaultHuntTags}
+            disabled={shouldDisableForm}
+            onChange={onTagsChange}
+          />
+          <FormText id="jr-setup-default-new-hunt-tags-description">
+            A comma-separated list of default tags that new hunts are created
+            with.
+          </FormText>
+        </FormGroup>
+        <ActionButtonRow>
+          <Button type="submit" variant="primary" disabled={shouldDisableForm}>
+            Save
+          </Button>
+        </ActionButtonRow>
+      </form>
+    </Section>
   );
 };
 
@@ -2505,6 +2594,7 @@ const SetupPage = () => {
 
   return (
     <PageContainer>
+      <ServerSettings />
       <GoogleIntegrationSection />
       <AWSIntegrationSection />
       <EmailConfigSection />

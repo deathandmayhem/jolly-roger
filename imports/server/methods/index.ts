@@ -20,6 +20,7 @@ import "./configureGoogleOAuthClient";
 import "./configureListS3Buckets";
 import "./configureOrganizeGoogleDrive";
 import "./configureS3ImageBucket";
+import "./configureServerSettings";
 import "./configureTeamName";
 import "./configureGoogleScriptUrl";
 import "./createAPIKey";

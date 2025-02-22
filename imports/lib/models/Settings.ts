@@ -65,6 +65,12 @@ const SettingDiscriminatedUnion = z.discriminatedUnion("name", [
       bucketRegion: nonEmptyString,
     }),
   }),
+  z.object({
+    name: z.literal("server.settings"),
+    value: z.object({
+      defaultHuntTags: nonEmptyString.optional(),
+    }),
+  }),
 ]);
 
 const Setting = withCommon(SettingDiscriminatedUnion);
