@@ -9,6 +9,7 @@ import addUsersToDiscordRole from "../addUsersToDiscordRole";
 import { ensureHuntFolder } from "../gdrive";
 import getOrCreateTagByName from "../getOrCreateTagByName";
 import defineMethod from "./defineMethod";
+import Settings from "../../lib/models/Settings";
 
 const DEFAULT_TAGS = [
   "is:meta",
@@ -36,8 +37,16 @@ defineMethod(createHunt, {
     const huntId = await Hunts.insertAsync(arg);
     await addUserToRole(this.userId, huntId, "operator");
 
-    for (const tag of DEFAULT_TAGS) {
-      await getOrCreateTagByName(huntId, tag);
+    const defaultTags = await Settings.findOneAsync({
+      name: "server.settings",
+    });
+
+    const initialTags = defaultTags?.value.defaultHuntTags
+      ? defaultTags.value.defaultHuntTags?.split(",")
+      : DEFAULT_TAGS;
+
+    for (const tag of initialTags) {
+      await getOrCreateTagByName(huntId, tag.trim());
     }
 
     Meteor.defer(async () => {
