@@ -1,5 +1,5 @@
 import { Meteor } from "meteor/meteor";
-import { useTracker } from "meteor/react-meteor-data";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import React, { useCallback, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
@@ -16,6 +16,8 @@ import { userMayBulkAddToHunt } from "../../lib/permission_stubs";
 import addHuntUser from "../../methods/addHuntUser";
 import bulkAddHuntUsers from "../../methods/bulkAddHuntUsers";
 import { useBreadcrumb } from "../hooks/breadcrumb";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import InvitedUserList from "./InvitedUserList";
 
 const BulkError = styled.p`
   white-space: pre-wrap;
@@ -125,52 +127,86 @@ const UserInvitePage = () => {
     onBulkEmailsChanged,
   ]);
 
-  return (
-    <div>
-      <h1>Send an invite</h1>
+  const invitesLoading = useSubscribe("invitedUsers");
 
-      <p>
-        Invite someone to join this hunt. They&apos;ll get an email with
-        instructions (even if they already have a Jolly Roger account)
-      </p>
+  const loading = invitesLoading();
 
+  const invites = useTracker(() => {
+    const invitees = loading
+      ? []
+      : MeteorUsers.find(
+          {
+            $and: [
+              {
+                "services.password.enroll": { $exists: true },
+                hunts: huntId,
+              },
+            ],
+          },
+          { sort: { createdAt: 1 } },
+        ).fetch();
+
+    if (invitees.length === 0) {
+      return null;
+    }
+
+    return (
       <Row>
-        <Col md={8}>
-          {error ? (
-            <Alert variant="danger">
-              <p>{error.reason}</p>
-            </Alert>
-          ) : undefined}
-
-          <form onSubmit={onSubmit} className="form-horizontal">
-            <FormGroup as={Row} className="mb-3">
-              <FormLabel htmlFor="jr-invite-email" column md={3}>
-                E-mail address
-              </FormLabel>
-              <Col md={9}>
-                <FormControl
-                  id="jr-invite-email"
-                  type="email"
-                  value={email}
-                  onChange={onEmailChanged}
-                  disabled={submitting}
-                />
-              </Col>
-            </FormGroup>
-
-            <FormGroup className="mb-3">
-              <Col md={{ offset: 3, span: 9 }}>
-                <Button type="submit" variant="primary" disabled={submitting}>
-                  Send invite
-                </Button>
-              </Col>
-            </FormGroup>
-          </form>
-
-          {bulkInvite}
-        </Col>
+        <h2>Invited users</h2>
+        <InvitedUserList users={invitees} />
       </Row>
-    </div>
+    );
+  }, [huntId, loading]);
+
+  return (
+    (loading && <div>Loading...</div>) || (
+      <div>
+        <h1>Send an invite</h1>
+
+        <p>
+          Invite someone to join this hunt. They&apos;ll get an email with
+          instructions (even if they already have a Jolly Roger account)
+        </p>
+
+        <Row>
+          <Col md={8}>
+            {error ? (
+              <Alert variant="danger">
+                <p>{error.reason}</p>
+              </Alert>
+            ) : undefined}
+
+            <form onSubmit={onSubmit} className="form-horizontal">
+              <FormGroup as={Row} className="mb-3">
+                <FormLabel htmlFor="jr-invite-email" column md={3}>
+                  E-mail address
+                </FormLabel>
+                <Col md={9}>
+                  <FormControl
+                    id="jr-invite-email"
+                    type="email"
+                    value={email}
+                    onChange={onEmailChanged}
+                    disabled={submitting}
+                  />
+                </Col>
+              </FormGroup>
+
+              <FormGroup className="mb-3">
+                <Col md={{ offset: 3, span: 9 }}>
+                  <Button type="submit" variant="primary" disabled={submitting}>
+                    Send invite
+                  </Button>
+                </Col>
+              </FormGroup>
+            </form>
+
+            {bulkInvite}
+          </Col>
+        </Row>
+        {invites}
+      </div>
+    )
   );
 };
 

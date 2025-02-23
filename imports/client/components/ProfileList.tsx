@@ -1,5 +1,5 @@
 import { Meteor } from "meteor/meteor";
-import { useTracker } from "meteor/react-meteor-data";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
@@ -45,6 +45,7 @@ import Puzzles, { PuzzleType } from "../../lib/models/Puzzles";
 import RelativeTime from "./RelativeTime";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons";
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 
 const ProfilesSummary = styled.div`
   text-align: right;
@@ -788,9 +789,32 @@ const ProfileList = ({
           }, {}),
   );
 
+  const loadInvites = useSubscribe("invitedUsers");
+
+  const invitesLoading = loadInvites();
+
+  const title = useTracker(() => {
+    if (huntId || invitesLoading) {
+      return <h1>List of hunters</h1>;
+    }
+
+    const invitees = MeteorUsers.find({
+      "services.password.enroll": { $exists: true },
+    });
+
+    return (
+      <h1>
+        List of hunters{" "}
+        <Badge as={Link} to="invited" bg="info">
+          Invited <Badge bg="secondary">{invitees.count()}</Badge>
+        </Badge>
+      </h1>
+    );
+  }, [huntId, invitesLoading]);
+
   return (
     <div>
-      <h1>List of hunters</h1>
+      {title}
       <ProfilesSummary>Total hunters: {users.length}</ProfilesSummary>
 
       {syncDiscordButton}
