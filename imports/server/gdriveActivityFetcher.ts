@@ -68,6 +68,7 @@ async function fetchDriveActivity() {
   }
 
   const root = await Settings.findOneAsync({ name: "gdrive.root" });
+  const credential = await Settings.findOneAsync({ name: "gdrive.credential" });
 
   // Don't fetch history that's older than what we'd display
   const previousTimestamp = Math.max(
@@ -121,9 +122,13 @@ async function fetchDriveActivity() {
         const actorIds = [
           ...activity.actors.reduce<Set<string>>((acc, actor) => {
             if (actor.user?.knownUser?.personName?.startsWith("people/")) {
-              acc.add(
-                actor.user.knownUser.personName.substring("people/".length),
+              const actorId = actor.user.knownUser.personName.substring(
+                "people/".length,
               );
+              // Exclude edits made by the server drive user, since these aren't actual user edits.
+              if (!credential?.value?.id || credential?.value?.id !== actorId) {
+                acc.add(actorId);
+              }
             }
 
             return acc;

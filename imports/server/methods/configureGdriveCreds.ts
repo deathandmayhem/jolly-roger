@@ -25,11 +25,11 @@ defineMethod(configureGdriveCreds, {
     }
 
     const credential = Google.retrieveCredential(key, secret);
-    const { refreshToken, email } = credential.serviceData;
+    const { refreshToken, email, id } = credential.serviceData;
     Logger.info("Updating Gdrive creds", { email });
     await Settings.upsertAsync(
       { name: "gdrive.credential" },
-      { $set: { value: { refreshToken, email } } },
+      { $set: { value: { refreshToken, email, id } } },
     );
   },
 });
