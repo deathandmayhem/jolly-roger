@@ -77,6 +77,7 @@ import addPuzzleTag from "../../methods/addPuzzleTag";
 import createGuess from "../../methods/createGuess";
 import ensurePuzzleDocument from "../../methods/ensurePuzzleDocument";
 import type { Sheet } from "../../methods/listDocumentSheets";
+import isS3Configured from "../../methods/isS3Configured";
 import listDocumentSheets from "../../methods/listDocumentSheets";
 import removePuzzleAnswer from "../../methods/removePuzzleAnswer";
 import removePuzzleTag from "../../methods/removePuzzleTag";
@@ -124,6 +125,8 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
 import { Theme } from "../theme";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import chatMessageNodeType from "../../lib/chatMessageNodeType";
+import createDocumentImageUpload from "../../methods/createDocumentImageUpload";
+import Settings from "../../lib/models/Settings";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -283,7 +286,7 @@ const ChatMessageDiv = styled.div<{
   word-wrap: break-word;
   font-size: 1rem;
   position: relative;
-  ${({ $isSystemMessage, $isHighlighted, $isPinned, theme }) =>
+  ${({ $isSystemMessage, $isHighlighted, $isPinned }) =>
     $isHighlighted &&
     !$isSystemMessage &&
     !$isPinned &&
@@ -291,13 +294,13 @@ const ChatMessageDiv = styled.div<{
       background-color: ${({ theme })=>theme.colors.pinnedChatMessageBackground};
       `}
 
-  ${({ $isSystemMessage, theme }) =>
+  ${({ $isSystemMessage }) =>
     $isSystemMessage &&
     css`
       background-color: ${({ theme })=>theme.colors.systemChatMessageBackground};
     `}
 
-  ${({ $isPinned, theme }) =>
+  ${({ $isPinned }) =>
     $isPinned &&
     css`
       background-color: ${({ theme })=>theme.colors.pinnedChatMessageBackground};
@@ -374,6 +377,22 @@ const PillSection = styled.div`
   &:hover {
     background-color: #c0c0c0;
   }
+`;
+
+const ImagePlaceholder = styled.div`
+  width: 100px;
+  height: 100px;
+  background-color: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 4px;
+`;
+
+const ImagePreview = styled.img`
+  max-width: 100%;
+  max-height: 100px;
+  margin-bottom: 4px;
 `;
 
 const ChatInputRow = styled.div`
@@ -530,11 +549,6 @@ const ReactionPill = styled.span<{ $userHasReacted: boolean }>`
     $userHasReacted ? "1px solid #007bff" : "none"};
 `;
 
-const ReactionUserList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
 
 const ReactionContainer = styled.div`
   display: flex;
@@ -1456,6 +1470,14 @@ const ChatInput = React.memo(
 
     const [content, setContent] = useState<Descendant[]>(initialValue);
     const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
+    const [uploadingImages, setUploadingImages] = useState<File[]>([]);
+    const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+    const s3Configured = useTracker(() => {
+      return isS3Configured.call([]);
+    }, []);
+
 
     useEffect(() => {
       if (replyingTo && fancyEditorRef.current && typeof fancyEditorRef.current.focus === 'function') {
@@ -1483,7 +1505,7 @@ const ChatInput = React.memo(
       );
     }, [content]);
 
-    const sendContentMessage = useCallback(() => {
+    const sendContentMessage = useCallback( async () => {
       if (hasNonTrivialContent) {
         // Prepare to send message to server.
 
@@ -1515,17 +1537,59 @@ const ChatInput = React.memo(
           }),
         };
 
+        let imageUrlsString = "";
+        // Upload images if any
+        if (uploadingImages.length > 0 && s3Configured) {
+          const imageUploadPromises = uploadingImages.map(async (file) => {
+            const upload = await createDocumentImageUpload.callPromise({
+              documentId: puzzleId,
+              filename: file.name,
+              mimeType: file.type,
+            });
+
+            if (!upload) {
+              throw new Error("S3 not configured");
+            }
+
+            const { publicUrl, uploadUrl, fields } = upload;
+            const formData = new FormData();
+            for (const [key, value] of Object.entries(fields)) {
+              formData.append(key, value);
+            }
+            formData.append("file", file);
+            await fetch(uploadUrl, {
+              method: "POST",
+              mode: "no-cors",
+              body: formData,
+            });
+            return publicUrl;
+          });
+
+          const uploadedUrls = await Promise.all(imageUploadPromises);
+          setUploadedImageUrls(uploadedUrls);
+          imageUrlsString = uploadedUrls.map((url) => `\n${url}`).join("");
+        }
+
+        const newMessageContent = {
+          ...cleanedMessage,
+          children: [
+            ...cleanedMessage.children,
+            { text: imageUrlsString },
+          ],
+        };
+
+
         // Send chat message.
         if (replyingTo){
         sendChatMessage.call({
           puzzleId,
-          content: JSON.stringify(cleanedMessage),
+          content: JSON.stringify(newMessageContent),
           parentId: replyingTo,
         });
        } else {
         sendChatMessage.call({
           puzzleId,
-          content: JSON.stringify(cleanedMessage),
+          content: JSON.stringify(newMessageContent),
         });
        }
         setContent(initialValue);
@@ -1534,13 +1598,37 @@ const ChatInput = React.memo(
           onMessageSent();
         }
         setReplyingTo(null);
+        setUploadingImages([]);
+        setImagePreviews([]);
       }
-    }, [hasNonTrivialContent, content, puzzleId, onMessageSent, replyingTo]);
+    }, [hasNonTrivialContent, content, puzzleId, onMessageSent, replyingTo, uploadingImages, s3Configured]);
 
     useBlockUpdate(
       hasNonTrivialContent
         ? "You're in the middle of typing a message."
         : undefined,
+    );
+
+    // Handle image pasting
+
+    // Handle image selection
+    const handleImageSelect = useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!s3Configured) return;
+        const files = event.target.files;
+        if (files) {
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            setUploadingImages((prev) => [...prev, file]);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setImagePreviews((prev) => [...prev, reader.result as string]);
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      },
+      [s3Configured],
     );
 
     const parentMessage = useTracker(() => {
@@ -1571,6 +1659,16 @@ const ChatInput = React.memo(
           />
         </ReplyingTo>
       )}
+      {imagePreviews.map((preview, index) => (
+          <ImagePreview key={index} src={preview} alt="Preview" />
+        ))}
+        {uploadingImages.length > 0 && !s3Configured && (
+          <ImagePlaceholder>
+            <FontAwesomeIcon icon={faImage} />
+            <br />
+            Image upload not configured
+          </ImagePlaceholder>
+        )}
         <InputGroup>
           <StyledFancyEditor
             ref={fancyEditorRef}
@@ -1591,6 +1689,23 @@ const ChatInput = React.memo(
           >
             <FontAwesomeIcon icon={faPaperPlane} />
           </Button>
+          {s3Configured && (
+            <FormGroup>
+              <FormControl
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageSelect}
+                style={{ display: "none" }}
+                id="image-upload-input"
+              />
+              <FormLabel htmlFor="image-upload-input">
+                <Button variant="secondary">
+                  <FontAwesomeIcon icon={faImage} />
+                </Button>
+              </FormLabel>
+            </FormGroup>
+          )}
         </InputGroup>
       </ChatInputRow>
     );
@@ -2434,9 +2549,6 @@ const PuzzleGuessModal = React.forwardRef(
       haveSetConfidence,
     ]);
 
-    const copyTooltip = (
-      <Tooltip id="jr-puzzle-guess-copy-tooltip">Copy to clipboard</Tooltip>
-    );
 
     const clearError = useCallback(() => {
       setSubmitState(PuzzleGuessSubmitState.IDLE);
@@ -2815,17 +2927,6 @@ const StyledIframe = styled.iframe`
   background-color: #f1f3f4;
 `;
 
-const IframeTab = styled.div`
-  background-color: #f0f0f0;
-  border: 1px solid #a2a2a2;
-  border-right: none;
-  padding: 4px 8px;
-  cursor: pointer;
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
-  z-index: 101;
-  user-select: none;
-`;
 
 const PuzzlePageMultiplayerDocument = React.memo(
   ({
@@ -2935,13 +3036,10 @@ const PuzzlePage = React.memo(() => {
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
   const [isChatMinimized, setIsChatMinimized] = useState<boolean>(false);
-<<<<<<< Updated upstream
   const [lastSidebarWidth, setLastSidebarWidth] = useState<number>(DefaultSidebarWidth);
-=======
   const [isRestoring, setIsRestoring] = useState(false);
   const [isMetadataMinimized, setIsMetadataMinimized] = useState<boolean>(false);
   const [lastSidebarWidth, setLastSidebarWidth] = useState<number>(persistentWidth ?? DefaultSidebarWidth);
->>>>>>> Stashed changes
   const [isDesktop, setIsDesktop] = useState<boolean>(
     window.innerWidth >= MinimumDesktopWidth,
   );
@@ -2957,9 +3055,6 @@ const PuzzlePage = React.memo(() => {
   const theme = useTheme();
   const hunt = useTracker(() => {return Hunts.findOne(huntId)}, [huntId]);
 
-  const showPuzzleDocument = useTracker(() => {
-    return (hunt?.allowPuzzleEmbed ?? false) ? true : showDocument;
-  }, [hunt, showDocument]);
 
   // Add the current user to the collection of people viewing this puzzle.
   const subscribersTopic = `puzzle:${puzzleId}`;

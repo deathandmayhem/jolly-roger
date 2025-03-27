@@ -42,6 +42,7 @@ import "./ensurePuzzleDocument";
 import "./generateUploadToken";
 import "./generateHuntInvitationCode";
 import "./insertDocumentImage";
+import "./isS3Configured";
 import "./linkUserDiscordAccount";
 import "./linkUserGoogleAccount";
 import "./listDocumentSheets";
