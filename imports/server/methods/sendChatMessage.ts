@@ -9,12 +9,21 @@ defineMethod(sendChatMessage, {
     check(arg, {
       puzzleId: String,
       content: String,
+      parentId: Match.Optional(String),
     });
 
     return arg;
   },
 
-  async run({ puzzleId, content }: { puzzleId: string; content: string }) {
+  async run({
+    puzzleId,
+    content,
+    parentId,
+  }: {
+    puzzleId: string;
+    content: string;
+    parentId?: string | null;
+  }) {
     check(this.userId, String);
     let contentObj = JSON.parse(content);
     check(contentObj, {
@@ -67,6 +76,7 @@ defineMethod(sendChatMessage, {
       content: contentObj,
       sender: this.userId,
       pinTs: isPinned ? new Date() : null,
+      parentId: parentId ?? null,
     });
   },
 });

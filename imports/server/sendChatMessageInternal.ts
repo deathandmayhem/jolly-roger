@@ -9,11 +9,13 @@ export default async function sendChatMessageInternal({
   content,
   sender,
   pinTs = null,
+  parentId = null,
 }: {
   puzzleId: string;
   content: ChatMessageContentType;
   sender: string | undefined;
   pinTs?: Date | null;
+  parentId: string | null;
 }) {
   const puzzle = await Puzzles.findOneAsync(puzzleId);
   if (!puzzle) {
@@ -27,6 +29,7 @@ export default async function sendChatMessageInternal({
     sender,
     timestamp: new Date(),
     pinTs,
+    parentId,
   });
 
   await GlobalHooks.runChatMessageCreatedHooks(msgId);

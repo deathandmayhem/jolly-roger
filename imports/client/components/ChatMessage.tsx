@@ -75,13 +75,18 @@ const MarkdownToken = ({ token }: { token: Token }) => {
 
     // Truncate the link href
     let displayedHref = token.href;
-    const pathStart = token.href.indexOf('/', token.href.indexOf('//') + 2); // Find the start of the path
+    const pathStart = token.href.indexOf("/", token.href.indexOf("//") + 2); // Find the start of the path
     if (pathStart !== -1 && token.href.length - pathStart > 50) {
-      displayedHref = token.href.slice(0, pathStart + 10) + '... [truncated]';
+      displayedHref = token.href.slice(0, pathStart + 10) + "... [truncated]";
     }
 
     return (
-      <a target="_blank" rel="noopener noreferrer" title={`{children}`}href={token.href}>
+      <a
+        target="_blank"
+        rel="noopener noreferrer"
+        title={`{children}`}
+        href={token.href}
+      >
         {displayedHref} {/* Display the truncated href */}
       </a>
     );
@@ -135,7 +140,7 @@ const ChatMessage = ({
   message,
   displayNames,
   selfUserId,
-  timestamp
+  timestamp,
 }: {
   message: ChatMessageContentType;
   displayNames: Map<string, string>;
@@ -158,7 +163,16 @@ const ChatMessage = ({
     }
   });
 
-  return <div>{timestamp ? (<span>{shortCalendarTimeFormat(timestamp)}:<br/></span>) : null}{children}</div>;
+  return (
+    <div>
+      {timestamp ? (
+        <span>
+          {shortCalendarTimeFormat(timestamp)}:<br />
+        </span>
+      ) : null}
+      {children}
+    </div>
+  );
 };
 
 export default ChatMessage;
