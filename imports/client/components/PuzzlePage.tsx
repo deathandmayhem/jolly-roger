@@ -273,19 +273,6 @@ const ReplyButton = styled(FontAwesomeIcon)`
   }
 `;
 
-<<<<<<< HEAD
-=======
-const ReplyButtonPill = styled.span`
-background-color: #d3d3d3;
-padding: 4px 8px;
-margin: 4px;
-border-radius: 16px;
-cursor: pointer;
-color: #666;
-`;
-
-
->>>>>>> main
 const PUZZLE_PAGE_PADDING = 8;
 
 const ChatMessageDiv = styled.div<{
@@ -346,7 +333,6 @@ const ChatMessageDiv = styled.div<{
     css`
       background-color: #e0f0ff; /* Muted light blue */
     `}
-<<<<<<< HEAD
 `;
 
 
@@ -392,8 +378,6 @@ const PillSection = styled.div`
   &:hover {
     background-color: #c0c0c0;
   }
-=======
->>>>>>> main
 `;
 
 const ChatInputRow = styled.div`
@@ -582,6 +566,8 @@ const isReaction = (message: ChatMessageType | FilteredChatMessageType): boolean
 const AddReactionButton = styled(FontAwesomeIcon)`
   cursor: pointer;
   color: #666;
+  align-items: center;
+  justify-content: center;
 <<<<<<< HEAD
   align-items: center;
   justify-content: center;
@@ -598,11 +584,8 @@ const AddReactionPill = styled.span`
 background-color: #d3d3d3;
 padding: 4px 8px;
 margin: 4px;
-<<<<<<< HEAD
 align-items: center;
 justify-content: center;
-=======
->>>>>>> main
 border-radius: 16px;
 cursor: pointer;
 color: #666;
@@ -632,11 +615,8 @@ const ChatHistoryMessage = React.memo(
     isPulsing,
     setReplyingTo,
     isReplyingTo,
-<<<<<<< HEAD
     shownEmojiPicker,
     setShownEmojiPicker,
-=======
->>>>>>> main
   }: {
     message: FilteredChatMessageType;
     displayNames: Map<string, string>;
@@ -651,11 +631,8 @@ const ChatHistoryMessage = React.memo(
     isPulsing: boolean;
     setReplyingTo: (messageId: string | null) => void;
     isReplyingTo: boolean;
-<<<<<<< HEAD
     shownEmojiPicker: string | null;
     setShownEmojiPicker: (messageId: string | null) => void;
-=======
->>>>>>> main
   }) => {
     const ts = shortCalendarTimeFormat(message.timestamp);
 
@@ -677,11 +654,7 @@ const ChatHistoryMessage = React.memo(
       if (parentId) {
         const fetchParentMessages = async () => {
           const parents: FilteredChatMessageType[] = [];
-<<<<<<< HEAD
           let currentParentId: string | undefined = parentId;
-=======
-          let currentParentId = parentId;
->>>>>>> main
           let depth = 0;
           let nextParent = undefined;
           while (currentParentId && depth < 3) {
@@ -826,7 +799,6 @@ const ChatHistoryMessage = React.memo(
       }
     };
 
-<<<<<<< HEAD
     const emojiPickerButtonRef = useRef<HTMLSpanElement>(null);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
 
@@ -862,23 +834,6 @@ const ChatHistoryMessage = React.memo(
       createPortal(
         <EmojiPickerContainer
           ref={emojiPickerRef}
-=======
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const emojiPickerButtonRef = useRef<HTMLSpanElement>(null);
-
-    const handleAddReactionClick = () => {
-      setShowEmojiPicker(!showEmojiPicker);
-    };
-
-    const handleEmojiClick = (emojiData: { emoji: string }) => {
-      handleReactionClick(emojiData.emoji);
-      setShowEmojiPicker(false);
-    };
-
-    const emojiPicker = showEmojiPicker && emojiPickerButtonRef.current ? (
-      createPortal(
-        <EmojiPickerContainer
->>>>>>> main
           style={{
             bottom: `${
               window.innerHeight -
@@ -892,15 +847,10 @@ const ChatHistoryMessage = React.memo(
             autoFocusSearch={false}
             emojiStyle={EmojiStyle.NATIVE}
             skinTonesDisabled={true}
-<<<<<<< HEAD
             lazyLoadEmojis={true}
             reactionsDefaultOpen={true}
             reactions={["2705","274e","2757","2753","2194-fe0f"]}
             previewConfig={{showPreview:false}}
-=======
-            reactionsDefaultOpen={true}
-            reactions={["2705","274e","2757","2753","2194-fe0f"]}
->>>>>>> main
           />
         </EmojiPickerContainer>,
         document.body,
@@ -988,11 +938,7 @@ const ChatHistoryMessage = React.memo(
               </ReactionPill>
             );
           })}
-<<<<<<< HEAD
           {(reactionCounts.size > 0) && (
-=======
-          {isHovered && (
->>>>>>> main
             <>
               <AddReactionPill
               onClick={handleAddReactionClick}
@@ -1003,17 +949,6 @@ const ChatHistoryMessage = React.memo(
                   icon={faFaceSmile}
                 />
               </AddReactionPill>
-<<<<<<< HEAD
-=======
-              <ReplyButtonPill
-                title={"Reply"}
-                onClick={() => setReplyingTo(message._id)}
-                >
-                <ReplyButton
-                    icon={faReplyAll}
-                  />
-              </ReplyButtonPill>
->>>>>>> main
             </>
           )}
         </ReactionContainer>
@@ -1254,11 +1189,8 @@ const ChatHistory = React.forwardRef(
               isPulsing={pulsingMessageId === msg._id}
               setReplyingTo={setReplyingTo}
               isReplyingTo={replyingTo === msg._id}
-<<<<<<< HEAD
               shownEmojiPicker={shownEmojiPicker}
               setShownEmojiPicker={setShownEmojiPicker}
-=======
->>>>>>> main
             />
           );
         })}
