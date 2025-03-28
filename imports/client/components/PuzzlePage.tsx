@@ -284,8 +284,8 @@ const ChatMessageDiv = styled.div<{
   $isReplyingTo: boolean;
 }>`
   padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
-  overflow-wrap: break-word;
-  font-size: 14px;
+  word-wrap: break-word;
+  font-size: 1rem;
   position: relative;
   ${({ $isSystemMessage, $isHighlighted, $isPinned }) =>
     $isHighlighted &&
@@ -568,12 +568,7 @@ const AddReactionButton = styled(FontAwesomeIcon)`
   color: #666;
   align-items: center;
   justify-content: center;
-<<<<<<< HEAD
-  align-items: center;
-  justify-content: center;
-=======
   margin-left: 4px;
->>>>>>> main
   &:hover {
     color: #000;
   }
