@@ -1810,6 +1810,8 @@ const PuzzlePageMetadata = ({
   selfUser,
   showDocument,
   setShowDocument,
+  hasIframeBeenLoaded,
+  setHasIframeBeenLoaded,
 }: {
   puzzle: PuzzleType;
   bookmarked: boolean;
@@ -1819,6 +1821,8 @@ const PuzzlePageMetadata = ({
   selfUser: Meteor.User;
   showDocument: boolean;
   setShowDocument: (showDocument: boolean) => void;
+  hasIframeBeenLoaded: boolean;
+  setHasIframeBeenLoaded: (hasIframeBeenLoaded: boolean) => void;
 }) => {
   const huntId = puzzle.hunt;
   const puzzleId = puzzle._id;
@@ -1958,6 +1962,9 @@ const PuzzlePageMetadata = ({
   ) : null;
 
   const handleShowButtonClick = () => {
+    if (!hasIframeBeenLoaded) {
+      setHasIframeBeenLoaded(true);
+    }
     setShowDocument(!showDocument);
   };
 
@@ -2809,6 +2816,7 @@ const PuzzlePage = React.memo(() => {
   const [isDesktop, setIsDesktop] = useState<boolean>(
     window.innerWidth >= MinimumDesktopWidth,
   );
+  const [hasIframeBeenLoaded, setHasIframeBeenLoaded] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [showDocument, setShowDocument] = useState<boolean>(true);
 
@@ -2985,6 +2993,8 @@ const PuzzlePage = React.memo(() => {
       selfUser={selfUser}
       showDocument={showDocument}
       setShowDocument={setShowDocument}
+      hasIframeBeenLoaded={hasIframeBeenLoaded}
+      setHasIframeBeenLoaded={setHasIframeBeenLoaded}
     />
   );
   const chat = (
@@ -3069,7 +3079,12 @@ const PuzzlePage = React.memo(() => {
             <PuzzleContent>
               {metadata}
               <PuzzlePageMultiplayerDocument document={doc} selfUser={selfUser} showDocument={showDocument}/>
-              <StyledIframe $isShown={!showDocument} src={activePuzzle.url}/>
+              {
+                activePuzzle.url && hasIframeBeenLoaded ?
+                  (
+                    <StyledIframe $isShown={!showDocument} src={activePuzzle.url}/>
+                  ) : null
+              }
               {debugPane}
             </PuzzleContent>
           </SplitPaneMinus>
