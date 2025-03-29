@@ -11,6 +11,7 @@ interface DocumentDisplayProps {
   document: DocumentType;
   displayMode: "link" | "embed";
   user: Meteor.User;
+  isShown: boolean;
 }
 
 const StyledDeepLink = styled.a`
@@ -19,7 +20,7 @@ const StyledDeepLink = styled.a`
   white-space: nowrap;
 `;
 
-const StyledIframe = styled.iframe`
+const StyledIframe = styled.iframe<{ $isShown: boolean }>`
   /* Workaround for unusual sizing behavior of iframes in iOS Safari:
    * Width and height need to be specified in absolute values then adjusted by min and max */
   width: 0;
@@ -33,6 +34,7 @@ const StyledIframe = styled.iframe`
   border: 0;
   padding-bottom: env(safe-area-inset-bottom, 0);
   background-color: #f1f3f4;
+  z-index: ${({ $isShown }) => ($isShown ? 1 : -1)};
 `;
 
 export const DocumentMessage = styled.span`
@@ -46,6 +48,7 @@ const GoogleDocumentDisplay = ({
   document,
   displayMode,
   user,
+  isShown,
 }: DocumentDisplayProps) => {
   let url: string;
   let title: string;
@@ -85,7 +88,14 @@ const GoogleDocumentDisplay = ({
       );
     case "embed":
       /* To workaround iOS Safari iframe behavior, scrolling should be "no" */
-      return <StyledIframe title="document" scrolling="no" src={url} />;
+      return (
+        <StyledIframe
+          title="document"
+          scrolling="no"
+          src={url}
+          $isShown={isShown}
+        />
+      );
     default:
       return (
         <DocumentMessage>Unknown displayMode {displayMode}</DocumentMessage>
@@ -97,6 +107,7 @@ const DocumentDisplay = ({
   document,
   displayMode,
   user,
+  isShown,
 }: DocumentDisplayProps) => {
   switch (document.provider) {
     case "google":
@@ -105,6 +116,7 @@ const DocumentDisplay = ({
           document={document}
           displayMode={displayMode}
           user={user}
+          isShown={isShown}
         />
       );
     default:
