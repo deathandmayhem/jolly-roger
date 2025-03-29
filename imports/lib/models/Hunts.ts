@@ -61,6 +61,8 @@ const EditableHunt = z.object({
   archivedHuntUrl: nonEmptyString.url().optional(),
   // If set, this is a string that defines a regex pattern for the original hunt URL
   originalHuntUrlRegex: nonEmptyString.optional(),
+  // If set, this is a boolean that enables/disables showing puzzle pages in Jolly Roger
+  allowPuzzleEmbed: z.boolean().default(false).optional(),
 });
 export type EditableHuntType = z.infer<typeof EditableHunt>;
 const Hunt = withCommon(EditableHunt);
@@ -84,6 +86,7 @@ export const HuntPattern = {
   firehoseDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
   memberDiscordRole: Match.Optional(SavedDiscordObjectPattern),
   isArchived: Match.Optional(Boolean),
+  allowPuzzleEmbed: Match.Optional(Boolean),
   defaultRoles: [String] as [StringConstructor],
   moreInfo: Match.Optional(String),
   archivedHuntUrl: Match.Optional(String),

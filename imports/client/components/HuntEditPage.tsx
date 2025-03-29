@@ -244,6 +244,9 @@ const HuntEditPage = () => {
   const [isArchived, setIsArchived] = useState<boolean>(
     hunt?.isArchived ?? false,
   );
+  const [allowPuzzleEmbed, setAllowPuzzleEmbed] = useState<boolean>(
+    hunt?.allowPuzzleEmbed ?? true,
+  );
   const [termsOfUse, setTermsOfUse] = useState<string>(hunt?.termsOfUse ?? "");
   const [showTermsOfUsePreview, setShowTermsOfUsePreview] =
     useState<boolean>(false);
@@ -344,6 +347,13 @@ const HuntEditPage = () => {
   const onIsArchivedChanged = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setIsArchived(e.currentTarget.checked);
+    },
+    [],
+  );
+
+  const onAllowEmbedChanged = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setAllowPuzzleEmbed(e.currentTarget.checked);
     },
     [],
   );
@@ -449,6 +459,7 @@ const HuntEditPage = () => {
         firehoseDiscordChannel,
         memberDiscordRole,
         isArchived,
+        allowPuzzleEmbed,
         defaultRoles,
         moreInfo: moreInfo === "" ? undefined : moreInfo,
         archivedHuntUrl: archivedHuntUrl === "" ? undefined : archivedHuntUrl,
@@ -476,6 +487,7 @@ const HuntEditPage = () => {
       firehoseDiscordChannel,
       memberDiscordRole,
       isArchived,
+      allowPuzzleEmbed,
       defaultRoles,
       moreInfo,
       archivedHuntUrl,
@@ -716,6 +728,27 @@ const HuntEditPage = () => {
               <code>{"{{{origin}}}/submit{{{pathname}}}"}</code> would work for
               the 2018 Mystery Hunt. If not specified, the puzzle URL is used as
               the link to the guess submission page.
+            </FormText>
+          </Col>
+        </FormGroup>
+
+        <FormGroup as={Row} className="mb-3">
+          <FormLabel column xs={3} htmlFor="hunt-form-allow-embed">
+            Allow puzzle embedding
+          </FormLabel>
+          <Col xs={9}>
+            <FormCheck
+              id="hunt-form-allow-embed"
+              checked={allowPuzzleEmbed}
+              onChange={onAllowEmbedChanged}
+              disabled={disableForm}
+              type="switch"
+              label={allowPuzzleEmbed ? "Allowed" : "Not allowed"}
+            />
+            <FormText>
+              If enabled, we will allow users to view puzzle pages in Jolly
+              Roger. This should be disabled where site security settings (e.g.
+              CORS) prevent us from iFraming the website.
             </FormText>
           </Col>
         </FormGroup>
