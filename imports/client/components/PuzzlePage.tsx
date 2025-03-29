@@ -2982,12 +2982,9 @@ const PuzzlePage = React.memo(() => {
       document={doc}
       displayNames={displayNames}
       isDesktop={isDesktop}
-<<<<<<< HEAD
       selfUser={selfUser}
-=======
       showDocument={showDocument}
       setShowDocument={setShowDocument}
->>>>>>> 23fa598c (Working puzzle page display)
     />
   );
   const chat = (
@@ -3071,15 +3068,8 @@ const PuzzlePage = React.memo(() => {
             {chat}
             <PuzzleContent>
               {metadata}
-<<<<<<< HEAD
-              <PuzzlePageMultiplayerDocument
-                document={document}
-                selfUser={selfUser}
-              />
-=======
-              <PuzzlePageMultiplayerDocument document={doc} isShown={showDocument} showDocument={showDocument}/>
+              <PuzzlePageMultiplayerDocument document={doc} selfUser={selfUser} showDocument={showDocument}/>
               <StyledIframe $isShown={!showDocument} src={activePuzzle.url}/>
->>>>>>> 23fa598c (Working puzzle page display)
               {debugPane}
             </PuzzleContent>
           </SplitPaneMinus>
