@@ -26,6 +26,7 @@ import MeteorUsers from "../../lib/models/MeteorUsers";
 import type { PeerType } from "../../lib/models/mediasoup/Peers";
 import mediasoupRemoteMutePeer from "../../methods/mediasoupRemoteMutePeer";
 import type { Action, CallState } from "../hooks/useCallState";
+import { Theme } from "../theme";
 import Avatar from "./Avatar";
 import Loading from "./Loading";
 import Spectrum from "./Spectrum";
@@ -38,39 +39,40 @@ import {
   PeopleListDiv,
 } from "./styling/PeopleComponents";
 
-const CallStateIcon = styled.span`
+const CallStateIcon = styled.span<{ theme: Theme }>`
   font-size: 10px;
   width: 14px;
   height: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #dc3545;
+  color: ${({ theme }) => theme.colors.callStateIcon};
   position: absolute;
   right: 0;
   background: white;
 `;
 
-const MutedIcon = styled(CallStateIcon)`
+const MutedIcon = styled(CallStateIcon)<{ theme: Theme }>`
   top: 0;
   border-bottom-left-radius: 6px;
-  border: 0.5px solid #0d6efd;
-  border-left: 0.5px solid #bbb;
-  border-bottom: 1px solid #bbb;
+  border: 0.5px solid ${({ theme }) => theme.colors.mutedIconBorder};
+  border-left: 0.5px solid ${({ theme }) => theme.colors.mutedIconBorder};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.mutedIconBorder};
+  color: ${({ theme }) => theme.colors.mutedIconText};
 `;
 
-const DeafenedIcon = styled(CallStateIcon)`
+const DeafenedIcon = styled(CallStateIcon)<{ theme: Theme }>`
   bottom: 0;
   border-top-left-radius: 6px;
-  border: 0.5px solid #0d6efd;
-  border-left: 0.5px solid #bbb;
-  border-top: 1px solid #bbb;
+  border: 0.5px solid ${({ theme }) => theme.colors.deafenedIconBorder};
+  border-left: 0.5px solid ${({ theme }) => theme.colors.deafenedIconBorder};
+  border-top: 1px solid ${({ theme }) => theme.colors.deafenedIconBorder};
   text-align: right;
-  color: black;
+  color: ${({ theme }) => theme.colors.mutedIconText};
   font-size: 9px;
 `;
 
-const RemoteMuteButton = styled.div`
+const RemoteMuteButton = styled.div<{ theme: Theme }>`
   position: absolute;
   inset: 0;
   font-size: 24px;
@@ -83,8 +85,9 @@ const RemoteMuteButton = styled.div`
   color: transparent;
 
   &:hover {
-    background-color: rgb(30 30 30 / 50%);
-    color: #ccc;
+    background-color: ${({ theme }) =>
+      theme.colors.remoteMuteButtonHoverBackground};
+    color: ${({ theme }) => theme.colors.remoteMuteButtonHoverText};
   }
 `;
 

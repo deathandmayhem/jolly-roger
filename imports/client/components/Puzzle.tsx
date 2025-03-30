@@ -30,6 +30,7 @@ import updatePuzzle from "../../methods/updatePuzzle";
 import { useOperatorActionsHiddenForHunt } from "../hooks/persisted-state";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import indexedDisplayNames from "../indexedDisplayNames";
+import { Theme } from "../theme";
 import BookmarkButton from "./BookmarkButton";
 import PuzzleActivity from "./PuzzleActivity";
 import PuzzleAnswer from "./PuzzleAnswer";
@@ -37,16 +38,15 @@ import PuzzleDeleteModal from "./PuzzleDeleteModal";
 import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
 import TagList from "./TagList";
-import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
 
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;
+  theme: Theme;
 }>`
-  ${({ $solvedness }) => css`
-    background-color: ${backgroundColorLookupTable[$solvedness]};
-  `}
-
+  background-color: ${({ $solvedness, theme }) => {
+    return theme.colors.solvedness[$solvedness];
+  }};
   display: flex;
   flex-direction: row;
   align-items: first baseline;

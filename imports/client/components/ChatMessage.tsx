@@ -8,6 +8,7 @@ import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
 import nodeIsMention from "../../lib/nodeIsMention";
 import { MentionSpan } from "./FancyEditor";
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
+import { Theme } from "../theme";
 
 // This file implements standalone rendering for the MessageElement format
 // defined by FancyEditor, for use in the chat pane.
@@ -28,14 +29,14 @@ const StyledBlockquote = styled.blockquote`
   margin-bottom: 0;
 `;
 
-const StyledCodeBlock = styled.code`
+const StyledCodeBlock = styled.code<{ theme: Theme }>`
   white-space: pre-wrap;
   display: block;
   border-radius: 4px;
   padding: 4px;
   width: 100%;
-  background-color: #eee;
-  color: black;
+  background-color: ${({ theme }) => theme.colors.codeBlockBackground};
+  color: ${({ theme }) => theme.colors.codeBlockText};
   margin-bottom: 0;
 `;
 

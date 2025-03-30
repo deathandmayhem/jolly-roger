@@ -1,10 +1,11 @@
+import { faMicrophoneAlt } from "@fortawesome/free-solid-svg-icons/faMicrophoneAlt";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import Toast from "react-bootstrap/Toast";
 import styled from "styled-components";
-import { faMicrophoneAlt } from "@fortawesome/free-solid-svg-icons/faMicrophoneAlt";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import Markdown from "./Markdown";
+import { Theme } from "../theme";
 
 const StyledNotificationTimestamp = styled.small`
   text-align: end;
@@ -16,15 +17,25 @@ const AnnouncementToast = ({
   createdAt,
   onClose,
   className,
+  theme,
 }: {
   displayName: string;
   message: string;
   createdAt: Date;
   onClose?: () => void;
   className?: string;
+  theme: Theme;
 }) => {
   return (
-    <Toast className={className} onClose={onClose}>
+    <Toast
+      className={className}
+      onClose={onClose}
+      style={{
+        backgroundColor: theme.colors.announcementToastBackground,
+        color: theme.colors.announcementToastText,
+        border: `1px solid ${theme.colors.announcementToastBorder}`,
+      }}
+    >
       <Toast.Header closeButton={!!onClose}>
         <FontAwesomeIcon
           icon={faMicrophoneAlt}

@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { FormText } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Col from "react-bootstrap/Col";
 import FormCheck from "react-bootstrap/FormCheck";
@@ -24,7 +25,6 @@ import LabelledRadioGroup from "./LabelledRadioGroup";
 import Loading from "./Loading";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
-import { FormText } from "react-bootstrap";
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 const Creatable = React.lazy(

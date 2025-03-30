@@ -30,6 +30,7 @@ import {
 import styled, { css } from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById, sortedBy } from "../../lib/listUtils";
+import { Theme } from "../theme";
 import Avatar from "./Avatar";
 
 // This implements a markdown-inspired input editor with live formatting preview
@@ -63,10 +64,10 @@ interface ElementRendererProps<T> {
 }
 
 // For the inline editable renderer
-const StyledEditorCodeBlock = styled.code`
+const StyledEditorCodeBlock = styled.code<{ theme: Theme }>`
   display: inline-block;
   width: 100%;
-  background-color: #eee;
+  background-color: ${({ theme }) => theme.colors.fancyEditorBackground};
   color: black;
   margin-bottom: 0;
 `;
@@ -90,6 +91,7 @@ interface MentionRendererProps extends ElementRendererProps<MentionElement> {
 
 export const MentionSpan = styled.span<{
   $isSelf: boolean;
+  theme: Theme;
 }>`
   padding: 2px 3px 3px;
   margin: 0 1px;
@@ -97,19 +99,19 @@ export const MentionSpan = styled.span<{
   display: inline-block;
   overflow-wrap: break-word;
   border-radius: 4px;
-  color: #4649ef;
-  background-color: #ced0ed;
+  color: ${({ theme }) => theme.colors.mentionSpanText};
+  background-color: ${({ theme }) => theme.colors.mentionSpanBackground};
   ${({ $isSelf }) =>
     $isSelf &&
     css`
-      background-color: #4649ef;
-      color: #fff;
+      background-color: ${({ theme }) => theme.colors.mentionSpanBackground};
+      color: ${({ theme }) => theme.colors.mentionSpanText};
     `}
   font-size: 0.8rem;
 `;
 
-const SelectedMentionSpan = styled(MentionSpan)`
-  box-shadow: 0 0 0 2px #b4d5ff;
+const SelectedMentionSpan = styled(MentionSpan)<{ theme: Theme }>`
+  box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.selectedMentionSpanShadow};
 `;
 
 const EditableMentionRenderer = ({
@@ -174,7 +176,7 @@ const insertMention = (editor: Editor, userId: string) => {
   Transforms.move(editor);
 };
 
-const MatchCandidateRow = styled.div<{ $selected: boolean }>`
+const MatchCandidateRow = styled.div<{ $selected: boolean; theme: Theme }>`
   padding: 2px 3px;
   border-radius: 3px;
   height: 28px;
@@ -183,8 +185,10 @@ const MatchCandidateRow = styled.div<{ $selected: boolean }>`
   align-items: center;
   justify-content: flex-start;
   cursor: pointer;
-  ${({ $selected }) => css`
-    background: ${$selected ? "#e0ecfc" : "transparent"};
+  ${({ $selected, theme }) => css`
+    background: ${$selected
+      ? theme.colors.matchCandidateSelectedBackground
+      : "transparent"};
   `}
 `;
 
@@ -301,15 +305,15 @@ const StyledMessage = styled.p`
   margin-bottom: 0;
 `;
 
-const AutocompleteContainer = styled.div`
+const AutocompleteContainer = styled.div<{ theme: Theme }>`
   position: absolute;
   z-index: 6;
   padding: 3px;
-  background: white;
+  background: ${({ theme }) => theme.colors.autocompleteBackground};
   border-radius: 4px;
   max-width: 100%;
   overflow-x: hidden;
-  box-shadow: 0 1px 5px rgb(0 0 0 / 20%);
+  box-shadow: ${({ theme }) => theme.colors.autocompleteShadow};
 `;
 
 // TraverseCallback should return the offset into its raw text at which its

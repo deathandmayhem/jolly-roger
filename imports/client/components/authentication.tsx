@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import App from "./App";
 import SplashPage from "./SplashPage";
+import { useAppThemeState } from "../hooks/persisted-state";
 
 export const useAuthenticated = () => {
   const { loggingIn, loggedIn } = useTracker(() => {
@@ -34,6 +35,19 @@ export const AuthenticatedPage = ({
 }) => {
   const [loading, loggedIn] = useAuthenticated();
   const location = useLocation();
+  const [appTheme, setAppTheme] = useAppThemeState();
+
+  useEffect(() => {
+    // This is a bit of a hack, but I think it's going to be the only
+    // way that it works. That's because we don't have the ability to
+    // manipulate the DOM through usual React methods, so we're doing
+    // it directly instead.
+    const body = document.body;
+    body.setAttribute("data-bs-theme", appTheme ?? "light");
+    return () => {
+      body.removeAttribute("data-bs-theme");
+    };
+  }, [appTheme]);
 
   if (loading) {
     return null;

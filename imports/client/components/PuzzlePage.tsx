@@ -129,6 +129,7 @@ import { mediaBreakpointDown } from "./styling/responsive";
 import { ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 import removeChatMessage from "../../methods/removeChatMessage";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
+import { Theme } from "../theme";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -200,7 +201,7 @@ const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
 //   |           |
 //   |___________|
 
-const PinDiv = styled.div`
+const PinDiv = styled.div<{theme:Theme}>`
 min-height: 3em;
 height: auto;
 max-height: 12em;
@@ -208,7 +209,7 @@ max-height: 12em;
 overflow-y: scroll;
 overflow-x: hidden;
 border-bottom: 4px double black;
-background-color: #fff2cc;
+background-color: ${({theme})=>theme.colors.pinnedChatMessageBackground};
 `;
 
 const ChatHistoryDiv = styled.div`
@@ -283,29 +284,30 @@ const ChatMessageDiv = styled.div<{
   $isPulsing: boolean;
   $isHovered: boolean;
   $isReplyingTo: boolean;
+  theme: Theme
 }>`
   padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
   word-wrap: break-word;
   font-size: 1rem;
   position: relative;
-  ${({ $isSystemMessage, $isHighlighted, $isPinned }) =>
+  ${({ $isSystemMessage, $isHighlighted, $isPinned, theme }) =>
     $isHighlighted &&
     !$isSystemMessage &&
     !$isPinned &&
     css`
-      background-color: #ffff70;
-    `}
+      background-color: ${({ theme })=>theme.colors.pinnedChatMessageBackground};
+      `}
 
-  ${({ $isSystemMessage }) =>
+  ${({ $isSystemMessage, theme }) =>
     $isSystemMessage &&
     css`
-      background-color: #e0e0e0;
+      background-color: ${({ theme })=>theme.colors.systemChatMessageBackground};
     `}
 
-  ${({ $isPinned }) =>
+  ${({ $isPinned, theme }) =>
     $isPinned &&
     css`
-      background-color: #fff2cc;
+      background-color: ${({ theme })=>theme.colors.pinnedChatMessageBackground};
     `}
     ${({ $isPulsing }) =>
     $isPulsing &&
@@ -326,14 +328,14 @@ const ChatMessageDiv = styled.div<{
   }
 
   &:hover {
-    background-color: #f0f0f0;
+    background-color: ${({ theme })=>theme.colors.hoverChatMessageBackground};
   }
 
   ${({ $isReplyingTo }) =>
     $isReplyingTo &&
     css`
-      background-color: #e0f0ff; /* Muted light blue */
-    `}
+      background-color: ${({ theme })=>theme.colors.replyChatMessageBackground};
+      `}
 `;
 
 
@@ -390,8 +392,8 @@ const ChatInputRow = styled.div`
   position: relative;
 `;
 
-const ReplyingTo = styled.div`
-  background-color: #eee;
+const ReplyingTo = styled.div<{theme:Theme}>`
+  background-color: ${({theme}) => theme.colors.replyingToBackground};
   padding: 4px;
   margin-bottom: 4px;
   border-radius: 4px;
@@ -437,12 +439,12 @@ const PuzzleContent = styled.div`
   flex-direction: column;
 `;
 
-const PuzzleMetadata = styled.div`
+const PuzzleMetadata = styled.div<{ theme: Theme }>`
   flex: none;
   padding: ${PUZZLE_PAGE_PADDING - 2}px 8px;
   border-bottom: 1px solid #dadce0;
   z-index: 10;
-  background-color: white;
+  background-color: ${({ theme })=>theme.colors.background};
 `;
 
 const PuzzleMetadataAnswer = styled.span`
@@ -581,7 +583,7 @@ const AddReactionButton = styled(FontAwesomeIcon)`
 const AddReactionPill = styled.span`
 background-color: #d3d3d3;
 padding: 4px 8px;
-margin: 4px;
+margin: 4px;s
 align-items: center;
 justify-content: center;
 border-radius: 16px;
@@ -1365,10 +1367,10 @@ const PinnedMessage = React.forwardRef(
 const PinnedMessageMemo = React.memo(PinnedMessage);
 const ChatHistoryMemo = React.memo(ChatHistory);
 
-const StyledFancyEditor = styled(FancyEditor)`
+const StyledFancyEditor = styled(FancyEditor)<{theme:Theme}>`
   flex: 1;
   display: block;
-  background-color: #fff;
+  background-color: ${({theme})=>theme.colors.fancyEditorBackground};
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -2105,10 +2107,11 @@ const GuessTableSmallRow = styled.div`
   )}
 `;
 
-const GuessRow = styled.div<{ $state: GuessType["state"] }>`
+const GuessRow = styled.div<{ $state: GuessType["state"]; theme: Theme }>`
   display: contents;
-  background-color: ${(props) =>
-    guessColorLookupTable[props.$state].background};
+  background-color: ${($state, theme) =>
+    theme.colors.guess[$state].background
+    };
 
   &::before {
     content: " ";
@@ -2117,8 +2120,9 @@ const GuessRow = styled.div<{ $state: GuessType["state"] }>`
   }
 
   :hover {
-    background-color: ${(props) =>
-      guessColorLookupTable[props.$state].hoverBackground};
+    background-color: ${($state, theme) =>
+      theme.colors.guess[$state].hoverBackground
+      };
   }
 `;
 

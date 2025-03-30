@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
+import { Theme } from "../theme";
 
 interface DocumentDisplayProps {
   document: DocumentType;
@@ -37,11 +38,11 @@ const StyledIframe = styled.iframe<{ $isShown: boolean }>`
   z-index: ${({ $isShown }) => ($isShown ? 1 : -1)};
 `;
 
-export const DocumentMessage = styled.span`
+export const DocumentMessage = styled.span<{ theme: Theme }>`
   display: block;
   width: 100%;
   height: 100%;
-  background-color: #ddf;
+  background-color: ${({ theme }) => theme.colors.documentMessageBackground};
 `;
 
 const GoogleDocumentDisplay = ({

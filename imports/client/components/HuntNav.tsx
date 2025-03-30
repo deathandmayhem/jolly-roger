@@ -15,6 +15,7 @@ import styled, { css } from "styled-components";
 import Hunts from "../../lib/models/Hunts";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
 import { mediaBreakpointDown } from "./styling/responsive";
+import { Theme } from "../theme";
 
 const JRLinkList = styled(Nav)`
   margin-right: 8px;
@@ -35,7 +36,7 @@ const JRLinkList = styled(Nav)`
   )}
 `;
 
-const StyledPuzzleListLinkAnchor = styled(NavLink)`
+const StyledPuzzleListLinkAnchor = styled(NavLink)<{ theme: Theme }>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,10 +44,10 @@ const StyledPuzzleListLinkAnchor = styled(NavLink)`
   overflow: hidden;
   flex-direction: column;
   padding: 0 12px;
-  color: rgb(0 0 0 / 65%);
+  color: ${({ theme }) => theme.colors.text};
 
   &:hover {
-    color: rgb(0 0 0 / 80%);
+    color: ${({ theme }) => theme.colors.text};
     text-decoration: none;
   }
 

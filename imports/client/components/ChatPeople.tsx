@@ -38,6 +38,7 @@ import {
   PeopleListDiv,
 } from "./styling/PeopleComponents";
 import { PuzzlePagePadding } from "./styling/constants";
+import { Theme } from "../theme";
 
 interface ViewerSubscriber {
   user: string;
@@ -95,9 +96,9 @@ const PeopleListHeader = styled(ChatterSubsectionHeader)`
   text-indent: -1rem;
 `;
 
-const ChatterSection = styled.section`
+const ChatterSection = styled.section<{ theme: Theme }>`
   flex: 0;
-  background-color: #f3e5e5;
+  background-color: ${({ theme }) => theme.colors.chatterSectionBackground};
   font-size: 12px;
   line-height: 12px;
   padding: ${PuzzlePagePadding};

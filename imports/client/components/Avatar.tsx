@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { getAvatarCdnUrl } from "../../lib/discord";
 import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
+import { Theme } from "../theme";
 
 const AvatarImg = styled.img`
   display: block;
@@ -29,12 +30,14 @@ const DiscordAvatarInner = ({
   return <AvatarImg alt={alt} src={urls[0]} srcSet={srcSet} />;
 };
 
-const AvatarInitial = styled.div`
+const AvatarInitial = styled.div<{ theme: Theme }>`
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  color: ${({ theme }) => theme.colors.avatarInitialText};
+  background-color: ${({ theme }) => theme.colors.avatarInitialBackground};
 `;
 
 const DefaultAvatarInner = ({
@@ -85,6 +88,7 @@ const AvatarContainer = styled.div<{
   $size: number;
   $inline: boolean;
   $isSelf: boolean;
+  theme: Theme;
 }>`
   width: ${({ $size }) => $size}px;
   height: ${({ $size }) => $size}px;
@@ -92,9 +96,10 @@ const AvatarContainer = styled.div<{
   background-color: white;
   font-weight: 700;
   display: ${({ $inline }) => ($inline ? "inline-block" : "block")};
-  box-shadow: ${({ $isSelf }) =>
-    $isSelf ? "0 0 4px rgba(13, 110, 253, 0.5)" : "none"};
-  border: ${({ $isSelf }) => ($isSelf ? "0.5px solid #0D6EFD" : "none")};
+  box-shadow: ${({ $isSelf, theme }) =>
+    $isSelf ? `0 0 4px ${theme.colors.avatarSelfShadow}` : "none"};
+  border: ${({ $isSelf, theme }) =>
+    $isSelf ? `0.5px solid ${theme.colors.avatarSelfBorder}` : "none"};
 `;
 
 const Avatar = React.memo(
