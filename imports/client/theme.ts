@@ -1,7 +1,10 @@
+import { ThemeConfig } from "react-select";
+
 export type GuessState = keyof Theme["colors"]["guess"];
 export type SolvednessState = keyof Theme["colors"]["solvedness"];
 
 export interface Theme {
+  basicMode: string;
   colors: {
     background: string;
     text: string;
@@ -100,9 +103,11 @@ export interface Theme {
       solved: string;
     };
   };
+  reactSelectTheme: ThemeConfig;
 }
 
 export const lightTheme: Theme = {
+  basicMode: "light",
   colors: {
     background: "var(--bs-body-bg)",
     text: "var(--bs-body-color)",
@@ -201,9 +206,39 @@ export const lightTheme: Theme = {
       solved: "#dfffdf",
     },
   },
+  reactSelectTheme: {
+    borderRadius: 4,
+    colors: {
+      primary: "#2684FF",
+      primary75: "#4C9AFF",
+      primary50: "#B2D4FF",
+      primary25: "#DEEBFF",
+
+      danger: "#DE350B",
+      dangerLight: "#FFBDAD",
+
+      neutral0: "hsl(0, 0%, 100%)",
+      neutral5: "hsl(0, 0%, 95%)",
+      neutral10: "hsl(0, 0%, 90%)",
+      neutral20: "hsl(0, 0%, 80%)",
+      neutral30: "hsl(0, 0%, 70%)",
+      neutral40: "hsl(0, 0%, 60%)",
+      neutral50: "hsl(0, 0%, 50%)",
+      neutral60: "hsl(0, 0%, 40%)",
+      neutral70: "hsl(0, 0%, 30%)",
+      neutral80: "hsl(0, 0%, 20%)",
+      neutral90: "hsl(0, 0%, 10%)",
+    },
+    spacing: {
+      baseUnit: 4,
+      controlHeight: 38,
+      menuGutter: 8,
+    },
+  },
 };
 
 export const darkTheme: Theme = {
+  basicMode: "dark",
   colors: {
     background: "var(--bs-dark-bg-subtle)",
     text: "var(--bs-body-color)",
@@ -300,6 +335,35 @@ export const darkTheme: Theme = {
       noAnswers: "rgb(77, 77, 118)",
       unsolved: "rgb(46, 46, 46)",
       solved: "rgb(32, 66, 32)",
+    },
+  },
+  reactSelectTheme: {
+    borderRadius: 4,
+    colors: {
+      primary25: "#2684FF",
+      primary50: "#4C9AFF",
+      primary75: "#B2D4FF",
+      primary: "#DEEBFF",
+
+      dangerLight: "#DE350B",
+      danger: "#FFBDAD",
+
+      neutral90: "hsl(0, 0%, 100%)",
+      neutral80: "hsl(0, 0%, 95%)",
+      neutral70: "hsl(0, 0%, 90%)",
+      neutral60: "hsl(0, 0%, 80%)",
+      neutral50: "hsl(0, 0%, 70%)",
+      neutral40: "hsl(0, 0%, 60%)",
+      neutral30: "hsl(0, 0%, 50%)",
+      neutral20: "hsl(0, 0%, 40%)",
+      neutral10: "hsl(0, 0%, 30%)",
+      neutral5: "hsl(0, 0%, 20%)",
+      neutral0: "hsl(0, 0%, 10%)",
+    },
+    spacing: {
+      baseUnit: 4,
+      controlHeight: 38,
+      menuGutter: 8,
     },
   },
 };

@@ -9,15 +9,16 @@ import type { PuzzleGroup } from "../../lib/puzzle-sort-and-group";
 import { useHuntPuzzleListCollapseGroup } from "../hooks/persisted-state";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import Tag from "./Tag";
+import { Theme } from "../theme";
 
-const AddButton = styled.div`
+const AddButton = styled.div<{ theme: Theme }>`
   display: inline;
   align-items: center;
   margin: 2px 4px 2px 0;
   padding: 2px 6px;
   border-radius: 4px;
-  color: #666;
-  background-color: #fff;
+  color: ${({ theme }) => theme.colors.text};
+  background-color: ${({ theme }) => theme.colors.background};
   border: 1px solid #ccc;
 `;
 

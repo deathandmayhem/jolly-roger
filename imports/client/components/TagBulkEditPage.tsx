@@ -18,7 +18,7 @@ import type { FormProps } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import type { ActionMeta } from "react-select";
 import Select from "react-select";
-import styled, { css } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import { indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
@@ -38,6 +38,7 @@ import TagList from "./TagList";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
 import { useTracker } from "meteor/react-meteor-data";
+import { Theme } from "../theme";
 
 enum SubmitState {
   IDLE = "idle",
@@ -66,11 +67,11 @@ const PuzzleListToolbar = styled.div`
 
 const TagPuzzleDiv = styled.div<{
   $solvedness: Solvedness;
+  theme: Theme;
 }>`
-  ${({ $solvedness }) => css`
-    background-color: ${backgroundColorLookupTable[$solvedness]};
-  `}
-
+  background-color: ${({ theme, $solvedness }) => {
+    return theme.colors.solvedness[$solvedness];
+  }};
   display: flex;
   flex-direction: row;
   align-items: first baseline;
@@ -503,6 +504,8 @@ const TagBulkEditPage = () => {
     [selectedTag, newTagName],
   );
 
+  const theme = useTheme();
+
   return (
     <Container>
       <ModalForm
@@ -551,6 +554,7 @@ const TagBulkEditPage = () => {
               id="tag-rename-selected-tag"
               options={selectOptions}
               onChange={onRenameTagChanged}
+              theme={theme.reactSelectTheme}
             />
           </Col>
           <Col xs={5}>
@@ -583,6 +587,7 @@ const TagBulkEditPage = () => {
             isMulti
             options={selectOptions}
             onChange={onSelectedTagsChanged}
+            theme={theme.reactSelectTheme}
           />
         </Col>
         <Col xs={4}>

@@ -88,10 +88,10 @@ const StyledHeaderRow = styled.div`
   display: contents;
 `;
 
-const StyledHeader = styled.div`
+const StyledHeader = styled.div<{theme: Theme}>`
   position: sticky;
   top: 0;
-  background-color: white;
+  background-color: ${({theme}) => theme.colors.background};
   font-weight: bold;
   ${mediaBreakpointDown(
     compactViewBreakpoint,

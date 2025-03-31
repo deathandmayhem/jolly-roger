@@ -3,7 +3,7 @@ import React, { useMemo } from "react";
 import { Alert } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import Hunts from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
@@ -79,6 +79,8 @@ const MoreAppPage = () => {
     [huntId],
   );
 
+  const theme = useTheme();
+
   return (
     <FixedLayout>
       <FirehosePageLayout>
@@ -99,7 +101,7 @@ const MoreAppPage = () => {
               padding: ".5rem .8rem",
               fontSize: "1.2rem",
               boxShadow: "1px",
-              background: "#eee",
+              background: theme.colors.background,
             }}
             href={bookmarklet}
           >
@@ -137,7 +139,7 @@ const MoreAppPage = () => {
               padding: ".5rem .8rem",
               fontSize: "1.2rem",
               boxShadow: "1px",
-              background: "#eee",
+              background: theme.colors.background,
             }}
             href={`/hunts/${huntId}/notes`}
           >
