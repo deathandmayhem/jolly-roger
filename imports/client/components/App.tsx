@@ -422,7 +422,7 @@ const App = ({ children }: { children: React.ReactNode }) => {
 
   const [appTheme, setAppTheme] = useAppThemeState();
   const theme = useTracker(() => {
-    return appTheme === "light" ? lightTheme : darkTheme;
+    return appTheme === "dark" ? darkTheme : lightTheme;
   }, [appTheme]);
 
   return (
