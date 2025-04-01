@@ -3115,12 +3115,17 @@ const PuzzlePage = React.memo(() => {
             {chat}
             <PuzzleContent>
               {metadata}
-              {(activePuzzle.url && hasIframeBeenLoaded && !showDocument) ? (
+              {(activePuzzle.url && hasIframeBeenLoaded) ? (
                 <PuzzleDocumentDiv>
                   <StyledIframe
-                    ref={iframeRef} // Assign ref to iframe
-                    style={{ display: !showDocument ? "block" : "none" }} // Control visibility with style
+                    ref={iframeRef}
+                    style={{ width: !showDocument ? "100%" : "0%" }} // this is a bit of a hack to keep both the puzzlepag and the shared doc loaded
                     src={activePuzzle.url}
+                  />
+                <PuzzlePageMultiplayerDocument
+                  document={docRef.current}
+                  showDocument={showDocument}
+                  style={{ width: showDocument ? "100%" : "0%" }}
                   />
                 </PuzzleDocumentDiv>
               ) : (
@@ -3128,7 +3133,6 @@ const PuzzlePage = React.memo(() => {
                   document={docRef.current} // Use ref to access document
                   selfUser={selfUser}
                   showDocument={showDocument}
-                  style={{ display: showDocument ? "block" : "none" }} // Control visibility with style
                 />
                 )}
               {debugPane}
