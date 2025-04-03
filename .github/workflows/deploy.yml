@@ -44,10 +44,9 @@ jobs:
         uses: godaddy-wordpress/setup-secure-shell@v1
         env:
           PRIVATE_KEY: ${{ secrets.JR_VPS_KEY }}
-          VPS_HOST_KEY: ${{ secrets.JR_VPS_HOST_KEY }}
         with:
           ssh-private-key: $PRIVATE_KEY
-          ssh-known-hosts: $VPS_HOST_KEY
+          add-gh-known-hosts: no
 
       - name: Upload
         run: |
@@ -61,7 +60,7 @@ jobs:
           hosts: "${{ secrets.JR_VPS_USERNAME }}@${{ secrets.JR_VPS_HOST }}"
           privateKey: ${{ secrets.JR_VPS_KEY }}
           command: |
-            cd /home/jimsug/app
+            cd /home/jollyrogeruser/app
             tar -xzf jolly-roger.tar.gz
             rm jolly-roger.tar.gz
             cd bundle/programs/server
