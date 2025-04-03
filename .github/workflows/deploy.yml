@@ -52,7 +52,7 @@ jobs:
         run: |
           cd ~/${{ github.sha }}
           tar -czf ./jolly-roger.tar.gz ./*
-          scp -o StrictHostKeyChecking=no ~/${{ github.sha }}/jolly-roger.tar.gz ${{ secrets.JR_VPS_USERNAME }}@${{ secrets.JR_VPS_HOST }}:/home/jimsug/app
+          scp -o StrictHostKeyChecking=no ~/${{ github.sha }}/jolly-roger.tar.gz ${{ secrets.JR_VPS_USERNAME }}@${{ secrets.JR_VPS_HOST }}:/home/jollyrogeruser/app
 
       - name: Test SSH
         uses: JimCronqvist/action-ssh@master
