@@ -740,7 +740,7 @@ const BookmarkNotificationMessage = ({
     await bookmarkPuzzle.callPromise({ puzzleId, bookmark: false });
   };
 
-  use theme = useTheme();
+  const theme = useTheme();
 
   return (
     <Toast onClose={dismiss}>
