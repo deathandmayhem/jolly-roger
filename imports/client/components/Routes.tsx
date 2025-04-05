@@ -31,6 +31,7 @@ import RootRedirector from "./RootRedirector";
 import TagBulkEditPage from "./TagBulkEditPage";
 import TagManagerPage from "./TagManagerPage";
 import UserInvitePage from "./UserInvitePage";
+import UserPuzzleHistory from "./UserPuzzleHistory";
 import UsersApp from "./UsersApp";
 import { AuthenticatedPage, UnauthenticatedPage } from "./authentication";
 
@@ -102,6 +103,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
       { path: "invited", element: <InvitedUserListPage /> },
     ],
   },
+  { path: "/history", element: <UserPuzzleHistory /> },
   { path: "/setup", element: <SetupPage /> },
   { path: "/rtcdebug", element: <RTCDebugPage /> },
 ].map((r) => {

@@ -21,6 +21,7 @@ import "./puzzleForPuzzlePage";
 import "./puzzleNotificationsForSelf";
 import "./puzzlesForHunt";
 import "./puzzlesForPuzzleList";
+import "./puzzleHistoryForUser";
 import "./settingsAll";
 import "./settingsByName";
-import "./statusesForHuntUsers"
+import "./statusesForHuntUsers";

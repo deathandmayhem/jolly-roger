@@ -357,6 +357,9 @@ const AppNavbar = ({
                 My Profile {userProfileBadge ? <PulsingDot /> : null}
               </DropdownItem>
             </RRBS.LinkContainer>
+            <RRBS.LinkContainer to="/history">
+              <DropdownItem eventKey="2">My Puzzles</DropdownItem>
+            </RRBS.LinkContainer>
             <DropdownMenu>
               <DropdownItem eventKey="theme-header" disabled>
                 Theme
