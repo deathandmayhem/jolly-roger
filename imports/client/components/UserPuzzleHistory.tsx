@@ -118,8 +118,7 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
 
   const [selectedHunt, setSelectedHunt] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedSolvedness, setSelectedSolvedness] =
-    useState<SolvednessState | null>(null);
+  const [selectedSolvedness, setSelectedSolvedness] = useState<string[]>([]);
   const [selectedInteractionTypes, setSelectedInteractionTypes] =
     useState<{ value: string; label: string }[]>(interactionTypes);
 
@@ -145,7 +144,11 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
   }, []);
 
   const handleSolvednessChange = useCallback((selectedOption) => {
-    setSelectedSolvedness(selectedOption ? selectedOption.value : null);
+    console.log(selectedOption.value);
+    console.log(selectedOption);
+    setSelectedSolvedness(
+      selectedOption ? selectedOption.map((v) => v.value) : null,
+    );
   }, []);
 
   const handleInteractionTypeChange = useCallback(
@@ -290,7 +293,8 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
     return sortedHistory.filter((item) => {
       const huntMatch = selectedHunt === null || item.huntId === selectedHunt;
       const solvednessMatch =
-        selectedSolvedness === null || item.solvedness === selectedSolvedness;
+        selectedSolvedness?.length === 0 ||
+        selectedSolvedness?.includes(item.solvedness);
       const searchMatch =
         searchQuery === "" ||
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
