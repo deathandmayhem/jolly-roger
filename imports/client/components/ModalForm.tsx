@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { Spinner } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import type { ModalProps } from "react-bootstrap/Modal";
 import Modal from "react-bootstrap/Modal";
@@ -83,6 +84,9 @@ const ModalForm = React.forwardRef(
           </Modal.Header>
           <Modal.Body>{props.children}</Modal.Body>
           <Modal.Footer>
+            {props.submitDisabled && (
+              <Spinner animation="border" role="status" />
+            )}
             <Button
               variant="light"
               onClick={hide}
