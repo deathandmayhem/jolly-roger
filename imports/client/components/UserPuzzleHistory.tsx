@@ -1,28 +1,30 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+import { faBan } from "@fortawesome/free-solid-svg-icons/faBan";
+import { faMessage } from "@fortawesome/free-solid-svg-icons/faMessage";
+import { faPencil } from "@fortawesome/free-solid-svg-icons/faPencil";
+import { faPhone } from "@fortawesome/free-solid-svg-icons/faPhone";
+import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
+import { faThumbsDown } from "@fortawesome/free-solid-svg-icons/faThumbsDown";
+import { faThumbsUp } from "@fortawesome/free-solid-svg-icons/faThumbsUp";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useMemo, useState } from "react";
-import { Badge, OverlayTrigger, Table, Tooltip } from "react-bootstrap";
-import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
+import { FormControl, OverlayTrigger, Table, Tooltip } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import Select from "react-select";
+import styled, { useTheme } from "styled-components";
+import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import Bookmarks from "../../lib/models/Bookmarks";
 import CallActivities from "../../lib/models/CallActivities";
 import ChatMessages from "../../lib/models/ChatMessages";
+import DocumentActivities from "../../lib/models/DocumentActivities";
+import Hunts from "../../lib/models/Hunts";
 import Puzzles from "../../lib/models/Puzzles";
 import puzzleHistoryForUser from "../../lib/publications/puzzleHistoryForUser";
+import type { Solvedness } from "../../lib/solvedness";
+import { computeSolvedness } from "../../lib/solvedness";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import DocumentActivities from "../../lib/models/DocumentActivities";
-import { Link } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faMessage,
-  faNotesMedical,
-  faPencil,
-  faPhone,
-  faStar,
-} from "@fortawesome/free-solid-svg-icons";
-import styled from "styled-components";
-import { Theme } from "../theme";
-import { FontawesomeObject } from "@fortawesome/fontawesome-svg-core";
-import Hunts from "../../lib/models/Hunts";
+import type { SolvednessState, Theme } from "../theme";
 
 interface PuzzleHistoryItem {
   puzzleId: string;
@@ -37,6 +39,8 @@ interface PuzzleHistoryItem {
   documentCounter: number;
   chatCounter: number;
   bookmarkCounter: number;
+  solvedness: string;
+  answers: string[] | null;
 }
 
 const StyledFAIcon = styled(FontAwesomeIcon)<{
@@ -45,6 +49,23 @@ const StyledFAIcon = styled(FontAwesomeIcon)<{
 }>`
   color: ${({ theme, active }) =>
     active ? theme.colors.success : theme.colors.secondary};
+`;
+
+const PuzzleHistoryRow = styled.tr<{ $solvedness: string; theme: Theme }>`
+  background-color: ${({ theme, $solvedness }) => {
+    return theme.colors.solvedness[$solvedness as Solvedness];
+  }};
+`;
+
+const FilterBar = styled.div`
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const FilterSection = styled.div`
+  margin-right: 1rem;
 `;
 
 const PuzzleInteractionSpan = ({
@@ -84,9 +105,55 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
   const loading = historyLoading();
 
   const [sortColumn, setSortColumn] = useState<keyof PuzzleHistoryItem | null>(
-    null,
+    "lastInteraction",
   );
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const interactionTypes = [
+    { value: "bookmark", label: "Bookmark" },
+    { value: "call", label: "Call" },
+    { value: "document", label: "Document" },
+    { value: "chat", label: "Chat" },
+  ];
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+  const [selectedHunt, setSelectedHunt] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedSolvedness, setSelectedSolvedness] =
+    useState<SolvednessState | null>(null);
+  const [selectedInteractionTypes, setSelectedInteractionTypes] =
+    useState<{ value: string; label: string }[]>(interactionTypes);
+
+  const huntOptions = useMemo(() => {
+    const huntsData = Hunts.find().fetch();
+    return huntsData.map((hunt) => ({ value: hunt._id, label: hunt.name }));
+  }, []);
+
+  const solvednessOptions = useMemo(() => {
+    return [
+      { value: "solved", label: "Solved" },
+      { value: "unsolved", label: "Unsolved" },
+      { value: "noAnswers", label: "No Answers" },
+    ];
+  }, []);
+
+  const handleHuntChange = useCallback((selectedOption) => {
+    setSelectedHunt(selectedOption ? selectedOption.value : null);
+  }, []);
+
+  const handleSearchChange = useCallback((e) => {
+    setSearchQuery(e.target.value);
+  }, []);
+
+  const handleSolvednessChange = useCallback((selectedOption) => {
+    setSelectedSolvedness(selectedOption ? selectedOption.value : null);
+  }, []);
+
+  const handleInteractionTypeChange = useCallback(
+    (selectedOptions: { value: string; label: string }[]) => {
+      setSelectedInteractionTypes(selectedOptions);
+    },
+    [],
+  );
 
   const puzzleHistory: PuzzleHistoryItem[] = useTracker(() => {
     if (loading) return [];
@@ -111,9 +178,9 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
       puzzleHistoryMap.set(puzzle._id, {
         puzzleId: puzzle._id,
         name: puzzle.title,
-        url: puzzle.url,
+        url: puzzle.url ?? "#",
         huntId: puzzle.hunt,
-        huntName: huntNames[puzzle.hunt],
+        huntName: huntNames[puzzle.hunt] ?? "No name hunt",
         firstInteraction: null,
         lastInteraction: null,
         interactionCount: 0,
@@ -121,6 +188,8 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
         documentCounter: 0,
         chatCounter: 0,
         bookmarkCounter: 0,
+        solvedness: computeSolvedness(puzzle),
+        answers: puzzle.answers,
       });
     }
 
@@ -217,6 +286,47 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
     return data;
   }, [puzzleHistory, sortColumn, sortDirection]);
 
+  const filteredHistory = useMemo(() => {
+    return sortedHistory.filter((item) => {
+      const huntMatch = selectedHunt === null || item.huntId === selectedHunt;
+      const solvednessMatch =
+        selectedSolvedness === null || item.solvedness === selectedSolvedness;
+      const searchMatch =
+        searchQuery === "" ||
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.huntName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.answers?.some((a) =>
+          a.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
+      const interactionMatch =
+        selectedInteractionTypes.length === interactionTypes.length ||
+        selectedInteractionTypes.length === 0 ||
+        selectedInteractionTypes.some((type) => {
+          switch (type.value) {
+            case "bookmark":
+              return item.bookmarkCounter > 0;
+            case "call":
+              return item.callCounter > 0;
+            case "document":
+              return item.documentCounter > 0;
+            case "chat":
+              return item.chatCounter > 0;
+            default:
+              return false;
+          }
+        });
+
+      return huntMatch && solvednessMatch && searchMatch && interactionMatch;
+    });
+  }, [
+    sortedHistory,
+    selectedHunt,
+    selectedSolvedness,
+    searchQuery,
+    selectedInteractionTypes,
+    interactionTypes.length,
+  ]);
+
   const handleSort = useCallback(
     (column: keyof PuzzleHistoryItem) => {
       setSortColumn(column);
@@ -239,54 +349,117 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
     [handleSort, sortColumn, sortDirection],
   );
 
+  const theme = useTheme();
+
   return (
-    <Table>
-      <thead>
-        <tr>
-          {renderHeaderCell("huntName", "Hunt")}
-          {renderHeaderCell("name", "Puzzle")}
-          {renderHeaderCell("firstInteraction", "First Interaction")}
-          {renderHeaderCell("lastInteraction", "Last Interaction")}
-          <th>Interactions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {sortedHistory.map((historyItem) => (
-          <tr key={historyItem.puzzleId}>
-            <td>
-              <Link to={`/hunts/${historyItem.huntId}/}`}>
-                {historyItem.huntName}
-              </Link>
-            </td>
-            <td>
-              <Link
-                to={`/hunts/${historyItem.huntId}/puzzles/${historyItem.puzzleId}`}
-              >
-                {historyItem.name}
-              </Link>
-            </td>
-            <td>
-              {historyItem.firstInteraction
-                ? shortCalendarTimeFormat(historyItem.firstInteraction)
-                : "N/A"}
-            </td>
-            <td>
-              {historyItem.lastInteraction
-                ? shortCalendarTimeFormat(historyItem.lastInteraction)
-                : "N/A"}
-            </td>
-            <td>
-              <PuzzleInteractionSpan
-                bookmarked={historyItem.bookmarkCounter}
-                calls={historyItem.callCounter}
-                document={historyItem.documentCounter}
-                messages={historyItem.chatCounter}
-              />
-            </td>
+    <>
+      <FilterBar>
+        <FilterSection>
+          <Select
+            options={huntOptions}
+            onChange={handleHuntChange}
+            placeholder="Select Hunt"
+            theme={theme.reactSelectTheme}
+          />
+        </FilterSection>
+        <FilterSection>
+          <FormControl
+            type="text"
+            placeholder="Search by puzzle name, hunt name, or tag"
+            title="Search by puzzle name, hunt name, or tag"
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+        </FilterSection>
+        <FilterSection>
+          <Select
+            options={solvednessOptions}
+            onChange={handleSolvednessChange}
+            placeholder="Select Solvedness"
+            theme={theme.reactSelectTheme}
+            isMulti
+          />
+        </FilterSection>
+        <Select
+          isMulti
+          options={interactionTypes}
+          value={selectedInteractionTypes}
+          onChange={handleInteractionTypeChange}
+          theme={theme.reactSelectTheme}
+        />
+      </FilterBar>
+      <Table>
+        <thead>
+          <tr>
+            {renderHeaderCell("huntName", "Hunt")}
+            {renderHeaderCell("name", "Puzzle")}
+            <th>Answer(s)</th>
+            {renderHeaderCell("solvedness", "Solved?")}
+            {renderHeaderCell("firstInteraction", "First Interaction")}
+            {renderHeaderCell("lastInteraction", "Last Interaction")}
+            <th>Interactions</th>
           </tr>
-        ))}
-      </tbody>
-    </Table>
+        </thead>
+        <tbody>
+          {filteredHistory.map((historyItem) => (
+            <PuzzleHistoryRow
+              $solvedness={historyItem.solvedness}
+              key={historyItem.puzzleId}
+            >
+              <td>
+                <Link to={`/hunts/${historyItem.huntId}/`}>
+                  {historyItem.huntName}
+                </Link>
+              </td>
+              <td>
+                <Link
+                  to={`/hunts/${historyItem.huntId}/puzzles/${historyItem.puzzleId}`}
+                >
+                  {historyItem.name}
+                </Link>
+              </td>
+              <td>{historyItem.answers?.join(", ")}</td>
+              <td>
+                <FontAwesomeIcon
+                  icon={
+                    historyItem.solvedness === "solved"
+                      ? faThumbsUp
+                      : historyItem.solvedness === "noAnswers"
+                        ? faBan
+                        : faThumbsDown
+                  }
+                  color={
+                    historyItem.solvedness === "solved"
+                      ? theme.colors.success
+                      : theme.colors.secondary
+                  }
+                  fixedWidth
+                  title={historyItem.solvedness}
+                />
+              </td>
+              <td>
+                {historyItem.firstInteraction
+                  ? calendarTimeFormat(historyItem.firstInteraction)
+                  : "N/A"}
+              </td>
+              <td>
+                {historyItem.lastInteraction
+                  ? calendarTimeFormat(historyItem.lastInteraction)
+                  : "N/A"}
+              </td>
+              <td>
+                <PuzzleInteractionSpan
+                  bookmarked={historyItem.bookmarkCounter}
+                  calls={historyItem.callCounter}
+                  document={historyItem.documentCounter}
+                  messages={historyItem.chatCounter}
+                />
+              </td>
+            </PuzzleHistoryRow>
+          ))}
+        </tbody>
+      </Table>
+    </>
   );
 };
 
