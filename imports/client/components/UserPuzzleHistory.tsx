@@ -116,11 +116,11 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
   ];
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  const [selectedHunt, setSelectedHunt] = useState<string | null>(null);
+  const [selectedHunt, setSelectedHunt] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedSolvedness, setSelectedSolvedness] = useState<string[]>([]);
   const [selectedInteractionTypes, setSelectedInteractionTypes] =
-    useState<{ value: string; label: string }[]>(interactionTypes);
+    useState<string[]>(interactionTypes);
 
   const huntOptions = useMemo(() => {
     const huntsData = Hunts.find().fetch();
@@ -135,23 +135,27 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
     ];
   }, []);
 
-  const handleHuntChange = useCallback((selectedOption) => {
-    setSelectedHunt(selectedOption ? selectedOption.value : null);
-  }, []);
+  const handleHuntChange = useCallback(
+    (selectedOptions: { value: string; label: string }[]) => {
+      setSelectedHunt(selectedOptions.map((v) => v.value));
+    },
+    [],
+  );
 
   const handleSearchChange = useCallback((e) => {
     setSearchQuery(e.target.value);
   }, []);
 
-  const handleSolvednessChange = useCallback((selectedOption) => {
-    setSelectedSolvedness(
-      selectedOption ? selectedOption.map((v) => v.value) : null,
-    );
-  }, []);
+  const handleSolvednessChange = useCallback(
+    (selectedOptions: { value: string; label: string }[]) => {
+      setSelectedSolvedness(selectedOptions.map((v) => v.value));
+    },
+    [],
+  );
 
   const handleInteractionTypeChange = useCallback(
     (selectedOptions: { value: string; label: string }[]) => {
-      setSelectedInteractionTypes(selectedOptions);
+      setSelectedInteractionTypes(selectedOptions.map((v) => v.value));
     },
     [],
   );
@@ -289,7 +293,8 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
 
   const filteredHistory = useMemo(() => {
     return sortedHistory.filter((item) => {
-      const huntMatch = selectedHunt === null || item.huntId === selectedHunt;
+      const huntMatch =
+        selectedHunt.length === 0 || selectedHunt.includes(item.huntId);
       const solvednessMatch =
         selectedSolvedness?.length === 0 ||
         selectedSolvedness?.includes(item.solvedness);
@@ -304,7 +309,7 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
         selectedInteractionTypes.length === interactionTypes.length ||
         selectedInteractionTypes.length === 0 ||
         selectedInteractionTypes.some((type) => {
-          switch (type.value) {
+          switch (type) {
             case "bookmark":
               return item.bookmarkCounter > 0;
             case "call":
@@ -362,6 +367,7 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
             onChange={handleHuntChange}
             placeholder="Select Hunt"
             theme={theme.reactSelectTheme}
+            isMulti
           />
         </FilterSection>
         <FilterSection>
