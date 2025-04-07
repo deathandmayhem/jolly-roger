@@ -144,8 +144,6 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
   }, []);
 
   const handleSolvednessChange = useCallback((selectedOption) => {
-    console.log(selectedOption.value);
-    console.log(selectedOption);
     setSelectedSolvedness(
       selectedOption ? selectedOption.map((v) => v.value) : null,
     );

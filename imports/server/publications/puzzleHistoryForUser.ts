@@ -11,6 +11,7 @@ import CallActivities from "../models/CallActivities";
 import definePublication from "./definePublication";
 import Logger from "../../Logger";
 import Hunts from "../../lib/models/Hunts";
+import DocumentActivities from "../../lib/models/DocumentActivities";
 
 definePublication(puzzleHistoryForUser, {
   validate(arg) {
@@ -46,11 +47,16 @@ definePublication(puzzleHistoryForUser, {
       $or: [{ sender: userId }, { "content.children.userId": userId }],
       hunt: { $in: userHunts },
     });
+    const documentActivities = DocumentActivities.find({
+      user: userId,
+      hunt: { $in: userHunts },
+    });
 
     const allPuzzleIds: string[] = [
       ...(await bookmarks.fetchAsync()).map((b) => b.hunt),
       ...(await callActivities.fetchAsync()).map((c) => c.call),
       ...(await chatMessages.fetchAsync()).map((c) => c.puzzle),
+      ...(await documentActivities.fetchAsync()).map((d) => d.puzzle),
     ];
 
     const puzzles = Puzzles.find({
