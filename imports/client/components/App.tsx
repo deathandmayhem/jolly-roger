@@ -358,7 +358,7 @@ const AppNavbar = ({
               </DropdownItem>
             </RRBS.LinkContainer>
             <RRBS.LinkContainer to="/history">
-              <DropdownItem eventKey="2">My Puzzles</DropdownItem>
+              <DropdownItem eventKey="5">My Puzzles</DropdownItem>
             </RRBS.LinkContainer>
             <DropdownMenu>
               <DropdownItem eventKey="theme-header" disabled>
