@@ -79,6 +79,7 @@ definePublication(puzzleHistoryForUser, {
     return [
       chatMessages,
       callActivities,
+      documentActivities,
       bookmarks,
       puzzles,
       tags,

@@ -120,7 +120,7 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedSolvedness, setSelectedSolvedness] = useState<string[]>([]);
   const [selectedInteractionTypes, setSelectedInteractionTypes] =
-    useState<string[]>(interactionTypes);
+    useState<{ value: string; label: string }[]>(interactionTypes);
 
   const huntOptions = useMemo(() => {
     const huntsData = Hunts.find().fetch();
@@ -137,7 +137,7 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
 
   const handleHuntChange = useCallback(
     (selectedOptions: { value: string; label: string }[]) => {
-      setSelectedHunt(selectedOptions.map((v) => v.value));
+      setSelectedHunt(selectedOptions.map((h) => h.value));
     },
     [],
   );
@@ -148,14 +148,14 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
 
   const handleSolvednessChange = useCallback(
     (selectedOptions: { value: string; label: string }[]) => {
-      setSelectedSolvedness(selectedOptions.map((v) => v.value));
+      setSelectedSolvedness(selectedOptions.map((s) => s.value));
     },
     [],
   );
 
   const handleInteractionTypeChange = useCallback(
     (selectedOptions: { value: string; label: string }[]) => {
-      setSelectedInteractionTypes(selectedOptions.map((v) => v.value));
+      setSelectedInteractionTypes(selectedOptions);
     },
     [],
   );
@@ -309,7 +309,7 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
         selectedInteractionTypes.length === interactionTypes.length ||
         selectedInteractionTypes.length === 0 ||
         selectedInteractionTypes.some((type) => {
-          switch (type) {
+          switch (type.value) {
             case "bookmark":
               return item.bookmarkCounter > 0;
             case "call":
