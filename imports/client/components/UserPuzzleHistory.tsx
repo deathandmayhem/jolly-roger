@@ -123,9 +123,12 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
     useState<{ value: string; label: string }[]>(interactionTypes);
 
   const huntOptions = useMemo(() => {
+    if (loading) {
+      return [];
+    }
     const huntsData = Hunts.find().fetch();
     return huntsData.map((hunt) => ({ value: hunt._id, label: hunt.name }));
-  }, []);
+  }, [loading]);
 
   const solvednessOptions = useMemo(() => {
     return [
