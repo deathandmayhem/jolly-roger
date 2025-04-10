@@ -1,10 +1,11 @@
 import React, { useMemo } from "react";
 import styled, { useTheme } from "styled-components";
 import type { Theme } from "../theme";
+import { Row } from "react-bootstrap";
 
 export interface ActivityItem {
   _id?: string;
-  huntId: string;
+  huntId?: string;
   dayOfWeek: number;
   hour: number;
   count: number;
@@ -14,11 +15,9 @@ export interface ActivityItem {
 const StyledContainer = styled.div<{ theme: Theme }>`
   font-size: 12px;
   color: ${({ theme }) => theme.colors.secondary};
-  border: 1px solid ${({ theme }) => theme.colors.text};
-  border-radius: 6px;
   padding: 16px;
+  width: calc(24 * (15px + 2px) + 82px);
   max-width: 90%;
-  margin: 20px auto;
   overflow-x: auto;
   background-color: ${({ theme }) => theme.colors.background};
 `;
@@ -99,12 +98,31 @@ const GraphCell = styled.div<{ $bgColorVar: string; theme: Theme }>`
   }
 `;
 
+const LegendAndCountRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  width: 100%;
+`;
+
 const GraphLegend = styled.div`
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  margin-top: 10px;
   font-size: 11px;
+`;
+
+const TotalCount = styled.div`
+  font-size: 11px;
+  text-align: right;
+`;
+
+const TimezoneOffsetMessage = styled.div<{ theme: Theme }>`
+  text-align: right;
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin-top: 4px;
+  width: 100%;
 `;
 
 const LegendColor = styled.div<{ $colorVar: string; theme: Theme }>`
@@ -132,16 +150,21 @@ const ContributionGraph = ({
   data,
   showCount,
   title,
+  timezoneOffset = 0,
 }: {
   data: ActivityItem[];
   showCount?: boolean;
   title?: string;
+  timezoneOffset?: number;
 }) => {
   const theme = useTheme();
   const colorVars = theme.colors.contributionsGraph;
 
   const contributionData = useMemo(() => {
-    const counts = {};
+    const counts: Record<
+      number,
+      Record<number, { total: number; [type: string]: number }>
+    > = {};
     for (let i = 0; i < 7; i++) {
       // 0=Sun, 1=Mon, ..., 6=Sat
       counts[i] = {};
@@ -158,12 +181,28 @@ const ContributionGraph = ({
     }
 
     data.forEach((item) => {
-      const { dayOfWeek, hour, type, count } = item;
+      let adjustedHour = item.hour + timezoneOffset;
+      let adjustedDayOfWeek = item.dayOfWeek;
+      if (adjustedHour >= 24) {
+        adjustedDayOfWeek =
+          (adjustedDayOfWeek + Math.floor(adjustedHour / 24)) % 7;
+        adjustedHour %= 24;
+      } else if (adjustedHour < 0) {
+        // Ensure modulo works correctly for negative numbers
+        adjustedDayOfWeek =
+          (adjustedDayOfWeek + Math.floor(adjustedHour / 24) + 7) % 7;
+        adjustedHour = ((adjustedHour % 24) + 24) % 24;
+      }
+      if (!counts[adjustedDayOfWeek]) counts[adjustedDayOfWeek] = {};
+      if (!counts[adjustedDayOfWeek][adjustedHour])
+        counts[adjustedDayOfWeek][adjustedHour] = { total: 0 };
 
-      const slotData = counts[dayOfWeek][hour];
+      const slotData = counts[adjustedDayOfWeek][adjustedHour]!;
+      const count = item.count || 0; // Ensure count is a number
+      const type = item.type || "Unknown"; // Ensure type is a string
 
       slotData.total += count;
-      slotData[type] = (slotData[type] || 0) + count;
+      slotData[type] = (slotData[type] ?? 0) + count;
 
       totalContributions += count;
 
@@ -173,7 +212,7 @@ const ContributionGraph = ({
     });
 
     return { counts, maxTotalCount, totalContributions };
-  }, [data]);
+  }, [data, timezoneOffset]);
 
   const getColorVar = (totalCount: number, maxTotalCount: number) => {
     if (totalCount === 0) return colorVars[0];
@@ -186,7 +225,7 @@ const ContributionGraph = ({
     return colorVars[4];
   };
 
-  const getTooltipText = (dayIndex: number, hour: number, slotData) => {
+  const getTooltipText = (dayIndex: number, hour: number, slotData: any) => {
     const dayName = [
       "Sunday",
       "Monday",
@@ -203,11 +242,12 @@ const ContributionGraph = ({
     }
 
     const typeBreakdown = Object.entries(slotData)
-      .filter(([key, value]) => key !== "total" && value > 0) // Only include types with count > 0
+      .filter(([key, value]) => key !== "total" && (value as number) > 0) // Only include types with count > 0
       .map(([key, value]) => `${key}: ${value}`)
       .join(", ");
+    const total = slotData.total || 0;
 
-    return `Total: ${slotData.total} activit${slotData.total === 1 ? "y" : "ies"} (${typeBreakdown}) ${timeSuffix}`;
+    return `Total: ${total} activit${total === 1 ? "y" : "ies"} (${typeBreakdown}) ${timeSuffix}`;
   };
 
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -236,16 +276,16 @@ const ContributionGraph = ({
                   contributionData.maxTotalCount,
                 );
 
-                const title = getTooltipText(dayIndex, hour, slotData);
+                const titleText = getTooltipText(dayIndex, hour, slotData);
 
                 return (
                   <GraphCell
                     key={`${dayIndex}-${hour}`}
                     $bgColorVar={colorVar}
-                    title={title}
-                    aria-label={title}
+                    title={titleText}
+                    aria-label={titleText}
                   >
-                    <VisuallyHidden>{title}</VisuallyHidden>
+                    <VisuallyHidden>{titleText}</VisuallyHidden>
                   </GraphCell>
                 );
               }),
@@ -261,22 +301,28 @@ const ContributionGraph = ({
               );
             })}
           </HourLabelsTop>
+          <LegendAndCountRow>
+            <GraphLegend>
+              <span>Less</span>
+              {colorVars.map((colorVar: string) => (
+                <LegendColor key={colorVar} $colorVar={colorVar} />
+              ))}
+              <span>More</span>
+            </GraphLegend>
+            {showCount && (
+              <TotalCount>
+                Total activities: {contributionData.totalContributions}
+              </TotalCount>
+            )}
+          </LegendAndCountRow>
+          {(timezoneOffset ?? 0) !== 0 && (
+            <TimezoneOffsetMessage>
+              Your activity has been offset by your browser's{" "}
+              <strong>current</strong> timezone.
+            </TimezoneOffsetMessage>
+          )}
         </GridAndHoursContainer>
       </GraphLayout>
-
-      {/* Legend */}
-      <GraphLegend>
-        <span>Less</span>
-        {colorVars.map((colorVar: string) => (
-          <LegendColor key={colorVar} $colorVar={colorVar} />
-        ))}
-        <span>More</span>
-      </GraphLegend>
-      {showCount && (
-        <div className="total-contributions">
-          Total activities: {contributionData.totalContributions}
-        </div>
-      )}
     </StyledContainer>
   );
 };

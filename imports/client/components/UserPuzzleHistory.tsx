@@ -126,9 +126,11 @@ const PuzzleDetailMemo = React.memo(
   ({
     historyItem,
     userId,
+    browserOffset,
   }: {
     historyItem: PuzzleHistoryItem;
     userId: string;
+    browserOffset: number;
   }) => {
     const puzzleDetail = useTypedSubscribe(puzzleHistoryForUser, {
       userId,
@@ -202,8 +204,8 @@ const PuzzleDetailMemo = React.memo(
 
     chatMessagesSent?.forEach((c: ChatMessageType) => {
       contributionsData.push({
-        dayOfWeek: c.createdAt.getDay(),
-        hour: c.createdAt.getHours(),
+        dayOfWeek: c.createdAt.getUTCDay(),
+        hour: c.createdAt.getUTCHours(),
         count: 1,
         type: "Message",
       });
@@ -211,8 +213,8 @@ const PuzzleDetailMemo = React.memo(
 
     callActivities?.forEach((c: CallActivityType) => {
       contributionsData.push({
-        dayOfWeek: c.ts.getDay(),
-        hour: c.ts.getDay(),
+        dayOfWeek: c.ts.getUTCDay(),
+        hour: c.ts.getUTCHours(),
         count: 1,
         type: "Call",
       });
@@ -220,20 +222,12 @@ const PuzzleDetailMemo = React.memo(
 
     documentActivities?.forEach((d: DocumentActivityType) => {
       contributionsData.push({
-        dayOfWeek: d.ts.getDay(),
-        hour: d.ts.getDay(),
+        dayOfWeek: d.ts.getUTCDay(),
+        hour: d.ts.getUTCHours(),
         count: 1,
         type: "Document",
       });
     });
-
-    // Stats:
-    // @TODO: Add "duration" of voice activity - maybe get number of "consecutive" voice call timestamps
-    // @TODO: Add "duration" of document activity in the same way
-    // @TODO: Add total "active" time?
-
-    // Charts:
-    // @TODO: Timeline visualisation?
 
     const guessLi = useMemo(() => {
       if (historyItem.guessCounter === 0) {
@@ -319,7 +313,11 @@ const PuzzleDetailMemo = React.memo(
           />
         </p>
         {contributionsData.length > 0 && (
-          <ContributionGraph data={contributionsData} />
+          <ContributionGraph
+            data={contributionsData}
+            timezoneOffset={browserOffset}
+            showCount
+          />
         )}
       </>
     );
@@ -337,10 +335,12 @@ const PuzzleHistoryRow = ({
   theme,
   historyItem,
   userId,
+  browserOffset,
 }: {
   theme: Theme;
   historyItem: PuzzleHistoryItem;
   userId: string;
+  browserOffset: number;
 }) => {
   let solvednessIcon;
   let solvednessColour;
@@ -422,13 +422,21 @@ const PuzzleHistoryRow = ({
         </td>
       </PuzzleHistoryTR>
       {showDetail ? (
-        <PuzzleDetailMemo historyItem={historyItem} userId={userId} />
+        <PuzzleDetailMemo
+          browserOffset={browserOffset}
+          historyItem={historyItem}
+          userId={userId}
+        />
       ) : null}
     </>
   );
 };
 
 const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
+  const localTimezoneOffset = useMemo(
+    () => new Date().getTimezoneOffset() / -60,
+    [],
+  );
   const userSummary = useTypedSubscribe(ActivitySummaryForUser, {
     userId,
   });
@@ -745,7 +753,11 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
           />
         </FilterSection>
       </FilterBar>
-      <ContributionGraph data={activitySummaries} showCount />
+      <ContributionGraph
+        data={activitySummaries}
+        showCount
+        timezoneOffset={localTimezoneOffset}
+      />
       <Table striped bordered hover responsive size="sm">
         <thead>
           <tr>
@@ -770,6 +782,7 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
                 historyItem={historyItem}
                 allTags={allTags}
                 userId={userId}
+                browserOffset={localTimezoneOffset}
               />
             ))
           ) : (
