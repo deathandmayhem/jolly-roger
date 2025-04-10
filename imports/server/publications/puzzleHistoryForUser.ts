@@ -51,12 +51,17 @@ definePublication(puzzleHistoryForUser, {
       user: userId,
       hunt: { $in: userHunts },
     });
+    const userGuesses = Guesses.find({
+      createdBy: userId,
+      hunt: { $in: userHunts },
+    });
 
     const allPuzzleIds: string[] = [
       ...(await bookmarks.fetchAsync()).map((b) => b.hunt),
       ...(await callActivities.fetchAsync()).map((c) => c.call),
       ...(await chatMessages.fetchAsync()).map((c) => c.puzzle),
       ...(await documentActivities.fetchAsync()).map((d) => d.puzzle),
+      ...(await userGuesses.fetchAsync()).map((g) => g.puzzle),
     ];
 
     const puzzles = Puzzles.find({
@@ -67,7 +72,7 @@ definePublication(puzzleHistoryForUser, {
     const allTagIds = (await puzzles.mapAsync((p) => p.tags)).flat();
 
     const guesses = Guesses.find({
-      _id: { $in: allPuzzleIds },
+      $or: [{ puzzle: { $in: allPuzzleIds } }, { createdBy: userId }],
       hunt: { $in: userHunts },
     });
 
