@@ -1,7 +1,11 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { faCircleQuestion as faCircleRegular } from "@fortawesome/free-regular-svg-icons";
-import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCircleQuestion,
+  faSortDown,
+  faSortUp,
+} from "@fortawesome/free-solid-svg-icons";
 import { faBan } from "@fortawesome/free-solid-svg-icons/faBan";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
@@ -18,48 +22,39 @@ import { Link } from "react-router-dom";
 import Select from "react-select";
 import styled, { useTheme } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
-import Bookmarks from "../../lib/models/Bookmarks";
 import CallActivities from "../../lib/models/CallActivities";
+import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
+import type { DocumentActivityType } from "../../lib/models/DocumentActivities";
 import DocumentActivities from "../../lib/models/DocumentActivities";
 import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import Puzzles from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
+import ActivitySummaryForUser from "../../lib/publications/ActivitySummaryForUser";
+import PuzzleHistorySummaryForUser from "../../lib/publications/PuzzleHistorySummaryForUser";
+import huntsAll from "../../lib/publications/huntsAll";
 import puzzleHistoryForUser from "../../lib/publications/puzzleHistoryForUser";
+import tagsAll from "../../lib/publications/tagsAll";
 import type { Solvedness } from "../../lib/solvedness";
-import { computeSolvedness } from "../../lib/solvedness";
+import type { CallActivityType } from "../../server/models/CallActivities";
+import ActivityHistorySummaries from "../ActivityHistorySummaries";
+import PuzzleHistorySummaries from "../PuzzleHistorySummaries";
+import type { PuzzleHistoryItem } from "../UserPuzzleHistory";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import type { Theme } from "../theme";
-
-interface PuzzleHistoryItem {
-  puzzleId: string;
-  name: string;
-  url: string;
-  huntId: string;
-  huntName: string;
-  firstInteraction: Date | null;
-  lastInteraction: Date | null;
-  interactionCount: number;
-  bookmarkCounter: number;
-  callCounter: number;
-  chatCounter: number;
-  documentCounter: number;
-  guessCounter: number;
-  correctGuessCounter: number;
-  solvedness: string;
-  answers: string[] | null;
-  tags: string[];
-}
+import type { ActivityItem } from "./ContributionGraph";
+import ContributionGraph from "./ContributionGraph";
+import TagList from "./TagList";
 
 const StyledFAIcon = styled(FontAwesomeIcon)<{
   theme: Theme;
-  active: boolean;
+  $active: boolean;
 }>`
-  color: ${({ theme, active }) =>
-    active ? theme.colors.success : theme.colors.secondary};
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.success : theme.colors.secondary};
 `;
 
 const PuzzleHistoryTR = styled.tr<{ $solvedness: string; theme: Theme }>`
@@ -77,6 +72,10 @@ const FilterSection = styled.div`
   margin-right: 1rem;
 `;
 
+const NoHistoryMessage = styled.td`
+  text-align: center;
+  font-style: italic;
+`;
 const PuzzleInteractionSpan = ({
   bookmarked,
   calls,
@@ -113,22 +112,235 @@ const PuzzleInteractionSpan = ({
   return (
     <OverlayTrigger placement="top" overlay={tooltip}>
       <span>
-        <StyledFAIcon active={bookmarked > 0} icon={faStar} fixedWidth />
-        <StyledFAIcon active={calls > 0} icon={faPhone} fixedWidth />
-        <StyledFAIcon active={document > 0} icon={faPencil} fixedWidth />
-        <StyledFAIcon active={messages > 0} icon={faMessage} fixedWidth />
-        <StyledFAIcon active={guesses > 0} icon={guessIcon} fixedWidth />
+        <StyledFAIcon $active={bookmarked > 0} icon={faStar} fixedWidth />
+        <StyledFAIcon $active={calls > 0} icon={faPhone} fixedWidth />
+        <StyledFAIcon $active={document > 0} icon={faPencil} fixedWidth />
+        <StyledFAIcon $active={messages > 0} icon={faMessage} fixedWidth />
+        <StyledFAIcon $active={guesses > 0} icon={guessIcon} fixedWidth />
       </span>
     </OverlayTrigger>
   );
 };
 
+const PuzzleDetailMemo = React.memo(
+  ({
+    historyItem,
+    userId,
+  }: {
+    historyItem: PuzzleHistoryItem;
+    userId: string;
+  }) => {
+    const puzzleDetail = useTypedSubscribe(puzzleHistoryForUser, {
+      userId,
+      puzzleId: historyItem.puzzleId,
+    });
+
+    const puzzleDetailLoading = puzzleDetail();
+    const puzzle = historyItem.puzzleId;
+    const {
+      chatsSent,
+      chatMentions,
+      thisPuzzle,
+      tags,
+      callActivities,
+      documentActivities,
+      guesses,
+      chatMessagesSent,
+      chatMessagesTagged,
+    } = useTracker(() => {
+      if (puzzleDetailLoading) {
+        return {
+          chatsSent: 0,
+          chatMentions: 0,
+          thisPuzzle: null,
+          tags: [],
+          callActivities: [],
+          documentActivities: [],
+          guesses: [],
+        };
+      }
+      const chatMessages = ChatMessages.find({
+        $or: [{ sender: userId }, { "content.children.userId": userId }],
+        puzzle,
+      }).fetch();
+      const chatStats = {
+        chatsSent: 0,
+        chatMentions: 0,
+      };
+      const chatMessagesSent: ChatMessageType[] = [];
+      const chatMessagesTagged: ChatMessageType[] = [];
+      chatMessages.forEach((c) => {
+        if (c.sender === userId) {
+          chatStats.chatsSent += 1;
+          chatMessagesSent.push(c);
+        }
+        if (c.content.children.some((o) => o.userId === userId)) {
+          chatStats.chatMentions += 1;
+          chatMessagesTagged.push(c);
+        }
+      });
+      return {
+        chatsSent: chatStats.chatsSent,
+        chatMentions: chatStats.chatMentions,
+        thisPuzzle: Puzzles.findOne({ _id: historyItem.puzzleId }),
+        tags: Tags.find({}).fetch(),
+        callActivities: CallActivities.find({
+          call: puzzle,
+          user: userId,
+        }).fetch(),
+        documentActivities: DocumentActivities.find({
+          puzzle,
+          user: userId,
+        }).fetch(),
+        guesses: Guesses.find({ puzzle, user: userId }).fetch(),
+        chatMessagesSent,
+        chatMessagesTagged,
+      };
+    }, [historyItem.puzzleId, puzzle, puzzleDetailLoading, userId]);
+
+    const contributionsData: ActivityItem[] = [];
+
+    chatMessagesSent?.forEach((c: ChatMessageType) => {
+      contributionsData.push({
+        dayOfWeek: c.createdAt.getDay(),
+        hour: c.createdAt.getHours(),
+        count: 1,
+        type: "Message",
+      });
+    });
+
+    callActivities?.forEach((c: CallActivityType) => {
+      contributionsData.push({
+        dayOfWeek: c.ts.getDay(),
+        hour: c.ts.getDay(),
+        count: 1,
+        type: "Call",
+      });
+    });
+
+    documentActivities?.forEach((d: DocumentActivityType) => {
+      contributionsData.push({
+        dayOfWeek: d.ts.getDay(),
+        hour: d.ts.getDay(),
+        count: 1,
+        type: "Document",
+      });
+    });
+
+    // Stats:
+    // @TODO: Add "duration" of voice activity - maybe get number of "consecutive" voice call timestamps
+    // @TODO: Add "duration" of document activity in the same way
+    // @TODO: Add total "active" time?
+
+    // Charts:
+    // @TODO: Timeline visualisation?
+
+    const guessLi = useMemo(() => {
+      if (historyItem.guessCounter === 0) {
+        return null;
+      } else if (
+        historyItem.guessCounter === 1 &&
+        historyItem.correctGuessCounter === 1
+      ) {
+        return (
+          <li>
+            submitted <strong>one guess</strong>... and it was{" "}
+            <strong>correct</strong>!
+          </li>
+        );
+      } else if (
+        historyItem.guessCounter > 1 &&
+        historyItem.correctGuessCounter > 1
+      ) {
+        return (
+          <li>
+            submitted <strong>{historyItem.guessCounter} guesses</strong>
+            ... and{" "}
+            <strong>
+              {historyItem.correctGuessCounter === historyItem.guessCounter
+                ? "all"
+                : historyItem.correctGuessCounter}{" "}
+              of them
+            </strong>{" "}
+            were <strong>correct</strong>!
+          </li>
+        );
+      } else if (historyItem.guessCounter > 1) {
+        return (
+          <li>
+            submitted <strong>{historyItem.guessCounter} guesses</strong>
+          </li>
+        );
+      } else {
+        return null;
+      }
+    }, [historyItem.correctGuessCounter, historyItem.guessCounter]);
+
+    const puzzleDetailInfo = (
+      <>
+        <p>In this puzzle, you...</p>
+        <ul>
+          {chatsSent > 0 && (
+            <li>
+              sent{" "}
+              <strong>
+                {chatsSent} message
+                {chatsSent > 1 ? "s" : ""}/reaction{chatsSent > 1 ? "s" : ""}
+              </strong>
+            </li>
+          )}
+        </ul>
+        <ul>
+          {chatMentions > 0 && (
+            <li>
+              were mentioned in{" "}
+              <strong>
+                {chatMentions} message
+                {chatMentions > 1 ? "s" : ""}
+              </strong>
+            </li>
+          )}
+          {historyItem.documentCounter > 0 && (
+            <li>
+              were seen editing the document{" "}
+              <strong>{historyItem.documentCounter} times</strong>
+            </li>
+          )}
+          {guessLi}
+        </ul>
+        <strong>Tags</strong>
+        <p>
+          <TagList
+            puzzle={thisPuzzle}
+            popoverRelated={false}
+            tags={tags}
+            emptyMessage="This puzzle has no tags"
+            linkToSearch={false}
+          />
+        </p>
+        {contributionsData.length > 0 && (
+          <ContributionGraph data={contributionsData} />
+        )}
+      </>
+    );
+    return (
+      <tr>
+        <td colSpan={8}>
+          {puzzleDetailLoading ? "Loading..." : puzzleDetailInfo}
+        </td>
+      </tr>
+    );
+  },
+);
+
 const PuzzleHistoryRow = ({
   theme,
   historyItem,
+  userId,
 }: {
   theme: Theme;
   historyItem: PuzzleHistoryItem;
+  userId: string;
 }) => {
   let solvednessIcon;
   let solvednessColour;
@@ -137,7 +349,7 @@ const PuzzleHistoryRow = ({
 
   const toggleDetail = useCallback(() => {
     setShowDetail(!showDetail);
-  }, []);
+  }, [showDetail]);
 
   switch (historyItem.solvedness) {
     case "solved":
@@ -154,18 +366,6 @@ const PuzzleHistoryRow = ({
       break;
   }
 
-  const puzzleHistoryDetail = useTracker(() => {
-    if (!showDetail) {
-      return null;
-    }
-    return (
-      <tr>
-        <td colSpan={8}>
-          <strong>Tags</strong> {historyItem.tags.join(", ")}
-        </td>
-      </tr>
-    );
-  });
   return (
     <>
       <PuzzleHistoryTR
@@ -221,232 +421,201 @@ const PuzzleHistoryRow = ({
           />
         </td>
       </PuzzleHistoryTR>
-      {puzzleHistoryDetail}
+      {showDetail ? (
+        <PuzzleDetailMemo historyItem={historyItem} userId={userId} />
+      ) : null}
     </>
   );
 };
 
 const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
-  const historyLoading = useTypedSubscribe(puzzleHistoryForUser, { userId });
-  const loading = historyLoading();
+  const userSummary = useTypedSubscribe(ActivitySummaryForUser, {
+    userId,
+  });
+  const userSummaryLoading = userSummary();
+  const historySub = useTypedSubscribe(PuzzleHistorySummaryForUser, { userId });
+  const loading = historySub();
+
+  const puzzleSummaries = useTracker(() => {
+    if (loading) {
+      return [];
+    }
+
+    const histories = PuzzleHistorySummaries.find(
+      {},
+      { sort: { lastInteraction: -1 } },
+    ).fetch();
+
+    return histories;
+  }, [loading]);
 
   const [sortColumn, setSortColumn] = useState<keyof PuzzleHistoryItem | null>(
     "lastInteraction",
   );
-
-  const interactionTypes = [
-    { value: "bookmark", label: "Bookmark" },
-    { value: "call", label: "Call" },
-    { value: "chat", label: "Chat" },
-    { value: "document", label: "Document" },
-    { value: "guess", label: "Guess" },
-    { value: "correctGuess", label: "Correct Guess" },
-  ];
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
+  const interactionTypes = useMemo(
+    () => [
+      { value: "bookmark", label: "Bookmark" },
+      { value: "call", label: "Call" },
+      { value: "chat", label: "Chat" },
+      { value: "document", label: "Document" },
+      { value: "guess", label: "Guess" },
+      { value: "correctGuess", label: "Correct Guess" },
+    ],
+    [],
+  );
   const [selectedHunt, setSelectedHunt] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedSolvedness, setSelectedSolvedness] = useState<string[]>([]);
-  const [selectedInteractionTypes, setSelectedInteractionTypes] =
-    useState<{ value: string; label: string }[]>(interactionTypes);
+  const [selectedInteractionTypes, setSelectedInteractionTypes] = useState<
+    { value: string; label: string }[]
+  >([]);
 
-  const huntOptions = useMemo(() => {
-    if (loading) {
+  const huntsSubscribe = useTypedSubscribe(huntsAll);
+  const huntsLoading = huntsSubscribe();
+  const tagsSubscribe = useTypedSubscribe(tagsAll);
+  const tagsLoading = tagsSubscribe();
+  const huntOptions = useTracker(() => {
+    if (huntsLoading) {
       return [];
     }
-    const huntsData = Hunts.find().fetch();
-    return huntsData.map((hunt) => ({ value: hunt._id, label: hunt.name }));
-  }, [loading]);
+    return Hunts.find({}, { sort: { createdAt: -1 } })
+      .fetch()
+      .map((hunt) => ({ value: hunt._id, label: hunt.name }));
+  }, [huntsLoading]);
+  const allTags = useTracker(() => {
+    if (tagsLoading) {
+      return [];
+    }
+    return Tags.find({});
+  });
 
-  const solvednessOptions = useMemo(() => {
-    return [
+  const activitySummaries = useTracker(() => {
+    if (userSummaryLoading) {
+      return [];
+    }
+    const histories = ActivityHistorySummaries.find({}).fetch();
+    return histories.filter((h) => {
+      if (
+        selectedHunt.length !== 0 &&
+        !selectedHunt.some((hunt) => hunt === h.huntId)
+      ) {
+        return false;
+      }
+      if (
+        !["call", "chat", "document"].some((v) => {
+          return selectedInteractionTypes.some((t) => {
+            return t.value === v;
+          });
+        })
+      ) {
+        return true;
+      }
+      if (
+        h.type === "Call" &&
+        !selectedInteractionTypes.some((t) => t.value === "call")
+      ) {
+        return false;
+      }
+      if (
+        h.type === "Chat" &&
+        !selectedInteractionTypes.some((t) => t.value === "chat")
+      ) {
+        return false;
+      }
+      if (
+        h.type === "Document" &&
+        !selectedInteractionTypes.some((t) => t.value === "document")
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [selectedHunt, selectedInteractionTypes, userSummaryLoading]);
+
+  const solvednessOptions = useMemo(
+    () => [
       { value: "solved", label: "Solved" },
       { value: "unsolved", label: "Unsolved" },
       { value: "noAnswers", label: "No Answers" },
-    ];
-  }, []);
+    ],
+    [],
+  );
 
   const handleHuntChange = useCallback(
-    (selectedOptions: { value: string; label: string }[]) => {
+    (selectedOptions: readonly { value: string; label: string }[]) => {
       setSelectedHunt(selectedOptions.map((h) => h.value));
     },
     [],
   );
 
-  const handleSearchChange = useCallback((e) => {
-    setSearchQuery(e.target.value);
-  }, []);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(e.target.value);
+    },
+    [],
+  );
 
   const handleSolvednessChange = useCallback(
-    (selectedOptions: { value: string; label: string }[]) => {
+    (selectedOptions: readonly { value: string; label: string }[]) => {
       setSelectedSolvedness(selectedOptions.map((s) => s.value));
     },
     [],
   );
 
   const handleInteractionTypeChange = useCallback(
-    (selectedOptions: { value: string; label: string }[]) => {
-      setSelectedInteractionTypes(selectedOptions);
+    (selectedOptions: readonly { value: string; label: string }[]) => {
+      setSelectedInteractionTypes([...selectedOptions]);
     },
     [],
   );
 
-  const puzzleHistory: PuzzleHistoryItem[] = useTracker(() => {
-    if (loading) return [];
-
-    const bookmarks = Bookmarks.find({ user: userId }).fetch();
-    const callActivities = CallActivities.find({ user: userId }).fetch();
-    const chatMessages = ChatMessages.find({
-      $or: [{ sender: userId }, { "content.children.userId": userId }], // not sure whether you should see things just because you're mentioned in them
-    }).fetch();
-    const documentActivities = DocumentActivities.find({
-      user: userId,
-    }).fetch();
-    const guesses = Guesses.find().fetch();
-    const hunts = Hunts.find().fetch();
-    const tags = Tags.find().fetch();
-    const puzzles = Puzzles.find().fetch();
-    const huntNames: Record<string, string> = {};
-    hunts.forEach((h) => {
-      huntNames[h._id] = h.name;
-    });
-    const tagNames = (Record<string, string> = {});
-    tags.forEach((t) => {
-      tagNames[t._id] = t.name;
-    });
-    const puzzleHistoryMap: Map<string, PuzzleHistoryItem> = new Map();
-
-    for (const puzzle of puzzles) {
-      puzzleHistoryMap.set(puzzle._id, {
-        puzzleId: puzzle._id,
-        name: puzzle.title,
-        url: puzzle.url ?? "#",
-        huntId: puzzle.hunt,
-        huntName: huntNames[puzzle.hunt] ?? "No name hunt",
-        firstInteraction: null,
-        lastInteraction: null,
-        interactionCount: 0,
-        bookmarkCounter: 0,
-        callCounter: 0,
-        chatCounter: 0,
-        documentCounter: 0,
-        guessCounter: 0,
-        correctGuessCounter: 0,
-        solvedness: computeSolvedness(puzzle),
-        answers: puzzle.answers,
-        tags: puzzle.tags.map((t) => tagNames[t._id]),
-      });
-    }
-
-    const allActivities = [
-      ...bookmarks.map((b) => ({
-        ...b,
-        type: "bookmark",
-        ts: b.updatedAt,
-        puzzle: b.puzzle,
-        user: b.user,
-      })),
-      ...callActivities.map((c) => ({
-        ...c,
-        type: "call",
-        ts: c.ts,
-        puzzle: c.call,
-        user: c.user,
-      })),
-      ...chatMessages.map((c) => ({
-        ...c,
-        type: "chat",
-        ts: c.createdAt,
-        puzzle: c.puzzle,
-        user: c.sender,
-      })),
-      ...documentActivities.map((d) => ({
-        ...d,
-        type: "document",
-        ts: d.ts,
-        puzzle: d.puzzle,
-        user: d.user,
-      })),
-      ...guesses.map((g) => ({
-        ...g,
-        type: "guess",
-        ts: g.createdAt,
-        puzzle: g.puzzle,
-        user: g.createdBy,
-        correct: g.state,
-      })),
-    ];
-
-    for (const activity of allActivities) {
-      const historyItem = puzzleHistoryMap.get(activity.puzzle);
-      if (!historyItem) continue;
-
-      historyItem.interactionCount += 1;
-
-      switch (activity.type) {
-        case "bookmark":
-          historyItem.bookmarkCounter += 1;
-          break;
-        case "call":
-          historyItem.callCounter += 1;
-          break;
-        case "document":
-          historyItem.documentCounter += 1;
-          break;
-        case "chat":
-          historyItem.chatCounter += 1;
-          break;
-        case "guess":
-          historyItem.guessCounter += 1;
-          if (activity.correct === "correct") {
-            historyItem.correctGuessCounter += 1;
-          }
-          break;
-        default:
-          break;
-      }
-
-      if (
-        !historyItem.firstInteraction ||
-        activity.ts < historyItem.firstInteraction
-      ) {
-        historyItem.firstInteraction = activity.ts;
-      }
-
-      if (
-        !historyItem.lastInteraction ||
-        activity.ts > historyItem.lastInteraction
-      ) {
-        historyItem.lastInteraction = activity.ts;
-      }
-    }
-
-    return Array.from(puzzleHistoryMap.values());
-  }, [loading]);
-
   const sortedHistory = useMemo(() => {
-    const data = [...puzzleHistory]; // Create a copy to avoid modifying the original array
+    const data = [...puzzleSummaries];
     if (sortColumn) {
       data.sort((a, b) => {
         const valA = a[sortColumn];
         const valB = b[sortColumn];
 
-        let comparison;
-        if (valA instanceof Date && valB instanceof Date) {
-          comparison = valA.getTime() - valB.getTime();
+        let comparison = 0;
+
+        let timeA;
+        let timeB;
+
+        if (valA instanceof Date) {
+          timeA = valA.getTime();
+        } else if (sortDirection === "asc") {
+          timeA = Infinity;
+        } else {
+          timeA = -Infinity;
+        }
+
+        if (valB instanceof Date) {
+          timeB = valB.getTime();
+        } else if (sortDirection === "asc") {
+          timeB = Infinity;
+        } else {
+          timeB = -Infinity;
+        }
+
+        if (valA instanceof Date || valB instanceof Date) {
+          comparison = timeA - timeB;
         } else if (typeof valA === "string" && typeof valB === "string") {
           comparison = valA.localeCompare(valB);
         } else if (typeof valA === "number" && typeof valB === "number") {
           comparison = valA - valB;
-        } else {
-          comparison = 0; // Handle cases where types don't match for sorting
+        } else if (typeof valA === "string" && typeof valB !== "string") {
+          comparison = -1;
+        } else if (typeof valA !== "string" && typeof valB === "string") {
+          comparison = 1;
         }
 
         return sortDirection === "asc" ? comparison : -comparison;
       });
     }
     return data;
-  }, [puzzleHistory, sortColumn, sortDirection]);
+  }, [puzzleSummaries, sortColumn, sortDirection]);
 
   const filteredHistory = useMemo(() => {
     return sortedHistory.filter((item) => {
@@ -461,9 +630,11 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
         item.huntName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.answers?.some((a) =>
           a.toLowerCase().includes(searchQuery.toLowerCase()),
+        ) ||
+        item.tags?.some((t) =>
+          t.toLowerCase().includes(searchQuery.toLowerCase()),
         );
       const interactionMatch =
-        selectedInteractionTypes.length === interactionTypes.length ||
         selectedInteractionTypes.length === 0 ||
         selectedInteractionTypes.some((type) => {
           switch (type.value) {
@@ -492,25 +663,34 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
     selectedSolvedness,
     searchQuery,
     selectedInteractionTypes,
-    interactionTypes.length,
   ]);
 
   const handleSort = useCallback(
     (column: keyof PuzzleHistoryItem) => {
-      setSortColumn(column);
-      setSortDirection(
-        sortColumn === column && sortDirection === "asc" ? "desc" : "asc",
-      );
+      if (sortColumn === column) {
+        setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      } else {
+        setSortColumn(column);
+        setSortDirection("desc");
+      }
     },
     [sortColumn, sortDirection],
   );
 
   const renderHeaderCell = useCallback(
     (column: keyof PuzzleHistoryItem, headerText: string) => (
-      <th key={column} onClick={() => handleSort(column)}>
+      <th
+        key={column}
+        onClick={() => handleSort(column)}
+        style={{ cursor: "pointer" }}
+      >
         {headerText}
         {sortColumn === column && (
-          <span>{sortDirection === "asc" ? " \u2191" : " \u2193"}</span>
+          <span>
+            <FontAwesomeIcon
+              icon={sortDirection === "asc" ? faSortUp : faSortDown}
+            />
+          </span>
         )}
       </th>
     ),
@@ -519,48 +699,57 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
 
   const theme = useTheme();
 
+  if (loading) {
+    return <p>Loading puzzle history...</p>;
+  }
+
   return (
     <>
       <FilterBar>
-        <FilterSection>
+        <FilterSection style={{ minWidth: "200px" }}>
           <Select
             options={huntOptions}
             onChange={handleHuntChange}
-            placeholder="Select Hunt"
+            placeholder="Filter by Hunt"
             theme={theme.reactSelectTheme}
             isMulti
+            isLoading={huntsLoading}
           />
         </FilterSection>
-        <FilterSection>
+        <FilterSection style={{ flexGrow: 1 }}>
           <FormControl
             type="text"
-            placeholder="Search by puzzle name, hunt name, or tag"
-            title="Search by puzzle name, hunt name, or tag"
+            placeholder="Search name, hunt, answer, tag..."
+            title="Search by puzzle name, hunt name, answer, or tag"
             value={searchQuery}
             onChange={handleSearchChange}
           />
         </FilterSection>
-        <FilterSection>
+        <FilterSection style={{ minWidth: "200px" }}>
           <Select
             options={solvednessOptions}
             onChange={handleSolvednessChange}
-            placeholder="Select Solvedness"
+            placeholder="Filter by Solvedness"
             theme={theme.reactSelectTheme}
             isMulti
           />
         </FilterSection>
-        <Select
-          isMulti
-          options={interactionTypes}
-          value={selectedInteractionTypes}
-          onChange={handleInteractionTypeChange}
-          theme={theme.reactSelectTheme}
-        />
+        <FilterSection style={{ minWidth: "250px" }}>
+          <Select
+            isMulti
+            options={interactionTypes}
+            value={selectedInteractionTypes}
+            onChange={handleInteractionTypeChange}
+            placeholder="Filter by Interaction"
+            theme={theme.reactSelectTheme}
+          />
+        </FilterSection>
       </FilterBar>
-      <Table>
+      <ContributionGraph data={activitySummaries} showCount />
+      <Table striped bordered hover responsive size="sm">
         <thead>
           <tr>
-            <th>
+            <th style={{ width: "30px" }}>
               <FontAwesomeIcon icon={faCaretRight} fixedWidth />
             </th>
             {renderHeaderCell("huntName", "Hunt")}
@@ -573,15 +762,23 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
           </tr>
         </thead>
         <tbody>
-          {filteredHistory.map((historyItem) => {
-            return (
+          {filteredHistory.length > 0 ? (
+            filteredHistory.map((historyItem) => (
               <PuzzleHistoryRow
-                key={historyItem.puzzleId}
+                key={historyItem._id}
                 theme={theme}
                 historyItem={historyItem}
+                allTags={allTags}
+                userId={userId}
               />
-            );
-          })}
+            ))
+          ) : (
+            <tr>
+              <NoHistoryMessage colSpan={8}>
+                No puzzle history matches your filters.
+              </NoHistoryMessage>
+            </tr>
+          )}
         </tbody>
       </Table>
     </>
@@ -593,6 +790,7 @@ const UserPuzzleHistory = () => {
   useDocumentTitle(`${title} :: Jolly Roger`);
   useBreadcrumb({ title, path: "/history" });
   const userId = Meteor.userId()!;
+
   return (
     <>
       <h1>{title}</h1>

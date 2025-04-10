@@ -102,6 +102,7 @@ export interface Theme {
       unsolved: string;
       solved: string;
     };
+    contributionsGraph: string[];
   };
   reactSelectTheme: ThemeConfig;
 }
@@ -205,6 +206,7 @@ export const lightTheme: Theme = {
       unsolved: "#f0f0f0",
       solved: "#dfffdf",
     },
+    contributionsGraph: ["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"],
   },
   reactSelectTheme: {
     borderRadius: 4,
@@ -336,6 +338,7 @@ export const darkTheme: Theme = {
       unsolved: "rgb(46, 46, 46)",
       solved: "rgb(32, 66, 32)",
     },
+    contributionsGraph: ["#22272e", "#004225", "#006d32", "#30a14e", "#39d353"],
   },
   reactSelectTheme: {
     borderRadius: 4,
