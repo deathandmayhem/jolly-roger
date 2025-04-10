@@ -82,8 +82,8 @@ definePublication(ActivitySummaryForUser, {
         return;
       }
 
-      const dayOfWeek = timestamp.getDay();
-      const hour = timestamp.getHours();
+      const dayOfWeek = timestamp.getUTCDay();
+      const hour = timestamp.getUTCHours();
       const aggregateKey = `${huntId}-${dayOfWeek}-${hour}-${type}`;
       const originalPublishedId = `${type}-${doc._id}`;
 
