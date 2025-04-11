@@ -149,7 +149,7 @@ const VisuallyHidden = styled.span`
 const ContributionGraph = ({
   data,
   showCount,
-  title,
+  title,,
   timezoneOffset = 0,
 }: {
   data: ActivityItem[];
@@ -256,7 +256,7 @@ const ContributionGraph = ({
 
   return (
     <StyledContainer>
-      {title && <h2>{title}</h2>}
+      {title && <strong>{title}</strong>}
       <GraphLayout>
         <DayLabelsSide>
           {daysOfWeek.map((day) => (
@@ -317,7 +317,7 @@ const ContributionGraph = ({
           </LegendAndCountRow>
           {(timezoneOffset ?? 0) !== 0 && (
             <TimezoneOffsetMessage>
-              Your activity has been offset by your browser's{" "}
+              Your activity has been offset by your browser&apos;s{" "}
               <strong>current</strong> timezone.
             </TimezoneOffsetMessage>
           )}

@@ -316,6 +316,7 @@ const PuzzleDetailMemo = React.memo(
           <ContributionGraph
             data={contributionsData}
             timezoneOffset={browserOffset}
+            title="Your activity for this puzzle"
             showCount
           />
         )}
@@ -755,8 +756,9 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
       </FilterBar>
       <ContributionGraph
         data={activitySummaries}
-        showCount
         timezoneOffset={localTimezoneOffset}
+        title="Your overall activity"
+        showCount
       />
       <Table striped bordered hover responsive size="sm">
         <thead>
