@@ -465,6 +465,8 @@ const AnnouncementMessage = React.memo(
       dismissPendingAnnouncement.call({ pendingAnnouncementId: id });
     }, [id]);
 
+    const theme = useTheme();
+
     if (dismissed) {
       return null;
     }
@@ -476,6 +478,7 @@ const AnnouncementMessage = React.memo(
         displayName={createdByDisplayName}
         onClose={onDismiss}
         className="text-bg-warning"
+        theme={theme}
       />
     );
   },
