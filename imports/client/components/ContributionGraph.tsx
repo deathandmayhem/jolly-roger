@@ -120,7 +120,7 @@ const TotalCount = styled.div`
 const TimezoneOffsetMessage = styled.div<{ theme: Theme }>`
   text-align: right;
   font-size: 11px;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: ${({ theme }) => theme.colors.text};
   margin-top: 4px;
   width: 100%;
 `;
@@ -149,7 +149,7 @@ const VisuallyHidden = styled.span`
 const ContributionGraph = ({
   data,
   showCount,
-  title,,
+  title,
   timezoneOffset = 0,
 }: {
   data: ActivityItem[];
