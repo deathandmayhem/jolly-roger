@@ -20,7 +20,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { FormControl, OverlayTrigger, Table, Tooltip } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Select from "react-select";
-import styled, { useTheme } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import CallActivities from "../../lib/models/CallActivities";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
@@ -35,7 +35,6 @@ import ActivitySummaryForUser from "../../lib/publications/ActivitySummaryForUse
 import PuzzleHistorySummaryForUser from "../../lib/publications/PuzzleHistorySummaryForUser";
 import huntsAll from "../../lib/publications/huntsAll";
 import puzzleHistoryForUser from "../../lib/publications/puzzleHistoryForUser";
-import tagsAll from "../../lib/publications/tagsAll";
 import type { Solvedness } from "../../lib/solvedness";
 import type { CallActivityType } from "../../server/models/CallActivities";
 import ActivityHistorySummaries from "../ActivityHistorySummaries";
@@ -48,14 +47,7 @@ import type { Theme } from "../theme";
 import type { ActivityItem } from "./ContributionGraph";
 import ContributionGraph from "./ContributionGraph";
 import TagList from "./TagList";
-
-const StyledFAIcon = styled(FontAwesomeIcon)<{
-  theme: Theme;
-  $active: boolean;
-}>`
-  color: ${({ theme, $active }) =>
-    $active ? theme.colors.success : theme.colors.secondary};
-`;
+import { mediaBreakpointDown } from "./styling/responsive";
 
 const PuzzleHistoryTR = styled.tr<{ $solvedness: string; theme: Theme }>`
   background-color: ${({ theme, $solvedness }) => {
@@ -66,16 +58,47 @@ const PuzzleHistoryTR = styled.tr<{ $solvedness: string; theme: Theme }>`
 const FilterBar = styled.div`
   margin-bottom: 1rem;
   display: flex;
+  flex-wrap: wrap; /* Allow filters to wrap on smaller screens */
 `;
 
 const FilterSection = styled.div`
   margin-right: 1rem;
+  margin-bottom: 0.5rem; /* Add some space when wrapping */
+  min-width: 150px; /* Ensure minimum width for selects */
+
+  &:last-child {
+    margin-right: 0;
+  }
 `;
 
 const NoHistoryMessage = styled.td`
   text-align: center;
   font-style: italic;
 `;
+
+const InteractionItem = styled.span<{ $active: boolean; theme: Theme }>`
+  margin-right: 0.5em;
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.success : theme.colors.secondary};
+  white-space: nowrap;
+
+  &:last-child {
+    margin-right: 0;
+  }
+`;
+
+const InteractionCount = styled.span`
+  margin-left: 0.2em;
+  font-size: 0.8em;
+
+  ${mediaBreakpointDown(
+    "md",
+    css`
+      display: none;
+    `,
+  )}
+`;
+
 const PuzzleInteractionSpan = ({
   bookmarked,
   calls,
@@ -91,6 +114,8 @@ const PuzzleInteractionSpan = ({
   guesses: number;
   correctGuesses: number;
 }) => {
+  const theme = useTheme();
+
   const tooltip = (
     <Tooltip>
       <div>Bookmarked: {bookmarked > 0 ? "Yes" : "No"}</div>
@@ -108,15 +133,32 @@ const PuzzleInteractionSpan = ({
   } else {
     guessIcon = faCircleRegular;
   }
+  const guessActive = guesses > 0;
 
   return (
     <OverlayTrigger placement="top" overlay={tooltip}>
       <span>
-        <StyledFAIcon $active={bookmarked > 0} icon={faStar} fixedWidth />
-        <StyledFAIcon $active={calls > 0} icon={faPhone} fixedWidth />
-        <StyledFAIcon $active={document > 0} icon={faPencil} fixedWidth />
-        <StyledFAIcon $active={messages > 0} icon={faMessage} fixedWidth />
-        <StyledFAIcon $active={guesses > 0} icon={guessIcon} fixedWidth />
+        <InteractionItem $active={bookmarked > 0} theme={theme}>
+          <FontAwesomeIcon icon={faStar} fixedWidth />
+        </InteractionItem>
+        <InteractionItem $active={calls > 0} theme={theme}>
+          <FontAwesomeIcon icon={faPhone} fixedWidth />
+          <InteractionCount>{calls}</InteractionCount>
+        </InteractionItem>
+        <InteractionItem $active={document > 0} theme={theme}>
+          <FontAwesomeIcon icon={faPencil} fixedWidth />
+          <InteractionCount>{document}</InteractionCount>
+        </InteractionItem>
+        <InteractionItem $active={messages > 0} theme={theme}>
+          <FontAwesomeIcon icon={faMessage} fixedWidth />
+          <InteractionCount>{messages}</InteractionCount>
+        </InteractionItem>
+        <InteractionItem $active={guessActive} theme={theme}>
+          <FontAwesomeIcon icon={guessIcon} fixedWidth />
+          <InteractionCount>
+            {correctGuesses}/{guesses}
+          </InteractionCount>
+        </InteractionItem>
       </span>
     </OverlayTrigger>
   );
@@ -159,6 +201,8 @@ const PuzzleDetailMemo = React.memo(
           callActivities: [],
           documentActivities: [],
           guesses: [],
+          chatMessagesSent: [],
+          chatMessagesTagged: [],
         };
       }
       const chatMessages = ChatMessages.find({
@@ -169,16 +213,16 @@ const PuzzleDetailMemo = React.memo(
         chatsSent: 0,
         chatMentions: 0,
       };
-      const chatMessagesSent: ChatMessageType[] = [];
-      const chatMessagesTagged: ChatMessageType[] = [];
+      const sentChatMessages: ChatMessageType[] = [];
+      const taggedChatMessages: ChatMessageType[] = [];
       chatMessages.forEach((c) => {
         if (c.sender === userId) {
           chatStats.chatsSent += 1;
-          chatMessagesSent.push(c);
+          sentChatMessages.push(c);
         }
         if (c.content.children.some((o) => o.userId === userId)) {
           chatStats.chatMentions += 1;
-          chatMessagesTagged.push(c);
+          taggedChatMessages.push(c);
         }
       });
       return {
@@ -195,8 +239,8 @@ const PuzzleDetailMemo = React.memo(
           user: userId,
         }).fetch(),
         guesses: Guesses.find({ puzzle, user: userId }).fetch(),
-        chatMessagesSent,
-        chatMessagesTagged,
+        sentChatMessages,
+        taggedChatMessages,
       };
     }, [historyItem.puzzleId, puzzle, puzzleDetailLoading, userId]);
 
@@ -304,13 +348,17 @@ const PuzzleDetailMemo = React.memo(
         </ul>
         <strong>Tags</strong>
         <p>
-          <TagList
-            puzzle={thisPuzzle}
-            popoverRelated={false}
-            tags={tags}
-            emptyMessage="This puzzle has no tags"
-            linkToSearch={false}
-          />
+          {thisPuzzle && tags.length > 0 ? (
+            <TagList
+              puzzle={thisPuzzle}
+              popoverRelated={false}
+              tags={tags.filter((t) => thisPuzzle.tags.includes(t._id))}
+              emptyMessage="This puzzle has no tags"
+              linkToSearch={false}
+            />
+          ) : (
+            "This puzzle has no tags"
+          )}
         </p>
         {contributionsData.length > 0 && (
           <ContributionGraph
@@ -373,6 +421,7 @@ const PuzzleHistoryRow = ({
         $solvedness={historyItem.solvedness}
         key={historyItem.puzzleId}
         onClick={toggleDetail}
+        style={{ cursor: "pointer" }}
       >
         <td>
           <FontAwesomeIcon
@@ -483,8 +532,6 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
 
   const huntsSubscribe = useTypedSubscribe(huntsAll);
   const huntsLoading = huntsSubscribe();
-  const tagsSubscribe = useTypedSubscribe(tagsAll);
-  const tagsLoading = tagsSubscribe();
   const huntOptions = useTracker(() => {
     if (huntsLoading) {
       return [];
@@ -493,12 +540,6 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
       .fetch()
       .map((hunt) => ({ value: hunt._id, label: hunt.name }));
   }, [huntsLoading]);
-  const allTags = useTracker(() => {
-    if (tagsLoading) {
-      return [];
-    }
-    return Tags.find({});
-  });
 
   const activitySummaries = useTracker(() => {
     if (userSummaryLoading) {
@@ -688,11 +729,7 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
 
   const renderHeaderCell = useCallback(
     (column: keyof PuzzleHistoryItem, headerText: string) => (
-      <th
-        key={column}
-        onClick={() => handleSort(column)}
-        style={{ cursor: "pointer" }}
-      >
+      <th key={column} onClick={() => handleSort(column)}>
         {headerText}
         {sortColumn === column && (
           <span>
@@ -763,7 +800,7 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
       <Table striped bordered hover responsive size="sm">
         <thead>
           <tr>
-            <th style={{ width: "30px" }}>
+            <th>
               <FontAwesomeIcon icon={faCaretRight} fixedWidth />
             </th>
             {renderHeaderCell("huntName", "Hunt")}
@@ -782,7 +819,6 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
                 key={historyItem._id}
                 theme={theme}
                 historyItem={historyItem}
-                allTags={allTags}
                 userId={userId}
                 browserOffset={localTimezoneOffset}
               />
@@ -801,7 +837,7 @@ const PuzzleHistoryTable = ({ userId }: { userId: string }) => {
 };
 
 const UserPuzzleHistory = () => {
-  const title = "My puzzle history";
+  const title = "My Puzzle History";
   useDocumentTitle(`${title} :: Jolly Roger`);
   useBreadcrumb({ title, path: "/history" });
   const userId = Meteor.userId()!;
