@@ -1,3 +1,5 @@
+import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
   useCallback,
   useEffect,
@@ -85,7 +87,7 @@ const ModalForm = React.forwardRef(
           <Modal.Body>{props.children}</Modal.Body>
           <Modal.Footer>
             {props.submitDisabled && (
-              <Spinner animation="border" role="status" />
+              <FontAwesomeIcon icon={faPuzzlePiece} spin />
             )}
             <Button
               variant="light"
