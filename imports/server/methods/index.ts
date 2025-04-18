@@ -24,6 +24,7 @@ import "./configureServerSettings";
 import "./configureTeamName";
 import "./configureGoogleScriptUrl";
 import "./createAPIKey";
+import "./createChatAttachmentUpload";
 import "./createDocumentImageUpload";
 import "./createFixtureHunt";
 import "./createGuess";

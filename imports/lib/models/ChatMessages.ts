@@ -1,8 +1,22 @@
 import { z } from "zod";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";
-import { allowedEmptyString, foreignKey } from "./customTypes";
+import { allowedEmptyString, foreignKey, nonEmptyString } from "./customTypes";
 import withCommon from "./withCommon";
+
+export interface ChatAttachmentType {
+  url: string;
+  filename: string;
+  mimeType: string;
+  size?: number;
+}
+
+const ChatAttachment = z.object({
+  url: nonEmptyString,
+  filename: nonEmptyString,
+  mimeType: nonEmptyString,
+  size: z.number().optional(),
+});
 
 const MentionBlock = z.object({
   type: z.literal("mention"),
@@ -51,6 +65,7 @@ const ChatMessage = withCommon(
     pinTs: z.date().nullable().optional(),
     parentId: foreignKey.nullable().optional(),
     // Not really a foreign key, since this is always another message when present
+    attachments: ChatAttachment.array().optional(),
   }),
 );
 const ChatMessages = new SoftDeletedModel("jr_chatmessages", ChatMessage);

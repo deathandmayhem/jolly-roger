@@ -54,7 +54,7 @@ import {
 import { messageDingsUser } from "../../lib/dingwordLogic";
 import { indexedById, sortedBy } from "../../lib/listUtils";
 import Bookmarks from "../../lib/models/Bookmarks";
-import type { ChatMessageType } from "../../lib/models/ChatMessages";
+import type { ChatAttachmentType, ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
 import Documents from "../../lib/models/Documents";
 import type { DocumentType } from "../../lib/models/Documents";
@@ -119,7 +119,7 @@ import {
   SolvedPuzzleBackgroundColor,
 } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { ToggleButton, ToggleButtonGroup } from "react-bootstrap";
+import { ButtonGroup, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 import removeChatMessage from "../../methods/removeChatMessage";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
 import { Theme } from "../theme";
@@ -127,6 +127,7 @@ import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import chatMessageNodeType from "../../lib/chatMessageNodeType";
 import createDocumentImageUpload from "../../methods/createDocumentImageUpload";
 import Settings from "../../lib/models/Settings";
+import createChatAttachmentUpload from "../../methods/createChatAttachmentUpload";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -608,6 +609,61 @@ const EmojiPickerContainer = styled.div`
   transform: scale(0.7);
   transform-origin: bottom left;
 `;
+
+const ImagePreviewContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 0 ${PUZZLE_PAGE_PADDING}px;
+`;
+
+const ImagePreviewWrapper = styled.div`
+  position: relative;
+  width: 60px;
+  height: 60px;
+`;
+
+const ImagePreview = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+`;
+
+const RemoveImageButton = styled.button`
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+`;
+
+const ImagePlaceholder = styled.div`
+  width: 60px;
+  height: 60px;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 10px;
+  color: #888;
+`;
+
+const MAX_ATTACHMENT_SIZE = 30 * 1024 * 1024; // This is also enforced in createChatAttachmentUpload
 
 const ChatHistoryMessage = React.memo(
   ({
@@ -1470,12 +1526,39 @@ const ChatInput = React.memo(
 
     const [content, setContent] = useState<Descendant[]>(initialValue);
     const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploadingImages, setUploadingImages] = useState<File[]>([]);
-    const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [isUploading, setIsUploading] = useState<boolean>(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
-    const s3Configured = useTracker(() => {
-      return isS3Configured.call([]);
+    // State to hold the configuration status and loading state
+    const [s3Configured, setS3Configured] = useState<boolean | undefined>(undefined);
+    const [isLoadingS3Config, setIsLoadingS3Config] = useState<boolean>(true);
+
+    // Effect to fetch the configuration status once on mount
+    useEffect(() => {
+      let isMounted = true; // Track mounting status to prevent state updates after unmount
+
+      isS3Configured.callPromise() // Use callPromise or callAsync
+        .then(result => {
+          if (isMounted) {
+            console.log("Fetched S3 config status:", result);
+            setS3Configured(result);
+            setIsLoadingS3Config(false);
+          }
+        })
+        .catch(error => {
+          if (isMounted) {
+            console.error("Error fetching S3 config:", error);
+            setS3Configured(false); // Default to false on error, or handle differently
+            setIsLoadingS3Config(false);
+          }
+        });
+
+      return () => {
+        isMounted = false;
+      };
     }, []);
 
 
@@ -1494,35 +1577,165 @@ const ChatInput = React.memo(
     );
 
     const hasNonTrivialContent = useMemo(() => {
-      return (
+      // Check if there's text content OR images to upload
+      const hasText =
         content.length > 0 &&
         (content[0]! as MessageElement).children.some((child) => {
           return (
             nodeIsMention(child) || chatMessageNodeType(child) !== "text" ||
             (nodeIsText(child) && child.text.trim().length > 0)
           );
-        })
-      );
-    }, [content]);
+        });
+      return hasText || uploadingImages.length > 0;
+    }, [content, uploadingImages]);
 
-    const sendContentMessage = useCallback( async () => {
-      if (hasNonTrivialContent) {
-        // Prepare to send message to server.
+    const addFilesForUpload = useCallback((files: FileList | File[]) => {
+      const validFiles: File[] = [];
+      const newPreviews: string[] = [];
+      let error = null;
 
-        // Take only the first Descendant; we normalize the input to a single
-        // block with type "message".
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith("image/")) {
+          continue;
+        }
+        if (file.size > MAX_ATTACHMENT_SIZE) {
+          error = `File "${file.name}" is too large (max ${MAX_ATTACHMENT_SIZE / 1024 / 1024}MB).`;
+          break;
+        }
+        validFiles.push(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews((prev) => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      if (error) {
+        setUploadError(error);
+      } else {
+        setUploadingImages((prev) => [...prev, ...validFiles]);
+        setUploadError(null);
+      }
+    }, []);
+
+    const handleFileSelect = useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files) {
+          addFilesForUpload(event.target.files);
+          event.target.value = "";
+        }
+      },
+      [addFilesForUpload]
+    );
+
+    const handlePaste = useCallback(
+      (event: React.ClipboardEvent<HTMLDivElement>) => {
+        if (!s3Configured) return;
+        const items = (event.clipboardData || (window as any).clipboardData)?.items;
+        if (!items) return;
+
+        const filesToProcess: File[] = [];
+        for (let index in items) {
+          const item = items[index];
+          if (item.kind === "file" && item.type.startsWith("image/")) {
+            const file = item.getAsFile();
+            if (file) {
+              filesToProcess.push(file);
+            }
+          }
+        }
+
+        if (filesToProcess.length > 0) {
+          event.preventDefault(); // Prevent pasting into editor
+          addFilesForUpload(filesToProcess);
+        }
+      },
+      [s3Configured, addFilesForUpload],
+    );
+
+    const handleRemoveImage = useCallback((indexToRemove: number) => {
+      setUploadingImages((prev) => prev.filter((_, index) => index !== indexToRemove));
+      setImagePreviews((prev) => prev.filter((_, index) => index !== indexToRemove));
+      setUploadError(null); // Clear error when user modifies selection
+    }, []);
+
+    const triggerFileInput = useCallback(() => {
+      fileInputRef.current?.click();
+    }, []);
+
+    const sendContentMessage = useCallback(async () => {
+      if (!hasNonTrivialContent || isUploading) {
+        return;
+      }
+
+      setIsUploading(true);
+      setUploadError(null);
+      let attachments: ChatAttachmentType[] = [];
+
+      try {
+        // 1. Upload images if any
+        if (uploadingImages.length > 0) {
+          if (!s3Configured) {
+             throw new Error("Image upload is not configured on the server.");
+          }
+
+          const uploadPromises = uploadingImages.map(async (file) => {
+            try {
+              const uploadParams = await createChatAttachmentUpload.call({
+                huntId: huntId,
+                puzzleId: puzzleId,
+                filename: file.name,
+                mimeType: file.type,
+              });
+
+              if (!uploadParams) {
+                throw new Error("Failed to get upload parameters from server.");
+              }
+
+              const { publicUrl, uploadUrl, fields } = uploadParams;
+              const formData = new FormData();
+              for (const [key, value] of Object.entries(fields)) {
+                formData.append(key, value as string);
+              }
+              formData.append("file", file);
+
+              const response = await fetch(uploadUrl, {
+                method: "POST",
+                body: formData,
+              });
+
+              if (!response.ok) {
+                let errorBody = `Status: ${response.status}`;
+                try {
+                  const text = await response.text();
+                  errorBody += `, Body: ${text.substring(0, 500)}`;
+                } catch (e) { /* ignore */ }
+                throw new Error(`Failed to upload ${file.name}. ${errorBody}`);
+              }
+
+              return {
+                url: publicUrl,
+                filename: file.name,
+                mimeType: file.type,
+                size: file.size,
+              };
+            } catch (err: any) { // Catch specific error type if possible
+              console.error(`Error uploading ${file.name}:`, err);
+              throw new Error(`Failed to upload ${file.name}: ${err.message}`);
+            }
+          });
+
+          attachments = await Promise.all(uploadPromises);
+        }
+
+        // 2. Prepare text content
         const message = content[0]! as MessageElement;
-        // Strip out children from mention elements.  We only need the type and
-        // userId for display purposes.
         const { type, children } = message;
         const cleanedMessage = {
           type,
           children: children.map((child) => {
             if (nodeIsMention(child)) {
-              return {
-                type: child.type,
-                userId: child.userId,
-              };
+              return { type: child.type, userId: child.userId };
             } else {
               switch (chatMessageNodeType(child)) {
                 case "puzzle":
@@ -1537,71 +1750,54 @@ const ChatInput = React.memo(
           }),
         };
 
-        let imageUrlsString = "";
-        // Upload images if any
-        if (uploadingImages.length > 0 && s3Configured) {
-          const imageUploadPromises = uploadingImages.map(async (file) => {
-            const upload = await createDocumentImageUpload.callPromise({
-              documentId: puzzleId,
-              filename: file.name,
-              mimeType: file.type,
-            });
+        const finalChildren = cleanedMessage.children.length > 0 || attachments.length === 0
+          ? cleanedMessage.children
+          : [{ text: "" }];
 
-            if (!upload) {
-              throw new Error("S3 not configured");
-            }
-
-            const { publicUrl, uploadUrl, fields } = upload;
-            const formData = new FormData();
-            for (const [key, value] of Object.entries(fields)) {
-              formData.append(key, value);
-            }
-            formData.append("file", file);
-            await fetch(uploadUrl, {
-              method: "POST",
-              mode: "no-cors",
-              body: formData,
-            });
-            return publicUrl;
-          });
-
-          const uploadedUrls = await Promise.all(imageUploadPromises);
-          setUploadedImageUrls(uploadedUrls);
-          imageUrlsString = uploadedUrls.map((url) => `\n${url}`).join("");
-        }
-
-        const newMessageContent = {
-          ...cleanedMessage,
-          children: [
-            ...cleanedMessage.children,
-            { text: imageUrlsString },
-          ],
-        };
-
-
-        // Send chat message.
-        if (replyingTo){
-        sendChatMessage.call({
+        // 3. Send the message
+        await sendChatMessage.call({
           puzzleId,
-          content: JSON.stringify(newMessageContent),
+          content: JSON.stringify({ ...cleanedMessage, children: finalChildren }),
           parentId: replyingTo,
+          // Ensure attachments is an array or undefined, not null
+          attachments: attachments.length > 0 ? attachments : [],
         });
-       } else {
-        sendChatMessage.call({
-          puzzleId,
-          content: JSON.stringify(newMessageContent),
-        });
-       }
+
+        // 4. Cleanup on success
         setContent(initialValue);
         fancyEditorRef.current?.clearInput();
+        setUploadingImages([]);
+        setImagePreviews([]);
+        setReplyingTo(null);
         if (onMessageSent) {
           onMessageSent();
         }
-        setReplyingTo(null);
-        setUploadingImages([]);
-        setImagePreviews([]);
+      } catch (error: any) {
+        console.error("Failed to send message:", error);
+        setUploadError(error.message || "An unknown error occurred during upload or message sending.");
+      } finally {
+        setIsUploading(false);
       }
-    }, [hasNonTrivialContent, content, puzzleId, onMessageSent, replyingTo, uploadingImages, s3Configured]);
+    }, [
+      // *** UPDATED DEPENDENCIES ***
+      hasNonTrivialContent,
+      isUploading,
+      uploadingImages,
+      s3Configured,
+      huntId,
+      puzzleId,
+      content,
+      replyingTo,
+      onMessageSent,
+      setReplyingTo,
+      // Add state setters used within the function
+      setIsUploading,
+      setUploadError,
+      setContent,
+      setUploadingImages,
+      setImagePreviews,
+      // *** END UPDATED DEPENDENCIES ***
+    ]);
 
     useBlockUpdate(
       hasNonTrivialContent
@@ -1609,9 +1805,7 @@ const ChatInput = React.memo(
         : undefined,
     );
 
-    // Handle image pasting
-
-    // Handle image selection
+ // Handle image selection
     const handleImageSelect = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!s3Configured) return;
@@ -1681,6 +1875,8 @@ const ChatInput = React.memo(
             onSubmit={sendContentMessage}
             disabled={disabled}
           />
+            <FormGroup>
+          <ButtonGroup>
           <Button
             variant="secondary"
             onClick={sendContentMessage}
@@ -1690,12 +1886,12 @@ const ChatInput = React.memo(
             <FontAwesomeIcon icon={faPaperPlane} />
           </Button>
           {s3Configured && (
-            <FormGroup>
+            <>
               <FormControl
                 type="file"
                 multiple
                 accept="image/*"
-                onChange={handleImageSelect}
+                onChange={handleFileSelect}
                 style={{ display: "none" }}
                 id="image-upload-input"
               />
@@ -1704,8 +1900,10 @@ const ChatInput = React.memo(
                   <FontAwesomeIcon icon={faImage} />
                 </Button>
               </FormLabel>
-            </FormGroup>
+              </>
           )}
+          </ButtonGroup>
+          </FormGroup>
         </InputGroup>
       </ChatInputRow>
     );

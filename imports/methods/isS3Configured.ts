@@ -1,5 +1,3 @@
 import TypedMethod from "./TypedMethod";
 
-export default new TypedMethod<{ dummy?: string }, boolean>(
-  "Settings.methods.checkS3",
-);
+export default new TypedMethod<void, boolean>("Settings.methods.checkS3");

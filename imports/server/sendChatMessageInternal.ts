@@ -1,6 +1,9 @@
 import { Meteor } from "meteor/meteor";
 import ChatMessages from "../lib/models/ChatMessages";
-import type { ChatMessageContentType } from "../lib/models/ChatMessages";
+import type {
+  ChatAttachmentType,
+  ChatMessageContentType,
+} from "../lib/models/ChatMessages";
 import Puzzles from "../lib/models/Puzzles";
 import GlobalHooks from "./GlobalHooks";
 
@@ -10,12 +13,14 @@ export default async function sendChatMessageInternal({
   sender,
   pinTs = null,
   parentId = null,
+  attachments = null,
 }: {
   puzzleId: string;
   content: ChatMessageContentType;
   sender: string | undefined;
   pinTs?: Date | null;
   parentId: string | null;
+  attachments: ChatAttachmentType[];
 }) {
   const puzzle = await Puzzles.findOneAsync(puzzleId);
   if (!puzzle) {
@@ -30,6 +35,7 @@ export default async function sendChatMessageInternal({
     timestamp: new Date(),
     pinTs,
     parentId,
+    attachments,
   });
 
   await GlobalHooks.runChatMessageCreatedHooks(msgId);

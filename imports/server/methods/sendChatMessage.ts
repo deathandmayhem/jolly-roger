@@ -1,15 +1,25 @@
 import { check, Match } from "meteor/check";
-import ChatMessages from "../../lib/models/ChatMessages";
+import ChatMessages, {
+  ChatAttachmentType,
+} from "../../lib/models/ChatMessages";
 import sendChatMessage from "../../methods/sendChatMessage";
 import sendChatMessageInternal from "../sendChatMessageInternal";
 import defineMethod from "./defineMethod";
+
+const ChatAttachmentPattern = Match.ObjectIncluding({
+  url: String,
+  filename: String,
+  mimeType: String,
+  size: Match.Optional(Number),
+});
 
 defineMethod(sendChatMessage, {
   validate(arg) {
     check(arg, {
       puzzleId: String,
       content: String,
-      parentId: Match.Optional(String),
+      parentId: Match.Maybe(String),
+      attachments: Match.Maybe([ChatAttachmentPattern]),
     });
 
     return arg;
@@ -18,11 +28,13 @@ defineMethod(sendChatMessage, {
   async run({
     puzzleId,
     content,
-    parentId,
+    parentId = null,
+    attachments = [],
   }: {
     puzzleId: string;
     content: string;
     parentId?: string | null;
+    attachments?: ChatAttachmentType[];
   }) {
     check(this.userId, String);
     let contentObj = JSON.parse(content);
@@ -81,6 +93,7 @@ defineMethod(sendChatMessage, {
       sender: this.userId,
       pinTs: isPinned ? new Date() : null,
       parentId: parentId ?? null,
+      attachments,
     });
   },
 });
