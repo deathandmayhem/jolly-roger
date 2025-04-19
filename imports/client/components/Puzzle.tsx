@@ -201,16 +201,18 @@ const Puzzle = React.memo(
     suppressTags,
     segmentAnswers,
     subscribers,
+    puzzleUsers,
   }: {
     puzzle: PuzzleType;
     bookmarked: boolean;
     // All tags associated with the hunt.
     allTags: TagType[];
     canUpdate: boolean;
-    showSolvers: boolean;
+    showSolvers: "hide" | "viewers" | "active";
     suppressTags?: string[];
     segmentAnswers?: boolean;
     subscribers: Record<string, string[]> | null;
+    puzzleUsers: string[];
   }) => {
     const puzzleId = puzzle._id;
     const huntId = puzzle.hunt;
@@ -461,6 +463,15 @@ const Puzzle = React.memo(
         return null;
       }
     }, [isMeta, isMetameta]);
+    const activeSolvers = useMemo(() => {
+      if (!puzzleUsers || !viewers) {
+        return [];
+      }
+      if (showSolvers === "active") {
+        return viewers?.filter((u) => puzzleUsers?.includes(u));
+      }
+      return viewers;
+    }, [puzzleUsers, showSolvers, viewers]);
 
     return (
       <PuzzleDiv $solvedness={solvedness}>
@@ -520,7 +531,7 @@ const Puzzle = React.memo(
         </PuzzlePriorityColumn>
         <PuzzleMetaColumn>{puzzleIsMeta}</PuzzleMetaColumn>
         <SolversColumn>
-          {showSolvers && solvedness === "unsolved" ? (
+          {showSolvers !== "hide" && solvedness === "unsolved" ? (
             <div>
               {rtcViewers.length > 0 ? (
                 <span>
@@ -528,13 +539,15 @@ const Puzzle = React.memo(
                 </span>
               ) : null}
               {rtcViewers.map((viewer) => viewer).join(", ")}
-              {rtcViewers.length > 0 && viewers.length > 0 ? <br /> : null}
+              {rtcViewers.length > 0 && activeSolvers.length > 0 ? (
+                <br />
+              ) : null}
               {viewers.length > 0 ? (
                 <span>
                   <FontAwesomeIcon icon={faEye} />{" "}
                 </span>
               ) : null}
-              {viewers.map((viewer) => viewer).join(", ")}
+              {activeSolvers.map((viewer) => viewer).join(", ")}
             </div>
           ) : null}
         </SolversColumn>

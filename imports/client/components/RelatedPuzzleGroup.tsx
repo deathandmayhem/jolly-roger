@@ -65,6 +65,7 @@ const RelatedPuzzleGroup = ({
   trackPersistentExpand,
   showSolvers,
   subscribers,
+  puzzleUsers,
   addPuzzleCallback,
 }: {
   huntId: string;
@@ -77,8 +78,9 @@ const RelatedPuzzleGroup = ({
   canUpdate: boolean;
   suppressedTagIds: string[];
   trackPersistentExpand: boolean;
-  showSolvers: boolean;
+  showSolvers: "viewers" | "hide" | "active";
   subscribers: Record<string, Record<string, string[]>>;
+  puzzleUsers: Record<string, string[]>;
   addPuzzleCallback: (initialTags: string[]) => void;
 }) => {
   const openAddPuzzleModalWithTags = useCallback(
@@ -156,6 +158,7 @@ const RelatedPuzzleGroup = ({
             suppressedTagIds={allSuppressedTagIds}
             showSolvers={showSolvers}
             subscribers={subscribers}
+            puzzleUsers={puzzleUsers}
           />
           {group.subgroups.map((subgroup) => {
             const subgroupSuppressedTagIds = [...allSuppressedTagIds];
@@ -177,6 +180,7 @@ const RelatedPuzzleGroup = ({
                 showSolvers={showSolvers}
                 subscribers={subscribers}
                 addPuzzleCallback={addPuzzleCallback}
+                puzzleUsers={puzzleUsers}
               />
             );
           })}
