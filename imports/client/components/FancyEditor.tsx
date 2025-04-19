@@ -30,10 +30,12 @@ import {
 import styled, { css } from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById, sortedBy } from "../../lib/listUtils";
-import { Theme } from "../theme";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import type { Solvedness } from "../../lib/solvedness";
+import type { Theme } from "../theme";
 import Avatar from "./Avatar";
-import { PuzzleType } from "../../lib/models/Puzzles";
-import { Solvedness } from "../../lib/solvedness";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 
 // This implements a markdown-inspired input editor with live formatting preview
 // and autocompleting @-mentions.
@@ -175,7 +177,9 @@ const EditablePuzzleRenderer = ({
   return (
     // Use ! prefix for puzzles
     <Elem {...attributes} contentEditable={false} isSelf={false}>
-      {children}!{`${puzzle?.title ?? element.puzzleId}`}
+      {children}
+      <FontAwesomeIcon icon={faPuzzlePiece} />{" "}
+      {`${puzzle?.title ?? element.puzzleId}`}
     </Elem>
   );
 };
@@ -314,7 +318,6 @@ function matchPuzzles(
   if (!searchString) return [];
 
   const needle = searchString.toLowerCase();
-
   const matches = puzzles.filter((p) => {
     const title = p.title?.toLowerCase() ?? "";
     return title.includes(needle);
@@ -839,7 +842,10 @@ const FancyEditor = React.forwardRef(
     );
 
     useEffect(() => {
-      if (completionAnchorRange && matchingUsers.length > 0) {
+      if (
+        completionAnchorRange &&
+        (matchingPuzzles.length > 0 || matchingUsers.length > 0)
+      ) {
         const el = ref.current;
         const domRange = ReactEditor.toDOMRange(editor, completionAnchorRange);
         const rect = domRange.getBoundingClientRect();

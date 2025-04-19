@@ -131,6 +131,7 @@ import removeChatMessage from "../../methods/removeChatMessage";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
 import { Theme } from "../theme";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
+import chatMessageNodeType from "../../lib/chatMessageNodeType";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -1482,7 +1483,7 @@ const ChatInput = React.memo(
         content.length > 0 &&
         (content[0]! as MessageElement).children.some((child) => {
           return (
-            nodeIsMention(child) ||
+            nodeIsMention(child) || chatMessageNodeType(child) !== "text" ||
             (nodeIsText(child) && child.text.trim().length > 0)
           );
         })
@@ -1508,6 +1509,14 @@ const ChatInput = React.memo(
                 userId: child.userId,
               };
             } else {
+              switch (chatMessageNodeType(child)) {
+                case "puzzle":
+                  return {
+                    type: child.type,
+                    puzzleId: child.puzzleId,
+                  }
+                  break;
+              }
               return child;
             }
           }),
