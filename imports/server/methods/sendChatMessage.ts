@@ -35,6 +35,10 @@ defineMethod(sendChatMessage, {
             userId: String,
           },
           {
+            type: "puzzle" as const,
+            puzzleId: String,
+          },
+          {
             text: String,
           },
         ),

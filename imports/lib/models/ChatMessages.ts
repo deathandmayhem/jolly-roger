@@ -10,12 +10,18 @@ const MentionBlock = z.object({
 });
 export type ChatMessageMentionNodeType = z.infer<typeof MentionBlock>;
 
+const PuzzleBlock = z.object({
+  type: z.literal("puzzle"),
+  puzzleId: foreignKey,
+});
+export type ChatMessagePuzzleNodeType = z.infer<typeof PuzzleBlock>;
+
 const TextBlock = z.object({
   text: allowedEmptyString,
 });
 export type ChatMessageTextNodeType = z.infer<typeof TextBlock>;
 
-const ContentNode = z.union([MentionBlock, TextBlock]);
+const ContentNode = z.union([MentionBlock, TextBlock, PuzzleBlock]);
 export type ChatMessageContentNodeType = z.infer<typeof ContentNode>;
 
 export const ChatMessageContent = z.object({

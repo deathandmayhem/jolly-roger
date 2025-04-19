@@ -130,6 +130,7 @@ import { ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 import removeChatMessage from "../../methods/removeChatMessage";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
 import { Theme } from "../theme";
+import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -617,6 +618,7 @@ const ChatHistoryMessage = React.memo(
     isReplyingTo,
     shownEmojiPicker,
     setShownEmojiPicker,
+    puzzles,
   }: {
     message: FilteredChatMessageType;
     displayNames: Map<string, string>;
@@ -633,6 +635,7 @@ const ChatHistoryMessage = React.memo(
     isReplyingTo: boolean;
     shownEmojiPicker: string | null;
     setShownEmojiPicker: (messageId: string | null) => void;
+    puzzles: PuzzleType[];
   }) => {
     const ts = shortCalendarTimeFormat(message.timestamp);
 
@@ -710,6 +713,11 @@ const ChatHistoryMessage = React.memo(
       }
     }, [isMouseOverIcon, isMouseOverPopover, showPopover]);
 
+    const puzzlesById = useTracker(()=>{
+      return puzzles.reduce((acc, puz)=>{
+        return acc.set(puz._id, puz)
+      }, new Map<string, PuzzleType>())
+    }, [puzzles])
 
     const replyPopover = (
       <ReplyPopover
@@ -733,6 +741,7 @@ const ChatHistoryMessage = React.memo(
                 <ChatMessage
                   message={parent.content}
                   displayNames={displayNames}
+                  puzzleData={puzzlesById}
                   selfUserId={selfUserId}
                 />
               </ReplyPopoverMessage>
@@ -918,6 +927,7 @@ const ChatHistoryMessage = React.memo(
         <ChatMessage
           message={message.content}
           displayNames={displayNames}
+          puzzleData={puzzlesById}
           selfUserId={selfUserId}
         />
         <ReactionContainer>
@@ -980,6 +990,7 @@ const ChatHistory = React.forwardRef(
       setPulsingMessageId,
       setReplyingTo,
       replyingTo,
+      puzzles,
     }: {
       puzzleId: string;
       displayNames: Map<string, string>;
@@ -988,6 +999,7 @@ const ChatHistory = React.forwardRef(
       setPulsingMessageId: (messageId: string | null) => void;
       setReplyingTo: (messageId: string | null) => void;
       replyingTo: string | null;
+      puzzles: PuzzleType[];
     },
     forwardedRef: React.Ref<ChatHistoryHandle>,
   ) => {
@@ -1194,6 +1206,7 @@ const ChatHistory = React.forwardRef(
               isReplyingTo={replyingTo === msg._id}
               shownEmojiPicker={shownEmojiPicker}
               setShownEmojiPicker={setShownEmojiPicker}
+              puzzles={puzzles}
             />
           );
         })}
@@ -1211,6 +1224,7 @@ const PinnedMessage = React.forwardRef(
       scrollToMessage,
       pulsingMessageId,
       setReplyingTo,
+      puzzles,
     }: {
       puzzleId: string;
       displayNames: Map<string, string>;
@@ -1218,6 +1232,7 @@ const PinnedMessage = React.forwardRef(
       scrollToMessage: (messageId: string, callback?: () => void) => void;
       pulsingMessageId: string | null;
       setReplyingTo: (messageId: string | null) => void;
+      puzzles: PuzzleType[];
     },
     forwardedRef: React.Ref<ChatHistoryHandle>,
   ) => {
@@ -1356,6 +1371,7 @@ const PinnedMessage = React.forwardRef(
               messageRef={() => {}}
               isPulsing={pulsingMessageId === msg._id}
               setReplyingTo={setReplyingTo}
+              puzzles={puzzles}
             />
           );
         })}
@@ -1404,6 +1420,7 @@ const ChatInput = React.memo(
     replyingTo,
     setReplyingTo,
     displayNames,
+    puzzles,
     scrollToMessage,
   }: {
     onHeightChange: () => void;
@@ -1414,6 +1431,7 @@ const ChatInput = React.memo(
     replyingTo: string | null;
     setReplyingTo: (messageId: string | null) => void;
     displayNames: Map<string, string>;
+    puzzles: PuzzleType[];
     scrollToMessage: (messageId: string, callback?: () => void) => void;
   }) => {
     // We want to have hunt profile data around so we can autocomplete from multiple fields.
@@ -1558,6 +1576,7 @@ const ChatInput = React.memo(
             initialContent={content}
             placeholder="Chat"
             users={users}
+            puzzles={puzzles}
             onContentChange={onContentChange}
             onSubmit={sendContentMessage}
             disabled={disabled}
@@ -1587,6 +1606,7 @@ const ChatSection = React.forwardRef(
       chatDataLoading,
       disabled,
       displayNames,
+      puzzles,
       puzzleId,
       huntId,
       callState,
@@ -1600,6 +1620,7 @@ const ChatSection = React.forwardRef(
       chatDataLoading: boolean;
       disabled: boolean;
       displayNames: Map<string, string>;
+      puzzles: PuzzleType[];
       puzzleId: string;
       huntId: string;
       callState: CallState;
@@ -1688,6 +1709,7 @@ const ChatSection = React.forwardRef(
           puzzleId={puzzleId}
           displayNames={displayNames}
           selfUser={selfUser}
+          puzzles={puzzles}
           scrollToMessage={scrollToMessage}
           pulsingMessageId={pulsingMessageId}
           setReplyingTo={setReplyingTo}
@@ -1697,6 +1719,7 @@ const ChatSection = React.forwardRef(
           puzzleId={puzzleId}
           displayNames={displayNames}
           selfUser={selfUser}
+          puzzles={puzzles}
           scrollToMessage={scrollToMessage}
           pulsingMessageId={pulsingMessageId}
           setPulsingMessageId={setPulsingMessageId}
@@ -1712,6 +1735,7 @@ const ChatSection = React.forwardRef(
           replyingTo={replyingTo}
           setReplyingTo={setReplyingTo}
           displayNames={displayNames}
+          puzzles={puzzles}
           scrollToMessage={scrollToMessage}
         />
       </ChatSectionDiv>
@@ -1811,6 +1835,7 @@ const PuzzlePageMetadata = ({
   bookmarked,
   displayNames,
   document,
+  allPuzzles,
   isDesktop,
   selfUser,
   showDocument,
@@ -1822,6 +1847,7 @@ const PuzzlePageMetadata = ({
   bookmarked: boolean;
   displayNames: Map<string, string>;
   document?: DocumentType;
+  allPuzzles: PuzzleType[];
   isDesktop: boolean;
   selfUser: Meteor.User;
   showDocument: boolean;
@@ -1839,10 +1865,6 @@ const PuzzlePageMetadata = ({
     [hunt],
   );
 
-  const allPuzzles = useTracker(
-    () => Puzzles.find({ hunt: huntId }).fetch(),
-    [huntId],
-  );
   const allTags = useTracker(
     () => Tags.find({ hunt: huntId }).fetch(),
     [huntId],
@@ -2902,6 +2924,13 @@ const PuzzlePage = React.memo(() => {
         : indexedDisplayNames(),
     [puzzleDataLoading, chatDataLoading],
   );
+
+  const puzzlesSubscribe = useTypedSubscribe(puzzlesForHunt, {huntId});
+  const puzzlesLoading = puzzlesSubscribe();
+  const puzzles = useTracker(()=>{
+    return puzzlesLoading ? [] : Puzzles.find({hunt:huntId}).fetch();
+  }, [puzzlesLoading, huntId]);
+
   // Sort by created at so that the "first" document always has consistent meaning
   const doc = useTracker(
     () =>
@@ -3023,6 +3052,7 @@ const PuzzlePage = React.memo(() => {
       puzzle={activePuzzle}
       bookmarked={bookmarked}
       document={doc}
+      allPuzzles={puzzles}
       displayNames={displayNames}
       isDesktop={isDesktop}
       selfUser={selfUser}
@@ -3038,6 +3068,7 @@ const PuzzlePage = React.memo(() => {
       chatDataLoading={chatDataLoading}
       disabled={activePuzzle.deleted ?? true /* disable while still loading */}
       displayNames={displayNames}
+      puzzles={puzzles}
       huntId={huntId}
       puzzleId={puzzleId}
       callState={callState}

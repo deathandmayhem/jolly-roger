@@ -6,9 +6,15 @@ import React from "react";
 import styled from "styled-components";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
 import nodeIsMention from "../../lib/nodeIsMention";
-import { MentionSpan } from "./FancyEditor";
+import { MentionSpan, PuzzleSpan } from "./FancyEditor";
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
 import { Theme } from "../theme";
+import chatMessageNodeType from "../../lib/chatMessageNodeType";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
+import { Link } from "react-router-dom";
+import { PuzzleType } from "../../lib/models/Puzzles";
+import { computeSolvedness } from "../../lib/solvedness";
 
 // This file implements standalone rendering for the MessageElement format
 // defined by FancyEditor, for use in the chat pane.
@@ -140,11 +146,13 @@ const MarkdownToken = ({ token }: { token: Token }) => {
 const ChatMessage = ({
   message,
   displayNames,
+  puzzleData,
   selfUserId,
   timestamp,
 }: {
   message: ChatMessageContentType;
   displayNames: Map<string, string>;
+  puzzleData: Map<string, PuzzleType> | object;
   selfUserId: string;
   timestamp?: Date;
 }) => {
@@ -154,6 +162,28 @@ const ChatMessage = ({
       return (
         <MentionSpan key={i} $isSelf={child.userId === selfUserId}>
           @{`${displayName ?? child.userId}`}
+        </MentionSpan>
+      );
+    } else if (chatMessageNodeType(child) === "puzzle") {
+      const puzzle = puzzleData ? puzzleData.get(child.puzzleId) : null;
+      if (puzzle) {
+        const solvedness = computeSolvedness(puzzle);
+        return (
+          <PuzzleSpan key={i} $solvedness={solvedness}>
+            <FontAwesomeIcon icon={faPuzzlePiece} />{" "}
+            <Link
+              target="_blank"
+              to={`/hunts/${puzzle.hunt}/puzzles/${child.puzzleId}`}
+            >
+              {puzzle?.title ?? child.puzzleId}
+            </Link>
+          </PuzzleSpan>
+        );
+      }
+      return (
+        <MentionSpan key={i} isSelf={false}>
+          <FontAwesomeIcon icon={faPuzzlePiece} />{" "}
+          {puzzle?.title ?? child.puzzleId}
         </MentionSpan>
       );
     } else {

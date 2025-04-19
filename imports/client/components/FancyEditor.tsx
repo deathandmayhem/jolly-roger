@@ -32,6 +32,8 @@ import { formatDiscordName } from "../../lib/discord";
 import { indexedById, sortedBy } from "../../lib/listUtils";
 import { Theme } from "../theme";
 import Avatar from "./Avatar";
+import { PuzzleType } from "../../lib/models/Puzzles";
+import { Solvedness } from "../../lib/solvedness";
 
 // This implements a markdown-inspired input editor with live formatting preview
 // and autocompleting @-mentions.
@@ -41,14 +43,19 @@ export const DEBUG_EDITOR = false;
 export type CustomText = { text: string };
 export type MessageElement = {
   type: "message";
-  children: (MentionElement | CustomText)[];
+  children: (MentionElement | CustomText | PuzzleElement)[];
 };
 export type MentionElement = {
   type: "mention";
   userId: string; // user._id of the mentioned user
   children: CustomText[];
 };
-export type CustomElement = MessageElement | MentionElement;
+export type PuzzleElement = {
+  type: "puzzle";
+  puzzleId: string; // puzzle._id of the mentioned puzzle
+  children: CustomText[];
+};
+export type CustomElement = MessageElement | MentionElement | PuzzleElement;
 declare module "slate" {
   interface CustomTypes {
     Editor: BaseEditor & ReactEditor & HistoryEditor;
@@ -89,6 +96,10 @@ interface MentionRendererProps extends ElementRendererProps<MentionElement> {
   users: Map<string, Meteor.User>;
 }
 
+interface PuzzleRendererProps extends ElementRendererProps<PuzzleElement> {
+  puzzles: Map<string, PuzzleType>;
+}
+
 export const MentionSpan = styled.span<{
   $isSelf: boolean;
   theme: Theme;
@@ -107,6 +118,23 @@ export const MentionSpan = styled.span<{
       background-color: ${({ theme }) => theme.colors.mentionSpanBackground};
       color: ${({ theme }) => theme.colors.mentionSpanText};
     `}
+  font-size: 0.8rem;
+`;
+
+export const PuzzleSpan = styled.span<{
+  theme: Theme;
+  $solvedness: Solvedness;
+}>`
+  padding: 2px 3px 3px;
+  margin: 0 1px;
+  vertical-align: baseline;
+  display: inline-block;
+  overflow-wrap: break-word;
+  border-radius: 4px;
+  color: ${({ theme }) => theme.colors.mentionSpanText};
+  background-color: ${({ $solvedness, theme }) => {
+    return theme.colors.solvedness[$solvedness];
+  }};
   font-size: 0.8rem;
 `;
 
@@ -132,17 +160,43 @@ const EditableMentionRenderer = ({
   );
 };
 
+const EditablePuzzleRenderer = ({
+  attributes,
+  children,
+  element,
+  puzzles,
+}: PuzzleRendererProps) => {
+  const selected = useSelected();
+  const focused = useFocused();
+  const puzzle = puzzles.get(element.puzzleId);
+  // Reuse the same styling components for consistency
+  const Elem = selected && focused ? SelectedMentionSpan : MentionSpan;
+
+  return (
+    // Use ! prefix for puzzles
+    <Elem {...attributes} contentEditable={false} isSelf={false}>
+      {children}!{`${puzzle?.title ?? element.puzzleId}`}
+    </Elem>
+  );
+};
+
 // Composed, layered reassignment is how Slate plugins are designed to work.
-const withMentions = (editor: Editor) => {
+const withInlines = (editor: Editor) => {
   const { isInline, isVoid, markableVoid } = editor;
   editor.isInline = (element) => {
-    return element.type === "mention" ? true : isInline(element);
+    return element.type === "mention" || element.type === "puzzle"
+      ? true
+      : isInline(element);
   };
   editor.isVoid = (element) => {
-    return element.type === "mention" ? true : isVoid(element);
+    return element.type === "mention" || element.type === "puzzle"
+      ? true
+      : isVoid(element);
   };
   editor.markableVoid = (element) => {
-    return element.type === "mention" || markableVoid(element);
+    return element.type === "mention" || element.type === "puzzle"
+      ? true
+      : markableVoid(element);
   };
   return editor;
 };
@@ -173,6 +227,16 @@ const insertMention = (editor: Editor, userId: string) => {
     children: [{ text: "" }],
   };
   Transforms.insertNodes(editor, mention);
+  Transforms.move(editor);
+};
+
+const insertPuzzle = (editor: Editor, puzzleId: string) => {
+  const puzzleMention: PuzzleElement = {
+    type: "puzzle",
+    puzzleId,
+    children: [{ text: "" }],
+  };
+  Transforms.insertNodes(editor, puzzleMention);
   Transforms.move(editor);
 };
 
@@ -223,6 +287,44 @@ const MatchCandidate = ({
     </MatchCandidateRow>
   );
 };
+
+const PuzzleMatchCandidate = ({
+  puzzle,
+  selected,
+  onSelected,
+}: {
+  puzzle: PuzzleType;
+  selected: boolean;
+  onSelected: (p: PuzzleType) => void;
+}) => {
+  const onClick = useCallback(() => {
+    onSelected(puzzle);
+  }, [onSelected, puzzle]);
+  return (
+    <MatchCandidateRow key={puzzle._id} $selected={selected} onClick={onClick}>
+      <MatchCandidateDisplayName>{puzzle.title}</MatchCandidateDisplayName>
+    </MatchCandidateRow>
+  );
+};
+
+function matchPuzzles(
+  puzzles: PuzzleType[],
+  searchString: string,
+): PuzzleType[] {
+  if (!searchString) return [];
+
+  const needle = searchString.toLowerCase();
+
+  const matches = puzzles.filter((p) => {
+    const title = p.title?.toLowerCase() ?? "";
+    return title.includes(needle);
+  });
+
+  return sortedBy(matches, (p) => {
+    const title = p.title?.toLowerCase() ?? "";
+    return title.startsWith(needle) ? -1 : 0;
+  });
+}
 
 type AugmentedUser = Meteor.User & {
   foundDisplayName: boolean;
@@ -506,6 +608,7 @@ const FancyEditor = React.forwardRef(
       initialContent,
       placeholder,
       users,
+      puzzles,
       onContentChange,
       onSubmit,
       disabled,
@@ -514,6 +617,7 @@ const FancyEditor = React.forwardRef(
       initialContent: Descendant[];
       placeholder?: string;
       users: Meteor.User[];
+      puzzles: PuzzleType[];
       onContentChange: (content: Descendant[]) => void;
       onSubmit: () => void;
       disabled?: boolean;
@@ -522,7 +626,7 @@ const FancyEditor = React.forwardRef(
   ) => {
     const [editor] = useState(() => {
       const upstreamEditor = withReact(withHistory(createEditor()));
-      return withSingleMessage(withMentions(upstreamEditor));
+      return withSingleMessage(withInlines(upstreamEditor));
     });
 
     // The floating autocomplete box for @-mentions
@@ -536,8 +640,12 @@ const FancyEditor = React.forwardRef(
       useState<number>(0);
     // The current needle to search for in user display names, emails, etc.
     const [completionSearchString, setCompletionSearchString] = useState("");
+    const [completionType, setCompletionType] = useState<
+      "user" | "puzzle" | null
+    >(null);
 
     const usersById = useMemo(() => indexedById(users), [users]);
+    const puzzlesById = useMemo(() => indexedById(puzzles), [puzzles]);
     const editableRef = useRef<React.ElementRef<typeof Editable>>(null);
 
     const clearInput = useCallback(() => {
@@ -578,6 +686,14 @@ const FancyEditor = React.forwardRef(
     const renderElement = useCallback(
       (props: RenderElementProps) => {
         switch (props.element.type) {
+          // Add case for 'puzzle'
+          case "puzzle":
+            return (
+              <EditablePuzzleRenderer
+                puzzles={puzzlesById}
+                {...(props as ElementRendererProps<PuzzleElement>)}
+              />
+            );
           case "mention":
             return (
               <EditableMentionRenderer
@@ -594,37 +710,36 @@ const FancyEditor = React.forwardRef(
             );
         }
       },
-      [usersById],
+      [puzzlesById, usersById],
     );
 
     const onChange = useCallback(
       (value: Descendant[]) => {
         const { selection } = editor;
         if (selection && Range.isCollapsed(selection)) {
-          // Look backwards.  Does the word the cursor is in start with an `@`?
           const [start] = Range.edges(selection);
           const wordBefore = Editor.before(editor, start, { unit: "word" });
           const before = wordBefore && Editor.before(editor, wordBefore);
           const beforeRange = before && Editor.range(editor, before, start);
           const beforeText = beforeRange && Editor.string(editor, beforeRange);
-          const beforeMatch = beforeText?.match(/^@(\w+)$/);
-          // Look forwards from the cursor to the end of the word.
-          // Is the cursor at the end of the word?
+          const beforeMatch = beforeText?.match(/^([@!])(\w+)$/);
           const after = Editor.after(editor, start);
           const afterRange = Editor.range(editor, start, after);
           const afterText = Editor.string(editor, afterRange);
           const afterMatch = afterText.match(/^(\s|$)/);
 
           if (beforeMatch && afterMatch) {
-            // Do @-completion. Anchor the popup to the start of the @.
-            // The user's search string to attempt to match on is the string that
-            // follows between the @ and the cursor.
-            // Start by highlighting the top entry in the autocomplete list.
+            const triggerChar = beforeMatch[1]; // '@' or '!'
+            const search = beforeMatch[2] ?? ""; // The text after the trigger
+
+            // Set completion type based on trigger character
+            setCompletionType(triggerChar === "@" ? "user" : "puzzle");
             setCompletionAnchorRange(beforeRange);
-            setCompletionSearchString(beforeMatch[1]!);
+            setCompletionSearchString(search);
             setCompletionCursorIndex(0);
           } else {
             setCompletionAnchorRange(undefined);
+            setCompletionType(null);
           }
         }
 
@@ -643,14 +758,23 @@ const FancyEditor = React.forwardRef(
       [users, completionSearchString],
     );
 
+    const matchingPuzzles: PuzzleType[] = useMemo(
+      () => matchPuzzles(puzzles, completionSearchString),
+      [puzzles, completionSearchString],
+    );
+
     const onKeyDown: React.KeyboardEventHandler<HTMLDivElement> = useCallback(
       (event) => {
-        if (completionAnchorRange && matchingUsers.length > 0) {
+        const isActive = completionAnchorRange && completionType;
+        const currentMatches =
+          completionType === "user" ? matchingUsers : matchingPuzzles;
+
+        if (isActive && currentMatches.length > 0) {
           switch (event.key) {
             case "ArrowDown": {
               event.preventDefault();
               const nextIndex =
-                completionCursorIndex >= matchingUsers.length - 1
+                completionCursorIndex >= currentMatches.length - 1
                   ? 0
                   : completionCursorIndex + 1;
               setCompletionCursorIndex(nextIndex);
@@ -660,7 +784,7 @@ const FancyEditor = React.forwardRef(
               event.preventDefault();
               const prevIndex =
                 completionCursorIndex === 0
-                  ? matchingUsers.length - 1
+                  ? currentMatches.length - 1
                   : completionCursorIndex - 1;
               setCompletionCursorIndex(prevIndex);
               return;
@@ -669,14 +793,21 @@ const FancyEditor = React.forwardRef(
             case "Enter": {
               event.preventDefault();
               Transforms.select(editor, completionAnchorRange);
-              const user = matchingUsers[completionCursorIndex]!;
-              insertMention(editor, user._id);
+              if (completionType === "user") {
+                const user = matchingUsers[completionCursorIndex]!;
+                insertMention(editor, user._id);
+              } else if (completionType === "puzzle") {
+                const puzzle = matchingPuzzles[completionCursorIndex]!;
+                insertPuzzle(editor, puzzle._id);
+              }
               setCompletionAnchorRange(undefined);
+              setCompletionType(null);
               return;
             }
             case "Escape": {
               event.preventDefault();
               setCompletionAnchorRange(undefined);
+              setCompletionType(null);
               return;
             }
             default:
@@ -686,11 +817,9 @@ const FancyEditor = React.forwardRef(
 
         if (event.key === "Enter") {
           if (event.shiftKey) {
-            // Insert soft break.  Avoid hard breaks entirely.
             event.preventDefault();
             editor.insertText("\n");
           } else {
-            // submit contents.  clear the editor.
             event.preventDefault();
             onSubmit();
             clearInput();
@@ -699,7 +828,9 @@ const FancyEditor = React.forwardRef(
       },
       [
         completionAnchorRange,
+        completionType,
         matchingUsers,
+        matchingPuzzles,
         completionCursorIndex,
         editor,
         onSubmit,
@@ -763,6 +894,17 @@ const FancyEditor = React.forwardRef(
       [editor, completionAnchorRange],
     );
 
+    const onPuzzleSelected = useCallback(
+      (p: PuzzleType) => {
+        Transforms.select(editor, completionAnchorRange!);
+        insertPuzzle(editor, p._id);
+        setCompletionAnchorRange(undefined);
+        setCompletionType(null); // Clear completion type
+        ReactEditor.focus(editor);
+      },
+      [editor, completionAnchorRange],
+    );
+
     const debugPane = DEBUG_EDITOR ? (
       <div style={{ position: "fixed", bottom: "0", right: "0" }}>
         <div style={{ width: "800px", overflowX: "auto", overflowY: "auto" }}>
@@ -779,28 +921,50 @@ const FancyEditor = React.forwardRef(
     return (
       <Slate editor={editor} initialValue={initialContent} onChange={onChange}>
         {debugPane}
-        {completionAnchorRange && matchingUsers.length > 0 && (
-          <Portal>
-            <AutocompleteContainer
-              ref={ref}
-              style={{
-                top: "-9999px",
-                left: "-9999px",
-              }}
-            >
-              {matchingUsers.map((user, i) => {
-                return (
+        {completionAnchorRange &&
+          completionType === "user" &&
+          matchingUsers.length > 0 && (
+            <Portal>
+              <AutocompleteContainer
+                ref={ref}
+                style={{
+                  top: "-9999px",
+                  left: "-9999px",
+                }}
+              >
+                {matchingUsers.map((user, i) => (
                   <MatchCandidate
                     key={user._id}
                     user={user}
                     selected={i === completionCursorIndex}
                     onSelected={onUserSelected}
                   />
-                );
-              })}
-            </AutocompleteContainer>
-          </Portal>
-        )}
+                ))}
+              </AutocompleteContainer>
+            </Portal>
+          )}
+        {completionAnchorRange &&
+          completionType === "puzzle" &&
+          matchingPuzzles.length > 0 && (
+            <Portal>
+              <AutocompleteContainer
+                ref={ref}
+                style={{
+                  top: "-9999px",
+                  left: "-9999px",
+                }}
+              >
+                {matchingPuzzles.map((puzzle, i) => (
+                  <PuzzleMatchCandidate
+                    key={puzzle._id}
+                    puzzle={puzzle}
+                    selected={i === completionCursorIndex}
+                    onSelected={onPuzzleSelected}
+                  />
+                ))}
+              </AutocompleteContainer>
+            </Portal>
+          )}
         <Editable
           ref={editableRef}
           className={className}
