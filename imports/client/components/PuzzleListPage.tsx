@@ -284,6 +284,84 @@ const PuzzleListView = ({
       },
       [setSearchString],
     );
+  const subscribersLoading = useSubscribe("subscribers.fetchAll", huntId);
+  const callMembersLoading = useSubscribe("mediasoup:metadataAll", huntId);
+
+  const displayNamesLoading = useSubscribeDisplayNames(huntId);
+
+  const subscriptionsLoading =
+    subscribersLoading() || callMembersLoading() || displayNamesLoading();
+
+  const statusesSubscribe = useTypedSubscribe(statusesForHuntUsers, { huntId }); // also the statuses for users
+
+  const statusesLoading = statusesSubscribe();
+  const puzzleUsers: Record<string, string[]> = useMemo(() => {
+    if (subscriptionsLoading || statusesLoading) {
+      return {};
+    }
+    const displayNames = indexedDisplayNames(); // don't try to move this out, this causes a loop
+    const puzzleUserStatuses = userStatusesToLastSeen(
+      UserStatuses.find({ hunt: huntId }).fetch(),
+    );
+    const mappedUsers = Object.entries(puzzleUserStatuses).reduce((acc, k) => {
+      const [userId, statusInfo] = k;
+      const puzzleId = statusInfo.puzzleStatus.puzzle;
+      if (!puzzleId) {
+        return acc;
+      }
+      if (!acc[puzzleId]) {
+        acc[puzzleId] = [displayNames.get(userId)];
+      } else {
+        acc[puzzleId].push(displayNames.get(userId));
+      }
+      return acc;
+    }, {});
+    return mappedUsers;
+  }, [subscriptionsLoading, statusesLoading, huntId]);
+
+  const puzzleSubscribers = useTracker(() => {
+    const displayNames = indexedDisplayNames();
+
+    if (subscriptionsLoading) {
+      return { none: { none: [] } };
+    }
+
+    const puzzleSubs = {};
+
+    Peers.find({})
+      .fetch()
+      .forEach((s) => {
+        const puzzle = s.call;
+        const user = displayNames.get(s.createdBy);
+        if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
+          puzzleSubs[puzzle] = {
+            viewers: [],
+            callers: [],
+          };
+        }
+        if (!puzzleSubs[puzzle].callers.includes(user)) {
+          puzzleSubs[puzzle].callers.push(user);
+        }
+      });
+
+    Subscribers.find({}).forEach((s) => {
+      const puzzle = s.name.replace(/^puzzle:/, "");
+      const user = displayNames.get(s.user);
+      if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
+        puzzleSubs[puzzle] = {
+          viewers: [],
+          callers: [],
+        };
+      }
+      if (
+        !puzzleSubs[puzzle].callers.includes(user) &&
+        !puzzleSubs[puzzle].viewers.includes(user)
+      ) {
+        puzzleSubs[puzzle].viewers.push(user);
+      }
+    });
+    return puzzleSubs;
+  }, [subscriptionsLoading]);
 
   const compileMatcher = useCallback(
     (searchKeys: string[]): ((p: PuzzleType) => boolean) => {
@@ -320,11 +398,46 @@ const PuzzleListView = ({
             return true;
           }
 
+          if (showSolvers === "active") {
+            // do a compare against active people
+            const matchingActives =
+              puzzle._id in puzzleUsers
+                ? puzzleUsers[puzzle._id]?.some((user) => {
+                    return user.toLowerCase().includes(key);
+                  })
+                : false;
+            if (matchingActives) {
+              return matchingActives;
+            }
+          }
+          if (showSolvers === "viewers") {
+            const matchingViewers =
+              puzzle._id in puzzleSubscribers
+                ? puzzleSubscribers[puzzle._id].viewers.some((user) => {
+                    return user.toLowerCase().includes(key);
+                  })
+                : false;
+            if (matchingViewers) {
+              return matchingViewers;
+            }
+          }
+          if (showSolvers !== "hide") {
+            const matchingCallers =
+              puzzle._id in puzzleSubscribers
+                ? puzzleSubscribers[puzzle._id].callers.some((user) => {
+                    return user.toLowerCase().includes(key);
+                  })
+                : false;
+            if (matchingCallers) {
+              return matchingCallers;
+            }
+          }
+
           return false;
         });
       };
     },
-    [allTags],
+    [allTags, puzzleSubscribers, puzzleUsers, showSolvers],
   );
 
   const puzzlesMatchingSearchString = useCallback(
@@ -430,85 +543,6 @@ const PuzzleListView = ({
       }
     }
   }, [bookmarkTitle, bookmarkURL, navigate, setSearchParams]);
-
-  const subscribersLoading = useSubscribe("subscribers.fetchAll", huntId);
-  const callMembersLoading = useSubscribe("mediasoup:metadataAll", huntId);
-
-  const displayNamesLoading = useSubscribeDisplayNames(huntId);
-
-  const subscriptionsLoading =
-    subscribersLoading() || callMembersLoading() || displayNamesLoading();
-
-  const statusesSubscribe = useTypedSubscribe(statusesForHuntUsers, { huntId }); // also the statuses for users
-
-  const statusesLoading = statusesSubscribe();
-  const puzzleUsers: Record<string, string[]> = useMemo(() => {
-    if (subscriptionsLoading || statusesLoading) {
-      return {};
-    }
-    const displayNames = indexedDisplayNames(); // don't try to move this out, this causes a loop
-    const puzzleUserStatuses = userStatusesToLastSeen(
-      UserStatuses.find({ hunt: huntId }).fetch(),
-    );
-    const mappedUsers = Object.entries(puzzleUserStatuses).reduce((acc, k) => {
-      const [userId, statusInfo] = k;
-      const puzzleId = statusInfo.puzzleStatus.puzzle;
-      if (!puzzleId) {
-        return acc;
-      }
-      if (!acc[puzzleId]) {
-        acc[puzzleId] = [displayNames.get(userId)];
-      } else {
-        acc[puzzleId].push(displayNames.get(userId));
-      }
-      return acc;
-    }, {});
-    return mappedUsers;
-  }, [subscriptionsLoading, statusesLoading, huntId]);
-
-  const puzzleSubscribers = useTracker(() => {
-    const displayNames = indexedDisplayNames();
-
-    if (subscriptionsLoading) {
-      return { none: { none: [] } };
-    }
-
-    const puzzleSubs = {};
-
-    Peers.find({})
-      .fetch()
-      .forEach((s) => {
-        const puzzle = s.call;
-        const user = displayNames.get(s.createdBy);
-        if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
-          puzzleSubs[puzzle] = {
-            viewers: [],
-            callers: [],
-          };
-        }
-        if (!puzzleSubs[puzzle].callers.includes(user)) {
-          puzzleSubs[puzzle].callers.push(user);
-        }
-      });
-
-    Subscribers.find({}).forEach((s) => {
-      const puzzle = s.name.replace(/^puzzle:/, "");
-      const user = displayNames.get(s.user);
-      if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
-        puzzleSubs[puzzle] = {
-          viewers: [],
-          callers: [],
-        };
-      }
-      if (
-        !puzzleSubs[puzzle].callers.includes(user) &&
-        !puzzleSubs[puzzle].viewers.includes(user)
-      ) {
-        puzzleSubs[puzzle].viewers.push(user);
-      }
-    });
-    return puzzleSubs;
-  }, [subscriptionsLoading]);
 
   const renderList = useCallback(
     (
