@@ -1,15 +1,12 @@
 import { useTracker } from "meteor/react-meteor-data";
 import React, { useMemo } from "react";
-import { Alert } from "react-bootstrap";
 import { useParams } from "react-router-dom";
-import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import Hunts from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
-import nodeIsMention from "../../lib/nodeIsMention";
 import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
@@ -40,21 +37,6 @@ const PreWrapSpan = styled.span`
   white-space: pre-wrap;
   padding-left: 1em;
 `;
-
-function asFlatString(
-  chatMessage: ChatMessageType,
-  displayNames: Map<string, string>,
-): string {
-  return chatMessage.content.children
-    .map((child) => {
-      if (nodeIsMention(child)) {
-        return ` @${displayNames.get(child.userId) ?? "???"} `;
-      } else {
-        return child.text;
-      }
-    })
-    .join(" ");
-}
 
 const MoreAppPage = () => {
   const huntId = useParams<"huntId">().huntId!;

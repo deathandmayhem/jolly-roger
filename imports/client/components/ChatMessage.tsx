@@ -175,7 +175,7 @@ const ChatMessage = ({
               target="_blank"
               to={`/hunts/${puzzle.hunt}/puzzles/${child.puzzleId}`}
             >
-              {puzzle?.title ?? child.puzzleId}
+              {puzzle?.title ?? "(unnamed puzzle)"}
             </Link>
           </PuzzleSpan>
         );
@@ -183,7 +183,7 @@ const ChatMessage = ({
       return (
         <MentionSpan key={i} isSelf={false}>
           <FontAwesomeIcon icon={faPuzzlePiece} />{" "}
-          {puzzle?.title ?? child.puzzleId}
+          {puzzle?.title ?? "(unknown puzzle)"}
         </MentionSpan>
       );
     } else {

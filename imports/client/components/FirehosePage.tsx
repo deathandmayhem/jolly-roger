@@ -22,7 +22,6 @@ import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
 import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
-import nodeIsMention from "../../lib/nodeIsMention";
 import chatMessagesForFirehose from "../../lib/publications/chatMessagesForFirehose";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
@@ -30,6 +29,7 @@ import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import FixedLayout from "./styling/FixedLayout";
+import chatMessageNodeType from "../../lib/chatMessageNodeType";
 
 const FirehosePageLayout = styled.div`
   padding: 8px 15px;
@@ -48,6 +48,7 @@ interface MessageProps {
   msg: ChatMessageType;
   displayNames: Map<string, string>;
   puzzle: PuzzleType | undefined;
+  puzzleNames: Map<string, string>;
 }
 
 const PreWrapSpan = styled.span`
@@ -59,55 +60,61 @@ const PreWrapSpan = styled.span`
 function asFlatString(
   chatMessage: ChatMessageType,
   displayNames: Map<string, string>,
+  puzzleNames: Map<string, string>,
 ): string {
   return chatMessage.content.children
     .map((child) => {
-      if (nodeIsMention(child)) {
-        return ` @${displayNames.get(child.userId) ?? "???"} `;
-      } else {
-        return child.text;
+      switch (chatMessageNodeType(child)) {
+        case "puzzle":
+          return ` ${puzzleNames.get(child.puzzleId) ?? "???"}`;
+        case "mention":
+          return ` @${displayNames.get(child.userId) ?? "???"} `;
+        default:
+          return child.text;
       }
     })
     .join(" ");
 }
 
-const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
-  const ts = shortCalendarTimeFormat(msg.timestamp);
-  const displayName = msg.sender
-    ? (displayNames.get(msg.sender) ?? "???")
-    : "jolly-roger";
-  const messageText = asFlatString(msg, displayNames);
-  const hasNewline = messageText.includes("\n");
-  return (
-    <div>
-      <span>
-        [{ts}] [
-        {puzzle !== undefined ? (
-          <>
-            <span>{`${puzzle.deleted ? "deleted: " : ""}`}</span>
-            <a
-              href={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {puzzle.title}
-            </a>
-          </>
+const Message = React.memo(
+  ({ msg, displayNames, puzzle, puzzleNames }: MessageProps) => {
+    const ts = shortCalendarTimeFormat(msg.timestamp);
+    const displayName = msg.sender
+      ? (displayNames.get(msg.sender) ?? "???")
+      : "jolly-roger";
+    const messageText = asFlatString(msg, displayNames, puzzleNames);
+    const hasNewline = messageText.includes("\n");
+    return (
+      <div>
+        <span>
+          [{ts}] [
+          {puzzle !== undefined ? (
+            <>
+              <span>{`${puzzle.deleted ? "deleted: " : ""}`}</span>
+              <a
+                href={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {puzzle.title}
+              </a>
+            </>
+          ) : (
+            <span>deleted: no data</span>
+          )}
+          {"] "}
+          {displayName}
+          {": "}
+        </span>
+        {hasNewline ? (
+          <PreWrapSpan>{messageText}</PreWrapSpan>
         ) : (
-          <span>deleted: no data</span>
+          <span>{messageText}</span>
         )}
-        {"] "}
-        {displayName}
-        {": "}
-      </span>
-      {hasNewline ? (
-        <PreWrapSpan>{messageText}</PreWrapSpan>
-      ) : (
-        <span>{messageText}</span>
-      )}
-    </div>
-  );
-});
+      </div>
+    );
+  },
+);
 
 const MessagesPane = styled.div`
   overflow-y: scroll;
@@ -142,6 +149,13 @@ const FirehosePage = () => {
         : Puzzles.findAllowingDeleted({ hunt: huntId }).fetch(),
     [loading, huntId],
   );
+  const puzzleNames = useTracker(() => {
+    return (
+      allPuzzles?.reduce((mp, p) => {
+        return mp.set(p._id, p.title);
+      }, new Map<string, string>()) ?? new Map<string, string>()
+    );
+  });
   const puzzles = useMemo(() => {
     if (!allPuzzles) {
       return new Map<string, PuzzleType>();
@@ -200,6 +214,7 @@ const FirehosePage = () => {
         const haystackString = asFlatString(
           chatMessage,
           displayNames,
+          puzzleNames,
         ).toLowerCase();
         const senderDisplayName = (
           chatMessage.sender
@@ -328,6 +343,7 @@ const FirehosePage = () => {
                 msg={msg}
                 puzzle={puzzles.get(msg.puzzle)}
                 displayNames={displayNames}
+                puzzleNames={puzzleNames}
               />
             );
           })}
