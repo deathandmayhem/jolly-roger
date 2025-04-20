@@ -485,7 +485,7 @@ const PuzzleMetadataRow = styled.div`
 
 const PuzzleMetadataActionRow = styled(PuzzleMetadataRow)`
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 
   a {
     margin-right: 8px;
@@ -494,6 +494,8 @@ const PuzzleMetadataActionRow = styled(PuzzleMetadataRow)`
 
 const PuzzleMetadataButtons = styled.div`
   margin-left: auto;
+  display: flex;
+  flex-wrap: nowrap;
 
   button {
     margin: 2px 0 2px 8px;
@@ -1770,7 +1772,7 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
   );
 
   const onStartInsert = useCallback(
-    (e: MouseEvent) => {
+    (e: React.MouseEvent) => {
       e.preventDefault();
       setLoading(true);
 
@@ -2061,6 +2063,59 @@ const PuzzlePageMetadata = ({
     );
   }
 
+  // State and logic for conditional tag rendering
+  const actionRowRef = useRef<HTMLDivElement>(null);
+  const [tagsOnSeparateRow, setTagsOnSeparateRow] = useState(false);
+  const tagsOnSeparateRowRef = useRef(tagsOnSeparateRow);
+
+  useEffect(() => {
+    tagsOnSeparateRowRef.current = tagsOnSeparateRow;
+  }, [tagsOnSeparateRow]);
+
+  const checkTagLayout = useCallback(() => {
+    if (actionRowRef.current) {
+      // Threshold: height slightly larger than a single line of buttons/tags
+      const singleLineHeightThreshold = 35; // Adjust this value as needed
+      const currentHeight = actionRowRef.current.offsetHeight;
+      const shouldBeSeparate = currentHeight > singleLineHeightThreshold;
+      if (shouldBeSeparate !== tagsOnSeparateRowRef.current) {
+        tagsOnSeparateRowRef.current = shouldBeSeparate;
+        setTagsOnSeparateRow(shouldBeSeparate);
+      }
+    }
+  }, []);
+
+  // Check layout on mount and when tags change
+  useLayoutEffect(() => {
+    checkTagLayout();
+  }, [tags, checkTagLayout]); // Depend on tags
+
+  // Check layout on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      checkTagLayout();
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [checkTagLayout]);
+
+  const tagListElement = (
+    <StyledTagList
+      puzzle={puzzle}
+      tags={tags}
+      onCreateTag={onCreateTag}
+      onRemoveTag={onRemoveTag}
+      linkToSearch={false}
+      showControls={isDesktop}
+      popoverRelated
+      allPuzzles={allPuzzles}
+      allTags={allTags}
+      emptyMessage="No tags yet"
+    />
+  );
+
   return (
     <PuzzleMetadata>
       <PuzzleModalForm
@@ -2071,7 +2126,7 @@ const PuzzlePageMetadata = ({
         tags={allTags}
         onSubmit={onEdit}
       />
-      <PuzzleMetadataActionRow>
+      <PuzzleMetadataActionRow ref={actionRowRef}>
         <BookmarkButton
           puzzleId={puzzleId}
           bookmarked={bookmarked}
@@ -2080,6 +2135,7 @@ const PuzzlePageMetadata = ({
         />
         {puzzleLink}
         {documentLink}
+        {!tagsOnSeparateRow && tagListElement} {/* Render tags inline if they fit */}
         <PuzzleMetadataButtons>
           {togglePuzzleInset}
           {editButton}
@@ -2088,20 +2144,11 @@ const PuzzlePageMetadata = ({
         </PuzzleMetadataButtons>
       </PuzzleMetadataActionRow>
       <PuzzleMetadataRow>{answersElement}</PuzzleMetadataRow>
-      <PuzzleMetadataRow>
-        <StyledTagList
-          puzzle={puzzle}
-          tags={tags}
-          onCreateTag={onCreateTag}
-          onRemoveTag={onRemoveTag}
-          linkToSearch={false}
-          showControls={isDesktop}
-          popoverRelated
-          allPuzzles={allPuzzles}
-          allTags={allTags}
-          emptyMessage="No tags yet"
-        />
-      </PuzzleMetadataRow>
+      {tagsOnSeparateRow && ( /* Render tags on separate row if they wrapped */
+        <PuzzleMetadataRow>
+          {tagListElement}
+        </PuzzleMetadataRow>
+      )}
     </PuzzleMetadata>
   );
 };
