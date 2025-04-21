@@ -1,15 +1,15 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Logger from "../../Logger";
-import Hunts, { HuntPattern } from "../../lib/models/Hunts";
+import Hunts, { EditableHuntType, HuntPattern } from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
+import Settings from "../../lib/models/Settings";
 import { addUserToRole, checkAdmin } from "../../lib/permission_stubs";
-import createHunt from "../../methods/createHunt";
+import createHunt, { CreateHuntPayloadSchema } from "../../methods/createHunt";
 import addUsersToDiscordRole from "../addUsersToDiscordRole";
 import { ensureHuntFolder } from "../gdrive";
 import getOrCreateTagByName from "../getOrCreateTagByName";
 import defineMethod from "./defineMethod";
-import Settings from "../../lib/models/Settings";
 
 const DEFAULT_TAGS = [
   "is:meta",
@@ -24,7 +24,7 @@ const DEFAULT_TAGS = [
 
 defineMethod(createHunt, {
   validate(arg) {
-    check(arg, HuntPattern);
+    check(arg, CreateHuntPayloadSchema);
     return arg;
   },
 
@@ -34,19 +34,16 @@ defineMethod(createHunt, {
 
     Logger.info("Creating a new hunt", arg);
 
-    const huntId = await Hunts.insertAsync(arg);
+    const { initialTags, ...huntData } = arg;
+
+    const huntId = await Hunts.insertAsync(huntData);
     await addUserToRole(this.userId, huntId, "operator");
 
-    const defaultTags = await Settings.findOneAsync({
-      name: "server.settings",
-    });
-
-    const initialTags = defaultTags?.value.defaultHuntTags
-      ? defaultTags.value.defaultHuntTags?.split(",")
-      : DEFAULT_TAGS;
-
-    for (const tag of initialTags) {
-      await getOrCreateTagByName(huntId, tag.trim());
+    if (initialTags) {
+      const initialTagList = initialTags.split(",");
+      for (const tag of initialTagList) {
+        await getOrCreateTagByName(huntId, tag.trim());
+      }
     }
 
     Meteor.defer(async () => {

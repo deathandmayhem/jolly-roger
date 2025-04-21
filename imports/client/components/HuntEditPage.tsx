@@ -1,4 +1,3 @@
-import { on } from "node:events";
 import { useTracker } from "meteor/react-meteor-data";
 import { faInfo } from "@fortawesome/free-solid-svg-icons/faInfo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -19,7 +18,8 @@ import FormText from "react-bootstrap/FormText";
 import Row from "react-bootstrap/Row";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
-import Select, { ActionMeta } from "react-select";
+import type { ActionMeta } from "react-select";
+import Select from "react-select";
 import DiscordCache from "../../lib/models/DiscordCache";
 import Hunts from "../../lib/models/Hunts";
 import type {
@@ -215,6 +215,14 @@ const HuntEditPage = () => {
     return setting?.value.guild.id;
   }, []);
 
+  const defaultHuntTags = useTracker(() => {
+    const settings = Settings.findOne({ name: "server.settings" });
+    return (
+      settings?.value.defaultHuntTags ??
+      "is:meta, is:metameta, is:runaround, priority:high, priority:low, group:events, needs:extraction, needs:onsite"
+    );
+  }, []);
+
   const navigate = useNavigate();
 
   const footer = useRef<HTMLDivElement>(null);
@@ -223,6 +231,7 @@ const HuntEditPage = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   const [name, setName] = useState<string>(hunt?.name ?? "");
+  const [initialTags, setInitialTags] = useState<string>(defaultHuntTags);
   const [mailingLists, setMailingLists] = useState<string>(
     hunt?.mailingLists.join(", ") ?? "",
   );
@@ -285,6 +294,13 @@ const HuntEditPage = () => {
   const onNameChanged = useCallback<NonNullable<FormControlProps["onChange"]>>(
     (e) => {
       setName(e.currentTarget.value);
+    },
+    [],
+  );
+
+  const onTagsChanged = useCallback<NonNullable<FormControlProps["onChange"]>>(
+    (e) => {
+      setInitialTags(e.currentTarget.value);
     },
     [],
   );
@@ -470,7 +486,11 @@ const HuntEditPage = () => {
       if (huntId) {
         updateHunt.call({ huntId, value: state }, onFormCallback);
       } else {
-        createHunt.call(state, onFormCallback);
+        const createPayload = {
+          ...state,
+          initialTags,
+        };
+        createHunt.call(createPayload, onFormCallback);
       }
     },
     [
@@ -494,6 +514,7 @@ const HuntEditPage = () => {
       originalHuntUrlRegex,
       huntId,
       onFormCallback,
+      initialTags,
     ],
   );
 
@@ -541,6 +562,22 @@ const HuntEditPage = () => {
             />
           </Col>
         </FormGroup>
+        {huntId ? null : (
+          <FormGroup as={Row} className="mb-3">
+            <FormLabel column xs={3} htmlFor="hunt-form-name">
+              Initial tags
+            </FormLabel>
+            <Col xs={9}>
+              <FormControl
+                id="hunt-form-name"
+                type="text"
+                value={initialTags}
+                onChange={onTagsChanged}
+                disabled={disableForm}
+              />
+            </Col>
+          </FormGroup>
+        )}
 
         <h3>Users and permissions</h3>
 

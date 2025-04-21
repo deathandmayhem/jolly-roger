@@ -1,6 +1,11 @@
-import type { EditableHuntType } from "../lib/models/Hunts";
+import { HuntPattern } from "../lib/models/Hunts";
 import TypedMethod from "./TypedMethod";
 
-export default new TypedMethod<EditableHuntType, string>(
+export const CreateHuntPayloadSchema = {
+  ...HuntPattern,
+  initialTags: String,
+};
+
+export default new TypedMethod<CreateHuntPayloadSchema, string>(
   "Hunts.methods.create",
 );
