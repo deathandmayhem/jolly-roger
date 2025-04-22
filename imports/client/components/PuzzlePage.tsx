@@ -121,7 +121,7 @@ import {
 import { mediaBreakpointDown } from "./styling/responsive";
 import { ButtonGroup, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 import removeChatMessage from "../../methods/removeChatMessage";
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
+import { faCross, faExternalLinkAlt, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { Theme } from "../theme";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import chatMessageNodeType from "../../lib/chatMessageNodeType";
@@ -632,12 +632,10 @@ const ImagePreview = styled.img`
   border: 1px solid #ccc;
 `;
 
-const RemoveImageButton = styled.button`
+const RemoveImageButton = styled(Button)`
   position: absolute;
   top: -5px;
   right: -5px;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
   border: none;
   border-radius: 50%;
   width: 20px;
@@ -1631,13 +1629,14 @@ const ChatInput = React.memo(
     const handlePaste = useCallback(
       (event: React.ClipboardEvent<HTMLDivElement>) => {
         if (!s3Configured) return;
+
         const items = (event.clipboardData || (window as any).clipboardData)?.items;
         if (!items) return;
 
         const filesToProcess: File[] = [];
         for (let index in items) {
           const item = items[index];
-          if (item.kind === "file" && item.type.startsWith("image/")) {
+          if (item.kind === 'file' && item.type.startsWith('image/')) {
             const file = item.getAsFile();
             if (file) {
               filesToProcess.push(file);
@@ -1646,7 +1645,7 @@ const ChatInput = React.memo(
         }
 
         if (filesToProcess.length > 0) {
-          event.preventDefault(); // Prevent pasting into editor
+          event.preventDefault();
           addFilesForUpload(filesToProcess);
         }
       },
@@ -1854,6 +1853,10 @@ const ChatInput = React.memo(
         </ReplyingTo>
       )}
       {imagePreviews.map((preview, index) => (
+        <ImagePreviewWrapper>
+          <RemoveImageButton variant="danger" onClick={() => handleRemoveImage(index)}>
+            <FontAwesomeIcon icon={faXmark} />
+          </RemoveImageButton>
           <ImagePreview key={index} src={preview} alt="Preview" />
         ))}
         {uploadingImages.length > 0 && !s3Configured && (
@@ -1874,6 +1877,7 @@ const ChatInput = React.memo(
             onContentChange={onContentChange}
             onSubmit={sendContentMessage}
             disabled={disabled}
+            onPaste={handlePaste}
           />
             <FormGroup>
           <ButtonGroup>
@@ -1883,7 +1887,7 @@ const ChatInput = React.memo(
             onMouseDown={preventDefaultCallback}
             disabled={disabled || !hasNonTrivialContent}
           >
-            <FontAwesomeIcon icon={faPaperPlane} />
+          {isUploading ? <FontAwesomeIcon icon={faSpinner} spin /> : <FontAwesomeIcon icon={faPaperPlane} />}
           </Button>
           {s3Configured && (
             <>
@@ -1895,16 +1899,15 @@ const ChatInput = React.memo(
                 style={{ display: "none" }}
                 id="image-upload-input"
               />
-              <FormLabel htmlFor="image-upload-input">
-                <Button variant="secondary">
-                  <FontAwesomeIcon icon={faImage} />
-                </Button>
-              </FormLabel>
-              </>
+              <Button variant="secondary" onClick={triggerFileInput} disabled={isUploading}>
+                <FontAwesomeIcon icon={faImage} />
+              </Button>
+            </>
           )}
           </ButtonGroup>
           </FormGroup>
         </InputGroup>
+        {uploadError && <Alert variant="danger" className="mt-2 p-1">{uploadError}</Alert>}
       </ChatInputRow>
     );
   },

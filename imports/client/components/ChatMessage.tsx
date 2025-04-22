@@ -202,6 +202,103 @@ const ChatMessage = ({
         </span>
       ) : null}
       {children}
+      {attachments?.map((a) => {
+        const isImage = a.mimeType.startsWith("image/");
+        if (isImage) {
+          const imageIndex = imageAttachments.findIndex(
+            (img) => img.url === a.url,
+          );
+          return (
+            <React.Fragment key={a.url}>
+              <br />
+              <AttachmentLinkTrigger
+                href={a.url}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (imageIndex >= 0) {
+                    openLightbox(imageIndex);
+                  }
+                }}
+                title={`View image: ${a.filename}`}
+              >
+                <small>
+                  <FontAwesomeIcon icon={faPaperclip} size="sm" />{" "}
+                  <em>{a.filename}</em>
+                </small>
+              </AttachmentLinkTrigger>
+            </React.Fragment>
+          );
+        } else {
+          return (
+            <React.Fragment key={a.url}>
+              <br />
+              <Link
+                to={a.url}
+                target="_blank"
+                title={`Download: ${a.filename}`}
+                download={imageAttachments[currentImageIndex]?.filename}
+              >
+                <small>
+                  <FontAwesomeIcon icon={faPaperclip} size="sm" />{" "}
+                  <em>{a.filename}</em>
+                </small>
+              </Link>
+            </React.Fragment>
+          );
+        }
+      })}
+      {isLightboxOpen && imageAttachments.length > 0 && (
+        <LightboxOverlay onClick={handleOverlayClick}>
+          <LightboxContent>
+            <LightboxButton
+              $position="center-left"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateLightbox("prev");
+              }}
+              title="Previous image (Left arrow)"
+            >
+              <FontAwesomeIcon icon={faChevronLeft} size="xs" />
+            </LightboxButton>
+
+            <LightboxImage
+              src={imageAttachments[currentImageIndex]?.url}
+              alt={imageAttachments[currentImageIndex]?.filename}
+              onClick={(e) => e.stopPropagation()}
+            />
+            <LightboxButton
+              $position="center-right"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateLightbox("next");
+              }}
+              title="Next image (Right arrow)"
+            >
+              <FontAwesomeIcon icon={faChevronRight} size="xs" />
+            </LightboxButton>
+            <TopRightButtonGroup>
+              <Link
+                to={imageAttachments[currentImageIndex]?.url}
+                target="_blank"
+                download={imageAttachments[currentImageIndex]?.filename}
+              >
+                <LightboxButton title="Download">
+                  <FontAwesomeIcon icon={faDownload} size="2xs" />
+                </LightboxButton>
+              </Link>
+              <LightboxButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeLightbox();
+                }}
+                title="Close lightbox (Escape)"
+              >
+                <FontAwesomeIcon icon={faTimes} size="xs" />
+              </LightboxButton>
+            </TopRightButtonGroup>
+          </LightboxContent>
+        </LightboxOverlay>
+      )}
     </div>
   );
 };

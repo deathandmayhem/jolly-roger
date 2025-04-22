@@ -602,6 +602,7 @@ const Portal = ({ children }: { children: React.ReactNode }) => {
 
 export interface FancyEditorHandle {
   clearInput: () => void;
+  focus: () => void;
 }
 
 const FancyEditor = React.forwardRef(
@@ -615,6 +616,7 @@ const FancyEditor = React.forwardRef(
       onContentChange,
       onSubmit,
       disabled,
+      onPaste,
     }: {
       className?: string;
       initialContent: Descendant[];
@@ -624,6 +626,7 @@ const FancyEditor = React.forwardRef(
       onContentChange: (content: Descendant[]) => void;
       onSubmit: () => void;
       disabled?: boolean;
+      onPaste: React.ClipboardEventHandler<HTMLDivElement>;
     },
     forwardedRef: React.Ref<FancyEditorHandle>,
   ) => {
@@ -981,6 +984,7 @@ const FancyEditor = React.forwardRef(
           renderPlaceholder={renderPlaceholder}
           onKeyDown={onKeyDown}
           readOnly={disabled}
+          onPaste={onPaste}
         />
       </Slate>
     );
