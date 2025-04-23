@@ -3,6 +3,7 @@ import { Random } from "meteor/random";
 import { useFind, useSubscribe, useTracker } from "meteor/react-meteor-data";
 import EmojiPicker from "emoji-picker-react";
 import { EmojiStyle } from "emoji-picker-react";
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt";
 import { faFaceSmile } from "@fortawesome/free-solid-svg-icons/faFaceSmile";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons/faChevronRight";
@@ -10,10 +11,12 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
 import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
+import { faPaperclip } from "@fortawesome/free-solid-svg-icons/faPaperclip";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
+import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
 import { faReply } from "@fortawesome/free-solid-svg-icons/faReply";
@@ -119,9 +122,8 @@ import {
   SolvedPuzzleBackgroundColor,
 } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { ButtonGroup, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
+import { ButtonGroup, Offcanvas, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 import removeChatMessage from "../../methods/removeChatMessage";
-import { faCross, faExternalLinkAlt, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { Theme } from "../theme";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import chatMessageNodeType from "../../lib/chatMessageNodeType";
@@ -1054,6 +1056,7 @@ const ChatHistory = React.forwardRef(
       setReplyingTo,
       replyingTo,
       puzzles,
+      chatMessages,
     }: {
       puzzleId: string;
       displayNames: Map<string, string>;
@@ -1063,6 +1066,7 @@ const ChatHistory = React.forwardRef(
       setReplyingTo: (messageId: string | null) => void;
       replyingTo: string | null;
       puzzles: PuzzleType[];
+      chatMessages: FilteredChatMessageType[];
     },
     forwardedRef: React.Ref<ChatHistoryHandle>,
   ) => {
@@ -1920,6 +1924,74 @@ interface ChatSectionHandle {
   snapToBottom: () => void;
 }
 
+const AttachmentsSection = React.forwardRef(
+  (
+    {
+      chatMessages,
+      displayNames,
+      puzzleData,
+    } :
+    {
+      chatMessages: FilteredChatMessageType[];
+      displayNames: Map<string, string>;
+      puzzleData: Map<string, PuzzleType>;
+    }
+  ) => {
+    const [showAttachmentsPane, setShowAttachmentsPane] = useState<boolean>(false);
+    const handleClose = useCallback(()=>{
+      setShowAttachmentsPane(false);
+    },[setShowAttachmentsPane]);
+    const handleOpen = useCallback(()=>{
+      setShowAttachmentsPane(true);
+    },[setShowAttachmentsPane]);
+    const hasAttachments = chatMessages.filter((c)=>{
+      return c.attachments && c.attachments.length >= 1;
+    });
+    const attachmentCount = hasAttachments.reduce((arr, cm)=>{
+      cm.attachments?.forEach((att)=>arr.push(att));
+      return arr;
+    },[])
+    return (
+      <>
+        {hasAttachments.length >= 1 && (
+          <>
+            <Button size="sm" onClick={handleOpen}>
+              <FontAwesomeIcon icon={faPaperclip} />{" "}
+              Attachments
+              <Badge bg="secondary" pill>{attachmentCount.length}</Badge>
+            </Button>
+            <Offcanvas show={showAttachmentsPane} onHide={handleClose}>
+              <Offcanvas.Header closeButton>
+                <strong>Messages with attachments</strong>
+              </Offcanvas.Header>
+              <Offcanvas.Body>
+                {hasAttachments.map((cm)=>(
+                  <ChatMessageDiv
+                  $isSystemMessage={false}
+                  $isHighlighted={false}
+                  $isPinned={false}
+                  $isHovered={false}
+                  $isPulsing={false}
+                  $isReplyingTo={false}
+                >
+                  <ChatMessageTimestamp>{shortCalendarTimeFormat(cm.timestamp)}</ChatMessageTimestamp>
+                    <span style={{ display: "flex", alignItems: "center" }}>
+                      <strong>
+                        {cm.sender ? displayNames.get(cm.sender) : "???"}
+                      </strong>
+                    </span>
+                  <ChatMessage message={cm.content} displayNames={displayNames} puzzleData={puzzleData} selfUserId={""} attachments={cm.attachments}/>
+                </ChatMessageDiv>
+              ))}
+              </Offcanvas.Body>
+            </Offcanvas>
+          </>
+        )}
+      </>
+    );
+  }
+)
+
 const ChatSection = React.forwardRef(
   (
     {
@@ -2019,6 +2091,17 @@ const ChatSection = React.forwardRef(
 
     trace("ChatSection render", { chatDataLoading });
 
+    const chatMessages: FilteredChatMessageType[] = useFind(
+      () => ChatMessages.find({ puzzle: puzzleId }, { sort: { timestamp: 1 } }),
+      [puzzleId],
+    );
+
+    const puzzlesById = useTracker(()=>{
+      return puzzles.reduce((acc, puz)=>{
+        return acc.set(puz._id, puz)
+      }, new Map<string, PuzzleType>())
+    }, [puzzles])
+
     if (chatDataLoading) {
       return <ChatSectionDiv>loading...</ChatSectionDiv>;
     }
@@ -2053,6 +2136,7 @@ const ChatSection = React.forwardRef(
           setPulsingMessageId={setPulsingMessageId}
           setReplyingTo={setReplyingTo}
           replyingTo={replyingTo}
+          chatMessages={chatMessages}
         />
         <ChatInput
           huntId={huntId}
@@ -2066,11 +2150,17 @@ const ChatSection = React.forwardRef(
           puzzles={puzzles}
           scrollToMessage={scrollToMessage}
         />
+        <AttachmentsMemo
+          chatMessages={chatMessages}
+          displayNames={displayNames}
+          puzzleData={puzzlesById}
+        />
       </ChatSectionDiv>
     );
   },
 );
 const ChatSectionMemo = React.memo(ChatSection);
+const AttachmentsMemo = React.memo(AttachmentsSection);
 
 const InsertImage = ({ documentId }: { documentId: string }) => {
   useSubscribe("googleScriptInfo");
