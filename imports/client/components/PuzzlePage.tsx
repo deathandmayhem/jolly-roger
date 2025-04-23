@@ -1843,6 +1843,10 @@ const ChatInput = React.memo(
       return undefined;
     }, [parentMessage, displayNames]);
 
+    const showSendButton = useTracker(()=>{
+      return imagePreviews.length > 0 || JSON.stringify(content) !== JSON.stringify(initialValue);
+    }, [imagePreviews.length, content, initialValue])
+
     return (
       <ChatInputRow>
       {replyingTo && parentSenderName && (
@@ -1886,14 +1890,19 @@ const ChatInput = React.memo(
           />
             <FormGroup>
           <ButtonGroup>
-          <Button
-            variant="secondary"
-            onClick={sendContentMessage}
-            onMouseDown={preventDefaultCallback}
-            disabled={disabled || !hasNonTrivialContent}
-          >
-          {isUploading ? <FontAwesomeIcon icon={faSpinner} spin /> : <FontAwesomeIcon icon={faPaperPlane} />}
-          </Button>
+            {
+              showSendButton &&
+                (
+                  <Button
+                    variant="secondary"
+                    onClick={sendContentMessage}
+                    onMouseDown={preventDefaultCallback}
+                    disabled={disabled || !hasNonTrivialContent}
+                  >
+                  {isUploading ? <FontAwesomeIcon icon={faSpinner} spin /> : <FontAwesomeIcon icon={faPaperPlane} />}
+                  </Button>
+                )
+            }
           {s3Configured && (
             <>
               <FormControl
