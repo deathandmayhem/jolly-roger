@@ -122,6 +122,7 @@ const ChatPeople = ({
   callDispatch: React.Dispatch<Action>;
 }) => {
   const [error, setError] = useState<string>("");
+  const [pushedToTalk, setPushedToTalk] = useState<boolean>(false);
   const chatterRef = useRef<HTMLDivElement>(null);
 
   const { audioControls, audioState } = callState;
@@ -249,6 +250,58 @@ const ChatPeople = ({
   }, []);
 
   const { muted, deafened } = audioControls;
+
+  const maybePushToTalk = useCallback(
+    (e: KeyboardEvent) => {
+      if (
+        e.ctrlKey &&
+        e.key === " " &&
+        e.type === "keydown" &&
+        !pushedToTalk &&
+        muted &&
+        !e.repeat
+      ) {
+        e.preventDefault();
+        setPushedToTalk(true);
+        callDispatch({ type: "toggle-mute" });
+      } else if (
+        e.key === " " &&
+        e.type === "keyup" &&
+        pushedToTalk &&
+        !muted
+      ) {
+        e.preventDefault();
+        callDispatch({ type: "toggle-mute" });
+        setPushedToTalk(false);
+      }
+    },
+    [callDispatch, muted, pushedToTalk],
+  );
+
+  // eslint-disable-next-line consistent-return
+  useEffect(() => {
+    if (callState.callState === CallJoinState.IN_CALL) {
+      window.addEventListener("keydown", maybePushToTalk);
+      window.addEventListener("keyup", maybePushToTalk);
+
+      return () => {
+        window.removeEventListener("keydown", maybePushToTalk);
+        window.removeEventListener("keyup", maybePushToTalk);
+        if (pushedToTalk) {
+          setPushedToTalk(false);
+        }
+      };
+    } else {
+      window.removeEventListener("keydown", maybePushToTalk);
+      window.removeEventListener("keyup", maybePushToTalk);
+
+      if (pushedToTalk) {
+        setPushedToTalk(false);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      return () => {};
+    }
+  }, [callDispatch, callState.callState, maybePushToTalk, pushedToTalk]);
 
   const joinCall = useCallback(() => {
     void (async () => {
