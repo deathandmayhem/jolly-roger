@@ -100,13 +100,14 @@ export type CallState = (
   // after a server disconnection (rather than a user hang-up) since the state
   // there shouldn't be considered to have changed.
   allowInitialPeerStateNotification: boolean;
+  initialMuted?: boolean;
   remoteMutedBy: string | undefined;
 };
 
 export type Action =
   | { type: "request-capture" }
   | { type: "capture-error"; error: Error }
-  | { type: "join-call"; audioState: AudioState }
+  | { type: "join-call"; audioState: AudioState; initialMute?: boolean }
   | { type: "set-device"; device: types.Device | undefined }
   | {
       type: "set-transport";
@@ -162,15 +163,19 @@ function reducer(state: CallState, action: Action): CallState {
     case "capture-error":
       return { ...state, callState: CallJoinState.STREAM_ERROR };
     case "join-call":
+      action.audioState.mediaSource?.getAudioTracks().forEach((track) => {
+        track.enabled = !(action.initialMute ?? false);
+      });
       return {
         ...state,
         callState: CallJoinState.IN_CALL,
         audioState: action.audioState,
         audioControls: {
-          muted: false,
+          muted: action.initialMute ?? false,
           deafened: false,
         },
         allowInitialPeerStateNotification: true,
+        initialMuted: action.initialMute ?? false,
       };
     case "set-device":
       return {
@@ -272,7 +277,7 @@ function reducer(state: CallState, action: Action): CallState {
         switch (action.selfPeer.initialPeerState) {
           case "active":
             audioControls = {
-              muted: false,
+              muted: state.initialMuted ?? false,
               deafened: false,
             };
             break;

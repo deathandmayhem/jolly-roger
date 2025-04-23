@@ -622,7 +622,11 @@ const CallSection = ({
       {joiningCallAlert}
       <Overlay
         target={muteRef.current}
-        show={callState.allowInitialPeerStateNotification && muted}
+        show={
+          callState.allowInitialPeerStateNotification &&
+          muted &&
+          !callState.initialMuted
+        }
         placement="bottom"
       >
         <Tooltip id="muted-on-join-notification">

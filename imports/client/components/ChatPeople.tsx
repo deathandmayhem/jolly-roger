@@ -300,6 +300,57 @@ const ChatPeople = ({
     })();
   }, [callDispatch]);
 
+  const joinMuted = useCallback(() => {
+    void (async () => {
+      trace("ChatPeople joinCall");
+      if (navigator.mediaDevices) {
+        callDispatch({ type: "request-capture" });
+        const preferredAudioDeviceId =
+          localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ?? undefined;
+        // Get the user media stream.
+        const mediaStreamConstraints = {
+          audio: {
+            echoCancellation: { ideal: true },
+            autoGainControl: { ideal: true },
+            noiseSuppression: { ideal: true },
+            deviceId: preferredAudioDeviceId,
+          },
+          // TODO: conditionally allow video if enabled by feature flag?
+        };
+
+        let mediaSource: MediaStream;
+        try {
+          mediaSource = await navigator.mediaDevices.getUserMedia(
+            mediaStreamConstraints,
+          );
+        } catch (e) {
+          setError(`Couldn't get local microphone: ${(e as Error).message}`);
+          callDispatch({ type: "capture-error", error: e as Error });
+          return;
+        }
+
+        const AudioContext =
+          window.AudioContext ||
+          (window as { webkitAudioContext?: AudioContext }).webkitAudioContext;
+        const audioContext = new AudioContext();
+
+        callDispatch({
+          type: "join-call",
+          audioState: {
+            mediaSource,
+            audioContext,
+          },
+          initialMute: true,
+        });
+      } else {
+        const msg =
+          "Couldn't get local microphone: browser denies access on non-HTTPS origins";
+        setError(msg);
+        callDispatch({ type: "capture-error", error: new Error(msg) });
+      }
+    })();
+  }, [callDispatch]);
+
   useLayoutEffect(() => {
     trace("ChatPeople useLayoutEffect", {
       loading,
@@ -341,12 +392,18 @@ const ChatPeople = ({
       case CallJoinState.REQUESTING_STREAM: {
         const joinLabel =
           rtcViewers.length > 0 ? "Join audio call" : "Start audio call";
+        const joinMutedButton = rtcViewers.length > 0 && (
+          <AVButton variant="secondary" size="sm" onClick={joinMuted}>
+            Join muted
+          </AVButton>
+        );
         return (
           <>
             <AVActions>
               <AVButton variant="primary" size="sm" onClick={joinCall}>
                 {joinLabel}
               </AVButton>
+              {joinMutedButton}
             </AVActions>
             <ChatterSubsection>
               <PeopleListHeader onClick={toggleCallersExpanded}>
