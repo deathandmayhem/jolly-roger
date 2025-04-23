@@ -32,7 +32,7 @@ import FormLabel from "react-bootstrap/FormLabel";
 import InputGroup from "react-bootstrap/InputGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import isAdmin from "../../lib/isAdmin";
 import { sortedBy } from "../../lib/listUtils";
@@ -557,6 +557,11 @@ const PuzzleListView = ({
           puzzles
         </Alert>
       );
+      const singleMatchMessage = retainedPuzzles.length === 1 && (
+        <Alert variant="info">
+          Press <kbd>Enter</kbd> to go to the puzzle
+        </Alert>
+      );
       const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
       const filterMessage = `Showing ${retainedPuzzles.length} of ${allPuzzlesCount} rows`;
 
@@ -638,6 +643,7 @@ const PuzzleListView = ({
       return (
         <div>
           {maybeMatchWarning}
+          {singleMatchMessage}
           <PuzzleListToolbar>
             <div>{listControls}</div>
             <div>{filterMessage}</div>
@@ -689,7 +695,7 @@ const PuzzleListView = ({
     },
     [
       displayMode,
-      bookmarked,
+      bookmarked,puzzlesMatchingSearchString
       allTags,
       canUpdate,
       showSolvers,
@@ -766,6 +772,22 @@ const PuzzleListView = ({
       ? "Filter by title, answer, tag, or solver"
       : "Filter by title, answer, or tag";
   }, [showSolvers]);
+
+
+
+  const onSubmitSearch: NonNullable<FormControlProps["onKeyDown"]> =
+    useCallback(
+      (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter"){
+          const huntId = retainedPuzzles[0]?.hunt;
+          const puzzleId = retainedPuzzles[0]?._id;
+          if (huntId && puzzleId && retainedPuzzles.length === 1){
+            return navigate(`/hunts/${huntId}/puzzles/${puzzleId}`);
+          }
+        }
+      },
+      [retainedPuzzles],
+    );
 
   return (
     <div>
@@ -872,6 +894,7 @@ const PuzzleListView = ({
               placeholder={filterText}
               value={searchString}
               onChange={onSearchStringChange}
+              onKeyDown={onSubmitSearch}
             />
             <Button variant="secondary" onClick={clearSearch}>
               <FontAwesomeIcon icon={faEraser} content="erase-filter" />
