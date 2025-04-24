@@ -2547,7 +2547,7 @@ const PuzzlePageMetadata = ({
     />
   );
 
-  const minimizeMetadataButton = (<Button onClick={toggleMetadataMinimize} size="sm">
+  const minimizeMetadataButton = (<Button onClick={toggleMetadataMinimize} size="sm" title="Hide puzzle information">
     <FontAwesomeIcon icon={faAngleDoubleUp} />
   </Button>);
 
@@ -3721,7 +3721,7 @@ const PuzzlePage = React.memo(() => {
   const effectiveSidebarWidth = isChatMinimized ? 0 : sidebarWidth;
 
   const showMetadataButton = isMetadataMinimized ? (
-    <PuzzleMetadataFloatingButton ref={restoreButtonRef} variant="secondary" size="sm" onClick={toggleMetadata}>
+    <PuzzleMetadataFloatingButton ref={restoreButtonRef} variant="secondary" size="sm" onClick={toggleMetadata} title="Show puzzle information">
       <FontAwesomeIcon icon={faAngleDoubleDown} />
     </PuzzleMetadataFloatingButton>
   ) : null;
