@@ -2,6 +2,7 @@ import Flags from "../../Flags";
 import {
   normalizedForDingwordSearch,
   normalizedMessageDingsUserByDingword,
+  normalizedMessageDingsUserByDingwordOnce,
 } from "../../lib/dingwordLogic";
 import ChatMessages from "../../lib/models/ChatMessages";
 import ChatNotifications from "../../lib/models/ChatNotifications";
@@ -24,6 +25,8 @@ const ChatNotificationHooks: Hookset = {
 
     // Collect users to notify into a set, and then create notifications at the end.
     const usersToNotify = new Set<string>();
+    const matchOnceUpdates: { userId: string; words: string[] }[] = [];
+
     if (!sender) {
       // Don't notify for system messages.
       return;
@@ -58,7 +61,13 @@ const ChatNotificationHooks: Hookset = {
           "dingwords.0": { $exists: true },
         },
         {
-          fields: { _id: 1, dingwords: 1, dingwordsOpenMatch: 1 },
+          fields: {
+            _id: 1,
+            dingwords: 1,
+            dingwordsOpenMatch: 1,
+            dingwordsMatchOnce: 1,
+            dingwordsMatchedOnce: 1,
+          },
         },
       )) {
         // Avoid making users ding themselves.
@@ -66,10 +75,21 @@ const ChatNotificationHooks: Hookset = {
           continue;
         }
 
-        console.log(u);
-
         if (normalizedMessageDingsUserByDingword(normalizedText, u)) {
           usersToNotify.add(u._id);
+        }
+
+        const onceOnlyMatches = normalizedMessageDingsUserByDingwordOnce(
+          normalizedText,
+          u,
+          chatMessage,
+        );
+        if (onceOnlyMatches.length > 0) {
+          usersToNotify.add(u._id);
+          matchOnceUpdates.push({
+            userId: u._id,
+            words: onceOnlyMatches,
+          });
         }
       }
     }
@@ -91,6 +111,25 @@ const ChatNotificationHooks: Hookset = {
         });
       }),
     );
+
+    if (matchOnceUpdates.length > 0) {
+      const bulkUpdate = matchOnceUpdates.map(({ userId, words }) => ({
+        updateOne: {
+          filter: { _id: userId },
+          update: {
+            $addToSet: {
+              [`dingwordsMatchedOnce.${chatMessage.hunt}.${chatMessage.puzzle}`]:
+                { $each: words },
+            },
+          },
+        },
+      }));
+      if (bulkUpdate.length > 0) {
+        await MeteorUsers.rawCollection().bulkWrite(bulkUpdate, {
+          ordered: false,
+        });
+      }
+    }
 
     await UserStatuses.upsertAsync(
       {

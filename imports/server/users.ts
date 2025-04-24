@@ -19,6 +19,8 @@ const profileFields: Record<ProfileFields, 1> = {
   phoneNumber: 1,
   dingwords: 1,
   dingwordsOpenMatch: 1,
+  dingwordsMatchOnce: 1,
+  dingwordsMatchedOnce: 1,
 };
 
 // This overrides the default set of fields that are published to the

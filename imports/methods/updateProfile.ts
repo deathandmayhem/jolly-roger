@@ -6,6 +6,7 @@ export default new TypedMethod<
     phoneNumber?: string;
     dingwords: string[];
     dingwordsOpenMatch?: boolean;
+    dingwordsMatchOnce: string[];
   },
   void
 >("Users.methods.updateProfile");

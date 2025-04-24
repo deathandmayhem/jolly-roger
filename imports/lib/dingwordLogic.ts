@@ -2,6 +2,7 @@ import type { Meteor } from "meteor/meteor";
 import type { ChatMessageType } from "./models/ChatMessages";
 import nodeIsMention from "./nodeIsMention";
 import nodeIsText from "./nodeIsText";
+import { trace } from "console";
 
 const NeededChatFields = ["content", "sender"] as const;
 type PartialChatMessageType = Pick<
@@ -39,6 +40,47 @@ export function normalizedMessageDingsUserByDingword(
     }
     return normalizedMessage.match(new RegExp(`\\b${dingword}\\b`, "i"));
   });
+}
+
+export function normalizedMessageDingsUserByDingwordOnce(
+  normalizedMessage: string,
+  user: Pick<
+    Meteor.User,
+    "dingwordsMatchOnce" | "dingwordsMatchedOnce" | "dingwordsOpenMatch"
+  >,
+  message: Pick<ChatMessageType, "hunt" | "puzzle">,
+): string[] {
+  const potentialDingwords = user.dingwordsMatchOnce;
+  if (
+    !potentialDingwords ||
+    potentialDingwords.length === 0 ||
+    !normalizedMessage
+  ) {
+    return [];
+  }
+  const usedWordsForPuzzle =
+    user.dingwordsMatchedOnce?.[message.hunt]?.[message.puzzle] ?? [];
+
+  const availableDingwords = potentialDingwords.filter(
+    (dw) => !usedWordsForPuzzle.includes(dw),
+  );
+
+  if (availableDingwords.length === 0) {
+    return [];
+  }
+
+  const newlyMatchedWords: string[] = [];
+  for (const dingword of availableDingwords) {
+    if (user.dingwordsOpenMatch) {
+      if (normalizedMessage.match(new RegExp(`\\b${dingword}`, "i"))) {
+        newlyMatchedWords.push(dingword);
+      }
+    } else if (normalizedMessage.match(new RegExp(`\\b${dingword}\\b`, "i"))) {
+      newlyMatchedWords.push(dingword);
+    }
+  }
+
+  return newlyMatchedWords;
 }
 
 export function messageDingsUser(
