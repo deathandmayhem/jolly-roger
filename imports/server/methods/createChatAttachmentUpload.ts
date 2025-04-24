@@ -14,7 +14,7 @@ defineMethod(createChatAttachmentUpload, {
     check(arg, {
       puzzleId: String,
       filename: String,
-      mimeType: String, // Consider adding validation for allowed mime types if needed
+      mimeType: String,
     });
 
     return arg;
