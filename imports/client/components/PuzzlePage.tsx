@@ -2590,6 +2590,7 @@ const PuzzlePageMetadata = ({
         key="puzzle-resource-selector"
         id="puzzle-resource-selector"
         size="sm"
+        variant={allDocs.length > 1 ? "primary" : "secondary"}
         onSelect={switchOrCreateDocument}
         title={toTitleCase(allDocs[selectedDocumentIndex]?.value.type ?? "")}
       >
