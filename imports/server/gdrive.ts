@@ -14,6 +14,8 @@ import GoogleClient from "./googleClientRefresher";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import HuntFolders from "./models/HuntFolders";
 import withLock from "./withLock";
+import { PuzzleType } from "../lib/models/Puzzles";
+import { createdTimestamp } from "../lib/models/customTypes";
 
 async function checkClientOk() {
   if (!GoogleClient.ready()) {
@@ -263,23 +265,26 @@ export async function ensureHuntFolderPermission(
 }
 
 export async function ensureDocument(
-  puzzle: {
-    _id: string;
-    title: string;
-    hunt: string;
-  },
+  puzzle:
+    | {
+        _id: string;
+        title: string;
+        hunt: string;
+      }
+    | PuzzleType,
   type: GdriveMimeTypesType = "spreadsheet",
+  additionalDocument = false,
 ) {
   const hunt = await Hunts.findOneAllowingDeletedAsync(puzzle.hunt);
   const folderId = hunt ? await ensureHuntFolder(hunt) : undefined;
 
   let doc = await Documents.findOneAsync({ puzzle: puzzle._id });
-  if (!doc) {
+  if (!doc || (additionalDocument && doc.value.type !== type)) {
     await checkClientOk();
 
     await withLock(`puzzle:${puzzle._id}:documents`, async () => {
       doc = await Documents.findOneAsync({ puzzle: puzzle._id });
-      if (!doc) {
+      if (!doc || (additionalDocument && doc.value.type !== type)) {
         Logger.info("Creating missing document for puzzle", {
           puzzle: puzzle._id,
         });
@@ -296,7 +301,9 @@ export async function ensureDocument(
           value: { type, id: googleDocId, folder: folderId },
         };
         const docId = await Documents.insertAsync(newDoc);
-        doc = await Documents.findOneAsync(docId)!;
+        doc = await Documents.findOneAsync(docId, {
+          sort: { createdTimestamp: -1 },
+        })!;
       }
     });
   }

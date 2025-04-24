@@ -4,6 +4,8 @@ import SoftDeletedModel from "./SoftDeletedModel";
 import { foreignKey, nonEmptyString } from "./customTypes";
 import withCommon from "./withCommon";
 
+export const DOCUMENT_TYPES = ["spreadsheet", "document"];
+
 const DocumentSchema = withCommon(
   z
     .object({
