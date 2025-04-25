@@ -135,6 +135,7 @@ import { usePersistedSidebarWidth } from "../hooks/persisted-state";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons";
 import createPuzzleDocument from "../../methods/createPuzzleDocument";
+import { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -2455,9 +2456,9 @@ const PuzzlePageMetadata = ({
     <Dropdown.Item
     onClick={handleShowButtonClick}
     onMouseEnter={handleShowButtonHover}
-    title={showDocument ? "Show Puzzle" : "Hide Puzzle"}
+    title={showDocument ? "Show Puzzle page" : "Hide Puzzle page"}
     >
-      {showDocument ? "Show Puzzle" : "Hide Puzzle"}
+      {showDocument ? "Show Puzzle page" : "Hide Puzzle page"}
     </Dropdown.Item>
   ) : null;
 
@@ -2509,7 +2510,7 @@ const PuzzlePageMetadata = ({
   const checkTagLayout = useCallback(() => {
     if (actionRowRef.current) {
       // Threshold: height slightly larger than a single line of buttons/tags
-      const singleLineHeightThreshold = 35; // Adjust this value as needed
+      const singleLineHeightThreshold = 35;
       const currentHeight = actionRowRef.current.offsetHeight;
       const currentPos = actionRowRef.current.clientHeight;
       const currentActionPos = actionButtonsRef.current.clientHeight;
@@ -2572,7 +2573,7 @@ const PuzzlePageMetadata = ({
       createPuzzleDocument.call({
         huntId: puzzle.hunt,
         puzzleId: puzzle._id,
-        docType: "document"
+        docType: e,
       });
     } else if(e !== selectedDocumentIndex) {
       setSelectedDocument(e);
@@ -2594,13 +2595,15 @@ const PuzzlePageMetadata = ({
         onSelect={switchOrCreateDocument}
         title={toTitleCase(allDocs[selectedDocumentIndex]?.value.type ?? "")}
       >
+        <Dropdown.Header>
+          Documents
+        </Dropdown.Header>
         {allDocs?.map((doc, idx)=>{
           return (
-            <Dropdown.Item eventKey={idx} active={selectedDocumentIndex===idx}>{toTitleCase(doc.value.type)}</Dropdown.Item>
+            <Dropdown.Item eventKey={idx}>{toTitleCase(doc.value.type)}</Dropdown.Item>
           )
         })}
         {unusedDocumentTypes.length > 0 && <>
-          <Dropdown.Divider />
             <Dropdown.Header>
               Add new
             </Dropdown.Header>
@@ -2611,7 +2614,7 @@ const PuzzlePageMetadata = ({
               </Dropdown.Item>
             )
           })}</>}
-        <Dropdown.Divider />
+          {canEmbedPuzzle && <Dropdown.Divider />}
         {togglePuzzleInsetDD}
       </DropdownButton>
     )

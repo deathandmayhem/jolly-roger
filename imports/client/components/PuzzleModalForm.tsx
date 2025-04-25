@@ -401,7 +401,8 @@ const PuzzleModalForm = React.forwardRef(
               onChange={onDocTypeChange}
             />
             <FormText>
-              Can't be changed. Almost always choose <code>spreadsheet</code>.
+              You can attach other documents later, but this one will be opened
+              by default.
             </FormText>
           </Col>
         </FormGroup>

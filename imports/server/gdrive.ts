@@ -7,6 +7,7 @@ import GdriveMimeTypes from "../lib/GdriveMimeTypes";
 import Documents from "../lib/models/Documents";
 import FolderPermissions from "../lib/models/FolderPermissions";
 import Hunts from "../lib/models/Hunts";
+import type { PuzzleType } from "../lib/models/Puzzles";
 import type { SettingType } from "../lib/models/Settings";
 import Settings from "../lib/models/Settings";
 import getTeamName from "./getTeamName";
@@ -14,8 +15,6 @@ import GoogleClient from "./googleClientRefresher";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import HuntFolders from "./models/HuntFolders";
 import withLock from "./withLock";
-import { PuzzleType } from "../lib/models/Puzzles";
-import { createdTimestamp } from "../lib/models/customTypes";
 
 async function checkClientOk() {
   if (!GoogleClient.ready()) {
@@ -66,6 +65,7 @@ async function createDocument(
         (
           | { name: "gdrive.template.document" }
           | { name: "gdrive.template.spreadsheet" }
+          | { name: "gdrive.template.drawing" }
         ));
   const mimeType = GdriveMimeTypes[type];
   const parents = parentId ? [parentId] : undefined;

@@ -1,12 +1,14 @@
 import type { Meteor } from "meteor/meteor";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt";
+import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
+import { faMapLocationDot } from "@fortawesome/free-solid-svg-icons/faMapLocationDot";
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
-import { Theme } from "../theme";
+import type { Theme } from "../theme";
 
 interface DocumentDisplayProps {
   document: DocumentType;
@@ -70,6 +72,11 @@ const GoogleDocumentDisplay = ({
       url = `https://docs.google.com/document/d/${document.value.id}/edit?${authUserParam}ui=2&rm=embedded#gid=0`;
       title = "Doc";
       icon = faFileAlt;
+      break;
+    case "drawing":
+      url = `https://docs.google.com/drawings/d/${document.value.id}/edit?ui=2&rm=embedded`;
+      title = "Drawing";
+      icon = faFilePen;
       break;
     default:
       return (
