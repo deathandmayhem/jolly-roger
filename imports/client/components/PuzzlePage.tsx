@@ -123,7 +123,7 @@ import {
   SolvedPuzzleBackgroundColor,
 } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { ButtonGroup, Dropdown, DropdownButton, Offcanvas, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
+import { ButtonGroup, Dropdown, DropdownButton, Offcanvas, Tab, Tabs, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 import removeChatMessage from "../../methods/removeChatMessage";
 import { Theme } from "../theme";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
@@ -293,7 +293,7 @@ const ChatMessageDiv = styled.div<{
 }>`
   padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
   word-wrap: break-word;
-  font-size: 1rem;
+  font-size: 0.8rem;
   position: relative;
   ${({ $isSystemMessage, $isHighlighted, $isPinned }) =>
     $isHighlighted &&
@@ -1953,6 +1953,8 @@ const AttachmentsSection = React.forwardRef(
       puzzleData: Map<string, PuzzleType>;
     }
   ) => {
+    const [shownTab, setShownTab] = useState<string>("attachments");
+    const userId = Meteor.userId();
     const [showAttachmentsPane, setShowAttachmentsPane] = useState<boolean>(false);
     const handleClose = useCallback(()=>{
       setShowAttachmentsPane(false);
@@ -1960,13 +1962,32 @@ const AttachmentsSection = React.forwardRef(
     const handleOpen = useCallback(()=>{
       setShowAttachmentsPane(true);
     },[setShowAttachmentsPane]);
+    const messagesById = chatMessages.reduce((mp, c)=>{
+      mp.set(c._id, c);
+      return mp;
+    }, new Map<string, ChatMessageType>())
     const hasAttachments = chatMessages.filter((c)=>{
       return c.attachments && c.attachments.length >= 1;
     });
     const attachmentCount = hasAttachments.reduce((arr, cm)=>{
       cm.attachments?.forEach((att)=>arr.push(att));
       return arr;
-    },[])
+    },[]);
+    const repliesToYou = chatMessages.filter((c)=>{
+      const parentId = c.parentId;
+      return parentId && messagesById?.get(parentId)?.sender === userId;
+    });
+    const yourMentions = chatMessages.filter((c)=>{
+      return c.content.children.some((t)=>{
+        if(nodeIsMention(t)){
+          return t.userId == userId;
+        }
+        return false;
+      });
+    });
+    const pinnedMessages = chatMessages.filter((c)=>{
+      return c.pinTs;
+    })
     return (
       <>
         {hasAttachments.length >= 1 && (
@@ -1978,10 +1999,17 @@ const AttachmentsSection = React.forwardRef(
             </Button>
             <Offcanvas show={showAttachmentsPane} onHide={handleClose}>
               <Offcanvas.Header closeButton>
-                <strong>Messages with attachments</strong>
               </Offcanvas.Header>
               <Offcanvas.Body>
-                {hasAttachments.map((cm)=>(
+                <Tabs
+                activeKey={shownTab}
+                onSelect={(t)=>setShownTab(t)}
+                id="interesting-messages"
+                justify
+                >
+
+                {hasAttachments && <Tab eventKey="attachments" title={`Attachments (${attachmentCount.length})`}>
+                  {hasAttachments.map((cm)=>(
                   <ChatMessageDiv
                   $isSystemMessage={false}
                   $isHighlighted={false}
@@ -1998,7 +2026,69 @@ const AttachmentsSection = React.forwardRef(
                     </span>
                   <ChatMessage message={cm.content} displayNames={displayNames} puzzleData={puzzleData} selfUserId={""} attachments={cm.attachments}/>
                 </ChatMessageDiv>
-              ))}
+              ))} </Tab>}
+
+{repliesToYou && <Tab eventKey="repliesToUser" title={`Replies (${repliesToYou.length})`}>
+                {repliesToYou.map((cm)=>(
+                <ChatMessageDiv
+                $isSystemMessage={false}
+                $isHighlighted={false}
+                $isPinned={false}
+                $isHovered={false}
+                $isPulsing={false}
+                $isReplyingTo={false}
+              >
+                <ChatMessageTimestamp>{shortCalendarTimeFormat(cm.timestamp)}</ChatMessageTimestamp>
+                  <span style={{ display: "flex", alignItems: "center" }}>
+                    <strong>
+                      {cm.sender ? displayNames.get(cm.sender) : "???"}
+                    </strong>
+                  </span>
+                <ChatMessage message={cm.content} displayNames={displayNames} puzzleData={puzzleData} selfUserId={""} attachments={cm.attachments}/>
+              </ChatMessageDiv>
+            ))} </Tab>}
+
+            {yourMentions && <Tab eventKey="yourMentions" title={`Mentions (${yourMentions.length})`}>
+              {yourMentions.map((cm)=>(
+              <ChatMessageDiv
+              $isSystemMessage={false}
+              $isHighlighted={false}
+              $isPinned={false}
+              $isHovered={false}
+              $isPulsing={false}
+              $isReplyingTo={false}
+            >
+              <ChatMessageTimestamp>{shortCalendarTimeFormat(cm.timestamp)}</ChatMessageTimestamp>
+                <span style={{ display: "flex", alignItems: "center" }}>
+                  <strong>
+                    {cm.sender ? displayNames.get(cm.sender) : "???"}
+                  </strong>
+                </span>
+              <ChatMessage message={cm.content} displayNames={displayNames} puzzleData={puzzleData} selfUserId={""} attachments={cm.attachments}/>
+            </ChatMessageDiv>
+          ))} </Tab>}
+
+          {pinnedMessages && <Tab eventKey="pinned" title={`Pins (${pinnedMessages.length})`}>
+            {pinnedMessages.map((cm)=>(
+            <ChatMessageDiv
+            $isSystemMessage={false}
+            $isHighlighted={false}
+            $isPinned={false}
+            $isHovered={false}
+            $isPulsing={false}
+            $isReplyingTo={false}
+          >
+            <ChatMessageTimestamp>{shortCalendarTimeFormat(cm.timestamp)}</ChatMessageTimestamp>
+              <span style={{ display: "flex", alignItems: "center" }}>
+                <strong>
+                  {cm.sender ? displayNames.get(cm.sender) : "???"}
+                </strong>
+              </span>
+            <ChatMessage message={cm.content} displayNames={displayNames} puzzleData={puzzleData} selfUserId={""} attachments={cm.attachments}/>
+          </ChatMessageDiv>
+        ))} </Tab>}
+
+              </Tabs>
               </Offcanvas.Body>
             </Offcanvas>
           </>
