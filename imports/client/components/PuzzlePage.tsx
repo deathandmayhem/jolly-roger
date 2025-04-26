@@ -2456,9 +2456,9 @@ const PuzzlePageMetadata = ({
     <Dropdown.Item
     onClick={handleShowButtonClick}
     onMouseEnter={handleShowButtonHover}
-    title={showDocument ? "Show Puzzle page" : "Hide Puzzle page"}
+    title={showDocument ? "Show puzzle page" : "Hide puzzle page"}
     >
-      {showDocument ? "Show Puzzle page" : "Hide Puzzle page"}
+      {showDocument ? "Show puzzle page" : "Hide puzzle page"}
     </Dropdown.Item>
   ) : null;
 
