@@ -11,7 +11,7 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
 import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
-import { faPaperclip } from "@fortawesome/free-solid-svg-icons/faPaperclip";
+import { faMapPin } from "@fortawesome/free-solid-svg-icons/faMapPin";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
@@ -135,7 +135,8 @@ import { usePersistedSidebarWidth } from "../hooks/persisted-state";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons";
 import createPuzzleDocument from "../../methods/createPuzzleDocument";
-import { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
+import { faBan } from "@fortawesome/free-solid-svg-icons/faBan";
+import setChatMessagePin from "../../methods/setChatMessagePin";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -150,6 +151,8 @@ const FilteredChatFields = [
   "timestamp",
   "pinTs",
   "parentId",
+  "attachments",
+  "hunt",
 ] as const;
 type FilteredChatMessageType = Pick<
   ChatMessageType,
@@ -362,10 +365,10 @@ const ChatMessageActions = styled.div`
 
 const SplitPill = styled.div`
   display: inline-flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   background-color: #d3d3d3;
-  border-radius: 16px;
+  border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
   color: #666;
@@ -376,11 +379,15 @@ const SplitPill = styled.div`
 `;
 
 const PillSection = styled.div`
-  padding: 4px 8px;
+  padding: 4px 7px;
   display: flex;
   align-items: center;
+  flex-grow: 1;
+  flex-basis: 0;
+  text-align: center;
+  white-space: nowrap;
   justify-content: center;
-  &:first-child {
+  &:not(:last-child) {
     border-right: 1px solid #bbb;
   }
   &:hover {
@@ -947,6 +954,14 @@ const ChatHistoryMessage = React.memo(
       )
     ) : null;
 
+    const toggleMessagePin = useCallback(
+      () => {
+        setChatMessagePin.call({messageId: message._id, puzzleId: message.puzzle, huntId: message.hunt, newPinState: message.pinTs === null})
+      },
+      [setChatMessagePin],
+    )
+
+
     return (
       <ChatMessageDiv
         $isSystemMessage={isSystemMessage}
@@ -972,6 +987,13 @@ const ChatHistoryMessage = React.memo(
               onClick={() => setReplyingTo(message._id)}
             >
               <ReplyButton icon={faReplyAll} />
+            </PillSection>
+            <PillSection
+              title={message.pinTs ? "Remove pin" : "Pin"}
+              onClick={() => toggleMessagePin(message._id)}
+            >
+              <ReplyButton icon={faMapPin}/>
+
             </PillSection>
           </SplitPill>
         </ChatMessageActions>
@@ -1853,7 +1875,7 @@ const ChatInput = React.memo(
 
     const parentSenderName = useTracker(() => {
       if (parentMessage) {
-        return displayNames.get(parentMessage.sender);
+        return parentMessage.sender ? displayNames.get(parentMessage.sender) ?? "???" : "jolly-roger";
       }
       return undefined;
     }, [parentMessage, displayNames]);

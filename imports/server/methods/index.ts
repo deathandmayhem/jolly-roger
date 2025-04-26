@@ -63,6 +63,7 @@ import "./removePuzzleAnswer";
 import "./removePuzzleTag";
 import "./renameTag";
 import "./sendChatMessage";
+import "./setChatMessagePin";
 import "./setFeatureFlag";
 import "./setGuessState";
 import "./setUserStatus";
