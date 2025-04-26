@@ -2568,7 +2568,7 @@ const PuzzlePageMetadata = ({
   }, [allDocs])
 
   const switchOrCreateDocument = useCallback((e:string|number)=>{
-    console.log(e);
+    if(!e) return;
     if(unusedDocumentTypes.includes(e)){
       createPuzzleDocument.call({
         huntId: puzzle.hunt,
@@ -2578,7 +2578,7 @@ const PuzzlePageMetadata = ({
     } else if(e !== selectedDocumentIndex) {
       setSelectedDocument(e);
     } else if(e === selectedDocumentIndex) {
-      //nothing here
+      // nothing here
     } else {
       // otherwise it's probably toggling the puzzle site, so we don't need to do anything
     }
@@ -2618,7 +2618,7 @@ const PuzzlePageMetadata = ({
         {togglePuzzleInsetDD}
       </DropdownButton>
     )
-  }, [allDocs, selectedDocumentIndex, unusedDocumentTypes])
+  }, [allDocs, selectedDocumentIndex, unusedDocumentTypes, showDocument])
 
   const minimizeMetadataButton = (<Button onClick={toggleMetadataMinimize} size="sm" title="Hide puzzle information">
     <FontAwesomeIcon icon={faAngleDoubleUp} />
