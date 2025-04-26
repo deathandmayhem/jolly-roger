@@ -43,18 +43,40 @@ const MoreAppPage = () => {
 
   useBreadcrumb({ title: "More", path: `/hunts/${huntId}/more` });
 
-  const jr_host = window.location.host;
+  const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
+    huntId,
+    includeDeleted: false,
+  });
+
+  const loading = puzzlesLoading();
+
+  const administriviaTag = useTracker(() => {
+    if (!huntId || loading) {
+      return null;
+    }
+    return Tags.findOne({ hunt: huntId, name: "administrivia" });
+  }, [huntId, loading]);
+
+  const administriviaPuzzles = useTracker(() => {
+    if (!huntId || !administriviaTag || loading) {
+      return null;
+    }
+    return Puzzles.find({ hunt: huntId, tags: administriviaTag._id }).fetch();
+  }, [huntId, loading, administriviaTag]);
+
+  const jrHost = window.location.host;
   const protocol = window.location.protocol;
   const bookmarklet = useMemo(() => {
     const code = `
       (function() {
-        var title = encodeURIComponent(document.title)
-        var url = encodeURIComponent(window.location.href)
-        window.location.href = "${protocol}//${jr_host}/hunts/${huntId}/puzzles?title=" + title + "&url=" + url;
+        var title = encodeURIComponent(document.title);
+        var url = encodeURIComponent(window.location.href);
+        var jrUrl = "${protocol}//${jrHost}/hunts/${huntId}/puzzles?title=" + title + "&url=" + url;
+        window.open(jrUrl, '_blank');
       })();
     `;
-    return `javascript:${encodeURIComponent(code)}`;
-  }, [huntId]);
+    return `javascript:${code}`;
+  }, [huntId, jrHost, protocol]);
 
   const hunt = useTracker(
     () => (huntId ? Hunts.findOne(huntId) : null),
@@ -105,10 +127,10 @@ const MoreAppPage = () => {
           </li>
         </ul>
 
-        {/* 
+        {/*
         <Alert variant="warning">
         Note: You'll need a new/different version of this for each hunt.
-        </Alert> 
+        </Alert>
         */}
 
         <hr />
