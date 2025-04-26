@@ -1946,157 +1946,145 @@ const AttachmentsSection = React.forwardRef(
       chatMessages,
       displayNames,
       puzzleData,
-    } :
-    {
+      showHighlights,
+      handleOpen,
+      handleClose,
+      handleHighlightMessageClick,
+    }: {
       chatMessages: FilteredChatMessageType[];
       displayNames: Map<string, string>;
       puzzleData: Map<string, PuzzleType>;
+      showHighlights: boolean;
+      handleOpen: ()=>void;
+      handleClose: ()=>void;
+      handleHighlightMessageClick: (messageId: string) => void;
     }
   ) => {
-    const [shownTab, setShownTab] = useState<string>("attachments");
-    const userId = Meteor.userId();
-    const [showAttachmentsPane, setShowAttachmentsPane] = useState<boolean>(false);
-    const handleClose = useCallback(()=>{
-      setShowAttachmentsPane(false);
-    },[setShowAttachmentsPane]);
-    const handleOpen = useCallback(()=>{
-      setShowAttachmentsPane(true);
-    },[setShowAttachmentsPane]);
-    const messagesById = chatMessages.reduce((mp, c)=>{
-      mp.set(c._id, c);
-      return mp;
-    }, new Map<string, ChatMessageType>())
-    const hasAttachments = chatMessages.filter((c)=>{
-      return c.attachments && c.attachments.length >= 1;
-    });
-    const attachmentCount = hasAttachments.reduce((arr, cm)=>{
-      cm.attachments?.forEach((att)=>arr.push(att));
-      return arr;
-    },[]);
-    const repliesToYou = chatMessages.filter((c)=>{
-      const parentId = c.parentId;
-      return parentId && messagesById?.get(parentId)?.sender === userId;
-    });
-    const yourMentions = chatMessages.filter((c)=>{
-      return c.content.children.some((t)=>{
-        if(nodeIsMention(t)){
-          return t.userId == userId;
-        }
-        return false;
-      });
-    });
-    const pinnedMessages = chatMessages.filter((c)=>{
-      return c.pinTs;
-    })
+    const userId = Meteor.userId()!;
+    const [activeTabKey, setActiveTabKey] = useState<string | null>(null);
+    const handleSelectTab = useCallback((key: string | null) => setActiveTabKey(key), []);
+
+    const tabDefinitions = useMemo(() => {
+      const messagesById = chatMessages.reduce((mp, c) => {
+        mp.set(c._id, c);
+        return mp;
+      }, new Map<string, ChatMessageType>());
+
+      const tabs = [
+        {
+          key: "attachments",
+          title: "Attachments",
+          messages: chatMessages.filter(c => c.attachments && c.attachments.length >= 1),
+        },
+        {
+          key: "repliesToUser",
+          title: "Replies",
+          messages: chatMessages.filter(c => {
+            const parentId = c.parentId;
+            return parentId && messagesById?.get(parentId)?.sender === userId;
+          }),
+        },
+        {
+          key: "yourMentions",
+          title: "Mentions",
+          messages: chatMessages.filter(c =>
+            c.content.children.some(t => nodeIsMention(t) && t.userId === userId)
+          ),
+        },
+        {
+          key: "pinned",
+          title: "Pins",
+          messages: chatMessages.filter(c => c.pinTs),
+        },
+        {
+          key: "system",
+          title: "System",
+          messages: chatMessages.filter(c => !c.sender),
+        },
+      ];
+
+      return tabs
+        .map(tab => ({ ...tab, count: tab.messages.length }))
+        .filter(tab => tab.count > 0);
+
+    }, [chatMessages, userId]);
+
+    const totalInterestingMessages = useMemo(() =>
+      tabDefinitions.reduce((sum, tab) => sum + tab.count, 0),
+      [tabDefinitions]
+    );
+
+    useEffect(() => {
+      if (tabDefinitions.length > 0 && !activeTabKey) {
+        setActiveTabKey(tabDefinitions[0].key);
+      } else if (tabDefinitions.length === 0) {
+        setActiveTabKey(null);
+      }
+    }, [tabDefinitions, activeTabKey]);
+
+
+    if (totalInterestingMessages === 0) {
+      return null;
+    }
+
     return (
       <>
-        {hasAttachments.length >= 1 && (
-          <>
-            <Button size="sm" onClick={handleOpen}>
-              <FontAwesomeIcon icon={faPaperclip} />{" "}
-              Attachments
-              <Badge bg="secondary" pill>{attachmentCount.length}</Badge>
-            </Button>
-            <Offcanvas show={showAttachmentsPane} onHide={handleClose}>
-              <Offcanvas.Header closeButton>
-              </Offcanvas.Header>
-              <Offcanvas.Body>
-                <Tabs
-                activeKey={shownTab}
-                onSelect={(t)=>setShownTab(t)}
-                id="interesting-messages"
+        <Button size="sm" onClick={handleOpen} variant="secondary">
+          Highlights ({totalInterestingMessages < 100 ? totalInterestingMessages : "99+"})
+        </Button>
+        <Offcanvas show={showHighlights} onHide={handleClose}>
+          <Offcanvas.Header closeButton>
+            <Offcanvas.Title>Highlights</Offcanvas.Title>
+          </Offcanvas.Header>
+          <Offcanvas.Body>
+            {tabDefinitions.length > 0 ? (
+              <Tabs
+                activeKey={activeTabKey ?? undefined}
+                onSelect={handleSelectTab}
+                id="interesting-messages-tabs"
                 justify
-                >
-
-                {hasAttachments && <Tab eventKey="attachments" title={`Attachments (${attachmentCount.length})`}>
-                  {hasAttachments.map((cm)=>(
-                  <ChatMessageDiv
-                  $isSystemMessage={false}
-                  $isHighlighted={false}
-                  $isPinned={false}
-                  $isHovered={false}
-                  $isPulsing={false}
-                  $isReplyingTo={false}
-                >
-                  <ChatMessageTimestamp>{shortCalendarTimeFormat(cm.timestamp)}</ChatMessageTimestamp>
-                    <span style={{ display: "flex", alignItems: "center" }}>
-                      <strong>
-                        {cm.sender ? displayNames.get(cm.sender) : "???"}
-                      </strong>
-                    </span>
-                  <ChatMessage message={cm.content} displayNames={displayNames} puzzleData={puzzleData} selfUserId={""} attachments={cm.attachments}/>
-                </ChatMessageDiv>
-              ))} </Tab>}
-
-{repliesToYou && <Tab eventKey="repliesToUser" title={`Replies (${repliesToYou.length})`}>
-                {repliesToYou.map((cm)=>(
-                <ChatMessageDiv
-                $isSystemMessage={false}
-                $isHighlighted={false}
-                $isPinned={false}
-                $isHovered={false}
-                $isPulsing={false}
-                $isReplyingTo={false}
+                className="mb-3"
               >
-                <ChatMessageTimestamp>{shortCalendarTimeFormat(cm.timestamp)}</ChatMessageTimestamp>
-                  <span style={{ display: "flex", alignItems: "center" }}>
-                    <strong>
-                      {cm.sender ? displayNames.get(cm.sender) : "???"}
-                    </strong>
-                  </span>
-                <ChatMessage message={cm.content} displayNames={displayNames} puzzleData={puzzleData} selfUserId={""} attachments={cm.attachments}/>
-              </ChatMessageDiv>
-            ))} </Tab>}
-
-            {yourMentions && <Tab eventKey="yourMentions" title={`Mentions (${yourMentions.length})`}>
-              {yourMentions.map((cm)=>(
-              <ChatMessageDiv
-              $isSystemMessage={false}
-              $isHighlighted={false}
-              $isPinned={false}
-              $isHovered={false}
-              $isPulsing={false}
-              $isReplyingTo={false}
-            >
-              <ChatMessageTimestamp>{shortCalendarTimeFormat(cm.timestamp)}</ChatMessageTimestamp>
-                <span style={{ display: "flex", alignItems: "center" }}>
-                  <strong>
-                    {cm.sender ? displayNames.get(cm.sender) : "???"}
-                  </strong>
-                </span>
-              <ChatMessage message={cm.content} displayNames={displayNames} puzzleData={puzzleData} selfUserId={""} attachments={cm.attachments}/>
-            </ChatMessageDiv>
-          ))} </Tab>}
-
-          {pinnedMessages && <Tab eventKey="pinned" title={`Pins (${pinnedMessages.length})`}>
-            {pinnedMessages.map((cm)=>(
-            <ChatMessageDiv
-            $isSystemMessage={false}
-            $isHighlighted={false}
-            $isPinned={false}
-            $isHovered={false}
-            $isPulsing={false}
-            $isReplyingTo={false}
-          >
-            <ChatMessageTimestamp>{shortCalendarTimeFormat(cm.timestamp)}</ChatMessageTimestamp>
-              <span style={{ display: "flex", alignItems: "center" }}>
-                <strong>
-                  {cm.sender ? displayNames.get(cm.sender) : "???"}
-                </strong>
-              </span>
-            <ChatMessage message={cm.content} displayNames={displayNames} puzzleData={puzzleData} selfUserId={""} attachments={cm.attachments}/>
-          </ChatMessageDiv>
-        ))} </Tab>}
-
+                {tabDefinitions.map(({ key, title, messages, count }) => (
+                  <Tab key={key} eventKey={key} title={`${title} (${count})`}>
+                    {messages.map((cm) => (
+                      <ChatMessageDiv
+                        key={cm._id}
+                        $isSystemMessage={!cm.sender}
+                        $isHighlighted={false}
+                        $isPinned={!!cm.pinTs}
+                        $isHovered={false}
+                        $isPulsing={false}
+                        $isReplyingTo={false}
+                        onClick={()=>handleHighlightMessageClick(cm._id)}
+                      >
+                        <ChatMessageTimestamp>{shortCalendarTimeFormat(cm.timestamp)}</ChatMessageTimestamp>
+                        <span style={{ display: "flex", alignItems: "center" }}>
+                          <strong>
+                            {cm.sender ? displayNames.get(cm.sender) ?? "???" : "jolly-roger"}
+                          </strong>
+                        </span>
+                        <ChatMessage
+                          message={cm.content}
+                          displayNames={displayNames}
+                          puzzleData={puzzleData}
+                          selfUserId={userId}
+                          attachments={cm.attachments}
+                        />
+                      </ChatMessageDiv>
+                    ))}
+                  </Tab>
+                ))}
               </Tabs>
-              </Offcanvas.Body>
-            </Offcanvas>
-          </>
-        )}
+            ) : (
+              <p>No interesting messages found in this category.</p> // Handle case where a tab might become empty after initial load
+            )}
+          </Offcanvas.Body>
+        </Offcanvas>
       </>
     );
   }
-)
+);
 
 const ChatSection = React.forwardRef(
   (
@@ -2115,6 +2103,10 @@ const ChatSection = React.forwardRef(
       replyingTo,
       setReplyingTo,
       sidebarWidth,
+      showHighlights,
+      handleOpen,
+      handleClose,
+      handleHighlightMessageClick,
     }: {
       chatDataLoading: boolean;
       disabled: boolean;
@@ -2130,6 +2122,10 @@ const ChatSection = React.forwardRef(
       replyingTo: string | null;
       setReplyingTo: (messageId: string | null) => void;
       sidebarWidth: number;
+      showHighlights: boolean;
+      handleOpen: ()=>void;
+      handleClose: ()=>void;
+      handleHighlightMessageClick: (messageId: string) => void;
     },
     forwardedRef: React.Ref<ChatSectionHandle>,
   ) => {
@@ -2263,6 +2259,10 @@ const ChatSection = React.forwardRef(
           chatMessages={chatMessages}
           displayNames={displayNames}
           puzzleData={puzzlesById}
+          showHighlights={showHighlights}
+          handleOpen={handleOpen}
+          handleClose={handleClose}
+          handleHighlightMessageClick={handleHighlightMessageClick}
         />
       </ChatSectionDiv>
     );
@@ -3534,6 +3534,7 @@ const PuzzlePage = React.memo(() => {
   const [hasIframeBeenLoaded, setHasIframeBeenLoaded] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [showDocument, setShowDocument] = useState<boolean>(true);
+  const [showHighlights, setShowHighlights] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const docRef = useRef<DocumentType | undefined>(undefined);
 
@@ -3717,6 +3718,19 @@ const PuzzlePage = React.memo(() => {
 
   const [pulsingMessageId, setPulsingMessageId] = useState<string | null>(null);
 
+  const handleHighlightMessageClick = useCallback((messageId: string) => {
+    setShowHighlights(false);
+    setTimeout(() => {
+      chatSectionRef.current?.scrollToMessage(messageId, () => {
+        setPulsingMessageId(messageId);
+      });
+    }, 100);
+  }, [setShowHighlights]);
+
+
+  const handleClose = useCallback(() => setShowHighlights(false), []);
+  const handleOpen = useCallback(() => setShowHighlights(true), []);
+
   const onChangeSidebarSize = useCallback((newSize: number) => {
     if (!isChatMinimized) {
       setSidebarWidth(newSize);
@@ -3846,6 +3860,10 @@ const PuzzlePage = React.memo(() => {
       replyingTo={replyingTo}
       setReplyingTo={setReplyingTo}
       sidebarWidth={sidebarWidth}
+      showHighlights={showHighlights}
+      handleOpen={handleOpen}
+      handleClose={handleClose}
+      handleHighlightMessageClick={handleHighlightMessageClick}
     />
   );
   const deletedModal = activePuzzle.deleted && (
