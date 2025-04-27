@@ -269,10 +269,10 @@ const GuessMessage = React.memo(
     let confidenceLabel;
     let confidenceVariant;
 
-    if (guess?.confidence > 0) {
+    if (guess?.confidence > 50) {
       confidenceLabel = "High";
       confidenceVariant = "success";
-    } else if (guess?.confidence < -5) {
+    } else if (guess?.confidence < 50) {
       confidenceLabel = "Low";
       confidenceVariant = "danger";
     } else {
