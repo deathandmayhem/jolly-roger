@@ -1,4 +1,4 @@
-import { ThemeConfig } from "react-select";
+import type { ThemeConfig } from "react-select";
 
 export type GuessState = keyof Theme["colors"]["guess"];
 export type SolvednessState = keyof Theme["colors"]["solvedness"];
