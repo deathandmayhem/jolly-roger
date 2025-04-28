@@ -295,7 +295,7 @@ const PuzzleListView = ({
   const statusesSubscribe = useTypedSubscribe(statusesForHuntUsers, { huntId }); // also the statuses for users
 
   const statusesLoading = statusesSubscribe();
-  const puzzleUsers: Record<string, string[]> = useMemo(() => {
+  const puzzleUsers: Record<string, string[]> = useTracker(() => {
     if (subscriptionsLoading || statusesLoading) {
       return {};
     }
