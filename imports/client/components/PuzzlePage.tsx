@@ -1583,14 +1583,12 @@ const ChatInput = React.memo(
       isS3Configured.callPromise() // Use callPromise or callAsync
         .then(result => {
           if (isMounted) {
-            console.log("Fetched S3 config status:", result);
             setS3Configured(result);
             setIsLoadingS3Config(false);
           }
         })
         .catch(error => {
           if (isMounted) {
-            console.error("Error fetching S3 config:", error);
             setS3Configured(false); // Default to false on error, or handle differently
             setIsLoadingS3Config(false);
           }
@@ -1761,7 +1759,6 @@ const ChatInput = React.memo(
                 size: file.size,
               };
             } catch (err: any) { // Catch specific error type if possible
-              console.error(`Error uploading ${file.name}:`, err);
               throw new Error(`Failed to upload ${file.name}: ${err.message}`);
             }
           });
@@ -1900,6 +1897,7 @@ const ChatInput = React.memo(
             <FontAwesomeIcon icon={faXmark} />
           </RemoveImageButton>
           <ImagePreview key={index} src={preview} alt="Preview" />
+        </ImagePreviewWrapper>
         ))}
         {uploadingImages.length > 0 && !s3Configured && (
           <ImagePlaceholder>
@@ -3731,7 +3729,6 @@ const PuzzlePage = React.memo(() => {
       setIsRestoring(true);
       setIsChatMinimized(false);
       setSidebarWidth(lastSidebarWidth);
-<<<<<<< HEAD
       setTimeout(() => {
         if (chatSectionRef.current) {
           chatSectionRef.current.scrollHistoryToTarget();
@@ -3739,8 +3736,6 @@ const PuzzlePage = React.memo(() => {
         }
       }, 0);
       setIsRestoring(false);
-=======
->>>>>>> 36471e27 (speculative fix for sidebar restore)
     }
   }, [isChatMinimized, lastSidebarWidth]);
 
@@ -3820,12 +3815,7 @@ const PuzzlePage = React.memo(() => {
 
   useEffect(() => {
     const currentLength = chatMessages.length;
-<<<<<<< HEAD
-=======
-    console.log("new message?");
->>>>>>> 36471e27 (speculative fix for sidebar restore)
     if (currentLength > prevMessagesLength.current && prevMessagesLength.current > 0) {
-      console.log("new message!");
       if (isChatMinimized) {
         restoreChat();
       }
