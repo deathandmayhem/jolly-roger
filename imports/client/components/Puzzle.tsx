@@ -542,7 +542,7 @@ const Puzzle = React.memo(
               {rtcViewers.length > 0 && activeSolvers.length > 0 ? (
                 <br />
               ) : null}
-              {viewers.length > 0 ? (
+              {activeSolvers.length > 0 ? (
                 <span>
                   <FontAwesomeIcon icon={faEye} />{" "}
                 </span>
