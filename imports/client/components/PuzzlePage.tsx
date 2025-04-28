@@ -3557,6 +3557,9 @@ const PuzzlePage = React.memo(() => {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [showDocument, setShowDocument] = useState<boolean>(true);
   const [showHighlights, setShowHighlights] = useState(false);
+
+  const prevIsChatMinimized = useRef(isChatMinimized);
+
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const docRef = useRef<DocumentType | undefined>(undefined);
 
@@ -3728,6 +3731,7 @@ const PuzzlePage = React.memo(() => {
       setIsRestoring(true);
       setIsChatMinimized(false);
       setSidebarWidth(lastSidebarWidth);
+<<<<<<< HEAD
       setTimeout(() => {
         if (chatSectionRef.current) {
           chatSectionRef.current.scrollHistoryToTarget();
@@ -3735,6 +3739,8 @@ const PuzzlePage = React.memo(() => {
         }
       }, 0);
       setIsRestoring(false);
+=======
+>>>>>>> 36471e27 (speculative fix for sidebar restore)
     }
   }, [isChatMinimized, lastSidebarWidth]);
 
@@ -3794,8 +3800,32 @@ const PuzzlePage = React.memo(() => {
   }, [onResize]);
 
   useEffect(() => {
+    prevIsChatMinimized.current = isChatMinimized;
+  });
+
+  useEffect(() => {
+    const justRestored = !isChatMinimized && prevIsChatMinimized.current;
+
+    if (justRestored) {
+      const animationFrameId = requestAnimationFrame(() => {
+        if (chatSectionRef.current) {
+          chatSectionRef.current.scrollHistoryToTarget();
+          chatSectionRef.current.snapToBottom();
+        }
+      });
+
+      return () => cancelAnimationFrame(animationFrameId);
+    }
+  }, [isChatMinimized, sidebarWidth]);
+
+  useEffect(() => {
     const currentLength = chatMessages.length;
+<<<<<<< HEAD
+=======
+    console.log("new message?");
+>>>>>>> 36471e27 (speculative fix for sidebar restore)
     if (currentLength > prevMessagesLength.current && prevMessagesLength.current > 0) {
+      console.log("new message!");
       if (isChatMinimized) {
         restoreChat();
       }
