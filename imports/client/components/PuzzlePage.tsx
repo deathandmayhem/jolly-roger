@@ -3814,14 +3814,24 @@ const PuzzlePage = React.memo(() => {
   }, [isChatMinimized, sidebarWidth]);
 
   useEffect(() => {
+    // Get the current length *inside* the effect run
     const currentLength = chatMessages.length;
     if (currentLength > prevMessagesLength.current && prevMessagesLength.current > 0) {
       if (isChatMinimized) {
         restoreChat();
+      } else {
       }
     }
-    prevMessagesLength.current = currentLength;
-  }, [chatMessages, isChatMinimized, restoreChat, chatMessages.length]);
+
+    // Update the ref *after* the comparison for the *next* run
+    // Only update if the currentLength is different from the ref to avoid unnecessary updates if effect runs for other reasons
+    if (currentLength !== prevMessagesLength.current) {
+       prevMessagesLength.current = currentLength;
+    }
+
+  // DEPEND ONLY ON chatMessages. This relies on useTracker returning a new
+  // array reference when the underlying data changes.
+  }, [chatMessages, isChatMinimized, restoreChat]);
 
   useEffect((): (() => void) | undefined => {
     if (!isChatMinimized && !isRestoring) {
