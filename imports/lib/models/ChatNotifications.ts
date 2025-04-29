@@ -15,6 +15,9 @@ const ChatNotification = withCommon(
     // System messages are forbidden from triggering dingword notifications.
     sender: foreignKey,
 
+    // The messageId that tripped the user's dingwords
+    message: foreignKey,
+
     // The puzzle to which this chat was sent.
     puzzle: foreignKey,
     // The hunt in which the puzzle resides.

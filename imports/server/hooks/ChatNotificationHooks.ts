@@ -108,6 +108,7 @@ const ChatNotificationHooks: Hookset = {
           hunt: chatMessage.hunt,
           content: chatMessage.content,
           timestamp: chatMessage.timestamp,
+          message: chatMessage._id,
         });
       }),
     );

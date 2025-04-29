@@ -3838,12 +3838,25 @@ const PuzzlePage = React.memo(() => {
 
   }, [chatMessages, isChatMinimized, restoreChat]);
 
-  useEffect((): (() => void) | undefined => {
-    if (!isChatMinimized && !isRestoring) {
-       const timer = setTimeout(() => {
-          chatSectionRef.current?.snapToBottom();
-       }, 100);
-       return () => clearTimeout(timer);
+
+  // useEffect for scrolling to messageId in hash
+  useEffect(() => {
+    if (messageIdFromHash && !chatDataLoading && chatSectionRef.current) {
+
+      if (isChatMinimized) {
+        restoreChat();
+        setTimeout(() => {
+          chatSectionRef.current?.scrollToMessage(messageIdFromHash, () => {
+            setPulsingMessageId(messageIdFromHash);
+          });
+        }, 300);
+      } else {
+        setTimeout(() => {
+          chatSectionRef.current?.scrollToMessage(messageIdFromHash, () => {
+            setPulsingMessageId(messageIdFromHash);
+          });
+        }, 300);
+      }
     }
   }, [isChatMinimized, isRestoring]);
 
