@@ -15,6 +15,22 @@ import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { Link } from "react-router-dom";
 import { PuzzleType } from "../../lib/models/Puzzles";
 import { computeSolvedness } from "../../lib/solvedness";
+import {
+  faChevronLeft,
+  faChevronRight,
+  faFile,
+  faPaperclip,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
+import {
+  LightboxOverlay,
+  LightboxContent,
+  LightboxButton,
+  LightboxImage,
+  TopRightButtonGroup,
+} from "./Lightbox";
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload";
+import DOMPurify from "dompurify";
 
 // This file implements standalone rendering for the MessageElement format
 // defined by FancyEditor, for use in the chat pane.
@@ -128,11 +144,14 @@ const MarkdownToken = ({ token }: { token: Token }) => {
     ));
     return <del>{children}</del>;
   } else if (token.type === "codespan") {
-    const decodedText = he.decode(token.text);
-    return <code>{decodedText}</code>;
+    const sanitizedHtml = DOMPurify.sanitize(token.text);
+    // eslint-disable-next-line react/no-danger
+    return <code dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
   } else if (token.type === "code") {
-    // Text in code blocks is _not_ encoded, so pass it through as is.
-    return <StyledCodeBlock>{token.text}</StyledCodeBlock>;
+    const sanitizedHtml = DOMPurify.sanitize(token.text);
+    return (
+      <StyledCodeBlock dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+    );
   } else {
     // Unhandled token types: just return the raw string with pre-wrap.
     // This covers things like bulleted or numbered lists, which we explicitly
