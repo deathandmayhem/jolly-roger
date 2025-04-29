@@ -10,16 +10,26 @@ import { useHuntPuzzleListCollapseGroup } from "../hooks/persisted-state";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import Tag from "./Tag";
 import { Theme } from "../theme";
+import { Badge, Button } from "react-bootstrap";
+import { computeSolvedness } from "../../lib/solvedness";
 
-const AddButton = styled.div<{ theme: Theme }>`
+const AddButton = styled(Button)<{ theme: Theme }>`
   display: inline;
   align-items: center;
   margin: 2px 4px 2px 0;
   padding: 2px 6px;
   border-radius: 4px;
-  color: ${({ theme }) => theme.colors.text};
-  background-color: ${({ theme }) => theme.colors.background};
-  border: 1px solid #ccc;
+  vertical-align: top;
+`;
+
+const GroupInfoDiv = styled(Badge)<{ theme: Theme }>`
+  display: inline-flex;
+  align-items: center;
+  line-height: 24px;
+  margin: 2px 4px 2px 0;
+  padding: 0 6px;
+  border-radius: 4px;
+  vertical-align: top;
 `;
 
 export const PuzzleGroupDiv = styled.div`
@@ -128,6 +138,18 @@ const RelatedPuzzleGroup = ({
   if (sharedTag) {
     allSuppressedTagIds.push(sharedTag._id);
   }
+
+  const solvablePuzzles = relatedPuzzles.filter(
+    (p) => computeSolvedness(p) === "unsolved",
+  ).length;
+  const solvedPuzzles = relatedPuzzles.filter(
+    (p) => computeSolvedness(p) === "solved",
+  ).length;
+
+  let solveText = null;
+  if (solvablePuzzles > 0 && solvablePuzzles > solvedPuzzles) {
+    solveText = `${solvablePuzzles} out of ${solvedPuzzles + solvablePuzzles} puzzle${solvedPuzzles + solvablePuzzles > 1 ? "s" : ""} unsolved`;
+  }
   return (
     <PuzzleGroupDiv>
       <PuzzleGroupHeader onClick={toggleCollapse}>
@@ -138,7 +160,14 @@ const RelatedPuzzleGroup = ({
         {sharedTag ? (
           <>
             <Tag tag={sharedTag} linkToSearch={false} popoverRelated={false} />
-            <AddButton onClick={openAddPuzzleModalWithTags}>
+            {solveText && (
+              <GroupInfoDiv bg="secondary">{solveText}</GroupInfoDiv>
+            )}
+            <AddButton
+              size="sm"
+              variant="outline-secondary"
+              onClick={openAddPuzzleModalWithTags}
+            >
               <FontAwesomeIcon icon={faPlus} /> add puzzle here
             </AddButton>
           </>
