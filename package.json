@@ -72,6 +72,7 @@
     "usehooks-ts": "^3.1.1",
     "winston": "^3.18.3",
     "winston-transport": "^4.9.0",
+    "zip-webpack-plugin": "^4.0.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {

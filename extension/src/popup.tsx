@@ -1,10 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Row from "react-bootstrap/Row";
+import Tab from "react-bootstrap/Tab";
+import Table from "react-bootstrap/Table";
+import Tabs from "react-bootstrap/Tabs";
 import Tooltip from "react-bootstrap/Tooltip";
 import { createRoot } from "react-dom/client";
 import type { ActionMeta } from "react-select";
@@ -16,8 +20,50 @@ import {
   storedRecentTags,
   storedSelectedHuntId,
 } from "./storage";
-
 import "bootstrap/dist/css/bootstrap.min.css";
+
+const guessTitle = function (url: string, tabTitle: string): string {
+  if (!url || !tabTitle) {
+    return tabTitle ?? "";
+  }
+
+  // Specific site overrides from popup.tsx
+  if (url.includes("pandamagazine.com/island") && tabTitle.includes(" | ")) {
+    return tabTitle.substring(tabTitle.indexOf(" | ") + 3);
+  }
+  if (
+    url.includes("puzzlehunt.azurewebsites.net") &&
+    tabTitle.includes(" - ")
+  ) {
+    return tabTitle.substring(0, tabTitle.lastIndexOf(" - "));
+  }
+
+  // Generic title guessing from PuzzleModalForm.tsx
+  try {
+    const urlObject = new URL(url);
+    const pathname = urlObject.pathname.replace(/^\/|\/$/g, "");
+    if (pathname) {
+      const pathParts = pathname.split("/");
+      const lastPart = pathParts[pathParts.length - 1] ?? "";
+      if (lastPart) {
+        const decodedLastPart = decodeURI(lastPart);
+        return (
+          decodedLastPart.includes("_")
+            ? decodedLastPart.replace(/_/g, " ")
+            : decodedLastPart.replace(/-/g, " ")
+        ).replace(
+          /\w\S*/g,
+          (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+        );
+      }
+    }
+  } catch (e) {
+    // Fall through if URL is invalid
+  }
+
+  // Fallback to original tab title
+  return tabTitle;
+};
 
 type TagSelectOption = { value: string; label: string };
 
@@ -76,6 +122,23 @@ const Popup = () => {
 
   const [status, setStatus] = useState<Status>();
   const [saving, setSaving] = useState<boolean>(false);
+
+  // State for bulk add tab
+  const [pageLinks, setPageLinks] = useState<
+    { id: number; url: string; guessedTitle: string; checked: boolean }[]
+  >([]);
+  const [bulkFilter, setBulkFilter] = useState("");
+  const [bulkTags, setBulkTags] = useState<string[]>([]);
+  const [bulkDocType, setBulkDocType] =
+    useState<GdriveMimeTypesType>("spreadsheet");
+  const [bulkExpectedAnswerCount, setBulkExpectedAnswerCount] =
+    useState<number>(1);
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState<{
+    success: number;
+    failed: number;
+    errors: string[];
+  } | null>(null);
 
   const loading = loadingOptions || loadingHunts || loadingPageDetails;
   const disableForm = loadingTags || saving;
@@ -155,40 +218,73 @@ const Popup = () => {
       return { value: t, label: t };
     });
 
-  // Read the URL and title from the current page.
+  // Read the URL/title from the current page and all links for bulk add.
   useEffect(() => {
     setLoadingPageDetails(true);
     void (async () => {
-      const tabs = await chrome.tabs.query({
+      const [activeTab] = await chrome.tabs.query({
         active: true,
         currentWindow: true,
       });
-      const tabTitle = tabs[0].title ?? "";
-      const tabUrl = tabs[0].url ?? "";
 
-      setCurrentURL(tabUrl);
+      if (activeTab) {
+        // --- Logic for "Add Page" tab ---
+        const tabTitle = activeTab.title ?? "";
+        const tabUrl = activeTab.url ?? "";
+        setTitle(guessTitle(tabUrl, tabTitle));
+        setCurrentURL(tabUrl);
 
-      // TODO: Provide a way to customize title extraction per hunt.
-      if (
-        tabUrl.includes("pandamagazine.com/island") &&
-        tabTitle.includes(" | ")
-      ) {
-        // Puzzle Boats
-        setTitle(tabTitle.substring(tabTitle.indexOf(" | ") + 3));
-      } else if (
-        tabUrl.includes("puzzlehunt.azurewebsites.net") &&
-        tabTitle.includes(" - ")
-      ) {
-        // Microsoft Puzzle Server
-        setTitle(tabTitle.substring(0, tabTitle.lastIndexOf(" - ")));
-      } else {
-        setTitle(tabTitle);
+        // --- Logic for "Bulk Add" tab ---
+        if (activeTab.id) {
+          try {
+            // Note: This requires the "scripting" permission in manifest.json
+            const results = await chrome.scripting.executeScript({
+              target: { tabId: activeTab.id },
+              func: () => {
+                const links = Array.from(document.querySelectorAll("a"));
+                return links
+                  .filter((link) => link.href && link.href.startsWith("http"))
+                  .map((link) => ({
+                    url: link.href,
+                    text: link.innerText.trim() || link.href,
+                  }));
+              },
+            });
+
+            if (results && results[0] && results[0].result) {
+              const linksFromPage: { url: string; text: string }[] =
+                results[0].result;
+              setPageLinks(
+                linksFromPage.map((link, index) => ({
+                  id: index,
+                  url: link.url,
+                  guessedTitle: guessTitle(link.url, link.text),
+                  checked: true,
+                })),
+              );
+            }
+          } catch (e) {
+            console.error(
+              "Failed to get links from page. Ensure 'scripting' permission is granted and host permissions are correct.",
+              e,
+            );
+          }
+        }
       }
 
       setLoadingPageDetails(false);
     })();
   }, []);
 
+  const filteredLinks = useMemo(() => {
+    if (!bulkFilter) return pageLinks;
+    const lowerFilter = bulkFilter.toLowerCase();
+    return pageLinks.filter(
+      (l) =>
+        l.guessedTitle.toLowerCase().includes(lowerFilter) ||
+        l.url?.toLowerCase().includes(lowerFilter),
+    );
+  }, [pageLinks, bulkFilter]);
   const onHuntChange: React.ChangeEventHandler<HTMLSelectElement> = useCallback(
     (event) => {
       void (async () => {
@@ -256,6 +352,117 @@ const Popup = () => {
       const value = Number(string);
       setExpectedAnswerCount(value);
     }, []);
+
+  // Handlers for bulk add tab
+  const onBulkFilterChange: React.ChangeEventHandler<HTMLInputElement> =
+    useCallback((event) => {
+      setBulkFilter(event.target.value);
+    }, []);
+
+  const onBulkTagsChange = useCallback(
+    (
+      value: readonly TagSelectOption[],
+      action: ActionMeta<TagSelectOption>,
+    ) => {
+      let newTags = [];
+      switch (action.action) {
+        case "clear":
+        case "create-option":
+        case "deselect-option":
+        case "pop-value":
+        case "remove-value":
+        case "select-option":
+          newTags = value.map((v) => v.value);
+          break;
+        default:
+          return;
+      }
+
+      setBulkTags(newTags);
+    },
+    [],
+  );
+
+  const onBulkDocTypeChange: React.ChangeEventHandler<HTMLSelectElement> =
+    useCallback((event) => {
+      setBulkDocType(event.currentTarget.value as GdriveMimeTypesType);
+    }, []);
+
+  const onBulkExpectedAnswerCountChange: React.ChangeEventHandler<HTMLInputElement> =
+    useCallback((event) => {
+      const string = event.currentTarget.value;
+      const value = Number(string);
+      setBulkExpectedAnswerCount(value);
+    }, []);
+
+  const handleBulkTitleChange = useCallback(
+    (linkId: number, newTitle: string) => {
+      setPageLinks((links) =>
+        links.map((l) =>
+          l.id === linkId ? { ...l, guessedTitle: newTitle } : l,
+        ),
+      );
+    },
+    [],
+  );
+
+  const handleBulkCheckChange = useCallback(
+    (linkId: number, checked: boolean) => {
+      setPageLinks((links) =>
+        links.map((l) => (l.id === linkId ? { ...l, checked } : l)),
+      );
+    },
+    [],
+  );
+
+  const onBulkAdd: React.FormEventHandler = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!jollyRogerClient) return;
+
+      setBulkSaving(true);
+      setBulkStatus(null);
+
+      const puzzlesToCreate = filteredLinks.filter((l) => l.checked && l.url);
+
+      void (async () => {
+        const results = await Promise.allSettled(
+          puzzlesToCreate.map((link) => {
+            const puzzle: Puzzle = {
+              title: link.guessedTitle,
+              url: link.url,
+              tags: bulkTags,
+              expectedAnswerCount: bulkExpectedAnswerCount,
+              docType: bulkDocType,
+              allowDuplicateUrls: true, // Always allow for bulk add
+            };
+            return jollyRogerClient.addPuzzle(hunt, puzzle);
+          }),
+        );
+
+        const successCount = results.filter(
+          (r) => r.status === "fulfilled",
+        ).length;
+        const failedCount = results.length - successCount;
+        const errors = results
+          .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+          .map((r) =>
+            r.reason instanceof Error ? r.reason.message : String(r.reason),
+          );
+
+        setBulkStatus({ success: successCount, failed: failedCount, errors });
+        setBulkSaving(false);
+      })();
+    },
+    [
+      jollyRogerClient,
+      hunt,
+      filteredLinks,
+      bulkTags,
+      bulkDocType,
+      bulkExpectedAnswerCount,
+    ],
+  );
 
   const addPuzzle: React.FormEventHandler = useCallback(
     (e: React.FormEvent) => {
@@ -358,27 +565,6 @@ const Popup = () => {
   const form = (
     <Form onSubmit={addPuzzle}>
       <Form.Group as={Row} className="mb-3">
-        <Form.Label column xs={3} htmlFor="jr-hunt">
-          Hunt
-        </Form.Label>
-        <Col xs={9}>
-          <Form.Select
-            id="jr-hunt"
-            value={hunt}
-            onChange={onHuntChange}
-            disabled={disableForm}
-          >
-            {hunts.map((huntItem) => {
-              return (
-                <option key={huntItem._id} value={huntItem._id}>
-                  {huntItem.name}
-                </option>
-              );
-            })}
-          </Form.Select>
-        </Col>
-      </Form.Group>
-      <Form.Group as={Row} className="mb-3">
         <Form.Label column xs={3} htmlFor="jr-title">
           Title
         </Form.Label>
@@ -387,7 +573,7 @@ const Popup = () => {
             id="jr-title"
             type="text"
             onChange={onTitleChange}
-            defaultValue={title}
+            value={title}
             disabled={disableForm}
           />
         </Col>
@@ -496,9 +682,180 @@ const Popup = () => {
     </Form>
   );
 
+  const bulkAddForm = (
+    <Form onSubmit={onBulkAdd}>
+      <Form.Group as={Row} className="mb-3">
+        <Form.Label column xs={3} htmlFor="jr-bulk-tags">
+          Tags
+        </Form.Label>
+        <Col xs={9}>
+          <Creatable
+            id="jr-bulk-tags"
+            options={selectOptions}
+            isMulti
+            isDisabled={bulkSaving}
+            onChange={onBulkTagsChange}
+            value={bulkTags.map((tag) => {
+              return { label: tag, value: tag };
+            })}
+          />
+        </Col>
+      </Form.Group>
+      <Form.Group as={Row} className="mb-3">
+        <Form.Label column xs={3} htmlFor="jr-bulk-doc-type">
+          Document type
+        </Form.Label>
+        <Col xs={9}>
+          <Form.Select
+            name="jr-bulk-doc-type"
+            defaultValue={bulkDocType}
+            onChange={onBulkDocTypeChange}
+            disabled={bulkSaving}
+          >
+            <option value="spreadsheet">Spreadsheet</option>
+            <option value="document">Document</option>
+          </Form.Select>
+        </Col>
+      </Form.Group>
+      <Form.Group as={Row} className="mb-3">
+        <Form.Label column xs={3} htmlFor="jr-bulk-expected-answer-count">
+          Expected # of answers
+        </Form.Label>
+        <Col xs={9}>
+          <Form.Control
+            id="jr-bulk-expected-answer-count"
+            type="number"
+            disabled={bulkSaving}
+            onChange={onBulkExpectedAnswerCountChange}
+            value={bulkExpectedAnswerCount}
+            min={0}
+            step={1}
+          />
+        </Col>
+      </Form.Group>
+      <hr />
+      <Form.Group className="mb-3">
+        <Form.Label htmlFor="jr-bulk-filter">Filter links</Form.Label>
+        <Form.Control
+          id="jr-bulk-filter"
+          type="text"
+          placeholder="Filter by title or URL"
+          onChange={onBulkFilterChange}
+          value={bulkFilter}
+          disabled={bulkSaving}
+        />
+      </Form.Group>
+      <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+        <Table striped bordered hover size="sm">
+          <thead>
+            <tr>
+              <th style={{ width: "5%" }}>Add</th>
+              <th style={{ width: "45%" }}>Title</th>
+              <th style={{ width: "50%" }}>URL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredLinks.map((link) => (
+              <tr key={link.id}>
+                <td className="text-center">
+                  <Form.Check
+                    type="checkbox"
+                    checked={link.checked}
+                    disabled={bulkSaving || !link.url}
+                    onChange={(e) =>
+                      handleBulkCheckChange(link.id, e.target.checked)
+                    }
+                  />
+                </td>
+                <td>
+                  <Form.Control
+                    type="text"
+                    size="sm"
+                    value={link.guessedTitle}
+                    disabled={bulkSaving}
+                    onChange={(e) =>
+                      handleBulkTitleChange(link.id, e.target.value)
+                    }
+                  />
+                </td>
+                <td>
+                  <div className="text-truncate" title={link.url}>
+                    {link.url}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+      <Form.Group className="mt-3 text-end">
+        <Button variant="light" onClick={window.close} disabled={bulkSaving}>
+          Close
+        </Button>
+        <Button type="submit" className="ms-2" disabled={bulkSaving}>
+          Save All Checked
+        </Button>
+      </Form.Group>
+      {bulkStatus && (
+        <Alert
+          variant={bulkStatus.failed > 0 ? "warning" : "success"}
+          className="mt-3"
+        >
+          <Alert.Heading>Bulk Add Complete</Alert.Heading>
+          <p>
+            Successfully created {bulkStatus.success} puzzles.
+            <br />
+            Failed to create {bulkStatus.failed} puzzles.
+          </p>
+          {bulkStatus.errors.length > 0 && <hr />}
+          {bulkStatus.errors.map((err, i) => (
+            <div key={i}>
+              <small>{err}</small>
+            </div>
+          ))}
+        </Alert>
+      )}
+    </Form>
+  );
+
   const contents =
     jollyRogerInstance !== "" && apiKey !== "" ? (
-      form
+      <>
+        <Form.Group as={Row} className="mb-3">
+          <Form.Label column xs={3} htmlFor="jr-hunt">
+            Hunt
+          </Form.Label>
+          <Col xs={9}>
+            <Form.Select
+              id="jr-hunt"
+              value={hunt}
+              onChange={onHuntChange}
+              disabled={disableForm || bulkSaving}
+            >
+              {hunts.map((huntItem) => {
+                return (
+                  <option key={huntItem._id} value={huntItem._id}>
+                    {huntItem.name}
+                  </option>
+                );
+              })}
+            </Form.Select>
+          </Col>
+        </Form.Group>
+        <Tabs
+          defaultActiveKey="add-page"
+          id="popup-tabs"
+          className="mb-3"
+          mountOnEnter
+        >
+          <Tab eventKey="add-page" title="Add Page">
+            {form}
+          </Tab>
+          <Tab eventKey="bulk-add" title="Bulk Add">
+            {bulkAddForm}
+          </Tab>
+        </Tabs>
+      </>
     ) : (
       <Button variant="link" onClick={onConfigureLinkClicked}>
         Configure Jolly Roger extension

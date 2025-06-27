@@ -3,6 +3,7 @@ import authenticator from "./api/authenticator";
 import createPuzzle from "./api/resources/createPuzzle";
 import hunts from "./api/resources/hunts";
 import tags from "./api/resources/tags";
+import updatePuzzleNote from "./api/resources/updatePuzzleNote";
 import users from "./api/resources/users";
 
 const api = express();

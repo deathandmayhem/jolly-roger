@@ -1,0 +1,66 @@
+name: Build and Package Extension
+
+on:
+  push:
+    branches:
+      - main
+    paths: # Only run when extension code changes
+      - "extension/**"
+      - ".github/workflows/build-extension.yml"
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20" # Use a modern LTS version
+          cache: "npm"
+          cache-dependency-path: "extension/package-lock.json"
+
+      - name: Install dependencies
+        working-directory: ./extension
+        run: npm install
+
+      - name: Build extension
+        working-directory: ./extension
+        run: npm run build
+
+      - name: Package Chrome Extension
+        id: package_chrome
+        working-directory: ./extension
+        env:
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
+        run: |
+          # If a private key is provided, package as a .crx file for direct distribution.
+          # Otherwise, the .zip file created by the build will be used.
+          if [ -n "$CRX_PRIVATE_KEY" ]; then
+            echo "Private key found. Packaging as .crx..."
+            echo "$CRX_PRIVATE_KEY" > private-key.pem
+            npx crx3 dist/chrome -o dist/jolly-roger-chrome.crx -p private-key.pem
+            rm private-key.pem
+            echo "artifact_path=dist/jolly-roger-chrome.crx" >> $GITHUB_OUTPUT
+            echo "artifact_name=jolly-roger-chrome-crx" >> $GITHUB_OUTPUT
+          else
+            echo "No private key found. Using .zip for Chrome Web Store."
+            echo "artifact_path=dist/jolly-roger-chrome.zip" >> $GITHUB_OUTPUT
+            echo "artifact_name=jolly-roger-chrome-zip" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload Chrome Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package_chrome.outputs.artifact_name }}
+          path: extension/${{ steps.package_chrome.outputs.artifact_path }}
+
+      - name: Upload Firefox Extension Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jolly-roger-firefox
+          path: extension/dist/jolly-roger-firefox.xpi

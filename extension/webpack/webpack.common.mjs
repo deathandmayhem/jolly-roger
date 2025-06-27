@@ -1,5 +1,6 @@
 import { join } from "path";
 import CopyPlugin from "copy-webpack-plugin";
+import ZipPlugin from "zip-webpack-plugin";
 
 const srcDir = join(import.meta.dirname, "..", "src");
 
@@ -10,16 +11,11 @@ export default ["chrome", "firefox"].map((browser) => {
       options: join(srcDir, "options.tsx"),
     },
     output: {
-      path: join(import.meta.dirname, `../dist/${browser}/js`),
-      filename: "[name].js",
+      path: join(import.meta.dirname, `../dist/${browser}`),
+      filename: "js/[name].js",
     },
     optimization: {
-      splitChunks: {
-        name: "vendor",
-        chunks(chunk) {
-          return chunk.name !== "background";
-        },
-      },
+      splitChunks: { name: "vendor", chunks: "all" },
     },
     module: {
       rules: [
@@ -42,7 +38,7 @@ export default ["chrome", "firefox"].map((browser) => {
         patterns: [
           {
             from: ".",
-            to: "../",
+            to: ".",
             context: "public",
             transform: {
               transformer(input, absoluteFilename) {
@@ -66,6 +62,21 @@ export default ["chrome", "firefox"].map((browser) => {
           },
         ],
         options: {},
+      }),
+      // This plugin will zip the output directory after the build is complete.
+      new ZipPlugin({
+        // The path to the directory to be zipped.
+        path: join(import.meta.dirname, "..", "dist", browser),
+        // The name of the output file, without extension.
+        filename: `jolly-roger-${browser}`,
+        // The extension for the output file.
+        extension: browser === "firefox" ? "xpi" : "zip",
+        // The path to the output directory for the zip file.
+        // We'll place it in the root `dist` folder.
+        destinationPath: join(import.meta.dirname, "..", "dist"),
+        // By default, the files in the zip are placed in a directory named after the source.
+        // We set pathPrefix to an empty string to have the files at the root of the zip.
+        pathPrefix: "",
       }),
     ],
   };
