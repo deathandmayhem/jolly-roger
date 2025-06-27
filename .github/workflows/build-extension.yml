@@ -32,10 +32,6 @@ jobs:
         working-directory: ./extension
         run: npm run build
 
-      - name: List files in extension/dist after build
-        working-directory: ./extension
-        run: ls -R dist/
-
       - name: Package Chrome Extension
         id: package_chrome
         working-directory: ./extension
@@ -56,10 +52,6 @@ jobs:
             echo "artifact_path=dist/jolly-roger-chrome.zip" >> $GITHUB_OUTPUT
             echo "artifact_name=jolly-roger-chrome-zip" >> $GITHUB_OUTPUT
           fi
-      - name: List files in extension/dist after Chrome packaging
-        if: always() # Run this step even if previous steps fail
-        working-directory: ./extension
-        run: ls -R dist/
 
       - name: Upload Chrome Artifact
         uses: actions/upload-artifact@v4
@@ -71,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jolly-roger-firefox
-          path: extension/dist/jolly-roger-firefox.xpi
+          path: extension/dist/firefox/jolly-roger-firefox.xpi
 
       - name: List files in extension/dist at end of job
         if: always() # Run this step even if previous steps fail
