@@ -20,11 +20,13 @@ export interface Hunt {
 export type GdriveMimeTypesType = "spreadsheet" | "document";
 
 export interface Puzzle {
+  _id?: string;
   title: string;
   url: string;
   tags: string[];
   expectedAnswerCount: number;
   docType: GdriveMimeTypesType;
+  hunt?: string; // Added for puzzle responses
   allowDuplicateUrls: boolean;
 }
 
@@ -50,6 +52,32 @@ export class JollyRogerClient {
     return (await this.callApi(`/api/createPuzzle/${hunt}`, puzzle))
       .id as string;
   };
+
+  async findPuzzlesByUrl(url: string, hunt: string): Promise<Puzzle[]> {
+    const query = new URLSearchParams({ url, hunt });
+    try {
+      const result = await this.callApi(`/api/puzzles?${query.toString()}`);
+      return result.puzzles as Puzzle[];
+    } catch (e) {
+      if (e instanceof HttpError && e.getStatus() === 404) {
+        return [];
+      }
+      throw e;
+    }
+  }
+
+  async findExistingPuzzlesByUrl(
+    urls: string[],
+    hunt: string,
+  ): Promise<Record<string, string>> {
+    // This new endpoint will receive a list of URLs and return a map of
+    // found URLs to their JollyRoger puzzle URL.
+    const result = await this.callApi(`/api/puzzles/bulk-check`, {
+      urls,
+      hunt,
+    });
+    return result.existing as Record<string, string>;
+  }
 
   private callApi = (endpoint: string, requestBody?: any): Promise<any> => {
     return new Promise((resolve, reject) => {

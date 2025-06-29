@@ -1,8 +1,13 @@
+import { rmSync } from "fs";
 import { join } from "path";
 import CopyPlugin from "copy-webpack-plugin";
 import ZipPlugin from "zip-webpack-plugin";
 
 const srcDir = join(import.meta.dirname, "..", "src");
+const distDir = join(import.meta.dirname, "..", "dist");
+
+// Clean the dist directory before every build.
+rmSync(distDir, { recursive: true, force: true });
 
 export default ["chrome", "firefox"].map((browser) => {
   return {
@@ -47,13 +52,19 @@ export default ["chrome", "firefox"].map((browser) => {
                 }
                 const manifest = JSON.parse(input.toString());
                 if (browser === "firefox") {
+                  // Add the update URL for Firefox for self-hosting and auto-updates.
                   manifest.browser_specific_settings = {
                     gecko: {
                       id: "{2bf7bc48-4f7d-4c16-9a88-58bb9f1c6ff5}",
                       strict_min_version: "128.0",
+                      update_url:
+                        "https://github.com/deathandmayhem/jolly-roger/releases/latest/download/updates.json",
                     },
                   };
                 } else {
+                  // Add the update URL for Chrome for self-hosting and auto-updates.
+                  manifest.update_url =
+                    "https://github.com/deathandmayhem/jolly-roger/releases/latest/download/update_manifest.xml";
                   manifest.minimum_chrome_version = "88";
                 }
                 return JSON.stringify(manifest);

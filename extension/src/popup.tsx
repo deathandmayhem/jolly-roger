@@ -1,3 +1,9 @@
+import {
+  faExternalLinkAlt,
+  faPuzzlePiece,
+  faSearch,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
@@ -6,6 +12,7 @@ import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Row from "react-bootstrap/Row";
+import Spinner from "react-bootstrap/Spinner";
 import Tab from "react-bootstrap/Tab";
 import Table from "react-bootstrap/Table";
 import Tabs from "react-bootstrap/Tabs";
@@ -38,27 +45,30 @@ const guessTitle = function (url: string, tabTitle: string): string {
     return tabTitle.substring(0, tabTitle.lastIndexOf(" - "));
   }
 
-  // Generic title guessing from PuzzleModalForm.tsx
-  try {
-    const urlObject = new URL(url);
-    const pathname = urlObject.pathname.replace(/^\/|\/$/g, "");
-    if (pathname) {
-      const pathParts = pathname.split("/");
-      const lastPart = pathParts[pathParts.length - 1] ?? "";
-      if (lastPart) {
-        const decodedLastPart = decodeURI(lastPart);
-        return (
-          decodedLastPart.includes("_")
-            ? decodedLastPart.replace(/_/g, " ")
-            : decodedLastPart.replace(/-/g, " ")
-        ).replace(
-          /\w\S*/g,
-          (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
-        );
+  // If the title is just the URL, it means there was no anchor text.
+  // In this case, we can try to guess a better title from the URL path.
+  if (tabTitle === url) {
+    try {
+      const urlObject = new URL(url);
+      const pathname = urlObject.pathname.replace(/^\/|\/$/g, "");
+      if (pathname) {
+        const pathParts = pathname.split("/");
+        const lastPart = pathParts[pathParts.length - 1] ?? "";
+        if (lastPart) {
+          const decodedLastPart = decodeURI(lastPart);
+          return (
+            decodedLastPart.includes("_")
+              ? decodedLastPart.replace(/_/g, " ")
+              : decodedLastPart.replace(/-/g, " ")
+          ).replace(
+            /\w\S*/g,
+            (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+          );
+        }
       }
+    } catch (e) {
+      // Fall through if URL is invalid
     }
-  } catch (e) {
-    // Fall through if URL is invalid
   }
 
   // Fallback to original tab title
@@ -123,9 +133,19 @@ const Popup = () => {
   const [status, setStatus] = useState<Status>();
   const [saving, setSaving] = useState<boolean>(false);
 
+  const [isCheckingUrl, setIsCheckingUrl] = useState<boolean>(false);
+  const [existingPuzzleUrl, setExistingPuzzleUrl] = useState<
+    string | undefined
+  >();
   // State for bulk add tab
   const [pageLinks, setPageLinks] = useState<
-    { id: number; url: string; guessedTitle: string; checked: boolean }[]
+    {
+      id: number;
+      url: string;
+      guessedTitle: string;
+      checked: boolean;
+      existingPuzzleUrl?: string;
+    }[]
   >([]);
   const [bulkFilter, setBulkFilter] = useState("");
   const [bulkTags, setBulkTags] = useState<string[]>([]);
@@ -133,6 +153,8 @@ const Popup = () => {
     useState<GdriveMimeTypesType>("spreadsheet");
   const [bulkExpectedAnswerCount, setBulkExpectedAnswerCount] =
     useState<number>(1);
+  const [isCheckingBulk, setIsCheckingBulk] = useState(false);
+  const [bulkCheckCompleted, setBulkCheckCompleted] = useState(false);
   const [bulkSaving, setBulkSaving] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<{
     success: number;
@@ -243,7 +265,7 @@ const Popup = () => {
               func: () => {
                 const links = Array.from(document.querySelectorAll("a"));
                 return links
-                  .filter((link) => link.href && link.href.startsWith("http"))
+                  .filter((link) => link.href?.startsWith("http"))
                   .map((link) => ({
                     url: link.href,
                     text: link.innerText.trim() || link.href,
@@ -251,11 +273,29 @@ const Popup = () => {
               },
             });
 
-            if (results && results[0] && results[0].result) {
+            if (results?.[0]?.result) {
               const linksFromPage: { url: string; text: string }[] =
                 results[0].result;
+
+              // De-duplicate links based on URL, preferring links with text over those without.
+              const uniqueLinks = new Map<
+                string,
+                { url: string; text: string }
+              >();
+              for (const link of linksFromPage) {
+                const existingLink = uniqueLinks.get(link.url);
+                // A link has "text" if its text content is not just the URL itself.
+                const hasText = link.text !== link.url;
+                const existingHasText =
+                  existingLink && existingLink.text !== existingLink.url;
+
+                if (!existingLink || (hasText && !existingHasText)) {
+                  uniqueLinks.set(link.url, link);
+                }
+              }
+
               setPageLinks(
-                linksFromPage.map((link, index) => ({
+                Array.from(uniqueLinks.values()).map((link, index) => ({
                   id: index,
                   url: link.url,
                   guessedTitle: guessTitle(link.url, link.text),
@@ -276,6 +316,40 @@ const Popup = () => {
     })();
   }, []);
 
+  // Check for existing puzzle when URL is available.
+  useEffect(() => {
+    if (!jollyRogerClient || !currentURL || !hunt) {
+      return;
+    }
+
+    setIsCheckingUrl(true);
+    setExistingPuzzleUrl(undefined);
+    void (async () => {
+      try {
+        const existingPuzzles = await jollyRogerClient.findPuzzlesByUrl(
+          currentURL,
+          hunt,
+        );
+
+        if (existingPuzzles.length > 0 && existingPuzzles[0]) {
+          const puzzle = existingPuzzles[0];
+          const puzzleUrl = new URL(
+            `/hunts/${hunt}/puzzles/${puzzle._id}`,
+            jollyRogerInstance,
+          );
+          setExistingPuzzleUrl(puzzleUrl.href);
+        }
+      } catch (e) {
+        if (!(e instanceof HttpError && e.getStatus() === 404)) {
+          // It's okay if this fails with a 404 (not found). The user can still add the puzzle manually.
+          console.error("Failed to check for existing puzzle:", e);
+        }
+      } finally {
+        setIsCheckingUrl(false);
+      }
+    })();
+  }, [jollyRogerClient, currentURL, jollyRogerInstance, hunt]);
+
   const filteredLinks = useMemo(() => {
     if (!bulkFilter) return pageLinks;
     const lowerFilter = bulkFilter.toLowerCase();
@@ -285,6 +359,12 @@ const Popup = () => {
         l.url?.toLowerCase().includes(lowerFilter),
     );
   }, [pageLinks, bulkFilter]);
+
+  const puzzlesToCreateCount = useMemo(() => {
+    return filteredLinks.filter((l) => l.checked && !l.existingPuzzleUrl)
+      .length;
+  }, [filteredLinks]);
+
   const onHuntChange: React.ChangeEventHandler<HTMLSelectElement> = useCallback(
     (event) => {
       void (async () => {
@@ -357,6 +437,7 @@ const Popup = () => {
   const onBulkFilterChange: React.ChangeEventHandler<HTMLInputElement> =
     useCallback((event) => {
       setBulkFilter(event.target.value);
+      setBulkCheckCompleted(false);
     }, []);
 
   const onBulkTagsChange = useCallback(
@@ -415,6 +496,44 @@ const Popup = () => {
     [],
   );
 
+  const onBulkCheck = useCallback(async () => {
+    if (!jollyRogerClient) return;
+
+    setIsCheckingBulk(true);
+    setBulkCheckCompleted(false);
+    try {
+      const urlsToCheck = pageLinks.map((link) => link.url);
+      if (urlsToCheck.length === 0) {
+        setIsCheckingBulk(false);
+        return;
+      }
+
+      const existingPuzzlesMap =
+        await jollyRogerClient.findExistingPuzzlesByUrl(urlsToCheck, hunt);
+
+      setPageLinks((currentLinks) =>
+        currentLinks.map((link) => {
+          const existingUrl = existingPuzzlesMap[link.url];
+          if (existingUrl) {
+            return {
+              ...link,
+              checked: false, // Uncheck if it already exists
+              existingPuzzleUrl: existingUrl,
+            };
+          }
+          return { ...link, existingPuzzleUrl: undefined };
+        }),
+      );
+      setBulkCheckCompleted(true);
+    } catch (e) {
+      console.error("Failed to bulk check for existing puzzles:", e);
+      setBulkCheckCompleted(false);
+      // You might want to show an error to the user here.
+    } finally {
+      setIsCheckingBulk(false);
+    }
+  }, [jollyRogerClient, pageLinks, hunt]);
+
   const onBulkAdd: React.FormEventHandler = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -423,7 +542,17 @@ const Popup = () => {
       setBulkSaving(true);
       setBulkStatus(null);
 
-      const puzzlesToCreate = filteredLinks.filter((l) => l.checked && l.url);
+      // Re-calculate the filtered list inside the handler to ensure we have the
+      // latest state and avoid potential stale closures with the memoized `filteredLinks`.
+      const lowerFilter = bulkFilter.toLowerCase();
+      const puzzlesToCreate = pageLinks
+        .filter(
+          (l) =>
+            !bulkFilter ||
+            l.guessedTitle.toLowerCase().includes(lowerFilter) ||
+            l.url?.toLowerCase().includes(lowerFilter),
+        )
+        .filter((l) => l.checked && l.url && !l.existingPuzzleUrl);
 
       void (async () => {
         const results = await Promise.allSettled(
@@ -457,8 +586,9 @@ const Popup = () => {
     [
       jollyRogerClient,
       hunt,
-      filteredLinks,
+      pageLinks,
       bulkTags,
+      bulkFilter,
       bulkDocType,
       bulkExpectedAnswerCount,
     ],
@@ -564,6 +694,14 @@ const Popup = () => {
 
   const form = (
     <Form onSubmit={addPuzzle}>
+      {existingPuzzleUrl && (
+        <Alert variant="info">
+          A puzzle with this URL already exists.{" "}
+          <a href={existingPuzzleUrl} target="_blank" rel="noreferrer">
+            View existing puzzle <FontAwesomeIcon icon={faExternalLinkAlt} />
+          </a>
+        </Alert>
+      )}
       <Form.Group as={Row} className="mb-3">
         <Form.Label column xs={3} htmlFor="jr-title">
           Title
@@ -582,7 +720,7 @@ const Popup = () => {
         <Form.Label column xs={3} htmlFor="jr-url">
           URL
         </Form.Label>
-        <Col xs={9}>
+        <Col xs={9} style={{ position: "relative" }}>
           <Form.Control
             id="jr-url"
             type="text"
@@ -590,6 +728,17 @@ const Popup = () => {
             readOnly
             defaultValue={currentURL}
           />
+          {isCheckingUrl && (
+            <Spinner
+              animation="border"
+              size="sm"
+              style={{
+                position: "absolute",
+                right: "20px",
+                top: "8px",
+              }}
+            />
+          )}
           <Form.Check
             label="Allow puzzles with identical URLs"
             type="checkbox"
@@ -675,7 +824,11 @@ const Popup = () => {
         <Button variant="light" onClick={window.close} disabled={disableForm}>
           Close
         </Button>
-        <Button type="submit" className="ms-2" disabled={disableForm}>
+        <Button
+          type="submit"
+          className="ms-2"
+          disabled={disableForm || (!!existingPuzzleUrl && !allowDuplicateUrls)}
+        >
           Save
         </Button>
       </Form.Group>
@@ -684,6 +837,12 @@ const Popup = () => {
 
   const bulkAddForm = (
     <Form onSubmit={onBulkAdd}>
+      <Alert variant="warning" className="mb-3">
+        <Alert.Heading>Duplicates Allowed</Alert.Heading>
+        This tool does not prevent the creation of puzzles with duplicate URLs.
+        Use the &quot;Check for Duplicates&quot; button below to identify
+        existing puzzles first.
+      </Alert>
       <Form.Group as={Row} className="mb-3">
         <Form.Label column xs={3} htmlFor="jr-bulk-tags">
           Tags
@@ -741,9 +900,34 @@ const Popup = () => {
           type="text"
           placeholder="Filter by title or URL"
           onChange={onBulkFilterChange}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+            }
+          }}
           value={bulkFilter}
           disabled={bulkSaving}
         />
+      </Form.Group>
+      <Form.Group className="mb-3 d-flex align-items-center">
+        <Button
+          variant="secondary"
+          onClick={onBulkCheck}
+          disabled={isCheckingBulk || filteredLinks.length === 0}
+        >
+          <Spinner
+            as="span"
+            animation="border"
+            size="sm"
+            role="status"
+            aria-hidden="true"
+            hidden={!isCheckingBulk}
+          />{" "}
+          <FontAwesomeIcon icon={faSearch} /> Check for Duplicates
+        </Button>
+        {bulkCheckCompleted && !isCheckingBulk && (
+          <span className="ms-2 text-success">✔ Current links checked</span>
+        )}
       </Form.Group>
       <div style={{ maxHeight: "300px", overflowY: "auto" }}>
         <Table striped bordered hover size="sm">
@@ -761,7 +945,9 @@ const Popup = () => {
                   <Form.Check
                     type="checkbox"
                     checked={link.checked}
-                    disabled={bulkSaving || !link.url}
+                    disabled={
+                      bulkSaving || !link.url || !!link.existingPuzzleUrl
+                    }
                     onChange={(e) =>
                       handleBulkCheckChange(link.id, e.target.checked)
                     }
@@ -780,7 +966,17 @@ const Popup = () => {
                 </td>
                 <td>
                   <div className="text-truncate" title={link.url}>
-                    {link.url}
+                    {link.existingPuzzleUrl ? (
+                      <a
+                        href={link.existingPuzzleUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {link.url} <FontAwesomeIcon icon={faExternalLinkAlt} />
+                      </a>
+                    ) : (
+                      link.url
+                    )}
                   </div>
                 </td>
               </tr>
@@ -788,14 +984,6 @@ const Popup = () => {
           </tbody>
         </Table>
       </div>
-      <Form.Group className="mt-3 text-end">
-        <Button variant="light" onClick={window.close} disabled={bulkSaving}>
-          Close
-        </Button>
-        <Button type="submit" className="ms-2" disabled={bulkSaving}>
-          Save All Checked
-        </Button>
-      </Form.Group>
       {bulkStatus && (
         <Alert
           variant={bulkStatus.failed > 0 ? "warning" : "success"}
@@ -815,6 +1003,19 @@ const Popup = () => {
           ))}
         </Alert>
       )}
+      <Form.Group className="mt-3 text-end">
+        {bulkSaving && <FontAwesomeIcon icon={faPuzzlePiece} spin />}
+        <Button variant="light" onClick={window.close} disabled={bulkSaving}>
+          Close
+        </Button>
+        <Button
+          type="submit"
+          className="ms-2"
+          disabled={bulkSaving || puzzlesToCreateCount === 0}
+        >
+          Create All Checked ({puzzlesToCreateCount})
+        </Button>
+      </Form.Group>
     </Form>
   );
 

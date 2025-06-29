@@ -2,16 +2,15 @@ name: Build and Package Extension
 
 on:
   push:
-    branches:
-      - main
-    paths: # Only run when extension code changes
-      - "extension/**"
-      - ".github/workflows/build-extension.yml"
+    tags:
+      - "v*.*.*" # This workflow now runs when you push a tag like v1.0.0
   workflow_dispatch: # Allows manual triggering
 
 jobs:
   build-and-package:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create a release
 
     steps:
       - name: Checkout code
@@ -32,40 +31,78 @@ jobs:
         working-directory: ./extension
         run: npm run build
 
+      - name: List files in extension/dist after build
+        if: always()
+        working-directory: ./extension
+        run: ls -R dist/
+
       - name: Package Chrome Extension
         id: package_chrome
         working-directory: ./extension
+        # This step now also extracts the extension ID needed for the update manifest
         env:
           CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
         run: |
-          # If a private key is provided, package as a .crx file for direct distribution.
-          # Otherwise, the .zip file created by the build will be used.
           if [ -n "$CRX_PRIVATE_KEY" ]; then
             echo "Private key found. Packaging as .crx..."
             echo "$CRX_PRIVATE_KEY" > private-key.pem
-            npx crx3 dist/chrome -o dist/jolly-roger-chrome.crx -p private-key.pem
+            CRX_OUTPUT=$(npx crx3 dist/chrome -o dist/jolly-roger-chrome.crx -p private-key.pem)
+            echo "$CRX_OUTPUT"
+            CRX_ID=$(echo "$CRX_OUTPUT" | grep -oP 'ID: \K\w+')
+            echo "CRX_ID=$CRX_ID" >> $GITHUB_ENV
             rm private-key.pem
-            echo "artifact_path=dist/jolly-roger-chrome.crx" >> $GITHUB_OUTPUT
-            echo "artifact_name=jolly-roger-chrome-crx" >> $GITHUB_OUTPUT
-          else
-            echo "No private key found. Using .zip for Chrome Web Store."
-            echo "artifact_path=dist/jolly-roger-chrome.zip" >> $GITHUB_OUTPUT
-            echo "artifact_name=jolly-roger-chrome-zip" >> $GITHUB_OUTPUT
           fi
 
-      - name: Upload Chrome Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.package_chrome.outputs.artifact_name }}
-          path: extension/${{ steps.package_chrome.outputs.artifact_path }}
+      - name: Generate Chrome Update Manifest
+        if: env.CRX_ID
+        working-directory: ./extension
+        run: |
+          VERSION=${{ github.ref_name }}
+          VERSION=${VERSION#v} # remove 'v' prefix
+          cat > dist/update_manifest.xml <<EOL
+          <?xml version='1.0' encoding='UTF-8'?>
+          <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
+            <app appid='${{ env.CRX_ID }}'>
+              <updatecheck codebase='https://github.com/deathandmayhem/jolly-roger/releases/download/${{ github.ref_name }}/jolly-roger-chrome.crx' version='${VERSION}' />
+            </app>
+          </gupdate>
+          EOL
 
-      - name: Upload Firefox Extension Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: jolly-roger-firefox
-          path: extension/dist/firefox/jolly-roger-firefox.xpi
+      - name: Generate Firefox Update Manifest
+        working-directory: ./extension
+        run: |
+          VERSION=${{ github.ref_name }}
+          VERSION=${VERSION#v} # remove 'v' prefix
+          cat > dist/updates.json <<EOL
+          {
+            "addons": {
+              "{2bf7bc48-4f7d-4c16-9a88-58bb9f1c6ff5}": {
+                "updates": [
+                  {
+                    "version": "${VERSION}",
+                    "update_link": "https://github.com/deathandmayhem/jolly-roger/releases/download/${{ github.ref_name }}/jolly-roger-firefox.xpi"
+                  }
+                ]
+              }
+            }
+          }
+          EOL
 
-      - name: List files in extension/dist at end of job
-        if: always() # Run this step even if previous steps fail
+      - name: List files in extension/dist before release
+        if: always()
         working-directory: ./extension
         run: ls -R dist/
+
+      - name: Create Release and Upload Artifacts
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: |
+            extension/dist/jolly-roger-chrome.zip
+            extension/dist/jolly-roger-chrome.crx
+            extension/dist/jolly-roger-firefox.xpi
+            extension/dist/update_manifest.xml
+            extension/dist/updates.json
+          generateReleaseNotes: true
+          # The GITHUB_TOKEN is automatically provided by GitHub Actions
+          # and is required to create a release.
+          token: ${{ secrets.GITHUB_TOKEN }}

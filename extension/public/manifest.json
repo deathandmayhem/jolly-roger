@@ -12,5 +12,6 @@
     "default_icon": "icon48.png",
     "default_popup": "popup.html"
   },
-  "permissions": ["activeTab", "storage", "scripting"]
+  "permissions": ["activeTab", "storage", "scripting"],
+  "optional_host_permissions": ["*://*/*"]
 }
