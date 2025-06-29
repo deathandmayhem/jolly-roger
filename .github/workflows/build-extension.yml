@@ -3,14 +3,16 @@ name: Build and Package Extension
 on:
   push:
     tags:
-      - "v*.*.*" # This workflow now runs when you push a tag like v1.0.0
-  workflow_dispatch: # Allows manual triggering
+      - "v*.*.*"
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build-and-package:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required to create a release
+      contents: write
 
     steps:
       - name: Checkout code
@@ -19,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20" # Use a modern LTS version
+          node-version: "20"
           cache: "npm"
           cache-dependency-path: "extension/package-lock.json"
 
@@ -39,7 +41,6 @@ jobs:
       - name: Package Chrome Extension
         id: package_chrome
         working-directory: ./extension
-        # This step now also extracts the extension ID needed for the update manifest
         env:
           CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
         run: |
@@ -54,7 +55,7 @@ jobs:
           fi
 
       - name: Generate Chrome Update Manifest
-        if: env.CRX_ID
+        if: startsWith(github.ref, 'refs/tags/') && env.CRX_ID
         working-directory: ./extension
         run: |
           VERSION=${{ github.ref_name }}
@@ -69,6 +70,7 @@ jobs:
           EOL
 
       - name: Generate Firefox Update Manifest
+        if: startsWith(github.ref, 'refs/tags/')
         working-directory: ./extension
         run: |
           VERSION=${{ github.ref_name }}
@@ -95,6 +97,7 @@ jobs:
 
       - name: Create Release and Upload Artifacts
         uses: ncipollo/release-action@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           artifacts: |
             extension/dist/jolly-roger-chrome.zip
@@ -103,6 +106,4 @@ jobs:
             extension/dist/update_manifest.xml
             extension/dist/updates.json
           generateReleaseNotes: true
-          # The GITHUB_TOKEN is automatically provided by GitHub Actions
-          # and is required to create a release.
           token: ${{ secrets.GITHUB_TOKEN }}
