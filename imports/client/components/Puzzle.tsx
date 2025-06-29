@@ -291,7 +291,13 @@ const Puzzle = React.memo(
         );
       }
       return null;
-    }, [showEdit, puzzle.deleted, onShowEditModal, onShowDeleteModal]);
+    }, [
+      showEdit,
+      puzzle.deleted,
+      onShowEditModal,
+      onShowDeleteModal,
+      theme.basicMode,
+    ]);
 
     // id, title, answer, tags
     const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
