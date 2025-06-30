@@ -64,38 +64,13 @@ jobs:
           EOL
 
       - name: Package Chrome Extension
-        id: package_chrome
-        continue-on-error: true
-        working-directory: ./extension
-        env:
-          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
-        run: |
-          if [ -n "$CRX_PRIVATE_KEY" ]; then
-            echo "Private key found. Packaging as .crx..."
-            echo "$CRX_PRIVATE_KEY" > private-key.pem
-            CRX_OUTPUT=$(npx crx3 dist/chrome -o dist/jolly-roger-chrome.crx -p private-key.pem)
-            echo "$CRX_OUTPUT"
-            CRX_ID=$(echo "$CRX_OUTPUT" | grep -oP 'ID: \K\w+')
-            echo "CRX_ID=$CRX_ID" >> $GITHUB_ENV
-            echo "CRX_PACKAGE_SUCCESS=true" >> $GITHUB_ENV
-            rm private-key.pem
-          fi
-
-      - name: Generate Chrome Update Manifest
-        if: startsWith(github.ref, 'refs/tags/') && env.CRX_ID
-        working-directory: ./extension
-        run: |
-          VERSION=${{ github.ref_name }}
-          VERSION=${VERSION#v} # remove 'v' prefix
-          cat > dist/update_manifest.xml <<EOL
-          <?xml version='1.0' encoding='UTF-8'?>
-          <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
-            <app appid='${{ env.CRX_ID }}'>
-              <updatecheck codebase='https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/jolly-roger-chrome.crx' version='${VERSION}' />
-            </app>
-          </gupdate>
-          EOL
-
+        uses: cardinalby/webext-buildtools-chrome-crx-action@v2
+        with:
+          zipFilePath: 'extension/dist/chrome/jolly-roger-chrome.zip'
+          crxFilePath: 'extension/dist/jolly-roger-chrome.crx'
+          privateKey: ${{ secrets.CRX_PRIVATE_KEY }}
+          updateXmlPath: 'extension/dist/update.xml'
+          updateXmlCodebaseUrl: 'https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/jolly-roger-chrome.crx'
 
       - name: List files in extension/dist before release
         if: always()
