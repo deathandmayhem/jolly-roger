@@ -44,36 +44,16 @@ jobs:
         env:
           CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
         run: |
-          if [ -z "$CRX_PRIVATE_KEY" ]; then
-            echo "Private key not found. Skipping .crx packaging."
-            # Exit successfully since this is not an error condition
-            exit 0
+          if [ -n "$CRX_PRIVATE_KEY" ]; then
+            echo "Private key found. Packaging as .crx..."
+            echo "$CRX_PRIVATE_KEY" > private-key.pem
+            CRX_OUTPUT=$(npx crx3 dist/chrome -o dist/jolly-roger-chrome.crx -p private-key.pem)
+            echo "$CRX_OUTPUT"
+            CRX_ID=$(echo "$CRX_OUTPUT" | grep -oP 'ID: \K\w+')
+            echo "CRX_ID=$CRX_ID" >> $GITHUB_ENV
+            echo "CRX_PACKAGE_SUCCESS=true" >> $GITHUB_ENV
+            rm private-key.pem
           fi
-
-          echo "Private key found. Packaging as .crx..."
-          echo "$CRX_PRIVATE_KEY" > private-key.pem
-
-          # THE FIX: Redirect stderr to stdout (2>&1) to capture all output.
-          CRX_OUTPUT=$(npx crx3 dist/chrome -o dist/jolly-roger-chrome.crx -p private-key.pem 2>&1)
-          
-          # Clean up the key file immediately for security.
-          rm private-key.pem
-
-          echo "--- crx3 command output ---"
-          echo "$CRX_OUTPUT"
-          echo "---------------------------"
-
-          # Extract the CRX ID using grep
-          CRX_ID=$(echo "$CRX_OUTPUT" | grep -oP 'ID: \K\w+')
-
-          # Add a check to ensure the ID was found
-          if [ -z "$CRX_ID" ]; then
-            echo "::error::Could not extract CRX_ID from the crx3 output."
-            exit 1
-          fi
-
-          echo "Successfully extracted CRX_ID: $CRX_ID"
-          echo "CRX_ID=$CRX_ID" >> $GITHUB_ENV
 
       - name: Generate Chrome Update Manifest
         if: startsWith(github.ref, 'refs/tags/') && env.CRX_ID
