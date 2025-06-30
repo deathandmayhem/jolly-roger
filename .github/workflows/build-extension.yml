@@ -42,8 +42,30 @@ jobs:
         working-directory: ./extension
         run: ls -R dist/
 
+      - name: Generate Firefox Update Manifest
+        if: startsWith(github.ref, 'refs/tags/')
+        working-directory: ./extension
+        run: |
+          VERSION=${{ github.ref_name }}
+          VERSION=${VERSION#v} # remove 'v' prefix
+          cat > dist/updates.json <<EOL
+          {
+            "addons": {
+              "{2bf7bc48-4f7d-4c16-9a88-58bb9f1c6ff5}": {
+                "updates": [
+                  {
+                    "version": "${VERSION}",
+                    "update_link": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/jolly-roger-firefox.xpi"
+                  }
+                ]
+              }
+            }
+          }
+          EOL
+
       - name: Package Chrome Extension
         id: package_chrome
+        continue-on-error: true
         working-directory: ./extension
         env:
           CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
@@ -74,26 +96,6 @@ jobs:
           </gupdate>
           EOL
 
-      - name: Generate Firefox Update Manifest
-        if: startsWith(github.ref, 'refs/tags/')
-        working-directory: ./extension
-        run: |
-          VERSION=${{ github.ref_name }}
-          VERSION=${VERSION#v} # remove 'v' prefix
-          cat > dist/updates.json <<EOL
-          {
-            "addons": {
-              "{2bf7bc48-4f7d-4c16-9a88-58bb9f1c6ff5}": {
-                "updates": [
-                  {
-                    "version": "${VERSION}",
-                    "update_link": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/jolly-roger-firefox.xpi"
-                  }
-                ]
-              }
-            }
-          }
-          EOL
 
       - name: List files in extension/dist before release
         if: always()
