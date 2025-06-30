@@ -109,9 +109,9 @@ jobs:
           # Note: The artifact paths must exist. If .crx packaging is skipped,
           # that part of the artifact list will gracefully fail to upload.
           artifacts: |
-            extension/dist/jolly-roger-chrome.zip
+            extension/dist/chrome/jolly-roger-chrome.zip
             extension/dist/jolly-roger-chrome.crx
-            extension/dist/jolly-roger-firefox.xpi
+            extension/dist/firefox/jolly-roger-firefox.xpi
             extension/dist/update_manifest.xml
             extension/dist/updates.json
           generateReleaseNotes: true
