@@ -3,6 +3,8 @@ name: Build and test Docker image
 # Run builds on main commits and when PRs are opened or updated
 on:
   push:
+    tags:
+      - "v*.*.*"
     branches:
       - main
   pull_request:
