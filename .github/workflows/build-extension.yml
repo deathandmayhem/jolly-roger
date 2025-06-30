@@ -90,4 +90,5 @@ jobs:
             extension/dist/update_manifest.xml
             extension/dist/updates.json
           generateReleaseNotes: true
+          bodyFile: 'extension/UPDATES.md'
           token: ${{ secrets.GITHUB_TOKEN }}
