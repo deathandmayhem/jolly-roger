@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     paths-ignore:
-      - "extensions/***"
+      - "extensions/**"
     tags:
       - "v*.*.*"
     branches:

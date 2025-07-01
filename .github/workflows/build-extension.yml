@@ -3,7 +3,7 @@ name: Build and Package Extension
 on:
   push:
     paths:
-      - "extension/***"
+      - "extension/**"
     tags:
       - "v*.*.*"
     branches:
