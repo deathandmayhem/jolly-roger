@@ -408,7 +408,6 @@ const PuzzleModalForm = React.forwardRef(
         </FormGroup>
       ) : null;
 
-<<<<<<< HEAD
     useEffect(() => {
       // This tries to guess the puzzle title based on the URL entered
       // To keep things simple, we only populate the title if the title
@@ -439,8 +438,6 @@ const PuzzleModalForm = React.forwardRef(
       }
     }, [url]);
 
-=======
->>>>>>> 7d0b6441 (Deduplicate new puzzles by URL.)
     const allowDuplicateUrlsCheckbox =
       !puzzle && typeof allowDuplicateUrls === "boolean" ? (
         <FormCheck
@@ -452,36 +449,6 @@ const PuzzleModalForm = React.forwardRef(
         />
       ) : null;
 
-<<<<<<< HEAD
-    useEffect(() => {
-        // This tries to guess the puzzle title based on the URL entered
-        // To keep things simple, we only populate the title if the title
-        // is currently blank,
-        try {
-          const urlObject = new URL(url);
-          const pathname = urlObject.pathname.replace(/^\/|\/$/g, '');
-          if (!pathname) return;
-          const pathParts = pathname.split("/");
-          const lastPart = pathParts[pathParts.length - 1];
-          const decodedLastPart = decodeURI(lastPart);
-          const formattedTitle = decodedLastPart
-            .replace(/-/g, " ")
-            .replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-
-            if (title === lastAutoPopulatedTitle || title === '') {
-              setTitle(formattedTitle);
-              setTitleDirty(false);
-          }
-          setLastAutoPopulatedTitle(formattedTitle);
-        } catch (error) {
-          // console.debug("Invalid URL, probably there's no URL:", error);
-        }
-      }, [url]);
-
-    const theme = useTheme();
-
-=======
->>>>>>> 7d0b6441 (Deduplicate new puzzles by URL.)
     return (
       <Suspense
         fallback={
@@ -525,7 +492,6 @@ const PuzzleModalForm = React.forwardRef(
                 value={currentUrl}
               />
               {allowDuplicateUrlsCheckbox}
-<<<<<<< HEAD
             </Col>
           </FormGroup>
           <hr />
@@ -552,8 +518,6 @@ const PuzzleModalForm = React.forwardRef(
                 <code>where:</code> (e.g. <code>priority:high</code>;{" "}
                 <code>where:Sydney</code>)
               </FormText>
-=======
->>>>>>> 7d0b6441 (Deduplicate new puzzles by URL.)
             </Col>
           </FormGroup>
 

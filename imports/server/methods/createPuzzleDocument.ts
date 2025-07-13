@@ -9,6 +9,7 @@ import createPuzzleDocument from "../../methods/createPuzzleDocument";
 import { ensureDocument } from "../gdrive";
 import GoogleClient from "../googleClientRefresher";
 import defineMethod from "./defineMethod";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 
 defineMethod(createPuzzleDocument, {
   validate(arg) {
@@ -31,6 +32,11 @@ defineMethod(createPuzzleDocument, {
       throw new Meteor.Error(404, "Unknown hunt id");
     }
 
+    const user = MeteorUsers.findOne(this.userId);
+    if (!user?.hunts?.includes(huntId)) {
+      throw new Meteor.Error(403, "User is not a member of this hunt");
+    }
+
     const puzzle = await Puzzles.findOneAsync({ _id: puzzleId, hunt: huntId })!;
 
     if (
@@ -38,7 +44,7 @@ defineMethod(createPuzzleDocument, {
       GoogleClient.ready() &&
       !(await Flags.activeAsync("disable.google"))
     ) {
-      await ensureDocument(puzzle, docType, true);
+      await ensureDocument(this.userId, puzzle, docType, true);
     }
   },
 });

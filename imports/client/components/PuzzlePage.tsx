@@ -2677,13 +2677,15 @@ const PuzzlePageMetadata = ({
     })
   }, [allDocs])
 
-  const switchOrCreateDocument = useCallback((e:string|number)=>{
+  const switchOrCreateDocument = useCallback((e:"spreadsheet"|"document"
+    |"drawing"|number)=>{
     if(!e) return;
     if(unusedDocumentTypes.includes(e)){
       createPuzzleDocument.call({
         huntId: puzzle.hunt,
         puzzleId: puzzle._id,
-        docType: e,
+        docType: e as "spreadsheet"|"document"
+    |"drawing",
       });
     } else if(e !== selectedDocumentIndex) {
       setSelectedDocument(e);
