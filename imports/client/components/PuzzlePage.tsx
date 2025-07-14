@@ -3549,7 +3549,6 @@ const PuzzlePage = React.memo(() => {
   const [lastSidebarWidth, setLastSidebarWidth] = useState<number>(DefaultSidebarWidth);
   const [isRestoring, setIsRestoring] = useState(false);
   const [isMetadataMinimized, setIsMetadataMinimized] = useState<boolean>(false);
-  const [lastSidebarWidth, setLastSidebarWidth] = useState<number>(persistentWidth ?? DefaultSidebarWidth);
   const [isDesktop, setIsDesktop] = useState<boolean>(
     window.innerWidth >= MinimumDesktopWidth,
   );
@@ -3824,41 +3823,12 @@ const PuzzlePage = React.memo(() => {
     }
   }, [isChatMinimized, sidebarWidth]);
 
-  // useEffect for restoring chat on new message - broken
-  useEffect(() => {
-    const currentLength = chatMessages.length;
-    if (currentLength > prevMessagesLength.current && prevMessagesLength.current > 0) {
-      if (isChatMinimized) {
-        restoreChat();
-      } else {
-      }
-    }
-
-    if (currentLength !== prevMessagesLength.current) {
-       prevMessagesLength.current = currentLength;
-    }
-
-  }, [chatMessages, isChatMinimized, restoreChat]);
-
-
-  // useEffect for scrolling to messageId in hash
-  useEffect(() => {
-    if (messageIdFromHash && !chatDataLoading && chatSectionRef.current) {
-
-      if (isChatMinimized) {
-        restoreChat();
-        setTimeout(() => {
-          chatSectionRef.current?.scrollToMessage(messageIdFromHash, () => {
-            setPulsingMessageId(messageIdFromHash);
-          });
-        }, 300);
-      } else {
-        setTimeout(() => {
-          chatSectionRef.current?.scrollToMessage(messageIdFromHash, () => {
-            setPulsingMessageId(messageIdFromHash);
-          });
-        }, 300);
-      }
+  useEffect((): (() => void) | undefined => {
+    if (!isChatMinimized && !isRestoring) {
+       const timer = setTimeout(() => {
+          chatSectionRef.current?.snapToBottom();
+       }, 100);
+       return () => clearTimeout(timer);
     }
   }, [isChatMinimized, isRestoring]);
 
