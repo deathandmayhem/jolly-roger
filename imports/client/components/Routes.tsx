@@ -33,7 +33,12 @@ import TagManagerPage from "./TagManagerPage";
 import UserInvitePage from "./UserInvitePage";
 import UserPuzzleHistory from "./UserPuzzleHistory";
 import UsersApp from "./UsersApp";
-import { AuthenticatedPage, UnauthenticatedPage } from "./authentication";
+import {
+  AuthenticatedPage,
+  NoAuthenticationPage,
+  UnauthenticatedPage,
+} from "./authentication";
+import ExtensionPrivacyPolicy from "./ExtensionPrivacyPolicy";
 
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
@@ -127,12 +132,22 @@ export const UnauthenticatedRouteList: RouteObject[] = [
   };
 });
 
+export const NoAuthenticationRouteList: RouteObject[] = [
+  { path: "/extension-privacy-policy", element: <ExtensionPrivacyPolicy /> },
+].map((r) => {
+  return {
+    ...r,
+    element: <NoAuthenticationPage>{r.element}</NoAuthenticationPage>,
+  };
+});
+
 export const RouteList: RouteObject[] = [
   /* Index redirect */
   {
     path: "/",
     element: <RootRedirector />,
   },
+  ...NoAuthenticationRouteList,
   ...AuthenticatedRouteList,
   ...UnauthenticatedRouteList,
   // JoinHunt handles both authenticated and unauthenticated users.

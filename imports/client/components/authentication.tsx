@@ -1,10 +1,11 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import React, { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import App from "./App";
 import SplashPage from "./SplashPage";
 import { useAppThemeState } from "../hooks/persisted-state";
+import { Container, Navbar, Row } from "react-bootstrap";
 
 export const useAuthenticated = () => {
   const { loggingIn, loggedIn } = useTracker(() => {
@@ -79,4 +80,19 @@ export const UnauthenticatedPage = ({
   }
 
   return <SplashPage>{children}</SplashPage>;
+};
+
+export const NoAuthenticationPage = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  return (
+    <Container>
+      <Navbar>
+        <Link to="/">Jolly Roger</Link>
+      </Navbar>
+      <Row>{children}</Row>
+    </Container>
+  );
 };
