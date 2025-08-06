@@ -225,12 +225,12 @@ class MigrationRegistry {
         },
       },
     );
-    if (result?.value?.locked) {
+    if (result?.locked) {
       this.logger.warn("Preempting stale lock", {
-        lockedAt: result.value.lockedAt,
+        lockedAt: result.lockedAt,
       });
     }
-    return result.value;
+    return result;
   }
 
   async unlock() {
