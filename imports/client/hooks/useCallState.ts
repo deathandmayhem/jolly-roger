@@ -1,5 +1,5 @@
 import { Meteor } from "meteor/meteor";
-import { useFind, useTracker } from "meteor/react-meteor-data";
+import { useTracker } from "meteor/react-meteor-data";
 import type { types } from "mediasoup-client";
 import type React from "react";
 import {
@@ -568,8 +568,9 @@ const useCallState = ({
   }, [state.callState, huntId, puzzleId, tabId]);
 
   const userId = useTracker(() => Meteor.userId(), []);
-  const peers = useFind(
-    () => Peers.find({ hunt: huntId, call: puzzleId }),
+  // TODO: consider using useFind once fixed upstream
+  const peers = useTracker(
+    () => Peers.find({ hunt: huntId, call: puzzleId }).fetch(),
     [huntId, puzzleId],
   );
   const selfPeer = useMemo(() => {
@@ -1027,8 +1028,9 @@ const useCallState = ({
 
   // ==========================================================================
   // Consumer (audio from other peers, fetching from server) logic
-  const puzzleConsumers = useFind(
-    () => Consumers.find({ call: puzzleId }, { sort: { _id: 1 } }),
+  // TODO: consider using useFind once fixed upstream
+  const puzzleConsumers = useTracker(
+    () => Consumers.find({ call: puzzleId }, { sort: { _id: 1 } }).fetch(),
     [puzzleId],
   );
   const groupedConsumers = useMemo(() => {

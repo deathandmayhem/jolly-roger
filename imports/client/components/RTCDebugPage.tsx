@@ -1,5 +1,5 @@
 import { Meteor } from "meteor/meteor";
-import { useFind, useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faArrowCircleLeft } from "@fortawesome/free-solid-svg-icons/faArrowCircleLeft";
 import { faBroadcastTower } from "@fortawesome/free-solid-svg-icons/faBroadcastTower";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
@@ -406,21 +406,23 @@ const Transport = ({ transport }: { transport: TransportType }) => {
     [transport.transportId],
   );
 
-  const producers = useFind(
+  // TODO: consider using useFind once fixed upstream
+  const producers = useTracker(
     () =>
       ProducerClients.find(
         { transport: transport._id },
         { sort: { createdAt: 1 } },
-      ),
+      ).fetch(),
     [transport._id],
   );
 
-  const consumers = useFind(
+  // TODO: consider using useFind once fixed upstream
+  const consumers = useTracker(
     () =>
       Consumers.find(
         { transportId: transport.transportId },
         { sort: { createdAt: 1 } },
-      ),
+      ).fetch(),
     [transport.transportId],
   );
 
@@ -582,13 +584,19 @@ const Transport = ({ transport }: { transport: TransportType }) => {
 };
 
 const Peer = ({ peer }: { peer: PeerType }) => {
-  const transportRequests = useFind(
+  // TODO: consider using useFind once fixed upstream
+  const transportRequests = useTracker(
     () =>
-      TransportRequests.find({ peer: peer._id }, { sort: { createdAt: 1 } }),
+      TransportRequests.find(
+        { peer: peer._id },
+        { sort: { createdAt: 1 } },
+      ).fetch(),
     [peer._id],
   );
-  const transports = useFind(
-    () => Transports.find({ peer: peer._id }, { sort: { createdAt: 1 } }),
+  // TODO: consider using useFind once fixed upstream
+  const transports = useTracker(
+    () =>
+      Transports.find({ peer: peer._id }, { sort: { createdAt: 1 } }).fetch(),
     [peer._id],
   );
   const producerCount = useTracker(
@@ -768,8 +776,9 @@ const Room = ({ room }: { room: RoomType }) => {
       }
     };
   }, [lastActivity]);
-  const peers = useFind(
-    () => Peers.find({ call: room.call }, { sort: { createdAt: 1 } }),
+  // TODO: consider using useFind once fixed upstream
+  const peers = useTracker(
+    () => Peers.find({ call: room.call }, { sort: { createdAt: 1 } }).fetch(),
     [room.call],
   );
   return (
@@ -858,7 +867,11 @@ const RoomList = ({ rooms }: { rooms: RoomType[] }) => {
 };
 
 const RoomlessPeers = ({ calls }: { calls: string[] }) => {
-  const peers = useFind(() => Peers.find({ call: { $nin: calls } }), [calls]);
+  // TODO: consider using useFind once fixed upstream
+  const peers = useTracker(
+    () => Peers.find({ call: { $nin: calls } }).fetch(),
+    [calls],
+  );
 
   if (peers.length === 0) {
     return null;
@@ -978,11 +991,16 @@ const RTCDebugPage = () => {
   const debugInfoLoading = useSubscribe("mediasoup:debug");
   const loading = debugInfoLoading();
 
-  const servers = useFind(
-    () => Servers.find({}, { sort: { hostname: 1, pid: 1 } }),
+  // TODO: consider using useFind once fixed upstream
+  const servers = useTracker(
+    () => Servers.find({}, { sort: { hostname: 1, pid: 1 } }).fetch(),
     [],
   );
-  const rooms = useFind(() => Rooms.find({}, { sort: { createdAt: 1 } }));
+  // TODO: consider using useFind once fixed upstream
+  const rooms = useTracker(
+    () => Rooms.find({}, { sort: { createdAt: 1 } }).fetch(),
+    [],
+  );
   const callIds = useMemo(() => rooms.map((r) => r.call), [rooms]);
 
   if (!viewerIsAdmin) {
