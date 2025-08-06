@@ -22,7 +22,7 @@ defineMethod(linkUserDiscordAccount, {
     check(this.userId, String);
 
     // Retrieve the OAuth token from the OAuth subsystem.
-    const credential = OAuth.retrieveCredential(key, secret);
+    const credential = await OAuth.retrieveCredential(key, secret);
     Logger.info("Linking user to Discord account");
 
     // Save the user's credentials to their User object, under services.discord.

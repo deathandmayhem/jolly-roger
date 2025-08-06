@@ -15,7 +15,7 @@ async function findUserByEmail(
   // linked. Try both.
 
   return (
-    Accounts.findUserByEmail(email) ??
+    (await Accounts.findUserByEmail(email)) ??
     (await MeteorUsers.findOneAsync({ googleAccount: email }))
   );
 }

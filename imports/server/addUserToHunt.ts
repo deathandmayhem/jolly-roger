@@ -85,14 +85,15 @@ export default async function addUserToHunt({
   email: string;
   invitedBy: string;
 }) {
-  let joineeUser = Accounts.findUserByEmail(email);
+  let joineeUser = await Accounts.findUserByEmail(email);
   const newUser = joineeUser === undefined;
   if (!joineeUser) {
     const joineeUserId = await Accounts.createUserAsync({ email });
     joineeUser = await MeteorUsers.findOneAsync(joineeUserId);
   }
-  if (!joineeUser?._id)
+  if (!joineeUser?._id) {
     throw new Meteor.Error(500, "Something has gone terribly wrong");
+  }
 
   if (joineeUser.hunts?.includes(hunt._id)) {
     Logger.info("Tried to add user to hunt but they were already a member", {
