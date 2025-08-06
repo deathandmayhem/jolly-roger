@@ -22,7 +22,6 @@ meteortesting:browser-tests
 meteortesting:mocha
 standard-minifier-css@1.9.2
 react-meteor-data@4.0.0
-fourseven:scss@4.15.0
 shell-server@0.5.0
 google-oauth@1.4.4
 dynamic-import@0.7.3
