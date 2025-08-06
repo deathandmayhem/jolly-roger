@@ -121,7 +121,7 @@ const ChatMessage = ({
     if (nodeIsMention(child)) {
       const displayName = displayNames.get(child.userId);
       return (
-        <MentionSpan key={i} isSelf={child.userId === selfUserId}>
+        <MentionSpan key={i} $isSelf={child.userId === selfUserId}>
           @{`${displayName ?? child.userId}`}
         </MentionSpan>
       );
