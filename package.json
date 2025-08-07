@@ -13,7 +13,7 @@
     "lint:js": "eslint --max-warnings 0 --ext js,jsx,ts,tsx,mjs,mts .",
     "lint:css": "stylelint '**/*.scss' '**/*.tsx'",
     "lint:format": "prettier --check .",
-    "lint:docs": "ts-node-esm tests/check_docs.mts",
+    "lint:docs": "node --loader ts-node/esm tests/check_docs.mts",
     "lint": "meteor lint && npm-run-all --continue-on-error --parallel lint:*",
     "test": "TEST_BROWSER_DRIVER=puppeteer meteor test --full-app --once --driver-package meteortesting:mocha",
     "prepare": "npm explore eslint-plugin-jolly-roger -- npm run build",
