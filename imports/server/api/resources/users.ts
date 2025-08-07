@@ -15,6 +15,7 @@ async function findUserByEmail(
   // linked. Try both.
 
   return (
+    // eslint-disable-next-line @typescript-eslint/await-thenable -- the types are wrong; this is a promise
     (await Accounts.findUserByEmail(email)) ??
     (await MeteorUsers.findOneAsync({ googleAccount: email }))
   );

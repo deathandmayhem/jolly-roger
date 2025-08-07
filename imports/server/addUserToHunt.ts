@@ -85,6 +85,7 @@ export default async function addUserToHunt({
   email: string;
   invitedBy: string;
 }) {
+  // eslint-disable-next-line @typescript-eslint/await-thenable -- the type hints are wrong; this is definitely a promise
   let joineeUser = await Accounts.findUserByEmail(email);
   const newUser = joineeUser === undefined;
   if (!joineeUser) {

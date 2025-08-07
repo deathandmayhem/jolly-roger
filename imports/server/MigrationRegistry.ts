@@ -201,7 +201,8 @@ class MigrationRegistry {
     // If unsuccessful (because the control object was recently locked, and the preemption timeout
     // has not passed), returns null.
     const now = new Date();
-    const result = await this.collection.rawCollection().findOneAndUpdate(
+    // TODO: remove this typecast once the resolved type definitions match reality
+    const result = await (this.collection.rawCollection().findOneAndUpdate(
       {
         $and: [
           { _id: "control" },
@@ -224,7 +225,7 @@ class MigrationRegistry {
           lockedAt: now,
         },
       },
-    );
+    ) as unknown as Promise<MigrationControl | null>);
     if (result?.locked) {
       this.logger.warn("Preempting stale lock", {
         lockedAt: result.lockedAt,
