@@ -192,7 +192,7 @@ describe("MigrationRegistry", function () {
         },
       },
     );
-    assert(result.value);
+    assert(result);
 
     // Run the migrations again.  Expect the second migration to run and succeed.
     assert.equal(await reg.migrateToLatest(), true);
