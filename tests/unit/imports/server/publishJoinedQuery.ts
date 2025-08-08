@@ -191,12 +191,8 @@ describe("publishJoinedQuery", function () {
     });
 
     await Puzzles.updateAsync(puzzleId, { $set: { tags: newTagIds } });
-    // make sure the update has propagated to oplog watchers, then give Meteor
-    // an additional tick to process it
+    // make sure the update has propagated to oplog watchers
     await updatePropagated;
-    await new Promise<void>((r) => {
-      Meteor.defer(r);
-    });
 
     assert.sameMembers([...sub.data.keys()], [Puzzles.name, Tags.name]);
 
@@ -204,6 +200,27 @@ describe("publishJoinedQuery", function () {
     assert.sameMembers([...puzzleCollection.keys()], [puzzleId]);
 
     const tagCollection = sub.data.get(Tags.name)!;
+
+    // Give the sub an additional while to process the updated foreign keys,
+    // since we wind up with a bunch of chained promises that have to be
+    // awaited within JoinedObjectObserver to ensure we emit updates in the
+    // right order, and that has to do some async mongo queries.  In local
+    // testing, this generally completes within 10 turns and 2ms.
+    for (let i = 0; i < 1000; i++) {
+      // console.log(`tick ${i}`);
+      await new Promise<void>((r) => {
+        Meteor.defer(r);
+      });
+      // Exit early if condition is satisfied
+      const observed = [...tagCollection.keys()];
+      const newSortedTagIds = newTagIds.toSorted();
+      if (
+        observed.length === newTagIds.length &&
+        observed.toSorted().every((val, j) => val === newSortedTagIds[j])
+      ) {
+        break;
+      }
+    }
     assert.sameMembers([...tagCollection.keys()], newTagIds);
   });
 });
