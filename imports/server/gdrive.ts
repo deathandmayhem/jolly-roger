@@ -17,7 +17,7 @@ import withLock from "./withLock";
 
 async function checkClientOk() {
   if (!GoogleClient.ready()) {
-    throw new Meteor.Error(500, "Google OAuth is not configured.");
+    throw new Meteor.Error(500, "Google Drive client is not configured.");
   }
 
   if (await Flags.activeAsync("disable.google")) {
