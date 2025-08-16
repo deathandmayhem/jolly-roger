@@ -130,7 +130,8 @@ export default async function addUserToHunt({
   await addUsersToDiscordRole([joineeUser._id], hunt._id);
 
   if (newUser) {
-    Accounts.sendEnrollmentEmail(joineeUser._id);
+    // eslint-disable-next-line @typescript-eslint/await-thenable -- the types are wrong, but this is now a promise
+    await Accounts.sendEnrollmentEmail(joineeUser._id);
     Logger.info("Sent invitation email to new user", { invitedBy, email });
   } else {
     if (joineeUser._id !== invitedBy) {
