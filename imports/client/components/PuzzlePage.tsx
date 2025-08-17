@@ -3955,7 +3955,7 @@ const PuzzlePage = React.memo(() => {
     );
   }
 
-  const effectiveSidebarWidth = isChatMinimized ? 0 : sidebarWidth;
+  const effectiveSidebarWidth = isChatMinimized ? 1 : sidebarWidth;
 
   const showMetadataButton = isMetadataMinimized ? (
     <PuzzleMetadataFloatingButton ref={restoreButtonRef} variant="secondary" size="sm" onClick={toggleMetadata} title="Show puzzle information">
@@ -3989,7 +3989,7 @@ const PuzzlePage = React.memo(() => {
             onPaneChanged={onCommitSidebarSize}
             allowResize={!isChatMinimized}
           >
-            {isChatMinimized ? <div /> : chat}
+            {chat}
             <PuzzleContent>
               {metadata}
               {showMetadataButton}
