@@ -1,6 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
-import { useFind, useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons/faArrowLeft";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight";
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck";
@@ -401,10 +401,13 @@ const ChatHistory = React.forwardRef(
     },
     forwardedRef: React.Ref<ChatHistoryHandle>,
   ) => {
-    const chatMessages: FilteredChatMessageType[] = useFind(
-      () => ChatMessages.find({ puzzle: puzzleId }, { sort: { timestamp: 1 } }),
-      [puzzleId],
-    );
+    // TODO: consider using useFind once fixed upstream
+    const chatMessages: FilteredChatMessageType[] = useTracker(() => {
+      return ChatMessages.find(
+        { puzzle: puzzleId },
+        { sort: { timestamp: 1 } },
+      ).fetch();
+    }, [puzzleId]);
 
     const ref = useRef<HTMLDivElement>(null);
     const scrollBottomTarget = useRef<number>(0);

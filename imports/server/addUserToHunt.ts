@@ -85,14 +85,16 @@ export default async function addUserToHunt({
   email: string;
   invitedBy: string;
 }) {
-  let joineeUser = Accounts.findUserByEmail(email);
+  // eslint-disable-next-line @typescript-eslint/await-thenable -- the type hints are wrong; this is definitely a promise
+  let joineeUser = await Accounts.findUserByEmail(email);
   const newUser = joineeUser === undefined;
   if (!joineeUser) {
     const joineeUserId = await Accounts.createUserAsync({ email });
     joineeUser = await MeteorUsers.findOneAsync(joineeUserId);
   }
-  if (!joineeUser?._id)
+  if (!joineeUser?._id) {
     throw new Meteor.Error(500, "Something has gone terribly wrong");
+  }
 
   if (joineeUser.hunts?.includes(hunt._id)) {
     Logger.info("Tried to add user to hunt but they were already a member", {
@@ -128,7 +130,8 @@ export default async function addUserToHunt({
   await addUsersToDiscordRole([joineeUser._id], hunt._id);
 
   if (newUser) {
-    Accounts.sendEnrollmentEmail(joineeUser._id);
+    // eslint-disable-next-line @typescript-eslint/await-thenable -- the types are wrong, but this is now a promise
+    await Accounts.sendEnrollmentEmail(joineeUser._id);
     Logger.info("Sent invitation email to new user", { invitedBy, email });
   } else {
     if (joineeUser._id !== invitedBy) {

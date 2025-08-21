@@ -88,7 +88,7 @@ interface MentionRendererProps extends ElementRendererProps<MentionElement> {
 }
 
 export const MentionSpan = styled.span<{
-  isSelf: boolean;
+  $isSelf: boolean;
 }>`
   padding: 2px 3px 3px;
   margin: 0 1px;
@@ -98,8 +98,8 @@ export const MentionSpan = styled.span<{
   border-radius: 4px;
   color: #4649ef;
   background-color: #ced0ed;
-  ${({ isSelf }) =>
-    isSelf &&
+  ${({ $isSelf }) =>
+    $isSelf &&
     css`
       background-color: #4649ef;
       color: #fff;

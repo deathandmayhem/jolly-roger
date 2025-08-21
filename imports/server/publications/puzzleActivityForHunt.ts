@@ -31,13 +31,21 @@ class HuntActivityAggregator {
 
   hunt: string;
 
+  initializing: boolean;
+
   activitiesByPuzzle: Map<string, ActivityBuckets> = new Map();
 
-  documentActivityHandle: Meteor.LiveQueryHandle;
+  documentActivityHandle?: Meteor.LiveQueryHandle;
 
-  callActivityHandle: Meteor.LiveQueryHandle;
+  documentActivityPromise: Promise<Meteor.LiveQueryHandle>;
 
-  chatMessageHandle: Meteor.LiveQueryHandle;
+  callActivityHandle?: Meteor.LiveQueryHandle;
+
+  callActivityPromise: Promise<Meteor.LiveQueryHandle>;
+
+  chatMessageHandle?: Meteor.LiveQueryHandle;
+
+  chatMessagePromise: Promise<Meteor.LiveQueryHandle>;
 
   timeouts: Map<string, number> = new Map();
 
@@ -53,11 +61,11 @@ class HuntActivityAggregator {
     );
     // All of these are sufficiently immutable that we don't need to observe
     // changes or removes
-    let initializing = true;
-    this.documentActivityHandle = DocumentActivities.find({
-      hunt,
+    this.initializing = true;
+    this.documentActivityPromise = DocumentActivities.find({
+      hunt: this.hunt,
       ts: { $gte: cutoff },
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (_, fields) => {
         const { puzzle, ts } = fields;
         if (!puzzle || !ts) return;
@@ -68,15 +76,15 @@ class HuntActivityAggregator {
         const user = fields.user ?? "__document__";
         bucket.documentUsers.add(user);
         bucket.allUsers.add(user);
-        if (!initializing) {
+        if (!this.initializing) {
           this.publishBucket(puzzle, ts, bucket, newBucket);
         }
       },
     });
-    this.callActivityHandle = CallActivities.find({
-      hunt,
+    this.callActivityPromise = CallActivities.find({
+      hunt: this.hunt,
       ts: { $gte: cutoff },
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (_, fields) => {
         const { call: puzzle, ts, user } = fields;
         if (!puzzle || !ts || !user) return;
@@ -86,15 +94,15 @@ class HuntActivityAggregator {
 
         bucket.callUsers.add(user);
         bucket.allUsers.add(user);
-        if (!initializing) {
+        if (!this.initializing) {
           this.publishBucket(puzzle, ts, bucket, newBucket);
         }
       },
     });
-    this.chatMessageHandle = ChatMessages.find({
-      hunt,
+    this.chatMessagePromise = ChatMessages.find({
+      hunt: this.hunt,
       createdAt: { $gte: cutoff },
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (_, fields) => {
         const { puzzle, createdAt, sender } = fields;
         if (!puzzle || !createdAt || !sender) return;
@@ -106,12 +114,24 @@ class HuntActivityAggregator {
 
         bucket.chatUsers.add(sender);
         bucket.allUsers.add(sender);
-        if (!initializing) {
+        if (!this.initializing) {
           this.publishBucket(puzzle, ts, bucket, newBucket);
         }
       },
     });
-    initializing = false;
+  }
+
+  async waitReady() {
+    [
+      this.documentActivityHandle,
+      this.callActivityHandle,
+      this.chatMessageHandle,
+    ] = await Promise.all([
+      this.documentActivityPromise,
+      this.callActivityPromise,
+      this.chatMessagePromise,
+    ]);
+    this.initializing = false;
   }
 
   bucketId(puzzle: string, ts: Date) {
@@ -150,9 +170,9 @@ class HuntActivityAggregator {
   }
 
   close() {
-    this.documentActivityHandle.stop();
-    this.callActivityHandle.stop();
-    this.chatMessageHandle.stop();
+    this.documentActivityHandle?.stop();
+    this.callActivityHandle?.stop();
+    this.chatMessageHandle?.stop();
     this.timeouts.forEach((timeout) => Meteor.clearTimeout(timeout));
     this.timeouts.clear();
   }
@@ -216,12 +236,13 @@ class HuntActivityAggregator {
     this.timeouts.delete(this.bucketId(puzzle, time));
   }
 
-  static get(hunt: string) {
+  static async get(hunt: string) {
     let aggregator = HuntActivityAggregator.aggregators.get(hunt);
     if (!aggregator) {
       aggregator = new HuntActivityAggregator(hunt);
       HuntActivityAggregator.aggregators.set(hunt, aggregator);
     }
+    await aggregator.waitReady();
     return aggregator;
   }
 
@@ -252,8 +273,8 @@ definePublication(puzzleActivityForHunt, {
     return arg;
   },
 
-  run({ huntId }) {
-    const aggregator = HuntActivityAggregator.get(huntId);
+  async run({ huntId }) {
+    const aggregator = await HuntActivityAggregator.get(huntId);
     aggregator.addSubscription(this);
     return undefined;
   },

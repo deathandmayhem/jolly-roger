@@ -1,4 +1,4 @@
-import { useFind, useTracker } from "meteor/react-meteor-data";
+import { useTracker } from "meteor/react-meteor-data";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
@@ -133,8 +133,12 @@ const FirehosePage = () => {
   const displayNames = useTracker(() => {
     return loading ? new Map<string, string>() : indexedDisplayNames();
   }, [loading]);
-  const allPuzzles = useFind(
-    () => (loading ? undefined : Puzzles.findAllowingDeleted({ hunt: huntId })),
+  // TODO: consider using useFind once fixed upstream
+  const allPuzzles = useTracker(
+    () =>
+      loading
+        ? undefined
+        : Puzzles.findAllowingDeleted({ hunt: huntId }).fetch(),
     [loading, huntId],
   );
   const puzzles = useMemo(() => {
@@ -143,11 +147,15 @@ const FirehosePage = () => {
     }
     return indexedById(allPuzzles);
   }, [allPuzzles]);
-  const chatMessages = useFind(
+  // TODO: consider using useFind once fixed upstream
+  const chatMessages = useTracker(
     () =>
       loading
         ? undefined
-        : ChatMessages.find({ hunt: huntId }, { sort: { timestamp: 1 } }),
+        : ChatMessages.find(
+            { hunt: huntId },
+            { sort: { timestamp: 1 } },
+          ).fetch(),
     [loading, huntId],
   );
 

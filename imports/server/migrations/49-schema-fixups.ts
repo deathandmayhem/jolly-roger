@@ -8,7 +8,7 @@ Migrations.add({
   async up() {
     // In 20-puzzle-multiple-answers.ts, we added the answers field but never
     // unset the old "answer" field
-    for (const puzzle of Puzzles.find({ answer: { $exists: true } })) {
+    for await (const puzzle of Puzzles.find({ answer: { $exists: true } })) {
       await Puzzles.updateAsync(puzzle._id, { $unset: { answer: 1 } });
     }
 
@@ -17,7 +17,7 @@ Migrations.add({
     const users = MeteorUsers.find({
       "discordAccount.avatar": { $eq: null, $exists: true },
     });
-    for (const user of users) {
+    for await (const user of users) {
       await MeteorUsers.updateAsync(user._id, {
         $unset: { "discordAccount.avatar": 1 },
       });

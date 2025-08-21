@@ -82,7 +82,9 @@ RUN --mount=type=cache,target=/root/.npm <<'EOF'
 #!/bin/bash
 set -eux
 set -o pipefail
-meteor npm ci
+# Remove the --legacy-peer-deps once we've upgraded or replaced react-split-pane
+export METEOR_ALLOW_SUPERUSER=1
+meteor npm ci --legacy-peer-deps
 meteor npm run prepare
 EOF
 
@@ -108,7 +110,7 @@ RUN --mount=type=cache,target=/app/.meteor/local/ meteor build --allow-superuser
 
 # Install server dependencies
 WORKDIR /built_app/bundle/programs/server
-RUN --mount=type=cache,target=/root/.npm meteor npm install --production --omit=optional
+RUN --mount=type=cache,target=/root/.npm meteor --allow-superuser npm install --production --omit=optional
 
 # Production image
 # (Be careful about creating as few layers as possible)
@@ -122,16 +124,17 @@ set -eux
 set -o pipefail
 . /etc/os-release
 
-# Install apt https support for node.
+# Install apt https support for node and gpg for the nodesource key.
 apt-get update
-apt-get install --no-install-recommends -y apt-transport-https ca-certificates curl
+apt-get install --no-install-recommends -y apt-transport-https ca-certificates curl gpg
 
 # Install moira dependencies (use the dev packages to avoid pinning to specific sonames)
 apt-get install --no-install-recommends -y comerr-dev libkrb5-dev libreadline-dev libhesiod-dev libncurses5-dev
 
 # Add node apt repo
-curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key > /etc/apt/trusted.gpg.d/nodesource.asc
-echo "deb https://deb.nodesource.com/node_14.x $VERSION_CODENAME main" > /etc/apt/sources.list.d/node.list
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/node.list
 apt-get update
 
 apt-get install --no-install-recommends -y awscli nodejs kstart

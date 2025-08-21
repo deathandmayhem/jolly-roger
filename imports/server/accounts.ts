@@ -53,7 +53,7 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
   }
 };
 
-Accounts.registerLoginHandler((options: LoginOptions) => {
+Accounts.registerLoginHandler(async (options: LoginOptions) => {
   // Only handle requests that include our hook's custom flag.
   if (!options.isGoogleJrLogin) {
     return undefined;
@@ -72,7 +72,10 @@ Accounts.registerLoginHandler((options: LoginOptions) => {
     );
   }
 
-  const credential = Google.retrieveCredential(options.key, options.secret);
+  const credential = await Google.retrieveCredential(
+    options.key,
+    options.secret,
+  );
   const googleAccountId = credential.serviceData.id;
 
   // Attempt to match existing Google users by their linked account ID.
@@ -178,9 +181,8 @@ const DEFAULT_ENROLL_ACCOUNT_TEMPLATE =
   "\n" +
   "This message was sent to {{email}}";
 
-function makeView(user: Meteor.User, url: string) {
-  // eslint-disable-next-line jolly-roger/no-disallowed-sync-methods
-  const hunts = Hunts.find({ _id: { $in: user.hunts } }).fetch();
+async function makeView(user: Meteor.User, url: string) {
+  const hunts = await Hunts.find({ _id: { $in: user.hunts } }).fetchAsync();
   const email = user?.emails?.[0]?.address;
   const huntNames = hunts.map((h) => h.name);
   const huntNamesCount = huntNames.length;
@@ -221,8 +223,8 @@ function updateEmailTemplatesHooks(
       return Mustache.render(DEFAULT_ENROLL_ACCOUNT_SUBJECT_TEMPLATE, view);
     }
   };
-  Accounts.emailTemplates.enrollAccount.text = (user, url: string) => {
-    const view = makeView(user, url);
+  Accounts.emailTemplates.enrollAccount.text = async (user, url: string) => {
+    const view = await makeView(user, url);
     if (doc.value.enrollAccountMessageTemplate) {
       return Mustache.render(doc.value.enrollAccountMessageTemplate, view);
     } else {
@@ -236,8 +238,8 @@ function clearEmailTemplatesHooks() {
   Accounts.emailTemplates.enrollAccount.subject = () => {
     return `[jolly-roger] You're invited to ${Accounts.emailTemplates.siteName}`;
   };
-  Accounts.emailTemplates.enrollAccount.text = (user, url: string) => {
-    const view = makeView(user, url);
+  Accounts.emailTemplates.enrollAccount.text = async (user, url: string) => {
+    const view = await makeView(user, url);
     return Mustache.render(DEFAULT_ENROLL_ACCOUNT_TEMPLATE, view);
   };
 }
@@ -245,13 +247,13 @@ function clearEmailTemplatesHooks() {
 // Scope hoisted to keep the handle alive beyond the startup block.
 let configCursor;
 
-Meteor.startup(() => {
+Meteor.startup(async () => {
   // Initialize to default values
   clearEmailTemplatesHooks();
 
   // Set up observer
   configCursor = Settings.find({ name: "email.branding" });
-  configCursor.observe({
+  await configCursor.observeAsync({
     added: (doc) => updateEmailTemplatesHooks(doc),
     changed: (doc) => updateEmailTemplatesHooks(doc),
     removed: () => clearEmailTemplatesHooks(),

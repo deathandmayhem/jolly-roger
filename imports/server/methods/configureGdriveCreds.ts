@@ -24,7 +24,7 @@ defineMethod(configureGdriveCreds, {
       throw new Meteor.Error(401, "Must be admin to configure gdrive");
     }
 
-    const credential = Google.retrieveCredential(key, secret);
+    const credential = await Google.retrieveCredential(key, secret);
     const { refreshToken, email } = credential.serviceData;
     Logger.info("Updating Gdrive creds", { email });
     await Settings.upsertAsync(

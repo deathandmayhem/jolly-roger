@@ -25,7 +25,7 @@ definePublication(guessesForGuessQueue, {
       return [];
     }
 
-    publishJoinedQuery(
+    await publishJoinedQuery(
       this,
       {
         model: Guesses,

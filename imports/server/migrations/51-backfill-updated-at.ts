@@ -86,7 +86,9 @@ Migrations.add({
 
     for (const model of models) {
       const timestampModel = model as unknown as ModelWithTimestamps;
-      for (const record of timestampModel.find({ updatedAt: null } as any)) {
+      for await (const record of timestampModel.find({
+        updatedAt: null,
+      } as any)) {
         await timestampModel.updateAsync(record._id, {
           $set: {
             updatedAt: record.createdAt,

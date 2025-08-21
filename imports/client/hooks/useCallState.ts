@@ -1,5 +1,5 @@
 import { Meteor } from "meteor/meteor";
-import { useFind, useTracker } from "meteor/react-meteor-data";
+import { useTracker } from "meteor/react-meteor-data";
 import type { types } from "mediasoup-client";
 import type React from "react";
 import {
@@ -568,8 +568,9 @@ const useCallState = ({
   }, [state.callState, huntId, puzzleId, tabId]);
 
   const userId = useTracker(() => Meteor.userId(), []);
-  const peers = useFind(
-    () => Peers.find({ hunt: huntId, call: puzzleId }),
+  // TODO: consider using useFind once fixed upstream
+  const peers = useTracker(
+    () => Peers.find({ hunt: huntId, call: puzzleId }).fetch(),
     [huntId, puzzleId],
   );
   const selfPeer = useMemo(() => {
@@ -681,7 +682,9 @@ const useCallState = ({
   const recvTransport = state.transports.recv;
   useEffect(() => {
     if (hasSelfPeer) {
-      const observer = ConnectAcks.find({ peer: selfPeer._id }).observeChanges({
+      const observerPromise = ConnectAcks.find({
+        peer: selfPeer._id,
+      }).observeChangesAsync({
         added: (_id, fields) => {
           if (fields.direction === "send") {
             sendTransportConnectCallback.current?.();
@@ -692,7 +695,14 @@ const useCallState = ({
           }
         },
       });
-      return () => observer.stop();
+      return () => {
+        observerPromise.then(
+          (handle) => handle.stop(),
+          (error) => {
+            logger.error("ConnectAcks observeChangesAsync rejected:", error);
+          },
+        );
+      };
     }
     return undefined;
   }, [
@@ -818,7 +828,7 @@ const useCallState = ({
   }, [sendTransport, onProduce]);
 
   useEffect(() => {
-    const observer = ProducerServers.find().observeChanges({
+    const observerPromise = ProducerServers.find().observeChangesAsync({
       added: (_id, fields) => {
         logger.debug("ProducerServers added", { _id, ...fields });
         const trackId = fields.trackId;
@@ -840,7 +850,14 @@ const useCallState = ({
         }
       },
     });
-    return () => observer.stop();
+    return () => {
+      observerPromise.then(
+        (handle) => handle.stop(),
+        (error) => {
+          logger.error("ProducerServers observeChangesAsync rejected:", error);
+        },
+      );
+    };
   }, []);
 
   const producerShouldBePaused =
@@ -1011,8 +1028,9 @@ const useCallState = ({
 
   // ==========================================================================
   // Consumer (audio from other peers, fetching from server) logic
-  const puzzleConsumers = useFind(
-    () => Consumers.find({ call: puzzleId }, { sort: { _id: 1 } }),
+  // TODO: consider using useFind once fixed upstream
+  const puzzleConsumers = useTracker(
+    () => Consumers.find({ call: puzzleId }, { sort: { _id: 1 } }).fetch(),
     [puzzleId],
   );
   const groupedConsumers = useMemo(() => {

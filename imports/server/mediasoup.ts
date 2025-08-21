@@ -217,23 +217,23 @@ class SFU {
     Promise<types.PipeTransport>
   > = new Map();
 
-  public peersHandle: Meteor.LiveQueryHandle;
+  public peersHandle?: Meteor.LiveQueryHandle;
 
-  public localRoomsHandle: Meteor.LiveQueryHandle;
+  public localRoomsHandle?: Meteor.LiveQueryHandle;
 
-  public transportRequestsHandle: Meteor.LiveQueryHandle;
+  public transportRequestsHandle?: Meteor.LiveQueryHandle;
 
-  public connectRequestsHandle: Meteor.LiveQueryHandle;
+  public connectRequestsHandle?: Meteor.LiveQueryHandle;
 
-  public producerClientsHandle: Meteor.LiveQueryHandle;
+  public producerClientsHandle?: Meteor.LiveQueryHandle;
 
-  public consumerAcksHandle: Meteor.LiveQueryHandle;
+  public consumerAcksHandle?: Meteor.LiveQueryHandle;
 
-  public serversHandle: Meteor.LiveQueryHandle;
+  public serversHandle?: Meteor.LiveQueryHandle;
 
-  public monitorConnectRequestsHandle: Meteor.LiveQueryHandle;
+  public monitorConnectRequestsHandle?: Meteor.LiveQueryHandle;
 
-  public monitorConnectAcksHandle: Meteor.LiveQueryHandle;
+  public monitorConnectAcksHandle?: Meteor.LiveQueryHandle;
 
   private constructor(
     ips: [types.TransportListenIp, ...types.TransportListenIp[]],
@@ -251,16 +251,18 @@ class SFU {
     // Don't use mediasoup.observer because it's too hard to unwind.
     this.onWorkerCreated(this.worker);
     this.onMonitorRouterCreated(this.monitorRouter);
+  }
 
-    this.peersHandle = Peers.find({}).observeChanges({
+  async setupDBWatches() {
+    this.peersHandle = await Peers.find({}).observeChangesAsync({
       // Use this as an opportunity to cleanup data created as part of the
       // transport negotiation
       removed: (id) => this.peerRemoved(id),
     });
 
-    this.localRoomsHandle = Rooms.find({
+    this.localRoomsHandle = await Rooms.find({
       routedServer: serverId,
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (id, fields) => {
         void this.roomCreated({ _id: id, ...fields } as RoomType);
       },
@@ -269,9 +271,9 @@ class SFU {
       },
     });
 
-    this.transportRequestsHandle = TransportRequests.find({
+    this.transportRequestsHandle = await TransportRequests.find({
       routedServer: serverId,
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (id, fields) => {
         void this.transportRequestCreated({
           _id: id,
@@ -283,9 +285,9 @@ class SFU {
       },
     });
 
-    this.connectRequestsHandle = ConnectRequests.find({
+    this.connectRequestsHandle = await ConnectRequests.find({
       routedServer: serverId,
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (id, fields) => {
         void this.connectRequestCreated({
           _id: id,
@@ -295,9 +297,9 @@ class SFU {
       // nothing to do when this is removed
     });
 
-    this.producerClientsHandle = ProducerClients.find({
+    this.producerClientsHandle = await ProducerClients.find({
       routedServer: serverId,
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (id, fields) => {
         void this.producerClientCreated({
           _id: id,
@@ -312,18 +314,18 @@ class SFU {
       },
     });
 
-    this.consumerAcksHandle = ConsumerAcks.find({
+    this.consumerAcksHandle = await ConsumerAcks.find({
       routedServer: serverId,
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (id, fields) => {
         void this.consumerAckCreated({ _id: id, ...fields } as ConsumerAckType);
       },
       // nothing to do when removed
     });
 
-    this.serversHandle = Servers.find({
+    this.serversHandle = await Servers.find({
       _id: { $ne: serverId },
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (id, fields) => {
         void this.serverCreated({ _id: id, ...fields } as ServerType);
       },
@@ -333,9 +335,9 @@ class SFU {
       },
     });
 
-    this.monitorConnectRequestsHandle = MonitorConnectRequests.find({
+    this.monitorConnectRequestsHandle = await MonitorConnectRequests.find({
       receivingServer: serverId,
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (id, fields) => {
         void this.monitorConnectRequestCreated({
           _id: id,
@@ -347,9 +349,9 @@ class SFU {
       },
     });
 
-    this.monitorConnectAcksHandle = MonitorConnectAcks.find({
+    this.monitorConnectAcksHandle = await MonitorConnectAcks.find({
       initiatingServer: serverId,
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (id, fields) => {
         void this.monitorConnectAckCreated({
           _id: id,
@@ -398,19 +400,20 @@ class SFU {
       Meteor.clearTimeout(heartbeatTimeoutHandle),
     );
 
-    return new SFU(
+    const sfu = new SFU(
       ips,
       worker,
       monitorRouter,
       heartbeatDirectTransport,
       heartbeatDataProducer,
     );
+    await sfu.setupDBWatches();
+    return sfu;
   }
 
   async close() {
-    // Since these are all initiated in the constructor, optional chaining here
-    // shouldn't be required, but because this can be called in a signal
-    // handler, it can be called in the middle of the constructor
+    // Note that this can be called in a signal handler, before the constructor
+    // has completed.
     this.monitorConnectAcksHandle?.stop();
     this.monitorConnectRequestsHandle?.stop();
     this.serversHandle?.stop();
@@ -1504,9 +1507,12 @@ Meteor.startup(async () => {
   };
   // The logic here looks backwards because when a feature flag is on, calls are
   // disabled.
-  const observer = Flags.observeChanges("disable.webrtc", (active) => {
-    void updateSFU(!active);
-  });
+  const observer = await Flags.observeChangesAsync(
+    "disable.webrtc",
+    (active) => {
+      void updateSFU(!active);
+    },
+  );
 
   onExit(
     Meteor.bindEnvironment(async () => {

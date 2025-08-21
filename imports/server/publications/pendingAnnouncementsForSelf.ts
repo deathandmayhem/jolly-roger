@@ -6,12 +6,12 @@ import publishJoinedQuery from "../publishJoinedQuery";
 import definePublication from "./definePublication";
 
 definePublication(pendingAnnouncementsForSelf, {
-  run() {
+  async run() {
     if (!this.userId) {
       return [];
     }
 
-    publishJoinedQuery(
+    await publishJoinedQuery(
       this,
       {
         model: PendingAnnouncements,

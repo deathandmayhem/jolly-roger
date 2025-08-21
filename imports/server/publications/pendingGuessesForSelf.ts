@@ -14,7 +14,7 @@ import definePublication from "./definePublication";
 const LINGER_TIME = 5000;
 
 definePublication(pendingGuessesForSelf, {
-  run() {
+  async run() {
     if (!this.userId) {
       return [];
     }
@@ -47,9 +47,9 @@ definePublication(pendingGuessesForSelf, {
       lingerTime: LINGER_TIME,
     };
 
-    const userWatch = MeteorUsers.find(this.userId, {
+    const userWatch = await MeteorUsers.find(this.userId, {
       fields: { roles: 1 },
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (_id, fields) => {
         const { roles } = fields;
         if (!roles) {
@@ -59,11 +59,11 @@ definePublication(pendingGuessesForSelf, {
         for (const huntId of huntsUserIsOperatorFor({ roles })) {
           if (!huntGuessWatchers.has(huntId)) {
             const subSubscription = merger.newSub();
-            publishJoinedQuery(subSubscription, huntGuessSpec, {
+            huntGuessWatchers.set(huntId, subSubscription);
+            void publishJoinedQuery(subSubscription, huntGuessSpec, {
               state: "pending",
               hunt: huntId,
             });
-            huntGuessWatchers.set(huntId, subSubscription);
           }
         }
       },
@@ -79,11 +79,11 @@ definePublication(pendingGuessesForSelf, {
         for (const huntId of operatorHunts) {
           if (!huntGuessWatchers.has(huntId)) {
             const subSubscription = merger.newSub();
-            publishJoinedQuery(subSubscription, huntGuessSpec, {
+            huntGuessWatchers.set(huntId, subSubscription);
+            void publishJoinedQuery(subSubscription, huntGuessSpec, {
               state: "pending",
               hunt: huntId,
             });
-            huntGuessWatchers.set(huntId, subSubscription);
           }
         }
 

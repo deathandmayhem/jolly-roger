@@ -55,19 +55,21 @@ class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
     this.observers = observers;
   }
 
-  incref(id: string) {
+  async incref(id: string) {
     if (this.subscribers.has(id)) {
       this.subscribers.get(id)!.refCount += 1;
     } else {
+      const subscriber = new JoinedObjectObserver(
+        this.sub,
+        this.spec,
+        id,
+        this.observers,
+      );
       this.subscribers.set(id, {
         refCount: 1,
-        subscriber: new JoinedObjectObserver(
-          this.sub,
-          this.spec,
-          id,
-          this.observers,
-        ),
+        subscriber,
       });
+      await subscriber.readyPromise();
     }
   }
 
@@ -109,7 +111,9 @@ class JoinedObjectObserver<T extends { _id: string }> {
 
   foreignKeys?: PublishSpec<T>["foreignKeys"];
 
-  watcher: Meteor.LiveQueryHandle;
+  initialBlockers: Promise<void>[];
+
+  watcherPromise: Promise<Meteor.LiveQueryHandle>;
 
   exists = false;
 
@@ -132,11 +136,14 @@ class JoinedObjectObserver<T extends { _id: string }> {
     this.foreignKeys = foreignKeys;
     this.observers = observers;
 
-    this.watcher = finder(model, allowDeleted)(id, {
+    let observeReady = false;
+    this.initialBlockers = [];
+    this.watcherPromise = finder(model, allowDeleted)(id, {
       fields: projection as Mongo.FieldSpecifier,
-    }).observeChanges({
+    }).observeChangesAsync({
       added: (_, fields) => {
         const fkValues = new Map<string, string[]>();
+        const promises: Promise<void>[] = [];
         foreignKeys?.forEach(({ field, join }) => {
           let val = fields[field] as unknown as undefined | string | string[];
           if (!val) {
@@ -148,16 +155,34 @@ class JoinedObjectObserver<T extends { _id: string }> {
           }
 
           const observer = this.observers.get(modelName(join.model))!;
-          val.forEach((v) => observer.incref(v));
+          val.forEach((v) => {
+            const promise = observer.incref(v);
+            // Ensure we don't .added() until the join incref()s are done
+            promises.push(promise);
+            // Also ensure we don't mark ourself as ready until the increfs are done
+            if (!observeReady) {
+              this.initialBlockers.push(promise);
+            }
+          });
           fkValues.set(field, val);
         });
 
-        this.sub.added(this.modelName, id, fields);
-        this.exists = true;
-        this.values.set(id, fkValues);
+        Promise.all(promises).then(
+          () => {
+            // console.log(`added ${this.modelName} ${this.id}`);
+            this.sub.added(this.modelName, id, fields);
+            this.exists = true;
+            this.values.set(id, fkValues);
+          },
+          (err) => {
+            // eslint-disable-next-line no-console
+            console.log("incref promise rejected:", err);
+          },
+        );
       },
       changed: (_, fields) => {
         // add new foreign keys first
+        const promises: Promise<void>[] = [];
         foreignKeys?.forEach(({ field, join }) => {
           let val = fields[field] as unknown as undefined | string | string[];
           if (!val) {
@@ -170,46 +195,56 @@ class JoinedObjectObserver<T extends { _id: string }> {
           }
 
           const observer = this.observers.get(modelName(join.model))!;
-          val.forEach((v) => observer.incref(v));
+          val.forEach((v) => {
+            promises.push(observer.incref(v));
+          });
         });
-        this.sub.changed(this.modelName, id, fields);
+        Promise.all(promises).then(
+          () => {
+            this.sub.changed(this.modelName, id, fields);
 
-        // then remove old foreign key values
-        const fkValues = this.values.get(id)!;
-        foreignKeys?.forEach(({ field, join }) => {
-          // Only remove foreign key values that actually got updated to undefined
-          if (Object.prototype.hasOwnProperty.call(fields, field)) {
-            const val = fkValues.get(field);
-            if (!val) {
-              // Nothing to decref -- foreign key was absent previously.
-              return;
-            }
+            // then remove old foreign key values
+            const fkValues = this.values.get(id)!;
+            foreignKeys?.forEach(({ field, join }) => {
+              // Only remove foreign key values that actually got updated to undefined
+              if (Object.prototype.hasOwnProperty.call(fields, field)) {
+                const val = fkValues.get(field);
+                if (!val) {
+                  // Nothing to decref -- foreign key was absent previously.
+                  return;
+                }
 
-            const observer = this.observers.get(modelName(join.model))!;
-            if (join.lingerTime !== undefined) {
-              Meteor.setTimeout(() => {
-                val.forEach((v) => observer.decref(v));
-              }, join.lingerTime);
-            } else {
-              val.forEach((v) => observer.decref(v));
-            }
-          }
-        });
+                const observer = this.observers.get(modelName(join.model))!;
+                if (join.lingerTime !== undefined) {
+                  Meteor.setTimeout(() => {
+                    val.forEach((v) => observer.decref(v));
+                  }, join.lingerTime);
+                } else {
+                  val.forEach((v) => observer.decref(v));
+                }
+              }
+            });
 
-        // finally update this.values (through inner object fkValues)
-        foreignKeys?.forEach(({ field }) => {
-          if (Object.prototype.hasOwnProperty.call(fields, field)) {
-            const val = fields[field] as unknown as
-              | undefined
-              | string
-              | string[];
-            if (!val) {
-              fkValues.delete(field);
-            } else {
-              fkValues.set(field, Array.isArray(val) ? val : [val]);
-            }
-          }
-        });
+            // finally update this.values (through inner object fkValues)
+            foreignKeys?.forEach(({ field }) => {
+              if (Object.prototype.hasOwnProperty.call(fields, field)) {
+                const val = fields[field] as unknown as
+                  | undefined
+                  | string
+                  | string[];
+                if (!val) {
+                  fkValues.delete(field);
+                } else {
+                  fkValues.set(field, Array.isArray(val) ? val : [val]);
+                }
+              }
+            });
+          },
+          (err) => {
+            // eslint-disable-next-line no-console
+            console.log("incref promise rejected:", err);
+          },
+        );
       },
       removed: (_) => {
         // remove the object first, then decref its foreign keys
@@ -229,10 +264,25 @@ class JoinedObjectObserver<T extends { _id: string }> {
         this.values.delete(id);
       },
     });
+    void this.watcherPromise.then(() => {
+      observeReady = true;
+    });
+  }
+
+  async readyPromise() {
+    await this.watcherPromise;
+    // We must not read this.initialBlockers until this.watcherPromise has
+    // resolved, or it might not yet be fully populated with all the promises
+    // we need to block on.
+    return Promise.all(this.initialBlockers).then(() => {
+      // Just a void promise
+    });
   }
 
   destroy() {
-    this.watcher.stop();
+    void this.watcherPromise.then((watcher) => {
+      watcher.stop();
+    });
     if (this.exists) {
       this.sub.removed(this.modelName, this.id);
       const fkValues = this.values.get(this.id)!;
@@ -301,11 +351,11 @@ const addObservers = (
   });
 };
 
-export default function publishJoinedQuery<T extends { _id: string }>(
+export default async function publishJoinedQuery<T extends { _id: string }>(
   sub: Subscription,
   spec: PublishSpec<T>,
   query: Mongo.Selector<T>,
-): void {
+): Promise<void> {
   validateSpec(spec);
 
   const observers = new Map<string, RefCountedJoinedObjectObserverMap<any>>();
@@ -317,11 +367,16 @@ export default function publishJoinedQuery<T extends { _id: string }>(
 
   const observer = observers.get(name)!;
 
-  const watcher = finder(model, allowDeleted)(query, {
+  const promises: Promise<void>[] = [];
+  let ready = false;
+  const watcher = await finder(model, allowDeleted)(query, {
     fields: { _id: 1 },
-  }).observeChanges({
+  }).observeChangesAsync({
     added: (id) => {
-      observer.incref(id);
+      const promise = observer.incref(id);
+      if (!ready) {
+        promises.push(promise);
+      }
     },
     removed: (id) => {
       if (spec.lingerTime !== undefined) {
@@ -333,5 +388,8 @@ export default function publishJoinedQuery<T extends { _id: string }>(
       }
     },
   });
+  ready = true;
+  // The increfs and decrefs all proceed asynchronously.
+  await Promise.all(promises);
   sub.onStop(() => watcher.stop());
 }
