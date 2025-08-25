@@ -5,14 +5,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
-import DeepLink from "./DeepLink";
 
 interface DocumentDisplayProps {
   document: DocumentType;
   displayMode: "link" | "embed";
 }
 
-const StyledDeepLink = styled(DeepLink)`
+const StyledDeepLink = styled.a`
   display: inline-block;
   font-weight: bold;
   white-space: nowrap;
@@ -46,19 +45,16 @@ const GoogleDocumentDisplay = ({
   displayMode,
 }: DocumentDisplayProps) => {
   let url: string;
-  let deepUrl: string;
   let title: string;
   let icon: IconDefinition;
   switch (document.value.type) {
     case "spreadsheet":
       url = `https://docs.google.com/spreadsheets/d/${document.value.id}/edit?ui=2&rm=embedded&gid=0#gid=0`;
-      deepUrl = `googlesheets://${url}`;
       title = "Sheet";
       icon = faTable;
       break;
     case "document":
       url = `https://docs.google.com/document/d/${document.value.id}/edit?ui=2&rm=embedded#gid=0`;
-      deepUrl = `googledocs://${url}`;
       title = "Doc";
       icon = faFileAlt;
       break;
@@ -74,10 +70,8 @@ const GoogleDocumentDisplay = ({
   switch (displayMode) {
     case "link":
       return (
-        <StyledDeepLink nativeUrl={deepUrl} browserUrl={url}>
-          <a href={url} target="new">
-            <FontAwesomeIcon fixedWidth icon={icon} /> <span>{title}</span>
-          </a>
+        <StyledDeepLink href={url} target="_blank" rel="noreferrer noopener">
+          <FontAwesomeIcon fixedWidth icon={icon} /> <span>{title}</span>
         </StyledDeepLink>
       );
     case "embed":
