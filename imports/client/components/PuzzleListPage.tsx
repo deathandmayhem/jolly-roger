@@ -373,6 +373,7 @@ const PuzzleListView = ({
   const renderList = useCallback(
     (
       retainedPuzzles: PuzzleType[],
+      retainedDeletedPuzzles: PuzzleType[] | undefined,
       solvedOverConstrains: boolean,
       allPuzzlesCount: number,
     ) => {
@@ -475,11 +476,11 @@ const PuzzleListView = ({
             </PuzzleGroupDiv>
           )}
           {listComponent}
-          {deletedPuzzles && deletedPuzzles.length > 0 && (
+          {retainedDeletedPuzzles && retainedDeletedPuzzles.length > 0 && (
             <RelatedPuzzleGroup
               key="deleted"
               huntId={huntId}
-              group={{ puzzles: deletedPuzzles, subgroups: [] }}
+              group={{ puzzles: retainedDeletedPuzzles, subgroups: [] }}
               noSharedTagLabel="Deleted puzzles (operator only)"
               bookmarked={bookmarked}
               allTags={allTags}
@@ -496,7 +497,6 @@ const PuzzleListView = ({
       huntId,
       displayMode,
       allPuzzles,
-      deletedPuzzles,
       allTags,
       canUpdate,
       searchString,
@@ -560,6 +560,8 @@ const PuzzleListView = ({
   const retainedPuzzles = solvedOverConstrains
     ? matchingSearch
     : matchingSearchAndSolved;
+  const retainedDeletedPuzzles =
+    deletedPuzzles && puzzlesMatchingSearchString(deletedPuzzles);
 
   return (
     <div>
@@ -637,7 +639,12 @@ const PuzzleListView = ({
           </InputGroup>
         </SearchFormGroup>
       </ViewControls>
-      {renderList(retainedPuzzles, solvedOverConstrains, allPuzzles.length)}
+      {renderList(
+        retainedPuzzles,
+        retainedDeletedPuzzles,
+        solvedOverConstrains,
+        allPuzzles.length,
+      )}
     </div>
   );
 };
