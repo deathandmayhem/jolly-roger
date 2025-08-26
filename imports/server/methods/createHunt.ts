@@ -20,7 +20,7 @@ const DEFAULT_TAGS = [
   "type:duck-konundrum",
   "group:events",
   "needs:extraction",
-  "needs:onsite  ",
+  "needs:onsite",
 ];
 
 defineMethod(createHunt, {
