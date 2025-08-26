@@ -47,6 +47,7 @@ enum PuzzleModalFormSubmitState {
 }
 
 export type PuzzleModalFormHandle = {
+  reset: () => void;
   show: () => void;
 };
 
@@ -194,6 +195,14 @@ const PuzzleModalForm = React.forwardRef(
       }
     }, []);
 
+    const reset = useCallback(() => {
+      setTitle("");
+      setUrl("");
+      setTags([]);
+      setExpectedAnswerCount(1);
+      setDocType("spreadsheet");
+    }, []);
+
     const currentTitle = useMemo(() => {
       if (!titleDirty && puzzle) {
         return puzzle.title;
@@ -231,6 +240,7 @@ const PuzzleModalForm = React.forwardRef(
 
     useImperativeHandle(forwardedRef, () => ({
       show,
+      reset,
     }));
 
     useEffect(() => {
