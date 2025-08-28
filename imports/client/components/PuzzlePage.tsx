@@ -103,7 +103,7 @@ import ModalForm from "./ModalForm";
 import PuzzleAnswer from "./PuzzleAnswer";
 import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
-import SplitPanePlus from "./SplitPanePlus";
+import SplitPaneMinus from "./SplitPaneMinus";
 import TagList from "./TagList";
 import {
   GuessConfidence,
@@ -2082,13 +2082,11 @@ const PuzzlePage = React.memo(() => {
       <>
         {deletedModal}
         <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
-          <SplitPanePlus
+          <SplitPaneMinus
             split="vertical"
             minSize={MinimumSidebarWidth}
             maxSize={-MinimumDocumentWidth}
             primary="first"
-            autoCollapse1={-1}
-            autoCollapse2={-1}
             size={sidebarWidth}
             onChanged={onChangeSideBarSize}
             onPaneChanged={onCommitSideBarSize}
@@ -2099,7 +2097,7 @@ const PuzzlePage = React.memo(() => {
               <PuzzlePageMultiplayerDocument document={document} />
               {debugPane}
             </PuzzleContent>
-          </SplitPanePlus>
+          </SplitPaneMinus>
         </FixedLayout>
       </>
     );
