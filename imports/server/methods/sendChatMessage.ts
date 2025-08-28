@@ -18,8 +18,8 @@ defineMethod(sendChatMessage, {
     check(arg, {
       puzzleId: String,
       content: String,
-      parentId: Match.OneOf(String, null, undefined),
-      attachments: Match.OneOf(null, [ChatAttachmentPattern]),
+      parentId: Match.Optional(Match.OneOf(String, null)),
+      attachments: Match.Optional([ChatAttachmentPattern]),
     });
 
     return arg;
