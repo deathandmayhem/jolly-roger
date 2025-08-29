@@ -3,7 +3,7 @@
   "main": "dist/index",
   "peerDependencies": {
     "@typescript-eslint/utils": "^5.47.1",
-    "typescript": "^4.9.4"
+    "typescript": "^5.4.5"
   },
   "scripts": {
     "build": "tsc"

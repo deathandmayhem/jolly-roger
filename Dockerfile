@@ -82,9 +82,8 @@ RUN --mount=type=cache,target=/root/.npm <<'EOF'
 #!/bin/bash
 set -eux
 set -o pipefail
-# Remove the --legacy-peer-deps once we've upgraded or replaced react-split-pane
 export METEOR_ALLOW_SUPERUSER=1
-meteor npm ci --legacy-peer-deps
+meteor npm ci
 meteor npm run prepare
 EOF
 
