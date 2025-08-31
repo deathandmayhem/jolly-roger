@@ -249,6 +249,7 @@ const InsertImageModal = React.forwardRef(
                   isInvalid={fileInvalid}
                   required={imageSource === "upload"}
                   ref={fileRef}
+                  accept=".png,.jpg,.jpeg,.gif"
                 />
               </Tab>
               <Tab eventKey="link" title="Link">
