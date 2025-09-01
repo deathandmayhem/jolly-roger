@@ -186,9 +186,10 @@ Resources:
 
   SshUsersParsingFunction:
     Type: AWS::Lambda::Function
+    Condition: HaveServing
     Properties:
       Description: Generate the SSH users docker config from the raw input parameter
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.main"
       Role: !GetAtt LambdaExecutionRole.Arn
       Environment:
@@ -213,6 +214,7 @@ Resources:
           };
   SshUsersParsing:
     Type: Custom::SshUsersParsing
+    Condition: HaveServing
     Properties:
       ServiceToken: !GetAtt SshUsersParsingFunction.Arn
       Suite: jammy
@@ -917,7 +919,7 @@ Resources:
     Condition: HaveServing
     Properties:
       Description: Associate the elastic IP with the single EC2 instance whenever it launches successfully
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.main"
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
