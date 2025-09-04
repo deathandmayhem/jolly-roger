@@ -22,6 +22,9 @@ defineMethod(updatePuzzle, {
       url: Match.Optional(String),
       tags: [String],
       expectedAnswerCount: Number,
+      // We accept this argument since it's provided by the form, but it's not checked here - only
+      // during puzzle creation, to avoid duplicates when creating new puzzles.
+      allowDuplicateUrls: Match.Optional(Boolean),
     });
 
     return arg;

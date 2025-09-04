@@ -9,6 +9,7 @@ export default new TypedMethod<
     tags: string[];
     expectedAnswerCount: number;
     docType: GdriveMimeTypesType;
+    allowDuplicateUrls?: boolean;
   },
   string
 >("Puzzles.methods.create");

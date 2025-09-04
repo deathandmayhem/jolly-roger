@@ -86,6 +86,16 @@ async function createDocument(
   return fileId;
 }
 
+async function deleteDocument(id: string) {
+  await checkClientOk();
+  if (!GoogleClient.drive)
+    throw new Meteor.Error(500, "Google integration is disabled");
+
+  await GoogleClient.drive.files.delete({
+    fileId: id,
+  });
+}
+
 export async function moveDocument(id: string, newParentId: string) {
   await checkClientOk();
   if (!GoogleClient.drive)
@@ -300,4 +310,17 @@ export async function ensureDocument(
   }
 
   return doc!;
+}
+
+export async function deleteUnusedDocument(puzzle: { _id: string }) {
+  const doc = await Documents.findOneAsync({ puzzle: puzzle._id });
+  if (!doc) {
+    return;
+  }
+
+  await checkClientOk();
+  await withLock(`puzzle:${puzzle._id}:documents`, async () => {
+    await deleteDocument(doc.value.id);
+    await Documents.removeAsync(doc._id);
+  });
 }
