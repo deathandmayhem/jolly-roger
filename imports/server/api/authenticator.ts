@@ -1,6 +1,6 @@
 import type express from "express";
+import APIKeys from "../../lib/models/APIKeys";
 import expressAsyncWrapper from "../expressAsyncWrapper";
-import APIKeys from "../models/APIKeys";
 
 const authenticator: express.Handler = expressAsyncWrapper(
   async (req, res, next) => {
