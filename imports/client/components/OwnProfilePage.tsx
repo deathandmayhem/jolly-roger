@@ -14,6 +14,8 @@ import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
 import Flags from "../../Flags";
 import { formatDiscordName } from "../../lib/discord";
+import type { APIKeyType } from "../../lib/models/APIKeys";
+import createAPIKey from "../../methods/createAPIKey";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
 import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
 import unlinkUserDiscordAccount from "../../methods/unlinkUserDiscordAccount";
@@ -21,6 +23,7 @@ import unlinkUserGoogleAccount from "../../methods/unlinkUserGoogleAccount";
 import updateProfile from "../../methods/updateProfile";
 import TeamName from "../TeamName";
 import { requestDiscordCredential } from "../discord";
+import APIKeysTable from "./APIKeysTable";
 import ActionButtonRow from "./ActionButtonRow";
 import AudioConfig from "./AudioConfig";
 import Avatar from "./Avatar";
@@ -292,7 +295,60 @@ enum OwnProfilePageSubmitState {
   ERROR = "error",
 }
 
-const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
+const APIKeysSection = ({ apiKeys }: { apiKeys?: APIKeyType[] }) => {
+  const [createState, setCreateState] = useState<
+    "idle" | "requesting" | "success" | "error"
+  >("idle");
+  const [createError, setCreateError] = useState<string | undefined>(undefined);
+  const createKey = useCallback(() => {
+    setCreateState("requesting");
+    createAPIKey.call({}, (error, _newKey) => {
+      if (error) {
+        setCreateState("error");
+        setCreateError(error.message);
+      } else {
+        setCreateState("success");
+      }
+    });
+  }, []);
+  const disabled = createState === "requesting";
+  return (
+    <>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <h3>API Keys</h3>
+        <Button disabled={disabled} onClick={createKey}>
+          + Create API key
+        </Button>
+      </div>
+      {createState === "error" ? (
+        <Alert
+          variant="danger"
+          onClose={() => setCreateState("idle")}
+          dismissible
+        >
+          Creating API key failed: {createError}
+        </Alert>
+      ) : undefined}
+      <p>Authorization credentials used to make API calls. Keep them secret!</p>
+      <APIKeysTable apiKeys={apiKeys} />
+    </>
+  );
+};
+
+const OwnProfilePage = ({
+  initialUser,
+  apiKeys,
+}: {
+  initialUser: Meteor.User;
+  apiKeys?: APIKeyType[];
+}) => {
   const [displayName, setDisplayName] = useState<string>(
     initialUser.displayName ?? "",
   );
@@ -452,6 +508,11 @@ const OwnProfilePage = ({ initialUser }: { initialUser: Meteor.User }) => {
       </ActionButtonRow>
 
       <AudioConfig />
+
+      <section className="advanced-section mt-3">
+        <h2>Advanced</h2>
+        <APIKeysSection apiKeys={apiKeys} />
+      </section>
     </Container>
   );
 };
