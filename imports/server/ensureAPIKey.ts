@@ -1,6 +1,6 @@
 import { Random } from "meteor/random";
 import Logger from "../Logger";
-import APIKeys from "./models/APIKeys";
+import APIKeys from "../lib/models/APIKeys";
 import userForKeyOperation from "./userForKeyOperation";
 import withLock from "./withLock";
 
