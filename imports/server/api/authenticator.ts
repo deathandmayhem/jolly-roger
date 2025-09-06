@@ -2,6 +2,9 @@ import type express from "express";
 import APIKeys from "../../lib/models/APIKeys";
 import expressAsyncWrapper from "../expressAsyncWrapper";
 
+// Update last used time only once every 60 seconds.
+const API_KEY_LAST_USED_MINIMUM_TIME_DELTA_MSEC = 60000;
+
 const authenticator: express.Handler = expressAsyncWrapper(
   async (req, res, next) => {
     const auth = req.get("Authorization");
@@ -22,6 +25,18 @@ const authenticator: express.Handler = expressAsyncWrapper(
     if (!key) {
       res.sendStatus(403);
       return;
+    }
+
+    const now = new Date();
+    if (
+      key.lastUsedAt === undefined ||
+      now.getTime() - key.lastUsedAt.getTime() >=
+        API_KEY_LAST_USED_MINIMUM_TIME_DELTA_MSEC
+    ) {
+      // If this API key was last used more than 60 seconds ago, update the
+      // "last used" time on it. Do not block waiting for the write to complete.
+      // Do not throw an error if updating the APIKey fails.
+      void APIKeys.updateAsync({ _id: key._id }, { $set: { lastUsedAt: now } });
     }
 
     next();

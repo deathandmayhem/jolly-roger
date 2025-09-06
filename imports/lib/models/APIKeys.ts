@@ -8,6 +8,7 @@ const APIKey = withCommon(
   z.object({
     user: foreignKey,
     key: z.string().regex(/^[A-Za-z0-9]{32}$/),
+    lastUsedAt: z.date().optional(),
   }),
 );
 
