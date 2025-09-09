@@ -13,7 +13,7 @@ const APIKey = withCommon(
 );
 
 const APIKeys = new SoftDeletedModel("jr_api_keys", APIKey);
-APIKeys.addIndex({ key: 1 });
+APIKeys.addIndex({ key: 1 }, { unique: true });
 export type APIKeyType = ModelType<typeof APIKeys>;
 
 export default APIKeys;

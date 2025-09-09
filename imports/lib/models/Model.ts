@@ -341,6 +341,7 @@ export type IndexOptions = Pick<CreateIndexesOptions, AllowedIndexOptionsType>;
 type NormalizedIndexOptions = [AllowedIndexOptionsType, any][];
 
 export interface ModelIndexSpecification {
+  name: string | undefined;
   index: NormalizedIndexSpecification;
   options: NormalizedIndexOptions;
   // JSON-serialize [index, options] to make it easier to compare against
@@ -614,6 +615,11 @@ class Model<
     const normalizedOptions = normalizeIndexOptions(options);
     const stringified = JSON.stringify([normalizedIndex, normalizedOptions]);
     this.indexes.push({
+      // We currently generate name here in the same way Mongo would implicitly,
+      // but we will explicitly use this field's value for the index name when
+      // actually creating the index, so if we want to support index name
+      // overrides, we could.
+      name: normalizedIndex.map(([k, v]) => `${k}_${v}`).join("_"),
       index: normalizedIndex,
       options: normalizedOptions,
       stringified,
