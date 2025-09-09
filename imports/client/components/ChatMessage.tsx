@@ -1,4 +1,5 @@
 /* eslint-disable react/no-array-index-key */
+import * as he from "he";
 import { marked } from "marked";
 import React from "react";
 import styled from "styled-components";
@@ -38,6 +39,9 @@ const StyledCodeBlock = styled.code`
 
 // Renders a markdown token to React components.
 const MarkdownToken = ({ token }: { token: marked.Token }) => {
+  // NOTE: Marked's lexer encodes using HTML entities in the text; see:
+  // https://github.com/markedjs/marked/discussions/1737
+  // We need to decode the text since React will apply its own escaping.
   if (token.type === "text") {
     return <PreWrapSpan>{token.raw}</PreWrapSpan>;
   } else if (token.type === "space") {
@@ -48,8 +52,9 @@ const MarkdownToken = ({ token }: { token: marked.Token }) => {
     const children = token.tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
     ));
-    if (token.raw.length > token.text.length) {
-      const trail = token.raw.substring(token.text.length);
+    const decodedText = he.decode(token.text);
+    if (token.raw.length > decodedText.length) {
+      const trail = token.raw.substring(decodedText.length);
       if (trail.trim() === "") {
         const syntheticSpace: marked.Tokens.Space = {
           type: "space",
@@ -95,8 +100,10 @@ const MarkdownToken = ({ token }: { token: marked.Token }) => {
     ));
     return <del>{children}</del>;
   } else if (token.type === "codespan") {
-    return <code>{token.text}</code>;
+    const decodedText = he.decode(token.text);
+    return <code>{decodedText}</code>;
   } else if (token.type === "code") {
+    // Text in code blocks is _not_ encoded, so pass it through as is.
     return <StyledCodeBlock>{token.text}</StyledCodeBlock>;
   } else {
     // Unhandled token types: just return the raw string with pre-wrap.
