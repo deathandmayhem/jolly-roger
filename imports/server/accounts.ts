@@ -79,9 +79,10 @@ Accounts.registerLoginHandler(async (options: LoginOptions) => {
   const googleAccountId = credential.serviceData.id;
 
   // Attempt to match existing Google users by their linked account ID.
-  // We can't use the async method since Meteor's API only takes a sync one.
-  // eslint-disable-next-line jolly-roger/no-disallowed-sync-methods
-  const users = MeteorUsers.find({ googleAccountId }, { limit: 2 }).fetch();
+  const users = await MeteorUsers.find(
+    { googleAccountId },
+    { limit: 2 },
+  ).fetchAsync();
   switch (users.length) {
     case 0: {
       throw new Meteor.Error(

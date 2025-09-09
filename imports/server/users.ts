@@ -60,7 +60,7 @@ const republishOnUserChange = async (
     );
   }
   const watch = await MeteorUsers.find(sub.userId!, {
-    fields: projection,
+    projection,
   }).observeAsync({
     changed: (doc) => {
       void (async () => {
@@ -111,7 +111,10 @@ Meteor.publish("displayNames", async function (huntId: unknown) {
       return undefined;
     }
 
-    return MeteorUsers.find({ hunts: huntId }, { fields: { displayName: 1 } });
+    return MeteorUsers.find(
+      { hunts: huntId },
+      { projection: { displayName: 1 } },
+    );
   });
 
   return undefined;
@@ -131,7 +134,7 @@ Meteor.publish("avatars", async function (huntId: unknown) {
 
     return MeteorUsers.find(
       { hunts: huntId },
-      { fields: { discordAccount: 1 } },
+      { projection: { discordAccount: 1 } },
     );
   });
 
@@ -150,7 +153,7 @@ Meteor.publish("allProfiles", async function () {
       return MeteorUsers.find(
         { hunts: { $in: u.hunts ?? [] } },
         {
-          fields: {
+          projection: {
             "emails.address": 1,
             hunts: 1,
             ...profileFields,
@@ -182,7 +185,7 @@ Meteor.publish("huntProfiles", async function (huntId: unknown) {
       return MeteorUsers.find(
         { hunts: huntId },
         {
-          fields: {
+          projection: {
             "emails.address": 1,
             hunts: 1,
             ...profileFields,
@@ -211,7 +214,7 @@ Meteor.publish("profile", async function (userId: unknown) {
       return MeteorUsers.find(
         { _id: userId, hunts: { $in: u.hunts ?? [] } },
         {
-          fields: {
+          projection: {
             "emails.address": 1,
             hunts: 1,
             ...profileFields,
@@ -237,7 +240,7 @@ Meteor.publish("huntRoles", async function (huntId: unknown) {
     return MeteorUsers.find(
       { hunts: huntId },
       {
-        fields: {
+        projection: {
           // Specifying sub-fields here is allowed, but will conflict with any other
           // concurrent publications for the same top-level field (roles). This
           // should be fine so long as we don't try to subscribe to huntRoles for

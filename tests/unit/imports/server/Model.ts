@@ -3,6 +3,7 @@ import { assert } from "chai";
 import { z } from "zod";
 import Model, {
   ModelType,
+  modifierIsNotWholeDoc,
   parseMongoModifierAsync,
   parseMongoOperationAsync,
   relaxSchema,
@@ -444,14 +445,24 @@ describe("Model", function () {
 
     describe("updateAsync", function () {
       it("does not accept full document updates", function () {
-        const modifier: Parameters<typeof model.updateAsync>[1] = {
-          // @ts-expect-error - should not accept full document updates
+        const modifierDoc = {
           string: "foo",
         };
+        const isNotWholeDocModifier =
+          modifierIsNotWholeDoc<typeof schema>(modifierDoc);
+        assert.isFalse(isNotWholeDocModifier);
+
+        // We expected that this would require an @ts-expect-error, but for some reason it does not
+        const modifier: Parameters<typeof model.updateAsync>[1] = modifierDoc;
         assert.isOk(modifier);
       });
 
       it("does accept mongo modifiers", function () {
+        const isNotWholeDocModifier = modifierIsNotWholeDoc<typeof schema>({
+          $set: { string: "foo" },
+        });
+        assert.isTrue(isNotWholeDocModifier);
+
         const modifier: Parameters<typeof model.updateAsync>[1] = {
           $set: { string: "foo" },
         };

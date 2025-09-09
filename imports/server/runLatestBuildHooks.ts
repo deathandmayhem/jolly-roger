@@ -28,7 +28,7 @@ if (previousLatest && previousLatest.buildTimestamp > buildTimestamp) {
     await LatestDeploymentTimestamps.insertAsync({
       _id: "default",
       buildTimestamp,
-      gitRevision: Meteor.gitCommitHash,
+      gitRevision: Meteor.gitCommitHash!,
     });
   });
 
@@ -40,7 +40,7 @@ if (previousLatest && previousLatest.buildTimestamp > buildTimestamp) {
     {
       $set: {
         buildTimestamp,
-        gitRevision: Meteor.gitCommitHash,
+        gitRevision: Meteor.gitCommitHash!,
       },
     },
   );

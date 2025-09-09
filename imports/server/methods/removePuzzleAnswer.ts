@@ -24,7 +24,7 @@ defineMethod(removePuzzleAnswer, {
         _id: puzzleId,
       },
       {
-        fields: {
+        projection: {
           hunt: 1,
         },
       },

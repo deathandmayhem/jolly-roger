@@ -213,4 +213,4 @@ router.post(
 
 app.use("/", router);
 
-WebApp.connectHandlers.use("/asset", Meteor.bindEnvironment(app));
+WebApp.handlers.use("/asset", Meteor.bindEnvironment(app));

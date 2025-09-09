@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import type { Mongo } from "meteor/mongo";
 import { z } from "zod";
 import { Email, URL, UUID } from "./regexes";
 
@@ -14,8 +13,32 @@ export type MongoRecordZodType =
   | z.ZodIntersection<any, any>
   | z.ZodRecord<any, any>;
 
+type BsonType =
+  | "double"
+  | "string"
+  | "object"
+  | "array"
+  | "binData"
+  | "undefined"
+  | "objectId"
+  | "bool"
+  | "date"
+  | "null"
+  | "regex"
+  | "dbPointer"
+  | "javascript"
+  | "symbol"
+  | "javascriptWithScope"
+  | "int"
+  | "timestamp"
+  | "long"
+  | "decimal"
+  | "minKey"
+  | "maxKey"
+  | "number";
+
 export interface JsonSchema {
-  bsonType?: Mongo.BsonType & string;
+  bsonType?: BsonType;
   enum?: readonly any[];
   allOf?: readonly JsonSchema[];
   anyOf?: readonly JsonSchema[];

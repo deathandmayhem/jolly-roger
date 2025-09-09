@@ -139,7 +139,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
     let observeReady = false;
     this.initialBlockers = [];
     this.watcherPromise = finder(model, allowDeleted)(id, {
-      fields: projection as Mongo.FieldSpecifier,
+      projection: projection as Mongo.FieldSpecifier,
     }).observeChangesAsync({
       added: (_, fields) => {
         const fkValues = new Map<string, string[]>();
@@ -370,7 +370,7 @@ export default async function publishJoinedQuery<T extends { _id: string }>(
   const promises: Promise<void>[] = [];
   let ready = false;
   const watcher = await finder(model, allowDeleted)(query, {
-    fields: { _id: 1 },
+    projection: { _id: 1 },
   }).observeChangesAsync({
     added: (id) => {
       const promise = observer.incref(id);

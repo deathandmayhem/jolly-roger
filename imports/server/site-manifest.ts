@@ -41,7 +41,7 @@ const serveSiteManifest = (
   res.end(body);
 };
 
-WebApp.connectHandlers.use(
+WebApp.handlers.use(
   "/site.webmanifest",
   Meteor.bindEnvironment(serveSiteManifest),
 );
