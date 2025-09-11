@@ -331,10 +331,9 @@ const PuzzleModalForm = React.forwardRef(
       ) : null;
 
     const allowDuplicateUrlsCheckbox =
-      !puzzle &&
-      typeof allowDuplicateUrls === "boolean" &&
-      confirmingDuplicateUrl ? (
+      !puzzle && allowDuplicateUrls !== undefined && confirmingDuplicateUrl ? (
         <FormCheck
+          id="jr-new-puzzle-allow-duplicate-urls"
           label="Allow puzzles with identical URLs"
           type="checkbox"
           disabled={disableForm}
