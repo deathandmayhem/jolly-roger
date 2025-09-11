@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
 import React, {
   useCallback,
-  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -40,6 +39,7 @@ import demoteOperator from "../../methods/demoteOperator";
 import generateHuntInvitationCode from "../../methods/generateHuntInvitationCode";
 import promoteOperator from "../../methods/promoteOperator";
 import syncHuntDiscordRole from "../../methods/syncHuntDiscordRole";
+import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import Avatar from "./Avatar";
 
 const ProfilesSummary = styled.div`
@@ -385,23 +385,7 @@ const ProfileList = ({
   const [searchString, setSearchString] = useState<string>("");
 
   const searchBarRef = useRef<HTMLInputElement>(null); // Wrong type but I should fix it
-
-  const maybeStealCtrlF = useCallback((e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key === "f") {
-      e.preventDefault();
-      const node = searchBarRef.current;
-      if (node) {
-        node.focus();
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("keydown", maybeStealCtrlF);
-    return () => {
-      window.removeEventListener("keydown", maybeStealCtrlF);
-    };
-  }, [maybeStealCtrlF]);
+  useFocusRefOnFindHotkey(searchBarRef);
 
   // The type annotation on FormControl is wrong here - the event is from the
   // input element, not the FormControl React component

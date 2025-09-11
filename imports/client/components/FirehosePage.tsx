@@ -25,6 +25,7 @@ import type { PuzzleType } from "../../lib/models/Puzzles";
 import nodeIsMention from "../../lib/nodeIsMention";
 import chatMessagesForFirehose from "../../lib/publications/chatMessagesForFirehose";
 import { useBreadcrumb } from "../hooks/breadcrumb";
+import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
@@ -162,22 +163,7 @@ const FirehosePage = () => {
   const messagesPaneRef = useRef<HTMLDivElement>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
 
-  const maybeStealCtrlF = useCallback((e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key === "f") {
-      e.preventDefault();
-      const node = searchBarRef.current;
-      if (node) {
-        node.focus();
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("keydown", maybeStealCtrlF);
-    return () => {
-      window.removeEventListener("keydown", maybeStealCtrlF);
-    };
-  }, [maybeStealCtrlF]);
+  useFocusRefOnFindHotkey(searchBarRef);
 
   const setSearchString = useCallback(
     (val: string) => {
