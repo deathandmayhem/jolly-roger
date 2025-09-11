@@ -29,6 +29,7 @@ const Puzzle = withCommon(
 
 const Puzzles = new SoftDeletedModel("jr_puzzles", Puzzle);
 Puzzles.addIndex({ deleted: 1, hunt: 1 });
+Puzzles.addIndex({ url: 1 });
 export type PuzzleType = ModelType<typeof Puzzles>;
 
 export default Puzzles;
