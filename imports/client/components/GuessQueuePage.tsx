@@ -9,7 +9,6 @@ import React, {
   type ComponentPropsWithRef,
   type FC,
   useCallback,
-  useEffect,
   useRef,
 } from "react";
 import Button from "react-bootstrap/Button";
@@ -35,6 +34,7 @@ import guessesForGuessQueue from "../../lib/publications/guessesForGuessQueue";
 import setGuessState from "../../methods/setGuessState";
 import { guessURL } from "../../model-helpers";
 import { useBreadcrumb } from "../hooks/breadcrumb";
+import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import GuessState from "./GuessState";
@@ -404,23 +404,7 @@ const GuessQueuePage = () => {
   );
 
   const searchBarRef = useRef<HTMLInputElement>(null);
-
-  const maybeStealCtrlF = useCallback((e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key === "f") {
-      e.preventDefault();
-      const node = searchBarRef.current;
-      if (node) {
-        node.focus();
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("keydown", maybeStealCtrlF);
-    return () => {
-      window.removeEventListener("keydown", maybeStealCtrlF);
-    };
-  }, [maybeStealCtrlF]);
+  useFocusRefOnFindHotkey(searchBarRef);
 
   const setSearchString = useCallback(
     (val: string) => {
