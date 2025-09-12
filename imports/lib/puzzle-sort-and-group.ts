@@ -214,7 +214,7 @@ function filteredPuzzleGroup(
     .map((subgroup) => {
       return filteredPuzzleGroup(subgroup, retainedPuzzleIds);
     })
-    .filter((x) => x !== undefined) as PuzzleGroup[];
+    .filter((x) => x !== undefined);
 
   const retainedPuzzles = group.puzzles.filter((puzzle) => {
     return retainedPuzzleIds.has(puzzle._id);
@@ -242,7 +242,7 @@ function filteredPuzzleGroups(
     .map((group) => {
       return filteredPuzzleGroup(group, retainedPuzzleIds);
     })
-    .filter((x) => x !== undefined) as PuzzleGroup[];
+    .filter((x) => x !== undefined);
 }
 
 function puzzleGroupsByRelevance(

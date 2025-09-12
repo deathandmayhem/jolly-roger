@@ -12,6 +12,12 @@ export type Worker = {
   port: number;
 };
 
+type ProxyWsMessage = {
+  type: "proxy-ws";
+  req: object; // It's a bunch of fields that I don't currently care to lay out
+  head: string;
+};
+
 // worker processes should notify their parent once they're ready to accept
 // requests
 if (process.env.CLUSTER_WORKER_ID) {
@@ -23,14 +29,17 @@ if (process.env.CLUSTER_WORKER_ID) {
     }
   });
 
-  process.on("message", (message, socket) => {
-    if (message.type === "proxy-ws") {
-      WebApp.httpServer.emit(
-        "upgrade",
-        message.req,
-        socket,
-        Buffer.from(message.head, "utf8"),
-      );
+  process.on("message", (message: unknown, socket) => {
+    if (typeof message === "object" && message !== null && "type" in message) {
+      if (message.type === "proxy-ws") {
+        const wsmessage = message as ProxyWsMessage;
+        WebApp.httpServer.emit(
+          "upgrade",
+          wsmessage.req,
+          socket,
+          Buffer.from(wsmessage.head, "utf8"),
+        );
+      }
     }
   });
 }

@@ -31,7 +31,7 @@ const Spectrum = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const bufferLength = useRef<number>(0);
   const analyserNode = useRef<AnalyserNode | undefined>(undefined);
-  const analyserBuffer = useRef<Uint8Array | undefined>(undefined);
+  const analyserBuffer = useRef<Uint8Array<ArrayBuffer> | undefined>(undefined);
   if (analyserNode.current === undefined) {
     analyserNode.current = audioContext.createAnalyser();
     analyserNode.current.fftSize = barCount !== undefined ? barCount * 2 : 32;

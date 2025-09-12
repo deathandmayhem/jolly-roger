@@ -55,7 +55,7 @@ export const snowflake = z.string().regex(/^[0-9]+$/);
 // requiring a custom type, but z.instanceof just returns a generic ZodType
 // rather than something we can easily introspect (like one of the
 // ZodFirstPartySchemaTypes).
-export const uint8Array = z.instanceof(Uint8Array);
+export const uint8Array = z.instanceof(Uint8Array<ArrayBuffer>);
 attachCustomJsonSchema(uint8Array, { bsonType: "binData" });
 
 export const portNumber = z.number().int().positive().lte(65535);

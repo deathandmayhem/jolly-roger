@@ -26,6 +26,6 @@ export default function withTimestamps<T extends MongoRecordZodType>(
   }
 
   return schema instanceof z.ZodObject
-    ? schema.extend(TimestampFields)
+    ? (schema.extend(TimestampFields) as any)
     : (schema.and(z.object(TimestampFields)) as any);
 }

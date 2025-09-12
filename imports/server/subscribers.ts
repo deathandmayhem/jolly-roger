@@ -88,7 +88,7 @@ Meteor.publish("subscribers.counts", async function (q: Record<string, any>) {
         counters[name]![user] = 0;
       }
 
-      counters[name]![user] += 1;
+      counters[name]![user]! += 1;
       if (initialized) {
         this.changed("subscribers.counts", name, {
           value: Object.keys(counters[name]!).length,
@@ -99,7 +99,7 @@ Meteor.publish("subscribers.counts", async function (q: Record<string, any>) {
     removed: (doc) => {
       const { name, user } = doc;
 
-      counters[name]![user] -= 1;
+      counters[name]![user]! -= 1;
       if (counters[name]![user] === 0) {
         delete counters[name]![user];
       }
@@ -143,13 +143,13 @@ Meteor.publish("subscribers.fetch", async function (name) {
         this.added("subscribers", `${name}:${user}`, { name, user });
       }
 
-      users[user] += 1;
+      users[user]! += 1;
     },
 
     removed: (doc) => {
       const { user } = doc;
 
-      users[user] -= 1;
+      users[user]! -= 1;
       if (users[user] === 0) {
         delete users[user];
         this.removed("subscribers", `${name}:${user}`);
