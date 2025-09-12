@@ -43,7 +43,7 @@ const hashes = [
   defaultMappings.set(assetName, id);
   defaultAssets.set(id, {
     _id: id,
-    value: data,
+    value: data as Uint8Array<ArrayBuffer>,
     mimeType,
     md5,
     size: data.length,

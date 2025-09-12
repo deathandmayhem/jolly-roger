@@ -160,7 +160,7 @@ if (apiKey) {
           const resp = await fetch("https://upload.bugsnag.com/", {
             method: "POST",
             headers: formData.getHeaders(),
-            body: formData.getBuffer(),
+            body: formData.getBuffer() as Buffer<ArrayBuffer>,
           });
           if (!resp.ok) {
             throw new Error(

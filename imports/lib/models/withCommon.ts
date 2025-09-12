@@ -38,6 +38,6 @@ export default function withCommon<T extends MongoRecordZodType>(
   }
 
   return schema instanceof z.ZodObject
-    ? schema.extend(CombinedFields)
+    ? (schema.extend(CombinedFields) as any)
     : (schema.and(z.object(CombinedFields)) as any);
 }

@@ -26,6 +26,6 @@ export default function withUsers<T extends MongoRecordZodType>(
   }
 
   return schema instanceof z.ZodObject
-    ? schema.extend(UserFields)
+    ? (schema.extend(UserFields) as any)
     : (schema.and(z.object(UserFields)) as any);
 }
