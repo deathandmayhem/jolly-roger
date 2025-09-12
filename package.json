@@ -130,7 +130,7 @@
     "postcss-selector-parser": "^6.1.2",
     "postcss-styled-syntax": "^0.7.0",
     "prettier": "^3.3.3",
-    "puppeteer": "^20.4.0",
+    "puppeteer": "^24.20.0",
     "sass": "^1.90.0",
     "stylelint": "^15.11.0",
     "stylelint-config-standard": "^34.0.0",
