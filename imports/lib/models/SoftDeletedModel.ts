@@ -36,11 +36,11 @@ const injectQuery = <S extends Mongo.Selector<any>>(
 const injectOptions = <Opts extends Mongo.Options<any>>(
   options: Opts | undefined,
 ) => {
-  if (options?.fields) {
+  if (options?.projection) {
     return {
       ...options,
-      fields: {
-        ...options.fields,
+      projection: {
+        ...options.projection,
         deleted: 1,
       },
     };

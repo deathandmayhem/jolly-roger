@@ -7,7 +7,7 @@ export default function indexedDisplayNames(): Map<string, string> {
       displayName: { $ne: undefined },
     },
     {
-      fields: { displayName: 1 },
+      projection: { displayName: 1 },
     },
   ).forEach((u) => res.set(u._id, u.displayName!));
   return res;

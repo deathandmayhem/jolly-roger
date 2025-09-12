@@ -59,30 +59,24 @@ class TypedMethod<
       );
     }
 
-    return Meteor.call(
-      this.name,
-      ...args,
-      (error: Meteor.Error, result: Return) => {
-        if (error) {
-          const severity =
-            error instanceof Meteor.Error &&
-            typeof error.error === "number" &&
-            error.error >= 400 &&
-            error.error < 500
-              ? "info"
-              : "error";
-          Logger[severity](`Meteor method call failed: ${this.name}`, {
-            error,
-            method: this.name,
-            arguments:
-              typeof args[0] === "object"
-                ? EJSON.stringify(args[0])
-                : undefined,
-          });
-        }
-        callback?.(error, result as any);
-      },
-    );
+    Meteor.call(this.name, ...args, (error: Meteor.Error, result: Return) => {
+      if (error) {
+        const severity =
+          error instanceof Meteor.Error &&
+          typeof error.error === "number" &&
+          error.error >= 400 &&
+          error.error < 500
+            ? "info"
+            : "error";
+        Logger[severity](`Meteor method call failed: ${this.name}`, {
+          error,
+          method: this.name,
+          arguments:
+            typeof args[0] === "object" ? EJSON.stringify(args[0]) : undefined,
+        });
+      }
+      callback?.(error, result as any);
+    });
   }
 
   async callPromise<T>(
@@ -102,7 +96,8 @@ class TypedMethod<
           "request",
         );
       }
-      return await Meteor.callAsync(this.name, ...args);
+      const result = await Meteor.callAsync(this.name, ...args);
+      return result as Return;
     } catch (error) {
       if (error) {
         const severity =

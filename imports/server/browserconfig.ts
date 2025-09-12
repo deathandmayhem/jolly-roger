@@ -30,7 +30,7 @@ const serveBrowserConfig = (
   res.end(body);
 };
 
-WebApp.connectHandlers.use(
+WebApp.handlers.use(
   "/browserconfig.xml",
   Meteor.bindEnvironment(serveBrowserConfig),
 );

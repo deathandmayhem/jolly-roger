@@ -215,22 +215,22 @@ export async function parseMongoOperationAsync(
   return parsed;
 }
 
-const modifierIsWholeDoc = <T extends Document>(
+export const modifierIsNotWholeDoc = <T extends Document>(
   modifier: Mongo.Modifier<T>,
-): modifier is T => {
+): modifier is Exclude<Mongo.Modifier<T>, T> => {
   const keys = Object.keys(modifier);
-  return keys.length > 0 && !keys.some((k) => k.startsWith("$"));
+  return keys.length === 0 || keys.every((k) => k.startsWith("$"));
 };
 
 export async function parseMongoModifierAsync<
   Schema extends MongoRecordZodType,
 >(
-  relaxedSchema: Schema,
+  relaxedSchema: MongoRecordZodType,
   modifier: Mongo.Modifier<z.input<Schema>>,
 ): Promise<Mongo.Modifier<z.output<Schema>>> {
   // Types should prevent passing a full document as a modifier to
   // {update,upsert}Async, but verify at runtime to be sure
-  if (modifierIsWholeDoc(modifier)) {
+  if (!modifierIsNotWholeDoc(modifier)) {
     throw new Error("Cannot pass a full document as a modifier");
   }
 
@@ -517,7 +517,9 @@ class Model<
         const result = await this.collection
           .rawCollection()
           .updateOne(
-            typeof selector === "object" ? selector : { _id: selector },
+            typeof selector === "object"
+              ? selector
+              : { _id: selector as unknown as IdSchema },
             modifier,
             {
               ...mongoOptions,
@@ -593,6 +595,7 @@ class Model<
       "limit" | "transform"
     >,
   >(selector?: S, options?: O) {
+    // eslint-disable-next-line deprecation/deprecation -- findOne is still perfectly valid for client code
     return this.collection.findOne(selector ?? {}, options) as
       | SelectorToResultType<z.output<this["schema"]>, S>
       | undefined;

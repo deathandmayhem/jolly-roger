@@ -85,7 +85,6 @@ export default async function addUserToHunt({
   email: string;
   invitedBy: string;
 }) {
-  // eslint-disable-next-line @typescript-eslint/await-thenable -- the type hints are wrong; this is definitely a promise
   let joineeUser = await Accounts.findUserByEmail(email);
   const newUser = joineeUser === undefined;
   if (!joineeUser) {
@@ -130,7 +129,6 @@ export default async function addUserToHunt({
   await addUsersToDiscordRole([joineeUser._id], hunt._id);
 
   if (newUser) {
-    // eslint-disable-next-line @typescript-eslint/await-thenable -- the types are wrong, but this is now a promise
     await Accounts.sendEnrollmentEmail(joineeUser._id);
     Logger.info("Sent invitation email to new user", { invitedBy, email });
   } else {

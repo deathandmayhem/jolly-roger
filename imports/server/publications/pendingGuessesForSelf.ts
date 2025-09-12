@@ -48,7 +48,7 @@ definePublication(pendingGuessesForSelf, {
     };
 
     const userWatch = await MeteorUsers.find(this.userId, {
-      fields: { roles: 1 },
+      projection: { roles: 1 },
     }).observeChangesAsync({
       added: (_id, fields) => {
         const { roles } = fields;

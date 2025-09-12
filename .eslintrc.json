@@ -283,7 +283,8 @@
         "browser": true
       },
       "rules": {
-        "jolly-roger/no-disallowed-sync-methods": "off"
+        "jolly-roger/no-disallowed-sync-methods": "off",
+        "deprecation/deprecation": "off"
       }
     },
     {

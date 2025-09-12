@@ -72,7 +72,7 @@ defineMethod(updatePuzzle, {
       },
     };
     if (url) {
-      update.$set!.url = url;
+      update.$set = { ...update.$set, url };
     } else {
       update.$unset = { url: "" };
     }

@@ -162,9 +162,10 @@ if (Meteor.isClient) {
         let huntSub = await subscribeAsync("displayNames", huntId);
 
         assert.sameMembers(
-          await MeteorUsers.find({}, { fields: { displayName: 1 } }).mapAsync(
-            (u) => u.displayName,
-          ),
+          await MeteorUsers.find(
+            {},
+            { projection: { displayName: 1 } },
+          ).mapAsync((u) => u.displayName),
           ["U1", "U2"],
           "Should only show users in the same hunt",
         );
@@ -174,9 +175,10 @@ if (Meteor.isClient) {
         huntSub = await subscribeAsync("displayNames", otherHuntId);
 
         assert.sameMembers(
-          await MeteorUsers.find({}, { fields: { displayName: 1 } }).mapAsync(
-            (u) => u.displayName,
-          ),
+          await MeteorUsers.find(
+            {},
+            { projection: { displayName: 1 } },
+          ).mapAsync((u) => u.displayName),
           ["U1"],
           "Should not show users in the other hunt when not a member",
         );
@@ -185,9 +187,10 @@ if (Meteor.isClient) {
         await stabilize();
 
         assert.sameMembers(
-          await MeteorUsers.find({}, { fields: { displayName: 1 } }).mapAsync(
-            (u) => u.displayName,
-          ),
+          await MeteorUsers.find(
+            {},
+            { projection: { displayName: 1 } },
+          ).mapAsync((u) => u.displayName),
           ["U1", "U3"],
           "Should update when hunt membership changes",
         );

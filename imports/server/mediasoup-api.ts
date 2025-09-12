@@ -62,7 +62,7 @@ Meteor.publish("mediasoup:debug", async function () {
   checkAdmin(await MeteorUsers.findOneAsync(this.userId));
 
   return [
-    MeteorUsers.find({}, { fields: { displayName: 1, discordAccount: 1 } }),
+    MeteorUsers.find({}, { projection: { displayName: 1, discordAccount: 1 } }),
     Puzzles.find(),
     Servers.find(),
     CallHistories.find(),

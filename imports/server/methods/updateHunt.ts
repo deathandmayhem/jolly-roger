@@ -31,7 +31,7 @@ defineMethod(updateHunt, {
     // $unset on the appropriate key(s).  Split out which keys we must set and
     // unset to achieve the desired final state.
     const toSet: { [key in keyof HuntType]?: any } = {};
-    const toUnset: { [key in keyof HuntType]?: string } = {};
+    const toUnset: { [key in keyof HuntType]?: "" } = {};
     Object.keys(HuntPattern).forEach((key: string) => {
       const typedKey = key as keyof typeof HuntPattern;
       if (value[typedKey] === undefined) {

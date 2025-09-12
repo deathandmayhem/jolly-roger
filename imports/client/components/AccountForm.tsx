@@ -221,7 +221,7 @@ const AccountForm = (props: AccountFormProps) => {
 
   const tryPasswordReset = useCallback(() => {
     setSubmitState(AccountFormSubmitState.SUBMITTING);
-    Accounts.forgotPassword({ email }, (error?: Error) => {
+    void Accounts.forgotPassword({ email }, (error?: Error) => {
       if (error) {
         setSubmitState(AccountFormSubmitState.FAILED);
         setErrorMessage(
@@ -237,7 +237,7 @@ const AccountForm = (props: AccountFormProps) => {
   const tryCompletePasswordReset = useCallback(
     (token: string) => {
       setSubmitState(AccountFormSubmitState.SUBMITTING);
-      Accounts.resetPassword(token, password, (error?: Error) => {
+      void Accounts.resetPassword(token, password, (error?: Error) => {
         if (error) {
           setSubmitState(AccountFormSubmitState.FAILED);
           setErrorMessage(
@@ -268,7 +268,7 @@ const AccountForm = (props: AccountFormProps) => {
       };
 
       setSubmitState(AccountFormSubmitState.SUBMITTING);
-      Accounts.resetPassword(token, password, (error?: Error) => {
+      void Accounts.resetPassword(token, password, (error?: Error) => {
         if (error) {
           setSubmitState(AccountFormSubmitState.FAILED);
           setErrorMessage(

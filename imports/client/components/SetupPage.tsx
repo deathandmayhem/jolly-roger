@@ -1755,7 +1755,7 @@ const DiscordGuildForm = ({
   const guilds = useTracker(() => {
     return DiscordCache.find(
       { type: "guild" },
-      { fields: { "object.id": 1, "object.name": 1 } },
+      { projection: { "object.id": 1, "object.name": 1 } },
     ).map((c) => c.object as SavedDiscordObjectType);
   }, []);
   const [guildId, setGuildId] = useState<string>(initialGuild?.id ?? "");

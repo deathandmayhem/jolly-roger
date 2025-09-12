@@ -3,7 +3,7 @@ import { useTracker } from "meteor/react-meteor-data";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import React, {
   useCallback,
   useImperativeHandle,
@@ -188,7 +188,7 @@ const HuntListPage = () => {
     [renderCreateFixtureModal, createFixtureModalRef],
   );
 
-  const body = [];
+  const body: ReactNode[] = [];
   if (loading) {
     body.push(<div key="loading">Loading...</div>);
   } else {

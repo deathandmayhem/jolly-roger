@@ -25,7 +25,7 @@ defineMethod(addPuzzleTag, {
         _id: puzzleId,
       },
       {
-        fields: {
+        projection: {
           hunt: 1,
         },
       },
