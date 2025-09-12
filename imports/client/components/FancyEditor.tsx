@@ -1,4 +1,5 @@
 import type { Meteor } from "meteor/meteor";
+import { type Tokens, type Token } from "marked";
 import { marked } from "marked";
 import React, {
   useCallback,
@@ -313,12 +314,12 @@ const AutocompleteContainer = styled.div`
 
 // TraverseCallback should return the offset into its raw text at which its
 // children's text starts
-type TraverseCallback = (token: marked.Token, offset: number) => number;
+type TraverseCallback = (token: Token, offset: number) => number;
 
 // Walks the tokens provided, calling callback, and keeping track of the raw offset
 // into the input string along the way.
 const walkTokenList = (
-  tokens: marked.Token[],
+  tokens: Token[],
   callback: TraverseCallback,
   offset: number,
 ) => {
@@ -333,7 +334,7 @@ const walkTokenList = (
 };
 
 const walkToken = (
-  token: marked.Token,
+  token: Token,
   callback: TraverseCallback,
   offset: number,
 ) => {
@@ -389,13 +390,13 @@ const decorate = ([node, path]: [Node, Path]) => {
   const tokensList = marked.lexer(node.text);
   walkTokenList(
     tokensList,
-    (token: marked.Token, offset: number) => {
+    (token: Token, offset: number) => {
       if (token.type !== "text") {
         if (token.type === "link") {
           ranges.push({
             link: { href: token.href },
             anchor: { path, offset },
-            focus: { path, offset: offset + token.raw.length },
+            focus: { path, offset: offset + (token as Tokens.Link).raw.length },
           });
           return 0; // links consume no formatting characters
         } else if (token.type === "blockquote") {

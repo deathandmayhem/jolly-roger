@@ -1,11 +1,11 @@
 import DOMPurify from "dompurify";
-import { marked, Renderer } from "marked";
+import { marked, Renderer, type Tokens } from "marked";
 import React from "react";
 
 const renderer = new (class extends Renderer {
-  link(href: string, title: string, link: string) {
+  link(linkToken: Tokens.Link) {
     return super
-      .link(href, title, link)
+      .link(linkToken)
       .replace(/^<a /, '<a target="_blank" rel="noopener noreferrer" ');
   }
 })();

@@ -8,8 +8,6 @@ updates:
     open-pull-requests-limit: 20
     ignore:
       # All of these dependencies require Node v16 or greater
-      - dependency-name: "@types/node"
-        versions: [">=15"]
       - dependency-name: "@typescript-eslint/eslint-plugin"
         versions: [">=6"]
       - dependency-name: "@typescript-eslint/parser"
@@ -28,11 +26,6 @@ updates:
       - dependency-name: "@testing-library/react"
         versions: [">=15"]
       - dependency-name: "chai"
-        versions: [">=5"]
-      # marked has had significant API revisions that we need to take manually
-      - dependency-name: "marked"
-        versions: [">=5"]
-      - dependency-name: "@types/marked"
         versions: [">=5"]
     groups:
       aws:

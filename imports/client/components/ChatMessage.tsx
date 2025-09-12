@@ -1,5 +1,6 @@
 /* eslint-disable react/no-array-index-key */
 import * as he from "he";
+import type { Token, Tokens } from "marked";
 import { marked } from "marked";
 import React from "react";
 import styled from "styled-components";
@@ -38,7 +39,7 @@ const StyledCodeBlock = styled.code`
 `;
 
 // Renders a markdown token to React components.
-const MarkdownToken = ({ token }: { token: marked.Token }) => {
+const MarkdownToken = ({ token }: { token: Token }) => {
   // NOTE: Marked's lexer encodes using HTML entities in the text; see:
   // https://github.com/markedjs/marked/discussions/1737
   // We need to decode the text since React will apply its own escaping.
@@ -49,14 +50,14 @@ const MarkdownToken = ({ token }: { token: marked.Token }) => {
   } else if (token.type === "paragraph") {
     // If the raw text includes a newline but the consumed text does not,
     // insert the additional space at the end.
-    const children = token.tokens.map((t, i) => (
+    const children = (token as Tokens.Paragraph).tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
     ));
     const decodedText = he.decode(token.text);
     if (token.raw.length > decodedText.length) {
       const trail = token.raw.substring(decodedText.length);
       if (trail.trim() === "") {
-        const syntheticSpace: marked.Tokens.Space = {
+        const syntheticSpace: Tokens.Space = {
           type: "space",
           raw: trail,
         };
@@ -67,7 +68,7 @@ const MarkdownToken = ({ token }: { token: marked.Token }) => {
     }
     return <PreWrapParagraph>{children}</PreWrapParagraph>;
   } else if (token.type === "link") {
-    const children = token.tokens.map((t, i) => (
+    const children = (token as Tokens.Link).tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
     ));
     return (
@@ -76,12 +77,12 @@ const MarkdownToken = ({ token }: { token: marked.Token }) => {
       </a>
     );
   } else if (token.type === "blockquote") {
-    const children = token.tokens.map((t, i) => (
+    const children = (token as Tokens.Blockquote).tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
     ));
     return <StyledBlockquote>{children}</StyledBlockquote>;
   } else if (token.type === "strong") {
-    const children = token.tokens.map((t, i) => (
+    const children = (token as Tokens.Strong).tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
     ));
     if (token.raw.startsWith("__")) {
@@ -90,12 +91,12 @@ const MarkdownToken = ({ token }: { token: marked.Token }) => {
       return <strong>{children}</strong>;
     }
   } else if (token.type === "em") {
-    const children = token.tokens.map((t, i) => (
+    const children = (token as Tokens.Em).tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
     ));
     return <em>{children}</em>;
   } else if (token.type === "del") {
-    const children = token.tokens.map((t, i) => (
+    const children = (token as Tokens.Del).tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
     ));
     return <del>{children}</del>;
