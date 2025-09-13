@@ -21,8 +21,6 @@ updates:
       - dependency-name: "glob"
         versions: [">=9"]
       - dependency-name: "puppeteer"
-      - dependency-name: "mediasoup"
-        versions: [">=3.13.0"]
       - dependency-name: "@testing-library/react"
         versions: [">=15"]
       - dependency-name: "chai"
