@@ -47,7 +47,7 @@ const BookmarkButton: BookmarkButtonType = React.forwardRef<
         beat={animateBookmark}
         onAnimationEnd={onAnimationEnd}
         style={{
-          "--fa-animation-iteration-count": 1,
+          "--fa-animation-iteration-count": "1",
           "--fa-animation-duration": "0.2s",
         }}
       />
