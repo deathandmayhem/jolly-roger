@@ -25,7 +25,15 @@ logger.format = format.combine(
     }
   })(),
   format.printf(
-    ({ level, label, message, [userIdSymbol]: userId, error, ...rest }) => {
+    ({
+      level,
+      label: labelUnknown,
+      message,
+      [userIdSymbol]: userId,
+      error,
+      ...rest
+    }) => {
+      const label = labelUnknown as string | undefined;
       const ctx: string[] = [];
       if (workersCount > 1) {
         ctx.push(`s:${serverId}`);
