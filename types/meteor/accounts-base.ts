@@ -2,6 +2,25 @@ import type { Meteor } from "meteor/meteor";
 
 declare module "meteor/accounts-base" {
   namespace Accounts {
+    // The built-in type declares password as string | undefined, but the implementation supports
+    // the output of Accounts._hashPassword as well. We need to support a hashed password to avoid
+    // sending the password itself over the wire when making a hunt invitation enrollment request.
+    function createUserAsync(
+      options: {
+        username?: string | undefined;
+        email?: string | undefined;
+        password?:
+          | string
+          | {
+              digest: string;
+              algorithm: string;
+            }
+          | undefined;
+        profile?: Meteor.UserProfile | undefined;
+      },
+      callback?: (error?: Error | Meteor.Error | Meteor.TypedError) => void,
+    ): Promise<string>;
+
     function removeDefaultRateLimit(): void;
     function setDefaultPublishFields(
       fields: Partial<Record<keyof Meteor.User, 1 | 0>>,
