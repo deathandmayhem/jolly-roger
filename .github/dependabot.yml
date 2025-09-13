@@ -37,6 +37,11 @@ updates:
       fontawesome:
         patterns:
           - "@fortawesome/*"
+      slate:
+        patterns:
+          - "slate"
+          - "slate-history"
+          - "slate-react"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

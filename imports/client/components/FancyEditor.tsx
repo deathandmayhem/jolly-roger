@@ -468,21 +468,23 @@ const decorate = ([node, path]: [Node, Path]) => {
   return ranges;
 };
 
-const PlaceholderSpan = styled.span`
-  position: absolute;
-  opacity: 0.333;
-  pointer-events: none;
-`;
-
 const renderPlaceholder = ({
   attributes,
   children,
 }: RenderPlaceholderProps) => {
-  // Drop the `style` from `attributes` -- the value provided by default by
+  // Override the `style` from `attributes` -- the value provided by default by
   // slate-react carries a top: 0 that causes the placeholder text to not sit
-  // on the baseline correctly.
-  const { style: _unused, ...rest } = attributes;
-  return <PlaceholderSpan {...rest}>{children}</PlaceholderSpan>;
+  // on the baseline correctly.  9px appears to be about right.
+  const { style: givenStyle, ...rest } = attributes;
+  const style = {
+    ...givenStyle,
+    top: "9px",
+  };
+  const attrs = {
+    ...rest,
+    style,
+  };
+  return <span {...attrs}>{children}</span>;
 };
 
 const Portal = ({ children }: { children: React.ReactNode }) => {
