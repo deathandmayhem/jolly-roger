@@ -55,7 +55,8 @@ class BrowserConsole extends Transport {
 }
 
 logger.format = format.combine(
-  format.printf(({ label, message }) => {
+  format.printf(({ label: labelUnknown, message }) => {
+    const label = labelUnknown as string | undefined;
     return `${label ? `[${label}] ` : ""}${message}`;
   }),
 );
