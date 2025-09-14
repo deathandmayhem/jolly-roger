@@ -26,7 +26,7 @@ defineMethod(ensurePuzzleDocument, {
 
     this.unblock();
 
-    await ensureDocument(puzzle);
+    await ensureDocument(this.userId, puzzle);
 
     if (await Flags.activeAsync("disable.google")) {
       return;
