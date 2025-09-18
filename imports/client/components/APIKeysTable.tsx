@@ -10,11 +10,11 @@ import InputGroup from "react-bootstrap/InputGroup";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Table from "react-bootstrap/Table";
 import Tooltip from "react-bootstrap/Tooltip";
-import CopyToClipboard from "react-copy-to-clipboard";
 import { styled } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import { type APIKeyType } from "../../lib/models/APIKeys";
 import destroyAPIKey from "../../methods/destroyAPIKey";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 import ModalForm, { type ModalFormHandle } from "./ModalForm";
 import RelativeTime from "./RelativeTime";
 
@@ -26,7 +26,6 @@ const StyledTable = styled(Table)`
 
 const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
   const destroyModalRef = useRef<ModalFormHandle>(null);
-  const [copied, setCopied] = useState<boolean>(false);
   const [requestState, setRequestState] = useState<
     "idle" | "in-flight" | "error"
   >("idle");
@@ -62,22 +61,10 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
     <span />
   );
 
-  const onCopy = useCallback(() => {
-    setCopied(true);
-    setTimeout(() => {
-      setCopied(false);
-    }, 3000);
-  }, []);
-
   const onDestroyClicked = useCallback(() => {
     destroyModalRef.current?.show();
   }, []);
 
-  const copyOverlay = (
-    <Tooltip id={`api-key-copy-${apiKey._id}`} key={`api-key-copy-${copied}`}>
-      {copied ? "Copied!" : "Copy to clipboard"}
-    </Tooltip>
-  );
   const showHideAction = keyShown ? "Hide" : "Show";
   const showHideOverlay = (
     <Tooltip
@@ -92,20 +79,14 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
     <tr key={`api-key-${apiKey._id}`}>
       <td>
         <InputGroup>
-          <OverlayTrigger placement="top" overlay={copyOverlay}>
-            {({ ref, ...triggerHandler }) => (
-              <CopyToClipboard text={apiKey.key} onCopy={onCopy}>
-                <Button
-                  ref={ref}
-                  variant="outline-secondary"
-                  aria-label="Copy to clipboard"
-                  {...triggerHandler}
-                >
-                  <FontAwesomeIcon icon={faCopy} fixedWidth />
-                </Button>
-              </CopyToClipboard>
-            )}
-          </OverlayTrigger>
+          <CopyToClipboardButton
+            variant="outline-secondary"
+            aria-label="Copy to clipboard"
+            tooltipId={`api-key-copy-${apiKey._id}`}
+            text={apiKey.key}
+          >
+            <FontAwesomeIcon icon={faCopy} fixedWidth />
+          </CopyToClipboardButton>
           <OverlayTrigger placement="top" overlay={showHideOverlay}>
             <Button
               variant="outline-secondary"

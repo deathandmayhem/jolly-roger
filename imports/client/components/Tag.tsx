@@ -20,6 +20,7 @@ import styled, { css } from "styled-components";
 import { indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 import { removePunctuation } from "./PuzzleAnswer";
 import { sortPuzzlesByRelevanceWithinPuzzleGroup } from "./RelatedPuzzleList";
 import RelatedPuzzleTable from "./RelatedPuzzleTable";
@@ -270,9 +271,9 @@ const Tag = (props: TagProps) => {
     allPuzzlesIfPresent,
   ]);
 
-  const copyRelatedPuzzlesToClipboard = useCallback(() => {
+  const relatedPuzzlesForClipboard = useCallback(() => {
     if (!props.popoverRelated) {
-      return;
+      return "";
     }
     const tagIndex = indexedById(allTagsIfPresent!);
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
@@ -301,7 +302,7 @@ const Tag = (props: TagProps) => {
           .join("\n");
       })
       .join("\n");
-    void navigator.clipboard.writeText(clipboardData);
+    return clipboardData;
   }, [
     props.popoverRelated,
     props.tag.name,
@@ -390,15 +391,16 @@ const Tag = (props: TagProps) => {
                 {"    "}
                 Respace
               </Button>
-              <Button
+              <CopyToClipboardButton
                 variant="secondary"
                 size="sm"
-                onClick={copyRelatedPuzzlesToClipboard}
+                tooltipId={`copy-related-puzzles-${props.tag._id}`}
+                text={relatedPuzzlesForClipboard}
               >
                 <FontAwesomeIcon icon={faCopy} />
                 {"    "}
                 Copy
-              </Button>
+              </CopyToClipboardButton>
             </RelatedPuzzlePopoverControls>
           </RelatedPuzzlePopoverHeaderInner>
         </Popover.Header>

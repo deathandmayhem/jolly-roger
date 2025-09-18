@@ -5,12 +5,7 @@ import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSkullCrossbones } from "@fortawesome/free-solid-svg-icons/faSkullCrossbones";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, {
-  type ComponentPropsWithRef,
-  type FC,
-  useCallback,
-  useRef,
-} from "react";
+import React, { useCallback, useRef } from "react";
 import Button from "react-bootstrap/Button";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
@@ -18,7 +13,6 @@ import FormGroup from "react-bootstrap/FormGroup";
 import InputGroup from "react-bootstrap/InputGroup";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
-import CopyToClipboard from "react-copy-to-clipboard";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
@@ -37,6 +31,7 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 import GuessState from "./GuessState";
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
@@ -137,9 +132,7 @@ const StyledGuessConfidence = styled(GuessConfidence)`
   )}
 `;
 
-const StyledLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
-  Button,
-)`
+const StyledCopyToClipboardButton = styled(CopyToClipboardButton)`
   padding: 0;
   vertical-align: baseline;
 `;
@@ -270,12 +263,6 @@ const GuessBlock = React.memo(
         Open Jolly Roger discussion
       </Tooltip>
     );
-    const copyTooltip = (
-      <Tooltip id={`guess-${guess._id}-copy-tooltip`}>
-        Copy to clipboard
-      </Tooltip>
-    );
-
     return (
       <StyledRow $state={guess.state}>
         <StyledPuzzleTimestampAndSubmitter>
@@ -305,15 +292,14 @@ const GuessBlock = React.memo(
           <Breakable>{puzzle.title}</Breakable>
         </StyledPuzzleCell>
         <StyledGuessCell>
-          <OverlayTrigger placement="top" overlay={copyTooltip}>
-            {({ ref, ...triggerHandler }) => (
-              <CopyToClipboard text={guess.guess} {...triggerHandler}>
-                <StyledLinkButton ref={ref} variant="link" aria-label="Copy">
-                  <FontAwesomeIcon icon={faCopy} fixedWidth />
-                </StyledLinkButton>
-              </CopyToClipboard>
-            )}
-          </OverlayTrigger>{" "}
+          <StyledCopyToClipboardButton
+            variant="link"
+            aria-label="Copy"
+            tooltipId={`guess-${guess._id}-copy-tooltip`}
+            text={guess.guess}
+          >
+            <FontAwesomeIcon icon={faCopy} fixedWidth />
+          </StyledCopyToClipboardButton>
           <PuzzleAnswer answer={guess.guess} breakable indented />
         </StyledGuessCell>
         {hunt.hasGuessQueue && (

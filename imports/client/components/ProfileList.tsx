@@ -4,7 +4,7 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import React, {
   useCallback,
   useImperativeHandle,
@@ -12,7 +12,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { OverlayTrigger } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
@@ -25,8 +24,6 @@ import InputGroup from "react-bootstrap/InputGroup";
 import ListGroup from "react-bootstrap/ListGroup";
 import ListGroupItem from "react-bootstrap/ListGroupItem";
 import Modal from "react-bootstrap/Modal";
-import Tooltip from "react-bootstrap/Tooltip";
-import CopyToClipboard from "react-copy-to-clipboard";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -41,6 +38,7 @@ import promoteOperator from "../../methods/promoteOperator";
 import syncHuntDiscordRole from "../../methods/syncHuntDiscordRole";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import Avatar from "./Avatar";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 
 const ProfilesSummary = styled.div`
   text-align: right;
@@ -74,9 +72,7 @@ const OperatorBox = styled.div`
   }
 `;
 
-const StyledLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
-  Button,
-)`
+const StyledCopyToClipboardButton = styled(CopyToClipboardButton)`
   padding: 0;
   vertical-align: baseline;
 `;
@@ -498,22 +494,19 @@ const ProfileList = ({
       return null;
     }
 
-    const copyTooltip = <Tooltip>Copy to clipboard</Tooltip>;
-
     const invitationUrl = Meteor.absoluteUrl(`/join/${invitationCode}`);
 
     return (
       <p>
         Invitation link:{" "}
-        <OverlayTrigger placement="top" overlay={copyTooltip}>
-          {({ ref, ...triggerHandler }) => (
-            <CopyToClipboard text={invitationUrl} {...triggerHandler}>
-              <StyledLinkButton ref={ref} variant="link" aria-label="Copy">
-                <FontAwesomeIcon icon={faCopy} fixedWidth />
-              </StyledLinkButton>
-            </CopyToClipboard>
-          )}
-        </OverlayTrigger>{" "}
+        <StyledCopyToClipboardButton
+          tooltipId={`invitation-code-${invitationCode}`}
+          text={invitationUrl}
+          variant="link"
+          aria-label="Copy"
+        >
+          <FontAwesomeIcon icon={faCopy} fixedWidth />
+        </StyledCopyToClipboardButton>
         {invitationUrl}
       </p>
     );
