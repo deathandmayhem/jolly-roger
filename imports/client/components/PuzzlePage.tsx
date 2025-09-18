@@ -37,7 +37,6 @@ import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import OverlayTrigger from "react-bootstrap/esm/OverlayTrigger";
 import Tooltip from "react-bootstrap/esm/Tooltip";
-import { CopyToClipboard } from "react-copy-to-clipboard";
 import { createPortal } from "react-dom";
 import { Link, useParams } from "react-router-dom";
 import type { Descendant } from "slate";
@@ -91,6 +90,7 @@ import { trace } from "../tracing";
 import BookmarkButton from "./BookmarkButton";
 import ChatMessage from "./ChatMessage";
 import ChatPeople from "./ChatPeople";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 import DocumentDisplay, { DocumentMessage } from "./DocumentDisplay";
 import type { FancyEditorHandle, MessageElement } from "./FancyEditor";
 import FancyEditor from "./FancyEditor";
@@ -1282,7 +1282,9 @@ const AdditionalNotesCell = styled(GuessCell)`
   )}
 `;
 
-const LinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(Button)`
+const StyledCopyToClipboardButton: FC<
+  ComponentPropsWithRef<typeof CopyToClipboardButton>
+> = styled(CopyToClipboardButton)`
   padding: 0;
   vertical-align: baseline;
 `;
@@ -1420,9 +1422,6 @@ const PuzzleGuessModal = React.forwardRef(
       <Tooltip id="jr-puzzle-guess-confidence-tooltip">
         <strong>Confidence:</strong> {formatConfidence(confidenceInput)}
       </Tooltip>
-    );
-    const copyTooltip = (
-      <Tooltip id="jr-puzzle-guess-copy-tooltip">Copy to clipboard</Tooltip>
     );
 
     const clearError = useCallback(() => {
@@ -1567,22 +1566,14 @@ const PuzzleGuessModal = React.forwardRef(
                           />
                         </GuessCell>
                         <GuessAnswerCell>
-                          <OverlayTrigger placement="top" overlay={copyTooltip}>
-                            {({ ref, ...triggerHandler }) => (
-                              <CopyToClipboard
-                                text={guess.guess}
-                                {...triggerHandler}
-                              >
-                                <LinkButton
-                                  ref={ref}
-                                  variant="link"
-                                  aria-label="Copy"
-                                >
-                                  <FontAwesomeIcon icon={faCopy} fixedWidth />
-                                </LinkButton>
-                              </CopyToClipboard>
-                            )}
-                          </OverlayTrigger>{" "}
+                          <StyledCopyToClipboardButton
+                            variant="link"
+                            aria-label="Copy"
+                            tooltipId={`jr-puzzle-guess-${guess._id}-copy-tooltip`}
+                            text={guess.guess}
+                          >
+                            <FontAwesomeIcon icon={faCopy} fixedWidth />
+                          </StyledCopyToClipboardButton>
                           <PuzzleAnswer
                             answer={guess.guess}
                             breakable

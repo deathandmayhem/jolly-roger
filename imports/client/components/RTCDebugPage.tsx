@@ -32,7 +32,6 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
 import Tooltip from "react-bootstrap/Tooltip";
-import CopyToClipboard from "react-copy-to-clipboard";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../../lib/config/webrtc";
@@ -62,17 +61,24 @@ import TransportStates from "../../lib/models/mediasoup/TransportStates";
 import type { TransportType } from "../../lib/models/mediasoup/Transports";
 import Transports from "../../lib/models/mediasoup/Transports";
 import Avatar from "./Avatar";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 import Loading from "./Loading";
 
-const ClipButton = ({ text }: { text: string }) => (
-  <>
-    <CopyToClipboard text={text}>
-      <Button variant="secondary" aria-label="Copy" size="sm">
+const ClipButton = ({ text, id }: { text: string; id: string }) => {
+  return (
+    <>
+      <CopyToClipboardButton
+        text={text}
+        tooltipId={id}
+        variant="secondary"
+        aria-label="Copy"
+        size="sm"
+      >
         <FontAwesomeIcon icon={faCopy} />
-      </Button>
-    </CopyToClipboard>{" "}
-  </>
-);
+      </CopyToClipboardButton>{" "}
+    </>
+  );
+};
 
 // button elements are not permitted as children of button elements, and the
 // whole AccordionHeader is a button, so we can't have the single-click copy
@@ -169,14 +175,14 @@ const StyledJSONDisplayPre = styled.pre<{ $collapsed?: boolean }>`
     `}
 `;
 
-const JSONDisplay = ({ json }: { json: string }) => {
+const JSONDisplay = ({ id, json }: { id: string; json: string }) => {
   const [collapse, setCollapse] = useState(true);
 
   return (
     <StyledJSONDisplayContainer fluid>
       <Row>
         <StyledJSONDisplayButtonCol xs="auto">
-          <ClipButton text={json} />
+          <ClipButton id={id} text={json} />
           <Button variant="link" onClick={() => setCollapse(!collapse)}>
             <FontAwesomeIcon icon={collapse ? faCaretRight : faCaretDown} />
           </Button>
@@ -268,14 +274,20 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
                 Producer ID (Meteor server-side)
               </Col>
               <Col as="dd" xs={10}>
-                <ClipButton text={producerServer._id} />
+                <ClipButton
+                  id={`producer-server-${producerServer._id}`}
+                  text={producerServer._id}
+                />
                 <code>{producerServer._id}</code>
               </Col>
               <Col as="dt" xs={2}>
                 Producer ID (Mediasoup)
               </Col>
               <Col as="dd" xs={10}>
-                <ClipButton text={producerServer.producerId} />
+                <ClipButton
+                  id={`producer-server-producer-id-${producerServer.producerId}`}
+                  text={producerServer.producerId}
+                />
                 <code>{producerServer.producerId}</code>
               </Col>
             </>
@@ -284,14 +296,20 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
             Track ID (client-side)
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton text={producer.trackId} />
+            <ClipButton
+              id={`producer-track-id-${producer._id}`}
+              text={producer.trackId}
+            />
             <code>{producer.trackId}</code>
           </Col>
           <Col as="dt" xs={2}>
             RTP parameters
           </Col>
           <Col as="dd" xs={10}>
-            <JSONDisplay json={producer.rtpParameters} />
+            <JSONDisplay
+              id={`producer-rtp-parameters-${producer._id}`}
+              json={producer.rtpParameters}
+            />
           </Col>
         </Row>
       </Accordion.Body>
@@ -375,14 +393,20 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
             Consumer ID (Mediasoup)
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton text={consumer.consumerId} />
+            <ClipButton
+              id={`consumer-id-${consumer._id}`}
+              text={consumer.consumerId}
+            />
             <code>{consumer.consumerId}</code>
           </Col>
           <Col as="dt" xs={2}>
             RTP parameters
           </Col>
           <Col as="dd" xs={10}>
-            <JSONDisplay json={consumer.rtpParameters} />
+            <JSONDisplay
+              id={`consumer-rtp-parameters-${consumer._id}`}
+              json={consumer.rtpParameters}
+            />
           </Col>
         </Row>
       </Accordion.Body>
@@ -496,26 +520,38 @@ const Transport = ({ transport }: { transport: TransportType }) => {
             Transport ID (Mediasoup)
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton text={transport.transportId} />
+            <ClipButton
+              id={`transport-id-${transport.transportId}`}
+              text={transport.transportId}
+            />
             <code>{transport.transportId}</code>
           </Col>
           <Col as="dt" xs={2}>
             ICE Parameters
           </Col>
           <Col as="dd" xs={10}>
-            <JSONDisplay json={transport.iceParameters} />
+            <JSONDisplay
+              id={`transport-ice-parameters-${transport._id}`}
+              json={transport.iceParameters}
+            />
           </Col>
           <Col as="dt" xs={2}>
             ICE Candidates
           </Col>
           <Col as="dd" xs={10}>
-            <JSONDisplay json={transport.iceCandidates} />
+            <JSONDisplay
+              id={`transport-ice-candidates-${transport._id}`}
+              json={transport.iceCandidates}
+            />
           </Col>
           <Col as="dt" xs={2}>
             Server DTLS Parameters
           </Col>
           <Col as="dd" xs={10}>
-            <JSONDisplay json={transport.dtlsParameters} />
+            <JSONDisplay
+              id={`transport-dtlsparameters-${transport._id}`}
+              json={transport.dtlsParameters}
+            />
           </Col>
           {connectionParams && (
             <>
@@ -523,7 +559,10 @@ const Transport = ({ transport }: { transport: TransportType }) => {
                 Client DTLS Parameters
               </Col>
               <Col as="dd" xs={10}>
-                <JSONDisplay json={connectionParams.dtlsParameters} />
+                <JSONDisplay
+                  id={`connection-params-${connectionParams._id}`}
+                  json={connectionParams.dtlsParameters}
+                />
               </Col>
             </>
           )}
@@ -540,7 +579,10 @@ const Transport = ({ transport }: { transport: TransportType }) => {
               </Col>
               <Col as="dd" xs={10}>
                 {transportState.iceSelectedTuple ? (
-                  <JSONDisplay json={transportState.iceSelectedTuple} />
+                  <JSONDisplay
+                    id={`transport-state-ice-selected-tuple-${transportState._id}`}
+                    json={transportState.iceSelectedTuple}
+                  />
                 ) : (
                   <code>undefined</code>
                 )}
@@ -665,7 +707,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
             <ul>
               {transportRequests.map(({ _id: id }) => (
                 <li key={id}>
-                  <ClipButton text={id} />
+                  <ClipButton id={`transport-request-${id}`} text={id} />
                   <code>{id}</code>
                 </li>
               ))}
@@ -677,14 +719,17 @@ const Peer = ({ peer }: { peer: PeerType }) => {
             Meteor Server
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton text={peer.createdServer} />
+            <ClipButton
+              id={`peer-created-server-${peer._id}`}
+              text={peer.createdServer}
+            />
             <code>{peer.createdServer}</code>
           </Col>
           <Col as="dt" xs={2}>
             Tab
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton text={peer.tab} />
+            <ClipButton id={`peer-created-tab-${peer._id}`} text={peer.tab} />
             <code>{peer.tab}</code>
           </Col>
           {transportRequests.length > 0 && (
@@ -693,7 +738,10 @@ const Peer = ({ peer }: { peer: PeerType }) => {
                 RTP capabilities
               </Col>
               <Col as="dd" xs={10}>
-                <JSONDisplay json={transportRequests[0]!.rtpCapabilities} />
+                <JSONDisplay
+                  id={`transport-requests-${transportRequests[0]!._id}`}
+                  json={transportRequests[0]!.rtpCapabilities}
+                />
               </Col>
             </>
           )}
@@ -729,21 +777,27 @@ const RouterDetails = ({ router }: { router: RouterType }) => {
         Router ID (Meteor)
       </Col>
       <Col as="dd" xs={10}>
-        <ClipButton text={router._id} />
+        <ClipButton id={`router-${router._id}`} text={router._id} />
         <code>{router._id}</code>
       </Col>
       <Col as="dt" xs={2}>
         Router ID (Mediasoup)
       </Col>
       <Col as="dd" xs={10}>
-        <ClipButton text={router.routerId} />
+        <ClipButton
+          id={`router-router-id-${router._id}`}
+          text={router.routerId}
+        />
         <code>{router.routerId}</code>
       </Col>
       <Col as="dt" xs={2}>
         RTP capabilities
       </Col>
       <Col as="dd" xs={10}>
-        <JSONDisplay json={router.rtpCapabilities} />
+        <JSONDisplay
+          id={`router-${router._id}`}
+          json={router.rtpCapabilities}
+        />
       </Col>
     </>
   );
@@ -819,7 +873,7 @@ const Room = ({ room }: { room: RoomType }) => {
             Room ID
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton text={room._id} />
+            <ClipButton id={`room-id-${room._id}`} text={room._id} />
             <code>{room._id}</code>
           </Col>
           <Col as="dt" xs={2}>
@@ -832,7 +886,10 @@ const Room = ({ room }: { room: RoomType }) => {
             Server
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton text={room.routedServer} />
+            <ClipButton
+              id={`room-routed-server-${room._id}`}
+              text={room.routedServer}
+            />
             <code>{room.routedServer}</code>
           </Col>
           <Col as="dt" xs={2}>
@@ -908,15 +965,18 @@ const RoomlessPeers = ({ calls }: { calls: string[] }) => {
                   <UserDisplay userId={p.createdBy} />
                 </td>
                 <td>
-                  <ClipButton text={p._id} />
+                  <ClipButton id={`roomless-peer-${p._id}`} text={p._id} />
                   <code>{p._id}</code>
                 </td>
                 <td>
-                  <ClipButton text={p.tab} />
+                  <ClipButton id={`roomless-peer-tab-${p._id}`} text={p.tab} />
                   <code>{p.tab}</code>
                 </td>
                 <td>
-                  <ClipButton text={p.createdServer} />
+                  <ClipButton
+                    id={`roomless-peer-created-server-${p._id}`}
+                    text={p.createdServer}
+                  />
                   <code>{p.createdServer}</code>
                 </td>
                 <td>{p.createdAt.toISOString()}</td>
@@ -961,15 +1021,21 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
             return (
               <tr key={s._id}>
                 <td>
-                  <ClipButton text={s._id} />
+                  <ClipButton id={`server-id-${s._id}`} text={s._id} />
                   <code>{s._id}</code>
                 </td>
                 <td>
-                  <ClipButton text={s.hostname} />
+                  <ClipButton
+                    id={`server-hostname-${s._id}`}
+                    text={s.hostname}
+                  />
                   <code>{s.hostname}</code>
                 </td>
                 <td>
-                  <ClipButton text={s.pid.toString()} />
+                  <ClipButton
+                    id={`server-pid-${s._id}`}
+                    text={s.pid.toString()}
+                  />
                   <code>{s.pid}</code>
                 </td>
                 <td>{s.updatedAt.toISOString()}</td>

@@ -18,7 +18,6 @@ import FormGroup from "react-bootstrap/FormGroup";
 import InputGroup from "react-bootstrap/InputGroup";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
-import CopyToClipboard from "react-copy-to-clipboard";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
@@ -37,6 +36,7 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 import GuessState from "./GuessState";
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
@@ -137,9 +137,9 @@ const StyledGuessConfidence = styled(GuessConfidence)`
   )}
 `;
 
-const StyledLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
-  Button,
-)`
+const StyledCopyToClipboardLinkButton: FC<
+  ComponentPropsWithRef<typeof CopyToClipboardButton>
+> = styled(CopyToClipboardButton)`
   padding: 0;
   vertical-align: baseline;
 `;
@@ -270,12 +270,6 @@ const GuessBlock = React.memo(
         Open Jolly Roger discussion
       </Tooltip>
     );
-    const copyTooltip = (
-      <Tooltip id={`guess-${guess._id}-copy-tooltip`}>
-        Copy to clipboard
-      </Tooltip>
-    );
-
     return (
       <StyledRow $state={guess.state}>
         <StyledPuzzleTimestampAndSubmitter>
@@ -305,15 +299,14 @@ const GuessBlock = React.memo(
           <Breakable>{puzzle.title}</Breakable>
         </StyledPuzzleCell>
         <StyledGuessCell>
-          <OverlayTrigger placement="top" overlay={copyTooltip}>
-            {({ ref, ...triggerHandler }) => (
-              <CopyToClipboard text={guess.guess} {...triggerHandler}>
-                <StyledLinkButton ref={ref} variant="link" aria-label="Copy">
-                  <FontAwesomeIcon icon={faCopy} fixedWidth />
-                </StyledLinkButton>
-              </CopyToClipboard>
-            )}
-          </OverlayTrigger>{" "}
+          <StyledCopyToClipboardLinkButton
+            variant="link"
+            aria-label="Copy"
+            tooltipId={`guess-${guess._id}-copy-tooltip`}
+            text={guess.guess}
+          >
+            <FontAwesomeIcon icon={faCopy} fixedWidth />
+          </StyledCopyToClipboardLinkButton>
           <PuzzleAnswer answer={guess.guess} breakable indented />
         </StyledGuessCell>
         {hunt.hasGuessQueue && (
