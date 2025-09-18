@@ -4,7 +4,7 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import React, {
   useCallback,
   useImperativeHandle,
@@ -72,9 +72,7 @@ const OperatorBox = styled.div`
   }
 `;
 
-const StyledCopyToClipboardLinkButton: FC<
-  ComponentPropsWithRef<typeof CopyToClipboardButton>
-> = styled(CopyToClipboardButton)`
+const StyledCopyToClipboardButton = styled(CopyToClipboardButton)`
   padding: 0;
   vertical-align: baseline;
 `;
@@ -501,14 +499,14 @@ const ProfileList = ({
     return (
       <p>
         Invitation link:{" "}
-        <StyledCopyToClipboardLinkButton
+        <StyledCopyToClipboardButton
           tooltipId={`invitation-code-${invitationCode}`}
           text={invitationUrl}
           variant="link"
           aria-label="Copy"
         >
           <FontAwesomeIcon icon={faCopy} fixedWidth />
-        </StyledCopyToClipboardLinkButton>
+        </StyledCopyToClipboardButton>
         {invitationUrl}
       </p>
     );

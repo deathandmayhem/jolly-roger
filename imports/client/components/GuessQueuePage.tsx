@@ -5,12 +5,7 @@ import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSkullCrossbones } from "@fortawesome/free-solid-svg-icons/faSkullCrossbones";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, {
-  type ComponentPropsWithRef,
-  type FC,
-  useCallback,
-  useRef,
-} from "react";
+import React, { useCallback, useRef } from "react";
 import Button from "react-bootstrap/Button";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
@@ -137,9 +132,7 @@ const StyledGuessConfidence = styled(GuessConfidence)`
   )}
 `;
 
-const StyledCopyToClipboardLinkButton: FC<
-  ComponentPropsWithRef<typeof CopyToClipboardButton>
-> = styled(CopyToClipboardButton)`
+const StyledCopyToClipboardButton = styled(CopyToClipboardButton)`
   padding: 0;
   vertical-align: baseline;
 `;
@@ -299,14 +292,14 @@ const GuessBlock = React.memo(
           <Breakable>{puzzle.title}</Breakable>
         </StyledPuzzleCell>
         <StyledGuessCell>
-          <StyledCopyToClipboardLinkButton
+          <StyledCopyToClipboardButton
             variant="link"
             aria-label="Copy"
             tooltipId={`guess-${guess._id}-copy-tooltip`}
             text={guess.guess}
           >
             <FontAwesomeIcon icon={faCopy} fixedWidth />
-          </StyledCopyToClipboardLinkButton>
+          </StyledCopyToClipboardButton>
           <PuzzleAnswer answer={guess.guess} breakable indented />
         </StyledGuessCell>
         {hunt.hasGuessQueue && (

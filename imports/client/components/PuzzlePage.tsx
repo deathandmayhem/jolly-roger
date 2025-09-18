@@ -1282,9 +1282,7 @@ const AdditionalNotesCell = styled(GuessCell)`
   )}
 `;
 
-const StyledCopyToClipboardButton: FC<
-  ComponentPropsWithRef<typeof CopyToClipboardButton>
-> = styled(CopyToClipboardButton)`
+const StyledCopyToClipboardButton = styled(CopyToClipboardButton)`
   padding: 0;
   vertical-align: baseline;
 `;
