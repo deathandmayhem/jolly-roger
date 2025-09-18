@@ -41,10 +41,10 @@ const StyledPuzzleListLinkAnchor = styled(NavLink)`
   overflow: hidden;
   flex-direction: column;
   padding: 0 12px;
-  color: rgba(0 0 0 / 65%);
+  color: rgb(0 0 0 / 65%);
 
   &:hover {
-    color: rgba(0 0 0 / 80%);
+    color: rgb(0 0 0 / 80%);
     text-decoration: none;
   }
 
