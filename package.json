@@ -131,8 +131,8 @@
     "puppeteer": "^24.20.0",
     "sass": "^1.90.0",
     "stylelint": "^16.24.0",
-    "stylelint-config-standard": "^34.0.0",
-    "stylelint-scss": "^5.3.2",
+    "stylelint-config-standard": "^39.0.0",
+    "stylelint-scss": "^6.12.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },

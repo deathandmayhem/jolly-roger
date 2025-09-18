@@ -9,6 +9,7 @@
       {
         "ignoreShorthands": ["overflow", "place-content", "gap"]
       }
-    ]
+    ],
+    "nesting-selector-no-missing-scoping-root": [null]
   }
 }
