@@ -5,7 +5,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import App from "./App";
 import SplashPage from "./SplashPage";
 
-const useAuthenticated = () => {
+export const useAuthenticated = () => {
   const { loggingIn, loggedIn } = useTracker(() => {
     return {
       loggingIn: Meteor.loggingIn(),
