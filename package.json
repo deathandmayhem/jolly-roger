@@ -48,7 +48,7 @@
     "http-proxy": "^1.18.1",
     "ip-address": "^10.0.1",
     "logfmt": "^1.4.0",
-    "marked": "^16.2.1",
+    "marked": "^16.3.0",
     "mediasoup": "^3.19.2",
     "mediasoup-client": "^3.15.6",
     "meteor-node-stubs": "^1.2.24",
