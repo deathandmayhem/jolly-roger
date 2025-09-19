@@ -85,7 +85,7 @@
     "@types/he": "^1.2.3",
     "@types/http-proxy": "^1.17.15",
     "@types/jsbn": "^1.2.33",
-    "@types/lodash": "^4.17.13",
+    "@types/lodash": "^4.17.20",
     "@types/logfmt": "^1.2.6",
     "@types/meteor": "^2.9.9",
     "@types/mime-types": "^3.0.1",
