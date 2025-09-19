@@ -83,7 +83,7 @@
     "@types/express": "^5.0.3",
     "@types/glob": "^8.1.0",
     "@types/he": "^1.2.3",
-    "@types/http-proxy": "^1.17.15",
+    "@types/http-proxy": "^1.17.16",
     "@types/jsbn": "^1.2.33",
     "@types/lodash": "^4.17.13",
     "@types/logfmt": "^1.2.6",
