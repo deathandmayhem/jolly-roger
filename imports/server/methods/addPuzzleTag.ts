@@ -35,7 +35,7 @@ defineMethod(addPuzzleTag, {
     }
 
     const huntId = puzzle.hunt;
-    const tagId = await getOrCreateTagByName(huntId, tagName);
+    const tagId = await getOrCreateTagByName(this.userId, huntId, tagName);
 
     Logger.info("Tagging puzzle", { puzzle: puzzleId, tag: tagName });
     await Puzzles.updateAsync(
