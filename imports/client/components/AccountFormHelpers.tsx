@@ -145,7 +145,7 @@ export const useGoogleSignInCredentialsField = ({
   const onClick = useCallback(() => {
     setSubmitState(AccountFormSubmitState.SUBMITTING);
     Google.requestCredential(requestComplete);
-  }, []);
+  }, [requestComplete]);
 
   const googleSignInCredentialsField =
     !googleDisabled && googleSignInCredentials === undefined ? (

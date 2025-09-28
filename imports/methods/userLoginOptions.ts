@@ -1,7 +1,11 @@
 import TypedMethod from "./TypedMethod";
 
-// Returns a list of valid login methods for the specified user
+export type UserLoginOptionsResult = {
+  exists: boolean;
+  loginMethods?: string[];
+};
+
 export default new TypedMethod<
   { email: string; invitationCode: string },
-  { exists: boolean; loginMethods?: string[] }
+  UserLoginOptionsResult
 >("Users.methods.loginOptions");

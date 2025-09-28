@@ -45,6 +45,7 @@ export const User = z.object({
   displayName: nonEmptyString.optional(),
   googleAccount: nonEmptyString.optional(),
   googleAccountId: nonEmptyString.optional(),
+  googleProfilePicture: nonEmptyString.optional(),
   discordAccount: DiscordAccount.optional(),
   phoneNumber: nonEmptyString.optional(),
   dingwords: nonEmptyString.array().optional(),

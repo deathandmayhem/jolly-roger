@@ -2,6 +2,7 @@ import { Accounts } from "meteor/accounts-base";
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import InvitationCodes from "../../lib/models/InvitationCodes";
+import type { UserLoginOptionsResult } from "../../methods/userLoginOptions";
 import userLoginOptions from "../../methods/userLoginOptions";
 import defineMethod from "./defineMethod";
 
@@ -14,10 +15,7 @@ defineMethod(userLoginOptions, {
     return arg;
   },
 
-  async run({
-    email,
-    invitationCode,
-  }): Promise<{ exists: boolean; loginMethods?: string[] }> {
+  async run({ email, invitationCode }): Promise<UserLoginOptionsResult> {
     // We *do not* require a logged-in user to make this query, as it is intended to assist users who are not logged in figure out how to best do so.
     // We *do* require a valid invitation code that we intend to redeem.
     const invitation = await InvitationCodes.findOneAsync({
