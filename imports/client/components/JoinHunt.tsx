@@ -180,6 +180,7 @@ const JoinHunt = () => {
                       email: trimmedEmail,
                     },
                     (err, _unusedHuntId) => {
+                      setInfoMessage(undefined);
                       if (err) {
                         setSubmitState(AccountFormSubmitState.FAILED);
                         setErrorMessage(err.reason);
@@ -202,6 +203,7 @@ const JoinHunt = () => {
                     void Accounts.forgotPassword(
                       { email: trimmedEmail },
                       (innerError?: Error) => {
+                        setInfoMessage(undefined);
                         if (innerError) {
                           setErrorMessage(
                             innerError instanceof Meteor.Error
@@ -214,7 +216,6 @@ const JoinHunt = () => {
                           setSuccessMessage(
                             `Account has no password set.  Sent password reset email to ${trimmedEmail}.`,
                           );
-                          setInfoMessage(undefined);
                         }
                       },
                     );
