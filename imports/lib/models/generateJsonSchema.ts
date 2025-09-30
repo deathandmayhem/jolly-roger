@@ -7,7 +7,6 @@ import { Email, URL, UUID } from "./regexes";
 // json-schema than MongoDB (b) we wanted support for custom schema declarations
 
 export type MongoRecordZodType =
-  | z.AnyZodObject
   | z.ZodUnion<any>
   | z.ZodDiscriminatedUnion<any, any>
   | z.ZodIntersection<any, any>
@@ -69,7 +68,7 @@ export interface JsonSchema {
   required?: readonly string[];
 }
 
-function stringToSchema(def: z.ZodStringDef): JsonSchema {
+function stringToSchema(def: z.$ZodStringDef): JsonSchema {
   const bsonType = "string";
 
   const constraints = def.checks.reduce<Partial<JsonSchema>>((acc, check) => {
@@ -321,34 +320,31 @@ function discriminatedUnionToSchema(
 
 // Return anything that could potentially be a valid object on one half of an
 // intersection - we'll make sure it's allowed on the other half
-function potentialObjectKeys<T extends z.ZodFirstPartySchemaTypes>(
+function potentialObjectKeys<T extends z.ZodType>(
   schema: T,
 ): [keys: Set<string>, catchall: boolean] {
-  const { _def: def } = schema;
-  switch (def.typeName) {
-    case z.ZodFirstPartyTypeKind.ZodString:
-    case z.ZodFirstPartyTypeKind.ZodNumber:
-    case z.ZodFirstPartyTypeKind.ZodDate:
-    case z.ZodFirstPartyTypeKind.ZodBoolean:
-    case z.ZodFirstPartyTypeKind.ZodNull:
-    case z.ZodFirstPartyTypeKind.ZodAny:
-    case z.ZodFirstPartyTypeKind.ZodUnknown:
-    case z.ZodFirstPartyTypeKind.ZodArray:
-    case z.ZodFirstPartyTypeKind.ZodTuple:
-    case z.ZodFirstPartyTypeKind.ZodEnum:
-    case z.ZodFirstPartyTypeKind.ZodNativeEnum:
+  const { def } = schema._zod;
+  switch (def.type) {
+    case "string":
+    case "number":
+    case "date":
+    case "boolean":
+    case "null":
+    case "any":
+    case "unknown":
+    case "array":
+    case "tuple":
+    case "enum":
       return [new Set(), false];
-    case z.ZodFirstPartyTypeKind.ZodObject:
+    case "object":
       return [
-        new Set(Object.keys(def.shape())),
+        new Set(Object.keys(def.shape)),
         !(def.catchall instanceof z.ZodNever),
       ];
-    case z.ZodFirstPartyTypeKind.ZodRecord:
+    case "record":
       return [new Set(), true];
-    case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
-      return (def.options as z.ZodDiscriminatedUnionOption<any>[]).reduce<
-        [keys: Set<string>, catchall: boolean]
-      >(
+    case "union":
+      return def.options.reduce<[keys: Set<string>, catchall: boolean]>(
         ([keys, catchall], option) => {
           const [optionKeys, optionCatchall] = potentialObjectKeys(option);
           return [
@@ -358,20 +354,7 @@ function potentialObjectKeys<T extends z.ZodFirstPartySchemaTypes>(
         },
         [new Set(), false],
       );
-    case z.ZodFirstPartyTypeKind.ZodUnion:
-      return (def.options as z.ZodTypeAny[]).reduce<
-        [keys: Set<string>, catchall: boolean]
-      >(
-        ([keys, catchall], option) => {
-          const [optionKeys, optionCatchall] = potentialObjectKeys(option);
-          return [
-            new Set([...keys, ...optionKeys]),
-            catchall || optionCatchall,
-          ];
-        },
-        [new Set(), false],
-      );
-    case z.ZodFirstPartyTypeKind.ZodIntersection: {
+    case "intersection": {
       const [leftKeys, leftCatchall] = potentialObjectKeys(def.left);
       const [rightKeys, rightCatchall] = potentialObjectKeys(def.right);
       return [
@@ -379,18 +362,11 @@ function potentialObjectKeys<T extends z.ZodFirstPartySchemaTypes>(
         leftCatchall || rightCatchall,
       ];
     }
-    case z.ZodFirstPartyTypeKind.ZodLiteral:
-      return [
-        typeof def.value === "object" && !Array.isArray(def.value)
-          ? new Set(Object.keys(def.value))
-          : new Set(),
-        false,
-      ];
-    case z.ZodFirstPartyTypeKind.ZodEffects:
-      return potentialObjectKeys(def.schema);
-    case z.ZodFirstPartyTypeKind.ZodOptional:
-    case z.ZodFirstPartyTypeKind.ZodNullable:
-    case z.ZodFirstPartyTypeKind.ZodDefault:
+    case "literal":
+      return [new Set(Object.keys(def.values)), false];
+    case "optional":
+    case "nullable":
+    case "default":
       return potentialObjectKeys(def.innerType);
     default:
       throw new Error(`Unexpected schema type: ${def.typeName}`);

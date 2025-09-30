@@ -35,13 +35,13 @@ export type SelectorToResultType<
 //
 // It's OK if any of these would accept _more_ than Mongo would accept, so long
 // as they accept _at least_ what Mongo would accept.
-export function relaxSchema(schema: z.ZodFirstPartySchemaTypes): z.ZodTypeAny {
-  const { _def: def } = schema;
+export function relaxSchema(schema: z.ZodFirstPartySchemaTypes): z.$ZodType {
+  const { def } = schema._zod;
   switch (def.typeName) {
     case z.ZodFirstPartyTypeKind.ZodObject: {
       const newShape: any = {};
       for (const [key, fieldSchemaUnknown] of Object.entries(def.shape())) {
-        const fieldSchema = fieldSchemaUnknown as z.ZodTypeAny;
+        const fieldSchema = fieldSchemaUnknown as z.$ZodType;
         newShape[key] = relaxSchema(fieldSchema);
       }
       return z.looseObject(newShape).optional();
@@ -97,9 +97,9 @@ export function relaxSchema(schema: z.ZodFirstPartySchemaTypes): z.ZodTypeAny {
   }
 }
 
-export function flattenSchemas<Schemas extends z.ZodTypeAny[]>(
+export function flattenSchemas<Schemas extends z.$ZodType[]>(
   schemas: Schemas,
-): z.ZodTypeAny {
+): z.$ZodType {
   const [first, second, ...rest] = schemas.filter(
     (s) => !(s instanceof z.ZodNever),
   );
@@ -114,10 +114,10 @@ export function flattenSchemas<Schemas extends z.ZodTypeAny[]>(
   return z.union([first, second, ...rest]);
 }
 
-export function getSchemaForField<Schema extends z.ZodTypeAny>(
+export function getSchemaForField<Schema extends z.$ZodType>(
   schema: Schema,
   field: string,
-): z.ZodTypeAny {
+): z.$ZodType {
   const { _def: def } = schema;
   switch (def.typeName) {
     case z.ZodFirstPartyTypeKind.ZodObject:
@@ -128,13 +128,13 @@ export function getSchemaForField<Schema extends z.ZodTypeAny>(
     case z.ZodFirstPartyTypeKind.ZodUnion:
     case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
       return flattenSchemas(
-        def.options.flatMap(<T extends z.ZodTypeAny>(option: T) => {
+        def.options.flatMap(<T extends z.$ZodType>(option: T) => {
           return getSchemaForField(option, field);
         }),
       );
     case z.ZodFirstPartyTypeKind.ZodIntersection:
       return flattenSchemas(
-        [def.left, def.right].flatMap(<T extends z.ZodTypeAny>(option: T) => {
+        [def.left, def.right].flatMap(<T extends z.$ZodType>(option: T) => {
           return getSchemaForField(option, field);
         }),
       );
@@ -170,7 +170,7 @@ export function getSchemaForField<Schema extends z.ZodTypeAny>(
 }
 
 export async function parseMongoOperationAsync(
-  relaxedSchema: z.ZodTypeAny,
+  relaxedSchema: z.$ZodType,
   operation: Record<string, any>,
   parsed: Record<string, any> = {},
   pathParts: string[] = [],
@@ -408,7 +408,7 @@ export const AllModels = new Set<Model<any, any>>();
 
 class Model<
   Schema extends MongoRecordZodType,
-  IdSchema extends z.ZodTypeAny = typeof stringId,
+  IdSchema extends z.$ZodType = typeof stringId,
 > {
   name: string;
 
@@ -424,7 +424,7 @@ class Model<
       >
     : z.ZodIntersection<Schema, z.ZodObject<{ _id: IdSchema }>>;
 
-  relaxedSchema: z.ZodTypeAny;
+  relaxedSchema: z.$ZodType;
 
   collection: Mongo.Collection<z.output<this["schema"]>>;
 

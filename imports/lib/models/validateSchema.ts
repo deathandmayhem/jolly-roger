@@ -1,66 +1,61 @@
-import { z } from "zod";
+import type { z } from "zod";
 import { allowedEmptyString } from "./customTypes";
 
-export default function validateSchema<T extends z.ZodFirstPartySchemaTypes>(
+export default function validateSchema<T extends z.ZodType>(
   schema: T,
   path: string[] = [],
 ) {
-  const { _def: def } = schema;
+  const { def } = schema._zod;
 
-  switch (def.typeName) {
-    case z.ZodFirstPartyTypeKind.ZodObject:
-      Object.entries(def.shape()).forEach(([key, field]) =>
+  switch (def.type) {
+    case "object":
+      Object.entries((def as z.ZodObject).shape).forEach(([key, field]) =>
         validateSchema(field as z.ZodTypeAny, [...path, key]),
       );
-      validateSchema(def.catchall, path);
+      validateSchema((def as z.ZodObject).catchall, path);
       break;
-    case z.ZodFirstPartyTypeKind.ZodArray:
-      validateSchema(def.type, [...path, "[]"]);
+    case "array":
+      validateSchema(def.element, [...path, "[]"]);
       break;
-    case z.ZodFirstPartyTypeKind.ZodUnion:
-    case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
-      def.options.forEach((option: z.ZodTypeAny) =>
+    case "union":
+      (def as z.ZodUnion).options.forEach((option: z.ZodType) =>
         validateSchema(option, path),
       );
       break;
-    case z.ZodFirstPartyTypeKind.ZodIntersection:
+    case "intersection":
       validateSchema(def.left, path);
       validateSchema(def.right, path);
       break;
-    case z.ZodFirstPartyTypeKind.ZodTuple:
-      def.items.forEach((item: z.ZodTypeAny, idx: number) => {
+    case "tuple":
+      (def as z.ZodTuple).items.forEach((item: z.ZodType, idx: number) => {
         return validateSchema(item, [...path, idx.toString()]);
       });
       break;
-    case z.ZodFirstPartyTypeKind.ZodRecord:
+    case "record":
       validateSchema(def.valueType, [...path, "[]"]);
       break;
 
-    case z.ZodFirstPartyTypeKind.ZodDefault:
-    case z.ZodFirstPartyTypeKind.ZodNullable:
-    case z.ZodFirstPartyTypeKind.ZodOptional:
+    case "default":
+    case "nullable":
+    case "optional":
       validateSchema(def.innerType, path);
       break;
-    case z.ZodFirstPartyTypeKind.ZodEffects:
-      validateSchema(def.schema, path);
-      break;
 
-    case z.ZodFirstPartyTypeKind.ZodEnum:
-    case z.ZodFirstPartyTypeKind.ZodNativeEnum:
-    case z.ZodFirstPartyTypeKind.ZodLiteral:
-    case z.ZodFirstPartyTypeKind.ZodNumber:
-    case z.ZodFirstPartyTypeKind.ZodDate:
-    case z.ZodFirstPartyTypeKind.ZodBoolean:
-    case z.ZodFirstPartyTypeKind.ZodNever:
-    case z.ZodFirstPartyTypeKind.ZodAny:
-    case z.ZodFirstPartyTypeKind.ZodUnknown:
+    case "enum":
+    case "literal":
+    case "number":
+    case "date":
+    case "boolean":
+    case "never":
+    case "any":
+    case "unknown":
       // No validation needed
       break;
 
-    case z.ZodFirstPartyTypeKind.ZodString: {
+    case "string": {
       // String fields must not accept empty strings, unless they're
       // specifically allowedEmptyString
-      if (schema === allowedEmptyString) break;
+      if ((schema as z.ZodString) === allowedEmptyString) break;
 
       const result = schema.safeParse("");
       if (result.success) {
@@ -72,6 +67,6 @@ export default function validateSchema<T extends z.ZodFirstPartySchemaTypes>(
     }
 
     default:
-      throw new Error(`Unknown schema type: ${def.typeName}`);
+      throw new Error(`Unknown schema type: ${def.type}`);
   }
 }
