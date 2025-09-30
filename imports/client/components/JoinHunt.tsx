@@ -361,7 +361,7 @@ const JoinHunt = () => {
           <div className="d-grid gap-2">
             <Button
               size="lg"
-              variant={formIsValid ? "primary" : "outline-primary"}
+              variant={formIsValid ? "primary" : "secondary"}
               type="submit"
               disabled={submitting || !formIsValid}
             >
@@ -385,7 +385,7 @@ const JoinHunt = () => {
           <div className="d-grid gap-2">
             <Button
               size="lg"
-              variant={formIsValid ? "primary" : "outline-primary"}
+              variant={formIsValid ? "primary" : "secondary"}
               type="submit"
               disabled={submitting || !formIsValid}
             >

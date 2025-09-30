@@ -68,7 +68,7 @@ const ForgotPasswordForm = () => {
         <Button
           size="lg"
           type="submit"
-          variant={submitDisabled ? "outline-primary" : "primary"}
+          variant={submitDisabled ? "secondary" : "primary"}
           disabled={submitDisabled}
         >
           Email Reset Link
