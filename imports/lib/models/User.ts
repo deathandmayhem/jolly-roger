@@ -14,6 +14,7 @@ declare module "meteor/meteor" {
       displayName?: string;
       googleAccount?: string;
       googleAccountId?: string;
+      googleProfilePicture?: string; // Never guaranteed to be set, even if googleAccount and googleAccountId are
       discordAccount?: DiscordAccountType;
       phoneNumber?: string;
       dingwords?: string[];
@@ -45,6 +46,7 @@ export const User = z.object({
   displayName: nonEmptyString.optional(),
   googleAccount: nonEmptyString.optional(),
   googleAccountId: nonEmptyString.optional(),
+  googleProfilePicture: nonEmptyString.optional(),
   discordAccount: DiscordAccount.optional(),
   phoneNumber: nonEmptyString.optional(),
   dingwords: nonEmptyString.array().optional(),

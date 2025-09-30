@@ -65,3 +65,4 @@ import "./unlinkUserGoogleAccount";
 import "./updateHunt";
 import "./updateProfile";
 import "./updatePuzzle";
+import "./userLoginOptions";

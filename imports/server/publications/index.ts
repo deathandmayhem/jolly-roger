@@ -10,6 +10,7 @@ import "./discordRolesForConfiguredGuild";
 import "./featureFlagsAll";
 import "./guessesForGuessQueue";
 import "./huntForHuntApp";
+import "./huntForInvitationCode";
 import "./huntsAll";
 import "./invitationCodesForHunt";
 import "./pendingAnnouncementsForSelf";

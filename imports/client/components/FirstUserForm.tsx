@@ -15,6 +15,7 @@ enum SubmitState {
   ERROR = "error",
 }
 
+// This form is used strictly for the creation of the first user, who is made an admin.
 const FirstUserForm = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -56,6 +57,7 @@ const FirstUserForm = () => {
                 setSubmitError(error.message);
                 setSubmitState(SubmitState.ERROR);
               } else {
+                setSubmitState(SubmitState.SUCCESS);
                 // We've logged in. We should get redirected to /hunts by the
                 // AuthenticatedRoute that's rendering us.
               }

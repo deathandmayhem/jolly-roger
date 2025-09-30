@@ -1,7 +1,7 @@
 import { Google } from "meteor/google-oauth";
 import type { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
-import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
 import React, { useCallback, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -21,8 +21,8 @@ import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
 import unlinkUserDiscordAccount from "../../methods/unlinkUserDiscordAccount";
 import unlinkUserGoogleAccount from "../../methods/unlinkUserGoogleAccount";
 import updateProfile from "../../methods/updateProfile";
-import TeamName from "../TeamName";
 import { requestDiscordCredential } from "../discord";
+import useTeamName from "../hooks/useTeamName";
 import APIKeysTable from "./APIKeysTable";
 import ActionButtonRow from "./ActionButtonRow";
 import AudioConfig from "./AudioConfig";
@@ -173,17 +173,12 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
     state: DiscordLinkBlockLinkState.IDLE,
   });
 
-  useSubscribe("teamName");
-
   const config = useTracker(
     () => ServiceConfiguration.configurations.findOne({ service: "discord" }),
     [],
   );
   const discordDisabled = useTracker(() => Flags.active("disable.discord"), []);
-  const teamName = useTracker(
-    () => TeamName.findOne("teamName")?.name ?? "Default Team Name",
-    [],
-  );
+  const { teamName } = useTeamName();
 
   const requestComplete = useCallback((token: string) => {
     const secret = OAuth._retrieveCredentialSecret(token);
