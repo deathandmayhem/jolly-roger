@@ -14,6 +14,7 @@ declare module "meteor/meteor" {
       displayName?: string;
       googleAccount?: string;
       googleAccountId?: string;
+      googleProfilePicture?: string; // Never guaranteed to be set, even if googleAccount and googleAccountId are
       discordAccount?: DiscordAccountType;
       phoneNumber?: string;
       dingwords?: string[];
