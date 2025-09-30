@@ -1,6 +1,6 @@
 import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
-import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { useTracker } from "meteor/react-meteor-data";
 import type { FormEvent } from "react";
 import React, { useCallback, useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
@@ -14,7 +14,7 @@ import InvitationCodes from "../../lib/models/InvitationCodes";
 import huntForInvitationCode from "../../lib/publications/huntForInvitationCode";
 import acceptHuntInvitationCode from "../../methods/acceptHuntInvitationCode";
 import userLoginOptions from "../../methods/userLoginOptions";
-import TeamName from "../TeamName";
+import useTeamName from "../hooks/useTeamName";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import {
   AccountFormFrame,
@@ -36,12 +36,9 @@ type LoginOptionsResult = { exists: boolean; loginMethods?: string[] };
 // If they're already in the hunt, we'll just redirect them to the hunt page.
 const JoinHunt = () => {
   const [authLoading, loggedIn] = useAuthenticated();
-  const teamNameLoadingFunc = useSubscribe("teamName");
-  const teamNameLoading = teamNameLoadingFunc();
-  const teamName = useTracker(() => {
-    if (teamNameLoading) return "(loading team name)";
-    return TeamName.findOne("teamName")?.name ?? "Default Team Name";
-  }, [teamNameLoading]);
+
+  const { teamName: teamNameFromHook, teamNameLoading } = useTeamName();
+  const teamName = teamNameLoading() ? "(loading team name)" : teamNameFromHook;
 
   const invitationCode = useParams<"invitationCode">().invitationCode!;
   const huntLoadingFunc = useTypedSubscribe(huntForInvitationCode, {

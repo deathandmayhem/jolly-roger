@@ -1,12 +1,11 @@
 import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
-import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import type { FormEvent } from "react";
 import React, { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
 import { Link, useLocation } from "react-router-dom";
 import type { LoginOptions } from "../../lib/loginOptions";
-import TeamName from "../TeamName";
+import useTeamName from "../hooks/useTeamName";
 import {
   AccountFormFrame,
   AccountFormSubmitState,
@@ -18,10 +17,7 @@ import {
 const LoginForm = () => {
   const location = useLocation();
   const { state } = location;
-  const teamNameLoading = useSubscribe("teamName");
-  const teamName = useTracker(() => {
-    return TeamName.findOne("teamName")?.name ?? "Default Team Name";
-  }, []);
+  const { teamName, teamNameLoading } = useTeamName();
 
   const [submitState, setSubmitState] = useState<AccountFormSubmitState>(
     AccountFormSubmitState.IDLE,
